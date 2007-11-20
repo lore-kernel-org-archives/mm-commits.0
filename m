@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + m68k-kill-arch-m68k-hp300-ksymsc.patch added to -mm tree
-Date: Mon, 19 Nov 2007 18:15:04 -0800
-Message-ID: <200711200215.lAK2F4HZ008955@imap1.linux-foundation.org>
+Subject: + m68k-kill-arch-m68k-mac-mac_ksymsc.patch added to -mm tree
+Date: Mon, 19 Nov 2007 18:15:03 -0800
+Message-ID: <200711200215.lAK2F3Om008952@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44897 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33730 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762613AbXKTCP1 (ORCPT
+	by vger.kernel.org with ESMTP id S1762729AbXKTCP2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Nov 2007 21:15:27 -0500
+	Mon, 19 Nov 2007 21:15:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: bunk@kernel.org, geert@linux-m68k.org, zippel@linux-m68k.org
 
 
 The patch titled
-     m68k: kill arch/m68k/hp300/ksyms.c
+     m68k: kill arch/m68k/mac/mac_ksyms.c
 has been added to the -mm tree.  Its filename is
-     m68k-kill-arch-m68k-hp300-ksymsc.patch
+     m68k-kill-arch-m68k-mac-mac_ksymsc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,10 +26,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: m68k: kill arch/m68k/hp300/ksyms.c
+Subject: m68k: kill arch/m68k/mac/mac_ksyms.c
 From: Adrian Bunk <bunk@kernel.org>
 
-It was empty.
+EXPORT_SYMBOL's belong to the actual code.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
@@ -37,32 +37,54 @@ Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/hp300/Makefile |    2 +-
- arch/m68k/hp300/ksyms.c  |    9 ---------
- 2 files changed, 1 insertion(+), 10 deletions(-)
+ arch/m68k/mac/Makefile    |    2 +-
+ arch/m68k/mac/mac_ksyms.c |    8 --------
+ arch/m68k/mac/via.c       |    5 ++++-
+ 3 files changed, 5 insertions(+), 10 deletions(-)
 
-diff -puN arch/m68k/hp300/Makefile~m68k-kill-arch-m68k-hp300-ksymsc arch/m68k/hp300/Makefile
---- a/arch/m68k/hp300/Makefile~m68k-kill-arch-m68k-hp300-ksymsc
-+++ a/arch/m68k/hp300/Makefile
-@@ -2,4 +2,4 @@
- # Makefile for Linux arch/m68k/hp300 source directory
+diff -puN arch/m68k/mac/Makefile~m68k-kill-arch-m68k-mac-mac_ksymsc arch/m68k/mac/Makefile
+--- a/arch/m68k/mac/Makefile~m68k-kill-arch-m68k-mac-mac_ksymsc
++++ a/arch/m68k/mac/Makefile
+@@ -3,4 +3,4 @@
  #
  
--obj-y		:= ksyms.o config.o time.o reboot.o
-+obj-y		:= config.o time.o reboot.o
-diff -puN arch/m68k/hp300/ksyms.c~m68k-kill-arch-m68k-hp300-ksymsc /dev/null
---- a/arch/m68k/hp300/ksyms.c
+ obj-y		:= config.o bootparse.o macints.o iop.o via.o oss.o psc.o \
+-			baboon.o macboing.o debug.o misc.o mac_ksyms.o
++			baboon.o macboing.o debug.o misc.o
+diff -puN arch/m68k/mac/mac_ksyms.c~m68k-kill-arch-m68k-mac-mac_ksymsc /dev/null
+--- a/arch/m68k/mac/mac_ksyms.c
 +++ /dev/null
-@@ -1,9 +0,0 @@
--/*
-- *  linux/arch/m68k/hp300/ksyms.c
-- *
-- *  Copyright (C) 1998 Philip Blundell <philb@gnu.org>
-- *
-- *  This file contains the HP300-specific kernel symbols.  None yet. :-)
-- */
--
+@@ -1,8 +0,0 @@
 -#include <linux/module.h>
+-#include <asm/ptrace.h>
+-#include <asm/traps.h>
+-
+-/* Says whether we're using A/UX interrupts or not */
+-extern int via_alt_mapping;
+-
+-EXPORT_SYMBOL(via_alt_mapping);
+diff -puN arch/m68k/mac/via.c~m68k-kill-arch-m68k-mac-mac_ksymsc arch/m68k/mac/via.c
+--- a/arch/m68k/mac/via.c~m68k-kill-arch-m68k-mac-mac_ksymsc
++++ a/arch/m68k/mac/via.c
+@@ -28,6 +28,7 @@
+ #include <linux/delay.h>
+ #include <linux/init.h>
+ #include <linux/ide.h>
++#include <linux/module.h>
+ 
+ #include <asm/bootinfo.h>
+ #include <asm/macintosh.h>
+@@ -41,7 +42,9 @@ volatile __u8 *via1, *via2;
+ /* See note in mac_via.h about how this is possibly not useful */
+ volatile long *via_memory_bogon=(long *)&via_memory_bogon;
+ #endif
+-int rbv_present, via_alt_mapping;
++int rbv_present;
++int via_alt_mapping;
++EXPORT_SYMBOL(via_alt_mapping);
+ __u8 rbv_clear;
+ 
+ /*
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
