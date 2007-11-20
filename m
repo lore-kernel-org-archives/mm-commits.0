@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mac68k-mailing-list-addresss.patch added to -mm tree
-Date: Mon, 19 Nov 2007 18:11:56 -0800
-Message-ID: <200711200211.lAK2BuJ7008782@imap1.linux-foundation.org>
+Subject: + dio-array_size-cleanup.patch added to -mm tree
+Date: Mon, 19 Nov 2007 18:14:58 -0800
+Message-ID: <200711200214.lAK2EwMp008937@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60668 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52094 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762226AbXKTCMO (ORCPT
+	by vger.kernel.org with ESMTP id S1762762AbXKTCPN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Nov 2007 21:12:14 -0500
+	Mon, 19 Nov 2007 21:15:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fthain@telegraphics.com.au, geert@linux-m68k.org
+Cc: alex@flawedcode.org, geert@linux-m68k.org, zippel@linux-m68k.org
 
 
 The patch titled
-     mac68k: mailing list addresss
+     dio: ARRAY_SIZE() cleanup
 has been added to the -mm tree.  Its filename is
-     mac68k-mailing-list-addresss.patch
+     dio-array_size-cleanup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mac68k: mailing list addresss
-From: Finn Thain <fthain@telegraphics.com.au>
+Subject: dio: ARRAY_SIZE() cleanup
+From: Alejandro Martinez Ruiz <alex@flawedcode.org>
 
-The mail service for the mac.linux-m68k.org domain is defunct.
-
-Signed-off-by: Finn Thain <fthain@telegraphics.com.au>
+Signed-off-by: Alejandro Martinez Ruiz <alex@flawedcode.org>
 Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
+ drivers/dio/dio.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~mac68k-mailing-list-addresss MAINTAINERS
---- a/MAINTAINERS~mac68k-mailing-list-addresss
-+++ a/MAINTAINERS
-@@ -2446,7 +2446,7 @@ M68K ON APPLE MACINTOSH
- P:	Joshua Thompson
- M:	funaho@jurai.org
- W:	http://www.mac.linux-m68k.org/
--L:	linux-mac68k@mac.linux-m68k.org
-+L:	linux-m68k@lists.linux-m68k.org
- S:	Maintained
+diff -puN drivers/dio/dio.c~dio-array_size-cleanup drivers/dio/dio.c
+--- a/drivers/dio/dio.c~dio-array_size-cleanup
++++ a/drivers/dio/dio.c
+@@ -88,7 +88,7 @@ static struct dioname names[] = 
+ #undef DIONAME
+ #undef DIOFBNAME
  
- M68K ON HP9000/300
+-#define NUMNAMES (sizeof(names) / sizeof(struct dioname))
++#define NUMNAMES ARRAY_SIZE(names)
+ 
+ static const char *unknowndioname 
+         = "unknown DIO board -- please email <linux-m68k@lists.linux-m68k.org>!";
 _
 
-Patches currently in -mm which might be from fthain@telegraphics.com.au are
+Patches currently in -mm which might be from alex@flawedcode.org are
 
-mac68k-mailing-list-addresss.patch
+git-arm.patch
+git-mips.patch
+git-netdev-all.patch
+m68k-array_size-cleanup.patch
+dio-array_size-cleanup.patch
