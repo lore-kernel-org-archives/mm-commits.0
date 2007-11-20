@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pata_pcmcia-minor-cleanups-and-support-for-dual-channel-cards.patch added to -mm tree
-Date: Mon, 19 Nov 2007 23:09:19 -0800
-Message-ID: <200711200709.lAK79Jgv019980@imap1.linux-foundation.org>
+Subject: + moxa-first-pass-at-termios-reporting.patch added to -mm tree
+Date: Mon, 19 Nov 2007 23:10:24 -0800
+Message-ID: <200711200710.lAK7AOXU020084@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45711 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53155 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756852AbXKTHJq (ORCPT
+	by vger.kernel.org with ESMTP id S1752198AbXKTHKp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Nov 2007 02:09:46 -0500
+	Tue, 20 Nov 2007 02:10:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com
 
 
 The patch titled
-     pata_pcmcia: minor cleanups and support for dual channel cards
+     moxa: first pass at termios reporting
 has been added to the -mm tree.  Its filename is
-     pata_pcmcia-minor-cleanups-and-support-for-dual-channel-cards.patch
+     moxa-first-pass-at-termios-reporting.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,91 +26,96 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_pcmcia: minor cleanups and support for dual channel cards
+Subject: moxa: first pass at termios reporting
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_pcmcia.c |   31 +++++++++++++++++--------------
- 1 file changed, 17 insertions(+), 14 deletions(-)
+ drivers/char/moxa.c |   23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
-diff -puN drivers/ata/pata_pcmcia.c~pata_pcmcia-minor-cleanups-and-support-for-dual-channel-cards drivers/ata/pata_pcmcia.c
---- a/drivers/ata/pata_pcmcia.c~pata_pcmcia-minor-cleanups-and-support-for-dual-channel-cards
-+++ a/drivers/ata/pata_pcmcia.c
-@@ -42,7 +42,7 @@
+diff -puN drivers/char/moxa.c~moxa-first-pass-at-termios-reporting drivers/char/moxa.c
+--- a/drivers/char/moxa.c~moxa-first-pass-at-termios-reporting
++++ a/drivers/char/moxa.c
+@@ -207,7 +207,7 @@ static int moxa_tiocmget(struct tty_stru
+ static int moxa_tiocmset(struct tty_struct *tty, struct file *file,
+ 			 unsigned int set, unsigned int clear);
+ static void moxa_poll(unsigned long);
+-static void moxa_set_tty_param(struct tty_struct *);
++static void moxa_set_tty_param(struct tty_struct *, struct ktermios *);
+ static int moxa_block_till_ready(struct tty_struct *, struct file *,
+ 			    struct moxa_port *);
+ static void moxa_setup_empty_event(struct tty_struct *);
+@@ -500,7 +500,7 @@ static int moxa_open(struct tty_struct *
+ 	ch->tty = tty;
+ 	if (!(ch->asyncflags & ASYNC_INITIALIZED)) {
+ 		ch->statusflags = 0;
+-		moxa_set_tty_param(tty);
++		moxa_set_tty_param(tty, tty->termios);
+ 		MoxaPortLineCtrl(ch->port, 1, 1);
+ 		MoxaPortEnable(ch->port);
+ 		ch->asyncflags |= ASYNC_INITIALIZED;
+@@ -803,7 +803,7 @@ static void moxa_set_termios(struct tty_
  
+ 	if (ch == NULL)
+ 		return;
+-	moxa_set_tty_param(tty);
++	moxa_set_tty_param(tty, old_termios);
+ 	if (!(old_termios->c_cflag & CLOCAL) &&
+ 	    (tty->termios->c_cflag & CLOCAL))
+ 		wake_up_interruptible(&ch->open_wait);
+@@ -903,11 +903,11 @@ static void moxa_poll(unsigned long igno
  
- #define DRV_NAME "pata_pcmcia"
--#define DRV_VERSION "0.3.2"
-+#define DRV_VERSION "0.3.3"
+ /******************************************************************************/
  
- /*
-  *	Private data structure to glue stuff together
-@@ -198,7 +198,6 @@ do { last_fn = (fn); if ((last_ret = (re
- /**
-  *	pcmcia_init_one		-	attach a PCMCIA interface
-  *	@pdev: pcmcia device
-- *	@ops: operations for this device
-  *
-  *	Register a PCMCIA IDE interface. Such interfaces are PIO 0 and
-  *	shared IRQ.
-@@ -217,9 +216,10 @@ static int pcmcia_init_one(struct pcmcia
- 		cistpl_cftable_entry_t dflt;
- 	} *stk = NULL;
- 	cistpl_cftable_entry_t *cfg;
--	int pass, last_ret = 0, last_fn = 0, is_kme = 0, ret = -ENOMEM;
-+	int pass, last_ret = 0, last_fn = 0, is_kme = 0, ret = -ENOMEM, p;
- 	unsigned long io_base, ctl_base;
- 	void __iomem *io_addr, *ctl_addr;
-+	int n_ports = 1;
+-static void moxa_set_tty_param(struct tty_struct *tty)
++static void moxa_set_tty_param(struct tty_struct *tty, struct ktermios *old_termios)
+ {
+ 	register struct ktermios *ts;
+ 	struct moxa_port *ch;
+-	int rts, cts, txflow, rxflow, xany;
++	int rts, cts, txflow, rxflow, xany, baud;
  
- 	struct ata_port_operations *ops = &pcmcia_port_ops;
+ 	ch = (struct moxa_port *) tty->driver_data;
+ 	ts = tty->termios;
+@@ -924,8 +924,15 @@ static void moxa_set_tty_param(struct tt
+ 		rxflow = 1;
+ 	if (ts->c_iflag & IXANY)
+ 		xany = 1;
++		
++	/* Clear the features we don't support */
++	ts->c_cflag &= ~CMSPAR;
+ 	MoxaPortFlowCtrl(ch->port, rts, cts, txflow, rxflow, xany);
+-	MoxaPortSetTermio(ch->port, ts, tty_get_baud_rate(tty));
++	baud = MoxaPortSetTermio(ch->port, ts, tty_get_baud_rate(tty));
++	if (baud == -1)
++		baud = tty_termios_baud_rate(old_termios);
++	/* Not put the baud rate into the termios data */
++	tty_encode_baud_rate(tty, baud, baud);
+ }
  
-@@ -348,7 +348,7 @@ next_entry:
- 	/* FIXME: Could be more ports at base + 0x10 but we only deal with
- 	   one right now */
- 	if (pdev->io.NumPorts1 >= 0x20)
--		printk(KERN_WARNING DRV_NAME ": second channel not yet supported.\n");
-+		n_ports = 2;
+ static int moxa_block_till_ready(struct tty_struct *tty, struct file *filp,
+@@ -2065,7 +2072,7 @@ int MoxaPortSetTermio(int port, struct k
+ 		if (baud >= 921600L)
+ 			return (-1);
+ 	}
+-	MoxaPortSetBaud(port, baud);
++	baud = MoxaPortSetBaud(port, baud);
  
- 	if (pdev->manf_id == 0x0097 && pdev->card_id == 0x1620)
- 		ops = &pcmcia_8bit_port_ops;
-@@ -357,20 +357,23 @@ next_entry:
- 	 *	sane.
- 	 */
- 	ret = -ENOMEM;
--	host = ata_host_alloc(&pdev->dev, 1);
-+	host = ata_host_alloc(&pdev->dev, n_ports);
- 	if (!host)
- 		goto failed;
--	ap = host->ports[0];
+ 	if (termio->c_iflag & (IXON | IXOFF | IXANY)) {
+ 		writeb(termio->c_cc[VSTART], ofsAddr + FuncArg);
+@@ -2074,7 +2081,7 @@ int MoxaPortSetTermio(int port, struct k
+ 		moxa_wait_finish(ofsAddr);
  
--	ap->ops = ops;
--	ap->pio_mask = 1;		/* ISA so PIO 0 cycles */
--	ap->flags |= ATA_FLAG_SLAVE_POSS;
--	ap->ioaddr.cmd_addr = io_addr;
--	ap->ioaddr.altstatus_addr = ctl_addr;
--	ap->ioaddr.ctl_addr = ctl_addr;
--	ata_std_ports(&ap->ioaddr);
-+	for (p = 0; p < n_ports; p++) {
-+		ap = host->ports[p];
+ 	}
+-	return (0);
++	return (baud);
+ }
  
--	ata_port_desc(ap, "cmd 0x%lx ctl 0x%lx", io_base, ctl_base);
-+		ap->ops = ops;
-+		ap->pio_mask = 1;		/* ISA so PIO 0 cycles */
-+		ap->flags |= ATA_FLAG_SLAVE_POSS;
-+		ap->ioaddr.cmd_addr = io_addr + 0x10 * p;
-+		ap->ioaddr.altstatus_addr = ctl_addr + 0x10 * p;
-+		ap->ioaddr.ctl_addr = ctl_addr + 0x10 * p;
-+		ata_std_ports(&ap->ioaddr);
-+
-+		ata_port_desc(ap, "cmd 0x%lx ctl 0x%lx", io_base, ctl_base);
-+	}
- 
- 	/* activate */
- 	ret = ata_host_activate(host, pdev->irq.AssignedIRQ, ata_interrupt,
+ int MoxaPortGetLineOut(int port, int *dtrState, int *rtsState)
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -165,3 +170,4 @@ char-riscom8-change-rc_init_drivers-prototype.patch
 tty-add-the-new-termios2-ioctls-to-the-compatible.patch
 tty-let-architectures-override-the-user-kernel-macros.patch
 tty-s390-support-for-termios2.patch
+moxa-first-pass-at-termios-reporting.patch
