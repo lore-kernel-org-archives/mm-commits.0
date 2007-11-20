@@ -1,204 +1,220 @@
 From: akpm@linux-foundation.org
-Subject: - proc-fix-pde-refcounting.patch removed from -mm tree
-Date: Tue, 20 Nov 2007 01:05:28 -0800
-Message-ID: <200711200912.lAK9CZPc029073@imap1.linux-foundation.org>
+Subject: + git-nfsd-build-fix.patch added to -mm tree
+Date: Tue, 20 Nov 2007 01:10:43 -0800
+Message-ID: <200711200917.lAK9Hn2P029251@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58454 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37190 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756172AbXKTJNN (ORCPT
+	by vger.kernel.org with ESMTP id S1756135AbXKTJSD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Nov 2007 04:13:13 -0500
+	Tue, 20 Nov 2007 04:18:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@sw.ru, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, bfields@fieldses.org, neilb@suse.de
 
 
 The patch titled
-     proc: fix PDE refcounting
-has been removed from the -mm tree.  Its filename was
-     proc-fix-pde-refcounting.patch
+     git-nfsd build fix
+has been added to the -mm tree.  Its filename is
+     git-nfsd-build-fix.patch
 
-This patch was dropped because it had testing failures
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: proc: fix PDE refcounting
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: git-nfsd build fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Creating PDEs with refcount 0 and ->deleted flag has problems (see below).
-Switch to usual scheme:
-* PDE is created with refcount 1
-* every de_get does +1
-* every de_put() and remove_proc_entry() do -1
-* once refcnt reaches 0, PDE is freed.
+net/sunrpc/svcsock.c: In function 'svc_reclassify_socket':
+net/sunrpc/svcsock.c:100: error: 'struct sock' has no member named 'sk_xprt'
 
-This elegantly fixes at least two followint races (both observed) without new
-locks, without abusing old locks, without spreading lock_kernel():
-
-1) PDE leak
-
-remove_proc_entry			de_put
------------------			------
-		[refcount=1, deleted=0]
-if (atomic_read(&de->count) == 0)
-					if (atomic_dec_and_test(&de->count))
-		[refcount=0, deleted=0]
-						if (de->deleted)
-							/* also not taken! */
-							free_proc_entry(de);
-else
-	de->deleted = 1;
-		[refcount=0, deleted=1]
-
-2) use after free
-
-remove_proc_entry			de_put
------------------			------
-
-		[refcnt=1, deleted=0]
-
-					if (atomic_dec_and_test(&de->count))
-if (atomic_read(&de->count) == 0)
-	free_proc_entry(de);
-						/* boom! */
-						if (de->deleted)
-							free_proc_entry(de);
-
-BUG: unable to handle kernel paging request at virtual address 6b6b6b6b
-printing eip: c10acdda *pdpt = 00000000338f8001 *pde = 0000000000000000
-Oops: 0000 [#1] PREEMPT SMP
-Modules linked in: af_packet ipv6 cpufreq_ondemand loop serio_raw psmouse k8temp hwmon sr_mod cdrom
-Pid: 23161, comm: cat Not tainted (2.6.24-rc2-8c0863403f109a43d7000b4646da4818220d501f #4)
-EIP: 0060:[<c10acdda>] EFLAGS: 00210097 CPU: 1
-EIP is at strnlen+0x6/0x18
-EAX: 6b6b6b6b EBX: 6b6b6b6b ECX: 6b6b6b6b EDX: fffffffe
-ESI: c128fa3b EDI: f380bf34 EBP: ffffffff ESP: f380be44
- DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
-Process cat (pid: 23161, ti=f380b000 task=f38f2570 task.ti=f380b000)
-Stack: c10ac4f0 00000278 c12ce000 f43cd2a8 00000163 00000000 7da86067 00000400
-       c128fa20 00896b18 f38325a8 c128fe20 ffffffff 00000000 c11f291e 00000400
-       f75be300 c128fa20 f769c9a0 c10ac779 f380bf34 f7bfee70 c1018e6b f380bf34
-Call Trace:
- [<c10ac4f0>] vsnprintf+0x2ad/0x49b
- [<c10ac779>] vscnprintf+0x14/0x1f
- [<c1018e6b>] vprintk+0xc5/0x2f9
- [<c10379f1>] handle_fasteoi_irq+0x0/0xab
- [<c1004f44>] do_IRQ+0x9f/0xb7
- [<c117db3b>] preempt_schedule_irq+0x3f/0x5b
- [<c100264e>] need_resched+0x1f/0x21
- [<c10190ba>] printk+0x1b/0x1f
- [<c107c8ad>] de_put+0x3d/0x50
- [<c107c8f8>] proc_delete_inode+0x38/0x41
- [<c107c8c0>] proc_delete_inode+0x0/0x41
- [<c1066298>] generic_delete_inode+0x5e/0xc6
- [<c1065aa9>] iput+0x60/0x62
- [<c1063c8e>] d_kill+0x2d/0x46
- [<c1063fa9>] dput+0xdc/0xe4
- [<c10571a1>] __fput+0xb0/0xcd
- [<c1054e49>] filp_close+0x48/0x4f
- [<c1055ee9>] sys_close+0x67/0xa5
- [<c10026b6>] sysenter_past_esp+0x5f/0x85
-=======================
-Code: c9 74 0c f2 ae 74 05 bf 01 00 00 00 4f 89 fa 5f 89 d0 c3 85 c9 57 89 c7 89 d0 74 05 f2 ae 75 01 4f 89 f8 5f c3 89 c1 89 c8 eb 06 <80> 38 00 74 07 40 4a 83 fa ff 75 f4 29 c8 c3 90 90 90 57 83 c9
-EIP: [<c10acdda>] strnlen+0x6/0x18 SS:ESP 0068:f380be44
-
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c       |    9 ++-------
- fs/proc/inode.c         |   10 ++--------
- fs/proc/root.c          |    1 +
- include/linux/proc_fs.h |    1 -
- 4 files changed, 5 insertions(+), 16 deletions(-)
+ net/sunrpc/svcsock.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/proc/generic.c~proc-fix-pde-refcounting fs/proc/generic.c
---- a/fs/proc/generic.c~proc-fix-pde-refcounting
-+++ a/fs/proc/generic.c
-@@ -584,6 +584,7 @@ static struct proc_dir_entry *proc_creat
- 	ent->namelen = len;
- 	ent->mode = mode;
- 	ent->nlink = nlink;
-+	atomic_set(&ent->count, 1);
- 	ent->pde_users = 0;
- 	spin_lock_init(&ent->pde_unload_lock);
- 	ent->pde_unload_completion = NULL;
-@@ -681,7 +682,6 @@ void free_proc_entry(struct proc_dir_ent
- 
- /*
-  * Remove a /proc entry and free it if it's not currently in use.
-- * If it is in use, we set the 'deleted' flag.
-  */
- void remove_proc_entry(const char *name, struct proc_dir_entry *parent)
+diff -puN net/sunrpc/svcsock.c~git-nfsd-build-fix net/sunrpc/svcsock.c
+--- a/net/sunrpc/svcsock.c~git-nfsd-build-fix
++++ a/net/sunrpc/svcsock.c
+@@ -97,7 +97,6 @@ static struct lock_class_key svc_slock_k
+ static inline void svc_reclassify_socket(struct socket *sock)
  {
-@@ -732,11 +732,6 @@ continue_removing:
- 		parent->nlink--;
- 	de->nlink = 0;
- 	WARN_ON(de->subdir);
--	if (!atomic_read(&de->count))
-+	if (atomic_dec_and_test(&de->count))
- 		free_proc_entry(de);
--	else {
--		de->deleted = 1;
--		printk(KERN_ERR "remove_proc_entry: %s/%s busy, count=%d\n",
--			parent->name, de->name, atomic_read(&de->count));
--	}
- }
-diff -puN fs/proc/inode.c~proc-fix-pde-refcounting fs/proc/inode.c
---- a/fs/proc/inode.c~proc-fix-pde-refcounting
-+++ a/fs/proc/inode.c
-@@ -42,14 +42,8 @@ void de_put(struct proc_dir_entry *de)
- 			unlock_kernel();
- 			return;
- 		}
--
--		if (atomic_dec_and_test(&de->count)) {
--			if (de->deleted) {
--				printk("de_put: deferred delete of %s\n",
--					de->name);
--				free_proc_entry(de);
--			}
--		}		
-+		if (atomic_dec_and_test(&de->count))
-+			free_proc_entry(de);
- 		unlock_kernel();
- 	}
- }
-diff -puN fs/proc/root.c~proc-fix-pde-refcounting fs/proc/root.c
---- a/fs/proc/root.c~proc-fix-pde-refcounting
-+++ a/fs/proc/root.c
-@@ -207,6 +207,7 @@ struct proc_dir_entry proc_root = {
- 	.name		= "/proc",
- 	.mode		= S_IFDIR | S_IRUGO | S_IXUGO, 
- 	.nlink		= 2, 
-+	.count		= ATOMIC_INIT(1),
- 	.proc_iops	= &proc_root_inode_operations, 
- 	.proc_fops	= &proc_root_operations,
- 	.parent		= &proc_root,
-diff -puN include/linux/proc_fs.h~proc-fix-pde-refcounting include/linux/proc_fs.h
---- a/include/linux/proc_fs.h~proc-fix-pde-refcounting
-+++ a/include/linux/proc_fs.h
-@@ -77,7 +77,6 @@ struct proc_dir_entry {
- 	read_proc_t *read_proc;
- 	write_proc_t *write_proc;
- 	atomic_t count;		/* use count */
--	int deleted;		/* delete flag */
- 	int pde_users;	/* number of callers into module in progress */
- 	spinlock_t pde_unload_lock; /* proc_fops checks and pde_users bumps */
- 	struct completion *pde_unload_completion;
+ 	struct sock *sk = sock->sk;
+-	BUG_ON(sk->sk_xprt.xpt_lock.owner != NULL);
+ 	switch (sk->sk_family) {
+ 	case AF_INET:
+ 		sock_lock_init_class_and_name(sk, "slock-AF_INET-NFSD",
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-proc-fix-null-i_fop-oops.patch
-proc-remove-module_license.patch
-proc-less-lock-operations-during-lookup.patch
-proc-simplify-function-prototypes.patch
-proc-remove-useless-check-on-symlink-removal.patch
-proc-remove-useless-checks-in-proc_register.patch
-proc-detect-duplicate-names-on-registration.patch
+origin.patch
+file-capabilities-allow-sigcont-within-session-v2.patch
+pnp-increase-the-maximum-number-of-resources-fix.patch
+revert-keyspan-init-termios-properly.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
+acpi-add-reboot-mechanism.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+agk-dm-dm-ioctl-move-compat-code-fix.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
+git-drm-oops-fix.patch
+git-dvb.patch
+ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
+elantech-touchpad-driver-fix.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+ide-arm-hack.patch
+git-mips-fixup.patch
+git-mmc.patch
+git-mtd.patch
+git-netdev-all.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+bluetooth-uninlining.patch
+git-nfsd-build-fix.patch
+quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
+drivers-pci-quirksc-coding-style-cleanup.patch
+more-sanity-checks-for-dmar-checkpatch-fixes.patch
+git-s390.patch
+fix-build-breakage-if-sysfs-fix.patch
+ips-trim-trailing-whitespace-checkpatch-fixes.patch
+scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
+scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
+bidi-support-scsi_data_buffer-broke-qla1280.patch
+bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+git-wireless.patch
+jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-fixup.patch
+git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko-checkpatch-fixes.patch
+git-x86-inlining-borkage.patch
+git-cryptodev.patch
+ia64-increase-datapatch-offset.patch
+ia64-dont-assume-that-unwcheckpy-is-executable.patch
+ia64-export-copy_page-to-modules.patch
+ia64-export-copy_page-to-modules-fix.patch
+isdn-validate-length-of-isdn_net_ioctl_cfgeaz.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+aout-mark-arches-that-support-aout-format-fix.patch
+aout-mark-arches-that-support-aout-format-fix-2.patch
+aout-mark-arches-that-support-aout-format-fix-3.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+sync_sb_inodes-propagate-errors.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+64-bit-i_version-afs-fixes.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
 proc-detect-duplicate-names-on-registration-fix.patch
-proc-simplify-remove_proc_entry-wrt-locking.patch
 proc-simplify-remove_proc_entry-wrt-locking-checkpatch-fixes.patch
-proc-fix-pde-refcounting.patch
-single_open-seq_release-leak-diagnostics.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+w1-build-fix.patch
