@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + rocket-first-pass-at-termios-reporting.patch added to -mm tree
-Date: Mon, 19 Nov 2007 23:23:12 -0800
-Message-ID: <200711200723.lAK7NCis021350@imap1.linux-foundation.org>
+Subject: + 8250_early-coding-style.patch added to -mm tree
+Date: Mon, 19 Nov 2007 23:23:20 -0800
+Message-ID: <200711200723.lAK7NKJ4021376@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp2.linux-foundation.org ([207.189.120.14]:55472 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754819AbXKTH3G (ORCPT
+	by vger.kernel.org with ESMTP id S1754836AbXKTH3H (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Nov 2007 02:29:06 -0500
+	Tue, 20 Nov 2007 02:29:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     rocket: first pass at termios reporting
+     8250_early: coding style
 has been added to the -mm tree.  Its filename is
-     rocket-first-pass-at-termios-reporting.patch
+     8250_early-coding-style.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,76 +26,91 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rocket: first pass at termios reporting
+Subject: 8250_early: coding style
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-
-Also removes a cflag comparison that caused some mode changes to get wrongly
-ignored
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/rocket.c |   18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+ drivers/serial/8250_early.c |   23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
-diff -puN drivers/char/rocket.c~rocket-first-pass-at-termios-reporting drivers/char/rocket.c
---- a/drivers/char/rocket.c~rocket-first-pass-at-termios-reporting
-+++ a/drivers/char/rocket.c
-@@ -715,11 +715,10 @@ static void configure_r_port(struct r_po
- 	unsigned rocketMode;
- 	int bits, baud, divisor;
- 	CHANNEL_t *cp;
-+	struct ktermios *t = info->tty->termios;
+diff -puN drivers/serial/8250_early.c~8250_early-coding-style drivers/serial/8250_early.c
+--- a/drivers/serial/8250_early.c~8250_early-coding-style
++++ a/drivers/serial/8250_early.c
+@@ -82,7 +82,8 @@ static void __init serial_putc(struct ua
+ 	serial_out(port, UART_TX, c);
+ }
  
--	if (!info->tty || !info->tty->termios)
--		return;
- 	cp = &info->channel;
--	cflag = info->tty->termios->c_cflag;
-+	cflag = t->c_cflag;
+-static void __init early_serial8250_write(struct console *console, const char *s, unsigned int count)
++static void __init early_serial8250_write(struct console *console,
++					const char *s, unsigned int count)
+ {
+ 	struct uart_port *port = &early_device.port;
+ 	unsigned int ier;
+@@ -132,7 +133,8 @@ static void __init init_port(struct earl
+ 	serial_out(port, UART_LCR, c & ~UART_LCR_DLAB);
+ }
  
- 	/* Byte size and parity */
- 	if ((cflag & CSIZE) == CS8) {
-@@ -754,10 +753,7 @@ static void configure_r_port(struct r_po
- 		baud = 9600;
- 	divisor = ((rp_baud_base[info->board] + (baud >> 1)) / baud) - 1;
- 	if ((divisor >= 8192 || divisor < 0) && old_termios) {
--		info->tty->termios->c_cflag &= ~CBAUD;
--		info->tty->termios->c_cflag |=
--		    (old_termios->c_cflag & CBAUD);
--		baud = tty_get_baud_rate(info->tty);
-+		baud = tty_termios_baud_rate(old_termios);
- 		if (!baud)
- 			baud = 9600;
- 		divisor = (rp_baud_base[info->board] / baud) - 1;
-@@ -769,6 +765,9 @@ static void configure_r_port(struct r_po
- 	info->cps = baud / bits;
- 	sSetBaud(cp, divisor);
+-static int __init parse_options(struct early_serial8250_device *device, char *options)
++static int __init parse_options(struct early_serial8250_device *device,
++								char *options)
+ {
+ 	struct uart_port *port = &device->port;
+ 	int mmio, length;
+@@ -145,8 +147,10 @@ static int __init parse_options(struct e
+ 		port->iotype = UPIO_MEM;
+ 		port->mapbase = simple_strtoul(options + 5, &options, 0);
+ #ifdef CONFIG_FIX_EARLYCON_MEM
+-		set_fixmap_nocache(FIX_EARLYCON_MEM_BASE, port->mapbase & PAGE_MASK);
+-		port->membase = (void __iomem *)__fix_to_virt(FIX_EARLYCON_MEM_BASE);
++		set_fixmap_nocache(FIX_EARLYCON_MEM_BASE,
++					port->mapbase & PAGE_MASK);
++		port->membase =
++			(void __iomem *)__fix_to_virt(FIX_EARLYCON_MEM_BASE);
+ 		port->membase += port->mapbase & ~PAGE_MASK;
+ #else
+ 		port->membase = ioremap(port->mapbase, 64);
+@@ -165,7 +169,8 @@ static int __init parse_options(struct e
+ 	} else
+ 		return -EINVAL;
  
-+	/* FIXME: Should really back compute a baud rate from the divisor */
-+	tty_encode_baud_rate(info->tty, baud, baud);
-+
- 	if (cflag & CRTSCTS) {
- 		info->intmask |= DELTA_CTS;
- 		sEnCTSFlowCtl(cp);
-@@ -1202,15 +1201,14 @@ static void rp_set_termios(struct tty_st
+-	if ((options = strchr(options, ','))) {
++	options = strchr(options, ',');
++	if (options) {
+ 		options++;
+ 		device->baud = simple_strtoul(options, NULL, 0);
+ 		length = min(strcspn(options, " "), sizeof(device->options));
+@@ -179,7 +184,7 @@ static int __init parse_options(struct e
+ 	printk(KERN_INFO "Early serial console at %s 0x%llx (options '%s')\n",
+ 		mmio ? "MMIO" : "I/O port",
+ 		mmio ? (unsigned long long) port->mapbase
+-	             : (unsigned long long) port->iobase,
++		     : (unsigned long long) port->iobase,
+ 		device->options);
+ 	return 0;
+ }
+@@ -199,7 +204,8 @@ static int __init early_serial8250_setup
+ 	if (device->port.membase || device->port.iobase)
+ 		return 0;
  
- 	cflag = tty->termios->c_cflag;
+-	if ((err = parse_options(device, options)) < 0)
++	err = parse_options(device, options);
++	if (err < 0)
+ 		return err;
  
--	if (cflag == old_termios->c_cflag)
--		return;
--
- 	/*
- 	 * This driver doesn't support CS5 or CS6
- 	 */
- 	if (((cflag & CSIZE) == CS5) || ((cflag & CSIZE) == CS6))
- 		tty->termios->c_cflag =
- 		    ((cflag & ~CSIZE) | (old_termios->c_cflag & CSIZE));
-+	/* Or CMSPAR */
-+	tty->termios->c_cflag &= ~CMSPAR;
+ 	init_port(device);
+@@ -219,7 +225,8 @@ int __init setup_early_serial8250_consol
+ 	}
  
- 	configure_r_port(info, old_termios);
+ 	options = strchr(cmdline, ',') + 1;
+-	if ((err = early_serial8250_setup(options)) < 0)
++	err = early_serial8250_setup(options);
++	if (err < 0)
+ 		return err;
  
+ 	register_console(&early_serial8250_console);
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
