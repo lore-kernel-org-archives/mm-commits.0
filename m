@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + proc-seqfile-convert-proc_pid_statm.patch added to -mm tree
-Date: Mon, 19 Nov 2007 16:59:39 -0800
-Message-ID: <200711200059.lAK0xdJv005553@imap1.linux-foundation.org>
+Subject: + proc-proper-pidns-handling-for-proc-self.patch added to -mm tree
+Date: Mon, 19 Nov 2007 17:00:48 -0800
+Message-ID: <200711200100.lAK10mtP005587@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52913 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56013 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753109AbXKTA7q (ORCPT
+	by vger.kernel.org with ESMTP id S1752367AbXKTBAx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Nov 2007 19:59:46 -0500
+	Mon, 19 Nov 2007 20:00:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, adobriyan@gmail.com, oleg@tv-sign.ru
+Cc: ebiederm@xmission.com, adobriyan@gmail.com, oleg@tv-sign.ru, xemul@openvz.org
 
 
 The patch titled
-     seqfile convert proc_pid_statm
+     proc: proper pidns handling for /proc/self
 has been added to the -mm tree.  Its filename is
-     proc-seqfile-convert-proc_pid_statm.patch
+     proc-proper-pidns-handling-for-proc-self.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,80 +26,55 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: seqfile convert proc_pid_statm
+Subject: proc: proper pidns handling for /proc/self
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-This conversion is just for code cleanliness, uniformity, and general safety.
+Currently if you access a /proc that is not mounted with your processes
+current pid namespace /proc/self will point at a completely
+
+This patch fixes /proc/self to point to the current process if it is
+available in the particular mount of /proc or to return -ENOENT if the
+current process is not visible.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Pavel Emelyanov <xemul@openvz.org>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c    |    8 +++++---
- fs/proc/base.c     |    4 ++--
- fs/proc/internal.h |    3 ++-
- 3 files changed, 9 insertions(+), 6 deletions(-)
+ fs/proc/base.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/array.c~proc-seqfile-convert-proc_pid_statm fs/proc/array.c
---- a/fs/proc/array.c~proc-seqfile-convert-proc_pid_statm
-+++ a/fs/proc/array.c
-@@ -548,7 +548,8 @@ int proc_tgid_stat(struct seq_file *m, s
- 	return do_task_stat(m, ns, pid, task, 1);
- }
- 
--int proc_pid_statm(struct task_struct *task, char *buffer)
-+int proc_pid_statm(struct seq_file *m, struct pid_namespace *ns,
-+			struct pid *pid, struct task_struct *task)
- {
- 	int size = 0, resident = 0, shared = 0, text = 0, lib = 0, data = 0;
- 	struct mm_struct *mm = get_task_mm(task);
-@@ -557,7 +558,8 @@ int proc_pid_statm(struct task_struct *t
- 		size = task_statm(mm, &shared, &text, &data, &resident);
- 		mmput(mm);
- 	}
-+	seq_printf(m, "%d %d %d %d %d %d %d\n",
-+			size, resident, shared, text, lib, data, 0);
- 
--	return sprintf(buffer, "%d %d %d %d %d %d %d\n",
--		       size, resident, shared, text, lib, data, 0);
-+	return 0;
- }
-diff -puN fs/proc/base.c~proc-seqfile-convert-proc_pid_statm fs/proc/base.c
---- a/fs/proc/base.c~proc-seqfile-convert-proc_pid_statm
+diff -puN fs/proc/base.c~proc-proper-pidns-handling-for-proc-self fs/proc/base.c
+--- a/fs/proc/base.c~proc-proper-pidns-handling-for-proc-self
 +++ a/fs/proc/base.c
-@@ -2182,7 +2182,7 @@ static const struct pid_entry tgid_base_
- #endif
- 	INF("cmdline",    S_IRUGO, pid_cmdline),
- 	ONE("stat",       S_IRUGO, tgid_stat),
--	INF("statm",      S_IRUGO, pid_statm),
-+	ONE("statm",      S_IRUGO, pid_statm),
- 	REG("maps",       S_IRUGO, maps),
- #ifdef CONFIG_NUMA
- 	REG("numa_maps",  S_IRUGO, numa_maps),
-@@ -2509,7 +2509,7 @@ static const struct pid_entry tid_base_s
- #endif
- 	INF("cmdline",   S_IRUGO, pid_cmdline),
- 	ONE("stat",      S_IRUGO, tid_stat),
--	INF("statm",     S_IRUGO, pid_statm),
-+	ONE("statm",     S_IRUGO, pid_statm),
- 	REG("maps",      S_IRUGO, maps),
- #ifdef CONFIG_NUMA
- 	REG("numa_maps", S_IRUGO, numa_maps),
-diff -puN fs/proc/internal.h~proc-seqfile-convert-proc_pid_statm fs/proc/internal.h
---- a/fs/proc/internal.h~proc-seqfile-convert-proc_pid_statm
-+++ a/fs/proc/internal.h
-@@ -53,7 +53,8 @@ extern int proc_tgid_stat(struct seq_fil
- 				struct pid *pid, struct task_struct *task);
- extern int proc_pid_status(struct seq_file *m, struct pid_namespace *ns,
- 				struct pid *pid, struct task_struct *task);
--extern int proc_pid_statm(struct task_struct *, char *);
-+extern int proc_pid_statm(struct seq_file *m, struct pid_namespace *ns,
-+				struct pid *pid, struct task_struct *task);
- extern loff_t mem_lseek(struct file *file, loff_t offset, int orig);
+@@ -2002,15 +2002,23 @@ static const struct file_operations proc
+ static int proc_self_readlink(struct dentry *dentry, char __user *buffer,
+ 			      int buflen)
+ {
++	struct pid_namespace *ns = dentry->d_sb->s_fs_info;
++	pid_t tgid = task_tgid_nr_ns(current, ns);
+ 	char tmp[PROC_NUMBUF];
+-	sprintf(tmp, "%d", task_tgid_vnr(current));
++	if (!tgid)
++		return -ENOENT;
++	sprintf(tmp, "%d", tgid);
+ 	return vfs_readlink(dentry,buffer,buflen,tmp);
+ }
  
- extern const struct file_operations proc_maps_operations;
+ static void *proc_self_follow_link(struct dentry *dentry, struct nameidata *nd)
+ {
++	struct pid_namespace *ns = dentry->d_sb->s_fs_info;
++	pid_t tgid = task_tgid_nr_ns(current, ns);
+ 	char tmp[PROC_NUMBUF];
+-	sprintf(tmp, "%d", task_tgid_vnr(current));
++	if (!tgid)
++		return ERR_PTR(-ENOENT);
++	sprintf(tmp, "%d", task_tgid_nr_ns(current, ns));
+ 	return ERR_PTR(vfs_follow_link(nd,tmp));
+ }
+ 
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
@@ -158,3 +133,4 @@ proc-implement-proc_single_file_operations.patch
 proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces.patch
 proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
 proc-seqfile-convert-proc_pid_statm.patch
+proc-proper-pidns-handling-for-proc-self.patch
