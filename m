@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pata_ali-add-mitac-8317-and-derivatives.patch added to -mm tree
-Date: Mon, 19 Nov 2007 23:09:15 -0800
-Message-ID: <200711200709.lAK79FKq019962@imap1.linux-foundation.org>
+Subject: + libata-core-list-more-documentation-sources-for-reference.patch added to -mm tree
+Date: Mon, 19 Nov 2007 23:09:12 -0800
+Message-ID: <200711200709.lAK79C6E019950@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46308 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45354 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755046AbXKTHJh (ORCPT
+	by vger.kernel.org with ESMTP id S1755364AbXKTHJi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Nov 2007 02:09:37 -0500
+	Tue, 20 Nov 2007 02:09:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     pata_ali: add Mitac 8317 and derivatives
+     libata-core: list more documentation sources for reference
 has been added to the -mm tree.  Its filename is
-     pata_ali-add-mitac-8317-and-derivatives.patch
+     libata-core-list-more-documentation-sources-for-reference.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,29 +26,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_ali: add Mitac 8317 and derivatives
+Subject: libata-core: list more documentation sources for reference
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+
+And next time I'll be able to find the ata tape spec easily...
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_ali.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/ata/libata-core.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/ata/pata_ali.c~pata_ali-add-mitac-8317-and-derivatives drivers/ata/pata_ali.c
---- a/drivers/ata/pata_ali.c~pata_ali-add-mitac-8317-and-derivatives
-+++ a/drivers/ata/pata_ali.c
-@@ -63,6 +63,9 @@ static int ali_cable_override(struct pci
- 	/* Fujitsu P2000 */
- 	if (pdev->subsystem_vendor == 0x10CF && pdev->subsystem_device == 0x10AF)
- 	   	return 1;
-+	/* Mitac 8317 (Winbook-A) and relatives */
-+	if (pdev->subsystem_vendor == 0x1071  && pdev->subsystem_device == 0x8317)
-+		return 1;
- 	/* Systems by DMI */
- 	if (dmi_check_system(cable_dmi_table))
- 		return 1;
+diff -puN drivers/ata/libata-core.c~libata-core-list-more-documentation-sources-for-reference drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-core-list-more-documentation-sources-for-reference
++++ a/drivers/ata/libata-core.c
+@@ -30,6 +30,14 @@
+  *  Hardware documentation available from http://www.t13.org/ and
+  *  http://www.sata-io.org/
+  *
++ *  Standards documents from:
++ *	http://www.t13.org (ATA standards, PCI DMA IDE spec)
++ *	http://www.t10.org (SCSI MMC - for ATAPI MMC)
++ *	http://www.sata-io.org (SATA)
++ *	http://www.compactflash.org (CF)
++ *	http://www.qic.org (QIC157 - Tape and DSC)
++ *	http://www.ce-ata.org (CE-ATA: not supported)
++ *
+  */
+ 
+ #include <linux/kernel.h>
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
