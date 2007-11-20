@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pata_hpt37x-fix-cable-detect-bug-spotted-by-sergei.patch added to -mm tree
-Date: Mon, 19 Nov 2007 23:09:17 -0800
-Message-ID: <200711200709.lAK79HCN019972@imap1.linux-foundation.org>
+Subject: + ahci-invalid-use-of-writel-readl-with-iomap.patch added to -mm tree
+Date: Mon, 19 Nov 2007 23:09:11 -0800
+Message-ID: <200711200709.lAK79BxW019946@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46261 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55648 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755327AbXKTHJh (ORCPT
+	by vger.kernel.org with ESMTP id S1753301AbXKTHJb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Nov 2007 02:09:37 -0500
+	Tue, 20 Nov 2007 02:09:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     pata_hpt37x: fix cable detect bug spotted by Sergei
+     ahci: invalid use of writel/readl with iomap
 has been added to the -mm tree.  Its filename is
-     pata_hpt37x-fix-cable-detect-bug-spotted-by-sergei.patch
+     ahci-invalid-use-of-writel-readl-with-iomap.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,28 +26,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_hpt37x: fix cable detect bug spotted by Sergei
+Subject: ahci: invalid use of writel/readl with iomap
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+
+Should use ioread* as discussed previously
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_hpt37x.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ata/ata_piix.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ata/pata_hpt37x.c~pata_hpt37x-fix-cable-detect-bug-spotted-by-sergei drivers/ata/pata_hpt37x.c
---- a/drivers/ata/pata_hpt37x.c~pata_hpt37x-fix-cable-detect-bug-spotted-by-sergei
-+++ a/drivers/ata/pata_hpt37x.c
-@@ -329,7 +329,7 @@ static int hpt37x_pre_reset(struct ata_l
- 	/* Restore state */
- 	pci_write_config_byte(pdev, 0x5B, scr2);
+diff -puN drivers/ata/ata_piix.c~ahci-invalid-use-of-writel-readl-with-iomap drivers/ata/ata_piix.c
+--- a/drivers/ata/ata_piix.c~ahci-invalid-use-of-writel-readl-with-iomap
++++ a/drivers/ata/ata_piix.c
+@@ -1086,12 +1086,12 @@ static int piix_disable_ahci(struct pci_
+ 	if (!mmio)
+ 		return -ENOMEM;
  
--	if (ata66 & (1 << ap->port_no))
-+	if (ata66 & (2 >> ap->port_no))
- 		ap->cbl = ATA_CBL_PATA40;
- 	else
- 		ap->cbl = ATA_CBL_PATA80;
+-	tmp = readl(mmio + AHCI_GLOBAL_CTL);
++	tmp = ioread32(mmio + AHCI_GLOBAL_CTL);
+ 	if (tmp & AHCI_ENABLE) {
+ 		tmp &= ~AHCI_ENABLE;
+-		writel(tmp, mmio + AHCI_GLOBAL_CTL);
++		iowrite32(tmp, mmio + AHCI_GLOBAL_CTL);
+ 
+-		tmp = readl(mmio + AHCI_GLOBAL_CTL);
++		tmp = ioread32(mmio + AHCI_GLOBAL_CTL);
+ 		if (tmp & AHCI_ENABLE)
+ 			rc = -EIO;
+ 	}
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
