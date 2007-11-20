@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + tty_audit-fix-checkpatch-complaint.patch added to -mm tree
-Date: Mon, 19 Nov 2007 23:23:15 -0800
-Message-ID: <200711200723.lAK7NFhx021361@imap1.linux-foundation.org>
+Subject: + 8250_gsc-coding-style.patch added to -mm tree
+Date: Mon, 19 Nov 2007 23:23:21 -0800
+Message-ID: <200711200723.lAK7NLOo021379@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp2.linux-foundation.org ([207.189.120.14]:55472 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754792AbXKTH3F (ORCPT
+	by vger.kernel.org with ESMTP id S1754823AbXKTH3F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 20 Nov 2007 02:29:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     tty_audit: fix checkpatch complaint
+     8250_gsc: coding style
 has been added to the -mm tree.  Its filename is
-     tty_audit-fix-checkpatch-complaint.patch
+     8250_gsc-coding-style.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,28 +26,67 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: tty_audit: fix checkpatch complaint
+Subject: 8250_gsc: coding style
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_audit.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/serial/8250_gsc.c |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN drivers/char/tty_audit.c~tty_audit-fix-checkpatch-complaint drivers/char/tty_audit.c
---- a/drivers/char/tty_audit.c~tty_audit-fix-checkpatch-complaint
-+++ a/drivers/char/tty_audit.c
-@@ -27,7 +27,7 @@ static struct tty_audit_buf *tty_audit_b
- {
- 	struct tty_audit_buf *buf;
+diff -puN drivers/serial/8250_gsc.c~8250_gsc-coding-style drivers/serial/8250_gsc.c
+--- a/drivers/serial/8250_gsc.c~8250_gsc-coding-style
++++ a/drivers/serial/8250_gsc.c
+@@ -25,8 +25,7 @@
  
--	buf = kmalloc(sizeof (*buf), GFP_KERNEL);
-+	buf = kmalloc(sizeof(*buf), GFP_KERNEL);
- 	if (!buf)
- 		goto err;
- 	if (PAGE_SIZE != N_TTY_BUF_SIZE)
+ #include "8250.h"
+ 
+-static int __init 
+-serial_init_chip(struct parisc_device *dev)
++static int __init serial_init_chip(struct parisc_device *dev)
+ {
+ 	struct uart_port port;
+ 	unsigned long address;
+@@ -38,18 +37,17 @@ serial_init_chip(struct parisc_device *d
+ 		 * what we have here is a missing parent device, so tell
+ 		 * the user what they're missing.
+ 		 */
+-		if (parisc_parent(dev)->id.hw_type != HPHW_IOA) {
+-			printk(KERN_INFO "Serial: device 0x%lx not configured.\n"
++		if (parisc_parent(dev)->id.hw_type != HPHW_IOA)
++			printk(KERN_INFO
++				"Serial: device 0x%lx not configured.\n"
+ 				"Enable support for Wax, Lasi, Asp or Dino.\n",
+ 				dev->hpa.start);
+-		}
+ 		return -ENODEV;
+ 	}
+ 
+ 	address = dev->hpa.start;
+-	if (dev->id.sversion != 0x8d) {
++	if (dev->id.sversion != 0x8d)
+ 		address += 0x800;
+-	}
+ 
+ 	memset(&port, 0, sizeof(port));
+ 	port.iotype	= UPIO_MEM;
+@@ -63,11 +61,12 @@ serial_init_chip(struct parisc_device *d
+ 
+ 	err = serial8250_register_port(&port);
+ 	if (err < 0) {
+-		printk(KERN_WARNING "serial8250_register_port returned error %d\n", err);
++		printk(KERN_WARNING
++			"serial8250_register_port returned error %d\n", err);
+ 		iounmap(port.membase);
+ 		return err;
+ 	}
+-        
++
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
