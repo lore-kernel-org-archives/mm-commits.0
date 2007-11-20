@@ -1,119 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix-fix.patch removed from -mm tree
-Date: Mon, 19 Nov 2007 21:43:24 -0800
-Message-ID: <200711200543.lAK5hOqT016278@imap1.linux-foundation.org>
+Subject: + tpm-tis-device-driver-locality-request.patch added to -mm tree
+Date: Mon, 19 Nov 2007 22:23:13 -0800
+Message-ID: <200711200623.lAK6NDKU017699@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59028 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36041 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751853AbXKTFnv (ORCPT
+	by vger.kernel.org with ESMTP id S1752174AbXKTGXV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Nov 2007 00:43:51 -0500
+	Tue, 20 Nov 2007 01:23:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, jirislaby@gmail.com, steved@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: tpm@selhorst.net, kjhall@us.ibm.com
 
 
 The patch titled
-     nfs functions undefined
-has been removed from the -mm tree.  Its filename was
-     nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix-fix.patch
+     TPM: fix TIS device driver locality request
+has been added to the -mm tree.  Its filename is
+     tpm-tis-device-driver-locality-request.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: nfs functions undefined
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: TPM: fix TIS device driver locality request
+From: Marcel Selhorst <tpm@selhorst.net>
 
-nfs_put_super() and nfs_sb_deactive() should not be inside an
-ifdef CONFIG_NFS_V4 block.
+During the initialization of the TPM TIS driver, the necessary locality has
+to be requested earlier in the init-process.  Depending on the used TPM
+chip, this leads to wrong information.  For example: Lenovo X61s with Atmel
+TPM:
 
-ERROR: "nfs_put_super" [fs/nfs/nfs.ko] undefined!
-ERROR: "nfs_sb_deactive" [fs/nfs/nfs.ko] undefined!
+tpm_tis 00:0a: 1.2 TPM (device-id 0xFFFF, rev-id 255)
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Steve Dickson <steved@redhat.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+But correct is:
+
+tpm_tis 00:0c: 1.2 TPM (device-id 0x3203, rev-id 9)
+
+This short patch fixes this issue.
+
+Signed-off-by: Marcel Selhorst <tpm@selhorst.net>
+Cc: Kylene Jo Hall <kjhall@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/super.c |   34 +++++++++++++++++-----------------
- 1 file changed, 17 insertions(+), 17 deletions(-)
+ drivers/char/tpm/tpm_tis.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN fs/nfs/super.c~nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix-fix fs/nfs/super.c
---- a/fs/nfs/super.c~nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix-fix
-+++ a/fs/nfs/super.c
-@@ -1499,6 +1499,23 @@ error_splat_super:
- 	return error;
- }
+diff -puN drivers/char/tpm/tpm_tis.c~tpm-tis-device-driver-locality-request drivers/char/tpm/tpm_tis.c
+--- a/drivers/char/tpm/tpm_tis.c~tpm-tis-device-driver-locality-request
++++ a/drivers/char/tpm/tpm_tis.c
+@@ -450,6 +450,11 @@ static int tpm_tis_init(struct device *d
+ 		goto out_err;
+ 	}
  
-+static void nfs_put_super(struct super_block *sb)
-+{
-+	struct nfs_server *server = NFS_SB(sb);
-+	/*
-+	 * Make sure there are no outstanding ops to this server.
-+	 * If so, wait for them to finish before allowing the
-+	 * unmount to continue.
-+	 */
-+	wait_event(server->active_wq, atomic_read(&server->active) == 0);
-+}
++	if (request_locality(chip, 0) != 0) {
++		rc = -ENODEV;
++		goto out_err;
++	}
 +
-+void nfs_sb_deactive(struct nfs_server *server)
-+{
-+	if (atomic_dec_and_test(&server->active))
-+		wake_up(&server->active_wq);
-+}
-+
- #ifdef CONFIG_NFS_V4
+ 	vendor = ioread32(chip->vendor.iobase + TPM_DID_VID(0));
  
- /*
-@@ -1771,17 +1788,6 @@ static void nfs4_kill_super(struct super
- 	nfs_free_server(server);
- }
+ 	/* Default timeouts */
+@@ -487,11 +492,6 @@ static int tpm_tis_init(struct device *d
+ 	if (intfcaps & TPM_INTF_DATA_AVAIL_INT)
+ 		dev_dbg(dev, "\tData Avail Int Support\n");
  
--static void nfs_put_super(struct super_block *sb)
--{
--	struct nfs_server *server = NFS_SB(sb);
--	/*
--	 * Make sure there are no outstanding ops to this server.
--	 * If so, wait for them to finish before allowing the
--	 * unmount to continue.
--	 */
--	wait_event(server->active_wq, atomic_read(&server->active) == 0);
--}
+-	if (request_locality(chip, 0) != 0) {
+-		rc = -ENODEV;
+-		goto out_err;
+-	}
 -
- /*
-  * Clone an NFS4 server record on xdev traversal (FSID-change)
-  */
-@@ -1929,10 +1935,4 @@ error_splat_super:
- 	return error;
- }
- 
--void nfs_sb_deactive(struct nfs_server *server)
--{
--	if (atomic_dec_and_test(&server->active))
--		wake_up(&server->active_wq);
--}
--
- #endif /* CONFIG_NFS_V4 */
+ 	/* INTERRUPT Setup */
+ 	init_waitqueue_head(&chip->vendor.read_queue);
+ 	init_waitqueue_head(&chip->vendor.int_queue);
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from tpm@selhorst.net are
 
-origin.patch
-git-dvb.patch
-git-kbuild.patch
-nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix-fix.patch
-git-scsi-misc.patch
-advansys-fix-section-mismatch-warning.patch
-aic94-fix-section-mismatches.patch
-sym2-fix-section-mismatch-warning.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-git-x86.patch
-register_cpu-__devinit-or-__cpuinit.patch
-cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
-move-kprobes-examples-to-samples-resend.patch
-move-kprobes-examples-to-samples-resend-checkpatch-fixes.patch
-fs-menu-small-reorg.patch
-profile-likely-unlikely-macros.patch
+tpm-tis-device-driver-locality-request.patch
