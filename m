@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + uml-style-cleanup.patch added to -mm tree
-Date: Mon, 19 Nov 2007 16:22:05 -0800
-Message-ID: <200711200022.lAK0M5u0004166@imap1.linux-foundation.org>
+Subject: + uml-currenth-cleanup.patch added to -mm tree
+Date: Mon, 19 Nov 2007 16:22:07 -0800
+Message-ID: <200711200022.lAK0M7Au004174@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41643 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44341 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752078AbXKTAWj (ORCPT
+	by vger.kernel.org with ESMTP id S1752064AbXKTAWl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Nov 2007 19:22:39 -0500
+	Mon, 19 Nov 2007 19:22:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     uml: style cleanup
+     uml: current.h cleanup
 has been added to the -mm tree.  Its filename is
-     uml-style-cleanup.patch
+     uml-currenth-cleanup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,250 +26,184 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: style cleanup
+Subject: uml: current.h cleanup
 From: Jeff Dike <jdike@addtoit.com>
 
-Style fixes in elf-i386.h and arch/um/kernel/mem.c.
-      update the copyright
-      get rid of an emacs formatting comment
-      some formatting fixes
-      inclusion trimming
-      whitespace fixes
+Tidy current-related stuff.  There was a comment in current.h saying
+that current_thread was obsolete, so this patch turns all instances of
+current_thread into current_thread_info().  There's some simplifying
+of the result in arch/um/sys-i386/signal.c.
+
+current.h and thread_info also get style cleanups.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/mem.c      |   86 +++++++++++++++++-------------------
- include/asm-um/elf-i386.h |   19 +------
- 2 files changed, 45 insertions(+), 60 deletions(-)
+ arch/um/kernel/process.c     |    8 ++++----
+ arch/um/sys-i386/signal.c    |   18 ++++++++----------
+ arch/um/sys-x86_64/signal.c  |    4 ++--
+ include/asm-um/current.h     |   23 ++---------------------
+ include/asm-um/thread_info.h |    8 ++++----
+ 5 files changed, 20 insertions(+), 41 deletions(-)
 
-diff -puN arch/um/kernel/mem.c~uml-style-cleanup arch/um/kernel/mem.c
---- a/arch/um/kernel/mem.c~uml-style-cleanup
-+++ a/arch/um/kernel/mem.c
-@@ -1,28 +1,22 @@
- /*
-- * Copyright (C) 2000 - 2003 Jeff Dike (jdike@addtoit.com)
+diff -puN arch/um/kernel/process.c~uml-currenth-cleanup arch/um/kernel/process.c
+--- a/arch/um/kernel/process.c~uml-currenth-cleanup
++++ a/arch/um/kernel/process.c
+@@ -252,7 +252,7 @@ void default_idle(void)
+ 
+ void cpu_idle(void)
+ {
+-	cpu_tasks[current_thread->cpu].pid = os_getpid();
++	cpu_tasks[current_thread_info()->cpu].pid = os_getpid();
+ 	default_idle();
+ }
+ 
+@@ -266,7 +266,7 @@ int user_context(unsigned long sp)
+ 	unsigned long stack;
+ 
+ 	stack = sp & (PAGE_MASK << CONFIG_KERNEL_STACK_ORDER);
+-	return stack != (unsigned long) current_thread;
++	return stack != (unsigned long) current_thread_info();
+ }
+ 
+ extern exitcall_t __uml_exitcall_begin, __uml_exitcall_end;
+@@ -308,7 +308,7 @@ int strlen_user_proc(char __user *str)
+ int smp_sigio_handler(void)
+ {
+ #ifdef CONFIG_SMP
+-	int cpu = current_thread->cpu;
++	int cpu = current_thread_info()->cpu;
+ 	IPI_handler(cpu);
+ 	if (cpu != 0)
+ 		return 1;
+@@ -318,7 +318,7 @@ int smp_sigio_handler(void)
+ 
+ int cpu(void)
+ {
+-	return current_thread->cpu;
++	return current_thread_info()->cpu;
+ }
+ 
+ static atomic_t using_sysemu = ATOMIC_INIT(0);
+diff -puN arch/um/sys-i386/signal.c~uml-currenth-cleanup arch/um/sys-i386/signal.c
+--- a/arch/um/sys-i386/signal.c~uml-currenth-cleanup
++++ a/arch/um/sys-i386/signal.c
+@@ -168,12 +168,13 @@ static int copy_sc_from_user(struct pt_r
+ 			     struct sigcontext __user *from)
+ {
+ 	struct sigcontext sc;
+-	int err;
++	int err, pid;
+ 
+ 	err = copy_from_user(&sc, from, sizeof(sc));
+ 	if (err)
+ 		return err;
+ 
++	pid = userspace_pid[current_thread_info()->cpu];
+ 	copy_sc(&regs->regs, &sc);
+ 	if (have_fpx_regs) {
+ 		struct user_fxsr_struct fpx;
+@@ -187,8 +188,7 @@ static int copy_sc_from_user(struct pt_r
+ 		if (err)
+ 			return 1;
+ 
+-		err = restore_fpx_registers(userspace_pid[current_thread->cpu],
+-					    (unsigned long *) &fpx);
++		err = restore_fpx_registers(pid, (unsigned long *) &fpx);
+ 		if (err < 0) {
+ 			printk(KERN_ERR "copy_sc_from_user - "
+ 			       "restore_fpx_registers failed, errno = %d\n",
+@@ -204,8 +204,7 @@ static int copy_sc_from_user(struct pt_r
+ 		if (err)
+ 			return 1;
+ 
+-		err = restore_fp_registers(userspace_pid[current_thread->cpu],
+-					   (unsigned long *) &fp);
++		err = restore_fp_registers(pid, (unsigned long *) &fp);
+ 		if (err < 0) {
+ 			printk(KERN_ERR "copy_sc_from_user - "
+ 			       "restore_fp_registers failed, errno = %d\n",
+@@ -223,7 +222,7 @@ static int copy_sc_to_user(struct sigcon
+ {
+ 	struct sigcontext sc;
+ 	struct faultinfo * fi = &current->thread.arch.faultinfo;
+-	int err;
++	int err, pid;
+ 
+ 	sc.gs = REGS_GS(regs->regs.gp);
+ 	sc.fs = REGS_FS(regs->regs.gp);
+@@ -249,11 +248,11 @@ static int copy_sc_to_user(struct sigcon
+ 	to_fp = (to_fp ? to_fp : (struct _fpstate __user *) (to + 1));
+ 	sc.fpstate = to_fp;
+ 
++	pid = userspace_pid[current_thread_info()->cpu];
+ 	if (have_fpx_regs) {
+ 		struct user_fxsr_struct fpx;
+ 
+-		err = save_fpx_registers(userspace_pid[current_thread->cpu],
+-					 (unsigned long *) &fpx);
++		err = save_fpx_registers(pid, (unsigned long *) &fpx);
+ 		if (err < 0){
+ 			printk(KERN_ERR "copy_sc_to_user - save_fpx_registers "
+ 			       "failed, errno = %d\n", err);
+@@ -276,8 +275,7 @@ static int copy_sc_to_user(struct sigcon
+ 	else {
+ 		struct user_i387_struct fp;
+ 
+-		err = save_fp_registers(userspace_pid[current_thread->cpu],
+-					(unsigned long *) &fp);
++		err = save_fp_registers(pid, (unsigned long *) &fp);
+ 		if (copy_to_user(to_fp, &fp, sizeof(struct user_i387_struct)))
+ 			return 1;
+ 	}
+diff -puN arch/um/sys-x86_64/signal.c~uml-currenth-cleanup arch/um/sys-x86_64/signal.c
+--- a/arch/um/sys-x86_64/signal.c~uml-currenth-cleanup
++++ a/arch/um/sys-x86_64/signal.c
+@@ -81,7 +81,7 @@ static int copy_sc_from_user(struct pt_r
+ 	if (err)
+ 		return 1;
+ 
+-	err = restore_fp_registers(userspace_pid[current_thread->cpu],
++	err = restore_fp_registers(userspace_pid[current_thread_info()->cpu],
+ 				   (unsigned long *) &fp);
+ 	if (err < 0) {
+ 		printk(KERN_ERR "copy_sc_from_user - "
+@@ -143,7 +143,7 @@ static int copy_sc_to_user(struct sigcon
+ 	if (err)
+ 		return 1;
+ 
+-	err = save_fp_registers(userspace_pid[current_thread->cpu],
++	err = save_fp_registers(userspace_pid[current_thread_info()->cpu],
+ 				(unsigned long *) &fp);
+ 	if (err < 0) {
+ 		printk(KERN_ERR "copy_sc_from_user - restore_fp_registers "
+diff -puN include/asm-um/current.h~uml-currenth-cleanup include/asm-um/current.h
+--- a/include/asm-um/current.h~uml-currenth-cleanup
++++ a/include/asm-um/current.h
+@@ -1,32 +1,13 @@
+-/* 
+- * Copyright (C) 2000 Jeff Dike (jdike@karaya.com)
++/*
 + * Copyright (C) 2000 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
   * Licensed under the GPL
   */
  
--#include "linux/stddef.h"
--#include "linux/kernel.h"
--#include "linux/mm.h"
--#include "linux/bootmem.h"
--#include "linux/swap.h"
--#include "linux/highmem.h"
--#include "linux/gfp.h"
+ #ifndef __UM_CURRENT_H
+ #define __UM_CURRENT_H
+ 
+-#ifndef __ASSEMBLY__
+-
 -#include "asm/page.h"
--#include "asm/fixmap.h"
--#include "asm/pgalloc.h"
--#include "kern_util.h"
-+#include <linux/stddef.h>
-+#include <linux/bootmem.h>
-+#include <linux/gfp.h>
-+#include <linux/highmem.h>
-+#include <linux/mm.h>
-+#include <linux/swap.h>
-+#include <asm/fixmap.h>
-+#include <asm/page.h>
- #include "as-layout.h"
-+#include "init.h"
- #include "kern.h"
-+#include "kern_util.h"
- #include "mem_user.h"
--#include "um_uaccess.h"
- #include "os.h"
--#include "linux/types.h"
--#include "linux/string.h"
--#include "init.h"
--#include "kern_constants.h"
+ #include "linux/thread_info.h"
  
- /* allocated in paging_init, zeroed in mem_init, and unchanged thereafter */
- unsigned long *empty_zero_page = NULL;
-@@ -53,7 +47,7 @@ static void setup_highmem(unsigned long 
- 	int i;
+ #define current (current_thread_info()->task)
  
- 	highmem_pfn = __pa(highmem_start) >> PAGE_SHIFT;
--	for(i = 0; i < highmem_len >> PAGE_SHIFT; i++){
-+	for (i = 0; i < highmem_len >> PAGE_SHIFT; i++) {
- 		page = &mem_map[highmem_pfn + i];
- 		ClearPageReserved(page);
- 		init_page_count(page);
-@@ -85,7 +79,7 @@ void __init mem_init(void)
- #endif
- 	num_physpages = totalram_pages;
- 	max_pfn = totalram_pages;
--	printk(KERN_INFO "Memory: %luk available\n", 
-+	printk(KERN_INFO "Memory: %luk available\n",
- 	       (unsigned long) nr_free_pages() << (PAGE_SHIFT-10));
- 	kmalloc_ok = 1;
- 
-@@ -119,7 +113,7 @@ static void __init one_md_table_init(pud
- #endif
- }
- 
--static void __init fixrange_init(unsigned long start, unsigned long end, 
-+static void __init fixrange_init(unsigned long start, unsigned long end,
- 				 pgd_t *pgd_base)
- {
- 	pgd_t *pgd;
-@@ -206,7 +200,8 @@ static void __init fixaddr_user_init( vo
- 	paddr = (unsigned long)alloc_bootmem_low_pages( size);
- 	memcpy( (void *)paddr, (void *)FIXADDR_USER_START, size);
- 	paddr = __pa(paddr);
--	for ( ; size > 0; size-=PAGE_SIZE, vaddr+=PAGE_SIZE, paddr+=PAGE_SIZE){
-+	for ( ; size > 0; size -= PAGE_SIZE, vaddr += PAGE_SIZE,
-+		      paddr += PAGE_SIZE) {
- 		pgd = swapper_pg_dir + pgd_index(vaddr);
- 		pud = pud_offset(pgd, vaddr);
- 		pmd = pmd_offset(pud, vaddr);
-@@ -223,7 +218,7 @@ void __init paging_init(void)
- 
- 	empty_zero_page = (unsigned long *) alloc_bootmem_low_pages(PAGE_SIZE);
- 	empty_bad_page = (unsigned long *) alloc_bootmem_low_pages(PAGE_SIZE);
--	for(i = 0; i < ARRAY_SIZE(zones_size); i++)
-+	for (i = 0; i < ARRAY_SIZE(zones_size); i++)
- 		zones_size[i] = 0;
- 
- 	zones_size[ZONE_NORMAL] = (end_iomem >> PAGE_SHIFT) -
-@@ -253,26 +248,26 @@ struct page *arch_validate(struct page *
- 	int i;
- 
-  again:
--	if(page == NULL)
-+	if (page == NULL)
- 		return page;
--	if(PageHighMem(page))
-+	if (PageHighMem(page))
- 		return page;
- 
- 	addr = (unsigned long) page_address(page);
--	for(i = 0; i < (1 << order); i++){
-+	for (i = 0; i < (1 << order); i++) {
- 		current->thread.fault_addr = (void *) addr;
--		if(__do_copy_to_user((void __user *) addr, &zero,
-+		if (__do_copy_to_user((void __user *) addr, &zero,
- 				     sizeof(zero),
- 				     &current->thread.fault_addr,
--				     &current->thread.fault_catcher)){
--			if(!(mask & __GFP_WAIT))
-+				     &current->thread.fault_catcher)) {
-+			if (!(mask & __GFP_WAIT))
- 				return NULL;
- 			else break;
- 		}
- 		addr += PAGE_SIZE;
- 	}
- 
--	if(i == (1 << order))
-+	if (i == (1 << order))
- 		return page;
- 	page = alloc_pages(mask, order);
- 	goto again;
-@@ -291,8 +286,8 @@ void free_initmem(void)
- void free_initrd_mem(unsigned long start, unsigned long end)
- {
- 	if (start < end)
--		printk ("Freeing initrd memory: %ldk freed\n", 
--			(end - start) >> 10);
-+		printk(KERN_INFO "Freeing initrd memory: %ldk freed\n",
-+		       (end - start) >> 10);
- 	for (; start < end; start += PAGE_SIZE) {
- 		ClearPageReserved(virt_to_page(start));
- 		init_page_count(virt_to_page(start));
-@@ -309,27 +304,28 @@ void show_mem(void)
- 	int highmem = 0;
- 	struct page *page;
- 
--	printk("Mem-info:\n");
-+	printk(KERN_INFO "Mem-info:\n");
- 	show_free_areas();
--	printk("Free swap:       %6ldkB\n", nr_swap_pages<<(PAGE_SHIFT-10));
-+	printk(KERN_INFO "Free swap:       %6ldkB\n",
-+	       nr_swap_pages<<(PAGE_SHIFT-10));
- 	pfn = max_mapnr;
--	while(pfn-- > 0) {
-+	while (pfn-- > 0) {
- 		page = pfn_to_page(pfn);
- 		total++;
--		if(PageHighMem(page))
-+		if (PageHighMem(page))
- 			highmem++;
--		if(PageReserved(page))
-+		if (PageReserved(page))
- 			reserved++;
--		else if(PageSwapCache(page))
-+		else if (PageSwapCache(page))
- 			cached++;
--		else if(page_count(page))
-+		else if (page_count(page))
- 			shared += page_count(page) - 1;
- 	}
--	printk("%d pages of RAM\n", total);
--	printk("%d pages of HIGHMEM\n", highmem);
--	printk("%d reserved pages\n", reserved);
--	printk("%d pages shared\n", shared);
--	printk("%d pages swap cached\n", cached);
-+	printk(KERN_INFO "%d pages of RAM\n", total);
-+	printk(KERN_INFO "%d pages of HIGHMEM\n", highmem);
-+	printk(KERN_INFO "%d reserved pages\n", reserved);
-+	printk(KERN_INFO "%d pages shared\n", shared);
-+	printk(KERN_INFO "%d pages swap cached\n", cached);
- }
- 
- /* Allocate and free page tables. */
-@@ -340,8 +336,8 @@ pgd_t *pgd_alloc(struct mm_struct *mm)
- 
- 	if (pgd) {
- 		memset(pgd, 0, USER_PTRS_PER_PGD * sizeof(pgd_t));
--		memcpy(pgd + USER_PTRS_PER_PGD, 
--		       swapper_pg_dir + USER_PTRS_PER_PGD, 
-+		memcpy(pgd + USER_PTRS_PER_PGD,
-+		       swapper_pg_dir + USER_PTRS_PER_PGD,
- 		       (PTRS_PER_PGD - USER_PTRS_PER_PGD) * sizeof(pgd_t));
- 	}
- 	return pgd;
-diff -puN include/asm-um/elf-i386.h~uml-style-cleanup include/asm-um/elf-i386.h
---- a/include/asm-um/elf-i386.h~uml-style-cleanup
-+++ a/include/asm-um/elf-i386.h
-@@ -1,5 +1,5 @@
- /*
-- * Copyright (C) 2000 - 2003 Jeff Dike (jdike@addtoit.com)
-+ * Copyright (C) 2000 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Licensed under the GPL
-  */
- #ifndef __UM_ELF_I386_H
-@@ -46,7 +46,7 @@ typedef struct user_i387_struct elf_fpre
- 	PT_REGS_EDI(regs) = 0; \
- 	PT_REGS_EBP(regs) = 0; \
- 	PT_REGS_EAX(regs) = 0; \
--} while(0)
-+} while (0)
- 
- #define USE_ELF_CORE_DUMP
- #define ELF_EXEC_PAGESIZE 4096
-@@ -74,7 +74,7 @@ typedef struct user_i387_struct elf_fpre
- 	pr_reg[14] = PT_REGS_EFLAGS(regs);	\
- 	pr_reg[15] = PT_REGS_SP(regs);		\
- 	pr_reg[16] = PT_REGS_SS(regs);		\
--} while(0);
-+} while (0);
- 
- extern int elf_core_copy_fpregs(struct task_struct *t, elf_fpregset_t *fpu);
- 
-@@ -86,7 +86,7 @@ extern long elf_aux_hwcap;
- extern char * elf_aux_platform;
- #define ELF_PLATFORM (elf_aux_platform)
- 
--#define SET_PERSONALITY(ex, ibcs2) do ; while(0)
-+#define SET_PERSONALITY(ex, ibcs2) do { } while (0)
- 
- extern unsigned long vsyscall_ehdr;
- extern unsigned long vsyscall_end;
-@@ -161,14 +161,3 @@ if ( vsyscall_ehdr ) {							      \
- }
- 
+-/*Backward compatibility - it's used inside arch/um.*/
+-#define current_thread current_thread_info()
+-
+-#endif /* __ASSEMBLY__ */
+-
  #endif
 -
 -/*
@@ -282,6 +216,28 @@ diff -puN include/asm-um/elf-i386.h~uml-style-cleanup include/asm-um/elf-i386.h
 - * c-file-style: "linux"
 - * End:
 - */
+diff -puN include/asm-um/thread_info.h~uml-currenth-cleanup include/asm-um/thread_info.h
+--- a/include/asm-um/thread_info.h~uml-currenth-cleanup
++++ a/include/asm-um/thread_info.h
+@@ -1,5 +1,5 @@
+-/* 
+- * Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
++/*
++ * Copyright (C) 2002 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  * Licensed under the GPL
+  */
+ 
+@@ -76,8 +76,8 @@ static inline struct thread_info *curren
+ #define TIF_SYSCALL_TRACE	0	/* syscall trace active */
+ #define TIF_SIGPENDING		1	/* signal pending */
+ #define TIF_NEED_RESCHED	2	/* rescheduling necessary */
+-#define TIF_POLLING_NRFLAG      3       /* true if poll_idle() is polling 
+-					 * TIF_NEED_RESCHED 
++#define TIF_POLLING_NRFLAG      3       /* true if poll_idle() is polling
++					 * TIF_NEED_RESCHED
+ 					 */
+ #define TIF_RESTART_BLOCK 	4
+ #define TIF_MEMDIE	 	5
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
