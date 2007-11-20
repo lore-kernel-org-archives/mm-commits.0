@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + uml-move-um_virt_to_phys.patch added to -mm tree
-Date: Mon, 19 Nov 2007 16:21:59 -0800
-Message-ID: <200711200022.lAK0M0fC004152@imap1.linux-foundation.org>
+Subject: + uml-header-untangling.patch added to -mm tree
+Date: Mon, 19 Nov 2007 16:22:03 -0800
+Message-ID: <200711200022.lAK0M3bP004163@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40866 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36058 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751836AbXKTAWg (ORCPT
+	by vger.kernel.org with ESMTP id S1752064AbXKTAWh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Nov 2007 19:22:36 -0500
+	Mon, 19 Nov 2007 19:22:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     uml: move um_virt_to_phys
+     uml: header untangling
 has been added to the -mm tree.  Its filename is
-     uml-move-um_virt_to_phys.patch
+     uml-header-untangling.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,168 +26,379 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: move um_virt_to_phys
+Subject: uml: header untangling
 From: Jeff Dike <jdike@addtoit.com>
 
-This patchset makes UML build and run with three-level page tables on
-32-bit hosts.  This is an uncommon use case, but the code here needed
-fixing and cleaning up, so 32-bit three-level pages tables were tested
-to make sure the changes are good.
+Untangle UML headers somewhat and add some includes where they were
+needed explicitly, but gotten accidentally via some other header.
 
-Patch 1 - code movement
-Patch 2 - header untangling
-Patch 3 - style fixups in files affected so far
-Patch 4 - clean up use of current.h
-Patch 5 - fix sizes of types that are different between 2 and 3-level
-	page tables - three-level page table support should build at
-	this point
-Patch 6 - tidy (i.e. eliminate much of) the code that figures out how
-	big the address space is
-Patch 7 - change um_virt_to_phys into virt_to_pte, clean its
-	interface, and clean its (so far) one caller
-Patch 8 - the stub pages are covered with a VMA, allowing some nasty
-	code to be thrown out - three-level page tables now work
+arch/um/include/um_uaccess.h loses asm/fixmap.h because it uses no
+fixmap stuff and gains elf.h, because it needs FIXADDR_USER_*, and
+archsetjmp.h, because it needs jmp_buf.
 
-This patch:
+pmd_alloc_one is uninlined because it needs mm_struct, and that's
+inconvenient to provide in asm-um/pgtable-3level.h.
 
-um_virt_to_phys only has one user, so it can be moved to the same file
-and made static.  Its declarations in pgtable.h and ksyms.c are also
-gone.
+elf_core_copy_fpregs is also uninlined from elf-i386.h and
+elf-x86_64.h, which duplicated the code anyway, to
+arch/um/kernel/process.c, so that the reference to current_thread
+doesn't pull sched.h or anything related into asm/elf.h.
 
-current_cmd was another apparent user, but it itself isn't used, so it
-is deleted.
+arch/um/sys-i386/ldt.c, arch/um/kernel/tlb.c and
+arch/um/kernel/skas/uaccess.c got sched.h because they dereference
+task_structs.  Its includes of linux and asm headers got turned from
+"" to <>.
+
+arch/um/sys-i386/bug.c gets asm/errno.h because it needs errno
+constants.
+
+asm/elf-i386 gets asm/user.h because it needs user_regs_struct.
+
+asm/fixmap.h gets page.h because it needs PAGE_SIZE and PAGE_MASK and
+system.h for BUG_ON.
+
+asm/pgtable doesn't need sched.h.
+
+asm/processor-generic.h defined mm_segment_t, but didn't use it.  So,
+that definition is moved to uaccess.h, which defines a bunch of
+mm_segment_t-related stuff.  thread_info.h uses mm_segment_t, and
+includes uaccess.h, which causes a recursion.  So, the definition is
+placed above the include of thread_info. in uaccess.h.  thread_info.h
+also gets page.h because it needs PAGE_SIZE.
+
+ObCheckpatchViolationJustification - I'm not adding a typedef; I'm
+moving mm_segment_t from one place to another.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/ksyms.c        |    1 
- arch/um/kernel/process.c      |   43 --------------------------------
- arch/um/kernel/skas/uaccess.c |   34 +++++++++++++++++++++++--
- include/asm-um/pgtable.h      |    3 --
- 4 files changed, 32 insertions(+), 49 deletions(-)
+ arch/um/drivers/random.c           |    1 +
+ arch/um/include/um_uaccess.h       |    3 ++-
+ arch/um/kernel/mem.c               |   21 ++++++++++++++++-----
+ arch/um/kernel/process.c           |    8 ++++++++
+ arch/um/kernel/skas/uaccess.c      |   13 +++++++------
+ arch/um/kernel/tlb.c               |    7 ++++---
+ arch/um/sys-i386/bug.c             |    1 +
+ arch/um/sys-i386/ldt.c             |    5 +++--
+ include/asm-um/elf-i386.h          |    9 ++-------
+ include/asm-um/elf-x86_64.h        |    8 +-------
+ include/asm-um/fixmap.h            |    3 ++-
+ include/asm-um/pgtable-3level.h    |   11 ++---------
+ include/asm-um/pgtable.h           |    1 -
+ include/asm-um/processor-generic.h |    5 +----
+ include/asm-um/thread_info.h       |    3 ++-
+ include/asm-um/uaccess.h           |   10 +++++++++-
+ 16 files changed, 61 insertions(+), 48 deletions(-)
 
-diff -puN arch/um/kernel/ksyms.c~uml-move-um_virt_to_phys arch/um/kernel/ksyms.c
---- a/arch/um/kernel/ksyms.c~uml-move-um_virt_to_phys
-+++ a/arch/um/kernel/ksyms.c
-@@ -25,7 +25,6 @@ EXPORT_SYMBOL(get_kmem_end);
+diff -puN arch/um/drivers/random.c~uml-header-untangling arch/um/drivers/random.c
+--- a/arch/um/drivers/random.c~uml-header-untangling
++++ a/arch/um/drivers/random.c
+@@ -5,6 +5,7 @@
+  * This software may be used and distributed according to the terms
+  * of the GNU General Public License, incorporated herein by reference.
+  */
++#include <linux/sched.h>
+ #include <linux/module.h>
+ #include <linux/fs.h>
+ #include <linux/miscdevice.h>
+diff -puN arch/um/include/um_uaccess.h~uml-header-untangling arch/um/include/um_uaccess.h
+--- a/arch/um/include/um_uaccess.h~uml-header-untangling
++++ a/arch/um/include/um_uaccess.h
+@@ -6,7 +6,8 @@
+ #ifndef __ARCH_UM_UACCESS_H
+ #define __ARCH_UM_UACCESS_H
  
- EXPORT_SYMBOL(high_physmem);
- EXPORT_SYMBOL(empty_zero_page);
--EXPORT_SYMBOL(um_virt_to_phys);
- EXPORT_SYMBOL(handle_page_fault);
- EXPORT_SYMBOL(find_iomem);
+-#include "asm/fixmap.h"
++#include "asm/elf.h"
++#include "sysdep/archsetjmp.h"
  
-diff -puN arch/um/kernel/process.c~uml-move-um_virt_to_phys arch/um/kernel/process.c
---- a/arch/um/kernel/process.c~uml-move-um_virt_to_phys
-+++ a/arch/um/kernel/process.c
-@@ -256,49 +256,6 @@ void cpu_idle(void)
- 	default_idle();
+ #define __under_task_size(addr, size) \
+ 	(((unsigned long) (addr) < TASK_SIZE) && \
+diff -puN arch/um/kernel/mem.c~uml-header-untangling arch/um/kernel/mem.c
+--- a/arch/um/kernel/mem.c~uml-header-untangling
++++ a/arch/um/kernel/mem.c
+@@ -152,7 +152,7 @@ pgprot_t kmap_prot;
+ 
+ #define kmap_get_fixmap_pte(vaddr)					\
+ 	pte_offset_kernel(pmd_offset(pud_offset(pgd_offset_k(vaddr), (vaddr)),\
+- 			  (vaddr)), (vaddr))
++				     (vaddr)), (vaddr))
+ 
+ static void __init kmap_init(void)
+ {
+@@ -278,7 +278,8 @@ struct page *arch_validate(struct page *
+ 	goto again;
  }
  
--void *um_virt_to_phys(struct task_struct *task, unsigned long addr,
--		      pte_t *pte_out)
--{
--	pgd_t *pgd;
--	pud_t *pud;
--	pmd_t *pmd;
--	pte_t *pte;
--	pte_t ptent;
--
--	if (task->mm == NULL)
--		return ERR_PTR(-EINVAL);
--	pgd = pgd_offset(task->mm, addr);
--	if (!pgd_present(*pgd))
--		return ERR_PTR(-EINVAL);
--
--	pud = pud_offset(pgd, addr);
--	if (!pud_present(*pud))
--		return ERR_PTR(-EINVAL);
--
--	pmd = pmd_offset(pud, addr);
--	if (!pmd_present(*pmd))
--		return ERR_PTR(-EINVAL);
--
--	pte = pte_offset_kernel(pmd, addr);
--	ptent = *pte;
--	if (!pte_present(ptent))
--		return ERR_PTR(-EINVAL);
--
--	if (pte_out != NULL)
--		*pte_out = ptent;
--	return (void *) (pte_val(ptent) & PAGE_MASK) + (addr & ~PAGE_MASK);
--}
--
--char *current_cmd(void)
--{
--#if defined(CONFIG_SMP) || defined(CONFIG_HIGHMEM)
--	return "(Unknown)";
--#else
--	void *addr = um_virt_to_phys(current, current->mm->arg_start, NULL);
--	return IS_ERR(addr) ? "(Unknown)": __va((unsigned long) addr);
--#endif
--}
--
- int __cant_sleep(void) {
- 	return in_atomic() || irqs_disabled() || in_interrupt();
- 	/* Is in_interrupt() really needed? */
-diff -puN arch/um/kernel/skas/uaccess.c~uml-move-um_virt_to_phys arch/um/kernel/skas/uaccess.c
---- a/arch/um/kernel/skas/uaccess.c~uml-move-um_virt_to_phys
+-/* This can't do anything because nothing in the kernel image can be freed
++/*
++ * This can't do anything because nothing in the kernel image can be freed
+  * since it's not in kernel physical memory.
+  */
+ 
+@@ -331,9 +332,7 @@ void show_mem(void)
+ 	printk("%d pages swap cached\n", cached);
+ }
+ 
+-/*
+- * Allocate and free page tables.
+- */
++/* Allocate and free page tables. */
+ 
+ pgd_t *pgd_alloc(struct mm_struct *mm)
+ {
+@@ -370,3 +369,15 @@ pgtable_t pte_alloc_one(struct mm_struct
+ 		pgtable_page_ctor(pte);
+ 	return pte;
+ }
++
++#ifdef CONFIG_3_LEVEL_PGTABLES
++pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long address)
++{
++	pmd_t *pmd = (pmd_t *) __get_free_page(GFP_KERNEL);
++
++	if (pmd)
++		memset(pmd, 0, PAGE_SIZE);
++
++	return pmd;
++}
++#endif
+diff -puN arch/um/kernel/process.c~uml-header-untangling arch/um/kernel/process.c
+--- a/arch/um/kernel/process.c~uml-header-untangling
++++ a/arch/um/kernel/process.c
+@@ -443,3 +443,11 @@ unsigned long get_wchan(struct task_stru
+ 
+ 	return 0;
+ }
++
++int elf_core_copy_fpregs(struct task_struct *t, elf_fpregset_t *fpu)
++{
++	int cpu = current_thread_info()->cpu;
++
++	return save_fp_registers(userspace_pid[cpu], (unsigned long *) fpu);
++}
++
+diff -puN arch/um/kernel/skas/uaccess.c~uml-header-untangling arch/um/kernel/skas/uaccess.c
+--- a/arch/um/kernel/skas/uaccess.c~uml-header-untangling
 +++ a/arch/um/kernel/skas/uaccess.c
-@@ -12,8 +12,38 @@
+@@ -3,12 +3,13 @@
+  * Licensed under the GPL
+  */
+ 
+-#include "linux/err.h"
+-#include "linux/highmem.h"
+-#include "linux/mm.h"
+-#include "asm/current.h"
+-#include "asm/page.h"
+-#include "asm/pgtable.h"
++#include <linux/err.h>
++#include <linux/highmem.h>
++#include <linux/mm.h>
++#include <linux/sched.h>
++#include <asm/current.h>
++#include <asm/page.h>
++#include <asm/pgtable.h>
  #include "kern_util.h"
  #include "os.h"
  
--extern void *um_virt_to_phys(struct task_struct *task, unsigned long addr,
--			     pte_t *pte_out);
-+static void *um_virt_to_phys(struct task_struct *task, unsigned long addr,
-+			     pte_t *pte_out)
-+{
-+	pgd_t *pgd;
-+	pud_t *pud;
-+	pmd_t *pmd;
-+	pte_t *pte;
-+	pte_t ptent;
-+
-+	if (task->mm == NULL)
-+		return ERR_PTR(-EINVAL);
-+	pgd = pgd_offset(task->mm, addr);
-+	if (!pgd_present(*pgd))
-+		return ERR_PTR(-EINVAL);
-+
-+	pud = pud_offset(pgd, addr);
-+	if (!pud_present(*pud))
-+		return ERR_PTR(-EINVAL);
-+
-+	pmd = pmd_offset(pud, addr);
-+	if (!pmd_present(*pmd))
-+		return ERR_PTR(-EINVAL);
-+
-+	pte = pte_offset_kernel(pmd, addr);
-+	ptent = *pte;
-+	if (!pte_present(ptent))
-+		return ERR_PTR(-EINVAL);
-+
-+	if (pte_out != NULL)
-+		*pte_out = ptent;
-+	return (void *) (pte_val(ptent) & PAGE_MASK) + (addr & ~PAGE_MASK);
-+}
+diff -puN arch/um/kernel/tlb.c~uml-header-untangling arch/um/kernel/tlb.c
+--- a/arch/um/kernel/tlb.c~uml-header-untangling
++++ a/arch/um/kernel/tlb.c
+@@ -3,9 +3,10 @@
+  * Licensed under the GPL
+  */
  
- static unsigned long maybe_map(unsigned long virt, int is_write)
- {
-diff -puN include/asm-um/pgtable.h~uml-move-um_virt_to_phys include/asm-um/pgtable.h
---- a/include/asm-um/pgtable.h~uml-move-um_virt_to_phys
-+++ a/include/asm-um/pgtable.h
-@@ -31,9 +31,6 @@
+-#include "linux/mm.h"
+-#include "asm/pgtable.h"
+-#include "asm/tlbflush.h"
++#include <linux/mm.h>
++#include <linux/sched.h>
++#include <asm/pgtable.h>
++#include <asm/tlbflush.h>
+ #include "as-layout.h"
+ #include "mem_user.h"
+ #include "os.h"
+diff -puN arch/um/sys-i386/bug.c~uml-header-untangling arch/um/sys-i386/bug.c
+--- a/arch/um/sys-i386/bug.c~uml-header-untangling
++++ a/arch/um/sys-i386/bug.c
+@@ -4,6 +4,7 @@
+  */
  
- extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
+ #include <linux/uaccess.h>
++#include <asm/errno.h>
  
--extern void *um_virt_to_phys(struct task_struct *task, unsigned long virt,
--			     pte_t *pte_out);
+ /* Mostly copied from i386/x86_86 - eliminated the eip < PAGE_OFFSET because
+  * that's not relevant in skas mode.
+diff -puN arch/um/sys-i386/ldt.c~uml-header-untangling arch/um/sys-i386/ldt.c
+--- a/arch/um/sys-i386/ldt.c~uml-header-untangling
++++ a/arch/um/sys-i386/ldt.c
+@@ -3,8 +3,9 @@
+  * Licensed under the GPL
+  */
+ 
+-#include "linux/mm.h"
+-#include "asm/unistd.h"
++#include <linux/mm.h>
++#include <linux/sched.h>
++#include <asm/unistd.h>
+ #include "os.h"
+ #include "proc_mm.h"
+ #include "skas.h"
+diff -puN include/asm-um/elf-i386.h~uml-header-untangling include/asm-um/elf-i386.h
+--- a/include/asm-um/elf-i386.h~uml-header-untangling
++++ a/include/asm-um/elf-i386.h
+@@ -5,7 +5,7 @@
+ #ifndef __UM_ELF_I386_H
+ #define __UM_ELF_I386_H
+ 
+-#include <linux/sched.h>
++#include <asm/user.h>
+ #include "skas.h"
+ 
+ #define R_386_NONE	0
+@@ -76,12 +76,7 @@ typedef struct user_i387_struct elf_fpre
+ 	pr_reg[16] = PT_REGS_SS(regs);		\
+ } while(0);
+ 
+-static inline int elf_core_copy_fpregs(struct task_struct *t,
+-				       elf_fpregset_t *fpu)
+-{
+-	int cpu = ((struct thread_info *) t->stack)->cpu;
+-	return save_fp_registers(userspace_pid[cpu], (unsigned long *) fpu);
+-}
++extern int elf_core_copy_fpregs(struct task_struct *t, elf_fpregset_t *fpu);
+ 
+ #define ELF_CORE_COPY_FPREGS(t, fpu) elf_core_copy_fpregs(t, fpu)
+ 
+diff -puN include/asm-um/elf-x86_64.h~uml-header-untangling include/asm-um/elf-x86_64.h
+--- a/include/asm-um/elf-x86_64.h~uml-header-untangling
++++ a/include/asm-um/elf-x86_64.h
+@@ -7,7 +7,6 @@
+ #ifndef __UM_ELF_X86_64_H
+ #define __UM_ELF_X86_64_H
+ 
+-#include <linux/sched.h>
+ #include <asm/user.h>
+ #include "skas.h"
+ 
+@@ -96,12 +95,7 @@ typedef struct user_i387_struct elf_fpre
+ 	(pr_reg)[25] = 0;					\
+ 	(pr_reg)[26] = 0;
+ 
+-static inline int elf_core_copy_fpregs(struct task_struct *t,
+-				       elf_fpregset_t *fpu)
+-{
+-	int cpu = current_thread->cpu;
+-	return save_fp_registers(userspace_pid[cpu], (unsigned long *) fpu);
+-}
++extern int elf_core_copy_fpregs(struct task_struct *t, elf_fpregset_t *fpu);
+ 
+ #define ELF_CORE_COPY_FPREGS(t, fpu) elf_core_copy_fpregs(t, fpu)
+ 
+diff -puN include/asm-um/fixmap.h~uml-header-untangling include/asm-um/fixmap.h
+--- a/include/asm-um/fixmap.h~uml-header-untangling
++++ a/include/asm-um/fixmap.h
+@@ -1,9 +1,10 @@
+ #ifndef __UM_FIXMAP_H
+ #define __UM_FIXMAP_H
+ 
++#include <asm/system.h>
+ #include <asm/kmap_types.h>
+ #include <asm/archparam.h>
+-#include <asm/elf.h>
++#include <asm/page.h>
+ 
+ /*
+  * Here we define all the compile-time 'special' virtual
+diff -puN include/asm-um/pgtable-3level.h~uml-header-untangling include/asm-um/pgtable-3level.h
+--- a/include/asm-um/pgtable-3level.h~uml-header-untangling
++++ a/include/asm-um/pgtable-3level.h
+@@ -59,15 +59,8 @@ static inline void pgd_mkuptodate(pgd_t 
+ 
+ #define set_pmd(pmdptr, pmdval) set_64bit((phys_t *) (pmdptr), pmd_val(pmdval))
+ 
+-static inline pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long address)
+-{
+-        pmd_t *pmd = (pmd_t *) __get_free_page(GFP_KERNEL);
 -
- /* zero page used for uninitialized stuff */
- extern unsigned long *empty_zero_page;
+-        if(pmd)
+-                memset(pmd, 0, PAGE_SIZE);
+-
+-        return pmd;
+-}
++struct mm_struct;
++extern pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long address);
  
+ static inline void pud_clear (pud_t *pud)
+ {
+diff -puN include/asm-um/pgtable.h~uml-header-untangling include/asm-um/pgtable.h
+--- a/include/asm-um/pgtable.h~uml-header-untangling
++++ a/include/asm-um/pgtable.h
+@@ -8,7 +8,6 @@
+ #ifndef __UM_PGTABLE_H
+ #define __UM_PGTABLE_H
+ 
+-#include "linux/sched.h"
+ #include <asm/fixmap.h>
+ 
+ #define _PAGE_PRESENT	0x001
+diff -puN include/asm-um/processor-generic.h~uml-header-untangling include/asm-um/processor-generic.h
+--- a/include/asm-um/processor-generic.h~uml-header-untangling
++++ a/include/asm-um/processor-generic.h
+@@ -11,6 +11,7 @@ struct pt_regs;
+ struct task_struct;
+ 
+ #include "asm/ptrace.h"
++#include "asm/pgtable.h"
+ #include "registers.h"
+ #include "sysdep/archsetjmp.h"
+ 
+@@ -68,10 +69,6 @@ struct thread_struct {
+ 	.request		= { 0 } \
+ }
+ 
+-typedef struct {
+-	unsigned long seg;
+-} mm_segment_t;
+-
+ extern struct task_struct *alloc_task_struct(void);
+ 
+ static inline void release_thread(struct task_struct *task)
+diff -puN include/asm-um/thread_info.h~uml-header-untangling include/asm-um/thread_info.h
+--- a/include/asm-um/thread_info.h~uml-header-untangling
++++ a/include/asm-um/thread_info.h
+@@ -8,8 +8,9 @@
+ 
+ #ifndef __ASSEMBLY__
+ 
+-#include <asm/processor.h>
+ #include <asm/types.h>
++#include <asm/page.h>
++#include <asm/uaccess.h>
+ 
+ struct thread_info {
+ 	struct task_struct	*task;		/* main task structure */
+diff -puN include/asm-um/uaccess.h~uml-header-untangling include/asm-um/uaccess.h
+--- a/include/asm-um/uaccess.h~uml-header-untangling
++++ a/include/asm-um/uaccess.h
+@@ -6,7 +6,15 @@
+ #ifndef __UM_UACCESS_H
+ #define __UM_UACCESS_H
+ 
+-#include "linux/sched.h"
++#include <asm/errno.h>
++#include <asm/processor.h>
++
++/* thread_info has a mm_segment_t in it, so put the definition up here */
++typedef struct {
++	unsigned long seg;
++} mm_segment_t;
++
++#include "linux/thread_info.h"
+ 
+ #define VERIFY_READ 0
+ #define VERIFY_WRITE 1
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
