@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + uml-add-virt_to_pte.patch added to -mm tree
-Date: Mon, 19 Nov 2007 16:22:13 -0800
-Message-ID: <200711200022.lAK0MDrA004184@imap1.linux-foundation.org>
+Subject: + uml-fix-page-table-data-sizes.patch added to -mm tree
+Date: Mon, 19 Nov 2007 16:22:09 -0800
+Message-ID: <200711200022.lAK0M9Cu004178@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58562 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60657 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752210AbXKTAWu (ORCPT
+	by vger.kernel.org with ESMTP id S1752132AbXKTAWr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Nov 2007 19:22:50 -0500
+	Mon, 19 Nov 2007 19:22:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     uml: add virt_to_pte
+     uml: fix page table data sizes
 has been added to the -mm tree.  Its filename is
-     uml-add-virt_to_pte.patch
+     uml-fix-page-table-data-sizes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,132 +26,166 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: add virt_to_pte
+Subject: uml: fix page table data sizes
 From: Jeff Dike <jdike@addtoit.com>
 
-Turn um_virt_to_phys into virt_to_pte, cleaning up a horrid interface.
+Get the sizes of various pieces of data right when using three-level
+page tables.  pgd and pmd entries remain at 32 bits in a 32-bit
+compilation because page tables will remain in low memory.  So,
+PGDIR_SHIFT, the PTRS_PER_* values, set_pud, set_pmd are conditional
+on 64BIT.
 
-It's also made non-static and declared in pgtable.h because it'll be
-needed when the stubs get a vma.
+More use of phys_t is made when there are physical memory addresses
+floating around.
+
+ObCheckpatchViolationJustification - the new typedef is an alternate
+definition of pmd_t, which I can't really live without.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/skas/uaccess.c |   56 +++++++++++++-------------------
- include/asm-um/pgtable.h      |    3 +
- 2 files changed, 26 insertions(+), 33 deletions(-)
+ arch/um/kernel/mem.c            |   17 +++++++++--------
+ include/asm-um/page.h           |    6 +++---
+ include/asm-um/pgtable-3level.h |   21 ++++++++++++++++++++-
+ include/asm-um/pgtable.h        |    2 +-
+ 4 files changed, 33 insertions(+), 13 deletions(-)
 
-diff -puN arch/um/kernel/skas/uaccess.c~uml-add-virt_to_pte arch/um/kernel/skas/uaccess.c
---- a/arch/um/kernel/skas/uaccess.c~uml-add-virt_to_pte
-+++ a/arch/um/kernel/skas/uaccess.c
-@@ -13,70 +13,60 @@
- #include "kern_util.h"
- #include "os.h"
- 
--static void *um_virt_to_phys(struct task_struct *task, unsigned long addr,
--			     pte_t *pte_out)
-+pte_t *virt_to_pte(struct mm_struct *mm, unsigned long addr)
- {
- 	pgd_t *pgd;
+diff -puN arch/um/kernel/mem.c~uml-fix-page-table-data-sizes arch/um/kernel/mem.c
+--- a/arch/um/kernel/mem.c~uml-fix-page-table-data-sizes
++++ a/arch/um/kernel/mem.c
+@@ -132,7 +132,7 @@ static void __init fixrange_init(unsigne
+ 		if (pud_none(*pud))
+ 			one_md_table_init(pud);
+ 		pmd = pmd_offset(pud, vaddr);
+-		for (; (j < PTRS_PER_PMD) && (vaddr != end); pmd++, j++) {
++		for (; (j < PTRS_PER_PMD) && (vaddr < end); pmd++, j++) {
+ 			one_page_table_init(pmd);
+ 			vaddr += PMD_SIZE;
+ 		}
+@@ -191,22 +191,23 @@ static void __init fixaddr_user_init( vo
  	pud_t *pud;
  	pmd_t *pmd;
--	pte_t *pte;
--	pte_t ptent;
+ 	pte_t *pte;
+-	unsigned long paddr, vaddr = FIXADDR_USER_START;
++	phys_t p;
++	unsigned long v, vaddr = FIXADDR_USER_START;
  
--	if (task->mm == NULL)
--		return ERR_PTR(-EINVAL);
--	pgd = pgd_offset(task->mm, addr);
-+	if (mm == NULL)
-+		return NULL;
-+
-+	pgd = pgd_offset(mm, addr);
- 	if (!pgd_present(*pgd))
--		return ERR_PTR(-EINVAL);
-+		return NULL;
+-	if (  ! size )
++	if (!size)
+ 		return;
  
- 	pud = pud_offset(pgd, addr);
- 	if (!pud_present(*pud))
--		return ERR_PTR(-EINVAL);
-+		return NULL;
- 
- 	pmd = pmd_offset(pud, addr);
- 	if (!pmd_present(*pmd))
--		return ERR_PTR(-EINVAL);
--
--	pte = pte_offset_kernel(pmd, addr);
--	ptent = *pte;
--	if (!pte_present(ptent))
--		return ERR_PTR(-EINVAL);
-+		return NULL;
- 
--	if (pte_out != NULL)
--		*pte_out = ptent;
--	return (void *) (pte_val(ptent) & PAGE_MASK) + (addr & ~PAGE_MASK);
-+	return pte_offset_kernel(pmd, addr);
- }
- 
--static unsigned long maybe_map(unsigned long virt, int is_write)
-+static pte_t *maybe_map(unsigned long virt, int is_write)
- {
--	pte_t pte;
--	int err;
-+	pte_t *pte = virt_to_pte(current->mm, virt);
-+	int err, dummy_code;
- 
--	void *phys = um_virt_to_phys(current, virt, &pte);
--	int dummy_code;
--
--	if (IS_ERR(phys) || (is_write && !pte_write(pte))) {
-+	if ((pte == NULL) || !pte_present(*pte) ||
-+	    (is_write && !pte_write(*pte))) {
- 		err = handle_page_fault(virt, 0, is_write, 1, &dummy_code);
- 		if (err)
--			return -1UL;
--		phys = um_virt_to_phys(current, virt, NULL);
-+			return NULL;
-+		pte = virt_to_pte(current->mm, virt);
+ 	fixrange_init( FIXADDR_USER_START, FIXADDR_USER_END, swapper_pg_dir);
+-	paddr = (unsigned long)alloc_bootmem_low_pages( size);
+-	memcpy( (void *)paddr, (void *)FIXADDR_USER_START, size);
+-	paddr = __pa(paddr);
++	v = (unsigned long) alloc_bootmem_low_pages(size);
++	memcpy((void *) v , (void *) FIXADDR_USER_START, size);
++	p = __pa(v);
+ 	for ( ; size > 0; size -= PAGE_SIZE, vaddr += PAGE_SIZE,
+-		      paddr += PAGE_SIZE) {
++		      p += PAGE_SIZE) {
+ 		pgd = swapper_pg_dir + pgd_index(vaddr);
+ 		pud = pud_offset(pgd, vaddr);
+ 		pmd = pmd_offset(pud, vaddr);
+ 		pte = pte_offset_kernel(pmd, vaddr);
+-		pte_set_val( (*pte), paddr, PAGE_READONLY);
++		pte_set_val(*pte, p, PAGE_READONLY);
  	}
--	if (IS_ERR(phys))
--		phys = (void *) -1;
-+	if (!pte_present(*pte))
-+		pte = NULL;
- 
--	return (unsigned long) phys;
-+	return pte;
+ #endif
  }
+diff -puN include/asm-um/page.h~uml-fix-page-table-data-sizes include/asm-um/page.h
+--- a/include/asm-um/page.h~uml-fix-page-table-data-sizes
++++ a/include/asm-um/page.h
+@@ -30,7 +30,7 @@ struct page;
+ #if defined(CONFIG_3_LEVEL_PGTABLES) && !defined(CONFIG_64BIT)
  
- static int do_op_one_page(unsigned long addr, int len, int is_write,
- 		 int (*op)(unsigned long addr, int len, void *arg), void *arg)
- {
- 	struct page *page;
-+	pte_t *pte;
- 	int n;
+ typedef struct { unsigned long pte_low, pte_high; } pte_t;
+-typedef struct { unsigned long long pmd; } pmd_t;
++typedef struct { unsigned long pmd; } pmd_t;
+ typedef struct { unsigned long pgd; } pgd_t;
+ #define pte_val(x) ((x).pte_low | ((unsigned long long) (x).pte_high << 32))
  
--	addr = maybe_map(addr, is_write);
--	if (addr == -1UL)
-+	pte = maybe_map(addr, is_write);
-+	if (pte == NULL)
- 		return -1;
+@@ -108,8 +108,8 @@ extern unsigned long uml_physmem;
+ #define __pa(virt) to_phys((void *) (unsigned long) (virt))
+ #define __va(phys) to_virt((unsigned long) (phys))
  
--	page = phys_to_page(addr);
-+	page = pte_page(*pte);
- 	addr = (unsigned long) kmap_atomic(page, KM_UML_USERCOPY) +
- 		(addr & ~PAGE_MASK);
+-#define phys_to_pfn(p) ((p) >> PAGE_SHIFT)
+-#define pfn_to_phys(pfn) ((pfn) << PAGE_SHIFT)
++#define phys_to_pfn(p) ((pfn_t) ((p) >> PAGE_SHIFT))
++#define pfn_to_phys(pfn) ((phys_t) ((pfn) << PAGE_SHIFT))
  
-diff -puN include/asm-um/pgtable.h~uml-add-virt_to_pte include/asm-um/pgtable.h
---- a/include/asm-um/pgtable.h~uml-add-virt_to_pte
-+++ a/include/asm-um/pgtable.h
-@@ -323,6 +323,9 @@ static inline pte_t pte_modify(pte_t pte
- #define pte_unmap(pte) do { } while (0)
- #define pte_unmap_nested(pte) do { } while (0)
+ #define pfn_valid(pfn) ((pfn) < max_mapnr)
+ #define virt_addr_valid(v) pfn_valid(phys_to_pfn(__pa(v)))
+diff -puN include/asm-um/pgtable-3level.h~uml-fix-page-table-data-sizes include/asm-um/pgtable-3level.h
+--- a/include/asm-um/pgtable-3level.h~uml-fix-page-table-data-sizes
++++ a/include/asm-um/pgtable-3level.h
+@@ -11,7 +11,11 @@
  
-+struct mm_struct;
-+extern pte_t *virt_to_pte(struct mm_struct *mm, unsigned long addr);
+ /* PGDIR_SHIFT determines what a third-level page table entry can map */
+ 
++#ifdef CONFIG_64BIT
+ #define PGDIR_SHIFT	30
++#else
++#define PGDIR_SHIFT	31
++#endif
+ #define PGDIR_SIZE	(1UL << PGDIR_SHIFT)
+ #define PGDIR_MASK	(~(PGDIR_SIZE-1))
+ 
+@@ -28,9 +32,15 @@
+  */
+ 
+ #define PTRS_PER_PTE 512
++#ifdef CONFIG_64BIT
+ #define PTRS_PER_PMD 512
+-#define USER_PTRS_PER_PGD ((TASK_SIZE + (PGDIR_SIZE - 1)) / PGDIR_SIZE)
+ #define PTRS_PER_PGD 512
++#else
++#define PTRS_PER_PMD 1024
++#define PTRS_PER_PGD 1024
++#endif
 +
- #define update_mmu_cache(vma,address,pte) do ; while (0)
++#define USER_PTRS_PER_PGD ((TASK_SIZE + (PGDIR_SIZE - 1)) / PGDIR_SIZE)
+ #define FIRST_USER_ADDRESS	0
  
- /* Encode and de-code a swap entry */
+ #define pte_ERROR(e) \
+@@ -49,7 +59,12 @@
+ #define pud_populate(mm, pud, pmd) \
+ 	set_pud(pud, __pud(_PAGE_TABLE + __pa(pmd)))
+ 
++#ifdef CONFIG_64BIT
+ #define set_pud(pudptr, pudval) set_64bit((phys_t *) (pudptr), pud_val(pudval))
++#else
++#define set_pud(pudptr, pudval) (*(pudptr) = (pudval))
++#endif
++
+ static inline int pgd_newpage(pgd_t pgd)
+ {
+ 	return(pgd_val(pgd) & _PAGE_NEWPAGE);
+@@ -57,7 +72,11 @@ static inline int pgd_newpage(pgd_t pgd)
+ 
+ static inline void pgd_mkuptodate(pgd_t pgd) { pgd_val(pgd) &= ~_PAGE_NEWPAGE; }
+ 
++#ifdef CONFIG_64BIT
+ #define set_pmd(pmdptr, pmdval) set_64bit((phys_t *) (pmdptr), pmd_val(pmdval))
++#else
++#define set_pmd(pmdptr, pmdval) (*(pmdptr) = (pmdval))
++#endif
+ 
+ struct mm_struct;
+ extern pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long address);
+diff -puN include/asm-um/pgtable.h~uml-fix-page-table-data-sizes include/asm-um/pgtable.h
+--- a/include/asm-um/pgtable.h~uml-fix-page-table-data-sizes
++++ a/include/asm-um/pgtable.h
+@@ -262,7 +262,7 @@ static inline void set_pte(pte_t *pteptr
+ 
+ #define phys_to_page(phys) pfn_to_page(phys_to_pfn(phys))
+ #define __virt_to_page(virt) phys_to_page(__pa(virt))
+-#define page_to_phys(page) pfn_to_phys(page_to_pfn(page))
++#define page_to_phys(page) pfn_to_phys((pfn_t) page_to_pfn(page))
+ #define virt_to_page(addr) __virt_to_page((const unsigned long) addr)
+ 
+ #define mk_pte(page, pgprot) \
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
