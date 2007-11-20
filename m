@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + uml-fix-page-table-data-sizes.patch added to -mm tree
-Date: Mon, 19 Nov 2007 16:22:09 -0800
-Message-ID: <200711200022.lAK0M9Cu004178@imap1.linux-foundation.org>
+Subject: + uml-clean-up-task-size-calculation.patch added to -mm tree
+Date: Mon, 19 Nov 2007 16:22:11 -0800
+Message-ID: <200711200022.lAK0MBtx004181@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60657 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34355 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752132AbXKTAWr (ORCPT
+	by vger.kernel.org with ESMTP id S1752205AbXKTAWt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Nov 2007 19:22:47 -0500
+	Mon, 19 Nov 2007 19:22:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     uml: fix page table data sizes
+     uml: clean up task size calculation
 has been added to the -mm tree.  Its filename is
-     uml-fix-page-table-data-sizes.patch
+     uml-clean-up-task-size-calculation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,166 +26,249 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: fix page table data sizes
+Subject: uml: clean up task size calculation
 From: Jeff Dike <jdike@addtoit.com>
 
-Get the sizes of various pieces of data right when using three-level
-page tables.  pgd and pmd entries remain at 32 bits in a 32-bit
-compilation because page tables will remain in low memory.  So,
-PGDIR_SHIFT, the PTRS_PER_* values, set_pud, set_pmd are conditional
-on 64BIT.
+Clean up the calculation and use of the usable address space size on
+the host.
 
-More use of phys_t is made when there are physical memory addresses
-floating around.
+task_size is gone, replaced with TASK_SIZE, which is calculated from
+CONFIG_TOP_ADDR.  get_kmem_end and set_task_sizes_skas are also gone.
 
-ObCheckpatchViolationJustification - the new typedef is an alternate
-definition of pmd_t, which I can't really live without.
+host_task_size, which refers to the entire address space usable by the
+UML kernel and which may be larger than the address space usable by a
+UML process, since that has to end on a pgdir boundary, is replaced by
+CONFIG_TOP_ADDR.
+
+STACK_TOP is now TASK_SIZE minus the two stub pages.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/mem.c            |   17 +++++++++--------
- include/asm-um/page.h           |    6 +++---
- include/asm-um/pgtable-3level.h |   21 ++++++++++++++++++++-
- include/asm-um/pgtable.h        |    2 +-
- 4 files changed, 33 insertions(+), 13 deletions(-)
+ arch/um/include/as-layout.h        |   15 +++++++++++++--
+ arch/um/include/common-offsets.h   |    3 +++
+ arch/um/include/mem_user.h         |    4 ----
+ arch/um/kernel/exec.c              |    2 +-
+ arch/um/kernel/ksyms.c             |    3 ---
+ arch/um/kernel/physmem.c           |   10 ----------
+ arch/um/kernel/tlb.c               |    2 +-
+ arch/um/kernel/um_arch.c           |   22 ++--------------------
+ include/asm-um/fixmap.h            |    3 +--
+ include/asm-um/processor-generic.h |    7 +++----
+ 10 files changed, 24 insertions(+), 47 deletions(-)
 
-diff -puN arch/um/kernel/mem.c~uml-fix-page-table-data-sizes arch/um/kernel/mem.c
---- a/arch/um/kernel/mem.c~uml-fix-page-table-data-sizes
-+++ a/arch/um/kernel/mem.c
-@@ -132,7 +132,7 @@ static void __init fixrange_init(unsigne
- 		if (pud_none(*pud))
- 			one_md_table_init(pud);
- 		pmd = pmd_offset(pud, vaddr);
--		for (; (j < PTRS_PER_PMD) && (vaddr != end); pmd++, j++) {
-+		for (; (j < PTRS_PER_PMD) && (vaddr < end); pmd++, j++) {
- 			one_page_table_init(pmd);
- 			vaddr += PMD_SIZE;
- 		}
-@@ -191,22 +191,23 @@ static void __init fixaddr_user_init( vo
- 	pud_t *pud;
- 	pmd_t *pmd;
- 	pte_t *pte;
--	unsigned long paddr, vaddr = FIXADDR_USER_START;
-+	phys_t p;
-+	unsigned long v, vaddr = FIXADDR_USER_START;
+diff -puN arch/um/include/as-layout.h~uml-clean-up-task-size-calculation arch/um/include/as-layout.h
+--- a/arch/um/include/as-layout.h~uml-clean-up-task-size-calculation
++++ a/arch/um/include/as-layout.h
+@@ -29,9 +29,20 @@
+ #define _AC(X, Y)	__AC(X, Y)
+ #endif
  
--	if (  ! size )
-+	if (!size)
++/*
++ * The "- 1"'s are to avoid gcc complaining about integer overflows
++ * and unrepresentable decimal constants.  With 3-level page tables,
++ * TASK_SIZE is 0x80000000, which gets turned into its signed decimal
++ * equivalent in asm-offsets.s.  gcc then complains about that being
++ * unsigned only in C90.  To avoid that, UM_TASK_SIZE is defined as
++ * TASK_SIZE - 1.  To compensate, we need to add the 1 back here.
++ * However, adding it back to UM_TASK_SIZE produces more gcc
++ * complaints.  So, I adjust the thing being subtracted from
++ * UM_TASK_SIZE instead.  Bah.
++ */
+ #define STUB_CODE _AC((unsigned long), \
+-		      UML_CONFIG_TOP_ADDR - 2 * UM_KERN_PAGE_SIZE)
+-#define STUB_DATA _AC((unsigned long), UML_CONFIG_TOP_ADDR - UM_KERN_PAGE_SIZE)
++		      UM_TASK_SIZE - (2 * UM_KERN_PAGE_SIZE - 1))
++#define STUB_DATA _AC((unsigned long), UM_TASK_SIZE - (UM_KERN_PAGE_SIZE - 1))
+ #define STUB_START _AC(, STUB_CODE)
+ 
+ #ifndef __ASSEMBLY__
+diff -puN arch/um/include/common-offsets.h~uml-clean-up-task-size-calculation arch/um/include/common-offsets.h
+--- a/arch/um/include/common-offsets.h~uml-clean-up-task-size-calculation
++++ a/arch/um/include/common-offsets.h
+@@ -39,3 +39,6 @@ DEFINE(UM_HZ, HZ);
+ DEFINE(UM_USEC_PER_SEC, USEC_PER_SEC);
+ DEFINE(UM_NSEC_PER_SEC, NSEC_PER_SEC);
+ DEFINE(UM_NSEC_PER_USEC, NSEC_PER_USEC);
++
++/* See as-layout.h for an explanation of the "- 1".  Bah. */
++DEFINE(UM_TASK_SIZE, TASK_SIZE - 1);
+diff -puN arch/um/include/mem_user.h~uml-clean-up-task-size-calculation arch/um/include/mem_user.h
+--- a/arch/um/include/mem_user.h~uml-clean-up-task-size-calculation
++++ a/arch/um/include/mem_user.h
+@@ -46,9 +46,6 @@ extern int iomem_size;
+ 
+ #define ROUND_4M(n) ((((unsigned long) (n)) + (1 << 22)) & ~((1 << 22) - 1))
+ 
+-extern unsigned long host_task_size;
+-extern unsigned long task_size;
+-
+ extern int init_mem_user(void);
+ extern void setup_memory(void *entry);
+ extern unsigned long find_iomem(char *driver, unsigned long *len_out);
+@@ -62,6 +59,5 @@ extern unsigned long phys_offset(unsigne
+ extern void unmap_physmem(void);
+ extern void map_memory(unsigned long virt, unsigned long phys,
+ 		       unsigned long len, int r, int w, int x);
+-extern unsigned long get_kmem_end(void);
+ 
+ #endif
+diff -puN arch/um/kernel/exec.c~uml-clean-up-task-size-calculation arch/um/kernel/exec.c
+--- a/arch/um/kernel/exec.c~uml-clean-up-task-size-calculation
++++ a/arch/um/kernel/exec.c
+@@ -19,7 +19,7 @@
+ void flush_thread(void)
+ {
+ 	void *data = NULL;
+-	unsigned long end = proc_mm ? task_size : STUB_START;
++	unsigned long end = proc_mm ? TASK_SIZE : STUB_START;
+ 	int ret;
+ 
+ 	arch_flush_thread(&current->thread.arch);
+diff -puN arch/um/kernel/ksyms.c~uml-clean-up-task-size-calculation arch/um/kernel/ksyms.c
+--- a/arch/um/kernel/ksyms.c~uml-clean-up-task-size-calculation
++++ a/arch/um/kernel/ksyms.c
+@@ -17,11 +17,8 @@ EXPORT_SYMBOL(set_signals);
+ EXPORT_SYMBOL(get_signals);
+ EXPORT_SYMBOL(kernel_thread);
+ EXPORT_SYMBOL(sys_waitpid);
+-EXPORT_SYMBOL(task_size);
+ EXPORT_SYMBOL(flush_tlb_range);
+-EXPORT_SYMBOL(host_task_size);
+ EXPORT_SYMBOL(arch_validate);
+-EXPORT_SYMBOL(get_kmem_end);
+ 
+ EXPORT_SYMBOL(high_physmem);
+ EXPORT_SYMBOL(empty_zero_page);
+diff -puN arch/um/kernel/physmem.c~uml-clean-up-task-size-calculation arch/um/kernel/physmem.c
+--- a/arch/um/kernel/physmem.c~uml-clean-up-task-size-calculation
++++ a/arch/um/kernel/physmem.c
+@@ -55,16 +55,6 @@ int __init init_maps(unsigned long physm
+ 	return 0;
+ }
+ 
+-/* Changed during early boot */
+-static unsigned long kmem_top = 0;
+-
+-unsigned long get_kmem_end(void)
+-{
+-	if (kmem_top == 0)
+-		kmem_top = host_task_size - 1024 * 1024;
+-	return kmem_top;
+-}
+-
+ void map_memory(unsigned long virt, unsigned long phys, unsigned long len,
+ 		int r, int w, int x)
+ {
+diff -puN arch/um/kernel/tlb.c~uml-clean-up-task-size-calculation arch/um/kernel/tlb.c
+--- a/arch/um/kernel/tlb.c~uml-clean-up-task-size-calculation
++++ a/arch/um/kernel/tlb.c
+@@ -511,7 +511,7 @@ void flush_tlb_mm(struct mm_struct *mm)
+ 	if (atomic_read(&mm->mm_users) == 0)
  		return;
  
- 	fixrange_init( FIXADDR_USER_START, FIXADDR_USER_END, swapper_pg_dir);
--	paddr = (unsigned long)alloc_bootmem_low_pages( size);
--	memcpy( (void *)paddr, (void *)FIXADDR_USER_START, size);
--	paddr = __pa(paddr);
-+	v = (unsigned long) alloc_bootmem_low_pages(size);
-+	memcpy((void *) v , (void *) FIXADDR_USER_START, size);
-+	p = __pa(v);
- 	for ( ; size > 0; size -= PAGE_SIZE, vaddr += PAGE_SIZE,
--		      paddr += PAGE_SIZE) {
-+		      p += PAGE_SIZE) {
- 		pgd = swapper_pg_dir + pgd_index(vaddr);
- 		pud = pud_offset(pgd, vaddr);
- 		pmd = pmd_offset(pud, vaddr);
- 		pte = pte_offset_kernel(pmd, vaddr);
--		pte_set_val( (*pte), paddr, PAGE_READONLY);
-+		pte_set_val(*pte, p, PAGE_READONLY);
- 	}
- #endif
+-	end = proc_mm ? task_size : STUB_START;
++	end = proc_mm ? TASK_SIZE : STUB_START;
+ 	fix_range(mm, 0, end, 0);
  }
-diff -puN include/asm-um/page.h~uml-fix-page-table-data-sizes include/asm-um/page.h
---- a/include/asm-um/page.h~uml-fix-page-table-data-sizes
-+++ a/include/asm-um/page.h
-@@ -30,7 +30,7 @@ struct page;
- #if defined(CONFIG_3_LEVEL_PGTABLES) && !defined(CONFIG_64BIT)
  
- typedef struct { unsigned long pte_low, pte_high; } pte_t;
--typedef struct { unsigned long long pmd; } pmd_t;
-+typedef struct { unsigned long pmd; } pmd_t;
- typedef struct { unsigned long pgd; } pgd_t;
- #define pte_val(x) ((x).pte_low | ((unsigned long long) (x).pte_high << 32))
+diff -puN arch/um/kernel/um_arch.c~uml-clean-up-task-size-calculation arch/um/kernel/um_arch.c
+--- a/arch/um/kernel/um_arch.c~uml-clean-up-task-size-calculation
++++ a/arch/um/kernel/um_arch.c
+@@ -101,8 +101,6 @@ const struct seq_operations cpuinfo_op =
+ };
  
-@@ -108,8 +108,8 @@ extern unsigned long uml_physmem;
- #define __pa(virt) to_phys((void *) (unsigned long) (virt))
- #define __va(phys) to_virt((unsigned long) (phys))
+ /* Set in linux_main */
+-unsigned long host_task_size;
+-unsigned long task_size;
+ unsigned long uml_physmem;
+ unsigned long uml_reserved; /* Also modified in mem_init */
+ unsigned long start_vm;
+@@ -234,20 +232,6 @@ EXPORT_SYMBOL(end_iomem);
  
--#define phys_to_pfn(p) ((p) >> PAGE_SHIFT)
--#define pfn_to_phys(pfn) ((pfn) << PAGE_SHIFT)
-+#define phys_to_pfn(p) ((pfn_t) ((p) >> PAGE_SHIFT))
-+#define pfn_to_phys(pfn) ((phys_t) ((pfn) << PAGE_SHIFT))
+ extern char __binary_start;
  
- #define pfn_valid(pfn) ((pfn) < max_mapnr)
- #define virt_addr_valid(v) pfn_valid(phys_to_pfn(__pa(v)))
-diff -puN include/asm-um/pgtable-3level.h~uml-fix-page-table-data-sizes include/asm-um/pgtable-3level.h
---- a/include/asm-um/pgtable-3level.h~uml-fix-page-table-data-sizes
-+++ a/include/asm-um/pgtable-3level.h
-@@ -11,7 +11,11 @@
- 
- /* PGDIR_SHIFT determines what a third-level page table entry can map */
- 
-+#ifdef CONFIG_64BIT
- #define PGDIR_SHIFT	30
-+#else
-+#define PGDIR_SHIFT	31
-+#endif
- #define PGDIR_SIZE	(1UL << PGDIR_SHIFT)
- #define PGDIR_MASK	(~(PGDIR_SIZE-1))
- 
-@@ -28,9 +32,15 @@
-  */
- 
- #define PTRS_PER_PTE 512
-+#ifdef CONFIG_64BIT
- #define PTRS_PER_PMD 512
--#define USER_PTRS_PER_PGD ((TASK_SIZE + (PGDIR_SIZE - 1)) / PGDIR_SIZE)
- #define PTRS_PER_PGD 512
-+#else
-+#define PTRS_PER_PMD 1024
-+#define PTRS_PER_PGD 1024
-+#endif
-+
-+#define USER_PTRS_PER_PGD ((TASK_SIZE + (PGDIR_SIZE - 1)) / PGDIR_SIZE)
- #define FIRST_USER_ADDRESS	0
- 
- #define pte_ERROR(e) \
-@@ -49,7 +59,12 @@
- #define pud_populate(mm, pud, pmd) \
- 	set_pud(pud, __pud(_PAGE_TABLE + __pa(pmd)))
- 
-+#ifdef CONFIG_64BIT
- #define set_pud(pudptr, pudval) set_64bit((phys_t *) (pudptr), pud_val(pudval))
-+#else
-+#define set_pud(pudptr, pudval) (*(pudptr) = (pudval))
-+#endif
-+
- static inline int pgd_newpage(pgd_t pgd)
+-static unsigned long set_task_sizes_skas(unsigned long *task_size_out)
+-{
+-	/* Round up to the nearest 4M */
+-	unsigned long host_task_size = ROUND_4M((unsigned long)
+-						&host_task_size);
+-
+-	if (!skas_needs_stub)
+-		*task_size_out = host_task_size;
+-	else
+-		*task_size_out = STUB_START & PGDIR_MASK;
+-
+-	return host_task_size;
+-}
+-
+ int __init linux_main(int argc, char **argv)
  {
- 	return(pgd_val(pgd) & _PAGE_NEWPAGE);
-@@ -57,7 +72,11 @@ static inline int pgd_newpage(pgd_t pgd)
+ 	unsigned long avail, diff;
+@@ -278,8 +262,6 @@ int __init linux_main(int argc, char **a
  
- static inline void pgd_mkuptodate(pgd_t pgd) { pgd_val(pgd) &= ~_PAGE_NEWPAGE; }
+ 	printf("UML running in %s mode\n", mode);
  
-+#ifdef CONFIG_64BIT
- #define set_pmd(pmdptr, pmdval) set_64bit((phys_t *) (pmdptr), pmd_val(pmdval))
-+#else
-+#define set_pmd(pmdptr, pmdval) (*(pmdptr) = (pmdval))
-+#endif
+-	host_task_size = set_task_sizes_skas(&task_size);
+-
+ 	brk_start = (unsigned long) sbrk(0);
  
- struct mm_struct;
- extern pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long address);
-diff -puN include/asm-um/pgtable.h~uml-fix-page-table-data-sizes include/asm-um/pgtable.h
---- a/include/asm-um/pgtable.h~uml-fix-page-table-data-sizes
-+++ a/include/asm-um/pgtable.h
-@@ -262,7 +262,7 @@ static inline void set_pte(pte_t *pteptr
+ 	/*
+@@ -304,7 +286,7 @@ int __init linux_main(int argc, char **a
  
- #define phys_to_page(phys) pfn_to_page(phys_to_pfn(phys))
- #define __virt_to_page(virt) phys_to_page(__pa(virt))
--#define page_to_phys(page) pfn_to_phys(page_to_pfn(page))
-+#define page_to_phys(page) pfn_to_phys((pfn_t) page_to_pfn(page))
- #define virt_to_page(addr) __virt_to_page((const unsigned long) addr)
+ 	highmem = 0;
+ 	iomem_size = (iomem_size + PAGE_SIZE - 1) & PAGE_MASK;
+-	max_physmem = get_kmem_end() - uml_physmem - iomem_size - MIN_VMALLOC;
++	max_physmem = CONFIG_TOP_ADDR - uml_physmem - iomem_size - MIN_VMALLOC;
  
- #define mk_pte(page, pgprot) \
+ 	/*
+ 	 * Zones have to begin on a 1 << MAX_ORDER page boundary,
+@@ -336,7 +318,7 @@ int __init linux_main(int argc, char **a
+ 	}
+ 
+ 	virtmem_size = physmem_size;
+-	avail = get_kmem_end() - start_vm;
++	avail = CONFIG_TOP_ADDR - start_vm;
+ 	if (physmem_size > avail)
+ 		virtmem_size = avail;
+ 	end_vm = start_vm + virtmem_size;
+diff -puN include/asm-um/fixmap.h~uml-clean-up-task-size-calculation include/asm-um/fixmap.h
+--- a/include/asm-um/fixmap.h~uml-clean-up-task-size-calculation
++++ a/include/asm-um/fixmap.h
+@@ -56,9 +56,8 @@ extern void __set_fixmap (enum fixed_add
+  * the start of the fixmap, and leave one page empty
+  * at the top of mem..
+  */
+-extern unsigned long get_kmem_end(void);
+ 
+-#define FIXADDR_TOP	(get_kmem_end() - 0x2000)
++#define FIXADDR_TOP	(CONFIG_TOP_ADDR - 2 * PAGE_SIZE)
+ #define FIXADDR_SIZE	(__end_of_fixed_addresses << PAGE_SHIFT)
+ #define FIXADDR_START	(FIXADDR_TOP - FIXADDR_SIZE)
+ 
+diff -puN include/asm-um/processor-generic.h~uml-clean-up-task-size-calculation include/asm-um/processor-generic.h
+--- a/include/asm-um/processor-generic.h~uml-clean-up-task-size-calculation
++++ a/include/asm-um/processor-generic.h
+@@ -94,15 +94,14 @@ static inline void mm_copy_segments(stru
+ /*
+  * User space process size: 3GB (default).
+  */
+-extern unsigned long task_size;
+ extern unsigned long stacksizelim;
+-extern unsigned long host_task_size;
+ 
+-#define TASK_SIZE	(task_size)
++#define TASK_SIZE (CONFIG_TOP_ADDR & PGDIR_MASK)
+ 
+ #undef STACK_TOP
+ #undef STACK_TOP_MAX
+-#define STACK_TOP	TASK_SIZE
++
++#define STACK_TOP (TASK_SIZE - 2 * PAGE_SIZE)
+ #define STACK_TOP_MAX	STACK_TOP
+ #define STACK_ROOM	(stacksizelim)
+ 
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
