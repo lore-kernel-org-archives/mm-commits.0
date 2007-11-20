@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ahci-invalid-use-of-writel-readl-with-iomap.patch added to -mm tree
-Date: Mon, 19 Nov 2007 23:09:11 -0800
-Message-ID: <200711200709.lAK79BxW019946@imap1.linux-foundation.org>
+Subject: + libata-sff-tf_load.patch added to -mm tree
+Date: Mon, 19 Nov 2007 23:09:14 -0800
+Message-ID: <200711200709.lAK79EZn019959@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55648 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38905 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753301AbXKTHJb (ORCPT
+	by vger.kernel.org with ESMTP id S1754528AbXKTHJe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Nov 2007 02:09:31 -0500
+	Tue, 20 Nov 2007 02:09:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     ahci: invalid use of writel/readl with iomap
+     libata-sff: tf_load
 has been added to the -mm tree.  Its filename is
-     ahci-invalid-use-of-writel-readl-with-iomap.patch
+     libata-sff-tf_load.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,37 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ahci: invalid use of writel/readl with iomap
+Subject: libata-sff: tf_load
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Should use ioread* as discussed previously
+Jeff said he preferred that the SFF tf_load followed the spec and we
+documented that anyone who needed different overrode it, rather than it
+using the ->check_status methods. No driver relies on the current behaviour.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/ata_piix.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/ata/libata-sff.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/ata_piix.c~ahci-invalid-use-of-writel-readl-with-iomap drivers/ata/ata_piix.c
---- a/drivers/ata/ata_piix.c~ahci-invalid-use-of-writel-readl-with-iomap
-+++ a/drivers/ata/ata_piix.c
-@@ -1086,12 +1086,12 @@ static int piix_disable_ahci(struct pci_
- 	if (!mmio)
- 		return -ENOMEM;
+diff -puN drivers/ata/libata-sff.c~libata-sff-tf_load drivers/ata/libata-sff.c
+--- a/drivers/ata/libata-sff.c~libata-sff-tf_load
++++ a/drivers/ata/libata-sff.c
+@@ -147,7 +147,9 @@ void ata_exec_command(struct ata_port *a
+  *	@tf: ATA taskfile register set for storing input
+  *
+  *	Reads ATA taskfile registers for currently-selected device
+- *	into @tf.
++ *	into @tf. Assumes the device has a fully SFF compliant task file
++ *	layout and behaviour. If you device does not (eg has a different
++ *	status method) then you will need to provide a replacement tf_read
+  *
+  *	LOCKING:
+  *	Inherited from caller.
+@@ -156,7 +158,7 @@ void ata_tf_read(struct ata_port *ap, st
+ {
+ 	struct ata_ioports *ioaddr = &ap->ioaddr;
  
--	tmp = readl(mmio + AHCI_GLOBAL_CTL);
-+	tmp = ioread32(mmio + AHCI_GLOBAL_CTL);
- 	if (tmp & AHCI_ENABLE) {
- 		tmp &= ~AHCI_ENABLE;
--		writel(tmp, mmio + AHCI_GLOBAL_CTL);
-+		iowrite32(tmp, mmio + AHCI_GLOBAL_CTL);
- 
--		tmp = readl(mmio + AHCI_GLOBAL_CTL);
-+		tmp = ioread32(mmio + AHCI_GLOBAL_CTL);
- 		if (tmp & AHCI_ENABLE)
- 			rc = -EIO;
- 	}
+-	tf->command = ata_chk_status(ap);
++	tf->command = ata_check_status(ap);
+ 	tf->feature = ioread8(ioaddr->error_addr);
+ 	tf->nsect = ioread8(ioaddr->nsect_addr);
+ 	tf->lbal = ioread8(ioaddr->lbal_addr);
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
