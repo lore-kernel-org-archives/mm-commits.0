@@ -1,87 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-power-move-function-prototypes-to-header.patch removed from -mm tree
-Date: Tue, 20 Nov 2007 12:01:04 -0800
-Message-ID: <200711202001.lAKK14HV020824@imap1.linux-foundation.org>
+Subject: - xtensa-iss_net_setup-must-be-__init.patch removed from -mm tree
+Date: Tue, 20 Nov 2007 12:01:01 -0800
+Message-ID: <200711202001.lAKK11cb020818@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60451 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46471 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758824AbXKTUBf (ORCPT
+	by vger.kernel.org with ESMTP id S1758850AbXKTUBS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Nov 2007 15:01:35 -0500
+	Tue, 20 Nov 2007 15:01:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: bunk@kernel.org, chris@zankel.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel/power/: move function prototypes to header
+     xtensa iss_net_setup() must be __init
 has been removed from the -mm tree.  Its filename was
-     kernel-power-move-function-prototypes-to-header.patch
+     xtensa-iss_net_setup-must-be-__init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kernel/power/: move function prototypes to header
+Subject: xtensa iss_net_setup() must be __init
 From: Adrian Bunk <bunk@kernel.org>
 
-Move the prototypes of count_highmem_pages() and restore_highmem() to
-kernel/power/power.h
+WARNING: vmlinux.o(.text+0x395c): Section mismatch: reference to .init.text:__alloc_bootmem (between '__invalidate_dcache_all' and '__simc')
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Christian Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/power.h    |    8 ++++++++
- kernel/power/snapshot.c |    1 -
- kernel/power/swsusp.c   |    8 --------
- 3 files changed, 8 insertions(+), 9 deletions(-)
+ arch/xtensa/platform-iss/network.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/power/power.h~kernel-power-move-function-prototypes-to-header kernel/power/power.h
---- a/kernel/power/power.h~kernel-power-move-function-prototypes-to-header
-+++ a/kernel/power/power.h
-@@ -180,3 +180,11 @@ static inline int pm_notifier_call_chain
- 	return (blocking_notifier_call_chain(&pm_chain_head, val, NULL)
- 			== NOTIFY_BAD) ? -EINVAL : 0;
- }
-+
-+#ifdef CONFIG_HIGHMEM
-+unsigned int count_highmem_pages(void);
-+int restore_highmem(void);
-+#else
-+static inline unsigned int count_highmem_pages(void) { return 0; }
-+static inline int restore_highmem(void) { return 0; }
-+#endif
-diff -puN kernel/power/snapshot.c~kernel-power-move-function-prototypes-to-header kernel/power/snapshot.c
---- a/kernel/power/snapshot.c~kernel-power-move-function-prototypes-to-header
-+++ a/kernel/power/snapshot.c
-@@ -872,7 +872,6 @@ unsigned int count_highmem_pages(void)
- }
- #else
- static inline void *saveable_highmem_page(unsigned long pfn) { return NULL; }
--static inline unsigned int count_highmem_pages(void) { return 0; }
- #endif /* CONFIG_HIGHMEM */
+diff -puN arch/xtensa/platform-iss/network.c~xtensa-iss_net_setup-must-be-__init arch/xtensa/platform-iss/network.c
+--- a/arch/xtensa/platform-iss/network.c~xtensa-iss_net_setup-must-be-__init
++++ a/arch/xtensa/platform-iss/network.c
+@@ -746,7 +746,7 @@ struct iss_net_init {
  
- /**
-diff -puN kernel/power/swsusp.c~kernel-power-move-function-prototypes-to-header kernel/power/swsusp.c
---- a/kernel/power/swsusp.c~kernel-power-move-function-prototypes-to-header
-+++ a/kernel/power/swsusp.c
-@@ -64,14 +64,6 @@ unsigned long image_size = 500 * 1024 * 
+ #define ERR KERN_ERR "iss_net_setup: "
  
- int in_suspend __nosavedata = 0;
- 
--#ifdef CONFIG_HIGHMEM
--unsigned int count_highmem_pages(void);
--int restore_highmem(void);
--#else
--static inline int restore_highmem(void) { return 0; }
--static inline unsigned int count_highmem_pages(void) { return 0; }
--#endif
--
- /**
-  *	The following functions are used for tracing the allocated
-  *	swap pages, so that they can be freed in case of an error.
+-static int iss_net_setup(char *str)
++static int __init iss_net_setup(char *str)
+ {
+ 	struct iss_net_private *device = NULL;
+ 	struct iss_net_init *new;
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
