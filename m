@@ -1,248 +1,175 @@
 From: akpm@linux-foundation.org
-Subject: - nfs-stop-sillyname-renames-and-unmounts-from-racing-fix.patch removed from -mm tree
-Date: Mon, 19 Nov 2007 21:40:33 -0800
-Message-ID: <200711200540.lAK5eYF2016144@imap1.linux-foundation.org>
+Subject: - nfs-stop-sillyname-renames-and-unmounts-from-racing.patch removed from -mm tree
+Date: Mon, 19 Nov 2007 21:40:28 -0800
+Message-ID: <200711200540.lAK5eSIY016139@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47762 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43201 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751614AbXKTFlp (ORCPT
+	by vger.kernel.org with ESMTP id S1751500AbXKTFlj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Nov 2007 00:41:45 -0500
+	Tue, 20 Nov 2007 00:41:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, SteveD@redhat.com, bfields@fieldses.org, hch@lst.de, steved@redhat.com, trond.myklebust@fys.uio.no, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: SteveD@redhat.com, bfields@fieldses.org, hch@lst.de, steved@redhat.com, trond.myklebust@fys.uio.no, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nfs-stop-sillyname-renames-and-unmounts-from-racing-fix
+     NFS: Stop sillyname renames and unmounts from racing
 has been removed from the -mm tree.  Its filename was
-     nfs-stop-sillyname-renames-and-unmounts-from-racing-fix.patch
+     nfs-stop-sillyname-renames-and-unmounts-from-racing.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: nfs-stop-sillyname-renames-and-unmounts-from-racing-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: NFS: Stop sillyname renames and unmounts from racing
+From: Steve Dickson <SteveD@redhat.com>
 
-mips:
+The following patch stops NFS sillyname renames and umounts from racing.
+I have a test script does the following:
+     1) start nfs server
+      2) mount loopback
+      3) open file in background
+      4) remove file
+      5) stop nfs server
+      6) kill -9 process which has file open
+      7) restart nfs server
+      8) umount looback mount.
 
-In file included from include/linux/nfs_fs.h:50,
-                 from fs/lockd/clntlock.c:12:
-include/linux/nfs_fs_sb.h: In function `nfs_sb_deactive':
-include/linux/nfs_fs_sb.h:128: error: `TASK_UNINTERRUPTIBLE' undeclared (first use in this function)
-include/linux/nfs_fs_sb.h:128: error: (Each undeclared identifier is reported only once
-include/linux/nfs_fs_sb.h:128: error: for each function it appears in.)
-include/linux/nfs_fs_sb.h:128: error: `TASK_INTERRUPTIBLE' undeclared (first use in this function)
+After umount I got the "VFS: Busy inodes after unmount" message
+because the processing of the rename has not finished.
 
-just uninline it.
 
+Add an active/deactive mechanism to the nfs_server structure allowing async
+operations to hold off umount until the operations are done.
+
+[akpm@linux-foundation.org: coding style fixes]
+Signed-off-by: Steve Dickson <steved@redhat.com>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@lst.de>
-Cc: Steve Dickson <SteveD@redhat.com>
-Cc: Steve Dickson <steved@redhat.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/super.c            |    6 ++++++
- include/linux/nfs_fs_sb.h |    6 +-----
- 2 files changed, 7 insertions(+), 5 deletions(-)
+ fs/nfs/client.c           |    4 ++++
+ fs/nfs/super.c            |   13 +++++++++++++
+ fs/nfs/unlink.c           |    2 ++
+ include/linux/nfs_fs_sb.h |   16 ++++++++++++++++
+ 4 files changed, 35 insertions(+)
 
-diff -puN fs/nfs/super.c~nfs-stop-sillyname-renames-and-unmounts-from-racing-fix fs/nfs/super.c
---- a/fs/nfs/super.c~nfs-stop-sillyname-renames-and-unmounts-from-racing-fix
+diff -puN fs/nfs/client.c~nfs-stop-sillyname-renames-and-unmounts-from-racing fs/nfs/client.c
+--- a/fs/nfs/client.c~nfs-stop-sillyname-renames-and-unmounts-from-racing
++++ a/fs/nfs/client.c
+@@ -593,6 +593,10 @@ static int nfs_init_server(struct nfs_se
+ 	server->namelen  = data->namlen;
+ 	/* Create a client RPC handle for the NFSv3 ACL management interface */
+ 	nfs_init_server_aclclient(server);
++
++	init_waitqueue_head(&server->active_wq);
++	atomic_set(&server->active, 0);
++
+ 	dprintk("<-- nfs_init_server() = 0 [new %p]\n", clp);
+ 	return 0;
+ 
+diff -puN fs/nfs/super.c~nfs-stop-sillyname-renames-and-unmounts-from-racing fs/nfs/super.c
+--- a/fs/nfs/super.c~nfs-stop-sillyname-renames-and-unmounts-from-racing
 +++ a/fs/nfs/super.c
-@@ -1927,4 +1927,10 @@ error_splat_super:
- 	return error;
+@@ -202,6 +202,7 @@ static int nfs_get_sb(struct file_system
+ static int nfs_xdev_get_sb(struct file_system_type *fs_type,
+ 		int flags, const char *dev_name, void *raw_data, struct vfsmount *mnt);
+ static void nfs_kill_super(struct super_block *);
++static void nfs_put_super(struct super_block *);
+ 
+ static struct file_system_type nfs_fs_type = {
+ 	.owner		= THIS_MODULE,
+@@ -223,6 +224,7 @@ static const struct super_operations nfs
+ 	.alloc_inode	= nfs_alloc_inode,
+ 	.destroy_inode	= nfs_destroy_inode,
+ 	.write_inode	= nfs_write_inode,
++	.put_super	= nfs_put_super,
+ 	.statfs		= nfs_statfs,
+ 	.clear_inode	= nfs_clear_inode,
+ 	.umount_begin	= nfs_umount_begin,
+@@ -1767,6 +1769,17 @@ static void nfs4_kill_super(struct super
+ 	nfs_free_server(server);
  }
  
-+void nfs_sb_deactive(struct nfs_server *server)
++static void nfs_put_super(struct super_block *sb)
++{
++	struct nfs_server *server = NFS_SB(sb);
++	/*
++	 * Make sure there are no outstanding ops to this server.
++	 * If so, wait for them to finish before allowing the
++	 * unmount to continue.
++	 */
++	wait_event(server->active_wq, atomic_read(&server->active) == 0);
++}
++
+ /*
+  * Clone an NFS4 server record on xdev traversal (FSID-change)
+  */
+diff -puN fs/nfs/unlink.c~nfs-stop-sillyname-renames-and-unmounts-from-racing fs/nfs/unlink.c
+--- a/fs/nfs/unlink.c~nfs-stop-sillyname-renames-and-unmounts-from-racing
++++ a/fs/nfs/unlink.c
+@@ -29,6 +29,7 @@ struct nfs_unlinkdata {
+ static void
+ nfs_free_unlinkdata(struct nfs_unlinkdata *data)
+ {
++	nfs_sb_deactive(NFS_SERVER(data->dir));
+ 	iput(data->dir);
+ 	put_rpccred(data->cred);
+ 	kfree(data->args.name.name);
+@@ -151,6 +152,7 @@ static int nfs_do_call_unlink(struct den
+ 		nfs_dec_sillycount(dir);
+ 		return 0;
+ 	}
++	nfs_sb_active(NFS_SERVER(dir));
+ 	data->args.fh = NFS_FH(dir);
+ 	nfs_fattr_init(&data->res.dir_attr);
+ 
+diff -puN include/linux/nfs_fs_sb.h~nfs-stop-sillyname-renames-and-unmounts-from-racing include/linux/nfs_fs_sb.h
+--- a/include/linux/nfs_fs_sb.h~nfs-stop-sillyname-renames-and-unmounts-from-racing
++++ a/include/linux/nfs_fs_sb.h
+@@ -4,6 +4,8 @@
+ #include <linux/list.h>
+ #include <linux/backing-dev.h>
+ 
++#include <asm/atomic.h>
++
+ struct nfs_iostats;
+ 
+ /*
+@@ -110,8 +112,22 @@ struct nfs_server {
+ 						   filesystem */
+ #endif
+ 	void (*destroy)(struct nfs_server *);
++
++	atomic_t active; /* Keep trace of any activity to this server */
++	wait_queue_head_t active_wq;  /* Wait for any activity to stop  */
+ };
+ 
++static inline void nfs_sb_active(struct nfs_server *server)
++{
++	atomic_inc(&server->active);
++}
++
++static inline void nfs_sb_deactive(struct nfs_server *server)
 +{
 +	if (atomic_dec_and_test(&server->active))
 +		wake_up(&server->active_wq);
 +}
 +
- #endif /* CONFIG_NFS_V4 */
-diff -puN include/linux/nfs_fs_sb.h~nfs-stop-sillyname-renames-and-unmounts-from-racing-fix include/linux/nfs_fs_sb.h
---- a/include/linux/nfs_fs_sb.h~nfs-stop-sillyname-renames-and-unmounts-from-racing-fix
-+++ a/include/linux/nfs_fs_sb.h
-@@ -122,11 +122,7 @@ static inline void nfs_sb_active(struct 
- 	atomic_inc(&server->active);
- }
- 
--static inline void nfs_sb_deactive(struct nfs_server *server)
--{
--	if (atomic_dec_and_test(&server->active))
--		wake_up(&server->active_wq);
--}
-+void nfs_sb_deactive(struct nfs_server *server);
- 
  /* Server capabilities */
  #define NFS_CAP_READDIRPLUS	(1U << 0)
+ #define NFS_CAP_HARDLINKS	(1U << 1)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from SteveD@redhat.com are
 
-origin.patch
-file-capabilities-allow-sigcont-within-session-v2.patch
-pnp-increase-the-maximum-number-of-resources-fix.patch
-revert-keyspan-init-termios-properly.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
-git-drm-oops-fix.patch
-git-dvb.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-elantech-touchpad-driver-fix.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-ide-arm-hack.patch
-git-mips-fixup.patch
-git-mmc.patch
-git-mtd.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-bluetooth-uninlining.patch
+nfs-stop-sillyname-renames-and-unmounts-from-racing-2.patch
+nfs-fix-up-problems-with-steves-sillyrename-fix.patch
+nfs-fix-nfs_free_unlinkdata.patch
+nfs-stop-sillyname-renames-and-unmounts-from-racing.patch
 nfs-stop-sillyname-renames-and-unmounts-from-racing-fix.patch
 nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix.patch
-quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
-drivers-pci-quirksc-coding-style-cleanup.patch
-git-s390.patch
-fix-build-breakage-if-sysfs-fix.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-bidi-support-scsi_data_buffer-broke-qla1280.patch
-bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-x86-fixup.patch
-git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko-checkpatch-fixes.patch
-git-x86-inlining-borkage.patch
-git-cryptodev.patch
-ia64-increase-datapatch-offset.patch
-ia64-dont-assume-that-unwcheckpy-is-executable.patch
-ia64-export-copy_page-to-modules.patch
-ia64-export-copy_page-to-modules-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-aout-mark-arches-that-support-aout-format-fix.patch
-aout-mark-arches-that-support-aout-format-fix-2.patch
-aout-mark-arches-that-support-aout-format-fix-3.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-sync_sb_inodes-propagate-errors.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-64-bit-i_version-afs-fixes.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-simplify-remove_proc_entry-wrt-locking-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-w1-build-fix.patch
