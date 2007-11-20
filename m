@@ -1,84 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: + vt-bitlock-fix.patch added to -mm tree
-Date: Tue, 20 Nov 2007 00:12:17 -0800
-Message-ID: <200711200812.lAK8CHdV026597@imap1.linux-foundation.org>
+Subject: - forcedeth-boot-delay-fix.patch removed from -mm tree
+Date: Tue, 20 Nov 2007 01:01:58 -0800
+Message-ID: <200711200909.lAK996Iv028989@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33760 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53330 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755688AbXKTIM2 (ORCPT
+	by vger.kernel.org with ESMTP id S1753381AbXKTJJM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Nov 2007 03:12:28 -0500
+	Tue, 20 Nov 2007 04:09:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, adaplas@pol.net
+To: aabdulla@nvidia.com, astinus@gentoo.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vt: bitlock fix
-has been added to the -mm tree.  Its filename is
-     vt-bitlock-fix.patch
+     forcedeth boot delay fix
+has been removed from the -mm tree.  Its filename was
+     forcedeth-boot-delay-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: vt: bitlock fix
-From: Nick Piggin <npiggin@suse.de>
+Subject: forcedeth boot delay fix
+From: Ayaz Abdulla <aabdulla@nvidia.com>
 
-vt is missing a memory barrier to close the critical section.  Use a real
-spinlock for this.
+Fix a long boot delay in the forcedeth driver.  During initialization, the
+timeout for the handshake between mgmt unit and driver can be very long. 
+The patch reduces the timeout by eliminating a extra loop around the
+timeout logic.
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=9308
+
+Signed-off-by: Ayaz Abdulla <aabdulla@nvidia.com>
+Cc: Alex Howells <astinus@gentoo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/vt.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ drivers/net/forcedeth.c |   23 ++++++++++-------------
+ 1 file changed, 10 insertions(+), 13 deletions(-)
 
-diff -puN drivers/char/vt.c~vt-bitlock-fix drivers/char/vt.c
---- a/drivers/char/vt.c~vt-bitlock-fix
-+++ a/drivers/char/vt.c
-@@ -2400,13 +2400,15 @@ static void vt_console_print(struct cons
- {
- 	struct vc_data *vc = vc_cons[fg_console].d;
- 	unsigned char c;
--	static unsigned long printing;
-+	static DEFINE_SPINLOCK(printing_lock);
- 	const ushort *start;
- 	ushort cnt = 0;
- 	ushort myx;
- 
- 	/* console busy or not yet initialized */
--	if (!printable || test_and_set_bit(0, &printing))
-+	if (!printable)
-+		return;
-+	if (!spin_trylock(&printing_lock))
- 		return;
- 
- 	if (kmsg_redirect && vc_cons_allocated(kmsg_redirect - 1))
-@@ -2481,7 +2483,7 @@ static void vt_console_print(struct cons
- 	notify_update(vc);
- 
- quit:
--	clear_bit(0, &printing);
-+	spin_unlock(&printing_lock);
- }
- 
- static struct tty_driver *vt_console_device(struct console *c, int *index)
+diff -puN drivers/net/forcedeth.c~forcedeth-boot-delay-fix drivers/net/forcedeth.c
+--- a/drivers/net/forcedeth.c~forcedeth-boot-delay-fix
++++ a/drivers/net/forcedeth.c
+@@ -5294,20 +5294,17 @@ static int __devinit nv_probe(struct pci
+ 		if (readl(base + NvRegTransmitterControl) & NVREG_XMITCTL_SYNC_PHY_INIT) {
+ 			np->mac_in_use = readl(base + NvRegTransmitterControl) & NVREG_XMITCTL_MGMT_ST;
+ 			dprintk(KERN_INFO "%s: mgmt unit is running. mac in use %x.\n", pci_name(pci_dev), np->mac_in_use);
+-			for (i = 0; i < 5000; i++) {
+-				msleep(1);
+-				if (nv_mgmt_acquire_sema(dev)) {
+-					/* management unit setup the phy already? */
+-					if ((readl(base + NvRegTransmitterControl) & NVREG_XMITCTL_SYNC_MASK) ==
+-					    NVREG_XMITCTL_SYNC_PHY_INIT) {
+-						/* phy is inited by mgmt unit */
+-						phyinitialized = 1;
+-						dprintk(KERN_INFO "%s: Phy already initialized by mgmt unit.\n", pci_name(pci_dev));
+-					} else {
+-						/* we need to init the phy */
+-					}
+-					break;
++			if (nv_mgmt_acquire_sema(dev)) {
++				/* management unit setup the phy already? */
++				if ((readl(base + NvRegTransmitterControl) & NVREG_XMITCTL_SYNC_MASK) ==
++				    NVREG_XMITCTL_SYNC_PHY_INIT) {
++					/* phy is inited by mgmt unit */
++					phyinitialized = 1;
++					dprintk(KERN_INFO "%s: Phy already initialized by mgmt unit.\n", pci_name(pci_dev));
++				} else {
++					/* we need to init the phy */
+ 				}
++				break;
+ 			}
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from aabdulla@nvidia.com are
 
-nfs-use-gfp_nofs-preloads-for-radix-tree-insertion.patch
-slub-use-non-atomic-bit-unlock.patch
-radix-tree-avoid-atomic-allocations-for-preloaded-insertions.patch
-mm-dont-allow-ioremapping-of-ranges-larger-than-vmalloc-space.patch
-vt-bitlock-fix.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
-reiser4.patch
+forcedeth-power-down-phy-when-interface-is-down.patch
+forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
+forcedeth-new-mcp79-device-ids.patch
+forcedeth-boot-delay-fix.patch
