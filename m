@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + rocket-dont-let-random-users-reset-the-controller.patch added to -mm tree
-Date: Mon, 19 Nov 2007 23:23:14 -0800
-Message-ID: <200711200723.lAK7NED9021356@imap1.linux-foundation.org>
+Subject: + rocket-first-pass-at-termios-reporting.patch added to -mm tree
+Date: Mon, 19 Nov 2007 23:23:12 -0800
+Message-ID: <200711200723.lAK7NCis021350@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp2.linux-foundation.org ([207.189.120.14]:55472 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754756AbXKTH3F (ORCPT
+	by vger.kernel.org with ESMTP id S1754819AbXKTH3G (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Nov 2007 02:29:05 -0500
+	Tue, 20 Nov 2007 02:29:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     rocket: don't let random users reset the controller
+     rocket: first pass at termios reporting
 has been added to the -mm tree.  Its filename is
-     rocket-dont-let-random-users-reset-the-controller.patch
+     rocket-first-pass-at-termios-reporting.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,29 +26,76 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rocket: don't let random users reset the controller
+Subject: rocket: first pass at termios reporting
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+
+Also removes a cflag comparison that caused some mode changes to get wrongly
+ignored
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/rocket.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/char/rocket.c |   18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
 
-diff -puN drivers/char/rocket.c~rocket-dont-let-random-users-reset-the-controller drivers/char/rocket.c
---- a/drivers/char/rocket.c~rocket-dont-let-random-users-reset-the-controller
+diff -puN drivers/char/rocket.c~rocket-first-pass-at-termios-reporting drivers/char/rocket.c
+--- a/drivers/char/rocket.c~rocket-first-pass-at-termios-reporting
 +++ a/drivers/char/rocket.c
-@@ -1399,6 +1399,9 @@ static int reset_rm2(struct r_port *info
- {
- 	int reset;
+@@ -715,11 +715,10 @@ static void configure_r_port(struct r_po
+ 	unsigned rocketMode;
+ 	int bits, baud, divisor;
+ 	CHANNEL_t *cp;
++	struct ktermios *t = info->tty->termios;
  
-+	if (!capable(CAP_SYS_ADMIN))
-+		return -EPERM;
+-	if (!info->tty || !info->tty->termios)
+-		return;
+ 	cp = &info->channel;
+-	cflag = info->tty->termios->c_cflag;
++	cflag = t->c_cflag;
+ 
+ 	/* Byte size and parity */
+ 	if ((cflag & CSIZE) == CS8) {
+@@ -754,10 +753,7 @@ static void configure_r_port(struct r_po
+ 		baud = 9600;
+ 	divisor = ((rp_baud_base[info->board] + (baud >> 1)) / baud) - 1;
+ 	if ((divisor >= 8192 || divisor < 0) && old_termios) {
+-		info->tty->termios->c_cflag &= ~CBAUD;
+-		info->tty->termios->c_cflag |=
+-		    (old_termios->c_cflag & CBAUD);
+-		baud = tty_get_baud_rate(info->tty);
++		baud = tty_termios_baud_rate(old_termios);
+ 		if (!baud)
+ 			baud = 9600;
+ 		divisor = (rp_baud_base[info->board] / baud) - 1;
+@@ -769,6 +765,9 @@ static void configure_r_port(struct r_po
+ 	info->cps = baud / bits;
+ 	sSetBaud(cp, divisor);
+ 
++	/* FIXME: Should really back compute a baud rate from the divisor */
++	tty_encode_baud_rate(info->tty, baud, baud);
 +
- 	if (copy_from_user(&reset, arg, sizeof (int)))
- 		return -EFAULT;
- 	if (reset)
+ 	if (cflag & CRTSCTS) {
+ 		info->intmask |= DELTA_CTS;
+ 		sEnCTSFlowCtl(cp);
+@@ -1202,15 +1201,14 @@ static void rp_set_termios(struct tty_st
+ 
+ 	cflag = tty->termios->c_cflag;
+ 
+-	if (cflag == old_termios->c_cflag)
+-		return;
+-
+ 	/*
+ 	 * This driver doesn't support CS5 or CS6
+ 	 */
+ 	if (((cflag & CSIZE) == CS5) || ((cflag & CSIZE) == CS6))
+ 		tty->termios->c_cflag =
+ 		    ((cflag & ~CSIZE) | (old_termios->c_cflag & CSIZE));
++	/* Or CMSPAR */
++	tty->termios->c_cflag &= ~CMSPAR;
+ 
+ 	configure_r_port(info, old_termios);
+ 
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
