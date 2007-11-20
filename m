@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + s3c2410-add-bus-number-to-spi-gpio-driver.patch added to -mm tree
-Date: Tue, 20 Nov 2007 13:07:32 -0800
-Message-ID: <200711202107.lAKL7WIf023506@imap1.linux-foundation.org>
+Subject: + intel-iommu-fault_reason_index_cleanuppatch.patch added to -mm tree
+Date: Tue, 20 Nov 2007 13:21:19 -0800
+Message-ID: <200711202121.lAKLLJDp024052@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50753 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56625 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760286AbXKTVJ3 (ORCPT
+	by vger.kernel.org with ESMTP id S1756864AbXKTVVv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Nov 2007 16:09:29 -0500
+	Tue, 20 Nov 2007 16:21:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, ben-linux@fluff.org, dbrownell@users.sourceforge.net
+Cc: mgross@linux.intel.com
 
 
 The patch titled
-     spi: S3C2410: add bus number to SPI GPIO driver
+     intel-iommu: fault_reason index cleanup
 has been added to the -mm tree.  Its filename is
-     s3c2410-add-bus-number-to-spi-gpio-driver.patch
+     intel-iommu-fault_reason_index_cleanuppatch.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,70 +26,80 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: spi: S3C2410: add bus number to SPI GPIO driver
-From: David Brownell <david-b@pacbell.net>
+Subject: intel-iommu: fault_reason index cleanup
+From: mark gross <mgross@linux.intel.com>
 
-Allow passing a bus number through the platform data for the S3C2410 SPI
-GPIO driver
+Fix an off by one bug in the fault reason string reporting function, and
+clean up some of the code around this buglet.
 
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: mark gross <mgross@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_s3c24xx_gpio.c          |    1 +
- include/asm-arm/arch-s3c2410/spi-gpio.h |    2 ++
- 2 files changed, 3 insertions(+)
+ drivers/pci/intel-iommu.c |   13 ++++++-------
+ include/linux/dmar.h      |    2 +-
+ 2 files changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN drivers/spi/spi_s3c24xx_gpio.c~s3c2410-add-bus-number-to-spi-gpio-driver drivers/spi/spi_s3c24xx_gpio.c
---- a/drivers/spi/spi_s3c24xx_gpio.c~s3c2410-add-bus-number-to-spi-gpio-driver
-+++ a/drivers/spi/spi_s3c24xx_gpio.c
-@@ -118,6 +118,7 @@ static int s3c2410_spigpio_probe(struct 
+diff -puN drivers/pci/intel-iommu.c~intel-iommu-fault_reason_index_cleanuppatch drivers/pci/intel-iommu.c
+--- a/drivers/pci/intel-iommu.c~intel-iommu-fault_reason_index_cleanuppatch
++++ a/drivers/pci/intel-iommu.c
+@@ -745,7 +745,7 @@ static int iommu_disable_translation(str
  
- 	/* setup spi bitbang adaptor */
- 	sp->bitbang.master = spi_master_get(master);
-+	sp->bitbang.master->bus_num = info->bus_num;
- 	sp->bitbang.chipselect = s3c2410_spigpio_chipselect;
+ /* iommu interrupt handling. Most stuff are MSI-like. */
  
- 	sp->bitbang.txrx_word[SPI_MODE_0] = s3c2410_spigpio_txrx_mode0;
-diff -puN include/asm-arm/arch-s3c2410/spi-gpio.h~s3c2410-add-bus-number-to-spi-gpio-driver include/asm-arm/arch-s3c2410/spi-gpio.h
---- a/include/asm-arm/arch-s3c2410/spi-gpio.h~s3c2410-add-bus-number-to-spi-gpio-driver
-+++ a/include/asm-arm/arch-s3c2410/spi-gpio.h
-@@ -21,6 +21,8 @@ struct s3c2410_spigpio_info {
- 	unsigned long		 pin_mosi;
- 	unsigned long		 pin_miso;
+-static char *fault_reason_strings[] =
++static const char *fault_reason_strings[] =
+ {
+ 	"Software",
+ 	"Present bit in root entry is clear",
+@@ -759,15 +759,14 @@ static char *fault_reason_strings[] =
+ 	"Context table ptr is invalid",
+ 	"non-zero reserved fields in RTP",
+ 	"non-zero reserved fields in CTP",
+-	"non-zero reserved fields in PTE",
+-	"Unknown"
++	"non-zero reserved fields in PTE"
+ };
+ #define MAX_FAULT_REASON_IDX 	(ARRAY_SIZE(fault_reason_strings) - 1)
  
-+	int			 bus_num;
-+
- 	unsigned long		 board_size;
- 	struct spi_board_info	*board_info;
+-char *dmar_get_fault_reason(u8 fault_reason)
++const char *dmar_get_fault_reason(u8 fault_reason)
+ {
+-	if (fault_reason >= MAX_FAULT_REASON_IDX)
+-		return fault_reason_strings[MAX_FAULT_REASON_IDX - 1];
++	if (fault_reason > MAX_FAULT_REASON_IDX)
++		return "Unknown";
+ 	else
+ 		return fault_reason_strings[fault_reason];
+ }
+@@ -825,7 +824,7 @@ void dmar_msi_read(int irq, struct msi_m
+ static int iommu_page_fault_do_one(struct intel_iommu *iommu, int type,
+ 		u8 fault_reason, u16 source_id, u64 addr)
+ {
+-	char *reason;
++	const char *reason;
  
+ 	reason = dmar_get_fault_reason(fault_reason);
+ 
+diff -puN include/linux/dmar.h~intel-iommu-fault_reason_index_cleanuppatch include/linux/dmar.h
+--- a/include/linux/dmar.h~intel-iommu-fault_reason_index_cleanuppatch
++++ a/include/linux/dmar.h
+@@ -28,7 +28,7 @@
+ #ifdef CONFIG_DMAR
+ struct intel_iommu;
+ 
+-extern char *dmar_get_fault_reason(u8 fault_reason);
++extern const char *dmar_get_fault_reason(u8 fault_reason);
+ 
+ /* Can't use the common MSI interrupt functions
+  * since DMAR is not a pci device
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from mgross@linux.intel.com are
 
-atmel_spi-labels-gpios-better.patch
-rtc-dont-write-rtc-century-when-setting-a-wake-alarm.patch
-git-mmc.patch
-usb-s3c2410_udc-minor-irq-handler-cleanups.patch
-usb-device-dma-support-on-omap2.patch
-rtc-convert-mutex-to-bitfield.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-remove-pointless-casts-from-void-pointers.patch
-spi-at25-driver-is-for-eeprom-not-flash.patch
-spi-use-mutex-not-semaphore.patch
-blackfin-spi-driver-use-cpu_relax-to-replace-continue-in-while-busywait.patch
-blackfin-spi-driver-use-void-__iomem-for-regs_base.patch
-blackfin-spi-driver-move-hard-coded-pin_req-to-board-file.patch
-blackfin-spi-driver-reconfigure-speed_hz-and-bits_per_word-in-each-spi-transfer.patch
-s3c2410-add-bus-number-to-spi-gpio-driver.patch
-cosmetic-fixes-to-rtc-subsystems-kconfig.patch
-rtc-pcf8583-dont-abuse-i2c_m_nostart.patch
-rtc-s3c-use-is_power_of_2-macro-for-simplicity.patch
-rtc-cmos-exports-nvram-in-sysfs.patch
-generic-gpio-gpio_chip-support.patch
-generic-gpio-gpio_chip-support-fix.patch
-avr32-uses-gpio_chip.patch
-mcp23s08-spi-gpio-expander.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-pnp-request-ioport-and-iomem-resources-used-by-active-devices.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+pm-qos-remove-locks-around-blocking-notifier.patch
+latencyc-use-qos-infrastructure.patch
+intel-iommu-pmen-support.patch
+intel-iommu-fault_reason_index_cleanuppatch.patch
