@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pata_ali-lots-of-problems-still-showing-up-with-small-atapi-dma.patch added to -mm tree
-Date: Mon, 19 Nov 2007 23:09:16 -0800
-Message-ID: <200711200709.lAK79GXd019967@imap1.linux-foundation.org>
+Subject: + pata_isapnp-polled-devices.patch added to -mm tree
+Date: Mon, 19 Nov 2007 23:09:18 -0800
+Message-ID: <200711200709.lAK79IfP019975@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42403 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34746 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755276AbXKTHJh (ORCPT
+	by vger.kernel.org with ESMTP id S1755248AbXKTHJg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Nov 2007 02:09:37 -0500
+	Tue, 20 Nov 2007 02:09:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     pata_ali: lots of problems still showing up with small ATAPI DMA
+     pata_isapnp: polled devices
 has been added to the -mm tree.  Its filename is
-     pata_ali-lots-of-problems-still-showing-up-with-small-atapi-dma.patch
+     pata_isapnp-polled-devices.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,60 +26,51 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_ali: lots of problems still showing up with small ATAPI DMA
+Subject: pata_isapnp: polled devices
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Hopefully there is a better long term solution but for now lets favour
-reliability.
+If a card has no IRQ then pass no interrupt handler but allow polled
+usage.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_ali.c |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ drivers/ata/pata_isapnp.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN drivers/ata/pata_ali.c~pata_ali-lots-of-problems-still-showing-up-with-small-atapi-dma drivers/ata/pata_ali.c
---- a/drivers/ata/pata_ali.c~pata_ali-lots-of-problems-still-showing-up-with-small-atapi-dma
-+++ a/drivers/ata/pata_ali.c
-@@ -285,6 +285,21 @@ static void ali_lock_sectors(struct ata_
- 	adev->max_sectors = 255;
+diff -puN drivers/ata/pata_isapnp.c~pata_isapnp-polled-devices drivers/ata/pata_isapnp.c
+--- a/drivers/ata/pata_isapnp.c~pata_isapnp-polled-devices
++++ a/drivers/ata/pata_isapnp.c
+@@ -75,13 +75,16 @@ static int isapnp_init_one(struct pnp_de
+ 	struct ata_host *host;
+ 	struct ata_port *ap;
+ 	void __iomem *cmd_addr, *ctl_addr;
++	int irq = 0;
++	irq_handler_t handler = NULL;
+ 
+ 	if (pnp_port_valid(idev, 0) == 0)
+ 		return -ENODEV;
+ 
+-	/* FIXME: Should selected polled PIO here not fail */
+-	if (pnp_irq_valid(idev, 0) == 0)
+-		return -ENODEV;
++	if (pnp_irq_valid(idev, 0)) {
++		irq = pnp_irq(idev, 0);
++		handler = ata_interrupt;
++	}
+ 
+ 	/* allocate host */
+ 	host = ata_host_alloc(&idev->dev, 1);
+@@ -115,7 +118,7 @@ static int isapnp_init_one(struct pnp_de
+ 		      (unsigned long long)pnp_port_start(idev, 1));
+ 
+ 	/* activate */
+-	return ata_host_activate(host, pnp_irq(idev, 0), ata_interrupt, 0,
++	return ata_host_activate(host, irq, handler, 0,
+ 				 &isapnp_sht);
  }
  
-+/**
-+ *	ali_check_atapi_dma	-	DMA check for most ALi controllers
-+ *	@adev: Device
-+ *
-+ *	Called to decide whether commands should be sent by DMA or PIO
-+ */
-+
-+static int ali_check_atapi_dma(struct ata_queued_cmd *qc)
-+{
-+	/* If its not a media command, its not worth it */
-+	if (qc->nbytes < 2048)
-+		return -EOPNOTSUPP;
-+	return 0;
-+}
-+
- static struct scsi_host_template ali_sht = {
- 	.module			= THIS_MODULE,
- 	.name			= DRV_NAME,
-@@ -381,6 +396,7 @@ static struct ata_port_operations ali_c2
- 	.mode_filter	= ata_pci_default_filter,
- 	.tf_load	= ata_tf_load,
- 	.tf_read	= ata_tf_read,
-+	.check_atapi_dma = ali_check_atapi_dma,
- 	.check_status 	= ata_check_status,
- 	.exec_command	= ata_exec_command,
- 	.dev_select 	= ata_std_dev_select,
-@@ -418,6 +434,7 @@ static struct ata_port_operations ali_c5
- 	.mode_filter	= ata_pci_default_filter,
- 	.tf_load	= ata_tf_load,
- 	.tf_read	= ata_tf_read,
-+	.check_atapi_dma = ali_check_atapi_dma,
- 	.check_status 	= ata_check_status,
- 	.exec_command	= ata_exec_command,
- 	.dev_select 	= ata_std_dev_select,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
