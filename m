@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + m68k-kill-arch-m68k-mac-mac_ksymsc.patch added to -mm tree
-Date: Mon, 19 Nov 2007 18:15:03 -0800
-Message-ID: <200711200215.lAK2F3Om008952@imap1.linux-foundation.org>
+Subject: + mac68k-add-nubus-card-definitions-and-a-typo-fix.patch added to -mm tree
+Date: Mon, 19 Nov 2007 18:15:12 -0800
+Message-ID: <200711200215.lAK2FCTh008973@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33730 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43277 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762729AbXKTCP2 (ORCPT
+	by vger.kernel.org with ESMTP id S1762209AbXKTCP1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Nov 2007 21:15:28 -0500
+	Mon, 19 Nov 2007 21:15:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, geert@linux-m68k.org, zippel@linux-m68k.org
+Cc: fthain@telegraphics.com.au, geert@linux-m68k.org, zippel@linux-m68k.org
 
 
 The patch titled
-     m68k: kill arch/m68k/mac/mac_ksyms.c
+     mac68k: add nubus card definitions and a typo fix
 has been added to the -mm tree.  Its filename is
-     m68k-kill-arch-m68k-mac-mac_ksymsc.patch
+     mac68k-add-nubus-card-definitions-and-a-typo-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,134 +26,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: m68k: kill arch/m68k/mac/mac_ksyms.c
-From: Adrian Bunk <bunk@kernel.org>
+Subject: mac68k: add nubus card definitions and a typo fix
+From: Finn Thain <fthain@telegraphics.com.au>
 
-EXPORT_SYMBOL's belong to the actual code.
+Add some new card definitions and fix a typo (from Eugen Paiuc).
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Signed-off-by: Finn Thain <fthain@telegraphics.com.au>
 Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/mac/Makefile    |    2 +-
- arch/m68k/mac/mac_ksyms.c |    8 --------
- arch/m68k/mac/via.c       |    5 ++++-
- 3 files changed, 5 insertions(+), 10 deletions(-)
+ include/linux/nubus.h |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN arch/m68k/mac/Makefile~m68k-kill-arch-m68k-mac-mac_ksymsc arch/m68k/mac/Makefile
---- a/arch/m68k/mac/Makefile~m68k-kill-arch-m68k-mac-mac_ksymsc
-+++ a/arch/m68k/mac/Makefile
-@@ -3,4 +3,4 @@
- #
- 
- obj-y		:= config.o bootparse.o macints.o iop.o via.o oss.o psc.o \
--			baboon.o macboing.o debug.o misc.o mac_ksyms.o
-+			baboon.o macboing.o debug.o misc.o
-diff -puN arch/m68k/mac/mac_ksyms.c~m68k-kill-arch-m68k-mac-mac_ksymsc /dev/null
---- a/arch/m68k/mac/mac_ksyms.c
-+++ /dev/null
-@@ -1,8 +0,0 @@
--#include <linux/module.h>
--#include <asm/ptrace.h>
--#include <asm/traps.h>
--
--/* Says whether we're using A/UX interrupts or not */
--extern int via_alt_mapping;
--
--EXPORT_SYMBOL(via_alt_mapping);
-diff -puN arch/m68k/mac/via.c~m68k-kill-arch-m68k-mac-mac_ksymsc arch/m68k/mac/via.c
---- a/arch/m68k/mac/via.c~m68k-kill-arch-m68k-mac-mac_ksymsc
-+++ a/arch/m68k/mac/via.c
-@@ -28,6 +28,7 @@
- #include <linux/delay.h>
- #include <linux/init.h>
- #include <linux/ide.h>
-+#include <linux/module.h>
- 
- #include <asm/bootinfo.h>
- #include <asm/macintosh.h>
-@@ -41,7 +42,9 @@ volatile __u8 *via1, *via2;
- /* See note in mac_via.h about how this is possibly not useful */
- volatile long *via_memory_bogon=(long *)&via_memory_bogon;
- #endif
--int rbv_present, via_alt_mapping;
-+int rbv_present;
-+int via_alt_mapping;
-+EXPORT_SYMBOL(via_alt_mapping);
- __u8 rbv_clear;
- 
- /*
+diff -puN include/linux/nubus.h~mac68k-add-nubus-card-definitions-and-a-typo-fix include/linux/nubus.h
+--- a/include/linux/nubus.h~mac68k-add-nubus-card-definitions-and-a-typo-fix
++++ a/include/linux/nubus.h
+@@ -132,10 +132,12 @@ enum nubus_drhw {
+ 	NUBUS_DRHW_RDIUS_DCGX     = 0x027C, /* Radius DirectColor/GX */
+ 	NUBUS_DRHW_RDIUS_PC8      = 0x0291, /* Radius PrecisionColor 8 */
+ 	NUBUS_DRHW_LAPIS_PCS8     = 0x0292, /* Lapis ProColorServer 8 */
+-	NUBUS_DRHW_RASTER_24LXI   = 0x02A0, /* RasterOps 8/24 XLi */
++	NUBUS_DRHW_RASTER_24XLI   = 0x02A0, /* RasterOps 8/24 XLi */
+ 	NUBUS_DRHW_RASTER_PBPGT   = 0x02A5, /* RasterOps PaintBoard Prism GT */
+ 	NUBUS_DRHW_EMACH_FSX      = 0x02AE, /* E-Machines Futura SX */
++	NUBUS_DRHW_RASTER_24XLTV  = 0x02B7, /* RasterOps 24XLTV */
+ 	NUBUS_DRHW_SMAC_THUND24   = 0x02CB, /* SuperMac Thunder/24 */
++	NUBUS_DRHW_SMAC_THUNDLGHT = 0x03D9, /* SuperMac ThunderLight */
+ 	NUBUS_DRHW_RDIUS_PC24XP   = 0x0406, /* Radius PrecisionColor 24Xp */
+ 	NUBUS_DRHW_RDIUS_PC24X    = 0x040A, /* Radius PrecisionColor 24X */
+ 	NUBUS_DRHW_RDIUS_PC8XJ    = 0x040B, /* Radius PrecisionColor 8XJ */
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from fthain@telegraphics.com.au are
 
-m68k-export-atari_keyb_init.patch
-git-avr32.patch
-git-dvb.patch
-remove-saa7134-oss.patch
-git-gfs2-nmw.patch
-git-libata-all.patch
-git-mtd.patch
-make-sunrpc-xprtsockcxs_setup_udptcp-static.patch
-git-netdev-all.patch
-drivers-net-chelsio-if-0-unused-functions.patch
-drivers-bluetooth-bpa10xc-fix-memleak.patch
-drivers-bluetooth-btsdioc-fix-double-free.patch
-git-nfs-make-nfs_wb_page_priority-static.patch
-fs-nfs-dirc-should-include-internalh.patch
-always-export-pci_scan_single_device.patch
-remove-additional-pci_scan_child_bus-prototype.patch
-git-scsi-misc.patch
-scsi-advansysc-make-3-functions-static.patch
-scsi-qla2xxx-possible-cleanups.patch
-usb-mon-mon_binc-cleanups.patch
-git-x86.patch
-xtensa-iss_net_setup-must-be-__init.patch
-xtensa-kernel-setupc-remove-dead-code.patch
-mm-page-writebackc-make-a-function-static.patch
-make-__vmalloc_area_node-static.patch
-blackfin-remove-dump_thread.patch
-kernel-power-diskc-make-code-static.patch
-make-kernel_shutdown_prepare-static.patch
-kernel-power-move-function-prototypes-to-header.patch
-nubus-kill-drivers-nubus-nubus_symsc.patch
-m68k-kill-arch-m68k-mac-mac_ksymsc.patch
-m68k-kill-arch-m68k-hp300-ksymsc.patch
-m68k-kill-arch-m68k-amiga-amiga_ksymsc.patch
-m68k-kill-arch-m68k-atari-atari_ksymsc.patch
-m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch
-kill-udffs_dateversion.patch
-make-ipc-utilcsysvipc_find_ipc-static.patch
-cleanup-after-apus-removal.patch
-remove-mm_ptovvtop.patch
-remove-__attribute_used__.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-proper-show_interrupts-prototype.patch
-scheduled-oss-driver-removal.patch
-linux-inith-simplify-__meminitexit-dependencies.patch
-proper-prototype-for-signals_init.patch
-kernel-ptracec-should-include-linux-syscallsh.patch
-make-srcu_readers_active-static.patch
-kernel-notifierc-should-include-linux-rebooth.patch
-proper-prototype-for-get_filesystem_list.patch
-fs-utimesc-should-include-linux-syscallsh.patch
-fs-signalfdc-should-include-linux-syscallsh.patch
-fs-eventfdc-should-include-linux-syscallsh.patch
-proper-prototype-for-vty_init.patch
-drivers-misc-lkdtmc-cleanups.patch
-power_supply_ledssysfsc-should-include-power_supplyh.patch
-fs-ecryptfs-possible-cleanups.patch
-make-video-geode-lxfb_corecgeode_modedb-static.patch
-video-hpfbc-section-fix.patch
-ext4-superc-fix-ifdefs.patch
-make-jbd-journalc__journal_abort_hard-static.patch
-move-edactxt-two-levels-up.patch
-remove-documentation-smptxt.patch
-kernel-cgroupc-remove-dead-code.patch
-kernel-cgroupc-make-2-functions-static.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-fix-m32r-__xchg.patch
-reiser4.patch
+mac68k-mailing-list-addresss.patch
+mac68k-macii-adb-comment-correction.patch
+mac68k-remove-dead-code.patch
+mac68k-add-nubus-card-definitions-and-a-typo-fix.patch
