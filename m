@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + 8250_hub6-codding-style.patch added to -mm tree
-Date: Mon, 19 Nov 2007 23:23:23 -0800
-Message-ID: <200711200723.lAK7NN9t021388@imap1.linux-foundation.org>
+Subject: + tty_audit-fix-checkpatch-complaint.patch added to -mm tree
+Date: Mon, 19 Nov 2007 23:23:15 -0800
+Message-ID: <200711200723.lAK7NFhx021361@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34365 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55472 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754756AbXKTHYr (ORCPT
+	by vger.kernel.org with ESMTP id S1754792AbXKTH3F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Nov 2007 02:24:47 -0500
+	Tue, 20 Nov 2007 02:29:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     8250_hub6: codding style
+     tty_audit: fix checkpatch complaint
 has been added to the -mm tree.  Its filename is
-     8250_hub6-codding-style.patch
+     tty_audit-fix-checkpatch-complaint.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,50 +26,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: 8250_hub6: codding style
+Subject: tty_audit: fix checkpatch complaint
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_hub6.c |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ drivers/char/tty_audit.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/8250_hub6.c~8250_hub6-codding-style drivers/serial/8250_hub6.c
---- a/drivers/serial/8250_hub6.c~8250_hub6-codding-style
-+++ a/drivers/serial/8250_hub6.c
-@@ -23,18 +23,18 @@
- 	}
+diff -puN drivers/char/tty_audit.c~tty_audit-fix-checkpatch-complaint drivers/char/tty_audit.c
+--- a/drivers/char/tty_audit.c~tty_audit-fix-checkpatch-complaint
++++ a/drivers/char/tty_audit.c
+@@ -27,7 +27,7 @@ static struct tty_audit_buf *tty_audit_b
+ {
+ 	struct tty_audit_buf *buf;
  
- static struct plat_serial8250_port hub6_data[] = {
--	HUB6(0,0),
--	HUB6(0,1),
--	HUB6(0,2),
--	HUB6(0,3),
--	HUB6(0,4),
--	HUB6(0,5),
--	HUB6(1,0),
--	HUB6(1,1),
--	HUB6(1,2),
--	HUB6(1,3),
--	HUB6(1,4),
--	HUB6(1,5),
-+	HUB6(0, 0),
-+	HUB6(0, 1),
-+	HUB6(0, 2),
-+	HUB6(0, 3),
-+	HUB6(0, 4),
-+	HUB6(0, 5),
-+	HUB6(1, 0),
-+	HUB6(1, 1),
-+	HUB6(1, 2),
-+	HUB6(1, 3),
-+	HUB6(1, 4),
-+	HUB6(1, 5),
- 	{ },
- };
- 
+-	buf = kmalloc(sizeof (*buf), GFP_KERNEL);
++	buf = kmalloc(sizeof(*buf), GFP_KERNEL);
+ 	if (!buf)
+ 		goto err;
+ 	if (PAGE_SIZE != N_TTY_BUF_SIZE)
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
