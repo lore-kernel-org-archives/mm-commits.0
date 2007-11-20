@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slub-move-kmem_cache_node-determination-into-add_full-and-add_partial-slub-workaround-for-lockdep-confusion.patch added to -mm tree
-Date: Mon, 19 Nov 2007 17:04:50 -0800
-Message-ID: <200711200104.lAK14oZ5005743@imap1.linux-foundation.org>
+Subject: + 64bit-capability-support-legacy-support-fix.patch added to -mm tree
+Date: Mon, 19 Nov 2007 18:10:26 -0800
+Message-ID: <200711200210.lAK2AQ1D008695@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51169 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50219 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752350AbXKTBK2 (ORCPT
+	by vger.kernel.org with ESMTP id S1762182AbXKTCLD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Nov 2007 20:10:28 -0500
+	Mon, 19 Nov 2007 21:11:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: a.p.zijlstra@chello.nl, clameter@sgi.com, kamalesh@linux.vnet.ibm.com
+Cc: morgan@kernel.org, casey@schaufler-ca.com, chrisw@sous-sol.org, jmorris@namei.org, kjwinchester@gmail.com, sds@tycho.nsa.gov, serue@us.ibm.com
 
 
 The patch titled
-     slub: workaround for lockdep confusion
+     64bit capability support (legacy support fix)
 has been added to the -mm tree.  Its filename is
-     slub-move-kmem_cache_node-determination-into-add_full-and-add_partial-slub-workaround-for-lockdep-confusion.patch
+     64bit-capability-support-legacy-support-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,105 +26,73 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slub: workaround for lockdep confusion
-From: root@programming.kicks-ass.net (root)
+Subject: 64bit capability support (legacy support fix)
+From: Andrew Morgan <morgan@kernel.org>
 
-inconsistent {softirq-on-W} -> {in-softirq-W} usage.
-swapper/0 [HC0[0]:SC1[1]:HE0:SE0] takes:
- (&n->list_lock){-+..}, at: [<ffffffff802935c1>] add_partial+0x31/0xa0
-{softirq-on-W} state was registered at:
-  [<ffffffff80259fb8>] __lock_acquire+0x3e8/0x1140
-  [<ffffffff80259838>] debug_check_no_locks_freed+0x188/0x1a0
-  [<ffffffff8025ad65>] lock_acquire+0x55/0x70
-  [<ffffffff802935c1>] add_partial+0x31/0xa0
-  [<ffffffff805c76de>] _spin_lock+0x1e/0x30
-  [<ffffffff802935c1>] add_partial+0x31/0xa0
-  [<ffffffff80296f9c>] kmem_cache_open+0x1cc/0x330
-  [<ffffffff805c7984>] _spin_unlock_irq+0x24/0x30
-  [<ffffffff802974f4>] create_kmalloc_cache+0x64/0xf0
-  [<ffffffff80295640>] init_alloc_cpu_cpu+0x70/0x90
-  [<ffffffff8080ada5>] kmem_cache_init+0x65/0x1d0
-  [<ffffffff807f1b4e>] start_kernel+0x23e/0x350
-  [<ffffffff807f112d>] _sinittext+0x12d/0x140
-  [<ffffffffffffffff>] 0xffffffffffffffff
+Legacy support requires that we don't return an error for previously
+legitimate calls. Removing this check, we make a fail-safe best effort
+to support legacy applications.
 
-This change isn't really necessary for correctness, but it prevents lockdep
-from getting upset and then disabling itself.
-
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Signed-off-by: Andrew G. Morgan <morgan@kernel.org>
+Cc: Kevin Winchester <kjwinchester@gmail.com>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: James Morris <jmorris@namei.org>
+Cc: Casey Schaufler <casey@schaufler-ca.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ kernel/capability.c |   27 ++++++++++++++++++++-------
+ 1 file changed, 20 insertions(+), 7 deletions(-)
 
-diff -puN mm/slub.c~slub-move-kmem_cache_node-determination-into-add_full-and-add_partial-slub-workaround-for-lockdep-confusion mm/slub.c
---- a/mm/slub.c~slub-move-kmem_cache_node-determination-into-add_full-and-add_partial-slub-workaround-for-lockdep-confusion
-+++ a/mm/slub.c
-@@ -2002,6 +2002,7 @@ static struct kmem_cache_node *early_kme
- {
- 	struct page *page;
- 	struct kmem_cache_node *n;
-+	unsigned long flags;
+diff -puN kernel/capability.c~64bit-capability-support-legacy-support-fix kernel/capability.c
+--- a/kernel/capability.c~64bit-capability-support-legacy-support-fix
++++ a/kernel/capability.c
+@@ -109,13 +109,26 @@ out:
+ 			kdata[i].permitted = pP.cap[i];
+ 			kdata[i].inheritable = pI.cap[i];
+ 		}
+-		while (i < _LINUX_CAPABILITY_U32S) {
+-			if (pE.cap[i] || pP.cap[i] || pP.cap[i]) {
+-				/* Cannot represent w/ legacy structure */
+-				return -ERANGE;
+-			}
+-			i++;
+-		}
++
++		/*
++		 * Note, in the case, tocopy < _LINUX_CAPABILITY_U32S,
++		 * we silently drop the upper capabilities here. This
++		 * has the effect of making older libcap
++		 * implementations implicitly drop upper capability
++		 * bits when they perform a: capget/modify/capset
++		 * sequence.
++		 *
++		 * This behavior is considered fail-safe
++		 * behavior. Upgrading the application to a newer
++		 * version of libcap will enable access to the newer
++		 * capabilities.
++		 *
++		 * An alternative would be to return an error here
++		 * (-ERANGE), but that causes legacy applications to
++		 * unexpectidly fail; the capget/modify/capset aborts
++		 * before modification is attempted and the application
++		 * fails.
++		 */
  
- 	BUG_ON(kmalloc_caches->size < sizeof(struct kmem_cache_node));
- 
-@@ -2026,7 +2027,14 @@ static struct kmem_cache_node *early_kme
- #endif
- 	init_kmem_cache_node(n);
- 	atomic_long_inc(&n->nr_slabs);
-+	/*
-+	 * lockdep requires consistent irq usage for each lock
-+	 * so even though there cannot be a race this early in
-+	 * the boot sequence, we still disable irqs.
-+	 */
-+	local_irq_save(flags);
- 	add_partial(kmalloc_caches, page, 0);
-+	local_irq_restore(flags);
- 	return n;
- }
- 
+ 		if (copy_to_user(dataptr, kdata, tocopy
+ 				 * sizeof(struct __user_cap_data_struct))) {
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from morgan@kernel.org are
 
-slub-move-kmem_cache_node-determination-into-add_full-and-add_partial-slub-workaround-for-lockdep-confusion.patch
-swapin-needs-gfp_mask-for-loop-on-tmpfs.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-memcgroup-fix-try_to_free-order.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-memcgroup-reinstate-swapoff-mod.patch
-bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
-bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
-bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
-memcgroup-fix-zone-isolation-oom.patch
-memcgroup-revert-swap_state-mods.patch
-bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
-memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
-memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-memory-cgroup-enhancements-add-pre_destroy-handler.patch
-memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
+file-capabilities-allow-sigcont-within-session-v2.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-fix.patch
+64bit-capability-support-legacy-support-fix.patch
+remove-unnecessary-include-from-include-linux-capabilityh.patch
