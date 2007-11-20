@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tpm-tis-device-driver-locality-request.patch added to -mm tree
-Date: Mon, 19 Nov 2007 22:23:13 -0800
-Message-ID: <200711200623.lAK6NDKU017699@imap1.linux-foundation.org>
+Subject: + powerpc-iseries-build-failure-mm-stabc.patch added to -mm tree
+Date: Mon, 19 Nov 2007 22:27:10 -0800
+Message-ID: <200711200627.lAK6RA9s017769@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36041 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39957 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752174AbXKTGXV (ORCPT
+	by vger.kernel.org with ESMTP id S1750914AbXKTG1b (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Nov 2007 01:23:21 -0500
+	Tue, 20 Nov 2007 01:27:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tpm@selhorst.net, kjhall@us.ibm.com
+Cc: kamalesh@linux.vnet.ibm.com, benh@kernel.crashing.org, paulus@samba.org, sfr@canb.auug.org.au
 
 
 The patch titled
-     TPM: fix TIS device driver locality request
+     powerpc (iseries)- build failure - mm/stab.c
 has been added to the -mm tree.  Its filename is
-     tpm-tis-device-driver-locality-request.patch
+     powerpc-iseries-build-failure-mm-stabc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,59 +26,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: TPM: fix TIS device driver locality request
-From: Marcel Selhorst <tpm@selhorst.net>
+Subject: powerpc (iseries)- build failure - mm/stab.c
+From: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
 
-During the initialization of the TPM TIS driver, the necessary locality has
-to be requested earlier in the init-process.  Depending on the used TPM
-chip, this leads to wrong information.  For example: Lenovo X61s with Atmel
-TPM:
+The kernel builds fails with following error, with randconfig
 
-tpm_tis 00:0a: 1.2 TPM (device-id 0xFFFF, rev-id 255)
+  CC      arch/powerpc/mm/stab.o
+arch/powerpc/mm/stab.c: In function `stab_initialize':
+arch/powerpc/mm/stab.c:282: error: implicit declaration of function `HvCall1'
+arch/powerpc/mm/stab.c:282: error: `HvCallBaseSetASR' undeclared (first use in this function)
+arch/powerpc/mm/stab.c:282: error: (Each undeclared identifier is reported only once
+arch/powerpc/mm/stab.c:282: error: for each function it appears in.)
+make[1]: *** [arch/powerpc/mm/stab.o] Error 1
+make: *** [arch/powerpc/mm] Error 2
 
-But correct is:
-
-tpm_tis 00:0c: 1.2 TPM (device-id 0x3203, rev-id 9)
-
-This short patch fixes this issue.
-
-Signed-off-by: Marcel Selhorst <tpm@selhorst.net>
-Cc: Kylene Jo Hall <kjhall@us.ibm.com>
+Signed-off-by: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Acked-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tpm/tpm_tis.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ arch/powerpc/mm/stab.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/char/tpm/tpm_tis.c~tpm-tis-device-driver-locality-request drivers/char/tpm/tpm_tis.c
---- a/drivers/char/tpm/tpm_tis.c~tpm-tis-device-driver-locality-request
-+++ a/drivers/char/tpm/tpm_tis.c
-@@ -450,6 +450,11 @@ static int tpm_tis_init(struct device *d
- 		goto out_err;
- 	}
+diff -puN arch/powerpc/mm/stab.c~powerpc-iseries-build-failure-mm-stabc arch/powerpc/mm/stab.c
+--- a/arch/powerpc/mm/stab.c~powerpc-iseries-build-failure-mm-stabc
++++ a/arch/powerpc/mm/stab.c
+@@ -20,6 +20,7 @@
+ #include <asm/lmb.h>
+ #include <asm/abs_addr.h>
+ #include <asm/firmware.h>
++#include <asm/iseries/hv_call.h>
  
-+	if (request_locality(chip, 0) != 0) {
-+		rc = -ENODEV;
-+		goto out_err;
-+	}
-+
- 	vendor = ioread32(chip->vendor.iobase + TPM_DID_VID(0));
- 
- 	/* Default timeouts */
-@@ -487,11 +492,6 @@ static int tpm_tis_init(struct device *d
- 	if (intfcaps & TPM_INTF_DATA_AVAIL_INT)
- 		dev_dbg(dev, "\tData Avail Int Support\n");
- 
--	if (request_locality(chip, 0) != 0) {
--		rc = -ENODEV;
--		goto out_err;
--	}
--
- 	/* INTERRUPT Setup */
- 	init_waitqueue_head(&chip->vendor.read_queue);
- 	init_waitqueue_head(&chip->vendor.int_queue);
+ struct stab_entry {
+ 	unsigned long esid_data;
 _
 
-Patches currently in -mm which might be from tpm@selhorst.net are
+Patches currently in -mm which might be from kamalesh@linux.vnet.ibm.com are
 
-tpm-tis-device-driver-locality-request.patch
+memory-hotplug-fix-fix-section-mismatch-in-vmammap_allock_block.patch
+export-acpi_check_resource_conflict.patch
+powerpc-iseries-build-failure-mm-stabc.patch
+slub-move-kmem_cache_node-determination-into-add_full-and-add_partial-slub-workaround-for-lockdep-confusion.patch
+config_highpte-vs-sub-page-page-tables-fix.patch
+iget-stop-bfs-from-using-iget-and-read_inode-try-fix.patch
+add-dma-engine-driver-for-freescale-mpc85xx-processors-fix.patch
