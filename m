@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + generic-gpio-gpio_chip-support-gpiolib-locking-simplified.patch added to -mm tree
-Date: Tue, 20 Nov 2007 13:27:39 -0800
-Message-ID: <200711202127.lAKLRduf024289@imap1.linux-foundation.org>
+Subject: + git-x86-thread_order-borkage.patch added to -mm tree
+Date: Tue, 20 Nov 2007 13:41:28 -0800
+Message-ID: <200711202141.lAKLfS7T024872@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53318 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35176 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757957AbXKTV17 (ORCPT
+	by vger.kernel.org with ESMTP id S1754418AbXKTVmu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Nov 2007 16:27:59 -0500
+	Tue, 20 Nov 2007 16:42:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net
+Cc: akpm@linux-foundation.org, kamalesh@linux.vnet.ibm.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     gpiolib locking simplified
+     git-x86-thread_order-borkage
 has been added to the -mm tree.  Its filename is
-     generic-gpio-gpio_chip-support-gpiolib-locking-simplified.patch
+     git-x86-thread_order-borkage.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,387 +26,209 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: gpiolib locking simplified
-From: David Brownell <david-b@pacbell.net>
+Subject: git-x86-thread_order-borkage
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Simplify the hot-path (gpio value get/set) locking by taking advantage of
-the fact that gpio_request() effectively locks that GPIO in memory.  This
-also helps avoid the belated complaints about whether this locking is one
-of the places raw spinlocks are OK to use; it's now back to using regular
-spinlocks.
-
-Also update docs to clarify some issues that came up.  We'd like to
-eventually have direction-setting stop implicitly requesting GPIOs, so
-discourage that usage.  Also document the "locking" implication of
-gpio_request().
-
-This is a code shrink relative to the previous code, most of it by removing
-explicit locking calls from those hot paths.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/gpio.txt |   14 +++-
- lib/gpiolib.c          |  116 ++++++++++-----------------------------
- 2 files changed, 42 insertions(+), 88 deletions(-)
+ include/asm-x86/page_64.h        |    2 +-
+ include/asm-x86/thread_info_64.h |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/gpio.txt~generic-gpio-gpio_chip-support-gpiolib-locking-simplified Documentation/gpio.txt
---- a/Documentation/gpio.txt~generic-gpio-gpio_chip-support-gpiolib-locking-simplified
-+++ a/Documentation/gpio.txt
-@@ -123,6 +123,10 @@ before tasking is enabled, as part of ea
- For output GPIOs, the value provided becomes the initial output value.
- This helps avoid signal glitching during system startup.
+diff -puN include/asm-x86/page_64.h~git-x86-thread_order-borkage include/asm-x86/page_64.h
+--- a/include/asm-x86/page_64.h~git-x86-thread_order-borkage
++++ a/include/asm-x86/page_64.h
+@@ -9,7 +9,7 @@
+ #define PAGE_MASK	(~(PAGE_SIZE-1))
+ #define PHYSICAL_PAGE_MASK	(~(PAGE_SIZE-1) & __PHYSICAL_MASK)
  
-+For compatibility with legacy interfaces to GPIOs, setting the direction
-+of a GPIO implicitly requests that GPIO (see below).  That compatibility
-+may be removed in the future; explicitly requesting GPIOs is preferred.
-+
- Setting the direction can fail if the GPIO number is invalid, or when
- that particular GPIO can't be used in that mode.  It's generally a bad
- idea to rely on boot firmware to have set the direction correctly, since
-@@ -173,7 +177,8 @@ get to the head of a queue to transmit a
- This requires sleeping, which can't be done from inside IRQ handlers.
+-#define THREAD_SIZE  (PAGE_SIZE << CONFIG_THREAD_ORDER)
++#define THREAD_SIZE  (PAGE_SIZE << THREAD_ORDER)
+ #define CURRENT_MASK (~(THREAD_SIZE-1))
  
- Platforms that support this type of GPIO distinguish them from other GPIOs
--by returning nonzero from this call:
-+by returning nonzero from this call (which requires a valid GPIO number,
-+either explicitly or implicitly requested):
- 
- 	int gpio_cansleep(unsigned gpio);
- 
-@@ -212,8 +217,11 @@ before tasking is enabled, as part of ea
- These calls serve two basic purposes.  One is marking the signals which
- are actually in use as GPIOs, for better diagnostics; systems may have
- several hundred potential GPIOs, but often only a dozen are used on any
--given board.  Another is to catch conflicts between drivers, reporting
--errors when drivers wrongly think they have exclusive use of that signal.
-+given board.  Another is to catch conflicts, identifying errors when
-+(a) two or more drivers wrongly think they have exclusive use of that
-+signal, or (b) something wrongly believes it's safe to remove drivers
-+needed to manage a signal that's in active use.  That is, requesting a
-+GPIO can serve as a kind of lock.
- 
- These two calls are optional because not not all current Linux platforms
- offer such functionality in their GPIO support; a valid implementation
-diff -puN lib/gpiolib.c~generic-gpio-gpio_chip-support-gpiolib-locking-simplified lib/gpiolib.c
---- a/lib/gpiolib.c~generic-gpio-gpio_chip-support-gpiolib-locking-simplified
-+++ a/lib/gpiolib.c
-@@ -29,11 +29,10 @@
+ #define EXCEPTION_STACK_ORDER 0
+diff -puN include/asm-x86/thread_info_64.h~git-x86-thread_order-borkage include/asm-x86/thread_info_64.h
+--- a/include/asm-x86/thread_info_64.h~git-x86-thread_order-borkage
++++ a/include/asm-x86/thread_info_64.h
+@@ -80,9 +80,9 @@ static inline struct thread_info *stack_
  #endif
  
- /* gpio_lock protects the table of chips and gpio_chip->requested.
-- * While any gpio is requested, its gpio_chip is not removable.  It's
-- * a raw spinlock to ensure safe access from hardirq contexts, and to
-- * shrink bitbang overhead:  per-bit preemption would be very wrong.
-+ * While any GPIO is requested, its gpio_chip is not removable;
-+ * each GPIO's "requested" flag serves as a lock and refcount.
-  */
--static raw_spinlock_t gpio_lock = __RAW_SPIN_LOCK_UNLOCKED;
-+static DEFINE_SPINLOCK(gpio_lock);
- static struct gpio_chip *chips[DIV_ROUND_UP(ARCH_NR_GPIOS,
- 					ARCH_GPIOS_PER_CHIP)];
+ #define alloc_thread_info(tsk) \
+-	((struct thread_info *) __get_free_pages(THREAD_FLAGS, CONFIG_THREAD_ORDER))
++	((struct thread_info *) __get_free_pages(THREAD_FLAGS, THREAD_ORDER))
  
-@@ -58,7 +57,7 @@ static void gpio_ensure_requested(struct
- 				chip->base + offset);
- }
+-#define free_thread_info(ti) free_pages((unsigned long) (ti), CONFIG_THREAD_ORDER)
++#define free_thread_info(ti) free_pages((unsigned long) (ti), THREAD_ORDER)
  
--/* caller holds gpio_lock */
-+/* caller holds gpio_lock *OR* gpio is marked as requested */
- static inline struct gpio_chip *gpio_to_chip(unsigned gpio)
- {
- 	return chips[gpio / ARCH_GPIOS_PER_CHIP];
-@@ -86,8 +85,7 @@ int gpiochip_add(struct gpio_chip *chip)
- 	if (chip->ngpio > ARCH_GPIOS_PER_CHIP)
- 		return -EINVAL;
+ #else /* !__ASSEMBLY__ */
  
--	local_irq_save(flags);
--	__raw_spin_lock(&gpio_lock);
-+	spin_lock_irqsave(&gpio_lock, flags);
- 
- 	id = chip->base / ARCH_GPIOS_PER_CHIP;
- 	if (chips[id] == NULL)
-@@ -95,8 +93,7 @@ int gpiochip_add(struct gpio_chip *chip)
- 	else
- 		status = -EBUSY;
- 
--	__raw_spin_unlock(&gpio_lock);
--	local_irq_restore(flags);
-+	spin_unlock_irqrestore(&gpio_lock, flags);
- 	return status;
- }
- EXPORT_SYMBOL_GPL(gpiochip_add);
-@@ -114,8 +111,7 @@ int gpiochip_remove(struct gpio_chip *ch
- 	int		offset;
- 	unsigned	id = chip->base / ARCH_GPIOS_PER_CHIP;
- 
--	local_irq_save(flags);
--	__raw_spin_lock(&gpio_lock);
-+	spin_lock_irqsave(&gpio_lock, flags);
- 
- 	for (offset = 0; offset < chip->ngpio; offset++) {
- 		if (gpiochip_is_requested(chip, offset)) {
-@@ -131,8 +127,7 @@ int gpiochip_remove(struct gpio_chip *ch
- 			status = -EINVAL;
- 	}
- 
--	__raw_spin_unlock(&gpio_lock);
--	local_irq_restore(flags);
-+	spin_unlock_irqrestore(&gpio_lock, flags);
- 	return status;
- }
- EXPORT_SYMBOL_GPL(gpiochip_remove);
-@@ -148,8 +143,7 @@ int gpio_request(unsigned gpio, const ch
- 	int			status = -EINVAL;
- 	unsigned long		flags;
- 
--	local_irq_save(flags);
--	__raw_spin_lock(&gpio_lock);
-+	spin_lock_irqsave(&gpio_lock, flags);
- 
- 	chip = gpio_to_chip(gpio);
- 	if (!chip)
-@@ -176,8 +170,7 @@ int gpio_request(unsigned gpio, const ch
- #endif
- 
- done:
--	__raw_spin_unlock(&gpio_lock);
--	local_irq_restore(flags);
-+	spin_unlock_irqrestore(&gpio_lock, flags);
- 	return status;
- }
- EXPORT_SYMBOL_GPL(gpio_request);
-@@ -187,8 +180,7 @@ void gpio_free(unsigned gpio)
- 	unsigned long		flags;
- 	struct gpio_chip	*chip;
- 
--	local_irq_save(flags);
--	__raw_spin_lock(&gpio_lock);
-+	spin_lock_irqsave(&gpio_lock, flags);
- 
- 	chip = gpio_to_chip(gpio);
- 	if (!chip)
-@@ -208,8 +200,7 @@ void gpio_free(unsigned gpio)
- #endif
- 	WARN_ON(extra_checks && chip == NULL);
- done:
--	__raw_spin_unlock(&gpio_lock);
--	local_irq_restore(flags);
-+	spin_unlock_irqrestore(&gpio_lock, flags);
- }
- EXPORT_SYMBOL_GPL(gpio_free);
- 
-@@ -229,8 +220,7 @@ int gpio_direction_input(unsigned gpio)
- 	struct gpio_chip	*chip;
- 	int			status = -EINVAL;
- 
--	local_irq_save(flags);
--	__raw_spin_lock(&gpio_lock);
-+	spin_lock_irqsave(&gpio_lock, flags);
- 
- 	chip = gpio_to_chip(gpio);
- 	if (!chip || !chip->get || !chip->direction_input)
-@@ -242,8 +232,7 @@ int gpio_direction_input(unsigned gpio)
- 
- 	/* now we know the gpio is valid and chip won't vanish */
- 
--	__raw_spin_unlock(&gpio_lock);
--	local_irq_restore(flags);
-+	spin_unlock_irqrestore(&gpio_lock, flags);
- 
- 	might_sleep_if(extra_checks && chip->can_sleep);
- 
-@@ -252,8 +241,7 @@ int gpio_direction_input(unsigned gpio)
- 		clear_bit(gpio, chip->is_out);
- 	return status;
- fail:
--	__raw_spin_unlock(&gpio_lock);
--	local_irq_restore(flags);
-+	spin_unlock_irqrestore(&gpio_lock, flags);
- 	return status;
- }
- EXPORT_SYMBOL_GPL(gpio_direction_input);
-@@ -264,8 +252,7 @@ int gpio_direction_output(unsigned gpio,
- 	struct gpio_chip	*chip;
- 	int			status = -EINVAL;
- 
--	local_irq_save(flags);
--	__raw_spin_lock(&gpio_lock);
-+	spin_lock_irqsave(&gpio_lock, flags);
- 
- 	chip = gpio_to_chip(gpio);
- 	if (!chip || !chip->set || !chip->direction_output)
-@@ -277,8 +264,7 @@ int gpio_direction_output(unsigned gpio,
- 
- 	/* now we know the gpio is valid and chip won't vanish */
- 
--	__raw_spin_unlock(&gpio_lock);
--	local_irq_restore(flags);
-+	spin_unlock_irqrestore(&gpio_lock, flags);
- 
- 	might_sleep_if(extra_checks && chip->can_sleep);
- 
-@@ -287,8 +273,7 @@ int gpio_direction_output(unsigned gpio,
- 		set_bit(gpio, chip->is_out);
- 	return status;
- fail:
--	__raw_spin_unlock(&gpio_lock);
--	local_irq_restore(flags);
-+	spin_unlock_irqrestore(&gpio_lock, flags);
- 	return status;
- }
- EXPORT_SYMBOL_GPL(gpio_direction_output);
-@@ -303,22 +288,23 @@ EXPORT_SYMBOL_GPL(gpio_direction_output)
-  * When "set" operations are inlinable, they involve writing that mask to
-  * one register to set a low value, or a different register to set it high.
-  * Otherwise locking is needed, so there may be little value to inlining.
-+ *
-+ *------------------------------------------------------------------------
-+ *
-+ * IMPORTANT!!!  The hot paths -- get/set value -- assume that callers
-+ * have requested the GPIO.  That can include implicit requesting by
-+ * a direction setting call.  Marking a gpio as requested locks its chip
-+ * in memory, guaranteeing that these table lookups need no more locking
-+ * and that gpiochip_remove() will fail.
-+ *
-+ * REVISIT when debugging, consider adding some instrumentation to ensure
-+ * that the GPIO was actually requested.
-  */
- int __gpio_get_value(unsigned gpio)
- {
--	unsigned long		flags;
- 	struct gpio_chip	*chip;
- 
--	local_irq_save(flags);
--	__raw_spin_lock(&gpio_lock);
--
- 	chip = gpio_to_chip(gpio);
--	if (extra_checks)
--		gpio_ensure_requested(chip, gpio - chip->base);
--
--	__raw_spin_unlock(&gpio_lock);
--	local_irq_restore(flags);
--
- 	WARN_ON(extra_checks && chip->can_sleep);
- 	return chip->get(chip, gpio - chip->base);
- }
-@@ -326,19 +312,9 @@ EXPORT_SYMBOL_GPL(__gpio_get_value);
- 
- void __gpio_set_value(unsigned gpio, int value)
- {
--	unsigned long		flags;
- 	struct gpio_chip	*chip;
- 
--	local_irq_save(flags);
--	__raw_spin_lock(&gpio_lock);
--
- 	chip = gpio_to_chip(gpio);
--	if (extra_checks)
--		gpio_ensure_requested(chip, gpio - chip->base);
--
--	__raw_spin_unlock(&gpio_lock);
--	local_irq_restore(flags);
--
- 	WARN_ON(extra_checks && chip->can_sleep);
- 	chip->set(chip, gpio - chip->base, value);
- }
-@@ -346,18 +322,10 @@ EXPORT_SYMBOL_GPL(__gpio_set_value);
- 
- int __gpio_cansleep(unsigned gpio)
- {
--	unsigned long		flags;
- 	struct gpio_chip	*chip;
- 
--	local_irq_save(flags);
--	__raw_spin_lock(&gpio_lock);
--
-+	/* only call this on GPIOs that are valid! */
- 	chip = gpio_to_chip(gpio);
--	if (extra_checks)
--		gpio_ensure_requested(chip, gpio - chip->base);
--
--	__raw_spin_unlock(&gpio_lock);
--	local_irq_restore(flags);
- 
- 	return chip->can_sleep;
- }
-@@ -365,48 +333,26 @@ EXPORT_SYMBOL_GPL(__gpio_cansleep);
- 
- 
- 
--/* There's no value in inlining GPIO calls that may sleep.
-+/* There's no value in making it easy to inline GPIO calls that may sleep.
-  * Common examples include ones connected to I2C or SPI chips.
-  */
- 
- int gpio_get_value_cansleep(unsigned gpio)
- {
--	unsigned long		flags;
- 	struct gpio_chip	*chip;
- 
- 	might_sleep_if(extra_checks);
--
--	local_irq_save(flags);
--	__raw_spin_lock(&gpio_lock);
--
- 	chip = gpio_to_chip(gpio);
--	if (extra_checks)
--		gpio_ensure_requested(chip, gpio - chip->base);
--
--	__raw_spin_unlock(&gpio_lock);
--	local_irq_restore(flags);
--
- 	return chip->get(chip, gpio - chip->base);
- }
- EXPORT_SYMBOL_GPL(gpio_get_value_cansleep);
- 
- void gpio_set_value_cansleep(unsigned gpio, int value)
- {
--	unsigned long		flags;
- 	struct gpio_chip	*chip;
- 
- 	might_sleep_if(extra_checks);
--
--	local_irq_save(flags);
--	__raw_spin_lock(&gpio_lock);
--
- 	chip = gpio_to_chip(gpio);
--	if (extra_checks)
--		gpio_ensure_requested(chip, gpio - chip->base);
--
--	__raw_spin_unlock(&gpio_lock);
--	local_irq_restore(flags);
--
- 	chip->set(chip, gpio - chip->base, value);
- }
- EXPORT_SYMBOL_GPL(gpio_set_value_cansleep);
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-atmel_spi-labels-gpios-better.patch
-rtc-dont-write-rtc-century-when-setting-a-wake-alarm.patch
+origin.patch
+file-capabilities-allow-sigcont-within-session-v2.patch
+pnp-increase-the-maximum-number-of-resources-fix.patch
+revert-keyspan-init-termios-properly.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
+acpi-add-reboot-mechanism.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+agk-dm-dm-ioctl-move-compat-code-fix.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
+git-drm-oops-fix.patch
+git-dvb.patch
+ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
+elantech-touchpad-driver-fix.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+ide-arm-hack.patch
+git-mips-fixup.patch
 git-mmc.patch
-usb-s3c2410_udc-minor-irq-handler-cleanups.patch
-usb-device-dma-support-on-omap2.patch
-rtc-convert-mutex-to-bitfield.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-remove-pointless-casts-from-void-pointers.patch
-spi-at25-driver-is-for-eeprom-not-flash.patch
-spi-use-mutex-not-semaphore.patch
-blackfin-spi-driver-use-cpu_relax-to-replace-continue-in-while-busywait.patch
-blackfin-spi-driver-use-void-__iomem-for-regs_base.patch
-blackfin-spi-driver-move-hard-coded-pin_req-to-board-file.patch
-blackfin-spi-driver-reconfigure-speed_hz-and-bits_per_word-in-each-spi-transfer.patch
-s3c2410-add-bus-number-to-spi-gpio-driver.patch
-cosmetic-fixes-to-rtc-subsystems-kconfig.patch
-rtc-pcf8583-dont-abuse-i2c_m_nostart.patch
-rtc-s3c-use-is_power_of_2-macro-for-simplicity.patch
-rtc-cmos-exports-nvram-in-sysfs.patch
-generic-gpio-gpio_chip-support.patch
-generic-gpio-gpio_chip-support-fix.patch
-generic-gpio-gpio_chip-support-gpiolib-locking-simplified.patch
-avr32-uses-gpio_chip.patch
-mcp23s08-spi-gpio-expander.patch
+git-mtd.patch
+git-netdev-all.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+bluetooth-uninlining.patch
+git-nfsd-build-fix.patch
+quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
+drivers-pci-quirksc-coding-style-cleanup.patch
+more-sanity-checks-for-dmar-checkpatch-fixes.patch
+git-s390.patch
+fix-build-breakage-if-sysfs-fix.patch
+ips-trim-trailing-whitespace-checkpatch-fixes.patch
+scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
+scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
+bidi-support-scsi_data_buffer-broke-qla1280.patch
+bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+git-wireless.patch
+jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-fixup.patch
+git-x86-thread_order-borkage.patch
+git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko-checkpatch-fixes.patch
+git-x86-inlining-borkage.patch
+git-cryptodev.patch
+git-xtensa.patch
+ia64-increase-datapatch-offset.patch
+ia64-dont-assume-that-unwcheckpy-is-executable.patch
+ia64-export-copy_page-to-modules.patch
+ia64-export-copy_page-to-modules-fix.patch
+isdn-validate-length-of-isdn_net_ioctl_cfgeaz.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+sync_sb_inodes-propagate-errors.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
 mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-pnp-request-ioport-and-iomem-resources-used-by-active-devices.patch
+64-bit-i_version-afs-fixes.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-simplify-remove_proc_entry-wrt-locking-checkpatch-fixes.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+w1-build-fix.patch
