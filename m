@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + libata-sff-tf_load.patch added to -mm tree
-Date: Mon, 19 Nov 2007 23:09:14 -0800
-Message-ID: <200711200709.lAK79EZn019959@imap1.linux-foundation.org>
+Subject: + pata_ali-add-mitac-8317-and-derivatives.patch added to -mm tree
+Date: Mon, 19 Nov 2007 23:09:15 -0800
+Message-ID: <200711200709.lAK79FKq019962@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38905 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46308 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754528AbXKTHJe (ORCPT
+	by vger.kernel.org with ESMTP id S1755046AbXKTHJh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Nov 2007 02:09:34 -0500
+	Tue, 20 Nov 2007 02:09:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     libata-sff: tf_load
+     pata_ali: add Mitac 8317 and derivatives
 has been added to the -mm tree.  Its filename is
-     libata-sff-tf_load.patch
+     pata_ali-add-mitac-8317-and-derivatives.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,43 +26,29 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: libata-sff: tf_load
+Subject: pata_ali: add Mitac 8317 and derivatives
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-
-Jeff said he preferred that the SFF tf_load followed the spec and we
-documented that anyone who needed different overrode it, rather than it
-using the ->check_status methods. No driver relies on the current behaviour.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-sff.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/ata/pata_ali.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/ata/libata-sff.c~libata-sff-tf_load drivers/ata/libata-sff.c
---- a/drivers/ata/libata-sff.c~libata-sff-tf_load
-+++ a/drivers/ata/libata-sff.c
-@@ -147,7 +147,9 @@ void ata_exec_command(struct ata_port *a
-  *	@tf: ATA taskfile register set for storing input
-  *
-  *	Reads ATA taskfile registers for currently-selected device
-- *	into @tf.
-+ *	into @tf. Assumes the device has a fully SFF compliant task file
-+ *	layout and behaviour. If you device does not (eg has a different
-+ *	status method) then you will need to provide a replacement tf_read
-  *
-  *	LOCKING:
-  *	Inherited from caller.
-@@ -156,7 +158,7 @@ void ata_tf_read(struct ata_port *ap, st
- {
- 	struct ata_ioports *ioaddr = &ap->ioaddr;
- 
--	tf->command = ata_chk_status(ap);
-+	tf->command = ata_check_status(ap);
- 	tf->feature = ioread8(ioaddr->error_addr);
- 	tf->nsect = ioread8(ioaddr->nsect_addr);
- 	tf->lbal = ioread8(ioaddr->lbal_addr);
+diff -puN drivers/ata/pata_ali.c~pata_ali-add-mitac-8317-and-derivatives drivers/ata/pata_ali.c
+--- a/drivers/ata/pata_ali.c~pata_ali-add-mitac-8317-and-derivatives
++++ a/drivers/ata/pata_ali.c
+@@ -63,6 +63,9 @@ static int ali_cable_override(struct pci
+ 	/* Fujitsu P2000 */
+ 	if (pdev->subsystem_vendor == 0x10CF && pdev->subsystem_device == 0x10AF)
+ 	   	return 1;
++	/* Mitac 8317 (Winbook-A) and relatives */
++	if (pdev->subsystem_vendor == 0x1071  && pdev->subsystem_device == 0x8317)
++		return 1;
+ 	/* Systems by DMI */
+ 	if (dmi_check_system(cable_dmi_table))
+ 		return 1;
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
