@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-iseries-build-failure-mm-stabc.patch added to -mm tree
-Date: Mon, 19 Nov 2007 22:27:10 -0800
-Message-ID: <200711200627.lAK6RA9s017769@imap1.linux-foundation.org>
+Subject: + printkc-use-unsigned-ints-instead-of-longs-for-logbuf-index.patch added to -mm tree
+Date: Mon, 19 Nov 2007 22:31:10 -0800
+Message-ID: <200711200631.lAK6VA4u017903@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39957 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39741 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750914AbXKTG1b (ORCPT
+	by vger.kernel.org with ESMTP id S1752811AbXKTGbN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Nov 2007 01:27:31 -0500
+	Tue, 20 Nov 2007 01:31:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamalesh@linux.vnet.ibm.com, benh@kernel.crashing.org, paulus@samba.org, sfr@canb.auug.org.au
+Cc: vda.linux@googlemail.com
 
 
 The patch titled
-     powerpc (iseries)- build failure - mm/stab.c
+     printk.c: use unsigned ints instead of longs for logbuf index
 has been added to the -mm tree.  Its filename is
-     powerpc-iseries-build-failure-mm-stabc.patch
+     printkc-use-unsigned-ints-instead-of-longs-for-logbuf-index.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,49 +26,150 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: powerpc (iseries)- build failure - mm/stab.c
-From: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Subject: printk.c: use unsigned ints instead of longs for logbuf index
+From: Denys Vlasenko <vda.linux@googlemail.com>
 
-The kernel builds fails with following error, with randconfig
+Stop using unsigned _longs_ for printk buffer indexes.  Log buffer is way
+smaller than 2 gigabytes and unsigned ints will work too .  Indeed, they do
+work nicely on all 32-bit platforms where longs and ints are the same.
 
-  CC      arch/powerpc/mm/stab.o
-arch/powerpc/mm/stab.c: In function `stab_initialize':
-arch/powerpc/mm/stab.c:282: error: implicit declaration of function `HvCall1'
-arch/powerpc/mm/stab.c:282: error: `HvCallBaseSetASR' undeclared (first use in this function)
-arch/powerpc/mm/stab.c:282: error: (Each undeclared identifier is reported only once
-arch/powerpc/mm/stab.c:282: error: for each function it appears in.)
-make[1]: *** [arch/powerpc/mm/stab.o] Error 1
-make: *** [arch/powerpc/mm] Error 2
+With this patch, we have following size savings on amd64:
 
-Signed-off-by: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Acked-by: Stephen Rothwell <sfr@canb.auug.org.au>
+   text    data     bss     dec     hex filename
+   5997     313   17736   24046    5dee 2.6.23.1.t64/kernel/printk.o
+   5858     313   17700   23871    5d3f 2.6.23.1.printk.t64/kernel/printk.o
+
+Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/stab.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/printk.c |   36 ++++++++++++++++++------------------
+ 1 file changed, 18 insertions(+), 18 deletions(-)
 
-diff -puN arch/powerpc/mm/stab.c~powerpc-iseries-build-failure-mm-stabc arch/powerpc/mm/stab.c
---- a/arch/powerpc/mm/stab.c~powerpc-iseries-build-failure-mm-stabc
-+++ a/arch/powerpc/mm/stab.c
-@@ -20,6 +20,7 @@
- #include <asm/lmb.h>
- #include <asm/abs_addr.h>
- #include <asm/firmware.h>
-+#include <asm/iseries/hv_call.h>
+diff -puN kernel/printk.c~printkc-use-ints-instead-of-longs-for-logbuf-index kernel/printk.c
+--- a/kernel/printk.c~printkc-use-ints-instead-of-longs-for-logbuf-index
++++ a/kernel/printk.c
+@@ -86,16 +86,16 @@ static int console_locked, console_suspe
+  */
+ static DEFINE_SPINLOCK(logbuf_lock);
  
- struct stab_entry {
- 	unsigned long esid_data;
+-#define LOG_BUF_MASK	(log_buf_len-1)
++#define LOG_BUF_MASK (log_buf_len-1)
+ #define LOG_BUF(idx) (log_buf[(idx) & LOG_BUF_MASK])
+ 
+ /*
+  * The indices into log_buf are not constrained to log_buf_len - they
+  * must be masked before subscripting
+  */
+-static unsigned long log_start;	/* Index into log_buf: next char to be read by syslog() */
+-static unsigned long con_start;	/* Index into log_buf: next char to be sent to consoles */
+-static unsigned long log_end;	/* Index into log_buf: most-recently-written-char + 1 */
++static unsigned log_start;	/* Index into log_buf: next char to be read by syslog() */
++static unsigned con_start;	/* Index into log_buf: next char to be sent to consoles */
++static unsigned log_end;	/* Index into log_buf: most-recently-written-char + 1 */
+ 
+ /*
+  *	Array of consoles built from command line options (console=)
+@@ -121,17 +121,17 @@ static int console_may_schedule;
+ static char __log_buf[__LOG_BUF_LEN];
+ static char *log_buf = __log_buf;
+ static int log_buf_len = __LOG_BUF_LEN;
+-static unsigned long logged_chars; /* Number of chars produced since last read+clear operation */
++static unsigned logged_chars; /* Number of chars produced since last read+clear operation */
+ 
+ static int __init log_buf_len_setup(char *str)
+ {
+-	unsigned long size = memparse(str, &str);
++	unsigned size = memparse(str, &str);
+ 	unsigned long flags;
+ 
+ 	if (size)
+ 		size = roundup_pow_of_two(size);
+ 	if (size > log_buf_len) {
+-		unsigned long start, dest_idx, offset;
++		unsigned start, dest_idx, offset;
+ 		char *new_log_buf;
+ 
+ 		new_log_buf = alloc_bootmem(size);
+@@ -288,7 +288,7 @@ int log_buf_read(int idx)
+  */
+ int do_syslog(int type, char __user *buf, int len)
+ {
+-	unsigned long i, j, limit, count;
++	unsigned i, j, limit, count;
+ 	int do_clear = 0;
+ 	char c;
+ 	int error = 0;
+@@ -429,7 +429,7 @@ asmlinkage long sys_syslog(int type, cha
+ /*
+  * Call the console drivers on a range of log_buf
+  */
+-static void __call_console_drivers(unsigned long start, unsigned long end)
++static void __call_console_drivers(unsigned start, unsigned end)
+ {
+ 	struct console *con;
+ 
+@@ -456,8 +456,8 @@ __setup("ignore_loglevel", ignore_loglev
+ /*
+  * Write out chars from start to end - 1 inclusive
+  */
+-static void _call_console_drivers(unsigned long start,
+-				unsigned long end, int msg_log_level)
++static void _call_console_drivers(unsigned start,
++				unsigned end, int msg_log_level)
+ {
+ 	if ((msg_log_level < console_loglevel || ignore_loglevel) &&
+ 			console_drivers && start != end) {
+@@ -477,12 +477,12 @@ static void _call_console_drivers(unsign
+  * log_buf[start] to log_buf[end - 1].
+  * The console_sem must be held.
+  */
+-static void call_console_drivers(unsigned long start, unsigned long end)
++static void call_console_drivers(unsigned start, unsigned end)
+ {
+-	unsigned long cur_index, start_print;
++	unsigned cur_index, start_print;
+ 	static int msg_level = -1;
+ 
+-	BUG_ON(((long)(start - end)) > 0);
++	BUG_ON(((int)(start - end)) > 0);
+ 
+ 	cur_index = start;
+ 	start_print = start;
+@@ -760,7 +760,7 @@ asmlinkage long sys_syslog(int type, cha
+ 	return -ENOSYS;
+ }
+ 
+-static void call_console_drivers(unsigned long start, unsigned long end)
++static void call_console_drivers(unsigned start, unsigned end)
+ {
+ }
+ 
+@@ -953,8 +953,8 @@ void wake_up_klogd(void)
+ void release_console_sem(void)
+ {
+ 	unsigned long flags;
+-	unsigned long _con_start, _log_end;
+-	unsigned long wake_klogd = 0;
++	unsigned _con_start, _log_end;
++	unsigned wake_klogd = 0;
+ 
+ 	if (console_suspended) {
+ 		up(&secondary_console_sem);
+@@ -1245,7 +1245,7 @@ void tty_write_message(struct tty_struct
+ int __printk_ratelimit(int ratelimit_jiffies, int ratelimit_burst)
+ {
+ 	static DEFINE_SPINLOCK(ratelimit_lock);
+-	static unsigned long toks = 10 * 5 * HZ;
++	static unsigned toks = 10 * 5 * HZ;
+ 	static unsigned long last_msg;
+ 	static int missed;
+ 	unsigned long flags;
 _
 
-Patches currently in -mm which might be from kamalesh@linux.vnet.ibm.com are
+Patches currently in -mm which might be from vda.linux@googlemail.com are
 
-memory-hotplug-fix-fix-section-mismatch-in-vmammap_allock_block.patch
-export-acpi_check_resource_conflict.patch
-powerpc-iseries-build-failure-mm-stabc.patch
-slub-move-kmem_cache_node-determination-into-add_full-and-add_partial-slub-workaround-for-lockdep-confusion.patch
-config_highpte-vs-sub-page-page-tables-fix.patch
-iget-stop-bfs-from-using-iget-and-read_inode-try-fix.patch
-add-dma-engine-driver-for-freescale-mpc85xx-processors-fix.patch
+git-cryptodev.patch
+maps4-add-proportional-set-size-accounting-in-smaps.patch
+printk-trivial-optimizations.patch
+printkc-use-unsigned-ints-instead-of-longs-for-logbuf-index.patch
