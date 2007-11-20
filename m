@@ -1,213 +1,302 @@
 From: akpm@linux-foundation.org
-Subject: - mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch removed from -mm tree
-Date: Tue, 20 Nov 2007 12:52:04 -0800
-Message-ID: <200711202052.lAKKq54R022860@imap1.linux-foundation.org>
+Subject: - uml-clean-up-task-size-calculation.patch removed from -mm tree
+Date: Tue, 20 Nov 2007 12:56:39 -0800
+Message-ID: <200711202056.lAKKudEn023062@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49755 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39780 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762909AbXKTUxE (ORCPT
+	by vger.kernel.org with ESMTP id S1759069AbXKTU4w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Nov 2007 15:53:04 -0500
+	Tue, 20 Nov 2007 15:56:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dhowells@redhat.com, urade.masakazu@jp.panasonic.com, yasutake.koichi@jp.panasonic.com, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix
+     uml: clean up task size calculation
 has been removed from the -mm tree.  Its filename was
-     mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+     uml-clean-up-task-size-calculation.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: uml: clean up task size calculation
+From: Jeff Dike <jdike@addtoit.com>
 
-OK?
+Clean up the calculation and use of the usable address space size on
+the host.
 
-Cc: David Howells <dhowells@redhat.com>
-Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
-Cc: Masakazu Urade <urade.masakazu@jp.panasonic.com>
+task_size is gone, replaced with TASK_SIZE, which is calculated from
+CONFIG_TOP_ADDR.  get_kmem_end and set_task_sizes_skas are also gone.
+
+host_task_size, which refers to the entire address space usable by the
+UML kernel and which may be larger than the address space usable by a
+UML process, since that has to end on a pgdir boundary, is replaced by
+CONFIG_TOP_ADDR.
+
+STACK_TOP is now TASK_SIZE minus the two stub pages.
+
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mn10300/boot/tools/build.c |    2 --
- 1 file changed, 2 deletions(-)
+ arch/um/include/as-layout.h        |   15 +++++++++++++--
+ arch/um/include/common-offsets.h   |    3 +++
+ arch/um/include/mem_user.h         |    4 ----
+ arch/um/kernel/exec.c              |    2 +-
+ arch/um/kernel/ksyms.c             |    3 ---
+ arch/um/kernel/physmem.c           |   10 ----------
+ arch/um/kernel/tlb.c               |    2 +-
+ arch/um/kernel/um_arch.c           |   22 ++--------------------
+ include/asm-um/fixmap.h            |    3 +--
+ include/asm-um/processor-generic.h |    7 +++----
+ 10 files changed, 24 insertions(+), 47 deletions(-)
 
-diff -puN arch/mn10300/boot/tools/build.c~mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix arch/mn10300/boot/tools/build.c
---- a/arch/mn10300/boot/tools/build.c~mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix
-+++ a/arch/mn10300/boot/tools/build.c
-@@ -1,6 +1,4 @@
- /*
-- *  $Id: build.c,v 1.1.2.1 2002/11/12 13:25:46 dhowells Exp $
-- *
-  *  Copyright (C) 1991, 1992  Linus Torvalds
-  *  Copyright (C) 1997 Martin Mares
+diff -puN arch/um/include/as-layout.h~uml-clean-up-task-size-calculation arch/um/include/as-layout.h
+--- a/arch/um/include/as-layout.h~uml-clean-up-task-size-calculation
++++ a/arch/um/include/as-layout.h
+@@ -29,9 +29,20 @@
+ #define _AC(X, Y)	__AC(X, Y)
+ #endif
+ 
++/*
++ * The "- 1"'s are to avoid gcc complaining about integer overflows
++ * and unrepresentable decimal constants.  With 3-level page tables,
++ * TASK_SIZE is 0x80000000, which gets turned into its signed decimal
++ * equivalent in asm-offsets.s.  gcc then complains about that being
++ * unsigned only in C90.  To avoid that, UM_TASK_SIZE is defined as
++ * TASK_SIZE - 1.  To compensate, we need to add the 1 back here.
++ * However, adding it back to UM_TASK_SIZE produces more gcc
++ * complaints.  So, I adjust the thing being subtracted from
++ * UM_TASK_SIZE instead.  Bah.
++ */
+ #define STUB_CODE _AC((unsigned long), \
+-		      UML_CONFIG_TOP_ADDR - 2 * UM_KERN_PAGE_SIZE)
+-#define STUB_DATA _AC((unsigned long), UML_CONFIG_TOP_ADDR - UM_KERN_PAGE_SIZE)
++		      UM_TASK_SIZE - (2 * UM_KERN_PAGE_SIZE - 1))
++#define STUB_DATA _AC((unsigned long), UM_TASK_SIZE - (UM_KERN_PAGE_SIZE - 1))
+ #define STUB_START _AC(, STUB_CODE)
+ 
+ #ifndef __ASSEMBLY__
+diff -puN arch/um/include/common-offsets.h~uml-clean-up-task-size-calculation arch/um/include/common-offsets.h
+--- a/arch/um/include/common-offsets.h~uml-clean-up-task-size-calculation
++++ a/arch/um/include/common-offsets.h
+@@ -39,3 +39,6 @@ DEFINE(UM_HZ, HZ);
+ DEFINE(UM_USEC_PER_SEC, USEC_PER_SEC);
+ DEFINE(UM_NSEC_PER_SEC, NSEC_PER_SEC);
+ DEFINE(UM_NSEC_PER_USEC, NSEC_PER_USEC);
++
++/* See as-layout.h for an explanation of the "- 1".  Bah. */
++DEFINE(UM_TASK_SIZE, TASK_SIZE - 1);
+diff -puN arch/um/include/mem_user.h~uml-clean-up-task-size-calculation arch/um/include/mem_user.h
+--- a/arch/um/include/mem_user.h~uml-clean-up-task-size-calculation
++++ a/arch/um/include/mem_user.h
+@@ -46,9 +46,6 @@ extern int iomem_size;
+ 
+ #define ROUND_4M(n) ((((unsigned long) (n)) + (1 << 22)) & ~((1 << 22) - 1))
+ 
+-extern unsigned long host_task_size;
+-extern unsigned long task_size;
+-
+ extern int init_mem_user(void);
+ extern void setup_memory(void *entry);
+ extern unsigned long find_iomem(char *driver, unsigned long *len_out);
+@@ -62,6 +59,5 @@ extern unsigned long phys_offset(unsigne
+ extern void unmap_physmem(void);
+ extern void map_memory(unsigned long virt, unsigned long phys,
+ 		       unsigned long len, int r, int w, int x);
+-extern unsigned long get_kmem_end(void);
+ 
+ #endif
+diff -puN arch/um/kernel/exec.c~uml-clean-up-task-size-calculation arch/um/kernel/exec.c
+--- a/arch/um/kernel/exec.c~uml-clean-up-task-size-calculation
++++ a/arch/um/kernel/exec.c
+@@ -19,7 +19,7 @@
+ void flush_thread(void)
+ {
+ 	void *data = NULL;
+-	unsigned long end = proc_mm ? task_size : STUB_START;
++	unsigned long end = proc_mm ? TASK_SIZE : STUB_START;
+ 	int ret;
+ 
+ 	arch_flush_thread(&current->thread.arch);
+diff -puN arch/um/kernel/ksyms.c~uml-clean-up-task-size-calculation arch/um/kernel/ksyms.c
+--- a/arch/um/kernel/ksyms.c~uml-clean-up-task-size-calculation
++++ a/arch/um/kernel/ksyms.c
+@@ -17,11 +17,8 @@ EXPORT_SYMBOL(set_signals);
+ EXPORT_SYMBOL(get_signals);
+ EXPORT_SYMBOL(kernel_thread);
+ EXPORT_SYMBOL(sys_waitpid);
+-EXPORT_SYMBOL(task_size);
+ EXPORT_SYMBOL(flush_tlb_range);
+-EXPORT_SYMBOL(host_task_size);
+ EXPORT_SYMBOL(arch_validate);
+-EXPORT_SYMBOL(get_kmem_end);
+ 
+ EXPORT_SYMBOL(high_physmem);
+ EXPORT_SYMBOL(empty_zero_page);
+diff -puN arch/um/kernel/physmem.c~uml-clean-up-task-size-calculation arch/um/kernel/physmem.c
+--- a/arch/um/kernel/physmem.c~uml-clean-up-task-size-calculation
++++ a/arch/um/kernel/physmem.c
+@@ -55,16 +55,6 @@ int __init init_maps(unsigned long physm
+ 	return 0;
+ }
+ 
+-/* Changed during early boot */
+-static unsigned long kmem_top = 0;
+-
+-unsigned long get_kmem_end(void)
+-{
+-	if (kmem_top == 0)
+-		kmem_top = host_task_size - 1024 * 1024;
+-	return kmem_top;
+-}
+-
+ void map_memory(unsigned long virt, unsigned long phys, unsigned long len,
+ 		int r, int w, int x)
+ {
+diff -puN arch/um/kernel/tlb.c~uml-clean-up-task-size-calculation arch/um/kernel/tlb.c
+--- a/arch/um/kernel/tlb.c~uml-clean-up-task-size-calculation
++++ a/arch/um/kernel/tlb.c
+@@ -511,7 +511,7 @@ void flush_tlb_mm(struct mm_struct *mm)
+ 	if (atomic_read(&mm->mm_users) == 0)
+ 		return;
+ 
+-	end = proc_mm ? task_size : STUB_START;
++	end = proc_mm ? TASK_SIZE : STUB_START;
+ 	fix_range(mm, 0, end, 0);
+ }
+ 
+diff -puN arch/um/kernel/um_arch.c~uml-clean-up-task-size-calculation arch/um/kernel/um_arch.c
+--- a/arch/um/kernel/um_arch.c~uml-clean-up-task-size-calculation
++++ a/arch/um/kernel/um_arch.c
+@@ -101,8 +101,6 @@ const struct seq_operations cpuinfo_op =
+ };
+ 
+ /* Set in linux_main */
+-unsigned long host_task_size;
+-unsigned long task_size;
+ unsigned long uml_physmem;
+ unsigned long uml_reserved; /* Also modified in mem_init */
+ unsigned long start_vm;
+@@ -234,20 +232,6 @@ EXPORT_SYMBOL(end_iomem);
+ 
+ extern char __binary_start;
+ 
+-static unsigned long set_task_sizes_skas(unsigned long *task_size_out)
+-{
+-	/* Round up to the nearest 4M */
+-	unsigned long host_task_size = ROUND_4M((unsigned long)
+-						&host_task_size);
+-
+-	if (!skas_needs_stub)
+-		*task_size_out = host_task_size;
+-	else
+-		*task_size_out = STUB_START & PGDIR_MASK;
+-
+-	return host_task_size;
+-}
+-
+ int __init linux_main(int argc, char **argv)
+ {
+ 	unsigned long avail, diff;
+@@ -278,8 +262,6 @@ int __init linux_main(int argc, char **a
+ 
+ 	printf("UML running in %s mode\n", mode);
+ 
+-	host_task_size = set_task_sizes_skas(&task_size);
+-
+ 	brk_start = (unsigned long) sbrk(0);
+ 
+ 	/*
+@@ -304,7 +286,7 @@ int __init linux_main(int argc, char **a
+ 
+ 	highmem = 0;
+ 	iomem_size = (iomem_size + PAGE_SIZE - 1) & PAGE_MASK;
+-	max_physmem = get_kmem_end() - uml_physmem - iomem_size - MIN_VMALLOC;
++	max_physmem = CONFIG_TOP_ADDR - uml_physmem - iomem_size - MIN_VMALLOC;
+ 
+ 	/*
+ 	 * Zones have to begin on a 1 << MAX_ORDER page boundary,
+@@ -336,7 +318,7 @@ int __init linux_main(int argc, char **a
+ 	}
+ 
+ 	virtmem_size = physmem_size;
+-	avail = get_kmem_end() - start_vm;
++	avail = CONFIG_TOP_ADDR - start_vm;
+ 	if (physmem_size > avail)
+ 		virtmem_size = avail;
+ 	end_vm = start_vm + virtmem_size;
+diff -puN include/asm-um/fixmap.h~uml-clean-up-task-size-calculation include/asm-um/fixmap.h
+--- a/include/asm-um/fixmap.h~uml-clean-up-task-size-calculation
++++ a/include/asm-um/fixmap.h
+@@ -56,9 +56,8 @@ extern void __set_fixmap (enum fixed_add
+  * the start of the fixmap, and leave one page empty
+  * at the top of mem..
   */
+-extern unsigned long get_kmem_end(void);
+ 
+-#define FIXADDR_TOP	(get_kmem_end() - 0x2000)
++#define FIXADDR_TOP	(CONFIG_TOP_ADDR - 2 * PAGE_SIZE)
+ #define FIXADDR_SIZE	(__end_of_fixed_addresses << PAGE_SHIFT)
+ #define FIXADDR_START	(FIXADDR_TOP - FIXADDR_SIZE)
+ 
+diff -puN include/asm-um/processor-generic.h~uml-clean-up-task-size-calculation include/asm-um/processor-generic.h
+--- a/include/asm-um/processor-generic.h~uml-clean-up-task-size-calculation
++++ a/include/asm-um/processor-generic.h
+@@ -94,15 +94,14 @@ static inline void mm_copy_segments(stru
+ /*
+  * User space process size: 3GB (default).
+  */
+-extern unsigned long task_size;
+ extern unsigned long stacksizelim;
+-extern unsigned long host_task_size;
+ 
+-#define TASK_SIZE	(task_size)
++#define TASK_SIZE (CONFIG_TOP_ADDR & PGDIR_MASK)
+ 
+ #undef STACK_TOP
+ #undef STACK_TOP_MAX
+-#define STACK_TOP	TASK_SIZE
++
++#define STACK_TOP (TASK_SIZE - 2 * PAGE_SIZE)
+ #define STACK_TOP_MAX	STACK_TOP
+ #define STACK_ROOM	(stacksizelim)
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
-origin.patch
-file-capabilities-allow-sigcont-within-session-v2.patch
-pnp-increase-the-maximum-number-of-resources-fix.patch
-revert-keyspan-init-termios-properly.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
-git-drm-oops-fix.patch
-git-dvb.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-elantech-touchpad-driver-fix.patch
 git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-ide-arm-hack.patch
-git-mips-fixup.patch
-git-mmc.patch
-git-mtd.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-bluetooth-uninlining.patch
-git-nfsd-build-fix.patch
-quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
-drivers-pci-quirksc-coding-style-cleanup.patch
-more-sanity-checks-for-dmar-checkpatch-fixes.patch
-git-s390.patch
-fix-build-breakage-if-sysfs-fix.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-bidi-support-scsi_data_buffer-broke-qla1280.patch
-bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-x86-fixup.patch
-git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko-checkpatch-fixes.patch
-git-x86-inlining-borkage.patch
-git-cryptodev.patch
-git-xtensa.patch
-ia64-increase-datapatch-offset.patch
-ia64-dont-assume-that-unwcheckpy-is-executable.patch
-ia64-export-copy_page-to-modules.patch
-ia64-export-copy_page-to-modules-fix.patch
-isdn-validate-length-of-isdn_net_ioctl_cfgeaz.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+uml-arch-um-include-inith-needs-a-definition-of-__used.patch
+uml-implement-get_wchan.patch
+uml-implement-get_wchan-fix.patch
+uml-get-rid-of-asmlinkage.patch
 uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-document-new-ubd-flag.patch
+uml-further-bugsc-tidying.patch
 uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-sync_sb_inodes-propagate-errors.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-64-bit-i_version-afs-fixes.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+uml-smp-needs-to-depend-on-broken-for-now.patch
+uml-console-driver-cleanups.patch
+uml-clonec-tidying.patch
+uml-borrow-consth-techniques.patch
+uml-delete-some-unused-headers.patch
+uml-allow-lflags-on-command-line.patch
+uml-tidy-kern_utilh.patch
+uml-tidy-pgtableh.patch
+uml-tidy-pgtableh-fix.patch
+uml-reconst-a-parameter.patch
+arch-um-remove-duplicate-includes.patch
+uml-host-tls-diagnostics.patch
+uml-move-um_virt_to_phys.patch
+uml-header-untangling.patch
+uml-style-cleanup.patch
+uml-currenth-cleanup.patch
+uml-fix-page-table-data-sizes.patch
+uml-clean-up-task-size-calculation.patch
+uml-add-virt_to_pte.patch
+uml-cover-stubs-with-a-vma.patch
+iget-stop-hostfs-from-using-iget-and-read_inode.patch
 iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-simplify-remove_proc_entry-wrt-locking-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-w1-build-fix.patch
