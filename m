@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + do_wait-remove-one-else-if-branch.patch added to -mm tree
-Date: Tue, 20 Nov 2007 13:04:39 -0800
-Message-ID: <200711202104.lAKL4d7R023430@imap1.linux-foundation.org>
+Subject: + s3c2410-add-bus-number-to-spi-gpio-driver.patch added to -mm tree
+Date: Tue, 20 Nov 2007 13:07:32 -0800
+Message-ID: <200711202107.lAKL7WIf023506@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33003 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50753 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751911AbXKTVF0 (ORCPT
+	by vger.kernel.org with ESMTP id S1760286AbXKTVJ3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Nov 2007 16:05:26 -0500
+	Tue, 20 Nov 2007 16:09:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, roland@redhat.com
+Cc: david-b@pacbell.net, ben-linux@fluff.org, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     do_wait: remove one "else if" branch
+     spi: S3C2410: add bus number to SPI GPIO driver
 has been added to the -mm tree.  Its filename is
-     do_wait-remove-one-else-if-branch.patch
+     s3c2410-add-bus-number-to-spi-gpio-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,53 +26,70 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: do_wait: remove one "else if" branch
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: spi: S3C2410: add bus number to SPI GPIO driver
+From: David Brownell <david-b@pacbell.net>
 
-Minor cleanup. We can remove one "else if" branch.
+Allow passing a bus number through the platform data for the S3C2410 SPI
+GPIO driver
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/spi/spi_s3c24xx_gpio.c          |    1 +
+ include/asm-arm/arch-s3c2410/spi-gpio.h |    2 ++
+ 2 files changed, 3 insertions(+)
 
-diff -puN kernel/exit.c~do_wait-remove-one-else-if-branch kernel/exit.c
---- a/kernel/exit.c~do_wait-remove-one-else-if-branch
-+++ a/kernel/exit.c
-@@ -1563,8 +1563,6 @@ repeat:
- 					goto repeat;
- 				if (retval != 0) /* He released the lock.  */
- 					goto end;
--			} else if (p->exit_state == EXIT_DEAD) {
--				continue;
- 			} else if (p->exit_state == EXIT_ZOMBIE) {
- 				/*
- 				 * Eligible but we cannot release it yet:
-@@ -1579,7 +1577,7 @@ repeat:
- 				/* He released the lock.  */
- 				if (retval != 0)
- 					goto end;
--			} else {
-+			} else if (p->exit_state != EXIT_DEAD) {
- check_continued:
- 				/*
- 				 * It's running now, so it might later
+diff -puN drivers/spi/spi_s3c24xx_gpio.c~s3c2410-add-bus-number-to-spi-gpio-driver drivers/spi/spi_s3c24xx_gpio.c
+--- a/drivers/spi/spi_s3c24xx_gpio.c~s3c2410-add-bus-number-to-spi-gpio-driver
++++ a/drivers/spi/spi_s3c24xx_gpio.c
+@@ -118,6 +118,7 @@ static int s3c2410_spigpio_probe(struct 
+ 
+ 	/* setup spi bitbang adaptor */
+ 	sp->bitbang.master = spi_master_get(master);
++	sp->bitbang.master->bus_num = info->bus_num;
+ 	sp->bitbang.chipselect = s3c2410_spigpio_chipselect;
+ 
+ 	sp->bitbang.txrx_word[SPI_MODE_0] = s3c2410_spigpio_txrx_mode0;
+diff -puN include/asm-arm/arch-s3c2410/spi-gpio.h~s3c2410-add-bus-number-to-spi-gpio-driver include/asm-arm/arch-s3c2410/spi-gpio.h
+--- a/include/asm-arm/arch-s3c2410/spi-gpio.h~s3c2410-add-bus-number-to-spi-gpio-driver
++++ a/include/asm-arm/arch-s3c2410/spi-gpio.h
+@@ -21,6 +21,8 @@ struct s3c2410_spigpio_info {
+ 	unsigned long		 pin_mosi;
+ 	unsigned long		 pin_miso;
+ 
++	int			 bus_num;
++
+ 	unsigned long		 board_size;
+ 	struct spi_board_info	*board_info;
+ 
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
-wait_task_stopped-dont-use-task_pid_nr_ns-lockless.patch
-proc-remove-races-from-proc_id_readdir.patch
-wait_task_stopped-pass-correct-exit_code-to.patch
-use-__set_task_state-for-traced-stopped-tasks.patch
-add-task_wakekill.patch
-kill-pt_ptraced.patch
-kill-my_ptrace_child.patch
-do_wait-remove-one-else-if-branch.patch
-proc-implement-proc_single_file_operations.patch
-proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces.patch
-proc-seqfile-convert-proc_pid_statm.patch
-proc-proper-pidns-handling-for-proc-self.patch
+atmel_spi-labels-gpios-better.patch
+rtc-dont-write-rtc-century-when-setting-a-wake-alarm.patch
+git-mmc.patch
+usb-s3c2410_udc-minor-irq-handler-cleanups.patch
+usb-device-dma-support-on-omap2.patch
+rtc-convert-mutex-to-bitfield.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+remove-pointless-casts-from-void-pointers.patch
+spi-at25-driver-is-for-eeprom-not-flash.patch
+spi-use-mutex-not-semaphore.patch
+blackfin-spi-driver-use-cpu_relax-to-replace-continue-in-while-busywait.patch
+blackfin-spi-driver-use-void-__iomem-for-regs_base.patch
+blackfin-spi-driver-move-hard-coded-pin_req-to-board-file.patch
+blackfin-spi-driver-reconfigure-speed_hz-and-bits_per_word-in-each-spi-transfer.patch
+s3c2410-add-bus-number-to-spi-gpio-driver.patch
+cosmetic-fixes-to-rtc-subsystems-kconfig.patch
+rtc-pcf8583-dont-abuse-i2c_m_nostart.patch
+rtc-s3c-use-is_power_of_2-macro-for-simplicity.patch
+rtc-cmos-exports-nvram-in-sysfs.patch
+generic-gpio-gpio_chip-support.patch
+generic-gpio-gpio_chip-support-fix.patch
+avr32-uses-gpio_chip.patch
+mcp23s08-spi-gpio-expander.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+pnp-request-ioport-and-iomem-resources-used-by-active-devices.patch
