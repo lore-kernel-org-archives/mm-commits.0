@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch added to -mm tree
-Date: Mon, 19 Nov 2007 18:15:09 -0800
-Message-ID: <200711200215.lAK2F9lK008964@imap1.linux-foundation.org>
+Subject: + use-__set_task_state-for-traced-stopped-tasks.patch added to -mm tree
+Date: Mon, 19 Nov 2007 21:31:04 -0800
+Message-ID: <200711200531.lAK5V42k015800@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58923 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43608 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762166AbXKTCPg (ORCPT
+	by vger.kernel.org with ESMTP id S1755806AbXKTFbj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Nov 2007 21:15:36 -0500
+	Tue, 20 Nov 2007 00:31:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, geert@linux-m68k.org, zippel@linux-m68k.org
+Cc: oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     m68k: kill arch/m68k/mvme16x/mvme16x_ksyms.c
+     use __set_task_state() for TRACED/STOPPED tasks
 has been added to the -mm tree.  Its filename is
-     m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch
+     use-__set_task_state-for-traced-stopped-tasks.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,129 +26,104 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: m68k: kill arch/m68k/mvme16x/mvme16x_ksyms.c
-From: Adrian Bunk <bunk@kernel.org>
+Subject: use __set_task_state() for TRACED/STOPPED tasks
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-EXPORT_SYMBOL's belong to the actual code.
+1. It is much easier to grep for ->state change if __set_task_state() is used
+   instead of the direct assignment.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+2. ptrace_stop() and handle_group_stop() use set_task_state() which adds the
+   unneeded mb() (btw even if we use mb() it is still possible that do_wait()
+   sees the new ->state but not ->exit_code, but this is ok).
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Acked-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/mvme16x/Makefile        |    2 +-
- arch/m68k/mvme16x/config.c        |    2 ++
- arch/m68k/mvme16x/mvme16x_ksyms.c |    6 ------
- 3 files changed, 3 insertions(+), 7 deletions(-)
+ kernel/fork.c   |    2 +-
+ kernel/ptrace.c |   12 +++++-------
+ kernel/signal.c |    4 ++--
+ 3 files changed, 8 insertions(+), 10 deletions(-)
 
-diff -puN arch/m68k/mvme16x/Makefile~m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc arch/m68k/mvme16x/Makefile
---- a/arch/m68k/mvme16x/Makefile~m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc
-+++ a/arch/m68k/mvme16x/Makefile
-@@ -2,4 +2,4 @@
- # Makefile for Linux arch/m68k/mvme16x source directory
- #
+diff -puN kernel/fork.c~use-__set_task_state-for-traced-stopped-tasks kernel/fork.c
+--- a/kernel/fork.c~use-__set_task_state-for-traced-stopped-tasks
++++ a/kernel/fork.c
+@@ -1479,7 +1479,7 @@ long do_fork(unsigned long clone_flags,
+ 		if (!(clone_flags & CLONE_STOPPED))
+ 			wake_up_new_task(p, clone_flags);
+ 		else
+-			p->state = TASK_STOPPED;
++			__set_task_state(p, TASK_STOPPED);
  
--obj-y		:= config.o rtc.o mvme16x_ksyms.o
-+obj-y		:= config.o rtc.o
-diff -puN arch/m68k/mvme16x/config.c~m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc arch/m68k/mvme16x/config.c
---- a/arch/m68k/mvme16x/config.c~m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc
-+++ a/arch/m68k/mvme16x/config.c
-@@ -25,6 +25,7 @@
- #include <linux/genhd.h>
- #include <linux/rtc.h>
- #include <linux/interrupt.h>
-+#include <linux/module.h>
+ 		if (unlikely (trace)) {
+ 			current->ptrace_message = nr;
+diff -puN kernel/ptrace.c~use-__set_task_state-for-traced-stopped-tasks kernel/ptrace.c
+--- a/kernel/ptrace.c~use-__set_task_state-for-traced-stopped-tasks
++++ a/kernel/ptrace.c
+@@ -53,7 +53,7 @@ void ptrace_untrace(struct task_struct *
+ 	spin_lock(&child->sighand->siglock);
+ 	if (is_task_traced(child)) {
+ 		if (child->signal->flags & SIGNAL_STOP_STOPPED) {
+-			child->state = TASK_STOPPED;
++			__set_task_state(child, TASK_STOPPED);
+ 		} else {
+ 			signal_wake_up(child, 1);
+ 		}
+@@ -103,18 +103,16 @@ int ptrace_check_attach(struct task_stru
+ 	    && child->signal != NULL) {
+ 		ret = 0;
+ 		spin_lock_irq(&child->sighand->siglock);
+-		if (is_task_stopped(child)) {
+-			child->state = TASK_TRACED;
+-		} else if (!is_task_traced(child) && !kill) {
++		if (is_task_stopped(child))
++			__set_task_state(child, TASK_TRACED);
++		else if (!is_task_traced(child) && !kill)
+ 			ret = -ESRCH;
+-		}
+ 		spin_unlock_irq(&child->sighand->siglock);
+ 	}
+ 	read_unlock(&tasklist_lock);
  
- #include <asm/bootinfo.h>
- #include <asm/system.h>
-@@ -58,6 +59,7 @@ static irq_handler_t tick_handler;
+-	if (!ret && !kill) {
++	if (!ret && !kill)
+ 		wait_task_inactive(child);
+-	}
  
+ 	/* All systems go.. */
+ 	return ret;
+diff -puN kernel/signal.c~use-__set_task_state-for-traced-stopped-tasks kernel/signal.c
+--- a/kernel/signal.c~use-__set_task_state-for-traced-stopped-tasks
++++ a/kernel/signal.c
+@@ -1617,7 +1617,7 @@ static void ptrace_stop(int exit_code, i
+ 	current->exit_code = exit_code;
  
- unsigned short mvme16x_config;
-+EXPORT_SYMBOL(mvme16x_config);
- 
- 
- int mvme16x_parse_bootinfo(const struct bi_record *bi)
-diff -puN arch/m68k/mvme16x/mvme16x_ksyms.c~m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc /dev/null
---- a/arch/m68k/mvme16x/mvme16x_ksyms.c
-+++ /dev/null
-@@ -1,6 +0,0 @@
--#include <linux/module.h>
--#include <linux/types.h>
--#include <asm/ptrace.h>
--#include <asm/mvme16xhw.h>
--
--EXPORT_SYMBOL(mvme16x_config);
+ 	/* Let the debugger run.  */
+-	set_current_state(TASK_TRACED);
++	__set_current_state(TASK_TRACED);
+ 	spin_unlock_irq(&current->sighand->siglock);
+ 	try_to_freeze();
+ 	read_lock(&tasklist_lock);
+@@ -1781,7 +1781,7 @@ static int handle_group_stop(void)
+ 	if (stop_count == 0)
+ 		current->signal->flags = SIGNAL_STOP_STOPPED;
+ 	current->exit_code = current->signal->group_exit_code;
+-	set_current_state(TASK_STOPPED);
++	__set_current_state(TASK_STOPPED);
+ 	spin_unlock_irq(&current->sighand->siglock);
+ 	finish_stop(stop_count);
+ 	return 1;
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-m68k-export-atari_keyb_init.patch
-git-avr32.patch
-git-dvb.patch
-remove-saa7134-oss.patch
-git-gfs2-nmw.patch
-git-libata-all.patch
-git-mtd.patch
-make-sunrpc-xprtsockcxs_setup_udptcp-static.patch
-git-netdev-all.patch
-drivers-net-chelsio-if-0-unused-functions.patch
-drivers-bluetooth-bpa10xc-fix-memleak.patch
-drivers-bluetooth-btsdioc-fix-double-free.patch
-git-nfs-make-nfs_wb_page_priority-static.patch
-fs-nfs-dirc-should-include-internalh.patch
-always-export-pci_scan_single_device.patch
-remove-additional-pci_scan_child_bus-prototype.patch
-git-scsi-misc.patch
-scsi-advansysc-make-3-functions-static.patch
-scsi-qla2xxx-possible-cleanups.patch
-usb-mon-mon_binc-cleanups.patch
-git-x86.patch
-xtensa-iss_net_setup-must-be-__init.patch
-xtensa-kernel-setupc-remove-dead-code.patch
-mm-page-writebackc-make-a-function-static.patch
-make-__vmalloc_area_node-static.patch
-blackfin-remove-dump_thread.patch
-kernel-power-diskc-make-code-static.patch
-make-kernel_shutdown_prepare-static.patch
-kernel-power-move-function-prototypes-to-header.patch
-nubus-kill-drivers-nubus-nubus_symsc.patch
-m68k-kill-arch-m68k-mac-mac_ksymsc.patch
-m68k-kill-arch-m68k-hp300-ksymsc.patch
-m68k-kill-arch-m68k-amiga-amiga_ksymsc.patch
-m68k-kill-arch-m68k-atari-atari_ksymsc.patch
-m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch
-kill-udffs_dateversion.patch
-make-ipc-utilcsysvipc_find_ipc-static.patch
-cleanup-after-apus-removal.patch
-remove-mm_ptovvtop.patch
-remove-__attribute_used__.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-proper-show_interrupts-prototype.patch
-scheduled-oss-driver-removal.patch
-linux-inith-simplify-__meminitexit-dependencies.patch
-proper-prototype-for-signals_init.patch
-kernel-ptracec-should-include-linux-syscallsh.patch
-make-srcu_readers_active-static.patch
-kernel-notifierc-should-include-linux-rebooth.patch
-proper-prototype-for-get_filesystem_list.patch
-fs-utimesc-should-include-linux-syscallsh.patch
-fs-signalfdc-should-include-linux-syscallsh.patch
-fs-eventfdc-should-include-linux-syscallsh.patch
-proper-prototype-for-vty_init.patch
-drivers-misc-lkdtmc-cleanups.patch
-power_supply_ledssysfsc-should-include-power_supplyh.patch
-fs-ecryptfs-possible-cleanups.patch
-make-video-geode-lxfb_corecgeode_modedb-static.patch
-video-hpfbc-section-fix.patch
-ext4-superc-fix-ifdefs.patch
-make-jbd-journalc__journal_abort_hard-static.patch
-move-edactxt-two-levels-up.patch
-remove-documentation-smptxt.patch
-kernel-cgroupc-remove-dead-code.patch
-kernel-cgroupc-make-2-functions-static.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-fix-m32r-__xchg.patch
-reiser4.patch
+wait_task_stopped-dont-use-task_pid_nr_ns-lockless.patch
+proc-remove-races-from-proc_id_readdir.patch
+use-__set_task_state-for-traced-stopped-tasks.patch
+add-task_wakekill.patch
+proc-implement-proc_single_file_operations.patch
+proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
+proc-seqfile-convert-proc_pid_statm.patch
+proc-proper-pidns-handling-for-proc-self.patch
