@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + uml-currenth-cleanup.patch added to -mm tree
-Date: Mon, 19 Nov 2007 16:22:07 -0800
-Message-ID: <200711200022.lAK0M7Au004174@imap1.linux-foundation.org>
+Subject: + uml-add-virt_to_pte.patch added to -mm tree
+Date: Mon, 19 Nov 2007 16:22:13 -0800
+Message-ID: <200711200022.lAK0MDrA004184@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44341 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58562 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752064AbXKTAWl (ORCPT
+	by vger.kernel.org with ESMTP id S1752210AbXKTAWu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Nov 2007 19:22:41 -0500
+	Mon, 19 Nov 2007 19:22:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     uml: current.h cleanup
+     uml: add virt_to_pte
 has been added to the -mm tree.  Its filename is
-     uml-currenth-cleanup.patch
+     uml-add-virt_to_pte.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,218 +26,132 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: current.h cleanup
+Subject: uml: add virt_to_pte
 From: Jeff Dike <jdike@addtoit.com>
 
-Tidy current-related stuff.  There was a comment in current.h saying
-that current_thread was obsolete, so this patch turns all instances of
-current_thread into current_thread_info().  There's some simplifying
-of the result in arch/um/sys-i386/signal.c.
+Turn um_virt_to_phys into virt_to_pte, cleaning up a horrid interface.
 
-current.h and thread_info also get style cleanups.
+It's also made non-static and declared in pgtable.h because it'll be
+needed when the stubs get a vma.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/process.c     |    8 ++++----
- arch/um/sys-i386/signal.c    |   18 ++++++++----------
- arch/um/sys-x86_64/signal.c  |    4 ++--
- include/asm-um/current.h     |   23 ++---------------------
- include/asm-um/thread_info.h |    8 ++++----
- 5 files changed, 20 insertions(+), 41 deletions(-)
+ arch/um/kernel/skas/uaccess.c |   56 +++++++++++++-------------------
+ include/asm-um/pgtable.h      |    3 +
+ 2 files changed, 26 insertions(+), 33 deletions(-)
 
-diff -puN arch/um/kernel/process.c~uml-currenth-cleanup arch/um/kernel/process.c
---- a/arch/um/kernel/process.c~uml-currenth-cleanup
-+++ a/arch/um/kernel/process.c
-@@ -252,7 +252,7 @@ void default_idle(void)
+diff -puN arch/um/kernel/skas/uaccess.c~uml-add-virt_to_pte arch/um/kernel/skas/uaccess.c
+--- a/arch/um/kernel/skas/uaccess.c~uml-add-virt_to_pte
++++ a/arch/um/kernel/skas/uaccess.c
+@@ -13,70 +13,60 @@
+ #include "kern_util.h"
+ #include "os.h"
  
- void cpu_idle(void)
+-static void *um_virt_to_phys(struct task_struct *task, unsigned long addr,
+-			     pte_t *pte_out)
++pte_t *virt_to_pte(struct mm_struct *mm, unsigned long addr)
  {
--	cpu_tasks[current_thread->cpu].pid = os_getpid();
-+	cpu_tasks[current_thread_info()->cpu].pid = os_getpid();
- 	default_idle();
+ 	pgd_t *pgd;
+ 	pud_t *pud;
+ 	pmd_t *pmd;
+-	pte_t *pte;
+-	pte_t ptent;
+ 
+-	if (task->mm == NULL)
+-		return ERR_PTR(-EINVAL);
+-	pgd = pgd_offset(task->mm, addr);
++	if (mm == NULL)
++		return NULL;
++
++	pgd = pgd_offset(mm, addr);
+ 	if (!pgd_present(*pgd))
+-		return ERR_PTR(-EINVAL);
++		return NULL;
+ 
+ 	pud = pud_offset(pgd, addr);
+ 	if (!pud_present(*pud))
+-		return ERR_PTR(-EINVAL);
++		return NULL;
+ 
+ 	pmd = pmd_offset(pud, addr);
+ 	if (!pmd_present(*pmd))
+-		return ERR_PTR(-EINVAL);
+-
+-	pte = pte_offset_kernel(pmd, addr);
+-	ptent = *pte;
+-	if (!pte_present(ptent))
+-		return ERR_PTR(-EINVAL);
++		return NULL;
+ 
+-	if (pte_out != NULL)
+-		*pte_out = ptent;
+-	return (void *) (pte_val(ptent) & PAGE_MASK) + (addr & ~PAGE_MASK);
++	return pte_offset_kernel(pmd, addr);
  }
  
-@@ -266,7 +266,7 @@ int user_context(unsigned long sp)
- 	unsigned long stack;
- 
- 	stack = sp & (PAGE_MASK << CONFIG_KERNEL_STACK_ORDER);
--	return stack != (unsigned long) current_thread;
-+	return stack != (unsigned long) current_thread_info();
- }
- 
- extern exitcall_t __uml_exitcall_begin, __uml_exitcall_end;
-@@ -308,7 +308,7 @@ int strlen_user_proc(char __user *str)
- int smp_sigio_handler(void)
+-static unsigned long maybe_map(unsigned long virt, int is_write)
++static pte_t *maybe_map(unsigned long virt, int is_write)
  {
- #ifdef CONFIG_SMP
--	int cpu = current_thread->cpu;
-+	int cpu = current_thread_info()->cpu;
- 	IPI_handler(cpu);
- 	if (cpu != 0)
- 		return 1;
-@@ -318,7 +318,7 @@ int smp_sigio_handler(void)
- 
- int cpu(void)
- {
--	return current_thread->cpu;
-+	return current_thread_info()->cpu;
- }
- 
- static atomic_t using_sysemu = ATOMIC_INIT(0);
-diff -puN arch/um/sys-i386/signal.c~uml-currenth-cleanup arch/um/sys-i386/signal.c
---- a/arch/um/sys-i386/signal.c~uml-currenth-cleanup
-+++ a/arch/um/sys-i386/signal.c
-@@ -168,12 +168,13 @@ static int copy_sc_from_user(struct pt_r
- 			     struct sigcontext __user *from)
- {
- 	struct sigcontext sc;
+-	pte_t pte;
 -	int err;
-+	int err, pid;
++	pte_t *pte = virt_to_pte(current->mm, virt);
++	int err, dummy_code;
  
- 	err = copy_from_user(&sc, from, sizeof(sc));
- 	if (err)
- 		return err;
- 
-+	pid = userspace_pid[current_thread_info()->cpu];
- 	copy_sc(&regs->regs, &sc);
- 	if (have_fpx_regs) {
- 		struct user_fxsr_struct fpx;
-@@ -187,8 +188,7 @@ static int copy_sc_from_user(struct pt_r
+-	void *phys = um_virt_to_phys(current, virt, &pte);
+-	int dummy_code;
+-
+-	if (IS_ERR(phys) || (is_write && !pte_write(pte))) {
++	if ((pte == NULL) || !pte_present(*pte) ||
++	    (is_write && !pte_write(*pte))) {
+ 		err = handle_page_fault(virt, 0, is_write, 1, &dummy_code);
  		if (err)
- 			return 1;
- 
--		err = restore_fpx_registers(userspace_pid[current_thread->cpu],
--					    (unsigned long *) &fpx);
-+		err = restore_fpx_registers(pid, (unsigned long *) &fpx);
- 		if (err < 0) {
- 			printk(KERN_ERR "copy_sc_from_user - "
- 			       "restore_fpx_registers failed, errno = %d\n",
-@@ -204,8 +204,7 @@ static int copy_sc_from_user(struct pt_r
- 		if (err)
- 			return 1;
- 
--		err = restore_fp_registers(userspace_pid[current_thread->cpu],
--					   (unsigned long *) &fp);
-+		err = restore_fp_registers(pid, (unsigned long *) &fp);
- 		if (err < 0) {
- 			printk(KERN_ERR "copy_sc_from_user - "
- 			       "restore_fp_registers failed, errno = %d\n",
-@@ -223,7 +222,7 @@ static int copy_sc_to_user(struct sigcon
- {
- 	struct sigcontext sc;
- 	struct faultinfo * fi = &current->thread.arch.faultinfo;
--	int err;
-+	int err, pid;
- 
- 	sc.gs = REGS_GS(regs->regs.gp);
- 	sc.fs = REGS_FS(regs->regs.gp);
-@@ -249,11 +248,11 @@ static int copy_sc_to_user(struct sigcon
- 	to_fp = (to_fp ? to_fp : (struct _fpstate __user *) (to + 1));
- 	sc.fpstate = to_fp;
- 
-+	pid = userspace_pid[current_thread_info()->cpu];
- 	if (have_fpx_regs) {
- 		struct user_fxsr_struct fpx;
- 
--		err = save_fpx_registers(userspace_pid[current_thread->cpu],
--					 (unsigned long *) &fpx);
-+		err = save_fpx_registers(pid, (unsigned long *) &fpx);
- 		if (err < 0){
- 			printk(KERN_ERR "copy_sc_to_user - save_fpx_registers "
- 			       "failed, errno = %d\n", err);
-@@ -276,8 +275,7 @@ static int copy_sc_to_user(struct sigcon
- 	else {
- 		struct user_i387_struct fp;
- 
--		err = save_fp_registers(userspace_pid[current_thread->cpu],
--					(unsigned long *) &fp);
-+		err = save_fp_registers(pid, (unsigned long *) &fp);
- 		if (copy_to_user(to_fp, &fp, sizeof(struct user_i387_struct)))
- 			return 1;
+-			return -1UL;
+-		phys = um_virt_to_phys(current, virt, NULL);
++			return NULL;
++		pte = virt_to_pte(current->mm, virt);
  	}
-diff -puN arch/um/sys-x86_64/signal.c~uml-currenth-cleanup arch/um/sys-x86_64/signal.c
---- a/arch/um/sys-x86_64/signal.c~uml-currenth-cleanup
-+++ a/arch/um/sys-x86_64/signal.c
-@@ -81,7 +81,7 @@ static int copy_sc_from_user(struct pt_r
- 	if (err)
- 		return 1;
+-	if (IS_ERR(phys))
+-		phys = (void *) -1;
++	if (!pte_present(*pte))
++		pte = NULL;
  
--	err = restore_fp_registers(userspace_pid[current_thread->cpu],
-+	err = restore_fp_registers(userspace_pid[current_thread_info()->cpu],
- 				   (unsigned long *) &fp);
- 	if (err < 0) {
- 		printk(KERN_ERR "copy_sc_from_user - "
-@@ -143,7 +143,7 @@ static int copy_sc_to_user(struct sigcon
- 	if (err)
- 		return 1;
+-	return (unsigned long) phys;
++	return pte;
+ }
  
--	err = save_fp_registers(userspace_pid[current_thread->cpu],
-+	err = save_fp_registers(userspace_pid[current_thread_info()->cpu],
- 				(unsigned long *) &fp);
- 	if (err < 0) {
- 		printk(KERN_ERR "copy_sc_from_user - restore_fp_registers "
-diff -puN include/asm-um/current.h~uml-currenth-cleanup include/asm-um/current.h
---- a/include/asm-um/current.h~uml-currenth-cleanup
-+++ a/include/asm-um/current.h
-@@ -1,32 +1,13 @@
--/* 
-- * Copyright (C) 2000 Jeff Dike (jdike@karaya.com)
-+/*
-+ * Copyright (C) 2000 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Licensed under the GPL
-  */
+ static int do_op_one_page(unsigned long addr, int len, int is_write,
+ 		 int (*op)(unsigned long addr, int len, void *arg), void *arg)
+ {
+ 	struct page *page;
++	pte_t *pte;
+ 	int n;
  
- #ifndef __UM_CURRENT_H
- #define __UM_CURRENT_H
+-	addr = maybe_map(addr, is_write);
+-	if (addr == -1UL)
++	pte = maybe_map(addr, is_write);
++	if (pte == NULL)
+ 		return -1;
  
--#ifndef __ASSEMBLY__
--
--#include "asm/page.h"
- #include "linux/thread_info.h"
+-	page = phys_to_page(addr);
++	page = pte_page(*pte);
+ 	addr = (unsigned long) kmap_atomic(page, KM_UML_USERCOPY) +
+ 		(addr & ~PAGE_MASK);
  
- #define current (current_thread_info()->task)
+diff -puN include/asm-um/pgtable.h~uml-add-virt_to_pte include/asm-um/pgtable.h
+--- a/include/asm-um/pgtable.h~uml-add-virt_to_pte
++++ a/include/asm-um/pgtable.h
+@@ -323,6 +323,9 @@ static inline pte_t pte_modify(pte_t pte
+ #define pte_unmap(pte) do { } while (0)
+ #define pte_unmap_nested(pte) do { } while (0)
  
--/*Backward compatibility - it's used inside arch/um.*/
--#define current_thread current_thread_info()
--
--#endif /* __ASSEMBLY__ */
--
- #endif
--
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN include/asm-um/thread_info.h~uml-currenth-cleanup include/asm-um/thread_info.h
---- a/include/asm-um/thread_info.h~uml-currenth-cleanup
-+++ a/include/asm-um/thread_info.h
-@@ -1,5 +1,5 @@
--/* 
-- * Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
-+/*
-+ * Copyright (C) 2002 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Licensed under the GPL
-  */
++struct mm_struct;
++extern pte_t *virt_to_pte(struct mm_struct *mm, unsigned long addr);
++
+ #define update_mmu_cache(vma,address,pte) do ; while (0)
  
-@@ -76,8 +76,8 @@ static inline struct thread_info *curren
- #define TIF_SYSCALL_TRACE	0	/* syscall trace active */
- #define TIF_SIGPENDING		1	/* signal pending */
- #define TIF_NEED_RESCHED	2	/* rescheduling necessary */
--#define TIF_POLLING_NRFLAG      3       /* true if poll_idle() is polling 
--					 * TIF_NEED_RESCHED 
-+#define TIF_POLLING_NRFLAG      3       /* true if poll_idle() is polling
-+					 * TIF_NEED_RESCHED
- 					 */
- #define TIF_RESTART_BLOCK 	4
- #define TIF_MEMDIE	 	5
+ /* Encode and de-code a swap entry */
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
