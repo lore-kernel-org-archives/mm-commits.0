@@ -1,149 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-sbs-fix-retval-warning.patch removed from -mm tree
-Date: Tue, 20 Nov 2007 12:00:51 -0800
-Message-ID: <200711202000.lAKK0pBV020800@imap1.linux-foundation.org>
+Subject: + tpmc-fix-crash-during-device-removal.patch added to -mm tree
+Date: Tue, 20 Nov 2007 12:10:13 -0800
+Message-ID: <200711202010.lAKKADOm021194@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59676 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33503 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757937AbXKTUBu (ORCPT
+	by vger.kernel.org with ESMTP id S1757882AbXKTUKY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Nov 2007 15:01:50 -0500
+	Tue, 20 Nov 2007 15:10:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeff@garzik.org, jgarzik@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: richard.musil@st.com, tpm@selhorst.net
 
 
 The patch titled
-     ACPI sbs: fix retval warning
-has been removed from the -mm tree.  Its filename was
-     acpi-sbs-fix-retval-warning.patch
+     tpm.c: fix crash during device removal
+has been added to the -mm tree.  Its filename is
+     tpmc-fix-crash-during-device-removal.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: ACPI sbs: fix retval warning
-From: Jeff Garzik <jeff@garzik.org>
+Subject: tpm.c: fix crash during device removal
+From: Richard MUSIL <richard.musil@st.com>
 
-drivers/acpi/sbs.c: In function `acpi_battery_add':
-drivers/acpi/sbs.c:811: warning: ignoring return value of `device_create_file', declared with attribute warn_unused_result
+The clean up procedure now uses platform device "release" callback to
+handle memory clean up.  For this purpose "release" function callback was
+added to struct tpm_vendor_specific, so hw device driver provider can get
+called when it is safe to remove all allocated resources.
 
-Additional cleanups:
-* use struct acpi_battery in acpi_battery_remove() to clean up function
-calls, just like acpi_battery_add() already does.
+This is supposed to fix a bug in device removal, where device while in
+receive function (waiting on timeout) was prone to segfault, if the
+tpm_chip struct was unallocated before the timeout expired (in
+tpm_remove_hardware).
 
-* un-indent unregister call, as it mistakenly gives the impression that
-it belongs inside the 'if' test
-
-* remove unneeded braces
-
-Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
+Acked-by: Marcel Selhorst <tpm@selhorst.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/sbs.c |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ drivers/char/tpm/tpm.c |   44 +++++++++++++++++++++++----------------
+ drivers/char/tpm/tpm.h |    2 +
+ 2 files changed, 29 insertions(+), 17 deletions(-)
 
-diff -puN drivers/acpi/sbs.c~acpi-sbs-fix-retval-warning drivers/acpi/sbs.c
---- a/drivers/acpi/sbs.c~acpi-sbs-fix-retval-warning
-+++ a/drivers/acpi/sbs.c
-@@ -113,6 +113,7 @@ struct acpi_battery {
- 	u16 spec;
- 	u8 id;
- 	u8 present:1;
-+	u8 have_sysfs:1;
+diff -puN drivers/char/tpm/tpm.c~tpmc-fix-crash-during-device-removal drivers/char/tpm/tpm.c
+--- a/drivers/char/tpm/tpm.c~tpmc-fix-crash-during-device-removal
++++ a/drivers/char/tpm/tpm.c
+@@ -1031,18 +1031,13 @@ void tpm_remove_hardware(struct device *
+ 
+ 	spin_unlock(&driver_lock);
+ 
+-	dev_set_drvdata(dev, NULL);
+ 	misc_deregister(&chip->vendor.miscdev);
+-	kfree(chip->vendor.miscdev.name);
+ 
+ 	sysfs_remove_group(&dev->kobj, chip->vendor.attr_group);
+ 	tpm_bios_log_teardown(chip->bios_dir);
+ 
+-	clear_bit(chip->dev_num, dev_mask);
+-
+-	kfree(chip);
+-
+-	put_device(dev);
++	/* write it this way to be explicit (chip->dev == dev) */
++	put_device(chip->dev);
+ }
+ EXPORT_SYMBOL_GPL(tpm_remove_hardware);
+ 
+@@ -1083,6 +1078,26 @@ int tpm_pm_resume(struct device *dev)
+ EXPORT_SYMBOL_GPL(tpm_pm_resume);
+ 
+ /*
++ * Once all references to platform device are down to 0,
++ * release all allocated structures.
++ * In case vendor provided release function,
++ * call it too.
++ */
++static void tpm_dev_release(struct device *dev)
++{
++	struct tpm_chip *chip = dev_get_drvdata(dev);
++
++	if (chip->vendor.release)
++		chip->vendor.release(dev);
++
++	chip->release(dev);
++
++	clear_bit(chip->dev_num, dev_mask);
++	kfree(chip->vendor.miscdev.name);
++	kfree(chip);
++}
++
++/*
+  * Called from tpm_<specific>.c probe function only for devices 
+  * the driver has determined it should claim.  Prior to calling
+  * this function the specific probe function has called pci_enable_device
+@@ -1136,23 +1151,21 @@ struct tpm_chip *tpm_register_hardware(s
+ 
+ 	chip->vendor.miscdev.parent = dev;
+ 	chip->dev = get_device(dev);
++	chip->release = dev->release;
++	dev->release = tpm_dev_release;
++	dev_set_drvdata(dev, chip);
+ 
+ 	if (misc_register(&chip->vendor.miscdev)) {
+ 		dev_err(chip->dev,
+ 			"unable to misc_register %s, minor %d\n",
+ 			chip->vendor.miscdev.name,
+ 			chip->vendor.miscdev.minor);
+-		put_device(dev);
+-		clear_bit(chip->dev_num, dev_mask);
+-		kfree(chip);
+-		kfree(devname);
++		put_device(chip->dev);
+ 		return NULL;
+ 	}
+ 
+ 	spin_lock(&driver_lock);
+ 
+-	dev_set_drvdata(dev, chip);
+-
+ 	list_add(&chip->list, &tpm_chip_list);
+ 
+ 	spin_unlock(&driver_lock);
+@@ -1160,10 +1173,7 @@ struct tpm_chip *tpm_register_hardware(s
+ 	if (sysfs_create_group(&dev->kobj, chip->vendor.attr_group)) {
+ 		list_del(&chip->list);
+ 		misc_deregister(&chip->vendor.miscdev);
+-		put_device(dev);
+-		clear_bit(chip->dev_num, dev_mask);
+-		kfree(chip);
+-		kfree(devname);
++		put_device(chip->dev);
+ 		return NULL;
+ 	}
+ 
+diff -puN drivers/char/tpm/tpm.h~tpmc-fix-crash-during-device-removal drivers/char/tpm/tpm.h
+--- a/drivers/char/tpm/tpm.h~tpmc-fix-crash-during-device-removal
++++ a/drivers/char/tpm/tpm.h
+@@ -74,6 +74,7 @@ struct tpm_vendor_specific {
+ 	int (*send) (struct tpm_chip *, u8 *, size_t);
+ 	void (*cancel) (struct tpm_chip *);
+ 	u8 (*status) (struct tpm_chip *);
++	void (*release) (struct device *);
+ 	struct miscdevice miscdev;
+ 	struct attribute_group *attr_group;
+ 	struct list_head list;
+@@ -106,6 +107,7 @@ struct tpm_chip {
+ 	struct dentry **bios_dir;
+ 
+ 	struct list_head list;
++	void (*release) (struct device *);
  };
  
- #define to_acpi_battery(x) container_of(x, struct acpi_battery, bat);
-@@ -808,7 +809,8 @@ static int acpi_battery_add(struct acpi_
- 	}
- 	battery->bat.get_property = acpi_sbs_battery_get_property;
- 	result = power_supply_register(&sbs->device->dev, &battery->bat);
--	device_create_file(battery->bat.dev, &alarm_attr);
-+	if (device_create_file(battery->bat.dev, &alarm_attr) == 0)
-+		battery->have_sysfs = 1;
- 	printk(KERN_INFO PREFIX "%s [%s]: Battery Slot [%s] (battery %s)\n",
- 	       ACPI_SBS_DEVICE_NAME, acpi_device_bid(sbs->device),
- 	       battery->name, sbs->battery->present ? "present" : "absent");
-@@ -817,14 +819,16 @@ static int acpi_battery_add(struct acpi_
- 
- static void acpi_battery_remove(struct acpi_sbs *sbs, int id)
- {
--	if (sbs->battery[id].bat.dev)
--		device_remove_file(sbs->battery[id].bat.dev, &alarm_attr);
--		power_supply_unregister(&sbs->battery[id].bat);
-+	struct acpi_battery *battery = &sbs->battery[id];
-+
-+	if (battery->have_sysfs)
-+		device_remove_file(battery->bat.dev, &alarm_attr);
-+
-+	power_supply_unregister(&battery->bat);
-+
- #ifdef CONFIG_ACPI_PROCFS
--	if (sbs->battery[id].proc_entry) {
--		acpi_sbs_remove_fs(&(sbs->battery[id].proc_entry),
--				   acpi_battery_dir);
--	}
-+	if (sbs->battery[id].proc_entry)
-+		acpi_sbs_remove_fs(&battery->proc_entry, acpi_battery_dir);
- #endif
- }
- 
+ #define to_tpm_chip(n) container_of(n, struct tpm_chip, vendor)
 _
 
-Patches currently in -mm which might be from jeff@garzik.org are
+Patches currently in -mm which might be from richard.musil@st.com are
 
-git-arm.patch
-powerpc-fix-typo-ifdef-ifndef.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_sisc-add-packard-bell-easynote-k5305-to-laptops.patch
-libata-add-toshiba-mk1637gsx-to-spurious-command-completion-list.patch
-ide-add-helper-__ide_setup_pci_device.patch
-git-netdev-all.patch
-forcedeth-power-down-phy-when-interface-is-down.patch
-forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-drivers-net-chelsio-if-0-unused-functions.patch
-pcmcia-net-use-roundup_pow_of_two-macro-instead-of-grotesque-loop.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-hptiop-fix-type-mismatch-warning.patch
-ips-remove-ips_ha-members-that-duplicate-struct-pci_dev-members.patch
-ips-trim-trailing-whitespace.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-ips-pci-api-cleanups.patch
-ips-handle-scsi_add_host-failure-and-other-err-cleanups.patch
-scsi-gdth-kill-unneeded-irq-argument.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-sym53c416-kill-pointless-irq-handler-loop-and-test.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-scsi-ncr5380-minor-irq-handler-cleanups.patch
-iommu-sg-merging-add-device_dma_parameters-structure.patch
-iommu-sg-merging-pci-add-device_dma_parameters-support.patch
-iommu-sg-merging-x86-make-pci-gart-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-ppc-make-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-ia64-make-sba_iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-alpha-make-pci_iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-parisc-make-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-call-blk_queue_segment_boundary-in-__scsi_alloc_queue.patch
-iommu-sg-merging-sata_inic162x-use-pci_set_dma_max_seg_size.patch
-iommu-sg-merging-aacraid-use-pci_set_dma_max_seg_size.patch
-usb-s3c2410_udc-minor-irq-handler-cleanups.patch
-git-wireless.patch
-tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls-x86-fix.patch
-pata_amd-pata_via-de-couple-programming-of-pio-mwdma-and-udma-timings.patch
-fix-versus-precedence-in-various-places.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness.patch
-riscom8-fix-smp-brokenness-fix.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-sound-oss-sb_commonc-fix-casting-warning.patch
-remove-warnings-for-longstanding-conditions.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-remove-pointless-casts-from-void-pointers.patch
-i8k-allow-i8k-driver-to-be-built-on-x86_64-systems.patch
-i8k-adds-i8k-driver-to-the-x86_64-kconfig.patch
-i8k-inspiron-e1705-fix.patch
+tpmc-fix-crash-during-device-removal.patch
