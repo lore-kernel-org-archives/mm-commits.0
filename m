@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-thread_order-borkage-fix.patch added to -mm tree
-Date: Tue, 20 Nov 2007 14:29:08 -0800
-Message-ID: <200711202236.lAKMaHf4027013@imap1.linux-foundation.org>
+Subject: + git-x86-identify_cpu-fix.patch added to -mm tree
+Date: Tue, 20 Nov 2007 14:32:40 -0800
+Message-ID: <200711202239.lAKMdlGK027175@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51265 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56376 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760229AbXKTWhJ (ORCPT
+	by vger.kernel.org with ESMTP id S1760994AbXKTWkw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Nov 2007 17:37:09 -0500
+	Tue, 20 Nov 2007 17:40:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kamalesh@linux.vnet.ibm.com, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     git-x86-thread_order-borkage-fix
+     git-x86-identify_cpu-fix
 has been added to the -mm tree.  Its filename is
-     git-x86-thread_order-borkage-fix.patch
+     git-x86-identify_cpu-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,111 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-x86-thread_order-borkage-fix
+Subject: git-x86-identify_cpu-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-shit
+nfi.  Might be due to bad reject fixings.
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- asm-x86/thread_info_64.h  |    0 
- include/asm-x86/page_64.h |    1 +
- 2 files changed, 1 insertion(+)
+ arch/x86/kernel/setup_64.c |   68 +----------------------------------
+ 1 file changed, 2 insertions(+), 66 deletions(-)
 
-diff -puN include/asm-x86/page_64.h~git-x86-thread_order-borkage-fix include/asm-x86/page_64.h
---- a/include/asm-x86/page_64.h~git-x86-thread_order-borkage-fix
-+++ a/include/asm-x86/page_64.h
-@@ -9,6 +9,7 @@
- #define PAGE_MASK	(~(PAGE_SIZE-1))
- #define PHYSICAL_PAGE_MASK	(~(PAGE_SIZE-1) & __PHYSICAL_MASK)
+diff -puN arch/x86/kernel/setup_64.c~git-x86-identify_cpu-fix arch/x86/kernel/setup_64.c
+--- a/arch/x86/kernel/setup_64.c~git-x86-identify_cpu-fix
++++ a/arch/x86/kernel/setup_64.c
+@@ -894,7 +894,7 @@ struct cpu_model_info {
+    below. */
+ static void __cpuinit early_identify_cpu(struct cpuinfo_x86 *c)
+ {
+-	u32 tfms, xlvl;
++	u32 tfms;
  
-+#define THREAD_ORDER 1
- #define THREAD_SIZE  (PAGE_SIZE << THREAD_ORDER)
- #define CURRENT_MASK (~(THREAD_SIZE-1))
+ 	c->loops_per_jiffy = loops_per_jiffy;
+ 	c->x86_cache_size = -1;
+@@ -950,7 +950,7 @@ static void __cpuinit early_identify_cpu
+ void __cpuinit identify_cpu(struct cpuinfo_x86 *c)
+ {
+ 	/* AMD-defined flags: level 0x80000001 */
+-	xlvl = cpuid_eax(0x80000000);
++	u32 xlvl = cpuid_eax(0x80000000);
+ 	c->extended_cpuid_level = xlvl;
+ 	if ((xlvl & 0xffff0000) == 0x80000000) {
+ 		if (xlvl >= 0x80000001) {
+@@ -977,70 +977,6 @@ void __cpuinit identify_cpu(struct cpuin
  
-diff -puN include/asm-x86/thread_info_64.h~git-x86-thread_order-borkage-fix include/asm-x86/thread_info_64.h
+ }
+ 
+-/*
+- * This does the hard work of actually picking apart the CPU stuff...
+- */
+-void __cpuinit identify_cpu(struct cpuinfo_x86 *c)
+-{
+-	int i;
+-
+-	early_identify_cpu(c);
+-
+-	init_scattered_cpuid_features(c);
+-
+-	c->apicid = phys_pkg_id(0);
+-
+-	/*
+-	 * Vendor-specific initialization.  In this section we
+-	 * canonicalize the feature flags, meaning if there are
+-	 * features a certain CPU supports which CPUID doesn't
+-	 * tell us, CPUID claiming incorrect flags, or other bugs,
+-	 * we handle them here.
+-	 *
+-	 * At the end of this section, c->x86_capability better
+-	 * indicate the features this CPU genuinely supports!
+-	 */
+-	switch (c->x86_vendor) {
+-	case X86_VENDOR_AMD:
+-		init_amd(c);
+-		break;
+-
+-	case X86_VENDOR_INTEL:
+-		init_intel(c);
+-		break;
+-
+-	case X86_VENDOR_UNKNOWN:
+-	default:
+-		display_cacheinfo(c);
+-		break;
+-	}
+-
+-	select_idle_routine(c);
+-	detect_ht(c); 
+-
+-	/*
+-	 * On SMP, boot_cpu_data holds the common feature set between
+-	 * all CPUs; so make sure that we indicate which features are
+-	 * common between the CPUs.  The first time this routine gets
+-	 * executed, c == &boot_cpu_data.
+-	 */
+-	if (c != &boot_cpu_data) {
+-		/* AND the already accumulated flags with these */
+-		for (i = 0 ; i < NCAPINTS ; i++)
+-			boot_cpu_data.x86_capability[i] &= c->x86_capability[i];
+-	}
+-
+-#ifdef CONFIG_X86_MCE
+-	mcheck_init(c);
+-#endif
+-	if (c != &boot_cpu_data)
+-		mtrr_ap_init();
+-#ifdef CONFIG_NUMA
+-	numa_add_cpu(smp_processor_id());
+-#endif
+-}
+- 
+-
+ void __cpuinit print_cpu_info(struct cpuinfo_x86 *c)
+ {
+ 	if (c->x86_model_id[0])
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -110,6 +188,7 @@ git-x86.patch
 git-x86-fixup.patch
 git-x86-thread_order-borkage.patch
 git-x86-thread_order-borkage-fix.patch
+git-x86-identify_cpu-fix.patch
 git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko-checkpatch-fixes.patch
 git-x86-inlining-borkage.patch
 git-cryptodev.patch
