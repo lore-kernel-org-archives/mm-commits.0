@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + 8250_gsc-coding-style.patch added to -mm tree
-Date: Mon, 19 Nov 2007 23:23:21 -0800
-Message-ID: <200711200723.lAK7NLOo021379@imap1.linux-foundation.org>
+Subject: + 8250-enable-rate-reporting-via-termios.patch added to -mm tree
+Date: Mon, 19 Nov 2007 23:23:27 -0800
+Message-ID: <200711200723.lAK7NRIe021402@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp2.linux-foundation.org ([207.189.120.14]:55472 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754823AbXKTH3F (ORCPT
+	by vger.kernel.org with ESMTP id S1754654AbXKTH3D (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Nov 2007 02:29:05 -0500
+	Tue, 20 Nov 2007 02:29:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     8250_gsc: coding style
+     8250: enable rate reporting via termios
 has been added to the -mm tree.  Its filename is
-     8250_gsc-coding-style.patch
+     8250-enable-rate-reporting-via-termios.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,67 +26,27 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: 8250_gsc: coding style
+Subject: 8250: enable rate reporting via termios
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_gsc.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ drivers/serial/8250.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/serial/8250_gsc.c~8250_gsc-coding-style drivers/serial/8250_gsc.c
---- a/drivers/serial/8250_gsc.c~8250_gsc-coding-style
-+++ a/drivers/serial/8250_gsc.c
-@@ -25,8 +25,7 @@
- 
- #include "8250.h"
- 
--static int __init 
--serial_init_chip(struct parisc_device *dev)
-+static int __init serial_init_chip(struct parisc_device *dev)
- {
- 	struct uart_port port;
- 	unsigned long address;
-@@ -38,18 +37,17 @@ serial_init_chip(struct parisc_device *d
- 		 * what we have here is a missing parent device, so tell
- 		 * the user what they're missing.
- 		 */
--		if (parisc_parent(dev)->id.hw_type != HPHW_IOA) {
--			printk(KERN_INFO "Serial: device 0x%lx not configured.\n"
-+		if (parisc_parent(dev)->id.hw_type != HPHW_IOA)
-+			printk(KERN_INFO
-+				"Serial: device 0x%lx not configured.\n"
- 				"Enable support for Wax, Lasi, Asp or Dino.\n",
- 				dev->hpa.start);
--		}
- 		return -ENODEV;
+diff -puN drivers/serial/8250.c~8250-enable-rate-reporting-via-termios drivers/serial/8250.c
+--- a/drivers/serial/8250.c~8250-enable-rate-reporting-via-termios
++++ a/drivers/serial/8250.c
+@@ -2174,6 +2174,7 @@ serial8250_set_termios(struct uart_port 
  	}
- 
- 	address = dev->hpa.start;
--	if (dev->id.sversion != 0x8d) {
-+	if (dev->id.sversion != 0x8d)
- 		address += 0x800;
--	}
- 
- 	memset(&port, 0, sizeof(port));
- 	port.iotype	= UPIO_MEM;
-@@ -63,11 +61,12 @@ serial_init_chip(struct parisc_device *d
- 
- 	err = serial8250_register_port(&port);
- 	if (err < 0) {
--		printk(KERN_WARNING "serial8250_register_port returned error %d\n", err);
-+		printk(KERN_WARNING
-+			"serial8250_register_port returned error %d\n", err);
- 		iounmap(port.membase);
- 		return err;
- 	}
--        
-+
- 	return 0;
+ 	serial8250_set_mctrl(&up->port, up->port.mctrl);
+ 	spin_unlock_irqrestore(&up->port.lock, flags);
++	tty_termios_encode_baud_rate(termios, baud, baud);
  }
  
+ static void
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
