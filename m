@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces.patch added to -mm tree
-Date: Mon, 19 Nov 2007 16:59:32 -0800
-Message-ID: <200711200059.lAK0xWIr005542@imap1.linux-foundation.org>
+Subject: + proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch added to -mm tree
+Date: Mon, 19 Nov 2007 16:59:35 -0800
+Message-ID: <200711200059.lAK0xZmW005545@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43619 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51502 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752923AbXKTA7h (ORCPT
+	by vger.kernel.org with ESMTP id S1753016AbXKTA7k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Nov 2007 19:59:37 -0500
+	Mon, 19 Nov 2007 19:59:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: ebiederm@xmission.com, adobriyan@gmail.com, oleg@tv-sign.ru
 
 
 The patch titled
-     proc: rewrite do_task_stat to correctly handle pid namespaces.
+     proc: seqfile convert proc_pid_status to properly handle pid namespaces
 has been added to the -mm tree.  Its filename is
-     proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces.patch
+     proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,19 +26,13 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: proc: rewrite do_task_stat to correctly handle pid namespaces.
+Subject: proc: seqfile convert proc_pid_status to properly handle pid namespaces
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-Currently (as pointed out by Oleg) do_task_stat has a race when calling
-task_pid_nr_ns with the task exiting.  In addition do_task_stat is not
-currently displaying information in the context of the pid namespace that
-mounted the /proc filesystem.  So "cut -d' ' -f 1 /proc/<pid>/stat" may not
-equal <pid>.
-
-This patch fixes the problem by converting to a single_open seq_file show
-method.  Getting the pid namespace from the filesystem superblock instead of
-current, and simply using the the struct pid from the inode instead of
-attempting to get that same pid from the task.
+Currently we possibly lookup the pid in the wrong pid namespace.  So seq_file
+convert proc_pid_status which ensures the proper pid namespaces is passed in,
+and ensures that we don't overflow any internal buffers when generating
+/proc/<pid>/status
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
@@ -46,128 +40,467 @@ Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c    |   24 ++++++++++++------------
- fs/proc/base.c     |    4 ++--
- fs/proc/internal.h |    9 ++++++---
- 3 files changed, 20 insertions(+), 17 deletions(-)
+ arch/s390/kernel/traps.c     |   23 ++----
+ fs/proc/array.c              |  122 +++++++++++++++------------------
+ fs/proc/base.c               |    4 -
+ fs/proc/internal.h           |    3 
+ fs/proc/task_mmu.c           |    5 -
+ fs/proc/task_nommu.c         |    2 
+ include/asm-s390/processor.h |    2 
+ include/linux/cpuset.h       |    8 +-
+ include/linux/proc_fs.h      |    2 
+ kernel/cpuset.c              |   18 ++--
+ 10 files changed, 93 insertions(+), 96 deletions(-)
 
-diff -puN fs/proc/array.c~proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces fs/proc/array.c
---- a/fs/proc/array.c~proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces
-+++ a/fs/proc/array.c
-@@ -77,6 +77,7 @@
- #include <linux/cpuset.h>
- #include <linux/rcupdate.h>
- #include <linux/delayacct.h>
-+#include <linux/seq_file.h>
- #include <linux/pid_namespace.h>
+diff -puN arch/s390/kernel/traps.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces arch/s390/kernel/traps.c
+--- a/arch/s390/kernel/traps.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces
++++ a/arch/s390/kernel/traps.c
+@@ -218,41 +218,40 @@ void show_registers(struct pt_regs *regs
+ }	
  
- #include <asm/pgtable.h>
-@@ -379,14 +380,14 @@ static cputime_t task_gtime(struct task_
- 	return p->gtime;
+ /* This is called from fs/proc/array.c */
+-char *task_show_regs(struct task_struct *task, char *buffer)
++void task_show_regs(struct seq_file *m, struct task_struct *task)
+ {
+ 	struct pt_regs *regs;
+ 
+ 	regs = task_pt_regs(task);
+-	buffer += sprintf(buffer, "task: %p, ksp: %p\n",
++	seq_printf(m, "task: %p, ksp: %p\n",
+ 		       task, (void *)task->thread.ksp);
+-	buffer += sprintf(buffer, "User PSW : %p %p\n",
++	seq_printf(m, "User PSW : %p %p\n",
+ 		       (void *) regs->psw.mask, (void *)regs->psw.addr);
+ 
+-	buffer += sprintf(buffer, "User GPRS: " FOURLONG,
++	seq_printf(m, "User GPRS: " FOURLONG,
+ 			  regs->gprs[0], regs->gprs[1],
+ 			  regs->gprs[2], regs->gprs[3]);
+-	buffer += sprintf(buffer, "           " FOURLONG,
++	seq_printf(m, "           " FOURLONG,
+ 			  regs->gprs[4], regs->gprs[5],
+ 			  regs->gprs[6], regs->gprs[7]);
+-	buffer += sprintf(buffer, "           " FOURLONG,
++	seq_printf(m, "           " FOURLONG,
+ 			  regs->gprs[8], regs->gprs[9],
+ 			  regs->gprs[10], regs->gprs[11]);
+-	buffer += sprintf(buffer, "           " FOURLONG,
++	seq_printf(m, "           " FOURLONG,
+ 			  regs->gprs[12], regs->gprs[13],
+ 			  regs->gprs[14], regs->gprs[15]);
+-	buffer += sprintf(buffer, "User ACRS: %08x %08x %08x %08x\n",
++	seq_printf(m, "User ACRS: %08x %08x %08x %08x\n",
+ 			  task->thread.acrs[0], task->thread.acrs[1],
+ 			  task->thread.acrs[2], task->thread.acrs[3]);
+-	buffer += sprintf(buffer, "           %08x %08x %08x %08x\n",
++	seq_printf(m, "           %08x %08x %08x %08x\n",
+ 			  task->thread.acrs[4], task->thread.acrs[5],
+ 			  task->thread.acrs[6], task->thread.acrs[7]);
+-	buffer += sprintf(buffer, "           %08x %08x %08x %08x\n",
++	seq_printf(m, "           %08x %08x %08x %08x\n",
+ 			  task->thread.acrs[8], task->thread.acrs[9],
+ 			  task->thread.acrs[10], task->thread.acrs[11]);
+-	buffer += sprintf(buffer, "           %08x %08x %08x %08x\n",
++	seq_printf(m, "           %08x %08x %08x %08x\n",
+ 			  task->thread.acrs[12], task->thread.acrs[13],
+ 			  task->thread.acrs[14], task->thread.acrs[15]);
+-	return buffer;
  }
  
--static int do_task_stat(struct task_struct *task, char *buffer, int whole)
-+static int do_task_stat(struct seq_file *m, struct pid_namespace *ns,
-+			struct pid *pid, struct task_struct *task, int whole)
+ static DEFINE_SPINLOCK(die_lock);
+diff -puN fs/proc/array.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces fs/proc/array.c
+--- a/fs/proc/array.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces
++++ a/fs/proc/array.c
+@@ -89,18 +89,21 @@
+ do { memcpy(buffer, string, strlen(string)); \
+      buffer += strlen(string); } while (0)
+ 
+-static inline char *task_name(struct task_struct *p, char *buf)
++static inline void task_name(struct seq_file *m, struct task_struct *p)
  {
- 	unsigned long vsize, eip, esp, wchan = ~0UL;
- 	long priority, nice;
- 	int tty_pgrp = -1, tty_nr = 0;
- 	sigset_t sigign, sigcatch;
- 	char state;
--	int res;
- 	pid_t ppid = 0, pgid = -1, sid = -1;
- 	int num_threads = 0;
- 	struct mm_struct *mm;
-@@ -398,9 +399,6 @@ static int do_task_stat(struct task_stru
- 	unsigned long rsslim = 0;
- 	char tcomm[sizeof(task->comm)];
- 	unsigned long flags;
+ 	int i;
++	char *buf, *end;
+ 	char *name;
+ 	char tcomm[sizeof(p->comm)];
+ 
+ 	get_task_comm(tcomm, p);
+ 
+-	ADDBUF(buf, "Name:\t");
++	end = m->buf + m->size;
++	buf = m->buf + m->count;
++	seq_printf(m, "Name:\n");
+ 	name = tcomm;
+ 	i = sizeof(tcomm);
+-	do {
++	while (i && (buf < end)) {
+ 		unsigned char c = *name;
+ 		name++;
+ 		i--;
+@@ -108,20 +111,21 @@ static inline char *task_name(struct tas
+ 		if (!c)
+ 			break;
+ 		if (c == '\\') {
+-			buf[1] = c;
+-			buf += 2;
++			buf++;
++			if (buf < end)
++				*buf++ = c;
+ 			continue;
+ 		}
+ 		if (c == '\n') {
+-			buf[0] = '\\';
+-			buf[1] = 'n';
+-			buf += 2;
++			*buf++ = '\\';
++			if (buf < end)
++				*buf++ = 'n';
+ 			continue;
+ 		}
+ 		buf++;
+-	} while (i);
+-	*buf = '\n';
+-	return buf+1;
++	}
++	m->count = buf - m->buf;
++	seq_printf(m, "\n");
+ }
+ 
+ /*
+@@ -152,21 +156,20 @@ static inline const char *get_task_state
+ 	return *p;
+ }
+ 
+-static inline char *task_state(struct task_struct *p, char *buffer)
++static inline void task_state(struct seq_file *m, struct pid_namespace *ns,
++				struct pid *pid, struct task_struct *p)
+ {
+ 	struct group_info *group_info;
+ 	int g;
+ 	struct fdtable *fdt = NULL;
 -	struct pid_namespace *ns;
--
+ 	pid_t ppid, tpid;
+ 
 -	ns = current->nsproxy->pid_ns;
- 
- 	state = *get_task_state(task);
- 	vsize = eip = esp = 0;
-@@ -487,10 +485,10 @@ static int do_task_stat(struct task_stru
- 	/* convert nsec -> ticks */
- 	start_time = nsec_to_clock_t(start_time);
- 
--	res = sprintf(buffer, "%d (%s) %c %d %d %d %d %d %u %lu \
-+	seq_printf(m, "%d (%s) %c %d %d %d %d %d %u %lu \
- %lu %lu %lu %lu %lu %ld %ld %ld %ld %d 0 %llu %lu %ld %lu %lu %lu %lu %lu \
- %lu %lu %lu %lu %lu %lu %lu %lu %d %d %u %u %llu %lu %ld\n",
--		task_pid_nr_ns(task, ns),
+ 	rcu_read_lock();
+ 	ppid = pid_alive(p) ?
+ 		task_tgid_nr_ns(rcu_dereference(p->real_parent), ns) : 0;
+ 	tpid = pid_alive(p) && p->ptrace ?
+ 		task_ppid_nr_ns(rcu_dereference(p->parent), ns) : 0;
+-	buffer += sprintf(buffer,
++	seq_printf(m,
+ 		"State:\t%s\n"
+ 		"Tgid:\t%d\n"
+ 		"Pid:\t%d\n"
+@@ -176,7 +179,7 @@ static inline char *task_state(struct ta
+ 		"Gid:\t%d\t%d\t%d\t%d\n",
+ 		get_task_state(p),
+ 		task_tgid_nr_ns(p, ns),
+-		task_pid_nr_ns(p, ns),
 +		pid_nr_ns(pid, ns),
- 		tcomm,
- 		state,
- 		ppid,
-@@ -539,17 +537,19 @@ static int do_task_stat(struct task_stru
- 		cputime_to_clock_t(cgtime));
- 	if (mm)
+ 		ppid, tpid,
+ 		p->uid, p->euid, p->suid, p->fsuid,
+ 		p->gid, p->egid, p->sgid, p->fsgid);
+@@ -184,7 +187,7 @@ static inline char *task_state(struct ta
+ 	task_lock(p);
+ 	if (p->files)
+ 		fdt = files_fdtable(p->files);
+-	buffer += sprintf(buffer,
++	seq_printf(m,
+ 		"FDSize:\t%d\n"
+ 		"Groups:\t",
+ 		fdt ? fdt->max_fds : 0);
+@@ -195,20 +198,17 @@ static inline char *task_state(struct ta
+ 	task_unlock(p);
+ 
+ 	for (g = 0; g < min(group_info->ngroups, NGROUPS_SMALL); g++)
+-		buffer += sprintf(buffer, "%d ", GROUP_AT(group_info, g));
++		seq_printf(m, "%d ", GROUP_AT(group_info, g));
+ 	put_group_info(group_info);
+ 
+-	buffer += sprintf(buffer, "\n");
+-	return buffer;
++	seq_printf(m, "\n");
+ }
+ 
+-static char *render_sigset_t(const char *header, sigset_t *set, char *buffer)
++static void render_sigset_t(struct seq_file *m, const char *header, sigset_t *set)
+ {
+-	int i, len;
++	int i;
+ 
+-	len = strlen(header);
+-	memcpy(buffer, header, len);
+-	buffer += len;
++	seq_printf(m, "%s", header);
+ 
+ 	i = _NSIG;
+ 	do {
+@@ -219,12 +219,10 @@ static char *render_sigset_t(const char 
+ 		if (sigismember(set, i+2)) x |= 2;
+ 		if (sigismember(set, i+3)) x |= 4;
+ 		if (sigismember(set, i+4)) x |= 8;
+-		*buffer++ = (x < 10 ? '0' : 'a' - 10) + x;
++		seq_printf(m, "%x", x);
+ 	} while (i >= 4);
+ 
+-	*buffer++ = '\n';
+-	*buffer = 0;
+-	return buffer;
++	seq_printf(m, "\n");
+ }
+ 
+ static void collect_sigign_sigcatch(struct task_struct *p, sigset_t *ign,
+@@ -242,7 +240,7 @@ static void collect_sigign_sigcatch(stru
+ 	}
+ }
+ 
+-static inline char *task_sig(struct task_struct *p, char *buffer)
++static inline void task_sig(struct seq_file *m, struct task_struct *p)
+ {
+ 	unsigned long flags;
+ 	sigset_t pending, shpending, blocked, ignored, caught;
+@@ -269,58 +267,56 @@ static inline char *task_sig(struct task
+ 	}
+ 	rcu_read_unlock();
+ 
+-	buffer += sprintf(buffer, "Threads:\t%d\n", num_threads);
+-	buffer += sprintf(buffer, "SigQ:\t%lu/%lu\n", qsize, qlim);
++	seq_printf(m, "Threads:\t%d\n", num_threads);
++	seq_printf(m, "SigQ:\t%lu/%lu\n", qsize, qlim);
+ 
+ 	/* render them all */
+-	buffer = render_sigset_t("SigPnd:\t", &pending, buffer);
+-	buffer = render_sigset_t("ShdPnd:\t", &shpending, buffer);
+-	buffer = render_sigset_t("SigBlk:\t", &blocked, buffer);
+-	buffer = render_sigset_t("SigIgn:\t", &ignored, buffer);
+-	buffer = render_sigset_t("SigCgt:\t", &caught, buffer);
+-
+-	return buffer;
++	render_sigset_t(m, "SigPnd:\t", &pending);
++	render_sigset_t(m, "ShdPnd:\t", &shpending);
++	render_sigset_t(m, "SigBlk:\t", &blocked);
++	render_sigset_t(m, "SigIgn:\t", &ignored);
++	render_sigset_t(m, "SigCgt:\t", &caught);
+ }
+ 
+-static inline char *task_cap(struct task_struct *p, char *buffer)
++static inline void task_cap(struct seq_file *m, struct task_struct *p)
+ {
+-    return buffer + sprintf(buffer, "CapInh:\t%016x\n"
+-			    "CapPrm:\t%016x\n"
+-			    "CapEff:\t%016x\n",
+-			    cap_t(p->cap_inheritable),
+-			    cap_t(p->cap_permitted),
+-			    cap_t(p->cap_effective));
++	seq_printf(m,	"CapInh:\t%016x\n"
++			"CapPrm:\t%016x\n"
++			"CapEff:\t%016x\n",
++			cap_t(p->cap_inheritable),
++			cap_t(p->cap_permitted),
++			cap_t(p->cap_effective));
+ }
+ 
+-static inline char *task_context_switch_counts(struct task_struct *p,
+-						char *buffer)
++static inline void task_context_switch_counts(struct seq_file *m,
++						struct task_struct *p)
+ {
+-	return buffer + sprintf(buffer, "voluntary_ctxt_switches:\t%lu\n"
+-			    "nonvoluntary_ctxt_switches:\t%lu\n",
+-			    p->nvcsw,
+-			    p->nivcsw);
++	seq_printf(m,	"voluntary_ctxt_switches:\t%lu\n"
++			"nonvoluntary_ctxt_switches:\t%lu\n",
++			p->nvcsw,
++			p->nivcsw);
+ }
+ 
+-int proc_pid_status(struct task_struct *task, char *buffer)
++int proc_pid_status(struct seq_file *m, struct pid_namespace *ns, struct pid *pid,
++			struct task_struct *task)
+ {
+-	char *orig = buffer;
+ 	struct mm_struct *mm = get_task_mm(task);
+ 
+-	buffer = task_name(task, buffer);
+-	buffer = task_state(task, buffer);
++	task_name(m, task);
++	task_state(m, ns, pid, task);
+ 
+ 	if (mm) {
+-		buffer = task_mem(mm, buffer);
++		task_mem(m, mm);
  		mmput(mm);
--	return res;
+ 	}
+-	buffer = task_sig(task, buffer);
+-	buffer = task_cap(task, buffer);
+-	buffer = cpuset_task_status_allowed(task, buffer);
++	task_sig(m, task);
++	task_cap(m, task);
++	cpuset_task_status_allowed(m, task);
+ #if defined(CONFIG_S390)
+-	buffer = task_show_regs(task, buffer);
++	task_show_regs(m, task);
+ #endif
+-	buffer = task_context_switch_counts(task, buffer);
+-	return buffer - orig;
++	task_context_switch_counts(m, task);
 +	return 0;
  }
  
--int proc_tid_stat(struct task_struct *task, char *buffer)
-+int proc_tid_stat(struct seq_file *m, struct pid_namespace *ns,
-+			struct pid *pid, struct task_struct *task)
- {
--	return do_task_stat(task, buffer, 0);
-+	return do_task_stat(m, ns, pid, task, 0);
- }
- 
--int proc_tgid_stat(struct task_struct *task, char *buffer)
-+int proc_tgid_stat(struct seq_file *m, struct pid_namespace *ns,
-+			struct pid *pid, struct task_struct *task)
- {
--	return do_task_stat(task, buffer, 1);
-+	return do_task_stat(m, ns, pid, task, 1);
- }
- 
- int proc_pid_statm(struct task_struct *task, char *buffer)
-diff -puN fs/proc/base.c~proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces fs/proc/base.c
---- a/fs/proc/base.c~proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces
+ /*
+diff -puN fs/proc/base.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces fs/proc/base.c
+--- a/fs/proc/base.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces
 +++ a/fs/proc/base.c
-@@ -2181,7 +2181,7 @@ static const struct pid_entry tgid_base_
+@@ -2175,7 +2175,7 @@ static const struct pid_entry tgid_base_
+ 	DIR("fdinfo",     S_IRUSR|S_IXUSR, fdinfo),
+ 	REG("environ",    S_IRUSR, environ),
+ 	INF("auxv",       S_IRUSR, pid_auxv),
+-	INF("status",     S_IRUGO, pid_status),
++	ONE("status",     S_IRUGO, pid_status),
+ 	INF("limits",	  S_IRUSR, pid_limits),
+ #ifdef CONFIG_SCHED_DEBUG
  	REG("sched",      S_IRUGO|S_IWUSR, pid_sched),
- #endif
- 	INF("cmdline",    S_IRUGO, pid_cmdline),
--	INF("stat",       S_IRUGO, tgid_stat),
-+	ONE("stat",       S_IRUGO, tgid_stat),
- 	INF("statm",      S_IRUGO, pid_statm),
- 	REG("maps",       S_IRUGO, maps),
- #ifdef CONFIG_NUMA
-@@ -2508,7 +2508,7 @@ static const struct pid_entry tid_base_s
+@@ -2502,7 +2502,7 @@ static const struct pid_entry tid_base_s
+ 	DIR("fdinfo",    S_IRUSR|S_IXUSR, fdinfo),
+ 	REG("environ",   S_IRUSR, environ),
+ 	INF("auxv",      S_IRUSR, pid_auxv),
+-	INF("status",    S_IRUGO, pid_status),
++	ONE("status",    S_IRUGO, pid_status),
+ 	INF("limits",	 S_IRUSR, pid_limits),
+ #ifdef CONFIG_SCHED_DEBUG
  	REG("sched",     S_IRUGO|S_IWUSR, pid_sched),
- #endif
- 	INF("cmdline",   S_IRUGO, pid_cmdline),
--	INF("stat",      S_IRUGO, tid_stat),
-+	ONE("stat",      S_IRUGO, tid_stat),
- 	INF("statm",     S_IRUGO, pid_statm),
- 	REG("maps",      S_IRUGO, maps),
- #ifdef CONFIG_NUMA
-diff -puN fs/proc/internal.h~proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces fs/proc/internal.h
---- a/fs/proc/internal.h~proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces
+diff -puN fs/proc/internal.h~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces fs/proc/internal.h
+--- a/fs/proc/internal.h~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces
 +++ a/fs/proc/internal.h
-@@ -44,10 +44,13 @@ extern int nommu_vma_show(struct seq_fil
- 
- extern int maps_protect;
- 
--extern void create_seq_entry(char *name, mode_t mode, const struct file_operations *f);
-+extern void create_seq_entry(char *name, mode_t mode,
-+				const struct file_operations *f);
- extern int proc_exe_link(struct inode *, struct path *);
--extern int proc_tid_stat(struct task_struct *,  char *);
--extern int proc_tgid_stat(struct task_struct *, char *);
-+extern int proc_tid_stat(struct seq_file *m, struct pid_namespace *ns,
+@@ -51,7 +51,8 @@ extern int proc_tid_stat(struct seq_file
+ 				struct pid *pid, struct task_struct *task);
+ extern int proc_tgid_stat(struct seq_file *m, struct pid_namespace *ns,
+ 				struct pid *pid, struct task_struct *task);
+-extern int proc_pid_status(struct task_struct *, char *);
++extern int proc_pid_status(struct seq_file *m, struct pid_namespace *ns,
 +				struct pid *pid, struct task_struct *task);
-+extern int proc_tgid_stat(struct seq_file *m, struct pid_namespace *ns,
-+				struct pid *pid, struct task_struct *task);
- extern int proc_pid_status(struct task_struct *, char *);
  extern int proc_pid_statm(struct task_struct *, char *);
  extern loff_t mem_lseek(struct file *file, loff_t offset, int orig);
+ 
+diff -puN fs/proc/task_mmu.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces
++++ a/fs/proc/task_mmu.c
+@@ -15,7 +15,7 @@
+ #include <asm/tlbflush.h>
+ #include "internal.h"
+ 
+-char *task_mem(struct mm_struct *mm, char *buffer)
++void task_mem(struct seq_file *m, struct mm_struct *mm)
+ {
+ 	unsigned long data, text, lib;
+ 	unsigned long hiwater_vm, total_vm, hiwater_rss, total_rss;
+@@ -37,7 +37,7 @@ char *task_mem(struct mm_struct *mm, cha
+ 	data = mm->total_vm - mm->shared_vm - mm->stack_vm;
+ 	text = (PAGE_ALIGN(mm->end_code) - (mm->start_code & PAGE_MASK)) >> 10;
+ 	lib = (mm->exec_vm << (PAGE_SHIFT-10)) - text;
+-	buffer += sprintf(buffer,
++	seq_printf(m,
+ 		"VmPeak:\t%8lu kB\n"
+ 		"VmSize:\t%8lu kB\n"
+ 		"VmLck:\t%8lu kB\n"
+@@ -56,7 +56,6 @@ char *task_mem(struct mm_struct *mm, cha
+ 		data << (PAGE_SHIFT-10),
+ 		mm->stack_vm << (PAGE_SHIFT-10), text, lib,
+ 		(PTRS_PER_PTE*sizeof(pte_t)*mm->nr_ptes) >> 10);
+-	return buffer;
+ }
+ 
+ unsigned long task_vsize(struct mm_struct *mm)
+diff -puN fs/proc/task_nommu.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces fs/proc/task_nommu.c
+--- a/fs/proc/task_nommu.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces
++++ a/fs/proc/task_nommu.c
+@@ -12,7 +12,7 @@
+  * each process that owns it. Non-shared memory is counted
+  * accurately.
+  */
+-char *task_mem(struct mm_struct *mm, char *buffer)
++void task_mem(struct seq_file *m, struct mm_struct *mm)
+ {
+ 	struct vm_list_struct *vml;
+ 	unsigned long bytes = 0, sbytes = 0, slack = 0;
+diff -puN include/asm-s390/processor.h~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces include/asm-s390/processor.h
+--- a/include/asm-s390/processor.h~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces
++++ a/include/asm-s390/processor.h
+@@ -188,7 +188,7 @@ extern unsigned long thread_saved_pc(str
+ /*
+  * Print register of task into buffer. Used in fs/proc/array.c.
+  */
+-extern char *task_show_regs(struct task_struct *task, char *buffer);
++extern void task_show_regs(struct seq_file *m, struct task_struct *task);
+ 
+ extern void show_registers(struct pt_regs *regs);
+ extern void show_code(struct pt_regs *regs);
+diff -puN include/linux/cpuset.h~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces include/linux/cpuset.h
+--- a/include/linux/cpuset.h~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces
++++ a/include/linux/cpuset.h
+@@ -57,7 +57,8 @@ extern int cpuset_memory_pressure_enable
+ extern void __cpuset_memory_pressure_bump(void);
+ 
+ extern const struct file_operations proc_cpuset_operations;
+-extern char *cpuset_task_status_allowed(struct task_struct *task, char *buffer);
++struct seq_file;
++extern void cpuset_task_status_allowed(struct seq_file *m, struct task_struct *task);
+ 
+ extern void cpuset_lock(void);
+ extern void cpuset_unlock(void);
+@@ -126,10 +127,9 @@ static inline int cpuset_mems_allowed_in
+ 
+ static inline void cpuset_memory_pressure_bump(void) {}
+ 
+-static inline char *cpuset_task_status_allowed(struct task_struct *task,
+-							char *buffer)
++static inline void cpuset_task_status_allowed(struct seq_file *m,
++						struct task_struct *task)
+ {
+-	return buffer;
+ }
+ 
+ static inline void cpuset_lock(void) {}
+diff -puN include/linux/proc_fs.h~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces include/linux/proc_fs.h
+--- a/include/linux/proc_fs.h~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces
++++ a/include/linux/proc_fs.h
+@@ -115,7 +115,7 @@ struct dentry *proc_pid_lookup(struct in
+ int proc_pid_readdir(struct file * filp, void * dirent, filldir_t filldir);
+ unsigned long task_vsize(struct mm_struct *);
+ int task_statm(struct mm_struct *, int *, int *, int *, int *);
+-char *task_mem(struct mm_struct *, char *);
++void task_mem(struct seq_file *, struct mm_struct *);
+ 
+ struct proc_dir_entry *de_get(struct proc_dir_entry *de);
+ void de_put(struct proc_dir_entry *de);
+diff -puN kernel/cpuset.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces kernel/cpuset.c
+--- a/kernel/cpuset.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces
++++ a/kernel/cpuset.c
+@@ -2219,13 +2219,15 @@ const struct file_operations proc_cpuset
+ #endif /* CONFIG_PROC_PID_CPUSET */
+ 
+ /* Display task cpus_allowed, mems_allowed in /proc/<pid>/status file. */
+-char *cpuset_task_status_allowed(struct task_struct *task, char *buffer)
++void cpuset_task_status_allowed(struct seq_file *m, struct task_struct *task)
+ {
+-	buffer += sprintf(buffer, "Cpus_allowed:\t");
+-	buffer += cpumask_scnprintf(buffer, PAGE_SIZE, task->cpus_allowed);
+-	buffer += sprintf(buffer, "\n");
+-	buffer += sprintf(buffer, "Mems_allowed:\t");
+-	buffer += nodemask_scnprintf(buffer, PAGE_SIZE, task->mems_allowed);
+-	buffer += sprintf(buffer, "\n");
+-	return buffer;
++	int len;
++	seq_printf(m, "Cpus_allowed:\t");
++	m->count += cpumask_scnprintf(m->buf + m->count, m->size - m->count,
++					task->cpus_allowed);
++	seq_printf(m, "\n");
++	seq_printf(m, "Mems_allowed:\t");
++	m->count += nodemask_scnprintf(m->buf + m->count, m->size - m->count,
++					task->mems_allowed);
++	seq_printf(buffer, "\n");
+ }
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
