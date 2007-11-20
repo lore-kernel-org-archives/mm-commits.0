@@ -1,51 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - aout-mark-arches-that-support-aout-format-fix.patch removed from -mm tree
-Date: Tue, 20 Nov 2007 12:51:15 -0800
-Message-ID: <200711202051.lAKKpFWa022809@imap1.linux-foundation.org>
+Subject: - aout-mark-arches-that-support-aout-format-fix-3.patch removed from -mm tree
+Date: Tue, 20 Nov 2007 12:51:19 -0800
+Message-ID: <200711202051.lAKKpJxv022815@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51309 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56388 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763914AbXKTUvl (ORCPT
+	by vger.kernel.org with ESMTP id S1763369AbXKTUwD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Nov 2007 15:51:41 -0500
+	Tue, 20 Nov 2007 15:52:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dhowells@redhat.com, paulus@samba.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dhowells@redhat.com, hskinnemoen@atmel.com, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     aout-mark-arches-that-support-aout-format-fix
+     aout-mark-arches-that-support-aout-format-fix-3
 has been removed from the -mm tree.  Its filename was
-     aout-mark-arches-that-support-aout-format-fix.patch
+     aout-mark-arches-that-support-aout-format-fix-3.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: aout-mark-arches-that-support-aout-format-fix
+Subject: aout-mark-arches-that-support-aout-format-fix-3
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: David Howells <dhowells@redhat.com>
 Cc: Paul Mackerras <paulus@samba.org>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Kconfig |    3 ---
+ arch/avr32/Kconfig |    3 ---
  1 file changed, 3 deletions(-)
 
-diff -puN arch/powerpc/Kconfig~aout-mark-arches-that-support-aout-format-fix arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~aout-mark-arches-that-support-aout-format-fix
-+++ a/arch/powerpc/Kconfig
-@@ -76,9 +76,6 @@ config GENERIC_FIND_NEXT_BIT
- config ARCH_NO_VIRT_TO_BUS
- 	def_bool PPC64
+diff -puN arch/avr32/Kconfig~aout-mark-arches-that-support-aout-format-fix-3 arch/avr32/Kconfig
+--- a/arch/avr32/Kconfig~aout-mark-arches-that-support-aout-format-fix-3
++++ a/arch/avr32/Kconfig
+@@ -67,9 +67,6 @@ config GENERIC_BUG
+ 	default y
+ 	depends on BUG
  
 -config ARCH_SUPPORTS_AOUT
 -	def_bool y
 -
- config PPC
- 	bool
- 	default y
+ source "init/Kconfig"
+ 
+ menu "System Type and features"
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -128,8 +129,6 @@ add-64-bit-capability-support-to-the-kernel-fix.patch
 alpha-atomic_add_return-should-return-int.patch
 pm-qos-infrastructure-and-interface.patch
 pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-aout-mark-arches-that-support-aout-format-fix.patch
-aout-mark-arches-that-support-aout-format-fix-2.patch
 aout-mark-arches-that-support-aout-format-fix-3.patch
 mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
 uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
