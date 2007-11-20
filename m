@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-avoid-references-to-impossible-processors.patch added to -mm tree
-Date: Tue, 20 Nov 2007 00:05:19 -0800
-Message-ID: <200711200805.lAK85JLX025895@imap1.linux-foundation.org>
+Subject: + wait_task_stopped-pass-correct-exit_code-to.patch added to -mm tree
+Date: Tue, 20 Nov 2007 00:06:43 -0800
+Message-ID: <200711200806.lAK86hIR026017@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52596 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57124 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756014AbXKTIGL (ORCPT
+	by vger.kernel.org with ESMTP id S1756615AbXKTIHN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Nov 2007 03:06:11 -0500
+	Tue, 20 Nov 2007 03:07:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, lenb@kernel.org
+Cc: scott@ubuntu.com, oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     ACPI: avoid references to impossible processors.
+     wait_task_stopped(): pass correct exit_code to wait_noreap_copyout()
 has been added to the -mm tree.  Its filename is
-     acpi-avoid-references-to-impossible-processors.patch
+     wait_task_stopped-pass-correct-exit_code-to.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,156 +26,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ACPI: avoid references to impossible processors.
-From: Christoph Lameter <clameter@sgi.com>
+Subject: wait_task_stopped(): pass correct exit_code to wait_noreap_copyout()
+From: Scott James Remnant <scott@ubuntu.com>
 
-ACPI uses NR_CPUS in various loops and in some it accesses per cpu data of
-processors that are not present(!) and that will never be present.
+In wait_task_stopped() exit_code already contains the right value for the
+si_status member of siginfo, and this is simply set in the non WNOWAIT
+case.
 
-The pointers to per cpu data are typically not initialized for processors
-that are not present.  So we seem to be reading something here from offset
-0 in memory.
+Pass it unchanged to wait_noreap_copyout(); we would only need to shift it
+and add 0x7f if we were returning it in the user status field and that
+isn't used for any function that permits WNOWAIT.
 
-Make ACPI use nr_cpu_ids instead. That stops at the end of the possible
-processors.
-
-Convert one loop to NR_CPUS to use the cpu_possible map instead.  That way
-ranges of processor that can never be brought online are skipped during the
-loop.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Scott James Remnant <scott@ubuntu.com>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_core.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ kernel/exit.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/processor_core.c~acpi-avoid-references-to-impossible-processors drivers/acpi/processor_core.c
---- a/drivers/acpi/processor_core.c~acpi-avoid-references-to-impossible-processors
-+++ a/drivers/acpi/processor_core.c
-@@ -494,7 +494,7 @@ static int get_cpu_id(acpi_handle handle
- 	if (apic_id == -1)
- 		return apic_id;
- 
--	for (i = 0; i < NR_CPUS; ++i) {
-+	for_each_possible_cpu(i) {
- 		if (cpu_physical_id(i) == apic_id)
- 			return i;
- 	}
-@@ -632,7 +632,7 @@ static int __cpuinit acpi_processor_star
- 		return 0;
+diff -puN kernel/exit.c~wait_task_stopped-pass-correct-exit_code-to kernel/exit.c
+--- a/kernel/exit.c~wait_task_stopped-pass-correct-exit_code-to
++++ a/kernel/exit.c
+@@ -1388,7 +1388,7 @@ static int wait_task_stopped(struct task
+ 		if (unlikely(!exit_code) || unlikely(p->exit_state))
+ 			goto bail_ref;
+ 		return wait_noreap_copyout(p, pid, uid,
+-					   why, (exit_code << 8) | 0x7f,
++					   why, exit_code,
+ 					   infop, ru);
  	}
  
--	BUG_ON((pr->id >= NR_CPUS) || (pr->id < 0));
-+	BUG_ON((pr->id >= nr_cpu_ids) || (pr->id < 0));
- 
- 	/*
- 	 * Buggy BIOS check
-@@ -771,7 +771,7 @@ static int acpi_processor_remove(struct 
- 
- 	pr = acpi_driver_data(device);
- 
--	if (pr->id >= NR_CPUS) {
-+	if (pr->id >= nr_cpu_ids) {
- 		kfree(pr);
- 		return 0;
- 	}
-@@ -842,7 +842,7 @@ int acpi_processor_device_add(acpi_handl
- 	if (!pr)
- 		return -ENODEV;
- 
--	if ((pr->id >= 0) && (pr->id < NR_CPUS)) {
-+	if ((pr->id >= 0) && (pr->id < nr_cpu_ids)) {
- 		kobject_uevent(&(*device)->dev.kobj, KOBJ_ONLINE);
- 	}
- 	return 0;
-@@ -880,13 +880,13 @@ acpi_processor_hotplug_notify(acpi_handl
- 			break;
- 		}
- 
--		if (pr->id >= 0 && (pr->id < NR_CPUS)) {
-+		if (pr->id >= 0 && (pr->id < nr_cpu_ids)) {
- 			kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
- 			break;
- 		}
- 
- 		result = acpi_processor_start(device);
--		if ((!result) && ((pr->id >= 0) && (pr->id < NR_CPUS))) {
-+		if ((!result) && ((pr->id >= 0) && (pr->id < nr_cpu_ids))) {
- 			kobject_uevent(&device->dev.kobj, KOBJ_ONLINE);
- 		} else {
- 			printk(KERN_ERR PREFIX "Device [%s] failed to start\n",
-@@ -909,7 +909,7 @@ acpi_processor_hotplug_notify(acpi_handl
- 			return;
- 		}
- 
--		if ((pr->id < NR_CPUS) && (cpu_present(pr->id)))
-+		if ((pr->id < nr_cpu_ids) && (cpu_present(pr->id)))
- 			kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
- 		break;
- 	default:
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from scott@ubuntu.com are
 
-acpi-avoid-references-to-impossible-processors.patch
-ia64-slim-down-__clear_bit_unlock.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-mem-policy-fix-mempolicy-usage-in-pci-driver.patch
-git-s390.patch
-do-not-use-stack-to-allocate-cpumask-for-cpumask_of_cpu.patch
-git-unionfs.patch
-git-x86.patch
-x86_64-make-sparsemem-vmemmap-the-default-memory-model-v2.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-move-vmalloc_to_page-to-mm-vmalloc.patch
-vmalloc-add-const-to-void-parameters.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries.patch
-vmalloc-clean-up-page-array-indexing.patch
-vunmap-return-page-array-passed-on-vmap.patch
-slub-move-count_partial.patch
-slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio.patch
-slub-consolidate-add_partial-and-add_partial_tail-to-one-function.patch
-slub-use-non-atomic-bit-unlock.patch
-slub-fix-coding-style-violations.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-noinline-some-functions-to-avoid-them-being-folded-into-alloc-free.patch
-slub-move-kmem_cache_node-determination-into-add_full-and-add_partial.patch
-slub-move-kmem_cache_node-determination-into-add_full-and-add_partial-slub-workaround-for-lockdep-confusion.patch
-slub-avoid-checking-for-a-valid-object-before-zeroing-on-the-fast-path.patch
-slub-__slab_alloc-exit-path-consolidation.patch
-slub-provide-unique-end-marker-for-each-slab.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-avoid-referencing-kmem_cache-structure-in-__slab_alloc.patch
-slub-optional-fast-path-using-cmpxchg_local.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-fix.patch
-slub-restructure-slab-alloc.patch
-slub-comment-kmem_cache_cpu-structure.patch
-vm-allow-get_page_unless_zero-on-compound-pages.patch
-bufferhead-revert-constructor-removal.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-swapin_readahead-excise-numa-bogosity.patch
-page-allocator-clean-up-pcp-draining-functions.patch
-vmstat-small-revisions-to-refresh_cpu_vm_stats.patch
-page-allocator-get-rid-of-the-list-of-cold-pages.patch
-page-allocator-get-rid-of-the-list-of-cold-pages-fix.patch
-mm-sparsec-check-the-return-value-of-sparse_index_alloc.patch
-percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data.patch
-revoke-core-code.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-oom-add-sysctl-to-enable-task-memory-dump.patch
-add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
-add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
-dentries-extract-common-code-to-remove-dentry-from-lru.patch
-dentries-extract-common-code-to-remove-dentry-from-lru-fix.patch
-reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
-page-owner-tracking-leak-detector.patch
+wait_task_stopped-pass-correct-exit_code-to.patch
