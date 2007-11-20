@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i-oat-fixups-from-code-comments.patch added to -mm tree
-Date: Mon, 19 Nov 2007 16:49:15 -0800
-Message-ID: <200711200049.lAK0nFsc005172@imap1.linux-foundation.org>
+Subject: + proc-remove-races-from-proc_id_readdir.patch added to -mm tree
+Date: Mon, 19 Nov 2007 16:51:25 -0800
+Message-ID: <200711200051.lAK0pP5A005199@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50183 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51412 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752158AbXKTAtS (ORCPT
+	by vger.kernel.org with ESMTP id S1752144AbXKTAvg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Nov 2007 19:49:18 -0500
+	Mon, 19 Nov 2007 19:51:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shannon.nelson@intel.com, dan.j.williams@intel.com
+Cc: ebiederm@xmission.com, adobriyan@gmail.com, oleg@tv-sign.ru
 
 
 The patch titled
-     I/OAT: fixups from code comments
+     proc: remove races from proc_id_readdir()
 has been added to the -mm tree.  Its filename is
-     i-oat-fixups-from-code-comments.patch
+     proc-remove-races-from-proc_id_readdir.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,287 +26,181 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: I/OAT: fixups from code comments
-From: Shannon Nelson <shannon.nelson@intel.com>
+Subject: proc: remove races from proc_id_readdir()
+From: "Eric W. Biederman" <ebiederm@xmission.com>
 
-A few fixups from Andrew's code comments.
-  - removed "static inline" forward-declares
-  - changed use of min() to min_t()
-  - removed some unnecessary NULL initializations
-  - removed a couple of BUG() calls
+Oleg noticed that the call of task_pid_nr_ns() in proc_pid_readdir
+is racy with respect to tasks exiting.
 
-Signed-off-by: Shannon Nelson <shannon.nelson@intel.com>
-Cc: "Williams, Dan J" <dan.j.williams@intel.com>
+After a bit of examination it also appears that the call itself
+is completely unnecessary.
+
+So to fix the problem this patch modifies next_tgid() to return
+both a tgid and the task struct in question.
+
+A structure is introduced to return these values because it is
+slightly cleaner and easier to optimize, and the resulting code
+is a little shorter.
+
+Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/ioat_dma.c |  142 +++++++++++++++++++++------------------
- drivers/dma/ioatdma.h  |    2 
- 2 files changed, 78 insertions(+), 66 deletions(-)
+ fs/proc/base.c |   51 +++++++++++++++++++++++++----------------------
+ 1 file changed, 28 insertions(+), 23 deletions(-)
 
-diff -puN drivers/dma/ioat_dma.c~i-oat-fixups-from-code-comments drivers/dma/ioat_dma.c
---- a/drivers/dma/ioat_dma.c~i-oat-fixups-from-code-comments
-+++ a/drivers/dma/ioat_dma.c
-@@ -173,10 +173,47 @@ static void ioat_set_dest(dma_addr_t add
- 	tx_to_ioat_desc(tx)->dst = addr;
+diff -puN fs/proc/base.c~proc-remove-races-from-proc_id_readdir fs/proc/base.c
+--- a/fs/proc/base.c~proc-remove-races-from-proc_id_readdir
++++ a/fs/proc/base.c
+@@ -2411,19 +2411,23 @@ out:
+  * Find the first task with tgid >= tgid
+  *
+  */
+-static struct task_struct *next_tgid(unsigned int tgid,
+-		struct pid_namespace *ns)
+-{
++struct tgid_iter {
++	unsigned int tgid;
+ 	struct task_struct *task;
++};
++static struct tgid_iter next_tgid(struct pid_namespace *ns, struct tgid_iter iter)
++{
+ 	struct pid *pid;
+ 
++	if (iter.task)
++		put_task_struct(iter.task);
+ 	rcu_read_lock();
+ retry:
+-	task = NULL;
+-	pid = find_ge_pid(tgid, ns);
++	iter.task = NULL;
++	pid = find_ge_pid(iter.tgid, ns);
+ 	if (pid) {
+-		tgid = pid_nr_ns(pid, ns) + 1;
+-		task = pid_task(pid, PIDTYPE_PID);
++		iter.tgid = pid_nr_ns(pid, ns);
++		iter.task = pid_task(pid, PIDTYPE_PID);
+ 		/* What we to know is if the pid we have find is the
+ 		 * pid of a thread_group_leader.  Testing for task
+ 		 * being a thread_group_leader is the obvious thing
+@@ -2436,23 +2440,25 @@ retry:
+ 		 * found doesn't happen to be a thread group leader.
+ 		 * As we don't care in the case of readdir.
+ 		 */
+-		if (!task || !has_group_leader_pid(task))
++		if (!iter.task || !has_group_leader_pid(iter.task)) {
++			iter.tgid += 1;
+ 			goto retry;
+-		get_task_struct(task);
++		}
++		get_task_struct(iter.task);
+ 	}
+ 	rcu_read_unlock();
+-	return task;
++	return iter;
  }
  
-+/**
-+ * ioat_dma_memcpy_issue_pending - push potentially unrecognized appended
-+ *                                 descriptors to hw
-+ * @chan: DMA channel handle
-+ */
- static inline void __ioat1_dma_memcpy_issue_pending(
--					       struct ioat_dma_chan *ioat_chan);
-+						struct ioat_dma_chan *ioat_chan)
-+{
-+	ioat_chan->pending = 0;
-+	writeb(IOAT_CHANCMD_APPEND, ioat_chan->reg_base + IOAT1_CHANCMD_OFFSET);
-+}
-+
-+static void ioat1_dma_memcpy_issue_pending(struct dma_chan *chan)
-+{
-+	struct ioat_dma_chan *ioat_chan = to_ioat_chan(chan);
-+
-+	if (ioat_chan->pending != 0) {
-+		spin_lock_bh(&ioat_chan->desc_lock);
-+		__ioat1_dma_memcpy_issue_pending(ioat_chan);
-+		spin_unlock_bh(&ioat_chan->desc_lock);
-+	}
-+}
-+
- static inline void __ioat2_dma_memcpy_issue_pending(
--					       struct ioat_dma_chan *ioat_chan);
-+						struct ioat_dma_chan *ioat_chan)
-+{
-+	ioat_chan->pending = 0;
-+	writew(ioat_chan->dmacount,
-+	       ioat_chan->reg_base + IOAT_CHAN_DMACOUNT_OFFSET);
-+}
-+
-+static void ioat2_dma_memcpy_issue_pending(struct dma_chan *chan)
-+{
-+	struct ioat_dma_chan *ioat_chan = to_ioat_chan(chan);
-+
-+	if (ioat_chan->pending != 0) {
-+		spin_lock_bh(&ioat_chan->desc_lock);
-+		__ioat2_dma_memcpy_issue_pending(ioat_chan);
-+		spin_unlock_bh(&ioat_chan->desc_lock);
-+	}
-+}
+ #define TGID_OFFSET (FIRST_PROCESS_ENTRY + ARRAY_SIZE(proc_base_stuff))
  
- static dma_cookie_t ioat1_tx_submit(struct dma_async_tx_descriptor *tx)
+ static int proc_pid_fill_cache(struct file *filp, void *dirent, filldir_t filldir,
+-	struct task_struct *task, int tgid)
++	struct tgid_iter iter)
  {
-@@ -203,7 +240,7 @@ static dma_cookie_t ioat1_tx_submit(stru
- 	prev = to_ioat_desc(ioat_chan->used_desc.prev);
- 	prefetch(prev->hw);
- 	do {
--		copy = min((u32) len, ioat_chan->xfercap);
-+		copy = min_t(size_t, len, ioat_chan->xfercap);
+ 	char name[PROC_NUMBUF];
+-	int len = snprintf(name, sizeof(name), "%d", tgid);
++	int len = snprintf(name, sizeof(name), "%d", iter.tgid);
+ 	return proc_fill_cache(filp, dirent, filldir, name, len,
+-				proc_pid_instantiate, task, NULL);
++				proc_pid_instantiate, iter.task, NULL);
+ }
  
- 		new->async_tx.ack = 1;
- 
-@@ -291,10 +328,12 @@ static dma_cookie_t ioat2_tx_submit(stru
- 	orig_ack = first->async_tx.ack;
- 	new = first;
- 
--	/* ioat_chan->desc_lock is still in force in version 2 path */
--
-+	/*
-+	 * ioat_chan->desc_lock is still in force in version 2 path
-+	 * it gets unlocked at end of this function
-+	 */
- 	do {
--		copy = min((u32) len, ioat_chan->xfercap);
-+		copy = min_t(size_t, len, ioat_chan->xfercap);
- 
- 		new->async_tx.ack = 1;
- 
-@@ -432,7 +471,7 @@ static void ioat2_dma_massage_chan_desc(
- static int ioat_dma_alloc_chan_resources(struct dma_chan *chan)
+ /* for the /proc/ directory itself, after non-process stuff has been done */
+@@ -2460,8 +2466,7 @@ int proc_pid_readdir(struct file * filp,
  {
- 	struct ioat_dma_chan *ioat_chan = to_ioat_chan(chan);
--	struct ioat_desc_sw *desc = NULL;
-+	struct ioat_desc_sw *desc;
- 	u16 chanctrl;
- 	u32 chanerr;
- 	int i;
-@@ -575,7 +614,7 @@ static void ioat_dma_free_chan_resources
- static struct ioat_desc_sw *
- ioat1_dma_get_next_descriptor(struct ioat_dma_chan *ioat_chan)
- {
--	struct ioat_desc_sw *new = NULL;
-+	struct ioat_desc_sw *new;
+ 	unsigned int nr = filp->f_pos - FIRST_PROCESS_ENTRY;
+ 	struct task_struct *reaper = get_proc_task(filp->f_path.dentry->d_inode);
+-	struct task_struct *task;
+-	int tgid;
++	struct tgid_iter iter;
+ 	struct pid_namespace *ns;
  
- 	if (!list_empty(&ioat_chan->free_desc)) {
- 		new = to_ioat_desc(ioat_chan->free_desc.next);
-@@ -583,9 +622,11 @@ ioat1_dma_get_next_descriptor(struct ioa
- 	} else {
- 		/* try to get another desc */
- 		new = ioat_dma_alloc_descriptor(ioat_chan, GFP_ATOMIC);
--		/* will this ever happen? */
--		/* TODO add upper limit on these */
--		BUG_ON(!new);
-+		if (!new) {
-+			dev_err(&ioat_chan->device->pdev->dev,
-+				"alloc failed\n");
-+			return NULL;
-+		}
+ 	if (!reaper)
+@@ -2474,14 +2479,14 @@ int proc_pid_readdir(struct file * filp,
  	}
  
- 	prefetch(new->hw);
-@@ -595,7 +636,7 @@ ioat1_dma_get_next_descriptor(struct ioa
- static struct ioat_desc_sw *
- ioat2_dma_get_next_descriptor(struct ioat_dma_chan *ioat_chan)
- {
--	struct ioat_desc_sw *new = NULL;
-+	struct ioat_desc_sw *new;
- 
- 	/*
- 	 * used.prev points to where to start processing
-@@ -609,8 +650,8 @@ ioat2_dma_get_next_descriptor(struct ioa
- 	if (ioat_chan->used_desc.prev &&
- 	    ioat_chan->used_desc.next == ioat_chan->used_desc.prev->prev) {
- 
--		struct ioat_desc_sw *desc = NULL;
--		struct ioat_desc_sw *noop_desc = NULL;
-+		struct ioat_desc_sw *desc;
-+		struct ioat_desc_sw *noop_desc;
- 		int i;
- 
- 		/* set up the noop descriptor */
-@@ -624,10 +665,14 @@ ioat2_dma_get_next_descriptor(struct ioa
- 		ioat_chan->pending++;
- 		ioat_chan->dmacount++;
- 
--		/* get a few more descriptors */
-+		/* try to get a few more descriptors */
- 		for (i = 16; i; i--) {
- 			desc = ioat_dma_alloc_descriptor(ioat_chan, GFP_ATOMIC);
--			BUG_ON(!desc);
-+			if (!desc) {
-+				dev_err(&ioat_chan->device->pdev->dev,
-+					"alloc failed\n");
-+				break;
-+			}
- 			list_add_tail(&desc->node, ioat_chan->used_desc.next);
- 
- 			desc->hw->next
-@@ -677,10 +722,13 @@ static struct dma_async_tx_descriptor *i
- 
- 	spin_lock_bh(&ioat_chan->desc_lock);
- 	new = ioat_dma_get_next_descriptor(ioat_chan);
--	new->len = len;
- 	spin_unlock_bh(&ioat_chan->desc_lock);
- 
--	return new ? &new->async_tx : NULL;
-+	if (new) {
-+		new->len = len;
-+		return &new->async_tx;
-+	} else
-+		return NULL;
- }
- 
- static struct dma_async_tx_descriptor *ioat2_dma_prep_memcpy(
-@@ -693,53 +741,17 @@ static struct dma_async_tx_descriptor *i
- 
- 	spin_lock_bh(&ioat_chan->desc_lock);
- 	new = ioat2_dma_get_next_descriptor(ioat_chan);
--	new->len = len;
--
--	/* leave ioat_chan->desc_lock set in version 2 path */
--	return new ? &new->async_tx : NULL;
--}
--
--
--/**
-- * ioat_dma_memcpy_issue_pending - push potentially unrecognized appended
-- *                                 descriptors to hw
-- * @chan: DMA channel handle
-- */
--static inline void __ioat1_dma_memcpy_issue_pending(
--						struct ioat_dma_chan *ioat_chan)
--{
--	ioat_chan->pending = 0;
--	writeb(IOAT_CHANCMD_APPEND, ioat_chan->reg_base + IOAT1_CHANCMD_OFFSET);
--}
--
--static void ioat1_dma_memcpy_issue_pending(struct dma_chan *chan)
--{
--	struct ioat_dma_chan *ioat_chan = to_ioat_chan(chan);
--
--	if (ioat_chan->pending != 0) {
--		spin_lock_bh(&ioat_chan->desc_lock);
--		__ioat1_dma_memcpy_issue_pending(ioat_chan);
--		spin_unlock_bh(&ioat_chan->desc_lock);
--	}
--}
--
--static inline void __ioat2_dma_memcpy_issue_pending(
--						struct ioat_dma_chan *ioat_chan)
--{
--	ioat_chan->pending = 0;
--	writew(ioat_chan->dmacount,
--	       ioat_chan->reg_base + IOAT_CHAN_DMACOUNT_OFFSET);
--}
- 
--static void ioat2_dma_memcpy_issue_pending(struct dma_chan *chan)
--{
--	struct ioat_dma_chan *ioat_chan = to_ioat_chan(chan);
-+	/*
-+	 * leave ioat_chan->desc_lock set in ioat 2 path
-+	 * it will get unlocked at end of tx_submit
-+	 */
- 
--	if (ioat_chan->pending != 0) {
--		spin_lock_bh(&ioat_chan->desc_lock);
--		__ioat2_dma_memcpy_issue_pending(ioat_chan);
--		spin_unlock_bh(&ioat_chan->desc_lock);
--	}
-+	if (new) {
-+		new->len = len;
-+		return &new->async_tx;
-+	} else
-+		return NULL;
- }
- 
- static void ioat_dma_cleanup_tasklet(unsigned long data)
-@@ -1019,7 +1031,7 @@ static void ioat_dma_start_null_desc(str
- static void ioat_dma_test_callback(void *dma_async_param)
- {
- 	printk(KERN_ERR "ioatdma: ioat_dma_test_callback(%p)\n",
--			dma_async_param);
-+		dma_async_param);
- }
- 
- /**
-@@ -1032,7 +1044,7 @@ static int ioat_dma_self_test(struct ioa
- 	u8 *src;
- 	u8 *dest;
- 	struct dma_chan *dma_chan;
--	struct dma_async_tx_descriptor *tx = NULL;
-+	struct dma_async_tx_descriptor *tx;
- 	dma_addr_t addr;
- 	dma_cookie_t cookie;
- 	int err = 0;
-diff -puN drivers/dma/ioatdma.h~i-oat-fixups-from-code-comments drivers/dma/ioatdma.h
---- a/drivers/dma/ioatdma.h~i-oat-fixups-from-code-comments
-+++ a/drivers/dma/ioatdma.h
-@@ -76,7 +76,7 @@ struct ioat_dma_chan {
- 	dma_cookie_t completed_cookie;
- 	unsigned long last_completion;
- 
--	u32 xfercap;	/* XFERCAP register value expanded out */
-+	size_t xfercap;	/* XFERCAP register value expanded out */
- 
- 	spinlock_t cleanup_lock;
- 	spinlock_t desc_lock;
+ 	ns = filp->f_dentry->d_sb->s_fs_info;
+-	tgid = filp->f_pos - TGID_OFFSET;
+-	for (task = next_tgid(tgid, ns);
+-	     task;
+-	     put_task_struct(task), task = next_tgid(tgid + 1, ns)) {
+-		tgid = task_pid_nr_ns(task, ns);
+-		filp->f_pos = tgid + TGID_OFFSET;
+-		if (proc_pid_fill_cache(filp, dirent, filldir, task, tgid) < 0) {
+-			put_task_struct(task);
++	iter.task = NULL;
++	iter.tgid = filp->f_pos - TGID_OFFSET;
++	for (iter = next_tgid(ns, iter);
++	     iter.task;
++	     iter.tgid += 1, iter = next_tgid(ns, iter)) {
++		filp->f_pos = iter.tgid + TGID_OFFSET;
++		if (proc_pid_fill_cache(filp, dirent, filldir, iter) < 0) {
++			put_task_struct(iter.task);
+ 			goto out;
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from shannon.nelson@intel.com are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
-i-oat-fixups-from-code-comments.patch
-dca-convert-struct-class_device-to-struct-device.patch
-add-dma-engine-driver-for-freescale-mpc85xx-processors.patch
-add-dma-engine-driver-for-freescale-mpc85xx-processors-fix.patch
-add-dma-engine-driver-for-freescale-mpc85xx-processors-fix-fix.patch
+proc-fix-null-i_fop-oops.patch
+proc-remove-races-from-proc_id_readdir.patch
+git-s390.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-memcgroup-fix-try_to_free-order.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+memcgroup-reinstate-swapoff-mod.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
+memcgroup-fix-zone-isolation-oom.patch
+memcgroup-revert-swap_state-mods.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
+memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
+memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+memory-cgroup-enhancements-add-pre_destroy-handler.patch
+memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
+introduce-flags-for-reserve_bootmem.patch
+use-bootmem_exclusive-for-kdump.patch
+iget-stop-procfs-from-using-iget-and-read_inode.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+d_path-make-proc_get_link-use-a-struct-path-argument.patch
+add-the-namespaces-config-option.patch
+move-the-uts-namespace-under-uts_ns-option.patch
+move-the-ipc-namespace-under-ipc_ns-option.patch
+cleanup-the-code-managed-with-the-user_ns-option.patch
+cleanup-the-code-managed-with-pid_ns-option.patch
+mark-net_ns-with-depends-on-namespaces.patch
