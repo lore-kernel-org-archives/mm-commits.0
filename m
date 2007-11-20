@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + proc-implement-proc_single_file_operations.patch added to -mm tree
-Date: Mon, 19 Nov 2007 16:59:20 -0800
-Message-ID: <200711200059.lAK0xKeS005539@imap1.linux-foundation.org>
+Subject: + pcie-fix-double-initialization-bug.patch added to -mm tree
+Date: Mon, 19 Nov 2007 17:07:27 -0800
+Message-ID: <200711200107.lAK17RsN005782@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59019 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55769 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752515AbXKTBBC (ORCPT
+	by vger.kernel.org with ESMTP id S1752492AbXKTBIg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Nov 2007 20:01:02 -0500
+	Mon, 19 Nov 2007 20:08:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, adobriyan@gmail.com, oleg@tv-sign.ru
+Cc: lkml@rtr.ca, kristen.c.accardi@intel.com, mlord@pobox.com
 
 
 The patch titled
-     proc: implement proc_single_file_operations
+     PCIe: fix double initialization bug
 has been added to the -mm tree.  Its filename is
-     proc-implement-proc_single_file_operations.patch
+     pcie-fix-double-initialization-bug.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,155 +26,251 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: proc: implement proc_single_file_operations
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: PCIe: fix double initialization bug
+From: Mark Lord <lkml@rtr.ca>
 
-Currently many /proc/pid files use a crufty precursor to the current seq_file
-api, and they don't have direct access to the pid_namespace or the pid of for
-which they are displaying data.
+Earlier patches to split out the hardware init for PCIe hotplug resulted in
+some one-time initializations being redone on every resume cycle.  Eg. 
+irq/polling initialization.
 
-So implement proc_single_file_operations to make the seq_file routines easy to
-use, and to give access to the full state of the pid of we are displaying data
-for.
+This patch splits the hardware init into two parts, and separates the
+one-time initializations from those so that they only ever get done once,
+as intended.
 
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Mark Lord <mlord@pobox.com>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c          |   43 ++++++++++++++++++++++++++++++++++++++
- include/linux/proc_fs.h |    3 ++
- 2 files changed, 46 insertions(+)
+ drivers/pci/hotplug/pciehp.h      |    2 
+ drivers/pci/hotplug/pciehp_core.c |    2 
+ drivers/pci/hotplug/pciehp_hpc.c  |  119 +++++++++++++++-------------
+ 3 files changed, 69 insertions(+), 54 deletions(-)
 
-diff -puN fs/proc/base.c~proc-implement-proc_single_file_operations fs/proc/base.c
---- a/fs/proc/base.c~proc-implement-proc_single_file_operations
-+++ a/fs/proc/base.c
-@@ -121,6 +121,10 @@ struct pid_entry {
- 	NOD(NAME, (S_IFREG|(MODE)), 			\
- 		NULL, &proc_info_file_operations,	\
- 		{ .proc_read = &proc_##OTYPE } )
-+#define ONE(NAME, MODE, OTYPE)				\
-+	NOD(NAME, (S_IFREG|(MODE)), 			\
-+		NULL, &proc_single_file_operations,	\
-+		{ .proc_show = &proc_##OTYPE } )
+diff -puN drivers/pci/hotplug/pciehp.h~pcie-fix-double-initialization-bug drivers/pci/hotplug/pciehp.h
+--- a/drivers/pci/hotplug/pciehp.h~pcie-fix-double-initialization-bug
++++ a/drivers/pci/hotplug/pciehp.h
+@@ -163,7 +163,7 @@ extern void pciehp_queue_pushbutton_work
+ int pcie_init(struct controller *ctrl, struct pcie_device *dev);
+ int pciehp_enable_slot(struct slot *p_slot);
+ int pciehp_disable_slot(struct slot *p_slot);
+-int pcie_init_hardware(struct controller *ctrl, struct pcie_device *dev);
++int pcie_init_hardware_part2(struct controller *ctrl, struct pcie_device *dev);
  
- int maps_protect;
- EXPORT_SYMBOL(maps_protect);
-@@ -567,6 +571,45 @@ static const struct file_operations proc
- 	.read		= proc_info_read,
- };
- 
-+static int proc_single_show(struct seq_file *m, void *v)
-+{
-+	struct inode *inode = m->private;
-+	struct pid_namespace *ns;
-+	struct pid *pid;
-+	struct task_struct *task;
-+	int ret;
-+
-+	ns = inode->i_sb->s_fs_info;
-+	pid = proc_pid(inode);
-+	task = get_pid_task(pid, PIDTYPE_PID);
-+	if (!task)
-+		return -ESRCH;
-+
-+	ret = PROC_I(inode)->op.proc_show(m, ns, pid, task);
-+
-+	put_task_struct(task);
-+	return ret;
-+}
-+
-+static int proc_single_open(struct inode *inode, struct file *filp)
-+{
-+	int ret;
-+	ret = single_open(filp, proc_single_show, NULL);
-+	if (!ret) {
-+		struct seq_file *m = filp->private_data;
-+
-+		m->private = inode;
-+	}
-+	return ret;
-+}
-+
-+static const struct file_operations proc_single_file_operations = {
-+	.open		= proc_single_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
-+
- static int mem_open(struct inode* inode, struct file* file)
+ static inline struct slot *pciehp_find_slot(struct controller *ctrl, u8 device)
  {
- 	file->private_data = (void*)((long)current->self_exec_id);
-diff -puN include/linux/proc_fs.h~proc-implement-proc_single_file_operations include/linux/proc_fs.h
---- a/include/linux/proc_fs.h~proc-implement-proc_single_file_operations
-+++ a/include/linux/proc_fs.h
-@@ -257,6 +257,9 @@ extern void kclist_add(struct kcore_list
- union proc_op {
- 	int (*proc_get_link)(struct inode *, struct path *);
- 	int (*proc_read)(struct task_struct *task, char *page);
-+	int (*proc_show)(struct seq_file *m,
-+		struct pid_namespace *ns, struct pid *pid,
-+		struct task_struct *task);
- };
+diff -puN drivers/pci/hotplug/pciehp_core.c~pcie-fix-double-initialization-bug drivers/pci/hotplug/pciehp_core.c
+--- a/drivers/pci/hotplug/pciehp_core.c~pcie-fix-double-initialization-bug
++++ a/drivers/pci/hotplug/pciehp_core.c
+@@ -521,7 +521,7 @@ static int pciehp_resume (struct pcie_de
+ 		u8 status;
  
- struct proc_inode {
+ 		/* reinitialize the chipset's event detection logic */
+-		pcie_init_hardware(ctrl, dev);
++		pcie_init_hardware_part2(ctrl, dev);
+ 
+ 		t_slot = pciehp_find_slot(ctrl, ctrl->slot_device_offset);
+ 
+diff -puN drivers/pci/hotplug/pciehp_hpc.c~pcie-fix-double-initialization-bug drivers/pci/hotplug/pciehp_hpc.c
+--- a/drivers/pci/hotplug/pciehp_hpc.c~pcie-fix-double-initialization-bug
++++ a/drivers/pci/hotplug/pciehp_hpc.c
+@@ -1067,28 +1067,25 @@ int pciehp_acpi_get_hp_hw_control_from_f
+ }
+ #endif
+ 
+-int pcie_init_hardware(struct controller *ctrl, struct pcie_device *dev)
++static int pcie_init_hardware_part1(struct controller *ctrl,
++				    struct pcie_device *dev)
+ {
+ 	int rc;
+ 	u16 temp_word;
+-	u16 intr_enable = 0;
+ 	u32 slot_cap;
+ 	u16 slot_status;
+-	struct pci_dev *pdev;
+-
+-	pdev = dev->port;
+ 
+ 	rc = pciehp_readl(ctrl, SLOTCAP, &slot_cap);
+ 	if (rc) {
+ 		err("%s: Cannot read SLOTCAP register\n", __FUNCTION__);
+-		goto abort_free_ctlr;
++		return -1;
+ 	}
+ 
+ 	/* Mask Hot-plug Interrupt Enable */
+ 	rc = pciehp_readw(ctrl, SLOTCTRL, &temp_word);
+ 	if (rc) {
+ 		err("%s: Cannot read SLOTCTRL register\n", __FUNCTION__);
+-		goto abort_free_ctlr;
++		return -1;
+ 	}
+ 
+ 	dbg("%s: SLOTCTRL %x value read %x\n",
+@@ -1099,62 +1096,46 @@ int pcie_init_hardware(struct controller
+ 	rc = pciehp_writew(ctrl, SLOTCTRL, temp_word);
+ 	if (rc) {
+ 		err("%s: Cannot write to SLOTCTRL register\n", __FUNCTION__);
+-		goto abort_free_ctlr;
++		return -1;
+ 	}
+ 
+ 	rc = pciehp_readw(ctrl, SLOTSTATUS, &slot_status);
+ 	if (rc) {
+ 		err("%s: Cannot read SLOTSTATUS register\n", __FUNCTION__);
+-		goto abort_free_ctlr;
++		return -1;
+ 	}
+ 
+ 	temp_word = 0x1F; /* Clear all events */
+ 	rc = pciehp_writew(ctrl, SLOTSTATUS, temp_word);
+ 	if (rc) {
+ 		err("%s: Cannot write to SLOTSTATUS register\n", __FUNCTION__);
+-		goto abort_free_ctlr;
++		return -1;
+ 	}
++	return 0;
++}
+ 
+-	if (pciehp_poll_mode) {
+-		/* Install interrupt polling timer. Start with 10 sec delay */
+-		init_timer(&ctrl->poll_timer);
+-		start_int_poll_timer(ctrl, 10);
+-	} else {
+-		/* Installs the interrupt handler */
+-		rc = request_irq(ctrl->pci_dev->irq, pcie_isr, IRQF_SHARED,
+-				 MY_NAME, (void *)ctrl);
+-		dbg("%s: request_irq %d for hpc%d (returns %d)\n",
+-		    __FUNCTION__, ctrl->pci_dev->irq,
+-		    atomic_read(&pciehp_num_controllers), rc);
+-		if (rc) {
+-			err("Can't get irq %d for the hotplug controller\n",
+-			    ctrl->pci_dev->irq);
+-			goto abort_free_ctlr;
+-		}
+-	}
+-	dbg("pciehp ctrl b:d:f:irq=0x%x:%x:%x:%x\n", pdev->bus->number,
+-		PCI_SLOT(pdev->devfn), PCI_FUNC(pdev->devfn), dev->irq);
+-
+-	/*
+-	 * If this is the first controller to be initialized,
+-	 * initialize the pciehp work queue
+-	 */
+-	if (atomic_add_return(1, &pciehp_num_controllers) == 1) {
+-		pciehp_wq = create_singlethread_workqueue("pciehpd");
+-		if (!pciehp_wq) {
+-			rc = -ENOMEM;
+-			goto abort_free_irq;
+-		}
+-	}
++int pcie_init_hardware_part2(struct controller *ctrl, struct pcie_device *dev)
++{
++	int rc;
++	u16 temp_word;
++	u16 intr_enable = 0;
++	u32 slot_cap;
++	u16 slot_status;
+ 
+ 	rc = pciehp_readw(ctrl, SLOTCTRL, &temp_word);
+ 	if (rc) {
+ 		err("%s: Cannot read SLOTCTRL register\n", __FUNCTION__);
+-		goto abort_free_irq;
++		goto abort;
+ 	}
+ 
+ 	intr_enable = intr_enable | PRSN_DETECT_ENABLE;
+ 
++	rc = pciehp_readl(ctrl, SLOTCAP, &slot_cap);
++	if (rc) {
++		err("%s: Cannot read SLOTCAP register\n", __FUNCTION__);
++		goto abort;
++	}
++
+ 	if (ATTN_BUTTN(slot_cap))
+ 		intr_enable = intr_enable | ATTN_BUTTN_ENABLE;
+ 
+@@ -1179,7 +1160,7 @@ int pcie_init_hardware(struct controller
+ 	rc = pciehp_writew(ctrl, SLOTCTRL, temp_word);
+ 	if (rc) {
+ 		err("%s: Cannot write to SLOTCTRL register\n", __FUNCTION__);
+-		goto abort_free_irq;
++		goto abort;
+ 	}
+ 	rc = pciehp_readw(ctrl, SLOTSTATUS, &slot_status);
+ 	if (rc) {
+@@ -1214,14 +1195,7 @@ abort_disable_intr:
+ 	}
+ 	if (rc)
+ 		err("%s : disabling interrupts failed\n", __FUNCTION__);
+-
+-abort_free_irq:
+-	if (pciehp_poll_mode)
+-		del_timer_sync(&ctrl->poll_timer);
+-	else
+-		free_irq(ctrl->pci_dev->irq, ctrl);
+-
+-abort_free_ctlr:
++abort:
+ 	return -1;
+ }
+ 
+@@ -1318,11 +1292,52 @@ int pcie_init(struct controller *ctrl, s
+ 	ctrl->first_slot = slot_cap >> 19;
+ 	ctrl->ctrlcap = slot_cap & 0x0000007f;
+ 
+-	rc = pcie_init_hardware(ctrl, dev);
++	rc = pcie_init_hardware_part1(ctrl, dev);
++	if (rc)
++		goto abort;
++
++	if (pciehp_poll_mode) {
++		/* Install interrupt polling timer. Start with 10 sec delay */
++		init_timer(&ctrl->poll_timer);
++		start_int_poll_timer(ctrl, 10);
++	} else {
++		/* Installs the interrupt handler */
++		rc = request_irq(ctrl->pci_dev->irq, pcie_isr, IRQF_SHARED,
++				 MY_NAME, (void *)ctrl);
++		dbg("%s: request_irq %d for hpc%d (returns %d)\n",
++		    __FUNCTION__, ctrl->pci_dev->irq,
++		    atomic_read(&pciehp_num_controllers), rc);
++		if (rc) {
++			err("Can't get irq %d for the hotplug controller\n",
++			    ctrl->pci_dev->irq);
++			goto abort;
++		}
++	}
++	dbg("pciehp ctrl b:d:f:irq=0x%x:%x:%x:%x\n", pdev->bus->number,
++		PCI_SLOT(pdev->devfn), PCI_FUNC(pdev->devfn), dev->irq);
++
++	/*
++	 * If this is the first controller to be initialized,
++	 * initialize the pciehp work queue
++	 */
++	if (atomic_add_return(1, &pciehp_num_controllers) == 1) {
++		pciehp_wq = create_singlethread_workqueue("pciehpd");
++		if (!pciehp_wq) {
++			rc = -ENOMEM;
++			goto abort_free_irq;
++		}
++	}
++
++	rc = pcie_init_hardware_part2(ctrl, dev);
+ 	if (rc == 0) {
+ 		ctrl->hpc_ops = &pciehp_hpc_ops;
+ 		return 0;
+ 	}
++abort_free_irq:
++	if (pciehp_poll_mode)
++		del_timer_sync(&ctrl->poll_timer);
++	else
++		free_irq(ctrl->pci_dev->irq, ctrl);
+ abort:
+ 	return -1;
+ }
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from lkml@rtr.ca are
 
-proc-fix-null-i_fop-oops.patch
-proc-remove-races-from-proc_id_readdir.patch
-git-s390.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-memcgroup-fix-try_to_free-order.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-memcgroup-reinstate-swapoff-mod.patch
-bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
-bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
-bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
-memcgroup-fix-zone-isolation-oom.patch
-memcgroup-revert-swap_state-mods.patch
-bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
-memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
-memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-memory-cgroup-enhancements-add-pre_destroy-handler.patch
-memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
-introduce-flags-for-reserve_bootmem.patch
-use-bootmem_exclusive-for-kdump.patch
-iget-stop-procfs-from-using-iget-and-read_inode.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-d_path-make-proc_get_link-use-a-struct-path-argument.patch
-add-the-namespaces-config-option.patch
-move-the-uts-namespace-under-uts_ns-option.patch
-move-the-ipc-namespace-under-ipc_ns-option.patch
-cleanup-the-code-managed-with-the-user_ns-option.patch
-cleanup-the-code-managed-with-pid_ns-option.patch
-mark-net_ns-with-depends-on-namespaces.patch
-proc-implement-proc_single_file_operations.patch
-proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
-proc-seqfile-convert-proc_pid_statm.patch
+rtc-dont-write-rtc-century-when-setting-a-wake-alarm.patch
+pcie-fix-double-initialization-bug.patch
