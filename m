@@ -1,51 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - elantech-touchpad-driver-fix.patch removed from -mm tree
-Date: Wed, 21 Nov 2007 14:59:20 -0800
-Message-ID: <200711212259.lALMxKWr013427@imap1.linux-foundation.org>
+Subject: - more-sanity-checks-for-dmar-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 21 Nov 2007 15:06:17 -0800
+Message-ID: <200711212306.lALN6HHm013873@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43462 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37796 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753381AbXKUXAK (ORCPT
+	by vger.kernel.org with ESMTP id S1753166AbXKUXGv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Nov 2007 18:00:10 -0500
+	Wed, 21 Nov 2007 18:06:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arjan@opmeer.net, dtor@mail.ru, jkosina@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fenghua.yu@intel.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     elantech-touchpad-driver-fix
+     more-sanity-checks-for-dmar-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     elantech-touchpad-driver-fix.patch
+     more-sanity-checks-for-dmar-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into elantech-touchpad-driver.patch
+This patch was dropped because it was folded into more-sanity-checks-for-dmar.patch
 
 ------------------------------------------------------
-Subject: elantech-touchpad-driver-fix
+Subject: more-sanity-checks-for-dmar-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Arjan Opmeer <arjan@opmeer.net>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Jiri Kosina <jkosina@suse.cz>
+WARNING: no space between function name and open parenthesis '('
+#42: FILE: drivers/pci/dmar.c:268:
++		printk (KERN_WARNING PREFIX "Invalid DMAR haw\n");
+
+total: 0 errors, 1 warnings, 42 lines checked
+
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/mouse/psmouse.h |    2 +-
+ drivers/pci/dmar.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/input/mouse/psmouse.h~elantech-touchpad-driver-fix drivers/input/mouse/psmouse.h
---- a/drivers/input/mouse/psmouse.h~elantech-touchpad-driver-fix
-+++ a/drivers/input/mouse/psmouse.h
-@@ -88,8 +88,8 @@ enum psmouse_type {
- 	PSMOUSE_LIFEBOOK,
- 	PSMOUSE_TRACKPOINT,
- 	PSMOUSE_TOUCHKIT_PS2,
--	PSMOUSE_ELANTECH,
- 	PSMOUSE_CORTRON,
-+	PSMOUSE_ELANTECH,
- 	PSMOUSE_AUTO		/* This one should always be last */
- };
+diff -puN drivers/pci/dmar.c~more-sanity-checks-for-dmar-checkpatch-fixes drivers/pci/dmar.c
+--- a/drivers/pci/dmar.c~more-sanity-checks-for-dmar-checkpatch-fixes
++++ a/drivers/pci/dmar.c
+@@ -265,7 +265,7 @@ parse_dmar_table(void)
+ 		return -ENODEV;
+ 
+ 	if (dmar->width < PAGE_SHIFT_4K - 1) {
+-		printk (KERN_WARNING PREFIX "Invalid DMAR haw\n");
++		printk(KERN_WARNING PREFIX "Invalid DMAR haw\n");
+ 		return -EINVAL;
+ 	}
  
 _
 
@@ -72,8 +82,6 @@ unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
 git-drm-oops-fix.patch
 git-dvb.patch
 ia64-slim-down-__clear_bit_unlock.patch
-elantech-touchpad-driver.patch
-elantech-touchpad-driver-fix.patch
 git-kvm.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
@@ -88,8 +96,8 @@ ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a
 update-smc91x-driver-with-arm-versatile-board-info.patch
 bluetooth-uninlining.patch
 git-nfsd-build-fix.patch
-quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
 drivers-pci-quirksc-coding-style-cleanup.patch
+more-sanity-checks-for-dmar.patch
 more-sanity-checks-for-dmar-checkpatch-fixes.patch
 git-s390.patch
 fix-build-breakage-if-sysfs-fix.patch
