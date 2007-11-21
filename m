@@ -1,120 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - ips-trim-trailing-whitespace-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 21 Nov 2007 15:09:23 -0800
-Message-ID: <200711212309.lALN9Nf7013987@imap1.linux-foundation.org>
+Subject: - scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 21 Nov 2007 15:10:05 -0800
+Message-ID: <200711212310.lALNA5iU014071@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45375 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35149 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752836AbXKUXKo (ORCPT
+	by vger.kernel.org with ESMTP id S1752935AbXKUXLb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Nov 2007 18:10:44 -0500
+	Wed, 21 Nov 2007 18:11:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@steeleye.com, jeff@garzik.org, jgarzik@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, James.Bottomley@steeleye.com, bharrosh@panasas.com, jeff@garzik.org, jgarzik@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ips-trim-trailing-whitespace-checkpatch-fixes
+     scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     ips-trim-trailing-whitespace-checkpatch-fixes.patch
+     scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into ips-trim-trailing-whitespace.patch
+This patch was dropped because it was folded into scsi-gdth-kill-unneeded-irq-argument.patch
 
 ------------------------------------------------------
-Subject: ips-trim-trailing-whitespace-checkpatch-fixes
+Subject: scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: use tabs not spaces
-#50: FILE: drivers/scsi/ips.c:2084:
-+        if (ha->nvram->bios_low[3] == 0) {$
+ERROR: need consistent spacing around '*' (ctx:WxV)
+#23: FILE: drivers/scsi/gdth.c:144:
++static irqreturn_t __gdth_interrupt(gdth_ha_str *ha,
+                                                 ^
+
+ERROR: need consistent spacing around '*' (ctx:WxV)
+#40: FILE: drivers/scsi/gdth.c:1336:
++static unchar gdth_get_status(gdth_ha_str *ha)
+                                           ^
 
 ERROR: use tabs not spaces
-#60: FILE: drivers/scsi/ips.c:2785:
-+        if ((scb->scsi_cmd->cmnd[0] == WRITE_BUFFER) && (scb->data_len == 0))$
+#57: FILE: drivers/scsi/gdth.c:1523:
++        __gdth_interrupt(ha, true, &wait_index);$
 
-ERROR: use tabs not spaces
-#61: FILE: drivers/scsi/ips.c:2786:
-+            scb->dcdb.cmd_attribute = 0;$
+ERROR: need consistent spacing around '*' (ctx:WxV)
+#66: FILE: drivers/scsi/gdth.c:3036:
++static irqreturn_t __gdth_interrupt(gdth_ha_str *ha,
+                                                 ^
 
-ERROR: use tabs not spaces
-#116: FILE: drivers/scsi/ips.c:4723:
-+^I           done = ips_poll_for_flush_complete(ha);$
+ERROR: do not use assignment in if condition
+#84: FILE: drivers/scsi/gdth.c:3067:
++    if (0 == (IStatus = gdth_get_status(ha))) {
 
-ERROR: no space before that close parenthesis ')'
-#135: FILE: drivers/scsi/ips.c:4760:
-+	    if (cstatus.fields.command_id == IPS_MAX_CMDS )
-
-WARNING: do not add new typedefs
-#195: FILE: drivers/scsi/ips.h:555:
-+typedef struct
-
-WARNING: do not add new typedefs
-#213: FILE: drivers/scsi/ips.h:793:
-+typedef struct
-
-total: 5 errors, 2 warnings, 181 lines checked
+total: 5 errors, 0 warnings, 74 lines checked
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
+Cc: Boaz Harrosh <bharrosh@panasas.com>
 Cc: James Bottomley <James.Bottomley@steeleye.com>
 Cc: Jeff Garzik <jeff@garzik.org>
 Cc: Jeff Garzik <jgarzik@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ips.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ drivers/scsi/gdth.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/ips.c~ips-trim-trailing-whitespace-checkpatch-fixes drivers/scsi/ips.c
---- a/drivers/scsi/ips.c~ips-trim-trailing-whitespace-checkpatch-fixes
-+++ a/drivers/scsi/ips.c
-@@ -2081,7 +2081,7 @@ ips_host_info(ips_ha_t * ha, char *ptr, 
-     /* That keeps everything happy for "text" operations on the proc file.                    */
+diff -puN drivers/scsi/gdth.c~scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes drivers/scsi/gdth.c
+--- a/drivers/scsi/gdth.c~scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes
++++ a/drivers/scsi/gdth.c
+@@ -1520,7 +1520,7 @@ static int gdth_wait(gdth_ha_str *ha, in
+         return 1;                               /* no wait required */
  
- 	if (le32_to_cpu(ha->nvram->signature) == IPS_NVRAM_P5_SIG) {
--        if (ha->nvram->bios_low[3] == 0) {
-+	if (ha->nvram->bios_low[3] == 0) {
-             copy_info(&info,
- 			          "\tBIOS Version                      : %c%c%c%c%c%c%c\n",
- 			          ha->nvram->bios_high[0], ha->nvram->bios_high[1],
-@@ -2780,10 +2780,11 @@ ips_next(ips_ha_t * ha, int intr)
- 		scb->dcdb.cmd_attribute =
- 		    ips_command_direction[scb->scsi_cmd->cmnd[0]];
+     do {
+-        __gdth_interrupt(ha, true, &wait_index);
++	__gdth_interrupt(ha, true, &wait_index);
+         if (wait_index == index) {
+             answer_found = TRUE;
+             break;
+@@ -3064,7 +3064,8 @@ static irqreturn_t __gdth_interrupt(gdth
+         spin_lock_irqsave(&ha->smp_lock, flags);
  
--        /* Allow a WRITE BUFFER Command to Have no Data */
--        /* This is Used by Tape Flash Utilites          */
--        if ((scb->scsi_cmd->cmnd[0] == WRITE_BUFFER) && (scb->data_len == 0))
--            scb->dcdb.cmd_attribute = 0;
-+		/* Allow a WRITE BUFFER Command to Have no Data */
-+		/* This is Used by Tape Flash Utilites          */
-+		if ((scb->scsi_cmd->cmnd[0] == WRITE_BUFFER) &&
-+				(scb->data_len == 0))
-+			scb->dcdb.cmd_attribute = 0;
- 
- 		if (!(scb->dcdb.cmd_attribute & 0x3))
- 			scb->dcdb.transfer_length = 0;
-@@ -4720,7 +4721,7 @@ ips_flush_and_reset(ips_ha_t *ha)
- 	        done = 0;
- 
- 	        while ((time > 0) && (!done)) {
--	           done = ips_poll_for_flush_complete(ha);
-+		   done = ips_poll_for_flush_complete(ha);
- 	           /* This may look evil, but it's only done during extremely rare start-up conditions ! */
- 	           udelay(1000);
- 	           time--;
-@@ -4757,7 +4758,7 @@ ips_poll_for_flush_complete(ips_ha_t * h
- 			break;
- 
- 	    /* Success is when we see the Flush Command ID */
--	    if (cstatus.fields.command_id == IPS_MAX_CMDS )
-+	    if (cstatus.fields.command_id == IPS_MAX_CMDS)
- 	        return 1;
- 	 }
- 
+     /* search controller */
+-    if (0 == (IStatus = gdth_get_status(ha))) {
++    IStatus = gdth_get_status(ha);
++    if (IStatus == 0) {
+         /* spurious interrupt */
+         if (!gdth_polling)
+             spin_unlock_irqrestore(&ha->smp_lock, flags);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -158,7 +130,7 @@ drivers-pci-quirksc-coding-style-cleanup.patch
 more-sanity-checks-for-dmar.patch
 git-s390.patch
 ips-trim-trailing-whitespace.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
+scsi-gdth-kill-unneeded-irq-argument.patch
 scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
 scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
 bidi-support-scsi_data_buffer-broke-qla1280.patch
