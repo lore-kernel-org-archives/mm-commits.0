@@ -1,250 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: - ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 21 Nov 2007 14:56:59 -0800
-Message-ID: <200711212256.lALMuxEj013345@imap1.linux-foundation.org>
+Subject: - fujitsu-application-panel-driver-space-savings.patch removed from -mm tree
+Date: Wed, 21 Nov 2007 14:58:59 -0800
+Message-ID: <200711212259.lALMwxbb013418@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33902 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52938 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753283AbXKUW5h (ORCPT
+	by vger.kernel.org with ESMTP id S1753381AbXKUW7y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Nov 2007 17:57:37 -0500
+	Wed, 21 Nov 2007 17:59:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, clameter@sgi.com, nickpiggin@yahoo.com.au, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: shemminger@linux-foundation.org, dtor@mail.ru, jkosina@suse.cz, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ia64-slim-down-__clear_bit_unlock-checkpatch-fixes
+     apanel: space savings
 has been removed from the -mm tree.  Its filename was
-     ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
+     fujitsu-application-panel-driver-space-savings.patch
 
-This patch was dropped because it was folded into ia64-slim-down-__clear_bit_unlock.patch
+This patch was dropped because it was folded into fujitsu-application-panel-driver.patch
 
 ------------------------------------------------------
-Subject: ia64-slim-down-__clear_bit_unlock-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: apanel: space savings
+From: Stephen Hemminger <shemminger@linux-foundation.org>
 
-WARNING: no space between function name and open parenthesis '('
-#30: FILE: include/asm-ia64/bitops.h:131:
-+__clear_bit_unlock (int nr, volatile void *addr)
+Eliminate the device_names they are only used for debug messages.  Add
+paren's for one expression.
 
-WARNING: Use of volatile is usually wrong: see Documentation/volatile-considered-harmful.txt
-#30: FILE: include/asm-ia64/bitops.h:131:
-+__clear_bit_unlock (int nr, volatile void *addr)
-
-WARNING: Use of volatile is usually wrong: see Documentation/volatile-considered-harmful.txt
-#33: FILE: include/asm-ia64/bitops.h:134:
-+	volatile __u32 *m;
-
-WARNING: Use of volatile is usually wrong: see Documentation/volatile-considered-harmful.txt
-#35: FILE: include/asm-ia64/bitops.h:136:
-+	m = (volatile __u32 *) addr + (nr >> 5);
-
-total: 0 errors, 4 warnings, 24 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-ia64/bitops.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/input/misc/apanel.c |   24 +++++++-----------------
+ 1 file changed, 7 insertions(+), 17 deletions(-)
 
-diff -puN include/asm-ia64/bitops.h~ia64-slim-down-__clear_bit_unlock-checkpatch-fixes include/asm-ia64/bitops.h
---- a/include/asm-ia64/bitops.h~ia64-slim-down-__clear_bit_unlock-checkpatch-fixes
-+++ a/include/asm-ia64/bitops.h
-@@ -128,12 +128,12 @@ clear_bit_unlock (int nr, volatile void 
-  * with release semantics. See also __raw_spin_unlock().
-  */
- static __inline__ void
--__clear_bit_unlock (int nr, volatile void *addr)
-+__clear_bit_unlock(int nr, volatile void *addr)
- {
- 	__u32 mask, new;
- 	volatile __u32 *m;
+diff -puN drivers/input/misc/apanel.c~fujitsu-application-panel-driver-space-savings drivers/input/misc/apanel.c
+--- a/drivers/input/misc/apanel.c~fujitsu-application-panel-driver-space-savings
++++ a/drivers/input/misc/apanel.c
+@@ -27,7 +27,7 @@
+ #include <linux/leds.h>
  
--	m = (volatile __u32 *) addr + (nr >> 5);
-+	m = (volatile __u32 *)addr + (nr >> 5);
- 	mask = ~(1 << (nr & 31));
- 	new = *m & mask;
- 	barrier();
+ #define APANEL_NAME	"Fujitsu Application Panel"
+-#define APANEL_VERSION	"1.3"
++#define APANEL_VERSION	"1.3.1"
+ #define APANEL		"apanel"
+ 
+ /* How often we poll keys - msecs */
+@@ -40,6 +40,7 @@ enum apanel_devid {
+ 	APANEL_DEV_CDBTN  = 2,
+ 	APANEL_DEV_LCD	  = 3,
+ 	APANEL_DEV_LED	  = 4,
++
+ 	APANEL_DEV_MAX,
+ };
+ 
+@@ -53,14 +54,6 @@ enum apanel_chip {
+ /* Result of BIOS snooping/probing -- what features are supported */
+ static enum apanel_chip device_chip[APANEL_DEV_MAX];
+ 
+-/* names for APANEL_XXX */
+-static const char *device_names[APANEL_DEV_MAX] __initdata = {
+-	[APANEL_DEV_APPBTN] = "Application Buttons",
+-	[APANEL_DEV_LCD]    = "LCD",
+-	[APANEL_DEV_LED]    = "LED",
+-	[APANEL_DEV_CDBTN]  = "CD Buttons",
+-};
+-
+ #define MAX_PANEL_KEYS	12
+ 
+ struct apanel {
+@@ -123,7 +116,7 @@ static void apanel_poll(struct input_pol
+ 
+ 	dev_dbg(&ipdev->input->dev, APANEL ": data %#x\n", data);
+ 	for (i = 0; i < ipdev->input->keycodemax; i++)
+-		if (1ul << i & data)
++		if ((1u << i) & data)
+ 			report_key(idev, ap->keymap[i]);
+ }
+ 
+@@ -366,17 +359,14 @@ static int __init apanel_init(void)
+ 		}
+ 
+ 		if (devno >= APANEL_DEV_MAX)
+-			pr_notice(APANEL ": unknown device %d found\n", devno);
++			pr_notice(APANEL ": unknown device %u found\n", devno);
+ 		else if (device_chip[devno] != CHIP_NONE)
+-			pr_warning(APANEL ": duplicate entry for %s\n",
+-				   device_names[devno]);
++			pr_warning(APANEL ": duplicate entry for devno %u\n", devno);
+ 
+ 		else if (method != 1 && method != 2 && method != 4) {
+-			pr_notice(APANEL ": unknown  method %u for %s\n",
+-				  method, device_names[devno]);
++			pr_notice(APANEL ": unknown method %u for devno %u\n",
++				  method, devno);
+ 		} else {
+-			pr_debug(APANEL ": %s found.\n", device_names[devno]);
+-
+ 			device_chip[devno] = (enum apanel_chip) chip;
+ 			++found;
+ 		}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from shemminger@linux-foundation.org are
 
-origin.patch
-file-capabilities-allow-sigcont-within-session-v2.patch
-pnp-increase-the-maximum-number-of-resources-fix.patch
-fix-linux-kdh-usage-in-userspace-checkpatch-fixes.patch
-revert-keyspan-init-termios-properly.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-git-drm-oops-fix.patch
-git-dvb.patch
-ia64-slim-down-__clear_bit_unlock.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-elantech-touchpad-driver-fix.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-ide-arm-hack.patch
-ide-printk-fix.patch
-git-mips-fixup.patch
-git-mmc.patch
-git-mtd.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-bluetooth-uninlining.patch
-git-nfsd-build-fix.patch
-quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
-drivers-pci-quirksc-coding-style-cleanup.patch
-more-sanity-checks-for-dmar-checkpatch-fixes.patch
-git-s390.patch
-fix-build-breakage-if-sysfs-fix.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-bidi-support-scsi_data_buffer-broke-qla1280.patch
-bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+fujitsu-application-panel-driver.patch
+fujitsu-application-panel-driver-space-savings.patch
+input-polled-device-timer-rounding.patch
 git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-x86-fixup.patch
-git-x86-dont-unexport-empty_zero_page.patch
-git-x86-i386-export-empty_zero_page.patch
-git-x86-thread_order-borkage.patch
-git-x86-thread_order-borkage-fix.patch
-git-x86-identify_cpu-fix.patch
-git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko-checkpatch-fixes.patch
-git-x86-inlining-borkage.patch
-git-cryptodev.patch
-git-xtensa.patch
-ia64-increase-datapatch-offset.patch
-ia64-dont-assume-that-unwcheckpy-is-executable.patch
-ia64-export-copy_page-to-modules.patch
-isdn-validate-length-of-isdn_net_ioctl_cfgeaz.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-sync_sb_inodes-propagate-errors.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-64-bit-i_version-afs-fixes.patch
-ext4-add-block-bitmap-validation-fix.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-w1-build-fix.patch
