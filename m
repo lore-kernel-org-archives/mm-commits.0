@@ -1,76 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch removed from -mm tree
-Date: Wed, 21 Nov 2007 14:53:43 -0800
-Message-ID: <200711212253.lALMrhYI013197@imap1.linux-foundation.org>
+Subject: - ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 21 Nov 2007 14:56:59 -0800
+Message-ID: <200711212256.lALMuxEj013345@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53091 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33902 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753295AbXKUWyQ (ORCPT
+	by vger.kernel.org with ESMTP id S1753283AbXKUW5h (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Nov 2007 17:54:16 -0500
+	Wed, 21 Nov 2007 17:57:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, pbadari@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, clameter@sgi.com, nickpiggin@yahoo.com.au, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix
+     ia64-slim-down-__clear_bit_unlock-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
+     ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+This patch was dropped because it was folded into ia64-slim-down-__clear_bit_unlock.patch
 
 ------------------------------------------------------
-Subject: unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix
+Subject: ia64-slim-down-__clear_bit_unlock-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-no no no no.
+WARNING: no space between function name and open parenthesis '('
+#30: FILE: include/asm-ia64/bitops.h:131:
++__clear_bit_unlock (int nr, volatile void *addr)
 
-Please add checkpatch.pl to your workflow.
+WARNING: Use of volatile is usually wrong: see Documentation/volatile-considered-harmful.txt
+#30: FILE: include/asm-ia64/bitops.h:131:
++__clear_bit_unlock (int nr, volatile void *addr)
 
-Cc: Badari Pulavarty <pbadari@gmail.com>
-Cc: Greg KH <greg@kroah.com>
+WARNING: Use of volatile is usually wrong: see Documentation/volatile-considered-harmful.txt
+#33: FILE: include/asm-ia64/bitops.h:134:
++	volatile __u32 *m;
+
+WARNING: Use of volatile is usually wrong: see Documentation/volatile-considered-harmful.txt
+#35: FILE: include/asm-ia64/bitops.h:136:
++	m = (volatile __u32 *) addr + (nr >> 5);
+
+total: 0 errors, 4 warnings, 24 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/vio.c |    2 --
- drivers/base/base.h       |    2 --
- include/linux/device.h    |    1 +
- 3 files changed, 1 insertion(+), 4 deletions(-)
+ include/asm-ia64/bitops.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/powerpc/kernel/vio.c~unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix arch/powerpc/kernel/vio.c
---- a/arch/powerpc/kernel/vio.c~unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix
-+++ a/arch/powerpc/kernel/vio.c
-@@ -37,8 +37,6 @@
- #include <asm/iseries/hv_call_xm.h>
- #include <asm/iseries/iommu.h>
+diff -puN include/asm-ia64/bitops.h~ia64-slim-down-__clear_bit_unlock-checkpatch-fixes include/asm-ia64/bitops.h
+--- a/include/asm-ia64/bitops.h~ia64-slim-down-__clear_bit_unlock-checkpatch-fixes
++++ a/include/asm-ia64/bitops.h
+@@ -128,12 +128,12 @@ clear_bit_unlock (int nr, volatile void 
+  * with release semantics. See also __raw_spin_unlock().
+  */
+ static __inline__ void
+-__clear_bit_unlock (int nr, volatile void *addr)
++__clear_bit_unlock(int nr, volatile void *addr)
+ {
+ 	__u32 mask, new;
+ 	volatile __u32 *m;
  
--extern struct kset *devices_kset;  /* needed for vio_find_name() */
--
- static struct bus_type vio_bus_type;
- 
- static struct vio_dev vio_bus_device  = { /* fake "parent" device */
-diff -puN drivers/base/base.h~unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix drivers/base/base.h
---- a/drivers/base/base.h~unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix
-+++ a/drivers/base/base.h
-@@ -71,5 +71,3 @@ struct class_device_attribute *to_class_
- extern char *make_class_name(const char *name, struct kobject *kobj);
- 
- extern int devres_release_all(struct device *dev);
--
--extern struct kset *devices_kset;
-diff -puN include/linux/device.h~unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix include/linux/device.h
---- a/include/linux/device.h~unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix
-+++ a/include/linux/device.h
-@@ -109,6 +109,7 @@ extern int bus_unregister_notifier(struc
- #define BUS_NOTIFY_UNBIND_DRIVER	0x00000004 /* driver about to be
- 						      unbound */
- 
-+extern struct kset *devices_kset;
- extern struct kset *bus_get_kset(struct bus_type *bus);
- extern struct klist *bus_get_device_klist(struct bus_type *bus);
- 
+-	m = (volatile __u32 *) addr + (nr >> 5);
++	m = (volatile __u32 *)addr + (nr >> 5);
+ 	mask = ~(1 << (nr & 31));
+ 	new = *m & mask;
+ 	barrier();
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -93,9 +97,9 @@ git-arm.patch
 agk-dm-dm-ioctl-move-compat-code-fix.patch
 gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
 unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
 git-drm-oops-fix.patch
 git-dvb.patch
+ia64-slim-down-__clear_bit_unlock.patch
 ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
 elantech-touchpad-driver-fix.patch
 git-kvm.patch
