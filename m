@@ -1,61 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: - more-sanity-checks-for-dmar-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 21 Nov 2007 15:06:17 -0800
-Message-ID: <200711212306.lALN6HHm013873@imap1.linux-foundation.org>
+Subject: - ips-trim-trailing-whitespace-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 21 Nov 2007 15:09:23 -0800
+Message-ID: <200711212309.lALN9Nf7013987@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37796 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45375 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753166AbXKUXGv (ORCPT
+	by vger.kernel.org with ESMTP id S1752836AbXKUXKo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Nov 2007 18:06:51 -0500
+	Wed, 21 Nov 2007 18:10:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fenghua.yu@intel.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, James.Bottomley@steeleye.com, jeff@garzik.org, jgarzik@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     more-sanity-checks-for-dmar-checkpatch-fixes
+     ips-trim-trailing-whitespace-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     more-sanity-checks-for-dmar-checkpatch-fixes.patch
+     ips-trim-trailing-whitespace-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into more-sanity-checks-for-dmar.patch
+This patch was dropped because it was folded into ips-trim-trailing-whitespace.patch
 
 ------------------------------------------------------
-Subject: more-sanity-checks-for-dmar-checkpatch-fixes
+Subject: ips-trim-trailing-whitespace-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: no space between function name and open parenthesis '('
-#42: FILE: drivers/pci/dmar.c:268:
-+		printk (KERN_WARNING PREFIX "Invalid DMAR haw\n");
+ERROR: use tabs not spaces
+#50: FILE: drivers/scsi/ips.c:2084:
++        if (ha->nvram->bios_low[3] == 0) {$
 
-total: 0 errors, 1 warnings, 42 lines checked
+ERROR: use tabs not spaces
+#60: FILE: drivers/scsi/ips.c:2785:
++        if ((scb->scsi_cmd->cmnd[0] == WRITE_BUFFER) && (scb->data_len == 0))$
 
+ERROR: use tabs not spaces
+#61: FILE: drivers/scsi/ips.c:2786:
++            scb->dcdb.cmd_attribute = 0;$
+
+ERROR: use tabs not spaces
+#116: FILE: drivers/scsi/ips.c:4723:
++^I           done = ips_poll_for_flush_complete(ha);$
+
+ERROR: no space before that close parenthesis ')'
+#135: FILE: drivers/scsi/ips.c:4760:
++	    if (cstatus.fields.command_id == IPS_MAX_CMDS )
+
+WARNING: do not add new typedefs
+#195: FILE: drivers/scsi/ips.h:555:
++typedef struct
+
+WARNING: do not add new typedefs
+#213: FILE: drivers/scsi/ips.h:793:
++typedef struct
+
+total: 5 errors, 2 warnings, 181 lines checked
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Jeff Garzik <jgarzik@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/dmar.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/ips.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN drivers/pci/dmar.c~more-sanity-checks-for-dmar-checkpatch-fixes drivers/pci/dmar.c
---- a/drivers/pci/dmar.c~more-sanity-checks-for-dmar-checkpatch-fixes
-+++ a/drivers/pci/dmar.c
-@@ -265,7 +265,7 @@ parse_dmar_table(void)
- 		return -ENODEV;
+diff -puN drivers/scsi/ips.c~ips-trim-trailing-whitespace-checkpatch-fixes drivers/scsi/ips.c
+--- a/drivers/scsi/ips.c~ips-trim-trailing-whitespace-checkpatch-fixes
++++ a/drivers/scsi/ips.c
+@@ -2081,7 +2081,7 @@ ips_host_info(ips_ha_t * ha, char *ptr, 
+     /* That keeps everything happy for "text" operations on the proc file.                    */
  
- 	if (dmar->width < PAGE_SHIFT_4K - 1) {
--		printk (KERN_WARNING PREFIX "Invalid DMAR haw\n");
-+		printk(KERN_WARNING PREFIX "Invalid DMAR haw\n");
- 		return -EINVAL;
- 	}
+ 	if (le32_to_cpu(ha->nvram->signature) == IPS_NVRAM_P5_SIG) {
+-        if (ha->nvram->bios_low[3] == 0) {
++	if (ha->nvram->bios_low[3] == 0) {
+             copy_info(&info,
+ 			          "\tBIOS Version                      : %c%c%c%c%c%c%c\n",
+ 			          ha->nvram->bios_high[0], ha->nvram->bios_high[1],
+@@ -2780,10 +2780,11 @@ ips_next(ips_ha_t * ha, int intr)
+ 		scb->dcdb.cmd_attribute =
+ 		    ips_command_direction[scb->scsi_cmd->cmnd[0]];
+ 
+-        /* Allow a WRITE BUFFER Command to Have no Data */
+-        /* This is Used by Tape Flash Utilites          */
+-        if ((scb->scsi_cmd->cmnd[0] == WRITE_BUFFER) && (scb->data_len == 0))
+-            scb->dcdb.cmd_attribute = 0;
++		/* Allow a WRITE BUFFER Command to Have no Data */
++		/* This is Used by Tape Flash Utilites          */
++		if ((scb->scsi_cmd->cmnd[0] == WRITE_BUFFER) &&
++				(scb->data_len == 0))
++			scb->dcdb.cmd_attribute = 0;
+ 
+ 		if (!(scb->dcdb.cmd_attribute & 0x3))
+ 			scb->dcdb.transfer_length = 0;
+@@ -4720,7 +4721,7 @@ ips_flush_and_reset(ips_ha_t *ha)
+ 	        done = 0;
+ 
+ 	        while ((time > 0) && (!done)) {
+-	           done = ips_poll_for_flush_complete(ha);
++		   done = ips_poll_for_flush_complete(ha);
+ 	           /* This may look evil, but it's only done during extremely rare start-up conditions ! */
+ 	           udelay(1000);
+ 	           time--;
+@@ -4757,7 +4758,7 @@ ips_poll_for_flush_complete(ips_ha_t * h
+ 			break;
+ 
+ 	    /* Success is when we see the Flush Command ID */
+-	    if (cstatus.fields.command_id == IPS_MAX_CMDS )
++	    if (cstatus.fields.command_id == IPS_MAX_CMDS)
+ 	        return 1;
+ 	 }
  
 _
 
@@ -98,9 +156,8 @@ bluetooth-uninlining.patch
 git-nfsd-build-fix.patch
 drivers-pci-quirksc-coding-style-cleanup.patch
 more-sanity-checks-for-dmar.patch
-more-sanity-checks-for-dmar-checkpatch-fixes.patch
 git-s390.patch
-fix-build-breakage-if-sysfs-fix.patch
+ips-trim-trailing-whitespace.patch
 ips-trim-trailing-whitespace-checkpatch-fixes.patch
 scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
 scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
