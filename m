@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + genericizing-iova-fix.patch added to -mm tree
-Date: Tue, 20 Nov 2007 14:53:17 -0800
-Message-ID: <200711202300.lAKN0Pkw028040@imap1.linux-foundation.org>
+Subject: + ide-printk-fix.patch added to -mm tree
+Date: Tue, 20 Nov 2007 20:17:42 -0700
+Message-ID: <200711210317.lAL3HhkV004898@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34843 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37818 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751960AbXKTXAb (ORCPT
+	by vger.kernel.org with ESMTP id S1751672AbXKUDR4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Nov 2007 18:00:31 -0500
+	Tue, 20 Nov 2007 22:17:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, anil.s.keshavamurthy@intel.com, davem@davemloft.net
+Cc: akpm@linux-foundation.org, bzolnier@gmail.com
 
 
 The patch titled
-     genericizing-iova-fix
+     ide printk fix
 has been added to the -mm tree.  Its filename is
-     genericizing-iova-fix.patch
+     ide-printk-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,45 +26,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: genericizing-iova-fix
+Subject: ide printk fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/pci/dmar.c: In function 'parse_dmar_table':
-drivers/pci/dmar.c:267: error: 'PAGE_SHIFT_4K' undeclared (first use in this function)
-drivers/pci/dmar.c:267: error: (Each undeclared identifier is reported only once
-drivers/pci/dmar.c:267: error: for each function it appears in.)
+power4:
 
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-Cc: David Miller <davem@davemloft.net>
+drivers/ide/ide-lib.c: In function `ide_dump_sector':
+drivers/ide/ide-lib.c:516: warning: long long unsigned int format, u64 arg (arg 2)
+
+We don't know what type is used to implement u64 hence it must always be cast
+when printed.
+
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/dmar.c        |    1 +
- drivers/pci/intel-iommu.h |    1 +
- 2 files changed, 2 insertions(+)
+ drivers/ide/ide-lib.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/pci/dmar.c~genericizing-iova-fix drivers/pci/dmar.c
---- a/drivers/pci/dmar.c~genericizing-iova-fix
-+++ a/drivers/pci/dmar.c
-@@ -26,6 +26,7 @@
- #include <linux/pci.h>
- #include <linux/dmar.h>
- #include "iova.h"
-+#include "intel-iommu.h"
+diff -puN drivers/ide/ide-lib.c~ide-printk-fix drivers/ide/ide-lib.c
+--- a/drivers/ide/ide-lib.c~ide-printk-fix
++++ a/drivers/ide/ide-lib.c
+@@ -513,7 +513,8 @@ static void ide_dump_sector(ide_drive_t 
+ 	ide_tf_read(drive, &task);
  
- #undef PREFIX
- #define PREFIX "DMAR:"
-diff -puN drivers/pci/intel-iommu.h~genericizing-iova-fix drivers/pci/intel-iommu.h
---- a/drivers/pci/intel-iommu.h~genericizing-iova-fix
-+++ a/drivers/pci/intel-iommu.h
-@@ -23,6 +23,7 @@
- 
- #include <linux/types.h>
- #include <linux/msi.h>
-+#include <linux/sysdev.h>
- #include "iova.h"
- #include <linux/io.h>
- 
+ 	if (lba48 || (tf->device & ATA_LBA))
+-		printk(", LBAsect=%llu", ide_get_lba_addr(tf, lba48));
++		printk(", LBAsect=%llu",
++			(unsigned long long)ide_get_lba_addr(tf, lba48));
+ 	else
+ 		printk(", CHS=%d/%d/%d", (tf->lbah << 8) + tf->lbam,
+ 					 tf->device & 0xf, tf->lbal);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -174,6 +166,7 @@ sync_sb_inodes-propagate-errors.patch
 rtc-ds1302-rtc-support-checkpatch-fixes.patch
 mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
 64-bit-i_version-afs-fixes.patch
+ext4-add-block-bitmap-validation-fix.patch
 kill-filp_open-checkpatch-fixes.patch
 rename-open_namei-to-open_pathname-fix.patch
 r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
@@ -234,3 +227,4 @@ shrink_slab-handle-bad-shrinkers.patch
 getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 w1-build-fix.patch
+ide-printk-fix.patch
