@@ -1,57 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - fix-build-breakage-if-sysfs-fix.patch removed from -mm tree
-Date: Wed, 21 Nov 2007 15:08:36 -0800
-Message-ID: <200711212308.lALN8aYX013967@imap1.linux-foundation.org>
+Subject: - git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 21 Nov 2007 15:16:06 -0800
+Message-ID: <200711212316.lALNG6pq014344@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33807 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56793 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752938AbXKUXOo (ORCPT
+	by vger.kernel.org with ESMTP id S1754235AbXKUXQs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Nov 2007 18:14:44 -0500
+	Wed, 21 Nov 2007 18:16:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dhaval@linux.vnet.ibm.com, mingo@elte.hu, vatsa@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix-build-breakage-if-sysfs-fix
+     git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     fix-build-breakage-if-sysfs-fix.patch
+     git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko-checkpatch-fixes.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko.patch
 
 ------------------------------------------------------
-Subject: fix-build-breakage-if-sysfs-fix
+Subject: git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Not strictly needed, but it's conventional...
+WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable
+#23: FILE: arch/x86/mm/srat_64.c:564:
++EXPORT_SYMBOL_GPL(memory_add_physaddr_to_nid);
 
-Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com>
-Cc: Srivatsa Vaddagiri <vatsa@linux.vnet.ibm.com>
+total: 0 errors, 1 warnings, 4 lines checked
+
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/user.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/x86/mm/srat_64.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN kernel/user.c~fix-build-breakage-if-sysfs-fix kernel/user.c
---- a/kernel/user.c~fix-build-breakage-if-sysfs-fix
-+++ a/kernel/user.c
-@@ -107,9 +107,9 @@ static void sched_switch_user(struct tas
+diff -puN arch/x86/mm/srat_64.c~git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko-checkpatch-fixes arch/x86/mm/srat_64.c
+--- a/arch/x86/mm/srat_64.c~git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko-checkpatch-fixes
++++ a/arch/x86/mm/srat_64.c
+@@ -560,5 +560,4 @@ int memory_add_physaddr_to_nid(u64 start
  
- #else	/* CONFIG_FAIR_USER_SCHED */
- 
--static void sched_destroy_user(struct user_struct *up) { }
--static int sched_create_user(struct user_struct *up) { return 0; }
--static void sched_switch_user(struct task_struct *p) { }
-+static inline void sched_destroy_user(struct user_struct *up) { }
-+static inline int sched_create_user(struct user_struct *up) { return 0; }
-+static inline void sched_switch_user(struct task_struct *p) { }
- 
- #endif	/* CONFIG_FAIR_USER_SCHED */
- 
+ 	return ret;
+ }
+-
+ EXPORT_SYMBOL_GPL(memory_add_physaddr_to_nid);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -94,16 +97,15 @@ git-nfsd-build-fix.patch
 drivers-pci-quirksc-coding-style-cleanup.patch
 more-sanity-checks-for-dmar.patch
 git-s390.patch
-fix-build-breakage-if-sysfs-fix.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
+ips-trim-trailing-whitespace.patch
+scsi-gdth-kill-unneeded-irq-argument.patch
+scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers.patch
 bidi-support-scsi_data_buffer-broke-qla1280.patch
 bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
 git-unionfs.patch
 vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
 git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
+git-ipwireless_cs.patch
 git-ipwireless_cs.patch
 git-x86.patch
 git-x86-fixup.patch
@@ -112,6 +114,7 @@ git-x86-i386-export-empty_zero_page.patch
 git-x86-thread_order-borkage.patch
 git-x86-thread_order-borkage-fix.patch
 git-x86-identify_cpu-fix.patch
+git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko.patch
 git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko-checkpatch-fixes.patch
 git-x86-inlining-borkage.patch
 git-cryptodev.patch
