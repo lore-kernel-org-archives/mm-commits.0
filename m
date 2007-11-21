@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-dont-unexport-empty_zero_page.patch added to -mm tree
-Date: Tue, 20 Nov 2007 22:02:21 -0800
-Message-ID: <200711210602.lAL62LnB010180@imap1.linux-foundation.org>
+Subject: + ia64-export-copy_page-to-modules-fix-fix.patch added to -mm tree
+Date: Tue, 20 Nov 2007 22:09:29 -0800
+Message-ID: <200711210609.lAL69TkH010480@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41397 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56103 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751405AbXKUGCy (ORCPT
+	by vger.kernel.org with ESMTP id S1752181AbXKUGJw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Nov 2007 01:02:54 -0500
+	Wed, 21 Nov 2007 01:09:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, avi@qumranet.com, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, kyle@mcmartin.ca, sam@ravnborg.org, tony.luck@intel.com
 
 
 The patch titled
-     git-x86: don't unexport empty_zero_page
+     ia64-export-copy_page-to-modules-fix-fix
 has been added to the -mm tree.  Its filename is
-     git-x86-dont-unexport-empty_zero_page.patch
+     ia64-export-copy_page-to-modules-fix-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-x86: don't unexport empty_zero_page
+Subject: ia64-export-copy_page-to-modules-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kvm devel tree uses it.
-
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Avi Kivity <avi@qumranet.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/x8664_ksyms_64.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/ia64/lib/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/x8664_ksyms_64.c~git-x86-dont-unexport-empty_zero_page arch/x86/kernel/x8664_ksyms_64.c
---- a/arch/x86/kernel/x8664_ksyms_64.c~git-x86-dont-unexport-empty_zero_page
-+++ a/arch/x86/kernel/x8664_ksyms_64.c
-@@ -49,5 +49,6 @@ EXPORT_SYMBOL(memcpy);
- EXPORT_SYMBOL(__memcpy);
+diff -puN arch/ia64/kernel/ia64_ksyms.c~ia64-export-copy_page-to-modules-fix-fix arch/ia64/kernel/ia64_ksyms.c
+diff -puN /dev/null /dev/null
+diff -puN arch/ia64/lib/Makefile~ia64-export-copy_page-to-modules-fix-fix arch/ia64/lib/Makefile
+--- a/arch/ia64/lib/Makefile~ia64-export-copy_page-to-modules-fix-fix
++++ a/arch/ia64/lib/Makefile
+@@ -2,7 +2,7 @@
+ # Makefile for ia64-specific library routines..
+ #
  
- EXPORT_SYMBOL(load_gs_index);
-+EXPORT_SYMBOL(empty_zero_page);
+-obj-y := io.o copy_page-export.o
++obj-y := io.o
  
- EXPORT_SYMBOL(_proxy_pda);
+ lib-y := __divsi3.o __udivsi3.o __modsi3.o __umodsi3.o			\
+ 	__divdi3.o __udivdi3.o __moddi3.o __umoddi3.o			\
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -107,6 +109,7 @@ jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
 git-ipwireless_cs.patch
 git-x86.patch
 git-x86-fixup.patch
+git-x86-dont-unexport-empty_zero_page.patch
 git-x86-thread_order-borkage.patch
 git-x86-thread_order-borkage-fix.patch
 git-x86-identify_cpu-fix.patch
@@ -118,6 +121,7 @@ ia64-increase-datapatch-offset.patch
 ia64-dont-assume-that-unwcheckpy-is-executable.patch
 ia64-export-copy_page-to-modules.patch
 ia64-export-copy_page-to-modules-fix.patch
+ia64-export-copy_page-to-modules-fix-fix.patch
 isdn-validate-length-of-isdn_net_ioctl_cfgeaz.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
@@ -221,4 +225,3 @@ shrink_slab-handle-bad-shrinkers.patch
 getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 w1-build-fix.patch
-git-x86-dont-unexport-empty_zero_page.patch
