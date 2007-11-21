@@ -1,60 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 21 Nov 2007 15:16:06 -0800
-Message-ID: <200711212316.lALNG6pq014344@imap1.linux-foundation.org>
+Subject: - git-x86-thread_order-borkage-fix.patch removed from -mm tree
+Date: Wed, 21 Nov 2007 15:16:36 -0800
+Message-ID: <200711212316.lALNGakS014350@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56793 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46037 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754235AbXKUXQs (ORCPT
+	by vger.kernel.org with ESMTP id S1754960AbXKUXR5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Nov 2007 18:16:48 -0500
+	Wed, 21 Nov 2007 18:17:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kamalesh@linux.vnet.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko-checkpatch-fixes
+     git-x86-thread_order-borkage-fix
 has been removed from the -mm tree.  Its filename was
-     git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko-checkpatch-fixes.patch
+     git-x86-thread_order-borkage-fix.patch
 
-This patch was dropped because it was folded into git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko.patch
+This patch was dropped because it was folded into git-x86-thread_order-borkage.patch
 
 ------------------------------------------------------
-Subject: git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko-checkpatch-fixes
+Subject: git-x86-thread_order-borkage-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable
-#23: FILE: arch/x86/mm/srat_64.c:564:
-+EXPORT_SYMBOL_GPL(memory_add_physaddr_to_nid);
-
-total: 0 errors, 1 warnings, 4 lines checked
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
+shit
 
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/srat_64.c |    1 -
- 1 file changed, 1 deletion(-)
+ asm-x86/thread_info_64.h  |    0 
+ include/asm-x86/page_64.h |    1 +
+ 2 files changed, 1 insertion(+)
 
-diff -puN arch/x86/mm/srat_64.c~git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko-checkpatch-fixes arch/x86/mm/srat_64.c
---- a/arch/x86/mm/srat_64.c~git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko-checkpatch-fixes
-+++ a/arch/x86/mm/srat_64.c
-@@ -560,5 +560,4 @@ int memory_add_physaddr_to_nid(u64 start
+diff -puN include/asm-x86/page_64.h~git-x86-thread_order-borkage-fix include/asm-x86/page_64.h
+--- a/include/asm-x86/page_64.h~git-x86-thread_order-borkage-fix
++++ a/include/asm-x86/page_64.h
+@@ -9,6 +9,7 @@
+ #define PAGE_MASK	(~(PAGE_SIZE-1))
+ #define PHYSICAL_PAGE_MASK	(~(PAGE_SIZE-1) & __PHYSICAL_MASK)
  
- 	return ret;
- }
--
- EXPORT_SYMBOL_GPL(memory_add_physaddr_to_nid);
++#define THREAD_ORDER 1
+ #define THREAD_SIZE  (PAGE_SIZE << THREAD_ORDER)
+ #define CURRENT_MASK (~(THREAD_SIZE-1))
+ 
+diff -puN include/asm-x86/thread_info_64.h~git-x86-thread_order-borkage-fix include/asm-x86/thread_info_64.h
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -115,7 +109,6 @@ git-x86-thread_order-borkage.patch
 git-x86-thread_order-borkage-fix.patch
 git-x86-identify_cpu-fix.patch
 git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko.patch
-git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko-checkpatch-fixes.patch
 git-x86-inlining-borkage.patch
 git-cryptodev.patch
 git-xtensa.patch
