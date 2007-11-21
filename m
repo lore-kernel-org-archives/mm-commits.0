@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - ia64-export-copy_page-to-modules-fix.patch removed from -mm tree
-Date: Tue, 20 Nov 2007 22:09:41 -0800
-Message-ID: <200711210609.lAL69fHX010483@imap1.linux-foundation.org>
+Subject: - ia64-export-copy_page-to-modules-fix-fix.patch removed from -mm tree
+Date: Tue, 20 Nov 2007 22:09:47 -0800
+Message-ID: <200711210609.lAL69lnA010491@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33568 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36855 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752546AbXKUGJz (ORCPT
+	by vger.kernel.org with ESMTP id S1753116AbXKUGJz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 21 Nov 2007 01:09:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,47 +15,39 @@ To: akpm@linux-foundation.org, kyle@mcmartin.ca, sam@ravnborg.org, tony.luck@int
 
 
 The patch titled
-     ia64-export-copy_page-to-modules-fix
+     ia64-export-copy_page-to-modules-fix-fix
 has been removed from the -mm tree.  Its filename was
-     ia64-export-copy_page-to-modules-fix.patch
+     ia64-export-copy_page-to-modules-fix-fix.patch
 
 This patch was dropped because it was folded into ia64-export-copy_page-to-modules.patch
 
 ------------------------------------------------------
-Subject: ia64-export-copy_page-to-modules-fix
+Subject: ia64-export-copy_page-to-modules-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
 Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/ia64_ksyms.c    |    3 +++
- arch/ia64/lib/copy_page-export.c |    4 ----
- 2 files changed, 3 insertions(+), 4 deletions(-)
+ arch/ia64/lib/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/ia64/kernel/ia64_ksyms.c~ia64-export-copy_page-to-modules-fix arch/ia64/kernel/ia64_ksyms.c
---- a/arch/ia64/kernel/ia64_ksyms.c~ia64-export-copy_page-to-modules-fix
-+++ a/arch/ia64/kernel/ia64_ksyms.c
-@@ -63,6 +63,9 @@ EXPORT_SYMBOL(__udivdi3);
- EXPORT_SYMBOL(__moddi3);
- EXPORT_SYMBOL(__umoddi3);
+diff -puN arch/ia64/kernel/ia64_ksyms.c~ia64-export-copy_page-to-modules-fix-fix arch/ia64/kernel/ia64_ksyms.c
+diff -puN /dev/null /dev/null
+diff -puN arch/ia64/lib/Makefile~ia64-export-copy_page-to-modules-fix-fix arch/ia64/lib/Makefile
+--- a/arch/ia64/lib/Makefile~ia64-export-copy_page-to-modules-fix-fix
++++ a/arch/ia64/lib/Makefile
+@@ -2,7 +2,7 @@
+ # Makefile for ia64-specific library routines..
+ #
  
-+#include <asm/page.h>
-+EXPORT_SYMBOL(copy_page);
-+
- #if defined(CONFIG_MD_RAID456) || defined(CONFIG_MD_RAID456_MODULE)
- extern void xor_ia64_2(void);
- extern void xor_ia64_3(void);
-diff -puN arch/ia64/lib/copy_page-export.c~ia64-export-copy_page-to-modules-fix /dev/null
---- a/arch/ia64/lib/copy_page-export.c
-+++ /dev/null
-@@ -1,4 +0,0 @@
--#include <asm/page.h>
--#include <linux/module.h>
--
--EXPORT_SYMBOL(copy_page);
+-obj-y := io.o copy_page-export.o
++obj-y := io.o
+ 
+ lib-y := __divsi3.o __udivsi3.o __modsi3.o __umodsi3.o			\
+ 	__divdi3.o __udivdi3.o __moddi3.o __umoddi3.o			\
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -124,7 +116,6 @@ git-xtensa.patch
 ia64-increase-datapatch-offset.patch
 ia64-dont-assume-that-unwcheckpy-is-executable.patch
 ia64-export-copy_page-to-modules.patch
-ia64-export-copy_page-to-modules-fix.patch
 ia64-export-copy_page-to-modules-fix-fix.patch
 isdn-validate-length-of-isdn_net_ioctl_cfgeaz.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
