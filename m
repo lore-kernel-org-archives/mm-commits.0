@@ -1,61 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - proc-simplify-remove_proc_entry-wrt-locking-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 20 Nov 2007 20:08:56 -0800
-Message-ID: <200711210408.lAL48ukX006595@imap1.linux-foundation.org>
+Subject: + git-x86-dont-unexport-empty_zero_page.patch added to -mm tree
+Date: Tue, 20 Nov 2007 22:02:21 -0800
+Message-ID: <200711210602.lAL62LnB010180@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52647 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41397 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753597AbXKUEJi (ORCPT
+	by vger.kernel.org with ESMTP id S1751405AbXKUGCy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Nov 2007 23:09:38 -0500
+	Wed, 21 Nov 2007 01:02:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adobriyan@sw.ru, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, avi@qumranet.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     proc-simplify-remove_proc_entry-wrt-locking-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     proc-simplify-remove_proc_entry-wrt-locking-checkpatch-fixes.patch
+     git-x86: don't unexport empty_zero_page
+has been added to the -mm tree.  Its filename is
+     git-x86-dont-unexport-empty_zero_page.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: proc-simplify-remove_proc_entry-wrt-locking-checkpatch-fixes
+Subject: git-x86: don't unexport empty_zero_page
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: printk() should include KERN_ facility level
-#110: FILE: fs/proc/generic.c:739:
-+		printk("remove_proc_entry: %s/%s busy, count=%d\n",
+kvm devel tree uses it.
 
-total: 0 errors, 1 warnings, 92 lines checked
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/kernel/x8664_ksyms_64.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/proc/generic.c~proc-simplify-remove_proc_entry-wrt-locking-checkpatch-fixes fs/proc/generic.c
---- a/fs/proc/generic.c~proc-simplify-remove_proc_entry-wrt-locking-checkpatch-fixes
-+++ a/fs/proc/generic.c
-@@ -736,7 +736,7 @@ continue_removing:
- 		free_proc_entry(de);
- 	else {
- 		de->deleted = 1;
--		printk("remove_proc_entry: %s/%s busy, count=%d\n",
-+		printk(KERN_ERR "remove_proc_entry: %s/%s busy, count=%d\n",
- 			parent->name, de->name, atomic_read(&de->count));
- 	}
- }
+diff -puN arch/x86/kernel/x8664_ksyms_64.c~git-x86-dont-unexport-empty_zero_page arch/x86/kernel/x8664_ksyms_64.c
+--- a/arch/x86/kernel/x8664_ksyms_64.c~git-x86-dont-unexport-empty_zero_page
++++ a/arch/x86/kernel/x8664_ksyms_64.c
+@@ -49,5 +49,6 @@ EXPORT_SYMBOL(memcpy);
+ EXPORT_SYMBOL(__memcpy);
+ 
+ EXPORT_SYMBOL(load_gs_index);
++EXPORT_SYMBOL(empty_zero_page);
+ 
+ EXPORT_SYMBOL(_proxy_pda);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -213,7 +207,6 @@ use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
 cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
 cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
 proc-detect-duplicate-names-on-registration-fix.patch
-proc-simplify-remove_proc_entry-wrt-locking-checkpatch-fixes.patch
 intel-iommu-fault_reason_index_cleanuppatch-fix.patch
 make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
 reiser4.patch
@@ -228,3 +221,4 @@ shrink_slab-handle-bad-shrinkers.patch
 getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 w1-build-fix.patch
+git-x86-dont-unexport-empty_zero_page.patch
