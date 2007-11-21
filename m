@@ -1,66 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch removed from -mm tree
-Date: Wed, 21 Nov 2007 14:48:34 -0800
-Message-ID: <200711212248.lALMmYQQ012943@imap1.linux-foundation.org>
+Subject: - unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch removed from -mm tree
+Date: Wed, 21 Nov 2007 14:53:43 -0800
+Message-ID: <200711212253.lALMrhYI013197@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43309 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53091 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752135AbXKUWtq (ORCPT
+	by vger.kernel.org with ESMTP id S1753295AbXKUWyQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Nov 2007 17:49:46 -0500
+	Wed, 21 Nov 2007 17:54:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arjan@infradead.org, dag@bakke.com, lenb@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, pbadari@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi-enable-c3-power-state-on-dell-inspiron-8200-fix
+     unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix
 has been removed from the -mm tree.  Its filename was
-     acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
+     unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
 
-This patch was dropped because it was folded into acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+This patch was dropped because it was folded into unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
 
 ------------------------------------------------------
-Subject: acpi-enable-c3-power-state-on-dell-inspiron-8200-fix
+Subject: unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/acpi/processor_idle.c:193: warning: initialization from incompatible pointer type
+no no no no.
 
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Dag Bakke <dag@bakke.com>
-Cc: Len Brown <lenb@kernel.org>
+Please add checkpatch.pl to your workflow.
+
+Cc: Badari Pulavarty <pbadari@gmail.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_idle.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ arch/powerpc/kernel/vio.c |    2 --
+ drivers/base/base.h       |    2 --
+ include/linux/device.h    |    1 +
+ 3 files changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/acpi/processor_idle.c~acpi-enable-c3-power-state-on-dell-inspiron-8200-fix drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~acpi-enable-c3-power-state-on-dell-inspiron-8200-fix
-+++ a/drivers/acpi/processor_idle.c
-@@ -119,16 +119,15 @@ static int set_max_cstate(const struct d
- }
+diff -puN arch/powerpc/kernel/vio.c~unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix arch/powerpc/kernel/vio.c
+--- a/arch/powerpc/kernel/vio.c~unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix
++++ a/arch/powerpc/kernel/vio.c
+@@ -37,8 +37,6 @@
+ #include <asm/iseries/hv_call_xm.h>
+ #include <asm/iseries/iommu.h>
  
- /*
-- * Some (Dell) machines have a too large C3 latency set, but it still works completely.
-- * Dell provides a driver for other operating systems to hack around this bug, so we know
-- * it's safe.
-+ * Some (Dell) machines have a too large C3 latency set, but it still works
-+ * completely.  Dell provides a driver for other operating systems to hack
-+ * around this bug, so we know it's safe.
-  */
--static int dmi_force_c3(struct dmi_system_id *id)
-+static int dmi_force_c3(const struct dmi_system_id *id)
- {
- 	forced_c3 = 1;
+-extern struct kset *devices_kset;  /* needed for vio_find_name() */
 -
--	printk(KERN_NOTICE PREFIX "%s detected - Force enabling C3.", id->ident);
+ static struct bus_type vio_bus_type;
+ 
+ static struct vio_dev vio_bus_device  = { /* fake "parent" device */
+diff -puN drivers/base/base.h~unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix drivers/base/base.h
+--- a/drivers/base/base.h~unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix
++++ a/drivers/base/base.h
+@@ -71,5 +71,3 @@ struct class_device_attribute *to_class_
+ extern char *make_class_name(const char *name, struct kobject *kobj);
+ 
+ extern int devres_release_all(struct device *dev);
 -
-+	printk(KERN_NOTICE PREFIX "%s detected - Force enabling C3.",
-+			id->ident);
- 	return 0;
- }
+-extern struct kset *devices_kset;
+diff -puN include/linux/device.h~unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix include/linux/device.h
+--- a/include/linux/device.h~unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix
++++ a/include/linux/device.h
+@@ -109,6 +109,7 @@ extern int bus_unregister_notifier(struc
+ #define BUS_NOTIFY_UNBIND_DRIVER	0x00000004 /* driver about to be
+ 						      unbound */
+ 
++extern struct kset *devices_kset;
+ extern struct kset *bus_get_kset(struct bus_type *bus);
+ extern struct klist *bus_get_device_klist(struct bus_type *bus);
  
 _
 
@@ -76,7 +85,6 @@ clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
 git-acpi-fixup.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
 acpi-add-reboot-mechanism.patch
 small-acpica-extension-to-be-able-to-store-the-name-of.patch
 git-alsa.patch
