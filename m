@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ide-printk-fix.patch added to -mm tree
-Date: Tue, 20 Nov 2007 20:17:42 -0700
-Message-ID: <200711210317.lAL3HhkV004898@imap1.linux-foundation.org>
+Subject: + gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch added to -mm tree
+Date: Tue, 20 Nov 2007 19:47:22 -0800
+Message-ID: <200711210347.lAL3lMKe005881@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37818 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56520 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751672AbXKUDR4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752315AbXKUDsC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Nov 2007 22:17:56 -0500
+	Tue, 20 Nov 2007 22:48:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bzolnier@gmail.com
+Cc: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org, lenb@kernel.org, rjw@sisk.pl
 
 
 The patch titled
-     ide printk fix
+     gregkh-driver-kset-convert-to-kobj_sysfs_ops vs git-acpi
 has been added to the -mm tree.  Its filename is
-     ide-printk-fix.patch
+     gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,37 +26,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ide printk fix
+Subject: gregkh-driver-kset-convert-to-kobj_sysfs_ops vs git-acpi
 From: Andrew Morton <akpm@linux-foundation.org>
 
-power4:
+kernel/power/main.c:123: warning: initialization from incompatible pointer type
+kernel/power/main.c:123: warning: initialization from incompatible pointer type
 
-drivers/ide/ide-lib.c: In function `ide_dump_sector':
-drivers/ide/ide-lib.c:516: warning: long long unsigned int format, u64 arg (arg 2)
-
-We don't know what type is used to implement u64 hence it must always be cast
-when printed.
-
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/ide-lib.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ kernel/power/main.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ide/ide-lib.c~ide-printk-fix drivers/ide/ide-lib.c
---- a/drivers/ide/ide-lib.c~ide-printk-fix
-+++ a/drivers/ide/ide-lib.c
-@@ -513,7 +513,8 @@ static void ide_dump_sector(ide_drive_t 
- 	ide_tf_read(drive, &task);
+diff -puN kernel/power/main.c~gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi kernel/power/main.c
+--- a/kernel/power/main.c~gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi
++++ a/kernel/power/main.c
+@@ -74,7 +74,8 @@ static const char * const pm_tests[__TES
+ 	[TEST_FREEZER] = "freezer",
+ };
  
- 	if (lba48 || (tf->device & ATA_LBA))
--		printk(", LBAsect=%llu", ide_get_lba_addr(tf, lba48));
-+		printk(", LBAsect=%llu",
-+			(unsigned long long)ide_get_lba_addr(tf, lba48));
- 	else
- 		printk(", CHS=%d/%d/%d", (tf->lbah << 8) + tf->lbam,
- 					 tf->device & 0xf, tf->lbal);
+-static ssize_t pm_test_show(struct kset *kset, char *buf)
++static ssize_t pm_test_show(struct kobject *kobj, struct kobj_attribute *attr,
++				char *buf)
+ {
+ 	char *s = buf;
+ 	int level;
+@@ -94,7 +95,8 @@ static ssize_t pm_test_show(struct kset 
+ 	return (s - buf);
+ }
+ 
+-static ssize_t pm_test_store(struct kset *kset, const char *buf, size_t n)
++static ssize_t pm_test_store(struct kobject *kobj, struct kobj_attribute *attr,
++				const char *buf, size_t n)
+ {
+ 	const char * const *s;
+ 	int level;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -76,6 +84,7 @@ git-alsa.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
 agk-dm-dm-ioctl-move-compat-code-fix.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
 unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
 unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
 git-drm-oops-fix.patch
@@ -87,6 +96,7 @@ git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
 pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
 ide-arm-hack.patch
+ide-printk-fix.patch
 git-mips-fixup.patch
 git-mmc.patch
 git-mtd.patch
@@ -227,4 +237,3 @@ shrink_slab-handle-bad-shrinkers.patch
 getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 w1-build-fix.patch
-ide-printk-fix.patch
