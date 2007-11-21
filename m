@@ -1,113 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 21 Nov 2007 15:10:25 -0800
-Message-ID: <200711212310.lALNAPig014082@imap1.linux-foundation.org>
+Subject: - fix-build-breakage-if-sysfs-fix.patch removed from -mm tree
+Date: Wed, 21 Nov 2007 15:08:36 -0800
+Message-ID: <200711212308.lALN8aYX013967@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41337 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33807 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752935AbXKUXLh (ORCPT
+	by vger.kernel.org with ESMTP id S1752938AbXKUXOo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Nov 2007 18:11:37 -0500
+	Wed, 21 Nov 2007 18:14:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@steeleye.com, jeff@garzik.org, jgarzik@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dhaval@linux.vnet.ibm.com, mingo@elte.hu, vatsa@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes
+     fix-build-breakage-if-sysfs-fix
 has been removed from the -mm tree.  Its filename was
-     scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
+     fix-build-breakage-if-sysfs-fix.patch
 
-This patch was dropped because it was folded into scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers.patch
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes
+Subject: fix-build-breakage-if-sysfs-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: no space between function name and open parenthesis '('
-#142: FILE: drivers/scsi/mac_scsi.c:329:
-+		free_irq (shpnt->irq, shpnt);
+Not strictly needed, but it's conventional...
 
-WARNING: no space between function name and open parenthesis '('
-#185: FILE: drivers/scsi/sun3_scsi.c:313:
-+		free_irq (shpnt->irq, shpnt);
-
-WARNING: no space between function name and open parenthesis '('
-#206: FILE: drivers/scsi/sun3_scsi_vme.c:282:
-+		free_irq (shpnt->irq, shpnt);
-
-ERROR: use tabs not spaces
-#219: FILE: drivers/scsi/t128.c:263:
-+^I    ^I^I    instance)) {$
-
-total: 1 errors, 3 warnings, 156 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Jeff Garzik <jgarzik@redhat.com>
+Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com>
+Cc: Srivatsa Vaddagiri <vatsa@linux.vnet.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/mac_scsi.c      |    2 +-
- drivers/scsi/sun3_scsi.c     |    2 +-
- drivers/scsi/sun3_scsi_vme.c |    2 +-
- drivers/scsi/t128.c          |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ kernel/user.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/scsi/mac_scsi.c~scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes drivers/scsi/mac_scsi.c
---- a/drivers/scsi/mac_scsi.c~scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes
-+++ a/drivers/scsi/mac_scsi.c
-@@ -326,7 +326,7 @@ int macscsi_detect(struct scsi_host_temp
- int macscsi_release (struct Scsi_Host *shpnt)
- {
- 	if (shpnt->irq != SCSI_IRQ_NONE)
--		free_irq (shpnt->irq, shpnt);
-+		free_irq(shpnt->irq, shpnt);
- 	NCR5380_exit(shpnt);
+diff -puN kernel/user.c~fix-build-breakage-if-sysfs-fix kernel/user.c
+--- a/kernel/user.c~fix-build-breakage-if-sysfs-fix
++++ a/kernel/user.c
+@@ -107,9 +107,9 @@ static void sched_switch_user(struct tas
  
- 	return 0;
-diff -puN drivers/scsi/sun3_scsi.c~scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes drivers/scsi/sun3_scsi.c
---- a/drivers/scsi/sun3_scsi.c~scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes
-+++ a/drivers/scsi/sun3_scsi.c
-@@ -310,7 +310,7 @@ int sun3scsi_detect(struct scsi_host_tem
- int sun3scsi_release (struct Scsi_Host *shpnt)
- {
- 	if (shpnt->irq != SCSI_IRQ_NONE)
--		free_irq (shpnt->irq, shpnt);
-+		free_irq(shpnt->irq, shpnt);
+ #else	/* CONFIG_FAIR_USER_SCHED */
  
- 	iounmap((void *)sun3_scsi_regp);
+-static void sched_destroy_user(struct user_struct *up) { }
+-static int sched_create_user(struct user_struct *up) { return 0; }
+-static void sched_switch_user(struct task_struct *p) { }
++static inline void sched_destroy_user(struct user_struct *up) { }
++static inline int sched_create_user(struct user_struct *up) { return 0; }
++static inline void sched_switch_user(struct task_struct *p) { }
  
-diff -puN drivers/scsi/sun3_scsi_vme.c~scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes drivers/scsi/sun3_scsi_vme.c
---- a/drivers/scsi/sun3_scsi_vme.c~scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes
-+++ a/drivers/scsi/sun3_scsi_vme.c
-@@ -279,7 +279,7 @@ static int sun3scsi_detect(struct scsi_h
- int sun3scsi_release (struct Scsi_Host *shpnt)
- {
- 	if (shpnt->irq != SCSI_IRQ_NONE)
--		free_irq (shpnt->irq, shpnt);
-+		free_irq(shpnt->irq, shpnt);
+ #endif	/* CONFIG_FAIR_USER_SCHED */
  
- 	iounmap((void *)sun3_scsi_regp);
- 
-diff -puN drivers/scsi/t128.c~scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes drivers/scsi/t128.c
---- a/drivers/scsi/t128.c~scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes
-+++ a/drivers/scsi/t128.c
-@@ -260,7 +260,7 @@ found:
- 
- 	if (instance->irq != SCSI_IRQ_NONE) 
- 	    if (request_irq(instance->irq, t128_intr, IRQF_DISABLED, "t128",
--	    		    instance)) {
-+			    instance)) {
- 		printk("scsi%d : IRQ%d not free, interrupts disabled\n", 
- 		    instance->host_no, instance->irq);
- 		instance->irq = SCSI_IRQ_NONE;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -150,9 +94,9 @@ git-nfsd-build-fix.patch
 drivers-pci-quirksc-coding-style-cleanup.patch
 more-sanity-checks-for-dmar.patch
 git-s390.patch
-ips-trim-trailing-whitespace.patch
-scsi-gdth-kill-unneeded-irq-argument.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers.patch
+fix-build-breakage-if-sysfs-fix.patch
+ips-trim-trailing-whitespace-checkpatch-fixes.patch
+scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
 scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
 bidi-support-scsi_data_buffer-broke-qla1280.patch
 bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
