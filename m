@@ -1,53 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - ia64-export-copy_page-to-modules-fix-fix.patch removed from -mm tree
-Date: Tue, 20 Nov 2007 22:09:47 -0800
-Message-ID: <200711210609.lAL69lnA010491@imap1.linux-foundation.org>
+Subject: + git-x86-i386-export-empty_zero_page.patch added to -mm tree
+Date: Tue, 20 Nov 2007 22:15:14 -0800
+Message-ID: <200711210615.lAL6FEso010654@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36855 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35036 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753116AbXKUGJz (ORCPT
+	by vger.kernel.org with ESMTP id S1750958AbXKUGPt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 Nov 2007 01:09:55 -0500
+	Wed, 21 Nov 2007 01:15:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kyle@mcmartin.ca, sam@ravnborg.org, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, avi@qumranet.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     ia64-export-copy_page-to-modules-fix-fix
-has been removed from the -mm tree.  Its filename was
-     ia64-export-copy_page-to-modules-fix-fix.patch
+     git-x86: i386: export empty_zero_page()
+has been added to the -mm tree.  Its filename is
+     git-x86-i386-export-empty_zero_page.patch
 
-This patch was dropped because it was folded into ia64-export-copy_page-to-modules.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: ia64-export-copy_page-to-modules-fix-fix
+Subject: git-x86: i386: export empty_zero_page()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+For kvm.
+
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/lib/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/kernel/i386_ksyms_32.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/ia64/kernel/ia64_ksyms.c~ia64-export-copy_page-to-modules-fix-fix arch/ia64/kernel/ia64_ksyms.c
-diff -puN /dev/null /dev/null
-diff -puN arch/ia64/lib/Makefile~ia64-export-copy_page-to-modules-fix-fix arch/ia64/lib/Makefile
---- a/arch/ia64/lib/Makefile~ia64-export-copy_page-to-modules-fix-fix
-+++ a/arch/ia64/lib/Makefile
-@@ -2,7 +2,7 @@
- # Makefile for ia64-specific library routines..
- #
+diff -puN arch/x86/kernel/i386_ksyms_32.c~git-x86-i386-export-empty_zero_page arch/x86/kernel/i386_ksyms_32.c
+--- a/arch/x86/kernel/i386_ksyms_32.c~git-x86-i386-export-empty_zero_page
++++ a/arch/x86/kernel/i386_ksyms_32.c
+@@ -2,6 +2,7 @@
+ #include <asm/semaphore.h>
+ #include <asm/checksum.h>
+ #include <asm/desc.h>
++#include <asm/pgtable.h>
  
--obj-y := io.o copy_page-export.o
-+obj-y := io.o
+ EXPORT_SYMBOL(__down_failed);
+ EXPORT_SYMBOL(__down_failed_interruptible);
+@@ -22,3 +23,4 @@ EXPORT_SYMBOL(__put_user_8);
+ EXPORT_SYMBOL(strstr);
  
- lib-y := __divsi3.o __udivsi3.o __modsi3.o __umodsi3.o			\
- 	__divdi3.o __udivdi3.o __moddi3.o __umoddi3.o			\
+ EXPORT_SYMBOL(csum_partial);
++EXPORT_SYMBOL(empty_zero_page);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,6 +114,7 @@ git-ipwireless_cs.patch
 git-x86.patch
 git-x86-fixup.patch
 git-x86-dont-unexport-empty_zero_page.patch
+git-x86-i386-export-empty_zero_page.patch
 git-x86-thread_order-borkage.patch
 git-x86-thread_order-borkage-fix.patch
 git-x86-identify_cpu-fix.patch
@@ -116,7 +125,6 @@ git-xtensa.patch
 ia64-increase-datapatch-offset.patch
 ia64-dont-assume-that-unwcheckpy-is-executable.patch
 ia64-export-copy_page-to-modules.patch
-ia64-export-copy_page-to-modules-fix-fix.patch
 isdn-validate-length-of-isdn_net_ioctl_cfgeaz.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
