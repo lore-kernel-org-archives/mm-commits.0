@@ -1,140 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - sisusb-_ioctl32_conversion-functions-do-not-exist-in-recent-kernels.patch removed from -mm tree
-Date: Mon, 26 Nov 2007 13:50:09 -0800
-Message-ID: <200711262150.lAQLo9VM024831@imap1.linux-foundation.org>
+Subject: - git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko.patch removed from -mm tree
+Date: Mon, 26 Nov 2007 13:49:56 -0800
+Message-ID: <200711262149.lAQLnum0024799@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56856 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49483 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756076AbXKZV6q (ORCPT
+	by vger.kernel.org with ESMTP id S1755411AbXKZV7G (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 16:58:46 -0500
+	Mon, 26 Nov 2007 16:59:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fernando@oss.ntt.co.jp, adaplas@pol.net, thomas@winischhofer.net, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sisusb: *_ioctl32_conversion functions do not exist in recent kernels
+     git-x86: memory_add_physaddr_to_nid export for acpi memhotplug.ko
 has been removed from the -mm tree.  Its filename was
-     sisusb-_ioctl32_conversion-functions-do-not-exist-in-recent-kernels.patch
+     git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sisusb: *_ioctl32_conversion functions do not exist in recent kernels
-From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+Subject: git-x86: memory_add_physaddr_to_nid export for acpi memhotplug.ko
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Remove dead code while at it.
+ERROR: "memory_add_physaddr_to_nid" [drivers/acpi/acpi_memhotplug.ko] undefined!
 
-Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
-Cc: Thomas Winischhofer <thomas@winischhofer.net>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Undo this regression in git-x86.patch
+
+[akpm@linux-foundation.org: coding style fixes]
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/sis/sis.h      |    8 -----
- drivers/video/sis/sis_main.c |   48 ---------------------------------
- 2 files changed, 56 deletions(-)
+ arch/x86/mm/srat_64.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/sis/sis.h~sisusb-_ioctl32_conversion-functions-do-not-exist-in-recent-kernels drivers/video/sis/sis.h
---- a/drivers/video/sis/sis.h~sisusb-_ioctl32_conversion-functions-do-not-exist-in-recent-kernels
-+++ a/drivers/video/sis/sis.h
-@@ -39,12 +39,7 @@
- #include <linux/spinlock.h>
+diff -puN arch/x86/mm/srat_64.c~git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko arch/x86/mm/srat_64.c
+--- a/arch/x86/mm/srat_64.c~git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko
++++ a/arch/x86/mm/srat_64.c
+@@ -560,4 +560,4 @@ int memory_add_physaddr_to_nid(u64 start
  
- #ifdef CONFIG_COMPAT
--#if LINUX_VERSION_CODE <= KERNEL_VERSION(2,6,10)
--#include <linux/ioctl32.h>
--#define SIS_OLD_CONFIG_COMPAT
--#else
- #define SIS_NEW_CONFIG_COMPAT
--#endif
- #endif	/* CONFIG_COMPAT */
- 
- #if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,8)
-@@ -607,9 +602,6 @@ struct sis_video_info {
- 	int		haveXGIROM;
- 	int		registered;
- 	int		warncount;
--#ifdef SIS_OLD_CONFIG_COMPAT
--	int		ioctl32registered;
--#endif
- 
- 	int		sisvga_engine;
- 	int		hwcursor_size;
-diff -puN drivers/video/sis/sis_main.c~sisusb-_ioctl32_conversion-functions-do-not-exist-in-recent-kernels drivers/video/sis/sis_main.c
---- a/drivers/video/sis/sis_main.c~sisusb-_ioctl32_conversion-functions-do-not-exist-in-recent-kernels
-+++ a/drivers/video/sis/sis_main.c
-@@ -5805,9 +5805,6 @@ sisfb_probe(struct pci_dev *pdev, const 
- 	ivideo->pcifunc = PCI_FUNC(pdev->devfn);
- 	ivideo->subsysvendor = pdev->subsystem_vendor;
- 	ivideo->subsysdevice = pdev->subsystem_device;
--#ifdef SIS_OLD_CONFIG_COMPAT
--	ivideo->ioctl32registered = 0;
--#endif
- 
- #ifndef MODULE
- 	if(sisfb_mode_idx == -1) {
-@@ -6420,30 +6417,6 @@ error_3:	vfree(ivideo->bios_abase);
- 		ivideo->next = card_list;
- 		card_list = ivideo;
- 
--#ifdef SIS_OLD_CONFIG_COMPAT
--		{
--		int ret;
--		/* Our ioctls are all "32/64bit compatible" */
--		ret =  register_ioctl32_conversion(FBIO_ALLOC,             NULL);
--		ret |= register_ioctl32_conversion(FBIO_FREE,              NULL);
--		ret |= register_ioctl32_conversion(FBIOGET_VBLANK,         NULL);
--		ret |= register_ioctl32_conversion(SISFB_GET_INFO_SIZE,    NULL);
--		ret |= register_ioctl32_conversion(SISFB_GET_INFO,         NULL);
--		ret |= register_ioctl32_conversion(SISFB_GET_TVPOSOFFSET,  NULL);
--		ret |= register_ioctl32_conversion(SISFB_SET_TVPOSOFFSET,  NULL);
--		ret |= register_ioctl32_conversion(SISFB_SET_LOCK,         NULL);
--		ret |= register_ioctl32_conversion(SISFB_GET_VBRSTATUS,    NULL);
--		ret |= register_ioctl32_conversion(SISFB_GET_AUTOMAXIMIZE, NULL);
--		ret |= register_ioctl32_conversion(SISFB_SET_AUTOMAXIMIZE, NULL);
--		ret |= register_ioctl32_conversion(SISFB_COMMAND,          NULL);
--		if(ret)
--			printk(KERN_ERR
--				"sisfb: Error registering ioctl32 translations\n");
--		else
--			ivideo->ioctl32registered = 1;
--		}
--#endif
+ 	return ret;
+ }
 -
- 		printk(KERN_INFO "sisfb: 2D acceleration is %s, y-panning %s\n",
- 			ivideo->sisfb_accel ? "enabled" : "disabled",
- 			ivideo->sisfb_ypan  ?
-@@ -6473,27 +6446,6 @@ static void __devexit sisfb_remove(struc
- 	int			registered = ivideo->registered;
- 	int			modechanged = ivideo->modechanged;
- 
--#ifdef SIS_OLD_CONFIG_COMPAT
--	if(ivideo->ioctl32registered) {
--		int ret;
--		ret =  unregister_ioctl32_conversion(FBIO_ALLOC);
--		ret |= unregister_ioctl32_conversion(FBIO_FREE);
--		ret |= unregister_ioctl32_conversion(FBIOGET_VBLANK);
--		ret |= unregister_ioctl32_conversion(SISFB_GET_INFO_SIZE);
--		ret |= unregister_ioctl32_conversion(SISFB_GET_INFO);
--		ret |= unregister_ioctl32_conversion(SISFB_GET_TVPOSOFFSET);
--		ret |= unregister_ioctl32_conversion(SISFB_SET_TVPOSOFFSET);
--		ret |= unregister_ioctl32_conversion(SISFB_SET_LOCK);
--		ret |= unregister_ioctl32_conversion(SISFB_GET_VBRSTATUS);
--		ret |= unregister_ioctl32_conversion(SISFB_GET_AUTOMAXIMIZE);
--		ret |= unregister_ioctl32_conversion(SISFB_SET_AUTOMAXIMIZE);
--		ret |= unregister_ioctl32_conversion(SISFB_COMMAND);
--		if(ret)
--			printk(KERN_ERR
--			     "sisfb: Error unregistering ioctl32 translations\n");
--	}
--#endif
--
- 	/* Unmap */
- 	iounmap(ivideo->mmio_vbase);
- 	iounmap(ivideo->video_vbase);
++EXPORT_SYMBOL_GPL(memory_add_physaddr_to_nid);
 _
 
-Patches currently in -mm which might be from fernando@oss.ntt.co.jp are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+
+memory-hotplug-fix-fix-section-mismatch-in-vmammap_allock_block.patch
+memory-hotplug-x86_64-fix-section-mismatch-in-init_memory_mapping.patch
+swapoff-scan-ptes-preemptibly.patch
+memory-hotplug-add-removable-to-sysfs-to-show-memblock-removability.patch
+add-remove_memory-for-ppc64-2.patch
+enable-hotplug-memory-remove-for-ppc64.patch
+add-arch-specific-walk_memory_remove-for-ppc64.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
+memcgroup-temporarily-revert-swapoff-mod.patch
+memory-controller-make-charging-gfp-mask-aware-fix.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
+memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
+memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+memory-cgroup-enhancements-add-pre_destroy-handler.patch
+memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
