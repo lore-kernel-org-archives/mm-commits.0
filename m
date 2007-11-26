@@ -1,57 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - git-x86-i386-export-empty_zero_page.patch removed from -mm tree
-Date: Mon, 26 Nov 2007 13:49:52 -0800
-Message-ID: <200711262149.lAQLnqMY024793@imap1.linux-foundation.org>
+Subject: - git-x86-inlining-borkage.patch removed from -mm tree
+Date: Mon, 26 Nov 2007 13:49:58 -0800
+Message-ID: <200711262149.lAQLnwx5024808@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60522 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51777 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754036AbXKZV6z (ORCPT
+	by vger.kernel.org with ESMTP id S1756652AbXKZV6x (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 16:58:55 -0500
+	Mon, 26 Nov 2007 16:58:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, avi@qumranet.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-x86: i386: export empty_zero_page()
+     git-x86-inlining-borkage
 has been removed from the -mm tree.  Its filename was
-     git-x86-i386-export-empty_zero_page.patch
+     git-x86-inlining-borkage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-x86: i386: export empty_zero_page()
+Subject: git-x86-inlining-borkage
 From: Andrew Morton <akpm@linux-foundation.org>
 
-For kvm.
+arch/x86/kernel/kprobes_64.c: In function 'set_current_kprobe':
+arch/x86/kernel/kprobes_64.c:152: sorry, unimplemented: inlining failed in call to 'is_IF_modifier': recursive inlining
+arch/x86/kernel/kprobes_64.c:166: sorry, unimplemented: called from here
 
-Cc: Ingo Molnar <mingo@elte.hu>
+wtf?
+
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Avi Kivity <avi@qumranet.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/i386_ksyms_32.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/x86/kernel/kprobes_64.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/i386_ksyms_32.c~git-x86-i386-export-empty_zero_page arch/x86/kernel/i386_ksyms_32.c
---- a/arch/x86/kernel/i386_ksyms_32.c~git-x86-i386-export-empty_zero_page
-+++ a/arch/x86/kernel/i386_ksyms_32.c
-@@ -2,6 +2,7 @@
- #include <asm/semaphore.h>
- #include <asm/checksum.h>
- #include <asm/desc.h>
-+#include <asm/pgtable.h>
- 
- EXPORT_SYMBOL(__down_failed);
- EXPORT_SYMBOL(__down_failed_interruptible);
-@@ -22,3 +23,4 @@ EXPORT_SYMBOL(__put_user_8);
- EXPORT_SYMBOL(strstr);
- 
- EXPORT_SYMBOL(csum_partial);
-+EXPORT_SYMBOL(empty_zero_page);
+diff -puN arch/x86/kernel/kprobes_64.c~git-x86-inlining-borkage arch/x86/kernel/kprobes_64.c
+--- a/arch/x86/kernel/kprobes_64.c~git-x86-inlining-borkage
++++ a/arch/x86/kernel/kprobes_64.c
+@@ -58,7 +58,7 @@ const int kretprobe_blacklist_size = ARR
+ /*
+  * returns non-zero if opcode modifies the interrupt flag.
+  */
+-static __always_inline int is_IF_modifier(kprobe_opcode_t *insn)
++static int is_IF_modifier(kprobe_opcode_t *insn)
+ {
+ 	switch (*insn) {
+ 	case 0xfa:		/* cli */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
