@@ -1,39 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: - unprivileged-mounts-account-user-mounts.patch removed from -mm tree
-Date: Mon, 26 Nov 2007 11:35:36 -0800
-Message-ID: <200711261935.lAQJZapM019235@imap1.linux-foundation.org>
+Subject: - unprivileged-mounts-add-no-submounts-flag.patch removed from -mm tree
+Date: Mon, 26 Nov 2007 11:35:48 -0800
+Message-ID: <200711261935.lAQJZmdT019255@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44987 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54127 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753830AbXKZTf7 (ORCPT
+	by vger.kernel.org with ESMTP id S1754192AbXKZTgR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 14:35:59 -0500
+	Mon, 26 Nov 2007 14:36:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mszeredi@suse.cz, hch@lst.de, linuxram@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     unprivileged mounts: account user mounts
+     unprivileged mounts: add "no submounts" flag
 has been removed from the -mm tree.  Its filename was
-     unprivileged-mounts-account-user-mounts.patch
+     unprivileged-mounts-add-no-submounts-flag.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: unprivileged mounts: account user mounts
+Subject: unprivileged mounts: add "no submounts" flag
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Add sysctl variables for accounting and limiting the number of user
-mounts.
+Add a new mount flag "nomnt", which denies submounts for the owner.
+This would be useful, if we want to support traditional /etc/fstab
+based user mounts.
 
-The maximum number of user mounts is set to 1024 by default.  This
-won't in itself enable user mounts, setting a mount to be owned by a
-user is first needed
-
-[akpm]
- - don't use enumerated sysctls
+In this case mount(8) would still have to be suid-root, to check the
+mountpoint against the user/users flag in /etc/fstab, but /etc/mtab
+would no longer be mandatory for storing the actual owner of the
+mount.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Cc: Ram Pai <linuxram@us.ibm.com>
@@ -41,130 +40,68 @@ Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    9 +++++++++
- fs/namespace.c                     |   24 ++++++++++++++++++++++++
- include/linux/fs.h                 |    3 +++
- kernel/sysctl.c                    |   16 ++++++++++++++++
- 4 files changed, 52 insertions(+)
+ fs/namespace.c        |   10 ++++++++--
+ include/linux/fs.h    |    1 +
+ include/linux/mount.h |    1 +
+ 3 files changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~unprivileged-mounts-account-user-mounts Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~unprivileged-mounts-account-user-mounts
-+++ a/Documentation/filesystems/proc.txt
-@@ -1004,6 +1004,15 @@ reaches aio-max-nr then io_setup will fa
- raising aio-max-nr does not result in the pre-allocation or re-sizing
- of any kernel data structures.
- 
-+nr_user_mounts and max_user_mounts
-+----------------------------------
-+
-+These represent the number of "user" mounts and the maximum number of
-+"user" mounts respectively.  User mounts may be created by
-+unprivileged users.  User mounts may also be created with sysadmin
-+privileges on behalf of a user, in which case nr_user_mounts may
-+exceed max_user_mounts.
-+
- 2.2 /proc/sys/fs/binfmt_misc - Miscellaneous binary formats
- -----------------------------------------------------------
- 
-diff -puN fs/namespace.c~unprivileged-mounts-account-user-mounts fs/namespace.c
---- a/fs/namespace.c~unprivileged-mounts-account-user-mounts
+diff -puN fs/namespace.c~unprivileged-mounts-add-no-submounts-flag fs/namespace.c
+--- a/fs/namespace.c~unprivileged-mounts-add-no-submounts-flag
 +++ a/fs/namespace.c
-@@ -40,6 +40,9 @@ static int hash_mask __read_mostly, hash
- static struct kmem_cache *mnt_cache __read_mostly;
- static struct rw_semaphore namespace_sem;
+@@ -436,6 +436,7 @@ static int show_vfsmnt(struct seq_file *
+ 		{ MNT_NOATIME, ",noatime" },
+ 		{ MNT_NODIRATIME, ",nodiratime" },
+ 		{ MNT_RELATIME, ",relatime" },
++		{ MNT_NOMNT, ",nomnt" },
+ 		{ 0, NULL }
+ 	};
+ 	struct proc_fs_info *fs_infop;
+@@ -782,6 +783,9 @@ static bool permit_mount(struct nameidat
+ 	if (S_ISLNK(inode->i_mode))
+ 		return false;
  
-+int nr_user_mounts;
-+int max_user_mounts = 1024;
++	if (nd->mnt->mnt_flags & MNT_NOMNT)
++		return false;
 +
- /* /sys/fs */
- struct kobject *fs_kobj;
- EXPORT_SYMBOL_GPL(fs_kobj);
-@@ -228,11 +231,30 @@ static struct vfsmount *skip_mnt_tree(st
- 	return p;
- }
+ 	if (!is_mount_owner(nd->mnt, current->fsuid))
+ 		return false;
  
-+static void dec_nr_user_mounts(void)
-+{
-+	spin_lock(&vfsmount_lock);
-+	nr_user_mounts--;
-+	spin_unlock(&vfsmount_lock);
-+}
-+
- static void set_mnt_user(struct vfsmount *mnt)
- {
- 	BUG_ON(mnt->mnt_flags & MNT_USER);
- 	mnt->mnt_uid = current->fsuid;
- 	mnt->mnt_flags |= MNT_USER;
-+	spin_lock(&vfsmount_lock);
-+	nr_user_mounts++;
-+	spin_unlock(&vfsmount_lock);
-+}
-+
-+static void clear_mnt_user(struct vfsmount *mnt)
-+{
-+	if (mnt->mnt_flags & MNT_USER) {
-+		mnt->mnt_uid = 0;
-+		mnt->mnt_flags &= ~MNT_USER;
-+		dec_nr_user_mounts();
-+	}
- }
+@@ -1597,9 +1601,11 @@ long do_mount(char *dev_name, char *dir_
+ 		mnt_flags |= MNT_NODIRATIME;
+ 	if (flags & MS_RELATIME)
+ 		mnt_flags |= MNT_RELATIME;
++	if (flags & MS_NOMNT)
++		mnt_flags |= MNT_NOMNT;
  
- static struct vfsmount *clone_mnt(struct vfsmount *old, struct dentry *root,
-@@ -284,6 +306,7 @@ static inline void __mntput(struct vfsmo
- {
- 	struct super_block *sb = mnt->mnt_sb;
- 	dput(mnt->mnt_root);
-+	clear_mnt_user(mnt);
- 	free_vfsmnt(mnt);
- 	deactivate_super(sb);
- }
-@@ -1024,6 +1047,7 @@ static int do_remount(struct nameidata *
- 	down_write(&sb->s_umount);
- 	err = do_remount_sb(sb, flags, data, 0);
- 	if (!err) {
-+		clear_mnt_user(nd->mnt);
- 		nd->mnt->mnt_flags = mnt_flags;
- 		if (flags & MS_SETUSER)
- 			set_mnt_user(nd->mnt);
-diff -puN include/linux/fs.h~unprivileged-mounts-account-user-mounts include/linux/fs.h
---- a/include/linux/fs.h~unprivileged-mounts-account-user-mounts
+-	flags &= ~(MS_NOSUID | MS_NOEXEC | MS_NODEV | MS_ACTIVE |
+-		   MS_NOATIME | MS_NODIRATIME | MS_RELATIME| MS_KERNMOUNT);
++	flags &= ~(MS_NOSUID | MS_NOEXEC | MS_NODEV | MS_ACTIVE | MS_NOATIME |
++			MS_NODIRATIME | MS_RELATIME| MS_KERNMOUNT | MS_NOMNT);
+ 
+ 	/* ... and get the mountpoint */
+ 	retval = path_lookup(dir_name, LOOKUP_FOLLOW, &nd);
+diff -puN include/linux/fs.h~unprivileged-mounts-add-no-submounts-flag include/linux/fs.h
+--- a/include/linux/fs.h~unprivileged-mounts-add-no-submounts-flag
 +++ a/include/linux/fs.h
-@@ -50,6 +50,9 @@ extern struct inodes_stat_t inodes_stat;
+@@ -129,6 +129,7 @@ extern int dir_notify_enable;
+ #define MS_RELATIME	(1<<21)	/* Update atime relative to mtime/ctime. */
+ #define MS_KERNMOUNT	(1<<22) /* this is a kern_mount call */
+ #define MS_SETUSER	(1<<23) /* set mnt_uid to current user */
++#define MS_NOMNT	(1<<24) /* don't allow unprivileged submounts */
+ #define MS_ACTIVE	(1<<30)
+ #define MS_NOUSER	(1<<31)
  
- extern int leases_enable, lease_break_time;
+diff -puN include/linux/mount.h~unprivileged-mounts-add-no-submounts-flag include/linux/mount.h
+--- a/include/linux/mount.h~unprivileged-mounts-add-no-submounts-flag
++++ a/include/linux/mount.h
+@@ -28,6 +28,7 @@ struct mnt_namespace;
+ #define MNT_NOATIME	0x08
+ #define MNT_NODIRATIME	0x10
+ #define MNT_RELATIME	0x20
++#define MNT_NOMNT	0x40
  
-+extern int nr_user_mounts;
-+extern int max_user_mounts;
-+
- #ifdef CONFIG_DNOTIFY
- extern int dir_notify_enable;
- #endif
-diff -puN kernel/sysctl.c~unprivileged-mounts-account-user-mounts kernel/sysctl.c
---- a/kernel/sysctl.c~unprivileged-mounts-account-user-mounts
-+++ a/kernel/sysctl.c
-@@ -1210,6 +1210,22 @@ static struct ctl_table fs_table[] = {
- #endif	
- #endif
- 	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "nr_user_mounts",
-+		.data		= &nr_user_mounts,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0444,
-+		.proc_handler	= &proc_dointvec,
-+	},
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "max_user_mounts",
-+		.data		= &max_user_mounts,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec,
-+	},
-+	{
- 		.ctl_name	= KERN_SETUID_DUMPABLE,
- 		.procname	= "suid_dumpable",
- 		.data		= &suid_dumpable,
+ #define MNT_SHRINKABLE	0x100
+ #define MNT_USER	0x200
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
@@ -175,12 +112,6 @@ fuse-pass-open-flags-to-read-and-write.patch
 fuse-fix-fuse_file_ops-sending.patch
 fuse-fix-uninitialized-field-in-fuse_inode.patch
 fuse-fix-attribute-caching-after-rename.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent.patch
 unprivileged-mounts-add-no-submounts-flag.patch
 slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
 fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
