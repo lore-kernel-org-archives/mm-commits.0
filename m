@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cris-avoid-using-arch-links-in-kconfig.patch added to -mm tree
-Date: Mon, 26 Nov 2007 15:51:03 -0800
-Message-ID: <200711262351.lAQNp3JM029472@imap1.linux-foundation.org>
+Subject: + dont-forget-to-unlock-uids_mutex-on-error-paths.patch added to -mm tree
+Date: Mon, 26 Nov 2007 15:53:58 -0800
+Message-ID: <200711262353.lAQNrwW8029540@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55044 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44197 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756264AbXKZXvL (ORCPT
+	by vger.kernel.org with ESMTP id S1756403AbXKZXyg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 18:51:11 -0500
+	Mon, 26 Nov 2007 18:54:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jesper.nilsson@axis.com, sam@ravnborg.org
+Cc: xemul@openvz.org, dhaval@linux.vnet.ibm.com, mingo@elte.hu
 
 
 The patch titled
-     CRIS: avoid using arch links in Kconfig
+     Don't forget to unlock uids_mutex on error paths
 has been added to the -mm tree.  Its filename is
-     cris-avoid-using-arch-links-in-kconfig.patch
+     dont-forget-to-unlock-uids_mutex-on-error-paths.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,116 +26,114 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: CRIS: avoid using arch links in Kconfig
-From: Jesper Nilsson <jesper.nilsson@axis.com>
+Subject: Don't forget to unlock uids_mutex on error paths
+From: Pavel Emelyanov <xemul@openvz.org>
 
-Improve including of architecture dependent Kconfig files.
+The commit
 
-- Always include the architecture dependent Kconfig files.
-- Wrap architecture dependent Kconfig files inside an appropriate
-  "if ETRAX_ARCH_Vxx" block.
+commit 5cb350baf580017da38199625b7365b1763d7180
+Author: Dhaval Giani <dhaval@linux.vnet.ibm.com>
+Date:   Mon Oct 15 17:00:14 2007 +0200
 
-This makes it possible to run the configuration even without the arch links,
-which are created later in the build process.
+    sched: group scheduling, sysfs tunables
 
-Signed-off-by: Jesper Nilsson <jesper.nilsson@axis.com>
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
+introduced the uids_mutex and the helpers to lock/unlock it.  Unfortunately,
+the error paths of alloc_uid() were not patched to unlock it.
+
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Acked-by: Dhaval Giani <dhaval@linux.vnet.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/Kconfig                  |    5 +++--
- arch/cris/arch-v10/Kconfig         |    4 ++++
- arch/cris/arch-v10/drivers/Kconfig |    4 ++++
- arch/cris/arch-v32/Kconfig         |    4 ++++
- arch/cris/arch-v32/drivers/Kconfig |    4 ++++
- 5 files changed, 19 insertions(+), 2 deletions(-)
+ kernel/user.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN arch/cris/Kconfig~cris-avoid-using-arch-links-in-kconfig arch/cris/Kconfig
---- a/arch/cris/Kconfig~cris-avoid-using-arch-links-in-kconfig
-+++ a/arch/cris/Kconfig
-@@ -150,6 +150,7 @@ config ETRAX_FLASH_BUSWIDTH
- 	  Width in bytes of the Flash bus (1, 2 or 4). Is usually 2.
+diff -puN kernel/user.c~dont-forget-to-unlock-uids_mutex-on-error-paths kernel/user.c
+--- a/kernel/user.c~dont-forget-to-unlock-uids_mutex-on-error-paths
++++ a/kernel/user.c
+@@ -335,8 +335,11 @@ struct user_struct * alloc_uid(struct us
+ 		struct user_struct *new;
  
- source arch/cris/arch-v10/Kconfig
-+source arch/cris/arch-v32/Kconfig
+ 		new = kmem_cache_alloc(uid_cachep, GFP_KERNEL);
+-		if (!new)
++		if (!new) {
++			uids_mutex_unlock();
+ 			return NULL;
++		}
++
+ 		new->uid = uid;
+ 		atomic_set(&new->__count, 1);
+ 		atomic_set(&new->processes, 0);
+@@ -353,6 +356,7 @@ struct user_struct * alloc_uid(struct us
  
- endmenu
+ 		if (alloc_uid_keyring(new, current) < 0) {
+ 			kmem_cache_free(uid_cachep, new);
++			uids_mutex_unlock();
+ 			return NULL;
+ 		}
  
-@@ -157,8 +158,8 @@ source "net/Kconfig"
+@@ -360,6 +364,7 @@ struct user_struct * alloc_uid(struct us
+ 			key_put(new->uid_keyring);
+ 			key_put(new->session_keyring);
+ 			kmem_cache_free(uid_cachep, new);
++			uids_mutex_unlock();
+ 			return NULL;
+ 		}
  
- # bring in ETRAX built-in drivers
- menu "Drivers for built-in interfaces"
--# arch/cris/arch is a symlink to correct arch (arch-v10 or arch-v32)
--source arch/cris/arch/drivers/Kconfig
-+source arch/cris/arch-v10/drivers/Kconfig
-+source arch/cris/arch-v32/drivers/Kconfig
- 
- endmenu
- 
-diff -puN arch/cris/arch-v10/Kconfig~cris-avoid-using-arch-links-in-kconfig arch/cris/arch-v10/Kconfig
---- a/arch/cris/arch-v10/Kconfig~cris-avoid-using-arch-links-in-kconfig
-+++ a/arch/cris/arch-v10/Kconfig
-@@ -1,3 +1,5 @@
-+if ETRAX_ARCH_V10
-+
- # ETRAX 100LX v1 has a MMU "feature" requiring a low mapping
- config CRIS_LOW_MAP
- 	bool
-@@ -451,3 +453,5 @@ config ETRAX_POWERBUTTON_BIT
- 	default "25"
- 	help
- 	  Configure where power button is connected.
-+
-+endif
-diff -puN arch/cris/arch-v10/drivers/Kconfig~cris-avoid-using-arch-links-in-kconfig arch/cris/arch-v10/drivers/Kconfig
---- a/arch/cris/arch-v10/drivers/Kconfig~cris-avoid-using-arch-links-in-kconfig
-+++ a/arch/cris/arch-v10/drivers/Kconfig
-@@ -1,3 +1,5 @@
-+if ETRAX_ARCH_V10
-+
- config ETRAX_ETHERNET
- 	bool "Ethernet support"
- 	depends on ETRAX_ARCH_V10
-@@ -806,3 +808,5 @@ config ETRAX_DS1302_TRICKLE_CHARGE
- 	  1 = 2kohm, 2 = 4kohm, 3 = 4kohm
- 	  4 = 1 diode, 8 = 2 diodes
- 	  Allowed values are (increasing current): 0, 11, 10, 9, 7, 6, 5
-+
-+endif
-diff -puN arch/cris/arch-v32/Kconfig~cris-avoid-using-arch-links-in-kconfig arch/cris/arch-v32/Kconfig
---- a/arch/cris/arch-v32/Kconfig~cris-avoid-using-arch-links-in-kconfig
-+++ a/arch/cris/arch-v32/Kconfig
-@@ -1,3 +1,5 @@
-+if ETRAX_ARCH_V32
-+
- config ETRAX_DRAM_VIRTUAL_BASE
- 	hex
- 	depends on ETRAX_ARCH_V32
-@@ -294,3 +296,5 @@ config ETRAX_DEF_GIO_PE_OUT
- 	help
- 	  Configures the initial data for the general port E bits.  Most
- 	  products should use 00000 here.
-+
-+endif
-diff -puN arch/cris/arch-v32/drivers/Kconfig~cris-avoid-using-arch-links-in-kconfig arch/cris/arch-v32/drivers/Kconfig
---- a/arch/cris/arch-v32/drivers/Kconfig~cris-avoid-using-arch-links-in-kconfig
-+++ a/arch/cris/arch-v32/drivers/Kconfig
-@@ -1,3 +1,5 @@
-+if ETRAX_ARCH_V32
-+
- config ETRAX_ETHERNET
- 	bool "Ethernet support"
- 	depends on ETRAX_ARCH_V32
-@@ -610,3 +612,5 @@ config ETRAX_STREAMCOPROC
- 	help
- 	  This option enables a driver for the stream co-processor
- 	  for cryptographic operations.
-+
-+endif
 _
 
-Patches currently in -mm which might be from jesper.nilsson@axis.com are
+Patches currently in -mm which might be from xemul@openvz.org are
 
-cris-build-fixes-atomich-needs-compilerh.patch
-git-mtd.patch
-cris-avoid-using-arch-links-in-kconfig.patch
+wait_task_stopped-dont-use-task_pid_nr_ns-lockless.patch
+ipc-lost-unlock-and-fput-in-mqueuec-on-error-path.patch
+git-net.patch
+dont-forget-to-unlock-uids_mutex-on-error-paths.patch
+merge-multiple-error-paths-in-alloc_uid-into-one.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-memcgroup-fix-try_to_free-order.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+memcgroup-reinstate-swapoff-mod.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
+memcgroup-fix-zone-isolation-oom.patch
+memcgroup-revert-swap_state-mods.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
+memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
+memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+memory-cgroup-enhancements-add-pre_destroy-handler.patch
+memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
+add-the-namespaces-config-option.patch
+move-the-uts-namespace-under-uts_ns-option.patch
+move-the-ipc-namespace-under-ipc_ns-option.patch
+cleanup-the-code-managed-with-the-user_ns-option.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+mark-net_ns-with-depends-on-namespaces.patch
+proc-proper-pidns-handling-for-proc-self.patch
+proc-fix-the-threaded-proc-self.patch
+reiser4.patch
