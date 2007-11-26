@@ -1,97 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - revoke-support-for-ext2-and-ext3.patch removed from -mm tree
-Date: Mon, 26 Nov 2007 11:36:17 -0800
-Message-ID: <200711261936.lAQJaHI6019291@imap1.linux-foundation.org>
+Subject: - unprivileged-mounts-allow-unprivileged-umount.patch removed from -mm tree
+Date: Mon, 26 Nov 2007 11:35:34 -0800
+Message-ID: <200711261935.lAQJZY1t019232@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34023 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51817 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754192AbXKZTg3 (ORCPT
+	by vger.kernel.org with ESMTP id S1754095AbXKZTgZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 14:36:29 -0500
+	Mon, 26 Nov 2007 14:36:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penberg@cs.helsinki.fi, hch@lst.de, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, hch@lst.de, linuxram@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revoke: support for ext2 and ext3 and ext4
+     unprivileged mounts: allow unprivileged umount
 has been removed from the -mm tree.  Its filename was
-     revoke-support-for-ext2-and-ext3.patch
+     unprivileged-mounts-allow-unprivileged-umount.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: revoke: support for ext2 and ext3 and ext4
-From: Pekka Enberg <penberg@cs.helsinki.fi>
+Subject: unprivileged mounts: allow unprivileged umount
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-Add revoke support to ext2, ext3 and ext4 by wiring f_ops->revoke with
-generic_file_revoke.
+The owner doesn't need sysadmin capabilities to call umount().
 
-Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Similar behavior as umount(8) on mounts having "user=UID" option in /etc/mtab.
+The difference is that umount also checks /etc/fstab, presumably to exclude
+another mount on the same mountpoint.
+
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Ram Pai <linuxram@us.ibm.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/file.c |    1 +
- fs/ext3/file.c |    1 +
- fs/ext4/file.c |    1 +
- 3 files changed, 3 insertions(+)
+ fs/namespace.c |   23 ++++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
 
-diff -puN fs/ext2/file.c~revoke-support-for-ext2-and-ext3 fs/ext2/file.c
---- a/fs/ext2/file.c~revoke-support-for-ext2-and-ext3
-+++ a/fs/ext2/file.c
-@@ -58,6 +58,7 @@ const struct file_operations ext2_file_o
- 	.fsync		= ext2_sync_file,
- 	.splice_read	= generic_file_splice_read,
- 	.splice_write	= generic_file_splice_write,
-+	.revoke		= generic_file_revoke,
- };
+diff -puN fs/namespace.c~unprivileged-mounts-allow-unprivileged-umount fs/namespace.c
+--- a/fs/namespace.c~unprivileged-mounts-allow-unprivileged-umount
++++ a/fs/namespace.c
+@@ -634,6 +634,27 @@ static int do_umount(struct vfsmount *mn
+ 	return retval;
+ }
  
- #ifdef CONFIG_EXT2_FS_XIP
-diff -puN fs/ext3/file.c~revoke-support-for-ext2-and-ext3 fs/ext3/file.c
---- a/fs/ext3/file.c~revoke-support-for-ext2-and-ext3
-+++ a/fs/ext3/file.c
-@@ -122,6 +122,7 @@ const struct file_operations ext3_file_o
- 	.fsync		= ext3_sync_file,
- 	.splice_read	= generic_file_splice_read,
- 	.splice_write	= generic_file_splice_write,
-+	.revoke         = generic_file_revoke,
- };
++static bool is_mount_owner(struct vfsmount *mnt, uid_t uid)
++{
++	return (mnt->mnt_flags & MNT_USER) && mnt->mnt_uid == uid;
++}
++
++/*
++ * umount is permitted for
++ *  - sysadmin
++ *  - mount owner, if not forced umount
++ */
++static bool permit_umount(struct vfsmount *mnt, int flags)
++{
++	if (capable(CAP_SYS_ADMIN))
++		return true;
++
++	if (flags & MNT_FORCE)
++		return false;
++
++	return is_mount_owner(mnt, current->fsuid);
++}
++
+ /*
+  * Now umount can handle mount points as well as block devices.
+  * This is important for filesystems which use unnamed block devices.
+@@ -657,7 +678,7 @@ asmlinkage long sys_umount(char __user *
+ 		goto dput_and_out;
  
- const struct inode_operations ext3_file_inode_operations = {
-diff -puN fs/ext4/file.c~revoke-support-for-ext2-and-ext3 fs/ext4/file.c
---- a/fs/ext4/file.c~revoke-support-for-ext2-and-ext3
-+++ a/fs/ext4/file.c
-@@ -122,6 +122,7 @@ const struct file_operations ext4_file_o
- 	.fsync		= ext4_sync_file,
- 	.splice_read	= generic_file_splice_read,
- 	.splice_write	= generic_file_splice_write,
-+	.revoke         = generic_file_revoke,
- };
+ 	retval = -EPERM;
+-	if (!capable(CAP_SYS_ADMIN))
++	if (!permit_umount(nd.mnt, flags))
+ 		goto dput_and_out;
  
- const struct inode_operations ext4_file_inode_operations = {
+ 	retval = do_umount(nd.mnt, flags);
 _
 
-Patches currently in -mm which might be from penberg@cs.helsinki.fi are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
-git-unionfs.patch
-slub-consolidate-add_partial-and-add_partial_tail-to-one-function.patch
-slub-fix-coding-style-violations.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-noinline-some-functions-to-avoid-them-being-folded-into-alloc-free.patch
-slub-move-kmem_cache_node-determination-into-add_full-and-add_partial.patch
-slub-avoid-checking-for-a-valid-object-before-zeroing-on-the-fast-path.patch
-slub-__slab_alloc-exit-path-consolidation.patch
-slub-provide-unique-end-marker-for-each-slab.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-avoid-referencing-kmem_cache-structure-in-__slab_alloc.patch
-slub-optional-fast-path-using-cmpxchg_local.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-slub-restructure-slab-alloc.patch
-revoke-support-for-ext2-and-ext3.patch
-revoke-add-documentation.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-slab-leaks3-default-y.patch
+fuse-fix-reading-past-eof.patch
+fuse-cleanup-add-fuse_get_attr_version.patch
+fuse-pass-open-flags-to-read-and-write.patch
+fuse-fix-fuse_file_ops-sending.patch
+fuse-fix-uninitialized-field-in-fuse_inode.patch
+fuse-fix-attribute-caching-after-rename.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-add-no-submounts-flag.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
