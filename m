@@ -1,81 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: - pata_ali-lots-of-problems-still-showing-up-with-small-atapi-dma.patch removed from -mm tree
-Date: Mon, 26 Nov 2007 13:48:48 -0800
-Message-ID: <200711262148.lAQLmm7H024627@imap1.linux-foundation.org>
+Subject: - pata_hpt37x-fix-cable-detect-bug-spotted-by-sergei.patch removed from -mm tree
+Date: Mon, 26 Nov 2007 13:48:50 -0800
+Message-ID: <200711262148.lAQLmokN024634@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53124 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58312 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755046AbXKZVtf (ORCPT
+	by vger.kernel.org with ESMTP id S1752541AbXKZVte (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 16:49:35 -0500
+	Mon, 26 Nov 2007 16:49:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_ali: lots of problems still showing up with small ATAPI DMA
+     pata_hpt37x: fix cable detect bug spotted by Sergei
 has been removed from the -mm tree.  Its filename was
-     pata_ali-lots-of-problems-still-showing-up-with-small-atapi-dma.patch
+     pata_hpt37x-fix-cable-detect-bug-spotted-by-sergei.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata_ali: lots of problems still showing up with small ATAPI DMA
+Subject: pata_hpt37x: fix cable detect bug spotted by Sergei
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-
-Hopefully there is a better long term solution but for now lets favour
-reliability.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_ali.c |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ drivers/ata/pata_hpt37x.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_ali.c~pata_ali-lots-of-problems-still-showing-up-with-small-atapi-dma drivers/ata/pata_ali.c
---- a/drivers/ata/pata_ali.c~pata_ali-lots-of-problems-still-showing-up-with-small-atapi-dma
-+++ a/drivers/ata/pata_ali.c
-@@ -285,6 +285,21 @@ static void ali_lock_sectors(struct ata_
- 	adev->max_sectors = 255;
- }
+diff -puN drivers/ata/pata_hpt37x.c~pata_hpt37x-fix-cable-detect-bug-spotted-by-sergei drivers/ata/pata_hpt37x.c
+--- a/drivers/ata/pata_hpt37x.c~pata_hpt37x-fix-cable-detect-bug-spotted-by-sergei
++++ a/drivers/ata/pata_hpt37x.c
+@@ -329,7 +329,7 @@ static int hpt37x_pre_reset(struct ata_l
+ 	/* Restore state */
+ 	pci_write_config_byte(pdev, 0x5B, scr2);
  
-+/**
-+ *	ali_check_atapi_dma	-	DMA check for most ALi controllers
-+ *	@adev: Device
-+ *
-+ *	Called to decide whether commands should be sent by DMA or PIO
-+ */
-+
-+static int ali_check_atapi_dma(struct ata_queued_cmd *qc)
-+{
-+	/* If its not a media command, its not worth it */
-+	if (qc->nbytes < 2048)
-+		return -EOPNOTSUPP;
-+	return 0;
-+}
-+
- static struct scsi_host_template ali_sht = {
- 	.module			= THIS_MODULE,
- 	.name			= DRV_NAME,
-@@ -381,6 +396,7 @@ static struct ata_port_operations ali_c2
- 	.mode_filter	= ata_pci_default_filter,
- 	.tf_load	= ata_tf_load,
- 	.tf_read	= ata_tf_read,
-+	.check_atapi_dma = ali_check_atapi_dma,
- 	.check_status 	= ata_check_status,
- 	.exec_command	= ata_exec_command,
- 	.dev_select 	= ata_std_dev_select,
-@@ -418,6 +434,7 @@ static struct ata_port_operations ali_c5
- 	.mode_filter	= ata_pci_default_filter,
- 	.tf_load	= ata_tf_load,
- 	.tf_read	= ata_tf_read,
-+	.check_atapi_dma = ali_check_atapi_dma,
- 	.check_status 	= ata_check_status,
- 	.exec_command	= ata_exec_command,
- 	.dev_select 	= ata_std_dev_select,
+-	if (ata66 & (1 << ap->port_no))
++	if (ata66 & (2 >> ap->port_no))
+ 		ap->cbl = ATA_CBL_PATA40;
+ 	else
+ 		ap->cbl = ATA_CBL_PATA80;
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
