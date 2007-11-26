@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kobjects-drop-child-parent-ref-at-unregistration.patch added to -mm tree
-Date: Mon, 26 Nov 2007 14:59:20 -0800
-Message-ID: <200711262259.lAQMxKah027461@imap1.linux-foundation.org>
+Subject: + radix_treeh-trivial-comment-correction.patch added to -mm tree
+Date: Mon, 26 Nov 2007 15:01:02 -0800
+Message-ID: <200711262301.lAQN13jV027515@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53135 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55459 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756055AbXKZW7f (ORCPT
+	by vger.kernel.org with ESMTP id S1753836AbXKZXBO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 17:59:35 -0500
+	Mon, 26 Nov 2007 18:01:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stern@rowland.harvard.edu, cornelia.huck@de.ibm.com, greg@kroah.com, htejun@gmail.com, kay.sievers@vrfy.org
+Cc: lnxninja@linux.vnet.ibm.com, npiggin@suse.de
 
 
 The patch titled
-     Kobjects: drop child->parent ref at unregistration
+     radix_tree.h: trivial comment correction
 has been added to the -mm tree.  Its filename is
-     kobjects-drop-child-parent-ref-at-unregistration.patch
+     radix_treeh-trivial-comment-correction.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,86 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Kobjects: drop child->parent ref at unregistration
-From: Alan Stern <stern@rowland.harvard.edu>
+Subject: radix_tree.h: trivial comment correction
+From: Tim Pepper <lnxninja@linux.vnet.ibm.com>
 
-This patch (as1015) reverts changes that were made to the driver core about
-four years ago.  The intent back then was to avoid certain kinds of invalid
-memory accesses by leaving kernel objects allocated as long as any of their
-children were still allocated.  The original and correct approach was to
-wait only as long as any children were still _registered_; that's what this
-patch reinstates.
+There is an unmatched parenthesis in the locking commentary of radix_tree.h
+which is trivially fixed by the patch below.
 
-This fixes a problem in the SCSI core made visible by the class_device to
-regular device conversion: A reference loop (scsi_device holds reference to
-request_queue, which is the child of a gendisk, which is the child of the
-scsi_device) prevents the data structures from being released, even though
-they are deregistered okay.
-
-It's possible that this change will cause a few bugs to surface, things
-that have been hidden for several years.  They can be fixed easily enough
-by having the child device take an explicit reference to the parent
-whenever needed.
-
-Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
+Signed-off-by: Tim Pepper <lnxninja@linux.vnet.ibm.com>
+Acked-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kobject.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ include/linux/radix-tree.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/kobject.c~kobjects-drop-child-parent-ref-at-unregistration lib/kobject.c
---- a/lib/kobject.c~kobjects-drop-child-parent-ref-at-unregistration
-+++ a/lib/kobject.c
-@@ -206,12 +206,16 @@ void kobject_init(struct kobject * kobj)
- 
- static void unlink(struct kobject * kobj)
- {
-+	struct kobject *parent = kobj->parent;
-+
- 	if (kobj->kset) {
- 		spin_lock(&kobj->kset->list_lock);
- 		list_del_init(&kobj->entry);
- 		spin_unlock(&kobj->kset->list_lock);
- 	}
-+	kobj->parent = NULL;
- 	kobject_put(kobj);
-+	kobject_put(parent);
- }
- 
- /**
-@@ -262,7 +266,6 @@ int kobject_add(struct kobject * kobj)
- 	if (error) {
- 		/* unlink does the kobject_put() for us */
- 		unlink(kobj);
--		kobject_put(parent);
- 
- 		/* be noisy on error issues */
- 		if (error == -EEXIST)
-@@ -516,7 +519,6 @@ void kobject_cleanup(struct kobject * ko
- {
- 	struct kobj_type * t = get_ktype(kobj);
- 	struct kset * s = kobj->kset;
--	struct kobject * parent = kobj->parent;
- 	const char *name = kobj->k_name;
- 
- 	pr_debug("kobject %s: cleaning up\n",kobject_name(kobj));
-@@ -533,7 +535,6 @@ void kobject_cleanup(struct kobject * ko
- 	}
- 	if (s)
- 		kset_put(s);
--	kobject_put(parent);
- }
- 
- static void kobject_release(struct kref *kref)
+diff -puN include/linux/radix-tree.h~radix_treeh-trivial-comment-correction include/linux/radix-tree.h
+--- a/include/linux/radix-tree.h~radix_treeh-trivial-comment-correction
++++ a/include/linux/radix-tree.h
+@@ -91,7 +91,7 @@ do {									\
+  *
+  * For API usage, in general,
+  * - any function _modifying_ the tree or tags (inserting or deleting
+- *   items, setting or clearing tags must exclude other modifications, and
++ *   items, setting or clearing tags) must exclude other modifications, and
+  *   exclude any functions reading the tree.
+  * - any function _reading_ the tree or tags (looking up items or tags,
+  *   gang lookups) must exclude modifications to the tree, but may occur
 _
 
-Patches currently in -mm which might be from stern@rowland.harvard.edu are
+Patches currently in -mm which might be from lnxninja@linux.vnet.ibm.com are
 
-git-acpi.patch
-kobjects-drop-child-parent-ref-at-unregistration.patch
-scsi-early-detection-of-medium-not-present-updated.patch
+radix_treeh-trivial-comment-correction.patch
