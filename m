@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + bluetooth-rfcomm-tty_close-before-destruct.patch added to -mm tree
-Date: Mon, 26 Nov 2007 14:35:13 -0800
-Message-ID: <200711262235.lAQMZDqH026573@imap1.linux-foundation.org>
+Subject: + drivers-pci-pci-sysfsc-add-missing-pci_dev_put.patch added to -mm tree
+Date: Mon, 26 Nov 2007 14:36:45 -0800
+Message-ID: <200711262236.lAQMajaw026596@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47912 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58472 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753240AbXKZWfn (ORCPT
+	by vger.kernel.org with ESMTP id S1753369AbXKZWgy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 17:35:43 -0500
+	Mon, 26 Nov 2007 17:36:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hidave.darkstar@gmail.com, alan@lxorguk.ukuu.org.uk, marcel@holtmann.org
+Cc: julia@diku.dk, greg@kroah.com
 
 
 The patch titled
-     bluetooth rfcomm: tty_close before destruct
+     drivers/pci/pci-sysfs.c: Add missing pci_dev_put
 has been added to the -mm tree.  Its filename is
-     bluetooth-rfcomm-tty_close-before-destruct.patch
+     drivers-pci-pci-sysfsc-add-missing-pci_dev_put.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,40 +26,66 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: bluetooth rfcomm: tty_close before destruct
-From: Dave Young <hidave.darkstar@gmail.com>
+Subject: drivers/pci/pci-sysfs.c: Add missing pci_dev_put
+From: Julia Lawall <julia@diku.dk>
 
-rfcomm_dev_del could be called twice time in release function.  one by
-rfcomm_tty_hangup, another by rfcomm_release_dev, this will cause the
-device being destructed before rfcomm_tty_close.
+There should be a pci_dev_put when breaking out of a loop that iterates
+over calls to pci_get_device and similar functions.
 
-Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Marcel Holtmann <marcel@holtmann.org>
+This was fixed using the following semantic patch.
+
+// <smpl>
+@@
+identifier d;
+type T;
+expression e;
+iterator for_each_pci_dev;
+@@
+
+T *d;
+...
+for_each_pci_dev(d)
+   {... when != pci_dev_put(d)
+        when != e = d
+(
+    return d;
+|
++  pci_dev_put(d);
+?  return ...;
+)
+...}
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bluetooth/rfcomm/tty.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/pci/pci-sysfs.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN net/bluetooth/rfcomm/tty.c~bluetooth-rfcomm-tty_close-before-destruct net/bluetooth/rfcomm/tty.c
---- a/net/bluetooth/rfcomm/tty.c~bluetooth-rfcomm-tty_close-before-destruct
-+++ a/net/bluetooth/rfcomm/tty.c
-@@ -424,8 +424,8 @@ static int rfcomm_release_dev(void __use
- 	/* Shut down TTY synchronously before freeing rfcomm_dev */
- 	if (dev->tty)
- 		tty_vhangup(dev->tty);
--
--	rfcomm_dev_del(dev);
-+	else if (!test_bit(RFCOMM_RELEASE_ONHUP, &dev->flags))
-+		rfcomm_dev_del(dev);
- 	rfcomm_dev_put(dev);
+diff -puN drivers/pci/pci-sysfs.c~drivers-pci-pci-sysfsc-add-missing-pci_dev_put drivers/pci/pci-sysfs.c
+--- a/drivers/pci/pci-sysfs.c~drivers-pci-pci-sysfsc-add-missing-pci_dev_put
++++ a/drivers/pci/pci-sysfs.c
+@@ -702,8 +702,10 @@ static int __init pci_sysfs_init(void)
+ 	sysfs_initialized = 1;
+ 	for_each_pci_dev(pdev) {
+ 		retval = pci_create_sysfs_dev_files(pdev);
+-		if (retval)
++		if (retval) {
++			pci_dev_put(pdev);
+ 			return retval;
++		}
+ 	}
+ 
  	return 0;
- }
 _
 
-Patches currently in -mm which might be from hidave.darkstar@gmail.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
-gx-suspmodc-use-boot_cpu_data-instead-of-current_cpu_data.patch
-bluetooth-hidp_process_hid_control-remove-unnecessary-parameter-dealing.patch
-bluetooth-rfcomm-tty_close-before-destruct.patch
+git-alsa.patch
+drivers-char-remove-unnecessary-pci_dev_put.patch
+arch-ppc-remove-an-unnecessary-pci_dev_put.patch
+drivers-pci-pci-sysfsc-add-missing-pci_dev_put.patch
+git-sparc64.patch
+drivers-video-remove-unnecessary-pci_dev_put.patch
