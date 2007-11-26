@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + dont-forget-to-unlock-uids_mutex-on-error-paths.patch added to -mm tree
-Date: Mon, 26 Nov 2007 15:53:58 -0800
-Message-ID: <200711262353.lAQNrwW8029540@imap1.linux-foundation.org>
+Subject: + merge-multiple-error-paths-in-alloc_uid-into-one.patch added to -mm tree
+Date: Mon, 26 Nov 2007 15:54:23 -0800
+Message-ID: <200711262354.lAQNsNC4029615@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44197 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35353 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756403AbXKZXyg (ORCPT
+	by vger.kernel.org with ESMTP id S1756547AbXKZXyr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 18:54:36 -0500
+	Mon, 26 Nov 2007 18:54:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: xemul@openvz.org, dhaval@linux.vnet.ibm.com, mingo@elte.hu
 
 
 The patch titled
-     Don't forget to unlock uids_mutex on error paths
+     Merge multiple error paths in alloc_uid into one
 has been added to the -mm tree.  Its filename is
-     dont-forget-to-unlock-uids_mutex-on-error-paths.patch
+     merge-multiple-error-paths-in-alloc_uid-into-one.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,19 +26,15 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Don't forget to unlock uids_mutex on error paths
+Subject: Merge multiple error paths in alloc_uid into one
 From: Pavel Emelyanov <xemul@openvz.org>
 
-The commit
+There are already 4 error paths in alloc_uid() that do incremental rollbacks. 
+I think it's time to merge them.  This costs us 8 lines of code :)
 
-commit 5cb350baf580017da38199625b7365b1763d7180
-Author: Dhaval Giani <dhaval@linux.vnet.ibm.com>
-Date:   Mon Oct 15 17:00:14 2007 +0200
-
-    sched: group scheduling, sysfs tunables
-
-introduced the uids_mutex and the helpers to lock/unlock it.  Unfortunately,
-the error paths of alloc_uid() were not patched to unlock it.
+Maybe it would be better to merge this patch with the previous one, but I
+remember that some time ago I sent a similar patch (fixing the error path and
+cleaning it), but I was told to make two patches in such cases.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Acked-by: Dhaval Giani <dhaval@linux.vnet.ibm.com>
@@ -46,41 +42,90 @@ Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/user.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ kernel/user.c |   47 ++++++++++++++++++++---------------------------
+ 1 file changed, 20 insertions(+), 27 deletions(-)
 
-diff -puN kernel/user.c~dont-forget-to-unlock-uids_mutex-on-error-paths kernel/user.c
---- a/kernel/user.c~dont-forget-to-unlock-uids_mutex-on-error-paths
+diff -puN kernel/user.c~merge-multiple-error-paths-in-alloc_uid-into-one kernel/user.c
+--- a/kernel/user.c~merge-multiple-error-paths-in-alloc_uid-into-one
 +++ a/kernel/user.c
-@@ -335,8 +335,11 @@ struct user_struct * alloc_uid(struct us
- 		struct user_struct *new;
+@@ -320,7 +320,7 @@ void free_uid(struct user_struct *up)
+ struct user_struct * alloc_uid(struct user_namespace *ns, uid_t uid)
+ {
+ 	struct hlist_head *hashent = uidhashentry(ns, uid);
+-	struct user_struct *up;
++	struct user_struct *up, *new;
  
+ 	/* Make uid_hash_find() + uids_user_create() + uid_hash_insert()
+ 	 * atomic.
+@@ -332,13 +332,9 @@ struct user_struct * alloc_uid(struct us
+ 	spin_unlock_irq(&uidhash_lock);
+ 
+ 	if (!up) {
+-		struct user_struct *new;
+-
  		new = kmem_cache_alloc(uid_cachep, GFP_KERNEL);
--		if (!new)
-+		if (!new) {
-+			uids_mutex_unlock();
- 			return NULL;
-+		}
-+
+-		if (!new) {
+-			uids_mutex_unlock();
+-			return NULL;
+-		}
++		if (!new)
++			goto out_unlock;
+ 
  		new->uid = uid;
  		atomic_set(&new->__count, 1);
- 		atomic_set(&new->processes, 0);
-@@ -353,6 +356,7 @@ struct user_struct * alloc_uid(struct us
+@@ -354,28 +350,14 @@ struct user_struct * alloc_uid(struct us
+ #endif
+ 		new->locked_shm = 0;
  
- 		if (alloc_uid_keyring(new, current) < 0) {
- 			kmem_cache_free(uid_cachep, new);
-+			uids_mutex_unlock();
- 			return NULL;
- 		}
+-		if (alloc_uid_keyring(new, current) < 0) {
+-			kmem_cache_free(uid_cachep, new);
+-			uids_mutex_unlock();
+-			return NULL;
+-		}
++		if (alloc_uid_keyring(new, current) < 0)
++			goto out_free_user;
  
-@@ -360,6 +364,7 @@ struct user_struct * alloc_uid(struct us
- 			key_put(new->uid_keyring);
- 			key_put(new->session_keyring);
- 			kmem_cache_free(uid_cachep, new);
-+			uids_mutex_unlock();
- 			return NULL;
- 		}
+-		if (sched_create_user(new) < 0) {
+-			key_put(new->uid_keyring);
+-			key_put(new->session_keyring);
+-			kmem_cache_free(uid_cachep, new);
+-			uids_mutex_unlock();
+-			return NULL;
+-		}
++		if (sched_create_user(new) < 0)
++			goto out_put_keys;
  
+-		if (uids_user_create(new)) {
+-			sched_destroy_user(new);
+-			key_put(new->uid_keyring);
+-			key_put(new->session_keyring);
+-			kmem_cache_free(uid_cachep, new);
+-			uids_mutex_unlock();
+-			return NULL;
+-		}
++		if (uids_user_create(new))
++			goto out_destoy_sched;
+ 
+ 		/*
+ 		 * Before adding this, check whether we raced
+@@ -403,6 +385,17 @@ struct user_struct * alloc_uid(struct us
+ 	uids_mutex_unlock();
+ 
+ 	return up;
++
++out_destoy_sched:
++	sched_destroy_user(new);
++out_put_keys:
++	key_put(new->uid_keyring);
++	key_put(new->session_keyring);
++out_free_user:
++	kmem_cache_free(uid_cachep, new);
++out_unlock:
++	uids_mutex_unlock();
++	return NULL;
+ }
+ 
+ void switch_uid(struct user_struct *new_user)
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
