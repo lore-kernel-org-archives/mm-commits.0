@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + atmel_spi-fix-dmachain-oops-with-debug-enabled.patch added to -mm tree
-Date: Mon, 26 Nov 2007 15:56:06 -0800
-Message-ID: <200711262356.lAQNu6ga029647@imap1.linux-foundation.org>
+Subject: + modules-handle-symbols-that-have-a-zero-value.patch added to -mm tree
+Date: Mon, 26 Nov 2007 15:57:12 -0800
+Message-ID: <200711262357.lAQNvDna029667@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36811 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52898 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755709AbXKZX4U (ORCPT
+	by vger.kernel.org with ESMTP id S1756332AbXKZX5a (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 18:56:20 -0500
+	Mon, 26 Nov 2007 18:57:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hskinnemoen@atmel.com, dbrownell@users.sourceforge.net
+Cc: clameter@sgi.com, ak@suse.de, kay.sievers@vrfy.org, mathieu.desnoyers@polymtl.ca, rusty@rustcorp.com.au
 
 
 The patch titled
-     atmel_spi: fix dmachain oops with DEBUG enabled
+     Modules: handle symbols that have a zero value
 has been added to the -mm tree.  Its filename is
-     atmel_spi-fix-dmachain-oops-with-debug-enabled.patch
+     modules-handle-symbols-that-have-a-zero-value.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,92 +26,148 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: atmel_spi: fix dmachain oops with DEBUG enabled
-From: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Subject: Modules: handle symbols that have a zero value
+From: Christoph Lameter <clameter@sgi.com>
 
-In atmel_spi_next_xfer, xfer can be NULL because the next transfer may
-already have been submitted to the PDC (using DMA chaining).  This can
-cause an oops, since the debug message assumed it was never null.  The
-fix changes how those debug messages are issued, ensuring that one is
-issued each time a transfer is started instead of once per call.
+The module subsystem cannot handle symbols that are zero.  If symbols are
+present that have a zero value then the module resolver prints out a
+message that these symbols are unresolved.
 
-Also, properly indent the "can this transfer be chained" test so it's
-not hidden as if it were non-conditional code.
-
-Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Kay Sievers <kay.sievers@vrfy.org
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/atmel_spi.c |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ kernel/module.c |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-diff -puN drivers/spi/atmel_spi.c~atmel_spi-fix-dmachain-oops-with-debug-enabled drivers/spi/atmel_spi.c
---- a/drivers/spi/atmel_spi.c~atmel_spi-fix-dmachain-oops-with-debug-enabled
-+++ a/drivers/spi/atmel_spi.c
-@@ -198,6 +198,11 @@ static void atmel_spi_next_xfer(struct s
- 			len >>= 1;
- 		spi_writel(as, TCR, len);
- 		spi_writel(as, RCR, len);
-+
-+		dev_dbg(&msg->spi->dev,
-+			"  start xfer %p: len %u tx %p/%08x rx %p/%08x\n",
-+			xfer, xfer->len, xfer->tx_buf, xfer->tx_dma,
-+			xfer->rx_buf, xfer->rx_dma);
- 	} else {
- 		xfer = as->next_transfer;
- 		remaining = as->next_remaining_bytes;
-@@ -208,8 +213,8 @@ static void atmel_spi_next_xfer(struct s
- 
- 	if (remaining > 0)
- 		len = remaining;
--	else if (!atmel_spi_xfer_is_last(msg, xfer) &&
--		atmel_spi_xfer_can_be_chained(xfer)) {
-+	else if (!atmel_spi_xfer_is_last(msg, xfer)
-+			&& atmel_spi_xfer_can_be_chained(xfer)) {
- 		xfer = list_entry(xfer->transfer_list.next,
- 				struct spi_transfer, transfer_list);
- 		len = xfer->len;
-@@ -230,6 +235,11 @@ static void atmel_spi_next_xfer(struct s
- 			len >>= 1;
- 		spi_writel(as, TNCR, len);
- 		spi_writel(as, RNCR, len);
-+
-+		dev_dbg(&msg->spi->dev,
-+			"  next xfer %p: len %u tx %p/%08x rx %p/%08x\n",
-+			xfer, xfer->len, xfer->tx_buf, xfer->tx_dma,
-+			xfer->rx_buf, xfer->rx_dma);
- 	} else {
- 		spi_writel(as, TNCR, 0);
- 		spi_writel(as, RNCR, 0);
-@@ -246,12 +256,6 @@ static void atmel_spi_next_xfer(struct s
- 	 * It should be doable, though. Just not now...
- 	 */
- 	spi_writel(as, IER, SPI_BIT(ENDRX) | SPI_BIT(OVRES));
--
--	dev_dbg(&msg->spi->dev,
--		"  start xfer %p: len %u tx %p/%08x rx %p/%08x imr %03x\n",
--		xfer, xfer->len, xfer->tx_buf, xfer->tx_dma,
--		xfer->rx_buf, xfer->rx_dma, spi_readl(as, IMR));
--
- 	spi_writel(as, PTCR, SPI_BIT(TXTEN) | SPI_BIT(RXTEN));
+diff -puN kernel/module.c~modules-handle-symbols-that-have-a-zero-value kernel/module.c
+--- a/kernel/module.c~modules-handle-symbols-that-have-a-zero-value
++++ a/kernel/module.c
+@@ -285,7 +285,7 @@ static unsigned long __find_symbol(const
+ 		}
+ 	}
+ 	DEBUGP("Failed to find symbol %s\n", name);
+-	return 0;
++	return -ENOENT;
  }
  
+ /* Search for module by name: must hold module_mutex. */
+@@ -756,7 +756,7 @@ void __symbol_put(const char *symbol)
+ 	const unsigned long *crc;
+ 
+ 	preempt_disable();
+-	if (!__find_symbol(symbol, &owner, &crc, 1))
++	if (IS_ERR_VALUE(__find_symbol(symbol, &owner, &crc, 1)))
+ 		BUG();
+ 	module_put(owner);
+ 	preempt_enable();
+@@ -902,7 +902,8 @@ static inline int check_modstruct_versio
+ 	const unsigned long *crc;
+ 	struct module *owner;
+ 
+-	if (!__find_symbol("struct_module", &owner, &crc, 1))
++	if (IS_ERR_VALUE(__find_symbol("struct_module",
++						&owner, &crc, 1)))
+ 		BUG();
+ 	return check_version(sechdrs, versindex, "struct_module", mod,
+ 			     crc);
+@@ -955,7 +956,7 @@ static unsigned long resolve_symbol(Elf_
+ 		/* use_module can fail due to OOM, or module unloading */
+ 		if (!check_version(sechdrs, versindex, name, mod, crc) ||
+ 		    !use_module(mod, owner))
+-			ret = 0;
++			ret = -EINVAL;
+ 	}
+ 	return ret;
+ }
+@@ -1348,14 +1349,16 @@ static int verify_export_symbols(struct 
+ 	const unsigned long *crc;
+ 
+ 	for (i = 0; i < mod->num_syms; i++)
+-		if (__find_symbol(mod->syms[i].name, &owner, &crc, 1)) {
++		if (!IS_ERR_VALUE(__find_symbol(mod->syms[i].name,
++							&owner, &crc, 1))) {
+ 			name = mod->syms[i].name;
+ 			ret = -ENOEXEC;
+ 			goto dup;
+ 		}
+ 
+ 	for (i = 0; i < mod->num_gpl_syms; i++)
+-		if (__find_symbol(mod->gpl_syms[i].name, &owner, &crc, 1)) {
++		if (!IS_ERR_VALUE(__find_symbol(mod->gpl_syms[i].name,
++							&owner, &crc, 1))) {
+ 			name = mod->gpl_syms[i].name;
+ 			ret = -ENOEXEC;
+ 			goto dup;
+@@ -1405,7 +1408,7 @@ static int simplify_symbols(Elf_Shdr *se
+ 					   strtab + sym[i].st_name, mod);
+ 
+ 			/* Ok if resolved.  */
+-			if (sym[i].st_value != 0)
++			if (!IS_ERR_VALUE(sym[i].st_value))
+ 				break;
+ 			/* Ok if weak.  */
+ 			if (ELF_ST_BIND(sym[i].st_info) == STB_WEAK)
 _
 
-Patches currently in -mm which might be from hskinnemoen@atmel.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-atmel_spi-labels-gpios-better.patch
-git-avr32.patch
-git-mtd.patch
-read_current_time-cleanups.patch
-atmel_spi-throughput-improvement.patch
-atmel_spi-chain-dma-transfers.patch
-atmel_spi-fix-dmachain-oops-with-debug-enabled.patch
-generic-gpio-gpio_chip-support.patch
-avr32-uses-gpio_chip.patch
-mcp23s08-spi-gpio-expander.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-sanitize-the-type-of-struct-useru_ar0.patch
-add-cmpxchg_local-to-avr32.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
+ia64-slim-down-__clear_bit_unlock.patch
+git-s390.patch
+git-unionfs.patch
+git-x86.patch
+acpi-avoid-references-to-impossible-processors.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+move-vmalloc_to_page-to-mm-vmalloc.patch
+vmalloc-add-const-to-void-parameters.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries.patch
+vmalloc-clean-up-page-array-indexing.patch
+vunmap-return-page-array-passed-on-vmap.patch
+slub-move-count_partial.patch
+slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio.patch
+slub-consolidate-add_partial-and-add_partial_tail-to-one-function.patch
+slub-use-non-atomic-bit-unlock.patch
+slub-fix-coding-style-violations.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-noinline-some-functions-to-avoid-them-being-folded-into-alloc-free.patch
+slub-move-kmem_cache_node-determination-into-add_full-and-add_partial.patch
+slub-move-kmem_cache_node-determination-into-add_full-and-add_partial-slub-workaround-for-lockdep-confusion.patch
+slub-avoid-checking-for-a-valid-object-before-zeroing-on-the-fast-path.patch
+slub-__slab_alloc-exit-path-consolidation.patch
+slub-provide-unique-end-marker-for-each-slab.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-avoid-referencing-kmem_cache-structure-in-__slab_alloc.patch
+slub-optional-fast-path-using-cmpxchg_local.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-fix.patch
+slub-restructure-slab-alloc.patch
+slub-comment-kmem_cache_cpu-structure.patch
+vm-allow-get_page_unless_zero-on-compound-pages.patch
+bufferhead-revert-constructor-removal.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+swapin_readahead-excise-numa-bogosity.patch
+page-allocator-clean-up-pcp-draining-functions.patch
+vmstat-small-revisions-to-refresh_cpu_vm_stats.patch
+page-allocator-get-rid-of-the-list-of-cold-pages.patch
+page-allocator-get-rid-of-the-list-of-cold-pages-fix.patch
+mm-sparsec-check-the-return-value-of-sparse_index_alloc.patch
+percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data.patch
+modules-handle-symbols-that-have-a-zero-value.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+oom-add-sysctl-to-enable-task-memory-dump.patch
+add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
+add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
+dentries-extract-common-code-to-remove-dentry-from-lru.patch
+dentries-extract-common-code-to-remove-dentry-from-lru-fix.patch
+reiser4.patch
+reiser4-portion-of-zero_user-cleanup-patch.patch
+page-owner-tracking-leak-detector.patch
