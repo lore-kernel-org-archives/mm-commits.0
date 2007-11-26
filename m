@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-signal-remove-redundant-code-in-setup_sigcontext.patch added to -mm tree
-Date: Mon, 26 Nov 2007 14:31:33 -0800
-Message-ID: <200711262231.lAQMVXXJ026413@imap1.linux-foundation.org>
+Subject: + bluetooth-rfcomm-tty_close-before-destruct.patch added to -mm tree
+Date: Mon, 26 Nov 2007 14:35:13 -0800
+Message-ID: <200711262235.lAQMZDqH026573@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55263 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47912 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755863AbXKZWbj (ORCPT
+	by vger.kernel.org with ESMTP id S1753240AbXKZWfn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 17:31:39 -0500
+	Mon, 26 Nov 2007 17:35:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shiwh@cn.fujitsu.com, tony.luck@intel.com
+Cc: hidave.darkstar@gmail.com, alan@lxorguk.ukuu.org.uk, marcel@holtmann.org
 
 
 The patch titled
-     IA64 signal: remove redundant code in setup_sigcontext()
+     bluetooth rfcomm: tty_close before destruct
 has been added to the -mm tree.  Its filename is
-     ia64-signal-remove-redundant-code-in-setup_sigcontext.patch
+     bluetooth-rfcomm-tty_close-before-destruct.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,45 +26,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: IA64 signal: remove redundant code in setup_sigcontext()
-From: Shi Weihua <shiwh@cn.fujitsu.com>
+Subject: bluetooth rfcomm: tty_close before destruct
+From: Dave Young <hidave.darkstar@gmail.com>
 
-This patch removes some redundant code in the function setup_sigcontext().
+rfcomm_dev_del could be called twice time in release function.  one by
+rfcomm_tty_hangup, another by rfcomm_release_dev, this will cause the
+device being destructed before rfcomm_tty_close.
 
-The registers ar.ccv,b7,r14,ar.csd,ar.ssd,r2-r3 and r16-r31 are not
-restored in restore_sigcontext() when (flags & IA64_SC_FLAG_IN_SYSCALL) is
-true.  So we don't need to zero those variables in setup_sigcontext().
-
-Signed-off-by: Shi Weihua <shiwh@cn.fujitsu.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Marcel Holtmann <marcel@holtmann.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/signal.c |   10 +---------
- 1 file changed, 1 insertion(+), 9 deletions(-)
+ net/bluetooth/rfcomm/tty.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/ia64/kernel/signal.c~ia64-signal-remove-redundant-code-in-setup_sigcontext arch/ia64/kernel/signal.c
---- a/arch/ia64/kernel/signal.c~ia64-signal-remove-redundant-code-in-setup_sigcontext
-+++ a/arch/ia64/kernel/signal.c
-@@ -280,15 +280,7 @@ setup_sigcontext (struct sigcontext __us
- 	err |= __copy_to_user(&sc->sc_gr[15], &scr->pt.r15, 8);		/* r15 */
- 	err |= __put_user(scr->pt.cr_iip + ia64_psr(&scr->pt)->ri, &sc->sc_ip);
- 
--	if (flags & IA64_SC_FLAG_IN_SYSCALL) {
--		/* Clear scratch registers if the signal interrupted a system call. */
--		err |= __put_user(0, &sc->sc_ar_ccv);				/* ar.ccv */
--		err |= __put_user(0, &sc->sc_br[7]);				/* b7 */
--		err |= __put_user(0, &sc->sc_gr[14]);				/* r14 */
--		err |= __clear_user(&sc->sc_ar25, 2*8);			/* ar.csd & ar.ssd */
--		err |= __clear_user(&sc->sc_gr[2], 2*8);			/* r2-r3 */
--		err |= __clear_user(&sc->sc_gr[16], 16*8);			/* r16-r31 */
--	} else {
-+	if (!(flags & IA64_SC_FLAG_IN_SYSCALL)) {
- 		/* Copy scratch regs to sigcontext if the signal didn't interrupt a syscall. */
- 		err |= __put_user(scr->pt.ar_ccv, &sc->sc_ar_ccv);		/* ar.ccv */
- 		err |= __put_user(scr->pt.b7, &sc->sc_br[7]);			/* b7 */
+diff -puN net/bluetooth/rfcomm/tty.c~bluetooth-rfcomm-tty_close-before-destruct net/bluetooth/rfcomm/tty.c
+--- a/net/bluetooth/rfcomm/tty.c~bluetooth-rfcomm-tty_close-before-destruct
++++ a/net/bluetooth/rfcomm/tty.c
+@@ -424,8 +424,8 @@ static int rfcomm_release_dev(void __use
+ 	/* Shut down TTY synchronously before freeing rfcomm_dev */
+ 	if (dev->tty)
+ 		tty_vhangup(dev->tty);
+-
+-	rfcomm_dev_del(dev);
++	else if (!test_bit(RFCOMM_RELEASE_ONHUP, &dev->flags))
++		rfcomm_dev_del(dev);
+ 	rfcomm_dev_put(dev);
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from shiwh@cn.fujitsu.com are
+Patches currently in -mm which might be from hidave.darkstar@gmail.com are
 
-ia64-signal-remove-redundant-code-in-setup_sigcontext.patch
+gx-suspmodc-use-boot_cpu_data-instead-of-current_cpu_data.patch
+bluetooth-hidp_process_hid_control-remove-unnecessary-parameter-dealing.patch
+bluetooth-rfcomm-tty_close-before-destruct.patch
