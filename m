@@ -1,226 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - usb-device-dma-support-on-omap2.patch removed from -mm tree
-Date: Mon, 26 Nov 2007 13:49:40 -0800
-Message-ID: <200711262149.lAQLneSV024778@imap1.linux-foundation.org>
+Subject: - forcedeth-boot-delay-fix.patch removed from -mm tree
+Date: Mon, 26 Nov 2007 13:49:05 -0800
+Message-ID: <200711262149.lAQLn5Sk024727@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45679 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50410 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755347AbXKZV64 (ORCPT
+	by vger.kernel.org with ESMTP id S1756076AbXKZV6j (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 16:58:56 -0500
+	Mon, 26 Nov 2007 16:58:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kyungmin.park@samsung.com, david-b@pacbell.net, greg@kroah.com, tony@atomide.com, mm-commits@vger.kernel.org
+To: aabdulla@nvidia.com, astinus@gentoo.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     USB device DMA support on OMAP2
+     forcedeth boot delay fix
 has been removed from the -mm tree.  Its filename was
-     usb-device-dma-support-on-omap2.patch
+     forcedeth-boot-delay-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: USB device DMA support on OMAP2
-From: Kyungmin Park <kyungmin.park@samsung.com>
+Subject: forcedeth boot delay fix
+From: Ayaz Abdulla <aabdulla@nvidia.com>
 
-The current omap udc dosen't support the DMA mode and it has some problem
-at setup time on OMAP2 with previous patch file.  I found that the code
-assumes bulk out required the big data transfer.  But MODE SELECT(6) sent
-the only 24 bytes.  it makes a problem.  So I implement the small packets
-handling for it.
+Fix a long boot delay in the forcedeth driver.  During initialization, the
+timeout for the handshake between mgmt unit and driver can be very long. 
+The patch reduces the timeout by eliminating a extra loop around the
+timeout logic.
 
-It is tested with both linux and windows.
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=9308
 
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Ayaz Abdulla <aabdulla@nvidia.com>
+Cc: Alex Howells <astinus@gentoo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/omap_udc.c |   71 ++++++++++++++++++++++----------
- 1 file changed, 49 insertions(+), 22 deletions(-)
+ drivers/net/forcedeth.c |   22 +++++++++-------------
+ 1 file changed, 9 insertions(+), 13 deletions(-)
 
-diff -puN drivers/usb/gadget/omap_udc.c~usb-device-dma-support-on-omap2 drivers/usb/gadget/omap_udc.c
---- a/drivers/usb/gadget/omap_udc.c~usb-device-dma-support-on-omap2
-+++ a/drivers/usb/gadget/omap_udc.c
-@@ -4,6 +4,8 @@
-  * Copyright (C) 2004 Texas Instruments, Inc.
-  * Copyright (C) 2004-2005 David Brownell
-  *
-+ * OMAP2 & DMA support by Kyungmin Park <kyungmin.park@samsung.com>
-+ *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation; either version 2 of the License, or
-@@ -60,11 +62,6 @@
- /* bulk DMA seems to be behaving for both IN and OUT */
- #define	USE_DMA
- 
--/* FIXME: OMAP2 currently has some problem in DMA mode */
--#ifdef CONFIG_ARCH_OMAP2
--#undef USE_DMA
--#endif
--
- /* ISO too */
- #define	USE_ISO
- 
-@@ -73,6 +70,8 @@
- 
- #define	DMA_ADDR_INVALID	(~(dma_addr_t)0)
- 
-+#define OMAP2_DMA_CH(ch)	(((ch) - 1) << 1)
-+#define OMAP24XX_DMA(name, ch)	(OMAP24XX_DMA_##name + OMAP2_DMA_CH(ch))
- 
- /*
-  * The OMAP UDC needs _very_ early endpoint setup:  before enabling the
-@@ -571,20 +570,25 @@ static void next_in_dma(struct omap_ep *
- 	const int	sync_mode = cpu_is_omap15xx()
- 				? OMAP_DMA_SYNC_FRAME
- 				: OMAP_DMA_SYNC_ELEMENT;
-+	int		dma_trigger = 0;
-+
-+	if (cpu_is_omap24xx())
-+		dma_trigger = OMAP24XX_DMA(USB_W2FC_TX0, ep->dma_channel);
- 
- 	/* measure length in either bytes or packets */
- 	if ((cpu_is_omap16xx() && length <= UDC_TXN_TSC)
-+			|| (cpu_is_omap24xx() && length < ep->maxpacket)
- 			|| (cpu_is_omap15xx() && length < ep->maxpacket)) {
- 		txdma_ctrl = UDC_TXN_EOT | length;
- 		omap_set_dma_transfer_params(ep->lch, OMAP_DMA_DATA_TYPE_S8,
--				length, 1, sync_mode, 0, 0);
-+				length, 1, sync_mode, dma_trigger, 0);
- 	} else {
- 		length = min(length / ep->maxpacket,
- 				(unsigned) UDC_TXN_TSC + 1);
- 		txdma_ctrl = length;
- 		omap_set_dma_transfer_params(ep->lch, OMAP_DMA_DATA_TYPE_S16,
- 				ep->ep.maxpacket >> 1, length, sync_mode,
--				0, 0);
-+				dma_trigger, 0);
- 		length *= ep->maxpacket;
- 	}
- 	omap_set_dma_src_params(ep->lch, OMAP_DMA_PORT_EMIFF,
-@@ -622,20 +626,31 @@ static void finish_in_dma(struct omap_ep
- 
- static void next_out_dma(struct omap_ep *ep, struct omap_req *req)
- {
--	unsigned packets;
-+	unsigned packets = req->req.length - req->req.actual;
-+	int dma_trigger = 0;
-+
-+	if (cpu_is_omap24xx())
-+		dma_trigger = OMAP24XX_DMA(USB_W2FC_RX0, ep->dma_channel);
- 
- 	/* NOTE:  we filtered out "short reads" before, so we know
- 	 * the buffer has only whole numbers of packets.
-+	 * except MODE SELECT(6) sent the 24 bytes data in OMAP24XX DMA mode
- 	 */
--
--	/* set up this DMA transfer, enable the fifo, start */
--	packets = (req->req.length - req->req.actual) / ep->ep.maxpacket;
--	packets = min(packets, (unsigned)UDC_RXN_TC + 1);
--	req->dma_bytes = packets * ep->ep.maxpacket;
--	omap_set_dma_transfer_params(ep->lch, OMAP_DMA_DATA_TYPE_S16,
--			ep->ep.maxpacket >> 1, packets,
--			OMAP_DMA_SYNC_ELEMENT,
--			0, 0);
-+	if (cpu_is_omap24xx() && packets < ep->maxpacket) {
-+		omap_set_dma_transfer_params(ep->lch, OMAP_DMA_DATA_TYPE_S8,
-+				packets, 1, OMAP_DMA_SYNC_ELEMENT,
-+				dma_trigger, 0);
-+		req->dma_bytes = packets;
-+	} else {
-+		/* set up this DMA transfer, enable the fifo, start */
-+		packets /= ep->ep.maxpacket;
-+		packets = min(packets, (unsigned)UDC_RXN_TC + 1);
-+		req->dma_bytes = packets * ep->ep.maxpacket;
-+		omap_set_dma_transfer_params(ep->lch, OMAP_DMA_DATA_TYPE_S16,
-+				ep->ep.maxpacket >> 1, packets,
-+				OMAP_DMA_SYNC_ELEMENT,
-+				dma_trigger, 0);
-+	}
- 	omap_set_dma_dest_params(ep->lch, OMAP_DMA_PORT_EMIFF,
- 		OMAP_DMA_AMODE_POST_INC, req->req.dma + req->req.actual,
- 		0, 0);
-@@ -743,6 +758,7 @@ static void dma_channel_claim(struct oma
- {
- 	u16	reg;
- 	int	status, restart, is_in;
-+	int	dma_channel;
- 
- 	is_in = ep->bEndpointAddress & USB_DIR_IN;
- 	if (is_in)
-@@ -769,11 +785,15 @@ static void dma_channel_claim(struct oma
- 	ep->dma_channel = channel;
- 
- 	if (is_in) {
--		status = omap_request_dma(OMAP_DMA_USB_W2FC_TX0 - 1 + channel,
-+		if (cpu_is_omap24xx())
-+			dma_channel = OMAP24XX_DMA(USB_W2FC_TX0, channel);
-+		else
-+			dma_channel = OMAP_DMA_USB_W2FC_TX0 - 1 + channel;
-+		status = omap_request_dma(dma_channel,
- 			ep->ep.name, dma_error, ep, &ep->lch);
- 		if (status == 0) {
- 			UDC_TXDMA_CFG_REG = reg;
--			/* EMIFF */
-+			/* EMIFF or SDRC */
- 			omap_set_dma_src_burst_mode(ep->lch,
- 						OMAP_DMA_DATA_BURST_4);
- 			omap_set_dma_src_data_pack(ep->lch, 1);
-@@ -785,7 +805,12 @@ static void dma_channel_claim(struct oma
- 				0, 0);
+diff -puN drivers/net/forcedeth.c~forcedeth-boot-delay-fix drivers/net/forcedeth.c
+--- a/drivers/net/forcedeth.c~forcedeth-boot-delay-fix
++++ a/drivers/net/forcedeth.c
+@@ -5294,19 +5294,15 @@ static int __devinit nv_probe(struct pci
+ 		if (readl(base + NvRegTransmitterControl) & NVREG_XMITCTL_SYNC_PHY_INIT) {
+ 			np->mac_in_use = readl(base + NvRegTransmitterControl) & NVREG_XMITCTL_MGMT_ST;
+ 			dprintk(KERN_INFO "%s: mgmt unit is running. mac in use %x.\n", pci_name(pci_dev), np->mac_in_use);
+-			for (i = 0; i < 5000; i++) {
+-				msleep(1);
+-				if (nv_mgmt_acquire_sema(dev)) {
+-					/* management unit setup the phy already? */
+-					if ((readl(base + NvRegTransmitterControl) & NVREG_XMITCTL_SYNC_MASK) ==
+-					    NVREG_XMITCTL_SYNC_PHY_INIT) {
+-						/* phy is inited by mgmt unit */
+-						phyinitialized = 1;
+-						dprintk(KERN_INFO "%s: Phy already initialized by mgmt unit.\n", pci_name(pci_dev));
+-					} else {
+-						/* we need to init the phy */
+-					}
+-					break;
++			if (nv_mgmt_acquire_sema(dev)) {
++				/* management unit setup the phy already? */
++				if ((readl(base + NvRegTransmitterControl) & NVREG_XMITCTL_SYNC_MASK) ==
++				    NVREG_XMITCTL_SYNC_PHY_INIT) {
++					/* phy is inited by mgmt unit */
++					phyinitialized = 1;
++					dprintk(KERN_INFO "%s: Phy already initialized by mgmt unit.\n", pci_name(pci_dev));
++				} else {
++					/* we need to init the phy */
+ 				}
+ 			}
  		}
- 	} else {
--		status = omap_request_dma(OMAP_DMA_USB_W2FC_RX0 - 1 + channel,
-+		if (cpu_is_omap24xx())
-+			dma_channel = OMAP24XX_DMA(USB_W2FC_RX0, channel);
-+		else
-+			dma_channel = OMAP_DMA_USB_W2FC_RX0 - 1 + channel;
-+
-+		status = omap_request_dma(dma_channel,
- 			ep->ep.name, dma_error, ep, &ep->lch);
- 		if (status == 0) {
- 			UDC_RXDMA_CFG_REG = reg;
-@@ -795,7 +820,7 @@ static void dma_channel_claim(struct oma
- 				OMAP_DMA_AMODE_CONSTANT,
- 				(unsigned long) io_v2p((u32)&UDC_DATA_DMA_REG),
- 				0, 0);
--			/* EMIFF */
-+			/* EMIFF or SDRC */
- 			omap_set_dma_dest_burst_mode(ep->lch,
- 						OMAP_DMA_DATA_BURST_4);
- 			omap_set_dma_dest_data_pack(ep->lch, 1);
-@@ -808,7 +833,7 @@ static void dma_channel_claim(struct oma
- 		omap_disable_dma_irq(ep->lch, OMAP_DMA_BLOCK_IRQ);
- 
- 		/* channel type P: hw synch (fifo) */
--		if (!cpu_is_omap15xx())
-+		if (cpu_class_is_omap1() && !cpu_is_omap15xx())
- 			OMAP1_DMA_LCH_CTRL_REG(ep->lch) = 2;
- 	}
- 
-@@ -926,11 +951,13 @@ omap_ep_queue(struct usb_ep *_ep, struct
- 
- 	/* this isn't bogus, but OMAP DMA isn't the only hardware to
- 	 * have a hard time with partial packet reads...  reject it.
-+	 * Except OMAP2 can handle the small packets.
- 	 */
- 	if (use_dma
- 			&& ep->has_dma
- 			&& ep->bEndpointAddress != 0
- 			&& (ep->bEndpointAddress & USB_DIR_IN) == 0
-+			&& !cpu_class_is_omap2()
- 			&& (req->req.length % ep->ep.maxpacket) != 0) {
- 		DBG("%s, no partial packet OUT reads\n", __FUNCTION__);
- 		return -EMSGSIZE;
 _
 
-Patches currently in -mm which might be from kyungmin.park@samsung.com are
+Patches currently in -mm which might be from aabdulla@nvidia.com are
 
-omap-register-the-l4-io-bus-to-boot-omap2.patch
-git-mtd.patch
+git-netdev-all.patch
+forcedeth-power-down-phy-when-interface-is-down.patch
+forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
