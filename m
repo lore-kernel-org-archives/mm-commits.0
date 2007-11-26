@@ -1,87 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - pci-use-pci=bfsort-for-hp-dl385-g2-dl585-g2.patch removed from -mm tree
-Date: Mon, 26 Nov 2007 13:50:02 -0800
-Message-ID: <200711262150.lAQLo2nk024820@imap1.linux-foundation.org>
+Subject: - forcedeth-new-mcp79-device-ids.patch removed from -mm tree
+Date: Mon, 26 Nov 2007 13:49:02 -0800
+Message-ID: <200711262149.lAQLn2fa024719@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38178 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40143 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755693AbXKZWAC (ORCPT
+	by vger.kernel.org with ESMTP id S1754373AbXKZWA1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 17:00:02 -0500
+	Mon, 26 Nov 2007 17:00:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mschmidt@redhat.com, Matt_Domsch@dell.com, ak@suse.de, andy@greyhouse.net, greg@kroah.com, john.cagle@hp.com, mm-commits@vger.kernel.org
+To: aabdulla@nvidia.com, jgarzik@pobox.com, manfred@colorfullife.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pci: use pci=bfsort for HP DL385 G2, DL585 G2
+     forcedeth: new mcp79 device ids
 has been removed from the -mm tree.  Its filename was
-     pci-use-pci=bfsort-for-hp-dl385-g2-dl585-g2.patch
+     forcedeth-new-mcp79-device-ids.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pci: use pci=bfsort for HP DL385 G2, DL585 G2
-From: Michal Schmidt <mschmidt@redhat.com>
+Subject: forcedeth: new mcp79 device ids
+From: Ayaz Abdulla <aabdulla@nvidia.com>
 
-HP ProLiant systems DL385 G2 and DL585 G2 need pci=bfsort to enumerate PCI
-devices in the expected order.
+Add new device ids and features for mcp79 devices into the forcedeth driver.
 
-Matt sayeth:
-
-  biosdevname is a userspace app I wrote to help solve this so we don't need
-  to patch the kernel for future systems.  It's not integrated into any
-  distributions properly yet, but is included in openSUSE 10.3 and Fedora 8
-  for people who want to download and install it there.  It acts as a udev
-  helper.
-
-  For the time being, patching the kernel is necessary.  I really hope
-  biosdevname eliminates that need in future distributions.
-
-  http://linux.dell.com/biosdevname/
-
-Signed-off-by: Michal Schmidt <mschmidt@redhat.com>
-Cc: <john.cagle@hp.com>
-Cc: Matt Domsch <Matt_Domsch@dell.com>
-Acked-by: Andy Gospodarek <andy@greyhouse.net>
-Cc: Greg KH <greg@kroah.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Ayaz Abdulla <aabdulla@nvidia.com>
+Cc: Jeff Garzik <jgarzik@pobox.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/pci/common.c |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ drivers/net/forcedeth.c |   16 ++++++++++++++++
+ include/linux/pci_ids.h |    4 ++++
+ 2 files changed, 20 insertions(+)
 
-diff -puN arch/x86/pci/common.c~pci-use-pci=bfsort-for-hp-dl385-g2-dl585-g2 arch/x86/pci/common.c
---- a/arch/x86/pci/common.c~pci-use-pci=bfsort-for-hp-dl385-g2-dl585-g2
-+++ a/arch/x86/pci/common.c
-@@ -315,6 +315,22 @@ static struct dmi_system_id __devinitdat
- 		},
+diff -puN drivers/net/forcedeth.c~forcedeth-new-mcp79-device-ids drivers/net/forcedeth.c
+--- a/drivers/net/forcedeth.c~forcedeth-new-mcp79-device-ids
++++ a/drivers/net/forcedeth.c
+@@ -5621,6 +5621,22 @@ static struct pci_device_id pci_tbl[] = 
+ 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_35),
+ 		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_MSI|DEV_HAS_POWER_CNTRL|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
  	},
- #endif
-+	{
-+		.callback = set_bf_sort,
-+		.ident = "HP ProLiant DL385 G2",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "HP"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "ProLiant DL385 G2"),
-+		},
++	{	/* MCP79 Ethernet Controller */
++		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_36),
++		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_MSI|DEV_HAS_POWER_CNTRL|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
 +	},
-+	{
-+		.callback = set_bf_sort,
-+		.ident = "HP ProLiant DL585 G2",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "HP"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "ProLiant DL585 G2"),
-+		},
++	{	/* MCP79 Ethernet Controller */
++		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_37),
++		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_MSI|DEV_HAS_POWER_CNTRL|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
 +	},
- 	{}
++	{	/* MCP79 Ethernet Controller */
++		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_38),
++		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_MSI|DEV_HAS_POWER_CNTRL|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
++	},
++	{	/* MCP79 Ethernet Controller */
++		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_39),
++		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_MSI|DEV_HAS_POWER_CNTRL|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
++	},
+ 	{0,},
  };
  
+diff -puN include/linux/pci_ids.h~forcedeth-new-mcp79-device-ids include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h~forcedeth-new-mcp79-device-ids
++++ a/include/linux/pci_ids.h
+@@ -1237,6 +1237,10 @@
+ #define PCI_DEVICE_ID_NVIDIA_NVENET_33              0x0761
+ #define PCI_DEVICE_ID_NVIDIA_NVENET_34              0x0762
+ #define PCI_DEVICE_ID_NVIDIA_NVENET_35              0x0763
++#define PCI_DEVICE_ID_NVIDIA_NVENET_36              0x0AB0
++#define PCI_DEVICE_ID_NVIDIA_NVENET_37              0x0AB1
++#define PCI_DEVICE_ID_NVIDIA_NVENET_38              0x0AB2
++#define PCI_DEVICE_ID_NVIDIA_NVENET_39              0x0AB3
+ 
+ #define PCI_VENDOR_ID_IMS		0x10e0
+ #define PCI_DEVICE_ID_IMS_TT128		0x9128
 _
 
-Patches currently in -mm which might be from mschmidt@redhat.com are
+Patches currently in -mm which might be from aabdulla@nvidia.com are
 
-git-x86.patch
-proc-loadavg-reading-race.patch
+git-netdev-all.patch
+forcedeth-power-down-phy-when-interface-is-down.patch
+forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
