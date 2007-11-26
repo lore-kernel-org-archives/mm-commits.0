@@ -1,83 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: + m68k-zorro7xx-needs-asm-amigahwh.patch added to -mm tree
-Date: Mon, 26 Nov 2007 00:16:39 -0800
-Message-ID: <200711260816.lAQ8GdPD023879@imap1.linux-foundation.org>
+Subject: - new-tsc-based-delay_tsc.patch removed from -mm tree
+Date: Mon, 26 Nov 2007 11:29:49 -0800
+Message-ID: <200711261929.lAQJTnwW019025@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49572 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37117 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753005AbXKZIRl (ORCPT
+	by vger.kernel.org with ESMTP id S1753607AbXKZTad (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 03:17:41 -0500
+	Mon, 26 Nov 2007 14:30:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: geert@linux-m68k.org, ij@2007.bluespice.org
+To: mitov@issp.bas.bg, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m68k: zorro7xx needs <asm/amigahw.h>
-has been added to the -mm tree.  Its filename is
-     m68k-zorro7xx-needs-asm-amigahwh.patch
+     new TSC-based delay_tsc()
+has been removed from the -mm tree.  Its filename was
+     new-tsc-based-delay_tsc.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: m68k: zorro7xx needs <asm/amigahw.h>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: new TSC-based delay_tsc()
+From: Marin Mitov <mitov@issp.bas.bg>
 
-m68k: zorro7xx needs <asm/amigahw.h> if !CONFIG_AMIGA_PCMCIA
+A patch based on Ingo's idea/patch to track delay_tsc() migration to
+another cpu by comparing smp_processor_id().
 
-Reported by Ingo Juergensmann <ij@2007.bluespice.org>
+What is different:
+1. Using unsigned (instead of long) to unify for i386/x86_64.
+2. Minimal preempt_disable/enable() critical sections
+   (more room for preemption)
+3. some statements have been rearranged, to account for
+    possible under/overflow of left/TSC
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Marin Mitov <mitov@issp.bas.bg>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/zorro7xx.c |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/x86/lib/delay_32.c |   35 +++++++++++++++++++++++++++++------
+ arch/x86/lib/delay_64.c |   36 ++++++++++++++++++++++++++++++------
+ 2 files changed, 59 insertions(+), 12 deletions(-)
 
-diff -puN drivers/scsi/zorro7xx.c~m68k-zorro7xx-needs-asm-amigahwh drivers/scsi/zorro7xx.c
---- a/drivers/scsi/zorro7xx.c~m68k-zorro7xx-needs-asm-amigahwh
-+++ a/drivers/scsi/zorro7xx.c
-@@ -13,7 +13,10 @@
- #include <linux/init.h>
- #include <linux/interrupt.h>
- #include <linux/zorro.h>
+diff -puN arch/x86/lib/delay_32.c~new-tsc-based-delay_tsc arch/x86/lib/delay_32.c
+--- a/arch/x86/lib/delay_32.c~new-tsc-based-delay_tsc
++++ a/arch/x86/lib/delay_32.c
+@@ -38,18 +38,41 @@ static void delay_loop(unsigned long loo
+ 		:"0" (loops));
+ }
+ 
+-/* TSC based delay: */
++/* TSC based delay:
++ *
++ * We are careful about preemption as TSC's are per-CPU.
++ */
+ static void delay_tsc(unsigned long loops)
+ {
+-	unsigned long bclock, now;
++	unsigned prev, now;
++	unsigned left = loops;
++	unsigned prev_cpu, cpu;
 +
-+#include <asm/amigahw.h>
- #include <asm/amigaints.h>
++	preempt_disable();
++	rdtscl(prev);
++	prev_cpu = smp_processor_id();
++	preempt_enable();
++	now = prev;
+ 
+-	preempt_disable();		/* TSC's are per-cpu */
+-	rdtscl(bclock);
+ 	do {
+ 		rep_nop();
 +
- #include <scsi/scsi_host.h>
- #include <scsi/scsi_transport_spi.h>
++		left -= now - prev;
++		prev = now;
++
++		preempt_disable();
+ 		rdtscl(now);
+-	} while ((now-bclock) < loops);
+-	preempt_enable();
++		cpu = smp_processor_id();
++		preempt_enable();
++
++		if (prev_cpu != cpu){
++			/*
++			 * We have migrated, we skip this small amount of time:
++			 */
++			prev = now;
++			prev_cpu = cpu;
++		}
++	} while ((now-prev) < left);
+ }
+ 
+ /*
+diff -puN arch/x86/lib/delay_64.c~new-tsc-based-delay_tsc arch/x86/lib/delay_64.c
+--- a/arch/x86/lib/delay_64.c~new-tsc-based-delay_tsc
++++ a/arch/x86/lib/delay_64.c
+@@ -26,18 +26,42 @@ int read_current_timer(unsigned long *ti
+ 	return 0;
+ }
+ 
++/* TSC based delay:
++ *
++ * We are careful about preemption as TSC's are per-CPU.
++ */
+ void __delay(unsigned long loops)
+ {
+-	unsigned bclock, now;
++	unsigned prev, now;
++	unsigned left = loops;
++	unsigned prev_cpu, cpu;
++
++	preempt_disable();
++	rdtscl(prev);
++	prev_cpu = smp_processor_id();
++	preempt_enable();
++	now = prev;
+ 
+-	preempt_disable();		/* TSC's are pre-cpu */
+-	rdtscl(bclock);
+ 	do {
+-		rep_nop(); 
++		rep_nop();
++
++		left -= now - prev;
++		prev = now;
++
++		preempt_disable();
+ 		rdtscl(now);
++		cpu = smp_processor_id();
++		preempt_enable();
++
++		if (prev_cpu != cpu){
++			/*
++			 * We have migrated, we skip this small amount of time:
++			 */
++			 prev = now;
++			 prev_cpu = cpu;
++		}
+ 	}
+-	while ((now-bclock) < loops);
+-	preempt_enable();
++	while ((now-prev) < left);
+ }
+ EXPORT_SYMBOL(__delay);
  
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from mitov@issp.bas.bg are
 
-m68k-export-atari_keyb_init.patch
-amiga-zorro-bus-add-missing-zorro_device_remove.patch
-mac68k-mailing-list-addresss.patch
-m68k-zorro7xx-needs-asm-amigahwh.patch
-git-scsi-misc.patch
-m68k-use-cc-cross-prefix.patch
-m68k-array_size-cleanup.patch
-dio-array_size-cleanup.patch
-m68k-balance-ioremap-and-iounmap-in-m68k-atari-hades-pcic.patch
-nubus-kill-drivers-nubus-nubus_symsc.patch
-m68k-kill-arch-m68k-mac-mac_ksymsc.patch
-m68k-kill-arch-m68k-hp300-ksymsc.patch
-m68k-kill-arch-m68k-amiga-amiga_ksymsc.patch
-m68k-kill-arch-m68k-atari-atari_ksymsc.patch
-m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch
-mac68k-macii-adb-comment-correction.patch
-mac68k-remove-dead-code.patch
-mac68k-add-nubus-card-definitions-and-a-typo-fix.patch
-mac68k-remove-dead-mac_adbkeycodes.patch
-uml-borrow-consth-techniques.patch
-remove-pointless-casts-from-void-pointers.patch
-cleanup-after-apus-removal.patch
-add-cmpxchg_local-to-m86k.patch
+new-tsc-based-delay_tsc.patch
