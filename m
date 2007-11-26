@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - pata_ali-add-mitac-8317-and-derivatives.patch removed from -mm tree
-Date: Mon, 26 Nov 2007 13:48:46 -0800
-Message-ID: <200711262148.lAQLmkUx024624@imap1.linux-foundation.org>
+Subject: - libata-iordy-handling.patch removed from -mm tree
+Date: Mon, 26 Nov 2007 13:48:42 -0800
+Message-ID: <200711262148.lAQLmg3K024618@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46127 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35699 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754945AbXKZVtT (ORCPT
+	by vger.kernel.org with ESMTP id S1754988AbXKZVtT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 26 Nov 2007 16:49:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,36 +15,50 @@ To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_ali: add Mitac 8317 and derivatives
+     libata: IORDY handling
 has been removed from the -mm tree.  Its filename was
-     pata_ali-add-mitac-8317-and-derivatives.patch
+     libata-iordy-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata_ali: add Mitac 8317 and derivatives
+Subject: libata: IORDY handling
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+
+I believe this version meets all Sergei's objections
+
+Correct the logic for when we issue a set features for transfer mode
+
+- If the device has IORDY and the controller has IORDY - set the mode
+- If the device has IORDY and the controller does not - turn IORDY off
+- If neither has IORDY do nothing
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_ali.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/ata/libata-core.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_ali.c~pata_ali-add-mitac-8317-and-derivatives drivers/ata/pata_ali.c
---- a/drivers/ata/pata_ali.c~pata_ali-add-mitac-8317-and-derivatives
-+++ a/drivers/ata/pata_ali.c
-@@ -63,6 +63,9 @@ static int ali_cable_override(struct pci
- 	/* Fujitsu P2000 */
- 	if (pdev->subsystem_vendor == 0x10CF && pdev->subsystem_device == 0x10AF)
- 	   	return 1;
-+	/* Mitac 8317 (Winbook-A) and relatives */
-+	if (pdev->subsystem_vendor == 0x1071  && pdev->subsystem_device == 0x8317)
-+		return 1;
- 	/* Systems by DMI */
- 	if (dmi_check_system(cable_dmi_table))
- 		return 1;
+diff -puN drivers/ata/libata-core.c~libata-iordy-handling drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-iordy-handling
++++ a/drivers/ata/libata-core.c
+@@ -4400,7 +4400,14 @@ static unsigned int ata_dev_set_xfermode
+ 	tf.feature = SETFEATURES_XFER;
+ 	tf.flags |= ATA_TFLAG_ISADDR | ATA_TFLAG_DEVICE | ATA_TFLAG_POLLING;
+ 	tf.protocol = ATA_PROT_NODATA;
+-	tf.nsect = dev->xfer_mode;
++	/* If we are using IORDY we must send the mode setting command */
++ 	if (ata_pio_need_iordy(dev))
++ 		tf.nsect = dev->xfer_mode;
++	/* If the device has IORDY and the controller does not - turn it off */
++ 	else if (ata_id_has_iordy(dev->id))
++ 		tf.nsect = 0x01;
++	else /* In the ancient relic department - skip all of this */
++		return 0;
+ 
+ 	err_mask = ata_exec_internal(dev, &tf, NULL, DMA_NONE, NULL, 0, 0);
+ 
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
