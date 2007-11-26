@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + power-use-kasprintf.patch added to -mm tree
-Date: Mon, 26 Nov 2007 00:03:24 -0800
-Message-ID: <200711260803.lAQ83OxW023515@imap1.linux-foundation.org>
+Subject: + fs-use-list_for_each_entry_reverse-and-kill-sb_entry.patch added to -mm tree
+Date: Mon, 26 Nov 2007 00:04:09 -0800
+Message-ID: <200711260804.lAQ849wA023537@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34790 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38479 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752810AbXKZIDu (ORCPT
+	by vger.kernel.org with ESMTP id S1753300AbXKZIEM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 03:03:50 -0500
+	Mon, 26 Nov 2007 03:04:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, cbou@mail.ru, dwmw2@infradead.org
+Cc: akinobu.mita@gmail.com
 
 
 The patch titled
-     power: use kasprintf
+     fs: use list_for_each_entry_reverse and kill sb_entry
 has been added to the -mm tree.  Its filename is
-     power-use-kasprintf.patch
+     fs-use-list_for_each_entry_reverse-and-kill-sb_entry.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,81 +26,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: power: use kasprintf
+Subject: fs: use list_for_each_entry_reverse and kill sb_entry
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Use kasprintf instead of kmalloc()-strcpy()-strcat().
+Use list_for_each_entry_reverse for super_blocks list and remove
+unused sb_entry macro.
 
-Cc: Anton Vorontsov <cbou@mail.ru>
-Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/power_supply_leds.c |   25 +++++++------------------
- 1 file changed, 7 insertions(+), 18 deletions(-)
+ fs/fs-writeback.c  |    7 ++-----
+ include/linux/fs.h |    1 -
+ 2 files changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN drivers/power/power_supply_leds.c~power-use-kasprintf drivers/power/power_supply_leds.c
---- a/drivers/power/power_supply_leds.c~power-use-kasprintf
-+++ a/drivers/power/power_supply_leds.c
-@@ -10,6 +10,7 @@
-  *  You may use this code as per GPL version 2
-  */
- 
-+#include <linux/kernel.h>
- #include <linux/power_supply.h>
- 
- #include "power_supply.h"
-@@ -48,28 +49,20 @@ static int power_supply_create_bat_trigg
+diff -puN fs/fs-writeback.c~fs-use-list_for_each_entry_reverse-and-kill-sb_entry fs/fs-writeback.c
+--- a/fs/fs-writeback.c~fs-use-list_for_each_entry_reverse-and-kill-sb_entry
++++ a/fs/fs-writeback.c
+@@ -514,8 +514,7 @@ writeback_inodes(struct writeback_contro
+ 	might_sleep();
+ 	spin_lock(&sb_lock);
+ restart:
+-	sb = sb_entry(super_blocks.prev);
+-	for (; sb != sb_entry(&super_blocks); sb = sb_entry(sb->s_list.prev)) {
++	list_for_each_entry_reverse(sb, &super_blocks, s_list) {
+ 		if (sb_has_dirty_inodes(sb)) {
+ 			/* we're making our own get_super here */
+ 			sb->s_count++;
+@@ -580,10 +579,8 @@ static void set_sb_syncing(int val)
  {
- 	int rc = 0;
+ 	struct super_block *sb;
+ 	spin_lock(&sb_lock);
+-	sb = sb_entry(super_blocks.prev);
+-	for (; sb != sb_entry(&super_blocks); sb = sb_entry(sb->s_list.prev)) {
++	list_for_each_entry_reverse(sb, &super_blocks, s_list)
+ 		sb->s_syncing = val;
+-	}
+ 	spin_unlock(&sb_lock);
+ }
  
--	psy->charging_full_trig_name = kmalloc(strlen(psy->name) +
--				  sizeof("-charging-or-full"), GFP_KERNEL);
-+	psy->charging_full_trig_name = kasprintf(GFP_KERNEL,
-+					"%s-charging-or-full", psy->name);
- 	if (!psy->charging_full_trig_name)
- 		goto charging_full_failed;
+diff -puN include/linux/fs.h~fs-use-list_for_each_entry_reverse-and-kill-sb_entry include/linux/fs.h
+--- a/include/linux/fs.h~fs-use-list_for_each_entry_reverse-and-kill-sb_entry
++++ a/include/linux/fs.h
+@@ -974,7 +974,6 @@ extern int send_sigurg(struct fown_struc
+ extern struct list_head super_blocks;
+ extern spinlock_t sb_lock;
  
--	psy->charging_trig_name = kmalloc(strlen(psy->name) +
--					  sizeof("-charging"), GFP_KERNEL);
-+	psy->charging_trig_name = kasprintf(GFP_KERNEL,
-+					"%s-charging", psy->name);
- 	if (!psy->charging_trig_name)
- 		goto charging_failed;
- 
--	psy->full_trig_name = kmalloc(strlen(psy->name) +
--				      sizeof("-full"), GFP_KERNEL);
-+	psy->full_trig_name = kasprintf(GFP_KERNEL, "%s-full", psy->name);
- 	if (!psy->full_trig_name)
- 		goto full_failed;
- 
--	strcpy(psy->charging_full_trig_name, psy->name);
--	strcat(psy->charging_full_trig_name, "-charging-or-full");
--	strcpy(psy->charging_trig_name, psy->name);
--	strcat(psy->charging_trig_name, "-charging");
--	strcpy(psy->full_trig_name, psy->name);
--	strcat(psy->full_trig_name, "-full");
--
- 	led_trigger_register_simple(psy->charging_full_trig_name,
- 				    &psy->charging_full_trig);
- 	led_trigger_register_simple(psy->charging_trig_name,
-@@ -120,14 +113,10 @@ static int power_supply_create_gen_trigg
- {
- 	int rc = 0;
- 
--	psy->online_trig_name = kmalloc(strlen(psy->name) + sizeof("-online"),
--					GFP_KERNEL);
-+	psy->online_trig_name = kasprintf(GFP_KERNEL, "%s-online", psy->name);
- 	if (!psy->online_trig_name)
- 		goto online_failed;
- 
--	strcpy(psy->online_trig_name, psy->name);
--	strcat(psy->online_trig_name, "-online");
--
- 	led_trigger_register_simple(psy->online_trig_name, &psy->online_trig);
- 
- 	goto success;
+-#define sb_entry(list)	list_entry((list), struct super_block, s_list)
+ #define S_BIAS (1<<30)
+ struct super_block {
+ 	struct list_head	s_list;		/* Keep this first */
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
@@ -108,3 +83,4 @@ Patches currently in -mm which might be from akinobu.mita@gmail.com are
 fs-use-hlist_unhashed.patch
 power-use-kasprintf.patch
 partitions-use-kasprintf.patch
+fs-use-list_for_each_entry_reverse-and-kill-sb_entry.patch
