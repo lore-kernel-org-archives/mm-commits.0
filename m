@@ -1,109 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-net-chelsio-if-0-unused-functions.patch removed from -mm tree
-Date: Mon, 26 Nov 2007 13:49:00 -0800
-Message-ID: <200711262149.lAQLn0u8024649@imap1.linux-foundation.org>
+Subject: - power_supply_ledssysfsc-should-include-power_supplyh.patch removed from -mm tree
+Date: Mon, 26 Nov 2007 13:50:05 -0800
+Message-ID: <200711262150.lAQLo5Zh024825@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36890 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38163 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755369AbXKZV6z (ORCPT
+	by vger.kernel.org with ESMTP id S1756187AbXKZV6l (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 16:58:55 -0500
+	Mon, 26 Nov 2007 16:58:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, jeff@garzik.org, mm-commits@vger.kernel.org
+To: bunk@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/net/chelsio/: #if 0 unused functions
+     patch] power_supply_{leds,sysfs}.c should #include "power_supply.h"
 has been removed from the -mm tree.  Its filename was
-     drivers-net-chelsio-if-0-unused-functions.patch
+     power_supply_ledssysfsc-should-include-power_supplyh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/net/chelsio/: #if 0 unused functions
+Subject: patch] power_supply_{leds,sysfs}.c should #include "power_supply.h"
 From: Adrian Bunk <bunk@kernel.org>
 
-This patch #if 0's the following unused functions:
-- espi.c:t1_espi_set_misc_ctrl()
-- sge.c:t1_sched_set_max_avail_bytes()
-- sge.c:t1_sched_set_drain_bits_per_us()
+Every file should include the headers containing the prototypes for its global
+functions.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/chelsio/espi.c |    2 ++
- drivers/net/chelsio/espi.h |    1 -
- drivers/net/chelsio/sge.c  |    4 ++++
- drivers/net/chelsio/sge.h  |    2 --
- 4 files changed, 6 insertions(+), 3 deletions(-)
+ drivers/power/power_supply_leds.c  |    2 ++
+ drivers/power/power_supply_sysfs.c |    2 ++
+ 2 files changed, 4 insertions(+)
 
-diff -puN drivers/net/chelsio/espi.c~drivers-net-chelsio-if-0-unused-functions drivers/net/chelsio/espi.c
---- a/drivers/net/chelsio/espi.c~drivers-net-chelsio-if-0-unused-functions
-+++ a/drivers/net/chelsio/espi.c
-@@ -297,6 +297,7 @@ struct peespi *t1_espi_create(adapter_t 
- 	return espi;
- }
+diff -puN drivers/power/power_supply_leds.c~power_supply_ledssysfsc-should-include-power_supplyh drivers/power/power_supply_leds.c
+--- a/drivers/power/power_supply_leds.c~power_supply_ledssysfsc-should-include-power_supplyh
++++ a/drivers/power/power_supply_leds.c
+@@ -12,6 +12,8 @@
  
-+#if 0
- void t1_espi_set_misc_ctrl(adapter_t *adapter, u32 val)
- {
- 	struct peespi *espi = adapter->espi;
-@@ -309,6 +310,7 @@ void t1_espi_set_misc_ctrl(adapter_t *ad
- 	writel(espi->misc_ctrl, adapter->regs + A_ESPI_MISC_CONTROL);
- 	spin_unlock(&espi->lock);
- }
-+#endif  /*  0  */
+ #include <linux/power_supply.h>
  
- u32 t1_espi_get_mon(adapter_t *adapter, u32 addr, u8 wait)
- {
-diff -puN drivers/net/chelsio/espi.h~drivers-net-chelsio-if-0-unused-functions drivers/net/chelsio/espi.h
---- a/drivers/net/chelsio/espi.h~drivers-net-chelsio-if-0-unused-functions
-+++ a/drivers/net/chelsio/espi.h
-@@ -62,7 +62,6 @@ void t1_espi_intr_disable(struct peespi 
- int t1_espi_intr_handler(struct peespi *);
- const struct espi_intr_counts *t1_espi_get_intr_counts(struct peespi *espi);
++#include "power_supply.h"
++
+ /* Battery specific LEDs triggers. */
  
--void t1_espi_set_misc_ctrl(adapter_t *adapter, u32 val);
- u32 t1_espi_get_mon(adapter_t *adapter, u32 addr, u8 wait);
- int t1_espi_get_mon_t204(adapter_t *, u32 *, u8);
+ static void power_supply_update_bat_leds(struct power_supply *psy)
+diff -puN drivers/power/power_supply_sysfs.c~power_supply_ledssysfsc-should-include-power_supplyh drivers/power/power_supply_sysfs.c
+--- a/drivers/power/power_supply_sysfs.c~power_supply_ledssysfsc-should-include-power_supplyh
++++ a/drivers/power/power_supply_sysfs.c
+@@ -14,6 +14,8 @@
+ #include <linux/ctype.h>
+ #include <linux/power_supply.h>
  
-diff -puN drivers/net/chelsio/sge.c~drivers-net-chelsio-if-0-unused-functions drivers/net/chelsio/sge.c
---- a/drivers/net/chelsio/sge.c~drivers-net-chelsio-if-0-unused-functions
-+++ a/drivers/net/chelsio/sge.c
-@@ -330,6 +330,8 @@ unsigned int t1_sched_update_parms(struc
- 	return max_avail_segs * (p->mtu - 40);
- }
- 
-+#if 0
++#include "power_supply.h"
 +
  /*
-  * t1_sched_max_avail_bytes() tells the scheduler the maximum amount of
-  * data that can be pushed per port.
-@@ -357,6 +359,8 @@ void t1_sched_set_drain_bits_per_us(stru
- 	t1_sched_update_parms(sge, port, 0, 0);
- }
- 
-+#endif  /*  0  */
-+
- 
- /*
-  * get_clock() implements a ns clock (see ktime_get)
-diff -puN drivers/net/chelsio/sge.h~drivers-net-chelsio-if-0-unused-functions drivers/net/chelsio/sge.h
---- a/drivers/net/chelsio/sge.h~drivers-net-chelsio-if-0-unused-functions
-+++ a/drivers/net/chelsio/sge.h
-@@ -89,8 +89,6 @@ void t1_sge_intr_disable(struct sge *);
- void t1_sge_intr_clear(struct sge *);
- const struct sge_intr_counts *t1_sge_get_intr_counts(const struct sge *sge);
- void t1_sge_get_port_stats(const struct sge *sge, int port, struct sge_port_stats *);
--void t1_sched_set_max_avail_bytes(struct sge *, unsigned int);
--void t1_sched_set_drain_bits_per_us(struct sge *, unsigned int, unsigned int);
- unsigned int t1_sched_update_parms(struct sge *, unsigned int, unsigned int,
- 			   unsigned int);
- 
+  * This is because the name "current" breaks the device attr macro.
+  * The "current" word resolves to "(get_current())" so instead of
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
