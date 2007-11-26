@@ -1,155 +1,200 @@
 From: akpm@linux-foundation.org
-Subject: - new-tsc-based-delay_tsc.patch removed from -mm tree
-Date: Mon, 26 Nov 2007 11:29:49 -0800
-Message-ID: <200711261929.lAQJTnwW019025@imap1.linux-foundation.org>
+Subject: - unprivileged-mounts-allow-unprivileged-bind-mounts.patch removed from -mm tree
+Date: Mon, 26 Nov 2007 11:35:40 -0800
+Message-ID: <200711261935.lAQJZeKa019241@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37117 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37708 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753607AbXKZTad (ORCPT
+	by vger.kernel.org with ESMTP id S1754146AbXKZTgH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 14:30:33 -0500
+	Mon, 26 Nov 2007 14:36:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mitov@issp.bas.bg, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, hch@lst.de, linuxram@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     new TSC-based delay_tsc()
+     unprivileged mounts: allow unprivileged bind mounts
 has been removed from the -mm tree.  Its filename was
-     new-tsc-based-delay_tsc.patch
+     unprivileged-mounts-allow-unprivileged-bind-mounts.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: new TSC-based delay_tsc()
-From: Marin Mitov <mitov@issp.bas.bg>
+Subject: unprivileged mounts: allow unprivileged bind mounts
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-A patch based on Ingo's idea/patch to track delay_tsc() migration to
-another cpu by comparing smp_processor_id().
+Allow bind mounts to unprivileged users if the following conditions are met:
 
-What is different:
-1. Using unsigned (instead of long) to unify for i386/x86_64.
-2. Minimal preempt_disable/enable() critical sections
-   (more room for preemption)
-3. some statements have been rearranged, to account for
-    possible under/overflow of left/TSC
+  - mountpoint is not a symlink
+  - parent mount is owned by the user
+  - the number of user mounts is below the maximum
 
-Signed-off-by: Marin Mitov <mitov@issp.bas.bg>
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Unprivileged mounts imply MS_SETUSER, and will also have the "nosuid" and
+"nodev" mount flags set.
+
+In particular, if mounting process doesn't have CAP_SETUID capability,
+then the "nosuid" flag will be added, and if it doesn't have CAP_MKNOD
+capability, then the "nodev" flag will be added.
+
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Ram Pai <linuxram@us.ibm.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/lib/delay_32.c |   35 +++++++++++++++++++++++++++++------
- arch/x86/lib/delay_64.c |   36 ++++++++++++++++++++++++++++++------
- 2 files changed, 59 insertions(+), 12 deletions(-)
+ fs/namespace.c |   81 ++++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 60 insertions(+), 21 deletions(-)
 
-diff -puN arch/x86/lib/delay_32.c~new-tsc-based-delay_tsc arch/x86/lib/delay_32.c
---- a/arch/x86/lib/delay_32.c~new-tsc-based-delay_tsc
-+++ a/arch/x86/lib/delay_32.c
-@@ -38,18 +38,41 @@ static void delay_loop(unsigned long loo
- 		:"0" (loops));
+diff -puN fs/namespace.c~unprivileged-mounts-allow-unprivileged-bind-mounts fs/namespace.c
+--- a/fs/namespace.c~unprivileged-mounts-allow-unprivileged-bind-mounts
++++ a/fs/namespace.c
+@@ -238,11 +238,34 @@ static void dec_nr_user_mounts(void)
+ 	spin_unlock(&vfsmount_lock);
  }
  
--/* TSC based delay: */
-+/* TSC based delay:
-+ *
-+ * We are careful about preemption as TSC's are per-CPU.
-+ */
- static void delay_tsc(unsigned long loops)
+-static void set_mnt_user(struct vfsmount *mnt)
++static int reserve_user_mount(void)
++{
++	int err = 0;
++
++	spin_lock(&vfsmount_lock);
++	if (nr_user_mounts >= max_user_mounts && !capable(CAP_SYS_ADMIN))
++		err = -EPERM;
++	else
++		nr_user_mounts++;
++	spin_unlock(&vfsmount_lock);
++	return err;
++}
++
++static void __set_mnt_user(struct vfsmount *mnt)
  {
--	unsigned long bclock, now;
-+	unsigned prev, now;
-+	unsigned left = loops;
-+	unsigned prev_cpu, cpu;
+ 	BUG_ON(mnt->mnt_flags & MNT_USER);
+ 	mnt->mnt_uid = current->fsuid;
+ 	mnt->mnt_flags |= MNT_USER;
 +
-+	preempt_disable();
-+	rdtscl(prev);
-+	prev_cpu = smp_processor_id();
-+	preempt_enable();
-+	now = prev;
- 
--	preempt_disable();		/* TSC's are per-cpu */
--	rdtscl(bclock);
- 	do {
- 		rep_nop();
++	if (!capable(CAP_SETUID))
++		mnt->mnt_flags |= MNT_NOSUID;
++	if (!capable(CAP_MKNOD))
++		mnt->mnt_flags |= MNT_NODEV;
++}
 +
-+		left -= now - prev;
-+		prev = now;
-+
-+		preempt_disable();
- 		rdtscl(now);
--	} while ((now-bclock) < loops);
--	preempt_enable();
-+		cpu = smp_processor_id();
-+		preempt_enable();
-+
-+		if (prev_cpu != cpu){
-+			/*
-+			 * We have migrated, we skip this small amount of time:
-+			 */
-+			prev = now;
-+			prev_cpu = cpu;
-+		}
-+	} while ((now-prev) < left);
- }
- 
- /*
-diff -puN arch/x86/lib/delay_64.c~new-tsc-based-delay_tsc arch/x86/lib/delay_64.c
---- a/arch/x86/lib/delay_64.c~new-tsc-based-delay_tsc
-+++ a/arch/x86/lib/delay_64.c
-@@ -26,18 +26,42 @@ int read_current_timer(unsigned long *ti
- 	return 0;
- }
- 
-+/* TSC based delay:
-+ *
-+ * We are careful about preemption as TSC's are per-CPU.
-+ */
- void __delay(unsigned long loops)
++static void set_mnt_user(struct vfsmount *mnt)
++{
++	__set_mnt_user(mnt);
+ 	spin_lock(&vfsmount_lock);
+ 	nr_user_mounts++;
+ 	spin_unlock(&vfsmount_lock);
+@@ -261,10 +284,16 @@ static struct vfsmount *clone_mnt(struct
+ 					int flag)
  {
--	unsigned bclock, now;
-+	unsigned prev, now;
-+	unsigned left = loops;
-+	unsigned prev_cpu, cpu;
-+
-+	preempt_disable();
-+	rdtscl(prev);
-+	prev_cpu = smp_processor_id();
-+	preempt_enable();
-+	now = prev;
+ 	struct super_block *sb = old->mnt_sb;
+-	struct vfsmount *mnt = alloc_vfsmnt(old->mnt_devname);
++	struct vfsmount *mnt;
  
--	preempt_disable();		/* TSC's are pre-cpu */
--	rdtscl(bclock);
- 	do {
--		rep_nop(); 
-+		rep_nop();
-+
-+		left -= now - prev;
-+		prev = now;
-+
-+		preempt_disable();
- 		rdtscl(now);
-+		cpu = smp_processor_id();
-+		preempt_enable();
-+
-+		if (prev_cpu != cpu){
-+			/*
-+			 * We have migrated, we skip this small amount of time:
-+			 */
-+			 prev = now;
-+			 prev_cpu = cpu;
-+		}
++	if (flag & CL_SETUSER) {
++		int err = reserve_user_mount();
++		if (err)
++			return ERR_PTR(err);
++	}
++	mnt = alloc_vfsmnt(old->mnt_devname);
+ 	if (!mnt)
+-		return ERR_PTR(-ENOMEM);
++		goto alloc_failed;
+ 
+ 	mnt->mnt_flags = old->mnt_flags;
+ 	atomic_inc(&sb->s_active);
+@@ -276,7 +305,7 @@ static struct vfsmount *clone_mnt(struct
+ 	/* don't copy the MNT_USER flag */
+ 	mnt->mnt_flags &= ~MNT_USER;
+ 	if (flag & CL_SETUSER)
+-		set_mnt_user(mnt);
++		__set_mnt_user(mnt);
+ 
+ 	if (flag & CL_SLAVE) {
+ 		list_add(&mnt->mnt_slave, &old->mnt_slave_list);
+@@ -301,6 +330,11 @@ static struct vfsmount *clone_mnt(struct
+ 		spin_unlock(&vfsmount_lock);
  	}
--	while ((now-bclock) < loops);
--	preempt_enable();
-+	while ((now-prev) < left);
+ 	return mnt;
++
++ alloc_failed:
++	if (flag & CL_SETUSER)
++		dec_nr_user_mounts();
++	return ERR_PTR(-ENOMEM);
  }
- EXPORT_SYMBOL(__delay);
  
+ static inline void __mntput(struct vfsmount *mnt)
+@@ -724,22 +758,26 @@ asmlinkage long sys_oldumount(char __use
+ 
+ #endif
+ 
+-static int mount_is_safe(struct nameidata *nd)
++/*
++ * Conditions for unprivileged mounts are:
++ * - mountpoint is not a symlink
++ * - mountpoint is in a mount owned by the user
++ */
++static bool permit_mount(struct nameidata *nd, int *flags)
+ {
++	struct inode *inode = nd->dentry->d_inode;
++
+ 	if (capable(CAP_SYS_ADMIN))
+-		return 0;
+-	return -EPERM;
+-#ifdef notyet
+-	if (S_ISLNK(nd->dentry->d_inode->i_mode))
+-		return -EPERM;
+-	if (nd->dentry->d_inode->i_mode & S_ISVTX) {
+-		if (current->uid != nd->dentry->d_inode->i_uid)
+-			return -EPERM;
+-	}
+-	if (vfs_permission(nd, MAY_WRITE))
+-		return -EPERM;
+-	return 0;
+-#endif
++		return true;
++
++	if (S_ISLNK(inode->i_mode))
++		return false;
++
++	if (!is_mount_owner(nd->mnt, current->fsuid))
++		return false;
++
++	*flags |= MS_SETUSER;
++	return true;
+ }
+ 
+ static int lives_below_in_same_fs(struct dentry *d, struct dentry *dentry)
+@@ -983,9 +1021,10 @@ static int do_loopback(struct nameidata 
+ 	int clone_flags;
+ 	struct nameidata old_nd;
+ 	struct vfsmount *mnt = NULL;
+-	int err = mount_is_safe(nd);
+-	if (err)
+-		return err;
++	int err;
++
++	if (!permit_mount(nd, &flags))
++		return -EPERM;
+ 	if (!old_name || !*old_name)
+ 		return -EINVAL;
+ 	err = path_lookup(old_name, LOOKUP_FOLLOW, &old_nd);
 _
 
-Patches currently in -mm which might be from mitov@issp.bas.bg are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
-new-tsc-based-delay_tsc.patch
+fuse-fix-reading-past-eof.patch
+fuse-cleanup-add-fuse_get_attr_version.patch
+fuse-pass-open-flags-to-read-and-write.patch
+fuse-fix-fuse_file_ops-sending.patch
+fuse-fix-uninitialized-field-in-fuse_inode.patch
+fuse-fix-attribute-caching-after-rename.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-add-no-submounts-flag.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
