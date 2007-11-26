@@ -1,72 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - pata_isapnp-polled-devices.patch removed from -mm tree
-Date: Mon, 26 Nov 2007 13:48:52 -0800
-Message-ID: <200711262148.lAQLmqvM024637@imap1.linux-foundation.org>
+Subject: - libata-core-list-more-documentation-sources-for-reference.patch removed from -mm tree
+Date: Mon, 26 Nov 2007 13:48:40 -0800
+Message-ID: <200711262148.lAQLmeUR024615@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40614 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57687 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755098AbXKZVtf (ORCPT
+	by vger.kernel.org with ESMTP id S1755098AbXKZVti (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 16:49:35 -0500
+	Mon, 26 Nov 2007 16:49:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_isapnp: polled devices
+     libata-core: list more documentation sources for reference
 has been removed from the -mm tree.  Its filename was
-     pata_isapnp-polled-devices.patch
+     libata-core-list-more-documentation-sources-for-reference.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata_isapnp: polled devices
+Subject: libata-core: list more documentation sources for reference
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-If a card has no IRQ then pass no interrupt handler but allow polled
-usage.
+And next time I'll be able to find the ata tape spec easily...
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_isapnp.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ drivers/ata/libata-core.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/ata/pata_isapnp.c~pata_isapnp-polled-devices drivers/ata/pata_isapnp.c
---- a/drivers/ata/pata_isapnp.c~pata_isapnp-polled-devices
-+++ a/drivers/ata/pata_isapnp.c
-@@ -75,13 +75,16 @@ static int isapnp_init_one(struct pnp_de
- 	struct ata_host *host;
- 	struct ata_port *ap;
- 	void __iomem *cmd_addr, *ctl_addr;
-+	int irq = 0;
-+	irq_handler_t handler = NULL;
+diff -puN drivers/ata/libata-core.c~libata-core-list-more-documentation-sources-for-reference drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-core-list-more-documentation-sources-for-reference
++++ a/drivers/ata/libata-core.c
+@@ -30,6 +30,14 @@
+  *  Hardware documentation available from http://www.t13.org/ and
+  *  http://www.sata-io.org/
+  *
++ *  Standards documents from:
++ *	http://www.t13.org (ATA standards, PCI DMA IDE spec)
++ *	http://www.t10.org (SCSI MMC - for ATAPI MMC)
++ *	http://www.sata-io.org (SATA)
++ *	http://www.compactflash.org (CF)
++ *	http://www.qic.org (QIC157 - Tape and DSC)
++ *	http://www.ce-ata.org (CE-ATA: not supported)
++ *
+  */
  
- 	if (pnp_port_valid(idev, 0) == 0)
- 		return -ENODEV;
- 
--	/* FIXME: Should selected polled PIO here not fail */
--	if (pnp_irq_valid(idev, 0) == 0)
--		return -ENODEV;
-+	if (pnp_irq_valid(idev, 0)) {
-+		irq = pnp_irq(idev, 0);
-+		handler = ata_interrupt;
-+	}
- 
- 	/* allocate host */
- 	host = ata_host_alloc(&idev->dev, 1);
-@@ -115,7 +118,7 @@ static int isapnp_init_one(struct pnp_de
- 		      (unsigned long long)pnp_port_start(idev, 1));
- 
- 	/* activate */
--	return ata_host_activate(host, pnp_irq(idev, 0), ata_interrupt, 0,
-+	return ata_host_activate(host, irq, handler, 0,
- 				 &isapnp_sht);
- }
- 
+ #include <linux/kernel.h>
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
