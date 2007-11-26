@@ -1,87 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: - forcedeth-new-mcp79-device-ids.patch removed from -mm tree
-Date: Mon, 26 Nov 2007 13:49:02 -0800
-Message-ID: <200711262149.lAQLn2fa024719@imap1.linux-foundation.org>
+Subject: + fb_ddc-fix-ddc-lines-quirk.patch added to -mm tree
+Date: Mon, 26 Nov 2007 14:30:23 -0800
+Message-ID: <200711262230.lAQMUP1W026401@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40143 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55550 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754373AbXKZWA1 (ORCPT
+	by vger.kernel.org with ESMTP id S1755753AbXKZWbW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 17:00:27 -0500
+	Mon, 26 Nov 2007 17:31:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aabdulla@nvidia.com, jgarzik@pobox.com, manfred@colorfullife.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: khali@linux-fr.org, adaplas@pol.net, benh@kernel.crashing.org, mb@bu3sch.de, rleigh@whinlatter.ukfsn.org
 
 
 The patch titled
-     forcedeth: new mcp79 device ids
-has been removed from the -mm tree.  Its filename was
-     forcedeth-new-mcp79-device-ids.patch
+     fb_ddc: fix DDC lines quirk
+has been added to the -mm tree.  Its filename is
+     fb_ddc-fix-ddc-lines-quirk.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: forcedeth: new mcp79 device ids
-From: Ayaz Abdulla <aabdulla@nvidia.com>
+Subject: fb_ddc: fix DDC lines quirk
+From: Jean Delvare <khali@linux-fr.org>
 
-Add new device ids and features for mcp79 devices into the forcedeth driver.
+The code in fb_ddc_read() is said to be based on the implementation of the
+radeon driver:
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=fc5891c8a3ba284f13994d7bc1f1bfa8283982de
 
-Signed-off-by: Ayaz Abdulla <aabdulla@nvidia.com>
-Cc: Jeff Garzik <jgarzik@pobox.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: <stable@kernel.org>
+However, comparing the old radeon driver code with the new fb_ddc code
+reveals some differences.  Most notably, the I2C bus lines are held at the
+end of the function, while the original code was releasing them (as the
+comment above correctly says.)
+
+There are a few other differences, which appear to be responsible for read
+failures on my system.  While tracing low-level I2C code in i2c-algo-bit, I
+noticed that the initial attempt to read the EDID always failed.  It takes
+one retry for the read to succeed.  As we are about to remove this
+automatic retry property from i2c-algo-bit, reading the EDID would really
+fail.
+
+As a summary, the I2C lines quirk which is supposedly needed to read EDID
+on some older monitors is currently breaking the (first) read on all other
+monitors (and might not even work with older ones - did anyone try since
+October 2006?)
+
+After applying the patch below, which makes the code in fb_ddc_read()
+really similar to what the radeon driver used to have, the first EDID read
+succeeds again.
+
+On top of that, as it appears that this code has been broken for one year
+now and nobody seems to have complained, I'm curious if it makes sense to
+keep this quirk in place.  It makes the code more complex and slower just
+for the sake of monitors which I guess nobody uses anymore.  Can't we just
+get rid of it?
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Tested-by: Roger Leigh <rleigh@whinlatter.ukfsn.org>
+Tested-by: Michael Buesch <mb@bu3sch.de>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/forcedeth.c |   16 ++++++++++++++++
- include/linux/pci_ids.h |    4 ++++
- 2 files changed, 20 insertions(+)
+ drivers/video/fb_ddc.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/forcedeth.c~forcedeth-new-mcp79-device-ids drivers/net/forcedeth.c
---- a/drivers/net/forcedeth.c~forcedeth-new-mcp79-device-ids
-+++ a/drivers/net/forcedeth.c
-@@ -5621,6 +5621,22 @@ static struct pci_device_id pci_tbl[] = 
- 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_35),
- 		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_MSI|DEV_HAS_POWER_CNTRL|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
- 	},
-+	{	/* MCP79 Ethernet Controller */
-+		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_36),
-+		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_MSI|DEV_HAS_POWER_CNTRL|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
-+	},
-+	{	/* MCP79 Ethernet Controller */
-+		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_37),
-+		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_MSI|DEV_HAS_POWER_CNTRL|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
-+	},
-+	{	/* MCP79 Ethernet Controller */
-+		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_38),
-+		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_MSI|DEV_HAS_POWER_CNTRL|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
-+	},
-+	{	/* MCP79 Ethernet Controller */
-+		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_39),
-+		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_MSI|DEV_HAS_POWER_CNTRL|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
-+	},
- 	{0,},
- };
+diff -puN drivers/video/fb_ddc.c~fb_ddc-fix-ddc-lines-quirk drivers/video/fb_ddc.c
+--- a/drivers/video/fb_ddc.c~fb_ddc-fix-ddc-lines-quirk
++++ a/drivers/video/fb_ddc.c
+@@ -56,13 +56,12 @@ unsigned char *fb_ddc_read(struct i2c_ad
+ 	int i, j;
  
-diff -puN include/linux/pci_ids.h~forcedeth-new-mcp79-device-ids include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~forcedeth-new-mcp79-device-ids
-+++ a/include/linux/pci_ids.h
-@@ -1237,6 +1237,10 @@
- #define PCI_DEVICE_ID_NVIDIA_NVENET_33              0x0761
- #define PCI_DEVICE_ID_NVIDIA_NVENET_34              0x0762
- #define PCI_DEVICE_ID_NVIDIA_NVENET_35              0x0763
-+#define PCI_DEVICE_ID_NVIDIA_NVENET_36              0x0AB0
-+#define PCI_DEVICE_ID_NVIDIA_NVENET_37              0x0AB1
-+#define PCI_DEVICE_ID_NVIDIA_NVENET_38              0x0AB2
-+#define PCI_DEVICE_ID_NVIDIA_NVENET_39              0x0AB3
+ 	algo_data->setscl(algo_data->data, 1);
+-	algo_data->setscl(algo_data->data, 0);
  
- #define PCI_VENDOR_ID_IMS		0x10e0
- #define PCI_DEVICE_ID_IMS_TT128		0x9128
+ 	for (i = 0; i < 3; i++) {
+ 		/* For some old monitors we need the
+ 		 * following process to initialize/stop DDC
+ 		 */
+-		algo_data->setsda(algo_data->data, 0);
++		algo_data->setsda(algo_data->data, 1);
+ 		msleep(13);
+ 
+ 		algo_data->setscl(algo_data->data, 1);
+@@ -97,14 +96,15 @@ unsigned char *fb_ddc_read(struct i2c_ad
+ 		algo_data->setsda(algo_data->data, 1);
+ 		msleep(15);
+ 		algo_data->setscl(algo_data->data, 0);
++		algo_data->setsda(algo_data->data, 0);
+ 		if (edid)
+ 			break;
+ 	}
+ 	/* Release the DDC lines when done or the Apple Cinema HD display
+ 	 * will switch off
+ 	 */
+-	algo_data->setsda(algo_data->data, 0);
+-	algo_data->setscl(algo_data->data, 0);
++	algo_data->setsda(algo_data->data, 1);
++	algo_data->setscl(algo_data->data, 1);
+ 
+ 	return edid;
+ }
 _
 
-Patches currently in -mm which might be from aabdulla@nvidia.com are
+Patches currently in -mm which might be from khali@linux-fr.org are
 
-git-netdev-all.patch
-forcedeth-power-down-phy-when-interface-is-down.patch
-forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
+fb_ddc-fix-ddc-lines-quirk.patch
+git-acpi.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+export-acpi_check_resource_conflict.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+git-hwmon.patch
+rtc-pcf8583-dont-abuse-i2c_m_nostart.patch
