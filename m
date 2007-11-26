@@ -1,216 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - arch-arm-removed-duplicate-includes.patch removed from -mm tree
-Date: Mon, 26 Nov 2007 13:48:20 -0800
-Message-ID: <200711262148.lAQLmK1M024590@imap1.linux-foundation.org>
+Subject: - fs-sysfs-remove-spin_lock_unlocked.patch removed from -mm tree
+Date: Mon, 26 Nov 2007 13:48:28 -0800
+Message-ID: <200711262148.lAQLmSRG024600@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59117 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58680 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754882AbXKZVsf (ORCPT
+	by vger.kernel.org with ESMTP id S1754847AbXKZVsd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 16:48:35 -0500
+	Mon, 26 Nov 2007 16:48:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: woodzy@gmail.com, buytenh@wantstofly.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, gregkh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/arm: remove duplicate includes
+     FS: sysfs, remove SPIN_LOCK_UNLOCKED
 has been removed from the -mm tree.  Its filename was
-     arch-arm-removed-duplicate-includes.patch
+     fs-sysfs-remove-spin_lock_unlocked.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: arch/arm: remove duplicate includes
-From: Lucas Woods <woodzy@gmail.com>
+Subject: FS: sysfs, remove SPIN_LOCK_UNLOCKED
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Signed-off-by: Lucas Woods <woodzy@gmail.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Acked-by: Lennert Buytenhek <buytenh@wantstofly.org>
+SPIN_LOCK_UNLOCKED is deprecated, use DEFINE_SPINLOCK instead
+
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/common/rtctime.c            |    1 -
- arch/arm/mach-ep93xx/core.c          |    1 -
- arch/arm/mach-ixp23xx/core.c         |    1 -
- arch/arm/mach-ixp23xx/espresso.c     |    2 --
- arch/arm/mach-ixp23xx/ixdp2351.c     |    2 --
- arch/arm/mach-ixp23xx/roadrunner.c   |    2 --
- arch/arm/mach-ixp4xx/nslu2-power.c   |    1 -
- arch/arm/mach-omap1/board-nokia770.c |    1 -
- arch/arm/mach-omap1/board-osk.c      |    1 -
- arch/arm/mach-omap1/board-palmtt.c   |    1 -
- arch/arm/mach-omap1/board-palmz71.c  |    1 -
- arch/arm/mach-omap2/board-apollon.c  |    1 -
- 12 files changed, 15 deletions(-)
+ fs/sysfs/file.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm/common/rtctime.c~arch-arm-removed-duplicate-includes arch/arm/common/rtctime.c
---- a/arch/arm/common/rtctime.c~arch-arm-removed-duplicate-includes
-+++ a/arch/arm/common/rtctime.c
-@@ -20,7 +20,6 @@
- #include <linux/capability.h>
- #include <linux/device.h>
- #include <linux/mutex.h>
--#include <linux/rtc.h>
+diff -puN fs/sysfs/file.c~fs-sysfs-remove-spin_lock_unlocked fs/sysfs/file.c
+--- a/fs/sysfs/file.c~fs-sysfs-remove-spin_lock_unlocked
++++ a/fs/sysfs/file.c
+@@ -37,7 +37,7 @@ void sysfs_printk_last_file(void)
+  * sysfs_dirent->s_attr.open points to sysfs_open_dirent.  s_attr.open
+  * is protected by sysfs_open_dirent_lock.
+  */
+-static spinlock_t sysfs_open_dirent_lock = SPIN_LOCK_UNLOCKED;
++static DEFINE_SPINLOCK(sysfs_open_dirent_lock);
  
- #include <asm/rtc.h>
- #include <asm/semaphore.h>
-diff -puN arch/arm/mach-ep93xx/core.c~arch-arm-removed-duplicate-includes arch/arm/mach-ep93xx/core.c
---- a/arch/arm/mach-ep93xx/core.c~arch-arm-removed-duplicate-includes
-+++ a/arch/arm/mach-ep93xx/core.c
-@@ -21,7 +21,6 @@
- #include <linux/serial.h>
- #include <linux/tty.h>
- #include <linux/bitops.h>
--#include <linux/serial.h>
- #include <linux/serial_8250.h>
- #include <linux/serial_core.h>
- #include <linux/device.h>
-diff -puN arch/arm/mach-ixp23xx/core.c~arch-arm-removed-duplicate-includes arch/arm/mach-ixp23xx/core.c
---- a/arch/arm/mach-ixp23xx/core.c~arch-arm-removed-duplicate-includes
-+++ a/arch/arm/mach-ixp23xx/core.c
-@@ -22,7 +22,6 @@
- #include <linux/serial.h>
- #include <linux/tty.h>
- #include <linux/bitops.h>
--#include <linux/serial.h>
- #include <linux/serial_8250.h>
- #include <linux/serial_core.h>
- #include <linux/device.h>
-diff -puN arch/arm/mach-ixp23xx/espresso.c~arch-arm-removed-duplicate-includes arch/arm/mach-ixp23xx/espresso.c
---- a/arch/arm/mach-ixp23xx/espresso.c~arch-arm-removed-duplicate-includes
-+++ a/arch/arm/mach-ixp23xx/espresso.c
-@@ -19,7 +19,6 @@
- #include <linux/tty.h>
- #include <linux/bitops.h>
- #include <linux/ioport.h>
--#include <linux/serial.h>
- #include <linux/serial_8250.h>
- #include <linux/serial_core.h>
- #include <linux/device.h>
-@@ -40,7 +39,6 @@
- #include <asm/mach/map.h>
- #include <asm/mach/irq.h>
- #include <asm/mach/arch.h>
--#include <asm/mach/irq.h>
- #include <asm/mach/pci.h>
- 
- static int __init espresso_pci_init(void)
-diff -puN arch/arm/mach-ixp23xx/ixdp2351.c~arch-arm-removed-duplicate-includes arch/arm/mach-ixp23xx/ixdp2351.c
---- a/arch/arm/mach-ixp23xx/ixdp2351.c~arch-arm-removed-duplicate-includes
-+++ a/arch/arm/mach-ixp23xx/ixdp2351.c
-@@ -24,7 +24,6 @@
- #include <linux/tty.h>
- #include <linux/bitops.h>
- #include <linux/ioport.h>
--#include <linux/serial.h>
- #include <linux/serial_8250.h>
- #include <linux/serial_core.h>
- #include <linux/device.h>
-@@ -44,7 +43,6 @@
- #include <asm/mach/map.h>
- #include <asm/mach/irq.h>
- #include <asm/mach/arch.h>
--#include <asm/mach/irq.h>
- #include <asm/mach/pci.h>
- 
- /*
-diff -puN arch/arm/mach-ixp23xx/roadrunner.c~arch-arm-removed-duplicate-includes arch/arm/mach-ixp23xx/roadrunner.c
---- a/arch/arm/mach-ixp23xx/roadrunner.c~arch-arm-removed-duplicate-includes
-+++ a/arch/arm/mach-ixp23xx/roadrunner.c
-@@ -23,7 +23,6 @@
- #include <linux/tty.h>
- #include <linux/bitops.h>
- #include <linux/ioport.h>
--#include <linux/serial.h>
- #include <linux/serial_8250.h>
- #include <linux/serial_core.h>
- #include <linux/device.h>
-@@ -44,7 +43,6 @@
- #include <asm/mach/map.h>
- #include <asm/mach/irq.h>
- #include <asm/mach/arch.h>
--#include <asm/mach/irq.h>
- #include <asm/mach/pci.h>
- 
- /*
-diff -puN arch/arm/mach-ixp4xx/nslu2-power.c~arch-arm-removed-duplicate-includes arch/arm/mach-ixp4xx/nslu2-power.c
---- a/arch/arm/mach-ixp4xx/nslu2-power.c~arch-arm-removed-duplicate-includes
-+++ a/arch/arm/mach-ixp4xx/nslu2-power.c
-@@ -20,7 +20,6 @@
- #include <linux/module.h>
- #include <linux/irq.h>
- #include <linux/interrupt.h>
--#include <linux/reboot.h>
- 
- #include <asm/mach-types.h>
- 
-diff -puN arch/arm/mach-omap1/board-nokia770.c~arch-arm-removed-duplicate-includes arch/arm/mach-omap1/board-nokia770.c
---- a/arch/arm/mach-omap1/board-nokia770.c~arch-arm-removed-duplicate-includes
-+++ a/arch/arm/mach-omap1/board-nokia770.c
-@@ -32,7 +32,6 @@
- #include <asm/arch/common.h>
- #include <asm/arch/dsp_common.h>
- #include <asm/arch/aic23.h>
--#include <asm/arch/gpio.h>
- #include <asm/arch/omapfb.h>
- #include <asm/arch/lcd_mipid.h>
- 
-diff -puN arch/arm/mach-omap1/board-osk.c~arch-arm-removed-duplicate-includes arch/arm/mach-omap1/board-osk.c
---- a/arch/arm/mach-omap1/board-osk.c~arch-arm-removed-duplicate-includes
-+++ a/arch/arm/mach-omap1/board-osk.c
-@@ -31,7 +31,6 @@
- #include <linux/platform_device.h>
- #include <linux/interrupt.h>
- #include <linux/irq.h>
--#include <linux/interrupt.h>
- #include <linux/i2c.h>
- 
- #include <linux/mtd/mtd.h>
-diff -puN arch/arm/mach-omap1/board-palmtt.c~arch-arm-removed-duplicate-includes arch/arm/mach-omap1/board-palmtt.c
---- a/arch/arm/mach-omap1/board-palmtt.c~arch-arm-removed-duplicate-includes
-+++ a/arch/arm/mach-omap1/board-palmtt.c
-@@ -42,7 +42,6 @@
- #include <asm/arch/common.h>
- #include <asm/arch/omap-alsa.h>
- 
--#include <linux/input.h>
- #include <linux/spi/spi.h>
- #include <linux/spi/ads7846.h>
- 
-diff -puN arch/arm/mach-omap1/board-palmz71.c~arch-arm-removed-duplicate-includes arch/arm/mach-omap1/board-palmz71.c
---- a/arch/arm/mach-omap1/board-palmz71.c~arch-arm-removed-duplicate-includes
-+++ a/arch/arm/mach-omap1/board-palmz71.c
-@@ -44,7 +44,6 @@
- #include <asm/arch/common.h>
- #include <asm/arch/omap-alsa.h>
- 
--#include <linux/input.h>
- #include <linux/spi/spi.h>
- #include <linux/spi/ads7846.h>
- 
-diff -puN arch/arm/mach-omap2/board-apollon.c~arch-arm-removed-duplicate-includes arch/arm/mach-omap2/board-apollon.c
---- a/arch/arm/mach-omap2/board-apollon.c~arch-arm-removed-duplicate-includes
-+++ a/arch/arm/mach-omap2/board-apollon.c
-@@ -26,7 +26,6 @@
- #include <linux/interrupt.h>
- #include <linux/delay.h>
- #include <linux/leds.h>
--#include <linux/irq.h>
- 
- #include <asm/hardware.h>
- #include <asm/mach-types.h>
+ struct sysfs_open_dirent {
+ 	atomic_t		refcnt;
 _
 
-Patches currently in -mm which might be from woodzy@gmail.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-git-arm.patch
-arch-powerpc-remove-duplicate-includes.patch
-arch-ppc-remove-duplicate-includes.patch
-git-mips.patch
-arch-parisc-remove-duplicate-includes.patch
-git-x86.patch
-arch-xtensa-remove-duplicate-includes.patch
-arch-alpha-removed-duplicate-includes.patch
-arch-um-remove-duplicate-includes.patch
+net-sunrpc-remove-spin_lock_unlocked.patch
+net-ibm_newemac-remove-spin_lock_unlocked.patch
+git-watchdog.patch
+git-wireless.patch
+drm-i915-fix-pointer-strip.patch
+dzh-remove-useless-unused-module-junk.patch
+dz-always-check-if-it-is-safe-to-console_putchar.patch
+dz-dont-panic-when-request_irq-fails.patch
+dz-add-and-reorder-inclusions-remove-unneeded-ones.patch
+dz-update-kconfig-description.patch
+dz-rename-the-serial-console-structure.patch
+dz-fix-locking-issues.patch
+dz-handle-special-conditions-on-reception-correctly.patch
+maintainers-add-self-for-the-dz-serial-driver.patch
+char-rocket-switch-long-delay-to-sleep.patch
+char-rocket-printk-cleanup.patch
+char-rocket-remove-useless-macros.patch
+char-char-serial-remove-serial_type_normal-redefines.patch
+char-mxser_new-ioaddresses-are-ulong.patch
+char-stallion-fix-compiler-warnings.patch
+char-riscom8-change-rc_init_drivers-prototype.patch
+char-esp-remove-hangup-and-wakeup-bottomhalves.patch
+char-istallion-remove-hangup-bottomhalf.patch
+char-specialix-remove-bottomhalves.patch
+char-stallion-remove-bottomhalf.patch
+char-serial167-remove-bottomhalf.patch
+char-riscom8-remove-wakeup-anf-hangup-bottomhalves.patch
+moxa-first-pass-at-termios-reporting.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
