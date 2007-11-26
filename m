@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fb_ddc-fix-ddc-lines-quirk.patch added to -mm tree
-Date: Mon, 26 Nov 2007 14:30:23 -0800
-Message-ID: <200711262230.lAQMUP1W026401@imap1.linux-foundation.org>
+Subject: + ia64-signal-remove-redundant-code-in-setup_sigcontext.patch added to -mm tree
+Date: Mon, 26 Nov 2007 14:31:33 -0800
+Message-ID: <200711262231.lAQMVXXJ026413@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55550 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55263 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755753AbXKZWbW (ORCPT
+	by vger.kernel.org with ESMTP id S1755863AbXKZWbj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 17:31:22 -0500
+	Mon, 26 Nov 2007 17:31:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khali@linux-fr.org, adaplas@pol.net, benh@kernel.crashing.org, mb@bu3sch.de, rleigh@whinlatter.ukfsn.org
+Cc: shiwh@cn.fujitsu.com, tony.luck@intel.com
 
 
 The patch titled
-     fb_ddc: fix DDC lines quirk
+     IA64 signal: remove redundant code in setup_sigcontext()
 has been added to the -mm tree.  Its filename is
-     fb_ddc-fix-ddc-lines-quirk.patch
+     ia64-signal-remove-redundant-code-in-setup_sigcontext.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,95 +26,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fb_ddc: fix DDC lines quirk
-From: Jean Delvare <khali@linux-fr.org>
+Subject: IA64 signal: remove redundant code in setup_sigcontext()
+From: Shi Weihua <shiwh@cn.fujitsu.com>
 
-The code in fb_ddc_read() is said to be based on the implementation of the
-radeon driver:
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=fc5891c8a3ba284f13994d7bc1f1bfa8283982de
+This patch removes some redundant code in the function setup_sigcontext().
 
-However, comparing the old radeon driver code with the new fb_ddc code
-reveals some differences.  Most notably, the I2C bus lines are held at the
-end of the function, while the original code was releasing them (as the
-comment above correctly says.)
+The registers ar.ccv,b7,r14,ar.csd,ar.ssd,r2-r3 and r16-r31 are not
+restored in restore_sigcontext() when (flags & IA64_SC_FLAG_IN_SYSCALL) is
+true.  So we don't need to zero those variables in setup_sigcontext().
 
-There are a few other differences, which appear to be responsible for read
-failures on my system.  While tracing low-level I2C code in i2c-algo-bit, I
-noticed that the initial attempt to read the EDID always failed.  It takes
-one retry for the read to succeed.  As we are about to remove this
-automatic retry property from i2c-algo-bit, reading the EDID would really
-fail.
-
-As a summary, the I2C lines quirk which is supposedly needed to read EDID
-on some older monitors is currently breaking the (first) read on all other
-monitors (and might not even work with older ones - did anyone try since
-October 2006?)
-
-After applying the patch below, which makes the code in fb_ddc_read()
-really similar to what the radeon driver used to have, the first EDID read
-succeeds again.
-
-On top of that, as it appears that this code has been broken for one year
-now and nobody seems to have complained, I'm curious if it makes sense to
-keep this quirk in place.  It makes the code more complex and slower just
-for the sake of monitors which I guess nobody uses anymore.  Can't we just
-get rid of it?
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Tested-by: Roger Leigh <rleigh@whinlatter.ukfsn.org>
-Tested-by: Michael Buesch <mb@bu3sch.de>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Shi Weihua <shiwh@cn.fujitsu.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fb_ddc.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/ia64/kernel/signal.c |   10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
 
-diff -puN drivers/video/fb_ddc.c~fb_ddc-fix-ddc-lines-quirk drivers/video/fb_ddc.c
---- a/drivers/video/fb_ddc.c~fb_ddc-fix-ddc-lines-quirk
-+++ a/drivers/video/fb_ddc.c
-@@ -56,13 +56,12 @@ unsigned char *fb_ddc_read(struct i2c_ad
- 	int i, j;
+diff -puN arch/ia64/kernel/signal.c~ia64-signal-remove-redundant-code-in-setup_sigcontext arch/ia64/kernel/signal.c
+--- a/arch/ia64/kernel/signal.c~ia64-signal-remove-redundant-code-in-setup_sigcontext
++++ a/arch/ia64/kernel/signal.c
+@@ -280,15 +280,7 @@ setup_sigcontext (struct sigcontext __us
+ 	err |= __copy_to_user(&sc->sc_gr[15], &scr->pt.r15, 8);		/* r15 */
+ 	err |= __put_user(scr->pt.cr_iip + ia64_psr(&scr->pt)->ri, &sc->sc_ip);
  
- 	algo_data->setscl(algo_data->data, 1);
--	algo_data->setscl(algo_data->data, 0);
- 
- 	for (i = 0; i < 3; i++) {
- 		/* For some old monitors we need the
- 		 * following process to initialize/stop DDC
- 		 */
--		algo_data->setsda(algo_data->data, 0);
-+		algo_data->setsda(algo_data->data, 1);
- 		msleep(13);
- 
- 		algo_data->setscl(algo_data->data, 1);
-@@ -97,14 +96,15 @@ unsigned char *fb_ddc_read(struct i2c_ad
- 		algo_data->setsda(algo_data->data, 1);
- 		msleep(15);
- 		algo_data->setscl(algo_data->data, 0);
-+		algo_data->setsda(algo_data->data, 0);
- 		if (edid)
- 			break;
- 	}
- 	/* Release the DDC lines when done or the Apple Cinema HD display
- 	 * will switch off
- 	 */
--	algo_data->setsda(algo_data->data, 0);
--	algo_data->setscl(algo_data->data, 0);
-+	algo_data->setsda(algo_data->data, 1);
-+	algo_data->setscl(algo_data->data, 1);
- 
- 	return edid;
- }
+-	if (flags & IA64_SC_FLAG_IN_SYSCALL) {
+-		/* Clear scratch registers if the signal interrupted a system call. */
+-		err |= __put_user(0, &sc->sc_ar_ccv);				/* ar.ccv */
+-		err |= __put_user(0, &sc->sc_br[7]);				/* b7 */
+-		err |= __put_user(0, &sc->sc_gr[14]);				/* r14 */
+-		err |= __clear_user(&sc->sc_ar25, 2*8);			/* ar.csd & ar.ssd */
+-		err |= __clear_user(&sc->sc_gr[2], 2*8);			/* r2-r3 */
+-		err |= __clear_user(&sc->sc_gr[16], 16*8);			/* r16-r31 */
+-	} else {
++	if (!(flags & IA64_SC_FLAG_IN_SYSCALL)) {
+ 		/* Copy scratch regs to sigcontext if the signal didn't interrupt a syscall. */
+ 		err |= __put_user(scr->pt.ar_ccv, &sc->sc_ar_ccv);		/* ar.ccv */
+ 		err |= __put_user(scr->pt.b7, &sc->sc_br[7]);			/* b7 */
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from shiwh@cn.fujitsu.com are
 
-fb_ddc-fix-ddc-lines-quirk.patch
-git-acpi.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-export-acpi_check_resource_conflict.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-git-hwmon.patch
-rtc-pcf8583-dont-abuse-i2c_m_nostart.patch
+ia64-signal-remove-redundant-code-in-setup_sigcontext.patch
