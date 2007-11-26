@@ -1,213 +1,176 @@
 From: akpm@linux-foundation.org
-Subject: - git-x86-inlining-borkage.patch removed from -mm tree
-Date: Mon, 26 Nov 2007 13:49:58 -0800
-Message-ID: <200711262149.lAQLnwx5024808@imap1.linux-foundation.org>
+Subject: - drivers-net-chelsio-if-0-unused-functions.patch removed from -mm tree
+Date: Mon, 26 Nov 2007 13:49:00 -0800
+Message-ID: <200711262149.lAQLn0u8024649@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51777 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36890 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756652AbXKZV6x (ORCPT
+	by vger.kernel.org with ESMTP id S1755369AbXKZV6z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 16:58:53 -0500
+	Mon, 26 Nov 2007 16:58:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: bunk@kernel.org, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-x86-inlining-borkage
+     drivers/net/chelsio/: #if 0 unused functions
 has been removed from the -mm tree.  Its filename was
-     git-x86-inlining-borkage.patch
+     drivers-net-chelsio-if-0-unused-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-x86-inlining-borkage
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/net/chelsio/: #if 0 unused functions
+From: Adrian Bunk <bunk@kernel.org>
 
-arch/x86/kernel/kprobes_64.c: In function 'set_current_kprobe':
-arch/x86/kernel/kprobes_64.c:152: sorry, unimplemented: inlining failed in call to 'is_IF_modifier': recursive inlining
-arch/x86/kernel/kprobes_64.c:166: sorry, unimplemented: called from here
+This patch #if 0's the following unused functions:
+- espi.c:t1_espi_set_misc_ctrl()
+- sge.c:t1_sched_set_max_avail_bytes()
+- sge.c:t1_sched_set_drain_bits_per_us()
 
-wtf?
-
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/kprobes_64.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/chelsio/espi.c |    2 ++
+ drivers/net/chelsio/espi.h |    1 -
+ drivers/net/chelsio/sge.c  |    4 ++++
+ drivers/net/chelsio/sge.h  |    2 --
+ 4 files changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/kernel/kprobes_64.c~git-x86-inlining-borkage arch/x86/kernel/kprobes_64.c
---- a/arch/x86/kernel/kprobes_64.c~git-x86-inlining-borkage
-+++ a/arch/x86/kernel/kprobes_64.c
-@@ -58,7 +58,7 @@ const int kretprobe_blacklist_size = ARR
- /*
-  * returns non-zero if opcode modifies the interrupt flag.
-  */
--static __always_inline int is_IF_modifier(kprobe_opcode_t *insn)
-+static int is_IF_modifier(kprobe_opcode_t *insn)
+diff -puN drivers/net/chelsio/espi.c~drivers-net-chelsio-if-0-unused-functions drivers/net/chelsio/espi.c
+--- a/drivers/net/chelsio/espi.c~drivers-net-chelsio-if-0-unused-functions
++++ a/drivers/net/chelsio/espi.c
+@@ -297,6 +297,7 @@ struct peespi *t1_espi_create(adapter_t 
+ 	return espi;
+ }
+ 
++#if 0
+ void t1_espi_set_misc_ctrl(adapter_t *adapter, u32 val)
  {
- 	switch (*insn) {
- 	case 0xfa:		/* cli */
+ 	struct peespi *espi = adapter->espi;
+@@ -309,6 +310,7 @@ void t1_espi_set_misc_ctrl(adapter_t *ad
+ 	writel(espi->misc_ctrl, adapter->regs + A_ESPI_MISC_CONTROL);
+ 	spin_unlock(&espi->lock);
+ }
++#endif  /*  0  */
+ 
+ u32 t1_espi_get_mon(adapter_t *adapter, u32 addr, u8 wait)
+ {
+diff -puN drivers/net/chelsio/espi.h~drivers-net-chelsio-if-0-unused-functions drivers/net/chelsio/espi.h
+--- a/drivers/net/chelsio/espi.h~drivers-net-chelsio-if-0-unused-functions
++++ a/drivers/net/chelsio/espi.h
+@@ -62,7 +62,6 @@ void t1_espi_intr_disable(struct peespi 
+ int t1_espi_intr_handler(struct peespi *);
+ const struct espi_intr_counts *t1_espi_get_intr_counts(struct peespi *espi);
+ 
+-void t1_espi_set_misc_ctrl(adapter_t *adapter, u32 val);
+ u32 t1_espi_get_mon(adapter_t *adapter, u32 addr, u8 wait);
+ int t1_espi_get_mon_t204(adapter_t *, u32 *, u8);
+ 
+diff -puN drivers/net/chelsio/sge.c~drivers-net-chelsio-if-0-unused-functions drivers/net/chelsio/sge.c
+--- a/drivers/net/chelsio/sge.c~drivers-net-chelsio-if-0-unused-functions
++++ a/drivers/net/chelsio/sge.c
+@@ -330,6 +330,8 @@ unsigned int t1_sched_update_parms(struc
+ 	return max_avail_segs * (p->mtu - 40);
+ }
+ 
++#if 0
++
+ /*
+  * t1_sched_max_avail_bytes() tells the scheduler the maximum amount of
+  * data that can be pushed per port.
+@@ -357,6 +359,8 @@ void t1_sched_set_drain_bits_per_us(stru
+ 	t1_sched_update_parms(sge, port, 0, 0);
+ }
+ 
++#endif  /*  0  */
++
+ 
+ /*
+  * get_clock() implements a ns clock (see ktime_get)
+diff -puN drivers/net/chelsio/sge.h~drivers-net-chelsio-if-0-unused-functions drivers/net/chelsio/sge.h
+--- a/drivers/net/chelsio/sge.h~drivers-net-chelsio-if-0-unused-functions
++++ a/drivers/net/chelsio/sge.h
+@@ -89,8 +89,6 @@ void t1_sge_intr_disable(struct sge *);
+ void t1_sge_intr_clear(struct sge *);
+ const struct sge_intr_counts *t1_sge_get_intr_counts(const struct sge *sge);
+ void t1_sge_get_port_stats(const struct sge *sge, int port, struct sge_port_stats *);
+-void t1_sched_set_max_avail_bytes(struct sge *, unsigned int);
+-void t1_sched_set_drain_bits_per_us(struct sge *, unsigned int, unsigned int);
+ unsigned int t1_sched_update_parms(struct sge *, unsigned int, unsigned int,
+ 			   unsigned int);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-origin.patch
-file-capabilities-allow-sigcont-within-session-v2.patch
-pnp-increase-the-maximum-number-of-resources-fix.patch
-fix-linux-kdh-usage-in-userspace-checkpatch-fixes.patch
-revert-keyspan-init-termios-properly.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-revert-gregkh-driver-drm-convert-from-class_device-to-device-in-drivers-char-drm.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-git-drm-oops-fix.patch
-intel-agp-enable-i915-recognition.patch
+m68k-export-atari_keyb_init.patch
+git-acpi.patch
+git-avr32.patch
+git-cifs.patch
 git-dvb.patch
-ia64-slim-down-__clear_bit_unlock.patch
-git-infiniband.patch
-git-kvm.patch
+remove-saa7134-oss.patch
+git-gfs2-nmw.patch
 git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-git-mips-fixup.patch
-git-mmc.patch
 git-mtd.patch
+make-sunrpc-xprtsockcxs_setup_udptcp-static.patch
 git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
 git-battery.patch
-bluetooth-uninlining.patch
-git-nfsd.patch
-drivers-pci-quirksc-coding-style-cleanup.patch
-more-sanity-checks-for-dmar.patch
-git-s390.patch
-ips-trim-trailing-whitespace.patch
-scsi-gdth-kill-unneeded-irq-argument.patch
-bidi-support-scsi_data_buffer-broke-qla1280.patch
-bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
-libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-git-watchdog.patch
-git-wireless.patch
-git-ipwireless_cs.patch
+drivers-bluetooth-bpa10xc-fix-memleak.patch
+drivers-bluetooth-btsdioc-fix-double-free.patch
+git-nfs-make-nfs_wb_page_priority-static.patch
+fs-nfs-dirc-should-include-internalh.patch
+remove-additional-pci_scan_child_bus-prototype.patch
+git-scsi-misc.patch
+scsi-advansysc-make-3-functions-static.patch
+scsi-qla2xxx-possible-cleanups.patch
 git-x86.patch
-git-x86-fixup.patch
-git-cryptodev.patch
 git-xtensa.patch
-ia64-increase-datapatch-offset.patch
-ia64-dont-assume-that-unwcheckpy-is-executable.patch
-ia64-export-copy_page-to-modules.patch
-isdn-validate-length-of-isdn_net_ioctl_cfgeaz.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+xtensa-kernel-setupc-remove-dead-code.patch
+mm-page-writebackc-make-a-function-static.patch
+make-__vmalloc_area_node-static.patch
+blackfin-remove-dump_thread.patch
+kernel-power-diskc-make-code-static.patch
+make-kernel_shutdown_prepare-static.patch
+nubus-kill-drivers-nubus-nubus_symsc.patch
+m68k-kill-arch-m68k-mac-mac_ksymsc.patch
+m68k-kill-arch-m68k-hp300-ksymsc.patch
+m68k-kill-arch-m68k-amiga-amiga_ksymsc.patch
+m68k-kill-arch-m68k-atari-atari_ksymsc.patch
+m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch
+kill-udffs_dateversion.patch
+make-ipc-utilcsysvipc_find_ipc-static.patch
+cleanup-after-apus-removal.patch
+remove-mm_ptovvtop.patch
+remove-__attribute_used__.patch
 remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-sync_sb_inodes-propagate-errors.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-64-bit-i_version-afs-fixes.patch
-ext4-add-block-bitmap-validation-fix.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
+proper-show_interrupts-prototype.patch
+scheduled-oss-driver-removal.patch
+linux-inith-simplify-__meminitexit-dependencies.patch
+proper-prototype-for-signals_init.patch
+kernel-ptracec-should-include-linux-syscallsh.patch
+make-srcu_readers_active-static.patch
+kernel-notifierc-should-include-linux-rebooth.patch
+proper-prototype-for-get_filesystem_list.patch
+fs-utimesc-should-include-linux-syscallsh.patch
+fs-signalfdc-should-include-linux-syscallsh.patch
+fs-eventfdc-should-include-linux-syscallsh.patch
+proper-prototype-for-vty_init.patch
+drivers-misc-lkdtmc-cleanups.patch
+fs-ecryptfs-possible-cleanups.patch
+make-video-geode-lxfb_corecgeode_modedb-static.patch
+video-hpfbc-section-fix.patch
+ext4-superc-fix-ifdefs.patch
+make-jbd-journalc__journal_abort_hard-static.patch
+move-edactxt-two-levels-up.patch
+remove-documentation-smptxt.patch
+kernel-cgroupc-remove-dead-code.patch
+kernel-cgroupc-make-2-functions-static.patch
 memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
 memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+fix-m32r-__xchg.patch
 reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-w1-build-fix.patch
