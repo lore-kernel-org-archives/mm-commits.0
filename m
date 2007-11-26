@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sysfs-fix-off-by-one-error-in-fill_read_buffer.patch added to -mm tree
-Date: Sun, 25 Nov 2007 23:46:55 -0800
-Message-ID: <200711260746.lAQ7ktL7022875@imap1.linux-foundation.org>
+Subject: + drivers-char-remove-unnecessary-pci_dev_put.patch added to -mm tree
+Date: Sun, 25 Nov 2007 23:52:28 -0800
+Message-ID: <200711260752.lAQ7qSS8023121@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46822 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35726 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752806AbXKZHrR (ORCPT
+	by vger.kernel.org with ESMTP id S1752961AbXKZHww (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 02:47:17 -0500
+	Mon, 26 Nov 2007 02:52:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: miaox@cn.fujitsu.com, htejun@gmail.com
+Cc: julia@diku.dk, airlied@linux.ie, davej@codemonkey.org.uk
 
 
 The patch titled
-     sysfs: fix off-by-one error in fill_read_buffer()
+     drivers/char: remove unnecessary pci_dev_put
 has been added to the -mm tree.  Its filename is
-     sysfs-fix-off-by-one-error-in-fill_read_buffer.patch
+     drivers-char-remove-unnecessary-pci_dev_put.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,58 +26,61 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysfs: fix off-by-one error in fill_read_buffer()
-From: Miao Xie <miaox@cn.fujitsu.com>
+Subject: drivers/char: remove unnecessary pci_dev_put
+From: Julia Lawall <julia@diku.dk>
 
-I found that there is a off-by-one problem in the following code.
+pci_get_class implicitly does a pci_dev_put on its second argument, so
+pci_dev_put is only needed if there is a break out of the loop.
 
-Version:	2.6.24-rc2
-File:		fs/sysfs/file.c:118-122
-Function:	fill_read_buffer
---------------------------------------------------------------------
-	count = ops->show(kobj, attr_sd->s_attr.attr, buffer->page);
+The semantic match detecting this problem is as follows:
 
-	sysfs_put_active_two(attr_sd);
+// <smpl>
+@@
+expression dev;
+expression E;
+@@
 
-	BUG_ON(count > (ssize_t)PAGE_SIZE);
---------------------------------------------------------------------
+* pci_dev_put(dev)
+  ... when != dev = E
+(
+* pci_get_device(...,dev)
+|
+* pci_get_device_reverse(...,dev)
+|
+* pci_get_subsys(...,dev)
+|
+* pci_get_class(...,dev)
+)
+// </smpl>
 
-Because according to the specification of the sysfs and the implement of
-the show methods, the show methods return the number of bytes which would
-be generated for the given input, excluding the trailing null.So if the
-return value of the show methods equals PAGE_SIZE - 1, the buffer is full
-in fact.  And if the return value equals PAGE_SIZE, the resulting string
-was already truncated,or buffer overflow occurred.
-
-This patch fixes an off-by-one error in fill_read_buffer.
-
-Signed-off-by: Miao Xie <miaox@cn.fujitsu.com>
-Acked-by: Tejun Heo <htejun@gmail.com>
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Dave Airlie <airlied@linux.ie>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysfs/file.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/char/agp/amd-k7-agp.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN fs/sysfs/file.c~sysfs-fix-off-by-one-error-in-fill_read_buffer fs/sysfs/file.c
---- a/fs/sysfs/file.c~sysfs-fix-off-by-one-error-in-fill_read_buffer
-+++ a/fs/sysfs/file.c
-@@ -90,7 +90,11 @@ static int fill_read_buffer(struct dentr
+diff -puN drivers/char/agp/amd-k7-agp.c~drivers-char-remove-unnecessary-pci_dev_put drivers/char/agp/amd-k7-agp.c
+--- a/drivers/char/agp/amd-k7-agp.c~drivers-char-remove-unnecessary-pci_dev_put
++++ a/drivers/char/agp/amd-k7-agp.c
+@@ -436,10 +436,6 @@ static int __devinit agp_amdk7_probe(str
+ 				return -ENODEV;
+ 			}
+ 			cap_ptr = pci_find_capability(gfxcard, PCI_CAP_ID_AGP);
+-			if (!cap_ptr) {
+-				pci_dev_put(gfxcard);
+-				continue;
+-			}
+ 		}
  
- 	sysfs_put_active_two(attr_sd);
- 
--	BUG_ON(count > (ssize_t)PAGE_SIZE);
-+	/*
-+	 * The code works fine with PAGE_SIZE return but it's likely to
-+	 * indicate truncated result or overflow in normal use cases.
-+	 */
-+	BUG_ON(count >= (ssize_t)PAGE_SIZE);
- 	if (count >= 0) {
- 		buffer->needs_read_fill = 0;
- 		buffer->count = count;
+ 		/* With so many variants of NVidia cards, it's simpler just
 _
 
-Patches currently in -mm which might be from miaox@cn.fujitsu.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
-sysfs-fix-off-by-one-error-in-fill_read_buffer.patch
-time-fix-sysfs_show_availablecurrent_clocksources-buffer-overflow-problem.patch
+git-alsa.patch
+drivers-char-remove-unnecessary-pci_dev_put.patch
+arch-ppc-remove-an-unnecessary-pci_dev_put.patch
+git-sparc64.patch
