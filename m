@@ -1,310 +1,575 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers.patch removed from -mm tree
-Date: Mon, 26 Nov 2007 13:49:21 -0800
-Message-ID: <200711262149.lAQLnLq4024752@imap1.linux-foundation.org>
+Subject: - usb-fix-locks-and-urb-status-in-adutux-updated.patch removed from -mm tree
+Date: Mon, 26 Nov 2007 13:49:34 -0800
+Message-ID: <200711262149.lAQLnYBl024772@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50303 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42194 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754192AbXKZV71 (ORCPT
+	by vger.kernel.org with ESMTP id S1755277AbXKZV7M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 16:59:27 -0500
+	Mon, 26 Nov 2007 16:59:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeff@garzik.org, James.Bottomley@steeleye.com, jgarzik@redhat.com, mm-commits@vger.kernel.org
+To: zaitcev@redhat.com, vitalivanov@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SCSI: fix bugs and canonicalize NCR5380_intr drivers
+     USB: fix locks and urb->status in adutux (updated)
 has been removed from the -mm tree.  Its filename was
-     scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers.patch
+     usb-fix-locks-and-urb-status-in-adutux-updated.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SCSI: fix bugs and canonicalize NCR5380_intr drivers
-From: Jeff Garzik <jeff@garzik.org>
+Subject: USB: fix locks and urb->status in adutux (updated)
+From: Pete Zaitcev <zaitcev@redhat.com>
 
-* Bug fix:  Make sure request_irq() and free_irq() are called
-  with the same dev_id pointer argument.
+Two main issues fixed here are:
+ - An improper use of in-struct lock to protect an open count
+ - Use of urb status for -EINPROGRESS
 
-* Bug fix:  always pass 'irq' and 'dev_id' (aka 'dummy')
-  arguments to NCE5380_intr() when calling it manully.  For some drivers
-  this doesn't matter, depending on whose copy of NCR5380_intr() is
-  being used.
+Also, along the way:
+ - Change usb_unlink_urb to usb_kill_urb. Apparently there's no need
+   to use usb_unlink_urb whatsoever in this driver, and the old use of
+   usb_kill_urb was outright racy (it unlinked and immediately freed).
+ - Fix indentation in adu_write. Looks like it was damaged by a script.
+ - Vitaly wants -EBUSY on multiply opens.
+ - bInterval was taken from a wrong endpoint.
 
-* Bug fix:  always pass Scsi_Host* to NCR5380_intr().  Most
-  get this right, but some pass NULL or some other random/ignored
-  value.  For some drivers this doesn't matter, depending on whose copy
-  of NCR5380_intr() is being used.
-
-* Wrap long request_irq() lines
-
-[akpm@linux-foundation.org: coding style fixes]
-Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Signed-off-by: Pete Zaitcev <zaitcev@redhat.com>
+Signed-off-by: Vitaliy Ivanov <vitalivanov@gmail.com>
+Tested-by: Vitaliy Ivanov <vitalivanov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/atari_scsi.c    |   10 +++++-----
- drivers/scsi/dtc.c           |    5 +++--
- drivers/scsi/g_NCR5380.c     |    5 +++--
- drivers/scsi/mac_scsi.c      |    4 ++--
- drivers/scsi/pas16.c         |    5 +++--
- drivers/scsi/sun3_scsi.c     |    4 ++--
- drivers/scsi/sun3_scsi_vme.c |    4 ++--
- drivers/scsi/t128.c          |    5 +++--
- 8 files changed, 23 insertions(+), 19 deletions(-)
+ drivers/usb/misc/adutux.c |  262 +++++++++++++++++++-----------------
+ 1 file changed, 139 insertions(+), 123 deletions(-)
 
-diff -puN drivers/scsi/atari_scsi.c~scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers drivers/scsi/atari_scsi.c
---- a/drivers/scsi/atari_scsi.c~scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers
-+++ a/drivers/scsi/atari_scsi.c
-@@ -393,7 +393,7 @@ static irqreturn_t scsi_tt_intr(int irq,
+diff -puN drivers/usb/misc/adutux.c~usb-fix-locks-and-urb-status-in-adutux-updated drivers/usb/misc/adutux.c
+--- a/drivers/usb/misc/adutux.c~usb-fix-locks-and-urb-status-in-adutux-updated
++++ a/drivers/usb/misc/adutux.c
+@@ -79,12 +79,22 @@ MODULE_DEVICE_TABLE(usb, device_table);
  
- #endif /* REAL_DMA */
+ #define COMMAND_TIMEOUT	(2*HZ)	/* 60 second timeout for a command */
  
--	NCR5380_intr(0, 0);
-+	NCR5380_intr(irq, dummy);
++/*
++ * The locking scheme is a vanilla 3-lock:
++ *   adu_device.buflock: A spinlock, covers what IRQs touch.
++ *   adutux_mutex:       A Static lock to cover open_count. It would also cover
++ *                       any globals, but we don't have them in 2.6.
++ *   adu_device.mtx:     A mutex to hold across sleepers like copy_from_user.
++ *                       It covers all of adu_device, except the open_count
++ *                       and what .buflock covers.
++ */
++
+ /* Structure to hold all of our device specific stuff */
+ struct adu_device {
+-	struct mutex		mtx; /* locks this structure */
++	struct mutex		mtx;
+ 	struct usb_device*	udev; /* save off the usb device pointer */
+ 	struct usb_interface*	interface;
+-	unsigned char		minor; /* the starting minor number for this device */
++	unsigned int		minor; /* the starting minor number for this device */
+ 	char			serial_number[8];
  
- #if 0
- 	/* To be sure the int is not masked */
-@@ -458,7 +458,7 @@ static irqreturn_t scsi_falcon_intr(int 
+ 	int			open_count; /* number of times this port has been opened */
+@@ -107,8 +117,11 @@ struct adu_device {
+ 	char*			interrupt_out_buffer;
+ 	struct usb_endpoint_descriptor* interrupt_out_endpoint;
+ 	struct urb*		interrupt_out_urb;
++	int			out_urb_finished;
+ };
  
- #endif /* REAL_DMA */
++static DEFINE_MUTEX(adutux_mutex);
++
+ static struct usb_driver adu_driver;
  
--	NCR5380_intr(0, 0);
-+	NCR5380_intr(irq, dummy);
- 	return IRQ_HANDLED;
+ static void adu_debug_data(int level, const char *function, int size,
+@@ -132,27 +145,31 @@ static void adu_debug_data(int level, co
+  */
+ static void adu_abort_transfers(struct adu_device *dev)
+ {
+-	dbg(2," %s : enter", __FUNCTION__);
++	unsigned long flags;
+ 
+-	if (dev == NULL) {
+-		dbg(1," %s : dev is null", __FUNCTION__);
+-		goto exit;
+-	}
++	dbg(2," %s : enter", __FUNCTION__);
+ 
+ 	if (dev->udev == NULL) {
+ 		dbg(1," %s : udev is null", __FUNCTION__);
+ 		goto exit;
+ 	}
+ 
+-	dbg(2," %s : udev state %d", __FUNCTION__, dev->udev->state);
+-	if (dev->udev->state == USB_STATE_NOTATTACHED) {
+-		dbg(1," %s : udev is not attached", __FUNCTION__);
+-		goto exit;
+-	}
+-
+ 	/* shutdown transfer */
+-	usb_unlink_urb(dev->interrupt_in_urb);
+-	usb_unlink_urb(dev->interrupt_out_urb);
++
++	/* XXX Anchor these instead */
++	spin_lock_irqsave(&dev->buflock, flags);
++	if (!dev->read_urb_finished) {
++		spin_unlock_irqrestore(&dev->buflock, flags);
++		usb_kill_urb(dev->interrupt_in_urb);
++	} else
++		spin_unlock_irqrestore(&dev->buflock, flags);
++
++	spin_lock_irqsave(&dev->buflock, flags);
++	if (!dev->out_urb_finished) {
++		spin_unlock_irqrestore(&dev->buflock, flags);
++		usb_kill_urb(dev->interrupt_out_urb);
++	} else
++		spin_unlock_irqrestore(&dev->buflock, flags);
+ 
+ exit:
+ 	dbg(2," %s : leave", __FUNCTION__);
+@@ -162,8 +179,6 @@ static void adu_delete(struct adu_device
+ {
+ 	dbg(2, "%s enter", __FUNCTION__);
+ 
+-	adu_abort_transfers(dev);
+-
+ 	/* free data structures */
+ 	usb_free_urb(dev->interrupt_in_urb);
+ 	usb_free_urb(dev->interrupt_out_urb);
+@@ -239,7 +254,10 @@ static void adu_interrupt_out_callback(s
+ 		goto exit;
+ 	}
+ 
+-	wake_up_interruptible(&dev->write_wait);
++	spin_lock(&dev->buflock);
++	dev->out_urb_finished = 1;
++	wake_up(&dev->write_wait);
++	spin_unlock(&dev->buflock);
+ exit:
+ 
+ 	adu_debug_data(5, __FUNCTION__, urb->actual_length,
+@@ -252,12 +270,17 @@ static int adu_open(struct inode *inode,
+ 	struct adu_device *dev = NULL;
+ 	struct usb_interface *interface;
+ 	int subminor;
+-	int retval = 0;
++	int retval;
+ 
+ 	dbg(2,"%s : enter", __FUNCTION__);
+ 
+ 	subminor = iminor(inode);
+ 
++	if ((retval = mutex_lock_interruptible(&adutux_mutex))) {
++		dbg(2, "%s : mutex lock failed", __FUNCTION__);
++		goto exit_no_lock;
++	}
++
+ 	interface = usb_find_interface(&adu_driver, subminor);
+ 	if (!interface) {
+ 		err("%s - error, can't find device for minor %d",
+@@ -267,54 +290,54 @@ static int adu_open(struct inode *inode,
+ 	}
+ 
+ 	dev = usb_get_intfdata(interface);
+-	if (!dev) {
++	if (!dev || !dev->udev) {
+ 		retval = -ENODEV;
+ 		goto exit_no_device;
+ 	}
+ 
+-	/* lock this device */
+-	if ((retval = mutex_lock_interruptible(&dev->mtx))) {
+-		dbg(2, "%s : mutex lock failed", __FUNCTION__);
++	/* check that nobody else is using the device */
++	if (dev->open_count) {
++		retval = -EBUSY;
+ 		goto exit_no_device;
+ 	}
+ 
+-	/* increment our usage count for the device */
+ 	++dev->open_count;
+ 	dbg(2,"%s : open count %d", __FUNCTION__, dev->open_count);
+ 
+ 	/* save device in the file's private structure */
+ 	file->private_data = dev;
+ 
+-	if (dev->open_count == 1) {
+-		/* initialize in direction */
+-		dev->read_buffer_length = 0;
++	/* initialize in direction */
++	dev->read_buffer_length = 0;
+ 
+-		/* fixup first read by having urb waiting for it */
+-		usb_fill_int_urb(dev->interrupt_in_urb,dev->udev,
+-				 usb_rcvintpipe(dev->udev,
+-				 		dev->interrupt_in_endpoint->bEndpointAddress),
+-				 dev->interrupt_in_buffer,
+-				 le16_to_cpu(dev->interrupt_in_endpoint->wMaxPacketSize),
+-				 adu_interrupt_in_callback, dev,
+-				 dev->interrupt_in_endpoint->bInterval);
+-		/* dev->interrupt_in_urb->transfer_flags |= URB_ASYNC_UNLINK; */
+-		dev->read_urb_finished = 0;
+-		retval = usb_submit_urb(dev->interrupt_in_urb, GFP_KERNEL);
+-		if (retval)
+-			--dev->open_count;
+-	}
+-	mutex_unlock(&dev->mtx);
++	/* fixup first read by having urb waiting for it */
++	usb_fill_int_urb(dev->interrupt_in_urb,dev->udev,
++			 usb_rcvintpipe(dev->udev,
++					dev->interrupt_in_endpoint->bEndpointAddress),
++			 dev->interrupt_in_buffer,
++			 le16_to_cpu(dev->interrupt_in_endpoint->wMaxPacketSize),
++			 adu_interrupt_in_callback, dev,
++			 dev->interrupt_in_endpoint->bInterval);
++	dev->read_urb_finished = 0;
++	if (usb_submit_urb(dev->interrupt_in_urb, GFP_KERNEL))
++		dev->read_urb_finished = 1;
++	/* we ignore failure */
++	/* end of fixup for first read */
++
++	/* initialize out direction */
++	dev->out_urb_finished = 1;
++
++	retval = 0;
+ 
+ exit_no_device:
++	mutex_unlock(&adutux_mutex);
++exit_no_lock:
+ 	dbg(2,"%s : leave, return value %d ", __FUNCTION__, retval);
+-
+ 	return retval;
  }
  
-@@ -684,7 +684,7 @@ int atari_scsi_detect(struct scsi_host_t
- 		 * interrupt after having cleared the pending flag for the DMA
- 		 * interrupt. */
- 		if (request_irq(IRQ_TT_MFP_SCSI, scsi_tt_intr, IRQ_TYPE_SLOW,
--				 "SCSI NCR5380", scsi_tt_intr)) {
-+				 "SCSI NCR5380", instance)) {
- 			printk(KERN_ERR "atari_scsi_detect: cannot allocate irq %d, aborting",IRQ_TT_MFP_SCSI);
- 			scsi_unregister(atari_scsi_host);
- 			atari_stram_free(atari_dma_buffer);
-@@ -701,7 +701,7 @@ int atari_scsi_detect(struct scsi_host_t
- 					 IRQ_TYPE_PRIO, "Hades DMA emulator",
- 					 hades_dma_emulator)) {
- 				printk(KERN_ERR "atari_scsi_detect: cannot allocate irq %d, aborting (MACH_IS_HADES)",IRQ_AUTO_2);
--				free_irq(IRQ_TT_MFP_SCSI, scsi_tt_intr);
-+				free_irq(IRQ_TT_MFP_SCSI, instance);
- 				scsi_unregister(atari_scsi_host);
- 				atari_stram_free(atari_dma_buffer);
- 				atari_dma_buffer = 0;
-@@ -761,7 +761,7 @@ int atari_scsi_detect(struct scsi_host_t
- int atari_scsi_release(struct Scsi_Host *sh)
+-static int adu_release_internal(struct adu_device *dev)
++static void adu_release_internal(struct adu_device *dev)
  {
- 	if (IS_A_TT())
--		free_irq(IRQ_TT_MFP_SCSI, scsi_tt_intr);
-+		free_irq(IRQ_TT_MFP_SCSI, sh);
- 	if (atari_dma_buffer)
- 		atari_stram_free(atari_dma_buffer);
- 	return 1;
-diff -puN drivers/scsi/dtc.c~scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers drivers/scsi/dtc.c
---- a/drivers/scsi/dtc.c~scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers
-+++ a/drivers/scsi/dtc.c
-@@ -277,7 +277,8 @@ found:
- 		/* With interrupts enabled, it will sometimes hang when doing heavy
- 		 * reads. So better not enable them until I finger it out. */
- 		if (instance->irq != SCSI_IRQ_NONE)
--			if (request_irq(instance->irq, dtc_intr, IRQF_DISABLED, "dtc", instance)) {
-+			if (request_irq(instance->irq, dtc_intr, IRQF_DISABLED,
-+					"dtc", instance)) {
- 				printk(KERN_ERR "scsi%d : IRQ%d not free, interrupts disabled\n", instance->host_no, instance->irq);
- 				instance->irq = SCSI_IRQ_NONE;
+-	int retval = 0;
+-
+ 	dbg(2," %s : enter", __FUNCTION__);
+ 
+ 	/* decrement our usage count for the device */
+@@ -326,12 +349,11 @@ static int adu_release_internal(struct a
+ 	}
+ 
+ 	dbg(2," %s : leave", __FUNCTION__);
+-	return retval;
+ }
+ 
+ static int adu_release(struct inode *inode, struct file *file)
+ {
+-	struct adu_device *dev = NULL;
++	struct adu_device *dev;
+ 	int retval = 0;
+ 
+ 	dbg(2," %s : enter", __FUNCTION__);
+@@ -343,15 +365,13 @@ static int adu_release(struct inode *ino
+ 	}
+ 
+ 	dev = file->private_data;
+-
+ 	if (dev == NULL) {
+  		dbg(1," %s : object is NULL", __FUNCTION__);
+ 		retval = -ENODEV;
+ 		goto exit;
+ 	}
+ 
+-	/* lock our device */
+-	mutex_lock(&dev->mtx); /* not interruptible */
++	mutex_lock(&adutux_mutex); /* not interruptible */
+ 
+ 	if (dev->open_count <= 0) {
+ 		dbg(1," %s : device not opened", __FUNCTION__);
+@@ -359,19 +379,15 @@ static int adu_release(struct inode *ino
+ 		goto exit;
+ 	}
+ 
++	adu_release_internal(dev);
+ 	if (dev->udev == NULL) {
+ 		/* the device was unplugged before the file was released */
+-		mutex_unlock(&dev->mtx);
+-		adu_delete(dev);
+-		dev = NULL;
+-	} else {
+-		/* do the work */
+-		retval = adu_release_internal(dev);
++		if (!dev->open_count)	/* ... and we're the last user */
++			adu_delete(dev);
+ 	}
+ 
+ exit:
+-	if (dev)
+-		mutex_unlock(&dev->mtx);
++	mutex_unlock(&adutux_mutex);
+ 	dbg(2," %s : leave, return value %d", __FUNCTION__, retval);
+ 	return retval;
+ }
+@@ -393,12 +409,12 @@ static ssize_t adu_read(struct file *fil
+ 
+ 	dev = file->private_data;
+ 	dbg(2," %s : dev=%p", __FUNCTION__, dev);
+-	/* lock this object */
++
+ 	if (mutex_lock_interruptible(&dev->mtx))
+ 		return -ERESTARTSYS;
+ 
+ 	/* verify that the device wasn't unplugged */
+-	if (dev->udev == NULL || dev->minor == 0) {
++	if (dev->udev == NULL) {
+ 		retval = -ENODEV;
+ 		err("No device or device unplugged %d", retval);
+ 		goto exit;
+@@ -452,7 +468,7 @@ static ssize_t adu_read(struct file *fil
+ 				should_submit = 1;
+ 			} else {
+ 				/* even the primary was empty - we may need to do IO */
+-				if (dev->interrupt_in_urb->status == -EINPROGRESS) {
++				if (!dev->read_urb_finished) {
+ 					/* somebody is doing IO */
+ 					spin_unlock_irqrestore(&dev->buflock, flags);
+ 					dbg(2," %s : submitted already", __FUNCTION__);
+@@ -460,6 +476,7 @@ static ssize_t adu_read(struct file *fil
+ 					/* we must initiate input */
+ 					dbg(2," %s : initiate input", __FUNCTION__);
+ 					dev->read_urb_finished = 0;
++					spin_unlock_irqrestore(&dev->buflock, flags);
+ 
+ 					usb_fill_int_urb(dev->interrupt_in_urb,dev->udev,
+ 							 usb_rcvintpipe(dev->udev,
+@@ -469,15 +486,12 @@ static ssize_t adu_read(struct file *fil
+ 							 adu_interrupt_in_callback,
+ 							 dev,
+ 							 dev->interrupt_in_endpoint->bInterval);
+-					retval = usb_submit_urb(dev->interrupt_in_urb, GFP_ATOMIC);
+-					if (!retval) {
+-						spin_unlock_irqrestore(&dev->buflock, flags);
+-						dbg(2," %s : submitted OK", __FUNCTION__);
+-					} else {
++					retval = usb_submit_urb(dev->interrupt_in_urb, GFP_KERNEL);
++					if (retval) {
++						dev->read_urb_finished = 1;
+ 						if (retval == -ENOMEM) {
+ 							retval = bytes_read ? bytes_read : -ENOMEM;
+ 						}
+-						spin_unlock_irqrestore(&dev->buflock, flags);
+ 						dbg(2," %s : submit failed", __FUNCTION__);
+ 						goto exit;
+ 					}
+@@ -486,10 +500,14 @@ static ssize_t adu_read(struct file *fil
+ 				/* we wait for I/O to complete */
+ 				set_current_state(TASK_INTERRUPTIBLE);
+ 				add_wait_queue(&dev->read_wait, &wait);
+-				if (!dev->read_urb_finished)
++				spin_lock_irqsave(&dev->buflock, flags);
++				if (!dev->read_urb_finished) {
++					spin_unlock_irqrestore(&dev->buflock, flags);
+ 					timeout = schedule_timeout(COMMAND_TIMEOUT);
+-				else
++				} else {
++					spin_unlock_irqrestore(&dev->buflock, flags);
+ 					set_current_state(TASK_RUNNING);
++				}
+ 				remove_wait_queue(&dev->read_wait, &wait);
+ 
+ 				if (timeout <= 0) {
+@@ -509,19 +527,23 @@ static ssize_t adu_read(struct file *fil
+ 
+ 	retval = bytes_read;
+ 	/* if the primary buffer is empty then use it */
+-	if (should_submit && !dev->interrupt_in_urb->status==-EINPROGRESS) {
++	spin_lock_irqsave(&dev->buflock, flags);
++	if (should_submit && dev->read_urb_finished) {
++		dev->read_urb_finished = 0;
++		spin_unlock_irqrestore(&dev->buflock, flags);
+ 		usb_fill_int_urb(dev->interrupt_in_urb,dev->udev,
+ 				 usb_rcvintpipe(dev->udev,
+ 				 		dev->interrupt_in_endpoint->bEndpointAddress),
+-						dev->interrupt_in_buffer,
+-						le16_to_cpu(dev->interrupt_in_endpoint->wMaxPacketSize),
+-						adu_interrupt_in_callback,
+-						dev,
+-						dev->interrupt_in_endpoint->bInterval);
+-		/* dev->interrupt_in_urb->transfer_flags |= URB_ASYNC_UNLINK; */
+-		dev->read_urb_finished = 0;
+-		usb_submit_urb(dev->interrupt_in_urb, GFP_KERNEL);
++				dev->interrupt_in_buffer,
++				le16_to_cpu(dev->interrupt_in_endpoint->wMaxPacketSize),
++				adu_interrupt_in_callback,
++				dev,
++				dev->interrupt_in_endpoint->bInterval);
++		if (usb_submit_urb(dev->interrupt_in_urb, GFP_KERNEL) != 0)
++			dev->read_urb_finished = 1;
+ 		/* we ignore failure */
++	} else {
++		spin_unlock_irqrestore(&dev->buflock, flags);
+ 	}
+ 
+ exit:
+@@ -535,24 +557,24 @@ exit:
+ static ssize_t adu_write(struct file *file, const __user char *buffer,
+ 			 size_t count, loff_t *ppos)
+ {
++	DECLARE_WAITQUEUE(waita, current);
+ 	struct adu_device *dev;
+ 	size_t bytes_written = 0;
+ 	size_t bytes_to_write;
+ 	size_t buffer_size;
++	unsigned long flags;
+ 	int retval;
+-	int timeout = 0;
+ 
+ 	dbg(2," %s : enter, count = %Zd", __FUNCTION__, count);
+ 
+ 	dev = file->private_data;
+ 
+-	/* lock this object */
+ 	retval = mutex_lock_interruptible(&dev->mtx);
+ 	if (retval)
+ 		goto exit_nolock;
+ 
+ 	/* verify that the device wasn't unplugged */
+-	if (dev->udev == NULL || dev->minor == 0) {
++	if (dev->udev == NULL) {
+ 		retval = -ENODEV;
+ 		err("No device or device unplugged %d", retval);
+ 		goto exit;
+@@ -564,42 +586,37 @@ static ssize_t adu_write(struct file *fi
+ 		goto exit;
+ 	}
+ 
+-
+ 	while (count > 0) {
+-		if (dev->interrupt_out_urb->status == -EINPROGRESS) {
+-			timeout = COMMAND_TIMEOUT;
++		add_wait_queue(&dev->write_wait, &waita);
++		set_current_state(TASK_INTERRUPTIBLE);
++		spin_lock_irqsave(&dev->buflock, flags);
++		if (!dev->out_urb_finished) {
++			spin_unlock_irqrestore(&dev->buflock, flags);
+ 
+-			while (timeout > 0) {
+-				if (signal_pending(current)) {
++			mutex_unlock(&dev->mtx);
++			if (signal_pending(current)) {
+ 				dbg(1," %s : interrupted", __FUNCTION__);
++				set_current_state(TASK_RUNNING);
+ 				retval = -EINTR;
+-				goto exit;
++				goto exit_onqueue;
  			}
-@@ -459,7 +460,7 @@ static int dtc_release(struct Scsi_Host 
- 	NCR5380_local_declare();
- 	NCR5380_setup(shost);
- 	if (shost->irq)
--		free_irq(shost->irq, NULL);
-+		free_irq(shost->irq, shost);
- 	NCR5380_exit(shost);
- 	if (shost->io_port && shost->n_io_port)
- 		release_region(shost->io_port, shost->n_io_port);
-diff -puN drivers/scsi/g_NCR5380.c~scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers drivers/scsi/g_NCR5380.c
---- a/drivers/scsi/g_NCR5380.c~scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers
-+++ a/drivers/scsi/g_NCR5380.c
-@@ -460,7 +460,8 @@ int __init generic_NCR5380_detect(struct
- 			instance->irq = NCR5380_probe_irq(instance, 0xffff);
- 
- 		if (instance->irq != SCSI_IRQ_NONE)
--			if (request_irq(instance->irq, generic_NCR5380_intr, IRQF_DISABLED, "NCR5380", instance)) {
-+			if (request_irq(instance->irq, generic_NCR5380_intr,
-+					IRQF_DISABLED, "NCR5380", instance)) {
- 				printk(KERN_WARNING "scsi%d : IRQ%d not free, interrupts disabled\n", instance->host_no, instance->irq);
- 				instance->irq = SCSI_IRQ_NONE;
+-			mutex_unlock(&dev->mtx);
+-			timeout = interruptible_sleep_on_timeout(&dev->write_wait, timeout);
++			if (schedule_timeout(COMMAND_TIMEOUT) == 0) {
++				dbg(1, "%s - command timed out.", __FUNCTION__);
++				retval = -ETIMEDOUT;
++				goto exit_onqueue;
++			}
++			remove_wait_queue(&dev->write_wait, &waita);
+ 			retval = mutex_lock_interruptible(&dev->mtx);
+ 			if (retval) {
+ 				retval = bytes_written ? bytes_written : retval;
+ 				goto exit_nolock;
  			}
-@@ -513,7 +514,7 @@ int generic_NCR5380_release_resources(st
- 	NCR5380_setup(instance);
- 	
- 	if (instance->irq != SCSI_IRQ_NONE)
--		free_irq(instance->irq, NULL);
-+		free_irq(instance->irq, instance);
- 	NCR5380_exit(instance);
+-			if (timeout > 0) {
+-				break;
+-			}
+-			dbg(1," %s : interrupted timeout: %d", __FUNCTION__, timeout);
+-		}
+-
+-
+-		dbg(1," %s : final timeout: %d", __FUNCTION__, timeout);
+-
+-		if (timeout == 0) {
+-			dbg(1, "%s - command timed out.", __FUNCTION__);
+-			retval = -ETIMEDOUT;
+-			goto exit;
+-		}
+-
+-		dbg(4," %s : in progress, count = %Zd", __FUNCTION__, count);
  
- #ifndef CONFIG_SCSI_G_NCR5380_MEM
-diff -puN drivers/scsi/mac_scsi.c~scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers drivers/scsi/mac_scsi.c
---- a/drivers/scsi/mac_scsi.c~scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers
-+++ a/drivers/scsi/mac_scsi.c
-@@ -303,7 +303,7 @@ int macscsi_detect(struct scsi_host_temp
++			dbg(4," %s : in progress, count = %Zd", __FUNCTION__, count);
+ 		} else {
++			spin_unlock_irqrestore(&dev->buflock, flags);
++			set_current_state(TASK_RUNNING);
++			remove_wait_queue(&dev->write_wait, &waita);
+ 			dbg(4," %s : sending, count = %Zd", __FUNCTION__, count);
  
-     if (instance->irq != SCSI_IRQ_NONE)
- 	if (request_irq(instance->irq, NCR5380_intr, IRQ_FLG_SLOW, 
--		"ncr5380", instance)) {
-+			"ncr5380", instance)) {
- 	    printk(KERN_WARNING "scsi%d: IRQ%d not free, interrupts disabled\n",
- 		   instance->host_no, instance->irq);
- 	    instance->irq = SCSI_IRQ_NONE;
-@@ -326,7 +326,7 @@ int macscsi_detect(struct scsi_host_temp
- int macscsi_release (struct Scsi_Host *shpnt)
- {
- 	if (shpnt->irq != SCSI_IRQ_NONE)
--		free_irq (shpnt->irq, NCR5380_intr);
-+		free_irq(shpnt->irq, shpnt);
- 	NCR5380_exit(shpnt);
+ 			/* write the data into interrupt_out_buffer from userspace */
+@@ -622,11 +639,12 @@ static ssize_t adu_write(struct file *fi
+ 				bytes_to_write,
+ 				adu_interrupt_out_callback,
+ 				dev,
+-				dev->interrupt_in_endpoint->bInterval);
+-			/* dev->interrupt_in_urb->transfer_flags |= URB_ASYNC_UNLINK; */
++				dev->interrupt_out_endpoint->bInterval);
+ 			dev->interrupt_out_urb->actual_length = bytes_to_write;
++			dev->out_urb_finished = 0;
+ 			retval = usb_submit_urb(dev->interrupt_out_urb, GFP_KERNEL);
+ 			if (retval < 0) {
++				dev->out_urb_finished = 1;
+ 				err("Couldn't submit interrupt_out_urb %d", retval);
+ 				goto exit;
+ 			}
+@@ -637,16 +655,17 @@ static ssize_t adu_write(struct file *fi
+ 			bytes_written += bytes_to_write;
+ 		}
+ 	}
+-
+-	retval = bytes_written;
++	mutex_unlock(&dev->mtx);
++	return bytes_written;
  
- 	return 0;
-diff -puN drivers/scsi/pas16.c~scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers drivers/scsi/pas16.c
---- a/drivers/scsi/pas16.c~scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers
-+++ a/drivers/scsi/pas16.c
-@@ -453,7 +453,8 @@ int __init pas16_detect(struct scsi_host
- 	    instance->irq = NCR5380_probe_irq(instance, PAS16_IRQS);
+ exit:
+-	/* unlock the device */
+ 	mutex_unlock(&dev->mtx);
+ exit_nolock:
+-
+ 	dbg(2," %s : leave, return value %d", __FUNCTION__, retval);
++	return retval;
  
- 	if (instance->irq != SCSI_IRQ_NONE) 
--	    if (request_irq(instance->irq, pas16_intr, IRQF_DISABLED, "pas16", instance)) {
-+	    if (request_irq(instance->irq, pas16_intr, IRQF_DISABLED,
-+			    "pas16", instance)) {
- 		printk("scsi%d : IRQ%d not free, interrupts disabled\n", 
- 		    instance->host_no, instance->irq);
- 		instance->irq = SCSI_IRQ_NONE;
-@@ -604,7 +605,7 @@ static inline int NCR5380_pwrite (struct
- static int pas16_release(struct Scsi_Host *shost)
- {
- 	if (shost->irq)
--		free_irq(shost->irq, NULL);
-+		free_irq(shost->irq, shost);
- 	NCR5380_exit(shost);
- 	if (shost->dma_channel != 0xff)
- 		free_dma(shost->dma_channel);
-diff -puN drivers/scsi/sun3_scsi.c~scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers drivers/scsi/sun3_scsi.c
---- a/drivers/scsi/sun3_scsi.c~scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers
-+++ a/drivers/scsi/sun3_scsi.c
-@@ -268,7 +268,7 @@ int sun3scsi_detect(struct scsi_host_tem
-         ((struct NCR5380_hostdata *)instance->hostdata)->ctrl = 0;
++exit_onqueue:
++	remove_wait_queue(&dev->write_wait, &waita);
+ 	return retval;
+ }
  
- 	if (request_irq(instance->irq, scsi_sun3_intr,
--			     0, "Sun3SCSI-5380", NULL)) {
-+			     0, "Sun3SCSI-5380", instance)) {
- #ifndef REAL_DMA
- 		printk("scsi%d: IRQ%d not free, interrupts disabled\n",
- 		       instance->host_no, instance->irq);
-@@ -310,7 +310,7 @@ int sun3scsi_detect(struct scsi_host_tem
- int sun3scsi_release (struct Scsi_Host *shpnt)
- {
- 	if (shpnt->irq != SCSI_IRQ_NONE)
--		free_irq (shpnt->irq, NULL);
-+		free_irq(shpnt->irq, shpnt);
+@@ -831,25 +850,22 @@ static void adu_disconnect(struct usb_in
+ 	dbg(2," %s : enter", __FUNCTION__);
  
- 	iounmap((void *)sun3_scsi_regp);
+ 	dev = usb_get_intfdata(interface);
+-	usb_set_intfdata(interface, NULL);
  
-diff -puN drivers/scsi/sun3_scsi_vme.c~scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers drivers/scsi/sun3_scsi_vme.c
---- a/drivers/scsi/sun3_scsi_vme.c~scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers
-+++ a/drivers/scsi/sun3_scsi_vme.c
-@@ -230,7 +230,7 @@ static int sun3scsi_detect(struct scsi_h
-         ((struct NCR5380_hostdata *)instance->hostdata)->ctrl = 0;
++	mutex_lock(&dev->mtx);	/* not interruptible */
++	dev->udev = NULL;	/* poison */
+ 	minor = dev->minor;
+-
+-	/* give back our minor */
+ 	usb_deregister_dev(interface, &adu_class);
+-	dev->minor = 0;
++	mutex_unlock(&dev->mtx);
  
- 	if (request_irq(instance->irq, scsi_sun3_intr,
--			     0, "Sun3SCSI-5380VME", NULL)) {
-+			0, "Sun3SCSI-5380VME", instance)) {
- #ifndef REAL_DMA
- 		printk("scsi%d: IRQ%d not free, interrupts disabled\n",
- 		       instance->host_no, instance->irq);
-@@ -279,7 +279,7 @@ static int sun3scsi_detect(struct scsi_h
- int sun3scsi_release (struct Scsi_Host *shpnt)
- {
- 	if (shpnt->irq != SCSI_IRQ_NONE)
--		free_irq (shpnt->irq, NULL);
-+		free_irq(shpnt->irq, shpnt);
+-	mutex_lock(&dev->mtx); /* not interruptible */
++	mutex_lock(&adutux_mutex);
++	usb_set_intfdata(interface, NULL);
  
- 	iounmap((void *)sun3_scsi_regp);
+ 	/* if the device is not opened, then we clean up right now */
+ 	dbg(2," %s : open count %d", __FUNCTION__, dev->open_count);
+-	if (!dev->open_count) {
+-		mutex_unlock(&dev->mtx);
++	if (!dev->open_count)
+ 		adu_delete(dev);
+-	} else {
+-		dev->udev = NULL;
+-		mutex_unlock(&dev->mtx);
+-	}
++
++	mutex_unlock(&adutux_mutex);
  
-diff -puN drivers/scsi/t128.c~scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers drivers/scsi/t128.c
---- a/drivers/scsi/t128.c~scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers
-+++ a/drivers/scsi/t128.c
-@@ -259,7 +259,8 @@ found:
- 	    instance->irq = NCR5380_probe_irq(instance, T128_IRQS);
- 
- 	if (instance->irq != SCSI_IRQ_NONE) 
--	    if (request_irq(instance->irq, t128_intr, IRQF_DISABLED, "t128", instance)) {
-+	    if (request_irq(instance->irq, t128_intr, IRQF_DISABLED, "t128",
-+			    instance)) {
- 		printk("scsi%d : IRQ%d not free, interrupts disabled\n", 
- 		    instance->host_no, instance->irq);
- 		instance->irq = SCSI_IRQ_NONE;
-@@ -295,7 +296,7 @@ static int t128_release(struct Scsi_Host
- 	NCR5380_local_declare();
- 	NCR5380_setup(shost);
- 	if (shost->irq)
--		free_irq(shost->irq, NULL);
-+		free_irq(shost->irq, shost);
- 	NCR5380_exit(shost);
- 	if (shost->io_port && shost->n_io_port)
- 		release_region(shost->io_port, shost->n_io_port);
+ 	dev_info(&interface->dev, "ADU device adutux%d now disconnected\n",
+ 		 (minor - ADU_MINOR_BASE));
 _
 
-Patches currently in -mm which might be from jeff@garzik.org are
-
-git-arm.patch
-powerpc-fix-typo-ifdef-ifndef.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-libata-add-toshiba-mk1637gsx-to-spurious-command-completion-list.patch
-git-netdev-all.patch
-forcedeth-power-down-phy-when-interface-is-down.patch
-forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-pcmcia-net-use-roundup_pow_of_two-macro-instead-of-grotesque-loop.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-scsi-rc-fixes.patch
-hptiop-fix-type-mismatch-warning.patch
-ips-remove-ips_ha-members-that-duplicate-struct-pci_dev-members.patch
-ips-trim-trailing-whitespace.patch
-ips-pci-api-cleanups.patch
-ips-handle-scsi_add_host-failure-and-other-err-cleanups.patch
-scsi-gdth-kill-unneeded-irq-argument.patch
-scsi-sym53c416-kill-pointless-irq-handler-loop-and-test.patch
-scsi-ncr5380-minor-irq-handler-cleanups.patch
-iommu-sg-merging-add-device_dma_parameters-structure.patch
-iommu-sg-merging-pci-add-device_dma_parameters-support.patch
-iommu-sg-merging-x86-make-pci-gart-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-ppc-make-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-ia64-make-sba_iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-alpha-make-pci_iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-parisc-make-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-call-blk_queue_segment_boundary-in-__scsi_alloc_queue.patch
-iommu-sg-merging-sata_inic162x-use-pci_set_dma_max_seg_size.patch
-iommu-sg-merging-aacraid-use-pci_set_dma_max_seg_size.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
-libsas-use-new-ata-configuration-mechanism.patch
-git-wireless.patch
-tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls-x86-fix.patch
-pata_amd-pata_via-de-couple-programming-of-pio-mwdma-and-udma-timings.patch
-fix-versus-precedence-in-various-places.patch
-riscom8-fix-smp-brokenness.patch
-riscom8-fix-smp-brokenness-fix.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-sound-oss-sb_commonc-fix-casting-warning.patch
-remove-warnings-for-longstanding-conditions.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-remove-pointless-casts-from-void-pointers.patch
-i8k-allow-i8k-driver-to-be-built-on-x86_64-systems.patch
-i8k-adds-i8k-driver-to-the-x86_64-kconfig.patch
-i8k-inspiron-e1705-fix.patch
+Patches currently in -mm which might be from zaitcev@redhat.com are
