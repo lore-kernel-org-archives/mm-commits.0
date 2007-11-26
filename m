@@ -1,105 +1,163 @@
 From: akpm@linux-foundation.org
-Subject: - input-polled-device-timer-rounding.patch removed from -mm tree
-Date: Mon, 26 Nov 2007 13:48:33 -0800
-Message-ID: <200711262148.lAQLmXnF024606@imap1.linux-foundation.org>
+Subject: - qlogic-infinipath-convert-ipath_eep_sem-to-mutex.patch removed from -mm tree
+Date: Mon, 26 Nov 2007 13:48:30 -0800
+Message-ID: <200711262148.lAQLmUv5024603@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56150 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42253 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754898AbXKZVsw (ORCPT
+	by vger.kernel.org with ESMTP id S1753008AbXKZVtL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 16:48:52 -0500
+	Mon, 26 Nov 2007 16:49:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shemminger@linux-foundation.org, arjan@infradead.org, dtor@mail.ru, mm-commits@vger.kernel.org
+To: matthias.kaehlcke@gmail.com, Michael.Albaugh@qlogic.com, arthur.jones@qlogic.com, rdreier@cisco.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     input: polled device timer rounding
+     QLogic InfiniPath: convert ipath_eep_sem to mutex
 has been removed from the -mm tree.  Its filename was
-     input-polled-device-timer-rounding.patch
+     qlogic-infinipath-convert-ipath_eep_sem-to-mutex.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: input: polled device timer rounding
-From: Stephen Hemminger <shemminger@linux-foundation.org>
+Subject: QLogic InfiniPath: convert ipath_eep_sem to mutex
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-Fix the timer rounding on input polled device.  Rounding doesn't matter for
-the first tick, but we want succeeding ticks to be aligned on second boundary
-if poll interval is large enough.
+QLogic InfiniPath: convert the semaphore ipath_eep_sem to the mutex
+API
 
-The old code did a timer roundoff of the initial setting, not the rearming. 
-Since the timer routine will take some time, it will eventually wander from
-one jiffie to another, causing greater wakeups increasing power consumption.
-
-It is not an issue at the moment because there are few users of the input
-polled device, and those that do use polling less than one second.  But the
-apanel driver uses a 1 sec poll interval, because they are really crappy
-buttons (not really keys), and the value is sticky till read.
-
-Also: cancel_rearming_delayed_workqueue is marked as obsolete
-in workqueue.h so use cancel_delayed_work_sync.
-
-Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Arjan van de Ven <arjan@infradead.org>
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Cc: Roland Dreier <rdreier@cisco.com>
+Acked-by: Michael Albaugh <Michael.Albaugh@qlogic.com>
+Tested-by: Arthur Jones <arthur.jones@qlogic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/input-polldev.c |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ drivers/infiniband/hw/ipath/ipath_eeprom.c    |   20 ++++++++--------
+ drivers/infiniband/hw/ipath/ipath_init_chip.c |    2 -
+ drivers/infiniband/hw/ipath/ipath_kernel.h    |    3 +-
+ 3 files changed, 13 insertions(+), 12 deletions(-)
 
-diff -puN drivers/input/input-polldev.c~input-polled-device-timer-rounding drivers/input/input-polldev.c
---- a/drivers/input/input-polldev.c~input-polled-device-timer-rounding
-+++ a/drivers/input/input-polldev.c
-@@ -60,17 +60,17 @@ static void input_polled_device_work(str
+diff -puN drivers/infiniband/hw/ipath/ipath_eeprom.c~qlogic-infinipath-convert-ipath_eep_sem-to-mutex drivers/infiniband/hw/ipath/ipath_eeprom.c
+--- a/drivers/infiniband/hw/ipath/ipath_eeprom.c~qlogic-infinipath-convert-ipath_eep_sem-to-mutex
++++ a/drivers/infiniband/hw/ipath/ipath_eeprom.c
+@@ -510,10 +510,10 @@ int ipath_eeprom_read(struct ipath_devda
  {
- 	struct input_polled_dev *dev =
- 		container_of(work, struct input_polled_dev, work.work);
-+	unsigned long ticks = msecs_to_jiffies(dev->poll_interval);
+ 	int ret;
  
- 	dev->poll(dev);
- 	queue_delayed_work(polldev_wq, &dev->work,
--			   msecs_to_jiffies(dev->poll_interval));
-+			   ticks >= HZ ? round_jiffies(ticks) : ticks);
- }
+-	ret = down_interruptible(&dd->ipath_eep_sem);
++	ret = mutex_lock_interruptible(&dd->ipath_eep_lock);
+ 	if (!ret) {
+ 		ret = ipath_eeprom_internal_read(dd, eeprom_offset, buff, len);
+-		up(&dd->ipath_eep_sem);
++		mutex_unlock(&dd->ipath_eep_lock);
+ 	}
  
- static int input_open_polled_device(struct input_dev *input)
+ 	return ret;
+@@ -524,10 +524,10 @@ int ipath_eeprom_write(struct ipath_devd
  {
- 	struct input_polled_dev *dev = input->private;
- 	int error;
--	unsigned long ticks;
+ 	int ret;
  
- 	error = input_polldev_start_workqueue();
- 	if (error)
-@@ -79,10 +79,8 @@ static int input_open_polled_device(stru
- 	if (dev->flush)
- 		dev->flush(dev);
+-	ret = down_interruptible(&dd->ipath_eep_sem);
++	ret = mutex_lock_interruptible(&dd->ipath_eep_lock);
+ 	if (!ret) {
+ 		ret = ipath_eeprom_internal_write(dd, eeprom_offset, buff, len);
+-		up(&dd->ipath_eep_sem);
++		mutex_unlock(&dd->ipath_eep_lock);
+ 	}
  
--	ticks = msecs_to_jiffies(dev->poll_interval);
--	if (ticks >= HZ)
--		ticks = round_jiffies(ticks);
--	queue_delayed_work(polldev_wq, &dev->work, ticks);
-+	queue_delayed_work(polldev_wq, &dev->work,
-+			   msecs_to_jiffies(dev->poll_interval));
+ 	return ret;
+@@ -616,9 +616,9 @@ void ipath_get_eeprom_info(struct ipath_
+ 		goto bail;
+ 	}
  
- 	return 0;
- }
-@@ -91,7 +89,7 @@ static void input_close_polled_device(st
- {
- 	struct input_polled_dev *dev = input->private;
+-	down(&dd->ipath_eep_sem);
++	mutex_lock(&dd->ipath_eep_lock);
+ 	eep_stat = ipath_eeprom_internal_read(dd, 0, buf, len);
+-	up(&dd->ipath_eep_sem);
++	mutex_unlock(&dd->ipath_eep_lock);
  
--	cancel_rearming_delayed_workqueue(polldev_wq, &dev->work);
-+	cancel_delayed_work_sync(&dev->work);
- 	input_polldev_stop_workqueue();
- }
+ 	if (eep_stat) {
+ 		ipath_dev_err(dd, "Failed reading GUID from eeprom\n");
+@@ -764,14 +764,14 @@ int ipath_update_eeprom_log(struct ipath
+ 	/* Grab semaphore and read current EEPROM. If we get an
+ 	 * error, let go, but if not, keep it until we finish write.
+ 	 */
+-	ret = down_interruptible(&dd->ipath_eep_sem);
++	ret = mutex_lock_interruptible(&dd->ipath_eep_lock);
+ 	if (ret) {
+ 		ipath_dev_err(dd, "Unable to acquire EEPROM for logging\n");
+ 		goto free_bail;
+ 	}
+ 	ret = ipath_eeprom_internal_read(dd, 0, buf, len);
+ 	if (ret) {
+-		up(&dd->ipath_eep_sem);
++		mutex_unlock(&dd->ipath_eep_lock);
+ 		ipath_dev_err(dd, "Unable read EEPROM for logging\n");
+ 		goto free_bail;
+ 	}
+@@ -779,7 +779,7 @@ int ipath_update_eeprom_log(struct ipath
  
+ 	csum = flash_csum(ifp, 0);
+ 	if (csum != ifp->if_csum) {
+-		up(&dd->ipath_eep_sem);
++		mutex_unlock(&dd->ipath_eep_lock);
+ 		ipath_dev_err(dd, "EEPROM cks err (0x%02X, S/B 0x%02X)\n",
+ 				csum, ifp->if_csum);
+ 		ret = 1;
+@@ -849,7 +849,7 @@ int ipath_update_eeprom_log(struct ipath
+ 		csum = flash_csum(ifp, 1);
+ 		ret = ipath_eeprom_internal_write(dd, 0, buf, hi_water + 1);
+ 	}
+-	up(&dd->ipath_eep_sem);
++	mutex_unlock(&dd->ipath_eep_lock);
+ 	if (ret)
+ 		ipath_dev_err(dd, "Failed updating EEPROM\n");
+ 
+diff -puN drivers/infiniband/hw/ipath/ipath_init_chip.c~qlogic-infinipath-convert-ipath_eep_sem-to-mutex drivers/infiniband/hw/ipath/ipath_init_chip.c
+--- a/drivers/infiniband/hw/ipath/ipath_init_chip.c~qlogic-infinipath-convert-ipath_eep_sem-to-mutex
++++ a/drivers/infiniband/hw/ipath/ipath_init_chip.c
+@@ -348,7 +348,7 @@ static int init_chip_first(struct ipath_
+ 
+ 	spin_lock_init(&dd->ipath_gpio_lock);
+ 	spin_lock_init(&dd->ipath_eep_st_lock);
+-	sema_init(&dd->ipath_eep_sem, 1);
++	mutex_init(&dd->ipath_eep_lock);
+ 
+ done:
+ 	*pdp = pd;
+diff -puN drivers/infiniband/hw/ipath/ipath_kernel.h~qlogic-infinipath-convert-ipath_eep_sem-to-mutex drivers/infiniband/hw/ipath/ipath_kernel.h
+--- a/drivers/infiniband/hw/ipath/ipath_kernel.h~qlogic-infinipath-convert-ipath_eep_sem-to-mutex
++++ a/drivers/infiniband/hw/ipath/ipath_kernel.h
+@@ -41,6 +41,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/pci.h>
+ #include <linux/dma-mapping.h>
++#include <linux/mutex.h>
+ #include <asm/io.h>
+ #include <rdma/ib_verbs.h>
+ 
+@@ -616,7 +617,7 @@ struct ipath_devdata {
+ 	/* control access to actual counters, timer */
+ 	spinlock_t ipath_eep_st_lock;
+ 	/* control high-level access to EEPROM */
+-	struct semaphore ipath_eep_sem;
++	struct mutex ipath_eep_lock;
+ 	/* Below inc'd by ipath_snap_cntrs(), locked by ipath_eep_st_lock */
+ 	uint64_t ipath_traffic_wds;
+ 	/* active time is kept in seconds, but logged in hours */
 _
 
-Patches currently in -mm which might be from shemminger@linux-foundation.org are
+Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
 
-git-input.patch
-fujitsu-application-panel-driver.patch
+git-dvb.patch
+git-infiniband.patch
 git-netdev-all.patch
-git-wireless.patch
+git-scsi-misc.patch
+parallel-port-convert-port_mutex-to-the-mutex-api.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+mbcs-convert-algolock-to-mutex.patch
+mbcs-convert-dmawritelock-to-mutex.patch
+mbcs-convert-dmareadlock-to-mutex.patch
