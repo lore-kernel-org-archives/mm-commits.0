@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-stop-the-toc-overflowing-for-large-builds.patch added to -mm tree
-Date: Mon, 26 Nov 2007 15:49:34 -0800
-Message-ID: <200711262349.lAQNnYnN029443@imap1.linux-foundation.org>
+Subject: + cris-avoid-using-arch-links-in-kconfig.patch added to -mm tree
+Date: Mon, 26 Nov 2007 15:51:03 -0800
+Message-ID: <200711262351.lAQNp3JM029472@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41070 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55044 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756333AbXKZXt6 (ORCPT
+	by vger.kernel.org with ESMTP id S1756264AbXKZXvL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 18:49:58 -0500
+	Mon, 26 Nov 2007 18:51:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sfr@canb.auug.org.au, benh@kernel.crashing.org, kamalesh@linux.vnet.ibm.com, paulus@samba.org
+Cc: jesper.nilsson@axis.com, sam@ravnborg.org
 
 
 The patch titled
-     powerpc: stop the TOC overflowing for large builds.
+     CRIS: avoid using arch links in Kconfig
 has been added to the -mm tree.  Its filename is
-     powerpc-stop-the-toc-overflowing-for-large-builds.patch
+     cris-avoid-using-arch-links-in-kconfig.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,52 +26,116 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: powerpc: stop the TOC overflowing for large builds.
-From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: CRIS: avoid using arch links in Kconfig
+From: Jesper Nilsson <jesper.nilsson@axis.com>
 
-On Tue, 13 Nov 2007 16:35:06 +0530 Kamalesh Babulal <kamalesh@linux.vnet.ibm.com> wrote:
->
-> The 2.6.24-rc2-git3 kernel build fails during linking
->
->   KSYM    .tmp_kallsyms1.S
->   AS      .tmp_kallsyms1.o
->   LD      .tmp_vmlinux2
->   KSYM    .tmp_kallsyms2.S
->   AS      .tmp_kallsyms2.o
->   LD      .tmp_vmlinux3
->   KSYM    .tmp_kallsyms3.S
->   AS      .tmp_kallsyms3.o
->   LD      vmlinux.o
-> ld: TOC section size exceeds 64k
-> make: *** [vmlinux.o] Error 1
+Improve including of architecture dependent Kconfig files.
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+- Always include the architecture dependent Kconfig files.
+- Wrap architecture dependent Kconfig files inside an appropriate
+  "if ETRAX_ARCH_Vxx" block.
+
+This makes it possible to run the configuration even without the arch links,
+which are created later in the build process.
+
+Signed-off-by: Jesper Nilsson <jesper.nilsson@axis.com>
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/cris/Kconfig                  |    5 +++--
+ arch/cris/arch-v10/Kconfig         |    4 ++++
+ arch/cris/arch-v10/drivers/Kconfig |    4 ++++
+ arch/cris/arch-v32/Kconfig         |    4 ++++
+ arch/cris/arch-v32/drivers/Kconfig |    4 ++++
+ 5 files changed, 19 insertions(+), 2 deletions(-)
 
-diff -puN arch/powerpc/kernel/Makefile~powerpc-stop-the-toc-overflowing-for-large-builds arch/powerpc/kernel/Makefile
---- a/arch/powerpc/kernel/Makefile~powerpc-stop-the-toc-overflowing-for-large-builds
-+++ a/arch/powerpc/kernel/Makefile
-@@ -3,7 +3,7 @@
- #
+diff -puN arch/cris/Kconfig~cris-avoid-using-arch-links-in-kconfig arch/cris/Kconfig
+--- a/arch/cris/Kconfig~cris-avoid-using-arch-links-in-kconfig
++++ a/arch/cris/Kconfig
+@@ -150,6 +150,7 @@ config ETRAX_FLASH_BUSWIDTH
+ 	  Width in bytes of the Flash bus (1, 2 or 4). Is usually 2.
  
- ifeq ($(CONFIG_PPC64),y)
--EXTRA_CFLAGS	+= -mno-minimal-toc
-+CFLAGS_prom_init.o	+= -mno-minimal-toc
- endif
- ifeq ($(CONFIG_PPC32),y)
- CFLAGS_prom_init.o      += -fPIC
+ source arch/cris/arch-v10/Kconfig
++source arch/cris/arch-v32/Kconfig
+ 
+ endmenu
+ 
+@@ -157,8 +158,8 @@ source "net/Kconfig"
+ 
+ # bring in ETRAX built-in drivers
+ menu "Drivers for built-in interfaces"
+-# arch/cris/arch is a symlink to correct arch (arch-v10 or arch-v32)
+-source arch/cris/arch/drivers/Kconfig
++source arch/cris/arch-v10/drivers/Kconfig
++source arch/cris/arch-v32/drivers/Kconfig
+ 
+ endmenu
+ 
+diff -puN arch/cris/arch-v10/Kconfig~cris-avoid-using-arch-links-in-kconfig arch/cris/arch-v10/Kconfig
+--- a/arch/cris/arch-v10/Kconfig~cris-avoid-using-arch-links-in-kconfig
++++ a/arch/cris/arch-v10/Kconfig
+@@ -1,3 +1,5 @@
++if ETRAX_ARCH_V10
++
+ # ETRAX 100LX v1 has a MMU "feature" requiring a low mapping
+ config CRIS_LOW_MAP
+ 	bool
+@@ -451,3 +453,5 @@ config ETRAX_POWERBUTTON_BIT
+ 	default "25"
+ 	help
+ 	  Configure where power button is connected.
++
++endif
+diff -puN arch/cris/arch-v10/drivers/Kconfig~cris-avoid-using-arch-links-in-kconfig arch/cris/arch-v10/drivers/Kconfig
+--- a/arch/cris/arch-v10/drivers/Kconfig~cris-avoid-using-arch-links-in-kconfig
++++ a/arch/cris/arch-v10/drivers/Kconfig
+@@ -1,3 +1,5 @@
++if ETRAX_ARCH_V10
++
+ config ETRAX_ETHERNET
+ 	bool "Ethernet support"
+ 	depends on ETRAX_ARCH_V10
+@@ -806,3 +808,5 @@ config ETRAX_DS1302_TRICKLE_CHARGE
+ 	  1 = 2kohm, 2 = 4kohm, 3 = 4kohm
+ 	  4 = 1 diode, 8 = 2 diodes
+ 	  Allowed values are (increasing current): 0, 11, 10, 9, 7, 6, 5
++
++endif
+diff -puN arch/cris/arch-v32/Kconfig~cris-avoid-using-arch-links-in-kconfig arch/cris/arch-v32/Kconfig
+--- a/arch/cris/arch-v32/Kconfig~cris-avoid-using-arch-links-in-kconfig
++++ a/arch/cris/arch-v32/Kconfig
+@@ -1,3 +1,5 @@
++if ETRAX_ARCH_V32
++
+ config ETRAX_DRAM_VIRTUAL_BASE
+ 	hex
+ 	depends on ETRAX_ARCH_V32
+@@ -294,3 +296,5 @@ config ETRAX_DEF_GIO_PE_OUT
+ 	help
+ 	  Configures the initial data for the general port E bits.  Most
+ 	  products should use 00000 here.
++
++endif
+diff -puN arch/cris/arch-v32/drivers/Kconfig~cris-avoid-using-arch-links-in-kconfig arch/cris/arch-v32/drivers/Kconfig
+--- a/arch/cris/arch-v32/drivers/Kconfig~cris-avoid-using-arch-links-in-kconfig
++++ a/arch/cris/arch-v32/drivers/Kconfig
+@@ -1,3 +1,5 @@
++if ETRAX_ARCH_V32
++
+ config ETRAX_ETHERNET
+ 	bool "Ethernet support"
+ 	depends on ETRAX_ARCH_V32
+@@ -610,3 +612,5 @@ config ETRAX_STREAMCOPROC
+ 	help
+ 	  This option enables a driver for the stream co-processor
+ 	  for cryptographic operations.
++
++endif
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from jesper.nilsson@axis.com are
 
-fix-boot-problem-with-iseries-lacking-hugepage-support.patch
-git-powerpc.patch
-powerpc-stop-the-toc-overflowing-for-large-builds.patch
-git-scsi-rc-fixes.patch
+cris-build-fixes-atomich-needs-compilerh.patch
+git-mtd.patch
+cris-avoid-using-arch-links-in-kconfig.patch
