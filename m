@@ -1,58 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - ide-printk-fix.patch removed from -mm tree
-Date: Mon, 26 Nov 2007 13:48:58 -0800
-Message-ID: <200711262148.lAQLmwac024646@imap1.linux-foundation.org>
+Subject: - ide-arm-hack.patch removed from -mm tree
+Date: Mon, 26 Nov 2007 13:48:56 -0800
+Message-ID: <200711262148.lAQLmu94024643@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51236 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47682 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752104AbXKZV57 (ORCPT
+	by vger.kernel.org with ESMTP id S1753346AbXKZV6U (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 16:57:59 -0500
+	Mon, 26 Nov 2007 16:58:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bzolnier@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bzolnier@gmail.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ide printk fix
+     ide-arm-hack
 has been removed from the -mm tree.  Its filename was
-     ide-printk-fix.patch
+     ide-arm-hack.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ide printk fix
+Subject: ide-arm-hack
 From: Andrew Morton <akpm@linux-foundation.org>
 
-power4:
-
-drivers/ide/ide-lib.c: In function `ide_dump_sector':
-drivers/ide/ide-lib.c:516: warning: long long unsigned int format, u64 arg (arg 2)
-
-We don't know what type is used to implement u64 hence it must always be cast
-when printed.
+drivers/ide/pci/amd74xx.c: In function `init_hwif_amd74xx':
+drivers/ide/pci/amd74xx.c:387: error: implicit declaration of function `pci_get_legacy_ide_irq'
 
 Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/ide-lib.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/ide/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/ide/ide-lib.c~ide-printk-fix drivers/ide/ide-lib.c
---- a/drivers/ide/ide-lib.c~ide-printk-fix
-+++ a/drivers/ide/ide-lib.c
-@@ -513,7 +513,8 @@ static void ide_dump_sector(ide_drive_t 
- 	ide_tf_read(drive, &task);
+diff -puN drivers/ide/Kconfig~ide-arm-hack drivers/ide/Kconfig
+--- a/drivers/ide/Kconfig~ide-arm-hack
++++ a/drivers/ide/Kconfig
+@@ -473,6 +473,7 @@ config WDC_ALI15X3
  
- 	if (lba48 || (tf->device & ATA_LBA))
--		printk(", LBAsect=%llu", ide_get_lba_addr(tf, lba48));
-+		printk(", LBAsect=%llu",
-+			(unsigned long long)ide_get_lba_addr(tf, lba48));
- 	else
- 		printk(", CHS=%d/%d/%d", (tf->lbah << 8) + tf->lbam,
- 					 tf->device & 0xf, tf->lbal);
+ config BLK_DEV_AMD74XX
+ 	tristate "AMD and nVidia IDE support"
++	depends on !ARM
+ 	select BLK_DEV_IDEDMA_PCI
+ 	help
+ 	  This driver adds explicit support for AMD-7xx and AMD-8111 chips
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
