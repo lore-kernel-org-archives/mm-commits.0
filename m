@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + partitions-use-kasprintf.patch added to -mm tree
-Date: Mon, 26 Nov 2007 00:03:27 -0800
-Message-ID: <200711260803.lAQ83RTu023518@imap1.linux-foundation.org>
+Subject: + power-use-kasprintf.patch added to -mm tree
+Date: Mon, 26 Nov 2007 00:03:24 -0800
+Message-ID: <200711260803.lAQ83OxW023515@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54646 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34790 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753214AbXKZIDd (ORCPT
+	by vger.kernel.org with ESMTP id S1752810AbXKZIDu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 03:03:33 -0500
+	Mon, 26 Nov 2007 03:03:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com
+Cc: akinobu.mita@gmail.com, cbou@mail.ru, dwmw2@infradead.org
 
 
 The patch titled
-     partitions: use kasprintf
+     power: use kasprintf
 has been added to the -mm tree.  Its filename is
-     partitions-use-kasprintf.patch
+     power-use-kasprintf.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,39 +26,81 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: partitions: use kasprintf
+Subject: power: use kasprintf
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
 Use kasprintf instead of kmalloc()-strcpy()-strcat().
 
+Cc: Anton Vorontsov <cbou@mail.ru>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/check.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ drivers/power/power_supply_leds.c |   25 +++++++------------------
+ 1 file changed, 7 insertions(+), 18 deletions(-)
 
-diff -puN fs/partitions/check.c~partitions-use-kasprintf fs/partitions/check.c
---- a/fs/partitions/check.c~partitions-use-kasprintf
-+++ a/fs/partitions/check.c
-@@ -409,16 +409,11 @@ void add_partition(struct gendisk *disk,
- static char *make_block_name(struct gendisk *disk)
- {
- 	char *name;
--	static char *block_str = "block:";
--	int size;
- 	char *s;
+diff -puN drivers/power/power_supply_leds.c~power-use-kasprintf drivers/power/power_supply_leds.c
+--- a/drivers/power/power_supply_leds.c~power-use-kasprintf
++++ a/drivers/power/power_supply_leds.c
+@@ -10,6 +10,7 @@
+  *  You may use this code as per GPL version 2
+  */
  
--	size = strlen(block_str) + strlen(disk->disk_name) + 1;
--	name = kmalloc(size, GFP_KERNEL);
-+	name = kasprintf(GFP_KERNEL, "block:%s", disk->disk_name);
- 	if (!name)
- 		return NULL;
--	strcpy(name, block_str);
--	strcat(name, disk->disk_name);
- 	/* ewww... some of these buggers have / in name... */
- 	s = strchr(name, '/');
- 	if (s)
++#include <linux/kernel.h>
+ #include <linux/power_supply.h>
+ 
+ #include "power_supply.h"
+@@ -48,28 +49,20 @@ static int power_supply_create_bat_trigg
+ {
+ 	int rc = 0;
+ 
+-	psy->charging_full_trig_name = kmalloc(strlen(psy->name) +
+-				  sizeof("-charging-or-full"), GFP_KERNEL);
++	psy->charging_full_trig_name = kasprintf(GFP_KERNEL,
++					"%s-charging-or-full", psy->name);
+ 	if (!psy->charging_full_trig_name)
+ 		goto charging_full_failed;
+ 
+-	psy->charging_trig_name = kmalloc(strlen(psy->name) +
+-					  sizeof("-charging"), GFP_KERNEL);
++	psy->charging_trig_name = kasprintf(GFP_KERNEL,
++					"%s-charging", psy->name);
+ 	if (!psy->charging_trig_name)
+ 		goto charging_failed;
+ 
+-	psy->full_trig_name = kmalloc(strlen(psy->name) +
+-				      sizeof("-full"), GFP_KERNEL);
++	psy->full_trig_name = kasprintf(GFP_KERNEL, "%s-full", psy->name);
+ 	if (!psy->full_trig_name)
+ 		goto full_failed;
+ 
+-	strcpy(psy->charging_full_trig_name, psy->name);
+-	strcat(psy->charging_full_trig_name, "-charging-or-full");
+-	strcpy(psy->charging_trig_name, psy->name);
+-	strcat(psy->charging_trig_name, "-charging");
+-	strcpy(psy->full_trig_name, psy->name);
+-	strcat(psy->full_trig_name, "-full");
+-
+ 	led_trigger_register_simple(psy->charging_full_trig_name,
+ 				    &psy->charging_full_trig);
+ 	led_trigger_register_simple(psy->charging_trig_name,
+@@ -120,14 +113,10 @@ static int power_supply_create_gen_trigg
+ {
+ 	int rc = 0;
+ 
+-	psy->online_trig_name = kmalloc(strlen(psy->name) + sizeof("-online"),
+-					GFP_KERNEL);
++	psy->online_trig_name = kasprintf(GFP_KERNEL, "%s-online", psy->name);
+ 	if (!psy->online_trig_name)
+ 		goto online_failed;
+ 
+-	strcpy(psy->online_trig_name, psy->name);
+-	strcat(psy->online_trig_name, "-online");
+-
+ 	led_trigger_register_simple(psy->online_trig_name, &psy->online_trig);
+ 
+ 	goto success;
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
