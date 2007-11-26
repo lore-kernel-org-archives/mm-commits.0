@@ -1,49 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - pata_hpt37x-fix-cable-detect-bug-spotted-by-sergei.patch removed from -mm tree
-Date: Mon, 26 Nov 2007 13:48:50 -0800
-Message-ID: <200711262148.lAQLmokN024634@imap1.linux-foundation.org>
+Subject: - pata_isapnp-polled-devices.patch removed from -mm tree
+Date: Mon, 26 Nov 2007 13:48:52 -0800
+Message-ID: <200711262148.lAQLmqvM024637@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58312 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40614 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752541AbXKZVte (ORCPT
+	by vger.kernel.org with ESMTP id S1755098AbXKZVtf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 16:49:34 -0500
+	Mon, 26 Nov 2007 16:49:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_hpt37x: fix cable detect bug spotted by Sergei
+     pata_isapnp: polled devices
 has been removed from the -mm tree.  Its filename was
-     pata_hpt37x-fix-cable-detect-bug-spotted-by-sergei.patch
+     pata_isapnp-polled-devices.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata_hpt37x: fix cable detect bug spotted by Sergei
+Subject: pata_isapnp: polled devices
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+
+If a card has no IRQ then pass no interrupt handler but allow polled
+usage.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_hpt37x.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ata/pata_isapnp.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN drivers/ata/pata_hpt37x.c~pata_hpt37x-fix-cable-detect-bug-spotted-by-sergei drivers/ata/pata_hpt37x.c
---- a/drivers/ata/pata_hpt37x.c~pata_hpt37x-fix-cable-detect-bug-spotted-by-sergei
-+++ a/drivers/ata/pata_hpt37x.c
-@@ -329,7 +329,7 @@ static int hpt37x_pre_reset(struct ata_l
- 	/* Restore state */
- 	pci_write_config_byte(pdev, 0x5B, scr2);
+diff -puN drivers/ata/pata_isapnp.c~pata_isapnp-polled-devices drivers/ata/pata_isapnp.c
+--- a/drivers/ata/pata_isapnp.c~pata_isapnp-polled-devices
++++ a/drivers/ata/pata_isapnp.c
+@@ -75,13 +75,16 @@ static int isapnp_init_one(struct pnp_de
+ 	struct ata_host *host;
+ 	struct ata_port *ap;
+ 	void __iomem *cmd_addr, *ctl_addr;
++	int irq = 0;
++	irq_handler_t handler = NULL;
  
--	if (ata66 & (1 << ap->port_no))
-+	if (ata66 & (2 >> ap->port_no))
- 		ap->cbl = ATA_CBL_PATA40;
- 	else
- 		ap->cbl = ATA_CBL_PATA80;
+ 	if (pnp_port_valid(idev, 0) == 0)
+ 		return -ENODEV;
+ 
+-	/* FIXME: Should selected polled PIO here not fail */
+-	if (pnp_irq_valid(idev, 0) == 0)
+-		return -ENODEV;
++	if (pnp_irq_valid(idev, 0)) {
++		irq = pnp_irq(idev, 0);
++		handler = ata_interrupt;
++	}
+ 
+ 	/* allocate host */
+ 	host = ata_host_alloc(&idev->dev, 1);
+@@ -115,7 +118,7 @@ static int isapnp_init_one(struct pnp_de
+ 		      (unsigned long long)pnp_port_start(idev, 1));
+ 
+ 	/* activate */
+-	return ata_host_activate(host, pnp_irq(idev, 0), ata_interrupt, 0,
++	return ata_host_activate(host, irq, handler, 0,
+ 				 &isapnp_sht);
+ }
+ 
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
