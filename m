@@ -1,287 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - fix-versus-precedence-in-various-places-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 26 Nov 2007 13:23:10 -0800
-Message-ID: <200711262123.lAQLNAOT023648@imap1.linux-foundation.org>
+Subject: - add-cmpxchg_local-to-sh64.patch removed from -mm tree
+Date: Mon, 26 Nov 2007 13:41:15 -0800
+Message-ID: <200711262141.lAQLfGfC024328@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42063 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59279 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751261AbXKZVZi (ORCPT
+	by vger.kernel.org with ESMTP id S1754169AbXKZVlb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 16:25:38 -0500
+	Mon, 26 Nov 2007 16:41:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adaplas@pol.net, adobriyan@gmail.com, davem@davemloft.net, jeff@garzik.org, jens.axboe@oracle.com, kkeil@suse.de, linville@tuxdriver.com, mark.fasheh@oracle.
+To: mathieu.desnoyers@polymtl.ca, lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix-versus-precedence-in-various-places-checkpatch-fixes
+     Add cmpxchg_local to sh64
 has been removed from the -mm tree.  Its filename was
-     fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+     add-cmpxchg_local-to-sh64.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: fix-versus-precedence-in-various-places-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Add cmpxchg_local to sh64
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-ERROR: use tabs not spaces
-#146: FILE: drivers/isdn/act2000/module.c:527:
-+                if (!(card->flags & ACT2000_FLAGS_RUNNING))$
+Use the new generic cmpxchg_local (disables interrupt). Also use the generic
+cmpxchg as fallback if SMP is not set.
 
-ERROR: use tabs not spaces
-#155: FILE: drivers/isdn/act2000/module.c:542:
-+                if (!(card->flags & ACT2000_FLAGS_RUNNING))$
-
-ERROR: use tabs not spaces
-#164: FILE: drivers/isdn/act2000/module.c:557:
-+                if (!(card->flags & ACT2000_FLAGS_RUNNING))$
-
-ERROR: need a space before the open parenthesis '('
-#377: FILE: drivers/net/wireless/airo.c:6410:
-+			if(!(dwrq->flags & IW_ENCODE_MODE)) {
-
-WARNING: braces {} are not necessary for single statement blocks
-#377: FILE: drivers/net/wireless/airo.c:6410:
-+			if(!(dwrq->flags & IW_ENCODE_MODE)) {
- 				return -EINVAL;
- 			}
-
-WARNING: braces {} are not necessary for single statement blocks
-#389: FILE: drivers/net/wireless/atmel.c:1762:
-+			if (!(dwrq->flags & IW_ENCODE_MODE)) {
- 				return -EINVAL;
- 			}
-
-ERROR: need a space before the open parenthesis '('
-#446: FILE: drivers/video/sis/sis_main.c:430:
-+	if(!(buffer[0x14] & 0x80)) {
-
-total: 5 errors, 2 warnings, 346 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Karsten Keil <kkeil@suse.de>
-Cc: Mark Fasheh <mark.fasheh@oracle.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Peter Osterlund <petero2@telia.com>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/act2000/module.c |    6 +++---
- drivers/video/sis/sis_main.c  |    2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ include/asm-sh64/system.h |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff -puN drivers/isdn/act2000/module.c~fix-versus-precedence-in-various-places-checkpatch-fixes drivers/isdn/act2000/module.c
---- a/drivers/isdn/act2000/module.c~fix-versus-precedence-in-various-places-checkpatch-fixes
-+++ a/drivers/isdn/act2000/module.c
-@@ -524,7 +524,7 @@ if_writecmd(const u_char __user *buf, in
-         act2000_card *card = act2000_findcard(id);
+diff -puN include/asm-sh64/system.h~add-cmpxchg_local-to-sh64 include/asm-sh64/system.h
+--- a/include/asm-sh64/system.h~add-cmpxchg_local-to-sh64
++++ a/include/asm-sh64/system.h
+@@ -163,6 +163,21 @@ static __inline__ unsigned long __xchg(u
+ 	return x;
+ }
  
-         if (card) {
--                if (!(card->flags & ACT2000_FLAGS_RUNNING))
-+		if (!(card->flags & ACT2000_FLAGS_RUNNING))
-                         return -ENODEV;
-                 return (len);
-         }
-@@ -539,7 +539,7 @@ if_readstatus(u_char __user * buf, int l
-         act2000_card *card = act2000_findcard(id);
- 	
-         if (card) {
--                if (!(card->flags & ACT2000_FLAGS_RUNNING))
-+		if (!(card->flags & ACT2000_FLAGS_RUNNING))
-                         return -ENODEV;
-                 return (act2000_readstatus(buf, len, card));
-         }
-@@ -554,7 +554,7 @@ if_sendbuf(int id, int channel, int ack,
-         act2000_card *card = act2000_findcard(id);
- 	
-         if (card) {
--                if (!(card->flags & ACT2000_FLAGS_RUNNING))
-+		if (!(card->flags & ACT2000_FLAGS_RUNNING))
-                         return -ENODEV;
- 		return (act2000_sendbuf(card, channel, ack, skb));
-         }
-diff -puN drivers/video/sis/sis_main.c~fix-versus-precedence-in-various-places-checkpatch-fixes drivers/video/sis/sis_main.c
---- a/drivers/video/sis/sis_main.c~fix-versus-precedence-in-various-places-checkpatch-fixes
-+++ a/drivers/video/sis/sis_main.c
-@@ -427,7 +427,7 @@ sisfb_interpret_edid(struct sisfb_monito
- 
- 	monitor->feature = buffer[0x18];
- 
--	if(!(buffer[0x14] & 0x80)) {
-+	if (!(buffer[0x14] & 0x80)) {
- 		if(!(buffer[0x14] & 0x08)) {
- 			printk(KERN_INFO
- 				"sisfb: WARNING: Monitor does not support separate syncs\n");
++#include <asm-generic/cmpxchg-local.h>
++
++/*
++ * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
++ * them available.
++ */
++#define cmpxchg_local(ptr, o, n)				  	       \
++	((__typeof__(*(ptr)))__cmpxchg_local_generic((ptr), (unsigned long)(o),\
++			(unsigned long)(n), sizeof(*(ptr))))
++#define cmpxchg64_local(ptr, o, n) __cmpxchg64_local_generic((ptr), (o), (n))
++
++#ifndef CONFIG_SMP
++#include <asm-generic/cmpxchg.h>
++#endif
++
+ /* XXX
+  * disable hlt during certain critical i/o operations
+  */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
-origin.patch
-file-capabilities-allow-sigcont-within-session-v2.patch
-pnp-increase-the-maximum-number-of-resources-fix.patch
-fix-linux-kdh-usage-in-userspace-checkpatch-fixes.patch
-revert-keyspan-init-termios-properly.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-revert-gregkh-driver-drm-convert-from-class_device-to-device-in-drivers-char-drm.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-git-drm-oops-fix.patch
-intel-agp-enable-i915-recognition.patch
-git-dvb.patch
-ia64-slim-down-__clear_bit_unlock.patch
-git-infiniband.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-git-mips-fixup.patch
-git-mmc.patch
-git-mtd.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-bluetooth-uninlining.patch
-git-nfsd.patch
-drivers-pci-quirksc-coding-style-cleanup.patch
-more-sanity-checks-for-dmar.patch
-git-s390.patch
-ips-trim-trailing-whitespace.patch
-scsi-gdth-kill-unneeded-irq-argument.patch
-bidi-support-scsi_data_buffer-broke-qla1280.patch
-bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
-libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-git-watchdog.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-x86-fixup.patch
-git-cryptodev.patch
-git-xtensa.patch
-ia64-increase-datapatch-offset.patch
-ia64-dont-assume-that-unwcheckpy-is-executable.patch
-ia64-export-copy_page-to-modules.patch
-isdn-validate-length-of-isdn_net_ioctl_cfgeaz.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-sync_sb_inodes-propagate-errors.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-64-bit-i_version-afs-fixes.patch
-ext4-add-block-bitmap-validation-fix.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-w1-build-fix.patch
+add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
+fall-back-on-interrupt-disable-in-cmpxchg8b-on-80386-and-80486.patch
+add-cmpxchg64-and-cmpxchg64_local-to-alpha.patch
+add-cmpxchg64-and-cmpxchg64_local-to-mips.patch
+add-cmpxchg64-and-cmpxchg64_local-to-powerpc.patch
+add-cmpxchg64-and-cmpxchg64_local-to-x86_64.patch
+add-cmpxchg_local-to-arm.patch
+add-cmpxchg_local-to-avr32.patch
+add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
+add-cmpxchg_local-to-cris.patch
+add-cmpxchg_local-to-frv.patch
+add-cmpxchg_local-to-h8300.patch
+add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
+new-cmpxchg_local-optimized-for-up-case-for-m32r.patch
+fix-m32r-__xchg.patch
+m32r-build-fix-of-arch-m32r-kernel-smpbootc.patch
+local_t-m32r-use-architecture-specific-cmpxchg_local.patch
+add-cmpxchg_local-to-m86k.patch
+add-cmpxchg_local-to-m68knommu.patch
+add-cmpxchg_local-to-parisc.patch
+add-cmpxchg_local-to-ppc.patch
+add-cmpxchg_local-to-s390.patch
+add-cmpxchg_local-to-sh-use-generic-cmpxchg-instead-of-cmpxchg_u32.patch
+add-cmpxchg_local-to-sh64.patch
+add-cmpxchg_local-to-sparc-move-__cmpxchg-to-systemh.patch
+add-cmpxchg_local-to-sparc64.patch
+add-cmpxchg_local-to-v850.patch
+add-cmpxchg_local-to-xtensa.patch
