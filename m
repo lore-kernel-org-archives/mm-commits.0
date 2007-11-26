@@ -1,132 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - power_supply_ledssysfsc-should-include-power_supplyh.patch removed from -mm tree
-Date: Mon, 26 Nov 2007 13:50:05 -0800
-Message-ID: <200711262150.lAQLo5Zh024825@imap1.linux-foundation.org>
+Subject: - power-use-kasprintf.patch removed from -mm tree
+Date: Mon, 26 Nov 2007 13:50:07 -0800
+Message-ID: <200711262150.lAQLo7Mu024828@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38163 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47621 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756187AbXKZV6l (ORCPT
+	by vger.kernel.org with ESMTP id S1755347AbXKZV6w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 16:58:41 -0500
+	Mon, 26 Nov 2007 16:58:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, cbou@mail.ru, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     patch] power_supply_{leds,sysfs}.c should #include "power_supply.h"
+     power: use kasprintf
 has been removed from the -mm tree.  Its filename was
-     power_supply_ledssysfsc-should-include-power_supplyh.patch
+     power-use-kasprintf.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: patch] power_supply_{leds,sysfs}.c should #include "power_supply.h"
-From: Adrian Bunk <bunk@kernel.org>
+Subject: power: use kasprintf
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Every file should include the headers containing the prototypes for its global
-functions.
+Use kasprintf instead of kmalloc()-strcpy()-strcat().
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Anton Vorontsov <cbou@mail.ru>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/power_supply_leds.c  |    2 ++
- drivers/power/power_supply_sysfs.c |    2 ++
- 2 files changed, 4 insertions(+)
+ drivers/power/power_supply_leds.c |   25 +++++++------------------
+ 1 file changed, 7 insertions(+), 18 deletions(-)
 
-diff -puN drivers/power/power_supply_leds.c~power_supply_ledssysfsc-should-include-power_supplyh drivers/power/power_supply_leds.c
---- a/drivers/power/power_supply_leds.c~power_supply_ledssysfsc-should-include-power_supplyh
+diff -puN drivers/power/power_supply_leds.c~power-use-kasprintf drivers/power/power_supply_leds.c
+--- a/drivers/power/power_supply_leds.c~power-use-kasprintf
 +++ a/drivers/power/power_supply_leds.c
-@@ -12,6 +12,8 @@
+@@ -10,6 +10,7 @@
+  *  You may use this code as per GPL version 2
+  */
  
++#include <linux/kernel.h>
  #include <linux/power_supply.h>
  
-+#include "power_supply.h"
-+
- /* Battery specific LEDs triggers. */
+ #include "power_supply.h"
+@@ -48,28 +49,20 @@ static int power_supply_create_bat_trigg
+ {
+ 	int rc = 0;
  
- static void power_supply_update_bat_leds(struct power_supply *psy)
-diff -puN drivers/power/power_supply_sysfs.c~power_supply_ledssysfsc-should-include-power_supplyh drivers/power/power_supply_sysfs.c
---- a/drivers/power/power_supply_sysfs.c~power_supply_ledssysfsc-should-include-power_supplyh
-+++ a/drivers/power/power_supply_sysfs.c
-@@ -14,6 +14,8 @@
- #include <linux/ctype.h>
- #include <linux/power_supply.h>
+-	psy->charging_full_trig_name = kmalloc(strlen(psy->name) +
+-				  sizeof("-charging-or-full"), GFP_KERNEL);
++	psy->charging_full_trig_name = kasprintf(GFP_KERNEL,
++					"%s-charging-or-full", psy->name);
+ 	if (!psy->charging_full_trig_name)
+ 		goto charging_full_failed;
  
-+#include "power_supply.h"
-+
- /*
-  * This is because the name "current" breaks the device attr macro.
-  * The "current" word resolves to "(get_current())" so instead of
+-	psy->charging_trig_name = kmalloc(strlen(psy->name) +
+-					  sizeof("-charging"), GFP_KERNEL);
++	psy->charging_trig_name = kasprintf(GFP_KERNEL,
++					"%s-charging", psy->name);
+ 	if (!psy->charging_trig_name)
+ 		goto charging_failed;
+ 
+-	psy->full_trig_name = kmalloc(strlen(psy->name) +
+-				      sizeof("-full"), GFP_KERNEL);
++	psy->full_trig_name = kasprintf(GFP_KERNEL, "%s-full", psy->name);
+ 	if (!psy->full_trig_name)
+ 		goto full_failed;
+ 
+-	strcpy(psy->charging_full_trig_name, psy->name);
+-	strcat(psy->charging_full_trig_name, "-charging-or-full");
+-	strcpy(psy->charging_trig_name, psy->name);
+-	strcat(psy->charging_trig_name, "-charging");
+-	strcpy(psy->full_trig_name, psy->name);
+-	strcat(psy->full_trig_name, "-full");
+-
+ 	led_trigger_register_simple(psy->charging_full_trig_name,
+ 				    &psy->charging_full_trig);
+ 	led_trigger_register_simple(psy->charging_trig_name,
+@@ -120,14 +113,10 @@ static int power_supply_create_gen_trigg
+ {
+ 	int rc = 0;
+ 
+-	psy->online_trig_name = kmalloc(strlen(psy->name) + sizeof("-online"),
+-					GFP_KERNEL);
++	psy->online_trig_name = kasprintf(GFP_KERNEL, "%s-online", psy->name);
+ 	if (!psy->online_trig_name)
+ 		goto online_failed;
+ 
+-	strcpy(psy->online_trig_name, psy->name);
+-	strcat(psy->online_trig_name, "-online");
+-
+ 	led_trigger_register_simple(psy->online_trig_name, &psy->online_trig);
+ 
+ 	goto success;
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-m68k-export-atari_keyb_init.patch
-git-acpi.patch
-git-avr32.patch
-git-cifs.patch
-git-dvb.patch
-remove-saa7134-oss.patch
-git-gfs2-nmw.patch
-git-libata-all.patch
-git-mtd.patch
-make-sunrpc-xprtsockcxs_setup_udptcp-static.patch
-git-netdev-all.patch
 git-battery.patch
-drivers-bluetooth-bpa10xc-fix-memleak.patch
-drivers-bluetooth-btsdioc-fix-double-free.patch
-git-nfs-make-nfs_wb_page_priority-static.patch
-fs-nfs-dirc-should-include-internalh.patch
-remove-additional-pci_scan_child_bus-prototype.patch
-git-scsi-misc.patch
-scsi-advansysc-make-3-functions-static.patch
-scsi-qla2xxx-possible-cleanups.patch
-git-x86.patch
-git-xtensa.patch
-xtensa-kernel-setupc-remove-dead-code.patch
-mm-page-writebackc-make-a-function-static.patch
-make-__vmalloc_area_node-static.patch
-blackfin-remove-dump_thread.patch
-kernel-power-diskc-make-code-static.patch
-make-kernel_shutdown_prepare-static.patch
-nubus-kill-drivers-nubus-nubus_symsc.patch
-m68k-kill-arch-m68k-mac-mac_ksymsc.patch
-m68k-kill-arch-m68k-hp300-ksymsc.patch
-m68k-kill-arch-m68k-amiga-amiga_ksymsc.patch
-m68k-kill-arch-m68k-atari-atari_ksymsc.patch
-m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch
-kill-udffs_dateversion.patch
-make-ipc-utilcsysvipc_find_ipc-static.patch
-cleanup-after-apus-removal.patch
-remove-mm_ptovvtop.patch
-remove-__attribute_used__.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-proper-show_interrupts-prototype.patch
-scheduled-oss-driver-removal.patch
-linux-inith-simplify-__meminitexit-dependencies.patch
-proper-prototype-for-signals_init.patch
-kernel-ptracec-should-include-linux-syscallsh.patch
-make-srcu_readers_active-static.patch
-kernel-notifierc-should-include-linux-rebooth.patch
-proper-prototype-for-get_filesystem_list.patch
-fs-utimesc-should-include-linux-syscallsh.patch
-fs-signalfdc-should-include-linux-syscallsh.patch
-fs-eventfdc-should-include-linux-syscallsh.patch
-proper-prototype-for-vty_init.patch
-drivers-misc-lkdtmc-cleanups.patch
-fs-ecryptfs-possible-cleanups.patch
-make-video-geode-lxfb_corecgeode_modedb-static.patch
-video-hpfbc-section-fix.patch
-ext4-superc-fix-ifdefs.patch
-make-jbd-journalc__journal_abort_hard-static.patch
-move-edactxt-two-levels-up.patch
-remove-documentation-smptxt.patch
-kernel-cgroupc-remove-dead-code.patch
-kernel-cgroupc-make-2-functions-static.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-fix-m32r-__xchg.patch
-reiser4.patch
+fs-use-hlist_unhashed.patch
+partitions-use-kasprintf.patch
+fs-use-list_for_each_entry_reverse-and-kill-sb_entry.patch
