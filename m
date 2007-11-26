@@ -1,345 +1,215 @@
 From: akpm@linux-foundation.org
-Subject: - pata_ninja32-cardbus-ata-initial-support.patch removed from -mm tree
-Date: Mon, 26 Nov 2007 13:48:54 -0800
-Message-ID: <200711262148.lAQLmsqt024640@imap1.linux-foundation.org>
+Subject: - ide-printk-fix.patch removed from -mm tree
+Date: Mon, 26 Nov 2007 13:48:58 -0800
+Message-ID: <200711262148.lAQLmwac024646@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51511 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51236 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755098AbXKZVtq (ORCPT
+	by vger.kernel.org with ESMTP id S1752104AbXKZV57 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 16:49:46 -0500
+	Mon, 26 Nov 2007 16:57:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bzolnier@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_ninja32: cardbus ATA initial support
+     ide printk fix
 has been removed from the -mm tree.  Its filename was
-     pata_ninja32-cardbus-ata-initial-support.patch
+     ide-printk-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata_ninja32: cardbus ATA initial support
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: ide printk fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Lots of work needed to bring it up to scratch but it does work so you can now
-use the card.  That makes it at least useful, especially as the other cardbus
-cards are usually INIC162x which aren't yet supported well.
+power4:
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+drivers/ide/ide-lib.c: In function `ide_dump_sector':
+drivers/ide/ide-lib.c:516: warning: long long unsigned int format, u64 arg (arg 2)
+
+We don't know what type is used to implement u64 hence it must always be cast
+when printed.
+
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/Kconfig        |    9 +
- drivers/ata/Makefile       |    1 
- drivers/ata/pata_ninja32.c |  212 +++++++++++++++++++++++++++++++++++
- 3 files changed, 222 insertions(+)
+ drivers/ide/ide-lib.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/Kconfig~pata_ninja32-cardbus-ata-initial-support drivers/ata/Kconfig
---- a/drivers/ata/Kconfig~pata_ninja32-cardbus-ata-initial-support
-+++ a/drivers/ata/Kconfig
-@@ -459,6 +459,15 @@ config PATA_NETCELL
+diff -puN drivers/ide/ide-lib.c~ide-printk-fix drivers/ide/ide-lib.c
+--- a/drivers/ide/ide-lib.c~ide-printk-fix
++++ a/drivers/ide/ide-lib.c
+@@ -513,7 +513,8 @@ static void ide_dump_sector(ide_drive_t 
+ 	ide_tf_read(drive, &task);
  
- 	  If unsure, say N.
- 
-+config PATA_NINJA32
-+	tristate "Ninja32/Delkin Cardbus ATA support (Experimental)"
-+	depends on PCI && EXPERIMENTAL
-+	help
-+	  This option enables support for the Ninja32, Delkin and
-+	  possibly other brands of Cardbus ATA adapter
-+
-+	  If unsure, say N.
-+
- config PATA_NS87410
- 	tristate "Nat Semi NS87410 PATA support (Experimental)"
- 	depends on PCI && EXPERIMENTAL
-diff -puN drivers/ata/Makefile~pata_ninja32-cardbus-ata-initial-support drivers/ata/Makefile
---- a/drivers/ata/Makefile~pata_ninja32-cardbus-ata-initial-support
-+++ a/drivers/ata/Makefile
-@@ -41,6 +41,7 @@ obj-$(CONFIG_PATA_IT821X)	+= pata_it821x
- obj-$(CONFIG_PATA_IT8213)	+= pata_it8213.o
- obj-$(CONFIG_PATA_JMICRON)	+= pata_jmicron.o
- obj-$(CONFIG_PATA_NETCELL)	+= pata_netcell.o
-+obj-$(CONFIG_PATA_NINJA32)	+= pata_ninja32.o
- obj-$(CONFIG_PATA_NS87410)	+= pata_ns87410.o
- obj-$(CONFIG_PATA_NS87415)	+= pata_ns87415.o
- obj-$(CONFIG_PATA_OPTI)		+= pata_opti.o
-diff -puN /dev/null drivers/ata/pata_ninja32.c
---- /dev/null
-+++ a/drivers/ata/pata_ninja32.c
-@@ -0,0 +1,212 @@
-+/*
-+ * pata_ninja32.c 	- Ninja32 PATA for new ATA layer
-+ *			  (C) 2007 Red Hat Inc
-+ *			  Alan Cox <alan@redhat.com>
-+ *
-+ * Note: The controller like many controllers has shared timings for
-+ * PIO and DMA. We thus flip to the DMA timings in dma_start and flip back
-+ * in the dma_stop function. Thus we actually don't need a set_dmamode
-+ * method as the PIO method is always called and will set the right PIO
-+ * timing parameters.
-+ *
-+ * The Ninja32 Cardbus is not a generic SFF controller. Instead it is
-+ * laid out as follows off BAR 0. This is based upon Mark Lord's delkin
-+ * driver and the extensive analysis done by the BSD developers, notably
-+ * ITOH Yasufumi.
-+ *
-+ *	Base + 0x00 IRQ Status
-+ *	Base + 0x01 IRQ control
-+ *	Base + 0x02 Chipset control
-+ *	Base + 0x04 VDMA and reset control + wait bits
-+ *	Base + 0x08 BMIMBA
-+ *	Base + 0x0C DMA Length
-+ *	Base + 0x10 Taskfile
-+ *	Base + 0x18 BMDMA Status ?
-+ *	Base + 0x1C
-+ *	Base + 0x1D Bus master control
-+ *		bit 0 = enable
-+ *		bit 1 = 0 write/1 read
-+ *		bit 2 = 1 sgtable
-+ *		bit 3 = go
-+ *		bit 4-6 wait bits
-+ *		bit 7 = done
-+ *	Base + 0x1E AltStatus
-+ *	Base + 0x1F timing register
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/pci.h>
-+#include <linux/init.h>
-+#include <linux/blkdev.h>
-+#include <linux/delay.h>
-+#include <scsi/scsi_host.h>
-+#include <linux/libata.h>
-+
-+#define DRV_NAME "pata_ninja32"
-+#define DRV_VERSION "0.0.1"
-+
-+
-+/**
-+ *	ninja32_set_piomode	-	set initial PIO mode data
-+ *	@ap: ATA interface
-+ *	@adev: ATA device
-+ *
-+ *	Called to do the PIO mode setup. Our timing registers are shared
-+ *	but we want to set the PIO timing by default.
-+ */
-+
-+static void ninja32_set_piomode(struct ata_port *ap, struct ata_device *adev)
-+{
-+	static u16 pio_timing[5] = {
-+		0xd6, 0x85, 0x44, 0x33, 0x13
-+	};
-+	iowrite8(pio_timing[adev->pio_mode - XFER_PIO_0], ap->ioaddr.bmdma_addr + 0x1f);
-+	ap->private_data = adev;
-+}
-+
-+
-+static void ninja32_dev_select(struct ata_port *ap, unsigned int device)
-+{
-+	struct ata_device *adev = &ap->link.device[device];
-+	if (ap->private_data != adev) {
-+		iowrite8(0xd6, ap->ioaddr.bmdma_addr + 0x1f);
-+		ata_std_dev_select(ap, device);
-+		ninja32_set_piomode(ap, adev);
-+	}
-+}
-+
-+static struct scsi_host_template ninja32_sht = {
-+	.module			= THIS_MODULE,
-+	.name			= DRV_NAME,
-+	.ioctl			= ata_scsi_ioctl,
-+	.queuecommand		= ata_scsi_queuecmd,
-+	.can_queue		= ATA_DEF_QUEUE,
-+	.this_id		= ATA_SHT_THIS_ID,
-+	.sg_tablesize		= LIBATA_MAX_PRD,
-+	.cmd_per_lun		= ATA_SHT_CMD_PER_LUN,
-+	.emulated		= ATA_SHT_EMULATED,
-+	.use_clustering		= ATA_SHT_USE_CLUSTERING,
-+	.proc_name		= DRV_NAME,
-+	.dma_boundary		= ATA_DMA_BOUNDARY,
-+	.slave_configure	= ata_scsi_slave_config,
-+	.slave_destroy		= ata_scsi_slave_destroy,
-+	.bios_param		= ata_std_bios_param,
-+};
-+
-+static struct ata_port_operations ninja32_port_ops = {
-+	.set_piomode	= ninja32_set_piomode,
-+	.mode_filter	= ata_pci_default_filter,
-+
-+	.tf_load	= ata_tf_load,
-+	.tf_read	= ata_tf_read,
-+	.check_status 	= ata_check_status,
-+	.exec_command	= ata_exec_command,
-+	.dev_select 	= ninja32_dev_select,
-+
-+	.freeze		= ata_bmdma_freeze,
-+	.thaw		= ata_bmdma_thaw,
-+	.error_handler	= ata_bmdma_error_handler,
-+	.post_internal_cmd = ata_bmdma_post_internal_cmd,
-+	.cable_detect	= ata_cable_40wire,
-+
-+	.bmdma_setup 	= ata_bmdma_setup,
-+	.bmdma_start 	= ata_bmdma_start,
-+	.bmdma_stop	= ata_bmdma_stop,
-+	.bmdma_status 	= ata_bmdma_status,
-+
-+	.qc_prep 	= ata_qc_prep,
-+	.qc_issue	= ata_qc_issue_prot,
-+
-+	.data_xfer	= ata_data_xfer,
-+
-+	.irq_handler	= ata_interrupt,
-+	.irq_clear	= ata_bmdma_irq_clear,
-+	.irq_on		= ata_irq_on,
-+
-+	.port_start	= ata_sff_port_start,
-+};
-+
-+static int ninja32_init_one(struct pci_dev *dev, const struct pci_device_id *id)
-+{
-+	struct ata_host *host;
-+	struct ata_port *ap;
-+	void __iomem *base;
-+	int rc;
-+
-+	host = ata_host_alloc(&dev->dev, 1);
-+	if (!host)
-+		return -ENOMEM;
-+	ap = host->ports[0];
-+
-+	/* Set up the PCI device */
-+	rc = pcim_enable_device(dev);
-+	if (rc)
-+		return rc;
-+	rc = pcim_iomap_regions(dev, 1 << 0, DRV_NAME);
-+	if (rc == -EBUSY)
-+		pcim_pin_device(dev);
-+	if (rc)
-+		return rc;
-+
-+	host->iomap = pcim_iomap_table(dev);
-+	rc = pci_set_dma_mask(dev, ATA_DMA_MASK);
-+	if (rc)
-+		return rc;
-+	rc = pci_set_consistent_dma_mask(dev, ATA_DMA_MASK);
-+	if (rc)
-+		return rc;
-+	pci_set_master(dev);
-+
-+	/* Set up the register mappings */
-+	base = host->iomap[0];
-+	if (!base)
-+		return -ENOMEM;
-+	ap->ops = &ninja32_port_ops;
-+	ap->pio_mask = 0x1F;
-+	ap->flags |= ATA_FLAG_SLAVE_POSS;
-+
-+	ap->ioaddr.cmd_addr = base + 0x10;
-+	ap->ioaddr.ctl_addr = base + 0x1E;
-+	ap->ioaddr.altstatus_addr = base + 0x1E;
-+	ap->ioaddr.bmdma_addr = base;
-+	ata_std_ports(&ap->ioaddr);
-+
-+	iowrite8(0x05, base + 0x01);	/* Enable interrupt lines */
-+	iowrite8(0xB3, base + 0x02);	/* Burst, ?? setup */
-+	iowrite8(0x00, base + 0x04);	/* WAIT0 ? */
-+	/* FIXME: Should we disable them at remove ? */
-+	return ata_host_activate(host, dev->irq, ata_interrupt, IRQF_SHARED, &ninja32_sht);
-+}
-+
-+static const struct pci_device_id ninja32[] = {
-+	{ 0x1145, 0xf021, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
-+	{ 0x1145, 0xf024, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
-+	{ },
-+};
-+
-+static struct pci_driver ninja32_pci_driver = {
-+	.name 		= DRV_NAME,
-+	.id_table	= ninja32,
-+	.probe 		= ninja32_init_one,
-+	.remove		= ata_pci_remove_one
-+};
-+
-+static int __init ninja32_init(void)
-+{
-+	return pci_register_driver(&ninja32_pci_driver);
-+}
-+
-+static void __exit ninja32_exit(void)
-+{
-+	pci_unregister_driver(&ninja32_pci_driver);
-+}
-+
-+MODULE_AUTHOR("Alan Cox");
-+MODULE_DESCRIPTION("low-level driver for Ninja32 ATA");
-+MODULE_LICENSE("GPL");
-+MODULE_DEVICE_TABLE(pci, ninja32);
-+MODULE_VERSION(DRV_VERSION);
-+
-+module_init(ninja32_init);
-+module_exit(ninja32_exit);
+ 	if (lba48 || (tf->device & ATA_LBA))
+-		printk(", LBAsect=%llu", ide_get_lba_addr(tf, lba48));
++		printk(", LBAsect=%llu",
++			(unsigned long long)ide_get_lba_addr(tf, lba48));
+ 	else
+ 		printk(", CHS=%d/%d/%d", (tf->lbah << 8) + tf->lbam,
+ 					 tf->device & 0xf, tf->lbal);
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-termios-document-callback-more-clearly.patch
+origin.patch
+file-capabilities-allow-sigcont-within-session-v2.patch
+pnp-increase-the-maximum-number-of-resources-fix.patch
+fix-linux-kdh-usage-in-userspace-checkpatch-fixes.patch
 revert-keyspan-init-termios-properly.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-add-reboot-mechanism.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
+agk-dm-dm-ioctl-move-compat-code-fix.patch
+revert-gregkh-driver-drm-convert-from-class_device-to-device-in-drivers-char-drm.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+git-drm-oops-fix.patch
+intel-agp-enable-i915-recognition.patch
+git-dvb.patch
+ia64-slim-down-__clear_bit_unlock.patch
+git-infiniband.patch
+git-kvm.patch
 git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
 pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-libata-separate-out-ata_acpi_gtm_xfermask-from-pacpi_discover_modes.patch
-libata-fix-ata_acpi_gtm_xfermask.patch
-libata-implement-ata_timing_cycle2mode-and-use-it-in-libata-acpi-and-pata_acpi.patch
-libata-reimplement-ata_acpi_cbl_80wire-using-ata_acpi_gtm_xfermask.patch
-libata-add-ata_cbl_pata_ign.patch
-pata_amd-update-mode-selection-for-nv-patas.patch
-pata_pcmcia-minor-cleanups-and-support-for-dual-channel-cards.patch
+git-mips-fixup.patch
+git-mmc.patch
+git-mtd.patch
 git-netdev-all.patch
-pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch
-pcmcia-replace-kio_addr_t-with-unsigned-int-everywhere.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-git-scsi-rc-fixes.patch
-initio-fix-conflict-when-loading-driver.patch
-pata_amd-pata_via-de-couple-programming-of-pio-mwdma-and-udma-timings.patch
-tty-add-the-new-termios2-ioctls-to-the-compatible.patch
-geode-lists-are-subscriber-only.patch
-tty-kill-tty_flipbuf_size.patch
-drivers-edac-turnon-edac-device-error-logging.patch
-drivers-edac-use-round_jiffies_relative.patch
-drivers-edac-add-cell-xdr-memory-types.patch
-drivers-edac-add-cell-mc-driver.patch
-drivers-edac-i3000-code-tidying.patch
-drivers-edac-i3000-replace-macros-with-functions.patch
-drivers-edac-add-freescale-mpc85xx-driver.patch
-drivers-edac-add-marvell-mv64x60-driver.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+bluetooth-uninlining.patch
+git-nfsd.patch
+drivers-pci-quirksc-coding-style-cleanup.patch
+more-sanity-checks-for-dmar.patch
+git-s390.patch
+ips-trim-trailing-whitespace.patch
+scsi-gdth-kill-unneeded-irq-argument.patch
+bidi-support-scsi_data_buffer-broke-qla1280.patch
+bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
+libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+git-watchdog.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-fixup.patch
+git-cryptodev.patch
+git-xtensa.patch
+ia64-increase-datapatch-offset.patch
+ia64-dont-assume-that-unwcheckpy-is-executable.patch
+ia64-export-copy_page-to-modules.patch
+isdn-validate-length-of-isdn_net_ioctl_cfgeaz.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+sync_sb_inodes-propagate-errors.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+64-bit-i_version-afs-fixes.patch
+ext4-add-block-bitmap-validation-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
 drivers-edac-add-marvell-mv64x60-driver-fix.patch
-dz-clean-up-and-improve-the-setup-of-termios-settings.patch
-char-rocket-switch-long-delay-to-sleep.patch
-char-rocket-printk-cleanup.patch
-char-char-serial-remove-serial_type_normal-redefines.patch
-char-mxser_new-ioaddresses-are-ulong.patch
-char-stallion-fix-compiler-warnings.patch
-char-riscom8-change-rc_init_drivers-prototype.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
-tty-s390-support-for-termios2.patch
-moxa-first-pass-at-termios-reporting.patch
-n_tty-clean-up-old-code-to-follow-coding-style-and-mostly-checkpatch.patch
-rocket-first-pass-at-termios-reporting.patch
-rocket-dont-let-random-users-reset-the-controller.patch
-tty_audit-fix-checkpatch-complaint.patch
-tty_io-drag-screaming-into-coding-style-compliance.patch
-tty_ioctl-drag-screaming-into-compliance-with-the-coding.patch
-8250_early-coding-style.patch
-8250_gsc-coding-style.patch
-8250_hp300-coding-style.patch
-8250_hub6-codding-style.patch
-8250_pci-coding-style.patch
-serial8250-coding-style.patch
-8250-enable-rate-reporting-via-termios.patch
-serial_core-bring-mostly-into-line-with-coding-style.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+w1-build-fix.patch
