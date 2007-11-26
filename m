@@ -1,168 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: - extended-interrupt-lvt-support-for-amd-barcelona.patch removed from -mm tree
-Date: Mon, 26 Nov 2007 13:50:00 -0800
-Message-ID: <200711262150.lAQLo0Ql024811@imap1.linux-foundation.org>
+Subject: - usb-s3c2410_udc-minor-irq-handler-cleanups.patch removed from -mm tree
+Date: Mon, 26 Nov 2007 13:49:26 -0800
+Message-ID: <200711262149.lAQLnQwd024760@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37132 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36657 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751409AbXKZV7Y (ORCPT
+	by vger.kernel.org with ESMTP id S1754357AbXKZV72 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 16:59:24 -0500
+	Mon, 26 Nov 2007 16:59:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: robert.richter@amd.com, ak@suse.de, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: jeff@garzik.org, david-b@pacbell.net, greg@kroah.com, jgarzik@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Extended interrupt LVT support for AMD Barcelona
+     USB: s3c2410_udc: minor irq handler cleanups
 has been removed from the -mm tree.  Its filename was
-     extended-interrupt-lvt-support-for-amd-barcelona.patch
+     usb-s3c2410_udc-minor-irq-handler-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Extended interrupt LVT support for AMD Barcelona
-From: "Robert Richter" <robert.richter@amd.com>
+Subject: USB: s3c2410_udc: minor irq handler cleanups
+From: Jeff Garzik <jeff@garzik.org>
 
-This patch adds extended interrupt support for AMD Barcelona CPUs.  The
-patch provides functions to setup MCE and IBS interrupt vectors.  Compared
-to the previous K8 implementation the vector offsets are centrally handled
-now in apic_64.c.  Thus, the APIC setup code is responsible for vector
-mappings.  The vector mapping is hardcoded for now.
+- 'irq' argument is merely used in place of a constant; replace its usage
+  with that constant.
 
-Also macro definitions in apicdef.h has been updated.
-
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/apic_64.c               |   26 ++++++++++++++++++----
- arch/x86/kernel/cpu/mcheck/mce_amd_64.c |   10 ++++----
- include/asm-x86/apic.h                  |    4 +--
- include/asm-x86/apicdef.h               |   19 ++++++++++------
- 4 files changed, 41 insertions(+), 18 deletions(-)
+ drivers/usb/gadget/s3c2410_udc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/apic_64.c~extended-interrupt-lvt-support-for-amd-barcelona arch/x86/kernel/apic_64.c
---- a/arch/x86/kernel/apic_64.c~extended-interrupt-lvt-support-for-amd-barcelona
-+++ a/arch/x86/kernel/apic_64.c
-@@ -187,17 +187,35 @@ static void __setup_APIC_LVTT(unsigned i
- }
- 
+diff -puN drivers/usb/gadget/s3c2410_udc.c~usb-s3c2410_udc-minor-irq-handler-cleanups drivers/usb/gadget/s3c2410_udc.c
+--- a/drivers/usb/gadget/s3c2410_udc.c~usb-s3c2410_udc-minor-irq-handler-cleanups
++++ a/drivers/usb/gadget/s3c2410_udc.c
+@@ -893,7 +893,7 @@ static void s3c2410_udc_handle_ep(struct
  /*
-- * Setup extended LVT (K8 specific)
-+ * Setup extended LVT, AMD specific (K8, family 10h)
-+ *
-+ * Vector mappings are hard coded. On K8 only offset 0 (APIC500) and
-+ * MCE interrupts are supported. Thus MCE offset must be set to 0.
+  *	s3c2410_udc_irq - interrupt handler
   */
--void setup_APIC_extended_lvt(unsigned char lvt_off, unsigned char vector,
--			     unsigned char msg_type, unsigned char mask)
-+
-+#define APIC_EILVT_LVTOFF_MCE 0
-+#define APIC_EILVT_LVTOFF_IBS 1
-+
-+static void setup_APIC_eilvt(u8 lvt_off, u8 vector, u8 msg_type, u8 mask)
+-static irqreturn_t s3c2410_udc_irq(int irq, void *_dev)
++static irqreturn_t s3c2410_udc_irq(int dummy, void *_dev)
  {
--	unsigned long reg = (lvt_off << 4) + K8_APIC_EXT_LVT_BASE;
-+	unsigned long reg = (lvt_off << 4) + APIC_EILVT0;
- 	unsigned int  v   = (mask << 16) | (msg_type << 8) | vector;
- 
- 	apic_write(reg, v);
- }
- 
-+u8 setup_APIC_eilvt_mce(u8 vector, u8 msg_type, u8 mask)
-+{
-+	setup_APIC_eilvt(APIC_EILVT_LVTOFF_MCE, vector, msg_type, mask);
-+	return APIC_EILVT_LVTOFF_MCE;
-+}
-+
-+u8 setup_APIC_eilvt_ibs(u8 vector, u8 msg_type, u8 mask)
-+{
-+	setup_APIC_eilvt(APIC_EILVT_LVTOFF_IBS, vector, msg_type, mask);
-+	return APIC_EILVT_LVTOFF_IBS;
-+}
-+
- /*
-  * Program the next event, relative to now
-  */
-diff -puN arch/x86/kernel/cpu/mcheck/mce_amd_64.c~extended-interrupt-lvt-support-for-amd-barcelona arch/x86/kernel/cpu/mcheck/mce_amd_64.c
---- a/arch/x86/kernel/cpu/mcheck/mce_amd_64.c~extended-interrupt-lvt-support-for-amd-barcelona
-+++ a/arch/x86/kernel/cpu/mcheck/mce_amd_64.c
-@@ -118,6 +118,7 @@ void __cpuinit mce_amd_feature_init(stru
- {
- 	unsigned int bank, block;
- 	unsigned int cpu = smp_processor_id();
-+	u8 lvt_off;
- 	u32 low = 0, high = 0, address = 0;
- 
- 	for (bank = 0; bank < NR_BANKS; ++bank) {
-@@ -153,14 +154,13 @@ void __cpuinit mce_amd_feature_init(stru
- 			if (shared_bank[bank] && c->cpu_core_id)
- 				break;
- #endif
-+			lvt_off = setup_APIC_eilvt_mce(THRESHOLD_APIC_VECTOR,
-+						       APIC_EILVT_MSG_FIX, 0);
-+
- 			high &= ~MASK_LVTOFF_HI;
--			high |= K8_APIC_EXT_LVT_ENTRY_THRESHOLD << 20;
-+			high |= lvt_off << 20;
- 			wrmsr(address, low, high);
- 
--			setup_APIC_extended_lvt(K8_APIC_EXT_LVT_ENTRY_THRESHOLD,
--						THRESHOLD_APIC_VECTOR,
--						K8_APIC_EXT_INT_MSG_FIX, 0);
--
- 			threshold_defaults.address = address;
- 			threshold_restart_bank(&threshold_defaults, 0, 0);
+ 	struct s3c2410_udc *dev = _dev;
+ 	int usb_status;
+@@ -1016,7 +1016,7 @@ static irqreturn_t s3c2410_udc_irq(int i
  		}
-diff -puN include/asm-x86/apicdef.h~extended-interrupt-lvt-support-for-amd-barcelona include/asm-x86/apicdef.h
---- a/include/asm-x86/apicdef.h~extended-interrupt-lvt-support-for-amd-barcelona
-+++ a/include/asm-x86/apicdef.h
-@@ -116,13 +116,18 @@
- #define		APIC_TDR_DIV_32		0x8
- #define		APIC_TDR_DIV_64		0x9
- #define		APIC_TDR_DIV_128	0xA
--
--#define K8_APIC_EXT_LVT_BASE		0x500
--#define K8_APIC_EXT_INT_MSG_FIX		0x0
--#define K8_APIC_EXT_INT_MSG_SMI		0x2
--#define K8_APIC_EXT_INT_MSG_NMI		0x4
--#define K8_APIC_EXT_INT_MSG_EXT		0x7
--#define K8_APIC_EXT_LVT_ENTRY_THRESHOLD	0
-+#define	APIC_EILVT0     0x500
-+#define		APIC_EILVT_NR_AMD_K8	1	/* Number of extended interrupts */
-+#define		APIC_EILVT_NR_AMD_10H	4
-+#define		APIC_EILVT_LVTOFF(x)	(((x)>>4)&0xF)
-+#define		APIC_EILVT_MSG_FIX	0x0
-+#define		APIC_EILVT_MSG_SMI	0x2
-+#define		APIC_EILVT_MSG_NMI	0x4
-+#define		APIC_EILVT_MSG_EXT	0x7
-+#define		APIC_EILVT_MASKED	(1<<16)
-+#define	APIC_EILVT1     0x510
-+#define	APIC_EILVT2     0x520
-+#define	APIC_EILVT3     0x530
+ 	}
  
- #define APIC_BASE (fix_to_virt(FIX_APIC_BASE))
+-	dprintk(DEBUG_VERBOSE, "irq: %d s3c2410_udc_done.\n", irq);
++	dprintk(DEBUG_VERBOSE, "irq: %d s3c2410_udc_done.\n", IRQ_USBD);
  
-diff -puN include/asm-x86/apic.h~extended-interrupt-lvt-support-for-amd-barcelona include/asm-x86/apic.h
---- a/include/asm-x86/apic.h~extended-interrupt-lvt-support-for-amd-barcelona
-+++ a/include/asm-x86/apic.h
-@@ -126,8 +126,8 @@ extern void enable_NMI_through_LVT0(void
- extern void setup_apic_routing(void);
- #endif
- 
--extern void setup_APIC_extended_lvt(unsigned char lvt_off, unsigned char vector,
--				    unsigned char msg_type, unsigned char mask);
-+extern u8 setup_APIC_eilvt_mce(u8 vector, u8 msg_type, u8 mask);
-+extern u8 setup_APIC_eilvt_ibs(u8 vector, u8 msg_type, u8 mask);
- 
- extern int apic_is_clustered_box(void);
- 
+ 	/* Restore old index */
+ 	udc_write(idx, S3C2410_UDC_INDEX_REG);
 _
 
-Patches currently in -mm which might be from robert.richter@amd.com are
+Patches currently in -mm which might be from jeff@garzik.org are
 
-git-x86.patch
+git-arm.patch
+powerpc-fix-typo-ifdef-ifndef.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+libata-add-toshiba-mk1637gsx-to-spurious-command-completion-list.patch
+git-netdev-all.patch
+forcedeth-power-down-phy-when-interface-is-down.patch
+forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+pcmcia-net-use-roundup_pow_of_two-macro-instead-of-grotesque-loop.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-scsi-rc-fixes.patch
+hptiop-fix-type-mismatch-warning.patch
+ips-remove-ips_ha-members-that-duplicate-struct-pci_dev-members.patch
+ips-trim-trailing-whitespace.patch
+ips-pci-api-cleanups.patch
+ips-handle-scsi_add_host-failure-and-other-err-cleanups.patch
+scsi-gdth-kill-unneeded-irq-argument.patch
+scsi-sym53c416-kill-pointless-irq-handler-loop-and-test.patch
+scsi-ncr5380-minor-irq-handler-cleanups.patch
+iommu-sg-merging-add-device_dma_parameters-structure.patch
+iommu-sg-merging-pci-add-device_dma_parameters-support.patch
+iommu-sg-merging-x86-make-pci-gart-iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-ppc-make-iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-ia64-make-sba_iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-alpha-make-pci_iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-parisc-make-iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-call-blk_queue_segment_boundary-in-__scsi_alloc_queue.patch
+iommu-sg-merging-sata_inic162x-use-pci_set_dma_max_seg_size.patch
+iommu-sg-merging-aacraid-use-pci_set_dma_max_seg_size.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
+libsas-use-new-ata-configuration-mechanism.patch
+git-wireless.patch
+tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls-x86-fix.patch
+pata_amd-pata_via-de-couple-programming-of-pio-mwdma-and-udma-timings.patch
+fix-versus-precedence-in-various-places.patch
+riscom8-fix-smp-brokenness.patch
+riscom8-fix-smp-brokenness-fix.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+sound-oss-sb_commonc-fix-casting-warning.patch
+remove-warnings-for-longstanding-conditions.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+remove-pointless-casts-from-void-pointers.patch
+i8k-allow-i8k-driver-to-be-built-on-x86_64-systems.patch
+i8k-adds-i8k-driver-to-the-x86_64-kconfig.patch
+i8k-inspiron-e1705-fix.patch
