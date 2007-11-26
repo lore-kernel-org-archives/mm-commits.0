@@ -1,83 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - revoke-wire-up-i386-system-calls.patch removed from -mm tree
-Date: Mon, 26 Nov 2007 11:36:21 -0800
-Message-ID: <200711261936.lAQJaLIe019302@imap1.linux-foundation.org>
+Subject: - revoke-add-documentation.patch removed from -mm tree
+Date: Mon, 26 Nov 2007 11:36:19 -0800
+Message-ID: <200711261936.lAQJaJEk019297@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50050 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57030 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753015AbXKZThX (ORCPT
+	by vger.kernel.org with ESMTP id S1754224AbXKZTh1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 14:37:23 -0500
+	Mon, 26 Nov 2007 14:37:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penberg@cs.helsinki.fi, ak@suse.de, alan@redhat.com, hch@lst.de, linux-arch@vger.kernel.org, mtk-manpages@gmx.net, mm-commits@vger.kernel.org
+To: penberg@cs.helsinki.fi, ak@suse.de, alan@redhat.com, hch@lst.de, mtk-manpages@gmx.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revoke: wire up i386 system calls
+     revoke: add documentation
 has been removed from the -mm tree.  Its filename was
-     revoke-wire-up-i386-system-calls.patch
+     revoke-add-documentation.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: revoke: wire up i386 system calls
+Subject: revoke: add documentation
 From: Pekka Enberg <penberg@cs.helsinki.fi>
 
-Make revokeat and frevoke system calls available to user-space on i386.
+This documents revoke file operation in Documentation/filesystems/vfs.txt.
 
-[akpm@linux-foundation.org: fix 32-bit userspace]
 Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Michael Kerrisk <mtk-manpages@gmx.net>
 Cc: Andi Kleen <ak@suse.de>
-Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/ia32/ia32entry.S          |    2 ++
- arch/x86/kernel/syscall_table_32.S |    2 ++
- include/asm-x86/unistd_32.h        |    4 +++-
- 3 files changed, 7 insertions(+), 1 deletion(-)
+ Documentation/filesystems/vfs.txt |    5 +++++
+ 1 files changed, 5 insertions(+)
 
-diff -puN arch/x86/ia32/ia32entry.S~revoke-wire-up-i386-system-calls arch/x86/ia32/ia32entry.S
---- a/arch/x86/ia32/ia32entry.S~revoke-wire-up-i386-system-calls
-+++ a/arch/x86/ia32/ia32entry.S
-@@ -726,4 +726,6 @@ ia32_sys_call_table:
- 	.quad compat_sys_timerfd
- 	.quad sys_eventfd
- 	.quad sys32_fallocate
-+	.quad sys_revokeat		/* 325 */
-+	.quad sys_frevoke
- ia32_syscall_end:
-diff -puN arch/x86/kernel/syscall_table_32.S~revoke-wire-up-i386-system-calls arch/x86/kernel/syscall_table_32.S
---- a/arch/x86/kernel/syscall_table_32.S~revoke-wire-up-i386-system-calls
-+++ a/arch/x86/kernel/syscall_table_32.S
-@@ -324,3 +324,5 @@ ENTRY(sys_call_table)
- 	.long sys_timerfd
- 	.long sys_eventfd
- 	.long sys_fallocate
-+	.long sys_revokeat		/* 325 */
-+	.long sys_frevoke
-diff -puN include/asm-x86/unistd_32.h~revoke-wire-up-i386-system-calls include/asm-x86/unistd_32.h
---- a/include/asm-x86/unistd_32.h~revoke-wire-up-i386-system-calls
-+++ a/include/asm-x86/unistd_32.h
-@@ -330,10 +330,12 @@
- #define __NR_timerfd		322
- #define __NR_eventfd		323
- #define __NR_fallocate		324
-+#define __NR_revokeat		325
-+#define __NR_frevoke		326
+diff -puN Documentation/filesystems/vfs.txt~revoke-add-documentation Documentation/filesystems/vfs.txt
+--- a/Documentation/filesystems/vfs.txt~revoke-add-documentation
++++ a/Documentation/filesystems/vfs.txt
+@@ -780,6 +780,7 @@ struct file_operations {
+ 	int (*flock) (struct file *, int, struct file_lock *);
+ 	ssize_t (*splice_write)(struct pipe_inode_info *, struct file *, size_t, unsigned int);
+ 	ssize_t (*splice_read)(struct file *, struct pipe_inode_info *, size_t, unsigned int);
++	int (*revoke)(struct file *);
+ };
  
- #ifdef __KERNEL__
+ Again, all methods are called without any locks being held, unless
+@@ -853,6 +854,10 @@ otherwise noted.
+   splice_read: called by the VFS to splice data from file to a pipe. This
+ 	       method is used by the splice(2) system call
  
--#define NR_syscalls 325
-+#define NR_syscalls 327
- 
- #define __ARCH_WANT_IPC_PARSE_VERSION
- #define __ARCH_WANT_OLD_READDIR
++  revoke: called by revokeat(2) and frevoke(2) system calls to revoke access
++	  to an open file. This method must ensure that all currently blocked
++	  writes are flushed and reads will fail.
++
+ Note that the file operations are implemented by the specific
+ filesystem in which the inode resides. When opening a device node
+ (character or block special) most filesystems will call special
 _
 
 Patches currently in -mm which might be from penberg@cs.helsinki.fi are
@@ -97,6 +79,7 @@ slub-optional-fast-path-using-cmpxchg_local.patch
 slub-do-our-own-locking-via-slab_lock-and-slab_unlock.patch
 slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
 slub-restructure-slab-alloc.patch
+revoke-add-documentation.patch
 revoke-wire-up-i386-system-calls.patch
 revoke-vs-git-block.patch
 slab-leaks3-default-y.patch
