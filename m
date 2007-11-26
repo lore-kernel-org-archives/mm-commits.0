@@ -1,95 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - add-cmpxchg_local-to-sh64.patch removed from -mm tree
-Date: Mon, 26 Nov 2007 13:41:15 -0800
-Message-ID: <200711262141.lAQLfGfC024328@imap1.linux-foundation.org>
+Subject: - arm-remove-reference-to-non-existent-mtd_obsolete_chips.patch removed from -mm tree
+Date: Mon, 26 Nov 2007 13:48:18 -0800
+Message-ID: <200711262148.lAQLmIr0024586@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59279 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54678 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754169AbXKZVlb (ORCPT
+	by vger.kernel.org with ESMTP id S1754775AbXKZVs1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 16:41:31 -0500
+	Mon, 26 Nov 2007 16:48:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: rpjday@crashcourse.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add cmpxchg_local to sh64
+     ARM: remove reference to non-existent MTD_OBSOLETE_CHIPS
 has been removed from the -mm tree.  Its filename was
-     add-cmpxchg_local-to-sh64.patch
+     arm-remove-reference-to-non-existent-mtd_obsolete_chips.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Add cmpxchg_local to sh64
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: ARM: remove reference to non-existent MTD_OBSOLETE_CHIPS
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
-Use the new generic cmpxchg_local (disables interrupt). Also use the generic
-cmpxchg as fallback if SMP is not set.
+The CONFIG variable MTD_OBSOLETE_CHIPS was deleted in commit
+ba7cc09c9c9e29a57045dc5bbf843ac1cfad3283.
 
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-sh64/system.h |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ arch/arm/configs/collie_defconfig |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/asm-sh64/system.h~add-cmpxchg_local-to-sh64 include/asm-sh64/system.h
---- a/include/asm-sh64/system.h~add-cmpxchg_local-to-sh64
-+++ a/include/asm-sh64/system.h
-@@ -163,6 +163,21 @@ static __inline__ unsigned long __xchg(u
- 	return x;
- }
+diff -puN arch/arm/configs/collie_defconfig~arm-remove-reference-to-non-existent-mtd_obsolete_chips arch/arm/configs/collie_defconfig
+--- a/arch/arm/configs/collie_defconfig~arm-remove-reference-to-non-existent-mtd_obsolete_chips
++++ a/arch/arm/configs/collie_defconfig
+@@ -367,7 +367,6 @@ CONFIG_MTD_CFI_UTIL=y
+ # CONFIG_MTD_RAM is not set
+ # CONFIG_MTD_ROM is not set
+ # CONFIG_MTD_ABSENT is not set
+-CONFIG_MTD_OBSOLETE_CHIPS=y
+ CONFIG_MTD_SHARP=y
+ # CONFIG_MTD_XIP is not set
  
-+#include <asm-generic/cmpxchg-local.h>
-+
-+/*
-+ * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
-+ * them available.
-+ */
-+#define cmpxchg_local(ptr, o, n)				  	       \
-+	((__typeof__(*(ptr)))__cmpxchg_local_generic((ptr), (unsigned long)(o),\
-+			(unsigned long)(n), sizeof(*(ptr))))
-+#define cmpxchg64_local(ptr, o, n) __cmpxchg64_local_generic((ptr), (o), (n))
-+
-+#ifndef CONFIG_SMP
-+#include <asm-generic/cmpxchg.h>
-+#endif
-+
- /* XXX
-  * disable hlt during certain critical i/o operations
-  */
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from rpjday@crashcourse.ca are
 
-add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
-fall-back-on-interrupt-disable-in-cmpxchg8b-on-80386-and-80486.patch
-add-cmpxchg64-and-cmpxchg64_local-to-alpha.patch
-add-cmpxchg64-and-cmpxchg64_local-to-mips.patch
-add-cmpxchg64-and-cmpxchg64_local-to-powerpc.patch
-add-cmpxchg64-and-cmpxchg64_local-to-x86_64.patch
-add-cmpxchg_local-to-arm.patch
-add-cmpxchg_local-to-avr32.patch
-add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
-add-cmpxchg_local-to-cris.patch
-add-cmpxchg_local-to-frv.patch
-add-cmpxchg_local-to-h8300.patch
-add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
-new-cmpxchg_local-optimized-for-up-case-for-m32r.patch
-fix-m32r-__xchg.patch
-m32r-build-fix-of-arch-m32r-kernel-smpbootc.patch
-local_t-m32r-use-architecture-specific-cmpxchg_local.patch
-add-cmpxchg_local-to-m86k.patch
-add-cmpxchg_local-to-m68knommu.patch
-add-cmpxchg_local-to-parisc.patch
-add-cmpxchg_local-to-ppc.patch
-add-cmpxchg_local-to-s390.patch
-add-cmpxchg_local-to-sh-use-generic-cmpxchg-instead-of-cmpxchg_u32.patch
-add-cmpxchg_local-to-sh64.patch
-add-cmpxchg_local-to-sparc-move-__cmpxchg-to-systemh.patch
-add-cmpxchg_local-to-sparc64.patch
-add-cmpxchg_local-to-v850.patch
-add-cmpxchg_local-to-xtensa.patch
+git-arm.patch
+git-hwmon.patch
+git-mips.patch
+pcmcia-net-use-roundup_pow_of_two-macro-instead-of-grotesque-loop.patch
+blackfin-typo-config_rtc_bfin_module.patch
+git-nfsd.patch
+frv-move-dma-macros-to-scatterlisth-for-consistency.patch
+m68knommu-remove-vestiges-of-non-existent-disktel.patch
+uml-delete-some-unused-headers.patch
+rd-use-is_power_of_2-in-drivers-block-rdc.patch
+log2h-define-order_base_2-macro-for-convenience.patch
+a-few-corrections-to-include-linux-kbuild.patch
+rtc-s3c-use-is_power_of_2-macro-for-simplicity.patch
