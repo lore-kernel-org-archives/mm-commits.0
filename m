@@ -1,72 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: - usbserial-fix-inconsistent-lock-state.patch removed from -mm tree
-Date: Mon, 26 Nov 2007 13:49:28 -0800
-Message-ID: <200711262149.lAQLnSrR024765@imap1.linux-foundation.org>
+Subject: - sisusb-_ioctl32_conversion-functions-do-not-exist-in-recent-kernels.patch removed from -mm tree
+Date: Mon, 26 Nov 2007 13:50:09 -0800
+Message-ID: <200711262150.lAQLo9VM024831@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47785 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56856 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756110AbXKZV6k (ORCPT
+	by vger.kernel.org with ESMTP id S1756076AbXKZV6q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 16:58:40 -0500
+	Mon, 26 Nov 2007 16:58:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bbpetkov@yahoo.de, greg@kroah.com, jkosina@suse.cz, mm-commits@vger.kernel.org
+To: fernando@oss.ntt.co.jp, adaplas@pol.net, thomas@winischhofer.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usbserial: fix inconsistent lock state
+     sisusb: *_ioctl32_conversion functions do not exist in recent kernels
 has been removed from the -mm tree.  Its filename was
-     usbserial-fix-inconsistent-lock-state.patch
+     sisusb-_ioctl32_conversion-functions-do-not-exist-in-recent-kernels.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: usbserial: fix inconsistent lock state
-From: Borislav Petkov <bbpetkov@yahoo.de>
+Subject: sisusb: *_ioctl32_conversion functions do not exist in recent kernels
+From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
 
-In commit acd2a847e7fee7df11817f67dba75a2802793e5d usb_serial_generic_write()
-disables interrupts when taking &port->lock which is also taken in
-usb_serial_generic_read_bulk_callback() resulting in an inconsistent lock state
-due to the latter not disabling interrupts on the local cpu. Fix that by
-disabling interrupts in the latter call site also.
+Remove dead code while at it.
 
-Signed-off-by: Borislav Petkov <bbpetkov@yahoo.de>
-Acked-by: Jiri Kosina <jkosina@suse.cz>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+Cc: Thomas Winischhofer <thomas@winischhofer.net>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/generic.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/video/sis/sis.h      |    8 -----
+ drivers/video/sis/sis_main.c |   48 ---------------------------------
+ 2 files changed, 56 deletions(-)
 
-diff -puN drivers/usb/serial/generic.c~usbserial-fix-inconsistent-lock-state drivers/usb/serial/generic.c
---- a/drivers/usb/serial/generic.c~usbserial-fix-inconsistent-lock-state
-+++ a/drivers/usb/serial/generic.c
-@@ -327,6 +327,7 @@ void usb_serial_generic_read_bulk_callba
- 	struct usb_serial_port *port = (struct usb_serial_port *)urb->context;
- 	unsigned char *data = urb->transfer_buffer;
- 	int status = urb->status;
-+	unsigned long flags;
+diff -puN drivers/video/sis/sis.h~sisusb-_ioctl32_conversion-functions-do-not-exist-in-recent-kernels drivers/video/sis/sis.h
+--- a/drivers/video/sis/sis.h~sisusb-_ioctl32_conversion-functions-do-not-exist-in-recent-kernels
++++ a/drivers/video/sis/sis.h
+@@ -39,12 +39,7 @@
+ #include <linux/spinlock.h>
  
- 	dbg("%s - port %d", __FUNCTION__, port->number);
+ #ifdef CONFIG_COMPAT
+-#if LINUX_VERSION_CODE <= KERNEL_VERSION(2,6,10)
+-#include <linux/ioctl32.h>
+-#define SIS_OLD_CONFIG_COMPAT
+-#else
+ #define SIS_NEW_CONFIG_COMPAT
+-#endif
+ #endif	/* CONFIG_COMPAT */
  
-@@ -339,11 +340,11 @@ void usb_serial_generic_read_bulk_callba
- 	usb_serial_debug_data(debug, &port->dev, __FUNCTION__, urb->actual_length, data);
+ #if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,8)
+@@ -607,9 +602,6 @@ struct sis_video_info {
+ 	int		haveXGIROM;
+ 	int		registered;
+ 	int		warncount;
+-#ifdef SIS_OLD_CONFIG_COMPAT
+-	int		ioctl32registered;
+-#endif
  
- 	/* Throttle the device if requested by tty */
--	spin_lock(&port->lock);
-+	spin_lock_irqsave(&port->lock, flags);
- 	if (!(port->throttled = port->throttle_req))
- 		/* Handle data and continue reading from device */
- 		flush_and_resubmit_read_urb(port);
--	spin_unlock(&port->lock);
-+	spin_unlock_irqrestore(&port->lock, flags);
- }
- EXPORT_SYMBOL_GPL(usb_serial_generic_read_bulk_callback);
+ 	int		sisvga_engine;
+ 	int		hwcursor_size;
+diff -puN drivers/video/sis/sis_main.c~sisusb-_ioctl32_conversion-functions-do-not-exist-in-recent-kernels drivers/video/sis/sis_main.c
+--- a/drivers/video/sis/sis_main.c~sisusb-_ioctl32_conversion-functions-do-not-exist-in-recent-kernels
++++ a/drivers/video/sis/sis_main.c
+@@ -5805,9 +5805,6 @@ sisfb_probe(struct pci_dev *pdev, const 
+ 	ivideo->pcifunc = PCI_FUNC(pdev->devfn);
+ 	ivideo->subsysvendor = pdev->subsystem_vendor;
+ 	ivideo->subsysdevice = pdev->subsystem_device;
+-#ifdef SIS_OLD_CONFIG_COMPAT
+-	ivideo->ioctl32registered = 0;
+-#endif
  
+ #ifndef MODULE
+ 	if(sisfb_mode_idx == -1) {
+@@ -6420,30 +6417,6 @@ error_3:	vfree(ivideo->bios_abase);
+ 		ivideo->next = card_list;
+ 		card_list = ivideo;
+ 
+-#ifdef SIS_OLD_CONFIG_COMPAT
+-		{
+-		int ret;
+-		/* Our ioctls are all "32/64bit compatible" */
+-		ret =  register_ioctl32_conversion(FBIO_ALLOC,             NULL);
+-		ret |= register_ioctl32_conversion(FBIO_FREE,              NULL);
+-		ret |= register_ioctl32_conversion(FBIOGET_VBLANK,         NULL);
+-		ret |= register_ioctl32_conversion(SISFB_GET_INFO_SIZE,    NULL);
+-		ret |= register_ioctl32_conversion(SISFB_GET_INFO,         NULL);
+-		ret |= register_ioctl32_conversion(SISFB_GET_TVPOSOFFSET,  NULL);
+-		ret |= register_ioctl32_conversion(SISFB_SET_TVPOSOFFSET,  NULL);
+-		ret |= register_ioctl32_conversion(SISFB_SET_LOCK,         NULL);
+-		ret |= register_ioctl32_conversion(SISFB_GET_VBRSTATUS,    NULL);
+-		ret |= register_ioctl32_conversion(SISFB_GET_AUTOMAXIMIZE, NULL);
+-		ret |= register_ioctl32_conversion(SISFB_SET_AUTOMAXIMIZE, NULL);
+-		ret |= register_ioctl32_conversion(SISFB_COMMAND,          NULL);
+-		if(ret)
+-			printk(KERN_ERR
+-				"sisfb: Error registering ioctl32 translations\n");
+-		else
+-			ivideo->ioctl32registered = 1;
+-		}
+-#endif
+-
+ 		printk(KERN_INFO "sisfb: 2D acceleration is %s, y-panning %s\n",
+ 			ivideo->sisfb_accel ? "enabled" : "disabled",
+ 			ivideo->sisfb_ypan  ?
+@@ -6473,27 +6446,6 @@ static void __devexit sisfb_remove(struc
+ 	int			registered = ivideo->registered;
+ 	int			modechanged = ivideo->modechanged;
+ 
+-#ifdef SIS_OLD_CONFIG_COMPAT
+-	if(ivideo->ioctl32registered) {
+-		int ret;
+-		ret =  unregister_ioctl32_conversion(FBIO_ALLOC);
+-		ret |= unregister_ioctl32_conversion(FBIO_FREE);
+-		ret |= unregister_ioctl32_conversion(FBIOGET_VBLANK);
+-		ret |= unregister_ioctl32_conversion(SISFB_GET_INFO_SIZE);
+-		ret |= unregister_ioctl32_conversion(SISFB_GET_INFO);
+-		ret |= unregister_ioctl32_conversion(SISFB_GET_TVPOSOFFSET);
+-		ret |= unregister_ioctl32_conversion(SISFB_SET_TVPOSOFFSET);
+-		ret |= unregister_ioctl32_conversion(SISFB_SET_LOCK);
+-		ret |= unregister_ioctl32_conversion(SISFB_GET_VBRSTATUS);
+-		ret |= unregister_ioctl32_conversion(SISFB_GET_AUTOMAXIMIZE);
+-		ret |= unregister_ioctl32_conversion(SISFB_SET_AUTOMAXIMIZE);
+-		ret |= unregister_ioctl32_conversion(SISFB_COMMAND);
+-		if(ret)
+-			printk(KERN_ERR
+-			     "sisfb: Error unregistering ioctl32 translations\n");
+-	}
+-#endif
+-
+ 	/* Unmap */
+ 	iounmap(ivideo->mmio_vbase);
+ 	iounmap(ivideo->video_vbase);
 _
 
-Patches currently in -mm which might be from bbpetkov@yahoo.de are
-
-revert-keyspan-init-termios-properly.patch
+Patches currently in -mm which might be from fernando@oss.ntt.co.jp are
