@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-pci-pci-sysfsc-add-missing-pci_dev_put.patch added to -mm tree
-Date: Mon, 26 Nov 2007 14:36:45 -0800
-Message-ID: <200711262236.lAQMajaw026596@imap1.linux-foundation.org>
+Subject: + drivers-pnp-resourcec-add-missing-pci_dev_put.patch added to -mm tree
+Date: Mon, 26 Nov 2007 14:38:31 -0800
+Message-ID: <200711262238.lAQMcVOs026665@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58472 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59480 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753369AbXKZWgy (ORCPT
+	by vger.kernel.org with ESMTP id S1754628AbXKZWjJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 17:36:54 -0500
+	Mon, 26 Nov 2007 17:39:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, greg@kroah.com
+Cc: julia@diku.dk, bjorn.helgaas@hp.com, greg@kroah.com
 
 
 The patch titled
-     drivers/pci/pci-sysfs.c: Add missing pci_dev_put
+     drivers/pnp/resource.c: Add missing pci_dev_put
 has been added to the -mm tree.  Its filename is
-     drivers-pci-pci-sysfsc-add-missing-pci_dev_put.patch
+     drivers-pnp-resourcec-add-missing-pci_dev_put.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,7 +26,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/pci/pci-sysfs.c: Add missing pci_dev_put
+Subject: drivers/pnp/resource.c: Add missing pci_dev_put
 From: Julia Lawall <julia@diku.dk>
 
 There should be a pci_dev_put when breaking out of a loop that iterates
@@ -58,31 +58,33 @@ for_each_pci_dev(d)
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
 Cc: Greg KH <greg@kroah.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pci-sysfs.c |    4 +++-
+ drivers/pnp/resource.c |    4 +++-
  1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/pci/pci-sysfs.c~drivers-pci-pci-sysfsc-add-missing-pci_dev_put drivers/pci/pci-sysfs.c
---- a/drivers/pci/pci-sysfs.c~drivers-pci-pci-sysfsc-add-missing-pci_dev_put
-+++ a/drivers/pci/pci-sysfs.c
-@@ -702,8 +702,10 @@ static int __init pci_sysfs_init(void)
- 	sysfs_initialized = 1;
- 	for_each_pci_dev(pdev) {
- 		retval = pci_create_sysfs_dev_files(pdev);
--		if (retval)
-+		if (retval) {
-+			pci_dev_put(pdev);
- 			return retval;
-+		}
+diff -puN drivers/pnp/resource.c~drivers-pnp-resourcec-add-missing-pci_dev_put drivers/pnp/resource.c
+--- a/drivers/pnp/resource.c~drivers-pnp-resourcec-add-missing-pci_dev_put
++++ a/drivers/pnp/resource.c
+@@ -367,8 +367,10 @@ int pnp_check_irq(struct pnp_dev *dev, i
+ 	{
+ 		struct pci_dev *pci = NULL;
+ 		for_each_pci_dev(pci) {
+-			if (pci->irq == *irq)
++			if (pci->irq == *irq) {
++				pci_dev_put(pci);
+ 				return 0;
++			}
+ 		}
  	}
- 
- 	return 0;
+ #endif
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
 
+drivers-pnp-resourcec-add-missing-pci_dev_put.patch
 git-alsa.patch
 drivers-char-remove-unnecessary-pci_dev_put.patch
 arch-ppc-remove-an-unnecessary-pci_dev_put.patch
