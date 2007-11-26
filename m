@@ -1,42 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: - unprivileged-mounts-allow-unprivileged-bind-mounts.patch removed from -mm tree
-Date: Mon, 26 Nov 2007 11:35:40 -0800
-Message-ID: <200711261935.lAQJZeKa019241@imap1.linux-foundation.org>
+Subject: - unprivileged-mounts-account-user-mounts.patch removed from -mm tree
+Date: Mon, 26 Nov 2007 11:35:36 -0800
+Message-ID: <200711261935.lAQJZapM019235@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37708 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44987 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754146AbXKZTgH (ORCPT
+	by vger.kernel.org with ESMTP id S1753830AbXKZTf7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 14:36:07 -0500
+	Mon, 26 Nov 2007 14:35:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mszeredi@suse.cz, hch@lst.de, linuxram@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     unprivileged mounts: allow unprivileged bind mounts
+     unprivileged mounts: account user mounts
 has been removed from the -mm tree.  Its filename was
-     unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+     unprivileged-mounts-account-user-mounts.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: unprivileged mounts: allow unprivileged bind mounts
+Subject: unprivileged mounts: account user mounts
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Allow bind mounts to unprivileged users if the following conditions are met:
+Add sysctl variables for accounting and limiting the number of user
+mounts.
 
-  - mountpoint is not a symlink
-  - parent mount is owned by the user
-  - the number of user mounts is below the maximum
+The maximum number of user mounts is set to 1024 by default.  This
+won't in itself enable user mounts, setting a mount to be owned by a
+user is first needed
 
-Unprivileged mounts imply MS_SETUSER, and will also have the "nosuid" and
-"nodev" mount flags set.
-
-In particular, if mounting process doesn't have CAP_SETUID capability,
-then the "nosuid" flag will be added, and if it doesn't have CAP_MKNOD
-capability, then the "nodev" flag will be added.
+[akpm]
+ - don't use enumerated sysctls
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Cc: Ram Pai <linuxram@us.ibm.com>
@@ -44,143 +41,130 @@ Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c |   81 ++++++++++++++++++++++++++++++++++-------------
- 1 file changed, 60 insertions(+), 21 deletions(-)
+ Documentation/filesystems/proc.txt |    9 +++++++++
+ fs/namespace.c                     |   24 ++++++++++++++++++++++++
+ include/linux/fs.h                 |    3 +++
+ kernel/sysctl.c                    |   16 ++++++++++++++++
+ 4 files changed, 52 insertions(+)
 
-diff -puN fs/namespace.c~unprivileged-mounts-allow-unprivileged-bind-mounts fs/namespace.c
---- a/fs/namespace.c~unprivileged-mounts-allow-unprivileged-bind-mounts
+diff -puN Documentation/filesystems/proc.txt~unprivileged-mounts-account-user-mounts Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~unprivileged-mounts-account-user-mounts
++++ a/Documentation/filesystems/proc.txt
+@@ -1004,6 +1004,15 @@ reaches aio-max-nr then io_setup will fa
+ raising aio-max-nr does not result in the pre-allocation or re-sizing
+ of any kernel data structures.
+ 
++nr_user_mounts and max_user_mounts
++----------------------------------
++
++These represent the number of "user" mounts and the maximum number of
++"user" mounts respectively.  User mounts may be created by
++unprivileged users.  User mounts may also be created with sysadmin
++privileges on behalf of a user, in which case nr_user_mounts may
++exceed max_user_mounts.
++
+ 2.2 /proc/sys/fs/binfmt_misc - Miscellaneous binary formats
+ -----------------------------------------------------------
+ 
+diff -puN fs/namespace.c~unprivileged-mounts-account-user-mounts fs/namespace.c
+--- a/fs/namespace.c~unprivileged-mounts-account-user-mounts
 +++ a/fs/namespace.c
-@@ -238,11 +238,34 @@ static void dec_nr_user_mounts(void)
- 	spin_unlock(&vfsmount_lock);
+@@ -40,6 +40,9 @@ static int hash_mask __read_mostly, hash
+ static struct kmem_cache *mnt_cache __read_mostly;
+ static struct rw_semaphore namespace_sem;
+ 
++int nr_user_mounts;
++int max_user_mounts = 1024;
++
+ /* /sys/fs */
+ struct kobject *fs_kobj;
+ EXPORT_SYMBOL_GPL(fs_kobj);
+@@ -228,11 +231,30 @@ static struct vfsmount *skip_mnt_tree(st
+ 	return p;
  }
  
--static void set_mnt_user(struct vfsmount *mnt)
-+static int reserve_user_mount(void)
++static void dec_nr_user_mounts(void)
 +{
-+	int err = 0;
-+
 +	spin_lock(&vfsmount_lock);
-+	if (nr_user_mounts >= max_user_mounts && !capable(CAP_SYS_ADMIN))
-+		err = -EPERM;
-+	else
-+		nr_user_mounts++;
++	nr_user_mounts--;
 +	spin_unlock(&vfsmount_lock);
-+	return err;
 +}
 +
-+static void __set_mnt_user(struct vfsmount *mnt)
+ static void set_mnt_user(struct vfsmount *mnt)
  {
  	BUG_ON(mnt->mnt_flags & MNT_USER);
  	mnt->mnt_uid = current->fsuid;
  	mnt->mnt_flags |= MNT_USER;
-+
-+	if (!capable(CAP_SETUID))
-+		mnt->mnt_flags |= MNT_NOSUID;
-+	if (!capable(CAP_MKNOD))
-+		mnt->mnt_flags |= MNT_NODEV;
++	spin_lock(&vfsmount_lock);
++	nr_user_mounts++;
++	spin_unlock(&vfsmount_lock);
 +}
 +
-+static void set_mnt_user(struct vfsmount *mnt)
++static void clear_mnt_user(struct vfsmount *mnt)
 +{
-+	__set_mnt_user(mnt);
- 	spin_lock(&vfsmount_lock);
- 	nr_user_mounts++;
- 	spin_unlock(&vfsmount_lock);
-@@ -261,10 +284,16 @@ static struct vfsmount *clone_mnt(struct
- 					int flag)
- {
- 	struct super_block *sb = old->mnt_sb;
--	struct vfsmount *mnt = alloc_vfsmnt(old->mnt_devname);
-+	struct vfsmount *mnt;
- 
-+	if (flag & CL_SETUSER) {
-+		int err = reserve_user_mount();
-+		if (err)
-+			return ERR_PTR(err);
-+	}
-+	mnt = alloc_vfsmnt(old->mnt_devname);
- 	if (!mnt)
--		return ERR_PTR(-ENOMEM);
-+		goto alloc_failed;
- 
- 	mnt->mnt_flags = old->mnt_flags;
- 	atomic_inc(&sb->s_active);
-@@ -276,7 +305,7 @@ static struct vfsmount *clone_mnt(struct
- 	/* don't copy the MNT_USER flag */
- 	mnt->mnt_flags &= ~MNT_USER;
- 	if (flag & CL_SETUSER)
--		set_mnt_user(mnt);
-+		__set_mnt_user(mnt);
- 
- 	if (flag & CL_SLAVE) {
- 		list_add(&mnt->mnt_slave, &old->mnt_slave_list);
-@@ -301,6 +330,11 @@ static struct vfsmount *clone_mnt(struct
- 		spin_unlock(&vfsmount_lock);
- 	}
- 	return mnt;
-+
-+ alloc_failed:
-+	if (flag & CL_SETUSER)
++	if (mnt->mnt_flags & MNT_USER) {
++		mnt->mnt_uid = 0;
++		mnt->mnt_flags &= ~MNT_USER;
 +		dec_nr_user_mounts();
-+	return ERR_PTR(-ENOMEM);
++	}
  }
  
- static inline void __mntput(struct vfsmount *mnt)
-@@ -724,22 +758,26 @@ asmlinkage long sys_oldumount(char __use
- 
- #endif
- 
--static int mount_is_safe(struct nameidata *nd)
-+/*
-+ * Conditions for unprivileged mounts are:
-+ * - mountpoint is not a symlink
-+ * - mountpoint is in a mount owned by the user
-+ */
-+static bool permit_mount(struct nameidata *nd, int *flags)
+ static struct vfsmount *clone_mnt(struct vfsmount *old, struct dentry *root,
+@@ -284,6 +306,7 @@ static inline void __mntput(struct vfsmo
  {
-+	struct inode *inode = nd->dentry->d_inode;
-+
- 	if (capable(CAP_SYS_ADMIN))
--		return 0;
--	return -EPERM;
--#ifdef notyet
--	if (S_ISLNK(nd->dentry->d_inode->i_mode))
--		return -EPERM;
--	if (nd->dentry->d_inode->i_mode & S_ISVTX) {
--		if (current->uid != nd->dentry->d_inode->i_uid)
--			return -EPERM;
--	}
--	if (vfs_permission(nd, MAY_WRITE))
--		return -EPERM;
--	return 0;
--#endif
-+		return true;
-+
-+	if (S_ISLNK(inode->i_mode))
-+		return false;
-+
-+	if (!is_mount_owner(nd->mnt, current->fsuid))
-+		return false;
-+
-+	*flags |= MS_SETUSER;
-+	return true;
+ 	struct super_block *sb = mnt->mnt_sb;
+ 	dput(mnt->mnt_root);
++	clear_mnt_user(mnt);
+ 	free_vfsmnt(mnt);
+ 	deactivate_super(sb);
  }
+@@ -1024,6 +1047,7 @@ static int do_remount(struct nameidata *
+ 	down_write(&sb->s_umount);
+ 	err = do_remount_sb(sb, flags, data, 0);
+ 	if (!err) {
++		clear_mnt_user(nd->mnt);
+ 		nd->mnt->mnt_flags = mnt_flags;
+ 		if (flags & MS_SETUSER)
+ 			set_mnt_user(nd->mnt);
+diff -puN include/linux/fs.h~unprivileged-mounts-account-user-mounts include/linux/fs.h
+--- a/include/linux/fs.h~unprivileged-mounts-account-user-mounts
++++ a/include/linux/fs.h
+@@ -50,6 +50,9 @@ extern struct inodes_stat_t inodes_stat;
  
- static int lives_below_in_same_fs(struct dentry *d, struct dentry *dentry)
-@@ -983,9 +1021,10 @@ static int do_loopback(struct nameidata 
- 	int clone_flags;
- 	struct nameidata old_nd;
- 	struct vfsmount *mnt = NULL;
--	int err = mount_is_safe(nd);
--	if (err)
--		return err;
-+	int err;
+ extern int leases_enable, lease_break_time;
+ 
++extern int nr_user_mounts;
++extern int max_user_mounts;
 +
-+	if (!permit_mount(nd, &flags))
-+		return -EPERM;
- 	if (!old_name || !*old_name)
- 		return -EINVAL;
- 	err = path_lookup(old_name, LOOKUP_FOLLOW, &old_nd);
+ #ifdef CONFIG_DNOTIFY
+ extern int dir_notify_enable;
+ #endif
+diff -puN kernel/sysctl.c~unprivileged-mounts-account-user-mounts kernel/sysctl.c
+--- a/kernel/sysctl.c~unprivileged-mounts-account-user-mounts
++++ a/kernel/sysctl.c
+@@ -1210,6 +1210,22 @@ static struct ctl_table fs_table[] = {
+ #endif	
+ #endif
+ 	{
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "nr_user_mounts",
++		.data		= &nr_user_mounts,
++		.maxlen		= sizeof(int),
++		.mode		= 0444,
++		.proc_handler	= &proc_dointvec,
++	},
++	{
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "max_user_mounts",
++		.data		= &max_user_mounts,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= &proc_dointvec,
++	},
++	{
+ 		.ctl_name	= KERN_SETUID_DUMPABLE,
+ 		.procname	= "suid_dumpable",
+ 		.data		= &suid_dumpable,
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
@@ -191,6 +175,8 @@ fuse-pass-open-flags-to-read-and-write.patch
 fuse-fix-fuse_file_ops-sending.patch
 fuse-fix-uninitialized-field-in-fuse_inode.patch
 fuse-fix-attribute-caching-after-rename.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
 unprivileged-mounts-allow-unprivileged-bind-mounts.patch
 unprivileged-mounts-allow-unprivileged-mounts.patch
 unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
