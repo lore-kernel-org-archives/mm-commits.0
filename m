@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fix-hpet-wrong-values.patch added to -mm tree
-Date: Tue, 27 Nov 2007 14:19:50 -0800
-Message-ID: <200711272219.lARMJoOq002273@imap1.linux-foundation.org>
+Subject: + timer-cleanups.patch added to -mm tree
+Date: Tue, 27 Nov 2007 14:19:42 -0800
+Message-ID: <200711272219.lARMJgnc002267@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33839 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37973 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753245AbXK0WUj (ORCPT
+	by vger.kernel.org with ESMTP id S1751626AbXK0WU4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 17:20:39 -0500
+	Tue, 27 Nov 2007 17:20:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: pavel@ucw.cz, johnstul@us.ibm.com, mingo@elte.hu, pavel@suse.cz, tglx@linutr
 
 
 The patch titled
-     time: fix hpet wrong values
+     time: timer cleanups
 has been added to the -mm tree.  Its filename is
-     fix-hpet-wrong-values.patch
+     timer-cleanups.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,11 +26,11 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: time: fix hpet wrong values
+Subject: time: timer cleanups
 From: Pavel Machek <pavel@ucw.cz>
 
-If hpet is not enabled in config, its init should not pretend to work,
-and people should not try to get time from it.
+Small cleanups to tick-related code. Wrong preempt count is followed
+by BUG(), so it is hardly KERN_WARNING.
 
 Signed-off-by: Pavel Machek <pavel@suse.cz>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -39,23 +39,43 @@ Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/hpet.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/time/tick-sched.c |    4 ++--
+ kernel/timer.c           |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-x86/hpet.h~fix-hpet-wrong-values include/asm-x86/hpet.h
---- a/include/asm-x86/hpet.h~fix-hpet-wrong-values
-+++ a/include/asm-x86/hpet.h
-@@ -81,8 +81,8 @@ extern irqreturn_t hpet_rtc_interrupt(in
- 
- #else
- 
--static inline int hpet_enable(void) { return 0; }
--static inline unsigned long hpet_readl(unsigned long a) { return 0; }
-+static inline int hpet_enable(void) { return -ENODEV; }
-+static inline unsigned long hpet_readl(unsigned long a) { BUG(); }
- 
- #endif /* CONFIG_HPET_TIMER */
- #endif /* ASM_X86_HPET_H */
+diff -puN kernel/time/tick-sched.c~timer-cleanups kernel/time/tick-sched.c
+--- a/kernel/time/tick-sched.c~timer-cleanups
++++ a/kernel/time/tick-sched.c
+@@ -289,7 +289,7 @@ void tick_nohz_stop_sched_tick(void)
+ 			/* Check, if the timer was already in the past */
+ 			if (hrtimer_active(&ts->sched_timer))
+ 				goto out;
+-		} else if(!tick_program_event(expires, 0))
++		} else if (!tick_program_event(expires, 0))
+ 				goto out;
+ 		/*
+ 		 * We are past the event already. So we crossed a
+@@ -500,7 +500,7 @@ static inline void tick_nohz_switch_to_n
+  */
+ #ifdef CONFIG_HIGH_RES_TIMERS
+ /*
+- * We rearm the timer until we get disabled by the idle code
++ * We rearm the timer until we get disabled by the idle code.
+  * Called with interrupts disabled and timer->base->cpu_base->lock held.
+  */
+ static enum hrtimer_restart tick_sched_timer(struct hrtimer *timer)
+diff -puN kernel/timer.c~timer-cleanups kernel/timer.c
+--- a/kernel/timer.c~timer-cleanups
++++ a/kernel/timer.c
+@@ -655,7 +655,7 @@ static inline void __run_timers(struct t
+ 				int preempt_count = preempt_count();
+ 				fn(data);
+ 				if (preempt_count != preempt_count()) {
+-					printk(KERN_WARNING "huh, entered %p "
++					printk(KERN_ERR "huh, entered %p "
+ 					       "with preempt_count %08x, exited"
+ 					       " with %08x?\n",
+ 					       fn, preempt_count,
 _
 
 Patches currently in -mm which might be from pavel@ucw.cz are
