@@ -1,138 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - remove-fs-jffs2-ioctlc.patch removed from -mm tree
-Date: Tue, 27 Nov 2007 10:09:25 -0800
-Message-ID: <200711271809.lARI9PoO023844@imap1.linux-foundation.org>
+Subject: - kobjects-drop-child-parent-ref-at-unregistration.patch removed from -mm tree
+Date: Tue, 27 Nov 2007 10:28:30 -0800
+Message-ID: <200711271828.lARISUt2024638@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34523 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50184 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755673AbXK0SJp (ORCPT
+	by vger.kernel.org with ESMTP id S1756242AbXK0S2x (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 13:09:45 -0500
+	Tue, 27 Nov 2007 13:28:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: stern@rowland.harvard.edu, cornelia.huck@de.ibm.com, greg@kroah.com, htejun@gmail.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove fs/jffs2/ioctl.c
+     Kobjects: drop child->parent ref at unregistration
 has been removed from the -mm tree.  Its filename was
-     remove-fs-jffs2-ioctlc.patch
+     kobjects-drop-child-parent-ref-at-unregistration.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: remove fs/jffs2/ioctl.c
-=46rom: Adrian Bunk <bunk@stusta.de>
+Subject: Kobjects: drop child->parent ref at unregistration
+From: Alan Stern <stern@rowland.harvard.edu>
 
-fs/jffs2/ioctl.c is already for so long in the "might be used later" st=
-ate
-that I doubt it will ever be actually used...
+This patch (as1015) reverts changes that were made to the driver core about
+four years ago.  The intent back then was to avoid certain kinds of invalid
+memory accesses by leaving kernel objects allocated as long as any of their
+children were still allocated.  The original and correct approach was to
+wait only as long as any children were still _registered_; that's what this
+patch reinstates.
 
-And if it will ever be used, reverting this patch will be trivial.
+This fixes a problem in the SCSI core made visible by the class_device to
+regular device conversion: A reference loop (scsi_device holds reference to
+request_queue, which is the child of a gendisk, which is the child of the
+scsi_device) prevents the data structures from being released, even though
+they are deregistered okay.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: David Woodhouse <dwmw2@infradead.org>
+It's possible that this change will cause a few bugs to surface, things
+that have been hidden for several years.  They can be fixed easily enough
+by having the child device take an explicit reference to the parent
+whenever needed.
+
+Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jffs2/Makefile   |    2 +-
- fs/jffs2/dir.c      |    1 -
- fs/jffs2/file.c     |    1 -
- fs/jffs2/ioctl.c    |   21 ---------------------
- fs/jffs2/os-linux.h |    3 ---
- 5 files changed, 1 insertion(+), 27 deletions(-)
+ lib/kobject.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN fs/jffs2/Makefile~remove-fs-jffs2-ioctlc fs/jffs2/Makefile
---- a/fs/jffs2/Makefile~remove-fs-jffs2-ioctlc
-+++ a/fs/jffs2/Makefile
-@@ -5,7 +5,7 @@
-=20
- obj-$(CONFIG_JFFS2_FS) +=3D jffs2.o
-=20
--jffs2-y	:=3D compr.o dir.o file.o ioctl.o nodelist.o malloc.o
-+jffs2-y	:=3D compr.o dir.o file.o nodelist.o malloc.o
- jffs2-y	+=3D read.o nodemgmt.o readinode.o write.o scan.o gc.o
- jffs2-y	+=3D symlink.o build.o erase.o background.o fs.o writev.o
- jffs2-y	+=3D super.o debug.o
-diff -puN fs/jffs2/dir.c~remove-fs-jffs2-ioctlc fs/jffs2/dir.c
---- a/fs/jffs2/dir.c~remove-fs-jffs2-ioctlc
-+++ a/fs/jffs2/dir.c
-@@ -38,7 +38,6 @@ const struct file_operations jffs2_dir_o
+diff -puN lib/kobject.c~kobjects-drop-child-parent-ref-at-unregistration lib/kobject.c
+--- a/lib/kobject.c~kobjects-drop-child-parent-ref-at-unregistration
++++ a/lib/kobject.c
+@@ -206,12 +206,16 @@ void kobject_init(struct kobject * kobj)
+ 
+ static void unlink(struct kobject * kobj)
  {
- 	.read =3D		generic_read_dir,
- 	.readdir =3D	jffs2_readdir,
--	.ioctl =3D	jffs2_ioctl,
- 	.fsync =3D	jffs2_fsync
- };
-=20
-diff -puN fs/jffs2/file.c~remove-fs-jffs2-ioctlc fs/jffs2/file.c
---- a/fs/jffs2/file.c~remove-fs-jffs2-ioctlc
-+++ a/fs/jffs2/file.c
-@@ -46,7 +46,6 @@ const struct file_operations jffs2_file_
-  	.aio_read =3D	generic_file_aio_read,
-  	.write =3D	do_sync_write,
-  	.aio_write =3D	generic_file_aio_write,
--	.ioctl =3D	jffs2_ioctl,
- 	.mmap =3D		generic_file_readonly_mmap,
- 	.fsync =3D	jffs2_fsync,
- 	.splice_read =3D	generic_file_splice_read,
-diff -puN fs/jffs2/ioctl.c~remove-fs-jffs2-ioctlc /dev/null
---- a/fs/jffs2/ioctl.c
-+++ /dev/null
-@@ -1,21 +0,0 @@
--/*
-- * JFFS2 -- Journalling Flash File System, Version 2.
-- *
-- * Copyright =C2=A9 2001-2007 Red Hat, Inc.
-- *
-- * Created by David Woodhouse <dwmw2@infradead.org>
-- *
-- * For licensing information, see the file 'LICENCE' in this directory=
-=2E
-- *
-- */
--
--#include <linux/fs.h>
--
--int jffs2_ioctl(struct inode *inode, struct file *filp, unsigned int c=
-md,
--		unsigned long arg)
--{
--	/* Later, this will provide for lsattr.jffs2 and chattr.jffs2, which
--	   will include compression support etc. */
--	return -ENOTTY;
--}
--
-diff -puN fs/jffs2/os-linux.h~remove-fs-jffs2-ioctlc fs/jffs2/os-linux.=
-h
---- a/fs/jffs2/os-linux.h~remove-fs-jffs2-ioctlc
-+++ a/fs/jffs2/os-linux.h
-@@ -166,9 +166,6 @@ extern const struct address_space_operat
- int jffs2_fsync(struct file *, struct dentry *, int);
- int jffs2_do_readpage_unlock (struct inode *inode, struct page *pg);
-=20
--/* ioctl.c */
--int jffs2_ioctl(struct inode *, struct file *, unsigned int, unsigned =
-long);
--
- /* symlink.c */
- extern const struct inode_operations jffs2_symlink_inode_operations;
-=20
++	struct kobject *parent = kobj->parent;
++
+ 	if (kobj->kset) {
+ 		spin_lock(&kobj->kset->list_lock);
+ 		list_del_init(&kobj->entry);
+ 		spin_unlock(&kobj->kset->list_lock);
+ 	}
++	kobj->parent = NULL;
+ 	kobject_put(kobj);
++	kobject_put(parent);
+ }
+ 
+ /**
+@@ -262,7 +266,6 @@ int kobject_add(struct kobject * kobj)
+ 	if (error) {
+ 		/* unlink does the kobject_put() for us */
+ 		unlink(kobj);
+-		kobject_put(parent);
+ 
+ 		/* be noisy on error issues */
+ 		if (error == -EEXIST)
+@@ -516,7 +519,6 @@ void kobject_cleanup(struct kobject * ko
+ {
+ 	struct kobj_type * t = get_ktype(kobj);
+ 	struct kset * s = kobj->kset;
+-	struct kobject * parent = kobj->parent;
+ 	const char *name = kobj->k_name;
+ 
+ 	pr_debug("kobject %s: cleaning up\n",kobject_name(kobj));
+@@ -533,7 +535,6 @@ void kobject_cleanup(struct kobject * ko
+ 	}
+ 	if (s)
+ 		kset_put(s);
+-	kobject_put(parent);
+ }
+ 
+ static void kobject_release(struct kref *kref)
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from stern@rowland.harvard.edu are
 
-git-dvb.patch
-git-kvm.patch
-remove-fs-jffs2-ioctlc.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-git-x86.patch
-maps4-add-proc-kpagecount-interface.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+git-acpi.patch
+kobjects-drop-child-parent-ref-at-unregistration.patch
+ohci-hcdcohci_irq-locking-fix.patch
+scsi-early-detection-of-medium-not-present-updated.patch
