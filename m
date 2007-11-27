@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sata_nv-dont-use-legacy-dma-in-adma-mode-v3.patch added to -mm tree
-Date: Tue, 27 Nov 2007 01:17:33 -0800
-Message-ID: <200711270917.lAR9HXpF004350@imap1.linux-foundation.org>
+Subject: + ide-scsi-use-print_hex_dump-from-linux-kernelh.patch added to -mm tree
+Date: Tue, 27 Nov 2007 01:31:28 -0800
+Message-ID: <200711270931.lAR9VSIl004890@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55263 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51528 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751076AbXK0JSR (ORCPT
+	by vger.kernel.org with ESMTP id S1756475AbXK0JcM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 04:18:17 -0500
+	Tue, 27 Nov 2007 04:32:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hancockr@shaw.ca, htejun@gmail.com, jeff@garzik.org
+Cc: crquan@gmail.com, bzolnier@gmail.com, randy.dunlap@oracle.com
 
 
 The patch titled
-     sata_nv: don't use legacy DMA in ADMA mode
+     ide-scsi: use print_hex_dump from <linux/kernel.h>
 has been added to the -mm tree.  Its filename is
-     sata_nv-dont-use-legacy-dma-in-adma-mode-v3.patch
+     ide-scsi-use-print_hex_dump-from-linux-kernelh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,95 +26,73 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sata_nv: don't use legacy DMA in ADMA mode
-From: Robert Hancock <hancockr@shaw.ca>
+Subject: ide-scsi: use print_hex_dump from <linux/kernel.h>
+From: Denis Cheng <crquan@gmail.com>
 
-We need to run any DMA command with result taskfile requested in ADMA mode
-when the port is in ADMA mode, otherwise it may try to use the legacy DMA
-engine in ADMA mode which is not allowed.  Enforce this with BUG_ON() since
-data corruption could potentially result if this happened.  Also, fail any
-attempt to try and issue NCQ commands with result taskfile requested, since
-the hardware doesn't allow this.
+these utilities implemented in lib/hexdump.c are more handy, please use this.
 
-Signed-off-by: Robert Hancock <hancockr@shaw.ca>
-Acked-by: Tejun Heo <htejun@gmail.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Denis Cheng <crquan@gmail.com>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_nv.c |   32 +++++++++++++++++++++++---------
- 1 file changed, 23 insertions(+), 9 deletions(-)
+ drivers/scsi/ide-scsi.c |   18 ++++--------------
+ 1 file changed, 4 insertions(+), 14 deletions(-)
 
-diff -puN drivers/ata/sata_nv.c~sata_nv-dont-use-legacy-dma-in-adma-mode-v3 drivers/ata/sata_nv.c
---- a/drivers/ata/sata_nv.c~sata_nv-dont-use-legacy-dma-in-adma-mode-v3
-+++ a/drivers/ata/sata_nv.c
-@@ -791,11 +791,13 @@ static int nv_adma_check_atapi_dma(struc
+diff -puN drivers/scsi/ide-scsi.c~ide-scsi-use-print_hex_dump-from-linux-kernelh drivers/scsi/ide-scsi.c
+--- a/drivers/scsi/ide-scsi.c~ide-scsi-use-print_hex_dump-from-linux-kernelh
++++ a/drivers/scsi/ide-scsi.c
+@@ -242,16 +242,6 @@ static void idescsi_output_buffers (ide_
+ 	}
+ }
  
- static void nv_adma_tf_read(struct ata_port *ap, struct ata_taskfile *tf)
+-static void hexdump(u8 *x, int len)
+-{
+-	int i;
+-
+-	printk("[ ");
+-	for (i = 0; i < len; i++)
+-		printk("%x ", x[i]);
+-	printk("]\n");
+-}
+-
+ static int idescsi_check_condition(ide_drive_t *drive, struct request *failed_command)
  {
--	/* Since commands where a result TF is requested are not
--	   executed in ADMA mode, the only time this function will be called
--	   in ADMA mode will be if a command fails. In this case we
--	   don't care about going into register mode with ADMA commands
--	   pending, as the commands will all shortly be aborted anyway. */
-+	/* Other than when internal or pass-through commands are executed,
-+	   the only time this function will be called in ADMA mode will be
-+	   if a command fails. In the failure case we don't care about going
-+	   into register mode with ADMA commands pending, as the commands will
-+	   all shortly be aborted anyway. We assume that NCQ commands are not
-+	   issued via passthrough, which is the only way that switching into
-+	   ADMA mode could abort outstanding commands. */
- 	nv_adma_register_mode(ap);
+ 	idescsi_scsi_t *scsi = drive_to_idescsi(drive);
+@@ -282,7 +272,7 @@ static int idescsi_check_condition(ide_d
+ 	pc->scsi_cmd = ((idescsi_pc_t *) failed_command->special)->scsi_cmd;
+ 	if (test_bit(IDESCSI_LOG_CMD, &scsi->log)) {
+ 		printk ("ide-scsi: %s: queue cmd = ", drive->name);
+-		hexdump(pc->c, 6);
++		print_hex_dump(KERN_DEBUG, "", DUMP_PREFIX_OFFSET, 16, 1, pc->c, 6, 1);
+ 	}
+ 	rq->rq_disk = scsi->disk;
+ 	return ide_do_drive_cmd(drive, rq, ide_preempt);
+@@ -337,7 +327,7 @@ static int idescsi_end_request (ide_driv
+ 		idescsi_pc_t *opc = (idescsi_pc_t *) rq->buffer;
+ 		if (log) {
+ 			printk ("ide-scsi: %s: wrap up check %lu, rst = ", drive->name, opc->scsi_cmd->serial_number);
+-			hexdump(pc->buffer,16);
++			print_hex_dump(KERN_DEBUG, "", DUMP_PREFIX_OFFSET, 16, 1, pc->buffer, 16, 1);
+ 		}
+ 		memcpy((void *) opc->scsi_cmd->sense_buffer, pc->buffer, SCSI_SENSE_BUFFERSIZE);
+ 		kfree(pc->buffer);
+@@ -813,10 +803,10 @@ static int idescsi_queue (struct scsi_cm
  
- 	ata_tf_read(ap, tf);
-@@ -1359,11 +1361,9 @@ static int nv_adma_use_reg_mode(struct a
- 	struct nv_adma_port_priv *pp = qc->ap->private_data;
+ 	if (test_bit(IDESCSI_LOG_CMD, &scsi->log)) {
+ 		printk ("ide-scsi: %s: que %lu, cmd = ", drive->name, cmd->serial_number);
+-		hexdump(cmd->cmnd, cmd->cmd_len);
++		print_hex_dump(KERN_DEBUG, "", DUMP_PREFIX_OFFSET, 16, 1, cmd->cmnd, cmd->cmd_len, 1);
+ 		if (memcmp(pc->c, cmd->cmnd, cmd->cmd_len)) {
+ 			printk ("ide-scsi: %s: que %lu, tsl = ", drive->name, cmd->serial_number);
+-			hexdump(pc->c, 12);
++			print_hex_dump(KERN_DEBUG, "", DUMP_PREFIX_OFFSET, 16, 1, pc->c, 12, 1);
+ 		}
+ 	}
  
- 	/* ADMA engine can only be used for non-ATAPI DMA commands,
--	   or interrupt-driven no-data commands, where a result taskfile
--	   is not required. */
-+	   or interrupt-driven no-data commands. */
- 	if ((pp->flags & NV_ADMA_ATAPI_SETUP_COMPLETE) ||
--	   (qc->tf.flags & ATA_TFLAG_POLLING) ||
--	   (qc->flags & ATA_QCFLAG_RESULT_TF))
-+	   (qc->tf.flags & ATA_TFLAG_POLLING))
- 		return 1;
- 
- 	if ((qc->flags & ATA_QCFLAG_DMAMAP) ||
-@@ -1381,6 +1381,8 @@ static void nv_adma_qc_prep(struct ata_q
- 		       NV_CPB_CTL_IEN;
- 
- 	if (nv_adma_use_reg_mode(qc)) {
-+		BUG_ON(!(pp->flags & NV_ADMA_ATAPI_SETUP_COMPLETE) &&
-+			(qc->flags & ATA_QCFLAG_DMAMAP));
- 		nv_adma_register_mode(qc->ap);
- 		ata_qc_prep(qc);
- 		return;
-@@ -1425,9 +1427,21 @@ static unsigned int nv_adma_qc_issue(str
- 
- 	VPRINTK("ENTER\n");
- 
-+	/* We can't handle result taskfile with NCQ commands, since
-+	   retrieving the taskfile switches us out of ADMA mode and would abort
-+	   existing commands. */
-+	if (unlikely(qc->tf.protocol == ATA_PROT_NCQ &&
-+		     (qc->flags & ATA_QCFLAG_RESULT_TF))) {
-+		ata_dev_printk(qc->dev, KERN_ERR,
-+			"NCQ w/ RESULT_TF not allowed\n");
-+		return AC_ERR_SYSTEM;
-+	}
-+
- 	if (nv_adma_use_reg_mode(qc)) {
- 		/* use ATA register mode */
- 		VPRINTK("using ATA register mode: 0x%lx\n", qc->flags);
-+		BUG_ON(!(pp->flags & NV_ADMA_ATAPI_SETUP_COMPLETE) &&
-+			(qc->flags & ATA_QCFLAG_DMAMAP));
- 		nv_adma_register_mode(qc->ap);
- 		return ata_qc_issue_prot(qc);
- 	} else
 _
 
-Patches currently in -mm which might be from hancockr@shaw.ca are
+Patches currently in -mm which might be from crquan@gmail.com are
 
-sata_nv-dont-use-legacy-dma-in-adma-mode-v3.patch
-git-x86.patch
+ide-scsi-use-print_hex_dump-from-linux-kernelh.patch
