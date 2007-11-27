@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-add-acpi-reboot-option.patch added to -mm tree
-Date: Tue, 27 Nov 2007 01:38:20 -0800
-Message-ID: <200711270938.lAR9cKPC005130@imap1.linux-foundation.org>
+Subject: + x86_64-efi-runtime-service-support-efi-runtime-services.patch added to -mm tree
+Date: Tue, 27 Nov 2007 02:03:13 -0800
+Message-ID: <200711271003.lARA3DTj005998@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50961 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57101 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751235AbXK0Jj5 (ORCPT
+	by vger.kernel.org with ESMTP id S1755031AbXK0KEM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 04:39:57 -0500
+	Tue, 27 Nov 2007 05:04:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adurbin@google.com, ak@suse.de, lenb@kernel.org, mingo@elte.hu, tglx@linutronix.de
+Cc: ying.huang@intel.com, ak@suse.de, mingo@elte.hu, mouli@linux.intel.com, tglx@linutronix.de
 
 
 The patch titled
-     x86_64: add ACPI reboot option
+     x86_64 EFI runtime service support: EFI runtime services
 has been added to the -mm tree.  Its filename is
-     x86_64-add-acpi-reboot-option.patch
+     x86_64-efi-runtime-service-support-efi-runtime-services.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,96 +26,112 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: add ACPI reboot option
-From: Aaron Durbin <adurbin@google.com>
+Subject: x86_64 EFI runtime service support: EFI runtime services
+From: "Huang, Ying" <ying.huang@intel.com>
 
-Add the ability to reboot an x86_64 based machine using the RESET_REG in the
-FADT ACPI table.
+This patch adds support for several EFI runtime services for EFI x86_64
+system.
 
-Signed-off-by: Aaron Durbin <adurbin@google.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Andi Kleen <ak@suse.de>
+The EFI support for emergency_restart is added.
+
+Signed-off-by: Chandramouli Narayanan <mouli@linux.intel.com>
+Signed-off-by: Huang Ying <ying.huang@intel.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/x86_64/boot-options.txt |    5 ++++-
- arch/x86/kernel/reboot_64.c           |   11 ++++++++++-
- 2 files changed, 14 insertions(+), 2 deletions(-)
+ arch/x86/kernel/reboot_64.c         |   20 +++++++++++++-------
+ include/asm-x86/emergency-restart.h |    9 +++++++++
+ 2 files changed, 22 insertions(+), 7 deletions(-)
 
-diff -puN Documentation/x86_64/boot-options.txt~x86_64-add-acpi-reboot-option Documentation/x86_64/boot-options.txt
---- a/Documentation/x86_64/boot-options.txt~x86_64-add-acpi-reboot-option
-+++ a/Documentation/x86_64/boot-options.txt
-@@ -110,12 +110,15 @@ Idle loop
- 
- Rebooting
- 
--   reboot=b[ios] | t[riple] | k[bd] [, [w]arm | [c]old]
-+   reboot=b[ios] | t[riple] | k[bd] | a[cpi] [, [w]arm | [c]old]
-    bios	  Use the CPU reboot vector for warm reset
-    warm   Don't set the cold reboot flag
-    cold   Set the cold reboot flag
-    triple Force a triple fault (init)
-    kbd    Use the keyboard controller. cold reset (default)
-+   acpi   Use the ACPI RESET_REG in the FADT. If ACPI is not configured or the
-+          ACPI reset does not work, the reboot path attempts the reset using
-+          the keyboard controller.
- 
-    Using warm reset will be much faster especially on big memory
-    systems because the BIOS will not go through the memory check.
-diff -puN arch/x86/kernel/reboot_64.c~x86_64-add-acpi-reboot-option arch/x86/kernel/reboot_64.c
---- a/arch/x86/kernel/reboot_64.c~x86_64-add-acpi-reboot-option
+diff -puN arch/x86/kernel/reboot_64.c~x86_64-efi-runtime-service-support-efi-runtime-services arch/x86/kernel/reboot_64.c
+--- a/arch/x86/kernel/reboot_64.c~x86_64-efi-runtime-service-support-efi-runtime-services
 +++ a/arch/x86/kernel/reboot_64.c
 @@ -9,6 +9,7 @@
  #include <linux/pm.h>
  #include <linux/kdebug.h>
  #include <linux/sched.h>
-+#include <acpi/reboot.h>
++#include <linux/efi.h>
+ #include <acpi/reboot.h>
  #include <asm/io.h>
  #include <asm/delay.h>
- #include <asm/desc.h>
-@@ -28,7 +29,8 @@ EXPORT_SYMBOL(pm_power_off);
+@@ -27,20 +28,17 @@ void (*pm_power_off)(void);
+ EXPORT_SYMBOL(pm_power_off);
+ 
  static long no_idt[3];
- static enum { 
- 	BOOT_TRIPLE = 't',
--	BOOT_KBD = 'k'
-+	BOOT_KBD = 'k',
-+	BOOT_ACPI = 'a'
- } reboot_type = BOOT_KBD;
+-static enum { 
+-	BOOT_TRIPLE = 't',
+-	BOOT_KBD = 'k',
+-	BOOT_ACPI = 'a'
+-} reboot_type = BOOT_KBD;
++enum reboot_type reboot_type = BOOT_KBD;
  static int reboot_mode = 0;
  int reboot_force;
-@@ -38,6 +40,7 @@ int reboot_force;
+ 
+-/* reboot=t[riple] | k[bd] [, [w]arm | [c]old]
++/* reboot=t[riple] | k[bd] | e[fi] [, [w]arm | [c]old]
+    warm   Don't set the cold reboot flag
     cold   Set the cold reboot flag
     triple Force a triple fault (init)
     kbd    Use the keyboard controller. cold reset (default)
-+   acpi   Use the RESET_REG in the FADT
+    acpi   Use the RESET_REG in the FADT
++   efi    Use efi reset_system runtime service
     force  Avoid anything that could hang.
   */ 
  static int __init reboot_setup(char *str)
-@@ -53,6 +56,7 @@ static int __init reboot_setup(char *str
- 			break;
- 
- 		case 't':
-+		case 'a':
+@@ -59,6 +57,7 @@ static int __init reboot_setup(char *str
+ 		case 'a':
  		case 'b':
  		case 'k':
++		case 'e':
  			reboot_type = *str;
-@@ -142,6 +146,11 @@ void machine_emergency_restart(void)
- 
+ 			break;
+ 		case 'f':
+@@ -151,7 +150,14 @@ void machine_emergency_restart(void)
+ 			acpi_reboot();
  			reboot_type = BOOT_KBD;
  			break;
+-		}      
 +
-+		case BOOT_ACPI:
-+			acpi_reboot();
++		case BOOT_EFI:
++			if (efi_enabled)
++				efi.reset_system(reboot_mode ? EFI_RESET_WARM : EFI_RESET_COLD,
++						 EFI_SUCCESS, 0, NULL);
 +			reboot_type = BOOT_KBD;
 +			break;
- 		}      
++		}
  	}      
  }
+ 
+diff -puN include/asm-x86/emergency-restart.h~x86_64-efi-runtime-service-support-efi-runtime-services include/asm-x86/emergency-restart.h
+--- a/include/asm-x86/emergency-restart.h~x86_64-efi-runtime-service-support-efi-runtime-services
++++ a/include/asm-x86/emergency-restart.h
+@@ -1,6 +1,15 @@
+ #ifndef _ASM_EMERGENCY_RESTART_H
+ #define _ASM_EMERGENCY_RESTART_H
+ 
++enum reboot_type {
++	BOOT_TRIPLE = 't',
++	BOOT_KBD = 'k',
++	BOOT_ACPI = 'a',
++	BOOT_EFI = 'e'
++};
++
++extern enum reboot_type reboot_type;
++
+ extern void machine_emergency_restart(void);
+ 
+ #endif /* _ASM_EMERGENCY_RESTART_H */
 _
 
-Patches currently in -mm which might be from adurbin@google.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-acpi-add-reboot-mechanism.patch
-x86_64-add-acpi-reboot-option.patch
+x86_64-efi-boot-support-efi-frame-buffer.patch
+x86_64-efi-boot-support-efi-boot-document.patch
+x86_64-efi-runtime-service-support-efi-basic-runtime-service-support.patch
+x86_64-efi-runtime-service-support-efi-runtime-services.patch
+x86_64-efi-runtime-service-support-document-for-efi-runtime-services.patch
+x86_64-efi-runtime-service-support-remove-duplicated-code-from-efi_32c.patch
+vmcoreinfo-add-the-array-length-of-free_list-for-filtering-free-pages.patch
