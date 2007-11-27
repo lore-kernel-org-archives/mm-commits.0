@@ -1,235 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page-writeback-highmem_is_dirtyable-option-fix.patch added to -mm tree
-Date: Tue, 27 Nov 2007 14:27:23 -0800
-Message-ID: <200711272227.lARMRNvR002587@imap1.linux-foundation.org>
+Subject: - mm-add-dirty_highmem-option.patch removed from -mm tree
+Date: Tue, 27 Nov 2007 14:27:28 -0800
+Message-ID: <200711272227.lARMRTRE002592@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60812 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59707 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751907AbXK0W1f (ORCPT
+	by vger.kernel.org with ESMTP id S1751971AbXK0W1j (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 17:27:35 -0500
+	Tue, 27 Nov 2007 17:27:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, brong@fastmail.fm, solo@google.com, torvalds@linux-foundation.org, wfg@mail.ustc.edu.cn
+To: brong@fastmail.fm, a.p.zijlstra@chello.nl, solo@google.com, torvalds@linux-foundation.org, wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-page-writeback-highmem_is_dirtyable-option-fix
-has been added to the -mm tree.  Its filename is
-     mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+     mm: add dirty_highmem option
+has been removed from the -mm tree.  Its filename was
+     mm-add-dirty_highmem-option.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: mm-page-writeback-highmem_is_dirtyable-option-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: add dirty_highmem option
+From: Bron Gondwana <brong@fastmail.fm>
 
-Fix the CONFIG_DETECT_SOFTLOCKUP=y build.
+A 32 bit machine with HIGHMEM64 enabled running DCC has an MMAPed file of
+approximately 2Gb size which contains a hash format that is written
+"randomly" by the dbclean process.  On 2.6.16 this process took a few
+minutes.  With lowmem only accounting of dirty ratios, this takes about 12
+hours of 100% disk IO, all random writes.
 
-This is getting silly.
+This patch includes some code cleanup from Linus and a toggle in
+/proc/sys/vm/dirty_highmem which can be set to 1 to add the highmem back to
+the total available memory count.
 
-Cc: Bron Gondwana <brong@fastmail.fm>
-Cc: Ethan Solomita <solo@google.com>
+Signed-off-by: Bron Gondwana <brong@fastmail.fm>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: WU Fengguang <wfg@mail.ustc.edu.cn>
+Cc: Ethan Solomita <solo@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ Documentation/filesystems/proc.txt |   12 ++++++++++++
+ Documentation/sysctl/vm.txt        |    9 +++++----
+ include/linux/writeback.h          |    1 +
+ kernel/sysctl.c                    |   16 +++++++++++++++-
+ mm/page-writeback.c                |    9 ++++++++-
+ 5 files changed, 41 insertions(+), 6 deletions(-)
 
-diff -puN kernel/sysctl.c~mm-page-writeback-highmem_is_dirtyable-option-fix kernel/sysctl.c
---- a/kernel/sysctl.c~mm-page-writeback-highmem_is_dirtyable-option-fix
+diff -puN Documentation/filesystems/proc.txt~mm-add-dirty_highmem-option Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~mm-add-dirty_highmem-option
++++ a/Documentation/filesystems/proc.txt
+@@ -1258,6 +1258,18 @@ dirty_background_ratio
+ Contains, as a percentage of total system memory, the number of pages at which
+ the pdflush background writeback daemon will start writing out dirty data.
+ 
++dirty_highmem
++-------------
++
++Contains, as a boolean, a switch to allow highmem to be counted as
++part of the "available" memory against which the dirty ratios will be
++applied.
++
++Setting this to 1 can be useful on 32 bit machines where you want to make
++random changes within an MMAPed file that is larger than your available
++lowmem, however it is potentially dangerous and has serious bounce-buffer
++issues.
++
+ dirty_ratio
+ -----------------
+ 
+diff -puN Documentation/sysctl/vm.txt~mm-add-dirty_highmem-option Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~mm-add-dirty_highmem-option
++++ a/Documentation/sysctl/vm.txt
+@@ -18,6 +18,7 @@ files can be found in mm/swap.c.
+ Currently, these files are in /proc/sys/vm:
+ - overcommit_memory
+ - page-cluster
++- dirty_highmem
+ - dirty_ratio
+ - dirty_background_ratio
+ - dirty_expire_centisecs
+@@ -37,10 +38,10 @@ Currently, these files are in /proc/sys/
+ 
+ ==============================================================
+ 
+-dirty_ratio, dirty_background_ratio, dirty_expire_centisecs,
+-dirty_writeback_centisecs, vfs_cache_pressure, laptop_mode,
+-block_dump, swap_token_timeout, drop-caches,
+-hugepages_treat_as_movable:
++dirty_highmem, dirty_ratio, dirty_background_ratio,
++dirty_expire_centisecs, dirty_writeback_centisecs,
++vfs_cache_pressure, laptop_mode, block_dump,
++swap_token_timeout, drop-caches, hugepages_treat_as_movable:
+ 
+ See Documentation/filesystems/proc.txt
+ 
+diff -puN include/linux/writeback.h~mm-add-dirty_highmem-option include/linux/writeback.h
+--- a/include/linux/writeback.h~mm-add-dirty_highmem-option
++++ a/include/linux/writeback.h
+@@ -98,6 +98,7 @@ void throttle_vm_writeout(gfp_t gfp_mask
+ 
+ /* These are exported to sysctl. */
+ extern int dirty_background_ratio;
++extern int vm_dirty_highmem;
+ extern int vm_dirty_ratio;
+ extern int dirty_writeback_interval;
+ extern int dirty_expire_interval;
+diff -puN kernel/sysctl.c~mm-add-dirty_highmem-option kernel/sysctl.c
+--- a/kernel/sysctl.c~mm-add-dirty_highmem-option
 +++ a/kernel/sysctl.c
-@@ -83,8 +83,11 @@ extern int sysctl_stat_interval;
+@@ -82,9 +82,10 @@ extern int maps_protect;
+ extern int sysctl_stat_interval;
  extern int audit_argv_kb;
  
- /* Constants used for minimum and  maximum */
--#ifdef CONFIG_DETECT_SOFTLOCKUP
-+#if defined(CONFIG_DETECT_SOFTLOCKUP) || defined(CONFIG_HIGHMEM)
- static int one = 1;
-+#endif
++static int one = 1;
 +
-+#ifdef CONFIG_DETECT_SOFTLOCKUP
+ /* Constants used for minimum and  maximum */
+ #ifdef CONFIG_DETECT_SOFTLOCKUP
+-static int one = 1;
  static int sixty = 60;
  #endif
  
-@@ -93,7 +96,6 @@ static int two = 2;
+@@ -1081,6 +1082,19 @@ static struct ctl_table vm_table[] = {
+ 		.extra1		= &zero,
+ 	},
  #endif
++#ifdef CONFIG_HIGHMEM
++	{
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "dirty_highmem",
++		.data		= &vm_dirty_highmem,
++		.maxlen		= sizeof(vm_dirty_highmem),
++		.mode		= 0644,
++		.proc_handler	= &proc_dointvec_minmax,
++		.strategy	= &sysctl_intvec,
++		.extra1		= &zero,
++		.extra2		= &one,
++	},
++#endif
+ /*
+  * NOTE: do not add new entries to this table unless you have read
+  * Documentation/sysctl/ctl_unnumbered.txt
+diff -puN mm/page-writeback.c~mm-add-dirty_highmem-option mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-add-dirty_highmem-option
++++ a/mm/page-writeback.c
+@@ -69,6 +69,12 @@ static inline long sync_writeback_pages(
+ int dirty_background_ratio = 5;
  
- static int zero;
--static int one = 1;
- static int one_hundred = 100;
+ /*
++ * free highmem will not be subtracted from the total free memory
++ * for calculating free ratios if vm_dirty_highmem is true
++ */
++int vm_dirty_highmem;
++
++/*
+  * The generator of dirty data starts writeback at this percentage
+  */
+ int vm_dirty_ratio = 10;
+@@ -287,7 +293,8 @@ static unsigned long determine_dirtyable
+ 	x = global_page_state(NR_FREE_PAGES)
+ 		+ global_page_state(NR_INACTIVE)
+ 		+ global_page_state(NR_ACTIVE);
+-	x -= highmem_dirtyable_memory(x);
++	if (!vm_dirty_highmem)
++		x -= highmem_dirtyable_memory(x);
+ 	return x + 1;	/* Ensure that we never return 0 */
+ }
  
- /* this is needed for the proc_dointvec_minmax for [fs_]overflow UID and GID */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from brong@fastmail.fm are
 
-origin.patch
-file-capabilities-allow-sigcont-within-session-v2.patch
-pnp-increase-the-maximum-number-of-resources-fix.patch
-fix-linux-kdh-usage-in-userspace-checkpatch-fixes.patch
-revert-keyspan-init-termios-properly.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-git-cpufreq.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-git-drm-oops-fix.patch
-intel-agp-enable-i915-recognition.patch
-git-dvb.patch
-ia64-slim-down-__clear_bit_unlock.patch
-git-infiniband.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-git-mips-fixup.patch
-git-mmc.patch
-git-mtd.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-bluetooth-uninlining.patch
-git-nfsd.patch
-quirk-enable-msi-mapping-on-ht1000.patch
-git-sh-fixup.patch
-git-scsi-misc-fixup.patch
-ips-trim-trailing-whitespace.patch
-scsi-gdth-kill-unneeded-irq-argument.patch
-bidi-support-scsi_data_buffer-broke-qla1280.patch
-bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
-libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-mct232-speed-new-termios-and-compliance-cleanups-fix.patch
-git-watchdog.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-cryptodev.patch
-git-xtensa.patch
-ia64-increase-datapatch-offset.patch
-ia64-dont-assume-that-unwcheckpy-is-executable.patch
-ia64-export-copy_page-to-modules.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
+mm-page-writeback-highmem_is_dirtyable-option.patch
 mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+mm-add-dirty_highmem-option.patch
 mm-add-dirty_highmem-option-fix.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-alpha-atomic_add_return-should-return-int.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-sync_sb_inodes-propagate-errors.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-64-bit-i_version-afs-fixes.patch
-ext4-add-block-bitmap-validation-fix.patch
-ext4-fix-up-ext4fs_debug-builds-checkpatch-fixes.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-w1-build-fix.patch
