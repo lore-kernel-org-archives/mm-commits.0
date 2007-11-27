@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + net-fix-tx-bug-vlan-in-vlan.patch added to -mm tree
-Date: Mon, 26 Nov 2007 23:19:35 -0800
-Message-ID: <200711270719.lAR7JZZw000347@imap1.linux-foundation.org>
+Subject: + x86_64-do-not-set-boot-cpu-in-cpu_online_map-at-x86_64_start_kernel.patch added to -mm tree
+Date: Mon, 26 Nov 2007 23:22:55 -0800
+Message-ID: <200711270722.lAR7MtLw000488@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47119 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35063 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751179AbXK0HUT (ORCPT
+	by vger.kernel.org with ESMTP id S1751317AbXK0HX3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 02:20:19 -0500
+	Tue, 27 Nov 2007 02:23:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joonwpark81@gmail.com, davem@davemloft.net, greearb@candelatech.com, herbert@gondor.apana.org.au, tristan_schmelcher@alumni.uwaterloo.ca
+Cc: Yinghai.Lu@Sun.COM, ak@suse.de, mingo@elte.hu, tglx@linutronix.de, yinghai.lu@Sun.COM, zach@vmware.com
 
 
 The patch titled
-     net: fix TX bug VLAN in VLAN
+     x86_64: do not set boot cpu in cpu_online_map at x86_64_start_kernel()
 has been added to the -mm tree.  Its filename is
-     net-fix-tx-bug-vlan-in-vlan.patch
+     x86_64-do-not-set-boot-cpu-in-cpu_online_map-at-x86_64_start_kernel.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,43 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: net: fix TX bug VLAN in VLAN
-From: "Joonwoo Park" <joonwpark81@gmail.com>
+Subject: x86_64: do not set boot cpu in cpu_online_map at x86_64_start_kernel()
+From: Yinghai Lu <Yinghai.Lu@Sun.COM>
 
-This patch fixes http://bugzilla.kernel.org/show_bug.cgi?id=8766
+In init/main.c boot_cpu_init() does that later
 
-Is it possible?
-BUG((veth->h_vlan_proto != htons(ETH_P_8021Q)) && !(VLAN_DEV_INFO(dev)->flags & VLAN_FLAG_REORDER_HDR))
-I'm afraid, queued packet before vconfig set_flag would do that.
-
-Fix misbehavior of vlan_dev_hard_start_xmit() for recursive encapsulations.
-
-Signed-off-by: Joonwoo Park <joonwpark81@gmail.com>
-Cc: Ben Greear <greearb@candelatech.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Tristan Schmelcher <tristan_schmelcher@alumni.uwaterloo.ca>
+Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
+Cc: Zachary Amsden <zach@vmware.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/8021q/vlan_dev.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/x86/kernel/head64.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN net/8021q/vlan_dev.c~net-fix-tx-bug-vlan-in-vlan net/8021q/vlan_dev.c
---- a/net/8021q/vlan_dev.c~net-fix-tx-bug-vlan-in-vlan
-+++ a/net/8021q/vlan_dev.c
-@@ -462,7 +462,8 @@ int vlan_dev_hard_start_xmit(struct sk_b
- 	 * OTHER THINGS LIKE FDDI/TokenRing/802.3 SNAPs...
- 	 */
+diff -puN arch/x86/kernel/head64.c~x86_64-do-not-set-boot-cpu-in-cpu_online_map-at-x86_64_start_kernel arch/x86/kernel/head64.c
+--- a/arch/x86/kernel/head64.c~x86_64-do-not-set-boot-cpu-in-cpu_online_map-at-x86_64_start_kernel
++++ a/arch/x86/kernel/head64.c
+@@ -69,8 +69,6 @@ void __init x86_64_start_kernel(char * r
  
--	if (veth->h_vlan_proto != htons(ETH_P_8021Q)) {
-+	if (veth->h_vlan_proto != htons(ETH_P_8021Q) ||
-+		VLAN_DEV_INFO(dev)->flags & VLAN_FLAG_REORDER_HDR) {
- 		int orig_headroom = skb_headroom(skb);
- 		unsigned short veth_TCI;
- 
+ 	pda_init(0);
+ 	copy_bootdata(__va(real_mode_data));
+-#ifdef CONFIG_SMP
+-	cpu_set(0, cpu_online_map);
+-#endif
++
+ 	start_kernel();
+ }
 _
 
-Patches currently in -mm which might be from joonwpark81@gmail.com are
+Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
 
-net-fix-tx-bug-vlan-in-vlan.patch
+origin.patch
+cpufreq-powernow-k8-print-pstate-instead-of-fid-did-for-family-10h.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+git-x86.patch
+x86_64-set-cpu_index-to-nr_cpus-instead-of-0.patch
+x86_64-do-not-set-boot-cpu-in-cpu_online_map-at-x86_64_start_kernel.patch
+kernel-printkc-concerns-about-the-console-handover.patch
