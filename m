@@ -1,95 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - sparc64-use-generic-percpu.patch removed from -mm tree
-Date: Tue, 27 Nov 2007 15:30:07 -0800
-Message-ID: <200711272330.lARNU7eg005142@imap1.linux-foundation.org>
+Subject: - powerpc-use-generic-per-cpu.patch removed from -mm tree
+Date: Tue, 27 Nov 2007 15:30:01 -0800
+Message-ID: <200711272330.lARNU4v4005138@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45607 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47038 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753382AbXK0XaK (ORCPT
+	by vger.kernel.org with ESMTP id S1754827AbXK0XaN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 18:30:10 -0500
+	Tue, 27 Nov 2007 18:30:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, davem@davemloft.net, mm-commits@vger.kernel.org
+To: clameter@sgi.com, benh@kernel.crashing.org, galak@gate.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rparc64: use generic percpu
+     powerpc: use generic per cpu
 has been removed from the -mm tree.  Its filename was
-     sparc64-use-generic-percpu.patch
+     powerpc-use-generic-per-cpu.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: rparc64: use generic percpu
+Subject: powerpc: use generic per cpu
 From: Christoph Lameter <clameter@sgi.com>
 
-Sparc64 has a way of providing the base address for the per cpu area of the
-currently executing processor in a global register.
-
-Sparc64 also provides a way to calculate the address of a per cpu area from a
-base address instead of performing an array lookup.
+Powerpc has a way to determine the address of the per cpu area of the
+currently executing processor via the paca and the array of per cpu offsets is
+avoided by looking up the per cpu area from the remote paca's (copying
+x86_64).
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: David Miller <davem@davemloft.net>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Kumar Gala <galak@gate.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc64/mm/init.c       |    5 +++++
- include/asm-sparc64/percpu.h |   12 ++----------
- 2 files changed, 7 insertions(+), 10 deletions(-)
+ include/asm-powerpc/percpu.h |   19 -------------------
+ 1 file changed, 19 deletions(-)
 
-diff -puN arch/sparc64/mm/init.c~sparc64-use-generic-percpu arch/sparc64/mm/init.c
---- a/arch/sparc64/mm/init.c~sparc64-use-generic-percpu
-+++ a/arch/sparc64/mm/init.c
-@@ -1323,6 +1323,11 @@ pgd_t swapper_pg_dir[2048];
- static void sun4u_pgprot_init(void);
- static void sun4v_pgprot_init(void);
- 
-+/* Dummy function */
-+void __init setup_per_cpu_areas(void)
-+{
-+}
-+
- void __init paging_init(void)
- {
- 	unsigned long end_pfn, pages_avail, shift, phys_base;
-diff -puN include/asm-sparc64/percpu.h~sparc64-use-generic-percpu include/asm-sparc64/percpu.h
---- a/include/asm-sparc64/percpu.h~sparc64-use-generic-percpu
-+++ a/include/asm-sparc64/percpu.h
-@@ -7,7 +7,6 @@ register unsigned long __local_per_cpu_o
- 
- #ifdef CONFIG_SMP
- 
--#define setup_per_cpu_areas()			do { } while (0)
- extern void real_setup_per_cpu_areas(void);
- 
- extern unsigned long __per_cpu_base;
-@@ -16,21 +15,14 @@ extern unsigned long __per_cpu_shift;
- 	(__per_cpu_base + ((unsigned long)(__cpu) << __per_cpu_shift))
+diff -puN include/asm-powerpc/percpu.h~powerpc-use-generic-per-cpu include/asm-powerpc/percpu.h
+--- a/include/asm-powerpc/percpu.h~powerpc-use-generic-per-cpu
++++ a/include/asm-powerpc/percpu.h
+@@ -16,25 +16,6 @@
+ #define __my_cpu_offset() get_paca()->data_offset
  #define per_cpu_offset(x) (__per_cpu_offset(x))
  
 -/* var is in discarded region: offset to particular copy we want */
 -#define per_cpu(var, cpu) (*RELOC_HIDE(&per_cpu__##var, __per_cpu_offset(cpu)))
--#define __get_cpu_var(var) (*RELOC_HIDE(&per_cpu__##var, __local_per_cpu_offset))
--#define __raw_get_cpu_var(var) (*RELOC_HIDE(&per_cpu__##var, __local_per_cpu_offset))
-+#define __my_cpu_offset __local_per_cpu_offset
- 
- #else /* ! SMP */
- 
- #define real_setup_per_cpu_areas()		do { } while (0)
- 
--#define per_cpu(var, cpu)			(*((void)cpu, &per_cpu__##var))
+-#define __get_cpu_var(var) (*RELOC_HIDE(&per_cpu__##var, __my_cpu_offset()))
+-#define __raw_get_cpu_var(var) (*RELOC_HIDE(&per_cpu__##var, local_paca->data_offset))
+-
+-extern void setup_per_cpu_areas(void);
+-
+-#else /* ! SMP */
+-
+-#define per_cpu(var, cpu)			(*((void)(cpu), &per_cpu__##var))
 -#define __get_cpu_var(var)			per_cpu__##var
 -#define __raw_get_cpu_var(var)			per_cpu__##var
 -
  #endif	/* SMP */
- 
+-
 -#define DECLARE_PER_CPU(type, name) extern __typeof__(type) per_cpu__##name
-+#include <asm-generic/percpu.h>
- 
- #endif /* __ARCH_SPARC64_PERCPU__ */
+-
+-#else
+ #include <asm-generic/percpu.h>
+-#endif
+-
+ #endif /* _ASM_POWERPC_PERCPU_H_ */
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
