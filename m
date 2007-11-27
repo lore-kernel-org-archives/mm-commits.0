@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + net-fix-tx-bug-vlan-in-vlan.patch added to -mm tree
-Date: Mon, 26 Nov 2007 22:17:58 -0800
-Message-ID: <200711270617.lAR6Hw4k030717@imap1.linux-foundation.org>
+Subject: + mm-sparsec-improve-the-error-handling-for-sparse_add_one_section.patch added to -mm tree
+Date: Mon, 26 Nov 2007 22:13:40 -0800
+Message-ID: <200711270613.lAR6Deld030556@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36176 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38717 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750808AbXK0GSv (ORCPT
+	by vger.kernel.org with ESMTP id S1750808AbXK0GTv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 01:18:51 -0500
+	Tue, 27 Nov 2007 01:19:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joonwpark81@gmail.com, davem@davemloft.net, greearb@candelatech.com, herbert@gondor.apana.org.au, tristan_schmelcher@alumni.uwaterloo.ca
+Cc: xiyou.wangcong@gmail.com, apw@shadowen.org, clameter@sgi.com, haveblue@us.ibm.com, riel@redhat.com, y-goto@jp.fujitsu.com
 
 
 The patch titled
-     net: fix TX bug VLAN in VLAN
+     mm/sparse.c: Improve the error handling for sparse_add_one_section()
 has been added to the -mm tree.  Its filename is
-     net-fix-tx-bug-vlan-in-vlan.patch
+     mm-sparsec-improve-the-error-handling-for-sparse_add_one_section.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,50 +26,73 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: net: fix TX bug VLAN in VLAN
-From: "Joonwoo Park" <joonwpark81@gmail.com>
+Subject: mm/sparse.c: Improve the error handling for sparse_add_one_section()
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-This patch fixes http://bugzilla.kernel.org/show_bug.cgi?id=8766
+Improve the error handling for mm/sparse.c::sparse_add_one_section().  And I
+see no reason to check 'usemap' until holding the 'pgdat_resize_lock'.
 
-Is it possible?
-BUG((veth->h_vlan_proto != htons(ETH_P_8021Q)) && !(VLAN_DEV_INFO(dev)->flags & VLAN_FLAG_REORDER_HDR))
-I'm afraid, queued packet before vconfig set_flag would do that.
-
-Signed-off-by: Joonwoo Park <joonwpark81@gmail.com>
-Cc: Ben Greear <greearb@candelatech.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Tristan Schmelcher <tristan_schmelcher@alumni.uwaterloo.ca>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/8021q/vlan_dev.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/sparse.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN net/8021q/vlan_dev.c~net-fix-tx-bug-vlan-in-vlan net/8021q/vlan_dev.c
---- a/net/8021q/vlan_dev.c~net-fix-tx-bug-vlan-in-vlan
-+++ a/net/8021q/vlan_dev.c
-@@ -454,7 +454,9 @@ int vlan_dev_hard_header(struct sk_buff 
- int vlan_dev_hard_start_xmit(struct sk_buff *skb, struct net_device *dev)
- {
- 	struct net_device_stats *stats = vlan_dev_get_stats(dev);
-+#ifdef VLAN_DEBUG
- 	struct vlan_ethhdr *veth = (struct vlan_ethhdr *)(skb->data);
-+#endif
- 
- 	/* Handle non-VLAN frames if they are sent to us, for example by DHCP.
- 	 *
-@@ -462,7 +464,7 @@ int vlan_dev_hard_start_xmit(struct sk_b
- 	 * OTHER THINGS LIKE FDDI/TokenRing/802.3 SNAPs...
+diff -puN mm/sparse.c~mm-sparsec-improve-the-error-handling-for-sparse_add_one_section mm/sparse.c
+--- a/mm/sparse.c~mm-sparsec-improve-the-error-handling-for-sparse_add_one_section
++++ a/mm/sparse.c
+@@ -383,9 +383,17 @@ int sparse_add_one_section(struct zone *
+ 	 * no locking for this, because it does its own
+ 	 * plus, it does a kmalloc
  	 */
+-	sparse_index_init(section_nr, pgdat->node_id);
++	ret = sparse_index_init(section_nr, pgdat->node_id);
++	if (ret < 0)
++		return ret;
+ 	memmap = kmalloc_section_memmap(section_nr, pgdat->node_id, nr_pages);
++	if (!memmap)
++		return -ENOMEM;
+ 	usemap = __kmalloc_section_usemap();
++	if (!usemap) {
++		__kfree_section_memmap(memmap, nr_pages);
++		return -ENOMEM;
++	}
  
--	if (veth->h_vlan_proto != htons(ETH_P_8021Q)) {
-+	if (VLAN_DEV_INFO(dev)->flags & VLAN_FLAG_REORDER_HDR) {
- 		int orig_headroom = skb_headroom(skb);
- 		unsigned short veth_TCI;
+ 	pgdat_resize_lock(pgdat, &flags);
  
+@@ -395,10 +403,6 @@ int sparse_add_one_section(struct zone *
+ 		goto out;
+ 	}
+ 
+-	if (!usemap) {
+-		ret = -ENOMEM;
+-		goto out;
+-	}
+ 	ms->section_mem_map |= SECTION_MARKED_PRESENT;
+ 
+ 	ret = sparse_init_one_section(ms, section_nr, memmap, usemap);
+@@ -406,7 +410,7 @@ int sparse_add_one_section(struct zone *
+ out:
+ 	pgdat_resize_unlock(pgdat, &flags);
+ 	if (ret <= 0)
+-		__kfree_section_memmap(memmap, nr_pages);
++		kfree(usemap);
+ 	return ret;
+ }
+ #endif
 _
 
-Patches currently in -mm which might be from joonwpark81@gmail.com are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
-net-fix-tx-bug-vlan-in-vlan.patch
+uml-build-fix.patch
+mm-sparsec-check-the-return-value-of-sparse_index_alloc.patch
+mm-sparsec-improve-the-error-handling-for-sparse_add_one_section.patch
+uml-code-tidying-under-arch-um-os-linux.patch
+uml-const-and-other-tidying.patch
+time-fix-sysfs_show_availablecurrent_clocksources-buffer-overflow-problem.patch
