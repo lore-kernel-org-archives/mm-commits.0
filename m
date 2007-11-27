@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch added to -mm tree
-Date: Tue, 27 Nov 2007 14:02:40 -0800
-Message-ID: <200711272202.lARM2evT032644@imap1.linux-foundation.org>
+Subject: + per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch added to -mm tree
+Date: Tue, 27 Nov 2007 14:02:27 -0800
+Message-ID: <200711272202.lARM2SV3032588@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55825 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50656 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758286AbXK0WFH (ORCPT
+	by vger.kernel.org with ESMTP id S1756471AbXK0WEw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 17:05:07 -0500
+	Tue, 27 Nov 2007 17:04:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, a.p.zijlstra@chello.nl, balbir@linux.vnet.ib
 
 
 The patch titled
-     per-zone and reclaim enhancements for memory controller: remember reclaim priority in memory cgroup
+     per-zone and reclaim enhancements for memory controller: add scan_global_lru macro
 has been added to the -mm tree.  Its filename is
-     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,14 +26,16 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: per-zone and reclaim enhancements for memory controller: remember reclaim priority in memory cgroup
+Subject: per-zone and reclaim enhancements for memory controller: add scan_global_lru macro
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Functions to remember reclaim priority per cgroup (as zone->prev_priority)
+This is used to detect which scan_control scans global lru or mem_cgroup lru. 
+And compiled to be static value (1) when memory controller is not configured. 
+This may make the meaning obvious.
 
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Herbert Poetzl <herbert@13thfloor.at>
 Cc: Kirill Korotaev <dev@sw.ru>
@@ -46,87 +48,51 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   23 +++++++++++++++++++++++
- mm/memcontrol.c            |   20 ++++++++++++++++++++
- 2 files changed, 43 insertions(+)
+ mm/vmscan.c |   17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/memcontrol.h~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup
-+++ a/include/linux/memcontrol.h
-@@ -67,6 +67,11 @@ extern void mem_cgroup_page_migration(st
- extern int mem_cgroup_calc_mapped_ratio(struct mem_cgroup *mem);
- extern long mem_cgroup_reclaim_imbalance(struct mem_cgroup *mem);
+diff -puN mm/vmscan.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro mm/vmscan.c
+--- a/mm/vmscan.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro
++++ a/mm/vmscan.c
+@@ -126,6 +126,12 @@ long vm_total_pages;	/* The total number
+ static LIST_HEAD(shrinker_list);
+ static DECLARE_RWSEM(shrinker_rwsem);
  
-+extern int mem_cgroup_get_reclaim_priority(struct mem_cgroup *mem);
-+extern void mem_cgroup_note_reclaim_priority(struct mem_cgroup *mem,
-+							int priority);
-+extern void mem_cgroup_record_reclaim_priority(struct mem_cgroup *mem,
-+							int priority);
- 
- 
- #else /* CONFIG_CGROUP_MEM_CONT */
-@@ -150,6 +155,24 @@ static inline int mem_cgroup_reclaim_imb
- 	return 0;
- }
- 
-+static inline int mem_cgroup_get_reclaim_priority(struct mem_cgroup *mem,
-+						int priority)
-+{
-+	return 0;
-+}
++#ifdef CONFIG_CGROUP_MEM_CONT
++#define scan_global_lru(sc)	(!(sc)->mem_cgroup)
++#else
++#define scan_global_lru(sc)	(1)
++#endif
 +
-+static inline void mem_cgroup_note_reclaim_priority(struct mem_cgroup *mem,
-+						int priority)
-+{
-+	return 0;
-+}
-+
-+static inline void mem_cgroup_record_reclaim_priority(struct mem_cgroup *mem,
-+						int priority)
-+{
-+	return 0;
-+}
-+
- #endif /* CONFIG_CGROUP_MEM_CONT */
- 
- #endif /* _LINUX_MEMCONTROL_H */
-diff -puN mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup mm/memcontrol.c
---- a/mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup
-+++ a/mm/memcontrol.c
-@@ -132,6 +132,7 @@ struct mem_cgroup {
- 	 */
- 	spinlock_t lru_lock;
- 	unsigned long control_type;	/* control RSS or RSS+Pagecache */
-+	int	prev_priority;	/* for recording reclaim priority */
+ /*
+  * Add a shrinker callback to be called from the vm
+  */
+@@ -1283,11 +1289,12 @@ static unsigned long do_try_to_free_page
+ 		 * Don't shrink slabs when reclaiming memory from
+ 		 * over limit cgroups
+ 		 */
+-		if (sc->mem_cgroup == NULL)
++		if (scan_global_lru(sc)) {
+ 			shrink_slab(sc->nr_scanned, gfp_mask, lru_pages);
+-		if (reclaim_state) {
+-			nr_reclaimed += reclaim_state->reclaimed_slab;
+-			reclaim_state->reclaimed_slab = 0;
++			if (reclaim_state) {
++				nr_reclaimed += reclaim_state->reclaimed_slab;
++				reclaim_state->reclaimed_slab = 0;
++			}
+ 		}
+ 		total_scanned += sc->nr_scanned;
+ 		if (nr_reclaimed >= sc->swap_cluster_max) {
+@@ -1314,7 +1321,7 @@ static unsigned long do_try_to_free_page
+ 			congestion_wait(WRITE, HZ/10);
+ 	}
+ 	/* top priority shrink_caches still had more to do? don't OOM, then */
+-	if (!sc->all_unreclaimable && sc->mem_cgroup == NULL)
++	if (!sc->all_unreclaimable && scan_global_lru(sc))
+ 		ret = 1;
+ out:
  	/*
- 	 * statistics.
- 	 */
-@@ -452,6 +453,25 @@ long mem_cgroup_reclaim_imbalance(struct
- 	return (long) (active / (inactive + 1));
- }
- 
-+/*
-+ * prev_priority control...this will be used in memory reclaim path.
-+ */
-+int mem_cgroup_get_reclaim_priority(struct mem_cgroup *mem)
-+{
-+	return mem->prev_priority;
-+}
-+
-+void mem_cgroup_note_reclaim_priority(struct mem_cgroup *mem, int priority)
-+{
-+	if (priority < mem->prev_priority)
-+		mem->prev_priority = priority;
-+}
-+
-+void mem_cgroup_record_reclaim_priority(struct mem_cgroup *mem, int priority)
-+{
-+	mem->prev_priority = priority;
-+}
-+
- unsigned long mem_cgroup_isolate_pages(unsigned long nr_to_scan,
- 					struct list_head *dst,
- 					unsigned long *scanned, int order,
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
