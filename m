@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-doesnt-use-socketcall.patch added to -mm tree
-Date: Tue, 27 Nov 2007 14:47:50 -0800
-Message-ID: <200711272247.lARMloOI003393@imap1.linux-foundation.org>
+Subject: + arm-pxa-gpiolib-support-make-pxa_gpio_chip-static.patch added to -mm tree
+Date: Tue, 27 Nov 2007 14:49:33 -0800
+Message-ID: <200711272249.lARMnXfS003419@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40918 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40951 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751790AbXK0WsO (ORCPT
+	by vger.kernel.org with ESMTP id S1751277AbXK0WuY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 17:48:14 -0500
+	Tue, 27 Nov 2007 17:50:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: samuel.thibault@citrix.com, ink@jurassic.park.msu.ru, rth@twiddle.net
+Cc: philipp.zabel@gmail.com, david-b@pacbell.net, dbrownell@users.sourceforge.net, nico@cam.org, rmk+kernel@arm.linux.org.uk
 
 
 The patch titled
-     Alpha doesn't use socketcall
+     Make pxa_gpio_chip static
 has been added to the -mm tree.  Its filename is
-     alpha-doesnt-use-socketcall.patch
+     arm-pxa-gpiolib-support-make-pxa_gpio_chip-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Alpha doesn't use socketcall
-From: Samuel Thibault <samuel.thibault@citrix.com>
+Subject: Make pxa_gpio_chip static
+From: Philipp Zabel <philipp.zabel@gmail.com>
 
-Alpha doesn't use socketcall and doesn't provide __NR_socketcall.
+Am Dienstag, den 27.11.2007, 01:22 -0800 schrieb David Brownell:
+> On Tuesday 27 November 2007, Andrew Morton wrote:
+> > On Tue, 27 Nov 2007 00:49:27 -0800 David Brownell <david-b@pacbell.net> wrote:
+> >
+> > > On Tuesday 27 November 2007, Andrew Morton wrote:
+> > > >
+> > > > (How come people are sending around patche sand not cc'ing mailing lists).
+> > >
+> > > This was already discussed on the ARM mailing list.
+> >
+> > Not by me ;)
+>
+> Then the only just outcome is to have Philipp send you a followup
+> patch addressing at least that "static" issue, cc'ing L-A-K.  ;)
 
-Signed-off-by: Samuel Thibault <samuel.thibault@citrix.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+So be it:
+
+From f7f3426eb92734b41bae22c3f1fc7e60bc8b9256 Mon Sep 17 00:00:00 2001
+Date: Tue, 27 Nov 2007 14:01:45 +0100
+Subject: [PATCH] Make pxa_gpio_chip static
+
+Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Nicolas Pitre <nico@cam.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-alpha/unistd.h |    1 -
- 1 file changed, 1 deletion(-)
+ arch/arm/mach-pxa/gpio.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-alpha/unistd.h~alpha-doesnt-use-socketcall include/asm-alpha/unistd.h
---- a/include/asm-alpha/unistd.h~alpha-doesnt-use-socketcall
-+++ a/include/asm-alpha/unistd.h
-@@ -442,7 +442,6 @@
- #define __ARCH_WANT_OLD_READDIR
- #define __ARCH_WANT_STAT64
- #define __ARCH_WANT_SYS_GETHOSTNAME
--#define __ARCH_WANT_SYS_SOCKETCALL
- #define __ARCH_WANT_SYS_FADVISE64
- #define __ARCH_WANT_SYS_GETPGRP
- #define __ARCH_WANT_SYS_OLD_GETRLIMIT
+diff -puN arch/arm/mach-pxa/gpio.c~arm-pxa-gpiolib-support-make-pxa_gpio_chip-static arch/arm/mach-pxa/gpio.c
+--- a/arch/arm/mach-pxa/gpio.c~arm-pxa-gpiolib-support-make-pxa_gpio_chip-static
++++ a/arch/arm/mach-pxa/gpio.c
+@@ -129,7 +129,7 @@ static void pxa_gpio_set(struct gpio_chi
+ 		__raw_writel(mask, pxa->regbase + GPCR_OFFSET);
+ }
+ 
+-struct pxa_gpio_chip pxa_gpio_chip[] = {
++static struct pxa_gpio_chip pxa_gpio_chip[] = {
+ 	[0] = {
+ 		.regbase = GPIO0_BASE,
+ 		.chip = {
 _
 
-Patches currently in -mm which might be from samuel.thibault@citrix.com are
+Patches currently in -mm which might be from philipp.zabel@gmail.com are
 
-alpha-doesnt-use-socketcall.patch
+git-arm.patch
+arm-pxa-gpiolib-support.patch
+arm-pxa-gpiolib-support-make-pxa_gpio_chip-static.patch
