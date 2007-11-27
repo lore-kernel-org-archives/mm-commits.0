@@ -1,91 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: + dmaengine-correct-invalid-assumptions-in-the-kconfig-text.patch added to -mm tree
-Date: Mon, 26 Nov 2007 23:11:28 -0800
-Message-ID: <200711270711.lAR7BSLl032532@imap1.linux-foundation.org>
+Subject: - mmc-sd-write-operation-in-invalid-states-by-borken-cards.patch removed from -mm tree
+Date: Mon, 26 Nov 2007 23:13:04 -0800
+Message-ID: <200711270713.lAR7D4Cr032593@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34052 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40369 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751877AbXK0HLn (ORCPT
+	by vger.kernel.org with ESMTP id S1751020AbXK0HNS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 02:11:43 -0500
+	Tue, 27 Nov 2007 02:13:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: hskinnemoen@atmel.com, dan.j.williams@intel.com, dbrownell@users.sourceforge.net
+To: roopesh@cyberspace.org, drzeus-list@drzeus.cx, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dmaengine: correct invalid assumptions in the Kconfig text
-has been added to the -mm tree.  Its filename is
-     dmaengine-correct-invalid-assumptions-in-the-kconfig-text.patch
+     MMC/SD: Write operation in invalid states by borken cards.
+has been removed from the -mm tree.  Its filename was
+     mmc-sd-write-operation-in-invalid-states-by-borken-cards.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-Subject: dmaengine: correct invalid assumptions in the Kconfig text
-From: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Subject: MMC/SD: Write operation in invalid states by borken cards.
+From: Roopesh <roopesh@cyberspace.org>
 
-This patch corrects recently changed (and now invalid) Kconfig descriptions
-for the DMA engine framework:
+If a write operation fails, shouldnt we still check for the card state to
+be 'ready to accept next data'?
 
- - Non-Intel(R) hardware also has DMA engines;
- - DMA is used for more than memcpy and RAID offloading.
+This question is because I have noticed that some (broken) cards fail the
+write command, and the immediately issued subsequent commands also fail
+since the card state was never checked before sending these commands. 
+(There was a discussion about these cards at the thread: "MMC: CRC Errors
+with 2GB cards)
 
-In fact, on most platforms memcpy and RAID aren't factors, and DMA
-exists so that peripherals can transfer data to/from memory while
-the CPU does other work.
-
-Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Pierre Ossman <drzeus-list@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/Kconfig |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ drivers/mmc/card/block.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN drivers/dma/Kconfig~dmaengine-correct-invalid-assumptions-in-the-kconfig-text drivers/dma/Kconfig
---- a/drivers/dma/Kconfig~dmaengine-correct-invalid-assumptions-in-the-kconfig-text
-+++ a/drivers/dma/Kconfig
-@@ -3,11 +3,13 @@
- #
+diff -puN drivers/mmc/card/block.c~mmc-sd-write-operation-in-invalid-states-by-borken-cards drivers/mmc/card/block.c
+--- a/drivers/mmc/card/block.c~mmc-sd-write-operation-in-invalid-states-by-borken-cards
++++ a/drivers/mmc/card/block.c
+@@ -208,6 +208,7 @@ static int mmc_blk_issue_rq(struct mmc_q
+ 	struct mmc_card *card = md->queue.card;
+ 	struct mmc_blk_request brq;
+ 	int ret = 1, sg_pos, data_size;
++	int data_error = 0;
  
- menuconfig DMADEVICES
--	bool "DMA Offload Engine support"
-+	bool "DMA Engine support"
- 	depends on (PCI && X86) || ARCH_IOP32X || ARCH_IOP33X || ARCH_IOP13XX
- 	help
--	  Intel(R) offload engines enable offloading memory copies in the
--	  network stack and RAID operations in the MD driver.
-+	  DMA engines can do asynchronous data transfers without
-+	  involving the host CPU.  Currently, this framework can be
-+	  used to offload memory copies in the network stack and
-+	  RAID operations in the MD driver.
+ 	mmc_claim_host(card->host);
  
- if DMADEVICES
+@@ -293,19 +294,19 @@ static int mmc_blk_issue_rq(struct mmc_q
+ 		if (brq.cmd.error) {
+ 			printk(KERN_ERR "%s: error %d sending read/write command\n",
+ 			       req->rq_disk->disk_name, brq.cmd.error);
+-			goto cmd_err;
++			data_error = 1;
+ 		}
  
+ 		if (brq.data.error) {
+ 			printk(KERN_ERR "%s: error %d transferring data\n",
+ 			       req->rq_disk->disk_name, brq.data.error);
+-			goto cmd_err;
++			data_error = 1;
+ 		}
+ 
+ 		if (brq.stop.error) {
+ 			printk(KERN_ERR "%s: error %d sending stop command\n",
+ 			       req->rq_disk->disk_name, brq.stop.error);
+-			goto cmd_err;
++			data_error = 1;
+ 		}
+ 
+ 		if (!mmc_host_is_spi(card->host) && rq_data_dir(req) != READ) {
+@@ -338,6 +339,9 @@ static int mmc_blk_issue_rq(struct mmc_q
+ #endif
+ 		}
+ 
++		if (data_error == 1)
++			goto cmd_err;
++
+ 		/*
+ 		 * A block was successfully transferred.
+ 		 */
 _
 
-Patches currently in -mm which might be from hskinnemoen@atmel.com are
+Patches currently in -mm which might be from roopesh@cyberspace.org are
 
-atmel_spi-labels-gpios-better.patch
-atmel_lcdfb-lcdc-startup-fix.patch
-dmaengine-correct-invalid-assumptions-in-the-kconfig-text.patch
-git-avr32.patch
-git-mtd.patch
-mmc-add-missing-sg_init_table-call.patch
-read_current_time-cleanups.patch
-atmel_spi-throughput-improvement.patch
-atmel_spi-chain-dma-transfers.patch
-atmel_spi-fix-dmachain-oops-with-debug-enabled.patch
-generic-gpio-gpio_chip-support.patch
-avr32-uses-gpio_chip.patch
-mcp23s08-spi-gpio-expander.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-sanitize-the-type-of-struct-useru_ar0.patch
-add-cmpxchg_local-to-avr32.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
+mmc-sd-write-operation-in-invalid-states-by-borken-cards.patch
