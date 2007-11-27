@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-add-missing-sg_init_table-call.patch added to -mm tree
-Date: Mon, 26 Nov 2007 21:27:44 -0800
-Message-ID: <200711270527.lAR5Risg028988@imap1.linux-foundation.org>
+Subject: + ppc-chrp-fix-possible-null-pointer-dereference.patch added to -mm tree
+Date: Mon, 26 Nov 2007 21:31:42 -0800
+Message-ID: <200711270531.lAR5Vgsx029108@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49580 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33563 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751128AbXK0F2c (ORCPT
+	by vger.kernel.org with ESMTP id S1750980AbXK0FcS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 00:28:32 -0500
+	Tue, 27 Nov 2007 00:32:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hskinnemoen@atmel.com, drzeus-mmc@drzeus.cx, jens.axboe@oracle.com
+Cc: gorcunov@gmail.com, benh@kernel.crashing.org, olof@lixom.net, paulus@samba.org
 
 
 The patch titled
-     mmc: add missing sg_init_table() call
+     PPC: CHRP: fix possible NULL pointer dereference
 has been added to the -mm tree.  Its filename is
-     mmc-add-missing-sg_init_table-call.patch
+     ppc-chrp-fix-possible-null-pointer-dereference.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,55 +26,64 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mmc: add missing sg_init_table() call
-From: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Subject: PPC: CHRP: fix possible NULL pointer dereference
+From: Cyrill Gorcunov <gorcunov@gmail.com>
 
-mmc_init_queue only initializes the scatterlists with sg_init_table() when
-using a bounce buffer.  This leads to a BUG() when CONFIG_DEBUG_SG is set.
+Fix possible NULL pointer dereference inside of strncmp() if
+of_get_property() failed.
 
-Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Pierre Ossman <drzeus-mmc@drzeus.cx>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: Olof Johansson <olof@lixom.net>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/card/queue.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/powerpc/platforms/chrp/setup.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN drivers/mmc/card/queue.c~mmc-add-missing-sg_init_table-call drivers/mmc/card/queue.c
---- a/drivers/mmc/card/queue.c~mmc-add-missing-sg_init_table-call
-+++ a/drivers/mmc/card/queue.c
-@@ -180,12 +180,13 @@ int mmc_init_queue(struct mmc_queue *mq,
- 		blk_queue_max_hw_segments(mq->queue, host->max_hw_segs);
- 		blk_queue_max_segment_size(mq->queue, host->max_seg_size);
+diff -puN arch/powerpc/platforms/chrp/setup.c~ppc-chrp-fix-possible-null-pointer-dereference arch/powerpc/platforms/chrp/setup.c
+--- a/arch/powerpc/platforms/chrp/setup.c~ppc-chrp-fix-possible-null-pointer-dereference
++++ a/arch/powerpc/platforms/chrp/setup.c
+@@ -115,7 +115,7 @@ void chrp_show_cpuinfo(struct seq_file *
+ 	seq_printf(m, "machine\t\t: CHRP %s\n", model);
  
--		mq->sg = kzalloc(sizeof(struct scatterlist) *
-+		mq->sg = kmalloc(sizeof(struct scatterlist) *
- 			host->max_phys_segs, GFP_KERNEL);
- 		if (!mq->sg) {
- 			ret = -ENOMEM;
- 			goto cleanup_queue;
- 		}
-+		sg_init_table(mq->sg, host->max_phys_segs);
+ 	/* longtrail (goldengate) stuff */
+-	if (!strncmp(model, "IBM,LongTrail", 13)) {
++	if (model && !strncmp(model, "IBM,LongTrail", 13)) {
+ 		/* VLSI VAS96011/12 `Golden Gate 2' */
+ 		/* Memory banks */
+ 		sdramen = (in_le32(gg2_pci_config_base + GG2_PCI_DRAM_CTRL)
+@@ -203,15 +203,20 @@ static void __init sio_fixup_irq(const c
+ static void __init sio_init(void)
+ {
+ 	struct device_node *root;
++	const char *model;
+ 
+-	if ((root = of_find_node_by_path("/")) &&
+-	    !strncmp(of_get_property(root, "model", NULL),
+-			"IBM,LongTrail", 13)) {
++	root = of_find_node_by_path("/");
++	if (!root)
++		return;
++
++	model = of_get_property(root, "model", NULL);
++	if (model && !strncmp(model,"IBM,LongTrail", 13)) {
+ 		/* logical device 0 (KBC/Keyboard) */
+ 		sio_fixup_irq("keyboard", 0, 1, 2);
+ 		/* select logical device 1 (KBC/Mouse) */
+ 		sio_fixup_irq("mouse", 1, 12, 2);
  	}
++
+ 	of_node_put(root);
+ }
  
- 	init_MUTEX(&mq->thread_sem);
 _
 
-Patches currently in -mm which might be from hskinnemoen@atmel.com are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
-atmel_spi-labels-gpios-better.patch
-git-avr32.patch
-git-mtd.patch
-mmc-add-missing-sg_init_table-call.patch
-read_current_time-cleanups.patch
-atmel_spi-throughput-improvement.patch
-atmel_spi-chain-dma-transfers.patch
-atmel_spi-fix-dmachain-oops-with-debug-enabled.patch
-generic-gpio-gpio_chip-support.patch
-avr32-uses-gpio_chip.patch
-mcp23s08-spi-gpio-expander.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-sanitize-the-type-of-struct-useru_ar0.patch
-add-cmpxchg_local-to-avr32.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
+git-powerpc.patch
+ppc-fix-missed-increment-on-device-interface-counter.patch
+ppc-chrp-fix-possible-null-pointer-dereference.patch
+git-sparc64.patch
+git-x86.patch
