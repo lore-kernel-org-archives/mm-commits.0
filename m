@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + percpu-move-arch-xx_per_cpu_xx-definitions-into-linux-percpuh.patch added to -mm tree
-Date: Tue, 27 Nov 2007 13:33:17 -0800
-Message-ID: <200711272133.lARLXHQT031458@imap1.linux-foundation.org>
+Subject: + percpu-make-the-asm-generic-percpuh-more-generic.patch added to -mm tree
+Date: Tue, 27 Nov 2007 13:33:38 -0800
+Message-ID: <200711272133.lARLXdw2031461@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42188 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54348 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755399AbXK0Vd1 (ORCPT
+	by vger.kernel.org with ESMTP id S1758588AbXK0Vds (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 16:33:27 -0500
+	Tue, 27 Nov 2007 16:33:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com, ak@suse.de, rusty@rustcorp.com.au
 
 
 The patch titled
-     percpu: move arch XX_PER_CPU_XX definitions into linux/percpu.h
+     percpu: make the asm-generic/percpu.h more generic
 has been added to the -mm tree.  Its filename is
-     percpu-move-arch-xx_per_cpu_xx-definitions-into-linux-percpuh.patch
+     percpu-make-the-asm-generic-percpuh-more-generic.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,13 +26,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: percpu: move arch XX_PER_CPU_XX definitions into linux/percpu.h
+Subject: percpu: make the asm-generic/percpu.h more generic
 From: Christoph Lameter <clameter@sgi.com>
 
-The arch definitions are all the same.  So move them into linux/percpu.h.
+Add the ability to use generic/percpu even if the arch needs to override
+several aspects of its operations.  This will enable the use of generic
+percpu.h for all arches.
 
-We cannot move DECLARE_PER_CPU since some include files just include
-asm/percpu.h to avoid include recursion problems.
+An arch may define:
+
+__per_cpu_offset	Do not use the generic pointer array. Arch must
+			define per_cpu_offset(cpu) (used by x86_64, s390).
+
+__my_cpu_offset		Can be defined to provide an optimized way to determine
+			the offset for variables of the currently executing
+			processor. Used by ia64, x86_64, x86_32, sparc64, s/390.
+
+SHIFT_PTR(ptr, offset)	If an arch defines it then special handling
+			of pointer arithmentic may be implemented. Used
+			by s/390.
+
+(Some of these special percpu arch implementations may be later consolidated
+so that there are less cases to deal with.)
 
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Andi Kleen <ak@suse.de>
@@ -40,306 +55,93 @@ Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/percpu.h |   18 ------------------
- include/asm-ia64/percpu.h    |   18 ------------------
- include/asm-powerpc/percpu.h |   17 -----------------
- include/asm-s390/percpu.h    |   18 ------------------
- include/asm-sparc64/percpu.h |   16 ----------------
- include/asm-x86/percpu_32.h  |   12 ------------
- include/asm-x86/percpu_64.h  |   17 -----------------
- include/linux/percpu.h       |   17 +++++++++++++++++
- 8 files changed, 17 insertions(+), 116 deletions(-)
+ include/asm-generic/percpu.h |   64 +++++++++++++++++++++++++++------
+ 1 file changed, 53 insertions(+), 11 deletions(-)
 
-diff -puN include/asm-generic/percpu.h~percpu-move-arch-xx_per_cpu_xx-definitions-into-linux-percpuh include/asm-generic/percpu.h
---- a/include/asm-generic/percpu.h~percpu-move-arch-xx_per_cpu_xx-definitions-into-linux-percpuh
+diff -puN include/asm-generic/percpu.h~percpu-make-the-asm-generic-percpuh-more-generic include/asm-generic/percpu.h
+--- a/include/asm-generic/percpu.h~percpu-make-the-asm-generic-percpuh-more-generic
 +++ a/include/asm-generic/percpu.h
-@@ -9,15 +9,6 @@ extern unsigned long __per_cpu_offset[NR
+@@ -3,27 +3,69 @@
+ #include <linux/compiler.h>
+ #include <linux/threads.h>
  
++/*
++ * Determine the real variable name from the name visible in the
++ * kernel sources.
++ */
++#define per_cpu_var(var) per_cpu__##var
++
+ #ifdef CONFIG_SMP
+ 
++/*
++ * per_cpu_offset() is the offset that has to be added to a
++ * percpu variable to get to the instance for a certain processor.
++ *
++ * Most arches use the __per_cpu_offset array for those offsets but
++ * some arches have their own ways of determining the offset (x86_64, s390).
++ */
++#ifndef __per_cpu_offset
+ extern unsigned long __per_cpu_offset[NR_CPUS];
+-
  #define per_cpu_offset(x) (__per_cpu_offset[x])
++#endif
  
--/* Separate out the type, so (int[3], foo) works. */
--#define DEFINE_PER_CPU(type, name) \
--    __attribute__((__section__(".data.percpu"))) __typeof__(type) per_cpu__##name
--
--#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)		\
--    __attribute__((__section__(".data.percpu.shared_aligned"))) \
--    __typeof__(type) per_cpu__##name				\
--    ____cacheline_aligned_in_smp
--
- /* var is in discarded region: offset to particular copy we want */
- #define per_cpu(var, cpu) (*({				\
- 	extern int simple_identifier_##var(void);	\
-@@ -27,12 +18,6 @@ extern unsigned long __per_cpu_offset[NR
+-/* var is in discarded region: offset to particular copy we want */
+-#define per_cpu(var, cpu) (*({				\
+-	extern int simple_identifier_##var(void);	\
+-	RELOC_HIDE(&per_cpu__##var, __per_cpu_offset[cpu]); }))
+-#define __get_cpu_var(var) per_cpu(var, smp_processor_id())
+-#define __raw_get_cpu_var(var) per_cpu(var, raw_smp_processor_id())
++/*
++ * Determine the offset for the currently active processor.
++ * An arch may define __my_cpu_offset to provide a more effective
++ * means of obtaining the offset to the per cpu variables of the
++ * current processor.
++ */
++#ifndef __my_cpu_offset
++#define __my_cpu_offset per_cpu_offset(raw_smp_processor_id())
++#define my_cpu_offset per_cpu_offset(smp_processor_id())
++#else
++#define my_cpu_offset __my_cpu_offset
++#endif
++
++/*
++ * Add a offset to a pointer but keep the pointer as is.
++ *
++ * Only S390 provides its own means of moving the pointer.
++ */
++#ifndef SHIFT_PTR
++#define SHIFT_PTR(__p, __offset)	RELOC_HIDE((__p), (__offset))
++#endif
++
++/*
++ * A percpu variable may point to a discarded reghions. The following are
++ * established ways to produce a usable pointer from the percpu variable
++ * offset.
++ */
++#define per_cpu(var, cpu) (*SHIFT_PTR(&per_cpu_var(var), per_cpu_offset(cpu)))
++#define __get_cpu_var(var) (*SHIFT_PTR(&per_cpu_var(var), my_cpu_offset))
++#define __raw_get_cpu_var(var) (*SHIFT_PTR(&per_cpu_var(var), __my_cpu_offset))
++
++#ifdef CONFIG_ARCH_SETS_UP_PER_CPU_AREA
++extern void setup_per_cpu_areas(void);
++#endif
  
  #else /* ! SMP */
  
--#define DEFINE_PER_CPU(type, name) \
--    __typeof__(type) per_cpu__##name
--
--#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)	\
--    DEFINE_PER_CPU(type, name)
--
- #define per_cpu(var, cpu)			(*((void)(cpu), &per_cpu__##var))
- #define __get_cpu_var(var)			per_cpu__##var
- #define __raw_get_cpu_var(var)			per_cpu__##var
-@@ -41,7 +26,4 @@ extern unsigned long __per_cpu_offset[NR
- 
- #define DECLARE_PER_CPU(type, name) extern __typeof__(type) per_cpu__##name
- 
--#define EXPORT_PER_CPU_SYMBOL(var) EXPORT_SYMBOL(per_cpu__##var)
--#define EXPORT_PER_CPU_SYMBOL_GPL(var) EXPORT_SYMBOL_GPL(per_cpu__##var)
--
- #endif /* _ASM_GENERIC_PERCPU_H_ */
-diff -puN include/asm-ia64/percpu.h~percpu-move-arch-xx_per_cpu_xx-definitions-into-linux-percpuh include/asm-ia64/percpu.h
---- a/include/asm-ia64/percpu.h~percpu-move-arch-xx_per_cpu_xx-definitions-into-linux-percpuh
-+++ a/include/asm-ia64/percpu.h
-@@ -18,21 +18,6 @@
- #define DECLARE_PER_CPU(type, name)				\
- 	extern __typeof__(type) per_cpu__##name
- 
--/* Separate out the type, so (int[3], foo) works. */
--#define DEFINE_PER_CPU(type, name)				\
--	__attribute__((__section__(".data.percpu")))		\
--	__typeof__(type) per_cpu__##name
--
--#ifdef CONFIG_SMP
--#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)			\
--	__attribute__((__section__(".data.percpu.shared_aligned")))	\
--	__typeof__(type) per_cpu__##name				\
--	____cacheline_aligned_in_smp
--#else
--#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)	\
--	DEFINE_PER_CPU(type, name)
--#endif
--
- #ifdef CONFIG_SMP
- 
- extern unsigned long __per_cpu_offset[NR_CPUS];
-@@ -57,9 +42,6 @@ extern void *per_cpu_init(void);
+-#define per_cpu(var, cpu)			(*((void)(cpu), &per_cpu__##var))
+-#define __get_cpu_var(var)			per_cpu__##var
+-#define __raw_get_cpu_var(var)			per_cpu__##var
++#define per_cpu(var, cpu)			(*((void)(cpu), &per_cpu_var(var)))
++#define __get_cpu_var(var)			per_cpu_var(var)
++#define __raw_get_cpu_var(var)			per_cpu_var(var)
  
  #endif	/* SMP */
  
--#define EXPORT_PER_CPU_SYMBOL(var)		EXPORT_SYMBOL(per_cpu__##var)
--#define EXPORT_PER_CPU_SYMBOL_GPL(var)		EXPORT_SYMBOL_GPL(per_cpu__##var)
--
- /*
-  * Be extremely careful when taking the address of this variable!  Due to virtual
-  * remapping, it is different from the canonical address returned by __get_cpu_var(var)!
-diff -puN include/asm-powerpc/percpu.h~percpu-move-arch-xx_per_cpu_xx-definitions-into-linux-percpuh include/asm-powerpc/percpu.h
---- a/include/asm-powerpc/percpu.h~percpu-move-arch-xx_per_cpu_xx-definitions-into-linux-percpuh
-+++ a/include/asm-powerpc/percpu.h
-@@ -16,15 +16,6 @@
- #define __my_cpu_offset() get_paca()->data_offset
- #define per_cpu_offset(x) (__per_cpu_offset(x))
+-#define DECLARE_PER_CPU(type, name) extern __typeof__(type) per_cpu__##name
++#define DECLARE_PER_CPU(type, name) extern __typeof__(type) per_cpu_var(name)
  
--/* Separate out the type, so (int[3], foo) works. */
--#define DEFINE_PER_CPU(type, name) \
--    __attribute__((__section__(".data.percpu"))) __typeof__(type) per_cpu__##name
--
--#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)		\
--    __attribute__((__section__(".data.percpu.shared_aligned"))) \
--    __typeof__(type) per_cpu__##name				\
--    ____cacheline_aligned_in_smp
--
- /* var is in discarded region: offset to particular copy we want */
- #define per_cpu(var, cpu) (*RELOC_HIDE(&per_cpu__##var, __per_cpu_offset(cpu)))
- #define __get_cpu_var(var) (*RELOC_HIDE(&per_cpu__##var, __my_cpu_offset()))
-@@ -34,11 +25,6 @@ extern void setup_per_cpu_areas(void);
- 
- #else /* ! SMP */
- 
--#define DEFINE_PER_CPU(type, name) \
--    __typeof__(type) per_cpu__##name
--#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)	\
--    DEFINE_PER_CPU(type, name)
--
- #define per_cpu(var, cpu)			(*((void)(cpu), &per_cpu__##var))
- #define __get_cpu_var(var)			per_cpu__##var
- #define __raw_get_cpu_var(var)			per_cpu__##var
-@@ -47,9 +33,6 @@ extern void setup_per_cpu_areas(void);
- 
- #define DECLARE_PER_CPU(type, name) extern __typeof__(type) per_cpu__##name
- 
--#define EXPORT_PER_CPU_SYMBOL(var) EXPORT_SYMBOL(per_cpu__##var)
--#define EXPORT_PER_CPU_SYMBOL_GPL(var) EXPORT_SYMBOL_GPL(per_cpu__##var)
--
- #else
- #include <asm-generic/percpu.h>
- #endif
-diff -puN include/asm-s390/percpu.h~percpu-move-arch-xx_per_cpu_xx-definitions-into-linux-percpuh include/asm-s390/percpu.h
---- a/include/asm-s390/percpu.h~percpu-move-arch-xx_per_cpu_xx-definitions-into-linux-percpuh
-+++ a/include/asm-s390/percpu.h
-@@ -34,16 +34,6 @@
- 
- extern unsigned long __per_cpu_offset[NR_CPUS];
- 
--/* Separate out the type, so (int[3], foo) works. */
--#define DEFINE_PER_CPU(type, name) \
--    __attribute__((__section__(".data.percpu"))) \
--    __typeof__(type) per_cpu__##name
--
--#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)		\
--    __attribute__((__section__(".data.percpu.shared_aligned"))) \
--    __typeof__(type) per_cpu__##name				\
--    ____cacheline_aligned_in_smp
--
- #define __get_cpu_var(var) __reloc_hide(var,S390_lowcore.percpu_offset)
- #define __raw_get_cpu_var(var) __reloc_hide(var,S390_lowcore.percpu_offset)
- #define per_cpu(var,cpu) __reloc_hide(var,__per_cpu_offset[cpu])
-@@ -51,11 +41,6 @@ extern unsigned long __per_cpu_offset[NR
- 
- #else /* ! SMP */
- 
--#define DEFINE_PER_CPU(type, name) \
--    __typeof__(type) per_cpu__##name
--#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)	\
--    DEFINE_PER_CPU(type, name)
--
- #define __get_cpu_var(var) __reloc_hide(var,0)
- #define __raw_get_cpu_var(var) __reloc_hide(var,0)
- #define per_cpu(var,cpu) __reloc_hide(var,0)
-@@ -64,7 +49,4 @@ extern unsigned long __per_cpu_offset[NR
- 
- #define DECLARE_PER_CPU(type, name) extern __typeof__(type) per_cpu__##name
- 
--#define EXPORT_PER_CPU_SYMBOL(var) EXPORT_SYMBOL(per_cpu__##var)
--#define EXPORT_PER_CPU_SYMBOL_GPL(var) EXPORT_SYMBOL_GPL(per_cpu__##var)
--
- #endif /* __ARCH_S390_PERCPU__ */
-diff -puN include/asm-sparc64/percpu.h~percpu-move-arch-xx_per_cpu_xx-definitions-into-linux-percpuh include/asm-sparc64/percpu.h
---- a/include/asm-sparc64/percpu.h~percpu-move-arch-xx_per_cpu_xx-definitions-into-linux-percpuh
-+++ a/include/asm-sparc64/percpu.h
-@@ -16,15 +16,6 @@ extern unsigned long __per_cpu_shift;
- 	(__per_cpu_base + ((unsigned long)(__cpu) << __per_cpu_shift))
- #define per_cpu_offset(x) (__per_cpu_offset(x))
- 
--/* Separate out the type, so (int[3], foo) works. */
--#define DEFINE_PER_CPU(type, name) \
--    __attribute__((__section__(".data.percpu"))) __typeof__(type) per_cpu__##name
--
--#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)		\
--    __attribute__((__section__(".data.percpu.shared_aligned"))) \
--    __typeof__(type) per_cpu__##name				\
--    ____cacheline_aligned_in_smp
--
- /* var is in discarded region: offset to particular copy we want */
- #define per_cpu(var, cpu) (*RELOC_HIDE(&per_cpu__##var, __per_cpu_offset(cpu)))
- #define __get_cpu_var(var) (*RELOC_HIDE(&per_cpu__##var, __local_per_cpu_offset))
-@@ -33,10 +24,6 @@ extern unsigned long __per_cpu_shift;
- #else /* ! SMP */
- 
- #define real_setup_per_cpu_areas()		do { } while (0)
--#define DEFINE_PER_CPU(type, name) \
--    __typeof__(type) per_cpu__##name
--#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)	\
--    DEFINE_PER_CPU(type, name)
- 
- #define per_cpu(var, cpu)			(*((void)cpu, &per_cpu__##var))
- #define __get_cpu_var(var)			per_cpu__##var
-@@ -46,7 +33,4 @@ extern unsigned long __per_cpu_shift;
- 
- #define DECLARE_PER_CPU(type, name) extern __typeof__(type) per_cpu__##name
- 
--#define EXPORT_PER_CPU_SYMBOL(var) EXPORT_SYMBOL(per_cpu__##var)
--#define EXPORT_PER_CPU_SYMBOL_GPL(var) EXPORT_SYMBOL_GPL(per_cpu__##var)
--
- #endif /* __ARCH_SPARC64_PERCPU__ */
-diff -puN include/asm-x86/percpu_32.h~percpu-move-arch-xx_per_cpu_xx-definitions-into-linux-percpuh include/asm-x86/percpu_32.h
---- a/include/asm-x86/percpu_32.h~percpu-move-arch-xx_per_cpu_xx-definitions-into-linux-percpuh
-+++ a/include/asm-x86/percpu_32.h
-@@ -47,16 +47,7 @@ extern unsigned long __per_cpu_offset[];
- 
- #define per_cpu_offset(x) (__per_cpu_offset[x])
- 
--/* Separate out the type, so (int[3], foo) works. */
- #define DECLARE_PER_CPU(type, name) extern __typeof__(type) per_cpu__##name
--#define DEFINE_PER_CPU(type, name) \
--    __attribute__((__section__(".data.percpu"))) __typeof__(type) per_cpu__##name
--
--#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)		\
--    __attribute__((__section__(".data.percpu.shared_aligned"))) \
--    __typeof__(type) per_cpu__##name				\
--    ____cacheline_aligned_in_smp
--
- /* We can use this directly for local CPU (faster). */
- DECLARE_PER_CPU(unsigned long, this_cpu_off);
- 
-@@ -72,9 +63,6 @@ DECLARE_PER_CPU(unsigned long, this_cpu_
- 
- #define __get_cpu_var(var) __raw_get_cpu_var(var)
- 
--#define EXPORT_PER_CPU_SYMBOL(var) EXPORT_SYMBOL(per_cpu__##var)
--#define EXPORT_PER_CPU_SYMBOL_GPL(var) EXPORT_SYMBOL_GPL(per_cpu__##var)
--
- /* fs segment starts at (positive) offset == __per_cpu_offset[cpu] */
- #define __percpu_seg "%%fs:"
- #else  /* !SMP */
-diff -puN include/asm-x86/percpu_64.h~percpu-move-arch-xx_per_cpu_xx-definitions-into-linux-percpuh include/asm-x86/percpu_64.h
---- a/include/asm-x86/percpu_64.h~percpu-move-arch-xx_per_cpu_xx-definitions-into-linux-percpuh
-+++ a/include/asm-x86/percpu_64.h
-@@ -16,15 +16,6 @@
- 
- #define per_cpu_offset(x) (__per_cpu_offset(x))
- 
--/* Separate out the type, so (int[3], foo) works. */
--#define DEFINE_PER_CPU(type, name) \
--    __attribute__((__section__(".data.percpu"))) __typeof__(type) per_cpu__##name
--
--#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)		\
--    __attribute__((__section__(".data.percpu.shared_aligned"))) \
--    __typeof__(type) per_cpu__##name				\
--    ____cacheline_internodealigned_in_smp
--
- /* var is in discarded region: offset to particular copy we want */
- #define per_cpu(var, cpu) (*({				\
- 	extern int simple_identifier_##var(void);	\
-@@ -40,11 +31,6 @@ extern void setup_per_cpu_areas(void);
- 
- #else /* ! SMP */
- 
--#define DEFINE_PER_CPU(type, name) \
--    __typeof__(type) per_cpu__##name
--#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)	\
--    DEFINE_PER_CPU(type, name)
--
- #define per_cpu(var, cpu)			(*((void)(cpu), &per_cpu__##var))
- #define __get_cpu_var(var)			per_cpu__##var
- #define __raw_get_cpu_var(var)			per_cpu__##var
-@@ -53,7 +39,4 @@ extern void setup_per_cpu_areas(void);
- 
- #define DECLARE_PER_CPU(type, name) extern __typeof__(type) per_cpu__##name
- 
--#define EXPORT_PER_CPU_SYMBOL(var) EXPORT_SYMBOL(per_cpu__##var)
--#define EXPORT_PER_CPU_SYMBOL_GPL(var) EXPORT_SYMBOL_GPL(per_cpu__##var)
--
- #endif /* _ASM_X8664_PERCPU_H_ */
-diff -puN include/linux/percpu.h~percpu-move-arch-xx_per_cpu_xx-definitions-into-linux-percpuh include/linux/percpu.h
---- a/include/linux/percpu.h~percpu-move-arch-xx_per_cpu_xx-definitions-into-linux-percpuh
-+++ a/include/linux/percpu.h
-@@ -9,6 +9,23 @@
- 
- #include <asm/percpu.h>
- 
-+#define DEFINE_PER_CPU(type, name)					\
-+	 __attribute__((__section__(".data.percpu")))			\
-+	__typeof__(type) per_cpu__##name
-+
-+#ifdef CONFIG_SMP
-+#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)			\
-+	__attribute__((__section__(".data.percpu.shared_aligned")))	\
-+	__typeof__(type) per_cpu__##name				\
-+	____cacheline_aligned_in_smp
-+#else
-+#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)		      \
-+	DEFINE_PER_CPU(type, name)
-+#endif
-+
-+#define EXPORT_PER_CPU_SYMBOL(var) EXPORT_SYMBOL(per_cpu__##var)
-+#define EXPORT_PER_CPU_SYMBOL_GPL(var) EXPORT_SYMBOL_GPL(per_cpu__##var)
-+
- /* Enough to cover all DEFINE_PER_CPUs in kernel, including modules. */
- #ifndef PERCPU_ENOUGH_ROOM
- #ifdef CONFIG_MODULES
+ #endif /* _ASM_GENERIC_PERCPU_H_ */
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
