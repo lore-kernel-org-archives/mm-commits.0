@@ -1,97 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - ia64-use-generic-percpu.patch removed from -mm tree
-Date: Tue, 27 Nov 2007 15:22:02 -0800
-Message-ID: <200711272322.lARNM3kJ004764@imap1.linux-foundation.org>
+Subject: + percpu-make-the-asm-generic-percpuh-more-generic-fix.patch added to -mm tree
+Date: Tue, 27 Nov 2007 15:26:47 -0800
+Message-ID: <200711272326.lARNQl95004965@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59110 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56190 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760599AbXK0XWK (ORCPT
+	by vger.kernel.org with ESMTP id S1752406AbXK0X0z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 18:22:10 -0500
+	Tue, 27 Nov 2007 18:26:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, dmosberger@gmail.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: clameter@sgi.com, ak@suse.de, rusty@rustcorp.com.au
 
 
 The patch titled
-     ia64: use generic percpu
-has been removed from the -mm tree.  Its filename was
-     ia64-use-generic-percpu.patch
+     percpu-make-the-asm-generic-percpuh-more-generic fix
+has been added to the -mm tree.  Its filename is
+     percpu-make-the-asm-generic-percpuh-more-generic-fix.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: ia64: use generic percpu
+Subject: percpu-make-the-asm-generic-percpuh-more-generic fix
 From: Christoph Lameter <clameter@sgi.com>
 
-ia64 has a special processor specific mapping that can be used to locate the
-offset for the current per cpu area.
+V1->V2:
+- add support for PER_CPU_ATTRIBUTES
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: David Mosberger-Tang <dmosberger@gmail.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-ia64/percpu.h |   24 ++++++++----------------
- 1 file changed, 8 insertions(+), 16 deletions(-)
+ include/asm-generic/percpu.h |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-ia64/percpu.h~ia64-use-generic-percpu include/asm-ia64/percpu.h
---- a/include/asm-ia64/percpu.h~ia64-use-generic-percpu
-+++ a/include/asm-ia64/percpu.h
-@@ -9,10 +9,9 @@
- #define PERCPU_ENOUGH_ROOM PERCPU_PAGE_SIZE
- 
- #ifdef __ASSEMBLY__
--# define THIS_CPU(var)	(per_cpu__##var)  /* use this to mark accesses to per-CPU variables... */
-+# define THIS_CPU(var)	(PERCPU_ADDR + per_cpu__##var)  /* use this to mark accesses to per-CPU variables... */
- #else /* !__ASSEMBLY__ */
- 
--
- #include <linux/threads.h>
- 
- #define DECLARE_PER_CPU(type, name)				\
-@@ -20,24 +19,12 @@
- 
- #ifdef CONFIG_SMP
- 
--extern unsigned long __per_cpu_offset[NR_CPUS];
--#define per_cpu_offset(x) (__per_cpu_offset[x])
--
--/* Equal to __per_cpu_offset[smp_processor_id()], but faster to access: */
--DECLARE_PER_CPU(unsigned long, local_per_cpu_offset);
--
--#define per_cpu(var, cpu)  (*RELOC_HIDE(&per_cpu__##var, __per_cpu_offset[cpu]))
--#define __get_cpu_var(var) (*RELOC_HIDE(&per_cpu__##var, __ia64_per_cpu_var(local_per_cpu_offset)))
--#define __raw_get_cpu_var(var) (*RELOC_HIDE(&per_cpu__##var, __ia64_per_cpu_var(local_per_cpu_offset)))
-+#define __my_cpu_offset	__ia64_per_cpu_var(local_per_cpu_offset)
- 
--extern void setup_per_cpu_areas (void);
- extern void *per_cpu_init(void);
- 
- #else /* ! SMP */
- 
--#define per_cpu(var, cpu)			(*((void)(cpu), &per_cpu__##var))
--#define __get_cpu_var(var)			per_cpu__##var
--#define __raw_get_cpu_var(var)			per_cpu__##var
- #define per_cpu_init()				(__phys_per_cpu_start)
+diff -puN include/asm-generic/percpu.h~percpu-make-the-asm-generic-percpuh-more-generic-fix include/asm-generic/percpu.h
+--- a/include/asm-generic/percpu.h~percpu-make-the-asm-generic-percpuh-more-generic-fix
++++ a/include/asm-generic/percpu.h
+@@ -66,6 +66,11 @@ extern void setup_per_cpu_areas(void);
  
  #endif	/* SMP */
-@@ -48,7 +35,12 @@ extern void *per_cpu_init(void);
-  * On the positive side, using __ia64_per_cpu_var() instead of __get_cpu_var() is slightly
-  * more efficient.
-  */
--#define __ia64_per_cpu_var(var)	(per_cpu__##var)
-+#define __ia64_per_cpu_var(var)	(*SHIFT_PTR(&per_cpu__##var, PERCPU_ADDR))
-+
-+#include <asm-generic/percpu.h>
-+
-+/* Equal to __per_cpu_offset[smp_processor_id()], but faster to access: */
-+DECLARE_PER_CPU(unsigned long, local_per_cpu_offset);
  
- #endif /* !__ASSEMBLY__ */
+-#define DECLARE_PER_CPU(type, name) extern __typeof__(type) per_cpu_var(name)
++#ifndef PER_CPU_ATTRIBUTES
++#define PER_CPU_ATTRIBUTES
++#endif
++
++#define DECLARE_PER_CPU(type, name) extern PER_CPU_ATTRIBUTES \
++					__typeof__(type) per_cpu_var(name)
  
+ #endif /* _ASM_GENERIC_PERCPU_H_ */
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -157,12 +121,12 @@ ia64-remove-the-__small_addr_area-attribute-for-per-cpu-access.patch
 percpu-use-a-kconfig-variable-to-configure-arch-specific-percpu-setup.patch
 percpu-move-arch-xx_per_cpu_xx-definitions-into-linux-percpuh.patch
 percpu-make-the-asm-generic-percpuh-more-generic.patch
+percpu-make-the-asm-generic-percpuh-more-generic-fix.patch
 x86_32-use-generic-percpuh.patch
 x86_64-use-generic-percpu.patch
 s390-use-generic-percpu.patch
 powerpc-use-generic-per-cpu.patch
 sparc64-use-generic-percpu.patch
-ia64-use-generic-percpu.patch
 x86-unify-percpuh.patch
 reiser4.patch
 reiser4-portion-of-zero_user-cleanup-patch.patch
