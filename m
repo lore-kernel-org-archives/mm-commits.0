@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + kill-pt_attached.patch added to -mm tree
-Date: Mon, 26 Nov 2007 20:20:07 -0800
-Message-ID: <200711270420.lAR4K7ef026572@imap1.linux-foundation.org>
+Subject: + kill-my_ptrace_child.patch added to -mm tree
+Date: Mon, 26 Nov 2007 20:20:09 -0800
+Message-ID: <200711270420.lAR4K95c026576@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58211 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41341 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755155AbXK0EVA (ORCPT
+	by vger.kernel.org with ESMTP id S1753285AbXK0EVI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 23:21:00 -0500
+	Mon, 26 Nov 2007 23:21:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@tv-sign.ru, hch@lst.de, roland@redhat.com
 
 
 The patch titled
-     kill PT_ATTACHED
+     kill my_ptrace_child()
 has been added to the -mm tree.  Its filename is
-     kill-pt_attached.patch
+     kill-my_ptrace_child.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,19 +26,13 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kill PT_ATTACHED
+Subject: kill my_ptrace_child()
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Since the patch
-
-	"Fix ptrace_attach()/ptrace_traceme()/de_thread() race"
-	commit f5b40e363ad6041a96e3da32281d8faa191597b9
-
-we set PT_ATTACHED and change child->parent "atomically" wrt task_list lock.
-
-This means we can remove the checks like "PT_ATTACHED && ->parent != ptracer"
-which were needed to catch the "ptrace attach is in progress" case.  We can
-also remove the flag itself since nobody else uses it.
+Now that my_ptrace_child() is trivial we can use the "p->ptrace & PT_PTRACED"
+inline and simplify the corresponding logic in do_wait: we can't find the
+child in TASK_TRACED state without PT_PTRACED flag set, ptrace_untrace()
+either sets TASK_STOPPED or wakes up the tracee.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
@@ -46,84 +40,51 @@ Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ptrace.h |    1 -
- kernel/exit.c          |   13 +------------
- kernel/ptrace.c        |    6 ++----
- kernel/signal.c        |    5 -----
- 4 files changed, 3 insertions(+), 22 deletions(-)
+ kernel/exit.c |   23 +++--------------------
+ 1 file changed, 3 insertions(+), 20 deletions(-)
 
-diff -puN include/linux/ptrace.h~kill-pt_attached include/linux/ptrace.h
---- a/include/linux/ptrace.h~kill-pt_attached
-+++ a/include/linux/ptrace.h
-@@ -67,7 +67,6 @@
- #define PT_TRACE_EXEC	0x00000080
- #define PT_TRACE_VFORK_DONE	0x00000100
- #define PT_TRACE_EXIT	0x00000200
--#define PT_ATTACHED	0x00000400	/* parent != real_parent */
- 
- #define PT_TRACE_MASK	0x000003f4
- 
-diff -puN kernel/exit.c~kill-pt_attached kernel/exit.c
---- a/kernel/exit.c~kill-pt_attached
+diff -puN kernel/exit.c~kill-my_ptrace_child kernel/exit.c
+--- a/kernel/exit.c~kill-my_ptrace_child
 +++ a/kernel/exit.c
-@@ -1511,18 +1511,7 @@ static int wait_task_continued(struct ta
- 
- static inline int my_ptrace_child(struct task_struct *p)
- {
--	if (!(p->ptrace & PT_PTRACED))
--		return 0;
--	if (!(p->ptrace & PT_ATTACHED))
--		return 1;
--	/*
--	 * This child was PTRACE_ATTACH'd.  We should be seeing it only if
--	 * we are the attacher.  If we are the real parent, this is a race
--	 * inside ptrace_attach.  It is waiting for the tasklist_lock,
--	 * which we have to switch the parent links, but has already set
--	 * the flags in p->ptrace.
--	 */
--	return (p->parent != p->real_parent);
-+	return p->ptrace & PT_PTRACED;
+@@ -1508,12 +1508,6 @@ static int wait_task_continued(struct ta
+ 	return retval;
  }
  
+-
+-static inline int my_ptrace_child(struct task_struct *p)
+-{
+-	return p->ptrace & PT_PTRACED;
+-}
+-
  static long do_wait(pid_t pid, int options, struct siginfo __user *infop,
-diff -puN kernel/ptrace.c~kill-pt_attached kernel/ptrace.c
---- a/kernel/ptrace.c~kill-pt_attached
-+++ a/kernel/ptrace.c
-@@ -100,8 +100,7 @@ int ptrace_check_attach(struct task_stru
- 	 */
- 	read_lock(&tasklist_lock);
- 	if ((child->ptrace & PT_PTRACED) && child->parent == current &&
--	    (!(child->ptrace & PT_ATTACHED) || child->real_parent != current)
--	    && child->signal != NULL) {
-+	     child->signal != NULL) {
- 		ret = 0;
- 		spin_lock_irq(&child->sighand->siglock);
- 		if (is_task_stopped(child))
-@@ -200,8 +199,7 @@ repeat:
- 		goto bad;
- 
- 	/* Go */
--	task->ptrace |= PT_PTRACED | ((task->real_parent != current)
--				      ? PT_ATTACHED : 0);
-+	task->ptrace |= PT_PTRACED;
- 	if (capable(CAP_SYS_PTRACE))
- 		task->ptrace |= PT_PTRACE_CAP;
- 
-diff -puN kernel/signal.c~kill-pt_attached kernel/signal.c
---- a/kernel/signal.c~kill-pt_attached
-+++ a/kernel/signal.c
-@@ -1577,11 +1577,6 @@ static inline int may_ptrace_stop(void)
+ 		    int __user *stat_addr, struct rusage __user *ru)
  {
- 	if (!likely(current->ptrace & PT_PTRACED))
- 		return 0;
+@@ -1552,22 +1546,11 @@ repeat:
+ 				/*
+ 				 * It's stopped now, so it might later
+ 				 * continue, exit, or stop again.
+-				 *
+-				 * When we hit the race with PTRACE_ATTACH, we
+-				 * will not report this child.  But the race
+-				 * means it has not yet been moved to our
+-				 * ptrace_children list, so we need to set the
+-				 * flag here to avoid a spurious ECHILD when
+-				 * the race happens with the only child.
+ 				 */
+ 				flag = 1;
 -
--	if (unlikely(current->parent == current->real_parent &&
--		    (current->ptrace & PT_ATTACHED)))
--		return 0;
--
- 	/*
- 	 * Are we in the middle of do_coredump?
- 	 * If so and our tracer is also part of the coredump stopping
+-				if (!my_ptrace_child(p)) {
+-					if (is_task_traced(p))
+-						continue;
+-					if (!(options & WUNTRACED))
+-						continue;
+-				}
++				if (!(p->ptrace & PT_PTRACED) &&
++				    !(options & WUNTRACED))
++					continue;
+ 
+ 				retval = wait_task_stopped(p, ret == 2,
+ 						(options & WNOWAIT), infop,
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
