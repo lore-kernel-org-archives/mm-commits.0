@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + isdn-bootup-crash-fix-2624-rc3-git1.patch added to -mm tree
-Date: Tue, 27 Nov 2007 14:07:35 -0800
-Message-ID: <200711272207.lARM7ZBn000880@imap1.linux-foundation.org>
+Subject: + per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch added to -mm tree
+Date: Tue, 27 Nov 2007 14:02:46 -0800
+Message-ID: <200711272202.lARM2k8Q032656@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57513 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56610 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757379AbXK0WH5 (ORCPT
+	by vger.kernel.org with ESMTP id S1757500AbXK0WJH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 17:07:57 -0500
+	Tue, 27 Nov 2007 17:09:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mingo@elte.hu, kai@germaschewski.name, kkeil@suse.de, rjw@sisk.pl
+Cc: kamezawa.hiroyu@jp.fujitsu.com, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au, riel@redhat.com, rientjes@google.com, svaidy@linux.vnet.ibm.com, xemul@openvz.org
 
 
 The patch titled
-     isdn: bootup crash fix
+     per-zone and reclaim enhancements for memory controller: modifies vmscan.c for isolate globa/cgroup lru activity
 has been added to the -mm tree.  Its filename is
-     isdn-bootup-crash-fix-2624-rc3-git1.patch
+     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,226 +26,508 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: isdn: bootup crash fix
-From: Ingo Molnar <mingo@elte.hu>
+Subject: per-zone and reclaim enhancements for memory controller: modifies vmscan.c for isolate globa/cgroup lru activity
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-got this HiSax bootup crash on a "make randconfig" bzImage bootup:
+When using memory controller, there are 2 levels of memory reclaim.
+ 1. zone memory reclaim because of system/zone memory shortage.
+ 2. memory cgroup memory reclaim because of hitting limit.
 
- Calling initcall 0xc0bb1320: HiSax_init+0x0/0x380()
- HiSax: Linux Driver for passive ISDN cards
- HiSax: Version 3.5 (kernel)
- HiSax: Layer1 Revision 2.46.2.5
- HiSax: Layer2 Revision 2.30.2.4
- HiSax: TeiMgr Revision 2.20.2.3
- HiSax: Layer3 Revision 2.22.2.3
- HiSax: LinkLayer Revision 2.59.2.4
- HiSax: Total 1 card defined
- HiSax: Card 1 Protocol EDSS1 Id=HiSax (0)
- HiSax: HFC-S driver Rev. 1.10.2.4
- HFCS: defined at 0x500 IRQ 5 HZ 250
- Teles 16.3c: IRQ 5 count 0
- HFCS: resetting card
- Teles 16.3c: IRQ 5 count 0
- Teles 16.3c: IRQ(5) getting no interrupts during init 1
- HFCS: resetting card
- ------------[ cut here ]------------
- kernel BUG at include/linux/timer.h:145!
- invalid opcode: 0000 [#1] PREEMPT DEBUG_PAGEALLOC
- Modules linked in:
+These two can be distinguished by sc->mem_cgroup parameter.
+(scan_global_lru() macro)
 
- Pid: 1, comm: swapper Not tainted (2.6.24-rc3 #2045)
- EIP: 0060:[<c063afbf>] EFLAGS: 00010286 CPU: 0
- EIP is at hfcs_card_msg+0x15f/0x180
- EAX: c0cf2e5c EBX: 000000f2 ECX: 00000000 EDX: ffff1193
- ESI: f76e8000 EDI: f76e8000 EBP: f7c23ec4 ESP: f7c23eac
-  DS: 007b ES: 007b FS: 0000 GS: 0000 SS: 0068
- Process swapper (pid: 1, ti=f7c22000 task=f7c0e000 task.ti=f7c22000)
- Stack: 00000000 f7c23ec4 c011703b 00000002 f76e8000 00000000 f7c23ef8 c060c3e5
-        c0a7c9c0 c0a315dc 00000005 00000001 00000000 f7c23f34 00000000 c0b5c9c0
-        f7c23f34 00000000 c0f5a8e0 f7c23f80 c0bb154f 00000000 00000001 c0a9b5b9
- Call Trace:
-  [<c010339a>] show_trace_log_lvl+0x1a/0x40
-  [<c0103469>] show_stack_log_lvl+0xa9/0xe0
-  [<c010355f>] show_registers+0xbf/0x200
-  [<c01037a4>] die+0x104/0x220
-  [<c0103943>] do_trap+0x83/0xc0
-  [<c0103ca8>] do_invalid_op+0x88/0xa0
-  [<c083621a>] error_code+0x6a/0x70
-  [<c060c3e5>] checkcard+0x4a5/0x620
-  [<c0bb154f>] HiSax_init+0x22f/0x380
-  [<c0b867b7>] kernel_init+0x97/0x2a0
-  [<c0102f87>] kernel_thread_helper+0x7/0x20
-  =======================
- Code: e8 43 ae ff 8b 57 3c 85 d2 0f 84 ef fe ff ff b8 a0 99 ad c0 b9 02 00 00 00 e8 ce 11 ae ff 83 c4 0c b8 00 00 00 00 5b 5e 5f c9 c3 <0f> 0b eb fe 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90
- EIP: [<c063afbf>] hfcs_card_msg+0x15f/0x180 SS:ESP 0068:f7c23eac
- Kernel panic - not syncing: Attempted to kill init!
+This patch tries to make memory cgroup reclaim routine avoid affecting
+system/zone memory reclaim. This patch inserts if (scan_global_lru()) and
+hook to memory_cgroup reclaim support functions.
 
-The box has no HiSax card installed.
+This patch can be a help for isolating system lru activity and group lru
+activity and shows what additional functions are necessary.
 
-the reason for the crash is add_timer() done on an already running
-timer. This happens because for some reason CARD_INIT is called twice.
+ * mem_cgroup_calc_mapped_ratio() ... calculate mapped ratio for cgroup.
+ * mem_cgroup_reclaim_imbalance() ... calculate active/inactive balance in
+                                        cgroup.
+ * mem_cgroup_calc_reclaim_active() ... calculate the number of active pages to
+                                be scanned in this priority in mem_cgroup.
 
-this patch works this problem around by using mod_timer() - this gets
-a booting system - but it would be nice to figure out why CARD_INIT
-is done twice.
+ * mem_cgroup_calc_reclaim_inactive() ... calculate the number of inactive pages
+                                to be scanned in this priority in mem_cgroup.
 
-the ISDN config section (generated via make randconfig) is this:
+ * mem_cgroup_all_unreclaimable() .. checks cgroup's page is all unreclaimable
+                                     or not.
+ * mem_cgroup_get_reclaim_priority() ...
+ * mem_cgroup_note_reclaim_priority() ... record reclaim priority (temporal)
+ * mem_cgroup_remember_reclaim_priority()
+                             .... record reclaim priority as
+                                  zone->prev_priority.
+                                  This value is used for calc reclaim_mapped.
 
-#
-# ISDN feature submodules
-#
-# CONFIG_ISDN_DRV_LOOP is not set
-CONFIG_ISDN_DIVERSION=y
-
-#
-# ISDN4Linux hardware drivers
-#
-
-#
-# Passive cards
-#
-CONFIG_ISDN_DRV_HISAX=y
-
-#
-# D-channel protocol features
-#
-CONFIG_HISAX_EURO=y
-CONFIG_DE_AOC=y
-# CONFIG_HISAX_NO_SENDCOMPLETE is not set
-# CONFIG_HISAX_NO_LLC is not set
-# CONFIG_HISAX_NO_KEYPAD is not set
-CONFIG_HISAX_1TR6=y
-CONFIG_HISAX_NI1=y
-CONFIG_HISAX_MAX_CARDS=8
-
-#
-# HiSax supported cards
-#
-CONFIG_HISAX_16_0=y
-# CONFIG_HISAX_16_3 is not set
-# CONFIG_HISAX_TELESPCI is not set
-CONFIG_HISAX_S0BOX=y
-# CONFIG_HISAX_AVM_A1 is not set
-CONFIG_HISAX_FRITZPCI=y
-CONFIG_HISAX_AVM_A1_PCMCIA=y
-CONFIG_HISAX_ELSA=y
-CONFIG_HISAX_IX1MICROR2=y
-CONFIG_HISAX_DIEHLDIVA=y
-# CONFIG_HISAX_ASUSCOM is not set
-# CONFIG_HISAX_TELEINT is not set
-CONFIG_HISAX_HFCS=y
-# CONFIG_HISAX_SEDLBAUER is not set
-CONFIG_HISAX_SPORTSTER=y
-# CONFIG_HISAX_MIC is not set
-# CONFIG_HISAX_NETJET is not set
-# CONFIG_HISAX_NETJET_U is not set
-# CONFIG_HISAX_NICCY is not set
-# CONFIG_HISAX_ISURF is not set
-# CONFIG_HISAX_HSTSAPHIR is not set
-# CONFIG_HISAX_BKM_A4T is not set
-# CONFIG_HISAX_SCT_QUADRO is not set
-# CONFIG_HISAX_GAZEL is not set
-# CONFIG_HISAX_HFC_PCI is not set
-# CONFIG_HISAX_W6692 is not set
-# CONFIG_HISAX_HFC_SX is not set
-# CONFIG_HISAX_DEBUG is not set
-
-#
-# HiSax PCMCIA card service modules
-#
-
-#
-# HiSax sub driver modules
-#
-CONFIG_HISAX_ST5481=y
-CONFIG_HISAX_HFCUSB=y
-# CONFIG_HISAX_HFC4S8S is not set
-CONFIG_HISAX_FRITZ_PCIPNP=y
-CONFIG_HISAX_HDLC=y
-
-#
-# Active cards
-#
-CONFIG_ISDN_DRV_ICN=m
-CONFIG_ISDN_DRV_PCBIT=m
-CONFIG_ISDN_DRV_SC=y
-# CONFIG_ISDN_DRV_ACT2000 is not set
-CONFIG_HYSDN=m
-# CONFIG_ISDN_DRV_GIGASET is not set
-# CONFIG_ISDN_CAPI is not set
-CONFIG_PHONE=y
-CONFIG_PHONE_IXJ=m
-
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: Karsten Keil <kkeil@suse.de>
-Cc: Kai Germaschewski <kai@germaschewski.name>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Kirill Korotaev <dev@sw.ru>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Paul Menage <menage@google.com>
+Cc: Pavel Emelianov <xemul@openvz.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hisax/hfcscard.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/vmscan.c |  326 ++++++++++++++++++++++++++++++--------------------
+ 1 file changed, 197 insertions(+), 129 deletions(-)
 
-diff -puN drivers/isdn/hisax/hfcscard.c~isdn-bootup-crash-fix-2624-rc3-git1 drivers/isdn/hisax/hfcscard.c
---- a/drivers/isdn/hisax/hfcscard.c~isdn-bootup-crash-fix-2624-rc3-git1
-+++ a/drivers/isdn/hisax/hfcscard.c
-@@ -118,8 +118,7 @@ hfcs_card_msg(struct IsdnCardState *cs, 
- 			return(0);
- 		case CARD_INIT:
- 			delay = (75*HZ)/100 +1;
--			cs->hw.hfcD.timer.expires = jiffies + delay;
--			add_timer(&cs->hw.hfcD.timer);
-+			mod_timer(&cs->hw.hfcD.timer, jiffies + delay);
- 			spin_lock_irqsave(&cs->lock, flags);
- 			reset_hfcs(cs);
- 			init2bds0(cs);
+diff -puN mm/vmscan.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity mm/vmscan.c
+--- a/mm/vmscan.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity
++++ a/mm/vmscan.c
+@@ -856,7 +856,8 @@ static unsigned long shrink_inactive_lis
+ 		__mod_zone_page_state(zone, NR_ACTIVE, -nr_active);
+ 		__mod_zone_page_state(zone, NR_INACTIVE,
+ 						-(nr_taken - nr_active));
+-		zone->pages_scanned += nr_scan;
++		if (scan_global_lru(sc))
++			zone->pages_scanned += nr_scan;
+ 		spin_unlock_irq(&zone->lru_lock);
+ 
+ 		nr_scanned += nr_scan;
+@@ -943,6 +944,113 @@ static inline int zone_is_near_oom(struc
+ }
+ 
+ /*
++ * Determine we should try to reclaim mapped pages.
++ * This is called only when sc->mem_cgroup is NULL.
++ */
++static int calc_reclaim_mapped(struct scan_control *sc, struct zone *zone,
++				int priority)
++{
++	long mapped_ratio;
++	long distress;
++	long swap_tendency;
++	long imbalance;
++	int reclaim_mapped;
++	int prev_priority;
++
++	if (scan_global_lru(sc) && zone_is_near_oom(zone))
++		return 1;
++	/*
++	 * `distress' is a measure of how much trouble we're having
++	 * reclaiming pages.  0 -> no problems.  100 -> great trouble.
++	 */
++	if (scan_global_lru(sc))
++		prev_priority = zone->prev_priority;
++	else
++		prev_priority = mem_cgroup_get_reclaim_priority(sc->mem_cgroup);
++
++	distress = 100 >> min(prev_priority, priority);
++
++	/*
++	 * The point of this algorithm is to decide when to start
++	 * reclaiming mapped memory instead of just pagecache.  Work out
++	 * how much memory
++	 * is mapped.
++	 */
++	if (scan_global_lru(sc))
++		mapped_ratio = ((global_page_state(NR_FILE_MAPPED) +
++				global_page_state(NR_ANON_PAGES)) * 100) /
++					vm_total_pages;
++	else
++		mapped_ratio = mem_cgroup_calc_mapped_ratio(sc->mem_cgroup);
++
++	/*
++	 * Now decide how much we really want to unmap some pages.  The
++	 * mapped ratio is downgraded - just because there's a lot of
++	 * mapped memory doesn't necessarily mean that page reclaim
++	 * isn't succeeding.
++	 *
++	 * The distress ratio is important - we don't want to start
++	 * going oom.
++	 *
++	 * A 100% value of vm_swappiness overrides this algorithm
++	 * altogether.
++	 */
++	swap_tendency = mapped_ratio / 2 + distress + sc->swappiness;
++
++	/*
++	 * If there's huge imbalance between active and inactive
++	 * (think active 100 times larger than inactive) we should
++	 * become more permissive, or the system will take too much
++	 * cpu before it start swapping during memory pressure.
++	 * Distress is about avoiding early-oom, this is about
++	 * making swappiness graceful despite setting it to low
++	 * values.
++	 *
++	 * Avoid div by zero with nr_inactive+1, and max resulting
++	 * value is vm_total_pages.
++	 */
++	if (scan_global_lru(sc)) {
++		imbalance  = zone_page_state(zone, NR_ACTIVE);
++		imbalance /= zone_page_state(zone, NR_INACTIVE) + 1;
++	} else
++		imbalance = mem_cgroup_reclaim_imbalance(sc->mem_cgroup);
++
++	/*
++	 * Reduce the effect of imbalance if swappiness is low,
++	 * this means for a swappiness very low, the imbalance
++	 * must be much higher than 100 for this logic to make
++	 * the difference.
++	 *
++	 * Max temporary value is vm_total_pages*100.
++	 */
++	imbalance *= (vm_swappiness + 1);
++	imbalance /= 100;
++
++	/*
++	 * If not much of the ram is mapped, makes the imbalance
++	 * less relevant, it's high priority we refill the inactive
++	 * list with mapped pages only in presence of high ratio of
++	 * mapped pages.
++	 *
++	 * Max temporary value is vm_total_pages*100.
++	 */
++	imbalance *= mapped_ratio;
++	imbalance /= 100;
++
++	/* apply imbalance feedback to swap_tendency */
++	swap_tendency += imbalance;
++
++	/*
++	 * Now use this metric to decide whether to start moving mapped
++	 * memory onto the inactive list.
++	 */
++	if (swap_tendency >= 100)
++		reclaim_mapped = 1;
++
++	return reclaim_mapped;
++}
++
++/*
+  * This moves pages from the active list to the inactive list.
+  *
+  * We move them the other way if the page is referenced by one or more
+@@ -959,6 +1067,8 @@ static inline int zone_is_near_oom(struc
+  * The downside is that we have to touch page->_count against each page.
+  * But we had to alter page->flags anyway.
+  */
++
++
+ static void shrink_active_list(unsigned long nr_pages, struct zone *zone,
+ 				struct scan_control *sc, int priority)
+ {
+@@ -972,100 +1082,21 @@ static void shrink_active_list(unsigned 
+ 	struct pagevec pvec;
+ 	int reclaim_mapped = 0;
+ 
+-	if (sc->may_swap) {
+-		long mapped_ratio;
+-		long distress;
+-		long swap_tendency;
+-		long imbalance;
+-
+-		if (zone_is_near_oom(zone))
+-			goto force_reclaim_mapped;
+-
+-		/*
+-		 * `distress' is a measure of how much trouble we're having
+-		 * reclaiming pages.  0 -> no problems.  100 -> great trouble.
+-		 */
+-		distress = 100 >> min(zone->prev_priority, priority);
+-
+-		/*
+-		 * The point of this algorithm is to decide when to start
+-		 * reclaiming mapped memory instead of just pagecache.  Work out
+-		 * how much memory
+-		 * is mapped.
+-		 */
+-		mapped_ratio = ((global_page_state(NR_FILE_MAPPED) +
+-				global_page_state(NR_ANON_PAGES)) * 100) /
+-					vm_total_pages;
+-
+-		/*
+-		 * Now decide how much we really want to unmap some pages.  The
+-		 * mapped ratio is downgraded - just because there's a lot of
+-		 * mapped memory doesn't necessarily mean that page reclaim
+-		 * isn't succeeding.
+-		 *
+-		 * The distress ratio is important - we don't want to start
+-		 * going oom.
+-		 *
+-		 * A 100% value of vm_swappiness overrides this algorithm
+-		 * altogether.
+-		 */
+-		swap_tendency = mapped_ratio / 2 + distress + sc->swappiness;
+-
+-		/*
+-		 * If there's huge imbalance between active and inactive
+-		 * (think active 100 times larger than inactive) we should
+-		 * become more permissive, or the system will take too much
+-		 * cpu before it start swapping during memory pressure.
+-		 * Distress is about avoiding early-oom, this is about
+-		 * making swappiness graceful despite setting it to low
+-		 * values.
+-		 *
+-		 * Avoid div by zero with nr_inactive+1, and max resulting
+-		 * value is vm_total_pages.
+-		 */
+-		imbalance  = zone_page_state(zone, NR_ACTIVE);
+-		imbalance /= zone_page_state(zone, NR_INACTIVE) + 1;
+-
+-		/*
+-		 * Reduce the effect of imbalance if swappiness is low,
+-		 * this means for a swappiness very low, the imbalance
+-		 * must be much higher than 100 for this logic to make
+-		 * the difference.
+-		 *
+-		 * Max temporary value is vm_total_pages*100.
+-		 */
+-		imbalance *= (vm_swappiness + 1);
+-		imbalance /= 100;
+-
+-		/*
+-		 * If not much of the ram is mapped, makes the imbalance
+-		 * less relevant, it's high priority we refill the inactive
+-		 * list with mapped pages only in presence of high ratio of
+-		 * mapped pages.
+-		 *
+-		 * Max temporary value is vm_total_pages*100.
+-		 */
+-		imbalance *= mapped_ratio;
+-		imbalance /= 100;
+-
+-		/* apply imbalance feedback to swap_tendency */
+-		swap_tendency += imbalance;
+-
+-		/*
+-		 * Now use this metric to decide whether to start moving mapped
+-		 * memory onto the inactive list.
+-		 */
+-		if (swap_tendency >= 100)
+-force_reclaim_mapped:
+-			reclaim_mapped = 1;
+-	}
++	if (sc->may_swap)
++		reclaim_mapped = calc_reclaim_mapped(sc, zone, priority);
+ 
+ 	lru_add_drain();
+ 	spin_lock_irq(&zone->lru_lock);
+ 	pgmoved = sc->isolate_pages(nr_pages, &l_hold, &pgscanned, sc->order,
+ 					ISOLATE_ACTIVE, zone,
+ 					sc->mem_cgroup, 1);
+-	zone->pages_scanned += pgscanned;
++	/*
++	 * zone->pages_scanned is used for detect zone's oom
++	 * mem_cgroup remembers nr_scan by itself.
++	 */
++	if (scan_global_lru(sc))
++		zone->pages_scanned += pgscanned;
++
+ 	__mod_zone_page_state(zone, NR_ACTIVE, -pgmoved);
+ 	spin_unlock_irq(&zone->lru_lock);
+ 
+@@ -1158,25 +1189,39 @@ static unsigned long shrink_zone(int pri
+ 	unsigned long nr_to_scan;
+ 	unsigned long nr_reclaimed = 0;
+ 
+-	/*
+-	 * Add one to `nr_to_scan' just to make sure that the kernel will
+-	 * slowly sift through the active list.
+-	 */
+-	zone->nr_scan_active +=
+-		(zone_page_state(zone, NR_ACTIVE) >> priority) + 1;
+-	nr_active = zone->nr_scan_active;
+-	if (nr_active >= sc->swap_cluster_max)
+-		zone->nr_scan_active = 0;
+-	else
+-		nr_active = 0;
++	if (scan_global_lru(sc)) {
++		/*
++		 * Add one to nr_to_scan just to make sure that the kernel
++		 * will slowly sift through the active list.
++		 */
++		zone->nr_scan_active +=
++			(zone_page_state(zone, NR_ACTIVE) >> priority) + 1;
++		nr_active = zone->nr_scan_active;
++		zone->nr_scan_inactive +=
++			(zone_page_state(zone, NR_INACTIVE) >> priority) + 1;
++		nr_inactive = zone->nr_scan_inactive;
++		if (nr_inactive >= sc->swap_cluster_max)
++			zone->nr_scan_inactive = 0;
++		else
++			nr_inactive = 0;
++
++		if (nr_active >= sc->swap_cluster_max)
++			zone->nr_scan_active = 0;
++		else
++			nr_active = 0;
++	} else {
++		/*
++		 * This reclaim occurs not because zone memory shortage but
++		 * because memory controller hits its limit.
++		 * Then, don't modify zone reclaim related data.
++		 */
++		nr_active = mem_cgroup_calc_reclaim_active(sc->mem_cgroup,
++					zone, priority);
++
++		nr_inactive = mem_cgroup_calc_reclaim_inactive(sc->mem_cgroup,
++					zone, priority);
++	}
+ 
+-	zone->nr_scan_inactive +=
+-		(zone_page_state(zone, NR_INACTIVE) >> priority) + 1;
+-	nr_inactive = zone->nr_scan_inactive;
+-	if (nr_inactive >= sc->swap_cluster_max)
+-		zone->nr_scan_inactive = 0;
+-	else
+-		nr_inactive = 0;
+ 
+ 	while (nr_active || nr_inactive) {
+ 		if (nr_active) {
+@@ -1221,25 +1266,39 @@ static unsigned long shrink_zones(int pr
+ 	unsigned long nr_reclaimed = 0;
+ 	int i;
+ 
++
+ 	sc->all_unreclaimable = 1;
+ 	for (i = 0; zones[i] != NULL; i++) {
+ 		struct zone *zone = zones[i];
+ 
+ 		if (!populated_zone(zone))
+ 			continue;
++		/*
++		 * Take care memory controller reclaiming has small influence
++		 * to global LRU.
++		 */
++		if (scan_global_lru(sc)) {
++			if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
++				continue;
++			note_zone_scanning_priority(zone, priority);
+ 
+-		if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
+-			continue;
+-
+-		note_zone_scanning_priority(zone, priority);
+-
+-		if (zone_is_all_unreclaimable(zone) && priority != DEF_PRIORITY)
+-			continue;	/* Let kswapd poll it */
+-
+-		sc->all_unreclaimable = 0;
++			if (zone_is_all_unreclaimable(zone) &&
++						priority != DEF_PRIORITY)
++				continue;	/* Let kswapd poll it */
++			sc->all_unreclaimable = 0;
++		} else {
++			/*
++			 * Ignore cpuset limitation here. We just want to reduce
++			 * # of used pages by us regardless of memory shortage.
++			 */
++			sc->all_unreclaimable = 0;
++			mem_cgroup_note_reclaim_priority(sc->mem_cgroup,
++							priority);
++		}
+ 
+ 		nr_reclaimed += shrink_zone(priority, zone, sc);
+ 	}
++
+ 	return nr_reclaimed;
+ }
+  
+@@ -1268,15 +1327,19 @@ static unsigned long do_try_to_free_page
+ 	int i;
+ 
+ 	count_vm_event(ALLOCSTALL);
++	/*
++	 * mem_cgroup will not do shrink_slab.
++	 */
++	if (scan_global_lru(sc)) {
++		for (i = 0; zones[i] != NULL; i++) {
++			struct zone *zone = zones[i];
+ 
+-	for (i = 0; zones[i] != NULL; i++) {
+-		struct zone *zone = zones[i];
+-
+-		if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
+-			continue;
++			if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
++				continue;
+ 
+-		lru_pages += zone_page_state(zone, NR_ACTIVE)
+-				+ zone_page_state(zone, NR_INACTIVE);
++			lru_pages += zone_page_state(zone, NR_ACTIVE)
++					+ zone_page_state(zone, NR_INACTIVE);
++		}
+ 	}
+ 
+ 	for (priority = DEF_PRIORITY; priority >= 0; priority--) {
+@@ -1333,14 +1396,19 @@ out:
+ 	 */
+ 	if (priority < 0)
+ 		priority = 0;
+-	for (i = 0; zones[i] != NULL; i++) {
+-		struct zone *zone = zones[i];
+ 
+-		if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
+-			continue;
++	if (scan_global_lru(sc)) {
++		for (i = 0; zones[i] != NULL; i++) {
++			struct zone *zone = zones[i];
++
++			if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
++				continue;
++
++			zone->prev_priority = priority;
++		}
++	} else
++		mem_cgroup_record_reclaim_priority(sc->mem_cgroup, priority);
+ 
+-		zone->prev_priority = priority;
+-	}
+ 	return ret;
+ }
+ 
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-origin.patch
-isdn-bootup-crash-fix-2624-rc3-git1.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-x86_64-efi-boot-support-efi-frame-buffer.patch
-x86_64-efi-boot-support-efi-boot-document.patch
+memory-hotplug-fix-fix-section-mismatch-in-vmammap_allock_block.patch
 memory-hotplug-x86_64-fix-section-mismatch-in-init_memory_mapping.patch
-git-acpi.patch
-git-alsa.patch
-git-hrt.patch
-git-kvm.patch
-git-sched.patch
-track-accurate-idle-time-with-tick_schedidle_sleeptime.patch
-merge-multiple-error-paths-in-alloc_uid-into-one.patch
-iommu-sg-merging-x86-make-pci-gart-iommu-respect-the-segment-size-limits.patch
-git-x86.patch
-x86_64-set-cpu_index-to-nr_cpus-instead-of-0.patch
-x86_64-do-not-set-boot-cpu-in-cpu_online_map-at-x86_64_start_kernel.patch
-vmlinux_32ldss-remove-repeated-comment-from-the-x86-32-linker-script.patch
-x86_64-make-sparsemem-vmemmap-the-only-memory-model.patch
-x86_64-add-acpi-reboot-option.patch
-x86_64-efi-runtime-service-support-efi-basic-runtime-service-support.patch
-x86_64-efi-runtime-service-support-efi-runtime-services.patch
-x86_64-efi-runtime-service-support-document-for-efi-runtime-services.patch
-x86_64-efi-runtime-service-support-remove-duplicated-code-from-efi_32c.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+swapoff-scan-ptes-preemptibly.patch
+memory-hotplug-add-removable-to-sysfs-to-show-memblock-removability.patch
+add-remove_memory-for-ppc64-2.patch
+enable-hotplug-memory-remove-for-ppc64.patch
+add-arch-specific-walk_memory_remove-for-ppc64.patch
 pie-executable-randomization.patch
 pie-executable-randomization-uninlining.patch
 pie-executable-randomization-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-printk-trivial-optimizations.patch
-mm-prevent-dereferencing-non-allocated-per_cpu-variables.patch
-fall-back-on-interrupt-disable-in-cmpxchg8b-on-80386-and-80486.patch
-add-cmpxchg64-and-cmpxchg64_local-to-x86_64.patch
-proc-fix-the-threaded-proc-self.patch
-modules-fold-percpu_modcopy-into-modulec-and-get-rid-of-the-macro-from-hell.patch
-x86_32-use-generic-percpuh.patch
-x86_64-use-generic-percpu.patch
-x86-unify-percpuh.patch
-detect-atomic-counter-underflows.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-kmap_atomic-debugging.patch
+memcgroup-temporarily-revert-swapoff-mod.patch
+memory-controller-make-charging-gfp-mask-aware-fix.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
+memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
+memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+memory-cgroup-enhancements-add-pre_destroy-handler.patch
+memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
