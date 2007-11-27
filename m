@@ -1,95 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: + vmcoreinfo-fix-the-configuration-dependencies-fix.patch added to -mm tree
-Date: Tue, 27 Nov 2007 02:10:34 -0800
-Message-ID: <200711271010.lARAAY9V006210@imap1.linux-foundation.org>
+Subject: - remove-fs-jffs2-ioctlc.patch removed from -mm tree
+Date: Tue, 27 Nov 2007 10:09:25 -0800
+Message-ID: <200711271809.lARI9PoO023844@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40151 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34523 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751936AbXK0KKt (ORCPT
+	by vger.kernel.org with ESMTP id S1755673AbXK0SJp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 05:10:49 -0500
+	Tue, 27 Nov 2007 13:09:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: oomichi@mxs.nes.nec.co.jp, horms@verge.net.au, rientjes@google.com
+To: bunk@stusta.de, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmcoreinfo-fix-the-configuration-dependencies fix
-has been added to the -mm tree.  Its filename is
-     vmcoreinfo-fix-the-configuration-dependencies-fix.patch
+     remove fs/jffs2/ioctl.c
+has been removed from the -mm tree.  Its filename was
+     remove-fs-jffs2-ioctlc.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-Subject: vmcoreinfo-fix-the-configuration-dependencies fix
-From: "Ken'ichi Ohmichi" <oomichi@mxs.nes.nec.co.jp>
+Subject: remove fs/jffs2/ioctl.c
+=46rom: Adrian Bunk <bunk@stusta.de>
 
-Hi Andrew,
+fs/jffs2/ioctl.c is already for so long in the "might be used later" st=
+ate
+that I doubt it will ever be actually used...
 
-Andrew Morton wrote:
->> diff -rpuN a/arch/x86/kernel/machine_kexec_64.c b/arch/x86/kernel/machine_kexec_64.c
->> --- a/arch/x86/kernel/machine_kexec_64.c	2007-11-14 15:39:19.000000000 +0900
->> +++ b/arch/x86/kernel/machine_kexec_64.c	2007-11-14 15:39:33.000000000 +0900
->> @@ -235,7 +235,7 @@ void arch_crash_save_vmcoreinfo(void)
->>  {
->>  	VMCOREINFO_SYMBOL(init_level4_pgt);
->>
->> -#ifdef CONFIG_ARCH_DISCONTIGMEM_ENABLE
->> +#ifdef CONFIG_NUMA
->>  	VMCOREINFO_SYMBOL(node_data);
->>  	VMCOREINFO_LENGTH(node_data, MAX_NUMNODES);
->>  #endif
->> _
->>
->
-> x86_64-make-sparsemem-vmemmap-the-default-memory-model-v2.patch removes the
-> `VMCOREINFO_SYMBOL(node_data);' from arch/x86/kernel/machine_kexec_64.c
-> altogether, so I dropped that part of your patch.
+And if it will ever be used, reverting this patch will be trivial.
 
-The above part is necessary for a NUMA kernel.
-Could you please merge the attached patch ?
-
-I guess that Christoph Lameter deleted the above part (which is added
-by the attached patch again) with the other part of discontigmem lines,
-because it depended on CONFIG_ARCH_DISCONTIGMEM_ENABLE.
-But the dependency was wrong, and it should depend on CONFIG_NUMA.
-The part is necessary for a NUMA kernel even if sparsemem.
-
-Signed-off-by: Ken'ichi Ohmichi <oomichi@mxs.nes.nec.co.jp>
-Cc: Simon Horman <horms@verge.net.au>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/machine_kexec_64.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/jffs2/Makefile   |    2 +-
+ fs/jffs2/dir.c      |    1 -
+ fs/jffs2/file.c     |    1 -
+ fs/jffs2/ioctl.c    |   21 ---------------------
+ fs/jffs2/os-linux.h |    3 ---
+ 5 files changed, 1 insertion(+), 27 deletions(-)
 
-diff -puN arch/x86/kernel/machine_kexec_64.c~vmcoreinfo-fix-the-configuration-dependencies-fix arch/x86/kernel/machine_kexec_64.c
---- a/arch/x86/kernel/machine_kexec_64.c~vmcoreinfo-fix-the-configuration-dependencies-fix
-+++ a/arch/x86/kernel/machine_kexec_64.c
-@@ -234,5 +234,10 @@ NORET_TYPE void machine_kexec(struct kim
- void arch_crash_save_vmcoreinfo(void)
+diff -puN fs/jffs2/Makefile~remove-fs-jffs2-ioctlc fs/jffs2/Makefile
+--- a/fs/jffs2/Makefile~remove-fs-jffs2-ioctlc
++++ a/fs/jffs2/Makefile
+@@ -5,7 +5,7 @@
+=20
+ obj-$(CONFIG_JFFS2_FS) +=3D jffs2.o
+=20
+-jffs2-y	:=3D compr.o dir.o file.o ioctl.o nodelist.o malloc.o
++jffs2-y	:=3D compr.o dir.o file.o nodelist.o malloc.o
+ jffs2-y	+=3D read.o nodemgmt.o readinode.o write.o scan.o gc.o
+ jffs2-y	+=3D symlink.o build.o erase.o background.o fs.o writev.o
+ jffs2-y	+=3D super.o debug.o
+diff -puN fs/jffs2/dir.c~remove-fs-jffs2-ioctlc fs/jffs2/dir.c
+--- a/fs/jffs2/dir.c~remove-fs-jffs2-ioctlc
++++ a/fs/jffs2/dir.c
+@@ -38,7 +38,6 @@ const struct file_operations jffs2_dir_o
  {
- 	VMCOREINFO_SYMBOL(init_level4_pgt);
-+
-+#ifdef CONFIG_NUMA
-+	VMCOREINFO_SYMBOL(node_data);
-+	VMCOREINFO_LENGTH(node_data, MAX_NUMNODES);
-+#endif
- }
- 
+ 	.read =3D		generic_read_dir,
+ 	.readdir =3D	jffs2_readdir,
+-	.ioctl =3D	jffs2_ioctl,
+ 	.fsync =3D	jffs2_fsync
+ };
+=20
+diff -puN fs/jffs2/file.c~remove-fs-jffs2-ioctlc fs/jffs2/file.c
+--- a/fs/jffs2/file.c~remove-fs-jffs2-ioctlc
++++ a/fs/jffs2/file.c
+@@ -46,7 +46,6 @@ const struct file_operations jffs2_file_
+  	.aio_read =3D	generic_file_aio_read,
+  	.write =3D	do_sync_write,
+  	.aio_write =3D	generic_file_aio_write,
+-	.ioctl =3D	jffs2_ioctl,
+ 	.mmap =3D		generic_file_readonly_mmap,
+ 	.fsync =3D	jffs2_fsync,
+ 	.splice_read =3D	generic_file_splice_read,
+diff -puN fs/jffs2/ioctl.c~remove-fs-jffs2-ioctlc /dev/null
+--- a/fs/jffs2/ioctl.c
++++ /dev/null
+@@ -1,21 +0,0 @@
+-/*
+- * JFFS2 -- Journalling Flash File System, Version 2.
+- *
+- * Copyright =C2=A9 2001-2007 Red Hat, Inc.
+- *
+- * Created by David Woodhouse <dwmw2@infradead.org>
+- *
+- * For licensing information, see the file 'LICENCE' in this directory=
+=2E
+- *
+- */
+-
+-#include <linux/fs.h>
+-
+-int jffs2_ioctl(struct inode *inode, struct file *filp, unsigned int c=
+md,
+-		unsigned long arg)
+-{
+-	/* Later, this will provide for lsattr.jffs2 and chattr.jffs2, which
+-	   will include compression support etc. */
+-	return -ENOTTY;
+-}
+-
+diff -puN fs/jffs2/os-linux.h~remove-fs-jffs2-ioctlc fs/jffs2/os-linux.=
+h
+--- a/fs/jffs2/os-linux.h~remove-fs-jffs2-ioctlc
++++ a/fs/jffs2/os-linux.h
+@@ -166,9 +166,6 @@ extern const struct address_space_operat
+ int jffs2_fsync(struct file *, struct dentry *, int);
+ int jffs2_do_readpage_unlock (struct inode *inode, struct page *pg);
+=20
+-/* ioctl.c */
+-int jffs2_ioctl(struct inode *, struct file *, unsigned int, unsigned =
+long);
+-
+ /* symlink.c */
+ extern const struct inode_operations jffs2_symlink_inode_operations;
+=20
 _
 
-Patches currently in -mm which might be from oomichi@mxs.nes.nec.co.jp are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-vmcoreinfo-rename-vmcoreinfos-macros-returning-the-size.patch
-vmcoreinfo-use-the-existing-offsetof-for-vmcoreinfo_offset.patch
-vmcoreinfo-add-vmcoreinfo_-to-all-the-call-for-vmcoreinfo_append_str.patch
-vmcoreinfo-fix-the-configuration-dependencies.patch
-vmcoreinfo-fix-the-configuration-dependencies-fix.patch
-vmcoreinfo-add-the-array-length-of-free_list-for-filtering-free-pages.patch
+git-dvb.patch
+git-kvm.patch
+remove-fs-jffs2-ioctlc.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+git-x86.patch
+maps4-add-proc-kpagecount-interface.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
