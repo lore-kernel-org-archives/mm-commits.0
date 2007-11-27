@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-prevent-visws-or-voyager-randconfigs.patch added to -mm tree
-Date: Tue, 27 Nov 2007 13:36:57 -0800
-Message-ID: <200711272136.lARLavYq031600@imap1.linux-foundation.org>
+Subject: + per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch added to -mm tree
+Date: Tue, 27 Nov 2007 14:02:31 -0800
+Message-ID: <200711272202.lARM2WkV032600@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42002 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45455 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759302AbXK0ViJ (ORCPT
+	by vger.kernel.org with ESMTP id S1756483AbXK0WEw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 16:38:09 -0500
+	Tue, 27 Nov 2007 17:04:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, rusty@rustcorp.com.au
+Cc: kamezawa.hiroyu@jp.fujitsu.com, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au, riel@redhat.com, rientjes@google.com, svaidy@linux.vnet.ibm.com, xemul@openvz.org
 
 
 The patch titled
-     lguest: prevent VISWS or VOYAGER randconfigs
+     per-zone and reclaim enhancements for memory controller: nid/zid helper function for cgroup
 has been added to the -mm tree.  Its filename is
-     lguest-prevent-visws-or-voyager-randconfigs.patch
+     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,72 +26,93 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lguest: prevent VISWS or VOYAGER randconfigs
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: per-zone and reclaim enhancements for memory controller: nid/zid helper function for cgroup
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Keep lguest from being enabled on VISWS or VOYAGER configs, just as is
-already done for VMI and XEN.  Otherwise randconfigs with VISWS and LGUEST
-have this problem:
+Add macro to get node_id and zone_id of page_cgroup.  Will be used in
+per-zone-xxx patches and others.
 
-In file included from arch/x86/kernel/setup_32.c:61:
-include/asm-x86/mach-visws/setup_arch.h:8:1: warning: "ARCH_SETUP" redefined
-In file included from include/asm/msr.h:80,
-                 from include/asm/processor_32.h:17,
-                 from include/asm/processor.h:2,
-                 from include/asm/thread_info_32.h:16,
-                 from include/asm/thread_info.h:2,
-                 from include/linux/thread_info.h:21,
-                 from include/linux/preempt.h:9,
-                 from include/linux/spinlock.h:49,
-                 from include/linux/seqlock.h:29,
-                 from include/linux/time.h:8,
-                 from include/linux/timex.h:57,
-                 from include/linux/sched.h:53,
-                 from arch/x86/kernel/setup_32.c:24:
-include/asm/paravirt.h:458:1: warning: this is the location of the previous definition
-
-(and of course, this happens because kconfig does not follow dependencies
-when [evil] select is used...)
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Kirill Korotaev <dev@sw.ru>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Paul Menage <menage@google.com>
+Cc: Pavel Emelianov <xemul@openvz.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/lguest/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ mm/memcontrol.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN arch/x86/lguest/Kconfig~lguest-prevent-visws-or-voyager-randconfigs arch/x86/lguest/Kconfig
---- a/arch/x86/lguest/Kconfig~lguest-prevent-visws-or-voyager-randconfigs
-+++ a/arch/x86/lguest/Kconfig
-@@ -2,6 +2,7 @@ config LGUEST_GUEST
- 	bool "Lguest guest support"
- 	select PARAVIRT
- 	depends on !X86_PAE
-+	depends on !(X86_VISWS || X86_VOYAGER)
- 	select VIRTIO
- 	select VIRTIO_RING
- 	select VIRTIO_CONSOLE
+diff -puN mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup mm/memcontrol.c
+--- a/mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup
++++ a/mm/memcontrol.c
+@@ -135,6 +135,16 @@ struct page_cgroup {
+ #define PAGE_CGROUP_FLAG_CACHE	(0x1)	/* charged as cache */
+ #define PAGE_CGROUP_FLAG_ACTIVE (0x2)	/* page is active in this cgroup */
+ 
++static inline int page_cgroup_nid(struct page_cgroup *pc)
++{
++	return page_to_nid(pc->page);
++}
++
++static inline enum zone_type page_cgroup_zid(struct page_cgroup *pc)
++{
++	return page_zonenum(pc->page);
++}
++
+ enum {
+ 	MEM_CGROUP_TYPE_UNSPEC = 0,
+ 	MEM_CGROUP_TYPE_MAPPED,
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-origin.patch
-the-namespaces-compatibility-list.patch
-hexdump-dont-print-bytes-with-bit-7-set.patch
-git-dvb.patch
-ide-scsi-use-print_hex_dump-from-linux-kernelh.patch
-git-scsi-misc.patch
-advansys-fix-section-mismatch-warning.patch
-aic94-fix-section-mismatches.patch
-sym2-fix-section-mismatch-warning.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-git-x86.patch
-lguest-prevent-visws-or-voyager-randconfigs.patch
-register_cpu-__devinit-or-__cpuinit.patch
-cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
-move-kprobes-examples-to-samples-resend.patch
-move-kprobes-examples-to-samples-resend-checkpatch-fixes.patch
-fs-menu-small-reorg.patch
-profile-likely-unlikely-macros.patch
+memory-hotplug-fix-fix-section-mismatch-in-vmammap_allock_block.patch
+memory-hotplug-x86_64-fix-section-mismatch-in-init_memory_mapping.patch
+swapoff-scan-ptes-preemptibly.patch
+memory-hotplug-add-removable-to-sysfs-to-show-memblock-removability.patch
+add-remove_memory-for-ppc64-2.patch
+enable-hotplug-memory-remove-for-ppc64.patch
+add-arch-specific-walk_memory_remove-for-ppc64.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
+memcgroup-temporarily-revert-swapoff-mod.patch
+memory-controller-make-charging-gfp-mask-aware-fix.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
+memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
+memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+memory-cgroup-enhancements-add-pre_destroy-handler.patch
+memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
