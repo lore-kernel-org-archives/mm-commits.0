@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: - git-nfs-make-nfs_wb_page_priority-static.patch removed from -mm tree
-Date: Tue, 27 Nov 2007 12:33:40 -0800
-Message-ID: <200711272033.lARKXeYa028994@imap1.linux-foundation.org>
+Subject: - fs-nfs-dirc-should-include-internalh.patch removed from -mm tree
+Date: Tue, 27 Nov 2007 12:33:44 -0800
+Message-ID: <200711272033.lARKXiXY028997@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54625 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45542 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758176AbXK0Ue1 (ORCPT
+	by vger.kernel.org with ESMTP id S1756182AbXK0Ue3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 15:34:27 -0500
+	Tue, 27 Nov 2007 15:34:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@kernel.org, bfields@fieldses.org, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-nfs: make nfs_wb_page_priority() static
+     fs/nfs/dir.c should #include "internal.h"
 has been removed from the -mm tree.  Its filename was
-     git-nfs-make-nfs_wb_page_priority-static.patch
+     fs-nfs-dirc-should-include-internalh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-nfs: make nfs_wb_page_priority() static
+Subject: fs/nfs/dir.c should #include "internal.h"
 From: Adrian Bunk <bunk@kernel.org>
 
-nfs_wb_page_priority() can now become static.
+Every file should include the headers containing the prototypes for its global
+functions (in this case nfs_access_cache_shrinker()).
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
@@ -33,34 +34,20 @@ Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/write.c         |    3 ++-
- include/linux/nfs_fs.h |    1 -
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ fs/nfs/dir.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/nfs/write.c~git-nfs-make-nfs_wb_page_priority-static fs/nfs/write.c
---- a/fs/nfs/write.c~git-nfs-make-nfs_wb_page_priority-static
-+++ a/fs/nfs/write.c
-@@ -1436,7 +1436,8 @@ out:
- 	return ret;
- }
+diff -puN fs/nfs/dir.c~fs-nfs-dirc-should-include-internalh fs/nfs/dir.c
+--- a/fs/nfs/dir.c~fs-nfs-dirc-should-include-internalh
++++ a/fs/nfs/dir.c
+@@ -38,6 +38,7 @@
+ #include "nfs4_fs.h"
+ #include "delegation.h"
+ #include "iostat.h"
++#include "internal.h"
  
--int nfs_wb_page_priority(struct inode *inode, struct page *page, int how)
-+static int nfs_wb_page_priority(struct inode *inode, struct page *page,
-+				int how)
- {
- 	loff_t range_start = page_offset(page);
- 	loff_t range_end = range_start + (loff_t)(PAGE_CACHE_SIZE - 1);
-diff -puN include/linux/nfs_fs.h~git-nfs-make-nfs_wb_page_priority-static include/linux/nfs_fs.h
---- a/include/linux/nfs_fs.h~git-nfs-make-nfs_wb_page_priority-static
-+++ a/include/linux/nfs_fs.h
-@@ -422,7 +422,6 @@ extern long nfs_sync_mapping_wait(struct
- extern int nfs_wb_all(struct inode *inode);
- extern int nfs_wb_nocommit(struct inode *inode);
- extern int nfs_wb_page(struct inode *inode, struct page* page);
--extern int nfs_wb_page_priority(struct inode *inode, struct page* page, int how);
- extern int nfs_wb_page_cancel(struct inode *inode, struct page* page);
- #if defined(CONFIG_NFS_V3) || defined(CONFIG_NFS_V4)
- extern int  nfs_commit_inode(struct inode *, int);
+ /* #define NFS_DEBUG_VERBOSE 1 */
+ 
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
