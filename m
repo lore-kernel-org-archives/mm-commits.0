@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + remove-nr_open-and-introduce-a-sysctl_nr_open.patch added to -mm tree
-Date: Mon, 26 Nov 2007 20:16:58 -0800
-Message-ID: <200711270416.lAR4GwPV026408@imap1.linux-foundation.org>
+Subject: + ipc-uninline-some-code-from-utilh.patch added to -mm tree
+Date: Mon, 26 Nov 2007 20:18:34 -0800
+Message-ID: <200711270418.lAR4IYaR026458@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54657 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34881 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755040AbXK0ESY (ORCPT
+	by vger.kernel.org with ESMTP id S1755191AbXK0ETL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 23:18:24 -0500
+	Mon, 26 Nov 2007 23:19:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dada1@cosmosbay.com, alan@lxorguk.ukuu.org.uk
+Cc: xemul@openvz.org, Nadia.Derbey@bull.net
 
 
 The patch titled
-     remove NR_OPEN and introduce a sysctl_nr_open
+     ipc: uninline some code from util.h
 has been added to the -mm tree.  Its filename is
-     remove-nr_open-and-introduce-a-sysctl_nr_open.patch
+     ipc-uninline-some-code-from-utilh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,158 +26,258 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: remove NR_OPEN and introduce a sysctl_nr_open
-From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: ipc: uninline some code from util.h
+From: Pavel Emelyanov <xemul@openvz.org>
 
-NR_OPEN (historically set to 1024*1024) actually forbids processes to open
-more than 1024*1024 handles.
+ipc_lock_check_down(), ipc_lock_check() and ipcget() seem too large to be
+inline.  Besides, they give no optimization being inline as they perform
+calls inside in any case.
 
-Unfortunatly some production servers hit the not so 'ridiculously high
-value' of 1024*1024 file descriptors per process.
+Moving them into ipc/util.c saves 500 bytes of vmlinux and shortens IPC
+internal API.
 
-Changing NR_OPEN is not considered safe because of vmalloc space potential
-exhaust.
+$ ./scripts/bloat-o-meter vmlinux-orig vmlinux
+add/remove: 3/2 grow/shrink: 0/10 up/down: 490/-989 (-499)
+function                                     old     new   delta
+ipcget                                         -     392    +392
+ipc_lock_check_down                            -      49     +49
+ipc_lock_check                                 -      49     +49
+sys_semget                                   119     105     -14
+sys_shmget                                   108      86     -22
+sys_msgget                                   100      78     -22
+do_msgsnd                                    665     631     -34
+do_msgrcv                                    680     644     -36
+do_shmat                                     771     733     -38
+sys_msgctl                                  1302    1229     -73
+ipcget_new                                    80       -     -80
+sys_semtimedop                              1534    1452     -82
+sys_semctl                                  2034    1922    -112
+sys_shmctl                                  1919    1765    -154
+ipcget_public                                322       -    -322
 
-This patch introduces a new sysctl (/proc/sys/fs/nr_open) wich defaults to
-1024*1024, so that admins can decide to change this limit if their workload
-needs it.
+The ipcget() growth is the result of gcc inlining of currently static
+ipcget_new/_public.
 
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Cc: Nadia Derbey <Nadia.Derbey@bull.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    8 ++++++++
- Documentation/sysctl/fs.txt        |   10 ++++++++++
- fs/file.c                          |    8 +++++---
- include/linux/fs.h                 |    2 +-
- kernel/sys.c                       |    2 +-
- kernel/sysctl.c                    |    8 ++++++++
- 6 files changed, 33 insertions(+), 5 deletions(-)
+ ipc/util.c |   55 +++++++++++++++++++++++++++++++++++++++++++++-
+ ipc/util.h |   60 +++------------------------------------------------
+ 2 files changed, 57 insertions(+), 58 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~remove-nr_open-and-introduce-a-sysctl_nr_open Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~remove-nr_open-and-introduce-a-sysctl_nr_open
-+++ a/Documentation/filesystems/proc.txt
-@@ -989,6 +989,14 @@ nr_inodes
- Denotes the  number  of  inodes the system has allocated. This number will
- grow and shrink dynamically.
+diff -puN ipc/util.c~ipc-uninline-some-code-from-utilh ipc/util.c
+--- a/ipc/util.c~ipc-uninline-some-code-from-utilh
++++ a/ipc/util.c
+@@ -248,7 +248,7 @@ int ipc_addid(struct ipc_ids* ids, struc
+  *	This routine is called by sys_msgget, sys_semget() and sys_shmget()
+  *	when the key is IPC_PRIVATE.
+  */
+-int ipcget_new(struct ipc_namespace *ns, struct ipc_ids *ids,
++static int ipcget_new(struct ipc_namespace *ns, struct ipc_ids *ids,
+ 		struct ipc_ops *ops, struct ipc_params *params)
+ {
+ 	int err;
+@@ -312,7 +312,7 @@ static int ipc_check_perms(struct kern_i
+  *
+  *	On success, the ipc id is returned.
+  */
+-int ipcget_public(struct ipc_namespace *ns, struct ipc_ids *ids,
++static int ipcget_public(struct ipc_namespace *ns, struct ipc_ids *ids,
+ 		struct ipc_ops *ops, struct ipc_params *params)
+ {
+ 	struct kern_ipc_perm *ipcp;
+@@ -710,6 +710,57 @@ struct kern_ipc_perm *ipc_lock_down(stru
+ 	return out;
+ }
  
-+nr_open
-+-------
++struct kern_ipc_perm *ipc_lock_check_down(struct ipc_ids *ids, int id)
++{
++	struct kern_ipc_perm *out;
 +
-+Denotes the maximum number of file-handles a process can
-+allocate. Default value is 1024*1024 (1048576) which should be
-+enough for most machines. Actual limit depends on RLIMIT_NOFILE
-+resource limit.
++	out = ipc_lock_down(ids, id);
++	if (IS_ERR(out))
++		return out;
 +
- nr_free_inodes
- --------------
- 
-diff -puN Documentation/sysctl/fs.txt~remove-nr_open-and-introduce-a-sysctl_nr_open Documentation/sysctl/fs.txt
---- a/Documentation/sysctl/fs.txt~remove-nr_open-and-introduce-a-sysctl_nr_open
-+++ a/Documentation/sysctl/fs.txt
-@@ -23,6 +23,7 @@ Currently, these files are in /proc/sys/
- - inode-max
- - inode-nr
- - inode-state
-+- nr_open
- - overflowuid
- - overflowgid
- - suid_dumpable
-@@ -91,6 +92,15 @@ usage of file handles and you don't need
- 
- ==============================================================
- 
-+nr_open:
++	if (ipc_checkid(out, id)) {
++		ipc_unlock(out);
++		return ERR_PTR(-EIDRM);
++	}
 +
-+This denotes the maximum number of file-handles a process can
-+allocate. Default value is 1024*1024 (1048576) which should be
-+enough for most machines. Actual limit depends on RLIMIT_NOFILE
-+resource limit.
++	return out;
++}
 +
-+==============================================================
++struct kern_ipc_perm *ipc_lock_check(struct ipc_ids *ids, int id)
++{
++	struct kern_ipc_perm *out;
 +
- inode-max, inode-nr & inode-state:
- 
- As with file handles, the kernel allocates the inode structures
-diff -puN fs/file.c~remove-nr_open-and-introduce-a-sysctl_nr_open fs/file.c
---- a/fs/file.c~remove-nr_open-and-introduce-a-sysctl_nr_open
-+++ a/fs/file.c
-@@ -24,6 +24,8 @@ struct fdtable_defer {
- 	struct fdtable *next;
- };
- 
-+int sysctl_nr_open __read_mostly = 1024*1024;
++	out = ipc_lock(ids, id);
++	if (IS_ERR(out))
++		return out;
 +
- /*
-  * We use this list to defer free fdtables that have vmalloced
-  * sets/arrays. By keeping a per-cpu list, we avoid having to embed
-@@ -147,8 +149,8 @@ static struct fdtable * alloc_fdtable(un
- 	nr /= (1024 / sizeof(struct file *));
- 	nr = roundup_pow_of_two(nr + 1);
- 	nr *= (1024 / sizeof(struct file *));
--	if (nr > NR_OPEN)
--		nr = NR_OPEN;
-+	if (nr > sysctl_nr_open)
-+		nr = sysctl_nr_open;
++	if (ipc_checkid(out, id)) {
++		ipc_unlock(out);
++		return ERR_PTR(-EIDRM);
++	}
++
++	return out;
++}
++
++/**
++ * ipcget - Common sys_*get() code
++ * @ns : namsepace
++ * @ids : IPC identifier set
++ * @ops : operations to be called on ipc object creation, permission checks
++ *        and further checks
++ * @params : the parameters needed by the previous operations.
++ *
++ * Common routine called by sys_msgget(), sys_semget() and sys_shmget().
++ */
++int ipcget(struct ipc_namespace *ns, struct ipc_ids *ids,
++			struct ipc_ops *ops, struct ipc_params *params)
++{
++	if (params->key == IPC_PRIVATE)
++		return ipcget_new(ns, ids, ops, params);
++	else
++		return ipcget_public(ns, ids, ops, params);
++}
++
+ #ifdef __ARCH_WANT_IPC_PARSE_VERSION
  
- 	fdt = kmalloc(sizeof(struct fdtable), GFP_KERNEL);
- 	if (!fdt)
-@@ -233,7 +235,7 @@ int expand_files(struct files_struct *fi
- 	if (nr < fdt->max_fds)
- 		return 0;
- 	/* Can we expand? */
--	if (nr >= NR_OPEN)
-+	if (nr >= sysctl_nr_open)
- 		return -EMFILE;
  
- 	/* All good, so we try */
-diff -puN include/linux/fs.h~remove-nr_open-and-introduce-a-sysctl_nr_open include/linux/fs.h
---- a/include/linux/fs.h~remove-nr_open-and-introduce-a-sysctl_nr_open
-+++ a/include/linux/fs.h
-@@ -21,7 +21,7 @@
+diff -puN ipc/util.h~ipc-uninline-some-code-from-utilh ipc/util.h
+--- a/ipc/util.h~ipc-uninline-some-code-from-utilh
++++ a/ipc/util.h
+@@ -131,10 +131,6 @@ int ipc_parse_version (int *cmd);
+ extern void free_msg(struct msg_msg *msg);
+ extern struct msg_msg *load_msg(const void __user *src, int len);
+ extern int store_msg(void __user *dest, struct msg_msg *msg, int len);
+-extern int ipcget_new(struct ipc_namespace *, struct ipc_ids *,
+-			struct ipc_ops *, struct ipc_params *);
+-extern int ipcget_public(struct ipc_namespace *, struct ipc_ids *,
+-			struct ipc_ops *, struct ipc_params *);
  
- /* Fixed constants first: */
- #undef NR_OPEN
--#define NR_OPEN (1024*1024)	/* Absolute upper limit on fd num */
-+extern int sysctl_nr_open;
- #define INR_OPEN 1024		/* Initial setting for nfile rlimits */
+ static inline int ipc_buildid(int id, int seq)
+ {
+@@ -163,57 +159,9 @@ static inline void ipc_unlock(struct ker
+ 	rcu_read_unlock();
+ }
  
- #define BLOCK_SIZE_BITS 10
-diff -puN kernel/sys.c~remove-nr_open-and-introduce-a-sysctl_nr_open kernel/sys.c
---- a/kernel/sys.c~remove-nr_open-and-introduce-a-sysctl_nr_open
-+++ a/kernel/sys.c
-@@ -1472,7 +1472,7 @@ asmlinkage long sys_setrlimit(unsigned i
- 	if ((new_rlim.rlim_max > old_rlim->rlim_max) &&
- 	    !capable(CAP_SYS_RESOURCE))
- 		return -EPERM;
--	if (resource == RLIMIT_NOFILE && new_rlim.rlim_max > NR_OPEN)
-+	if (resource == RLIMIT_NOFILE && new_rlim.rlim_max > sysctl_nr_open)
- 		return -EPERM;
+-static inline struct kern_ipc_perm *ipc_lock_check_down(struct ipc_ids *ids,
+-						int id)
+-{
+-	struct kern_ipc_perm *out;
+-
+-	out = ipc_lock_down(ids, id);
+-	if (IS_ERR(out))
+-		return out;
+-
+-	if (ipc_checkid(out, id)) {
+-		ipc_unlock(out);
+-		return ERR_PTR(-EIDRM);
+-	}
+-
+-	return out;
+-}
+-
+-static inline struct kern_ipc_perm *ipc_lock_check(struct ipc_ids *ids,
+-						int id)
+-{
+-	struct kern_ipc_perm *out;
+-
+-	out = ipc_lock(ids, id);
+-	if (IS_ERR(out))
+-		return out;
+-
+-	if (ipc_checkid(out, id)) {
+-		ipc_unlock(out);
+-		return ERR_PTR(-EIDRM);
+-	}
+-
+-	return out;
+-}
+-
+-/**
+- * ipcget - Common sys_*get() code
+- * @ns : namsepace
+- * @ids : IPC identifier set
+- * @ops : operations to be called on ipc object creation, permission checks
+- *        and further checks
+- * @params : the parameters needed by the previous operations.
+- *
+- * Common routine called by sys_msgget(), sys_semget() and sys_shmget().
+- */
+-static inline int ipcget(struct ipc_namespace *ns, struct ipc_ids *ids,
+-			struct ipc_ops *ops, struct ipc_params *params)
+-{
+-	if (params->key == IPC_PRIVATE)
+-		return ipcget_new(ns, ids, ops, params);
+-	else
+-		return ipcget_public(ns, ids, ops, params);
+-}
++struct kern_ipc_perm *ipc_lock_check_down(struct ipc_ids *ids, int id);
++struct kern_ipc_perm *ipc_lock_check(struct ipc_ids *ids, int id);
++int ipcget(struct ipc_namespace *ns, struct ipc_ids *ids,
++			struct ipc_ops *ops, struct ipc_params *params);
  
- 	retval = security_task_setrlimit(resource, &new_rlim);
-diff -puN kernel/sysctl.c~remove-nr_open-and-introduce-a-sysctl_nr_open kernel/sysctl.c
---- a/kernel/sysctl.c~remove-nr_open-and-introduce-a-sysctl_nr_open
-+++ a/kernel/sysctl.c
-@@ -1127,6 +1127,14 @@ static struct ctl_table fs_table[] = {
- 		.proc_handler	= &proc_dointvec,
- 	},
- 	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "nr_open",
-+		.data		= &sysctl_nr_open,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec,
-+	},
-+	{
- 		.ctl_name	= FS_DENTRY,
- 		.procname	= "dentry-state",
- 		.data		= &dentry_stat,
+ #endif
 _
 
-Patches currently in -mm which might be from dada1@cosmosbay.com are
+Patches currently in -mm which might be from xemul@openvz.org are
 
+wait_task_stopped-dont-use-task_pid_nr_ns-lockless.patch
+ipc-lost-unlock-and-fput-in-mqueuec-on-error-path.patch
+isolate-the-uts-namespaces-domainname-and-hostname-back.patch
+the-namespaces-compatibility-list.patch
 git-net.patch
-percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data.patch
-remove-nr_open-and-introduce-a-sysctl_nr_open.patch
+dont-forget-to-unlock-uids_mutex-on-error-paths.patch
+merge-multiple-error-paths-in-alloc_uid-into-one.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-memcgroup-fix-try_to_free-order.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+memcgroup-reinstate-swapoff-mod.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
+memcgroup-fix-zone-isolation-oom.patch
+memcgroup-revert-swap_state-mods.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
+memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
+memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+memory-cgroup-enhancements-add-pre_destroy-handler.patch
+memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
+add-the-namespaces-config-option.patch
+move-the-uts-namespace-under-uts_ns-option.patch
+move-the-ipc-namespace-under-ipc_ns-option.patch
+cleanup-the-code-managed-with-the-user_ns-option.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+mark-net_ns-with-depends-on-namespaces.patch
+proc-proper-pidns-handling-for-proc-self.patch
+proc-fix-the-threaded-proc-self.patch
+ipc-uninline-some-code-from-utilh.patch
+reiser4.patch
