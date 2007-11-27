@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-prevent-dereferencing-non-allocated-per_cpu-variables.patch added to -mm tree
-Date: Tue, 27 Nov 2007 14:05:20 -0800
-Message-ID: <200711272205.lARM5Kh8000324@imap1.linux-foundation.org>
+Subject: + isdn-bootup-crash-fix-2624-rc3-git1.patch added to -mm tree
+Date: Tue, 27 Nov 2007 14:07:35 -0800
+Message-ID: <200711272207.lARM7ZBn000880@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56674 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57513 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758552AbXK0WGf (ORCPT
+	by vger.kernel.org with ESMTP id S1757379AbXK0WH5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 17:06:35 -0500
+	Tue, 27 Nov 2007 17:07:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: travis@sgi.com, ak@suse.de, clameter@sgi.com, mingo@elte.hu, pageexec@freemail.hu, tglx@linutronix.de
+Cc: mingo@elte.hu, kai@germaschewski.name, kkeil@suse.de, rjw@sisk.pl
 
 
 The patch titled
-     prevent dereferencing non-allocated per_cpu variables
+     isdn: bootup crash fix
 has been added to the -mm tree.  Its filename is
-     mm-prevent-dereferencing-non-allocated-per_cpu-variables.patch
+     isdn-bootup-crash-fix-2624-rc3-git1.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,116 +26,226 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: prevent dereferencing non-allocated per_cpu variables
-From: Mike Travis <travis@sgi.com>
+Subject: isdn: bootup crash fix
+From: Ingo Molnar <mingo@elte.hu>
 
-Change loops controlled by 'for (i = 0; i < NR_CPUS; i++)' to use
-'for_each_possible_cpu(i)' when there's a _remote possibility_ of
-dereferencing a non-allocated per_cpu variable involved.
+got this HiSax bootup crash on a "make randconfig" bzImage bootup:
 
-All files except mm/vmstat.c are x86 arch.
+ Calling initcall 0xc0bb1320: HiSax_init+0x0/0x380()
+ HiSax: Linux Driver for passive ISDN cards
+ HiSax: Version 3.5 (kernel)
+ HiSax: Layer1 Revision 2.46.2.5
+ HiSax: Layer2 Revision 2.30.2.4
+ HiSax: TeiMgr Revision 2.20.2.3
+ HiSax: Layer3 Revision 2.22.2.3
+ HiSax: LinkLayer Revision 2.59.2.4
+ HiSax: Total 1 card defined
+ HiSax: Card 1 Protocol EDSS1 Id=HiSax (0)
+ HiSax: HFC-S driver Rev. 1.10.2.4
+ HFCS: defined at 0x500 IRQ 5 HZ 250
+ Teles 16.3c: IRQ 5 count 0
+ HFCS: resetting card
+ Teles 16.3c: IRQ 5 count 0
+ Teles 16.3c: IRQ(5) getting no interrupts during init 1
+ HFCS: resetting card
+ ------------[ cut here ]------------
+ kernel BUG at include/linux/timer.h:145!
+ invalid opcode: 0000 [#1] PREEMPT DEBUG_PAGEALLOC
+ Modules linked in:
 
-Thanks to pageexec@freemail.hu for pointing this out.
+ Pid: 1, comm: swapper Not tainted (2.6.24-rc3 #2045)
+ EIP: 0060:[<c063afbf>] EFLAGS: 00010286 CPU: 0
+ EIP is at hfcs_card_msg+0x15f/0x180
+ EAX: c0cf2e5c EBX: 000000f2 ECX: 00000000 EDX: ffff1193
+ ESI: f76e8000 EDI: f76e8000 EBP: f7c23ec4 ESP: f7c23eac
+  DS: 007b ES: 007b FS: 0000 GS: 0000 SS: 0068
+ Process swapper (pid: 1, ti=f7c22000 task=f7c0e000 task.ti=f7c22000)
+ Stack: 00000000 f7c23ec4 c011703b 00000002 f76e8000 00000000 f7c23ef8 c060c3e5
+        c0a7c9c0 c0a315dc 00000005 00000001 00000000 f7c23f34 00000000 c0b5c9c0
+        f7c23f34 00000000 c0f5a8e0 f7c23f80 c0bb154f 00000000 00000001 c0a9b5b9
+ Call Trace:
+  [<c010339a>] show_trace_log_lvl+0x1a/0x40
+  [<c0103469>] show_stack_log_lvl+0xa9/0xe0
+  [<c010355f>] show_registers+0xbf/0x200
+  [<c01037a4>] die+0x104/0x220
+  [<c0103943>] do_trap+0x83/0xc0
+  [<c0103ca8>] do_invalid_op+0x88/0xa0
+  [<c083621a>] error_code+0x6a/0x70
+  [<c060c3e5>] checkcard+0x4a5/0x620
+  [<c0bb154f>] HiSax_init+0x22f/0x380
+  [<c0b867b7>] kernel_init+0x97/0x2a0
+  [<c0102f87>] kernel_thread_helper+0x7/0x20
+  =======================
+ Code: e8 43 ae ff 8b 57 3c 85 d2 0f 84 ef fe ff ff b8 a0 99 ad c0 b9 02 00 00 00 e8 ce 11 ae ff 83 c4 0c b8 00 00 00 00 5b 5e 5f c9 c3 <0f> 0b eb fe 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90
+ EIP: [<c063afbf>] hfcs_card_msg+0x15f/0x180 SS:ESP 0068:f7c23eac
+ Kernel panic - not syncing: Attempted to kill init!
 
-Signed-off-by: Mike Travis <travis@sgi.com>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: <pageexec@freemail.hu>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+The box has no HiSax card installed.
+
+the reason for the crash is add_timer() done on an already running
+timer. This happens because for some reason CARD_INIT is called twice.
+
+this patch works this problem around by using mod_timer() - this gets
+a booting system - but it would be nice to figure out why CARD_INIT
+is done twice.
+
+the ISDN config section (generated via make randconfig) is this:
+
+#
+# ISDN feature submodules
+#
+# CONFIG_ISDN_DRV_LOOP is not set
+CONFIG_ISDN_DIVERSION=y
+
+#
+# ISDN4Linux hardware drivers
+#
+
+#
+# Passive cards
+#
+CONFIG_ISDN_DRV_HISAX=y
+
+#
+# D-channel protocol features
+#
+CONFIG_HISAX_EURO=y
+CONFIG_DE_AOC=y
+# CONFIG_HISAX_NO_SENDCOMPLETE is not set
+# CONFIG_HISAX_NO_LLC is not set
+# CONFIG_HISAX_NO_KEYPAD is not set
+CONFIG_HISAX_1TR6=y
+CONFIG_HISAX_NI1=y
+CONFIG_HISAX_MAX_CARDS=8
+
+#
+# HiSax supported cards
+#
+CONFIG_HISAX_16_0=y
+# CONFIG_HISAX_16_3 is not set
+# CONFIG_HISAX_TELESPCI is not set
+CONFIG_HISAX_S0BOX=y
+# CONFIG_HISAX_AVM_A1 is not set
+CONFIG_HISAX_FRITZPCI=y
+CONFIG_HISAX_AVM_A1_PCMCIA=y
+CONFIG_HISAX_ELSA=y
+CONFIG_HISAX_IX1MICROR2=y
+CONFIG_HISAX_DIEHLDIVA=y
+# CONFIG_HISAX_ASUSCOM is not set
+# CONFIG_HISAX_TELEINT is not set
+CONFIG_HISAX_HFCS=y
+# CONFIG_HISAX_SEDLBAUER is not set
+CONFIG_HISAX_SPORTSTER=y
+# CONFIG_HISAX_MIC is not set
+# CONFIG_HISAX_NETJET is not set
+# CONFIG_HISAX_NETJET_U is not set
+# CONFIG_HISAX_NICCY is not set
+# CONFIG_HISAX_ISURF is not set
+# CONFIG_HISAX_HSTSAPHIR is not set
+# CONFIG_HISAX_BKM_A4T is not set
+# CONFIG_HISAX_SCT_QUADRO is not set
+# CONFIG_HISAX_GAZEL is not set
+# CONFIG_HISAX_HFC_PCI is not set
+# CONFIG_HISAX_W6692 is not set
+# CONFIG_HISAX_HFC_SX is not set
+# CONFIG_HISAX_DEBUG is not set
+
+#
+# HiSax PCMCIA card service modules
+#
+
+#
+# HiSax sub driver modules
+#
+CONFIG_HISAX_ST5481=y
+CONFIG_HISAX_HFCUSB=y
+# CONFIG_HISAX_HFC4S8S is not set
+CONFIG_HISAX_FRITZ_PCIPNP=y
+CONFIG_HISAX_HDLC=y
+
+#
+# Active cards
+#
+CONFIG_ISDN_DRV_ICN=m
+CONFIG_ISDN_DRV_PCBIT=m
+CONFIG_ISDN_DRV_SC=y
+# CONFIG_ISDN_DRV_ACT2000 is not set
+CONFIG_HYSDN=m
+# CONFIG_ISDN_DRV_GIGASET is not set
+# CONFIG_ISDN_CAPI is not set
+CONFIG_PHONE=y
+CONFIG_PHONE_IXJ=m
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Karsten Keil <kkeil@suse.de>
+Cc: Kai Germaschewski <kai@germaschewski.name>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/smp_32.c     |    4 ++--
- arch/x86/kernel/smpboot_32.c |    4 ++--
- arch/x86/xen/smp.c           |    4 ++--
- mm/vmstat.c                  |    4 ++--
- 4 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/isdn/hisax/hfcscard.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/smp_32.c~mm-prevent-dereferencing-non-allocated-per_cpu-variables arch/x86/kernel/smp_32.c
---- a/arch/x86/kernel/smp_32.c~mm-prevent-dereferencing-non-allocated-per_cpu-variables
-+++ a/arch/x86/kernel/smp_32.c
-@@ -223,7 +223,7 @@ void send_IPI_mask_sequence(cpumask_t ma
- 	 */ 
- 
- 	local_irq_save(flags);
--	for (query_cpu = 0; query_cpu < NR_CPUS; ++query_cpu) {
-+	for_each_possible_cpu(query_cpu) {
- 		if (cpu_isset(query_cpu, mask)) {
- 			__send_IPI_dest_field(cpu_to_logical_apicid(query_cpu),
- 					      vector);
-@@ -675,7 +675,7 @@ static int convert_apicid_to_cpu(int api
- {
- 	int i;
- 
--	for (i = 0; i < NR_CPUS; i++) {
-+	for_each_possible_cpu(i) {
- 		if (per_cpu(x86_cpu_to_apicid, i) == apic_id)
- 			return i;
- 	}
-diff -puN arch/x86/kernel/smpboot_32.c~mm-prevent-dereferencing-non-allocated-per_cpu-variables arch/x86/kernel/smpboot_32.c
---- a/arch/x86/kernel/smpboot_32.c~mm-prevent-dereferencing-non-allocated-per_cpu-variables
-+++ a/arch/x86/kernel/smpboot_32.c
-@@ -1090,7 +1090,7 @@ static void __init smp_boot_cpus(unsigne
- 	 * Allow the user to impress friends.
- 	 */
- 	Dprintk("Before bogomips.\n");
--	for (cpu = 0; cpu < NR_CPUS; cpu++)
-+	for_each_possible_cpu(cpu)
- 		if (cpu_isset(cpu, cpu_callout_map))
- 			bogosum += cpu_data(cpu).loops_per_jiffy;
- 	printk(KERN_INFO
-@@ -1121,7 +1121,7 @@ static void __init smp_boot_cpus(unsigne
- 	 * construct cpu_sibling_map, so that we can tell sibling CPUs
- 	 * efficiently.
- 	 */
--	for (cpu = 0; cpu < NR_CPUS; cpu++) {
-+	for_each_possible_cpu(cpu) {
- 		cpus_clear(per_cpu(cpu_sibling_map, cpu));
- 		cpus_clear(per_cpu(cpu_core_map, cpu));
- 	}
-diff -puN arch/x86/xen/smp.c~mm-prevent-dereferencing-non-allocated-per_cpu-variables arch/x86/xen/smp.c
---- a/arch/x86/xen/smp.c~mm-prevent-dereferencing-non-allocated-per_cpu-variables
-+++ a/arch/x86/xen/smp.c
-@@ -146,7 +146,7 @@ void __init xen_smp_prepare_boot_cpu(voi
- 	   old memory can be recycled */
- 	make_lowmem_page_readwrite(&per_cpu__gdt_page);
- 
--	for (cpu = 0; cpu < NR_CPUS; cpu++) {
-+	for_each_possible_cpu(cpu) {
- 		cpus_clear(per_cpu(cpu_sibling_map, cpu));
- 		/*
- 		 * cpu_core_map lives in a per cpu area that is cleared
-@@ -163,7 +163,7 @@ void __init xen_smp_prepare_cpus(unsigne
- {
- 	unsigned cpu;
- 
--	for (cpu = 0; cpu < NR_CPUS; cpu++) {
-+	for_each_possible_cpu(cpu) {
- 		cpus_clear(per_cpu(cpu_sibling_map, cpu));
- 		/*
- 		 * cpu_core_ map will be zeroed when the per
-diff -puN mm/vmstat.c~mm-prevent-dereferencing-non-allocated-per_cpu-variables mm/vmstat.c
---- a/mm/vmstat.c~mm-prevent-dereferencing-non-allocated-per_cpu-variables
-+++ a/mm/vmstat.c
-@@ -27,12 +27,12 @@ static void sum_vm_events(unsigned long 
- 	memset(ret, 0, NR_VM_EVENT_ITEMS * sizeof(unsigned long));
- 
- 	cpu = first_cpu(*cpumask);
--	while (cpu < NR_CPUS) {
-+	while (cpu < NR_CPUS && cpu_possible(cpu)) {
- 		struct vm_event_state *this = &per_cpu(vm_event_states, cpu);
- 
- 		cpu = next_cpu(cpu, *cpumask);
- 
--		if (cpu < NR_CPUS)
-+		if (cpu < NR_CPUS && cpu_possible(cpu))
- 			prefetch(&per_cpu(vm_event_states, cpu));
- 
- 
+diff -puN drivers/isdn/hisax/hfcscard.c~isdn-bootup-crash-fix-2624-rc3-git1 drivers/isdn/hisax/hfcscard.c
+--- a/drivers/isdn/hisax/hfcscard.c~isdn-bootup-crash-fix-2624-rc3-git1
++++ a/drivers/isdn/hisax/hfcscard.c
+@@ -118,8 +118,7 @@ hfcs_card_msg(struct IsdnCardState *cs, 
+ 			return(0);
+ 		case CARD_INIT:
+ 			delay = (75*HZ)/100 +1;
+-			cs->hw.hfcD.timer.expires = jiffies + delay;
+-			add_timer(&cs->hw.hfcD.timer);
++			mod_timer(&cs->hw.hfcD.timer, jiffies + delay);
+ 			spin_lock_irqsave(&cs->lock, flags);
+ 			reset_hfcs(cs);
+ 			init2bds0(cs);
 _
 
-Patches currently in -mm which might be from travis@sgi.com are
+Patches currently in -mm which might be from mingo@elte.hu are
 
+origin.patch
+isdn-bootup-crash-fix-2624-rc3-git1.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+x86_64-efi-boot-support-efi-frame-buffer.patch
+x86_64-efi-boot-support-efi-boot-document.patch
+memory-hotplug-x86_64-fix-section-mismatch-in-init_memory_mapping.patch
+git-acpi.patch
+git-alsa.patch
+git-hrt.patch
+git-kvm.patch
+git-sched.patch
+track-accurate-idle-time-with-tick_schedidle_sleeptime.patch
+merge-multiple-error-paths-in-alloc_uid-into-one.patch
+iommu-sg-merging-x86-make-pci-gart-iommu-respect-the-segment-size-limits.patch
 git-x86.patch
+x86_64-set-cpu_index-to-nr_cpus-instead-of-0.patch
+x86_64-do-not-set-boot-cpu-in-cpu_online_map-at-x86_64_start_kernel.patch
+vmlinux_32ldss-remove-repeated-comment-from-the-x86-32-linker-script.patch
+x86_64-make-sparsemem-vmemmap-the-only-memory-model.patch
+x86_64-add-acpi-reboot-option.patch
+x86_64-efi-runtime-service-support-efi-basic-runtime-service-support.patch
+x86_64-efi-runtime-service-support-efi-runtime-services.patch
+x86_64-efi-runtime-service-support-document-for-efi-runtime-services.patch
+x86_64-efi-runtime-service-support-remove-duplicated-code-from-efi_32c.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+printk-trivial-optimizations.patch
 mm-prevent-dereferencing-non-allocated-per_cpu-variables.patch
+fall-back-on-interrupt-disable-in-cmpxchg8b-on-80386-and-80486.patch
+add-cmpxchg64-and-cmpxchg64_local-to-x86_64.patch
+proc-fix-the-threaded-proc-self.patch
+modules-fold-percpu_modcopy-into-modulec-and-get-rid-of-the-macro-from-hell.patch
+x86_32-use-generic-percpuh.patch
+x86_64-use-generic-percpu.patch
+x86-unify-percpuh.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+kmap_atomic-debugging.patch
