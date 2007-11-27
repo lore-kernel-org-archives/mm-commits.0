@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dmaengine-driver-for-the-avr32-dmaca-controller.patch added to -mm tree
-Date: Mon, 26 Nov 2007 22:10:29 -0800
-Message-ID: <200711270610.lAR6AT7m030493@imap1.linux-foundation.org>
+Subject: + net-fix-tx-bug-vlan-in-vlan.patch added to -mm tree
+Date: Mon, 26 Nov 2007 22:17:58 -0800
+Message-ID: <200711270617.lAR6Hw4k030717@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42232 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36176 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750741AbXK0GKn (ORCPT
+	by vger.kernel.org with ESMTP id S1750808AbXK0GSv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 01:10:43 -0500
+	Tue, 27 Nov 2007 01:18:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hskinnemoen@atmel.com, dbrownell@users.sourceforge.net, shannon.nelson@intel.com
+Cc: joonwpark81@gmail.com, davem@davemloft.net, greearb@candelatech.com, herbert@gondor.apana.org.au, tristan_schmelcher@alumni.uwaterloo.ca
 
 
 The patch titled
-     dma: fix Kconfig text
+     net: fix TX bug VLAN in VLAN
 has been added to the -mm tree.  Its filename is
-     dmaengine-driver-for-the-avr32-dmaca-controller.patch
+     net-fix-tx-bug-vlan-in-vlan.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,65 +26,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dma: fix Kconfig text
-From: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Subject: net: fix TX bug VLAN in VLAN
+From: "Joonwoo Park" <joonwpark81@gmail.com>
 
-Correct recently changed (and now invalid) Kconfig descriptions for the DMA
-engine framework:
+This patch fixes http://bugzilla.kernel.org/show_bug.cgi?id=8766
 
- - Non-Intel(R) hardware also has DMA engines;
- - DMA is used for more than memcpy and RAID offloading.
+Is it possible?
+BUG((veth->h_vlan_proto != htons(ETH_P_8021Q)) && !(VLAN_DEV_INFO(dev)->flags & VLAN_FLAG_REORDER_HDR))
+I'm afraid, queued packet before vconfig set_flag would do that.
 
-In fact, on most platforms memcpy and RAID aren't factors, and DMA
-exists so that peripherals can transfer data to/from memory while
-the CPU does other work.
-
-Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Shannon Nelson <shannon.nelson@intel.com>
+Signed-off-by: Joonwoo Park <joonwpark81@gmail.com>
+Cc: Ben Greear <greearb@candelatech.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Tristan Schmelcher <tristan_schmelcher@alumni.uwaterloo.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/Kconfig |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ net/8021q/vlan_dev.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/dma/Kconfig~dmaengine-driver-for-the-avr32-dmaca-controller drivers/dma/Kconfig
---- a/drivers/dma/Kconfig~dmaengine-driver-for-the-avr32-dmaca-controller
-+++ a/drivers/dma/Kconfig
-@@ -3,11 +3,13 @@
- #
+diff -puN net/8021q/vlan_dev.c~net-fix-tx-bug-vlan-in-vlan net/8021q/vlan_dev.c
+--- a/net/8021q/vlan_dev.c~net-fix-tx-bug-vlan-in-vlan
++++ a/net/8021q/vlan_dev.c
+@@ -454,7 +454,9 @@ int vlan_dev_hard_header(struct sk_buff 
+ int vlan_dev_hard_start_xmit(struct sk_buff *skb, struct net_device *dev)
+ {
+ 	struct net_device_stats *stats = vlan_dev_get_stats(dev);
++#ifdef VLAN_DEBUG
+ 	struct vlan_ethhdr *veth = (struct vlan_ethhdr *)(skb->data);
++#endif
  
- menuconfig DMADEVICES
--	bool "DMA Offload Engine support"
-+	bool "DMA Engine support"
- 	depends on (PCI && X86) || ARCH_IOP32X || ARCH_IOP33X || ARCH_IOP13XX
- 	help
--	  Intel(R) offload engines enable offloading memory copies in the
--	  network stack and RAID operations in the MD driver.
-+	  DMA engines can do asynchronous data transfers without
-+	  involving the host CPU.  Currently, this framework can be
-+	  used to offload memory copies in the network stack and
-+	  RAID operations in the MD driver.
+ 	/* Handle non-VLAN frames if they are sent to us, for example by DHCP.
+ 	 *
+@@ -462,7 +464,7 @@ int vlan_dev_hard_start_xmit(struct sk_b
+ 	 * OTHER THINGS LIKE FDDI/TokenRing/802.3 SNAPs...
+ 	 */
  
- if DMADEVICES
+-	if (veth->h_vlan_proto != htons(ETH_P_8021Q)) {
++	if (VLAN_DEV_INFO(dev)->flags & VLAN_FLAG_REORDER_HDR) {
+ 		int orig_headroom = skb_headroom(skb);
+ 		unsigned short veth_TCI;
  
 _
 
-Patches currently in -mm which might be from hskinnemoen@atmel.com are
+Patches currently in -mm which might be from joonwpark81@gmail.com are
 
-atmel_spi-labels-gpios-better.patch
-dmaengine-driver-for-the-avr32-dmaca-controller.patch
-git-avr32.patch
-git-mtd.patch
-mmc-add-missing-sg_init_table-call.patch
-read_current_time-cleanups.patch
-atmel_spi-throughput-improvement.patch
-atmel_spi-chain-dma-transfers.patch
-atmel_spi-fix-dmachain-oops-with-debug-enabled.patch
-generic-gpio-gpio_chip-support.patch
-avr32-uses-gpio_chip.patch
-mcp23s08-spi-gpio-expander.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-sanitize-the-type-of-struct-useru_ar0.patch
-add-cmpxchg_local-to-avr32.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
+net-fix-tx-bug-vlan-in-vlan.patch
