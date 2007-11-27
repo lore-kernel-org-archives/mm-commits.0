@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + msi-set-en-bit-of-msi-mapping-capability-on-ht-platform-fix.patch added to -mm tree
-Date: Tue, 27 Nov 2007 00:13:11 -0800
-Message-ID: <200711270813.lAR8DBMh002083@imap1.linux-foundation.org>
+Subject: + ipc-make-struct-ipc_ids-static-in-ipc_namespace.patch added to -mm tree
+Date: Tue, 27 Nov 2007 00:29:48 -0800
+Message-ID: <200711270829.lAR8TmJe002591@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45484 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52284 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751661AbXK0IN5 (ORCPT
+	by vger.kernel.org with ESMTP id S1750966AbXK0Iah (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 03:13:57 -0500
+	Tue, 27 Nov 2007 03:30:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, acurrid@nvidia.com, ebiederm@xmission.com, pchen@nvidia.com, prakash@punnoor.de, sebastien.dugue@bull.net
+Cc: pierre.peiffer@bull.net, Nadia.Derbey@bull.net, clg@fr.ibm.com, xemul@openvz.org
 
 
 The patch titled
-     msi-set-en-bit-of-msi-mapping-capability-on-ht-platform-fix
+     IPC: make struct ipc_ids static in ipc_namespace
 has been added to the -mm tree.  Its filename is
-     msi-set-en-bit-of-msi-mapping-capability-on-ht-platform-fix.patch
+     ipc-make-struct-ipc_ids-static-in-ipc_namespace.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,217 +26,392 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: msi-set-en-bit-of-msi-mapping-capability-on-ht-platform-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: IPC: make struct ipc_ids static in ipc_namespace
+From: Pierre Peiffer <pierre.peiffer@bull.net>
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Andy Currid <acurrid@nvidia.com>
-Cc: Peer Chen <pchen@nvidia.com>
-Cc: Prakash Punnoor <prakash@punnoor.de>
-Cc: Sbastien Dugu <sebastien.dugue@bull.net>
+Each ipc_namespace contains a table of 3 pointers to struct ipc_ids (3 for
+msg, sem and shm, structure used to store all ipcs) These 'struct ipc_ids'
+are dynamically allocated for each icp_namespace as the ipc_namespace
+itself (for the init namespace, they are initialized with pointers to
+static variables instead)
+
+It is so for historical reason: in fact, before the use of idr to store the
+ipcs, the ipcs were stored in tables of variable length, depending of the
+maximum number of ipc allowed.  Now, these 'struct ipc_ids' have a fixed
+size.  As they are allocated in any cases for each new ipc_namespace, there
+is no gain of memory in having them allocated separately of the struct
+ipc_namespace.
+
+This patch proposes to make this table static in the struct ipc_namespace. 
+Thus, we can allocate all in once and get rid of all the code needed to
+allocate and free these ipc_ids separately.
+
+Signed-off-by: Pierre Peiffer <pierre.peiffer@bull.net>
+Acked-by: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Nadia Derbey <Nadia.Derbey@bull.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/msi.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ include/linux/ipc_namespace.h |   13 +++++++++++--
+ ipc/msg.c                     |   26 ++++----------------------
+ ipc/namespace.c               |   25 ++++---------------------
+ ipc/sem.c                     |   26 ++++----------------------
+ ipc/shm.c                     |   26 ++++----------------------
+ ipc/util.c                    |    6 +++---
+ ipc/util.h                    |   16 ++++------------
+ 7 files changed, 34 insertions(+), 104 deletions(-)
 
-diff -puN drivers/pci/msi.c~msi-set-en-bit-of-msi-mapping-capability-on-ht-platform-fix drivers/pci/msi.c
---- a/drivers/pci/msi.c~msi-set-en-bit-of-msi-mapping-capability-on-ht-platform-fix
-+++ a/drivers/pci/msi.c
-@@ -20,7 +20,9 @@
- #include <asm/errno.h>
- #include <asm/io.h>
+diff -puN include/linux/ipc_namespace.h~ipc-make-struct-ipc_ids-static-in-ipc_namespace include/linux/ipc_namespace.h
+--- a/include/linux/ipc_namespace.h~ipc-make-struct-ipc_ids-static-in-ipc_namespace
++++ a/include/linux/ipc_namespace.h
+@@ -2,11 +2,20 @@
+ #define __IPC_NAMESPACE_H__
  
-+#ifdef CONFIG_X86
- #include <asm/k8.h>
-+#endif
+ #include <linux/err.h>
++#include <linux/idr.h>
++#include <linux/rwsem.h>
++
++struct ipc_ids {
++	int in_use;
++	unsigned short seq;
++	unsigned short seq_max;
++	struct rw_semaphore rw_mutex;
++	struct idr ipcs_idr;
++};
  
- #include "pci.h"
- #include "msi.h"
-@@ -292,6 +294,7 @@ void pci_restore_msi_state(struct pci_de
+-struct ipc_ids;
+ struct ipc_namespace {
+ 	struct kref	kref;
+-	struct ipc_ids	*ids[3];
++	struct ipc_ids	ids[3];
+ 
+ 	int		sem_ctls[4];
+ 	int		used_sems;
+diff -puN ipc/msg.c~ipc-make-struct-ipc_ids-static-in-ipc_namespace ipc/msg.c
+--- a/ipc/msg.c~ipc-make-struct-ipc_ids-static-in-ipc_namespace
++++ a/ipc/msg.c
+@@ -67,9 +67,7 @@ struct msg_sender {
+ #define SEARCH_NOTEQUAL		3
+ #define SEARCH_LESSEQUAL	4
+ 
+-static struct ipc_ids init_msg_ids;
+-
+-#define msg_ids(ns)	(*((ns)->ids[IPC_MSG_IDS]))
++#define msg_ids(ns)	((ns)->ids[IPC_MSG_IDS])
+ 
+ #define msg_unlock(msq)		ipc_unlock(&(msq)->q_perm)
+ #define msg_buildid(id, seq)	ipc_buildid(id, seq)
+@@ -80,30 +78,17 @@ static int newque(struct ipc_namespace *
+ static int sysvipc_msg_proc_show(struct seq_file *s, void *it);
+ #endif
+ 
+-static void __msg_init_ns(struct ipc_namespace *ns, struct ipc_ids *ids)
++void msg_init_ns(struct ipc_namespace *ns)
+ {
+-	ns->ids[IPC_MSG_IDS] = ids;
+ 	ns->msg_ctlmax = MSGMAX;
+ 	ns->msg_ctlmnb = MSGMNB;
+ 	ns->msg_ctlmni = MSGMNI;
+ 	atomic_set(&ns->msg_bytes, 0);
+ 	atomic_set(&ns->msg_hdrs, 0);
+-	ipc_init_ids(ids);
++	ipc_init_ids(&ns->ids[IPC_MSG_IDS]);
  }
- #endif	/* CONFIG_PM */
  
-+#ifdef CONFIG_X86
- /*
-  * pci_enable_msi_ht_cap - Set the HT MSI mapping capability En bit of
-  * a device.
-@@ -384,6 +387,12 @@ static int pci_check_msi_ht_cap(struct p
+ #ifdef CONFIG_IPC_NS
+-int msg_init_ns(struct ipc_namespace *ns)
+-{
+-	struct ipc_ids *ids;
+-
+-	ids = kmalloc(sizeof(struct ipc_ids), GFP_KERNEL);
+-	if (ids == NULL)
+-		return -ENOMEM;
+-
+-	__msg_init_ns(ns, ids);
+-	return 0;
+-}
+-
+ void msg_exit_ns(struct ipc_namespace *ns)
+ {
+ 	struct msg_queue *msq;
+@@ -126,15 +111,12 @@ void msg_exit_ns(struct ipc_namespace *n
  	}
- 	return 0;
- }
-+#else
-+static inline int pci_check_msi_ht_cap(struct pci_dev *dev)
-+{
-+	return 0;
-+}
-+#endif
  
- /**
-  * msi_capability_init - configure device's MSI capability structure
+ 	up_write(&msg_ids(ns).rw_mutex);
+-
+-	kfree(ns->ids[IPC_MSG_IDS]);
+-	ns->ids[IPC_MSG_IDS] = NULL;
+ }
+ #endif
+ 
+ void __init msg_init(void)
+ {
+-	__msg_init_ns(&init_ipc_ns, &init_msg_ids);
++	msg_init_ns(&init_ipc_ns);
+ 	ipc_init_proc_interface("sysvipc/msg",
+ 				"       key      msqid perms      cbytes       qnum lspid lrpid   uid   gid  cuid  cgid      stime      rtime      ctime\n",
+ 				IPC_MSG_IDS, sysvipc_msg_proc_show);
+diff -puN ipc/namespace.c~ipc-make-struct-ipc_ids-static-in-ipc_namespace ipc/namespace.c
+--- a/ipc/namespace.c~ipc-make-struct-ipc_ids-static-in-ipc_namespace
++++ a/ipc/namespace.c
+@@ -14,35 +14,18 @@
+ 
+ static struct ipc_namespace *clone_ipc_ns(struct ipc_namespace *old_ns)
+ {
+-	int err;
+ 	struct ipc_namespace *ns;
+ 
+-	err = -ENOMEM;
+ 	ns = kmalloc(sizeof(struct ipc_namespace), GFP_KERNEL);
+ 	if (ns == NULL)
+-		goto err_mem;
++		return ERR_PTR(-ENOMEM);
+ 
+-	err = sem_init_ns(ns);
+-	if (err)
+-		goto err_sem;
+-	err = msg_init_ns(ns);
+-	if (err)
+-		goto err_msg;
+-	err = shm_init_ns(ns);
+-	if (err)
+-		goto err_shm;
++	sem_init_ns(ns);
++	msg_init_ns(ns);
++	shm_init_ns(ns);
+ 
+ 	kref_init(&ns->kref);
+ 	return ns;
+-
+-err_shm:
+-	msg_exit_ns(ns);
+-err_msg:
+-	sem_exit_ns(ns);
+-err_sem:
+-	kfree(ns);
+-err_mem:
+-	return ERR_PTR(err);
+ }
+ 
+ struct ipc_namespace *copy_ipcs(unsigned long flags, struct ipc_namespace *ns)
+diff -puN ipc/sem.c~ipc-make-struct-ipc_ids-static-in-ipc_namespace ipc/sem.c
+--- a/ipc/sem.c~ipc-make-struct-ipc_ids-static-in-ipc_namespace
++++ a/ipc/sem.c
+@@ -87,14 +87,12 @@
+ #include <asm/uaccess.h>
+ #include "util.h"
+ 
+-#define sem_ids(ns)	(*((ns)->ids[IPC_SEM_IDS]))
++#define sem_ids(ns)	((ns)->ids[IPC_SEM_IDS])
+ 
+ #define sem_unlock(sma)		ipc_unlock(&(sma)->sem_perm)
+ #define sem_checkid(sma, semid)	ipc_checkid(&sma->sem_perm, semid)
+ #define sem_buildid(id, seq)	ipc_buildid(id, seq)
+ 
+-static struct ipc_ids init_sem_ids;
+-
+ static int newary(struct ipc_namespace *, struct ipc_params *);
+ static void freeary(struct ipc_namespace *, struct sem_array *);
+ #ifdef CONFIG_PROC_FS
+@@ -118,30 +116,17 @@ static int sysvipc_sem_proc_show(struct 
+ #define sc_semopm	sem_ctls[2]
+ #define sc_semmni	sem_ctls[3]
+ 
+-static void __sem_init_ns(struct ipc_namespace *ns, struct ipc_ids *ids)
++void sem_init_ns(struct ipc_namespace *ns)
+ {
+-	ns->ids[IPC_SEM_IDS] = ids;
+ 	ns->sc_semmsl = SEMMSL;
+ 	ns->sc_semmns = SEMMNS;
+ 	ns->sc_semopm = SEMOPM;
+ 	ns->sc_semmni = SEMMNI;
+ 	ns->used_sems = 0;
+-	ipc_init_ids(ids);
++	ipc_init_ids(&ns->ids[IPC_SEM_IDS]);
+ }
+ 
+ #ifdef CONFIG_IPC_NS
+-int sem_init_ns(struct ipc_namespace *ns)
+-{
+-	struct ipc_ids *ids;
+-
+-	ids = kmalloc(sizeof(struct ipc_ids), GFP_KERNEL);
+-	if (ids == NULL)
+-		return -ENOMEM;
+-
+-	__sem_init_ns(ns, ids);
+-	return 0;
+-}
+-
+ void sem_exit_ns(struct ipc_namespace *ns)
+ {
+ 	struct sem_array *sma;
+@@ -163,15 +148,12 @@ void sem_exit_ns(struct ipc_namespace *n
+ 		total++;
+ 	}
+ 	up_write(&sem_ids(ns).rw_mutex);
+-
+-	kfree(ns->ids[IPC_SEM_IDS]);
+-	ns->ids[IPC_SEM_IDS] = NULL;
+ }
+ #endif
+ 
+ void __init sem_init (void)
+ {
+-	__sem_init_ns(&init_ipc_ns, &init_sem_ids);
++	sem_init_ns(&init_ipc_ns);
+ 	ipc_init_proc_interface("sysvipc/sem",
+ 				"       key      semid perms      nsems   uid   gid  cuid  cgid      otime      ctime\n",
+ 				IPC_SEM_IDS, sysvipc_sem_proc_show);
+diff -puN ipc/shm.c~ipc-make-struct-ipc_ids-static-in-ipc_namespace ipc/shm.c
+--- a/ipc/shm.c~ipc-make-struct-ipc_ids-static-in-ipc_namespace
++++ a/ipc/shm.c
+@@ -56,9 +56,7 @@ struct shm_file_data {
+ static const struct file_operations shm_file_operations;
+ static struct vm_operations_struct shm_vm_ops;
+ 
+-static struct ipc_ids init_shm_ids;
+-
+-#define shm_ids(ns)	(*((ns)->ids[IPC_SHM_IDS]))
++#define shm_ids(ns)	((ns)->ids[IPC_SHM_IDS])
+ 
+ #define shm_unlock(shp)			\
+ 	ipc_unlock(&(shp)->shm_perm)
+@@ -72,14 +70,13 @@ static void shm_destroy (struct ipc_name
+ static int sysvipc_shm_proc_show(struct seq_file *s, void *it);
+ #endif
+ 
+-static void __shm_init_ns(struct ipc_namespace *ns, struct ipc_ids *ids)
++void shm_init_ns(struct ipc_namespace *ns)
+ {
+-	ns->ids[IPC_SHM_IDS] = ids;
+ 	ns->shm_ctlmax = SHMMAX;
+ 	ns->shm_ctlall = SHMALL;
+ 	ns->shm_ctlmni = SHMMNI;
+ 	ns->shm_tot = 0;
+-	ipc_init_ids(ids);
++	ipc_init_ids(&ns->ids[IPC_SHM_IDS]);
+ }
+ 
+ /*
+@@ -98,18 +95,6 @@ static void do_shm_rmid(struct ipc_names
+ }
+ 
+ #ifdef CONFIG_IPC_NS
+-int shm_init_ns(struct ipc_namespace *ns)
+-{
+-	struct ipc_ids *ids;
+-
+-	ids = kmalloc(sizeof(struct ipc_ids), GFP_KERNEL);
+-	if (ids == NULL)
+-		return -ENOMEM;
+-
+-	__shm_init_ns(ns, ids);
+-	return 0;
+-}
+-
+ void shm_exit_ns(struct ipc_namespace *ns)
+ {
+ 	struct shmid_kernel *shp;
+@@ -131,15 +116,12 @@ void shm_exit_ns(struct ipc_namespace *n
+ 		total++;
+ 	}
+ 	up_write(&shm_ids(ns).rw_mutex);
+-
+-	kfree(ns->ids[IPC_SHM_IDS]);
+-	ns->ids[IPC_SHM_IDS] = NULL;
+ }
+ #endif
+ 
+ void __init shm_init (void)
+ {
+-	__shm_init_ns(&init_ipc_ns, &init_shm_ids);
++	shm_init_ns(&init_ipc_ns);
+ 	ipc_init_proc_interface("sysvipc/shm",
+ 				"       key      shmid perms       size  cpid  lpid nattch   uid   gid  cuid  cgid      atime      dtime      ctime\n",
+ 				IPC_SHM_IDS, sysvipc_shm_proc_show);
+diff -puN ipc/util.c~ipc-make-struct-ipc_ids-static-in-ipc_namespace ipc/util.c
+--- a/ipc/util.c~ipc-make-struct-ipc_ids-static-in-ipc_namespace
++++ a/ipc/util.c
+@@ -833,7 +833,7 @@ static void *sysvipc_proc_next(struct se
+ 	if (ipc && ipc != SEQ_START_TOKEN)
+ 		ipc_unlock(ipc);
+ 
+-	return sysvipc_find_ipc(iter->ns->ids[iface->ids], *pos, pos);
++	return sysvipc_find_ipc(&iter->ns->ids[iface->ids], *pos, pos);
+ }
+ 
+ /*
+@@ -846,7 +846,7 @@ static void *sysvipc_proc_start(struct s
+ 	struct ipc_proc_iface *iface = iter->iface;
+ 	struct ipc_ids *ids;
+ 
+-	ids = iter->ns->ids[iface->ids];
++	ids = &iter->ns->ids[iface->ids];
+ 
+ 	/*
+ 	 * Take the lock - this will be released by the corresponding
+@@ -877,7 +877,7 @@ static void sysvipc_proc_stop(struct seq
+ 	if (ipc && ipc != SEQ_START_TOKEN)
+ 		ipc_unlock(ipc);
+ 
+-	ids = iter->ns->ids[iface->ids];
++	ids = &iter->ns->ids[iface->ids];
+ 	/* Release the lock we took in start() */
+ 	up_read(&ids->rw_mutex);
+ }
+diff -puN ipc/util.h~ipc-make-struct-ipc_ids-static-in-ipc_namespace ipc/util.h
+--- a/ipc/util.h~ipc-make-struct-ipc_ids-static-in-ipc_namespace
++++ a/ipc/util.h
+@@ -10,7 +10,6 @@
+ #ifndef _IPC_UTIL_H
+ #define _IPC_UTIL_H
+ 
+-#include <linux/idr.h>
+ #include <linux/err.h>
+ 
+ #define USHRT_MAX 0xffff
+@@ -22,22 +21,14 @@ void shm_init (void);
+ 
+ struct ipc_namespace;
+ 
+-int sem_init_ns(struct ipc_namespace *ns);
+-int msg_init_ns(struct ipc_namespace *ns);
+-int shm_init_ns(struct ipc_namespace *ns);
++void sem_init_ns(struct ipc_namespace *ns);
++void msg_init_ns(struct ipc_namespace *ns);
++void shm_init_ns(struct ipc_namespace *ns);
+ 
+ void sem_exit_ns(struct ipc_namespace *ns);
+ void msg_exit_ns(struct ipc_namespace *ns);
+ void shm_exit_ns(struct ipc_namespace *ns);
+ 
+-struct ipc_ids {
+-	int in_use;
+-	unsigned short seq;
+-	unsigned short seq_max;
+-	struct rw_semaphore rw_mutex;
+-	struct idr ipcs_idr;
+-};
+-
+ /*
+  * Structure that holds the parameters needed by the ipc operations
+  * (see after)
+@@ -68,6 +59,7 @@ struct ipc_ops {
+ };
+ 
+ struct seq_file;
++struct ipc_ids;
+ 
+ void ipc_init_ids(struct ipc_ids *);
+ #ifdef CONFIG_PROC_FS
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from pierre.peiffer@bull.net are
 
-origin.patch
-file-capabilities-allow-sigcont-within-session-v2.patch
-pnp-increase-the-maximum-number-of-resources-fix.patch
-fix-linux-kdh-usage-in-userspace-checkpatch-fixes.patch
-revert-keyspan-init-termios-properly.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
-revert-gregkh-driver-drm-convert-from-class_device-to-device-in-drivers-char-drm.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-git-drm-oops-fix.patch
-intel-agp-enable-i915-recognition.patch
-git-dvb.patch
-ia64-slim-down-__clear_bit_unlock.patch
-git-infiniband.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-git-mips-fixup.patch
-git-mmc.patch
-git-mtd.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-bluetooth-uninlining.patch
-git-nfsd.patch
-drivers-pci-quirksc-coding-style-cleanup.patch
-more-sanity-checks-for-dmar.patch
-msi-set-en-bit-of-msi-mapping-capability-on-ht-platform-fix.patch
-git-s390.patch
-ips-trim-trailing-whitespace.patch
-scsi-gdth-kill-unneeded-irq-argument.patch
-bidi-support-scsi_data_buffer-broke-qla1280.patch
-bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
-libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-mct232-speed-new-termios-and-compliance-cleanups-fix.patch
-git-watchdog.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-x86-fixup.patch
-git-cryptodev.patch
-git-xtensa.patch
-ia64-increase-datapatch-offset.patch
-ia64-dont-assume-that-unwcheckpy-is-executable.patch
-ia64-export-copy_page-to-modules.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-mm-add-dirty_highmem-option-fix.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-alpha-atomic_add_return-should-return-int.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-sync_sb_inodes-propagate-errors.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-64-bit-i_version-afs-fixes.patch
-ext4-add-block-bitmap-validation-fix.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-w1-build-fix.patch
+ipc-lost-unlock-and-fput-in-mqueuec-on-error-path.patch
+ipc-fix-error-check-in-all-new-xxx_lock-and.patch
+ipc-semaphores-consolidate-sem_stat-and.patch
+ipc-make-struct-ipc_ids-static-in-ipc_namespace.patch
+ipc-consolidate-sem_exit_ns-msg_exit_ns-and-shm_exit_ns.patch
