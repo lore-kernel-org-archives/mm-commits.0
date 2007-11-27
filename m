@@ -1,54 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - pfkey-sending-an-sadb_get-responds-with-an-sadb_get.patch removed from -mm tree
-Date: Tue, 27 Nov 2007 12:33:26 -0800
-Message-ID: <200711272033.lARKXQMJ028979@imap1.linux-foundation.org>
+Subject: - sysfs-fix-off-by-one-error-in-fill_read_buffer.patch removed from -mm tree
+Date: Tue, 27 Nov 2007 12:33:24 -0800
+Message-ID: <200711272033.lARKXOOr028976@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57482 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43131 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755516AbXK0Udc (ORCPT
+	by vger.kernel.org with ESMTP id S1755642AbXK0Udg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 15:33:32 -0500
+	Tue, 27 Nov 2007 15:33:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chardin@2wire.com, davem@davemloft.net, mm-commits@vger.kernel.org
+To: miaox@cn.fujitsu.com, greg@kroah.com, htejun@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pfkey: sending an SADB_GET responds with an SADB_GET
+     sysfs: fix off-by-one error in fill_read_buffer() (update)
 has been removed from the -mm tree.  Its filename was
-     pfkey-sending-an-sadb_get-responds-with-an-sadb_get.patch
+     sysfs-fix-off-by-one-error-in-fill_read_buffer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pfkey: sending an SADB_GET responds with an SADB_GET
-From: Charles Hardin <chardin@2wire.com>
+Subject: sysfs: fix off-by-one error in fill_read_buffer() (update)
+From: Miao Xie <miaox@cn.fujitsu.com>
 
-Kernel needs to respond to an SADB_GET with the same message type to
-conform to the RFC 2367 Section 3.1.5
+Add a comment requested by Tejun.
 
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Miao Xie <miaox@cn.fujitsu.com>
+Acked-by: Tejun Heo <htejun@gmail.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/key/af_key.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/sysfs/file.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN net/key/af_key.c~pfkey-sending-an-sadb_get-responds-with-an-sadb_get net/key/af_key.c
---- a/net/key/af_key.c~pfkey-sending-an-sadb_get-responds-with-an-sadb_get
-+++ a/net/key/af_key.c
-@@ -1552,7 +1552,7 @@ static int pfkey_get(struct sock *sk, st
+diff -puN fs/sysfs/file.c~sysfs-fix-off-by-one-error-in-fill_read_buffer fs/sysfs/file.c
+--- a/fs/sysfs/file.c~sysfs-fix-off-by-one-error-in-fill_read_buffer
++++ a/fs/sysfs/file.c
+@@ -90,6 +90,10 @@ static int fill_read_buffer(struct dentr
  
- 	out_hdr = (struct sadb_msg *) out_skb->data;
- 	out_hdr->sadb_msg_version = hdr->sadb_msg_version;
--	out_hdr->sadb_msg_type = SADB_DUMP;
-+	out_hdr->sadb_msg_type = SADB_GET;
- 	out_hdr->sadb_msg_satype = pfkey_proto2satype(proto);
- 	out_hdr->sadb_msg_errno = 0;
- 	out_hdr->sadb_msg_reserved = 0;
+ 	sysfs_put_active_two(attr_sd);
+ 
++	/*
++	 * The code works fine with PAGE_SIZE return but it's likely to
++	 * indicate truncated result or overflow in normal use cases.
++	 */
+ 	BUG_ON(count >= (ssize_t)PAGE_SIZE);
+ 	if (count >= 0) {
+ 		buffer->needs_read_fill = 0;
 _
 
-Patches currently in -mm which might be from chardin@2wire.com are
+Patches currently in -mm which might be from miaox@cn.fujitsu.com are
 
-origin.patch
+time-fix-sysfs_show_availablecurrent_clocksources-buffer-overflow-problem.patch
