@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace_stop-fix-the-race-with-ptrace-detachattach.patch added to -mm tree
-Date: Mon, 26 Nov 2007 21:17:53 -0800
-Message-ID: <200711270517.lAR5HrEL028607@imap1.linux-foundation.org>
+Subject: + do_wait-factor-out-retval-=-0-checks.patch added to -mm tree
+Date: Mon, 26 Nov 2007 21:17:56 -0800
+Message-ID: <200711270517.lAR5HuX0028613@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34435 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50200 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751218AbXK0FSC (ORCPT
+	by vger.kernel.org with ESMTP id S1750700AbXK0FSH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 00:18:02 -0500
+	Tue, 27 Nov 2007 00:18:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@tv-sign.ru, rolandd@cisco.com
 
 
 The patch titled
-     ptrace_stop: fix the race with ptrace detach+attach
+     do_wait: factor out "retval != 0" checks
 has been added to the -mm tree.  Its filename is
-     ptrace_stop-fix-the-race-with-ptrace-detachattach.patch
+     do_wait-factor-out-retval-=-0-checks.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,42 +26,71 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ptrace_stop: fix the race with ptrace detach+attach
+Subject: do_wait: factor out "retval != 0" checks
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-If the tracer went away (may_ptrace_stop() failed), ptrace_stop() drops
-tasklist and then changes the ->state from TASK_TRACED to TASK_RUNNING.
-
-This can fool another tracer which attaches to us in between.  Change the
-->state under tasklist_lock to ensure that ptrace_check_attach() can't wrongly
-succeed.  Also, remove the unnecessary mb().
+Every branch if the main "if" statement does the same code at the end.  Move
+it down.  Also, fix the indentation.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ kernel/exit.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN kernel/signal.c~ptrace_stop-fix-the-race-with-ptrace-detachattach kernel/signal.c
---- a/kernel/signal.c~ptrace_stop-fix-the-race-with-ptrace-detachattach
-+++ a/kernel/signal.c
-@@ -1628,11 +1628,11 @@ static void ptrace_stop(int exit_code, i
- 	} else {
- 		/*
- 		 * By the time we got the lock, our tracer went away.
--		 * Don't stop here.
-+		 * Don't drop the lock yet, another tracer may come.
- 		 */
--		read_unlock(&tasklist_lock);
--		set_current_state(TASK_RUNNING);
-+		__set_current_state(TASK_RUNNING);
- 		current->exit_code = nostop_code;
-+		read_unlock(&tasklist_lock);
- 	}
+diff -puN kernel/exit.c~do_wait-factor-out-retval-=-0-checks kernel/exit.c
+--- a/kernel/exit.c~do_wait-factor-out-retval-=-0-checks
++++ a/kernel/exit.c
+@@ -1508,6 +1508,7 @@ repeat:
+ 			}
+ 			allowed = 1;
  
- 	/*
++			retval = 0;
+ 			if (is_task_stopped_or_traced(p)) {
+ 				/*
+ 				 * It's stopped now, so it might later
+@@ -1521,8 +1522,6 @@ repeat:
+ 				retval = wait_task_stopped(p, ret == 2,
+ 						(options & WNOWAIT), infop,
+ 						stat_addr, ru);
+-				if (retval != 0) /* He released the lock.  */
+-					goto end;
+ 			} else if (p->exit_state == EXIT_ZOMBIE) {
+ 				/*
+ 				 * Eligible but we cannot release it yet:
+@@ -1534,9 +1533,6 @@ repeat:
+ 				retval = wait_task_zombie(p,
+ 						(options & WNOWAIT), infop,
+ 						stat_addr, ru);
+-				/* He released the lock.  */
+-				if (retval != 0)
+-					goto end;
+ 			} else if (p->exit_state != EXIT_DEAD) {
+ check_continued:
+ 				/*
+@@ -1549,9 +1545,9 @@ check_continued:
+ 				retval = wait_task_continued(p,
+ 						(options & WNOWAIT), infop,
+ 						stat_addr, ru);
+-				if (retval != 0) /* He released the lock.  */
+-					goto end;
+ 			}
++			if (retval != 0) /* tasklist_lock released */
++				goto end;
+ 		}
+ 		if (!flag) {
+ 			list_for_each_entry(p, &tsk->ptrace_children,
+@@ -1587,7 +1583,7 @@ end:
+ 	remove_wait_queue(&current->signal->wait_chldexit,&wait);
+ 	if (infop) {
+ 		if (retval > 0)
+-		retval = 0;
++			retval = 0;
+ 		else {
+ 			/*
+ 			 * For a WNOHANG return, clear out all the fields
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
