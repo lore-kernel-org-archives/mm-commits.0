@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch added to -mm tree
-Date: Tue, 27 Nov 2007 14:02:31 -0800
-Message-ID: <200711272202.lARM2WkV032600@imap1.linux-foundation.org>
+Subject: + per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch added to -mm tree
+Date: Tue, 27 Nov 2007 14:02:40 -0800
+Message-ID: <200711272202.lARM2evT032644@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45455 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55825 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756483AbXK0WEw (ORCPT
+	by vger.kernel.org with ESMTP id S1758286AbXK0WFH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 17:04:52 -0500
+	Tue, 27 Nov 2007 17:05:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, a.p.zijlstra@chello.nl, balbir@linux.vnet.ib
 
 
 The patch titled
-     per-zone and reclaim enhancements for memory controller: nid/zid helper function for cgroup
+     per-zone and reclaim enhancements for memory controller: remember reclaim priority in memory cgroup
 has been added to the -mm tree.  Its filename is
-     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
+     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,11 +26,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: per-zone and reclaim enhancements for memory controller: nid/zid helper function for cgroup
+Subject: per-zone and reclaim enhancements for memory controller: remember reclaim priority in memory cgroup
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Add macro to get node_id and zone_id of page_cgroup.  Will be used in
-per-zone-xxx patches and others.
+Functions to remember reclaim priority per cgroup (as zone->prev_priority)
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -47,29 +46,87 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ include/linux/memcontrol.h |   23 +++++++++++++++++++++++
+ mm/memcontrol.c            |   20 ++++++++++++++++++++
+ 2 files changed, 43 insertions(+)
 
-diff -puN mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup mm/memcontrol.c
---- a/mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup
-+++ a/mm/memcontrol.c
-@@ -135,6 +135,16 @@ struct page_cgroup {
- #define PAGE_CGROUP_FLAG_CACHE	(0x1)	/* charged as cache */
- #define PAGE_CGROUP_FLAG_ACTIVE (0x2)	/* page is active in this cgroup */
+diff -puN include/linux/memcontrol.h~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup
++++ a/include/linux/memcontrol.h
+@@ -67,6 +67,11 @@ extern void mem_cgroup_page_migration(st
+ extern int mem_cgroup_calc_mapped_ratio(struct mem_cgroup *mem);
+ extern long mem_cgroup_reclaim_imbalance(struct mem_cgroup *mem);
  
-+static inline int page_cgroup_nid(struct page_cgroup *pc)
++extern int mem_cgroup_get_reclaim_priority(struct mem_cgroup *mem);
++extern void mem_cgroup_note_reclaim_priority(struct mem_cgroup *mem,
++							int priority);
++extern void mem_cgroup_record_reclaim_priority(struct mem_cgroup *mem,
++							int priority);
+ 
+ 
+ #else /* CONFIG_CGROUP_MEM_CONT */
+@@ -150,6 +155,24 @@ static inline int mem_cgroup_reclaim_imb
+ 	return 0;
+ }
+ 
++static inline int mem_cgroup_get_reclaim_priority(struct mem_cgroup *mem,
++						int priority)
 +{
-+	return page_to_nid(pc->page);
++	return 0;
 +}
 +
-+static inline enum zone_type page_cgroup_zid(struct page_cgroup *pc)
++static inline void mem_cgroup_note_reclaim_priority(struct mem_cgroup *mem,
++						int priority)
 +{
-+	return page_zonenum(pc->page);
++	return 0;
 +}
 +
- enum {
- 	MEM_CGROUP_TYPE_UNSPEC = 0,
- 	MEM_CGROUP_TYPE_MAPPED,
++static inline void mem_cgroup_record_reclaim_priority(struct mem_cgroup *mem,
++						int priority)
++{
++	return 0;
++}
++
+ #endif /* CONFIG_CGROUP_MEM_CONT */
+ 
+ #endif /* _LINUX_MEMCONTROL_H */
+diff -puN mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup mm/memcontrol.c
+--- a/mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup
++++ a/mm/memcontrol.c
+@@ -132,6 +132,7 @@ struct mem_cgroup {
+ 	 */
+ 	spinlock_t lru_lock;
+ 	unsigned long control_type;	/* control RSS or RSS+Pagecache */
++	int	prev_priority;	/* for recording reclaim priority */
+ 	/*
+ 	 * statistics.
+ 	 */
+@@ -452,6 +453,25 @@ long mem_cgroup_reclaim_imbalance(struct
+ 	return (long) (active / (inactive + 1));
+ }
+ 
++/*
++ * prev_priority control...this will be used in memory reclaim path.
++ */
++int mem_cgroup_get_reclaim_priority(struct mem_cgroup *mem)
++{
++	return mem->prev_priority;
++}
++
++void mem_cgroup_note_reclaim_priority(struct mem_cgroup *mem, int priority)
++{
++	if (priority < mem->prev_priority)
++		mem->prev_priority = priority;
++}
++
++void mem_cgroup_record_reclaim_priority(struct mem_cgroup *mem, int priority)
++{
++	mem->prev_priority = priority;
++}
++
+ unsigned long mem_cgroup_isolate_pages(unsigned long nr_to_scan,
+ 					struct list_head *dst,
+ 					unsigned long *scanned, int order,
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
