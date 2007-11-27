@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + git-mips-fixup.patch added to -mm tree
-Date: Tue, 27 Nov 2007 12:27:59 -0800
-Message-ID: <200711272027.lARKRxhC028766@imap1.linux-foundation.org>
+Subject: + git-sh-fixup.patch added to -mm tree
+Date: Tue, 27 Nov 2007 12:29:02 -0800
+Message-ID: <200711272029.lARKT2rq028850@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34740 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43364 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750966AbXK0U2Q (ORCPT
+	by vger.kernel.org with ESMTP id S1755297AbXK0U3F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 15:28:16 -0500
+	Tue, 27 Nov 2007 15:29:05 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lARKT2nT014557
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 27 Nov 2007 12:29:03 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ralf@linux-mips.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-mips-fixup
+     git-sh-fixup
 has been added to the -mm tree.  Its filename is
-     git-mips-fixup.patch
+     git-sh-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,87 +30,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-mips-fixup
+Subject: git-sh-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Try to fix git conflicts in the mips tree
-
-Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/Kconfig           |   12 ------------
- arch/mips/kernel/proc.c     |    5 -----
- include/asm-mips/cpu-info.h |    5 -----
- 3 files changed, 22 deletions(-)
+ arch/sh/configs/r7785rp_defconfig |    9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff -puN arch/mips/kernel/proc.c~git-mips-fixup arch/mips/kernel/proc.c
---- a/arch/mips/kernel/proc.c~git-mips-fixup
-+++ a/arch/mips/kernel/proc.c
-@@ -60,12 +60,7 @@ static int show_cpuinfo(struct seq_file 
- 		      cpu_has_dsp ? " dsp" : "",
- 		      cpu_has_mipsmt ? " mt" : ""
- 		);
--<<<<<<< HEAD:arch/mips/kernel/proc.c
--	seq_printf(m, "shadow register sets\t: %d\n",
--		       cpu_data[n].srsets);
+diff -puN arch/sh/configs/r7785rp_defconfig~git-sh-fixup arch/sh/configs/r7785rp_defconfig
+--- a/arch/sh/configs/r7785rp_defconfig~git-sh-fixup
++++ a/arch/sh/configs/r7785rp_defconfig
+@@ -1,12 +1,7 @@
+ #
+ # Automatically generated make config: don't edit
+-<<<<<<< HEAD:arch/sh/configs/r7785rp_defconfig
+-# Linux kernel version: 2.6.24-rc2
+-# Tue Nov 13 20:34:57 2007
 -=======
- 	seq_printf(m, "core\t\t\t: %d\n", cpu_data[n].core);
-->>>>>>> FETCH_HEAD:arch/mips/kernel/proc.c
- 
- 	sprintf(fmt, "VCE%%c exceptions\t\t: %s\n",
- 	        cpu_has_vce ? "%u" : "not available");
-diff -puN include/asm-mips/cpu-info.h~git-mips-fixup include/asm-mips/cpu-info.h
---- a/include/asm-mips/cpu-info.h~git-mips-fixup
-+++ a/include/asm-mips/cpu-info.h
-@@ -54,14 +54,9 @@ struct cpuinfo_mips {
- 	struct cache_desc	dcache;	/* Primary D or combined I/D cache */
- 	struct cache_desc	scache;	/* Secondary cache */
- 	struct cache_desc	tcache;	/* Tertiary/split secondary cache */
--<<<<<<< HEAD:include/asm-mips/cpu-info.h
- 	int			srsets;	/* Shadow register sets */
--#if defined(CONFIG_MIPS_MT_SMTC)
+ # Linux kernel version: 2.6.24-rc3
+ # Fri Nov 23 14:03:57 2007
+->>>>>>> FETCH_HEAD:arch/sh/configs/r7785rp_defconfig
+ #
+ CONFIG_SUPERH=y
+ CONFIG_SUPERH32=y
+@@ -559,12 +554,8 @@ CONFIG_NETDEVICES=y
+ # CONFIG_PHYLIB is not set
+ CONFIG_NET_ETHERNET=y
+ CONFIG_MII=y
+-<<<<<<< HEAD:arch/sh/configs/r7785rp_defconfig
+ CONFIG_AX88796=y
+ CONFIG_AX88796_93CX6=y
 -=======
--
- 	int			core;	/* physical core number */
- #if defined(CONFIG_MIPS_MT_SMP) || defined(CONFIG_MIPS_MT_SMTC)
-->>>>>>> FETCH_HEAD:include/asm-mips/cpu-info.h
- 	/*
- 	 * In the MIPS MT "SMTC" model, each TC is considered
- 	 * to be a "CPU" for the purposes of scheduling, but
-diff -puN arch/mips/Kconfig~git-mips-fixup arch/mips/Kconfig
---- a/arch/mips/Kconfig~git-mips-fixup
-+++ a/arch/mips/Kconfig
-@@ -88,13 +88,10 @@ config MACH_DECSTATION
- 	bool "DECstations"
- 	select BOOT_ELF32
- 	select CEVT_R4K
--<<<<<<< HEAD:arch/mips/Kconfig
- 	select CSRC_R4K
--=======
- 	select CPU_DADDI_WORKAROUNDS if 64BIT
- 	select CPU_R4000_WORKAROUNDS if 64BIT
- 	select CPU_R4400_WORKAROUNDS if 64BIT
-->>>>>>> FETCH_HEAD:arch/mips/Kconfig
- 	select DMA_NONCOHERENT
- 	select IRQ_CPU
- 	select NO_IOPORT
-@@ -1989,15 +1986,6 @@ config MMU
- config I8253
- 	bool
- 
--<<<<<<< HEAD:arch/mips/Kconfig
--config PCSPEAKER
--	bool
--
--config ZONE_DMA32
--	bool
--
--=======
-->>>>>>> FETCH_HEAD:arch/mips/Kconfig
- source "drivers/pcmcia/Kconfig"
- 
- source "drivers/pci/hotplug/Kconfig"
+-# CONFIG_AX88796 is not set
+->>>>>>> FETCH_HEAD:arch/sh/configs/r7785rp_defconfig
+ # CONFIG_STNIC is not set
+ # CONFIG_HAPPYMEAL is not set
+ # CONFIG_SUNGEM is not set
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -149,6 +110,7 @@ git-battery.patch
 bluetooth-uninlining.patch
 git-nfsd.patch
 msi-set-en-bit-of-msi-mapping-capability-on-ht-platform-fix.patch
+git-sh-fixup.patch
 git-scsi-misc-fixup.patch
 ips-trim-trailing-whitespace.patch
 scsi-gdth-kill-unneeded-irq-argument.patch
