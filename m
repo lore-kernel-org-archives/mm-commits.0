@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + do_wait-factor-out-retval-=-0-checks.patch added to -mm tree
-Date: Mon, 26 Nov 2007 21:25:03 -0800
-Message-ID: <200711270525.lAR5P3B8028911@imap1.linux-foundation.org>
+Subject: + mmc-add-missing-sg_init_table-call.patch added to -mm tree
+Date: Mon, 26 Nov 2007 21:27:44 -0800
+Message-ID: <200711270527.lAR5Risg028988@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41140 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49580 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751069AbXK0F00 (ORCPT
+	by vger.kernel.org with ESMTP id S1751128AbXK0F2c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 00:26:26 -0500
+	Tue, 27 Nov 2007 00:28:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, roland@redhat.com
+Cc: hskinnemoen@atmel.com, drzeus-mmc@drzeus.cx, jens.axboe@oracle.com
 
 
 The patch titled
-     do_wait: factor out "retval != 0" checks
+     mmc: add missing sg_init_table() call
 has been added to the -mm tree.  Its filename is
-     do_wait-factor-out-retval-=-0-checks.patch
+     mmc-add-missing-sg_init_table-call.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,90 +26,55 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: do_wait: factor out "retval != 0" checks
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: mmc: add missing sg_init_table() call
+From: Haavard Skinnemoen <hskinnemoen@atmel.com>
 
-Every branch if the main "if" statement does the same code at the end.  Move
-it down.  Also, fix the indentation.
+mmc_init_queue only initializes the scatterlists with sg_init_table() when
+using a bounce buffer.  This leads to a BUG() when CONFIG_DEBUG_SG is set.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Pierre Ossman <drzeus-mmc@drzeus.cx>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ drivers/mmc/card/queue.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/exit.c~do_wait-factor-out-retval-=-0-checks kernel/exit.c
---- a/kernel/exit.c~do_wait-factor-out-retval-=-0-checks
-+++ a/kernel/exit.c
-@@ -1508,6 +1508,7 @@ repeat:
- 			}
- 			allowed = 1;
+diff -puN drivers/mmc/card/queue.c~mmc-add-missing-sg_init_table-call drivers/mmc/card/queue.c
+--- a/drivers/mmc/card/queue.c~mmc-add-missing-sg_init_table-call
++++ a/drivers/mmc/card/queue.c
+@@ -180,12 +180,13 @@ int mmc_init_queue(struct mmc_queue *mq,
+ 		blk_queue_max_hw_segments(mq->queue, host->max_hw_segs);
+ 		blk_queue_max_segment_size(mq->queue, host->max_seg_size);
  
-+			retval = 0;
- 			if (is_task_stopped_or_traced(p)) {
- 				/*
- 				 * It's stopped now, so it might later
-@@ -1521,8 +1522,6 @@ repeat:
- 				retval = wait_task_stopped(p, ret == 2,
- 						(options & WNOWAIT), infop,
- 						stat_addr, ru);
--				if (retval != 0) /* He released the lock.  */
--					goto end;
- 			} else if (p->exit_state == EXIT_ZOMBIE) {
- 				/*
- 				 * Eligible but we cannot release it yet:
-@@ -1534,9 +1533,6 @@ repeat:
- 				retval = wait_task_zombie(p,
- 						(options & WNOWAIT), infop,
- 						stat_addr, ru);
--				/* He released the lock.  */
--				if (retval != 0)
--					goto end;
- 			} else if (p->exit_state != EXIT_DEAD) {
- check_continued:
- 				/*
-@@ -1549,9 +1545,9 @@ check_continued:
- 				retval = wait_task_continued(p,
- 						(options & WNOWAIT), infop,
- 						stat_addr, ru);
--				if (retval != 0) /* He released the lock.  */
--					goto end;
- 			}
-+			if (retval != 0) /* tasklist_lock released */
-+				goto end;
+-		mq->sg = kzalloc(sizeof(struct scatterlist) *
++		mq->sg = kmalloc(sizeof(struct scatterlist) *
+ 			host->max_phys_segs, GFP_KERNEL);
+ 		if (!mq->sg) {
+ 			ret = -ENOMEM;
+ 			goto cleanup_queue;
  		}
- 		if (!flag) {
- 			list_for_each_entry(p, &tsk->ptrace_children,
-@@ -1587,7 +1583,7 @@ end:
- 	remove_wait_queue(&current->signal->wait_chldexit,&wait);
- 	if (infop) {
- 		if (retval > 0)
--		retval = 0;
-+			retval = 0;
- 		else {
- 			/*
- 			 * For a WNOHANG return, clear out all the fields
++		sg_init_table(mq->sg, host->max_phys_segs);
+ 	}
+ 
+ 	init_MUTEX(&mq->thread_sem);
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from hskinnemoen@atmel.com are
 
-wait_task_stopped-dont-use-task_pid_nr_ns-lockless.patch
-proc-remove-races-from-proc_id_readdir.patch
-wait_task_stopped-pass-correct-exit_code-to.patch
-use-__set_task_state-for-traced-stopped-tasks.patch
-add-task_wakekill.patch
-do_wait-remove-one-else-if-branch.patch
-proc-implement-proc_single_file_operations.patch
-proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces.patch
-proc-seqfile-convert-proc_pid_statm.patch
-proc-proper-pidns-handling-for-proc-self.patch
-proc-fix-the-threaded-proc-self.patch
-kill-pt_attached.patch
-kill-my_ptrace_child.patch
-ptrace_check_attach-remove-unneeded-signal-=-null-check.patch
-ptrace_stop-fix-the-race-with-ptrace-detachattach.patch
-wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace.patch
-do_wait-factor-out-retval-=-0-checks.patch
-ptrace_stop-fix-racy-nonstop_code-setting.patch
+atmel_spi-labels-gpios-better.patch
+git-avr32.patch
+git-mtd.patch
+mmc-add-missing-sg_init_table-call.patch
+read_current_time-cleanups.patch
+atmel_spi-throughput-improvement.patch
+atmel_spi-chain-dma-transfers.patch
+atmel_spi-fix-dmachain-oops-with-debug-enabled.patch
+generic-gpio-gpio_chip-support.patch
+avr32-uses-gpio_chip.patch
+mcp23s08-spi-gpio-expander.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+sanitize-the-type-of-struct-useru_ar0.patch
+add-cmpxchg_local-to-avr32.patch
+tty-let-architectures-override-the-user-kernel-macros.patch
