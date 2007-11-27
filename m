@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + file-capabilities-dont-prevent-signaling-setuid-root.patch added to -mm tree
-Date: Tue, 27 Nov 2007 12:58:53 -0800
-Message-ID: <200711272058.lARKwr9t030069@imap1.linux-foundation.org>
+Subject: + ext4-fix-up-ext4fs_debug-builds.patch added to -mm tree
+Date: Tue, 27 Nov 2007 13:01:19 -0800
+Message-ID: <200711272101.lARL1JS9030207@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40817 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49330 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756833AbXK0U7y (ORCPT
+	by vger.kernel.org with ESMTP id S1754429AbXK0VDy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 15:59:54 -0500
+	Tue, 27 Nov 2007 16:03:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: serue@us.ibm.com, casey@schaufler-ca.com, chrisw@sous-sol.org, jmorris@namei.org, morgan@kernel.org, sds@epoch.ncsc.mil
+Cc: sandeen@redhat.com, cmm@us.ibm.com
 
 
 The patch titled
-     file capabilities: don't prevent signaling setuid root programs
+     ext4: fix up EXT4FS_DEBUG builds
 has been added to the -mm tree.  Its filename is
-     file-capabilities-dont-prevent-signaling-setuid-root.patch
+     ext4-fix-up-ext4fs_debug-builds.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,78 +26,166 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: file capabilities: don't prevent signaling setuid root programs
-From: "Serge E. Hallyn" <serue@us.ibm.com>
+Subject: ext4: fix up EXT4FS_DEBUG builds
+From: Eric Sandeen <sandeen@redhat.com>
 
-An unprivileged process must be able to kill a setuid root program started
-by the same user.  This is legacy behavior needed for instance for xinit to
-kill X when the window manager exits.
+Builds with EXT4FS_DEBUG defined (to enable ext4_debug()) fail without
+these changes.  Clean up some format warnings too.
 
-When an unprivileged user runs a setuid root program in !SECURE_NOROOT
-mode, fP, fI, and fE are set full on, so pP' and pE' are full on.  Then
-cap_task_kill() prevents the user from signaling the setuid root task. 
-This is a change in behavior compared to when
-!CONFIG_SECURITY_FILE_CAPABILITIES.
-
-This patch introduces a special check into cap_task_kill() just to check
-whether a non-root user is signaling a setuid root program started by the
-same user.  If so, then signal is allowed.
-
-Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Andrew Morgan <morgan@kernel.org>
-Cc: Stephen Smalley <sds@epoch.ncsc.mil>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: James Morris <jmorris@namei.org>
-Cc: Casey Schaufler <casey@schaufler-ca.com>
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Cc: Mingming Cao <cmm@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/commoncap.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ fs/ext4/balloc.c  |    6 +++---
+ fs/ext4/ialloc.c  |    2 +-
+ fs/ext4/mballoc.c |    6 +++---
+ fs/ext4/resize.c  |   16 ++++++++--------
+ 4 files changed, 15 insertions(+), 15 deletions(-)
 
-diff -puN security/commoncap.c~file-capabilities-dont-prevent-signaling-setuid-root security/commoncap.c
---- a/security/commoncap.c~file-capabilities-dont-prevent-signaling-setuid-root
-+++ a/security/commoncap.c
-@@ -526,6 +526,15 @@ int cap_task_kill(struct task_struct *p,
- 	if (info != SEND_SIG_NOINFO && (is_si_special(info) || SI_FROMKERNEL(info)))
- 		return 0;
+diff -puN fs/ext4/balloc.c~ext4-fix-up-ext4fs_debug-builds fs/ext4/balloc.c
+--- a/fs/ext4/balloc.c~ext4-fix-up-ext4fs_debug-builds
++++ a/fs/ext4/balloc.c
+@@ -1645,7 +1645,7 @@ ext4_fsblk_t ext4_new_blocks_old(handle_
  
-+	/*
-+	 * Running a setuid root program raises your capabilities.
-+	 * Killing your own setuid root processes was previously
-+	 * allowed.
-+	 * We must preserve legacy signal behavior in this case.
-+	 */
-+	if (p->euid == 0 && p->uid == current->uid)
-+		return 0;
+ 	sbi = EXT4_SB(sb);
+ 	es = EXT4_SB(sb)->s_es;
+-	ext4_debug("goal=%lu.\n", goal);
++	ext4_debug("goal=%llu.\n", goal);
+ 	/*
+ 	 * Allocate a block from reservation only when
+ 	 * filesystem is mounted with reservation(default,-o reservation), and
+@@ -1755,7 +1755,7 @@ retry_alloc:
+ 
+ allocated:
+ 
+-	ext4_debug("using block group %d(%d)\n",
++	ext4_debug("using block group %lu(%d)\n",
+ 			group_no, gdp->bg_free_blocks_count);
+ 
+ 	BUFFER_TRACE(gdp_bh, "get_write_access");
+@@ -1949,7 +1949,7 @@ ext4_fsblk_t ext4_count_free_blocks(stru
+ 	brelse(bitmap_bh);
+ 	printk("ext4_count_free_blocks: stored = %llu"
+ 		", computed = %llu, %llu\n",
+-	       EXT4_FREE_BLOCKS_COUNT(es),
++		ext4_free_blocks_count(es),
+ 		desc_count, bitmap_count);
+ 	return bitmap_count;
+ #else
+diff -puN fs/ext4/ialloc.c~ext4-fix-up-ext4fs_debug-builds fs/ext4/ialloc.c
+--- a/fs/ext4/ialloc.c~ext4-fix-up-ext4fs_debug-builds
++++ a/fs/ext4/ialloc.c
+@@ -856,7 +856,7 @@ unsigned long ext4_count_free_inodes (st
+ 			continue;
+ 
+ 		x = ext4_count_free(bitmap_bh, EXT4_INODES_PER_GROUP(sb) / 8);
+-		printk("group %d: stored = %d, counted = %lu\n",
++		printk("group %lu: stored = %d, counted = %lu\n",
+ 			i, le16_to_cpu(gdp->bg_free_inodes_count), x);
+ 		bitmap_count += x;
+ 	}
+diff -puN fs/ext4/mballoc.c~ext4-fix-up-ext4fs_debug-builds fs/ext4/mballoc.c
+--- a/fs/ext4/mballoc.c~ext4-fix-up-ext4fs_debug-builds
++++ a/fs/ext4/mballoc.c
+@@ -2946,9 +2946,6 @@ static int ext4_mb_mark_diskspace_used(s
+ 	sbi = EXT4_SB(sb);
+ 	es = sbi->s_es;
+ 
+-	ext4_debug("using block group %d(%d)\n", ac->ac_b_group.group,
+-			gdp->bg_free_blocks_count);
+-
+ 	err = -EIO;
+ 	bitmap_bh = read_block_bitmap(sb, ac->ac_b_ex.fe_group);
+ 	if (!bitmap_bh)
+@@ -2963,6 +2960,9 @@ static int ext4_mb_mark_diskspace_used(s
+ 	if (!gdp)
+ 		goto out_err;
+ 
++	ext4_debug("using block group %lu(%d)\n", ac->ac_b_ex.fe_group,
++			gdp->bg_free_blocks_count);
 +
- 	/* sigcont is permitted within same session */
- 	if (sig == SIGCONT && (task_session_nr(current) == task_session_nr(p)))
- 		return 0;
+ 	err = ext4_journal_get_write_access(handle, gdp_bh);
+ 	if (err)
+ 		goto out_err;
+diff -puN fs/ext4/resize.c~ext4-fix-up-ext4fs_debug-builds fs/ext4/resize.c
+--- a/fs/ext4/resize.c~ext4-fix-up-ext4fs_debug-builds
++++ a/fs/ext4/resize.c
+@@ -206,7 +206,7 @@ static int setup_new_group_blocks(struct
+ 	}
+ 
+ 	if (ext4_bg_has_super(sb, input->group)) {
+-		ext4_debug("mark backup superblock %#04lx (+0)\n", start);
++		ext4_debug("mark backup superblock %#04llx (+0)\n", start);
+ 		ext4_set_bit(0, bh->b_data);
+ 	}
+ 
+@@ -215,7 +215,7 @@ static int setup_new_group_blocks(struct
+ 	     i < gdblocks; i++, block++, bit++) {
+ 		struct buffer_head *gdb;
+ 
+-		ext4_debug("update backup group %#04lx (+%d)\n", block, bit);
++		ext4_debug("update backup group %#04llx (+%d)\n", block, bit);
+ 
+ 		if ((err = extend_or_restart_transaction(handle, 1, bh)))
+ 			goto exit_bh;
+@@ -243,7 +243,7 @@ static int setup_new_group_blocks(struct
+ 	     i < reserved_gdb; i++, block++, bit++) {
+ 		struct buffer_head *gdb;
+ 
+-		ext4_debug("clear reserved block %#04lx (+%d)\n", block, bit);
++		ext4_debug("clear reserved block %#04llx (+%d)\n", block, bit);
+ 
+ 		if ((err = extend_or_restart_transaction(handle, 1, bh)))
+ 			goto exit_bh;
+@@ -256,10 +256,10 @@ static int setup_new_group_blocks(struct
+ 		ext4_set_bit(bit, bh->b_data);
+ 		brelse(gdb);
+ 	}
+-	ext4_debug("mark block bitmap %#04x (+%ld)\n", input->block_bitmap,
++	ext4_debug("mark block bitmap %#04llx (+%llu)\n", input->block_bitmap,
+ 		   input->block_bitmap - start);
+ 	ext4_set_bit(input->block_bitmap - start, bh->b_data);
+-	ext4_debug("mark inode bitmap %#04x (+%ld)\n", input->inode_bitmap,
++	ext4_debug("mark inode bitmap %#04llx (+%llu)\n", input->inode_bitmap,
+ 		   input->inode_bitmap - start);
+ 	ext4_set_bit(input->inode_bitmap - start, bh->b_data);
+ 
+@@ -268,7 +268,7 @@ static int setup_new_group_blocks(struct
+ 	     i < sbi->s_itb_per_group; i++, bit++, block++) {
+ 		struct buffer_head *it;
+ 
+-		ext4_debug("clear inode block %#04lx (+%d)\n", block, bit);
++		ext4_debug("clear inode block %#04llx (+%d)\n", block, bit);
+ 
+ 		if ((err = extend_or_restart_transaction(handle, 1, bh)))
+ 			goto exit_bh;
+@@ -291,7 +291,7 @@ static int setup_new_group_blocks(struct
+ 	brelse(bh);
+ 
+ 	/* Mark unused entries in inode bitmap used */
+-	ext4_debug("clear inode bitmap %#04x (+%ld)\n",
++	ext4_debug("clear inode bitmap %#04llx (+%llu)\n",
+ 		   input->inode_bitmap, input->inode_bitmap - start);
+ 	if (IS_ERR(bh = bclean(handle, sb, input->inode_bitmap))) {
+ 		err = PTR_ERR(bh);
+@@ -1054,7 +1054,7 @@ int ext4_group_extend(struct super_block
+ 	ext4_journal_dirty_metadata(handle, EXT4_SB(sb)->s_sbh);
+ 	sb->s_dirt = 1;
+ 	unlock_super(sb);
+-	ext4_debug("freeing blocks %lu through %llu\n", o_blocks_count,
++	ext4_debug("freeing blocks %llu through %llu\n", o_blocks_count,
+ 		   o_blocks_count + add);
+ 	ext4_free_blocks_sb(handle, sb, o_blocks_count, add, &freed_blocks);
+ 	ext4_debug("freed blocks %llu through %llu\n", o_blocks_count,
 _
 
-Patches currently in -mm which might be from serue@us.ibm.com are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
-file-capabilities-allow-sigcont-within-session-v2.patch
-isolate-the-uts-namespaces-domainname-and-hostname-back.patch
-file-capabilities-dont-prevent-signaling-setuid-root.patch
-git-unionfs.patch
-vfs-security-rework-inode_getsecurity-and-callers-to.patch
-vfs-reorder-vfs_getxattr-to-avoid-unnecessary-calls-to-the-lsm.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-64bit-capability-support-legacy-support-fix.patch
-r-o-bind-mounts-stub-functions.patch
-r-o-bind-mounts-do_rmdir-elevate-write-count.patch
-add-the-namespaces-config-option.patch
-move-the-uts-namespace-under-uts_ns-option.patch
-move-the-ipc-namespace-under-ipc_ns-option.patch
-cleanup-the-code-managed-with-the-user_ns-option.patch
-cleanup-the-code-managed-with-pid_ns-option.patch
-mark-net_ns-with-depends-on-namespaces.patch
+fix-up-ext2_fsh-for-userspace-after-reservations-backport.patch
+ext2-change-the-default-behaviour-on-error.patch
+ext4-fix-mb_debug-format-warnings.patch
+ext4-fix-freespace-accounting-with-mballoc-on-32bit-machines.patch
+ext4-fix-oops-with-jbd-stats-through-procfs-and-external.patch
+ext4-fix-up-ext4fs_debug-builds.patch
+ext3-change-the-default-behaviour-on-error.patch
