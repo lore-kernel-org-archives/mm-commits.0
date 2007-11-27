@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch added to -mm tree
-Date: Tue, 27 Nov 2007 14:02:46 -0800
-Message-ID: <200711272202.lARM2k8Q032656@imap1.linux-foundation.org>
+Subject: + per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch added to -mm tree
+Date: Tue, 27 Nov 2007 14:02:50 -0800
+Message-ID: <200711272202.lARM2pt5032664@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56610 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57260 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757500AbXK0WJH (ORCPT
+	by vger.kernel.org with ESMTP id S1756574AbXK0WJo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 17:09:07 -0500
+	Tue, 27 Nov 2007 17:09:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au, riel@redhat.com, rientjes@google.com, svaidy@linux.vnet.ibm.com, xemul@openvz.org
+Cc: kamezawa.hiroyu@jp.fujitsu.com, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, kmaezawa.hiroyu@jp.fujitsu.com, menage@google.com, nickpiggin@yahoo.com.au, riel@redhat.com, rientjes@google.com, svaidy@linux.vnet.ibm.com, xemul@openvz.org
 
 
 The patch titled
-     per-zone and reclaim enhancements for memory controller: modifies vmscan.c for isolate globa/cgroup lru activity
+     per-zone and reclaim enhancements for memory controller: per-zone-lock for cgroup
 has been added to the -mm tree.  Its filename is
-     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,42 +26,25 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: per-zone and reclaim enhancements for memory controller: modifies vmscan.c for isolate globa/cgroup lru activity
+Subject: per-zone and reclaim enhancements for memory controller: per-zone-lock for cgroup
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-When using memory controller, there are 2 levels of memory reclaim.
- 1. zone memory reclaim because of system/zone memory shortage.
- 2. memory cgroup memory reclaim because of hitting limit.
+Now, lru is per-zone.
 
-These two can be distinguished by sc->mem_cgroup parameter.
-(scan_global_lru() macro)
+Then, lru_lock can be (should be) per-zone, too.
+This patch implementes per-zone lru lock.
 
-This patch tries to make memory cgroup reclaim routine avoid affecting
-system/zone memory reclaim. This patch inserts if (scan_global_lru()) and
-hook to memory_cgroup reclaim support functions.
+lru_lock is placed into mem_cgroup_per_zone struct.
 
-This patch can be a help for isolating system lru activity and group lru
-activity and shows what additional functions are necessary.
+lock can be accessed by
+   mz = mem_cgroup_zoneinfo(mem_cgroup, node, zone);
+   &mz->lru_lock
 
- * mem_cgroup_calc_mapped_ratio() ... calculate mapped ratio for cgroup.
- * mem_cgroup_reclaim_imbalance() ... calculate active/inactive balance in
-                                        cgroup.
- * mem_cgroup_calc_reclaim_active() ... calculate the number of active pages to
-                                be scanned in this priority in mem_cgroup.
+   or
+   mz = page_cgroup_zoneinfo(page_cgroup);
+   &mz->lru_lock
 
- * mem_cgroup_calc_reclaim_inactive() ... calculate the number of inactive pages
-                                to be scanned in this priority in mem_cgroup.
-
- * mem_cgroup_all_unreclaimable() .. checks cgroup's page is all unreclaimable
-                                     or not.
- * mem_cgroup_get_reclaim_priority() ...
- * mem_cgroup_note_reclaim_priority() ... record reclaim priority (temporal)
- * mem_cgroup_remember_reclaim_priority()
-                             .... record reclaim priority as
-                                  zone->prev_priority.
-                                  This value is used for calc reclaim_mapped.
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: KAMEZAWA hiroyuki <kmaezawa.hiroyu@jp.fujitsu.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -76,414 +59,226 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |  326 ++++++++++++++++++++++++++++++--------------------
- 1 file changed, 197 insertions(+), 129 deletions(-)
+ mm/memcontrol.c |   71 ++++++++++++++++++++++++++++------------------
+ 1 file changed, 44 insertions(+), 27 deletions(-)
 
-diff -puN mm/vmscan.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity mm/vmscan.c
---- a/mm/vmscan.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity
-+++ a/mm/vmscan.c
-@@ -856,7 +856,8 @@ static unsigned long shrink_inactive_lis
- 		__mod_zone_page_state(zone, NR_ACTIVE, -nr_active);
- 		__mod_zone_page_state(zone, NR_INACTIVE,
- 						-(nr_taken - nr_active));
--		zone->pages_scanned += nr_scan;
-+		if (scan_global_lru(sc))
-+			zone->pages_scanned += nr_scan;
- 		spin_unlock_irq(&zone->lru_lock);
+diff -puN mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup mm/memcontrol.c
+--- a/mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup
++++ a/mm/memcontrol.c
+@@ -89,6 +89,10 @@ enum mem_cgroup_zstat_index {
+ };
  
- 		nr_scanned += nr_scan;
-@@ -943,6 +944,113 @@ static inline int zone_is_near_oom(struc
+ struct mem_cgroup_per_zone {
++	/*
++	 * spin_lock to protect the per cgroup LRU
++	 */
++	spinlock_t		lru_lock;
+ 	struct list_head	active_list;
+ 	struct list_head	inactive_list;
+ 	unsigned long count[NR_MEM_CGROUP_ZSTAT];
+@@ -126,10 +130,7 @@ struct mem_cgroup {
+ 	 * per zone LRU lists.
+ 	 */
+ 	struct mem_cgroup_lru_info info;
+-	/*
+-	 * spin_lock to protect the per cgroup LRU
+-	 */
+-	spinlock_t lru_lock;
++
+ 	unsigned long control_type;	/* control RSS or RSS+Pagecache */
+ 	int	prev_priority;	/* for recording reclaim priority */
+ 	/*
+@@ -410,15 +411,16 @@ int task_in_mem_cgroup(struct task_struc
+  */
+ void mem_cgroup_move_lists(struct page_cgroup *pc, bool active)
+ {
+-	struct mem_cgroup *mem;
++	struct mem_cgroup_per_zone *mz;
++	unsigned long flags;
++
+ 	if (!pc)
+ 		return;
+ 
+-	mem = pc->mem_cgroup;
+-
+-	spin_lock(&mem->lru_lock);
++	mz = page_cgroup_zoneinfo(pc);
++	spin_lock_irqsave(&mz->lru_lock, flags);
+ 	__mem_cgroup_move_lists(pc, active);
+-	spin_unlock(&mem->lru_lock);
++	spin_unlock_irqrestore(&mz->lru_lock, flags);
  }
  
  /*
-+ * Determine we should try to reclaim mapped pages.
-+ * This is called only when sc->mem_cgroup is NULL.
-+ */
-+static int calc_reclaim_mapped(struct scan_control *sc, struct zone *zone,
-+				int priority)
-+{
-+	long mapped_ratio;
-+	long distress;
-+	long swap_tendency;
-+	long imbalance;
-+	int reclaim_mapped;
-+	int prev_priority;
-+
-+	if (scan_global_lru(sc) && zone_is_near_oom(zone))
-+		return 1;
-+	/*
-+	 * `distress' is a measure of how much trouble we're having
-+	 * reclaiming pages.  0 -> no problems.  100 -> great trouble.
-+	 */
-+	if (scan_global_lru(sc))
-+		prev_priority = zone->prev_priority;
-+	else
-+		prev_priority = mem_cgroup_get_reclaim_priority(sc->mem_cgroup);
-+
-+	distress = 100 >> min(prev_priority, priority);
-+
-+	/*
-+	 * The point of this algorithm is to decide when to start
-+	 * reclaiming mapped memory instead of just pagecache.  Work out
-+	 * how much memory
-+	 * is mapped.
-+	 */
-+	if (scan_global_lru(sc))
-+		mapped_ratio = ((global_page_state(NR_FILE_MAPPED) +
-+				global_page_state(NR_ANON_PAGES)) * 100) /
-+					vm_total_pages;
-+	else
-+		mapped_ratio = mem_cgroup_calc_mapped_ratio(sc->mem_cgroup);
-+
-+	/*
-+	 * Now decide how much we really want to unmap some pages.  The
-+	 * mapped ratio is downgraded - just because there's a lot of
-+	 * mapped memory doesn't necessarily mean that page reclaim
-+	 * isn't succeeding.
-+	 *
-+	 * The distress ratio is important - we don't want to start
-+	 * going oom.
-+	 *
-+	 * A 100% value of vm_swappiness overrides this algorithm
-+	 * altogether.
-+	 */
-+	swap_tendency = mapped_ratio / 2 + distress + sc->swappiness;
-+
-+	/*
-+	 * If there's huge imbalance between active and inactive
-+	 * (think active 100 times larger than inactive) we should
-+	 * become more permissive, or the system will take too much
-+	 * cpu before it start swapping during memory pressure.
-+	 * Distress is about avoiding early-oom, this is about
-+	 * making swappiness graceful despite setting it to low
-+	 * values.
-+	 *
-+	 * Avoid div by zero with nr_inactive+1, and max resulting
-+	 * value is vm_total_pages.
-+	 */
-+	if (scan_global_lru(sc)) {
-+		imbalance  = zone_page_state(zone, NR_ACTIVE);
-+		imbalance /= zone_page_state(zone, NR_INACTIVE) + 1;
-+	} else
-+		imbalance = mem_cgroup_reclaim_imbalance(sc->mem_cgroup);
-+
-+	/*
-+	 * Reduce the effect of imbalance if swappiness is low,
-+	 * this means for a swappiness very low, the imbalance
-+	 * must be much higher than 100 for this logic to make
-+	 * the difference.
-+	 *
-+	 * Max temporary value is vm_total_pages*100.
-+	 */
-+	imbalance *= (vm_swappiness + 1);
-+	imbalance /= 100;
-+
-+	/*
-+	 * If not much of the ram is mapped, makes the imbalance
-+	 * less relevant, it's high priority we refill the inactive
-+	 * list with mapped pages only in presence of high ratio of
-+	 * mapped pages.
-+	 *
-+	 * Max temporary value is vm_total_pages*100.
-+	 */
-+	imbalance *= mapped_ratio;
-+	imbalance /= 100;
-+
-+	/* apply imbalance feedback to swap_tendency */
-+	swap_tendency += imbalance;
-+
-+	/*
-+	 * Now use this metric to decide whether to start moving mapped
-+	 * memory onto the inactive list.
-+	 */
-+	if (swap_tendency >= 100)
-+		reclaim_mapped = 1;
-+
-+	return reclaim_mapped;
-+}
-+
-+/*
-  * This moves pages from the active list to the inactive list.
-  *
-  * We move them the other way if the page is referenced by one or more
-@@ -959,6 +1067,8 @@ static inline int zone_is_near_oom(struc
-  * The downside is that we have to touch page->_count against each page.
-  * But we had to alter page->flags anyway.
-  */
-+
-+
- static void shrink_active_list(unsigned long nr_pages, struct zone *zone,
- 				struct scan_control *sc, int priority)
+@@ -528,7 +530,7 @@ unsigned long mem_cgroup_isolate_pages(u
+ 		src = &mz->inactive_list;
+ 
+ 
+-	spin_lock(&mem_cont->lru_lock);
++	spin_lock(&mz->lru_lock);
+ 	scan = 0;
+ 	list_for_each_entry_safe_reverse(pc, tmp, src, lru) {
+ 		if (scan >= nr_to_scan)
+@@ -558,7 +560,7 @@ unsigned long mem_cgroup_isolate_pages(u
+ 	}
+ 
+ 	list_splice(&pc_list, src);
+-	spin_unlock(&mem_cont->lru_lock);
++	spin_unlock(&mz->lru_lock);
+ 
+ 	*scanned = scan;
+ 	return nr_taken;
+@@ -577,6 +579,7 @@ static int mem_cgroup_charge_common(stru
+ 	struct page_cgroup *pc;
+ 	unsigned long flags;
+ 	unsigned long nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
++	struct mem_cgroup_per_zone *mz;
+ 
+ 	/*
+ 	 * Should page_cgroup's go to their own slab?
+@@ -688,10 +691,11 @@ noreclaim:
+ 		goto retry;
+ 	}
+ 
+-	spin_lock_irqsave(&mem->lru_lock, flags);
++	mz = page_cgroup_zoneinfo(pc);
++	spin_lock_irqsave(&mz->lru_lock, flags);
+ 	/* Update statistics vector */
+ 	__mem_cgroup_add_list(pc);
+-	spin_unlock_irqrestore(&mem->lru_lock, flags);
++	spin_unlock_irqrestore(&mz->lru_lock, flags);
+ 
+ done:
+ 	return 0;
+@@ -733,6 +737,7 @@ int mem_cgroup_cache_charge(struct page 
+ void mem_cgroup_uncharge(struct page_cgroup *pc)
  {
-@@ -972,100 +1082,21 @@ static void shrink_active_list(unsigned 
- 	struct pagevec pvec;
- 	int reclaim_mapped = 0;
+ 	struct mem_cgroup *mem;
++	struct mem_cgroup_per_zone *mz;
+ 	struct page *page;
+ 	unsigned long flags;
  
--	if (sc->may_swap) {
--		long mapped_ratio;
--		long distress;
--		long swap_tendency;
--		long imbalance;
--
--		if (zone_is_near_oom(zone))
--			goto force_reclaim_mapped;
--
--		/*
--		 * `distress' is a measure of how much trouble we're having
--		 * reclaiming pages.  0 -> no problems.  100 -> great trouble.
--		 */
--		distress = 100 >> min(zone->prev_priority, priority);
--
--		/*
--		 * The point of this algorithm is to decide when to start
--		 * reclaiming mapped memory instead of just pagecache.  Work out
--		 * how much memory
--		 * is mapped.
--		 */
--		mapped_ratio = ((global_page_state(NR_FILE_MAPPED) +
--				global_page_state(NR_ANON_PAGES)) * 100) /
--					vm_total_pages;
--
--		/*
--		 * Now decide how much we really want to unmap some pages.  The
--		 * mapped ratio is downgraded - just because there's a lot of
--		 * mapped memory doesn't necessarily mean that page reclaim
--		 * isn't succeeding.
--		 *
--		 * The distress ratio is important - we don't want to start
--		 * going oom.
--		 *
--		 * A 100% value of vm_swappiness overrides this algorithm
--		 * altogether.
--		 */
--		swap_tendency = mapped_ratio / 2 + distress + sc->swappiness;
--
--		/*
--		 * If there's huge imbalance between active and inactive
--		 * (think active 100 times larger than inactive) we should
--		 * become more permissive, or the system will take too much
--		 * cpu before it start swapping during memory pressure.
--		 * Distress is about avoiding early-oom, this is about
--		 * making swappiness graceful despite setting it to low
--		 * values.
--		 *
--		 * Avoid div by zero with nr_inactive+1, and max resulting
--		 * value is vm_total_pages.
--		 */
--		imbalance  = zone_page_state(zone, NR_ACTIVE);
--		imbalance /= zone_page_state(zone, NR_INACTIVE) + 1;
--
--		/*
--		 * Reduce the effect of imbalance if swappiness is low,
--		 * this means for a swappiness very low, the imbalance
--		 * must be much higher than 100 for this logic to make
--		 * the difference.
--		 *
--		 * Max temporary value is vm_total_pages*100.
--		 */
--		imbalance *= (vm_swappiness + 1);
--		imbalance /= 100;
--
--		/*
--		 * If not much of the ram is mapped, makes the imbalance
--		 * less relevant, it's high priority we refill the inactive
--		 * list with mapped pages only in presence of high ratio of
--		 * mapped pages.
--		 *
--		 * Max temporary value is vm_total_pages*100.
--		 */
--		imbalance *= mapped_ratio;
--		imbalance /= 100;
--
--		/* apply imbalance feedback to swap_tendency */
--		swap_tendency += imbalance;
--
--		/*
--		 * Now use this metric to decide whether to start moving mapped
--		 * memory onto the inactive list.
--		 */
--		if (swap_tendency >= 100)
--force_reclaim_mapped:
--			reclaim_mapped = 1;
--	}
-+	if (sc->may_swap)
-+		reclaim_mapped = calc_reclaim_mapped(sc, zone, priority);
+@@ -745,6 +750,7 @@ void mem_cgroup_uncharge(struct page_cgr
  
- 	lru_add_drain();
- 	spin_lock_irq(&zone->lru_lock);
- 	pgmoved = sc->isolate_pages(nr_pages, &l_hold, &pgscanned, sc->order,
- 					ISOLATE_ACTIVE, zone,
- 					sc->mem_cgroup, 1);
--	zone->pages_scanned += pgscanned;
-+	/*
-+	 * zone->pages_scanned is used for detect zone's oom
-+	 * mem_cgroup remembers nr_scan by itself.
-+	 */
-+	if (scan_global_lru(sc))
-+		zone->pages_scanned += pgscanned;
-+
- 	__mod_zone_page_state(zone, NR_ACTIVE, -pgmoved);
- 	spin_unlock_irq(&zone->lru_lock);
- 
-@@ -1158,25 +1189,39 @@ static unsigned long shrink_zone(int pri
- 	unsigned long nr_to_scan;
- 	unsigned long nr_reclaimed = 0;
- 
--	/*
--	 * Add one to `nr_to_scan' just to make sure that the kernel will
--	 * slowly sift through the active list.
--	 */
--	zone->nr_scan_active +=
--		(zone_page_state(zone, NR_ACTIVE) >> priority) + 1;
--	nr_active = zone->nr_scan_active;
--	if (nr_active >= sc->swap_cluster_max)
--		zone->nr_scan_active = 0;
--	else
--		nr_active = 0;
-+	if (scan_global_lru(sc)) {
-+		/*
-+		 * Add one to nr_to_scan just to make sure that the kernel
-+		 * will slowly sift through the active list.
-+		 */
-+		zone->nr_scan_active +=
-+			(zone_page_state(zone, NR_ACTIVE) >> priority) + 1;
-+		nr_active = zone->nr_scan_active;
-+		zone->nr_scan_inactive +=
-+			(zone_page_state(zone, NR_INACTIVE) >> priority) + 1;
-+		nr_inactive = zone->nr_scan_inactive;
-+		if (nr_inactive >= sc->swap_cluster_max)
-+			zone->nr_scan_inactive = 0;
-+		else
-+			nr_inactive = 0;
-+
-+		if (nr_active >= sc->swap_cluster_max)
-+			zone->nr_scan_active = 0;
-+		else
-+			nr_active = 0;
-+	} else {
-+		/*
-+		 * This reclaim occurs not because zone memory shortage but
-+		 * because memory controller hits its limit.
-+		 * Then, don't modify zone reclaim related data.
-+		 */
-+		nr_active = mem_cgroup_calc_reclaim_active(sc->mem_cgroup,
-+					zone, priority);
-+
-+		nr_inactive = mem_cgroup_calc_reclaim_inactive(sc->mem_cgroup,
-+					zone, priority);
-+	}
- 
--	zone->nr_scan_inactive +=
--		(zone_page_state(zone, NR_INACTIVE) >> priority) + 1;
--	nr_inactive = zone->nr_scan_inactive;
--	if (nr_inactive >= sc->swap_cluster_max)
--		zone->nr_scan_inactive = 0;
--	else
--		nr_inactive = 0;
- 
- 	while (nr_active || nr_inactive) {
- 		if (nr_active) {
-@@ -1221,25 +1266,39 @@ static unsigned long shrink_zones(int pr
- 	unsigned long nr_reclaimed = 0;
- 	int i;
- 
-+
- 	sc->all_unreclaimable = 1;
- 	for (i = 0; zones[i] != NULL; i++) {
- 		struct zone *zone = zones[i];
- 
- 		if (!populated_zone(zone))
- 			continue;
-+		/*
-+		 * Take care memory controller reclaiming has small influence
-+		 * to global LRU.
-+		 */
-+		if (scan_global_lru(sc)) {
-+			if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
-+				continue;
-+			note_zone_scanning_priority(zone, priority);
- 
--		if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
--			continue;
--
--		note_zone_scanning_priority(zone, priority);
--
--		if (zone_is_all_unreclaimable(zone) && priority != DEF_PRIORITY)
--			continue;	/* Let kswapd poll it */
--
--		sc->all_unreclaimable = 0;
-+			if (zone_is_all_unreclaimable(zone) &&
-+						priority != DEF_PRIORITY)
-+				continue;	/* Let kswapd poll it */
-+			sc->all_unreclaimable = 0;
-+		} else {
-+			/*
-+			 * Ignore cpuset limitation here. We just want to reduce
-+			 * # of used pages by us regardless of memory shortage.
-+			 */
-+			sc->all_unreclaimable = 0;
-+			mem_cgroup_note_reclaim_priority(sc->mem_cgroup,
-+							priority);
-+		}
- 
- 		nr_reclaimed += shrink_zone(priority, zone, sc);
+ 	if (atomic_dec_and_test(&pc->ref_cnt)) {
+ 		page = pc->page;
++		mz = page_cgroup_zoneinfo(pc);
+ 		/*
+ 		 * get page->cgroup and clear it under lock.
+ 		 * force_empty can drop page->cgroup without checking refcnt.
+@@ -753,9 +759,9 @@ void mem_cgroup_uncharge(struct page_cgr
+ 			mem = pc->mem_cgroup;
+ 			css_put(&mem->css);
+ 			res_counter_uncharge(&mem->res, PAGE_SIZE);
+-			spin_lock_irqsave(&mem->lru_lock, flags);
++			spin_lock_irqsave(&mz->lru_lock, flags);
+ 			__mem_cgroup_remove_list(pc);
+-			spin_unlock_irqrestore(&mem->lru_lock, flags);
++			spin_unlock_irqrestore(&mz->lru_lock, flags);
+ 			kfree(pc);
+ 		}
  	}
-+
- 	return nr_reclaimed;
- }
-  
-@@ -1268,15 +1327,19 @@ static unsigned long do_try_to_free_page
- 	int i;
- 
- 	count_vm_event(ALLOCSTALL);
-+	/*
-+	 * mem_cgroup will not do shrink_slab.
-+	 */
-+	if (scan_global_lru(sc)) {
-+		for (i = 0; zones[i] != NULL; i++) {
-+			struct zone *zone = zones[i];
- 
--	for (i = 0; zones[i] != NULL; i++) {
--		struct zone *zone = zones[i];
+@@ -794,24 +800,29 @@ void mem_cgroup_page_migration(struct pa
+ 	struct page_cgroup *pc;
+ 	struct mem_cgroup *mem;
+ 	unsigned long flags;
++	struct mem_cgroup_per_zone *mz;
+ retry:
+ 	pc = page_get_page_cgroup(page);
+ 	if (!pc)
+ 		return;
+ 	mem = pc->mem_cgroup;
++	mz = page_cgroup_zoneinfo(pc);
+ 	if (clear_page_cgroup(page, pc) != pc)
+ 		goto retry;
 -
--		if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
--			continue;
-+			if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
-+				continue;
+-	spin_lock_irqsave(&mem->lru_lock, flags);
++	spin_lock_irqsave(&mz->lru_lock, flags);
  
--		lru_pages += zone_page_state(zone, NR_ACTIVE)
--				+ zone_page_state(zone, NR_INACTIVE);
-+			lru_pages += zone_page_state(zone, NR_ACTIVE)
-+					+ zone_page_state(zone, NR_INACTIVE);
-+		}
- 	}
- 
- 	for (priority = DEF_PRIORITY; priority >= 0; priority--) {
-@@ -1333,14 +1396,19 @@ out:
- 	 */
- 	if (priority < 0)
- 		priority = 0;
--	for (i = 0; zones[i] != NULL; i++) {
--		struct zone *zone = zones[i];
- 
--		if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
--			continue;
-+	if (scan_global_lru(sc)) {
-+		for (i = 0; zones[i] != NULL; i++) {
-+			struct zone *zone = zones[i];
+ 	__mem_cgroup_remove_list(pc);
++	spin_unlock_irqrestore(&mz->lru_lock, flags);
 +
-+			if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
-+				continue;
-+
-+			zone->prev_priority = priority;
-+		}
-+	} else
-+		mem_cgroup_record_reclaim_priority(sc->mem_cgroup, priority);
+ 	pc->page = newpage;
+ 	lock_page_cgroup(newpage);
+ 	page_assign_page_cgroup(newpage, pc);
+ 	unlock_page_cgroup(newpage);
+-	__mem_cgroup_add_list(pc);
  
--		zone->prev_priority = priority;
--	}
- 	return ret;
+-	spin_unlock_irqrestore(&mem->lru_lock, flags);
++	mz = page_cgroup_zoneinfo(pc);
++	spin_lock_irqsave(&mz->lru_lock, flags);
++	__mem_cgroup_add_list(pc);
++	spin_unlock_irqrestore(&mz->lru_lock, flags);
+ 	return;
  }
+ 
+@@ -822,18 +833,26 @@ retry:
+  */
+ #define FORCE_UNCHARGE_BATCH	(128)
+ static void
+-mem_cgroup_force_empty_list(struct mem_cgroup *mem, struct list_head *list)
++mem_cgroup_force_empty_list(struct mem_cgroup *mem,
++			    struct mem_cgroup_per_zone *mz,
++			    int active)
+ {
+ 	struct page_cgroup *pc;
+ 	struct page *page;
+ 	int count;
+ 	unsigned long flags;
++	struct list_head *list;
++
++	if (active)
++		list = &mz->active_list;
++	else
++		list = &mz->inactive_list;
+ 
+ 	if (list_empty(list))
+ 		return;
+ retry:
+ 	count = FORCE_UNCHARGE_BATCH;
+-	spin_lock_irqsave(&mem->lru_lock, flags);
++	spin_lock_irqsave(&mz->lru_lock, flags);
+ 
+ 	while (--count && !list_empty(list)) {
+ 		pc = list_entry(list->prev, struct page_cgroup, lru);
+@@ -850,7 +869,7 @@ retry:
+ 		} else 	/* being uncharged ? ...do relax */
+ 			break;
+ 	}
+-	spin_unlock_irqrestore(&mem->lru_lock, flags);
++	spin_unlock_irqrestore(&mz->lru_lock, flags);
+ 	if (!list_empty(list)) {
+ 		cond_resched();
+ 		goto retry;
+@@ -881,11 +900,9 @@ int mem_cgroup_force_empty(struct mem_cg
+ 				struct mem_cgroup_per_zone *mz;
+ 				mz = mem_cgroup_zoneinfo(mem, node, zid);
+ 				/* drop all page_cgroup in active_list */
+-				mem_cgroup_force_empty_list(mem,
+-							&mz->active_list);
++				mem_cgroup_force_empty_list(mem, mz, 1);
+ 				/* drop all page_cgroup in inactive_list */
+-				mem_cgroup_force_empty_list(mem,
+-							&mz->inactive_list);
++				mem_cgroup_force_empty_list(mem, mz, 0);
+ 			}
+ 	}
+ 	ret = 0;
+@@ -1112,6 +1129,7 @@ static int alloc_mem_cgroup_per_zone_inf
+ 		mz = &pn->zoneinfo[zone];
+ 		INIT_LIST_HEAD(&mz->active_list);
+ 		INIT_LIST_HEAD(&mz->inactive_list);
++		spin_lock_init(&mz->lru_lock);
+ 	}
+ 	return 0;
+ }
+@@ -1136,7 +1154,6 @@ mem_cgroup_create(struct cgroup_subsys *
+ 
+ 	res_counter_init(&mem->res);
+ 
+-	spin_lock_init(&mem->lru_lock);
+ 	mem->control_type = MEM_CGROUP_TYPE_ALL;
+ 	memset(&mem->info, 0, sizeof(mem->info));
  
 _
 
