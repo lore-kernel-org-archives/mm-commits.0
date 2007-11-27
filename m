@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch added to -mm tree
-Date: Tue, 27 Nov 2007 14:02:42 -0800
-Message-ID: <200711272202.lARM2hh0032650@imap1.linux-foundation.org>
+Subject: + per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch added to -mm tree
+Date: Tue, 27 Nov 2007 14:02:36 -0800
+Message-ID: <200711272202.lARM2aa9032613@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46395 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44396 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758590AbXK0WPK (ORCPT
+	by vger.kernel.org with ESMTP id S1758472AbXK0WPm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 17:15:10 -0500
+	Tue, 27 Nov 2007 17:15:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, a.p.zijlstra@chello.nl, balbir@linux.vnet.ib
 
 
 The patch titled
-     per-zone and reclaim enhancements for memory controller: calculate the number of pages to be scanned per cgroup
+     per-zone and reclaim enhancements for memory controller: calculate mapper_ratio per cgroup
 has been added to the -mm tree.  Its filename is
-     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
+     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,10 +26,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: per-zone and reclaim enhancements for memory controller: calculate the number of pages to be scanned per cgroup
+Subject: per-zone and reclaim enhancements for memory controller: calculate mapper_ratio per cgroup
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Define function for calculating the number of scan target on each Zone/LRU.
+Define function for calculating mapped_ratio in memory cgroup.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -46,80 +46,60 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   15 +++++++++++++++
- mm/memcontrol.c            |   33 +++++++++++++++++++++++++++++++++
- 2 files changed, 48 insertions(+)
+ include/linux/memcontrol.h |   11 ++++++++++-
+ mm/memcontrol.c            |   17 +++++++++++++++++
+ 2 files changed, 27 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/memcontrol.h~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup
+diff -puN include/linux/memcontrol.h~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup
 +++ a/include/linux/memcontrol.h
-@@ -73,6 +73,10 @@ extern void mem_cgroup_note_reclaim_prio
- extern void mem_cgroup_record_reclaim_priority(struct mem_cgroup *mem,
- 							int priority);
+@@ -61,6 +61,12 @@ extern int mem_cgroup_prepare_migration(
+ extern void mem_cgroup_end_migration(struct page *page);
+ extern void mem_cgroup_page_migration(struct page *page, struct page *newpage);
  
-+extern long mem_cgroup_calc_reclaim_active(struct mem_cgroup *mem,
-+				struct zone *zone, int priority);
-+extern long mem_cgroup_calc_reclaim_inactive(struct mem_cgroup *mem,
-+				struct zone *zone, int priority);
- 
++/*
++ * For memory reclaim.
++ */
++extern int mem_cgroup_calc_mapped_ratio(struct mem_cgroup *mem);
++
++
  #else /* CONFIG_CGROUP_MEM_CONT */
  static inline void mm_init_cgroup(struct mm_struct *mm,
-@@ -173,6 +177,17 @@ static inline void mem_cgroup_record_rec
- 	return 0;
+ 					struct task_struct *p)
+@@ -132,7 +138,10 @@ mem_cgroup_page_migration(struct page *p
+ {
  }
  
-+static inline long mem_cgroup_calc_reclaim_active(struct mem_cgroup *mem,
-+					struct zone *zone, int priority)
-+{
-+	return 0;
-+}
-+
-+static inline long mem_cgroup_calc_reclaim_inactive(struct mem_cgroup *mem,
-+					struct zone *zone, int priority)
+-
++static inline int mem_cgroup_calc_mapped_ratio(struct mem_cgroup *mem)
 +{
 +	return 0;
 +}
  #endif /* CONFIG_CGROUP_MEM_CONT */
  
  #endif /* _LINUX_MEMCONTROL_H */
-diff -puN mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup mm/memcontrol.c
---- a/mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup
+diff -puN mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup mm/memcontrol.c
+--- a/mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup
 +++ a/mm/memcontrol.c
-@@ -472,6 +472,39 @@ void mem_cgroup_record_reclaim_priority(
- 	mem->prev_priority = priority;
+@@ -421,6 +421,23 @@ void mem_cgroup_move_lists(struct page_c
+ 	spin_unlock(&mem->lru_lock);
  }
  
 +/*
-+ * Calculate # of pages to be scanned in this priority/zone.
-+ * See also vmscan.c
-+ *
-+ * priority starts from "DEF_PRIORITY" and decremented in each loop.
-+ * (see include/linux/mmzone.h)
++ * Calculate mapped_ratio under memory controller. This will be used in
++ * vmscan.c for deteremining we have to reclaim mapped pages.
 + */
-+
-+long mem_cgroup_calc_reclaim_active(struct mem_cgroup *mem,
-+				   struct zone *zone, int priority)
++int mem_cgroup_calc_mapped_ratio(struct mem_cgroup *mem)
 +{
-+	long nr_active;
-+	int nid = zone->zone_pgdat->node_id;
-+	int zid = zone_idx(zone);
-+	struct mem_cgroup_per_zone *mz = mem_cgroup_zoneinfo(mem, nid, zid);
++	long total, rss;
 +
-+	nr_active = MEM_CGROUP_ZSTAT(mz, MEM_CGROUP_ZSTAT_ACTIVE);
-+	return (nr_active >> priority);
-+}
-+
-+long mem_cgroup_calc_reclaim_inactive(struct mem_cgroup *mem,
-+					struct zone *zone, int priority)
-+{
-+	long nr_inactive;
-+	int nid = zone->zone_pgdat->node_id;
-+	int zid = zone_idx(zone);
-+	struct mem_cgroup_per_zone *mz = mem_cgroup_zoneinfo(mem, nid, zid);
-+
-+	nr_inactive = MEM_CGROUP_ZSTAT(mz, MEM_CGROUP_ZSTAT_INACTIVE);
-+
-+	return (nr_inactive >> priority);
++	/*
++	 * usage is recorded in bytes. But, here, we assume the number of
++	 * physical pages can be represented by "long" on any arch.
++	 */
++	total = (long) (mem->res.usage >> PAGE_SHIFT) + 1L;
++	rss = (long)mem_cgroup_read_stat(&mem->stat, MEM_CGROUP_STAT_RSS);
++	return (int)((rss * 100L) / total);
 +}
 +
  unsigned long mem_cgroup_isolate_pages(unsigned long nr_to_scan,
