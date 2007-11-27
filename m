@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext4-fix-up-ext4fs_debug-builds-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 27 Nov 2007 13:03:12 -0800
-Message-ID: <200711272103.lARL3CQE030259@imap1.linux-foundation.org>
+Subject: + reiserfs-eliminate-private-use-of-struct-file-in-xattr.patch added to -mm tree
+Date: Tue, 27 Nov 2007 13:06:45 -0800
+Message-ID: <200711272106.lARL6jUt030378@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41531 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43286 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754102AbXK0VEi (ORCPT
+	by vger.kernel.org with ESMTP id S1755484AbXK0VHB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 16:04:38 -0500
+	Tue, 27 Nov 2007 16:07:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cmm@us.ibm.com, sandeen@redhat.com
+Cc: jeffm@suse.de, haveblue@us.ibm.com, hch@lst.de, jeffm@suse.com, mason@suse.com
 
 
 The patch titled
-     ext4-fix-up-ext4fs_debug-builds-checkpatch-fixes
+     reiserfs: eliminate private use of struct file in xattr code
 has been added to the -mm tree.  Its filename is
-     ext4-fix-up-ext4fs_debug-builds-checkpatch-fixes.patch
+     reiserfs-eliminate-private-use-of-struct-file-in-xattr.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,202 +26,326 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ext4-fix-up-ext4fs_debug-builds-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: reiserfs: eliminate private use of struct file in xattr code
+From: Jeff Mahoney <jeffm@suse.de>
 
-WARNING: printk() should include KERN_ facility level
-#55: FILE: fs/ext4/ialloc.c:859:
-+		printk("group %lu: stored = %d, counted = %lu\n",
+After several posts and bug reports regarding interaction with the NULL
+nameidata, here's a patch to clean up the mess with struct file in the
+reiserfs xattr code.
 
-total: 0 errors, 1 warnings, 110 lines checked
+As observed in several of the posts, there's really no need for struct file
+to exist in the xattr code.  It was really only passed around due to the
+f_op->readdir() and a_ops->{prepare,commit}_write prototypes requiring it.
 
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+reiserfs_prepare_write() and reiserfs_commit_write() don't actually use the
+struct file passed to it, and the xattr code uses a private version of
+reiserfs_readdir() to enumerate the xattr directories.
 
-Please run checkpatch prior to sending patches
-
-Cc: Eric Sandeen <sandeen@redhat.com>
-Cc: Mingming Cao <cmm@us.ibm.com>
+Signed-off-by: Jeff Mahoney <jeffm@suse.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Chris Mason <mason@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/ialloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/reiserfs/xattr.c |  110 +++++++++++-------------------------------
+ 1 file changed, 30 insertions(+), 80 deletions(-)
 
-diff -puN fs/ext4/ialloc.c~ext4-fix-up-ext4fs_debug-builds-checkpatch-fixes fs/ext4/ialloc.c
---- a/fs/ext4/ialloc.c~ext4-fix-up-ext4fs_debug-builds-checkpatch-fixes
-+++ a/fs/ext4/ialloc.c
-@@ -856,7 +856,7 @@ unsigned long ext4_count_free_inodes (st
- 			continue;
- 
- 		x = ext4_count_free(bitmap_bh, EXT4_INODES_PER_GROUP(sb) / 8);
--		printk("group %lu: stored = %d, counted = %lu\n",
-+		printk(KERN_DEBUG "group %lu: stored = %d, counted = %lu\n",
- 			i, le16_to_cpu(gdp->bg_free_inodes_count), x);
- 		bitmap_count += x;
+diff -puN fs/reiserfs/xattr.c~reiserfs-eliminate-private-use-of-struct-file-in-xattr fs/reiserfs/xattr.c
+--- a/fs/reiserfs/xattr.c~reiserfs-eliminate-private-use-of-struct-file-in-xattr
++++ a/fs/reiserfs/xattr.c
+@@ -191,28 +191,11 @@ static struct dentry *get_xa_file_dentry
+ 	dput(xadir);
+ 	if (err)
+ 		xafile = ERR_PTR(err);
+-	return xafile;
+-}
+-
+-/* Opens a file pointer to the attribute associated with inode */
+-static struct file *open_xa_file(const struct inode *inode, const char *name,
+-				 int flags)
+-{
+-	struct dentry *xafile;
+-	struct file *fp;
+-
+-	xafile = get_xa_file_dentry(inode, name, flags);
+-	if (IS_ERR(xafile))
+-		return ERR_PTR(PTR_ERR(xafile));
+ 	else if (!xafile->d_inode) {
+ 		dput(xafile);
+-		return ERR_PTR(-ENODATA);
++		xafile = ERR_PTR(-ENODATA);
  	}
+-
+-	fp = dentry_open(xafile, NULL, O_RDWR);
+-	/* dentry_open dputs the dentry if it fails */
+-
+-	return fp;
++	return xafile;
+ }
+ 
+ /*
+@@ -228,9 +211,8 @@ static struct file *open_xa_file(const s
+  * we're called with i_mutex held, so there are no worries about the directory
+  * changing underneath us.
+  */
+-static int __xattr_readdir(struct file *filp, void *dirent, filldir_t filldir)
++static int __xattr_readdir(struct inode *inode, void *dirent, filldir_t filldir)
+ {
+-	struct inode *inode = filp->f_path.dentry->d_inode;
+ 	struct cpu_key pos_key;	/* key of current position in the directory (key of directory entry) */
+ 	INITIALIZE_PATH(path_to_entry);
+ 	struct buffer_head *bh;
+@@ -374,23 +356,16 @@ static int __xattr_readdir(struct file *
+  *
+  */
+ static
+-int xattr_readdir(struct file *file, filldir_t filler, void *buf)
++int xattr_readdir(struct inode *inode, filldir_t filler, void *buf)
+ {
+-	struct inode *inode = file->f_path.dentry->d_inode;
+-	int res = -ENOTDIR;
+-	if (!file->f_op || !file->f_op->readdir)
+-		goto out;
++	int res = -ENOENT;
+ 	mutex_lock_nested(&inode->i_mutex, I_MUTEX_XATTR);
+-//        down(&inode->i_zombie);
+-	res = -ENOENT;
+ 	if (!IS_DEADDIR(inode)) {
+ 		lock_kernel();
+-		res = __xattr_readdir(file, buf, filler);
++		res = __xattr_readdir(inode, buf, filler);
+ 		unlock_kernel();
+ 	}
+-//        up(&inode->i_zombie);
+ 	mutex_unlock(&inode->i_mutex);
+-      out:
+ 	return res;
+ }
+ 
+@@ -442,7 +417,7 @@ reiserfs_xattr_set(struct inode *inode, 
+ 		   size_t buffer_size, int flags)
+ {
+ 	int err = 0;
+-	struct file *fp;
++	struct dentry *dentry;
+ 	struct page *page;
+ 	char *data;
+ 	struct address_space *mapping;
+@@ -460,18 +435,18 @@ reiserfs_xattr_set(struct inode *inode, 
+ 		xahash = xattr_hash(buffer, buffer_size);
+ 
+       open_file:
+-	fp = open_xa_file(inode, name, flags);
+-	if (IS_ERR(fp)) {
+-		err = PTR_ERR(fp);
++	dentry = get_xa_file_dentry(inode, name, flags);
++	if (IS_ERR(dentry)) {
++		err = PTR_ERR(dentry);
+ 		goto out;
+ 	}
+ 
+-	xinode = fp->f_path.dentry->d_inode;
++	xinode = dentry->d_inode;
+ 	REISERFS_I(inode)->i_flags |= i_has_xattr_dir;
+ 
+ 	/* we need to copy it off.. */
+ 	if (xinode->i_nlink > 1) {
+-		fput(fp);
++		dput(dentry);
+ 		err = reiserfs_xattr_del(inode, name);
+ 		if (err < 0)
+ 			goto out;
+@@ -485,7 +460,7 @@ reiserfs_xattr_set(struct inode *inode, 
+ 	newattrs.ia_size = buffer_size;
+ 	newattrs.ia_valid = ATTR_SIZE | ATTR_CTIME;
+ 	mutex_lock_nested(&xinode->i_mutex, I_MUTEX_XATTR);
+-	err = notify_change(fp->f_path.dentry, &newattrs);
++	err = notify_change(dentry, &newattrs);
+ 	if (err)
+ 		goto out_filp;
+ 
+@@ -518,15 +493,14 @@ reiserfs_xattr_set(struct inode *inode, 
+ 			rxh->h_hash = cpu_to_le32(xahash);
+ 		}
+ 
+-		err = reiserfs_prepare_write(fp, page, page_offset,
++		err = reiserfs_prepare_write(NULL, page, page_offset,
+ 					    page_offset + chunk + skip);
+ 		if (!err) {
+ 			if (buffer)
+ 				memcpy(data + skip, buffer + buffer_pos, chunk);
+-			err =
+-			    reiserfs_commit_write(fp, page, page_offset,
+-						  page_offset + chunk +
+-						  skip);
++			err = reiserfs_commit_write(NULL, page, page_offset,
++						    page_offset + chunk +
++						    skip);
+ 		}
+ 		unlock_page(page);
+ 		reiserfs_put_page(page);
+@@ -548,7 +522,7 @@ reiserfs_xattr_set(struct inode *inode, 
+ 
+       out_filp:
+ 	mutex_unlock(&xinode->i_mutex);
+-	fput(fp);
++	dput(dentry);
+ 
+       out:
+ 	return err;
+@@ -562,7 +536,7 @@ reiserfs_xattr_get(const struct inode *i
+ 		   size_t buffer_size)
+ {
+ 	ssize_t err = 0;
+-	struct file *fp;
++	struct dentry *dentry;
+ 	size_t isize;
+ 	size_t file_pos = 0;
+ 	size_t buffer_pos = 0;
+@@ -578,13 +552,13 @@ reiserfs_xattr_get(const struct inode *i
+ 	if (get_inode_sd_version(inode) == STAT_DATA_V1)
+ 		return -EOPNOTSUPP;
+ 
+-	fp = open_xa_file(inode, name, FL_READONLY);
+-	if (IS_ERR(fp)) {
+-		err = PTR_ERR(fp);
++	dentry = get_xa_file_dentry(inode, name, FL_READONLY);
++	if (IS_ERR(dentry)) {
++		err = PTR_ERR(dentry);
+ 		goto out;
+ 	}
+ 
+-	xinode = fp->f_path.dentry->d_inode;
++	xinode = dentry->d_inode;
+ 	isize = xinode->i_size;
+ 	REISERFS_I(inode)->i_flags |= i_has_xattr_dir;
+ 
+@@ -652,7 +626,7 @@ reiserfs_xattr_get(const struct inode *i
+ 	}
+ 
+       out_dput:
+-	fput(fp);
++	dput(dentry);
+ 
+       out:
+ 	return err;
+@@ -742,7 +716,6 @@ reiserfs_delete_xattrs_filler(void *buf,
+ /* This is called w/ inode->i_mutex downed */
+ int reiserfs_delete_xattrs(struct inode *inode)
+ {
+-	struct file *fp;
+ 	struct dentry *dir, *root;
+ 	int err = 0;
+ 
+@@ -763,15 +736,8 @@ int reiserfs_delete_xattrs(struct inode 
+ 		return 0;
+ 	}
+ 
+-	fp = dentry_open(dir, NULL, O_RDWR);
+-	if (IS_ERR(fp)) {
+-		err = PTR_ERR(fp);
+-		/* dentry_open dputs the dentry if it fails */
+-		goto out;
+-	}
+-
+ 	lock_kernel();
+-	err = xattr_readdir(fp, reiserfs_delete_xattrs_filler, dir);
++	err = xattr_readdir(dir->d_inode, reiserfs_delete_xattrs_filler, dir);
+ 	if (err) {
+ 		unlock_kernel();
+ 		goto out_dir;
+@@ -791,7 +757,7 @@ int reiserfs_delete_xattrs(struct inode 
+ 	unlock_kernel();
+ 
+       out_dir:
+-	fput(fp);
++	dput(dir);
+ 
+       out:
+ 	if (!err)
+@@ -833,7 +799,6 @@ reiserfs_chown_xattrs_filler(void *buf, 
+ 
+ int reiserfs_chown_xattrs(struct inode *inode, struct iattr *attrs)
+ {
+-	struct file *fp;
+ 	struct dentry *dir;
+ 	int err = 0;
+ 	struct reiserfs_chown_buf buf;
+@@ -857,13 +822,6 @@ int reiserfs_chown_xattrs(struct inode *
+ 		goto out;
+ 	}
+ 
+-	fp = dentry_open(dir, NULL, O_RDWR);
+-	if (IS_ERR(fp)) {
+-		err = PTR_ERR(fp);
+-		/* dentry_open dputs the dentry if it fails */
+-		goto out;
+-	}
+-
+ 	lock_kernel();
+ 
+ 	attrs->ia_valid &= (ATTR_UID | ATTR_GID | ATTR_CTIME);
+@@ -871,7 +829,7 @@ int reiserfs_chown_xattrs(struct inode *
+ 	buf.attrs = attrs;
+ 	buf.inode = inode;
+ 
+-	err = xattr_readdir(fp, reiserfs_chown_xattrs_filler, &buf);
++	err = xattr_readdir(dir->d_inode, reiserfs_chown_xattrs_filler, &buf);
+ 	if (err) {
+ 		unlock_kernel();
+ 		goto out_dir;
+@@ -881,7 +839,7 @@ int reiserfs_chown_xattrs(struct inode *
+ 	unlock_kernel();
+ 
+       out_dir:
+-	fput(fp);
++	dput(dir);
+ 
+       out:
+ 	attrs->ia_valid = ia_valid;
+@@ -1029,7 +987,6 @@ reiserfs_listxattr_filler(void *buf, con
+  */
+ ssize_t reiserfs_listxattr(struct dentry * dentry, char *buffer, size_t size)
+ {
+-	struct file *fp;
+ 	struct dentry *dir;
+ 	int err = 0;
+ 	struct reiserfs_listxattr_buf buf;
+@@ -1052,13 +1009,6 @@ ssize_t reiserfs_listxattr(struct dentry
+ 		goto out;
+ 	}
+ 
+-	fp = dentry_open(dir, NULL, O_RDWR);
+-	if (IS_ERR(fp)) {
+-		err = PTR_ERR(fp);
+-		/* dentry_open dputs the dentry if it fails */
+-		goto out;
+-	}
+-
+ 	buf.r_buf = buffer;
+ 	buf.r_size = buffer ? size : 0;
+ 	buf.r_pos = 0;
+@@ -1066,7 +1016,7 @@ ssize_t reiserfs_listxattr(struct dentry
+ 
+ 	REISERFS_I(dentry->d_inode)->i_flags |= i_has_xattr_dir;
+ 
+-	err = xattr_readdir(fp, reiserfs_listxattr_filler, &buf);
++	err = xattr_readdir(dir->d_inode, reiserfs_listxattr_filler, &buf);
+ 	if (err)
+ 		goto out_dir;
+ 
+@@ -1076,7 +1026,7 @@ ssize_t reiserfs_listxattr(struct dentry
+ 		err = buf.r_pos;
+ 
+       out_dir:
+-	fput(fp);
++	dput(dir);
+ 
+       out:
+ 	reiserfs_read_unlock_xattr_i(dentry->d_inode);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jeffm@suse.de are
 
-origin.patch
-file-capabilities-allow-sigcont-within-session-v2.patch
-pnp-increase-the-maximum-number-of-resources-fix.patch
-fix-linux-kdh-usage-in-userspace-checkpatch-fixes.patch
-revert-keyspan-init-termios-properly.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-git-cpufreq.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-git-drm-oops-fix.patch
-intel-agp-enable-i915-recognition.patch
-git-dvb.patch
-ia64-slim-down-__clear_bit_unlock.patch
-git-infiniband.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-git-mips-fixup.patch
-git-mmc.patch
-git-mtd.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-bluetooth-uninlining.patch
-git-nfsd.patch
-msi-set-en-bit-of-msi-mapping-capability-on-ht-platform-fix.patch
-git-sh-fixup.patch
-git-scsi-misc-fixup.patch
-ips-trim-trailing-whitespace.patch
-scsi-gdth-kill-unneeded-irq-argument.patch
-bidi-support-scsi_data_buffer-broke-qla1280.patch
-bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
-libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-mct232-speed-new-termios-and-compliance-cleanups-fix.patch
-git-watchdog.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-cryptodev.patch
-git-xtensa.patch
-ia64-increase-datapatch-offset.patch
-ia64-dont-assume-that-unwcheckpy-is-executable.patch
-ia64-export-copy_page-to-modules.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-mm-add-dirty_highmem-option-fix.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-alpha-atomic_add_return-should-return-int.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-sync_sb_inodes-propagate-errors.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-64-bit-i_version-afs-fixes.patch
-ext4-add-block-bitmap-validation-fix.patch
-ext4-fix-up-ext4fs_debug-builds-checkpatch-fixes.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-w1-build-fix.patch
+reiserfs-eliminate-private-use-of-struct-file-in-xattr.patch
