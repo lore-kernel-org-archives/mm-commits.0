@@ -1,87 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - git-wireless-fix-naming-clash.patch removed from -mm tree
-Date: Mon, 26 Nov 2007 21:12:15 -0800
-Message-ID: <200711270512.lAR5CFgF028398@imap1.linux-foundation.org>
+Subject: - isdn-validate-length-of-isdn_net_ioctl_cfgeaz.patch removed from -mm tree
+Date: Mon, 26 Nov 2007 21:13:59 -0800
+Message-ID: <200711270513.lAR5DxWE028443@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50010 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53459 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750899AbXK0FNc (ORCPT
+	by vger.kernel.org with ESMTP id S1750808AbXK0FOp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 00:13:32 -0500
+	Tue, 27 Nov 2007 00:14:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, flamingice@sourmilk.net, kamalesh@linux.vnet.ibm.com, linville@tuxdriver.com, tony@bakeyournoodle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, adlab@venustech.com.cn, kkeil@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-wireless: fix naming clash
+     isdn: validate length of isdn_net_ioctl_cfg.eaz
 has been removed from the -mm tree.  Its filename was
-     git-wireless-fix-naming-clash.patch
+     isdn-validate-length-of-isdn_net_ioctl_cfgeaz.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: git-wireless: fix naming clash
+Subject: isdn: validate length of isdn_net_ioctl_cfg.eaz
 From: Andrew Morton <akpm@linux-foundation.org>
 
-  LD      drivers/net/wireless/built-in.o
-drivers/net/wireless/rtl8187.o: In function `rtl8225z2_rf_init':
-(.opd+0x180): multiple definition of `rtl8225z2_rf_init'
-drivers/net/wireless/rtl8180.o:(.opd+0x1b0): first defined here
-drivers/net/wireless/rtl8187.o: In function `rtl8225z2_rf_init':
-/root/linux-2.6.24-rc3/drivers/net/wireless/rtl8187_rtl8225.c:571: multiple definition of `.rtl8225z2_rf_init'
-drivers/net/wireless/rtl8180.o:/root/linux-2.6.24-rc3/drivers/net/wireless/rtl8180_rtl8225.c:561: first defined here
-ld: Warning: size of symbol `.rtl8225z2_rf_init' changed from 3836 in drivers/net/wireless/rtl8180.o to 3544 in drivers/net/wireless/rtl8187.o
+Avoid copying an overly-long string.
 
-Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: Tony Breeds <tony@bakeyournoodle.com>
-Cc: Michael Wu <flamingice@sourmilk.net>
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=9416
+
+Cc: <adlab@venustech.com.cn>
+Cc: Karsten Keil <kkeil@suse.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/rtl8187_dev.c     |    2 +-
- drivers/net/wireless/rtl8187_rtl8225.c |    2 +-
- drivers/net/wireless/rtl8187_rtl8225.h |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/isdn/i4l/isdn_net.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/wireless/rtl8187_dev.c~git-wireless-fix-naming-clash drivers/net/wireless/rtl8187_dev.c
---- a/drivers/net/wireless/rtl8187_dev.c~git-wireless-fix-naming-clash
-+++ a/drivers/net/wireless/rtl8187_dev.c
-@@ -764,7 +764,7 @@ static int __devinit rtl8187_probe(struc
- 	if (rtl8225_read(dev, 8) != 0x588 || rtl8225_read(dev, 9) != 0x700)
- 		priv->rf_init = rtl8225_rf_init;
- 	else
--		priv->rf_init = rtl8225z2_rf_init;
-+		priv->rf_init = rtl8187_rf_init;
- 
- 	rtl8225_write(dev, 0, 0x0B7);
- 
-diff -puN drivers/net/wireless/rtl8187_rtl8225.c~git-wireless-fix-naming-clash drivers/net/wireless/rtl8187_rtl8225.c
---- a/drivers/net/wireless/rtl8187_rtl8225.c~git-wireless-fix-naming-clash
-+++ a/drivers/net/wireless/rtl8187_rtl8225.c
-@@ -567,7 +567,7 @@ static const u8 rtl8225z2_gain_bg[] = {
- 	0x63, 0x15, 0xc5  /* -66dBm */
- };
- 
--void rtl8225z2_rf_init(struct ieee80211_hw *dev)
-+void rtl8187_rf_init(struct ieee80211_hw *dev)
- {
- 	struct rtl8187_priv *priv = dev->priv;
- 	int i;
-diff -puN drivers/net/wireless/rtl8187_rtl8225.h~git-wireless-fix-naming-clash drivers/net/wireless/rtl8187_rtl8225.h
---- a/drivers/net/wireless/rtl8187_rtl8225.h~git-wireless-fix-naming-clash
-+++ a/drivers/net/wireless/rtl8187_rtl8225.h
-@@ -24,7 +24,7 @@ void rtl8225_write(struct ieee80211_hw *
- u16  rtl8225_read(struct ieee80211_hw *, u8 addr);
- 
- void rtl8225_rf_init(struct ieee80211_hw *);
--void rtl8225z2_rf_init(struct ieee80211_hw *);
-+void rtl8187_rf_init(struct ieee80211_hw *);
- void rtl8225_rf_stop(struct ieee80211_hw *);
- void rtl8225_rf_set_channel(struct ieee80211_hw *, int);
- 
+diff -puN drivers/isdn/i4l/isdn_net.c~isdn-validate-length-of-isdn_net_ioctl_cfgeaz drivers/isdn/i4l/isdn_net.c
+--- a/drivers/isdn/i4l/isdn_net.c~isdn-validate-length-of-isdn_net_ioctl_cfgeaz
++++ a/drivers/isdn/i4l/isdn_net.c
+@@ -2789,7 +2789,7 @@ isdn_net_setcfg(isdn_net_ioctl_cfg * cfg
+ 				chidx = -1;
+ 			}
+ 		}
+-		strcpy(lp->msn, cfg->eaz);
++		strlcpy(lp->msn, cfg->eaz, sizeof(lp->msn));
+ 		lp->pre_device = drvidx;
+ 		lp->pre_channel = chidx;
+ 		lp->onhtime = cfg->onhtime;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -136,7 +104,6 @@ vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
 mct232-speed-new-termios-and-compliance-cleanups-fix.patch
 git-watchdog.patch
 git-wireless.patch
-git-wireless-fix-naming-clash.patch
 git-ipwireless_cs.patch
 git-x86.patch
 git-x86-fixup.patch
