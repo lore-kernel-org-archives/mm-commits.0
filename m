@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - plip-fix-creation-of-garbage-names-in-proc.patch removed from -mm tree
-Date: Tue, 27 Nov 2007 12:34:20 -0800
-Message-ID: <200711272034.lARKYKxD029109@imap1.linux-foundation.org>
+Subject: - plip-use-netif_rx_ni.patch removed from -mm tree
+Date: Tue, 27 Nov 2007 12:34:15 -0800
+Message-ID: <200711272034.lARKYFri029106@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40576 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55526 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756565AbXK0Uhs (ORCPT
+	by vger.kernel.org with ESMTP id S1756592AbXK0Uhs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 27 Nov 2007 15:37:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,63 +15,42 @@ To: mikulas@artax.karlin.mff.cuni.cz, davem@davemloft.net, herbert@gondor.apana.
 
 
 The patch titled
-     plip: fix creation of garbage names in /proc
+     plip: use netif_rx_ni()
 has been removed from the -mm tree.  Its filename was
-     plip-fix-creation-of-garbage-names-in-proc.patch
+     plip-use-netif_rx_ni.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: plip: fix creation of garbage names in /proc
+Subject: plip: use netif_rx_ni()
 From: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
 
-Plip passes string "name" that is allocated on stack to
-parport_register_device.  parport_register_device holds the pointer to "name"
-and when the registering function exits, it points nowhere.
+netif_rx is meant to be called from interrupts because it doesn't wake up
+ksoftirqd.  For calling from outside interrupts, netif_rx_ni exists.
 
-On some machines, this bug causes bad names to appear in /proc filesystem,
-such as /proc/sys/dev/parport/parport0/devices/T^/X^/, on others, the plip
-proc node is completely missing.
-
-The patch also fixes documentation to note this requirement.
+This patch fixes plip to use netif_rx_ni.  It fixes the infamous error "NOHZ:
+local_softirq_panding 08" that happens on some machines with NOHZ and plip ---
+it is caused by the fact that softirq is pending and ksoftirqd is sleeping.
 
 Signed-off-by: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/parport-lowlevel.txt |    4 ++++
- drivers/net/plip.c                 |    2 +-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ drivers/net/plip.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/parport-lowlevel.txt~plip-fix-creation-of-garbage-names-in-proc Documentation/parport-lowlevel.txt
---- a/Documentation/parport-lowlevel.txt~plip-fix-creation-of-garbage-names-in-proc
-+++ a/Documentation/parport-lowlevel.txt
-@@ -339,6 +339,10 @@ Use this function to register your devic
- ('port').  Once you have done that, you will be able to use
- parport_claim and parport_release in order to use the port.
- 
-+The ('name') argument is the name of the device that appears in /proc
-+filesystem. The string must be valid for the whole lifetime of the
-+device (until parport_unregister_device is called).
-+
- This function will register three callbacks into your driver:
- 'preempt', 'wakeup' and 'irq'.  Each of these may be NULL in order to
- indicate that you do not want a callback.
-diff -puN drivers/net/plip.c~plip-fix-creation-of-garbage-names-in-proc drivers/net/plip.c
---- a/drivers/net/plip.c~plip-fix-creation-of-garbage-names-in-proc
+diff -puN drivers/net/plip.c~plip-use-netif_rx_ni drivers/net/plip.c
+--- a/drivers/net/plip.c~plip-use-netif_rx_ni
 +++ a/drivers/net/plip.c
-@@ -1269,7 +1269,7 @@ static void plip_attach (struct parport 
- 
- 		nl = netdev_priv(dev);
- 		nl->dev = dev;
--		nl->pardev = parport_register_device(port, name, plip_preempt,
-+		nl->pardev = parport_register_device(port, dev->name, plip_preempt,
- 						 plip_wakeup, plip_interrupt,
- 						 0, dev);
- 
+@@ -663,7 +663,7 @@ plip_receive_packet(struct net_device *d
+ 	case PLIP_PK_DONE:
+ 		/* Inform the upper layer for the arrival of a packet. */
+ 		rcv->skb->protocol=plip_type_trans(rcv->skb, dev);
+-		netif_rx(rcv->skb);
++		netif_rx_ni(rcv->skb);
+ 		dev->last_rx = jiffies;
+ 		dev->stats.rx_bytes += rcv->length.h;
+ 		dev->stats.rx_packets++;
 _
 
 Patches currently in -mm which might be from mikulas@artax.karlin.mff.cuni.cz are
