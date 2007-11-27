@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pci-add-dma-segment-boundary-support.patch added to -mm tree
-Date: Mon, 26 Nov 2007 20:39:50 -0800
-Message-ID: <200711270439.lAR4doRK027204@imap1.linux-foundation.org>
+Subject: + mm-add-dirty_highmem-option.patch added to -mm tree
+Date: Mon, 26 Nov 2007 20:54:34 -0800
+Message-ID: <200711270454.lAR4sYw7027691@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39188 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34753 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754065AbXK0Ek1 (ORCPT
+	by vger.kernel.org with ESMTP id S1757610AbXK0Eys (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 23:40:27 -0500
+	Mon, 26 Nov 2007 23:54:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tomof@acm.org, James.Bottomley@steeleye.com, fujita.tomonori@lab.ntt.co.jp, greg@kroah.com, jeff@garzik.org, jens.axboe@oracle.com
+Cc: brong@fastmail.fm, a.p.zijlstra@chello.nl, solo@google.com, torvalds@linux-foundation.org, wfg@mail.ustc.edu.cn
 
 
 The patch titled
-     iommu sg merging: PCI: add dma segment boundary support
+     mm: add dirty_highmem option
 has been added to the -mm tree.  Its filename is
-     pci-add-dma-segment-boundary-support.patch
+     mm-add-dirty_highmem-option.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,93 +26,157 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: iommu sg merging: PCI: add dma segment boundary support
-From: FUJITA Tomonori <tomof@acm.org>
+Subject: mm: add dirty_highmem option
+From: Bron Gondwana <brong@fastmail.fm>
 
-This adds PCI's accessor for segment_boundary_mask in device_dma_parameters.
+A 32 bit machine with HIGHMEM64 enabled running DCC has an MMAPed file of
+approximately 2Gb size which contains a hash format that is written
+"randomly" by the dbclean process.  On 2.6.16 this process took a few
+minutes.  With lowmem only accounting of dirty ratios, this takes about 12
+hours of 100% disk IO, all random writes.
 
-The default segment_boundary is set to 0xffffffff, same to the block layer's
-default value (and the scsi mid layer uses the same value).
+This patch includes some code cleanup from Linus and a toggle in
+/proc/sys/vm/dirty_highmem which can be set to 1 to add the highmem back to
+the total available memory count.
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Bron Gondwana <brong@fastmail.fm>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: WU Fengguang <wfg@mail.ustc.edu.cn>
+Cc: Ethan Solomita <solo@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pci.c   |    8 ++++++++
- drivers/pci/probe.c |    1 +
- include/linux/pci.h |    2 ++
- 3 files changed, 11 insertions(+)
+ Documentation/filesystems/proc.txt |   12 ++++++++++++
+ Documentation/sysctl/vm.txt        |    9 +++++----
+ include/linux/writeback.h          |    1 +
+ kernel/sysctl.c                    |   16 +++++++++++++++-
+ mm/page-writeback.c                |    9 ++++++++-
+ 5 files changed, 41 insertions(+), 6 deletions(-)
 
-diff -puN drivers/pci/pci.c~pci-add-dma-segment-boundary-support drivers/pci/pci.c
---- a/drivers/pci/pci.c~pci-add-dma-segment-boundary-support
-+++ a/drivers/pci/pci.c
-@@ -1426,6 +1426,14 @@ int pci_set_dma_max_seg_size(struct pci_
- EXPORT_SYMBOL(pci_set_dma_max_seg_size);
+diff -puN Documentation/filesystems/proc.txt~mm-add-dirty_highmem-option Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~mm-add-dirty_highmem-option
++++ a/Documentation/filesystems/proc.txt
+@@ -1258,6 +1258,18 @@ dirty_background_ratio
+ Contains, as a percentage of total system memory, the number of pages at which
+ the pdflush background writeback daemon will start writing out dirty data.
+ 
++dirty_highmem
++-------------
++
++Contains, as a boolean, a switch to allow highmem to be counted as
++part of the "available" memory against which the dirty ratios will be
++applied.
++
++Setting this to 1 can be useful on 32 bit machines where you want to make
++random changes within an MMAPed file that is larger than your available
++lowmem, however it is potentially dangerous and has serious bounce-buffer
++issues.
++
+ dirty_ratio
+ -----------------
+ 
+diff -puN Documentation/sysctl/vm.txt~mm-add-dirty_highmem-option Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~mm-add-dirty_highmem-option
++++ a/Documentation/sysctl/vm.txt
+@@ -18,6 +18,7 @@ files can be found in mm/swap.c.
+ Currently, these files are in /proc/sys/vm:
+ - overcommit_memory
+ - page-cluster
++- dirty_highmem
+ - dirty_ratio
+ - dirty_background_ratio
+ - dirty_expire_centisecs
+@@ -37,10 +38,10 @@ Currently, these files are in /proc/sys/
+ 
+ ==============================================================
+ 
+-dirty_ratio, dirty_background_ratio, dirty_expire_centisecs,
+-dirty_writeback_centisecs, vfs_cache_pressure, laptop_mode,
+-block_dump, swap_token_timeout, drop-caches,
+-hugepages_treat_as_movable:
++dirty_highmem, dirty_ratio, dirty_background_ratio,
++dirty_expire_centisecs, dirty_writeback_centisecs,
++vfs_cache_pressure, laptop_mode, block_dump,
++swap_token_timeout, drop-caches, hugepages_treat_as_movable:
+ 
+ See Documentation/filesystems/proc.txt
+ 
+diff -puN include/linux/writeback.h~mm-add-dirty_highmem-option include/linux/writeback.h
+--- a/include/linux/writeback.h~mm-add-dirty_highmem-option
++++ a/include/linux/writeback.h
+@@ -98,6 +98,7 @@ void throttle_vm_writeout(gfp_t gfp_mask
+ 
+ /* These are exported to sysctl. */
+ extern int dirty_background_ratio;
++extern int vm_dirty_highmem;
+ extern int vm_dirty_ratio;
+ extern int dirty_writeback_interval;
+ extern int dirty_expire_interval;
+diff -puN kernel/sysctl.c~mm-add-dirty_highmem-option kernel/sysctl.c
+--- a/kernel/sysctl.c~mm-add-dirty_highmem-option
++++ a/kernel/sysctl.c
+@@ -82,9 +82,10 @@ extern int maps_protect;
+ extern int sysctl_stat_interval;
+ extern int audit_argv_kb;
+ 
++static int one = 1;
++
+ /* Constants used for minimum and  maximum */
+ #ifdef CONFIG_DETECT_SOFTLOCKUP
+-static int one = 1;
+ static int sixty = 60;
  #endif
  
-+#ifndef HAVE_ARCH_PCI_SET_DMA_SEGMENT_BOUNDARY
-+int pci_set_dma_seg_boundary(struct pci_dev *dev, unsigned long mask)
-+{
-+	return dma_set_seg_boundary(&dev->dev, mask);
-+}
-+EXPORT_SYMBOL(pci_set_dma_seg_boundary);
+@@ -1081,6 +1082,19 @@ static struct ctl_table vm_table[] = {
+ 		.extra1		= &zero,
+ 	},
+ #endif
++#ifdef CONFIG_HIGHMEM
++	{
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "dirty_highmem",
++		.data		= &vm_dirty_highmem,
++		.maxlen		= sizeof(vm_dirty_highmem),
++		.mode		= 0644,
++		.proc_handler	= &proc_dointvec_minmax,
++		.strategy	= &sysctl_intvec,
++		.extra1		= &zero,
++		.extra2		= &one,
++	},
 +#endif
+ /*
+  * NOTE: do not add new entries to this table unless you have read
+  * Documentation/sysctl/ctl_unnumbered.txt
+diff -puN mm/page-writeback.c~mm-add-dirty_highmem-option mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-add-dirty_highmem-option
++++ a/mm/page-writeback.c
+@@ -69,6 +69,12 @@ static inline long sync_writeback_pages(
+ int dirty_background_ratio = 5;
+ 
+ /*
++ * free highmem will not be subtracted from the total free memory
++ * for calculating free ratios if vm_dirty_highmem is true
++ */
++int vm_dirty_highmem;
 +
- /**
-  * pcix_get_max_mmrbc - get PCI-X maximum designed memory read byte count
-  * @dev: PCI device to query
-diff -puN drivers/pci/probe.c~pci-add-dma-segment-boundary-support drivers/pci/probe.c
---- a/drivers/pci/probe.c~pci-add-dma-segment-boundary-support
-+++ a/drivers/pci/probe.c
-@@ -978,6 +978,7 @@ void pci_device_add(struct pci_dev *dev,
- 	dev->dev.coherent_dma_mask = 0xffffffffull;
++/*
+  * The generator of dirty data starts writeback at this percentage
+  */
+ int vm_dirty_ratio = 10;
+@@ -287,7 +293,8 @@ static unsigned long determine_dirtyable
+ 	x = global_page_state(NR_FREE_PAGES)
+ 		+ global_page_state(NR_INACTIVE)
+ 		+ global_page_state(NR_ACTIVE);
+-	x -= highmem_dirtyable_memory(x);
++	if (!vm_dirty_highmem)
++		x -= highmem_dirtyable_memory(x);
+ 	return x + 1;	/* Ensure that we never return 0 */
+ }
  
- 	pci_set_dma_max_seg_size(dev, 65536);
-+	pci_set_dma_seg_boundary(dev, 0xffffffff);
- 
- 	/* Fix up broken headers */
- 	pci_fixup_device(pci_fixup_header, dev);
-diff -puN include/linux/pci.h~pci-add-dma-segment-boundary-support include/linux/pci.h
---- a/include/linux/pci.h~pci-add-dma-segment-boundary-support
-+++ a/include/linux/pci.h
-@@ -567,6 +567,7 @@ void pci_msi_off(struct pci_dev *dev);
- int pci_set_dma_mask(struct pci_dev *dev, u64 mask);
- int pci_set_consistent_dma_mask(struct pci_dev *dev, u64 mask);
- int pci_set_dma_max_seg_size(struct pci_dev *dev, unsigned int size);
-+int pci_set_dma_seg_boundary(struct pci_dev *dev, unsigned long mask);
- int pcix_get_max_mmrbc(struct pci_dev *dev);
- int pcix_get_mmrbc(struct pci_dev *dev);
- int pcix_set_mmrbc(struct pci_dev *dev, int mmrbc);
-@@ -752,6 +753,7 @@ static inline int pci_enable_device(stru
- static inline void pci_disable_device(struct pci_dev *dev) { }
- static inline int pci_set_dma_mask(struct pci_dev *dev, u64 mask) { return -EIO; }
- static inline int pci_set_dma_max_seg_size(struct pci_dev *dev, unsigned int size) { return -EIO; }
-+static inline int pci_set_dma_seg_boundary(struct pci_dev *dev, unsigned long mask) { return -EIO; }
- static inline int pci_assign_resource(struct pci_dev *dev, int i) { return -EBUSY;}
- static inline int __pci_register_driver(struct pci_driver *drv, struct module *owner) { return 0;}
- static inline int pci_register_driver(struct pci_driver *drv) { return 0;}
 _
 
-Patches currently in -mm which might be from tomof@acm.org are
+Patches currently in -mm which might be from brong@fastmail.fm are
 
-git-scsi-misc.patch
-iommu-sg-merging-add-device_dma_parameters-structure.patch
-iommu-sg-merging-pci-add-device_dma_parameters-support.patch
-iommu-sg-merging-x86-make-pci-gart-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-ppc-make-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-ia64-make-sba_iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-alpha-make-pci_iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-parisc-make-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-call-blk_queue_segment_boundary-in-__scsi_alloc_queue.patch
-iommu-sg-merging-sata_inic162x-use-pci_set_dma_max_seg_size.patch
-iommu-sg-merging-aacraid-use-pci_set_dma_max_seg_size.patch
-add-accessors-for-segment_boundary_mask-in.patch
-pci-add-dma-segment-boundary-support.patch
-swiotlb-respect-the-segment-boundary-limits.patch
-call-dma_set_seg_boundary-in-__scsi_alloc_queue.patch
-alpha-kill-deprecated-virt_to_bus.patch
+mm-add-dirty_highmem-option.patch
+mm-add-dirty_highmem-option-fix.patch
