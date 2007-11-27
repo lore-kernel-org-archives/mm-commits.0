@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ide-scsi-use-print_hex_dump-from-linux-kernelh.patch added to -mm tree
-Date: Tue, 27 Nov 2007 01:31:28 -0800
-Message-ID: <200711270931.lAR9VSIl004890@imap1.linux-foundation.org>
+Subject: + x86_64-add-acpi-reboot-option.patch added to -mm tree
+Date: Tue, 27 Nov 2007 01:38:20 -0800
+Message-ID: <200711270938.lAR9cKPC005130@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51528 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50961 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756475AbXK0JcM (ORCPT
+	by vger.kernel.org with ESMTP id S1751235AbXK0Jj5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 04:32:12 -0500
+	Tue, 27 Nov 2007 04:39:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: crquan@gmail.com, bzolnier@gmail.com, randy.dunlap@oracle.com
+Cc: adurbin@google.com, ak@suse.de, lenb@kernel.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     ide-scsi: use print_hex_dump from <linux/kernel.h>
+     x86_64: add ACPI reboot option
 has been added to the -mm tree.  Its filename is
-     ide-scsi-use-print_hex_dump-from-linux-kernelh.patch
+     x86_64-add-acpi-reboot-option.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,73 +26,96 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ide-scsi: use print_hex_dump from <linux/kernel.h>
-From: Denis Cheng <crquan@gmail.com>
+Subject: x86_64: add ACPI reboot option
+From: Aaron Durbin <adurbin@google.com>
 
-these utilities implemented in lib/hexdump.c are more handy, please use this.
+Add the ability to reboot an x86_64 based machine using the RESET_REG in the
+FADT ACPI table.
 
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Signed-off-by: Denis Cheng <crquan@gmail.com>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Signed-off-by: Aaron Durbin <adurbin@google.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ide-scsi.c |   18 ++++--------------
- 1 file changed, 4 insertions(+), 14 deletions(-)
+ Documentation/x86_64/boot-options.txt |    5 ++++-
+ arch/x86/kernel/reboot_64.c           |   11 ++++++++++-
+ 2 files changed, 14 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/ide-scsi.c~ide-scsi-use-print_hex_dump-from-linux-kernelh drivers/scsi/ide-scsi.c
---- a/drivers/scsi/ide-scsi.c~ide-scsi-use-print_hex_dump-from-linux-kernelh
-+++ a/drivers/scsi/ide-scsi.c
-@@ -242,16 +242,6 @@ static void idescsi_output_buffers (ide_
- 	}
+diff -puN Documentation/x86_64/boot-options.txt~x86_64-add-acpi-reboot-option Documentation/x86_64/boot-options.txt
+--- a/Documentation/x86_64/boot-options.txt~x86_64-add-acpi-reboot-option
++++ a/Documentation/x86_64/boot-options.txt
+@@ -110,12 +110,15 @@ Idle loop
+ 
+ Rebooting
+ 
+-   reboot=b[ios] | t[riple] | k[bd] [, [w]arm | [c]old]
++   reboot=b[ios] | t[riple] | k[bd] | a[cpi] [, [w]arm | [c]old]
+    bios	  Use the CPU reboot vector for warm reset
+    warm   Don't set the cold reboot flag
+    cold   Set the cold reboot flag
+    triple Force a triple fault (init)
+    kbd    Use the keyboard controller. cold reset (default)
++   acpi   Use the ACPI RESET_REG in the FADT. If ACPI is not configured or the
++          ACPI reset does not work, the reboot path attempts the reset using
++          the keyboard controller.
+ 
+    Using warm reset will be much faster especially on big memory
+    systems because the BIOS will not go through the memory check.
+diff -puN arch/x86/kernel/reboot_64.c~x86_64-add-acpi-reboot-option arch/x86/kernel/reboot_64.c
+--- a/arch/x86/kernel/reboot_64.c~x86_64-add-acpi-reboot-option
++++ a/arch/x86/kernel/reboot_64.c
+@@ -9,6 +9,7 @@
+ #include <linux/pm.h>
+ #include <linux/kdebug.h>
+ #include <linux/sched.h>
++#include <acpi/reboot.h>
+ #include <asm/io.h>
+ #include <asm/delay.h>
+ #include <asm/desc.h>
+@@ -28,7 +29,8 @@ EXPORT_SYMBOL(pm_power_off);
+ static long no_idt[3];
+ static enum { 
+ 	BOOT_TRIPLE = 't',
+-	BOOT_KBD = 'k'
++	BOOT_KBD = 'k',
++	BOOT_ACPI = 'a'
+ } reboot_type = BOOT_KBD;
+ static int reboot_mode = 0;
+ int reboot_force;
+@@ -38,6 +40,7 @@ int reboot_force;
+    cold   Set the cold reboot flag
+    triple Force a triple fault (init)
+    kbd    Use the keyboard controller. cold reset (default)
++   acpi   Use the RESET_REG in the FADT
+    force  Avoid anything that could hang.
+  */ 
+ static int __init reboot_setup(char *str)
+@@ -53,6 +56,7 @@ static int __init reboot_setup(char *str
+ 			break;
+ 
+ 		case 't':
++		case 'a':
+ 		case 'b':
+ 		case 'k':
+ 			reboot_type = *str;
+@@ -142,6 +146,11 @@ void machine_emergency_restart(void)
+ 
+ 			reboot_type = BOOT_KBD;
+ 			break;
++
++		case BOOT_ACPI:
++			acpi_reboot();
++			reboot_type = BOOT_KBD;
++			break;
+ 		}      
+ 	}      
  }
- 
--static void hexdump(u8 *x, int len)
--{
--	int i;
--
--	printk("[ ");
--	for (i = 0; i < len; i++)
--		printk("%x ", x[i]);
--	printk("]\n");
--}
--
- static int idescsi_check_condition(ide_drive_t *drive, struct request *failed_command)
- {
- 	idescsi_scsi_t *scsi = drive_to_idescsi(drive);
-@@ -282,7 +272,7 @@ static int idescsi_check_condition(ide_d
- 	pc->scsi_cmd = ((idescsi_pc_t *) failed_command->special)->scsi_cmd;
- 	if (test_bit(IDESCSI_LOG_CMD, &scsi->log)) {
- 		printk ("ide-scsi: %s: queue cmd = ", drive->name);
--		hexdump(pc->c, 6);
-+		print_hex_dump(KERN_DEBUG, "", DUMP_PREFIX_OFFSET, 16, 1, pc->c, 6, 1);
- 	}
- 	rq->rq_disk = scsi->disk;
- 	return ide_do_drive_cmd(drive, rq, ide_preempt);
-@@ -337,7 +327,7 @@ static int idescsi_end_request (ide_driv
- 		idescsi_pc_t *opc = (idescsi_pc_t *) rq->buffer;
- 		if (log) {
- 			printk ("ide-scsi: %s: wrap up check %lu, rst = ", drive->name, opc->scsi_cmd->serial_number);
--			hexdump(pc->buffer,16);
-+			print_hex_dump(KERN_DEBUG, "", DUMP_PREFIX_OFFSET, 16, 1, pc->buffer, 16, 1);
- 		}
- 		memcpy((void *) opc->scsi_cmd->sense_buffer, pc->buffer, SCSI_SENSE_BUFFERSIZE);
- 		kfree(pc->buffer);
-@@ -813,10 +803,10 @@ static int idescsi_queue (struct scsi_cm
- 
- 	if (test_bit(IDESCSI_LOG_CMD, &scsi->log)) {
- 		printk ("ide-scsi: %s: que %lu, cmd = ", drive->name, cmd->serial_number);
--		hexdump(cmd->cmnd, cmd->cmd_len);
-+		print_hex_dump(KERN_DEBUG, "", DUMP_PREFIX_OFFSET, 16, 1, cmd->cmnd, cmd->cmd_len, 1);
- 		if (memcmp(pc->c, cmd->cmnd, cmd->cmd_len)) {
- 			printk ("ide-scsi: %s: que %lu, tsl = ", drive->name, cmd->serial_number);
--			hexdump(pc->c, 12);
-+			print_hex_dump(KERN_DEBUG, "", DUMP_PREFIX_OFFSET, 16, 1, pc->c, 12, 1);
- 		}
- 	}
- 
 _
 
-Patches currently in -mm which might be from crquan@gmail.com are
+Patches currently in -mm which might be from adurbin@google.com are
 
-ide-scsi-use-print_hex_dump-from-linux-kernelh.patch
+acpi-add-reboot-mechanism.patch
+x86_64-add-acpi-reboot-option.patch
