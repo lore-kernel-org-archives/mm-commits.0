@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-up-ext2_fsh-for-userspace-after-reservations-backport.patch added to -mm tree
-Date: Tue, 27 Nov 2007 12:55:16 -0800
-Message-ID: <200711272055.lARKtGqO029962@imap1.linux-foundation.org>
+Subject: + hexdump-dont-print-bytes-with-bit-7-set.patch added to -mm tree
+Date: Tue, 27 Nov 2007 12:56:06 -0800
+Message-ID: <200711272056.lARKu6Jo029980@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41656 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47657 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759422AbXK0Uz7 (ORCPT
+	by vger.kernel.org with ESMTP id S1754376AbXK0U5t (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 15:55:59 -0500
+	Tue, 27 Nov 2007 15:57:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tp@fonz.de, sandeen@redhat.com
+Cc: randy.dunlap@oracle.com, herbert@gondor.apana.org.au
 
 
 The patch titled
-     fix up ext2_fs.h for userspace after reservations backport
+     hexdump: don't print bytes with bit 7 set
 has been added to the -mm tree.  Its filename is
-     fix-up-ext2_fsh-for-userspace-after-reservations-backport.patch
+     hexdump-dont-print-bytes-with-bit-7-set.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,56 +26,53 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix up ext2_fs.h for userspace after reservations backport
-From: Tobias Poschwatta <tp@fonz.de>
+Subject: hexdump: don't print bytes with bit 7 set
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-In commit a686cd898bd999fd026a51e90fb0a3410d258ddb:
+As Herbert Xu pointed out, bytes (chars) with bit 7 (0x80) set are true
+with isprint() but they may not be isascii() but be Unicode instead, so
+don't try to print them in hex dumps.
 
- "Val's cross-port of the ext3 reservations code into ext2."
-
-include/linux/ext2_fs.h got a new function whose return value is only
-defined if __KERNEL__ is defined. Putting #ifdef __KERNEL__ around the
-function seems to help, patch below.
-
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/ext2.h          |    7 +++++++
- include/linux/ext2_fs.h |    7 -------
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ lib/hexdump.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/ext2_fs.h~fix-up-ext2_fsh-for-userspace-after-reservations-backport include/linux/ext2_fs.h
---- a/include/linux/ext2_fs.h~fix-up-ext2_fsh-for-userspace-after-reservations-backport
-+++ a/include/linux/ext2_fs.h
-@@ -563,11 +563,4 @@ enum {
- 					 ~EXT2_DIR_ROUND)
- #define EXT2_MAX_REC_LEN		((1<<16)-1)
- 
--static inline ext2_fsblk_t
--ext2_group_first_block_no(struct super_block *sb, unsigned long group_no)
--{
--	return group_no * (ext2_fsblk_t)EXT2_BLOCKS_PER_GROUP(sb) +
--		le32_to_cpu(EXT2_SB(sb)->s_es->s_first_data_block);
--}
--
- #endif	/* _LINUX_EXT2_FS_H */
-diff -puN fs/ext2/ext2.h~fix-up-ext2_fsh-for-userspace-after-reservations-backport fs/ext2/ext2.h
---- a/fs/ext2/ext2.h~fix-up-ext2_fsh-for-userspace-after-reservations-backport
-+++ a/fs/ext2/ext2.h
-@@ -178,3 +178,10 @@ extern const struct inode_operations ext
- /* symlink.c */
- extern const struct inode_operations ext2_fast_symlink_inode_operations;
- extern const struct inode_operations ext2_symlink_inode_operations;
-+
-+static inline ext2_fsblk_t
-+ext2_group_first_block_no(struct super_block *sb, unsigned long group_no)
-+{
-+	return group_no * (ext2_fsblk_t)EXT2_BLOCKS_PER_GROUP(sb) +
-+		le32_to_cpu(EXT2_SB(sb)->s_es->s_first_data_block);
-+}
+diff -puN lib/hexdump.c~hexdump-dont-print-bytes-with-bit-7-set lib/hexdump.c
+--- a/lib/hexdump.c~hexdump-dont-print-bytes-with-bit-7-set
++++ a/lib/hexdump.c
+@@ -106,7 +106,8 @@ void hex_dump_to_buffer(const void *buf,
+ 	while (lx < (linebuflen - 1) && lx < (ascii_column - 1))
+ 		linebuf[lx++] = ' ';
+ 	for (j = 0; (j < rowsize) && (j < len) && (lx + 2) < linebuflen; j++)
+-		linebuf[lx++] = isprint(ptr[j]) ? ptr[j] : '.';
++		linebuf[lx++] = (isascii(ptr[j]) && isprint(ptr[j])) ? ptr[j]
++				: '.';
+ nil:
+ 	linebuf[lx++] = '\0';
+ }
 _
 
-Patches currently in -mm which might be from tp@fonz.de are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-fix-up-ext2_fsh-for-userspace-after-reservations-backport.patch
+origin.patch
+the-namespaces-compatibility-list.patch
+hexdump-dont-print-bytes-with-bit-7-set.patch
+git-dvb.patch
+ide-scsi-use-print_hex_dump-from-linux-kernelh.patch
+git-scsi-misc.patch
+advansys-fix-section-mismatch-warning.patch
+aic94-fix-section-mismatches.patch
+sym2-fix-section-mismatch-warning.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+git-x86.patch
+register_cpu-__devinit-or-__cpuinit.patch
+cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
+move-kprobes-examples-to-samples-resend.patch
+move-kprobes-examples-to-samples-resend-checkpatch-fixes.patch
+fs-menu-small-reorg.patch
+profile-likely-unlikely-macros.patch
