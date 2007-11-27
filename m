@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-scsi-misc-fixup.patch added to -mm tree
-Date: Tue, 27 Nov 2007 12:22:28 -0800
-Message-ID: <200711272022.lARKMSjI028568@imap1.linux-foundation.org>
+Subject: + git-mips-fixup.patch added to -mm tree
+Date: Tue, 27 Nov 2007 12:27:59 -0800
+Message-ID: <200711272027.lARKRxhC028766@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33232 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34740 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754980AbXK0UWb (ORCPT
+	by vger.kernel.org with ESMTP id S1750966AbXK0U2Q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 15:22:31 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lARKMSZg014356
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 27 Nov 2007 12:22:29 -0800
+	Tue, 27 Nov 2007 15:28:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, ralf@linux-mips.org
 
 
 The patch titled
-     git-scsi-misc-fixup
+     git-mips-fixup
 has been added to the -mm tree.  Its filename is
-     git-scsi-misc-fixup.patch
+     git-mips-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,27 +26,87 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-scsi-misc-fixup
+Subject: git-mips-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Try to fix git conflicts in the mips tree
+
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/mips/Kconfig           |   12 ------------
+ arch/mips/kernel/proc.c     |    5 -----
+ include/asm-mips/cpu-info.h |    5 -----
+ 3 files changed, 22 deletions(-)
 
-diff -puN Documentation/DocBook/Makefile~git-scsi-misc-fixup Documentation/DocBook/Makefile
---- a/Documentation/DocBook/Makefile~git-scsi-misc-fixup
-+++ a/Documentation/DocBook/Makefile
-@@ -11,7 +11,7 @@ DOCBOOKS := wanbook.xml z8530book.xml mc
- 	    procfs-guide.xml writing_usb_driver.xml \
- 	    kernel-api.xml filesystems.xml lsm.xml usb.xml \
- 	    gadget.xml libata.xml mtdnand.xml librs.xml rapidio.xml \
--	    genericirq.xml s390-drivers.xml uio-howto.xml
-+	    genericirq.xml s390-drivers.xml uio-howto.xml scsi.xml
+diff -puN arch/mips/kernel/proc.c~git-mips-fixup arch/mips/kernel/proc.c
+--- a/arch/mips/kernel/proc.c~git-mips-fixup
++++ a/arch/mips/kernel/proc.c
+@@ -60,12 +60,7 @@ static int show_cpuinfo(struct seq_file 
+ 		      cpu_has_dsp ? " dsp" : "",
+ 		      cpu_has_mipsmt ? " mt" : ""
+ 		);
+-<<<<<<< HEAD:arch/mips/kernel/proc.c
+-	seq_printf(m, "shadow register sets\t: %d\n",
+-		       cpu_data[n].srsets);
+-=======
+ 	seq_printf(m, "core\t\t\t: %d\n", cpu_data[n].core);
+->>>>>>> FETCH_HEAD:arch/mips/kernel/proc.c
  
- ###
- # The build process is as follows (targets):
+ 	sprintf(fmt, "VCE%%c exceptions\t\t: %s\n",
+ 	        cpu_has_vce ? "%u" : "not available");
+diff -puN include/asm-mips/cpu-info.h~git-mips-fixup include/asm-mips/cpu-info.h
+--- a/include/asm-mips/cpu-info.h~git-mips-fixup
++++ a/include/asm-mips/cpu-info.h
+@@ -54,14 +54,9 @@ struct cpuinfo_mips {
+ 	struct cache_desc	dcache;	/* Primary D or combined I/D cache */
+ 	struct cache_desc	scache;	/* Secondary cache */
+ 	struct cache_desc	tcache;	/* Tertiary/split secondary cache */
+-<<<<<<< HEAD:include/asm-mips/cpu-info.h
+ 	int			srsets;	/* Shadow register sets */
+-#if defined(CONFIG_MIPS_MT_SMTC)
+-=======
+-
+ 	int			core;	/* physical core number */
+ #if defined(CONFIG_MIPS_MT_SMP) || defined(CONFIG_MIPS_MT_SMTC)
+->>>>>>> FETCH_HEAD:include/asm-mips/cpu-info.h
+ 	/*
+ 	 * In the MIPS MT "SMTC" model, each TC is considered
+ 	 * to be a "CPU" for the purposes of scheduling, but
+diff -puN arch/mips/Kconfig~git-mips-fixup arch/mips/Kconfig
+--- a/arch/mips/Kconfig~git-mips-fixup
++++ a/arch/mips/Kconfig
+@@ -88,13 +88,10 @@ config MACH_DECSTATION
+ 	bool "DECstations"
+ 	select BOOT_ELF32
+ 	select CEVT_R4K
+-<<<<<<< HEAD:arch/mips/Kconfig
+ 	select CSRC_R4K
+-=======
+ 	select CPU_DADDI_WORKAROUNDS if 64BIT
+ 	select CPU_R4000_WORKAROUNDS if 64BIT
+ 	select CPU_R4400_WORKAROUNDS if 64BIT
+->>>>>>> FETCH_HEAD:arch/mips/Kconfig
+ 	select DMA_NONCOHERENT
+ 	select IRQ_CPU
+ 	select NO_IOPORT
+@@ -1989,15 +1986,6 @@ config MMU
+ config I8253
+ 	bool
+ 
+-<<<<<<< HEAD:arch/mips/Kconfig
+-config PCSPEAKER
+-	bool
+-
+-config ZONE_DMA32
+-	bool
+-
+-=======
+->>>>>>> FETCH_HEAD:arch/mips/Kconfig
+ source "drivers/pcmcia/Kconfig"
+ 
+ source "drivers/pci/hotplug/Kconfig"
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,7 +162,6 @@ git-watchdog.patch
 git-wireless.patch
 git-ipwireless_cs.patch
 git-x86.patch
-git-x86-fixup.patch
 git-cryptodev.patch
 git-xtensa.patch
 ia64-increase-datapatch-offset.patch
