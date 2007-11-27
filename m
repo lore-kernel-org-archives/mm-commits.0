@@ -1,108 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - kobjects-drop-child-parent-ref-at-unregistration.patch removed from -mm tree
-Date: Tue, 27 Nov 2007 10:28:30 -0800
-Message-ID: <200711271828.lARISUt2024638@imap1.linux-foundation.org>
+Subject: - mm-sparsec-improve-the-error-handling-for-sparse_add_one_section.patch removed from -mm tree
+Date: Tue, 27 Nov 2007 11:02:42 -0800
+Message-ID: <200711271902.lARJ2gnw025847@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50184 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42974 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756242AbXK0S2x (ORCPT
+	by vger.kernel.org with ESMTP id S1757543AbXK0TDr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 13:28:53 -0500
+	Tue, 27 Nov 2007 14:03:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stern@rowland.harvard.edu, cornelia.huck@de.ibm.com, greg@kroah.com, htejun@gmail.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
+To: xiyou.wangcong@gmail.com, apw@shadowen.org, clameter@sgi.com, haveblue@us.ibm.com, riel@redhat.com, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Kobjects: drop child->parent ref at unregistration
+     mm/sparse.c: Improve the error handling for sparse_add_one_section()
 has been removed from the -mm tree.  Its filename was
-     kobjects-drop-child-parent-ref-at-unregistration.patch
+     mm-sparsec-improve-the-error-handling-for-sparse_add_one_section.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Kobjects: drop child->parent ref at unregistration
-From: Alan Stern <stern@rowland.harvard.edu>
+Subject: mm/sparse.c: Improve the error handling for sparse_add_one_section()
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-This patch (as1015) reverts changes that were made to the driver core about
-four years ago.  The intent back then was to avoid certain kinds of invalid
-memory accesses by leaving kernel objects allocated as long as any of their
-children were still allocated.  The original and correct approach was to
-wait only as long as any children were still _registered_; that's what this
-patch reinstates.
+Improve the error handling for mm/sparse.c::sparse_add_one_section().  And I
+see no reason to check 'usemap' until holding the 'pgdat_resize_lock'.
 
-This fixes a problem in the SCSI core made visible by the class_device to
-regular device conversion: A reference loop (scsi_device holds reference to
-request_queue, which is the child of a gendisk, which is the child of the
-scsi_device) prevents the data structures from being released, even though
-they are deregistered okay.
-
-It's possible that this change will cause a few bugs to surface, things
-that have been hidden for several years.  They can be fixed easily enough
-by having the child device take an explicit reference to the parent
-whenever needed.
-
-Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kobject.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/sparse.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN lib/kobject.c~kobjects-drop-child-parent-ref-at-unregistration lib/kobject.c
---- a/lib/kobject.c~kobjects-drop-child-parent-ref-at-unregistration
-+++ a/lib/kobject.c
-@@ -206,12 +206,16 @@ void kobject_init(struct kobject * kobj)
+diff -puN mm/sparse.c~mm-sparsec-improve-the-error-handling-for-sparse_add_one_section mm/sparse.c
+--- a/mm/sparse.c~mm-sparsec-improve-the-error-handling-for-sparse_add_one_section
++++ a/mm/sparse.c
+@@ -383,9 +383,17 @@ int sparse_add_one_section(struct zone *
+ 	 * no locking for this, because it does its own
+ 	 * plus, it does a kmalloc
+ 	 */
+-	sparse_index_init(section_nr, pgdat->node_id);
++	ret = sparse_index_init(section_nr, pgdat->node_id);
++	if (ret < 0)
++		return ret;
+ 	memmap = kmalloc_section_memmap(section_nr, pgdat->node_id, nr_pages);
++	if (!memmap)
++		return -ENOMEM;
+ 	usemap = __kmalloc_section_usemap();
++	if (!usemap) {
++		__kfree_section_memmap(memmap, nr_pages);
++		return -ENOMEM;
++	}
  
- static void unlink(struct kobject * kobj)
- {
-+	struct kobject *parent = kobj->parent;
-+
- 	if (kobj->kset) {
- 		spin_lock(&kobj->kset->list_lock);
- 		list_del_init(&kobj->entry);
- 		spin_unlock(&kobj->kset->list_lock);
+ 	pgdat_resize_lock(pgdat, &flags);
+ 
+@@ -395,10 +403,6 @@ int sparse_add_one_section(struct zone *
+ 		goto out;
  	}
-+	kobj->parent = NULL;
- 	kobject_put(kobj);
-+	kobject_put(parent);
+ 
+-	if (!usemap) {
+-		ret = -ENOMEM;
+-		goto out;
+-	}
+ 	ms->section_mem_map |= SECTION_MARKED_PRESENT;
+ 
+ 	ret = sparse_init_one_section(ms, section_nr, memmap, usemap);
+@@ -406,7 +410,7 @@ int sparse_add_one_section(struct zone *
+ out:
+ 	pgdat_resize_unlock(pgdat, &flags);
+ 	if (ret <= 0)
+-		__kfree_section_memmap(memmap, nr_pages);
++		kfree(usemap);
+ 	return ret;
  }
- 
- /**
-@@ -262,7 +266,6 @@ int kobject_add(struct kobject * kobj)
- 	if (error) {
- 		/* unlink does the kobject_put() for us */
- 		unlink(kobj);
--		kobject_put(parent);
- 
- 		/* be noisy on error issues */
- 		if (error == -EEXIST)
-@@ -516,7 +519,6 @@ void kobject_cleanup(struct kobject * ko
- {
- 	struct kobj_type * t = get_ktype(kobj);
- 	struct kset * s = kobj->kset;
--	struct kobject * parent = kobj->parent;
- 	const char *name = kobj->k_name;
- 
- 	pr_debug("kobject %s: cleaning up\n",kobject_name(kobj));
-@@ -533,7 +535,6 @@ void kobject_cleanup(struct kobject * ko
- 	}
- 	if (s)
- 		kset_put(s);
--	kobject_put(parent);
- }
- 
- static void kobject_release(struct kref *kref)
+ #endif
 _
 
-Patches currently in -mm which might be from stern@rowland.harvard.edu are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
-git-acpi.patch
-kobjects-drop-child-parent-ref-at-unregistration.patch
-ohci-hcdcohci_irq-locking-fix.patch
-scsi-early-detection-of-medium-not-present-updated.patch
+uml-build-fix.patch
+mm-sparsec-check-the-return-value-of-sparse_index_alloc.patch
+mm-sparsec-improve-the-error-handling-for-sparse_add_one_section.patch
+uml-code-tidying-under-arch-um-os-linux.patch
+uml-const-and-other-tidying.patch
+time-fix-sysfs_show_availablecurrent_clocksources-buffer-overflow-problem.patch
