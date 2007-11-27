@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arm-pxa-gpiolib-support.patch added to -mm tree
-Date: Mon, 26 Nov 2007 23:46:00 -0800
-Message-ID: <200711270746.lAR7k0Fd001228@imap1.linux-foundation.org>
+Subject: + ip22zilog-fix-lockup-and-sysrq.patch added to -mm tree
+Date: Mon, 26 Nov 2007 23:49:12 -0800
+Message-ID: <200711270749.lAR7nCPw001297@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54052 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40426 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750760AbXK0Hqi (ORCPT
+	by vger.kernel.org with ESMTP id S1750760AbXK0Htj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 02:46:38 -0500
+	Tue, 27 Nov 2007 02:49:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: philipp.zabel@gmail.com, dbrownell@users.sourceforge.net, nico@cam.org, rmk+kernel@arm.linux.org.uk
+Cc: tsbogend@alpha.franken.de, alan@lxorguk.ukuu.org.uk, ralf@linux-mips.org
 
 
 The patch titled
-     arm: PXA gpiolib support
+     IP22ZILOG: fix lockup and sysrq
 has been added to the -mm tree.  Its filename is
-     arm-pxa-gpiolib-support.patch
+     ip22zilog-fix-lockup-and-sysrq.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,492 +26,499 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: arm: PXA gpiolib support
-From: Philipp Zabel <philipp.zabel@gmail.com>
+Subject: IP22ZILOG: fix lockup and sysrq
+From: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 
-Add gpiolib support for the PXA architecture:
+- fix lockup when switching from early console to real console
+- make sysrq reliable
+- fix panic, if sysrq is issued before console is opened
 
-  - move all GPIO API functions from generic.c into gpio.c
-  - convert the gpio_get/set_value macros into inline functions
-
-This makes it easier to hook up GPIOs provided by external chips like ASICs
-and CPLDs, provides real support for gpio_request(), and enables the
-/sys/kernel/debug/gpio file.
-
-Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
-Acked-by: Nicolas Pitre <nico@cam.org>
+Signed-off-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Acked-by: Ralf Baechle <ralf@linux-mips.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/Kconfig                    |    1 
- arch/arm/mach-pxa/Makefile          |    2 
- arch/arm/mach-pxa/generic.c         |   93 ------------
- arch/arm/mach-pxa/generic.h         |    1 
- arch/arm/mach-pxa/gpio.c            |  197 ++++++++++++++++++++++++++
- arch/arm/mach-pxa/irq.c             |    2 
- include/asm-arm/arch-pxa/gpio.h     |   48 ++----
- include/asm-arm/arch-pxa/pxa-regs.h |   13 +
- 8 files changed, 235 insertions(+), 122 deletions(-)
+ arch/mips/sgi-ip22/ip22-setup.c |   19 --
+ drivers/serial/ip22zilog.c      |  247 ++++++++++++------------------
+ include/linux/serial_core.h     |    2 
+ 3 files changed, 107 insertions(+), 161 deletions(-)
 
-diff -puN arch/arm/Kconfig~arm-pxa-gpiolib-support arch/arm/Kconfig
---- a/arch/arm/Kconfig~arm-pxa-gpiolib-support
-+++ a/arch/arm/Kconfig
-@@ -346,6 +346,7 @@ config ARCH_PXA
- 	select GENERIC_TIME
- 	select GENERIC_CLOCKEVENTS
- 	select TICK_ONESHOT
-+	select GPIO_LIB
- 	help
- 	  Support for Intel/Marvell's PXA2xx/PXA3xx processor line.
+diff -puN arch/mips/sgi-ip22/ip22-setup.c~ip22zilog-fix-lockup-and-sysrq arch/mips/sgi-ip22/ip22-setup.c
+--- a/arch/mips/sgi-ip22/ip22-setup.c~ip22zilog-fix-lockup-and-sysrq
++++ a/arch/mips/sgi-ip22/ip22-setup.c
+@@ -31,25 +31,6 @@
+ unsigned long sgi_gfxaddr;
+ EXPORT_SYMBOL_GPL(sgi_gfxaddr);
  
-diff -puN arch/arm/mach-pxa/generic.c~arm-pxa-gpiolib-support arch/arm/mach-pxa/generic.c
---- a/arch/arm/mach-pxa/generic.c~arm-pxa-gpiolib-support
-+++ a/arch/arm/mach-pxa/generic.c
-@@ -32,7 +32,6 @@
- #include <asm/mach/map.h>
+-/*
+- * Stop-A is originally a Sun thing that isn't standard on IP22 so to avoid
+- * accidents it's disabled by default on IP22.
+- *
+- * FIXME: provide a mechanism to change the value of stop_a_enabled.
+- */
+-int stop_a_enabled;
+-
+-void ip22_do_break(void)
+-{
+-	if (!stop_a_enabled)
+-		return;
+-
+-	printk("\n");
+-	ArcEnterInteractiveMode();
+-}
+-
+-EXPORT_SYMBOL(ip22_do_break);
+-
+ extern void ip22_be_init(void) __init;
  
- #include <asm/arch/pxa-regs.h>
--#include <asm/arch/gpio.h>
- #include <asm/arch/udc.h>
- #include <asm/arch/pxafb.h>
- #include <asm/arch/mmc.h>
-@@ -73,97 +72,6 @@ unsigned int get_memclk_frequency_10khz(
- EXPORT_SYMBOL(get_memclk_frequency_10khz);
+ void __init plat_mem_setup(void)
+diff -puN drivers/serial/ip22zilog.c~ip22zilog-fix-lockup-and-sysrq drivers/serial/ip22zilog.c
+--- a/drivers/serial/ip22zilog.c~ip22zilog-fix-lockup-and-sysrq
++++ a/drivers/serial/ip22zilog.c
+@@ -45,8 +45,6 @@
  
+ #include "ip22zilog.h"
+ 
+-void ip22_do_break(void);
+-
  /*
-- * Handy function to set GPIO alternate functions
-- */
--int pxa_last_gpio;
--
--int pxa_gpio_mode(int gpio_mode)
--{
--	unsigned long flags;
--	int gpio = gpio_mode & GPIO_MD_MASK_NR;
--	int fn = (gpio_mode & GPIO_MD_MASK_FN) >> 8;
--	int gafr;
--
--	if (gpio > pxa_last_gpio)
--		return -EINVAL;
--
--	local_irq_save(flags);
--	if (gpio_mode & GPIO_DFLT_LOW)
--		GPCR(gpio) = GPIO_bit(gpio);
--	else if (gpio_mode & GPIO_DFLT_HIGH)
--		GPSR(gpio) = GPIO_bit(gpio);
--	if (gpio_mode & GPIO_MD_MASK_DIR)
--		GPDR(gpio) |= GPIO_bit(gpio);
--	else
--		GPDR(gpio) &= ~GPIO_bit(gpio);
--	gafr = GAFR(gpio) & ~(0x3 << (((gpio) & 0xf)*2));
--	GAFR(gpio) = gafr |  (fn  << (((gpio) & 0xf)*2));
--	local_irq_restore(flags);
--
--	return 0;
--}
--
--EXPORT_SYMBOL(pxa_gpio_mode);
--
--int gpio_direction_input(unsigned gpio)
--{
--	unsigned long flags;
--	u32 mask;
--
--	if (gpio > pxa_last_gpio)
--		return -EINVAL;
--
--	mask = GPIO_bit(gpio);
--	local_irq_save(flags);
--	GPDR(gpio) &= ~mask;
--	local_irq_restore(flags);
--
--	return 0;
--}
--EXPORT_SYMBOL(gpio_direction_input);
--
--int gpio_direction_output(unsigned gpio, int value)
--{
--	unsigned long flags;
--	u32 mask;
--
--	if (gpio > pxa_last_gpio)
--		return -EINVAL;
--
--	mask = GPIO_bit(gpio);
--	local_irq_save(flags);
--	if (value)
--		GPSR(gpio) = mask;
--	else
--		GPCR(gpio) = mask;
--	GPDR(gpio) |= mask;
--	local_irq_restore(flags);
--
--	return 0;
--}
--EXPORT_SYMBOL(gpio_direction_output);
--
--/*
-- * Return GPIO level
-- */
--int pxa_gpio_get_value(unsigned gpio)
--{
--	return __gpio_get_value(gpio);
--}
--
--EXPORT_SYMBOL(pxa_gpio_get_value);
--
--/*
-- * Set output GPIO level
-- */
--void pxa_gpio_set_value(unsigned gpio, int value)
--{
--	__gpio_set_value(gpio, value);
--}
--
--EXPORT_SYMBOL(pxa_gpio_set_value);
--
--/*
-  * Routine to safely enable or disable a clock in the CKEN
-  */
- void __pxa_set_cken(int clock, int enable)
-@@ -178,7 +86,6 @@ void __pxa_set_cken(int clock, int enabl
+  * On IP22 we need to delay after register accesses but we do not need to
+  * flush writes.
+@@ -81,12 +79,9 @@ struct uart_ip22zilog_port {
+ #define IP22ZILOG_FLAG_REGS_HELD	0x00000040
+ #define IP22ZILOG_FLAG_TX_STOPPED	0x00000080
+ #define IP22ZILOG_FLAG_TX_ACTIVE	0x00000100
++#define IP22ZILOG_FLAG_RESET_DONE	0x00000200
  
- 	local_irq_restore(flags);
+-	unsigned int			cflag;
+-
+-	/* L1-A keyboard break state.  */
+-	int				kbd_id;
+-	int				l1_down;
++	unsigned int			tty_break;
+ 
+ 	unsigned char			parity_mask;
+ 	unsigned char			prev_status;
+@@ -250,13 +245,26 @@ static void ip22zilog_maybe_update_regs(
+ 	}
  }
--
- EXPORT_SYMBOL(__pxa_set_cken);
  
- /*
-diff -puN arch/arm/mach-pxa/generic.h~arm-pxa-gpiolib-support arch/arm/mach-pxa/generic.h
---- a/arch/arm/mach-pxa/generic.h~arm-pxa-gpiolib-support
-+++ a/arch/arm/mach-pxa/generic.h
-@@ -16,6 +16,7 @@ extern void __init pxa_init_irq_low(void
- extern void __init pxa_init_irq_high(void);
- extern void __init pxa_init_irq_gpio(int gpio_nr);
- extern void __init pxa_init_irq_set_wake(int (*set_wake)(unsigned int, unsigned int));
-+extern void __init pxa_init_gpio(int gpio_nr);
- extern void __init pxa25x_init_irq(void);
- extern void __init pxa27x_init_irq(void);
- extern void __init pxa3xx_init_irq(void);
-diff -puN /dev/null arch/arm/mach-pxa/gpio.c
---- /dev/null
-+++ a/arch/arm/mach-pxa/gpio.c
-@@ -0,0 +1,197 @@
-+/*
-+ *  linux/arch/arm/mach-pxa/gpio.c
-+ *
-+ *  Generic PXA GPIO handling
-+ *
-+ *  Author:	Nicolas Pitre
-+ *  Created:	Jun 15, 2001
-+ *  Copyright:	MontaVista Software Inc.
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License version 2 as
-+ *  published by the Free Software Foundation.
-+ */
+-static void ip22zilog_receive_chars(struct uart_ip22zilog_port *up,
+-				   struct zilog_channel *channel)
++#define Rx_BRK 0x0100                   /* BREAK event software flag.  */
++#define Rx_SYS 0x0200                   /* SysRq event software flag.  */
 +
-+#include <linux/init.h>
-+#include <linux/module.h>
++static struct tty_struct *ip22zilog_receive_chars(struct uart_ip22zilog_port *up,
++						  struct zilog_channel *channel)
+ {
+-	struct tty_struct *tty = up->port.info->tty;	/* XXX info==NULL? */
++	struct tty_struct *tty;
++	unsigned char ch, flag;
++	unsigned int r1;
 +
-+#include <asm/gpio.h>
-+#include <asm/hardware.h>
-+#include <asm/io.h>
-+#include <asm/arch/pxa-regs.h>
++	tty = NULL;
++	if (up->port.info != NULL &&
++	    up->port.info->tty != NULL)
++		tty = up->port.info->tty;
+ 
+-	while (1) {
+-		unsigned char ch, r1, flag;
++	for (;;) {
++		ch = readb(&channel->control);
++		ZSDELAY();
++		if (!(ch & Rx_CH_AV))
++			break;
+ 
+ 		r1 = read_zsreg(channel, R1);
+ 		if (r1 & (PAR_ERR | Rx_OVR | CRC_ERR)) {
+@@ -265,43 +273,26 @@ static void ip22zilog_receive_chars(stru
+ 			ZS_WSYNC(channel);
+ 		}
+ 
+-		ch = readb(&channel->control);
+-		ZSDELAY();
+-
+-		/* This funny hack depends upon BRK_ABRT not interfering
+-		 * with the other bits we care about in R1.
+-		 */
+-		if (ch & BRK_ABRT)
+-			r1 |= BRK_ABRT;
+-
+ 		ch = readb(&channel->data);
+ 		ZSDELAY();
+ 
+ 		ch &= up->parity_mask;
+ 
+-		if (ZS_IS_CONS(up) && (r1 & BRK_ABRT)) {
+-			/* Wait for BREAK to deassert to avoid potentially
+-			 * confusing the PROM.
+-			 */
+-			while (1) {
+-				ch = readb(&channel->control);
+-				ZSDELAY();
+-				if (!(ch & BRK_ABRT))
+-					break;
+-			}
+-			ip22_do_break();
+-			return;
+-		}
++		/* Handle the null char got when BREAK is removed.  */
++		if (!ch)
++			r1 |= up->tty_break;
+ 
+ 		/* A real serial line, record the character and status.  */
+ 		flag = TTY_NORMAL;
+ 		up->port.icount.rx++;
+-		if (r1 & (BRK_ABRT | PAR_ERR | Rx_OVR | CRC_ERR)) {
+-			if (r1 & BRK_ABRT) {
+-				r1 &= ~(PAR_ERR | CRC_ERR);
++		if (r1 & (PAR_ERR | Rx_OVR | CRC_ERR | Rx_SYS | Rx_BRK)) {
++			up->tty_break = 0;
 +
-+#include "generic.h"
++			if (r1 & (Rx_SYS | Rx_BRK)) {
+ 				up->port.icount.brk++;
+-				if (uart_handle_break(&up->port))
+-					goto next_char;
++				if (r1 & Rx_SYS)
++					continue;
++				r1 &= ~(PAR_ERR | CRC_ERR);
+ 			}
+ 			else if (r1 & PAR_ERR)
+ 				up->port.icount.parity++;
+@@ -310,30 +301,21 @@ static void ip22zilog_receive_chars(stru
+ 			if (r1 & Rx_OVR)
+ 				up->port.icount.overrun++;
+ 			r1 &= up->port.read_status_mask;
+-			if (r1 & BRK_ABRT)
++			if (r1 & Rx_BRK)
+ 				flag = TTY_BREAK;
+ 			else if (r1 & PAR_ERR)
+ 				flag = TTY_PARITY;
+ 			else if (r1 & CRC_ERR)
+ 				flag = TTY_FRAME;
+ 		}
 +
+ 		if (uart_handle_sysrq_char(&up->port, ch))
+-			goto next_char;
++			continue;
+ 
+-		if (up->port.ignore_status_mask == 0xff ||
+-		    (r1 & up->port.ignore_status_mask) == 0)
+-		    	tty_insert_flip_char(tty, ch, flag);
+-
+-		if (r1 & Rx_OVR)
+-			tty_insert_flip_char(tty, 0, TTY_OVERRUN);
+-	next_char:
+-		ch = readb(&channel->control);
+-		ZSDELAY();
+-		if (!(ch & Rx_CH_AV))
+-			break;
++		if (tty)
++			uart_insert_char(&up->port, r1, Rx_OVR, ch, flag);
+ 	}
+-
+-	tty_flip_buffer_push(tty);
++	return tty;
+ }
+ 
+ static void ip22zilog_status_handle(struct uart_ip22zilog_port *up,
+@@ -348,6 +330,15 @@ static void ip22zilog_status_handle(stru
+ 	ZSDELAY();
+ 	ZS_WSYNC(channel);
+ 
++	if (up->curregs[R15] & BRKIE) {
++		if ((status & BRK_ABRT) && !(up->prev_status & BRK_ABRT)) {
++			if (uart_handle_break(&up->port))
++				up->tty_break = Rx_SYS;
++			else
++				up->tty_break = Rx_BRK;
++		}
++	}
 +
-+struct pxa_gpio_chip {
-+	struct gpio_chip chip;
-+	void __iomem     *regbase;
-+};
+ 	if (ZS_WANTS_MODEM_STATUS(up)) {
+ 		if (status & SYNC)
+ 			up->port.icount.dsr++;
+@@ -356,10 +347,10 @@ static void ip22zilog_status_handle(stru
+ 		 * But it does not tell us which bit has changed, we have to keep
+ 		 * track of this ourselves.
+ 		 */
+-		if ((status & DCD) ^ up->prev_status)
++		if ((status ^ up->prev_status) ^ DCD)
+ 			uart_handle_dcd_change(&up->port,
+ 					       (status & DCD));
+-		if ((status & CTS) ^ up->prev_status)
++		if ((status ^ up->prev_status) ^ CTS)
+ 			uart_handle_cts_change(&up->port,
+ 					       (status & CTS));
+ 
+@@ -447,19 +438,21 @@ static irqreturn_t ip22zilog_interrupt(i
+ 	while (up) {
+ 		struct zilog_channel *channel
+ 			= ZILOG_CHANNEL_FROM_PORT(&up->port);
++		struct tty_struct *tty;
+ 		unsigned char r3;
+ 
+ 		spin_lock(&up->port.lock);
+ 		r3 = read_zsreg(channel, R3);
+ 
+ 		/* Channel A */
++		tty = NULL;
+ 		if (r3 & (CHAEXT | CHATxIP | CHARxIP)) {
+ 			writeb(RES_H_IUS, &channel->control);
+ 			ZSDELAY();
+ 			ZS_WSYNC(channel);
+ 
+ 			if (r3 & CHARxIP)
+-				ip22zilog_receive_chars(up, channel);
++				tty = ip22zilog_receive_chars(up, channel);
+ 			if (r3 & CHAEXT)
+ 				ip22zilog_status_handle(up, channel);
+ 			if (r3 & CHATxIP)
+@@ -467,18 +460,22 @@ static irqreturn_t ip22zilog_interrupt(i
+ 		}
+ 		spin_unlock(&up->port.lock);
+ 
++		if (tty)
++			tty_flip_buffer_push(tty);
 +
-+int pxa_last_gpio;
+ 		/* Channel B */
+ 		up = up->next;
+ 		channel = ZILOG_CHANNEL_FROM_PORT(&up->port);
+ 
+ 		spin_lock(&up->port.lock);
++		tty = NULL;
+ 		if (r3 & (CHBEXT | CHBTxIP | CHBRxIP)) {
+ 			writeb(RES_H_IUS, &channel->control);
+ 			ZSDELAY();
+ 			ZS_WSYNC(channel);
+ 
+ 			if (r3 & CHBRxIP)
+-				ip22zilog_receive_chars(up, channel);
++				tty = ip22zilog_receive_chars(up, channel);
+ 			if (r3 & CHBEXT)
+ 				ip22zilog_status_handle(up, channel);
+ 			if (r3 & CHBTxIP)
+@@ -486,6 +483,9 @@ static irqreturn_t ip22zilog_interrupt(i
+ 		}
+ 		spin_unlock(&up->port.lock);
+ 
++		if (tty)
++			tty_flip_buffer_push(tty);
 +
-+/*
-+ * Configure pins for GPIO or other functions
-+ */
-+int pxa_gpio_mode(int gpio_mode)
+ 		up = up->next;
+ 	}
+ 
+@@ -681,11 +681,46 @@ static void ip22zilog_break_ctl(struct u
+ 	spin_unlock_irqrestore(&port->lock, flags);
+ }
+ 
++static void __ip22zilog_reset(struct uart_ip22zilog_port *up)
 +{
-+	unsigned long flags;
-+	int gpio = gpio_mode & GPIO_MD_MASK_NR;
-+	int fn = (gpio_mode & GPIO_MD_MASK_FN) >> 8;
-+	int gafr;
-+
-+	if (gpio > pxa_last_gpio)
-+		return -EINVAL;
-+
-+	local_irq_save(flags);
-+	if (gpio_mode & GPIO_DFLT_LOW)
-+		GPCR(gpio) = GPIO_bit(gpio);
-+	else if (gpio_mode & GPIO_DFLT_HIGH)
-+		GPSR(gpio) = GPIO_bit(gpio);
-+	if (gpio_mode & GPIO_MD_MASK_DIR)
-+		GPDR(gpio) |= GPIO_bit(gpio);
-+	else
-+		GPDR(gpio) &= ~GPIO_bit(gpio);
-+	gafr = GAFR(gpio) & ~(0x3 << (((gpio) & 0xf)*2));
-+	GAFR(gpio) = gafr |  (fn  << (((gpio) & 0xf)*2));
-+	local_irq_restore(flags);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(pxa_gpio_mode);
-+
-+static int pxa_gpio_direction_input(struct gpio_chip *chip, unsigned offset)
-+{
-+	unsigned long        flags;
-+	u32                  mask = 1 << offset;
-+	u32                  value;
-+	struct pxa_gpio_chip *pxa;
-+	void __iomem         *gpdr;
-+
-+	pxa = container_of(chip, struct pxa_gpio_chip, chip);
-+	gpdr = pxa->regbase + GPDR_OFFSET;
-+	local_irq_save(flags);
-+	value = __raw_readl(gpdr);
-+	value &= ~mask;
-+	__raw_writel(value, gpdr);
-+	local_irq_restore(flags);
-+
-+	return 0;
-+}
-+
-+static int pxa_gpio_direction_output(struct gpio_chip *chip,
-+					unsigned offset, int value)
-+{
-+	unsigned long        flags;
-+	u32                  mask = 1 << offset;
-+	u32                  tmp;
-+	struct pxa_gpio_chip *pxa;
-+	void __iomem         *gpdr;
-+
-+	pxa = container_of(chip, struct pxa_gpio_chip, chip);
-+	__raw_writel(mask,
-+			pxa->regbase + (value ? GPSR_OFFSET : GPCR_OFFSET));
-+	gpdr = pxa->regbase + GPDR_OFFSET;
-+	local_irq_save(flags);
-+	tmp = __raw_readl(gpdr);
-+	tmp |= mask;
-+	__raw_writel(tmp, gpdr);
-+	local_irq_restore(flags);
-+
-+	return 0;
-+}
-+
-+/*
-+ * Return GPIO level
-+ */
-+static int pxa_gpio_get(struct gpio_chip *chip, unsigned offset)
-+{
-+	u32                  mask = 1 << offset;
-+	struct pxa_gpio_chip *pxa;
-+
-+	pxa = container_of(chip, struct pxa_gpio_chip, chip);
-+	return __raw_readl(pxa->regbase + GPLR_OFFSET) & mask;
-+}
-+
-+/*
-+ * Set output GPIO level
-+ */
-+static void pxa_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
-+{
-+	u32                  mask = 1 << offset;
-+	struct pxa_gpio_chip *pxa;
-+
-+	pxa = container_of(chip, struct pxa_gpio_chip, chip);
-+
-+	if (value)
-+		__raw_writel(mask, pxa->regbase + GPSR_OFFSET);
-+	else
-+		__raw_writel(mask, pxa->regbase + GPCR_OFFSET);
-+}
-+
-+struct pxa_gpio_chip pxa_gpio_chip[] = {
-+	[0] = {
-+		.regbase = GPIO0_BASE,
-+		.chip = {
-+			.label            = "gpio-0",
-+			.direction_input  = pxa_gpio_direction_input,
-+			.direction_output = pxa_gpio_direction_output,
-+			.get              = pxa_gpio_get,
-+			.set              = pxa_gpio_set,
-+			.base             = 0,
-+			.ngpio            = 32,
-+		},
-+	},
-+	[1] = {
-+		.regbase = GPIO1_BASE,
-+		.chip = {
-+			.label            = "gpio-1",
-+			.direction_input  = pxa_gpio_direction_input,
-+			.direction_output = pxa_gpio_direction_output,
-+			.get              = pxa_gpio_get,
-+			.set              = pxa_gpio_set,
-+			.base             = 32,
-+			.ngpio            = 32,
-+		},
-+	},
-+	[2] = {
-+		.regbase = GPIO2_BASE,
-+		.chip = {
-+			.label            = "gpio-2",
-+			.direction_input  = pxa_gpio_direction_input,
-+			.direction_output = pxa_gpio_direction_output,
-+			.get              = pxa_gpio_get,
-+			.set              = pxa_gpio_set,
-+			.base             = 64,
-+			.ngpio            = 32, /* 21 for PXA25x */
-+		},
-+	},
-+#if defined(CONFIG_PXA27x) || defined(CONFIG_PXA3xx)
-+	[3] = {
-+		.regbase = GPIO3_BASE,
-+		.chip = {
-+			.label            = "gpio-3",
-+			.direction_input  = pxa_gpio_direction_input,
-+			.direction_output = pxa_gpio_direction_output,
-+			.get              = pxa_gpio_get,
-+			.set              = pxa_gpio_set,
-+			.base             = 96,
-+			.ngpio            = 32,
-+		},
-+	},
-+#endif
-+};
-+
-+void __init pxa_init_gpio(int gpio_nr)
-+{
++	struct zilog_channel *channel;
 +	int i;
 +
-+	/* add a GPIO chip for each register bank.
-+	 * the last PXA25x register only contains 21 GPIOs
-+	 */
-+	for (i = 0; i < gpio_nr; i += 32) {
-+		if (i+32 > gpio_nr)
-+			pxa_gpio_chip[i/32].chip.ngpio = gpio_nr - i;
-+		gpiochip_add(&pxa_gpio_chip[i/32].chip);
++	if (up->flags & IP22ZILOG_FLAG_RESET_DONE)
++		return;
++
++	/* Let pending transmits finish.  */
++	channel = ZILOG_CHANNEL_FROM_PORT(&up->port);
++	for (i = 0; i < 1000; i++) {
++		unsigned char stat = read_zsreg(channel, R1);
++		if (stat & ALL_SNT)
++			break;
++		udelay(100);
 +	}
++
++	if (!ZS_IS_CHANNEL_A(up)) {
++		up++;
++		channel = ZILOG_CHANNEL_FROM_PORT(&up->port);
++	}
++	write_zsreg(channel, R9, FHWRES);
++	ZSDELAY_LONG();
++	(void) read_zsreg(channel, R0);
++
++	up->flags |= IP22ZILOG_FLAG_RESET_DONE;
++	up->next->flags |= IP22ZILOG_FLAG_RESET_DONE;
 +}
-diff -puN arch/arm/mach-pxa/irq.c~arm-pxa-gpiolib-support arch/arm/mach-pxa/irq.c
---- a/arch/arm/mach-pxa/irq.c~arm-pxa-gpiolib-support
-+++ a/arch/arm/mach-pxa/irq.c
-@@ -310,6 +310,8 @@ void __init pxa_init_irq_gpio(int gpio_n
- 	/* Install handler for GPIO>=2 edge detect interrupts */
- 	set_irq_chip(IRQ_GPIO_2_x, &pxa_internal_chip_low);
- 	set_irq_chained_handler(IRQ_GPIO_2_x, pxa_gpio_demux_handler);
 +
-+	pxa_init_gpio(gpio_nr);
+ static void __ip22zilog_startup(struct uart_ip22zilog_port *up)
+ {
+ 	struct zilog_channel *channel;
+ 
+ 	channel = ZILOG_CHANNEL_FROM_PORT(&up->port);
++
++	__ip22zilog_reset(up);
++
++	__load_zsregs(channel, up->curregs);
++	/* set master interrupt enable */
++	write_zsreg(channel, R9, up->curregs[R9]);
+ 	up->prev_status = readb(&channel->control);
+ 
+ 	/* Enable receiver and transmitter.  */
+@@ -859,8 +894,6 @@ ip22zilog_set_termios(struct uart_port *
+ 	else
+ 		up->flags &= ~IP22ZILOG_FLAG_MODEM_STATUS;
+ 
+-	up->cflag = termios->c_cflag;
+-
+ 	ip22zilog_maybe_update_regs(up, ZILOG_CHANNEL_FROM_PORT(port));
+ 	uart_update_timeout(port, termios->c_cflag, baud);
+ 
+@@ -992,74 +1025,29 @@ ip22zilog_console_write(struct console *
+ 	spin_unlock_irqrestore(&up->port.lock, flags);
  }
  
- void __init pxa_init_irq_set_wake(int (*set_wake)(unsigned int, unsigned int))
-diff -puN arch/arm/mach-pxa/Makefile~arm-pxa-gpiolib-support arch/arm/mach-pxa/Makefile
---- a/arch/arm/mach-pxa/Makefile~arm-pxa-gpiolib-support
-+++ a/arch/arm/mach-pxa/Makefile
-@@ -3,7 +3,7 @@
- #
- 
- # Common support (must be linked before board specific support)
--obj-y				+= clock.o generic.o irq.o dma.o time.o
-+obj-y				+= clock.o generic.o gpio.o irq.o dma.o time.o
- obj-$(CONFIG_PXA25x)		+= pxa25x.o
- obj-$(CONFIG_PXA27x)		+= pxa27x.o
- obj-$(CONFIG_PXA3xx)		+= pxa3xx.o mfp.o
-diff -puN include/asm-arm/arch-pxa/gpio.h~arm-pxa-gpiolib-support include/asm-arm/arch-pxa/gpio.h
---- a/include/asm-arm/arch-pxa/gpio.h~arm-pxa-gpiolib-support
-+++ a/include/asm-arm/arch-pxa/gpio.h
-@@ -28,43 +28,35 @@
- #include <asm/irq.h>
- #include <asm/hardware.h>
- 
--static inline int gpio_request(unsigned gpio, const char *label)
+-void
+-ip22serial_console_termios(struct console *con, char *options)
 -{
+-	int baud = 9600, bits = 8, cflag;
+-	int parity = 'n';
+-	int flow = 'n';
+-
+-	if (options)
+-		uart_parse_options(options, &baud, &parity, &bits, &flow);
+-
+-	cflag = CREAD | HUPCL | CLOCAL;
+-
+-	switch (baud) {
+-		case 150: cflag |= B150; break;
+-		case 300: cflag |= B300; break;
+-		case 600: cflag |= B600; break;
+-		case 1200: cflag |= B1200; break;
+-		case 2400: cflag |= B2400; break;
+-		case 4800: cflag |= B4800; break;
+-		case 9600: cflag |= B9600; break;
+-		case 19200: cflag |= B19200; break;
+-		case 38400: cflag |= B38400; break;
+-		default: baud = 9600; cflag |= B9600; break;
+-	}
+-
+-	con->cflag = cflag | CS8;			/* 8N1 */
+-
+-	uart_update_timeout(&ip22zilog_port_table[con->index].port, cflag, baud);
+-}
+-
+ static int __init ip22zilog_console_setup(struct console *con, char *options)
+ {
+ 	struct uart_ip22zilog_port *up = &ip22zilog_port_table[con->index];
+ 	unsigned long flags;
+-	int baud, brg;
++	int baud = 9600, bits = 8;
++	int parity = 'n';
++	int flow = 'n';
+ 
+-	printk("Console: ttyS%d (IP22-Zilog)\n", con->index);
++	up->flags |= IP22ZILOG_FLAG_IS_CONS;
+ 
+-	/* Get firmware console settings.  */
+-	ip22serial_console_termios(con, options);
+-
+-	/* Firmware console speed is limited to 150-->38400 baud so
+-	 * this hackish cflag thing is OK.
+-	 */
+-	switch (con->cflag & CBAUD) {
+-	case B150: baud = 150; break;
+-	case B300: baud = 300; break;
+-	case B600: baud = 600; break;
+-	case B1200: baud = 1200; break;
+-	case B2400: baud = 2400; break;
+-	case B4800: baud = 4800; break;
+-	default: case B9600: baud = 9600; break;
+-	case B19200: baud = 19200; break;
+-	case B38400: baud = 38400; break;
+-	};
+-
+-	brg = BPS_TO_BRG(baud, ZS_CLOCK / ZS_CLOCK_DIVISOR);
++	printk(KERN_INFO "Console: ttyS%d (IP22-Zilog)\n", con->index);
+ 
+ 	spin_lock_irqsave(&up->port.lock, flags);
+ 
+-	up->curregs[R15] = BRKIE;
+-	ip22zilog_convert_to_zs(up, con->cflag, 0, brg);
++	up->curregs[R15] |= BRKIE;
+ 
+ 	__ip22zilog_startup(up);
+ 
+ 	spin_unlock_irqrestore(&up->port.lock, flags);
+ 
 -	return 0;
--}
-+#include <asm-generic/gpio.h>
++	if (options)
++		uart_parse_options(options, &baud, &parity, &bits, &flow);
++	return uart_set_options(&up->port, con, baud, parity, bits, flow);
+ }
  
--static inline void gpio_free(unsigned gpio)
+ static struct uart_driver ip22zilog_reg;
+@@ -1140,25 +1128,10 @@ static void __init ip22zilog_prepare(voi
+ 		up[(chip * 2) + 1].port.line = (chip * 2) + 1;
+ 		up[(chip * 2) + 1].flags |= IP22ZILOG_FLAG_IS_CHANNEL_A;
+ 	}
+-}
+-
+-static void __init ip22zilog_init_hw(void)
 -{
--	return;
--}
+-	int i;
  
--extern int gpio_direction_input(unsigned gpio);
--extern int gpio_direction_output(unsigned gpio, int value);
-+/* NOTE: some PXAs have fewer on-chip GPIOs (like PXA255, with 85).
-+ * Those cases currently cause holes in the GPIO number space.
-+ */
-+#define NR_BUILTIN_GPIO 128
+-	for (i = 0; i < NUM_CHANNELS; i++) {
+-		struct uart_ip22zilog_port *up = &ip22zilog_port_table[i];
+-		struct zilog_channel *channel = ZILOG_CHANNEL_FROM_PORT(&up->port);
+-		unsigned long flags;
+-		int baud, brg;
+-
+-		spin_lock_irqsave(&up->port.lock, flags);
+-
+-		if (ZS_IS_CHANNEL_A(up)) {
+-			write_zsreg(channel, R9, FHWRES);
+-			ZSDELAY_LONG();
+-			(void) read_zsreg(channel, R0);
+-		}
++	for (channel = 0; channel < NUM_CHANNELS; channel++) {
++		struct uart_ip22zilog_port *up = &ip22zilog_port_table[channel];
++		int brg;
  
--static inline int __gpio_get_value(unsigned gpio)
-+static inline int gpio_get_value(unsigned gpio)
- {
--	return GPLR(gpio) & GPIO_bit(gpio);
-+	if (__builtin_constant_p(gpio) && (gpio < NR_BUILTIN_GPIO))
-+		return GPLR(gpio) & GPIO_bit(gpio);
-+	else
-+		return __gpio_get_value(gpio);
+ 		/* Normal serial TTY. */
+ 		up->parity_mask = 0xff;
+@@ -1169,16 +1142,10 @@ static void __init ip22zilog_init_hw(voi
+ 		up->curregs[R9] = NV | MIE;
+ 		up->curregs[R10] = NRZ;
+ 		up->curregs[R11] = TCBR | RCBR;
+-		baud = 9600;
+-		brg = BPS_TO_BRG(baud, ZS_CLOCK / ZS_CLOCK_DIVISOR);
++		brg = BPS_TO_BRG(9600, ZS_CLOCK / ZS_CLOCK_DIVISOR);
+ 		up->curregs[R12] = (brg & 0xff);
+ 		up->curregs[R13] = (brg >> 8) & 0xff;
+ 		up->curregs[R14] = BRENAB;
+-		__load_zsregs(channel, up->curregs);
+-	        /* set master interrupt enable */
+-	        write_zsreg(channel, R9, up->curregs[R9]);
+-
+-		spin_unlock_irqrestore(&up->port.lock, flags);
+ 	}
  }
  
--#define gpio_get_value(gpio)			\
--	(__builtin_constant_p(gpio) ?		\
--	 __gpio_get_value(gpio) :		\
--	 pxa_gpio_get_value(gpio))
+@@ -1195,8 +1162,6 @@ static int __init ip22zilog_ports_init(v
+ 		panic("IP22-Zilog: Unable to register zs interrupt handler.\n");
+ 	}
+ 
+-	ip22zilog_init_hw();
 -
--static inline void __gpio_set_value(unsigned gpio, int value)
-+static inline void gpio_set_value(unsigned gpio, int value)
- {
--	if (value)
--		GPSR(gpio) = GPIO_bit(gpio);
--	else
--		GPCR(gpio) = GPIO_bit(gpio);
-+	if (__builtin_constant_p(gpio) && (gpio < NR_BUILTIN_GPIO)) {
-+		if (value)
-+			GPSR(gpio) = GPIO_bit(gpio);
-+		else
-+			GPCR(gpio) = GPIO_bit(gpio);
-+	} else {
-+		__gpio_set_value(gpio, value);
-+	}
- }
- 
--#define gpio_set_value(gpio,value)		\
--	(__builtin_constant_p(gpio) ?		\
--	 __gpio_set_value(gpio, value) :	\
--	 pxa_gpio_set_value(gpio, value))
--
--#include <asm-generic/gpio.h>			/* cansleep wrappers */
-+#define gpio_cansleep __gpio_cansleep
- 
- #define gpio_to_irq(gpio)	IRQ_GPIO(gpio)
- #define irq_to_gpio(irq)	IRQ_TO_GPIO(irq)
-diff -puN include/asm-arm/arch-pxa/pxa-regs.h~arm-pxa-gpiolib-support include/asm-arm/arch-pxa/pxa-regs.h
---- a/include/asm-arm/arch-pxa/pxa-regs.h~arm-pxa-gpiolib-support
-+++ a/include/asm-arm/arch-pxa/pxa-regs.h
-@@ -1128,6 +1128,19 @@
-  * General Purpose I/O
-  */
- 
-+#define GPIO0_BASE	((void __iomem *)io_p2v(0x40E00000))
-+#define GPIO1_BASE	((void __iomem *)io_p2v(0x40E00004))
-+#define GPIO2_BASE	((void __iomem *)io_p2v(0x40E00008))
-+#define GPIO3_BASE	((void __iomem *)io_p2v(0x40E00100))
-+
-+#define GPLR_OFFSET	0x00
-+#define GPDR_OFFSET	0x0C
-+#define GPSR_OFFSET	0x18
-+#define GPCR_OFFSET	0x24
-+#define GRER_OFFSET	0x30
-+#define GFER_OFFSET	0x3C
-+#define GEDR_OFFSET	0x48
-+
- #define GPLR0		__REG(0x40E00000)  /* GPIO Pin-Level Register GPIO<31:0> */
- #define GPLR1		__REG(0x40E00004)  /* GPIO Pin-Level Register GPIO<63:32> */
- #define GPLR2		__REG(0x40E00008)  /* GPIO Pin-Level Register GPIO<80:64> */
+ 	ret = uart_register_driver(&ip22zilog_reg);
+ 	if (ret == 0) {
+ 		int i;
+diff -puN include/linux/serial_core.h~ip22zilog-fix-lockup-and-sysrq include/linux/serial_core.h
+--- a/include/linux/serial_core.h~ip22zilog-fix-lockup-and-sysrq
++++ a/include/linux/serial_core.h
+@@ -439,7 +439,7 @@ uart_handle_sysrq_char(struct uart_port 
+ #ifdef SUPPORT_SYSRQ
+ 	if (port->sysrq) {
+ 		if (ch && time_before(jiffies, port->sysrq)) {
+-			handle_sysrq(ch, port->info->tty);
++			handle_sysrq(ch, port->info ? port->info->tty : NULL);
+ 			port->sysrq = 0;
+ 			return 1;
+ 		}
 _
 
-Patches currently in -mm which might be from philipp.zabel@gmail.com are
+Patches currently in -mm which might be from tsbogend@alpha.franken.de are
 
-git-arm.patch
-arm-pxa-gpiolib-support.patch
+ip22zilog-fix-lockup-and-sysrq.patch
