@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + swiotlb-respect-the-segment-boundary-limits.patch added to -mm tree
-Date: Mon, 26 Nov 2007 20:39:52 -0800
-Message-ID: <200711270439.lAR4dqWA027207@imap1.linux-foundation.org>
+Subject: + add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message.patch added to -mm tree
+Date: Mon, 26 Nov 2007 21:02:34 -0800
+Message-ID: <200711270502.lAR52Yvc028030@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49506 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35808 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750800AbXK0FDY (ORCPT
+	by vger.kernel.org with ESMTP id S1750799AbXK0FDp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 00:03:24 -0500
+	Tue, 27 Nov 2007 00:03:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tomof@acm.org, James.Bottomley@steeleye.com, fujita.tomonori@lab.ntt.co.jp, greg@kroah.com, jeff@garzik.org, jens.axboe@oracle.com
+Cc: morgan@kernel.org, casey@schaufler-ca.com, chrisw@sous-sol.org, jmorris@namei.org, sds@tycho.nsa.gov, serue@us.ibm.com
 
 
 The patch titled
-     iommu sg merging: swiotlb: respect the segment boundary limits
+     Modify 'old libcap' warning message
 has been added to the -mm tree.  Its filename is
-     swiotlb-respect-the-segment-boundary-limits.patch
+     add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,118 +26,108 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: iommu sg merging: swiotlb: respect the segment boundary limits
-From: FUJITA Tomonori <tomof@acm.org>
+Subject: Modify 'old libcap' warning message
+From: Andrew Morgan <morgan@kernel.org>
 
-This patch makes swiotlb not allocate a memory area spanning LLD's segment
-boundary.
+When an application (usually via libcap) attempts to use 32-bit
+capabilities when the kernel supports 64-bit capabilities, we log a kernel
+warning.  We do this exactly once per kernel boot.  The warning is just
+that - the kernel should be able to transparently handle 32-bit capability
+use.  The application will remain limited in the capabilities that it can
+manipulate until it is relinked with libcap2.
 
-is_span_boundary() judges whether a memory area spans LLD's segment boundary. 
-If map_single finds such a area, map_single tries to find the next available
-memory area.
-
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Andrew G. Morgan <morgan@kernel.org>
+Cc: Andrew Morgan <morgan@kernel.org>
+Cc: Casey Schaufler <casey@schaufler-ca.com>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: James Morris <jmorris@namei.org>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/swiotlb.c |   41 +++++++++++++++++++++++++++++++++++------
- 1 file changed, 35 insertions(+), 6 deletions(-)
+ kernel/capability.c |   36 ++++++++++++++++++++++--------------
+ 1 file changed, 22 insertions(+), 14 deletions(-)
 
-diff -puN lib/swiotlb.c~swiotlb-respect-the-segment-boundary-limits lib/swiotlb.c
---- a/lib/swiotlb.c~swiotlb-respect-the-segment-boundary-limits
-+++ a/lib/swiotlb.c
-@@ -282,6 +282,15 @@ address_needs_mapping(struct device *hwd
- 	return (addr & ~mask) != 0;
- }
+diff -puN kernel/capability.c~add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message kernel/capability.c
+--- a/kernel/capability.c~add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message
++++ a/kernel/capability.c
+@@ -30,6 +30,26 @@ const kernel_cap_t __cap_full_set = CAP_
+ const kernel_cap_t __cap_init_eff_set = CAP_INIT_EFF_SET;
  
-+static inline unsigned int is_span_boundary(unsigned int index,
-+					    unsigned int nslots,
-+					    unsigned long offset_slots,
-+					    unsigned long max_slots)
+ /*
++ * More recent versions of libcap are available from:
++ *
++ *   http://www.kernel.org/pub/linux/libs/security/linux-privs/
++ */
++
++static void warn_legacy_capability_use(void)
 +{
-+	unsigned long offset = (offset_slots + index) & (max_slots - 1);
-+	return offset + nslots > max_slots;
++	static int warned = 0;
++	if (!warned) {
++		char name[sizeof(current->comm)];
++
++		printk(KERN_INFO "warning: `%s' uses 32-bit capabilities"
++		       " (legacy support in use)\n",
++		       get_task_comm(name, current));
++		warned = 1;
++	}
++	return;
 +}
 +
- /*
-  * Allocates bounce buffer and returns its kernel virtual address.
++/*
+  * For sys_getproccap() and sys_setproccap(), any of the three
+  * capability set pointers may be NULL -- indicating that that set is
+  * uninteresting and/or not to be changed.
+@@ -59,12 +79,7 @@ asmlinkage long sys_capget(cap_user_head
+ 
+ 	switch (version) {
+ 	case _LINUX_CAPABILITY_VERSION_1:
+-		if (warned < 5) {
+-			warned++;
+-			printk(KERN_INFO
+-			       "warning: process `%s' gets w/ old libcap\n",
+-			       current->comm);
+-		}
++		warn_legacy_capability_use();
+ 		tocopy = _LINUX_CAPABILITY_U32S_1;
+ 		break;
+ 	case _LINUX_CAPABILITY_VERSION_2:
+@@ -210,7 +225,6 @@ static inline int cap_set_all(kernel_cap
   */
-@@ -292,6 +301,16 @@ map_single(struct device *hwdev, char *b
- 	char *dma_addr;
- 	unsigned int nslots, stride, index, wrap;
- 	int i;
-+	unsigned long start_dma_addr;
-+	unsigned long mask;
-+	unsigned long offset_slots;
-+	unsigned long max_slots;
-+
-+	mask = dma_get_seg_boundary(hwdev);
-+	start_dma_addr = virt_to_bus(io_tlb_start) & mask;
-+
-+	offset_slots = ALIGN(start_dma_addr, 1 << IO_TLB_SHIFT) >> IO_TLB_SHIFT;
-+	max_slots = ALIGN(mask + 1, 1 << IO_TLB_SHIFT) >> IO_TLB_SHIFT;
+ asmlinkage long sys_capset(cap_user_header_t header, const cap_user_data_t data)
+ {
+-	static int warned;
+ 	struct __user_cap_data_struct kdata[_LINUX_CAPABILITY_U32S];
+ 	unsigned i, tocopy;
+ 	kernel_cap_t inheritable, permitted, effective;
+@@ -224,13 +238,7 @@ asmlinkage long sys_capset(cap_user_head
  
- 	/*
- 	 * For mappings greater than a page, we limit the stride (and
-@@ -311,10 +330,17 @@ map_single(struct device *hwdev, char *b
- 	 */
- 	spin_lock_irqsave(&io_tlb_lock, flags);
- 	{
--		wrap = index = ALIGN(io_tlb_index, stride);
--
-+		index = ALIGN(io_tlb_index, stride);
- 		if (index >= io_tlb_nslabs)
--			wrap = index = 0;
-+			index = 0;
-+
-+		while (is_span_boundary(index, nslots, offset_slots,
-+					max_slots)) {
-+			index += stride;
-+			if (index >= io_tlb_nslabs)
-+				index = 0;
-+		}
-+		wrap = index;
- 
- 		do {
- 			/*
-@@ -341,9 +367,12 @@ map_single(struct device *hwdev, char *b
- 
- 				goto found;
- 			}
--			index += stride;
--			if (index >= io_tlb_nslabs)
--				index = 0;
-+			do {
-+				index += stride;
-+				if (index >= io_tlb_nslabs)
-+					index = 0;
-+			} while (is_span_boundary(index, nslots, offset_slots,
-+						  max_slots));
- 		} while (index != wrap);
- 
- 		spin_unlock_irqrestore(&io_tlb_lock, flags);
+ 	switch (version) {
+ 	case _LINUX_CAPABILITY_VERSION_1:
+-		if (warned < 5) {
+-			char name[sizeof(current->comm)];
+-			warned++;
+-			printk(KERN_INFO
+-			       "warning: process `%s' sets w/ old libcap\n",
+-			       get_task_comm(name, current));
+-		}
++		warn_legacy_capability_use();
+ 		tocopy = _LINUX_CAPABILITY_U32S_1;
+ 		break;
+ 	case _LINUX_CAPABILITY_VERSION_2:
 _
 
-Patches currently in -mm which might be from tomof@acm.org are
+Patches currently in -mm which might be from morgan@kernel.org are
 
-git-scsi-misc.patch
-iommu-sg-merging-add-device_dma_parameters-structure.patch
-iommu-sg-merging-pci-add-device_dma_parameters-support.patch
-iommu-sg-merging-x86-make-pci-gart-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-ppc-make-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-ia64-make-sba_iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-alpha-make-pci_iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-parisc-make-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-call-blk_queue_segment_boundary-in-__scsi_alloc_queue.patch
-iommu-sg-merging-sata_inic162x-use-pci_set_dma_max_seg_size.patch
-iommu-sg-merging-aacraid-use-pci_set_dma_max_seg_size.patch
-add-accessors-for-segment_boundary_mask-in.patch
-pci-add-dma-segment-boundary-support.patch
-swiotlb-respect-the-segment-boundary-limits.patch
-call-dma_set_seg_boundary-in-__scsi_alloc_queue.patch
-alpha-kill-deprecated-virt_to_bus.patch
+file-capabilities-allow-sigcont-within-session-v2.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message.patch
+64bit-capability-support-legacy-support-fix.patch
+remove-unnecessary-include-from-include-linux-capabilityh.patch
+smack-version-11c-simplified-mandatory-access-control-kernel.patch
