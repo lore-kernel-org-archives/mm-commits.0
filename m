@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hexdump-dont-print-bytes-with-bit-7-set.patch added to -mm tree
-Date: Tue, 27 Nov 2007 12:56:06 -0800
-Message-ID: <200711272056.lARKu6Jo029980@imap1.linux-foundation.org>
+Subject: + file-capabilities-dont-prevent-signaling-setuid-root.patch added to -mm tree
+Date: Tue, 27 Nov 2007 12:58:53 -0800
+Message-ID: <200711272058.lARKwr9t030069@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47657 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40817 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754376AbXK0U5t (ORCPT
+	by vger.kernel.org with ESMTP id S1756833AbXK0U7y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 15:57:49 -0500
+	Tue, 27 Nov 2007 15:59:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, herbert@gondor.apana.org.au
+Cc: serue@us.ibm.com, casey@schaufler-ca.com, chrisw@sous-sol.org, jmorris@namei.org, morgan@kernel.org, sds@epoch.ncsc.mil
 
 
 The patch titled
-     hexdump: don't print bytes with bit 7 set
+     file capabilities: don't prevent signaling setuid root programs
 has been added to the -mm tree.  Its filename is
-     hexdump-dont-print-bytes-with-bit-7-set.patch
+     file-capabilities-dont-prevent-signaling-setuid-root.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,53 +26,78 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hexdump: don't print bytes with bit 7 set
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: file capabilities: don't prevent signaling setuid root programs
+From: "Serge E. Hallyn" <serue@us.ibm.com>
 
-As Herbert Xu pointed out, bytes (chars) with bit 7 (0x80) set are true
-with isprint() but they may not be isascii() but be Unicode instead, so
-don't try to print them in hex dumps.
+An unprivileged process must be able to kill a setuid root program started
+by the same user.  This is legacy behavior needed for instance for xinit to
+kill X when the window manager exits.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
+When an unprivileged user runs a setuid root program in !SECURE_NOROOT
+mode, fP, fI, and fE are set full on, so pP' and pE' are full on.  Then
+cap_task_kill() prevents the user from signaling the setuid root task. 
+This is a change in behavior compared to when
+!CONFIG_SECURITY_FILE_CAPABILITIES.
+
+This patch introduces a special check into cap_task_kill() just to check
+whether a non-root user is signaling a setuid root program started by the
+same user.  If so, then signal is allowed.
+
+Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Andrew Morgan <morgan@kernel.org>
+Cc: Stephen Smalley <sds@epoch.ncsc.mil>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: James Morris <jmorris@namei.org>
+Cc: Casey Schaufler <casey@schaufler-ca.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/hexdump.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ security/commoncap.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN lib/hexdump.c~hexdump-dont-print-bytes-with-bit-7-set lib/hexdump.c
---- a/lib/hexdump.c~hexdump-dont-print-bytes-with-bit-7-set
-+++ a/lib/hexdump.c
-@@ -106,7 +106,8 @@ void hex_dump_to_buffer(const void *buf,
- 	while (lx < (linebuflen - 1) && lx < (ascii_column - 1))
- 		linebuf[lx++] = ' ';
- 	for (j = 0; (j < rowsize) && (j < len) && (lx + 2) < linebuflen; j++)
--		linebuf[lx++] = isprint(ptr[j]) ? ptr[j] : '.';
-+		linebuf[lx++] = (isascii(ptr[j]) && isprint(ptr[j])) ? ptr[j]
-+				: '.';
- nil:
- 	linebuf[lx++] = '\0';
- }
+diff -puN security/commoncap.c~file-capabilities-dont-prevent-signaling-setuid-root security/commoncap.c
+--- a/security/commoncap.c~file-capabilities-dont-prevent-signaling-setuid-root
++++ a/security/commoncap.c
+@@ -526,6 +526,15 @@ int cap_task_kill(struct task_struct *p,
+ 	if (info != SEND_SIG_NOINFO && (is_si_special(info) || SI_FROMKERNEL(info)))
+ 		return 0;
+ 
++	/*
++	 * Running a setuid root program raises your capabilities.
++	 * Killing your own setuid root processes was previously
++	 * allowed.
++	 * We must preserve legacy signal behavior in this case.
++	 */
++	if (p->euid == 0 && p->uid == current->uid)
++		return 0;
++
+ 	/* sigcont is permitted within same session */
+ 	if (sig == SIGCONT && (task_session_nr(current) == task_session_nr(p)))
+ 		return 0;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from serue@us.ibm.com are
 
-origin.patch
-the-namespaces-compatibility-list.patch
-hexdump-dont-print-bytes-with-bit-7-set.patch
-git-dvb.patch
-ide-scsi-use-print_hex_dump-from-linux-kernelh.patch
-git-scsi-misc.patch
-advansys-fix-section-mismatch-warning.patch
-aic94-fix-section-mismatches.patch
-sym2-fix-section-mismatch-warning.patch
+file-capabilities-allow-sigcont-within-session-v2.patch
+isolate-the-uts-namespaces-domainname-and-hostname-back.patch
+file-capabilities-dont-prevent-signaling-setuid-root.patch
 git-unionfs.patch
-git-ipwireless_cs.patch
-git-x86.patch
-register_cpu-__devinit-or-__cpuinit.patch
-cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
-move-kprobes-examples-to-samples-resend.patch
-move-kprobes-examples-to-samples-resend-checkpatch-fixes.patch
-fs-menu-small-reorg.patch
-profile-likely-unlikely-macros.patch
+vfs-security-rework-inode_getsecurity-and-callers-to.patch
+vfs-reorder-vfs_getxattr-to-avoid-unnecessary-calls-to-the-lsm.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+64bit-capability-support-legacy-support-fix.patch
+r-o-bind-mounts-stub-functions.patch
+r-o-bind-mounts-do_rmdir-elevate-write-count.patch
+add-the-namespaces-config-option.patch
+move-the-uts-namespace-under-uts_ns-option.patch
+move-the-ipc-namespace-under-ipc_ns-option.patch
+cleanup-the-code-managed-with-the-user_ns-option.patch
+cleanup-the-code-managed-with-pid_ns-option.patch
+mark-net_ns-with-depends-on-namespaces.patch
