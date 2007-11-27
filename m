@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + txx9-watchdog-support-for-rbhma3100rbhma4200rbhma4500.patch added to -mm tree
-Date: Mon, 26 Nov 2007 22:35:56 -0800
-Message-ID: <200711270635.lAR6ZwLS031331@imap1.linux-foundation.org>
+Subject: + txx9-watchdog-driver.patch added to -mm tree
+Date: Mon, 26 Nov 2007 22:35:50 -0800
+Message-ID: <200711270635.lAR6Zopi031326@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45551 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47438 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750730AbXK0GgO (ORCPT
+	by vger.kernel.org with ESMTP id S1750966AbXK0GgP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 01:36:14 -0500
+	Tue, 27 Nov 2007 01:36:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: anemo@mba.ocn.ne.jp, ralf@linux-mips.org, wim@iguana.be
 
 
 The patch titled
-     TXx9 watchdog support for rbhma3100,rbhma4200,rbhma4500
+     TXx9 watchdog driver
 has been added to the -mm tree.  Its filename is
-     txx9-watchdog-support-for-rbhma3100rbhma4200rbhma4500.patch
+     txx9-watchdog-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,11 +26,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: TXx9 watchdog support for rbhma3100,rbhma4200,rbhma4500
+Subject: TXx9 watchdog driver
 From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-Add support for txx9wdt driver to rbhma3100, rbhma4200 and rbhma4500
-platform.
+This is a driver for watchdog timer built into TXx9 MIPS SoCs.
 
 Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 Cc: Ralf Baechle <ralf@linux-mips.org>
@@ -38,322 +37,318 @@ Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/configs/jmr3927_defconfig                        |   15 ++
- arch/mips/configs/rbhma4200_defconfig                      |   15 ++
- arch/mips/configs/rbhma4500_defconfig                      |   15 ++
- arch/mips/jmr3927/rbhma3100/setup.c                        |   55 ++++++++++
- arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c |   55 ++++++++++
- arch/mips/tx4938/toshiba_rbtx4938/setup.c                  |   25 ++++
- include/asm-mips/tx4927/tx4927_pci.h                       |    1 
- 7 files changed, 178 insertions(+), 3 deletions(-)
+ drivers/watchdog/Kconfig   |    6 
+ drivers/watchdog/Makefile  |    1 
+ drivers/watchdog/txx9wdt.c |  276 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 283 insertions(+)
 
-diff -puN arch/mips/configs/jmr3927_defconfig~txx9-watchdog-support-for-rbhma3100rbhma4200rbhma4500 arch/mips/configs/jmr3927_defconfig
---- a/arch/mips/configs/jmr3927_defconfig~txx9-watchdog-support-for-rbhma3100rbhma4200rbhma4500
-+++ a/arch/mips/configs/jmr3927_defconfig
-@@ -464,7 +464,6 @@ CONFIG_SERIAL_TXX9_STDSERIAL=y
- CONFIG_LEGACY_PTYS=y
- CONFIG_LEGACY_PTY_COUNT=256
- # CONFIG_IPMI_HANDLER is not set
--# CONFIG_WATCHDOG is not set
- # CONFIG_HW_RANDOM is not set
- # CONFIG_RTC is not set
- # CONFIG_R3964 is not set
-@@ -482,6 +481,20 @@ CONFIG_DEVPORT=y
- # CONFIG_W1 is not set
- # CONFIG_POWER_SUPPLY is not set
- # CONFIG_HWMON is not set
-+CONFIG_WATCHDOG=y
-+# CONFIG_WATCHDOG_NOWAYOUT is not set
-+
-+#
-+# Watchdog Device Drivers
-+#
-+# CONFIG_SOFT_WATCHDOG is not set
-+CONFIG_TXX9_WDT=y
-+
-+#
-+# PCI-based Watchdog Cards
-+#
-+# CONFIG_PCIPCWATCHDOG is not set
-+# CONFIG_WDTPCI is not set
+diff -puN drivers/watchdog/Kconfig~txx9-watchdog-driver drivers/watchdog/Kconfig
+--- a/drivers/watchdog/Kconfig~txx9-watchdog-driver
++++ a/drivers/watchdog/Kconfig
+@@ -642,6 +642,12 @@ config AR7_WDT
+ 	help
+ 	  Hardware driver for the TI AR7 Watchdog Timer.
  
- #
- # Multifunction device drivers
-diff -puN arch/mips/configs/rbhma4200_defconfig~txx9-watchdog-support-for-rbhma3100rbhma4200rbhma4500 arch/mips/configs/rbhma4200_defconfig
---- a/arch/mips/configs/rbhma4200_defconfig~txx9-watchdog-support-for-rbhma3100rbhma4200rbhma4500
-+++ a/arch/mips/configs/rbhma4200_defconfig
-@@ -431,7 +431,6 @@ CONFIG_UNIX98_PTYS=y
- CONFIG_LEGACY_PTYS=y
- CONFIG_LEGACY_PTY_COUNT=256
- # CONFIG_IPMI_HANDLER is not set
--# CONFIG_WATCHDOG is not set
- # CONFIG_HW_RANDOM is not set
- # CONFIG_RTC is not set
- # CONFIG_R3964 is not set
-@@ -449,6 +448,20 @@ CONFIG_DEVPORT=y
- # CONFIG_W1 is not set
- # CONFIG_POWER_SUPPLY is not set
- # CONFIG_HWMON is not set
-+CONFIG_WATCHDOG=y
-+# CONFIG_WATCHDOG_NOWAYOUT is not set
++config TXX9_WDT
++	tristate "Toshiba TXx9 Watchdog Timer"
++	depends on CPU_TX39XX || CPU_TX49XX
++	help
++	  Hardware driver for the built-in watchdog timer on TXx9 MIPS SoCs.
 +
-+#
-+# Watchdog Device Drivers
-+#
-+# CONFIG_SOFT_WATCHDOG is not set
-+CONFIG_TXX9_WDT=m
-+
-+#
-+# PCI-based Watchdog Cards
-+#
-+# CONFIG_PCIPCWATCHDOG is not set
-+# CONFIG_WDTPCI is not set
+ # PARISC Architecture
  
- #
- # Multifunction device drivers
-diff -puN arch/mips/configs/rbhma4500_defconfig~txx9-watchdog-support-for-rbhma3100rbhma4200rbhma4500 arch/mips/configs/rbhma4500_defconfig
---- a/arch/mips/configs/rbhma4500_defconfig~txx9-watchdog-support-for-rbhma3100rbhma4200rbhma4500
-+++ a/arch/mips/configs/rbhma4500_defconfig
-@@ -450,7 +450,6 @@ CONFIG_UNIX98_PTYS=y
- CONFIG_LEGACY_PTYS=y
- CONFIG_LEGACY_PTY_COUNT=256
- # CONFIG_IPMI_HANDLER is not set
--# CONFIG_WATCHDOG is not set
- # CONFIG_HW_RANDOM is not set
- # CONFIG_RTC is not set
- # CONFIG_R3964 is not set
-@@ -479,6 +478,20 @@ CONFIG_SPI_AT25=y
- # CONFIG_W1 is not set
- # CONFIG_POWER_SUPPLY is not set
- # CONFIG_HWMON is not set
-+CONFIG_WATCHDOG=y
-+# CONFIG_WATCHDOG_NOWAYOUT is not set
-+
-+#
-+# Watchdog Device Drivers
-+#
-+# CONFIG_SOFT_WATCHDOG is not set
-+CONFIG_TXX9_WDT=m
-+
-+#
-+# PCI-based Watchdog Cards
-+#
-+# CONFIG_PCIPCWATCHDOG is not set
-+# CONFIG_WDTPCI is not set
+ # POWERPC Architecture
+diff -puN drivers/watchdog/Makefile~txx9-watchdog-driver drivers/watchdog/Makefile
+--- a/drivers/watchdog/Makefile~txx9-watchdog-driver
++++ a/drivers/watchdog/Makefile
+@@ -95,6 +95,7 @@ obj-$(CONFIG_INDYDOG) += indydog.o
+ obj-$(CONFIG_WDT_MTX1)	+= mtx-1_wdt.o
+ obj-$(CONFIG_WDT_RM9K_GPI) += rm9k_wdt.o
+ obj-$(CONFIG_AR7_WDT) += ar7_wdt.o
++obj-$(CONFIG_TXX9_WDT) += txx9wdt.o
  
- #
- # Multifunction device drivers
-diff -puN arch/mips/jmr3927/rbhma3100/setup.c~txx9-watchdog-support-for-rbhma3100rbhma4200rbhma4500 arch/mips/jmr3927/rbhma3100/setup.c
---- a/arch/mips/jmr3927/rbhma3100/setup.c~txx9-watchdog-support-for-rbhma3100rbhma4200rbhma4500
-+++ a/arch/mips/jmr3927/rbhma3100/setup.c
-@@ -35,6 +35,7 @@
- #include <linux/delay.h>
- #include <linux/pm.h>
- #include <linux/platform_device.h>
+ # PARISC Architecture
+ 
+diff -puN /dev/null drivers/watchdog/txx9wdt.c
+--- /dev/null
++++ a/drivers/watchdog/txx9wdt.c
+@@ -0,0 +1,276 @@
++/*
++ * txx9wdt: A Hardware Watchdog Driver for TXx9 SoCs
++ *
++ * Copyright (C) 2007 Atsushi Nemoto <anemo@mba.ocn.ne.jp>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#include <linux/module.h>
++#include <linux/moduleparam.h>
++#include <linux/types.h>
++#include <linux/miscdevice.h>
++#include <linux/watchdog.h>
++#include <linux/fs.h>
++#include <linux/reboot.h>
++#include <linux/init.h>
++#include <linux/uaccess.h>
++#include <linux/platform_device.h>
 +#include <linux/clk.h>
- #ifdef CONFIG_SERIAL_TXX9
- #include <linux/serial_core.h>
- #endif
-@@ -233,6 +234,8 @@ static void __init tx3927_setup(void)
- 	tx3927_ccfgptr->ccfg &= ~TX3927_CCFG_BEOW;
- 	/* Disable PCI snoop */
- 	tx3927_ccfgptr->ccfg &= ~TX3927_CCFG_PSNP;
-+	/* do reset on watchdog */
-+	tx3927_ccfgptr->ccfg |= TX3927_CCFG_WR;
- 
- #ifdef DO_WRITE_THROUGH
- 	/* Enable PCI SNOOP - with write through only */
-@@ -383,3 +386,55 @@ static int __init jmr3927_rtc_init(void)
- 	return IS_ERR(dev) ? PTR_ERR(dev) : 0;
- }
- device_initcall(jmr3927_rtc_init);
++#include <linux/err.h>
++#include <linux/io.h>
++#include <asm/txx9tmr.h>
 +
-+/* Watchdog support */
++#define TIMER_MARGIN	60		/* Default is 60 seconds */
 +
-+static int __init txx9_wdt_init(unsigned long base)
++static int timeout = TIMER_MARGIN;	/* in seconds */
++module_param(timeout, int, 0);
++MODULE_PARM_DESC(timeout,
++	"Watchdog timeout in seconds. "
++	"(0<timeout<((2^" __MODULE_STRING(TXX9_TIMER_BITS) ")/(IMCLK/256)), "
++	"default=" __MODULE_STRING(TIMER_MARGIN) ")");
++
++static int nowayout = WATCHDOG_NOWAYOUT;
++module_param(nowayout, int, 0);
++MODULE_PARM_DESC(nowayout,
++	"Watchdog cannot be stopped once started "
++	"(default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
++
++#define WD_TIMER_CCD	7	/* 1/256 */
++#define WD_TIMER_CLK	(clk_get_rate(txx9_imclk) / (2 << WD_TIMER_CCD))
++#define WD_MAX_TIMEOUT	((0xffffffff >> (32 - TXX9_TIMER_BITS)) / WD_TIMER_CLK)
++
++static unsigned long txx9wdt_alive;
++static int expect_close;
++static struct txx9_tmr_reg __iomem *txx9wdt_reg;
++static struct clk *txx9_imclk;
++
++static void txx9wdt_ping(void)
 +{
-+	struct resource res = {
-+		.start	= base,
-+		.end	= base + 0x100 - 1,
-+		.flags	= IORESOURCE_MEM,
-+	};
-+	struct platform_device *dev =
-+		platform_device_register_simple("txx9wdt", -1, &res, 1);
-+	return IS_ERR(dev) ? PTR_ERR(dev) : 0;
++	__raw_writel(TXx9_TMWTMR_TWIE | TXx9_TMWTMR_TWC, &txx9wdt_reg->wtmr);
 +}
 +
-+static int __init jmr3927_wdt_init(void)
++static void txx9wdt_start(void)
 +{
-+	return txx9_wdt_init(TX3927_TMR_REG(2));
++	__raw_writel(WD_TIMER_CLK * timeout, &txx9wdt_reg->cpra);
++	__raw_writel(WD_TIMER_CCD, &txx9wdt_reg->ccdr);
++	__raw_writel(0, &txx9wdt_reg->tisr);	/* clear pending interrupt */
++	__raw_writel(TXx9_TMTCR_TCE | TXx9_TMTCR_CCDE | TXx9_TMTCR_TMODE_WDOG,
++		     &txx9wdt_reg->tcr);
++	__raw_writel(TXx9_TMWTMR_TWIE | TXx9_TMWTMR_TWC, &txx9wdt_reg->wtmr);
 +}
-+device_initcall(jmr3927_wdt_init);
 +
-+/* Minimum CLK support */
-+
-+struct clk *clk_get(struct device *dev, const char *id)
++static void txx9wdt_stop(void)
 +{
-+	if (!strcmp(id, "imbus_clk"))
-+		return (struct clk *)JMR3927_IMCLK;
-+	return ERR_PTR(-ENOENT);
++	__raw_writel(TXx9_TMWTMR_WDIS, &txx9wdt_reg->wtmr);
++	__raw_writel(__raw_readl(&txx9wdt_reg->tcr) & ~TXx9_TMTCR_TCE,
++		     &txx9wdt_reg->tcr);
 +}
-+EXPORT_SYMBOL(clk_get);
 +
-+int clk_enable(struct clk *clk)
++static int txx9wdt_open(struct inode *inode, struct file *file)
 +{
++	if (test_and_set_bit(0, &txx9wdt_alive))
++		return -EBUSY;
++
++	if (__raw_readl(&txx9wdt_reg->tcr) & TXx9_TMTCR_TCE) {
++		clear_bit(0, &txx9wdt_alive);
++		return -EBUSY;
++	}
++
++	if (nowayout)
++		__module_get(THIS_MODULE);
++
++	txx9wdt_start();
++	return nonseekable_open(inode, file);
++}
++
++static int txx9wdt_release(struct inode *inode, struct file *file)
++{
++	if (expect_close)
++		txx9wdt_stop();
++	else {
++		printk(KERN_CRIT "txx9wdt: "
++		       "Unexpected close, not stopping watchdog!\n");
++		txx9wdt_ping();
++	}
++	clear_bit(0, &txx9wdt_alive);
++	expect_close = 0;
 +	return 0;
 +}
-+EXPORT_SYMBOL(clk_enable);
 +
-+void clk_disable(struct clk *clk)
++static ssize_t txx9wdt_write(struct file *file, const char __user *data,
++			     size_t len, loff_t *ppos)
 +{
++	if (len) {
++		if (!nowayout) {
++			size_t i;
++
++			expect_close = 0;
++			for (i = 0; i != len; i++) {
++				char c;
++				if (get_user(c, data + i))
++					return -EFAULT;
++				if (c == 'V')
++					expect_close = 1;
++			}
++		}
++		txx9wdt_ping();
++	}
++	return len;
 +}
-+EXPORT_SYMBOL(clk_disable);
 +
-+unsigned long clk_get_rate(struct clk *clk)
++static int txx9wdt_ioctl(struct inode *inode, struct file *file,
++	unsigned int cmd, unsigned long arg)
 +{
-+	return (unsigned long)clk;
-+}
-+EXPORT_SYMBOL(clk_get_rate);
-+
-+void clk_put(struct clk *clk)
-+{
-+}
-+EXPORT_SYMBOL(clk_put);
-diff -puN arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c~txx9-watchdog-support-for-rbhma3100rbhma4200rbhma4500 arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c
---- a/arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c~txx9-watchdog-support-for-rbhma3100rbhma4200rbhma4500
-+++ a/arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c
-@@ -50,6 +50,7 @@
- #include <linux/pci.h>
- #include <linux/pm.h>
- #include <linux/platform_device.h>
-+#include <linux/clk.h>
- 
- #include <asm/bootinfo.h>
- #include <asm/io.h>
-@@ -803,6 +804,8 @@ void __init plat_mem_setup(void)
- 		}
- 
- 	/* CCFG */
-+	/* do reset on watchdog */
-+	tx4927_ccfgptr->ccfg |= TX4927_CCFG_WR;
- 	/* enable Timeout BusError */
- 	if (tx4927_ccfg_toeon)
- 		tx4927_ccfgptr->ccfg |= TX4927_CCFG_TOE;
-@@ -944,3 +947,55 @@ static int __init rbtx4927_ne_init(void)
- 	return IS_ERR(dev) ? PTR_ERR(dev) : 0;
- }
- device_initcall(rbtx4927_ne_init);
-+
-+/* Watchdog support */
-+
-+static int __init txx9_wdt_init(unsigned long base)
-+{
-+	struct resource res = {
-+		.start	= base,
-+		.end	= base + 0x100 - 1,
-+		.flags	= IORESOURCE_MEM,
++	void __user *argp = (void __user *)arg;
++	int __user *p = argp;
++	int new_timeout;
++	static struct watchdog_info ident = {
++		.options =		WDIOF_SETTIMEOUT |
++					WDIOF_KEEPALIVEPING |
++					WDIOF_MAGICCLOSE,
++		.firmware_version =	0,
++		.identity =		"Hardware Watchdog for TXx9",
 +	};
-+	struct platform_device *dev =
-+		platform_device_register_simple("txx9wdt", -1, &res, 1);
-+	return IS_ERR(dev) ? PTR_ERR(dev) : 0;
++
++	switch (cmd) {
++	default:
++		return -ENOTTY;
++	case WDIOC_GETSUPPORT:
++		return copy_to_user(argp, &ident, sizeof(ident)) ? -EFAULT : 0;
++	case WDIOC_GETSTATUS:
++	case WDIOC_GETBOOTSTATUS:
++		return put_user(0, p);
++	case WDIOC_KEEPALIVE:
++		txx9wdt_ping();
++		return 0;
++	case WDIOC_SETTIMEOUT:
++		if (get_user(new_timeout, p))
++			return -EFAULT;
++		if (new_timeout < 1 || new_timeout > WD_MAX_TIMEOUT)
++			return -EINVAL;
++		timeout = new_timeout;
++		txx9wdt_stop();
++		txx9wdt_start();
++		/* Fall */
++	case WDIOC_GETTIMEOUT:
++		return put_user(timeout, p);
++	}
 +}
 +
-+static int __init rbtx4927_wdt_init(void)
++static int txx9wdt_notify_sys(struct notifier_block *this, unsigned long code,
++	void *unused)
 +{
-+	return txx9_wdt_init(TX4927_TMR_REG(2) & 0xfffffffffULL);
++	if (code == SYS_DOWN || code == SYS_HALT)
++		txx9wdt_stop();
++	return NOTIFY_DONE;
 +}
-+device_initcall(rbtx4927_wdt_init);
 +
-+/* Minimum CLK support */
++static const struct file_operations txx9wdt_fops = {
++	.owner =	THIS_MODULE,
++	.llseek =	no_llseek,
++	.write =	txx9wdt_write,
++	.ioctl =	txx9wdt_ioctl,
++	.open =		txx9wdt_open,
++	.release =	txx9wdt_release,
++};
 +
-+struct clk *clk_get(struct device *dev, const char *id)
++static struct miscdevice txx9wdt_miscdev = {
++	.minor =	WATCHDOG_MINOR,
++	.name =		"watchdog",
++	.fops =		&txx9wdt_fops,
++};
++
++static struct notifier_block txx9wdt_notifier = {
++	.notifier_call = txx9wdt_notify_sys
++};
++
++static int __init txx9wdt_probe(struct platform_device *dev)
 +{
-+	if (!strcmp(id, "imbus_clk"))
-+		return (struct clk *)50000000;
-+	return ERR_PTR(-ENOENT);
++	struct resource *res;
++	int ret;
++
++	txx9_imclk = clk_get(NULL, "imbus_clk");
++	if (IS_ERR(txx9_imclk)) {
++		ret = PTR_ERR(txx9_imclk);
++		txx9_imclk = NULL;
++		goto exit;
++	}
++	ret = clk_enable(txx9_imclk);
++	if (ret) {
++		clk_put(txx9_imclk);
++		txx9_imclk = NULL;
++		goto exit;
++	}
++
++	res = platform_get_resource(dev, IORESOURCE_MEM, 0);
++	if (!res)
++		goto exit_busy;
++	if (!devm_request_mem_region(&dev->dev,
++				     res->start, res->end - res->start + 1,
++				     "txx9wdt"))
++		goto exit_busy;
++	txx9wdt_reg = devm_ioremap(&dev->dev,
++				   res->start, res->end - res->start + 1);
++	if (!txx9wdt_reg)
++		goto exit_busy;
++
++	ret = misc_register(&txx9wdt_miscdev);
++	if (ret)
++		goto exit;
++
++	ret = register_reboot_notifier(&txx9wdt_notifier);
++	if (ret) {
++		misc_deregister(&txx9wdt_miscdev);
++		goto exit;
++	}
++
++	printk(KERN_INFO "Hardware Watchdog Timer for TXx9: "
++	       "timeout=%d sec (max %ld) (nowayout= %d)\n",
++	       timeout, WD_MAX_TIMEOUT, nowayout);
++
++	return 0;
++exit_busy:
++	ret = -EBUSY;
++exit:
++	if (txx9_imclk) {
++		clk_disable(txx9_imclk);
++		clk_put(txx9_imclk);
++	}
++	return ret;
 +}
-+EXPORT_SYMBOL(clk_get);
 +
-+int clk_enable(struct clk *clk)
++static int __exit txx9wdt_remove(struct platform_device *dev)
 +{
++	misc_deregister(&txx9wdt_miscdev);
++	unregister_reboot_notifier(&txx9wdt_notifier);
++	clk_disable(txx9_imclk);
++	clk_put(txx9_imclk);
 +	return 0;
 +}
-+EXPORT_SYMBOL(clk_enable);
 +
-+void clk_disable(struct clk *clk)
-+{
-+}
-+EXPORT_SYMBOL(clk_disable);
++static struct platform_driver txx9wdt_driver = {
++	.remove = __exit_p(txx9wdt_remove),
++	.driver = {
++		.name = "txx9wdt",
++		.owner = THIS_MODULE,
++	},
++};
 +
-+unsigned long clk_get_rate(struct clk *clk)
++static int __init watchdog_init(void)
 +{
-+	return (unsigned long)clk;
-+}
-+EXPORT_SYMBOL(clk_get_rate);
-+
-+void clk_put(struct clk *clk)
-+{
-+}
-+EXPORT_SYMBOL(clk_put);
-diff -puN arch/mips/tx4938/toshiba_rbtx4938/setup.c~txx9-watchdog-support-for-rbhma3100rbhma4200rbhma4500 arch/mips/tx4938/toshiba_rbtx4938/setup.c
---- a/arch/mips/tx4938/toshiba_rbtx4938/setup.c~txx9-watchdog-support-for-rbhma3100rbhma4200rbhma4500
-+++ a/arch/mips/tx4938/toshiba_rbtx4938/setup.c
-@@ -724,6 +724,8 @@ void __init tx4938_board_setup(void)
- 	/* CCFG */
- 	/* clear WatchDogReset,BusErrorOnWrite flag (W1C) */
- 	tx4938_ccfgptr->ccfg |= TX4938_CCFG_WDRST | TX4938_CCFG_BEOW;
-+	/* do reset on watchdog */
-+	tx4938_ccfgptr->ccfg |= TX4938_CCFG_WR;
- 	/* clear PCIC1 reset */
- 	if (tx4938_ccfgptr->clkctr & TX4938_CLKCTR_PCIC1RST)
- 		tx4938_ccfgptr->clkctr &= ~TX4938_CLKCTR_PCIC1RST;
-@@ -1121,12 +1123,35 @@ static int __init rbtx4938_spi_init(void
- }
- arch_initcall(rbtx4938_spi_init);
- 
-+/* Watchdog support */
-+
-+static int __init txx9_wdt_init(unsigned long base)
-+{
-+	struct resource res = {
-+		.start	= base,
-+		.end	= base + 0x100 - 1,
-+		.flags	= IORESOURCE_MEM,
-+		.parent	= &tx4938_reg_resource,
-+	};
-+	struct platform_device *dev =
-+		platform_device_register_simple("txx9wdt", -1, &res, 1);
-+	return IS_ERR(dev) ? PTR_ERR(dev) : 0;
++	return platform_driver_probe(&txx9wdt_driver, txx9wdt_probe);
 +}
 +
-+static int __init rbtx4938_wdt_init(void)
++static void __exit watchdog_exit(void)
 +{
-+	return txx9_wdt_init(TX4938_TMR_REG(2) & 0xfffffffffULL);
++	platform_driver_unregister(&txx9wdt_driver);
 +}
-+device_initcall(rbtx4938_wdt_init);
 +
- /* Minimum CLK support */
- 
- struct clk *clk_get(struct device *dev, const char *id)
- {
- 	if (!strcmp(id, "spi-baseclk"))
- 		return (struct clk *)(txx9_gbus_clock / 2 / 4);
-+	if (!strcmp(id, "imbus_clk"))
-+		return (struct clk *)(txx9_gbus_clock / 2);
- 	return ERR_PTR(-ENOENT);
- }
- EXPORT_SYMBOL(clk_get);
-diff -puN include/asm-mips/tx4927/tx4927_pci.h~txx9-watchdog-support-for-rbhma3100rbhma4200rbhma4500 include/asm-mips/tx4927/tx4927_pci.h
---- a/include/asm-mips/tx4927/tx4927_pci.h~txx9-watchdog-support-for-rbhma3100rbhma4200rbhma4500
-+++ a/include/asm-mips/tx4927/tx4927_pci.h
-@@ -9,6 +9,7 @@
- #define __ASM_TX4927_TX4927_PCI_H
- 
- #define TX4927_CCFG_TOE 0x00004000
-+#define TX4927_CCFG_WR	0x00008000
- #define TX4927_CCFG_TINTDIS	0x01000000
- 
- #define TX4927_PCIMEM      0x08000000
++module_init(watchdog_init);
++module_exit(watchdog_exit);
++
++MODULE_DESCRIPTION("TXx9 Watchdog Driver");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
 _
 
 Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
