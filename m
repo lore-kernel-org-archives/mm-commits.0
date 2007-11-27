@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + txx9-watchdog-driver.patch added to -mm tree
-Date: Mon, 26 Nov 2007 22:35:50 -0800
-Message-ID: <200711270635.lAR6Zopi031326@imap1.linux-foundation.org>
+Subject: + wait_task_stopped-remove-unneeded-delay_group_leader-check.patch added to -mm tree
+Date: Mon, 26 Nov 2007 23:05:15 -0800
+Message-ID: <200711270705.lAR75FJc032336@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47438 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49146 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750966AbXK0GgP (ORCPT
+	by vger.kernel.org with ESMTP id S1751300AbXK0HGK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 01:36:15 -0500
+	Tue, 27 Nov 2007 02:06:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anemo@mba.ocn.ne.jp, ralf@linux-mips.org, wim@iguana.be
+Cc: oleg@tv-sign.ru, mika.penttila@kolumbus.fi, roland@redhat.com
 
 
 The patch titled
-     TXx9 watchdog driver
+     wait_task_stopped(): remove unneeded delay_group_leader check
 has been added to the -mm tree.  Its filename is
-     txx9-watchdog-driver.patch
+     wait_task_stopped-remove-unneeded-delay_group_leader-check.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,334 +26,73 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: TXx9 watchdog driver
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: wait_task_stopped(): remove unneeded delay_group_leader check
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-This is a driver for watchdog timer built into TXx9 MIPS SoCs.
+wait_task_stopped() doesn't need the "delay_group_leader" parameter.  If
+the child is not traced it must be a group leader.  With or without
+subthreads ->group_stop_count == 0 when the whole task is stopped.
 
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Mika Penttila <mika.penttila@kolumbus.fi>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/Kconfig   |    6 
- drivers/watchdog/Makefile  |    1 
- drivers/watchdog/txx9wdt.c |  276 +++++++++++++++++++++++++++++++++++
- 3 files changed, 283 insertions(+)
+ kernel/exit.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/watchdog/Kconfig~txx9-watchdog-driver drivers/watchdog/Kconfig
---- a/drivers/watchdog/Kconfig~txx9-watchdog-driver
-+++ a/drivers/watchdog/Kconfig
-@@ -642,6 +642,12 @@ config AR7_WDT
- 	help
- 	  Hardware driver for the TI AR7 Watchdog Timer.
+diff -puN kernel/exit.c~wait_task_stopped-remove-unneeded-delay_group_leader-check kernel/exit.c
+--- a/kernel/exit.c~wait_task_stopped-remove-unneeded-delay_group_leader-check
++++ a/kernel/exit.c
+@@ -1348,7 +1348,7 @@ static int wait_task_zombie(struct task_
+  * the lock and this task is uninteresting.  If we return nonzero, we have
+  * released the lock and the system call should return.
+  */
+-static int wait_task_stopped(struct task_struct *p, int delayed_group_leader,
++static int wait_task_stopped(struct task_struct *p,
+ 			     int noreap, struct siginfo __user *infop,
+ 			     int __user *stat_addr, struct rusage __user *ru)
+ {
+@@ -1362,8 +1362,7 @@ static int wait_task_stopped(struct task
+ 	if (unlikely(!is_task_stopped_or_traced(p)))
+ 		goto unlock_sig;
  
-+config TXX9_WDT
-+	tristate "Toshiba TXx9 Watchdog Timer"
-+	depends on CPU_TX39XX || CPU_TX49XX
-+	help
-+	  Hardware driver for the built-in watchdog timer on TXx9 MIPS SoCs.
-+
- # PARISC Architecture
+-	if (delayed_group_leader && !(p->ptrace & PT_PTRACED) &&
+-	    p->signal->group_stop_count > 0)
++	if (!(p->ptrace & PT_PTRACED) && p->signal->group_stop_count > 0)
+ 		/*
+ 		 * A group stop is in progress and this is the group leader.
+ 		 * We won't report until all threads have stopped.
+@@ -1519,7 +1518,7 @@ repeat:
+ 				    !(options & WUNTRACED))
+ 					continue;
  
- # POWERPC Architecture
-diff -puN drivers/watchdog/Makefile~txx9-watchdog-driver drivers/watchdog/Makefile
---- a/drivers/watchdog/Makefile~txx9-watchdog-driver
-+++ a/drivers/watchdog/Makefile
-@@ -95,6 +95,7 @@ obj-$(CONFIG_INDYDOG) += indydog.o
- obj-$(CONFIG_WDT_MTX1)	+= mtx-1_wdt.o
- obj-$(CONFIG_WDT_RM9K_GPI) += rm9k_wdt.o
- obj-$(CONFIG_AR7_WDT) += ar7_wdt.o
-+obj-$(CONFIG_TXX9_WDT) += txx9wdt.o
- 
- # PARISC Architecture
- 
-diff -puN /dev/null drivers/watchdog/txx9wdt.c
---- /dev/null
-+++ a/drivers/watchdog/txx9wdt.c
-@@ -0,0 +1,276 @@
-+/*
-+ * txx9wdt: A Hardware Watchdog Driver for TXx9 SoCs
-+ *
-+ * Copyright (C) 2007 Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#include <linux/module.h>
-+#include <linux/moduleparam.h>
-+#include <linux/types.h>
-+#include <linux/miscdevice.h>
-+#include <linux/watchdog.h>
-+#include <linux/fs.h>
-+#include <linux/reboot.h>
-+#include <linux/init.h>
-+#include <linux/uaccess.h>
-+#include <linux/platform_device.h>
-+#include <linux/clk.h>
-+#include <linux/err.h>
-+#include <linux/io.h>
-+#include <asm/txx9tmr.h>
-+
-+#define TIMER_MARGIN	60		/* Default is 60 seconds */
-+
-+static int timeout = TIMER_MARGIN;	/* in seconds */
-+module_param(timeout, int, 0);
-+MODULE_PARM_DESC(timeout,
-+	"Watchdog timeout in seconds. "
-+	"(0<timeout<((2^" __MODULE_STRING(TXX9_TIMER_BITS) ")/(IMCLK/256)), "
-+	"default=" __MODULE_STRING(TIMER_MARGIN) ")");
-+
-+static int nowayout = WATCHDOG_NOWAYOUT;
-+module_param(nowayout, int, 0);
-+MODULE_PARM_DESC(nowayout,
-+	"Watchdog cannot be stopped once started "
-+	"(default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
-+
-+#define WD_TIMER_CCD	7	/* 1/256 */
-+#define WD_TIMER_CLK	(clk_get_rate(txx9_imclk) / (2 << WD_TIMER_CCD))
-+#define WD_MAX_TIMEOUT	((0xffffffff >> (32 - TXX9_TIMER_BITS)) / WD_TIMER_CLK)
-+
-+static unsigned long txx9wdt_alive;
-+static int expect_close;
-+static struct txx9_tmr_reg __iomem *txx9wdt_reg;
-+static struct clk *txx9_imclk;
-+
-+static void txx9wdt_ping(void)
-+{
-+	__raw_writel(TXx9_TMWTMR_TWIE | TXx9_TMWTMR_TWC, &txx9wdt_reg->wtmr);
-+}
-+
-+static void txx9wdt_start(void)
-+{
-+	__raw_writel(WD_TIMER_CLK * timeout, &txx9wdt_reg->cpra);
-+	__raw_writel(WD_TIMER_CCD, &txx9wdt_reg->ccdr);
-+	__raw_writel(0, &txx9wdt_reg->tisr);	/* clear pending interrupt */
-+	__raw_writel(TXx9_TMTCR_TCE | TXx9_TMTCR_CCDE | TXx9_TMTCR_TMODE_WDOG,
-+		     &txx9wdt_reg->tcr);
-+	__raw_writel(TXx9_TMWTMR_TWIE | TXx9_TMWTMR_TWC, &txx9wdt_reg->wtmr);
-+}
-+
-+static void txx9wdt_stop(void)
-+{
-+	__raw_writel(TXx9_TMWTMR_WDIS, &txx9wdt_reg->wtmr);
-+	__raw_writel(__raw_readl(&txx9wdt_reg->tcr) & ~TXx9_TMTCR_TCE,
-+		     &txx9wdt_reg->tcr);
-+}
-+
-+static int txx9wdt_open(struct inode *inode, struct file *file)
-+{
-+	if (test_and_set_bit(0, &txx9wdt_alive))
-+		return -EBUSY;
-+
-+	if (__raw_readl(&txx9wdt_reg->tcr) & TXx9_TMTCR_TCE) {
-+		clear_bit(0, &txx9wdt_alive);
-+		return -EBUSY;
-+	}
-+
-+	if (nowayout)
-+		__module_get(THIS_MODULE);
-+
-+	txx9wdt_start();
-+	return nonseekable_open(inode, file);
-+}
-+
-+static int txx9wdt_release(struct inode *inode, struct file *file)
-+{
-+	if (expect_close)
-+		txx9wdt_stop();
-+	else {
-+		printk(KERN_CRIT "txx9wdt: "
-+		       "Unexpected close, not stopping watchdog!\n");
-+		txx9wdt_ping();
-+	}
-+	clear_bit(0, &txx9wdt_alive);
-+	expect_close = 0;
-+	return 0;
-+}
-+
-+static ssize_t txx9wdt_write(struct file *file, const char __user *data,
-+			     size_t len, loff_t *ppos)
-+{
-+	if (len) {
-+		if (!nowayout) {
-+			size_t i;
-+
-+			expect_close = 0;
-+			for (i = 0; i != len; i++) {
-+				char c;
-+				if (get_user(c, data + i))
-+					return -EFAULT;
-+				if (c == 'V')
-+					expect_close = 1;
-+			}
-+		}
-+		txx9wdt_ping();
-+	}
-+	return len;
-+}
-+
-+static int txx9wdt_ioctl(struct inode *inode, struct file *file,
-+	unsigned int cmd, unsigned long arg)
-+{
-+	void __user *argp = (void __user *)arg;
-+	int __user *p = argp;
-+	int new_timeout;
-+	static struct watchdog_info ident = {
-+		.options =		WDIOF_SETTIMEOUT |
-+					WDIOF_KEEPALIVEPING |
-+					WDIOF_MAGICCLOSE,
-+		.firmware_version =	0,
-+		.identity =		"Hardware Watchdog for TXx9",
-+	};
-+
-+	switch (cmd) {
-+	default:
-+		return -ENOTTY;
-+	case WDIOC_GETSUPPORT:
-+		return copy_to_user(argp, &ident, sizeof(ident)) ? -EFAULT : 0;
-+	case WDIOC_GETSTATUS:
-+	case WDIOC_GETBOOTSTATUS:
-+		return put_user(0, p);
-+	case WDIOC_KEEPALIVE:
-+		txx9wdt_ping();
-+		return 0;
-+	case WDIOC_SETTIMEOUT:
-+		if (get_user(new_timeout, p))
-+			return -EFAULT;
-+		if (new_timeout < 1 || new_timeout > WD_MAX_TIMEOUT)
-+			return -EINVAL;
-+		timeout = new_timeout;
-+		txx9wdt_stop();
-+		txx9wdt_start();
-+		/* Fall */
-+	case WDIOC_GETTIMEOUT:
-+		return put_user(timeout, p);
-+	}
-+}
-+
-+static int txx9wdt_notify_sys(struct notifier_block *this, unsigned long code,
-+	void *unused)
-+{
-+	if (code == SYS_DOWN || code == SYS_HALT)
-+		txx9wdt_stop();
-+	return NOTIFY_DONE;
-+}
-+
-+static const struct file_operations txx9wdt_fops = {
-+	.owner =	THIS_MODULE,
-+	.llseek =	no_llseek,
-+	.write =	txx9wdt_write,
-+	.ioctl =	txx9wdt_ioctl,
-+	.open =		txx9wdt_open,
-+	.release =	txx9wdt_release,
-+};
-+
-+static struct miscdevice txx9wdt_miscdev = {
-+	.minor =	WATCHDOG_MINOR,
-+	.name =		"watchdog",
-+	.fops =		&txx9wdt_fops,
-+};
-+
-+static struct notifier_block txx9wdt_notifier = {
-+	.notifier_call = txx9wdt_notify_sys
-+};
-+
-+static int __init txx9wdt_probe(struct platform_device *dev)
-+{
-+	struct resource *res;
-+	int ret;
-+
-+	txx9_imclk = clk_get(NULL, "imbus_clk");
-+	if (IS_ERR(txx9_imclk)) {
-+		ret = PTR_ERR(txx9_imclk);
-+		txx9_imclk = NULL;
-+		goto exit;
-+	}
-+	ret = clk_enable(txx9_imclk);
-+	if (ret) {
-+		clk_put(txx9_imclk);
-+		txx9_imclk = NULL;
-+		goto exit;
-+	}
-+
-+	res = platform_get_resource(dev, IORESOURCE_MEM, 0);
-+	if (!res)
-+		goto exit_busy;
-+	if (!devm_request_mem_region(&dev->dev,
-+				     res->start, res->end - res->start + 1,
-+				     "txx9wdt"))
-+		goto exit_busy;
-+	txx9wdt_reg = devm_ioremap(&dev->dev,
-+				   res->start, res->end - res->start + 1);
-+	if (!txx9wdt_reg)
-+		goto exit_busy;
-+
-+	ret = misc_register(&txx9wdt_miscdev);
-+	if (ret)
-+		goto exit;
-+
-+	ret = register_reboot_notifier(&txx9wdt_notifier);
-+	if (ret) {
-+		misc_deregister(&txx9wdt_miscdev);
-+		goto exit;
-+	}
-+
-+	printk(KERN_INFO "Hardware Watchdog Timer for TXx9: "
-+	       "timeout=%d sec (max %ld) (nowayout= %d)\n",
-+	       timeout, WD_MAX_TIMEOUT, nowayout);
-+
-+	return 0;
-+exit_busy:
-+	ret = -EBUSY;
-+exit:
-+	if (txx9_imclk) {
-+		clk_disable(txx9_imclk);
-+		clk_put(txx9_imclk);
-+	}
-+	return ret;
-+}
-+
-+static int __exit txx9wdt_remove(struct platform_device *dev)
-+{
-+	misc_deregister(&txx9wdt_miscdev);
-+	unregister_reboot_notifier(&txx9wdt_notifier);
-+	clk_disable(txx9_imclk);
-+	clk_put(txx9_imclk);
-+	return 0;
-+}
-+
-+static struct platform_driver txx9wdt_driver = {
-+	.remove = __exit_p(txx9wdt_remove),
-+	.driver = {
-+		.name = "txx9wdt",
-+		.owner = THIS_MODULE,
-+	},
-+};
-+
-+static int __init watchdog_init(void)
-+{
-+	return platform_driver_probe(&txx9wdt_driver, txx9wdt_probe);
-+}
-+
-+static void __exit watchdog_exit(void)
-+{
-+	platform_driver_unregister(&txx9wdt_driver);
-+}
-+
-+module_init(watchdog_init);
-+module_exit(watchdog_exit);
-+
-+MODULE_DESCRIPTION("TXx9 Watchdog Driver");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
+-				retval = wait_task_stopped(p, ret == 2,
++				retval = wait_task_stopped(p,
+ 						(options & WNOWAIT), infop,
+ 						stat_addr, ru);
+ 			} else if (p->exit_state == EXIT_ZOMBIE) {
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-clocksource-make-clocksource_mask-bullet-proof.patch
-git-mips.patch
-txx9-watchdog-driver.patch
-txx9-watchdog-support-for-rbhma3100rbhma4200rbhma4500.patch
+wait_task_stopped-dont-use-task_pid_nr_ns-lockless.patch
+proc-remove-races-from-proc_id_readdir.patch
+wait_task_stopped-pass-correct-exit_code-to.patch
+use-__set_task_state-for-traced-stopped-tasks.patch
+add-task_wakekill.patch
+do_wait-remove-one-else-if-branch.patch
+proc-implement-proc_single_file_operations.patch
+proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces.patch
+proc-seqfile-convert-proc_pid_statm.patch
+proc-proper-pidns-handling-for-proc-self.patch
+proc-fix-the-threaded-proc-self.patch
+kill-pt_attached.patch
+kill-my_ptrace_child.patch
+ptrace_check_attach-remove-unneeded-signal-=-null-check.patch
+ptrace_stop-fix-the-race-with-ptrace-detachattach.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace.patch
+do_wait-factor-out-retval-=-0-checks.patch
+ptrace_stop-fix-racy-nonstop_code-setting.patch
+wait_task_stopped-remove-unneeded-delay_group_leader-check.patch
