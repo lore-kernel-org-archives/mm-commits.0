@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-use-generic-per-cpu.patch added to -mm tree
-Date: Tue, 27 Nov 2007 13:34:41 -0800
-Message-ID: <200711272134.lARLYf0R031552@imap1.linux-foundation.org>
+Subject: + s390-use-generic-percpu.patch added to -mm tree
+Date: Tue, 27 Nov 2007 13:34:30 -0800
+Message-ID: <200711272134.lARLYVIM031549@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51533 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40181 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758154AbXK0Vet (ORCPT
+	by vger.kernel.org with ESMTP id S1756000AbXK0Veo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 16:34:49 -0500
+	Tue, 27 Nov 2007 16:34:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, benh@kernel.crashing.org, galak@gate.crashing.org, paulus@samba.org
+Cc: clameter@sgi.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     powerpc: use generic per cpu
+     s390: use generic percpu
 has been added to the -mm tree.  Its filename is
-     powerpc-use-generic-per-cpu.patch
+     s390-use-generic-percpu.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,53 +26,77 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: powerpc: use generic per cpu
+Subject: s390: use generic percpu
 From: Christoph Lameter <clameter@sgi.com>
 
-Powerpc has a way to determine the address of the per cpu area of the
-currently executing processor via the paca and the array of per cpu offsets is
-avoided by looking up the per cpu area from the remote paca's (copying
-x86_64).
+s390 has a special way to determine the pointer to a per cpu area plus there
+is a way to access the base of the per cpu area of the currently executing
+processor.
+
+Note: I had to do a minor change to ASM code.  Please check that this was done
+right.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Kumar Gala <galak@gate.crashing.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-powerpc/percpu.h |   19 -------------------
- 1 file changed, 19 deletions(-)
+ include/asm-s390/percpu.h |   33 +++++++++------------------------
+ 1 file changed, 9 insertions(+), 24 deletions(-)
 
-diff -puN include/asm-powerpc/percpu.h~powerpc-use-generic-per-cpu include/asm-powerpc/percpu.h
---- a/include/asm-powerpc/percpu.h~powerpc-use-generic-per-cpu
-+++ a/include/asm-powerpc/percpu.h
-@@ -16,25 +16,6 @@
- #define __my_cpu_offset() get_paca()->data_offset
- #define per_cpu_offset(x) (__per_cpu_offset(x))
+diff -puN include/asm-s390/percpu.h~s390-use-generic-percpu include/asm-s390/percpu.h
+--- a/include/asm-s390/percpu.h~s390-use-generic-percpu
++++ a/include/asm-s390/percpu.h
+@@ -13,40 +13,25 @@
+  */
+ #if defined(__s390x__) && defined(MODULE)
  
--/* var is in discarded region: offset to particular copy we want */
--#define per_cpu(var, cpu) (*RELOC_HIDE(&per_cpu__##var, __per_cpu_offset(cpu)))
--#define __get_cpu_var(var) (*RELOC_HIDE(&per_cpu__##var, __my_cpu_offset()))
--#define __raw_get_cpu_var(var) (*RELOC_HIDE(&per_cpu__##var, local_paca->data_offset))
+-#define __reloc_hide(var,offset) (*({			\
++#define SHIFT_PTR(ptr,offset) (({			\
+ 	extern int simple_identifier_##var(void);	\
+ 	unsigned long *__ptr;				\
+-	asm ( "larl %0,per_cpu__"#var"@GOTENT"		\
+-	    : "=a" (__ptr) : "X" (per_cpu__##var) );	\
+-	(typeof(&per_cpu__##var))((*__ptr) + (offset));	}))
++	asm ( "larl %0, %1@GOTENT"		\
++	    : "=a" (__ptr) : "X" (ptr) );		\
++	(typeof(ptr))((*__ptr) + (offset));	}))
+ 
+ #else
+ 
+-#define __reloc_hide(var, offset) (*({				\
++#define SHIFT_PTR(ptr, offset) (({				\
+ 	extern int simple_identifier_##var(void);		\
+ 	unsigned long __ptr;					\
+-	asm ( "" : "=a" (__ptr) : "0" (&per_cpu__##var) );	\
+-	(typeof(&per_cpu__##var)) (__ptr + (offset)); }))
++	asm ( "" : "=a" (__ptr) : "0" (ptr) );			\
++	(typeof(ptr)) (__ptr + (offset)); }))
+ 
+ #endif
+ 
+-#ifdef CONFIG_SMP
++#define __my_cpu_offset S390_lowcore.percpu_offset
+ 
+-extern unsigned long __per_cpu_offset[NR_CPUS];
 -
--extern void setup_per_cpu_areas(void);
+-#define __get_cpu_var(var) __reloc_hide(var,S390_lowcore.percpu_offset)
+-#define __raw_get_cpu_var(var) __reloc_hide(var,S390_lowcore.percpu_offset)
+-#define per_cpu(var,cpu) __reloc_hide(var,__per_cpu_offset[cpu])
+-#define per_cpu_offset(x) (__per_cpu_offset[x])
 -
 -#else /* ! SMP */
 -
--#define per_cpu(var, cpu)			(*((void)(cpu), &per_cpu__##var))
--#define __get_cpu_var(var)			per_cpu__##var
--#define __raw_get_cpu_var(var)			per_cpu__##var
+-#define __get_cpu_var(var) __reloc_hide(var,0)
+-#define __raw_get_cpu_var(var) __reloc_hide(var,0)
+-#define per_cpu(var,cpu) __reloc_hide(var,0)
 -
- #endif	/* SMP */
+-#endif /* SMP */
 -
 -#define DECLARE_PER_CPU(type, name) extern __typeof__(type) per_cpu__##name
--
--#else
- #include <asm-generic/percpu.h>
--#endif
--
- #endif /* _ASM_POWERPC_PERCPU_H_ */
++#include <asm-generic/percpu.h>
+ 
+ #endif /* __ARCH_S390_PERCPU__ */
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
