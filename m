@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + percpu-make-the-asm-generic-percpuh-more-generic.patch added to -mm tree
-Date: Tue, 27 Nov 2007 13:33:38 -0800
-Message-ID: <200711272133.lARLXdw2031461@imap1.linux-foundation.org>
+Subject: + x86_32-use-generic-percpuh.patch added to -mm tree
+Date: Tue, 27 Nov 2007 13:33:50 -0800
+Message-ID: <200711272133.lARLXoP0031464@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54348 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58102 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758588AbXK0Vds (ORCPT
+	by vger.kernel.org with ESMTP id S1755044AbXK0VeQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 16:33:48 -0500
+	Tue, 27 Nov 2007 16:34:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, ak@suse.de, rusty@rustcorp.com.au
+Cc: clameter@sgi.com, ak@suse.de, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     percpu: make the asm-generic/percpu.h more generic
+     x86_32: use generic percpu.h
 has been added to the -mm tree.  Its filename is
-     percpu-make-the-asm-generic-percpuh-more-generic.patch
+     x86_32-use-generic-percpuh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,122 +26,69 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: percpu: make the asm-generic/percpu.h more generic
+Subject: x86_32: use generic percpu.h
 From: Christoph Lameter <clameter@sgi.com>
 
-Add the ability to use generic/percpu even if the arch needs to override
-several aspects of its operations.  This will enable the use of generic
-percpu.h for all arches.
+x86_32 only provides a special way to obtain the local per cpu area offset via
+x86_read_percpu.  Otherwise it can fully use the generic handling.
 
-An arch may define:
-
-__per_cpu_offset	Do not use the generic pointer array. Arch must
-			define per_cpu_offset(cpu) (used by x86_64, s390).
-
-__my_cpu_offset		Can be defined to provide an optimized way to determine
-			the offset for variables of the currently executing
-			processor. Used by ia64, x86_64, x86_32, sparc64, s/390.
-
-SHIFT_PTR(ptr, offset)	If an arch defines it then special handling
-			of pointer arithmentic may be implemented. Used
-			by s/390.
-
-(Some of these special percpu arch implementations may be later consolidated
-so that there are less cases to deal with.)
-
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/percpu.h |   64 +++++++++++++++++++++++++++------
- 1 file changed, 53 insertions(+), 11 deletions(-)
+ include/asm-x86/percpu_32.h |   30 +++++++++---------------------
+ 1 file changed, 9 insertions(+), 21 deletions(-)
 
-diff -puN include/asm-generic/percpu.h~percpu-make-the-asm-generic-percpuh-more-generic include/asm-generic/percpu.h
---- a/include/asm-generic/percpu.h~percpu-make-the-asm-generic-percpuh-more-generic
-+++ a/include/asm-generic/percpu.h
-@@ -3,27 +3,69 @@
- #include <linux/compiler.h>
- #include <linux/threads.h>
- 
-+/*
-+ * Determine the real variable name from the name visible in the
-+ * kernel sources.
-+ */
-+#define per_cpu_var(var) per_cpu__##var
-+
+diff -puN include/asm-x86/percpu_32.h~x86_32-use-generic-percpuh include/asm-x86/percpu_32.h
+--- a/include/asm-x86/percpu_32.h~x86_32-use-generic-percpuh
++++ a/include/asm-x86/percpu_32.h
+@@ -42,34 +42,22 @@
+  */
  #ifdef CONFIG_SMP
  
-+/*
-+ * per_cpu_offset() is the offset that has to be added to a
-+ * percpu variable to get to the instance for a certain processor.
-+ *
-+ * Most arches use the __per_cpu_offset array for those offsets but
-+ * some arches have their own ways of determining the offset (x86_64, s390).
-+ */
-+#ifndef __per_cpu_offset
- extern unsigned long __per_cpu_offset[NR_CPUS];
+-/* This is used for other cpus to find our section. */
+-extern unsigned long __per_cpu_offset[];
 -
- #define per_cpu_offset(x) (__per_cpu_offset[x])
-+#endif
- 
+-#define per_cpu_offset(x) (__per_cpu_offset[x])
+-
+-#define DECLARE_PER_CPU(type, name) extern __typeof__(type) per_cpu__##name
+-/* We can use this directly for local CPU (faster). */
+-DECLARE_PER_CPU(unsigned long, this_cpu_off);
+-
 -/* var is in discarded region: offset to particular copy we want */
 -#define per_cpu(var, cpu) (*({				\
--	extern int simple_identifier_##var(void);	\
+-	extern int simple_indentifier_##var(void);	\
 -	RELOC_HIDE(&per_cpu__##var, __per_cpu_offset[cpu]); }))
--#define __get_cpu_var(var) per_cpu(var, smp_processor_id())
--#define __raw_get_cpu_var(var) per_cpu(var, raw_smp_processor_id())
-+/*
-+ * Determine the offset for the currently active processor.
-+ * An arch may define __my_cpu_offset to provide a more effective
-+ * means of obtaining the offset to the per cpu variables of the
-+ * current processor.
-+ */
-+#ifndef __my_cpu_offset
-+#define __my_cpu_offset per_cpu_offset(raw_smp_processor_id())
-+#define my_cpu_offset per_cpu_offset(smp_processor_id())
-+#else
-+#define my_cpu_offset __my_cpu_offset
-+#endif
-+
-+/*
-+ * Add a offset to a pointer but keep the pointer as is.
-+ *
-+ * Only S390 provides its own means of moving the pointer.
-+ */
-+#ifndef SHIFT_PTR
-+#define SHIFT_PTR(__p, __offset)	RELOC_HIDE((__p), (__offset))
-+#endif
-+
-+/*
-+ * A percpu variable may point to a discarded reghions. The following are
-+ * established ways to produce a usable pointer from the percpu variable
-+ * offset.
-+ */
-+#define per_cpu(var, cpu) (*SHIFT_PTR(&per_cpu_var(var), per_cpu_offset(cpu)))
-+#define __get_cpu_var(var) (*SHIFT_PTR(&per_cpu_var(var), my_cpu_offset))
-+#define __raw_get_cpu_var(var) (*SHIFT_PTR(&per_cpu_var(var), __my_cpu_offset))
-+
-+#ifdef CONFIG_ARCH_SETS_UP_PER_CPU_AREA
-+extern void setup_per_cpu_areas(void);
-+#endif
+-
+-#define __raw_get_cpu_var(var) (*({					\
+-	extern int simple_indentifier_##var(void);			\
+-	RELOC_HIDE(&per_cpu__##var, x86_read_percpu(this_cpu_off));	\
+-}))
+-
+-#define __get_cpu_var(var) __raw_get_cpu_var(var)
++#define __my_cpu_offset x86_read_percpu(this_cpu_off)
  
- #else /* ! SMP */
- 
--#define per_cpu(var, cpu)			(*((void)(cpu), &per_cpu__##var))
--#define __get_cpu_var(var)			per_cpu__##var
--#define __raw_get_cpu_var(var)			per_cpu__##var
-+#define per_cpu(var, cpu)			(*((void)(cpu), &per_cpu_var(var)))
-+#define __get_cpu_var(var)			per_cpu_var(var)
-+#define __raw_get_cpu_var(var)			per_cpu_var(var)
- 
+ /* fs segment starts at (positive) offset == __per_cpu_offset[cpu] */
+ #define __percpu_seg "%%fs:"
++
+ #else  /* !SMP */
+-#include <asm-generic/percpu.h>
++
+ #define __percpu_seg ""
++
  #endif	/* SMP */
  
--#define DECLARE_PER_CPU(type, name) extern __typeof__(type) per_cpu__##name
-+#define DECLARE_PER_CPU(type, name) extern __typeof__(type) per_cpu_var(name)
- 
- #endif /* _ASM_GENERIC_PERCPU_H_ */
++#include <asm-generic/percpu.h>
++
++/* We can use this directly for local CPU (faster). */
++DECLARE_PER_CPU(unsigned long, this_cpu_off);
++
+ /* For arch-specific code, we can use direct single-insn ops (they
+  * don't give an lvalue though). */
+ extern void __bad_percpu_size(void);
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
