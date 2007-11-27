@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uml-cover-stubs-with-a-vma.patch added to -mm tree
-Date: Tue, 27 Nov 2007 13:18:02 -0800
-Message-ID: <200711272118.lARLI2OG030841@imap1.linux-foundation.org>
+Subject: + fix-proc-net-breakage.patch added to -mm tree
+Date: Tue, 27 Nov 2007 13:19:46 -0800
+Message-ID: <200711272119.lARLJk5M030938@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50100 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33423 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756168AbXK0VSJ (ORCPT
+	by vger.kernel.org with ESMTP id S1756698AbXK0VUs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 16:18:09 -0500
+	Tue, 27 Nov 2007 16:20:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, jdike@linux.intel.com
+Cc: ebiederm@xmission.com, davem@davemloft.net, herbert@gondor.apana.org.au, pavel@ucw.cz, rjw@sisk.pl, xemul@openvz.org
 
 
 The patch titled
-     uml: cover stubs with a VMA
+     Fix /proc/net breakage
 has been added to the -mm tree.  Its filename is
-     uml-cover-stubs-with-a-vma.patch
+     fix-proc-net-breakage.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,348 +26,265 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: cover stubs with a VMA
-From: Jeff Dike <jdike@addtoit.com>
+Subject: Fix /proc/net breakage
+From: ebiederm@xmission.com (Eric W. Biederman)
 
-Give the stubs a VMA.  This allows the removal of a truly nasty kludge to make
-sure that mm->nr_ptes was correct in exit_mmap.  The underlying problem was
-always that the stubs, which have ptes, and thus allocated a page table,
-weren't covered by a VMA.
+Well I clearly goofed when I added the initial network namespace support
+for /proc/net.  Currently things work but there are odd details visible to
+user space, even when we have a single network namespace.
 
-This patch fixes that by using install_special_mapping in arch_dup_mmap and
-activate_context to create the VMA.  The stubs have to be moved, since
-shift_arg_pages seems to assume that the stack is the only VMA present at that
-point during exec, and uses vma_adjust to fiddle its VMA.  However, that
-extends the stub VMA by the amount removed from the stack VMA.
+Since we do not cache proc_dir_entry dentries at the moment we can just
+modify ->lookup to return a different directory inode depending on the
+network namespace of the process looking at /proc/net, replacing the
+current technique of using a magic and fragile follow_link method.
 
-To avoid this problem, the stubs were moved to a different fixed location at
-the start of the address space.
+To accomplish that this patch:
+- introduces a shadow_proc method to allow different dentries to
+  be returned from proc_lookup.
+- Removes the old /proc/net follow_link magic
+- Fixes a weakness in our not caching of proc generic dentries.
 
-The init_stub_pte calls were moved from init_new_context to arch_dup_mmap
-because I was occasionally seeing arch_dup_mmap not being called, causing
-exit_mmap to die.  Rather than figure out what was really happening, I decided
-it was cleaner to just move the calls so that there's no doubt that both the
-pte and VMA creation happen, no matter what.  arch_exit_mmap is used to clear
-the stub ptes at exit time.
+As shadow_proc uses a task struct to decided which dentry to return we can
+go back later and fix the proc generic caching without modifying any code
+that uses the shadow_proc method.
 
-The STUB_* constants in as-layout.h no longer depend on UM_TASK_SIZE, that
-that definition is removed, along with the comments complaining about gcc.
-
-Because the stubs are no longer at the top of the address space, some care is
-needed while flushing TLBs.  update_pte_range checks for addresses in the stub
-range and skips them.  flush_thread now issues two unmaps, one for the range
-before STUB_START and one for the range after STUB_END.
-
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/as-layout.h      |   19 +----
- arch/um/include/common-offsets.h |    3 
- arch/um/kernel/exec.c            |    5 -
- arch/um/kernel/skas/mmu.c        |  104 ++++++++++++++++-------------
- arch/um/kernel/tlb.c             |   11 +--
- include/asm-um/mmu_context.h     |    7 +
- 6 files changed, 75 insertions(+), 74 deletions(-)
+ fs/proc/generic.c       |   12 ++++-
+ fs/proc/proc_net.c      |   86 ++------------------------------------
+ include/linux/proc_fs.h |    3 +
+ 3 files changed, 19 insertions(+), 82 deletions(-)
 
-diff -puN arch/um/include/as-layout.h~uml-cover-stubs-with-a-vma arch/um/include/as-layout.h
---- a/arch/um/include/as-layout.h~uml-cover-stubs-with-a-vma
-+++ a/arch/um/include/as-layout.h
-@@ -29,21 +29,10 @@
- #define _AC(X, Y)	__AC(X, Y)
- #endif
+diff -puN fs/proc/generic.c~fix-proc-net-breakage fs/proc/generic.c
+--- a/fs/proc/generic.c~fix-proc-net-breakage
++++ a/fs/proc/generic.c
+@@ -374,9 +374,16 @@ static int proc_delete_dentry(struct den
+ 	return 1;
+ }
  
--/*
-- * The "- 1"'s are to avoid gcc complaining about integer overflows
-- * and unrepresentable decimal constants.  With 3-level page tables,
-- * TASK_SIZE is 0x80000000, which gets turned into its signed decimal
-- * equivalent in asm-offsets.s.  gcc then complains about that being
-- * unsigned only in C90.  To avoid that, UM_TASK_SIZE is defined as
-- * TASK_SIZE - 1.  To compensate, we need to add the 1 back here.
-- * However, adding it back to UM_TASK_SIZE produces more gcc
-- * complaints.  So, I adjust the thing being subtracted from
-- * UM_TASK_SIZE instead.  Bah.
-- */
--#define STUB_CODE _AC((unsigned long), \
--		      UM_TASK_SIZE - (2 * UM_KERN_PAGE_SIZE - 1))
--#define STUB_DATA _AC((unsigned long), UM_TASK_SIZE - (UM_KERN_PAGE_SIZE - 1))
--#define STUB_START _AC(, STUB_CODE)
-+#define STUB_START _AC(, 0x100000)
-+#define STUB_CODE _AC((unsigned long), STUB_START)
-+#define STUB_DATA _AC((unsigned long), STUB_CODE + UM_KERN_PAGE_SIZE)
-+#define STUB_END _AC((unsigned long), STUB_DATA + UM_KERN_PAGE_SIZE)
- 
- #ifndef __ASSEMBLY__
- 
-diff -puN arch/um/include/common-offsets.h~uml-cover-stubs-with-a-vma arch/um/include/common-offsets.h
---- a/arch/um/include/common-offsets.h~uml-cover-stubs-with-a-vma
-+++ a/arch/um/include/common-offsets.h
-@@ -39,6 +39,3 @@ DEFINE(UM_HZ, HZ);
- DEFINE(UM_USEC_PER_SEC, USEC_PER_SEC);
- DEFINE(UM_NSEC_PER_SEC, NSEC_PER_SEC);
- DEFINE(UM_NSEC_PER_USEC, NSEC_PER_USEC);
--
--/* See as-layout.h for an explanation of the "- 1".  Bah. */
--DEFINE(UM_TASK_SIZE, TASK_SIZE - 1);
-diff -puN arch/um/kernel/exec.c~uml-cover-stubs-with-a-vma arch/um/kernel/exec.c
---- a/arch/um/kernel/exec.c~uml-cover-stubs-with-a-vma
-+++ a/arch/um/kernel/exec.c
-@@ -19,12 +19,13 @@
- void flush_thread(void)
++static int proc_revalidate_dentry(struct dentry *dentry, struct nameidata *nd)
++{
++	d_drop(dentry);
++	return 0;
++}
++
+ static struct dentry_operations proc_dentry_operations =
  {
- 	void *data = NULL;
--	unsigned long end = proc_mm ? TASK_SIZE : STUB_START;
- 	int ret;
+ 	.d_delete	= proc_delete_dentry,
++	.d_revalidate	= proc_revalidate_dentry,
+ };
  
- 	arch_flush_thread(&current->thread.arch);
+ /*
+@@ -397,8 +404,11 @@ struct dentry *proc_lookup(struct inode 
+ 			if (de->namelen != dentry->d_name.len)
+ 				continue;
+ 			if (!memcmp(dentry->d_name.name, de->name, de->namelen)) {
+-				unsigned int ino = de->low_ino;
++				unsigned int ino;
  
--	ret = unmap(&current->mm->context.id, 0, end, 1, &data);
-+	ret = unmap(&current->mm->context.id, 0, STUB_START, 0, &data);
-+	ret = ret || unmap(&current->mm->context.id, STUB_END,
-+			   TASK_SIZE - STUB_END, 1, &data);
- 	if (ret) {
- 		printk(KERN_ERR "flush_thread - clearing address space failed, "
- 		       "err = %d\n", ret);
-diff -puN arch/um/kernel/skas/mmu.c~uml-cover-stubs-with-a-vma arch/um/kernel/skas/mmu.c
---- a/arch/um/kernel/skas/mmu.c~uml-cover-stubs-with-a-vma
-+++ a/arch/um/kernel/skas/mmu.c
-@@ -34,25 +34,6 @@ static int init_stub_pte(struct mm_struc
- 	if (!pte)
- 		goto out_pte;
++				if (de->shadow_proc)
++					de = de->shadow_proc(current, de);
++				ino = de->low_ino;
+ 				de_get(de);
+ 				spin_unlock(&proc_subdir_lock);
+ 				error = -EINVAL;
+diff -puN fs/proc/proc_net.c~fix-proc-net-breakage fs/proc/proc_net.c
+--- a/fs/proc/proc_net.c~fix-proc-net-breakage
++++ a/fs/proc/proc_net.c
+@@ -88,89 +88,14 @@ struct net *get_proc_net(const struct in
+ }
+ EXPORT_SYMBOL_GPL(get_proc_net);
  
--	/*
--	 * There's an interaction between the skas0 stub pages, stack
--	 * randomization, and the BUG at the end of exit_mmap.  exit_mmap
--	 * checks that the number of page tables freed is the same as had
--	 * been allocated.  If the stack is on the last page table page,
--	 * then the stack pte page will be freed, and if not, it won't.  To
--	 * avoid having to know where the stack is, or if the process mapped
--	 * something at the top of its address space for some other reason,
--	 * we set TASK_SIZE to end at the start of the last page table.
--	 * This keeps exit_mmap off the last page, but introduces a leak
--	 * of that page.  So, we hang onto it here and free it in
--	 * destroy_context_skas.
+-static struct proc_dir_entry *proc_net_shadow;
++static struct proc_dir_entry *shadow_pde;
+ 
+-static struct dentry *proc_net_shadow_dentry(struct dentry *parent,
++static struct proc_dir_entry *proc_net_shadow(struct task_struct *task,
+ 						struct proc_dir_entry *de)
+ {
+-	struct dentry *shadow = NULL;
+-	struct inode *inode;
+-	if (!de)
+-		goto out;
+-	de_get(de);
+-	inode = proc_get_inode(parent->d_inode->i_sb, de->low_ino, de);
+-	if (!inode)
+-		goto out_de_put;
+-	shadow = d_alloc_name(parent, de->name);
+-	if (!shadow)
+-		goto out_iput;
+-	shadow->d_op = parent->d_op; /* proc_dentry_operations */
+-	d_instantiate(shadow, inode);
+-out:
+-	return shadow;
+-out_iput:
+-	iput(inode);
+-out_de_put:
+-	de_put(de);
+-	goto out;
+-}
+-
+-static void *proc_net_follow_link(struct dentry *parent, struct nameidata *nd)
+-{
+-	struct net *net = current->nsproxy->net_ns;
+-	struct dentry *shadow;
+-	shadow = proc_net_shadow_dentry(parent, net->proc_net);
+-	if (!shadow)
+-		return ERR_PTR(-ENOENT);
+-
+-	dput(nd->dentry);
+-	/* My dentry count is 1 and that should be enough as the
+-	 * shadow dentry is thrown away immediately.
 -	 */
--
--	mm->context.last_page_table = pmd_page_vaddr(*pmd);
--#ifdef CONFIG_3_LEVEL_PGTABLES
--	mm->context.last_pmd = (unsigned long) __va(pud_val(*pud));
--#endif
--
- 	*pte = mk_pte(virt_to_page(kernel), __pgprot(_PAGE_PRESENT));
- 	*pte = pte_mkread(*pte);
- 	return 0;
-@@ -76,24 +57,6 @@ int init_new_context(struct task_struct 
- 		stack = get_zeroed_page(GFP_KERNEL);
- 		if (stack == 0)
- 			goto out;
--
--		/*
--		 * This zeros the entry that pgd_alloc didn't, needed since
--		 * we are about to reinitialize it, and want mm.nr_ptes to
--		 * be accurate.
--		 */
--		mm->pgd[USER_PTRS_PER_PGD] = __pgd(0);
--
--		ret = init_stub_pte(mm, STUB_CODE,
--				    (unsigned long) &__syscall_stub_start);
--		if (ret)
--			goto out_free;
--
--		ret = init_stub_pte(mm, STUB_DATA, stack);
--		if (ret)
--			goto out_free;
--
--		mm->nr_ptes--;
- 	}
- 
- 	to_mm->id.stack = stack;
-@@ -137,6 +100,64 @@ int init_new_context(struct task_struct 
- 	return ret;
+-	nd->dentry = shadow;
+-	return NULL;
++	return task->nsproxy->net_ns->proc_net;
  }
  
-+void arch_dup_mmap(struct mm_struct *oldmm, struct mm_struct *mm)
-+{
-+	struct page **pages;
-+	int err, ret;
-+
-+	if (!skas_needs_stub)
-+		return;
-+
-+	ret = init_stub_pte(mm, STUB_CODE,
-+			    (unsigned long) &__syscall_stub_start);
-+	if (ret)
-+		goto out;
-+
-+	ret = init_stub_pte(mm, STUB_DATA, mm->context.id.stack);
-+	if (ret)
-+		goto out;
-+
-+	pages = kmalloc(2 * sizeof(struct page *), GFP_KERNEL);
-+	if (pages == NULL) {
-+		printk(KERN_ERR "arch_dup_mmap failed to allocate 2 page "
-+		       "pointers\n");
-+		goto out;
-+	}
-+
-+	pages[0] = virt_to_page(&__syscall_stub_start);
-+	pages[1] = virt_to_page(mm->context.id.stack);
-+
-+	/* dup_mmap already holds mmap_sem */
-+	err = install_special_mapping(mm, STUB_START, STUB_END - STUB_START,
-+				      VM_READ | VM_MAYREAD | VM_EXEC |
-+				      VM_MAYEXEC | VM_DONTCOPY, pages);
-+	if (err) {
-+		printk(KERN_ERR "install_special_mapping returned %d\n", err);
-+		goto out_free;
-+	}
-+	return;
-+
-+out_free:
-+	kfree(pages);
-+out:
-+	force_sigsegv(SIGSEGV, current);
-+}
-+
-+void arch_exit_mmap(struct mm_struct *mm)
-+{
-+	pte_t *pte;
-+
-+	pte = virt_to_pte(mm, STUB_CODE);
-+	if (pte != NULL)
-+		pte_clear(mm, STUB_CODE, pte);
-+
-+	pte = virt_to_pte(mm, STUB_DATA);
-+	if (pte == NULL)
-+		return;
-+
-+	pte_clear(mm, STUB_DATA, pte);
-+}
-+
- void destroy_context(struct mm_struct *mm)
+-static struct dentry *proc_net_lookup(struct inode *dir, struct dentry *dentry,
+-				      struct nameidata *nd)
+-{
+-	struct net *net = current->nsproxy->net_ns;
+-	struct dentry *shadow;
+-
+-	shadow = proc_net_shadow_dentry(nd->dentry, net->proc_net);
+-	if (!shadow)
+-		return ERR_PTR(-ENOENT);
+-
+-	dput(nd->dentry);
+-	nd->dentry = shadow;
+-
+-	return shadow->d_inode->i_op->lookup(shadow->d_inode, dentry, nd);
+-}
+-
+-static int proc_net_setattr(struct dentry *dentry, struct iattr *iattr)
+-{
+-	struct net *net = current->nsproxy->net_ns;
+-	struct dentry *shadow;
+-	int ret;
+-
+-	shadow = proc_net_shadow_dentry(dentry->d_parent, net->proc_net);
+-	if (!shadow)
+-		return -ENOENT;
+-	ret = shadow->d_inode->i_op->setattr(shadow, iattr);
+-	dput(shadow);
+-	return ret;
+-}
+-
+-static const struct file_operations proc_net_dir_operations = {
+-	.read			= generic_read_dir,
+-};
+-
+-static struct inode_operations proc_net_dir_inode_operations = {
+-	.follow_link	= proc_net_follow_link,
+-	.lookup		= proc_net_lookup,
+-	.setattr	= proc_net_setattr,
+-};
+-
+ static __net_init int proc_net_ns_init(struct net *net)
  {
- 	struct mm_context *mmu = &mm->context;
-@@ -146,15 +167,8 @@ void destroy_context(struct mm_struct *m
- 	else
- 		os_kill_ptraced_process(mmu->id.u.pid, 1);
+ 	struct proc_dir_entry *root, *netd, *net_statd;
+@@ -223,9 +148,8 @@ static struct pernet_operations __net_in
  
--	if (!proc_mm || !ptrace_faultinfo) {
-+	if (skas_needs_stub)
- 		free_page(mmu->id.stack);
--		pte_lock_deinit(virt_to_page(mmu->last_page_table));
--		pte_free_kernel(mm, (pte_t *) mmu->last_page_table);
--		dec_zone_page_state(virt_to_page(mmu->last_page_table), NR_PAGETABLE);
--#ifdef CONFIG_3_LEVEL_PGTABLES
--		pmd_free(mm, (pmd_t *) mmu->last_pmd);
--#endif
--	}
- 
- 	free_ldt(mmu);
- }
-diff -puN arch/um/kernel/tlb.c~uml-cover-stubs-with-a-vma arch/um/kernel/tlb.c
---- a/arch/um/kernel/tlb.c~uml-cover-stubs-with-a-vma
-+++ a/arch/um/kernel/tlb.c
-@@ -184,6 +184,9 @@ static inline int update_pte_range(pmd_t
- 
- 	pte = pte_offset_kernel(pmd, addr);
- 	do {
-+		if ((addr >= STUB_START) && (addr < STUB_END))
-+			continue;
-+
- 		r = pte_read(*pte);
- 		w = pte_write(*pte);
- 		x = pte_exec(*pte);
-@@ -486,9 +489,6 @@ void __flush_tlb_one(unsigned long addr)
- static void fix_range(struct mm_struct *mm, unsigned long start_addr,
- 		      unsigned long end_addr, int force)
+ int __init proc_net_init(void)
  {
--	if (!proc_mm && (end_addr > STUB_START))
--		end_addr = STUB_START;
--
- 	fix_range_common(mm, start_addr, end_addr, force);
+-	proc_net_shadow = proc_mkdir("net", NULL);
+-	proc_net_shadow->proc_iops = &proc_net_dir_inode_operations;
+-	proc_net_shadow->proc_fops = &proc_net_dir_operations;
++	shadow_pde = proc_mkdir("net", NULL);
++	shadow_pde->shadow_proc = proc_net_shadow;
+ 
+ 	return register_pernet_subsys(&proc_net_ns_ops);
  }
+diff -puN include/linux/proc_fs.h~fix-proc-net-breakage include/linux/proc_fs.h
+--- a/include/linux/proc_fs.h~fix-proc-net-breakage
++++ a/include/linux/proc_fs.h
+@@ -48,6 +48,8 @@ typedef	int (read_proc_t)(char *page, ch
+ typedef	int (write_proc_t)(struct file *file, const char __user *buffer,
+ 			   unsigned long count, void *data);
+ typedef int (get_info_t)(char *, char **, off_t, int);
++typedef struct proc_dir_entry *(shadow_proc_t)(struct task_struct *task,
++						struct proc_dir_entry *pde);
  
-@@ -502,8 +502,6 @@ void flush_tlb_range(struct vm_area_stru
+ struct proc_dir_entry {
+ 	unsigned int low_ino;
+@@ -79,6 +81,7 @@ struct proc_dir_entry {
+ 	int pde_users;	/* number of callers into module in progress */
+ 	spinlock_t pde_unload_lock; /* proc_fops checks and pde_users bumps */
+ 	struct completion *pde_unload_completion;
++	shadow_proc_t *shadow_proc;
+ };
  
- void flush_tlb_mm(struct mm_struct *mm)
- {
--	unsigned long end;
--
- 	/*
- 	 * Don't bother flushing if this address space is about to be
- 	 * destroyed.
-@@ -511,8 +509,7 @@ void flush_tlb_mm(struct mm_struct *mm)
- 	if (atomic_read(&mm->mm_users) == 0)
- 		return;
- 
--	end = proc_mm ? TASK_SIZE : STUB_START;
--	fix_range(mm, 0, end, 0);
-+	fix_range(mm, 0, TASK_SIZE, 0);
- }
- 
- void force_flush_all(void)
-diff -puN include/asm-um/mmu_context.h~uml-cover-stubs-with-a-vma include/asm-um/mmu_context.h
---- a/include/asm-um/mmu_context.h~uml-cover-stubs-with-a-vma
-+++ a/include/asm-um/mmu_context.h
-@@ -6,11 +6,12 @@
- #ifndef __UM_MMU_CONTEXT_H
- #define __UM_MMU_CONTEXT_H
- 
--#include <asm-generic/mm_hooks.h>
--
- #include "linux/sched.h"
- #include "um_mmu.h"
- 
-+extern void arch_dup_mmap(struct mm_struct *oldmm, struct mm_struct *mm);
-+extern void arch_exit_mmap(struct mm_struct *mm);
-+
- #define get_mmu_context(task) do ; while(0)
- #define activate_context(tsk) do ; while(0)
- 
-@@ -30,6 +31,8 @@ static inline void activate_mm(struct mm
- 	 */
- 	if (old != new && (current->flags & PF_BORROWED_MM))
- 		__switch_mm(&new->context.id);
-+
-+	arch_dup_mmap(old, new);
- }
- 
- static inline void switch_mm(struct mm_struct *prev, struct mm_struct *next, 
+ struct kcore_list {
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
-git-kvm.patch
-uml-arch-um-include-inith-needs-a-definition-of-__used.patch
-uml-implement-get_wchan.patch
-uml-implement-get_wchan-fix.patch
-uml-get-rid-of-asmlinkage.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-document-new-ubd-flag.patch
-uml-further-bugsc-tidying.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-uml-smp-needs-to-depend-on-broken-for-now.patch
-uml-console-driver-cleanups.patch
-uml-clonec-tidying.patch
-uml-borrow-consth-techniques.patch
-uml-delete-some-unused-headers.patch
-uml-allow-lflags-on-command-line.patch
-uml-tidy-kern_utilh.patch
-uml-tidy-pgtableh.patch
-uml-tidy-pgtableh-fix.patch
-uml-reconst-a-parameter.patch
-arch-um-remove-duplicate-includes.patch
-uml-host-tls-diagnostics.patch
-uml-move-um_virt_to_phys.patch
-uml-header-untangling.patch
-uml-style-cleanup.patch
-uml-currenth-cleanup.patch
-uml-fix-page-table-data-sizes.patch
-uml-add-virt_to_pte.patch
-uml-simplify-sigsegv-handling.patch
-uml-use-ptrace-directly-in-libc-code.patch
-uml-kill-processes-instead-of-panicing-kernel.patch
-uml-clean-up-task_size-usage.patch
-uml-cover-stubs-with-a-vma.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+origin.patch
+proc-fix-null-i_fop-oops.patch
+proc-remove-races-from-proc_id_readdir.patch
+the-namespaces-compatibility-list.patch
+git-net.patch
+msi-set-en-bit-of-msi-mapping-capability-on-ht-platform.patch
+msi-set-en-bit-of-msi-mapping-capability-on-ht-platform-fix.patch
+fix-proc-net-breakage.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-memcgroup-fix-try_to_free-order.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+memcgroup-reinstate-swapoff-mod.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
+memcgroup-fix-zone-isolation-oom.patch
+memcgroup-revert-swap_state-mods.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
+memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
+memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+memory-cgroup-enhancements-add-pre_destroy-handler.patch
+memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
+introduce-flags-for-reserve_bootmem.patch
+use-bootmem_exclusive-for-kdump.patch
+iget-stop-procfs-from-using-iget-and-read_inode.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+d_path-make-proc_get_link-use-a-struct-path-argument.patch
+add-the-namespaces-config-option.patch
+move-the-uts-namespace-under-uts_ns-option.patch
+move-the-ipc-namespace-under-ipc_ns-option.patch
+cleanup-the-code-managed-with-the-user_ns-option.patch
+cleanup-the-code-managed-with-pid_ns-option.patch
+mark-net_ns-with-depends-on-namespaces.patch
+proc-implement-proc_single_file_operations.patch
+proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces.patch
+proc-seqfile-convert-proc_pid_statm.patch
+proc-proper-pidns-handling-for-proc-self.patch
+proc-fix-the-threaded-proc-self.patch
+sys_setpgid-simplify-pid-ns-interaction.patch
