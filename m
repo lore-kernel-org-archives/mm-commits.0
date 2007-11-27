@@ -1,94 +1,239 @@
 From: akpm@linux-foundation.org
-Subject: - mm-sparsec-improve-the-error-handling-for-sparse_add_one_section.patch removed from -mm tree
-Date: Tue, 27 Nov 2007 11:02:42 -0800
-Message-ID: <200711271902.lARJ2gnw025847@imap1.linux-foundation.org>
+Subject: - git-acpi-fixup.patch removed from -mm tree
+Date: Tue, 27 Nov 2007 12:18:22 -0800
+Message-ID: <200711272018.lARKIM88028432@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42974 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55022 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757543AbXK0TDr (ORCPT
+	by vger.kernel.org with ESMTP id S1754233AbXK0USZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 14:03:47 -0500
+	Tue, 27 Nov 2007 15:18:25 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lARKINGT014195
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 27 Nov 2007 12:18:24 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiyou.wangcong@gmail.com, apw@shadowen.org, clameter@sgi.com, haveblue@us.ibm.com, riel@redhat.com, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm/sparse.c: Improve the error handling for sparse_add_one_section()
+     git-acpi-fixup
 has been removed from the -mm tree.  Its filename was
-     mm-sparsec-improve-the-error-handling-for-sparse_add_one_section.patch
+     git-acpi-fixup.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: mm/sparse.c: Improve the error handling for sparse_add_one_section()
-From: WANG Cong <xiyou.wangcong@gmail.com>
+Subject: git-acpi-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Improve the error handling for mm/sparse.c::sparse_add_one_section().  And I
-see no reason to check 'usemap' until holding the 'pgdat_resize_lock'.
-
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ drivers/pnp/pnpacpi/rsparser.c |   24 ++++++++++++++++--------
+ 1 file changed, 16 insertions(+), 8 deletions(-)
 
-diff -puN mm/sparse.c~mm-sparsec-improve-the-error-handling-for-sparse_add_one_section mm/sparse.c
---- a/mm/sparse.c~mm-sparsec-improve-the-error-handling-for-sparse_add_one_section
-+++ a/mm/sparse.c
-@@ -383,9 +383,17 @@ int sparse_add_one_section(struct zone *
- 	 * no locking for this, because it does its own
- 	 * plus, it does a kmalloc
- 	 */
--	sparse_index_init(section_nr, pgdat->node_id);
-+	ret = sparse_index_init(section_nr, pgdat->node_id);
-+	if (ret < 0)
-+		return ret;
- 	memmap = kmalloc_section_memmap(section_nr, pgdat->node_id, nr_pages);
-+	if (!memmap)
-+		return -ENOMEM;
- 	usemap = __kmalloc_section_usemap();
-+	if (!usemap) {
-+		__kfree_section_memmap(memmap, nr_pages);
-+		return -ENOMEM;
-+	}
- 
- 	pgdat_resize_lock(pgdat, &flags);
- 
-@@ -395,10 +403,6 @@ int sparse_add_one_section(struct zone *
- 		goto out;
+diff -puN drivers/pnp/pnpacpi/rsparser.c~git-acpi-fixup drivers/pnp/pnpacpi/rsparser.c
+--- a/drivers/pnp/pnpacpi/rsparser.c~git-acpi-fixup
++++ a/drivers/pnp/pnpacpi/rsparser.c
+@@ -88,15 +88,23 @@ static void pnpacpi_parse_allocated_irqr
+ 				"resources: %d \n", PNP_MAX_IRQ);
+ 		return;
  	}
+-#ifdef CONFIG_X86
+-	if (gsi < 16 && (triggering != ACPI_EDGE_SENSITIVE ||
+-				polarity != ACPI_ACTIVE_HIGH)) {
+-		pnp_warn("BIOS BUG: legacy PNP IRQ %d should be edge trigger, "
+-				"active high", gsi);
+-		triggering = ACPI_EDGE_SENSITIVE;
+-		polarity = ACPI_ACTIVE_HIGH;
++
++	/*
++	 * in IO-APIC mode, use overrided attribute. Two reasons:
++	 * 1. BIOS bug in DSDT
++	 * 2. BIOS uses IO-APIC mode Interrupt Source Override
++	 */
++	if (!acpi_get_override_irq(gsi, &t, &p)) {
++		t = t ? ACPI_LEVEL_SENSITIVE:ACPI_EDGE_SENSITIVE;
++		p = p ? ACPI_ACTIVE_LOW:ACPI_ACTIVE_HIGH;
++
++		if (triggering != t || polarity != p) {
++			pnp_warn("IRQ %d override to %s, %s",
++				gsi, t ? "edge":"level", p ? "low":"high");
++			triggering = t;
++			polarity = p;
++		}
+ 	}
+-#endif
  
--	if (!usemap) {
--		ret = -ENOMEM;
--		goto out;
--	}
- 	ms->section_mem_map |= SECTION_MARKED_PRESENT;
- 
- 	ret = sparse_init_one_section(ms, section_nr, memmap, usemap);
-@@ -406,7 +410,7 @@ int sparse_add_one_section(struct zone *
- out:
- 	pgdat_resize_unlock(pgdat, &flags);
- 	if (ret <= 0)
--		__kfree_section_memmap(memmap, nr_pages);
-+		kfree(usemap);
- 	return ret;
- }
- #endif
+ 	res->irq_resource[i].flags = IORESOURCE_IRQ;	// Also clears _UNSET flag
+ 	res->irq_resource[i].flags |= irq_flags(triggering, polarity);
 _
 
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-uml-build-fix.patch
-mm-sparsec-check-the-return-value-of-sparse_index_alloc.patch
-mm-sparsec-improve-the-error-handling-for-sparse_add_one_section.patch
-uml-code-tidying-under-arch-um-os-linux.patch
-uml-const-and-other-tidying.patch
-time-fix-sysfs_show_availablecurrent_clocksources-buffer-overflow-problem.patch
+origin.patch
+file-capabilities-allow-sigcont-within-session-v2.patch
+pnp-increase-the-maximum-number-of-resources-fix.patch
+fix-linux-kdh-usage-in-userspace-checkpatch-fixes.patch
+revert-keyspan-init-termios-properly.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-add-reboot-mechanism.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+git-arm-master.patch
+git-cpufreq.patch
+agk-dm-dm-ioctl-move-compat-code-fix.patch
+ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
+revert-gregkh-driver-drm-convert-from-class_device-to-device-in-drivers-char-drm.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+git-drm-oops-fix.patch
+intel-agp-enable-i915-recognition.patch
+git-dvb.patch
+ia64-slim-down-__clear_bit_unlock.patch
+git-infiniband.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+git-mips-fixup.patch
+git-mmc.patch
+git-mtd.patch
+git-netdev-all.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+bluetooth-uninlining.patch
+git-nfsd.patch
+drivers-pci-quirksc-coding-style-cleanup.patch
+more-sanity-checks-for-dmar.patch
+msi-set-en-bit-of-msi-mapping-capability-on-ht-platform-fix.patch
+ips-trim-trailing-whitespace.patch
+scsi-gdth-kill-unneeded-irq-argument.patch
+bidi-support-scsi_data_buffer-broke-qla1280.patch
+bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
+libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+mct232-speed-new-termios-and-compliance-cleanups-fix.patch
+git-watchdog.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-fixup.patch
+git-cryptodev.patch
+git-xtensa.patch
+ia64-increase-datapatch-offset.patch
+ia64-dont-assume-that-unwcheckpy-is-executable.patch
+ia64-export-copy_page-to-modules.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+mm-add-dirty_highmem-option-fix.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+alpha-atomic_add_return-should-return-int.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+sync_sb_inodes-propagate-errors.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+64-bit-i_version-afs-fixes.patch
+ext4-add-block-bitmap-validation-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+w1-build-fix.patch
