@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arm-pxa-gpiolib-support-make-pxa_gpio_chip-static.patch added to -mm tree
-Date: Tue, 27 Nov 2007 14:49:33 -0800
-Message-ID: <200711272249.lARMnXfS003419@imap1.linux-foundation.org>
+Subject: + do_wait-fix-security-checks-fix.patch added to -mm tree
+Date: Tue, 27 Nov 2007 14:50:38 -0800
+Message-ID: <200711272250.lARMoca4003510@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40951 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55596 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751277AbXK0WuY (ORCPT
+	by vger.kernel.org with ESMTP id S1751930AbXK0Wvi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 17:50:24 -0500
+	Tue, 27 Nov 2007 17:51:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: philipp.zabel@gmail.com, david-b@pacbell.net, dbrownell@users.sourceforge.net, nico@cam.org, rmk+kernel@arm.linux.org.uk
+Cc: oleg@tv-sign.ru, chrisw@sous-sol.org, eparis@redhat.com, jmorris@namei.org, roland@redhat.com, sds@tycho.nsa.gov
 
 
 The patch titled
-     Make pxa_gpio_chip static
+     do_wait-fix-security-checks-fix
 has been added to the -mm tree.  Its filename is
-     arm-pxa-gpiolib-support-make-pxa_gpio_chip-static.patch
+     do_wait-fix-security-checks-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,56 +26,86 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Make pxa_gpio_chip static
-From: Philipp Zabel <philipp.zabel@gmail.com>
+Subject: do_wait-fix-security-checks-fix
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Am Dienstag, den 27.11.2007, 01:22 -0800 schrieb David Brownell:
-> On Tuesday 27 November 2007, Andrew Morton wrote:
-> > On Tue, 27 Nov 2007 00:49:27 -0800 David Brownell <david-b@pacbell.net> wrote:
-> >
-> > > On Tuesday 27 November 2007, Andrew Morton wrote:
-> > > >
-> > > > (How come people are sending around patche sand not cc'ing mailing lists).
-> > >
-> > > This was already discussed on the ARM mailing list.
-> >
-> > Not by me ;)
+On 11/24, Oleg Nesterov wrote:
 >
-> Then the only just outcome is to have Philipp send you a followup
-> patch addressing at least that "static" issue, cc'ing L-A-K.  ;)
+> -		if (!flag) {
+> +		if (flag)
+> +			continue;
 
-So be it:
+This "last obvious cleanup right before sending the patch" is terribly wrong,
+we can't continue, we must advance the tsk to the next_thread().
 
-From f7f3426eb92734b41bae22c3f1fc7e60bc8b9256 Mon Sep 17 00:00:00 2001
-Date: Tue, 27 Nov 2007 14:01:45 +0100
-Subject: [PATCH] Make pxa_gpio_chip static
-
-Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Nicolas Pitre <nico@cam.org>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-pxa/gpio.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/exit.c |   21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN arch/arm/mach-pxa/gpio.c~arm-pxa-gpiolib-support-make-pxa_gpio_chip-static arch/arm/mach-pxa/gpio.c
---- a/arch/arm/mach-pxa/gpio.c~arm-pxa-gpiolib-support-make-pxa_gpio_chip-static
-+++ a/arch/arm/mach-pxa/gpio.c
-@@ -129,7 +129,7 @@ static void pxa_gpio_set(struct gpio_chi
- 		__raw_writel(mask, pxa->regbase + GPCR_OFFSET);
- }
- 
--struct pxa_gpio_chip pxa_gpio_chip[] = {
-+static struct pxa_gpio_chip pxa_gpio_chip[] = {
- 	[0] = {
- 		.regbase = GPIO0_BASE,
- 		.chip = {
+diff -puN kernel/exit.c~do_wait-fix-security-checks-fix kernel/exit.c
+--- a/kernel/exit.c~do_wait-fix-security-checks-fix
++++ a/kernel/exit.c
+@@ -1536,16 +1536,17 @@ repeat:
+ 			if (retval != 0) /* tasklist_lock released */
+ 				goto end;
+ 		}
+-		if (flag)
+-			continue;
+-		list_for_each_entry(p, &tsk->ptrace_children, ptrace_list) {
+-			flag = eligible_child(pid, options, p);
+-			if (!flag)
+-				continue;
+-			if (likely(flag > 0))
+-				break;
+-			retval = flag;
+-			goto end;
++		if (!flag) {
++			list_for_each_entry(p, &tsk->ptrace_children,
++								ptrace_list) {
++				flag = eligible_child(pid, options, p);
++				if (!flag)
++					continue;
++				if (likely(flag > 0))
++					break;
++				retval = flag;
++				goto end;
++			}
+ 		}
+ 		if (options & __WNOTHREAD)
+ 			break;
 _
 
-Patches currently in -mm which might be from philipp.zabel@gmail.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-git-arm.patch
-arm-pxa-gpiolib-support.patch
-arm-pxa-gpiolib-support-make-pxa_gpio_chip-static.patch
+wait_task_stopped-dont-use-task_pid_nr_ns-lockless.patch
+proc-remove-races-from-proc_id_readdir.patch
+wait_task_stopped-pass-correct-exit_code-to.patch
+use-__set_task_state-for-traced-stopped-tasks.patch
+add-task_wakekill.patch
+do_wait-remove-one-else-if-branch.patch
+proc-implement-proc_single_file_operations.patch
+proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces.patch
+proc-seqfile-convert-proc_pid_statm.patch
+proc-proper-pidns-handling-for-proc-self.patch
+proc-fix-the-threaded-proc-self.patch
+kill-pt_attached.patch
+kill-my_ptrace_child.patch
+ptrace_check_attach-remove-unneeded-signal-=-null-check.patch
+ptrace_stop-fix-the-race-with-ptrace-detachattach.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace.patch
+do_wait-factor-out-retval-=-0-checks.patch
+ptrace_stop-fix-racy-nonstop_code-setting.patch
+wait_task_stopped-remove-unneeded-delay_group_leader-check.patch
+do_wait-cleanup-delay_group_leader-usage.patch
+do_wait-fix-security-checks.patch
+do_wait-fix-security-checks-fix.patch
+wait_task_continued-zombie-dont-use-task_pid_nr_ns-lockless.patch
+wait_task_zombie-remove-exit_state-exit_signal-checks-for-wnowait.patch
+sys_setpgid-simplify-pid-ns-interaction.patch
