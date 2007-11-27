@@ -1,221 +1,168 @@
 From: akpm@linux-foundation.org
-Subject: - pci-hotplug-fix-rpaphp-directory-naming.patch removed from -mm tree
-Date: Tue, 27 Nov 2007 12:34:05 -0800
-Message-ID: <200711272034.lARKY5L3029095@imap1.linux-foundation.org>
+Subject: - nfs-fix-the-ustat-regression.patch removed from -mm tree
+Date: Tue, 27 Nov 2007 12:34:12 -0800
+Message-ID: <200711272034.lARKYCmM029103@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36626 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56758 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756264AbXK0UhZ (ORCPT
+	by vger.kernel.org with ESMTP id S1756329AbXK0Uhi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 15:37:25 -0500
+	Tue, 27 Nov 2007 15:37:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linas@austin.ibm.com, greg@kroah.com, kristen.c.accardi@intel.com, strosake@us.ibm.com, mm-commits@vger.kernel.org
+To: Trond.Myklebust@netapp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pci hotplug: fix rpaphp directory naming
+     NFS: Fix the ustat() regression
 has been removed from the -mm tree.  Its filename was
-     pci-hotplug-fix-rpaphp-directory-naming.patch
+     nfs-fix-the-ustat-regression.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pci hotplug: fix rpaphp directory naming
-From: Linas Vepstas <linas@austin.ibm.com>
+Subject: NFS: Fix the ustat() regression
+From: Trond Myklebust <Trond.Myklebust@netapp.com>
 
-Fix presentation of the slot number in the /sys/bus/pci/slots
-directory to match that used in the majority of other drivers.
+Since 2.6.18, the superblock sb->s_root has been a dummy dentry with a
+dummy inode.  This breaks ustat(), which actually uses sb->s_root in a
+vfstat() call.
 
-> Greg said:
-> How is anyone supposed to write sane managability tools in the
-> presence
-> of such anarchy?
->
-> > ~ # cat /sys/bus/pci/slots/0000:00:02.2/phy_location
-> > U787A.001.DNZ00Z5-P1-C2
->
-> Right.  This should look like:
->
-> # cat /sys/bus/pci/slots/U787A.001.DNZ00Z5-P1-C2/address
-> 0000:00:02
+Fix this by making the s_root a dummy alias to the directory inode that was
+used when creating the superblock.
 
-This patch implements exactly what you describe. Boot tested.
-I assume you really mean it -- if so, then please review and
-ack the patch !?
-
-I have absolutely no clue if this breaks any existing IBM tools.
-I'm pretty sure it doesn't ... but attention Mike Strosaker! does it?
-
-Signed-off-by: Linas Vepstas <linas@austin.ibm.com>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: <strosake@us.ibm.com>
+Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/hotplug/rpaphp.h      |    1 
- drivers/pci/hotplug/rpaphp_pci.c  |   14 --------
- drivers/pci/hotplug/rpaphp_slot.c |   47 ++++++++++++++--------------
- 3 files changed, 24 insertions(+), 38 deletions(-)
+ fs/nfs/getroot.c |   81 +++++++++++++++------------------------------
+ 1 file changed, 27 insertions(+), 54 deletions(-)
 
-diff -puN drivers/pci/hotplug/rpaphp.h~pci-hotplug-fix-rpaphp-directory-naming drivers/pci/hotplug/rpaphp.h
---- a/drivers/pci/hotplug/rpaphp.h~pci-hotplug-fix-rpaphp-directory-naming
-+++ a/drivers/pci/hotplug/rpaphp.h
-@@ -74,7 +74,6 @@ struct slot {
- 	u32 type;
- 	u32 power_domain;
- 	char *name;
--	char *location;
- 	struct device_node *dn;
- 	struct pci_bus *bus;
- 	struct list_head *pci_devs;
-diff -puN drivers/pci/hotplug/rpaphp_pci.c~pci-hotplug-fix-rpaphp-directory-naming drivers/pci/hotplug/rpaphp_pci.c
---- a/drivers/pci/hotplug/rpaphp_pci.c~pci-hotplug-fix-rpaphp-directory-naming
-+++ a/drivers/pci/hotplug/rpaphp_pci.c
-@@ -64,19 +64,6 @@ int rpaphp_get_sensor_state(struct slot 
- 	return rc;
- }
+diff -puN fs/nfs/getroot.c~nfs-fix-the-ustat-regression fs/nfs/getroot.c
+--- a/fs/nfs/getroot.c~nfs-fix-the-ustat-regression
++++ a/fs/nfs/getroot.c
+@@ -43,6 +43,25 @@
+ #define NFSDBG_FACILITY		NFSDBG_CLIENT
  
--static void set_slot_name(struct slot *slot)
--{
--	struct pci_bus *bus = slot->bus;
--	struct pci_dev *bridge;
--
--	bridge = bus->self;
--	if (bridge)
--		strcpy(slot->name, pci_name(bridge));
--	else
--		sprintf(slot->name, "%04x:%02x:00.0", pci_domain_nr(bus),
--			bus->number);
--}
--
- /**
-  * rpaphp_enable_slot - record slot state, config pci device
-  *
-@@ -114,7 +101,6 @@ int rpaphp_enable_slot(struct slot *slot
- 	info->adapter_status = EMPTY;
- 	slot->bus = bus;
- 	slot->pci_devs = &bus->devices;
--	set_slot_name(slot);
- 
- 	/* if there's an adapter in the slot, go add the pci devices */
- 	if (state == PRESENT) {
-diff -puN drivers/pci/hotplug/rpaphp_slot.c~pci-hotplug-fix-rpaphp-directory-naming drivers/pci/hotplug/rpaphp_slot.c
---- a/drivers/pci/hotplug/rpaphp_slot.c~pci-hotplug-fix-rpaphp-directory-naming
-+++ a/drivers/pci/hotplug/rpaphp_slot.c
-@@ -33,23 +33,31 @@
- #include <asm/rtas.h>
- #include "rpaphp.h"
- 
--static ssize_t location_read_file (struct hotplug_slot *php_slot, char *buf)
-+static ssize_t address_read_file (struct hotplug_slot *php_slot, char *buf)
- {
--	char *value;
--	int retval = -ENOENT;
-+	int retval;
- 	struct slot *slot = (struct slot *)php_slot->private;
-+	struct pci_bus *bus;
- 
- 	if (!slot)
--		return retval;
-+		return -ENOENT;
+ /*
++ * Set the superblock root dentry.
++ * Note that this function frees the inode in case of error.
++ */
++static int nfs_superblock_set_dummy_root(struct super_block *sb, struct inode *inode)
++{
++	/* The mntroot acts as the dummy root dentry for this superblock */
++	if (sb->s_root == NULL) {
++		sb->s_root = d_alloc_root(inode);
++		if (sb->s_root == NULL) {
++			iput(inode);
++			return -ENOMEM;
++		}
++		/* Circumvent igrab(): we know the inode is not being freed */
++		atomic_inc(&inode->i_count);
++	}
++	return 0;
++}
 +
-+	bus = slot->bus;
-+	if (!bus)
-+		return -ENOENT;
-+
-+	if (bus->self)
-+		retval = sprintf(buf, pci_name(bus->self));
-+	else
-+		retval = sprintf(buf, "%04x:%02x:00.0",
-+		        pci_domain_nr(bus), bus->number);
++/*
+  * get an NFS2/NFS3 root dentry from the root filehandle
+  */
+ struct dentry *nfs_get_root(struct super_block *sb, struct nfs_fh *mntfh)
+@@ -54,33 +73,6 @@ struct dentry *nfs_get_root(struct super
+ 	struct inode *inode;
+ 	int error;
  
--	value = slot->location;
--	retval = sprintf (buf, "%s\n", value);
- 	return retval;
- }
+-	/* create a dummy root dentry with dummy inode for this superblock */
+-	if (!sb->s_root) {
+-		struct nfs_fh dummyfh;
+-		struct dentry *root;
+-		struct inode *iroot;
+-
+-		memset(&dummyfh, 0, sizeof(dummyfh));
+-		memset(&fattr, 0, sizeof(fattr));
+-		nfs_fattr_init(&fattr);
+-		fattr.valid = NFS_ATTR_FATTR;
+-		fattr.type = NFDIR;
+-		fattr.mode = S_IFDIR | S_IRUSR | S_IWUSR;
+-		fattr.nlink = 2;
+-
+-		iroot = nfs_fhget(sb, &dummyfh, &fattr);
+-		if (IS_ERR(iroot))
+-			return ERR_PTR(PTR_ERR(iroot));
+-
+-		root = d_alloc_root(iroot);
+-		if (!root) {
+-			iput(iroot);
+-			return ERR_PTR(-ENOMEM);
+-		}
+-
+-		sb->s_root = root;
+-	}
+-
+ 	/* get the actual root for this mount */
+ 	fsinfo.fattr = &fattr;
  
--static struct hotplug_slot_attribute php_attr_location = {
--	.attr = {.name = "phy_location", .mode = S_IFREG | S_IRUGO},
--	.show = location_read_file,
-+static struct hotplug_slot_attribute php_attr_address = {
-+	.attr = {.name = "address", .mode = S_IFREG | S_IRUGO},
-+	.show = address_read_file,
- };
- 
- /* free up the memory used by a slot */
-@@ -64,7 +72,6 @@ void dealloc_slot_struct(struct slot *sl
- 	kfree(slot->hotplug_slot->info);
- 	kfree(slot->hotplug_slot->name);
- 	kfree(slot->hotplug_slot);
--	kfree(slot->location);
- 	kfree(slot);
- }
- 
-@@ -83,16 +90,13 @@ struct slot *alloc_slot_struct(struct de
- 					   GFP_KERNEL);
- 	if (!slot->hotplug_slot->info)
- 		goto error_hpslot;
--	slot->hotplug_slot->name = kmalloc(BUS_ID_SIZE + 1, GFP_KERNEL);
-+	slot->hotplug_slot->name = kmalloc(strlen(drc_name) + 1, GFP_KERNEL);
- 	if (!slot->hotplug_slot->name)
- 		goto error_info;	
--	slot->location = kmalloc(strlen(drc_name) + 1, GFP_KERNEL);
--	if (!slot->location)
--		goto error_name;
- 	slot->name = slot->hotplug_slot->name;
-+	strcpy(slot->name, drc_name);
- 	slot->dn = dn;
- 	slot->index = drc_index;
--	strcpy(slot->location, drc_name);
- 	slot->power_domain = power_domain;
- 	slot->hotplug_slot->private = slot;
- 	slot->hotplug_slot->ops = &rpaphp_hotplug_slot_ops;
-@@ -100,8 +104,6 @@ struct slot *alloc_slot_struct(struct de
- 	
- 	return (slot);
- 
--error_name:
--	kfree(slot->hotplug_slot->name);
- error_info:
- 	kfree(slot->hotplug_slot->info);
- error_hpslot:
-@@ -133,8 +135,8 @@ int rpaphp_deregister_slot(struct slot *
- 
- 	list_del(&slot->rpaphp_slot_list);
- 	
--	/* remove "phy_location" file */
--	sysfs_remove_file(&php_slot->kobj, &php_attr_location.attr);
-+	/* remove "address" file */
-+	sysfs_remove_file(&php_slot->kobj, &php_attr_address.attr);
- 
- 	retval = pci_hp_deregister(php_slot);
- 	if (retval)
-@@ -166,8 +168,8 @@ int rpaphp_register_slot(struct slot *sl
- 		return retval;
+@@ -96,6 +88,10 @@ struct dentry *nfs_get_root(struct super
+ 		return ERR_PTR(PTR_ERR(inode));
  	}
  
--	/* create "phy_location" file */
--	retval = sysfs_create_file(&php_slot->kobj, &php_attr_location.attr);
-+	/* create "address" file */
-+	retval = sysfs_create_file(&php_slot->kobj, &php_attr_address.attr);
- 	if (retval) {
- 		err("sysfs_create_file failed with error %d\n", retval);
- 		goto sysfs_fail;
-@@ -175,8 +177,7 @@ int rpaphp_register_slot(struct slot *sl
++	error = nfs_superblock_set_dummy_root(sb, inode);
++	if (error != 0)
++		return ERR_PTR(error);
++
+ 	/* root dentries normally start off anonymous and get spliced in later
+ 	 * if the dentry tree reaches them; however if the dentry already
+ 	 * exists, we'll pick it up at this point and use it as the root
+@@ -241,33 +237,6 @@ struct dentry *nfs4_get_root(struct supe
  
- 	/* add slot to our internal list */
- 	list_add(&slot->rpaphp_slot_list, &rpaphp_slot_head);
--	info("Slot [%s](PCI location=%s) registered\n", slot->name,
--			slot->location);
-+	info("Slot [%s] registered\n", slot->name);
- 	return 0;
+ 	dprintk("--> nfs4_get_root()\n");
  
- sysfs_fail:
+-	/* create a dummy root dentry with dummy inode for this superblock */
+-	if (!sb->s_root) {
+-		struct nfs_fh dummyfh;
+-		struct dentry *root;
+-		struct inode *iroot;
+-
+-		memset(&dummyfh, 0, sizeof(dummyfh));
+-		memset(&fattr, 0, sizeof(fattr));
+-		nfs_fattr_init(&fattr);
+-		fattr.valid = NFS_ATTR_FATTR;
+-		fattr.type = NFDIR;
+-		fattr.mode = S_IFDIR | S_IRUSR | S_IWUSR;
+-		fattr.nlink = 2;
+-
+-		iroot = nfs_fhget(sb, &dummyfh, &fattr);
+-		if (IS_ERR(iroot))
+-			return ERR_PTR(PTR_ERR(iroot));
+-
+-		root = d_alloc_root(iroot);
+-		if (!root) {
+-			iput(iroot);
+-			return ERR_PTR(-ENOMEM);
+-		}
+-
+-		sb->s_root = root;
+-	}
+-
+ 	/* get the info about the server and filesystem */
+ 	error = nfs4_server_capabilities(server, mntfh);
+ 	if (error < 0) {
+@@ -289,6 +258,10 @@ struct dentry *nfs4_get_root(struct supe
+ 		return ERR_PTR(PTR_ERR(inode));
+ 	}
+ 
++	error = nfs_superblock_set_dummy_root(sb, inode);
++	if (error != 0)
++		return ERR_PTR(error);
++
+ 	/* root dentries normally start off anonymous and get spliced in later
+ 	 * if the dentry tree reaches them; however if the dentry already
+ 	 * exists, we'll pick it up at this point and use it as the root
 _
 
-Patches currently in -mm which might be from linas@austin.ibm.com are
+Patches currently in -mm which might be from Trond.Myklebust@netapp.com are
 
 origin.patch
+nfs-stop-sillyname-renames-and-unmounts-from-racing-2.patch
+nfs-fix-up-problems-with-steves-sillyrename-fix.patch
+nfs-fix-nfs_free_unlinkdata.patch
