@@ -1,203 +1,237 @@
 From: akpm@linux-foundation.org
-Subject: - msi-set-en-bit-of-msi-mapping-capability-on-ht-platform.patch removed from -mm tree
-Date: Tue, 27 Nov 2007 14:21:58 -0800
-Message-ID: <200711272221.lARMLxFn002406@imap1.linux-foundation.org>
+Subject: - msi-set-en-bit-of-msi-mapping-capability-on-ht-platform-fix.patch removed from -mm tree
+Date: Tue, 27 Nov 2007 14:22:03 -0800
+Message-ID: <200711272222.lARMM3AV002415@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40225 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46254 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751634AbXK0WWl (ORCPT
+	by vger.kernel.org with ESMTP id S1751802AbXK0WWn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 17:22:41 -0500
+	Tue, 27 Nov 2007 17:22:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pchen@nvidia.com, acurrid@nvidia.com, ebiederm@xmission.com, prakash@punnoor.de, sebastien.dugue@bull.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, acurrid@nvidia.com, ebiederm@xmission.com, pchen@nvidia.com, prakash@punnoor.de, sebastien.dugue@bull.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     msi: set 'En' bit of MSI Mapping Capability on HT platform
+     msi-set-en-bit-of-msi-mapping-capability-on-ht-platform-fix
 has been removed from the -mm tree.  Its filename was
-     msi-set-en-bit-of-msi-mapping-capability-on-ht-platform.patch
+     msi-set-en-bit-of-msi-mapping-capability-on-ht-platform-fix.patch
 
 This patch was dropped because it was nacked
 
 ------------------------------------------------------
-Subject: msi: set 'En' bit of MSI Mapping Capability on HT platform
-From: Peer Chen <pchen@nvidia.com>
+Subject: msi-set-en-bit-of-msi-mapping-capability-on-ht-platform-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-According to the HyperTransport spec, 'En' indicate if the MSI Mapping is
-active.  So it should be set when enable the MSI.
-
-Signed-off-by: Andy Currid <acurrid@nvidia.com>
-Signed-off-by: Peer Chen <pchen@nvidia.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Andy Currid <acurrid@nvidia.com>
+Cc: Peer Chen <pchen@nvidia.com>
 Cc: Prakash Punnoor <prakash@punnoor.de>
 Cc: Sbastien Dugu <sebastien.dugue@bull.net>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/msi.c       |  103 ++++++++++++++++++++++++++++++++++++++
- include/linux/pci_ids.h |    9 +++
- 2 files changed, 112 insertions(+)
+ drivers/pci/msi.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN drivers/pci/msi.c~msi-set-en-bit-of-msi-mapping-capability-on-ht-platform drivers/pci/msi.c
---- a/drivers/pci/msi.c~msi-set-en-bit-of-msi-mapping-capability-on-ht-platform
+diff -puN drivers/pci/msi.c~msi-set-en-bit-of-msi-mapping-capability-on-ht-platform-fix drivers/pci/msi.c
+--- a/drivers/pci/msi.c~msi-set-en-bit-of-msi-mapping-capability-on-ht-platform-fix
 +++ a/drivers/pci/msi.c
-@@ -20,6 +20,8 @@
+@@ -20,7 +20,9 @@
  #include <asm/errno.h>
  #include <asm/io.h>
  
-+#include <asm/k8.h>
-+
++#ifdef CONFIG_X86
+ #include <asm/k8.h>
++#endif
+ 
  #include "pci.h"
  #include "msi.h"
- 
-@@ -289,6 +291,99 @@ void pci_restore_msi_state(struct pci_de
+@@ -291,6 +293,7 @@ void pci_restore_msi_state(struct pci_de
  }
  EXPORT_SYMBOL_GPL(pci_restore_msi_state);
  
-+/*
-+ * pci_enable_msi_ht_cap - Set the HT MSI mapping capability En bit of
-+ * a device.
-+ *
-+ * @dev: pointer to the pci_dev data structure of MSI device function
-+ */
-+
-+static int pci_enable_msi_ht_cap(struct pci_dev *dev)
++#ifdef CONFIG_X86
+ /*
+  * pci_enable_msi_ht_cap - Set the HT MSI mapping capability En bit of
+  * a device.
+@@ -383,6 +386,12 @@ static int pci_check_msi_ht_cap(struct p
+ 	}
+ 	return 0;
+ }
++#else
++static inline int pci_check_msi_ht_cap(struct pci_dev *dev)
 +{
-+	int pos;
-+	u8 flags;
-+
-+	if ((pos = pci_find_ht_capability(dev, HT_CAPTYPE_MSI_MAPPING)) != 0)
-+	{
-+		pci_read_config_byte(dev, pos + HT_MSI_FLAGS, &flags);
-+		pci_write_config_byte(dev, pos + HT_MSI_FLAGS,
-+						  flags | HT_MSI_FLAGS_ENABLE);
-+
-+		printk(KERN_INFO "PCI: %s: enabled HT MSI mapping\n", pci_name(dev));
-+	}
-+
-+	return pos;
-+}
-+
-+/**
-+ * pci_check_msi_ht_cap - check for and enable the MSI mapping capability En bit
-+ * of devices or upstream bridge on HT-base system.
-+ * @dev: pointer to the pci_dev data structure of MSI device function
-+ *
-+ * Search if device support ht MSI mapping capability on HT-base
-+ * platform, if yes, enable the En bit. If device can't support MSI mapping,
-+ * search the the upstream bridge for that capability, enable En bit find it,
-+ * otherwise disable the MSI function if device and upstream bridge can't
-+ * support MSI mapping capability.
-+ **/
-+
-+static int pci_check_msi_ht_cap(struct pci_dev *dev)
-+{
-+	struct pci_dev *bridge_dev;
-+
-+	if (num_k8_northbridges != 0) {	/* If the system is the HT-base */
-+
-+		/* Check for upstream NVIDIA host bridges */
-+
-+		if (((bridge_dev = pci_find_slot(0, 0)) != NULL) &&
-+				 (bridge_dev->vendor == PCI_VENDOR_ID_NVIDIA)) {
-+			switch (bridge_dev->device) {
-+			case PCI_DEVICE_ID_NVIDIA_NFORCE_C51_MEMC0:
-+			case PCI_DEVICE_ID_NVIDIA_NFORCE_C51_MEMC1:
-+			case PCI_DEVICE_ID_NVIDIA_NFORCE_C51_MEMC2:
-+			case PCI_DEVICE_ID_NVIDIA_NFORCE_C51_MEMC3:
-+			case PCI_DEVICE_ID_NVIDIA_NFORCE_C51_MEMC4:
-+			case PCI_DEVICE_ID_NVIDIA_NFORCE_C51_MEMC5:
-+			case PCI_DEVICE_ID_NVIDIA_NFORCE_C51_MEMC6:
-+			case PCI_DEVICE_ID_NVIDIA_NFORCE_C51_MEMC7:
-+			case PCI_DEVICE_ID_NVIDIA_NFORCE_MCP55_MEMC:
-+
-+				pci_enable_msi_ht_cap(bridge_dev);
-+
-+				bridge_dev = NULL;
-+				while ((bridge_dev = pci_get_device(PCI_VENDOR_ID_NVIDIA,
-+					PCI_DEVICE_ID_NVIDIA_NFORCE_MCP55_MEMC, bridge_dev))
-+					!= NULL) {
-+					pci_enable_msi_ht_cap(bridge_dev);
-+			 	}
-+
-+				break;
-+
-+			default:
-+				break;
-+			}
-+		}
-+
-+
-+		if (pci_enable_msi_ht_cap(dev) != 0) {
-+			return 0;
-+		} else {
-+			/* Get upstream bridge device handle */
-+
-+			bridge_dev = dev->bus->self;
-+			while(bridge_dev != 0) {
-+				if (pci_enable_msi_ht_cap(bridge_dev) != 0) {
-+					return 0;
-+				} else
-+					bridge_dev = bridge_dev->bus->self;
-+			}
-+
-+			return 1;
-+		}
-+	}
 +	return 0;
 +}
-+
++#endif
+ 
  /**
   * msi_capability_init - configure device's MSI capability structure
-  * @dev: pointer to the pci_dev data structure of MSI device function
-@@ -510,6 +605,10 @@ int pci_enable_msi(struct pci_dev* dev)
- 	if (status)
- 		return status;
- 
-+	status = pci_check_msi_ht_cap(dev);
-+	if(status)
-+		return status;
-+
- 	WARN_ON(!!dev->msi_enabled);
- 
- 	/* Check whether driver already requested for MSI-X irqs */
-@@ -605,6 +704,10 @@ int pci_enable_msix(struct pci_dev* dev,
- 	if (status)
- 		return status;
- 
-+	status = pci_check_msi_ht_cap(dev);
-+	if(status)
-+		return status;
-+
- 	pos = pci_find_capability(dev, PCI_CAP_ID_MSIX);
- 	pci_read_config_word(dev, msi_control_reg(pos), &control);
- 	nr_entries = multi_msix_capable(control);
-diff -puN include/linux/pci_ids.h~msi-set-en-bit-of-msi-mapping-capability-on-ht-platform include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~msi-set-en-bit-of-msi-mapping-capability-on-ht-platform
-+++ a/include/linux/pci_ids.h
-@@ -1153,7 +1153,16 @@
- #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP51_IDE	0x0265
- #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP51_SATA	0x0266
- #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP51_SATA2	0x0267
-+#define PCI_DEVICE_ID_NVIDIA_NFORCE_C51_MEMC0   0x02F0
-+#define PCI_DEVICE_ID_NVIDIA_NFORCE_C51_MEMC1   0x02F1
-+#define PCI_DEVICE_ID_NVIDIA_NFORCE_C51_MEMC2   0x02F2
-+#define PCI_DEVICE_ID_NVIDIA_NFORCE_C51_MEMC3   0x02F3
-+#define PCI_DEVICE_ID_NVIDIA_NFORCE_C51_MEMC4   0x02F4
-+#define PCI_DEVICE_ID_NVIDIA_NFORCE_C51_MEMC5   0x02F5
-+#define PCI_DEVICE_ID_NVIDIA_NFORCE_C51_MEMC6   0x02F6
-+#define PCI_DEVICE_ID_NVIDIA_NFORCE_C51_MEMC7   0x02F7
- #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP55_SMBUS	0x0368
-+#define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP55_MEMC	0x0369
- #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP55_IDE	0x036E
- #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP55_SATA	0x037E
- #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP55_SATA2	0x037F
 _
 
-Patches currently in -mm which might be from pchen@nvidia.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+file-capabilities-allow-sigcont-within-session-v2.patch
+pnp-increase-the-maximum-number-of-resources-fix.patch
+fix-linux-kdh-usage-in-userspace-checkpatch-fixes.patch
+revert-keyspan-init-termios-properly.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-add-reboot-mechanism.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+git-cpufreq.patch
+agk-dm-dm-ioctl-move-compat-code-fix.patch
+ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+git-drm-oops-fix.patch
+intel-agp-enable-i915-recognition.patch
+git-dvb.patch
+ia64-slim-down-__clear_bit_unlock.patch
+git-infiniband.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+git-mips-fixup.patch
+git-mmc.patch
+git-mtd.patch
+git-netdev-all.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+bluetooth-uninlining.patch
+git-nfsd.patch
 quirk-enable-msi-mapping-on-ht1000.patch
-msi-set-en-bit-of-msi-mapping-capability-on-ht-platform.patch
 msi-set-en-bit-of-msi-mapping-capability-on-ht-platform-fix.patch
+git-sh-fixup.patch
+git-scsi-misc-fixup.patch
+ips-trim-trailing-whitespace.patch
+scsi-gdth-kill-unneeded-irq-argument.patch
+bidi-support-scsi_data_buffer-broke-qla1280.patch
+bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
+libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+mct232-speed-new-termios-and-compliance-cleanups-fix.patch
+git-watchdog.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-cryptodev.patch
+git-xtensa.patch
+ia64-increase-datapatch-offset.patch
+ia64-dont-assume-that-unwcheckpy-is-executable.patch
+ia64-export-copy_page-to-modules.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+mm-add-dirty_highmem-option-fix.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+alpha-atomic_add_return-should-return-int.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+sync_sb_inodes-propagate-errors.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+64-bit-i_version-afs-fixes.patch
+ext4-add-block-bitmap-validation-fix.patch
+ext4-fix-up-ext4fs_debug-builds-checkpatch-fixes.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+w1-build-fix.patch
