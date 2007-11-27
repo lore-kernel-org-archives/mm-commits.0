@@ -1,103 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - more-sanity-checks-for-dmar.patch removed from -mm tree
-Date: Tue, 27 Nov 2007 12:33:59 -0800
-Message-ID: <200711272033.lARKXxik029012@imap1.linux-foundation.org>
+Subject: - drivers-pci-pci-sysfsc-add-missing-pci_dev_put.patch removed from -mm tree
+Date: Tue, 27 Nov 2007 12:34:02 -0800
+Message-ID: <200711272034.lARKY2QL029087@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35876 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51890 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756329AbXK0UhF (ORCPT
+	by vger.kernel.org with ESMTP id S1756329AbXK0UhI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 15:37:05 -0500
+	Tue, 27 Nov 2007 15:37:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fenghua.yu@intel.com, greg@kroah.com, mgross@linux.intel.com, mm-commits@vger.kernel.org
+To: julia@diku.dk, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     More Sanity checks for DMAR
+     drivers/pci/pci-sysfs.c: Add missing pci_dev_put
 has been removed from the -mm tree.  Its filename was
-     more-sanity-checks-for-dmar.patch
+     drivers-pci-pci-sysfsc-add-missing-pci_dev_put.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: More Sanity checks for DMAR
-From: Fenghua Yu <fenghua.yu@intel.com>
+Subject: drivers/pci/pci-sysfs.c: Add missing pci_dev_put
+From: Julia Lawall <julia@diku.dk>
 
-Add and changes a few sanity checks in dmar.c.
+There should be a pci_dev_put when breaking out of a loop that iterates
+over calls to pci_get_device and similar functions.
 
-1.  The haw field in ACPI DMAR table in VT-d spec doesn't describe the
-   range of haw.  But since DMA page size is 4KB in DMA remapping, haw
-   should be at least 4KB.  The current VT-d code in dmar.c returns failure
-   when haw==0.  This sanity check is not accurate and execution can pass
-   when haw is less than one page size 4KB.  This patch changes the haw
-   sanity check to validate if haw is less than 4KB.
+This was fixed using the following semantic patch.
 
-2. Add dmar_rmrr_units verification.
+// <smpl>
+@@
+identifier d;
+type T;
+expression e;
+iterator for_each_pci_dev;
+@@
 
-3. Add parse_dmar_table() verification.
+T *d;
+...
+for_each_pci_dev(d)
+   {... when != pci_dev_put(d)
+        when != e = d
+(
+    return d;
+|
++  pci_dev_put(d);
+?  return ...;
+)
+...}
+// </smpl>
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
+Signed-off-by: Julia Lawall <julia@diku.dk>
 Cc: Greg KH <greg@kroah.com>
-Acked-by: mark gross <mgross@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/dmar.c |   20 +++++++++++++++++---
- 1 file changed, 17 insertions(+), 3 deletions(-)
+ drivers/pci/pci-sysfs.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/pci/dmar.c~more-sanity-checks-for-dmar drivers/pci/dmar.c
---- a/drivers/pci/dmar.c~more-sanity-checks-for-dmar
-+++ a/drivers/pci/dmar.c
-@@ -25,6 +25,7 @@
- 
- #include <linux/pci.h>
- #include <linux/dmar.h>
-+#include "iova.h"
- 
- #undef PREFIX
- #define PREFIX "DMAR:"
-@@ -263,8 +264,8 @@ parse_dmar_table(void)
- 	if (!dmar)
- 		return -ENODEV;
- 
--	if (!dmar->width) {
--		printk (KERN_WARNING PREFIX "Zero: Invalid DMAR haw\n");
-+	if (dmar->width < PAGE_SHIFT_4K - 1) {
-+		printk(KERN_WARNING PREFIX "Invalid DMAR haw\n");
- 		return -EINVAL;
+diff -puN drivers/pci/pci-sysfs.c~drivers-pci-pci-sysfsc-add-missing-pci_dev_put drivers/pci/pci-sysfs.c
+--- a/drivers/pci/pci-sysfs.c~drivers-pci-pci-sysfsc-add-missing-pci_dev_put
++++ a/drivers/pci/pci-sysfs.c
+@@ -702,8 +702,10 @@ static int __init pci_sysfs_init(void)
+ 	sysfs_initialized = 1;
+ 	for_each_pci_dev(pdev) {
+ 		retval = pci_create_sysfs_dev_files(pdev);
+-		if (retval)
++		if (retval) {
++			pci_dev_put(pdev);
+ 			return retval;
++		}
  	}
  
-@@ -301,11 +302,24 @@ parse_dmar_table(void)
- int __init dmar_table_init(void)
- {
- 
--	parse_dmar_table();
-+	int ret;
-+
-+	ret = parse_dmar_table();
-+	if (ret) {
-+		printk(KERN_INFO PREFIX "parse DMAR table failure.\n");
-+		return ret;
-+	}
-+
- 	if (list_empty(&dmar_drhd_units)) {
- 		printk(KERN_INFO PREFIX "No DMAR devices found\n");
- 		return -ENODEV;
- 	}
-+
-+	if (list_empty(&dmar_rmrr_units)) {
-+		printk(KERN_INFO PREFIX "No RMRR found\n");
-+		return -ENODEV;
-+	}
-+
  	return 0;
- }
- 
 _
 
-Patches currently in -mm which might be from fenghua.yu@intel.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
-git-cpufreq.patch
+drivers-pnp-resourcec-add-missing-pci_dev_put.patch
+git-alsa.patch
+sound-core-memallocc-add-missing-pci_dev_put.patch
+drivers-char-remove-unnecessary-pci_dev_put.patch
+arch-ppc-remove-an-unnecessary-pci_dev_put.patch
+git-input.patch
+git-sparc64.patch
+drivers-video-remove-unnecessary-pci_dev_put.patch
