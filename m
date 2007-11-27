@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + timer-cleanups.patch added to -mm tree
-Date: Tue, 27 Nov 2007 14:19:42 -0800
-Message-ID: <200711272219.lARMJgnc002267@imap1.linux-foundation.org>
+Subject: + quirk-enable-msi-mapping-on-ht1000.patch added to -mm tree
+Date: Tue, 27 Nov 2007 14:21:46 -0800
+Message-ID: <200711272221.lARMLkmv002397@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37973 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44269 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751626AbXK0WU4 (ORCPT
+	by vger.kernel.org with ESMTP id S1751745AbXK0WWb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 17:20:56 -0500
+	Tue, 27 Nov 2007 17:22:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pavel@ucw.cz, johnstul@us.ibm.com, mingo@elte.hu, pavel@suse.cz, tglx@linutronix.de
+Cc: sebastien.dugue@bull.net, acurrid@nvidia.com, akpm@linux-foundation.org, ebiederm@xmission.com, greg@kroah.com, mchan@broadcom.com, pchen@nvidia.com, prakash@punnoor.de
 
 
 The patch titled
-     time: timer cleanups
+     quirk: enable MSI Mapping on HT1000
 has been added to the -mm tree.  Its filename is
-     timer-cleanups.patch
+     quirk-enable-msi-mapping-on-ht1000.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,67 +26,70 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: time: timer cleanups
-From: Pavel Machek <pavel@ucw.cz>
+Subject: quirk: enable MSI Mapping on HT1000
+From: Sebastien Dugue <sebastien.dugue@bull.net>
 
-Small cleanups to tick-related code. Wrong preempt count is followed
-by BUG(), so it is hardly KERN_WARNING.
+Add a quirk to enable the MSI mapping capability on HyperTransport bridges.
 
-Signed-off-by: Pavel Machek <pavel@suse.cz>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: john stultz <johnstul@us.ibm.com>
+Wire Broadcom's HT1000 to use the quirk.
+
+Signed-off-by: Sebastien Dugue <sebastien.dugue@bull.net>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Andy Currid <acurrid@nvidia.com>
+Cc: Peer Chen <pchen@nvidia.com>
+Cc: Prakash Punnoor <prakash@punnoor.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Acked-by: Michael Chan <mchan@broadcom.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Andy Currid <acurrid@nvidia.com>
+Cc: Peer Chen <pchen@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/tick-sched.c |    4 ++--
- kernel/timer.c           |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/pci/quirks.c |   27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
-diff -puN kernel/time/tick-sched.c~timer-cleanups kernel/time/tick-sched.c
---- a/kernel/time/tick-sched.c~timer-cleanups
-+++ a/kernel/time/tick-sched.c
-@@ -289,7 +289,7 @@ void tick_nohz_stop_sched_tick(void)
- 			/* Check, if the timer was already in the past */
- 			if (hrtimer_active(&ts->sched_timer))
- 				goto out;
--		} else if(!tick_program_event(expires, 0))
-+		} else if (!tick_program_event(expires, 0))
- 				goto out;
- 		/*
- 		 * We are past the event already. So we crossed a
-@@ -500,7 +500,7 @@ static inline void tick_nohz_switch_to_n
+diff -puN drivers/pci/quirks.c~quirk-enable-msi-mapping-on-ht1000 drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c~quirk-enable-msi-mapping-on-ht1000
++++ a/drivers/pci/quirks.c
+@@ -1715,6 +1715,33 @@ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_SE
+ 			PCI_DEVICE_ID_SERVERWORKS_HT1000_PXB,
+ 			quirk_msi_ht_cap);
+ 
++
++/*
++ *  Force enable MSI mapping capability on HT bridges
++ */
++static void __devinit quirk_msi_ht_cap_enable(struct pci_dev *dev)
++{
++	int pos, ttl = 48;
++
++	pos = pci_find_ht_capability(dev, HT_CAPTYPE_MSI_MAPPING);
++	while (pos && ttl--) {
++		u8 flags;
++
++		if (pci_read_config_byte(dev, pos + HT_MSI_FLAGS, &flags) == 0) {
++			printk(KERN_INFO "PCI: Enabling HT MSI Mapping on %s\n",
++			       pci_name(dev));
++
++			pci_write_config_byte(dev, pos + HT_MSI_FLAGS,
++					      flags | HT_MSI_FLAGS_ENABLE);
++		}
++		pos = pci_find_next_ht_capability(dev, pos,
++						  HT_CAPTYPE_MSI_MAPPING);
++	}
++}
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_SERVERWORKS,
++			 PCI_DEVICE_ID_SERVERWORKS_HT1000_PXB,
++			 quirk_msi_ht_cap_enable);
++
+ /* The nVidia CK804 chipset may have 2 HT MSI mappings.
+  * MSI are supported if the MSI capability set in any of these mappings.
   */
- #ifdef CONFIG_HIGH_RES_TIMERS
- /*
-- * We rearm the timer until we get disabled by the idle code
-+ * We rearm the timer until we get disabled by the idle code.
-  * Called with interrupts disabled and timer->base->cpu_base->lock held.
-  */
- static enum hrtimer_restart tick_sched_timer(struct hrtimer *timer)
-diff -puN kernel/timer.c~timer-cleanups kernel/timer.c
---- a/kernel/timer.c~timer-cleanups
-+++ a/kernel/timer.c
-@@ -655,7 +655,7 @@ static inline void __run_timers(struct t
- 				int preempt_count = preempt_count();
- 				fn(data);
- 				if (preempt_count != preempt_count()) {
--					printk(KERN_WARNING "huh, entered %p "
-+					printk(KERN_ERR "huh, entered %p "
- 					       "with preempt_count %08x, exited"
- 					       " with %08x?\n",
- 					       fn, preempt_count,
 _
 
-Patches currently in -mm which might be from pavel@ucw.cz are
+Patches currently in -mm which might be from sebastien.dugue@bull.net are
 
-git-acpi.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-clean-hungarian-notation-from-timers.patch
-timer-cleanups.patch
-more-timer-related-cleanups.patch
-fix-hpet-wrong-values.patch
-fix-config_mtd_sharp_sl-if-config_mtd=m-try2.patch
-fix-proc-net-breakage.patch
-kernel-power-diskc-make-code-static.patch
-make-kernel_shutdown_prepare-static.patch
+quirk-enable-msi-mapping-on-ht1000.patch
+msi-set-en-bit-of-msi-mapping-capability-on-ht-platform.patch
+msi-set-en-bit-of-msi-mapping-capability-on-ht-platform-fix.patch
