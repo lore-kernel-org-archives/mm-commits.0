@@ -1,92 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - mmc-sd-write-operation-in-invalid-states-by-borken-cards.patch removed from -mm tree
-Date: Mon, 26 Nov 2007 23:13:04 -0800
-Message-ID: <200711270713.lAR7D4Cr032593@imap1.linux-foundation.org>
+Subject: + wait_task_zombie-remove-exit_state-exit_signal-checks-for-wnowait.patch added to -mm tree
+Date: Mon, 26 Nov 2007 23:15:30 -0800
+Message-ID: <200711270715.lAR7FUEf032714@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40369 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59503 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751020AbXK0HNS (ORCPT
+	by vger.kernel.org with ESMTP id S1751076AbXK0HQL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 02:13:18 -0500
+	Tue, 27 Nov 2007 02:16:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roopesh@cyberspace.org, drzeus-list@drzeus.cx, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     MMC/SD: Write operation in invalid states by borken cards.
-has been removed from the -mm tree.  Its filename was
-     mmc-sd-write-operation-in-invalid-states-by-borken-cards.patch
+     wait_task_zombie: remove ->exit_state/exit_signal checks for WNOWAIT
+has been added to the -mm tree.  Its filename is
+     wait_task_zombie-remove-exit_state-exit_signal-checks-for-wnowait.patch
 
-This patch was dropped because it was nacked
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: MMC/SD: Write operation in invalid states by borken cards.
-From: Roopesh <roopesh@cyberspace.org>
+Subject: wait_task_zombie: remove ->exit_state/exit_signal checks for WNOWAIT
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-If a write operation fails, shouldnt we still check for the card state to
-be 'ready to accept next data'?
+The first "p->exit_state != EXIT_ZOMBIE" check doesn't make too much sense. 
+The exit_state was EXIT_ZOMBIE when the function was called, and another
+thread can change it to EXIT_DEAD right after the check.
 
-This question is because I have noticed that some (broken) cards fail the
-write command, and the immediately issued subsequent commands also fail
-since the card state was never checked before sending these commands. 
-(There was a discussion about these cards at the thread: "MMC: CRC Errors
-with 2GB cards)
+The second condition is not possible, detached non-traced threads were already
+filtered out by eligible_child(), we didn't drop tasklist since then.
 
-Cc: Pierre Ossman <drzeus-list@drzeus.cx>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/card/block.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ kernel/exit.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/mmc/card/block.c~mmc-sd-write-operation-in-invalid-states-by-borken-cards drivers/mmc/card/block.c
---- a/drivers/mmc/card/block.c~mmc-sd-write-operation-in-invalid-states-by-borken-cards
-+++ a/drivers/mmc/card/block.c
-@@ -208,6 +208,7 @@ static int mmc_blk_issue_rq(struct mmc_q
- 	struct mmc_card *card = md->queue.card;
- 	struct mmc_blk_request brq;
- 	int ret = 1, sg_pos, data_size;
-+	int data_error = 0;
+diff -puN kernel/exit.c~wait_task_zombie-remove-exit_state-exit_signal-checks-for-wnowait kernel/exit.c
+--- a/kernel/exit.c~wait_task_zombie-remove-exit_state-exit_signal-checks-for-wnowait
++++ a/kernel/exit.c
+@@ -1193,10 +1193,6 @@ static int wait_task_zombie(struct task_
+ 		int exit_code = p->exit_code;
+ 		int why, status;
  
- 	mmc_claim_host(card->host);
- 
-@@ -293,19 +294,19 @@ static int mmc_blk_issue_rq(struct mmc_q
- 		if (brq.cmd.error) {
- 			printk(KERN_ERR "%s: error %d sending read/write command\n",
- 			       req->rq_disk->disk_name, brq.cmd.error);
--			goto cmd_err;
-+			data_error = 1;
- 		}
- 
- 		if (brq.data.error) {
- 			printk(KERN_ERR "%s: error %d transferring data\n",
- 			       req->rq_disk->disk_name, brq.data.error);
--			goto cmd_err;
-+			data_error = 1;
- 		}
- 
- 		if (brq.stop.error) {
- 			printk(KERN_ERR "%s: error %d sending stop command\n",
- 			       req->rq_disk->disk_name, brq.stop.error);
--			goto cmd_err;
-+			data_error = 1;
- 		}
- 
- 		if (!mmc_host_is_spi(card->host) && rq_data_dir(req) != READ) {
-@@ -338,6 +339,9 @@ static int mmc_blk_issue_rq(struct mmc_q
- #endif
- 		}
- 
-+		if (data_error == 1)
-+			goto cmd_err;
-+
- 		/*
- 		 * A block was successfully transferred.
- 		 */
+-		if (unlikely(p->exit_state != EXIT_ZOMBIE))
+-			return 0;
+-		if (unlikely(p->exit_signal == -1 && p->ptrace == 0))
+-			return 0;
+ 		get_task_struct(p);
+ 		read_unlock(&tasklist_lock);
+ 		if ((exit_code & 0x7f) == 0) {
 _
 
-Patches currently in -mm which might be from roopesh@cyberspace.org are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-mmc-sd-write-operation-in-invalid-states-by-borken-cards.patch
+wait_task_stopped-dont-use-task_pid_nr_ns-lockless.patch
+proc-remove-races-from-proc_id_readdir.patch
+wait_task_stopped-pass-correct-exit_code-to.patch
+use-__set_task_state-for-traced-stopped-tasks.patch
+add-task_wakekill.patch
+do_wait-remove-one-else-if-branch.patch
+proc-implement-proc_single_file_operations.patch
+proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces.patch
+proc-seqfile-convert-proc_pid_statm.patch
+proc-proper-pidns-handling-for-proc-self.patch
+proc-fix-the-threaded-proc-self.patch
+kill-pt_attached.patch
+kill-my_ptrace_child.patch
+ptrace_check_attach-remove-unneeded-signal-=-null-check.patch
+ptrace_stop-fix-the-race-with-ptrace-detachattach.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace.patch
+do_wait-factor-out-retval-=-0-checks.patch
+ptrace_stop-fix-racy-nonstop_code-setting.patch
+wait_task_stopped-remove-unneeded-delay_group_leader-check.patch
+do_wait-cleanup-delay_group_leader-usage.patch
+do_wait-fix-security-checks.patch
+wait_task_continued-zombie-dont-use-task_pid_nr_ns-lockless.patch
+wait_task_zombie-remove-exit_state-exit_signal-checks-for-wnowait.patch
