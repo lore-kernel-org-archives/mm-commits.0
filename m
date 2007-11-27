@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + shmem-factor-out-sbi-free_inodes-manipulations.patch added to -mm tree
-Date: Mon, 26 Nov 2007 21:23:18 -0800
-Message-ID: <200711270523.lAR5NICZ028800@imap1.linux-foundation.org>
+Subject: + wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace.patch added to -mm tree
+Date: Mon, 26 Nov 2007 21:24:53 -0800
+Message-ID: <200711270524.lAR5OrOL028830@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47328 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56068 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752668AbXK0FX6 (ORCPT
+	by vger.kernel.org with ESMTP id S1751043AbXK0F0H (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 00:23:58 -0500
+	Tue, 27 Nov 2007 00:26:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xemul@openvz.org, hugh@veritas.com
+Cc: oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     shmem: factor out sbi->free_inodes manipulations
+     wait_task_stopped: simplify and fix races with SIGCONT/SIGKILL/untrace
 has been added to the -mm tree.  Its filename is
-     shmem-factor-out-sbi-free_inodes-manipulations.patch
+     wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,213 +26,196 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: shmem: factor out sbi->free_inodes manipulations
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: wait_task_stopped: simplify and fix races with SIGCONT/SIGKILL/untrace
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-The shmem_sb_info structure has a number of free_inodes. This
-value is altered in appropriate places under spinlock and with
-the sbi->max_inodes != 0 check.
+wait_task_stopped() has multiple races with SIGCONT/SIGKILL.  tasklist_lock
+does not pin the child in TASK_TRACED/TASK_STOPPED stated, almost all info
+reported (including exit_code) may be wrong.
 
-Consolidate these manipulations into two helpers.
+In fact, the code under write_lock_irq(tasklist_lock) is not safe.  The child
+may be PTRACE_DETACH'ed at this time by another subthread, in that case it is
+possible we are no longer its ->parent.
 
-This is minus 42 bytes of shmem.o and minus 4 :) lines of code.
+Change wait_task_stopped() to take ->siglock before inspecting the task.  This
+guarantees that the child can't resume and (for example) clear its
+->exit_code, so we don't need to use xchg(&p->exit_code) and re-check.  The
+only exception is ptrace_stop() which changes ->state and ->exit_code without
+->siglock held during abort.  But this can only happen if both the tracer and
+the tracee are dying (coredump is in progress), we don't care.
 
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
+With this patch wait_task_stopped() doesn't move the child to the end of the
+->parent lis
+t on success.  This optimization could be restored, but in that
+case we have to take write_lock(tasklist) and do some nasty checks.
+
+Also change the do_wait() since we don't return EAGAIN any longer.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   72 ++++++++++++++++++++++++---------------------------
- 1 file changed, 34 insertions(+), 38 deletions(-)
+ kernel/exit.c |   88 ++++++++++++++----------------------------------
+ 1 file changed, 26 insertions(+), 62 deletions(-)
 
-diff -puN mm/shmem.c~shmem-factor-out-sbi-free_inodes-manipulations mm/shmem.c
---- a/mm/shmem.c~shmem-factor-out-sbi-free_inodes-manipulations
-+++ a/mm/shmem.c
-@@ -205,6 +205,31 @@ static void shmem_free_blocks(struct ino
- 	}
- }
- 
-+static int shmem_reserve_inode(struct super_block *sb)
-+{
-+	struct shmem_sb_info *sbinfo = SHMEM_SB(sb);
-+	if (sbinfo->max_inodes) {
-+		spin_lock(&sbinfo->stat_lock);
-+		if (!sbinfo->free_inodes) {
-+			spin_unlock(&sbinfo->stat_lock);
-+			return -ENOMEM;
-+		}
-+		sbinfo->free_inodes--;
-+		spin_unlock(&sbinfo->stat_lock);
-+	}
-+	return 0;
-+}
-+
-+static void shmem_free_inode(struct super_block *sb)
-+{
-+	struct shmem_sb_info *sbinfo = SHMEM_SB(sb);
-+	if (sbinfo->max_inodes) {
-+		spin_lock(&sbinfo->stat_lock);
-+		sbinfo->free_inodes++;
-+		spin_unlock(&sbinfo->stat_lock);
-+	}
-+}
-+
- /*
-  * shmem_recalc_inode - recalculate the size of an inode
-  *
-@@ -762,7 +787,6 @@ static int shmem_notify_change(struct de
- 
- static void shmem_delete_inode(struct inode *inode)
+diff -puN kernel/exit.c~wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace kernel/exit.c
+--- a/kernel/exit.c~wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace
++++ a/kernel/exit.c
+@@ -1352,17 +1352,35 @@ static int wait_task_stopped(struct task
+ 			     int noreap, struct siginfo __user *infop,
+ 			     int __user *stat_addr, struct rusage __user *ru)
  {
--	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
- 	struct shmem_inode_info *info = SHMEM_I(inode);
+-	int retval, exit_code;
++	int retval, exit_code, why;
++	uid_t uid = 0; /* unneeded, required by compiler */
+ 	pid_t pid;
  
- 	if (inode->i_op->truncate == shmem_truncate) {
-@@ -777,11 +801,7 @@ static void shmem_delete_inode(struct in
- 		}
- 	}
- 	BUG_ON(inode->i_blocks);
--	if (sbinfo->max_inodes) {
--		spin_lock(&sbinfo->stat_lock);
--		sbinfo->free_inodes++;
--		spin_unlock(&sbinfo->stat_lock);
--	}
-+	shmem_free_inode(inode->i_sb);
- 	clear_inode(inode);
- }
- 
-@@ -1370,15 +1390,8 @@ shmem_get_inode(struct super_block *sb, 
- 	struct shmem_inode_info *info;
- 	struct shmem_sb_info *sbinfo = SHMEM_SB(sb);
- 
--	if (sbinfo->max_inodes) {
--		spin_lock(&sbinfo->stat_lock);
--		if (!sbinfo->free_inodes) {
--			spin_unlock(&sbinfo->stat_lock);
--			return NULL;
--		}
--		sbinfo->free_inodes--;
--		spin_unlock(&sbinfo->stat_lock);
--	}
-+	if (shmem_reserve_inode(sb))
-+		return NULL;
- 
- 	inode = new_inode(sb);
- 	if (inode) {
-@@ -1422,11 +1435,8 @@ shmem_get_inode(struct super_block *sb, 
- 						NULL);
- 			break;
- 		}
--	} else if (sbinfo->max_inodes) {
--		spin_lock(&sbinfo->stat_lock);
--		sbinfo->free_inodes++;
--		spin_unlock(&sbinfo->stat_lock);
--	}
-+	} else
-+		shmem_free_inode(sb);
- 	return inode;
- }
- 
-@@ -1669,22 +1679,14 @@ static int shmem_create(struct inode *di
- static int shmem_link(struct dentry *old_dentry, struct inode *dir, struct dentry *dentry)
- {
- 	struct inode *inode = old_dentry->d_inode;
--	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
+-	if (!p->exit_code)
+-		return 0;
++	exit_code = 0;
++	spin_lock_irq(&p->sighand->siglock);
++
++	if (unlikely(!is_task_stopped_or_traced(p)))
++		goto unlock_sig;
++
+ 	if (delayed_group_leader && !(p->ptrace & PT_PTRACED) &&
+ 	    p->signal->group_stop_count > 0)
+ 		/*
+ 		 * A group stop is in progress and this is the group leader.
+ 		 * We won't report until all threads have stopped.
+ 		 */
++		goto unlock_sig;
++
++	exit_code = p->exit_code;
++	if (!exit_code)
++		goto unlock_sig;
++
++	if (!noreap)
++		p->exit_code = 0;
++
++	uid = p->uid;
++unlock_sig:
++	spin_unlock_irq(&p->sighand->siglock);
++	if (!exit_code)
+ 		return 0;
  
  	/*
- 	 * No ordinary (disk based) filesystem counts links as inodes;
- 	 * but each new link needs a new dentry, pinning lowmem, and
- 	 * tmpfs dentries cannot be pruned until they are unlinked.
+@@ -1372,65 +1390,15 @@ static int wait_task_stopped(struct task
+ 	 * keep holding onto the tasklist_lock while we call getrusage and
+ 	 * possibly take page faults for user memory.
  	 */
--	if (sbinfo->max_inodes) {
--		spin_lock(&sbinfo->stat_lock);
--		if (!sbinfo->free_inodes) {
--			spin_unlock(&sbinfo->stat_lock);
--			return -ENOSPC;
--		}
--		sbinfo->free_inodes--;
--		spin_unlock(&sbinfo->stat_lock);
+-	pid = task_pid_nr_ns(p, current->nsproxy->pid_ns);
+ 	get_task_struct(p);
++	pid = task_pid_nr_ns(p, current->nsproxy->pid_ns);
++	why = (p->ptrace & PT_PTRACED) ? CLD_TRAPPED : CLD_STOPPED;
+ 	read_unlock(&tasklist_lock);
+ 
+-	if (unlikely(noreap)) {
+-		uid_t uid = p->uid;
+-		int why = (p->ptrace & PT_PTRACED) ? CLD_TRAPPED : CLD_STOPPED;
+-
+-		exit_code = p->exit_code;
+-		if (unlikely(!exit_code) || unlikely(p->exit_state))
+-			goto bail_ref;
++	if (unlikely(noreap))
+ 		return wait_noreap_copyout(p, pid, uid,
+ 					   why, exit_code,
+ 					   infop, ru);
 -	}
-+	if (shmem_reserve_inode(inode->i_sb))
-+		return -ENOSPC;
- 
- 	dir->i_size += BOGO_DIRENT_SIZE;
- 	inode->i_ctime = dir->i_ctime = dir->i_mtime = CURRENT_TIME;
-@@ -1699,14 +1701,8 @@ static int shmem_unlink(struct inode *di
- {
- 	struct inode *inode = dentry->d_inode;
- 
--	if (inode->i_nlink > 1 && !S_ISDIR(inode->i_mode)) {
--		struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
--		if (sbinfo->max_inodes) {
--			spin_lock(&sbinfo->stat_lock);
--			sbinfo->free_inodes++;
--			spin_unlock(&sbinfo->stat_lock);
--		}
+-
+-	write_lock_irq(&tasklist_lock);
+-
+-	/*
+-	 * This uses xchg to be atomic with the thread resuming and setting
+-	 * it.  It must also be done with the write lock held to prevent a
+-	 * race with the EXIT_ZOMBIE case.
+-	 */
+-	exit_code = xchg(&p->exit_code, 0);
+-	if (unlikely(p->exit_state)) {
+-		/*
+-		 * The task resumed and then died.  Let the next iteration
+-		 * catch it in EXIT_ZOMBIE.  Note that exit_code might
+-		 * already be zero here if it resumed and did _exit(0).
+-		 * The task itself is dead and won't touch exit_code again;
+-		 * other processors in this function are locked out.
+-		 */
+-		p->exit_code = exit_code;
+-		exit_code = 0;
 -	}
-+	if (inode->i_nlink > 1 && !S_ISDIR(inode->i_mode))
-+		shmem_free_inode(inode->i_sb);
+-	if (unlikely(exit_code == 0)) {
+-		/*
+-		 * Another thread in this function got to it first, or it
+-		 * resumed, or it resumed and then died.
+-		 */
+-		write_unlock_irq(&tasklist_lock);
+-bail_ref:
+-		put_task_struct(p);
+-		/*
+-		 * We are returning to the wait loop without having successfully
+-		 * removed the process and having released the lock. We cannot
+-		 * continue, since the "p" task pointer is potentially stale.
+-		 *
+-		 * Return -EAGAIN, and do_wait() will restart the loop from the
+-		 * beginning. Do _not_ re-acquire the lock.
+-		 */
+-		return -EAGAIN;
+-	}
+-
+-	/* move to end of parent's list to avoid starvation */
+-	remove_parent(p);
+-	add_parent(p);
+-
+-	write_unlock_irq(&tasklist_lock);
  
- 	dir->i_size -= BOGO_DIRENT_SIZE;
- 	inode->i_ctime = dir->i_ctime = dir->i_mtime = CURRENT_TIME;
+ 	retval = ru ? getrusage(p, RUSAGE_BOTH, ru) : 0;
+ 	if (!retval && stat_addr)
+@@ -1440,15 +1408,13 @@ bail_ref:
+ 	if (!retval && infop)
+ 		retval = put_user(0, &infop->si_errno);
+ 	if (!retval && infop)
+-		retval = put_user((short)((p->ptrace & PT_PTRACED)
+-					  ? CLD_TRAPPED : CLD_STOPPED),
+-				  &infop->si_code);
++		retval = put_user(why, &infop->si_code);
+ 	if (!retval && infop)
+ 		retval = put_user(exit_code, &infop->si_status);
+ 	if (!retval && infop)
+ 		retval = put_user(pid, &infop->si_pid);
+ 	if (!retval && infop)
+-		retval = put_user(p->uid, &infop->si_uid);
++		retval = put_user(uid, &infop->si_uid);
+ 	if (!retval)
+ 		retval = pid;
+ 	put_task_struct(p);
+@@ -1555,8 +1521,6 @@ repeat:
+ 				retval = wait_task_stopped(p, ret == 2,
+ 						(options & WNOWAIT), infop,
+ 						stat_addr, ru);
+-				if (retval == -EAGAIN)
+-					goto repeat;
+ 				if (retval != 0) /* He released the lock.  */
+ 					goto end;
+ 			} else if (p->exit_state == EXIT_ZOMBIE) {
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 wait_task_stopped-dont-use-task_pid_nr_ns-lockless.patch
-ipc-lost-unlock-and-fput-in-mqueuec-on-error-path.patch
-isolate-the-uts-namespaces-domainname-and-hostname-back.patch
-the-namespaces-compatibility-list.patch
-git-net.patch
-dont-forget-to-unlock-uids_mutex-on-error-paths.patch
-merge-multiple-error-paths-in-alloc_uid-into-one.patch
-shmem-factor-out-sbi-free_inodes-manipulations.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-memcgroup-fix-try_to_free-order.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-memcgroup-reinstate-swapoff-mod.patch
-bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
-bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
-bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
-memcgroup-fix-zone-isolation-oom.patch
-memcgroup-revert-swap_state-mods.patch
-bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
-memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
-memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-memory-cgroup-enhancements-add-pre_destroy-handler.patch
-memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
-add-the-namespaces-config-option.patch
-move-the-uts-namespace-under-uts_ns-option.patch
-move-the-ipc-namespace-under-ipc_ns-option.patch
-cleanup-the-code-managed-with-the-user_ns-option.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-mark-net_ns-with-depends-on-namespaces.patch
+proc-remove-races-from-proc_id_readdir.patch
+wait_task_stopped-pass-correct-exit_code-to.patch
+use-__set_task_state-for-traced-stopped-tasks.patch
+add-task_wakekill.patch
+do_wait-remove-one-else-if-branch.patch
+proc-implement-proc_single_file_operations.patch
+proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces.patch
+proc-seqfile-convert-proc_pid_statm.patch
 proc-proper-pidns-handling-for-proc-self.patch
 proc-fix-the-threaded-proc-self.patch
-ipc-uninline-some-code-from-utilh.patch
-reiser4.patch
+kill-pt_attached.patch
+kill-my_ptrace_child.patch
+ptrace_check_attach-remove-unneeded-signal-=-null-check.patch
+ptrace_stop-fix-the-race-with-ptrace-detachattach.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace.patch
+do_wait-factor-out-retval-=-0-checks.patch
+ptrace_stop-fix-racy-nonstop_code-setting.patch
