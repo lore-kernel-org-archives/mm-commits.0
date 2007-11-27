@@ -1,114 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - fs-nfs-dirc-should-include-internalh.patch removed from -mm tree
-Date: Tue, 27 Nov 2007 12:33:44 -0800
-Message-ID: <200711272033.lARKXiXY028997@imap1.linux-foundation.org>
+Subject: - more-sanity-checks-for-dmar.patch removed from -mm tree
+Date: Tue, 27 Nov 2007 12:33:59 -0800
+Message-ID: <200711272033.lARKXxik029012@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45542 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35876 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756182AbXK0Ue3 (ORCPT
+	by vger.kernel.org with ESMTP id S1756329AbXK0UhF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 15:34:29 -0500
+	Tue, 27 Nov 2007 15:37:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, bfields@fieldses.org, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: fenghua.yu@intel.com, greg@kroah.com, mgross@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/nfs/dir.c should #include "internal.h"
+     More Sanity checks for DMAR
 has been removed from the -mm tree.  Its filename was
-     fs-nfs-dirc-should-include-internalh.patch
+     more-sanity-checks-for-dmar.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fs/nfs/dir.c should #include "internal.h"
-From: Adrian Bunk <bunk@kernel.org>
+Subject: More Sanity checks for DMAR
+From: Fenghua Yu <fenghua.yu@intel.com>
 
-Every file should include the headers containing the prototypes for its global
-functions (in this case nfs_access_cache_shrinker()).
+Add and changes a few sanity checks in dmar.c.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
+1.  The haw field in ACPI DMAR table in VT-d spec doesn't describe the
+   range of haw.  But since DMA page size is 4KB in DMA remapping, haw
+   should be at least 4KB.  The current VT-d code in dmar.c returns failure
+   when haw==0.  This sanity check is not accurate and execution can pass
+   when haw is less than one page size 4KB.  This patch changes the haw
+   sanity check to validate if haw is less than 4KB.
+
+2. Add dmar_rmrr_units verification.
+
+3. Add parse_dmar_table() verification.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Greg KH <greg@kroah.com>
+Acked-by: mark gross <mgross@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/dir.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/pci/dmar.c |   20 +++++++++++++++++---
+ 1 file changed, 17 insertions(+), 3 deletions(-)
 
-diff -puN fs/nfs/dir.c~fs-nfs-dirc-should-include-internalh fs/nfs/dir.c
---- a/fs/nfs/dir.c~fs-nfs-dirc-should-include-internalh
-+++ a/fs/nfs/dir.c
-@@ -38,6 +38,7 @@
- #include "nfs4_fs.h"
- #include "delegation.h"
- #include "iostat.h"
-+#include "internal.h"
+diff -puN drivers/pci/dmar.c~more-sanity-checks-for-dmar drivers/pci/dmar.c
+--- a/drivers/pci/dmar.c~more-sanity-checks-for-dmar
++++ a/drivers/pci/dmar.c
+@@ -25,6 +25,7 @@
  
- /* #define NFS_DEBUG_VERBOSE 1 */
+ #include <linux/pci.h>
+ #include <linux/dmar.h>
++#include "iova.h"
+ 
+ #undef PREFIX
+ #define PREFIX "DMAR:"
+@@ -263,8 +264,8 @@ parse_dmar_table(void)
+ 	if (!dmar)
+ 		return -ENODEV;
+ 
+-	if (!dmar->width) {
+-		printk (KERN_WARNING PREFIX "Zero: Invalid DMAR haw\n");
++	if (dmar->width < PAGE_SHIFT_4K - 1) {
++		printk(KERN_WARNING PREFIX "Invalid DMAR haw\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -301,11 +302,24 @@ parse_dmar_table(void)
+ int __init dmar_table_init(void)
+ {
+ 
+-	parse_dmar_table();
++	int ret;
++
++	ret = parse_dmar_table();
++	if (ret) {
++		printk(KERN_INFO PREFIX "parse DMAR table failure.\n");
++		return ret;
++	}
++
+ 	if (list_empty(&dmar_drhd_units)) {
+ 		printk(KERN_INFO PREFIX "No DMAR devices found\n");
+ 		return -ENODEV;
+ 	}
++
++	if (list_empty(&dmar_rmrr_units)) {
++		printk(KERN_INFO PREFIX "No RMRR found\n");
++		return -ENODEV;
++	}
++
+ 	return 0;
+ }
  
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from fenghua.yu@intel.com are
 
-origin.patch
-git-acpi.patch
-git-avr32.patch
-git-dvb.patch
-remove-saa7134-oss.patch
-git-gfs2-nmw.patch
-git-mtd.patch
-git-net.patch
-git-netdev-all.patch
-git-battery.patch
-drivers-bluetooth-bpa10xc-fix-memleak.patch
-drivers-bluetooth-btsdioc-fix-double-free.patch
-git-scsi-misc.patch
-scsi-advansysc-make-3-functions-static.patch
-scsi-qla2xxx-possible-cleanups.patch
-git-x86.patch
-git-xtensa.patch
-xtensa-kernel-setupc-remove-dead-code.patch
-mm-page-writebackc-make-a-function-static.patch
-make-__vmalloc_area_node-static.patch
-kernel-power-diskc-make-code-static.patch
-make-kernel_shutdown_prepare-static.patch
-nubus-kill-drivers-nubus-nubus_symsc.patch
-m68k-kill-arch-m68k-mac-mac_ksymsc.patch
-m68k-kill-arch-m68k-hp300-ksymsc.patch
-m68k-kill-arch-m68k-amiga-amiga_ksymsc.patch
-m68k-kill-arch-m68k-atari-atari_ksymsc.patch
-m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch
-kill-udffs_dateversion.patch
-make-ipc-utilcsysvipc_find_ipc-static.patch
-cleanup-after-apus-removal.patch
-remove-mm_ptovvtop.patch
-remove-__attribute_used__.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-proper-show_interrupts-prototype.patch
-scheduled-oss-driver-removal.patch
-linux-inith-simplify-__meminitexit-dependencies.patch
-proper-prototype-for-signals_init.patch
-kernel-ptracec-should-include-linux-syscallsh.patch
-make-srcu_readers_active-static.patch
-kernel-notifierc-should-include-linux-rebooth.patch
-proper-prototype-for-get_filesystem_list.patch
-fs-utimesc-should-include-linux-syscallsh.patch
-fs-signalfdc-should-include-linux-syscallsh.patch
-fs-eventfdc-should-include-linux-syscallsh.patch
-proper-prototype-for-vty_init.patch
-drivers-misc-lkdtmc-cleanups.patch
-fs-ecryptfs-possible-cleanups.patch
-make-video-geode-lxfb_corecgeode_modedb-static.patch
-video-hpfbc-section-fix.patch
-ext4-superc-fix-ifdefs.patch
-make-jbd-journalc__journal_abort_hard-static.patch
-move-edactxt-two-levels-up.patch
-remove-documentation-smptxt.patch
-kernel-cgroupc-remove-dead-code.patch
-kernel-cgroupc-make-2-functions-static.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-fix-m32r-__xchg.patch
-reiser4.patch
+git-cpufreq.patch
