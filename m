@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + modules-handle-symbols-that-have-a-zero-value.patch added to -mm tree
-Date: Mon, 26 Nov 2007 15:57:12 -0800
-Message-ID: <200711262357.lAQNvDna029667@imap1.linux-foundation.org>
+Subject: + git-wireless-fix-naming-clash.patch added to -mm tree
+Date: Mon, 26 Nov 2007 18:56:19 -0800
+Message-ID: <200711270256.lAR2uJvL003833@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52898 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42360 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756332AbXKZX5a (ORCPT
+	by vger.kernel.org with ESMTP id S1752407AbXK0C5n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Nov 2007 18:57:30 -0500
+	Mon, 26 Nov 2007 21:57:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, ak@suse.de, kay.sievers@vrfy.org, mathieu.desnoyers@polymtl.ca, rusty@rustcorp.com.au
+Cc: akpm@linux-foundation.org, flamingice@sourmilk.net, kamalesh@linux.vnet.ibm.com, linville@tuxdriver.com, tony@bakeyournoodle.com
 
 
 The patch titled
-     Modules: handle symbols that have a zero value
+     git-wireless: fix naming clash
 has been added to the -mm tree.  Its filename is
-     modules-handle-symbols-that-have-a-zero-value.patch
+     git-wireless-fix-naming-clash.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,148 +26,226 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Modules: handle symbols that have a zero value
-From: Christoph Lameter <clameter@sgi.com>
+Subject: git-wireless: fix naming clash
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The module subsystem cannot handle symbols that are zero.  If symbols are
-present that have a zero value then the module resolver prints out a
-message that these symbols are unresolved.
+  LD      drivers/net/wireless/built-in.o
+drivers/net/wireless/rtl8187.o: In function `rtl8225z2_rf_init':
+(.opd+0x180): multiple definition of `rtl8225z2_rf_init'
+drivers/net/wireless/rtl8180.o:(.opd+0x1b0): first defined here
+drivers/net/wireless/rtl8187.o: In function `rtl8225z2_rf_init':
+/root/linux-2.6.24-rc3/drivers/net/wireless/rtl8187_rtl8225.c:571: multiple definition of `.rtl8225z2_rf_init'
+drivers/net/wireless/rtl8180.o:/root/linux-2.6.24-rc3/drivers/net/wireless/rtl8180_rtl8225.c:561: first defined here
+ld: Warning: size of symbol `.rtl8225z2_rf_init' changed from 3836 in drivers/net/wireless/rtl8180.o to 3544 in drivers/net/wireless/rtl8187.o
 
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Kay Sievers <kay.sievers@vrfy.org
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Andi Kleen <ak@suse.de>
+Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Tony Breeds <tony@bakeyournoodle.com>
+Cc: Michael Wu <flamingice@sourmilk.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module.c |   17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ drivers/net/wireless/rtl8187_dev.c     |    2 +-
+ drivers/net/wireless/rtl8187_rtl8225.c |    2 +-
+ drivers/net/wireless/rtl8187_rtl8225.h |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/module.c~modules-handle-symbols-that-have-a-zero-value kernel/module.c
---- a/kernel/module.c~modules-handle-symbols-that-have-a-zero-value
-+++ a/kernel/module.c
-@@ -285,7 +285,7 @@ static unsigned long __find_symbol(const
- 		}
- 	}
- 	DEBUGP("Failed to find symbol %s\n", name);
--	return 0;
-+	return -ENOENT;
- }
+diff -puN drivers/net/wireless/rtl8187_dev.c~git-wireless-fix-naming-clash drivers/net/wireless/rtl8187_dev.c
+--- a/drivers/net/wireless/rtl8187_dev.c~git-wireless-fix-naming-clash
++++ a/drivers/net/wireless/rtl8187_dev.c
+@@ -764,7 +764,7 @@ static int __devinit rtl8187_probe(struc
+ 	if (rtl8225_read(dev, 8) != 0x588 || rtl8225_read(dev, 9) != 0x700)
+ 		priv->rf_init = rtl8225_rf_init;
+ 	else
+-		priv->rf_init = rtl8225z2_rf_init;
++		priv->rf_init = rtl8187_rf_init;
  
- /* Search for module by name: must hold module_mutex. */
-@@ -756,7 +756,7 @@ void __symbol_put(const char *symbol)
- 	const unsigned long *crc;
+ 	rtl8225_write(dev, 0, 0x0B7);
  
- 	preempt_disable();
--	if (!__find_symbol(symbol, &owner, &crc, 1))
-+	if (IS_ERR_VALUE(__find_symbol(symbol, &owner, &crc, 1)))
- 		BUG();
- 	module_put(owner);
- 	preempt_enable();
-@@ -902,7 +902,8 @@ static inline int check_modstruct_versio
- 	const unsigned long *crc;
- 	struct module *owner;
+diff -puN drivers/net/wireless/rtl8187_rtl8225.c~git-wireless-fix-naming-clash drivers/net/wireless/rtl8187_rtl8225.c
+--- a/drivers/net/wireless/rtl8187_rtl8225.c~git-wireless-fix-naming-clash
++++ a/drivers/net/wireless/rtl8187_rtl8225.c
+@@ -567,7 +567,7 @@ static const u8 rtl8225z2_gain_bg[] = {
+ 	0x63, 0x15, 0xc5  /* -66dBm */
+ };
  
--	if (!__find_symbol("struct_module", &owner, &crc, 1))
-+	if (IS_ERR_VALUE(__find_symbol("struct_module",
-+						&owner, &crc, 1)))
- 		BUG();
- 	return check_version(sechdrs, versindex, "struct_module", mod,
- 			     crc);
-@@ -955,7 +956,7 @@ static unsigned long resolve_symbol(Elf_
- 		/* use_module can fail due to OOM, or module unloading */
- 		if (!check_version(sechdrs, versindex, name, mod, crc) ||
- 		    !use_module(mod, owner))
--			ret = 0;
-+			ret = -EINVAL;
- 	}
- 	return ret;
- }
-@@ -1348,14 +1349,16 @@ static int verify_export_symbols(struct 
- 	const unsigned long *crc;
+-void rtl8225z2_rf_init(struct ieee80211_hw *dev)
++void rtl8187_rf_init(struct ieee80211_hw *dev)
+ {
+ 	struct rtl8187_priv *priv = dev->priv;
+ 	int i;
+diff -puN drivers/net/wireless/rtl8187_rtl8225.h~git-wireless-fix-naming-clash drivers/net/wireless/rtl8187_rtl8225.h
+--- a/drivers/net/wireless/rtl8187_rtl8225.h~git-wireless-fix-naming-clash
++++ a/drivers/net/wireless/rtl8187_rtl8225.h
+@@ -24,7 +24,7 @@ void rtl8225_write(struct ieee80211_hw *
+ u16  rtl8225_read(struct ieee80211_hw *, u8 addr);
  
- 	for (i = 0; i < mod->num_syms; i++)
--		if (__find_symbol(mod->syms[i].name, &owner, &crc, 1)) {
-+		if (!IS_ERR_VALUE(__find_symbol(mod->syms[i].name,
-+							&owner, &crc, 1))) {
- 			name = mod->syms[i].name;
- 			ret = -ENOEXEC;
- 			goto dup;
- 		}
+ void rtl8225_rf_init(struct ieee80211_hw *);
+-void rtl8225z2_rf_init(struct ieee80211_hw *);
++void rtl8187_rf_init(struct ieee80211_hw *);
+ void rtl8225_rf_stop(struct ieee80211_hw *);
+ void rtl8225_rf_set_channel(struct ieee80211_hw *, int);
  
- 	for (i = 0; i < mod->num_gpl_syms; i++)
--		if (__find_symbol(mod->gpl_syms[i].name, &owner, &crc, 1)) {
-+		if (!IS_ERR_VALUE(__find_symbol(mod->gpl_syms[i].name,
-+							&owner, &crc, 1))) {
- 			name = mod->gpl_syms[i].name;
- 			ret = -ENOEXEC;
- 			goto dup;
-@@ -1405,7 +1408,7 @@ static int simplify_symbols(Elf_Shdr *se
- 					   strtab + sym[i].st_name, mod);
- 
- 			/* Ok if resolved.  */
--			if (sym[i].st_value != 0)
-+			if (!IS_ERR_VALUE(sym[i].st_value))
- 				break;
- 			/* Ok if weak.  */
- 			if (ELF_ST_BIND(sym[i].st_info) == STB_WEAK)
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+file-capabilities-allow-sigcont-within-session-v2.patch
+pnp-increase-the-maximum-number-of-resources-fix.patch
+fix-linux-kdh-usage-in-userspace-checkpatch-fixes.patch
+revert-keyspan-init-termios-properly.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-add-reboot-mechanism.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+agk-dm-dm-ioctl-move-compat-code-fix.patch
+revert-gregkh-driver-drm-convert-from-class_device-to-device-in-drivers-char-drm.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+git-drm-oops-fix.patch
+intel-agp-enable-i915-recognition.patch
+git-dvb.patch
 ia64-slim-down-__clear_bit_unlock.patch
+git-infiniband.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+git-mips-fixup.patch
+git-mmc.patch
+git-mtd.patch
+git-netdev-all.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+bluetooth-uninlining.patch
+git-nfsd.patch
+drivers-pci-quirksc-coding-style-cleanup.patch
+more-sanity-checks-for-dmar.patch
 git-s390.patch
+ips-trim-trailing-whitespace.patch
+scsi-gdth-kill-unneeded-irq-argument.patch
+bidi-support-scsi_data_buffer-broke-qla1280.patch
+bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
+libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
 git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+mct232-speed-new-termios-and-compliance-cleanups-fix.patch
+git-watchdog.patch
+git-wireless.patch
+git-wireless-fix-naming-clash.patch
+git-ipwireless_cs.patch
 git-x86.patch
-acpi-avoid-references-to-impossible-processors.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
+git-x86-fixup.patch
+git-cryptodev.patch
+git-xtensa.patch
+ia64-increase-datapatch-offset.patch
+ia64-dont-assume-that-unwcheckpy-is-executable.patch
+ia64-export-copy_page-to-modules.patch
+isdn-validate-length-of-isdn_net_ioctl_cfgeaz.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-move-vmalloc_to_page-to-mm-vmalloc.patch
-vmalloc-add-const-to-void-parameters.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
 i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries.patch
-vmalloc-clean-up-page-array-indexing.patch
-vunmap-return-page-array-passed-on-vmap.patch
-slub-move-count_partial.patch
-slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio.patch
-slub-consolidate-add_partial-and-add_partial_tail-to-one-function.patch
-slub-use-non-atomic-bit-unlock.patch
-slub-fix-coding-style-violations.patch
 slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-noinline-some-functions-to-avoid-them-being-folded-into-alloc-free.patch
-slub-move-kmem_cache_node-determination-into-add_full-and-add_partial.patch
-slub-move-kmem_cache_node-determination-into-add_full-and-add_partial-slub-workaround-for-lockdep-confusion.patch
-slub-avoid-checking-for-a-valid-object-before-zeroing-on-the-fast-path.patch
-slub-__slab_alloc-exit-path-consolidation.patch
-slub-provide-unique-end-marker-for-each-slab.patch
 slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-avoid-referencing-kmem_cache-structure-in-__slab_alloc.patch
-slub-optional-fast-path-using-cmpxchg_local.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock.patch
 slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-fix.patch
-slub-restructure-slab-alloc.patch
-slub-comment-kmem_cache_cpu-structure.patch
-vm-allow-get_page_unless_zero-on-compound-pages.patch
-bufferhead-revert-constructor-removal.patch
 bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-swapin_readahead-excise-numa-bogosity.patch
-page-allocator-clean-up-pcp-draining-functions.patch
-vmstat-small-revisions-to-refresh_cpu_vm_stats.patch
-page-allocator-get-rid-of-the-list-of-cold-pages.patch
-page-allocator-get-rid-of-the-list-of-cold-pages-fix.patch
-mm-sparsec-check-the-return-value-of-sparse_index_alloc.patch
-percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data.patch
-modules-handle-symbols-that-have-a-zero-value.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+sync_sb_inodes-propagate-errors.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+64-bit-i_version-afs-fixes.patch
+ext4-add-block-bitmap-validation-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
 memcontrol-move-oom-task-exclusion-to-tasklist.patch
-oom-add-sysctl-to-enable-task-memory-dump.patch
-add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
-add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
-dentries-extract-common-code-to-remove-dentry-from-lru.patch
-dentries-extract-common-code-to-remove-dentry-from-lru-fix.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
 reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
 page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+w1-build-fix.patch
