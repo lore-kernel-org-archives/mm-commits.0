@@ -1,33 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + revert-6f5391c283d7fdcf24bf40786ea79061919d1e1d.patch added to -mm tree
-Date: Wed, 28 Nov 2007 15:33:38 -0800
-Message-ID: <200711282333.lASNXcBw024670@imap1.linux-foundation.org>
+Subject: - revert-6f5391c283d7fdcf24bf40786ea79061919d1e1d.patch removed from -mm tree
+Date: Wed, 28 Nov 2007 15:36:48 -0800
+Message-ID: <200711282336.lASNamLv024806@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40317 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50948 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756524AbXK1Xdm (ORCPT
+	by vger.kernel.org with ESMTP id S1758938AbXK1Xgw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Nov 2007 18:33:42 -0500
+	Wed, 28 Nov 2007 18:36:52 -0500
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lASNXd16021462
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lASNanLs021580
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 28 Nov 2007 15:33:40 -0800
+	for <mm-commits@vger.kernel.org>; Wed, 28 Nov 2007 15:36:50 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
      a
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      revert-6f5391c283d7fdcf24bf40786ea79061919d1e1d.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 Subject: a
