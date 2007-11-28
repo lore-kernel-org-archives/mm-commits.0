@@ -1,53 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: + fix-ide-mm-ide-fix-host-drivers-depending-on-ide_generic-to-probe-for-interfaces.patch added to -mm tree
-Date: Wed, 28 Nov 2007 12:06:58 -0800
-Message-ID: <200711282006.lASK6wbM016873@imap1.linux-foundation.org>
+Subject: - git-mips-fixup.patch removed from -mm tree
+Date: Wed, 28 Nov 2007 14:50:14 -0800
+Message-ID: <200711282250.lASMoEql023020@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58527 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55336 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759242AbXK1UHC (ORCPT
+	by vger.kernel.org with ESMTP id S1758401AbXK1Wu0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Nov 2007 15:07:02 -0500
+	Wed, 28 Nov 2007 17:50:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bzolnier@gmail.com, clameter@sgi.com
+To: akpm@linux-foundation.org, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix ide-mm-ide-fix-host-drivers-depending-on-ide_generic-to-probe-for-interfaces
-has been added to the -mm tree.  Its filename is
-     fix-ide-mm-ide-fix-host-drivers-depending-on-ide_generic-to-probe-for-interfaces.patch
+     git-mips-fixup
+has been removed from the -mm tree.  Its filename was
+     git-mips-fixup.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: fix ide-mm-ide-fix-host-drivers-depending-on-ide_generic-to-probe-for-interfaces
+Subject: git-mips-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Christoph Lameter <clameter@sgi.com>
+Try to fix git conflicts in the mips tree
+
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/arm/ide_arm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/mips/Kconfig           |   12 ------------
+ arch/mips/kernel/proc.c     |    5 -----
+ include/asm-mips/cpu-info.h |    5 -----
+ 3 files changed, 22 deletions(-)
 
-diff -puN drivers/ide/arm/ide_arm.c~fix-ide-mm-ide-fix-host-drivers-depending-on-ide_generic-to-probe-for-interfaces drivers/ide/arm/ide_arm.c
---- a/drivers/ide/arm/ide_arm.c~fix-ide-mm-ide-fix-host-drivers-depending-on-ide_generic-to-probe-for-interfaces
-+++ a/drivers/ide/arm/ide_arm.c
-@@ -39,6 +39,6 @@ void __init ide_arm_init(void)
- 		ide_init_port_hw(hwif, &hw);
- 		idx[0] = hwif->index;
+diff -puN arch/mips/kernel/proc.c~git-mips-fixup arch/mips/kernel/proc.c
+--- a/arch/mips/kernel/proc.c~git-mips-fixup
++++ a/arch/mips/kernel/proc.c
+@@ -60,12 +60,7 @@ static int show_cpuinfo(struct seq_file 
+ 		      cpu_has_dsp ? " dsp" : "",
+ 		      cpu_has_mipsmt ? " mt" : ""
+ 		);
+-<<<<<<< HEAD:arch/mips/kernel/proc.c
+-	seq_printf(m, "shadow register sets\t: %d\n",
+-		       cpu_data[n].srsets);
+-=======
+ 	seq_printf(m, "core\t\t\t: %d\n", cpu_data[n].core);
+->>>>>>> FETCH_HEAD:arch/mips/kernel/proc.c
  
--		ide_device_idx(idx);
-+		ide_device_add(idx);
- 	}
- }
+ 	sprintf(fmt, "VCE%%c exceptions\t\t: %s\n",
+ 	        cpu_has_vce ? "%u" : "not available");
+diff -puN include/asm-mips/cpu-info.h~git-mips-fixup include/asm-mips/cpu-info.h
+--- a/include/asm-mips/cpu-info.h~git-mips-fixup
++++ a/include/asm-mips/cpu-info.h
+@@ -54,14 +54,9 @@ struct cpuinfo_mips {
+ 	struct cache_desc	dcache;	/* Primary D or combined I/D cache */
+ 	struct cache_desc	scache;	/* Secondary cache */
+ 	struct cache_desc	tcache;	/* Tertiary/split secondary cache */
+-<<<<<<< HEAD:include/asm-mips/cpu-info.h
+ 	int			srsets;	/* Shadow register sets */
+-#if defined(CONFIG_MIPS_MT_SMTC)
+-=======
+-
+ 	int			core;	/* physical core number */
+ #if defined(CONFIG_MIPS_MT_SMP) || defined(CONFIG_MIPS_MT_SMTC)
+->>>>>>> FETCH_HEAD:include/asm-mips/cpu-info.h
+ 	/*
+ 	 * In the MIPS MT "SMTC" model, each TC is considered
+ 	 * to be a "CPU" for the purposes of scheduling, but
+diff -puN arch/mips/Kconfig~git-mips-fixup arch/mips/Kconfig
+--- a/arch/mips/Kconfig~git-mips-fixup
++++ a/arch/mips/Kconfig
+@@ -88,13 +88,10 @@ config MACH_DECSTATION
+ 	bool "DECstations"
+ 	select BOOT_ELF32
+ 	select CEVT_R4K
+-<<<<<<< HEAD:arch/mips/Kconfig
+ 	select CSRC_R4K
+-=======
+ 	select CPU_DADDI_WORKAROUNDS if 64BIT
+ 	select CPU_R4000_WORKAROUNDS if 64BIT
+ 	select CPU_R4400_WORKAROUNDS if 64BIT
+->>>>>>> FETCH_HEAD:arch/mips/Kconfig
+ 	select DMA_NONCOHERENT
+ 	select IRQ_CPU
+ 	select NO_IOPORT
+@@ -1989,15 +1986,6 @@ config MMU
+ config I8253
+ 	bool
+ 
+-<<<<<<< HEAD:arch/mips/Kconfig
+-config PCSPEAKER
+-	bool
+-
+-config ZONE_DMA32
+-	bool
+-
+-=======
+->>>>>>> FETCH_HEAD:arch/mips/Kconfig
+ source "drivers/pcmcia/Kconfig"
+ 
+ source "drivers/pci/hotplug/Kconfig"
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,9 +139,11 @@ fix-jdelvare-i2c-i2c-constify-client-address-data.patch
 revert-git-hrt.patch
 ia64-slim-down-__clear_bit_unlock.patch
 git-infiniband.patch
+git-kvm.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
 pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+fix-ide-mm-ide-fix-host-drivers-depending-on-ide_generic-to-probe-for-interfaces.patch
 git-mips-fixup.patch
 git-mmc.patch
 git-mtd.patch
@@ -99,6 +156,7 @@ bluetooth-uninlining.patch
 git-nfsd.patch
 git-nfsd-fix-nfsd_idmap-stubs.patch
 quirk-enable-msi-mapping-on-ht1000.patch
+git-sh.patch
 git-sh-fixup.patch
 git-scsi-misc-fixup.patch
 ips-trim-trailing-whitespace.patch
@@ -231,4 +289,3 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-fix-ide-mm-ide-fix-host-drivers-depending-on-ide_generic-to-probe-for-interfaces.patch
