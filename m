@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-acpi-ia64-build-fix.patch added to -mm tree
-Date: Tue, 27 Nov 2007 21:18:20 -0800
-Message-ID: <200711280525.lAS5PaGU017529@imap1.linux-foundation.org>
+Subject: + vmalloc-add-const-to-void-parameters-fix.patch added to -mm tree
+Date: Tue, 27 Nov 2007 22:18:47 -0800
+Message-ID: <200711280626.lAS6Q3pj019454@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33100 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50938 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750787AbXK1FZv (ORCPT
+	by vger.kernel.org with ESMTP id S1751349AbXK1G0I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Nov 2007 00:25:51 -0500
+	Wed, 28 Nov 2007 01:26:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, lenb@kernel.org, linux-acpi@vger.kernel.org
+Cc: akpm@linux-foundation.org, clameter@sgi.com
 
 
 The patch titled
-     git-acpi: ia64 build fix
+     vmalloc-add-const-to-void-parameters-fix
 has been added to the -mm tree.  Its filename is
-     git-acpi-ia64-build-fix.patch
+     vmalloc-add-const-to-void-parameters-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,66 +26,53 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-acpi: ia64 build fix
+Subject: vmalloc-add-const-to-void-parameters-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/ia64/kernel/acpi.c: In function `acpi_get_sysname':
-arch/ia64/kernel/acpi.c:81: error: implicit declaration of function `acpi_find_rsdp'
-arch/ia64/kernel/acpi.c: At top level:
-arch/ia64/kernel/acpi.c:631: error: conflicting types for 'acpi_find_rsdp'
-arch/ia64/kernel/acpi.c:81: error: previous implicit declaration of 'acpi_find_rsdp' was here
-
-Cc: Len Brown <lenb@kernel.org>
-Cc: <linux-acpi@vger.kernel.org>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/acpi.c |   26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ mm/nommu.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/ia64/kernel/acpi.c~git-acpi-ia64-build-fix arch/ia64/kernel/acpi.c
---- a/arch/ia64/kernel/acpi.c~git-acpi-ia64-build-fix
-+++ a/arch/ia64/kernel/acpi.c
-@@ -67,7 +67,19 @@ EXPORT_SYMBOL(pm_power_off);
- unsigned int acpi_cpei_override;
- unsigned int acpi_cpei_phys_cpuid;
+diff -puN mm/nommu.c~vmalloc-add-const-to-void-parameters-fix mm/nommu.c
+--- a/mm/nommu.c~vmalloc-add-const-to-void-parameters-fix
++++ a/mm/nommu.c
+@@ -167,7 +167,7 @@ EXPORT_SYMBOL(get_user_pages);
+ DEFINE_RWLOCK(vmlist_lock);
+ struct vm_struct *vmlist;
  
--unsigned long acpi_wakeup_address = 0;
-+unsigned long acpi_wakeup_address;
-+
-+unsigned long __init acpi_find_rsdp(void)
-+{
-+	unsigned long rsdp_phys = 0;
-+
-+	if (efi.acpi20 != EFI_INVALID_TABLE_ADDR)
-+		rsdp_phys = efi.acpi20;
-+	else if (efi.acpi != EFI_INVALID_TABLE_ADDR)
-+		printk(KERN_WARNING PREFIX
-+		       "v1.0/r0.71 tables no longer supported\n");
-+	return rsdp_phys;
-+}
- 
- const char __init *
- acpi_get_sysname(void)
-@@ -627,18 +639,6 @@ static int __init acpi_parse_fadt(struct
- 	return 0;
- }
- 
--unsigned long __init acpi_find_rsdp(void)
--{
--	unsigned long rsdp_phys = 0;
--
--	if (efi.acpi20 != EFI_INVALID_TABLE_ADDR)
--		rsdp_phys = efi.acpi20;
--	else if (efi.acpi != EFI_INVALID_TABLE_ADDR)
--		printk(KERN_WARNING PREFIX
--		       "v1.0/r0.71 tables no longer supported\n");
--	return rsdp_phys;
--}
--
- int __init acpi_boot_init(void)
+-void vfree(void *addr)
++void vfree(const void *addr)
  {
+ 	kfree(addr);
+ }
+@@ -183,13 +183,13 @@ void *__vmalloc(unsigned long size, gfp_
+ }
+ EXPORT_SYMBOL(__vmalloc);
  
+-struct page * vmalloc_to_page(void *addr)
++struct page *vmalloc_to_page(const void *addr)
+ {
+ 	return virt_to_page(addr);
+ }
+ EXPORT_SYMBOL(vmalloc_to_page);
+ 
+-unsigned long vmalloc_to_pfn(void *addr)
++unsigned long vmalloc_to_pfn(const void *addr)
+ {
+ 	return page_to_pfn(virt_to_page(addr));
+ }
+@@ -267,7 +267,7 @@ void *vmap(struct page **pages, unsigned
+ }
+ EXPORT_SYMBOL(vmap);
+ 
+-void vunmap(void *addr)
++void vunmap(const void *addr)
+ {
+ 	BUG();
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -154,6 +141,7 @@ ia64-dont-assume-that-unwcheckpy-is-executable.patch
 ia64-export-copy_page-to-modules.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
 i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
 slub-fix-coding-style-violations-checkpatch-fixes.patch
 slub-provide-unique-end-marker-for-each-slab-fix.patch
