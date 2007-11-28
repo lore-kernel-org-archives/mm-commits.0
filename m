@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmalloc-add-const-to-void-parameters-fix.patch added to -mm tree
-Date: Tue, 27 Nov 2007 22:18:47 -0800
-Message-ID: <200711280626.lAS6Q3pj019454@imap1.linux-foundation.org>
+Subject: + git-drm-warning-fix.patch added to -mm tree
+Date: Tue, 27 Nov 2007 23:20:08 -0800
+Message-ID: <200711280720.lAS7K8oM021199@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50938 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56417 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751349AbXK1G0I (ORCPT
+	by vger.kernel.org with ESMTP id S1751012AbXK1HUP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Nov 2007 01:26:08 -0500
+	Wed, 28 Nov 2007 02:20:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clameter@sgi.com
+Cc: akpm@linux-foundation.org, airlied@linux.ie
 
 
 The patch titled
-     vmalloc-add-const-to-void-parameters-fix
+     git-drm warning fix
 has been added to the -mm tree.  Its filename is
-     vmalloc-add-const-to-void-parameters-fix.patch
+     git-drm-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,53 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: vmalloc-add-const-to-void-parameters-fix
+Subject: git-drm warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Christoph Lameter <clameter@sgi.com>
+drivers/char/agp/intel-agp.c: In function 'intel_i965_g33_setup_chipset_flush':
+drivers/char/agp/intel-agp.c:872: warning: right shift count >= width of type
+
+I wish the agp code wasn't written in a 10,000-column xterm :(
+
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/char/agp/intel-agp.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/nommu.c~vmalloc-add-const-to-void-parameters-fix mm/nommu.c
---- a/mm/nommu.c~vmalloc-add-const-to-void-parameters-fix
-+++ a/mm/nommu.c
-@@ -167,7 +167,7 @@ EXPORT_SYMBOL(get_user_pages);
- DEFINE_RWLOCK(vmlist_lock);
- struct vm_struct *vmlist;
+diff -puN drivers/char/agp/intel-agp.c~git-drm-warning-fix drivers/char/agp/intel-agp.c
+--- a/drivers/char/agp/intel-agp.c~git-drm-warning-fix
++++ a/drivers/char/agp/intel-agp.c
+@@ -869,7 +869,8 @@ static void intel_i965_g33_setup_chipset
  
--void vfree(void *addr)
-+void vfree(const void *addr)
- {
- 	kfree(addr);
- }
-@@ -183,13 +183,13 @@ void *__vmalloc(unsigned long size, gfp_
- }
- EXPORT_SYMBOL(__vmalloc);
+ 		intel_alloc_chipset_flush_resource();
  
--struct page * vmalloc_to_page(void *addr)
-+struct page *vmalloc_to_page(const void *addr)
- {
- 	return virt_to_page(addr);
- }
- EXPORT_SYMBOL(vmalloc_to_page);
- 
--unsigned long vmalloc_to_pfn(void *addr)
-+unsigned long vmalloc_to_pfn(const void *addr)
- {
- 	return page_to_pfn(virt_to_page(addr));
- }
-@@ -267,7 +267,7 @@ void *vmap(struct page **pages, unsigned
- }
- EXPORT_SYMBOL(vmap);
- 
--void vunmap(void *addr)
-+void vunmap(const void *addr)
- {
- 	BUG();
- }
+-		pci_write_config_dword(agp_bridge->dev, I965_IFPADDR + 4, (intel_private.ifp_resource.start >> 32));
++		pci_write_config_dword(agp_bridge->dev, I965_IFPADDR + 4,
++			upper_32_bits(intel_private.ifp_resource.start));
+ 		pci_write_config_dword(agp_bridge->dev, I965_IFPADDR, (intel_private.ifp_resource.start & 0xffffffff) | 0x1);
+ 	} else {
+ 		u64 l64;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -250,3 +231,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+git-drm-warning-fix.patch
