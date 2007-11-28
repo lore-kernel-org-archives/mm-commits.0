@@ -1,229 +1,394 @@
 From: akpm@linux-foundation.org
-Subject: - fix-ide-mm-ide-fix-host-drivers-depending-on-ide_generic-to-probe-for-interfaces.patch removed from -mm tree
-Date: Wed, 28 Nov 2007 15:12:51 -0800
-Message-ID: <200711282312.lASNCpfI023884@imap1.linux-foundation.org>
+Subject: - watchdog-add-nano-7240-driver-2.patch removed from -mm tree
+Date: Wed, 28 Nov 2007 15:12:45 -0800
+Message-ID: <200711282312.lASNCjcg023873@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53527 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60926 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752420AbXK1XM4 (ORCPT
+	by vger.kernel.org with ESMTP id S1756064AbXK1XM6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Nov 2007 18:12:56 -0500
+	Wed, 28 Nov 2007 18:12:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bzolnier@gmail.com, clameter@sgi.com, mm-commits@vger.kernel.org
+To: gilles.gigan@gmail.com, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix ide-mm-ide-fix-host-drivers-depending-on-ide_generic-to-probe-for-interfaces
+     watchdog: add Nano 7240 driver
 has been removed from the -mm tree.  Its filename was
-     fix-ide-mm-ide-fix-host-drivers-depending-on-ide_generic-to-probe-for-interfaces.patch
+     watchdog-add-nano-7240-driver-2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix ide-mm-ide-fix-host-drivers-depending-on-ide_generic-to-probe-for-interfaces
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: watchdog: add Nano 7240 driver
+From: Gilles Gigan<gilles.gigan@gmail.com>
 
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Christoph Lameter <clameter@sgi.com>
+Adds support for the built-in watchdog on EPIC Nano 7240 boards from IEI.
+
+Tested on Nano-7240RS.
+
+Hardware documentation of the platform (including watchdog) can be found
+on the IEI website: http://www.ieiworld.com
+
+Signed-off-by: Gilles Gigan <gilles.gigan@gmail.com>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/arm/ide_arm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/watchdog/Kconfig       |   13 +
+ drivers/watchdog/Makefile      |    1 
+ drivers/watchdog/sbc7240_wdt.c |  307 +++++++++++++++++++++++++++++++
+ 3 files changed, 321 insertions(+)
 
-diff -puN drivers/ide/arm/ide_arm.c~fix-ide-mm-ide-fix-host-drivers-depending-on-ide_generic-to-probe-for-interfaces drivers/ide/arm/ide_arm.c
---- a/drivers/ide/arm/ide_arm.c~fix-ide-mm-ide-fix-host-drivers-depending-on-ide_generic-to-probe-for-interfaces
-+++ a/drivers/ide/arm/ide_arm.c
-@@ -39,6 +39,6 @@ void __init ide_arm_init(void)
- 		ide_init_port_hw(hwif, &hw);
- 		idx[0] = hwif->index;
+diff -puN drivers/watchdog/Kconfig~watchdog-add-nano-7240-driver-2 drivers/watchdog/Kconfig
+--- a/drivers/watchdog/Kconfig~watchdog-add-nano-7240-driver-2
++++ a/drivers/watchdog/Kconfig
+@@ -469,6 +469,19 @@ config SBC8360_WDT
  
--		ide_device_idx(idx);
-+		ide_device_add(idx);
- 	}
- }
+ 	  Most people will say N.
+ 
++config SBC7240_WDT
++	tristate "SBC Nano 7240 Watchdog Timer"
++	depends on X86_32
++	---help---
++	  This is the driver for the hardware watchdog found on the IEI
++	  single board computers EPIC Nano 7240 (and likely others). This
++	  watchdog simply watches your kernel to make sure it doesn't freeze,
++	  and if it does, it reboots your computer after a certain amount of
++	  time.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called sbc7240_wdt.
++
+ config CPU5_WDT
+ 	tristate "SMA CPU5 Watchdog"
+ 	depends on X86
+diff -puN drivers/watchdog/Makefile~watchdog-add-nano-7240-driver-2 drivers/watchdog/Makefile
+--- a/drivers/watchdog/Makefile~watchdog-add-nano-7240-driver-2
++++ a/drivers/watchdog/Makefile
+@@ -74,6 +74,7 @@ obj-$(CONFIG_SCx200_WDT) += scx200_wdt.o
+ obj-$(CONFIG_PC87413_WDT) += pc87413_wdt.o
+ obj-$(CONFIG_60XX_WDT) += sbc60xxwdt.o
+ obj-$(CONFIG_SBC8360_WDT) += sbc8360.o
++obj-$(CONFIG_SBC7240_WDT) += sbc7240_wdt.o
+ obj-$(CONFIG_CPU5_WDT) += cpu5wdt.o
+ obj-$(CONFIG_SMSC37B787_WDT) += smsc37b787_wdt.o
+ obj-$(CONFIG_W83627HF_WDT) += w83627hf_wdt.o
+diff -puN /dev/null drivers/watchdog/sbc7240_wdt.c
+--- /dev/null
++++ a/drivers/watchdog/sbc7240_wdt.c
+@@ -0,0 +1,307 @@
++/*
++ *	NANO7240 SBC Watchdog device driver
++ *
++ *	Based on w83877f.c by Scott Jennings,
++ *
++ *	This program is free software; you can redistribute it and/or modify
++ *	it under the terms of the GNU General Public License version 2 as
++ *	published by the Free Software Foundation;
++ *
++ *	Software distributed under the License is distributed on an "AS IS"
++ *	basis, WITHOUT WARRANTY OF ANY KIND, either express or
++ *	implied. See the License for the specific language governing
++ *	rights and limitations under the License.
++ *
++ *	(c) Copyright 2007  Gilles GIGAN <gilles.gigan@jcu.edu.au>
++ *
++ */
++
++#include <linux/fs.h>
++#include <linux/init.h>
++#include <linux/ioport.h>
++#include <linux/jiffies.h>
++#include <linux/module.h>
++#include <linux/moduleparam.h>
++#include <linux/miscdevice.h>
++#include <linux/notifier.h>
++#include <linux/reboot.h>
++#include <linux/types.h>
++#include <linux/watchdog.h>
++#include <asm/atomic.h>
++#include <asm/io.h>
++#include <asm/system.h>
++#include <asm/uaccess.h>
++
++#define SBC7240_PREFIX "sbc7240_wdt: "
++
++#define SBC7240_ENABLE_PORT		0x443
++#define SBC7240_DISABLE_PORT		0x043
++#define SBC7240_SET_TIMEOUT_PORT	SBC7240_ENABLE_PORT
++#define SBC7240_MAGIC_CHAR		'V'
++
++#define SBC7240_TIMEOUT		30
++#define SBC7240_MAX_TIMEOUT		255
++static int timeout = SBC7240_TIMEOUT;	/* in seconds */
++module_param(timeout, int, 0);
++MODULE_PARM_DESC(timeout, "Watchdog timeout in seconds. (1<=timeout<="
++		 __MODULE_STRING(SBC7240_MAX_TIMEOUT) ", default="
++		 __MODULE_STRING(SBC7240_TIMEOUT) ")");
++
++static int nowayout = WATCHDOG_NOWAYOUT;
++module_param(nowayout, int, 0);
++MODULE_PARM_DESC(nowayout, "Disable watchdog when closing device file");
++
++#define SBC7240_OPEN_STATUS_BIT		0
++#define SBC7240_ENABLED_STATUS_BIT	1
++#define SBC7240_EXPECT_CLOSE_STATUS_BIT	2
++static unsigned long wdt_status;
++
++/*
++ * Utility routines
++ */
++
++static void wdt_disable(void)
++{
++	/* disable the watchdog */
++	if (test_and_clear_bit(SBC7240_ENABLED_STATUS_BIT, &wdt_status)) {
++		inb_p(SBC7240_DISABLE_PORT);
++		printk(KERN_INFO SBC7240_PREFIX
++		       "Watchdog timer is now disabled.\n");
++	}
++}
++
++static void wdt_enable(void)
++{
++	/* enable the watchdog */
++	if (!test_and_set_bit(SBC7240_ENABLED_STATUS_BIT, &wdt_status)) {
++		inb_p(SBC7240_ENABLE_PORT);
++		printk(KERN_INFO SBC7240_PREFIX
++		       "Watchdog timer is now enabled.\n");
++	}
++}
++
++static int wdt_set_timeout(int t)
++{
++	if (t < 1 || t > SBC7240_MAX_TIMEOUT) {
++		printk(KERN_ERR SBC7240_PREFIX
++		       "timeout value must be 1<=x<=%d\n",
++		       SBC7240_MAX_TIMEOUT);
++		return -1;
++	}
++	/* set the timeout */
++	outb_p((unsigned)t, SBC7240_SET_TIMEOUT_PORT);
++	printk(KERN_INFO SBC7240_PREFIX "timeout set to %d seconds\n", t);
++	return 0;
++}
++
++/* Whack the dog */
++static inline void wdt_keepalive(void)
++{
++	if (test_bit(SBC7240_ENABLED_STATUS_BIT, &wdt_status))
++		inb_p(SBC7240_ENABLE_PORT);
++}
++
++/*
++ * /dev/watchdog handling
++ */
++static ssize_t fop_write(struct file *file, const char __user *buf,
++			 size_t count, loff_t *ppos)
++{
++	size_t i;
++	char c;
++
++	if (!nowayout) {
++		/* is there a magic char ? */
++		for (i = 0; i != count; i++) {
++			if (get_user(c, buf + i))
++				return -EFAULT;
++			if (c == SBC7240_MAGIC_CHAR) {
++				set_bit(SBC7240_EXPECT_CLOSE_STATUS_BIT,
++					&wdt_status);
++				break;
++			}
++		}
++	}
++
++	wdt_keepalive();
++
++	return count;
++}
++
++static int fop_open(struct inode *inode, struct file *file)
++{
++	if (test_and_set_bit(SBC7240_OPEN_STATUS_BIT, &wdt_status))
++		return -EBUSY;
++
++	return nonseekable_open(inode, file);
++}
++
++static int fop_close(struct inode *inode, struct file *file)
++{
++	if (test_and_clear_bit(SBC7240_EXPECT_CLOSE_STATUS_BIT, &wdt_status)
++	    || !nowayout)
++		wdt_disable();
++
++	clear_bit(SBC7240_OPEN_STATUS_BIT, &wdt_status);
++	return 0;
++}
++
++static struct watchdog_info ident = {
++	.options = WDIOF_KEEPALIVEPING|WDIOF_SETTIMEOUT|
++		   WDIOF_MAGICCLOSE,
++	.firmware_version = 1,
++	.identity = "SBC7240",
++};
++
++
++static int fop_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
++		     unsigned long arg)
++{
++	switch (cmd) {
++	case WDIOC_GETSUPPORT:
++		return copy_to_user
++			((void __user *)arg, &ident, sizeof(ident))
++			 ? -EFAULT : 0;
++	case WDIOC_GETSTATUS:
++	case WDIOC_GETBOOTSTATUS:
++		return put_user(0, (int __user *)arg);
++	case WDIOC_KEEPALIVE:
++		wdt_keepalive();
++		return 0;
++	case WDIOC_SETOPTIONS:{
++			int retval = -EINVAL;
++
++			if (arg & WDIOS_DISABLECARD) {
++				wdt_disable();
++				retval = 0;
++			}
++
++			if (arg & WDIOS_ENABLECARD) {
++				wdt_enable();
++				retval = 0;
++			}
++
++			return retval;
++		}
++	case WDIOC_SETTIMEOUT:{
++			int new_timeout;
++
++			if (get_user(new_timeout, (int __user *)arg))
++				return -EFAULT;
++
++			if (wdt_set_timeout(new_timeout))
++				return -EINVAL;
++
++			timeout = new_timeout;
++			return 0;
++		}
++	case WDIOC_GETTIMEOUT:
++		return put_user(timeout, (int __user *)arg);
++	default:
++		return -ENOTTY;
++	}
++}
++
++static const struct file_operations wdt_fops = {
++	.owner = THIS_MODULE,
++	.llseek = no_llseek,
++	.write = fop_write,
++	.open = fop_open,
++	.release = fop_close,
++	.ioctl = fop_ioctl,
++};
++
++static struct miscdevice wdt_miscdev = {
++	.minor = WATCHDOG_MINOR,
++	.name = "watchdog",
++	.fops = &wdt_fops,
++};
++
++/*
++ *	Notifier for system down
++ */
++
++static int wdt_notify_sys(struct notifier_block *this, unsigned long code,
++			  void *unused)
++{
++	if (code == SYS_DOWN || code == SYS_HALT)
++		wdt_disable();
++	return NOTIFY_DONE;
++}
++
++static struct notifier_block wdt_notifier = {
++	.notifier_call = wdt_notify_sys,
++};
++
++static void __exit sbc7240_wdt_unload(void)
++{
++	printk(KERN_INFO SBC7240_PREFIX "Removing watchdog\n");
++	misc_deregister(&wdt_miscdev);
++
++	unregister_reboot_notifier(&wdt_notifier);
++	release_region(SBC7240_ENABLE_PORT, 1);
++}
++
++static int __init sbc7240_wdt_init(void)
++{
++	int rc = -EBUSY;
++
++	if (!request_region(SBC7240_ENABLE_PORT, 1, "SBC7240 WDT")) {
++		printk(KERN_ERR SBC7240_PREFIX
++		       "I/O address 0x%04x already in use\n",
++		       SBC7240_ENABLE_PORT);
++		rc = -EIO;
++		goto err_out;
++	}
++
++	/* The IO port 0x043 used to disable the watchdog
++	 * is already claimed by the system timer, so we
++	 * cant request_region() it ...*/
++
++	rc = register_reboot_notifier(&wdt_notifier);
++	if (rc) {
++		printk(KERN_ERR SBC7240_PREFIX
++		       "cannot register reboot notifier (err=%d)\n", rc);
++		goto err_out_miscdev;
++	}
++
++	if (timeout < 1 || timeout > SBC7240_MAX_TIMEOUT) {
++		timeout = SBC7240_TIMEOUT;
++		printk(KERN_INFO SBC7240_PREFIX
++		       "timeout value must be 1<=x<=%d, using %d\n",
++		       SBC7240_MAX_TIMEOUT, timeout);
++	}
++	wdt_set_timeout(timeout);
++	wdt_disable();
++
++	rc = misc_register(&wdt_miscdev);
++	if (rc) {
++		printk(KERN_ERR SBC7240_PREFIX
++		       "cannot register miscdev on minor=%d (err=%d)\n",
++		       wdt_miscdev.minor, rc);
++		goto err_out_region;
++	}
++
++	printk(KERN_INFO SBC7240_PREFIX
++	       "Watchdog driver for SBC7240 initialised (nowayout=%d)\n",
++	       nowayout);
++
++	return 0;
++
++err_out_miscdev:
++	misc_deregister(&wdt_miscdev);
++err_out_region:
++	release_region(SBC7240_ENABLE_PORT, 1);
++err_out:
++	return rc;
++}
++
++module_init(sbc7240_wdt_init);
++module_exit(sbc7240_wdt_unload);
++
++MODULE_AUTHOR("Gilles Gigan");
++MODULE_DESCRIPTION("Watchdog device driver for single board"
++		   " computers EPIC Nano 7240 from iEi");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
++
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from gilles.gigan@gmail.com are
 
-origin.patch
-file-capabilities-allow-sigcont-within-session-v2.patch
-pnp-increase-the-maximum-number-of-resources-fix.patch
-fix-linux-kdh-usage-in-userspace-checkpatch-fixes.patch
-imacfb-remove-reference-to-otherwise-unused-non-existent-screen_infoimacpm_seg.patch
-revert-keyspan-init-termios-properly.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-git-acpi-ia64-build-fix.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-kernel-auditc-warning-fix.patch
-git-cpufreq.patch
-git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-dm-persistent_read_metadata-warning-fix.patch
-ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-git-drm-oops-fix.patch
-git-drm-warning-fix.patch
-intel-agp-enable-i915-recognition.patch
-git-dvb.patch
-fix-jdelvare-i2c-i2c-constify-client-address-data.patch
-revert-git-hrt.patch
-ia64-slim-down-__clear_bit_unlock.patch
-git-infiniband.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-git-mmc.patch
-git-mtd.patch
-xfrm_policy-warning-fix.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-bluetooth-uninlining.patch
-git-nfsd.patch
-quirk-enable-msi-mapping-on-ht1000.patch
-git-sh.patch
-git-sh-fixup.patch
-git-scsi-misc-fixup.patch
-ips-trim-trailing-whitespace.patch
-scsi-gdth-kill-unneeded-irq-argument.patch
-bidi-support-scsi_data_buffer-broke-qla1280.patch
-bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
-libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-mct232-speed-new-termios-and-compliance-cleanups-fix.patch
 git-watchdog.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-x86-build-fix.patch
-git-cryptodev.patch
-git-xtensa.patch
-ia64-increase-datapatch-offset.patch
-ia64-dont-assume-that-unwcheckpy-is-executable.patch
-ia64-export-copy_page-to-modules.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-mm-prevent-dereferencing-non-allocated-per_cpu-variables-fix.patch
-sync_sb_inodes-propagate-errors.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-64-bit-i_version-afs-fixes.patch
-ext4-add-block-bitmap-validation-fix.patch
-ext4-fix-up-ext4fs_debug-builds-checkpatch-fixes.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
