@@ -1,89 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch added to -mm tree
-Date: Wed, 28 Nov 2007 00:41:54 -0800
-Message-ID: <200711280841.lAS8fsQs023762@imap1.linux-foundation.org>
+Subject: - fix-hpet-wrong-values-fix.patch removed from -mm tree
+Date: Wed, 28 Nov 2007 02:46:00 -0800
+Message-ID: <200711281046.lASAk07G028088@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35664 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37272 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752204AbXK1Ir0 (ORCPT
+	by vger.kernel.org with ESMTP id S1755620AbXK1Kqk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Nov 2007 03:47:26 -0500
+	Wed, 28 Nov 2007 05:46:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, haveblue@us.ibm.com, hch@lst.de
+To: akpm@linux-foundation.org, johnstul@us.ibm.com, mingo@elte.hu, pavel@suse.cz, pavel@ucw.cz, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r-o-bind-mounts-elevate-write-count-opened-files-oops-fix
-has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+     fix-hpet-wrong-values-fix
+has been removed from the -mm tree.  Its filename was
+     fix-hpet-wrong-values-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: r-o-bind-mounts-elevate-write-count-opened-files-oops-fix
+Subject: fix-hpet-wrong-values-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Christoph Hellwig <hch@lst.de>
+include/asm/hpet.h: In function 'hpet_readl':
+include/asm/hpet.h:86: warning: no return statement in function returning non-void
+
+just delete it and rely on -Werror-implicit-function-declaration
+
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Pavel Machek <pavel@suse.cz>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ include/asm-x86/hpet.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/namei.c~r-o-bind-mounts-elevate-write-count-opened-files-oops-fix fs/namei.c
---- a/fs/namei.c~r-o-bind-mounts-elevate-write-count-opened-files-oops-fix
-+++ a/fs/namei.c
-@@ -1722,7 +1722,7 @@ static inline int sys_open_flags_to_name
- 	return flag;
- }
+diff -puN include/asm-x86/hpet.h~fix-hpet-wrong-values-fix include/asm-x86/hpet.h
+--- a/include/asm-x86/hpet.h~fix-hpet-wrong-values-fix
++++ a/include/asm-x86/hpet.h
+@@ -82,7 +82,6 @@ extern irqreturn_t hpet_rtc_interrupt(in
+ #else
  
--static inline int open_will_write_to_fs(int flag, struct inode *inode)
-+static int open_will_write_to_fs(int flag, struct inode *inode)
- {
- 	/*
- 	 * We'll never write to the fs underlying
-@@ -1752,6 +1752,7 @@ struct file *open_pathname(int dfd, cons
- 	struct path path;
- 	struct dentry *dir;
- 	int count = 0;
-+	int will_write;
- 	int flag = sys_open_flags_to_namei_flags(sys_open_flag);
+ static inline int hpet_enable(void) { return -ENODEV; }
+-static inline unsigned long hpet_readl(unsigned long a) { BUG(); }
  
- 	acc_mode = ACC_MODE(flag);
-@@ -1870,14 +1871,15 @@ ok:
- 	 * be avoided. Taking this mnt write here
- 	 * ensures that (2) can not occur.
- 	 */
--	if (open_will_write_to_fs(flag, nd.dentry->d_inode)) {
-+	will_write = open_will_write_to_fs(flag, nd.dentry->d_inode);
-+	if (will_write) {
- 		error = mnt_want_write(nd.mnt);
- 		if (error)
- 			goto exit;
- 	}
- 	error = may_open(&nd, acc_mode, flag);
- 	if (error) {
--		if (open_will_write_to_fs(flag, nd.dentry->d_inode))
-+		if (will_write)
- 			mnt_drop_write(nd.mnt);
- 		goto exit;
- 	}
-@@ -1887,7 +1889,7 @@ ok:
- 	 * because the filp has had a write taken
- 	 * on its behalf.
- 	 */
--	if (open_will_write_to_fs(flag, nd.dentry->d_inode))
-+	if (will_write)
- 		mnt_drop_write(nd.mnt);
- 	return filp;
- 
+ #endif /* CONFIG_HPET_TIMER */
+ #endif /* ASM_X86_HPET_H */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -116,6 +84,7 @@ git-drm-warning-fix.patch
 intel-agp-enable-i915-recognition.patch
 git-dvb.patch
 fix-jdelvare-i2c-i2c-constify-client-address-data.patch
+revert-git-hrt.patch
 fix-hpet-wrong-values-fix.patch
 ia64-slim-down-__clear_bit_unlock.patch
 git-infiniband.patch
