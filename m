@@ -1,63 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: - git-nfsd-fix-nfsd_idmap-stubs.patch removed from -mm tree
-Date: Wed, 28 Nov 2007 15:12:43 -0800
-Message-ID: <200711282312.lASNChwX023870@imap1.linux-foundation.org>
+Subject: - fix-ide-mm-ide-fix-host-drivers-depending-on-ide_generic-to-probe-for-interfaces.patch removed from -mm tree
+Date: Wed, 28 Nov 2007 15:12:51 -0800
+Message-ID: <200711282312.lASNCpfI023884@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38945 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53527 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755733AbXK1XM5 (ORCPT
+	by vger.kernel.org with ESMTP id S1752420AbXK1XM4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Nov 2007 18:12:57 -0500
+	Wed, 28 Nov 2007 18:12:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bfields@fieldses.org, neilb@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bzolnier@gmail.com, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-nfsd: fix nfsd_idmap() stubs
+     fix ide-mm-ide-fix-host-drivers-depending-on-ide_generic-to-probe-for-interfaces
 has been removed from the -mm tree.  Its filename was
-     git-nfsd-fix-nfsd_idmap-stubs.patch
+     fix-ide-mm-ide-fix-host-drivers-depending-on-ide_generic-to-probe-for-interfaces.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-nfsd: fix nfsd_idmap() stubs
+Subject: fix ide-mm-ide-fix-host-drivers-depending-on-ide_generic-to-probe-for-interfaces
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from fs/nfsd/nfsctl.c:30:
-include/linux/nfsd_idmap.h: In function 'nfsd_idmap_init':
-include/linux/nfsd_idmap.h:50: warning: no return statement in function returning non-void
-fs/nfsd/nfsctl.c: In function 'init_nfsd':
-fs/nfsd/nfsctl.c:760: warning: control may reach end of non-void function 'nfsd_idmap_init' being inlined
-
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Neil Brown <neilb@suse.de>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nfsd_idmap.h |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ drivers/ide/arm/ide_arm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/nfsd_idmap.h~git-nfsd-fix-nfsd_idmap-stubs include/linux/nfsd_idmap.h
---- a/include/linux/nfsd_idmap.h~git-nfsd-fix-nfsd_idmap-stubs
-+++ a/include/linux/nfsd_idmap.h
-@@ -47,8 +47,13 @@
- int nfsd_idmap_init(void);
- void nfsd_idmap_shutdown(void);
- #else
--static inline int nfsd_idmap_init(void) {};
--static inline void nfsd_idmap_shutdown(void) {};
-+static inline int nfsd_idmap_init(void)
-+{
-+	return 0;
-+}
-+static inline void nfsd_idmap_shutdown(void)
-+{
-+}
- #endif
+diff -puN drivers/ide/arm/ide_arm.c~fix-ide-mm-ide-fix-host-drivers-depending-on-ide_generic-to-probe-for-interfaces drivers/ide/arm/ide_arm.c
+--- a/drivers/ide/arm/ide_arm.c~fix-ide-mm-ide-fix-host-drivers-depending-on-ide_generic-to-probe-for-interfaces
++++ a/drivers/ide/arm/ide_arm.c
+@@ -39,6 +39,6 @@ void __init ide_arm_init(void)
+ 		ide_init_port_hw(hwif, &hw);
+ 		idx[0] = hwif->index;
  
- int nfsd_map_name_to_uid(struct svc_rqst *, const char *, size_t, __u32 *);
+-		ide_device_idx(idx);
++		ide_device_add(idx);
+ 	}
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
