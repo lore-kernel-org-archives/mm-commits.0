@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-drm-warning-fix.patch added to -mm tree
-Date: Tue, 27 Nov 2007 23:20:08 -0800
-Message-ID: <200711280720.lAS7K8oM021199@imap1.linux-foundation.org>
+Subject: + git-cpufreq-query_current_values_with_pending_wait-build-fix.patch added to -mm tree
+Date: Tue, 27 Nov 2007 23:32:27 -0800
+Message-ID: <200711280732.lAS7WRao021595@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56417 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58316 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751012AbXK1HUP (ORCPT
+	by vger.kernel.org with ESMTP id S1751239AbXK1Hcj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Nov 2007 02:20:15 -0500
+	Wed, 28 Nov 2007 02:32:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, airlied@linux.ie
+Cc: akpm@linux-foundation.org, davej@codemonkey.org.uk
 
 
 The patch titled
-     git-drm warning fix
+     git-cpufreq: query_current_values_with_pending_wait() build fix
 has been added to the -mm tree.  Its filename is
-     git-drm-warning-fix.patch
+     git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-drm warning fix
+Subject: git-cpufreq: query_current_values_with_pending_wait() build fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/char/agp/intel-agp.c: In function 'intel_i965_g33_setup_chipset_flush':
-drivers/char/agp/intel-agp.c:872: warning: right shift count >= width of type
+arch/x86/kernel/cpu/cpufreq/powernow-k8.c: In function 'query_current_values_with_pending_wait':
+arch/x86/kernel/cpu/cpufreq/powernow-k8.c:127: error: implicit declaration of function 'msleep'
 
-I wish the agp code wasn't written in a 10,000-column xterm :(
-
-Cc: Dave Airlie <airlied@linux.ie>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/intel-agp.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/x86/kernel/cpu/cpufreq/powernow-k8.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/char/agp/intel-agp.c~git-drm-warning-fix drivers/char/agp/intel-agp.c
---- a/drivers/char/agp/intel-agp.c~git-drm-warning-fix
-+++ a/drivers/char/agp/intel-agp.c
-@@ -869,7 +869,8 @@ static void intel_i965_g33_setup_chipset
- 
- 		intel_alloc_chipset_flush_resource();
- 
--		pci_write_config_dword(agp_bridge->dev, I965_IFPADDR + 4, (intel_private.ifp_resource.start >> 32));
-+		pci_write_config_dword(agp_bridge->dev, I965_IFPADDR + 4,
-+			upper_32_bits(intel_private.ifp_resource.start));
- 		pci_write_config_dword(agp_bridge->dev, I965_IFPADDR, (intel_private.ifp_resource.start & 0xffffffff) | 0x1);
- 	} else {
- 		u64 l64;
+diff -puN arch/x86/kernel/cpu/cpufreq/powernow-k8.c~git-cpufreq-query_current_values_with_pending_wait-build-fix arch/x86/kernel/cpu/cpufreq/powernow-k8.c
+--- a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c~git-cpufreq-query_current_values_with_pending_wait-build-fix
++++ a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c
+@@ -29,6 +29,7 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/cpufreq.h>
++#include <linux/delay.h>
+ #include <linux/slab.h>
+ #include <linux/string.h>
+ #include <linux/cpumask.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,6 +77,7 @@ ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
 gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
 unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
 git-drm-oops-fix.patch
+git-drm-warning-fix.patch
 intel-agp-enable-i915-recognition.patch
 git-dvb.patch
 fix-jdelvare-i2c-i2c-constify-client-address-data.patch
@@ -231,4 +228,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-git-drm-warning-fix.patch
+git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
