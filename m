@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch added to -mm tree
-Date: Tue, 27 Nov 2007 19:44:32 -0800
-Message-ID: <200711280351.lAS3pmlA014466@imap1.linux-foundation.org>
+Subject: + undeprecate-pci_find_device.patch added to -mm tree
+Date: Tue, 27 Nov 2007 19:54:48 -0800
+Message-ID: <200711280402.lAS424p5014803@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53446 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37438 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752104AbXK1DwE (ORCPT
+	by vger.kernel.org with ESMTP id S1753034AbXK1ECh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 22:52:04 -0500
+	Tue, 27 Nov 2007 23:02:37 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lAS424Hf001708
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 27 Nov 2007 20:02:05 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix
+     undeprecate-pci_find_device
 has been added to the -mm tree.  Its filename is
-     memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
+     undeprecate-pci_find_device.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,35 +30,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix
+Subject: undeprecate-pci_find_device
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mm/vmscan.c: In function 'try_to_free_mem_cgroup_pages':
-mm/vmscan.c:1453: warning: unused variable 'node'
+fed up with those stupid warnings
 
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/linux/pci.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix mm/vmscan.c
---- a/mm/vmscan.c~memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix
-+++ a/mm/vmscan.c
-@@ -1368,11 +1368,10 @@ unsigned long try_to_free_mem_cgroup_pag
- 		.mem_cgroup = mem_cont,
- 		.isolate_pages = mem_cgroup_isolate_pages,
- 	};
--	int node = numa_node_id();
- 	struct zone **zones;
- 	int target_zone = gfp_zone(GFP_HIGHUSER_MOVABLE);
+diff -puN include/linux/pci.h~undeprecate-pci_find_device include/linux/pci.h
+--- a/include/linux/pci.h~undeprecate-pci_find_device
++++ a/include/linux/pci.h
+@@ -486,8 +486,8 @@ extern void pci_sort_breadthfirst(void);
+ /* Generic PCI functions exported to card drivers */
  
--	zones = NODE_DATA(node)->node_zonelists[target_zone].zones;
-+	zones = NODE_DATA(numa_node_id())->node_zonelists[target_zone].zones;
- 	if (do_try_to_free_pages(zones, sc.gfp_mask, &sc))
- 		return 1;
- 	return 0;
+ #ifdef CONFIG_PCI_LEGACY
+-struct pci_dev __deprecated *pci_find_device (unsigned int vendor, unsigned int device, const struct pci_dev *from);
+-struct pci_dev __deprecated *pci_find_slot (unsigned int bus, unsigned int devfn);
++struct pci_dev *pci_find_device (unsigned int vendor, unsigned int device, const struct pci_dev *from);
++struct pci_dev *pci_find_slot (unsigned int bus, unsigned int devfn);
+ #endif /* CONFIG_PCI_LEGACY */
+ 
+ int pci_find_capability (struct pci_dev *dev, int cap);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -225,4 +226,5 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
 w1-build-fix.patch
