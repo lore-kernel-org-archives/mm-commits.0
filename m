@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-cpufreq-query_current_values_with_pending_wait-build-fix.patch added to -mm tree
-Date: Tue, 27 Nov 2007 23:32:27 -0800
-Message-ID: <200711280732.lAS7WRao021595@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch added to -mm tree
+Date: Wed, 28 Nov 2007 00:41:54 -0800
+Message-ID: <200711280841.lAS8fsQs023762@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58316 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35664 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751239AbXK1Hcj (ORCPT
+	by vger.kernel.org with ESMTP id S1752204AbXK1Ir0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Nov 2007 02:32:39 -0500
+	Wed, 28 Nov 2007 03:47:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davej@codemonkey.org.uk
+Cc: akpm@linux-foundation.org, haveblue@us.ibm.com, hch@lst.de
 
 
 The patch titled
-     git-cpufreq: query_current_values_with_pending_wait() build fix
+     r-o-bind-mounts-elevate-write-count-opened-files-oops-fix
 has been added to the -mm tree.  Its filename is
-     git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
+     r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,64 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-cpufreq: query_current_values_with_pending_wait() build fix
+Subject: r-o-bind-mounts-elevate-write-count-opened-files-oops-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/kernel/cpu/cpufreq/powernow-k8.c: In function 'query_current_values_with_pending_wait':
-arch/x86/kernel/cpu/cpufreq/powernow-k8.c:127: error: implicit declaration of function 'msleep'
-
-Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/cpufreq/powernow-k8.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/namei.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/cpufreq/powernow-k8.c~git-cpufreq-query_current_values_with_pending_wait-build-fix arch/x86/kernel/cpu/cpufreq/powernow-k8.c
---- a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c~git-cpufreq-query_current_values_with_pending_wait-build-fix
-+++ a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c
-@@ -29,6 +29,7 @@
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/cpufreq.h>
-+#include <linux/delay.h>
- #include <linux/slab.h>
- #include <linux/string.h>
- #include <linux/cpumask.h>
+diff -puN fs/namei.c~r-o-bind-mounts-elevate-write-count-opened-files-oops-fix fs/namei.c
+--- a/fs/namei.c~r-o-bind-mounts-elevate-write-count-opened-files-oops-fix
++++ a/fs/namei.c
+@@ -1722,7 +1722,7 @@ static inline int sys_open_flags_to_name
+ 	return flag;
+ }
+ 
+-static inline int open_will_write_to_fs(int flag, struct inode *inode)
++static int open_will_write_to_fs(int flag, struct inode *inode)
+ {
+ 	/*
+ 	 * We'll never write to the fs underlying
+@@ -1752,6 +1752,7 @@ struct file *open_pathname(int dfd, cons
+ 	struct path path;
+ 	struct dentry *dir;
+ 	int count = 0;
++	int will_write;
+ 	int flag = sys_open_flags_to_namei_flags(sys_open_flag);
+ 
+ 	acc_mode = ACC_MODE(flag);
+@@ -1870,14 +1871,15 @@ ok:
+ 	 * be avoided. Taking this mnt write here
+ 	 * ensures that (2) can not occur.
+ 	 */
+-	if (open_will_write_to_fs(flag, nd.dentry->d_inode)) {
++	will_write = open_will_write_to_fs(flag, nd.dentry->d_inode);
++	if (will_write) {
+ 		error = mnt_want_write(nd.mnt);
+ 		if (error)
+ 			goto exit;
+ 	}
+ 	error = may_open(&nd, acc_mode, flag);
+ 	if (error) {
+-		if (open_will_write_to_fs(flag, nd.dentry->d_inode))
++		if (will_write)
+ 			mnt_drop_write(nd.mnt);
+ 		goto exit;
+ 	}
+@@ -1887,7 +1889,7 @@ ok:
+ 	 * because the filp has had a write taken
+ 	 * on its behalf.
+ 	 */
+-	if (open_will_write_to_fs(flag, nd.dentry->d_inode))
++	if (will_write)
+ 		mnt_drop_write(nd.mnt);
+ 	return filp;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -71,6 +105,7 @@ working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
 kernel-auditc-warning-fix.patch
 git-cpufreq.patch
+git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
 agk-dm-dm-ioctl-move-compat-code-fix.patch
 dm-persistent_read_metadata-warning-fix.patch
 ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
@@ -173,6 +208,7 @@ r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
 r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
 r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
 r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
 r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
 r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
 cgroup-simplify-space-stripping-fix.patch
@@ -228,4 +264,3 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
