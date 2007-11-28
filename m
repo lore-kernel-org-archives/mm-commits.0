@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + imacfb-remove-reference-to-otherwise-unused-non-existent-screen_infoimacpm_seg.patch added to -mm tree
-Date: Wed, 28 Nov 2007 10:51:25 -0800
-Message-ID: <200711281851.lASIpPr9013882@imap1.linux-foundation.org>
+Subject: + fix-ide-mm-ide-fix-host-drivers-depending-on-ide_generic-to-probe-for-interfaces.patch added to -mm tree
+Date: Wed, 28 Nov 2007 12:06:58 -0800
+Message-ID: <200711282006.lASK6wbM016873@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37637 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58527 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756031AbXK1Svx (ORCPT
+	by vger.kernel.org with ESMTP id S1759242AbXK1UHC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Nov 2007 13:51:53 -0500
+	Wed, 28 Nov 2007 15:07:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adaplas@pol.net, hostmaster@ed-soft.at, kamalesh@linux.vnet.ibm.com
+Cc: akpm@linux-foundation.org, bzolnier@gmail.com, clameter@sgi.com
 
 
 The patch titled
-     imacfb: remove reference to otherwise-unused, non-existent screen_info.imacpm_seg
+     fix ide-mm-ide-fix-host-drivers-depending-on-ide_generic-to-probe-for-interfaces
 has been added to the -mm tree.  Its filename is
-     imacfb-remove-reference-to-otherwise-unused-non-existent-screen_infoimacpm_seg.patch
+     fix-ide-mm-ide-fix-host-drivers-depending-on-ide_generic-to-probe-for-interfaces.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: imacfb: remove reference to otherwise-unused, non-existent screen_info.imacpm_seg
+Subject: fix ide-mm-ide-fix-host-drivers-depending-on-ide_generic-to-probe-for-interfaces
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Edgar Hucek <hostmaster@ed-soft.at>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/imacfb.c |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/ide/arm/ide_arm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/imacfb.c~imacfb-remove-reference-to-otherwise-unused-non-existent-screen_infoimacpm_seg drivers/video/imacfb.c
---- a/drivers/video/imacfb.c~imacfb-remove-reference-to-otherwise-unused-non-existent-screen_infoimacpm_seg
-+++ a/drivers/video/imacfb.c
-@@ -234,10 +234,6 @@ static int __init imacfb_probe(struct pl
- 		size_remap = size_total;
- 	imacfb_fix.smem_len = size_remap;
+diff -puN drivers/ide/arm/ide_arm.c~fix-ide-mm-ide-fix-host-drivers-depending-on-ide_generic-to-probe-for-interfaces drivers/ide/arm/ide_arm.c
+--- a/drivers/ide/arm/ide_arm.c~fix-ide-mm-ide-fix-host-drivers-depending-on-ide_generic-to-probe-for-interfaces
++++ a/drivers/ide/arm/ide_arm.c
+@@ -39,6 +39,6 @@ void __init ide_arm_init(void)
+ 		ide_init_port_hw(hwif, &hw);
+ 		idx[0] = hwif->index;
  
--#ifndef __i386__
--	screen_info.imacpm_seg = 0;
--#endif
--
- 	if (!request_mem_region(imacfb_fix.smem_start, size_total, "imacfb")) {
- 		printk(KERN_WARNING
- 		       "imacfb: cannot reserve video memory at 0x%lx\n",
+-		ide_device_idx(idx);
++		ide_device_add(idx);
+ 	}
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -235,3 +231,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+fix-ide-mm-ide-fix-host-drivers-depending-on-ide_generic-to-probe-for-interfaces.patch
