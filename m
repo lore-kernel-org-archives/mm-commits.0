@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-build-fix.patch added to -mm tree
-Date: Tue, 27 Nov 2007 20:18:32 -0800
-Message-ID: <200711280425.lAS4Pm2o015535@imap1.linux-foundation.org>
+Subject: + per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch added to -mm tree
+Date: Tue, 27 Nov 2007 20:25:11 -0800
+Message-ID: <200711280432.lAS4WRcH015784@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56653 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40129 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752574AbXK1E0t (ORCPT
+	by vger.kernel.org with ESMTP id S1752477AbXK1EfH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 23:26:49 -0500
+	Tue, 27 Nov 2007 23:35:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, roland@redhat.com, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, nickpiggin@yahoo.com.au, riel@redhat.com, rientjes@google.com, svaidy@linux.vnet.ibm.com, xemul@openvz.org
 
 
 The patch titled
-     git-x86-build-fix
+     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix
 has been added to the -mm tree.  Its filename is
-     git-x86-build-fix.patch
+     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-x86-build-fix
+Subject: per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/kernel/asm-offsets_64.c: In function 'main':
-arch/x86/kernel/asm-offsets_64.c:49: error: 'struct thread_info' has no member named 'sysenter_return'
+mm/vmscan.c: In function 'shrink_zone':
+mm/vmscan.c:957: warning: 'reclaim_mapped' may be used uninitialized in this function
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Roland McGrath <roland@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Kirill Korotaev <dev@sw.ru>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Paul Menage <menage@google.com>
+Cc: Pavel Emelianov <xemul@openvz.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/asm-offsets_64.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/asm-offsets_64.c~git-x86-build-fix arch/x86/kernel/asm-offsets_64.c
---- a/arch/x86/kernel/asm-offsets_64.c~git-x86-build-fix
-+++ a/arch/x86/kernel/asm-offsets_64.c
-@@ -46,7 +46,9 @@ int main(void)
- 	ENTRY(addr_limit);
- 	ENTRY(preempt_count);
- 	ENTRY(status);
-+#ifdef CONFIG_IA32_EMULATION
- 	ENTRY(sysenter_return);
-+#endif
- 	BLANK();
- #undef ENTRY
- #define ENTRY(entry) DEFINE(pda_ ## entry, offsetof(struct x8664_pda, entry))
+diff -puN mm/vmscan.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix mm/vmscan.c
+--- a/mm/vmscan.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix
++++ a/mm/vmscan.c
+@@ -954,7 +954,7 @@ static int calc_reclaim_mapped(struct sc
+ 	long distress;
+ 	long swap_tendency;
+ 	long imbalance;
+-	int reclaim_mapped;
++	int reclaim_mapped = 0;
+ 	int prev_priority;
+ 
+ 	if (scan_global_lru(sc) && zone_is_near_oom(zone))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -190,6 +198,7 @@ memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
 memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
 drivers-edac-add-marvell-mv64x60-driver-fix.patch
 introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
 iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
