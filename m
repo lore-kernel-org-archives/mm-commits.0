@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch added to -mm tree
-Date: Tue, 27 Nov 2007 19:05:17 -0800
-Message-ID: <200711280312.lAS3CXGb013174@imap1.linux-foundation.org>
+Subject: + add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch added to -mm tree
+Date: Tue, 27 Nov 2007 19:13:08 -0800
+Message-ID: <200711280320.lAS3KOgS013474@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34828 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60709 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753409AbXK1DOT (ORCPT
+	by vger.kernel.org with ESMTP id S1752797AbXK1DVM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 22:14:19 -0500
+	Tue, 27 Nov 2007 22:21:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, nickpiggin@yahoo.com.au, riel@redhat.com, rientjes@google.com, svaidy@linux.vnet.ibm.com, xemul@openvz.org
+Cc: akpm@linux-foundation.org, casey@schaufler-ca.com, chrisw@sous-sol.org, jmorris@namei.org, morgan@kernel.org, sds@tycho.nsa.gov, serue@us.ibm.com
 
 
 The patch titled
-     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2
+     add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix
 has been added to the -mm tree.  Its filename is
-     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+     add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,43 +26,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2
+Subject: add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mm/vmscan.c: In function 'calc_reclaim_mapped':
-mm/vmscan.c:969: error: too few arguments to function 'mem_cgroup_get_reclaim_priority'
+kernel/capability.c: In function 'sys_capget':
+kernel/capability.c:69: warning: unused variable 'warned'
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Paul Menage <menage@google.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+Cc: Andrew G. Morgan <morgan@kernel.org>
+Cc: Andrew Morgan <morgan@kernel.org>
+Cc: Casey Schaufler <casey@schaufler-ca.com>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: James Morris <jmorris@namei.org>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ kernel/capability.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/linux/memcontrol.h~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2 include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2
-+++ a/include/linux/memcontrol.h
-@@ -155,8 +155,7 @@ static inline int mem_cgroup_reclaim_imb
- 	return 0;
- }
- 
--static inline int mem_cgroup_get_reclaim_priority(struct mem_cgroup *mem,
--						int priority)
-+static inline int mem_cgroup_get_reclaim_priority(struct mem_cgroup *mem)
+diff -puN kernel/capability.c~add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix kernel/capability.c
+--- a/kernel/capability.c~add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix
++++ a/kernel/capability.c
+@@ -65,7 +65,6 @@ static void warn_legacy_capability_use(v
+  */
+ asmlinkage long sys_capget(cap_user_header_t header, cap_user_data_t dataptr)
  {
- 	return 0;
- }
+-	static int warned = 0;
+ 	int ret = 0;
+ 	pid_t pid;
+ 	__u32 version;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -143,6 +136,7 @@ revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
 add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
 add-64-bit-capability-support-to-the-kernel-fix.patch
 add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
 alpha-atomic_add_return-should-return-int.patch
 pm-qos-infrastructure-and-interface.patch
 pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
