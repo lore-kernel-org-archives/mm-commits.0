@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-hpet-wrong-values-fix.patch added to -mm tree
-Date: Tue, 27 Nov 2007 18:43:44 -0800
-Message-ID: <200711280251.lAS2p0ma012478@imap1.linux-foundation.org>
+Subject: + per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch added to -mm tree
+Date: Tue, 27 Nov 2007 19:05:17 -0800
+Message-ID: <200711280312.lAS3CXGb013174@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34687 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34828 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759935AbXK1CwC (ORCPT
+	by vger.kernel.org with ESMTP id S1753409AbXK1DOT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 21:52:02 -0500
+	Tue, 27 Nov 2007 22:14:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, johnstul@us.ibm.com, mingo@elte.hu, pavel@suse.cz, pavel@ucw.cz, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, nickpiggin@yahoo.com.au, riel@redhat.com, rientjes@google.com, svaidy@linux.vnet.ibm.com, xemul@openvz.org
 
 
 The patch titled
-     fix-hpet-wrong-values-fix
+     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2
 has been added to the -mm tree.  Its filename is
-     fix-hpet-wrong-values-fix.patch
+     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix-hpet-wrong-values-fix
+Subject: per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-include/asm/hpet.h: In function 'hpet_readl':
-include/asm/hpet.h:86: warning: no return statement in function returning non-void
+mm/vmscan.c: In function 'calc_reclaim_mapped':
+mm/vmscan.c:969: error: too few arguments to function 'mem_cgroup_get_reclaim_priority'
 
-just delete it and rely on -Werror-implicit-function-declaration
-
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Pavel Machek <pavel@suse.cz>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Kirill Korotaev <dev@sw.ru>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Paul Menage <menage@google.com>
+Cc: Pavel Emelianov <xemul@openvz.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/hpet.h |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/memcontrol.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/asm-x86/hpet.h~fix-hpet-wrong-values-fix include/asm-x86/hpet.h
---- a/include/asm-x86/hpet.h~fix-hpet-wrong-values-fix
-+++ a/include/asm-x86/hpet.h
-@@ -82,7 +82,6 @@ extern irqreturn_t hpet_rtc_interrupt(in
- #else
+diff -puN include/linux/memcontrol.h~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2 include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2
++++ a/include/linux/memcontrol.h
+@@ -155,8 +155,7 @@ static inline int mem_cgroup_reclaim_imb
+ 	return 0;
+ }
  
- static inline int hpet_enable(void) { return -ENODEV; }
--static inline unsigned long hpet_readl(unsigned long a) { BUG(); }
- 
- #endif /* CONFIG_HPET_TIMER */
- #endif /* ASM_X86_HPET_H */
+-static inline int mem_cgroup_get_reclaim_priority(struct mem_cgroup *mem,
+-						int priority)
++static inline int mem_cgroup_get_reclaim_priority(struct mem_cgroup *mem)
+ {
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -187,6 +194,7 @@ memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-
 memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
 memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
 drivers-edac-add-marvell-mv64x60-driver-fix.patch
 introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
 iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
