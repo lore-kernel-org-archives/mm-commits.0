@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + xfrm_policy-warning-fix.patch added to -mm tree
-Date: Wed, 28 Nov 2007 02:56:51 -0800
-Message-ID: <200711281056.lASAupF5028450@imap1.linux-foundation.org>
+Subject: + dm-persistent_read_metadata-warning-fix.patch added to -mm tree
+Date: Tue, 27 Nov 2007 20:36:29 -0800
+Message-ID: <200711280443.lAS4hjs0016157@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58143 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35216 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755436AbXK1K6C (ORCPT
+	by vger.kernel.org with ESMTP id S1753593AbXK1Eo0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Nov 2007 05:58:02 -0500
+	Tue, 27 Nov 2007 23:44:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, herbert@gondor.apana.org.au
+Cc: akpm@linux-foundation.org, agk@redhat.com
 
 
 The patch titled
-     xfrm_policy warning fix
+     dm: persistent_read_metadata() warning fix
 has been added to the -mm tree.  Its filename is
-     xfrm_policy-warning-fix.patch
+     dm-persistent_read_metadata-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,37 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: xfrm_policy warning fix
+Subject: dm: persistent_read_metadata() warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix this:
+drivers/md/dm-exception-store.c: In function 'persistent_read_metadata':
+drivers/md/dm-exception-store.c:452: warning: 'new_snapshot' may be used uninitialized in this function
 
-net/xfrm/xfrm_policy.c: In function '__xfrm_lookup':
-net/xfrm/xfrm_policy.c:1449: warning: 'dst' may be used uninitialized in this function
-
-by checking for impossible values in the switch().
-
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/xfrm/xfrm_policy.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/md/dm-exception-store.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/xfrm/xfrm_policy.c~xfrm_policy-warning-fix net/xfrm/xfrm_policy.c
---- a/net/xfrm/xfrm_policy.c~xfrm_policy-warning-fix
-+++ a/net/xfrm/xfrm_policy.c
-@@ -1634,6 +1634,9 @@ restart:
- 		policy->bundles = dst;
- 		dst_hold(dst);
- 		write_unlock_bh(&policy->lock);
-+		break;
-+	default:
-+		BUG();
- 	}
- 	*dst_p = dst;
- 	dst_release(dst_orig);
+diff -puN drivers/md/dm-exception-store.c~dm-persistent_read_metadata-warning-fix drivers/md/dm-exception-store.c
+--- a/drivers/md/dm-exception-store.c~dm-persistent_read_metadata-warning-fix
++++ a/drivers/md/dm-exception-store.c
+@@ -449,7 +449,7 @@ static void persistent_destroy(struct ex
+ 
+ static int persistent_read_metadata(struct exception_store *store)
+ {
+-	int r, new_snapshot;
++	int r, uninitialized_var(new_snapshot);
+ 	struct pstore *ps = get_info(store);
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,36 +63,31 @@ revert-keyspan-init-termios-properly.patch
 get_task_comm-return-the-result.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-git-acpi-ia64-build-fix.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 acpi-add-reboot-mechanism.patch
 small-acpica-extension-to-be-able-to-store-the-name-of.patch
 git-alsa.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
-kernel-auditc-warning-fix.patch
 git-cpufreq.patch
-git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
 agk-dm-dm-ioctl-move-compat-code-fix.patch
-dm-persistent_read_metadata-warning-fix.patch
 ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
 gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
 unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
 git-drm-oops-fix.patch
-git-drm-warning-fix.patch
 intel-agp-enable-i915-recognition.patch
 git-dvb.patch
 fix-jdelvare-i2c-i2c-constify-client-address-data.patch
-revert-git-hrt.patch
+fix-hpet-wrong-values-fix.patch
 ia64-slim-down-__clear_bit_unlock.patch
 git-infiniband.patch
+git-kvm.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
 pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
 git-mips-fixup.patch
 git-mmc.patch
 git-mtd.patch
-xfrm_policy-warning-fix.patch
 git-netdev-all.patch
 ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
@@ -128,7 +117,6 @@ ia64-dont-assume-that-unwcheckpy-is-executable.patch
 ia64-export-copy_page-to-modules.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-vmalloc-add-const-to-void-parameters-fix.patch
 i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
 slub-fix-coding-style-violations-checkpatch-fixes.patch
 slub-provide-unique-end-marker-for-each-slab-fix.patch
@@ -182,7 +170,6 @@ r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
 r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
 r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
 r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
 r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
 r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
 cgroup-simplify-space-stripping-fix.patch
@@ -238,3 +225,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+dm-persistent_read_metadata-warning-fix.patch
