@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: - git-mips-fixup.patch removed from -mm tree
-Date: Wed, 28 Nov 2007 14:50:14 -0800
-Message-ID: <200711282250.lASMoEql023020@imap1.linux-foundation.org>
+Date: Wed, 28 Nov 2007 15:09:41 -0800
+Message-ID: <200711282309.lASN9fFY023718@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55336 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38728 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758401AbXK1Wu0 (ORCPT
+	by vger.kernel.org with ESMTP id S1755055AbXK1XJv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Nov 2007 17:50:26 -0500
+	Wed, 28 Nov 2007 18:09:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, ralf@linux-mips.org, mm-commits@vger.kernel.org
@@ -143,7 +143,6 @@ git-kvm.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
 pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-fix-ide-mm-ide-fix-host-drivers-depending-on-ide_generic-to-probe-for-interfaces.patch
 git-mips-fixup.patch
 git-mmc.patch
 git-mtd.patch
