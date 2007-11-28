@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch added to -mm tree
-Date: Tue, 27 Nov 2007 19:13:08 -0800
-Message-ID: <200711280320.lAS3KOgS013474@imap1.linux-foundation.org>
+Subject: + fix-jdelvare-i2c-i2c-constify-client-address-data.patch added to -mm tree
+Date: Tue, 27 Nov 2007 19:34:58 -0800
+Message-ID: <200711280342.lAS3gEtm014138@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60709 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47815 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752797AbXK1DVM (ORCPT
+	by vger.kernel.org with ESMTP id S1750741AbXK1Dma (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Nov 2007 22:21:12 -0500
+	Tue, 27 Nov 2007 22:42:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, casey@schaufler-ca.com, chrisw@sous-sol.org, jmorris@namei.org, morgan@kernel.org, sds@tycho.nsa.gov, serue@us.ibm.com
+Cc: akpm@linux-foundation.org, khali@linux-fr.org
 
 
 The patch titled
-     add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix
+     fix-jdelvare-i2c-i2c-constify-client-address-data
 has been added to the -mm tree.  Its filename is
-     add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+     fix-jdelvare-i2c-i2c-constify-client-address-data.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix
+Subject: fix-jdelvare-i2c-i2c-constify-client-address-data
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/capability.c: In function 'sys_capget':
-kernel/capability.c:69: warning: unused variable 'warned'
+drivers/media/video/tvaudio.c:147: error: conflicting type qualifiers for 'addr_data'
+include/media/v4l2-i2c-drv-legacy.h:37: error: previous declaration of 'addr_data' was here
 
-Cc: Andrew G. Morgan <morgan@kernel.org>
-Cc: Andrew Morgan <morgan@kernel.org>
-Cc: Casey Schaufler <casey@schaufler-ca.com>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: James Morris <jmorris@namei.org>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/capability.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/media/v4l2-i2c-drv-legacy.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/capability.c~add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix kernel/capability.c
---- a/kernel/capability.c~add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix
-+++ a/kernel/capability.c
-@@ -65,7 +65,6 @@ static void warn_legacy_capability_use(v
-  */
- asmlinkage long sys_capget(cap_user_header_t header, cap_user_data_t dataptr)
- {
--	static int warned = 0;
- 	int ret = 0;
- 	pid_t pid;
- 	__u32 version;
+diff -puN include/media/v4l2-i2c-drv-legacy.h~fix-jdelvare-i2c-i2c-constify-client-address-data include/media/v4l2-i2c-drv-legacy.h
+--- a/include/media/v4l2-i2c-drv-legacy.h~fix-jdelvare-i2c-i2c-constify-client-address-data
++++ a/include/media/v4l2-i2c-drv-legacy.h
+@@ -34,7 +34,7 @@ struct v4l2_i2c_driver_data {
+ };
+ 
+ static struct v4l2_i2c_driver_data v4l2_i2c_data;
+-static struct i2c_client_address_data addr_data;
++static const struct i2c_client_address_data addr_data;
+ static struct i2c_driver v4l2_i2c_driver_legacy;
+ static char v4l2_i2c_drv_name_legacy[32];
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -82,6 +77,7 @@ unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
 git-drm-oops-fix.patch
 intel-agp-enable-i915-recognition.patch
 git-dvb.patch
+fix-jdelvare-i2c-i2c-constify-client-address-data.patch
 fix-hpet-wrong-values-fix.patch
 ia64-slim-down-__clear_bit_unlock.patch
 git-infiniband.patch
