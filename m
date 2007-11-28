@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-nfsd-fix-nfsd_idmap-stubs.patch added to -mm tree
-Date: Wed, 28 Nov 2007 03:03:05 -0800
-Message-ID: <200711281103.lASB35Kh028750@imap1.linux-foundation.org>
+Subject: + imacfb-remove-reference-to-otherwise-unused-non-existent-screen_infoimacpm_seg.patch added to -mm tree
+Date: Wed, 28 Nov 2007 10:51:25 -0800
+Message-ID: <200711281851.lASIpPr9013882@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43629 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37637 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756676AbXK1LDU (ORCPT
+	by vger.kernel.org with ESMTP id S1756031AbXK1Svx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Nov 2007 06:03:20 -0500
+	Wed, 28 Nov 2007 13:51:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bfields@fieldses.org, neilb@suse.de
+Cc: akpm@linux-foundation.org, adaplas@pol.net, hostmaster@ed-soft.at, kamalesh@linux.vnet.ibm.com
 
 
 The patch titled
-     git-nfsd: fix nfsd_idmap() stubs
+     imacfb: remove reference to otherwise-unused, non-existent screen_info.imacpm_seg
 has been added to the -mm tree.  Its filename is
-     git-nfsd-fix-nfsd_idmap-stubs.patch
+     imacfb-remove-reference-to-otherwise-unused-non-existent-screen_infoimacpm_seg.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,42 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-nfsd: fix nfsd_idmap() stubs
+Subject: imacfb: remove reference to otherwise-unused, non-existent screen_info.imacpm_seg
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from fs/nfsd/nfsctl.c:30:
-include/linux/nfsd_idmap.h: In function 'nfsd_idmap_init':
-include/linux/nfsd_idmap.h:50: warning: no return statement in function returning non-void
-fs/nfsd/nfsctl.c: In function 'init_nfsd':
-fs/nfsd/nfsctl.c:760: warning: control may reach end of non-void function 'nfsd_idmap_init' being inlined
-
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Neil Brown <neilb@suse.de>
+Cc: Edgar Hucek <hostmaster@ed-soft.at>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nfsd_idmap.h |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ drivers/video/imacfb.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN include/linux/nfsd_idmap.h~git-nfsd-fix-nfsd_idmap-stubs include/linux/nfsd_idmap.h
---- a/include/linux/nfsd_idmap.h~git-nfsd-fix-nfsd_idmap-stubs
-+++ a/include/linux/nfsd_idmap.h
-@@ -47,8 +47,13 @@
- int nfsd_idmap_init(void);
- void nfsd_idmap_shutdown(void);
- #else
--static inline int nfsd_idmap_init(void) {};
--static inline void nfsd_idmap_shutdown(void) {};
-+static inline int nfsd_idmap_init(void)
-+{
-+	return 0;
-+}
-+static inline void nfsd_idmap_shutdown(void)
-+{
-+}
- #endif
+diff -puN drivers/video/imacfb.c~imacfb-remove-reference-to-otherwise-unused-non-existent-screen_infoimacpm_seg drivers/video/imacfb.c
+--- a/drivers/video/imacfb.c~imacfb-remove-reference-to-otherwise-unused-non-existent-screen_infoimacpm_seg
++++ a/drivers/video/imacfb.c
+@@ -234,10 +234,6 @@ static int __init imacfb_probe(struct pl
+ 		size_remap = size_total;
+ 	imacfb_fix.smem_len = size_remap;
  
- int nfsd_map_name_to_uid(struct svc_rqst *, const char *, size_t, __u32 *);
+-#ifndef __i386__
+-	screen_info.imacpm_seg = 0;
+-#endif
+-
+ 	if (!request_mem_region(imacfb_fix.smem_start, size_total, "imacfb")) {
+ 		printk(KERN_WARNING
+ 		       "imacfb: cannot reserve video memory at 0x%lx\n",
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,6 +60,7 @@ origin.patch
 file-capabilities-allow-sigcont-within-session-v2.patch
 pnp-increase-the-maximum-number-of-resources-fix.patch
 fix-linux-kdh-usage-in-userspace-checkpatch-fixes.patch
+imacfb-remove-reference-to-otherwise-unused-non-existent-screen_infoimacpm_seg.patch
 revert-keyspan-init-termios-properly.patch
 get_task_comm-return-the-result.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
