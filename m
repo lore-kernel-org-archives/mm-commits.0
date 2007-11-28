@@ -1,108 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - git-mips-fixup.patch removed from -mm tree
-Date: Wed, 28 Nov 2007 15:09:41 -0800
-Message-ID: <200711282309.lASN9fFY023718@imap1.linux-foundation.org>
+Subject: - git-nfsd-fix-nfsd_idmap-stubs.patch removed from -mm tree
+Date: Wed, 28 Nov 2007 15:12:43 -0800
+Message-ID: <200711282312.lASNChwX023870@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38728 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38945 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755055AbXK1XJv (ORCPT
+	by vger.kernel.org with ESMTP id S1755733AbXK1XM5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Nov 2007 18:09:51 -0500
+	Wed, 28 Nov 2007 18:12:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bfields@fieldses.org, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-mips-fixup
+     git-nfsd: fix nfsd_idmap() stubs
 has been removed from the -mm tree.  Its filename was
-     git-mips-fixup.patch
+     git-nfsd-fix-nfsd_idmap-stubs.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-mips-fixup
+Subject: git-nfsd: fix nfsd_idmap() stubs
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Try to fix git conflicts in the mips tree
+In file included from fs/nfsd/nfsctl.c:30:
+include/linux/nfsd_idmap.h: In function 'nfsd_idmap_init':
+include/linux/nfsd_idmap.h:50: warning: no return statement in function returning non-void
+fs/nfsd/nfsctl.c: In function 'init_nfsd':
+fs/nfsd/nfsctl.c:760: warning: control may reach end of non-void function 'nfsd_idmap_init' being inlined
 
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/Kconfig           |   12 ------------
- arch/mips/kernel/proc.c     |    5 -----
- include/asm-mips/cpu-info.h |    5 -----
- 3 files changed, 22 deletions(-)
+ include/linux/nfsd_idmap.h |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN arch/mips/kernel/proc.c~git-mips-fixup arch/mips/kernel/proc.c
---- a/arch/mips/kernel/proc.c~git-mips-fixup
-+++ a/arch/mips/kernel/proc.c
-@@ -60,12 +60,7 @@ static int show_cpuinfo(struct seq_file 
- 		      cpu_has_dsp ? " dsp" : "",
- 		      cpu_has_mipsmt ? " mt" : ""
- 		);
--<<<<<<< HEAD:arch/mips/kernel/proc.c
--	seq_printf(m, "shadow register sets\t: %d\n",
--		       cpu_data[n].srsets);
--=======
- 	seq_printf(m, "core\t\t\t: %d\n", cpu_data[n].core);
-->>>>>>> FETCH_HEAD:arch/mips/kernel/proc.c
+diff -puN include/linux/nfsd_idmap.h~git-nfsd-fix-nfsd_idmap-stubs include/linux/nfsd_idmap.h
+--- a/include/linux/nfsd_idmap.h~git-nfsd-fix-nfsd_idmap-stubs
++++ a/include/linux/nfsd_idmap.h
+@@ -47,8 +47,13 @@
+ int nfsd_idmap_init(void);
+ void nfsd_idmap_shutdown(void);
+ #else
+-static inline int nfsd_idmap_init(void) {};
+-static inline void nfsd_idmap_shutdown(void) {};
++static inline int nfsd_idmap_init(void)
++{
++	return 0;
++}
++static inline void nfsd_idmap_shutdown(void)
++{
++}
+ #endif
  
- 	sprintf(fmt, "VCE%%c exceptions\t\t: %s\n",
- 	        cpu_has_vce ? "%u" : "not available");
-diff -puN include/asm-mips/cpu-info.h~git-mips-fixup include/asm-mips/cpu-info.h
---- a/include/asm-mips/cpu-info.h~git-mips-fixup
-+++ a/include/asm-mips/cpu-info.h
-@@ -54,14 +54,9 @@ struct cpuinfo_mips {
- 	struct cache_desc	dcache;	/* Primary D or combined I/D cache */
- 	struct cache_desc	scache;	/* Secondary cache */
- 	struct cache_desc	tcache;	/* Tertiary/split secondary cache */
--<<<<<<< HEAD:include/asm-mips/cpu-info.h
- 	int			srsets;	/* Shadow register sets */
--#if defined(CONFIG_MIPS_MT_SMTC)
--=======
--
- 	int			core;	/* physical core number */
- #if defined(CONFIG_MIPS_MT_SMP) || defined(CONFIG_MIPS_MT_SMTC)
-->>>>>>> FETCH_HEAD:include/asm-mips/cpu-info.h
- 	/*
- 	 * In the MIPS MT "SMTC" model, each TC is considered
- 	 * to be a "CPU" for the purposes of scheduling, but
-diff -puN arch/mips/Kconfig~git-mips-fixup arch/mips/Kconfig
---- a/arch/mips/Kconfig~git-mips-fixup
-+++ a/arch/mips/Kconfig
-@@ -88,13 +88,10 @@ config MACH_DECSTATION
- 	bool "DECstations"
- 	select BOOT_ELF32
- 	select CEVT_R4K
--<<<<<<< HEAD:arch/mips/Kconfig
- 	select CSRC_R4K
--=======
- 	select CPU_DADDI_WORKAROUNDS if 64BIT
- 	select CPU_R4000_WORKAROUNDS if 64BIT
- 	select CPU_R4400_WORKAROUNDS if 64BIT
-->>>>>>> FETCH_HEAD:arch/mips/Kconfig
- 	select DMA_NONCOHERENT
- 	select IRQ_CPU
- 	select NO_IOPORT
-@@ -1989,15 +1986,6 @@ config MMU
- config I8253
- 	bool
- 
--<<<<<<< HEAD:arch/mips/Kconfig
--config PCSPEAKER
--	bool
--
--config ZONE_DMA32
--	bool
--
--=======
-->>>>>>> FETCH_HEAD:arch/mips/Kconfig
- source "drivers/pcmcia/Kconfig"
- 
- source "drivers/pci/hotplug/Kconfig"
+ int nfsd_map_name_to_uid(struct svc_rqst *, const char *, size_t, __u32 *);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -143,7 +98,6 @@ git-kvm.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
 pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-git-mips-fixup.patch
 git-mmc.patch
 git-mtd.patch
 xfrm_policy-warning-fix.patch
@@ -153,7 +107,6 @@ update-smc91x-driver-with-arm-versatile-board-info.patch
 git-battery.patch
 bluetooth-uninlining.patch
 git-nfsd.patch
-git-nfsd-fix-nfsd_idmap-stubs.patch
 quirk-enable-msi-mapping-on-ht1000.patch
 git-sh.patch
 git-sh-fixup.patch
