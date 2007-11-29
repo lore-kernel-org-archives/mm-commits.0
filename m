@@ -1,242 +1,203 @@
 From: akpm@linux-foundation.org
-Subject: - mm-prevent-dereferencing-non-allocated-per_cpu-variables-fix.patch removed from -mm tree
-Date: Thu, 29 Nov 2007 12:46:46 -0800
-Message-ID: <200711292046.lATKkkv4006571@imap1.linux-foundation.org>
+Subject: + reiser4-new-export-ops-update.patch added to -mm tree
+Date: Thu, 29 Nov 2007 12:49:29 -0800
+Message-ID: <200711292049.lATKnTFu006730@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38580 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52820 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763892AbXK2Ure (ORCPT
+	by vger.kernel.org with ESMTP id S932727AbXK2Utz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Nov 2007 15:47:34 -0500
+	Thu, 29 Nov 2007 15:49:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, clameter@sgi.com, mingo@elte.hu, pageexec@freemail.hu, tglx@linutronix.de, travis@sgi.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: edward@namesys.com
 
 
 The patch titled
-     mm-prevent-dereferencing-non-allocated-per_cpu-variables-fix
-has been removed from the -mm tree.  Its filename was
-     mm-prevent-dereferencing-non-allocated-per_cpu-variables-fix.patch
+     reiser4: new export ops (update)
+has been added to the -mm tree.  Its filename is
+     reiser4-new-export-ops-update.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: mm-prevent-dereferencing-non-allocated-per_cpu-variables-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: reiser4: new export ops (update)
+From: Edward Shishkin <edward@namesys.com>
 
-wrong, unneeded.
-
-Cc: <pageexec@freemail.hu>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Mike Travis <travis@sgi.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Edward Shishkin <edward@namesys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/reiser4/export_ops.c |   92 +++++++++++++++++++++++---------------
+ fs/reiser4/kassign.c    |    1 
+ 2 files changed, 57 insertions(+), 36 deletions(-)
 
-diff -puN mm/vmstat.c~mm-prevent-dereferencing-non-allocated-per_cpu-variables-fix mm/vmstat.c
---- a/mm/vmstat.c~mm-prevent-dereferencing-non-allocated-per_cpu-variables-fix
-+++ a/mm/vmstat.c
-@@ -27,12 +27,12 @@ static void sum_vm_events(unsigned long 
- 	memset(ret, 0, NR_VM_EVENT_ITEMS * sizeof(unsigned long));
+diff -puN fs/reiser4/export_ops.c~reiser4-new-export-ops-update fs/reiser4/export_ops.c
+--- a/fs/reiser4/export_ops.c~reiser4-new-export-ops-update
++++ a/fs/reiser4/export_ops.c
+@@ -29,8 +29,7 @@ static void object_on_wire_done(reiser4_
  
- 	cpu = first_cpu(*cpumask);
--	while (cpu < NR_CPUS && cpu_possible(cpu)) {
-+	while (cpu < NR_CPUS) {
- 		struct vm_event_state *this = &per_cpu(vm_event_states, cpu);
+ /*
+  * read serialized object identity from @addr and store information about
+- * object in @obj. If @obj == NULL, then don't read, just skip the encoded
+- * object (only return updated position).
++ * object in @obj. This is dual to encode_inode().
+  */
+ static char *decode_inode(struct super_block *s, char *addr,
+ 			  reiser4_object_on_wire * obj)
+@@ -42,8 +41,7 @@ static char *decode_inode(struct super_b
+ 	fplug = file_plugin_by_disk_id(reiser4_get_tree(s), (d16 *) addr);
+ 	if (fplug != NULL) {
+ 		addr += sizeof(d16);
+-		if (obj)
+-			obj->plugin = fplug;
++		obj->plugin = fplug;
+ 		assert("nikita-3520", fplug->wire.read != NULL);
+ 		/* plugin specific encoding of object identity. */
+ 		addr = fplug->wire.read(addr, obj);
+@@ -55,49 +53,30 @@ static char *decode_inode(struct super_b
+ static struct dentry *reiser4_get_dentry(struct super_block *super,
+ 					 void *data);
+ /**
+- * reiser4_decode_fh: decode onwire object - helper function
++ * reiser4_decode_fh: decode on-wire object - helper function
+  * for fh_to_dentry, fh_to_parent export operations;
+  * @super: super block;
+- * @fh: here are onwire objects to be extracted for decoding;
+- * @parent: skip first onwire object and decode parent.
++ * @addr: onwire object to be decoded;
+  *
+  * Returns dentry referring to the object being decoded.
+  */
+-static struct dentry *reiser4_decode_fh(struct super_block *super, __u32 *fh,
+-					int len, int fhtype, int parent)
++static struct dentry *reiser4_decode_fh(struct super_block * super,
++					char * addr)
+ {
+-	reiser4_context *ctx;
+ 	reiser4_object_on_wire object;
+-	char *addr;
+-
+-	ctx = reiser4_init_context(super);
+-	if (IS_ERR(ctx))
+-		return (struct dentry *)ctx;
+-
+-	assert("vs-1482",
+-	       fhtype == FH_WITH_PARENT || fhtype == FH_WITHOUT_PARENT);
+-
+-	addr = (char *)fh;
  
- 		cpu = next_cpu(cpu, *cpumask);
+ 	object_on_wire_init(&object);
  
--		if (cpu < NR_CPUS && cpu_possible(cpu))
-+		if (cpu < NR_CPUS)
- 			prefetch(&per_cpu(vm_event_states, cpu));
+-	if (parent)
+-		/* skip first onwire object */
+-		addr = decode_inode(super, addr, NULL);
++	addr = decode_inode(super, addr, &object);
+ 	if (!IS_ERR(addr)) {
+-		addr = decode_inode(super, addr, &object);
+-		if (!IS_ERR(addr)) {
+-			struct dentry *d;
+-
+-			d = reiser4_get_dentry(super, &object);
+-			if (d != NULL && !IS_ERR(d))
+-				/* FIXME check for -ENOMEM */
+-			  	reiser4_get_dentry_fsdata(d)->stateless = 1;
+-			addr = (char *)d;
+-		}
++		struct dentry *d;
++		d = reiser4_get_dentry(super, &object);
++		if (d != NULL && !IS_ERR(d))
++			/* FIXME check for -ENOMEM */
++			reiser4_get_dentry_fsdata(d)->stateless = 1;
++		addr = (char *)d;
+ 	}
+ 	object_on_wire_done(&object);
+-	reiser4_exit_context(ctx);
+ 	return (void *)addr;
+ }
  
+@@ -105,16 +84,57 @@ static struct dentry *reiser4_fh_to_dent
+ 					   struct fid *fid,
+ 					   int fh_len, int fh_type)
+ {
+-	return reiser4_decode_fh(sb, fid->raw, fh_len, fh_type, 0);
++	reiser4_context *ctx;
++	struct dentry *d;
++
++	assert("edward-1536",
++	       fh_type == FH_WITH_PARENT || fh_type == FH_WITHOUT_PARENT);
++
++	ctx = reiser4_init_context(sb);
++	if (IS_ERR(ctx))
++		return (struct dentry *)ctx;
++
++	d = reiser4_decode_fh(sb, (char *)fid->raw);
++
++	reiser4_exit_context(ctx);
++	return d;
+ }
  
+ static struct dentry *reiser4_fh_to_parent(struct super_block *sb,
+ 					   struct fid *fid,
+ 					   int fh_len, int fh_type)
+ {
++	char * addr;
++	struct dentry * d;
++	reiser4_context *ctx;
++	file_plugin *fplug;
++
+ 	if (fh_type == FH_WITHOUT_PARENT)
+ 		return NULL;
+-	return reiser4_decode_fh(sb, fid->raw, fh_len, fh_type, 1);
++	assert("edward-1537", fh_type == FH_WITH_PARENT);
++
++	ctx = reiser4_init_context(sb);
++	if (IS_ERR(ctx))
++		return (struct dentry *)ctx;
++	addr = (char *)fid->raw;
++	/* extract 2-bytes file plugin id */
++	fplug = file_plugin_by_disk_id(reiser4_get_tree(sb), (d16 *)addr);
++	if (fplug == NULL) {
++		d = ERR_PTR(RETERR(-EINVAL));
++		goto exit;
++	}
++	addr += sizeof(d16);
++	/* skip previously encoded object */
++	addr = fplug->wire.read(addr, NULL /* skip */);
++	if (IS_ERR(addr)) {
++		d = (struct dentry *)addr;
++		goto exit;
++	}
++	/* @extract and decode parent object */
++	d = reiser4_decode_fh(sb, addr);
++ exit:
++	reiser4_exit_context(ctx);
++	return d;
+ }
+ 
+ /*
+diff -puN fs/reiser4/kassign.c~reiser4-new-export-ops-update fs/reiser4/kassign.c
+--- a/fs/reiser4/kassign.c~reiser4-new-export-ops-update
++++ a/fs/reiser4/kassign.c
+@@ -652,6 +652,7 @@ char *extract_obj_key_id_from_onwire(cha
+ 
+ /*
+  * skip a key that was previously encoded by build_inode_onwire() at @addr
++ * FIXME: handle IO errors.
+  */
+ char * locate_obj_key_id_onwire(char * addr)
+ {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from edward@namesys.com are
 
-origin.patch
-pnp-increase-the-maximum-number-of-resources.patch
-fix-linux-kdh-usage-in-userspace.patch
-imacfb-remove-reference-to-otherwise-unused-non-existent-screen_infoimacpm_seg.patch
-revert-keyspan-init-termios-properly.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-git-acpi-ia64-build-fix.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-kernel-auditc-warning-fix.patch
-git-cpufreq.patch
-git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-dm-persistent_read_metadata-warning-fix.patch
-ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-git-drm-oops-fix.patch
-git-drm-warning-fix.patch
-intel-agp-enable-i915-recognition.patch
-git-dvb.patch
-fix-jdelvare-i2c-i2c-constify-client-address-data.patch
-revert-git-hrt.patch
-ia64-slim-down-__clear_bit_unlock.patch
-git-infiniband.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
-git-mmc.patch
-git-mtd.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-bluetooth-uninlining.patch
-git-nfsd.patch
-quirk-enable-msi-mapping-on-ht1000.patch
-git-sh.patch
-git-sh-fixup.patch
-git-scsi-misc-fixup.patch
-ips-trim-trailing-whitespace.patch
-scsi-gdth-kill-unneeded-irq-argument.patch
-bidi-support-scsi_data_buffer-broke-qla1280.patch
-bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
-libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-mct232-speed-new-termios-and-compliance-cleanups-fix.patch
-git-watchdog.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-x86-build-fix.patch
-git-cryptodev.patch
-git-xtensa.patch
-ia64-increase-datapatch-offset.patch
-ia64-dont-assume-that-unwcheckpy-is-executable.patch
-ia64-export-copy_page-to-modules.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-mm-prevent-dereferencing-non-allocated-per_cpu-variables-fix.patch
-sync_sb_inodes-propagate-errors.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-64-bit-i_version-afs-fixes.patch
-ext4-add-block-bitmap-validation-fix.patch
-ext4-fix-up-ext4fs_debug-builds-checkpatch-fixes.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
 reiser4.patch
 jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+reiser4-make-methods-supplied-to-vfs-invariant.patch
+reiser4-new-export-ops.patch
+reiser4-new-export-ops-update.patch
