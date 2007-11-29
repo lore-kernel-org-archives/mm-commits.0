@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + synclink-standardize-format-of-linux-header-file-includes-with.patch added to -mm tree
-Date: Thu, 29 Nov 2007 13:22:16 -0800
-Message-ID: <200711292122.lATLMGSb007945@imap1.linux-foundation.org>
+Subject: + iwlwifi-3945-fix-race-conditional-panic.patch added to -mm tree
+Date: Thu, 29 Nov 2007 13:24:11 -0800
+Message-ID: <200711292124.lATLOBpI008059@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42158 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37594 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760273AbXK2VWZ (ORCPT
+	by vger.kernel.org with ESMTP id S1760273AbXK2VYO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Nov 2007 16:22:25 -0500
+	Thu, 29 Nov 2007 16:24:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@crashcourse.ca, paulkf@microgate.com
+Cc: joonwpark81@gmail.com
 
 
 The patch titled
-     synclink: standardize format of linux header file include's with "<>"
+     iwlwifi 3945: fix race conditional panic
 has been added to the -mm tree.  Its filename is
-     synclink-standardize-format-of-linux-header-file-includes-with.patch
+     iwlwifi-3945-fix-race-conditional-panic.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,121 +26,77 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: synclink: standardize format of linux header file include's with "<>"
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Subject: iwlwifi 3945: fix race conditional panic
+From: "Joonwoo Park" <joonwpark81@gmail.com>
 
-Use the recommended form of "<>" to include linux header files, and
-move those includes up to join the rest of the linux includes.
+iwl_pci_remove can be called before delayed work queue is completed or not
+called at init module, so delayed init_alive_start can have 'image' as NULL.
 
-Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
-Acked-by: Paul Fulghum <paulkf@microgate.com>
+It can happen while putting module down right next it up.  I was able to make
+panic by : #while [ 1 ]; modprobe -r iwlx945; modprobe iwlx945; done
+
+iwl3945: Detected Intel PRO/Wireless 3945ABG Network Connection
+iwl3945: Intel(R) PRO/Wireless 3945ABG/BG Network Connection driver for Linux, 1.1.17ks
+iwl3945: Copyright(c) 2003-2007 Intel Corporation
+ACPI: PCI Interrupt 0000:03:00.0[A] -> GSI 17 (level, low) -> IRQ 22
+PCI: Setting latency timer of device 0000:03:00.0 to 64
+iwl3945: Detected Intel PRO/Wireless 3945ABG Network Connection
+BUG: unable to handle kernel NULL pointer dereference at virtual address 00000000
+printing eip: f885ff61 *pdpt = 0000000037785001 *pde = 0000000000000000
+Oops: 0000 [#1] PREEMPT SMP
+Modules linked in: iwl3945 e1000
+
+Pid: 11501, comm: iwl3945/0 Not tainted (2.6.24-rc3 #109)
+EIP: 0060:[<f885ff61>] EFLAGS: 00010246 CPU: 0
+EIP is at iwl_verify_inst_sparse+0x101/0x140 [iwl3945]
+EAX: 0f802020 EBX: 00000000 ECX: 00000000 EDX: f8878000
+ESI: 00000000 EDI: dfce8e40 EBP: dfef5f1c ESP: dfef5f00
+ DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
+Process iwl3945/0 (pid: 11501, ti=dfef4000 task=f7cc6c90 task.ti=dfef4000)
+Stack: f7cc6c90 00000000 00000384 00000000 dfcecdf0 dfce8e40 dfcecdf0 dfef5f4c
+       f885ffbc 22222222 22222222 22222222 22222222 dfce9384 dfce8e40 dfcecdf0
+       dfcecdf0 dfce8e40 dfcecdf0 dfef5f78 f8862fe9 00003b84 f7cc6dd0 c1b0eb00
+Call Trace:
+ [<c400542a>] show_trace_log_lvl+0x1a/0x30
+ [<c40054e9>] show_stack_log_lvl+0xa9/0xd0
+ [<c40055da>] show_registers+0xca/0x250
+ [<c4005880>] die+0x120/0x230
+ [<c401e21c>] do_page_fault+0x47c/0x790
+ [<c43ac38a>] error_code+0x72/0x78
+ [<f885ffbc>] iwl_verify_ucode+0x1c/0x1d0 [iwl3945]
+ [<f8862fe9>] iwl_bg_init_alive_start+0x69/0x210 [iwl3945]
+ [<c403abaf>] run_workqueue+0x7f/0x110
+ [<c403b76d>] worker_thread+0x9d/0x100
+ [<c403e922>] kthread+0x42/0x70
+ [<c4004fef>] kernel_thread_helper+0x7/0x18
+ =======================
+Code: 45 e8 00 00 00 00 85 c9 89 f6 74 38 31 db 31 c9 eb 04 83 45 f0 64 89 8a 0c 04 00 00 8b 97 74 05 00 00 8b 75 f0 8b 82 1c 04 00
+00 <3b> 06 74 0d 43 83 fb 02 77 23 c7 45 e8 fb ff ff ff 83 c1 64 39
+EIP: [<f885ff61>] iwl_verify_inst_sparse+0x101/0x140 [iwl3945] SS:ESP 0068:dfef5f00
+
+Signed-off-by: Joonwoo Park <joonwpark81@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/pcmcia/synclink_cs.c |    3 +--
- drivers/char/synclink.c           |    3 +--
- drivers/char/synclink_gt.c        |    3 +--
- drivers/char/synclinkmp.c         |    3 +--
- 4 files changed, 4 insertions(+), 8 deletions(-)
+ drivers/net/wireless/iwlwifi/iwl3945-base.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/char/pcmcia/synclink_cs.c~synclink-standardize-format-of-linux-header-file-includes-with drivers/char/pcmcia/synclink_cs.c
---- a/drivers/char/pcmcia/synclink_cs.c~synclink-standardize-format-of-linux-header-file-includes-with
-+++ a/drivers/char/pcmcia/synclink_cs.c
-@@ -57,6 +57,7 @@
- #include <linux/init.h>
- #include <linux/delay.h>
- #include <linux/ioctl.h>
-+#include <linux/synclink.h>
+diff -puN drivers/net/wireless/iwlwifi/iwl3945-base.c~iwlwifi-3945-fix-race-conditional-panic drivers/net/wireless/iwlwifi/iwl3945-base.c
+--- a/drivers/net/wireless/iwlwifi/iwl3945-base.c~iwlwifi-3945-fix-race-conditional-panic
++++ a/drivers/net/wireless/iwlwifi/iwl3945-base.c
+@@ -8553,6 +8553,7 @@ static void iwl_pci_remove(struct pci_de
+ 	IWL_DEBUG_INFO("*** UNLOAD DRIVER ***\n");
  
- #include <asm/system.h>
- #include <asm/io.h>
-@@ -87,8 +88,6 @@
- 
- #include <asm/uaccess.h>
- 
--#include "linux/synclink.h"
--
- static MGSL_PARAMS default_params = {
- 	MGSL_MODE_HDLC,			/* unsigned long mode */
- 	0,				/* unsigned char loopback; */
-diff -puN drivers/char/synclink.c~synclink-standardize-format-of-linux-header-file-includes-with drivers/char/synclink.c
---- a/drivers/char/synclink.c~synclink-standardize-format-of-linux-header-file-includes-with
-+++ a/drivers/char/synclink.c
-@@ -85,6 +85,7 @@
- #include <linux/vmalloc.h>
- #include <linux/init.h>
- #include <linux/ioctl.h>
-+#include <linux/synclink.h>
- 
- #include <asm/system.h>
- #include <asm/io.h>
-@@ -110,8 +111,6 @@
- 
- #include <asm/uaccess.h>
- 
--#include "linux/synclink.h"
--
- #define RCLRVALUE 0xffff
- 
- static MGSL_PARAMS default_params = {
-diff -puN drivers/char/synclink_gt.c~synclink-standardize-format-of-linux-header-file-includes-with drivers/char/synclink_gt.c
---- a/drivers/char/synclink_gt.c~synclink-standardize-format-of-linux-header-file-includes-with
-+++ a/drivers/char/synclink_gt.c
-@@ -73,6 +73,7 @@
- #include <linux/bitops.h>
- #include <linux/workqueue.h>
- #include <linux/hdlc.h>
-+#include <linux/synclink.h>
- 
- #include <asm/system.h>
- #include <asm/io.h>
-@@ -81,8 +82,6 @@
- #include <asm/types.h>
- #include <asm/uaccess.h>
- 
--#include "linux/synclink.h"
--
- #if defined(CONFIG_HDLC) || (defined(CONFIG_HDLC_MODULE) && defined(CONFIG_SYNCLINK_GT_MODULE))
- #define SYNCLINK_GENERIC_HDLC 1
- #else
-diff -puN drivers/char/synclinkmp.c~synclink-standardize-format-of-linux-header-file-includes-with drivers/char/synclinkmp.c
---- a/drivers/char/synclinkmp.c~synclink-standardize-format-of-linux-header-file-includes-with
-+++ a/drivers/char/synclinkmp.c
-@@ -66,6 +66,7 @@
- #include <linux/termios.h>
- #include <linux/workqueue.h>
- #include <linux/hdlc.h>
-+#include <linux/synclink.h>
- 
- #if defined(CONFIG_HDLC) || (defined(CONFIG_HDLC_MODULE) && defined(CONFIG_SYNCLINKMP_MODULE))
- #define SYNCLINK_GENERIC_HDLC 1
-@@ -80,8 +81,6 @@
- 
- #include <asm/uaccess.h>
- 
--#include "linux/synclink.h"
--
- static MGSL_PARAMS default_params = {
- 	MGSL_MODE_HDLC,			/* unsigned long mode */
- 	0,				/* unsigned char loopback; */
+ 	mutex_lock(&priv->mutex);
++	cancel_delayed_work_sync(&priv->init_alive_start);
+ 	set_bit(STATUS_EXIT_PENDING, &priv->status);
+ 	__iwl_down(priv);
+ 	mutex_unlock(&priv->mutex);
 _
 
-Patches currently in -mm which might be from rpjday@crashcourse.ca are
+Patches currently in -mm which might be from joonwpark81@gmail.com are
 
-origin.patch
-git-arm.patch
-git-hwmon.patch
-git-mips.patch
-pcmcia-net-use-roundup_pow_of_two-macro-instead-of-grotesque-loop.patch
-git-nfsd.patch
-git-xfs.patch
-frv-move-dma-macros-to-scatterlisth-for-consistency.patch
-m68knommu-remove-vestiges-of-non-existent-disktel.patch
-uml-delete-some-unused-headers.patch
-rd-use-is_power_of_2-in-drivers-block-rdc.patch
-log2h-define-order_base_2-macro-for-convenience.patch
-a-few-corrections-to-include-linux-kbuild.patch
-ncpfs-update-diagnostic-strings-to-match-routine-names.patch
-hfs-update-comment-to-reflect-actual-init-and-exit-routines.patch
-synclink-standardize-format-of-linux-header-file-includes-with.patch
-rtc-s3c-use-is_power_of_2-macro-for-simplicity.patch
+git-net.patch
+net-fix-tx-bug-vlan-in-vlan.patch
+iwlwifi-3945-fix-race-conditional-panic.patch
+iwlwifi-4965-fix-race-conditional-panic.patch
