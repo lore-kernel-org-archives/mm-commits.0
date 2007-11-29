@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + jbd-fix-assertion-failure-in-fs-jbd-checkpointc.patch added to -mm tree
-Date: Thu, 29 Nov 2007 14:18:50 -0800
-Message-ID: <200711292218.lATMIo5K010110__4871.69752964309$1196374779$gmane$org@imap1.linux-foundation.org>
+Subject: + jbd2-fix-assertion-failure-in-fs-jbd2-checkpointc.patch added to -mm tree
+Date: Thu, 29 Nov 2007 14:36:50 -0800
+Message-ID: <200711292236.lATMaoSc010738__39943.3935563595$1196375850$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57410 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55259 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762165AbXK2WSz (ORCPT
+	by vger.kernel.org with ESMTP id S1756086AbXK2Wgz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Nov 2007 17:18:55 -0500
+	Thu, 29 Nov 2007 17:36:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jack@suse.cz, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     jbd: Fix assertion failure in fs/jbd/checkpoint.c
+     jbd2: Fix assertion failure in fs/jbd2/checkpoint.c
 has been added to the -mm tree.  Its filename is
-     jbd-fix-assertion-failure-in-fs-jbd-checkpointc.patch
+     jbd2-fix-assertion-failure-in-fs-jbd2-checkpointc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,7 +26,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: jbd: Fix assertion failure in fs/jbd/checkpoint.c
+Subject: jbd2: Fix assertion failure in fs/jbd2/checkpoint.c
 From: Jan Kara <jack@suse.cz>
 
 Before we start committing a transaction, we call
@@ -57,15 +57,15 @@ Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/checkpoint.c |   12 ++++++------
- fs/jbd/commit.c     |    8 ++++----
- include/linux/jbd.h |    2 ++
+ fs/jbd2/checkpoint.c |   12 ++++++------
+ fs/jbd2/commit.c     |    8 ++++----
+ include/linux/jbd2.h |    2 ++
  3 files changed, 12 insertions(+), 10 deletions(-)
 
-diff -puN fs/jbd/checkpoint.c~jbd-fix-assertion-failure-in-fs-jbd-checkpointc fs/jbd/checkpoint.c
---- a/fs/jbd/checkpoint.c~jbd-fix-assertion-failure-in-fs-jbd-checkpointc
-+++ a/fs/jbd/checkpoint.c
-@@ -602,15 +602,15 @@ int __journal_remove_checkpoint(struct j
+diff -puN fs/jbd2/checkpoint.c~jbd2-fix-assertion-failure-in-fs-jbd2-checkpointc fs/jbd2/checkpoint.c
+--- a/fs/jbd2/checkpoint.c~jbd2-fix-assertion-failure-in-fs-jbd2-checkpointc
++++ a/fs/jbd2/checkpoint.c
+@@ -608,15 +608,15 @@ int __jbd2_journal_remove_checkpoint(str
  
  	/*
  	 * There is one special case to worry about: if we have just pulled the
@@ -78,7 +78,7 @@ diff -puN fs/jbd/checkpoint.c~jbd-fix-assertion-failure-in-fs-jbd-checkpointc fs
  	 *
 -	 * The locking here around j_committing_transaction is a bit sleazy.
 +	 * The locking here around t_state is a bit sleazy.
- 	 * See the comment at the end of journal_commit_transaction().
+ 	 * See the comment at the end of jbd2_journal_commit_transaction().
  	 */
 -	if (transaction == journal->j_committing_transaction) {
 -		JBUFFER_TRACE(jh, "belongs to committing transaction");
@@ -87,33 +87,33 @@ diff -puN fs/jbd/checkpoint.c~jbd-fix-assertion-failure-in-fs-jbd-checkpointc fs
  		goto out;
  	}
  
-diff -puN fs/jbd/commit.c~jbd-fix-assertion-failure-in-fs-jbd-checkpointc fs/jbd/commit.c
---- a/fs/jbd/commit.c~jbd-fix-assertion-failure-in-fs-jbd-checkpointc
-+++ a/fs/jbd/commit.c
-@@ -858,10 +858,10 @@ restart_loop:
+diff -puN fs/jbd2/commit.c~jbd2-fix-assertion-failure-in-fs-jbd2-checkpointc fs/jbd2/commit.c
+--- a/fs/jbd2/commit.c~jbd2-fix-assertion-failure-in-fs-jbd2-checkpointc
++++ a/fs/jbd2/commit.c
+@@ -971,10 +971,10 @@ restart_loop:
  	}
  	spin_unlock(&journal->j_list_lock);
  	/*
 -	 * This is a bit sleazy.  We borrow j_list_lock to protect
--	 * journal->j_committing_transaction in __journal_remove_checkpoint.
--	 * Really, __journal_remove_checkpoint should be using j_state_lock but
--	 * it's a bit hassle to hold that across __journal_remove_checkpoint
+-	 * journal->j_committing_transaction in __jbd2_journal_remove_checkpoint.
+-	 * Really, __jbd2_journal_remove_checkpoint should be using j_state_lock but
+-	 * it's a bit hassle to hold that across __jbd2_journal_remove_checkpoint
 +	 * This is a bit sleazy.  We use j_list_lock to protect transition
 +	 * of a transaction into T_FINISHED state and calling
-+	 * __journal_drop_transaction(). Otherwise we could race with
++	 * __jbd2_journal_drop_transaction(). Otherwise we could race with
 +	 * other checkpointing code processing the transaction...
  	 */
  	spin_lock(&journal->j_state_lock);
  	spin_lock(&journal->j_list_lock);
-diff -puN include/linux/jbd.h~jbd-fix-assertion-failure-in-fs-jbd-checkpointc include/linux/jbd.h
---- a/include/linux/jbd.h~jbd-fix-assertion-failure-in-fs-jbd-checkpointc
-+++ a/include/linux/jbd.h
-@@ -439,6 +439,8 @@ struct transaction_s
+diff -puN include/linux/jbd2.h~jbd2-fix-assertion-failure-in-fs-jbd2-checkpointc include/linux/jbd2.h
+--- a/include/linux/jbd2.h~jbd2-fix-assertion-failure-in-fs-jbd2-checkpointc
++++ a/include/linux/jbd2.h
+@@ -479,6 +479,8 @@ struct transaction_s
  	/*
  	 * Transaction's current state
- 	 * [no locking - only kjournald alters this]
+ 	 * [no locking - only kjournald2 alters this]
 +	 * [j_list_lock] guards transition of a transaction into T_FINISHED
-+	 * state and subsequent call of __journal_drop_transaction()
++	 * state and subsequent call of __jbd2_journal_drop_transaction()
  	 * FIXME: needs barriers
  	 * KLUDGE: [use j_state_lock]
  	 */
@@ -123,8 +123,8 @@ Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
 jbd-fix-assertion-failure-in-fs-jbd-checkpointc.patch
-a.patch
 inotify-send-in_attrib-events-when-link-count-changes.patch
+jbd2-fix-assertion-failure-in-fs-jbd2-checkpointc.patch
 r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
 iget-stop-ext3-from-using-iget-and-read_inode-try.patch
 iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
