@@ -1,93 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - pnp-increase-the-maximum-number-of-resources-fix.patch removed from -mm tree
-Date: Wed, 28 Nov 2007 15:41:07 -0800
-Message-ID: <200711282341.lASNf75V025007@imap1.linux-foundation.org>
+Subject: - xfrm_policy-warning-fix.patch removed from -mm tree
+Date: Thu, 29 Nov 2007 09:32:08 -0800
+Message-ID: <200711291732.lATHW8OQ031315@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50510 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38403 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758615AbXK1XmY (ORCPT
+	by vger.kernel.org with ESMTP id S1760359AbXK2Rcp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Nov 2007 18:42:24 -0500
+	Thu, 29 Nov 2007 12:32:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bjorn.helgaas@hp.com, shaohua.li@intel.com, stable@kernel.org, trenn@suse.de, yakui.zhao@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, herbert@gondor.apana.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pnp-increase-the-maximum-number-of-resources-fix
+     xfrm_policy warning fix
 has been removed from the -mm tree.  Its filename was
-     pnp-increase-the-maximum-number-of-resources-fix.patch
+     xfrm_policy-warning-fix.patch
 
-This patch was dropped because it was folded into pnp-increase-the-maximum-number-of-resources.patch
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: pnp-increase-the-maximum-number-of-resources-fix
+Subject: xfrm_policy warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix text and coding-style a bit.
+Fix this:
 
-Cc: <stable@kernel.org>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Li Shaohua <shaohua.li@intel.com>
-Cc: Thomas Renninger <trenn@suse.de>
-Cc: Zhao Yakui <yakui.zhao@intel.com>
+net/xfrm/xfrm_policy.c: In function '__xfrm_lookup':
+net/xfrm/xfrm_policy.c:1449: warning: 'dst' may be used uninitialized in this function
+
+by checking for impossible values in the switch().
+
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/pnpacpi/rsparser.c |   19 ++++++++-----------
- 1 file changed, 8 insertions(+), 11 deletions(-)
+ net/xfrm/xfrm_policy.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/pnp/pnpacpi/rsparser.c~pnp-increase-the-maximum-number-of-resources-fix drivers/pnp/pnpacpi/rsparser.c
---- a/drivers/pnp/pnpacpi/rsparser.c~pnp-increase-the-maximum-number-of-resources-fix
-+++ a/drivers/pnp/pnpacpi/rsparser.c
-@@ -84,8 +84,8 @@ static void pnpacpi_parse_allocated_irqr
- 	       i < PNP_MAX_IRQ)
- 		i++;
- 	if (i >= PNP_MAX_IRQ) {
--		printk(KERN_ERR "Exceed the max number of IRQ resource: "
--				"%d \n",PNP_MAX_IRQ);
-+		printk(KERN_ERR "pnpacpi: exceeded the max number of IRQ "
-+				"resources: %d \n", PNP_MAX_IRQ);
- 		return;
+diff -puN net/xfrm/xfrm_policy.c~xfrm_policy-warning-fix net/xfrm/xfrm_policy.c
+--- a/net/xfrm/xfrm_policy.c~xfrm_policy-warning-fix
++++ a/net/xfrm/xfrm_policy.c
+@@ -1634,6 +1634,9 @@ restart:
+ 		policy->bundles = dst;
+ 		dst_hold(dst);
+ 		write_unlock_bh(&policy->lock);
++		break;
++	default:
++		BUG();
  	}
- 	/*
-@@ -184,9 +184,8 @@ static void pnpacpi_parse_allocated_dmar
- 		res->dma_resource[i].start = dma;
- 		res->dma_resource[i].end = dma;
- 	} else {
--		printk(KERN_ERR "Exceed the max number of DMA resource: "
--				"%d \n",PNP_MAX_DMA);
--		return;
-+		printk(KERN_ERR "pnpacpi: exceeded the max number of DMA "
-+				"resources: %d \n", PNP_MAX_DMA);
- 	}
- }
- 
-@@ -209,9 +208,8 @@ static void pnpacpi_parse_allocated_iore
- 		res->port_resource[i].start = io;
- 		res->port_resource[i].end = io + len - 1;
- 	} else {
--		printk(KERN_ERR "Exceed the max number of IO Resource: "
--				"%d \n",PNP_MAX_PORT);
--		return;
-+		printk(KERN_ERR "pnpacpi: exceeded the max number of IO "
-+				"resources: %d \n", PNP_MAX_PORT);
- 	}
- }
- 
-@@ -236,9 +234,8 @@ static void pnpacpi_parse_allocated_memr
- 		res->mem_resource[i].start = mem;
- 		res->mem_resource[i].end = mem + len - 1;
- 	} else {
--		printk(KERN_ERR "Exceed the max number of Mem Resource: "
--				"%d \n",PNP_MAX_MEM);
--		return;
-+		printk(KERN_ERR "pnpacpi: exceeded the max number of mem "
-+				"resources: %d\n", PNP_MAX_MEM);
- 	}
- }
- 
+ 	*dst_p = dst;
+ 	dst_release(dst_orig);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -95,8 +60,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 file-capabilities-allow-sigcont-within-session-v2.patch
 pnp-increase-the-maximum-number-of-resources.patch
-pnp-increase-the-maximum-number-of-resources-fix.patch
-fix-linux-kdh-usage-in-userspace-checkpatch-fixes.patch
+fix-linux-kdh-usage-in-userspace.patch
 imacfb-remove-reference-to-otherwise-unused-non-existent-screen_infoimacpm_seg.patch
 revert-keyspan-init-termios-properly.patch
 get_task_comm-return-the-result.patch
