@@ -1,238 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: - xfrm_policy-warning-fix.patch removed from -mm tree
-Date: Thu, 29 Nov 2007 09:32:08 -0800
-Message-ID: <200711291732.lATHW8OQ031315@imap1.linux-foundation.org>
+Subject: - file-capabilities-allow-sigcont-within-session-v2.patch removed from -mm tree
+Date: Thu, 29 Nov 2007 09:52:24 -0800
+Message-ID: <200711291752.lATHqOxV032172@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38403 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57176 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760359AbXK2Rcp (ORCPT
+	by vger.kernel.org with ESMTP id S1760551AbXK2Rx7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Nov 2007 12:32:45 -0500
+	Thu, 29 Nov 2007 12:53:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, herbert@gondor.apana.org.au, mm-commits@vger.kernel.org
+To: serue@us.ibm.com, chrisw@sous-sol.org, jmorris@namei.org, morgan@kernel.org, rjw@sisk.pl, sds@epoch.ncsc.mil, sds@tycho.nsa.gov, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xfrm_policy warning fix
+     file capabilities: allow sigcont within session
 has been removed from the -mm tree.  Its filename was
-     xfrm_policy-warning-fix.patch
+     file-capabilities-allow-sigcont-within-session-v2.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: xfrm_policy warning fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: file capabilities: allow sigcont within session
+From: "Serge E. Hallyn" <serue@us.ibm.com>
 
-Fix this:
+Fix http://bugzilla.kernel.org/show_bug.cgi?id=9247
 
-net/xfrm/xfrm_policy.c: In function '__xfrm_lookup':
-net/xfrm/xfrm_policy.c:1449: warning: 'dst' may be used uninitialized in this function
+Allow sigcont to be sent to a process with greater capabilities if it is in
+the same session.  Otherwise, a shell from which I've started a root shell
+and done 'suspend' can't be restarted by the parent shell.
 
-by checking for impossible values in the switch().
+Also don't do file-capabilities signaling checks when uids for the
+processes don't match, since the standard check_kill_permission will have
+done those checks.
 
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: "David S. Miller" <davem@davemloft.net>
+[akpm@linux-foundation.org: coding-style cleanups]
+Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
+Acked-by: Andrew Morgan <morgan@kernel.org>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Tested-by: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Stephen Smalley <sds@epoch.ncsc.mil>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: James Morris <jmorris@namei.org>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/xfrm/xfrm_policy.c |    3 +++
- 1 file changed, 3 insertions(+)
+ security/commoncap.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN net/xfrm/xfrm_policy.c~xfrm_policy-warning-fix net/xfrm/xfrm_policy.c
---- a/net/xfrm/xfrm_policy.c~xfrm_policy-warning-fix
-+++ a/net/xfrm/xfrm_policy.c
-@@ -1634,6 +1634,9 @@ restart:
- 		policy->bundles = dst;
- 		dst_hold(dst);
- 		write_unlock_bh(&policy->lock);
-+		break;
-+	default:
-+		BUG();
- 	}
- 	*dst_p = dst;
- 	dst_release(dst_orig);
+diff -puN security/commoncap.c~file-capabilities-allow-sigcont-within-session-v2 security/commoncap.c
+--- a/security/commoncap.c~file-capabilities-allow-sigcont-within-session-v2
++++ a/security/commoncap.c
+@@ -530,6 +530,10 @@ int cap_task_kill(struct task_struct *p,
+ 	if (sig == SIGCONT && (task_session_nr(current) == task_session_nr(p)))
+ 		return 0;
+ 
++	/* sigcont is permitted within same session */
++	if (sig == SIGCONT && (task_session_nr(current) == task_session_nr(p)))
++		return 0;
++
+ 	if (secid)
+ 		/*
+ 		 * Signal sent as a particular user.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from serue@us.ibm.com are
 
-origin.patch
 file-capabilities-allow-sigcont-within-session-v2.patch
-pnp-increase-the-maximum-number-of-resources.patch
-fix-linux-kdh-usage-in-userspace.patch
-imacfb-remove-reference-to-otherwise-unused-non-existent-screen_infoimacpm_seg.patch
-revert-keyspan-init-termios-properly.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-git-acpi-ia64-build-fix.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-kernel-auditc-warning-fix.patch
-git-cpufreq.patch
-git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-dm-persistent_read_metadata-warning-fix.patch
-ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-git-drm-oops-fix.patch
-git-drm-warning-fix.patch
-intel-agp-enable-i915-recognition.patch
-git-dvb.patch
-fix-jdelvare-i2c-i2c-constify-client-address-data.patch
-revert-git-hrt.patch
-ia64-slim-down-__clear_bit_unlock.patch
-git-infiniband.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-git-mmc.patch
-git-mtd.patch
-xfrm_policy-warning-fix.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-bluetooth-uninlining.patch
-git-nfsd.patch
-quirk-enable-msi-mapping-on-ht1000.patch
-git-sh.patch
-git-sh-fixup.patch
-git-scsi-misc-fixup.patch
-ips-trim-trailing-whitespace.patch
-scsi-gdth-kill-unneeded-irq-argument.patch
-bidi-support-scsi_data_buffer-broke-qla1280.patch
-bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
-libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
+isolate-the-uts-namespaces-domainname-and-hostname-back.patch
+file-capabilities-dont-prevent-signaling-setuid-root.patch
 git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-mct232-speed-new-termios-and-compliance-cleanups-fix.patch
-git-watchdog.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-x86-build-fix.patch
-git-cryptodev.patch
-git-xtensa.patch
-ia64-increase-datapatch-offset.patch
-ia64-dont-assume-that-unwcheckpy-is-executable.patch
-ia64-export-copy_page-to-modules.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vfs-security-rework-inode_getsecurity-and-callers-to.patch
+vfs-reorder-vfs_getxattr-to-avoid-unnecessary-calls-to-the-lsm.patch
 revert-capabilities-clean-up-file-capability-reading.patch
 revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel.patch
 add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
 add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message.patch
 add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
 add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-mm-prevent-dereferencing-non-allocated-per_cpu-variables-fix.patch
-sync_sb_inodes-propagate-errors.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-64-bit-i_version-afs-fixes.patch
-ext4-add-block-bitmap-validation-fix.patch
-ext4-fix-up-ext4fs_debug-builds-checkpatch-fixes.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+64bit-capability-support-legacy-support-fix.patch
+capabilities-introduce-per-process-capability-bounding-set.patch
+smack-using-capabilities-32-and-33.patch
+r-o-bind-mounts-stub-functions.patch
+r-o-bind-mounts-do_rmdir-elevate-write-count.patch
+add-the-namespaces-config-option.patch
+move-the-uts-namespace-under-uts_ns-option.patch
+move-the-ipc-namespace-under-ipc_ns-option.patch
+cleanup-the-code-managed-with-the-user_ns-option.patch
+cleanup-the-code-managed-with-pid_ns-option.patch
+mark-net_ns-with-depends-on-namespaces.patch
