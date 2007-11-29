@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + printk-trivial-optimizations-fix.patch added to -mm tree
-Date: Thu, 29 Nov 2007 14:48:22 -0800
-Message-ID: <200711292248.lATMmMcH011253@imap1.linux-foundation.org>
+Subject: + uml-add-uml-dependencies.patch added to -mm tree
+Date: Thu, 29 Nov 2007 14:51:14 -0800
+Message-ID: <200711292251.lATMpEoP011320@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57444 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50659 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759545AbXK2Wsc (ORCPT
+	by vger.kernel.org with ESMTP id S1759713AbXK2WvR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Nov 2007 17:48:32 -0500
+	Thu, 29 Nov 2007 17:51:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, vda.linux@googlemail.com
+Cc: viro@zeniv.linux.org.uk, jdike@linux.intel.com
 
 
 The patch titled
-     printk trivial optimizations fix
+     uml: add !UML dependencies
 has been added to the -mm tree.  Its filename is
-     printk-trivial-optimizations-fix.patch
+     uml-add-uml-dependencies.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,56 +26,84 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: printk trivial optimizations fix
-From: Hugh Dickins <hugh@veritas.com>
+Subject: uml: add !UML dependencies
+From: Al Viro <viro@zeniv.linux.org.uk>
 
-mm's printk has been showing "%p" in abominable upper case recently:
-its trivial optimizations have changed the default from lower to upper,
-so the 'p' case needs to enforce lower explicitly.
+That's not enough, unfortunately.  If we go that way, we need to add
+dependencies on !UML for several options.
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Denys Vlasenko <vda.linux@googlemail.com>
+[ jdike - "not enough" refers to my patch which enables X86_32 and
+RWSEM_XCHGADD_ALGORITHM in UML's Kconfig.i386 ]
+
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/crypto/Kconfig         |    2 +-
+ kernel/Kconfig.instrumentation |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN lib/vsprintf.c~printk-trivial-optimizations-fix lib/vsprintf.c
---- a/lib/vsprintf.c~printk-trivial-optimizations-fix
-+++ a/lib/vsprintf.c
-@@ -525,6 +525,7 @@ int vsnprintf(char *buf, size_t size, co
- 				continue;
+diff -puN drivers/crypto/Kconfig~uml-add-uml-dependencies drivers/crypto/Kconfig
+--- a/drivers/crypto/Kconfig~uml-add-uml-dependencies
++++ a/drivers/crypto/Kconfig
+@@ -12,7 +12,7 @@ if CRYPTO_HW
  
- 			case 'p':
-+				flags |= SMALL;
- 				if (field_width == -1) {
- 					field_width = 2*sizeof(void *);
- 					flags |= ZEROPAD;
+ config CRYPTO_DEV_PADLOCK
+ 	tristate "Support for VIA PadLock ACE"
+-	depends on X86_32
++	depends on X86_32 && !UML
+ 	select CRYPTO_ALGAPI
+ 	help
+ 	  Some VIA processors come with an integrated crypto engine
+diff -puN kernel/Kconfig.instrumentation~uml-add-uml-dependencies kernel/Kconfig.instrumentation
+--- a/kernel/Kconfig.instrumentation~uml-add-uml-dependencies
++++ a/kernel/Kconfig.instrumentation
+@@ -21,7 +21,7 @@ config PROFILING
+ config OPROFILE
+ 	tristate "OProfile system profiling (EXPERIMENTAL)"
+ 	depends on PROFILING
+-	depends on ALPHA || ARM || BLACKFIN || X86_32 || IA64 || M32R || MIPS || PARISC || PPC || S390 || SUPERH || SPARC || X86_64
++	depends on (ALPHA || ARM || BLACKFIN || X86_32 || IA64 || M32R || MIPS || PARISC || PPC || S390 || SUPERH || SPARC || X86_64) && !UML
+ 	help
+ 	  OProfile is a profiling system capable of profiling the
+ 	  whole system, include the kernel, kernel modules, libraries,
+@@ -32,7 +32,7 @@ config OPROFILE
+ config KPROBES
+ 	bool "Kprobes"
+ 	depends on KALLSYMS && MODULES
+-	depends on X86_32 || IA64 || PPC || S390 || SPARC64 || X86_64 || AVR32
++	depends on (X86_32 || IA64 || PPC || S390 || SPARC64 || X86_64 || AVR32) && !UML
+ 	help
+ 	  Kprobes allows you to trap at almost any kernel address and
+ 	  execute a callback function.  register_kprobe() establishes
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from viro@zeniv.linux.org.uk are
 
-git-unionfs.patch
-swapin_readahead-excise-numa-bogosity.patch
-swapin_readahead-move-and-rearrange-args.patch
-swapin-needs-gfp_mask-for-loop-on-tmpfs.patch
-shmem-sgp_quick-and-sgp_fault-redundant.patch
-shmem_getpage-return-page-locked.patch
-shmem_file_write-is-redundant.patch
-swapin-fix-valid_swaphandles-defect.patch
-swapoff-scan-ptes-preemptibly.patch
-maps4-add-proportional-set-size-accounting-in-smaps.patch
-tmpfs-fix-mounts-when-size-is-less-than-the-page-size.patch
-shmem-factor-out-sbi-free_inodes-manipulations.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-printk-trivial-optimizations-fix.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-memcgroup-temporarily-revert-swapoff-mod.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-memcgroup-fix-try_to_free-order.patch
-memcgroup-reinstate-swapoff-mod.patch
-memcgroup-fix-zone-isolation-oom.patch
-memcgroup-revert-swap_state-mods.patch
-prio_tree-debugging-patch.patch
+proc-fix-null-i_fop-oops.patch
+uml-add-uml-dependencies.patch
+kernel-auditc-warning-fix.patch
+kernel-compliment-va_copy-with-va_end.patch
+vfs-security-rework-inode_getsecurity-and-callers-to.patch
+vfs-reorder-vfs_getxattr-to-avoid-unnecessary-calls-to-the-lsm.patch
+fix-versus-precedence-in-various-places.patch
+mnt_unbindable-fix.patch
+kernel-add-mutex_lock_killable.patch
+vfs-use-mutex_lock_killable-in-vfs_readdir.patch
+dont-touch-fs_struct-in-drivers.patch
+remove-path_release_on_umount.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
+introduce-path_put.patch
+use-path_put-in-a-few-places-instead-of-mntdput.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs.patch
+one-less-parameter-to-__d_path.patch
+d_path-kerneldoc-cleanup.patch
+d_path-use-struct-path-in-struct-avc_audit_data.patch
+d_path-make-proc_get_link-use-a-struct-path-argument.patch
+d_path-make-get_dcookie-use-a-struct-path-argument.patch
+use-struct-path-in-struct-svc_export.patch
+use-struct-path-in-struct-svc_expkey.patch
+d_path-make-seq_path-use-a-struct-path-argument.patch
+d_path-make-d_path-use-a-struct-path.patch
+single_open-seq_release-leak-diagnostics.patch
