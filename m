@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch added to -mm tree
-Date: Thu, 29 Nov 2007 12:54:02 -0800
-Message-ID: <200711292054.lATKs2PU006930@imap1.linux-foundation.org>
+Subject: + x86_64-efi-runtime-service-support-efi-basic-runtime-service-support-fixes.patch added to -mm tree
+Date: Thu, 29 Nov 2007 12:55:45 -0800
+Message-ID: <200711292055.lATKtj36006976@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54214 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36833 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757325AbXK2Uz4 (ORCPT
+	by vger.kernel.org with ESMTP id S1758778AbXK2U4t (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Nov 2007 15:55:56 -0500
+	Thu, 29 Nov 2007 15:56:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dada1@cosmosbay.com, alan@lxorguk.ukuu.org.uk, davem@davemloft.net, ink@jurassic.park.msu.ru, ralf@linux-mips.org, rth@twiddle.net
+Cc: ying.huang@intel.com, ak@suse.de, mingo@elte.hu, mouli@linux.intel.com, tglx@linutronix.de
 
 
 The patch titled
-     get rid of NR_OPEN and introduce a sysctl_nr_open
+     x86_64 EFI runtime service support: EFI basic runtime service support fixes
 has been added to the -mm tree.  Its filename is
-     get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
+     x86_64-efi-runtime-service-support-efi-basic-runtime-service-support-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,226 +26,190 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: get rid of NR_OPEN and introduce a sysctl_nr_open
-From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: x86_64 EFI runtime service support: EFI basic runtime service support fixes
+From: "Huang, Ying" <ying.huang@intel.com>
 
-NR_OPEN (historically set to 1024*1024) actually forbids processes to open
-more than 1024*1024 handles.
+This patch fixes several issues of x86_64 EFI basic runtime service
+support patch per comments from Andrew Moton.
 
-Unfortunatly some production servers hit the not so 'ridiculously high
-value' of 1024*1024 file descriptors per process.
+- Delete efi_lock because it is used during system early boot, before
+  smp is initialized. The global_flush_tlb() is changed to
+  __flush_tlb_all for some reason.
 
-Changing NR_OPEN is not considered safe because of vmalloc space potential
-exhaust.
+- Revise some messages.
 
-This patch introduces a new sysctl (/proc/sys/fs/nr_open) wich defaults to
-1024*1024, so that admins can decide to change this limit if their workload
-needs it.
+- Turn on debug by default.
 
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+- Remove unnecessary memset of static variable.
+
+This patch has been tested against 2.6.24-rc3-mm1 kernel on Intel
+platforms with 64-bit EFI1.10 and UEFI2.0 firmware.
+
+Signed-off-by: Huang Ying <ying.huang@intel.com>
+Cc: Chandramouli Narayanan <mouli@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    8 ++++++++
- Documentation/sysctl/fs.txt        |   10 ++++++++++
- arch/alpha/kernel/osf_sys.c        |    2 +-
- arch/mips/kernel/sysirix.c         |    2 +-
- arch/sparc64/solaris/fs.c          |    2 +-
- arch/sparc64/solaris/timod.c       |    6 ++++--
- fs/file.c                          |    8 +++++---
- include/linux/fs.h                 |    2 +-
- kernel/sys.c                       |    2 +-
- kernel/sysctl.c                    |    8 ++++++++
- 10 files changed, 40 insertions(+), 10 deletions(-)
+ arch/x86/kernel/efi.c    |   24 ++++++++++--------------
+ arch/x86/kernel/efi_64.c |   18 +++++-------------
+ 2 files changed, 15 insertions(+), 27 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
-+++ a/Documentation/filesystems/proc.txt
-@@ -989,6 +989,14 @@ nr_inodes
- Denotes the  number  of  inodes the system has allocated. This number will
- grow and shrink dynamically.
+diff -puN arch/x86/kernel/efi.c~x86_64-efi-runtime-service-support-efi-basic-runtime-service-support-fixes arch/x86/kernel/efi.c
+--- a/arch/x86/kernel/efi.c~x86_64-efi-runtime-service-support-efi-basic-runtime-service-support-fixes
++++ a/arch/x86/kernel/efi.c
+@@ -41,7 +41,8 @@
+ #include <asm/efi.h>
+ #include <asm/time.h>
  
-+nr_open
-+-------
-+
-+Denotes the maximum number of file-handles a process can
-+allocate. Default value is 1024*1024 (1048576) which should be
-+enough for most machines. Actual limit depends on RLIMIT_NOFILE
-+resource limit.
-+
- nr_free_inodes
- --------------
+-#define EFI_DEBUG	0
++#define EFI_DEBUG	1
++#define PFX 		"EFI: "
  
-diff -puN Documentation/sysctl/fs.txt~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open Documentation/sysctl/fs.txt
---- a/Documentation/sysctl/fs.txt~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
-+++ a/Documentation/sysctl/fs.txt
-@@ -23,6 +23,7 @@ Currently, these files are in /proc/sys/
- - inode-max
- - inode-nr
- - inode-state
-+- nr_open
- - overflowuid
- - overflowgid
- - suid_dumpable
-@@ -91,6 +92,15 @@ usage of file handles and you don't need
+ int efi_enabled;
+ EXPORT_SYMBOL(efi_enabled);
+@@ -214,7 +215,7 @@ static void __init print_efi_memmap(void
+ 	     p < memmap.map_end;
+ 	     p += memmap.desc_size, i++) {
+ 		md = p;
+-		printk(KERN_INFO "mem%02u: type=%u, attr=0x%llx, "
++		printk(KERN_INFO PFX "mem%02u: type=%u, attr=0x%llx, "
+ 			"range=[0x%016llx-0x%016llx) (%lluMB)\n",
+ 			i, md->type, md->attribute, md->phys_addr,
+ 			md->phys_addr + (md->num_pages << EFI_PAGE_SHIFT),
+@@ -232,9 +233,6 @@ void __init efi_init(void)
+ 	int i = 0;
+ 	void *tmp;
  
- ==============================================================
+-	memset(&efi, 0, sizeof(efi));
+-	memset(&efi_phys, 0, sizeof(efi_phys));
+-
+ #ifdef CONFIG_X86_32
+ 	efi_phys.systab = (efi_system_table_t *)boot_params.efi_info.efi_systab;
+ 	memmap.phys_map = (void *)boot_params.efi_info.efi_memmap;
+@@ -254,7 +252,7 @@ void __init efi_init(void)
+ 	efi.systab = efi_early_ioremap((unsigned long)efi_phys.systab,
+ 				       sizeof(efi_system_table_t));
+ 	if (efi.systab == NULL)
+-		printk(KERN_ERR "Woah! Couldn't map the EFI systema table.\n");
++		printk(KERN_ERR "Couldn't map the EFI system table!\n");
+ 	memcpy(&efi_systab, efi.systab, sizeof(efi_system_table_t));
+ 	efi_early_iounmap(efi.systab, sizeof(efi_system_table_t));
+ 	efi.systab = &efi_systab;
+@@ -263,11 +261,10 @@ void __init efi_init(void)
+ 	 * Verify the EFI Table
+ 	 */
+ 	if (efi.systab->hdr.signature != EFI_SYSTEM_TABLE_SIGNATURE)
+-		printk(KERN_ERR "Woah! EFI system table "
+-		       "signature incorrect\n");
++		printk(KERN_ERR "EFI system table signature incorrect!\n");
+ 	if ((efi.systab->hdr.revision >> 16) == 0)
+ 		printk(KERN_ERR "Warning: EFI system table version "
+-		       "%d.%02d, expected 1.00 or greater\n",
++		       "%d.%02d, expected 1.00 or greater!\n",
+ 		       efi.systab->hdr.revision >> 16,
+ 		       efi.systab->hdr.revision & 0xffff);
  
-+nr_open:
-+
-+This denotes the maximum number of file-handles a process can
-+allocate. Default value is 1024*1024 (1048576) which should be
-+enough for most machines. Actual limit depends on RLIMIT_NOFILE
-+resource limit.
-+
-+==============================================================
-+
- inode-max, inode-nr & inode-state:
+@@ -280,7 +277,7 @@ void __init efi_init(void)
+ 			vendor[i] = *c16++;
+ 		vendor[i] = '\0';
+ 	} else
+-		printk(KERN_ERR "Could not map the firmware vendor!\n");
++		printk(KERN_ERR PFX "Could not map the firmware vendor!\n");
+ 	efi_early_iounmap(tmp, 2);
  
- As with file handles, the kernel allocates the inode structures
-diff -puN arch/alpha/kernel/osf_sys.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open arch/alpha/kernel/osf_sys.c
---- a/arch/alpha/kernel/osf_sys.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
-+++ a/arch/alpha/kernel/osf_sys.c
-@@ -430,7 +430,7 @@ sys_getpagesize(void)
- asmlinkage unsigned long
- sys_getdtablesize(void)
- {
--	return NR_OPEN;
-+	return sysctl_nr_open;
- }
+ 	printk(KERN_INFO "EFI v%u.%.02u by %s \n",
+@@ -404,7 +401,7 @@ void __init efi_enter_virtual_mode(void)
+ 				efi_ioremap(md->phys_addr,
+ 					    md->num_pages << EFI_PAGE_SHIFT);
+ 		if (!md->virt_addr)
+-			printk(KERN_ERR "ioremap of 0x%llX failed!\n",
++			printk(KERN_ERR PFX "ioremap of 0x%llX failed!\n",
+ 			       (unsigned long long)md->phys_addr);
+ 		end = md->phys_addr + (md->num_pages << EFI_PAGE_SHIFT);
+ 		if ((md->phys_addr <= (unsigned long)efi_phys.systab) &&
+@@ -423,9 +420,8 @@ void __init efi_enter_virtual_mode(void)
+ 		memmap.phys_map);
  
- /*
-diff -puN arch/mips/kernel/sysirix.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open arch/mips/kernel/sysirix.c
---- a/arch/mips/kernel/sysirix.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
-+++ a/arch/mips/kernel/sysirix.c
-@@ -356,7 +356,7 @@ asmlinkage int irix_syssgi(struct pt_reg
- 			retval = NGROUPS_MAX;
- 			goto out;
- 		case 5:
--			retval = NR_OPEN;
-+			retval = sysctl_nr_open;
- 			goto out;
- 		case 6:
- 			retval = 1;
-diff -puN arch/sparc64/solaris/fs.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open arch/sparc64/solaris/fs.c
---- a/arch/sparc64/solaris/fs.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
-+++ a/arch/sparc64/solaris/fs.c
-@@ -624,7 +624,7 @@ asmlinkage int solaris_ulimit(int cmd, i
- 	case 3: /* UL_GMEMLIM */
- 		return current->signal->rlim[RLIMIT_DATA].rlim_cur;
- 	case 4: /* UL_GDESLIM */
--		return NR_OPEN;
-+		return sysctl_nr_open;
+ 	if (status != EFI_SUCCESS) {
+-		printk(KERN_ALERT "You are screwed! "
+-		       "Unable to switch EFI into virtual mode "
+-		       "(status=%lx)\n", status);
++		printk(KERN_ALERT "Unable to switch EFI into virtual mode "
++		       "(status=%lx)!\n", status);
+ 		panic("EFI call to SetVirtualAddressMap() failed!");
  	}
- 	return -EINVAL;
+ 
+diff -puN arch/x86/kernel/efi_64.c~x86_64-efi-runtime-service-support-efi-basic-runtime-service-support-fixes arch/x86/kernel/efi_64.c
+--- a/arch/x86/kernel/efi_64.c~x86_64-efi-runtime-service-support-efi-basic-runtime-service-support-fixes
++++ a/arch/x86/kernel/efi_64.c
+@@ -39,8 +39,6 @@
+ 
+ static pgd_t save_pgd __initdata;
+ static unsigned long efi_flags __initdata;
+-/* efi_lock protects efi physical mode call */
+-static __initdata DEFINE_SPINLOCK(efi_lock);
+ 
+ static int __init setup_noefi(char *arg)
+ {
+@@ -86,33 +84,27 @@ static void __init early_runtime_code_ma
+ 	}
  }
-diff -puN arch/sparc64/solaris/timod.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open arch/sparc64/solaris/timod.c
---- a/arch/sparc64/solaris/timod.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
-+++ a/arch/sparc64/solaris/timod.c
-@@ -859,7 +859,8 @@ asmlinkage int solaris_getmsg(unsigned i
  
- 	SOLD("entry");
- 	lock_kernel();
--	if(fd >= NR_OPEN) goto out;
-+	if (fd >= sysctl_nr_open)
-+		goto out;
+-void __init efi_call_phys_prelog(void) __acquires(efi_lock)
++void __init efi_call_phys_prelog(void)
+ {
+ 	unsigned long vaddress;
  
- 	fdt = files_fdtable(current->files);
- 	filp = fdt->fd[fd];
-@@ -927,7 +928,8 @@ asmlinkage int solaris_putmsg(unsigned i
+-	/*
+-	 * Lock sequence is different from normal case because
+-	 * efi_flags is global
+-	 */
+-	spin_lock(&efi_lock);
+ 	local_irq_save(efi_flags);
+ 	early_runtime_code_mapping_set_exec(1);
+ 	vaddress = (unsigned long)__va(0x0UL);
+ 	pgd_val(save_pgd) = pgd_val(*pgd_offset_k(0x0UL));
+ 	set_pgd(pgd_offset_k(0x0UL), *pgd_offset_k(vaddress));
+-	global_flush_tlb();
++	__flush_tlb_all();
+ }
  
- 	SOLD("entry");
- 	lock_kernel();
--	if(fd >= NR_OPEN) goto out;
-+	if (fd >= sysctl_nr_open)
-+		goto out;
+-void __init efi_call_phys_epilog(void) __releases(efi_lock)
++void __init efi_call_phys_epilog(void)
+ {
+ 	/*
+ 	 * After the lock is released, the original page table is restored.
+ 	 */
+ 	set_pgd(pgd_offset_k(0x0UL), save_pgd);
+ 	early_runtime_code_mapping_set_exec(0);
+-	global_flush_tlb();
++	__flush_tlb_all();
+ 	local_irq_restore(efi_flags);
+-	spin_unlock(&efi_lock);
+ }
  
- 	fdt = files_fdtable(current->files);
- 	filp = fdt->fd[fd];
-diff -puN fs/file.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open fs/file.c
---- a/fs/file.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
-+++ a/fs/file.c
-@@ -24,6 +24,8 @@ struct fdtable_defer {
- 	struct fdtable *next;
- };
- 
-+int sysctl_nr_open __read_mostly = 1024*1024;
-+
  /*
-  * We use this list to defer free fdtables that have vmalloced
-  * sets/arrays. By keeping a per-cpu list, we avoid having to embed
-@@ -147,8 +149,8 @@ static struct fdtable * alloc_fdtable(un
- 	nr /= (1024 / sizeof(struct file *));
- 	nr = roundup_pow_of_two(nr + 1);
- 	nr *= (1024 / sizeof(struct file *));
--	if (nr > NR_OPEN)
--		nr = NR_OPEN;
-+	if (nr > sysctl_nr_open)
-+		nr = sysctl_nr_open;
+@@ -143,7 +135,7 @@ void __init runtime_code_page_mkexec(voi
+ 					      md->num_pages,
+ 					      PAGE_KERNEL_EXEC);
+ 	}
+-	global_flush_tlb();
++	__flush_tlb_all();
+ }
  
- 	fdt = kmalloc(sizeof(struct fdtable), GFP_KERNEL);
- 	if (!fdt)
-@@ -233,7 +235,7 @@ int expand_files(struct files_struct *fi
- 	if (nr < fdt->max_fds)
- 		return 0;
- 	/* Can we expand? */
--	if (nr >= NR_OPEN)
-+	if (nr >= sysctl_nr_open)
- 		return -EMFILE;
- 
- 	/* All good, so we try */
-diff -puN include/linux/fs.h~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open include/linux/fs.h
---- a/include/linux/fs.h~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
-+++ a/include/linux/fs.h
-@@ -21,7 +21,7 @@
- 
- /* Fixed constants first: */
- #undef NR_OPEN
--#define NR_OPEN (1024*1024)	/* Absolute upper limit on fd num */
-+extern int sysctl_nr_open;
- #define INR_OPEN 1024		/* Initial setting for nfile rlimits */
- 
- #define BLOCK_SIZE_BITS 10
-diff -puN kernel/sys.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open kernel/sys.c
---- a/kernel/sys.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
-+++ a/kernel/sys.c
-@@ -1472,7 +1472,7 @@ asmlinkage long sys_setrlimit(unsigned i
- 	if ((new_rlim.rlim_max > old_rlim->rlim_max) &&
- 	    !capable(CAP_SYS_RESOURCE))
- 		return -EPERM;
--	if (resource == RLIMIT_NOFILE && new_rlim.rlim_max > NR_OPEN)
-+	if (resource == RLIMIT_NOFILE && new_rlim.rlim_max > sysctl_nr_open)
- 		return -EPERM;
- 
- 	retval = security_task_setrlimit(resource, &new_rlim);
-diff -puN kernel/sysctl.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open kernel/sysctl.c
---- a/kernel/sysctl.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
-+++ a/kernel/sysctl.c
-@@ -1152,6 +1152,14 @@ static struct ctl_table fs_table[] = {
- 		.proc_handler	= &proc_dointvec,
- 	},
- 	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "nr_open",
-+		.data		= &sysctl_nr_open,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec,
-+	},
-+	{
- 		.ctl_name	= FS_DENTRY,
- 		.procname	= "dentry-state",
- 		.data		= &dentry_stat,
+ void __iomem * __init efi_ioremap(unsigned long offset,
 _
 
-Patches currently in -mm which might be from dada1@cosmosbay.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-origin.patch
-git-net.patch
-percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
+x86_64-efi-boot-support-efi-frame-buffer.patch
+x86_64-efi-boot-support-efi-boot-document.patch
+x86_64-efi-runtime-service-support-efi-basic-runtime-service-support.patch
+x86_64-efi-runtime-service-support-efi-basic-runtime-service-support-fixes.patch
+x86_64-efi-runtime-service-support-efi-runtime-services.patch
+x86_64-efi-runtime-service-support-document-for-efi-runtime-services.patch
+x86_64-efi-runtime-service-support-remove-duplicated-code-from-efi_32c.patch
+vmcoreinfo-add-the-array-length-of-free_list-for-filtering-free-pages.patch
