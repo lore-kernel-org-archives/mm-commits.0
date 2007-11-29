@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + smack-using-capabilities-32-and-33-update-cap_last_cap-to-reflect-cap_mac_admin.patch added to -mm tree
-Date: Thu, 29 Nov 2007 15:43:05 -0800
-Message-ID: <200711292343.lATNh56H013371@imap1.linux-foundation.org>
+Subject: + per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-bugfix-for-memory-cgroup-per-zone-struct-allocation.patch added to -mm tree
+Date: Thu, 29 Nov 2007 15:46:53 -0800
+Message-ID: <200711292346.lATNkrpl013424@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34812 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56660 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759895AbXK2XnP (ORCPT
+	by vger.kernel.org with ESMTP id S1752246AbXK2XsA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Nov 2007 18:43:15 -0500
+	Thu, 29 Nov 2007 18:48:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: casey@schaufler-ca.com, serue@us.ibm.com
+Cc: kamezawa.hiroyu@jp.fujitsu.com, Lee.Schermerhorn@hp.com, clameter@sgi.com
 
 
 The patch titled
-     Update CAP_LAST_CAP to reflect CAP_MAC_ADMIN
+     bugfix for memory cgroup per-zone-struct allocation
 has been added to the -mm tree.  Its filename is
-     smack-using-capabilities-32-and-33-update-cap_last_cap-to-reflect-cap_mac_admin.patch
+     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-bugfix-for-memory-cgroup-per-zone-struct-allocation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,64 +26,99 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Update CAP_LAST_CAP to reflect CAP_MAC_ADMIN
-From: Casey Schaufler <casey@schaufler-ca.com>
+Subject: bugfix for memory cgroup per-zone-struct allocation
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Bump the value of CAP_LAST_CAP to reflect the current last cap value.
-It appears that the patch that introduced CAP_LAST_CAP and the patch
-that introduced CAP_MAC_ADMIN came in more or less at the same time.
+This is a fix. tested on my ia64/NUMA box both on SLAB/SLUB.
+This patch fixes kmalloc_node() is called against node-without-memory.
 
-Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
-Signed-off-by: Serge Hallyn <serue@us.ibm.com>
+It's better to add memory hotplug callback for supporing possible nodes
+(memory hotplug) but here just uses kmalloc().
+
+Should be revisited later.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Tested-by: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/capability.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/memcontrol.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/capability.h~smack-using-capabilities-32-and-33-update-cap_last_cap-to-reflect-cap_mac_admin include/linux/capability.h
---- a/include/linux/capability.h~smack-using-capabilities-32-and-33-update-cap_last_cap-to-reflect-cap_mac_admin
-+++ a/include/linux/capability.h
-@@ -315,10 +315,6 @@ typedef struct kernel_cap_struct {
- 
- #define CAP_SETFCAP	     31
- 
--#define CAP_LAST_CAP         CAP_SETFCAP
+diff -puN mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-bugfix-for-memory-cgroup-per-zone-struct-allocation mm/memcontrol.c
+--- a/mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-bugfix-for-memory-cgroup-per-zone-struct-allocation
++++ a/mm/memcontrol.c
+@@ -1100,8 +1100,18 @@ static int alloc_mem_cgroup_per_zone_inf
+ 	struct mem_cgroup_per_node *pn;
+ 	struct mem_cgroup_per_zone *mz;
+ 	int zone;
 -
--#define cap_valid(x) ((x) >= 0 && (x) <= CAP_LAST_CAP)
--
- /* Override MAC access.
-    The base kernel enforces no MAC policy.
-    An LSM may enforce a MAC policy, and if it does and it chooses
-@@ -336,6 +332,10 @@ typedef struct kernel_cap_struct {
+-	pn = kmalloc_node(sizeof(*pn), GFP_KERNEL, node);
++	/*
++	 * This routine is called against possible nodes.
++	 * But it's BUG to call kmalloc() against offline node.
++	 *
++	 * TODO: this routine can waste much memory for nodes which will
++	 *       never be onlined. It's better to use memory hotplug callback
++	 *       function.
++	 */
++	if (node_state(node, N_HIGH_MEMORY))
++		pn = kmalloc_node(sizeof(*pn), GFP_KERNEL, node);
++	else
++		pn = kmalloc(sizeof(*pn), GFP_KERNEL);
+ 	if (!pn)
+ 		return 1;
  
- #define CAP_MAC_ADMIN        33
- 
-+#define CAP_LAST_CAP         CAP_MAC_ADMIN
-+
-+#define cap_valid(x) ((x) >= 0 && (x) <= CAP_LAST_CAP)
-+
- /*
-  * Bit location of each capability (used by user-space library and kernel)
-  */
 _
 
-Patches currently in -mm which might be from casey@schaufler-ca.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-vfs-security-rework-inode_getsecurity-and-callers-to.patch
-vfs-reorder-vfs_getxattr-to-avoid-unnecessary-calls-to-the-lsm.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-64bit-capability-support-legacy-support-fix.patch
-capabilities-introduce-per-process-capability-bounding-set.patch
-netlabel-introduce-a-new-kernel-configuration-api-for-netlabel.patch
-smack-version-11c-simplified-mandatory-access-control-kernel.patch
-smack-using-capabilities-32-and-33.patch
-smack-using-capabilities-32-and-33-update-cap_last_cap-to-reflect-cap_mac_admin.patch
+memory-hotplug-fix-fix-section-mismatch-in-vmammap_allock_block.patch
+memory-hotplug-x86_64-fix-section-mismatch-in-init_memory_mapping.patch
+swapoff-scan-ptes-preemptibly.patch
+memory-hotplug-add-removable-to-sysfs-to-show-memblock-removability.patch
+add-remove_memory-for-ppc64-2.patch
+enable-hotplug-memory-remove-for-ppc64.patch
+add-arch-specific-walk_memory_remove-for-ppc64.patch
+mm-dont-waste-swap-on-locked-pages.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
+memcgroup-temporarily-revert-swapoff-mod.patch
+memory-controller-make-charging-gfp-mask-aware-fix.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
+memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
+memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
+memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+memory-cgroup-enhancements-add-pre_destroy-handler.patch
+memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-bugfix-for-memory-cgroup-per-zone-struct-allocation.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
