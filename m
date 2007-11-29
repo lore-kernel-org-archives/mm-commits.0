@@ -1,75 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - file-capabilities-allow-sigcont-within-session-v2.patch removed from -mm tree
-Date: Thu, 29 Nov 2007 09:52:24 -0800
-Message-ID: <200711291752.lATHqOxV032172@imap1.linux-foundation.org>
+Subject: - file-capabilities-dont-prevent-signaling-setuid-root.patch removed from -mm tree
+Date: Thu, 29 Nov 2007 11:31:56 -0800
+Message-ID: <200711291931.lATJVuce003461@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57176 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60275 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760551AbXK2Rx7 (ORCPT
+	by vger.kernel.org with ESMTP id S1758001AbXK2Tcb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Nov 2007 12:53:59 -0500
+	Thu, 29 Nov 2007 14:32:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: serue@us.ibm.com, chrisw@sous-sol.org, jmorris@namei.org, morgan@kernel.org, rjw@sisk.pl, sds@epoch.ncsc.mil, sds@tycho.nsa.gov, tytso@mit.edu, mm-commits@vger.kernel.org
+To: serue@us.ibm.com, casey@schaufler-ca.com, chrisw@sous-sol.org, jmorris@namei.org, morgan@kernel.org, sds@epoch.ncsc.mil, mm-commits@vger.kernel.org
 
 
 The patch titled
-     file capabilities: allow sigcont within session
+     file capabilities: don't prevent signaling setuid root programs
 has been removed from the -mm tree.  Its filename was
-     file-capabilities-allow-sigcont-within-session-v2.patch
+     file-capabilities-dont-prevent-signaling-setuid-root.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-Subject: file capabilities: allow sigcont within session
+Subject: file capabilities: don't prevent signaling setuid root programs
 From: "Serge E. Hallyn" <serue@us.ibm.com>
 
-Fix http://bugzilla.kernel.org/show_bug.cgi?id=9247
+An unprivileged process must be able to kill a setuid root program started
+by the same user.  This is legacy behavior needed for instance for xinit to
+kill X when the window manager exits.
 
-Allow sigcont to be sent to a process with greater capabilities if it is in
-the same session.  Otherwise, a shell from which I've started a root shell
-and done 'suspend' can't be restarted by the parent shell.
+When an unprivileged user runs a setuid root program in !SECURE_NOROOT
+mode, fP, fI, and fE are set full on, so pP' and pE' are full on.  Then
+cap_task_kill() prevents the user from signaling the setuid root task. 
+This is a change in behavior compared to when
+!CONFIG_SECURITY_FILE_CAPABILITIES.
 
-Also don't do file-capabilities signaling checks when uids for the
-processes don't match, since the standard check_kill_permission will have
-done those checks.
+This patch introduces a special check into cap_task_kill() just to check
+whether a non-root user is signaling a setuid root program started by the
+same user.  If so, then signal is allowed.
 
-[akpm@linux-foundation.org: coding-style cleanups]
 Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
-Acked-by: Andrew Morgan <morgan@kernel.org>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Tested-by: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Andrew Morgan <morgan@kernel.org>
 Cc: Stephen Smalley <sds@epoch.ncsc.mil>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Chris Wright <chrisw@sous-sol.org>
 Cc: James Morris <jmorris@namei.org>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: Casey Schaufler <casey@schaufler-ca.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/commoncap.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ security/commoncap.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN security/commoncap.c~file-capabilities-allow-sigcont-within-session-v2 security/commoncap.c
---- a/security/commoncap.c~file-capabilities-allow-sigcont-within-session-v2
+diff -puN security/commoncap.c~file-capabilities-dont-prevent-signaling-setuid-root security/commoncap.c
+--- a/security/commoncap.c~file-capabilities-dont-prevent-signaling-setuid-root
 +++ a/security/commoncap.c
-@@ -530,6 +530,10 @@ int cap_task_kill(struct task_struct *p,
- 	if (sig == SIGCONT && (task_session_nr(current) == task_session_nr(p)))
+@@ -526,6 +526,15 @@ int cap_task_kill(struct task_struct *p,
+ 	if (info != SEND_SIG_NOINFO && (is_si_special(info) || SI_FROMKERNEL(info)))
  		return 0;
  
-+	/* sigcont is permitted within same session */
-+	if (sig == SIGCONT && (task_session_nr(current) == task_session_nr(p)))
++	/*
++	 * Running a setuid root program raises your capabilities.
++	 * Killing your own setuid root processes was previously
++	 * allowed.
++	 * We must preserve legacy signal behavior in this case.
++	 */
++	if (p->euid == 0 && p->uid == current->uid)
 +		return 0;
 +
- 	if (secid)
- 		/*
- 		 * Signal sent as a particular user.
+ 	/* sigcont is permitted within same session */
+ 	if (sig == SIGCONT && (task_session_nr(current) == task_session_nr(p)))
+ 		return 0;
 _
 
 Patches currently in -mm which might be from serue@us.ibm.com are
 
-file-capabilities-allow-sigcont-within-session-v2.patch
 isolate-the-uts-namespaces-domainname-and-hostname-back.patch
 file-capabilities-dont-prevent-signaling-setuid-root.patch
 git-unionfs.patch
