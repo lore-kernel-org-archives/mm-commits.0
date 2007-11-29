@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + net-smc911x-shut-up-compiler-warnings.patch added to -mm tree
-Date: Thu, 29 Nov 2007 13:02:26 -0800
-Message-ID: <200711292102.lATL2QB6007239@imap1.linux-foundation.org>
+Subject: + sdio-fix-module-device-table-definition-for-m68k.patch added to -mm tree
+Date: Thu, 29 Nov 2007 13:19:52 -0800
+Message-ID: <200711292119.lATLJqXx007878@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40419 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40072 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761505AbXK2VCg (ORCPT
+	by vger.kernel.org with ESMTP id S1756974AbXK2VVh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Nov 2007 16:02:36 -0500
+	Thu, 29 Nov 2007 16:21:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lethal@linux-sh.org, jeff@garzik.org
+Cc: viro@ftp.linux.org.uk, drzeus@drzeus.cx, geert@linux-m68k.org, marcel@holtmann.org, sam@ravnborg.org
 
 
 The patch titled
-     net: smc911x: shut up compiler warnings
+     sdio: fix module device table definition for m68k
 has been added to the -mm tree.  Its filename is
-     net-smc911x-shut-up-compiler-warnings.patch
+     sdio-fix-module-device-table-definition-for-m68k.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,43 +26,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: net: smc911x: shut up compiler warnings
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: sdio: fix module device table definition for m68k
+From: Al Viro <viro@ftp.linux.org.uk>
 
-Trivial fix to shut up gcc.
+FATAL: drivers/bluetooth/btsdio: sizeof(struct sdio_device_id)=12 is not a modulo of the size of section __mod_sdio_device_table=30.
+Fix definition of struct sdio_device_id in mod_devicetable.h
 
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Cc: Jeff Garzik <jeff@garzik.org>
+m68k has 16bit alignment for unsigned long.
+
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Pierre Ossman <drzeus@drzeus.cx>
+CC: Marcel Holtmann <marcel@holtmann.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/smc911x.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mod_devicetable.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/smc911x.h~net-smc911x-shut-up-compiler-warnings drivers/net/smc911x.h
---- a/drivers/net/smc911x.h~net-smc911x-shut-up-compiler-warnings
-+++ a/drivers/net/smc911x.h
-@@ -76,7 +76,7 @@
+diff -puN include/linux/mod_devicetable.h~sdio-fix-module-device-table-definition-for-m68k include/linux/mod_devicetable.h
+--- a/include/linux/mod_devicetable.h~sdio-fix-module-device-table-definition-for-m68k
++++ a/include/linux/mod_devicetable.h
+@@ -343,7 +343,8 @@ struct sdio_device_id {
+ 	__u8	class;			/* Standard interface or SDIO_ANY_ID */
+ 	__u16	vendor;			/* Vendor or SDIO_ANY_ID */
+ 	__u16	device;			/* Device ID or SDIO_ANY_ID */
+-	kernel_ulong_t driver_data;	/* Data private to the driver */
++	kernel_ulong_t driver_data	/* Data private to the driver */
++		__attribute__((aligned(sizeof(kernel_ulong_t))));
+ };
  
- 
- 
--#if	 SMC_USE_PXA_DMA
-+#ifdef SMC_USE_PXA_DMA
- #define SMC_USE_DMA
- 
- /*
+ /* SSB core, see drivers/ssb/ */
 _
 
-Patches currently in -mm which might be from lethal@linux-sh.org are
+Patches currently in -mm which might be from viro@ftp.linux.org.uk are
 
-origin.patch
-net-smc911x-only-enable-for-mpr2-on-sh.patch
-net-smc911x-shut-up-compiler-warnings.patch
-git-sh.patch
-nommu-add-new-vmalloc_user-and-remap_vmalloc_range-interfaces.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-rtc-ds1302-rtc-support.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-use-bootmem_exclusive-for-kdump.patch
-sanitize-the-type-of-struct-useru_ar0.patch
-add-cmpxchg_local-to-sh-use-generic-cmpxchg-instead-of-cmpxchg_u32.patch
+sdio-fix-module-device-table-definition-for-m68k.patch
+slab-leaks3-default-y.patch
