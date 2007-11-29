@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + uml-after_sleep_interval-should-return-something.patch added to -mm tree
-Date: Thu, 29 Nov 2007 14:51:16 -0800
-Message-ID: <200711292251.lATMpGMX011323@imap1.linux-foundation.org>
+Subject: + uml-keep-uml-kconfig-in-sync-with-x86.patch added to -mm tree
+Date: Thu, 29 Nov 2007 14:51:12 -0800
+Message-ID: <200711292251.lATMpC0A011317@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35132 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49572 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762418AbXK2WvU (ORCPT
+	by vger.kernel.org with ESMTP id S1762311AbXK2WvT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Nov 2007 17:51:20 -0500
+	Thu, 29 Nov 2007 17:51:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     uml: after_sleep_interval should return something
+     uml: keep UML Kconfig in sync with x86
 has been added to the -mm tree.  Its filename is
-     uml-after_sleep_interval-should-return-something.patch
+     uml-keep-uml-kconfig-in-sync-with-x86.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: after_sleep_interval should return something
+Subject: uml: keep UML Kconfig in sync with x86
 From: Jeff Dike <jdike@addtoit.com>
 
-[ This should be merged with uml-fix-no_hz-busy-loop.patch ]
+Fix a UML build breakage introduced by commit
+1032c0ba9da5c5b53173ad2dcf8b2a2da78f8b17 - it introduces X86_32, with many
+things which UML needs depending on it.
 
-I forgot to have an int-returning function actually return something.
+This patch adds definitions of X86_32 and RWSEM_XCHGADD_ALGORITHM to
+the UML/i386 Kconfig.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/time.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/um/Kconfig.i386 |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN arch/um/os-Linux/time.c~uml-after_sleep_interval-should-return-something arch/um/os-Linux/time.c
---- a/arch/um/os-Linux/time.c~uml-after_sleep_interval-should-return-something
-+++ a/arch/um/os-Linux/time.c
-@@ -77,6 +77,7 @@ long long os_nsecs(void)
- #ifdef UML_CONFIG_NO_HZ
- static int after_sleep_interval(struct timespec *ts)
- {
-+	return 0;
- }
- #else
- static inline long long timespec_to_us(const struct timespec *ts)
+diff -puN arch/um/Kconfig.i386~uml-keep-uml-kconfig-in-sync-with-x86 arch/um/Kconfig.i386
+--- a/arch/um/Kconfig.i386~uml-keep-uml-kconfig-in-sync-with-x86
++++ a/arch/um/Kconfig.i386
+@@ -8,6 +8,13 @@ config UML_X86
+ 	bool
+ 	default y
+ 
++config X86_32
++       bool
++       default y
++
++config RWSEM_XCHGADD_ALGORITHM
++	def_bool y
++
+ config 64BIT
+ 	bool
+ 	default n
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
