@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nommu-add-new-vmalloc_user-and-remap_vmalloc_range-interfaces.patch added to -mm tree
-Date: Thu, 29 Nov 2007 13:00:20 -0800
-Message-ID: <200711292100.lATL0KWr007195@imap1.linux-foundation.org>
+Subject: + net-smc911x-only-enable-for-mpr2-on-sh.patch added to -mm tree
+Date: Thu, 29 Nov 2007 13:02:23 -0800
+Message-ID: <200711292102.lATL2NFb007236@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55746 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46404 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760703AbXK2VBu (ORCPT
+	by vger.kernel.org with ESMTP id S1760703AbXK2VCd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Nov 2007 16:01:50 -0500
+	Thu, 29 Nov 2007 16:02:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lethal@linux-sh.org, david_mccullough@securecomputing.com, dhowells@redhat.com, gerg@snapgear.com
+Cc: lethal@linux-sh.org, jeff@garzik.org
 
 
 The patch titled
-     nommu: add new vmalloc_user() and remap_vmalloc_range() interfaces.
+     net: smc911x: only enable for mpr2 on sh
 has been added to the -mm tree.  Its filename is
-     nommu-add-new-vmalloc_user-and-remap_vmalloc_range-interfaces.patch
+     net-smc911x-only-enable-for-mpr2-on-sh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,116 +26,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: nommu: add new vmalloc_user() and remap_vmalloc_range() interfaces.
+Subject: net: smc911x: only enable for mpr2 on sh
 From: Paul Mundt <lethal@linux-sh.org>
 
-This builds on top of the earlier vmalloc_32_user() work introduced by
-b50731732f926d6c49fd0724616a7344c31cd5cf, as we now have places in the nommu
-allmodconfig that hit up against these missing APIs.
+The smc911x.h is a bit of a mess, not supporting any sort of generic
+configuration.  For the moment only ARCH_PXA and SH_MAGIC_PANEL_R2 have
+suitable definitions, so we reflect this in the Kconfig also.
 
-As vmalloc_32_user() is already implemented, this is moved over to
-vmalloc_user() and simply made a wrapper.  As all current nommu platforms are
-32-bit addressable, there's no special casing we have to do for ZONE_DMA and
-things of that nature as per GFP_VMALLOC32.
+While there are other SH boards that will likely turn this on in the 2.6.25
+time frame, it's not worth trying to stub around at the moment.
 
-remap_vmalloc_range() needs to check VM_USERMAP in order to figure out whether
-we permit the remap or not, which means that we also have to rework the
-vmalloc_user() code to grovel for the VMA and set the flag.
+Fixes up the allmodconfig build, as noted by akpm.
 
 Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Acked-by: David McCullough <david_mccullough@securecomputing.com>
-Acked-by: David Howells <dhowells@redhat.com>
-Acked-by: Greg Ungerer <gerg@snapgear.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |   45 ++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 44 insertions(+), 1 deletion(-)
+ drivers/net/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/nommu.c~nommu-add-new-vmalloc_user-and-remap_vmalloc_range-interfaces mm/nommu.c
---- a/mm/nommu.c~nommu-add-new-vmalloc_user-and-remap_vmalloc_range-interfaces
-+++ a/mm/nommu.c
-@@ -10,6 +10,7 @@
-  *  Copyright (c) 2000-2003 David McCullough <davidm@snapgear.com>
-  *  Copyright (c) 2000-2001 D Jeff Dionne <jeff@uClinux.org>
-  *  Copyright (c) 2002      Greg Ungerer <gerg@snapgear.com>
-+ *  Copyright (c) 2007      Paul Mundt <lethal@linux-sh.org>
-  */
- 
- #include <linux/module.h>
-@@ -183,6 +184,26 @@ void *__vmalloc(unsigned long size, gfp_
- }
- EXPORT_SYMBOL(__vmalloc);
- 
-+void *vmalloc_user(unsigned long size)
-+{
-+	void *ret;
-+
-+	ret = __vmalloc(size, GFP_KERNEL | __GFP_HIGHMEM | __GFP_ZERO,
-+			PAGE_KERNEL);
-+	if (ret) {
-+		struct vm_area_struct *vma;
-+
-+		down_write(&current->mm->mmap_sem);
-+		vma = find_vma(current->mm, (unsigned long)ret);
-+		if (vma)
-+			vma->vm_flags |= VM_USERMAP;
-+		up_write(&current->mm->mmap_sem);
-+	}
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(vmalloc_user);
-+
- struct page *vmalloc_to_page(const void *addr)
- {
- 	return virt_to_page(addr);
-@@ -253,10 +274,17 @@ EXPORT_SYMBOL(vmalloc_32);
-  *
-  * The resulting memory area is 32bit addressable and zeroed so it can be
-  * mapped to userspace without leaking data.
-+ *
-+ * VM_USERMAP is set on the corresponding VMA so that subsequent calls to
-+ * remap_vmalloc_range() are permissible.
-  */
- void *vmalloc_32_user(unsigned long size)
- {
--	return __vmalloc(size, GFP_KERNEL | __GFP_ZERO, PAGE_KERNEL);
-+	/*
-+	 * We'll have to sort out the ZONE_DMA bits for 64-bit,
-+	 * but for now this can simply use vmalloc_user() directly.
-+	 */
-+	return vmalloc_user(size);
- }
- EXPORT_SYMBOL(vmalloc_32_user);
- 
-@@ -1216,6 +1244,21 @@ int remap_pfn_range(struct vm_area_struc
- }
- EXPORT_SYMBOL(remap_pfn_range);
- 
-+int remap_vmalloc_range(struct vm_area_struct *vma, void *addr,
-+			unsigned long pgoff)
-+{
-+	unsigned int size = vma->vm_end - vma->vm_start;
-+
-+	if (!(vma->vm_flags & VM_USERMAP))
-+		return -EINVAL;
-+
-+	vma->vm_start = (unsigned long)(addr + (pgoff << PAGE_SHIFT));
-+	vma->vm_end = vma->vm_start + size;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(remap_vmalloc_range);
-+
- void swap_unplug_io_fn(struct backing_dev_info *bdi, struct page *page)
- {
- }
+diff -puN drivers/net/Kconfig~net-smc911x-only-enable-for-mpr2-on-sh drivers/net/Kconfig
+--- a/drivers/net/Kconfig~net-smc911x-only-enable-for-mpr2-on-sh
++++ a/drivers/net/Kconfig
+@@ -926,7 +926,7 @@ config SMC911X
+ 	tristate "SMSC LAN911[5678] support"
+ 	select CRC32
+ 	select MII
+-	depends on ARCH_PXA || SUPERH
++	depends on ARCH_PXA || SH_MAGIC_PANEL_R2
+ 	help
+ 	  This is a driver for SMSC's LAN911x series of Ethernet chipsets
+ 	  including the new LAN9115, LAN9116, LAN9117, and LAN9118.
 _
 
 Patches currently in -mm which might be from lethal@linux-sh.org are
 
 origin.patch
+net-smc911x-only-enable-for-mpr2-on-sh.patch
+net-smc911x-shut-up-compiler-warnings.patch
 git-sh.patch
 nommu-add-new-vmalloc_user-and-remap_vmalloc_range-interfaces.patch
 kernel-printkc-concerns-about-the-console-handover.patch
