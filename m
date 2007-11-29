@@ -1,63 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - ext4-add-block-bitmap-validation-fix.patch removed from -mm tree
-Date: Thu, 29 Nov 2007 12:51:33 -0800
-Message-ID: <200711292051.lATKpXxE006771@imap1.linux-foundation.org>
+Subject: - ext4-fix-up-ext4fs_debug-builds-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 29 Nov 2007 12:51:58 -0800
+Message-ID: <200711292051.lATKpwDU006776@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37127 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51664 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932108AbXK2UwJ (ORCPT
+	by vger.kernel.org with ESMTP id S932242AbXK2UxR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Nov 2007 15:52:09 -0500
+	Thu, 29 Nov 2007 15:53:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cmm@us.ibm.com, sandeen@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext4-add-block-bitmap-validation-fix
+     ext4-fix-up-ext4fs_debug-builds-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     ext4-add-block-bitmap-validation-fix.patch
+     ext4-fix-up-ext4fs_debug-builds-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into ext4-add-block-bitmap-validation.patch
+This patch was dropped because it was folded into ext4-fix-up-ext4fs_debug-builds.patch
 
 ------------------------------------------------------
-Subject: ext4-add-block-bitmap-validation-fix
+Subject: ext4-fix-up-ext4fs_debug-builds-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/ext4/balloc.c: In function 'read_block_bitmap':
-fs/ext4/balloc.c:270: warning: format '%d' expects type 'int', but argument 4 has type 'ext4_grpnum_t'
-fs/ext4/balloc.c:287: warning: format '%d' expects type 'int', but argument 4 has type 'ext4_grpnum_t'
+WARNING: printk() should include KERN_ facility level
+#55: FILE: fs/ext4/ialloc.c:859:
++		printk("group %lu: stored = %d, counted = %lu\n",
 
-Cc: <linux-ext4@vger.kernel.org>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+total: 0 errors, 1 warnings, 110 lines checked
+
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Eric Sandeen <sandeen@redhat.com>
+Cc: Mingming Cao <cmm@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/balloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/ext4/ialloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ext4/balloc.c~ext4-add-block-bitmap-validation-fix fs/ext4/balloc.c
---- a/fs/ext4/balloc.c~ext4-add-block-bitmap-validation-fix
-+++ a/fs/ext4/balloc.c
-@@ -267,7 +267,7 @@ read_block_bitmap(struct super_block *sb
- 		ext4_error(sb, __FUNCTION__,
- 			    "Cannot read block bitmap - "
- 			    "block_group = %d, block_bitmap = %llu",
--			    block_group, bitmap_blk);
-+			    (int)block_group, (unsigned long long)bitmap_blk);
- 		return NULL;
+diff -puN fs/ext4/ialloc.c~ext4-fix-up-ext4fs_debug-builds-checkpatch-fixes fs/ext4/ialloc.c
+--- a/fs/ext4/ialloc.c~ext4-fix-up-ext4fs_debug-builds-checkpatch-fixes
++++ a/fs/ext4/ialloc.c
+@@ -856,7 +856,7 @@ unsigned long ext4_count_free_inodes (st
+ 			continue;
+ 
+ 		x = ext4_count_free(bitmap_bh, EXT4_INODES_PER_GROUP(sb) / 8);
+-		printk("group %lu: stored = %d, counted = %lu\n",
++		printk(KERN_DEBUG "group %lu: stored = %d, counted = %lu\n",
+ 			i, le16_to_cpu(gdp->bg_free_inodes_count), x);
+ 		bitmap_count += x;
  	}
- 	if (bh_uptodate_or_lock(bh))
-@@ -284,7 +284,7 @@ read_block_bitmap(struct super_block *sb
- 		ext4_error(sb, __FUNCTION__,
- 			    "Cannot read block bitmap - "
- 			    "block_group = %d, block_bitmap = %llu",
--			    block_group, bitmap_blk);
-+			    (int)block_group, (unsigned long long)bitmap_blk);
- 		return NULL;
- 	}
- 	if (!ext4_valid_block_bitmap(sb, desc, block_group, bh)) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -177,7 +176,7 @@ mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
 fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
 64-bit-i_version-afs-fixes.patch
 ext4-add-block-bitmap-validation.patch
-ext4-add-block-bitmap-validation-fix.patch
+ext4-fix-up-ext4fs_debug-builds.patch
 ext4-fix-up-ext4fs_debug-builds-checkpatch-fixes.patch
 kill-filp_open-checkpatch-fixes.patch
 rename-open_namei-to-open_pathname-fix.patch
