@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - bidi-support-scsi_data_buffer-broke-qla1280.patch removed from -mm tree
-Date: Thu, 29 Nov 2007 14:08:43 -0800
-Message-ID: <200711292208.lATM8hUJ009718@imap1.linux-foundation.org>
+Subject: - bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch removed from -mm tree
+Date: Thu, 29 Nov 2007 14:08:46 -0800
+Message-ID: <200711292208.lATM8kH0009722@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59611 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53349 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760151AbXK2WLc (ORCPT
+	by vger.kernel.org with ESMTP id S1758786AbXK2WLc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 29 Nov 2007 17:11:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,14 +15,14 @@ To: akpm@linux-foundation.org, bharrosh@panasas.com, fujita.tomonori@lab.ntt.co.
 
 
 The patch titled
-     bidi-support-scsi_data_buffer-broke-qla1280
+     bidi-support-scsi_data_buffer-broke-lots-of-stuff
 has been removed from the -mm tree.  Its filename was
-     bidi-support-scsi_data_buffer-broke-qla1280.patch
+     bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: bidi-support-scsi_data_buffer-broke-qla1280
+Subject: bidi-support-scsi_data_buffer-broke-lots-of-stuff
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Boaz Harrosh <bharrosh@panasas.com>
@@ -30,20 +30,28 @@ Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/scsi/Kconfig |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/scsi/Kconfig~bidi-support-scsi_data_buffer-broke-qla1280 drivers/scsi/Kconfig
---- a/drivers/scsi/Kconfig~bidi-support-scsi_data_buffer-broke-qla1280
+diff -puN drivers/scsi/Kconfig~bidi-support-scsi_data_buffer-broke-lots-of-stuff drivers/scsi/Kconfig
+--- a/drivers/scsi/Kconfig~bidi-support-scsi_data_buffer-broke-lots-of-stuff
 +++ a/drivers/scsi/Kconfig
-@@ -1319,6 +1319,7 @@ config SCSI_QLOGIC_FC_FIRMWARE
- config SCSI_QLOGIC_1280
- 	tristate "Qlogic QLA 1240/1x80/1x160 SCSI support"
- 	depends on PCI && SCSI
+@@ -915,6 +915,7 @@ config SCSI_INIA100
+ config SCSI_PPA
+ 	tristate "IOMEGA parallel port (ppa - older drives)"
+ 	depends on SCSI && PARPORT_PC
 +	depends on BROKEN
- 	help
- 	  Say Y if you have a QLogic ISP1240/1x80/1x160 SCSI host adapter.
- 
+ 	---help---
+ 	  This driver supports older versions of IOMEGA's parallel port ZIP
+ 	  drive (a 100 MB removable media device).
+@@ -942,6 +943,7 @@ config SCSI_PPA
+ config SCSI_IMM
+ 	tristate "IOMEGA parallel port (imm - newer drives)"
+ 	depends on SCSI && PARPORT_PC
++	depends on BROKEN
+ 	---help---
+ 	  This driver supports newer versions of IOMEGA's parallel port ZIP
+ 	  drive (a 100 MB removable media device).
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -98,7 +106,6 @@ git-sh-fixup.patch
 git-scsi-misc-fixup.patch
 ips-trim-trailing-whitespace.patch
 scsi-gdth-kill-unneeded-irq-argument.patch
-bidi-support-scsi_data_buffer-broke-qla1280.patch
 bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
 libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
 git-unionfs.patch
