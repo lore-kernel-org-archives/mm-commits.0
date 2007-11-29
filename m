@@ -1,242 +1,251 @@
 From: akpm@linux-foundation.org
-Subject: - ext4-fix-up-ext4fs_debug-builds-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 29 Nov 2007 12:51:58 -0800
-Message-ID: <200711292051.lATKpwDU006776@imap1.linux-foundation.org>
+Subject: + get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch added to -mm tree
+Date: Thu, 29 Nov 2007 12:54:02 -0800
+Message-ID: <200711292054.lATKs2PU006930@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51664 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54214 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932242AbXK2UxR (ORCPT
+	by vger.kernel.org with ESMTP id S1757325AbXK2Uz4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Nov 2007 15:53:17 -0500
+	Thu, 29 Nov 2007 15:55:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cmm@us.ibm.com, sandeen@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: dada1@cosmosbay.com, alan@lxorguk.ukuu.org.uk, davem@davemloft.net, ink@jurassic.park.msu.ru, ralf@linux-mips.org, rth@twiddle.net
 
 
 The patch titled
-     ext4-fix-up-ext4fs_debug-builds-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     ext4-fix-up-ext4fs_debug-builds-checkpatch-fixes.patch
+     get rid of NR_OPEN and introduce a sysctl_nr_open
+has been added to the -mm tree.  Its filename is
+     get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
 
-This patch was dropped because it was folded into ext4-fix-up-ext4fs_debug-builds.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: ext4-fix-up-ext4fs_debug-builds-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: get rid of NR_OPEN and introduce a sysctl_nr_open
+From: Eric Dumazet <dada1@cosmosbay.com>
 
-WARNING: printk() should include KERN_ facility level
-#55: FILE: fs/ext4/ialloc.c:859:
-+		printk("group %lu: stored = %d, counted = %lu\n",
+NR_OPEN (historically set to 1024*1024) actually forbids processes to open
+more than 1024*1024 handles.
 
-total: 0 errors, 1 warnings, 110 lines checked
+Unfortunatly some production servers hit the not so 'ridiculously high
+value' of 1024*1024 file descriptors per process.
 
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+Changing NR_OPEN is not considered safe because of vmalloc space potential
+exhaust.
 
-Please run checkpatch prior to sending patches
+This patch introduces a new sysctl (/proc/sys/fs/nr_open) wich defaults to
+1024*1024, so that admins can decide to change this limit if their workload
+needs it.
 
-Cc: Eric Sandeen <sandeen@redhat.com>
-Cc: Mingming Cao <cmm@us.ibm.com>
+Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/ialloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/filesystems/proc.txt |    8 ++++++++
+ Documentation/sysctl/fs.txt        |   10 ++++++++++
+ arch/alpha/kernel/osf_sys.c        |    2 +-
+ arch/mips/kernel/sysirix.c         |    2 +-
+ arch/sparc64/solaris/fs.c          |    2 +-
+ arch/sparc64/solaris/timod.c       |    6 ++++--
+ fs/file.c                          |    8 +++++---
+ include/linux/fs.h                 |    2 +-
+ kernel/sys.c                       |    2 +-
+ kernel/sysctl.c                    |    8 ++++++++
+ 10 files changed, 40 insertions(+), 10 deletions(-)
 
-diff -puN fs/ext4/ialloc.c~ext4-fix-up-ext4fs_debug-builds-checkpatch-fixes fs/ext4/ialloc.c
---- a/fs/ext4/ialloc.c~ext4-fix-up-ext4fs_debug-builds-checkpatch-fixes
-+++ a/fs/ext4/ialloc.c
-@@ -856,7 +856,7 @@ unsigned long ext4_count_free_inodes (st
- 			continue;
+diff -puN Documentation/filesystems/proc.txt~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
++++ a/Documentation/filesystems/proc.txt
+@@ -989,6 +989,14 @@ nr_inodes
+ Denotes the  number  of  inodes the system has allocated. This number will
+ grow and shrink dynamically.
  
- 		x = ext4_count_free(bitmap_bh, EXT4_INODES_PER_GROUP(sb) / 8);
--		printk("group %lu: stored = %d, counted = %lu\n",
-+		printk(KERN_DEBUG "group %lu: stored = %d, counted = %lu\n",
- 			i, le16_to_cpu(gdp->bg_free_inodes_count), x);
- 		bitmap_count += x;
++nr_open
++-------
++
++Denotes the maximum number of file-handles a process can
++allocate. Default value is 1024*1024 (1048576) which should be
++enough for most machines. Actual limit depends on RLIMIT_NOFILE
++resource limit.
++
+ nr_free_inodes
+ --------------
+ 
+diff -puN Documentation/sysctl/fs.txt~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open Documentation/sysctl/fs.txt
+--- a/Documentation/sysctl/fs.txt~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
++++ a/Documentation/sysctl/fs.txt
+@@ -23,6 +23,7 @@ Currently, these files are in /proc/sys/
+ - inode-max
+ - inode-nr
+ - inode-state
++- nr_open
+ - overflowuid
+ - overflowgid
+ - suid_dumpable
+@@ -91,6 +92,15 @@ usage of file handles and you don't need
+ 
+ ==============================================================
+ 
++nr_open:
++
++This denotes the maximum number of file-handles a process can
++allocate. Default value is 1024*1024 (1048576) which should be
++enough for most machines. Actual limit depends on RLIMIT_NOFILE
++resource limit.
++
++==============================================================
++
+ inode-max, inode-nr & inode-state:
+ 
+ As with file handles, the kernel allocates the inode structures
+diff -puN arch/alpha/kernel/osf_sys.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open arch/alpha/kernel/osf_sys.c
+--- a/arch/alpha/kernel/osf_sys.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
++++ a/arch/alpha/kernel/osf_sys.c
+@@ -430,7 +430,7 @@ sys_getpagesize(void)
+ asmlinkage unsigned long
+ sys_getdtablesize(void)
+ {
+-	return NR_OPEN;
++	return sysctl_nr_open;
+ }
+ 
+ /*
+diff -puN arch/mips/kernel/sysirix.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open arch/mips/kernel/sysirix.c
+--- a/arch/mips/kernel/sysirix.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
++++ a/arch/mips/kernel/sysirix.c
+@@ -356,7 +356,7 @@ asmlinkage int irix_syssgi(struct pt_reg
+ 			retval = NGROUPS_MAX;
+ 			goto out;
+ 		case 5:
+-			retval = NR_OPEN;
++			retval = sysctl_nr_open;
+ 			goto out;
+ 		case 6:
+ 			retval = 1;
+diff -puN arch/sparc64/solaris/fs.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open arch/sparc64/solaris/fs.c
+--- a/arch/sparc64/solaris/fs.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
++++ a/arch/sparc64/solaris/fs.c
+@@ -624,7 +624,7 @@ asmlinkage int solaris_ulimit(int cmd, i
+ 	case 3: /* UL_GMEMLIM */
+ 		return current->signal->rlim[RLIMIT_DATA].rlim_cur;
+ 	case 4: /* UL_GDESLIM */
+-		return NR_OPEN;
++		return sysctl_nr_open;
  	}
+ 	return -EINVAL;
+ }
+diff -puN arch/sparc64/solaris/timod.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open arch/sparc64/solaris/timod.c
+--- a/arch/sparc64/solaris/timod.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
++++ a/arch/sparc64/solaris/timod.c
+@@ -859,7 +859,8 @@ asmlinkage int solaris_getmsg(unsigned i
+ 
+ 	SOLD("entry");
+ 	lock_kernel();
+-	if(fd >= NR_OPEN) goto out;
++	if (fd >= sysctl_nr_open)
++		goto out;
+ 
+ 	fdt = files_fdtable(current->files);
+ 	filp = fdt->fd[fd];
+@@ -927,7 +928,8 @@ asmlinkage int solaris_putmsg(unsigned i
+ 
+ 	SOLD("entry");
+ 	lock_kernel();
+-	if(fd >= NR_OPEN) goto out;
++	if (fd >= sysctl_nr_open)
++		goto out;
+ 
+ 	fdt = files_fdtable(current->files);
+ 	filp = fdt->fd[fd];
+diff -puN fs/file.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open fs/file.c
+--- a/fs/file.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
++++ a/fs/file.c
+@@ -24,6 +24,8 @@ struct fdtable_defer {
+ 	struct fdtable *next;
+ };
+ 
++int sysctl_nr_open __read_mostly = 1024*1024;
++
+ /*
+  * We use this list to defer free fdtables that have vmalloced
+  * sets/arrays. By keeping a per-cpu list, we avoid having to embed
+@@ -147,8 +149,8 @@ static struct fdtable * alloc_fdtable(un
+ 	nr /= (1024 / sizeof(struct file *));
+ 	nr = roundup_pow_of_two(nr + 1);
+ 	nr *= (1024 / sizeof(struct file *));
+-	if (nr > NR_OPEN)
+-		nr = NR_OPEN;
++	if (nr > sysctl_nr_open)
++		nr = sysctl_nr_open;
+ 
+ 	fdt = kmalloc(sizeof(struct fdtable), GFP_KERNEL);
+ 	if (!fdt)
+@@ -233,7 +235,7 @@ int expand_files(struct files_struct *fi
+ 	if (nr < fdt->max_fds)
+ 		return 0;
+ 	/* Can we expand? */
+-	if (nr >= NR_OPEN)
++	if (nr >= sysctl_nr_open)
+ 		return -EMFILE;
+ 
+ 	/* All good, so we try */
+diff -puN include/linux/fs.h~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open include/linux/fs.h
+--- a/include/linux/fs.h~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
++++ a/include/linux/fs.h
+@@ -21,7 +21,7 @@
+ 
+ /* Fixed constants first: */
+ #undef NR_OPEN
+-#define NR_OPEN (1024*1024)	/* Absolute upper limit on fd num */
++extern int sysctl_nr_open;
+ #define INR_OPEN 1024		/* Initial setting for nfile rlimits */
+ 
+ #define BLOCK_SIZE_BITS 10
+diff -puN kernel/sys.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open kernel/sys.c
+--- a/kernel/sys.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
++++ a/kernel/sys.c
+@@ -1472,7 +1472,7 @@ asmlinkage long sys_setrlimit(unsigned i
+ 	if ((new_rlim.rlim_max > old_rlim->rlim_max) &&
+ 	    !capable(CAP_SYS_RESOURCE))
+ 		return -EPERM;
+-	if (resource == RLIMIT_NOFILE && new_rlim.rlim_max > NR_OPEN)
++	if (resource == RLIMIT_NOFILE && new_rlim.rlim_max > sysctl_nr_open)
+ 		return -EPERM;
+ 
+ 	retval = security_task_setrlimit(resource, &new_rlim);
+diff -puN kernel/sysctl.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open kernel/sysctl.c
+--- a/kernel/sysctl.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
++++ a/kernel/sysctl.c
+@@ -1152,6 +1152,14 @@ static struct ctl_table fs_table[] = {
+ 		.proc_handler	= &proc_dointvec,
+ 	},
+ 	{
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "nr_open",
++		.data		= &sysctl_nr_open,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= &proc_dointvec,
++	},
++	{
+ 		.ctl_name	= FS_DENTRY,
+ 		.procname	= "dentry-state",
+ 		.data		= &dentry_stat,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dada1@cosmosbay.com are
 
 origin.patch
-pnp-increase-the-maximum-number-of-resources.patch
-fix-linux-kdh-usage-in-userspace.patch
-imacfb-remove-reference-to-otherwise-unused-non-existent-screen_infoimacpm_seg.patch
-revert-keyspan-init-termios-properly.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-git-acpi-ia64-build-fix.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-kernel-auditc-warning-fix.patch
-git-cpufreq.patch
-git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-dm-persistent_read_metadata-warning-fix.patch
-ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-git-drm-oops-fix.patch
-git-drm-warning-fix.patch
-intel-agp-enable-i915-recognition.patch
-git-dvb.patch
-fix-jdelvare-i2c-i2c-constify-client-address-data.patch
-revert-git-hrt.patch
-ia64-slim-down-__clear_bit_unlock.patch
-git-infiniband.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
-git-mmc.patch
-git-mtd.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-bluetooth-uninlining.patch
-git-nfsd.patch
-quirk-enable-msi-mapping-on-ht1000.patch
-git-sh.patch
-git-sh-fixup.patch
-git-scsi-misc-fixup.patch
-ips-trim-trailing-whitespace.patch
-scsi-gdth-kill-unneeded-irq-argument.patch
-bidi-support-scsi_data_buffer-broke-qla1280.patch
-bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
-libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-mct232-speed-new-termios-and-compliance-cleanups-fix.patch
-git-watchdog.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-x86-build-fix.patch
-git-cryptodev.patch
-git-xtensa.patch
-ia64-increase-datapatch-offset.patch
-ia64-dont-assume-that-unwcheckpy-is-executable.patch
-ia64-export-copy_page-to-modules.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-sync_sb_inodes-propagate-errors.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-64-bit-i_version-afs-fixes.patch
-ext4-add-block-bitmap-validation.patch
-ext4-fix-up-ext4fs_debug-builds.patch
-ext4-fix-up-ext4fs_debug-builds-checkpatch-fixes.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+git-net.patch
+percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
