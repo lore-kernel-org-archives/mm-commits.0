@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fix-setsid-for-sub-namespace-sbin-init.patch added to -mm tree
-Date: Thu, 29 Nov 2007 16:12:31 -0800
-Message-ID: <200711300012.lAU0CVAQ014361@imap1.linux-foundation.org>
+Subject: + move-daemonized-kernel-threads-into-the-swappers-session.patch added to -mm tree
+Date: Thu, 29 Nov 2007 16:13:54 -0800
+Message-ID: <200711300013.lAU0DsGv014483@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35076 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36595 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762677AbXK3AMn (ORCPT
+	by vger.kernel.org with ESMTP id S1755563AbXK3AN6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Nov 2007 19:12:43 -0500
+	Thu, 29 Nov 2007 19:13:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@tv-sign.ru, ebiederm@xmission.com, xemul@openvz.org
 
 
 The patch titled
-     fix setsid() for sub-namespace /sbin/init
+     move daemonized kernel threads into the swapper's session
 has been added to the -mm tree.  Its filename is
-     fix-setsid-for-sub-namespace-sbin-init.patch
+     move-daemonized-kernel-threads-into-the-swappers-session.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,74 +26,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix setsid() for sub-namespace /sbin/init
+Subject: move daemonized kernel threads into the swapper's session
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-sys_setsid() still deals with pid_t's from the global namespace. This means
-that the "session > 1" check can't help for sub-namespace init, setsid() can't
-succeed because copy_process(CLONE_NEWPID) populates PIDTYPE_PGID/SID links.
+Daemonized kernel threads run in the init's session. This doesn't match the
+behaviour of kthread_create()'ed threads, and this is one of the 2 reasons
+why we need a special hack in sys_setsid().
 
-Remove the usage of task_struct->pid and convert the code to use "struct pid".
-This also simplifies and speedups the code, saves one find_pid().
+Now that set_special_pids() was changed to use struct pid, not pid_t, we can
+use init_struct_pid and set 0,0 special pids.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Acked-by: Pavel Emelyanov <xemul@openvz.org>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |   22 ++++++++++------------
- 1 file changed, 10 insertions(+), 12 deletions(-)
+ kernel/exit.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/sys.c~fix-setsid-for-sub-namespace-sbin-init kernel/sys.c
---- a/kernel/sys.c~fix-setsid-for-sub-namespace-sbin-init
-+++ a/kernel/sys.c
-@@ -1045,35 +1045,33 @@ asmlinkage long sys_getsid(pid_t pid)
- asmlinkage long sys_setsid(void)
- {
- 	struct task_struct *group_leader = current->group_leader;
--	pid_t session;
-+	struct pid *sid = task_pid(group_leader);
-+	pid_t session = pid_vnr(sid);
- 	int err = -EPERM;
+diff -puN kernel/exit.c~move-daemonized-kernel-threads-into-the-swappers-session kernel/exit.c
+--- a/kernel/exit.c~move-daemonized-kernel-threads-into-the-swappers-session
++++ a/kernel/exit.c
+@@ -390,7 +390,7 @@ void daemonize(const char *name, ...)
+ 		get_nsproxy(&init_nsproxy);
+ 		switch_task_namespaces(current, &init_nsproxy);
+ 	}
+-	set_special_pids(find_pid(1));
++	set_special_pids(&init_struct_pid);
+ 	proc_clear_tty(current);
  
- 	write_lock_irq(&tasklist_lock);
--
- 	/* Fail if I am already a session leader */
- 	if (group_leader->signal->leader)
- 		goto out;
- 
--	session = group_leader->pid;
--	/* Fail if a process group id already exists that equals the
--	 * proposed session id.
-+	/* Fail if a process group id already exists that equals the proposed
-+	 * session id.
- 	 *
--	 * Don't check if session id == 1 because kernel threads use this
--	 * session id and so the check will always fail and make it so
--	 * init cannot successfully call setsid.
-+	 * Don't check if session == 1 because kernel threads and CLONE_NEWPID
-+	 * tasks use this session id and so the check will always fail and make
-+	 * it so init cannot successfully call setsid.
- 	 */
--	if (session > 1 && find_task_by_pid_type_ns(PIDTYPE_PGID,
--				session, &init_pid_ns))
-+	if (session != 1 && pid_task(sid, PIDTYPE_PGID))
- 		goto out;
- 
- 	group_leader->signal->leader = 1;
--	__set_special_pids(session, session);
-+	__set_special_pids(pid_nr(sid), pid_nr(sid));
- 
- 	spin_lock(&group_leader->sighand->siglock);
- 	group_leader->signal->tty = NULL;
- 	spin_unlock(&group_leader->sighand->siglock);
- 
--	err = task_pgrp_vnr(group_leader);
-+	err = session;
- out:
- 	write_unlock_irq(&tasklist_lock);
- 	return err;
+ 	/* Block and flush all signals */
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
