@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 29 Nov 2007 16:37:30 -0800
-Message-ID: <200711300037.lAU0bVU4015316@imap1.linux-foundation.org>
+Subject: + ata-ahci-enclosure-management-via-led.patch added to -mm tree
+Date: Thu, 29 Nov 2007 16:40:12 -0800
+Message-ID: <200711300040.lAU0eCKR015460@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46524 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49878 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758430AbXK3AjH (ORCPT
+	by vger.kernel.org with ESMTP id S1761951AbXK3Aka (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Nov 2007 19:39:07 -0500
+	Thu, 29 Nov 2007 19:40:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clg@fr.ibm.com, ebiederm@xmission.com, heiko.carstens@de.ibm.com, menage@google.com, morgan@kernel.org, pj@sgi.com, rientjes@google.com, schwidefsky@de.ibm.com, serue@us.ibm.com, xemul@openvz.org
+Cc: kristen.c.accardi@intel.com, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, jeff@garzik.org
 
 
 The patch titled
-     proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes
+     ata: ahci: Enclosure Management via LED
 has been added to the -mm tree.  Its filename is
-     proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+     ata-ahci-enclosure-management-via-led.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,277 +26,302 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ata: ahci: Enclosure Management via LED
+From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
-WARNING: line over 80 characters
-#203: FILE: fs/proc/array.c:207:
-+static void render_sigset_t(struct seq_file *m, const char *header, sigset_t *set)
+Implement Enclosure Management via the LED protocol.  See the AHCI 1.1 spec
+for details.
 
-WARNING: line over 80 characters
-#264: FILE: fs/proc/array.c:281:
-+static void render_cap_t(struct seq_file *m, const char *header, kernel_cap_t *a)
-
-WARNING: line over 80 characters
-#307: FILE: fs/proc/array.c:309:
-+int proc_pid_status(struct seq_file *m, struct pid_namespace *ns, struct pid *pid,
-
-WARNING: line over 80 characters
-#443: FILE: include/linux/cpuset.h:61:
-+extern void cpuset_task_status_allowed(struct seq_file *m, struct task_struct *task);
-
-total: 0 errors, 4 warnings, 416 lines checked
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Andrew Morgan <morgan@kernel.org>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Serge Hallyn <serue@us.ibm.com>
+Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c        |   10 ++++++----
- include/linux/cpuset.h |    3 ++-
- 2 files changed, 8 insertions(+), 5 deletions(-)
+ drivers/ata/ahci.c        |  154 +++++++++++++++++++++++++++++++++++-
+ drivers/ata/libata-scsi.c |    5 -
+ include/linux/libata.h    |    2 
+ 3 files changed, 157 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/array.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes fs/proc/array.c
---- a/fs/proc/array.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes
-+++ a/fs/proc/array.c
-@@ -204,7 +204,8 @@ static inline void task_state(struct seq
- 	seq_printf(m, "\n");
+diff -puN drivers/ata/ahci.c~ata-ahci-enclosure-management-via-led drivers/ata/ahci.c
+--- a/drivers/ata/ahci.c~ata-ahci-enclosure-management-via-led
++++ a/drivers/ata/ahci.c
+@@ -44,6 +44,7 @@
+ #include <linux/dmi.h>
+ #include <scsi/scsi_host.h>
+ #include <scsi/scsi_cmnd.h>
++#include <scsi/scsi_device.h>
+ #include <linux/libata.h>
+ 
+ #define DRV_NAME	"ahci"
+@@ -92,6 +93,8 @@ enum {
+ 	HOST_IRQ_STAT		= 0x08, /* interrupt status */
+ 	HOST_PORTS_IMPL		= 0x0c, /* bitmap of implemented ports */
+ 	HOST_VERSION		= 0x10, /* AHCI spec. version compliancy */
++	HOST_EM_LOC		= 0x1c, /* Enclosure Management location */
++	HOST_EM_CTL		= 0x20, /* Enclosure Management Control */
+ 
+ 	/* HOST_CTL bits */
+ 	HOST_RESET		= (1 << 0),  /* reset controller; self-clear */
+@@ -99,6 +102,7 @@ enum {
+ 	HOST_AHCI_EN		= (1 << 31), /* AHCI enabled */
+ 
+ 	/* HOST_CAP bits */
++	HOST_CAP_EMS		= (1 << 6),  /* Enclosure Management support */
+ 	HOST_CAP_SSC		= (1 << 14), /* Slumber capable */
+ 	HOST_CAP_PMP		= (1 << 17), /* Port Multiplier support */
+ 	HOST_CAP_CLO		= (1 << 24), /* Command List Override support */
+@@ -193,6 +197,10 @@ enum {
+ 					  ATA_FLAG_ACPI_SATA | ATA_FLAG_AN |
+ 					  ATA_FLAG_IPM,
+ 	AHCI_LFLAG_COMMON		= ATA_LFLAG_SKIP_D2H_BSY,
++
++	/* em_ctl bits */
++	EM_CTL_RST			= (1 << 9), /* Reset */
++	EM_CTL_TM			= (1 << 8), /* Transmit Message */
+ };
+ 
+ struct ahci_cmd_hdr {
+@@ -216,6 +224,7 @@ struct ahci_host_priv {
+ 	u32			port_map;	/* port map to use */
+ 	u32			saved_cap;	/* saved initial cap */
+ 	u32			saved_port_map;	/* saved initial port_map */
++	u32 			em_loc; /* enclosure management location */
+ };
+ 
+ struct ahci_port_priv {
+@@ -231,6 +240,7 @@ struct ahci_port_priv {
+ 	unsigned int		ncq_saw_dmas:1;
+ 	unsigned int		ncq_saw_sdb:1;
+ 	u32 			intr_mask;	/* interrupts to enable */
++	u16			led_state;	/* saved current led state */
+ };
+ 
+ static int ahci_scr_read(struct ata_port *ap, unsigned int sc_reg, u32 *val);
+@@ -572,6 +582,11 @@ static struct pci_driver ahci_pci_driver
+ #endif
+ };
+ 
++static int ahci_em_messages = 1;
++module_param(ahci_em_messages, int, 0444);
++/* add other LED protocol types when they become supported */
++MODULE_PARM_DESC(ahci_em_messages,
++	"Set AHCI Enclosure Management Message type (0 = disabled, 1 = LED");
+ 
+ static inline int ahci_nr_ports(u32 cap)
+ {
+@@ -1082,6 +1097,118 @@ static int ahci_reset_controller(struct 
+ 	return 0;
  }
  
--static void render_sigset_t(struct seq_file *m, const char *header, sigset_t *set)
-+static void render_sigset_t(struct seq_file *m, const char *header,
-+				sigset_t *set)
- {
- 	int i;
++/****** LED Enclosure Management routines ********/
++static int ahci_reset_em(struct ata_host *host)
++{
++	void __iomem *mmio = host->iomap[AHCI_PCI_BAR];
++	u32 em_ctl;
++
++	em_ctl = readl(mmio + HOST_EM_CTL);
++	if ((em_ctl & EM_CTL_TM) || (em_ctl & EM_CTL_RST))
++		return -EINVAL;
++
++	writel(em_ctl | EM_CTL_RST, mmio + HOST_EM_CTL);
++	return 0;
++}
++
++static int ahci_transmit_led_message(struct ata_port *ap, int led_num,
++			int state)
++{
++	struct ahci_host_priv *hpriv = ap->host->private_data;
++	void __iomem *mmio = ap->host->iomap[AHCI_PCI_BAR];
++	struct ahci_port_priv *pp = ap->private_data;
++	u32 em_ctl;
++	u32 message[] = {0, 0};
++	unsigned int flags;
++
++	spin_lock_irqsave(ap->lock, flags);
++
++	/*
++	 * if we are still busy transmitting a previous message,
++	 * do not allow
++	 */
++	em_ctl = readl(mmio + HOST_EM_CTL);
++	if (em_ctl & EM_CTL_TM) {
++		spin_unlock_irqrestore(ap->lock, flags);
++		return -EINVAL;
++	}
++
++	/*
++	 * create message header - this is all zero except for
++	 * the message size, which is 4 bytes.
++	 */
++	message[0] |= (4 << 8);
++
++	pp->led_state &= ~(9 << (3*led_num));
++
++	/*
++	 * create the actual message
++	 * XXX will need Port Multiplier support
++	 */
++	message[1] = (ap->port_no | (pp->led_state << 16));
++
++	/* LED bit locations are determined by the led_num */
++	message[1] |= (state << (16 + (3*led_num)));
++
++	/* write message to EM_LOC */
++	writel(message[0], mmio + hpriv->em_loc);
++	writel(message[1], mmio + hpriv->em_loc+4);
++
++	/* save off new led state */
++	pp->led_state = ((message[1] >> 16) & 0x00ff);
++
++	/*
++	 * tell hardware to transmit the message
++	 */
++	writel(em_ctl | EM_CTL_TM, mmio + HOST_EM_CTL);
++
++	spin_unlock_irqrestore(ap->lock, flags);
++	return 0;
++}
++
++static int ahci_led_store(struct device *dev, const char *buf, int num)
++{
++	struct scsi_device *sdev = to_scsi_device(dev);
++	struct ata_port *ap = ata_shost_to_port(sdev->host);
++	struct ata_device *atadev = ata_scsi_find_dev(ap, sdev);
++	int state;
++
++	if (!atadev || !ata_dev_enabled(atadev))
++		return -EINVAL;
++
++	state = simple_strtoul(buf, NULL, 0);
++	if (state != 0 && state != 1)
++		return -EINVAL;
++
++	return ahci_transmit_led_message(ap, num, state);
++}
++
++static ssize_t ahci_led_locate_store(struct device *dev,
++	struct device_attribute *attr, const char *buf, size_t count)
++{
++	int rc = ahci_led_store(dev, buf, 1);
++	if (!rc)
++		return count;
++	return rc;
++}
++static DEVICE_ATTR(locate, S_IWUSR | S_IRUGO, NULL, ahci_led_locate_store);
++
++static ssize_t ahci_led_fault_store(struct device *dev,
++	struct device_attribute *attr, const char *buf, size_t count)
++{
++	int rc = ahci_led_store(dev, buf, 2);
++	if (!rc)
++		return count;
++	return rc;
++}
++static DEVICE_ATTR(fault, S_IWUGO, NULL, ahci_led_fault_store);
++
++static struct device_attribute *ahci_em_led_attrs[] = {
++	&dev_attr_locate,
++	&dev_attr_fault,
++	NULL
++};
++
+ static void ahci_port_init(struct pci_dev *pdev, struct ata_port *ap,
+ 			   int port_no, void __iomem *mmio,
+ 			   void __iomem *port_mmio)
+@@ -2178,7 +2305,8 @@ static void ahci_print_info(struct ata_h
+ 	dev_printk(KERN_INFO, &pdev->dev,
+ 		"flags: "
+ 		"%s%s%s%s%s%s%s"
+-		"%s%s%s%s%s%s%s\n"
++		"%s%s%s%s%s%s%s"
++		"%s\n"
+ 		,
  
-@@ -278,7 +279,8 @@ static inline void task_sig(struct seq_f
- 	render_sigset_t(m, "SigCgt:\t", &caught);
+ 		cap & (1 << 31) ? "64bit " : "",
+@@ -2195,7 +2323,8 @@ static void ahci_print_info(struct ata_h
+ 		cap & (1 << 17) ? "pmp " : "",
+ 		cap & (1 << 15) ? "pio " : "",
+ 		cap & (1 << 14) ? "slum " : "",
+-		cap & (1 << 13) ? "part " : ""
++		cap & (1 << 13) ? "part " : "",
++		cap & (1 << 6) ? "ems ": ""
+ 		);
  }
  
--static void render_cap_t(struct seq_file *m, const char *header, kernel_cap_t *a)
-+static void render_cap_t(struct seq_file *m, const char *header,
-+			kernel_cap_t *a)
- {
- 	unsigned __capi;
+@@ -2331,6 +2460,27 @@ static int ahci_init_one(struct pci_dev 
+ 	ahci_init_controller(host);
+ 	ahci_print_info(host);
  
-@@ -306,8 +308,8 @@ static inline void task_context_switch_c
- 			p->nivcsw);
++	if (ahci_em_messages && (hpriv->cap & HOST_CAP_EMS)) {
++		u8 messages;
++		void __iomem *mmio = host->iomap[AHCI_PCI_BAR];
++		u32 em_loc = readl(mmio + HOST_EM_LOC);
++		u32 em_ctl = readl(mmio + HOST_EM_CTL);
++
++		messages = (em_ctl & 0x000f0000) >> 16;
++
++		/* we only support LED message type right now */
++		if ((messages & 0x01) && (ahci_em_messages == 1)) {
++			/* store em_loc */
++			hpriv->em_loc = ((em_loc >> 16) * 4);
++
++			/* reset the LEDs */
++			ahci_reset_em(host);
++
++			/* modify sht to add led sysfs files */
++			ahci_sht.sdev_attrs = ahci_em_led_attrs;
++		}
++	}
++
+ 	pci_set_master(pdev);
+ 	return ata_host_activate(host, pdev->irq, ahci_interrupt, IRQF_SHARED,
+ 				 &ahci_sht);
+diff -puN drivers/ata/libata-scsi.c~ata-ahci-enclosure-management-via-led drivers/ata/libata-scsi.c
+--- a/drivers/ata/libata-scsi.c~ata-ahci-enclosure-management-via-led
++++ a/drivers/ata/libata-scsi.c
+@@ -55,7 +55,7 @@ typedef unsigned int (*ata_xlat_func_t)(
+ 
+ static struct ata_device *__ata_scsi_find_dev(struct ata_port *ap,
+ 					const struct scsi_device *scsidev);
+-static struct ata_device *ata_scsi_find_dev(struct ata_port *ap,
++struct ata_device *ata_scsi_find_dev(struct ata_port *ap,
+ 					    const struct scsi_device *scsidev);
+ static int ata_scsi_user_scan(struct Scsi_Host *shost, unsigned int channel,
+ 			      unsigned int id, unsigned int lun);
+@@ -2622,7 +2622,7 @@ static int ata_scsi_dev_enabled(struct a
+  *	RETURNS:
+  *	Associated ATA device, or %NULL if not found.
+  */
+-static struct ata_device *
++struct ata_device *
+ ata_scsi_find_dev(struct ata_port *ap, const struct scsi_device *scsidev)
+ {
+ 	struct ata_device *dev = __ata_scsi_find_dev(ap, scsidev);
+@@ -2632,6 +2632,7 @@ ata_scsi_find_dev(struct ata_port *ap, c
+ 
+ 	return dev;
  }
++EXPORT_SYMBOL_GPL(ata_scsi_find_dev);
  
--int proc_pid_status(struct seq_file *m, struct pid_namespace *ns, struct pid *pid,
--			struct task_struct *task)
-+int proc_pid_status(struct seq_file *m, struct pid_namespace *ns,
-+			struct pid *pid, struct task_struct *task)
- {
- 	struct mm_struct *mm = get_task_mm(task);
- 
-diff -puN include/linux/cpuset.h~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes include/linux/cpuset.h
---- a/include/linux/cpuset.h~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes
-+++ a/include/linux/cpuset.h
-@@ -58,7 +58,8 @@ extern void __cpuset_memory_pressure_bum
- 
- extern const struct file_operations proc_cpuset_operations;
- struct seq_file;
--extern void cpuset_task_status_allowed(struct seq_file *m, struct task_struct *task);
-+extern void cpuset_task_status_allowed(struct seq_file *m,
-+					struct task_struct *task);
- 
- extern void cpuset_lock(void);
- extern void cpuset_unlock(void);
+ /*
+  *	ata_scsi_map_proto - Map pass-thru protocol value to taskfile value.
+diff -puN include/linux/libata.h~ata-ahci-enclosure-management-via-led include/linux/libata.h
+--- a/include/linux/libata.h~ata-ahci-enclosure-management-via-led
++++ a/include/linux/libata.h
+@@ -913,6 +913,8 @@ extern int ata_scsi_slave_config(struct 
+ extern void ata_scsi_slave_destroy(struct scsi_device *sdev);
+ extern int ata_scsi_change_queue_depth(struct scsi_device *sdev,
+ 				       int queue_depth);
++struct ata_device *ata_scsi_find_dev(struct ata_port *ap,
++				      const struct scsi_device *scsidev);
+ extern struct ata_device *ata_dev_pair(struct ata_device *adev);
+ extern int ata_do_set_mode(struct ata_link *link, struct ata_device **r_failed_dev);
+ extern u8 ata_irq_on(struct ata_port *ap);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kristen.c.accardi@intel.com are
 
-origin.patch
-pnp-increase-the-maximum-number-of-resources.patch
-fix-linux-kdh-usage-in-userspace.patch
-imacfb-remove-reference-to-otherwise-unused-non-existent-screen_infoimacpm_seg.patch
-revert-keyspan-init-termios-properly.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-git-acpi-ia64-build-fix.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-kernel-auditc-warning-fix.patch
-git-cpufreq.patch
-git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-dm-persistent_read_metadata-warning-fix.patch
-ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-git-drm-oops-fix.patch
-git-drm-warning-fix.patch
-intel-agp-enable-i915-recognition.patch
-git-dvb.patch
-fix-jdelvare-i2c-i2c-constify-client-address-data.patch
-revert-git-hrt.patch
-ia64-slim-down-__clear_bit_unlock.patch
-git-infiniband.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
-git-mmc.patch
-git-mtd.patch
-sysctl-add-register_sysctl_paths-function-checkpatch-fixes.patch
-sysctl-infrastructure-for-per-namespace-sysctls-checkpatch-fixes.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-bluetooth-uninlining.patch
-git-nfsd.patch
-quirk-enable-msi-mapping-on-ht1000.patch
-git-sh.patch
-git-sh-fixup.patch
-git-scsi-misc-fixup.patch
-ips-trim-trailing-whitespace.patch
-scsi-gdth-kill-unneeded-irq-argument.patch
-libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-mct232-speed-new-termios-and-compliance-cleanups-fix.patch
-git-watchdog.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-x86-build-fix.patch
-git-cryptodev.patch
-git-xtensa.patch
-ia64-increase-datapatch-offset.patch
-ia64-dont-assume-that-unwcheckpy-is-executable.patch
-ia64-export-copy_page-to-modules.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-sync_sb_inodes-propagate-errors.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-64-bit-i_version-afs-fixes.patch
-ext4-add-block-bitmap-validation.patch
-ext4-fix-up-ext4fs_debug-builds.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+ata-ahci-enclosure-management-via-led.patch
+pcie-fix-double-initialization-bug.patch
