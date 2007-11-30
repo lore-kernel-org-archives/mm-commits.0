@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slab-fix-kmem_cache_free-performance-regression.patch added to -mm tree
-Date: Thu, 29 Nov 2007 16:32:22 -0800
-Message-ID: <200711300032.lAU0WMCu015144@imap1.linux-foundation.org>
+Subject: + net-implement-the-per-network-namespace-sysctl-infrastructure.patch added to -mm tree
+Date: Thu, 29 Nov 2007 16:30:27 -0800
+Message-ID: <200711300030.lAU0UScD015103@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52901 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53653 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762887AbXK3Aci (ORCPT
+	by vger.kernel.org with ESMTP id S1760951AbXK3Agl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Nov 2007 19:32:38 -0500
+	Thu, 29 Nov 2007 19:36:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matthew@wil.cx, clameter@sgi.com, penberg@cs.helsinki.fi, willy@linux.intel.com
+Cc: ebiederm@xmission.com, clg@fr.ibm.com, davem@davemloft.net, dlezcano@fr.ibm.com, herbert@gondor.apana.org.au, serue@us.ibm.com, xemul@openvz.org
 
 
 The patch titled
-     slab: fix kmem_cache_free performance regression
+     net: implement the per network namespace sysctl infrastructure
 has been added to the -mm tree.  Its filename is
-     slab-fix-kmem_cache_free-performance-regression.patch
+     net-implement-the-per-network-namespace-sysctl-infrastructure.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,60 +26,213 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slab: fix kmem_cache_free performance regression
-From: Matthew Wilcox <matthew@wil.cx>
+Subject: net: implement the per network namespace sysctl infrastructure
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-The database performance group have found that half the cycles spent in
-kmem_cache_free are spent in this one call to BUG_ON.  Moving it into the
-CONFIG_SLAB_DEBUG-only function cache_free_debugcheck() is a performance
-win of almost 0.5% on their particular benchmark.
+The user interface is: register_net_sysctl_table and
+unregister_net_sysctl_table.  Very much like the current
+interface except there is a network namespace parameter.
 
-The call was added as part of commit
-ddc2e812d592457747c4367fb73edcaa8e1e49ff with the comment that "overhead
-should be minimal".  It may have been minimal at the time, but it isn't
-now.
+With this any sysctl registered with register_net_sysctl_table
+will only show up to tasks in the same network namespace.
 
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Christoph Lameter <clameter@sgi.com>
+All other sysctls continue to be globally visible.
+
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Daniel Lezcano <dlezcano@fr.ibm.com>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/net/net_namespace.h |    9 +++++
+ net/sysctl_net.c            |   57 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 66 insertions(+)
 
-diff -puN mm/slab.c~slab-fix-kmem_cache_free-performance-regression mm/slab.c
---- a/mm/slab.c~slab-fix-kmem_cache_free-performance-regression
-+++ a/mm/slab.c
-@@ -2881,6 +2881,8 @@ static void *cache_free_debugcheck(struc
- 	unsigned int objnr;
- 	struct slab *slabp;
+diff -puN include/net/net_namespace.h~net-implement-the-per-network-namespace-sysctl-infrastructure include/net/net_namespace.h
+--- a/include/net/net_namespace.h~net-implement-the-per-network-namespace-sysctl-infrastructure
++++ a/include/net/net_namespace.h
+@@ -25,6 +25,8 @@ struct net {
+ 	struct proc_dir_entry 	*proc_net_stat;
+ 	struct proc_dir_entry 	*proc_net_root;
  
-+	BUG_ON(virt_to_cache(objp) != cachep);
++	struct list_head	sysctl_table_headers;
 +
- 	objp -= obj_offset(cachep);
- 	kfree_debugcheck(objp);
- 	page = virt_to_head_page(objp);
-@@ -3759,8 +3761,6 @@ void kmem_cache_free(struct kmem_cache *
- {
- 	unsigned long flags;
+ 	struct net_device       *loopback_dev;          /* The loopback */
  
--	BUG_ON(virt_to_cache(objp) != cachep);
--
- 	local_irq_save(flags);
- 	debug_check_no_locks_freed(objp, obj_size(cachep));
- 	__cache_free(cachep, objp);
+ 	struct list_head 	dev_base_head;
+@@ -144,4 +146,11 @@ extern void unregister_pernet_subsys(str
+ extern int register_pernet_device(struct pernet_operations *);
+ extern void unregister_pernet_device(struct pernet_operations *);
+ 
++struct ctl_path;
++struct ctl_table;
++struct ctl_table_header;
++extern struct ctl_table_header *register_net_sysctl_table(struct net *net,
++	const struct ctl_path *path, struct ctl_table *table);
++extern void unregister_net_sysctl_table(struct ctl_table_header *header);
++
+ #endif /* __NET_NET_NAMESPACE_H */
+diff -puN net/sysctl_net.c~net-implement-the-per-network-namespace-sysctl-infrastructure net/sysctl_net.c
+--- a/net/sysctl_net.c~net-implement-the-per-network-namespace-sysctl-infrastructure
++++ a/net/sysctl_net.c
+@@ -14,6 +14,7 @@
+ 
+ #include <linux/mm.h>
+ #include <linux/sysctl.h>
++#include <linux/nsproxy.h>
+ 
+ #include <net/sock.h>
+ 
+@@ -54,3 +55,59 @@ struct ctl_table net_table[] = {
+ #endif
+ 	{ 0 },
+ };
++
++static struct list_head *
++net_ctl_header_lookup(struct ctl_table_root *root, struct nsproxy *namespaces)
++{
++	return &namespaces->net_ns->sysctl_table_headers;
++}
++
++static struct ctl_table_root net_sysctl_root = {
++	.lookup = net_ctl_header_lookup,
++};
++
++static int sysctl_net_init(struct net *net)
++{
++	INIT_LIST_HEAD(&net->sysctl_table_headers);
++	return 0;
++}
++
++static void sysctl_net_exit(struct net *net)
++{
++	WARN_ON(!list_empty(&net->sysctl_table_headers));
++	return;
++}
++
++static struct pernet_operations sysctl_pernet_ops = {
++	.init = sysctl_net_init,
++	.exit = sysctl_net_exit,
++};
++
++static __init int sysctl_init(void)
++{
++	int ret;
++	ret = register_pernet_subsys(&sysctl_pernet_ops);
++	if (ret)
++		goto out;
++	register_sysctl_root(&net_sysctl_root);
++out:
++	return ret;
++}
++subsys_initcall(sysctl_init);
++
++struct ctl_table_header *register_net_sysctl_table(struct net *net,
++	const struct ctl_path *path, struct ctl_table *table)
++{
++	struct nsproxy namespaces;
++	namespaces = *current->nsproxy;
++	namespaces.net_ns = net;
++	return __register_sysctl_paths(&net_sysctl_root,
++					&namespaces, path, table);
++}
++EXPORT_SYMBOL_GPL(register_net_sysctl_table);
++
++void unregister_net_sysctl_table(struct ctl_table_header *header)
++{
++	return unregister_sysctl_table(header);
++}
++EXPORT_SYMBOL_GPL(unregister_net_sysctl_table);
 _
 
-Patches currently in -mm which might be from matthew@wil.cx are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
-slab-fix-kmem_cache_free-performance-regression.patch
-pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch
-pcmcia-replace-kio_addr_t-with-unsigned-int-everywhere.patch
-use-wake_up_locked-in-eventpoll.patch
-use-macros-instead-of-task_-flags.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-add-task_wakekill.patch
-add-lock_page_killable.patch
-hash-add-explicit-u32-and-u64-versions-of-hash.patch
-make-sure-nobodys-leaking-resources.patch
+origin.patch
+proc-fix-null-i_fop-oops.patch
+proc-remove-races-from-proc_id_readdir.patch
+the-namespaces-compatibility-list.patch
+git-net.patch
+sysctl-add-register_sysctl_paths-function.patch
+sysctl-add-register_sysctl_paths-function-checkpatch-fixes.patch
+sysctl-remember-the-ctl_table-we-passed-to-register_sysctl_paths.patch
+sysctl-infrastructure-for-per-namespace-sysctls.patch
+sysctl-infrastructure-for-per-namespace-sysctls-checkpatch-fixes.patch
+net-implement-the-per-network-namespace-sysctl-infrastructure.patch
+quirk-enable-msi-mapping-on-ht1000.patch
+quirk-enable-msi-mapping-on-ht1000-v2.patch
+fix-proc-net-breakage.patch
+fix-proc-dcache-deadlock-in-do_exit.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-memcgroup-fix-try_to_free-order.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+memcgroup-reinstate-swapoff-mod.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
+memcgroup-fix-zone-isolation-oom.patch
+memcgroup-revert-swap_state-mods.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
+memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
+memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+memory-cgroup-enhancements-add-pre_destroy-handler.patch
+memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
+introduce-flags-for-reserve_bootmem.patch
+use-bootmem_exclusive-for-kdump.patch
+iget-stop-procfs-from-using-iget-and-read_inode.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+d_path-make-proc_get_link-use-a-struct-path-argument.patch
+add-the-namespaces-config-option.patch
+move-the-uts-namespace-under-uts_ns-option.patch
+move-the-ipc-namespace-under-ipc_ns-option.patch
+cleanup-the-code-managed-with-the-user_ns-option.patch
+cleanup-the-code-managed-with-pid_ns-option.patch
+mark-net_ns-with-depends-on-namespaces.patch
+proc-implement-proc_single_file_operations.patch
+proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces.patch
+proc-seqfile-convert-proc_pid_statm.patch
+proc-proper-pidns-handling-for-proc-self.patch
+proc-fix-the-threaded-proc-self.patch
+sys_setpgid-simplify-pid-ns-interaction.patch
+fix-setsid-for-sub-namespace-sbin-init.patch
+teach-set_special_pids-to-use-struct-pid.patch
+move-daemonized-kernel-threads-into-the-swappers-session.patch
+start-the-global-sbin-init-with-00-special-pids.patch
