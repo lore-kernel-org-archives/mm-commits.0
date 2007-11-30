@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mn10300-fix-mtd-jedec-probe-so-that-the-asb2303-bootprom-can-be-detected.patch added to -mm tree
-Date: Thu, 29 Nov 2007 17:46:07 -0800
-Message-ID: <200711300146.lAU1k7tk017748@imap1.linux-foundation.org>
+Subject: + mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch added to -mm tree
+Date: Thu, 29 Nov 2007 17:51:56 -0800
+Message-ID: <200711300151.lAU1pujn017939@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51220 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55982 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757690AbXK3BrG (ORCPT
+	by vger.kernel.org with ESMTP id S1757918AbXK3BxD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Nov 2007 20:47:06 -0500
+	Thu, 29 Nov 2007 20:53:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, dwmw2@infradead.org
+Cc: akpm@linux-foundation.org, dhowells@redhat.com, urade.masakazu@jp.panasonic.com, yasutake.koichi@jp.panasonic.com
 
 
 The patch titled
-     mn10300: fix MTD JEDEC probe so that the ASB2303 bootprom can be detected
+     mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix
 has been added to the -mm tree.  Its filename is
-     mn10300-fix-mtd-jedec-probe-so-that-the-asb2303-bootprom-can-be-detected.patch
+     mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,115 +26,222 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mn10300: fix MTD JEDEC probe so that the ASB2303 bootprom can be detected
-From: David Howells <dhowells@redhat.com>
+Subject: mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix MTD JEDEC probe so that the ASB2303 bootprom can be accessed.  This is
-presumably required because the bootprom is normally write-protected and so
-the normal flash probes don't work as they require the ability to write to the
-flash to send it commands.
+Nuke cvs control strings.
 
-In the condition of the excluded if-statement, uaddr is 1.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
+Cc: Masakazu Urade <urade.masakazu@jp.panasonic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/chips/jedec_probe.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ arch/mn10300/boot/tools/build.c |    2 --
+ drivers/input/joystick/analog.c |    2 --
+ 2 files changed, 4 deletions(-)
 
-diff -puN drivers/mtd/chips/jedec_probe.c~mn10300-fix-mtd-jedec-probe-so-that-the-asb2303-bootprom-can-be-detected drivers/mtd/chips/jedec_probe.c
---- a/drivers/mtd/chips/jedec_probe.c~mn10300-fix-mtd-jedec-probe-so-that-the-asb2303-bootprom-can-be-detected
-+++ a/drivers/mtd/chips/jedec_probe.c
-@@ -1883,11 +1883,18 @@ static inline __u8 finfo_uaddr(const str
+diff -puN arch/mn10300/boot/tools/build.c~mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix arch/mn10300/boot/tools/build.c
+--- a/arch/mn10300/boot/tools/build.c~mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix
++++ a/arch/mn10300/boot/tools/build.c
+@@ -1,6 +1,4 @@
+ /*
+- *  $Id: build.c,v 1.1.2.1 2002/11/12 13:25:46 dhowells Exp $
+- *
+  *  Copyright (C) 1991, 1992  Linus Torvalds
+  *  Copyright (C) 1997 Martin Mares
+  */
+diff -puN drivers/input/joystick/analog.c~mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix drivers/input/joystick/analog.c
+--- a/drivers/input/joystick/analog.c~mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix
++++ a/drivers/input/joystick/analog.c
+@@ -1,6 +1,4 @@
+ /*
+- * $Id: analog.c,v 1.68 2002/01/22 20:18:32 vojtech Exp $
+- *
+  *  Copyright (c) 1996-2001 Vojtech Pavlik
+  */
  
- 	uaddr = finfo->uaddr[uaddr_idx];
- 
-+	/* the MN10300 ASB2303 board doesn't detect its bootprom if this test
-+	 * is allowed to take place, presumably because the flash is
-+	 * write-protected and so cannot be commanded for the purposes of
-+	 * probing
-+	 */
-+#ifndef CONFIG_MN10300_UNIT_ASB2303
- 	if (uaddr != MTD_UADDR_NOT_SUPPORTED ) {
- 		/* ASSERT("The unlock addresses for non-8-bit mode
- 		   are bollocks. We don't really need an array."); */
- 		uaddr = finfo->uaddr[0];
- 	}
-+#endif
- 
-  uaddr_done:
- 	return uaddr;
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+pnp-increase-the-maximum-number-of-resources.patch
+fix-linux-kdh-usage-in-userspace.patch
+imacfb-remove-reference-to-otherwise-unused-non-existent-screen_infoimacpm_seg.patch
+revert-keyspan-init-termios-properly.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+git-acpi-ia64-build-fix.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-add-reboot-mechanism.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+kernel-auditc-warning-fix.patch
+git-cpufreq.patch
+git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
+agk-dm-dm-ioctl-move-compat-code-fix.patch
+dm-persistent_read_metadata-warning-fix.patch
+ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+git-drm-oops-fix.patch
+git-drm-warning-fix.patch
+intel-agp-enable-i915-recognition.patch
+git-dvb.patch
+fix-jdelvare-i2c-i2c-constify-client-address-data.patch
+revert-git-hrt.patch
+ia64-slim-down-__clear_bit_unlock.patch
+git-infiniband.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
+git-mmc.patch
 git-mtd.patch
-frv-fix-the-extern-declaration-of-kallsyms_num_syms.patch
-frv-arrange-things-such-that-bra-can-reach-from-the-trap.patch
-af_rxrpc-configure-crypto-correctly-for-af_rxrpc.patch
-frv-permit-the-memory-to-be-located-elsewhere-in-nommu-mode.patch
-frv-move-dma-macros-to-scatterlisth-for-consistency.patch
-frv-remove-dead-config-symbol-from-frv-code.patch
-nommu-add-new-vmalloc_user-and-remap_vmalloc_range-interfaces.patch
+sysctl-add-register_sysctl_paths-function-checkpatch-fixes.patch
+sysctl-infrastructure-for-per-namespace-sysctls-checkpatch-fixes.patch
+git-netdev-all.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+bluetooth-uninlining.patch
+git-nfsd.patch
+quirk-enable-msi-mapping-on-ht1000.patch
+git-sh.patch
+git-sh-fixup.patch
+git-scsi-misc-fixup.patch
+ips-trim-trailing-whitespace.patch
+scsi-gdth-kill-unneeded-irq-argument.patch
+libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+mct232-speed-new-termios-and-compliance-cleanups-fix.patch
+git-watchdog.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-build-fix.patch
+git-cryptodev.patch
+git-xtensa.patch
+ia64-increase-datapatch-offset.patch
+ia64-dont-assume-that-unwcheckpy-is-executable.patch
+ia64-export-copy_page-to-modules.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+sync_sb_inodes-propagate-errors.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
 64-bit-i_version-afs-fixes.patch
-add-an-err_cast-function-to-complement-err_ptr-and-co.patch
-convert-err_ptrptr_errp-instances-to-err_castp.patch
-iget-introduce-a-function-to-register-iget-failure.patch
-iget-use-iget_failed-in-afs.patch
-iget-use-iget_failed-in-gfs2.patch
-iget-stop-affs-from-using-iget-and-read_inode-try.patch
+ext4-add-block-bitmap-validation.patch
+ext4-fix-up-ext4fs_debug-builds.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
 iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-autofs-from-using-iget-and-read_inode.patch
-iget-stop-befs-from-using-iget-and-read_inode-try.patch
-iget-stop-bfs-from-using-iget-and-read_inode-try.patch
-iget-stop-cifs-from-using-iget-and-read_inode-try.patch
-iget-stop-efs-from-using-iget-and-read_inode-try.patch
 iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try.patch
 iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try.patch
 iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext4-from-using-iget-and-read_inode-try.patch
-iget-stop-fat-from-using-iget-and-read_inode-try.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-fix.patch
 iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-fuse-from-using-iget-and-read_inode-try.patch
-iget-stop-hfsplus-from-using-iget-and-read_inode.patch
-iget-stop-isofs-from-using-read_inode.patch
-iget-stop-jffs2-from-using-iget-and-read_inode.patch
-iget-stop-jfs-from-using-iget-and-read_inode-try.patch
-iget-stop-the-minix-filesystem-from-using-iget-and.patch
 iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode.patch
 iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try.patch
 iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode.patch
 iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and.patch
 iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try.patch
 iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-openpromfs-from-using-iget-and.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
 iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-hppfs-from-using-iget-and-read_inode.patch
-iget-remove-iget-and-the-read_inode-super-op-as.patch
-iget-stop-unionfs-from-using-iget-and-read_inode.patch
-unexport-asm-pageh.patch
-add-cmpxchg_local-to-frv.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
-aout-move-stack_top-to-asm-processorh.patch
-aout-mark-arches-that-support-aout-format.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth.patch
-usb-net2280-cant-have-a-function-called-show_registers.patch
-mn10300-allocate-serial-port-uart-ids-for-on-chip-serial-ports.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel.patch
-mn10300-add-platform-mtd-support-for-the-asb2303-board.patch
-mn10300-fix-mtd-jedec-probe-so-that-the-asb2303-bootprom-can-be-detected.patch
-mutex-subsystem-synchro-test-module.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
