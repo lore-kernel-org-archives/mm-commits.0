@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-infrastructure-for-per-namespace-sysctls.patch added to -mm tree
-Date: Thu, 29 Nov 2007 16:28:56 -0800
-Message-ID: <200711300028.lAU0SueI015061@imap1.linux-foundation.org>
+Subject: + sysctl-infrastructure-for-per-namespace-sysctls-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 29 Nov 2007 16:29:48 -0800
+Message-ID: <200711300029.lAU0TmwU015086@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60922 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55586 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761190AbXK3AaG (ORCPT
+	by vger.kernel.org with ESMTP id S1762009AbXK3AaX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Nov 2007 19:30:06 -0500
+	Thu, 29 Nov 2007 19:30:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, clg@fr.ibm.com, davem@davemloft.net, dlezcano@fr.ibm.com, herbert@gondor.apana.org.au, serue@us.ibm.com, xemul@openvz.org
+Cc: akpm@linux-foundation.org, ebiederm@xmission.com, herbert@gondor.apana.org.au
 
 
 The patch titled
-     sysctl: infrastructure for per namespace sysctls
+     sysctl-infrastructure-for-per-namespace-sysctls-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     sysctl-infrastructure-for-per-namespace-sysctls.patch
+     sysctl-infrastructure-for-per-namespace-sysctls-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,442 +26,224 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: infrastructure for per namespace sysctls
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: sysctl-infrastructure-for-per-namespace-sysctls-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch implements the basic infrastructure for per namespace sysctls.
+WARNING: line over 80 characters
+#48: FILE: include/linux/sysctl.h:950:
++extern struct ctl_table_header *__sysctl_head_next(struct nsproxy *namespaces, struct ctl_table_header *prev);
 
-A list of lists of sysctl headers is added, allowing each namespace to have
-it's own list of sysctl headers.
+total: 0 errors, 1 warnings, 285 lines checked
 
-Each list of sysctl headers has a lookup function to find the first
-sysctl header in the list, allowing the lists to have a per namespace
-instance.
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-register_sysct_root is added to tell sysctl.c about additional
-lists of sysctl_headers.  As all of the users are expected to be in
-kernel no unregister function is provided.
+Please run checkpatch prior to sending patches
 
-sysctl_head_next is updated to walk through the list of lists.
-
-__register_sysctl_paths is added to add a new sysctl table on
-a non-default sysctl list.
-
-The only intrusive part of this patch is propagating the information
-to decided which list of sysctls to use for sysctl_check_table.
-
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: Daniel Lezcano <dlezcano@fr.ibm.com>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sysctl.h |   16 ++++++
- kernel/sysctl.c        |   93 ++++++++++++++++++++++++++++++++++-----
- kernel/sysctl_check.c  |   25 +++++-----
- 3 files changed, 111 insertions(+), 23 deletions(-)
+ include/linux/sysctl.h |    3 ++-
+ sysctl_check.c         |    0 
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/sysctl.h~sysctl-infrastructure-for-per-namespace-sysctls include/linux/sysctl.h
---- a/include/linux/sysctl.h~sysctl-infrastructure-for-per-namespace-sysctls
+diff -puN include/linux/sysctl.h~sysctl-infrastructure-for-per-namespace-sysctls-checkpatch-fixes include/linux/sysctl.h
+--- a/include/linux/sysctl.h~sysctl-infrastructure-for-per-namespace-sysctls-checkpatch-fixes
 +++ a/include/linux/sysctl.h
-@@ -945,7 +945,9 @@ enum
- 
- /* For the /proc/sys support */
+@@ -947,7 +947,8 @@ enum
  struct ctl_table;
-+struct nsproxy;
+ struct nsproxy;
  extern struct ctl_table_header *sysctl_head_next(struct ctl_table_header *prev);
-+extern struct ctl_table_header *__sysctl_head_next(struct nsproxy *namespaces, struct ctl_table_header *prev);
+-extern struct ctl_table_header *__sysctl_head_next(struct nsproxy *namespaces, struct ctl_table_header *prev);
++extern struct ctl_table_header *__sysctl_head_next(struct nsproxy *namespaces,
++						struct ctl_table_header *prev);
  extern void sysctl_head_finish(struct ctl_table_header *prev);
  extern int sysctl_perm(struct ctl_table *table, int op);
  
-@@ -1049,6 +1051,13 @@ struct ctl_table 
- 	void *extra2;
- };
- 
-+struct ctl_table_root {
-+	struct list_head root_list;
-+	struct list_head header_list;
-+	struct list_head *(*lookup)(struct ctl_table_root *root,
-+					   struct nsproxy *namespaces);
-+};
-+
- /* struct ctl_table_header is used to maintain dynamic lists of
-    struct ctl_table trees. */
- struct ctl_table_header
-@@ -1058,6 +1067,7 @@ struct ctl_table_header
- 	int used;
- 	struct completion *unregistering;
- 	struct ctl_table *ctl_table_arg;
-+	struct ctl_table_root *root;
- };
- 
- /* struct ctl_path describes where in the hierarchy a table is added */
-@@ -1066,12 +1076,16 @@ struct ctl_path {
- 	int ctl_name;
- };
- 
-+void register_sysctl_root(struct ctl_table_root *root);
-+struct ctl_table_header *__register_sysctl_paths(
-+	struct ctl_table_root *root, struct nsproxy *namespaces,
-+	const struct ctl_path *path, struct ctl_table *table);
- struct ctl_table_header *register_sysctl_table(struct ctl_table * table);
- struct ctl_table_header *register_sysctl_paths(const struct ctl_path *path,
- 						struct ctl_table *table);
- 
- void unregister_sysctl_table(struct ctl_table_header * table);
--int sysctl_check_table(struct ctl_table *table);
-+int sysctl_check_table(struct nsproxy *namespaces, struct ctl_table *table);
- 
- #else /* __KERNEL__ */
- 
-diff -puN kernel/sysctl.c~sysctl-infrastructure-for-per-namespace-sysctls kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-infrastructure-for-per-namespace-sysctls
-+++ a/kernel/sysctl.c
-@@ -156,8 +156,16 @@ static int proc_dointvec_taint(struct ct
- #endif
- 
- static struct ctl_table root_table[];
--static struct ctl_table_header root_table_header =
--	{ root_table, LIST_HEAD_INIT(root_table_header.ctl_entry) };
-+static struct ctl_table_root sysctl_table_root;
-+static struct ctl_table_header root_table_header = {
-+	.ctl_table = root_table,
-+	.ctl_entry = LIST_HEAD_INIT(sysctl_table_root.header_list),
-+	.root = &sysctl_table_root,
-+};
-+static struct ctl_table_root sysctl_table_root = {
-+	.root_list = LIST_HEAD_INIT(sysctl_table_root.root_list),
-+	.header_list = LIST_HEAD_INIT(root_table_header.ctl_entry),
-+};
- 
- static struct ctl_table kern_table[];
- static struct ctl_table vm_table[];
-@@ -1300,12 +1308,27 @@ void sysctl_head_finish(struct ctl_table
- 	spin_unlock(&sysctl_lock);
- }
- 
--struct ctl_table_header *sysctl_head_next(struct ctl_table_header *prev)
-+static struct list_head *
-+lookup_header_list(struct ctl_table_root *root, struct nsproxy *namespaces)
- {
-+	struct list_head *header_list;
-+	header_list = &root->header_list;
-+	if (root->lookup)
-+		header_list = root->lookup(root, namespaces);
-+	return header_list;
-+}
-+
-+struct ctl_table_header *__sysctl_head_next(struct nsproxy *namespaces,
-+					    struct ctl_table_header *prev)
-+{
-+	struct ctl_table_root *root;
-+	struct list_head *header_list;
- 	struct ctl_table_header *head;
- 	struct list_head *tmp;
-+
- 	spin_lock(&sysctl_lock);
- 	if (prev) {
-+		head = prev;
- 		tmp = &prev->ctl_entry;
- 		unuse_table(prev);
- 		goto next;
-@@ -1319,14 +1342,38 @@ struct ctl_table_header *sysctl_head_nex
- 		spin_unlock(&sysctl_lock);
- 		return head;
- 	next:
-+		root = head->root;
- 		tmp = tmp->next;
--		if (tmp == &root_table_header.ctl_entry)
--			break;
-+		header_list = lookup_header_list(root, namespaces);
-+		if (tmp != header_list)
-+			continue;
-+
-+		do {
-+			root = list_entry(root->root_list.next,
-+					struct ctl_table_root, root_list);
-+			if (root == &sysctl_table_root)
-+				goto out;
-+			header_list = lookup_header_list(root, namespaces);
-+		} while (list_empty(header_list));
-+		tmp = header_list->next;
- 	}
-+out:
- 	spin_unlock(&sysctl_lock);
- 	return NULL;
- }
- 
-+struct ctl_table_header *sysctl_head_next(struct ctl_table_header *prev)
-+{
-+	return __sysctl_head_next(current->nsproxy, prev);
-+}
-+
-+void register_sysctl_root(struct ctl_table_root *root)
-+{
-+	spin_lock(&sysctl_lock);
-+	list_add_tail(&root->root_list, &sysctl_table_root.root_list);
-+	spin_unlock(&sysctl_lock);
-+}
-+
- #ifdef CONFIG_SYSCTL_SYSCALL
- int do_sysctl(int __user *name, int nlen, void __user *oldval, size_t __user *oldlenp,
- 	       void __user *newval, size_t newlen)
-@@ -1483,14 +1530,16 @@ static __init int sysctl_init(void)
- {
- 	int err;
- 	sysctl_set_parent(NULL, root_table);
--	err = sysctl_check_table(root_table);
-+	err = sysctl_check_table(current->nsproxy, root_table);
- 	return 0;
- }
- 
- core_initcall(sysctl_init);
- 
- /**
-- * register_sysctl_paths - register a sysctl hierarchy
-+ * __register_sysctl_paths - register a sysctl hierarchy
-+ * @root: List of sysctl headers to register on
-+ * @namespaces: Data to compute which lists of sysctl entries are visible
-  * @path: The path to the directory the sysctl table is in.
-  * @table: the top-level table structure
-  *
-@@ -1558,9 +1607,12 @@ core_initcall(sysctl_init);
-  * This routine returns %NULL on a failure to register, and a pointer
-  * to the table header on success.
-  */
--struct ctl_table_header *register_sysctl_paths(const struct ctl_path *path,
--						struct ctl_table *table)
-+struct ctl_table_header *__register_sysctl_paths(
-+	struct ctl_table_root *root,
-+	struct nsproxy *namespaces,
-+	const struct ctl_path *path, struct ctl_table *table)
- {
-+	struct list_head *header_list;
- 	struct ctl_table_header *header;
- 	struct ctl_table *new, **prevp;
- 	unsigned int n, npath;
-@@ -1603,19 +1655,38 @@ struct ctl_table_header *register_sysctl
- 	INIT_LIST_HEAD(&header->ctl_entry);
- 	header->used = 0;
- 	header->unregistering = NULL;
-+	header->root = root;
- 	sysctl_set_parent(NULL, header->ctl_table);
--	if (sysctl_check_table(header->ctl_table)) {
-+	if (sysctl_check_table(namespaces, header->ctl_table)) {
- 		kfree(header);
- 		return NULL;
- 	}
- 	spin_lock(&sysctl_lock);
--	list_add_tail(&header->ctl_entry, &root_table_header.ctl_entry);
-+	header_list = lookup_header_list(root, namespaces);
-+	list_add_tail(&header->ctl_entry, header_list);
- 	spin_unlock(&sysctl_lock);
- 
- 	return header;
- }
- 
- /**
-+ * register_sysctl_table_path - register a sysctl table hierarchy
-+ * @path: The path to the directory the sysctl table is in.
-+ * @table: the top-level table structure
-+ *
-+ * Register a sysctl table hierarchy. @table should be a filled in ctl_table
-+ * array. A completely 0 filled entry terminates the table.
-+ *
-+ * See __register_sysctl_paths for more details.
-+ */
-+struct ctl_table_header *register_sysctl_paths(const struct ctl_path *path,
-+						struct ctl_table *table)
-+{
-+	return __register_sysctl_paths(&sysctl_table_root, current->nsproxy,
-+					path, table);
-+}
-+
-+/**
-  * register_sysctl_table - register a sysctl table hierarchy
-  * @table: the top-level table structure
-  *
-diff -puN kernel/sysctl_check.c~sysctl-infrastructure-for-per-namespace-sysctls kernel/sysctl_check.c
---- a/kernel/sysctl_check.c~sysctl-infrastructure-for-per-namespace-sysctls
-+++ a/kernel/sysctl_check.c
-@@ -1338,7 +1338,8 @@ static void sysctl_repair_table(struct c
- 	}
- }
- 
--static struct ctl_table *sysctl_check_lookup(struct ctl_table *table)
-+static struct ctl_table *sysctl_check_lookup(struct nsproxy *namespaces,
-+						struct ctl_table *table)
- {
- 	struct ctl_table_header *head;
- 	struct ctl_table *ref, *test;
-@@ -1346,8 +1347,8 @@ static struct ctl_table *sysctl_check_lo
- 
- 	depth = sysctl_depth(table);
- 
--	for (head = sysctl_head_next(NULL); head;
--	     head = sysctl_head_next(head)) {
-+	for (head = __sysctl_head_next(namespaces, NULL); head;
-+	     head = __sysctl_head_next(namespaces, head)) {
- 		cur_depth = depth;
- 		ref = head->ctl_table;
- repeat:
-@@ -1392,13 +1393,14 @@ static void set_fail(const char **fail, 
- 	*fail = str;
- }
- 
--static int sysctl_check_dir(struct ctl_table *table)
-+static int sysctl_check_dir(struct nsproxy *namespaces,
-+				struct ctl_table *table)
- {
- 	struct ctl_table *ref;
- 	int error;
- 
- 	error = 0;
--	ref = sysctl_check_lookup(table);
-+	ref = sysctl_check_lookup(namespaces, table);
- 	if (ref) {
- 		int match = 0;
- 		if ((!table->procname && !ref->procname) ||
-@@ -1423,11 +1425,12 @@ static int sysctl_check_dir(struct ctl_t
- 	return error;
- }
- 
--static void sysctl_check_leaf(struct ctl_table *table, const char **fail)
-+static void sysctl_check_leaf(struct nsproxy *namespaces,
-+				struct ctl_table *table, const char **fail)
- {
- 	struct ctl_table *ref;
- 
--	ref = sysctl_check_lookup(table);
-+	ref = sysctl_check_lookup(namespaces, table);
- 	if (ref && (ref != table))
- 		set_fail(fail, table, "Sysctl already exists");
- }
-@@ -1451,7 +1454,7 @@ static void sysctl_check_bin_path(struct
- 	}
- }
- 
--int sysctl_check_table(struct ctl_table *table)
-+int sysctl_check_table(struct nsproxy *namespaces, struct ctl_table *table)
- {
- 	int error = 0;
- 	for (; table->ctl_name || table->procname; table++) {
-@@ -1481,7 +1484,7 @@ int sysctl_check_table(struct ctl_table 
- 				set_fail(&fail, table, "Directory with extra1");
- 			if (table->extra2)
- 				set_fail(&fail, table, "Directory with extra2");
--			if (sysctl_check_dir(table))
-+			if (sysctl_check_dir(namespaces, table))
- 				set_fail(&fail, table, "Inconsistent directory names");
- 		} else {
- 			if ((table->strategy == sysctl_data) ||
-@@ -1530,7 +1533,7 @@ int sysctl_check_table(struct ctl_table 
- 			if (!table->procname && table->proc_handler)
- 				set_fail(&fail, table, "proc_handler without procname");
- #endif
--			sysctl_check_leaf(table, &fail);
-+			sysctl_check_leaf(namespaces, table, &fail);
- 		}
- 		sysctl_check_bin_path(table, &fail);
- 		if (fail) {
-@@ -1538,7 +1541,7 @@ int sysctl_check_table(struct ctl_table 
- 			error = -EINVAL;
- 		}
- 		if (table->child)
--			error |= sysctl_check_table(table->child);
-+			error |= sysctl_check_table(namespaces, table->child);
- 	}
- 	return error;
- }
+diff -puN kernel/sysctl.c~sysctl-infrastructure-for-per-namespace-sysctls-checkpatch-fixes kernel/sysctl.c
+diff -puN kernel/sysctl_check.c~sysctl-infrastructure-for-per-namespace-sysctls-checkpatch-fixes kernel/sysctl_check.c
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-proc-fix-null-i_fop-oops.patch
-proc-remove-races-from-proc_id_readdir.patch
-the-namespaces-compatibility-list.patch
-git-net.patch
-sysctl-add-register_sysctl_paths-function.patch
+pnp-increase-the-maximum-number-of-resources.patch
+fix-linux-kdh-usage-in-userspace.patch
+imacfb-remove-reference-to-otherwise-unused-non-existent-screen_infoimacpm_seg.patch
+revert-keyspan-init-termios-properly.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+git-acpi-ia64-build-fix.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-add-reboot-mechanism.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+kernel-auditc-warning-fix.patch
+git-cpufreq.patch
+git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
+agk-dm-dm-ioctl-move-compat-code-fix.patch
+dm-persistent_read_metadata-warning-fix.patch
+ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+git-drm-oops-fix.patch
+git-drm-warning-fix.patch
+intel-agp-enable-i915-recognition.patch
+git-dvb.patch
+fix-jdelvare-i2c-i2c-constify-client-address-data.patch
+revert-git-hrt.patch
+ia64-slim-down-__clear_bit_unlock.patch
+git-infiniband.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
+git-mmc.patch
+git-mtd.patch
 sysctl-add-register_sysctl_paths-function-checkpatch-fixes.patch
-sysctl-remember-the-ctl_table-we-passed-to-register_sysctl_paths.patch
-sysctl-infrastructure-for-per-namespace-sysctls.patch
-net-implement-the-per-network-namespace-sysctl-infrastructure.patch
+sysctl-infrastructure-for-per-namespace-sysctls-checkpatch-fixes.patch
+git-netdev-all.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+bluetooth-uninlining.patch
+git-nfsd.patch
 quirk-enable-msi-mapping-on-ht1000.patch
-quirk-enable-msi-mapping-on-ht1000-v2.patch
-fix-proc-net-breakage.patch
-fix-proc-dcache-deadlock-in-do_exit.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
+git-sh.patch
+git-sh-fixup.patch
+git-scsi-misc-fixup.patch
+ips-trim-trailing-whitespace.patch
+scsi-gdth-kill-unneeded-irq-argument.patch
+libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+mct232-speed-new-termios-and-compliance-cleanups-fix.patch
+git-watchdog.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-build-fix.patch
+git-cryptodev.patch
+git-xtensa.patch
+ia64-increase-datapatch-offset.patch
+ia64-dont-assume-that-unwcheckpy-is-executable.patch
+ia64-export-copy_page-to-modules.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+sync_sb_inodes-propagate-errors.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+64-bit-i_version-afs-fixes.patch
+ext4-add-block-bitmap-validation.patch
+ext4-fix-up-ext4fs_debug-builds.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+cgroup-simplify-space-stripping-fix.patch
 memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
 memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-memcgroup-fix-try_to_free-order.patch
-memory-controller-improve-user-interface.patch
 memory-controller-oom-handling-v7.patch
 memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-memcgroup-reinstate-swapoff-mod.patch
-bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
-bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
-bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
-memcgroup-fix-zone-isolation-oom.patch
-memcgroup-revert-swap_state-mods.patch
-bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
-memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
-memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
 memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
 memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-memory-cgroup-enhancements-add-pre_destroy-handler.patch
-memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
-introduce-flags-for-reserve_bootmem.patch
-use-bootmem_exclusive-for-kdump.patch
-iget-stop-procfs-from-using-iget-and-read_inode.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
 iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-d_path-make-proc_get_link-use-a-struct-path-argument.patch
-add-the-namespaces-config-option.patch
-move-the-uts-namespace-under-uts_ns-option.patch
-move-the-ipc-namespace-under-ipc_ns-option.patch
-cleanup-the-code-managed-with-the-user_ns-option.patch
-cleanup-the-code-managed-with-pid_ns-option.patch
-mark-net_ns-with-depends-on-namespaces.patch
-proc-implement-proc_single_file_operations.patch
-proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces.patch
-proc-seqfile-convert-proc_pid_statm.patch
-proc-proper-pidns-handling-for-proc-self.patch
-proc-fix-the-threaded-proc-self.patch
-sys_setpgid-simplify-pid-ns-interaction.patch
-fix-setsid-for-sub-namespace-sbin-init.patch
-teach-set_special_pids-to-use-struct-pid.patch
-move-daemonized-kernel-threads-into-the-swappers-session.patch
-start-the-global-sbin-init-with-00-special-pids.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
