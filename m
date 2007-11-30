@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ata-ahci-enclosure-management-via-led.patch added to -mm tree
-Date: Thu, 29 Nov 2007 16:40:12 -0800
-Message-ID: <200711300040.lAU0eCKR015460@imap1.linux-foundation.org>
+Subject: + aout-mark-arches-that-support-aout-format.patch added to -mm tree
+Date: Thu, 29 Nov 2007 17:45:20 -0800
+Message-ID: <200711300145.lAU1jKjS017724@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49878 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42270 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761951AbXK3Aka (ORCPT
+	by vger.kernel.org with ESMTP id S1762058AbXK3BqC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Nov 2007 19:40:30 -0500
+	Thu, 29 Nov 2007 20:46:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kristen.c.accardi@intel.com, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, jeff@garzik.org
+Cc: dhowells@redhat.com, linux-arch@vger.kernel.org
 
 
 The patch titled
-     ata: ahci: Enclosure Management via LED
+     aout: mark arches that support A.OUT format
 has been added to the -mm tree.  Its filename is
-     ata-ahci-enclosure-management-via-led.patch
+     aout-mark-arches-that-support-aout-format.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,302 +26,303 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ata: ahci: Enclosure Management via LED
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Subject: aout: mark arches that support A.OUT format
+From: David Howells <dhowells@redhat.com>
 
-Implement Enclosure Management via the LED protocol.  See the AHCI 1.1 spec
-for details.
+Mark arches that support A.OUT format by including the following in their
+master Kconfig files:
 
-Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+	config ARCH_SUPPORTS_AOUT
+		def_bool y
+
+This should also be set if the arch provides compatibility A.OUT support for
+an older arch, for instance x86_64 for i386 or sparc64 for sparc.
+
+I've guessed at which arches don't, based on comments in the code, however I'm
+sure that some of the ones I've marked as 'yes' actually should be 'no'.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/ahci.c        |  154 +++++++++++++++++++++++++++++++++++-
- drivers/ata/libata-scsi.c |    5 -
- include/linux/libata.h    |    2 
- 3 files changed, 157 insertions(+), 4 deletions(-)
+ arch/alpha/Kconfig     |    3 +++
+ arch/arm/Kconfig       |    3 +++
+ arch/h8300/Kconfig     |    3 +++
+ arch/m32r/Kconfig      |    3 +++
+ arch/m68k/Kconfig      |    3 +++
+ arch/m68knommu/Kconfig |    3 +++
+ arch/parisc/Kconfig    |    3 +++
+ arch/sh/Kconfig        |    3 +++
+ arch/sparc/Kconfig     |    3 +++
+ arch/sparc64/Kconfig   |    5 ++++-
+ arch/um/Kconfig.i386   |    2 ++
+ arch/um/Kconfig.x86_64 |    2 ++
+ arch/v850/Kconfig      |    3 +++
+ arch/x86/Kconfig       |    5 ++++-
+ 14 files changed, 42 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/ahci.c~ata-ahci-enclosure-management-via-led drivers/ata/ahci.c
---- a/drivers/ata/ahci.c~ata-ahci-enclosure-management-via-led
-+++ a/drivers/ata/ahci.c
-@@ -44,6 +44,7 @@
- #include <linux/dmi.h>
- #include <scsi/scsi_host.h>
- #include <scsi/scsi_cmnd.h>
-+#include <scsi/scsi_device.h>
- #include <linux/libata.h>
+diff -puN arch/alpha/Kconfig~aout-mark-arches-that-support-aout-format arch/alpha/Kconfig
+--- a/arch/alpha/Kconfig~aout-mark-arches-that-support-aout-format
++++ a/arch/alpha/Kconfig
+@@ -66,6 +66,9 @@ config AUTO_IRQ_AFFINITY
+ 	depends on SMP
+ 	default y
  
- #define DRV_NAME	"ahci"
-@@ -92,6 +93,8 @@ enum {
- 	HOST_IRQ_STAT		= 0x08, /* interrupt status */
- 	HOST_PORTS_IMPL		= 0x0c, /* bitmap of implemented ports */
- 	HOST_VERSION		= 0x10, /* AHCI spec. version compliancy */
-+	HOST_EM_LOC		= 0x1c, /* Enclosure Management location */
-+	HOST_EM_CTL		= 0x20, /* Enclosure Management Control */
++config ARCH_SUPPORTS_AOUT
++	def_bool y
++
+ source "init/Kconfig"
  
- 	/* HOST_CTL bits */
- 	HOST_RESET		= (1 << 0),  /* reset controller; self-clear */
-@@ -99,6 +102,7 @@ enum {
- 	HOST_AHCI_EN		= (1 << 31), /* AHCI enabled */
  
- 	/* HOST_CAP bits */
-+	HOST_CAP_EMS		= (1 << 6),  /* Enclosure Management support */
- 	HOST_CAP_SSC		= (1 << 14), /* Slumber capable */
- 	HOST_CAP_PMP		= (1 << 17), /* Port Multiplier support */
- 	HOST_CAP_CLO		= (1 << 24), /* Command List Override support */
-@@ -193,6 +197,10 @@ enum {
- 					  ATA_FLAG_ACPI_SATA | ATA_FLAG_AN |
- 					  ATA_FLAG_IPM,
- 	AHCI_LFLAG_COMMON		= ATA_LFLAG_SKIP_D2H_BSY,
-+
-+	/* em_ctl bits */
-+	EM_CTL_RST			= (1 << 9), /* Reset */
-+	EM_CTL_TM			= (1 << 8), /* Transmit Message */
- };
+diff -puN arch/arm/Kconfig~aout-mark-arches-that-support-aout-format arch/arm/Kconfig
+--- a/arch/arm/Kconfig~aout-mark-arches-that-support-aout-format
++++ a/arch/arm/Kconfig
+@@ -114,6 +114,9 @@ config GENERIC_CALIBRATE_DELAY
+ 	bool
+ 	default y
  
- struct ahci_cmd_hdr {
-@@ -216,6 +224,7 @@ struct ahci_host_priv {
- 	u32			port_map;	/* port map to use */
- 	u32			saved_cap;	/* saved initial cap */
- 	u32			saved_port_map;	/* saved initial port_map */
-+	u32 			em_loc; /* enclosure management location */
- };
++config ARCH_SUPPORTS_AOUT
++	def_bool y
++
+ config ARCH_MAY_HAVE_PC_FDC
+ 	bool
  
- struct ahci_port_priv {
-@@ -231,6 +240,7 @@ struct ahci_port_priv {
- 	unsigned int		ncq_saw_dmas:1;
- 	unsigned int		ncq_saw_sdb:1;
- 	u32 			intr_mask;	/* interrupts to enable */
-+	u16			led_state;	/* saved current led state */
- };
+diff -puN arch/h8300/Kconfig~aout-mark-arches-that-support-aout-format arch/h8300/Kconfig
+--- a/arch/h8300/Kconfig~aout-mark-arches-that-support-aout-format
++++ a/arch/h8300/Kconfig
+@@ -65,6 +65,9 @@ config TIME_LOW_RES
+ 	bool
+ 	default y
  
- static int ahci_scr_read(struct ata_port *ap, unsigned int sc_reg, u32 *val);
-@@ -572,6 +582,11 @@ static struct pci_driver ahci_pci_driver
- #endif
- };
++config ARCH_SUPPORTS_AOUT
++	def_bool y
++
+ config NO_IOPORT
+ 	def_bool y
  
-+static int ahci_em_messages = 1;
-+module_param(ahci_em_messages, int, 0444);
-+/* add other LED protocol types when they become supported */
-+MODULE_PARM_DESC(ahci_em_messages,
-+	"Set AHCI Enclosure Management Message type (0 = disabled, 1 = LED");
+diff -puN arch/m32r/Kconfig~aout-mark-arches-that-support-aout-format arch/m32r/Kconfig
+--- a/arch/m32r/Kconfig~aout-mark-arches-that-support-aout-format
++++ a/arch/m32r/Kconfig
+@@ -34,6 +34,9 @@ config NO_IOPORT
+ config NO_DMA
+ 	def_bool y
  
- static inline int ahci_nr_ports(u32 cap)
- {
-@@ -1082,6 +1097,118 @@ static int ahci_reset_controller(struct 
- 	return 0;
- }
++config ARCH_SUPPORTS_AOUT
++	def_bool y
++
+ source "init/Kconfig"
  
-+/****** LED Enclosure Management routines ********/
-+static int ahci_reset_em(struct ata_host *host)
-+{
-+	void __iomem *mmio = host->iomap[AHCI_PCI_BAR];
-+	u32 em_ctl;
-+
-+	em_ctl = readl(mmio + HOST_EM_CTL);
-+	if ((em_ctl & EM_CTL_TM) || (em_ctl & EM_CTL_RST))
-+		return -EINVAL;
-+
-+	writel(em_ctl | EM_CTL_RST, mmio + HOST_EM_CTL);
-+	return 0;
-+}
-+
-+static int ahci_transmit_led_message(struct ata_port *ap, int led_num,
-+			int state)
-+{
-+	struct ahci_host_priv *hpriv = ap->host->private_data;
-+	void __iomem *mmio = ap->host->iomap[AHCI_PCI_BAR];
-+	struct ahci_port_priv *pp = ap->private_data;
-+	u32 em_ctl;
-+	u32 message[] = {0, 0};
-+	unsigned int flags;
-+
-+	spin_lock_irqsave(ap->lock, flags);
-+
-+	/*
-+	 * if we are still busy transmitting a previous message,
-+	 * do not allow
-+	 */
-+	em_ctl = readl(mmio + HOST_EM_CTL);
-+	if (em_ctl & EM_CTL_TM) {
-+		spin_unlock_irqrestore(ap->lock, flags);
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	 * create message header - this is all zero except for
-+	 * the message size, which is 4 bytes.
-+	 */
-+	message[0] |= (4 << 8);
-+
-+	pp->led_state &= ~(9 << (3*led_num));
-+
-+	/*
-+	 * create the actual message
-+	 * XXX will need Port Multiplier support
-+	 */
-+	message[1] = (ap->port_no | (pp->led_state << 16));
-+
-+	/* LED bit locations are determined by the led_num */
-+	message[1] |= (state << (16 + (3*led_num)));
-+
-+	/* write message to EM_LOC */
-+	writel(message[0], mmio + hpriv->em_loc);
-+	writel(message[1], mmio + hpriv->em_loc+4);
-+
-+	/* save off new led state */
-+	pp->led_state = ((message[1] >> 16) & 0x00ff);
-+
-+	/*
-+	 * tell hardware to transmit the message
-+	 */
-+	writel(em_ctl | EM_CTL_TM, mmio + HOST_EM_CTL);
-+
-+	spin_unlock_irqrestore(ap->lock, flags);
-+	return 0;
-+}
-+
-+static int ahci_led_store(struct device *dev, const char *buf, int num)
-+{
-+	struct scsi_device *sdev = to_scsi_device(dev);
-+	struct ata_port *ap = ata_shost_to_port(sdev->host);
-+	struct ata_device *atadev = ata_scsi_find_dev(ap, sdev);
-+	int state;
-+
-+	if (!atadev || !ata_dev_enabled(atadev))
-+		return -EINVAL;
-+
-+	state = simple_strtoul(buf, NULL, 0);
-+	if (state != 0 && state != 1)
-+		return -EINVAL;
-+
-+	return ahci_transmit_led_message(ap, num, state);
-+}
-+
-+static ssize_t ahci_led_locate_store(struct device *dev,
-+	struct device_attribute *attr, const char *buf, size_t count)
-+{
-+	int rc = ahci_led_store(dev, buf, 1);
-+	if (!rc)
-+		return count;
-+	return rc;
-+}
-+static DEVICE_ATTR(locate, S_IWUSR | S_IRUGO, NULL, ahci_led_locate_store);
-+
-+static ssize_t ahci_led_fault_store(struct device *dev,
-+	struct device_attribute *attr, const char *buf, size_t count)
-+{
-+	int rc = ahci_led_store(dev, buf, 2);
-+	if (!rc)
-+		return count;
-+	return rc;
-+}
-+static DEVICE_ATTR(fault, S_IWUGO, NULL, ahci_led_fault_store);
-+
-+static struct device_attribute *ahci_em_led_attrs[] = {
-+	&dev_attr_locate,
-+	&dev_attr_fault,
-+	NULL
-+};
-+
- static void ahci_port_init(struct pci_dev *pdev, struct ata_port *ap,
- 			   int port_no, void __iomem *mmio,
- 			   void __iomem *port_mmio)
-@@ -2178,7 +2305,8 @@ static void ahci_print_info(struct ata_h
- 	dev_printk(KERN_INFO, &pdev->dev,
- 		"flags: "
- 		"%s%s%s%s%s%s%s"
--		"%s%s%s%s%s%s%s\n"
-+		"%s%s%s%s%s%s%s"
-+		"%s\n"
- 		,
  
- 		cap & (1 << 31) ? "64bit " : "",
-@@ -2195,7 +2323,8 @@ static void ahci_print_info(struct ata_h
- 		cap & (1 << 17) ? "pmp " : "",
- 		cap & (1 << 15) ? "pio " : "",
- 		cap & (1 << 14) ? "slum " : "",
--		cap & (1 << 13) ? "part " : ""
-+		cap & (1 << 13) ? "part " : "",
-+		cap & (1 << 6) ? "ems ": ""
- 		);
- }
+diff -puN arch/m68k/Kconfig~aout-mark-arches-that-support-aout-format arch/m68k/Kconfig
+--- a/arch/m68k/Kconfig~aout-mark-arches-that-support-aout-format
++++ a/arch/m68k/Kconfig
+@@ -52,6 +52,9 @@ config NO_IOPORT
+ config NO_DMA
+ 	def_bool SUN3
  
-@@ -2331,6 +2460,27 @@ static int ahci_init_one(struct pci_dev 
- 	ahci_init_controller(host);
- 	ahci_print_info(host);
++config ARCH_SUPPORTS_AOUT
++	def_bool y
++
+ mainmenu "Linux/68k Kernel Configuration"
  
-+	if (ahci_em_messages && (hpriv->cap & HOST_CAP_EMS)) {
-+		u8 messages;
-+		void __iomem *mmio = host->iomap[AHCI_PCI_BAR];
-+		u32 em_loc = readl(mmio + HOST_EM_LOC);
-+		u32 em_ctl = readl(mmio + HOST_EM_CTL);
-+
-+		messages = (em_ctl & 0x000f0000) >> 16;
-+
-+		/* we only support LED message type right now */
-+		if ((messages & 0x01) && (ahci_em_messages == 1)) {
-+			/* store em_loc */
-+			hpriv->em_loc = ((em_loc >> 16) * 4);
-+
-+			/* reset the LEDs */
-+			ahci_reset_em(host);
-+
-+			/* modify sht to add led sysfs files */
-+			ahci_sht.sdev_attrs = ahci_em_led_attrs;
-+		}
-+	}
-+
- 	pci_set_master(pdev);
- 	return ata_host_activate(host, pdev->irq, ahci_interrupt, IRQF_SHARED,
- 				 &ahci_sht);
-diff -puN drivers/ata/libata-scsi.c~ata-ahci-enclosure-management-via-led drivers/ata/libata-scsi.c
---- a/drivers/ata/libata-scsi.c~ata-ahci-enclosure-management-via-led
-+++ a/drivers/ata/libata-scsi.c
-@@ -55,7 +55,7 @@ typedef unsigned int (*ata_xlat_func_t)(
+ source "init/Kconfig"
+diff -puN arch/m68knommu/Kconfig~aout-mark-arches-that-support-aout-format arch/m68knommu/Kconfig
+--- a/arch/m68knommu/Kconfig~aout-mark-arches-that-support-aout-format
++++ a/arch/m68knommu/Kconfig
+@@ -60,6 +60,9 @@ config TIME_LOW_RES
+ config NO_IOPORT
+ 	def_bool y
  
- static struct ata_device *__ata_scsi_find_dev(struct ata_port *ap,
- 					const struct scsi_device *scsidev);
--static struct ata_device *ata_scsi_find_dev(struct ata_port *ap,
-+struct ata_device *ata_scsi_find_dev(struct ata_port *ap,
- 					    const struct scsi_device *scsidev);
- static int ata_scsi_user_scan(struct Scsi_Host *shost, unsigned int channel,
- 			      unsigned int id, unsigned int lun);
-@@ -2622,7 +2622,7 @@ static int ata_scsi_dev_enabled(struct a
-  *	RETURNS:
-  *	Associated ATA device, or %NULL if not found.
-  */
--static struct ata_device *
-+struct ata_device *
- ata_scsi_find_dev(struct ata_port *ap, const struct scsi_device *scsidev)
- {
- 	struct ata_device *dev = __ata_scsi_find_dev(ap, scsidev);
-@@ -2632,6 +2632,7 @@ ata_scsi_find_dev(struct ata_port *ap, c
++config ARCH_SUPPORTS_AOUT
++	def_bool y
++
+ source "init/Kconfig"
  
- 	return dev;
- }
-+EXPORT_SYMBOL_GPL(ata_scsi_find_dev);
+ menu "Processor type and features"
+diff -puN arch/parisc/Kconfig~aout-mark-arches-that-support-aout-format arch/parisc/Kconfig
+--- a/arch/parisc/Kconfig~aout-mark-arches-that-support-aout-format
++++ a/arch/parisc/Kconfig
+@@ -69,6 +69,9 @@ config IRQ_PER_CPU
+ 	bool
+ 	default y
  
- /*
-  *	ata_scsi_map_proto - Map pass-thru protocol value to taskfile value.
-diff -puN include/linux/libata.h~ata-ahci-enclosure-management-via-led include/linux/libata.h
---- a/include/linux/libata.h~ata-ahci-enclosure-management-via-led
-+++ a/include/linux/libata.h
-@@ -913,6 +913,8 @@ extern int ata_scsi_slave_config(struct 
- extern void ata_scsi_slave_destroy(struct scsi_device *sdev);
- extern int ata_scsi_change_queue_depth(struct scsi_device *sdev,
- 				       int queue_depth);
-+struct ata_device *ata_scsi_find_dev(struct ata_port *ap,
-+				      const struct scsi_device *scsidev);
- extern struct ata_device *ata_dev_pair(struct ata_device *adev);
- extern int ata_do_set_mode(struct ata_link *link, struct ata_device **r_failed_dev);
- extern u8 ata_irq_on(struct ata_port *ap);
++config ARCH_SUPPORTS_AOUT
++	def_bool y
++
+ # unless you want to implement ACPI on PA-RISC ... ;-)
+ config PM
+ 	bool
+diff -puN arch/sh/Kconfig~aout-mark-arches-that-support-aout-format arch/sh/Kconfig
+--- a/arch/sh/Kconfig~aout-mark-arches-that-support-aout-format
++++ a/arch/sh/Kconfig
+@@ -98,6 +98,9 @@ config ARCH_HAS_ILOG2_U64
+ config ARCH_NO_VIRT_TO_BUS
+ 	def_bool y
+ 
++config ARCH_SUPPORTS_AOUT
++	def_bool y
++
+ source "init/Kconfig"
+ 
+ menu "System type"
+diff -puN arch/sparc/Kconfig~aout-mark-arches-that-support-aout-format arch/sparc/Kconfig
+--- a/arch/sparc/Kconfig~aout-mark-arches-that-support-aout-format
++++ a/arch/sparc/Kconfig
+@@ -27,6 +27,9 @@ config ARCH_NO_VIRT_TO_BUS
+ config OF
+ 	def_bool y
+ 
++config ARCH_SUPPORTS_AOUT
++	def_bool y
++
+ source "init/Kconfig"
+ 
+ menu "General machine setup"
+diff -puN arch/sparc64/Kconfig~aout-mark-arches-that-support-aout-format arch/sparc64/Kconfig
+--- a/arch/sparc64/Kconfig~aout-mark-arches-that-support-aout-format
++++ a/arch/sparc64/Kconfig
+@@ -76,6 +76,9 @@ config GENERIC_HARDIRQS_NO__DO_IRQ
+ 	bool
+ 	def_bool y
+ 
++config ARCH_SUPPORTS_AOUT
++	def_bool y
++
+ choice
+ 	prompt "Kernel page size"
+ 	default SPARC64_PAGE_SIZE_8KB
+@@ -386,7 +389,7 @@ config BINFMT_ELF32
+ 
+ config BINFMT_AOUT32
+ 	bool "Kernel support for 32-bit (ie. SunOS) a.out binaries"
+-	depends on SPARC32_COMPAT
++	depends on SPARC32_COMPAT && ARCH_SUPPORTS_AOUT
+ 	help
+ 	  This allows you to run 32-bit a.out format binaries on your Ultra.
+ 	  If you want to run SunOS binaries (see SunOS binary emulation below)
+diff -puN arch/um/Kconfig.i386~aout-mark-arches-that-support-aout-format arch/um/Kconfig.i386
+--- a/arch/um/Kconfig.i386~aout-mark-arches-that-support-aout-format
++++ a/arch/um/Kconfig.i386
+@@ -84,3 +84,5 @@ config GENERIC_HWEIGHT
+ 	bool
+ 	default y
+ 
++config ARCH_SUPPORTS_AOUT
++	def_bool y
+diff -puN arch/um/Kconfig.x86_64~aout-mark-arches-that-support-aout-format arch/um/Kconfig.x86_64
+--- a/arch/um/Kconfig.x86_64~aout-mark-arches-that-support-aout-format
++++ a/arch/um/Kconfig.x86_64
+@@ -39,3 +39,5 @@ config GENERIC_HWEIGHT
+ 	bool
+ 	default y
+ 
++config ARCH_SUPPORTS_AOUT
++	def_bool y
+diff -puN arch/v850/Kconfig~aout-mark-arches-that-support-aout-format arch/v850/Kconfig
+--- a/arch/v850/Kconfig~aout-mark-arches-that-support-aout-format
++++ a/arch/v850/Kconfig
+@@ -53,6 +53,9 @@ config ARCH_HAS_ILOG2_U64
+ 	bool
+ 	default n
+ 
++config ARCH_SUPPORTS_AOUT
++	def_bool y
++
+ # Turn off some random 386 crap that can affect device config
+ config ISA
+ 	bool
+diff -puN arch/x86/Kconfig~aout-mark-arches-that-support-aout-format arch/x86/Kconfig
+--- a/arch/x86/Kconfig~aout-mark-arches-that-support-aout-format
++++ a/arch/x86/Kconfig
+@@ -135,6 +135,9 @@ config AUDIT_ARCH
+ 	bool
+ 	default X86_64
+ 
++config ARCH_SUPPORTS_AOUT
++	def_bool y
++
+ # Use the generic interrupt handling code in kernel/irq/:
+ config GENERIC_HARDIRQS
+ 	bool
+@@ -1602,7 +1605,7 @@ config IA32_EMULATION
+ 
+ config IA32_AOUT
+        tristate "IA32 a.out support"
+-       depends on IA32_EMULATION
++       depends on IA32_EMULATION && ARCH_SUPPORTS_AOUT
+        help
+          Support old a.out binaries in the 32bit emulation.
+ 
 _
 
-Patches currently in -mm which might be from kristen.c.accardi@intel.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-ata-ahci-enclosure-management-via-led.patch
-pcie-fix-double-initialization-bug.patch
+git-mtd.patch
+frv-fix-the-extern-declaration-of-kallsyms_num_syms.patch
+frv-arrange-things-such-that-bra-can-reach-from-the-trap.patch
+af_rxrpc-configure-crypto-correctly-for-af_rxrpc.patch
+frv-permit-the-memory-to-be-located-elsewhere-in-nommu-mode.patch
+frv-move-dma-macros-to-scatterlisth-for-consistency.patch
+frv-remove-dead-config-symbol-from-frv-code.patch
+nommu-add-new-vmalloc_user-and-remap_vmalloc_range-interfaces.patch
+64-bit-i_version-afs-fixes.patch
+add-an-err_cast-function-to-complement-err_ptr-and-co.patch
+convert-err_ptrptr_errp-instances-to-err_castp.patch
+iget-introduce-a-function-to-register-iget-failure.patch
+iget-use-iget_failed-in-afs.patch
+iget-use-iget_failed-in-gfs2.patch
+iget-stop-affs-from-using-iget-and-read_inode-try.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-autofs-from-using-iget-and-read_inode.patch
+iget-stop-befs-from-using-iget-and-read_inode-try.patch
+iget-stop-bfs-from-using-iget-and-read_inode-try.patch
+iget-stop-cifs-from-using-iget-and-read_inode-try.patch
+iget-stop-efs-from-using-iget-and-read_inode-try.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext4-from-using-iget-and-read_inode-try.patch
+iget-stop-fat-from-using-iget-and-read_inode-try.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-fix.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-fuse-from-using-iget-and-read_inode-try.patch
+iget-stop-hfsplus-from-using-iget-and-read_inode.patch
+iget-stop-isofs-from-using-read_inode.patch
+iget-stop-jffs2-from-using-iget-and-read_inode.patch
+iget-stop-jfs-from-using-iget-and-read_inode-try.patch
+iget-stop-the-minix-filesystem-from-using-iget-and.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-openpromfs-from-using-iget-and.patch
+iget-stop-hostfs-from-using-iget-and-read_inode.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-hppfs-from-using-iget-and-read_inode.patch
+iget-remove-iget-and-the-read_inode-super-op-as.patch
+iget-stop-unionfs-from-using-iget-and-read_inode.patch
+unexport-asm-pageh.patch
+add-cmpxchg_local-to-frv.patch
+use-path_put-in-a-few-places-instead-of-mntdput.patch
+tty-let-architectures-override-the-user-kernel-macros.patch
+aout-move-stack_top-to-asm-processorh.patch
+aout-mark-arches-that-support-aout-format.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth.patch
+usb-net2280-cant-have-a-function-called-show_registers.patch
+mn10300-allocate-serial-port-uart-ids-for-on-chip-serial-ports.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel.patch
+mn10300-add-platform-mtd-support-for-the-asb2303-board.patch
+mn10300-fix-mtd-jedec-probe-so-that-the-asb2303-bootprom-can-be-detected.patch
+mutex-subsystem-synchro-test-module.patch
