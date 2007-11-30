@@ -1,60 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: + git-acpi-fixup.patch added to -mm tree
-Date: Fri, 30 Nov 2007 15:53:00 -0800
-Message-ID: <200711302353.lAUNr0RZ030739@imap1.linux-foundation.org>
+Subject: - git-scsi-misc-fixup.patch removed from -mm tree
+Date: Fri, 30 Nov 2007 15:55:31 -0800
+Message-ID: <200711302355.lAUNtVNe030796@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49600 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42253 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754738AbXK3Xxf (ORCPT
+	by vger.kernel.org with ESMTP id S1756570AbXK3Xzt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Nov 2007 18:53:35 -0500
+	Fri, 30 Nov 2007 18:55:49 -0500
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lAUNr05t012143
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lAUNtWZ7012220
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 30 Nov 2007 15:53:01 -0800
+	for <mm-commits@vger.kernel.org>; Fri, 30 Nov 2007 15:55:33 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-acpi-fixup
-has been added to the -mm tree.  Its filename is
-     git-acpi-fixup.patch
+     git-scsi-misc-fixup
+has been removed from the -mm tree.  Its filename was
+     git-scsi-misc-fixup.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-acpi-fixup
+Subject: git-scsi-misc-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/power/Makefile |    6 ------
- 1 file changed, 6 deletions(-)
+ Documentation/DocBook/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/base/power/Makefile~git-acpi-fixup drivers/base/power/Makefile
---- a/drivers/base/power/Makefile~git-acpi-fixup
-+++ a/drivers/base/power/Makefile
-@@ -1,12 +1,6 @@
- obj-y			:= shutdown.o
--<<<<<<< HEAD:drivers/base/power/Makefile
--obj-$(CONFIG_PM)	+= sysfs.o
--obj-$(CONFIG_PM_SLEEP)	+= main.o
--obj-$(CONFIG_PM_TRACE)	+= trace.o
--=======
- obj-$(CONFIG_PM_SLEEP)	+= main.o sysfs.o
- obj-$(CONFIG_PM_TRACE_RTC)	+= trace.o
-->>>>>>> FETCH_HEAD:drivers/base/power/Makefile
+diff -puN Documentation/DocBook/Makefile~git-scsi-misc-fixup Documentation/DocBook/Makefile
+--- a/Documentation/DocBook/Makefile~git-scsi-misc-fixup
++++ a/Documentation/DocBook/Makefile
+@@ -11,7 +11,7 @@ DOCBOOKS := wanbook.xml z8530book.xml mc
+ 	    procfs-guide.xml writing_usb_driver.xml \
+ 	    kernel-api.xml filesystems.xml lsm.xml usb.xml \
+ 	    gadget.xml libata.xml mtdnand.xml librs.xml rapidio.xml \
+-	    genericirq.xml s390-drivers.xml uio-howto.xml
++	    genericirq.xml s390-drivers.xml uio-howto.xml scsi.xml
  
- ifeq ($(CONFIG_DEBUG_DRIVER),y)
- EXTRA_CFLAGS += -DDEBUG
+ ###
+ # The build process is as follows (targets):
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -82,7 +74,6 @@ gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
 unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
 git-drm.patch
 git-drm-oops-fix.patch
-git-drm-warning-fix.patch
 intel-agp-enable-i915-recognition.patch
 git-dvb.patch
 fix-jdelvare-i2c-i2c-constify-client-address-data.patch
@@ -98,8 +89,6 @@ libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
 git-mmc.patch
 git-mtd.patch
 git-net.patch
-sysctl-add-register_sysctl_paths-function-checkpatch-fixes.patch
-sysctl-infrastructure-for-per-namespace-sysctls-checkpatch-fixes.patch
 git-netdev-all.patch
 ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
