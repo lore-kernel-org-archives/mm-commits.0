@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-net2280-cant-have-a-function-called-show_registers.patch added to -mm tree
-Date: Thu, 29 Nov 2007 17:45:31 -0800
-Message-ID: <200711300145.lAU1jV3r017733@imap1.linux-foundation.org>
+Subject: + mn10300-add-platform-mtd-support-for-the-asb2303-board.patch added to -mm tree
+Date: Thu, 29 Nov 2007 17:46:05 -0800
+Message-ID: <200711300146.lAU1k5LP017745@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45729 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41147 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760064AbXK3BqW (ORCPT
+	by vger.kernel.org with ESMTP id S1757618AbXK3BrF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Nov 2007 20:46:22 -0500
+	Thu, 29 Nov 2007 20:47:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, dbrownell@users.sourceforge.net, greg@kroah.com
+Cc: dhowells@redhat.com, dwmw2@infradead.org
 
 
 The patch titled
-     usb: net2280 can't have a function called show_registers()
+     mn10300: add platform MTD support for the ASB2303 board
 has been added to the -mm tree.  Its filename is
-     usb-net2280-cant-have-a-function-called-show_registers.patch
+     mn10300-add-platform-mtd-support-for-the-asb2303-board.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,47 +26,149 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: usb: net2280 can't have a function called show_registers()
+Subject: mn10300: add platform MTD support for the ASB2303 board
 From: David Howells <dhowells@redhat.com>
 
-net2280 can't have a function called show_registers() because this can produce
-a namespace clash with an arch function of the same name.
-
-All this driver's functions and variables should really be prefixed with
-"net2280_" to avoid such a problem in future.
+Add platform MTD support for the ASB2303 board.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/net2280.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/mn10300/configs/asb2303_defconfig |    5 -
+ arch/mn10300/unit-asb2303/Makefile     |    2 
+ arch/mn10300/unit-asb2303/flash.c      |  100 +++++++++++++++++++++++
+ 3 files changed, 105 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/gadget/net2280.c~usb-net2280-cant-have-a-function-called-show_registers drivers/usb/gadget/net2280.c
---- a/drivers/usb/gadget/net2280.c~usb-net2280-cant-have-a-function-called-show_registers
-+++ a/drivers/usb/gadget/net2280.c
-@@ -1418,8 +1418,8 @@ show_function (struct device *_dev, stru
- }
- static DEVICE_ATTR (function, S_IRUGO, show_function, NULL);
+diff -puN arch/mn10300/configs/asb2303_defconfig~mn10300-add-platform-mtd-support-for-the-asb2303-board arch/mn10300/configs/asb2303_defconfig
+--- a/arch/mn10300/configs/asb2303_defconfig~mn10300-add-platform-mtd-support-for-the-asb2303-board
++++ a/arch/mn10300/configs/asb2303_defconfig
+@@ -282,7 +282,10 @@ CONFIG_MTD_CFI_UTIL=y
+ # Mapping drivers for chip access
+ #
+ # CONFIG_MTD_COMPLEX_MAPPINGS is not set
+-# CONFIG_MTD_PHYSMAP is not set
++CONFIG_MTD_PHYSMAP=y
++CONFIG_MTD_PHYSMAP_START=0x8000000
++CONFIG_MTD_PHYSMAP_LEN=0x0
++CONFIG_MTD_PHYSMAP_BANKWIDTH=2
+ # CONFIG_MTD_PLATRAM is not set
  
--static ssize_t
--show_registers (struct device *_dev, struct device_attribute *attr, char *buf)
-+static ssize_t net2280_show_registers(struct device *_dev,
-+				struct device_attribute *attr, char *buf)
- {
- 	struct net2280		*dev;
- 	char			*next;
-@@ -1571,7 +1571,7 @@ show_registers (struct device *_dev, str
- 
- 	return PAGE_SIZE - size;
- }
--static DEVICE_ATTR (registers, S_IRUGO, show_registers, NULL);
-+static DEVICE_ATTR(registers, S_IRUGO, net2280_show_registers, NULL);
- 
- static ssize_t
- show_queues (struct device *_dev, struct device_attribute *attr, char *buf)
+ #
+diff -puN arch/mn10300/unit-asb2303/Makefile~mn10300-add-platform-mtd-support-for-the-asb2303-board arch/mn10300/unit-asb2303/Makefile
+--- a/arch/mn10300/unit-asb2303/Makefile~mn10300-add-platform-mtd-support-for-the-asb2303-board
++++ a/arch/mn10300/unit-asb2303/Makefile
+@@ -3,4 +3,4 @@
+ # Makefile for the ASB2303 board
+ #
+ ###############################################################################
+-obj-y   := unit-init.o smc91111.o leds.o
++obj-y   := unit-init.o smc91111.o flash.o leds.o
+diff -puN /dev/null arch/mn10300/unit-asb2303/flash.c
+--- /dev/null
++++ a/arch/mn10300/unit-asb2303/flash.c
+@@ -0,0 +1,100 @@
++/* Handle mapping of the flash on the ASB2303 board
++ *
++ * Copyright (C) 2007 Red Hat, Inc. All Rights Reserved.
++ * Written by David Howells (dhowells@redhat.com)
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public Licence
++ * as published by the Free Software Foundation; either version
++ * 2 of the Licence, or (at your option) any later version.
++ */
++#include <linux/init.h>
++#include <linux/platform_device.h>
++#include <linux/mtd/partitions.h>
++#include <linux/mtd/physmap.h>
++
++#define ASB2303_PROM_ADDR	0xA0000000	/* Boot PROM */
++#define ASB2303_PROM_SIZE	(2 * 1024 * 1024)
++#define ASB2303_FLASH_ADDR	0xA4000000	/* System Flash */
++#define ASB2303_FLASH_SIZE	(32 * 1024 * 1024)
++#define ASB2303_CONFIG_ADDR	0xA6000000	/* System Config EEPROM */
++#define ASB2303_CONFIG_SIZE	(8 * 1024)
++
++/*
++ * default MTD partition table for both main flash devices, expected to be
++ * overridden by RedBoot
++ */
++static struct mtd_partition asb2303_partitions[] = {
++	{
++		.name		= "Bootloader",
++		.size		= 0x00040000,
++		.offset		= 0,
++		.mask_flags	= MTD_CAP_ROM /* force read-only */
++	}, {
++		.name		= "Kernel",
++		.size		= 0x00400000,
++		.offset		= 0x00040000,
++	}, {
++		.name		= "Filesystem",
++		.size		= MTDPART_SIZ_FULL,
++		.offset		= 0x00440000
++	}
++};
++
++/*
++ * the ASB2303 Boot PROM definition
++ */
++static struct physmap_flash_data asb2303_bootprom_data = {
++	.width		= 2,
++	.nr_parts	= 1,
++	.parts		= asb2303_partitions,
++};
++
++static struct resource asb2303_bootprom_resource = {
++	.start		= ASB2303_PROM_ADDR,
++	.end		= ASB2303_PROM_ADDR + ASB2303_PROM_SIZE,
++	.flags		= IORESOURCE_MEM,
++};
++
++static struct platform_device asb2303_bootprom = {
++	.name		= "physmap-flash",
++	.id		= 0,
++	.dev.platform_data = &asb2303_bootprom_data,
++	.num_resources	= 1,
++	.resource	= &asb2303_bootprom_resource,
++};
++
++/*
++ * the ASB2303 System Flash definition
++ */
++static struct physmap_flash_data asb2303_sysflash_data = {
++	.width		= 4,
++	.nr_parts	= 1,
++	.parts		= asb2303_partitions,
++};
++
++static struct resource asb2303_sysflash_resource = {
++	.start		= ASB2303_FLASH_ADDR,
++	.end		= ASB2303_FLASH_ADDR + ASB2303_FLASH_SIZE,
++	.flags		= IORESOURCE_MEM,
++};
++
++static struct platform_device asb2303_sysflash = {
++	.name		= "physmap-flash",
++	.id		= 1,
++	.dev.platform_data = &asb2303_sysflash_data,
++	.num_resources	= 1,
++	.resource	= &asb2303_sysflash_resource,
++};
++
++/*
++ * register the ASB2303 flashes
++ */
++static int __init asb2303_mtd_init(void)
++{
++	platform_device_register(&asb2303_bootprom);
++	platform_device_register(&asb2303_sysflash);
++	return 0;
++}
++
++module_init(asb2303_mtd_init);
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
