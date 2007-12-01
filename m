@@ -1,79 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: - m68k-zorro7xx-needs-asm-amigahwh.patch removed from -mm tree
-Date: Fri, 30 Nov 2007 16:21:34 -0800
-Message-ID: <200712010021.lB10LYN6031770@imap1.linux-foundation.org>
+Subject: - fb_ddc-fix-ddc-lines-quirk.patch removed from -mm tree
+Date: Fri, 30 Nov 2007 16:21:38 -0800
+Message-ID: <200712010021.lB10LcrQ031773@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60289 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34190 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756491AbXLAAWc (ORCPT
+	by vger.kernel.org with ESMTP id S1756634AbXLAAWf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Nov 2007 19:22:32 -0500
+	Fri, 30 Nov 2007 19:22:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, ij@2007.bluespice.org, mm-commits@vger.kernel.org
+To: khali@linux-fr.org, adaplas@pol.net, benh@kernel.crashing.org, mb@bu3sch.de, rleigh@whinlatter.ukfsn.org, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m68k: zorro7xx needs <asm/amigahw.h>
+     fb_ddc: fix DDC lines quirk
 has been removed from the -mm tree.  Its filename was
-     m68k-zorro7xx-needs-asm-amigahwh.patch
+     fb_ddc-fix-ddc-lines-quirk.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: m68k: zorro7xx needs <asm/amigahw.h>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: fb_ddc: fix DDC lines quirk
+From: Jean Delvare <khali@linux-fr.org>
 
-m68k: zorro7xx needs <asm/amigahw.h> if !CONFIG_AMIGA_PCMCIA
+The code in fb_ddc_read() is said to be based on the implementation of the
+radeon driver:
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=fc5891c8a3ba284f13994d7bc1f1bfa8283982de
 
-Reported by Ingo Juergensmann <ij@2007.bluespice.org>
+However, comparing the old radeon driver code with the new fb_ddc code
+reveals some differences.  Most notably, the I2C bus lines are held at the
+end of the function, while the original code was releasing them (as the
+comment above correctly says.)
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+There are a few other differences, which appear to be responsible for read
+failures on my system.  While tracing low-level I2C code in i2c-algo-bit, I
+noticed that the initial attempt to read the EDID always failed.  It takes
+one retry for the read to succeed.  As we are about to remove this
+automatic retry property from i2c-algo-bit, reading the EDID would really
+fail.
+
+As a summary, the I2C lines quirk which is supposedly needed to read EDID
+on some older monitors is currently breaking the (first) read on all other
+monitors (and might not even work with older ones - did anyone try since
+October 2006?)
+
+After applying the patch below, which makes the code in fb_ddc_read()
+really similar to what the radeon driver used to have, the first EDID read
+succeeds again.
+
+On top of that, as it appears that this code has been broken for one year
+now and nobody seems to have complained, I'm curious if it makes sense to
+keep this quirk in place.  It makes the code more complex and slower just
+for the sake of monitors which I guess nobody uses anymore.  Can't we just
+get rid of it?
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Tested-by: Roger Leigh <rleigh@whinlatter.ukfsn.org>
+Tested-by: Michael Buesch <mb@bu3sch.de>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/zorro7xx.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/video/fb_ddc.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/scsi/zorro7xx.c~m68k-zorro7xx-needs-asm-amigahwh drivers/scsi/zorro7xx.c
---- a/drivers/scsi/zorro7xx.c~m68k-zorro7xx-needs-asm-amigahwh
-+++ a/drivers/scsi/zorro7xx.c
-@@ -13,7 +13,10 @@
- #include <linux/init.h>
- #include <linux/interrupt.h>
- #include <linux/zorro.h>
-+
-+#include <asm/amigahw.h>
- #include <asm/amigaints.h>
-+
- #include <scsi/scsi_host.h>
- #include <scsi/scsi_transport_spi.h>
+diff -puN drivers/video/fb_ddc.c~fb_ddc-fix-ddc-lines-quirk drivers/video/fb_ddc.c
+--- a/drivers/video/fb_ddc.c~fb_ddc-fix-ddc-lines-quirk
++++ a/drivers/video/fb_ddc.c
+@@ -56,13 +56,12 @@ unsigned char *fb_ddc_read(struct i2c_ad
+ 	int i, j;
  
+ 	algo_data->setscl(algo_data->data, 1);
+-	algo_data->setscl(algo_data->data, 0);
+ 
+ 	for (i = 0; i < 3; i++) {
+ 		/* For some old monitors we need the
+ 		 * following process to initialize/stop DDC
+ 		 */
+-		algo_data->setsda(algo_data->data, 0);
++		algo_data->setsda(algo_data->data, 1);
+ 		msleep(13);
+ 
+ 		algo_data->setscl(algo_data->data, 1);
+@@ -97,14 +96,15 @@ unsigned char *fb_ddc_read(struct i2c_ad
+ 		algo_data->setsda(algo_data->data, 1);
+ 		msleep(15);
+ 		algo_data->setscl(algo_data->data, 0);
++		algo_data->setsda(algo_data->data, 0);
+ 		if (edid)
+ 			break;
+ 	}
+ 	/* Release the DDC lines when done or the Apple Cinema HD display
+ 	 * will switch off
+ 	 */
+-	algo_data->setsda(algo_data->data, 0);
+-	algo_data->setscl(algo_data->data, 0);
++	algo_data->setsda(algo_data->data, 1);
++	algo_data->setscl(algo_data->data, 1);
+ 
+ 	return edid;
+ }
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from khali@linux-fr.org are
 
 origin.patch
-sdio-fix-module-device-table-definition-for-m68k.patch
-git-scsi-misc.patch
-m68k-use-cc-cross-prefix.patch
-m68k-array_size-cleanup.patch
-dio-array_size-cleanup.patch
-dio-array_size-cleanup-update.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-m68k-balance-ioremap-and-iounmap-in-m68k-atari-hades-pcic.patch
-nubus-kill-drivers-nubus-nubus_symsc.patch
-m68k-kill-arch-m68k-mac-mac_ksymsc.patch
-m68k-kill-arch-m68k-hp300-ksymsc.patch
-m68k-kill-arch-m68k-amiga-amiga_ksymsc.patch
-m68k-kill-arch-m68k-atari-atari_ksymsc.patch
-m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch
-mac68k-macii-adb-comment-correction.patch
-mac68k-remove-dead-code.patch
-mac68k-add-nubus-card-definitions-and-a-typo-fix.patch
-mac68k-remove-dead-mac_adbkeycodes.patch
-uml-borrow-consth-techniques.patch
-remove-pointless-casts-from-void-pointers.patch
-cleanup-after-apus-removal.patch
-add-cmpxchg_local-to-m86k.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+export-acpi_check_resource_conflict.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+fix-jdelvare-i2c-i2c-constify-client-address-data.patch
+git-hwmon.patch
+rtc-pcf8583-dont-abuse-i2c_m_nostart.patch
