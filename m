@@ -1,105 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - softlockup-fix-false-positives-on-config_nohz.patch removed from -mm tree
-Date: Fri, 30 Nov 2007 16:24:22 -0800
-Message-ID: <200712010024.lB10OMIt032063@imap1.linux-foundation.org>
+Subject: - x86_64-do-not-set-boot-cpu-in-cpu_online_map-at-x86_64_start_kernel.patch removed from -mm tree
+Date: Fri, 30 Nov 2007 16:23:40 -0800
+Message-ID: <200712010023.lB10Nex1032005@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51862 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36688 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756075AbXLAA1k (ORCPT
+	by vger.kernel.org with ESMTP id S1757799AbXLAA2C (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Nov 2007 19:27:40 -0500
+	Fri, 30 Nov 2007 19:28:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, davem@davemloft.net, mingo@elte.hu, mm-commits@vger.kernel.org
+To: Yinghai.Lu@Sun.COM, ak@suse.de, mingo@elte.hu, tglx@linutronix.de, yinghai.lu@Sun.COM, zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     softlockup: fix false positives on CONFIG_NOHZ
+     x86_64: do not set boot cpu in cpu_online_map at x86_64_start_kernel()
 has been removed from the -mm tree.  Its filename was
-     softlockup-fix-false-positives-on-config_nohz.patch
+     x86_64-do-not-set-boot-cpu-in-cpu_online_map-at-x86_64_start_kernel.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: softlockup: fix false positives on CONFIG_NOHZ
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: x86_64: do not set boot cpu in cpu_online_map at x86_64_start_kernel()
+From: Yinghai Lu <Yinghai.Lu@Sun.COM>
 
-David Miller reported soft lockup false-positives that trigger
-on NOHZ due to CPUs idling for more than 10 seconds.
+In init/main.c boot_cpu_init() does that later
 
-The solution is touch the softlockup watchdog when we return from
-idle. (by definition we are not 'locked up' when we were idle)
-
- http://bugzilla.kernel.org/show_bug.cgi?id=9409
-
-Reported-by: David Miller <davem@davemloft.net>
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
+Cc: Zachary Amsden <zach@vmware.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/tick-sched.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/x86/kernel/head64.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN kernel/time/tick-sched.c~softlockup-fix-false-positives-on-config_nohz kernel/time/tick-sched.c
---- a/kernel/time/tick-sched.c~softlockup-fix-false-positives-on-config_nohz
-+++ a/kernel/time/tick-sched.c
-@@ -133,6 +133,8 @@ void tick_nohz_update_jiffies(void)
- 	if (!ts->tick_stopped)
- 		return;
+diff -puN arch/x86/kernel/head64.c~x86_64-do-not-set-boot-cpu-in-cpu_online_map-at-x86_64_start_kernel arch/x86/kernel/head64.c
+--- a/arch/x86/kernel/head64.c~x86_64-do-not-set-boot-cpu-in-cpu_online_map-at-x86_64_start_kernel
++++ a/arch/x86/kernel/head64.c
+@@ -69,8 +69,6 @@ void __init x86_64_start_kernel(char * r
  
-+	touch_softlockup_watchdog();
+ 	pda_init(0);
+ 	copy_bootdata(__va(real_mode_data));
+-#ifdef CONFIG_SMP
+-	cpu_set(0, cpu_online_map);
+-#endif
 +
- 	cpu_clear(cpu, nohz_cpu_mask);
- 	now = ktime_get();
- 
+ 	start_kernel();
+ }
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
 
 origin.patch
-timerfd-v3-introduce-a-new-hrtimer_forward_now-function.patch
-timerfd-v3-new-timerfd-api.patch
-timerfd-v3-new-timerfd-api-update-sys_nic-with-the-new-timerfd-syscalls.patch
-timerfd-v3-wire-the-new-timerfd-api-to-the-x86-family.patch
-timerfd-v3-un-break-config_timerfd.patch
-git-hrt.patch
-revert-git-hrt.patch
-git-sched.patch
-track-accurate-idle-time-with-tick_schedidle_sleeptime.patch
-iommu-sg-merging-x86-make-pci-gart-iommu-respect-the-segment-size-limits.patch
+git-cpufreq.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
 git-x86.patch
-uml-add-asm-um-asmh.patch
-x86_64-add-acpi-reboot-option.patch
-clocksource-make-clocksource_mask-bullet-proof.patch
-time-fold-__get_realtime_clock_ts-into-getnstimeofday.patch
-x86_64-efi-runtime-service-support-efi-basic-runtime-service-support.patch
-x86_64-efi-runtime-service-support-efi-basic-runtime-service-support-fixes.patch
-x86_64-efi-runtime-service-support-efi-runtime-services.patch
-x86_64-efi-runtime-service-support-document-for-efi-runtime-services.patch
-x86_64-efi-runtime-service-support-remove-duplicated-code-from-efi_32c.patch
-git-cryptodev-fixup.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-printk-trivial-optimizations.patch
-time-fix-sysfs_show_availablecurrent_clocksources-buffer-overflow-problem.patch
-proc-loadavg-reading-race.patch
-fix-__const_udelay-declaration-and-definition-mismatches.patch
-avoid-overflows-in-kernel-timec.patch
-asic3-driver.patch
-asic3-driver-update.patch
-unexport-asm-userh-and-linux-userh.patch
-unexport-asm-pageh.patch
-sanitize-the-type-of-struct-useru_ar0.patch
-add-cmpxchg64-and-cmpxchg64_local-to-x86_64.patch
-modules-fold-percpu_modcopy-into-modulec-and-get-rid-of-the-macro-from-hell.patch
-clocksource-remove-redundant-code.patch
-clockevent-simplify-list-operations.patch
-timekeeping-rename-timekeeping_is_continuous-to-timekeeping_valid_for_hres.patch
-time-fix-typo-in-comments.patch
-time-delete-comments-that-refer-to-noexistent-symbols.patch
+kernel-printkc-concerns-about-the-console-handover.patch
