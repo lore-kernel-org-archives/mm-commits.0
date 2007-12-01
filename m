@@ -1,69 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - tty-add-the-new-termios2-ioctls-to-the-compatible.patch removed from -mm tree
-Date: Fri, 30 Nov 2007 16:24:10 -0800
-Message-ID: <200712010024.lB10OANK032047@imap1.linux-foundation.org>
+Subject: - dmaengine-correct-invalid-assumptions-in-the-kconfig-text.patch removed from -mm tree
+Date: Fri, 30 Nov 2007 16:22:07 -0800
+Message-ID: <200712010022.lB10M7R7031869@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56726 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59715 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757166AbXLAA1V (ORCPT
+	by vger.kernel.org with ESMTP id S1757290AbXLAA13 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Nov 2007 19:27:21 -0500
+	Fri, 30 Nov 2007 19:27:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: heiko.carstens@de.ibm.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: hskinnemoen@atmel.com, dan.j.williams@intel.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tty: add the new termios2 ioctls to the compatible list.
+     dmaengine: correct invalid assumptions in the Kconfig text
 has been removed from the -mm tree.  Its filename was
-     tty-add-the-new-termios2-ioctls-to-the-compatible.patch
+     dmaengine-correct-invalid-assumptions-in-the-kconfig-text.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: tty: add the new termios2 ioctls to the compatible list.
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: dmaengine: correct invalid assumptions in the Kconfig text
+From: Haavard Skinnemoen <hskinnemoen@atmel.com>
 
-Make them depend on TCGETS2.  If that one is implemented the rest should be
-there as well.
+This patch corrects recently changed (and now invalid) Kconfig descriptions
+for the DMA engine framework:
 
-Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+ - Non-Intel(R) hardware also has DMA engines;
+ - DMA is used for more than memcpy and RAID offloading.
+
+In fact, on most platforms memcpy and RAID aren't factors, and DMA
+exists so that peripherals can transfer data to/from memory while
+the CPU does other work.
+
+Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat_ioctl.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/dma/Kconfig |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN fs/compat_ioctl.c~tty-add-the-new-termios2-ioctls-to-the-compatible fs/compat_ioctl.c
---- a/fs/compat_ioctl.c~tty-add-the-new-termios2-ioctls-to-the-compatible
-+++ a/fs/compat_ioctl.c
-@@ -1954,6 +1954,12 @@ ULONG_IOCTL(TIOCSCTTY)
- COMPATIBLE_IOCTL(TIOCGPTN)
- COMPATIBLE_IOCTL(TIOCSPTLCK)
- COMPATIBLE_IOCTL(TIOCSERGETLSR)
-+#ifdef TCGETS2
-+COMPATIBLE_IOCTL(TCGETS2)
-+COMPATIBLE_IOCTL(TCSETS2)
-+COMPATIBLE_IOCTL(TCSETSW2)
-+COMPATIBLE_IOCTL(TCSETSF2)
-+#endif
- /* Little f */
- COMPATIBLE_IOCTL(FIOCLEX)
- COMPATIBLE_IOCTL(FIONCLEX)
+diff -puN drivers/dma/Kconfig~dmaengine-correct-invalid-assumptions-in-the-kconfig-text drivers/dma/Kconfig
+--- a/drivers/dma/Kconfig~dmaengine-correct-invalid-assumptions-in-the-kconfig-text
++++ a/drivers/dma/Kconfig
+@@ -3,11 +3,13 @@
+ #
+ 
+ menuconfig DMADEVICES
+-	bool "DMA Offload Engine support"
++	bool "DMA Engine support"
+ 	depends on (PCI && X86) || ARCH_IOP32X || ARCH_IOP33X || ARCH_IOP13XX
+ 	help
+-	  Intel(R) offload engines enable offloading memory copies in the
+-	  network stack and RAID operations in the MD driver.
++	  DMA engines can do asynchronous data transfers without
++	  involving the host CPU.  Currently, this framework can be
++	  used to offload memory copies in the network stack and
++	  RAID operations in the MD driver.
+ 
+ if DMADEVICES
+ 
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from hskinnemoen@atmel.com are
 
 origin.patch
-git-s390.patch
-taskstats-scaled-time-cleanup.patch
-unexport-asm-pageh.patch
+git-avr32.patch
+git-mtd.patch
+read_current_time-cleanups.patch
+fix-__const_udelay-declaration-and-definition-mismatches.patch
+atmel_spi-throughput-improvement.patch
+atmel_spi-chain-dma-transfers.patch
+atmel_spi-fix-dmachain-oops-with-debug-enabled.patch
+generic-gpio-gpio_chip-support.patch
+avr32-uses-gpio_chip.patch
+mcp23s08-spi-gpio-expander.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
 sanitize-the-type-of-struct-useru_ar0.patch
-add-cmpxchg_local-to-s390.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+add-cmpxchg_local-to-avr32.patch
 tty-let-architectures-override-the-user-kernel-macros.patch
-tty-s390-support-for-termios2.patch
-modules-fold-percpu_modcopy-into-modulec-and-get-rid-of-the-macro-from-hell.patch
