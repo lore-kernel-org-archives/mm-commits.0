@@ -1,327 +1,232 @@
 From: akpm@linux-foundation.org
-Subject: - fall-back-on-interrupt-disable-in-cmpxchg8b-on-80386-and-80486.patch removed from -mm tree
-Date: Fri, 30 Nov 2007 16:24:31 -0800
-Message-ID: <200712010024.lB10OVFA032078@imap1.linux-foundation.org>
+Subject: - git-x86-build-fix.patch removed from -mm tree
+Date: Fri, 30 Nov 2007 16:23:33 -0800
+Message-ID: <200712010023.lB10NXoh031996@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40122 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49002 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757787AbXLAA2C (ORCPT
+	by vger.kernel.org with ESMTP id S1757765AbXLAA2A (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Nov 2007 19:28:02 -0500
+	Fri, 30 Nov 2007 19:28:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, ak@suse.de, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, roland@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fall back on interrupt disable in cmpxchg8b on 80386 and 80486
+     git-x86-build-fix
 has been removed from the -mm tree.  Its filename was
-     fall-back-on-interrupt-disable-in-cmpxchg8b-on-80386-and-80486.patch
+     git-x86-build-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fall back on interrupt disable in cmpxchg8b on 80386 and 80486
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: git-x86-build-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Actually, on 386, cmpxchg and cmpxchg_local fall back on
-cmpxchg_386_u8/16/32: it disables interruptions around non atomic
-updates to mimic the cmpxchg behavior.
+arch/x86/kernel/asm-offsets_64.c: In function 'main':
+arch/x86/kernel/asm-offsets_64.c:49: error: 'struct thread_info' has no member named 'sysenter_return'
 
-The comment:
-/* Poor man's cmpxchg for 386. Unsuitable for SMP */
-
-already present in cmpxchg_386_u32 tells much about how this cmpxchg
-implementation should not be used in a SMP context. However, the cmpxchg_local
-can perfectly use this fallback, since it only needs to be atomic wrt the local
-cpu.
-
-This patch adds a cmpxchg_486_u64 and uses it as a fallback for cmpxchg64
-and cmpxchg64_local on 80386 and 80486.
-
-Q:
-but why is it called cmpxchg_486 when the other functions are called
-
-A:
-Because the standard cmpxchg is missing only on 386, but cmpxchg8b is
-missing both on 386 and 486.
-
-Citing Intel's Instruction set reference:
-
-cmpxchg:
-This instruction is not supported on Intel processors earlier than the
-Intel486 processors.
-
-cmpxchg8b:
-This instruction encoding is not supported on Intel processors earlier
-than the Pentium processors.
-
-Q:
-What's the reason to have cmpxchg64_local on 32 bit architectures?
-Without that need all this would just be a few simple defines.
-
-A:
-cmpxchg64_local on 32 bits architectures takes unsigned long long
-parameters, but cmpxchg_local only takes longs. Since we have cmpxchg8b
-to execute a 8 byte cmpxchg atomically on pentium and +, it makes sense
-to provide a flavor of cmpxchg and cmpxchg_local using this instruction.
-
-Also, for 32 bits architectures lacking the 64 bits atomic cmpxchg, it
-makes sense _not_ to define cmpxchg64 while cmpxchg could still be
-available.
-
-Moreover, the fallback for cmpxchg8b on i386 for 386 and 486 is a
-
-However, cmpxchg64_local will be emulated by disabling interrupts on all
-architectures where it is not supported atomically.
-
-Therefore, we *could* turn cmpxchg64_local into a cmpxchg_local, but it
-would make the 386/486 fallbacks ugly, make its design different from
-cmpxchg/cmpxchg64 (which really depends on atomic operations and cannot
-be emulated) and require the __cmpxchg_local to be expressed as a macro
-rather than an inline function so the parameters would not be fixed to
-unsigned long long in every case.
-
-So I think cmpxchg64_local makes sense there, but I am open to
-suggestions.
-
-Q:
-Are there any callers?
-
-A:
-I am actually using it in LTTng in my timestamping code. I use it to
-work around CPUs with asynchronous TSCs. I need to update 64 bits
-values atomically on this 32 bits architecture.
-
-Changelog:
-- Ran though checkpatch.
-
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Andi Kleen <ak@suse.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/intel.c  |   17 ++++
- include/asm-x86/cmpxchg_32.h |  122 +++++++++++++++++++++------------
- 2 files changed, 96 insertions(+), 43 deletions(-)
+ arch/x86/kernel/asm-offsets_64.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/x86/kernel/cpu/intel.c~fall-back-on-interrupt-disable-in-cmpxchg8b-on-80386-and-80486 arch/x86/kernel/cpu/intel.c
---- a/arch/x86/kernel/cpu/intel.c~fall-back-on-interrupt-disable-in-cmpxchg8b-on-80386-and-80486
-+++ a/arch/x86/kernel/cpu/intel.c
-@@ -342,5 +342,22 @@ unsigned long cmpxchg_386_u32(volatile v
- EXPORT_SYMBOL(cmpxchg_386_u32);
- #endif
- 
-+#ifndef CONFIG_X86_CMPXCHG64
-+unsigned long long cmpxchg_486_u64(volatile void *ptr, u64 old, u64 new)
-+{
-+	u64 prev;
-+	unsigned long flags;
-+
-+	/* Poor man's cmpxchg8b for 386 and 486. Unsuitable for SMP */
-+	local_irq_save(flags);
-+	prev = *(u64 *)ptr;
-+	if (prev == old)
-+		*(u64 *)ptr = new;
-+	local_irq_restore(flags);
-+	return prev;
-+}
-+EXPORT_SYMBOL(cmpxchg_486_u64);
+diff -puN arch/x86/kernel/asm-offsets_64.c~git-x86-build-fix arch/x86/kernel/asm-offsets_64.c
+--- a/arch/x86/kernel/asm-offsets_64.c~git-x86-build-fix
++++ a/arch/x86/kernel/asm-offsets_64.c
+@@ -46,7 +46,9 @@ int main(void)
+ 	ENTRY(addr_limit);
+ 	ENTRY(preempt_count);
+ 	ENTRY(status);
++#ifdef CONFIG_IA32_EMULATION
+ 	ENTRY(sysenter_return);
 +#endif
-+
- // arch_initcall(intel_cpu_init);
- 
-diff -puN include/asm-x86/cmpxchg_32.h~fall-back-on-interrupt-disable-in-cmpxchg8b-on-80386-and-80486 include/asm-x86/cmpxchg_32.h
---- a/include/asm-x86/cmpxchg_32.h~fall-back-on-interrupt-disable-in-cmpxchg8b-on-80386-and-80486
-+++ a/include/asm-x86/cmpxchg_32.h
-@@ -105,15 +105,24 @@ static inline unsigned long __xchg(unsig
- 
- #ifdef CONFIG_X86_CMPXCHG
- #define __HAVE_ARCH_CMPXCHG 1
--#define cmpxchg(ptr,o,n)\
--	((__typeof__(*(ptr)))__cmpxchg((ptr),(unsigned long)(o),\
--					(unsigned long)(n),sizeof(*(ptr))))
--#define sync_cmpxchg(ptr,o,n)\
--	((__typeof__(*(ptr)))__sync_cmpxchg((ptr),(unsigned long)(o),\
--					(unsigned long)(n),sizeof(*(ptr))))
--#define cmpxchg_local(ptr,o,n)\
--	((__typeof__(*(ptr)))__cmpxchg_local((ptr),(unsigned long)(o),\
--					(unsigned long)(n),sizeof(*(ptr))))
-+#define cmpxchg(ptr, o, n)						     \
-+	((__typeof__(*(ptr)))__cmpxchg((ptr), (unsigned long)(o),	     \
-+					(unsigned long)(n), sizeof(*(ptr))))
-+#define sync_cmpxchg(ptr, o, n)						     \
-+	((__typeof__(*(ptr)))__sync_cmpxchg((ptr), (unsigned long)(o),	     \
-+					(unsigned long)(n), sizeof(*(ptr))))
-+#define cmpxchg_local(ptr, o, n)					     \
-+	((__typeof__(*(ptr)))__cmpxchg_local((ptr), (unsigned long)(o),	     \
-+					(unsigned long)(n), sizeof(*(ptr))))
-+#endif
-+
-+#ifdef CONFIG_X86_CMPXCHG64
-+#define cmpxchg64(ptr, o, n)						      \
-+	((__typeof__(*(ptr)))__cmpxchg64((ptr), (unsigned long long)(o),      \
-+					(unsigned long long)(n)))
-+#define cmpxchg64_local(ptr, o, n)					      \
-+	((__typeof__(*(ptr)))__cmpxchg64_local((ptr), (unsigned long long)(o),\
-+					(unsigned long long)(n)))
- #endif
- 
- static inline unsigned long __cmpxchg(volatile void *ptr, unsigned long old,
-@@ -203,6 +212,34 @@ static inline unsigned long __cmpxchg_lo
- 	return old;
- }
- 
-+static inline unsigned long long __cmpxchg64(volatile void *ptr,
-+			unsigned long long old, unsigned long long new)
-+{
-+	unsigned long long prev;
-+	__asm__ __volatile__(LOCK_PREFIX "cmpxchg8b %3"
-+			     : "=A"(prev)
-+			     : "b"((unsigned long)new),
-+			       "c"((unsigned long)(new >> 32)),
-+			       "m"(*__xg(ptr)),
-+			       "0"(old)
-+			     : "memory");
-+	return prev;
-+}
-+
-+static inline unsigned long long __cmpxchg64_local(volatile void *ptr,
-+			unsigned long long old, unsigned long long new)
-+{
-+	unsigned long long prev;
-+	__asm__ __volatile__("cmpxchg8b %3"
-+			     : "=A"(prev)
-+			     : "b"((unsigned long)new),
-+			       "c"((unsigned long)(new >> 32)),
-+			       "m"(*__xg(ptr)),
-+			       "0"(old)
-+			     : "memory");
-+	return prev;
-+}
-+
- #ifndef CONFIG_X86_CMPXCHG
- /*
-  * Building a kernel capable running on 80386. It may be necessary to
-@@ -228,7 +265,7 @@ static inline unsigned long cmpxchg_386(
- 	return old;
- }
- 
--#define cmpxchg(ptr,o,n)						\
-+#define cmpxchg(ptr, o, n)						\
- ({									\
- 	__typeof__(*(ptr)) __ret;					\
- 	if (likely(boot_cpu_data.x86 > 3))				\
-@@ -239,7 +276,7 @@ static inline unsigned long cmpxchg_386(
- 					(unsigned long)(n), sizeof(*(ptr))); \
- 	__ret;								\
- })
--#define cmpxchg_local(ptr,o,n)						\
-+#define cmpxchg_local(ptr, o, n)					\
- ({									\
- 	__typeof__(*(ptr)) __ret;					\
- 	if (likely(boot_cpu_data.x86 > 3))				\
-@@ -252,38 +289,37 @@ static inline unsigned long cmpxchg_386(
- })
- #endif
- 
--static inline unsigned long long __cmpxchg64(volatile void *ptr, unsigned long long old,
--				      unsigned long long new)
--{
--	unsigned long long prev;
--	__asm__ __volatile__(LOCK_PREFIX "cmpxchg8b %3"
--			     : "=A"(prev)
--			     : "b"((unsigned long)new),
--			       "c"((unsigned long)(new >> 32)),
--			       "m"(*__xg(ptr)),
--			       "0"(old)
--			     : "memory");
--	return prev;
--}
-+#ifndef CONFIG_X86_CMPXCHG64
-+/*
-+ * Building a kernel capable running on 80386 and 80486. It may be necessary
-+ * to simulate the cmpxchg8b on the 80386 and 80486 CPU.
-+ */
- 
--static inline unsigned long long __cmpxchg64_local(volatile void *ptr,
--			unsigned long long old, unsigned long long new)
--{
--	unsigned long long prev;
--	__asm__ __volatile__("cmpxchg8b %3"
--			     : "=A"(prev)
--			     : "b"((unsigned long)new),
--			       "c"((unsigned long)(new >> 32)),
--			       "m"(*__xg(ptr)),
--			       "0"(old)
--			     : "memory");
--	return prev;
--}
-+extern unsigned long long cmpxchg_486_u64(volatile void *, u64, u64);
-+
-+#define cmpxchg64(ptr, o, n)						\
-+({									\
-+	__typeof__(*(ptr)) __ret;					\
-+	if (likely(boot_cpu_data.x86 > 4))				\
-+		__ret = __cmpxchg64((ptr), (unsigned long long)(o),	\
-+				(unsigned long long)(n));		\
-+	else								\
-+		__ret = cmpxchg_486_u64((ptr), (unsigned long long)(o),	\
-+				(unsigned long long)(n));		\
-+	__ret;								\
-+})
-+#define cmpxchg64_local(ptr, o, n)					\
-+({									\
-+	__typeof__(*(ptr)) __ret;					\
-+	if (likely(boot_cpu_data.x86 > 4))				\
-+		__ret = __cmpxchg64_local((ptr), (unsigned long long)(o), \
-+				(unsigned long long)(n));		\
-+	else								\
-+		__ret = cmpxchg_486_u64((ptr), (unsigned long long)(o),	\
-+				(unsigned long long)(n));		\
-+	__ret;								\
-+})
-+
-+#endif
- 
--#define cmpxchg64(ptr,o,n)\
--	((__typeof__(*(ptr)))__cmpxchg64((ptr),(unsigned long long)(o),\
--					(unsigned long long)(n)))
--#define cmpxchg64_local(ptr,o,n)\
--	((__typeof__(*(ptr)))__cmpxchg64_local((ptr),(unsigned long long)(o),\
--					(unsigned long long)(n)))
- #endif
+ 	BLANK();
+ #undef ENTRY
+ #define ENTRY(entry) DEFINE(pda_ ## entry, offsetof(struct x8664_pda, entry))
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+git-acpi-fixup.patch
+git-acpi-ia64-build-fix.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-add-reboot-mechanism.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+git-agpgart.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+kernel-auditc-warning-fix.patch
+git-cpufreq.patch
+git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
+agk-dm-dm-ioctl-move-compat-code-fix.patch
+dm-persistent_read_metadata-warning-fix.patch
+ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+git-drm.patch
+git-drm-oops-fix.patch
+intel-agp-enable-i915-recognition.patch
+git-dvb.patch
+fix-jdelvare-i2c-i2c-constify-client-address-data.patch
+revert-git-hrt.patch
+ia64-slim-down-__clear_bit_unlock.patch
+git-infiniband.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
+libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
+git-mmc.patch
+git-mtd.patch
+git-net.patch
+git-netdev-all.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+bluetooth-uninlining.patch
+git-nfsd.patch
+quirk-enable-msi-mapping-on-ht1000.patch
+git-sh.patch
+git-sh-fixup.patch
+ips-trim-trailing-whitespace.patch
+scsi-gdth-kill-unneeded-irq-argument.patch
+libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+mct232-speed-new-termios-and-compliance-cleanups-fix.patch
+git-watchdog.patch
+git-wireless.patch
+git-ipwireless_cs.patch
 git-x86.patch
-add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
-add-cmpxchg64-and-cmpxchg64_local-to-alpha.patch
-add-cmpxchg64-and-cmpxchg64_local-to-mips.patch
-add-cmpxchg64-and-cmpxchg64_local-to-powerpc.patch
-add-cmpxchg64-and-cmpxchg64_local-to-x86_64.patch
-add-cmpxchg_local-to-arm.patch
-add-cmpxchg_local-to-avr32.patch
-add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
-add-cmpxchg_local-to-cris.patch
-add-cmpxchg_local-to-frv.patch
-add-cmpxchg_local-to-h8300.patch
-add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
-new-cmpxchg_local-optimized-for-up-case-for-m32r.patch
-fix-m32r-__xchg.patch
-m32r-build-fix-of-arch-m32r-kernel-smpbootc.patch
-local_t-m32r-use-architecture-specific-cmpxchg_local.patch
-add-cmpxchg_local-to-m86k.patch
-add-cmpxchg_local-to-m68knommu.patch
-add-cmpxchg_local-to-parisc.patch
-add-cmpxchg_local-to-ppc.patch
-add-cmpxchg_local-to-s390.patch
-add-cmpxchg_local-to-sparc-move-__cmpxchg-to-systemh.patch
-add-cmpxchg_local-to-sparc64.patch
-add-cmpxchg_local-to-v850.patch
-add-cmpxchg_local-to-xtensa.patch
-modules-handle-symbols-that-have-a-zero-value.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-xtensa.patch
+ia64-increase-datapatch-offset.patch
+ia64-dont-assume-that-unwcheckpy-is-executable.patch
+ia64-export-copy_page-to-modules.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+sync_sb_inodes-propagate-errors.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+64-bit-i_version-afs-fixes.patch
+ext4-add-block-bitmap-validation.patch
+ext4-fix-up-ext4fs_debug-builds.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
