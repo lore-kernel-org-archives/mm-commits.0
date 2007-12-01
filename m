@@ -1,71 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: - hexdump-dont-print-bytes-with-bit-7-set.patch removed from -mm tree
-Date: Fri, 30 Nov 2007 16:22:17 -0800
-Message-ID: <200712010022.lB10MHC1031881@imap1.linux-foundation.org>
+Subject: - softlockup-fix-false-positives-on-config_nohz.patch removed from -mm tree
+Date: Fri, 30 Nov 2007 16:24:22 -0800
+Message-ID: <200712010024.lB10OMIt032063@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55939 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51862 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757642AbXLAA1w (ORCPT
+	by vger.kernel.org with ESMTP id S1756075AbXLAA1k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Nov 2007 19:27:52 -0500
+	Fri, 30 Nov 2007 19:27:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, herbert@gondor.apana.org.au, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, davem@davemloft.net, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hexdump: don't print bytes with bit 7 set
+     softlockup: fix false positives on CONFIG_NOHZ
 has been removed from the -mm tree.  Its filename was
-     hexdump-dont-print-bytes-with-bit-7-set.patch
+     softlockup-fix-false-positives-on-config_nohz.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: hexdump: don't print bytes with bit 7 set
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: softlockup: fix false positives on CONFIG_NOHZ
+From: Thomas Gleixner <tglx@linutronix.de>
 
-As Herbert Xu pointed out, bytes (chars) with bit 7 (0x80) set are true
-with isprint() but they may not be isascii() but be Unicode instead, so
-don't try to print them in hex dumps.
+David Miller reported soft lockup false-positives that trigger
+on NOHZ due to CPUs idling for more than 10 seconds.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
+The solution is touch the softlockup watchdog when we return from
+idle. (by definition we are not 'locked up' when we were idle)
+
+ http://bugzilla.kernel.org/show_bug.cgi?id=9409
+
+Reported-by: David Miller <davem@davemloft.net>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/hexdump.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/time/tick-sched.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN lib/hexdump.c~hexdump-dont-print-bytes-with-bit-7-set lib/hexdump.c
---- a/lib/hexdump.c~hexdump-dont-print-bytes-with-bit-7-set
-+++ a/lib/hexdump.c
-@@ -106,7 +106,8 @@ void hex_dump_to_buffer(const void *buf,
- 	while (lx < (linebuflen - 1) && lx < (ascii_column - 1))
- 		linebuf[lx++] = ' ';
- 	for (j = 0; (j < rowsize) && (j < len) && (lx + 2) < linebuflen; j++)
--		linebuf[lx++] = isprint(ptr[j]) ? ptr[j] : '.';
-+		linebuf[lx++] = (isascii(ptr[j]) && isprint(ptr[j])) ? ptr[j]
-+				: '.';
- nil:
- 	linebuf[lx++] = '\0';
- }
+diff -puN kernel/time/tick-sched.c~softlockup-fix-false-positives-on-config_nohz kernel/time/tick-sched.c
+--- a/kernel/time/tick-sched.c~softlockup-fix-false-positives-on-config_nohz
++++ a/kernel/time/tick-sched.c
+@@ -133,6 +133,8 @@ void tick_nohz_update_jiffies(void)
+ 	if (!ts->tick_stopped)
+ 		return;
+ 
++	touch_softlockup_watchdog();
++
+ 	cpu_clear(cpu, nohz_cpu_mask);
+ 	now = ktime_get();
+ 
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 origin.patch
-git-dvb.patch
-git-scsi-misc.patch
-advansys-fix-section-mismatch-warning.patch
-aic94-fix-section-mismatches.patch
-sym2-fix-section-mismatch-warning.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
+timerfd-v3-introduce-a-new-hrtimer_forward_now-function.patch
+timerfd-v3-new-timerfd-api.patch
+timerfd-v3-new-timerfd-api-update-sys_nic-with-the-new-timerfd-syscalls.patch
+timerfd-v3-wire-the-new-timerfd-api-to-the-x86-family.patch
+timerfd-v3-un-break-config_timerfd.patch
+git-hrt.patch
+revert-git-hrt.patch
+git-sched.patch
+track-accurate-idle-time-with-tick_schedidle_sleeptime.patch
+iommu-sg-merging-x86-make-pci-gart-iommu-respect-the-segment-size-limits.patch
 git-x86.patch
-register_cpu-__devinit-or-__cpuinit.patch
-cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
-move-kprobes-examples-to-samples-resend.patch
-move-kprobes-examples-to-samples-resend-checkpatch-fixes.patch
-fs-menu-small-reorg.patch
-profile-likely-unlikely-macros.patch
+uml-add-asm-um-asmh.patch
+x86_64-add-acpi-reboot-option.patch
+clocksource-make-clocksource_mask-bullet-proof.patch
+time-fold-__get_realtime_clock_ts-into-getnstimeofday.patch
+x86_64-efi-runtime-service-support-efi-basic-runtime-service-support.patch
+x86_64-efi-runtime-service-support-efi-basic-runtime-service-support-fixes.patch
+x86_64-efi-runtime-service-support-efi-runtime-services.patch
+x86_64-efi-runtime-service-support-document-for-efi-runtime-services.patch
+x86_64-efi-runtime-service-support-remove-duplicated-code-from-efi_32c.patch
+git-cryptodev-fixup.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+printk-trivial-optimizations.patch
+time-fix-sysfs_show_availablecurrent_clocksources-buffer-overflow-problem.patch
+proc-loadavg-reading-race.patch
+fix-__const_udelay-declaration-and-definition-mismatches.patch
+avoid-overflows-in-kernel-timec.patch
+asic3-driver.patch
+asic3-driver-update.patch
+unexport-asm-userh-and-linux-userh.patch
+unexport-asm-pageh.patch
+sanitize-the-type-of-struct-useru_ar0.patch
+add-cmpxchg64-and-cmpxchg64_local-to-x86_64.patch
+modules-fold-percpu_modcopy-into-modulec-and-get-rid-of-the-macro-from-hell.patch
+clocksource-remove-redundant-code.patch
+clockevent-simplify-list-operations.patch
+timekeeping-rename-timekeeping_is_continuous-to-timekeeping_valid_for_hres.patch
+time-fix-typo-in-comments.patch
+time-delete-comments-that-refer-to-noexistent-symbols.patch
