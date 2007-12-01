@@ -1,232 +1,506 @@
 From: akpm@linux-foundation.org
-Subject: - git-x86-build-fix.patch removed from -mm tree
-Date: Fri, 30 Nov 2007 16:23:33 -0800
-Message-ID: <200712010023.lB10NXoh031996@imap1.linux-foundation.org>
+Subject: - x86_64-make-sparsemem-vmemmap-the-only-memory-model.patch removed from -mm tree
+Date: Fri, 30 Nov 2007 16:23:47 -0800
+Message-ID: <200712010023.lB10NlIn032014@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49002 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58678 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757765AbXLAA2A (ORCPT
+	by vger.kernel.org with ESMTP id S1757895AbXLAA2G (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Nov 2007 19:28:00 -0500
+	Fri, 30 Nov 2007 19:28:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, roland@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: clameter@sgi.com, ak@suse.de, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-x86-build-fix
+     x86_64: Make sparsemem/vmemmap the only memory model
 has been removed from the -mm tree.  Its filename was
-     git-x86-build-fix.patch
+     x86_64-make-sparsemem-vmemmap-the-only-memory-model.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-x86-build-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: x86_64: Make sparsemem/vmemmap the only memory model
+From: Christoph Lameter <clameter@sgi.com>
 
-arch/x86/kernel/asm-offsets_64.c: In function 'main':
-arch/x86/kernel/asm-offsets_64.c:49: error: 'struct thread_info' has no member named 'sysenter_return'
+Use sparsemem as the only memory model for UP, SMP and NUMA.  Measurements
+indicate that DISCONTIGMEM has a higher overhead than sparsemem.  And
+FLATMEMs benefits are minimal.  So I think its best to simply standardize
+on sparsemem.
 
+Results of page allocator tests (test can be had via git from slab git
+tree branch tests)
+
+Measurements in cycle counts. 1000 allocations were performed and then the
+average cycle count was calculated.
+
+Order	FlatMem	Discontig	SparseMem
+0	  639	  665		  641
+1	  567	  647		  593
+2	  679	  774		  692
+3	  763	  967		  781
+4	  961	 1501		  962
+5	 1356	 2344		 1392
+6	 2224	 3982		 2336
+7	 4869	 7225		 5074
+8	12500	14048		12732
+9	27926	28223		28165
+10	58578	58714		58682
+
+(Note that FlatMem is an SMP config and the rest NUMA configurations)
+
+Memory use:
+
+SMP Sparsemem
+-------------
+
+Kernel size:
+
+   text    data     bss     dec     hex filename
+3849268  397739 1264856 5511863  541ab7 vmlinux
+
+             total       used       free     shared    buffers     cached
+Mem:       8242252      41164    8201088          0        352      11512
+-/+ buffers/cache:      29300    8212952
+Swap:      9775512          0    9775512
+
+SMP Flatmem
+-----------
+
+Kernel size:
+
+   text    data     bss     dec     hex filename
+3844612  397739 1264536 5506887  540747 vmlinux
+
+So 4.5k growth in text size vs. FLATMEM.
+
+             total       used       free     shared    buffers     cached
+Mem:       8244052      40544    8203508          0        352      11484
+-/+ buffers/cache:      28708    8215344
+
+2k growth in overall memory use after boot.
+
+NUMA discontig:
+
+   text    data     bss     dec     hex filename
+3888124  470659 1276504 5635287  55fcd7 vmlinux
+
+             total       used       free     shared    buffers     cached
+Mem:       8256256      56908    8199348          0        352      11496
+-/+ buffers/cache:      45060    8211196
+Swap:      9775512          0    9775512
+
+NUMA sparse:
+
+   text    data     bss     dec     hex filename
+3896428  470659 1276824 5643911  561e87 vmlinux
+
+8k text growth. Given that we fully inline virt_to_page and friends now
+that is rather good.
+
+             total       used       free     shared    buffers     cached
+Mem:       8264720      57240    8207480          0        352      11516
+-/+ buffers/cache:      45372    8219348
+Swap:      9775512          0    9775512
+
+The total available memory is increased by 8k.
+
+This patch makes sparsemem the default and removes discontig and
+flatmem support from x86.
+
+Acked-by: Andi Kleen <ak@suse.de>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/asm-offsets_64.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/x86/Kconfig                   |   22 ++++------
+ arch/x86/configs/x86_64_defconfig  |    9 ----
+ arch/x86/kernel/machine_kexec_64.c |    5 --
+ arch/x86/mm/init_64.c              |   30 --------------
+ arch/x86/mm/ioremap_64.c           |   17 --------
+ arch/x86/mm/numa_64.c              |   21 ---------
+ arch/x86/mm/srat_64.c              |   57 ---------------------------
+ include/asm-x86/mmzone_64.h        |    6 --
+ include/asm-x86/page_64.h          |    3 -
+ 9 files changed, 9 insertions(+), 161 deletions(-)
 
-diff -puN arch/x86/kernel/asm-offsets_64.c~git-x86-build-fix arch/x86/kernel/asm-offsets_64.c
---- a/arch/x86/kernel/asm-offsets_64.c~git-x86-build-fix
-+++ a/arch/x86/kernel/asm-offsets_64.c
-@@ -46,7 +46,9 @@ int main(void)
- 	ENTRY(addr_limit);
- 	ENTRY(preempt_count);
- 	ENTRY(status);
-+#ifdef CONFIG_IA32_EMULATION
- 	ENTRY(sysenter_return);
-+#endif
- 	BLANK();
- #undef ENTRY
- #define ENTRY(entry) DEFINE(pda_ ## entry, offsetof(struct x8664_pda, entry))
+diff -puN arch/x86/configs/x86_64_defconfig~x86_64-make-sparsemem-vmemmap-the-only-memory-model arch/x86/configs/x86_64_defconfig
+--- a/arch/x86/configs/x86_64_defconfig~x86_64-make-sparsemem-vmemmap-the-only-memory-model
++++ a/arch/x86/configs/x86_64_defconfig
+@@ -145,15 +145,6 @@ CONFIG_K8_NUMA=y
+ CONFIG_NODES_SHIFT=6
+ CONFIG_X86_64_ACPI_NUMA=y
+ CONFIG_NUMA_EMU=y
+-CONFIG_ARCH_DISCONTIGMEM_ENABLE=y
+-CONFIG_ARCH_DISCONTIGMEM_DEFAULT=y
+-CONFIG_ARCH_SPARSEMEM_ENABLE=y
+-CONFIG_SELECT_MEMORY_MODEL=y
+-# CONFIG_FLATMEM_MANUAL is not set
+-CONFIG_DISCONTIGMEM_MANUAL=y
+-# CONFIG_SPARSEMEM_MANUAL is not set
+-CONFIG_DISCONTIGMEM=y
+-CONFIG_FLAT_NODE_MEM_MAP=y
+ CONFIG_NEED_MULTIPLE_NODES=y
+ # CONFIG_SPARSEMEM_STATIC is not set
+ CONFIG_SPLIT_PTLOCK_CPUS=4
+diff -puN arch/x86/Kconfig~x86_64-make-sparsemem-vmemmap-the-only-memory-model arch/x86/Kconfig
+--- a/arch/x86/Kconfig~x86_64-make-sparsemem-vmemmap-the-only-memory-model
++++ a/arch/x86/Kconfig
+@@ -912,25 +912,29 @@ config HAVE_ARCH_ALLOC_REMAP
+ 
+ config ARCH_FLATMEM_ENABLE
+ 	def_bool y
+-	depends on (X86_32 && ARCH_SELECT_MEMORY_MODEL && X86_PC) || (X86_64 && !NUMA)
++	depends on X86_32 && ARCH_SELECT_MEMORY_MODEL && X86_PC
+ 
+ config ARCH_DISCONTIGMEM_ENABLE
+ 	def_bool y
+-	depends on NUMA
++	depends on NUMA && X86_32
+ 
+ config ARCH_DISCONTIGMEM_DEFAULT
+ 	def_bool y
+-	depends on NUMA
++	depends on NUMA && X86_32
++
++config ARCH_SPARSEMEM_DEFAULT
++	def_bool y
++	depends on X86_64
+ 
+ config ARCH_SPARSEMEM_ENABLE
+ 	def_bool y
+-	depends on NUMA || (EXPERIMENTAL && (X86_PC || X86_64))
++	depends on X86_64 || NUMA || (EXPERIMENTAL && X86_PC)
+ 	select SPARSEMEM_STATIC if X86_32
+ 	select SPARSEMEM_VMEMMAP_ENABLE if X86_64
+ 
+ config ARCH_SELECT_MEMORY_MODEL
+ 	def_bool y
+-	depends on X86_32 && ARCH_SPARSEMEM_ENABLE
++	depends on ARCH_SPARSEMEM_ENABLE
+ 
+ config ARCH_MEMORY_PROBE
+ 	def_bool X86_64
+@@ -1228,18 +1232,10 @@ config ARCH_ENABLE_MEMORY_HOTPLUG
+ 	def_bool y
+ 	depends on X86_64 || (X86_32 && HIGHMEM)
+ 
+-config MEMORY_HOTPLUG_RESERVE
+-	def_bool X86_64
+-	depends on (MEMORY_HOTPLUG && DISCONTIGMEM)
+-
+ config HAVE_ARCH_EARLY_PFN_TO_NID
+ 	def_bool X86_64
+ 	depends on NUMA
+ 
+-config OUT_OF_LINE_PFN_TO_PAGE
+-	def_bool X86_64
+-	depends on DISCONTIGMEM
+-
+ menu "Power management options"
+ 	depends on !X86_VOYAGER
+ 
+diff -puN arch/x86/kernel/machine_kexec_64.c~x86_64-make-sparsemem-vmemmap-the-only-memory-model arch/x86/kernel/machine_kexec_64.c
+--- a/arch/x86/kernel/machine_kexec_64.c~x86_64-make-sparsemem-vmemmap-the-only-memory-model
++++ a/arch/x86/kernel/machine_kexec_64.c
+@@ -234,10 +234,5 @@ NORET_TYPE void machine_kexec(struct kim
+ void arch_crash_save_vmcoreinfo(void)
+ {
+ 	VMCOREINFO_SYMBOL(init_level4_pgt);
+-
+-#ifdef CONFIG_ARCH_DISCONTIGMEM_ENABLE
+-	VMCOREINFO_SYMBOL(node_data);
+-	VMCOREINFO_LENGTH(node_data, MAX_NUMNODES);
+-#endif
+ }
+ 
+diff -puN arch/x86/mm/init_64.c~x86_64-make-sparsemem-vmemmap-the-only-memory-model arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~x86_64-make-sparsemem-vmemmap-the-only-memory-model
++++ a/arch/x86/mm/init_64.c
+@@ -486,34 +486,6 @@ EXPORT_SYMBOL_GPL(memory_add_physaddr_to
+ 
+ #endif /* CONFIG_MEMORY_HOTPLUG */
+ 
+-#ifdef CONFIG_MEMORY_HOTPLUG_RESERVE
+-/*
+- * Memory Hotadd without sparsemem. The mem_maps have been allocated in advance,
+- * just online the pages.
+- */
+-int __add_pages(struct zone *z, unsigned long start_pfn, unsigned long nr_pages)
+-{
+-	int err = -EIO;
+-	unsigned long pfn;
+-	unsigned long total = 0, mem = 0;
+-	for (pfn = start_pfn; pfn < start_pfn + nr_pages; pfn++) {
+-		if (pfn_valid(pfn)) {
+-			online_page(pfn_to_page(pfn));
+-			err = 0;
+-			mem++;
+-		}
+-		total++;
+-	}
+-	if (!err) {
+-		z->spanned_pages += total;
+-		z->present_pages += mem;
+-		z->zone_pgdat->node_spanned_pages += total;
+-		z->zone_pgdat->node_present_pages += mem;
+-	}
+-	return err;
+-}
+-#endif
+-
+ static struct kcore_list kcore_mem, kcore_vmalloc, kcore_kernel, kcore_modules,
+ 			 kcore_vsyscall;
+ 
+@@ -739,7 +711,6 @@ const char *arch_vma_name(struct vm_area
+ 	return NULL;
+ }
+ 
+-#ifdef CONFIG_SPARSEMEM_VMEMMAP
+ /*
+  * Initialise the sparsemem vmemmap using huge-pages at the PMD level.
+  */
+@@ -782,4 +753,3 @@ int __meminit vmemmap_populate(struct pa
+ 
+ 	return 0;
+ }
+-#endif
+diff -puN arch/x86/mm/ioremap_64.c~x86_64-make-sparsemem-vmemmap-the-only-memory-model arch/x86/mm/ioremap_64.c
+--- a/arch/x86/mm/ioremap_64.c~x86_64-make-sparsemem-vmemmap-the-only-memory-model
++++ a/arch/x86/mm/ioremap_64.c
+@@ -86,23 +86,6 @@ void __iomem * __ioremap(unsigned long p
+ 	if (phys_addr >= ISA_START_ADDRESS && last_addr < ISA_END_ADDRESS)
+ 		return (__force void __iomem *)phys_to_virt(phys_addr);
+ 
+-#ifdef CONFIG_FLATMEM
+-	/*
+-	 * Don't allow anybody to remap normal RAM that we're using..
+-	 */
+-	if (last_addr < virt_to_phys(high_memory)) {
+-		char *t_addr, *t_end;
+- 		struct page *page;
+-
+-		t_addr = __va(phys_addr);
+-		t_end = t_addr + (size - 1);
+-	   
+-		for(page = virt_to_page(t_addr); page <= virt_to_page(t_end); page++)
+-			if(!PageReserved(page))
+-				return NULL;
+-	}
+-#endif
+-
+ 	pgprot = __pgprot(_PAGE_PRESENT | _PAGE_RW | _PAGE_GLOBAL
+ 			  | _PAGE_DIRTY | _PAGE_ACCESSED | flags);
+ 	/*
+diff -puN arch/x86/mm/numa_64.c~x86_64-make-sparsemem-vmemmap-the-only-memory-model arch/x86/mm/numa_64.c
+--- a/arch/x86/mm/numa_64.c~x86_64-make-sparsemem-vmemmap-the-only-memory-model
++++ a/arch/x86/mm/numa_64.c
+@@ -153,12 +153,10 @@ int __init compute_hash_shift(struct boo
+ 	return shift;
+ }
+ 
+-#ifdef CONFIG_SPARSEMEM
+ int early_pfn_to_nid(unsigned long pfn)
+ {
+ 	return phys_to_nid(pfn << PAGE_SHIFT);
+ }
+-#endif
+ 
+ static void * __init early_node_mem(int nodeid, unsigned long start,
+ 				    unsigned long end, unsigned long size)
+@@ -635,23 +633,4 @@ void __init init_cpu_to_node(void)
+ 	}
+ }
+ 
+-#ifdef CONFIG_DISCONTIGMEM
+-/*
+- * Functions to convert PFNs from/to per node page addresses.
+- * These are out of line because they are quite big.
+- * They could be all tuned by pre caching more state.
+- * Should do that.
+- */
+ 
+-int pfn_valid(unsigned long pfn)
+-{
+-	unsigned nid;
+-	if (pfn >= num_physpages)
+-		return 0;
+-	nid = pfn_to_nid(pfn);
+-	if (nid == 0xff)
+-		return 0;
+-	return pfn >= node_start_pfn(nid) && (pfn) < node_end_pfn(nid);
+-}
+-EXPORT_SYMBOL(pfn_valid);
+-#endif
+diff -puN arch/x86/mm/srat_64.c~x86_64-make-sparsemem-vmemmap-the-only-memory-model arch/x86/mm/srat_64.c
+--- a/arch/x86/mm/srat_64.c~x86_64-make-sparsemem-vmemmap-the-only-memory-model
++++ a/arch/x86/mm/srat_64.c
+@@ -151,62 +151,6 @@ acpi_numa_processor_affinity_init(struct
+ 	       pxm, pa->apic_id, node);
+ }
+ 
+-#ifdef CONFIG_MEMORY_HOTPLUG_RESERVE
+-/*
+- * Protect against too large hotadd areas that would fill up memory.
+- */
+-static int hotadd_enough_memory(struct bootnode *nd)
+-{
+-	static unsigned long allocated;
+-	static unsigned long last_area_end;
+-	unsigned long pages = (nd->end - nd->start) >> PAGE_SHIFT;
+-	long mem = pages * sizeof(struct page);
+-	unsigned long addr;
+-	unsigned long allowed;
+-	unsigned long oldpages = pages;
+-
+-	if (mem < 0)
+-		return 0;
+-	allowed = (end_pfn - absent_pages_in_range(0, end_pfn)) * PAGE_SIZE;
+-	allowed = (allowed / 100) * hotadd_percent;
+-	if (allocated + mem > allowed) {
+-		unsigned long range;
+-		/* Give them at least part of their hotadd memory upto hotadd_percent
+-		   It would be better to spread the limit out
+-		   over multiple hotplug areas, but that is too complicated
+-		   right now */
+-		if (allocated >= allowed)
+-			return 0;
+-		range = allowed - allocated;
+-		pages = (range / PAGE_SIZE);
+-		mem = pages * sizeof(struct page);
+-		nd->end = nd->start + range;
+-	}
+-	/* Not completely fool proof, but a good sanity check */
+-	addr = find_e820_area(last_area_end, end_pfn<<PAGE_SHIFT, mem);
+-	if (addr == -1UL)
+-		return 0;
+-	if (pages != oldpages)
+-		printk(KERN_NOTICE "SRAT: Hotadd area limited to %lu bytes\n",
+-			pages << PAGE_SHIFT);
+-	last_area_end = addr + mem;
+-	allocated += mem;
+-	return 1;
+-}
+-
+-static int update_end_of_memory(unsigned long end)
+-{
+-	found_add_area = 1;
+-	if ((end >> PAGE_SHIFT) > end_pfn)
+-		end_pfn = end >> PAGE_SHIFT;
+-	return 1;
+-}
+-
+-static inline int save_add_info(void)
+-{
+-	return hotadd_percent > 0;
+-}
+-#else
+ int update_end_of_memory(unsigned long end) {return -1;}
+ static int hotadd_enough_memory(struct bootnode *nd) {return 1;}
+ #ifdef CONFIG_MEMORY_HOTPLUG_SPARSE
+@@ -214,7 +158,6 @@ static inline int save_add_info(void) {r
+ #else
+ static inline int save_add_info(void) {return 0;}
+ #endif
+-#endif
+ /*
+  * Update nodes_add and decide if to include add are in the zone.
+  * Both SPARSE and RESERVE need nodes_add infomation.
+diff -puN include/asm-x86/mmzone_64.h~x86_64-make-sparsemem-vmemmap-the-only-memory-model include/asm-x86/mmzone_64.h
+--- a/include/asm-x86/mmzone_64.h~x86_64-make-sparsemem-vmemmap-the-only-memory-model
++++ a/include/asm-x86/mmzone_64.h
+@@ -43,12 +43,6 @@ static inline __attribute__((pure)) int 
+ 
+ extern int early_pfn_to_nid(unsigned long pfn);
+ 
+-#ifdef CONFIG_DISCONTIGMEM
+-#define pfn_to_nid(pfn) phys_to_nid((unsigned long)(pfn) << PAGE_SHIFT)
+-
+-extern int pfn_valid(unsigned long pfn);
+-#endif
+-
+ #ifdef CONFIG_NUMA_EMU
+ #define FAKE_NODE_MIN_SIZE	(64*1024*1024)
+ #define FAKE_NODE_MIN_HASH_MASK	(~(FAKE_NODE_MIN_SIZE - 1uL))
+diff -puN include/asm-x86/page_64.h~x86_64-make-sparsemem-vmemmap-the-only-memory-model include/asm-x86/page_64.h
+--- a/include/asm-x86/page_64.h~x86_64-make-sparsemem-vmemmap-the-only-memory-model
++++ a/include/asm-x86/page_64.h
+@@ -127,9 +127,6 @@ extern unsigned long __phys_addr(unsigne
+ #define __va(x)			((void *)((unsigned long)(x)+PAGE_OFFSET))
+ #define __boot_va(x)		__va(x)
+ #define __boot_pa(x)		__pa(x)
+-#ifdef CONFIG_FLATMEM
+-#define pfn_valid(pfn)		((pfn) < end_pfn)
+-#endif
+ 
+ #define virt_to_page(kaddr)	pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
+ #define virt_addr_valid(kaddr)	pfn_valid(__pa(kaddr) >> PAGE_SHIFT)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-git-acpi-fixup.patch
-git-acpi-ia64-build-fix.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-git-agpgart.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-kernel-auditc-warning-fix.patch
-git-cpufreq.patch
-git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-dm-persistent_read_metadata-warning-fix.patch
-ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-git-drm.patch
-git-drm-oops-fix.patch
-intel-agp-enable-i915-recognition.patch
-git-dvb.patch
-fix-jdelvare-i2c-i2c-constify-client-address-data.patch
-revert-git-hrt.patch
+slab-fix-kmem_cache_free-performance-regression.patch
 ia64-slim-down-__clear_bit_unlock.patch
-git-infiniband.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
-libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
-git-mmc.patch
-git-mtd.patch
-git-net.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-bluetooth-uninlining.patch
-git-nfsd.patch
-quirk-enable-msi-mapping-on-ht1000.patch
-git-sh.patch
-git-sh-fixup.patch
-ips-trim-trailing-whitespace.patch
-scsi-gdth-kill-unneeded-irq-argument.patch
-libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
 git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-mct232-speed-new-termios-and-compliance-cleanups-fix.patch
-git-watchdog.patch
-git-wireless.patch
-git-ipwireless_cs.patch
 git-x86.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-git-xtensa.patch
-ia64-increase-datapatch-offset.patch
-ia64-dont-assume-that-unwcheckpy-is-executable.patch
-ia64-export-copy_page-to-modules.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+move-vmalloc_to_page-to-mm-vmalloc.patch
+vmalloc-add-const-to-void-parameters.patch
 vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
 i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries.patch
+vmalloc-clean-up-page-array-indexing.patch
+vunmap-return-page-array-passed-on-vmap.patch
+slub-move-count_partial.patch
+slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio.patch
+slub-consolidate-add_partial-and-add_partial_tail-to-one-function.patch
+slub-use-non-atomic-bit-unlock.patch
+slub-fix-coding-style-violations.patch
 slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-noinline-some-functions-to-avoid-them-being-folded-into-alloc-free.patch
+slub-move-kmem_cache_node-determination-into-add_full-and-add_partial.patch
+slub-move-kmem_cache_node-determination-into-add_full-and-add_partial-slub-workaround-for-lockdep-confusion.patch
+slub-avoid-checking-for-a-valid-object-before-zeroing-on-the-fast-path.patch
+slub-__slab_alloc-exit-path-consolidation.patch
+slub-provide-unique-end-marker-for-each-slab.patch
 slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-avoid-referencing-kmem_cache-structure-in-__slab_alloc.patch
+slub-optional-fast-path-using-cmpxchg_local.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock.patch
 slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-fix.patch
+slub-restructure-slab-alloc.patch
+slub-comment-kmem_cache_cpu-structure.patch
+vm-allow-get_page_unless_zero-on-compound-pages.patch
+bufferhead-revert-constructor-removal.patch
 bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-sync_sb_inodes-propagate-errors.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-64-bit-i_version-afs-fixes.patch
-ext4-add-block-bitmap-validation.patch
-ext4-fix-up-ext4fs_debug-builds.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+swapin_readahead-excise-numa-bogosity.patch
+page-allocator-clean-up-pcp-draining-functions.patch
+vmstat-small-revisions-to-refresh_cpu_vm_stats.patch
+page-allocator-get-rid-of-the-list-of-cold-pages.patch
+page-allocator-get-rid-of-the-list-of-cold-pages-fix.patch
+mm-sparsec-check-the-return-value-of-sparse_index_alloc.patch
+vmstat-remove-prefetch.patch
+mm-sparsec-improve-the-error-handling-for-sparse_add_one_section.patch
+percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data.patch
 memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+oom-add-sysctl-to-enable-task-memory-dump.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-bugfix-for-memory-cgroup-per-zone-struct-allocation.patch
+add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
+add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
+dentries-extract-common-code-to-remove-dentry-from-lru.patch
+dentries-extract-common-code-to-remove-dentry-from-lru-fix.patch
+modules-handle-symbols-that-have-a-zero-value.patch
+modules-include-sectionsh-to-avoid-defining-linker-variables.patch
+modules-fold-percpu_modcopy-into-modulec-and-get-rid-of-the-macro-from-hell.patch
 reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
+reiser4-portion-of-zero_user-cleanup-patch.patch
 page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
