@@ -1,61 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - sdio_uart-fix-sign-of-paramter-status-in-sdio_uart_receive_chars.patch removed from -mm tree
-Date: Fri, 30 Nov 2007 16:23:05 -0800
-Message-ID: <200712010023.lB10N5oQ031972@imap1.linux-foundation.org>
+Subject: - hexdump-dont-print-bytes-with-bit-7-set.patch removed from -mm tree
+Date: Fri, 30 Nov 2007 16:22:17 -0800
+Message-ID: <200712010022.lB10MHC1031881@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33088 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55939 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757601AbXLAA1i (ORCPT
+	by vger.kernel.org with ESMTP id S1757642AbXLAA1w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Nov 2007 19:27:38 -0500
+	Fri, 30 Nov 2007 19:27:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andre@bitwigglers.org, drzeus-mmc@drzeus.cx, nico@cam.org, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, herbert@gondor.apana.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sdio_uart: fix sign of paramter status in sdio_uart_receive_chars()
+     hexdump: don't print bytes with bit 7 set
 has been removed from the -mm tree.  Its filename was
-     sdio_uart-fix-sign-of-paramter-status-in-sdio_uart_receive_chars.patch
+     hexdump-dont-print-bytes-with-bit-7-set.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sdio_uart: fix sign of paramter status in sdio_uart_receive_chars()
-From: Andre Haupt <andre@bitwigglers.org>
+Subject: hexdump: don't print bytes with bit 7 set
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-The status paramter should be unsigned.  This also fixes a sparse warning
-about different signedness.  Only compile tested, because i do not have the
-hardware.
+As Herbert Xu pointed out, bytes (chars) with bit 7 (0x80) set are true
+with isprint() but they may not be isascii() but be Unicode instead, so
+don't try to print them in hex dumps.
 
-Signed-off-by: Andre Haupt <andre@bitwigglers.org>
-Acked-by: Nicolas Pitre <nico@cam.org>
-Cc: Pierre Ossman <drzeus-mmc@drzeus.cx>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/card/sdio_uart.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/hexdump.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/mmc/card/sdio_uart.c~sdio_uart-fix-sign-of-paramter-status-in-sdio_uart_receive_chars drivers/mmc/card/sdio_uart.c
---- a/drivers/mmc/card/sdio_uart.c~sdio_uart-fix-sign-of-paramter-status-in-sdio_uart_receive_chars
-+++ a/drivers/mmc/card/sdio_uart.c
-@@ -386,7 +386,7 @@ static void sdio_uart_stop_rx(struct sdi
- 	sdio_out(port, UART_IER, port->ier);
+diff -puN lib/hexdump.c~hexdump-dont-print-bytes-with-bit-7-set lib/hexdump.c
+--- a/lib/hexdump.c~hexdump-dont-print-bytes-with-bit-7-set
++++ a/lib/hexdump.c
+@@ -106,7 +106,8 @@ void hex_dump_to_buffer(const void *buf,
+ 	while (lx < (linebuflen - 1) && lx < (ascii_column - 1))
+ 		linebuf[lx++] = ' ';
+ 	for (j = 0; (j < rowsize) && (j < len) && (lx + 2) < linebuflen; j++)
+-		linebuf[lx++] = isprint(ptr[j]) ? ptr[j] : '.';
++		linebuf[lx++] = (isascii(ptr[j]) && isprint(ptr[j])) ? ptr[j]
++				: '.';
+ nil:
+ 	linebuf[lx++] = '\0';
  }
- 
--static void sdio_uart_receive_chars(struct sdio_uart_port *port, int *status)
-+static void sdio_uart_receive_chars(struct sdio_uart_port *port, unsigned int *status)
- {
- 	struct tty_struct *tty = port->tty;
- 	unsigned int ch, flag;
 _
 
-Patches currently in -mm which might be from andre@bitwigglers.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-git-arm.patch
-fbmon-remove-unnecessary-local-variable.patch
-fbmon-cleanup-trailing-whitespaces.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+git-dvb.patch
+git-scsi-misc.patch
+advansys-fix-section-mismatch-warning.patch
+aic94-fix-section-mismatches.patch
+sym2-fix-section-mismatch-warning.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+git-x86.patch
+register_cpu-__devinit-or-__cpuinit.patch
+cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
+move-kprobes-examples-to-samples-resend.patch
+move-kprobes-examples-to-samples-resend-checkpatch-fixes.patch
+fs-menu-small-reorg.patch
+profile-likely-unlikely-macros.patch
