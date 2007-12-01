@@ -1,86 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-efi-boot-support-efi-boot-document.patch removed from -mm tree
-Date: Fri, 30 Nov 2007 16:22:39 -0800
-Message-ID: <200712010022.lB10MdWJ031913@imap1.linux-foundation.org>
+Subject: - memory-hotplug-fix-fix-section-mismatch-in-vmammap_allock_block.patch removed from -mm tree
+Date: Fri, 30 Nov 2007 16:22:41 -0800
+Message-ID: <200712010022.lB10MfKC031916@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48011 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50977 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757832AbXLAA2I (ORCPT
+	by vger.kernel.org with ESMTP id S1757963AbXLAA2I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 30 Nov 2007 19:28:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ying.huang@intel.com, ak@suse.de, hpa@zytor.com, mingo@elte.hu, mouli@linux.intel.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, apw@shadowen.org, kamalesh@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64 EFI boot support: EFI boot document
+     memory hotplug fix: fix section mismatch in vmammap_allock_block()
 has been removed from the -mm tree.  Its filename was
-     x86_64-efi-boot-support-efi-boot-document.patch
+     memory-hotplug-fix-fix-section-mismatch-in-vmammap_allock_block.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64 EFI boot support: EFI boot document
-From: "Huang, Ying" <ying.huang@intel.com>
+Subject: memory hotplug fix: fix section mismatch in vmammap_allock_block()
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-This patch adds document for EFI x86_64 boot support.  The setup and operation
-guide of EFI based system is documented in Documentation/x86_64/uefi.txt.
+Fixes section mismatch below.
 
-Signed-off-by: Chandramouli Narayanan <mouli@linux.intel.com>
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Andi Kleen <ak@suse.de>
+WARNING: vmlinux.o(.text+0x946b5): Section mismatch: reference to .init.text:'
+__alloc_bootmem_node (between 'vmemmap_alloc_block' and 'vmemmap_pgd_populate')
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/x86_64/uefi.txt |   29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+ mm/sparse-vmemmap.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN /dev/null Documentation/x86_64/uefi.txt
---- /dev/null
-+++ a/Documentation/x86_64/uefi.txt
-@@ -0,0 +1,29 @@
-+General note on [U]EFI x86_64 support
-+-------------------------------------
+diff -puN mm/sparse-vmemmap.c~memory-hotplug-fix-fix-section-mismatch-in-vmammap_allock_block mm/sparse-vmemmap.c
+--- a/mm/sparse-vmemmap.c~memory-hotplug-fix-fix-section-mismatch-in-vmammap_allock_block
++++ a/mm/sparse-vmemmap.c
+@@ -34,6 +34,16 @@
+  * or to back the page tables that are used to create the mapping.
+  * Uses the main allocators if they are available, else bootmem.
+  */
 +
-+The nomenclature EFI and UEFI are used interchangeably in this document.
++static void * __init_refok __earlyonly_bootmem_alloc(int node,
++				unsigned long size,
++				unsigned long align,
++				unsigned long goal)
++{
++	return __alloc_bootmem_node(NODE_DATA(node), size, align, goal);
++}
 +
-+Although the tools below are _not_ needed for building the kernel,
-+the needed bootloader support and associated tools for x86_64 platforms
-+with EFI firmware and specifications are listed below.
 +
-+1. UEFI specification:  http://www.uefi.org
-+
-+2. Booting Linux kernel on UEFI x86_64 platform requires bootloader
-+   support. Elilo with x86_64 support can be used.
-+
-+3. x86_64 platform with EFI/UEFI firmware.
-+
-+Mechanics:
-+---------
-+- Build the kernel with the following configuration.
-+	CONFIG_FB_EFI=y
-+	CONFIG_FRAMEBUFFER_CONSOLE=y
-+- Create a VFAT partition on the disk
-+- Copy the following to the VFAT partition:
-+	elilo bootloader with x86_64 support, elilo configuration file,
-+	kernel image built in first step and corresponding
-+	initrd. Instructions on building elilo	and its dependencies
-+	can be found in the elilo sourceforge project.
-+- Boot to EFI shell and invoke elilo choosing the kernel image built
-+  in first step.
+ void * __meminit vmemmap_alloc_block(unsigned long size, int node)
+ {
+ 	/* If the main allocator is up use that, fallback to bootmem. */
+@@ -44,7 +54,7 @@ void * __meminit vmemmap_alloc_block(uns
+ 			return page_address(page);
+ 		return NULL;
+ 	} else
+-		return __alloc_bootmem_node(NODE_DATA(node), size, size,
++		return __earlyonly_bootmem_alloc(node, size, size,
+ 				__pa(MAX_DMA_ADDRESS));
+ }
+ 
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-x86_64-efi-runtime-service-support-efi-basic-runtime-service-support.patch
-x86_64-efi-runtime-service-support-efi-basic-runtime-service-support-fixes.patch
-x86_64-efi-runtime-service-support-efi-runtime-services.patch
-x86_64-efi-runtime-service-support-document-for-efi-runtime-services.patch
-x86_64-efi-runtime-service-support-remove-duplicated-code-from-efi_32c.patch
-vmcoreinfo-add-the-array-length-of-free_list-for-filtering-free-pages.patch
+git-x86.patch
+swapoff-scan-ptes-preemptibly.patch
+memory-hotplug-add-removable-to-sysfs-to-show-memblock-removability.patch
+add-remove_memory-for-ppc64-2.patch
+enable-hotplug-memory-remove-for-ppc64.patch
+add-arch-specific-walk_memory_remove-for-ppc64.patch
+mm-dont-waste-swap-on-locked-pages.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
+memcgroup-temporarily-revert-swapoff-mod.patch
+memory-controller-make-charging-gfp-mask-aware-fix.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
+memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
+memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
+memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+memory-cgroup-enhancements-add-pre_destroy-handler.patch
+memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-bugfix-for-memory-cgroup-per-zone-struct-allocation.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
