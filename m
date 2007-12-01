@@ -1,45 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - git-x86-fixup.patch removed from -mm tree
-Date: Fri, 30 Nov 2007 16:01:01 -0800
-Message-ID: <200712010001.lB10114N030970@imap1.linux-foundation.org>
+Subject: + git-cryptodev-fixup.patch added to -mm tree
+Date: Fri, 30 Nov 2007 16:03:05 -0800
+Message-ID: <200712010003.lB1035wu031128@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56671 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39899 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755841AbXLAABp (ORCPT
+	by vger.kernel.org with ESMTP id S1754228AbXLAAEJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Nov 2007 19:01:45 -0500
+	Fri, 30 Nov 2007 19:04:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, lenb@kernel.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, herbert@gondor.apana.org.au, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     git-x86-fixup
-has been removed from the -mm tree.  Its filename was
-     git-x86-fixup.patch
+     git-cryptodev-fixup
+has been added to the -mm tree.  Its filename is
+     git-cryptodev-fixup.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-x86-fixup
+Subject: git-cryptodev-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix rejects in git-x86.  Mainly but not only patches which were also applied
-to the acpi tree.
+Fix rejects between git-x86 and git-cryptodev
 
-Cc: Len Brown <lenb@kernel.org>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- x86/kernel/acpi/boot.c |    0 
- 1 file changed
+ arch/x86/crypto/Makefile |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/io_apic_64.c~git-x86-fixup arch/x86/kernel/io_apic_64.c
-diff -puN arch/x86/kernel/pci-gart_64.c~git-x86-fixup arch/x86/kernel/pci-gart_64.c
-diff -puN arch/x86/kernel/acpi/boot.c~git-x86-fixup arch/x86/kernel/acpi/boot.c
+diff -puN arch/x86/crypto/Makefile~git-cryptodev-fixup arch/x86/crypto/Makefile
+--- a/arch/x86/crypto/Makefile~git-cryptodev-fixup
++++ a/arch/x86/crypto/Makefile
+@@ -8,8 +8,8 @@ obj-$(CONFIG_CRYPTO_TWOFISH_586) += twof
+ obj-$(CONFIG_CRYPTO_AES_X86_64) += aes-x86_64.o
+ obj-$(CONFIG_CRYPTO_TWOFISH_X86_64) += twofish-x86_64.o
+ 
+-aes-i586-y := aes-i586-asm_32.o aes_32.o
++aes-i586-y := aes-i586-asm_32.o aes_glue.o
+ twofish-i586-y := twofish-i586-asm_32.o twofish.o
+ 
+-aes-x86_64-y := aes-x86_64-asm_64.o aes_64.o
++aes-x86_64-y := aes-x86_64-asm_64.o aes_glue.o
+ twofish-x86_64-y := twofish-x86_64-asm_64.o twofish.o
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -101,8 +115,8 @@ git-watchdog.patch
 git-wireless.patch
 git-ipwireless_cs.patch
 git-x86.patch
-git-x86-fixup.patch
 git-cryptodev.patch
+git-cryptodev-fixup.patch
 git-xtensa.patch
 ia64-increase-datapatch-offset.patch
 ia64-dont-assume-that-unwcheckpy-is-executable.patch
