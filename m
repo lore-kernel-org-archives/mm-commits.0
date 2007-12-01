@@ -1,136 +1,168 @@
 From: akpm@linux-foundation.org
-Subject: - optimize-i8259-code-a-bit.patch removed from -mm tree
-Date: Fri, 30 Nov 2007 16:24:26 -0800
-Message-ID: <200712010024.lB10OQxf032071@imap1.linux-foundation.org>
+Subject: - uml-fix-no_hz-busy-loop.patch removed from -mm tree
+Date: Fri, 30 Nov 2007 16:22:24 -0800
+Message-ID: <200712010022.lB10MOb2031889@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40155 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34412 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757317AbXLAA1c (ORCPT
+	by vger.kernel.org with ESMTP id S1757317AbXLAA1e (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Nov 2007 19:27:32 -0500
+	Fri, 30 Nov 2007 19:27:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ralf@linux-mips.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, jdike@linux.intel.com, miklos@szeredi.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Optimize i8259 code a bit
+     uml: fix !NO_HZ busy-loop
 has been removed from the -mm tree.  Its filename was
-     optimize-i8259-code-a-bit.patch
+     uml-fix-no_hz-busy-loop.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Optimize i8259 code a bit
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: uml: fix !NO_HZ busy-loop
+From: Jeff Dike <jdike@addtoit.com>
 
-The timer code always calls the clock_event_device set_net_event and
-set_mode methods with interrupts disabled, so no need to use
-spin_lock_irqsave / spin_unlock_irqrestore for those.
+With NO_HZ disabled, the UML idle loop effectively becomes a busy loop, as
+it will sleep for no time.
 
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
-Acked-by:Thomas Gleixner <tglx@linutronix.de>
+The cause was forgetting to restart the tick after waking up from sleep. 
+It was disabled before sleeping, and the remaining time used as the
+interval to sleep.  So, the tick needs to be restarted when nanosleep
+finishes.
+
+This is done by introducing after_sleep_interval, which is empty in the
+NO_HZ case, but which sets the tick starting in the !NO_HZ case.
+
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/i8253.c |   12 ++++--------
- arch/x86/kernel/i8253.c  |   12 ++++--------
- 2 files changed, 8 insertions(+), 16 deletions(-)
+ arch/um/os-Linux/time.c |   54 +++++++++++++++++++++++++++++++++++---
+ 1 file changed, 51 insertions(+), 3 deletions(-)
 
-diff -puN arch/mips/kernel/i8253.c~optimize-i8259-code-a-bit arch/mips/kernel/i8253.c
---- a/arch/mips/kernel/i8253.c~optimize-i8259-code-a-bit
-+++ a/arch/mips/kernel/i8253.c
-@@ -24,9 +24,7 @@ DEFINE_SPINLOCK(i8253_lock);
- static void init_pit_timer(enum clock_event_mode mode,
- 			   struct clock_event_device *evt)
+diff -puN arch/um/os-Linux/time.c~uml-fix-no_hz-busy-loop arch/um/os-Linux/time.c
+--- a/arch/um/os-Linux/time.c~uml-fix-no_hz-busy-loop
++++ a/arch/um/os-Linux/time.c
+@@ -59,7 +59,7 @@ long long disable_timer(void)
  {
--	unsigned long flags;
--
--	spin_lock_irqsave(&i8253_lock, flags);
-+	spin_lock(&i8253_lock);
+ 	struct itimerval time = ((struct itimerval) { { 0, 0 }, { 0, 0 } });
  
- 	switch(mode) {
- 	case CLOCK_EVT_MODE_PERIODIC:
-@@ -55,7 +53,7 @@ static void init_pit_timer(enum clock_ev
- 		/* Nothing to do here */
- 		break;
- 	}
--	spin_unlock_irqrestore(&i8253_lock, flags);
-+	spin_unlock(&i8253_lock);
+-	if(setitimer(ITIMER_VIRTUAL, &time, &time) < 0)
++	if (setitimer(ITIMER_VIRTUAL, &time, &time) < 0)
+ 		printk(UM_KERN_ERR "disable_timer - setitimer failed, "
+ 		       "errno = %d\n", errno);
+ 
+@@ -74,13 +74,61 @@ long long os_nsecs(void)
+ 	return timeval_to_ns(&tv);
  }
  
- /*
-@@ -65,12 +63,10 @@ static void init_pit_timer(enum clock_ev
-  */
- static int pit_next_event(unsigned long delta, struct clock_event_device *evt)
++#ifdef UML_CONFIG_NO_HZ
++static int after_sleep_interval(struct timespec *ts)
++{
++}
++#else
++static inline long long timespec_to_us(const struct timespec *ts)
++{
++	return ((long long) ts->tv_sec * UM_USEC_PER_SEC) +
++		ts->tv_nsec / UM_NSEC_PER_USEC;
++}
++
++static int after_sleep_interval(struct timespec *ts)
++{
++	int usec = UM_USEC_PER_SEC / UM_HZ;
++	long long start_usecs = timespec_to_us(ts);
++	struct timeval tv;
++	struct itimerval interval;
++
++	/*
++	 * It seems that rounding can increase the value returned from
++	 * setitimer to larger than the one passed in.  Over time,
++	 * this will cause the remaining time to be greater than the
++	 * tick interval.  If this happens, then just reduce the first
++	 * tick to the interval value.
++	 */
++	if (start_usecs > usec)
++		start_usecs = usec;
++	tv = ((struct timeval) { .tv_sec  = start_usecs / UM_USEC_PER_SEC,
++				 .tv_usec = start_usecs % UM_USEC_PER_SEC });
++	interval = ((struct itimerval) { { 0, usec }, tv });
++
++	if (setitimer(ITIMER_VIRTUAL, &interval, NULL) == -1)
++		return -errno;
++
++	return 0;
++}
++#endif
++
+ extern void alarm_handler(int sig, struct sigcontext *sc);
+ 
+ void idle_sleep(unsigned long long nsecs)
  {
--	unsigned long flags;
--
--	spin_lock_irqsave(&i8253_lock, flags);
-+	spin_lock(&i8253_lock);
- 	outb_p(delta & 0xff , PIT_CH0);	/* LSB */
- 	outb(delta >> 8 , PIT_CH0);	/* MSB */
--	spin_unlock_irqrestore(&i8253_lock, flags);
-+	spin_unlock(&i8253_lock);
+-	struct timespec ts = { .tv_sec	= nsecs / UM_NSEC_PER_SEC,
+-			       .tv_nsec = nsecs % UM_NSEC_PER_SEC };
++	struct timespec ts;
++
++	/*
++	 * nsecs can come in as zero, in which case, this starts a
++	 * busy loop.  To prevent this, reset nsecs to the tick
++	 * interval if it is zero.
++	 */
++	if (nsecs == 0)
++		nsecs = UM_NSEC_PER_SEC / UM_HZ;
++	ts = ((struct timespec) { .tv_sec	= nsecs / UM_NSEC_PER_SEC,
++				  .tv_nsec	= nsecs % UM_NSEC_PER_SEC });
  
- 	return 0;
- }
-diff -puN arch/x86/kernel/i8253.c~optimize-i8259-code-a-bit arch/x86/kernel/i8253.c
---- a/arch/x86/kernel/i8253.c~optimize-i8259-code-a-bit
-+++ a/arch/x86/kernel/i8253.c
-@@ -31,9 +31,7 @@ struct clock_event_device *global_clock_
- static void init_pit_timer(enum clock_event_mode mode,
- 			   struct clock_event_device *evt)
- {
--	unsigned long flags;
--
--	spin_lock_irqsave(&i8253_lock, flags);
-+	spin_lock(&i8253_lock);
- 
- 	switch(mode) {
- 	case CLOCK_EVT_MODE_PERIODIC:
-@@ -62,7 +60,7 @@ static void init_pit_timer(enum clock_ev
- 		/* Nothing to do here */
- 		break;
- 	}
--	spin_unlock_irqrestore(&i8253_lock, flags);
-+	spin_unlock(&i8253_lock);
- }
- 
- /*
-@@ -72,12 +70,10 @@ static void init_pit_timer(enum clock_ev
-  */
- static int pit_next_event(unsigned long delta, struct clock_event_device *evt)
- {
--	unsigned long flags;
--
--	spin_lock_irqsave(&i8253_lock, flags);
-+	spin_lock(&i8253_lock);
- 	outb_p(delta & 0xff , PIT_CH0);	/* LSB */
- 	outb(delta >> 8 , PIT_CH0);	/* MSB */
--	spin_unlock_irqrestore(&i8253_lock, flags);
-+	spin_unlock(&i8253_lock);
- 
- 	return 0;
+ 	if (nanosleep(&ts, &ts) == 0)
+ 		alarm_handler(SIGVTALRM, NULL);
++	after_sleep_interval(&ts);
  }
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-git-mips.patch
-mips-remove-dead-config-symbols-from-mips-code.patch
-txx9-watchdog-driver.patch
-git-x86.patch
-maps4-rework-task_size-macros.patch
-maps4-rework-task_size-macros-mips-fix.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-remove-inclusions-of-linux-autoconfh.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
-pnp-request-ioport-and-iomem-resources-used-by-active-devices.patch
-dz-clean-up-and-improve-the-setup-of-termios-settings.patch
-dzc-use-a-helper-to-cast-from-struct-uart_port.patch
-dzc-resource-management.patch
-sanitize-the-type-of-struct-useru_ar0.patch
-add-cmpxchg64-and-cmpxchg64_local-to-mips.patch
+uml-keep-uml-kconfig-in-sync-with-x86.patch
+uml-after_sleep_interval-should-return-something.patch
+uml-work-around-host-tcsetattr-bug.patch
+git-kvm.patch
+uml-add-asm-um-asmh.patch
+uml-arch-um-include-inith-needs-a-definition-of-__used.patch
+uml-implement-get_wchan.patch
+uml-implement-get_wchan-fix.patch
+uml-get-rid-of-asmlinkage.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-document-new-ubd-flag.patch
+uml-further-bugsc-tidying.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+uml-smp-needs-to-depend-on-broken-for-now.patch
+uml-console-driver-cleanups.patch
+uml-clonec-tidying.patch
+uml-borrow-consth-techniques.patch
+uml-delete-some-unused-headers.patch
+uml-allow-lflags-on-command-line.patch
+uml-tidy-kern_utilh.patch
+uml-tidy-pgtableh.patch
+uml-tidy-pgtableh-fix.patch
+uml-reconst-a-parameter.patch
+arch-um-remove-duplicate-includes.patch
+uml-host-tls-diagnostics.patch
+uml-move-um_virt_to_phys.patch
+uml-header-untangling.patch
+uml-style-cleanup.patch
+uml-currenth-cleanup.patch
+uml-fix-page-table-data-sizes.patch
+uml-add-virt_to_pte.patch
+uml-simplify-sigsegv-handling.patch
+uml-use-ptrace-directly-in-libc-code.patch
+uml-kill-processes-instead-of-panicing-kernel.patch
+uml-clean-up-task_size-usage.patch
+uml-cover-stubs-with-a-vma.patch
+uml-fix-command-line-cflags-and-ldflags-support.patch
+uml-style-fixes-in-arch-um-os-linux.patch
+fix-__const_udelay-declaration-and-definition-mismatches.patch
+iget-stop-hostfs-from-using-iget-and-read_inode.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
