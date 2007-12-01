@@ -1,232 +1,227 @@
 From: akpm@linux-foundation.org
-Subject: - git-drm-warning-fix.patch removed from -mm tree
-Date: Fri, 30 Nov 2007 16:22:59 -0800
-Message-ID: <200712010022.lB10MxSk031960@imap1.linux-foundation.org>
+Subject: - fuse-pass-open-flags-to-read-and-write.patch removed from -mm tree
+Date: Fri, 30 Nov 2007 16:22:50 -0800
+Message-ID: <200712010022.lB10Mo87031948@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34723 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48002 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756690AbXLAA1G (ORCPT
+	by vger.kernel.org with ESMTP id S1756969AbXLAA1L (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Nov 2007 19:27:06 -0500
+	Fri, 30 Nov 2007 19:27:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, airlied@linux.ie, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-drm warning fix
+     fuse: pass open flags to read and write
 has been removed from the -mm tree.  Its filename was
-     git-drm-warning-fix.patch
+     fuse-pass-open-flags-to-read-and-write.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-drm warning fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fuse: pass open flags to read and write
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-drivers/char/agp/intel-agp.c: In function 'intel_i965_g33_setup_chipset_flush':
-drivers/char/agp/intel-agp.c:872: warning: right shift count >= width of type
+Some open flags (O_APPEND, O_DIRECT) can be changed with fcntl(F_SETFL, ...)
+after open, but fuse currently only sends the flags to userspace in open.
 
-I wish the agp code wasn't written in a 10,000-column xterm :(
+To make it possible to correcly handle changing flags, send the
+current value to userspace in each read and write.
 
-Cc: Dave Airlie <airlied@linux.ie>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/intel-agp.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/fuse/dir.c        |    3 +--
+ fs/fuse/file.c       |   26 +++++++++++++++-----------
+ fs/fuse/fuse_i.h     |    2 +-
+ include/linux/fuse.h |    5 +++++
+ 4 files changed, 22 insertions(+), 14 deletions(-)
 
-diff -puN drivers/char/agp/intel-agp.c~git-drm-warning-fix drivers/char/agp/intel-agp.c
---- a/drivers/char/agp/intel-agp.c~git-drm-warning-fix
-+++ a/drivers/char/agp/intel-agp.c
-@@ -869,7 +869,8 @@ static void intel_i965_g33_setup_chipset
+diff -puN fs/fuse/dir.c~fuse-pass-open-flags-to-read-and-write fs/fuse/dir.c
+--- a/fs/fuse/dir.c~fuse-pass-open-flags-to-read-and-write
++++ a/fs/fuse/dir.c
+@@ -964,7 +964,6 @@ static int fuse_readdir(struct file *fil
+ 	struct page *page;
+ 	struct inode *inode = file->f_path.dentry->d_inode;
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
+-	struct fuse_file *ff = file->private_data;
+ 	struct fuse_req *req;
  
- 		intel_alloc_chipset_flush_resource();
+ 	if (is_bad_inode(inode))
+@@ -981,7 +980,7 @@ static int fuse_readdir(struct file *fil
+ 	}
+ 	req->num_pages = 1;
+ 	req->pages[0] = page;
+-	fuse_read_fill(req, ff, inode, file->f_pos, PAGE_SIZE, FUSE_READDIR);
++	fuse_read_fill(req, file, inode, file->f_pos, PAGE_SIZE, FUSE_READDIR);
+ 	request_send(fc, req);
+ 	nbytes = req->out.args[0].size;
+ 	err = req->out.h.error;
+diff -puN fs/fuse/file.c~fuse-pass-open-flags-to-read-and-write fs/fuse/file.c
+--- a/fs/fuse/file.c~fuse-pass-open-flags-to-read-and-write
++++ a/fs/fuse/file.c
+@@ -289,14 +289,16 @@ static int fuse_fsync(struct file *file,
+ 	return fuse_fsync_common(file, de, datasync, 0);
+ }
  
--		pci_write_config_dword(agp_bridge->dev, I965_IFPADDR + 4, (intel_private.ifp_resource.start >> 32));
-+		pci_write_config_dword(agp_bridge->dev, I965_IFPADDR + 4,
-+			upper_32_bits(intel_private.ifp_resource.start));
- 		pci_write_config_dword(agp_bridge->dev, I965_IFPADDR, (intel_private.ifp_resource.start & 0xffffffff) | 0x1);
- 	} else {
- 		u64 l64;
+-void fuse_read_fill(struct fuse_req *req, struct fuse_file *ff,
++void fuse_read_fill(struct fuse_req *req, struct file *file,
+ 		    struct inode *inode, loff_t pos, size_t count, int opcode)
+ {
+ 	struct fuse_read_in *inarg = &req->misc.read_in;
++	struct fuse_file *ff = file->private_data;
+ 
+ 	inarg->fh = ff->fh;
+ 	inarg->offset = pos;
+ 	inarg->size = count;
++	inarg->flags = file->f_flags;
+ 	req->in.h.opcode = opcode;
+ 	req->in.h.nodeid = get_node_id(inode);
+ 	req->in.numargs = 1;
+@@ -313,9 +315,8 @@ static size_t fuse_send_read(struct fuse
+ 			     fl_owner_t owner)
+ {
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
+-	struct fuse_file *ff = file->private_data;
+ 
+-	fuse_read_fill(req, ff, inode, pos, count, FUSE_READ);
++	fuse_read_fill(req, file, inode, pos, count, FUSE_READ);
+ 	if (owner != NULL) {
+ 		struct fuse_read_in *inarg = &req->misc.read_in;
+ 
+@@ -376,15 +377,16 @@ static void fuse_readpages_end(struct fu
+ 	fuse_put_request(fc, req);
+ }
+ 
+-static void fuse_send_readpages(struct fuse_req *req, struct fuse_file *ff,
++static void fuse_send_readpages(struct fuse_req *req, struct file *file,
+ 				struct inode *inode)
+ {
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
+ 	loff_t pos = page_offset(req->pages[0]);
+ 	size_t count = req->num_pages << PAGE_CACHE_SHIFT;
+ 	req->out.page_zeroing = 1;
+-	fuse_read_fill(req, ff, inode, pos, count, FUSE_READ);
++	fuse_read_fill(req, file, inode, pos, count, FUSE_READ);
+ 	if (fc->async_read) {
++		struct fuse_file *ff = file->private_data;
+ 		req->ff = fuse_file_get(ff);
+ 		req->end = fuse_readpages_end;
+ 		request_send_background(fc, req);
+@@ -396,7 +398,7 @@ static void fuse_send_readpages(struct f
+ 
+ struct fuse_fill_data {
+ 	struct fuse_req *req;
+-	struct fuse_file *ff;
++	struct file *file;
+ 	struct inode *inode;
+ };
+ 
+@@ -411,7 +413,7 @@ static int fuse_readpages_fill(void *_da
+ 	    (req->num_pages == FUSE_MAX_PAGES_PER_REQ ||
+ 	     (req->num_pages + 1) * PAGE_CACHE_SIZE > fc->max_read ||
+ 	     req->pages[req->num_pages - 1]->index + 1 != page->index)) {
+-		fuse_send_readpages(req, data->ff, inode);
++		fuse_send_readpages(req, data->file, inode);
+ 		data->req = req = fuse_get_req(fc);
+ 		if (IS_ERR(req)) {
+ 			unlock_page(page);
+@@ -435,7 +437,7 @@ static int fuse_readpages(struct file *f
+ 	if (is_bad_inode(inode))
+ 		goto out;
+ 
+-	data.ff = file->private_data;
++	data.file = file;
+ 	data.inode = inode;
+ 	data.req = fuse_get_req(fc);
+ 	err = PTR_ERR(data.req);
+@@ -445,7 +447,7 @@ static int fuse_readpages(struct file *f
+ 	err = read_cache_pages(mapping, pages, fuse_readpages_fill, &data);
+ 	if (!err) {
+ 		if (data.req->num_pages)
+-			fuse_send_readpages(data.req, data.ff, inode);
++			fuse_send_readpages(data.req, file, inode);
+ 		else
+ 			fuse_put_request(fc, data.req);
+ 	}
+@@ -472,11 +474,12 @@ static ssize_t fuse_file_aio_read(struct
+ 	return generic_file_aio_read(iocb, iov, nr_segs, pos);
+ }
+ 
+-static void fuse_write_fill(struct fuse_req *req, struct fuse_file *ff,
++static void fuse_write_fill(struct fuse_req *req, struct file *file,
+ 			    struct inode *inode, loff_t pos, size_t count,
+ 			    int writepage)
+ {
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
++	struct fuse_file *ff = file->private_data;
+ 	struct fuse_write_in *inarg = &req->misc.write.in;
+ 	struct fuse_write_out *outarg = &req->misc.write.out;
+ 
+@@ -485,6 +488,7 @@ static void fuse_write_fill(struct fuse_
+ 	inarg->offset = pos;
+ 	inarg->size = count;
+ 	inarg->write_flags = writepage ? FUSE_WRITE_CACHE : 0;
++	inarg->flags = file->f_flags;
+ 	req->in.h.opcode = FUSE_WRITE;
+ 	req->in.h.nodeid = get_node_id(inode);
+ 	req->in.argpages = 1;
+@@ -505,7 +509,7 @@ static size_t fuse_send_write(struct fus
+ 			      fl_owner_t owner)
+ {
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
+-	fuse_write_fill(req, file->private_data, inode, pos, count, 0);
++	fuse_write_fill(req, file, inode, pos, count, 0);
+ 	if (owner != NULL) {
+ 		struct fuse_write_in *inarg = &req->misc.write.in;
+ 		inarg->write_flags |= FUSE_WRITE_LOCKOWNER;
+diff -puN fs/fuse/fuse_i.h~fuse-pass-open-flags-to-read-and-write fs/fuse/fuse_i.h
+--- a/fs/fuse/fuse_i.h~fuse-pass-open-flags-to-read-and-write
++++ a/fs/fuse/fuse_i.h
+@@ -447,7 +447,7 @@ void fuse_send_forget(struct fuse_conn *
+ /**
+  * Initialize READ or READDIR request
+  */
+-void fuse_read_fill(struct fuse_req *req, struct fuse_file *ff,
++void fuse_read_fill(struct fuse_req *req, struct file *file,
+ 		    struct inode *inode, loff_t pos, size_t count, int opcode);
+ 
+ /**
+diff -puN include/linux/fuse.h~fuse-pass-open-flags-to-read-and-write include/linux/fuse.h
+--- a/include/linux/fuse.h~fuse-pass-open-flags-to-read-and-write
++++ a/include/linux/fuse.h
+@@ -16,6 +16,7 @@
+  *  - add lk_flags in fuse_lk_in
+  *  - add lock_owner field to fuse_setattr_in, fuse_read_in and fuse_write_in
+  *  - add blksize field to fuse_attr
++ *  - add file flags field to fuse_read_in and fuse_write_in
+  */
+ 
+ #include <asm/types.h>
+@@ -280,6 +281,8 @@ struct fuse_read_in {
+ 	__u32	size;
+ 	__u32	read_flags;
+ 	__u64	lock_owner;
++	__u32	flags;
++	__u32	padding;
+ };
+ 
+ #define FUSE_COMPAT_WRITE_IN_SIZE 24
+@@ -290,6 +293,8 @@ struct fuse_write_in {
+ 	__u32	size;
+ 	__u32	write_flags;
+ 	__u64	lock_owner;
++	__u32	flags;
++	__u32	padding;
+ };
+ 
+ struct fuse_write_out {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-git-acpi-fixup.patch
-git-acpi-ia64-build-fix.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-git-agpgart.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-kernel-auditc-warning-fix.patch
-git-cpufreq.patch
-git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-dm-persistent_read_metadata-warning-fix.patch
-ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-git-drm.patch
-git-drm-oops-fix.patch
-intel-agp-enable-i915-recognition.patch
-git-dvb.patch
-fix-jdelvare-i2c-i2c-constify-client-address-data.patch
-revert-git-hrt.patch
-ia64-slim-down-__clear_bit_unlock.patch
-git-infiniband.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
-libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
-git-mmc.patch
-git-mtd.patch
-git-net.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-bluetooth-uninlining.patch
-git-nfsd.patch
-quirk-enable-msi-mapping-on-ht1000.patch
-git-sh.patch
-git-sh-fixup.patch
-ips-trim-trailing-whitespace.patch
-scsi-gdth-kill-unneeded-irq-argument.patch
-libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-mct232-speed-new-termios-and-compliance-cleanups-fix.patch
-git-watchdog.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-git-xtensa.patch
-ia64-increase-datapatch-offset.patch
-ia64-dont-assume-that-unwcheckpy-is-executable.patch
-ia64-export-copy_page-to-modules.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-sync_sb_inodes-propagate-errors.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-64-bit-i_version-afs-fixes.patch
-ext4-add-block-bitmap-validation.patch
-ext4-fix-up-ext4fs_debug-builds.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
