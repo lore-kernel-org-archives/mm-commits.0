@@ -1,208 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - frv-arrange-things-such-that-bra-can-reach-from-the-trap.patch removed from -mm tree
-Date: Fri, 30 Nov 2007 16:24:04 -0800
-Message-ID: <200712010024.lB10O4Yq032038@imap1.linux-foundation.org>
+Subject: - x86-paravirt-revert-exports-to-restore-old-behaviour.patch removed from -mm tree
+Date: Fri, 30 Nov 2007 16:24:19 -0800
+Message-ID: <200712010024.lB10OJUW032056@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52047 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42985 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757481AbXLAA1n (ORCPT
+	by vger.kernel.org with ESMTP id S1757698AbXLAA15 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Nov 2007 19:27:43 -0500
+	Fri, 30 Nov 2007 19:27:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, mm-commits@vger.kernel.org
+To: jeremy@goop.org, Jeremy.Fitzhardinge@citrix.com, hch@infradead.org, t.powa@gmx.de, tiwai@suse.de, zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     FRV: arrange things such that BRA can reach from the trap table
+     x86/paravirt: revert exports to restore old behaviour
 has been removed from the -mm tree.  Its filename was
-     frv-arrange-things-such-that-bra-can-reach-from-the-trap.patch
+     x86-paravirt-revert-exports-to-restore-old-behaviour.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: FRV: arrange things such that BRA can reach from the trap table
-From: David Howells <dhowells@redhat.com>
+Subject: x86/paravirt: revert exports to restore old behaviour
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Arrange the sections in the FRV arch so that a BRA instruction with a
-16-bit displacement can always reach from the trap table to entry.S,
-tlb-miss.S and break.S.
+Subdividing the paravirt_ops structure caused a regression in certain
+non-GPL modules which try to use mmu_ops and cpu_ops.  This restores the
+old behaviour, and makes it consistent with the non-CONFIG_PARAVIRT case.
 
-The problem otherwise is that the linker can insert sufficient code between
-the slots in the trap table and the targets of the branch instructions in
-those slots that the displacement field in the instruction isn't
-sufficiently large.  This is because the branch targets were in the .text
-section along with most of the other code in the kernel.
+Takashi Iwai <tiwai@suse.de> adds:
+> I took at this problem (as I have an nvidia card on one of my
+> workstations), and found out that the following suffer from
+> EXPORT_SYMBOL_GPL changes:
+>
+> * local_disable_irq(), local_irq_save*(), etc.
+> * MSR-related macros like rdmsr(), wrmsr(), read_cr0(), etc.
+>   wbinvd(), too.
+> * pmd_val(), pgd_val(), etc are all involved with pv_mm_ops.
+>   pmd_large() and pmd_bad() is also indirectly involved.
+>   __flush_tlb() and friends suffer, too.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
+Christoph Hellwig objects to this patch on the grounds that modules
+shouldn't be using these operations anyway.  I don't think this is a
+particularly good reason to reject the patch, for several reasons:
+
+1. These operations are still available to modules when not using
+   CONFIG_PARAVIRT, since they are implicitly exported as inline
+   functions via the kernel headers.  Exporting the same functionality as
+   GPL-only symbols just adds a gratuitious difference between
+   CONFIG_PARAVIRT and non-CONFIG_PARAVIRT configurations.  If we really
+   think these operations are not for module use (or non-GPL module use),
+   then we should solve the problem in a general way.
+
+2. It's a regression from previous kernels, which would work these
+   modules even with CONFIG_PARAVIRT enabled.
+
+3. The operations in question seem pretty reasonable for modules to
+   use.  The control registers/MSRs can be accessed directly anyway, so there's
+   no benefit in preventing modules from using standard interfaces.  And it seems
+   reasonable to allow a graphics driver to create its own mappings if it wants.
+
+Therefore, I think this patch should go in for 2.6.24.  If people
+really think that these operations should not be available to modules,
+then we can address that separately.
+
+Signed-off-by: Jeremy Fitzhardinge <Jeremy.Fitzhardinge@citrix.com>
+Cc: Tobias Powalowski <t.powa@gmx.de>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Zachary Amsden <zach@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/break.S       |    2 +-
- arch/frv/kernel/entry.S       |    2 +-
- arch/frv/kernel/vmlinux.lds.S |   27 +++++++++++++++------------
- arch/frv/mm/tlb-miss.S        |    2 +-
- 4 files changed, 18 insertions(+), 15 deletions(-)
+ arch/x86/kernel/paravirt_32.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/frv/kernel/break.S~frv-arrange-things-such-that-bra-can-reach-from-the-trap arch/frv/kernel/break.S
---- a/arch/frv/kernel/break.S~frv-arrange-things-such-that-bra-can-reach-from-the-trap
-+++ a/arch/frv/kernel/break.S
-@@ -63,7 +63,7 @@ __break_trace_through_exceptions:
- # entry point for Break Exceptions/Interrupts
- #
- ###############################################################################
--	.text
-+	.section	.text.break
- 	.balign		4
- 	.globl		__entry_break
- __entry_break:
-diff -puN arch/frv/kernel/entry.S~frv-arrange-things-such-that-bra-can-reach-from-the-trap arch/frv/kernel/entry.S
---- a/arch/frv/kernel/entry.S~frv-arrange-things-such-that-bra-can-reach-from-the-trap
-+++ a/arch/frv/kernel/entry.S
-@@ -38,7 +38,7 @@
+diff -puN arch/x86/kernel/paravirt_32.c~x86-paravirt-revert-exports-to-restore-old-behaviour arch/x86/kernel/paravirt_32.c
+--- a/arch/x86/kernel/paravirt_32.c~x86-paravirt-revert-exports-to-restore-old-behaviour
++++ a/arch/x86/kernel/paravirt_32.c
+@@ -465,8 +465,8 @@ struct pv_mmu_ops pv_mmu_ops = {
+ };
  
- #define nr_syscalls ((syscall_table_size)/4)
- 
--	.text
-+	.section	.text.entry
- 	.balign		4
- 
- .macro LEDS val
-diff -puN arch/frv/kernel/vmlinux.lds.S~frv-arrange-things-such-that-bra-can-reach-from-the-trap arch/frv/kernel/vmlinux.lds.S
---- a/arch/frv/kernel/vmlinux.lds.S~frv-arrange-things-such-that-bra-can-reach-from-the-trap
-+++ a/arch/frv/kernel/vmlinux.lds.S
-@@ -76,6 +76,12 @@ SECTIONS
- 	  *(.data.init_task)
-   }
- 
-+  . = ALIGN(4096);
-+  .data.page_aligned : { *(.data.idt) }
-+
-+  . = ALIGN(L1_CACHE_BYTES);
-+  .data.cacheline_aligned : { *(.data.cacheline_aligned) }
-+
-   .trap : {
- 	/* trap table management - read entry-table.S before modifying */
- 	. = ALIGN(8192);
-@@ -86,28 +92,25 @@ SECTIONS
- 	*(.trap.break)
-   }
- 
--  . = ALIGN(4096);
--  .data.page_aligned : { *(.data.idt) }
--
--  . = ALIGN(L1_CACHE_BYTES);
--  .data.cacheline_aligned : { *(.data.cacheline_aligned) }
--
-   /* Text and read-only data */
-   . = ALIGN(4);
-   _text = .;
-   _stext = .;
-   .text : {
--	*(
--		.text.start .text.*
-+	*(.text.start)
-+	*(.text.entry)
-+	*(.text.break)
-+	*(.text.tlbmiss)
-+	TEXT_TEXT
-+	SCHED_TEXT
-+	LOCK_TEXT
- #ifdef CONFIG_DEBUG_INFO
-+	*(
- 	.init.text
- 	.exit.text
- 	.exitcall.exit
--#endif
- 	)
--	TEXT_TEXT
--	SCHED_TEXT
--	LOCK_TEXT
-+#endif
- 	*(.fixup)
- 	*(.gnu.warning)
- 	*(.exitcall.exit)
-diff -puN arch/frv/mm/tlb-miss.S~frv-arrange-things-such-that-bra-can-reach-from-the-trap arch/frv/mm/tlb-miss.S
---- a/arch/frv/mm/tlb-miss.S~frv-arrange-things-such-that-bra-can-reach-from-the-trap
-+++ a/arch/frv/mm/tlb-miss.S
-@@ -16,7 +16,7 @@
- #include <asm/highmem.h>
- #include <asm/spr-regs.h>
- 
--	.section	.text
-+	.section	.text.tlbmiss
- 	.balign		4
- 
- 	.globl		__entry_insn_mmu_miss
+ EXPORT_SYMBOL_GPL(pv_time_ops);
+-EXPORT_SYMBOL_GPL(pv_cpu_ops);
+-EXPORT_SYMBOL_GPL(pv_mmu_ops);
++EXPORT_SYMBOL    (pv_cpu_ops);
++EXPORT_SYMBOL    (pv_mmu_ops);
+ EXPORT_SYMBOL_GPL(pv_apic_ops);
+ EXPORT_SYMBOL_GPL(pv_info);
+ EXPORT_SYMBOL    (pv_irq_ops);
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from jeremy@goop.org are
 
 origin.patch
-git-mtd.patch
-git-net.patch
-frv-permit-the-memory-to-be-located-elsewhere-in-nommu-mode.patch
-frv-move-dma-macros-to-scatterlisth-for-consistency.patch
-frv-remove-dead-config-symbol-from-frv-code.patch
-nommu-add-new-vmalloc_user-and-remap_vmalloc_range-interfaces.patch
-64-bit-i_version-afs-fixes.patch
-add-an-err_cast-function-to-complement-err_ptr-and-co.patch
-convert-err_ptrptr_errp-instances-to-err_castp.patch
-iget-introduce-a-function-to-register-iget-failure.patch
-iget-use-iget_failed-in-afs.patch
-iget-use-iget_failed-in-gfs2.patch
-iget-stop-affs-from-using-iget-and-read_inode-try.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-autofs-from-using-iget-and-read_inode.patch
-iget-stop-befs-from-using-iget-and-read_inode-try.patch
-iget-stop-bfs-from-using-iget-and-read_inode-try.patch
-iget-stop-cifs-from-using-iget-and-read_inode-try.patch
-iget-stop-efs-from-using-iget-and-read_inode-try.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext4-from-using-iget-and-read_inode-try.patch
-iget-stop-fat-from-using-iget-and-read_inode-try.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-fix.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-fuse-from-using-iget-and-read_inode-try.patch
-iget-stop-hfsplus-from-using-iget-and-read_inode.patch
-iget-stop-isofs-from-using-read_inode.patch
-iget-stop-jffs2-from-using-iget-and-read_inode.patch
-iget-stop-jfs-from-using-iget-and-read_inode-try.patch
-iget-stop-the-minix-filesystem-from-using-iget-and.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-openpromfs-from-using-iget-and.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-hppfs-from-using-iget-and-read_inode.patch
-iget-remove-iget-and-the-read_inode-super-op-as.patch
-iget-stop-unionfs-from-using-iget-and-read_inode.patch
-unexport-asm-pageh.patch
-add-cmpxchg_local-to-frv.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
-aout-move-stack_top-to-asm-processorh.patch
-aout-mark-arches-that-support-aout-format.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth.patch
-usb-net2280-cant-have-a-function-called-show_registers.patch
-mn10300-allocate-serial-port-uart-ids-for-on-chip-serial-ports.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-mn10300-add-platform-mtd-support-for-the-asb2303-board.patch
-mutex-subsystem-synchro-test-module.patch
+git-x86.patch
+maps4-simplify-interdependence-of-maps-and-smaps.patch
+maps4-move-clear_refs-code-to-task_mmuc.patch
+maps4-regroup-task_mmu-by-interface.patch
+maps4-add-proc-kpagecount-interface.patch
