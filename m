@@ -1,174 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - proc-fix-null-i_fop-oops.patch removed from -mm tree
-Date: Fri, 30 Nov 2007 16:21:02 -0800
-Message-ID: <200712010021.lB10L2VZ031737@imap1.linux-foundation.org>
+Subject: - s3c24xx-ensure-we-only-configure-valid-gpios.patch removed from -mm tree
+Date: Fri, 30 Nov 2007 16:21:18 -0800
+Message-ID: <200712010021.lB10LILv031758@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40643 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52261 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757000AbXLAAVy (ORCPT
+	by vger.kernel.org with ESMTP id S1756907AbXLAAWE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Nov 2007 19:21:54 -0500
+	Fri, 30 Nov 2007 19:22:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@sw.ru, ebiederm@xmission.com, hch@infradead.org, jmorris@namei.org, sds@tycho.nsa.gov, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: ben-linux@fluff.org, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc: fix NULL ->i_fop oops
+     S3C24XX: ensure we only configure valid GPIOs
 has been removed from the -mm tree.  Its filename was
-     proc-fix-null-i_fop-oops.patch
+     s3c24xx-ensure-we-only-configure-valid-gpios.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: proc: fix NULL ->i_fop oops
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: S3C24XX: ensure we only configure valid GPIOs
+From: Ben Dooks <ben-linux@fluff.org>
 
-proc_kill_inodes() can clear ->i_fop in the middle of vfs_readdir resulting in
-NULL dereference during "file->f_op->readdir(file, buf, filler)".
+If we specify an GPIO which cannot be used for the purpose, then assume
+that the GPIO is not to be used and do not try and configure it.  This can
+be the case where the SPI bus is TX only.
 
-The solution is to remove proc_kill_inodes() completely:
-
-a) we don't have tricky modules implementing their tricky readdir hooks which
-   could keeping this revoke from hell.
-
-b) In a situation when module is gone but PDE still alive, standard
-   readdir will return only "." and "..", because pde->next was cleared by
-   remove_proc_entry().
-
-c) the race proc_kill_inode() destined to prevent is not completely
-   fixed, just race window made smaller, because vfs_readdir() is run
-   without sb_lock held and without file_list_lock held.  Effectively,
-   ->i_fop is cleared at random moment, which can't fix properly anything.
-
-BUG: unable to handle kernel NULL pointer dereference at virtual address 00000018
-printing eip: c1061205 *pdpt = 0000000005b22001 *pde = 0000000000000000
-Oops: 0000 [#1] PREEMPT SMP
-Modules linked in: foo af_packet ipv6 cpufreq_ondemand loop serio_raw sr_mod k8temp cdrom hwmon amd_rng
-Pid: 2033, comm: find Not tainted (2.6.24-rc1-b1d08ac064268d0ae2281e98bf5e82627e0f0c56 #2)
-EIP: 0060:[<c1061205>] EFLAGS: 00010246 CPU: 0
-EIP is at vfs_readdir+0x47/0x74
-EAX: c6b6a780 EBX: 00000000 ECX: c1061040 EDX: c5decf94
-ESI: c6b6a780 EDI: fffffffe EBP: c9797c54 ESP: c5decf78
- DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
-Process find (pid: 2033, ti=c5dec000 task=c64bba90 task.ti=c5dec000)
-Stack: c5decf94 c1061040 fffffff7 0805ffbc 00000000 c6b6a780 c1061295 0805ffbc
-       00000000 00000400 00000000 00000004 0805ffbc 4588eff4 c5dec000 c10026ba
-       00000004 0805ffbc 00000400 0805ffbc 4588eff4 bfdc6c70 000000dc 0000007b
-Call Trace:
- [<c1061040>] filldir64+0x0/0xc5
- [<c1061295>] sys_getdents64+0x63/0xa5
- [<c10026ba>] sysenter_past_esp+0x5f/0x85
- =======================
-Code: 49 83 78 18 00 74 43 8d 6b 74 bf fe ff ff ff 89 e8 e8 b8 c0 12 00 f6 83 2c 01 00 00 10 75 22 8b 5e 10 8b 4c 24 04 89 f0 8b 14 24 <ff> 53 18 f6 46 1a 04 89 c7 75 0b 8b 56 0c 8b 46 08 e8 c8 66 00
-EIP: [<c1061205>] vfs_readdir+0x47/0x74 SS:ESP 0068:c5decf78
-
-hch: "Nice, getting rid of this is a very good step formwards. 
-      Unfortunately we have another copy of this junk in
-      security/selinux/selinuxfs.c:sel_remove_entries() which would need the
-      same treatment."
-
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
-Acked-by: Christoph Hellwig <hch@infradead.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: James Morris <jmorris@namei.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c  |   37 -------------------------------------
- fs/proc/internal.h |    2 --
- fs/proc/root.c     |    2 +-
- 3 files changed, 1 insertion(+), 40 deletions(-)
+ drivers/spi/spi_s3c24xx_gpio.c |   22 ++++++++++++++--------
+ 1 file changed, 14 insertions(+), 8 deletions(-)
 
-diff -puN fs/proc/generic.c~proc-fix-null-i_fop-oops fs/proc/generic.c
---- a/fs/proc/generic.c~proc-fix-null-i_fop-oops
-+++ a/fs/proc/generic.c
-@@ -555,41 +555,6 @@ static int proc_register(struct proc_dir
- 	return 0;
- }
+diff -puN drivers/spi/spi_s3c24xx_gpio.c~s3c24xx-ensure-we-only-configure-valid-gpios drivers/spi/spi_s3c24xx_gpio.c
+--- a/drivers/spi/spi_s3c24xx_gpio.c~s3c24xx-ensure-we-only-configure-valid-gpios
++++ a/drivers/spi/spi_s3c24xx_gpio.c
+@@ -96,6 +96,7 @@ static void s3c2410_spigpio_chipselect(s
  
--/*
-- * Kill an inode that got unregistered..
-- */
--static void proc_kill_inodes(struct proc_dir_entry *de)
--{
--	struct list_head *p;
--	struct super_block *sb;
--
--	/*
--	 * Actually it's a partial revoke().
--	 */
--	spin_lock(&sb_lock);
--	list_for_each_entry(sb, &proc_fs_type.fs_supers, s_instances) {
--		file_list_lock();
--		list_for_each(p, &sb->s_files) {
--			struct file *filp = list_entry(p, struct file,
--							f_u.fu_list);
--			struct dentry *dentry = filp->f_path.dentry;
--			struct inode *inode;
--			const struct file_operations *fops;
--
--			if (dentry->d_op != &proc_dentry_operations)
--				continue;
--			inode = dentry->d_inode;
--			if (PDE(inode) != de)
--				continue;
--			fops = filp->f_op;
--			filp->f_op = NULL;
--			fops_put(fops);
--		}
--		file_list_unlock();
--	}
--	spin_unlock(&sb_lock);
--}
--
- static struct proc_dir_entry *proc_create(struct proc_dir_entry **parent,
- 					  const char *name,
- 					  mode_t mode,
-@@ -764,8 +729,6 @@ void remove_proc_entry(const char *name,
- continue_removing:
- 		if (S_ISDIR(de->mode))
- 			parent->nlink--;
--		if (!S_ISREG(de->mode))
--			proc_kill_inodes(de);
- 		de->nlink = 0;
- 		WARN_ON(de->subdir);
- 		if (!atomic_read(&de->count))
-diff -puN fs/proc/internal.h~proc-fix-null-i_fop-oops fs/proc/internal.h
---- a/fs/proc/internal.h~proc-fix-null-i_fop-oops
-+++ a/fs/proc/internal.h
-@@ -78,5 +78,3 @@ static inline int proc_fd(struct inode *
+ static int s3c2410_spigpio_probe(struct platform_device *dev)
  {
- 	return PROC_I(inode)->fd;
- }
--
--extern struct file_system_type proc_fs_type;
-diff -puN fs/proc/root.c~proc-fix-null-i_fop-oops fs/proc/root.c
---- a/fs/proc/root.c~proc-fix-null-i_fop-oops
-+++ a/fs/proc/root.c
-@@ -98,7 +98,7 @@ static void proc_kill_sb(struct super_bl
- 	put_pid_ns(ns);
- }
++	struct s3c2410_spigpio_info *info;
+ 	struct spi_master	*master;
+ 	struct s3c2410_spigpio  *sp;
+ 	int ret;
+@@ -113,7 +114,7 @@ static int s3c2410_spigpio_probe(struct 
+ 	platform_set_drvdata(dev, sp);
  
--struct file_system_type proc_fs_type = {
-+static struct file_system_type proc_fs_type = {
- 	.name		= "proc",
- 	.get_sb		= proc_get_sb,
- 	.kill_sb	= proc_kill_sb,
+ 	/* copy in the plkatform data */
+-	sp->info = dev->dev.platform_data;
++	info = sp->info = dev->dev.platform_data;
+ 
+ 	/* setup spi bitbang adaptor */
+ 	sp->bitbang.master = spi_master_get(master);
+@@ -124,13 +125,18 @@ static int s3c2410_spigpio_probe(struct 
+ 	sp->bitbang.txrx_word[SPI_MODE_2] = s3c2410_spigpio_txrx_mode2;
+ 	sp->bitbang.txrx_word[SPI_MODE_3] = s3c2410_spigpio_txrx_mode3;
+ 
+-	/* set state of spi pins */
+-	s3c2410_gpio_setpin(sp->info->pin_clk, 0);
+-	s3c2410_gpio_setpin(sp->info->pin_mosi, 0);
+-
+-	s3c2410_gpio_cfgpin(sp->info->pin_clk, S3C2410_GPIO_OUTPUT);
+-	s3c2410_gpio_cfgpin(sp->info->pin_mosi, S3C2410_GPIO_OUTPUT);
+-	s3c2410_gpio_cfgpin(sp->info->pin_miso, S3C2410_GPIO_INPUT);
++	/* set state of spi pins, always assume that the clock is
++	 * available, but do check the MOSI and MISO. */
++	s3c2410_gpio_setpin(info->pin_clk, 0);
++	s3c2410_gpio_cfgpin(info->pin_clk, S3C2410_GPIO_OUTPUT);
++
++	if (info->pin_mosi < S3C2410_GPH10) {
++		s3c2410_gpio_setpin(info->pin_mosi, 0);
++		s3c2410_gpio_cfgpin(info->pin_mosi, S3C2410_GPIO_OUTPUT);
++	}
++
++	if (info->pin_miso != S3C2410_GPA0 && info->pin_miso < S3C2410_GPH10)
++		s3c2410_gpio_cfgpin(info->pin_miso, S3C2410_GPIO_INPUT);
+ 
+ 	ret = spi_bitbang_start(&sp->bitbang);
+ 	if (ret)
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from ben-linux@fluff.org are
 
 origin.patch
-proc-fix-pde-refcounting.patch
-proc-remove-module_license.patch
-proc-less-lock-operations-during-lookup.patch
-proc-simplify-function-prototypes.patch
-proc-remove-useless-check-on-symlink-removal.patch
-proc-remove-useless-checks-in-proc_register.patch
-proc-detect-duplicate-names-on-registration.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-single_open-seq_release-leak-diagnostics.patch
+git-mtd.patch
