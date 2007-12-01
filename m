@@ -1,117 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - more-timer-related-cleanups.patch removed from -mm tree
-Date: Fri, 30 Nov 2007 16:23:57 -0800
-Message-ID: <200712010023.lB10NvF0032023@imap1.linux-foundation.org>
+Subject: - net-fix-tx-bug-vlan-in-vlan.patch removed from -mm tree
+Date: Fri, 30 Nov 2007 16:23:08 -0800
+Message-ID: <200712010023.lB10N8jT031975@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40839 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49748 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757343AbXLAA22 (ORCPT
+	by vger.kernel.org with ESMTP id S1757926AbXLAA2W (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Nov 2007 19:28:28 -0500
+	Fri, 30 Nov 2007 19:28:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pavel@ucw.cz, johnstul@us.ibm.com, mingo@elte.hu, pavel@suse.cz, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: joonwpark81@gmail.com, davem@davemloft.net, greearb@candelatech.com, herbert@gondor.apana.org.au, tristan_schmelcher@alumni.uwaterloo.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     time: more timer related cleanups
+     net: fix TX bug VLAN in VLAN
 has been removed from the -mm tree.  Its filename was
-     more-timer-related-cleanups.patch
+     net-fix-tx-bug-vlan-in-vlan.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: time: more timer related cleanups
-From: Pavel Machek <pavel@ucw.cz>
+Subject: net: fix TX bug VLAN in VLAN
+From: "Joonwoo Park" <joonwpark81@gmail.com>
 
-I was confused by FSEC = 10^15 NSEC statement, plus small whitespace
-fixes. When there's copyright, there should be GPL.
+This patch fixes http://bugzilla.kernel.org/show_bug.cgi?id=8766
 
-Signed-off-by: Pavel Machek <pavel@suse.cz>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: john stultz <johnstul@us.ibm.com>
+Is it possible?
+BUG((veth->h_vlan_proto != htons(ETH_P_8021Q)) && !(VLAN_DEV_INFO(dev)->flags & VLAN_FLAG_REORDER_HDR))
+I'm afraid, queued packet before vconfig set_flag would do that.
+
+Fix misbehavior of vlan_dev_hard_start_xmit() for recursive encapsulations.
+
+Signed-off-by: Joonwoo Park <joonwpark81@gmail.com>
+Cc: Ben Greear <greearb@candelatech.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Tristan Schmelcher <tristan_schmelcher@alumni.uwaterloo.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/hpet.c       |    3 ++-
- arch/x86/kernel/process_64.c |    2 +-
- kernel/softirq.c             |    4 +++-
- kernel/time/tick-sched.c     |    2 +-
- kernel/time/timer_stats.c    |    2 +-
- 5 files changed, 8 insertions(+), 5 deletions(-)
+ net/8021q/vlan_dev.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/hpet.c~more-timer-related-cleanups arch/x86/kernel/hpet.c
---- a/arch/x86/kernel/hpet.c~more-timer-related-cleanups
-+++ a/arch/x86/kernel/hpet.c
-@@ -16,7 +16,8 @@
- #define HPET_MASK	CLOCKSOURCE_MASK(32)
- #define HPET_SHIFT	22
+diff -puN net/8021q/vlan_dev.c~net-fix-tx-bug-vlan-in-vlan net/8021q/vlan_dev.c
+--- a/net/8021q/vlan_dev.c~net-fix-tx-bug-vlan-in-vlan
++++ a/net/8021q/vlan_dev.c
+@@ -462,7 +462,8 @@ int vlan_dev_hard_start_xmit(struct sk_b
+ 	 * OTHER THINGS LIKE FDDI/TokenRing/802.3 SNAPs...
+ 	 */
  
--/* FSEC = 10^-15 NSEC = 10^-9 */
-+/* FSEC = 10^-15
-+   NSEC = 10^-9 */
- #define FSEC_PER_NSEC	1000000
+-	if (veth->h_vlan_proto != htons(ETH_P_8021Q)) {
++	if (veth->h_vlan_proto != htons(ETH_P_8021Q) ||
++		VLAN_DEV_INFO(dev)->flags & VLAN_FLAG_REORDER_HDR) {
+ 		int orig_headroom = skb_headroom(skb);
+ 		unsigned short veth_TCI;
  
- /*
-diff -puN arch/x86/kernel/process_64.c~more-timer-related-cleanups arch/x86/kernel/process_64.c
---- a/arch/x86/kernel/process_64.c~more-timer-related-cleanups
-+++ a/arch/x86/kernel/process_64.c
-@@ -196,7 +196,7 @@ static inline void play_dead(void)
-  * low exit latency (ie sit in a loop waiting for
-  * somebody to say that they'd like to reschedule)
-  */
--void cpu_idle (void)
-+void cpu_idle(void)
- {
- 	current_thread_info()->status |= TS_POLLING;
- 	/* endless idle loop with no priority at all */
-diff -puN kernel/softirq.c~more-timer-related-cleanups kernel/softirq.c
---- a/kernel/softirq.c~more-timer-related-cleanups
-+++ a/kernel/softirq.c
-@@ -3,7 +3,9 @@
-  *
-  *	Copyright (C) 1992 Linus Torvalds
-  *
-- * Rewritten. Old one was good in 2.2, but in 2.3 it was immoral. --ANK (990903)
-+ *	Distribute under GPLv2.
-+ *
-+ *	Rewritten. Old one was good in 2.2, but in 2.3 it was immoral. --ANK (990903)
-  */
- 
- #include <linux/module.h>
-diff -puN kernel/time/tick-sched.c~more-timer-related-cleanups kernel/time/tick-sched.c
---- a/kernel/time/tick-sched.c~more-timer-related-cleanups
-+++ a/kernel/time/tick-sched.c
-@@ -9,7 +9,7 @@
-  *
-  *  Started by: Thomas Gleixner and Ingo Molnar
-  *
-- *  For licencing details see kernel-base/COPYING
-+ *  Distribute under GPLv2.
-  */
- #include <linux/cpu.h>
- #include <linux/err.h>
-diff -puN kernel/time/timer_stats.c~more-timer-related-cleanups kernel/time/timer_stats.c
---- a/kernel/time/timer_stats.c~more-timer-related-cleanups
-+++ a/kernel/time/timer_stats.c
-@@ -26,7 +26,7 @@
-  * the pid and cmdline from the owner process if applicable.
-  *
-  * Start/stop data collection:
-- * # echo 1[0] >/proc/timer_stats
-+ * # echo [1|0] >/proc/timer_stats
-  *
-  * Display the information collected so far:
-  * # cat /proc/timer_stats
 _
 
-Patches currently in -mm which might be from pavel@ucw.cz are
+Patches currently in -mm which might be from joonwpark81@gmail.com are
 
-git-acpi.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-x86.patch
-fix-proc-net-breakage.patch
-kernel-power-diskc-make-code-static.patch
-make-kernel_shutdown_prepare-static.patch
+git-net.patch
+iwlwifi-3945-fix-race-conditional-panic.patch
+iwlwifi-4965-fix-race-conditional-panic.patch
