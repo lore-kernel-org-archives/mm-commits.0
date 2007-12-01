@@ -1,52 +1,45 @@
 From: akpm@linux-foundation.org
-Subject: - git-scsi-misc-fixup.patch removed from -mm tree
-Date: Fri, 30 Nov 2007 15:55:31 -0800
-Message-ID: <200711302355.lAUNtVNe030796@imap1.linux-foundation.org>
+Subject: - git-x86-fixup.patch removed from -mm tree
+Date: Fri, 30 Nov 2007 16:01:01 -0800
+Message-ID: <200712010001.lB10114N030970@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42253 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56671 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756570AbXK3Xzt (ORCPT
+	by vger.kernel.org with ESMTP id S1755841AbXLAABp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Nov 2007 18:55:49 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lAUNtWZ7012220
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 30 Nov 2007 15:55:33 -0800
+	Fri, 30 Nov 2007 19:01:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, lenb@kernel.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-scsi-misc-fixup
+     git-x86-fixup
 has been removed from the -mm tree.  Its filename was
-     git-scsi-misc-fixup.patch
+     git-x86-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-scsi-misc-fixup
+Subject: git-x86-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Fix rejects in git-x86.  Mainly but not only patches which were also applied
+to the acpi tree.
+
+Cc: Len Brown <lenb@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ x86/kernel/acpi/boot.c |    0 
+ 1 file changed
 
-diff -puN Documentation/DocBook/Makefile~git-scsi-misc-fixup Documentation/DocBook/Makefile
---- a/Documentation/DocBook/Makefile~git-scsi-misc-fixup
-+++ a/Documentation/DocBook/Makefile
-@@ -11,7 +11,7 @@ DOCBOOKS := wanbook.xml z8530book.xml mc
- 	    procfs-guide.xml writing_usb_driver.xml \
- 	    kernel-api.xml filesystems.xml lsm.xml usb.xml \
- 	    gadget.xml libata.xml mtdnand.xml librs.xml rapidio.xml \
--	    genericirq.xml s390-drivers.xml uio-howto.xml
-+	    genericirq.xml s390-drivers.xml uio-howto.xml scsi.xml
- 
- ###
- # The build process is as follows (targets):
+diff -puN arch/x86/kernel/io_apic_64.c~git-x86-fixup arch/x86/kernel/io_apic_64.c
+diff -puN arch/x86/kernel/pci-gart_64.c~git-x86-fixup arch/x86/kernel/pci-gart_64.c
+diff -puN arch/x86/kernel/acpi/boot.c~git-x86-fixup arch/x86/kernel/acpi/boot.c
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -98,7 +91,6 @@ git-nfsd.patch
 quirk-enable-msi-mapping-on-ht1000.patch
 git-sh.patch
 git-sh-fixup.patch
-git-scsi-misc-fixup.patch
 ips-trim-trailing-whitespace.patch
 scsi-gdth-kill-unneeded-irq-argument.patch
 libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
@@ -109,7 +101,7 @@ git-watchdog.patch
 git-wireless.patch
 git-ipwireless_cs.patch
 git-x86.patch
-git-x86-build-fix.patch
+git-x86-fixup.patch
 git-cryptodev.patch
 git-xtensa.patch
 ia64-increase-datapatch-offset.patch
