@@ -1,91 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: - s3c2410-add-bus-number-to-spi-gpio-driver.patch removed from -mm tree
-Date: Fri, 30 Nov 2007 16:21:22 -0800
-Message-ID: <200712010021.lB10LMaP031761@imap1.linux-foundation.org>
+Subject: - termios-document-callback-more-clearly.patch removed from -mm tree
+Date: Fri, 30 Nov 2007 16:21:16 -0800
+Message-ID: <200712010021.lB10LGO1031755@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34581 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60228 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757182AbXLAAWI (ORCPT
+	by vger.kernel.org with ESMTP id S1756705AbXLAAWC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Nov 2007 19:22:08 -0500
+	Fri, 30 Nov 2007 19:22:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, ben-linux@fluff.org, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi: S3C2410: add bus number to SPI GPIO driver
+     termios: document callback more clearly
 has been removed from the -mm tree.  Its filename was
-     s3c2410-add-bus-number-to-spi-gpio-driver.patch
+     termios-document-callback-more-clearly.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: spi: S3C2410: add bus number to SPI GPIO driver
-From: David Brownell <david-b@pacbell.net>
+Subject: termios: document callback more clearly
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Allow passing a bus number through the platform data for the S3C2410 SPI
-GPIO driver.   This is needed to support multiple SPI busses.
-
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_s3c24xx_gpio.c          |    1 +
- include/asm-arm/arch-s3c2410/spi-gpio.h |    2 ++
- 2 files changed, 3 insertions(+)
+ Documentation/tty.txt |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/spi/spi_s3c24xx_gpio.c~s3c2410-add-bus-number-to-spi-gpio-driver drivers/spi/spi_s3c24xx_gpio.c
---- a/drivers/spi/spi_s3c24xx_gpio.c~s3c2410-add-bus-number-to-spi-gpio-driver
-+++ a/drivers/spi/spi_s3c24xx_gpio.c
-@@ -118,6 +118,7 @@ static int s3c2410_spigpio_probe(struct 
+diff -puN Documentation/tty.txt~termios-document-callback-more-clearly Documentation/tty.txt
+--- a/Documentation/tty.txt~termios-document-callback-more-clearly
++++ a/Documentation/tty.txt
+@@ -132,6 +132,14 @@ set_termios()		Notify the tty driver tha
+ 			tty->termios. Previous settings should be passed in
+ 			the "old" argument.
  
- 	/* setup spi bitbang adaptor */
- 	sp->bitbang.master = spi_master_get(master);
-+	sp->bitbang.master->bus_num = info->bus_num;
- 	sp->bitbang.chipselect = s3c2410_spigpio_chipselect;
- 
- 	sp->bitbang.txrx_word[SPI_MODE_0] = s3c2410_spigpio_txrx_mode0;
-diff -puN include/asm-arm/arch-s3c2410/spi-gpio.h~s3c2410-add-bus-number-to-spi-gpio-driver include/asm-arm/arch-s3c2410/spi-gpio.h
---- a/include/asm-arm/arch-s3c2410/spi-gpio.h~s3c2410-add-bus-number-to-spi-gpio-driver
-+++ a/include/asm-arm/arch-s3c2410/spi-gpio.h
-@@ -21,6 +21,8 @@ struct s3c2410_spigpio_info {
- 	unsigned long		 pin_mosi;
- 	unsigned long		 pin_miso;
- 
-+	int			 bus_num;
++			The API is defined such that the driver should return
++			the actual modes selected. This means that the
++			driver function is responsible for modifying any
++			bits in the request it cannot fulfill to indicate
++			the actual modes being used. A device with no
++			hardware capability for change (eg a USB dongle or
++			virtual port) can provide NULL for this method.
 +
- 	unsigned long		 board_size;
- 	struct spi_board_info	*board_info;
- 
+ throttle()		Notify the tty driver that input buffers for the
+ 			line discipline are close to full, and it should
+ 			somehow signal that no more characters should be
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-rtc-dont-write-rtc-century-when-setting-a-wake-alarm.patch
-git-mmc.patch
-git-mtd.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-remove-pointless-casts-from-void-pointers.patch
-spi-at25-driver-is-for-eeprom-not-flash.patch
-spi-use-mutex-not-semaphore.patch
-blackfin-spi-driver-use-cpu_relax-to-replace-continue-in-while-busywait.patch
-blackfin-spi-driver-use-void-__iomem-for-regs_base.patch
-blackfin-spi-driver-move-hard-coded-pin_req-to-board-file.patch
-blackfin-spi-driver-reconfigure-speed_hz-and-bits_per_word-in-each-spi-transfer.patch
-cosmetic-fixes-to-rtc-subsystems-kconfig.patch
-rtc-pcf8583-dont-abuse-i2c_m_nostart.patch
-rtc-s3c-use-is_power_of_2-macro-for-simplicity.patch
-rtc-cmos-exports-nvram-in-sysfs.patch
-rtc-cmos-alarm-acts-as-oneshot.patch
-generic-gpio-gpio_chip-support.patch
-generic-gpio-gpio_chip-support-fix.patch
-generic-gpio-gpio_chip-support-gpiolib-locking-simplified.patch
-avr32-uses-gpio_chip.patch
-mcp23s08-spi-gpio-expander.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-arm-pxa-gpiolib-support-make-pxa_gpio_chip-static.patch
-pnp-request-ioport-and-iomem-resources-used-by-active-devices.patch
+git-arm.patch
+git-libata-all.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+libata-separate-out-ata_acpi_gtm_xfermask-from-pacpi_discover_modes.patch
+libata-fix-ata_acpi_gtm_xfermask.patch
+libata-implement-ata_timing_cycle2mode-and-use-it-in-libata-acpi-and-pata_acpi.patch
+libata-reimplement-ata_acpi_cbl_80wire-using-ata_acpi_gtm_xfermask.patch
+libata-add-ata_cbl_pata_ign.patch
+pata_amd-update-mode-selection-for-nv-patas.patch
+pata_pcmcia-minor-cleanups-and-support-for-dual-channel-cards.patch
+libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock.patch
+ata-ahci-enclosure-management-via-led.patch
+libata-fix-early-use-of-port-printk.patch
+libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
+git-netdev-all.patch
+bluetooth-rfcomm-tty_close-before-destruct.patch
+pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch
+pcmcia-replace-kio_addr_t-with-unsigned-int-everywhere.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+git-scsi-rc-fixes.patch
+initio-fix-conflict-when-loading-driver.patch
+belkin_sa-clean-up-for-new-style-termios-and-speed.patch
+keyspan_pda-clean-up-speed-handling.patch
+mct232-speed-new-termios-and-compliance-cleanups.patch
+mct232-speed-new-termios-and-compliance-cleanups-fix.patch
+pata_amd-pata_via-de-couple-programming-of-pio-mwdma-and-udma-timings.patch
+geode-lists-are-subscriber-only.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
+tty-kill-tty_flipbuf_size.patch
+drivers-edac-turnon-edac-device-error-logging.patch
+drivers-edac-use-round_jiffies_relative.patch
+drivers-edac-add-cell-xdr-memory-types.patch
+drivers-edac-add-cell-mc-driver.patch
+drivers-edac-i3000-code-tidying.patch
+drivers-edac-i3000-replace-macros-with-functions.patch
+drivers-edac-add-freescale-mpc85xx-driver.patch
+drivers-edac-add-marvell-mv64x60-driver.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+dz-clean-up-and-improve-the-setup-of-termios-settings.patch
+char-rocket-switch-long-delay-to-sleep.patch
+char-rocket-printk-cleanup.patch
+char-char-serial-remove-serial_type_normal-redefines.patch
+char-mxser_new-ioaddresses-are-ulong.patch
+char-stallion-fix-compiler-warnings.patch
+char-riscom8-change-rc_init_drivers-prototype.patch
+mxser-mxser_new-first-pass-over-termios-reporting-for-the.patch
+tty-let-architectures-override-the-user-kernel-macros.patch
+tty-s390-support-for-termios2.patch
+moxa-first-pass-at-termios-reporting.patch
+n_tty-clean-up-old-code-to-follow-coding-style-and-mostly-checkpatch.patch
+rocket-first-pass-at-termios-reporting.patch
+rocket-dont-let-random-users-reset-the-controller.patch
+tty_audit-fix-checkpatch-complaint.patch
+tty_io-drag-screaming-into-coding-style-compliance.patch
+tty_ioctl-drag-screaming-into-compliance-with-the-coding.patch
+8250_early-coding-style.patch
+8250_gsc-coding-style.patch
+8250_hp300-coding-style.patch
+8250_hub6-codding-style.patch
+8250_pci-coding-style.patch
+serial8250-coding-style.patch
+8250-enable-rate-reporting-via-termios.patch
+serial_core-bring-mostly-into-line-with-coding-style.patch
