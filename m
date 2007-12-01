@@ -1,61 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - restore-missing-sysfs-max_cstate-attr.patch removed from -mm tree
-Date: Sat, 01 Dec 2007 02:19:06 -0800
-Message-ID: <200712011019.lB1AJ6XI018544@imap1.linux-foundation.org>
+Subject: - slab-fix-kmem_cache_free-performance-regression.patch removed from -mm tree
+Date: Sat, 01 Dec 2007 03:56:58 -0800
+Message-ID: <200712011156.lB1Buww0021501@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45547 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55365 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751420AbXLAKT1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 1 Dec 2007 05:19:27 -0500
+	by vger.kernel.org with ESMTP id S1751907AbXLAL5M (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 1 Dec 2007 06:57:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lkml@rtr.ca, abelay@novell.com, lenb@kernel.org, mlord@pobox.com, rjw@sisk.pl, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
+To: matthew@wil.cx, clameter@sgi.com, penberg@cs.helsinki.fi, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     restore missing sysfs max_cstate attr
+     slab: fix kmem_cache_free performance regression
 has been removed from the -mm tree.  Its filename was
-     restore-missing-sysfs-max_cstate-attr.patch
+     slab-fix-kmem_cache_free-performance-regression.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: restore missing sysfs max_cstate attr
-From: Mark Lord <lkml@rtr.ca>
+Subject: slab: fix kmem_cache_free performance regression
+From: Matthew Wilcox <matthew@wil.cx>
 
-Restore visibility of /sys/module/processor/parameters/max_cstate
-for compatibility with kernels prior to 2.6.24.
+The database performance group have found that half the cycles spent in
+kmem_cache_free are spent in this one call to BUG_ON.  Moving it into the
+CONFIG_SLAB_DEBUG-only function cache_free_debugcheck() is a performance
+win of almost 0.5% on their particular benchmark.
 
-Signed-off-by: Mark Lord <mlord@pobox.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Adam Belay <abelay@novell.com>
+The call was added as part of commit
+ddc2e812d592457747c4367fb73edcaa8e1e49ff with the comment that "overhead
+should be minimal".  It may have been minimal at the time, but it isn't
+now.
+
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- acpi/processor_idle.c.orig    |    0 
- drivers/acpi/processor_idle.c |    2 +-
- 2 files changed, 1 insertion(+), 1 deletion(-)
+ mm/slab.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/processor_idle.c~restore-missing-sysfs-max_cstate-attr drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~restore-missing-sysfs-max_cstate-attr
-+++ a/drivers/acpi/processor_idle.c
-@@ -76,7 +76,7 @@ static void (*pm_idle_save) (void) __rea
- #define PM_TIMER_TICKS_TO_US(p)		(((p) * 1000)/(PM_TIMER_FREQUENCY/1000))
+diff -puN mm/slab.c~slab-fix-kmem_cache_free-performance-regression mm/slab.c
+--- a/mm/slab.c~slab-fix-kmem_cache_free-performance-regression
++++ a/mm/slab.c
+@@ -2881,6 +2881,8 @@ static void *cache_free_debugcheck(struc
+ 	unsigned int objnr;
+ 	struct slab *slabp;
  
- static unsigned int max_cstate __read_mostly = ACPI_PROCESSOR_MAX_POWER;
--module_param(max_cstate, uint, 0000);
-+module_param(max_cstate, uint, 0644);
- static unsigned int nocst __read_mostly;
- module_param(nocst, uint, 0000);
++	BUG_ON(virt_to_cache(objp) != cachep);
++
+ 	objp -= obj_offset(cachep);
+ 	kfree_debugcheck(objp);
+ 	page = virt_to_head_page(objp);
+@@ -3759,8 +3761,6 @@ void kmem_cache_free(struct kmem_cache *
+ {
+ 	unsigned long flags;
  
-diff -puN drivers/acpi/processor_idle.c.orig~restore-missing-sysfs-max_cstate-attr drivers/acpi/processor_idle.c.orig
+-	BUG_ON(virt_to_cache(objp) != cachep);
+-
+ 	local_irq_save(flags);
+ 	debug_check_no_locks_freed(objp, obj_size(cachep));
+ 	__cache_free(cachep, objp);
 _
 
-Patches currently in -mm which might be from lkml@rtr.ca are
+Patches currently in -mm which might be from matthew@wil.cx are
 
-rtc-dont-write-rtc-century-when-setting-a-wake-alarm.patch
-pcie-fix-double-initialization-bug.patch
-restore-missing-sysfs-max_cstate-attr.patch
+origin.patch
+pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch
+pcmcia-replace-kio_addr_t-with-unsigned-int-everywhere.patch
+use-wake_up_locked-in-eventpoll.patch
+use-macros-instead-of-task_-flags.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+add-task_wakekill.patch
+add-lock_page_killable.patch
+hash-add-explicit-u32-and-u64-versions-of-hash.patch
+make-sure-nobodys-leaking-resources.patch
