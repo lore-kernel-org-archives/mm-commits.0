@@ -1,130 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: - fix-boot-problem-with-iseries-lacking-hugepage-support.patch removed from -mm tree
-Date: Fri, 30 Nov 2007 16:20:47 -0800
-Message-ID: <200712010020.lB10Kli2031719@imap1.linux-foundation.org>
+Subject: - pnp-increase-the-maximum-number-of-resources.patch removed from -mm tree
+Date: Fri, 30 Nov 2007 16:20:59 -0800
+Message-ID: <200712010020.lB10KxIE031728@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33403 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42975 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756213AbXLAAVN (ORCPT
+	by vger.kernel.org with ESMTP id S1757787AbXLAAVY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Nov 2007 19:21:13 -0500
+	Fri, 30 Nov 2007 19:21:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, benh@kernel.crashing.org, paulus@samba.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: yakui.zhao@intel.com, bjorn.helgaas@hp.com, shaohua.li@intel.com, stable@kernel.org, trenn@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix boot problem with iSeries lacking hugepage support
+     PNP: increase the maximum number of resources
 has been removed from the -mm tree.  Its filename was
-     fix-boot-problem-with-iseries-lacking-hugepage-support.patch
+     pnp-increase-the-maximum-number-of-resources.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix boot problem with iSeries lacking hugepage support
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: PNP: increase the maximum number of resources
+From: Zhao Yakui <yakui.zhao@intel.com>
 
-Ordinarily the size of a pageblock is determined at compile-time based on the
-hugepage size. On PPC64, the hugepage size is determined at runtime based on
-what is supported by the machine. With legacy machines such as iSeries that
-do not support hugepages, HPAGE_SHIFT is 0. This results in pageblock_order
-being set to -PAGE_SHIFT and a crash results shortly afterwards.
+On some systems the number of resources(IO,MEM) returnedy by PNP device is
+greater than the PNP constant, for example motherboard devices.  It brings
+that some resources can't be reserved and resource confilicts.  This will
+cause PCI resources are assigned wrongly in some systems, and cause hang. 
+This is a regression since we deleted ACPI motherboard driver and use PNP
+system driver.
 
-This patch adds a function to select a sensible value for pageblock order by
-default when HUGETLB_PAGE_SIZE_VARIABLE is set. It checks that HPAGE_SHIFT
-is a sensible value before using the hugepage size; if it is not MAX_ORDER-1
-is used.
-
-This is a fix for 2.6.24.
-
-Credit goes to Stephen Rothwell for identifying the bug and testing candidate
-patches.  Additional credit goes to Andy Whitcroft for spotting a problem
-with respects to IA-64 before releasing. Additional credit to David Gibson
-for testing with the libhugetlbfs test suite.
-
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Tested-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Acked-by: Paul Mackerras <paulus@samba.org>
+[akpm@linux-foundation.org: fix text and coding-style a bit]
+Signed-off-by: Li Shaohua <shaohua.li@intel.com>
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Kconfig |    5 +++++
- mm/page_alloc.c      |   23 +++++++++++++++++++++--
- 2 files changed, 26 insertions(+), 2 deletions(-)
+ drivers/pnp/pnpacpi/rsparser.c |   15 +++++++++++++--
+ include/linux/pnp.h            |    4 ++--
+ 2 files changed, 15 insertions(+), 4 deletions(-)
 
-diff -puN arch/powerpc/Kconfig~fix-boot-problem-with-iseries-lacking-hugepage-support arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~fix-boot-problem-with-iseries-lacking-hugepage-support
-+++ a/arch/powerpc/Kconfig
-@@ -187,6 +187,11 @@ config FORCE_MAX_ZONEORDER
- 	default "9" if PPC_64K_PAGES
- 	default "13"
- 
-+config HUGETLB_PAGE_SIZE_VARIABLE
-+	bool
-+	depends on HUGETLB_PAGE
-+	default y
-+
- config MATH_EMULATION
- 	bool "Math emulation"
- 	depends on 4xx || 8xx || E200 || PPC_MPC832x || E500
-diff -puN mm/page_alloc.c~fix-boot-problem-with-iseries-lacking-hugepage-support mm/page_alloc.c
---- a/mm/page_alloc.c~fix-boot-problem-with-iseries-lacking-hugepage-support
-+++ a/mm/page_alloc.c
-@@ -3266,6 +3266,16 @@ static void inline setup_usemap(struct p
- #endif /* CONFIG_SPARSEMEM */
- 
- #ifdef CONFIG_HUGETLB_PAGE_SIZE_VARIABLE
-+
-+/* Return a sensible default order for the pageblock size. */
-+static inline int pageblock_default_order(void)
-+{
-+	if (HPAGE_SHIFT > PAGE_SHIFT)
-+		return HUGETLB_PAGE_ORDER;
-+
-+	return MAX_ORDER-1;
-+}
-+
- /* Initialise the number of pages represented by NR_PAGEBLOCK_BITS */
- static inline void __init set_pageblock_order(unsigned int order)
- {
-@@ -3281,7 +3291,16 @@ static inline void __init set_pageblock_
+diff -puN drivers/pnp/pnpacpi/rsparser.c~pnp-increase-the-maximum-number-of-resources drivers/pnp/pnpacpi/rsparser.c
+--- a/drivers/pnp/pnpacpi/rsparser.c~pnp-increase-the-maximum-number-of-resources
++++ a/drivers/pnp/pnpacpi/rsparser.c
+@@ -83,9 +83,11 @@ static void pnpacpi_parse_allocated_irqr
+ 	while (!(res->irq_resource[i].flags & IORESOURCE_UNSET) &&
+ 	       i < PNP_MAX_IRQ)
+ 		i++;
+-	if (i >= PNP_MAX_IRQ)
++	if (i >= PNP_MAX_IRQ) {
++		printk(KERN_ERR "pnpacpi: exceeded the max number of IRQ "
++				"resources: %d \n", PNP_MAX_IRQ);
+ 		return;
+-
++	}
+ 	/*
+ 	 * in IO-APIC mode, use overrided attribute. Two reasons:
+ 	 * 1. BIOS bug in DSDT
+@@ -181,6 +183,9 @@ static void pnpacpi_parse_allocated_dmar
+ 		}
+ 		res->dma_resource[i].start = dma;
+ 		res->dma_resource[i].end = dma;
++	} else {
++		printk(KERN_ERR "pnpacpi: exceeded the max number of DMA "
++				"resources: %d \n", PNP_MAX_DMA);
+ 	}
  }
- #else /* CONFIG_HUGETLB_PAGE_SIZE_VARIABLE */
  
--/* Defined this way to avoid accidently referencing HUGETLB_PAGE_ORDER */
-+/*
-+ * When CONFIG_HUGETLB_PAGE_SIZE_VARIABLE is not set, set_pageblock_order()
-+ * and pageblock_default_order() are unused as pageblock_order is set
-+ * at compile-time. See include/linux/pageblock-flags.h for the values of
-+ * pageblock_order based on the kernel config
-+ */
-+static inline int pageblock_default_order(unsigned int order)
-+{
-+	return MAX_ORDER-1;
-+}
- #define set_pageblock_order(x)	do {} while (0)
+@@ -202,6 +207,9 @@ static void pnpacpi_parse_allocated_iore
+ 		}
+ 		res->port_resource[i].start = io;
+ 		res->port_resource[i].end = io + len - 1;
++	} else {
++		printk(KERN_ERR "pnpacpi: exceeded the max number of IO "
++				"resources: %d \n", PNP_MAX_PORT);
+ 	}
+ }
  
- #endif /* CONFIG_HUGETLB_PAGE_SIZE_VARIABLE */
-@@ -3366,7 +3385,7 @@ static void __meminit free_area_init_cor
- 		if (!size)
- 			continue;
+@@ -225,6 +233,9 @@ static void pnpacpi_parse_allocated_memr
  
--		set_pageblock_order(HUGETLB_PAGE_ORDER);
-+		set_pageblock_order(pageblock_default_order());
- 		setup_usemap(pgdat, zone, size);
- 		ret = init_currently_empty_zone(zone, zone_start_pfn,
- 						size, MEMMAP_EARLY);
+ 		res->mem_resource[i].start = mem;
+ 		res->mem_resource[i].end = mem + len - 1;
++	} else {
++		printk(KERN_ERR "pnpacpi: exceeded the max number of mem "
++				"resources: %d\n", PNP_MAX_MEM);
+ 	}
+ }
+ 
+diff -puN include/linux/pnp.h~pnp-increase-the-maximum-number-of-resources include/linux/pnp.h
+--- a/include/linux/pnp.h~pnp-increase-the-maximum-number-of-resources
++++ a/include/linux/pnp.h
+@@ -13,8 +13,8 @@
+ #include <linux/errno.h>
+ #include <linux/mod_devicetable.h>
+ 
+-#define PNP_MAX_PORT		8
+-#define PNP_MAX_MEM		4
++#define PNP_MAX_PORT		24
++#define PNP_MAX_MEM		12
+ #define PNP_MAX_IRQ		2
+ #define PNP_MAX_DMA		2
+ #define PNP_NAME_LEN		50
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from yakui.zhao@intel.com are
 
 origin.patch
-fix-build-failure-when-config_infiniband_ipoib_cm-is-not-defined.patch
-memory-hotplug-add-removable-to-sysfs-to-show-memblock-removability.patch
-page-allocator-clean-up-pcp-draining-functions.patch
-page-allocator-get-rid-of-the-list-of-cold-pages.patch
-page-allocator-get-rid-of-the-list-of-cold-pages-fix.patch
-page-owner-tracking-leak-detector.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
