@@ -1,99 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - fuse-cleanup-add-fuse_get_attr_version.patch removed from -mm tree
-Date: Fri, 30 Nov 2007 16:22:48 -0800
-Message-ID: <200712010022.lB10Mmbx031945@imap1.linux-foundation.org>
+Subject: - fuse-fix-uninitialized-field-in-fuse_inode.patch removed from -mm tree
+Date: Fri, 30 Nov 2007 16:22:54 -0800
+Message-ID: <200712010022.lB10MsEO031954@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52122 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34905 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756782AbXLAA1L (ORCPT
+	by vger.kernel.org with ESMTP id S1757166AbXLAA1O (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Nov 2007 19:27:11 -0500
+	Fri, 30 Nov 2007 19:27:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, mm-commits@vger.kernel.org
+To: muirj@nortel.com, mszeredi@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fuse: cleanup: add fuse_get_attr_version()
+     fuse: fix uninitialized field in fuse_inode
 has been removed from the -mm tree.  Its filename was
-     fuse-cleanup-add-fuse_get_attr_version.patch
+     fuse-fix-uninitialized-field-in-fuse_inode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fuse: cleanup: add fuse_get_attr_version()
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: fuse: fix uninitialized field in fuse_inode
+From: John Muir <muirj@nortel.com>
 
-Extract repeated code into helper function, as suggested by Akpm.
+I found problems accessing (executing) previously existing files, until
+I did chmod on them (or setattr).
+
+If the fi->attr_version is not initialized, then it could be
+larger than fc->attr_version until a setattr is executed, and as a
+result the inode attributes would never be set.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/dir.c |   27 ++++++++++++++++++---------
- 1 file changed, 18 insertions(+), 9 deletions(-)
+ fs/fuse/inode.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/fuse/dir.c~fuse-cleanup-add-fuse_get_attr_version fs/fuse/dir.c
---- a/fs/fuse/dir.c~fuse-cleanup-add-fuse_get_attr_version
-+++ a/fs/fuse/dir.c
-@@ -132,6 +132,21 @@ static void fuse_lookup_init(struct fuse
- 	req->out.args[0].value = outarg;
- }
- 
-+static u64 fuse_get_attr_version(struct fuse_conn *fc)
-+{
-+	u64 curr_version;
-+
-+	/*
-+	 * The spin lock isn't actually needed on 64bit archs, but we
-+	 * don't yet care too much about such optimizations.
-+	 */
-+	spin_lock(&fc->lock);
-+	curr_version = fc->attr_version;
-+	spin_unlock(&fc->lock);
-+
-+	return curr_version;
-+}
-+
- /*
-  * Check whether the dentry is still valid
-  *
-@@ -171,9 +186,7 @@ static int fuse_dentry_revalidate(struct
- 			return 0;
- 		}
- 
--		spin_lock(&fc->lock);
--		attr_version = fc->attr_version;
--		spin_unlock(&fc->lock);
-+		attr_version = fuse_get_attr_version(fc);
- 
- 		parent = dget_parent(entry);
- 		fuse_lookup_init(req, parent->d_inode, entry, &outarg);
-@@ -264,9 +277,7 @@ static struct dentry *fuse_lookup(struct
- 		return ERR_PTR(PTR_ERR(forget_req));
- 	}
- 
--	spin_lock(&fc->lock);
--	attr_version = fc->attr_version;
--	spin_unlock(&fc->lock);
-+	attr_version = fuse_get_attr_version(fc);
- 
- 	fuse_lookup_init(req, dir, entry, &outarg);
- 	request_send(fc, req);
-@@ -733,9 +744,7 @@ static int fuse_do_getattr(struct inode 
- 	if (IS_ERR(req))
- 		return PTR_ERR(req);
- 
--	spin_lock(&fc->lock);
--	attr_version = fc->attr_version;
--	spin_unlock(&fc->lock);
-+	attr_version = fuse_get_attr_version(fc);
- 
- 	memset(&inarg, 0, sizeof(inarg));
- 	memset(&outarg, 0, sizeof(outarg));
+diff -puN fs/fuse/inode.c~fuse-fix-uninitialized-field-in-fuse_inode fs/fuse/inode.c
+--- a/fs/fuse/inode.c~fuse-fix-uninitialized-field-in-fuse_inode
++++ a/fs/fuse/inode.c
+@@ -56,6 +56,7 @@ static struct inode *fuse_alloc_inode(st
+ 	fi->i_time = 0;
+ 	fi->nodeid = 0;
+ 	fi->nlookup = 0;
++	fi->attr_version = 0;
+ 	INIT_LIST_HEAD(&fi->write_files);
+ 	fi->forget_req = fuse_request_alloc();
+ 	if (!fi->forget_req) {
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from muirj@nortel.com are
 
 origin.patch
