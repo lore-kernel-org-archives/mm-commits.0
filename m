@@ -1,138 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - add-cmpxchg_local-to-sh-use-generic-cmpxchg-instead-of-cmpxchg_u32.patch removed from -mm tree
-Date: Fri, 30 Nov 2007 16:18:22 -0800
-Message-ID: <200712010018.lB10IM17031650@imap1.linux-foundation.org>
+Subject: - kernel-modulec-make_driver_name-can-use-kasrpintf.patch removed from -mm tree
+Date: Fri, 30 Nov 2007 16:19:36 -0800
+Message-ID: <200712010019.lB10JamM031669@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40901 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59205 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755513AbXLAASf (ORCPT
+	by vger.kernel.org with ESMTP id S1755562AbXLAATt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Nov 2007 19:18:35 -0500
+	Fri, 30 Nov 2007 19:19:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: m.kozlowski@tuxland.pl, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add cmpxchg_local to sh, use generic cmpxchg() instead of cmpxchg_u32
+     kernel/module.c: make_driver_name() can use kasrpintf()
 has been removed from the -mm tree.  Its filename was
-     add-cmpxchg_local-to-sh-use-generic-cmpxchg-instead-of-cmpxchg_u32.patch
+     kernel-modulec-make_driver_name-can-use-kasrpintf.patch
 
-This patch was dropped because changes in git-sh destroyed it. New version needed, please
+This patch was dropped because changes in Greg's driver tree destroyed it
 
 ------------------------------------------------------
-Subject: Add cmpxchg_local to sh, use generic cmpxchg() instead of cmpxchg_u32
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: kernel/module.c: make_driver_name() can use kasrpintf()
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-Use the new generic cmpxchg_local (disables interrupt). Also use the generic
-cmpxchg as fallback if SMP is not set.
+make_driver_name() wants kasprintf().
 
-Since cmpxchg_u32 is _exactly_ the cmpxchg_local generic implementation, remove
-it and use the generic version instead.
-
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-sh/system.h |   52 ++++++++++----------------------------
- 1 file changed, 14 insertions(+), 38 deletions(-)
+ kernel/module.c |   10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
 
-diff -puN include/asm-sh/system.h~add-cmpxchg_local-to-sh-use-generic-cmpxchg-instead-of-cmpxchg_u32 include/asm-sh/system.h
---- a/include/asm-sh/system.h~add-cmpxchg_local-to-sh-use-generic-cmpxchg-instead-of-cmpxchg_u32
-+++ a/include/asm-sh/system.h
-@@ -199,47 +199,23 @@ extern void __xchg_called_with_bad_point
- 	__xchg__res;					\
- })
- 
--#define xchg(ptr,x)	\
--	((__typeof__(*(ptr)))__xchg((ptr),(unsigned long)(x), sizeof(*(ptr))))
-+#define xchg(ptr, x)					\
-+	((__typeof__(*(ptr)))__xchg((ptr), (unsigned long)(x), sizeof(*(ptr))))
- 
--static inline unsigned long __cmpxchg_u32(volatile int * m, unsigned long old,
--	unsigned long new)
--{
--	__u32 retval;
--	unsigned long flags;
+diff -puN kernel/module.c~kernel-modulec-make_driver_name-can-use-kasrpintf kernel/module.c
+--- a/kernel/module.c~kernel-modulec-make_driver_name-can-use-kasrpintf
++++ a/kernel/module.c
+@@ -2508,15 +2508,7 @@ void print_modules(void)
+ #ifdef CONFIG_SYSFS
+ static char *make_driver_name(struct device_driver *drv)
+ {
+-	char *driver_name;
 -
--	local_irq_save(flags);
--	retval = *m;
--	if (retval == old)
--		*m = new;
--	local_irq_restore(flags);       /* implies memory barrier  */
--	return retval;
--}
+-	driver_name = kmalloc(strlen(drv->name) + strlen(drv->bus->name) + 2,
+-			      GFP_KERNEL);
+-	if (!driver_name)
+-		return NULL;
 -
--/* This function doesn't exist, so you'll get a linker error
-- * if something tries to do an invalid cmpxchg(). */
--extern void __cmpxchg_called_with_bad_pointer(void);
--
--#define __HAVE_ARCH_CMPXCHG 1
-+#include <asm-generic/cmpxchg-local.h>
+-	sprintf(driver_name, "%s:%s", drv->bus->name, drv->name);
+-	return driver_name;
++	return kasprintf(GFP_KERNEL, "%s:%s", drv->bus->name, drv->name);
+ }
  
--static inline unsigned long __cmpxchg(volatile void * ptr, unsigned long old,
--		unsigned long new, int size)
--{
--	switch (size) {
--	case 4:
--		return __cmpxchg_u32(ptr, old, new);
--	}
--	__cmpxchg_called_with_bad_pointer();
--	return old;
--}
-+/*
-+ * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
-+ * them available.
-+ */
-+#define cmpxchg_local(ptr, o, n)				  	       \
-+	((__typeof__(*(ptr)))__cmpxchg_local_generic((ptr), (unsigned long)(o),\
-+			(unsigned long)(n), sizeof(*(ptr))))
-+#define cmpxchg64_local(ptr, o, n) __cmpxchg64_local_generic((ptr), (o), (n))
- 
--#define cmpxchg(ptr,o,n)						 \
--  ({									 \
--     __typeof__(*(ptr)) _o_ = (o);					 \
--     __typeof__(*(ptr)) _n_ = (n);					 \
--     (__typeof__(*(ptr))) __cmpxchg((ptr), (unsigned long)_o_,		 \
--				    (unsigned long)_n_, sizeof(*(ptr))); \
--  })
-+#ifndef CONFIG_SMP
-+#include <asm-generic/cmpxchg.h>
-+#endif
- 
- extern void die(const char *str, struct pt_regs *regs, long err) __attribute__ ((noreturn));
- 
+ static void module_create_drivers_dir(struct module_kobject *mk)
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
-git-x86.patch
-add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
-add-cmpxchg64-and-cmpxchg64_local-to-alpha.patch
-add-cmpxchg64-and-cmpxchg64_local-to-mips.patch
-add-cmpxchg64-and-cmpxchg64_local-to-powerpc.patch
-add-cmpxchg64-and-cmpxchg64_local-to-x86_64.patch
-add-cmpxchg_local-to-arm.patch
-add-cmpxchg_local-to-avr32.patch
-add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
-add-cmpxchg_local-to-cris.patch
-add-cmpxchg_local-to-frv.patch
-add-cmpxchg_local-to-h8300.patch
-add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
-new-cmpxchg_local-optimized-for-up-case-for-m32r.patch
-fix-m32r-__xchg.patch
-m32r-build-fix-of-arch-m32r-kernel-smpbootc.patch
-local_t-m32r-use-architecture-specific-cmpxchg_local.patch
-add-cmpxchg_local-to-m86k.patch
-add-cmpxchg_local-to-m68knommu.patch
-add-cmpxchg_local-to-parisc.patch
-add-cmpxchg_local-to-ppc.patch
-add-cmpxchg_local-to-s390.patch
-add-cmpxchg_local-to-sh-use-generic-cmpxchg-instead-of-cmpxchg_u32.patch
-add-cmpxchg_local-to-sparc-move-__cmpxchg-to-systemh.patch
-add-cmpxchg_local-to-sparc64.patch
-add-cmpxchg_local-to-v850.patch
-add-cmpxchg_local-to-xtensa.patch
-modules-handle-symbols-that-have-a-zero-value.patch
+git-mmc.patch
+config_highpte-vs-sub-page-page-tables-fix-2.patch
+kernel-modulec-make_driver_name-can-use-kasrpintf.patch
+reiser4.patch
