@@ -1,99 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - drm-i915-fix-pointer-strip.patch removed from -mm tree
-Date: Fri, 30 Nov 2007 16:23:02 -0800
-Message-ID: <200712010023.lB10N2bU031969@imap1.linux-foundation.org>
+Subject: - drivers-pnp-resourcec-add-missing-pci_dev_put.patch removed from -mm tree
+Date: Fri, 30 Nov 2007 16:21:44 -0800
+Message-ID: <200712010021.lB10LiUp031776@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48424 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58918 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756969AbXLAA1X (ORCPT
+	by vger.kernel.org with ESMTP id S1757330AbXLAA1c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Nov 2007 19:27:23 -0500
+	Fri, 30 Nov 2007 19:27:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, airlied@linux.ie, thomas@tungstengraphics.com, mm-commits@vger.kernel.org
+To: julia@diku.dk, bjorn.helgaas@hp.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drm: i915, fix pointer strip
+     drivers/pnp/resource.c: Add missing pci_dev_put
 has been removed from the -mm tree.  Its filename was
-     drm-i915-fix-pointer-strip.patch
+     drivers-pnp-resourcec-add-missing-pci_dev_put.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drm: i915, fix pointer strip
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: drivers/pnp/resource.c: Add missing pci_dev_put
+From: Julia Lawall <julia@diku.dk>
 
-Beside the emitted warning, the added cast (u64 -> unsigned) strips out
-part of address on 64 bit. Cast to unsigned long instead.
+There should be a pci_dev_put when breaking out of a loop that iterates
+over calls to pci_get_device and similar functions.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Thomas Hellstrom <thomas@tungstengraphics.com>
-Cc: Dave Airlie <airlied@linux.ie>
+This was fixed using the following semantic patch.
+
+// <smpl>
+@@
+identifier d;
+type T;
+expression e;
+iterator for_each_pci_dev;
+@@
+
+T *d;
+...
+for_each_pci_dev(d)
+   {... when != pci_dev_put(d)
+        when != e = d
+(
+    return d;
+|
++  pci_dev_put(d);
+?  return ...;
+)
+...}
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Greg KH <greg@kroah.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/i915_dma.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/pnp/resource.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/drm/i915_dma.c~drm-i915-fix-pointer-strip drivers/char/drm/i915_dma.c
---- a/drivers/char/drm/i915_dma.c~drm-i915-fix-pointer-strip
-+++ a/drivers/char/drm/i915_dma.c
-@@ -900,7 +900,7 @@ int i915_validate_buffer_list(struct drm
- 
- 		buffers[buf_count] = NULL;
- 
--		if (copy_from_user(&arg, (void __user *)(unsigned)data, sizeof(arg))) {
-+		if (copy_from_user(&arg, (void __user *)(unsigned long)data, sizeof(arg))) {
- 			ret = -EFAULT;
- 			goto out_err;
+diff -puN drivers/pnp/resource.c~drivers-pnp-resourcec-add-missing-pci_dev_put drivers/pnp/resource.c
+--- a/drivers/pnp/resource.c~drivers-pnp-resourcec-add-missing-pci_dev_put
++++ a/drivers/pnp/resource.c
+@@ -367,8 +367,10 @@ int pnp_check_irq(struct pnp_dev *dev, i
+ 	{
+ 		struct pci_dev *pci = NULL;
+ 		for_each_pci_dev(pci) {
+-			if (pci->irq == *irq)
++			if (pci->irq == *irq) {
++				pci_dev_put(pci);
+ 				return 0;
++			}
  		}
-@@ -951,7 +951,7 @@ int i915_validate_buffer_list(struct drm
- 		arg.handled = 1;
- 		arg.d.rep = rep;
- 
--		if (copy_to_user((void __user *)(unsigned)data, &arg, sizeof(arg)))
-+		if (copy_to_user((void __user *)(unsigned long)data, &arg, sizeof(arg)))
- 			return -EFAULT;
- 
- 		data = next;
+ 	}
+ #endif
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
-git-drm.patch
-net-ibm_newemac-remove-spin_lock_unlocked.patch
-git-watchdog.patch
-git-wireless.patch
-hwmon-coretemp-suspend-fix.patch
-hwmon-coretemp-suspend-fix-fix.patch
-capabilities-introduce-per-process-capability-bounding-set-capabilities-correct-logic-at-capset_check.patch
-maintainers-order-auerswald-alphabetically.patch
-dzh-remove-useless-unused-module-junk.patch
-dz-always-check-if-it-is-safe-to-console_putchar.patch
-dz-dont-panic-when-request_irq-fails.patch
-dz-add-and-reorder-inclusions-remove-unneeded-ones.patch
-dz-update-kconfig-description.patch
-dz-rename-the-serial-console-structure.patch
-dz-fix-locking-issues.patch
-dz-handle-special-conditions-on-reception-correctly.patch
-maintainers-add-self-for-the-dz-serial-driver.patch
-char-rocket-switch-long-delay-to-sleep.patch
-char-rocket-printk-cleanup.patch
-char-rocket-remove-useless-macros.patch
-char-char-serial-remove-serial_type_normal-redefines.patch
-char-mxser_new-ioaddresses-are-ulong.patch
-char-stallion-fix-compiler-warnings.patch
-char-riscom8-change-rc_init_drivers-prototype.patch
-char-esp-remove-hangup-and-wakeup-bottomhalves.patch
-char-istallion-remove-hangup-bottomhalf.patch
-char-specialix-remove-bottomhalves.patch
-char-stallion-remove-bottomhalf.patch
-char-serial167-remove-bottomhalf.patch
-char-riscom8-remove-wakeup-anf-hangup-bottomhalves.patch
-mxser-mxser_new-first-pass-over-termios-reporting-for-the.patch
-moxa-first-pass-at-termios-reporting.patch
-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
+git-alsa.patch
+sound-core-memallocc-add-missing-pci_dev_put.patch
+drivers-char-remove-unnecessary-pci_dev_put.patch
+arch-ppc-remove-an-unnecessary-pci_dev_put.patch
+git-input.patch
+git-sparc64.patch
+drivers-video-remove-unnecessary-pci_dev_put.patch
