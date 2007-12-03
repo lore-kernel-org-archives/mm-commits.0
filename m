@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + remove-handle_group_stop-in-favor-of-do_signal_stop.patch added to -mm tree
-Date: Mon, 03 Dec 2007 15:23:34 -0800
-Message-ID: <200712032323.lB3NNZrO022785@imap1.linux-foundation.org>
+Subject: + exec-rework-the-group-exit-and-fix-the-race-with-kill.patch added to -mm tree
+Date: Mon, 03 Dec 2007 15:23:36 -0800
+Message-ID: <200712032323.lB3NNb44022788@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60074 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33074 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751267AbXLCXYi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Dec 2007 18:24:38 -0500
+	by vger.kernel.org with ESMTP id S1750979AbXLCXYd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Dec 2007 18:24:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: oleg@tv-sign.ru, davidel@xmailserver.org, holt@sgi.com, mingo@elte.hu, rolan
 
 
 The patch titled
-     remove handle_group_stop() in favor of do_signal_stop()
+     exec: rework the group exit and fix the race with kill
 has been added to the -mm tree.  Its filename is
-     remove-handle_group_stop-in-favor-of-do_signal_stop.patch
+     exec-rework-the-group-exit-and-fix-the-race-with-kill.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,18 +25,17 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: remove handle_group_stop() in favor of do_signal_stop()
+Subject: exec: rework the group exit and fix the race with kill
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Every time we set SIGNAL_GROUP_EXIT or clear SIGNAL_STOP_DEQUEUED we also
-reset ->group_stop_count.
+As Roland pointed out, we have the very old problem with exec.  de_thread()
+sets SIGNAL_GROUP_EXIT, kills other threads, changes ->group_leader and then
+clears signal->flags.  All signals (even fatal ones) sent in this window
+(which is not too small) will be lost.
 
-This means that the SIGNAL_GROUP_EXIT check in handle_group_stop() is not
-needed, and do_signal_stop() should check SIGNAL_STOP_DEQUEUED only when
-->group_stop_count == 0. With these changes handle_group_stop() becomes the
-subset of do_signal_stop(), we can kill it and use do_signal_stop() instead.
-
-Also, a preparation for the next patch.
+With this patch exec doesn't abuse SIGNAL_GROUP_EXIT.  signal_group_exit(),
+the new helper, should be used to detect exit_group() or exec() in progress. 
+It can have more users, but this patch does only strictly necessary changes.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Davide Libenzi <davidel@xmailserver.org>
@@ -47,87 +46,121 @@ Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   43 +++++--------------------------------------
- 1 file changed, 5 insertions(+), 38 deletions(-)
+ fs/exec.c             |   13 ++++---------
+ include/linux/sched.h |    7 +++++++
+ kernel/exit.c         |    3 ++-
+ kernel/signal.c       |    4 ++--
+ 4 files changed, 15 insertions(+), 12 deletions(-)
 
-diff -puN kernel/signal.c~remove-handle_group_stop-in-favor-of-do_signal_stop kernel/signal.c
---- a/kernel/signal.c~remove-handle_group_stop-in-favor-of-do_signal_stop
-+++ a/kernel/signal.c
-@@ -1682,9 +1682,6 @@ static int do_signal_stop(int signr)
- 	struct signal_struct *sig = current->signal;
- 	int stop_count;
- 
--	if (!likely(sig->flags & SIGNAL_STOP_DEQUEUED))
--		return 0;
--
- 	if (sig->group_stop_count > 0) {
+diff -puN fs/exec.c~exec-rework-the-group-exit-and-fix-the-race-with-kill fs/exec.c
+--- a/fs/exec.c~exec-rework-the-group-exit-and-fix-the-race-with-kill
++++ a/fs/exec.c
+@@ -760,7 +760,7 @@ static int de_thread(struct task_struct 
+ 	 */
+ 	read_lock(&tasklist_lock);
+ 	spin_lock_irq(lock);
+-	if (sig->flags & SIGNAL_GROUP_EXIT) {
++	if (signal_group_exit(sig)) {
  		/*
- 		 * There is a group stop in progress.  We don't need to
-@@ -1692,12 +1689,14 @@ static int do_signal_stop(int signr)
- 		 */
- 		stop_count = --sig->group_stop_count;
- 	} else {
-+		struct task_struct *t;
+ 		 * Another group action in progress, just
+ 		 * return so that the signal is processed.
+@@ -778,6 +778,7 @@ static int de_thread(struct task_struct 
+ 	if (unlikely(tsk->group_leader == task_child_reaper(tsk)))
+ 		task_active_pid_ns(tsk)->child_reaper = tsk;
+ 
++	sig->group_exit_task = tsk;
+ 	zap_other_threads(tsk);
+ 	read_unlock(&tasklist_lock);
+ 
+@@ -802,7 +803,6 @@ static int de_thread(struct task_struct 
+ 	}
+ 
+ 	sig->notify_count = count;
+-	sig->group_exit_task = tsk;
+ 	while (atomic_read(&sig->count) > count) {
+ 		__set_current_state(TASK_UNINTERRUPTIBLE);
+ 		spin_unlock_irq(lock);
+@@ -871,15 +871,10 @@ static int de_thread(struct task_struct 
+ 		leader->exit_state = EXIT_DEAD;
+ 
+ 		write_unlock_irq(&tasklist_lock);
+-        }
++	}
+ 
+ 	sig->group_exit_task = NULL;
+ 	sig->notify_count = 0;
+-	/*
+-	 * There may be one thread left which is just exiting,
+-	 * but it's safe to stop telling the group to kill themselves.
+-	 */
+-	sig->flags = 0;
+ 
+ no_thread_group:
+ 	exit_itimers(sig);
+@@ -1549,7 +1544,7 @@ static inline int zap_threads(struct tas
+ 	int err = -EAGAIN;
+ 
+ 	spin_lock_irq(&tsk->sighand->siglock);
+-	if (!(tsk->signal->flags & SIGNAL_GROUP_EXIT)) {
++	if (!signal_group_exit(tsk->signal)) {
+ 		tsk->signal->group_exit_code = exit_code;
+ 		zap_process(tsk);
+ 		err = 0;
+diff -puN include/linux/sched.h~exec-rework-the-group-exit-and-fix-the-race-with-kill include/linux/sched.h
+--- a/include/linux/sched.h~exec-rework-the-group-exit-and-fix-the-race-with-kill
++++ a/include/linux/sched.h
+@@ -522,6 +522,13 @@ struct signal_struct {
+ #define SIGNAL_STOP_CONTINUED	0x00000004 /* SIGCONT since WCONTINUED reap */
+ #define SIGNAL_GROUP_EXIT	0x00000008 /* group exit in progress */
+ 
++/* If true, all threads except ->group_exit_task have pending SIGKILL */
++static inline int signal_group_exit(const struct signal_struct *sig)
++{
++	return	(sig->flags & SIGNAL_GROUP_EXIT) ||
++		(sig->group_exit_task != NULL);
++}
 +
-+		if (!likely(sig->flags & SIGNAL_STOP_DEQUEUED))
-+			return 0;
+ /*
+  * Some day this will be a full-fledged user tracking system..
+  */
+diff -puN kernel/exit.c~exec-rework-the-group-exit-and-fix-the-race-with-kill kernel/exit.c
+--- a/kernel/exit.c~exec-rework-the-group-exit-and-fix-the-race-with-kill
++++ a/kernel/exit.c
+@@ -1085,11 +1085,12 @@ do_group_exit(int exit_code)
+ 		struct signal_struct *const sig = current->signal;
+ 		struct sighand_struct *const sighand = current->sighand;
+ 		spin_lock_irq(&sighand->siglock);
+-		if (sig->flags & SIGNAL_GROUP_EXIT)
++		if (signal_group_exit(sig))
+ 			/* Another thread got here before we took the lock.  */
+ 			exit_code = sig->group_exit_code;
+ 		else {
+ 			sig->group_exit_code = exit_code;
++			sig->flags = SIGNAL_GROUP_EXIT;
+ 			zap_other_threads(current);
+ 		}
+ 		spin_unlock_irq(&sighand->siglock);
+diff -puN kernel/signal.c~exec-rework-the-group-exit-and-fix-the-race-with-kill kernel/signal.c
+--- a/kernel/signal.c~exec-rework-the-group-exit-and-fix-the-race-with-kill
++++ a/kernel/signal.c
+@@ -957,7 +957,6 @@ void zap_other_threads(struct task_struc
+ {
+ 	struct task_struct *t;
+ 
+-	p->signal->flags = SIGNAL_GROUP_EXIT;
+ 	p->signal->group_stop_count = 0;
+ 
+ 	for (t = next_thread(p); t != p; t = next_thread(t)) {
+@@ -1691,7 +1690,8 @@ static int do_signal_stop(int signr)
+ 	} else {
+ 		struct task_struct *t;
+ 
+-		if (!likely(sig->flags & SIGNAL_STOP_DEQUEUED))
++		if (!likely(sig->flags & SIGNAL_STOP_DEQUEUED) ||
++		    unlikely(sig->group_exit_task))
+ 			return 0;
  		/*
  		 * There is no group stop already in progress.
- 		 * We must initiate one now.
- 		 */
--		struct task_struct *t;
--
- 		sig->group_exit_code = signr;
- 
- 		stop_count = 0;
-@@ -1725,38 +1724,6 @@ static int do_signal_stop(int signr)
- 	return 1;
- }
- 
--/*
-- * Do appropriate magic when group_stop_count > 0.
-- * We return nonzero if we stopped, after releasing the siglock.
-- * We return zero if we still hold the siglock and should look
-- * for another signal without checking group_stop_count again.
-- */
--static int handle_group_stop(void)
--{
--	int stop_count;
--
--	if (current->signal->flags & SIGNAL_GROUP_EXIT)
--		/*
--		 * Group stop is so another thread can do a core dump,
--		 * or else we are racing against a death signal.
--		 * Just punt the stop so we can get the next signal.
--		 */
--		return 0;
--
--	/*
--	 * There is a group stop in progress.  We stop
--	 * without any associated signal being in our queue.
--	 */
--	stop_count = --current->signal->group_stop_count;
--	if (stop_count == 0)
--		current->signal->flags = SIGNAL_STOP_STOPPED;
--	current->exit_code = current->signal->group_exit_code;
--	set_current_state(TASK_STOPPED);
--	spin_unlock_irq(&current->sighand->siglock);
--	finish_stop(stop_count);
--	return 1;
--}
--
- int get_signal_to_deliver(siginfo_t *info, struct k_sigaction *return_ka,
- 			  struct pt_regs *regs, void *cookie)
- {
-@@ -1771,7 +1738,7 @@ relock:
- 		struct k_sigaction *ka;
- 
- 		if (unlikely(current->signal->group_stop_count > 0) &&
--		    handle_group_stop())
-+		    do_signal_stop(0))
- 			goto relock;
- 
- 		signr = dequeue_signal(current, mask, info);
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
