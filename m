@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + aoe-properly-initialise-the-request_queues-backing_dev_info.patch added to -mm tree
-Date: Mon, 03 Dec 2007 15:14:06 -0800
-Message-ID: <200712032314.lB3NE6lS022508@imap1.linux-foundation.org>
+Subject: + remove-handle_group_stop-in-favor-of-do_signal_stop.patch added to -mm tree
+Date: Mon, 03 Dec 2007 15:23:34 -0800
+Message-ID: <200712032323.lB3NNZrO022785@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59785 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60074 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750824AbXLCXO4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Dec 2007 18:14:56 -0500
+	by vger.kernel.org with ESMTP id S1751267AbXLCXYi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Dec 2007 18:24:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, ecashin@coraid.com, stable@kernel.org
+Cc: oleg@tv-sign.ru, davidel@xmailserver.org, holt@sgi.com, mingo@elte.hu, roland@redhat.com, torvalds@linux-foundation.org
 
 
 The patch titled
-     aoe: properly initialise the request_queue's backing_dev_info
+     remove handle_group_stop() in favor of do_signal_stop()
 has been added to the -mm tree.  Its filename is
-     aoe-properly-initialise-the-request_queues-backing_dev_info.patch
+     remove-handle_group_stop-in-favor-of-do_signal_stop.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,258 +25,142 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: aoe: properly initialise the request_queue's backing_dev_info
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: remove handle_group_stop() in favor of do_signal_stop()
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Cc: "Ed L. Cashin" <ecashin@coraid.com>
-Cc: <stable@kernel.org>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Every time we set SIGNAL_GROUP_EXIT or clear SIGNAL_STOP_DEQUEUED we also
+reset ->group_stop_count.
+
+This means that the SIGNAL_GROUP_EXIT check in handle_group_stop() is not
+needed, and do_signal_stop() should check SIGNAL_STOP_DEQUEUED only when
+->group_stop_count == 0. With these changes handle_group_stop() becomes the
+subset of do_signal_stop(), we can kill it and use do_signal_stop() instead.
+
+Also, a preparation for the next patch.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Robin Holt <holt@sgi.com>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoeblk.c |   26 ++++++++++++++++----------
- 1 file changed, 16 insertions(+), 10 deletions(-)
+ kernel/signal.c |   43 +++++--------------------------------------
+ 1 file changed, 5 insertions(+), 38 deletions(-)
 
-diff -puN drivers/block/aoe/aoeblk.c~aoe-properly-initialise-the-request_queues-backing_dev_info drivers/block/aoe/aoeblk.c
---- a/drivers/block/aoe/aoeblk.c~aoe-properly-initialise-the-request_queues-backing_dev_info
-+++ a/drivers/block/aoe/aoeblk.c
-@@ -6,6 +6,7 @@
+diff -puN kernel/signal.c~remove-handle_group_stop-in-favor-of-do_signal_stop kernel/signal.c
+--- a/kernel/signal.c~remove-handle_group_stop-in-favor-of-do_signal_stop
++++ a/kernel/signal.c
+@@ -1682,9 +1682,6 @@ static int do_signal_stop(int signr)
+ 	struct signal_struct *sig = current->signal;
+ 	int stop_count;
  
- #include <linux/hdreg.h>
- #include <linux/blkdev.h>
-+#include <linux/backing-dev.h>
- #include <linux/fs.h>
- #include <linux/ioctl.h>
- #include <linux/genhd.h>
-@@ -210,25 +211,20 @@ aoeblk_gdalloc(void *vp)
- 	if (gd == NULL) {
- 		printk(KERN_ERR "aoe: cannot allocate disk structure for %ld.%ld\n",
- 			d->aoemajor, d->aoeminor);
--		spin_lock_irqsave(&d->lock, flags);
--		d->flags &= ~DEVFL_GDALLOC;
--		spin_unlock_irqrestore(&d->lock, flags);
--		return;
-+		goto err;
- 	}
- 
- 	d->bufpool = mempool_create_slab_pool(MIN_BUFS, buf_pool_cache);
- 	if (d->bufpool == NULL) {
- 		printk(KERN_ERR "aoe: cannot allocate bufpool for %ld.%ld\n",
- 			d->aoemajor, d->aoeminor);
--		put_disk(gd);
--		spin_lock_irqsave(&d->lock, flags);
--		d->flags &= ~DEVFL_GDALLOC;
--		spin_unlock_irqrestore(&d->lock, flags);
--		return;
-+		goto err_disk;
- 	}
- 
--	spin_lock_irqsave(&d->lock, flags);
- 	blk_queue_make_request(&d->blkq, aoeblk_make_request);
-+	if (bdi_init(&d->blkq.backing_dev_info))
-+		goto err_mempool;
-+	spin_lock_irqsave(&d->lock, flags);
- 	gd->major = AOE_MAJOR;
- 	gd->first_minor = d->sysminor * AOE_PARTITIONS;
- 	gd->fops = &aoe_bdops;
-@@ -246,6 +242,16 @@ aoeblk_gdalloc(void *vp)
- 
- 	add_disk(gd);
- 	aoedisk_add_sysfs(d);
-+	return;
+-	if (!likely(sig->flags & SIGNAL_STOP_DEQUEUED))
+-		return 0;
+-
+ 	if (sig->group_stop_count > 0) {
+ 		/*
+ 		 * There is a group stop in progress.  We don't need to
+@@ -1692,12 +1689,14 @@ static int do_signal_stop(int signr)
+ 		 */
+ 		stop_count = --sig->group_stop_count;
+ 	} else {
++		struct task_struct *t;
 +
-+err_mempool:
-+	mempool_destroy(d->bufpool);
-+err_disk:
-+	put_disk(gd);
-+err:
-+	spin_lock_irqsave(&d->lock, flags);
-+	d->flags &= ~DEVFL_GDALLOC;
-+	spin_unlock_irqrestore(&d->lock, flags);
++		if (!likely(sig->flags & SIGNAL_STOP_DEQUEUED))
++			return 0;
+ 		/*
+ 		 * There is no group stop already in progress.
+ 		 * We must initiate one now.
+ 		 */
+-		struct task_struct *t;
+-
+ 		sig->group_exit_code = signr;
+ 
+ 		stop_count = 0;
+@@ -1725,38 +1724,6 @@ static int do_signal_stop(int signr)
+ 	return 1;
  }
  
- void
+-/*
+- * Do appropriate magic when group_stop_count > 0.
+- * We return nonzero if we stopped, after releasing the siglock.
+- * We return zero if we still hold the siglock and should look
+- * for another signal without checking group_stop_count again.
+- */
+-static int handle_group_stop(void)
+-{
+-	int stop_count;
+-
+-	if (current->signal->flags & SIGNAL_GROUP_EXIT)
+-		/*
+-		 * Group stop is so another thread can do a core dump,
+-		 * or else we are racing against a death signal.
+-		 * Just punt the stop so we can get the next signal.
+-		 */
+-		return 0;
+-
+-	/*
+-	 * There is a group stop in progress.  We stop
+-	 * without any associated signal being in our queue.
+-	 */
+-	stop_count = --current->signal->group_stop_count;
+-	if (stop_count == 0)
+-		current->signal->flags = SIGNAL_STOP_STOPPED;
+-	current->exit_code = current->signal->group_exit_code;
+-	set_current_state(TASK_STOPPED);
+-	spin_unlock_irq(&current->sighand->siglock);
+-	finish_stop(stop_count);
+-	return 1;
+-}
+-
+ int get_signal_to_deliver(siginfo_t *info, struct k_sigaction *return_ka,
+ 			  struct pt_regs *regs, void *cookie)
+ {
+@@ -1771,7 +1738,7 @@ relock:
+ 		struct k_sigaction *ka;
+ 
+ 		if (unlikely(current->signal->group_stop_count > 0) &&
+-		    handle_group_stop())
++		    do_signal_stop(0))
+ 			goto relock;
+ 
+ 		signr = dequeue_signal(current, mask, info);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-ufs-fix-nexstep-dir-block-size-checkpatch-fixes.patch
-aoe-properly-initialise-the-request_queues-backing_dev_info.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-git-acpi-fixup.patch
-git-acpi-ia64-build-fix.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-git-agpgart.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-kernel-auditc-warning-fix.patch
-git-cpufreq.patch
-git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-dm-persistent_read_metadata-warning-fix.patch
-ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-git-drm.patch
-git-drm-oops-fix.patch
-intel-agp-enable-i915-recognition.patch
-git-dvb.patch
-fix-jdelvare-i2c-i2c-constify-client-address-data.patch
-revert-git-hrt.patch
-ia64-slim-down-__clear_bit_unlock.patch
-git-infiniband.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
-libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
-git-mmc.patch
-git-mtd.patch
-git-net.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-bluetooth-uninlining.patch
-git-nfsd.patch
-quirk-enable-msi-mapping-on-ht1000.patch
-git-sh.patch
-git-sh-fixup.patch
-git-scsi-misc-fixup.patch
-ips-trim-trailing-whitespace.patch
-scsi-gdth-kill-unneeded-irq-argument.patch
-libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-mct232-speed-new-termios-and-compliance-cleanups-fix.patch
-git-watchdog.patch
-git-wireless.patch
-git-ipwireless_cs.patch
+fix-cloneclone_newpid.patch
+__group_complete_signal-fix-coredump-with-group-stop-race.patch
+remove-handle_group_stop-in-favor-of-do_signal_stop.patch
+exec-rework-the-group-exit-and-fix-the-race-with-kill.patch
 git-x86.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-git-xtensa.patch
-ia64-increase-datapatch-offset.patch
-ia64-dont-assume-that-unwcheckpy-is-executable.patch
-ia64-export-copy_page-to-modules.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-sync_sb_inodes-propagate-errors.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
-64-bit-i_version-afs-fixes.patch
-ext4-add-block-bitmap-validation.patch
-ext4-fix-up-ext4fs_debug-builds.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+use-__set_task_state-for-traced-stopped-tasks.patch
+add-task_wakekill.patch
+do_wait-remove-one-else-if-branch.patch
+proc-implement-proc_single_file_operations.patch
+proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces.patch
+proc-seqfile-convert-proc_pid_statm.patch
+proc-proper-pidns-handling-for-proc-self.patch
+proc-fix-the-threaded-proc-self.patch
+kill-pt_attached.patch
+kill-my_ptrace_child.patch
+ptrace_check_attach-remove-unneeded-signal-=-null-check.patch
+ptrace_stop-fix-the-race-with-ptrace-detachattach.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace.patch
+do_wait-factor-out-retval-=-0-checks.patch
+ptrace_stop-fix-racy-nonstop_code-setting.patch
+wait_task_stopped-remove-unneeded-delay_group_leader-check.patch
+do_wait-cleanup-delay_group_leader-usage.patch
+do_wait-fix-security-checks.patch
+do_wait-fix-security-checks-fix.patch
+wait_task_continued-zombie-dont-use-task_pid_nr_ns-lockless.patch
+wait_task_zombie-remove-exit_state-exit_signal-checks-for-wnowait.patch
+sys_setpgid-simplify-pid-ns-interaction.patch
+fix-setsid-for-sub-namespace-sbin-init.patch
+teach-set_special_pids-to-use-struct-pid.patch
+move-daemonized-kernel-threads-into-the-swappers-session.patch
+start-the-global-sbin-init-with-00-special-pids.patch
