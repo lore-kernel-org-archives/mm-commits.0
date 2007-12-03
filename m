@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + __group_complete_signal-fix-coredump-with-group-stop-race.patch added to -mm tree
-Date: Mon, 03 Dec 2007 14:27:09 -0800
-Message-ID: <200712032227.lB3MR9D1020700@imap1.linux-foundation.org>
+Subject: + ufs-fix-nexstep-dir-block-size.patch added to -mm tree
+Date: Mon, 03 Dec 2007 14:28:48 -0800
+Message-ID: <200712032228.lB3MSmxc020812@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36988 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59585 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751060AbXLCW2O (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Dec 2007 17:28:14 -0500
+	by vger.kernel.org with ESMTP id S1752446AbXLCW3A (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Dec 2007 17:29:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, davidel@xmailserver.org, holt@sgi.com, mingo@elte.hu, roland@redhat.com, torvalds@linux-foundation.org
+Cc: dushistov@mail.ru, dsbailey@pacbell.net
 
 
 The patch titled
-     __group_complete_signal(): fix coredump with group stop race
+     ufs: fix nexstep dir block size
 has been added to the -mm tree.  Its filename is
-     __group_complete_signal-fix-coredump-with-group-stop-race.patch
+     ufs-fix-nexstep-dir-block-size.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,111 +25,71 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: __group_complete_signal(): fix coredump with group stop race
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: ufs: fix nexstep dir block size
+From: Evgeniy Dushistov <dushistov@mail.ru>
 
-When __group_complete_signal() sees sig_kernel_coredump() signal, it starts
-the group stop, but sets ->group_exit_task = t in a hope that "t" will
-actually dequeue this signal and invoke do_coredump().  However, by the
-time "t" enters get_signal_to_deliver() it is possible that the signal was
-blocked/ignored or we have another pending !SIG_KERNEL_COREDUMP_MASK signal
-which will be dequeued first.  This means the task could be stopped but not
-killed.
+This patch fixes regression, introduced since 2.6.16.  NextStep variant of
+UFS as OpenStep uses directory block size equals to 1024.  Without this
+change, ufs_check_page fails in many cases.
 
-Remove this code from __group_complete_signal().  Note also this patch
-removes the bogus signal_wake_up(t, 1).  This thread can't be
-STOPPED/TRACED, note the corresponding check in wants_signal().
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Robin Holt <holt@sgi.com>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Evgeniy Dushistov <dushistov@mail.ru>
+Cc: Dave Bailey <dsbailey@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   30 ------------------------------
- 1 file changed, 30 deletions(-)
+ fs/ufs/dir.c   |    2 +-
+ fs/ufs/super.c |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/signal.c~__group_complete_signal-fix-coredump-with-group-stop-race kernel/signal.c
---- a/kernel/signal.c~__group_complete_signal-fix-coredump-with-group-stop-race
-+++ a/kernel/signal.c
-@@ -911,27 +911,6 @@ __group_complete_signal(int sig, struct 
- 			} while_each_thread(p, t);
- 			return;
- 		}
--
--		/*
--		 * There will be a core dump.  We make all threads other
--		 * than the chosen one go into a group stop so that nothing
--		 * happens until it gets scheduled, takes the signal off
--		 * the shared queue, and does the core dump.  This is a
--		 * little more complicated than strictly necessary, but it
--		 * keeps the signal state that winds up in the core dump
--		 * unchanged from the death state, e.g. which thread had
--		 * the core-dump signal unblocked.
--		 */
--		rm_from_queue(SIG_KERNEL_STOP_MASK, &t->pending);
--		rm_from_queue(SIG_KERNEL_STOP_MASK, &p->signal->shared_pending);
--		p->signal->group_stop_count = 0;
--		p->signal->group_exit_task = t;
--		p = t;
--		do {
--			p->signal->group_stop_count++;
--			signal_wake_up(t, t == p);
--		} while_each_thread(p, t);
--		return;
- 	}
- 
- 	/*
-@@ -1756,15 +1735,6 @@ static int handle_group_stop(void)
- {
- 	int stop_count;
- 
--	if (current->signal->group_exit_task == current) {
--		/*
--		 * Group stop is so we can do a core dump,
--		 * We are the initiating thread, so get on with it.
--		 */
--		current->signal->group_exit_task = NULL;
--		return 0;
--	}
--
- 	if (current->signal->flags & SIGNAL_GROUP_EXIT)
- 		/*
- 		 * Group stop is so another thread can do a core dump,
+diff -puN fs/ufs/dir.c~ufs-fix-nexstep-dir-block-size fs/ufs/dir.c
+--- a/fs/ufs/dir.c~ufs-fix-nexstep-dir-block-size
++++ a/fs/ufs/dir.c
+@@ -179,7 +179,7 @@ bad_entry:
+ 	goto fail;
+ Eend:
+ 	p = (struct ufs_dir_entry *)(kaddr + offs);
+-	ufs_error (sb, "ext2_check_page",
++	ufs_error (sb, __FUNCTION__,
+ 		   "entry in directory #%lu spans the page boundary"
+ 		   "offset=%lu",
+ 		   dir->i_ino, (page->index<<PAGE_CACHE_SHIFT)+offs);
+diff -puN fs/ufs/super.c~ufs-fix-nexstep-dir-block-size fs/ufs/super.c
+--- a/fs/ufs/super.c~ufs-fix-nexstep-dir-block-size
++++ a/fs/ufs/super.c
+@@ -755,13 +755,13 @@ static int ufs_fill_super(struct super_b
+ 		break;
+ 	
+ 	case UFS_MOUNT_UFSTYPE_NEXTSTEP:
+-		/*TODO: check may be we need set special dir block size?*/
+ 		UFSD("ufstype=nextstep\n");
+ 		uspi->s_fsize = block_size = 1024;
+ 		uspi->s_fmask = ~(1024 - 1);
+ 		uspi->s_fshift = 10;
+ 		uspi->s_sbsize = super_block_size = 2048;
+ 		uspi->s_sbbase = 0;
++		uspi->s_dirblksize = 1024;
+ 		flags |= UFS_DE_OLD | UFS_UID_OLD | UFS_ST_OLD | UFS_CG_OLD;
+ 		if (!(sb->s_flags & MS_RDONLY)) {
+ 			if (!silent)
+@@ -771,13 +771,13 @@ static int ufs_fill_super(struct super_b
+ 		break;
+ 	
+ 	case UFS_MOUNT_UFSTYPE_NEXTSTEP_CD:
+-		/*TODO: check may be we need set special dir block size?*/
+ 		UFSD("ufstype=nextstep-cd\n");
+ 		uspi->s_fsize = block_size = 2048;
+ 		uspi->s_fmask = ~(2048 - 1);
+ 		uspi->s_fshift = 11;
+ 		uspi->s_sbsize = super_block_size = 2048;
+ 		uspi->s_sbbase = 0;
++		uspi->s_dirblksize = 1024;
+ 		flags |= UFS_DE_OLD | UFS_UID_OLD | UFS_ST_OLD | UFS_CG_OLD;
+ 		if (!(sb->s_flags & MS_RDONLY)) {
+ 			if (!silent)
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from dushistov@mail.ru are
 
-origin.patch
-fix-cloneclone_newpid.patch
-__group_complete_signal-fix-coredump-with-group-stop-race.patch
-git-x86.patch
-use-__set_task_state-for-traced-stopped-tasks.patch
-add-task_wakekill.patch
-do_wait-remove-one-else-if-branch.patch
-proc-implement-proc_single_file_operations.patch
-proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces.patch
-proc-seqfile-convert-proc_pid_statm.patch
-proc-proper-pidns-handling-for-proc-self.patch
-proc-fix-the-threaded-proc-self.patch
-kill-pt_attached.patch
-kill-my_ptrace_child.patch
-ptrace_check_attach-remove-unneeded-signal-=-null-check.patch
-ptrace_stop-fix-the-race-with-ptrace-detachattach.patch
-wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace.patch
-do_wait-factor-out-retval-=-0-checks.patch
-ptrace_stop-fix-racy-nonstop_code-setting.patch
-wait_task_stopped-remove-unneeded-delay_group_leader-check.patch
-do_wait-cleanup-delay_group_leader-usage.patch
-do_wait-fix-security-checks.patch
-do_wait-fix-security-checks-fix.patch
-wait_task_continued-zombie-dont-use-task_pid_nr_ns-lockless.patch
-wait_task_zombie-remove-exit_state-exit_signal-checks-for-wnowait.patch
-sys_setpgid-simplify-pid-ns-interaction.patch
-fix-setsid-for-sub-namespace-sbin-init.patch
-teach-set_special_pids-to-use-struct-pid.patch
-move-daemonized-kernel-threads-into-the-swappers-session.patch
-start-the-global-sbin-init-with-00-special-pids.patch
+ufs-fix-nexstep-dir-block-size.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
