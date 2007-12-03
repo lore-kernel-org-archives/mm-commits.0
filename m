@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + aio-only-account-i-o-wait-time-in-read_events-if-there-are-active-requests.patch added to -mm tree
-Date: Mon, 03 Dec 2007 11:44:52 -0800
-Message-ID: <200712031944.lB3Jiq3m014886@imap1.linux-foundation.org>
+Subject: + acpi-delete-the-irq-operation-in-throttling-controll-via-ptc.patch added to -mm tree
+Date: Mon, 03 Dec 2007 12:59:55 -0800
+Message-ID: <200712032059.lB3KxtV5017493@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51985 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33627 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751814AbXLCTq5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Dec 2007 14:46:57 -0500
+	by vger.kernel.org with ESMTP id S1750764AbXLCVA2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Dec 2007 16:00:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jmoyer@redhat.com, jdike@addtoit.com, miklos@szeredi.hu, zach.brown@oracle.com
+Cc: yakui.zhao@intel.com
 
 
 The patch titled
-     aio: only account I/O wait time in read_events if there are active requests
+     ACPI: delete the IRQ operation in throttling controll via PTC
 has been added to the -mm tree.  Its filename is
-     aio-only-account-i-o-wait-time-in-read_events-if-there-are-active-requests.patch
+     acpi-delete-the-irq-operation-in-throttling-controll-via-ptc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,45 +25,120 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: aio: only account I/O wait time in read_events if there are active requests
-From: Jeff Moyer <jmoyer@redhat.com>
+Subject: ACPI: delete the IRQ operation in throttling controll via PTC
+From: Zhao Yakui <yakui.zhao@intel.com>
 
-On 2.6.24, top started showing 100% iowait on one CPU when a UML instance was
-running (but completely idle).  The UML code sits in io_getevents waiting for
-an event to be submitted and completed.
+The IRQ operation(enable/disable) should be avoided when throttling is
+controlled via PTC method.  It is replaced by the migration of task.
 
-Fix this by checking ctx->reqs_active before scheduling to determine whether
-or not we are waiting for I/O.
-
-Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
-Cc: Zach Brown <zach.brown@oracle.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Jeff Dike <jdike@addtoit.com>
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/acpi/processor_throttling.c |   36 ++++++++++++++++++++------
+ 1 file changed, 28 insertions(+), 8 deletions(-)
 
-diff -puN fs/aio.c~aio-only-account-i-o-wait-time-in-read_events-if-there-are-active-requests fs/aio.c
---- a/fs/aio.c~aio-only-account-i-o-wait-time-in-read_events-if-there-are-active-requests
-+++ a/fs/aio.c
-@@ -1161,7 +1161,12 @@ retry:
- 			ret = 0;
- 			if (to.timed_out)	/* Only check after read evt */
- 				break;
--			io_schedule();
-+			/* Try to only show up in io wait if there are ops
-+			 *  in flight */
-+			if (ctx->reqs_active)
-+				io_schedule();
-+			else
-+				schedule();
- 			if (signal_pending(tsk)) {
- 				ret = -EINTR;
- 				break;
+diff -puN drivers/acpi/processor_throttling.c~acpi-delete-the-irq-operation-in-throttling-controll-via-ptc drivers/acpi/processor_throttling.c
+--- a/drivers/acpi/processor_throttling.c~acpi-delete-the-irq-operation-in-throttling-controll-via-ptc
++++ a/drivers/acpi/processor_throttling.c
+@@ -29,6 +29,7 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
++#include <linux/sched.h>
+ #include <linux/cpufreq.h>
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
+@@ -413,7 +414,7 @@ static int acpi_throttling_rdmsr(struct 
+ 	} else {
+ 		msr_low = 0;
+ 		msr_high = 0;
+-		rdmsr_on_cpu(cpu, MSR_IA32_THERM_CONTROL,
++		rdmsr_safe(MSR_IA32_THERM_CONTROL,
+ 			(u32 *)&msr_low , (u32 *) &msr_high);
+ 		msr = (msr_high << 32) | msr_low;
+ 		*value = (acpi_integer) msr;
+@@ -438,7 +439,7 @@ static int acpi_throttling_wrmsr(struct 
+ 			"HARDWARE addr space,NOT supported yet\n");
+ 	} else {
+ 		msr = value;
+-		wrmsr_on_cpu(cpu, MSR_IA32_THERM_CONTROL,
++		wrmsr_safe(MSR_IA32_THERM_CONTROL,
+ 			msr & 0xffffffff, msr >> 32);
+ 		ret = 0;
+ 	}
+@@ -572,21 +573,32 @@ static int acpi_processor_get_throttling
+ 		return -ENODEV;
+ 
+ 	pr->throttling.state = 0;
+-	local_irq_disable();
++
+ 	value = 0;
+ 	ret = acpi_read_throttling_status(pr, &value);
+ 	if (ret >= 0) {
+ 		state = acpi_get_throttling_state(pr, value);
+ 		pr->throttling.state = state;
+ 	}
+-	local_irq_enable();
+ 
+ 	return 0;
+ }
+ 
+ static int acpi_processor_get_throttling(struct acpi_processor *pr)
+ {
+-	return pr->throttling.acpi_processor_get_throttling(pr);
++	cpumask_t saved_mask;
++	int ret;
++
++	/*
++	 * Migrate task to the cpu pointed by pr.
++	 */
++	saved_mask = current->cpus_allowed;
++	set_cpus_allowed(current, cpumask_of_cpu(pr->id));
++	ret = pr->throttling.acpi_processor_get_throttling(pr);
++	/* restore the previous state */
++	set_cpus_allowed(current, saved_mask);
++
++	return ret;
+ }
+ 
+ static int acpi_processor_get_fadt_info(struct acpi_processor *pr)
+@@ -717,21 +729,29 @@ static int acpi_processor_set_throttling
+ 	if (state < pr->throttling_platform_limit)
+ 		return -EPERM;
+ 
+-	local_irq_disable();
+ 	value = 0;
+ 	ret = acpi_get_throttling_value(pr, state, &value);
+ 	if (ret >= 0) {
+ 		acpi_write_throttling_state(pr, value);
+ 		pr->throttling.state = state;
+ 	}
+-	local_irq_enable();
+ 
+ 	return 0;
+ }
+ 
+ int acpi_processor_set_throttling(struct acpi_processor *pr, int state)
+ {
+-	return pr->throttling.acpi_processor_set_throttling(pr, state);
++	cpumask_t saved_mask;
++	int ret;
++	/*
++	 * Migrate task to the cpu pointed by pr.
++	 */
++	saved_mask = current->cpus_allowed;
++	set_cpus_allowed(current, cpumask_of_cpu(pr->id));
++	ret = pr->throttling.acpi_processor_set_throttling(pr, state);
++	/* restore the previous state */
++	set_cpus_allowed(current, saved_mask);
++	return ret;
+ }
+ 
+ int acpi_processor_get_throttling_info(struct acpi_processor *pr)
 _
 
-Patches currently in -mm which might be from jmoyer@redhat.com are
+Patches currently in -mm which might be from yakui.zhao@intel.com are
 
-aio-only-account-i-o-wait-time-in-read_events-if-there-are-active-requests.patch
+origin.patch
+acpi-delete-the-irq-operation-in-throttling-controll-via-ptc.patch
