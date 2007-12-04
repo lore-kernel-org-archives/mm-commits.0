@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + gregkh-driver-driver-core-move-the-driver-specific-module-code-into-the-driver-core-fix.patch added to -mm tree
-Date: Tue, 04 Dec 2007 00:19:07 -0800
-Message-ID: <200712040826.lB48QYuo008575@imap1.linux-foundation.org>
+Subject: + proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch added to -mm tree
+Date: Tue, 04 Dec 2007 00:34:25 -0800
+Message-ID: <200712040841.lB48fn5u009095@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47763 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51923 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751829AbXLDI0k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 03:26:40 -0500
+	by vger.kernel.org with ESMTP id S1750885AbXLDIme (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 03:42:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, gregkh@suse.de
+Cc: akpm@linux-foundation.org, ebiederm@xmission.com, morgan@kernel.org
 
 
 The patch titled
-     gregkh-driver-driver-core-move-the-driver-specific-module-code-into-the-driver-core-fix
+     proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix
 has been added to the -mm tree.  Its filename is
-     gregkh-driver-driver-core-move-the-driver-specific-module-code-into-the-driver-core-fix.patch
+     proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,63 +25,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: gregkh-driver-driver-core-move-the-driver-specific-module-code-into-the-driver-core-fix
+Subject: proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/base/module.c: In function 'module_add_driver':
-drivers/base/module.c:44: error: dereferencing pointer to incomplete type
-drivers/base/module.c: In function 'module_remove_driver':
-drivers/base/module.c:84: error: dereferencing pointer to incomplete type
+kernel/cpuset.c: In function 'cpuset_task_status_allowed':
+kernel/cpuset.c:2232: error: 'buffer' undeclared (first use in this function)
+kernel/cpuset.c:2232: error: (Each undeclared identifier is reported only once
+kernel/cpuset.c:2232: error: for each function it appears in.)
 
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Andrew Morgan <morgan@kernel.org>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/Makefile |    5 +++--
- drivers/base/base.h   |   10 ++++++++++
- 2 files changed, 13 insertions(+), 2 deletions(-)
+ kernel/cpuset.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/base/Makefile~gregkh-driver-driver-core-move-the-driver-specific-module-code-into-the-driver-core-fix drivers/base/Makefile
---- a/drivers/base/Makefile~gregkh-driver-driver-core-move-the-driver-specific-module-code-into-the-driver-core-fix
-+++ a/drivers/base/Makefile
-@@ -3,8 +3,8 @@
- obj-y			:= core.o sys.o bus.o dd.o \
- 			   driver.o class.o platform.o \
- 			   cpu.o firmware.o init.o map.o devres.o \
--			   attribute_container.o transport_class.o \
--			   module.o
-+			   attribute_container.o transport_class.o
-+
- obj-y			+= power/
- obj-$(CONFIG_HAS_DMA)	+= dma-mapping.o dmapool.o
- obj-$(CONFIG_ISA)	+= isa.o
-@@ -12,6 +12,7 @@ obj-$(CONFIG_FW_LOADER)	+= firmware_clas
- obj-$(CONFIG_NUMA)	+= node.o
- obj-$(CONFIG_MEMORY_HOTPLUG_SPARSE) += memory.o
- obj-$(CONFIG_SMP)	+= topology.o
-+obj-$(CONFIG_MODULES)	+= module.o
- obj-$(CONFIG_SYS_HYPERVISOR) += hypervisor.o
- 
- ifeq ($(CONFIG_DEBUG_DRIVER),y)
-diff -puN drivers/base/base.h~gregkh-driver-driver-core-move-the-driver-specific-module-code-into-the-driver-core-fix drivers/base/base.h
---- a/drivers/base/base.h~gregkh-driver-driver-core-move-the-driver-specific-module-code-into-the-driver-core-fix
-+++ a/drivers/base/base.h
-@@ -82,5 +82,15 @@ extern int devres_release_all(struct dev
- 
- extern struct kset *devices_kset;
- 
-+#ifdef CONFIG_MODULES
- extern void module_add_driver(struct module *mod, struct device_driver *drv);
- extern void module_remove_driver(struct device_driver *drv);
-+#else
-+static inline void module_add_driver(struct module *mod,
-+				struct device_driver *drv)
-+{
-+}
-+static inline void module_remove_driver(struct device_driver *drv)
-+{
-+}
-+#endif
+diff -puN kernel/cpuset.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix kernel/cpuset.c
+--- a/kernel/cpuset.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix
++++ a/kernel/cpuset.c
+@@ -2221,7 +2221,6 @@ const struct file_operations proc_cpuset
+ /* Display task cpus_allowed, mems_allowed in /proc/<pid>/status file. */
+ void cpuset_task_status_allowed(struct seq_file *m, struct task_struct *task)
+ {
+-	int len;
+ 	seq_printf(m, "Cpus_allowed:\t");
+ 	m->count += cpumask_scnprintf(m->buf + m->count, m->size - m->count,
+ 					task->cpus_allowed);
+@@ -2229,5 +2228,5 @@ void cpuset_task_status_allowed(struct s
+ 	seq_printf(m, "Mems_allowed:\t");
+ 	m->count += nodemask_scnprintf(m->buf + m->count, m->size - m->count,
+ 					task->mems_allowed);
+-	seq_printf(buffer, "\n");
++	seq_printf(m, "\n");
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -253,6 +230,7 @@ cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
 cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
 proc-detect-duplicate-names-on-registration-fix.patch
 proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
 intel-iommu-fault_reason_index_cleanuppatch-fix.patch
 mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
 make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
