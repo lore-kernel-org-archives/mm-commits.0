@@ -1,271 +1,195 @@
 From: akpm@linux-foundation.org
-Subject: - libata-implement-ata_timing_cycle2mode-and-use-it-in-libata-acpi-and-pata_acpi.patch removed from -mm tree
-Date: Mon, 03 Dec 2007 23:38:04 -0800
-Message-ID: <200712040738.lB47c4Fs006869@imap1.linux-foundation.org>
+Subject: - libata-reimplement-ata_acpi_cbl_80wire-using-ata_acpi_gtm_xfermask.patch removed from -mm tree
+Date: Mon, 03 Dec 2007 23:38:08 -0800
+Message-ID: <200712040738.lB47c8v0006875@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47865 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42046 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751913AbXLDHt3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 02:49:29 -0500
+	by vger.kernel.org with ESMTP id S1751894AbXLDHt0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 02:49:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: htejun@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata: implement ata_timing_cycle2mode() and use it in libata-acpi and pata_acpi
+     libata: reimplement ata_acpi_cbl_80wire() using ata_acpi_gtm_xfermask()
 has been removed from the -mm tree.  Its filename was
-     libata-implement-ata_timing_cycle2mode-and-use-it-in-libata-acpi-and-pata_acpi.patch
+     libata-reimplement-ata_acpi_cbl_80wire-using-ata_acpi_gtm_xfermask.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: libata: implement ata_timing_cycle2mode() and use it in libata-acpi and pata_acpi
+Subject: libata: reimplement ata_acpi_cbl_80wire() using ata_acpi_gtm_xfermask()
 From: Tejun Heo <htejun@gmail.com>
 
-libata-acpi is using separate timing tables for transfer modes although
-libata-core has the complete ata_timing table.  Implement
-ata_timing_cycle2mode() to look for matching mode given transfer type and
-cycle duration and use it in libata-acpi and pata_acpi to replace private
-timing tables.
+Reimplement ata_acpi_cbl_80wire() using ata_acpi_gtm_xfermask() and while at
+it relocate the function below ata_acpi_gtm_xfermask().
+
+New ata_acpi_cbl_80wire() implementation takes @gtm, in both pata_via and
+pata_amd, use the initial GTM value.  Both are trying to peek initial BIOS
+configuration, so using initial caching value makes sense.  This fixes ACPI
+part of cable detection in pata_amd which previously always returned 0 because
+configuring PIO0 during reset clears DMA configuration.
 
 Signed-off-by: Tejun Heo <htejun@gmail.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-acpi.c |   62 ++++++++----------------------------
- drivers/ata/libata-core.c |   52 ++++++++++++++++++++++++++++++
- drivers/ata/pata_acpi.c   |   13 ++++---
- include/linux/libata.h    |    5 --
- 4 files changed, 75 insertions(+), 57 deletions(-)
+ drivers/ata/libata-acpi.c |   66 +++++++++++++++---------------------
+ drivers/ata/pata_amd.c    |    3 +
+ drivers/ata/pata_via.c    |    3 +
+ include/linux/libata.h    |   10 +++--
+ 4 files changed, 39 insertions(+), 43 deletions(-)
 
-diff -puN drivers/ata/libata-acpi.c~libata-implement-ata_timing_cycle2mode-and-use-it-in-libata-acpi-and-pata_acpi drivers/ata/libata-acpi.c
---- a/drivers/ata/libata-acpi.c~libata-implement-ata_timing_cycle2mode-and-use-it-in-libata-acpi-and-pata_acpi
+diff -puN drivers/ata/libata-acpi.c~libata-reimplement-ata_acpi_cbl_80wire-using-ata_acpi_gtm_xfermask drivers/ata/libata-acpi.c
+--- a/drivers/ata/libata-acpi.c~libata-reimplement-ata_acpi_cbl_80wire-using-ata_acpi_gtm_xfermask
 +++ a/drivers/ata/libata-acpi.c
-@@ -421,22 +421,6 @@ int ata_acpi_cbl_80wire(struct ata_port 
+@@ -387,44 +387,6 @@ static int ata_dev_get_GTF(struct ata_de
+ }
  
- EXPORT_SYMBOL_GPL(ata_acpi_cbl_80wire);
- 
--/* Welcome to ACPI, bring a bucket */
--const unsigned int ata_acpi_pio_cycle[7] = {
--	600, 383, 240, 180, 120, 100, 80
--};
--EXPORT_SYMBOL_GPL(ata_acpi_pio_cycle);
--
--const unsigned int ata_acpi_mwdma_cycle[5] = {
--	480, 150, 120, 100, 80
--};
--EXPORT_SYMBOL_GPL(ata_acpi_mwdma_cycle);
--
--const unsigned int ata_acpi_udma_cycle[7] = {
--	120, 80, 60, 45, 30, 20, 15
--};
--EXPORT_SYMBOL_GPL(ata_acpi_udma_cycle);
--
  /**
+- * ata_acpi_cbl_80wire		-	Check for 80 wire cable
+- * @ap: Port to check
+- *
+- * Return 1 if the ACPI mode data for this port indicates the BIOS selected
+- * an 80wire mode.
+- */
+-
+-int ata_acpi_cbl_80wire(struct ata_port *ap)
+-{
+-	struct ata_acpi_gtm gtm;
+-	int valid = 0;
+-
+-	/* No _GTM data, no information */
+-	if (ata_acpi_gtm(ap, &gtm) < 0)
+-		return 0;
+-
+-	/* Split timing, DMA enabled */
+-	if ((gtm.flags & 0x11) == 0x11 && gtm.drive[0].dma < 55)
+-		valid |= 1;
+-	if ((gtm.flags & 0x14) == 0x14 && gtm.drive[1].dma < 55)
+-		valid |= 2;
+-	/* Shared timing, DMA enabled */
+-	if ((gtm.flags & 0x11) == 0x01 && gtm.drive[0].dma < 55)
+-		valid |= 1;
+-	if ((gtm.flags & 0x14) == 0x04 && gtm.drive[0].dma < 55)
+-		valid |= 2;
+-
+-	/* Drive check */
+-	if ((valid & 1) && ata_dev_enabled(&ap->link.device[0]))
+-		return 1;
+-	if ((valid & 2) && ata_dev_enabled(&ap->link.device[1]))
+-		return 1;
+-	return 0;
+-}
+-
+-EXPORT_SYMBOL_GPL(ata_acpi_cbl_80wire);
+-
+-/**
   * ata_acpi_gtm_xfermode - determine xfermode from GTM parameter
   * @dev: target device
-@@ -453,49 +437,33 @@ EXPORT_SYMBOL_GPL(ata_acpi_udma_cycle);
- unsigned int ata_acpi_gtm_xfermask(struct ata_device *dev,
- 				   const struct ata_acpi_gtm *gtm)
- {
--	unsigned int pio_mask = 0, mwdma_mask = 0, udma_mask = 0;
--	int unit, i;
--	u32 t;
-+	unsigned int xfer_mask = 0;
-+	unsigned int type;
-+	int unit;
-+	u8 mode;
- 
- 	/* we always use the 0 slot for crap hardware */
- 	unit = dev->devno;
- 	if (!(gtm->flags & 0x10))
- 		unit = 0;
- 
--	/* Values larger than the longest cycle results in 0 mask
--	 * while values equal to smaller than the shortest cycle
--	 * results in mask which includes all supported modes.
--	 * Disabled transfer method has the value of 0xffffffff which
--	 * will always result in 0 mask.
--	 */
--
--	/* start by scanning for PIO modes */
--	t = gtm->drive[unit].pio;
--	for (i = 0; i < ARRAY_SIZE(ata_acpi_pio_cycle); i++)
--		if (t > ata_acpi_pio_cycle[i])
--			break;
--	pio_mask = (1 << i) - 1;
-+	/* PIO */
-+	mode = ata_timing_cycle2mode(ATA_SHIFT_PIO, gtm->drive[unit].pio);
-+	xfer_mask |= ata_xfer_mode2mask(mode);
- 
- 	/* See if we have MWDMA or UDMA data. We don't bother with
- 	 * MWDMA if UDMA is available as this means the BIOS set UDMA
- 	 * and our error changedown if it works is UDMA to PIO anyway.
- 	 */
--	t = gtm->drive[unit].dma;
--	if (!(gtm->flags & (1 << (2 * unit)))) {
--		/* MWDMA */
--		for (i = 0; i < ARRAY_SIZE(ata_acpi_mwdma_cycle); i++)
--			if (t > ata_acpi_mwdma_cycle[i])
--				break;
--		mwdma_mask = (1 << i) - 1;
--	} else {
--		/* UDMA */
--		for (i = 0; i < ARRAY_SIZE(ata_acpi_udma_cycle); i++)
--			if (t > ata_acpi_udma_cycle[i])
--				break;
--		udma_mask = (1 << i) - 1;
--	}
-+	if (!(gtm->flags & (1 << (2 * unit))))
-+		type = ATA_SHIFT_MWDMA;
-+	else
-+		type = ATA_SHIFT_UDMA;
-+
-+	mode = ata_timing_cycle2mode(type, gtm->drive[unit].dma);
-+	xfer_mask |= ata_xfer_mode2mask(mode);
- 
--	return ata_pack_xfermask(pio_mask, mwdma_mask, udma_mask);
-+	return xfer_mask;
- }
+  * @gtm: GTM parameter to use
+@@ -471,6 +433,34 @@ unsigned int ata_acpi_gtm_xfermask(struc
  EXPORT_SYMBOL_GPL(ata_acpi_gtm_xfermask);
  
-diff -puN drivers/ata/libata-core.c~libata-implement-ata_timing_cycle2mode-and-use-it-in-libata-acpi-and-pata_acpi drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~libata-implement-ata_timing_cycle2mode-and-use-it-in-libata-acpi-and-pata_acpi
-+++ a/drivers/ata/libata-core.c
-@@ -2882,6 +2882,57 @@ int ata_timing_compute(struct ata_device
- }
- 
  /**
-+ *	ata_timing_cycle2mode - find xfer mode for the specified cycle duration
-+ *	@xfer_shift: ATA_SHIFT_* value for transfer type to examine.
-+ *	@cycle: cycle duration in ns
++ * ata_acpi_cbl_80wire		-	Check for 80 wire cable
++ * @ap: Port to check
++ * @gtm: GTM data to use
 + *
-+ *	Return matching xfer mode for @cycle.  The returned mode is of
-+ *	the transfer type specified by @xfer_shift.  If @cycle is too
-+ *	slow for @xfer_shift, 0xff is returned.  If @cycle is faster
-+ *	than the fastest known mode, the fasted mode is returned.
-+ *
-+ *	LOCKING:
-+ *	None.
-+ *
-+ *	RETURNS:
-+ *	Matching xfer_mode, 0xff if no match found.
++ * Return 1 if the @gtm indicates the BIOS selected an 80wire mode.
 + */
-+u8 ata_timing_cycle2mode(unsigned int xfer_shift, int cycle)
++int ata_acpi_cbl_80wire(struct ata_port *ap, const struct ata_acpi_gtm *gtm)
 +{
-+	u8 base_mode = 0xff, last_mode = 0xff;
-+	const struct ata_xfer_ent *ent;
-+	const struct ata_timing *t;
++	struct ata_device *dev;
 +
-+	for (ent = ata_xfer_tbl; ent->shift >= 0; ent++)
-+		if (ent->shift == xfer_shift)
-+			base_mode = ent->base;
++	ata_link_for_each_dev(dev, &ap->link) {
++		unsigned int xfer_mask, udma_mask;
 +
-+	for (t = ata_timing_find_mode(base_mode);
-+	     t && ata_xfer_mode2shift(t->mode) == xfer_shift; t++) {
-+		unsigned short this_cycle;
++		if (!ata_dev_enabled(dev))
++			continue;
 +
-+		switch (xfer_shift) {
-+		case ATA_SHIFT_PIO:
-+		case ATA_SHIFT_MWDMA:
-+			this_cycle = t->cycle;
-+			break;
-+		case ATA_SHIFT_UDMA:
-+			this_cycle = t->udma;
-+			break;
-+		default:
-+			return 0xff;
-+		}
++		xfer_mask = ata_acpi_gtm_xfermask(dev, gtm);
++		ata_unpack_xfermask(xfer_mask, NULL, NULL, &udma_mask);
 +
-+		if (cycle > this_cycle)
-+			break;
-+
-+		last_mode = t->mode;
++		if (udma_mask & ~ATA_UDMA_MASK_40C)
++			return 1;
 +	}
 +
-+	return last_mode;
++	return 0;
 +}
++EXPORT_SYMBOL_GPL(ata_acpi_cbl_80wire);
 +
 +/**
-  *	ata_down_xfermask_limit - adjust dev xfer masks downward
-  *	@dev: Device to adjust xfer masks
-  *	@sel: ATA_DNXFER_* selector
-@@ -7614,6 +7665,7 @@ EXPORT_SYMBOL_GPL(ata_pio_need_iordy);
- EXPORT_SYMBOL_GPL(ata_timing_find_mode);
- EXPORT_SYMBOL_GPL(ata_timing_compute);
- EXPORT_SYMBOL_GPL(ata_timing_merge);
-+EXPORT_SYMBOL_GPL(ata_timing_cycle2mode);
- 
- #ifdef CONFIG_PCI
- EXPORT_SYMBOL_GPL(pci_test_config_bits);
-diff -puN drivers/ata/pata_acpi.c~libata-implement-ata_timing_cycle2mode-and-use-it-in-libata-acpi-and-pata_acpi drivers/ata/pata_acpi.c
---- a/drivers/ata/pata_acpi.c~libata-implement-ata_timing_cycle2mode-and-use-it-in-libata-acpi-and-pata_acpi
-+++ a/drivers/ata/pata_acpi.c
-@@ -133,13 +133,14 @@ static void pacpi_set_piomode(struct ata
- {
- 	int unit = adev->devno;
- 	struct pata_acpi *acpi = ap->private_data;
-+	const struct ata_timing *t;
- 
- 	if (!(acpi->gtm.flags & 0x10))
- 		unit = 0;
- 
- 	/* Now stuff the nS values into the structure */
--	acpi->gtm.drive[unit].pio =
--		ata_acpi_pio_cycle[adev->pio_mode - XFER_PIO_0];
-+	t = ata_timing_find_mode(adev->pio_mode);
-+	acpi->gtm.drive[unit].pio = t->cycle;
- 	ata_acpi_stm(ap, &acpi->gtm);
- 	/* See what mode we actually got */
- 	ata_acpi_gtm(ap, &acpi->gtm);
-@@ -155,18 +156,18 @@ static void pacpi_set_dmamode(struct ata
- {
- 	int unit = adev->devno;
- 	struct pata_acpi *acpi = ap->private_data;
-+	const struct ata_timing *t;
- 
- 	if (!(acpi->gtm.flags & 0x10))
- 		unit = 0;
- 
- 	/* Now stuff the nS values into the structure */
-+	t = ata_timing_find_mode(adev->dma_mode);
- 	if (adev->dma_mode >= XFER_UDMA_0) {
--		acpi->gtm.drive[unit].dma =
--			ata_acpi_udma_cycle[adev->dma_mode - XFER_UDMA_0];
-+		acpi->gtm.drive[unit].dma = t->udma;
- 		acpi->gtm.flags |= (1 << (2 * unit));
- 	} else {
--		acpi->gtm.drive[unit].dma =
--			ata_acpi_mwdma_cycle[adev->dma_mode - XFER_MW_DMA_0];
-+		acpi->gtm.drive[unit].dma = t->cycle;
- 		acpi->gtm.flags &= ~(1 << (2 * unit));
- 	}
- 	ata_acpi_stm(ap, &acpi->gtm);
-diff -puN include/linux/libata.h~libata-implement-ata_timing_cycle2mode-and-use-it-in-libata-acpi-and-pata_acpi include/linux/libata.h
---- a/include/linux/libata.h~libata-implement-ata_timing_cycle2mode-and-use-it-in-libata-acpi-and-pata_acpi
+  * taskfile_load_raw - send taskfile registers to host controller
+  * @dev: target ATA device
+  * @gtf: raw ATA taskfile register set (0x1f1 - 0x1f7)
+diff -puN drivers/ata/pata_amd.c~libata-reimplement-ata_acpi_cbl_80wire-using-ata_acpi_gtm_xfermask drivers/ata/pata_amd.c
+--- a/drivers/ata/pata_amd.c~libata-reimplement-ata_acpi_cbl_80wire-using-ata_acpi_gtm_xfermask
++++ a/drivers/ata/pata_amd.c
+@@ -271,7 +271,8 @@ static int nv_cable_detect(struct ata_po
+  	if ((udma & 0xC4) == 0xC4 || (udma & 0xC400) == 0xC400)
+ 		cbl = ATA_CBL_PATA80;
+ 	/* And a triple check across suspend/resume with ACPI around */
+-	if (ata_acpi_cbl_80wire(ap))
++	if (ata_acpi_init_gtm(ap) &&
++	    ata_acpi_cbl_80wire(ap, ata_acpi_init_gtm(ap)))
+ 		cbl = ATA_CBL_PATA80;
+ 	return cbl;
+ }
+diff -puN drivers/ata/pata_via.c~libata-reimplement-ata_acpi_cbl_80wire-using-ata_acpi_gtm_xfermask drivers/ata/pata_via.c
+--- a/drivers/ata/pata_via.c~libata-reimplement-ata_acpi_cbl_80wire-using-ata_acpi_gtm_xfermask
++++ a/drivers/ata/pata_via.c
+@@ -185,7 +185,8 @@ static int via_cable_detect(struct ata_p
+ 	if (ata66 & (0x10100000 >> (16 * ap->port_no)))
+ 		return ATA_CBL_PATA80;
+ 	/* Check with ACPI so we can spot BIOS reported SATA bridges */
+-	if (ata_acpi_cbl_80wire(ap))
++	if (ata_acpi_init_gtm(ap) &&
++	    ata_acpi_cbl_80wire(ap, ata_acpi_init_gtm(ap)))
+ 		return ATA_CBL_PATA80;
+ 	return ATA_CBL_PATA40;
+ }
+diff -puN include/linux/libata.h~libata-reimplement-ata_acpi_cbl_80wire-using-ata_acpi_gtm_xfermask include/linux/libata.h
+--- a/include/linux/libata.h~libata-reimplement-ata_acpi_cbl_80wire-using-ata_acpi_gtm_xfermask
 +++ a/include/linux/libata.h
-@@ -930,6 +930,7 @@ extern int ata_timing_compute(struct ata
- extern void ata_timing_merge(const struct ata_timing *,
- 			     const struct ata_timing *, struct ata_timing *,
- 			     unsigned int);
-+extern u8 ata_timing_cycle2mode(unsigned int xfer_shift, int cycle);
- 
- enum {
- 	ATA_TIMING_SETUP	= (1 << 0),
-@@ -950,10 +951,6 @@ enum {
- 
- /* libata-acpi.c */
- #ifdef CONFIG_ATA_ACPI
--extern const unsigned int ata_acpi_pio_cycle[7];
--extern const unsigned int ata_acpi_mwdma_cycle[5];
--extern const unsigned int ata_acpi_udma_cycle[7];
--
- extern int ata_acpi_cbl_80wire(struct ata_port *ap);
+@@ -959,19 +959,17 @@ static inline const struct ata_acpi_gtm 
+ 		return &ap->__acpi_init_gtm;
+ 	return NULL;
+ }
+-extern int ata_acpi_cbl_80wire(struct ata_port *ap);
  int ata_acpi_stm(const struct ata_port *ap, struct ata_acpi_gtm *stm);
  int ata_acpi_gtm(const struct ata_port *ap, struct ata_acpi_gtm *stm);
+ unsigned int ata_acpi_gtm_xfermask(struct ata_device *dev,
+ 				   const struct ata_acpi_gtm *gtm);
++int ata_acpi_cbl_80wire(struct ata_port *ap, const struct ata_acpi_gtm *gtm);
+ #else
+ static inline const struct ata_acpi_gtm *ata_acpi_init_gtm(struct ata_port *ap)
+ {
+ 	return NULL;
+ }
+ 
+-static inline int ata_acpi_cbl_80wire(struct ata_port *ap) { return 0; }
+-
+ static inline int ata_acpi_stm(const struct ata_port *ap,
+ 			       struct ata_acpi_gtm *stm)
+ {
+@@ -989,6 +987,12 @@ static inline unsigned int ata_acpi_gtm_
+ {
+ 	return 0;
+ }
++
++static inline int ata_acpi_cbl_80wire(struct ata_port *ap,
++				      const struct ata_acpi_gtm *gtm)
++{
++	return 0;
++}
+ #endif
+ 
+ #ifdef CONFIG_PCI
 _
 
 Patches currently in -mm which might be from htejun@gmail.com are
