@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-s390-net-ctcmainc-fix-build-bug.patch added to -mm tree
-Date: Tue, 04 Dec 2007 11:56:03 -0800
-Message-ID: <200712041956.lB4Ju3u9002133@imap1.linux-foundation.org>
+Subject: + mm-fix-xip-file-writes.patch added to -mm tree
+Date: Tue, 04 Dec 2007 11:58:36 -0800
+Message-ID: <200712041958.lB4Jwam8002271@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46257 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38161 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751689AbXLDT5N (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 14:57:13 -0500
+	by vger.kernel.org with ESMTP id S1751531AbXLDT73 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 14:59:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mingo@elte.hu, heiko.carstens@de.ibm.com, kamalesh@linux.vnet.ibm.com, schwidefsky@de.ibm.com
+Cc: npiggin@suse.de, borntraeger@de.ibm.com, cotte@de.ibm.com
 
 
 The patch titled
-     drivers/s390/net/ctcmain.c: fix build bug
+     mm: fix XIP file writes
 has been added to the -mm tree.  Its filename is
-     drivers-s390-net-ctcmainc-fix-build-bug.patch
+     mm-fix-xip-file-writes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,88 +25,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/s390/net/ctcmain.c: fix build bug
-From: Ingo Molnar <mingo@elte.hu>
+Subject: mm: fix XIP file writes
+From: Nick Piggin <npiggin@suse.de>
 
-SET_MODULE_OWNER() is obsolete.
+Writing to XIP files at a non-page-aligned offset results in data corruption
+because the writes were always sent to the start of the page.
 
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Carsten Otte <cotte@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/net/ctcmain.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/filemap_xip.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/s390/net/ctcmain.c~drivers-s390-net-ctcmainc-fix-build-bug drivers/s390/net/ctcmain.c
---- a/drivers/s390/net/ctcmain.c~drivers-s390-net-ctcmainc-fix-build-bug
-+++ a/drivers/s390/net/ctcmain.c
-@@ -2802,7 +2802,6 @@ void ctc_init_netdevice(struct net_devic
- 	dev->type = ARPHRD_SLIP;
- 	dev->tx_queue_len = 100;
- 	dev->flags = IFF_POINTOPOINT | IFF_NOARP;
--	SET_MODULE_OWNER(dev);
- }
- 
+diff -puN mm/filemap_xip.c~mm-fix-xip-file-writes mm/filemap_xip.c
+--- a/mm/filemap_xip.c~mm-fix-xip-file-writes
++++ a/mm/filemap_xip.c
+@@ -314,7 +314,7 @@ __xip_file_write(struct file *filp, cons
+ 		fault_in_pages_readable(buf, bytes);
+ 		kaddr = kmap_atomic(page, KM_USER0);
+ 		copied = bytes -
+-			__copy_from_user_inatomic_nocache(kaddr, buf, bytes);
++			__copy_from_user_inatomic_nocache(kaddr + offset, buf, bytes);
+ 		kunmap_atomic(kaddr, KM_USER0);
+ 		flush_dcache_page(page);
  
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-__group_complete_signal-fix-coredump-with-group-stop-race.patch
-remove-handle_group_stop-in-favor-of-do_signal_stop.patch
-exec-rework-the-group-exit-and-fix-the-race-with-kill.patch
-git-acpi.patch
-git-alsa.patch
-git-hrt.patch
-revert-git-hrt.patch
-git-kvm.patch
-git-sched.patch
-track-accurate-idle-time-with-tick_schedidle_sleeptime.patch
-merge-multiple-error-paths-in-alloc_uid-into-one.patch
-iommu-sg-merging-x86-make-pci-gart-iommu-respect-the-segment-size-limits.patch
-git-x86.patch
-git-x86-arch-x86-kernel-ptracec-build-fix.patch
-git-x86-ptrace-fix.patch
-uml-add-asm-um-asmh.patch
-x86_64-add-acpi-reboot-option.patch
-x86_64-efi-runtime-service-support-efi-basic-runtime-service-support.patch
-x86_64-efi-runtime-service-support-efi-basic-runtime-service-support-fixes.patch
-x86_64-efi-runtime-service-support-efi-runtime-services.patch
-x86_64-efi-runtime-service-support-document-for-efi-runtime-services.patch
-x86_64-efi-runtime-service-support-remove-duplicated-code-from-efi_32c.patch
-git-cryptodev-fixup.patch
-drivers-s390-net-ctcmainc-fix-build-bug.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-fix-proc-dcache-deadlock-in-do_exit.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-printk-trivial-optimizations.patch
-kernel-add-mutex_lock_killable.patch
-vfs-use-mutex_lock_killable-in-vfs_readdir.patch
-fix-__const_udelay-declaration-and-definition-mismatches.patch
-clean-up-drivers-char-rtcc.patch
-move-kprobes-examples-to-samples-resend-vs-git-x86.patch
-isapnp-driver-semaphore-to-mutex.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
-add-cmpxchg64-and-cmpxchg64_local-to-x86_64.patch
-proc-fix-the-threaded-proc-self.patch
-modules-fold-percpu_modcopy-into-modulec-and-get-rid-of-the-macro-from-hell.patch
-clocksource-remove-redundant-code.patch
-clockevent-simplify-list-operations.patch
-timekeeping-rename-timekeeping_is_continuous-to-timekeeping_valid_for_hres.patch
-time-fix-typo-in-comments.patch
-time-delete-comments-that-refer-to-noexistent-symbols.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-detect-atomic-counter-underflows.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
+mm-fix-xip-file-writes.patch
+git-jfs.patch
+nfs-use-gfp_nofs-preloads-for-radix-tree-insertion.patch
+slub-use-non-atomic-bit-unlock.patch
+radix-tree-avoid-atomic-allocations-for-preloaded-insertions.patch
+mm-dont-allow-ioremapping-of-ranges-larger-than-vmalloc-space.patch
+vt-bitlock-fix.patch
+radix_treeh-trivial-comment-correction.patch
+inotify-fix-race.patch
+inotify-remove-debug-code.patch
+rewrite-rd.patch
+rewrite-rd-fix.patch
+reiser4.patch
