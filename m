@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-for-futex_wait-signal-stack-corruption.patch added to -mm tree
-Date: Tue, 04 Dec 2007 13:20:39 -0800
-Message-ID: <200712042120.lB4LKdx3005892@imap1.linux-foundation.org>
+Subject: - fix-for-futex_wait-signal-stack-corruption.patch removed from -mm tree
+Date: Tue, 04 Dec 2007 13:21:06 -0800
+Message-ID: <200712042121.lB4LL7pb005907@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57124 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42839 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750813AbXLDVWW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 16:22:22 -0500
+	by vger.kernel.org with ESMTP id S1751135AbXLDVWg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 16:22:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rostedt@goodmis.org, David.Holmes@Sun.COM, mingo@elte.hu, roland@redhat.com, rusty@rustcorp.com.au, tglx@linutronix.de
+To: rostedt@goodmis.org, David.Holmes@Sun.COM, mingo@elte.hu, roland@redhat.com, rusty@rustcorp.com.au, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
      fix for futex_wait signal stack corruption
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      fix-for-futex_wait-signal-stack-corruption.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
 Subject: fix for futex_wait signal stack corruption
