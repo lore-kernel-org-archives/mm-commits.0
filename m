@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rewrite-rd-fixes.patch added to -mm tree
-Date: Tue, 04 Dec 2007 00:45:47 -0800
-Message-ID: <200712040853.lB48rBb0009493@imap1.linux-foundation.org>
+Subject: + git-watchdog-fix-sbc7240_wdt.patch added to -mm tree
+Date: Tue, 04 Dec 2007 00:48:36 -0800
+Message-ID: <200712040856.lB48u093009540@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49646 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39694 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751814AbXLDIxN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 03:53:13 -0500
+	by vger.kernel.org with ESMTP id S1751814AbXLDI4G (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 03:56:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, nickpiggin@yahoo.com.au
+Cc: akpm@linux-foundation.org, wim@iguana.be
 
 
 The patch titled
-     rewrite-rd-fixes
+     git-watchdog: fix sbc7240_wdt
 has been added to the -mm tree.  Its filename is
-     rewrite-rd-fixes.patch
+     git-watchdog-fix-sbc7240_wdt.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rewrite-rd-fixes
+Subject: git-watchdog: fix sbc7240_wdt
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/block/brd.c: In function 'copy_from_brd':
-drivers/block/brd.c:230: warning: passing argument 1 of 'kunmap_atomic' discards qualifiers from pointer target type
-drivers/block/brd.c:242: warning: passing argument 1 of 'kunmap_atomic' discards qualifiers from pointer target type
+something bad happened to this file.
 
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/brd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/watchdog/sbc7240_wdt.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/block/brd.c~rewrite-rd-fixes drivers/block/brd.c
---- a/drivers/block/brd.c~rewrite-rd-fixes
-+++ a/drivers/block/brd.c
-@@ -218,7 +218,7 @@ static void copy_from_brd(void *dst, str
- 			sector_t sector, size_t n)
- {
- 	struct page *page;
--	const void *src;
-+	void *src;
- 	unsigned int offset = (sector & (PAGE_SECTORS-1)) << SECTOR_SHIFT;
- 	size_t copy;
+diff -puN drivers/watchdog/sbc7240_wdt.c~git-watchdog-fix-sbc7240_wdt drivers/watchdog/sbc7240_wdt.c
+--- a/drivers/watchdog/sbc7240_wdt.c~git-watchdog-fix-sbc7240_wdt
++++ a/drivers/watchdog/sbc7240_wdt.c
+@@ -303,5 +303,8 @@ static int __init sbc7240_wdt_init(void)
+ 	       "Watchdog driver for SBC7240 initialised (nowayout=%d)\n",
+ 	       nowayout);
  
++err_out_reboot_notifier:
++err_out_region:
++err_out:
+ 	return 0;
+-
++}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -240,3 +239,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+git-watchdog-fix-sbc7240_wdt.patch
