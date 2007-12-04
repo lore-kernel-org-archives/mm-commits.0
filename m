@@ -1,76 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - inotify-remove-debug-code-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 03 Dec 2007 22:48:22 -0800
-Message-ID: <200712040648.lB46mMKJ005230@imap1.linux-foundation.org>
+Subject: - git-acpi-fixup.patch removed from -mm tree
+Date: Mon, 03 Dec 2007 23:28:33 -0800
+Message-ID: <200712040728.lB47SX2o006521@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55773 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52683 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750994AbXLDGs7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 01:48:59 -0500
+	by vger.kernel.org with ESMTP id S1751183AbXLDH3E (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 02:29:04 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lB47SYfE019218
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 3 Dec 2007 23:28:35 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, npiggin@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     inotify-remove-debug-code-checkpatch-fixes
+     git-acpi-fixup
 has been removed from the -mm tree.  Its filename was
-     inotify-remove-debug-code-checkpatch-fixes.patch
+     git-acpi-fixup.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: inotify-remove-debug-code-checkpatch-fixes
+Subject: git-acpi-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: need spaces around that '&=' (ctx:WxO)
-#60: FILE: fs/inotify.c:178:
-+				child->d_flags &=~DCACHE_INOTIFY_PARENT_WATCHED;
- 				               ^
-
-ERROR: need space before that '~' (ctx:OxV)
-#60: FILE: fs/inotify.c:178:
-+				child->d_flags &=~DCACHE_INOTIFY_PARENT_WATCHED;
- 				                 ^
-
-total: 2 errors, 0 warnings, 41 lines checked
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inotify.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/base/power/Makefile |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN fs/inotify.c~inotify-remove-debug-code-checkpatch-fixes fs/inotify.c
---- a/fs/inotify.c~inotify-remove-debug-code-checkpatch-fixes
-+++ a/fs/inotify.c
-@@ -175,7 +175,7 @@ static void set_dentry_child_flags(struc
- 			if (watched)
- 				child->d_flags |= DCACHE_INOTIFY_PARENT_WATCHED;
- 			else
--				child->d_flags &=~DCACHE_INOTIFY_PARENT_WATCHED;
-+				child->d_flags &= ~DCACHE_INOTIFY_PARENT_WATCHED;
- 			spin_unlock(&child->d_lock);
- 		}
- 	}
+diff -puN drivers/base/power/Makefile~git-acpi-fixup drivers/base/power/Makefile
+--- a/drivers/base/power/Makefile~git-acpi-fixup
++++ a/drivers/base/power/Makefile
+@@ -1,12 +1,6 @@
+ obj-y			:= shutdown.o
+-<<<<<<< HEAD:drivers/base/power/Makefile
+-obj-$(CONFIG_PM)	+= sysfs.o
+-obj-$(CONFIG_PM_SLEEP)	+= main.o
+-obj-$(CONFIG_PM_TRACE)	+= trace.o
+-=======
+ obj-$(CONFIG_PM_SLEEP)	+= main.o sysfs.o
+ obj-$(CONFIG_PM_TRACE_RTC)	+= trace.o
+->>>>>>> FETCH_HEAD:drivers/base/power/Makefile
+ 
+ ifeq ($(CONFIG_DEBUG_DRIVER),y)
+ EXTRA_CFLAGS += -DDEBUG
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
 ufs-fix-nexstep-dir-block-size-checkpatch-fixes.patch
 aoe-properly-initialise-the-request_queues-backing_dev_info.patch
 get_task_comm-return-the-result.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+git-acpi.patch
 git-acpi-fixup.patch
 git-acpi-ia64-build-fix.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
@@ -174,7 +163,6 @@ allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
 remove-__attribute_used__-checkpatch-fixes.patch
 read_current_time-cleanups.patch
 read_current_time-cleanups-build-fix-fix.patch
-inotify-remove-debug-code-checkpatch-fixes.patch
 sync_sb_inodes-propagate-errors.patch
 rtc-ds1302-rtc-support-checkpatch-fixes.patch
 mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
