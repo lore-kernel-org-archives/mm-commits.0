@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + phy-add-the-phy_device_release-device-method.patch added to -mm tree
-Date: Mon, 03 Dec 2007 21:37:55 -0800
-Message-ID: <200712040537.lB45btK0002816@imap1.linux-foundation.org>
+Subject: + avoid-potential-null-dereference-in-unregister_sysctl_table.patch added to -mm tree
+Date: Mon, 03 Dec 2007 21:39:05 -0800
+Message-ID: <200712040539.lB45d5Dg002840@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60232 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39740 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751372AbXLDFiC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 00:38:02 -0500
+	by vger.kernel.org with ESMTP id S1751420AbXLDFjL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 00:39:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: thierry.reding@avionic-design.de
+Cc: xemul@openvz.org, ebiederm@xmission.com
 
 
 The patch titled
-     PHY: add the phy_device_release device method
+     Avoid potential NULL dereference in unregister_sysctl_table
 has been added to the -mm tree.  Its filename is
-     phy-add-the-phy_device_release-device-method.patch
+     avoid-potential-null-dereference-in-unregister_sysctl_table.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,65 +25,130 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: PHY: add the phy_device_release device method
-From: Thierry Reding <thierry.reding@avionic-design.de>
+Subject: Avoid potential NULL dereference in unregister_sysctl_table
+From: Pavel Emelyanov <xemul@openvz.org>
 
-In cases where more than a single PHY is found on the MDIO bus, the kernel
-will print a warning that this method is missing for each PHY device that
-is not attached to a networking device.
+register_sysctl_table() can return NULL sometimes, e.g.  when kmalloc()
+returns NULL or when sysctl check fails.
 
-Signed-off-by: Thierry Reding <thierry.reding@avionic-design.de>
+I've also noticed, that many (most?) code in the kernel doesn't check for
+the return value from register_sysctl_table() and later simply calls the
+unregister_sysctl_table() with potentially NULL argument.
+
+This is unlikely on a common kernel configuration, but in case we're
+dealing with modules and/or fault-injection support, there's a slight
+possibility of an OOPS.
+
+Changing all the users to check for return code from the registering does
+not look like a good solution - there are too many code doing this and
+failure in sysctl tables registration is not a good reason to abort module
+loading (in most of the cases).
+
+So I think, that we can just have this check in unregister_sysctl_table
+just to avoid accidental OOPS-es (actually, the unregister_sysctl_table()
+did exactly this, before the start_unregistering() appeared).
+
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/phy/mdio_bus.c |   19 ++++++++++++++++++-
- 1 file changed, 18 insertions(+), 1 deletion(-)
+ kernel/sysctl.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/net/phy/mdio_bus.c~phy-add-the-phy_device_release-device-method drivers/net/phy/mdio_bus.c
---- a/drivers/net/phy/mdio_bus.c~phy-add-the-phy_device_release-device-method
-+++ a/drivers/net/phy/mdio_bus.c
-@@ -36,6 +36,23 @@
- #include <asm/uaccess.h>
- 
- /**
-+ * phy_device_release - free a phy_device structure when all users of it are
-+ * 	finished.
-+ *
-+ * @dev: device that's been disconnected
-+ *
-+ * Will be called only by the device core when all users of this phy_device
-+ * are done.
-+ */
-+static void phy_device_release(struct device *dev)
-+{
-+	struct phy_device *phy;
+diff -puN kernel/sysctl.c~avoid-potential-null-dereference-in-unregister_sysctl_table kernel/sysctl.c
+--- a/kernel/sysctl.c~avoid-potential-null-dereference-in-unregister_sysctl_table
++++ a/kernel/sysctl.c
+@@ -1712,6 +1712,10 @@ struct ctl_table_header *register_sysctl
+ void unregister_sysctl_table(struct ctl_table_header * header)
+ {
+ 	might_sleep();
 +
-+	phy = to_phy_device(dev);
-+	kfree(phy);
-+}
++	if (header == NULL)
++		return;
 +
-+/**
-  * mdiobus_register - bring up all the PHYs on a given bus and attach them to bus
-  * @bus: target mii_bus
-  *
-@@ -83,6 +100,7 @@ int mdiobus_register(struct mii_bus *bus
- 		if (phydev) {
- 			phydev->irq = bus->irq[i];
- 
-+			phydev->dev.release = phy_device_release;
- 			phydev->dev.parent = bus->dev;
- 			phydev->dev.bus = &mdio_bus_type;
- 			snprintf(phydev->dev.bus_id, BUS_ID_SIZE, PHY_ID_FMT, bus->id, i);
-@@ -112,7 +130,6 @@ void mdiobus_unregister(struct mii_bus *
- 	for (i = 0; i < PHY_MAX_ADDR; i++) {
- 		if (bus->phy_map[i]) {
- 			device_unregister(&bus->phy_map[i]->dev);
--			kfree(bus->phy_map[i]);
- 		}
- 	}
- }
+ 	spin_lock(&sysctl_lock);
+ 	start_unregistering(header);
+ 	spin_unlock(&sysctl_lock);
 _
 
-Patches currently in -mm which might be from thierry.reding@avionic-design.de are
+Patches currently in -mm which might be from xemul@openvz.org are
 
-phy-add-the-phy_device_release-device-method.patch
+origin.patch
+fix-cloneclone_newpid.patch
+avoid-potential-null-dereference-in-unregister_sysctl_table.patch
+git-net.patch
+merge-multiple-error-paths-in-alloc_uid-into-one.patch
+fix-proc-net-breakage.patch
+shmem-factor-out-sbi-free_inodes-manipulations.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-memcgroup-fix-try_to_free-order.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+memcgroup-reinstate-swapoff-mod.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
+memcgroup-fix-zone-isolation-oom.patch
+memcgroup-revert-swap_state-mods.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
+memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
+memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+memory-cgroup-enhancements-add-pre_destroy-handler.patch
+memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
+add-the-namespaces-config-option.patch
+move-the-uts-namespace-under-uts_ns-option.patch
+move-the-ipc-namespace-under-ipc_ns-option.patch
+cleanup-the-code-managed-with-the-user_ns-option.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+mark-net_ns-with-depends-on-namespaces.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-proper-pidns-handling-for-proc-self.patch
+proc-fix-the-threaded-proc-self.patch
+ipc-uninline-some-code-from-utilh.patch
+ipc-make-struct-ipc_ids-static-in-ipc_namespace.patch
+ipc-consolidate-sem_exit_ns-msg_exit_ns-and-shm_exit_ns.patch
+sys_setpgid-simplify-pid-ns-interaction.patch
+fix-setsid-for-sub-namespace-sbin-init.patch
+teach-set_special_pids-to-use-struct-pid.patch
+move-daemonized-kernel-threads-into-the-swappers-session.patch
+start-the-global-sbin-init-with-00-special-pids.patch
+reiser4.patch
