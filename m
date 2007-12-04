@@ -1,85 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - phy-add-the-phy_device_release-device-method.patch removed from -mm tree
-Date: Mon, 03 Dec 2007 21:45:09 -0800
-Message-ID: <200712040545.lB45j9Ka003095@imap1.linux-foundation.org>
+Subject: + ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks.patch added to -mm tree
+Date: Mon, 03 Dec 2007 21:46:37 -0800
+Message-ID: <200712040546.lB45kbVn003121@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49333 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35040 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751467AbXLDFpS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 00:45:18 -0500
+	by vger.kernel.org with ESMTP id S1751409AbXLDFqs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 00:46:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: thierry.reding@avionic-design.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: aneesh.kumar@linux.vnet.ibm.com, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     PHY: add the phy_device_release device method
-has been removed from the -mm tree.  Its filename was
-     phy-add-the-phy_device_release-device-method.patch
+     ext4: check for the correct error return from ext4_ext_get_blocks
+has been added to the -mm tree.  Its filename is
+     ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: PHY: add the phy_device_release device method
-From: Thierry Reding <thierry.reding@avionic-design.de>
+Subject: ext4: check for the correct error return from ext4_ext_get_blocks
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 
-In cases where more than a single PHY is found on the MDIO bus, the kernel
-will print a warning that this method is missing for each PHY device that
-is not attached to a networking device.
+ext4_ext_get_blocks returns negative values on error. We should
+check for  <= 0
 
-Signed-off-by: Thierry Reding <thierry.reding@avionic-design.de>
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/phy/mdio_bus.c |   19 ++++++++++++++++++-
- 1 file changed, 18 insertions(+), 1 deletion(-)
+ fs/ext4/extents.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/phy/mdio_bus.c~phy-add-the-phy_device_release-device-method drivers/net/phy/mdio_bus.c
---- a/drivers/net/phy/mdio_bus.c~phy-add-the-phy_device_release-device-method
-+++ a/drivers/net/phy/mdio_bus.c
-@@ -36,6 +36,23 @@
- #include <asm/uaccess.h>
- 
- /**
-+ * phy_device_release - free a phy_device structure when all users of it are
-+ * 	finished.
-+ *
-+ * @dev: device that's been disconnected
-+ *
-+ * Will be called only by the device core when all users of this phy_device
-+ * are done.
-+ */
-+static void phy_device_release(struct device *dev)
-+{
-+	struct phy_device *phy;
-+
-+	phy = to_phy_device(dev);
-+	kfree(phy);
-+}
-+
-+/**
-  * mdiobus_register - bring up all the PHYs on a given bus and attach them to bus
-  * @bus: target mii_bus
-  *
-@@ -83,6 +100,7 @@ int mdiobus_register(struct mii_bus *bus
- 		if (phydev) {
- 			phydev->irq = bus->irq[i];
- 
-+			phydev->dev.release = phy_device_release;
- 			phydev->dev.parent = bus->dev;
- 			phydev->dev.bus = &mdio_bus_type;
- 			snprintf(phydev->dev.bus_id, BUS_ID_SIZE, PHY_ID_FMT, bus->id, i);
-@@ -112,7 +130,6 @@ void mdiobus_unregister(struct mii_bus *
- 	for (i = 0; i < PHY_MAX_ADDR; i++) {
- 		if (bus->phy_map[i]) {
- 			device_unregister(&bus->phy_map[i]->dev);
--			kfree(bus->phy_map[i]);
- 		}
- 	}
- }
+diff -puN fs/ext4/extents.c~ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks fs/ext4/extents.c
+--- a/fs/ext4/extents.c~ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks
++++ a/fs/ext4/extents.c
+@@ -2628,8 +2628,8 @@ retry:
+ 		ret = ext4_ext_get_blocks(handle, inode, block,
+ 					  max_blocks, &map_bh,
+ 					  EXT4_CREATE_UNINITIALIZED_EXT, 0);
+-		WARN_ON(!ret);
+-		if (!ret) {
++		WARN_ON(ret <= 0);
++		if (ret <= 0) {
+ 			ext4_error(inode->i_sb, "ext4_fallocate",
+ 				   "ext4_ext_get_blocks returned 0! inode#%lu"
+ 				   ", block=%lu, max_blocks=%lu",
 _
 
-Patches currently in -mm which might be from thierry.reding@avionic-design.de are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
-phy-add-the-phy_device_release-device-method.patch
+origin.patch
+ext2-return-after-ext2_error-in-case-of-failures.patch
+ext2-change-the-default-behaviour-on-error.patch
+add-buffer-head-related-helper-functions.patch
+ext2-add-block-bitmap-validation.patch
+ext3-add-block-bitmap-validation.patch
+ext4-add-block-bitmap-validation.patch
+ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks.patch
+ext3-return-after-ext3_error-in-case-of-failures.patch
+ext3-change-the-default-behaviour-on-error.patch
