@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-borkage.patch added to -mm tree
-Date: Tue, 04 Dec 2007 02:31:04 -0800
-Message-ID: <200712041038.lB4AcS4k013067@imap1.linux-foundation.org>
+Subject: + timerfd-v3-new-timerfd-api-ia64-fix.patch added to -mm tree
+Date: Tue, 04 Dec 2007 02:48:16 -0800
+Message-ID: <200712041055.lB4AtdXk013596@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48727 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33636 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751063AbXLDKjm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 05:39:42 -0500
+	by vger.kernel.org with ESMTP id S1752068AbXLDKzp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 05:55:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, roland@redhat.com, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, davidel@xmailserver.org, mtk-manpages@gmx.net
 
 
 The patch titled
-     git-x86-borkage
+     timerfd-v3-new-timerfd-api-ia64-fix
 has been added to the -mm tree.  Its filename is
-     git-x86-borkage.patch
+     timerfd-v3-new-timerfd-api-ia64-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-x86-borkage
+Subject: timerfd-v3-new-timerfd-api-ia64-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Michael Kerrisk <mtk-manpages@gmx.net>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ptrace.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ arch/ia64/kernel/entry.S |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/ptrace.c~git-x86-borkage kernel/ptrace.c
---- a/kernel/ptrace.c~git-x86-borkage
-+++ a/kernel/ptrace.c
-@@ -25,6 +25,10 @@
- #include <asm/pgtable.h>
- #include <asm/uaccess.h>
+diff -puN arch/ia64/kernel/entry.S~timerfd-v3-new-timerfd-api-ia64-fix arch/ia64/kernel/entry.S
+--- a/arch/ia64/kernel/entry.S~timerfd-v3-new-timerfd-api-ia64-fix
++++ a/arch/ia64/kernel/entry.S
+@@ -1586,7 +1586,7 @@ sys_call_table:
+ 	data8 sys_epoll_pwait			// 1305
+ 	data8 sys_utimensat
+ 	data8 sys_signalfd
+-	data8 sys_timerfd
++	data8 sys_ni_syscall
+ 	data8 sys_eventfd
  
-+#ifndef arch_has_block_step
-+#define arch_has_block_step() (0)
-+#endif
-+
- /*
-  * ptrace a task: make the debugger its new parent and
-  * move it to the ptrace list.
+ 	.org sys_call_table + 8*NR_syscalls	// guard against failures to increase NR_syscalls
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -60,6 +58,7 @@ aoe-properly-initialise-the-request_queues-backing_dev_info.patch
 get_task_comm-return-the-result.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+timerfd-v3-new-timerfd-api-ia64-fix.patch
 git-acpi.patch
 git-acpi-ia64-build-fix.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
