@@ -1,78 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: - uml-work-around-host-tcsetattr-bug.patch removed from -mm tree
-Date: Mon, 03 Dec 2007 23:37:45 -0800
-Message-ID: <200712040737.lB47bjSt006819@imap1.linux-foundation.org>
+Subject: - uml-after_sleep_interval-should-return-something.patch removed from -mm tree
+Date: Mon, 03 Dec 2007 23:37:43 -0800
+Message-ID: <200712040737.lB47bh53006815@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35590 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33981 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751684AbXLDHiQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 02:38:16 -0500
+	by vger.kernel.org with ESMTP id S1751617AbXLDHiR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 02:38:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: work around host tcsetattr bug
+     uml: after_sleep_interval should return something
 has been removed from the -mm tree.  Its filename was
-     uml-work-around-host-tcsetattr-bug.patch
+     uml-after_sleep_interval-should-return-something.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: work around host tcsetattr bug
+Subject: uml: after_sleep_interval should return something
 From: Jeff Dike <jdike@addtoit.com>
 
-Under the conditions that UML uses it, tcgetattr is guaranteed to return
--EINTR when the console is attached to /dev/ptmx, making generic_console_write
-hang because it loops, calling tcgetattr until it succeeds.  This is a host
-bug - see http://marc.info/?l=linux-kernel&m=119618990807182&w=2 for the
-details.
-
-This patch works around it by blocking SIGIO while the terminal attributes are
-being fiddled.
+I forgot to have an int-returning function actually return something.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/chan_user.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ arch/um/os-Linux/time.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/um/drivers/chan_user.c~uml-work-around-host-tcsetattr-bug arch/um/drivers/chan_user.c
---- a/arch/um/drivers/chan_user.c~uml-work-around-host-tcsetattr-bug
-+++ a/arch/um/drivers/chan_user.c
-@@ -74,10 +74,16 @@ void generic_free(void *data)
- 
- int generic_console_write(int fd, const char *buf, int n)
+diff -puN arch/um/os-Linux/time.c~uml-after_sleep_interval-should-return-something arch/um/os-Linux/time.c
+--- a/arch/um/os-Linux/time.c~uml-after_sleep_interval-should-return-something
++++ a/arch/um/os-Linux/time.c
+@@ -77,6 +77,7 @@ long long os_nsecs(void)
+ #ifdef UML_CONFIG_NO_HZ
+ static int after_sleep_interval(struct timespec *ts)
  {
-+	sigset_t old, no_sigio;
- 	struct termios save, new;
- 	int err;
- 
- 	if (isatty(fd)) {
-+		sigemptyset(&no_sigio);
-+		sigaddset(&no_sigio, SIGIO);
-+		if (sigprocmask(SIG_BLOCK, &no_sigio, &old))
-+			goto error;
-+
- 		CATCH_EINTR(err = tcgetattr(fd, &save));
- 		if (err)
- 			goto error;
-@@ -97,8 +103,11 @@ int generic_console_write(int fd, const 
- 	 * Restore raw mode, in any case; we *must* ignore any error apart
- 	 * EINTR, except for debug.
- 	 */
--	if (isatty(fd))
-+	if (isatty(fd)) {
- 		CATCH_EINTR(tcsetattr(fd, TCSAFLUSH, &save));
-+		sigprocmask(SIG_SETMASK, &old, NULL);
-+	}
-+
- 	return err;
- error:
- 	return -errno;
++	return 0;
+ }
+ #else
+ static inline long long timespec_to_us(const struct timespec *ts)
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
