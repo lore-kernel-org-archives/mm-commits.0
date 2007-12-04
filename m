@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch added to -mm tree
-Date: Tue, 04 Dec 2007 03:36:13 -0800
-Message-ID: <200712041143.lB4Bhako015306@imap1.linux-foundation.org>
+Subject: + timerfd-v3-new-timerfd-api-m68k-fix.patch added to -mm tree
+Date: Tue, 04 Dec 2007 03:37:28 -0800
+Message-ID: <200712041144.lB4BipRv015328@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59429 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55620 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752577AbXLDLow (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 06:44:52 -0500
+	by vger.kernel.org with ESMTP id S1752564AbXLDLpZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 06:45:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dhowells@redhat.com, hpa@zytor.com
+Cc: akpm@linux-foundation.org, davidel@xmailserver.org, mtk-manpages@gmx.net
 
 
 The patch titled
-     aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0
+     timerfd-v3-new-timerfd-api-m68k-fix
 has been added to the -mm tree.  Its filename is
-     aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+     timerfd-v3-new-timerfd-api-m68k-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,29 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0
+Subject: timerfd-v3-new-timerfd-api-m68k-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: David Howells <dhowells@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+ho hum
+
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Michael Kerrisk <mtk-manpages@gmx.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-m68k/a.out-core.h |    2 +-
+ arch/m68k/kernel/entry.S |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-m68k/a.out-core.h~aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0 include/asm-m68k/a.out-core.h
---- a/include/asm-m68k/a.out-core.h~aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0
-+++ a/include/asm-m68k/a.out-core.h
-@@ -39,7 +39,7 @@ static inline void aout_dump_thread(stru
- 			((unsigned long) (TASK_SIZE - dump->start_stack)) >>
- 			PAGE_SHIFT;
+diff -puN arch/m68k/kernel/entry.S~timerfd-v3-new-timerfd-api-m68k-fix arch/m68k/kernel/entry.S
+--- a/arch/m68k/kernel/entry.S~timerfd-v3-new-timerfd-api-m68k-fix
++++ a/arch/m68k/kernel/entry.S
+@@ -742,7 +742,7 @@ sys_call_table:
+ 	.long sys_epoll_pwait		/* 315 */
+ 	.long sys_utimensat
+ 	.long sys_signalfd
+-	.long sys_timerfd
++	.long sys_ni_syscall
+ 	.long sys_eventfd
+ 	.long sys_fallocate		/* 320 */
  
--	dump->u_ar0 = (struct user_regs_struct *)((int)&dump->regs - (int)dump);
-+	dump->u_ar0 = offsetof(struct user, regs);
- 	sw = ((struct switch_stack *)regs) - 1;
- 	dump->regs.d1 = regs->d1;
- 	dump->regs.d2 = regs->d2;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -229,6 +231,7 @@ proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatc
 proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
 intel-iommu-fault_reason_index_cleanuppatch-fix.patch
 aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
 mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
 rewrite-rd-fixes.patch
 make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
@@ -244,4 +247,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+timerfd-v3-new-timerfd-api-m68k-fix.patch
