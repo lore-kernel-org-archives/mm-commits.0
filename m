@@ -1,68 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - net-smc911x-only-enable-for-mpr2-on-sh.patch removed from -mm tree
-Date: Mon, 03 Dec 2007 23:38:30 -0800
-Message-ID: <200712040738.lB47cUcf006902@imap1.linux-foundation.org>
+Subject: - libata-implement-ata_acpi_init_gtm.patch removed from -mm tree
+Date: Mon, 03 Dec 2007 23:38:06 -0800
+Message-ID: <200712040738.lB47c6Qu006872@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39837 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45154 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751857AbXLDHtQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 02:49:16 -0500
+	by vger.kernel.org with ESMTP id S1751882AbXLDHtP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 02:49:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lethal@linux-sh.org, jeff@garzik.org, mm-commits@vger.kernel.org
+To: htejun@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net: smc911x: only enable for mpr2 on sh
+     libata: implement ata_acpi_init_gtm()
 has been removed from the -mm tree.  Its filename was
-     net-smc911x-only-enable-for-mpr2-on-sh.patch
+     libata-implement-ata_acpi_init_gtm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: net: smc911x: only enable for mpr2 on sh
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: libata: implement ata_acpi_init_gtm()
+From: Tejun Heo <htejun@gmail.com>
 
-The smc911x.h is a bit of a mess, not supporting any sort of generic
-configuration.  For the moment only ARCH_PXA and SH_MAGIC_PANEL_R2 have
-suitable definitions, so we reflect this in the Kconfig also.
+Add dev->__acpi_init_gtm and store initial GTM values on host initialization. 
+If the field is valid, ata_acpi_init_gtm() returns pointer to the saved GTM
+structure; otherwise, NULL.  This is to remember BIOS/firmware programmed
+initial timing for later use before reset and mode configuration modify it. 
+The accessor is there to make building w/o ACPI easy dev->__acpi_init doesn't
+exist if ACPI is not enabled.
 
-While there are other SH boards that will likely turn this on in the 2.6.25
-time frame, it's not worth trying to stub around at the moment.
-
-Fixes up the allmodconfig build, as noted by akpm.
-
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ata/libata-acpi.c |    3 +++
+ include/linux/libata.h    |   14 +++++++++++++-
+ 2 files changed, 16 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/Kconfig~net-smc911x-only-enable-for-mpr2-on-sh drivers/net/Kconfig
---- a/drivers/net/Kconfig~net-smc911x-only-enable-for-mpr2-on-sh
-+++ a/drivers/net/Kconfig
-@@ -926,7 +926,7 @@ config SMC911X
- 	tristate "SMSC LAN911[5678] support"
- 	select CRC32
- 	select MII
--	depends on ARCH_PXA || SUPERH
-+	depends on ARCH_PXA || SH_MAGIC_PANEL_R2
- 	help
- 	  This is a driver for SMSC's LAN911x series of Ethernet chipsets
- 	  including the new LAN9115, LAN9116, LAN9117, and LAN9118.
+diff -puN drivers/ata/libata-acpi.c~libata-implement-ata_acpi_init_gtm drivers/ata/libata-acpi.c
+--- a/drivers/ata/libata-acpi.c~libata-implement-ata_acpi_init_gtm
++++ a/drivers/ata/libata-acpi.c
+@@ -94,6 +94,9 @@ static void ata_acpi_associate_ide_port(
+ 
+ 		dev->acpi_handle = acpi_get_child(ap->acpi_handle, i);
+ 	}
++
++	if (ata_acpi_gtm(ap, &ap->__acpi_init_gtm) == 0)
++		ap->pflags |= ATA_PFLAG_INIT_GTM_VALID;
+ }
+ 
+ static void ata_acpi_handle_hotplug(struct ata_port *ap, struct kobject *kobj,
+diff -puN include/linux/libata.h~libata-implement-ata_acpi_init_gtm include/linux/libata.h
+--- a/include/linux/libata.h~libata-implement-ata_acpi_init_gtm
++++ a/include/linux/libata.h
+@@ -212,6 +212,7 @@ enum {
+ 	ATA_PFLAG_SUSPENDED	= (1 << 17), /* port is suspended (power) */
+ 	ATA_PFLAG_PM_PENDING	= (1 << 18), /* PM operation pending */
+ 	ATA_PFLAG_GTM_VALID	= (1 << 19), /* acpi_gtm data valid */
++	ATA_PFLAG_INIT_GTM_VALID = (1 << 20), /* initial gtm data valid */
+ 
+ 	/* struct ata_queued_cmd flags */
+ 	ATA_QCFLAG_ACTIVE	= (1 << 0), /* cmd not yet ack'd to scsi lyer */
+@@ -656,6 +657,7 @@ struct ata_port {
+ #ifdef CONFIG_ATA_ACPI
+ 	acpi_handle		acpi_handle;
+ 	struct ata_acpi_gtm	acpi_gtm;
++	struct ata_acpi_gtm	__acpi_init_gtm; /* use ata_acpi_init_gtm() */
+ #endif
+ 	u8			sector_buf[ATA_SECT_SIZE]; /* owned by EH */
+ };
+@@ -951,13 +953,23 @@ enum {
+ 
+ /* libata-acpi.c */
+ #ifdef CONFIG_ATA_ACPI
++static inline const struct ata_acpi_gtm *ata_acpi_init_gtm(struct ata_port *ap)
++{
++	if (ap->pflags & ATA_PFLAG_INIT_GTM_VALID)
++		return &ap->__acpi_init_gtm;
++	return NULL;
++}
+ extern int ata_acpi_cbl_80wire(struct ata_port *ap);
+ int ata_acpi_stm(const struct ata_port *ap, struct ata_acpi_gtm *stm);
+ int ata_acpi_gtm(const struct ata_port *ap, struct ata_acpi_gtm *stm);
+ unsigned int ata_acpi_gtm_xfermask(struct ata_device *dev,
+ 				   const struct ata_acpi_gtm *gtm);
+-
+ #else
++static inline const struct ata_acpi_gtm *ata_acpi_init_gtm(struct ata_port *ap)
++{
++	return NULL;
++}
++
+ static inline int ata_acpi_cbl_80wire(struct ata_port *ap) { return 0; }
+ 
+ static inline int ata_acpi_stm(const struct ata_port *ap,
 _
 
-Patches currently in -mm which might be from lethal@linux-sh.org are
+Patches currently in -mm which might be from htejun@gmail.com are
 
-net-smc911x-shut-up-compiler-warnings.patch
-git-sh.patch
-nommu-add-new-vmalloc_user-and-remap_vmalloc_range-interfaces.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-__const_udelay-declaration-and-definition-mismatches.patch
-rtc-ds1302-rtc-support.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-use-bootmem_exclusive-for-kdump.patch
-sanitize-the-type-of-struct-useru_ar0.patch
+git-libata-all.patch
+libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
+libata-add-toshiba-mk1637gsx-to-spurious-command-completion-list.patch
+sata_nv-dont-use-legacy-dma-in-adma-mode-v3.patch
+libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
+ata-ahci-enclosure-management-via-led.patch
+libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
+pata_amd-pata_via-de-couple-programming-of-pio-mwdma-and-udma-timings.patch
+scsi-early-detection-of-medium-not-present-updated.patch
