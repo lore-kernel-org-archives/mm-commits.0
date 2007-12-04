@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + a.patch added to -mm tree
-Date: Tue, 04 Dec 2007 01:31:46 -0800
-Message-ID: <200712040939.lB49dASD011036@imap1.linux-foundation.org>
+Subject: + git-x86-arch-x86-kernel-ptracec-build-fix.patch added to -mm tree
+Date: Tue, 04 Dec 2007 01:32:06 -0800
+Message-ID: <200712040939.lB49dUvj011043@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51119 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53141 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750862AbXLDJkU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 04:40:20 -0500
+	by vger.kernel.org with ESMTP id S1751556AbXLDJkg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 04:40:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,7 +17,7 @@ Cc: akpm@linux-foundation.org, mingo@elte.hu, roland@redhat.com, tglx@linutronix
 The patch titled
      git-x86: arch/x86/kernel/ptrace.c build fix
 has been added to the -mm tree.  Its filename is
-     a.patch
+     git-x86-arch-x86-kernel-ptracec-build-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -40,8 +40,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  arch/x86/kernel/ptrace.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/ptrace.c~a arch/x86/kernel/ptrace.c
---- a/arch/x86/kernel/ptrace.c~a
+diff -puN arch/x86/kernel/ptrace.c~git-x86-arch-x86-kernel-ptracec-build-fix arch/x86/kernel/ptrace.c
+--- a/arch/x86/kernel/ptrace.c~git-x86-arch-x86-kernel-ptracec-build-fix
 +++ a/arch/x86/kernel/ptrace.c
 @@ -221,8 +221,8 @@ static int set_segment_reg(struct task_s
  #ifdef CONFIG_IA32_EMULATION
@@ -245,4 +245,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-a.patch
+git-x86-arch-x86-kernel-ptracec-build-fix.patch
