@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-rtc-driver-we-pass-in-a-struct-device-to-the-irq-handler-not-a-struct-platform_device-so-fix-the-irq-handler.patch added to -mm tree
-Date: Tue, 04 Dec 2007 12:28:16 -0800
-Message-ID: <200712042028.lB4KSGd3003490@imap1.linux-foundation.org>
+Subject: + blackfin-rtc-driver-cleanup-proc-handler-we-dont-need-rtc-reg-dump-now-that-we-have-mmr-filesystem-in-sysfs.patch added to -mm tree
+Date: Tue, 04 Dec 2007 12:28:18 -0800
+Message-ID: <200712042028.lB4KSI1k003493@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38592 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42751 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751461AbXLDU24 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 15:28:56 -0500
+	by vger.kernel.org with ESMTP id S1751442AbXLDU2z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 15:28:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: michael.frysinger@analog.com, alessandro.zummo@towertech.it, bryan.wu@analog
 
 
 The patch titled
-     Blackfin RTC driver: we pass in a (struct device*) to the irq handler, not a (struct platform_device*), so fix the irq handler
+     Blackfin RTC driver: cleanup proc handler (we dont need RTC reg dump now that we have MMR filesystem in sysfs)
 has been added to the -mm tree.  Its filename is
-     blackfin-rtc-driver-we-pass-in-a-struct-device-to-the-irq-handler-not-a-struct-platform_device-so-fix-the-irq-handler.patch
+     blackfin-rtc-driver-cleanup-proc-handler-we-dont-need-rtc-reg-dump-now-that-we-have-mmr-filesystem-in-sysfs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,7 +25,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Blackfin RTC driver: we pass in a (struct device*) to the irq handler, not a (struct platform_device*), so fix the irq handler
+Subject: Blackfin RTC driver: cleanup proc handler (we dont need RTC reg dump now that we have MMR filesystem in sysfs)
 From: Mike Frysinger <michael.frysinger@analog.com>
 
 Signed-off-by: Mike Frysinger <michael.frysinger@analog.com>
@@ -34,23 +34,55 @@ Acked-by: Alessandro Zummo <alessandro.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-bfin.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-bfin.c |   26 ++++++++++++--------------
+ 1 file changed, 12 insertions(+), 14 deletions(-)
 
-diff -puN drivers/rtc/rtc-bfin.c~blackfin-rtc-driver-we-pass-in-a-struct-device-to-the-irq-handler-not-a-struct-platform_device-so-fix-the-irq-handler drivers/rtc/rtc-bfin.c
---- a/drivers/rtc/rtc-bfin.c~blackfin-rtc-driver-we-pass-in-a-struct-device-to-the-irq-handler-not-a-struct-platform_device-so-fix-the-irq-handler
+diff -puN drivers/rtc/rtc-bfin.c~blackfin-rtc-driver-cleanup-proc-handler-we-dont-need-rtc-reg-dump-now-that-we-have-mmr-filesystem-in-sysfs drivers/rtc/rtc-bfin.c
+--- a/drivers/rtc/rtc-bfin.c~blackfin-rtc-driver-cleanup-proc-handler-we-dont-need-rtc-reg-dump-now-that-we-have-mmr-filesystem-in-sysfs
 +++ a/drivers/rtc/rtc-bfin.c
-@@ -144,8 +144,8 @@ static void rtc_bfin_reset(struct bfin_r
+@@ -45,7 +45,7 @@
  
- static irqreturn_t bfin_rtc_interrupt(int irq, void *dev_id)
+ #include <asm/blackfin.h>
+ 
+-#define stamp(fmt, args...) pr_debug("%s:%i: " fmt "\n", __FUNCTION__, __LINE__, ## args)
++#define stamp(fmt, args...) pr_debug("%s:%i: " fmt "\n", __func__, __LINE__, ## args)
+ #define stampit() stamp("here i am")
+ 
+ struct bfin_rtc {
+@@ -343,22 +343,20 @@ static int bfin_rtc_set_alarm(struct dev
+ 
+ static int bfin_rtc_proc(struct device *dev, struct seq_file *seq)
  {
--	struct platform_device *pdev = to_platform_device(dev_id);
--	struct bfin_rtc *rtc = platform_get_drvdata(pdev);
-+	struct device *dev = dev_id;
-+	struct bfin_rtc *rtc = dev_get_drvdata(dev);
- 	unsigned long events = 0;
- 	u16 rtc_istat;
+-#define yesno(x) (x ? "yes" : "no")
++#define yesno(x) ((x) ? "yes" : "no")
+ 	u16 ictl = bfin_read_RTC_ICTL();
+ 	stampit();
+-	seq_printf(seq, "alarm_IRQ\t: %s\n", yesno(ictl & RTC_ISTAT_ALARM));
+-	seq_printf(seq, "wkalarm_IRQ\t: %s\n", yesno(ictl & RTC_ISTAT_ALARM_DAY));
+-	seq_printf(seq, "seconds_IRQ\t: %s\n", yesno(ictl & RTC_ISTAT_SEC));
+-	seq_printf(seq, "periodic_IRQ\t: %s\n", yesno(ictl & RTC_ISTAT_STOPWATCH));
+-#ifdef DEBUG
+-	seq_printf(seq, "RTC_STAT\t: 0x%08X\n", bfin_read_RTC_STAT());
+-	seq_printf(seq, "RTC_ICTL\t: 0x%04X\n", bfin_read_RTC_ICTL());
+-	seq_printf(seq, "RTC_ISTAT\t: 0x%04X\n", bfin_read_RTC_ISTAT());
+-	seq_printf(seq, "RTC_SWCNT\t: 0x%04X\n", bfin_read_RTC_SWCNT());
+-	seq_printf(seq, "RTC_ALARM\t: 0x%08X\n", bfin_read_RTC_ALARM());
+-	seq_printf(seq, "RTC_PREN\t: 0x%04X\n", bfin_read_RTC_PREN());
+-#endif
++	seq_printf(seq,
++		"alarm_IRQ\t: %s\n"
++		"wkalarm_IRQ\t: %s\n"
++		"seconds_IRQ\t: %s\n"
++		"periodic_IRQ\t: %s\n",
++		yesno(ictl & RTC_ISTAT_ALARM),
++		yesno(ictl & RTC_ISTAT_ALARM_DAY),
++		yesno(ictl & RTC_ISTAT_SEC),
++		yesno(ictl & RTC_ISTAT_STOPWATCH));
+ 	return 0;
++#undef yesno
+ }
  
+ /**
 _
 
 Patches currently in -mm which might be from michael.frysinger@analog.com are
