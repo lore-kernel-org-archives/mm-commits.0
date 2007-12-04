@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + revert-git-kvm-changes-in-arch-x86-kconfig.patch added to -mm tree
-Date: Tue, 04 Dec 2007 14:05:12 -0800
-Message-ID: <200712042205.lB4M5CNP007792@imap1.linux-foundation.org>
+Subject: + git-avr32-fixup.patch added to -mm tree
+Date: Tue, 04 Dec 2007 14:08:59 -0800
+Message-ID: <200712042208.lB4M8xo1007951@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40680 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47304 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750915AbXLDWFq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 17:05:46 -0500
+	by vger.kernel.org with ESMTP id S1751519AbXLDWJJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 17:09:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, avi@qumranet.com, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, hskinnemoen@atmel.com
 
 
 The patch titled
-     revert git-kvm changes in arch/x86/Kconfig
+     git-avr32-fixup
 has been added to the -mm tree.  Its filename is
-     revert-git-kvm-changes-in-arch-x86-kconfig.patch
+     git-avr32-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,33 +25,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: revert git-kvm changes in arch/x86/Kconfig
+Subject: git-avr32-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-To make git-x86 apply.
+Fix git conflicts in git-avr32
 
-Cc: Avi Kivity <avi@qumranet.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |    3 ---
- 1 file changed, 3 deletions(-)
+ kernel/Kconfig.instrumentation |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN arch/x86/Kconfig~revert-git-kvm-changes-in-arch-x86-kconfig arch/x86/Kconfig
---- a/arch/x86/Kconfig~revert-git-kvm-changes-in-arch-x86-kconfig
-+++ a/arch/x86/Kconfig
-@@ -112,9 +112,6 @@ config GENERIC_TIME_VSYSCALL
- 	bool
- 	default X86_64
+diff -puN kernel/Kconfig.instrumentation~git-avr32-fixup kernel/Kconfig.instrumentation
+--- a/kernel/Kconfig.instrumentation~git-avr32-fixup
++++ a/kernel/Kconfig.instrumentation
+@@ -20,12 +20,8 @@ config PROFILING
  
--config ARCH_SUPPORTS_KVM
--	bool
--	default y
- 
- 
- 
+ config OPROFILE
+ 	tristate "OProfile system profiling (EXPERIMENTAL)"
+-	depends on PROFILING
+-<<<<<<< HEAD:kernel/Kconfig.instrumentation
+-	depends on (ALPHA || ARM || BLACKFIN || X86_32 || IA64 || M32R || MIPS || PARISC || PPC || S390 || SUPERH || SPARC || X86_64) && !UML
+-=======
++	depends on PROFILING && !UML
+ 	depends on ALPHA || ARM || AVR32 || BLACKFIN || X86_32 || IA64 || M32R || MIPS || PARISC || PPC || S390 || SUPERH || SPARC || X86_64
+->>>>>>> FETCH_HEAD:kernel/Kconfig.instrumentation
+ 	help
+ 	  OProfile is a profiling system capable of profiling the
+ 	  whole system, include the kernel, kernel modules, libraries,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,6 +77,7 @@ git-agpgart.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
 kernel-auditc-warning-fix.patch
+git-avr32-fixup.patch
 git-cpufreq.patch
 git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
 agk-dm-dm-ioctl-move-compat-code-fix.patch
@@ -125,7 +128,6 @@ git-ipwireless_cs.patch
 revert-git-kvm-changes-in-arch-x86-kconfig.patch
 git-x86.patch
 revert-revert-git-kvm-changes-in-arch-x86-kconfig.patch
-git-x86-arch-x86-kernel-ptracec-build-fix.patch
 git-cryptodev.patch
 git-cryptodev-fixup.patch
 git-xtensa.patch
