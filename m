@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + linux-kernel-markers-support-multiple-probes-update.patch added to -mm tree
-Date: Tue, 04 Dec 2007 12:40:12 -0800
-Message-ID: <200712042040.lB4KeC9j004025@imap1.linux-foundation.org>
+Subject: + cramfs-make-cramfs-little-endian-only-update.patch added to -mm tree
+Date: Tue, 04 Dec 2007 12:47:51 -0800
+Message-ID: <200712042047.lB4KlpTC004358@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42718 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44471 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754170AbXLDUkV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 15:40:21 -0500
+	by vger.kernel.org with ESMTP id S1751688AbXLDUtF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 15:49:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca
+Cc: lists-receive@programmierforen.de, andi@programmierforen.de, joern@logfs.org
 
 
 The patch titled
-     linux-kernel-markers-support-multiple-probes update
+     Make cramfs little endian only (update)
 has been added to the -mm tree.  Its filename is
-     linux-kernel-markers-support-multiple-probes-update.patch
+     cramfs-make-cramfs-little-endian-only-update.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,81 +25,150 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: linux-kernel-markers-support-multiple-probes update
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: Make cramfs little endian only (update)
+From: Andi Drebes <lists-receive@programmierforen.de>
 
-- Add comments requested by Andrew.
+> > +#ifdef __BIG_ENDIAN
+> > +/* Converts a cramfs_info from little endian to big endian. */
+> > +static inline void cramfs_convert_info_letobe(struct cramfs_info* info)
+> > +{
+> > +	 info->crc = swab32(info->crc);
+> > +	 info->edition = swab32(info->edition);
+> > +	 info->blocks = swab32(info->blocks);
+> > +	 info->files = swab32(info->files);
+> > +}
+>
+> Can you remove the #ifdef and use le32_to_cpu() directly?
+Sure. This saves some definitions (and lines of code)...
+Here's the new patch (tested on the same machines mentioned in the first message).
+I tried to move as many lines as possible out of the endian dependent section.
 
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Signed-off-by: Andi Drebes <andi@programmierforen.de>
+Cc: Joern Engel <joern@logfs.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/marker.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ fs/cramfs/inode.c |   78 ++++++++++++++------------------------------
+ 1 file changed, 25 insertions(+), 53 deletions(-)
 
-diff -puN kernel/marker.c~linux-kernel-markers-support-multiple-probes-update kernel/marker.c
---- a/kernel/marker.c~linux-kernel-markers-support-multiple-probes-update
-+++ a/kernel/marker.c
-@@ -49,6 +49,7 @@ static DEFINE_MUTEX(markers_mutex);
-  * between two consecutive operation (add or remove) on a given marker.  It is
-  * also used to delay the free of multiple probes array until a quiescent state
-  * is reached.
-+ * marker entries modifications are protected by the markers_mutex.
-  */
- struct marker_entry {
- 	struct hlist_node hlist;
-@@ -102,6 +103,11 @@ void marker_probe_cb(const struct marker
- 	va_list args;
- 	char ptype;
+diff -puN fs/cramfs/inode.c~cramfs-make-cramfs-little-endian-only-update fs/cramfs/inode.c
+--- a/fs/cramfs/inode.c~cramfs-make-cramfs-little-endian-only-update
++++ a/fs/cramfs/inode.c
+@@ -44,17 +44,23 @@ static DEFINE_MUTEX(read_mutex);
+ #define CRAMINO(x)	(((x)->offset && (x)->size)?(x)->offset<<2:1)
+ #define OFFSET(x)	((x)->i_ino)
  
-+	/*
-+	 * disabling preemption to make sure the teardown of the callbacks can
-+	 * be done correctly when they are in modules and they insure RCU read
-+	 * coherency.
-+	 */
- 	preempt_disable();
- 	ptype = ACCESS_ONCE(mdata->ptype);
- 	if (likely(!ptype)) {
-@@ -196,7 +202,7 @@ static void free_old_closure(struct rcu_
- 	entry->rcu_pending = 0;
+-#ifdef __BIG_ENDIAN
+-/* Converts a cramfs_info from little endian to big endian. */
+-static inline void cramfs_convert_info_letobe(struct cramfs_info* info)
++/* Converts a cramfs_info from little endian to host endian. */
++static inline void cramfs_info_to_host(struct cramfs_info* info)
++{
++	 info->crc = le32_to_cpu(info->crc);
++	 info->edition = le32_to_cpu(info->edition);
++	 info->blocks = le32_to_cpu(info->blocks);
++	 info->files = le32_to_cpu(info->files);
++}
++
++/* Converts a 32 bit integer from little endian to host endian */
++static inline u32 cramfs_u32_to_host(u32 val)
+ {
+-	 info->crc = swab32(info->crc);
+-	 info->edition = swab32(info->edition);
+-	 info->blocks = swab32(info->blocks);
+-	 info->files = swab32(info->files);
++	return le32_to_cpu(val);
  }
  
--static inline void debug_print_probes(struct marker_entry *entry)
-+static void debug_print_probes(struct marker_entry *entry)
+-/* Converts a cramfs_info from little endian to big endian. */
++#ifdef __BIG_ENDIAN
++/* Converts a cramfs_inode from little endian to big endian. */
+ static inline void cramfs_convert_inode_letobe(struct cramfs_inode* inode)
  {
- 	int i;
+ 	u8* inode_bytes = (u8*)inode;
+@@ -74,66 +80,32 @@ static inline void cramfs_convert_inode_
+ 	inode_bytes[11] = ((old_nloffs[1] & 0x3f) << 2) | ((old_nloffs[0] & 0xc0) >> 6);
+ }
  
+-/* Converts a cramfs superblock from little endian to big endian. */
+-static inline void cramfs_convert_super_letobe(struct cramfs_super* super)
+-{
+-	super->magic = swab32(super->magic);
+-	super->size = swab32(super->size);
+-	super->flags = swab32(super->flags);
+-	super->future = swab32(super->future);
+-	cramfs_convert_info_letobe(&super->fsid);
+-	cramfs_convert_inode_letobe(&super->root);
+-}
+-
+-/* Converts a 32 bit integer from little endian to big endian */
+-static inline u32 cramfs_convert_u32_letobe(u32 val)
+-{
+-	return swab32(val);
+-}
+-
+-static inline void cramfs_info_to_host(struct cramfs_info *info)
+-{
+-	cramfs_convert_info_letobe(info);
+-}
+-
+ static inline void cramfs_inode_to_host(struct cramfs_inode *inode)
+ {
+ 	cramfs_convert_inode_letobe(inode);
+ }
+ 
+-static inline void cramfs_super_to_host(struct cramfs_super *super)
+-{
+-	cramfs_convert_super_letobe(super);
+-}
+-
+-static inline u32 cramfs_u32_to_host(u32 val)
+-{
+-	return cramfs_convert_u32_letobe(val);
+-}
+-
+ #elif defined(__LITTLE_ENDIAN)
+ 
+-static inline void cramfs_info_to_host(struct cramfs_info *info)
+-{
+-}
+-
+ static inline void cramfs_inode_to_host(struct cramfs_inode *inode)
+ {
+ }
+ 
+-static inline void cramfs_super_to_host(struct cramfs_super *super)
+-{
+-}
+-
+-static inline u32 cramfs_u32_to_host(u32 val)
+-{
+-	return val;
+-}
+-
+ #else
+ #error "Neither __BIG_ENDIAN nor __LITTLE_ENDIAN defined."
+ #endif
+ 
++/* Converts a cramfs superblock from little endian to host endian. */
++static inline void cramfs_super_to_host(struct cramfs_super* super)
++{
++	super->magic = le32_to_cpu(super->magic);
++	super->size = le32_to_cpu(super->size);
++	super->flags = le32_to_cpu(super->flags);
++	super->future = le32_to_cpu(super->future);
++	cramfs_info_to_host(&super->fsid);
++	cramfs_inode_to_host(&super->root);
++}
++
+ static int cramfs_iget5_test(struct inode *inode, void *opaque)
+ {
+ 	struct cramfs_inode *cramfs_inode = opaque;
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from lists-receive@programmierforen.de are
 
-git-x86.patch
-add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
-add-cmpxchg64-and-cmpxchg64_local-to-alpha.patch
-add-cmpxchg64-and-cmpxchg64_local-to-mips.patch
-add-cmpxchg64-and-cmpxchg64_local-to-powerpc.patch
-add-cmpxchg64-and-cmpxchg64_local-to-x86_64.patch
-add-cmpxchg_local-to-arm.patch
-add-cmpxchg_local-to-avr32.patch
-add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
-add-cmpxchg_local-to-cris.patch
-add-cmpxchg_local-to-frv.patch
-add-cmpxchg_local-to-h8300.patch
-add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
-new-cmpxchg_local-optimized-for-up-case-for-m32r.patch
-fix-m32r-__xchg.patch
-m32r-build-fix-of-arch-m32r-kernel-smpbootc.patch
-local_t-m32r-use-architecture-specific-cmpxchg_local.patch
-add-cmpxchg_local-to-m86k.patch
-add-cmpxchg_local-to-m68knommu.patch
-add-cmpxchg_local-to-parisc.patch
-add-cmpxchg_local-to-ppc.patch
-add-cmpxchg_local-to-s390.patch
-add-cmpxchg_local-to-sparc-move-__cmpxchg-to-systemh.patch
-add-cmpxchg_local-to-sparc64.patch
-add-cmpxchg_local-to-v850.patch
-add-cmpxchg_local-to-xtensa.patch
-modules-handle-symbols-that-have-a-zero-value.patch
-linux-kernel-markers-support-multiple-probes.patch
-linux-kernel-markers-support-multiple-probes-update.patch
-linux-kernel-markers-create-modpost-file.patch
+cramfs-make-cramfs-little-endian-only.patch
+cramfs-make-cramfs-little-endian-only-update.patch
+cramfs-make-cramfs-little-endian-only-fix.patch
+cramfs-update-documentation.patch
