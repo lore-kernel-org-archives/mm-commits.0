@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-watchdog-fix-sbc7240_wdt.patch added to -mm tree
-Date: Tue, 04 Dec 2007 00:48:36 -0800
-Message-ID: <200712040856.lB48u093009540@imap1.linux-foundation.org>
+Subject: + move-kprobes-examples-to-samples-resend-vs-git-x86.patch added to -mm tree
+Date: Tue, 04 Dec 2007 01:06:45 -0800
+Message-ID: <200712040914.lB49E9vU010204@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39694 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51887 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751814AbXLDI4G (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 03:56:06 -0500
+	by vger.kernel.org with ESMTP id S1751834AbXLDJQB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 04:16:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, wim@iguana.be
+Cc: akpm@linux-foundation.org, ananth@in.ibm.com, mingo@elte.hu, randy.dunlap@oracle.com, roland@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     git-watchdog: fix sbc7240_wdt
+     move-kprobes-examples-to-samples-resend-vs-git-x86
 has been added to the -mm tree.  Its filename is
-     git-watchdog-fix-sbc7240_wdt.patch
+     move-kprobes-examples-to-samples-resend-vs-git-x86.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,31 +25,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-watchdog: fix sbc7240_wdt
+Subject: move-kprobes-examples-to-samples-resend-vs-git-x86
 From: Andrew Morton <akpm@linux-foundation.org>
 
-something bad happened to this file.
+That seemed like a pretty dumb change to me.
 
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/sbc7240_wdt.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ samples/kprobes/kprobe_example.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/watchdog/sbc7240_wdt.c~git-watchdog-fix-sbc7240_wdt drivers/watchdog/sbc7240_wdt.c
---- a/drivers/watchdog/sbc7240_wdt.c~git-watchdog-fix-sbc7240_wdt
-+++ a/drivers/watchdog/sbc7240_wdt.c
-@@ -303,5 +303,8 @@ static int __init sbc7240_wdt_init(void)
- 	       "Watchdog driver for SBC7240 initialised (nowayout=%d)\n",
- 	       nowayout);
- 
-+err_out_reboot_notifier:
-+err_out_region:
-+err_out:
- 	return 0;
--
-+}
+diff -puN samples/kprobes/kprobe_example.c~move-kprobes-examples-to-samples-resend-vs-git-x86 samples/kprobes/kprobe_example.c
+--- a/samples/kprobes/kprobe_example.c~move-kprobes-examples-to-samples-resend-vs-git-x86
++++ a/samples/kprobes/kprobe_example.c
+@@ -22,12 +22,12 @@ static int handler_pre(struct kprobe *p,
+ #ifdef CONFIG_X86_32
+ 	printk(KERN_INFO "pre_handler: p->addr = 0x%p, eip = %lx,"
+ 			" eflags = 0x%lx\n",
+-		p->addr, regs->eip, regs->eflags);
++		p->addr, regs->ip, regs->flags);
+ #endif
+ #ifdef CONFIG_X86_64
+ 	printk(KERN_INFO "pre_handler: p->addr = 0x%p, rip = %lx,"
+ 			" eflags = 0x%lx\n",
+-		p->addr, regs->rip, regs->eflags);
++		p->addr, regs->ip, regs->flags);
+ #endif
+ #ifdef CONFIG_PPC
+ 	printk(KERN_INFO "pre_handler: p->addr = 0x%p, nip = 0x%lx,"
+@@ -45,7 +45,7 @@ static void handler_post(struct kprobe *
+ {
+ #if defined(CONFIG_X86_32) || defined(CONFIG_X86_64)
+ 	printk(KERN_INFO "post_handler: p->addr = 0x%p, eflags = 0x%lx\n",
+-		p->addr, regs->eflags);
++		p->addr, regs->flags);
+ #endif
+ #ifdef CONFIG_PPC
+ 	printk(KERN_INFO "post_handler: p->addr = 0x%p, msr = 0x%lx\n",
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -111,6 +129,7 @@ git-unionfs.patch
 vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
 mct232-speed-new-termios-and-compliance-cleanups-fix.patch
 git-watchdog.patch
+git-watchdog-fix-sbc7240_wdt.patch
 git-wireless.patch
 git-ipwireless_cs.patch
 git-x86.patch
@@ -164,6 +183,7 @@ remove-__attribute_used__-checkpatch-fixes.patch
 read_current_time-cleanups.patch
 read_current_time-cleanups-build-fix-fix.patch
 sync_sb_inodes-propagate-errors.patch
+move-kprobes-examples-to-samples-resend-vs-git-x86.patch
 rtc-ds1302-rtc-support-checkpatch-fixes.patch
 mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
 fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
@@ -239,4 +259,3 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-git-watchdog-fix-sbc7240_wdt.patch
