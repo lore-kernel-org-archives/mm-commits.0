@@ -1,79 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: - ata_generic-unindent-loop-in-generic_set_mode.patch removed from -mm tree
-Date: Mon, 03 Dec 2007 23:37:49 -0800
-Message-ID: <200712040737.lB47bnMO006845@imap1.linux-foundation.org>
+Subject: - libata-kill-ata_id_to_dma_mode.patch removed from -mm tree
+Date: Mon, 03 Dec 2007 23:37:57 -0800
+Message-ID: <200712040737.lB47bvOn006854@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38389 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51366 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751698AbXLDHi2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 02:38:28 -0500
+	by vger.kernel.org with ESMTP id S1751705AbXLDHic (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 02:38:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: htejun@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ata_generic: unindent loop in generic_set_mode()
+     libata: kill ata_id_to_dma_mode()
 has been removed from the -mm tree.  Its filename was
-     ata_generic-unindent-loop-in-generic_set_mode.patch
+     libata-kill-ata_id_to_dma_mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ata_generic: unindent loop in generic_set_mode()
+Subject: libata: kill ata_id_to_dma_mode()
 From: Tejun Heo <htejun@gmail.com>
 
-Unindent loop body in generic_set_mode().  This is to ease future change.
+ata_id_to_dma_mode() isn't quite generic.  The function is basically
+privately implemented ata_id_xfermask() combined with hardcoded mode
+printing and configuration which are specific to ata_generic.
+
+Kill the function and open code it in generic_set_mode() using generic
+xfermode handling functions.
 
 Signed-off-by: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/ata_generic.c |   31 ++++++++++++++++---------------
- 1 file changed, 16 insertions(+), 15 deletions(-)
+ drivers/ata/ata_generic.c |   17 +++++++++++++-
+ drivers/ata/libata-core.c |   43 ------------------------------------
+ include/linux/libata.h    |    1 
+ 3 files changed, 16 insertions(+), 45 deletions(-)
 
-diff -puN drivers/ata/ata_generic.c~ata_generic-unindent-loop-in-generic_set_mode drivers/ata/ata_generic.c
---- a/drivers/ata/ata_generic.c~ata_generic-unindent-loop-in-generic_set_mode
+diff -puN drivers/ata/ata_generic.c~libata-kill-ata_id_to_dma_mode drivers/ata/ata_generic.c
+--- a/drivers/ata/ata_generic.c~libata-kill-ata_id_to_dma_mode
 +++ a/drivers/ata/ata_generic.c
-@@ -54,21 +54,22 @@ static int generic_set_mode(struct ata_l
- 		dma_enabled = ioread8(ap->ioaddr.bmdma_addr + ATA_DMA_STATUS);
- 
- 	ata_link_for_each_dev(dev, link) {
--		if (ata_dev_enabled(dev)) {
--			/* We don't really care */
--			dev->pio_mode = XFER_PIO_0;
--			dev->dma_mode = XFER_MW_DMA_0;
--			/* We do need the right mode information for DMA or PIO
--			   and this comes from the current configuration flags */
--			if (dma_enabled & (1 << (5 + dev->devno))) {
--				ata_id_to_dma_mode(dev, XFER_MW_DMA_0);
--				dev->flags &= ~ATA_DFLAG_PIO;
--			} else {
--				ata_dev_printk(dev, KERN_INFO, "configured for PIO\n");
--				dev->xfer_mode = XFER_PIO_0;
--				dev->xfer_shift = ATA_SHIFT_PIO;
--				dev->flags |= ATA_DFLAG_PIO;
--			}
-+		if (!ata_dev_enabled(dev))
-+			continue;
+@@ -63,7 +63,22 @@ static int generic_set_mode(struct ata_l
+ 		/* We do need the right mode information for DMA or PIO
+ 		   and this comes from the current configuration flags */
+ 		if (dma_enabled & (1 << (5 + dev->devno))) {
+-			ata_id_to_dma_mode(dev, XFER_MW_DMA_0);
++			unsigned int xfer_mask = ata_id_xfermask(dev->id);
++			const char *name;
 +
-+		/* We don't really care */
-+		dev->pio_mode = XFER_PIO_0;
-+		dev->dma_mode = XFER_MW_DMA_0;
-+		/* We do need the right mode information for DMA or PIO
-+		   and this comes from the current configuration flags */
-+		if (dma_enabled & (1 << (5 + dev->devno))) {
-+			ata_id_to_dma_mode(dev, XFER_MW_DMA_0);
-+			dev->flags &= ~ATA_DFLAG_PIO;
-+		} else {
-+			ata_dev_printk(dev, KERN_INFO, "configured for PIO\n");
-+			dev->xfer_mode = XFER_PIO_0;
-+			dev->xfer_shift = ATA_SHIFT_PIO;
-+			dev->flags |= ATA_DFLAG_PIO;
- 		}
- 	}
- 	return 0;
++			if (xfer_mask & (ATA_MASK_MWDMA | ATA_MASK_UDMA))
++				name = ata_mode_string(xfer_mask);
++			else {
++				/* SWDMA perhaps? */
++				name = "DMA";
++				xfer_mask |= ata_xfer_mode2mask(XFER_MW_DMA_0);
++			}
++
++			ata_dev_printk(dev, KERN_INFO, "configured for %s\n",
++				       name);
++
++			dev->xfer_mode = ata_xfer_mask2mode(xfer_mask);
++			dev->xfer_shift = ata_xfer_mode2shift(dev->xfer_mode);
+ 			dev->flags &= ~ATA_DFLAG_PIO;
+ 		} else {
+ 			ata_dev_printk(dev, KERN_INFO, "configured for PIO\n");
+diff -puN drivers/ata/libata-core.c~libata-kill-ata_id_to_dma_mode drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-kill-ata_id_to_dma_mode
++++ a/drivers/ata/libata-core.c
+@@ -1278,48 +1278,6 @@ static int ata_hpa_resize(struct ata_dev
+ }
+ 
+ /**
+- *	ata_id_to_dma_mode	-	Identify DMA mode from id block
+- *	@dev: device to identify
+- *	@unknown: mode to assume if we cannot tell
+- *
+- *	Set up the timing values for the device based upon the identify
+- *	reported values for the DMA mode. This function is used by drivers
+- *	which rely upon firmware configured modes, but wish to report the
+- *	mode correctly when possible.
+- *
+- *	In addition we emit similarly formatted messages to the default
+- *	ata_dev_set_mode handler, in order to provide consistency of
+- *	presentation.
+- */
+-
+-void ata_id_to_dma_mode(struct ata_device *dev, u8 unknown)
+-{
+-	unsigned int mask;
+-	u8 mode;
+-
+-	/* Pack the DMA modes */
+-	mask = ((dev->id[63] >> 8) << ATA_SHIFT_MWDMA) & ATA_MASK_MWDMA;
+-	if (dev->id[53] & 0x04)
+-		mask |= ((dev->id[88] >> 8) << ATA_SHIFT_UDMA) & ATA_MASK_UDMA;
+-
+-	/* Select the mode in use */
+-	mode = ata_xfer_mask2mode(mask);
+-
+-	if (mode != 0xff) {
+-		ata_dev_printk(dev, KERN_INFO, "configured for %s\n",
+-		       ata_mode_string(mask));
+-	} else {
+-		/* SWDMA perhaps ? */
+-		mode = unknown;
+-		ata_dev_printk(dev, KERN_INFO, "configured for DMA\n");
+-	}
+-
+-	/* Configure the device reporting */
+-	dev->xfer_mode = mode;
+-	dev->xfer_shift = ata_xfer_mode2shift(mode);
+-}
+-
+-/**
+  *	ata_noop_dev_select - Select device 0/1 on ATA bus
+  *	@ap: ATA channel to manipulate
+  *	@device: ATA device (numbered from zero) to select
+@@ -7650,7 +7608,6 @@ EXPORT_SYMBOL_GPL(ata_host_resume);
+ #endif /* CONFIG_PM */
+ EXPORT_SYMBOL_GPL(ata_id_string);
+ EXPORT_SYMBOL_GPL(ata_id_c_string);
+-EXPORT_SYMBOL_GPL(ata_id_to_dma_mode);
+ EXPORT_SYMBOL_GPL(ata_scsi_simulate);
+ 
+ EXPORT_SYMBOL_GPL(ata_pio_need_iordy);
+diff -puN include/linux/libata.h~libata-kill-ata_id_to_dma_mode include/linux/libata.h
+--- a/include/linux/libata.h~libata-kill-ata_id_to_dma_mode
++++ a/include/linux/libata.h
+@@ -883,7 +883,6 @@ extern void ata_id_string(const u16 *id,
+ 			  unsigned int ofs, unsigned int len);
+ extern void ata_id_c_string(const u16 *id, unsigned char *s,
+ 			    unsigned int ofs, unsigned int len);
+-extern void ata_id_to_dma_mode(struct ata_device *dev, u8 unknown);
+ extern void ata_bmdma_setup(struct ata_queued_cmd *qc);
+ extern void ata_bmdma_start(struct ata_queued_cmd *qc);
+ extern void ata_bmdma_stop(struct ata_queued_cmd *qc);
 _
 
 Patches currently in -mm which might be from htejun@gmail.com are
