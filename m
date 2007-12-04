@@ -1,68 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - git-sh-fixup.patch removed from -mm tree
-Date: Tue, 04 Dec 2007 13:56:04 -0800
-Message-ID: <200712042156.lB4Lu4WZ007406@imap1.linux-foundation.org>
+Subject: + revert-revert-git-kvm-changes-in-arch-x86-kconfig.patch added to -mm tree
+Date: Tue, 04 Dec 2007 14:05:17 -0800
+Message-ID: <200712042205.lB4M5HBq007795@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53063 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42317 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750996AbXLDV4j (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 16:56:39 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lB4Lu4WF005015
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 4 Dec 2007 13:56:05 -0800
+	by vger.kernel.org with ESMTP id S1750915AbXLDWFv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 17:05:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, avi@qumranet.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     git-sh-fixup
-has been removed from the -mm tree.  Its filename was
-     git-sh-fixup.patch
+     revert revert-git-kvm-changes-in-arch-x86-kconfig
+has been added to the -mm tree.  Its filename is
+     revert-revert-git-kvm-changes-in-arch-x86-kconfig.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-sh-fixup
+Subject: revert revert-git-kvm-changes-in-arch-x86-kconfig
 From: Andrew Morton <akpm@linux-foundation.org>
 
+And put it back again.
+
+Cc: Avi Kivity <avi@qumranet.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/configs/r7785rp_defconfig |    9 ---------
- 1 file changed, 9 deletions(-)
+ arch/x86/Kconfig |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN arch/sh/configs/r7785rp_defconfig~git-sh-fixup arch/sh/configs/r7785rp_defconfig
---- a/arch/sh/configs/r7785rp_defconfig~git-sh-fixup
-+++ a/arch/sh/configs/r7785rp_defconfig
-@@ -1,12 +1,7 @@
- #
- # Automatically generated make config: don't edit
--<<<<<<< HEAD:arch/sh/configs/r7785rp_defconfig
--# Linux kernel version: 2.6.24-rc2
--# Tue Nov 13 20:34:57 2007
--=======
- # Linux kernel version: 2.6.24-rc3
- # Fri Nov 23 14:03:57 2007
-->>>>>>> FETCH_HEAD:arch/sh/configs/r7785rp_defconfig
- #
- CONFIG_SUPERH=y
- CONFIG_SUPERH32=y
-@@ -559,12 +554,8 @@ CONFIG_NETDEVICES=y
- # CONFIG_PHYLIB is not set
- CONFIG_NET_ETHERNET=y
- CONFIG_MII=y
--<<<<<<< HEAD:arch/sh/configs/r7785rp_defconfig
- CONFIG_AX88796=y
- CONFIG_AX88796_93CX6=y
--=======
--# CONFIG_AX88796 is not set
-->>>>>>> FETCH_HEAD:arch/sh/configs/r7785rp_defconfig
- # CONFIG_STNIC is not set
- # CONFIG_HAPPYMEAL is not set
- # CONFIG_SUNGEM is not set
+diff -puN arch/x86/Kconfig~revert-revert-git-kvm-changes-in-arch-x86-kconfig arch/x86/Kconfig
+--- a/arch/x86/Kconfig~revert-revert-git-kvm-changes-in-arch-x86-kconfig
++++ a/arch/x86/Kconfig
+@@ -436,6 +436,9 @@ config SWIOTLB
+ 	  access 32-bits of memory can be used on systems with more than
+ 	  3 GB of memory. If unsure, say Y.
+ 
++config ARCH_SUPPORTS_KVM
++	bool
++	default y
+ 
+ config NR_CPUS
+ 	int "Maximum number of CPUs (2-255)"
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -120,7 +109,6 @@ bluetooth-uninlining.patch
 git-nfsd.patch
 quirk-enable-msi-mapping-on-ht1000.patch
 git-sh.patch
-git-sh-fixup.patch
 git-scsi-misc-fixup.patch
 ips-trim-trailing-whitespace.patch
 scsi-gdth-kill-unneeded-irq-argument.patch
@@ -130,12 +118,13 @@ git-unionfs.patch
 vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
 mct232-speed-new-termios-and-compliance-cleanups-fix.patch
 git-watchdog.patch
-git-watchdog-fix-sbc7240_wdt.patch
 add-support-for-sb1-hardware-watchdog-fix.patch
 git-wireless.patch
 bcm43xx_debugfs-sscanf-fix.patch
 git-ipwireless_cs.patch
+revert-git-kvm-changes-in-arch-x86-kconfig.patch
 git-x86.patch
+revert-revert-git-kvm-changes-in-arch-x86-kconfig.patch
 git-x86-arch-x86-kernel-ptracec-build-fix.patch
 git-cryptodev.patch
 git-cryptodev-fixup.patch
