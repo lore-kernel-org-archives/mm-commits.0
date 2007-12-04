@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + isapnp-driver-semaphore-to-mutex-fix-fix.patch added to -mm tree
-Date: Tue, 04 Dec 2007 01:54:16 -0800
-Message-ID: <200712041001.lB4A1efl011823@imap1.linux-foundation.org>
+Subject: + git-x86-borkage.patch added to -mm tree
+Date: Tue, 04 Dec 2007 02:31:04 -0800
+Message-ID: <200712041038.lB4AcS4k013067@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48434 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48727 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752121AbXLDKCd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 05:02:33 -0500
+	by vger.kernel.org with ESMTP id S1751063AbXLDKjm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 05:39:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bjorn.helgaas@hp.com, dwalker@mvista.com, mingo@elte.hu
+Cc: akpm@linux-foundation.org, mingo@elte.hu, roland@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     isapnp-driver-semaphore-to-mutex-fix-fix
+     git-x86-borkage
 has been added to the -mm tree.  Its filename is
-     isapnp-driver-semaphore-to-mutex-fix-fix.patch
+     git-x86-borkage.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,58 +25,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: isapnp-driver-semaphore-to-mutex-fix-fix
+Subject: git-x86-borkage
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/pnp/interface.c: In function 'pnp_set_current_resources':
-drivers/pnp/interface.c:363: error: 'pnp_res_mutex' undeclared (first use in this function)
-drivers/pnp/interface.c:363: error: (Each undeclared identifier is reported only once
-drivers/pnp/interface.c:363: error: for each function it appears in.)
-
-Strange that an isapnp semaphore is needed with CONFIG_ISAPNP=n.
-
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Daniel Walker <dwalker@mvista.com>
+Cc: Roland McGrath <roland@redhat.com>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/interface.c |    2 ++
- include/linux/pnp.h     |    2 +-
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ kernel/ptrace.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/pnp/interface.c~isapnp-driver-semaphore-to-mutex-fix-fix drivers/pnp/interface.c
---- a/drivers/pnp/interface.c~isapnp-driver-semaphore-to-mutex-fix-fix
-+++ a/drivers/pnp/interface.c
-@@ -10,10 +10,12 @@
- #include <linux/errno.h>
- #include <linux/list.h>
- #include <linux/types.h>
-+#include <linux/pnp.h>
- #include <linux/stat.h>
- #include <linux/ctype.h>
- #include <linux/slab.h>
- #include <linux/mutex.h>
-+
+diff -puN kernel/ptrace.c~git-x86-borkage kernel/ptrace.c
+--- a/kernel/ptrace.c~git-x86-borkage
++++ a/kernel/ptrace.c
+@@ -25,6 +25,10 @@
+ #include <asm/pgtable.h>
  #include <asm/uaccess.h>
  
- #include "base.h"
-diff -puN include/linux/pnp.h~isapnp-driver-semaphore-to-mutex-fix-fix include/linux/pnp.h
---- a/include/linux/pnp.h~isapnp-driver-semaphore-to-mutex-fix-fix
-+++ a/include/linux/pnp.h
-@@ -254,11 +254,11 @@ struct pnp_fixup {
- 
- #ifdef CONFIG_ISAPNP
- extern struct pnp_protocol isapnp_protocol;
--extern struct mutex pnp_res_mutex;
- #define pnp_device_is_isapnp(dev) ((dev)->protocol == (&isapnp_protocol))
- #else
- #define pnp_device_is_isapnp(dev) 0
- #endif
-+extern struct mutex pnp_res_mutex;
- 
- #ifdef CONFIG_PNPBIOS
- extern struct pnp_protocol pnpbios_protocol;
++#ifndef arch_has_block_step
++#define arch_has_block_step() (0)
++#endif
++
+ /*
+  * ptrace a task: make the debugger its new parent and
+  * move it to the ptrace list.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -144,6 +118,7 @@ git-wireless.patch
 git-ipwireless_cs.patch
 git-x86.patch
 git-x86-arch-x86-kernel-ptracec-build-fix.patch
+git-x86-borkage.patch
 git-cryptodev.patch
 git-cryptodev-fixup.patch
 git-xtensa.patch
