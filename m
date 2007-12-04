@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch added to -mm tree
-Date: Tue, 04 Dec 2007 00:44:10 -0800
-Message-ID: <200712040851.lB48pYTo009442@imap1.linux-foundation.org>
+Subject: + rewrite-rd-fixes.patch added to -mm tree
+Date: Tue, 04 Dec 2007 00:45:47 -0800
+Message-ID: <200712040853.lB48rBb0009493@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38054 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49646 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751628AbXLDIwz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 03:52:55 -0500
+	by vger.kernel.org with ESMTP id S1751814AbXLDIxN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 03:53:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dhowells@redhat.com, mingo@elte.hu, roland@redhat.com, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86
+     rewrite-rd-fixes
 has been added to the -mm tree.  Its filename is
-     aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+     rewrite-rd-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,85 +25,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86
+Subject: rewrite-rd-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-was that really necessary?
+drivers/block/brd.c: In function 'copy_from_brd':
+drivers/block/brd.c:230: warning: passing argument 1 of 'kunmap_atomic' discards qualifiers from pointer target type
+drivers/block/brd.c:242: warning: passing argument 1 of 'kunmap_atomic' discards qualifiers from pointer target type
 
-Cc: David Howells <dhowells@redhat.com>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/a.out-core.h |   38 +++++++++++++++++----------------
- 1 file changed, 20 insertions(+), 18 deletions(-)
+ drivers/block/brd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-x86/a.out-core.h~aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86 include/asm-x86/a.out-core.h
---- a/include/asm-x86/a.out-core.h~aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86
-+++ a/include/asm-x86/a.out-core.h
-@@ -24,40 +24,42 @@
- static inline void aout_dump_thread(struct pt_regs *regs, struct user *dump)
+diff -puN drivers/block/brd.c~rewrite-rd-fixes drivers/block/brd.c
+--- a/drivers/block/brd.c~rewrite-rd-fixes
++++ a/drivers/block/brd.c
+@@ -218,7 +218,7 @@ static void copy_from_brd(void *dst, str
+ 			sector_t sector, size_t n)
  {
- 	int i;
-+	unsigned long *debugreg;
+ 	struct page *page;
+-	const void *src;
++	void *src;
+ 	unsigned int offset = (sector & (PAGE_SECTORS-1)) << SECTOR_SHIFT;
+ 	size_t copy;
  
- /* changed the size calculations - should hopefully work better. lbt */
- 	dump->magic = CMAGIC;
- 	dump->start_code = 0;
--	dump->start_stack = regs->esp & ~(PAGE_SIZE - 1);
-+	dump->start_stack = regs->sp & ~(PAGE_SIZE - 1);
- 	dump->u_tsize = ((unsigned long) current->mm->end_code) >> PAGE_SHIFT;
- 	dump->u_dsize = ((unsigned long)
- 			 (current->mm->brk + (PAGE_SIZE-1))) >> PAGE_SHIFT;
- 	dump->u_dsize -= dump->u_tsize;
- 	dump->u_ssize = 0;
-+	debugreg = &current->thread.debugreg0;
- 	for (i = 0; i < 8; i++)
--		dump->u_debugreg[i] = current->thread.debugreg[i];
-+		dump->u_debugreg[i] = *debugreg++;
- 
- 	if (dump->start_stack < TASK_SIZE)
- 		dump->u_ssize = ((unsigned long)
- 				 (TASK_SIZE - dump->start_stack)) >> PAGE_SHIFT;
- 
--	dump->regs.ebx = regs->ebx;
--	dump->regs.ecx = regs->ecx;
--	dump->regs.edx = regs->edx;
--	dump->regs.esi = regs->esi;
--	dump->regs.edi = regs->edi;
--	dump->regs.ebp = regs->ebp;
--	dump->regs.eax = regs->eax;
--	dump->regs.ds = regs->xds;
--	dump->regs.es = regs->xes;
--	dump->regs.fs = regs->xfs;
-+	dump->regs.bx = regs->bx;
-+	dump->regs.cx = regs->cx;
-+	dump->regs.dx = regs->dx;
-+	dump->regs.si = regs->si;
-+	dump->regs.di = regs->di;
-+	dump->regs.bp = regs->bp;
-+	dump->regs.ax = regs->ax;
-+	dump->regs.ds = regs->ds;
-+	dump->regs.es = regs->es;
-+	dump->regs.fs = regs->fs;
- 	savesegment(gs, dump->regs.gs);
--	dump->regs.orig_eax = regs->orig_eax;
--	dump->regs.eip = regs->eip;
--	dump->regs.cs = regs->xcs;
--	dump->regs.eflags = regs->eflags;
--	dump->regs.esp = regs->esp;
--	dump->regs.ss = regs->xss;
-+	dump->regs.orig_ax = regs->orig_ax;
-+	dump->regs.ip = regs->ip;
-+	dump->regs.cs = regs->cs;
-+	dump->regs.flags = regs->flags;
-+	dump->regs.sp = regs->sp;
-+	dump->regs.ss = regs->ss;
- 
- 	dump->u_fpvalid = dump_fpu(regs, &dump->i387);
- }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -279,6 +226,7 @@ proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
 intel-iommu-fault_reason_index_cleanuppatch-fix.patch
 aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
 mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
 make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
 reiser4.patch
 jens-broke-reiser4patch-added-to-mm-tree.patch
