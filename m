@@ -1,138 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - phy-implement-release-function.patch removed from -mm tree
-Date: Tue, 04 Dec 2007 14:11:48 -0800
-Message-ID: <200712042211.lB4MBms9008024@imap1.linux-foundation.org>
+Subject: - drivers-s390-net-ctcmainc-fix-build-bug.patch removed from -mm tree
+Date: Tue, 04 Dec 2007 14:12:03 -0800
+Message-ID: <200712042212.lB4MC334008048@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58611 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46659 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751839AbXLDWO6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 17:14:58 -0500
+	by vger.kernel.org with ESMTP id S1754732AbXLDWSm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 17:18:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avorontsov@ru.mvista.com, afleming@freescale.com, thierry.reding@avionic-design.de, mm-commits@vger.kernel.org
+To: mingo@elte.hu, heiko.carstens@de.ibm.com, kamalesh@linux.vnet.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     phy: implement release function
+     drivers/s390/net/ctcmain.c: fix build bug
 has been removed from the -mm tree.  Its filename was
-     phy-implement-release-function.patch
+     drivers-s390-net-ctcmainc-fix-build-bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: phy: implement release function
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: drivers/s390/net/ctcmain.c: fix build bug
+From: Ingo Molnar <mingo@elte.hu>
 
-Lately I've got this nice badness on mdio bus removal:
+SET_MODULE_OWNER() is obsolete.
 
-Device 'e0103120:06' does not have a release() function, it is broken and must be fixed.
-------------[ cut here ]------------
-Badness at drivers/base/core.c:107
-NIP: c015c1a8 LR: c015c1a8 CTR: c0157488
-REGS: c34bdcf0 TRAP: 0700   Not tainted  (2.6.23-rc5-g9ebadfbb-dirty)
-MSR: 00029032 <EE,ME,IR,DR>  CR: 24088422  XER: 00000000
-...
-[c34bdda0] [c015c1a8] device_release+0x78/0x80 (unreliable)
-[c34bddb0] [c01354cc] kobject_cleanup+0x80/0xbc
-[c34bddd0] [c01365f0] kref_put+0x54/0x6c
-[c34bdde0] [c013543c] kobject_put+0x24/0x34
-[c34bddf0] [c015c384] put_device+0x1c/0x2c
-[c34bde00] [c0180e84] mdiobus_unregister+0x2c/0x58
-...
-
-Though actually there is nothing broken, it just device
-subsystem core expects another "pattern" of resource managment.
-
-This patch implement phy device's release function, thus
-we're getting rid of this badness.
-
-Also small hidden bug fixed, hope none other introduced. ;-)
-
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Acked-by: Andy Fleming <afleming@freescale.com>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/phy/mdio_bus.c   |    9 +++++----
- drivers/net/phy/phy_device.c |   13 +++++++++++++
- include/linux/phy.h          |    1 +
- 3 files changed, 19 insertions(+), 4 deletions(-)
+ drivers/s390/net/ctcmain.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/net/phy/mdio_bus.c~phy-implement-release-function drivers/net/phy/mdio_bus.c
---- a/drivers/net/phy/mdio_bus.c~phy-implement-release-function
-+++ a/drivers/net/phy/mdio_bus.c
-@@ -91,9 +91,12 @@ int mdiobus_register(struct mii_bus *bus
- 
- 			err = device_register(&phydev->dev);
- 
--			if (err)
-+			if (err) {
- 				printk(KERN_ERR "phy %d failed to register\n",
- 						i);
-+				phy_device_free(phydev);
-+				phydev = NULL;
-+			}
- 		}
- 
- 		bus->phy_map[i] = phydev;
-@@ -110,10 +113,8 @@ void mdiobus_unregister(struct mii_bus *
- 	int i;
- 
- 	for (i = 0; i < PHY_MAX_ADDR; i++) {
--		if (bus->phy_map[i]) {
-+		if (bus->phy_map[i])
- 			device_unregister(&bus->phy_map[i]->dev);
--			kfree(bus->phy_map[i]);
--		}
- 	}
+diff -puN drivers/s390/net/ctcmain.c~drivers-s390-net-ctcmainc-fix-build-bug drivers/s390/net/ctcmain.c
+--- a/drivers/s390/net/ctcmain.c~drivers-s390-net-ctcmainc-fix-build-bug
++++ a/drivers/s390/net/ctcmain.c
+@@ -2802,7 +2802,6 @@ void ctc_init_netdevice(struct net_devic
+ 	dev->type = ARPHRD_SLIP;
+ 	dev->tx_queue_len = 100;
+ 	dev->flags = IFF_POINTOPOINT | IFF_NOARP;
+-	SET_MODULE_OWNER(dev);
  }
- EXPORT_SYMBOL(mdiobus_unregister);
-diff -puN drivers/net/phy/phy_device.c~phy-implement-release-function drivers/net/phy/phy_device.c
---- a/drivers/net/phy/phy_device.c~phy-implement-release-function
-+++ a/drivers/net/phy/phy_device.c
-@@ -44,6 +44,17 @@ static struct phy_driver genphy_driver;
- extern int mdio_bus_init(void);
- extern void mdio_bus_exit(void);
  
-+void phy_device_free(struct phy_device *phydev)
-+{
-+	kfree(phydev);
-+}
-+EXPORT_SYMBOL(phy_device_free);
-+
-+static void phy_device_release(struct device *dev)
-+{
-+	phy_device_free(to_phy_device(dev));
-+}
-+
- struct phy_device* phy_device_create(struct mii_bus *bus, int addr, int phy_id)
- {
- 	struct phy_device *dev;
-@@ -54,6 +65,8 @@ struct phy_device* phy_device_create(str
- 	if (NULL == dev)
- 		return (struct phy_device*) PTR_ERR((void*)-ENOMEM);
  
-+	dev->dev.release = phy_device_release;
-+
- 	dev->speed = 0;
- 	dev->duplex = -1;
- 	dev->pause = dev->asym_pause = 0;
-diff -puN include/linux/phy.h~phy-implement-release-function include/linux/phy.h
---- a/include/linux/phy.h~phy-implement-release-function
-+++ a/include/linux/phy.h
-@@ -403,6 +403,7 @@ int phy_mii_ioctl(struct phy_device *phy
- int phy_start_interrupts(struct phy_device *phydev);
- void phy_print_status(struct phy_device *phydev);
- struct phy_device* phy_device_create(struct mii_bus *bus, int addr, int phy_id);
-+void phy_device_free(struct phy_device *phydev);
- 
- extern struct bus_type mdio_bus_type;
- #endif /* __PHY_H */
 _
 
-Patches currently in -mm which might be from avorontsov@ru.mvista.com are
+Patches currently in -mm which might be from mingo@elte.hu are
 
-git-netdev-all.patch
-ucc_geth-fix-module-removal.patch
-ucc_geth-add-support-for-netpoll.patch
+origin.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+__group_complete_signal-fix-coredump-with-group-stop-race.patch
+remove-handle_group_stop-in-favor-of-do_signal_stop.patch
+exec-rework-the-group-exit-and-fix-the-race-with-kill.patch
+git-acpi.patch
+git-alsa.patch
+git-hrt.patch
+revert-git-hrt.patch
+git-kvm.patch
+git-sched.patch
+track-accurate-idle-time-with-tick_schedidle_sleeptime.patch
+merge-multiple-error-paths-in-alloc_uid-into-one.patch
+iommu-sg-merging-x86-make-pci-gart-iommu-respect-the-segment-size-limits.patch
+revert-git-kvm-changes-in-arch-x86-kconfig.patch
+git-x86.patch
+revert-revert-git-kvm-changes-in-arch-x86-kconfig.patch
+uml-add-asm-um-asmh.patch
+x86_64-add-acpi-reboot-option.patch
+x86_64-efi-runtime-service-support-efi-basic-runtime-service-support.patch
+x86_64-efi-runtime-service-support-efi-basic-runtime-service-support-fixes.patch
+x86_64-efi-runtime-service-support-efi-runtime-services.patch
+x86_64-efi-runtime-service-support-document-for-efi-runtime-services.patch
+x86_64-efi-runtime-service-support-remove-duplicated-code-from-efi_32c.patch
+git-cryptodev-fixup.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+fix-proc-dcache-deadlock-in-do_exit.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+printk-trivial-optimizations.patch
+kernel-add-mutex_lock_killable.patch
+vfs-use-mutex_lock_killable-in-vfs_readdir.patch
+fix-__const_udelay-declaration-and-definition-mismatches.patch
+clean-up-drivers-char-rtcc.patch
+move-kprobes-examples-to-samples-resend-vs-git-x86.patch
+isapnp-driver-semaphore-to-mutex.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+add-cmpxchg64-and-cmpxchg64_local-to-x86_64.patch
+proc-fix-the-threaded-proc-self.patch
+modules-fold-percpu_modcopy-into-modulec-and-get-rid-of-the-macro-from-hell.patch
+clocksource-remove-redundant-code.patch
+clockevent-simplify-list-operations.patch
+timekeeping-rename-timekeeping_is_continuous-to-timekeeping_valid_for_hres.patch
+time-fix-typo-in-comments.patch
+time-delete-comments-that-refer-to-noexistent-symbols.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
