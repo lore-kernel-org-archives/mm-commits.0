@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-64-bit-capability-support-to-the-kernel-capabilities-export-__cap_-symbols.patch added to -mm tree
-Date: Mon, 03 Dec 2007 21:52:01 -0800
-Message-ID: <200712040552.lB45q1dk003314@imap1.linux-foundation.org>
+Subject: + isapnp-driver-semaphore-to-mutex.patch added to -mm tree
+Date: Mon, 03 Dec 2007 21:55:38 -0800
+Message-ID: <200712040555.lB45tcjd003451@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32821 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39445 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752061AbXLDFwL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 00:52:11 -0500
+	by vger.kernel.org with ESMTP id S1751475AbXLDF4m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 00:56:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: serue@us.ibm.com
+Cc: dwalker@mvista.com, bjorn.helgaas@hp.com, mingo@elte.hu
 
 
 The patch titled
-     capabilities: export __cap_ symbols
+     isapnp driver semaphore to mutex
 has been added to the -mm tree.  Its filename is
-     add-64-bit-capability-support-to-the-kernel-capabilities-export-__cap_-symbols.patch
+     isapnp-driver-semaphore-to-mutex.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,64 +25,154 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: capabilities: export __cap_ symbols
-From: "Serge E. Hallyn" <serue@us.ibm.com>
+Subject: isapnp driver semaphore to mutex
+From: Daniel Walker <dwalker@mvista.com>
 
-Export __cap_empty_set and friends so that the cap_clear(), cap_set_full()
-and cap_set_init_eff() defines can be used by modules.
+Changed the isapnp semaphore to a mutex.
 
-Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
+Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/capability.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/pnp/interface.c |   11 ++++++-----
+ drivers/pnp/manager.c   |   19 ++++++++++---------
+ 2 files changed, 16 insertions(+), 14 deletions(-)
 
-diff -puN kernel/capability.c~add-64-bit-capability-support-to-the-kernel-capabilities-export-__cap_-symbols kernel/capability.c
---- a/kernel/capability.c~add-64-bit-capability-support-to-the-kernel-capabilities-export-__cap_-symbols
-+++ a/kernel/capability.c
-@@ -29,6 +29,10 @@ const kernel_cap_t __cap_empty_set = CAP
- const kernel_cap_t __cap_full_set = CAP_FULL_SET;
- const kernel_cap_t __cap_init_eff_set = CAP_INIT_EFF_SET;
+diff -puN drivers/pnp/interface.c~isapnp-driver-semaphore-to-mutex drivers/pnp/interface.c
+--- a/drivers/pnp/interface.c~isapnp-driver-semaphore-to-mutex
++++ a/drivers/pnp/interface.c
+@@ -13,6 +13,7 @@
+ #include <linux/stat.h>
+ #include <linux/ctype.h>
+ #include <linux/slab.h>
++#include <linux/mutex.h>
+ #include <asm/uaccess.h>
  
-+EXPORT_SYMBOL(__cap_empty_set);
-+EXPORT_SYMBOL(__cap_full_set);
-+EXPORT_SYMBOL(__cap_init_eff_set);
-+
- /*
-  * More recent versions of libcap are available from:
-  *
+ #include "base.h"
+@@ -315,7 +316,7 @@ static ssize_t pnp_show_current_resource
+ 	return ret;
+ }
+ 
+-extern struct semaphore pnp_res_mutex;
++extern struct mutex pnp_res_mutex;
+ 
+ static ssize_t
+ pnp_set_current_resources(struct device *dmdev, struct device_attribute *attr,
+@@ -361,10 +362,10 @@ pnp_set_current_resources(struct device 
+ 		goto done;
+ 	}
+ 	if (!strnicmp(buf, "get", 3)) {
+-		down(&pnp_res_mutex);
++		mutex_lock(&pnp_res_mutex);
+ 		if (pnp_can_read(dev))
+ 			dev->protocol->get(dev, &dev->res);
+-		up(&pnp_res_mutex);
++		mutex_unlock(&pnp_res_mutex);
+ 		goto done;
+ 	}
+ 	if (!strnicmp(buf, "set", 3)) {
+@@ -373,7 +374,7 @@ pnp_set_current_resources(struct device 
+ 			goto done;
+ 		buf += 3;
+ 		pnp_init_resource_table(&dev->res);
+-		down(&pnp_res_mutex);
++		mutex_lock(&pnp_res_mutex);
+ 		while (1) {
+ 			while (isspace(*buf))
+ 				++buf;
+@@ -455,7 +456,7 @@ pnp_set_current_resources(struct device 
+ 			}
+ 			break;
+ 		}
+-		up(&pnp_res_mutex);
++		mutex_unlock(&pnp_res_mutex);
+ 		goto done;
+ 	}
+ 
+diff -puN drivers/pnp/manager.c~isapnp-driver-semaphore-to-mutex drivers/pnp/manager.c
+--- a/drivers/pnp/manager.c~isapnp-driver-semaphore-to-mutex
++++ a/drivers/pnp/manager.c
+@@ -12,9 +12,10 @@
+ #include <linux/pnp.h>
+ #include <linux/slab.h>
+ #include <linux/bitmap.h>
++#include <linux/mutex.h>
+ #include "base.h"
+ 
+-DECLARE_MUTEX(pnp_res_mutex);
++DEFINE_MUTEX(pnp_res_mutex);
+ 
+ static int pnp_assign_port(struct pnp_dev *dev, struct pnp_port *rule, int idx)
+ {
+@@ -297,7 +298,7 @@ static int pnp_assign_resources(struct p
+ 	if (!pnp_can_configure(dev))
+ 		return -ENODEV;
+ 
+-	down(&pnp_res_mutex);
++	mutex_lock(&pnp_res_mutex);
+ 	pnp_clean_resource_table(&dev->res);	/* start with a fresh slate */
+ 	if (dev->independent) {
+ 		port = dev->independent->port;
+@@ -366,12 +367,12 @@ static int pnp_assign_resources(struct p
+ 	} else if (dev->dependent)
+ 		goto fail;
+ 
+-	up(&pnp_res_mutex);
++	mutex_unlock(&pnp_res_mutex);
+ 	return 1;
+ 
+ fail:
+ 	pnp_clean_resource_table(&dev->res);
+-	up(&pnp_res_mutex);
++	mutex_unlock(&pnp_res_mutex);
+ 	return 0;
+ }
+ 
+@@ -396,7 +397,7 @@ int pnp_manual_config_dev(struct pnp_dev
+ 		return -ENOMEM;
+ 	*bak = dev->res;
+ 
+-	down(&pnp_res_mutex);
++	mutex_lock(&pnp_res_mutex);
+ 	dev->res = *res;
+ 	if (!(mode & PNP_CONFIG_FORCE)) {
+ 		for (i = 0; i < PNP_MAX_PORT; i++) {
+@@ -416,14 +417,14 @@ int pnp_manual_config_dev(struct pnp_dev
+ 				goto fail;
+ 		}
+ 	}
+-	up(&pnp_res_mutex);
++	mutex_unlock(&pnp_res_mutex);
+ 
+ 	kfree(bak);
+ 	return 0;
+ 
+ fail:
+ 	dev->res = *bak;
+-	up(&pnp_res_mutex);
++	mutex_unlock(&pnp_res_mutex);
+ 	kfree(bak);
+ 	return -EINVAL;
+ }
+@@ -547,9 +548,9 @@ int pnp_disable_dev(struct pnp_dev *dev)
+ 	dev->active = 0;
+ 
+ 	/* release the resources so that other devices can use them */
+-	down(&pnp_res_mutex);
++	mutex_lock(&pnp_res_mutex);
+ 	pnp_clean_resource_table(&dev->res);
+-	up(&pnp_res_mutex);
++	mutex_unlock(&pnp_res_mutex);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from serue@us.ibm.com are
+Patches currently in -mm which might be from dwalker@mvista.com are
 
-origin.patch
-git-net.patch
-git-unionfs.patch
-vfs-security-rework-inode_getsecurity-and-callers-to.patch
-vfs-reorder-vfs_getxattr-to-avoid-unnecessary-calls-to-the-lsm.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-64bit-capability-support-legacy-support-fix.patch
-add-64-bit-capability-support-to-the-kernel-capabilities-export-__cap_-symbols.patch
-capabilities-introduce-per-process-capability-bounding-set.patch
-capabilities-introduce-per-process-capability-bounding-set-capabilities-correct-logic-at-capset_check.patch
-smack-using-capabilities-32-and-33.patch
-smack-using-capabilities-32-and-33-update-cap_last_cap-to-reflect-cap_mac_admin.patch
-r-o-bind-mounts-stub-functions.patch
-r-o-bind-mounts-do_rmdir-elevate-write-count.patch
-add-the-namespaces-config-option.patch
-move-the-uts-namespace-under-uts_ns-option.patch
-move-the-ipc-namespace-under-ipc_ns-option.patch
-cleanup-the-code-managed-with-the-user_ns-option.patch
-cleanup-the-code-managed-with-pid_ns-option.patch
-mark-net_ns-with-depends-on-namespaces.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
