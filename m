@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + timerfd-v3-new-timerfd-api-m68k-fix.patch added to -mm tree
-Date: Tue, 04 Dec 2007 03:37:28 -0800
-Message-ID: <200712041144.lB4BipRv015328@imap1.linux-foundation.org>
+Subject: + timerfd-v3-new-timerfd-api-mips-fix.patch added to -mm tree
+Date: Tue, 04 Dec 2007 03:53:26 -0800
+Message-ID: <200712041200.lB4C0nbh015881@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55620 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48954 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752564AbXLDLpZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 06:45:25 -0500
+	by vger.kernel.org with ESMTP id S1752722AbXLDMB2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 07:01:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, davidel@xmailserver.org, mtk-manpages@gmx.net
 
 
 The patch titled
-     timerfd-v3-new-timerfd-api-m68k-fix
+     timerfd-v3-new-timerfd-api-mips-fix
 has been added to the -mm tree.  Its filename is
-     timerfd-v3-new-timerfd-api-m68k-fix.patch
+     timerfd-v3-new-timerfd-api-mips-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,31 +25,70 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: timerfd-v3-new-timerfd-api-m68k-fix
+Subject: timerfd-v3-new-timerfd-api-mips-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ho hum
+for heaven's sake..
 
 Cc: Davide Libenzi <davidel@xmailserver.org>
 Cc: Michael Kerrisk <mtk-manpages@gmx.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/kernel/entry.S |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/mips/kernel/scall32-o32.S |    2 +-
+ arch/mips/kernel/scall64-64.S  |    2 +-
+ arch/mips/kernel/scall64-n32.S |    2 +-
+ arch/mips/kernel/scall64-o32.S |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/m68k/kernel/entry.S~timerfd-v3-new-timerfd-api-m68k-fix arch/m68k/kernel/entry.S
---- a/arch/m68k/kernel/entry.S~timerfd-v3-new-timerfd-api-m68k-fix
-+++ a/arch/m68k/kernel/entry.S
-@@ -742,7 +742,7 @@ sys_call_table:
- 	.long sys_epoll_pwait		/* 315 */
- 	.long sys_utimensat
- 	.long sys_signalfd
--	.long sys_timerfd
-+	.long sys_ni_syscall
- 	.long sys_eventfd
- 	.long sys_fallocate		/* 320 */
- 
+diff -puN arch/mips/kernel/scall64-o32.S~timerfd-v3-new-timerfd-api-mips-fix arch/mips/kernel/scall64-o32.S
+--- a/arch/mips/kernel/scall64-o32.S~timerfd-v3-new-timerfd-api-mips-fix
++++ a/arch/mips/kernel/scall64-o32.S
+@@ -523,7 +523,7 @@ sys_call_table:
+ 	PTR	sys_ioprio_get			/* 4315 */
+ 	PTR	compat_sys_utimensat
+ 	PTR	compat_sys_signalfd
+-	PTR	compat_sys_timerfd
++	PTR	sys_ni_syscall
+ 	PTR	sys_eventfd
+ 	PTR	sys32_fallocate			/* 4320 */
+ 	.size	sys_call_table,.-sys_call_table
+diff -puN arch/mips/kernel/scall32-o32.S~timerfd-v3-new-timerfd-api-mips-fix arch/mips/kernel/scall32-o32.S
+--- a/arch/mips/kernel/scall32-o32.S~timerfd-v3-new-timerfd-api-mips-fix
++++ a/arch/mips/kernel/scall32-o32.S
+@@ -660,7 +660,7 @@ einval:	li	v0, -EINVAL
+ 	sys	sys_ioprio_get		2	/* 4315 */
+ 	sys	sys_utimensat		4
+ 	sys	sys_signalfd		3
+-	sys	sys_timerfd		4
++	sys	sys_ni_syscall		0
+ 	sys	sys_eventfd		1
+ 	sys	sys_fallocate		6	/* 4320 */
+ 	.endm
+diff -puN arch/mips/kernel/scall64-64.S~timerfd-v3-new-timerfd-api-mips-fix arch/mips/kernel/scall64-64.S
+--- a/arch/mips/kernel/scall64-64.S~timerfd-v3-new-timerfd-api-mips-fix
++++ a/arch/mips/kernel/scall64-64.S
+@@ -475,7 +475,7 @@ sys_call_table:
+ 	PTR	sys_ioprio_get
+ 	PTR	sys_utimensat			/* 5275 */
+ 	PTR	sys_signalfd
+-	PTR	sys_timerfd
++	PTR	sys_ni_syscall
+ 	PTR	sys_eventfd
+ 	PTR	sys_fallocate
+ 	.size	sys_call_table,.-sys_call_table
+diff -puN arch/mips/kernel/scall64-n32.S~timerfd-v3-new-timerfd-api-mips-fix arch/mips/kernel/scall64-n32.S
+--- a/arch/mips/kernel/scall64-n32.S~timerfd-v3-new-timerfd-api-mips-fix
++++ a/arch/mips/kernel/scall64-n32.S
+@@ -401,7 +401,7 @@ EXPORT(sysn32_call_table)
+ 	PTR	sys_ioprio_get
+ 	PTR	compat_sys_utimensat
+ 	PTR	compat_sys_signalfd		/* 5280 */
+-	PTR	compat_sys_timerfd
++	PTR	sys_ni_syscall
+ 	PTR	sys_eventfd
+ 	PTR	sys_fallocate
+ 	.size	sysn32_call_table,.-sysn32_call_table
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -60,6 +99,8 @@ get_task_comm-return-the-result.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
 timerfd-v3-new-timerfd-api-ia64-fix.patch
+timerfd-v3-new-timerfd-api-m68k-fix.patch
+timerfd-v3-new-timerfd-api-mips-fix.patch
 git-acpi.patch
 git-acpi-ia64-build-fix.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
@@ -247,4 +288,3 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-timerfd-v3-new-timerfd-api-m68k-fix.patch
