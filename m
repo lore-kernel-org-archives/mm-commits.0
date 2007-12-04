@@ -1,118 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: - libata-fix-early-use-of-port-printk.patch removed from -mm tree
-Date: Mon, 03 Dec 2007 23:38:18 -0800
-Message-ID: <200712040738.lB47cInV006887@imap1.linux-foundation.org>
+Subject: - acpi-delete-the-irq-operation-in-throttling-controll-via-ptc.patch removed from -mm tree
+Date: Mon, 03 Dec 2007 23:38:46 -0800
+Message-ID: <200712040738.lB47ckHF006926@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37540 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55765 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751799AbXLDHjl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 02:39:41 -0500
+	by vger.kernel.org with ESMTP id S1751662AbXLDHtK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 02:49:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: yakui.zhao@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata: fix early use of port printk
+     ACPI: delete the IRQ operation in throttling controll via PTC
 has been removed from the -mm tree.  Its filename was
-     libata-fix-early-use-of-port-printk.patch
+     acpi-delete-the-irq-operation-in-throttling-controll-via-ptc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: libata: fix early use of port printk
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: ACPI: delete the IRQ operation in throttling controll via PTC
+From: Zhao Yakui <yakui.zhao@intel.com>
 
-- Fixes printing of "ata[randomness]" caused by using ata_dev_printk before
-  ata device is sufficiently initialised
+The IRQ operation(enable/disable) should be avoided when throttling is
+controlled via PTC method.  It is replaced by the migration of task.
 
-- Allow for port start to fail politely with -ENODEV.
-
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-core.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/acpi/processor_throttling.c |   36 ++++++++++++++++++++------
+ 1 file changed, 28 insertions(+), 8 deletions(-)
 
-diff -puN drivers/ata/libata-core.c~libata-fix-early-use-of-port-printk drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~libata-fix-early-use-of-port-printk
-+++ a/drivers/ata/libata-core.c
-@@ -7021,12 +7021,11 @@ int ata_host_start(struct ata_host *host
- 		if (ap->ops->port_start) {
- 			rc = ap->ops->port_start(ap);
- 			if (rc) {
--				ata_port_printk(ap, KERN_ERR, "failed to "
--						"start port (errno=%d)\n", rc);
-+				if (rc != -ENODEV)
-+					dev_printk(KERN_ERR, host->dev, "failed to start port %d (errno=%d)\n", i, rc);
- 				goto err_out;
- 			}
- 		}
--
- 		ata_eh_freeze_port(ap);
+diff -puN drivers/acpi/processor_throttling.c~acpi-delete-the-irq-operation-in-throttling-controll-via-ptc drivers/acpi/processor_throttling.c
+--- a/drivers/acpi/processor_throttling.c~acpi-delete-the-irq-operation-in-throttling-controll-via-ptc
++++ a/drivers/acpi/processor_throttling.c
+@@ -29,6 +29,7 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
++#include <linux/sched.h>
+ #include <linux/cpufreq.h>
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
+@@ -413,7 +414,7 @@ static int acpi_throttling_rdmsr(struct 
+ 	} else {
+ 		msr_low = 0;
+ 		msr_high = 0;
+-		rdmsr_on_cpu(cpu, MSR_IA32_THERM_CONTROL,
++		rdmsr_safe(MSR_IA32_THERM_CONTROL,
+ 			(u32 *)&msr_low , (u32 *) &msr_high);
+ 		msr = (msr_high << 32) | msr_low;
+ 		*value = (acpi_integer) msr;
+@@ -438,7 +439,7 @@ static int acpi_throttling_wrmsr(struct 
+ 			"HARDWARE addr space,NOT supported yet\n");
+ 	} else {
+ 		msr = value;
+-		wrmsr_on_cpu(cpu, MSR_IA32_THERM_CONTROL,
++		wrmsr_safe(MSR_IA32_THERM_CONTROL,
+ 			msr & 0xffffffff, msr >> 32);
+ 		ret = 0;
  	}
+@@ -572,21 +573,32 @@ static int acpi_processor_get_throttling
+ 		return -ENODEV;
  
+ 	pr->throttling.state = 0;
+-	local_irq_disable();
++
+ 	value = 0;
+ 	ret = acpi_read_throttling_status(pr, &value);
+ 	if (ret >= 0) {
+ 		state = acpi_get_throttling_state(pr, value);
+ 		pr->throttling.state = state;
+ 	}
+-	local_irq_enable();
+ 
+ 	return 0;
+ }
+ 
+ static int acpi_processor_get_throttling(struct acpi_processor *pr)
+ {
+-	return pr->throttling.acpi_processor_get_throttling(pr);
++	cpumask_t saved_mask;
++	int ret;
++
++	/*
++	 * Migrate task to the cpu pointed by pr.
++	 */
++	saved_mask = current->cpus_allowed;
++	set_cpus_allowed(current, cpumask_of_cpu(pr->id));
++	ret = pr->throttling.acpi_processor_get_throttling(pr);
++	/* restore the previous state */
++	set_cpus_allowed(current, saved_mask);
++
++	return ret;
+ }
+ 
+ static int acpi_processor_get_fadt_info(struct acpi_processor *pr)
+@@ -717,21 +729,29 @@ static int acpi_processor_set_throttling
+ 	if (state < pr->throttling_platform_limit)
+ 		return -EPERM;
+ 
+-	local_irq_disable();
+ 	value = 0;
+ 	ret = acpi_get_throttling_value(pr, state, &value);
+ 	if (ret >= 0) {
+ 		acpi_write_throttling_state(pr, value);
+ 		pr->throttling.state = state;
+ 	}
+-	local_irq_enable();
+ 
+ 	return 0;
+ }
+ 
+ int acpi_processor_set_throttling(struct acpi_processor *pr, int state)
+ {
+-	return pr->throttling.acpi_processor_set_throttling(pr, state);
++	cpumask_t saved_mask;
++	int ret;
++	/*
++	 * Migrate task to the cpu pointed by pr.
++	 */
++	saved_mask = current->cpus_allowed;
++	set_cpus_allowed(current, cpumask_of_cpu(pr->id));
++	ret = pr->throttling.acpi_processor_set_throttling(pr, state);
++	/* restore the previous state */
++	set_cpus_allowed(current, saved_mask);
++	return ret;
+ }
+ 
+ int acpi_processor_get_throttling_info(struct acpi_processor *pr)
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
-
-git-arm.patch
-git-libata-all.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-pata_pcmcia-minor-cleanups-and-support-for-dual-channel-cards.patch
-ata-ahci-enclosure-management-via-led.patch
-libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
-git-netdev-all.patch
-bluetooth-rfcomm-tty_close-before-destruct.patch
-pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch
-pcmcia-replace-kio_addr_t-with-unsigned-int-everywhere.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-initio-fix-conflict-when-loading-driver.patch
-belkin_sa-clean-up-for-new-style-termios-and-speed.patch
-keyspan_pda-clean-up-speed-handling.patch
-mct232-speed-new-termios-and-compliance-cleanups.patch
-mct232-speed-new-termios-and-compliance-cleanups-fix.patch
-pata_amd-pata_via-de-couple-programming-of-pio-mwdma-and-udma-timings.patch
-geode-lists-are-subscriber-only.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
-sc26xx-new-serial-driver-for-sc2681-uarts.patch
-documentation-about-unaligned-memory-access.patch
-tty-kill-tty_flipbuf_size.patch
-drivers-edac-turnon-edac-device-error-logging.patch
-drivers-edac-use-round_jiffies_relative.patch
-drivers-edac-add-cell-xdr-memory-types.patch
-drivers-edac-add-cell-mc-driver.patch
-drivers-edac-i3000-code-tidying.patch
-drivers-edac-i3000-replace-macros-with-functions.patch
-drivers-edac-add-freescale-mpc85xx-driver.patch
-drivers-edac-add-marvell-mv64x60-driver.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-dz-clean-up-and-improve-the-setup-of-termios-settings.patch
-char-rocket-switch-long-delay-to-sleep.patch
-char-rocket-printk-cleanup.patch
-char-char-serial-remove-serial_type_normal-redefines.patch
-char-mxser_new-ioaddresses-are-ulong.patch
-char-stallion-fix-compiler-warnings.patch
-char-riscom8-change-rc_init_drivers-prototype.patch
-mxser-mxser_new-first-pass-over-termios-reporting-for-the.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
-tty-s390-support-for-termios2.patch
-moxa-first-pass-at-termios-reporting.patch
-n_tty-clean-up-old-code-to-follow-coding-style-and-mostly-checkpatch.patch
-rocket-first-pass-at-termios-reporting.patch
-rocket-dont-let-random-users-reset-the-controller.patch
-tty_audit-fix-checkpatch-complaint.patch
-tty_io-drag-screaming-into-coding-style-compliance.patch
-tty_ioctl-drag-screaming-into-compliance-with-the-coding.patch
-8250_early-coding-style.patch
-8250_gsc-coding-style.patch
-8250_hp300-coding-style.patch
-8250_hub6-codding-style.patch
-8250_pci-coding-style.patch
-serial8250-coding-style.patch
-8250-enable-rate-reporting-via-termios.patch
-serial_core-bring-mostly-into-line-with-coding-style.patch
+Patches currently in -mm which might be from yakui.zhao@intel.com are
