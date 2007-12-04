@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-support-for-sb1-hardware-watchdog.patch added to -mm tree
-Date: Tue, 04 Dec 2007 12:35:49 -0800
-Message-ID: <200712042035.lB4KZnMN003780@imap1.linux-foundation.org>
+Subject: + add-support-for-sb1-hardware-watchdog-fix.patch added to -mm tree
+Date: Tue, 04 Dec 2007 12:35:51 -0800
+Message-ID: <200712042035.lB4KZpme003785@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53284 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53547 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751467AbXLDUgQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751595AbXLDUgQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 15:36:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andy.sharp@onstor.com, ralf@linux-mips.org, wim@iguana.be
+Cc: akpm@linux-foundation.org, andy.sharp@onstor.com, ralf@linux-mips.org, wim@iguana.be
 
 
 The patch titled
-     Add support for SB1 hardware watchdog
+     add-support-for-sb1-hardware-watchdog-fix
 has been added to the -mm tree.  Its filename is
-     add-support-for-sb1-hardware-watchdog.patch
+     add-support-for-sb1-hardware-watchdog-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,426 +25,327 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add support for SB1 hardware watchdog
-From: Andrew Sharp <andy.sharp@onstor.com>
+Subject: add-support-for-sb1-hardware-watchdog-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Support watchdog timers built into SiByte MIPS SoCs.
+- remove strange spaces before function definitions
 
-Signed-off-by: Andy Sharp <andy.sharp@onstor.com>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+- remove unneeded newlines while we're there.
+
+Cc: Andrew Sharp <andy.sharp@onstor.com>
 Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/Kconfig   |   13 +
- drivers/watchdog/Makefile  |    1 
- drivers/watchdog/sb_wdog.c |  362 +++++++++++++++++++++++++++++++++++
- 3 files changed, 376 insertions(+)
+ drivers/watchdog/sb_wdog.c |   33 ++++++++++++---------------------
+ 1 file changed, 12 insertions(+), 21 deletions(-)
 
-diff -puN drivers/watchdog/Kconfig~add-support-for-sb1-hardware-watchdog drivers/watchdog/Kconfig
---- a/drivers/watchdog/Kconfig~add-support-for-sb1-hardware-watchdog
-+++ a/drivers/watchdog/Kconfig
-@@ -648,6 +648,19 @@ config TXX9_WDT
- 	help
- 	  Hardware driver for the built-in watchdog timer on TXx9 MIPS SoCs.
- 
-+config SIBYTE_WDOG
-+	tristate "Sibyte SoC hardware watchdog"
-+	depends on CPU_SB1
-+	help
-+	  Watchdog driver for the built in watchdog hardware in Sibyte
-+	  SoC processors.  There are apparently two watchdog timers
-+	  on such processors; this driver supports only the first one,
-+	  because currently Linux only supports exporting one watchdog
-+	  to userspace.
-+
-+	  To compile this driver as a loadable module, choose M here.
-+	  The module will be called sb_wdog.
-+
- # PARISC Architecture
- 
- # POWERPC Architecture
-diff -puN drivers/watchdog/Makefile~add-support-for-sb1-hardware-watchdog drivers/watchdog/Makefile
---- a/drivers/watchdog/Makefile~add-support-for-sb1-hardware-watchdog
-+++ a/drivers/watchdog/Makefile
-@@ -96,6 +96,7 @@ obj-$(CONFIG_WDT_MTX1)	+= mtx-1_wdt.o
- obj-$(CONFIG_WDT_RM9K_GPI) += rm9k_wdt.o
- obj-$(CONFIG_AR7_WDT) += ar7_wdt.o
- obj-$(CONFIG_TXX9_WDT) += txx9wdt.o
-+obj-$(CONFIG_SIBYTE_WDOG) += sb_wdog.o
- 
- # PARISC Architecture
- 
-diff -puN /dev/null drivers/watchdog/sb_wdog.c
---- /dev/null
+diff -puN drivers/watchdog/sb_wdog.c~add-support-for-sb1-hardware-watchdog-fix drivers/watchdog/sb_wdog.c
+--- a/drivers/watchdog/sb_wdog.c~add-support-for-sb1-hardware-watchdog-fix
 +++ a/drivers/watchdog/sb_wdog.c
-@@ -0,0 +1,362 @@
-+/*
-+ * Watchdog driver for SiByte SB1 SoCs
-+ *
-+ * Copyright (C) 2007 OnStor, Inc. * Andrew Sharp <andy.sharp@onstor.com>
-+ *
-+ * This driver is intended to make the second of two hardware watchdogs
-+ * on the Sibyte 12XX and 11XX SoCs available to the user.  There are two
-+ * such devices available on the SoC, but it seems that there isn't an
-+ * enumeration class for watchdogs in Linux like there is for RTCs.
-+ * The second is used rather than the first because it uses IRQ 1,
-+ * thereby avoiding all that IRQ 0 problematic nonsense.
-+ *
-+ * I have not tried this driver on a 1480 processor; it might work
-+ * just well enough to really screw things up.
-+ *
-+ * It is a simple timer, and there is an interrupt that is raised the
-+ * first time the timer expires.  The second time it expires, the chip
-+ * is reset and there is no way to redirect that NMI.  Which could
-+ * be problematic in some cases where this chip is sitting on the HT
-+ * bus and has just taken responsibility for providing a cache block.
-+ * Since the reset can't be redirected to the external reset pin, it is
-+ * possible that other HT connected processors might hang and not reset.
-+ * For Linux, a soft reset would probably be even worse than a hard reset.
-+ * There you have it.
-+ *
-+ * The timer takes 23 bits of a 64 bit register (?) as a count value,
-+ * and decrements the count every microsecond, for a max value of
-+ * 0x7fffff usec or about 8.3ish seconds.
-+ *
-+ * This watchdog borrows some user semantics from the softdog driver,
-+ * in that if you close the fd, it leaves the watchdog running, unless
-+ * you previously wrote a 'V' to the fd, in which case it disables
-+ * the watchdog when you close the fd like some other drivers.
-+ *
-+ * Based on various other watchdog drivers, which are probably all
-+ * loosely based on something Alan Cox wrote years ago.
-+ *
-+ *	(c) Copyright 1996 Alan Cox <alan@redhat.com>, All Rights Reserved.
-+ *				http://www.redhat.com
-+ *
-+ *	This program is free software; you can redistribute it and/or
-+ *	modify it under the terms of the GNU General Public License
-+ *	version 1 or 2 as published by the Free Software Foundation.
-+ *
-+ */
-+#include <linux/module.h>
-+#include <linux/io.h>
-+#include <linux/uaccess.h>
-+#include <linux/fs.h>
-+#include <linux/reboot.h>
-+#include <linux/miscdevice.h>
-+#include <linux/watchdog.h>
-+#include <linux/interrupt.h>
-+
-+#include <asm/sibyte/sb1250.h>
-+#include <asm/sibyte/sb1250_regs.h>
-+#include <asm/sibyte/sb1250_int.h>
-+#include <asm/sibyte/sb1250_scd.h>
-+
-+
-+/*
-+ * set the initial count value of a timer
-+ *
-+ * wdog is the iomem address of the cfg register
-+ */
-+ void
-+sbwdog_set(char __iomem *wdog, unsigned long t)
-+{
-+	__raw_writeb(0, wdog - 0x10);
-+	__raw_writeq(t & 0x7fffffUL, wdog);
-+}
-+
-+/*
-+ * cause the timer to [re]load it's initial count and start counting
-+ * all over again
-+ *
-+ * wdog is the iomem address of the cfg register
-+ */
-+ void
-+sbwdog_pet(char __iomem *wdog)
-+{
-+	__raw_writeb(__raw_readb(wdog) | 1, wdog);
-+}
-+
-+static unsigned long sbwdog_gate; /* keeps it to one thread only */
-+static char __iomem *kern_dog = (char __iomem *)(IO_BASE + (A_SCD_WDOG_CFG_0));
-+static char __iomem *user_dog = (char __iomem *)(IO_BASE + (A_SCD_WDOG_CFG_1));
-+static unsigned long timeout = 0x7fffffUL;	/* useconds: 8.3ish secs. */
-+static int expect_close;
-+
-+static struct watchdog_info ident = {
-+	.options	= WDIOF_CARDRESET | WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
-+	.identity	= "SiByte Watchdog",
-+};
-+
-+/*
-+ * Allow only a single thread to walk the dog
-+ */
-+ static int
-+sbwdog_open(struct inode *inode, struct file *file)
-+{
-+	nonseekable_open(inode, file);
-+	if (test_and_set_bit(0, &sbwdog_gate)) {
-+		return -EBUSY;
-+	}
-+	__module_get(THIS_MODULE);
-+
-+	/*
-+	 * Activate the timer
-+	 */
-+	sbwdog_set(user_dog, timeout);
-+	__raw_writeb(1, user_dog);
-+
-+	return 0;
-+}
-+
-+/*
-+ * Put the dog back in the kennel.
-+ */
-+ static int
-+sbwdog_release(struct inode *inode, struct file *file)
-+{
-+	if (expect_close == 42) {
-+		__raw_writeb(0, user_dog);
-+		module_put(THIS_MODULE);
-+	} else {
-+		printk(KERN_CRIT "%s: Unexpected close, not stopping watchdog!\n",
-+			ident.identity);
-+		sbwdog_pet(user_dog);
-+	}
-+	clear_bit(0, &sbwdog_gate);
-+	expect_close = 0;
-+
-+	return 0;
-+}
-+
-+/*
-+ * 42 - the answer
-+ */
-+ static ssize_t
-+sbwdog_write(struct file *file, const char __user *data, size_t len,
-+	loff_t *ppos)
-+{
-+	int i;
-+
-+	if (len) {
-+		/*
-+		 * restart the timer
-+		 */
-+		expect_close = 0;
-+
-+		for (i = 0; i != len; i++) {
-+			char c;
-+
-+			if (get_user(c, data + i)) {
-+				return -EFAULT;
-+			}
-+			if (c == 'V') {
-+				expect_close = 42;
-+			}
-+		}
-+		sbwdog_pet(user_dog);
-+	}
-+
-+	return len;
-+}
-+
-+ static int
-+sbwdog_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
-+	unsigned long arg)
-+{
-+	int ret = -ENOTTY;
-+	unsigned long time;
-+	void __user *argp = (void __user *)arg;
-+	int __user *p = argp;
-+
-+	switch (cmd) {
-+	case WDIOC_GETSUPPORT:
-+		ret = copy_to_user(argp, &ident, sizeof(ident)) ? -EFAULT : 0;
-+		break;
-+
-+	case WDIOC_GETSTATUS:
-+	case WDIOC_GETBOOTSTATUS:
-+		ret = put_user(0, p);
-+		break;
-+
-+	case WDIOC_SETTIMEOUT:
-+		ret = get_user(time, p);
-+		if (ret) {
-+			break;
-+		}
-+
-+		time *= 1000000;
-+		if (time > 0x7fffffUL) {
-+			ret = -EINVAL;
-+			break;
-+		}
-+		timeout = time;
-+		sbwdog_set(user_dog, timeout);
-+		sbwdog_pet(user_dog);
-+
-+	case WDIOC_GETTIMEOUT:
-+		/*
-+		 * get the remaining count from the ... count register
-+		 * which is 1*8 before the config register
-+		 */
-+		ret = put_user(__raw_readq(user_dog - 8) / 1000000, p);
-+		break;
-+
-+	case WDIOC_KEEPALIVE:
-+		sbwdog_pet(user_dog);
-+		ret = 0;
-+		break;
-+	}
-+	return ret;
-+}
-+
-+/*
-+ *	Notifier for system down
-+ */
-+ static int
-+sbwdog_notify_sys(struct notifier_block *this, unsigned long code, void *erf)
-+{
-+	if (code == SYS_DOWN || code == SYS_HALT) {
-+		/*
-+		 * sit and sit
-+		 */
-+		__raw_writeb(0, user_dog);
-+		__raw_writeb(0, kern_dog);
-+	}
-+
-+	return NOTIFY_DONE;
-+}
-+
-+static const struct file_operations sbwdog_fops =
-+{
-+	.owner		= THIS_MODULE,
-+	.llseek		= no_llseek,
-+	.write		= sbwdog_write,
-+	.ioctl		= sbwdog_ioctl,
-+	.open		= sbwdog_open,
-+	.release	= sbwdog_release,
-+};
-+
-+static struct miscdevice sbwdog_miscdev =
-+{
-+	.minor		= WATCHDOG_MINOR,
-+	.name		= "watchdog",
-+	.fops		= &sbwdog_fops,
-+};
-+
-+static struct notifier_block sbwdog_notifier = {
-+	.notifier_call	= sbwdog_notify_sys,
-+};
-+
-+/*
-+ * interrupt handler
-+ *
-+ * doesn't do a whole lot for user, but oh so cleverly written so kernel
-+ * code can use it to re-up the watchdog, thereby saving the kernel from
-+ * having to create and maintain a timer, just to tickle another timer,
-+ * which is just so wrong.
-+ */
-+ irqreturn_t
-+sbwdog_interrupt(int irq, void *addr)
-+{
-+	unsigned long wd_init;
-+	char *wd_cfg_reg = (char *)addr;
-+	u8 cfg;
-+
-+	cfg = __raw_readb(wd_cfg_reg);
-+	wd_init = __raw_readq(wd_cfg_reg - 8) & 0x7fffff;
-+
-+	/*
-+	 * if it's the second watchdog timer, it's for those users
-+	 */
-+	if (wd_cfg_reg == user_dog) {
-+		printk(KERN_CRIT
-+			"%s in danger of initiating system reset in %ld.%01ld seconds\n",
-+			ident.identity, wd_init / 1000000, (wd_init / 100000) % 10);
-+	} else {
-+		cfg |= 1;
-+	}
-+
-+	__raw_writeb(cfg, wd_cfg_reg);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+ static int __init
-+sbwdog_init(void)
-+{
-+	int ret;
-+
-+	/*
-+	 * register a reboot notifier
-+	 */
-+	ret = register_reboot_notifier(&sbwdog_notifier);
-+	if (ret) {
-+		printk (KERN_ERR "%s: cannot register reboot notifier (err=%d)\n",
-+			ident.identity, ret);
-+		return ret;
-+	}
-+
-+	/*
-+	 * get the resources
-+	 */
-+	ret = misc_register(&sbwdog_miscdev);
-+	if (ret == 0) {
-+		printk(KERN_INFO "%s: timeout is %ld.%ld secs\n", ident.identity,
-+			timeout / 1000000, (timeout / 100000) % 10);
-+	}
-+
-+	ret = request_irq(1, sbwdog_interrupt, IRQF_DISABLED | IRQF_SHARED,
-+		ident.identity, (void *)user_dog);
-+	if (ret) {
-+		printk(KERN_ERR "%s: failed to request irq 1 - %d\n", ident.identity,
-+			ret);
-+		misc_deregister(&sbwdog_miscdev);
-+	}
-+
-+	return ret;
-+}
-+
-+ static void __exit
-+sbwdog_exit(void)
-+{
-+	misc_deregister(&sbwdog_miscdev);
-+}
-+
-+module_init(sbwdog_init);
-+module_exit(sbwdog_exit);
-+
-+MODULE_AUTHOR("Andrew Sharp <andy.sharp@onstor.com>");
-+MODULE_DESCRIPTION("SiByte Watchdog");
-+
-+module_param(timeout, ulong, 0);
-+MODULE_PARM_DESC(timeout,
-+	"Watchdog timeout in microseconds (max/default 8388607 or 8.3ish secs)");
-+
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
-+
-+/*
-+ * example code that can be put in a platform code area to utilize the
-+ * first watchdog timer for the kernels own purpose.
-+
-+ void
-+platform_wd_setup(void)
-+{
-+	int ret;
-+
-+	ret = request_irq(0, sbwdog_interrupt, IRQF_DISABLED | IRQF_SHARED,
-+		"Kernel Watchdog", IOADDR(A_SCD_WDOG_CFG_0));
-+	if (ret) {
-+		printk(KERN_CRIT "Watchdog IRQ zero(0) failed to be requested - %d\n",
-+			ret);
-+	}
-+}
-+
-+
-+ */
+@@ -63,8 +63,7 @@
+  *
+  * wdog is the iomem address of the cfg register
+  */
+- void
+-sbwdog_set(char __iomem *wdog, unsigned long t)
++void sbwdog_set(char __iomem *wdog, unsigned long t)
+ {
+ 	__raw_writeb(0, wdog - 0x10);
+ 	__raw_writeq(t & 0x7fffffUL, wdog);
+@@ -76,8 +75,7 @@ sbwdog_set(char __iomem *wdog, unsigned 
+  *
+  * wdog is the iomem address of the cfg register
+  */
+- void
+-sbwdog_pet(char __iomem *wdog)
++void sbwdog_pet(char __iomem *wdog)
+ {
+ 	__raw_writeb(__raw_readb(wdog) | 1, wdog);
+ }
+@@ -96,8 +94,7 @@ static struct watchdog_info ident = {
+ /*
+  * Allow only a single thread to walk the dog
+  */
+- static int
+-sbwdog_open(struct inode *inode, struct file *file)
++static int sbwdog_open(struct inode *inode, struct file *file)
+ {
+ 	nonseekable_open(inode, file);
+ 	if (test_and_set_bit(0, &sbwdog_gate)) {
+@@ -117,8 +114,7 @@ sbwdog_open(struct inode *inode, struct 
+ /*
+  * Put the dog back in the kennel.
+  */
+- static int
+-sbwdog_release(struct inode *inode, struct file *file)
++static int sbwdog_release(struct inode *inode, struct file *file)
+ {
+ 	if (expect_close == 42) {
+ 		__raw_writeb(0, user_dog);
+@@ -137,9 +133,8 @@ sbwdog_release(struct inode *inode, stru
+ /*
+  * 42 - the answer
+  */
+- static ssize_t
+-sbwdog_write(struct file *file, const char __user *data, size_t len,
+-	loff_t *ppos)
++static ssize_t sbwdog_write(struct file *file, const char __user *data,
++			size_t len, loff_t *ppos)
+ {
+ 	int i;
+ 
+@@ -165,9 +160,8 @@ sbwdog_write(struct file *file, const ch
+ 	return len;
+ }
+ 
+- static int
+-sbwdog_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
+-	unsigned long arg)
++static int sbwdog_ioctl(struct inode *inode, struct file *file,
++			unsigned int cmd, unsigned long arg)
+ {
+ 	int ret = -ENOTTY;
+ 	unsigned long time;
+@@ -218,7 +212,7 @@ sbwdog_ioctl(struct inode *inode, struct
+ /*
+  *	Notifier for system down
+  */
+- static int
++static int
+ sbwdog_notify_sys(struct notifier_block *this, unsigned long code, void *erf)
+ {
+ 	if (code == SYS_DOWN || code == SYS_HALT) {
+@@ -261,8 +255,7 @@ static struct notifier_block sbwdog_noti
+  * having to create and maintain a timer, just to tickle another timer,
+  * which is just so wrong.
+  */
+- irqreturn_t
+-sbwdog_interrupt(int irq, void *addr)
++irqreturn_t sbwdog_interrupt(int irq, void *addr)
+ {
+ 	unsigned long wd_init;
+ 	char *wd_cfg_reg = (char *)addr;
+@@ -287,8 +280,7 @@ sbwdog_interrupt(int irq, void *addr)
+ 	return IRQ_HANDLED;
+ }
+ 
+- static int __init
+-sbwdog_init(void)
++static int __init sbwdog_init(void)
+ {
+ 	int ret;
+ 
+@@ -322,8 +314,7 @@ sbwdog_init(void)
+ 	return ret;
+ }
+ 
+- static void __exit
+-sbwdog_exit(void)
++static void __exit sbwdog_exit(void)
+ {
+ 	misc_deregister(&sbwdog_miscdev);
+ }
 _
 
-Patches currently in -mm which might be from andy.sharp@onstor.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-git-mips.patch
-add-support-for-sb1-hardware-watchdog.patch
+ufs-fix-nexstep-dir-block-size-checkpatch-fixes.patch
+aoe-properly-initialise-the-request_queues-backing_dev_info.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+timerfd-v3-new-timerfd-api-ia64-fix.patch
+timerfd-v3-new-timerfd-api-m68k-fix.patch
+timerfd-v3-new-timerfd-api-mips-fix.patch
+git-acpi.patch
+git-acpi-ia64-build-fix.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-add-reboot-mechanism.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+git-agpgart.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+kernel-auditc-warning-fix.patch
+git-cpufreq.patch
+git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
+agk-dm-dm-ioctl-move-compat-code-fix.patch
+dm-persistent_read_metadata-warning-fix.patch
+ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
+gregkh-driver-driver-core-move-the-driver-specific-module-code-into-the-driver-core-fix.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+git-drm.patch
+git-drm-oops-fix.patch
+intel-agp-enable-i915-recognition.patch
+git-dvb.patch
+fix-jdelvare-i2c-i2c-constify-client-address-data.patch
+revert-git-hrt.patch
+ia64-slim-down-__clear_bit_unlock.patch
+git-infiniband.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+libata-xfer_mask-is-unsigned-int-not-unsigned-long-fix.patch
+libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
+libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
+git-mmc.patch
+git-mtd.patch
+git-net.patch
+git-netdev-all.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+bluetooth-uninlining.patch
+git-nfsd.patch
+quirk-enable-msi-mapping-on-ht1000.patch
+git-sh.patch
+git-sh-fixup.patch
+git-scsi-misc-fixup.patch
+ips-trim-trailing-whitespace.patch
+scsi-gdth-kill-unneeded-irq-argument.patch
+drivers-scsi-sgiwd93c-export-sgiwd93_reset.patch
+libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+mct232-speed-new-termios-and-compliance-cleanups-fix.patch
+git-watchdog.patch
+git-watchdog-fix-sbc7240_wdt.patch
 add-support-for-sb1-hardware-watchdog-fix.patch
+git-wireless.patch
+bcm43xx_debugfs-sscanf-fix.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-arch-x86-kernel-ptracec-build-fix.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-xtensa.patch
+ia64-increase-datapatch-offset.patch
+ia64-dont-assume-that-unwcheckpy-is-executable.patch
+ia64-export-copy_page-to-modules.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+sync_sb_inodes-propagate-errors.patch
+move-kprobes-examples-to-samples-resend-vs-git-x86.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+64-bit-i_version-afs-fixes.patch
+ext4-add-block-bitmap-validation.patch
+ext4-fix-up-ext4fs_debug-builds.patch
+ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+cramfs-make-cramfs-little-endian-only-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
