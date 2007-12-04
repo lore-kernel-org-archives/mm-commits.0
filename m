@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter-memory-controller-enhancements-for-reclaiming-take2-add-bug_on-in-mem_cgroup_zoneinfo.patch added to -mm tree
-Date: Tue, 04 Dec 2007 11:52:23 -0800
-Message-ID: <200712041952.lB4JqNDh002020@imap1.linux-foundation.org>
+Subject: + per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-memory-controller-enhancements-for-reclaiming-take2-define-free_mem_cgroup_per_zone_info.patch added to -mm tree
+Date: Tue, 04 Dec 2007 11:53:41 -0800
+Message-ID: <200712041953.lB4JrfQB002058@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59653 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52363 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751288AbXLDTwd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 14:52:33 -0500
+	by vger.kernel.org with ESMTP id S1751484AbXLDTxy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 14:53:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com
 
 
 The patch titled
-     memory controller enhancements for reclaiming take2: add BUG_ON() in mem_cgroup_zoneinfo
+     memory controller enhancements for reclaiming take2: define free_mem_cgroup_per_zone_info
 has been added to the -mm tree.  Its filename is
-     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter-memory-controller-enhancements-for-reclaiming-take2-add-bug_on-in-mem_cgroup_zoneinfo.patch
+     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-memory-controller-enhancements-for-reclaiming-take2-define-free_mem_cgroup_per_zone_info.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,54 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: memory controller enhancements for reclaiming take2: add BUG_ON() in mem_cgroup_zoneinfo
+Subject: memory controller enhancements for reclaiming take2: define free_mem_cgroup_per_zone_info
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-This should be BUG_ON(). I misunderstood initialization path.
+Now allocation of per_zone of mem_controller is done by
+alloc_mem_cgroup_per_zone_info(). Then it will be good to use
+free_mem_cgroup_per_zone_info() for maintainance.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/memcontrol.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter-memory-controller-enhancements-for-reclaiming-take2-add-bug_on-in-mem_cgroup_zoneinfo mm/memcontrol.c
---- a/mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter-memory-controller-enhancements-for-reclaiming-take2-add-bug_on-in-mem_cgroup_zoneinfo
+diff -puN mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-memory-controller-enhancements-for-reclaiming-take2-define-free_mem_cgroup_per_zone_info mm/memcontrol.c
+--- a/mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-memory-controller-enhancements-for-reclaiming-take2-define-free_mem_cgroup_per_zone_info
 +++ a/mm/memcontrol.c
-@@ -205,8 +205,7 @@ static void mem_cgroup_charge_statistics
- static inline struct mem_cgroup_per_zone *
- mem_cgroup_zoneinfo(struct mem_cgroup *mem, int nid, int zid)
- {
--	if (!mem->info.nodeinfo[nid])
--		return NULL;
-+	BUG_ON(!mem->info.nodeinfo[nid]);
- 	return &mem->info.nodeinfo[nid]->zoneinfo[zid];
+@@ -1123,6 +1123,11 @@ static int alloc_mem_cgroup_per_zone_inf
+ 	return 0;
  }
  
++static void free_mem_cgroup_per_zone_info(struct mem_cgroup *mem, int node)
++{
++	kfree(mem->info.nodeinfo[node]);
++}
++
+ 
+ static struct mem_cgroup init_mem_cgroup;
+ 
+@@ -1154,7 +1159,7 @@ mem_cgroup_create(struct cgroup_subsys *
+ 	return &mem->css;
+ free_out:
+ 	for_each_node_state(node, N_POSSIBLE)
+-		kfree(mem->info.nodeinfo[node]);
++		free_mem_cgroup_per_zone_info(mem, node);
+ 	if (cont->parent != NULL)
+ 		kfree(mem);
+ 	return NULL;
+@@ -1174,7 +1179,7 @@ static void mem_cgroup_destroy(struct cg
+ 	struct mem_cgroup *mem = mem_cgroup_from_cont(cont);
+ 
+ 	for_each_node_state(node, N_POSSIBLE)
+-		kfree(mem->info.nodeinfo[node]);
++		free_mem_cgroup_per_zone_info(mem, node);
+ 
+ 	kfree(mem_cgroup_from_cont(cont));
+ }
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
@@ -102,6 +124,6 @@ per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-bugfix-for-memory-cgroup-per-zone-struct-allocation.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-memory-controller-enhancements-for-reclaiming-take2-define-free_mem_cgroup_per_zone_info.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
-memory-controller-enhancements-for-reclaiming-take2-define-free_mem_cgroup_per_zone_info.patch
 memory-controller-enhancements-for-reclaiming-take2-possible-race-fix-in-res_counter.patch
