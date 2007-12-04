@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + driver-tree-broke-infiniband.patch added to -mm tree
-Date: Tue, 04 Dec 2007 14:28:29 -0800
-Message-ID: <200712042235.lB4MZtVr009040@imap1.linux-foundation.org>
+Subject: + git-x86-__vdso_getcpu-warning-fix.patch added to -mm tree
+Date: Tue, 04 Dec 2007 15:49:10 -0800
+Message-ID: <200712042356.lB4Nubxi011835@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45416 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34507 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751816AbXLDWgI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 17:36:08 -0500
+	by vger.kernel.org with ESMTP id S1750764AbXLDX5n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 18:57:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, rolandd@cisco.com
+Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     driver-tree-broke-infiniband
+     git-x86: __vdso_getcpu() warning fix
 has been added to the -mm tree.  Its filename is
-     driver-tree-broke-infiniband.patch
+     git-x86-__vdso_getcpu-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,39 +25,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: driver-tree-broke-infiniband
+Subject: git-x86: __vdso_getcpu() warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/infiniband/hw/ipath/ipath_sysfs.c: In function 'ipath_driver_create_group':
-drivers/infiniband/hw/ipath/ipath_sysfs.c:760: error: 'struct device_driver' has no member named 'kobj'
-drivers/infiniband/hw/ipath/ipath_sysfs.c: In function 'ipath_driver_remove_group':
-drivers/infiniband/hw/ipath/ipath_sysfs.c:767: error: 'struct device_driver' has no member named 'kobj'
-drivers/infiniband/hw/ipath/ipath_sysfs.c: In function 'ipath_device_create_group':
-drivers/infiniband/hw/ipath/ipath_sysfs.c:784: error: 'struct device_driver' has no member named 'kobj'
-drivers/infiniband/hw/ipath/ipath_sysfs.c: In function 'ipath_device_remove_group':
-drivers/infiniband/hw/ipath/ipath_sysfs.c:800: error: 'struct device_driver' has no member named 'kobj'
+arch/x86/vdso/vgetcpu.c: In function '__vdso_getcpu':
+arch/x86/vdso/vgetcpu.c:22: warning: pointer targets in passing argument 1 of 'native_read_tscp' differ in signedness
 
-Please let me know when I should drop this.
-
-Cc: Greg KH <greg@kroah.com>
-Cc: Roland Dreier <rolandd@cisco.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/Kconfig |    2 +-
+ include/asm-x86/msr.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/infiniband/Kconfig~driver-tree-broke-infiniband drivers/infiniband/Kconfig
---- a/drivers/infiniband/Kconfig~driver-tree-broke-infiniband
-+++ a/drivers/infiniband/Kconfig
-@@ -1,6 +1,6 @@
- menuconfig INFINIBAND
- 	tristate "InfiniBand support"
--	depends on PCI || BROKEN
-+	depends on BROKEN
- 	depends on HAS_IOMEM
- 	---help---
- 	  Core support for InfiniBand (IB).  Make sure to also select
+diff -puN include/asm-x86/msr.h~git-x86-__vdso_getcpu-warning-fix include/asm-x86/msr.h
+--- a/include/asm-x86/msr.h~git-x86-__vdso_getcpu-warning-fix
++++ a/include/asm-x86/msr.h
+@@ -9,7 +9,7 @@
+ #include <asm/asm.h>
+ #include <asm/errno.h>
+ 
+-static inline unsigned long long native_read_tscp(int *aux)
++static inline unsigned long long native_read_tscp(unsigned int *aux)
+ {
+ 	unsigned long low, high;
+ 	asm volatile (".byte 0x0f,0x01,0xf9"
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -262,3 +255,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+git-x86-__vdso_getcpu-warning-fix.patch
