@@ -1,107 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - git-x86-ptrace-fix.patch removed from -mm tree
-Date: Tue, 04 Dec 2007 14:11:59 -0800
-Message-ID: <200712042211.lB4MBxgM008036@imap1.linux-foundation.org>
+Subject: - phy-implement-release-function-fix.patch removed from -mm tree
+Date: Tue, 04 Dec 2007 14:11:51 -0800
+Message-ID: <200712042211.lB4MBppW008027@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34900 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47013 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751656AbXLDWMp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 17:12:45 -0500
+	by vger.kernel.org with ESMTP id S1751564AbXLDWMk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 17:12:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mingo@elte.hu, mm-commits@vger.kernel.org
+To: avorontsov@ru.mvista.com, afleming@freescale.com, thierry.reding@avionic-design.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-x86 ptrace fix
+     phy-implement-release-function fix
 has been removed from the -mm tree.  Its filename was
-     git-x86-ptrace-fix.patch
+     phy-implement-release-function-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-x86 ptrace fix
-From: Ingo Molnar <mingo@elte.hu>
+Subject: phy-implement-release-function fix
+From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-> kernel/ptrace.c: In function `ptrace_resume':
-> kernel/ptrace.c:406: error: implicit declaration of function `arch_has_block_step'
+Makes sense, I think. Here is the newer patch, the only difference is
+removed EXPORT_SYMBOL().
 
-
+Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+Cc: Andy Fleming <afleming@freescale.com>
+Cc: Thierry Reding <thierry.reding@avionic-design.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ptrace.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/phy/phy_device.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/linux/ptrace.h~git-x86-ptrace-fix include/linux/ptrace.h
---- a/include/linux/ptrace.h~git-x86-ptrace-fix
-+++ a/include/linux/ptrace.h
-@@ -186,7 +186,7 @@ static inline void user_disable_single_s
-  * supports step-until-branch for user mode.  It can be a constant or it
-  * can test a CPU feature bit.
-  */
--#define arch_has_single_step()		(0)
-+#define arch_has_block_step()		(0)
+diff -puN drivers/net/phy/phy_device.c~phy-implement-release-function-fix drivers/net/phy/phy_device.c
+--- a/drivers/net/phy/phy_device.c~phy-implement-release-function-fix
++++ a/drivers/net/phy/phy_device.c
+@@ -48,7 +48,6 @@ void phy_device_free(struct phy_device *
+ {
+ 	kfree(phydev);
+ }
+-EXPORT_SYMBOL(phy_device_free);
  
- /**
-  * user_enable_block_step - step until branch in user-mode task
+ static void phy_device_release(struct device *dev)
+ {
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from avorontsov@ru.mvista.com are
 
-origin.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-__group_complete_signal-fix-coredump-with-group-stop-race.patch
-remove-handle_group_stop-in-favor-of-do_signal_stop.patch
-exec-rework-the-group-exit-and-fix-the-race-with-kill.patch
-git-acpi.patch
-git-alsa.patch
-git-hrt.patch
-revert-git-hrt.patch
-git-kvm.patch
-git-sched.patch
-track-accurate-idle-time-with-tick_schedidle_sleeptime.patch
-merge-multiple-error-paths-in-alloc_uid-into-one.patch
-iommu-sg-merging-x86-make-pci-gart-iommu-respect-the-segment-size-limits.patch
-revert-git-kvm-changes-in-arch-x86-kconfig.patch
-git-x86.patch
-revert-revert-git-kvm-changes-in-arch-x86-kconfig.patch
-uml-add-asm-um-asmh.patch
-x86_64-add-acpi-reboot-option.patch
-x86_64-efi-runtime-service-support-efi-basic-runtime-service-support.patch
-x86_64-efi-runtime-service-support-efi-basic-runtime-service-support-fixes.patch
-x86_64-efi-runtime-service-support-efi-runtime-services.patch
-x86_64-efi-runtime-service-support-document-for-efi-runtime-services.patch
-x86_64-efi-runtime-service-support-remove-duplicated-code-from-efi_32c.patch
-git-cryptodev-fixup.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-fix-proc-dcache-deadlock-in-do_exit.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-printk-trivial-optimizations.patch
-kernel-add-mutex_lock_killable.patch
-vfs-use-mutex_lock_killable-in-vfs_readdir.patch
-fix-__const_udelay-declaration-and-definition-mismatches.patch
-clean-up-drivers-char-rtcc.patch
-move-kprobes-examples-to-samples-resend-vs-git-x86.patch
-isapnp-driver-semaphore-to-mutex.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
-add-cmpxchg64-and-cmpxchg64_local-to-x86_64.patch
-proc-fix-the-threaded-proc-self.patch
-modules-fold-percpu_modcopy-into-modulec-and-get-rid-of-the-macro-from-hell.patch
-clocksource-remove-redundant-code.patch
-clockevent-simplify-list-operations.patch
-timekeeping-rename-timekeeping_is_continuous-to-timekeeping_valid_for_hres.patch
-time-fix-typo-in-comments.patch
-time-delete-comments-that-refer-to-noexistent-symbols.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-detect-atomic-counter-underflows.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
+git-netdev-all.patch
+ucc_geth-fix-module-removal.patch
+ucc_geth-add-support-for-netpoll.patch
