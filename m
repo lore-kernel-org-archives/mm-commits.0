@@ -1,72 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - hwmon-coretemp-suspend-fix.patch removed from -mm tree
-Date: Mon, 03 Dec 2007 23:38:43 -0800
-Message-ID: <200712040738.lB47chBR006923@imap1.linux-foundation.org>
+Subject: - freezer-fix-jffs2-garbage-collector-freezing-issue-rev-2.patch removed from -mm tree
+Date: Mon, 03 Dec 2007 23:38:20 -0800
+Message-ID: <200712040738.lB47cKgZ006890@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45841 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54720 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750806AbXLDHtw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 02:49:52 -0500
+	by vger.kernel.org with ESMTP id S1751931AbXLDHtu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 02:49:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhoffman@lightlink.com, jirislaby@gmail.com, rjw@sisk.pl, stable@kernel.org, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, armlinux@architechnical.net, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     HWMON: coretemp, suspend fix
+     freezer: fix JFFS2 garbage collector freezing issue
 has been removed from the -mm tree.  Its filename was
-     hwmon-coretemp-suspend-fix.patch
+     freezer-fix-jffs2-garbage-collector-freezing-issue-rev-2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: HWMON: coretemp, suspend fix
-From: Mark M. Hoffman <mhoffman@lightlink.com>
+Subject: freezer: fix JFFS2 garbage collector freezing issue
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-coretemp, suspend fix
+Fix breakage caused by commit d5d8c5976d6adeddb8208c240460411e2198b393
+"freezer: do not send signals to kernel threads" in
+jffs2_garbage_collect_thread() that assumed it would be sent signals by the
+freezer.
 
-It's not permitted to unregister device/cpu if frozen and going to sleep.
-It causes deadlock on systems, where coretemp hwmon is loaded. Do it only
-in non-freezed states instead.
-
-Cc: Rafael J. Wysocki <rjw@sisk.pl> (frozen fix)
-Cc: Mark M. Hoffman <mhoffman@lightlink.com>
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: <stable@kernel.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Pete MacKay <armlinux@architechnical.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/coretemp.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ fs/jffs2/background.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/hwmon/coretemp.c~hwmon-coretemp-suspend-fix drivers/hwmon/coretemp.c
---- a/drivers/hwmon/coretemp.c~hwmon-coretemp-suspend-fix
-+++ a/drivers/hwmon/coretemp.c
-@@ -337,11 +337,10 @@ static int coretemp_cpu_callback(struct 
+diff -puN fs/jffs2/background.c~freezer-fix-jffs2-garbage-collector-freezing-issue-rev-2 fs/jffs2/background.c
+--- a/fs/jffs2/background.c~freezer-fix-jffs2-garbage-collector-freezing-issue-rev-2
++++ a/fs/jffs2/background.c
+@@ -105,7 +105,7 @@ static int jffs2_garbage_collect_thread(
  
- 	switch (action) {
- 	case CPU_ONLINE:
--	case CPU_ONLINE_FROZEN:
-+	case CPU_DOWN_FAILED:
- 		coretemp_device_add(cpu);
- 		break;
--	case CPU_DEAD:
--	case CPU_DEAD_FROZEN:
-+	case CPU_DOWN_PREPARE:
- 		coretemp_device_remove(cpu);
- 		break;
- 	}
+ 		/* Put_super will send a SIGKILL and then wait on the sem.
+ 		 */
+-		while (signal_pending(current)) {
++		while (signal_pending(current) || freezing(current)) {
+ 			siginfo_t info;
+ 			unsigned long signr;
+ 
 _
 
-Patches currently in -mm which might be from mhoffman@lightlink.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
+aio-only-account-i-o-wait-time-in-read_events-if-there-are-active-requests.patch
 git-acpi.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-export-acpi_check_resource_conflict.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-check-for-acpi-resource-conflicts-in-i2c-bus-drivers.patch
-git-hwmon.patch
-check-for-acpi-resource-conflicts-in-hwmon-drivers.patch
-applesmc-sensors-set-for-macbook2.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+page-allocator-clean-up-pcp-draining-functions.patch
+kernel-power-diskc-make-code-static.patch
+make-kernel_shutdown_prepare-static.patch
+proc-fix-the-threaded-proc-self.patch
+shrink_slab-handle-bad-shrinkers.patch
