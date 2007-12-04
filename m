@@ -1,293 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - libata-separate-out-ata_acpi_gtm_xfermask-from-pacpi_discover_modes.patch removed from -mm tree
-Date: Mon, 03 Dec 2007 23:37:59 -0800
-Message-ID: <200712040737.lB47bxj2006857@imap1.linux-foundation.org>
+Subject: - hwmon-coretemp-suspend-fix.patch removed from -mm tree
+Date: Mon, 03 Dec 2007 23:38:43 -0800
+Message-ID: <200712040738.lB47chBR006923@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43710 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45841 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751914AbXLDHte (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 02:49:34 -0500
+	by vger.kernel.org with ESMTP id S1750806AbXLDHtw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 02:49:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: htejun@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: mhoffman@lightlink.com, jirislaby@gmail.com, rjw@sisk.pl, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata: separate out ata_acpi_gtm_xfermask() from pacpi_discover_modes()
+     HWMON: coretemp, suspend fix
 has been removed from the -mm tree.  Its filename was
-     libata-separate-out-ata_acpi_gtm_xfermask-from-pacpi_discover_modes.patch
+     hwmon-coretemp-suspend-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: libata: separate out ata_acpi_gtm_xfermask() from pacpi_discover_modes()
-From: Tejun Heo <htejun@gmail.com>
+Subject: HWMON: coretemp, suspend fix
+From: Mark M. Hoffman <mhoffman@lightlink.com>
 
-Finding out matching transfer mode from ACPI GTM values is useful for other
-purposes too.  Separate out the function and timing tables from
-pata_acpi::pacpi_discover_modes().
+coretemp, suspend fix
 
-Other than checking shared-configuration bit after doing ata_acpi_gtm() in
-pacpi_discover_modes() which should be safe, this patch doesn't introduce any
-behavior change.
+It's not permitted to unregister device/cpu if frozen and going to sleep.
+It causes deadlock on systems, where coretemp hwmon is loaded. Do it only
+in non-freezed states instead.
 
-Signed-off-by: Tejun Heo <htejun@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Rafael J. Wysocki <rjw@sisk.pl> (frozen fix)
+Cc: Mark M. Hoffman <mhoffman@lightlink.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-acpi.c |   78 ++++++++++++++++++++++++++++++++++++
- drivers/ata/pata_acpi.c   |   66 +++++-------------------------
- include/linux/libata.h    |   25 +++++++++++
- 3 files changed, 114 insertions(+), 55 deletions(-)
+ drivers/hwmon/coretemp.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ata/libata-acpi.c~libata-separate-out-ata_acpi_gtm_xfermask-from-pacpi_discover_modes drivers/ata/libata-acpi.c
---- a/drivers/ata/libata-acpi.c~libata-separate-out-ata_acpi_gtm_xfermask-from-pacpi_discover_modes
-+++ a/drivers/ata/libata-acpi.c
-@@ -421,6 +421,84 @@ int ata_acpi_cbl_80wire(struct ata_port 
+diff -puN drivers/hwmon/coretemp.c~hwmon-coretemp-suspend-fix drivers/hwmon/coretemp.c
+--- a/drivers/hwmon/coretemp.c~hwmon-coretemp-suspend-fix
++++ a/drivers/hwmon/coretemp.c
+@@ -337,11 +337,10 @@ static int coretemp_cpu_callback(struct 
  
- EXPORT_SYMBOL_GPL(ata_acpi_cbl_80wire);
- 
-+/* Welcome to ACPI, bring a bucket */
-+const unsigned int ata_acpi_pio_cycle[7] = {
-+	600, 383, 240, 180, 120, 100, 80
-+};
-+EXPORT_SYMBOL_GPL(ata_acpi_pio_cycle);
-+
-+const unsigned int ata_acpi_mwdma_cycle[5] = {
-+	480, 150, 120, 100, 80
-+};
-+EXPORT_SYMBOL_GPL(ata_acpi_mwdma_cycle);
-+
-+const unsigned int ata_acpi_udma_cycle[7] = {
-+	120, 80, 60, 45, 30, 20, 15
-+};
-+EXPORT_SYMBOL_GPL(ata_acpi_udma_cycle);
-+
-+/**
-+ * ata_acpi_gtm_xfermode - determine xfermode from GTM parameter
-+ * @dev: target device
-+ * @gtm: GTM parameter to use
-+ *
-+ * Determine xfermask for @dev from @gtm.
-+ *
-+ * LOCKING:
-+ * None.
-+ *
-+ * RETURNS:
-+ * Determined xfermask.
-+ */
-+unsigned int ata_acpi_gtm_xfermask(struct ata_device *dev,
-+				   const struct ata_acpi_gtm *gtm)
-+{
-+	int unit, i;
-+	u32 t;
-+	unsigned long mask = (0x7f << ATA_SHIFT_UDMA) | (0x7 << ATA_SHIFT_MWDMA) | (0x1F << ATA_SHIFT_PIO);
-+
-+	/* we always use the 0 slot for crap hardware */
-+	unit = dev->devno;
-+	if (!(gtm->flags & 0x10))
-+		unit = 0;
-+
-+	/* start by scanning for PIO modes */
-+	for (i = 0; i < 7; i++) {
-+		t = gtm->drive[unit].pio;
-+		if (t <= ata_acpi_pio_cycle[i]) {
-+			mask |= (2 << (ATA_SHIFT_PIO + i)) - 1;
-+			break;
-+		}
-+	}
-+
-+	/* See if we have MWDMA or UDMA data. We don't bother with
-+	 * MWDMA if UDMA is available as this means the BIOS set UDMA
-+	 * and our error changedown if it works is UDMA to PIO anyway.
-+	 */
-+	if (gtm->flags & (1 << (2 * unit))) {
-+		/* MWDMA */
-+		for (i = 0; i < 5; i++) {
-+			t = gtm->drive[unit].dma;
-+			if (t <= ata_acpi_mwdma_cycle[i]) {
-+				mask |= (2 << (ATA_SHIFT_MWDMA + i)) - 1;
-+				break;
-+			}
-+		}
-+	} else {
-+		/* UDMA */
-+		for (i = 0; i < 7; i++) {
-+			t = gtm->drive[unit].dma;
-+			if (t <= ata_acpi_udma_cycle[i]) {
-+				mask |= (2 << (ATA_SHIFT_UDMA + i)) - 1;
-+				break;
-+			}
-+		}
-+	}
-+
-+	return mask;
-+}
-+EXPORT_SYMBOL_GPL(ata_acpi_gtm_xfermask);
-+
- /**
-  * taskfile_load_raw - send taskfile registers to host controller
-  * @dev: target ATA device
-diff -puN drivers/ata/pata_acpi.c~libata-separate-out-ata_acpi_gtm_xfermask-from-pacpi_discover_modes drivers/ata/pata_acpi.c
---- a/drivers/ata/pata_acpi.c~libata-separate-out-ata_acpi_gtm_xfermask-from-pacpi_discover_modes
-+++ a/drivers/ata/pata_acpi.c
-@@ -81,17 +81,6 @@ static void pacpi_error_handler(struct a
- 				  NULL, ata_std_postreset);
- }
- 
--/* Welcome to ACPI, bring a bucket */
--static const unsigned int pio_cycle[7] = {
--	600, 383, 240, 180, 120, 100, 80
--};
--static const unsigned int mwdma_cycle[5] = {
--	480, 150, 120, 100, 80
--};
--static const unsigned int udma_cycle[7] = {
--	120, 80, 60, 45, 30, 20, 15
--};
--
- /**
-  *	pacpi_discover_modes	-	filter non ACPI modes
-  *	@adev: ATA device
-@@ -103,56 +92,20 @@ static const unsigned int udma_cycle[7] 
- 
- static unsigned long pacpi_discover_modes(struct ata_port *ap, struct ata_device *adev)
- {
--	int unit = adev->devno;
- 	struct pata_acpi *acpi = ap->private_data;
--	int i;
--	u32 t;
--	unsigned long mask = (0x7f << ATA_SHIFT_UDMA) | (0x7 << ATA_SHIFT_MWDMA) | (0x1F << ATA_SHIFT_PIO);
--
- 	struct ata_acpi_gtm probe;
-+	unsigned int xfer_mask;
- 
- 	probe = acpi->gtm;
- 
--	/* We always use the 0 slot for crap hardware */
--	if (!(probe.flags & 0x10))
--		unit = 0;
--
- 	ata_acpi_gtm(ap, &probe);
- 
--	/* Start by scanning for PIO modes */
--	for (i = 0; i < 7; i++) {
--		t = probe.drive[unit].pio;
--		if (t <= pio_cycle[i]) {
--			mask |= (2 << (ATA_SHIFT_PIO + i)) - 1;
--			break;
--		}
--	}
-+	xfer_mask = ata_acpi_gtm_xfermask(adev, &probe);
- 
--	/* See if we have MWDMA or UDMA data. We don't bother with MWDMA
--	   if UDMA is availabe as this means the BIOS set UDMA and our
--	   error changedown if it works is UDMA to PIO anyway */
--	if (probe.flags & (1 << (2 * unit))) {
--		/* MWDMA */
--		for (i = 0; i < 5; i++) {
--			t = probe.drive[unit].dma;
--			if (t <= mwdma_cycle[i]) {
--				mask |= (2 << (ATA_SHIFT_MWDMA + i)) - 1;
--				break;
--			}
--		}
--	} else {
--		/* UDMA */
--		for (i = 0; i < 7; i++) {
--			t = probe.drive[unit].dma;
--			if (t <= udma_cycle[i]) {
--				mask |= (2 << (ATA_SHIFT_UDMA + i)) - 1;
--				break;
--			}
--		}
--	}
--	if (mask & (0xF8 << ATA_SHIFT_UDMA))
-+	if (xfer_mask & (0xF8 << ATA_SHIFT_UDMA))
- 		ap->cbl = ATA_CBL_PATA80;
--	return mask;
-+
-+	return xfer_mask;
- }
- 
- /**
-@@ -185,7 +138,8 @@ static void pacpi_set_piomode(struct ata
- 		unit = 0;
- 
- 	/* Now stuff the nS values into the structure */
--	acpi->gtm.drive[unit].pio = pio_cycle[adev->pio_mode - XFER_PIO_0];
-+	acpi->gtm.drive[unit].pio =
-+		ata_acpi_pio_cycle[adev->pio_mode - XFER_PIO_0];
- 	ata_acpi_stm(ap, &acpi->gtm);
- 	/* See what mode we actually got */
- 	ata_acpi_gtm(ap, &acpi->gtm);
-@@ -207,10 +161,12 @@ static void pacpi_set_dmamode(struct ata
- 
- 	/* Now stuff the nS values into the structure */
- 	if (adev->dma_mode >= XFER_UDMA_0) {
--		acpi->gtm.drive[unit].dma = udma_cycle[adev->dma_mode - XFER_UDMA_0];
-+		acpi->gtm.drive[unit].dma =
-+			ata_acpi_udma_cycle[adev->dma_mode - XFER_UDMA_0];
- 		acpi->gtm.flags |= (1 << (2 * unit));
- 	} else {
--		acpi->gtm.drive[unit].dma = mwdma_cycle[adev->dma_mode - XFER_MW_DMA_0];
-+		acpi->gtm.drive[unit].dma =
-+			ata_acpi_mwdma_cycle[adev->dma_mode - XFER_MW_DMA_0];
- 		acpi->gtm.flags &= ~(1 << (2 * unit));
+ 	switch (action) {
+ 	case CPU_ONLINE:
+-	case CPU_ONLINE_FROZEN:
++	case CPU_DOWN_FAILED:
+ 		coretemp_device_add(cpu);
+ 		break;
+-	case CPU_DEAD:
+-	case CPU_DEAD_FROZEN:
++	case CPU_DOWN_PREPARE:
+ 		coretemp_device_remove(cpu);
+ 		break;
  	}
- 	ata_acpi_stm(ap, &acpi->gtm);
-diff -puN include/linux/libata.h~libata-separate-out-ata_acpi_gtm_xfermask-from-pacpi_discover_modes include/linux/libata.h
---- a/include/linux/libata.h~libata-separate-out-ata_acpi_gtm_xfermask-from-pacpi_discover_modes
-+++ a/include/linux/libata.h
-@@ -950,11 +950,36 @@ enum {
- 
- /* libata-acpi.c */
- #ifdef CONFIG_ATA_ACPI
-+extern const unsigned int ata_acpi_pio_cycle[7];
-+extern const unsigned int ata_acpi_mwdma_cycle[5];
-+extern const unsigned int ata_acpi_udma_cycle[7];
-+
- extern int ata_acpi_cbl_80wire(struct ata_port *ap);
- int ata_acpi_stm(const struct ata_port *ap, struct ata_acpi_gtm *stm);
- int ata_acpi_gtm(const struct ata_port *ap, struct ata_acpi_gtm *stm);
-+unsigned int ata_acpi_gtm_xfermask(struct ata_device *dev,
-+				   const struct ata_acpi_gtm *gtm);
-+
- #else
- static inline int ata_acpi_cbl_80wire(struct ata_port *ap) { return 0; }
-+
-+static inline int ata_acpi_stm(const struct ata_port *ap,
-+			       struct ata_acpi_gtm *stm)
-+{
-+	return -ENOSYS;
-+}
-+
-+static inline int ata_acpi_gtm(const struct ata_port *ap,
-+			       struct ata_acpi_gtm *stm)
-+{
-+	return -ENOSYS;
-+}
-+
-+static inline unsigned int ata_acpi_gtm_xfermask(struct ata_device *dev,
-+					const struct ata_acpi_gtm *gtm)
-+{
-+	return 0;
-+}
- #endif
- 
- #ifdef CONFIG_PCI
 _
 
-Patches currently in -mm which might be from htejun@gmail.com are
+Patches currently in -mm which might be from mhoffman@lightlink.com are
 
-git-libata-all.patch
-libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
-libata-add-toshiba-mk1637gsx-to-spurious-command-completion-list.patch
-sata_nv-dont-use-legacy-dma-in-adma-mode-v3.patch
-libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
-ata-ahci-enclosure-management-via-led.patch
-libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
-pata_amd-pata_via-de-couple-programming-of-pio-mwdma-and-udma-timings.patch
-scsi-early-detection-of-medium-not-present-updated.patch
+git-acpi.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+export-acpi_check_resource_conflict.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+check-for-acpi-resource-conflicts-in-i2c-bus-drivers.patch
+git-hwmon.patch
+check-for-acpi-resource-conflicts-in-hwmon-drivers.patch
+applesmc-sensors-set-for-macbook2.patch
