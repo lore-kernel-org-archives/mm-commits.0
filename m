@@ -1,153 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - libata-kill-ata_id_to_dma_mode.patch removed from -mm tree
-Date: Mon, 03 Dec 2007 23:37:57 -0800
-Message-ID: <200712040737.lB47bvOn006854@imap1.linux-foundation.org>
+Subject: - i4l-fix-isdn_ioctl-memory-overrun-vulnerability.patch removed from -mm tree
+Date: Mon, 03 Dec 2007 23:37:24 -0800
+Message-ID: <200712040737.lB47bOC1006799@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51366 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44885 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751705AbXLDHic (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 02:38:32 -0500
+	by vger.kernel.org with ESMTP id S1751714AbXLDHio (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 02:38:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: htejun@gmail.com, mm-commits@vger.kernel.org
+To: kkeil@suse.de, adlab@venustech.com.cn, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata: kill ata_id_to_dma_mode()
+     I4L: fix isdn_ioctl memory overrun vulnerability
 has been removed from the -mm tree.  Its filename was
-     libata-kill-ata_id_to_dma_mode.patch
+     i4l-fix-isdn_ioctl-memory-overrun-vulnerability.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: libata: kill ata_id_to_dma_mode()
-From: Tejun Heo <htejun@gmail.com>
+Subject: I4L: fix isdn_ioctl memory overrun vulnerability
+From: Karsten Keil <kkeil@suse.de>
 
-ata_id_to_dma_mode() isn't quite generic.  The function is basically
-privately implemented ata_id_xfermask() combined with hardcoded mode
-printing and configuration which are specific to ata_generic.
+Fix possible memory overrun issue in the isdn ioctl code.  Found by ADLAB
+<adlab@venustech.com.cn>
 
-Kill the function and open code it in generic_set_mode() using generic
-xfermode handling functions.
-
-Signed-off-by: Tejun Heo <htejun@gmail.com>
+Signed-off-by: Karsten Keil <kkeil@suse.de>
+Cc: ADLAB <adlab@venustech.com.cn>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/ata_generic.c |   17 +++++++++++++-
- drivers/ata/libata-core.c |   43 ------------------------------------
- include/linux/libata.h    |    1 
- 3 files changed, 16 insertions(+), 45 deletions(-)
+ drivers/isdn/i4l/isdn_common.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/ata_generic.c~libata-kill-ata_id_to_dma_mode drivers/ata/ata_generic.c
---- a/drivers/ata/ata_generic.c~libata-kill-ata_id_to_dma_mode
-+++ a/drivers/ata/ata_generic.c
-@@ -63,7 +63,22 @@ static int generic_set_mode(struct ata_l
- 		/* We do need the right mode information for DMA or PIO
- 		   and this comes from the current configuration flags */
- 		if (dma_enabled & (1 << (5 + dev->devno))) {
--			ata_id_to_dma_mode(dev, XFER_MW_DMA_0);
-+			unsigned int xfer_mask = ata_id_xfermask(dev->id);
-+			const char *name;
-+
-+			if (xfer_mask & (ATA_MASK_MWDMA | ATA_MASK_UDMA))
-+				name = ata_mode_string(xfer_mask);
-+			else {
-+				/* SWDMA perhaps? */
-+				name = "DMA";
-+				xfer_mask |= ata_xfer_mode2mask(XFER_MW_DMA_0);
-+			}
-+
-+			ata_dev_printk(dev, KERN_INFO, "configured for %s\n",
-+				       name);
-+
-+			dev->xfer_mode = ata_xfer_mask2mode(xfer_mask);
-+			dev->xfer_shift = ata_xfer_mode2shift(dev->xfer_mode);
- 			dev->flags &= ~ATA_DFLAG_PIO;
- 		} else {
- 			ata_dev_printk(dev, KERN_INFO, "configured for PIO\n");
-diff -puN drivers/ata/libata-core.c~libata-kill-ata_id_to_dma_mode drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~libata-kill-ata_id_to_dma_mode
-+++ a/drivers/ata/libata-core.c
-@@ -1278,48 +1278,6 @@ static int ata_hpa_resize(struct ata_dev
- }
- 
- /**
-- *	ata_id_to_dma_mode	-	Identify DMA mode from id block
-- *	@dev: device to identify
-- *	@unknown: mode to assume if we cannot tell
-- *
-- *	Set up the timing values for the device based upon the identify
-- *	reported values for the DMA mode. This function is used by drivers
-- *	which rely upon firmware configured modes, but wish to report the
-- *	mode correctly when possible.
-- *
-- *	In addition we emit similarly formatted messages to the default
-- *	ata_dev_set_mode handler, in order to provide consistency of
-- *	presentation.
-- */
--
--void ata_id_to_dma_mode(struct ata_device *dev, u8 unknown)
--{
--	unsigned int mask;
--	u8 mode;
--
--	/* Pack the DMA modes */
--	mask = ((dev->id[63] >> 8) << ATA_SHIFT_MWDMA) & ATA_MASK_MWDMA;
--	if (dev->id[53] & 0x04)
--		mask |= ((dev->id[88] >> 8) << ATA_SHIFT_UDMA) & ATA_MASK_UDMA;
--
--	/* Select the mode in use */
--	mode = ata_xfer_mask2mode(mask);
--
--	if (mode != 0xff) {
--		ata_dev_printk(dev, KERN_INFO, "configured for %s\n",
--		       ata_mode_string(mask));
--	} else {
--		/* SWDMA perhaps ? */
--		mode = unknown;
--		ata_dev_printk(dev, KERN_INFO, "configured for DMA\n");
--	}
--
--	/* Configure the device reporting */
--	dev->xfer_mode = mode;
--	dev->xfer_shift = ata_xfer_mode2shift(mode);
--}
--
--/**
-  *	ata_noop_dev_select - Select device 0/1 on ATA bus
-  *	@ap: ATA channel to manipulate
-  *	@device: ATA device (numbered from zero) to select
-@@ -7650,7 +7608,6 @@ EXPORT_SYMBOL_GPL(ata_host_resume);
- #endif /* CONFIG_PM */
- EXPORT_SYMBOL_GPL(ata_id_string);
- EXPORT_SYMBOL_GPL(ata_id_c_string);
--EXPORT_SYMBOL_GPL(ata_id_to_dma_mode);
- EXPORT_SYMBOL_GPL(ata_scsi_simulate);
- 
- EXPORT_SYMBOL_GPL(ata_pio_need_iordy);
-diff -puN include/linux/libata.h~libata-kill-ata_id_to_dma_mode include/linux/libata.h
---- a/include/linux/libata.h~libata-kill-ata_id_to_dma_mode
-+++ a/include/linux/libata.h
-@@ -883,7 +883,6 @@ extern void ata_id_string(const u16 *id,
- 			  unsigned int ofs, unsigned int len);
- extern void ata_id_c_string(const u16 *id, unsigned char *s,
- 			    unsigned int ofs, unsigned int len);
--extern void ata_id_to_dma_mode(struct ata_device *dev, u8 unknown);
- extern void ata_bmdma_setup(struct ata_queued_cmd *qc);
- extern void ata_bmdma_start(struct ata_queued_cmd *qc);
- extern void ata_bmdma_stop(struct ata_queued_cmd *qc);
+diff -puN drivers/isdn/i4l/isdn_common.c~i4l-fix-isdn_ioctl-memory-overrun-vulnerability drivers/isdn/i4l/isdn_common.c
+--- a/drivers/isdn/i4l/isdn_common.c~i4l-fix-isdn_ioctl-memory-overrun-vulnerability
++++ a/drivers/isdn/i4l/isdn_common.c
+@@ -1515,6 +1515,7 @@ isdn_ioctl(struct inode *inode, struct f
+ 					if (copy_from_user(&iocts, argp,
+ 					     sizeof(isdn_ioctl_struct)))
+ 						return -EFAULT;
++					iocts.drvid[sizeof(iocts.drvid)-1] = 0;
+ 					if (strlen(iocts.drvid)) {
+ 						if ((p = strchr(iocts.drvid, ',')))
+ 							*p = 0;
+@@ -1599,6 +1600,7 @@ isdn_ioctl(struct inode *inode, struct f
+ 					if (copy_from_user(&iocts, argp,
+ 					     sizeof(isdn_ioctl_struct)))
+ 						return -EFAULT;
++					iocts.drvid[sizeof(iocts.drvid)-1] = 0;
+ 					if (strlen(iocts.drvid)) {
+ 						drvidx = -1;
+ 						for (i = 0; i < ISDN_MAX_DRIVERS; i++)
+@@ -1643,7 +1645,7 @@ isdn_ioctl(struct inode *inode, struct f
+ 					} else {
+ 						p = (char __user *) iocts.arg;
+ 						for (i = 0; i < 10; i++) {
+-							sprintf(bname, "%s%s",
++							snprintf(bname, sizeof(bname), "%s%s",
+ 								strlen(dev->drv[drvidx]->msn2eaz[i]) ?
+ 								dev->drv[drvidx]->msn2eaz[i] : "_",
+ 								(i < 9) ? "," : "\0");
+@@ -1673,6 +1675,7 @@ isdn_ioctl(struct inode *inode, struct f
+ 					char *p;
+ 					if (copy_from_user(&iocts, argp, sizeof(isdn_ioctl_struct)))
+ 						return -EFAULT;
++					iocts.drvid[sizeof(iocts.drvid)-1] = 0;
+ 					if (strlen(iocts.drvid)) {
+ 						if ((p = strchr(iocts.drvid, ',')))
+ 							*p = 0;
 _
 
-Patches currently in -mm which might be from htejun@gmail.com are
+Patches currently in -mm which might be from kkeil@suse.de are
 
-git-libata-all.patch
-libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
-libata-add-toshiba-mk1637gsx-to-spurious-command-completion-list.patch
-sata_nv-dont-use-legacy-dma-in-adma-mode-v3.patch
-libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
-ata-ahci-enclosure-management-via-led.patch
-libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
-pata_amd-pata_via-de-couple-programming-of-pio-mwdma-and-udma-timings.patch
-scsi-early-detection-of-medium-not-present-updated.patch
+fix-versus-precedence-in-various-places.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+remove-pointless-casts-from-void-pointers.patch
+cleanup-after-apus-removal.patch
+gigaset-clean-up-urb-status-usage.patch
+gigaset-code-cleanups.patch
+bas_gigaset-suspend-support-v2.patch
+usb_gigaset-suspend-support-v3.patch
+gigaset-permit-module-unload.patch
