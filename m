@@ -1,201 +1,268 @@
 From: akpm@linux-foundation.org
-Subject: - fix-for-futex_wait-signal-stack-corruption.patch removed from -mm tree
-Date: Tue, 04 Dec 2007 13:21:06 -0800
-Message-ID: <200712042121.lB4LL7pb005907@imap1.linux-foundation.org>
+Subject: - git-sh-fixup.patch removed from -mm tree
+Date: Tue, 04 Dec 2007 13:56:04 -0800
+Message-ID: <200712042156.lB4Lu4WZ007406@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42839 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53063 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751135AbXLDVWg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 16:22:36 -0500
+	by vger.kernel.org with ESMTP id S1750996AbXLDV4j (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 16:56:39 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lB4Lu4WF005015
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 4 Dec 2007 13:56:05 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rostedt@goodmis.org, David.Holmes@Sun.COM, mingo@elte.hu, roland@redhat.com, rusty@rustcorp.com.au, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix for futex_wait signal stack corruption
+     git-sh-fixup
 has been removed from the -mm tree.  Its filename was
-     fix-for-futex_wait-signal-stack-corruption.patch
+     git-sh-fixup.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: fix for futex_wait signal stack corruption
-From: Steven Rostedt <rostedt@goodmis.org>
+Subject: git-sh-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-David Holmes found a bug in the RT patch with respect to
-pthread_cond_timedwait.  After trying his test program on the latest git
-from mainline, I found the bug was there too.  The bug he was seeing that
-his test program showed, was that if one were to do a "Ctrl-Z" on a process
-that was in the pthread_cond_timedwait, and then did a "bg" on that
-process, it would return with a "-ETIMEDOUT" but early.  That is, the timer
-would go off early.
-
-Looking into this, I found the source of the problem. And it is a rather
-nasty bug at that.
-
-Here's the relevant code from kernel/futex.c: (not in order in the file)
-
-[...]
-smlinkage long sys_futex(u32 __user *uaddr, int op, u32 val,
-                          struct timespec __user *utime, u32 __user *uaddr2,
-                          u32 val3)
-{
-        struct timespec ts;
-        ktime_t t, *tp = NULL;
-        u32 val2 = 0;
-        int cmd = op & FUTEX_CMD_MASK;
-
-        if (utime && (cmd == FUTEX_WAIT || cmd == FUTEX_LOCK_PI)) {
-                if (copy_from_user(&ts, utime, sizeof(ts)) != 0)
-                        return -EFAULT;
-                if (!timespec_valid(&ts))
-                        return -EINVAL;
-
-                t = timespec_to_ktime(ts);
-                if (cmd == FUTEX_WAIT)
-                        t = ktime_add(ktime_get(), t);
-                tp = &t;
-        }
-[...]
-        return do_futex(uaddr, op, val, tp, uaddr2, val2, val3);
-}
-
-[...]
-
-long do_futex(u32 __user *uaddr, int op, u32 val, ktime_t *timeout,
-                u32 __user *uaddr2, u32 val2, u32 val3)
-{
-        int ret;
-        int cmd = op & FUTEX_CMD_MASK;
-        struct rw_semaphore *fshared = NULL;
-
-        if (!(op & FUTEX_PRIVATE_FLAG))
-                fshared = &current->mm->mmap_sem;
-
-        switch (cmd) {
-        case FUTEX_WAIT:
-                ret = futex_wait(uaddr, fshared, val, timeout);
-
-[...]
-
-static int futex_wait(u32 __user *uaddr, struct rw_semaphore *fshared,
-                      u32 val, ktime_t *abs_time)
-{
-[...]
-               struct restart_block *restart;
-                restart = &current_thread_info()->restart_block;
-                restart->fn = futex_wait_restart;
-                restart->arg0 = (unsigned long)uaddr;
-                restart->arg1 = (unsigned long)val;
-                restart->arg2 = (unsigned long)abs_time;
-                restart->arg3 = 0;
-                if (fshared)
-                        restart->arg3 |= ARG3_SHARED;
-                return -ERESTART_RESTARTBLOCK;
-[...]
-
-static long futex_wait_restart(struct restart_block *restart)
-{
-        u32 __user *uaddr = (u32 __user *)restart->arg0;
-        u32 val = (u32)restart->arg1;
-        ktime_t *abs_time = (ktime_t *)restart->arg2;
-        struct rw_semaphore *fshared = NULL;
-
-        restart->fn = do_no_restart_syscall;
-        if (restart->arg3 & ARG3_SHARED)
-                fshared = &current->mm->mmap_sem;
-        return (long)futex_wait(uaddr, fshared, val, abs_time);
-}
-
-So when the futex_wait is interrupt by a signal we break out of the hrtimer
-code and set up for return from signal.  This code does not return back to
-userspace, so we set up a RESTARTBLOCK.  The bug here is that we save the
-"abs_time" which is a pointer to the stack variable "ktime_t t" from
-sys_futex.
-
-This returns and unwinds the stack before we get to call our signal.  On
-return from the signal we go to futex_wait_restart, where we update all the
-parameters for futex_wait and call it.  But here we have a problem where
-abs_time is no longer valid.
-
-I verified this with print statements, and sure enough, what abs_time was
-set to ends up being garbage when we get to futex_wait_restart.
-
-The solution I did to solve this is to allocate a temporary buffer when
-setting up the block and free it in futex_wait_restart.  This patch allows
-David's test program to actually pass.
-
-Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: David Holmes <David.Holmes@Sun.COM>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/futex.c |   28 +++++++++++++++++++++++++---
- 1 file changed, 25 insertions(+), 3 deletions(-)
+ arch/sh/configs/r7785rp_defconfig |    9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff -puN kernel/futex.c~fix-for-futex_wait-signal-stack-corruption kernel/futex.c
---- a/kernel/futex.c~fix-for-futex_wait-signal-stack-corruption
-+++ a/kernel/futex.c
-@@ -1288,11 +1288,27 @@ static int futex_wait(u32 __user *uaddr,
- 		return -ERESTARTSYS;
- 	else {
- 		struct restart_block *restart;
-+		ktime_t *tmp_time = NULL;
-+
-+		/*
-+		 * abs_time is on the stack and is not a parameter.
-+		 * If we save it, it will be overridden on return and
-+		 * what is sent to futex_wait_restart will be corrupted.
-+		 */
-+		if (abs_time) {
-+			tmp_time = kmalloc(sizeof(*tmp_time), GFP_KERNEL);
-+			if (unlikely(!tmp_time))
-+				/* Ahh, what else can we do?? */
-+				printk(KERN_WARNING
-+				       "Can't allocate temp timer storage\n");
-+			else
-+				*tmp_time = *abs_time;
-+		}
- 		restart = &current_thread_info()->restart_block;
- 		restart->fn = futex_wait_restart;
- 		restart->arg0 = (unsigned long)uaddr;
- 		restart->arg1 = (unsigned long)val;
--		restart->arg2 = (unsigned long)abs_time;
-+		restart->arg2 = (unsigned long)tmp_time;
- 		restart->arg3 = 0;
- 		if (fshared)
- 			restart->arg3 |= ARG3_SHARED;
-@@ -1312,13 +1328,19 @@ static long futex_wait_restart(struct re
- {
- 	u32 __user *uaddr = (u32 __user *)restart->arg0;
- 	u32 val = (u32)restart->arg1;
--	ktime_t *abs_time = (ktime_t *)restart->arg2;
-+	ktime_t *tmp_time = (ktime_t *)restart->arg2;
-+	ktime_t t;
- 	struct rw_semaphore *fshared = NULL;
- 
-+	if (tmp_time) {
-+		t = *tmp_time;
-+		kfree(tmp_time);
-+		tmp_time = &t;
-+	}
- 	restart->fn = do_no_restart_syscall;
- 	if (restart->arg3 & ARG3_SHARED)
- 		fshared = &current->mm->mmap_sem;
--	return (long)futex_wait(uaddr, fshared, val, abs_time);
-+	return (long)futex_wait(uaddr, fshared, val, tmp_time);
- }
- 
- 
+diff -puN arch/sh/configs/r7785rp_defconfig~git-sh-fixup arch/sh/configs/r7785rp_defconfig
+--- a/arch/sh/configs/r7785rp_defconfig~git-sh-fixup
++++ a/arch/sh/configs/r7785rp_defconfig
+@@ -1,12 +1,7 @@
+ #
+ # Automatically generated make config: don't edit
+-<<<<<<< HEAD:arch/sh/configs/r7785rp_defconfig
+-# Linux kernel version: 2.6.24-rc2
+-# Tue Nov 13 20:34:57 2007
+-=======
+ # Linux kernel version: 2.6.24-rc3
+ # Fri Nov 23 14:03:57 2007
+->>>>>>> FETCH_HEAD:arch/sh/configs/r7785rp_defconfig
+ #
+ CONFIG_SUPERH=y
+ CONFIG_SUPERH32=y
+@@ -559,12 +554,8 @@ CONFIG_NETDEVICES=y
+ # CONFIG_PHYLIB is not set
+ CONFIG_NET_ETHERNET=y
+ CONFIG_MII=y
+-<<<<<<< HEAD:arch/sh/configs/r7785rp_defconfig
+ CONFIG_AX88796=y
+ CONFIG_AX88796_93CX6=y
+-=======
+-# CONFIG_AX88796 is not set
+->>>>>>> FETCH_HEAD:arch/sh/configs/r7785rp_defconfig
+ # CONFIG_STNIC is not set
+ # CONFIG_HAPPYMEAL is not set
+ # CONFIG_SUNGEM is not set
 _
 
-Patches currently in -mm which might be from rostedt@goodmis.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+ufs-fix-nexstep-dir-block-size-checkpatch-fixes.patch
+aoe-properly-initialise-the-request_queues-backing_dev_info.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+timerfd-v3-new-timerfd-api-ia64-fix.patch
+timerfd-v3-new-timerfd-api-m68k-fix.patch
+timerfd-v3-new-timerfd-api-mips-fix.patch
+git-acpi.patch
+git-acpi-ia64-build-fix.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-add-reboot-mechanism.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+git-agpgart.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+kernel-auditc-warning-fix.patch
+git-cpufreq.patch
+git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
+agk-dm-dm-ioctl-move-compat-code-fix.patch
+dm-persistent_read_metadata-warning-fix.patch
+ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
+gregkh-driver-driver-core-move-the-driver-specific-module-code-into-the-driver-core-fix.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+git-drm.patch
+git-drm-oops-fix.patch
+intel-agp-enable-i915-recognition.patch
+git-dvb.patch
+fix-jdelvare-i2c-i2c-constify-client-address-data.patch
+revert-git-hrt.patch
+ia64-slim-down-__clear_bit_unlock.patch
+git-infiniband.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+libata-xfer_mask-is-unsigned-int-not-unsigned-long-fix.patch
+libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
+libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
+git-mmc.patch
+git-mtd.patch
+git-net.patch
+git-netdev-all.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+bluetooth-uninlining.patch
+git-nfsd.patch
+quirk-enable-msi-mapping-on-ht1000.patch
+git-sh.patch
+git-sh-fixup.patch
+git-scsi-misc-fixup.patch
+ips-trim-trailing-whitespace.patch
+scsi-gdth-kill-unneeded-irq-argument.patch
+drivers-scsi-sgiwd93c-export-sgiwd93_reset.patch
+libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+mct232-speed-new-termios-and-compliance-cleanups-fix.patch
+git-watchdog.patch
+git-watchdog-fix-sbc7240_wdt.patch
+add-support-for-sb1-hardware-watchdog-fix.patch
+git-wireless.patch
+bcm43xx_debugfs-sscanf-fix.patch
+git-ipwireless_cs.patch
 git-x86.patch
-fix-for-futex_wait-signal-stack-corruption.patch
+git-x86-arch-x86-kernel-ptracec-build-fix.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-xtensa.patch
+ia64-increase-datapatch-offset.patch
+ia64-dont-assume-that-unwcheckpy-is-executable.patch
+ia64-export-copy_page-to-modules.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+sync_sb_inodes-propagate-errors.patch
+move-kprobes-examples-to-samples-resend-vs-git-x86.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+64-bit-i_version-afs-fixes.patch
+ext4-add-block-bitmap-validation.patch
+ext4-fix-up-ext4fs_debug-builds.patch
+ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+cramfs-make-cramfs-little-endian-only-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
