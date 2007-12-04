@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-__vdso_getcpu-warning-fix.patch added to -mm tree
-Date: Tue, 04 Dec 2007 15:49:10 -0800
-Message-ID: <200712042356.lB4Nubxi011835@imap1.linux-foundation.org>
+Subject: + git-watchdog-hpwdt-build-fix.patch added to -mm tree
+Date: Tue, 04 Dec 2007 15:57:36 -0800
+Message-ID: <200712050005.lB5051ju012178@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34507 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41373 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750764AbXLDX5n (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 18:57:43 -0500
+	by vger.kernel.org with ESMTP id S1751055AbXLEAFI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 19:05:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, wim@iguana.be
 
 
 The patch titled
-     git-x86: __vdso_getcpu() warning fix
+     git-watchdog: hpwdt build fix
 has been added to the -mm tree.  Its filename is
-     git-x86-__vdso_getcpu-warning-fix.patch
+     git-watchdog-hpwdt-build-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-x86: __vdso_getcpu() warning fix
+Subject: git-watchdog: hpwdt build fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/vdso/vgetcpu.c: In function '__vdso_getcpu':
-arch/x86/vdso/vgetcpu.c:22: warning: pointer targets in passing argument 1 of 'native_read_tscp' differ in signedness
+drivers/watchdog/hpwdt.c: In function 'hpwdt_init_one':
+drivers/watchdog/hpwdt.c:898: error: implicit declaration of function 'register_die_notifier'
+drivers/watchdog/hpwdt.c:922: error: implicit declaration of function 'unregister_die_notifier'
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/msr.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/watchdog/hpwdt.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/asm-x86/msr.h~git-x86-__vdso_getcpu-warning-fix include/asm-x86/msr.h
---- a/include/asm-x86/msr.h~git-x86-__vdso_getcpu-warning-fix
-+++ a/include/asm-x86/msr.h
-@@ -9,7 +9,7 @@
- #include <asm/asm.h>
- #include <asm/errno.h>
- 
--static inline unsigned long long native_read_tscp(int *aux)
-+static inline unsigned long long native_read_tscp(unsigned int *aux)
- {
- 	unsigned long low, high;
- 	asm volatile (".byte 0x0f,0x01,0xf9"
+diff -puN drivers/watchdog/hpwdt.c~git-watchdog-hpwdt-build-fix drivers/watchdog/hpwdt.c
+--- a/drivers/watchdog/hpwdt.c~git-watchdog-hpwdt-build-fix
++++ a/drivers/watchdog/hpwdt.c
+@@ -23,6 +23,7 @@
+ #include <linux/miscdevice.h>
+ #include <linux/mm.h>
+ #include <linux/module.h>
++#include <linux/kdebug.h>
+ #include <linux/moduleparam.h>
+ #include <linux/notifier.h>
+ #include <linux/pci.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -126,6 +125,7 @@ git-ipwireless_cs.patch
 revert-git-kvm-changes-in-arch-x86-kconfig.patch
 git-x86.patch
 revert-revert-git-kvm-changes-in-arch-x86-kconfig.patch
+git-x86-__vdso_getcpu-warning-fix.patch
 git-cryptodev.patch
 git-cryptodev-fixup.patch
 git-xtensa.patch
@@ -255,4 +255,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-git-x86-__vdso_getcpu-warning-fix.patch
+git-watchdog-hpwdt-build-fix.patch
