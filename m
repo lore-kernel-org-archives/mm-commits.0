@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + libata-xfer_mask-is-unsigned-int-not-unsigned-long-fix.patch added to -mm tree
-Date: Tue, 04 Dec 2007 01:12:51 -0800
-Message-ID: <200712040920.lB49KFsw010396@imap1.linux-foundation.org>
+Subject: + a.patch added to -mm tree
+Date: Tue, 04 Dec 2007 01:31:46 -0800
+Message-ID: <200712040939.lB49dASD011036@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58468 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51119 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751116AbXLDJUT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 04:20:19 -0500
+	by vger.kernel.org with ESMTP id S1750862AbXLDJkU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 04:40:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, htejun@gmail.com
+Cc: akpm@linux-foundation.org, mingo@elte.hu, roland@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     libata-xfer_mask-is-unsigned-int-not-unsigned-long-fix
+     git-x86: arch/x86/kernel/ptrace.c build fix
 has been added to the -mm tree.  Its filename is
-     libata-xfer_mask-is-unsigned-int-not-unsigned-long-fix.patch
+     a.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,55 +25,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: libata-xfer_mask-is-unsigned-int-not-unsigned-long-fix
+Subject: git-x86: arch/x86/kernel/ptrace.c build fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/ata/pata_amd.c:521: warning: initialization from incompatible pointer type
-drivers/ata/pata_amd.c:556: warning: initialization from incompatible pointer type
+arch/x86/kernel/ptrace.c: In function 'set_segment_reg':
+arch/x86/kernel/ptrace.c:226: error: label at end of compound statement
 
-is this right?
-
-Cc: Tejun Heo <htejun@gmail.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_amd.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ arch/x86/kernel/ptrace.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_amd.c~libata-xfer_mask-is-unsigned-int-not-unsigned-long-fix drivers/ata/pata_amd.c
---- a/drivers/ata/pata_amd.c~libata-xfer_mask-is-unsigned-int-not-unsigned-long-fix
-+++ a/drivers/ata/pata_amd.c
-@@ -225,8 +225,8 @@ static void amd133_set_dmamode(struct at
-  * cached during driver attach and are consulted to select transfer
-  * mode.
-  */
--static unsigned long nv_mode_filter(struct ata_device *dev,
--				    unsigned long xfer_mask)
-+static unsigned int nv_mode_filter(struct ata_device *dev,
-+				    unsigned int xfer_mask)
- {
- 	static const unsigned int udma_mask_map[] =
- 		{ ATA_UDMA2, ATA_UDMA1, ATA_UDMA0, 0,
-@@ -235,7 +235,7 @@ static unsigned long nv_mode_filter(stru
- 	char acpi_str[32] = "";
- 	u32 saved_udma, udma;
- 	const struct ata_acpi_gtm *gtm;
--	unsigned long bios_limit = 0, acpi_limit = 0, limit;
-+	unsigned int bios_limit = 0, acpi_limit = 0, limit;
+diff -puN arch/x86/kernel/ptrace.c~a arch/x86/kernel/ptrace.c
+--- a/arch/x86/kernel/ptrace.c~a
++++ a/arch/x86/kernel/ptrace.c
+@@ -221,8 +221,8 @@ static int set_segment_reg(struct task_s
+ #ifdef CONFIG_IA32_EMULATION
+ 		if (test_tsk_thread_flag(task, TIF_IA32))
+ 			task_pt_regs(task)->ss = value;
+-		break;
+ #endif
++		break;
+ 	}
  
- 	/* find out what BIOS configured */
- 	udma = saved_udma = (unsigned long)ap->host->private_data;
-@@ -268,8 +268,8 @@ static unsigned long nv_mode_filter(stru
- 	if (!(limit & (ATA_MASK_MWDMA | ATA_MASK_UDMA)))
- 		limit |= ATA_MASK_MWDMA | ATA_MASK_UDMA;
- 
--	ata_port_printk(ap, KERN_DEBUG, "nv_mode_filter: 0x%lx&0x%lx->0x%lx, "
--			"BIOS=0x%lx (0x%x) ACPI=0x%lx%s\n",
-+	ata_port_printk(ap, KERN_DEBUG, "nv_mode_filter: 0x%x&0x%x->0x%x, "
-+			"BIOS=0x%x (0x%x) ACPI=0x%x%s\n",
- 			xfer_mask, limit, xfer_mask & limit, bios_limit,
- 			saved_udma, acpi_limit, acpi_str);
- 
+ 	return 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -266,3 +245,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+a.patch
