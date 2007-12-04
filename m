@@ -1,54 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: + timerfd-v3-new-timerfd-api-ia64-fix.patch added to -mm tree
-Date: Tue, 04 Dec 2007 02:48:16 -0800
-Message-ID: <200712041055.lB4AtdXk013596@imap1.linux-foundation.org>
+Subject: - git-x86-borkage.patch removed from -mm tree
+Date: Tue, 04 Dec 2007 02:57:36 -0800
+Message-ID: <200712041057.lB4Ava5Y013707@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33636 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43414 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752068AbXLDKzp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 05:55:45 -0500
+	by vger.kernel.org with ESMTP id S1752298AbXLDK6q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 05:58:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davidel@xmailserver.org, mtk-manpages@gmx.net
+To: akpm@linux-foundation.org, mingo@elte.hu, roland@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     timerfd-v3-new-timerfd-api-ia64-fix
-has been added to the -mm tree.  Its filename is
-     timerfd-v3-new-timerfd-api-ia64-fix.patch
+     git-x86-borkage
+has been removed from the -mm tree.  Its filename was
+     git-x86-borkage.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: timerfd-v3-new-timerfd-api-ia64-fix
+Subject: git-x86-borkage
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Michael Kerrisk <mtk-manpages@gmx.net>
-
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/entry.S |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/ptrace.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN arch/ia64/kernel/entry.S~timerfd-v3-new-timerfd-api-ia64-fix arch/ia64/kernel/entry.S
---- a/arch/ia64/kernel/entry.S~timerfd-v3-new-timerfd-api-ia64-fix
-+++ a/arch/ia64/kernel/entry.S
-@@ -1586,7 +1586,7 @@ sys_call_table:
- 	data8 sys_epoll_pwait			// 1305
- 	data8 sys_utimensat
- 	data8 sys_signalfd
--	data8 sys_timerfd
-+	data8 sys_ni_syscall
- 	data8 sys_eventfd
+diff -puN kernel/ptrace.c~git-x86-borkage kernel/ptrace.c
+--- a/kernel/ptrace.c~git-x86-borkage
++++ a/kernel/ptrace.c
+@@ -25,6 +25,10 @@
+ #include <asm/pgtable.h>
+ #include <asm/uaccess.h>
  
- 	.org sys_call_table + 8*NR_syscalls	// guard against failures to increase NR_syscalls
++#ifndef arch_has_block_step
++#define arch_has_block_step() (0)
++#endif
++
+ /*
+  * ptrace a task: make the debugger its new parent and
+  * move it to the ptrace list.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
