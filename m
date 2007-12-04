@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter-memory-controller-enhancements-for-reclaiming-take2-clean-up-remove-unused-variable.patch added to -mm tree
-Date: Tue, 04 Dec 2007 11:51:33 -0800
-Message-ID: <200712041951.lB4JpXGO001932@imap1.linux-foundation.org>
+Subject: + per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter-memory-controller-enhancements-for-reclaiming-take2-add-bug_on-in-mem_cgroup_zoneinfo.patch added to -mm tree
+Date: Tue, 04 Dec 2007 11:52:23 -0800
+Message-ID: <200712041952.lB4JqNDh002020@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35870 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59653 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751250AbXLDTvy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 14:51:54 -0500
+	by vger.kernel.org with ESMTP id S1751288AbXLDTwd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 14:52:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com
 
 
 The patch titled
-     memory controller enhancements for reclaiming take2: clean up: remove unused variable
+     memory controller enhancements for reclaiming take2: add BUG_ON() in mem_cgroup_zoneinfo
 has been added to the -mm tree.  Its filename is
-     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter-memory-controller-enhancements-for-reclaiming-take2-clean-up-remove-unused-variable.patch
+     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter-memory-controller-enhancements-for-reclaiming-take2-add-bug_on-in-mem_cgroup_zoneinfo.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: memory controller enhancements for reclaiming take2: clean up: remove unused variable
+Subject: memory controller enhancements for reclaiming take2: add BUG_ON() in mem_cgroup_zoneinfo
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-This check is not necessary now.
+This should be BUG_ON(). I misunderstood initialization path.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/memcontrol.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter-memory-controller-enhancements-for-reclaiming-take2-clean-up-remove-unused-variable mm/memcontrol.c
---- a/mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter-memory-controller-enhancements-for-reclaiming-take2-clean-up-remove-unused-variable
+diff -puN mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter-memory-controller-enhancements-for-reclaiming-take2-add-bug_on-in-mem_cgroup_zoneinfo mm/memcontrol.c
+--- a/mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter-memory-controller-enhancements-for-reclaiming-take2-add-bug_on-in-mem_cgroup_zoneinfo
 +++ a/mm/memcontrol.c
-@@ -758,9 +758,7 @@ retry:
- 		/* Avoid race with charge */
- 		atomic_set(&pc->ref_cnt, 0);
- 		if (clear_page_cgroup(page, pc) == pc) {
--			int active;
- 			css_put(&mem->css);
--			active = pc->flags & PAGE_CGROUP_FLAG_ACTIVE;
- 			res_counter_uncharge(&mem->res, PAGE_SIZE);
- 			__mem_cgroup_remove_list(pc);
- 			kfree(pc);
+@@ -205,8 +205,7 @@ static void mem_cgroup_charge_statistics
+ static inline struct mem_cgroup_per_zone *
+ mem_cgroup_zoneinfo(struct mem_cgroup *mem, int nid, int zid)
+ {
+-	if (!mem->info.nodeinfo[nid])
+-		return NULL;
++	BUG_ON(!mem->info.nodeinfo[nid]);
+ 	return &mem->info.nodeinfo[nid]->zoneinfo[zid];
+ }
+ 
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
@@ -91,6 +91,7 @@ per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_l
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter-memory-controller-enhancements-for-reclaiming-take2-clean-up-remove-unused-variable.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter-memory-controller-enhancements-for-reclaiming-take2-add-bug_on-in-mem_cgroup_zoneinfo.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
@@ -102,6 +103,5 @@ per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-bugfix-for-memory-cgroup-per-zone-struct-allocation.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
-memory-controller-enhancements-for-reclaiming-take2-add-bug_on-in-mem_cgroup_zoneinfo.patch
 memory-controller-enhancements-for-reclaiming-take2-define-free_mem_cgroup_per_zone_info.patch
 memory-controller-enhancements-for-reclaiming-take2-possible-race-fix-in-res_counter.patch
