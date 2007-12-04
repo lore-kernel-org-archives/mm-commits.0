@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-arch-x86-kernel-ptracec-build-fix.patch added to -mm tree
-Date: Tue, 04 Dec 2007 01:32:06 -0800
-Message-ID: <200712040939.lB49dUvj011043@imap1.linux-foundation.org>
+Subject: + isapnp-driver-semaphore-to-mutex-fix-fix.patch added to -mm tree
+Date: Tue, 04 Dec 2007 01:54:16 -0800
+Message-ID: <200712041001.lB4A1efl011823@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53141 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48434 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751556AbXLDJkg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 04:40:36 -0500
+	by vger.kernel.org with ESMTP id S1752121AbXLDKCd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 05:02:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, roland@redhat.com, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, bjorn.helgaas@hp.com, dwalker@mvista.com, mingo@elte.hu
 
 
 The patch titled
-     git-x86: arch/x86/kernel/ptrace.c build fix
+     isapnp-driver-semaphore-to-mutex-fix-fix
 has been added to the -mm tree.  Its filename is
-     git-x86-arch-x86-kernel-ptracec-build-fix.patch
+     isapnp-driver-semaphore-to-mutex-fix-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,34 +25,58 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-x86: arch/x86/kernel/ptrace.c build fix
+Subject: isapnp-driver-semaphore-to-mutex-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/kernel/ptrace.c: In function 'set_segment_reg':
-arch/x86/kernel/ptrace.c:226: error: label at end of compound statement
+drivers/pnp/interface.c: In function 'pnp_set_current_resources':
+drivers/pnp/interface.c:363: error: 'pnp_res_mutex' undeclared (first use in this function)
+drivers/pnp/interface.c:363: error: (Each undeclared identifier is reported only once
+drivers/pnp/interface.c:363: error: for each function it appears in.)
 
-Cc: Roland McGrath <roland@redhat.com>
+Strange that an isapnp semaphore is needed with CONFIG_ISAPNP=n.
+
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Daniel Walker <dwalker@mvista.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/ptrace.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pnp/interface.c |    2 ++
+ include/linux/pnp.h     |    2 +-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/ptrace.c~git-x86-arch-x86-kernel-ptracec-build-fix arch/x86/kernel/ptrace.c
---- a/arch/x86/kernel/ptrace.c~git-x86-arch-x86-kernel-ptracec-build-fix
-+++ a/arch/x86/kernel/ptrace.c
-@@ -221,8 +221,8 @@ static int set_segment_reg(struct task_s
- #ifdef CONFIG_IA32_EMULATION
- 		if (test_tsk_thread_flag(task, TIF_IA32))
- 			task_pt_regs(task)->ss = value;
--		break;
- #endif
-+		break;
- 	}
+diff -puN drivers/pnp/interface.c~isapnp-driver-semaphore-to-mutex-fix-fix drivers/pnp/interface.c
+--- a/drivers/pnp/interface.c~isapnp-driver-semaphore-to-mutex-fix-fix
++++ a/drivers/pnp/interface.c
+@@ -10,10 +10,12 @@
+ #include <linux/errno.h>
+ #include <linux/list.h>
+ #include <linux/types.h>
++#include <linux/pnp.h>
+ #include <linux/stat.h>
+ #include <linux/ctype.h>
+ #include <linux/slab.h>
+ #include <linux/mutex.h>
++
+ #include <asm/uaccess.h>
  
- 	return 0;
+ #include "base.h"
+diff -puN include/linux/pnp.h~isapnp-driver-semaphore-to-mutex-fix-fix include/linux/pnp.h
+--- a/include/linux/pnp.h~isapnp-driver-semaphore-to-mutex-fix-fix
++++ a/include/linux/pnp.h
+@@ -254,11 +254,11 @@ struct pnp_fixup {
+ 
+ #ifdef CONFIG_ISAPNP
+ extern struct pnp_protocol isapnp_protocol;
+-extern struct mutex pnp_res_mutex;
+ #define pnp_device_is_isapnp(dev) ((dev)->protocol == (&isapnp_protocol))
+ #else
+ #define pnp_device_is_isapnp(dev) 0
+ #endif
++extern struct mutex pnp_res_mutex;
+ 
+ #ifdef CONFIG_PNPBIOS
+ extern struct pnp_protocol pnpbios_protocol;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -119,6 +143,7 @@ git-watchdog-fix-sbc7240_wdt.patch
 git-wireless.patch
 git-ipwireless_cs.patch
 git-x86.patch
+git-x86-arch-x86-kernel-ptracec-build-fix.patch
 git-cryptodev.patch
 git-cryptodev-fixup.patch
 git-xtensa.patch
@@ -175,6 +200,7 @@ mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
 fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
 declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
 isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
 64-bit-i_version-afs-fixes.patch
 ext4-add-block-bitmap-validation.patch
 ext4-fix-up-ext4fs_debug-builds.patch
@@ -245,4 +271,3 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-git-x86-arch-x86-kernel-ptracec-build-fix.patch
