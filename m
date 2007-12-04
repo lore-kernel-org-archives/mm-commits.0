@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch added to -mm tree
-Date: Tue, 04 Dec 2007 00:34:25 -0800
-Message-ID: <200712040841.lB48fn5u009095@imap1.linux-foundation.org>
+Subject: + aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch added to -mm tree
+Date: Tue, 04 Dec 2007 00:44:10 -0800
+Message-ID: <200712040851.lB48pYTo009442@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51923 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38054 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750885AbXLDIme (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 03:42:34 -0500
+	by vger.kernel.org with ESMTP id S1751628AbXLDIwz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 03:52:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ebiederm@xmission.com, morgan@kernel.org
+Cc: akpm@linux-foundation.org, dhowells@redhat.com, mingo@elte.hu, roland@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix
+     aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86
 has been added to the -mm tree.  Its filename is
-     proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+     aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,39 +25,84 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix
+Subject: aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/cpuset.c: In function 'cpuset_task_status_allowed':
-kernel/cpuset.c:2232: error: 'buffer' undeclared (first use in this function)
-kernel/cpuset.c:2232: error: (Each undeclared identifier is reported only once
-kernel/cpuset.c:2232: error: for each function it appears in.)
+was that really necessary?
 
-Cc: Andrew Morgan <morgan@kernel.org>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/asm-x86/a.out-core.h |   38 +++++++++++++++++----------------
+ 1 file changed, 20 insertions(+), 18 deletions(-)
 
-diff -puN kernel/cpuset.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix kernel/cpuset.c
---- a/kernel/cpuset.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix
-+++ a/kernel/cpuset.c
-@@ -2221,7 +2221,6 @@ const struct file_operations proc_cpuset
- /* Display task cpus_allowed, mems_allowed in /proc/<pid>/status file. */
- void cpuset_task_status_allowed(struct seq_file *m, struct task_struct *task)
+diff -puN include/asm-x86/a.out-core.h~aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86 include/asm-x86/a.out-core.h
+--- a/include/asm-x86/a.out-core.h~aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86
++++ a/include/asm-x86/a.out-core.h
+@@ -24,40 +24,42 @@
+ static inline void aout_dump_thread(struct pt_regs *regs, struct user *dump)
  {
--	int len;
- 	seq_printf(m, "Cpus_allowed:\t");
- 	m->count += cpumask_scnprintf(m->buf + m->count, m->size - m->count,
- 					task->cpus_allowed);
-@@ -2229,5 +2228,5 @@ void cpuset_task_status_allowed(struct s
- 	seq_printf(m, "Mems_allowed:\t");
- 	m->count += nodemask_scnprintf(m->buf + m->count, m->size - m->count,
- 					task->mems_allowed);
--	seq_printf(buffer, "\n");
-+	seq_printf(m, "\n");
+ 	int i;
++	unsigned long *debugreg;
+ 
+ /* changed the size calculations - should hopefully work better. lbt */
+ 	dump->magic = CMAGIC;
+ 	dump->start_code = 0;
+-	dump->start_stack = regs->esp & ~(PAGE_SIZE - 1);
++	dump->start_stack = regs->sp & ~(PAGE_SIZE - 1);
+ 	dump->u_tsize = ((unsigned long) current->mm->end_code) >> PAGE_SHIFT;
+ 	dump->u_dsize = ((unsigned long)
+ 			 (current->mm->brk + (PAGE_SIZE-1))) >> PAGE_SHIFT;
+ 	dump->u_dsize -= dump->u_tsize;
+ 	dump->u_ssize = 0;
++	debugreg = &current->thread.debugreg0;
+ 	for (i = 0; i < 8; i++)
+-		dump->u_debugreg[i] = current->thread.debugreg[i];
++		dump->u_debugreg[i] = *debugreg++;
+ 
+ 	if (dump->start_stack < TASK_SIZE)
+ 		dump->u_ssize = ((unsigned long)
+ 				 (TASK_SIZE - dump->start_stack)) >> PAGE_SHIFT;
+ 
+-	dump->regs.ebx = regs->ebx;
+-	dump->regs.ecx = regs->ecx;
+-	dump->regs.edx = regs->edx;
+-	dump->regs.esi = regs->esi;
+-	dump->regs.edi = regs->edi;
+-	dump->regs.ebp = regs->ebp;
+-	dump->regs.eax = regs->eax;
+-	dump->regs.ds = regs->xds;
+-	dump->regs.es = regs->xes;
+-	dump->regs.fs = regs->xfs;
++	dump->regs.bx = regs->bx;
++	dump->regs.cx = regs->cx;
++	dump->regs.dx = regs->dx;
++	dump->regs.si = regs->si;
++	dump->regs.di = regs->di;
++	dump->regs.bp = regs->bp;
++	dump->regs.ax = regs->ax;
++	dump->regs.ds = regs->ds;
++	dump->regs.es = regs->es;
++	dump->regs.fs = regs->fs;
+ 	savesegment(gs, dump->regs.gs);
+-	dump->regs.orig_eax = regs->orig_eax;
+-	dump->regs.eip = regs->eip;
+-	dump->regs.cs = regs->xcs;
+-	dump->regs.eflags = regs->eflags;
+-	dump->regs.esp = regs->esp;
+-	dump->regs.ss = regs->xss;
++	dump->regs.orig_ax = regs->orig_ax;
++	dump->regs.ip = regs->ip;
++	dump->regs.cs = regs->cs;
++	dump->regs.flags = regs->flags;
++	dump->regs.sp = regs->sp;
++	dump->regs.ss = regs->ss;
+ 
+ 	dump->u_fpvalid = dump_fpu(regs, &dump->i387);
  }
 _
 
@@ -232,6 +277,7 @@ proc-detect-duplicate-names-on-registration-fix.patch
 proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
 proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
 intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
 mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
 make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
 reiser4.patch
