@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + timerfd-v3-new-timerfd-api-mips-fix.patch added to -mm tree
-Date: Tue, 04 Dec 2007 03:53:26 -0800
-Message-ID: <200712041200.lB4C0nbh015881@imap1.linux-foundation.org>
+Subject: + drivers-scsi-sgiwd93c-export-sgiwd93_reset.patch added to -mm tree
+Date: Tue, 04 Dec 2007 03:55:42 -0800
+Message-ID: <200712041203.lB4C35bn016022@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48954 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60299 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752722AbXLDMB2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 07:01:28 -0500
+	by vger.kernel.org with ESMTP id S1753282AbXLDMDt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 07:03:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davidel@xmailserver.org, mtk-manpages@gmx.net
+Cc: akpm@linux-foundation.org, James.Bottomley@steeleye.com, ralf@linux-mips.org
 
 
 The patch titled
-     timerfd-v3-new-timerfd-api-mips-fix
+     drivers/scsi/sgiwd93.c: export sgiwd93_reset()
 has been added to the -mm tree.  Its filename is
-     timerfd-v3-new-timerfd-api-mips-fix.patch
+     drivers-scsi-sgiwd93c-export-sgiwd93_reset.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,70 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: timerfd-v3-new-timerfd-api-mips-fix
+Subject: drivers/scsi/sgiwd93.c: export sgiwd93_reset()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-for heaven's sake..
+ERROR: "sgiwd93_reset" [drivers/scsi/wd33c93.ko] undefined!
 
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Michael Kerrisk <mtk-manpages@gmx.net>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/scall32-o32.S |    2 +-
- arch/mips/kernel/scall64-64.S  |    2 +-
- arch/mips/kernel/scall64-n32.S |    2 +-
- arch/mips/kernel/scall64-o32.S |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/scsi/sgiwd93.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/mips/kernel/scall64-o32.S~timerfd-v3-new-timerfd-api-mips-fix arch/mips/kernel/scall64-o32.S
---- a/arch/mips/kernel/scall64-o32.S~timerfd-v3-new-timerfd-api-mips-fix
-+++ a/arch/mips/kernel/scall64-o32.S
-@@ -523,7 +523,7 @@ sys_call_table:
- 	PTR	sys_ioprio_get			/* 4315 */
- 	PTR	compat_sys_utimensat
- 	PTR	compat_sys_signalfd
--	PTR	compat_sys_timerfd
-+	PTR	sys_ni_syscall
- 	PTR	sys_eventfd
- 	PTR	sys32_fallocate			/* 4320 */
- 	.size	sys_call_table,.-sys_call_table
-diff -puN arch/mips/kernel/scall32-o32.S~timerfd-v3-new-timerfd-api-mips-fix arch/mips/kernel/scall32-o32.S
---- a/arch/mips/kernel/scall32-o32.S~timerfd-v3-new-timerfd-api-mips-fix
-+++ a/arch/mips/kernel/scall32-o32.S
-@@ -660,7 +660,7 @@ einval:	li	v0, -EINVAL
- 	sys	sys_ioprio_get		2	/* 4315 */
- 	sys	sys_utimensat		4
- 	sys	sys_signalfd		3
--	sys	sys_timerfd		4
-+	sys	sys_ni_syscall		0
- 	sys	sys_eventfd		1
- 	sys	sys_fallocate		6	/* 4320 */
- 	.endm
-diff -puN arch/mips/kernel/scall64-64.S~timerfd-v3-new-timerfd-api-mips-fix arch/mips/kernel/scall64-64.S
---- a/arch/mips/kernel/scall64-64.S~timerfd-v3-new-timerfd-api-mips-fix
-+++ a/arch/mips/kernel/scall64-64.S
-@@ -475,7 +475,7 @@ sys_call_table:
- 	PTR	sys_ioprio_get
- 	PTR	sys_utimensat			/* 5275 */
- 	PTR	sys_signalfd
--	PTR	sys_timerfd
-+	PTR	sys_ni_syscall
- 	PTR	sys_eventfd
- 	PTR	sys_fallocate
- 	.size	sys_call_table,.-sys_call_table
-diff -puN arch/mips/kernel/scall64-n32.S~timerfd-v3-new-timerfd-api-mips-fix arch/mips/kernel/scall64-n32.S
---- a/arch/mips/kernel/scall64-n32.S~timerfd-v3-new-timerfd-api-mips-fix
-+++ a/arch/mips/kernel/scall64-n32.S
-@@ -401,7 +401,7 @@ EXPORT(sysn32_call_table)
- 	PTR	sys_ioprio_get
- 	PTR	compat_sys_utimensat
- 	PTR	compat_sys_signalfd		/* 5280 */
--	PTR	compat_sys_timerfd
-+	PTR	sys_ni_syscall
- 	PTR	sys_eventfd
- 	PTR	sys_fallocate
- 	.size	sysn32_call_table,.-sysn32_call_table
+diff -puN drivers/scsi/sgiwd93.c~drivers-scsi-sgiwd93c-export-sgiwd93_reset drivers/scsi/sgiwd93.c
+--- a/drivers/scsi/sgiwd93.c~drivers-scsi-sgiwd93c-export-sgiwd93_reset
++++ a/drivers/scsi/sgiwd93.c
+@@ -159,6 +159,7 @@ void sgiwd93_reset(unsigned long base)
+ 	udelay(50);
+ 	hregs->ctrl = 0;
+ }
++EXPORT_SYMBOL_GPL(sgiwd93_reset);
+ 
+ static inline void init_hpc_chain(struct hpc_data *hd)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -288,3 +248,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+drivers-scsi-sgiwd93c-export-sgiwd93_reset.patch
