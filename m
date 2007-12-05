@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sg-nopage.patch added to -mm tree
-Date: Wed, 05 Dec 2007 14:45:00 -0800
-Message-ID: <200712052245.lB5Mj279028895@imap1.linux-foundation.org>
+Subject: + alsa-usx2y-nopage.patch added to -mm tree
+Date: Wed, 05 Dec 2007 14:45:10 -0800
+Message-ID: <200712052245.lB5MjAWX028908@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58267 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40363 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752625AbXLEWpP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Dec 2007 17:45:15 -0500
+	by vger.kernel.org with ESMTP id S1752599AbXLEWpW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Dec 2007 17:45:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, James.Bottomley@steeleye.com, dougg@torque.net
+Cc: npiggin@suse.de, perex@suse.cz, tiwai@suse.de
 
 
 The patch titled
-     sg: nopage
+     alsa: usx2y nopage
 has been added to the -mm tree.  Its filename is
-     sg-nopage.patch
+     alsa-usx2y-nopage.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,80 +25,107 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sg: nopage
+Subject: alsa: usx2y nopage
 From: Nick Piggin <npiggin@suse.de>
 
-Convert SG from nopage to fault.
+Convert alsa usx2y driver from nopage to fault.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Douglas Gilbert <dougg@torque.net>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/sg.c |   23 +++++++++++------------
- 1 file changed, 11 insertions(+), 12 deletions(-)
+ sound/usb/usx2y/usX2Yhwdep.c    |   21 ++++++++-------------
+ sound/usb/usx2y/usx2yhwdeppcm.c |   19 ++++++-------------
+ 2 files changed, 14 insertions(+), 26 deletions(-)
 
-diff -puN drivers/scsi/sg.c~sg-nopage drivers/scsi/sg.c
---- a/drivers/scsi/sg.c~sg-nopage
-+++ a/drivers/scsi/sg.c
-@@ -1144,23 +1144,22 @@ sg_fasync(int fd, struct file *filp, int
- 	return (retval < 0) ? retval : 0;
- }
+diff -puN sound/usb/usx2y/usX2Yhwdep.c~alsa-usx2y-nopage sound/usb/usx2y/usX2Yhwdep.c
+--- a/sound/usb/usx2y/usX2Yhwdep.c~alsa-usx2y-nopage
++++ a/sound/usb/usx2y/usX2Yhwdep.c
+@@ -34,34 +34,29 @@
+ int usX2Y_hwdep_pcm_new(struct snd_card *card);
  
--static struct page *
--sg_vma_nopage(struct vm_area_struct *vma, unsigned long addr, int *type)
-+static int
-+sg_vma_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ 
+-static struct page * snd_us428ctls_vm_nopage(struct vm_area_struct *area, unsigned long address, int *type)
++static int snd_us428ctls_vm_fault(struct vm_area_struct *area, struct vm_fault *vmf)
  {
- 	Sg_fd *sfp;
--	struct page *page = NOPAGE_SIGBUS;
- 	unsigned long offset, len, sa;
- 	Sg_scatter_hold *rsv_schp;
- 	struct scatterlist *sg;
- 	int k;
+ 	unsigned long offset;
+ 	struct page * page;
+ 	void *vaddr;
  
- 	if ((NULL == vma) || (!(sfp = (Sg_fd *) vma->vm_private_data)))
--		return page;
-+		return VM_FAULT_SIGBUS;
- 	rsv_schp = &sfp->reserve;
--	offset = addr - vma->vm_start;
+-	snd_printdd("ENTER, start %lXh, ofs %lXh, pgoff %ld, addr %lXh\n",
++	snd_printdd("ENTER, start %lXh, pgoff %ld\n",
+ 		   area->vm_start,
+-		   address - area->vm_start,
+-		   (address - area->vm_start) >> PAGE_SHIFT,
+-		   address);
++		   vmf->pgoff);
+ 	
+-	offset = area->vm_pgoff << PAGE_SHIFT;
+-	offset += address - area->vm_start;
+-	snd_assert((offset % PAGE_SIZE) == 0, return NOPAGE_SIGBUS);
 +	offset = vmf->pgoff << PAGE_SHIFT;
- 	if (offset >= rsv_schp->bufflen)
--		return page;
--	SCSI_LOG_TIMEOUT(3, printk("sg_vma_nopage: offset=%lu, scatg=%d\n",
-+		return VM_FAULT_SIGBUS;
-+	SCSI_LOG_TIMEOUT(3, printk("sg_vma_fault: offset=%lu, scatg=%d\n",
- 				   offset, rsv_schp->k_use_sg));
- 	sg = rsv_schp->buffer;
- 	sa = vma->vm_start;
-@@ -1169,21 +1168,21 @@ sg_vma_nopage(struct vm_area_struct *vma
- 		len = vma->vm_end - sa;
- 		len = (len < sg->length) ? len : sg->length;
- 		if (offset < len) {
-+			struct page *page;
- 			page = virt_to_page(page_address(sg_page(sg)) + offset);
- 			get_page(page);	/* increment page count */
--			break;
-+			vmf->page = page;
-+			return 0; /* success */
- 		}
- 		sa += len;
- 		offset -= len;
- 	}
+ 	vaddr = (char*)((struct usX2Ydev *)area->vm_private_data)->us428ctls_sharedmem + offset;
+ 	page = virt_to_page(vaddr);
+ 	get_page(page);
+-	snd_printdd( "vaddr=%p made us428ctls_vm_nopage() return %p; offset=%lX\n", vaddr, page, offset);
++	vmf->page = page;
  
 -	if (type)
 -		*type = VM_FAULT_MINOR;
++	snd_printdd( "vaddr=%p made us428ctls_vm_fault() page %p\n", vaddr, page);
+ 
 -	return page;
-+	return VM_FAULT_SIGBUS;
++	return 0;
  }
  
- static struct vm_operations_struct sg_mmap_vm_ops = {
--	.nopage = sg_vma_nopage,
-+	.fault = sg_vma_fault,
+ static struct vm_operations_struct us428ctls_vm_ops = {
+-	.nopage = snd_us428ctls_vm_nopage,
++	.fault = snd_us428ctls_vm_fault,
  };
  
- static int
+ static int snd_us428ctls_mmap(struct snd_hwdep * hw, struct file *filp, struct vm_area_struct *area)
+diff -puN sound/usb/usx2y/usx2yhwdeppcm.c~alsa-usx2y-nopage sound/usb/usx2y/usx2yhwdeppcm.c
+--- a/sound/usb/usx2y/usx2yhwdeppcm.c~alsa-usx2y-nopage
++++ a/sound/usb/usx2y/usx2yhwdeppcm.c
+@@ -683,30 +683,23 @@ static void snd_usX2Y_hwdep_pcm_vm_close
+ }
+ 
+ 
+-static struct page * snd_usX2Y_hwdep_pcm_vm_nopage(struct vm_area_struct *area, unsigned long address, int *type)
++static int snd_usX2Y_hwdep_pcm_vm_fault(struct vm_area_struct *area, struct vm_fault *vmf)
+ {
+ 	unsigned long offset;
+-	struct page *page;
+ 	void *vaddr;
+ 
+-	offset = area->vm_pgoff << PAGE_SHIFT;
+-	offset += address - area->vm_start;
+-	snd_assert((offset % PAGE_SIZE) == 0, return NOPAGE_OOM);
++	offset = vmf->pgoff << PAGE_SHIFT;
+ 	vaddr = (char*)((struct usX2Ydev *)area->vm_private_data)->hwdep_pcm_shm + offset;
+-	page = virt_to_page(vaddr);
+-	get_page(page);
+-
+-	if (type)
+-		*type = VM_FAULT_MINOR;
+-
+-	return page;
++	vmf->page = virt_to_page(vaddr);
++	get_page(vmf->page);
++	return 0;
+ }
+ 
+ 
+ static struct vm_operations_struct snd_usX2Y_hwdep_pcm_vm_ops = {
+ 	.open = snd_usX2Y_hwdep_pcm_vm_open,
+ 	.close = snd_usX2Y_hwdep_pcm_vm_close,
+-	.nopage = snd_usX2Y_hwdep_pcm_vm_nopage,
++	.fault = snd_usX2Y_hwdep_pcm_vm_fault,
+ };
+ 
+ 
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
