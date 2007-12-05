@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch added to -mm tree
-Date: Tue, 04 Dec 2007 16:18:23 -0800
-Message-ID: <200712050025.lB50PmkO012909@imap1.linux-foundation.org>
+Subject: + timerfd-v3-new-timerfd-api-arch-fixes.patch added to -mm tree
+Date: Tue, 04 Dec 2007 16:25:13 -0800
+Message-ID: <200712050032.lB50WcC6013168@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54212 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40672 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750806AbXLEA1D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 19:27:03 -0500
+	by vger.kernel.org with ESMTP id S1750709AbXLEAcq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 19:32:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dhowells@redhat.com
+Cc: akpm@linux-foundation.org, davidel@xmailserver.org, heiko.carstens@de.ibm.com, mtk.manpages@gmail.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix
+     timerfd-v3-new-timerfd-api-arch-fixes
 has been added to the -mm tree.  Its filename is
-     aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+     timerfd-v3-new-timerfd-api-arch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,36 +25,152 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix
+Subject: timerfd-v3-new-timerfd-api-arch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-alpha allnoconfig:
+more trainwreckage repair.
 
-fs/exec.c: In function 'search_binary_handler':
-fs/exec.c:1191: error: dereferencing pointer to incomplete type
-fs/exec.c:1192: error: dereferencing pointer to incomplete type
-fs/exec.c:1209: error: dereferencing pointer to incomplete type
+The s390 change is probably wrong.
 
-for struct exec.
+There are still references to compat_sys_timerfd() around the place.
 
-Cc: David Howells <dhowells@redhat.com>
+Better patches, please.
+
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/alpha/kernel/systbls.S          |    2 +-
+ arch/arm/kernel/calls.S              |    2 +-
+ arch/blackfin/mach-common/entry.S    |    2 +-
+ arch/cris/arch-v10/kernel/entry.S    |    2 +-
+ arch/m68knommu/kernel/syscalltable.S |    2 +-
+ arch/s390/kernel/syscalls.S          |    2 +-
+ arch/sh/kernel/syscalls_32.S         |    2 +-
+ arch/sh/kernel/syscalls_64.S         |    2 +-
+ arch/sparc/kernel/systbls.S          |    2 +-
+ arch/sparc64/kernel/systbls.S        |    2 +-
+ 10 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN fs/exec.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix fs/exec.c
---- a/fs/exec.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix
-+++ a/fs/exec.c
-@@ -25,6 +25,7 @@
- #include <linux/slab.h>
- #include <linux/file.h>
- #include <linux/mman.h>
-+#include <linux/a.out.h>
- #include <linux/stat.h>
- #include <linux/fcntl.h>
- #include <linux/smp_lock.h>
+diff -puN arch/alpha/kernel/systbls.S~timerfd-v3-new-timerfd-api-arch-fixes arch/alpha/kernel/systbls.S
+--- a/arch/alpha/kernel/systbls.S~timerfd-v3-new-timerfd-api-arch-fixes
++++ a/arch/alpha/kernel/systbls.S
+@@ -495,7 +495,7 @@ sys_call_table:
+ 	.quad sys_epoll_pwait
+ 	.quad sys_utimensat			/* 475 */
+ 	.quad sys_signalfd
+-	.quad sys_timerfd
++	.quad sys_ni_syscall
+ 	.quad sys_eventfd
+ 
+ 	.size sys_call_table, . - sys_call_table
+diff -puN arch/arm/kernel/calls.S~timerfd-v3-new-timerfd-api-arch-fixes arch/arm/kernel/calls.S
+--- a/arch/arm/kernel/calls.S~timerfd-v3-new-timerfd-api-arch-fixes
++++ a/arch/arm/kernel/calls.S
+@@ -359,7 +359,7 @@
+ 		CALL(sys_kexec_load)
+ 		CALL(sys_utimensat)
+ 		CALL(sys_signalfd)
+-/* 350 */	CALL(sys_timerfd)
++/* 350 */	CALL(sys_ni_syscall)
+ 		CALL(sys_eventfd)
+ 		CALL(sys_fallocate)
+ #ifndef syscalls_counted
+diff -puN arch/blackfin/mach-common/entry.S~timerfd-v3-new-timerfd-api-arch-fixes arch/blackfin/mach-common/entry.S
+--- a/arch/blackfin/mach-common/entry.S~timerfd-v3-new-timerfd-api-arch-fixes
++++ a/arch/blackfin/mach-common/entry.S
+@@ -1356,7 +1356,7 @@ ENTRY(_sys_call_table)
+ 	.long _sys_epoll_pwait
+ 	.long _sys_utimensat
+ 	.long _sys_signalfd
+-	.long _sys_timerfd
++	.long _sys_ni_syscall
+ 	.long _sys_eventfd	/* 350 */
+ 	.long _sys_pread64
+ 	.long _sys_pwrite64
+diff -puN arch/cris/arch-v10/kernel/entry.S~timerfd-v3-new-timerfd-api-arch-fixes arch/cris/arch-v10/kernel/entry.S
+--- a/arch/cris/arch-v10/kernel/entry.S~timerfd-v3-new-timerfd-api-arch-fixes
++++ a/arch/cris/arch-v10/kernel/entry.S
+@@ -1167,7 +1167,7 @@ sys_call_table:	
+ 	.long sys_epoll_pwait
+ 	.long sys_utimensat		/* 320 */
+ 	.long sys_signalfd
+-	.long sys_timerfd
++	.long sys_ni_syscall
+ 	.long sys_eventfd
+ 	.long sys_fallocate
+ 
+diff -puN arch/m68knommu/kernel/syscalltable.S~timerfd-v3-new-timerfd-api-arch-fixes arch/m68knommu/kernel/syscalltable.S
+--- a/arch/m68knommu/kernel/syscalltable.S~timerfd-v3-new-timerfd-api-arch-fixes
++++ a/arch/m68knommu/kernel/syscalltable.S
+@@ -336,7 +336,7 @@ ENTRY(sys_call_table)
+ 	.long sys_epoll_pwait		/* 315 */
+ 	.long sys_utimensat
+ 	.long sys_signalfd
+-	.long sys_timerfd
++	.long sys_ni_syscall
+ 	.long sys_eventfd
+ 	.long sys_fallocate		/* 320 */
+ 
+diff -puN arch/s390/kernel/syscalls.S~timerfd-v3-new-timerfd-api-arch-fixes arch/s390/kernel/syscalls.S
+--- a/arch/s390/kernel/syscalls.S~timerfd-v3-new-timerfd-api-arch-fixes
++++ a/arch/s390/kernel/syscalls.S
+@@ -325,5 +325,5 @@ SYSCALL(sys_utimes,sys_utimes,compat_sys
+ SYSCALL(s390_fallocate,sys_fallocate,sys_fallocate_wrapper)
+ SYSCALL(sys_utimensat,sys_utimensat,compat_sys_utimensat_wrapper)	/* 315 */
+ SYSCALL(sys_signalfd,sys_signalfd,compat_sys_signalfd_wrapper)
+-SYSCALL(sys_timerfd,sys_timerfd,compat_sys_timerfd_wrapper)
++SYSCALL(sys_timerfd,sys_ni_syscall,compat_sys_timerfd_wrapper)
+ SYSCALL(sys_eventfd,sys_eventfd,sys_eventfd_wrapper)
+diff -puN arch/sh/kernel/syscalls_32.S~timerfd-v3-new-timerfd-api-arch-fixes arch/sh/kernel/syscalls_32.S
+--- a/arch/sh/kernel/syscalls_32.S~timerfd-v3-new-timerfd-api-arch-fixes
++++ a/arch/sh/kernel/syscalls_32.S
+@@ -338,6 +338,6 @@ ENTRY(sys_call_table)
+ 	.long sys_epoll_pwait
+ 	.long sys_utimensat		/* 320 */
+ 	.long sys_signalfd
+-	.long sys_timerfd
++	.long sys_ni_syscall
+ 	.long sys_eventfd
+ 	.long sys_fallocate
+diff -puN arch/sh/kernel/syscalls_64.S~timerfd-v3-new-timerfd-api-arch-fixes arch/sh/kernel/syscalls_64.S
+--- a/arch/sh/kernel/syscalls_64.S~timerfd-v3-new-timerfd-api-arch-fixes
++++ a/arch/sh/kernel/syscalls_64.S
+@@ -376,6 +376,6 @@ sys_call_table:
+ 	.long sys_epoll_pwait
+ 	.long sys_utimensat
+ 	.long sys_signalfd
+-	.long sys_timerfd		/* 350 */
++	.long sys_ni_syscall		/* 350 */
+ 	.long sys_eventfd
+ 	.long sys_fallocate
+diff -puN arch/sparc/kernel/systbls.S~timerfd-v3-new-timerfd-api-arch-fixes arch/sparc/kernel/systbls.S
+--- a/arch/sparc/kernel/systbls.S~timerfd-v3-new-timerfd-api-arch-fixes
++++ a/arch/sparc/kernel/systbls.S
+@@ -79,7 +79,7 @@ sys_call_table:
+ /*295*/	.long sys_fchmodat, sys_faccessat, sys_pselect6, sys_ppoll, sys_unshare
+ /*300*/	.long sys_set_robust_list, sys_get_robust_list, sys_migrate_pages, sys_mbind, sys_get_mempolicy
+ /*305*/	.long sys_set_mempolicy, sys_kexec_load, sys_move_pages, sys_getcpu, sys_epoll_pwait
+-/*310*/	.long sys_utimensat, sys_signalfd, sys_timerfd, sys_eventfd, sys_fallocate
++/*310*/	.long sys_utimensat, sys_signalfd, sys_ni_syscall, sys_eventfd, sys_fallocate
+ 
+ #ifdef CONFIG_SUNOS_EMUL
+ 	/* Now the SunOS syscall table. */
+diff -puN arch/sparc64/kernel/systbls.S~timerfd-v3-new-timerfd-api-arch-fixes arch/sparc64/kernel/systbls.S
+--- a/arch/sparc64/kernel/systbls.S~timerfd-v3-new-timerfd-api-arch-fixes
++++ a/arch/sparc64/kernel/systbls.S
+@@ -152,7 +152,7 @@ sys_call_table:
+ 	.word sys_fchmodat, sys_faccessat, sys_pselect6, sys_ppoll, sys_unshare
+ /*300*/	.word sys_set_robust_list, sys_get_robust_list, sys_migrate_pages, sys_mbind, sys_get_mempolicy
+ 	.word sys_set_mempolicy, sys_kexec_load, sys_move_pages, sys_getcpu, sys_epoll_pwait
+-/*310*/	.word sys_utimensat, sys_signalfd, sys_timerfd, sys_eventfd, sys_fallocate
++/*310*/	.word sys_utimensat, sys_signalfd, sys_ni_syscall, sys_eventfd, sys_fallocate
+ 
+ #if defined(CONFIG_SUNOS_EMUL) || defined(CONFIG_SOLARIS_EMUL) || \
+     defined(CONFIG_SOLARIS_EMUL_MODULE)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -262,3 +378,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+timerfd-v3-new-timerfd-api-arch-fixes.patch
