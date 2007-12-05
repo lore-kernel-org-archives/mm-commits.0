@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 04 Dec 2007 19:14:42 -0800
-Message-ID: <200712050314.lB53EgMO018593@imap1.linux-foundation.org>
+Subject: + usb-testing-driver-dont-free-a-locked-mutex.patch added to -mm tree
+Date: Tue, 04 Dec 2007 19:21:03 -0800
+Message-ID: <200712050321.lB53L3mT018836@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39140 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51421 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751297AbXLEDP1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 22:15:27 -0500
+	by vger.kernel.org with ESMTP id S1751108AbXLEDWB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 22:22:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mathieu.desnoyers@polymtl.ca, pmarques@grupopie.com, sam@ravnborg.org
+Cc: akpm@linux-foundation.org, dwalker@mvista.com, greg@kroah.com, matthias.kaehlcke@gmail.com, mingo@elte.hu
 
 
 The patch titled
-     kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes
+     USB testing driver: don't free a locked mutex
 has been added to the -mm tree.  Its filename is
-     kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+     usb-testing-driver-dont-free-a-locked-mutex.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,100 +25,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes
+Subject: USB testing driver: don't free a locked mutex
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix checkpatch warnings:
+Dopey thing to do and lockdep will (or should) warn.
 
-ERROR: do not use C99 // comments
-#72: FILE: scripts/kallsyms.c:516:
-+	// sort by address first
+Spotted by Daniel Walker.
 
-ERROR: do not use C99 // comments
-#78: FILE: scripts/kallsyms.c:522:
-+	// sort by "weakness" type
-
-ERROR: do not use C99 // comments
-#84: FILE: scripts/kallsyms.c:528:
-+	// sort by initial order, so that other symbols are left undisturbed
-
-total: 3 errors, 0 warnings, 61 lines checked
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-And a few coding-style things which checkpatch missed.
-
-And fix up constificiation to remove typecasting.
-
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Paulo Marques <pmarques@grupopie.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Cc: Daniel Walker <dwalker@mvista.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kallsyms.c |   19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+ drivers/usb/misc/usbtest.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN scripts/kallsyms.c~kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes scripts/kallsyms.c
---- a/scripts/kallsyms.c~kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes
-+++ a/scripts/kallsyms.c
-@@ -31,14 +31,13 @@
- 
- #define KSYM_NAME_LEN		128
- 
--
- struct sym_entry {
- 	unsigned long long addr;
--	unsigned int len, start_pos;
-+	unsigned int len;
-+	unsigned int start_pos;
- 	unsigned char *sym;
- };
- 
--
- static struct sym_entry *table;
- static unsigned int table_size, table_cnt;
- static unsigned long long _text, _stext, _etext, _sinittext, _einittext;
-@@ -504,28 +503,28 @@ static void optimize_token_table(void)
- 	optimize_result();
- }
- 
--
- static int compare_symbols(const void *a, const void *b)
+diff -puN drivers/usb/misc/usbtest.c~usb-testing-driver-dont-free-a-locked-mutex drivers/usb/misc/usbtest.c
+--- a/drivers/usb/misc/usbtest.c~usb-testing-driver-dont-free-a-locked-mutex
++++ a/drivers/usb/misc/usbtest.c
+@@ -1991,8 +1991,6 @@ static void usbtest_disconnect (struct u
  {
--	struct sym_entry *sa, *sb;
-+	const struct sym_entry *sa;
-+	const struct sym_entry *sb;
- 	int wa, wb;
+ 	struct usbtest_dev	*dev = usb_get_intfdata (intf);
  
--	sa = (struct sym_entry *) a;
--	sb = (struct sym_entry *) b;
-+	sa = a;
-+	sb = b;
- 
--	// sort by address first
-+	/* sort by address first */
- 	if (sa->addr > sb->addr)
- 		return 1;
- 	if (sa->addr < sb->addr)
- 		return -1;
- 
--	// sort by "weakness" type
-+	/* sort by "weakness" type */
- 	wa = (sa->sym[0] == 'w') || (sa->sym[0] == 'W');
- 	wb = (sb->sym[0] == 'w') || (sb->sym[0] == 'W');
- 	if (wa != wb)
- 		return wa - wb;
- 
--	// sort by initial order, so that other symbols are left undisturbed
-+	/* sort by initial order, so that other symbols are left undisturbed */
- 	return sa->start_pos - sb->start_pos;
- }
- 
+-	mutex_lock(&dev->lock);
+-
+ 	usb_set_intfdata (intf, NULL);
+ 	dev_dbg (&intf->dev, "disconnect\n");
+ 	kfree (dev);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -188,6 +123,7 @@ libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
 git-unionfs.patch
 vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
 mct232-speed-new-termios-and-compliance-cleanups-fix.patch
+usb-testing-driver-dont-free-a-locked-mutex.patch
 git-watchdog.patch
 git-watchdog-hpwdt-build-fix.patch
 add-support-for-sb1-hardware-watchdog-fix.patch
