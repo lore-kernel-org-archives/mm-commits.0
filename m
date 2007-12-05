@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + agp-alpha-nopage.patch added to -mm tree
-Date: Wed, 05 Dec 2007 14:44:56 -0800
-Message-ID: <200712052244.lB5MiuE3028886@imap1.linux-foundation.org>
+Subject: + fb-defio-nopage.patch added to -mm tree
+Date: Wed, 05 Dec 2007 14:44:54 -0800
+Message-ID: <200712052244.lB5MisFW028883@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50579 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41746 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752608AbXLEWpP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Dec 2007 17:45:15 -0500
+	by vger.kernel.org with ESMTP id S1752552AbXLEWpE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Dec 2007 17:45:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, ink@jurassic.park.msu.ru, rth@twiddle.net
+Cc: npiggin@suse.de, adaplas@pol.net, jayakumar.lkml@gmail.com, lethal@linux-sh.org
 
 
 The patch titled
-     agp: alpha nopage
+     fb: defio nopage
 has been added to the -mm tree.  Its filename is
-     agp-alpha-nopage.patch
+     fb-defio-nopage.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,52 +25,69 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: agp: alpha nopage
+Subject: fb: defio nopage
 From: Nick Piggin <npiggin@suse.de>
 
-Convert AGP alpha driver from nopage to fault.
-NULL is NOPAGE_SIGBUS, so we aren't changing behaviour there.
+Convert fb defio from nopage to fault.
+Switch from OOM to SIGBUS if the resource is not available.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Jaya Kumar <jayakumar.lkml@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/alpha-agp.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ Documentation/fb/deferred_io.txt |    6 +++---
+ drivers/video/fb_defio.c         |   17 ++++++++---------
+ 2 files changed, 11 insertions(+), 12 deletions(-)
 
-diff -puN drivers/char/agp/alpha-agp.c~agp-alpha-nopage drivers/char/agp/alpha-agp.c
---- a/drivers/char/agp/alpha-agp.c~agp-alpha-nopage
-+++ a/drivers/char/agp/alpha-agp.c
-@@ -11,29 +11,28 @@
+diff -puN Documentation/fb/deferred_io.txt~fb-defio-nopage Documentation/fb/deferred_io.txt
+--- a/Documentation/fb/deferred_io.txt~fb-defio-nopage
++++ a/Documentation/fb/deferred_io.txt
+@@ -7,10 +7,10 @@ IO. The following example may be a usefu
+ works:
  
- #include "agp.h"
+ - userspace app like Xfbdev mmaps framebuffer
+-- deferred IO and driver sets up nopage and page_mkwrite handlers
++- deferred IO and driver sets up fault and page_mkwrite handlers
+ - userspace app tries to write to mmaped vaddress
+-- we get pagefault and reach nopage handler
+-- nopage handler finds and returns physical page
++- we get pagefault and reach fault handler
++- fault handler finds and returns physical page
+ - we get page_mkwrite where we add this page to a list
+ - schedule a workqueue task to be run after a delay
+ - app continues writing to that page with no additional cost. this is
+diff -puN drivers/video/fb_defio.c~fb-defio-nopage drivers/video/fb_defio.c
+--- a/drivers/video/fb_defio.c~fb-defio-nopage
++++ a/drivers/video/fb_defio.c
+@@ -25,8 +25,8 @@
+ #include <linux/pagemap.h>
  
--static struct page *alpha_core_agp_vm_nopage(struct vm_area_struct *vma,
--					     unsigned long address,
--					     int *type)
-+static int alpha_core_agp_vm_fault(struct vm_area_struct *vma,
-+					struct vm_fault *vmf)
+ /* this is to find and return the vmalloc-ed fb pages */
+-static struct page* fb_deferred_io_nopage(struct vm_area_struct *vma,
+-					unsigned long vaddr, int *type)
++static int fb_deferred_io_fault(struct vm_area_struct *vma,
++				struct vm_fault *vmf)
  {
- 	alpha_agp_info *agp = agp_bridge->dev_private_data;
- 	dma_addr_t dma_addr;
- 	unsigned long pa;
+ 	unsigned long offset;
  	struct page *page;
+@@ -34,18 +34,17 @@ static struct page* fb_deferred_io_nopag
+ 	/* info->screen_base is in System RAM */
+ 	void *screen_base = (void __force *) info->screen_base;
  
--	dma_addr = address - vma->vm_start + agp->aperture.bus_base;
-+	dma_addr = (unsigned long)vmf->virtual_address - vma->vm_start
-+						+ agp->aperture.bus_base;
- 	pa = agp->ops->translate(agp, dma_addr);
+-	offset = (vaddr - vma->vm_start) + (vma->vm_pgoff << PAGE_SHIFT);
++	offset = vmf->pgoff << PAGE_SHIFT;
+ 	if (offset >= info->fix.smem_len)
+-		return NOPAGE_SIGBUS;
++		return VM_FAULT_SIGBUS;
  
- 	if (pa == (unsigned long)-EINVAL)
--		return NULL;	/* no translation */
-+		return VM_FAULT_SIGBUS;	/* no translation */
+ 	page = vmalloc_to_page(screen_base + offset);
+ 	if (!page)
+-		return NOPAGE_OOM;
++		return VM_FAULT_SIGBUS;
  
- 	/*
- 	 * Get the page, inc the use count, and return it
- 	 */
- 	page = virt_to_page(__va(pa));
  	get_page(page);
 -	if (type)
 -		*type = VM_FAULT_MINOR;
@@ -79,15 +96,15 @@ diff -puN drivers/char/agp/alpha-agp.c~agp-alpha-nopage drivers/char/agp/alpha-a
 +	return 0;
  }
  
- static struct aper_size_info_fixed alpha_core_agp_sizes[] =
-@@ -42,7 +41,7 @@ static struct aper_size_info_fixed alpha
- };
+ int fb_deferred_io_fsync(struct file *file, struct dentry *dentry, int datasync)
+@@ -84,7 +83,7 @@ static int fb_deferred_io_mkwrite(struct
+ }
  
- struct vm_operations_struct alpha_core_agp_vm_ops = {
--	.nopage = alpha_core_agp_vm_nopage,
-+	.fault = alpha_core_agp_vm_fault,
+ static struct vm_operations_struct fb_deferred_io_vm_ops = {
+-	.nopage   	= fb_deferred_io_nopage,
++	.fault		= fb_deferred_io_fault,
+ 	.page_mkwrite	= fb_deferred_io_mkwrite,
  };
- 
  
 _
 
