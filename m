@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ib-nopage.patch added to -mm tree
-Date: Wed, 05 Dec 2007 14:45:04 -0800
-Message-ID: <200712052245.lB5Mj4xe028898@imap1.linux-foundation.org>
+Subject: + timerfd-v3-new-timerfd-api-s390-fix.patch added to -mm tree
+Date: Wed, 05 Dec 2007 14:50:37 -0800
+Message-ID: <200712052250.lB5Mob0a029122@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38105 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35493 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752369AbXLEWqO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Dec 2007 17:46:14 -0500
+	by vger.kernel.org with ESMTP id S1751973AbXLEWuq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Dec 2007 17:50:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, rolandd@cisco.com
+Cc: heiko.carstens@de.ibm.com, davidel@xmailserver.org, mtk.manpages@gmail.com
 
 
 The patch titled
-     ib: nopage
+     timerfd-v3-new-timerfd-api-s390-fix
 has been added to the -mm tree.  Its filename is
-     ib-nopage.patch
+     timerfd-v3-new-timerfd-api-s390-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,116 +25,61 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ib: nopage
-From: Nick Piggin <npiggin@suse.de>
+Subject: timerfd-v3-new-timerfd-api-s390-fix
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
 
-Convert IB from nopage to fault.
-
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Roland Dreier <rolandd@cisco.com>
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/ipath/ipath_debug.h    |    4 +-
- drivers/infiniband/hw/ipath/ipath_file_ops.c |   29 +++++------------
- 2 files changed, 12 insertions(+), 21 deletions(-)
+ arch/s390/kernel/compat_wrapper.S |    8 --------
+ arch/s390/kernel/syscalls.S       |    2 +-
+ 2 files changed, 1 insertion(+), 9 deletions(-)
 
-diff -puN drivers/infiniband/hw/ipath/ipath_debug.h~ib-nopage drivers/infiniband/hw/ipath/ipath_debug.h
---- a/drivers/infiniband/hw/ipath/ipath_debug.h~ib-nopage
-+++ a/drivers/infiniband/hw/ipath/ipath_debug.h
-@@ -55,7 +55,7 @@
- #define __IPATH_PKTDBG      0x80	/* print packet data */
- /* print process startup (init)/exit messages */
- #define __IPATH_PROCDBG     0x100
--/* print mmap/nopage stuff, not using VDBG any more */
-+/* print mmap/fault stuff, not using VDBG any more */
- #define __IPATH_MMDBG       0x200
- #define __IPATH_ERRPKTDBG   0x400
- #define __IPATH_USER_SEND   0x1000	/* use user mode send */
-@@ -81,7 +81,7 @@
- #define __IPATH_VERBDBG   0x0	/* very verbose debug */
- #define __IPATH_PKTDBG    0x0	/* print packet data */
- #define __IPATH_PROCDBG   0x0	/* process startup (init)/exit messages */
--/* print mmap/nopage stuff, not using VDBG any more */
-+/* print mmap/fault stuff, not using VDBG any more */
- #define __IPATH_MMDBG     0x0
- #define __IPATH_EPKTDBG   0x0	/* print ethernet packet data */
- #define __IPATH_IPATHDBG  0x0	/* Ethernet (IPATH) table dump on */
-diff -puN drivers/infiniband/hw/ipath/ipath_file_ops.c~ib-nopage drivers/infiniband/hw/ipath/ipath_file_ops.c
---- a/drivers/infiniband/hw/ipath/ipath_file_ops.c~ib-nopage
-+++ a/drivers/infiniband/hw/ipath/ipath_file_ops.c
-@@ -1120,33 +1120,24 @@ bail:
- }
+diff -puN arch/s390/kernel/compat_wrapper.S~timerfd-v3-new-timerfd-api-s390-fix arch/s390/kernel/compat_wrapper.S
+--- a/arch/s390/kernel/compat_wrapper.S~timerfd-v3-new-timerfd-api-s390-fix
++++ a/arch/s390/kernel/compat_wrapper.S
+@@ -1698,14 +1698,6 @@ compat_sys_signalfd_wrapper:
+ 	llgfr	%r4,%r4			# compat_size_t
+ 	jg	compat_sys_signalfd
  
- /*
-- * ipath_file_vma_nopage - handle a VMA page fault.
-+ * ipath_file_vma_fault - handle a VMA page fault.
-  */
--static struct page *ipath_file_vma_nopage(struct vm_area_struct *vma,
--					  unsigned long address, int *type)
-+static int ipath_file_vma_fault(struct vm_area_struct *vma,
-+					struct vm_fault *vmf)
- {
--	unsigned long offset = address - vma->vm_start;
--	struct page *page = NOPAGE_SIGBUS;
--	void *pageptr;
-+	struct page *page;
- 
--	/*
--	 * Convert the vmalloc address into a struct page.
--	 */
--	pageptr = (void *)(offset + (vma->vm_pgoff << PAGE_SHIFT));
--	page = vmalloc_to_page(pageptr);
-+	page = vmalloc_to_page((void *)(vmf->pgoff << PAGE_SHIFT));
- 	if (!page)
--		goto out;
+-	.globl	compat_sys_timerfd_wrapper
+-compat_sys_timerfd_wrapper:
+-	lgfr	%r2,%r2			# int
+-	lgfr	%r3,%r3			# int
+-	lgfr	%r4,%r4			# int
+-	llgtr	%r5,%r5			# struct compat_itimerspec *
+-	jg	compat_sys_timerfd
 -
--	/* Increment the reference count. */
-+		return VM_FAULT_SIGBUS;
- 	get_page(page);
--	if (type)
--		*type = VM_FAULT_MINOR;
--out:
--	return page;
-+	vmf->page = page;
-+
-+	return 0;
- }
- 
- static struct vm_operations_struct ipath_file_vm_ops = {
--	.nopage = ipath_file_vma_nopage,
-+	.fault = ipath_file_vma_fault,
- };
- 
- static int mmap_kvaddr(struct vm_area_struct *vma, u64 pgaddr,
+ 	.globl	sys_eventfd_wrapper
+ sys_eventfd_wrapper:
+ 	llgfr	%r2,%r2			# unsigned int
+diff -puN arch/s390/kernel/syscalls.S~timerfd-v3-new-timerfd-api-s390-fix arch/s390/kernel/syscalls.S
+--- a/arch/s390/kernel/syscalls.S~timerfd-v3-new-timerfd-api-s390-fix
++++ a/arch/s390/kernel/syscalls.S
+@@ -325,5 +325,5 @@ SYSCALL(sys_utimes,sys_utimes,compat_sys
+ SYSCALL(s390_fallocate,sys_fallocate,sys_fallocate_wrapper)
+ SYSCALL(sys_utimensat,sys_utimensat,compat_sys_utimensat_wrapper)	/* 315 */
+ SYSCALL(sys_signalfd,sys_signalfd,compat_sys_signalfd_wrapper)
+-SYSCALL(sys_timerfd,sys_ni_syscall,compat_sys_timerfd_wrapper)
++NI_SYSCALL						/* 317 old sys_timer_fd */
+ SYSCALL(sys_eventfd,sys_eventfd,sys_eventfd_wrapper)
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
 
-mm-fix-xip-file-writes.patch
-git-jfs.patch
-nfs-use-gfp_nofs-preloads-for-radix-tree-insertion.patch
-slub-use-non-atomic-bit-unlock.patch
-radix-tree-avoid-atomic-allocations-for-preloaded-insertions.patch
-mm-dont-allow-ioremapping-of-ranges-larger-than-vmalloc-space.patch
-vt-bitlock-fix.patch
-radix_treeh-trivial-comment-correction.patch
-inotify-fix-race.patch
-inotify-remove-debug-code.patch
-rewrite-rd.patch
-rewrite-rd-fix.patch
-rd-support-xip.patch
-reiser4.patch
-ia64-ia32-nopage.patch
-relay-nopage.patch
-uio-nopage.patch
-ieee1394-nopage.patch
-v4l-nopage.patch
-fb-defio-nopage.patch
-agp-alpha-nopage.patch
-sg-nopage.patch
-ib-nopage.patch
-usb-mon-nopage.patch
-alsa-nopage.patch
-alsa-usx2y-nopage.patch
-mm-special-mapping-nopage.patch
+origin.patch
+timerfd-v3-new-timerfd-api-arch-fixes.patch
+timerfd-v3-new-timerfd-api-s390-fix.patch
+git-s390.patch
+taskstats-scaled-time-cleanup.patch
+unexport-asm-pageh.patch
+sanitize-the-type-of-struct-useru_ar0.patch
+add-cmpxchg_local-to-s390.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+tty-let-architectures-override-the-user-kernel-macros.patch
+tty-s390-support-for-termios2.patch
+modules-fold-percpu_modcopy-into-modulec-and-get-rid-of-the-macro-from-hell.patch
