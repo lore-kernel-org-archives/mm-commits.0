@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + atmel_lcdfb-validate-display-timings.patch added to -mm tree
-Date: Wed, 05 Dec 2007 15:51:50 -0800
-Message-ID: <200712052351.lB5Npol6031282@imap1.linux-foundation.org>
+Subject: + drivers-cpufreq-cpufreq_statsc-section-fix.patch added to -mm tree
+Date: Wed, 05 Dec 2007 15:52:40 -0800
+Message-ID: <200712052352.lB5Nqe47031302@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48734 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36754 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751004AbXLEXwc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Dec 2007 18:52:32 -0500
+	by vger.kernel.org with ESMTP id S1750862AbXLEXxh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Dec 2007 18:53:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hskinnemoen@atmel.com, adaplas@pol.net
+Cc: bunk@kernel.org, chris2553@googlemail.com, davej@codemonkey.org.uk
 
 
 The patch titled
-     atmel_lcdfb: validate display timings
+     drivers/cpufreq/cpufreq_stats.c section fix
 has been added to the -mm tree.  Its filename is
-     atmel_lcdfb-validate-display-timings.patch
+     drivers-cpufreq-cpufreq_statsc-section-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,101 +25,100 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: atmel_lcdfb: validate display timings
-From: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Subject: drivers/cpufreq/cpufreq_stats.c section fix
+From: Adrian Bunk <bunk@kernel.org>
 
-Setting a display timing parameter too high or too low may cause it to
-wrap around and thus become completely wrong. Validate the timings in
-atmel_lcdfb_check_var() and saturate to the highest or lowest possible
-value if necessary.
+cpufreq_stats_free_table() mustn't be __cpuexit since it's called by the
+__cpuinit cpufreq_stat_cpu_callback().
 
-Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+This patch fixes the following section mismatch reported by
+Chris Clayton:
+
+WARNING: vmlinux.o(.init.text+0x143dd): Section mismatch: reference to .exit.text:cpufreq_stats_free_table (between 'cpufreq_stat_cpu_callback' and 'cpufreq_stats_init')
+
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Chris Clayton <chris2553@googlemail.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/atmel_lcdfb.c |   20 ++++++++++++++++++++
- include/video/atmel_lcdc.h  |   14 +++++++-------
- 2 files changed, 27 insertions(+), 7 deletions(-)
+ drivers/cpufreq/cpufreq_stats.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/atmel_lcdfb.c~atmel_lcdfb-validate-display-timings drivers/video/atmel_lcdfb.c
---- a/drivers/video/atmel_lcdfb.c~atmel_lcdfb-validate-display-timings
-+++ a/drivers/video/atmel_lcdfb.c
-@@ -203,6 +203,26 @@ static int atmel_lcdfb_check_var(struct 
- 	var->transp.offset = var->transp.length = 0;
- 	var->xoffset = var->yoffset = 0;
+diff -puN drivers/cpufreq/cpufreq_stats.c~drivers-cpufreq-cpufreq_statsc-section-fix drivers/cpufreq/cpufreq_stats.c
+--- a/drivers/cpufreq/cpufreq_stats.c~drivers-cpufreq-cpufreq_statsc-section-fix
++++ a/drivers/cpufreq/cpufreq_stats.c
+@@ -164,7 +164,7 @@ freq_table_get_index(struct cpufreq_stat
+ 	return -1;
+ }
  
-+	/* Saturate vertical and horizontal timings at maximum values */
-+	var->vsync_len = min_t(u32, var->vsync_len,
-+			(ATMEL_LCDC_VPW >> ATMEL_LCDC_VPW_OFFSET) + 1);
-+	var->upper_margin = min_t(u32, var->upper_margin,
-+			ATMEL_LCDC_VBP >> ATMEL_LCDC_VBP_OFFSET);
-+	var->lower_margin = min_t(u32, var->lower_margin,
-+			ATMEL_LCDC_VFP);
-+	var->right_margin = min_t(u32, var->right_margin,
-+			(ATMEL_LCDC_HFP >> ATMEL_LCDC_HFP_OFFSET) + 1);
-+	var->hsync_len = min_t(u32, var->hsync_len,
-+			(ATMEL_LCDC_HPW >> ATMEL_LCDC_HPW_OFFSET) + 1);
-+	var->left_margin = min_t(u32, var->left_margin,
-+			ATMEL_LCDC_HBP + 1);
-+
-+	/* Some parameters can't be zero */
-+	var->vsync_len = max_t(u32, var->vsync_len, 1);
-+	var->right_margin = max_t(u32, var->right_margin, 1);
-+	var->hsync_len = max_t(u32, var->hsync_len, 1);
-+	var->left_margin = max_t(u32, var->left_margin, 1);
-+
- 	switch (var->bits_per_pixel) {
- 	case 1:
- 	case 2:
-diff -puN include/video/atmel_lcdc.h~atmel_lcdfb-validate-display-timings include/video/atmel_lcdc.h
---- a/include/video/atmel_lcdc.h~atmel_lcdfb-validate-display-timings
-+++ a/include/video/atmel_lcdc.h
-@@ -115,20 +115,20 @@ struct atmel_lcdfb_info {
- #define		ATMEL_LCDC_MEMOR_LITTLE		(1 << 31)
- 
- #define ATMEL_LCDC_TIM1		0x0808
--#define	ATMEL_LCDC_VFP		(0xff <<  0)
-+#define	ATMEL_LCDC_VFP		(0xffU <<  0)
- #define	ATMEL_LCDC_VBP_OFFSET		8
--#define	ATMEL_LCDC_VBP		(0xff <<  ATMEL_LCDC_VBP_OFFSET)
-+#define	ATMEL_LCDC_VBP		(0xffU <<  ATMEL_LCDC_VBP_OFFSET)
- #define	ATMEL_LCDC_VPW_OFFSET		16
--#define	ATMEL_LCDC_VPW		(0x3f << ATMEL_LCDC_VPW_OFFSET)
-+#define	ATMEL_LCDC_VPW		(0x3fU << ATMEL_LCDC_VPW_OFFSET)
- #define	ATMEL_LCDC_VHDLY_OFFSET		24
--#define	ATMEL_LCDC_VHDLY	(0xf  << ATMEL_LCDC_VHDLY_OFFSET)
-+#define	ATMEL_LCDC_VHDLY	(0xfU  << ATMEL_LCDC_VHDLY_OFFSET)
- 
- #define ATMEL_LCDC_TIM2		0x080c
--#define	ATMEL_LCDC_HBP		(0xff  <<  0)
-+#define	ATMEL_LCDC_HBP		(0xffU  <<  0)
- #define	ATMEL_LCDC_HPW_OFFSET		8
--#define	ATMEL_LCDC_HPW		(0x3f  <<  ATMEL_LCDC_HPW_OFFSET)
-+#define	ATMEL_LCDC_HPW		(0x3fU  <<  ATMEL_LCDC_HPW_OFFSET)
- #define	ATMEL_LCDC_HFP_OFFSET		21
--#define	ATMEL_LCDC_HFP		(0x7ff << ATMEL_LCDC_HFP_OFFSET)
-+#define	ATMEL_LCDC_HFP		(0x7ffU << ATMEL_LCDC_HFP_OFFSET)
- 
- #define ATMEL_LCDC_LCDFRMCFG	0x0810
- #define	ATMEL_LCDC_LINEVAL	(0x7ff <<  0)
+-static void __cpuexit cpufreq_stats_free_table(unsigned int cpu)
++static void cpufreq_stats_free_table(unsigned int cpu)
+ {
+ 	struct cpufreq_stats *stat = cpufreq_stats_table[cpu];
+ 	struct cpufreq_policy *policy = cpufreq_cpu_get(cpu);
 _
 
-Patches currently in -mm which might be from hskinnemoen@atmel.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-git-avr32.patch
-git-avr32-fixup.patch
+origin.patch
+git-acpi.patch
+git-dvb.patch
+remove-saa7134-oss.patch
+git-gfs2-nmw.patch
 git-mtd.patch
-read_current_time-cleanups.patch
-fix-__const_udelay-declaration-and-definition-mismatches.patch
-atmel_spi-throughput-improvement.patch
-atmel_spi-chain-dma-transfers.patch
-atmel_spi-fix-dmachain-oops-with-debug-enabled.patch
-generic-gpio-gpio_chip-support.patch
-avr32-uses-gpio_chip.patch
-mcp23s08-spi-gpio-expander.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-atmel_lcdfb-validate-display-timings.patch
-sanitize-the-type-of-struct-useru_ar0.patch
-add-cmpxchg_local-to-avr32.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
+git-net.patch
+git-netdev-all.patch
+git-battery.patch
+drivers-bluetooth-bpa10xc-fix-memleak.patch
+drivers-bluetooth-btsdioc-fix-double-free.patch
+git-scsi-misc.patch
+scsi-advansysc-make-3-functions-static.patch
+scsi-qla2xxx-possible-cleanups.patch
+scsi-qla2xxx-qla_osc-section-fix.patch
+git-x86.patch
+git-xtensa.patch
+xtensa-kernel-setupc-remove-dead-code.patch
+drivers-cpufreq-cpufreq_statsc-section-fix.patch
+mm-page-writebackc-make-a-function-static.patch
+make-__vmalloc_area_node-static.patch
+kernel-power-diskc-make-code-static.patch
+make-kernel_shutdown_prepare-static.patch
+nubus-kill-drivers-nubus-nubus_symsc.patch
+m68k-kill-arch-m68k-mac-mac_ksymsc.patch
+m68k-kill-arch-m68k-hp300-ksymsc.patch
+m68k-kill-arch-m68k-amiga-amiga_ksymsc.patch
+m68k-kill-arch-m68k-atari-atari_ksymsc.patch
+m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch
+kill-udffs_dateversion.patch
+make-ipc-utilcsysvipc_find_ipc-static.patch
+cleanup-after-apus-removal.patch
+remove-mm_ptovvtop.patch
+remove-__attribute_used__.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+proper-show_interrupts-prototype.patch
+scheduled-oss-driver-removal.patch
+linux-inith-simplify-__meminitexit-dependencies.patch
+proper-prototype-for-signals_init.patch
+kernel-ptracec-should-include-linux-syscallsh.patch
+make-srcu_readers_active-static.patch
+kernel-notifierc-should-include-linux-rebooth.patch
+proper-prototype-for-get_filesystem_list.patch
+fs-utimesc-should-include-linux-syscallsh.patch
+fs-signalfdc-should-include-linux-syscallsh.patch
+fs-eventfdc-should-include-linux-syscallsh.patch
+proper-prototype-for-vty_init.patch
+drivers-misc-lkdtmc-cleanups.patch
+fs-ecryptfs-possible-cleanups.patch
+make-video-geode-lxfb_corecgeode_modedb-static.patch
+video-hpfbc-section-fix.patch
+ext4-superc-fix-ifdefs.patch
+make-jbd-journalc__journal_abort_hard-static.patch
+move-edactxt-two-levels-up.patch
+remove-documentation-smptxt.patch
+kernel-cgroupc-remove-dead-code.patch
+kernel-cgroupc-make-2-functions-static.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+fix-m32r-__xchg.patch
+reiser4.patch
