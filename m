@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + platform-real-time-clock-driver-for-dallas-1511-chip.patch added to -mm tree
-Date: Tue, 04 Dec 2007 19:41:39 -0800
-Message-ID: <200712050341.lB53fdik019466@imap1.linux-foundation.org>
+Subject: + smack-mutex-capability-pointers-and-spelling-cleanup.patch added to -mm tree
+Date: Tue, 04 Dec 2007 19:43:30 -0800
+Message-ID: <200712050343.lB53hUai019581@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39634 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56262 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750937AbXLEDl6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 22:41:58 -0500
+	by vger.kernel.org with ESMTP id S1750709AbXLEDoe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 22:44:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andy.sharp@onstor.com, a.zummo@towertech.it, david-b@pacbell.net
+Cc: casey@schaufler-ca.com, chrisw@sous-sol.org, darwish.07@gmail.com, jmorris@namei.org, method@manicmethod.com, morgan@kernel.org, paul.moore@hp.com, sds@tycho.nsa.gov
 
 
 The patch titled
-     Platform real time clock driver for Dallas 1511 chip
+     Smack: mutex, capability, pointers, and spelling cleanup
 has been added to the -mm tree.  Its filename is
-     platform-real-time-clock-driver-for-dallas-1511-chip.patch
+     smack-mutex-capability-pointers-and-spelling-cleanup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,718 +25,252 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Platform real time clock driver for Dallas 1511 chip
-From: Andrew Sharp <andy.sharp@onstor.com>
+Subject: Smack: mutex, capability, pointers, and spelling cleanup
+From: Casey Schaufler <casey@schaufler-ca.com>
 
-Add RTC support for DS1511 RTC/WDT chip.
+Addresses comments from akpm.
 
-Signed-off-by: Andy Sharp <andy.sharp@onstor.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+Clean out unnecessary mutex initializations for Smack list locks.
+Once this is done, there is no need for them to be shared among
+multiple files, so pull them out of the header file and put them
+in the files where they belong. Make them static, too.
+
+Pull unnecessary locking from smack_inode_setsecurity, it used
+to be required when the assignment was not guaranteed to be a
+scalar value but isn't now.
+
+Change uses of __capable(current,...) to capable(...).
+
+Take out an inappropriate cast. Use container_of() instead
+of doing the same calculation by hand.
+
+Fix comment spelling errors.
+
+Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
+Cc: Joshua Brindle <method@manicmethod.com>
+Cc: Paul Moore <paul.moore@hp.com>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: James Morris <jmorris@namei.org>
+Cc: "Ahmed S. Darwish" <darwish.07@gmail.com>
+Cc: Andrew G. Morgan <morgan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig      |   10 
- drivers/rtc/Makefile     |    1 
- drivers/rtc/rtc-ds1511.c |  656 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 667 insertions(+)
+ security/smack/smack.h        |    3 --
+ security/smack/smack_access.c |    3 ++
+ security/smack/smack_lsm.c    |   34 +++++++++-----------------------
+ security/smack/smackfs.c      |    6 +++++
+ 4 files changed, 19 insertions(+), 27 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~platform-real-time-clock-driver-for-dallas-1511-chip drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~platform-real-time-clock-driver-for-dallas-1511-chip
-+++ a/drivers/rtc/Kconfig
-@@ -312,6 +312,16 @@ config RTC_DRV_DS1302
- 	help
- 	  If you say yes here you get support for the Dallas DS1302 RTC chips.
+diff -puN security/smack/smack_access.c~smack-mutex-capability-pointers-and-spelling-cleanup security/smack/smack_access.c
+--- a/security/smack/smack_access.c~smack-mutex-capability-pointers-and-spelling-cleanup
++++ a/security/smack/smack_access.c
+@@ -58,6 +58,7 @@ struct smack_known smack_known_invalid =
+ };
  
-+config RTC_DRV_DS1511
-+	tristate "Dallas DS1511"
-+	depends on RTC_CLASS
-+	help
-+	  If you say yes here you get support for the
-+	  Dallas DS1511 timekeeping/watchdog chip.
+ struct smack_known *smack_known = &smack_known_invalid;
 +
-+	  This driver can also be built as a module. If so, the module
-+	  will be called rtc-ds1511.
+ /*
+  * The initial value needs to be bigger than any of the
+  * known values above.
+@@ -173,6 +174,8 @@ int smk_curacc(char *obj_label, u32 mode
+ 	return rc;
+ }
+ 
++static DEFINE_MUTEX(smack_known_lock);
 +
- config RTC_DRV_DS1553
- 	tristate "Maxim/Dallas DS1553"
- 	help
-diff -puN drivers/rtc/Makefile~platform-real-time-clock-driver-for-dallas-1511-chip drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~platform-real-time-clock-driver-for-dallas-1511-chip
-+++ a/drivers/rtc/Makefile
-@@ -25,6 +25,7 @@ obj-$(CONFIG_RTC_DRV_DS1216)	+= rtc-ds12
- obj-$(CONFIG_RTC_DRV_DS1302)	+= rtc-ds1302.o
- obj-$(CONFIG_RTC_DRV_DS1307)	+= rtc-ds1307.o
- obj-$(CONFIG_RTC_DRV_DS1374)	+= rtc-ds1374.o
-+obj-$(CONFIG_RTC_DRV_DS1511)	+= rtc-ds1511.o
- obj-$(CONFIG_RTC_DRV_DS1553)	+= rtc-ds1553.o
- obj-$(CONFIG_RTC_DRV_DS1672)	+= rtc-ds1672.o
- obj-$(CONFIG_RTC_DRV_DS1742)	+= rtc-ds1742.o
-diff -puN /dev/null drivers/rtc/rtc-ds1511.c
---- /dev/null
-+++ a/drivers/rtc/rtc-ds1511.c
-@@ -0,0 +1,656 @@
-+/*
-+ * An rtc driver for the Dallas DS1511
-+ *
-+ * Copyright (C) 2006 Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-+ * Copyright (C) 2007 Andrew Sharp <andy.sharp@onstor.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * Real time clock driver for the Dallas 1511 chip, which also
-+ * contains a watchdog timer.  There is a tiny amount of code that
-+ * platform code could use to mess with the watchdog device a little
-+ * bit, but not a full watchdog driver.
+ /**
+  * smk_import_entry - import a label, return the list entry
+  * @string: a text string that might be a Smack label
+diff -puN security/smack/smackfs.c~smack-mutex-capability-pointers-and-spelling-cleanup security/smack/smackfs.c
+--- a/security/smack/smackfs.c~smack-mutex-capability-pointers-and-spelling-cleanup
++++ a/security/smack/smackfs.c
+@@ -41,6 +41,12 @@ enum smk_inos {
+ };
+ 
+ /*
++ * List locks
 + */
-+
-+#include <linux/bcd.h>
-+#include <linux/init.h>
-+#include <linux/kernel.h>
-+#include <linux/delay.h>
-+#include <linux/interrupt.h>
-+#include <linux/rtc.h>
-+#include <linux/platform_device.h>
-+#include <linux/io.h>
-+
-+#define DRV_VERSION "0.6"
-+
-+enum ds1511reg {
-+	DS1511_SEC = 0x0,
-+	DS1511_MIN = 0x1,
-+	DS1511_HOUR = 0x2,
-+	DS1511_DOW = 0x3,
-+	DS1511_DOM = 0x4,
-+	DS1511_MONTH = 0x5,
-+	DS1511_YEAR = 0x6,
-+	DS1511_CENTURY = 0x7,
-+	DS1511_AM1_SEC = 0x8,
-+	DS1511_AM2_MIN = 0x9,
-+	DS1511_AM3_HOUR = 0xa,
-+	DS1511_AM4_DATE = 0xb,
-+	DS1511_WD_MSEC = 0xc,
-+	DS1511_WD_SEC = 0xd,
-+	DS1511_CONTROL_A = 0xe,
-+	DS1511_CONTROL_B = 0xf,
-+	DS1511_RAMADDR_LSB = 0x10,
-+	DS1511_RAMDATA = 0x13
-+};
-+
-+#define DS1511_BLF1	0x80
-+#define DS1511_BLF2	0x40
-+#define DS1511_PRS	0x20
-+#define DS1511_PAB	0x10
-+#define DS1511_TDF	0x08
-+#define DS1511_KSF	0x04
-+#define DS1511_WDF	0x02
-+#define DS1511_IRQF	0x01
-+#define DS1511_TE	0x80
-+#define DS1511_CS	0x40
-+#define DS1511_BME	0x20
-+#define DS1511_TPE	0x10
-+#define DS1511_TIE	0x08
-+#define DS1511_KIE	0x04
-+#define DS1511_WDE	0x02
-+#define DS1511_WDS	0x01
-+#define DS1511_RAM_MAX	0xff
-+
-+#define RTC_CMD		DS1511_CONTROL_B
-+#define RTC_CMD1	DS1511_CONTROL_A
-+
-+#define RTC_ALARM_SEC	DS1511_AM1_SEC
-+#define RTC_ALARM_MIN	DS1511_AM2_MIN
-+#define RTC_ALARM_HOUR	DS1511_AM3_HOUR
-+#define RTC_ALARM_DATE	DS1511_AM4_DATE
-+
-+#define RTC_SEC		DS1511_SEC
-+#define RTC_MIN		DS1511_MIN
-+#define RTC_HOUR	DS1511_HOUR
-+#define RTC_DOW		DS1511_DOW
-+#define RTC_DOM		DS1511_DOM
-+#define RTC_MON		DS1511_MONTH
-+#define RTC_YEAR	DS1511_YEAR
-+#define RTC_CENTURY	DS1511_CENTURY
-+
-+#define RTC_TIE	DS1511_TIE
-+#define RTC_TE	DS1511_TE
-+
-+struct rtc_plat_data {
-+	struct rtc_device *rtc;
-+	void __iomem *ioaddr;		/* virtual base address */
-+	unsigned long baseaddr;		/* physical base address */
-+	int size;				/* amount of memory mapped */
-+	int irq;
-+	unsigned int irqen;
-+	int alrm_sec;
-+	int alrm_min;
-+	int alrm_hour;
-+	int alrm_mday;
-+};
-+
-+static DEFINE_SPINLOCK(ds1511_lock);
-+
-+static __iomem char *ds1511_base;
-+static u32 reg_spacing = 1;
-+
-+ static noinline void
-+rtc_write(uint8_t val, uint32_t reg)
-+{
-+	writeb(val, ds1511_base + (reg * reg_spacing));
-+}
-+
-+ static inline void
-+rtc_write_alarm(uint8_t val, enum ds1511reg reg)
-+{
-+	rtc_write((val | 0x80), reg);
-+}
-+
-+ static noinline uint8_t
-+rtc_read(enum ds1511reg reg)
-+{
-+	return readb(ds1511_base + (reg * reg_spacing));
-+}
-+
-+ static inline void
-+rtc_disable_update(void)
-+{
-+	rtc_write((rtc_read(RTC_CMD) & ~RTC_TE), RTC_CMD);
-+}
-+
-+ static void
-+rtc_enable_update(void)
-+{
-+	rtc_write((rtc_read(RTC_CMD) | RTC_TE), RTC_CMD);
-+}
++static DEFINE_MUTEX(smack_list_lock);
++static DEFINE_MUTEX(smack_cipso_lock);
 +
 +/*
-+ * #define DS1511_WDOG_RESET_SUPPORT
-+ *
-+ * Uncomment this if you want to use these routines in
-+ * some platform code.
-+ */
-+#ifdef DS1511_WDOG_RESET_SUPPORT
-+/*
-+ * just enough code to set the watchdog timer so that it
-+ * will reboot the system
-+ */
-+ void
-+ds1511_wdog_set(unsigned long deciseconds)
-+{
-+	/*
-+	 * the wdog timer can take 99.99 seconds
-+	 */
-+	deciseconds %= 10000;
-+	/*
-+	 * set the wdog values in the wdog registers
-+	 */
-+	rtc_write(BIN2BCD(deciseconds % 100), DS1511_WD_MSEC);
-+	rtc_write(BIN2BCD(deciseconds / 100), DS1511_WD_SEC);
-+	/*
-+	 * set wdog enable and wdog 'steering' bit to issue a reset
-+	 */
-+	rtc_write(DS1511_WDE | DS1511_WDS, RTC_CMD);
-+}
-+
-+ void
-+ds1511_wdog_disable(void)
-+{
-+	/*
-+	 * clear wdog enable and wdog 'steering' bits
-+	 */
-+	rtc_write(rtc_read(RTC_CMD) & ~(DS1511_WDE | DS1511_WDS), RTC_CMD);
-+	/*
-+	 * clear the wdog counter
-+	 */
-+	rtc_write(0, DS1511_WD_MSEC);
-+	rtc_write(0, DS1511_WD_SEC);
-+}
-+#endif
-+
-+/*
-+ * set the rtc chip's idea of the time.
-+ * stupidly, some callers call with year unmolested;
-+ * and some call with  year = year - 1900.  thanks.
-+ */
-+ int
-+ds1511_rtc_set_time(struct device *dev, struct rtc_time *rtc_tm)
-+{
-+	u8 mon, day, dow, hrs, min, sec, yrs, cen;
-+	unsigned int flags;
-+
-+	/*
-+	 * won't have to change this for a while
-+	 */
-+	if (rtc_tm->tm_year < 1900) {
-+		rtc_tm->tm_year += 1900;
-+	}
-+
-+	if (rtc_tm->tm_year < 1970) {
-+		return -EINVAL;
-+	}
-+	yrs = rtc_tm->tm_year % 100;
-+	cen = rtc_tm->tm_year / 100;
-+	mon = rtc_tm->tm_mon + 1;   /* tm_mon starts at zero */
-+	day = rtc_tm->tm_mday;
-+	dow = rtc_tm->tm_wday & 0x7; /* automatic BCD */
-+	hrs = rtc_tm->tm_hour;
-+	min = rtc_tm->tm_min;
-+	sec = rtc_tm->tm_sec;
-+
-+	if ((mon > 12) || (day == 0)) {
-+		return -EINVAL;
-+	}
-+
-+	if (day > rtc_month_days(rtc_tm->tm_mon, rtc_tm->tm_year)) {
-+		return -EINVAL;
-+	}
-+
-+	if ((hrs >= 24) || (min >= 60) || (sec >= 60)) {
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	 * each register is a different number of valid bits
-+	 */
-+	sec = BIN2BCD(sec) & 0x7f;
-+	min = BIN2BCD(min) & 0x7f;
-+	hrs = BIN2BCD(hrs) & 0x3f;
-+	day = BIN2BCD(day) & 0x3f;
-+	mon = BIN2BCD(mon) & 0x1f;
-+	yrs = BIN2BCD(yrs) & 0xff;
-+	cen = BIN2BCD(cen) & 0xff;
-+
-+	spin_lock_irqsave(&ds1511_lock, flags);
-+	rtc_disable_update();
-+	rtc_write(cen, RTC_CENTURY);
-+	rtc_write(yrs, RTC_YEAR);
-+	rtc_write((rtc_read(RTC_MON) & 0xe0) | mon, RTC_MON);
-+	rtc_write(day, RTC_DOM);
-+	rtc_write(hrs, RTC_HOUR);
-+	rtc_write(min, RTC_MIN);
-+	rtc_write(sec, RTC_SEC);
-+	rtc_write(dow, RTC_DOW);
-+	rtc_enable_update();
-+	spin_unlock_irqrestore(&ds1511_lock, flags);
-+
-+	return 0;
-+}
-+
-+ int
-+ds1511_rtc_read_time(struct device *dev, struct rtc_time *rtc_tm)
-+{
-+	unsigned int century;
-+	unsigned int flags;
-+
-+	spin_lock_irqsave(&ds1511_lock, flags);
-+	rtc_disable_update();
-+
-+	rtc_tm->tm_sec = rtc_read(RTC_SEC) & 0x7f;
-+	rtc_tm->tm_min = rtc_read(RTC_MIN) & 0x7f;
-+	rtc_tm->tm_hour = rtc_read(RTC_HOUR) & 0x3f;
-+	rtc_tm->tm_mday = rtc_read(RTC_DOM) & 0x3f;
-+	rtc_tm->tm_wday = rtc_read(RTC_DOW) & 0x7;
-+	rtc_tm->tm_mon = rtc_read(RTC_MON) & 0x1f;
-+	rtc_tm->tm_year = rtc_read(RTC_YEAR) & 0x7f;
-+	century = rtc_read(RTC_CENTURY);
-+
-+	rtc_enable_update();
-+	spin_unlock_irqrestore(&ds1511_lock, flags);
-+
-+	rtc_tm->tm_sec = BCD2BIN(rtc_tm->tm_sec);
-+	rtc_tm->tm_min = BCD2BIN(rtc_tm->tm_min);
-+	rtc_tm->tm_hour = BCD2BIN(rtc_tm->tm_hour);
-+	rtc_tm->tm_mday = BCD2BIN(rtc_tm->tm_mday);
-+	rtc_tm->tm_wday = BCD2BIN(rtc_tm->tm_wday);
-+	rtc_tm->tm_mon = BCD2BIN(rtc_tm->tm_mon);
-+	rtc_tm->tm_year = BCD2BIN(rtc_tm->tm_year);
-+	century = BCD2BIN(century) * 100;
-+
-+	/*
-+	 * Account for differences between how the RTC uses the values
-+	 * and how they are defined in a struct rtc_time;
-+	 */
-+	century += rtc_tm->tm_year;
-+	rtc_tm->tm_year = century - 1900;
-+
-+	rtc_tm->tm_mon--;
-+
-+	if (rtc_valid_tm(rtc_tm) < 0) {
-+		dev_err(dev, "retrieved date/time is not valid.\n");
-+		rtc_time_to_tm(0, rtc_tm);
-+	}
-+	return 0;
-+}
-+
-+/*
-+ * write the alarm register settings
-+ *
-+ * we only have the use to interrupt every second, otherwise
-+ * known as the update interrupt, or the interrupt if the whole
-+ * date/hours/mins/secs matches.  the ds1511 has many more
-+ * permutations, but the kernel doesn't.
-+ */
-+ static void
-+ds1511_rtc_update_alarm(struct rtc_plat_data *pdata)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&pdata->rtc->irq_lock, flags);
-+	rtc_write(pdata->alrm_mday < 0 || (pdata->irqen & RTC_UF) ?
-+	       0x80 : BIN2BCD(pdata->alrm_mday) & 0x3f,
-+	       RTC_ALARM_DATE);
-+	rtc_write(pdata->alrm_hour < 0 || (pdata->irqen & RTC_UF) ?
-+	       0x80 : BIN2BCD(pdata->alrm_hour) & 0x3f,
-+	       RTC_ALARM_HOUR);
-+	rtc_write(pdata->alrm_min < 0 || (pdata->irqen & RTC_UF) ?
-+	       0x80 : BIN2BCD(pdata->alrm_min) & 0x7f,
-+	       RTC_ALARM_MIN);
-+	rtc_write(pdata->alrm_sec < 0 || (pdata->irqen & RTC_UF) ?
-+	       0x80 : BIN2BCD(pdata->alrm_sec) & 0x7f,
-+	       RTC_ALARM_SEC);
-+	rtc_write(rtc_read(RTC_CMD) | (pdata->irqen ? RTC_TIE : 0), RTC_CMD);
-+	rtc_read(RTC_CMD1);	/* clear interrupts */
-+	spin_unlock_irqrestore(&pdata->rtc->irq_lock, flags);
-+}
-+
-+ static int
-+ds1511_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
-+
-+	if (pdata->irq < 0) {
-+		return -EINVAL;
-+	}
-+	pdata->alrm_mday = alrm->time.tm_mday;
-+	pdata->alrm_hour = alrm->time.tm_hour;
-+	pdata->alrm_min = alrm->time.tm_min;
-+	pdata->alrm_sec = alrm->time.tm_sec;
-+	if (alrm->enabled) {
-+		pdata->irqen |= RTC_AF;
-+	}
-+	ds1511_rtc_update_alarm(pdata);
-+	return 0;
-+}
-+
-+ static int
-+ds1511_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
-+
-+	if (pdata->irq < 0) {
-+		return -EINVAL;
-+	}
-+	alrm->time.tm_mday = pdata->alrm_mday < 0 ? 0 : pdata->alrm_mday;
-+	alrm->time.tm_hour = pdata->alrm_hour < 0 ? 0 : pdata->alrm_hour;
-+	alrm->time.tm_min = pdata->alrm_min < 0 ? 0 : pdata->alrm_min;
-+	alrm->time.tm_sec = pdata->alrm_sec < 0 ? 0 : pdata->alrm_sec;
-+	alrm->enabled = (pdata->irqen & RTC_AF) ? 1 : 0;
-+	return 0;
-+}
-+
-+ static irqreturn_t
-+ds1511_interrupt(int irq, void *dev_id)
-+{
-+	struct platform_device *pdev = dev_id;
-+	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
-+	unsigned long events = RTC_IRQF;
-+
-+	/*
-+	 * read and clear interrupt
-+	 */
-+	if (!(rtc_read(RTC_CMD1) & DS1511_IRQF)) {
-+		return IRQ_NONE;
-+	}
-+	if (rtc_read(RTC_ALARM_SEC) & 0x80) {
-+		events |= RTC_UF;
-+	} else {
-+		events |= RTC_AF;
-+	}
-+	rtc_update_irq(pdata->rtc, 1, events);
-+	return IRQ_HANDLED;
-+}
-+
-+ static void
-+ds1511_rtc_release(struct device *dev)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
-+
-+	if (pdata->irq >= 0) {
-+		pdata->irqen = 0;
-+		ds1511_rtc_update_alarm(pdata);
-+	}
-+}
-+
-+ static int
-+ds1511_rtc_ioctl(struct device *dev, unsigned int cmd, unsigned long arg)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
-+
-+	if (pdata->irq < 0) {
-+		return -ENOIOCTLCMD; /* fall back into rtc-dev's emulation */
-+	}
-+	switch (cmd) {
-+	case RTC_AIE_OFF:
-+		pdata->irqen &= ~RTC_AF;
-+		ds1511_rtc_update_alarm(pdata);
-+		break;
-+	case RTC_AIE_ON:
-+		pdata->irqen |= RTC_AF;
-+		ds1511_rtc_update_alarm(pdata);
-+		break;
-+	case RTC_UIE_OFF:
-+		pdata->irqen &= ~RTC_UF;
-+		ds1511_rtc_update_alarm(pdata);
-+		break;
-+	case RTC_UIE_ON:
-+		pdata->irqen |= RTC_UF;
-+		ds1511_rtc_update_alarm(pdata);
-+		break;
-+	default:
-+		return -ENOIOCTLCMD;
-+	}
-+	return 0;
-+}
-+
-+static const struct rtc_class_ops ds1511_rtc_ops = {
-+	.read_time	= ds1511_rtc_read_time,
-+	.set_time	= ds1511_rtc_set_time,
-+	.read_alarm	= ds1511_rtc_read_alarm,
-+	.set_alarm	= ds1511_rtc_set_alarm,
-+	.release	= ds1511_rtc_release,
-+	.ioctl		= ds1511_rtc_ioctl,
-+};
-+
-+ static ssize_t
-+ds1511_nvram_read(struct kobject *kobj, struct bin_attribute *ba,
-+				char *buf, loff_t pos, size_t size)
-+{
-+	ssize_t count;
-+
-+	/*
-+	 * if count is more than one, turn on "burst" mode
-+	 * turn it off when you're done
-+	 */
-+	if (size > 1) {
-+		rtc_write((rtc_read(RTC_CMD) | DS1511_BME), RTC_CMD);
-+	}
-+	if (pos > DS1511_RAM_MAX) {
-+		pos = DS1511_RAM_MAX;
-+	}
-+	if (size + pos > DS1511_RAM_MAX + 1) {
-+		size = DS1511_RAM_MAX - pos + 1;
-+	}
-+	rtc_write(pos, DS1511_RAMADDR_LSB);
-+	for (count = 0; size > 0; count++, size--) {
-+		*buf++ = rtc_read(DS1511_RAMDATA);
-+	}
-+	if (count > 1) {
-+		rtc_write((rtc_read(RTC_CMD) & ~DS1511_BME), RTC_CMD);
-+	}
-+	return count;
-+}
-+
-+ static ssize_t
-+ds1511_nvram_write(struct kobject *kobj, struct bin_attribute *bin_attr,
-+				char *buf, loff_t pos, size_t size)
-+{
-+	ssize_t count;
-+
-+	/*
-+	 * if count is more than one, turn on "burst" mode
-+	 * turn it off when you're done
-+	 */
-+	if (size > 1) {
-+		rtc_write((rtc_read(RTC_CMD) | DS1511_BME), RTC_CMD);
-+	}
-+	if (pos > DS1511_RAM_MAX) {
-+		pos = DS1511_RAM_MAX;
-+	}
-+	if (size + pos > DS1511_RAM_MAX + 1) {
-+		size = DS1511_RAM_MAX - pos + 1;
-+	}
-+	rtc_write(pos, DS1511_RAMADDR_LSB);
-+	for (count = 0; size > 0; count++, size--) {
-+		rtc_write(*buf++, DS1511_RAMDATA);
-+	}
-+	if (count > 1) {
-+		rtc_write((rtc_read(RTC_CMD) & ~DS1511_BME), RTC_CMD);
-+	}
-+	return count;
-+}
-+
-+static struct bin_attribute ds1511_nvram_attr = {
-+	.attr = {
-+		.name = "nvram",
-+		.mode = S_IRUGO | S_IWUGO,
-+		.owner = THIS_MODULE,
-+	},
-+	.size = DS1511_RAM_MAX,
-+	.read = ds1511_nvram_read,
-+	.write = ds1511_nvram_write,
-+};
-+
-+ static int __devinit
-+ds1511_rtc_probe(struct platform_device *pdev)
-+{
-+	struct rtc_device *rtc;
-+	struct resource *res;
-+	struct rtc_plat_data *pdata = NULL;
-+	int ret = 0;
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!res) {
-+		return -ENODEV;
-+	}
-+	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
-+	if (!pdata) {
-+		return -ENOMEM;
-+	}
-+	pdata->irq = -1;
-+	pdata->size = res->end - res->start + 1;
-+	if (!request_mem_region(res->start, pdata->size, pdev->name)) {
-+		ret = -EBUSY;
-+		goto out;
-+	}
-+	pdata->baseaddr = res->start;
-+	pdata->size = pdata->size;
-+	ds1511_base = ioremap(pdata->baseaddr, pdata->size);
-+	if (!ds1511_base) {
-+		ret = -ENOMEM;
-+		goto out;
-+	}
-+	pdata->ioaddr = ds1511_base;
-+	pdata->irq = platform_get_irq(pdev, 0);
-+
-+	/*
-+	 * turn on the clock and the crystal, etc.
-+	 */
-+	rtc_write(0, RTC_CMD);
-+	rtc_write(0, RTC_CMD1);
-+	/*
-+	 * clear the wdog counter
-+	 */
-+	rtc_write(0, DS1511_WD_MSEC);
-+	rtc_write(0, DS1511_WD_SEC);
-+	/*
-+	 * start the clock
-+	 */
-+	rtc_enable_update();
-+
-+	/*
-+	 * check for a dying bat-tree
-+	 */
-+	if (rtc_read(RTC_CMD1) & DS1511_BLF1) {
-+		dev_warn(&pdev->dev, "voltage-low detected.\n");
-+	}
-+
-+	/*
-+	 * if the platform has an interrupt in mind for this device,
-+	 * then by all means, set it
-+	 */
-+	if (pdata->irq >= 0) {
-+		rtc_read(RTC_CMD1);
-+		if (request_irq(pdata->irq, ds1511_interrupt,
-+			IRQF_DISABLED | IRQF_SHARED, pdev->name, pdev) < 0) {
-+
-+			dev_warn(&pdev->dev, "interrupt not available.\n");
-+			pdata->irq = -1;
-+		}
-+	}
-+
-+	rtc = rtc_device_register(pdev->name, &pdev->dev, &ds1511_rtc_ops,
-+		THIS_MODULE);
-+	if (IS_ERR(rtc)) {
-+		ret = PTR_ERR(rtc);
-+		goto out;
-+	}
-+	pdata->rtc = rtc;
-+	platform_set_drvdata(pdev, pdata);
-+	ret = sysfs_create_bin_file(&pdev->dev.kobj, &ds1511_nvram_attr);
-+	if (ret) {
-+		goto out;
-+	}
-+	return 0;
-+ out:
-+	if (pdata->rtc) {
-+		rtc_device_unregister(pdata->rtc);
-+	}
-+	if (pdata->irq >= 0) {
-+		free_irq(pdata->irq, pdev);
-+	}
-+	if (ds1511_base) {
-+		iounmap(ds1511_base);
-+		ds1511_base = NULL;
-+	}
-+	if (pdata->baseaddr) {
-+		release_mem_region(pdata->baseaddr, pdata->size);
-+	}
-+
-+	kfree(pdata);
-+	return ret;
-+}
-+
-+ static int __devexit
-+ds1511_rtc_remove(struct platform_device *pdev)
-+{
-+	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
-+
-+	sysfs_remove_bin_file(&pdev->dev.kobj, &ds1511_nvram_attr);
-+	rtc_device_unregister(pdata->rtc);
-+	pdata->rtc = NULL;
-+	if (pdata->irq >= 0) {
-+		/*
-+		 * disable the alarm interrupt
-+		 */
-+		rtc_write(rtc_read(RTC_CMD) & ~RTC_TIE, RTC_CMD);
-+		rtc_read(RTC_CMD1);
-+		free_irq(pdata->irq, pdev);
-+	}
-+	iounmap(pdata->ioaddr);
-+	ds1511_base = NULL;
-+	release_mem_region(pdata->baseaddr, pdata->size);
-+	kfree(pdata);
-+	return 0;
-+}
-+
-+static struct platform_driver ds1511_rtc_driver = {
-+	.probe		= ds1511_rtc_probe,
-+	.remove		= __devexit_p(ds1511_rtc_remove),
-+	.driver		= {
-+		.name	= "ds1511",
-+		.owner	= THIS_MODULE,
-+	},
-+};
-+
-+ static int __init
-+ds1511_rtc_init(void)
-+{
-+	return platform_driver_register(&ds1511_rtc_driver);
-+}
-+
-+ static void __exit
-+ds1511_rtc_exit(void)
-+{
-+	return platform_driver_unregister(&ds1511_rtc_driver);
-+}
-+
-+module_init(ds1511_rtc_init);
-+module_exit(ds1511_rtc_exit);
-+
-+MODULE_AUTHOR("Andrew Sharp <andy.sharp@onstor.com>");
-+MODULE_DESCRIPTION("Dallas DS1511 RTC driver");
-+MODULE_LICENSE("GPL");
-+MODULE_VERSION(DRV_VERSION);
+  * This is the "ambient" label for network traffic.
+  * If it isn't somehow marked, use this.
+  * It can be reset via smackfs/ambient
+diff -puN security/smack/smack.h~smack-mutex-capability-pointers-and-spelling-cleanup security/smack/smack.h
+--- a/security/smack/smack.h~smack-mutex-capability-pointers-and-spelling-cleanup
++++ a/security/smack/smack.h
+@@ -186,7 +186,6 @@ extern int smack_net_nltype;
+ extern char *smack_net_ambient;
+ 
+ extern struct smack_known *smack_known;
+-extern struct mutex smack_known_lock;
+ extern struct smack_known smack_known_floor;
+ extern struct smack_known smack_known_hat;
+ extern struct smack_known smack_known_huh;
+@@ -195,8 +194,6 @@ extern struct smack_known smack_known_st
+ extern struct smack_known smack_known_unset;
+ 
+ extern struct smk_list_entry *smack_list;
+-extern struct mutex smack_list_lock;
+-extern struct mutex smack_cipso_lock;
+ 
+ /*
+  * Stricly for CIPSO level manipulation.
+diff -puN security/smack/smack_lsm.c~smack-mutex-capability-pointers-and-spelling-cleanup security/smack/smack_lsm.c
+--- a/security/smack/smack_lsm.c~smack-mutex-capability-pointers-and-spelling-cleanup
++++ a/security/smack/smack_lsm.c
+@@ -126,7 +126,7 @@ static int smack_syslog(int type)
+ 	if (rc != 0)
+ 		return rc;
+ 
+-	if (__capable(current, CAP_MAC_OVERRIDE))
++	if (capable(CAP_MAC_OVERRIDE))
+ 		return 0;
+ 
+ 	 if (sp != smack_known_floor.smk_known)
+@@ -584,8 +584,7 @@ static int smack_inode_getattr(struct vf
+ static int smack_inode_setxattr(struct dentry *dentry, char *name,
+ 				void *value, size_t size, int flags)
+ {
+-	if (strcmp(name, XATTR_NAME_SMACK) == 0 &&
+-		!__capable(current, CAP_MAC_ADMIN))
++	if (strcmp(name, XATTR_NAME_SMACK) == 0 && !capable(CAP_MAC_ADMIN))
+ 		return -EPERM;
+ 
+ 	return smk_curacc(smk_of_inode(dentry->d_inode), MAY_WRITE);
+@@ -655,8 +654,7 @@ static int smack_inode_getxattr(struct d
+  */
+ static int smack_inode_removexattr(struct dentry *dentry, char *name)
+ {
+-	if (strcmp(name, XATTR_NAME_SMACK) == 0 &&
+-		!__capable(current, CAP_MAC_ADMIN))
++	if (strcmp(name, XATTR_NAME_SMACK) == 0 && !capable(CAP_MAC_ADMIN))
+ 		return -EPERM;
+ 
+ 	return smk_curacc(smk_of_inode(dentry->d_inode), MAY_WRITE);
+@@ -736,7 +734,7 @@ static int smack_inode_setsecurity(struc
+ 				   const void *value, size_t size, int flags)
+ {
+ 	char *sp;
+-	struct inode_smack *nsp = (struct inode_smack *)inode->i_security;
++	struct inode_smack *nsp = inode->i_security;
+ 	struct socket_smack *ssp;
+ 	struct socket *sock;
+ 
+@@ -748,9 +746,7 @@ static int smack_inode_setsecurity(struc
+ 		return -EINVAL;
+ 
+ 	if (strcmp(name, XATTR_SMACK_SUFFIX) == 0) {
+-		mutex_lock(&nsp->smk_lock);
+ 		nsp->smk_inode = sp;
+-		mutex_unlock(&nsp->smk_lock);
+ 		return 0;
+ 	}
+ 	/*
+@@ -950,7 +946,7 @@ static int smack_file_send_sigiotask(str
+ 	/*
+ 	 * struct fown_struct is never outside the context of a struct file
+ 	 */
+-	file = (struct file *)((long)fown - offsetof(struct file, f_owner));
++	file = container_of(fown, struct file, f_owner);
+ 	rc = smk_access(file->f_security, tsk->security, MAY_WRITE);
+ 	if (rc != 0 && __capable(tsk, CAP_MAC_OVERRIDE))
+ 		return 0;
+@@ -987,7 +983,7 @@ static int smack_file_receive(struct fil
+  * @tsk: the task in need of a blob
+  *
+  * Smack isn't using copies of blobs. Everyone
+- * points to an immutible list. No alloc required.
++ * points to an immutable list. No alloc required.
+  * No data copy required.
+  *
+  * Always returns 0
+@@ -1004,7 +1000,7 @@ static int smack_task_alloc_security(str
+  * @task: the task with the blob
+  *
+  * Smack isn't using copies of blobs. Everyone
+- * points to an immutible list. The blobs never go away.
++ * points to an immutable list. The blobs never go away.
+  * There is no leak here.
+  */
+ static void smack_task_free_security(struct task_struct *task)
+@@ -1192,8 +1188,7 @@ static int smack_task_wait(struct task_s
+ 	 * state into account in the decision as well as
+ 	 * the smack value.
+ 	 */
+-	if (__capable(current, CAP_MAC_OVERRIDE) ||
+-		__capable(p, CAP_MAC_OVERRIDE))
++	if (capable(CAP_MAC_OVERRIDE) || __capable(p, CAP_MAC_OVERRIDE))
+ 		return 0;
+ 
+ 	return rc;
+@@ -1226,12 +1221,12 @@ static void smack_task_to_inode(struct t
+  *
+  * Returns 0 on success, -ENOMEM is there's no memory
+  */
+-static int smack_sk_alloc_security(struct sock *sk, int family, gfp_t priority)
++static int smack_sk_alloc_security(struct sock *sk, int family, gfp_t gfp_flags)
+ {
+ 	char *csp = current->security;
+ 	struct socket_smack *ssp;
+ 
+-	ssp = kzalloc(sizeof(struct socket_smack), priority);
++	ssp = kzalloc(sizeof(struct socket_smack), gfp_flags);
+ 	if (ssp == NULL)
+ 		return -ENOMEM;
+ 
+@@ -1252,7 +1247,6 @@ static int smack_sk_alloc_security(struc
+ static void smack_sk_free_security(struct sock *sk)
+ {
+ 	kfree(sk->sk_security);
+-	sk->sk_security = NULL;
+ }
+ 
+ /**
+@@ -2481,10 +2475,6 @@ static struct security_operations smack_
+ 	.release_secctx = 		smack_release_secctx,
+ };
+ 
+-DEFINE_MUTEX(smack_list_lock);
+-DEFINE_MUTEX(smack_known_lock);
+-DEFINE_MUTEX(smack_cipso_lock);
+-
+ /**
+  * smack_init - initialize the smack system
+  *
+@@ -2509,10 +2499,6 @@ static __init int smack_init(void)
+ 	spin_lock_init(&smack_known_floor.smk_cipsolock);
+ 	spin_lock_init(&smack_known_invalid.smk_cipsolock);
+ 
+-	mutex_init(&smack_known_lock);
+-	mutex_init(&smack_list_lock);
+-	mutex_init(&smack_cipso_lock);
+-
+ 	/*
+ 	 * Register with LSM
+ 	 */
 _
 
-Patches currently in -mm which might be from andy.sharp@onstor.com are
+Patches currently in -mm which might be from casey@schaufler-ca.com are
 
-git-mips.patch
-add-support-for-sb1-hardware-watchdog.patch
-add-support-for-sb1-hardware-watchdog-fix.patch
-platform-real-time-clock-driver-for-dallas-1511-chip.patch
+vfs-security-rework-inode_getsecurity-and-callers-to.patch
+vfs-reorder-vfs_getxattr-to-avoid-unnecessary-calls-to-the-lsm.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+64bit-capability-support-legacy-support-fix.patch
+capabilities-introduce-per-process-capability-bounding-set.patch
+netlabel-introduce-a-new-kernel-configuration-api-for-netlabel.patch
+smack-version-11c-simplified-mandatory-access-control-kernel.patch
+smack-using-capabilities-32-and-33.patch
+smack-using-capabilities-32-and-33-update-cap_last_cap-to-reflect-cap_mac_admin.patch
+smack-mutex-capability-pointers-and-spelling-cleanup.patch
