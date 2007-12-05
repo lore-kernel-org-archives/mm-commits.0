@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + timerfd-v3-new-timerfd-api-arch-fixes.patch added to -mm tree
-Date: Tue, 04 Dec 2007 16:25:13 -0800
-Message-ID: <200712050032.lB50WcC6013168@imap1.linux-foundation.org>
+Subject: + revert-dpt_i2o-convert-to-use-the-data-buffer-accessors.patch added to -mm tree
+Date: Tue, 04 Dec 2007 16:56:18 -0800
+Message-ID: <200712050056.lB50uIWX014002@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40672 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32946 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750709AbXLEAcq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 19:32:46 -0500
+	by vger.kernel.org with ESMTP id S1751493AbXLEA5I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 19:57:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davidel@xmailserver.org, heiko.carstens@de.ibm.com, mtk.manpages@gmail.com, schwidefsky@de.ibm.com
+Cc: akpm@linux-foundation.org, James.Bottomley@SteelEye.com, anders.henke@1und1.de, fujita.tomonori@lab.ntt.co.jp, jens.axboe@oracle.com, mark_salyzyn@adaptec.com
 
 
 The patch titled
-     timerfd-v3-new-timerfd-api-arch-fixes
+     revert "dpt_i2o: convert to use the data buffer accessors"
 has been added to the -mm tree.  Its filename is
-     timerfd-v3-new-timerfd-api-arch-fixes.patch
+     revert-dpt_i2o-convert-to-use-the-data-buffer-accessors.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,152 +25,117 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: timerfd-v3-new-timerfd-api-arch-fixes
+Subject: revert "dpt_i2o: convert to use the data buffer accessors"
 From: Andrew Morton <akpm@linux-foundation.org>
 
-more trainwreckage repair.
+revert
 
-The s390 change is probably wrong.
+    commit 10803de4c18e8e085573fd7153de3e64d4246af5
+    Author: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+    Date:   Sat May 26 02:08:10 2007 +0900
 
-There are still references to compat_sys_timerfd() around the place.
+    
+        - remove the unnecessary map_single path.
 
-Better patches, please.
+        - convert to use the new accessors for the sg lists and the
+        parameters.
+    
+        Jens Axboe <jens.axboe@oracle.com> did the for_each_sg cleanup.
+    
+        Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+    
+        ACK. Code inspected. Driver changes NOT unit tested or compile tested.
+        Acked-by: "Salyzyn, Mark" <mark_salyzyn@adaptec.com>
+        Signed-off-by: James Bottomley <James.Bottomley@SteelEye.com>
 
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: "Salyzyn, Mark" <mark_salyzyn@adaptec.com>
+Cc: James Bottomley <James.Bottomley@SteelEye.com>
+Cc: Anders Henke <anders.henke@1und1.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/systbls.S          |    2 +-
- arch/arm/kernel/calls.S              |    2 +-
- arch/blackfin/mach-common/entry.S    |    2 +-
- arch/cris/arch-v10/kernel/entry.S    |    2 +-
- arch/m68knommu/kernel/syscalltable.S |    2 +-
- arch/s390/kernel/syscalls.S          |    2 +-
- arch/sh/kernel/syscalls_32.S         |    2 +-
- arch/sh/kernel/syscalls_64.S         |    2 +-
- arch/sparc/kernel/systbls.S          |    2 +-
- arch/sparc64/kernel/systbls.S        |    2 +-
- 10 files changed, 10 insertions(+), 10 deletions(-)
+ drivers/scsi/dpt_i2o.c |   33 ++++++++++++++++++++-------------
+ 1 file changed, 20 insertions(+), 13 deletions(-)
 
-diff -puN arch/alpha/kernel/systbls.S~timerfd-v3-new-timerfd-api-arch-fixes arch/alpha/kernel/systbls.S
---- a/arch/alpha/kernel/systbls.S~timerfd-v3-new-timerfd-api-arch-fixes
-+++ a/arch/alpha/kernel/systbls.S
-@@ -495,7 +495,7 @@ sys_call_table:
- 	.quad sys_epoll_pwait
- 	.quad sys_utimensat			/* 475 */
- 	.quad sys_signalfd
--	.quad sys_timerfd
-+	.quad sys_ni_syscall
- 	.quad sys_eventfd
+diff -puN drivers/scsi/dpt_i2o.c~revert-dpt_i2o-convert-to-use-the-data-buffer-accessors drivers/scsi/dpt_i2o.c
+--- a/drivers/scsi/dpt_i2o.c~revert-dpt_i2o-convert-to-use-the-data-buffer-accessors
++++ a/drivers/scsi/dpt_i2o.c
+@@ -2062,13 +2062,12 @@ static s32 adpt_scsi_to_i2o(adpt_hba* pH
+ 	u32 *lenptr;
+ 	int direction;
+ 	int scsidir;
+-	int nseg;
+ 	u32 len;
+ 	u32 reqlen;
+ 	s32 rcode;
  
- 	.size sys_call_table, . - sys_call_table
-diff -puN arch/arm/kernel/calls.S~timerfd-v3-new-timerfd-api-arch-fixes arch/arm/kernel/calls.S
---- a/arch/arm/kernel/calls.S~timerfd-v3-new-timerfd-api-arch-fixes
-+++ a/arch/arm/kernel/calls.S
-@@ -359,7 +359,7 @@
- 		CALL(sys_kexec_load)
- 		CALL(sys_utimensat)
- 		CALL(sys_signalfd)
--/* 350 */	CALL(sys_timerfd)
-+/* 350 */	CALL(sys_ni_syscall)
- 		CALL(sys_eventfd)
- 		CALL(sys_fallocate)
- #ifndef syscalls_counted
-diff -puN arch/blackfin/mach-common/entry.S~timerfd-v3-new-timerfd-api-arch-fixes arch/blackfin/mach-common/entry.S
---- a/arch/blackfin/mach-common/entry.S~timerfd-v3-new-timerfd-api-arch-fixes
-+++ a/arch/blackfin/mach-common/entry.S
-@@ -1356,7 +1356,7 @@ ENTRY(_sys_call_table)
- 	.long _sys_epoll_pwait
- 	.long _sys_utimensat
- 	.long _sys_signalfd
--	.long _sys_timerfd
-+	.long _sys_ni_syscall
- 	.long _sys_eventfd	/* 350 */
- 	.long _sys_pread64
- 	.long _sys_pwrite64
-diff -puN arch/cris/arch-v10/kernel/entry.S~timerfd-v3-new-timerfd-api-arch-fixes arch/cris/arch-v10/kernel/entry.S
---- a/arch/cris/arch-v10/kernel/entry.S~timerfd-v3-new-timerfd-api-arch-fixes
-+++ a/arch/cris/arch-v10/kernel/entry.S
-@@ -1167,7 +1167,7 @@ sys_call_table:	
- 	.long sys_epoll_pwait
- 	.long sys_utimensat		/* 320 */
- 	.long sys_signalfd
--	.long sys_timerfd
-+	.long sys_ni_syscall
- 	.long sys_eventfd
- 	.long sys_fallocate
+ 	memset(msg, 0 , sizeof(msg));
+-	len = scsi_bufflen(cmd);
++	len = cmd->request_bufflen;
+ 	direction = 0x00000000;	
+ 	
+ 	scsidir = 0x00000000;			// DATA NO XFER
+@@ -2125,21 +2124,21 @@ static s32 adpt_scsi_to_i2o(adpt_hba* pH
+ 	lenptr=mptr++;		/* Remember me - fill in when we know */
+ 	reqlen = 14;		// SINGLE SGE
+ 	/* Now fill in the SGList and command */
++	if(cmd->use_sg) {
++		struct scatterlist *sg = (struct scatterlist *)cmd->request_buffer;
++		int sg_count = pci_map_sg(pHba->pDev, sg, cmd->use_sg,
++				cmd->sc_data_direction);
  
-diff -puN arch/m68knommu/kernel/syscalltable.S~timerfd-v3-new-timerfd-api-arch-fixes arch/m68knommu/kernel/syscalltable.S
---- a/arch/m68knommu/kernel/syscalltable.S~timerfd-v3-new-timerfd-api-arch-fixes
-+++ a/arch/m68knommu/kernel/syscalltable.S
-@@ -336,7 +336,7 @@ ENTRY(sys_call_table)
- 	.long sys_epoll_pwait		/* 315 */
- 	.long sys_utimensat
- 	.long sys_signalfd
--	.long sys_timerfd
-+	.long sys_ni_syscall
- 	.long sys_eventfd
- 	.long sys_fallocate		/* 320 */
+-	nseg = scsi_dma_map(cmd);
+-	BUG_ON(nseg < 0);
+-	if (nseg) {
+-		struct scatterlist *sg;
  
-diff -puN arch/s390/kernel/syscalls.S~timerfd-v3-new-timerfd-api-arch-fixes arch/s390/kernel/syscalls.S
---- a/arch/s390/kernel/syscalls.S~timerfd-v3-new-timerfd-api-arch-fixes
-+++ a/arch/s390/kernel/syscalls.S
-@@ -325,5 +325,5 @@ SYSCALL(sys_utimes,sys_utimes,compat_sys
- SYSCALL(s390_fallocate,sys_fallocate,sys_fallocate_wrapper)
- SYSCALL(sys_utimensat,sys_utimensat,compat_sys_utimensat_wrapper)	/* 315 */
- SYSCALL(sys_signalfd,sys_signalfd,compat_sys_signalfd_wrapper)
--SYSCALL(sys_timerfd,sys_timerfd,compat_sys_timerfd_wrapper)
-+SYSCALL(sys_timerfd,sys_ni_syscall,compat_sys_timerfd_wrapper)
- SYSCALL(sys_eventfd,sys_eventfd,sys_eventfd_wrapper)
-diff -puN arch/sh/kernel/syscalls_32.S~timerfd-v3-new-timerfd-api-arch-fixes arch/sh/kernel/syscalls_32.S
---- a/arch/sh/kernel/syscalls_32.S~timerfd-v3-new-timerfd-api-arch-fixes
-+++ a/arch/sh/kernel/syscalls_32.S
-@@ -338,6 +338,6 @@ ENTRY(sys_call_table)
- 	.long sys_epoll_pwait
- 	.long sys_utimensat		/* 320 */
- 	.long sys_signalfd
--	.long sys_timerfd
-+	.long sys_ni_syscall
- 	.long sys_eventfd
- 	.long sys_fallocate
-diff -puN arch/sh/kernel/syscalls_64.S~timerfd-v3-new-timerfd-api-arch-fixes arch/sh/kernel/syscalls_64.S
---- a/arch/sh/kernel/syscalls_64.S~timerfd-v3-new-timerfd-api-arch-fixes
-+++ a/arch/sh/kernel/syscalls_64.S
-@@ -376,6 +376,6 @@ sys_call_table:
- 	.long sys_epoll_pwait
- 	.long sys_utimensat
- 	.long sys_signalfd
--	.long sys_timerfd		/* 350 */
-+	.long sys_ni_syscall		/* 350 */
- 	.long sys_eventfd
- 	.long sys_fallocate
-diff -puN arch/sparc/kernel/systbls.S~timerfd-v3-new-timerfd-api-arch-fixes arch/sparc/kernel/systbls.S
---- a/arch/sparc/kernel/systbls.S~timerfd-v3-new-timerfd-api-arch-fixes
-+++ a/arch/sparc/kernel/systbls.S
-@@ -79,7 +79,7 @@ sys_call_table:
- /*295*/	.long sys_fchmodat, sys_faccessat, sys_pselect6, sys_ppoll, sys_unshare
- /*300*/	.long sys_set_robust_list, sys_get_robust_list, sys_migrate_pages, sys_mbind, sys_get_mempolicy
- /*305*/	.long sys_set_mempolicy, sys_kexec_load, sys_move_pages, sys_getcpu, sys_epoll_pwait
--/*310*/	.long sys_utimensat, sys_signalfd, sys_timerfd, sys_eventfd, sys_fallocate
-+/*310*/	.long sys_utimensat, sys_signalfd, sys_ni_syscall, sys_eventfd, sys_fallocate
+ 		len = 0;
+-		scsi_for_each_sg(cmd, sg, nseg, i) {
++		for(i = 0 ; i < sg_count; i++) {
+ 			*mptr++ = direction|0x10000000|sg_dma_len(sg);
+ 			len+=sg_dma_len(sg);
+ 			*mptr++ = sg_dma_address(sg);
+-			/* Make this an end of list */
+-			if (i == nseg - 1)
+-				mptr[-2] = direction|0xD0000000|sg_dma_len(sg);
++			sg++;
+ 		}
++		/* Make this an end of list */
++		mptr[-2] = direction|0xD0000000|sg_dma_len(sg-1);
+ 		reqlen = mptr - msg;
+ 		*lenptr = len;
+ 		
+@@ -2148,8 +2147,16 @@ static s32 adpt_scsi_to_i2o(adpt_hba* pH
+ 				len, cmd->underflow);
+ 		}
+ 	} else {
+-		*lenptr = len = 0;
+-		reqlen = 12;
++		*lenptr = len = cmd->request_bufflen;
++		if(len == 0) {
++			reqlen = 12;
++		} else {
++			*mptr++ = 0xD0000000|direction|cmd->request_bufflen;
++			*mptr++ = pci_map_single(pHba->pDev,
++				cmd->request_buffer,
++				cmd->request_bufflen,
++				cmd->sc_data_direction);
++		}
+ 	}
+ 	
+ 	/* Stick the headers on */
+@@ -2178,7 +2185,7 @@ static s32 adpt_i2o_to_scsi(void __iomem
+ 	hba_status = detailed_status >> 8;
  
- #ifdef CONFIG_SUNOS_EMUL
- 	/* Now the SunOS syscall table. */
-diff -puN arch/sparc64/kernel/systbls.S~timerfd-v3-new-timerfd-api-arch-fixes arch/sparc64/kernel/systbls.S
---- a/arch/sparc64/kernel/systbls.S~timerfd-v3-new-timerfd-api-arch-fixes
-+++ a/arch/sparc64/kernel/systbls.S
-@@ -152,7 +152,7 @@ sys_call_table:
- 	.word sys_fchmodat, sys_faccessat, sys_pselect6, sys_ppoll, sys_unshare
- /*300*/	.word sys_set_robust_list, sys_get_robust_list, sys_migrate_pages, sys_mbind, sys_get_mempolicy
- 	.word sys_set_mempolicy, sys_kexec_load, sys_move_pages, sys_getcpu, sys_epoll_pwait
--/*310*/	.word sys_utimensat, sys_signalfd, sys_timerfd, sys_eventfd, sys_fallocate
-+/*310*/	.word sys_utimensat, sys_signalfd, sys_ni_syscall, sys_eventfd, sys_fallocate
+ 	// calculate resid for sg 
+-	scsi_set_resid(cmd, scsi_bufflen(cmd) - readl(reply+5));
++	cmd->resid = cmd->request_bufflen - readl(reply+5);
  
- #if defined(CONFIG_SUNOS_EMUL) || defined(CONFIG_SOLARIS_EMUL) || \
-     defined(CONFIG_SOLARIS_EMUL_MODULE)
+ 	pHba = (adpt_hba*) cmd->device->host->hostdata[0];
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -178,12 +143,14 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 ufs-fix-nexstep-dir-block-size-checkpatch-fixes.patch
 aoe-properly-initialise-the-request_queues-backing_dev_info.patch
+revert-dpt_i2o-convert-to-use-the-data-buffer-accessors.patch
 get_task_comm-return-the-result.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
 timerfd-v3-new-timerfd-api-ia64-fix.patch
 timerfd-v3-new-timerfd-api-m68k-fix.patch
 timerfd-v3-new-timerfd-api-mips-fix.patch
+timerfd-v3-new-timerfd-api-arch-fixes.patch
 git-acpi.patch
 git-acpi-ia64-build-fix.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
@@ -378,4 +345,3 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-timerfd-v3-new-timerfd-api-arch-fixes.patch
