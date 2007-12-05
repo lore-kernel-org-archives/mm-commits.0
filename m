@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + usb-mon-nopage.patch added to -mm tree
-Date: Wed, 05 Dec 2007 14:45:06 -0800
-Message-ID: <200712052245.lB5Mj6Vh028901@imap1.linux-foundation.org>
+Subject: + ib-nopage.patch added to -mm tree
+Date: Wed, 05 Dec 2007 14:45:04 -0800
+Message-ID: <200712052245.lB5Mj4xe028898@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36090 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38105 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752331AbXLEWpu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Dec 2007 17:45:50 -0500
+	by vger.kernel.org with ESMTP id S1752369AbXLEWqO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Dec 2007 17:46:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, greg@kroah.com, zaitcev@redhat.com
+Cc: npiggin@suse.de, rolandd@cisco.com
 
 
 The patch titled
-     usb: mon nopage
+     ib: nopage
 has been added to the -mm tree.  Its filename is
-     usb-mon-nopage.patch
+     ib-nopage.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,64 +25,88 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: usb: mon nopage
+Subject: ib: nopage
 From: Nick Piggin <npiggin@suse.de>
 
-Convert USB mon driver from nopage to fault.
+Convert IB from nopage to fault.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
-Acked-by: Pete Zaitcev <zaitcev@redhat.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/mon/mon_bin.c |   16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+ drivers/infiniband/hw/ipath/ipath_debug.h    |    4 +-
+ drivers/infiniband/hw/ipath/ipath_file_ops.c |   29 +++++------------
+ 2 files changed, 12 insertions(+), 21 deletions(-)
 
-diff -puN drivers/usb/mon/mon_bin.c~usb-mon-nopage drivers/usb/mon/mon_bin.c
---- a/drivers/usb/mon/mon_bin.c~usb-mon-nopage
-+++ a/drivers/usb/mon/mon_bin.c
-@@ -1047,33 +1047,31 @@ static void mon_bin_vma_close(struct vm_
- /*
-  * Map ring pages to user space.
-  */
--struct page *mon_bin_vma_nopage(struct vm_area_struct *vma,
--                                unsigned long address, int *type)
-+static int mon_bin_vma_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
- {
- 	struct mon_reader_bin *rp = vma->vm_private_data;
- 	unsigned long offset, chunk_idx;
- 	struct page *pageptr;
+diff -puN drivers/infiniband/hw/ipath/ipath_debug.h~ib-nopage drivers/infiniband/hw/ipath/ipath_debug.h
+--- a/drivers/infiniband/hw/ipath/ipath_debug.h~ib-nopage
++++ a/drivers/infiniband/hw/ipath/ipath_debug.h
+@@ -55,7 +55,7 @@
+ #define __IPATH_PKTDBG      0x80	/* print packet data */
+ /* print process startup (init)/exit messages */
+ #define __IPATH_PROCDBG     0x100
+-/* print mmap/nopage stuff, not using VDBG any more */
++/* print mmap/fault stuff, not using VDBG any more */
+ #define __IPATH_MMDBG       0x200
+ #define __IPATH_ERRPKTDBG   0x400
+ #define __IPATH_USER_SEND   0x1000	/* use user mode send */
+@@ -81,7 +81,7 @@
+ #define __IPATH_VERBDBG   0x0	/* very verbose debug */
+ #define __IPATH_PKTDBG    0x0	/* print packet data */
+ #define __IPATH_PROCDBG   0x0	/* process startup (init)/exit messages */
+-/* print mmap/nopage stuff, not using VDBG any more */
++/* print mmap/fault stuff, not using VDBG any more */
+ #define __IPATH_MMDBG     0x0
+ #define __IPATH_EPKTDBG   0x0	/* print ethernet packet data */
+ #define __IPATH_IPATHDBG  0x0	/* Ethernet (IPATH) table dump on */
+diff -puN drivers/infiniband/hw/ipath/ipath_file_ops.c~ib-nopage drivers/infiniband/hw/ipath/ipath_file_ops.c
+--- a/drivers/infiniband/hw/ipath/ipath_file_ops.c~ib-nopage
++++ a/drivers/infiniband/hw/ipath/ipath_file_ops.c
+@@ -1120,33 +1120,24 @@ bail:
+ }
  
--	offset = (address - vma->vm_start) + (vma->vm_pgoff << PAGE_SHIFT);
-+	offset = vmf->pgoff << PAGE_SHIFT;
- 	if (offset >= rp->b_size)
--		return NOPAGE_SIGBUS;
+ /*
+- * ipath_file_vma_nopage - handle a VMA page fault.
++ * ipath_file_vma_fault - handle a VMA page fault.
+  */
+-static struct page *ipath_file_vma_nopage(struct vm_area_struct *vma,
+-					  unsigned long address, int *type)
++static int ipath_file_vma_fault(struct vm_area_struct *vma,
++					struct vm_fault *vmf)
+ {
+-	unsigned long offset = address - vma->vm_start;
+-	struct page *page = NOPAGE_SIGBUS;
+-	void *pageptr;
++	struct page *page;
+ 
+-	/*
+-	 * Convert the vmalloc address into a struct page.
+-	 */
+-	pageptr = (void *)(offset + (vma->vm_pgoff << PAGE_SHIFT));
+-	page = vmalloc_to_page(pageptr);
++	page = vmalloc_to_page((void *)(vmf->pgoff << PAGE_SHIFT));
+ 	if (!page)
+-		goto out;
+-
+-	/* Increment the reference count. */
 +		return VM_FAULT_SIGBUS;
- 	chunk_idx = offset / CHUNK_SIZE;
- 	pageptr = rp->b_vec[chunk_idx].pg;
- 	get_page(pageptr);
+ 	get_page(page);
 -	if (type)
 -		*type = VM_FAULT_MINOR;
--	return pageptr;
-+	vmf->page = pageptr;
+-out:
+-	return page;
++	vmf->page = page;
++
 +	return 0;
  }
  
- struct vm_operations_struct mon_bin_vm_ops = {
- 	.open =     mon_bin_vma_open,
- 	.close =    mon_bin_vma_close,
--	.nopage =   mon_bin_vma_nopage,
-+	.fault =    mon_bin_vma_fault,
+ static struct vm_operations_struct ipath_file_vm_ops = {
+-	.nopage = ipath_file_vma_nopage,
++	.fault = ipath_file_vma_fault,
  };
  
- int mon_bin_mmap(struct file *filp, struct vm_area_struct *vma)
- {
--	/* don't do anything here: "nopage" will set up page table entries */
-+	/* don't do anything here: "fault" will set up page table entries */
- 	vma->vm_ops = &mon_bin_vm_ops;
- 	vma->vm_flags |= VM_RESERVED;
- 	vma->vm_private_data = filp->private_data;
+ static int mmap_kvaddr(struct vm_area_struct *vma, u64 pgaddr,
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
