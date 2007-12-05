@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kallsyms-should-prefer-non-weak-symbols.patch added to -mm tree
-Date: Tue, 04 Dec 2007 19:09:33 -0800
-Message-ID: <200712050309.lB539XSS018420@imap1.linux-foundation.org>
+Subject: + kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 04 Dec 2007 19:14:42 -0800
+Message-ID: <200712050314.lB53EgMO018593@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55101 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39140 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751125AbXLEDKb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 22:10:31 -0500
+	by vger.kernel.org with ESMTP id S1751297AbXLEDP1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 22:15:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pmarques@grupopie.com, mathieu.desnoyers@polymtl.ca, rusty@rustcorp.com.au, sam@ravnborg.org
+Cc: akpm@linux-foundation.org, mathieu.desnoyers@polymtl.ca, pmarques@grupopie.com, sam@ravnborg.org
 
 
 The patch titled
-     kallsyms should prefer non weak symbols
+     kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     kallsyms-should-prefer-non-weak-symbols.patch
+     kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,112 +25,307 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kallsyms should prefer non weak symbols
-From: Paulo Marques <pmarques@grupopie.com>
+Subject: kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-When resolving symbol names from addresses with aliased symbol names,
-kallsyms_lookup always returns the first symbol, even if it is a weak
-symbol.
+Fix checkpatch warnings:
 
-This patch changes this by sorting the symbols with the weak symbols last
-before feeding them to the kernel.  This way the kernel runtime isn't
-changed at all, only the kallsyms build system is changed.
+ERROR: do not use C99 // comments
+#72: FILE: scripts/kallsyms.c:516:
++	// sort by address first
 
-Another side effect is that the symbols get sorted by address, too.  So,
-even if future binutils version have some bug in "nm" that makes it fail to
-correctly sort symbols by address, the kernel won't be affected by this.
+ERROR: do not use C99 // comments
+#78: FILE: scripts/kallsyms.c:522:
++	// sort by "weakness" type
 
-Mathieu says:
+ERROR: do not use C99 // comments
+#84: FILE: scripts/kallsyms.c:528:
++	// sort by initial order, so that other symbols are left undisturbed
 
-  I created a module in LTTng that uses kallsyms to get the symbol
-  corresponding to a specific system call address.  Unfortunately, all the
-  unimplemented syscalls were all referring to the (same) weak symbol
-  identifying an unrelated system call rather that sys_ni (or whatever
-  non-weak symbol would be expected).  Kallsyms was dumbly returning the first
-  symbol that matched.
+total: 3 errors, 0 warnings, 61 lines checked
 
-  This patch makes sure kallsyms returns the non-weak symbol when there is
-  one, which seems to be the expected result.
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Looks-great-to: Rusty Russell <rusty@rustcorp.com.au>
+Please run checkpatch prior to sending patches
+
+And a few coding-style things which checkpatch missed.
+
+And fix up constificiation to remove typecasting.
+
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Paulo Marques <pmarques@grupopie.com>
 Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kallsyms.c |   36 ++++++++++++++++++++++++++++++++++--
- 1 file changed, 34 insertions(+), 2 deletions(-)
+ scripts/kallsyms.c |   19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
-diff -puN scripts/kallsyms.c~kallsyms-should-prefer-non-weak-symbols scripts/kallsyms.c
---- a/scripts/kallsyms.c~kallsyms-should-prefer-non-weak-symbols
+diff -puN scripts/kallsyms.c~kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes scripts/kallsyms.c
+--- a/scripts/kallsyms.c~kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes
 +++ a/scripts/kallsyms.c
-@@ -34,7 +34,7 @@
+@@ -31,14 +31,13 @@
  
+ #define KSYM_NAME_LEN		128
+ 
+-
  struct sym_entry {
  	unsigned long long addr;
--	unsigned int len;
-+	unsigned int len, start_pos;
+-	unsigned int len, start_pos;
++	unsigned int len;
++	unsigned int start_pos;
  	unsigned char *sym;
  };
  
-@@ -198,8 +198,10 @@ static void read_map(FILE *in)
- 				exit (1);
- 			}
- 		}
--		if (read_symbol(in, &table[table_cnt]) == 0)
-+		if (read_symbol(in, &table[table_cnt]) == 0) {
-+			table[table_cnt].start_pos = table_cnt;
- 			table_cnt++;
-+		}
- 	}
+-
+ static struct sym_entry *table;
+ static unsigned int table_size, table_cnt;
+ static unsigned long long _text, _stext, _etext, _sinittext, _einittext;
+@@ -504,28 +503,28 @@ static void optimize_token_table(void)
+ 	optimize_result();
  }
  
-@@ -503,6 +505,35 @@ static void optimize_token_table(void)
- }
- 
- 
-+static int compare_symbols(const void *a, const void *b)
-+{
-+	struct sym_entry *sa, *sb;
-+	int wa, wb;
-+
-+	sa = (struct sym_entry *) a;
-+	sb = (struct sym_entry *) b;
-+
-+	// sort by address first
-+	if (sa->addr > sb->addr)
-+		return 1;
-+	if (sa->addr < sb->addr)
-+		return -1;
-+
-+	// sort by "weakness" type
-+	wa = (sa->sym[0] == 'w') || (sa->sym[0] == 'W');
-+	wb = (sb->sym[0] == 'w') || (sb->sym[0] == 'W');
-+	if (wa != wb)
-+		return wa - wb;
-+
-+	// sort by initial order, so that other symbols are left undisturbed
-+	return sa->start_pos - sb->start_pos;
-+}
-+
-+static void sort_symbols(void)
-+{
-+	qsort(table, table_cnt, sizeof(struct sym_entry), compare_symbols);
-+}
-+
- int main(int argc, char **argv)
+-
+ static int compare_symbols(const void *a, const void *b)
  {
- 	if (argc >= 2) {
-@@ -523,6 +554,7 @@ int main(int argc, char **argv)
- 		usage();
+-	struct sym_entry *sa, *sb;
++	const struct sym_entry *sa;
++	const struct sym_entry *sb;
+ 	int wa, wb;
  
- 	read_map(stdin);
-+	sort_symbols();
- 	optimize_token_table();
- 	write_src();
+-	sa = (struct sym_entry *) a;
+-	sb = (struct sym_entry *) b;
++	sa = a;
++	sb = b;
+ 
+-	// sort by address first
++	/* sort by address first */
+ 	if (sa->addr > sb->addr)
+ 		return 1;
+ 	if (sa->addr < sb->addr)
+ 		return -1;
+ 
+-	// sort by "weakness" type
++	/* sort by "weakness" type */
+ 	wa = (sa->sym[0] == 'w') || (sa->sym[0] == 'W');
+ 	wb = (sb->sym[0] == 'w') || (sb->sym[0] == 'W');
+ 	if (wa != wb)
+ 		return wa - wb;
+ 
+-	// sort by initial order, so that other symbols are left undisturbed
++	/* sort by initial order, so that other symbols are left undisturbed */
+ 	return sa->start_pos - sb->start_pos;
+ }
  
 _
 
-Patches currently in -mm which might be from pmarques@grupopie.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kallsyms-should-prefer-non-weak-symbols.patch
+origin.patch
+ufs-fix-nexstep-dir-block-size-checkpatch-fixes.patch
+aoe-properly-initialise-the-request_queues-backing_dev_info.patch
+revert-dpt_i2o-convert-to-scsi-hotplug-model.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+timerfd-v3-new-timerfd-api-ia64-fix.patch
+timerfd-v3-new-timerfd-api-m68k-fix.patch
+timerfd-v3-new-timerfd-api-mips-fix.patch
+timerfd-v3-new-timerfd-api-arch-fixes.patch
+git-acpi.patch
+git-acpi-ia64-build-fix.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-add-reboot-mechanism.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+git-agpgart.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+kernel-auditc-warning-fix.patch
+git-avr32-fixup.patch
+git-cpufreq.patch
+git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
+agk-dm-dm-ioctl-move-compat-code-fix.patch
+dm-persistent_read_metadata-warning-fix.patch
+ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
+driver-tree-broke-infiniband.patch
+gregkh-driver-driver-core-move-the-driver-specific-module-code-into-the-driver-core-fix.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+git-drm.patch
+git-drm-oops-fix.patch
+intel-agp-enable-i915-recognition.patch
+git-dvb.patch
+fix-jdelvare-i2c-i2c-constify-client-address-data.patch
+revert-git-hrt.patch
+ia64-slim-down-__clear_bit_unlock.patch
+git-infiniband.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+libata-xfer_mask-is-unsigned-int-not-unsigned-long-fix.patch
+libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
+libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
+git-mmc.patch
+git-mtd.patch
+git-net.patch
+git-netdev-all.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+bluetooth-uninlining.patch
+git-nfsd.patch
+quirk-enable-msi-mapping-on-ht1000.patch
+git-sh.patch
+git-scsi-misc-fixup.patch
+ips-trim-trailing-whitespace.patch
+scsi-gdth-kill-unneeded-irq-argument.patch
+drivers-scsi-sgiwd93c-export-sgiwd93_reset.patch
+libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+mct232-speed-new-termios-and-compliance-cleanups-fix.patch
+git-watchdog.patch
+git-watchdog-hpwdt-build-fix.patch
+add-support-for-sb1-hardware-watchdog-fix.patch
+git-wireless.patch
+bcm43xx_debugfs-sscanf-fix.patch
+git-ipwireless_cs.patch
+revert-git-kvm-changes-in-arch-x86-kconfig.patch
+git-x86.patch
+revert-revert-git-kvm-changes-in-arch-x86-kconfig.patch
+git-x86-__vdso_getcpu-warning-fix.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-xtensa.patch
+ia64-increase-datapatch-offset.patch
+ia64-dont-assume-that-unwcheckpy-is-executable.patch
+ia64-export-copy_page-to-modules.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+sync_sb_inodes-propagate-errors.patch
+move-kprobes-examples-to-samples-resend-vs-git-x86.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+64-bit-i_version-afs-fixes.patch
+ext4-add-block-bitmap-validation.patch
+ext4-fix-up-ext4fs_debug-builds.patch
+ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+cramfs-make-cramfs-little-endian-only-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
