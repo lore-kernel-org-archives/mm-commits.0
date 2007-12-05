@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ieee1394-nopage.patch added to -mm tree
-Date: Wed, 05 Dec 2007 14:44:50 -0800
-Message-ID: <200712052244.lB5MioTD028877@imap1.linux-foundation.org>
+Subject: + agp-alpha-nopage.patch added to -mm tree
+Date: Wed, 05 Dec 2007 14:44:56 -0800
+Message-ID: <200712052244.lB5MiuE3028886@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59015 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50579 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752577AbXLEWpK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Dec 2007 17:45:10 -0500
+	by vger.kernel.org with ESMTP id S1752608AbXLEWpP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Dec 2007 17:45:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, stefanr@s5r6.in-berlin.de
+Cc: npiggin@suse.de, ink@jurassic.park.msu.ru, rth@twiddle.net
 
 
 The patch titled
-     ieee1394: nopage
+     agp: alpha nopage
 has been added to the -mm tree.  Its filename is
-     ieee1394-nopage.patch
+     agp-alpha-nopage.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,85 +25,69 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ieee1394: nopage
+Subject: agp: alpha nopage
 From: Nick Piggin <npiggin@suse.de>
 
-Convert ieee1394 from nopage to fault.
-Remove redundant vma range checks (correct resource range check is retained).
+Convert AGP alpha driver from nopage to fault.
+NULL is NOPAGE_SIGBUS, so we aren't changing behaviour there.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ieee1394/dma.c |   39 +++++++++++++++++----------------------
- 1 file changed, 17 insertions(+), 22 deletions(-)
+ drivers/char/agp/alpha-agp.c |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN drivers/ieee1394/dma.c~ieee1394-nopage drivers/ieee1394/dma.c
---- a/drivers/ieee1394/dma.c~ieee1394-nopage
-+++ a/drivers/ieee1394/dma.c
-@@ -231,37 +231,32 @@ void dma_region_sync_for_device(struct d
+diff -puN drivers/char/agp/alpha-agp.c~agp-alpha-nopage drivers/char/agp/alpha-agp.c
+--- a/drivers/char/agp/alpha-agp.c~agp-alpha-nopage
++++ a/drivers/char/agp/alpha-agp.c
+@@ -11,29 +11,28 @@
  
- #ifdef CONFIG_MMU
+ #include "agp.h"
  
--/* nopage() handler for mmap access */
-+/* fault() handler for mmap access */
- 
--static struct page *dma_region_pagefault(struct vm_area_struct *area,
--					 unsigned long address, int *type)
-+static int dma_region_pagefault(struct vm_area_struct *vma,
+-static struct page *alpha_core_agp_vm_nopage(struct vm_area_struct *vma,
+-					     unsigned long address,
+-					     int *type)
++static int alpha_core_agp_vm_fault(struct vm_area_struct *vma,
 +					struct vm_fault *vmf)
  {
--	unsigned long offset;
- 	unsigned long kernel_virt_addr;
--	struct page *ret = NOPAGE_SIGBUS;
+ 	alpha_agp_info *agp = agp_bridge->dev_private_data;
+ 	dma_addr_t dma_addr;
+ 	unsigned long pa;
+ 	struct page *page;
  
--	struct dma_region *dma = (struct dma_region *)area->vm_private_data;
-+	struct dma_region *dma = (struct dma_region *)vma->vm_private_data;
+-	dma_addr = address - vma->vm_start + agp->aperture.bus_base;
++	dma_addr = (unsigned long)vmf->virtual_address - vma->vm_start
++						+ agp->aperture.bus_base;
+ 	pa = agp->ops->translate(agp, dma_addr);
  
- 	if (!dma->kvirt)
--		goto out;
-+		goto error;
+ 	if (pa == (unsigned long)-EINVAL)
+-		return NULL;	/* no translation */
++		return VM_FAULT_SIGBUS;	/* no translation */
  
--	if ((address < (unsigned long)area->vm_start) ||
--	    (address >
--	     (unsigned long)area->vm_start + (dma->n_pages << PAGE_SHIFT)))
--		goto out;
--
+ 	/*
+ 	 * Get the page, inc the use count, and return it
+ 	 */
+ 	page = virt_to_page(__va(pa));
+ 	get_page(page);
 -	if (type)
 -		*type = VM_FAULT_MINOR;
--	offset = address - area->vm_start;
--	kernel_virt_addr = (unsigned long)dma->kvirt + offset;
--	ret = vmalloc_to_page((void *)kernel_virt_addr);
--	get_page(ret);
--      out:
--	return ret;
-+	if (vmf->pgoff >= dma->n_pages)
-+		goto error;
-+
-+	kernel_virt_addr = (unsigned long)dma->kvirt + (vmf->pgoff << PAGE_SHIFT);
-+	vmf->page = vmalloc_to_page((void *)kernel_virt_addr);
-+	get_page(vmf->page);
+-	return page;
++	vmf->page = page;
 +	return 0;
-+
-+      error:
-+	return VM_FAULT_SIGBUS;
  }
  
- static struct vm_operations_struct dma_region_vm_ops = {
--	.nopage = dma_region_pagefault,
-+	.fault = dma_region_pagefault,
+ static struct aper_size_info_fixed alpha_core_agp_sizes[] =
+@@ -42,7 +41,7 @@ static struct aper_size_info_fixed alpha
  };
  
- /**
-@@ -275,7 +270,7 @@ int dma_region_mmap(struct dma_region *d
- 	if (!dma->kvirt)
- 		return -EINVAL;
+ struct vm_operations_struct alpha_core_agp_vm_ops = {
+-	.nopage = alpha_core_agp_vm_nopage,
++	.fault = alpha_core_agp_vm_fault,
+ };
  
--	/* must be page-aligned */
-+	/* must be page-aligned (XXX: comment is wrong, we could allow pgoff) */
- 	if (vma->vm_pgoff != 0)
- 		return -EINVAL;
  
 _
 
