@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + dio-fix-kernel-doc-notation.patch added to -mm tree
-Date: Wed, 05 Dec 2007 14:35:27 -0800
-Message-ID: <200712052235.lB5MZRi3028540@imap1.linux-foundation.org>
+Subject: + ia64-ia32-nopage.patch added to -mm tree
+Date: Wed, 05 Dec 2007 14:44:44 -0800
+Message-ID: <200712052244.lB5MiiJo028868@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52294 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51313 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752161AbXLEWg7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Dec 2007 17:36:59 -0500
+	by vger.kernel.org with ESMTP id S1752396AbXLEWot (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Dec 2007 17:44:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, jochen@scram.de
+Cc: npiggin@suse.de, tony.luck@intel.com
 
 
 The patch titled
-     dio: fix kernel-doc notation
+     ia64: ia32 nopage
 has been added to the -mm tree.  Its filename is
-     dio-fix-kernel-doc-notation.patch
+     ia64-ia32-nopage.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,141 +25,99 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dio: fix kernel-doc notation
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: ia64: ia32 nopage
+From: Nick Piggin <npiggin@suse.de>
 
-Fix kernel-doc in drivers/dio/ so that it is formatted correctly and the
-parameter names match the function parameters.
+Convert ia64's ia32 support from nopage to fault.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Jochen Friedrich <jochen@scram.de>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dio/dio-driver.c |   70 +++++++++++++++++--------------------
- 1 file changed, 34 insertions(+), 36 deletions(-)
+ arch/ia64/ia32/binfmt_elf32.c |   34 ++++++++++++++------------------
+ 1 file changed, 15 insertions(+), 19 deletions(-)
 
-diff -puN drivers/dio/dio-driver.c~dio-fix-kernel-doc-notation drivers/dio/dio-driver.c
---- a/drivers/dio/dio-driver.c~dio-fix-kernel-doc-notation
-+++ a/drivers/dio/dio-driver.c
-@@ -15,16 +15,15 @@
- #include <linux/dio.h>
+diff -puN arch/ia64/ia32/binfmt_elf32.c~ia64-ia32-nopage arch/ia64/ia32/binfmt_elf32.c
+--- a/arch/ia64/ia32/binfmt_elf32.c~ia64-ia32-nopage
++++ a/arch/ia64/ia32/binfmt_elf32.c
+@@ -52,33 +52,29 @@ extern struct page *ia32_shared_page[];
+ extern unsigned long *ia32_gdt;
+ extern struct page *ia32_gate_page;
  
- 
--	/**
--	 *  dio_match_device - Tell if a DIO device structure has a matching
--	 *                     DIO device id structure
--	 *  @ids: array of DIO device id structures to search in
--	 *  @dev: the DIO device structure to match against
--	 *
--	 *  Used by a driver to check whether a DIO device present in the
--	 *  system is in its list of supported devices. Returns the matching
--	 *  dio_device_id structure or %NULL if there is no match.
--	 */
-+/**
-+ *  dio_match_device - Tell if a DIO device structure has a matching DIO device id structure
-+ *  @ids: array of DIO device id structures to search in
-+ *  @d: the DIO device structure to match against
-+ *
-+ *  Used by a driver to check whether a DIO device present in the
-+ *  system is in its list of supported devices. Returns the matching
-+ *  dio_device_id structure or %NULL if there is no match.
-+ */
- 
- const struct dio_device_id *
- dio_match_device(const struct dio_device_id *ids,
-@@ -66,13 +65,13 @@ static int dio_device_probe(struct devic
+-struct page *
+-ia32_install_shared_page (struct vm_area_struct *vma, unsigned long address, int *type)
++int
++ia32_install_shared_page (struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+-	struct page *pg = ia32_shared_page[smp_processor_id()];
+-	get_page(pg);
+-	if (type)
+-		*type = VM_FAULT_MINOR;
+-	return pg;
+-}
+-
+-struct page *
+-ia32_install_gate_page (struct vm_area_struct *vma, unsigned long address, int *type)
+-{
+-	struct page *pg = ia32_gate_page;
+-	get_page(pg);
+-	if (type)
+-		*type = VM_FAULT_MINOR;
+-	return pg;
++	vmf->page = ia32_shared_page[smp_processor_id()];
++	get_page(vmf->page);
++	return 0;
++}
++
++int
++ia32_install_gate_page (struct vm_area_struct *vma, struct vm_fault *vmf)
++{
++	vmf->page = ia32_gate_page;
++	get_page(vmf->page);
++	return 0;
  }
  
  
--	/**
--	 *  dio_register_driver - register a new DIO driver
--	 *  @drv: the driver structure to register
--	 *
--	 *  Adds the driver structure to the list of registered drivers
--	 *  Returns zero or a negative error value.
--	 */
-+/**
-+ *  dio_register_driver - register a new DIO driver
-+ *  @drv: the driver structure to register
-+ *
-+ *  Adds the driver structure to the list of registered drivers
-+ *  Returns zero or a negative error value.
-+ */
+ static struct vm_operations_struct ia32_shared_page_vm_ops = {
+-	.nopage = ia32_install_shared_page
++	.fault = ia32_install_shared_page
+ };
  
- int dio_register_driver(struct dio_driver *drv)
- {
-@@ -85,15 +84,15 @@ int dio_register_driver(struct dio_drive
- }
+ static struct vm_operations_struct ia32_gate_page_vm_ops = {
+-	.nopage = ia32_install_gate_page
++	.fault = ia32_install_gate_page
+ };
  
- 
--	/**
--	 *  dio_unregister_driver - unregister a DIO driver
--	 *  @drv: the driver structure to unregister
--	 *
--	 *  Deletes the driver structure from the list of registered DIO drivers,
--	 *  gives it a chance to clean up by calling its remove() function for
--	 *  each device it was responsible for, and marks those devices as
--	 *  driverless.
--	 */
-+/**
-+ *  dio_unregister_driver - unregister a DIO driver
-+ *  @drv: the driver structure to unregister
-+ *
-+ *  Deletes the driver structure from the list of registered DIO drivers,
-+ *  gives it a chance to clean up by calling its remove() function for
-+ *  each device it was responsible for, and marks those devices as
-+ *  driverless.
-+ */
- 
- void dio_unregister_driver(struct dio_driver *drv)
- {
-@@ -101,16 +100,15 @@ void dio_unregister_driver(struct dio_dr
- }
- 
- 
--	/**
--	 *  dio_bus_match - Tell if a DIO device structure has a matching DIO
--	 *                  device id structure
--	 *  @ids: array of DIO device id structures to search in
--	 *  @dev: the DIO device structure to match against
--	 *
--	 *  Used by a driver to check whether a DIO device present in the
--	 *  system is in its list of supported devices. Returns the matching
--	 *  dio_device_id structure or %NULL if there is no match.
--	 */
-+/**
-+ *  dio_bus_match - Tell if a DIO device structure has a matching DIO device id structure
-+ *  @dev: the DIO device structure to match against
-+ *  @drv: the &device_driver that points to the array of DIO device id structures to search
-+ *
-+ *  Used by a driver to check whether a DIO device present in the
-+ *  system is in its list of supported devices. Returns the matching
-+ *  dio_device_id structure or %NULL if there is no match.
-+ */
- 
- static int dio_bus_match(struct device *dev, struct device_driver *drv)
- {
+ void
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-pcmcia-fix-kernel-doc-comments.patch
-git-dvb.patch
-git-kbuild.patch
-pcmcia-include-bad-cis-filename-in-error-message.patch
-git-scsi-misc.patch
-advansys-fix-section-mismatch-warning.patch
-aic94-fix-section-mismatches.patch
-sym2-fix-section-mismatch-warning.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-git-x86.patch
-register_cpu-__devinit-or-__cpuinit.patch
-cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
-dio-fix-kernel-doc-notation.patch
-move-kprobes-examples-to-samples-resend.patch
-move-kprobes-examples-to-samples-resend-checkpatch-fixes.patch
-move-kprobes-examples-to-samples-resend-vs-git-x86.patch
-fs-menu-small-reorg.patch
-profile-likely-unlikely-macros.patch
+mm-fix-xip-file-writes.patch
+git-jfs.patch
+nfs-use-gfp_nofs-preloads-for-radix-tree-insertion.patch
+slub-use-non-atomic-bit-unlock.patch
+radix-tree-avoid-atomic-allocations-for-preloaded-insertions.patch
+mm-dont-allow-ioremapping-of-ranges-larger-than-vmalloc-space.patch
+vt-bitlock-fix.patch
+radix_treeh-trivial-comment-correction.patch
+inotify-fix-race.patch
+inotify-remove-debug-code.patch
+rewrite-rd.patch
+rewrite-rd-fix.patch
+rd-support-xip.patch
+reiser4.patch
+ia64-ia32-nopage.patch
+relay-nopage.patch
+uio-nopage.patch
+ieee1394-nopage.patch
+v4l-nopage.patch
+fb-defio-nopage.patch
+agp-alpha-nopage.patch
+sg-nopage.patch
+ib-nopage.patch
+usb-mon-nopage.patch
+alsa-nopage.patch
+alsa-usx2y-nopage.patch
+mm-special-mapping-nopage.patch
