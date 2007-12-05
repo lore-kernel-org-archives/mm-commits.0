@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + unix98-allocated_ptys_lock-semaphore-to-mutex.patch added to -mm tree
-Date: Tue, 04 Dec 2007 19:05:15 -0800
-Message-ID: <200712050305.lB535FCn018270@imap1.linux-foundation.org>
+Subject: + drivers-char-tty_ioc-remove-pty_sem.patch added to -mm tree
+Date: Tue, 04 Dec 2007 19:05:11 -0800
+Message-ID: <200712050305.lB535BUv018264@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36102 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33865 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751352AbXLEDFq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 22:05:46 -0500
+	by vger.kernel.org with ESMTP id S1751116AbXLEDGH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 22:06:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dwalker@mvista.com, hpa@zytor.com, mingo@elte.hu
+Cc: dwalker@mvista.com, alan@redhat.com, hpa@zytor.com
 
 
 The patch titled
-     unix98 allocated_ptys_lock semaphore to mutex
+     drivers/char/tty_io.c: remove pty_sem
 has been added to the -mm tree.  Its filename is
-     unix98-allocated_ptys_lock-semaphore-to-mutex.patch
+     drivers-char-tty_ioc-remove-pty_sem.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,86 +25,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: unix98 allocated_ptys_lock semaphore to mutex
+Subject: drivers/char/tty_io.c: remove pty_sem
 From: Daniel Walker <dwalker@mvista.com>
 
-Convert the unix98 allocated_ptys_lock to a mutex.
+I couldn't find any users, so removing it..
 
 Signed-off-by: Daniel Walker <dwalker@mvista.com>
-Acked-by: Ingo Molnar <mingo@elte.hu>
+Acked-by: Alan Cox <alan@redhat.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_io.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/char/tty_io.c |    1 -
+ include/linux/tty.h   |    1 -
+ 2 files changed, 2 deletions(-)
 
-diff -puN drivers/char/tty_io.c~unix98-allocated_ptys_lock-semaphore-to-mutex drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~unix98-allocated_ptys_lock-semaphore-to-mutex
+diff -puN drivers/char/tty_io.c~drivers-char-tty_ioc-remove-pty_sem drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~drivers-char-tty_ioc-remove-pty_sem
 +++ a/drivers/char/tty_io.c
-@@ -138,7 +138,7 @@ EXPORT_SYMBOL(tty_mutex);
- extern struct tty_driver *ptm_driver;	/* Unix98 pty masters; for /dev/ptmx */
- extern int pty_limit;		/* Config limit on Unix98 ptys */
- static DEFINE_IDR(allocated_ptys);
--static DECLARE_MUTEX(allocated_ptys_lock);
-+static DEFINE_MUTEX(allocated_ptys_lock);
- static int ptmx_open(struct inode *, struct file *);
- #endif
+@@ -3721,7 +3721,6 @@ static void initialize_tty_struct(struct
+ 	tty->buf.head = tty->buf.tail = NULL;
+ 	tty_buffer_init(tty);
+ 	INIT_DELAYED_WORK(&tty->buf.work, flush_to_ldisc);
+-	init_MUTEX(&tty->buf.pty_sem);
+ 	mutex_init(&tty->termios_mutex);
+ 	init_waitqueue_head(&tty->write_wait);
+ 	init_waitqueue_head(&tty->read_wait);
+diff -puN include/linux/tty.h~drivers-char-tty_ioc-remove-pty_sem include/linux/tty.h
+--- a/include/linux/tty.h~drivers-char-tty_ioc-remove-pty_sem
++++ a/include/linux/tty.h
+@@ -74,7 +74,6 @@ struct tty_buffer {
  
-@@ -2571,9 +2571,9 @@ static void release_dev(struct file * fi
- #ifdef CONFIG_UNIX98_PTYS
- 	/* Make this pty number available for reallocation */
- 	if (devpts) {
--		down(&allocated_ptys_lock);
-+		mutex_lock(&allocated_ptys_lock);
- 		idr_remove(&allocated_ptys, idx);
--		up(&allocated_ptys_lock);
-+		mutex_unlock(&allocated_ptys_lock);
- 	}
- #endif
- 
-@@ -2737,24 +2737,24 @@ static int ptmx_open(struct inode * inod
- 	nonseekable_open(inode, filp);
- 
- 	/* find a device that is not in use. */
--	down(&allocated_ptys_lock);
-+	mutex_lock(&allocated_ptys_lock);
- 	if (!idr_pre_get(&allocated_ptys, GFP_KERNEL)) {
--		up(&allocated_ptys_lock);
-+		mutex_unlock(&allocated_ptys_lock);
- 		return -ENOMEM;
- 	}
- 	idr_ret = idr_get_new(&allocated_ptys, NULL, &index);
- 	if (idr_ret < 0) {
--		up(&allocated_ptys_lock);
-+		mutex_unlock(&allocated_ptys_lock);
- 		if (idr_ret == -EAGAIN)
- 			return -ENOMEM;
- 		return -EIO;
- 	}
- 	if (index >= pty_limit) {
- 		idr_remove(&allocated_ptys, index);
--		up(&allocated_ptys_lock);
-+		mutex_unlock(&allocated_ptys_lock);
- 		return -EIO;
- 	}
--	up(&allocated_ptys_lock);
-+	mutex_unlock(&allocated_ptys_lock);
- 
- 	mutex_lock(&tty_mutex);
- 	retval = init_dev(ptm_driver, index, &tty);
-@@ -2781,9 +2781,9 @@ out1:
- 	release_dev(filp);
- 	return retval;
- out:
--	down(&allocated_ptys_lock);
-+	mutex_lock(&allocated_ptys_lock);
- 	idr_remove(&allocated_ptys, index);
--	up(&allocated_ptys_lock);
-+	mutex_unlock(&allocated_ptys_lock);
- 	return retval;
- }
- #endif
+ struct tty_bufhead {
+ 	struct delayed_work work;
+-	struct semaphore pty_sem;
+ 	spinlock_t lock;
+ 	struct tty_buffer *head;	/* Queue head */
+ 	struct tty_buffer *tail;	/* Active buffer */
 _
 
 Patches currently in -mm which might be from dwalker@mvista.com are
