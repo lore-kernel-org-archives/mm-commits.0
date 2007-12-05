@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + revert-dpt_i2o-convert-to-use-the-data-buffer-accessors.patch added to -mm tree
-Date: Tue, 04 Dec 2007 16:56:18 -0800
-Message-ID: <200712050056.lB50uIWX014002@imap1.linux-foundation.org>
+Subject: - revert-dpt_i2o-convert-to-use-the-data-buffer-accessors.patch removed from -mm tree
+Date: Tue, 04 Dec 2007 18:43:12 -0800
+Message-ID: <200712050243.lB52hCJw017593@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32946 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54016 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751493AbXLEA5I (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 19:57:08 -0500
+	by vger.kernel.org with ESMTP id S1751439AbXLECoP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 21:44:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@SteelEye.com, anders.henke@1und1.de, fujita.tomonori@lab.ntt.co.jp, jens.axboe@oracle.com, mark_salyzyn@adaptec.com
+To: akpm@linux-foundation.org, James.Bottomley@SteelEye.com, anders.henke@1und1.de, fujita.tomonori@lab.ntt.co.jp, jens.axboe@oracle.com, mark_salyzyn@adaptec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      revert "dpt_i2o: convert to use the data buffer accessors"
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      revert-dpt_i2o-convert-to-use-the-data-buffer-accessors.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 Subject: revert "dpt_i2o: convert to use the data buffer accessors"
