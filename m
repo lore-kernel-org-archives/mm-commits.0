@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + timerfd-v3-new-timerfd-api-powerpc-fix.patch added to -mm tree
-Date: Tue, 04 Dec 2007 21:46:17 -0700
-Message-ID: <200712050446.lB54kIhB021523@imap1.linux-foundation.org>
+Date: Tue, 04 Dec 2007 21:47:42 -0700
+Message-ID: <200712050447.lB54lgo7021534@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36510 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59520 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750944AbXLEEq3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 23:46:29 -0500
+	by vger.kernel.org with ESMTP id S1751116AbXLEErv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 23:47:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -46,7 +46,7 @@ diff -puN include/asm-powerpc/systbl.h~timerfd-v3-new-timerfd-api-powerpc-fix in
  COMPAT_SYS_SPU(utimensat)
  COMPAT_SYS_SPU(signalfd)
 -COMPAT_SYS_SPU(timerfd)
-+COMPAT_SYS_SPU(ni_syscall)
++SYSCALL(ni_syscall)
  SYSCALL_SPU(eventfd)
  COMPAT_SYS_SPU(sync_file_range2)
  COMPAT_SYS(fallocate)
@@ -65,6 +65,7 @@ timerfd-v3-new-timerfd-api-ia64-fix.patch
 timerfd-v3-new-timerfd-api-m68k-fix.patch
 timerfd-v3-new-timerfd-api-mips-fix.patch
 timerfd-v3-new-timerfd-api-arch-fixes.patch
+timerfd-v3-new-timerfd-api-powerpc-fix.patch
 git-acpi.patch
 git-acpi-ia64-build-fix.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
@@ -259,4 +260,3 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-timerfd-v3-new-timerfd-api-powerpc-fix.patch
