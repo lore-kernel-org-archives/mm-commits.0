@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + asm-h8300-parentheses-around-definition-clock_tick_rate.patch added to -mm tree
-Date: Wed, 05 Dec 2007 15:54:10 -0800
-Message-ID: <200712052354.lB5NsBjf031427@imap1.linux-foundation.org>
+Subject: + remove-one-useless-extern-declaration.patch added to -mm tree
+Date: Wed, 05 Dec 2007 15:55:19 -0800
+Message-ID: <200712052355.lB5NtJs4031449@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33079 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58456 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751499AbXLEXzN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Dec 2007 18:55:13 -0500
+	by vger.kernel.org with ESMTP id S1751689AbXLEX4Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Dec 2007 18:56:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: 12o3l@tiscali.nl, ysato@users.sourceforge.jp
+Cc: pierre.peiffer@bull.net
 
 
 The patch titled
-     asm-h8300: parentheses around definition CLOCK_TICK_RATE
+     Remove one useless extern declaration
 has been added to the -mm tree.  Its filename is
-     asm-h8300-parentheses-around-definition-clock_tick_rate.patch
+     remove-one-useless-extern-declaration.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,46 +25,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: asm-h8300: parentheses around definition CLOCK_TICK_RATE
-From: Roel Kluin <12o3l@tiscali.nl>
+Subject: Remove one useless extern declaration
+From: Pierre Peiffer <pierre.peiffer@bull.net>
 
-Some places where CLOCK_TICK_RATE may be used incorrectly:
+The file exit.c contains one useless extern declaration of sem_exit().
+Moreover, it refers to nothing.
 
-arch/arm/mach-mx3/time.c:125:   __raw_writel((v / CLOCK_TICK_RATE) - 1, MXC_GPT_GPTPR);
-drivers/watchdog/davinci_wdt.c:103:     timer_margin = (((u64)heartbeat * CLOCK_TICK_RATE) & 0xffffffff);
-drivers/watchdog/davinci_wdt.c:105:     timer_margin = (((u64)heartbeat * CLOCK_TICK_RATE) >> 32);
-drivers/watchdog/ks8695_wdt.c:64:       unsigned long tval = wdt_time * CLOCK_TICK_RATE;
+Remove it.
 
-I'm not sure whether this definition is used there, but adding parentheses
-should be good anyway.
-
-Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Signed-off-by: Pierre Peiffer <pierre.peiffer@bull.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-h8300/timex.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/exit.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN include/asm-h8300/timex.h~asm-h8300-parentheses-around-definition-clock_tick_rate include/asm-h8300/timex.h
---- a/include/asm-h8300/timex.h~asm-h8300-parentheses-around-definition-clock_tick_rate
-+++ a/include/asm-h8300/timex.h
-@@ -6,7 +6,7 @@
- #ifndef _ASM_H8300_TIMEX_H
- #define _ASM_H8300_TIMEX_H
+diff -puN kernel/exit.c~remove-one-useless-extern-declaration kernel/exit.c
+--- a/kernel/exit.c~remove-one-useless-extern-declaration
++++ a/kernel/exit.c
+@@ -50,8 +50,6 @@
+ #include <asm/pgtable.h>
+ #include <asm/mmu_context.h>
  
--#define CLOCK_TICK_RATE CONFIG_CPU_CLOCK*1000/8192 /* Timer input freq. */
-+#define CLOCK_TICK_RATE (CONFIG_CPU_CLOCK*1000/8192) /* Timer input freq. */
+-extern void sem_exit (void);
+-
+ static void exit_mm(struct task_struct * tsk);
  
- typedef unsigned long cycles_t;
- extern short h8300_timer_count;
+ static void __unhash_process(struct task_struct *p)
 _
 
-Patches currently in -mm which might be from 12o3l@tiscali.nl are
+Patches currently in -mm which might be from pierre.peiffer@bull.net are
 
-asm-h8300-parentheses-around-definition-clock_tick_rate.patch
-git-dvb.patch
-git-mips.patch
-git-netdev-all.patch
-m68k-balance-ioremap-and-iounmap-in-m68k-atari-hades-pcic.patch
-sound-oss-tridentc-fix-incorrect-test-in-trident_ac97_set.patch
+ipc-fix-error-check-in-all-new-xxx_lock-and.patch
+remove-one-useless-extern-declaration.patch
+ipc-semaphores-consolidate-sem_stat-and.patch
+ipc-make-struct-ipc_ids-static-in-ipc_namespace.patch
+ipc-consolidate-sem_exit_ns-msg_exit_ns-and-shm_exit_ns.patch
