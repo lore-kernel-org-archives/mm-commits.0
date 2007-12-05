@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-isdn-i4l-isdn_ttyc-remove-write_sem.patch added to -mm tree
-Date: Tue, 04 Dec 2007 19:05:13 -0800
-Message-ID: <200712050305.lB535DlS018267@imap1.linux-foundation.org>
+Subject: + unix98-allocated_ptys_lock-semaphore-to-mutex.patch added to -mm tree
+Date: Tue, 04 Dec 2007 19:05:15 -0800
+Message-ID: <200712050305.lB535FCn018270@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43269 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36102 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751079AbXLEDFf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 22:05:35 -0500
+	by vger.kernel.org with ESMTP id S1751352AbXLEDFq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 22:05:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dwalker@mvista.com, kkeil@suse.de
+Cc: dwalker@mvista.com, hpa@zytor.com, mingo@elte.hu
 
 
 The patch titled
-     drivers/isdn/i4l/isdn_tty.c: remove write_sem
+     unix98 allocated_ptys_lock semaphore to mutex
 has been added to the -mm tree.  Its filename is
-     drivers-isdn-i4l-isdn_ttyc-remove-write_sem.patch
+     unix98-allocated_ptys_lock-semaphore-to-mutex.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,42 +25,86 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/isdn/i4l/isdn_tty.c: remove write_sem
+Subject: unix98 allocated_ptys_lock semaphore to mutex
 From: Daniel Walker <dwalker@mvista.com>
 
-I couldn't find any users, so removing it..
+Convert the unix98 allocated_ptys_lock to a mutex.
 
 Signed-off-by: Daniel Walker <dwalker@mvista.com>
-Cc: Karsten Keil <kkeil@suse.de>
+Acked-by: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/i4l/isdn_tty.c |    1 -
- include/linux/isdn.h        |    1 -
- 2 files changed, 2 deletions(-)
+ drivers/char/tty_io.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/isdn/i4l/isdn_tty.c~drivers-isdn-i4l-isdn_ttyc-remove-write_sem drivers/isdn/i4l/isdn_tty.c
---- a/drivers/isdn/i4l/isdn_tty.c~drivers-isdn-i4l-isdn_ttyc-remove-write_sem
-+++ a/drivers/isdn/i4l/isdn_tty.c
-@@ -1915,7 +1915,6 @@ isdn_tty_modem_init(void)
- 		info->owner = THIS_MODULE;
+diff -puN drivers/char/tty_io.c~unix98-allocated_ptys_lock-semaphore-to-mutex drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~unix98-allocated_ptys_lock-semaphore-to-mutex
++++ a/drivers/char/tty_io.c
+@@ -138,7 +138,7 @@ EXPORT_SYMBOL(tty_mutex);
+ extern struct tty_driver *ptm_driver;	/* Unix98 pty masters; for /dev/ptmx */
+ extern int pty_limit;		/* Config limit on Unix98 ptys */
+ static DEFINE_IDR(allocated_ptys);
+-static DECLARE_MUTEX(allocated_ptys_lock);
++static DEFINE_MUTEX(allocated_ptys_lock);
+ static int ptmx_open(struct inode *, struct file *);
  #endif
- 		spin_lock_init(&info->readlock);
--		init_MUTEX(&info->write_sem);
- 		sprintf(info->last_cause, "0000");
- 		sprintf(info->last_num, "none");
- 		info->last_dir = 0;
-diff -puN include/linux/isdn.h~drivers-isdn-i4l-isdn_ttyc-remove-write_sem include/linux/isdn.h
---- a/include/linux/isdn.h~drivers-isdn-i4l-isdn_ttyc-remove-write_sem
-+++ a/include/linux/isdn.h
-@@ -507,7 +507,6 @@ typedef struct modem_info {
-   struct ktermios	normal_termios;  /* For saving termios structs     */
-   struct ktermios	callout_termios;
-   wait_queue_head_t	open_wait, close_wait;
--  struct semaphore      write_sem;
-   spinlock_t	        readlock;
- } modem_info;
  
+@@ -2571,9 +2571,9 @@ static void release_dev(struct file * fi
+ #ifdef CONFIG_UNIX98_PTYS
+ 	/* Make this pty number available for reallocation */
+ 	if (devpts) {
+-		down(&allocated_ptys_lock);
++		mutex_lock(&allocated_ptys_lock);
+ 		idr_remove(&allocated_ptys, idx);
+-		up(&allocated_ptys_lock);
++		mutex_unlock(&allocated_ptys_lock);
+ 	}
+ #endif
+ 
+@@ -2737,24 +2737,24 @@ static int ptmx_open(struct inode * inod
+ 	nonseekable_open(inode, filp);
+ 
+ 	/* find a device that is not in use. */
+-	down(&allocated_ptys_lock);
++	mutex_lock(&allocated_ptys_lock);
+ 	if (!idr_pre_get(&allocated_ptys, GFP_KERNEL)) {
+-		up(&allocated_ptys_lock);
++		mutex_unlock(&allocated_ptys_lock);
+ 		return -ENOMEM;
+ 	}
+ 	idr_ret = idr_get_new(&allocated_ptys, NULL, &index);
+ 	if (idr_ret < 0) {
+-		up(&allocated_ptys_lock);
++		mutex_unlock(&allocated_ptys_lock);
+ 		if (idr_ret == -EAGAIN)
+ 			return -ENOMEM;
+ 		return -EIO;
+ 	}
+ 	if (index >= pty_limit) {
+ 		idr_remove(&allocated_ptys, index);
+-		up(&allocated_ptys_lock);
++		mutex_unlock(&allocated_ptys_lock);
+ 		return -EIO;
+ 	}
+-	up(&allocated_ptys_lock);
++	mutex_unlock(&allocated_ptys_lock);
+ 
+ 	mutex_lock(&tty_mutex);
+ 	retval = init_dev(ptm_driver, index, &tty);
+@@ -2781,9 +2781,9 @@ out1:
+ 	release_dev(filp);
+ 	return retval;
+ out:
+-	down(&allocated_ptys_lock);
++	mutex_lock(&allocated_ptys_lock);
+ 	idr_remove(&allocated_ptys, index);
+-	up(&allocated_ptys_lock);
++	mutex_unlock(&allocated_ptys_lock);
+ 	return retval;
+ }
+ #endif
 _
 
 Patches currently in -mm which might be from dwalker@mvista.com are
