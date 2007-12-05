@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-watchdog-hpwdt-build-fix.patch added to -mm tree
-Date: Tue, 04 Dec 2007 15:57:36 -0800
-Message-ID: <200712050005.lB5051ju012178@imap1.linux-foundation.org>
+Subject: + aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch added to -mm tree
+Date: Tue, 04 Dec 2007 16:18:23 -0800
+Message-ID: <200712050025.lB50PmkO012909@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41373 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54212 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751055AbXLEAFI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 19:05:08 -0500
+	by vger.kernel.org with ESMTP id S1750806AbXLEA1D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2007 19:27:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, wim@iguana.be
+Cc: akpm@linux-foundation.org, dhowells@redhat.com
 
 
 The patch titled
-     git-watchdog: hpwdt build fix
+     aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix
 has been added to the -mm tree.  Its filename is
-     git-watchdog-hpwdt-build-fix.patch
+     aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,31 +25,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-watchdog: hpwdt build fix
+Subject: aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/watchdog/hpwdt.c: In function 'hpwdt_init_one':
-drivers/watchdog/hpwdt.c:898: error: implicit declaration of function 'register_die_notifier'
-drivers/watchdog/hpwdt.c:922: error: implicit declaration of function 'unregister_die_notifier'
+alpha allnoconfig:
 
-Cc: Wim Van Sebroeck <wim@iguana.be>
+fs/exec.c: In function 'search_binary_handler':
+fs/exec.c:1191: error: dereferencing pointer to incomplete type
+fs/exec.c:1192: error: dereferencing pointer to incomplete type
+fs/exec.c:1209: error: dereferencing pointer to incomplete type
+
+for struct exec.
+
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/hpwdt.c |    1 +
+ fs/exec.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/watchdog/hpwdt.c~git-watchdog-hpwdt-build-fix drivers/watchdog/hpwdt.c
---- a/drivers/watchdog/hpwdt.c~git-watchdog-hpwdt-build-fix
-+++ a/drivers/watchdog/hpwdt.c
-@@ -23,6 +23,7 @@
- #include <linux/miscdevice.h>
- #include <linux/mm.h>
- #include <linux/module.h>
-+#include <linux/kdebug.h>
- #include <linux/moduleparam.h>
- #include <linux/notifier.h>
- #include <linux/pci.h>
+diff -puN fs/exec.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix fs/exec.c
+--- a/fs/exec.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix
++++ a/fs/exec.c
+@@ -25,6 +25,7 @@
+ #include <linux/slab.h>
+ #include <linux/file.h>
+ #include <linux/mman.h>
++#include <linux/a.out.h>
+ #include <linux/stat.h>
+ #include <linux/fcntl.h>
+ #include <linux/smp_lock.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -118,6 +123,7 @@ git-unionfs.patch
 vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
 mct232-speed-new-termios-and-compliance-cleanups-fix.patch
 git-watchdog.patch
+git-watchdog-hpwdt-build-fix.patch
 add-support-for-sb1-hardware-watchdog-fix.patch
 git-wireless.patch
 bcm43xx_debugfs-sscanf-fix.patch
@@ -239,6 +245,7 @@ proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
 intel-iommu-fault_reason_index_cleanuppatch-fix.patch
 aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
 aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
 mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
 rewrite-rd-fixes.patch
 cramfs-make-cramfs-little-endian-only-fix.patch
@@ -255,4 +262,3 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-git-watchdog-hpwdt-build-fix.patch
