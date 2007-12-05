@@ -1,269 +1,182 @@
 From: akpm@linux-foundation.org
-Subject: - driver-tree-broke-infiniband.patch removed from -mm tree
-Date: Wed, 05 Dec 2007 14:59:15 -0800
-Message-ID: <200712052259.lB5MxGMm029431@imap1.linux-foundation.org>
+Subject: + driver-core-add-driver_create_group.patch added to -mm tree
+Date: Wed, 05 Dec 2007 14:59:13 -0800
+Message-ID: <200712052259.lB5MxDqK029427@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49046 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50474 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752129AbXLEW7X (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Dec 2007 17:59:23 -0500
+	by vger.kernel.org with ESMTP id S1752182AbXLEXAf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Dec 2007 18:00:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, rolandd@cisco.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: greg@kroah.com, arthur.jones@qlogic.com, gregkh@suse.de, rdreier@cisco.com
 
 
 The patch titled
-     driver-tree-broke-infiniband
-has been removed from the -mm tree.  Its filename was
-     driver-tree-broke-infiniband.patch
+     Driver core: add driver_create_group
+has been added to the -mm tree.  Its filename is
+     driver-core-add-driver_create_group.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: driver-tree-broke-infiniband
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Driver core: add driver_create_group
+From: Greg KH <greg@kroah.com>
 
-drivers/infiniband/hw/ipath/ipath_sysfs.c: In function 'ipath_driver_create_group':
-drivers/infiniband/hw/ipath/ipath_sysfs.c:760: error: 'struct device_driver' has no member named 'kobj'
-drivers/infiniband/hw/ipath/ipath_sysfs.c: In function 'ipath_driver_remove_group':
-drivers/infiniband/hw/ipath/ipath_sysfs.c:767: error: 'struct device_driver' has no member named 'kobj'
-drivers/infiniband/hw/ipath/ipath_sysfs.c: In function 'ipath_device_create_group':
-drivers/infiniband/hw/ipath/ipath_sysfs.c:784: error: 'struct device_driver' has no member named 'kobj'
-drivers/infiniband/hw/ipath/ipath_sysfs.c: In function 'ipath_device_remove_group':
-drivers/infiniband/hw/ipath/ipath_sysfs.c:800: error: 'struct device_driver' has no member named 'kobj'
+Add function for drivers to be able to create and remove sysfs attribute
+groups without having to fall back to the "raw" sysfs calls.
 
-Please let me know when I should drop this.
-
-Cc: Greg KH <greg@kroah.com>
-Cc: Roland Dreier <rolandd@cisco.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Arthur Jones <arthur.jones@qlogic.com>
+Cc: Roland Dreier <rdreier@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/base/driver.c                     |   37 ++++++++++++++++++++
+ drivers/infiniband/hw/ipath/ipath_sysfs.c |   15 +-------
+ include/linux/device.h                    |    5 ++
+ 3 files changed, 44 insertions(+), 13 deletions(-)
 
-diff -puN drivers/infiniband/Kconfig~driver-tree-broke-infiniband drivers/infiniband/Kconfig
---- a/drivers/infiniband/Kconfig~driver-tree-broke-infiniband
-+++ a/drivers/infiniband/Kconfig
-@@ -1,6 +1,6 @@
- menuconfig INFINIBAND
- 	tristate "InfiniBand support"
--	depends on PCI || BROKEN
-+	depends on BROKEN
- 	depends on HAS_IOMEM
- 	---help---
- 	  Core support for InfiniBand (IB).  Make sure to also select
+diff -puN drivers/base/driver.c~driver-core-add-driver_create_group drivers/base/driver.c
+--- a/drivers/base/driver.c~driver-core-add-driver_create_group
++++ a/drivers/base/driver.c
+@@ -123,6 +123,43 @@ void driver_remove_file(struct device_dr
+ 	}
+ }
+ 
++/**
++ * driver_create_group - create group of sysfs files for a driver.
++ * @drv: driver.
++ * @group: pointer to a group of attributes to add
++ *
++ * Adds a group of sysfs attributes to the specified driver.
++ */
++int driver_create_group(struct device_driver *drv,
++			struct attribute_group *group)
++{
++	int error;
++	if (get_driver(drv)) {
++		error = sysfs_create_group(&drv->p->kobj, group);
++		put_driver(drv);
++	} else
++		error = -EINVAL;
++	return error;
++}
++EXPORT_SYMBOL_GPL(driver_create_group);
++
++/**
++ * driver_remove_file - remove group of sysfs files for a driver.
++ * @drv: driver.
++ * @group: pointer to a group of attributes to add.
++ *
++ * Removes a group of sysfs attributes that was previously created with a
++ * call to driver_create_group().
++ */
++void driver_remove_group(struct device_driver *drv,
++			 struct attribute_group *group)
++{
++	if (get_driver(drv)) {
++		sysfs_remove_group(&drv->p->kobj, group);
++		put_driver(drv);
++	}
++}
++EXPORT_SYMBOL_GPL(driver_remove_group);
+ 
+ /**
+  *	get_driver - increment driver reference count.
+diff -puN drivers/infiniband/hw/ipath/ipath_sysfs.c~driver-core-add-driver_create_group drivers/infiniband/hw/ipath/ipath_sysfs.c
+--- a/drivers/infiniband/hw/ipath/ipath_sysfs.c~driver-core-add-driver_create_group
++++ a/drivers/infiniband/hw/ipath/ipath_sysfs.c
+@@ -757,20 +757,19 @@ int ipath_driver_create_group(struct dev
+ {
+ 	int ret;
+ 
+-	ret = sysfs_create_group(&drv->kobj, &driver_attr_group);
++	ret = driver_create_group(drv, &driver_attr_group);
+ 
+ 	return ret;
+ }
+ 
+ void ipath_driver_remove_group(struct device_driver *drv)
+ {
+-	sysfs_remove_group(&drv->kobj, &driver_attr_group);
++	driver_remove_group(drv, &driver_attr_group);
+ }
+ 
+ int ipath_device_create_group(struct device *dev, struct ipath_devdata *dd)
+ {
+ 	int ret;
+-	char unit[5];
+ 
+ 	ret = sysfs_create_group(&dev->kobj, &dev_attr_group);
+ 	if (ret)
+@@ -780,11 +779,6 @@ int ipath_device_create_group(struct dev
+ 	if (ret)
+ 		goto bail_attrs;
+ 
+-	snprintf(unit, sizeof(unit), "%02d", dd->ipath_unit);
+-	ret = sysfs_create_link(&dev->driver->kobj, &dev->kobj, unit);
+-	if (ret == 0)
+-		goto bail;
+-
+ 	sysfs_remove_group(&dev->kobj, &dev_counter_attr_group);
+ bail_attrs:
+ 	sysfs_remove_group(&dev->kobj, &dev_attr_group);
+@@ -794,11 +788,6 @@ bail:
+ 
+ void ipath_device_remove_group(struct device *dev, struct ipath_devdata *dd)
+ {
+-	char unit[5];
+-
+-	snprintf(unit, sizeof(unit), "%02d", dd->ipath_unit);
+-	sysfs_remove_link(&dev->driver->kobj, unit);
+-
+ 	sysfs_remove_group(&dev->kobj, &dev_counter_attr_group);
+ 	sysfs_remove_group(&dev->kobj, &dev_attr_group);
+ 
+diff -puN include/linux/device.h~driver-core-add-driver_create_group include/linux/device.h
+--- a/include/linux/device.h~driver-core-add-driver_create_group
++++ a/include/linux/device.h
+@@ -152,6 +152,11 @@ struct driver_attribute driver_attr_##_n
+ extern int __must_check driver_create_file(struct device_driver *,
+ 					struct driver_attribute *);
+ extern void driver_remove_file(struct device_driver *, struct driver_attribute *);
++extern int __must_check driver_create_group(struct device_driver *,
++					    struct attribute_group *);
++extern void driver_remove_group(struct device_driver *,
++				struct attribute_group *);
++
+ 
+ extern int __must_check driver_for_each_device(struct device_driver * drv,
+ 		struct device *start, void *data,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from greg@kroah.com are
 
-origin.patch
-ufs-fix-nexstep-dir-block-size.patch
-aoe-properly-initialise-the-request_queues-backing_dev_info.patch
-revert-dpt_i2o-convert-to-scsi-hotplug-model.patch
-lost-content-of-proc-sys-fs-binfmt_misc-checkpatch-fixes.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-timerfd-v3-new-timerfd-api-ia64-fix.patch
-timerfd-v3-new-timerfd-api-m68k-fix.patch
-timerfd-v3-new-timerfd-api-mips-fix.patch
-timerfd-v3-new-timerfd-api-arch-fixes.patch
-timerfd-v3-new-timerfd-api-powerpc-fix.patch
-git-acpi.patch
-git-acpi-ia64-build-fix.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-git-agpgart.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-kernel-auditc-warning-fix.patch
-git-avr32-fixup.patch
-git-cpufreq.patch
-git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-dm-persistent_read_metadata-warning-fix.patch
-ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
+driver-core-add-driver_create_group.patch
 driver-tree-broke-infiniband.patch
-gregkh-driver-driver-core-move-the-driver-specific-module-code-into-the-driver-core-fix.patch
 gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
 unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-git-drm.patch
-git-drm-oops-fix.patch
-intel-agp-enable-i915-recognition.patch
-git-dvb.patch
-fix-jdelvare-i2c-i2c-constify-client-address-data.patch
-revert-git-hrt.patch
-ia64-slim-down-__clear_bit_unlock.patch
-git-infiniband.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-libata-xfer_mask-is-unsigned-int-not-unsigned-long-fix.patch
-libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
-libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
-git-mmc.patch
-git-mtd.patch
-git-net.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-bluetooth-uninlining.patch
-git-nfsd.patch
 quirk-enable-msi-mapping-on-ht1000.patch
-git-sh.patch
-git-scsi-misc-fixup.patch
-ips-trim-trailing-whitespace.patch
-scsi-gdth-kill-unneeded-irq-argument.patch
-drivers-scsi-sgiwd93c-export-sgiwd93_reset.patch
-libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+add-accessors-for-segment_boundary_mask-in.patch
+pci-add-dma-segment-boundary-support.patch
+swiotlb-respect-the-segment-boundary-limits.patch
+call-dma_set_seg_boundary-in-__scsi_alloc_queue.patch
+belkin_sa-clean-up-for-new-style-termios-and-speed.patch
+keyspan_pda-clean-up-speed-handling.patch
+mct232-speed-new-termios-and-compliance-cleanups.patch
 mct232-speed-new-termios-and-compliance-cleanups-fix.patch
+ohci-hcdcohci_irq-locking-fix.patch
 usb-testing-driver-dont-free-a-locked-mutex.patch
-git-watchdog.patch
-git-watchdog-hpwdt-build-fix.patch
-add-support-for-sb1-hardware-watchdog-fix.patch
-git-wireless.patch
-bcm43xx_debugfs-sscanf-fix.patch
-git-ipwireless_cs.patch
-revert-git-kvm-changes-in-arch-x86-kconfig.patch
+usb-mon-nopage.patch
 git-x86.patch
-revert-revert-git-kvm-changes-in-arch-x86-kconfig.patch
-git-x86-__vdso_getcpu-warning-fix.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-git-xtensa.patch
-ia64-increase-datapatch-offset.patch
-ia64-dont-assume-that-unwcheckpy-is-executable.patch
-ia64-export-copy_page-to-modules.patch
-bridge-section-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-sync_sb_inodes-propagate-errors.patch
-move-kprobes-examples-to-samples-resend-vs-git-x86.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
-64-bit-i_version-afs-fixes.patch
-ext4-add-block-bitmap-validation.patch
-ext4-fix-up-ext4fs_debug-builds.patch
-ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-rewrite-rd-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+dca-convert-struct-class_device-to-struct-device.patch
+dont-touch-fs_struct-in-usermodehelper.patch
+usb-net2280-cant-have-a-function-called-show_registers.patch
+make-sure-nobodys-leaking-resources.patch
+workaround-for-a-pci-restoring-bug.patch
