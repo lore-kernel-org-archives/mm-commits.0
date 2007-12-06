@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-serial-uartlitec-add-missing-of_node_put.patch added to -mm tree
-Date: Thu, 06 Dec 2007 15:14:17 -0800
-Message-ID: <200712062314.lB6NEI2l018855@imap1.linux-foundation.org>
+Subject: + fix-null-dereference-in-umemc.patch added to -mm tree
+Date: Thu, 06 Dec 2007 15:59:23 -0800
+Message-ID: <200712062359.lB6NxNJT020612@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36565 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39584 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751754AbXLFXOh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Dec 2007 18:14:37 -0500
+	by vger.kernel.org with ESMTP id S1751568AbXLFX7a (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Dec 2007 18:59:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, grant.likely@secretlab.ca, jacmet@sunsite.dk
+Cc: neilb@suse.de, dgc@sgi.com
 
 
 The patch titled
-     drivers/serial/uartlite.c: Add missing of_node_put
+     Fix NULL dereference in umem.c
 has been added to the -mm tree.  Its filename is
-     drivers-serial-uartlitec-add-missing-of_node_put.patch
+     fix-null-dereference-in-umemc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,65 +25,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/serial/uartlite.c: Add missing of_node_put
-From: Julia Lawall <julia@diku.dk>
+Subject: Fix NULL dereference in umem.c
+From: Neil Brown <neilb@suse.de>
 
-There should be an of_node_put when breaking out of a loop that iterates
-using for_each_compatible_node.
+Fix NULL dereference in umem.c
 
-This was detected and fixed using the following semantic patch.
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@@
-identifier d;
-type T;
-expression e;
-iterator for_each_compatible_node;
-@@
-
-T *d;
-...
-for_each_compatible_node(d,...)
-  {... when != of_node_put(d)
-       when != e = d
-(
-   return d;
-|
-+  of_node_put(d);
-?  return ...;
-)
-...}
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Acked-by: Grant Likely <grant.likely@secretlab.ca>
-Acked-by: Peter Korsgaard <jacmet@sunsite.dk>
+Signed-off-by: Neil Brown <neilb@suse.de>
+Tested-by: Dave Chinner <dgc@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/uartlite.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/block/umem.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/serial/uartlite.c~drivers-serial-uartlitec-add-missing-of_node_put drivers/serial/uartlite.c
---- a/drivers/serial/uartlite.c~drivers-serial-uartlitec-add-missing-of_node_put
-+++ a/drivers/serial/uartlite.c
-@@ -393,6 +393,7 @@ static inline void __init ulite_console_
- 			continue;
+diff -puN drivers/block/umem.c~fix-null-dereference-in-umemc drivers/block/umem.c
+--- a/drivers/block/umem.c~fix-null-dereference-in-umemc
++++ a/drivers/block/umem.c
+@@ -484,7 +484,8 @@ static void process_page(unsigned long d
+ 		page->idx++;
+ 		if (page->idx >= bio->bi_vcnt) {
+ 			page->bio = bio->bi_next;
+-			page->idx = page->bio->bi_idx;
++			if (page->bio)
++				page->idx = page->bio->bi_idx;
+ 		}
  
- 		ulite_ports[id].mapbase = res.start;
-+		of_node_put(np);
- 		return;
- 	}
- }
+ 		pci_unmap_page(card->dev, desc->data_dma_handle,
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from neilb@suse.de are
 
-drivers-serial-uartlitec-add-missing-of_node_put.patch
-git-alsa.patch
-drivers-char-remove-unnecessary-pci_dev_put.patch
-arch-ppc-remove-an-unnecessary-pci_dev_put.patch
-git-input.patch
-git-sparc64.patch
-drivers-video-remove-unnecessary-pci_dev_put.patch
+fix-null-dereference-in-umemc.patch
+git-md-accel.patch
+git-nfsd.patch
+coding-style-cleanups-for-drivers-md-mktablesc.patch
+one-less-parameter-to-__d_path.patch
+d_path-kerneldoc-cleanup.patch
+d_path-use-struct-path-in-struct-avc_audit_data.patch
+d_path-make-proc_get_link-use-a-struct-path-argument.patch
+d_path-make-get_dcookie-use-a-struct-path-argument.patch
+use-struct-path-in-struct-svc_export.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_expkey.patch
+d_path-make-seq_path-use-a-struct-path-argument.patch
+d_path-make-d_path-use-a-struct-path.patch
