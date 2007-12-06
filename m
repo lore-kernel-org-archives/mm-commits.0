@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + uml-customize-tlbh.patch added to -mm tree
-Date: Thu, 06 Dec 2007 11:47:26 -0800
-Message-ID: <200712061947.lB6JlQJS008659@imap1.linux-foundation.org>
+Subject: + uml-miscellaneous-code-cleanups.patch added to -mm tree
+Date: Thu, 06 Dec 2007 11:47:32 -0800
+Message-ID: <200712061947.lB6JlWn5008670@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46651 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38158 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754061AbXLFTra (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Dec 2007 14:47:30 -0500
+	by vger.kernel.org with ESMTP id S1753412AbXLFTrh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Dec 2007 14:47:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     uml: customize tlb.h
+     uml: miscellaneous code cleanups
 has been added to the -mm tree.  Its filename is
-     uml-customize-tlbh.patch
+     uml-miscellaneous-code-cleanups.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,214 +25,198 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: customize tlb.h
+Subject: uml: miscellaneous code cleanups
 From: Jeff Dike <jdike@addtoit.com>
 
-Customize the hooks in tlb.h to optimize TLB flushing some more.
-
-Add start and end fields to tlb_gather_mmu, which are used to limit
-the address space range scanned when a region is unmapped.
-
-The interfaces which just free page tables, without actually changing
-mappings, don't need to cause a TLB flush.
+Code tidying -
+	the pid field of struct irq_fd isn't used, so it is removed
+     	os_set_fd_async needed to read flags before changing them, it
+doesn't need a pid passed in because it can call getpid itself, and a
+block of unused code needed deleting
+	os_get_exec_close was unused, so it is removed
+	ptrace_child called _exit for historical reasons which are no
+longer valid, so just calls exit instead
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/tlb.c |   28 +++++++--
- include/asm-um/tlb.h |  121 ++++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 141 insertions(+), 8 deletions(-)
+ arch/um/include/irq_user.h  |    1 
+ arch/um/include/os.h        |    3 --
+ arch/um/kernel/irq.c        |    6 +----
+ arch/um/kernel/ksyms.c      |    1 
+ arch/um/kernel/smp.c        |    6 +----
+ arch/um/os-Linux/file.c     |   38 +++++++++-------------------------
+ arch/um/os-Linux/start_up.c |    3 +-
+ 7 files changed, 18 insertions(+), 40 deletions(-)
 
-diff -puN arch/um/kernel/tlb.c~uml-customize-tlbh arch/um/kernel/tlb.c
---- a/arch/um/kernel/tlb.c~uml-customize-tlbh
-+++ a/arch/um/kernel/tlb.c
-@@ -193,18 +193,18 @@ static inline int update_pte_range(pmd_t
- 		if (!pte_young(*pte)) {
- 			r = 0;
- 			w = 0;
--		} else if (!pte_dirty(*pte)) {
-+		} else if (!pte_dirty(*pte))
- 			w = 0;
--		}
-+
- 		prot = ((r ? UM_PROT_READ : 0) | (w ? UM_PROT_WRITE : 0) |
- 			(x ? UM_PROT_EXEC : 0));
- 		if (hvc->force || pte_newpage(*pte)) {
- 			if (pte_present(*pte))
- 				ret = add_mmap(addr, pte_val(*pte) & PAGE_MASK,
- 					       PAGE_SIZE, prot, hvc);
--			else ret = add_munmap(addr, PAGE_SIZE, hvc);
--		}
--		else if (pte_newprot(*pte))
-+			else
-+				ret = add_munmap(addr, PAGE_SIZE, hvc);
-+		} else if (pte_newprot(*pte))
- 			ret = add_mprotect(addr, PAGE_SIZE, prot, hvc);
- 		*pte = pte_mkuptodate(*pte);
- 	} while (pte++, addr += PAGE_SIZE, ((addr != end) && !ret));
-@@ -500,7 +500,8 @@ void flush_tlb_range(struct vm_area_stru
- 	else fix_range(vma->vm_mm, start, end, 0);
+diff -puN arch/um/include/irq_user.h~uml-miscellaneous-code-cleanups arch/um/include/irq_user.h
+--- a/arch/um/include/irq_user.h~uml-miscellaneous-code-cleanups
++++ a/arch/um/include/irq_user.h
+@@ -14,7 +14,6 @@ struct irq_fd {
+ 	int fd;
+ 	int type;
+ 	int irq;
+-	int pid;
+ 	int events;
+ 	int current_events;
+ };
+diff -puN arch/um/include/os.h~uml-miscellaneous-code-cleanups arch/um/include/os.h
+--- a/arch/um/include/os.h~uml-miscellaneous-code-cleanups
++++ a/arch/um/include/os.h
+@@ -127,7 +127,6 @@ static inline struct openflags of_cloexe
+ extern int os_stat_file(const char *file_name, struct uml_stat *buf);
+ extern int os_stat_fd(const int fd, struct uml_stat *buf);
+ extern int os_access(const char *file, int mode);
+-extern int os_get_exec_close(int fd, int *close_on_exec);
+ extern int os_set_exec_close(int fd);
+ extern int os_ioctl_generic(int fd, unsigned int cmd, unsigned long arg);
+ extern int os_get_ifname(int fd, char *namebuf);
+@@ -142,7 +141,7 @@ extern int os_write_file(int fd, const v
+ extern int os_file_size(const char *file, unsigned long long *size_out);
+ extern int os_file_modtime(const char *file, unsigned long *modtime);
+ extern int os_pipe(int *fd, int stream, int close_on_exec);
+-extern int os_set_fd_async(int fd, int owner);
++extern int os_set_fd_async(int fd);
+ extern int os_clear_fd_async(int fd);
+ extern int os_set_fd_block(int fd, int blocking);
+ extern int os_accept_connection(int fd);
+diff -puN arch/um/kernel/irq.c~uml-miscellaneous-code-cleanups arch/um/kernel/irq.c
+--- a/arch/um/kernel/irq.c~uml-miscellaneous-code-cleanups
++++ a/arch/um/kernel/irq.c
+@@ -107,10 +107,9 @@ int activate_fd(int irq, int fd, int typ
+ 	struct pollfd *tmp_pfd;
+ 	struct irq_fd *new_fd, *irq_fd;
+ 	unsigned long flags;
+-	int pid, events, err, n;
++	int events, err, n;
+ 
+-	pid = os_getpid();
+-	err = os_set_fd_async(fd, pid);
++	err = os_set_fd_async(fd);
+ 	if (err < 0)
+ 		goto out;
+ 
+@@ -127,7 +126,6 @@ int activate_fd(int irq, int fd, int typ
+ 				     .fd 		= fd,
+ 				     .type 		= type,
+ 				     .irq 		= irq,
+-				     .pid  		= pid,
+ 				     .events 		= events,
+ 				     .current_events 	= 0 } );
+ 
+diff -puN arch/um/kernel/ksyms.c~uml-miscellaneous-code-cleanups arch/um/kernel/ksyms.c
+--- a/arch/um/kernel/ksyms.c~uml-miscellaneous-code-cleanups
++++ a/arch/um/kernel/ksyms.c
+@@ -36,7 +36,6 @@ EXPORT_SYMBOL(uml_strdup);
+ EXPORT_SYMBOL(os_stat_fd);
+ EXPORT_SYMBOL(os_stat_file);
+ EXPORT_SYMBOL(os_access);
+-EXPORT_SYMBOL(os_get_exec_close);
+ EXPORT_SYMBOL(os_set_exec_close);
+ EXPORT_SYMBOL(os_getpid);
+ EXPORT_SYMBOL(os_open_file);
+diff -puN arch/um/kernel/smp.c~uml-miscellaneous-code-cleanups arch/um/kernel/smp.c
+--- a/arch/um/kernel/smp.c~uml-miscellaneous-code-cleanups
++++ a/arch/um/kernel/smp.c
+@@ -74,8 +74,7 @@ static int idle_proc(void *cpup)
+ 	if (err < 0)
+ 		panic("CPU#%d failed to create IPI pipe, err = %d", cpu, -err);
+ 
+-	os_set_fd_async(cpu_data[cpu].ipi_pipe[0],
+-		     current->thread.mode.tt.extern_pid);
++	os_set_fd_async(cpu_data[cpu].ipi_pipe[0]);
+ 
+ 	wmb();
+ 	if (cpu_test_and_set(cpu, cpu_callin_map)) {
+@@ -128,8 +127,7 @@ void smp_prepare_cpus(unsigned int maxcp
+ 	if (err < 0)
+ 		panic("CPU#0 failed to create IPI pipe, errno = %d", -err);
+ 
+-	os_set_fd_async(cpu_data[me].ipi_pipe[0],
+-		     current->thread.mode.tt.extern_pid);
++	os_set_fd_async(cpu_data[me].ipi_pipe[0]);
+ 
+ 	for (cpu = 1; cpu < ncpus; cpu++) {
+ 		printk(KERN_INFO "Booting processor %d...\n", cpu);
+diff -puN arch/um/os-Linux/file.c~uml-miscellaneous-code-cleanups arch/um/os-Linux/file.c
+--- a/arch/um/os-Linux/file.c~uml-miscellaneous-code-cleanups
++++ a/arch/um/os-Linux/file.c
+@@ -328,19 +328,6 @@ int os_file_modtime(const char *file, un
+ 	return 0;
  }
  
--void flush_tlb_mm(struct mm_struct *mm)
-+void flush_tlb_mm_range(struct mm_struct *mm, unsigned long start,
-+			unsigned long end)
+-int os_get_exec_close(int fd, int *close_on_exec)
+-{
+-	int ret;
+-
+-	CATCH_EINTR(ret = fcntl(fd, F_GETFD));
+-
+-	if(ret < 0)
+-		return -errno;
+-
+-	*close_on_exec = (ret & FD_CLOEXEC) ? 1 : 0;
+-	return ret;
+-}
+-
+ int os_set_exec_close(int fd)
  {
- 	/*
- 	 * Don't bother flushing if this address space is about to be
-@@ -509,7 +510,20 @@ void flush_tlb_mm(struct mm_struct *mm)
- 	if (atomic_read(&mm->mm_users) == 0)
- 		return;
- 
--	fix_range(mm, 0, TASK_SIZE, 0);
-+	fix_range(mm, start, end, 0);
-+}
-+
-+void flush_tlb_mm(struct mm_struct *mm)
-+{
-+	struct vm_area_struct *vma = mm->mmap;
-+
-+	if (atomic_read(&mm->mm_users) == 0)
-+		return;
-+
-+	while (vma != NULL) {
-+		fix_range(mm, vma->vm_start, vma->vm_end, 0);
-+		vma = vma->vm_next;
-+	}
+ 	int err;
+@@ -380,30 +367,27 @@ int os_pipe(int *fds, int stream, int cl
+ 	return err;
  }
  
- void force_flush_all(void)
-diff -puN include/asm-um/tlb.h~uml-customize-tlbh include/asm-um/tlb.h
---- a/include/asm-um/tlb.h~uml-customize-tlbh
-+++ a/include/asm-um/tlb.h
-@@ -1,6 +1,125 @@
- #ifndef __UM_TLB_H
- #define __UM_TLB_H
+-int os_set_fd_async(int fd, int owner)
++int os_set_fd_async(int fd)
+ {
+-	int err;
++	int err, flags;
++
++	flags = fcntl(fd, F_GETFL);
++	if (flags < 0)
++		return -errno;
  
--#include <asm/arch/tlb.h>
-+#include <linux/swap.h>
-+#include <asm/pgalloc.h>
-+#include <asm/tlbflush.h>
-+
-+#define tlb_start_vma(tlb, vma) do { } while (0)
-+#define tlb_end_vma(tlb, vma) do { } while (0)
-+#define tlb_flush(tlb) flush_tlb_mm((tlb)->mm)
-+
-+/* struct mmu_gather is an opaque type used by the mm code for passing around
-+ * any data needed by arch specific code for tlb_remove_page.
-+ */
-+struct mmu_gather {
-+	struct mm_struct	*mm;
-+	unsigned int		need_flush; /* Really unmapped some ptes? */
-+	unsigned long		start;
-+	unsigned long		end;
-+	unsigned int		fullmm; /* non-zero means full mm flush */
-+};
-+
-+/* Users of the generic TLB shootdown code must declare this storage space. */
-+DECLARE_PER_CPU(struct mmu_gather, mmu_gathers);
-+
-+static inline void __tlb_remove_tlb_entry(struct mmu_gather *tlb, pte_t *ptep,
-+					  unsigned long address)
-+{
-+	if (tlb->start > address)
-+		tlb->start = address;
-+	if (tlb->end < address + PAGE_SIZE)
-+		tlb->end = address + PAGE_SIZE;
-+}
-+
-+static inline void init_tlb_gather(struct mmu_gather *tlb)
-+{
-+	tlb->need_flush = 0;
-+
-+	tlb->start = TASK_SIZE;
-+	tlb->end = 0;
-+
-+	if (tlb->fullmm) {
-+		tlb->start = 0;
-+		tlb->end = TASK_SIZE;
-+	}
-+}
-+
-+/* tlb_gather_mmu
-+ *	Return a pointer to an initialized struct mmu_gather.
-+ */
-+static inline struct mmu_gather *
-+tlb_gather_mmu(struct mm_struct *mm, unsigned int full_mm_flush)
-+{
-+	struct mmu_gather *tlb = &get_cpu_var(mmu_gathers);
-+
-+	tlb->mm = mm;
-+	tlb->fullmm = full_mm_flush;
-+
-+	init_tlb_gather(tlb);
-+
-+	return tlb;
-+}
-+
-+extern void flush_tlb_mm_range(struct mm_struct *mm, unsigned long start,
-+			       unsigned long end);
-+
-+static inline void
-+tlb_flush_mmu(struct mmu_gather *tlb, unsigned long start, unsigned long end)
-+{
-+	if (!tlb->need_flush)
-+		return;
-+
-+	flush_tlb_mm_range(tlb->mm, tlb->start, tlb->end);
-+	init_tlb_gather(tlb);
-+}
-+
-+/* tlb_finish_mmu
-+ *	Called at the end of the shootdown operation to free up any resources
-+ *	that were required.
-+ */
-+static inline void
-+tlb_finish_mmu(struct mmu_gather *tlb, unsigned long start, unsigned long end)
-+{
-+	tlb_flush_mmu(tlb, start, end);
-+
-+	/* keep the page table cache within bounds */
-+	check_pgt_cache();
-+
-+	put_cpu_var(mmu_gathers);
-+}
-+
-+/* tlb_remove_page
-+ *	Must perform the equivalent to __free_pte(pte_get_and_clear(ptep)),
-+ *	while handling the additional races in SMP caused by other CPUs
-+ *	caching valid mappings in their TLBs.
-+ */
-+static inline void tlb_remove_page(struct mmu_gather *tlb, struct page *page)
-+{
-+	tlb->need_flush = 1;
-+	free_page_and_swap_cache(page);
-+	return;
-+}
-+
-+/**
-+ * tlb_remove_tlb_entry - remember a pte unmapping for later tlb invalidation.
-+ *
-+ * Record the fact that pte's were really umapped in ->need_flush, so we can
-+ * later optimise away the tlb invalidate.   This helps when userspace is
-+ * unmapping already-unmapped pages, which happens quite a lot.
-+ */
-+#define tlb_remove_tlb_entry(tlb, ptep, address)		\
-+	do {							\
-+		tlb->need_flush = 1;				\
-+		__tlb_remove_tlb_entry(tlb, ptep, address);	\
-+	} while (0)
-+
-+#define pte_free_tlb(tlb, ptep) __pte_free_tlb(tlb, ptep)
-+
-+#define pud_free_tlb(tlb, pudp) __pud_free_tlb(tlb, pudp)
-+
-+#define pmd_free_tlb(tlb, pmdp) __pmd_free_tlb(tlb, pmdp)
-+
-+#define tlb_migrate_finish(mm) do {} while (0)
+-	/* XXX This should do F_GETFL first */
+-	if(fcntl(fd, F_SETFL, O_ASYNC | O_NONBLOCK) < 0){
++	flags |= O_ASYNC | O_NONBLOCK;
++	if (fcntl(fd, F_SETFL, flags) < 0) {
+ 		err = -errno;
+ 		printk("os_set_fd_async : failed to set O_ASYNC and "
+ 		       "O_NONBLOCK on fd # %d, errno = %d\n", fd, errno);
+ 		return err;
+ 	}
+-#ifdef notdef
+-	if(fcntl(fd, F_SETFD, 1) < 0){
+-		printk("os_set_fd_async : Setting FD_CLOEXEC failed, "
+-		       "errno = %d\n", errno);
+-	}
+-#endif
  
- #endif
+-	if((fcntl(fd, F_SETSIG, SIGIO) < 0) ||
+-	   (fcntl(fd, F_SETOWN, owner) < 0)){
++	if ((fcntl(fd, F_SETSIG, SIGIO) < 0) ||
++	    (fcntl(fd, F_SETOWN, os_getpid()) < 0)) {
+ 		err = -errno;
+ 		printk("os_set_fd_async : Failed to fcntl F_SETOWN "
+-		       "(or F_SETSIG) fd %d to pid %d, errno = %d\n", fd,
+-		       owner, errno);
++		       "(or F_SETSIG) fd %d, errno = %d\n", fd, errno);
+ 		return err;
+ 	}
+ 
+diff -puN arch/um/os-Linux/start_up.c~uml-miscellaneous-code-cleanups arch/um/os-Linux/start_up.c
+--- a/arch/um/os-Linux/start_up.c~uml-miscellaneous-code-cleanups
++++ a/arch/um/os-Linux/start_up.c
+@@ -60,7 +60,8 @@ static int ptrace_child(void)
+ 		 * the UML code itself.
+ 		 */
+ 		ret = 2;
+-	_exit(ret);
++
++	exit(ret);
+ }
+ 
+ static void fatal_perror(const char *str)
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
