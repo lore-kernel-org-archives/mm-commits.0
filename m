@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + spi_bfin5xx-fix-typo-in-description.patch added to -mm tree
-Date: Thu, 06 Dec 2007 11:41:53 -0800
-Message-ID: <200712061941.lB6JfrdJ008477@imap1.linux-foundation.org>
+Subject: + uml-customize-tlbh.patch added to -mm tree
+Date: Thu, 06 Dec 2007 11:47:26 -0800
+Message-ID: <200712061947.lB6JlQJS008659@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58690 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46651 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752846AbXLFTmK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Dec 2007 14:42:10 -0500
+	by vger.kernel.org with ESMTP id S1754061AbXLFTra (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Dec 2007 14:47:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: will.newton@gmail.com, dbrownell@users.sourceforge.net
+Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     spi_bfin5xx: fix typo in description
+     uml: customize tlb.h
 has been added to the -mm tree.  Its filename is
-     spi_bfin5xx-fix-typo-in-description.patch
+     uml-customize-tlbh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,33 +25,258 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: spi_bfin5xx: fix typo in description
-From: "Will Newton" <will.newton@gmail.com>
+Subject: uml: customize tlb.h
+From: Jeff Dike <jdike@addtoit.com>
 
-Signed-off-by: Will Newton <will.newton@gmail.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Customize the hooks in tlb.h to optimize TLB flushing some more.
+
+Add start and end fields to tlb_gather_mmu, which are used to limit
+the address space range scanned when a region is unmapped.
+
+The interfaces which just free page tables, without actually changing
+mappings, don't need to cause a TLB flush.
+
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_bfin5xx.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/um/kernel/tlb.c |   28 +++++++--
+ include/asm-um/tlb.h |  121 ++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 141 insertions(+), 8 deletions(-)
 
-diff -puN drivers/spi/spi_bfin5xx.c~spi_bfin5xx-fix-typo-in-description drivers/spi/spi_bfin5xx.c
---- a/drivers/spi/spi_bfin5xx.c~spi_bfin5xx-fix-typo-in-description
-+++ a/drivers/spi/spi_bfin5xx.c
-@@ -54,7 +54,7 @@
+diff -puN arch/um/kernel/tlb.c~uml-customize-tlbh arch/um/kernel/tlb.c
+--- a/arch/um/kernel/tlb.c~uml-customize-tlbh
++++ a/arch/um/kernel/tlb.c
+@@ -193,18 +193,18 @@ static inline int update_pte_range(pmd_t
+ 		if (!pte_young(*pte)) {
+ 			r = 0;
+ 			w = 0;
+-		} else if (!pte_dirty(*pte)) {
++		} else if (!pte_dirty(*pte))
+ 			w = 0;
+-		}
++
+ 		prot = ((r ? UM_PROT_READ : 0) | (w ? UM_PROT_WRITE : 0) |
+ 			(x ? UM_PROT_EXEC : 0));
+ 		if (hvc->force || pte_newpage(*pte)) {
+ 			if (pte_present(*pte))
+ 				ret = add_mmap(addr, pte_val(*pte) & PAGE_MASK,
+ 					       PAGE_SIZE, prot, hvc);
+-			else ret = add_munmap(addr, PAGE_SIZE, hvc);
+-		}
+-		else if (pte_newprot(*pte))
++			else
++				ret = add_munmap(addr, PAGE_SIZE, hvc);
++		} else if (pte_newprot(*pte))
+ 			ret = add_mprotect(addr, PAGE_SIZE, prot, hvc);
+ 		*pte = pte_mkuptodate(*pte);
+ 	} while (pte++, addr += PAGE_SIZE, ((addr != end) && !ret));
+@@ -500,7 +500,8 @@ void flush_tlb_range(struct vm_area_stru
+ 	else fix_range(vma->vm_mm, start, end, 0);
+ }
  
- #define DRV_NAME	"bfin-spi"
- #define DRV_AUTHOR	"Bryan Wu, Luke Yang"
--#define DRV_DESC	"Blackfin BF5xx on-chip SPI Contoller Driver"
-+#define DRV_DESC	"Blackfin BF5xx on-chip SPI Controller Driver"
- #define DRV_VERSION	"1.0"
+-void flush_tlb_mm(struct mm_struct *mm)
++void flush_tlb_mm_range(struct mm_struct *mm, unsigned long start,
++			unsigned long end)
+ {
+ 	/*
+ 	 * Don't bother flushing if this address space is about to be
+@@ -509,7 +510,20 @@ void flush_tlb_mm(struct mm_struct *mm)
+ 	if (atomic_read(&mm->mm_users) == 0)
+ 		return;
  
- MODULE_AUTHOR(DRV_AUTHOR);
+-	fix_range(mm, 0, TASK_SIZE, 0);
++	fix_range(mm, start, end, 0);
++}
++
++void flush_tlb_mm(struct mm_struct *mm)
++{
++	struct vm_area_struct *vma = mm->mmap;
++
++	if (atomic_read(&mm->mm_users) == 0)
++		return;
++
++	while (vma != NULL) {
++		fix_range(mm, vma->vm_start, vma->vm_end, 0);
++		vma = vma->vm_next;
++	}
+ }
+ 
+ void force_flush_all(void)
+diff -puN include/asm-um/tlb.h~uml-customize-tlbh include/asm-um/tlb.h
+--- a/include/asm-um/tlb.h~uml-customize-tlbh
++++ a/include/asm-um/tlb.h
+@@ -1,6 +1,125 @@
+ #ifndef __UM_TLB_H
+ #define __UM_TLB_H
+ 
+-#include <asm/arch/tlb.h>
++#include <linux/swap.h>
++#include <asm/pgalloc.h>
++#include <asm/tlbflush.h>
++
++#define tlb_start_vma(tlb, vma) do { } while (0)
++#define tlb_end_vma(tlb, vma) do { } while (0)
++#define tlb_flush(tlb) flush_tlb_mm((tlb)->mm)
++
++/* struct mmu_gather is an opaque type used by the mm code for passing around
++ * any data needed by arch specific code for tlb_remove_page.
++ */
++struct mmu_gather {
++	struct mm_struct	*mm;
++	unsigned int		need_flush; /* Really unmapped some ptes? */
++	unsigned long		start;
++	unsigned long		end;
++	unsigned int		fullmm; /* non-zero means full mm flush */
++};
++
++/* Users of the generic TLB shootdown code must declare this storage space. */
++DECLARE_PER_CPU(struct mmu_gather, mmu_gathers);
++
++static inline void __tlb_remove_tlb_entry(struct mmu_gather *tlb, pte_t *ptep,
++					  unsigned long address)
++{
++	if (tlb->start > address)
++		tlb->start = address;
++	if (tlb->end < address + PAGE_SIZE)
++		tlb->end = address + PAGE_SIZE;
++}
++
++static inline void init_tlb_gather(struct mmu_gather *tlb)
++{
++	tlb->need_flush = 0;
++
++	tlb->start = TASK_SIZE;
++	tlb->end = 0;
++
++	if (tlb->fullmm) {
++		tlb->start = 0;
++		tlb->end = TASK_SIZE;
++	}
++}
++
++/* tlb_gather_mmu
++ *	Return a pointer to an initialized struct mmu_gather.
++ */
++static inline struct mmu_gather *
++tlb_gather_mmu(struct mm_struct *mm, unsigned int full_mm_flush)
++{
++	struct mmu_gather *tlb = &get_cpu_var(mmu_gathers);
++
++	tlb->mm = mm;
++	tlb->fullmm = full_mm_flush;
++
++	init_tlb_gather(tlb);
++
++	return tlb;
++}
++
++extern void flush_tlb_mm_range(struct mm_struct *mm, unsigned long start,
++			       unsigned long end);
++
++static inline void
++tlb_flush_mmu(struct mmu_gather *tlb, unsigned long start, unsigned long end)
++{
++	if (!tlb->need_flush)
++		return;
++
++	flush_tlb_mm_range(tlb->mm, tlb->start, tlb->end);
++	init_tlb_gather(tlb);
++}
++
++/* tlb_finish_mmu
++ *	Called at the end of the shootdown operation to free up any resources
++ *	that were required.
++ */
++static inline void
++tlb_finish_mmu(struct mmu_gather *tlb, unsigned long start, unsigned long end)
++{
++	tlb_flush_mmu(tlb, start, end);
++
++	/* keep the page table cache within bounds */
++	check_pgt_cache();
++
++	put_cpu_var(mmu_gathers);
++}
++
++/* tlb_remove_page
++ *	Must perform the equivalent to __free_pte(pte_get_and_clear(ptep)),
++ *	while handling the additional races in SMP caused by other CPUs
++ *	caching valid mappings in their TLBs.
++ */
++static inline void tlb_remove_page(struct mmu_gather *tlb, struct page *page)
++{
++	tlb->need_flush = 1;
++	free_page_and_swap_cache(page);
++	return;
++}
++
++/**
++ * tlb_remove_tlb_entry - remember a pte unmapping for later tlb invalidation.
++ *
++ * Record the fact that pte's were really umapped in ->need_flush, so we can
++ * later optimise away the tlb invalidate.   This helps when userspace is
++ * unmapping already-unmapped pages, which happens quite a lot.
++ */
++#define tlb_remove_tlb_entry(tlb, ptep, address)		\
++	do {							\
++		tlb->need_flush = 1;				\
++		__tlb_remove_tlb_entry(tlb, ptep, address);	\
++	} while (0)
++
++#define pte_free_tlb(tlb, ptep) __pte_free_tlb(tlb, ptep)
++
++#define pud_free_tlb(tlb, pudp) __pud_free_tlb(tlb, pudp)
++
++#define pmd_free_tlb(tlb, pmdp) __pmd_free_tlb(tlb, pmdp)
++
++#define tlb_migrate_finish(mm) do {} while (0)
+ 
+ #endif
 _
 
-Patches currently in -mm which might be from will.newton@gmail.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
-pxa2xx_spi-fix-typo-in-description.patch
-spi_bfin5xx-fix-typo-in-description.patch
-spi_imx-fix-typo-in-description.patch
+aio-only-account-i-o-wait-time-in-read_events-if-there-are-active-requests.patch
+git-kvm.patch
+uml-add-asm-um-asmh.patch
+uml-arch-um-include-inith-needs-a-definition-of-__used.patch
+uml-implement-get_wchan.patch
+uml-implement-get_wchan-fix.patch
+uml-get-rid-of-asmlinkage.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-document-new-ubd-flag.patch
+uml-further-bugsc-tidying.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+uml-smp-needs-to-depend-on-broken-for-now.patch
+uml-console-driver-cleanups.patch
+uml-clonec-tidying.patch
+uml-borrow-consth-techniques.patch
+uml-delete-some-unused-headers.patch
+uml-allow-lflags-on-command-line.patch
+uml-tidy-kern_utilh.patch
+uml-tidy-pgtableh.patch
+uml-tidy-pgtableh-fix.patch
+uml-reconst-a-parameter.patch
+arch-um-remove-duplicate-includes.patch
+uml-host-tls-diagnostics.patch
+uml-move-um_virt_to_phys.patch
+uml-header-untangling.patch
+uml-style-cleanup.patch
+uml-currenth-cleanup.patch
+uml-fix-page-table-data-sizes.patch
+uml-add-virt_to_pte.patch
+uml-simplify-sigsegv-handling.patch
+uml-use-ptrace-directly-in-libc-code.patch
+uml-kill-processes-instead-of-panicing-kernel.patch
+uml-clean-up-task_size-usage.patch
+uml-cover-stubs-with-a-vma.patch
+uml-fix-command-line-cflags-and-ldflags-support.patch
+uml-style-fixes-in-arch-um-os-linux.patch
+uml-customize-tlbh.patch
+uml-miscellaneous-code-cleanups.patch
+uml-style-fixes-in-filec.patch
+uml-64-bit-tlb-fixes.patch
+fix-__const_udelay-declaration-and-definition-mismatches.patch
+iget-stop-hostfs-from-using-iget-and-read_inode.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
