@@ -1,93 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - arch-xtensa-remove-duplicate-includes.patch removed from -mm tree
-Date: Fri, 07 Dec 2007 14:49:19 -0800
-Message-ID: <200712072249.lB7MnJsB007540@imap1.linux-foundation.org>
+Subject: + atmel_spi-reload-rcr-before-tcr.patch added to -mm tree
+Date: Fri, 07 Dec 2007 15:19:01 -0800
+Message-ID: <200712072319.lB7NJ1dm008674@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48826 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38061 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753005AbXLGWtx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 17:49:53 -0500
+	by vger.kernel.org with ESMTP id S1750901AbXLGXTX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 18:19:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: woodzy@gmail.com, chris@zankel.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rini@arvoo.nl, dbrownell@users.sourceforge.net, hskinnemoen@atmel.com
 
 
 The patch titled
-     arch/xtensa: remove duplicate includes
-has been removed from the -mm tree.  Its filename was
-     arch-xtensa-remove-duplicate-includes.patch
+     atmel_spi: reload RCR before TCR
+has been added to the -mm tree.  Its filename is
+     atmel_spi-reload-rcr-before-tcr.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: arch/xtensa: remove duplicate includes
-From: Lucas Woods <woodzy@gmail.com>
+Subject: atmel_spi: reload RCR before TCR
+From: Rini van Zetten <rini@arvoo.nl>
 
-Signed-off-by: Lucas Woods <woodzy@gmail.com>
-Cc: Christian Zankel <chris@zankel.net>
+We have a wifi module connected to the spi bus and got sometimes FIFO
+overrun errors on the spi bus.
+
+After some investigation i found that the driver loads the TCR (transmit
+count) register before the RCR (receive count).  When the transfer list is
+not empty the atmel_spi_next_message is called while tx and rx are enabled.
+ As soon as the TCR is loaded, hardware starts transfer and causes a rx
+fifo overrun because the RCR is not loaded yet.
+
+Load the RCR before the TCR.  After this patch the fifo overrun disapears
+at out setup.
+
+Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Signed-off-by: Rini van Zetten <rini@arvoo.nl>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/kernel/asm-offsets.c   |    1 -
- arch/xtensa/kernel/syscall.c       |    1 -
- arch/xtensa/mm/cache.c             |    1 -
- arch/xtensa/platform-iss/network.c |    1 -
- 4 files changed, 4 deletions(-)
+ drivers/spi/atmel_spi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/xtensa/kernel/asm-offsets.c~arch-xtensa-remove-duplicate-includes arch/xtensa/kernel/asm-offsets.c
---- a/arch/xtensa/kernel/asm-offsets.c~arch-xtensa-remove-duplicate-includes
-+++ a/arch/xtensa/kernel/asm-offsets.c
-@@ -21,7 +21,6 @@
- #include <linux/mm.h>
+diff -puN drivers/spi/atmel_spi.c~atmel_spi-reload-rcr-before-tcr drivers/spi/atmel_spi.c
+--- a/drivers/spi/atmel_spi.c~atmel_spi-reload-rcr-before-tcr
++++ a/drivers/spi/atmel_spi.c
+@@ -195,8 +195,8 @@ static void atmel_spi_next_xfer(struct s
+ 		xfer, xfer->len, xfer->tx_buf, xfer->tx_dma,
+ 		xfer->rx_buf, xfer->rx_dma, spi_readl(as, IMR));
  
- #include <asm/ptrace.h>
--#include <asm/processor.h>
- #include <asm/uaccess.h>
+-	spi_writel(as, TCR, len);
+ 	spi_writel(as, RCR, len);
++	spi_writel(as, TCR, len);
+ 	spi_writel(as, PTCR, SPI_BIT(TXTEN) | SPI_BIT(RXTEN));
+ }
  
- #define DEFINE(sym, val) asm volatile("\n->" #sym " %0 " #val : : "i" (val))
-diff -puN arch/xtensa/kernel/syscall.c~arch-xtensa-remove-duplicate-includes arch/xtensa/kernel/syscall.c
---- a/arch/xtensa/kernel/syscall.c~arch-xtensa-remove-duplicate-includes
-+++ a/arch/xtensa/kernel/syscall.c
-@@ -36,7 +36,6 @@ syscall_t sys_call_table[__NR_syscall_co
- #define __SYSCALL(nr,symbol,nargs) [ nr ] = (syscall_t)symbol,
- #undef _XTENSA_UNISTD_H
- #undef  __KERNEL_SYSCALLS__
--#include <asm/unistd.h>
- };
- 
- /*
-diff -puN arch/xtensa/mm/cache.c~arch-xtensa-remove-duplicate-includes arch/xtensa/mm/cache.c
---- a/arch/xtensa/mm/cache.c~arch-xtensa-remove-duplicate-includes
-+++ a/arch/xtensa/mm/cache.c
-@@ -25,7 +25,6 @@
- #include <linux/swap.h>
- #include <linux/pagemap.h>
- 
--#include <asm/pgtable.h>
- #include <asm/bootparam.h>
- #include <asm/mmu_context.h>
- #include <asm/tlb.h>
-diff -puN arch/xtensa/platform-iss/network.c~arch-xtensa-remove-duplicate-includes arch/xtensa/platform-iss/network.c
---- a/arch/xtensa/platform-iss/network.c~arch-xtensa-remove-duplicate-includes
-+++ a/arch/xtensa/platform-iss/network.c
-@@ -31,7 +31,6 @@
- #include <linux/bootmem.h>
- #include <linux/ethtool.h>
- #include <linux/rtnetlink.h>
--#include <linux/timer.h>
- #include <linux/platform_device.h>
- 
- #include <asm/platform/simcall.h>
 _
 
-Patches currently in -mm which might be from woodzy@gmail.com are
+Patches currently in -mm which might be from rini@arvoo.nl are
 
-git-arm.patch
-arch-powerpc-remove-duplicate-includes.patch
-arch-ppc-remove-duplicate-includes.patch
-git-mips.patch
-git-x86.patch
-arch-xtensa-remove-duplicate-includes.patch
-arch-alpha-removed-duplicate-includes.patch
-arch-um-remove-duplicate-includes.patch
+atmel_spi-reload-rcr-before-tcr.patch
