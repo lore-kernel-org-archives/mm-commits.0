@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-fix-autloading-of-dock-video-bay-and-all-linux-specific-hid-drivers.patch added to -mm tree
-Date: Fri, 07 Dec 2007 13:40:06 -0800
-Message-ID: <200712072140.lB7Le75w005070@imap1.linux-foundation.org>
+Subject: + acpi-also-autoload-the-bay-driver-was-forgotten.patch added to -mm tree
+Date: Fri, 07 Dec 2007 13:40:11 -0800
+Message-ID: <200712072140.lB7LeBl1005076@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49167 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48026 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753885AbXLGVkd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 16:40:33 -0500
+	by vger.kernel.org with ESMTP id S1754851AbXLGVkh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 16:40:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fseidel@suse.de, kasievers@novell.com, kristen.c.accardi@intel.com, lenb@kernel.org, trenn@novell.com
+Cc: trenn@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org
 
 
 The patch titled
-     acpi: fix autloading of dock, video, bay and all linux specific HID drivers
+     acpi: also autoload the bay driver, was forgotten
 has been added to the -mm tree.  Its filename is
-     acpi-fix-autloading-of-dock-video-bay-and-all-linux-specific-hid-drivers.patch
+     acpi-also-autoload-the-bay-driver-was-forgotten.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,182 +25,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: acpi: fix autloading of dock, video, bay and all linux specific HID drivers
-From: Frank Seidel <fseidel@suse.de>
+Subject: acpi: also autoload the bay driver, was forgotten
+From: Thomas Renninger <trenn@suse.de>
 
-Fix autloading of dock, video, bay and all linux specific HID drivers
+Also autoload the bay driver, was forgotten...
 
-References: https://bugzilla.novell.com/show_bug.cgi?id=302482
-
-Due to the new autloading of acpi drivers, the dock driver wasn't loaded
-anymore as there is no HID to identify it with (dock is needed if ACPI has a
-_DCK method).  This patch is a workaround for this, original by Thomas
-Renninger, revised first by Kay Sievers and last by Frank Seidel.  V2 of this
-patch fixed problems on systems without a defined _CID for the docking
-devices.
-
-Signed-off-by: Thomas Renninger <trenn@novell.com>
-Signed-off-by: Kay Sievers <kasievers@novell.com>
-Signed-off-by: Frank Seidel <fseidel@suse.de>
+Signed-off-by: Thomas Renninger <trenn@suse.de>
 Cc: Len Brown <lenb@kernel.org>
 Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/scan.c |  101 +++++++++++++++++++++++++++++++++++-------
- 1 file changed, 85 insertions(+), 16 deletions(-)
+ drivers/acpi/bay.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN drivers/acpi/scan.c~acpi-fix-autloading-of-dock-video-bay-and-all-linux-specific-hid-drivers drivers/acpi/scan.c
---- a/drivers/acpi/scan.c~acpi-fix-autloading-of-dock-video-bay-and-all-linux-specific-hid-drivers
-+++ a/drivers/acpi/scan.c
-@@ -941,6 +941,15 @@ static int acpi_bay_match(struct acpi_de
- 	return -ENODEV;
- }
+diff -puN drivers/acpi/bay.c~acpi-also-autoload-the-bay-driver-was-forgotten drivers/acpi/bay.c
+--- a/drivers/acpi/bay.c~acpi-also-autoload-the-bay-driver-was-forgotten
++++ a/drivers/acpi/bay.c
+@@ -46,6 +46,12 @@ MODULE_LICENSE("GPL");
+ 	printk(KERN_DEBUG PREFIX "%s: %s\n", prefix, s); }
+ static void bay_notify(acpi_handle handle, u32 event, void *data);
  
-+/*
-+ * acpi_dock_match - see if a device has a _DCK method
-+ */
-+static int acpi_dock_match(struct acpi_device *device)
-+{
-+	acpi_handle tmp;
-+	return acpi_get_handle(device->handle, "_DCK", &tmp);
-+}
++static const struct acpi_device_id bay_device_ids[] = {
++	{"LNXIOBAY", 0},
++	{"", 0},
++};
++MODULE_DEVICE_TABLE(acpi, bay_device_ids);
 +
- static void acpi_device_set_id(struct acpi_device *device,
- 			       struct acpi_device *parent, acpi_handle handle,
- 			       int type)
-@@ -950,6 +959,7 @@ static void acpi_device_set_id(struct ac
- 	char *hid = NULL;
- 	char *uid = NULL;
- 	struct acpi_compatible_id_list *cid_list = NULL;
-+	const char *cid_add = NULL;
- 	acpi_status status;
- 
- 	switch (type) {
-@@ -972,15 +982,18 @@ static void acpi_device_set_id(struct ac
- 			device->flags.bus_address = 1;
- 		}
- 
--		if(!(info->valid & (ACPI_VALID_HID | ACPI_VALID_CID))){
--			status = acpi_video_bus_match(device);
--			if(ACPI_SUCCESS(status))
--				hid = ACPI_VIDEO_HID;
--
--			status = acpi_bay_match(device);
--			if (ACPI_SUCCESS(status))
--				hid = ACPI_BAY_HID;
--		}
-+		/* If we have a video/bay/dock device, add our selfdefined
-+		   HID to the CID list. Like that the video/bay/dock drivers
-+		   will get autoloaded and the device might still match
-+		   against another driver.
-+		*/
-+		if (ACPI_SUCCESS(acpi_video_bus_match(device)))
-+			cid_add = ACPI_VIDEO_HID;
-+		else if (ACPI_SUCCESS(acpi_bay_match(device)))
-+			cid_add = ACPI_BAY_HID;
-+		else if (ACPI_SUCCESS(acpi_dock_match(device)))
-+			cid_add = ACPI_DOCK_HID;
-+
- 		break;
- 	case ACPI_BUS_TYPE_POWER:
- 		hid = ACPI_POWER_HID;
-@@ -1021,11 +1034,43 @@ static void acpi_device_set_id(struct ac
- 		strcpy(device->pnp.unique_id, uid);
- 		device->flags.unique_id = 1;
- 	}
--	if (cid_list) {
--		device->pnp.cid_list = kmalloc(cid_list->size, GFP_KERNEL);
--		if (device->pnp.cid_list)
--			memcpy(device->pnp.cid_list, cid_list, cid_list->size);
--		else
-+	if (cid_list || cid_add) {
-+		struct  acpi_compatible_id_list *list;
-+		int size = 0;
-+		int count = 0;
-+
-+		if (cid_list) {
-+			size = cid_list->size;
-+		} else if (cid_add) {
-+			size = sizeof(struct acpi_compatible_id_list);
-+			cid_list = ACPI_ALLOCATE_ZEROED((acpi_size) size);
-+			if (!cid_list) {
-+				printk(KERN_ERR "Memory allocation error\n");
-+				kfree(buffer.pointer);
-+				return;
-+			} else {
-+				cid_list->count = 0;
-+				cid_list->size = size;
-+			}
-+		}
-+		if (cid_add)
-+			size += sizeof(struct acpi_compatible_id);
-+		list = kmalloc(size, GFP_KERNEL);
-+
-+		if (list) {
-+			if (cid_list) {
-+				memcpy(list, cid_list, cid_list->size);
-+				count = cid_list->count;
-+			}
-+			if (cid_add) {
-+				strncpy(list->id[count].value, cid_add, ACPI_MAX_CID_LENGTH);
-+				count++;
-+				device->flags.compatible_ids = 1;
-+			}
-+			list->size = size;
-+			list->count = count;
-+			device->pnp.cid_list = list;
-+		} else
- 			printk(KERN_ERR "Memory allocation error\n");
- 	}
- 
-@@ -1081,6 +1126,20 @@ static int acpi_bus_remove(struct acpi_d
- }
- 
- static int
-+acpi_is_child_device(struct acpi_device *device,
-+			int (*matcher)(struct acpi_device*))
-+{
-+	int result = -ENODEV;
-+
-+	do {
-+		if (ACPI_SUCCESS(matcher(device)))
-+			return AE_OK;
-+	} while ((device = device->parent));
-+
-+	return result;
-+}
-+
-+static int
- acpi_add_single_object(struct acpi_device **child,
- 		       struct acpi_device *parent, acpi_handle handle, int type,
- 			struct acpi_bus_ops *ops)
-@@ -1131,10 +1190,20 @@ acpi_add_single_object(struct acpi_devic
- 	case ACPI_BUS_TYPE_PROCESSOR:
- 	case ACPI_BUS_TYPE_DEVICE:
- 		result = acpi_bus_get_status(device);
--		if (ACPI_FAILURE(result) || !device->status.present) {
--			result = -ENOENT;
-+		if (ACPI_FAILURE(result)) {
-+			result = -ENODEV;
- 			goto end;
- 		}
-+		if (!device->status.present) {
-+                	/* Bay and dock should be handled even if absent */
-+			if (!ACPI_SUCCESS(
-+			     acpi_is_child_device(device, acpi_bay_match)) &&
-+			    !ACPI_SUCCESS(
-+			     acpi_is_child_device(device, acpi_dock_match))) {
-+					result = -ENODEV;
-+					goto end;
-+			}
-+		}
- 		break;
- 	default:
- 		STRUCT_TO_INT(device->status) =
+ struct bay {
+ 	acpi_handle handle;
+ 	char *name;
 _
 
-Patches currently in -mm which might be from fseidel@suse.de are
+Patches currently in -mm which might be from trenn@suse.de are
 
-acpi-fix-autloading-of-dock-video-bay-and-all-linux-specific-hid-drivers.patch
-acpi-add-autoload-info-to-dock-driver.patch
+acpi-also-autoload-the-bay-driver-was-forgotten.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+export-acpi_check_resource_conflict.patch
+git-alsa.patch
+check-for-acpi-resource-conflicts-in-i2c-bus-drivers.patch
+check-for-acpi-resource-conflicts-in-hwmon-drivers.patch
+declare-pnp-option-parsing-functions-as-__init.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
