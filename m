@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + esp_scsi-fix-reset-cleanup-spinlock-recursion.patch added to -mm tree
-Date: Thu, 06 Dec 2007 16:58:51 -0800
-Message-ID: <200712070058.lB70wppL022744@imap1.linux-foundation.org>
+Subject: + hid-the-bit-in-hidinput_mapping_quirks-is-an-out-parameter.patch added to -mm tree
+Date: Fri, 07 Dec 2007 13:37:40 -0800
+Message-ID: <200712072137.lB7Lbeoh004888@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60530 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34565 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751684AbXLGA7T (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Dec 2007 19:59:19 -0500
+	by vger.kernel.org with ESMTP id S1757448AbXLGVh4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 16:37:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: macro@linux-mips.org, James.Bottomley@steeleye.com, davem@davemloft.net, stable@kernel.org
+Cc: wfg@mail.ustc.edu.cn, jkosina@suse.cz
 
 
 The patch titled
-     esp_scsi: fix reset cleanup spinlock recursion
+     hid: the `bit' in hidinput_mapping_quirks() is an out parameter
 has been added to the -mm tree.  Its filename is
-     esp_scsi-fix-reset-cleanup-spinlock-recursion.patch
+     hid-the-bit-in-hidinput_mapping_quirks-is-an-out-parameter.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,128 +25,182 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: esp_scsi: fix reset cleanup spinlock recursion
-From: "Maciej W. Rozycki" <macro@linux-mips.org>
+Subject: hid: the `bit' in hidinput_mapping_quirks() is an out parameter
+From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-The esp_reset_cleanup() function is called with the host lock held and
-invokes starget_for_each_device() which wants to take it too.  Here is a
-fix along the lines of shost_for_each_device()/__shost_for_each_device()
-adding a __starget_for_each_device() counterpart which assumes the lock
-has already been taken.
+Fix a panic, by changing
+	hidinput_mapping_quirks(,, unsigned long *bit,)
+to
+	hidinput_mapping_quirks(,, unsigned long **bit,)
 
-Eventually, I think the driver should get modified so that more work is
-done as a softirq rather than in the interrupt context, but for now it
-fixes a bug that causes the spinlock debugger to fire.
+The `bit' in this function is an out parameter.
 
-While at it, it fixes a small number of cosmetic problems with
-starget_for_each_device() too.
-
-Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
-Acked-by: David S. Miller <davem@davemloft.net>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: <stable@kernel.org>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/esp_scsi.c    |    4 ++--
- drivers/scsi/scsi.c        |   31 +++++++++++++++++++++++++++++--
- include/scsi/scsi_device.h |    3 +++
- 3 files changed, 34 insertions(+), 4 deletions(-)
+ drivers/hid/hid-input-quirks.c |   36 +++++++++++++++----------------
+ drivers/hid/hid-input.c        |    2 -
+ include/linux/hid.h            |    2 -
+ 3 files changed, 20 insertions(+), 20 deletions(-)
 
-diff -puN drivers/scsi/esp_scsi.c~esp_scsi-fix-reset-cleanup-spinlock-recursion drivers/scsi/esp_scsi.c
---- a/drivers/scsi/esp_scsi.c~esp_scsi-fix-reset-cleanup-spinlock-recursion
-+++ a/drivers/scsi/esp_scsi.c
-@@ -2026,8 +2026,8 @@ static void esp_reset_cleanup(struct esp
- 		tp->flags |= ESP_TGT_CHECK_NEGO;
+diff -puN drivers/hid/hid-input-quirks.c~hid-the-bit-in-hidinput_mapping_quirks-is-an-out-parameter drivers/hid/hid-input-quirks.c
+--- a/drivers/hid/hid-input-quirks.c~hid-the-bit-in-hidinput_mapping_quirks-is-an-out-parameter
++++ a/drivers/hid/hid-input-quirks.c
+@@ -16,16 +16,16 @@
+ #include <linux/input.h>
+ #include <linux/hid.h>
  
- 		if (tp->starget)
--			starget_for_each_device(tp->starget, NULL,
--						esp_clear_hold);
-+			__starget_for_each_device(tp->starget, NULL,
-+						  esp_clear_hold);
- 	}
- 	esp->flags &= ~ESP_FLAG_RESETTING;
- }
-diff -puN drivers/scsi/scsi.c~esp_scsi-fix-reset-cleanup-spinlock-recursion drivers/scsi/scsi.c
---- a/drivers/scsi/scsi.c~esp_scsi-fix-reset-cleanup-spinlock-recursion
-+++ a/drivers/scsi/scsi.c
-@@ -896,11 +896,11 @@ EXPORT_SYMBOL(__scsi_iterate_devices);
-  * starget_for_each_device  -  helper to walk all devices of a target
-  * @starget:	target whose devices we want to iterate over.
-  *
-- * This traverses over each devices of @shost.  The devices have
-+ * This traverses over each device of @starget.  The devices have
-  * a reference that must be released by scsi_host_put when breaking
-  * out of the loop.
-  */
--void starget_for_each_device(struct scsi_target *starget, void * data,
-+void starget_for_each_device(struct scsi_target *starget, void *data,
- 		     void (*fn)(struct scsi_device *, void *))
+-#define map_abs(c)      do { usage->code = c; usage->type = EV_ABS; bit = input->absbit; *max = ABS_MAX; } while (0)
+-#define map_rel(c)      do { usage->code = c; usage->type = EV_REL; bit = input->relbit; *max = REL_MAX; } while (0)
+-#define map_key(c)      do { usage->code = c; usage->type = EV_KEY; bit = input->keybit; *max = KEY_MAX; } while (0)
+-#define map_led(c)      do { usage->code = c; usage->type = EV_LED; bit = input->ledbit; *max = LED_MAX; } while (0)
++#define map_abs(c)      do { usage->code = c; usage->type = EV_ABS; *bit = input->absbit; *max = ABS_MAX; } while (0)
++#define map_rel(c)      do { usage->code = c; usage->type = EV_REL; *bit = input->relbit; *max = REL_MAX; } while (0)
++#define map_key(c)      do { usage->code = c; usage->type = EV_KEY; *bit = input->keybit; *max = KEY_MAX; } while (0)
++#define map_led(c)      do { usage->code = c; usage->type = EV_LED; *bit = input->ledbit; *max = LED_MAX; } while (0)
+ 
+-#define map_abs_clear(c)        do { map_abs(c); clear_bit(c, bit); } while (0)
+-#define map_key_clear(c)        do { map_key(c); clear_bit(c, bit); } while (0)
++#define map_abs_clear(c)        do { map_abs(c); clear_bit(c, *bit); } while (0)
++#define map_key_clear(c)        do { map_key(c); clear_bit(c, *bit); } while (0)
+ 
+ static int quirk_belkin_wkbd(struct hid_usage *usage, struct input_dev *input,
+-			      unsigned long *bit, int *max)
++			      unsigned long **bit, int *max)
  {
- 	struct Scsi_Host *shost = dev_to_shost(starget->dev.parent);
-@@ -915,6 +915,33 @@ void starget_for_each_device(struct scsi
- EXPORT_SYMBOL(starget_for_each_device);
+ 	if ((usage->hid & HID_USAGE_PAGE) != HID_UP_CONSUMER)
+ 		return 0;
+@@ -41,7 +41,7 @@ static int quirk_belkin_wkbd(struct hid_
+ }
  
- /**
-+ * __starget_for_each_device  -  helper to walk all devices of a target
-+ *				 (UNLOCKED)
-+ * @starget:	target whose devices we want to iterate over.
-+ *
-+ * This traverses over each device of @starget.  It does _not_
-+ * take a reference on the scsi_device, so the whole loop must be
-+ * protected by shost->host_lock.
-+ *
-+ * Note:  The only reason why drivers would want to use this is because
-+ * they need to access the device list in irq context.  Otherwise you
-+ * really want to use starget_for_each_device instead.
-+ **/
-+void __starget_for_each_device(struct scsi_target *starget, void *data,
-+			       void (*fn)(struct scsi_device *, void *))
-+{
-+	struct Scsi_Host *shost = dev_to_shost(starget->dev.parent);
-+	struct scsi_device *sdev;
-+
-+	__shost_for_each_device(sdev, shost) {
-+		if ((sdev->channel == starget->channel) &&
-+		    (sdev->id == starget->id))
-+			fn(sdev, data);
-+	}
-+}
-+EXPORT_SYMBOL(__starget_for_each_device);
-+
-+/**
-  * __scsi_device_lookup_by_target - find a device given the target (UNLOCKED)
-  * @starget:	SCSI target pointer
-  * @lun:	SCSI Logical Unit Number
-diff -puN include/scsi/scsi_device.h~esp_scsi-fix-reset-cleanup-spinlock-recursion include/scsi/scsi_device.h
---- a/include/scsi/scsi_device.h~esp_scsi-fix-reset-cleanup-spinlock-recursion
-+++ a/include/scsi/scsi_device.h
-@@ -242,6 +242,9 @@ extern struct scsi_device *__scsi_device
- 							  uint);
- extern void starget_for_each_device(struct scsi_target *, void *,
- 		     void (*fn)(struct scsi_device *, void *));
-+extern void __starget_for_each_device(struct scsi_target *, void *,
-+				      void (*fn)(struct scsi_device *,
-+						 void *));
+ static int quirk_cherry_cymotion(struct hid_usage *usage, struct input_dev *input,
+-			      unsigned long *bit, int *max)
++			      unsigned long **bit, int *max)
+ {
+ 	if ((usage->hid & HID_USAGE_PAGE) != HID_UP_CONSUMER)
+ 		return 0;
+@@ -57,7 +57,7 @@ static int quirk_cherry_cymotion(struct 
+ }
  
- /* only exposed to implement shost_for_each_device */
- extern struct scsi_device *__scsi_iterate_devices(struct Scsi_Host *,
+ static int quirk_logitech_ultrax_remote(struct hid_usage *usage, struct input_dev *input,
+-			      unsigned long *bit, int *max)
++			      unsigned long **bit, int *max)
+ {
+ 	if ((usage->hid & HID_USAGE_PAGE) != HID_UP_LOGIVENDOR)
+ 		return 0;
+@@ -90,7 +90,7 @@ static int quirk_logitech_ultrax_remote(
+ }
+ 
+ static int quirk_chicony_tactical_pad(struct hid_usage *usage, struct input_dev *input,
+-			      unsigned long *bit, int *max)
++			      unsigned long **bit, int *max)
+ {
+ 	if ((usage->hid & HID_USAGE_PAGE) != HID_UP_MSVENDOR)
+ 		return 0;
+@@ -115,7 +115,7 @@ static int quirk_chicony_tactical_pad(st
+ }
+ 
+ static int quirk_microsoft_ergonomy_kb(struct hid_usage *usage, struct input_dev *input,
+-			      unsigned long *bit, int *max)
++			      unsigned long **bit, int *max)
+ {
+ 	if ((usage->hid & HID_USAGE_PAGE) != HID_UP_MSVENDOR)
+ 		return 0;
+@@ -138,7 +138,7 @@ static int quirk_microsoft_ergonomy_kb(s
+ }
+ 
+ static int quirk_microsoft_presenter_8k(struct hid_usage *usage, struct input_dev *input,
+-			      unsigned long *bit, int *max)
++			      unsigned long **bit, int *max)
+ {
+ 	if ((usage->hid & HID_USAGE_PAGE) != HID_UP_MSVENDOR)
+ 		return 0;
+@@ -156,7 +156,7 @@ static int quirk_microsoft_presenter_8k(
+ }
+ 
+ static int quirk_petalynx_remote(struct hid_usage *usage, struct input_dev *input,
+-			      unsigned long *bit, int *max)
++			      unsigned long **bit, int *max)
+ {
+ 	if (((usage->hid & HID_USAGE_PAGE) != HID_UP_LOGIVENDOR) &&
+ 			((usage->hid & HID_USAGE_PAGE) != HID_UP_CONSUMER))
+@@ -184,7 +184,7 @@ static int quirk_petalynx_remote(struct 
+ }
+ 
+ static int quirk_logitech_wireless(struct hid_usage *usage, struct input_dev *input,
+-			      unsigned long *bit, int *max)
++			      unsigned long **bit, int *max)
+ {
+ 	if ((usage->hid & HID_USAGE_PAGE) != HID_UP_CONSUMER)
+ 		return 0;
+@@ -236,7 +236,7 @@ static int quirk_logitech_wireless(struc
+ }
+ 
+ static int quirk_cherry_genius_29e(struct hid_usage *usage, struct input_dev *input,
+-			      unsigned long *bit, int *max)
++			      unsigned long **bit, int *max)
+ {
+ 	if ((usage->hid & HID_USAGE_PAGE) != HID_UP_CONSUMER)
+ 		return 0;
+@@ -254,7 +254,7 @@ static int quirk_cherry_genius_29e(struc
+ }
+ 
+ static int quirk_btc_8193(struct hid_usage *usage, struct input_dev *input,
+-			      unsigned long *bit, int *max)
++			      unsigned long **bit, int *max)
+ {
+ 	if ((usage->hid & HID_USAGE_PAGE) != HID_UP_CONSUMER)
+ 		return 0;
+@@ -307,7 +307,7 @@ static int quirk_btc_8193(struct hid_usa
+ static const struct hid_input_blacklist {
+ 	__u16 idVendor;
+ 	__u16 idProduct;
+-	int (*quirk)(struct hid_usage *, struct input_dev *, unsigned long *, int *);
++	int (*quirk)(struct hid_usage *, struct input_dev *, unsigned long **, int *);
+ } hid_input_blacklist[] = {
+ 	{ VENDOR_ID_BELKIN, DEVICE_ID_BELKIN_WIRELESS_KEYBOARD, quirk_belkin_wkbd },
+ 
+@@ -335,7 +335,7 @@ static const struct hid_input_blacklist 
+ 
+ int hidinput_mapping_quirks(struct hid_usage *usage, 
+ 				   struct input_dev *input, 
+-				   unsigned long *bit, int *max)
++				   unsigned long **bit, int *max)
+ {
+ 	struct hid_device *device = input_get_drvdata(input);
+ 	int i = 0;
+diff -puN drivers/hid/hid-input.c~hid-the-bit-in-hidinput_mapping_quirks-is-an-out-parameter drivers/hid/hid-input.c
+--- a/drivers/hid/hid-input.c~hid-the-bit-in-hidinput_mapping_quirks-is-an-out-parameter
++++ a/drivers/hid/hid-input.c
+@@ -382,7 +382,7 @@ static void hidinput_configure_usage(str
+ 	}
+ 
+ 	/* handle input mappings for quirky devices */
+-	ret = hidinput_mapping_quirks(usage, input, bit, &max);
++	ret = hidinput_mapping_quirks(usage, input, &bit, &max);
+ 	if (ret)
+ 		goto mapped;
+ 
+diff -puN include/linux/hid.h~hid-the-bit-in-hidinput_mapping_quirks-is-an-out-parameter include/linux/hid.h
+--- a/include/linux/hid.h~hid-the-bit-in-hidinput_mapping_quirks-is-an-out-parameter
++++ a/include/linux/hid.h
+@@ -526,7 +526,7 @@ extern void hidinput_disconnect(struct h
+ int hid_set_field(struct hid_field *, unsigned, __s32);
+ int hid_input_report(struct hid_device *, int type, u8 *, int, int);
+ int hidinput_find_field(struct hid_device *hid, unsigned int type, unsigned int code, struct hid_field **field);
+-int hidinput_mapping_quirks(struct hid_usage *, struct input_dev *, unsigned long *, int *);
++int hidinput_mapping_quirks(struct hid_usage *, struct input_dev *, unsigned long **, int *);
+ void hidinput_event_quirks(struct hid_device *, struct hid_field *, struct hid_usage *, __s32);
+ int hidinput_apple_event(struct hid_device *, struct input_dev *, struct hid_usage *, __s32);
+ void hid_input_field(struct hid_device *hid, struct hid_field *field, __u8 *data, int interrupt);
 _
 
-Patches currently in -mm which might be from macro@linux-mips.org are
+Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
-esp_scsi-fix-reset-cleanup-spinlock-recursion.patch
-git-mips.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-dzh-remove-useless-unused-module-junk.patch
-dz-always-check-if-it-is-safe-to-console_putchar.patch
-dz-dont-panic-when-request_irq-fails.patch
-dz-add-and-reorder-inclusions-remove-unneeded-ones.patch
-dz-update-kconfig-description.patch
-dz-rename-the-serial-console-structure.patch
-dz-fix-locking-issues.patch
-dz-handle-special-conditions-on-reception-correctly.patch
-maintainers-add-self-for-the-dz-serial-driver.patch
-dz-clean-up-and-improve-the-setup-of-termios-settings.patch
-dzc-use-a-helper-to-cast-from-struct-uart_port.patch
-dzc-resource-management.patch
+hid-the-bit-in-hidinput_mapping_quirks-is-an-out-parameter.patch
+maps4-add-proportional-set-size-accounting-in-smaps.patch
+mm-page-writeback-highmem_is_dirtyable-option.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+skip-writing-data-pages-when-inode-is-under-i_sync.patch
