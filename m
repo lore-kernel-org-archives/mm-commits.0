@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + iommu-sg-kill-__clear_bit_string-and-find_next_zero_string.patch added to -mm tree
-Date: Fri, 07 Dec 2007 14:12:31 -0800
-Message-ID: <200712072212.lB7MCVNb006214@imap1.linux-foundation.org>
+Subject: + iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper.patch added to -mm tree
+Date: Fri, 07 Dec 2007 14:12:29 -0800
+Message-ID: <200712072212.lB7MCTKK006211@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34710 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52020 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755061AbXLGWOH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 17:14:07 -0500
+	by vger.kernel.org with ESMTP id S1754377AbXLGWOQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 17:14:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: tomof@acm.org, James.Bottomley@steeleye.com, ak@suse.de, fujita.tomonori@lab
 
 
 The patch titled
-     iommu sg: kill __clear_bit_string and find_next_zero_string
+     iommu sg: x86: convert gart IOMMU to use the IOMMU helper
 has been added to the -mm tree.  Its filename is
-     iommu-sg-kill-__clear_bit_string-and-find_next_zero_string.patch
+     iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,11 +25,12 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: iommu sg: kill __clear_bit_string and find_next_zero_string
+Subject: iommu sg: x86: convert gart IOMMU to use the IOMMU helper
 From: FUJITA Tomonori <tomof@acm.org>
 
-This kills unused __clear_bit_string and find_next_zero_string (they
-were used by only gart and calgary IOMMUs).
+This patch converts gart IOMMU to use the IOMMU helper functions. The
+IOMMU doesn't allocate a memory area spanning LLD's segment boundary
+anymore.
 
 Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Cc: Jeff Garzik <jeff@garzik.org>
@@ -42,86 +43,136 @@ Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/lib/Makefile_64    |    2 +-
- arch/x86/lib/bitstr_64.c    |   28 ----------------------------
- include/asm-x86/bitops_64.h |   16 ----------------
- 3 files changed, 1 insertion(+), 45 deletions(-)
+ arch/x86/Kconfig              |    2 -
+ arch/x86/kernel/pci-gart_64.c |   41 +++++++++++++++++++-------------
+ 2 files changed, 26 insertions(+), 17 deletions(-)
 
-diff -puN arch/x86/lib/Makefile_64~iommu-sg-kill-__clear_bit_string-and-find_next_zero_string arch/x86/lib/Makefile_64
---- a/arch/x86/lib/Makefile_64~iommu-sg-kill-__clear_bit_string-and-find_next_zero_string
-+++ a/arch/x86/lib/Makefile_64
-@@ -9,5 +9,5 @@ obj-$(CONFIG_SMP)	+= msr-on-cpu.o
+diff -puN arch/x86/Kconfig~iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper arch/x86/Kconfig
+--- a/arch/x86/Kconfig~iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper
++++ a/arch/x86/Kconfig
+@@ -427,7 +427,7 @@ config CALGARY_IOMMU_ENABLED_BY_DEFAULT
+ 	  If unsure, say Y.
  
- lib-y := csum-partial_64.o csum-copy_64.o csum-wrappers_64.o delay_64.o \
- 	usercopy_64.o getuser_64.o putuser_64.o  \
--	thunk_64.o clear_page_64.o copy_page_64.o bitstr_64.o bitops_64.o
-+	thunk_64.o clear_page_64.o copy_page_64.o bitops_64.o
- lib-y += memcpy_64.o memmove_64.o memset_64.o copy_user_64.o rwlock_64.o copy_user_nocache_64.o
-diff -puN arch/x86/lib/bitstr_64.c~iommu-sg-kill-__clear_bit_string-and-find_next_zero_string /dev/null
---- a/arch/x86/lib/bitstr_64.c
-+++ /dev/null
-@@ -1,28 +0,0 @@
--#include <linux/module.h>
--#include <linux/bitops.h>
--
--/* Find string of zero bits in a bitmap */ 
--unsigned long 
--find_next_zero_string(unsigned long *bitmap, long start, long nbits, int len)
--{ 
--	unsigned long n, end, i; 	
--
-- again:
--	n = find_next_zero_bit(bitmap, nbits, start);
--	if (n == -1) 
--		return -1;
--	
--	/* could test bitsliced, but it's hardly worth it */
--	end = n+len;
--	if (end > nbits)
--		return -1; 
--	for (i = n+1; i < end; i++) { 
--		if (test_bit(i, bitmap)) {  
--			start = i+1; 
--			goto again; 
--		} 
--	}
--	return n;
--}
--
--EXPORT_SYMBOL(find_next_zero_string);
-diff -puN include/asm-x86/bitops_64.h~iommu-sg-kill-__clear_bit_string-and-find_next_zero_string include/asm-x86/bitops_64.h
---- a/include/asm-x86/bitops_64.h~iommu-sg-kill-__clear_bit_string-and-find_next_zero_string
-+++ a/include/asm-x86/bitops_64.h
-@@ -37,12 +37,6 @@ static inline long __scanbit(unsigned lo
-   ((off)+(__scanbit(~(((*(unsigned long *)addr)) >> (off)),(size)-(off)))) : \
- 	find_next_zero_bit(addr,size,off)))
+ config IOMMU_HELPER
+-	def_bool CALGARY_IOMMU
++	def_bool (CALGARY_IOMMU || GART_IOMMU)
  
--/* 
-- * Find string of zero bits in a bitmap. -1 when not found.
-- */ 
--extern unsigned long 
--find_next_zero_string(unsigned long *bitmap, long start, long nbits, int len);
--
- static inline void set_bit_string(unsigned long *bitmap, unsigned long i, 
- 				  int len) 
- { 
-@@ -53,16 +47,6 @@ static inline void set_bit_string(unsign
+ # need this always selected by IOMMU for the VIA workaround
+ config SWIOTLB
+diff -puN arch/x86/kernel/pci-gart_64.c~iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper arch/x86/kernel/pci-gart_64.c
+--- a/arch/x86/kernel/pci-gart_64.c~iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper
++++ a/arch/x86/kernel/pci-gart_64.c
+@@ -25,6 +25,7 @@
+ #include <linux/bitops.h>
+ #include <linux/kdebug.h>
+ #include <linux/scatterlist.h>
++#include <linux/iommu-helper.h>
+ #include <asm/atomic.h>
+ #include <asm/io.h>
+ #include <asm/mtrr.h>
+@@ -82,17 +83,24 @@ AGPEXTERN __u32 *agp_gatt_table;
+ static unsigned long next_bit;  /* protected by iommu_bitmap_lock */
+ static int need_flush;		/* global flush state. set for each gart wrap */
+ 
+-static unsigned long alloc_iommu(int size)
++static unsigned long alloc_iommu(struct device *dev, int size)
+ {
+ 	unsigned long offset, flags;
++	unsigned long boundary_size;
++	unsigned long base_index;
++
++	base_index = ALIGN(iommu_bus_base & dma_get_seg_boundary(dev),
++			   PAGE_SIZE) >> PAGE_SHIFT;
++	boundary_size = ALIGN(dma_get_seg_boundary(dev) + 1,
++			      PAGE_SIZE) >> PAGE_SHIFT;
+ 
+ 	spin_lock_irqsave(&iommu_bitmap_lock, flags);
+-	offset = find_next_zero_string(iommu_gart_bitmap, next_bit,
+-					iommu_pages, size);
++	offset = iommu_area_alloc(iommu_gart_bitmap, iommu_pages, next_bit,
++				  size, base_index, boundary_size, 0);
+ 	if (offset == -1) {
+ 		need_flush = 1;
+-		offset = find_next_zero_string(iommu_gart_bitmap, 0,
+-						iommu_pages, size);
++		offset = iommu_area_alloc(iommu_gart_bitmap, iommu_pages, 0,
++					  size, base_index, boundary_size, 0);
  	}
- } 
+ 	if (offset != -1) {
+ 		set_bit_string(iommu_gart_bitmap, offset, size);
+@@ -114,7 +122,7 @@ static void free_iommu(unsigned long off
+ 	unsigned long flags;
  
--static inline void __clear_bit_string(unsigned long *bitmap, unsigned long i, 
--				    int len) 
--{ 
--	unsigned long end = i + len; 
--	while (i < end) {
--		__clear_bit(i, bitmap); 
--		i++;
--	}
--} 
--
- /**
-  * ffz - find first zero in word.
-  * @word: The word to search
+ 	spin_lock_irqsave(&iommu_bitmap_lock, flags);
+-	__clear_bit_string(iommu_gart_bitmap, offset, size);
++	iommu_area_free(iommu_gart_bitmap, offset, size);
+ 	spin_unlock_irqrestore(&iommu_bitmap_lock, flags);
+ }
+ 
+@@ -235,7 +243,7 @@ static dma_addr_t dma_map_area(struct de
+ 				size_t size, int dir)
+ {
+ 	unsigned long npages = to_pages(phys_mem, size);
+-	unsigned long iommu_page = alloc_iommu(npages);
++	unsigned long iommu_page = alloc_iommu(dev, npages);
+ 	int i;
+ 
+ 	if (iommu_page == -1) {
+@@ -355,10 +363,11 @@ static int dma_map_sg_nonforce(struct de
+ }
+ 
+ /* Map multiple scatterlist entries continuous into the first. */
+-static int __dma_map_cont(struct scatterlist *start, int nelems,
+-			  struct scatterlist *sout, unsigned long pages)
++static int __dma_map_cont(struct device *dev, struct scatterlist *start,
++			  int nelems, struct scatterlist *sout,
++			  unsigned long pages)
+ {
+-	unsigned long iommu_start = alloc_iommu(pages);
++	unsigned long iommu_start = alloc_iommu(dev, pages);
+ 	unsigned long iommu_page = iommu_start;
+ 	struct scatterlist *s;
+ 	int i;
+@@ -394,8 +403,8 @@ static int __dma_map_cont(struct scatter
+ }
+ 
+ static inline int
+-dma_map_cont(struct scatterlist *start, int nelems, struct scatterlist *sout,
+-	     unsigned long pages, int need)
++dma_map_cont(struct device *dev, struct scatterlist *start, int nelems,
++	     struct scatterlist *sout, unsigned long pages, int need)
+ {
+ 	if (!need) {
+ 		BUG_ON(nelems != 1);
+@@ -403,7 +412,7 @@ dma_map_cont(struct scatterlist *start, 
+ 		sout->dma_length = start->length;
+ 		return 0;
+ 	}
+-	return __dma_map_cont(start, nelems, sout, pages);
++	return __dma_map_cont(dev, start, nelems, sout, pages);
+ }
+ 		
+ /*
+@@ -452,8 +461,8 @@ static int gart_map_sg(struct device *de
+ 			if (!iommu_merge || !nextneed || !need || s->offset ||
+ 			    (s->length + seg_size > max_seg_size) ||
+ 			    (ps->offset + ps->length) % PAGE_SIZE) {
+-				if (dma_map_cont(start_sg, i - start, sgmap,
+-						  pages, need) < 0)
++				if (dma_map_cont(dev, start_sg, i - start,
++						 sgmap, pages, need) < 0)
+ 					goto error;
+ 				out++;
+ 				seg_size = 0;
+@@ -469,7 +478,7 @@ static int gart_map_sg(struct device *de
+ 		pages += to_pages(s->offset, s->length);
+ 		ps = s;
+ 	}
+-	if (dma_map_cont(start_sg, i - start, sgmap, pages, need) < 0)
++	if (dma_map_cont(dev, start_sg, i - start, sgmap, pages, need) < 0)
+ 		goto error;
+ 	out++;
+ 	flush_gart();
 _
 
 Patches currently in -mm which might be from tomof@acm.org are
