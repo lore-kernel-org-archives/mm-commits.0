@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hid-the-bit-in-hidinput_mapping_quirks-is-an-out-parameter.patch added to -mm tree
-Date: Fri, 07 Dec 2007 13:37:40 -0800
-Message-ID: <200712072137.lB7Lbeoh004888@imap1.linux-foundation.org>
+Subject: + acpi-fix-autloading-of-dock-video-bay-and-all-linux-specific-hid-drivers.patch added to -mm tree
+Date: Fri, 07 Dec 2007 13:40:06 -0800
+Message-ID: <200712072140.lB7Le75w005070@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34565 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49167 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757448AbXLGVh4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 16:37:56 -0500
+	by vger.kernel.org with ESMTP id S1753885AbXLGVkd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 16:40:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wfg@mail.ustc.edu.cn, jkosina@suse.cz
+Cc: fseidel@suse.de, kasievers@novell.com, kristen.c.accardi@intel.com, lenb@kernel.org, trenn@novell.com
 
 
 The patch titled
-     hid: the `bit' in hidinput_mapping_quirks() is an out parameter
+     acpi: fix autloading of dock, video, bay and all linux specific HID drivers
 has been added to the -mm tree.  Its filename is
-     hid-the-bit-in-hidinput_mapping_quirks-is-an-out-parameter.patch
+     acpi-fix-autloading-of-dock-video-bay-and-all-linux-specific-hid-drivers.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,182 +25,182 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hid: the `bit' in hidinput_mapping_quirks() is an out parameter
-From: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Subject: acpi: fix autloading of dock, video, bay and all linux specific HID drivers
+From: Frank Seidel <fseidel@suse.de>
 
-Fix a panic, by changing
-	hidinput_mapping_quirks(,, unsigned long *bit,)
-to
-	hidinput_mapping_quirks(,, unsigned long **bit,)
+Fix autloading of dock, video, bay and all linux specific HID drivers
 
-The `bit' in this function is an out parameter.
+References: https://bugzilla.novell.com/show_bug.cgi?id=302482
 
-Cc: Jiri Kosina <jkosina@suse.cz>
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Due to the new autloading of acpi drivers, the dock driver wasn't loaded
+anymore as there is no HID to identify it with (dock is needed if ACPI has a
+_DCK method).  This patch is a workaround for this, original by Thomas
+Renninger, revised first by Kay Sievers and last by Frank Seidel.  V2 of this
+patch fixed problems on systems without a defined _CID for the docking
+devices.
+
+Signed-off-by: Thomas Renninger <trenn@novell.com>
+Signed-off-by: Kay Sievers <kasievers@novell.com>
+Signed-off-by: Frank Seidel <fseidel@suse.de>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hid/hid-input-quirks.c |   36 +++++++++++++++----------------
- drivers/hid/hid-input.c        |    2 -
- include/linux/hid.h            |    2 -
- 3 files changed, 20 insertions(+), 20 deletions(-)
+ drivers/acpi/scan.c |  101 +++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 85 insertions(+), 16 deletions(-)
 
-diff -puN drivers/hid/hid-input-quirks.c~hid-the-bit-in-hidinput_mapping_quirks-is-an-out-parameter drivers/hid/hid-input-quirks.c
---- a/drivers/hid/hid-input-quirks.c~hid-the-bit-in-hidinput_mapping_quirks-is-an-out-parameter
-+++ a/drivers/hid/hid-input-quirks.c
-@@ -16,16 +16,16 @@
- #include <linux/input.h>
- #include <linux/hid.h>
- 
--#define map_abs(c)      do { usage->code = c; usage->type = EV_ABS; bit = input->absbit; *max = ABS_MAX; } while (0)
--#define map_rel(c)      do { usage->code = c; usage->type = EV_REL; bit = input->relbit; *max = REL_MAX; } while (0)
--#define map_key(c)      do { usage->code = c; usage->type = EV_KEY; bit = input->keybit; *max = KEY_MAX; } while (0)
--#define map_led(c)      do { usage->code = c; usage->type = EV_LED; bit = input->ledbit; *max = LED_MAX; } while (0)
-+#define map_abs(c)      do { usage->code = c; usage->type = EV_ABS; *bit = input->absbit; *max = ABS_MAX; } while (0)
-+#define map_rel(c)      do { usage->code = c; usage->type = EV_REL; *bit = input->relbit; *max = REL_MAX; } while (0)
-+#define map_key(c)      do { usage->code = c; usage->type = EV_KEY; *bit = input->keybit; *max = KEY_MAX; } while (0)
-+#define map_led(c)      do { usage->code = c; usage->type = EV_LED; *bit = input->ledbit; *max = LED_MAX; } while (0)
- 
--#define map_abs_clear(c)        do { map_abs(c); clear_bit(c, bit); } while (0)
--#define map_key_clear(c)        do { map_key(c); clear_bit(c, bit); } while (0)
-+#define map_abs_clear(c)        do { map_abs(c); clear_bit(c, *bit); } while (0)
-+#define map_key_clear(c)        do { map_key(c); clear_bit(c, *bit); } while (0)
- 
- static int quirk_belkin_wkbd(struct hid_usage *usage, struct input_dev *input,
--			      unsigned long *bit, int *max)
-+			      unsigned long **bit, int *max)
- {
- 	if ((usage->hid & HID_USAGE_PAGE) != HID_UP_CONSUMER)
- 		return 0;
-@@ -41,7 +41,7 @@ static int quirk_belkin_wkbd(struct hid_
+diff -puN drivers/acpi/scan.c~acpi-fix-autloading-of-dock-video-bay-and-all-linux-specific-hid-drivers drivers/acpi/scan.c
+--- a/drivers/acpi/scan.c~acpi-fix-autloading-of-dock-video-bay-and-all-linux-specific-hid-drivers
++++ a/drivers/acpi/scan.c
+@@ -941,6 +941,15 @@ static int acpi_bay_match(struct acpi_de
+ 	return -ENODEV;
  }
  
- static int quirk_cherry_cymotion(struct hid_usage *usage, struct input_dev *input,
--			      unsigned long *bit, int *max)
-+			      unsigned long **bit, int *max)
- {
- 	if ((usage->hid & HID_USAGE_PAGE) != HID_UP_CONSUMER)
- 		return 0;
-@@ -57,7 +57,7 @@ static int quirk_cherry_cymotion(struct 
- }
++/*
++ * acpi_dock_match - see if a device has a _DCK method
++ */
++static int acpi_dock_match(struct acpi_device *device)
++{
++	acpi_handle tmp;
++	return acpi_get_handle(device->handle, "_DCK", &tmp);
++}
++
+ static void acpi_device_set_id(struct acpi_device *device,
+ 			       struct acpi_device *parent, acpi_handle handle,
+ 			       int type)
+@@ -950,6 +959,7 @@ static void acpi_device_set_id(struct ac
+ 	char *hid = NULL;
+ 	char *uid = NULL;
+ 	struct acpi_compatible_id_list *cid_list = NULL;
++	const char *cid_add = NULL;
+ 	acpi_status status;
  
- static int quirk_logitech_ultrax_remote(struct hid_usage *usage, struct input_dev *input,
--			      unsigned long *bit, int *max)
-+			      unsigned long **bit, int *max)
- {
- 	if ((usage->hid & HID_USAGE_PAGE) != HID_UP_LOGIVENDOR)
- 		return 0;
-@@ -90,7 +90,7 @@ static int quirk_logitech_ultrax_remote(
- }
+ 	switch (type) {
+@@ -972,15 +982,18 @@ static void acpi_device_set_id(struct ac
+ 			device->flags.bus_address = 1;
+ 		}
  
- static int quirk_chicony_tactical_pad(struct hid_usage *usage, struct input_dev *input,
--			      unsigned long *bit, int *max)
-+			      unsigned long **bit, int *max)
- {
- 	if ((usage->hid & HID_USAGE_PAGE) != HID_UP_MSVENDOR)
- 		return 0;
-@@ -115,7 +115,7 @@ static int quirk_chicony_tactical_pad(st
- }
- 
- static int quirk_microsoft_ergonomy_kb(struct hid_usage *usage, struct input_dev *input,
--			      unsigned long *bit, int *max)
-+			      unsigned long **bit, int *max)
- {
- 	if ((usage->hid & HID_USAGE_PAGE) != HID_UP_MSVENDOR)
- 		return 0;
-@@ -138,7 +138,7 @@ static int quirk_microsoft_ergonomy_kb(s
- }
- 
- static int quirk_microsoft_presenter_8k(struct hid_usage *usage, struct input_dev *input,
--			      unsigned long *bit, int *max)
-+			      unsigned long **bit, int *max)
- {
- 	if ((usage->hid & HID_USAGE_PAGE) != HID_UP_MSVENDOR)
- 		return 0;
-@@ -156,7 +156,7 @@ static int quirk_microsoft_presenter_8k(
- }
- 
- static int quirk_petalynx_remote(struct hid_usage *usage, struct input_dev *input,
--			      unsigned long *bit, int *max)
-+			      unsigned long **bit, int *max)
- {
- 	if (((usage->hid & HID_USAGE_PAGE) != HID_UP_LOGIVENDOR) &&
- 			((usage->hid & HID_USAGE_PAGE) != HID_UP_CONSUMER))
-@@ -184,7 +184,7 @@ static int quirk_petalynx_remote(struct 
- }
- 
- static int quirk_logitech_wireless(struct hid_usage *usage, struct input_dev *input,
--			      unsigned long *bit, int *max)
-+			      unsigned long **bit, int *max)
- {
- 	if ((usage->hid & HID_USAGE_PAGE) != HID_UP_CONSUMER)
- 		return 0;
-@@ -236,7 +236,7 @@ static int quirk_logitech_wireless(struc
- }
- 
- static int quirk_cherry_genius_29e(struct hid_usage *usage, struct input_dev *input,
--			      unsigned long *bit, int *max)
-+			      unsigned long **bit, int *max)
- {
- 	if ((usage->hid & HID_USAGE_PAGE) != HID_UP_CONSUMER)
- 		return 0;
-@@ -254,7 +254,7 @@ static int quirk_cherry_genius_29e(struc
- }
- 
- static int quirk_btc_8193(struct hid_usage *usage, struct input_dev *input,
--			      unsigned long *bit, int *max)
-+			      unsigned long **bit, int *max)
- {
- 	if ((usage->hid & HID_USAGE_PAGE) != HID_UP_CONSUMER)
- 		return 0;
-@@ -307,7 +307,7 @@ static int quirk_btc_8193(struct hid_usa
- static const struct hid_input_blacklist {
- 	__u16 idVendor;
- 	__u16 idProduct;
--	int (*quirk)(struct hid_usage *, struct input_dev *, unsigned long *, int *);
-+	int (*quirk)(struct hid_usage *, struct input_dev *, unsigned long **, int *);
- } hid_input_blacklist[] = {
- 	{ VENDOR_ID_BELKIN, DEVICE_ID_BELKIN_WIRELESS_KEYBOARD, quirk_belkin_wkbd },
- 
-@@ -335,7 +335,7 @@ static const struct hid_input_blacklist 
- 
- int hidinput_mapping_quirks(struct hid_usage *usage, 
- 				   struct input_dev *input, 
--				   unsigned long *bit, int *max)
-+				   unsigned long **bit, int *max)
- {
- 	struct hid_device *device = input_get_drvdata(input);
- 	int i = 0;
-diff -puN drivers/hid/hid-input.c~hid-the-bit-in-hidinput_mapping_quirks-is-an-out-parameter drivers/hid/hid-input.c
---- a/drivers/hid/hid-input.c~hid-the-bit-in-hidinput_mapping_quirks-is-an-out-parameter
-+++ a/drivers/hid/hid-input.c
-@@ -382,7 +382,7 @@ static void hidinput_configure_usage(str
+-		if(!(info->valid & (ACPI_VALID_HID | ACPI_VALID_CID))){
+-			status = acpi_video_bus_match(device);
+-			if(ACPI_SUCCESS(status))
+-				hid = ACPI_VIDEO_HID;
+-
+-			status = acpi_bay_match(device);
+-			if (ACPI_SUCCESS(status))
+-				hid = ACPI_BAY_HID;
+-		}
++		/* If we have a video/bay/dock device, add our selfdefined
++		   HID to the CID list. Like that the video/bay/dock drivers
++		   will get autoloaded and the device might still match
++		   against another driver.
++		*/
++		if (ACPI_SUCCESS(acpi_video_bus_match(device)))
++			cid_add = ACPI_VIDEO_HID;
++		else if (ACPI_SUCCESS(acpi_bay_match(device)))
++			cid_add = ACPI_BAY_HID;
++		else if (ACPI_SUCCESS(acpi_dock_match(device)))
++			cid_add = ACPI_DOCK_HID;
++
+ 		break;
+ 	case ACPI_BUS_TYPE_POWER:
+ 		hid = ACPI_POWER_HID;
+@@ -1021,11 +1034,43 @@ static void acpi_device_set_id(struct ac
+ 		strcpy(device->pnp.unique_id, uid);
+ 		device->flags.unique_id = 1;
+ 	}
+-	if (cid_list) {
+-		device->pnp.cid_list = kmalloc(cid_list->size, GFP_KERNEL);
+-		if (device->pnp.cid_list)
+-			memcpy(device->pnp.cid_list, cid_list, cid_list->size);
+-		else
++	if (cid_list || cid_add) {
++		struct  acpi_compatible_id_list *list;
++		int size = 0;
++		int count = 0;
++
++		if (cid_list) {
++			size = cid_list->size;
++		} else if (cid_add) {
++			size = sizeof(struct acpi_compatible_id_list);
++			cid_list = ACPI_ALLOCATE_ZEROED((acpi_size) size);
++			if (!cid_list) {
++				printk(KERN_ERR "Memory allocation error\n");
++				kfree(buffer.pointer);
++				return;
++			} else {
++				cid_list->count = 0;
++				cid_list->size = size;
++			}
++		}
++		if (cid_add)
++			size += sizeof(struct acpi_compatible_id);
++		list = kmalloc(size, GFP_KERNEL);
++
++		if (list) {
++			if (cid_list) {
++				memcpy(list, cid_list, cid_list->size);
++				count = cid_list->count;
++			}
++			if (cid_add) {
++				strncpy(list->id[count].value, cid_add, ACPI_MAX_CID_LENGTH);
++				count++;
++				device->flags.compatible_ids = 1;
++			}
++			list->size = size;
++			list->count = count;
++			device->pnp.cid_list = list;
++		} else
+ 			printk(KERN_ERR "Memory allocation error\n");
  	}
  
- 	/* handle input mappings for quirky devices */
--	ret = hidinput_mapping_quirks(usage, input, bit, &max);
-+	ret = hidinput_mapping_quirks(usage, input, &bit, &max);
- 	if (ret)
- 		goto mapped;
+@@ -1081,6 +1126,20 @@ static int acpi_bus_remove(struct acpi_d
+ }
  
-diff -puN include/linux/hid.h~hid-the-bit-in-hidinput_mapping_quirks-is-an-out-parameter include/linux/hid.h
---- a/include/linux/hid.h~hid-the-bit-in-hidinput_mapping_quirks-is-an-out-parameter
-+++ a/include/linux/hid.h
-@@ -526,7 +526,7 @@ extern void hidinput_disconnect(struct h
- int hid_set_field(struct hid_field *, unsigned, __s32);
- int hid_input_report(struct hid_device *, int type, u8 *, int, int);
- int hidinput_find_field(struct hid_device *hid, unsigned int type, unsigned int code, struct hid_field **field);
--int hidinput_mapping_quirks(struct hid_usage *, struct input_dev *, unsigned long *, int *);
-+int hidinput_mapping_quirks(struct hid_usage *, struct input_dev *, unsigned long **, int *);
- void hidinput_event_quirks(struct hid_device *, struct hid_field *, struct hid_usage *, __s32);
- int hidinput_apple_event(struct hid_device *, struct input_dev *, struct hid_usage *, __s32);
- void hid_input_field(struct hid_device *hid, struct hid_field *field, __u8 *data, int interrupt);
+ static int
++acpi_is_child_device(struct acpi_device *device,
++			int (*matcher)(struct acpi_device*))
++{
++	int result = -ENODEV;
++
++	do {
++		if (ACPI_SUCCESS(matcher(device)))
++			return AE_OK;
++	} while ((device = device->parent));
++
++	return result;
++}
++
++static int
+ acpi_add_single_object(struct acpi_device **child,
+ 		       struct acpi_device *parent, acpi_handle handle, int type,
+ 			struct acpi_bus_ops *ops)
+@@ -1131,10 +1190,20 @@ acpi_add_single_object(struct acpi_devic
+ 	case ACPI_BUS_TYPE_PROCESSOR:
+ 	case ACPI_BUS_TYPE_DEVICE:
+ 		result = acpi_bus_get_status(device);
+-		if (ACPI_FAILURE(result) || !device->status.present) {
+-			result = -ENOENT;
++		if (ACPI_FAILURE(result)) {
++			result = -ENODEV;
+ 			goto end;
+ 		}
++		if (!device->status.present) {
++                	/* Bay and dock should be handled even if absent */
++			if (!ACPI_SUCCESS(
++			     acpi_is_child_device(device, acpi_bay_match)) &&
++			    !ACPI_SUCCESS(
++			     acpi_is_child_device(device, acpi_dock_match))) {
++					result = -ENODEV;
++					goto end;
++			}
++		}
+ 		break;
+ 	default:
+ 		STRUCT_TO_INT(device->status) =
 _
 
-Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
+Patches currently in -mm which might be from fseidel@suse.de are
 
-hid-the-bit-in-hidinput_mapping_quirks-is-an-out-parameter.patch
-maps4-add-proportional-set-size-accounting-in-smaps.patch
-mm-page-writeback-highmem_is_dirtyable-option.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-skip-writing-data-pages-when-inode-is-under-i_sync.patch
+acpi-fix-autloading-of-dock-video-bay-and-all-linux-specific-hid-drivers.patch
+acpi-add-autoload-info-to-dock-driver.patch
