@@ -1,155 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: + update-stale-maintainers-entries.patch added to -mm tree
-Date: Fri, 07 Dec 2007 14:40:46 -0800
-Message-ID: <200712072240.lB7MekXc007315@imap1.linux-foundation.org>
+Subject: - arch-xtensa-remove-duplicate-includes.patch removed from -mm tree
+Date: Fri, 07 Dec 2007 14:49:19 -0800
+Message-ID: <200712072249.lB7MnJsB007540@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33044 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48826 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752053AbXLGWlx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 17:41:53 -0500
+	by vger.kernel.org with ESMTP id S1753005AbXLGWtx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 17:49:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: joe@perches.com
+To: woodzy@gmail.com, chris@zankel.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: update stale entries
-has been added to the -mm tree.  Its filename is
-     update-stale-maintainers-entries.patch
+     arch/xtensa: remove duplicate includes
+has been removed from the -mm tree.  Its filename was
+     arch-xtensa-remove-duplicate-includes.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: MAINTAINERS: update stale entries
-From: Joe Perches <joe@perches.com>
+Subject: arch/xtensa: remove duplicate includes
+From: Lucas Woods <woodzy@gmail.com>
 
-Some bad email addresses are removed:
-
-        linux-tr@linuxtr.net
-        ehaase@inf.fu-berlin.de
-
-Some are updated:
-
-        linux@maxim.org.za to andrew@sanpeople.com
-        linux-kernel@linux-mips.org to linux-mips@linux-mips.org
-        jdike@karaya.com to jdike@addtoit.com
-
-The PCMCIA entry is corrected to a web address
-
-The ZR36120 VIDEO FOR LINUX DRIVER entry is removed
-
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Lucas Woods <woodzy@gmail.com>
+Cc: Christian Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   19 ++++---------------
- 1 file changed, 4 insertions(+), 15 deletions(-)
+ arch/xtensa/kernel/asm-offsets.c   |    1 -
+ arch/xtensa/kernel/syscall.c       |    1 -
+ arch/xtensa/mm/cache.c             |    1 -
+ arch/xtensa/platform-iss/network.c |    1 -
+ 4 files changed, 4 deletions(-)
 
-diff -puN MAINTAINERS~update-stale-maintainers-entries MAINTAINERS
---- a/MAINTAINERS~update-stale-maintainers-entries
-+++ a/MAINTAINERS
-@@ -88,7 +88,6 @@ S: Status, one of the following:
- P:	Mike Phillips
- M:	mikep@linuxtr.net
- L:	netdev@vger.kernel.org
--L:	linux-tr@linuxtr.net
- W:	http://www.linuxtr.net
- S:	Maintained
+diff -puN arch/xtensa/kernel/asm-offsets.c~arch-xtensa-remove-duplicate-includes arch/xtensa/kernel/asm-offsets.c
+--- a/arch/xtensa/kernel/asm-offsets.c~arch-xtensa-remove-duplicate-includes
++++ a/arch/xtensa/kernel/asm-offsets.c
+@@ -21,7 +21,6 @@
+ #include <linux/mm.h>
  
-@@ -167,7 +166,6 @@ S:	Maintained
+ #include <asm/ptrace.h>
+-#include <asm/processor.h>
+ #include <asm/uaccess.h>
  
- A2232 SERIAL BOARD DRIVER
- P:	Enver Haase
--M:	ehaase@inf.fu-berlin.de
- M:	A2232@gmx.net
- L:	linux-m68k@lists.linux-m68k.org
- S:	Maintained
-@@ -439,7 +437,7 @@ S:	Maintained
+ #define DEFINE(sym, val) asm volatile("\n->" #sym " %0 " #val : : "i" (val))
+diff -puN arch/xtensa/kernel/syscall.c~arch-xtensa-remove-duplicate-includes arch/xtensa/kernel/syscall.c
+--- a/arch/xtensa/kernel/syscall.c~arch-xtensa-remove-duplicate-includes
++++ a/arch/xtensa/kernel/syscall.c
+@@ -36,7 +36,6 @@ syscall_t sys_call_table[__NR_syscall_co
+ #define __SYSCALL(nr,symbol,nargs) [ nr ] = (syscall_t)symbol,
+ #undef _XTENSA_UNISTD_H
+ #undef  __KERNEL_SYSCALLS__
+-#include <asm/unistd.h>
+ };
  
- ARM/ATMEL AT91RM9200 ARM ARCHITECTURE
- P:      Andrew Victor
--M:      linux@maxim.org.za
-+M:      andrew@sanpeople.com
- L:      linux-arm-kernel@lists.arm.linux.org.uk (subscribers-only)
- W:      http://maxim.org.za/at91_26.html
- S:      Maintained
-@@ -2065,7 +2063,7 @@ S:	Maintained
- IOC3 SERIAL DRIVER
- P:	Pat Gefre
- M:	pfg@sgi.com
--L:	linux-kernel@linux-mips.org
-+L:	linux-mips@linux-mips.org
- S:	Maintained
+ /*
+diff -puN arch/xtensa/mm/cache.c~arch-xtensa-remove-duplicate-includes arch/xtensa/mm/cache.c
+--- a/arch/xtensa/mm/cache.c~arch-xtensa-remove-duplicate-includes
++++ a/arch/xtensa/mm/cache.c
+@@ -25,7 +25,6 @@
+ #include <linux/swap.h>
+ #include <linux/pagemap.h>
  
- IP MASQUERADING:
-@@ -2816,7 +2814,6 @@ M:	p2@ace.ulyssis.student.kuleuven.ac.be
- P:	Mike Phillips
- M:	mikep@linuxtr.net
- L:	netdev@vger.kernel.org
--L:	linux-tr@linuxtr.net
- W:	http://www.linuxtr.net
- S:	Maintained
+-#include <asm/pgtable.h>
+ #include <asm/bootparam.h>
+ #include <asm/mmu_context.h>
+ #include <asm/tlb.h>
+diff -puN arch/xtensa/platform-iss/network.c~arch-xtensa-remove-duplicate-includes arch/xtensa/platform-iss/network.c
+--- a/arch/xtensa/platform-iss/network.c~arch-xtensa-remove-duplicate-includes
++++ a/arch/xtensa/platform-iss/network.c
+@@ -31,7 +31,6 @@
+ #include <linux/bootmem.h>
+ #include <linux/ethtool.h>
+ #include <linux/rtnetlink.h>
+-#include <linux/timer.h>
+ #include <linux/platform_device.h>
  
-@@ -2955,7 +2952,7 @@ S:	Supported
- PCMCIA SUBSYSTEM
- P:	Linux PCMCIA Team
- L:	linux-pcmcia@lists.infradead.org
--L:	http://lists.infradead.org/mailman/listinfo/linux-pcmcia
-+W:	http://lists.infradead.org/mailman/listinfo/linux-pcmcia
- T:	git kernel.org:/pub/scm/linux/kernel/git/brodo/pcmcia-2.6.git
- S:	Maintained
- 
-@@ -3733,7 +3730,6 @@ TOKEN-RING NETWORK DRIVER
- P:	Mike Phillips
- M:	mikep@linuxtr.net
- L:	netdev@vger.kernel.org
--L:	linux-tr@linuxtr.net
- W:	http://www.linuxtr.net
- S:	Maintained
- 
-@@ -4051,7 +4047,7 @@ S:	Maintained
- 
- USER-MODE LINUX
- P:	Jeff Dike
--M:	jdike@karaya.com
-+M:	jdike@addtoit.com
- L:	user-mode-linux-devel@lists.sourceforge.net
- L:	user-mode-linux-user@lists.sourceforge.net
- W:	http://user-mode-linux.sourceforge.net
-@@ -4282,13 +4278,6 @@ L:	mjpeg-users@lists.sourceforge.net
- W:	http://mjpeg.sourceforge.net/driver-zoran/
- S:	Maintained
- 
--ZR36120 VIDEO FOR LINUX DRIVER
--P:	Pauline Middelink
--M:	middelin@polyware.nl
--W:	http://www.polyware.nl/~middelin/En/hobbies.html
--W:	http://www.polyware.nl/~middelin/hobbies.html
--S:	Maintained
--
- ZS DECSTATION Z85C30 SERIAL DRIVER
- P:	Maciej W. Rozycki
- M:	macro@linux-mips.org
+ #include <asm/platform/simcall.h>
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from woodzy@gmail.com are
 
-update-stale-maintainers-entries.patch
-git-alsa.patch
-git-cpufreq.patch
-git-powerpc.patch
-git-dvb.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-jfs.patch
-git-kvm.patch
-git-netdev-all.patch
-git-selinux.patch
-git-s390.patch
-git-sparc64.patch
-uml-add-missing-space.patch
+git-arm.patch
+arch-powerpc-remove-duplicate-includes.patch
+arch-ppc-remove-duplicate-includes.patch
+git-mips.patch
+git-x86.patch
+arch-xtensa-remove-duplicate-includes.patch
+arch-alpha-removed-duplicate-includes.patch
+arch-um-remove-duplicate-includes.patch
