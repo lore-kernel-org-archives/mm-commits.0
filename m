@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-fix-autloading-of-dock-video-bay-and-all-linux-specific-hid-drivers-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 07 Dec 2007 13:41:08 -0800
-Message-ID: <200712072141.lB7Lf8R2005093@imap1.linux-foundation.org>
+Subject: + iommu-sg-powerpc-convert-iommu-to-use-the-iommu-helper.patch added to -mm tree
+Date: Fri, 07 Dec 2007 14:12:22 -0800
+Message-ID: <200712072212.lB7MCNNw006199@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60204 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36651 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755401AbXLGVla (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 16:41:30 -0500
+	by vger.kernel.org with ESMTP id S1750767AbXLGWNc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 17:13:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, fseidel@suse.de, kasievers@novell.com, kristen.c.accardi@intel.com, lenb@kernel.org, trenn@novell.com
+Cc: tomof@acm.org, James.Bottomley@steeleye.com, benh@kernel.crashing.org, fujita.tomonori@lab.ntt.co.jp, jeff@garzik.org, jens.axboe@oracle.com, paulus@samba.org
 
 
 The patch titled
-     acpi-fix-autloading-of-dock-video-bay-and-all-linux-specific-hid-drivers-checkpatch-fixes
+     iommu sg: powerpc: convert iommu to use the IOMMU helper
 has been added to the -mm tree.  Its filename is
-     acpi-fix-autloading-of-dock-video-bay-and-all-linux-specific-hid-drivers-checkpatch-fixes.patch
+     iommu-sg-powerpc-convert-iommu-to-use-the-iommu-helper.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,281 +25,302 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: acpi-fix-autloading-of-dock-video-bay-and-all-linux-specific-hid-drivers-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: iommu sg: powerpc: convert iommu to use the IOMMU helper
+From: FUJITA Tomonori <tomof@acm.org>
 
-WARNING: line over 80 characters
-#118: FILE: drivers/acpi/scan.c:1066:
-+				strncpy(list->id[count].value, cid_add, ACPI_MAX_CID_LENGTH);
+This patch converts PPC's IOMMU to use the IOMMU helper functions.  The IOMMU
+doesn't allocate a memory area spanning LLD's segment boundary anymore.
 
-ERROR: "(foo*)" should be "(foo *)"
-#134: FILE: drivers/acpi/scan.c:1130:
-+			int (*matcher)(struct acpi_device*))
+iseries_hv_alloc and iseries_hv_map don't have proper device
+struct. 4GB boundary is used for them.
 
-ERROR: use tabs not spaces
-#161: FILE: drivers/acpi/scan.c:1198:
-+                ^I/* Bay and dock should be handled even if absent */$
-
-total: 2 errors, 1 warnings, 139 lines checked
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Frank Seidel <fseidel@suse.de>
-Cc: Kay Sievers <kasievers@novell.com>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Thomas Renninger <trenn@novell.com>
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/scan.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ arch/powerpc/Kconfig                   |    3 +
+ arch/powerpc/kernel/dma_64.c           |    6 +-
+ arch/powerpc/kernel/iommu.c            |   65 +++++++++++------------
+ arch/powerpc/platforms/iseries/iommu.c |    4 -
+ include/asm-powerpc/iommu.h            |   10 +--
+ 5 files changed, 45 insertions(+), 43 deletions(-)
 
-diff -puN drivers/acpi/scan.c~acpi-fix-autloading-of-dock-video-bay-and-all-linux-specific-hid-drivers-checkpatch-fixes drivers/acpi/scan.c
---- a/drivers/acpi/scan.c~acpi-fix-autloading-of-dock-video-bay-and-all-linux-specific-hid-drivers-checkpatch-fixes
-+++ a/drivers/acpi/scan.c
-@@ -1063,7 +1063,8 @@ static void acpi_device_set_id(struct ac
- 				count = cid_list->count;
- 			}
- 			if (cid_add) {
--				strncpy(list->id[count].value, cid_add, ACPI_MAX_CID_LENGTH);
-+				strncpy(list->id[count].value, cid_add,
-+					ACPI_MAX_CID_LENGTH);
- 				count++;
- 				device->flags.compatible_ids = 1;
- 			}
-@@ -1127,7 +1128,7 @@ static int acpi_bus_remove(struct acpi_d
+diff -puN arch/powerpc/Kconfig~iommu-sg-powerpc-convert-iommu-to-use-the-iommu-helper arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~iommu-sg-powerpc-convert-iommu-to-use-the-iommu-helper
++++ a/arch/powerpc/Kconfig
+@@ -227,6 +227,9 @@ config IOMMU_VMERGE
  
- static int
- acpi_is_child_device(struct acpi_device *device,
--			int (*matcher)(struct acpi_device*))
-+			int (*matcher)(struct acpi_device *))
+ 	  Most drivers don't have this problem; it is safe to say Y here.
+ 
++config IOMMU_HELPER
++	def_bool PPC64
++
+ config HOTPLUG_CPU
+ 	bool "Support for enabling/disabling CPUs"
+ 	depends on SMP && HOTPLUG && EXPERIMENTAL && (PPC_PSERIES || PPC_PMAC)
+diff -puN arch/powerpc/kernel/dma_64.c~iommu-sg-powerpc-convert-iommu-to-use-the-iommu-helper arch/powerpc/kernel/dma_64.c
+--- a/arch/powerpc/kernel/dma_64.c~iommu-sg-powerpc-convert-iommu-to-use-the-iommu-helper
++++ a/arch/powerpc/kernel/dma_64.c
+@@ -31,8 +31,8 @@ static inline unsigned long device_to_ma
+ static void *dma_iommu_alloc_coherent(struct device *dev, size_t size,
+ 				      dma_addr_t *dma_handle, gfp_t flag)
  {
- 	int result = -ENODEV;
+-	return iommu_alloc_coherent(dev->archdata.dma_data, size, dma_handle,
+-				    device_to_mask(dev), flag,
++	return iommu_alloc_coherent(dev, dev->archdata.dma_data, size,
++				    dma_handle, device_to_mask(dev), flag,
+ 				    dev->archdata.numa_node);
+ }
  
-@@ -1195,7 +1196,7 @@ acpi_add_single_object(struct acpi_devic
- 			goto end;
+@@ -52,7 +52,7 @@ static dma_addr_t dma_iommu_map_single(s
+ 				       size_t size,
+ 				       enum dma_data_direction direction)
+ {
+-	return iommu_map_single(dev->archdata.dma_data, vaddr, size,
++	return iommu_map_single(dev, dev->archdata.dma_data, vaddr, size,
+ 			        device_to_mask(dev), direction);
+ }
+ 
+diff -puN arch/powerpc/kernel/iommu.c~iommu-sg-powerpc-convert-iommu-to-use-the-iommu-helper arch/powerpc/kernel/iommu.c
+--- a/arch/powerpc/kernel/iommu.c~iommu-sg-powerpc-convert-iommu-to-use-the-iommu-helper
++++ a/arch/powerpc/kernel/iommu.c
+@@ -31,6 +31,7 @@
+ #include <linux/string.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/bitops.h>
++#include <linux/iommu-helper.h>
+ #include <asm/io.h>
+ #include <asm/prom.h>
+ #include <asm/iommu.h>
+@@ -81,17 +82,19 @@ static int __init setup_iommu(char *str)
+ __setup("protect4gb=", setup_protect4gb);
+ __setup("iommu=", setup_iommu);
+ 
+-static unsigned long iommu_range_alloc(struct iommu_table *tbl,
++static unsigned long iommu_range_alloc(struct device *dev,
++				       struct iommu_table *tbl,
+                                        unsigned long npages,
+                                        unsigned long *handle,
+                                        unsigned long mask,
+                                        unsigned int align_order)
+ { 
+-	unsigned long n, end, i, start;
++	unsigned long n, end, start;
+ 	unsigned long limit;
+ 	int largealloc = npages > 15;
+ 	int pass = 0;
+ 	unsigned long align_mask;
++	unsigned long boundary_size;
+ 
+ 	align_mask = 0xffffffffffffffffl >> (64 - align_order);
+ 
+@@ -136,14 +139,17 @@ static unsigned long iommu_range_alloc(s
+ 			start &= mask;
+ 	}
+ 
+-	n = find_next_zero_bit(tbl->it_map, limit, start);
+-
+-	/* Align allocation */
+-	n = (n + align_mask) & ~align_mask;
+-
+-	end = n + npages;
++	if (dev)
++		boundary_size = ALIGN(dma_get_seg_boundary(dev) + 1,
++				      1 << IOMMU_PAGE_SHIFT);
++	else
++		boundary_size = ALIGN(1UL << 32, 1 << IOMMU_PAGE_SHIFT);
++	/* 4GB boundary for iseries_hv_alloc and iseries_hv_map */
+ 
+-	if (unlikely(end >= limit)) {
++	n = iommu_area_alloc(tbl->it_map, limit, start, npages,
++			     tbl->it_offset, boundary_size >> IOMMU_PAGE_SHIFT,
++			     align_mask);
++	if (n == -1) {
+ 		if (likely(pass < 2)) {
+ 			/* First failure, just rescan the half of the table.
+ 			 * Second failure, rescan the other half of the table.
+@@ -158,14 +164,7 @@ static unsigned long iommu_range_alloc(s
  		}
- 		if (!device->status.present) {
--                	/* Bay and dock should be handled even if absent */
-+			/* Bay and dock should be handled even if absent */
- 			if (!ACPI_SUCCESS(
- 			     acpi_is_child_device(device, acpi_bay_match)) &&
- 			    !ACPI_SUCCESS(
+ 	}
+ 
+-	for (i = n; i < end; i++)
+-		if (test_bit(i, tbl->it_map)) {
+-			start = i+1;
+-			goto again;
+-		}
+-
+-	for (i = n; i < end; i++)
+-		__set_bit(i, tbl->it_map);
++	end = n + npages;
+ 
+ 	/* Bump the hint to a new block for small allocs. */
+ 	if (largealloc) {
+@@ -184,16 +183,17 @@ static unsigned long iommu_range_alloc(s
+ 	return n;
+ }
+ 
+-static dma_addr_t iommu_alloc(struct iommu_table *tbl, void *page,
+-		       unsigned int npages, enum dma_data_direction direction,
+-		       unsigned long mask, unsigned int align_order)
++static dma_addr_t iommu_alloc(struct device *dev, struct iommu_table *tbl,
++			      void *page, unsigned int npages,
++			      enum dma_data_direction direction,
++			      unsigned long mask, unsigned int align_order)
+ {
+ 	unsigned long entry, flags;
+ 	dma_addr_t ret = DMA_ERROR_CODE;
+ 
+ 	spin_lock_irqsave(&(tbl->it_lock), flags);
+ 
+-	entry = iommu_range_alloc(tbl, npages, NULL, mask, align_order);
++	entry = iommu_range_alloc(dev, tbl, npages, NULL, mask, align_order);
+ 
+ 	if (unlikely(entry == DMA_ERROR_CODE)) {
+ 		spin_unlock_irqrestore(&(tbl->it_lock), flags);
+@@ -224,7 +224,6 @@ static void __iommu_free(struct iommu_ta
+ 			 unsigned int npages)
+ {
+ 	unsigned long entry, free_entry;
+-	unsigned long i;
+ 
+ 	entry = dma_addr >> IOMMU_PAGE_SHIFT;
+ 	free_entry = entry - tbl->it_offset;
+@@ -246,9 +245,7 @@ static void __iommu_free(struct iommu_ta
+ 	}
+ 
+ 	ppc_md.tce_free(tbl, entry, npages);
+-	
+-	for (i = 0; i < npages; i++)
+-		__clear_bit(free_entry+i, tbl->it_map);
++	iommu_area_free(tbl->it_map, free_entry, npages);
+ }
+ 
+ static void iommu_free(struct iommu_table *tbl, dma_addr_t dma_addr,
+@@ -312,7 +309,8 @@ int iommu_map_sg(struct device *dev, str
+ 		/* Allocate iommu entries for that segment */
+ 		vaddr = (unsigned long) sg_virt(s);
+ 		npages = iommu_num_pages(vaddr, slen);
+-		entry = iommu_range_alloc(tbl, npages, &handle, mask >> IOMMU_PAGE_SHIFT, 0);
++		entry = iommu_range_alloc(dev, tbl, npages, &handle,
++					  mask >> IOMMU_PAGE_SHIFT, 0);
+ 
+ 		DBG("  - vaddr: %lx, size: %lx\n", vaddr, slen);
+ 
+@@ -570,9 +568,9 @@ void iommu_free_table(struct device_node
+  * need not be page aligned, the dma_addr_t returned will point to the same
+  * byte within the page as vaddr.
+  */
+-dma_addr_t iommu_map_single(struct iommu_table *tbl, void *vaddr,
+-		size_t size, unsigned long mask,
+-		enum dma_data_direction direction)
++dma_addr_t iommu_map_single(struct device *dev, struct iommu_table *tbl,
++			    void *vaddr, size_t size, unsigned long mask,
++			    enum dma_data_direction direction)
+ {
+ 	dma_addr_t dma_handle = DMA_ERROR_CODE;
+ 	unsigned long uaddr;
+@@ -584,7 +582,7 @@ dma_addr_t iommu_map_single(struct iommu
+ 	npages = iommu_num_pages(uaddr, size);
+ 
+ 	if (tbl) {
+-		dma_handle = iommu_alloc(tbl, vaddr, npages, direction,
++		dma_handle = iommu_alloc(dev, tbl, vaddr, npages, direction,
+ 					 mask >> IOMMU_PAGE_SHIFT, 0);
+ 		if (dma_handle == DMA_ERROR_CODE) {
+ 			if (printk_ratelimit())  {
+@@ -616,8 +614,9 @@ void iommu_unmap_single(struct iommu_tab
+  * Returns the virtual address of the buffer and sets dma_handle
+  * to the dma address (mapping) of the first page.
+  */
+-void *iommu_alloc_coherent(struct iommu_table *tbl, size_t size,
+-		dma_addr_t *dma_handle, unsigned long mask, gfp_t flag, int node)
++void *iommu_alloc_coherent(struct device *dev, struct iommu_table *tbl,
++			   size_t size,	dma_addr_t *dma_handle,
++			   unsigned long mask, gfp_t flag, int node)
+ {
+ 	void *ret = NULL;
+ 	dma_addr_t mapping;
+@@ -651,7 +650,7 @@ void *iommu_alloc_coherent(struct iommu_
+ 	/* Set up tces to cover the allocated range */
+ 	nio_pages = size >> IOMMU_PAGE_SHIFT;
+ 	io_order = get_iommu_order(size);
+-	mapping = iommu_alloc(tbl, ret, nio_pages, DMA_BIDIRECTIONAL,
++	mapping = iommu_alloc(dev, tbl, ret, nio_pages, DMA_BIDIRECTIONAL,
+ 			      mask >> IOMMU_PAGE_SHIFT, io_order);
+ 	if (mapping == DMA_ERROR_CODE) {
+ 		free_pages((unsigned long)ret, order);
+diff -puN arch/powerpc/platforms/iseries/iommu.c~iommu-sg-powerpc-convert-iommu-to-use-the-iommu-helper arch/powerpc/platforms/iseries/iommu.c
+--- a/arch/powerpc/platforms/iseries/iommu.c~iommu-sg-powerpc-convert-iommu-to-use-the-iommu-helper
++++ a/arch/powerpc/platforms/iseries/iommu.c
+@@ -197,7 +197,7 @@ static struct iommu_table vio_iommu_tabl
+ 
+ void *iseries_hv_alloc(size_t size, dma_addr_t *dma_handle, gfp_t flag)
+ {
+-	return iommu_alloc_coherent(&vio_iommu_table, size, dma_handle,
++	return iommu_alloc_coherent(NULL, &vio_iommu_table, size, dma_handle,
+ 				DMA_32BIT_MASK, flag, -1);
+ }
+ EXPORT_SYMBOL_GPL(iseries_hv_alloc);
+@@ -211,7 +211,7 @@ EXPORT_SYMBOL_GPL(iseries_hv_free);
+ dma_addr_t iseries_hv_map(void *vaddr, size_t size,
+ 			enum dma_data_direction direction)
+ {
+-	return iommu_map_single(&vio_iommu_table, vaddr, size,
++	return iommu_map_single(NULL, &vio_iommu_table, vaddr, size,
+ 				DMA_32BIT_MASK, direction);
+ }
+ 
+diff -puN include/asm-powerpc/iommu.h~iommu-sg-powerpc-convert-iommu-to-use-the-iommu-helper include/asm-powerpc/iommu.h
+--- a/include/asm-powerpc/iommu.h~iommu-sg-powerpc-convert-iommu-to-use-the-iommu-helper
++++ a/include/asm-powerpc/iommu.h
+@@ -86,13 +86,13 @@ extern int iommu_map_sg(struct device *d
+ extern void iommu_unmap_sg(struct iommu_table *tbl, struct scatterlist *sglist,
+ 			   int nelems, enum dma_data_direction direction);
+ 
+-extern void *iommu_alloc_coherent(struct iommu_table *tbl, size_t size,
+-				  dma_addr_t *dma_handle, unsigned long mask,
+-				  gfp_t flag, int node);
++extern void *iommu_alloc_coherent(struct device *dev, struct iommu_table *tbl,
++				  size_t size, dma_addr_t *dma_handle,
++				  unsigned long mask, gfp_t flag, int node);
+ extern void iommu_free_coherent(struct iommu_table *tbl, size_t size,
+ 				void *vaddr, dma_addr_t dma_handle);
+-extern dma_addr_t iommu_map_single(struct iommu_table *tbl, void *vaddr,
+-				   size_t size, unsigned long mask,
++extern dma_addr_t iommu_map_single(struct device *dev, struct iommu_table *tbl,
++				   void *vaddr, size_t size, unsigned long mask,
+ 				   enum dma_data_direction direction);
+ extern void iommu_unmap_single(struct iommu_table *tbl, dma_addr_t dma_handle,
+ 			       size_t size, enum dma_data_direction direction);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tomof@acm.org are
 
-origin.patch
-ufs-fix-nexstep-dir-block-size.patch
-aoe-properly-initialise-the-request_queues-backing_dev_info.patch
-revert-dpt_i2o-convert-to-scsi-hotplug-model.patch
-lost-content-of-proc-sys-fs-binfmt_misc-checkpatch-fixes.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-timerfd-v3-new-timerfd-api-ia64-fix.patch
-timerfd-v3-new-timerfd-api-m68k-fix.patch
-timerfd-v3-new-timerfd-api-mips-fix.patch
-timerfd-v3-new-timerfd-api-arch-fixes.patch
-timerfd-v3-new-timerfd-api-powerpc-fix.patch
-git-acpi.patch
-git-acpi-ia64-build-fix.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-add-reboot-mechanism.patch
-acpi-fix-autloading-of-dock-video-bay-and-all-linux-specific-hid-drivers-checkpatch-fixes.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-git-agpgart.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-kernel-auditc-warning-fix.patch
-git-cpufreq.patch
-git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-dm-persistent_read_metadata-warning-fix.patch
-ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
-gregkh-driver-driver-core-move-the-driver-specific-module-code-into-the-driver-core-fix.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-git-drm.patch
-git-drm-oops-fix.patch
-intel-agp-enable-i915-recognition.patch
-git-dvb.patch
-fix-jdelvare-i2c-i2c-constify-client-address-data.patch
-revert-git-hrt.patch
-ia64-slim-down-__clear_bit_unlock.patch
-git-infiniband.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-libata-xfer_mask-is-unsigned-int-not-unsigned-long-fix.patch
-libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
-libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
-git-mmc.patch
-git-mtd.patch
-git-net.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-bluetooth-uninlining.patch
-git-nfsd.patch
-quirk-enable-msi-mapping-on-ht1000.patch
-git-sh.patch
-git-scsi-misc-fixup.patch
-ips-trim-trailing-whitespace.patch
-scsi-gdth-kill-unneeded-irq-argument.patch
-drivers-scsi-sgiwd93c-export-sgiwd93_reset.patch
-libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-mct232-speed-new-termios-and-compliance-cleanups-fix.patch
-usb-testing-driver-dont-free-a-locked-mutex.patch
-git-watchdog.patch
-git-watchdog-hpwdt-build-fix.patch
-add-support-for-sb1-hardware-watchdog-fix.patch
-git-wireless.patch
-bcm43xx_debugfs-sscanf-fix.patch
-git-ipwireless_cs.patch
-revert-git-kvm-changes-in-arch-x86-kconfig.patch
-git-x86.patch
-revert-revert-git-kvm-changes-in-arch-x86-kconfig.patch
-git-x86-__vdso_getcpu-warning-fix.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-git-xtensa.patch
-ia64-increase-datapatch-offset.patch
-ia64-dont-assume-that-unwcheckpy-is-executable.patch
-ia64-export-copy_page-to-modules.patch
-bridge-section-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-sync_sb_inodes-propagate-errors.patch
-move-kprobes-examples-to-samples-resend-vs-git-x86.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
-64-bit-i_version-afs-fixes.patch
-ext4-add-block-bitmap-validation.patch
-ext4-fix-up-ext4fs_debug-builds.patch
-ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-rewrite-rd-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+git-scsi-misc.patch
+iommu-sg-merging-add-device_dma_parameters-structure.patch
+iommu-sg-merging-pci-add-device_dma_parameters-support.patch
+iommu-sg-merging-x86-make-pci-gart-iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-ppc-make-iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-ia64-make-sba_iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-alpha-make-pci_iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-parisc-make-iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-call-blk_queue_segment_boundary-in-__scsi_alloc_queue.patch
+iommu-sg-merging-sata_inic162x-use-pci_set_dma_max_seg_size.patch
+iommu-sg-merging-aacraid-use-pci_set_dma_max_seg_size.patch
+iommu-sg-add-iommu-helper-functions-for-the-free-area-management.patch
+iommu-sg-powerpc-convert-iommu-to-use-the-iommu-helper.patch
+iommu-sg-powerpc-remove-dma-4gb-boundary-protection.patch
+iommu-sg-x86-convert-calgary-iommu-to-use-the-iommu-helper.patch
+iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper.patch
+iommu-sg-kill-__clear_bit_string-and-find_next_zero_string.patch
+add-accessors-for-segment_boundary_mask-in.patch
+pci-add-dma-segment-boundary-support.patch
+swiotlb-respect-the-segment-boundary-limits.patch
+call-dma_set_seg_boundary-in-__scsi_alloc_queue.patch
+alpha-kill-deprecated-virt_to_bus.patch
