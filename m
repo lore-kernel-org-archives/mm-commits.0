@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-time-make-tick_do_broadcast-static.patch added to -mm tree
-Date: Fri, 07 Dec 2007 15:25:44 -0800
-Message-ID: <200712072325.lB7NPihV008977@imap1.linux-foundation.org>
+Subject: + proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch added to -mm tree
+Date: Fri, 07 Dec 2007 15:49:34 -0800
+Message-ID: <200712072357.lB7Nv5fB010070@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41590 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34117 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750940AbXLGX0S (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 18:26:18 -0500
+	by vger.kernel.org with ESMTP id S1752165AbXLGX5k (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 18:57:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, venkatesh.pallipadi@intel.com
+Cc: akpm@linux-foundation.org, ebiederm@xmission.com
 
 
 The patch titled
-     kernel/time: make tick_do_broadcast() static
+     proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3
 has been added to the -mm tree.  Its filename is
-     kernel-time-make-tick_do_broadcast-static.patch
+     proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,43 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kernel/time: make tick_do_broadcast() static
+Subject: proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Cc: "Thomas Gleixner" <tglx@linutronix.de>
-Cc: "Ingo Molnar" <mingo@elte.hu>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ./kernel/time/tick-broadcast.c |    2 +-
- ./kernel/time/tick-internal.h  |    2 --
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ fs/proc/array.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN ./kernel/time/tick-broadcast.c~kernel-time-make-tick_do_broadcast-static ./kernel/time/tick-broadcast.c
---- a/./kernel/time/tick-broadcast.c~kernel-time-make-tick_do_broadcast-static
-+++ a/./kernel/time/tick-broadcast.c
-@@ -126,7 +126,7 @@ int tick_device_uses_broadcast(struct cl
- /*
-  * Broadcast the event to the cpus, which are set in the mask
-  */
--int tick_do_broadcast(cpumask_t mask)
-+static int tick_do_broadcast(cpumask_t mask)
- {
- 	int ret = 0, cpu = smp_processor_id();
- 	struct tick_device *td;
-diff -puN ./kernel/time/tick-internal.h~kernel-time-make-tick_do_broadcast-static ./kernel/time/tick-internal.h
---- a/./kernel/time/tick-internal.h~kernel-time-make-tick_do_broadcast-static
-+++ a/./kernel/time/tick-internal.h
-@@ -70,8 +70,6 @@ static inline int tick_resume_broadcast_
-  * Broadcasting support
-  */
- #ifdef CONFIG_GENERIC_CLOCKEVENTS_BROADCAST
--extern int tick_do_broadcast(cpumask_t mask);
--
- extern int tick_device_uses_broadcast(struct clock_event_device *dev, int cpu);
- extern int tick_check_broadcast_device(struct clock_event_device *dev);
- extern int tick_is_broadcast_device(struct clock_event_device *dev);
+diff -puN fs/proc/array.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3 fs/proc/array.c
+--- a/fs/proc/array.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3
++++ a/fs/proc/array.c
+@@ -98,9 +98,9 @@ static inline void task_name(struct seq_
+ 
+ 	get_task_comm(tcomm, p);
+ 
++	seq_printf(m, "Name:\t");
+ 	end = m->buf + m->size;
+ 	buf = m->buf + m->count;
+-	seq_printf(m, "Name:\n");
+ 	name = tcomm;
+ 	i = sizeof(tcomm);
+ 	while (i && (buf < end)) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -83,7 +70,6 @@ git-acpi.patch
 git-acpi-ia64-build-fix.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 acpi-add-reboot-mechanism.patch
-acpi-fix-autloading-of-dock-video-bay-and-all-linux-specific-hid-drivers-checkpatch-fixes.patch
 small-acpica-extension-to-be-able-to-store-the-name-of.patch
 git-alsa.patch
 git-agpgart.patch
@@ -256,6 +242,7 @@ proc-detect-duplicate-names-on-registration-fix.patch
 proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
 proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
 proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
 intel-iommu-fault_reason_index_cleanuppatch-fix.patch
 aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
 aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
@@ -275,4 +262,3 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-kernel-time-make-tick_do_broadcast-static.patch
