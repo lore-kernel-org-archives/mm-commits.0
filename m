@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-kvm-fixup.patch added to -mm tree
-Date: Fri, 07 Dec 2007 17:17:09 -0800
-Message-ID: <200712080117.lB81H9Gg012939@imap1.linux-foundation.org>
+Subject: + git-net-vs-git-lblnet.patch added to -mm tree
+Date: Fri, 07 Dec 2007 17:18:11 -0800
+Message-ID: <200712080118.lB81IBgY012990@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51164 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60791 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753690AbXLHBRN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 20:17:13 -0500
+	by vger.kernel.org with ESMTP id S1753811AbXLHBSU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 20:18:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, avi@qumranet.com
+Cc: akpm@linux-foundation.org, davem@davemloft.net, kaber@trash.net, paul.moore@hp.com
 
 
 The patch titled
-     git-kvm-fixup
+     git-net-vs-git-lblnet
 has been added to the -mm tree.  Its filename is
-     git-kvm-fixup.patch
+     git-net-vs-git-lblnet.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,42 +25,74 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-kvm-fixup
+Subject: git-net-vs-git-lblnet
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Avi Kivity <avi@qumranet.com>
+Fix clash between git-net and git-lblnet.
+
+Cc: Paul Moore <paul.moore@hp.com>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ net/netfilter/xt_SECMARK.c |   23 +++++++++++------------
+ 1 file changed, 11 insertions(+), 12 deletions(-)
 
-diff -puN arch/x86/Kconfig~git-kvm-fixup arch/x86/Kconfig
---- a/arch/x86/Kconfig~git-kvm-fixup
-+++ a/arch/x86/Kconfig
-@@ -112,19 +112,13 @@ config GENERIC_TIME_VSYSCALL
- 	bool
- 	default X86_64
+diff -puN net/netfilter/xt_SECMARK.c~git-net-vs-git-lblnet net/netfilter/xt_SECMARK.c
+--- a/net/netfilter/xt_SECMARK.c~git-net-vs-git-lblnet
++++ a/net/netfilter/xt_SECMARK.c
+@@ -119,13 +119,13 @@ void destroy(const struct xt_target *tar
+ 	}
+ }
  
--<<<<<<< HEAD:arch/x86/Kconfig
- config ARCH_SUPPORTS_OPROFILE
--=======
--config ARCH_SUPPORTS_KVM
-->>>>>>> FETCH_HEAD:arch/x86/Kconfig
- 	bool
- 	default y
--<<<<<<< HEAD:arch/x86/Kconfig
--=======
--
--
-->>>>>>> FETCH_HEAD:arch/x86/Kconfig
+-static struct xt_target xt_secmark_target[] __read_mostly = {
++static struct xt_target secmark_tg_reg[] __read_mostly = {
+ 	{
+ 		.name		= "SECMARK",
+ 		.family		= AF_INET,
+-		.checkentry	= checkentry,
++		.checkentry	= secmark_tg_check,
+ 		.destroy	= destroy,
+-		.target		= target,
++		.target		= secmark_tg,
+ 		.targetsize	= sizeof(struct xt_secmark_target_info),
+ 		.table		= "mangle",
+ 		.me		= THIS_MODULE,
+@@ -133,25 +133,24 @@ static struct xt_target xt_secmark_targe
+ 	{
+ 		.name		= "SECMARK",
+ 		.family		= AF_INET6,
+-		.checkentry	= checkentry,
++		.checkentry	= secmark_tg_check,
+ 		.destroy	= destroy,
+-		.target		= target,
++		.target		= secmark_tg,
+ 		.targetsize	= sizeof(struct xt_secmark_target_info),
+ 		.table		= "mangle",
+ 		.me		= THIS_MODULE,
+ 	},
+ };
  
-+config ARCH_SUPPORTS_KVM
-+	bool
-+	default y
+-static int __init xt_secmark_init(void)
++static int __init secmark_tg_init(void)
+ {
+-	return xt_register_targets(xt_secmark_target,
+-				   ARRAY_SIZE(xt_secmark_target));
++	return xt_register_targets(secmark_tg_reg, ARRAY_SIZE(secmark_tg_reg));
+ }
  
- config ZONE_DMA32
- 	bool
+-static void __exit xt_secmark_fini(void)
++static void __exit secmark_tg_exit(void)
+ {
+-	xt_unregister_targets(xt_secmark_target, ARRAY_SIZE(xt_secmark_target));
++	xt_unregister_targets(secmark_tg_reg, ARRAY_SIZE(secmark_tg_reg));
+ }
+ 
+-module_init(xt_secmark_init);
+-module_exit(xt_secmark_fini);
++module_init(secmark_tg_init);
++module_exit(secmark_tg_exit);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
