@@ -1,52 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: - spi-spi_bfin-bugfix-for-816-bit-word-sizes.patch removed from -mm tree
-Date: Fri, 07 Dec 2007 17:29:34 -0800
-Message-ID: <200712080129.lB81TY6w013408@imap1.linux-foundation.org>
+Subject: - blackfin-spi-driver-reconfigure-speed_hz-and-bits_per_word-in-each-spi-transfer.patch removed from -mm tree
+Date: Fri, 07 Dec 2007 17:29:52 -0800
+Message-ID: <200712080129.lB81Tq7n013433@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52020 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60684 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754194AbXLHBjZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 20:39:25 -0500
+	by vger.kernel.org with ESMTP id S1754194AbXLHBj1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 20:39:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bryan.wu@analog.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: bryan.wu@analog.com, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi: spi_bfin: bugfix for 8..16 bit word sizes
+     Blackfin SPI driver: reconfigure speed_hz and bits_per_word in each spi transfer
 has been removed from the -mm tree.  Its filename was
-     spi-spi_bfin-bugfix-for-816-bit-word-sizes.patch
+     blackfin-spi-driver-reconfigure-speed_hz-and-bits_per_word-in-each-spi-transfer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: spi: spi_bfin: bugfix for 8..16 bit word sizes
+Subject: Blackfin SPI driver: reconfigure speed_hz and bits_per_word in each spi transfer
 From: Bryan Wu <bryan.wu@analog.com>
 
-Fix bug in u16_cs_chg_reader to read data_len-2 bytes data firstly, then read
-out the last 2 bytes data
+ - reconfigure SPI baud from speed_hz of each spi transfer
+ - according to spi_transfer.bits_per_word to reprogram register and setup
+   correct SPI operation handlers
 
 Signed-off-by: Bryan Wu <bryan.wu@analog.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_bfin5xx.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/spi/spi_bfin5xx.c |   52 +++++++++++++++++++++++++++++++-----
+ 1 file changed, 45 insertions(+), 7 deletions(-)
 
-diff -puN drivers/spi/spi_bfin5xx.c~spi-spi_bfin-bugfix-for-816-bit-word-sizes drivers/spi/spi_bfin5xx.c
---- a/drivers/spi/spi_bfin5xx.c~spi-spi_bfin-bugfix-for-816-bit-word-sizes
+diff -puN drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-reconfigure-speed_hz-and-bits_per_word-in-each-spi-transfer drivers/spi/spi_bfin5xx.c
+--- a/drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-reconfigure-speed_hz-and-bits_per_word-in-each-spi-transfer
 +++ a/drivers/spi/spi_bfin5xx.c
-@@ -501,7 +501,7 @@ static void u16_cs_chg_reader(struct dri
+@@ -234,10 +234,8 @@ static int restore_state(struct driver_d
+ 	dev_dbg(&drv_data->pdev->dev, "restoring spi ctl state\n");
+ 
+ 	/* Load the registers */
+-	write_BAUD(drv_data, chip->baud);
+-	chip->ctl_reg &= (~BIT_CTL_TIMOD);
+-	chip->ctl_reg |= (chip->width << 8);
+ 	write_CTRL(drv_data, chip->ctl_reg);
++	write_BAUD(drv_data, chip->baud);
+ 
+ 	bfin_spi_enable(drv_data);
  	cs_active(drv_data, chip);
- 	dummy_read(drv_data);
+@@ -679,6 +677,7 @@ static void pump_transfers(unsigned long
+ 	message = drv_data->cur_msg;
+ 	transfer = drv_data->cur_transfer;
+ 	chip = drv_data->cur_chip;
++
+ 	/*
+ 	 * if msg is error or done, report it back using complete() callback
+ 	 */
+@@ -736,15 +735,48 @@ static void pump_transfers(unsigned long
+ 	drv_data->len_in_bytes = transfer->len;
+ 	drv_data->cs_change = transfer->cs_change;
  
--	while (drv_data->rx < drv_data->rx_end) {
-+	while (drv_data->rx < drv_data->rx_end - 2) {
- 		cs_deactive(drv_data, chip);
+-	width = chip->width;
++	/* Bits per word setup */
++	switch (transfer->bits_per_word) {
++	case 8:
++		drv_data->n_bytes = 1;
++		width = CFG_SPI_WORDSIZE8;
++		drv_data->read = chip->cs_change_per_word ?
++			u8_cs_chg_reader : u8_reader;
++		drv_data->write = chip->cs_change_per_word ?
++			u8_cs_chg_writer : u8_writer;
++		drv_data->duplex = chip->cs_change_per_word ?
++			u8_cs_chg_duplex : u8_duplex;
++		break;
++
++	case 16:
++		drv_data->n_bytes = 2;
++		width = CFG_SPI_WORDSIZE16;
++		drv_data->read = chip->cs_change_per_word ?
++			u16_cs_chg_reader : u16_reader;
++		drv_data->write = chip->cs_change_per_word ?
++			u16_cs_chg_writer : u16_writer;
++		drv_data->duplex = chip->cs_change_per_word ?
++			u16_cs_chg_duplex : u16_duplex;
++		break;
++
++	default:
++		/* No change, the same as default setting */
++		drv_data->n_bytes = chip->n_bytes;
++		width = chip->width;
++		drv_data->write = drv_data->tx ? chip->write : null_writer;
++		drv_data->read = drv_data->rx ? chip->read : null_reader;
++		drv_data->duplex = chip->duplex ? chip->duplex : null_writer;
++		break;
++	}
++	cr = (read_CTRL(drv_data) & (~BIT_CTL_TIMOD));
++	cr |= (width << 8);
++	write_CTRL(drv_data, cr);
++
+ 	if (width == CFG_SPI_WORDSIZE16) {
+ 		drv_data->len = (transfer->len) >> 1;
+ 	} else {
+ 		drv_data->len = transfer->len;
+ 	}
+-	drv_data->write = drv_data->tx ? chip->write : null_writer;
+-	drv_data->read = drv_data->rx ? chip->read : null_reader;
+-	drv_data->duplex = chip->duplex ? chip->duplex : null_writer;
+ 	dev_dbg(&drv_data->pdev->dev, "transfer: ",
+ 		"drv_data->write is %p, chip->write is %p, null_wr is %p\n",
+ 		drv_data->write, chip->write, null_writer);
+@@ -753,6 +785,12 @@ static void pump_transfers(unsigned long
+ 	message->state = RUNNING_STATE;
+ 	dma_config = 0;
  
- 		if (chip->cs_chg_udelay)
++	/* Speed setup (surely valid because already checked) */
++	if (transfer->speed_hz)
++		write_BAUD(drv_data, hz_to_spi_baud(transfer->speed_hz));
++	else
++		write_BAUD(drv_data, chip->baud);
++
+ 	write_STAT(drv_data, BIT_STAT_CLR);
+ 	cr = (read_CTRL(drv_data) & (~BIT_CTL_TIMOD));
+ 	cs_active(drv_data, chip);
 _
 
 Patches currently in -mm which might be from bryan.wu@analog.com are
