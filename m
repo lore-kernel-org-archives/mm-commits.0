@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - pie-executable-randomization-uninlining.patch removed from -mm tree
-Date: Fri, 07 Dec 2007 17:26:29 -0800
-Message-ID: <200712080126.lB81QTdm013277@imap1.linux-foundation.org>
+Subject: - pie-executable-randomization-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 07 Dec 2007 17:26:32 -0800
+Message-ID: <200712080126.lB81QWis013280@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46216 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44879 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752652AbXLHB20 (ORCPT
+	by vger.kernel.org with ESMTP id S1752670AbXLHB20 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 20:28:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,17 +14,89 @@ To: akpm@linux-foundation.org, arjan@infradead.org, jakub@redhat.com, jkosina@su
 
 
 The patch titled
-     pie-executable-randomization-uninlining
+     pie-executable-randomization-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     pie-executable-randomization-uninlining.patch
+     pie-executable-randomization-checkpatch-fixes.patch
 
 This patch was dropped because of ongoing git-x86 churn
 
 ------------------------------------------------------
-Subject: pie-executable-randomization-uninlining
+Subject: pie-executable-randomization-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-the compiler does that
+WARNING: line over 80 characters
+#39: FILE: arch/ia64/ia32/binfmt_elf32.c:229:
++elf32_map (struct file *filep, unsigned long addr, struct elf_phdr *eppnt, int prot, int type, unsigned long unused)
+
+WARNING: no space between function name and open parenthesis '('
+#39: FILE: arch/ia64/ia32/binfmt_elf32.c:229:
++elf32_map (struct file *filep, unsigned long addr, struct elf_phdr *eppnt, int prot, int type, unsigned long unused)
+
+WARNING: line over 80 characters
+#67: FILE: arch/x86/kernel/sys_x86_64.c:80:
++			new_begin = randomize_range(*begin, *begin + 0x02000000, 0);
+
+ERROR: use tabs not spaces
+#110: FILE: arch/x86/kernel/sys_x86_64.c:185:
++ ^I        mm->cached_hole_size = 0;$
+
+ERROR: use tabs not spaces
+#111: FILE: arch/x86/kernel/sys_x86_64.c:186:
++ ^I^Imm->free_area_cache = mm->mmap_base;$
+
+ERROR: use tabs not spaces
+#112: FILE: arch/x86/kernel/sys_x86_64.c:187:
++ ^I}$
+
+ERROR: use tabs not spaces
+#141: FILE: arch/x86/kernel/sys_x86_64.c:216:
++ ^I^I/* remember the largest hole we saw so far */$
+
+ERROR: use tabs not spaces
+#142: FILE: arch/x86/kernel/sys_x86_64.c:217:
++ ^I^Iif (addr + mm->cached_hole_size < vma->vm_start)$
+
+ERROR: use tabs not spaces
+#143: FILE: arch/x86/kernel/sys_x86_64.c:218:
++ ^I^I        mm->cached_hole_size = vma->vm_start - addr;$
+
+ERROR: use tabs not spaces
+#157: FILE: arch/x86/kernel/sys_x86_64.c:232:
++  ^Imm->free_area_cache = TASK_UNMAPPED_BASE;$
+
+ERROR: need a space before the open parenthesis '('
+#291: FILE: arch/x86/mm/mmap_64.c:101:
++	} else if(mmap_is_legacy()) {
+
+WARNING: braces {} are not necessary for single statement blocks
+#302: FILE: arch/x86/mm/mmap_64.c:112:
++	if (current->flags & PF_RANDOMIZE) {
++		mm->mmap_base += ((long)rnd) << PAGE_SHIFT;
++	}
+
+WARNING: line over 80 characters
+#314: FILE: fs/binfmt_elf.c:48:
++static unsigned long elf_map (struct file *, unsigned long, struct elf_phdr *, int, int, unsigned long);
+
+WARNING: no space between function name and open parenthesis '('
+#314: FILE: fs/binfmt_elf.c:48:
++static unsigned long elf_map (struct file *, unsigned long, struct elf_phdr *, int, int, unsigned long);
+
+WARNING: line over 80 characters
+#429: FILE: fs/binfmt_elf.c:438:
++					   eppnt, elf_prot, elf_type, total_size);
+
+ERROR: need space after that ',' (ctx:VxV)
+#480: FILE: fs/binfmt_elf.c:939:
++				elf_prot, elf_flags,0);
+ 				                   ^
+
+total: 9 errors, 7 warnings, 461 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
 
 Cc: "Luck, Tony" <tony.luck@intel.com>
 Cc: Arjan van de Ven <arjan@infradead.org>
@@ -37,39 +109,115 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/mmap_64.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/ia64/ia32/binfmt_elf32.c |    3 ++-
+ arch/x86/kernel/sys_x86_64.c  |   14 +++++++-------
+ arch/x86/mm/mmap_64.c         |    5 ++---
+ fs/binfmt_elf.c               |    7 ++++---
+ 4 files changed, 15 insertions(+), 14 deletions(-)
 
-diff -puN arch/x86/mm/mmap_64.c~pie-executable-randomization-uninlining arch/x86/mm/mmap_64.c
---- a/arch/x86/mm/mmap_64.c~pie-executable-randomization-uninlining
+diff -puN arch/ia64/ia32/binfmt_elf32.c~pie-executable-randomization-checkpatch-fixes arch/ia64/ia32/binfmt_elf32.c
+--- a/arch/ia64/ia32/binfmt_elf32.c~pie-executable-randomization-checkpatch-fixes
++++ a/arch/ia64/ia32/binfmt_elf32.c
+@@ -226,7 +226,8 @@ elf32_set_personality (void)
+ }
+ 
+ static unsigned long
+-elf32_map (struct file *filep, unsigned long addr, struct elf_phdr *eppnt, int prot, int type, unsigned long unused)
++elf32_map(struct file *filep, unsigned long addr, struct elf_phdr *eppnt,
++		int prot, int type, unsigned long unused)
+ {
+ 	unsigned long pgoff = (eppnt->p_vaddr) & ~IA32_PAGE_MASK;
+ 
+diff -puN arch/x86/kernel/sys_x86_64.c~pie-executable-randomization-checkpatch-fixes arch/x86/kernel/sys_x86_64.c
+--- a/arch/x86/kernel/sys_x86_64.c~pie-executable-randomization-checkpatch-fixes
++++ a/arch/x86/kernel/sys_x86_64.c
+@@ -182,9 +182,9 @@ arch_get_unmapped_area_topdown(struct fi
+ 
+ 	/* check if free_area_cache is useful for us */
+ 	if (len <= mm->cached_hole_size) {
+- 	        mm->cached_hole_size = 0;
+- 		mm->free_area_cache = mm->mmap_base;
+- 	}
++		mm->cached_hole_size = 0;
++		mm->free_area_cache = mm->mmap_base;
++	}
+ 
+ 	/* either no address requested or can't fit in requested address hole */
+ 	addr = mm->free_area_cache;
+@@ -213,9 +213,9 @@ arch_get_unmapped_area_topdown(struct fi
+ 			/* remember the address as a hint for next time */
+ 			return (mm->free_area_cache = addr);
+ 
+- 		/* remember the largest hole we saw so far */
+- 		if (addr + mm->cached_hole_size < vma->vm_start)
+- 		        mm->cached_hole_size = vma->vm_start - addr;
++		/* remember the largest hole we saw so far */
++		if (addr + mm->cached_hole_size < vma->vm_start)
++			mm->cached_hole_size = vma->vm_start - addr;
+ 
+ 		/* try just below the current vma->vm_start */
+ 		addr = vma->vm_start-len;
+@@ -229,7 +229,7 @@ bottomup:
+ 	 * allocations.
+ 	 */
+ 	mm->cached_hole_size = ~0UL;
+-  	mm->free_area_cache = TASK_UNMAPPED_BASE;
++	mm->free_area_cache = TASK_UNMAPPED_BASE;
+ 	addr = arch_get_unmapped_area(filp, addr0, len, pgoff, flags);
+ 	/*
+ 	 * Restore the topdown base:
+diff -puN arch/x86/mm/mmap_64.c~pie-executable-randomization-checkpatch-fixes arch/x86/mm/mmap_64.c
+--- a/arch/x86/mm/mmap_64.c~pie-executable-randomization-checkpatch-fixes
 +++ a/arch/x86/mm/mmap_64.c
-@@ -42,7 +42,7 @@
- #define MIN_GAP (128*1024*1024)
- #define MAX_GAP (TASK_SIZE/6*5)
- 
--static inline unsigned long mmap_base(void)
-+static unsigned long mmap_base(void)
- {
- 	unsigned long gap = current->signal->rlim[RLIMIT_STACK].rlim_cur;
- 
-@@ -54,7 +54,7 @@ static inline unsigned long mmap_base(vo
- 	return TASK_SIZE - (gap & PAGE_MASK);
+@@ -100,7 +100,7 @@ void arch_pick_mmap_layout(struct mm_str
+ 		/* ia32_pick_mmap_layout has its own. */
+ 		return ia32_pick_mmap_layout(mm);
+ #endif
+-	} else if(mmap_is_legacy()) {
++	} else if (mmap_is_legacy()) {
+ 		mm->mmap_base = TASK_UNMAPPED_BASE;
+ 		mm->get_unmapped_area = arch_get_unmapped_area;
+ 		mm->unmap_area = arch_unmap_area;
+@@ -111,7 +111,6 @@ void arch_pick_mmap_layout(struct mm_str
+ 		if (current->flags & PF_RANDOMIZE)
+ 			rnd = -rnd;
+ 	}
+-	if (current->flags & PF_RANDOMIZE) {
++	if (current->flags & PF_RANDOMIZE)
+ 		mm->mmap_base += ((long)rnd) << PAGE_SHIFT;
+-	}
  }
+diff -puN fs/binfmt_elf.c~pie-executable-randomization-checkpatch-fixes fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~pie-executable-randomization-checkpatch-fixes
++++ a/fs/binfmt_elf.c
+@@ -45,7 +45,8 @@
  
--static inline int mmap_is_32(void)
-+static int mmap_is_32(void)
- {
- #ifdef CONFIG_IA32_EMULATION
- 	if (test_thread_flag(TIF_IA32))
-@@ -63,7 +63,7 @@ static inline int mmap_is_32(void)
- 	return 0;
- }
+ static int load_elf_binary(struct linux_binprm *bprm, struct pt_regs *regs);
+ static int load_elf_library(struct file *);
+-static unsigned long elf_map (struct file *, unsigned long, struct elf_phdr *, int, int, unsigned long);
++static unsigned long elf_map(struct file *, unsigned long, struct elf_phdr *,
++				int, int, unsigned long);
  
--static inline int mmap_is_legacy(void)
-+static int mmap_is_legacy(void)
- {
- 	if (current->personality & ADDR_COMPAT_LAYOUT)
- 		return 1;
+ /*
+  * If we don't support core dumping, then supply a NULL so we
+@@ -435,7 +436,7 @@ static unsigned long load_elf_interp(str
+ 				load_addr = -vaddr;
+ 
+ 			map_addr = elf_map(interpreter, load_addr + vaddr,
+-					   eppnt, elf_prot, elf_type, total_size);
++					eppnt, elf_prot, elf_type, total_size);
+ 			total_size = 0;
+ 			if (!*interp_map_addr)
+ 				*interp_map_addr = map_addr;
+@@ -936,7 +937,7 @@ static int load_elf_binary(struct linux_
+ 		}
+ 
+ 		error = elf_map(bprm->file, load_bias + vaddr, elf_ppnt,
+-				elf_prot, elf_flags,0);
++				elf_prot, elf_flags, 0);
+ 		if (BAD_ADDR(error)) {
+ 			send_sig(SIGKILL, current, 0);
+ 			retval = IS_ERR((void *)error) ?
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -185,7 +333,6 @@ uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
 uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
 uml-further-bugsc-tidying-checkpatch-fixes.patch
 kernel-printkc-concerns-about-the-console-handover.patch
-pie-executable-randomization-uninlining.patch
 pie-executable-randomization-checkpatch-fixes.patch
 riscom8-fix-smp-brokenness-fix.patch
 use-macros-instead-of-task_-flags-checkpatch-fixes.patch
