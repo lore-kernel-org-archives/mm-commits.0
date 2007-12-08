@@ -1,109 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-assure-proper-memory-ordering-with-respect-to-rtc_dev_busy-flag.patch removed from -mm tree
-Date: Fri, 07 Dec 2007 17:28:37 -0800
-Message-ID: <200712080128.lB81SbJU013344@imap1.linux-foundation.org>
+Subject: - spi-at25-driver-is-for-eeprom-not-flash.patch removed from -mm tree
+Date: Fri, 07 Dec 2007 17:28:52 -0800
+Message-ID: <200712080128.lB81Sqva013359@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44249 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42755 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753880AbXLHB3Z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 20:29:25 -0500
+	by vger.kernel.org with ESMTP id S1753890AbXLHB3c (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 20:29:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jkosina@suse.cz, a.zummo@towertech.it, david-b@pacbell.net, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     RTC: assure proper memory ordering with respect to RTC_DEV_BUSY flag
+     spi: at25 driver is for EEPROM not FLASH
 has been removed from the -mm tree.  Its filename was
-     rtc-assure-proper-memory-ordering-with-respect-to-rtc_dev_busy-flag.patch
+     spi-at25-driver-is-for-eeprom-not-flash.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: RTC: assure proper memory ordering with respect to RTC_DEV_BUSY flag
-From: Jiri Kosina <jkosina@suse.cz>
+Subject: spi: at25 driver is for EEPROM not FLASH
+From: David Brownell <david-b@pacbell.net>
 
-We must make sure that the RTC_DEV_BUSY flag has proper lock semantics,
-i.e.  that the RTC_DEV_BUSY stores clearing the flag don't get reordered
-before the preceeding stores and loads and vice versa.
+Add comment to at25 driver that it's for EEPROM chips, not FLASH
+chips ... the AT25 series has both types of chip, and sometimes
+they're even pin-compatible.  The command sets are different, as
+is the treatment of erasure.  (FLASH needs explicit erasure, but
+with EEPROM it's implicit.)  Note that all vendors seem to have
+this same confusion in their *25* series SPI memory parts.
 
-Spotted by Nick Piggin.
-
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: David Brownell <david-b@pacbell.net>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/interface.c |    4 ++--
- drivers/rtc/rtc-dev.c   |    6 +++---
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/spi/at25.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/rtc/interface.c~rtc-assure-proper-memory-ordering-with-respect-to-rtc_dev_busy-flag drivers/rtc/interface.c
---- a/drivers/rtc/interface.c~rtc-assure-proper-memory-ordering-with-respect-to-rtc_dev_busy-flag
-+++ a/drivers/rtc/interface.c
-@@ -293,7 +293,7 @@ int rtc_irq_register(struct rtc_device *
- 		return -EINVAL;
+diff -puN drivers/spi/at25.c~spi-at25-driver-is-for-eeprom-not-flash drivers/spi/at25.c
+--- a/drivers/spi/at25.c~spi-at25-driver-is-for-eeprom-not-flash
++++ a/drivers/spi/at25.c
+@@ -21,6 +21,13 @@
+ #include <linux/spi/eeprom.h>
  
- 	/* Cannot register while the char dev is in use */
--	if (test_and_set_bit(RTC_DEV_BUSY, &rtc->flags))
-+	if (test_and_set_bit_lock(RTC_DEV_BUSY, &rtc->flags))
- 		return -EBUSY;
  
- 	spin_lock_irq(&rtc->irq_task_lock);
-@@ -303,7 +303,7 @@ int rtc_irq_register(struct rtc_device *
- 	}
- 	spin_unlock_irq(&rtc->irq_task_lock);
- 
--	clear_bit(RTC_DEV_BUSY, &rtc->flags);
-+	clear_bit_unlock(RTC_DEV_BUSY, &rtc->flags);
- 
- 	return retval;
- }
-diff -puN drivers/rtc/rtc-dev.c~rtc-assure-proper-memory-ordering-with-respect-to-rtc_dev_busy-flag drivers/rtc/rtc-dev.c
---- a/drivers/rtc/rtc-dev.c~rtc-assure-proper-memory-ordering-with-respect-to-rtc_dev_busy-flag
-+++ a/drivers/rtc/rtc-dev.c
-@@ -26,7 +26,7 @@ static int rtc_dev_open(struct inode *in
- 					struct rtc_device, char_dev);
- 	const struct rtc_class_ops *ops = rtc->ops;
- 
--	if (test_and_set_bit(RTC_DEV_BUSY, &rtc->flags))
-+	if (test_and_set_bit_lock(RTC_DEV_BUSY, &rtc->flags))
- 		return -EBUSY;
- 
- 	file->private_data = rtc;
-@@ -41,7 +41,7 @@ static int rtc_dev_open(struct inode *in
- 	}
- 
- 	/* something has gone wrong */
--	clear_bit(RTC_DEV_BUSY, &rtc->flags);
-+	clear_bit_unlock(RTC_DEV_BUSY, &rtc->flags);
- 	return err;
- }
- 
-@@ -402,7 +402,7 @@ static int rtc_dev_release(struct inode 
- 	if (rtc->ops->release)
- 		rtc->ops->release(rtc->dev.parent);
- 
--	clear_bit(RTC_DEV_BUSY, &rtc->flags);
-+	clear_bit_unlock(RTC_DEV_BUSY, &rtc->flags);
- 	return 0;
- }
- 
++/*
++ * NOTE: this is an *EEPROM* driver.  The vagaries of product naming
++ * mean that some AT25 products are EEPROMs, and others are FLASH.
++ * Handle FLASH chips with the drivers/mtd/devices/m25p80.c driver,
++ * not this one!
++ */
++
+ struct at25_data {
+ 	struct spi_device	*spi;
+ 	struct mutex		lock;
 _
 
-Patches currently in -mm which might be from jkosina@suse.cz are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
-git-hid.patch
-hid-the-bit-in-hidinput_mapping_quirks-is-an-out-parameter.patch
-fujitsu-application-panel-driver.patch
-apanel-free-input-device-on-close.patch
-apanel-change-name-of-led.patch
-apanel-detach-on-shutdown.patch
-apanel-use-generic-keycode-routines.patch
-elantech-touchpad-driver.patch
-git-ipwireless_cs.patch
-git-x86.patch
+rtc-dont-write-rtc-century-when-setting-a-wake-alarm.patch
+ads7846-stop-updating-dev-powerpower_state.patch
+git-mmc.patch
+git-mtd.patch
+pcmcia-stop-updating-dev-powerpower_state.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+remove-pointless-casts-from-void-pointers.patch
+spi-core-stop-updating-dev-powerpower_state.patch
+cosmetic-fixes-to-rtc-subsystems-kconfig.patch
+rtc-pcf8583-dont-abuse-i2c_m_nostart.patch
+rtc-s3c-use-is_power_of_2-macro-for-simplicity.patch
+rtc-cmos-exports-nvram-in-sysfs.patch
+rtc-cmos-alarm-acts-as-oneshot.patch
+platform-real-time-clock-driver-for-dallas-1511-chip.patch
+generic-gpio-gpio_chip-support.patch
+generic-gpio-gpio_chip-support-fix.patch
+generic-gpio-gpio_chip-support-gpiolib-locking-simplified.patch
+avr32-uses-gpio_chip.patch
+mcp23s08-spi-gpio-expander.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+arm-pxa-gpiolib-support-make-pxa_gpio_chip-static.patch
+pnp-request-ioport-and-iomem-resources-used-by-active-devices.patch
