@@ -1,164 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - spi-spi_bfin-update-handling-of-delay-after-deselect.patch removed from -mm tree
-Date: Fri, 07 Dec 2007 17:29:36 -0800
-Message-ID: <200712080129.lB81TaBr013411@imap1.linux-foundation.org>
+Subject: - slubs-ksize-fails-for-size-2048.patch removed from -mm tree
+Date: Fri, 07 Dec 2007 17:30:10 -0800
+Message-ID: <200712080130.lB81UA1F013523@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35052 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52581 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752883AbXLHBjh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 20:39:37 -0500
+	by vger.kernel.org with ESMTP id S1753287AbXLHBjz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 20:39:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bryan.wu@analog.com, cbarfield@cyberdata.net, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: vegard.nossum@gmail.com, clameter@sgi.com, mpm@selenic.com, penberg@cs.helsinki.fi, penguin-kernel@I-love.SAKURA.ne.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi: spi_bfin: update handling of delay-after-deselect
+     SLUB's ksize() fails for size > 2048
 has been removed from the -mm tree.  Its filename was
-     spi-spi_bfin-update-handling-of-delay-after-deselect.patch
+     slubs-ksize-fails-for-size-2048.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: spi: spi_bfin: update handling of delay-after-deselect
-From: Bryan Wu <bryan.wu@analog.com>
+Subject: SLUB's ksize() fails for size > 2048
+From: "Vegard Nossum" <vegard.nossum@gmail.com>
 
-Move cs_chg_udelay handling (specific to this driver) to cs_deactive(), fixing
-a bug when some SPI LCD driver needs delay after cs_deactive.
+I can't pass memory allocated by kmalloc() to ksize() if it is allocated by
+SLUB allocator and size is larger than (I guess) PAGE_SIZE / 2.
 
-Fix bug reported by Cameron Barfield <cbarfield@cyberdata.net>
-https://blackfin.uclinux.org/gf/project/uclinux-dist/forum/?action=ForumBrowse&forum_id=39&_forum_action=ForumMessageBrowse&thread_id=23630&feedback=Message%20replied.
+The error of ksize() seems to be that it does not check if the allocation
+was made by SLUB or the page allocator.
 
-Cc: Cameron Barfield <cbarfield@cyberdata.net>
-Signed-off-by: Bryan Wu <bryan.wu@analog.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Tested-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Christoph Lameter <clameter@sgi.com>, Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_bfin5xx.c          |   24 +++++++++---------------
- include/asm-blackfin/bfin5xx_spi.h |    2 +-
- 2 files changed, 10 insertions(+), 16 deletions(-)
+ mm/slub.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/spi/spi_bfin5xx.c~spi-spi_bfin-update-handling-of-delay-after-deselect drivers/spi/spi_bfin5xx.c
---- a/drivers/spi/spi_bfin5xx.c~spi-spi_bfin-update-handling-of-delay-after-deselect
-+++ a/drivers/spi/spi_bfin5xx.c
-@@ -132,7 +132,7 @@ struct chip_data {
- 	u8 enable_dma;
- 	u8 bits_per_word;	/* 8 or 16 */
- 	u8 cs_change_per_word;
--	u8 cs_chg_udelay;
-+	u16 cs_chg_udelay;	/* Some devices require > 255usec delay */
- 	void (*write) (struct driver_data *);
- 	void (*read) (struct driver_data *);
- 	void (*duplex) (struct driver_data *);
-@@ -211,6 +211,10 @@ static void cs_deactive(struct driver_da
- 	flag |= (chip->flag << 8);
+diff -puN mm/slub.c~slubs-ksize-fails-for-size-2048 mm/slub.c
+--- a/mm/slub.c~slubs-ksize-fails-for-size-2048
++++ a/mm/slub.c
+@@ -2558,8 +2558,12 @@ size_t ksize(const void *object)
+ 	if (unlikely(object == ZERO_SIZE_PTR))
+ 		return 0;
  
- 	write_FLAG(drv_data, flag);
+-	page = get_object_page(object);
++	page = virt_to_head_page(object);
+ 	BUG_ON(!page);
 +
-+	/* Move delay here for consistency */
-+	if (chip->cs_chg_udelay)
-+		udelay(chip->cs_chg_udelay);
- }
- 
- #define MAX_SPI_SSEL	7
-@@ -307,10 +311,9 @@ static void u8_cs_chg_writer(struct driv
- 		write_TDBR(drv_data, (*(u8 *) (drv_data->tx)));
- 		while (read_STAT(drv_data) & BIT_STAT_TXS)
- 			continue;
++	if (unlikely(!PageSlab(page)))
++		return PAGE_SIZE << compound_order(page);
 +
- 		cs_deactive(drv_data, chip);
+ 	s = page->slab;
+ 	BUG_ON(!s);
  
--		if (chip->cs_chg_udelay)
--			udelay(chip->cs_chg_udelay);
- 		++drv_data->tx;
- 	}
- }
-@@ -359,9 +362,6 @@ static void u8_cs_chg_reader(struct driv
- 	while (drv_data->rx < drv_data->rx_end - 1) {
- 		cs_deactive(drv_data, chip);
- 
--		if (chip->cs_chg_udelay)
--			udelay(chip->cs_chg_udelay);
--
- 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
- 			continue;
- 		cs_active(drv_data, chip);
-@@ -412,10 +412,9 @@ static void u8_cs_chg_duplex(struct driv
- 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
- 			continue;
- 		*(u8 *) (drv_data->rx) = read_RDBR(drv_data);
-+
- 		cs_deactive(drv_data, chip);
- 
--		if (chip->cs_chg_udelay)
--			udelay(chip->cs_chg_udelay);
- 		++drv_data->rx;
- 		++drv_data->tx;
- 	}
-@@ -452,10 +451,9 @@ static void u16_cs_chg_writer(struct dri
- 		write_TDBR(drv_data, (*(u16 *) (drv_data->tx)));
- 		while ((read_STAT(drv_data) & BIT_STAT_TXS))
- 			continue;
-+
- 		cs_deactive(drv_data, chip);
- 
--		if (chip->cs_chg_udelay)
--			udelay(chip->cs_chg_udelay);
- 		drv_data->tx += 2;
- 	}
- }
-@@ -504,9 +502,6 @@ static void u16_cs_chg_reader(struct dri
- 	while (drv_data->rx < drv_data->rx_end - 2) {
- 		cs_deactive(drv_data, chip);
- 
--		if (chip->cs_chg_udelay)
--			udelay(chip->cs_chg_udelay);
--
- 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
- 			continue;
- 		cs_active(drv_data, chip);
-@@ -557,10 +552,9 @@ static void u16_cs_chg_duplex(struct dri
- 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
- 			continue;
- 		*(u16 *) (drv_data->rx) = read_RDBR(drv_data);
-+
- 		cs_deactive(drv_data, chip);
- 
--		if (chip->cs_chg_udelay)
--			udelay(chip->cs_chg_udelay);
- 		drv_data->rx += 2;
- 		drv_data->tx += 2;
- 	}
-diff -puN include/asm-blackfin/bfin5xx_spi.h~spi-spi_bfin-update-handling-of-delay-after-deselect include/asm-blackfin/bfin5xx_spi.h
---- a/include/asm-blackfin/bfin5xx_spi.h~spi-spi_bfin-update-handling-of-delay-after-deselect
-+++ a/include/asm-blackfin/bfin5xx_spi.h
-@@ -162,7 +162,7 @@ struct bfin5xx_spi_chip {
- 	u8 enable_dma;
- 	u8 bits_per_word;
- 	u8 cs_change_per_word;
--	u8 cs_chg_udelay;
-+	u16 cs_chg_udelay; /* Some devices require 16-bit delays */
- };
- 
- #endif /* _SPI_CHANNEL_H_ */
 _
 
-Patches currently in -mm which might be from bryan.wu@analog.com are
+Patches currently in -mm which might be from vegard.nossum@gmail.com are
 
 origin.patch
-git-mtd.patch
-blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-remove-mm_ptovvtop.patch
-blackfin-rtc-driver-the-frequency-function-is-in-units-of-hz-not-units-of-seconds-so-lock-our-driver-down-to-1-hz.patch
-blackfin-rtc-driver-we-pass-in-a-struct-device-to-the-irq-handler-not-a-struct-platform_device-so-fix-the-irq-handler.patch
-blackfin-rtc-driver-cleanup-proc-handler-we-dont-need-rtc-reg-dump-now-that-we-have-mmr-filesystem-in-sysfs.patch
-blackfin-rtc-driver-use-dev_dbg-rather-than-pr_stamp.patch
-blackfin-rtc-driver-read_alarm-checks-the-enabled-field-not-the-pending-field.patch
-blackfin-rtc-driver-shave-off-another-memcpy-by-using-assignment.patch
-blackfin-rtc-driver-convert-sync-wait-to-use-the-irq-write-complete-notice.patch
-sanitize-the-type-of-struct-useru_ar0.patch
-add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
-d_path-make-d_path-use-a-struct-path.patch
+git-kbuild.patch
+fat-fix-printk-format-strings.patch
