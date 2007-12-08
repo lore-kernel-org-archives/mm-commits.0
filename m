@@ -1,141 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - spi-spi_bfin-rearrange-portmux-calls.patch removed from -mm tree
-Date: Fri, 07 Dec 2007 17:29:20 -0800
-Message-ID: <200712080129.lB81TKEj013396@imap1.linux-foundation.org>
+Subject: - aio-only-account-i-o-wait-time-in-read_events-if-there-are-active-requests.patch removed from -mm tree
+Date: Fri, 07 Dec 2007 17:28:30 -0800
+Message-ID: <200712080128.lB81SUAE013335@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53880 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38699 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753995AbXLHBaB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 20:30:01 -0500
+	by vger.kernel.org with ESMTP id S1754075AbXLHBaR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 20:30:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sonic.zhang@analog.com, bryan.wu@analog.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: jmoyer@redhat.com, jdike@addtoit.com, miklos@szeredi.hu, rjw@sisk.pl, zach.brown@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi: spi_bfin, rearrange portmux calls
+     aio: only account I/O wait time in read_events if there are active requests
 has been removed from the -mm tree.  Its filename was
-     spi-spi_bfin-rearrange-portmux-calls.patch
+     aio-only-account-i-o-wait-time-in-read_events-if-there-are-active-requests.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: spi: spi_bfin, rearrange portmux calls
-From: Sonic Zhang <sonic.zhang@analog.com>
+Subject: aio: only account I/O wait time in read_events if there are active requests
+From: Jeff Moyer <jmoyer@redhat.com>
 
-Move pin muxing to setup and cleanup methods.
+On 2.6.24, top started showing 100% iowait on one CPU when a UML instance was
+running (but completely idle).  The UML code sits in io_getevents waiting for
+an event to be submitted and completed.
 
-Signed-off-by: Sonic Zhang <sonic.zhang@analog.com>
-Signed-off-by: Bryan Wu <bryan.wu@analog.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Fix this by checking ctx->reqs_active before scheduling to determine whether
+or not we are waiting for I/O.
+
+Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
+Cc: Zach Brown <zach.brown@oracle.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_bfin5xx.c |   53 +++++++++++++++++++-----------------
- 1 file changed, 28 insertions(+), 25 deletions(-)
+ fs/aio.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/spi/spi_bfin5xx.c~spi-spi_bfin-rearrange-portmux-calls drivers/spi/spi_bfin5xx.c
---- a/drivers/spi/spi_bfin5xx.c~spi-spi_bfin-rearrange-portmux-calls
-+++ a/drivers/spi/spi_bfin5xx.c
-@@ -136,7 +136,6 @@ struct chip_data {
- 	u16 flag;
- 
- 	u8 chip_select_num;
--	u8 chip_select_requested;
- 	u8 n_bytes;
- 	u8 width;		/* 0 or 1 */
- 	u8 enable_dma;
-@@ -216,19 +215,7 @@ static int restore_state(struct driver_d
- {
- 	struct chip_data *chip = drv_data->cur_chip;
- 	int ret = 0;
--	u16 ssel[3][MAX_SPI_SSEL] = {
--		{P_SPI0_SSEL1, P_SPI0_SSEL2, P_SPI0_SSEL3,
--		P_SPI0_SSEL4, P_SPI0_SSEL5,
--		P_SPI0_SSEL6, P_SPI0_SSEL7},
--
--		{P_SPI1_SSEL1, P_SPI1_SSEL2, P_SPI1_SSEL3,
--		P_SPI1_SSEL4, P_SPI1_SSEL5,
--		P_SPI1_SSEL6, P_SPI1_SSEL7},
--
--		{P_SPI2_SSEL1, P_SPI2_SSEL2, P_SPI2_SSEL3,
--		P_SPI2_SSEL4, P_SPI2_SSEL5,
--		P_SPI2_SSEL6, P_SPI2_SSEL7},
--	};
-+
- 	/* Clear status and disable clock */
- 	write_STAT(BIT_STAT_CLR);
- 	bfin_spi_disable(drv_data);
-@@ -239,17 +226,6 @@ static int restore_state(struct driver_d
- 	write_BAUD(chip->baud);
- 	cs_active(chip);
- 
--	if (!chip->chip_select_requested) {
--		int i = chip->chip_select_num;
--
--		dev_dbg(&drv_data->pdev->dev, "chip select number is %d\n", i);
--		if ((i > 0) && (i <= MAX_SPI_SSEL))
--			ret = peripheral_request(
--				ssel[drv_data->master->bus_num][i-1], DRV_NAME);
--
--		chip->chip_select_requested = 1;
--	}
--
- 	if (ret)
- 		dev_dbg(&drv_data->pdev->dev,
- 			": request chip select number %d failed\n",
-@@ -983,6 +959,22 @@ static int transfer(struct spi_device *s
- 	return 0;
- }
- 
-+#define MAX_SPI_SSEL	7
-+
-+static u16 ssel[3][MAX_SPI_SSEL] = {
-+	{P_SPI0_SSEL1, P_SPI0_SSEL2, P_SPI0_SSEL3,
-+	P_SPI0_SSEL4, P_SPI0_SSEL5,
-+	P_SPI0_SSEL6, P_SPI0_SSEL7},
-+
-+	{P_SPI1_SSEL1, P_SPI1_SSEL2, P_SPI1_SSEL3,
-+	P_SPI1_SSEL4, P_SPI1_SSEL5,
-+	P_SPI1_SSEL6, P_SPI1_SSEL7},
-+
-+	{P_SPI2_SSEL1, P_SPI2_SSEL2, P_SPI2_SSEL3,
-+	P_SPI2_SSEL4, P_SPI2_SSEL5,
-+	P_SPI2_SSEL6, P_SPI2_SSEL7},
-+};
-+
- /* first setup for new devices */
- static int setup(struct spi_device *spi)
- {
-@@ -1113,6 +1105,12 @@ static int setup(struct spi_device *spi)
- 
- 	spi_set_ctldata(spi, chip);
- 
-+	dev_dbg(&spi->dev, "chip select number is %d\n", chip->chip_select_num);
-+	if ((chip->chip_select_num > 0)
-+		&& (chip->chip_select_num <= spi->master->num_chipselect))
-+		peripheral_request(ssel[spi->master->bus_num]
-+			[chip->chip_select_num-1], DRV_NAME);
-+
- 	return 0;
- }
- 
-@@ -1124,6 +1122,11 @@ static void cleanup(struct spi_device *s
- {
- 	struct chip_data *chip = spi_get_ctldata(spi);
- 
-+	if ((chip->chip_select_num > 0)
-+		&& (chip->chip_select_num <= spi->master->num_chipselect))
-+		peripheral_free(ssel[spi->master->bus_num]
-+					[chip->chip_select_num-1]);
-+
- 	kfree(chip);
- }
- 
+diff -puN fs/aio.c~aio-only-account-i-o-wait-time-in-read_events-if-there-are-active-requests fs/aio.c
+--- a/fs/aio.c~aio-only-account-i-o-wait-time-in-read_events-if-there-are-active-requests
++++ a/fs/aio.c
+@@ -1161,7 +1161,12 @@ retry:
+ 			ret = 0;
+ 			if (to.timed_out)	/* Only check after read evt */
+ 				break;
+-			io_schedule();
++			/* Try to only show up in io wait if there are ops
++			 *  in flight */
++			if (ctx->reqs_active)
++				io_schedule();
++			else
++				schedule();
+ 			if (signal_pending(tsk)) {
+ 				ret = -EINTR;
+ 				break;
 _
 
-Patches currently in -mm which might be from sonic.zhang@analog.com are
+Patches currently in -mm which might be from jmoyer@redhat.com are
 
 origin.patch
-libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
