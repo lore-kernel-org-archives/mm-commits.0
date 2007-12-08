@@ -1,53 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - revert-git-kvm-changes-in-arch-x86-kconfig.patch removed from -mm tree
-Date: Fri, 07 Dec 2007 17:21:17 -0800
-Message-ID: <200712080121.lB81LH99013116@imap1.linux-foundation.org>
+Subject: - pie-executable-randomization-uninlining.patch removed from -mm tree
+Date: Fri, 07 Dec 2007 17:26:29 -0800
+Message-ID: <200712080126.lB81QTdm013277@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38247 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46216 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752506AbXLHBWQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 20:22:16 -0500
+	by vger.kernel.org with ESMTP id S1752652AbXLHB20 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 20:28:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, avi@qumranet.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, arjan@infradead.org, jakub@redhat.com, jkosina@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, mingo@elte.hu, roland@redhat.com, tglx@linutronix.de, tony.luck@intel
 
 
 The patch titled
-     revert git-kvm changes in arch/x86/Kconfig
+     pie-executable-randomization-uninlining
 has been removed from the -mm tree.  Its filename was
-     revert-git-kvm-changes-in-arch-x86-kconfig.patch
+     pie-executable-randomization-uninlining.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because of ongoing git-x86 churn
 
 ------------------------------------------------------
-Subject: revert git-kvm changes in arch/x86/Kconfig
+Subject: pie-executable-randomization-uninlining
 From: Andrew Morton <akpm@linux-foundation.org>
 
-To make git-x86 apply.
+the compiler does that
 
-Cc: Avi Kivity <avi@qumranet.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jakub Jelinek <jakub@redhat.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |    3 ---
- 1 file changed, 3 deletions(-)
+ arch/x86/mm/mmap_64.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/Kconfig~revert-git-kvm-changes-in-arch-x86-kconfig arch/x86/Kconfig
---- a/arch/x86/Kconfig~revert-git-kvm-changes-in-arch-x86-kconfig
-+++ a/arch/x86/Kconfig
-@@ -112,9 +112,6 @@ config GENERIC_TIME_VSYSCALL
- 	bool
- 	default X86_64
+diff -puN arch/x86/mm/mmap_64.c~pie-executable-randomization-uninlining arch/x86/mm/mmap_64.c
+--- a/arch/x86/mm/mmap_64.c~pie-executable-randomization-uninlining
++++ a/arch/x86/mm/mmap_64.c
+@@ -42,7 +42,7 @@
+ #define MIN_GAP (128*1024*1024)
+ #define MAX_GAP (TASK_SIZE/6*5)
  
--config ARCH_SUPPORTS_KVM
--	bool
--	default y
+-static inline unsigned long mmap_base(void)
++static unsigned long mmap_base(void)
+ {
+ 	unsigned long gap = current->signal->rlim[RLIMIT_STACK].rlim_cur;
  
+@@ -54,7 +54,7 @@ static inline unsigned long mmap_base(vo
+ 	return TASK_SIZE - (gap & PAGE_MASK);
+ }
  
+-static inline int mmap_is_32(void)
++static int mmap_is_32(void)
+ {
+ #ifdef CONFIG_IA32_EMULATION
+ 	if (test_thread_flag(TIF_IA32))
+@@ -63,7 +63,7 @@ static inline int mmap_is_32(void)
+ 	return 0;
+ }
  
+-static inline int mmap_is_legacy(void)
++static int mmap_is_legacy(void)
+ {
+ 	if (current->personality & ADDR_COMPAT_LAYOUT)
+ 		return 1;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -126,7 +148,6 @@ add-support-for-sb1-hardware-watchdog-fix.patch
 git-wireless.patch
 bcm43xx_debugfs-sscanf-fix.patch
 git-ipwireless_cs.patch
-revert-git-kvm-changes-in-arch-x86-kconfig.patch
 git-x86.patch
 revert-revert-git-kvm-changes-in-arch-x86-kconfig.patch
 git-x86-__vdso_getcpu-warning-fix.patch
@@ -136,7 +157,6 @@ git-xtensa.patch
 ia64-increase-datapatch-offset.patch
 ia64-dont-assume-that-unwcheckpy-is-executable.patch
 ia64-export-copy_page-to-modules.patch
-bridge-section-fix.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
 vmalloc-add-const-to-void-parameters-fix.patch
@@ -165,7 +185,6 @@ uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
 uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
 uml-further-bugsc-tidying-checkpatch-fixes.patch
 kernel-printkc-concerns-about-the-console-handover.patch
-pie-executable-randomization.patch
 pie-executable-randomization-uninlining.patch
 pie-executable-randomization-checkpatch-fixes.patch
 riscom8-fix-smp-brokenness-fix.patch
