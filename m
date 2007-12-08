@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch added to -mm tree
-Date: Fri, 07 Dec 2007 15:49:34 -0800
-Message-ID: <200712072357.lB7Nv5fB010070@imap1.linux-foundation.org>
+Subject: + timerfd-v3-new-timerfd-api-sparc64-fix.patch added to -mm tree
+Date: Fri, 07 Dec 2007 16:08:24 -0800
+Message-ID: <200712080008.lB808OQ8010502@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34117 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46792 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752165AbXLGX5k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 18:57:40 -0500
+	by vger.kernel.org with ESMTP id S1751149AbXLHAIq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 19:08:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ebiederm@xmission.com
+Cc: akpm@linux-foundation.org, davem@davemloft.net, davidel@xmailserver.org, heiko.carstens@de.ibm.com, m.kozlowski@tuxland.pl, mtk.manpages@gmail.com
 
 
 The patch titled
-     proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3
+     timerfd-v3-new-timerfd-api-sparc64-fix
 has been added to the -mm tree.  Its filename is
-     proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+     timerfd-v3-new-timerfd-api-sparc64-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,30 +25,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3
+Subject: timerfd-v3-new-timerfd-api-sparc64-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Eric W. Biederman <ebiederm@xmission.com>
+Should this have been sys_nis_syscall?
+
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c |    2 +-
+ arch/sparc64/kernel/systbls.S |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/array.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3 fs/proc/array.c
---- a/fs/proc/array.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3
-+++ a/fs/proc/array.c
-@@ -98,9 +98,9 @@ static inline void task_name(struct seq_
+diff -puN arch/s390/kernel/compat_wrapper.S~timerfd-v3-new-timerfd-api-sparc64-fix arch/s390/kernel/compat_wrapper.S
+diff -puN arch/s390/kernel/syscalls.S~timerfd-v3-new-timerfd-api-sparc64-fix arch/s390/kernel/syscalls.S
+diff -puN arch/sparc64/kernel/systbls.S~timerfd-v3-new-timerfd-api-sparc64-fix arch/sparc64/kernel/systbls.S
+--- a/arch/sparc64/kernel/systbls.S~timerfd-v3-new-timerfd-api-sparc64-fix
++++ a/arch/sparc64/kernel/systbls.S
+@@ -80,7 +80,7 @@ sys_call_table32:
+ 	.word sys_fchmodat, sys_faccessat, compat_sys_pselect6, compat_sys_ppoll, sys_unshare
+ /*300*/	.word compat_sys_set_robust_list, compat_sys_get_robust_list, compat_sys_migrate_pages, compat_sys_mbind, compat_sys_get_mempolicy
+ 	.word compat_sys_set_mempolicy, compat_sys_kexec_load, compat_sys_move_pages, sys_getcpu, compat_sys_epoll_pwait
+-/*310*/	.word compat_sys_utimensat, compat_sys_signalfd, compat_sys_timerfd, sys_eventfd, compat_sys_fallocate
++/*310*/	.word compat_sys_utimensat, compat_sys_signalfd, sys_ni_syscall, sys_eventfd, compat_sys_fallocate
  
- 	get_task_comm(tcomm, p);
+ #endif /* CONFIG_COMPAT */
  
-+	seq_printf(m, "Name:\t");
- 	end = m->buf + m->size;
- 	buf = m->buf + m->count;
--	seq_printf(m, "Name:\n");
- 	name = tcomm;
- 	i = sizeof(tcomm);
- 	while (i && (buf < end)) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -66,10 +72,12 @@ timerfd-v3-new-timerfd-api-m68k-fix.patch
 timerfd-v3-new-timerfd-api-mips-fix.patch
 timerfd-v3-new-timerfd-api-arch-fixes.patch
 timerfd-v3-new-timerfd-api-powerpc-fix.patch
+timerfd-v3-new-timerfd-api-sparc64-fix.patch
 git-acpi.patch
 git-acpi-ia64-build-fix.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 acpi-add-reboot-mechanism.patch
+acpi-fix-autloading-of-dock-video-bay-and-all-linux-specific-hid-drivers-checkpatch-fixes.patch
 small-acpica-extension-to-be-able-to-store-the-name-of.patch
 git-alsa.patch
 git-agpgart.patch
@@ -109,6 +117,7 @@ git-battery.patch
 bluetooth-uninlining.patch
 git-nfsd.patch
 quirk-enable-msi-mapping-on-ht1000.patch
+kernel-time-make-tick_do_broadcast-static.patch
 git-sh.patch
 git-scsi-misc-fixup.patch
 ips-trim-trailing-whitespace.patch
