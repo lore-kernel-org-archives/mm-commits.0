@@ -1,60 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - spi-at25-driver-is-for-eeprom-not-flash.patch removed from -mm tree
-Date: Fri, 07 Dec 2007 17:28:52 -0800
-Message-ID: <200712080128.lB81Sqva013359@imap1.linux-foundation.org>
+Subject: - spi-use-mutex-not-semaphore.patch removed from -mm tree
+Date: Fri, 07 Dec 2007 17:28:49 -0800
+Message-ID: <200712080128.lB81Snut013356@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42755 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49282 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753890AbXLHB3c (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 20:29:32 -0500
+	by vger.kernel.org with ESMTP id S1753890AbXLHB3b (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 20:29:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: david-b@pacbell.net, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi: at25 driver is for EEPROM not FLASH
+     SPI: use mutex not semaphore
 has been removed from the -mm tree.  Its filename was
-     spi-at25-driver-is-for-eeprom-not-flash.patch
+     spi-use-mutex-not-semaphore.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: spi: at25 driver is for EEPROM not FLASH
+Subject: SPI: use mutex not semaphore
 From: David Brownell <david-b@pacbell.net>
 
-Add comment to at25 driver that it's for EEPROM chips, not FLASH
-chips ... the AT25 series has both types of chip, and sometimes
-they're even pin-compatible.  The command sets are different, as
-is the treatment of erasure.  (FLASH needs explicit erasure, but
-with EEPROM it's implicit.)  Note that all vendors seem to have
-this same confusion in their *25* series SPI memory parts.
+Make spi_write_then_read() use a mutex not a binary semaphore.
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/at25.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/spi/spi.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/spi/at25.c~spi-at25-driver-is-for-eeprom-not-flash drivers/spi/at25.c
---- a/drivers/spi/at25.c~spi-at25-driver-is-for-eeprom-not-flash
-+++ a/drivers/spi/at25.c
-@@ -21,6 +21,13 @@
- #include <linux/spi/eeprom.h>
+diff -puN drivers/spi/spi.c~spi-use-mutex-not-semaphore drivers/spi/spi.c
+--- a/drivers/spi/spi.c~spi-use-mutex-not-semaphore
++++ a/drivers/spi/spi.c
+@@ -589,7 +589,7 @@ int spi_write_then_read(struct spi_devic
+ 		const u8 *txbuf, unsigned n_tx,
+ 		u8 *rxbuf, unsigned n_rx)
+ {
+-	static DECLARE_MUTEX(lock);
++	static DEFINE_MUTEX(lock);
  
+ 	int			status;
+ 	struct spi_message	message;
+@@ -615,7 +615,7 @@ int spi_write_then_read(struct spi_devic
+ 	}
  
-+/*
-+ * NOTE: this is an *EEPROM* driver.  The vagaries of product naming
-+ * mean that some AT25 products are EEPROMs, and others are FLASH.
-+ * Handle FLASH chips with the drivers/mtd/devices/m25p80.c driver,
-+ * not this one!
-+ */
-+
- struct at25_data {
- 	struct spi_device	*spi;
- 	struct mutex		lock;
+ 	/* ... unless someone else is using the pre-allocated buffer */
+-	if (down_trylock(&lock)) {
++	if (!mutex_trylock(&lock)) {
+ 		local_buf = kmalloc(SPI_BUFSIZ, GFP_KERNEL);
+ 		if (!local_buf)
+ 			return -ENOMEM;
+@@ -634,7 +634,7 @@ int spi_write_then_read(struct spi_devic
+ 	}
+ 
+ 	if (x[0].tx_buf == buf)
+-		up(&lock);
++		mutex_unlock(&lock);
+ 	else
+ 		kfree(local_buf);
+ 
 _
 
 Patches currently in -mm which might be from david-b@pacbell.net are
