@@ -1,431 +1,569 @@
 From: akpm@linux-foundation.org
-Subject: - pie-executable-randomization-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 07 Dec 2007 17:26:32 -0800
-Message-ID: <200712080126.lB81QWis013280@imap1.linux-foundation.org>
+Subject: - pie-executable-randomization.patch removed from -mm tree
+Date: Fri, 07 Dec 2007 17:26:25 -0800
+Message-ID: <200712080126.lB81QPt2013271@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44879 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52514 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752670AbXLHB20 (ORCPT
+	by vger.kernel.org with ESMTP id S1752690AbXLHB20 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 20:28:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arjan@infradead.org, jakub@redhat.com, jkosina@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, mingo@elte.hu, roland@redhat.com, tglx@linutronix.de, tony.luck@intel
+To: jkosina@suse.cz, arjan@infradead.org, jakub@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, mingo@elte.hu, roland@redhat.com, tglx@linutronix.de, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pie-executable-randomization-checkpatch-fixes
+     PIE executable randomization
 has been removed from the -mm tree.  Its filename was
-     pie-executable-randomization-checkpatch-fixes.patch
+     pie-executable-randomization.patch
 
 This patch was dropped because of ongoing git-x86 churn
 
 ------------------------------------------------------
-Subject: pie-executable-randomization-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: PIE executable randomization
+From: Jiri Kosina <jkosina@suse.cz>
 
-WARNING: line over 80 characters
-#39: FILE: arch/ia64/ia32/binfmt_elf32.c:229:
-+elf32_map (struct file *filep, unsigned long addr, struct elf_phdr *eppnt, int prot, int type, unsigned long unused)
+Use mmap()'s randomization functionality in such a way that it maps the
+main executable of (specially compiled/linked -pie/-fpie) ET_DYN binaries
+onto a random address (in cases in which mmap() is allowed to perform a
+randomization).
 
-WARNING: no space between function name and open parenthesis '('
-#39: FILE: arch/ia64/ia32/binfmt_elf32.c:229:
-+elf32_map (struct file *filep, unsigned long addr, struct elf_phdr *eppnt, int prot, int type, unsigned long unused)
+The code has been extraced from Ingo's exec-shield patch
+http://people.redhat.com/mingo/exec-shield/
 
-WARNING: line over 80 characters
-#67: FILE: arch/x86/kernel/sys_x86_64.c:80:
-+			new_begin = randomize_range(*begin, *begin + 0x02000000, 0);
-
-ERROR: use tabs not spaces
-#110: FILE: arch/x86/kernel/sys_x86_64.c:185:
-+ ^I        mm->cached_hole_size = 0;$
-
-ERROR: use tabs not spaces
-#111: FILE: arch/x86/kernel/sys_x86_64.c:186:
-+ ^I^Imm->free_area_cache = mm->mmap_base;$
-
-ERROR: use tabs not spaces
-#112: FILE: arch/x86/kernel/sys_x86_64.c:187:
-+ ^I}$
-
-ERROR: use tabs not spaces
-#141: FILE: arch/x86/kernel/sys_x86_64.c:216:
-+ ^I^I/* remember the largest hole we saw so far */$
-
-ERROR: use tabs not spaces
-#142: FILE: arch/x86/kernel/sys_x86_64.c:217:
-+ ^I^Iif (addr + mm->cached_hole_size < vma->vm_start)$
-
-ERROR: use tabs not spaces
-#143: FILE: arch/x86/kernel/sys_x86_64.c:218:
-+ ^I^I        mm->cached_hole_size = vma->vm_start - addr;$
-
-ERROR: use tabs not spaces
-#157: FILE: arch/x86/kernel/sys_x86_64.c:232:
-+  ^Imm->free_area_cache = TASK_UNMAPPED_BASE;$
-
-ERROR: need a space before the open parenthesis '('
-#291: FILE: arch/x86/mm/mmap_64.c:101:
-+	} else if(mmap_is_legacy()) {
-
-WARNING: braces {} are not necessary for single statement blocks
-#302: FILE: arch/x86/mm/mmap_64.c:112:
-+	if (current->flags & PF_RANDOMIZE) {
-+		mm->mmap_base += ((long)rnd) << PAGE_SHIFT;
-+	}
-
-WARNING: line over 80 characters
-#314: FILE: fs/binfmt_elf.c:48:
-+static unsigned long elf_map (struct file *, unsigned long, struct elf_phdr *, int, int, unsigned long);
-
-WARNING: no space between function name and open parenthesis '('
-#314: FILE: fs/binfmt_elf.c:48:
-+static unsigned long elf_map (struct file *, unsigned long, struct elf_phdr *, int, int, unsigned long);
-
-WARNING: line over 80 characters
-#429: FILE: fs/binfmt_elf.c:438:
-+					   eppnt, elf_prot, elf_type, total_size);
-
-ERROR: need space after that ',' (ctx:VxV)
-#480: FILE: fs/binfmt_elf.c:939:
-+				elf_prot, elf_flags,0);
- 				                   ^
-
-total: 9 errors, 7 warnings, 461 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "Luck, Tony" <tony.luck@intel.com>
+[akpm@linux-foundation.org: fix used-uninitialsied warning]
+[kamezawa.hiroyu@jp.fujitsu.com: fixed ia32 ELF on x86_64 handling]
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Arjan van de Ven <arjan@infradead.org>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jakub Jelinek <jakub@redhat.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Roland McGrath <roland@redhat.com>
+Cc: Jakub Jelinek <jakub@redhat.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/ia32/binfmt_elf32.c |    3 ++-
- arch/x86/kernel/sys_x86_64.c  |   14 +++++++-------
- arch/x86/mm/mmap_64.c         |    5 ++---
- fs/binfmt_elf.c               |    7 ++++---
- 4 files changed, 15 insertions(+), 14 deletions(-)
+ arch/ia64/ia32/binfmt_elf32.c |    2 
+ arch/x86/kernel/sys_x86_64.c  |   98 ++++++++++++++++++++++++++
+ arch/x86/mm/mmap_64.c         |  119 +++++++++++++++++++++++++++-----
+ fs/binfmt_elf.c               |  107 ++++++++++++++++++++++------
+ include/asm-x86/pgtable_64.h  |    1 
+ 5 files changed, 287 insertions(+), 40 deletions(-)
 
-diff -puN arch/ia64/ia32/binfmt_elf32.c~pie-executable-randomization-checkpatch-fixes arch/ia64/ia32/binfmt_elf32.c
---- a/arch/ia64/ia32/binfmt_elf32.c~pie-executable-randomization-checkpatch-fixes
+diff -puN arch/ia64/ia32/binfmt_elf32.c~pie-executable-randomization arch/ia64/ia32/binfmt_elf32.c
+--- a/arch/ia64/ia32/binfmt_elf32.c~pie-executable-randomization
 +++ a/arch/ia64/ia32/binfmt_elf32.c
-@@ -226,7 +226,8 @@ elf32_set_personality (void)
+@@ -226,7 +226,7 @@ elf32_set_personality (void)
  }
  
  static unsigned long
--elf32_map (struct file *filep, unsigned long addr, struct elf_phdr *eppnt, int prot, int type, unsigned long unused)
-+elf32_map(struct file *filep, unsigned long addr, struct elf_phdr *eppnt,
-+		int prot, int type, unsigned long unused)
+-elf32_map (struct file *filep, unsigned long addr, struct elf_phdr *eppnt, int prot, int type)
++elf32_map (struct file *filep, unsigned long addr, struct elf_phdr *eppnt, int prot, int type, unsigned long unused)
  {
  	unsigned long pgoff = (eppnt->p_vaddr) & ~IA32_PAGE_MASK;
  
-diff -puN arch/x86/kernel/sys_x86_64.c~pie-executable-randomization-checkpatch-fixes arch/x86/kernel/sys_x86_64.c
---- a/arch/x86/kernel/sys_x86_64.c~pie-executable-randomization-checkpatch-fixes
+diff -puN arch/x86/kernel/sys_x86_64.c~pie-executable-randomization arch/x86/kernel/sys_x86_64.c
+--- a/arch/x86/kernel/sys_x86_64.c~pie-executable-randomization
 +++ a/arch/x86/kernel/sys_x86_64.c
-@@ -182,9 +182,9 @@ arch_get_unmapped_area_topdown(struct fi
+@@ -12,6 +12,7 @@
+ #include <linux/file.h>
+ #include <linux/utsname.h>
+ #include <linux/personality.h>
++#include <linux/random.h>
  
- 	/* check if free_area_cache is useful for us */
- 	if (len <= mm->cached_hole_size) {
-- 	        mm->cached_hole_size = 0;
-- 		mm->free_area_cache = mm->mmap_base;
-- 	}
-+		mm->cached_hole_size = 0;
-+		mm->free_area_cache = mm->mmap_base;
+ #include <asm/uaccess.h>
+ #include <asm/ia32.h>
+@@ -65,6 +66,7 @@ static void find_start_end(unsigned long
+ 			   unsigned long *end)
+ {
+ 	if (!test_thread_flag(TIF_IA32) && (flags & MAP_32BIT)) {
++		unsigned long new_begin;
+ 		/* This is usually used needed to map code in small
+ 		   model, so it needs to be in the first 31bit. Limit
+ 		   it to that.  This means we need to move the
+@@ -74,6 +76,11 @@ static void find_start_end(unsigned long
+ 		   of playground for now. -AK */ 
+ 		*begin = 0x40000000; 
+ 		*end = 0x80000000;		
++		if (current->flags & PF_RANDOMIZE) {
++			new_begin = randomize_range(*begin, *begin + 0x02000000, 0);
++			if (new_begin)
++				*begin = new_begin;
++		}
+ 	} else {
+ 		*begin = TASK_UNMAPPED_BASE;
+ 		*end = TASK_SIZE; 
+@@ -143,6 +150,97 @@ full_search:
+ 	}
+ }
+ 
++
++unsigned long
++arch_get_unmapped_area_topdown(struct file *filp, const unsigned long addr0,
++			  const unsigned long len, const unsigned long pgoff,
++			  const unsigned long flags)
++{
++	struct vm_area_struct *vma;
++	struct mm_struct *mm = current->mm;
++	unsigned long addr = addr0;
++
++	/* requested length too big for entire address space */
++	if (len > TASK_SIZE)
++		return -ENOMEM;
++
++	if (flags & MAP_FIXED)
++		return addr;
++
++	/* for MAP_32BIT mappings we force the legact mmap base */
++	if (!test_thread_flag(TIF_IA32) && (flags & MAP_32BIT))
++		goto bottomup;
++
++	/* requesting a specific address */
++	if (addr) {
++		addr = PAGE_ALIGN(addr);
++		vma = find_vma(mm, addr);
++		if (TASK_SIZE - len >= addr &&
++				(!vma || addr + len <= vma->vm_start))
++			return addr;
++	}
++
++	/* check if free_area_cache is useful for us */
++	if (len <= mm->cached_hole_size) {
++ 	        mm->cached_hole_size = 0;
++ 		mm->free_area_cache = mm->mmap_base;
++ 	}
++
++	/* either no address requested or can't fit in requested address hole */
++	addr = mm->free_area_cache;
++
++	/* make sure it can fit in the remaining address space */
++	if (addr > len) {
++		vma = find_vma(mm, addr-len);
++		if (!vma || addr <= vma->vm_start)
++			/* remember the address as a hint for next time */
++			return (mm->free_area_cache = addr-len);
++	}
++
++	if (mm->mmap_base < len)
++		goto bottomup;
++
++	addr = mm->mmap_base-len;
++
++	do {
++		/*
++		 * Lookup failure means no vma is above this address,
++		 * else if new region fits below vma->vm_start,
++		 * return with success:
++		 */
++		vma = find_vma(mm, addr);
++		if (!vma || addr+len <= vma->vm_start)
++			/* remember the address as a hint for next time */
++			return (mm->free_area_cache = addr);
++
++ 		/* remember the largest hole we saw so far */
++ 		if (addr + mm->cached_hole_size < vma->vm_start)
++ 		        mm->cached_hole_size = vma->vm_start - addr;
++
++		/* try just below the current vma->vm_start */
++		addr = vma->vm_start-len;
++	} while (len < vma->vm_start);
++
++bottomup:
++	/*
++	 * A failed mmap() very likely causes application failure,
++	 * so fall back to the bottom-up function here. This scenario
++	 * can happen with large stack limits and large mmap()
++	 * allocations.
++	 */
++	mm->cached_hole_size = ~0UL;
++  	mm->free_area_cache = TASK_UNMAPPED_BASE;
++	addr = arch_get_unmapped_area(filp, addr0, len, pgoff, flags);
++	/*
++	 * Restore the topdown base:
++	 */
++	mm->free_area_cache = mm->mmap_base;
++	mm->cached_hole_size = ~0UL;
++
++	return addr;
++}
++
++
+ asmlinkage long sys_uname(struct new_utsname __user * name)
+ {
+ 	int err;
+diff -puN arch/x86/mm/mmap_64.c~pie-executable-randomization arch/x86/mm/mmap_64.c
+--- a/arch/x86/mm/mmap_64.c~pie-executable-randomization
++++ a/arch/x86/mm/mmap_64.c
+@@ -1,32 +1,117 @@
+-/* Copyright 2005 Andi Kleen, SuSE Labs.
+- * Licensed under GPL, v.2
++/*
++ *  linux/arch/x86-64/mm/mmap.c
++ *
++ *  flexible mmap layout support
++ *
++ * Based on code by Ingo Molnar and Andi Kleen, copyrighted
++ * as follows:
++ *
++ * Copyright 2003-2004 Red Hat Inc., Durham, North Carolina.
++ * All Rights Reserved.
++ * Copyright 2005 Andi Kleen, SUSE Labs.
++ * Copyright 2007 Jiri Kosina, SUSE Labs.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
+  */
++
++#include <linux/personality.h>
+ #include <linux/mm.h>
+-#include <linux/sched.h>
+ #include <linux/random.h>
++#include <linux/limits.h>
++#include <linux/sched.h>
+ #include <asm/ia32.h>
+ 
+-/* Notebook: move the mmap code from sys_x86_64.c over here. */
++/*
++ * Top of mmap area (just below the process stack).
++ *
++ * Leave an at least ~128 MB hole.
++ */
++#define MIN_GAP (128*1024*1024)
++#define MAX_GAP (TASK_SIZE/6*5)
+ 
+-void arch_pick_mmap_layout(struct mm_struct *mm)
++static inline unsigned long mmap_base(void)
++{
++	unsigned long gap = current->signal->rlim[RLIMIT_STACK].rlim_cur;
++
++	if (gap < MIN_GAP)
++		gap = MIN_GAP;
++	else if (gap > MAX_GAP)
++		gap = MAX_GAP;
++
++	return TASK_SIZE - (gap & PAGE_MASK);
++}
++
++static inline int mmap_is_32(void)
+ {
+ #ifdef CONFIG_IA32_EMULATION
+-	if (current_thread_info()->flags & _TIF_IA32)
+-		return ia32_pick_mmap_layout(mm);
++	if (test_thread_flag(TIF_IA32))
++		return 1;
+ #endif
+-	mm->mmap_base = TASK_UNMAPPED_BASE;
++	return 0;
++}
++
++static inline int mmap_is_legacy(void)
++{
++	if (current->personality & ADDR_COMPAT_LAYOUT)
++		return 1;
++
++	if (current->signal->rlim[RLIMIT_STACK].rlim_cur == RLIM_INFINITY)
++		return 1;
++
++	return sysctl_legacy_va_layout;
++}
++
++/*
++ * This function, called very early during the creation of a new
++ * process VM image, sets up which VM layout function to use:
++ */
++void arch_pick_mmap_layout(struct mm_struct *mm)
++{
++	int rnd = 0;
+ 	if (current->flags & PF_RANDOMIZE) {
+ 		/*
+-		 * Add 28bit randomness which is about 40bits of
+-		 * address space because mmap base has to be page
+-		 * aligned.  or ~1/128 of the total user VM (total
+-		 * user address space is 47bits)
++		 * Add 28bit randomness which is about 40bits of address space
++		 * because mmap base has to be page aligned.
++		 * or ~1/128 of the total user VM
++		 * (total user address space is 47bits)
+ 		 */
+-		unsigned rnd = get_random_int() & 0xfffffff;
++		rnd = get_random_int() & 0xfffffff;
 +	}
  
- 	/* either no address requested or can't fit in requested address hole */
- 	addr = mm->free_area_cache;
-@@ -213,9 +213,9 @@ arch_get_unmapped_area_topdown(struct fi
- 			/* remember the address as a hint for next time */
- 			return (mm->free_area_cache = addr);
- 
-- 		/* remember the largest hole we saw so far */
-- 		if (addr + mm->cached_hole_size < vma->vm_start)
-- 		        mm->cached_hole_size = vma->vm_start - addr;
-+		/* remember the largest hole we saw so far */
-+		if (addr + mm->cached_hole_size < vma->vm_start)
-+			mm->cached_hole_size = vma->vm_start - addr;
- 
- 		/* try just below the current vma->vm_start */
- 		addr = vma->vm_start-len;
-@@ -229,7 +229,7 @@ bottomup:
- 	 * allocations.
- 	 */
- 	mm->cached_hole_size = ~0UL;
--  	mm->free_area_cache = TASK_UNMAPPED_BASE;
-+	mm->free_area_cache = TASK_UNMAPPED_BASE;
- 	addr = arch_get_unmapped_area(filp, addr0, len, pgoff, flags);
- 	/*
- 	 * Restore the topdown base:
-diff -puN arch/x86/mm/mmap_64.c~pie-executable-randomization-checkpatch-fixes arch/x86/mm/mmap_64.c
---- a/arch/x86/mm/mmap_64.c~pie-executable-randomization-checkpatch-fixes
-+++ a/arch/x86/mm/mmap_64.c
-@@ -100,7 +100,7 @@ void arch_pick_mmap_layout(struct mm_str
- 		/* ia32_pick_mmap_layout has its own. */
- 		return ia32_pick_mmap_layout(mm);
- #endif
--	} else if(mmap_is_legacy()) {
-+	} else if (mmap_is_legacy()) {
- 		mm->mmap_base = TASK_UNMAPPED_BASE;
- 		mm->get_unmapped_area = arch_get_unmapped_area;
- 		mm->unmap_area = arch_unmap_area;
-@@ -111,7 +111,6 @@ void arch_pick_mmap_layout(struct mm_str
- 		if (current->flags & PF_RANDOMIZE)
- 			rnd = -rnd;
+-		mm->mmap_base += ((unsigned long)rnd) << PAGE_SHIFT;
++	/*
++	 * Fall back to the standard layout if the personality
++	 * bit is set, or if the expected stack growth is unlimited:
++	 */
++	if (mmap_is_32()) {
++#ifdef CONFIG_IA32_EMULATION
++		/* ia32_pick_mmap_layout has its own. */
++		return ia32_pick_mmap_layout(mm);
++#endif
++	} else if(mmap_is_legacy()) {
++		mm->mmap_base = TASK_UNMAPPED_BASE;
++		mm->get_unmapped_area = arch_get_unmapped_area;
++		mm->unmap_area = arch_unmap_area;
++	} else {
++		mm->mmap_base = mmap_base();
++		mm->get_unmapped_area = arch_get_unmapped_area_topdown;
++		mm->unmap_area = arch_unmap_area_topdown;
++		if (current->flags & PF_RANDOMIZE)
++			rnd = -rnd;
++	}
++	if (current->flags & PF_RANDOMIZE) {
++		mm->mmap_base += ((long)rnd) << PAGE_SHIFT;
  	}
--	if (current->flags & PF_RANDOMIZE) {
-+	if (current->flags & PF_RANDOMIZE)
- 		mm->mmap_base += ((long)rnd) << PAGE_SHIFT;
--	}
+-	mm->get_unmapped_area = arch_get_unmapped_area;
+-	mm->unmap_area = arch_unmap_area;
  }
-diff -puN fs/binfmt_elf.c~pie-executable-randomization-checkpatch-fixes fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~pie-executable-randomization-checkpatch-fixes
+-
+diff -puN fs/binfmt_elf.c~pie-executable-randomization fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~pie-executable-randomization
 +++ a/fs/binfmt_elf.c
-@@ -45,7 +45,8 @@
+@@ -45,7 +45,7 @@
  
  static int load_elf_binary(struct linux_binprm *bprm, struct pt_regs *regs);
  static int load_elf_library(struct file *);
--static unsigned long elf_map (struct file *, unsigned long, struct elf_phdr *, int, int, unsigned long);
-+static unsigned long elf_map(struct file *, unsigned long, struct elf_phdr *,
-+				int, int, unsigned long);
+-static unsigned long elf_map (struct file *, unsigned long, struct elf_phdr *, int, int);
++static unsigned long elf_map (struct file *, unsigned long, struct elf_phdr *, int, int, unsigned long);
  
  /*
   * If we don't support core dumping, then supply a NULL so we
-@@ -435,7 +436,7 @@ static unsigned long load_elf_interp(str
- 				load_addr = -vaddr;
+@@ -298,33 +298,70 @@ create_elf_tables(struct linux_binprm *b
+ #ifndef elf_map
+ 
+ static unsigned long elf_map(struct file *filep, unsigned long addr,
+-		struct elf_phdr *eppnt, int prot, int type)
++		struct elf_phdr *eppnt, int prot, int type,
++		unsigned long total_size)
+ {
+ 	unsigned long map_addr;
+-	unsigned long pageoffset = ELF_PAGEOFFSET(eppnt->p_vaddr);
++	unsigned long size = eppnt->p_filesz + ELF_PAGEOFFSET(eppnt->p_vaddr);
++	unsigned long off = eppnt->p_offset - ELF_PAGEOFFSET(eppnt->p_vaddr);
++	addr = ELF_PAGESTART(addr);
++	size = ELF_PAGEALIGN(size);
+ 
+-	down_write(&current->mm->mmap_sem);
+ 	/* mmap() will return -EINVAL if given a zero size, but a
+ 	 * segment with zero filesize is perfectly valid */
+-	if (eppnt->p_filesz + pageoffset)
+-		map_addr = do_mmap(filep, ELF_PAGESTART(addr),
+-				   eppnt->p_filesz + pageoffset, prot, type,
+-				   eppnt->p_offset - pageoffset);
+-	else
+-		map_addr = ELF_PAGESTART(addr);
++	if (!size)
++		return addr;
++
++	down_write(&current->mm->mmap_sem);
++	/*
++	* total_size is the size of the ELF (interpreter) image.
++	* The _first_ mmap needs to know the full size, otherwise
++	* randomization might put this image into an overlapping
++	* position with the ELF binary image. (since size < total_size)
++	* So we first map the 'big' image - and unmap the remainder at
++	* the end. (which unmap is needed for ELF images with holes.)
++	*/
++	if (total_size) {
++		total_size = ELF_PAGEALIGN(total_size);
++		map_addr = do_mmap(filep, addr, total_size, prot, type, off);
++		if (!BAD_ADDR(map_addr))
++			do_munmap(current->mm, map_addr+size, total_size-size);
++	} else
++		map_addr = do_mmap(filep, addr, size, prot, type, off);
++
+ 	up_write(&current->mm->mmap_sem);
+ 	return(map_addr);
+ }
+ 
+ #endif /* !elf_map */
+ 
++static unsigned long total_mapping_size(struct elf_phdr *cmds, int nr)
++{
++	int i, first_idx = -1, last_idx = -1;
++
++	for (i = 0; i < nr; i++) {
++		if (cmds[i].p_type == PT_LOAD) {
++			last_idx = i;
++			if (first_idx == -1)
++				first_idx = i;
++		}
++	}
++	if (first_idx == -1)
++		return 0;
++
++	return cmds[last_idx].p_vaddr + cmds[last_idx].p_memsz -
++				ELF_PAGESTART(cmds[first_idx].p_vaddr);
++}
++
++
+ /* This is much more generalized than the library routine read function,
+    so we keep this separate.  Technically the library read function
+    is only provided so that we can read a.out libraries that have
+    an ELF header */
+ 
+ static unsigned long load_elf_interp(struct elfhdr *interp_elf_ex,
+-		struct file *interpreter, unsigned long *interp_load_addr)
++		struct file *interpreter, unsigned long *interp_map_addr,
++		unsigned long no_base)
+ {
+ 	struct elf_phdr *elf_phdata;
+ 	struct elf_phdr *eppnt;
+@@ -332,6 +369,7 @@ static unsigned long load_elf_interp(str
+ 	int load_addr_set = 0;
+ 	unsigned long last_bss = 0, elf_bss = 0;
+ 	unsigned long error = ~0UL;
++	unsigned long total_size;
+ 	int retval, i, size;
+ 
+ 	/* First of all, some simple consistency checks */
+@@ -370,6 +408,12 @@ static unsigned long load_elf_interp(str
+ 		goto out_close;
+ 	}
+ 
++	total_size = total_mapping_size(elf_phdata, interp_elf_ex->e_phnum);
++	if (!total_size) {
++		error = -EINVAL;
++		goto out_close;
++	}
++
+ 	eppnt = elf_phdata;
+ 	for (i = 0; i < interp_elf_ex->e_phnum; i++, eppnt++) {
+ 		if (eppnt->p_type == PT_LOAD) {
+@@ -387,9 +431,14 @@ static unsigned long load_elf_interp(str
+ 			vaddr = eppnt->p_vaddr;
+ 			if (interp_elf_ex->e_type == ET_EXEC || load_addr_set)
+ 				elf_type |= MAP_FIXED;
++			else if (no_base && interp_elf_ex->e_type == ET_DYN)
++				load_addr = -vaddr;
  
  			map_addr = elf_map(interpreter, load_addr + vaddr,
--					   eppnt, elf_prot, elf_type, total_size);
-+					eppnt, elf_prot, elf_type, total_size);
- 			total_size = 0;
- 			if (!*interp_map_addr)
- 				*interp_map_addr = map_addr;
-@@ -936,7 +937,7 @@ static int load_elf_binary(struct linux_
+-					   eppnt, elf_prot, elf_type);
++					   eppnt, elf_prot, elf_type, total_size);
++			total_size = 0;
++			if (!*interp_map_addr)
++				*interp_map_addr = map_addr;
+ 			error = map_addr;
+ 			if (BAD_ADDR(map_addr))
+ 				goto out_close;
+@@ -455,8 +504,7 @@ static unsigned long load_elf_interp(str
+ 			goto out_close;
+ 	}
+ 
+-	*interp_load_addr = load_addr;
+-	error = ((unsigned long)interp_elf_ex->e_entry) + load_addr;
++	error = load_addr;
+ 
+ out_close:
+ 	kfree(elf_phdata);
+@@ -553,7 +601,8 @@ static int load_elf_binary(struct linux_
+ 	int elf_exec_fileno;
+ 	int retval, i;
+ 	unsigned int size;
+-	unsigned long elf_entry, interp_load_addr = 0;
++	unsigned long elf_entry;
++	unsigned long interp_load_addr = 0;
+ 	unsigned long start_code, end_code, start_data, end_data;
+ 	unsigned long reloc_func_desc = 0;
+ 	char passed_fileno[6];
+@@ -825,9 +874,7 @@ static int load_elf_binary(struct linux_
+ 	current->mm->start_stack = bprm->p;
+ 
+ 	/* Now we do a little grungy work by mmaping the ELF image into
+-	   the correct location in memory.  At this point, we assume that
+-	   the image should be loaded at fixed address, not at a variable
+-	   address. */
++	   the correct location in memory. */
+ 	for(i = 0, elf_ppnt = elf_phdata;
+ 	    i < loc->elf_ex.e_phnum; i++, elf_ppnt++) {
+ 		int elf_prot = 0, elf_flags;
+@@ -881,11 +928,15 @@ static int load_elf_binary(struct linux_
+ 			 * default mmap base, as well as whatever program they
+ 			 * might try to exec.  This is because the brk will
+ 			 * follow the loader, and is not movable.  */
++#ifdef CONFIG_X86
++			load_bias = 0;
++#else
+ 			load_bias = ELF_PAGESTART(ELF_ET_DYN_BASE - vaddr);
++#endif
  		}
  
  		error = elf_map(bprm->file, load_bias + vaddr, elf_ppnt,
--				elf_prot, elf_flags,0);
-+				elf_prot, elf_flags, 0);
+-				elf_prot, elf_flags);
++				elf_prot, elf_flags,0);
  		if (BAD_ADDR(error)) {
  			send_sig(SIGKILL, current, 0);
  			retval = IS_ERR((void *)error) ?
+@@ -961,13 +1012,25 @@ static int load_elf_binary(struct linux_
+ 	}
+ 
+ 	if (elf_interpreter) {
+-		if (interpreter_type == INTERPRETER_AOUT)
++		if (interpreter_type == INTERPRETER_AOUT) {
+ 			elf_entry = load_aout_interp(&loc->interp_ex,
+ 						     interpreter);
+-		else
++		} else {
++			unsigned long uninitialized_var(interp_map_addr);
++
+ 			elf_entry = load_elf_interp(&loc->interp_elf_ex,
+ 						    interpreter,
+-						    &interp_load_addr);
++						    &interp_map_addr,
++						    load_bias);
++			if (!IS_ERR((void *)elf_entry)) {
++				/*
++				 * load_elf_interp() returns relocation
++				 * adjustment
++				 */
++				interp_load_addr = elf_entry;
++				elf_entry += loc->interp_elf_ex.e_entry;
++			}
++		}
+ 		if (BAD_ADDR(elf_entry)) {
+ 			force_sig(SIGSEGV, current);
+ 			retval = IS_ERR((void *)elf_entry) ?
+diff -puN include/asm-x86/pgtable_64.h~pie-executable-randomization include/asm-x86/pgtable_64.h
+--- a/include/asm-x86/pgtable_64.h~pie-executable-randomization
++++ a/include/asm-x86/pgtable_64.h
+@@ -410,6 +410,7 @@ pte_t *lookup_address(unsigned long addr
+ 		remap_pfn_range(vma, vaddr, pfn, size, prot)
+ 
+ #define HAVE_ARCH_UNMAPPED_AREA
++#define HAVE_ARCH_UNMAPPED_AREA_TOPDOWN
+ 
+ #define pgtable_cache_init()   do { } while (0)
+ #define check_pgt_cache()      do { } while (0)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jkosina@suse.cz are
 
 origin.patch
-aoe-properly-initialise-the-request_queues-backing_dev_info.patch
-revert-dpt_i2o-convert-to-scsi-hotplug-model.patch
-revert-fix-proc-net-breakage.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-timerfd-v3-new-timerfd-api-ia64-fix.patch
-timerfd-v3-new-timerfd-api-m68k-fix.patch
-timerfd-v3-new-timerfd-api-mips-fix.patch
-timerfd-v3-new-timerfd-api-arch-fixes.patch
-timerfd-v3-new-timerfd-api-powerpc-fix.patch
-timerfd-v3-new-timerfd-api-sparc64-fix.patch
-git-acpi-ia64-build-fix.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-add-reboot-mechanism.patch
-acpi-fix-autloading-of-dock-video-bay-and-all-linux-specific-hid-drivers-checkpatch-fixes.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-git-agpgart.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-kernel-auditc-warning-fix.patch
-git-cpufreq.patch
-git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-dm-persistent_read_metadata-warning-fix.patch
-ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-git-drm.patch
-git-drm-oops-fix.patch
-intel-agp-enable-i915-recognition.patch
-git-dvb.patch
-v4l-nopage-fix.patch
-fix-jdelvare-i2c-i2c-constify-client-address-data.patch
-revert-git-hrt.patch
-ia64-slim-down-__clear_bit_unlock.patch
-git-infiniband.patch
-git-kvm.patch
-git-kvm-fixup.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-libata-xfer_mask-is-unsigned-int-not-unsigned-long-fix.patch
-libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
-libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
-git-mmc.patch
-git-mtd.patch
-git-net.patch
-git-net-vs-git-lblnet.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-bluetooth-uninlining.patch
-git-nfsd.patch
-quirk-enable-msi-mapping-on-ht1000.patch
-kernel-time-make-tick_do_broadcast-static.patch
-git-sh.patch
-git-scsi-misc-fixup.patch
-ips-trim-trailing-whitespace.patch
-scsi-gdth-kill-unneeded-irq-argument.patch
-drivers-scsi-sgiwd93c-export-sgiwd93_reset.patch
-libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-mct232-speed-new-termios-and-compliance-cleanups-fix.patch
-usb-testing-driver-dont-free-a-locked-mutex.patch
-git-watchdog.patch
-add-support-for-sb1-hardware-watchdog-fix.patch
-git-wireless.patch
-bcm43xx_debugfs-sscanf-fix.patch
+git-hid.patch
+hid-the-bit-in-hidinput_mapping_quirks-is-an-out-parameter.patch
+fujitsu-application-panel-driver.patch
+apanel-free-input-device-on-close.patch
+apanel-change-name-of-led.patch
+apanel-detach-on-shutdown.patch
+apanel-use-generic-keycode-routines.patch
+elantech-touchpad-driver.patch
 git-ipwireless_cs.patch
 git-x86.patch
-revert-revert-git-kvm-changes-in-arch-x86-kconfig.patch
-git-x86-__vdso_getcpu-warning-fix.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-git-xtensa.patch
-ia64-increase-datapatch-offset.patch
-ia64-dont-assume-that-unwcheckpy-is-executable.patch
-ia64-export-copy_page-to-modules.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-kernel-printkc-concerns-about-the-console-handover.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
 pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-sync_sb_inodes-propagate-errors.patch
-move-kprobes-examples-to-samples-resend-vs-git-x86.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
-64-bit-i_version-afs-fixes.patch
-ext4-add-block-bitmap-validation.patch
-ext4-fix-up-ext4fs_debug-builds.patch
-ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-rewrite-rd-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
