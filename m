@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + v4l-nopage-fix.patch added to -mm tree
-Date: Fri, 07 Dec 2007 16:14:43 -0800
-Message-ID: <200712080022.lB80MCSn011010@imap1.linux-foundation.org>
+Date: Fri, 07 Dec 2007 16:17:30 -0800
+Message-ID: <200712080024.lB80Oxc0011074@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34177 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41905 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753455AbXLHAW0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 19:22:26 -0500
+	by vger.kernel.org with ESMTP id S1754188AbXLHAZN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 19:25:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -30,23 +30,26 @@ From: Andrew Morton <akpm@linux-foundation.org>
 
 dont just copy-and-paste stuff.
 
+(compile-tested this time)
+
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/videobuf-dma-sg.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/video/videobuf-dma-sg.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff -puN drivers/media/video/videobuf-dma-sg.c~v4l-nopage-fix drivers/media/video/videobuf-dma-sg.c
 --- a/drivers/media/video/videobuf-dma-sg.c~v4l-nopage-fix
 +++ a/drivers/media/video/videobuf-dma-sg.c
-@@ -395,7 +395,7 @@ videobuf_vm_fault(struct vm_area_struct 
+@@ -395,7 +395,8 @@ videobuf_vm_fault(struct vm_area_struct 
  	page = alloc_page(GFP_USER | __GFP_DMA32);
  	if (!page)
  		return VM_FAULT_OOM;
 -	clear_user_page(page_address(page), vaddr, page);
-+	clear_user_page(page_address(page), vm_fault->virtual_address, page);
++	clear_user_page(page_address(page), (unsigned long)vmf->virtual_address,
++			page);
  	vmf->page = page;
  	return 0;
  }
@@ -91,6 +94,7 @@ git-drm.patch
 git-drm-oops-fix.patch
 intel-agp-enable-i915-recognition.patch
 git-dvb.patch
+v4l-nopage-fix.patch
 fix-jdelvare-i2c-i2c-constify-client-address-data.patch
 revert-git-hrt.patch
 ia64-slim-down-__clear_bit_unlock.patch
@@ -266,4 +270,3 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-v4l-nopage-fix.patch
