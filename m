@@ -1,59 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: + timerfd-v3-new-timerfd-api-sparc64-fix.patch added to -mm tree
-Date: Fri, 07 Dec 2007 16:08:24 -0800
-Message-ID: <200712080008.lB808OQ8010502@imap1.linux-foundation.org>
+Subject: - lost-content-of-proc-sys-fs-binfmt_misc-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 07 Dec 2007 16:19:47 -0800
+Message-ID: <200712080019.lB80Jldx010875@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46792 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55098 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751149AbXLHAIq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 19:08:46 -0500
+	by vger.kernel.org with ESMTP id S1753253AbXLHATv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 19:19:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, davidel@xmailserver.org, heiko.carstens@de.ibm.com, m.kozlowski@tuxland.pl, mtk.manpages@gmail.com
+To: akpm@linux-foundation.org, den@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     timerfd-v3-new-timerfd-api-sparc64-fix
-has been added to the -mm tree.  Its filename is
-     timerfd-v3-new-timerfd-api-sparc64-fix.patch
+     lost-content-of-proc-sys-fs-binfmt_misc-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     lost-content-of-proc-sys-fs-binfmt_misc-checkpatch-fixes.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: timerfd-v3-new-timerfd-api-sparc64-fix
+Subject: lost-content-of-proc-sys-fs-binfmt_misc-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Should this have been sys_nis_syscall?
+ERROR: That open brace { should be on the previous line
+#32: FILE: fs/proc/generic.c:390:
++static struct dentry_operations proc_dentry_operations =
++{
 
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+total: 1 errors, 0 warnings, 44 lines checked
+
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Denis V. Lunev <den@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc64/kernel/systbls.S |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/generic.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/s390/kernel/compat_wrapper.S~timerfd-v3-new-timerfd-api-sparc64-fix arch/s390/kernel/compat_wrapper.S
-diff -puN arch/s390/kernel/syscalls.S~timerfd-v3-new-timerfd-api-sparc64-fix arch/s390/kernel/syscalls.S
-diff -puN arch/sparc64/kernel/systbls.S~timerfd-v3-new-timerfd-api-sparc64-fix arch/sparc64/kernel/systbls.S
---- a/arch/sparc64/kernel/systbls.S~timerfd-v3-new-timerfd-api-sparc64-fix
-+++ a/arch/sparc64/kernel/systbls.S
-@@ -80,7 +80,7 @@ sys_call_table32:
- 	.word sys_fchmodat, sys_faccessat, compat_sys_pselect6, compat_sys_ppoll, sys_unshare
- /*300*/	.word compat_sys_set_robust_list, compat_sys_get_robust_list, compat_sys_migrate_pages, compat_sys_mbind, compat_sys_get_mempolicy
- 	.word compat_sys_set_mempolicy, compat_sys_kexec_load, compat_sys_move_pages, sys_getcpu, compat_sys_epoll_pwait
--/*310*/	.word compat_sys_utimensat, compat_sys_signalfd, compat_sys_timerfd, sys_eventfd, compat_sys_fallocate
-+/*310*/	.word compat_sys_utimensat, compat_sys_signalfd, sys_ni_syscall, sys_eventfd, compat_sys_fallocate
+diff -puN fs/proc/generic.c~lost-content-of-proc-sys-fs-binfmt_misc-checkpatch-fixes fs/proc/generic.c
+--- a/fs/proc/generic.c~lost-content-of-proc-sys-fs-binfmt_misc-checkpatch-fixes
++++ a/fs/proc/generic.c
+@@ -386,8 +386,7 @@ static struct dentry_operations proc_den
+ 	.d_revalidate	= proc_revalidate_dentry,
+ };
  
- #endif /* CONFIG_COMPAT */
+-static struct dentry_operations proc_dentry_operations =
+-{
++static struct dentry_operations proc_dentry_operations = {
+ 	.d_delete	= proc_delete_dentry,
+ };
  
 _
 
@@ -63,6 +65,7 @@ origin.patch
 ufs-fix-nexstep-dir-block-size.patch
 aoe-properly-initialise-the-request_queues-backing_dev_info.patch
 revert-dpt_i2o-convert-to-scsi-hotplug-model.patch
+revert-fix-proc-net-breakage.patch
 lost-content-of-proc-sys-fs-binfmt_misc-checkpatch-fixes.patch
 get_task_comm-return-the-result.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
