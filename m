@@ -1,361 +1,176 @@
 From: akpm@linux-foundation.org
-Subject: - blackfin-spi-driver-use-cpu_relax-to-replace-continue-in-while-busywait.patch removed from -mm tree
-Date: Fri, 07 Dec 2007 17:29:42 -0800
-Message-ID: <200712080129.lB81TgS6013421@imap1.linux-foundation.org>
+Subject: - driver-core-add-driver_create_group.patch removed from -mm tree
+Date: Fri, 07 Dec 2007 17:30:19 -0800
+Message-ID: <200712080130.lB81UJi2013532@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41339 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51603 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754194AbXLHBjc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 20:39:32 -0500
+	by vger.kernel.org with ESMTP id S1754272AbXLHBjq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 20:39:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bryan.wu@analog.com, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: greg@kroah.com, arthur.jones@qlogic.com, gregkh@suse.de, rdreier@cisco.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Blackfin SPI driver: use cpu_relax() to replace continue in while busywait
+     Driver core: add driver_create_group
 has been removed from the -mm tree.  Its filename was
-     blackfin-spi-driver-use-cpu_relax-to-replace-continue-in-while-busywait.patch
+     driver-core-add-driver_create_group.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Blackfin SPI driver: use cpu_relax() to replace continue in while busywait
-From: Bryan Wu <bryan.wu@analog.com>
+Subject: Driver core: add driver_create_group
+From: Greg KH <greg@kroah.com>
 
-Signed-off-by: Bryan Wu <bryan.wu@analog.com>
-Cc: David Brownell <david-b@pacbell.net>
+Add function for drivers to be able to create and remove sysfs attribute
+groups without having to fall back to the "raw" sysfs calls.
+
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Arthur Jones <arthur.jones@qlogic.com>
+Cc: Roland Dreier <rdreier@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_bfin5xx.c |   78 ++++++++++++++++++------------------
- 1 file changed, 39 insertions(+), 39 deletions(-)
+ drivers/base/driver.c                     |   37 ++++++++++++++++++++
+ drivers/infiniband/hw/ipath/ipath_sysfs.c |   15 +-------
+ include/linux/device.h                    |    5 ++
+ 3 files changed, 44 insertions(+), 13 deletions(-)
 
-diff -puN drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-use-cpu_relax-to-replace-continue-in-while-busywait drivers/spi/spi_bfin5xx.c
---- a/drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-use-cpu_relax-to-replace-continue-in-while-busywait
-+++ a/drivers/spi/spi_bfin5xx.c
-@@ -186,7 +186,7 @@ static int flush(struct driver_data *drv
- 
- 	/* wait for stop and clear stat */
- 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF) && limit--)
--		continue;
-+		cpu_relax();
- 
- 	write_STAT(drv_data, BIT_STAT_CLR);
- 
-@@ -262,7 +262,7 @@ static void null_writer(struct driver_da
- 	while (drv_data->tx < drv_data->tx_end) {
- 		write_TDBR(drv_data, 0);
- 		while ((read_STAT(drv_data) & BIT_STAT_TXS))
--			continue;
-+			cpu_relax();
- 		drv_data->tx += n_bytes;
+diff -puN drivers/base/driver.c~driver-core-add-driver_create_group drivers/base/driver.c
+--- a/drivers/base/driver.c~driver-core-add-driver_create_group
++++ a/drivers/base/driver.c
+@@ -123,6 +123,43 @@ void driver_remove_file(struct device_dr
  	}
  }
-@@ -274,7 +274,7 @@ static void null_reader(struct driver_da
  
- 	while (drv_data->rx < drv_data->rx_end) {
- 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
--			continue;
-+			cpu_relax();
- 		dummy_read(drv_data);
- 		drv_data->rx += n_bytes;
- 	}
-@@ -287,12 +287,12 @@ static void u8_writer(struct driver_data
++/**
++ * driver_create_group - create group of sysfs files for a driver.
++ * @drv: driver.
++ * @group: pointer to a group of attributes to add
++ *
++ * Adds a group of sysfs attributes to the specified driver.
++ */
++int driver_create_group(struct device_driver *drv,
++			struct attribute_group *group)
++{
++	int error;
++	if (get_driver(drv)) {
++		error = sysfs_create_group(&drv->p->kobj, group);
++		put_driver(drv);
++	} else
++		error = -EINVAL;
++	return error;
++}
++EXPORT_SYMBOL_GPL(driver_create_group);
++
++/**
++ * driver_remove_file - remove group of sysfs files for a driver.
++ * @drv: driver.
++ * @group: pointer to a group of attributes to add.
++ *
++ * Removes a group of sysfs attributes that was previously created with a
++ * call to driver_create_group().
++ */
++void driver_remove_group(struct device_driver *drv,
++			 struct attribute_group *group)
++{
++	if (get_driver(drv)) {
++		sysfs_remove_group(&drv->p->kobj, group);
++		put_driver(drv);
++	}
++}
++EXPORT_SYMBOL_GPL(driver_remove_group);
  
- 	/* poll for SPI completion before start */
- 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
--		continue;
-+		cpu_relax();
- 
- 	while (drv_data->tx < drv_data->tx_end) {
- 		write_TDBR(drv_data, (*(u8 *) (drv_data->tx)));
- 		while (read_STAT(drv_data) & BIT_STAT_TXS)
--			continue;
-+			cpu_relax();
- 		++drv_data->tx;
- 	}
- }
-@@ -303,14 +303,14 @@ static void u8_cs_chg_writer(struct driv
- 
- 	/* poll for SPI completion before start */
- 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
--		continue;
-+		cpu_relax();
- 
- 	while (drv_data->tx < drv_data->tx_end) {
- 		cs_active(drv_data, chip);
- 
- 		write_TDBR(drv_data, (*(u8 *) (drv_data->tx)));
- 		while (read_STAT(drv_data) & BIT_STAT_TXS)
--			continue;
-+			cpu_relax();
- 
- 		cs_deactive(drv_data, chip);
- 
-@@ -325,7 +325,7 @@ static void u8_reader(struct driver_data
- 
- 	/* poll for SPI completion before start */
- 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
--		continue;
-+		cpu_relax();
- 
- 	/* clear TDBR buffer before read(else it will be shifted out) */
- 	write_TDBR(drv_data, 0xFFFF);
-@@ -334,13 +334,13 @@ static void u8_reader(struct driver_data
- 
- 	while (drv_data->rx < drv_data->rx_end - 1) {
- 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
--			continue;
-+			cpu_relax();
- 		*(u8 *) (drv_data->rx) = read_RDBR(drv_data);
- 		++drv_data->rx;
- 	}
- 
- 	while (!(read_STAT(drv_data) & BIT_STAT_RXS))
--		continue;
-+		cpu_relax();
- 	*(u8 *) (drv_data->rx) = read_SHAW(drv_data);
- 	++drv_data->rx;
- }
-@@ -351,7 +351,7 @@ static void u8_cs_chg_reader(struct driv
- 
- 	/* poll for SPI completion before start */
- 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
--		continue;
-+		cpu_relax();
- 
- 	/* clear TDBR buffer before read(else it will be shifted out) */
- 	write_TDBR(drv_data, 0xFFFF);
-@@ -363,7 +363,7 @@ static void u8_cs_chg_reader(struct driv
- 		cs_deactive(drv_data, chip);
- 
- 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
--			continue;
-+			cpu_relax();
- 		cs_active(drv_data, chip);
- 		*(u8 *) (drv_data->rx) = read_RDBR(drv_data);
- 		++drv_data->rx;
-@@ -371,7 +371,7 @@ static void u8_cs_chg_reader(struct driv
- 	cs_deactive(drv_data, chip);
- 
- 	while (!(read_STAT(drv_data) & BIT_STAT_RXS))
--		continue;
-+		cpu_relax();
- 	*(u8 *) (drv_data->rx) = read_SHAW(drv_data);
- 	++drv_data->rx;
- }
-@@ -380,15 +380,15 @@ static void u8_duplex(struct driver_data
+ /**
+  *	get_driver - increment driver reference count.
+diff -puN drivers/infiniband/hw/ipath/ipath_sysfs.c~driver-core-add-driver_create_group drivers/infiniband/hw/ipath/ipath_sysfs.c
+--- a/drivers/infiniband/hw/ipath/ipath_sysfs.c~driver-core-add-driver_create_group
++++ a/drivers/infiniband/hw/ipath/ipath_sysfs.c
+@@ -757,20 +757,19 @@ int ipath_driver_create_group(struct dev
  {
- 	/* poll for SPI completion before start */
- 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
--		continue;
-+		cpu_relax();
+ 	int ret;
  
- 	/* in duplex mode, clk is triggered by writing of TDBR */
- 	while (drv_data->rx < drv_data->rx_end) {
- 		write_TDBR(drv_data, (*(u8 *) (drv_data->tx)));
- 		while (read_STAT(drv_data) & BIT_STAT_TXS)
--			continue;
-+			cpu_relax();
- 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
--			continue;
-+			cpu_relax();
- 		*(u8 *) (drv_data->rx) = read_RDBR(drv_data);
- 		++drv_data->rx;
- 		++drv_data->tx;
-@@ -401,16 +401,16 @@ static void u8_cs_chg_duplex(struct driv
+-	ret = sysfs_create_group(&drv->kobj, &driver_attr_group);
++	ret = driver_create_group(drv, &driver_attr_group);
  
- 	/* poll for SPI completion before start */
- 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
--		continue;
-+		cpu_relax();
- 
- 	while (drv_data->rx < drv_data->rx_end) {
- 		cs_active(drv_data, chip);
- 
- 		write_TDBR(drv_data, (*(u8 *) (drv_data->tx)));
- 		while (read_STAT(drv_data) & BIT_STAT_TXS)
--			continue;
-+			cpu_relax();
- 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
--			continue;
-+			cpu_relax();
- 		*(u8 *) (drv_data->rx) = read_RDBR(drv_data);
- 
- 		cs_deactive(drv_data, chip);
-@@ -427,12 +427,12 @@ static void u16_writer(struct driver_dat
- 
- 	/* poll for SPI completion before start */
- 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
--		continue;
-+		cpu_relax();
- 
- 	while (drv_data->tx < drv_data->tx_end) {
- 		write_TDBR(drv_data, (*(u16 *) (drv_data->tx)));
- 		while ((read_STAT(drv_data) & BIT_STAT_TXS))
--			continue;
-+			cpu_relax();
- 		drv_data->tx += 2;
- 	}
+ 	return ret;
  }
-@@ -443,14 +443,14 @@ static void u16_cs_chg_writer(struct dri
  
- 	/* poll for SPI completion before start */
- 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
--		continue;
-+		cpu_relax();
- 
- 	while (drv_data->tx < drv_data->tx_end) {
- 		cs_active(drv_data, chip);
- 
- 		write_TDBR(drv_data, (*(u16 *) (drv_data->tx)));
- 		while ((read_STAT(drv_data) & BIT_STAT_TXS))
--			continue;
-+			cpu_relax();
- 
- 		cs_deactive(drv_data, chip);
- 
-@@ -465,7 +465,7 @@ static void u16_reader(struct driver_dat
- 
- 	/* poll for SPI completion before start */
- 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
--		continue;
-+		cpu_relax();
- 
- 	/* clear TDBR buffer before read(else it will be shifted out) */
- 	write_TDBR(drv_data, 0xFFFF);
-@@ -474,13 +474,13 @@ static void u16_reader(struct driver_dat
- 
- 	while (drv_data->rx < (drv_data->rx_end - 2)) {
- 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
--			continue;
-+			cpu_relax();
- 		*(u16 *) (drv_data->rx) = read_RDBR(drv_data);
- 		drv_data->rx += 2;
- 	}
- 
- 	while (!(read_STAT(drv_data) & BIT_STAT_RXS))
--		continue;
-+		cpu_relax();
- 	*(u16 *) (drv_data->rx) = read_SHAW(drv_data);
- 	drv_data->rx += 2;
- }
-@@ -491,7 +491,7 @@ static void u16_cs_chg_reader(struct dri
- 
- 	/* poll for SPI completion before start */
- 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
--		continue;
-+		cpu_relax();
- 
- 	/* clear TDBR buffer before read(else it will be shifted out) */
- 	write_TDBR(drv_data, 0xFFFF);
-@@ -503,7 +503,7 @@ static void u16_cs_chg_reader(struct dri
- 		cs_deactive(drv_data, chip);
- 
- 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
--			continue;
-+			cpu_relax();
- 		cs_active(drv_data, chip);
- 		*(u16 *) (drv_data->rx) = read_RDBR(drv_data);
- 		drv_data->rx += 2;
-@@ -511,7 +511,7 @@ static void u16_cs_chg_reader(struct dri
- 	cs_deactive(drv_data, chip);
- 
- 	while (!(read_STAT(drv_data) & BIT_STAT_RXS))
--		continue;
-+		cpu_relax();
- 	*(u16 *) (drv_data->rx) = read_SHAW(drv_data);
- 	drv_data->rx += 2;
- }
-@@ -520,15 +520,15 @@ static void u16_duplex(struct driver_dat
+ void ipath_driver_remove_group(struct device_driver *drv)
  {
- 	/* poll for SPI completion before start */
- 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
--		continue;
-+		cpu_relax();
+-	sysfs_remove_group(&drv->kobj, &driver_attr_group);
++	driver_remove_group(drv, &driver_attr_group);
+ }
  
- 	/* in duplex mode, clk is triggered by writing of TDBR */
- 	while (drv_data->tx < drv_data->tx_end) {
- 		write_TDBR(drv_data, (*(u16 *) (drv_data->tx)));
- 		while (read_STAT(drv_data) & BIT_STAT_TXS)
--			continue;
-+			cpu_relax();
- 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
--			continue;
-+			cpu_relax();
- 		*(u16 *) (drv_data->rx) = read_RDBR(drv_data);
- 		drv_data->rx += 2;
- 		drv_data->tx += 2;
-@@ -541,16 +541,16 @@ static void u16_cs_chg_duplex(struct dri
+ int ipath_device_create_group(struct device *dev, struct ipath_devdata *dd)
+ {
+ 	int ret;
+-	char unit[5];
  
- 	/* poll for SPI completion before start */
- 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
--		continue;
-+		cpu_relax();
+ 	ret = sysfs_create_group(&dev->kobj, &dev_attr_group);
+ 	if (ret)
+@@ -780,11 +779,6 @@ int ipath_device_create_group(struct dev
+ 	if (ret)
+ 		goto bail_attrs;
  
- 	while (drv_data->tx < drv_data->tx_end) {
- 		cs_active(drv_data, chip);
+-	snprintf(unit, sizeof(unit), "%02d", dd->ipath_unit);
+-	ret = sysfs_create_link(&dev->driver->kobj, &dev->kobj, unit);
+-	if (ret == 0)
+-		goto bail;
+-
+ 	sysfs_remove_group(&dev->kobj, &dev_counter_attr_group);
+ bail_attrs:
+ 	sysfs_remove_group(&dev->kobj, &dev_attr_group);
+@@ -794,11 +788,6 @@ bail:
  
- 		write_TDBR(drv_data, (*(u16 *) (drv_data->tx)));
- 		while (read_STAT(drv_data) & BIT_STAT_TXS)
--			continue;
-+			cpu_relax();
- 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
--			continue;
-+			cpu_relax();
- 		*(u16 *) (drv_data->rx) = read_RDBR(drv_data);
+ void ipath_device_remove_group(struct device *dev, struct ipath_devdata *dd)
+ {
+-	char unit[5];
+-
+-	snprintf(unit, sizeof(unit), "%02d", dd->ipath_unit);
+-	sysfs_remove_link(&dev->driver->kobj, unit);
+-
+ 	sysfs_remove_group(&dev->kobj, &dev_counter_attr_group);
+ 	sysfs_remove_group(&dev->kobj, &dev_attr_group);
  
- 		cs_deactive(drv_data, chip);
-@@ -624,7 +624,7 @@ static irqreturn_t dma_irq_handler(int i
+diff -puN include/linux/device.h~driver-core-add-driver_create_group include/linux/device.h
+--- a/include/linux/device.h~driver-core-add-driver_create_group
++++ a/include/linux/device.h
+@@ -152,6 +152,11 @@ struct driver_attribute driver_attr_##_n
+ extern int __must_check driver_create_file(struct device_driver *,
+ 					struct driver_attribute *);
+ extern void driver_remove_file(struct device_driver *, struct driver_attribute *);
++extern int __must_check driver_create_group(struct device_driver *,
++					    struct attribute_group *);
++extern void driver_remove_group(struct device_driver *,
++				struct attribute_group *);
++
  
- 	/* Wait for DMA to complete */
- 	while (get_dma_curr_irqstat(drv_data->dma_channel) & DMA_RUN)
--		continue;
-+		cpu_relax();
- 
- 	/*
- 	 * wait for the last transaction shifted out.  HRM states:
-@@ -635,11 +635,11 @@ static irqreturn_t dma_irq_handler(int i
- 	if (drv_data->tx != NULL) {
- 		while ((read_STAT(drv_data) & TXS) ||
- 		       (read_STAT(drv_data) & TXS))
--			continue;
-+			cpu_relax();
- 	}
- 
- 	while (!(read_STAT(drv_data) & SPIF))
--		continue;
-+		cpu_relax();
- 
- 	msg->actual_length += drv_data->len_in_bytes;
- 
-@@ -783,7 +783,7 @@ static void pump_transfers(unsigned long
- 
- 		/* poll for SPI completion before start */
- 		while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
--			continue;
-+			cpu_relax();
- 
- 		/* dirty hack for autobuffer DMA mode */
- 		if (drv_data->tx_dma == 0xFFFF) {
+ extern int __must_check driver_for_each_device(struct device_driver * drv,
+ 		struct device *start, void *data,
 _
 
-Patches currently in -mm which might be from bryan.wu@analog.com are
+Patches currently in -mm which might be from greg@kroah.com are
 
-origin.patch
-git-mtd.patch
-blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-remove-mm_ptovvtop.patch
-blackfin-rtc-driver-the-frequency-function-is-in-units-of-hz-not-units-of-seconds-so-lock-our-driver-down-to-1-hz.patch
-blackfin-rtc-driver-we-pass-in-a-struct-device-to-the-irq-handler-not-a-struct-platform_device-so-fix-the-irq-handler.patch
-blackfin-rtc-driver-cleanup-proc-handler-we-dont-need-rtc-reg-dump-now-that-we-have-mmr-filesystem-in-sysfs.patch
-blackfin-rtc-driver-use-dev_dbg-rather-than-pr_stamp.patch
-blackfin-rtc-driver-read_alarm-checks-the-enabled-field-not-the-pending-field.patch
-blackfin-rtc-driver-shave-off-another-memcpy-by-using-assignment.patch
-blackfin-rtc-driver-convert-sync-wait-to-use-the-irq-write-complete-notice.patch
-sanitize-the-type-of-struct-useru_ar0.patch
-add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
-d_path-make-d_path-use-a-struct-path.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+quirk-enable-msi-mapping-on-ht1000.patch
+belkin_sa-clean-up-for-new-style-termios-and-speed.patch
+keyspan_pda-clean-up-speed-handling.patch
+mct232-speed-new-termios-and-compliance-cleanups.patch
+mct232-speed-new-termios-and-compliance-cleanups-fix.patch
+ohci-hcdcohci_irq-locking-fix.patch
+usb-testing-driver-dont-free-a-locked-mutex.patch
+usb-mon-nopage.patch
+git-x86.patch
+add-accessors-for-segment_boundary_mask-in.patch
+pci-add-dma-segment-boundary-support.patch
+swiotlb-respect-the-segment-boundary-limits.patch
+call-dma_set_seg_boundary-in-__scsi_alloc_queue.patch
+dca-convert-struct-class_device-to-struct-device.patch
+dont-touch-fs_struct-in-usermodehelper.patch
+usb-net2280-cant-have-a-function-called-show_registers.patch
+make-sure-nobodys-leaking-resources.patch
+workaround-for-a-pci-restoring-bug.patch
