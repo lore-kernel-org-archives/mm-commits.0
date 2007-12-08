@@ -1,141 +1,361 @@
 From: akpm@linux-foundation.org
-Subject: - spi-spi_bfin-resequence-dma-start-stop.patch removed from -mm tree
-Date: Fri, 07 Dec 2007 17:29:39 -0800
-Message-ID: <200712080129.lB81Td7v013414@imap1.linux-foundation.org>
+Subject: - blackfin-spi-driver-use-cpu_relax-to-replace-continue-in-while-busywait.patch removed from -mm tree
+Date: Fri, 07 Dec 2007 17:29:42 -0800
+Message-ID: <200712080129.lB81TgS6013421@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37411 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41339 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754358AbXLHBjh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 20:39:37 -0500
+	by vger.kernel.org with ESMTP id S1754194AbXLHBjc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 20:39:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sonic.zhang@analog.com, bryan.wu@analog.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: bryan.wu@analog.com, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi: spi_bfin: resequence DMA start/stop
+     Blackfin SPI driver: use cpu_relax() to replace continue in while busywait
 has been removed from the -mm tree.  Its filename was
-     spi-spi_bfin-resequence-dma-start-stop.patch
+     blackfin-spi-driver-use-cpu_relax-to-replace-continue-in-while-busywait.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: spi: spi_bfin: resequence DMA start/stop
-From: Sonic Zhang <sonic.zhang@analog.com>
+Subject: Blackfin SPI driver: use cpu_relax() to replace continue in while busywait
+From: Bryan Wu <bryan.wu@analog.com>
 
-Set correct baud for spi mmc and enable SPI only after DMA is started.
-
-Signed-off-by: Sonic Zhang <sonic.zhang@analog.com>
 Signed-off-by: Bryan Wu <bryan.wu@analog.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_bfin5xx.c |   30 +++++++++++++++++++-----------
- 1 file changed, 19 insertions(+), 11 deletions(-)
+ drivers/spi/spi_bfin5xx.c |   78 ++++++++++++++++++------------------
+ 1 file changed, 39 insertions(+), 39 deletions(-)
 
-diff -puN drivers/spi/spi_bfin5xx.c~spi-spi_bfin-resequence-dma-start-stop drivers/spi/spi_bfin5xx.c
---- a/drivers/spi/spi_bfin5xx.c~spi-spi_bfin-resequence-dma-start-stop
+diff -puN drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-use-cpu_relax-to-replace-continue-in-while-busywait drivers/spi/spi_bfin5xx.c
+--- a/drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-use-cpu_relax-to-replace-continue-in-while-busywait
 +++ a/drivers/spi/spi_bfin5xx.c
-@@ -231,13 +231,13 @@ static int restore_state(struct driver_d
- 	dev_dbg(&drv_data->pdev->dev, "restoring spi ctl state\n");
+@@ -186,7 +186,7 @@ static int flush(struct driver_data *drv
  
- 	/* Load the registers */
--	cs_deactive(drv_data, chip);
- 	write_BAUD(drv_data, chip->baud);
- 	chip->ctl_reg &= (~BIT_CTL_TIMOD);
- 	chip->ctl_reg |= (chip->width << 8);
- 	write_CTRL(drv_data, chip->ctl_reg);
+ 	/* wait for stop and clear stat */
+ 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF) && limit--)
+-		continue;
++		cpu_relax();
  
- 	bfin_spi_enable(drv_data);
-+	cs_active(drv_data, chip);
+ 	write_STAT(drv_data, BIT_STAT_CLR);
  
- 	if (ret)
- 		dev_dbg(&drv_data->pdev->dev,
-@@ -767,6 +767,7 @@ static void pump_transfers(unsigned long
- 
- 		disable_dma(drv_data->dma_channel);
- 		clear_dma_irqstat(drv_data->dma_channel);
-+		bfin_spi_disable(drv_data);
- 
- 		/* config dma channel */
- 		dev_dbg(&drv_data->pdev->dev, "doing dma transfer\n");
-@@ -789,9 +790,6 @@ static void pump_transfers(unsigned long
- 			dev_dbg(&drv_data->pdev->dev,
- 				"doing autobuffer DMA out.\n");
- 
--			/* set SPI transfer mode */
--			write_CTRL(drv_data, (cr | CFG_SPI_DMAWRITE));
--
- 			/* no irq in autobuffer mode */
- 			dma_config =
- 			    (DMAFLOW_AUTO | RESTART | dma_width | DI_EN);
-@@ -800,7 +798,13 @@ static void pump_transfers(unsigned long
- 					(unsigned long)drv_data->tx);
- 			enable_dma(drv_data->dma_channel);
- 
--			/* just return here, there can only be one transfer in this mode */
-+			/* start SPI transfer */
-+			write_CTRL(drv_data,
-+				(cr | CFG_SPI_DMAWRITE | BIT_CTL_ENABLE));
-+
-+			/* just return here, there can only be one transfer
-+			 * in this mode
-+			 */
- 			message->status = 0;
- 			giveback(drv_data);
- 			return;
-@@ -811,9 +815,6 @@ static void pump_transfers(unsigned long
- 			/* set transfer mode, and enable SPI */
- 			dev_dbg(&drv_data->pdev->dev, "doing DMA in.\n");
- 
--			/* set SPI transfer mode */
--			write_CTRL(drv_data, (cr | CFG_SPI_DMAREAD));
--
- 			/* clear tx reg soformer data is not shifted out */
- 			write_TDBR(drv_data, 0xFFFF);
- 
-@@ -827,12 +828,13 @@ static void pump_transfers(unsigned long
- 					(unsigned long)drv_data->rx);
- 			enable_dma(drv_data->dma_channel);
- 
-+			/* start SPI transfer */
-+			write_CTRL(drv_data,
-+				(cr | CFG_SPI_DMAREAD | BIT_CTL_ENABLE));
-+
- 		} else if (drv_data->tx != NULL) {
- 			dev_dbg(&drv_data->pdev->dev, "doing DMA out.\n");
- 
--			/* set SPI transfer mode */
--			write_CTRL(drv_data, (cr | CFG_SPI_DMAWRITE));
--
- 			/* start dma */
- 			dma_enable_irq(drv_data->dma_channel);
- 			dma_config = (RESTART | dma_width | DI_EN);
-@@ -840,6 +842,10 @@ static void pump_transfers(unsigned long
- 			set_dma_start_addr(drv_data->dma_channel,
- 					(unsigned long)drv_data->tx);
- 			enable_dma(drv_data->dma_channel);
-+
-+			/* start SPI transfer */
-+			write_CTRL(drv_data,
-+				(cr | CFG_SPI_DMAWRITE | BIT_CTL_ENABLE));
- 		}
- 	} else {
- 		/* IO mode write then read */
-@@ -1142,6 +1148,8 @@ static int setup(struct spi_device *spi)
- 		peripheral_request(ssel[spi->master->bus_num]
- 			[chip->chip_select_num-1], DRV_NAME);
- 
-+	cs_deactive(drv_data, chip);
-+
- 	return 0;
+@@ -262,7 +262,7 @@ static void null_writer(struct driver_da
+ 	while (drv_data->tx < drv_data->tx_end) {
+ 		write_TDBR(drv_data, 0);
+ 		while ((read_STAT(drv_data) & BIT_STAT_TXS))
+-			continue;
++			cpu_relax();
+ 		drv_data->tx += n_bytes;
+ 	}
  }
+@@ -274,7 +274,7 @@ static void null_reader(struct driver_da
  
+ 	while (drv_data->rx < drv_data->rx_end) {
+ 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
+-			continue;
++			cpu_relax();
+ 		dummy_read(drv_data);
+ 		drv_data->rx += n_bytes;
+ 	}
+@@ -287,12 +287,12 @@ static void u8_writer(struct driver_data
+ 
+ 	/* poll for SPI completion before start */
+ 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+-		continue;
++		cpu_relax();
+ 
+ 	while (drv_data->tx < drv_data->tx_end) {
+ 		write_TDBR(drv_data, (*(u8 *) (drv_data->tx)));
+ 		while (read_STAT(drv_data) & BIT_STAT_TXS)
+-			continue;
++			cpu_relax();
+ 		++drv_data->tx;
+ 	}
+ }
+@@ -303,14 +303,14 @@ static void u8_cs_chg_writer(struct driv
+ 
+ 	/* poll for SPI completion before start */
+ 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+-		continue;
++		cpu_relax();
+ 
+ 	while (drv_data->tx < drv_data->tx_end) {
+ 		cs_active(drv_data, chip);
+ 
+ 		write_TDBR(drv_data, (*(u8 *) (drv_data->tx)));
+ 		while (read_STAT(drv_data) & BIT_STAT_TXS)
+-			continue;
++			cpu_relax();
+ 
+ 		cs_deactive(drv_data, chip);
+ 
+@@ -325,7 +325,7 @@ static void u8_reader(struct driver_data
+ 
+ 	/* poll for SPI completion before start */
+ 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+-		continue;
++		cpu_relax();
+ 
+ 	/* clear TDBR buffer before read(else it will be shifted out) */
+ 	write_TDBR(drv_data, 0xFFFF);
+@@ -334,13 +334,13 @@ static void u8_reader(struct driver_data
+ 
+ 	while (drv_data->rx < drv_data->rx_end - 1) {
+ 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
+-			continue;
++			cpu_relax();
+ 		*(u8 *) (drv_data->rx) = read_RDBR(drv_data);
+ 		++drv_data->rx;
+ 	}
+ 
+ 	while (!(read_STAT(drv_data) & BIT_STAT_RXS))
+-		continue;
++		cpu_relax();
+ 	*(u8 *) (drv_data->rx) = read_SHAW(drv_data);
+ 	++drv_data->rx;
+ }
+@@ -351,7 +351,7 @@ static void u8_cs_chg_reader(struct driv
+ 
+ 	/* poll for SPI completion before start */
+ 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+-		continue;
++		cpu_relax();
+ 
+ 	/* clear TDBR buffer before read(else it will be shifted out) */
+ 	write_TDBR(drv_data, 0xFFFF);
+@@ -363,7 +363,7 @@ static void u8_cs_chg_reader(struct driv
+ 		cs_deactive(drv_data, chip);
+ 
+ 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
+-			continue;
++			cpu_relax();
+ 		cs_active(drv_data, chip);
+ 		*(u8 *) (drv_data->rx) = read_RDBR(drv_data);
+ 		++drv_data->rx;
+@@ -371,7 +371,7 @@ static void u8_cs_chg_reader(struct driv
+ 	cs_deactive(drv_data, chip);
+ 
+ 	while (!(read_STAT(drv_data) & BIT_STAT_RXS))
+-		continue;
++		cpu_relax();
+ 	*(u8 *) (drv_data->rx) = read_SHAW(drv_data);
+ 	++drv_data->rx;
+ }
+@@ -380,15 +380,15 @@ static void u8_duplex(struct driver_data
+ {
+ 	/* poll for SPI completion before start */
+ 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+-		continue;
++		cpu_relax();
+ 
+ 	/* in duplex mode, clk is triggered by writing of TDBR */
+ 	while (drv_data->rx < drv_data->rx_end) {
+ 		write_TDBR(drv_data, (*(u8 *) (drv_data->tx)));
+ 		while (read_STAT(drv_data) & BIT_STAT_TXS)
+-			continue;
++			cpu_relax();
+ 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
+-			continue;
++			cpu_relax();
+ 		*(u8 *) (drv_data->rx) = read_RDBR(drv_data);
+ 		++drv_data->rx;
+ 		++drv_data->tx;
+@@ -401,16 +401,16 @@ static void u8_cs_chg_duplex(struct driv
+ 
+ 	/* poll for SPI completion before start */
+ 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+-		continue;
++		cpu_relax();
+ 
+ 	while (drv_data->rx < drv_data->rx_end) {
+ 		cs_active(drv_data, chip);
+ 
+ 		write_TDBR(drv_data, (*(u8 *) (drv_data->tx)));
+ 		while (read_STAT(drv_data) & BIT_STAT_TXS)
+-			continue;
++			cpu_relax();
+ 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
+-			continue;
++			cpu_relax();
+ 		*(u8 *) (drv_data->rx) = read_RDBR(drv_data);
+ 
+ 		cs_deactive(drv_data, chip);
+@@ -427,12 +427,12 @@ static void u16_writer(struct driver_dat
+ 
+ 	/* poll for SPI completion before start */
+ 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+-		continue;
++		cpu_relax();
+ 
+ 	while (drv_data->tx < drv_data->tx_end) {
+ 		write_TDBR(drv_data, (*(u16 *) (drv_data->tx)));
+ 		while ((read_STAT(drv_data) & BIT_STAT_TXS))
+-			continue;
++			cpu_relax();
+ 		drv_data->tx += 2;
+ 	}
+ }
+@@ -443,14 +443,14 @@ static void u16_cs_chg_writer(struct dri
+ 
+ 	/* poll for SPI completion before start */
+ 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+-		continue;
++		cpu_relax();
+ 
+ 	while (drv_data->tx < drv_data->tx_end) {
+ 		cs_active(drv_data, chip);
+ 
+ 		write_TDBR(drv_data, (*(u16 *) (drv_data->tx)));
+ 		while ((read_STAT(drv_data) & BIT_STAT_TXS))
+-			continue;
++			cpu_relax();
+ 
+ 		cs_deactive(drv_data, chip);
+ 
+@@ -465,7 +465,7 @@ static void u16_reader(struct driver_dat
+ 
+ 	/* poll for SPI completion before start */
+ 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+-		continue;
++		cpu_relax();
+ 
+ 	/* clear TDBR buffer before read(else it will be shifted out) */
+ 	write_TDBR(drv_data, 0xFFFF);
+@@ -474,13 +474,13 @@ static void u16_reader(struct driver_dat
+ 
+ 	while (drv_data->rx < (drv_data->rx_end - 2)) {
+ 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
+-			continue;
++			cpu_relax();
+ 		*(u16 *) (drv_data->rx) = read_RDBR(drv_data);
+ 		drv_data->rx += 2;
+ 	}
+ 
+ 	while (!(read_STAT(drv_data) & BIT_STAT_RXS))
+-		continue;
++		cpu_relax();
+ 	*(u16 *) (drv_data->rx) = read_SHAW(drv_data);
+ 	drv_data->rx += 2;
+ }
+@@ -491,7 +491,7 @@ static void u16_cs_chg_reader(struct dri
+ 
+ 	/* poll for SPI completion before start */
+ 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+-		continue;
++		cpu_relax();
+ 
+ 	/* clear TDBR buffer before read(else it will be shifted out) */
+ 	write_TDBR(drv_data, 0xFFFF);
+@@ -503,7 +503,7 @@ static void u16_cs_chg_reader(struct dri
+ 		cs_deactive(drv_data, chip);
+ 
+ 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
+-			continue;
++			cpu_relax();
+ 		cs_active(drv_data, chip);
+ 		*(u16 *) (drv_data->rx) = read_RDBR(drv_data);
+ 		drv_data->rx += 2;
+@@ -511,7 +511,7 @@ static void u16_cs_chg_reader(struct dri
+ 	cs_deactive(drv_data, chip);
+ 
+ 	while (!(read_STAT(drv_data) & BIT_STAT_RXS))
+-		continue;
++		cpu_relax();
+ 	*(u16 *) (drv_data->rx) = read_SHAW(drv_data);
+ 	drv_data->rx += 2;
+ }
+@@ -520,15 +520,15 @@ static void u16_duplex(struct driver_dat
+ {
+ 	/* poll for SPI completion before start */
+ 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+-		continue;
++		cpu_relax();
+ 
+ 	/* in duplex mode, clk is triggered by writing of TDBR */
+ 	while (drv_data->tx < drv_data->tx_end) {
+ 		write_TDBR(drv_data, (*(u16 *) (drv_data->tx)));
+ 		while (read_STAT(drv_data) & BIT_STAT_TXS)
+-			continue;
++			cpu_relax();
+ 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
+-			continue;
++			cpu_relax();
+ 		*(u16 *) (drv_data->rx) = read_RDBR(drv_data);
+ 		drv_data->rx += 2;
+ 		drv_data->tx += 2;
+@@ -541,16 +541,16 @@ static void u16_cs_chg_duplex(struct dri
+ 
+ 	/* poll for SPI completion before start */
+ 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+-		continue;
++		cpu_relax();
+ 
+ 	while (drv_data->tx < drv_data->tx_end) {
+ 		cs_active(drv_data, chip);
+ 
+ 		write_TDBR(drv_data, (*(u16 *) (drv_data->tx)));
+ 		while (read_STAT(drv_data) & BIT_STAT_TXS)
+-			continue;
++			cpu_relax();
+ 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
+-			continue;
++			cpu_relax();
+ 		*(u16 *) (drv_data->rx) = read_RDBR(drv_data);
+ 
+ 		cs_deactive(drv_data, chip);
+@@ -624,7 +624,7 @@ static irqreturn_t dma_irq_handler(int i
+ 
+ 	/* Wait for DMA to complete */
+ 	while (get_dma_curr_irqstat(drv_data->dma_channel) & DMA_RUN)
+-		continue;
++		cpu_relax();
+ 
+ 	/*
+ 	 * wait for the last transaction shifted out.  HRM states:
+@@ -635,11 +635,11 @@ static irqreturn_t dma_irq_handler(int i
+ 	if (drv_data->tx != NULL) {
+ 		while ((read_STAT(drv_data) & TXS) ||
+ 		       (read_STAT(drv_data) & TXS))
+-			continue;
++			cpu_relax();
+ 	}
+ 
+ 	while (!(read_STAT(drv_data) & SPIF))
+-		continue;
++		cpu_relax();
+ 
+ 	msg->actual_length += drv_data->len_in_bytes;
+ 
+@@ -783,7 +783,7 @@ static void pump_transfers(unsigned long
+ 
+ 		/* poll for SPI completion before start */
+ 		while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+-			continue;
++			cpu_relax();
+ 
+ 		/* dirty hack for autobuffer DMA mode */
+ 		if (drv_data->tx_dma == 0xFFFF) {
 _
 
-Patches currently in -mm which might be from sonic.zhang@analog.com are
+Patches currently in -mm which might be from bryan.wu@analog.com are
 
 origin.patch
-libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
+git-mtd.patch
+blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+remove-mm_ptovvtop.patch
+blackfin-rtc-driver-the-frequency-function-is-in-units-of-hz-not-units-of-seconds-so-lock-our-driver-down-to-1-hz.patch
+blackfin-rtc-driver-we-pass-in-a-struct-device-to-the-irq-handler-not-a-struct-platform_device-so-fix-the-irq-handler.patch
+blackfin-rtc-driver-cleanup-proc-handler-we-dont-need-rtc-reg-dump-now-that-we-have-mmr-filesystem-in-sysfs.patch
+blackfin-rtc-driver-use-dev_dbg-rather-than-pr_stamp.patch
+blackfin-rtc-driver-read_alarm-checks-the-enabled-field-not-the-pending-field.patch
+blackfin-rtc-driver-shave-off-another-memcpy-by-using-assignment.patch
+blackfin-rtc-driver-convert-sync-wait-to-use-the-irq-write-complete-notice.patch
+sanitize-the-type-of-struct-useru_ar0.patch
+add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
+d_path-make-d_path-use-a-struct-path.patch
