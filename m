@@ -1,322 +1,166 @@
 From: akpm@linux-foundation.org
-Subject: - spi-spi_bfin-handles-spi_transfercs_change.patch removed from -mm tree
-Date: Fri, 07 Dec 2007 17:29:10 -0800
-Message-ID: <200712080129.lB81TAoi013384@imap1.linux-foundation.org>
+Subject: - spi-spi_bfin-uses-portmux-for-additional-busses.patch removed from -mm tree
+Date: Fri, 07 Dec 2007 17:29:17 -0800
+Message-ID: <200712080129.lB81THL3013393@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33567 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58939 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754044AbXLHB3z (ORCPT
+	by vger.kernel.org with ESMTP id S1754058AbXLHB3z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 20:29:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bryan.wu@analog.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: sonic.zhang@analog.com, bryan.wu@analog.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi: spi_bfin handles spi_transfer.cs_change
+     spi: spi_bfin uses portmux for additional busses
 has been removed from the -mm tree.  Its filename was
-     spi-spi_bfin-handles-spi_transfercs_change.patch
+     spi-spi_bfin-uses-portmux-for-additional-busses.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: spi: spi_bfin handles spi_transfer.cs_change
-From: Bryan Wu <bryan.wu@analog.com>
+Subject: spi: spi_bfin uses portmux for additional busses
+From: Sonic Zhang <sonic.zhang@analog.com>
 
-Respect per-transfer cs_change field (protocol tweaking support) by
-adding and using cs_active/cs_deactive functions.
+Use portmux mechanism to support SPI busses 1 and 2, instead of just the
+original bus 0.
 
+Signed-off-by: Sonic Zhang <sonic.zhang@analog.com>
 Signed-off-by: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_bfin5xx.c |   76 +++++++++++++++++++++++++-----------
- 1 file changed, 54 insertions(+), 22 deletions(-)
+ drivers/spi/spi_bfin5xx.c |   51 +++++++++++++++++++++---------------
+ 1 file changed, 31 insertions(+), 20 deletions(-)
 
-diff -puN drivers/spi/spi_bfin5xx.c~spi-spi_bfin-handles-spi_transfercs_change drivers/spi/spi_bfin5xx.c
---- a/drivers/spi/spi_bfin5xx.c~spi-spi_bfin-handles-spi_transfercs_change
+diff -puN drivers/spi/spi_bfin5xx.c~spi-spi_bfin-uses-portmux-for-additional-busses drivers/spi/spi_bfin5xx.c
+--- a/drivers/spi/spi_bfin5xx.c~spi-spi_bfin-uses-portmux-for-additional-busses
 +++ a/drivers/spi/spi_bfin5xx.c
-@@ -115,6 +115,7 @@ struct driver_data {
- 	size_t rx_map_len;
- 	size_t tx_map_len;
- 	u8 n_bytes;
-+	int cs_change;
- 	void (*write) (struct driver_data *);
- 	void (*read) (struct driver_data *);
- 	void (*duplex) (struct driver_data *);
-@@ -179,6 +180,26 @@ static int flush(struct driver_data *drv
- 	return limit;
+@@ -209,17 +209,26 @@ static void cs_deactive(struct chip_data
+ 	write_FLAG(flag);
  }
  
-+/* Chip select operation functions for cs_change flag */
-+static void cs_active(struct chip_data *chip)
-+{
-+	u16 flag = read_FLAG();
-+
-+	flag |= chip->flag;
-+	flag &= ~(chip->flag << 8);
-+
-+	write_FLAG(flag);
-+}
-+
-+static void cs_deactive(struct chip_data *chip)
-+{
-+	u16 flag = read_FLAG();
-+
-+	flag |= (chip->flag << 8);
-+
-+	write_FLAG(flag);
-+}
-+
- #define MAX_SPI0_SSEL	7
+-#define MAX_SPI0_SSEL	7
++#define MAX_SPI_SSEL	7
  
  /* stop controller and re-config current chip*/
-@@ -198,7 +219,7 @@ static int restore_state(struct driver_d
- 	/* Load the registers */
- 	write_CTRL(chip->ctl_reg);
- 	write_BAUD(chip->baud);
--	write_FLAG(chip->flag);
-+	cs_active(chip);
- 
- 	if (!chip->chip_select_requested) {
- 		int i = chip->chip_select_num;
-@@ -273,20 +294,20 @@ static void u8_cs_chg_writer(struct driv
+ static int restore_state(struct driver_data *drv_data)
+ {
  	struct chip_data *chip = drv_data->cur_chip;
- 
- 	while (drv_data->tx < drv_data->tx_end) {
--		write_FLAG(chip->flag);
-+		cs_active(chip);
- 
- 		write_TDBR(*(u8 *) (drv_data->tx));
- 		while (read_STAT() & BIT_STAT_TXS)
- 			continue;
- 		while (!(read_STAT() & BIT_STAT_SPIF))
- 			continue;
--		write_FLAG(0xFF00 | chip->flag);
-+		cs_deactive(chip);
- 
- 		if (chip->cs_chg_udelay)
- 			udelay(chip->cs_chg_udelay);
- 		++drv_data->tx;
- 	}
--	write_FLAG(0xFF00);
-+	cs_deactive(chip);
- 
- }
- 
-@@ -318,7 +339,7 @@ static void u8_cs_chg_reader(struct driv
- 	struct chip_data *chip = drv_data->cur_chip;
- 
- 	while (drv_data->rx < drv_data->rx_end) {
--		write_FLAG(chip->flag);
-+		cs_active(chip);
- 
- 		read_RDBR();	/* kick off */
- 		while (!(read_STAT() & BIT_STAT_RXS))
-@@ -326,13 +347,13 @@ static void u8_cs_chg_reader(struct driv
- 		while (!(read_STAT() & BIT_STAT_SPIF))
- 			continue;
- 		*(u8 *) (drv_data->rx) = read_SHAW();
--		write_FLAG(0xFF00 | chip->flag);
-+		cs_deactive(chip);
- 
- 		if (chip->cs_chg_udelay)
- 			udelay(chip->cs_chg_udelay);
- 		++drv_data->rx;
- 	}
--	write_FLAG(0xFF00);
-+	cs_deactive(chip);
- 
- }
- 
-@@ -356,7 +377,7 @@ static void u8_cs_chg_duplex(struct driv
- 	struct chip_data *chip = drv_data->cur_chip;
- 
- 	while (drv_data->rx < drv_data->rx_end) {
--		write_FLAG(chip->flag);
-+		cs_active(chip);
- 
- 
- 		write_TDBR(*(u8 *) (drv_data->tx));
-@@ -365,15 +386,14 @@ static void u8_cs_chg_duplex(struct driv
- 		while (!(read_STAT() & BIT_STAT_RXS))
- 			continue;
- 		*(u8 *) (drv_data->rx) = read_RDBR();
--		write_FLAG(0xFF00 | chip->flag);
-+		cs_deactive(chip);
- 
- 		if (chip->cs_chg_udelay)
- 			udelay(chip->cs_chg_udelay);
- 		++drv_data->rx;
- 		++drv_data->tx;
- 	}
--	write_FLAG(0xFF00);
+ 	int ret = 0;
+-	u16 ssel[MAX_SPI0_SSEL] = {P_SPI0_SSEL1, P_SPI0_SSEL2, P_SPI0_SSEL3,
+-					P_SPI0_SSEL4, P_SPI0_SSEL5,
+-					P_SPI0_SSEL6, P_SPI0_SSEL7,};
 -
-+	cs_deactive(chip);
- }
++	u16 ssel[3][MAX_SPI_SSEL] = {
++		{P_SPI0_SSEL1, P_SPI0_SSEL2, P_SPI0_SSEL3,
++		P_SPI0_SSEL4, P_SPI0_SSEL5,
++		P_SPI0_SSEL6, P_SPI0_SSEL7},
++
++		{P_SPI1_SSEL1, P_SPI1_SSEL2, P_SPI1_SSEL3,
++		P_SPI1_SSEL4, P_SPI1_SSEL5,
++		P_SPI1_SSEL6, P_SPI1_SSEL7},
++
++		{P_SPI2_SSEL1, P_SPI2_SSEL2, P_SPI2_SSEL3,
++		P_SPI2_SSEL4, P_SPI2_SSEL5,
++		P_SPI2_SSEL6, P_SPI2_SSEL7},
++	};
+ 	/* Clear status and disable clock */
+ 	write_STAT(BIT_STAT_CLR);
+ 	bfin_spi_disable(drv_data);
+@@ -234,9 +243,9 @@ static int restore_state(struct driver_d
+ 		int i = chip->chip_select_num;
  
- static void u16_writer(struct driver_data *drv_data)
-@@ -398,20 +418,20 @@ static void u16_cs_chg_writer(struct dri
- 	struct chip_data *chip = drv_data->cur_chip;
+ 		dev_dbg(&drv_data->pdev->dev, "chip select number is %d\n", i);
+-
+-		if ((i > 0) && (i <= MAX_SPI0_SSEL))
+-			ret = peripheral_request(ssel[i-1], DRV_NAME);
++		if ((i > 0) && (i <= MAX_SPI_SSEL))
++			ret = peripheral_request(
++				ssel[drv_data->master->bus_num][i-1], DRV_NAME);
  
- 	while (drv_data->tx < drv_data->tx_end) {
--		write_FLAG(chip->flag);
-+		cs_active(chip);
- 
- 		write_TDBR(*(u16 *) (drv_data->tx));
- 		while ((read_STAT() & BIT_STAT_TXS))
- 			continue;
- 		while (!(read_STAT() & BIT_STAT_SPIF))
- 			continue;
--		write_FLAG(0xFF00 | chip->flag);
-+		cs_deactive(chip);
- 
- 		if (chip->cs_chg_udelay)
- 			udelay(chip->cs_chg_udelay);
- 		drv_data->tx += 2;
+ 		chip->chip_select_requested = 1;
  	}
--	write_FLAG(0xFF00);
-+	cs_deactive(chip);
- }
+@@ -329,7 +338,6 @@ static void u8_reader(struct driver_data
+ 	write_TDBR(0xFFFF);
  
- static void u16_reader(struct driver_data *drv_data)
-@@ -438,7 +458,7 @@ static void u16_cs_chg_reader(struct dri
- 	struct chip_data *chip = drv_data->cur_chip;
- 
- 	while (drv_data->rx < drv_data->rx_end) {
--		write_FLAG(chip->flag);
-+		cs_active(chip);
- 
- 		read_RDBR();	/* kick off */
- 		while (!(read_STAT() & BIT_STAT_RXS))
-@@ -446,13 +466,13 @@ static void u16_cs_chg_reader(struct dri
- 		while (!(read_STAT() & BIT_STAT_SPIF))
- 			continue;
- 		*(u16 *) (drv_data->rx) = read_SHAW();
--		write_FLAG(0xFF00 | chip->flag);
-+		cs_deactive(chip);
- 
- 		if (chip->cs_chg_udelay)
- 			udelay(chip->cs_chg_udelay);
- 		drv_data->rx += 2;
- 	}
--	write_FLAG(0xFF00);
-+	cs_deactive(chip);
- }
- 
- static void u16_duplex(struct driver_data *drv_data)
-@@ -475,7 +495,7 @@ static void u16_cs_chg_duplex(struct dri
- 	struct chip_data *chip = drv_data->cur_chip;
- 
- 	while (drv_data->tx < drv_data->tx_end) {
--		write_FLAG(chip->flag);
-+		cs_active(chip);
- 
- 		write_TDBR(*(u16 *) (drv_data->tx));
- 		while (!(read_STAT() & BIT_STAT_SPIF))
-@@ -483,14 +503,14 @@ static void u16_cs_chg_duplex(struct dri
+ 	dummy_read();
+-
+ 	while (drv_data->rx < drv_data->rx_end - 1) {
  		while (!(read_STAT() & BIT_STAT_RXS))
  			continue;
- 		*(u16 *) (drv_data->rx) = read_RDBR();
--		write_FLAG(0xFF00 | chip->flag);
-+		cs_deactive(chip);
- 
- 		if (chip->cs_chg_udelay)
- 			udelay(chip->cs_chg_udelay);
- 		drv_data->rx += 2;
- 		drv_data->tx += 2;
- 	}
--	write_FLAG(0xFF00);
-+	cs_deactive(chip);
+@@ -640,7 +648,6 @@ static void pump_transfers(unsigned long
+ 	message = drv_data->cur_msg;
+ 	transfer = drv_data->cur_transfer;
+ 	chip = drv_data->cur_chip;
+-
+ 	/*
+ 	 * if msg is error or done, report it back using complete() callback
+ 	 */
+@@ -1206,16 +1213,20 @@ static inline int destroy_queue(struct d
+ 	return 0;
  }
  
- /* test if ther is more transfer to be done */
-@@ -515,6 +535,7 @@ static void *next_transfer(struct driver
-  */
- static void giveback(struct driver_data *drv_data)
+-static int setup_pin_mux(int action)
++static int setup_pin_mux(int action, int bus_num)
  {
-+	struct chip_data *chip = drv_data->cur_chip;
- 	struct spi_transfer *last_transfer;
- 	unsigned long flags;
- 	struct spi_message *msg;
-@@ -534,10 +555,13 @@ static void giveback(struct driver_data 
  
- 	/* disable chip select signal. And not stop spi in autobuffer mode */
- 	if (drv_data->tx_dma != 0xFFFF) {
--		write_FLAG(0xFF00);
-+		cs_deactive(chip);
- 		bfin_spi_disable(drv_data);
- 	}
+-	u16 pin_req[] = {P_SPI0_SCK, P_SPI0_MISO, P_SPI0_MOSI, 0};
++	u16 pin_req[3][4] = {
++		{P_SPI0_SCK, P_SPI0_MISO, P_SPI0_MOSI, 0},
++		{P_SPI1_SCK, P_SPI1_MISO, P_SPI1_MOSI, 0},
++		{P_SPI2_SCK, P_SPI2_MISO, P_SPI2_MOSI, 0},
++	};
  
-+	if (!drv_data->cs_change)
-+		cs_deactive(chip);
-+
- 	if (msg->complete)
- 		msg->complete(msg->context);
- }
-@@ -546,6 +570,7 @@ static irqreturn_t dma_irq_handler(int i
- {
- 	struct driver_data *drv_data = (struct driver_data *)dev_id;
- 	struct spi_message *msg = drv_data->cur_msg;
-+	struct chip_data *chip = drv_data->cur_chip;
- 
- 	dev_dbg(&drv_data->pdev->dev, "in dma_irq_handler\n");
- 	clear_dma_irqstat(CH_SPI);
-@@ -573,6 +598,9 @@ static irqreturn_t dma_irq_handler(int i
- 
- 	msg->actual_length += drv_data->len_in_bytes;
- 
-+	if (drv_data->cs_change)
-+		cs_deactive(chip);
-+
- 	/* Move to next transfer */
- 	msg->state = next_transfer(drv_data);
- 
-@@ -659,6 +687,7 @@ static void pump_transfers(unsigned long
- 	drv_data->rx_dma = transfer->rx_dma;
- 	drv_data->tx_dma = transfer->tx_dma;
- 	drv_data->len_in_bytes = transfer->len;
-+	drv_data->cs_change = transfer->cs_change;
- 
- 	width = chip->width;
- 	if (width == CFG_SPI_WORDSIZE16) {
-@@ -683,7 +712,7 @@ static void pump_transfers(unsigned long
+ 	if (action) {
+-		if (peripheral_request_list(pin_req, DRV_NAME))
++		if (peripheral_request_list(pin_req[bus_num], DRV_NAME))
+ 			return -EFAULT;
  	} else {
- 		write_BAUD(chip->baud);
+-		peripheral_free_list(pin_req);
++		peripheral_free_list(pin_req[bus_num]);
  	}
--	write_FLAG(chip->flag);
-+	cs_active(chip);
  
- 	dev_dbg(&drv_data->pdev->dev,
- 		"now pumping a transfer: width is %d, len is %d\n",
-@@ -834,6 +863,9 @@ static void pump_transfers(unsigned long
- 			/* Update total byte transfered */
- 			message->actual_length += drv_data->len;
+ 	return 0;
+@@ -1239,11 +1250,6 @@ static int __init bfin5xx_spi_probe(stru
+ 		return -ENOMEM;
+ 	}
  
-+			if (drv_data->cs_change)
-+				cs_deactive(chip);
+-	if (setup_pin_mux(1)) {
+-		dev_err(&pdev->dev, ": Requesting Peripherals failed\n");
+-		goto out_error;
+-	}
+-
+ 	drv_data = spi_master_get_devdata(master);
+ 	drv_data->master = master;
+ 	drv_data->master_info = platform_info;
+@@ -1298,6 +1304,11 @@ static int __init bfin5xx_spi_probe(stru
+ 		goto out_error_queue_alloc;
+ 	}
+ 
++	if (setup_pin_mux(1, master->bus_num)) {
++		dev_err(&pdev->dev, ": Requesting Peripherals failed\n");
++		goto out_error;
++	}
 +
- 			/* Move to next transfer of this msg */
- 			message->state = next_transfer(drv_data);
- 		}
+ 	dev_info(dev, "%s, Version %s, regs_base @ 0x%08x\n",
+ 		DRV_DESC, DRV_VERSION, spi_regs_base);
+ 	return status;
+@@ -1340,7 +1351,7 @@ static int __devexit bfin5xx_spi_remove(
+ 	/* Disconnect from the SPI framework */
+ 	spi_unregister_master(drv_data->master);
+ 
+-	setup_pin_mux(0);
++	setup_pin_mux(0, drv_data->master->bus_num);
+ 
+ 	/* Prevent double remove */
+ 	platform_set_drvdata(pdev, NULL);
 _
 
-Patches currently in -mm which might be from bryan.wu@analog.com are
+Patches currently in -mm which might be from sonic.zhang@analog.com are
 
 origin.patch
-git-mtd.patch
-blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-remove-mm_ptovvtop.patch
-blackfin-rtc-driver-the-frequency-function-is-in-units-of-hz-not-units-of-seconds-so-lock-our-driver-down-to-1-hz.patch
-blackfin-rtc-driver-we-pass-in-a-struct-device-to-the-irq-handler-not-a-struct-platform_device-so-fix-the-irq-handler.patch
-blackfin-rtc-driver-cleanup-proc-handler-we-dont-need-rtc-reg-dump-now-that-we-have-mmr-filesystem-in-sysfs.patch
-blackfin-rtc-driver-use-dev_dbg-rather-than-pr_stamp.patch
-blackfin-rtc-driver-read_alarm-checks-the-enabled-field-not-the-pending-field.patch
-blackfin-rtc-driver-shave-off-another-memcpy-by-using-assignment.patch
-blackfin-rtc-driver-convert-sync-wait-to-use-the-irq-write-complete-notice.patch
-sanitize-the-type-of-struct-useru_ar0.patch
-add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
-d_path-make-d_path-use-a-struct-path.patch
+libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
