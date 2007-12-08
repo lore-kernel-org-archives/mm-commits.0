@@ -1,52 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - bridge-section-fix.patch removed from -mm tree
-Date: Fri, 07 Dec 2007 17:30:40 -0800
-Message-ID: <200712080130.lB81UeG9013549@imap1.linux-foundation.org>
+Subject: - git-watchdog-hpwdt-build-fix.patch removed from -mm tree
+Date: Fri, 07 Dec 2007 17:30:36 -0800
+Message-ID: <200712080130.lB81UaML013546@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45010 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51619 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752099AbXLHBjQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 20:39:16 -0500
+	by vger.kernel.org with ESMTP id S1752812AbXLHBjR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2007 20:39:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, shemminger@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bridge: section fix
+     git-watchdog: hpwdt build fix
 has been removed from the -mm tree.  Its filename was
-     bridge-section-fix.patch
+     git-watchdog-hpwdt-build-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: bridge: section fix
+Subject: git-watchdog: hpwdt build fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: vmlinux.o(.init.text+0x204e2): Section mismatch: reference to .exit.text:br_fdb_fini (between 'br_init' and 'br_fdb_init')
+drivers/watchdog/hpwdt.c: In function 'hpwdt_init_one':
+drivers/watchdog/hpwdt.c:898: error: implicit declaration of function 'register_die_notifier'
+drivers/watchdog/hpwdt.c:922: error: implicit declaration of function 'unregister_die_notifier'
 
-Cc: Stephen Hemminger <shemminger@linux-foundation.org>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bridge/br_fdb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/watchdog/hpwdt.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN net/bridge/br.c~bridge-section-fix net/bridge/br.c
-diff -puN net/bridge/br_fdb.c~bridge-section-fix net/bridge/br_fdb.c
---- a/net/bridge/br_fdb.c~bridge-section-fix
-+++ a/net/bridge/br_fdb.c
-@@ -44,7 +44,7 @@ int __init br_fdb_init(void)
- 	return 0;
- }
- 
--void __exit br_fdb_fini(void)
-+void br_fdb_fini(void)
- {
- 	kmem_cache_destroy(br_fdb_cache);
- }
+diff -puN drivers/watchdog/hpwdt.c~git-watchdog-hpwdt-build-fix drivers/watchdog/hpwdt.c
+--- a/drivers/watchdog/hpwdt.c~git-watchdog-hpwdt-build-fix
++++ a/drivers/watchdog/hpwdt.c
+@@ -23,6 +23,7 @@
+ #include <linux/miscdevice.h>
+ #include <linux/mm.h>
+ #include <linux/module.h>
++#include <linux/kdebug.h>
+ #include <linux/moduleparam.h>
+ #include <linux/notifier.h>
+ #include <linux/pci.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
