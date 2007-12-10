@@ -1,271 +1,202 @@
 From: akpm@linux-foundation.org
-Subject: + slub-optimise-the-clearing-of-__gfp_zero.patch added to -mm tree
-Date: Mon, 10 Dec 2007 15:04:52 -0800
-Message-ID: <200712102304.lBAN4q6B023750@imap1.linux-foundation.org>
+Subject: - acpi-fix-autloading-of-dock-video-bay-and-all-linux-specific-hid-drivers.patch removed from -mm tree
+Date: Mon, 10 Dec 2007 15:21:46 -0800
+Message-ID: <200712102321.lBANLk6A024288@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38265 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55429 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751944AbXLJXFY (ORCPT
+	by vger.kernel.org with ESMTP id S1751769AbXLJXWh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Dec 2007 18:05:24 -0500
+	Mon, 10 Dec 2007 18:22:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clameter@sgi.com, torvalds@linux-foundation.org
+To: fseidel@suse.de, kasievers@novell.com, kristen.c.accardi@intel.com, lenb@kernel.org, trenn@novell.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slub: optimise the clearing of __GFP_ZERO
-has been added to the -mm tree.  Its filename is
-     slub-optimise-the-clearing-of-__gfp_zero.patch
+     acpi: fix autloading of dock, video, bay and all linux specific HID drivers
+has been removed from the -mm tree.  Its filename was
+     acpi-fix-autloading-of-dock-video-bay-and-all-linux-specific-hid-drivers.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: slub: optimise the clearing of __GFP_ZERO
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: acpi: fix autloading of dock, video, bay and all linux specific HID drivers
+From: Frank Seidel <fseidel@suse.de>
 
-gcc wasn't smart enough to work out that we don't need to clear that flag on
-the fastpath, so let's help it out.
+Fix autloading of dock, video, bay and all linux specific HID drivers
 
-Doesn't improve maintainability.
+References: https://bugzilla.novell.com/show_bug.cgi?id=302482
 
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Christoph Lameter <clameter@sgi.com>
+Due to the new autloading of acpi drivers, the dock driver wasn't loaded
+anymore as there is no HID to identify it with (dock is needed if ACPI has a
+_DCK method).  This patch is a workaround for this, original by Thomas
+Renninger, revised first by Kay Sievers and last by Frank Seidel.  V2 of this
+patch fixed problems on systems without a defined _CID for the docking
+devices.
+
+Signed-off-by: Thomas Renninger <trenn@novell.com>
+Signed-off-by: Kay Sievers <kasievers@novell.com>
+Signed-off-by: Frank Seidel <fseidel@suse.de>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/acpi/scan.c |  101 +++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 85 insertions(+), 16 deletions(-)
 
-diff -puN mm/slub.c~slub-optimise-the-clearing-of-__gfp_zero mm/slub.c
---- a/mm/slub.c~slub-optimise-the-clearing-of-__gfp_zero
-+++ a/mm/slub.c
-@@ -1497,9 +1497,6 @@ static void *__slab_alloc(struct kmem_ca
- 	void **object;
- 	struct page *new;
+diff -puN drivers/acpi/scan.c~acpi-fix-autloading-of-dock-video-bay-and-all-linux-specific-hid-drivers drivers/acpi/scan.c
+--- a/drivers/acpi/scan.c~acpi-fix-autloading-of-dock-video-bay-and-all-linux-specific-hid-drivers
++++ a/drivers/acpi/scan.c
+@@ -941,6 +941,15 @@ static int acpi_bay_match(struct acpi_de
+ 	return -ENODEV;
+ }
  
--	/* We handle __GFP_ZERO in the caller */
--	gfpflags &= ~__GFP_ZERO;
--
- 	if (!c->page)
- 		goto new_slab;
- 
-@@ -1527,6 +1524,9 @@ another_slab:
- 	deactivate_slab(s, c);
- 
- new_slab:
-+	/* We handle __GFP_ZERO in the caller */
-+	gfpflags &= ~__GFP_ZERO;
++/*
++ * acpi_dock_match - see if a device has a _DCK method
++ */
++static int acpi_dock_match(struct acpi_device *device)
++{
++	acpi_handle tmp;
++	return acpi_get_handle(device->handle, "_DCK", &tmp);
++}
 +
- 	new = get_partial(s, gfpflags, node);
- 	if (new) {
- 		c->page = new;
+ static void acpi_device_set_id(struct acpi_device *device,
+ 			       struct acpi_device *parent, acpi_handle handle,
+ 			       int type)
+@@ -950,6 +959,7 @@ static void acpi_device_set_id(struct ac
+ 	char *hid = NULL;
+ 	char *uid = NULL;
+ 	struct acpi_compatible_id_list *cid_list = NULL;
++	const char *cid_add = NULL;
+ 	acpi_status status;
+ 
+ 	switch (type) {
+@@ -972,15 +982,18 @@ static void acpi_device_set_id(struct ac
+ 			device->flags.bus_address = 1;
+ 		}
+ 
+-		if(!(info->valid & (ACPI_VALID_HID | ACPI_VALID_CID))){
+-			status = acpi_video_bus_match(device);
+-			if(ACPI_SUCCESS(status))
+-				hid = ACPI_VIDEO_HID;
+-
+-			status = acpi_bay_match(device);
+-			if (ACPI_SUCCESS(status))
+-				hid = ACPI_BAY_HID;
+-		}
++		/* If we have a video/bay/dock device, add our selfdefined
++		   HID to the CID list. Like that the video/bay/dock drivers
++		   will get autoloaded and the device might still match
++		   against another driver.
++		*/
++		if (ACPI_SUCCESS(acpi_video_bus_match(device)))
++			cid_add = ACPI_VIDEO_HID;
++		else if (ACPI_SUCCESS(acpi_bay_match(device)))
++			cid_add = ACPI_BAY_HID;
++		else if (ACPI_SUCCESS(acpi_dock_match(device)))
++			cid_add = ACPI_DOCK_HID;
++
+ 		break;
+ 	case ACPI_BUS_TYPE_POWER:
+ 		hid = ACPI_POWER_HID;
+@@ -1021,11 +1034,43 @@ static void acpi_device_set_id(struct ac
+ 		strcpy(device->pnp.unique_id, uid);
+ 		device->flags.unique_id = 1;
+ 	}
+-	if (cid_list) {
+-		device->pnp.cid_list = kmalloc(cid_list->size, GFP_KERNEL);
+-		if (device->pnp.cid_list)
+-			memcpy(device->pnp.cid_list, cid_list, cid_list->size);
+-		else
++	if (cid_list || cid_add) {
++		struct  acpi_compatible_id_list *list;
++		int size = 0;
++		int count = 0;
++
++		if (cid_list) {
++			size = cid_list->size;
++		} else if (cid_add) {
++			size = sizeof(struct acpi_compatible_id_list);
++			cid_list = ACPI_ALLOCATE_ZEROED((acpi_size) size);
++			if (!cid_list) {
++				printk(KERN_ERR "Memory allocation error\n");
++				kfree(buffer.pointer);
++				return;
++			} else {
++				cid_list->count = 0;
++				cid_list->size = size;
++			}
++		}
++		if (cid_add)
++			size += sizeof(struct acpi_compatible_id);
++		list = kmalloc(size, GFP_KERNEL);
++
++		if (list) {
++			if (cid_list) {
++				memcpy(list, cid_list, cid_list->size);
++				count = cid_list->count;
++			}
++			if (cid_add) {
++				strncpy(list->id[count].value, cid_add, ACPI_MAX_CID_LENGTH);
++				count++;
++				device->flags.compatible_ids = 1;
++			}
++			list->size = size;
++			list->count = count;
++			device->pnp.cid_list = list;
++		} else
+ 			printk(KERN_ERR "Memory allocation error\n");
+ 	}
+ 
+@@ -1081,6 +1126,20 @@ static int acpi_bus_remove(struct acpi_d
+ }
+ 
+ static int
++acpi_is_child_device(struct acpi_device *device,
++			int (*matcher)(struct acpi_device*))
++{
++	int result = -ENODEV;
++
++	do {
++		if (ACPI_SUCCESS(matcher(device)))
++			return AE_OK;
++	} while ((device = device->parent));
++
++	return result;
++}
++
++static int
+ acpi_add_single_object(struct acpi_device **child,
+ 		       struct acpi_device *parent, acpi_handle handle, int type,
+ 			struct acpi_bus_ops *ops)
+@@ -1131,10 +1190,20 @@ acpi_add_single_object(struct acpi_devic
+ 	case ACPI_BUS_TYPE_PROCESSOR:
+ 	case ACPI_BUS_TYPE_DEVICE:
+ 		result = acpi_bus_get_status(device);
+-		if (ACPI_FAILURE(result) || !device->status.present) {
+-			result = -ENOENT;
++		if (ACPI_FAILURE(result)) {
++			result = -ENODEV;
+ 			goto end;
+ 		}
++		if (!device->status.present) {
++                	/* Bay and dock should be handled even if absent */
++			if (!ACPI_SUCCESS(
++			     acpi_is_child_device(device, acpi_bay_match)) &&
++			    !ACPI_SUCCESS(
++			     acpi_is_child_device(device, acpi_dock_match))) {
++					result = -ENODEV;
++					goto end;
++			}
++		}
+ 		break;
+ 	default:
+ 		STRUCT_TO_INT(device->status) =
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from fseidel@suse.de are
 
-origin.patch
-aoe-properly-initialise-the-request_queues-backing_dev_info.patch
-revert-dpt_i2o-convert-to-scsi-hotplug-model.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-timerfd-v3-new-timerfd-api-ia64-fix.patch
-timerfd-v3-new-timerfd-api-m68k-fix.patch
-timerfd-v3-new-timerfd-api-mips-fix.patch
-timerfd-v3-new-timerfd-api-arch-fixes.patch
-timerfd-v3-new-timerfd-api-powerpc-fix.patch
-timerfd-v3-new-timerfd-api-sparc64-fix.patch
-git-acpi-ia64-build-fix.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-git-agpgart.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-kernel-auditc-warning-fix.patch
-git-cpufreq.patch
-git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-dm-persistent_read_metadata-warning-fix.patch
-ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-git-drm.patch
-git-drm-oops-fix.patch
-intel-agp-enable-i915-recognition.patch
-git-dvb.patch
-fix-jdelvare-i2c-i2c-constify-client-address-data.patch
-revert-git-hrt.patch
-git-ia64.patch
-ia64-slim-down-__clear_bit_unlock.patch
-git-infiniband.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-libata-xfer_mask-is-unsigned-int-not-unsigned-long-fix.patch
-libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
-libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
-git-mmc.patch
-git-mtd.patch
-git-net.patch
-git-net-vs-git-lblnet.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-bluetooth-uninlining.patch
-git-nfsd.patch
-quirk-enable-msi-mapping-on-ht1000.patch
-kernel-time-make-tick_do_broadcast-static.patch
-git-sh.patch
-git-scsi-misc-fixup.patch
-ips-trim-trailing-whitespace.patch
-scsi-gdth-kill-unneeded-irq-argument.patch
-drivers-scsi-sgiwd93c-export-sgiwd93_reset.patch
-libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-mct232-speed-new-termios-and-compliance-cleanups-fix.patch
-usb-testing-driver-dont-free-a-locked-mutex.patch
-git-watchdog.patch
-add-support-for-sb1-hardware-watchdog-fix.patch
-git-wireless.patch
-bcm43xx_debugfs-sscanf-fix.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-x86-__vdso_getcpu-warning-fix.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-git-xtensa.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-optimise-the-clearing-of-__gfp_zero.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-sync_sb_inodes-propagate-errors.patch
-move-kprobes-examples-to-samples-resend-vs-git-x86.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
-64-bit-i_version-afs-fixes.patch
-ext4-add-block-bitmap-validation.patch
-ext4-fix-up-ext4fs_debug-builds.patch
-ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-rewrite-rd-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+git-acpi.patch
