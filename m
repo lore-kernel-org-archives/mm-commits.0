@@ -1,63 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - git-kvm-fixup.patch removed from -mm tree
-Date: Mon, 10 Dec 2007 14:53:02 -0800
-Message-ID: <200712102253.lBAMr4DG023346@imap1.linux-foundation.org>
+Subject: - revert-revert-git-kvm-changes-in-arch-x86-kconfig.patch removed from -mm tree
+Date: Mon, 10 Dec 2007 14:56:44 -0800
+Message-ID: <200712102256.lBAMuifw023403@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45232 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51296 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751211AbXLJWxJ (ORCPT
+	by vger.kernel.org with ESMTP id S1751653AbXLJW5O (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Dec 2007 17:53:09 -0500
+	Mon, 10 Dec 2007 17:57:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, avi@qumranet.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, avi@qumranet.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-kvm-fixup
+     revert revert-git-kvm-changes-in-arch-x86-kconfig
 has been removed from the -mm tree.  Its filename was
-     git-kvm-fixup.patch
+     revert-revert-git-kvm-changes-in-arch-x86-kconfig.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-kvm-fixup
+Subject: revert revert-git-kvm-changes-in-arch-x86-kconfig
 From: Andrew Morton <akpm@linux-foundation.org>
 
+And put it back again.
+
 Cc: Avi Kivity <avi@qumranet.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ arch/x86/Kconfig |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN arch/x86/Kconfig~git-kvm-fixup arch/x86/Kconfig
---- a/arch/x86/Kconfig~git-kvm-fixup
+diff -puN arch/x86/Kconfig~revert-revert-git-kvm-changes-in-arch-x86-kconfig arch/x86/Kconfig
+--- a/arch/x86/Kconfig~revert-revert-git-kvm-changes-in-arch-x86-kconfig
 +++ a/arch/x86/Kconfig
-@@ -112,19 +112,13 @@ config GENERIC_TIME_VSYSCALL
- 	bool
- 	default X86_64
- 
--<<<<<<< HEAD:arch/x86/Kconfig
- config ARCH_SUPPORTS_OPROFILE
--=======
--config ARCH_SUPPORTS_KVM
-->>>>>>> FETCH_HEAD:arch/x86/Kconfig
- 	bool
- 	default y
--<<<<<<< HEAD:arch/x86/Kconfig
--=======
--
--
-->>>>>>> FETCH_HEAD:arch/x86/Kconfig
+@@ -436,6 +436,9 @@ config SWIOTLB
+ 	  access 32-bits of memory can be used on systems with more than
+ 	  3 GB of memory. If unsure, say Y.
  
 +config ARCH_SUPPORTS_KVM
 +	bool
 +	default y
  
- config ZONE_DMA32
- 	bool
+ config NR_CPUS
+ 	int "Maximum number of CPUs (2-255)"
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -100,7 +91,6 @@ git-ia64.patch
 ia64-slim-down-__clear_bit_unlock.patch
 git-infiniband.patch
 git-kvm.patch
-git-kvm-fixup.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
 pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
