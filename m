@@ -1,54 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - revert-revert-git-kvm-changes-in-arch-x86-kconfig.patch removed from -mm tree
-Date: Mon, 10 Dec 2007 14:56:44 -0800
-Message-ID: <200712102256.lBAMuifw023403@imap1.linux-foundation.org>
+Subject: + slub-optimise-the-clearing-of-__gfp_zero.patch added to -mm tree
+Date: Mon, 10 Dec 2007 15:04:52 -0800
+Message-ID: <200712102304.lBAN4q6B023750@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51296 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38265 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751653AbXLJW5O (ORCPT
+	by vger.kernel.org with ESMTP id S1751944AbXLJXFY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Dec 2007 17:57:14 -0500
+	Mon, 10 Dec 2007 18:05:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, avi@qumranet.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, clameter@sgi.com, torvalds@linux-foundation.org
 
 
 The patch titled
-     revert revert-git-kvm-changes-in-arch-x86-kconfig
-has been removed from the -mm tree.  Its filename was
-     revert-revert-git-kvm-changes-in-arch-x86-kconfig.patch
+     slub: optimise the clearing of __GFP_ZERO
+has been added to the -mm tree.  Its filename is
+     slub-optimise-the-clearing-of-__gfp_zero.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: revert revert-git-kvm-changes-in-arch-x86-kconfig
+Subject: slub: optimise the clearing of __GFP_ZERO
 From: Andrew Morton <akpm@linux-foundation.org>
 
-And put it back again.
+gcc wasn't smart enough to work out that we don't need to clear that flag on
+the fastpath, so let's help it out.
 
-Cc: Avi Kivity <avi@qumranet.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Doesn't improve maintainability.
+
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/slub.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/Kconfig~revert-revert-git-kvm-changes-in-arch-x86-kconfig arch/x86/Kconfig
---- a/arch/x86/Kconfig~revert-revert-git-kvm-changes-in-arch-x86-kconfig
-+++ a/arch/x86/Kconfig
-@@ -436,6 +436,9 @@ config SWIOTLB
- 	  access 32-bits of memory can be used on systems with more than
- 	  3 GB of memory. If unsure, say Y.
+diff -puN mm/slub.c~slub-optimise-the-clearing-of-__gfp_zero mm/slub.c
+--- a/mm/slub.c~slub-optimise-the-clearing-of-__gfp_zero
++++ a/mm/slub.c
+@@ -1497,9 +1497,6 @@ static void *__slab_alloc(struct kmem_ca
+ 	void **object;
+ 	struct page *new;
  
-+config ARCH_SUPPORTS_KVM
-+	bool
-+	default y
+-	/* We handle __GFP_ZERO in the caller */
+-	gfpflags &= ~__GFP_ZERO;
+-
+ 	if (!c->page)
+ 		goto new_slab;
  
- config NR_CPUS
- 	int "Maximum number of CPUs (2-255)"
+@@ -1527,6 +1524,9 @@ another_slab:
+ 	deactivate_slab(s, c);
+ 
+ new_slab:
++	/* We handle __GFP_ZERO in the caller */
++	gfpflags &= ~__GFP_ZERO;
++
+ 	new = get_partial(s, gfpflags, node);
+ 	if (new) {
+ 		c->page = new;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -125,20 +141,17 @@ git-wireless.patch
 bcm43xx_debugfs-sscanf-fix.patch
 git-ipwireless_cs.patch
 git-x86.patch
-revert-revert-git-kvm-changes-in-arch-x86-kconfig.patch
 git-x86-__vdso_getcpu-warning-fix.patch
 git-cryptodev.patch
 git-cryptodev-fixup.patch
 git-xtensa.patch
-ia64-increase-datapatch-offset.patch
-ia64-dont-assume-that-unwcheckpy-is-executable.patch
-ia64-export-copy_page-to-modules.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
 vmalloc-add-const-to-void-parameters-fix.patch
 i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
 slub-fix-coding-style-violations-checkpatch-fixes.patch
 slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-optimise-the-clearing-of-__gfp_zero.patch
 slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
 bufferhead-revert-constructor-removal-checkpatch-fixes.patch
 maps4-rework-task_size-macros-mips-fix.patch
