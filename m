@@ -1,67 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - fix-null-dereference-in-umemc.patch removed from -mm tree
-Date: Tue, 11 Dec 2007 14:42:00 -0800
-Message-ID: <200712112242.lBBMg09I012573@imap1.linux-foundation.org>
+Subject: - drivers-serial-uartlitec-add-missing-of_node_put.patch removed from -mm tree
+Date: Tue, 11 Dec 2007 14:41:55 -0800
+Message-ID: <200712112241.lBBMftoU012570@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59731 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57214 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756239AbXLKWml (ORCPT
+	by vger.kernel.org with ESMTP id S1757190AbXLKWoW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Dec 2007 17:42:41 -0500
+	Tue, 11 Dec 2007 17:44:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, dgc@sgi.com, mm-commits@vger.kernel.org
+To: julia@diku.dk, grant.likely@secretlab.ca, jacmet@sunsite.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix NULL dereference in umem.c
+     drivers/serial/uartlite.c: Add missing of_node_put
 has been removed from the -mm tree.  Its filename was
-     fix-null-dereference-in-umemc.patch
+     drivers-serial-uartlitec-add-missing-of_node_put.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix NULL dereference in umem.c
-From: Neil Brown <neilb@suse.de>
+Subject: drivers/serial/uartlite.c: Add missing of_node_put
+From: Julia Lawall <julia@diku.dk>
 
-Fix NULL dereference in umem.c
+There should be an of_node_put when breaking out of a loop that iterates
+using for_each_compatible_node.
 
-Signed-off-by: Neil Brown <neilb@suse.de>
-Tested-by: Dave Chinner <dgc@sgi.com>
+This was detected and fixed using the following semantic patch.
+(http://www.emn.fr/x-info/coccinelle/)
+
+// <smpl>
+@@
+identifier d;
+type T;
+expression e;
+iterator for_each_compatible_node;
+@@
+
+T *d;
+...
+for_each_compatible_node(d,...)
+  {... when != of_node_put(d)
+       when != e = d
+(
+   return d;
+|
++  of_node_put(d);
+?  return ...;
+)
+...}
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Acked-by: Grant Likely <grant.likely@secretlab.ca>
+Acked-by: Peter Korsgaard <jacmet@sunsite.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/umem.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/serial/uartlite.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/block/umem.c~fix-null-dereference-in-umemc drivers/block/umem.c
---- a/drivers/block/umem.c~fix-null-dereference-in-umemc
-+++ a/drivers/block/umem.c
-@@ -484,7 +484,8 @@ static void process_page(unsigned long d
- 		page->idx++;
- 		if (page->idx >= bio->bi_vcnt) {
- 			page->bio = bio->bi_next;
--			page->idx = page->bio->bi_idx;
-+			if (page->bio)
-+				page->idx = page->bio->bi_idx;
- 		}
+diff -puN drivers/serial/uartlite.c~drivers-serial-uartlitec-add-missing-of_node_put drivers/serial/uartlite.c
+--- a/drivers/serial/uartlite.c~drivers-serial-uartlitec-add-missing-of_node_put
++++ a/drivers/serial/uartlite.c
+@@ -393,6 +393,7 @@ static inline void __init ulite_console_
+ 			continue;
  
- 		pci_unmap_page(card->dev, desc->data_dma_handle,
+ 		ulite_ports[id].mapbase = res.start;
++		of_node_put(np);
+ 		return;
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from julia@diku.dk are
 
-git-md-accel.patch
-git-nfsd.patch
-coding-style-cleanups-for-drivers-md-mktablesc.patch
-one-less-parameter-to-__d_path.patch
-d_path-kerneldoc-cleanup.patch
-d_path-use-struct-path-in-struct-avc_audit_data.patch
-d_path-make-proc_get_link-use-a-struct-path-argument.patch
-d_path-make-get_dcookie-use-a-struct-path-argument.patch
-use-struct-path-in-struct-svc_export.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_expkey.patch
-d_path-make-seq_path-use-a-struct-path-argument.patch
-d_path-make-d_path-use-a-struct-path.patch
+origin.patch
+git-alsa.patch
+drivers-char-remove-unnecessary-pci_dev_put.patch
+arch-ppc-remove-an-unnecessary-pci_dev_put.patch
+git-input.patch
+drivers-video-remove-unnecessary-pci_dev_put.patch
