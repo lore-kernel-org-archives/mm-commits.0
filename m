@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-boot-export-boot_params-via-sysfs.patch added to -mm tree
-Date: Tue, 11 Dec 2007 15:38:26 -0800
-Message-ID: <200712112338.lBBNcQbj014935@imap1.linux-foundation.org>
+Subject: + x86-boot-export-boot_params-via-sysfs-fix.patch added to -mm tree
+Date: Tue, 11 Dec 2007 15:39:17 -0800
+Message-ID: <200712112339.lBBNdH8J014966@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42738 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36137 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753637AbXLKXjh (ORCPT
+	by vger.kernel.org with ESMTP id S1751047AbXLKXkc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Dec 2007 18:39:37 -0500
+	Tue, 11 Dec 2007 18:40:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ying.huang@intel.com, ak@suse.de, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, ak@suse.de, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, ying.huang@intel.com
 
 
 The patch titled
-     x86 boot: export boot_params via sysfs
+     x86-boot-export-boot_params-via-sysfs-fix
 has been added to the -mm tree.  Its filename is
-     x86-boot-export-boot_params-via-sysfs.patch
+     x86-boot-export-boot_params-via-sysfs-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,185 +26,236 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86 boot: export boot_params via sysfs
-From: "Huang, Ying" <ying.huang@intel.com>
+Subject: x86-boot-export-boot_params-via-sysfs-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Export the boot parameters via sysfs.  This can be used for debugging and
-kexec.
+Remove unneeded and incorrect filename in comment.
 
-The files added are as follow:
-
-/sys/kernel/boot_params/data	: binary file for struct boot_params
-/sys/kernel/boot_params/version	: boot protocol version
-
-Signed-off-by: Huang Ying <ying.huang@intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Huang Ying <ying.huang@intel.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <ak@suse.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/Makefile_32 |    1 
- arch/x86/kernel/Makefile_64 |    1 
- arch/x86/kernel/ksysfs.c    |   94 ++++++++++++++++++++++++++++++++++
- arch/x86/kernel/setup64.c   |    2 
- arch/x86/kernel/setup_32.c  |    2 
- 5 files changed, 98 insertions(+), 2 deletions(-)
+ arch/x86/kernel/ksysfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/Makefile_32~x86-boot-export-boot_params-via-sysfs arch/x86/kernel/Makefile_32
---- a/arch/x86/kernel/Makefile_32~x86-boot-export-boot_params-via-sysfs
-+++ a/arch/x86/kernel/Makefile_32
-@@ -45,6 +45,7 @@ obj-$(CONFIG_EARLY_PRINTK)	+= early_prin
- obj-$(CONFIG_HPET_TIMER) 	+= hpet.o
- obj-$(CONFIG_K8_NB)		+= k8.o
- obj-$(CONFIG_MGEODE_LX)		+= geode_32.o mfgpt_32.o
-+obj-$(CONFIG_SYSFS)		+= ksysfs.o
- 
- obj-$(CONFIG_VMI)		+= vmi_32.o vmiclock_32.o
- obj-$(CONFIG_PARAVIRT)		+= paravirt_32.o
-diff -puN arch/x86/kernel/Makefile_64~x86-boot-export-boot_params-via-sysfs arch/x86/kernel/Makefile_64
---- a/arch/x86/kernel/Makefile_64~x86-boot-export-boot_params-via-sysfs
-+++ a/arch/x86/kernel/Makefile_64
-@@ -40,6 +40,7 @@ obj-$(CONFIG_X86_VSMP)		+= vsmp_64.o
- obj-$(CONFIG_K8_NB)		+= k8.o
- obj-$(CONFIG_AUDIT)		+= audit_64.o
- obj-$(CONFIG_EFI)		+= efi.o efi_64.o efi_stub_64.o
-+obj-$(CONFIG_SYSFS)		+= ksysfs.o
- 
- obj-$(CONFIG_MODULES)		+= module_64.o
- obj-$(CONFIG_PCI)		+= early-quirks.o
-diff -puN /dev/null arch/x86/kernel/ksysfs.c
---- /dev/null
+diff -puN arch/x86/kernel/ksysfs.c~x86-boot-export-boot_params-via-sysfs-fix arch/x86/kernel/ksysfs.c
+--- a/arch/x86/kernel/ksysfs.c~x86-boot-export-boot_params-via-sysfs-fix
 +++ a/arch/x86/kernel/ksysfs.c
-@@ -0,0 +1,94 @@
-+/*
-+ * arch/i386/ksysfs.c - architecture specific sysfs attributes in /sys/kernel
-+ *
-+ * Copyright (C) 2007, Intel Corp.
-+ *      Huang Ying <ying.huang@intel.com>
-+ *
-+ * This file is released under the GPLv2
-+ */
-+
-+#include <linux/kobject.h>
-+#include <linux/string.h>
-+#include <linux/sysfs.h>
-+#include <linux/init.h>
-+#include <linux/stat.h>
-+#include <linux/mm.h>
-+
-+#include <asm/setup.h>
-+
-+static ssize_t boot_params_version_show(struct kobject *kobj,
-+					struct kobj_attribute *attr, char *buf)
-+{
-+	return sprintf(buf, "0x%04x\n", boot_params.hdr.version);
-+}
-+
-+static struct kobj_attribute boot_params_version_attr = {
-+	.attr = {
-+		.name = "version",
-+		.mode = S_IRUGO,
-+	},
-+	.show = boot_params_version_show,
-+};
-+
-+static struct attribute *boot_params_attrs[] = {
-+	&boot_params_version_attr.attr,
-+	NULL
-+};
-+
-+static struct attribute_group boot_params_attr_group = {
-+	.attrs = boot_params_attrs,
-+};
-+
-+static ssize_t boot_params_data_read(struct kobject *kobj,
-+				     struct bin_attribute *bin_attr,
-+				     char *buf, loff_t off, size_t count)
-+{
-+	memcpy(buf, (void *)&boot_params + off, count);
-+	return count;
-+}
-+
-+static struct bin_attribute boot_params_data_attr = {
-+	.attr = {
-+		.name = "data",
-+		.mode = S_IRUGO,
-+	},
-+	.read = boot_params_data_read,
-+	.size = sizeof(boot_params),
-+};
-+
-+static int __init boot_params_ksysfs_init(void)
-+{
-+	int error;
-+	struct kobject *boot_params_kobj;
-+
-+	boot_params_kobj = kobject_create_and_register("boot_params",
-+						       kernel_kobj);
-+	if (!boot_params_kobj) {
-+		error = -ENOMEM;
-+		goto err_return;
-+	}
-+	error = sysfs_create_group(boot_params_kobj,
-+				   &boot_params_attr_group);
-+	if (error)
-+		goto err_boot_params_subsys_unregister;
-+	error = sysfs_create_bin_file(boot_params_kobj,
-+				      &boot_params_data_attr);
-+	if (error)
-+		goto err_boot_params_subsys_unregister;
-+	return 0;
-+err_boot_params_subsys_unregister:
-+	kobject_unregister(boot_params_kobj);
-+err_return:
-+	return error;
-+}
-+
-+static int __init arch_ksysfs_init(void)
-+{
-+	int error;
-+
-+	error = boot_params_ksysfs_init();
-+
-+	return error;
-+}
-+
-+arch_initcall(arch_ksysfs_init);
-diff -puN arch/x86/kernel/setup64.c~x86-boot-export-boot_params-via-sysfs arch/x86/kernel/setup64.c
---- a/arch/x86/kernel/setup64.c~x86-boot-export-boot_params-via-sysfs
-+++ a/arch/x86/kernel/setup64.c
-@@ -24,7 +24,7 @@
- #include <asm/sections.h>
- #include <asm/setup.h>
- 
--struct boot_params __initdata boot_params;
-+struct boot_params boot_params;
- 
- cpumask_t cpu_initialized __cpuinitdata = CPU_MASK_NONE;
- 
-diff -puN arch/x86/kernel/setup_32.c~x86-boot-export-boot_params-via-sysfs arch/x86/kernel/setup_32.c
---- a/arch/x86/kernel/setup_32.c~x86-boot-export-boot_params-via-sysfs
-+++ a/arch/x86/kernel/setup_32.c
-@@ -194,7 +194,7 @@ unsigned long saved_videomode;
- 
- static char __initdata command_line[COMMAND_LINE_SIZE];
- 
--struct boot_params __initdata boot_params;
-+struct boot_params boot_params;
- 
- #if defined(CONFIG_EDD) || defined(CONFIG_EDD_MODULE)
- struct edd edd;
+@@ -1,5 +1,5 @@
+ /*
+- * arch/i386/ksysfs.c - architecture specific sysfs attributes in /sys/kernel
++ * Architecture-specific sysfs attributes in /sys/kernel
+  *
+  * Copyright (C) 2007, Intel Corp.
+  *      Huang Ying <ying.huang@intel.com>
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-x86_64-efi-runtime-service-support-efi-basic-runtime-service-support.patch
-x86_64-efi-runtime-service-support-efi-basic-runtime-service-support-fixes.patch
-x86_64-efi-runtime-service-support-efi-runtime-services.patch
-x86_64-efi-runtime-service-support-document-for-efi-runtime-services.patch
-x86_64-efi-runtime-service-support-remove-duplicated-code-from-efi_32c.patch
-x86-boot-use-e820-memory-map-on-efi-32-platform.patch
-x86-boot-export-boot_params-via-sysfs.patch
-vmcoreinfo-add-the-array-length-of-free_list-for-filtering-free-pages.patch
+revert-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+timerfd-v3-new-timerfd-api-ia64-fix.patch
+timerfd-v3-new-timerfd-api-m68k-fix.patch
+timerfd-v3-new-timerfd-api-mips-fix.patch
+timerfd-v3-new-timerfd-api-arch-fixes.patch
+timerfd-v3-new-timerfd-api-powerpc-fix.patch
+timerfd-v3-new-timerfd-api-sparc64-fix.patch
+git-acpi-ia64-build-fix.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-add-reboot-mechanism.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+git-agpgart.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+kernel-auditc-warning-fix.patch
+git-cpufreq.patch
+git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
+agk-dm-dm-ioctl-move-compat-code-fix.patch
+dm-persistent_read_metadata-warning-fix.patch
+ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+git-drm.patch
+git-drm-oops-fix.patch
+intel-agp-enable-i915-recognition.patch
+git-dvb.patch
+fix-jdelvare-i2c-i2c-constify-client-address-data.patch
+git-hid.patch
+revert-git-hrt.patch
+ia64-slim-down-__clear_bit_unlock.patch
+git-infiniband.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+libata-xfer_mask-is-unsigned-int-not-unsigned-long-fix.patch
+libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
+libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
+git-mmc.patch
+git-mtd.patch
+git-net.patch
+git-net-vs-git-lblnet.patch
+git-netdev-all.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+bluetooth-uninlining.patch
+git-nfsd.patch
+quirk-enable-msi-mapping-on-ht1000.patch
+kernel-time-make-tick_do_broadcast-static.patch
+git-sh.patch
+git-scsi-misc-fixup.patch
+ips-trim-trailing-whitespace.patch
+scsi-gdth-kill-unneeded-irq-argument.patch
+drivers-scsi-sgiwd93c-export-sgiwd93_reset.patch
+hptiop-add-more-adapter-models-and-other-fixes-fix.patch
+libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+mct232-speed-new-termios-and-compliance-cleanups-fix.patch
+usb-testing-driver-dont-free-a-locked-mutex.patch
+git-watchdog.patch
+add-support-for-sb1-hardware-watchdog-fix.patch
+git-wireless.patch
+bcm43xx_debugfs-sscanf-fix.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-__vdso_getcpu-warning-fix.patch
+x86-boot-export-boot_params-via-sysfs-fix.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-xtensa.patch
+bonding-locking-fix.patch
+sata_nv-fix-oops.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-optimise-the-clearing-of-__gfp_zero.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+sync_sb_inodes-propagate-errors.patch
+move-kprobes-examples-to-samples-resend-vs-git-x86.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+64-bit-i_version-afs-fixes.patch
+ext4-add-block-bitmap-validation.patch
+ext4-fix-up-ext4fs_debug-builds.patch
+ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
