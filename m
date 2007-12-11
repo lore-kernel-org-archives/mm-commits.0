@@ -1,149 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - update-stale-maintainers-entries.patch removed from -mm tree
-Date: Tue, 11 Dec 2007 14:42:05 -0800
-Message-ID: <200712112242.lBBMg55I012585@imap1.linux-foundation.org>
+Subject: + e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch added to -mm tree
+Date: Tue, 11 Dec 2007 15:28:30 -0800
+Message-ID: <200712112328.lBBNSUN6014553@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54886 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58849 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758679AbXLKWuY (ORCPT
+	by vger.kernel.org with ESMTP id S1752376AbXLKX2q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Dec 2007 17:50:24 -0500
+	Tue, 11 Dec 2007 18:28:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: randy.dunlap@oracle.com, auke-jan.h.kok@intel.com, jeff@garzik.org
 
 
 The patch titled
-     MAINTAINERS: update stale entries
-has been removed from the -mm tree.  Its filename was
-     update-stale-maintainers-entries.patch
+     e1000e: make E1000E default to the same kconfig setting as E1000
+has been added to the -mm tree.  Its filename is
+     e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: MAINTAINERS: update stale entries
-From: Joe Perches <joe@perches.com>
+Subject: e1000e: make E1000E default to the same kconfig setting as E1000
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Some bad email addresses are removed:
+Make E1000E default to the same kconfig setting as E1000.  So people's
+machiens don't stop working when they use oldconfig.
 
-        linux-tr@linuxtr.net
-        ehaase@inf.fu-berlin.de
-
-Some are updated:
-
-        linux@maxim.org.za to andrew@sanpeople.com
-        linux-kernel@linux-mips.org to linux-mips@linux-mips.org
-        jdike@karaya.com to jdike@addtoit.com
-
-The PCMCIA entry is corrected to a web address
-
-The ZR36120 VIDEO FOR LINUX DRIVER entry is removed
-
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Auke Kok <auke-jan.h.kok@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   19 ++++---------------
- 1 file changed, 4 insertions(+), 15 deletions(-)
+ drivers/net/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN MAINTAINERS~update-stale-maintainers-entries MAINTAINERS
---- a/MAINTAINERS~update-stale-maintainers-entries
-+++ a/MAINTAINERS
-@@ -88,7 +88,6 @@ S: Status, one of the following:
- P:	Mike Phillips
- M:	mikep@linuxtr.net
- L:	netdev@vger.kernel.org
--L:	linux-tr@linuxtr.net
- W:	http://www.linuxtr.net
- S:	Maintained
- 
-@@ -167,7 +166,6 @@ S:	Maintained
- 
- A2232 SERIAL BOARD DRIVER
- P:	Enver Haase
--M:	ehaase@inf.fu-berlin.de
- M:	A2232@gmx.net
- L:	linux-m68k@lists.linux-m68k.org
- S:	Maintained
-@@ -439,7 +437,7 @@ S:	Maintained
- 
- ARM/ATMEL AT91RM9200 ARM ARCHITECTURE
- P:      Andrew Victor
--M:      linux@maxim.org.za
-+M:      andrew@sanpeople.com
- L:      linux-arm-kernel@lists.arm.linux.org.uk (subscribers-only)
- W:      http://maxim.org.za/at91_26.html
- S:      Maintained
-@@ -2064,7 +2062,7 @@ S:	Maintained
- IOC3 SERIAL DRIVER
- P:	Pat Gefre
- M:	pfg@sgi.com
--L:	linux-kernel@linux-mips.org
-+L:	linux-mips@linux-mips.org
- S:	Maintained
- 
- IP MASQUERADING:
-@@ -2815,7 +2813,6 @@ M:	p2@ace.ulyssis.student.kuleuven.ac.be
- P:	Mike Phillips
- M:	mikep@linuxtr.net
- L:	netdev@vger.kernel.org
--L:	linux-tr@linuxtr.net
- W:	http://www.linuxtr.net
- S:	Maintained
- 
-@@ -2953,7 +2950,7 @@ S:	Supported
- PCMCIA SUBSYSTEM
- P:	Linux PCMCIA Team
- L:	linux-pcmcia@lists.infradead.org
--L:	http://lists.infradead.org/mailman/listinfo/linux-pcmcia
-+W:	http://lists.infradead.org/mailman/listinfo/linux-pcmcia
- T:	git kernel.org:/pub/scm/linux/kernel/git/brodo/pcmcia-2.6.git
- S:	Maintained
- 
-@@ -3731,7 +3728,6 @@ TOKEN-RING NETWORK DRIVER
- P:	Mike Phillips
- M:	mikep@linuxtr.net
- L:	netdev@vger.kernel.org
--L:	linux-tr@linuxtr.net
- W:	http://www.linuxtr.net
- S:	Maintained
- 
-@@ -4049,7 +4045,7 @@ S:	Maintained
- 
- USER-MODE LINUX
- P:	Jeff Dike
--M:	jdike@karaya.com
-+M:	jdike@addtoit.com
- L:	user-mode-linux-devel@lists.sourceforge.net
- L:	user-mode-linux-user@lists.sourceforge.net
- W:	http://user-mode-linux.sourceforge.net
-@@ -4280,13 +4276,6 @@ L:	mjpeg-users@lists.sourceforge.net
- W:	http://mjpeg.sourceforge.net/driver-zoran/
- S:	Maintained
- 
--ZR36120 VIDEO FOR LINUX DRIVER
--P:	Pauline Middelink
--M:	middelin@polyware.nl
--W:	http://www.polyware.nl/~middelin/En/hobbies.html
--W:	http://www.polyware.nl/~middelin/hobbies.html
--S:	Maintained
--
- ZS DECSTATION Z85C30 SERIAL DRIVER
- P:	Maciej W. Rozycki
- M:	macro@linux-mips.org
+diff -puN drivers/net/Kconfig~e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000 drivers/net/Kconfig
+--- a/drivers/net/Kconfig~e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000
++++ a/drivers/net/Kconfig
+@@ -1986,6 +1986,7 @@ config E1000_DISABLE_PACKET_SPLIT
+ config E1000E
+ 	tristate "Intel(R) PRO/1000 PCI-Express Gigabit Ethernet support"
+ 	depends on PCI
++	default E1000
+ 	---help---
+ 	  This driver supports the PCI-Express Intel(R) PRO/1000 gigabit
+ 	  ethernet family of adapters. For PCI or PCI-X e1000 adapters,
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-git-alsa.patch
-git-cpufreq.patch
-git-powerpc.patch
 git-dvb.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-jfs.patch
-git-kvm.patch
-git-netdev-all.patch
-git-s390.patch
-uml-add-missing-space.patch
+git-kbuild.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+pcmcia-include-bad-cis-filename-in-error-message.patch
+git-scsi-misc.patch
+advansys-fix-section-mismatch-warning.patch
+aic94-fix-section-mismatches.patch
+sym2-fix-section-mismatch-warning.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+git-x86.patch
+register_cpu-__devinit-or-__cpuinit.patch
+cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
+dio-fix-kernel-doc-notation.patch
+move-kprobes-examples-to-samples-resend.patch
+move-kprobes-examples-to-samples-resend-checkpatch-fixes.patch
+move-kprobes-examples-to-samples-resend-vs-git-x86.patch
+fs-menu-small-reorg.patch
+profile-likely-unlikely-macros.patch
