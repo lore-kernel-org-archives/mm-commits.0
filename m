@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + atmel_spi-chain-dma-transfers-update.patch added to -mm tree
-Date: Tue, 11 Dec 2007 15:33:36 -0800
-Message-ID: <200712112333.lBBNXamu014732@imap1.linux-foundation.org>
+Subject: + atmel_spi-fix-dmachain-oops-with-debug-enabled.patch added to -mm tree
+Date: Tue, 11 Dec 2007 15:34:07 -0800
+Message-ID: <200712112334.lBBNY83e014741@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45549 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47140 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751380AbXLKXeX (ORCPT
+	by vger.kernel.org with ESMTP id S1751072AbXLKXev (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Dec 2007 18:34:23 -0500
+	Tue, 11 Dec 2007 18:34:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: slipszi@gmail.com, dbrownell@users.sourceforge.net, hskinnemoen@atmel.com
+Cc: hskinnemoen@atmel.com, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     atmel_spi: chain dma transfers (update)
+     atmel_spi: fix dmachain oops with DEBUG enabled
 has been added to the -mm tree.  Its filename is
-     atmel_spi-chain-dma-transfers-update.patch
+     atmel_spi-fix-dmachain-oops-with-debug-enabled.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,73 +26,94 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: atmel_spi: chain dma transfers (update)
-From: "Silvester Erdeg" <slipszi@gmail.com>
+Subject: atmel_spi: fix dmachain oops with DEBUG enabled
+From: Haavard Skinnemoen <hskinnemoen@atmel.com>
 
-This patch adds support for chained transfers in the atmel_spi driver.
-Almost all of the changes are in the reworked atmel_spi_next_xfer()
-function.  That's called with the driver in one of these three states:
+In atmel_spi_next_xfer, xfer can be NULL because the next transfer may
+already have been submitted to the PDC (using DMA chaining).  This can
+cause an oops, since the debug message assumed it was never null.  The
+fix changes how those debug messages are issued, ensuring that one is
+issued each time a transfer is started instead of once per call.
 
- 1. It isn't transferring anything (in which case the first transfer of
-    the current message is going to be sent)
- 2. It has finished transfering a non-chainable transfer (in which case
-    it will go to the next transfer in the message)
- 3. It has finished transfering a chained transfer (in which case the
-    next transfer is already queued)
+Also, properly indent the "can this transfer be chained" test so it's
+not hidden as if it were non-conditional code.
 
-After that it will queue the next transfer if it can be chained.
-
-Signed-off-by: Szilveszter Ordog <slipszi@gmail.com>
-Acked-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/atmel_spi.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/spi/atmel_spi.c |   20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
-diff -puN drivers/spi/atmel_spi.c~atmel_spi-chain-dma-transfers-update drivers/spi/atmel_spi.c
---- a/drivers/spi/atmel_spi.c~atmel_spi-chain-dma-transfers-update
+diff -puN drivers/spi/atmel_spi.c~atmel_spi-fix-dmachain-oops-with-debug-enabled drivers/spi/atmel_spi.c
+--- a/drivers/spi/atmel_spi.c~atmel_spi-fix-dmachain-oops-with-debug-enabled
 +++ a/drivers/spi/atmel_spi.c
-@@ -191,13 +191,13 @@ static void atmel_spi_next_xfer(struct s
- 		atmel_spi_next_xfer_data(master, xfer, &tx_dma, &rx_dma, &len);
- 		remaining = xfer->len - len;
- 
--		spi_writel(as, TPR, tx_dma);
- 		spi_writel(as, RPR, rx_dma);
-+		spi_writel(as, TPR, tx_dma);
- 
- 		if (msg->spi->bits_per_word > 8)
+@@ -198,6 +198,11 @@ static void atmel_spi_next_xfer(struct s
  			len >>= 1;
--		spi_writel(as, TCR, len);
  		spi_writel(as, RCR, len);
-+		spi_writel(as, TCR, len);
+ 		spi_writel(as, TCR, len);
++
++		dev_dbg(&msg->spi->dev,
++			"  start xfer %p: len %u tx %p/%08x rx %p/%08x\n",
++			xfer, xfer->len, xfer->tx_buf, xfer->tx_dma,
++			xfer->rx_buf, xfer->rx_dma);
  	} else {
  		xfer = as->next_transfer;
  		remaining = as->next_remaining_bytes;
-@@ -223,16 +223,16 @@ static void atmel_spi_next_xfer(struct s
- 		atmel_spi_next_xfer_data(master, xfer, &tx_dma, &rx_dma, &len);
- 		as->next_remaining_bytes = total - len;
+@@ -208,8 +213,8 @@ static void atmel_spi_next_xfer(struct s
  
--		spi_writel(as, TNPR, tx_dma);
- 		spi_writel(as, RNPR, rx_dma);
-+		spi_writel(as, TNPR, tx_dma);
- 
- 		if (msg->spi->bits_per_word > 8)
+ 	if (remaining > 0)
+ 		len = remaining;
+-	else if (!atmel_spi_xfer_is_last(msg, xfer) &&
+-		atmel_spi_xfer_can_be_chained(xfer)) {
++	else if (!atmel_spi_xfer_is_last(msg, xfer)
++			&& atmel_spi_xfer_can_be_chained(xfer)) {
+ 		xfer = list_entry(xfer->transfer_list.next,
+ 				struct spi_transfer, transfer_list);
+ 		len = xfer->len;
+@@ -230,6 +235,11 @@ static void atmel_spi_next_xfer(struct s
  			len >>= 1;
--		spi_writel(as, TNCR, len);
  		spi_writel(as, RNCR, len);
-+		spi_writel(as, TNCR, len);
+ 		spi_writel(as, TNCR, len);
++
++		dev_dbg(&msg->spi->dev,
++			"  next xfer %p: len %u tx %p/%08x rx %p/%08x\n",
++			xfer, xfer->len, xfer->tx_buf, xfer->tx_dma,
++			xfer->rx_buf, xfer->rx_dma);
  	} else {
--		spi_writel(as, TNCR, 0);
  		spi_writel(as, RNCR, 0);
-+		spi_writel(as, TNCR, 0);
- 	}
+ 		spi_writel(as, TNCR, 0);
+@@ -246,12 +256,6 @@ static void atmel_spi_next_xfer(struct s
+ 	 * It should be doable, though. Just not now...
+ 	 */
+ 	spi_writel(as, IER, SPI_BIT(ENDRX) | SPI_BIT(OVRES));
+-
+-	dev_dbg(&msg->spi->dev,
+-		"  start xfer %p: len %u tx %p/%08x rx %p/%08x imr %03x\n",
+-		xfer, xfer->len, xfer->tx_buf, xfer->tx_dma,
+-		xfer->rx_buf, xfer->rx_dma, spi_readl(as, IMR));
+-
+ 	spi_writel(as, PTCR, SPI_BIT(TXTEN) | SPI_BIT(RXTEN));
+ }
  
- 	/* REVISIT: We're waiting for ENDRX before we start the next
 _
 
-Patches currently in -mm which might be from slipszi@gmail.com are
+Patches currently in -mm which might be from hskinnemoen@atmel.com are
 
+git-avr32.patch
+git-mtd.patch
+read_current_time-cleanups.patch
+fix-__const_udelay-declaration-and-definition-mismatches.patch
+atmel_spi-throughput-improvement.patch
 atmel_spi-chain-dma-transfers.patch
 atmel_spi-chain-dma-transfers-update.patch
+atmel_spi-fix-dmachain-oops-with-debug-enabled.patch
+generic-gpio-gpio_chip-support.patch
+avr32-uses-gpio_chip.patch
+mcp23s08-spi-gpio-expander.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+atmel_lcdfb-validate-display-timings.patch
+sanitize-the-type-of-struct-useru_ar0.patch
+add-cmpxchg_local-to-avr32.patch
+tty-let-architectures-override-the-user-kernel-macros.patch
