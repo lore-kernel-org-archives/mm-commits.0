@@ -1,62 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - hugetlb-handle-write-protection-faults-in-follow_hugetlb_page.patch removed from -mm tree
-Date: Tue, 11 Dec 2007 14:41:53 -0800
-Message-ID: <200712112241.lBBMfr7k012567@imap1.linux-foundation.org>
+Subject: - fix-null-dereference-in-umemc.patch removed from -mm tree
+Date: Tue, 11 Dec 2007 14:42:00 -0800
+Message-ID: <200712112242.lBBMg09I012573@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34187 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59731 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755889AbXLKWmc (ORCPT
+	by vger.kernel.org with ESMTP id S1756239AbXLKWml (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Dec 2007 17:42:32 -0500
+	Tue, 11 Dec 2007 17:42:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: agl@us.ibm.com, shaggy@us.ibm.com, mm-commits@vger.kernel.org
+To: neilb@suse.de, dgc@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlb: handle write-protection faults in follow_hugetlb_page
+     Fix NULL dereference in umem.c
 has been removed from the -mm tree.  Its filename was
-     hugetlb-handle-write-protection-faults-in-follow_hugetlb_page.patch
+     fix-null-dereference-in-umemc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: hugetlb: handle write-protection faults in follow_hugetlb_page
-From: Adam Litke <agl@us.ibm.com>
+Subject: Fix NULL dereference in umem.c
+From: Neil Brown <neilb@suse.de>
 
-The follow_hugetlb_page() fix I posted (merged as git commit
-5b23dbe8173c212d6a326e35347b038705603d39) missed one case.  If the pte is
-present, but not writable and write access is requested by the caller to
-get_user_pages(), the code will do the wrong thing.  Rather than calling
-hugetlb_fault to make the pte writable, it notes the presence of the pte
-and continues.
+Fix NULL dereference in umem.c
 
-This simple one-liner makes sure we also fault on the pte for this case.
-Please apply.
-
-Signed-off-by: Adam Litke <agl@us.ibm.com>
-Acked-by: Dave Kleikamp <shaggy@us.ibm.com>
+Signed-off-by: Neil Brown <neilb@suse.de>
+Tested-by: Dave Chinner <dgc@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/block/umem.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~hugetlb-handle-write-protection-faults-in-follow_hugetlb_page mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-handle-write-protection-faults-in-follow_hugetlb_page
-+++ a/mm/hugetlb.c
-@@ -907,7 +907,7 @@ int follow_hugetlb_page(struct mm_struct
- 		 */
- 		pte = huge_pte_offset(mm, vaddr & HPAGE_MASK);
+diff -puN drivers/block/umem.c~fix-null-dereference-in-umemc drivers/block/umem.c
+--- a/drivers/block/umem.c~fix-null-dereference-in-umemc
++++ a/drivers/block/umem.c
+@@ -484,7 +484,8 @@ static void process_page(unsigned long d
+ 		page->idx++;
+ 		if (page->idx >= bio->bi_vcnt) {
+ 			page->bio = bio->bi_next;
+-			page->idx = page->bio->bi_idx;
++			if (page->bio)
++				page->idx = page->bio->bi_idx;
+ 		}
  
--		if (!pte || pte_none(*pte)) {
-+		if (!pte || pte_none(*pte) || (write && !pte_write(*pte))) {
- 			int ret;
- 
- 			spin_unlock(&mm->page_table_lock);
+ 		pci_unmap_page(card->dev, desc->data_dma_handle,
 _
 
-Patches currently in -mm which might be from agl@us.ibm.com are
+Patches currently in -mm which might be from neilb@suse.de are
 
-hugetlb-allow-sticky-directory-mount-option.patch
+git-md-accel.patch
+git-nfsd.patch
+coding-style-cleanups-for-drivers-md-mktablesc.patch
+one-less-parameter-to-__d_path.patch
+d_path-kerneldoc-cleanup.patch
+d_path-use-struct-path-in-struct-avc_audit_data.patch
+d_path-make-proc_get_link-use-a-struct-path-argument.patch
+d_path-make-get_dcookie-use-a-struct-path-argument.patch
+use-struct-path-in-struct-svc_export.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_expkey.patch
+d_path-make-seq_path-use-a-struct-path-argument.patch
+d_path-make-d_path-use-a-struct-path.patch
