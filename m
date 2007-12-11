@@ -1,171 +1,148 @@
 From: akpm@linux-foundation.org
-Subject: - proc-remove-fix-proc-generic-d_revalidate.patch removed from -mm tree
-Date: Tue, 11 Dec 2007 14:42:10 -0800
-Message-ID: <200712112242.lBBMgAqc012591@imap1.linux-foundation.org>
+Subject: - esp_scsi-fix-reset-cleanup-spinlock-recursion.patch removed from -mm tree
+Date: Tue, 11 Dec 2007 14:42:02 -0800
+Message-ID: <200712112242.lBBMg2bg012582@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40604 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58057 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754736AbXLKWnk (ORCPT
+	by vger.kernel.org with ESMTP id S1758942AbXLKWvN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Dec 2007 17:43:40 -0500
+	Tue, 11 Dec 2007 17:51:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, adobriyan@gmail.com, davem@davemloft.net, den@openvz.org, herbert@gondor.apana.org.au, rjw@sisk.pl, trond.myklebust@fys.uio.no, xemul@openvz.org, mm-commits@vge
+To: macro@linux-mips.org, James.Bottomley@steeleye.com, davem@davemloft.net, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc: remove/Fix proc generic d_revalidate
+     esp_scsi: fix reset cleanup spinlock recursion
 has been removed from the -mm tree.  Its filename was
-     proc-remove-fix-proc-generic-d_revalidate.patch
+     esp_scsi-fix-reset-cleanup-spinlock-recursion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: proc: remove/Fix proc generic d_revalidate
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: esp_scsi: fix reset cleanup spinlock recursion
+From: "Maciej W. Rozycki" <macro@linux-mips.org>
 
-Ultimately to implement /proc perfectly we need an implementation of
-d_revalidate because files and directories can be removed behind the back
-of the VFS, and d_revalidate is the only way we can let the VFS know that
-this has happened.
+The esp_reset_cleanup() function is called with the host lock held and
+invokes starget_for_each_device() which wants to take it too.  Here is a
+fix along the lines of shost_for_each_device()/__shost_for_each_device()
+adding a __starget_for_each_device() counterpart which assumes the lock
+has already been taken.
 
-Unfortunately the linux VFS can not cope with anything in the path to a
-mount point going away.  So a proper d_revalidate method that calls d_drop
-also needs to call have_submounts which is moderately expensive, so you
-really don't want a d_revalidate method that unconditionally calls it, but
-instead only calls it when the backing object has really gone away.
+Eventually, I think the driver should get modified so that more work is
+done as a softirq rather than in the interrupt context, but for now it
+fixes a bug that causes the spinlock debugger to fire.
 
-proc generic entries only disappear on module_unload (when not counting the
-fledgling network namespace) so it is quite rare that we actually encounter
-that case and has not actually caused us real world trouble yet.
+While at it, it fixes a small number of cosmetic problems with
+starget_for_each_device() too.
 
-So until we get a proper test for keeping dentries in the dcache fix the
-current d_revalidate method by completely removing it.  This returns us to
-the current status quo.
-
-So with CONFIG_NETNS=n things should look as they have always looked.
-
-For CONFIG_NETNS=y things work most of the time but there are a few rare
-corner cases that don't behave properly.  As the network namespace is
-barely present in 2.6.24 this should not be a problem.
-
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: "Denis V. Lunev" <den@openvz.org>
+Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
+Acked-by: David S. Miller <davem@davemloft.net>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c |    7 -------
- 1 file changed, 7 deletions(-)
+ drivers/scsi/esp_scsi.c    |    4 ++--
+ drivers/scsi/scsi.c        |   31 +++++++++++++++++++++++++++++--
+ include/scsi/scsi_device.h |    3 +++
+ 3 files changed, 34 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/generic.c~proc-remove-fix-proc-generic-d_revalidate fs/proc/generic.c
---- a/fs/proc/generic.c~proc-remove-fix-proc-generic-d_revalidate
-+++ a/fs/proc/generic.c
-@@ -374,16 +374,9 @@ static int proc_delete_dentry(struct den
- 	return 1;
+diff -puN drivers/scsi/esp_scsi.c~esp_scsi-fix-reset-cleanup-spinlock-recursion drivers/scsi/esp_scsi.c
+--- a/drivers/scsi/esp_scsi.c~esp_scsi-fix-reset-cleanup-spinlock-recursion
++++ a/drivers/scsi/esp_scsi.c
+@@ -2026,8 +2026,8 @@ static void esp_reset_cleanup(struct esp
+ 		tp->flags |= ESP_TGT_CHECK_NEGO;
+ 
+ 		if (tp->starget)
+-			starget_for_each_device(tp->starget, NULL,
+-						esp_clear_hold);
++			__starget_for_each_device(tp->starget, NULL,
++						  esp_clear_hold);
+ 	}
+ 	esp->flags &= ~ESP_FLAG_RESETTING;
  }
- 
--static int proc_revalidate_dentry(struct dentry *dentry, struct nameidata *nd)
--{
--	d_drop(dentry);
--	return 0;
--}
--
- static struct dentry_operations proc_dentry_operations =
+diff -puN drivers/scsi/scsi.c~esp_scsi-fix-reset-cleanup-spinlock-recursion drivers/scsi/scsi.c
+--- a/drivers/scsi/scsi.c~esp_scsi-fix-reset-cleanup-spinlock-recursion
++++ a/drivers/scsi/scsi.c
+@@ -896,11 +896,11 @@ EXPORT_SYMBOL(__scsi_iterate_devices);
+  * starget_for_each_device  -  helper to walk all devices of a target
+  * @starget:	target whose devices we want to iterate over.
+  *
+- * This traverses over each devices of @shost.  The devices have
++ * This traverses over each device of @starget.  The devices have
+  * a reference that must be released by scsi_host_put when breaking
+  * out of the loop.
+  */
+-void starget_for_each_device(struct scsi_target *starget, void * data,
++void starget_for_each_device(struct scsi_target *starget, void *data,
+ 		     void (*fn)(struct scsi_device *, void *))
  {
- 	.d_delete	= proc_delete_dentry,
--	.d_revalidate	= proc_revalidate_dentry,
- };
+ 	struct Scsi_Host *shost = dev_to_shost(starget->dev.parent);
+@@ -915,6 +915,33 @@ void starget_for_each_device(struct scsi
+ EXPORT_SYMBOL(starget_for_each_device);
  
- /*
+ /**
++ * __starget_for_each_device  -  helper to walk all devices of a target
++ *				 (UNLOCKED)
++ * @starget:	target whose devices we want to iterate over.
++ *
++ * This traverses over each device of @starget.  It does _not_
++ * take a reference on the scsi_device, so the whole loop must be
++ * protected by shost->host_lock.
++ *
++ * Note:  The only reason why drivers would want to use this is because
++ * they need to access the device list in irq context.  Otherwise you
++ * really want to use starget_for_each_device instead.
++ **/
++void __starget_for_each_device(struct scsi_target *starget, void *data,
++			       void (*fn)(struct scsi_device *, void *))
++{
++	struct Scsi_Host *shost = dev_to_shost(starget->dev.parent);
++	struct scsi_device *sdev;
++
++	__shost_for_each_device(sdev, shost) {
++		if ((sdev->channel == starget->channel) &&
++		    (sdev->id == starget->id))
++			fn(sdev, data);
++	}
++}
++EXPORT_SYMBOL(__starget_for_each_device);
++
++/**
+  * __scsi_device_lookup_by_target - find a device given the target (UNLOCKED)
+  * @starget:	SCSI target pointer
+  * @lun:	SCSI Logical Unit Number
+diff -puN include/scsi/scsi_device.h~esp_scsi-fix-reset-cleanup-spinlock-recursion include/scsi/scsi_device.h
+--- a/include/scsi/scsi_device.h~esp_scsi-fix-reset-cleanup-spinlock-recursion
++++ a/include/scsi/scsi_device.h
+@@ -242,6 +242,9 @@ extern struct scsi_device *__scsi_device
+ 							  uint);
+ extern void starget_for_each_device(struct scsi_target *, void *,
+ 		     void (*fn)(struct scsi_device *, void *));
++extern void __starget_for_each_device(struct scsi_target *, void *,
++				      void (*fn)(struct scsi_device *,
++						 void *));
+ 
+ /* only exposed to implement shost_for_each_device */
+ extern struct scsi_device *__scsi_iterate_devices(struct Scsi_Host *,
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from macro@linux-mips.org are
 
-git-net.patch
-quirk-enable-msi-mapping-on-ht1000.patch
-quirk-enable-msi-mapping-on-ht1000-v2.patch
-git-x86.patch
-fix-proc-dcache-deadlock-in-do_exit.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-memcgroup-fix-try_to_free-order.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-memcgroup-reinstate-swapoff-mod.patch
-bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
-bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
-bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
-memcgroup-fix-zone-isolation-oom.patch
-memcgroup-revert-swap_state-mods.patch
-bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
-memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
-memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-memory-cgroup-enhancements-add-pre_destroy-handler.patch
-memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
-introduce-flags-for-reserve_bootmem.patch
-use-bootmem_exclusive-for-kdump.patch
-iget-stop-procfs-from-using-iget-and-read_inode.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-d_path-make-proc_get_link-use-a-struct-path-argument.patch
-add-the-namespaces-config-option.patch
-move-the-uts-namespace-under-uts_ns-option.patch
-move-the-ipc-namespace-under-ipc_ns-option.patch
-cleanup-the-code-managed-with-the-user_ns-option.patch
-cleanup-the-code-managed-with-pid_ns-option.patch
-mark-net_ns-with-depends-on-namespaces.patch
-proc-implement-proc_single_file_operations.patch
-proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces.patch
-proc-seqfile-convert-proc_pid_statm.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
-proc-proper-pidns-handling-for-proc-self.patch
-proc-fix-the-threaded-proc-self.patch
-sys_setpgid-simplify-pid-ns-interaction.patch
-fix-setsid-for-sub-namespace-sbin-init.patch
-teach-set_special_pids-to-use-struct-pid.patch
-move-daemonized-kernel-threads-into-the-swappers-session.patch
-start-the-global-sbin-init-with-00-special-pids.patch
-sys_setsid-remove-now-unneeded-session-=-1-check.patch
+git-mips.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+dzh-remove-useless-unused-module-junk.patch
+dz-always-check-if-it-is-safe-to-console_putchar.patch
+dz-dont-panic-when-request_irq-fails.patch
+dz-add-and-reorder-inclusions-remove-unneeded-ones.patch
+dz-update-kconfig-description.patch
+dz-rename-the-serial-console-structure.patch
+dz-fix-locking-issues.patch
+dz-handle-special-conditions-on-reception-correctly.patch
+maintainers-add-self-for-the-dz-serial-driver.patch
+dz-clean-up-and-improve-the-setup-of-termios-settings.patch
+dzc-use-a-helper-to-cast-from-struct-uart_port.patch
+dzc-resource-management.patch
