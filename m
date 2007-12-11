@@ -1,120 +1,343 @@
 From: akpm@linux-foundation.org
-Subject: - hptiop-fix-type-mismatch-warning.patch removed from -mm tree
-Date: Mon, 10 Dec 2007 16:28:45 -0800
-Message-ID: <200712110028.lBB0Sk02026742@imap1.linux-foundation.org>
+Subject: + revert-hibernation-enter-platform-hibernation-state-in-a-consistent-way.patch added to -mm tree
+Date: Tue, 11 Dec 2007 01:58:09 -0800
+Message-ID: <200712110958.lBB9wDJl012816@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58207 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51092 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751838AbXLKA3a (ORCPT
+	by vger.kernel.org with ESMTP id S1751172AbXLKJ6q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Dec 2007 19:29:30 -0500
+	Tue, 11 Dec 2007 04:58:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeff@garzik.org, James.Bottomley@steeleye.com, jgarzik@redhat.com, linux@highpoint-tech.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, pavel@ucw.cz, rjw@sisk.pl
 
 
 The patch titled
-     hptiop: fix type mismatch warning
-has been removed from the -mm tree.  Its filename was
-     hptiop-fix-type-mismatch-warning.patch
+     revert "Hibernation: Enter platform hibernation state in a consistent way"
+has been added to the -mm tree.  Its filename is
+     revert-hibernation-enter-platform-hibernation-state-in-a-consistent-way.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: hptiop: fix type mismatch warning
-From: Jeff Garzik <jeff@garzik.org>
+Subject: revert "Hibernation: Enter platform hibernation state in a consistent way"
+From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/scsi/hptiop.c: In function 'hptiop_host_request_callback':
-drivers/scsi/hptiop.c:378: warning: comparison of distinct pointer types lacks a cast
-drivers/scsi/hptiop.c:378: warning: comparison of distinct pointer types lacks a cast
+Revert
 
-Use min_t(size_t, ...) to fix.
+    commit 9cd9a0058dd35268b24fa16795a92c800f4086d4
+    Author: Rafael J. Wysocki <rjw@sisk.pl>
+    Date:   Thu Oct 18 03:04:56 2007 -0700
 
-Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: HighPoint Linux Team <linux@highpoint-tech.com>
+        Hibernation: Enter platform hibernation state in a consistent way
+
+Because it causes my t61p's suspend-to-RAM to immediately do a
+resume-from-RAM.
+
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/hptiop.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/power/disk.c |   63 +++++++++++-------------------------------
+ 1 file changed, 17 insertions(+), 46 deletions(-)
 
-diff -puN drivers/scsi/hptiop.c~hptiop-fix-type-mismatch-warning drivers/scsi/hptiop.c
---- a/drivers/scsi/hptiop.c~hptiop-fix-type-mismatch-warning
-+++ a/drivers/scsi/hptiop.c
-@@ -376,7 +376,7 @@ static void hptiop_host_request_callback
- 		memset(&scp->sense_buffer,
- 				0, sizeof(scp->sense_buffer));
- 		memcpy(&scp->sense_buffer, &req->sg_list,
--				min(sizeof(scp->sense_buffer),
-+				min_t(size_t, sizeof(scp->sense_buffer),
- 					le32_to_cpu(req->dataxfer_length)));
- 		break;
+diff -puN kernel/power/disk.c~revert-hibernation-enter-platform-hibernation-state-in-a-consistent-way kernel/power/disk.c
+--- a/kernel/power/disk.c~revert-hibernation-enter-platform-hibernation-state-in-a-consistent-way
++++ a/kernel/power/disk.c
+@@ -278,50 +278,21 @@ int hibernation_platform_enter(void)
+ {
+ 	int error;
  
+-	if (!hibernation_ops)
+-		return -ENOSYS;
+-
+-	/*
+-	 * We have cancelled the power transition by running
+-	 * hibernation_ops->finish() before saving the image, so we should let
+-	 * the firmware know that we're going to enter the sleep state after all
+-	 */
+-	error = hibernation_ops->start();
+-	if (error)
+-		return error;
+-
+-	suspend_console();
+-	error = device_suspend(PMSG_SUSPEND);
+-	if (error)
+-		goto Resume_console;
+-
+-	error = hibernation_ops->prepare();
+-	if (error)
+-		goto Resume_devices;
+-
+-	error = disable_nonboot_cpus();
+-	if (error)
+-		goto Finish;
+-
+-	local_irq_disable();
+-	error = device_power_down(PMSG_SUSPEND);
+-	if (!error) {
+-		hibernation_ops->enter();
+-		/* We should never get here */
+-		while (1);
++	if (hibernation_ops) {
++		kernel_shutdown_prepare(SYSTEM_SUSPEND_DISK);
++		/*
++		 * We have cancelled the power transition by running
++		 * hibernation_ops->finish() before saving the image, so we
++		 * should let the firmware know that we're going to enter the
++		 * sleep state after all
++		 */
++		error = hibernation_ops->prepare();
++		sysdev_shutdown();
++		if (!error)
++			error = hibernation_ops->enter();
++	} else {
++		error = -ENOSYS;
+ 	}
+-	local_irq_enable();
+-
+-	/*
+-	 * We don't need to reenable the nonboot CPUs or resume consoles, since
+-	 * the system is going to be halted anyway.
+-	 */
+- Finish:
+-	hibernation_ops->finish();
+- Resume_devices:
+-	device_resume();
+- Resume_console:
+-	resume_console();
+ 	return error;
+ }
+ 
+@@ -338,14 +309,14 @@ static void power_down(void)
+ 	case HIBERNATION_TEST:
+ 	case HIBERNATION_TESTPROC:
+ 		break;
++	case HIBERNATION_SHUTDOWN:
++		kernel_power_off();
++		break;
+ 	case HIBERNATION_REBOOT:
+ 		kernel_restart(NULL);
+ 		break;
+ 	case HIBERNATION_PLATFORM:
+ 		hibernation_platform_enter();
+-	case HIBERNATION_SHUTDOWN:
+-		kernel_power_off();
+-		break;
+ 	}
+ 	kernel_halt();
+ 	/*
 _
 
-Patches currently in -mm which might be from jeff@garzik.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+revert-hibernation-enter-platform-hibernation-state-in-a-consistent-way.patch
+revert-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch
+aoe-properly-initialise-the-request_queues-backing_dev_info.patch
+revert-dpt_i2o-convert-to-scsi-hotplug-model.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+timerfd-v3-new-timerfd-api-ia64-fix.patch
+timerfd-v3-new-timerfd-api-m68k-fix.patch
+timerfd-v3-new-timerfd-api-mips-fix.patch
+timerfd-v3-new-timerfd-api-arch-fixes.patch
+timerfd-v3-new-timerfd-api-powerpc-fix.patch
+timerfd-v3-new-timerfd-api-sparc64-fix.patch
+git-acpi-ia64-build-fix.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-add-reboot-mechanism.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+git-agpgart.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
-powerpc-fix-typo-ifdef-ifndef.patch
+kernel-auditc-warning-fix.patch
+git-cpufreq.patch
+git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
+agk-dm-dm-ioctl-move-compat-code-fix.patch
+dm-persistent_read_metadata-warning-fix.patch
+ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+git-drm.patch
+git-drm-oops-fix.patch
+intel-agp-enable-i915-recognition.patch
+git-dvb.patch
+fix-jdelvare-i2c-i2c-constify-client-address-data.patch
+revert-git-hrt.patch
+git-ia64.patch
+ia64-slim-down-__clear_bit_unlock.patch
+git-infiniband.patch
+git-kvm.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
-libata-add-toshiba-mk1637gsx-to-spurious-command-completion-list.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+libata-xfer_mask-is-unsigned-int-not-unsigned-long-fix.patch
 libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
-ata-ahci-enclosure-management-via-led.patch
 libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
+git-mmc.patch
+git-mtd.patch
+git-net.patch
+git-net-vs-git-lblnet.patch
 git-netdev-all.patch
-forcedeth-power-down-phy-when-interface-is-down.patch
-forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
 ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-pcmcia-net-use-roundup_pow_of_two-macro-instead-of-grotesque-loop.patch
-e100-free-irq-to-remove-warning-when-rebooting.patch
-net-smc911x-shut-up-compiler-warnings.patch
-bnx2x-depends-on-zlib_inflate.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
-ips-remove-ips_ha-members-that-duplicate-struct-pci_dev-members.patch
+git-battery.patch
+bluetooth-uninlining.patch
+git-nfsd.patch
+quirk-enable-msi-mapping-on-ht1000.patch
+kernel-time-make-tick_do_broadcast-static.patch
+git-sh.patch
+git-scsi-misc-fixup.patch
 ips-trim-trailing-whitespace.patch
-ips-pci-api-cleanups.patch
-ips-handle-scsi_add_host-failure-and-other-err-cleanups.patch
 scsi-gdth-kill-unneeded-irq-argument.patch
-scsi-sym53c416-kill-pointless-irq-handler-loop-and-test.patch
-scsi-ncr5380-minor-irq-handler-cleanups.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
+drivers-scsi-sgiwd93c-export-sgiwd93_reset.patch
+hptiop-add-more-adapter-models-and-other-fixes-fix.patch
 libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+mct232-speed-new-termios-and-compliance-cleanups-fix.patch
+usb-testing-driver-dont-free-a-locked-mutex.patch
+git-watchdog.patch
+add-support-for-sb1-hardware-watchdog-fix.patch
 git-wireless.patch
-iommu-sg-merging-add-device_dma_parameters-structure.patch
-iommu-sg-merging-pci-add-device_dma_parameters-support.patch
-iommu-sg-merging-x86-make-pci-gart-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-ppc-make-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-ia64-make-sba_iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-alpha-make-pci_iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-parisc-make-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-call-blk_queue_segment_boundary-in-__scsi_alloc_queue.patch
-iommu-sg-merging-sata_inic162x-use-pci_set_dma_max_seg_size.patch
-iommu-sg-merging-aacraid-use-pci_set_dma_max_seg_size.patch
-iommu-sg-add-iommu-helper-functions-for-the-free-area-management.patch
-iommu-sg-powerpc-convert-iommu-to-use-the-iommu-helper.patch
-iommu-sg-powerpc-remove-dma-4gb-boundary-protection.patch
-iommu-sg-x86-convert-calgary-iommu-to-use-the-iommu-helper.patch
-iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper.patch
-iommu-sg-kill-__clear_bit_string-and-find_next_zero_string.patch
-add-accessors-for-segment_boundary_mask-in.patch
-pci-add-dma-segment-boundary-support.patch
-swiotlb-respect-the-segment-boundary-limits.patch
-call-dma_set_seg_boundary-in-__scsi_alloc_queue.patch
-tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls-x86-fix.patch
-fix-versus-precedence-in-various-places.patch
-riscom8-fix-smp-brokenness.patch
+bcm43xx_debugfs-sscanf-fix.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-__vdso_getcpu-warning-fix.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-xtensa.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-optimise-the-clearing-of-__gfp_zero.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+kernel-printkc-concerns-about-the-console-handover.patch
 riscom8-fix-smp-brokenness-fix.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
 sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-sound-oss-sb_commonc-fix-casting-warning.patch
-remove-warnings-for-longstanding-conditions.patch
 remove-warnings-for-longstanding-conditions-fix.patch
-remove-pointless-casts-from-void-pointers.patch
-i8k-allow-i8k-driver-to-be-built-on-x86_64-systems.patch
-i8k-adds-i8k-driver-to-the-x86_64-kconfig.patch
-i8k-inspiron-e1705-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+sync_sb_inodes-propagate-errors.patch
+move-kprobes-examples-to-samples-resend-vs-git-x86.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+64-bit-i_version-afs-fixes.patch
+ext4-add-block-bitmap-validation.patch
+ext4-fix-up-ext4fs_debug-builds.patch
+ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
