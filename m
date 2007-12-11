@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + revert-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch added to -mm tree
-Date: Tue, 11 Dec 2007 01:58:15 -0800
-Message-ID: <200712110958.lBB9wFrA012819@imap1.linux-foundation.org>
+Subject: + bonding-locking-fix.patch added to -mm tree
+Date: Tue, 11 Dec 2007 03:43:26 -0800
+Message-ID: <200712111143.lBBBhRRN020624@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60597 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49430 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751186AbXLKJ7E (ORCPT
+	by vger.kernel.org with ESMTP id S1751615AbXLKLnu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Dec 2007 04:59:04 -0500
+	Tue, 11 Dec 2007 06:43:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, mingo@elte.hu, pavel@ucw.cz, rjw@sisk.pl, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, davem@davemloft.net, olel@ans.pl, shemminger@linux-foundation.org
 
 
 The patch titled
-     revert "Hibernation: Use temporary page tables for kernel text mapping on x86_64"
+     bonding: locking fix
 has been added to the -mm tree.  Its filename is
-     revert-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch
+     bonding-locking-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,98 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: revert "Hibernation: Use temporary page tables for kernel text mapping on x86_64"
+Subject: bonding: locking fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Revert
+Remove stray rtnl_unlock().
 
-    Commit:     efa4d2fb047b25a6be67fe92178a2a78da6b3f6a
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=9542
 
-        Hibernation: Use temporary page tables for kernel text mapping on x86_64
-
-Because it causes my t61p to reboot right at the end of resume-from-disk.
-
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Stephen Hemminger <shemminger@linux-foundation.org>
+Cc: Krzysztof Oledzki <olel@ans.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/suspend_64.c |   39 +++++----------------------------
- 1 file changed, 6 insertions(+), 33 deletions(-)
+ drivers/net/bonding/bond_sysfs.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN arch/x86/kernel/suspend_64.c~revert-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64 arch/x86/kernel/suspend_64.c
---- a/arch/x86/kernel/suspend_64.c~revert-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64
-+++ a/arch/x86/kernel/suspend_64.c
-@@ -192,42 +192,25 @@ static int res_phys_pud_init(pud_t *pud,
- 	return 0;
+diff -puN drivers/net/bonding/bond_sysfs.c~bonding-locking-fix drivers/net/bonding/bond_sysfs.c
+--- a/drivers/net/bonding/bond_sysfs.c~bonding-locking-fix
++++ a/drivers/net/bonding/bond_sysfs.c
+@@ -1111,8 +1111,6 @@ static ssize_t bonding_store_primary(str
+ out:
+ 	write_unlock_bh(&bond->lock);
+ 
+-	rtnl_unlock();
+-
+ 	return count;
  }
- 
--static int res_kernel_text_pud_init(pud_t *pud, unsigned long start)
--{
--	pmd_t *pmd;
--	unsigned long paddr;
--
--	pmd = (pmd_t *)get_safe_page(GFP_ATOMIC);
--	if (!pmd)
--		return -ENOMEM;
--	set_pud(pud + pud_index(start), __pud(__pa(pmd) | _KERNPG_TABLE));
--	for (paddr = 0; paddr < KERNEL_TEXT_SIZE; pmd++, paddr += PMD_SIZE) {
--		unsigned long pe;
--
--		pe = __PAGE_KERNEL_LARGE_EXEC | _PAGE_GLOBAL | paddr;
--		pe &= __supported_pte_mask;
--		set_pmd(pmd, __pmd(pe));
--	}
--
--	return 0;
--}
--
- static int set_up_temporary_mappings(void)
- {
- 	unsigned long start, end, next;
--	pud_t *pud;
- 	int error;
- 
- 	temp_level4_pgt = (pgd_t *)get_safe_page(GFP_ATOMIC);
- 	if (!temp_level4_pgt)
- 		return -ENOMEM;
- 
-+	/* It is safe to reuse the original kernel mapping */
-+	set_pgd(temp_level4_pgt + pgd_index(__START_KERNEL_map),
-+		init_level4_pgt[pgd_index(__START_KERNEL_map)]);
-+
- 	/* Set up the direct mapping from scratch */
- 	start = (unsigned long)pfn_to_kaddr(0);
- 	end = (unsigned long)pfn_to_kaddr(end_pfn);
- 
- 	for (; start < end; start = next) {
--		pud = (pud_t *)get_safe_page(GFP_ATOMIC);
-+		pud_t *pud = (pud_t *)get_safe_page(GFP_ATOMIC);
- 		if (!pud)
- 			return -ENOMEM;
- 		next = start + PGDIR_SIZE;
-@@ -238,17 +221,7 @@ static int set_up_temporary_mappings(voi
- 		set_pgd(temp_level4_pgt + pgd_index(start),
- 			mk_kernel_pgd(__pa(pud)));
- 	}
--
--	/* Set up the kernel text mapping from scratch */
--	pud = (pud_t *)get_safe_page(GFP_ATOMIC);
--	if (!pud)
--		return -ENOMEM;
--	error = res_kernel_text_pud_init(pud, __START_KERNEL_map);
--	if (!error)
--		set_pgd(temp_level4_pgt + pgd_index(__START_KERNEL_map),
--			__pgd(__pa(pud) | _PAGE_TABLE));
--
--	return error;
-+	return 0;
- }
- 
- int swsusp_arch_resume(void)
+ static DEVICE_ATTR(primary, S_IRUGO | S_IWUSR, bonding_show_primary, bonding_store_primary);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -201,6 +137,7 @@ git-x86-__vdso_getcpu-warning-fix.patch
 git-cryptodev.patch
 git-cryptodev-fixup.patch
 git-xtensa.patch
+bonding-locking-fix.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
 vmalloc-add-const-to-void-parameters-fix.patch
