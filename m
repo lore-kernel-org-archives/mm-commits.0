@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + revert-hibernation-enter-platform-hibernation-state-in-a-consistent-way.patch added to -mm tree
-Date: Tue, 11 Dec 2007 01:58:09 -0800
-Message-ID: <200712110958.lBB9wDJl012816@imap1.linux-foundation.org>
+Subject: + revert-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch added to -mm tree
+Date: Tue, 11 Dec 2007 01:58:15 -0800
+Message-ID: <200712110958.lBB9wFrA012819@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51092 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60597 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751172AbXLKJ6q (ORCPT
+	by vger.kernel.org with ESMTP id S1751186AbXLKJ7E (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Dec 2007 04:58:46 -0500
+	Tue, 11 Dec 2007 04:59:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, pavel@ucw.cz, rjw@sisk.pl
+Cc: akpm@linux-foundation.org, ak@suse.de, mingo@elte.hu, pavel@ucw.cz, rjw@sisk.pl, tglx@linutronix.de
 
 
 The patch titled
-     revert "Hibernation: Enter platform hibernation state in a consistent way"
+     revert "Hibernation: Use temporary page tables for kernel text mapping on x86_64"
 has been added to the -mm tree.  Its filename is
-     revert-hibernation-enter-platform-hibernation-state-in-a-consistent-way.patch
+     revert-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,114 +26,98 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: revert "Hibernation: Enter platform hibernation state in a consistent way"
+Subject: revert "Hibernation: Use temporary page tables for kernel text mapping on x86_64"
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Revert
 
-    commit 9cd9a0058dd35268b24fa16795a92c800f4086d4
-    Author: Rafael J. Wysocki <rjw@sisk.pl>
-    Date:   Thu Oct 18 03:04:56 2007 -0700
+    Commit:     efa4d2fb047b25a6be67fe92178a2a78da6b3f6a
 
-        Hibernation: Enter platform hibernation state in a consistent way
+        Hibernation: Use temporary page tables for kernel text mapping on x86_64
 
-Because it causes my t61p's suspend-to-RAM to immediately do a
-resume-from-RAM.
+Because it causes my t61p to reboot right at the end of resume-from-disk.
 
 Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/disk.c |   63 +++++++++++-------------------------------
- 1 file changed, 17 insertions(+), 46 deletions(-)
+ arch/x86/kernel/suspend_64.c |   39 +++++----------------------------
+ 1 file changed, 6 insertions(+), 33 deletions(-)
 
-diff -puN kernel/power/disk.c~revert-hibernation-enter-platform-hibernation-state-in-a-consistent-way kernel/power/disk.c
---- a/kernel/power/disk.c~revert-hibernation-enter-platform-hibernation-state-in-a-consistent-way
-+++ a/kernel/power/disk.c
-@@ -278,50 +278,21 @@ int hibernation_platform_enter(void)
- {
- 	int error;
- 
--	if (!hibernation_ops)
--		return -ENOSYS;
--
--	/*
--	 * We have cancelled the power transition by running
--	 * hibernation_ops->finish() before saving the image, so we should let
--	 * the firmware know that we're going to enter the sleep state after all
--	 */
--	error = hibernation_ops->start();
--	if (error)
--		return error;
--
--	suspend_console();
--	error = device_suspend(PMSG_SUSPEND);
--	if (error)
--		goto Resume_console;
--
--	error = hibernation_ops->prepare();
--	if (error)
--		goto Resume_devices;
--
--	error = disable_nonboot_cpus();
--	if (error)
--		goto Finish;
--
--	local_irq_disable();
--	error = device_power_down(PMSG_SUSPEND);
--	if (!error) {
--		hibernation_ops->enter();
--		/* We should never get here */
--		while (1);
-+	if (hibernation_ops) {
-+		kernel_shutdown_prepare(SYSTEM_SUSPEND_DISK);
-+		/*
-+		 * We have cancelled the power transition by running
-+		 * hibernation_ops->finish() before saving the image, so we
-+		 * should let the firmware know that we're going to enter the
-+		 * sleep state after all
-+		 */
-+		error = hibernation_ops->prepare();
-+		sysdev_shutdown();
-+		if (!error)
-+			error = hibernation_ops->enter();
-+	} else {
-+		error = -ENOSYS;
- 	}
--	local_irq_enable();
--
--	/*
--	 * We don't need to reenable the nonboot CPUs or resume consoles, since
--	 * the system is going to be halted anyway.
--	 */
-- Finish:
--	hibernation_ops->finish();
-- Resume_devices:
--	device_resume();
-- Resume_console:
--	resume_console();
- 	return error;
+diff -puN arch/x86/kernel/suspend_64.c~revert-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64 arch/x86/kernel/suspend_64.c
+--- a/arch/x86/kernel/suspend_64.c~revert-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64
++++ a/arch/x86/kernel/suspend_64.c
+@@ -192,42 +192,25 @@ static int res_phys_pud_init(pud_t *pud,
+ 	return 0;
  }
  
-@@ -338,14 +309,14 @@ static void power_down(void)
- 	case HIBERNATION_TEST:
- 	case HIBERNATION_TESTPROC:
- 		break;
-+	case HIBERNATION_SHUTDOWN:
-+		kernel_power_off();
-+		break;
- 	case HIBERNATION_REBOOT:
- 		kernel_restart(NULL);
- 		break;
- 	case HIBERNATION_PLATFORM:
- 		hibernation_platform_enter();
--	case HIBERNATION_SHUTDOWN:
--		kernel_power_off();
--		break;
+-static int res_kernel_text_pud_init(pud_t *pud, unsigned long start)
+-{
+-	pmd_t *pmd;
+-	unsigned long paddr;
+-
+-	pmd = (pmd_t *)get_safe_page(GFP_ATOMIC);
+-	if (!pmd)
+-		return -ENOMEM;
+-	set_pud(pud + pud_index(start), __pud(__pa(pmd) | _KERNPG_TABLE));
+-	for (paddr = 0; paddr < KERNEL_TEXT_SIZE; pmd++, paddr += PMD_SIZE) {
+-		unsigned long pe;
+-
+-		pe = __PAGE_KERNEL_LARGE_EXEC | _PAGE_GLOBAL | paddr;
+-		pe &= __supported_pte_mask;
+-		set_pmd(pmd, __pmd(pe));
+-	}
+-
+-	return 0;
+-}
+-
+ static int set_up_temporary_mappings(void)
+ {
+ 	unsigned long start, end, next;
+-	pud_t *pud;
+ 	int error;
+ 
+ 	temp_level4_pgt = (pgd_t *)get_safe_page(GFP_ATOMIC);
+ 	if (!temp_level4_pgt)
+ 		return -ENOMEM;
+ 
++	/* It is safe to reuse the original kernel mapping */
++	set_pgd(temp_level4_pgt + pgd_index(__START_KERNEL_map),
++		init_level4_pgt[pgd_index(__START_KERNEL_map)]);
++
+ 	/* Set up the direct mapping from scratch */
+ 	start = (unsigned long)pfn_to_kaddr(0);
+ 	end = (unsigned long)pfn_to_kaddr(end_pfn);
+ 
+ 	for (; start < end; start = next) {
+-		pud = (pud_t *)get_safe_page(GFP_ATOMIC);
++		pud_t *pud = (pud_t *)get_safe_page(GFP_ATOMIC);
+ 		if (!pud)
+ 			return -ENOMEM;
+ 		next = start + PGDIR_SIZE;
+@@ -238,17 +221,7 @@ static int set_up_temporary_mappings(voi
+ 		set_pgd(temp_level4_pgt + pgd_index(start),
+ 			mk_kernel_pgd(__pa(pud)));
  	}
- 	kernel_halt();
- 	/*
+-
+-	/* Set up the kernel text mapping from scratch */
+-	pud = (pud_t *)get_safe_page(GFP_ATOMIC);
+-	if (!pud)
+-		return -ENOMEM;
+-	error = res_kernel_text_pud_init(pud, __START_KERNEL_map);
+-	if (!error)
+-		set_pgd(temp_level4_pgt + pgd_index(__START_KERNEL_map),
+-			__pgd(__pa(pud) | _PAGE_TABLE));
+-
+-	return error;
++	return 0;
+ }
+ 
+ int swsusp_arch_resume(void)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
