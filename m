@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + bonding-locking-fix.patch added to -mm tree
-Date: Tue, 11 Dec 2007 03:43:26 -0800
-Message-ID: <200712111143.lBBBhRRN020624@imap1.linux-foundation.org>
+Subject: + sata_nv-fix-oops.patch added to -mm tree
+Date: Tue, 11 Dec 2007 12:09:30 -0800
+Message-ID: <200712112009.lBBK9W43006758@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49430 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46936 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751615AbXLKLnu (ORCPT
+	by vger.kernel.org with ESMTP id S1752322AbXLKUKL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Dec 2007 06:43:50 -0500
+	Tue, 11 Dec 2007 15:10:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, olel@ans.pl, shemminger@linux-foundation.org
+Cc: akpm@linux-foundation.org, hancockr@shaw.ca, htejun@gmail.com, jeff@garzik.org, kluo@nvidia.com, peerchen@gmail.com
 
 
 The patch titled
-     bonding: locking fix
+     sata_nv: fix oops
 has been added to the -mm tree.  Its filename is
-     bonding-locking-fix.patch
+     sata_nv-fix-oops.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,124 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: bonding: locking fix
+Subject: sata_nv: fix oops
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Remove stray rtnl_unlock().
+"Kuan Luo" <kluo@nvidia.com> said:
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=9542
+The below error happens when i rmmod sata_nv in adma mode on ck804
+chipset with 2.6.24 kernel.
+I traced the code and found that the driver attempts to write device mem
+that has been unmapped.
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Stephen Hemminger <shemminger@linux-foundation.org>
-Cc: Krzysztof Oledzki <olel@ans.pl>
+Only simply removing the code" writew(0, mmio + NV_ADMA_CTL);" in the
+nv_adma_port_stop function or remove .port_stop field in nv_adma_ops,
+rmmod is ok.
+
+static void nv_adma_port_stop(struct ata_port *ap)
+{
+	struct nv_adma_port_priv *pp = ap->private_data;
+	void __iomem *mmio = pp->ctl_block;
+
+	VPRINTK("ENTER\n");
+-	writew(0, mmio + NV_ADMA_CTL);
+}
+
+Or
+ Place pcim_iomap_regions before ata_pci_prepare_native_host in
+nv_init_one function.
+This can guarantee that the code "writew(0, mmio + NV_ADMA_CTL) " write
+device mem before the device mem is unmapped.
+
+messages:
+Dec 19 02:23:24 localhost kernel: ata16.00: disabled
+Dec 19 02:23:24 localhost kernel: sd 15:0:0:0: [sda] Synchronizing SCSI
+cache
+Dec 19 02:23:24 localhost kernel: sd 15:0:0:0: [sda] Result:
+hostbyte=0x04 driverbyte=0x00
+Dec 19 02:23:24 localhost kernel: sd 15:0:0:0: [sda] Stopping disk
+Dec 19 02:23:24 localhost kernel: sd 15:0:0:0: [sda] START_STOP FAILED
+Dec 19 02:23:24 localhost kernel: sd 15:0:0:0: [sda] Result:
+hostbyte=0x04 driverbyte=0x00
+Dec 19 02:23:24 localhost kernel: BUG: unable to handle kernel paging
+request at virtual address e881a4c0
+Dec 19 02:23:24 localhost kernel: printing eip: e88224e9 *pde = 0180c067
+*pte = 00000000 
+Dec 19 02:23:24 localhost kernel: Oops: 0002 [#1] SMP 
+Dec 19 02:23:24 localhost kernel: Modules linked in: sata_nv libata
+Dec 19 02:23:24 localhost kernel: 
+Dec 19 02:23:24 localhost kernel: Pid: 4915, comm: rmmod Not tainted
+(2.6.24-rc1-ge2e031eb #2)
+Dec 19 02:23:24 localhost kernel: EIP: 0060:[<e88224e9>] EFLAGS:
+00210292 CPU: 1
+Dec 19 02:23:24 localhost kernel: EIP is at nv_adma_port_stop+0x3d/0x53
+[sata_nv]
+Dec 19 02:23:24 localhost kernel: EAX: 00000015 EBX: e881a480 ECX:
+00200046 EDX: 00200046
+Dec 19 02:23:24 localhost kernel: ESI: c220b50c EDI: c1979154 EBP:
+c197904c ESP: c2429ecc
+Dec 19 02:23:24 localhost kernel:  DS: 007b ES: 007b FS: 00d8 GS: 0033
+SS: 0068
+Dec 19 02:23:24 localhost kernel: Process rmmod (pid: 4915, ti=c2428000
+task=c25e5a40 task.ti=c2428000)
+Dec 19 02:23:24 localhost kernel: Stack: e8823e1b e881a480 00000000
+e884398e c220b500 c18a3ec0 c1979154 00000000 
+Dec 19 02:23:24 localhost kernel:        c02818be c1979154 c197904c
+0000000d c18a3ec0 c18a3a40 c197904c e88259d0 
+Dec 19 02:23:24 localhost kernel:        e88259d0 c2428000 c0281987
+00200286 c197904c c027f8bb c1834600 c197904c 
+Dec 19 02:23:24 localhost kernel: Call Trace:
+Dec 19 02:23:24 localhost kernel:  [<e884398e>]
+ata_host_release+0x2f/0x92 [libata]
+Dec 19 02:23:24 localhost kernel:  [<c02818be>]
+release_nodes+0x10f/0x12f
+Dec 19 02:23:24 localhost kernel:  [<c0281987>]
+devres_release_all+0x27/0x2a
+Dec 19 02:23:24 localhost kernel:  [<c027f8bb>]
+__device_release_driver+0x72/0x88
+Dec 19 02:23:24 localhost kernel:  [<c027fccb>] driver_detach+0x76/0xb3
+Dec 19 02:23:24 localhost kernel:  [<c027f49f>]
+bus_remove_driver+0x63/0x81
+Dec 19 02:23:24 localhost kernel:  [<c0228b5a>]
+pci_unregister_driver+0xc/0x57
+Dec 19 02:23:24 localhost kernel:  [<c0143792>]
+sys_delete_module+0x197/0x1bd
+Dec 19 02:23:24 localhost kernel:  [<c0417673>]
+do_page_fault+0x202/0x581
+Dec 19 02:23:24 localhost kernel:  [<c01570ec>] do_munmap+0x193/0x1ac
+Dec 19 02:23:24 localhost kernel:  [<c0104e4e>]
+sysenter_past_esp+0x5f/0x85
+Dec 19 02:23:24 localhost kernel:  =======================
+Dec 19 02:23:24 localhost kernel: Code: 3e 82 e8 e8 b8 30 90 d7 89 5c 24
+04 c7 04 24 0f 3e 82 e8 e8 a8 30 90 d7 8b 5b 10 c7 04 24 1b 3e 82 e8 89
+5c 24 04 e8 95 30 90 d7 <66> c7 43 40 00 00 c7 04 24 29 3e 82 e8 e8 83
+30 90 d7 5b 58 5b 
+Dec 19 02:23:24 localhost kernel: EIP: [<e88224e9>]
+nv_adma_port_stop+0x3d/0x53 [sata_nv] SS:ESP 0068:c2429ecc
+
+Cc: "Kuan Luo" <kluo@nvidia.com>
+Cc: "Jeff Garzik" <jeff@garzik.org>
+Cc: "peer chen" <peerchen@gmail.com>
+Cc: "Robert Hancock" <hancockr@shaw.ca>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/bonding/bond_sysfs.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/ata/sata_nv.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/bonding/bond_sysfs.c~bonding-locking-fix drivers/net/bonding/bond_sysfs.c
---- a/drivers/net/bonding/bond_sysfs.c~bonding-locking-fix
-+++ a/drivers/net/bonding/bond_sysfs.c
-@@ -1111,8 +1111,6 @@ static ssize_t bonding_store_primary(str
- out:
- 	write_unlock_bh(&bond->lock);
+diff -puN drivers/ata/sata_nv.c~sata_nv-fix-oops drivers/ata/sata_nv.c
+--- a/drivers/ata/sata_nv.c~sata_nv-fix-oops
++++ a/drivers/ata/sata_nv.c
+@@ -1211,7 +1211,7 @@ static void nv_adma_port_stop(struct ata
+ 	void __iomem *mmio = pp->ctl_block;
  
--	rtnl_unlock();
--
- 	return count;
+ 	VPRINTK("ENTER\n");
+-	writew(0, mmio + NV_ADMA_CTL);
++//	writew(0, mmio + NV_ADMA_CTL);
  }
- static DEVICE_ATTR(primary, S_IRUGO | S_IWUSR, bonding_show_primary, bonding_store_primary);
+ 
+ #ifdef CONFIG_PM
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -262,3 +352,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+sata_nv-fix-oops.patch
