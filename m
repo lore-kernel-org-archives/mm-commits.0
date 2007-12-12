@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-powerpc-add-missing-of_node_put.patch added to -mm tree
-Date: Wed, 12 Dec 2007 02:11:52 -0800
-Message-ID: <200712121011.lBCABqMG004539@imap1.linux-foundation.org>
+Subject: + pktcdvd-add-kobject_put-when-kobject-register-fails.patch added to -mm tree
+Date: Wed, 12 Dec 2007 02:13:32 -0800
+Message-ID: <200712121013.lBCADWVE004663@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57962 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42982 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757423AbXLLKMC (ORCPT
+	by vger.kernel.org with ESMTP id S1758623AbXLLKPP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 05:12:02 -0500
+	Wed, 12 Dec 2007 05:15:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, benh@kernel.crashing.org, paulus@samba.org
+Cc: hidave.darkstar@gmail.com, greg@kroah.com, jens.axboe@oracle.com, penberg@cs.helsinki.fi, petero2@telia.com
 
 
 The patch titled
-     arch/powerpc: add missing of_node_put
+     pktcdvd: add kobject_put when kobject register fails
 has been added to the -mm tree.  Its filename is
-     arch-powerpc-add-missing-of_node_put.patch
+     pktcdvd-add-kobject_put-when-kobject-register-fails.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,69 +26,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: arch/powerpc: add missing of_node_put
-From: Julia Lawall <julia@diku.dk>
+Subject: pktcdvd: add kobject_put when kobject register fails
+From: Dave Young <hidave.darkstar@gmail.com>
 
-There should be an of_node_put when breaking out of a loop that iterates
-over calls to of_find_all_nodes, as this function does an of_node_get on
-the value it returns.
+In kobject_register, the kobject reference is get in kobject_init, and then
+kobject_add.  If kobject_add fail, it will only cleanup the reference got
+by itself.
 
-This was fixed using the following semantic patch.
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@@
-type T;
-identifier d;
-expression e;
-@@
-
-T *d;
-...
-for (d = NULL; (d = of_find_all_nodes(d)) != NULL; )
- {... when != of_node_put(d)
-      when != e = d
-(
-   return d;
-|
-+  of_node_put(d);
-?  return ...;
-)
-...}
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
+Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Greg KH <greg@kroah.com>
+Cc: Peter Osterlund <petero2@telia.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/iseries/iommu.c |    4 +++-
+ drivers/block/pktcdvd.c |    4 +++-
  1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN arch/powerpc/platforms/iseries/iommu.c~arch-powerpc-add-missing-of_node_put arch/powerpc/platforms/iseries/iommu.c
---- a/arch/powerpc/platforms/iseries/iommu.c~arch-powerpc-add-missing-of_node_put
-+++ a/arch/powerpc/platforms/iseries/iommu.c
-@@ -163,8 +163,10 @@ static struct iommu_table *iommu_table_f
- 		    (it->it_type == TCE_PCI) &&
- 		    (it->it_offset == tbl->it_offset) &&
- 		    (it->it_index == tbl->it_index) &&
--		    (it->it_size == tbl->it_size))
-+		    (it->it_size == tbl->it_size)) {
-+			of_node_put(node);
- 			return it;
-+		}
- 	}
- 	return NULL;
+diff -puN drivers/block/pktcdvd.c~pktcdvd-add-kobject_put-when-kobject-register-fails drivers/block/pktcdvd.c
+--- a/drivers/block/pktcdvd.c~pktcdvd-add-kobject_put-when-kobject-register-fails
++++ a/drivers/block/pktcdvd.c
+@@ -117,8 +117,10 @@ static struct pktcdvd_kobj* pkt_kobj_cre
+ 	p->kobj.parent = parent;
+ 	p->kobj.ktype = ktype;
+ 	p->pd = pd;
+-	if (kobject_register(&p->kobj) != 0)
++	if (kobject_register(&p->kobj) != 0) {
++		kobject_put(&p->kobj);
+ 		return NULL;
++	}
+ 	return p;
  }
+ /*
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from hidave.darkstar@gmail.com are
 
-origin.patch
-git-alsa.patch
-drivers-char-remove-unnecessary-pci_dev_put.patch
-arch-ppc-remove-an-unnecessary-pci_dev_put.patch
-arch-powerpc-add-missing-of_node_put.patch
-git-input.patch
-drivers-video-remove-unnecessary-pci_dev_put.patch
+git-cpufreq.patch
+bluetooth-hidp_process_hid_control-remove-unnecessary-parameter-dealing.patch
+bluetooth-rfcomm-tty_close-before-destruct.patch
+pktcdvd-add-kobject_put-when-kobject-register-fails.patch
