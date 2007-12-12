@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-net-fix-drivers-net-ns83820c-build.patch added to -mm tree
-Date: Wed, 12 Dec 2007 14:36:52 -0800
-Message-ID: <200712122244.lBCMiRFP000954@imap1.linux-foundation.org>
+Subject: + git-dvb-one-videobuf_read_start-is-enough.patch added to -mm tree
+Date: Wed, 12 Dec 2007 14:51:22 -0800
+Message-ID: <200712122258.lBCMwvU7001501@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46113 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59192 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751428AbXLLWpB (ORCPT
+	by vger.kernel.org with ESMTP id S1752708AbXLLW7O (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 17:45:01 -0500
+	Wed, 12 Dec 2007 17:59:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net
+Cc: akpm@linux-foundation.org, mchehab@infradead.org
 
 
 The patch titled
-     git-net: fix drivers/net/ns83820.c build
+     git-dvb: one videobuf_read_start() is enough
 has been added to the -mm tree.  Its filename is
-     git-net-fix-drivers-net-ns83820c-build.patch
+     git-dvb-one-videobuf_read_start-is-enough.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,28 +26,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-net: fix drivers/net/ns83820.c build
+Subject: git-dvb: one videobuf_read_start() is enough
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ns83820.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/video/videobuf-core.c |   11 -----------
+ 1 file changed, 11 deletions(-)
 
-diff -puN drivers/net/ns83820.c~git-net-fix-drivers-net-ns83820c-build drivers/net/ns83820.c
---- a/drivers/net/ns83820.c~git-net-fix-drivers-net-ns83820c-build
-+++ a/drivers/net/ns83820.c
-@@ -611,7 +611,7 @@ static inline int rx_refill(struct net_d
- 	return i ? 0 : -ENOMEM;
+diff -puN drivers/media/video/videobuf-core.c~git-dvb-one-videobuf_read_start-is-enough drivers/media/video/videobuf-core.c
+--- a/drivers/media/video/videobuf-core.c~git-dvb-one-videobuf_read_start-is-enough
++++ a/drivers/media/video/videobuf-core.c
+@@ -879,17 +879,6 @@ int videobuf_read_start(struct videobuf_
+ 	return rc;
  }
  
--static void rx_refill_atomic(struct net_device *ndev));
-+static void rx_refill_atomic(struct net_device *ndev);
- static void fastcall rx_refill_atomic(struct net_device *ndev)
+-int videobuf_read_start(struct videobuf_queue *q)
+-{
+-	int rc;
+-
+-	mutex_lock(&q->lock);
+-	rc = __videobuf_read_start(q);
+-	mutex_unlock(&q->lock);
+-
+-	return rc;
+-}
+-
+ void videobuf_read_stop(struct videobuf_queue *q)
  {
- 	rx_refill(ndev, GFP_ATOMIC);
+ 	mutex_lock(&q->lock);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -101,6 +110,7 @@ git-mmc.patch
 git-mtd.patch
 git-net.patch
 git-net-vs-git-lblnet.patch
+git-net-fix-drivers-net-ns83820c-build.patch
 net-use-mutex_is_locked-for-assert_rtnl.patch
 tipc-fix-semaphore-handling.patch
 git-netdev-all.patch
@@ -265,4 +275,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-git-net-fix-drivers-net-ns83820c-build.patch
+git-dvb-one-videobuf_read_start-is-enough.patch
