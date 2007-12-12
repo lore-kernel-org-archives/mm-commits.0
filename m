@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-dont-cast-a-pointer-to-pointer-of-list_head.patch added to -mm tree
-Date: Wed, 12 Dec 2007 01:00:33 -0800
-Message-ID: <200712120900.lBC90Xd5002125@imap1.linux-foundation.org>
+Subject: + mm-sparsec-improve-the-error-handling-for-sparse_add_one_section-fix.patch added to -mm tree
+Date: Wed, 12 Dec 2007 01:03:00 -0800
+Message-ID: <200712120903.lBC930mG002240@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49673 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37189 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757255AbXLLJAk (ORCPT
+	by vger.kernel.org with ESMTP id S1755449AbXLLJEU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 04:00:40 -0500
+	Wed, 12 Dec 2007 04:04:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, benh@kernel.crashing.org, galak@gate.crashing.org, paulus@samba.org
+Cc: geoffrey.levand@am.sony.com, apw@shadowen.org, clameter@sgi.com, haveblue@us.ibm.com, riel@redhat.com, xiyou.wangcong@gmail.com, y-goto@jp.fujitsu.com
 
 
 The patch titled
-     powerpc: don't cast a pointer to pointer of list_head
+     sparsemem: fix sparse_index_init return check
 has been added to the -mm tree.  Its filename is
-     powerpc-dont-cast-a-pointer-to-pointer-of-list_head.patch
+     mm-sparsec-improve-the-error-handling-for-sparse_add_one_section-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,45 +26,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: powerpc: don't cast a pointer to pointer of list_head
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: sparsemem: fix sparse_index_init return check
+From: Geoff Levand <geoffrey.levand@am.sony.com>
 
-The casting is safe only when the list_head member is the first member of
-the structure.
+sparse_index_init() returns -EEXIST to indicate the index has already been
+created.  Exclude this from the error check on the return value.
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Kumar Gala <galak@gate.crashing.org>
+Signed-off-by: Geoff Levand <geoffrey.levand@am.sony.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ppc/syslib/ocp.c |    2 +-
+ mm/sparse.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/ppc/syslib/ocp.c~powerpc-dont-cast-a-pointer-to-pointer-of-list_head arch/ppc/syslib/ocp.c
---- a/arch/ppc/syslib/ocp.c~powerpc-dont-cast-a-pointer-to-pointer-of-list_head
-+++ a/arch/ppc/syslib/ocp.c
-@@ -376,7 +376,7 @@ ocp_remove_one_device(unsigned int vendo
- 
- 	down_write(&ocp_devices_sem);
- 	dev = __ocp_find_device(vendor, function, index);
--	list_del((struct list_head *)dev);
-+	list_del(&dev->link);
- 	up_write(&ocp_devices_sem);
- 
- 	DBG(("ocp: ocp_remove_one_device(vendor: %x, function: %x, index: %d)... done.\n", vendor, function, index));
+diff -puN mm/sparse.c~mm-sparsec-improve-the-error-handling-for-sparse_add_one_section-fix mm/sparse.c
+--- a/mm/sparse.c~mm-sparsec-improve-the-error-handling-for-sparse_add_one_section-fix
++++ a/mm/sparse.c
+@@ -384,7 +384,7 @@ int sparse_add_one_section(struct zone *
+ 	 * plus, it does a kmalloc
+ 	 */
+ 	ret = sparse_index_init(section_nr, pgdat->node_id);
+-	if (ret < 0)
++	if (ret < 0 && ret != -EEXIST)
+ 		return ret;
+ 	memmap = kmalloc_section_memmap(section_nr, pgdat->node_id, nr_pages);
+ 	if (!memmap)
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from geoffrey.levand@am.sony.com are
 
-powerpc-dont-cast-a-pointer-to-pointer-of-list_head.patch
-drm-dont-cast-a-pointer-to-pointer-of-list_head.patch
-git-hid.patch
-git-net.patch
-wireless-libertas-dont-cast-a-pointer-to-pointer-of-list_head.patch
-clocksource-remove-redundant-code.patch
-clockevent-simplify-list-operations.patch
-timekeeping-rename-timekeeping_is_continuous-to-timekeeping_valid_for_hres.patch
-time-fix-typo-in-comments.patch
-time-delete-comments-that-refer-to-noexistent-symbols.patch
+sparsemem-make-sparsemem_vmemmap-selectable.patch
+git-powerpc.patch
+mm-sparsec-improve-the-error-handling-for-sparse_add_one_section-fix.patch
