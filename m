@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext3-ext4-avoid-divide-by-zero.patch added to -mm tree
-Date: Wed, 12 Dec 2007 02:27:28 -0800
-Message-ID: <200712121027.lBCARSKQ005179__2043.15382657132$1197455341$gmane$org@imap1.linux-foundation.org>
+Subject: + arch-powerpc-platforms-cell-cbe_regsc-add-missing-of_node_put.patch added to -mm tree
+Date: Wed, 12 Dec 2007 02:31:25 -0800
+Message-ID: <200712121031.lBCAVP1v005277@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34965 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52680 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758910AbXLLK2W (ORCPT
+	by vger.kernel.org with ESMTP id S1756366AbXLLKbo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 05:28:22 -0500
+	Wed, 12 Dec 2007 05:31:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Andries.Brouwer@cwi.nl, alan@redhat.com, linux-ext4@vger.kernel.org
+Cc: julia@diku.dk, benh@kernel.crashing.org, djerb@us.ibm.com, krafft@de.ibm.com, paulus@samba.org
 
 
 The patch titled
-     ext3, ext4: avoid divide by zero
+     arch/powerpc/platforms/cell/cbe_regs.c: add missing of_node_put
 has been added to the -mm tree.  Its filename is
-     ext3-ext4-avoid-divide-by-zero.patch
+     arch-powerpc-platforms-cell-cbe_regsc-add-missing-of_node_put.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,51 +26,68 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ext3, ext4: avoid divide by zero
-From: "Andries E. Brouwer" <Andries.Brouwer@cwi.nl>
+Subject: arch/powerpc/platforms/cell/cbe_regs.c: add missing of_node_put
+From: Julia Lawall <julia@diku.dk>
 
-As it turns out, the kernel divides by EXT3_INODES_PER_GROUP(s) when
-mounting an ext3 filesystem.  If that number is zero, a crash follows. 
-Below a patch.
+There should be an of_node_put when breaking out of a loop that iterates
+using for_each_node_by_type.
 
-This crash was reported by Joeri de Ruiter, Carst Tankink and Pim Vullers.
+This was detected and fixed using the following semantic patch.
+(http://www.emn.fr/x-info/coccinelle/)
 
-Cc: <linux-ext4@vger.kernel.org>
-Acked-by: Alan Cox <alan@redhat.com>
+// <smpl>
+@@
+identifier d;
+type T;
+expression e;
+iterator for_each_node_by_type;
+@@
+
+T *d;
+...
+for_each_node_by_type(d,...)
+  {... when != of_node_put(d)
+       when != e = d
+(
+   return d;
+|
++  of_node_put(d);
+?  return ...;
+)
+...}
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Christian Krafft <krafft@de.ibm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: David Erb <djerb@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/super.c |    2 +-
- fs/ext4/super.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/powerpc/platforms/cell/cbe_regs.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/ext3/super.c~ext3-ext4-avoid-divide-by-zero fs/ext3/super.c
---- a/fs/ext3/super.c~ext3-ext4-avoid-divide-by-zero
-+++ a/fs/ext3/super.c
-@@ -1676,7 +1676,7 @@ static int ext3_fill_super (struct super
- 	sbi->s_blocks_per_group = le32_to_cpu(es->s_blocks_per_group);
- 	sbi->s_frags_per_group = le32_to_cpu(es->s_frags_per_group);
- 	sbi->s_inodes_per_group = le32_to_cpu(es->s_inodes_per_group);
--	if (EXT3_INODE_SIZE(sb) == 0)
-+	if (EXT3_INODE_SIZE(sb) == 0 || EXT3_INODES_PER_GROUP(sb) == 0)
- 		goto cantfind_ext3;
- 	sbi->s_inodes_per_block = blocksize / EXT3_INODE_SIZE(sb);
- 	if (sbi->s_inodes_per_block == 0)
-diff -puN fs/ext4/super.c~ext3-ext4-avoid-divide-by-zero fs/ext4/super.c
---- a/fs/ext4/super.c~ext3-ext4-avoid-divide-by-zero
-+++ a/fs/ext4/super.c
-@@ -1797,7 +1797,7 @@ static int ext4_fill_super (struct super
- 		sbi->s_desc_size = EXT4_MIN_DESC_SIZE;
- 	sbi->s_blocks_per_group = le32_to_cpu(es->s_blocks_per_group);
- 	sbi->s_inodes_per_group = le32_to_cpu(es->s_inodes_per_group);
--	if (EXT4_INODE_SIZE(sb) == 0)
-+	if (EXT4_INODE_SIZE(sb) == 0 || EXT4_INODES_PER_GROUP(sb) == 0)
- 		goto cantfind_ext4;
- 	sbi->s_inodes_per_block = blocksize / EXT4_INODE_SIZE(sb);
- 	if (sbi->s_inodes_per_block == 0)
+diff -puN arch/powerpc/platforms/cell/cbe_regs.c~arch-powerpc-platforms-cell-cbe_regsc-add-missing-of_node_put arch/powerpc/platforms/cell/cbe_regs.c
+--- a/arch/powerpc/platforms/cell/cbe_regs.c~arch-powerpc-platforms-cell-cbe_regsc-add-missing-of_node_put
++++ a/arch/powerpc/platforms/cell/cbe_regs.c
+@@ -256,6 +256,7 @@ void __init cbe_regs_init(void)
+ 			printk(KERN_ERR "cbe_regs: More BE chips than supported"
+ 			       "!\n");
+ 			cbe_regs_map_count--;
++			of_node_put(cpu);
+ 			return;
+ 		}
+ 		map->cpu_node = cpu;
 _
 
-Patches currently in -mm which might be from Andries.Brouwer@cwi.nl are
+Patches currently in -mm which might be from julia@diku.dk are
 
-ext3-ext4-avoid-divide-by-zero.patch
-mnt_unbindable-fix.patch
+origin.patch
+git-alsa.patch
+drivers-char-remove-unnecessary-pci_dev_put.patch
+arch-ppc-remove-an-unnecessary-pci_dev_put.patch
+arch-powerpc-add-missing-of_node_put.patch
+arch-powerpc-platforms-cell-cbe_regsc-add-missing-of_node_put.patch
+git-input.patch
+drivers-video-remove-unnecessary-pci_dev_put.patch
