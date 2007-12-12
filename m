@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + rcu-move-three-variables-to-__read_mostly-to-save-space.patch added to -mm tree
-Date: Tue, 11 Dec 2007 16:00:51 -0800
-Message-ID: <200712120000.lBC00pPk015725@imap1.linux-foundation.org>
+Subject: + bridge-assign-random-address.patch added to -mm tree
+Date: Tue, 11 Dec 2007 16:02:38 -0800
+Message-ID: <200712120002.lBC02cse015844@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47994 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60591 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753123AbXLLACD (ORCPT
+	by vger.kernel.org with ESMTP id S1754953AbXLLADH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Dec 2007 19:02:03 -0500
+	Tue, 11 Dec 2007 19:03:07 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lBC02cPe004044
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 11 Dec 2007 16:02:39 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dada1@cosmosbay.com, dipankar@in.ibm.com, paulmck@us.ibm.com
+Cc: shemminger@linux-foundation.org
 
 
 The patch titled
-     RCU: move three variables to __read_mostly to save space
+     bridge: assign random address
 has been added to the -mm tree.  Its filename is
-     rcu-move-three-variables-to-__read_mostly-to-save-space.patch
+     bridge-assign-random-address.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,59 +30,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: RCU: move three variables to __read_mostly to save space
-From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: bridge: assign random address
+From: Stephen Hemminger <shemminger@linux-foundation.org>
 
-I noticed this vmlinux layout on i686 (where CONFIG_X86_L1_CACHE_SHIFT = 7) :
+Assigning a valid random address to bridge device solves problems when
+bridge device is brought up before adding real device to bridge.  When the
+first real device is added to the bridge, it's address will overide the
+bridges random address.
 
-c06cdab4 d pid_caches_lh
-c06cdb00 d qlowmark
-c06cdb04 d qhimark
-c06cdb08 d blimit
-c06cdb80 d rcu_ctrlblk
-c06cdc80 d rcu_bh_ctrlblk
+Note: any device added to a bridge must already have a valid
+ethernet address.
+ br_add_if -> br_fdb_insert -> fdb_insert -> is_valid_ether_addr
 
-This means that qlowmark, qhimark and blimit use a whole 128 bytes cache line.
-Linker is not smart enough for us.
-
-Moving these three variables to read_mostly section saves 116 (128-12) bytes.
-
-# size vmlinux vmlinux.before_patch
-    text    data     bss     dec     hex filename
-6343966  490818  630784 7465568  71ea60 vmlinux
-6343966  490930  630784 7465680  71ead0 vmlinux.before_patch
-
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
-Cc: Dipankar Sarma <dipankar@in.ibm.com>
+Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/rcupdate.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ net/bridge/br_device.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/rcupdate.c~rcu-move-three-variables-to-__read_mostly-to-save-space kernel/rcupdate.c
---- a/kernel/rcupdate.c~rcu-move-three-variables-to-__read_mostly-to-save-space
-+++ a/kernel/rcupdate.c
-@@ -75,9 +75,9 @@ DEFINE_PER_CPU(struct rcu_data, rcu_bh_d
+diff -puN net/bridge/br_device.c~bridge-assign-random-address net/bridge/br_device.c
+--- a/net/bridge/br_device.c~bridge-assign-random-address
++++ a/net/bridge/br_device.c
+@@ -157,8 +157,7 @@ static struct ethtool_ops br_ethtool_ops
  
- /* Fake initialization required by compiler */
- static DEFINE_PER_CPU(struct tasklet_struct, rcu_tasklet) = {NULL};
--static int blimit = 10;
--static int qhimark = 10000;
--static int qlowmark = 100;
-+static int blimit __read_mostly = 10;
-+static int qhimark __read_mostly = 10000;
-+static int qlowmark __read_mostly = 100;
+ void br_dev_setup(struct net_device *dev)
+ {
+-	memset(dev->dev_addr, 0, ETH_ALEN);
+-
++	random_ether_addr(dev->dev_addr);
+ 	ether_setup(dev);
  
- static atomic_t rcu_barrier_cpu_count;
- static DEFINE_MUTEX(rcu_barrier_mutex);
+ 	dev->do_ioctl = br_dev_ioctl;
 _
 
-Patches currently in -mm which might be from dada1@cosmosbay.com are
+Patches currently in -mm which might be from shemminger@linux-foundation.org are
 
-parport-dev-timeslice-is-an-unsigned-long-not-an-int.patch
+git-input.patch
+fujitsu-application-panel-driver.patch
+apanel-free-input-device-on-close.patch
+apanel-change-name-of-led.patch
+apanel-detach-on-shutdown.patch
+apanel-use-generic-keycode-routines.patch
 git-net.patch
-percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
-rcu-move-three-variables-to-__read_mostly-to-save-space.patch
+git-netdev-all.patch
+git-wireless.patch
+bonding-locking-fix.patch
+bridge-assign-random-address.patch
