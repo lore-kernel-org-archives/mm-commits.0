@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + media-video-usbvision-add-mutex_unlock-to-error-paths-fix.patch added to -mm tree
-Date: Tue, 11 Dec 2007 20:54:15 -0800
-Message-ID: <200712120454.lBC4sFMv026198@imap1.linux-foundation.org>
+Subject: + move-the-related-code-from-exit_notify-to-exit_signals.patch added to -mm tree
+Date: Tue, 11 Dec 2007 21:01:42 -0800
+Message-ID: <200712120501.lBC51g6K026428@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39878 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53810 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753147AbXLLEyx (ORCPT
+	by vger.kernel.org with ESMTP id S1750995AbXLLFC5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Dec 2007 23:54:53 -0500
+	Wed, 12 Dec 2007 00:02:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dwalker@mvista.com, mchehab@infradead.org
+Cc: oleg@tv-sign.ru, davidel@xmailserver.org, mingo@elte.hu, roland@redhat.com
 
 
 The patch titled
-     media-video-usbvision-add-mutex_unlock-to-error-paths-fix
+     move the related code from exit_notify() to exit_signals()
 has been added to the -mm tree.  Its filename is
-     media-video-usbvision-add-mutex_unlock-to-error-paths-fix.patch
+     move-the-related-code-from-exit_notify-to-exit_signals.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,246 +26,139 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: media-video-usbvision-add-mutex_unlock-to-error-paths-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: move the related code from exit_notify() to exit_signals()
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Cc: Daniel Walker <dwalker@mvista.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+The previous bugfix was not optimal, we shouldn't care about group stop
+when we are the only thread or the group stop is in progress.  In that case
+nothing special is needed, just set PF_EXITING and return.
+
+Also, take the related "TIF_SIGPENDING re-targeting" code from exit_notify().
+
+So, from the performance POV the only difference is that we don't trust
+!signal_pending() until we take ->siglock.  But this in fact fixes another
+___pure___ theoretical minor race.  __group_complete_signal() finds the
+task without PF_EXITING and chooses it as the target for signal_wake_up(). 
+But nothing prevents this task from exiting in between without noticing the
+pending signal and thus unpredictably delaying the actual delivery.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/usbvision/usbvision-video.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ kernel/exit.c   |   18 ------------------
+ kernel/signal.c |   27 ++++++++++++++++++++++-----
+ 2 files changed, 22 insertions(+), 23 deletions(-)
 
-diff -puN drivers/media/video/usbvision/usbvision-video.c~media-video-usbvision-add-mutex_unlock-to-error-paths-fix drivers/media/video/usbvision/usbvision-video.c
---- a/drivers/media/video/usbvision/usbvision-video.c~media-video-usbvision-add-mutex_unlock-to-error-paths-fix
-+++ a/drivers/media/video/usbvision/usbvision-video.c
-@@ -1290,8 +1290,8 @@ static int usbvision_radio_open(struct i
- 		errCode = usbvision_set_alternate(usbvision);
- 		if (errCode < 0) {
- 			usbvision->last_error = errCode;
--			mutex_unlock(&usbvision->lock);
--			return -EBUSY;
-+			errCode = -EBUSY;
-+			goto out;
- 		}
+diff -puN kernel/exit.c~move-the-related-code-from-exit_notify-to-exit_signals kernel/exit.c
+--- a/kernel/exit.c~move-the-related-code-from-exit_notify-to-exit_signals
++++ a/kernel/exit.c
+@@ -741,24 +741,6 @@ static void exit_notify(struct task_stru
+ 	struct task_struct *t;
+ 	struct pid *pgrp;
  
- 		// If so far no errors then we shall start the radio
-@@ -1308,6 +1308,7 @@ static int usbvision_radio_open(struct i
- 			usbvision->initialized = 0;
- 		}
+-	if (signal_pending(tsk) && !(tsk->signal->flags & SIGNAL_GROUP_EXIT)
+-	    && !thread_group_empty(tsk)) {
+-		/*
+-		 * This occurs when there was a race between our exit
+-		 * syscall and a group signal choosing us as the one to
+-		 * wake up.  It could be that we are the only thread
+-		 * alerted to check for pending signals, but another thread
+-		 * should be woken now to take the signal since we will not.
+-		 * Now we'll wake all the threads in the group just to make
+-		 * sure someone gets all the pending signals.
+-		 */
+-		spin_lock_irq(&tsk->sighand->siglock);
+-		for (t = next_thread(tsk); t != tsk; t = next_thread(t))
+-			if (!signal_pending(t) && !(t->flags & PF_EXITING))
+-				recalc_sigpending_and_wake(t);
+-		spin_unlock_irq(&tsk->sighand->siglock);
+-	}
+-
+ 	/*
+ 	 * This does two things:
+ 	 *
+diff -puN kernel/signal.c~move-the-related-code-from-exit_notify-to-exit_signals kernel/signal.c
+--- a/kernel/signal.c~move-the-related-code-from-exit_notify-to-exit_signals
++++ a/kernel/signal.c
+@@ -1871,19 +1871,36 @@ relock:
+ void exit_signals(struct task_struct *tsk)
+ {
+ 	int group_stop = 0;
++	struct task_struct *t;
+ 
+-	spin_lock_irq(&tsk->sighand->siglock);
+-	if (unlikely(tsk->signal->group_stop_count) &&
+-			!--tsk->signal->group_stop_count) {
+-		tsk->signal->flags = SIGNAL_STOP_STOPPED;
+-		group_stop = 1;
++	if (thread_group_empty(tsk) || signal_group_exit(tsk->signal)) {
++		tsk->flags |= PF_EXITING;
++		return;
  	}
+ 
++	spin_lock_irq(&tsk->sighand->siglock);
+ 	/*
+ 	 * From now this task is not visible for group-wide signals,
+ 	 * see wants_signal(), do_signal_stop().
+ 	 */
+ 	tsk->flags |= PF_EXITING;
++	if (!signal_pending(tsk))
++		goto out;
++
++	/* It could be that __group_complete_signal() choose us to
++	 * notify about group-wide signal. Another thread should be
++	 * woken now to take the signal since we will not.
++	 */
++	for (t = tsk; (t = next_thread(t)) != tsk; )
++		if (!signal_pending(t) && !(t->flags & PF_EXITING))
++			recalc_sigpending_and_wake(t);
++
++	if (unlikely(tsk->signal->group_stop_count) &&
++			!--tsk->signal->group_stop_count) {
++		tsk->signal->flags = SIGNAL_STOP_STOPPED;
++		group_stop = 1;
++	}
 +out:
- 	mutex_unlock(&usbvision->lock);
- 	return errCode;
- }
+ 	spin_unlock_irq(&tsk->sighand->siglock);
+ 
+ 	if (unlikely(group_stop)) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-revert-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-timerfd-v3-new-timerfd-api-ia64-fix.patch
-timerfd-v3-new-timerfd-api-m68k-fix.patch
-timerfd-v3-new-timerfd-api-mips-fix.patch
-timerfd-v3-new-timerfd-api-arch-fixes.patch
-timerfd-v3-new-timerfd-api-powerpc-fix.patch
-timerfd-v3-new-timerfd-api-sparc64-fix.patch
-git-acpi-ia64-build-fix.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-git-agpgart.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-kernel-auditc-warning-fix.patch
-git-cpufreq.patch
-git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-dm-persistent_read_metadata-warning-fix.patch
-ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-git-drm.patch
-git-drm-oops-fix.patch
-intel-agp-enable-i915-recognition.patch
-git-dvb.patch
-media-video-usbvision-add-mutex_unlock-to-error-paths-fix.patch
-fix-jdelvare-i2c-i2c-constify-client-address-data.patch
-git-hid.patch
-revert-git-hrt.patch
-ia64-slim-down-__clear_bit_unlock.patch
-git-infiniband.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-libata-xfer_mask-is-unsigned-int-not-unsigned-long-fix.patch
-libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
-libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
-git-mmc.patch
-git-mtd.patch
-git-net.patch
-git-net-vs-git-lblnet.patch
-net-use-mutex_is_locked-for-assert_rtnl.patch
-tipc-fix-semaphore-handling.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-bluetooth-uninlining.patch
-git-nfsd.patch
-quirk-enable-msi-mapping-on-ht1000.patch
-kernel-time-make-tick_do_broadcast-static.patch
-git-sh.patch
-git-scsi-misc-fixup.patch
-ips-trim-trailing-whitespace.patch
-scsi-gdth-kill-unneeded-irq-argument.patch
-drivers-scsi-sgiwd93c-export-sgiwd93_reset.patch
-libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-mct232-speed-new-termios-and-compliance-cleanups-fix.patch
-usb-testing-driver-dont-free-a-locked-mutex.patch
-9p-util-fix-semaphore-handling.patch
-git-watchdog.patch
-add-support-for-sb1-hardware-watchdog-fix.patch
-git-wireless.patch
-bcm43xx_debugfs-sscanf-fix.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-x86-__vdso_getcpu-warning-fix.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-git-xtensa.patch
-bonding-locking-fix.patch
-sata_nv-fix-oops.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-optimise-the-clearing-of-__gfp_zero.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
-sync_sb_inodes-propagate-errors.patch
-move-kprobes-examples-to-samples-resend-vs-git-x86.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-logo-move-declarations-of-logos-to-linux_logoh-fix.patch
-declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
-64-bit-i_version-afs-fixes.patch
-ext4-add-block-bitmap-validation.patch
-ext4-fix-up-ext4fs_debug-builds.patch
-ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-rewrite-rd-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+__group_complete_signal-fix-coredump-with-group-stop-race.patch
+remove-handle_group_stop-in-favor-of-do_signal_stop.patch
+exec-rework-the-group-exit-and-fix-the-race-with-kill.patch
+use-__set_task_state-for-traced-stopped-tasks.patch
+add-task_wakekill.patch
+do_wait-remove-one-else-if-branch.patch
+proc-implement-proc_single_file_operations.patch
+proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces.patch
+proc-seqfile-convert-proc_pid_statm.patch
+proc-proper-pidns-handling-for-proc-self.patch
+proc-fix-the-threaded-proc-self.patch
+kill-pt_attached.patch
+kill-my_ptrace_child.patch
+ptrace_check_attach-remove-unneeded-signal-=-null-check.patch
+ptrace_stop-fix-the-race-with-ptrace-detachattach.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace.patch
+do_wait-factor-out-retval-=-0-checks.patch
+ptrace_stop-fix-racy-nonstop_code-setting.patch
+wait_task_stopped-remove-unneeded-delay_group_leader-check.patch
+do_wait-cleanup-delay_group_leader-usage.patch
+do_wait-fix-security-checks.patch
+do_wait-fix-security-checks-fix.patch
+wait_task_continued-zombie-dont-use-task_pid_nr_ns-lockless.patch
+wait_task_zombie-remove-exit_state-exit_signal-checks-for-wnowait.patch
+sys_setpgid-simplify-pid-ns-interaction.patch
+fix-setsid-for-sub-namespace-sbin-init.patch
+teach-set_special_pids-to-use-struct-pid.patch
+move-daemonized-kernel-threads-into-the-swappers-session.patch
+start-the-global-sbin-init-with-00-special-pids.patch
+fix-group-stop-with-exit-race.patch
+sys_setsid-remove-now-unneeded-session-=-1-check.patch
+move-the-related-code-from-exit_notify-to-exit_signals.patch
