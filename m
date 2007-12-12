@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pnp-do-not-stop-start-devices-in-suspend-resume-path.patch added to -mm tree
-Date: Wed, 12 Dec 2007 00:14:50 -0800
-Message-ID: <200712120814.lBC8EoBm000488@imap1.linux-foundation.org>
+Subject: + rtc-add-support-for-the-s-35390a-rtc-chip-fix.patch added to -mm tree
+Date: Wed, 12 Dec 2007 00:23:54 -0800
+Message-ID: <200712120823.lBC8Nsfo000868@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55254 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59520 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754703AbXLLIP1 (ORCPT
+	by vger.kernel.org with ESMTP id S1755417AbXLLIYU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 03:15:27 -0500
+	Wed, 12 Dec 2007 03:24:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com, ambx1@neo.rr.com, jirislaby@gmail.com, kristen.c.accardi@intel.com, lenb@kernel.org, rjw@sisk.pl, shaohua.li@intel.com
+Cc: akpm@linux-foundation.org, a.zummo@towertech.it, byron.bbradley@gmail.com, david-b@pacbell.net
 
 
 The patch titled
-     PNP: do not stop/start devices in suspend/resume path
+     rtc-add-support-for-the-s-35390a-rtc-chip-fix
 has been added to the -mm tree.  Its filename is
-     pnp-do-not-stop-start-devices-in-suspend-resume-path.patch
+     rtc-add-support-for-the-s-35390a-rtc-chip-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,96 +26,276 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: PNP: do not stop/start devices in suspend/resume path
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: rtc-add-support-for-the-s-35390a-rtc-chip-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Do not disable PNP devices in the suspend path.  We still call the driver's
-suspend method, which should prevent further use of the device, and the
-protocol suspend method, which may put the device in a low-power state.
+Use bitrev8()
 
-I'm told that Windows puts devices in a low-power state (Linux does this in
-the protocol suspend method), but does not use _DIS in the suspend path. 
-Other relevant references:
-
-  - In the ACPI 3.0b spec, I can't find any mention of _DIS in
-    connection with sleep.  And Device Object Notifications,
-    Section 5.6.3, Table 5-43, says we should get a bus check
-    after awakening if hardware was removed while we slept.
-
-  - This: http://msdn2.microsoft.com/en-us/library/ms810079.aspx
-    makes a similar point about how the OS re-enumerates devices
-    as a result of a power state change (3rd last paragraph of
-    text).
-
-  - This: http://msdn2.microsoft.com/en-us/library/aa489874.aspx
-    suggests that Windows only stops a device to rebalance hardware
-    resources.
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
-Cc: Adam Belay <ambx1@neo.rr.com>
-Cc: Li Shaohua <shaohua.li@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Byron Bradley <byron.bbradley@gmail.com>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/driver.c |   14 --------------
- 1 file changed, 14 deletions(-)
+ drivers/rtc/rtc-s35390a.c |   12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
-diff -puN drivers/pnp/driver.c~pnp-do-not-stop-start-devices-in-suspend-resume-path drivers/pnp/driver.c
---- a/drivers/pnp/driver.c~pnp-do-not-stop-start-devices-in-suspend-resume-path
-+++ a/drivers/pnp/driver.c
-@@ -161,13 +161,6 @@ static int pnp_bus_suspend(struct device
- 			return error;
- 	}
+diff -puN drivers/rtc/rtc-s35390a.c~rtc-add-support-for-the-s-35390a-rtc-chip-fix drivers/rtc/rtc-s35390a.c
+--- a/drivers/rtc/rtc-s35390a.c~rtc-add-support-for-the-s-35390a-rtc-chip-fix
++++ a/drivers/rtc/rtc-s35390a.c
+@@ -12,6 +12,7 @@
+ #include <linux/module.h>
+ #include <linux/rtc.h>
+ #include <linux/i2c.h>
++#include <linux/bitrev.h>
+ #include <linux/bcd.h>
  
--	if (!(pnp_drv->flags & PNP_DRIVER_RES_DO_NOT_CHANGE) &&
--	    pnp_can_disable(pnp_dev)) {
--		error = pnp_stop_dev(pnp_dev);
--		if (error)
--			return error;
--	}
+ #define S35390A_CMD_STATUS1	0
+@@ -121,13 +122,6 @@ static int s35390a_reg2hr(struct s35390a
+ 	return hour;
+ }
+ 
+-static inline char reverse(char x)
+-{
+-	x = ((x >> 1) & 0x55) | ((x << 1) & 0xaa);
+-	x = ((x >> 2) & 0x33) | ((x << 2) & 0xcc);
+-	return (x >> 4) | (x << 4);
+-}
 -
- 	if (pnp_dev->protocol && pnp_dev->protocol->suspend)
- 		pnp_dev->protocol->suspend(pnp_dev, state);
- 	return 0;
-@@ -177,7 +170,6 @@ static int pnp_bus_resume(struct device 
+ static int s35390a_set_datetime(struct i2c_client *client, struct rtc_time *tm)
  {
- 	struct pnp_dev *pnp_dev = to_pnp_dev(dev);
- 	struct pnp_driver *pnp_drv = pnp_dev->driver;
--	int error;
+ 	struct s35390a	*s35390a = i2c_get_clientdata(client);
+@@ -149,7 +143,7 @@ static int s35390a_set_datetime(struct i
  
- 	if (!pnp_drv)
- 		return 0;
-@@ -185,12 +177,6 @@ static int pnp_bus_resume(struct device 
- 	if (pnp_dev->protocol && pnp_dev->protocol->resume)
- 		pnp_dev->protocol->resume(pnp_dev);
+ 	/* This chip expects the bits of each byte to be in reverse order */
+ 	for (i = 0; i < 7; ++i)
+-		buf[i] = reverse(buf[i]);
++		buf[i] = bitrev8(buf[i]);
  
--	if (!(pnp_drv->flags & PNP_DRIVER_RES_DO_NOT_CHANGE)) {
--		error = pnp_start_dev(pnp_dev);
--		if (error)
--			return error;
--	}
--
- 	if (pnp_drv->resume)
- 		return pnp_drv->resume(pnp_dev);
+ 	err = s35390a_set_reg(s35390a, S35390A_CMD_TIME1, buf, sizeof(buf));
  
+@@ -168,7 +162,7 @@ static int s35390a_get_datetime(struct i
+ 
+ 	/* This chip returns the bits of each byte in reverse order */
+ 	for (i = 0; i < 7; ++i)
+-		buf[i] = reverse(buf[i]);
++		buf[i] = bitrev8(buf[i]);
+ 
+ 	tm->tm_sec = BCD2BIN(buf[S35390A_BYTE_SECS]);
+ 	tm->tm_min = BCD2BIN(buf[S35390A_BYTE_MINS]);
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+revert-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+timerfd-v3-new-timerfd-api-ia64-fix.patch
+timerfd-v3-new-timerfd-api-m68k-fix.patch
+timerfd-v3-new-timerfd-api-mips-fix.patch
+timerfd-v3-new-timerfd-api-arch-fixes.patch
+timerfd-v3-new-timerfd-api-powerpc-fix.patch
+timerfd-v3-new-timerfd-api-sparc64-fix.patch
+git-acpi-ia64-build-fix.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-add-reboot-mechanism.patch
 small-acpica-extension-to-be-able-to-store-the-name-of.patch
-export-acpi_check_resource_conflict.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-rtc-cmos-exports-nvram-in-sysfs.patch
-pnp-simplify-pnp_activate_dev-and-pnp_disable_dev-return-values.patch
-declare-pnp-option-parsing-functions-as-__init.patch
+git-alsa.patch
+git-agpgart.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+kernel-auditc-warning-fix.patch
+git-cpufreq.patch
+git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
+agk-dm-dm-ioctl-move-compat-code-fix.patch
+dm-persistent_read_metadata-warning-fix.patch
+ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+git-drm.patch
+git-drm-oops-fix.patch
+intel-agp-enable-i915-recognition.patch
+git-dvb.patch
+media-video-usbvision-add-mutex_unlock-to-error-paths-fix.patch
+fix-jdelvare-i2c-i2c-constify-client-address-data.patch
+git-hid.patch
+revert-git-hrt.patch
+ia64-slim-down-__clear_bit_unlock.patch
+git-infiniband.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+libata-xfer_mask-is-unsigned-int-not-unsigned-long-fix.patch
+libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
+libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
+git-mmc.patch
+git-mtd.patch
+git-net.patch
+git-net-vs-git-lblnet.patch
+net-use-mutex_is_locked-for-assert_rtnl.patch
+tipc-fix-semaphore-handling.patch
+git-netdev-all.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+bluetooth-uninlining.patch
+git-nfsd.patch
+quirk-enable-msi-mapping-on-ht1000.patch
+kernel-time-make-tick_do_broadcast-static.patch
+git-sh.patch
+git-scsi-misc-fixup.patch
+ips-trim-trailing-whitespace.patch
+scsi-gdth-kill-unneeded-irq-argument.patch
+drivers-scsi-sgiwd93c-export-sgiwd93_reset.patch
+hptiop-add-more-adapter-models-and-other-fixes-checkpatch-fixes.patch
+hptiop-uninline-things.patch
+hptiop-add-more-adapter-models-and-other-fixes-fix-2.patch
+libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+mct232-speed-new-termios-and-compliance-cleanups-fix.patch
+usb-testing-driver-dont-free-a-locked-mutex.patch
+9p-util-fix-semaphore-handling.patch
+git-watchdog.patch
+add-support-for-sb1-hardware-watchdog-fix.patch
+git-wireless.patch
+bcm43xx_debugfs-sscanf-fix.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-__vdso_getcpu-warning-fix.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-xtensa.patch
+bonding-locking-fix.patch
+sata_nv-fix-oops.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-optimise-the-clearing-of-__gfp_zero.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+sync_sb_inodes-propagate-errors.patch
+add-have_oprofile.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-fix.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+logo-move-declarations-of-logos-to-linux_logoh-fix.patch
 declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
-isapnp-driver-semaphore-to-mutex.patch
 isapnp-driver-semaphore-to-mutex-fix.patch
 isapnp-driver-semaphore-to-mutex-fix-fix.patch
-pnp-do-not-stop-start-devices-in-suspend-resume-path.patch
-dont-touch-fs_struct-in-drivers.patch
+64-bit-i_version-afs-fixes.patch
+ext4-add-block-bitmap-validation.patch
+ext4-fix-up-ext4fs_debug-builds.patch
+ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
