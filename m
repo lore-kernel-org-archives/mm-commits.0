@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch added to -mm tree
-Date: Wed, 12 Dec 2007 15:05:03 -0800
-Message-ID: <200712122312.lBCNCcw5001988@imap1.linux-foundation.org>
+Subject: + sendfile-fix-sending-of-block-special-files.patch added to -mm tree
+Date: Wed, 12 Dec 2007 15:40:34 -0800
+Message-ID: <200712122340.lBCNeY9E003003@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37815 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37626 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752183AbXLLXRG (ORCPT
+	by vger.kernel.org with ESMTP id S1751685AbXLLXlF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 18:17:06 -0500
+	Wed, 12 Dec 2007 18:41:05 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lBCNeYm8013585
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2007 15:40:35 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, kristen.c.accardi@intel.com, yinghai.lu@sun.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     pci-dont-load-acpi_php-when-acpi-is-disabled-fix
+     sendfile: fix sending of block-special files
 has been added to the -mm tree.  Its filename is
-     pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
+     sendfile-fix-sending-of-block-special-files.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,39 +30,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pci-dont-load-acpi_php-when-acpi-is-disabled-fix
+Subject: sendfile: fix sending of block-special files
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix this:
-
-ERROR: "acpi_pci_disabled" [drivers/pci/hotplug/acpiphp.ko] undefined!
-
-And fix the sectioning too - it's referred to from both __init and __exit.
-
-That's a lot of errors for such a small and basic patch.
-
-Cc: Greg KH <greg@kroah.com>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Yinghai Lu <yinghai.lu@sun.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/acpi/boot.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/block_dev.c  |    1 +
+ fs/read_write.c |    3 ++-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/acpi/boot.c~pci-dont-load-acpi_php-when-acpi-is-disabled-fix arch/x86/kernel/acpi/boot.c
---- a/arch/x86/kernel/acpi/boot.c~pci-dont-load-acpi_php-when-acpi-is-disabled-fix
-+++ a/arch/x86/kernel/acpi/boot.c
-@@ -72,7 +72,8 @@ static inline int acpi_madt_oem_check(ch
- #define PREFIX			"ACPI: "
+diff -puN fs/read_write.c~sendfile-fix-sending-of-block-special-files fs/read_write.c
+--- a/fs/read_write.c~sendfile-fix-sending-of-block-special-files
++++ a/fs/read_write.c
+@@ -764,7 +764,8 @@ static ssize_t do_sendfile(int out_fd, i
+ 		goto fput_out;
  
- int acpi_noirq;				/* skip ACPI IRQ initialization */
--int acpi_pci_disabled __initdata;	/* skip ACPI PCI scan and IRQ initialization */
-+int acpi_pci_disabled;			/* skip ACPI PCI scan and IRQ initialization */
-+EXPORT_SYMBOL(acpi_pci_disabled);
- int acpi_ht __initdata = 1;	/* enable HT */
+ 	if (!max)
+-		max = min(in_inode->i_sb->s_maxbytes, out_inode->i_sb->s_maxbytes);
++		max = min(in_inode->i_mapping->host->i_sb->s_maxbytes,
++			out_inode->i_mapping->host->i_sb->s_maxbytes);
  
- int acpi_lapic;
+ 	pos = *ppos;
+ 	retval = -EINVAL;
+diff -puN fs/block_dev.c~sendfile-fix-sending-of-block-special-files fs/block_dev.c
+--- a/fs/block_dev.c~sendfile-fix-sending-of-block-special-files
++++ a/fs/block_dev.c
+@@ -539,6 +539,7 @@ void __init bdev_cache_init(void)
+ 	if (IS_ERR(bd_mnt))
+ 		panic("Cannot create bdev pseudo-fs");
+ 	blockdev_superblock = bd_mnt->mnt_sb;	/* For writeback */
++	blockdev_superblock->s_maxbytes = LLONG_MAX;
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -281,3 +286,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+sendfile-fix-sending-of-block-special-files.patch
