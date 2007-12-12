@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + bridge-assign-random-address.patch added to -mm tree
-Date: Tue, 11 Dec 2007 16:02:38 -0800
-Message-ID: <200712120002.lBC02cse015844@imap1.linux-foundation.org>
+Subject: + ecryptfs-initialize-new-auth_tokens-before-teardown.patch added to -mm tree
+Date: Tue, 11 Dec 2007 16:03:55 -0800
+Message-ID: <200712120003.lBC03ti5015906@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60591 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37272 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754953AbXLLADH (ORCPT
+	by vger.kernel.org with ESMTP id S1755158AbXLLAFF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Dec 2007 19:03:07 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lBC02cPe004044
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 11 Dec 2007 16:02:39 -0800
+	Tue, 11 Dec 2007 19:05:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shemminger@linux-foundation.org
+Cc: sandeen@redhat.com, mhalcrow@us.ibm.com
 
 
 The patch titled
-     bridge: assign random address
+     ecryptfs: initialize new auth_tokens before teardown
 has been added to the -mm tree.  Its filename is
-     bridge-assign-random-address.patch
+     ecryptfs-initialize-new-auth_tokens-before-teardown.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,50 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: bridge: assign random address
-From: Stephen Hemminger <shemminger@linux-foundation.org>
+Subject: ecryptfs: initialize new auth_tokens before teardown
+From: Eric Sandeen <sandeen@redhat.com>
 
-Assigning a valid random address to bridge device solves problems when
-bridge device is brought up before adding real device to bridge.  When the
-first real device is added to the bridge, it's address will overide the
-bridges random address.
+ecryptfs_destroy_mount_crypt_stat() checks whether each
+auth_tok->global_auth_tok_key is nonzero and if so puts that key.  However,
+in some early mount error paths nothing has initialized the pointer, and we
+try to key_put() garbage.  Running the bad cipher tests in the testsuite
+exposes this, and it's happy with the following change.
 
-Note: any device added to a bridge must already have a valid
-ethernet address.
- br_add_if -> br_fdb_insert -> fdb_insert -> is_valid_ether_addr
-
-Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bridge/br_device.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/ecryptfs/keystore.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/bridge/br_device.c~bridge-assign-random-address net/bridge/br_device.c
---- a/net/bridge/br_device.c~bridge-assign-random-address
-+++ a/net/bridge/br_device.c
-@@ -157,8 +157,7 @@ static struct ethtool_ops br_ethtool_ops
+diff -puN fs/ecryptfs/keystore.c~ecryptfs-initialize-new-auth_tokens-before-teardown fs/ecryptfs/keystore.c
+--- a/fs/ecryptfs/keystore.c~ecryptfs-initialize-new-auth_tokens-before-teardown
++++ a/fs/ecryptfs/keystore.c
+@@ -1860,7 +1860,7 @@ ecryptfs_add_global_auth_tok(struct ecry
+ 	struct ecryptfs_global_auth_tok *new_auth_tok;
+ 	int rc = 0;
  
- void br_dev_setup(struct net_device *dev)
- {
--	memset(dev->dev_addr, 0, ETH_ALEN);
--
-+	random_ether_addr(dev->dev_addr);
- 	ether_setup(dev);
- 
- 	dev->do_ioctl = br_dev_ioctl;
+-	new_auth_tok = kmem_cache_alloc(ecryptfs_global_auth_tok_cache,
++	new_auth_tok = kmem_cache_zalloc(ecryptfs_global_auth_tok_cache,
+ 					GFP_KERNEL);
+ 	if (!new_auth_tok) {
+ 		rc = -ENOMEM;
 _
 
-Patches currently in -mm which might be from shemminger@linux-foundation.org are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
-git-input.patch
-fujitsu-application-panel-driver.patch
-apanel-free-input-device-on-close.patch
-apanel-change-name-of-led.patch
-apanel-detach-on-shutdown.patch
-apanel-use-generic-keycode-routines.patch
-git-net.patch
-git-netdev-all.patch
-git-wireless.patch
-bonding-locking-fix.patch
-bridge-assign-random-address.patch
+ecryptfs-initialize-new-auth_tokens-before-teardown.patch
+ext2-change-the-default-behaviour-on-error.patch
+ext4-fix-mb_debug-format-warnings.patch
+ext4-fix-freespace-accounting-with-mballoc-on-32bit-machines.patch
+ext4-fix-oops-with-jbd-stats-through-procfs-and-external.patch
+ext4-fix-up-ext4fs_debug-builds.patch
+ext3-change-the-default-behaviour-on-error.patch
