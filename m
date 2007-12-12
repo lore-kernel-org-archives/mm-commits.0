@@ -1,67 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - nfs-fix-nfs-mountpoint-crossing.patch removed from -mm tree
-Date: Wed, 12 Dec 2007 12:59:23 -0800
-Message-ID: <200712122059.lBCKxNJY029485@imap1.linux-foundation.org>
+Subject: - as-iosched-fix-write-batch-start-point.patch removed from -mm tree
+Date: Wed, 12 Dec 2007 12:59:20 -0800
+Message-ID: <200712122059.lBCKxKCx029482@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43084 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54874 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752434AbXLLVBB (ORCPT
+	by vger.kernel.org with ESMTP id S1752689AbXLLVCC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 16:01:01 -0500
+	Wed, 12 Dec 2007 16:02:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: trond.myklebust@fys.uio.no, Trond.Myklebust@netapp.com, mm-commits@vger.kernel.org
+To: aaronc@gelato.unsw.edu.au, jens.axboe@oracle.com, npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     NFS: Fix NFS mountpoint crossing
+     as-iosched: fix write batch start point
 has been removed from the -mm tree.  Its filename was
-     nfs-fix-nfs-mountpoint-crossing.patch
+     as-iosched-fix-write-batch-start-point.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: NFS: Fix NFS mountpoint crossing
-From: Trond Myklebust <trond.myklebust@fys.uio.no>
+Subject: as-iosched: fix write batch start point
+From: Aaron Carroll <aaronc@gelato.unsw.edu.au>
 
-The check that was added to nfs_xdev_get_sb() to work around broken
-servers, works fine for NFSv2, but causes mountpoint crossing on NFSv3 to
-always return ESTALE.
+New write batches currently start from where the last one completed.  We
+have no idea where the head is after switching batches, so this makes
+little sense.  Instead, start the next batch from the request with the
+earliest deadline in the hope that we avoid a deadline expiry later on.
 
-Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+Signed-off-by: Aaron Carroll <aaronc@gelato.unsw.edu.au>
+Acked-by: Nick Piggin <npiggin@suse.de>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/super.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ block/as-iosched.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/nfs/super.c~nfs-fix-nfs-mountpoint-crossing fs/nfs/super.c
---- a/fs/nfs/super.c~nfs-fix-nfs-mountpoint-crossing
-+++ a/fs/nfs/super.c
-@@ -1499,7 +1499,7 @@ static int nfs_xdev_get_sb(struct file_s
- 		error = PTR_ERR(mntroot);
- 		goto error_splat_super;
+diff -puN block/as-iosched.c~as-iosched-fix-write-batch-start-point block/as-iosched.c
+--- a/block/as-iosched.c~as-iosched-fix-write-batch-start-point
++++ a/block/as-iosched.c
+@@ -1097,7 +1097,8 @@ dispatch_writes:
+ 		ad->batch_data_dir = REQ_ASYNC;
+ 		ad->current_write_count = ad->write_batch_count;
+ 		ad->write_batch_idled = 0;
+-		rq = ad->next_rq[ad->batch_data_dir];
++		rq = rq_entry_fifo(ad->fifo_list[REQ_ASYNC].next);
++		ad->last_check_fifo[REQ_ASYNC] = jiffies;
+ 		goto dispatch_request;
  	}
--	if (mntroot->d_inode->i_op != &nfs_dir_inode_operations) {
-+	if (mntroot->d_inode->i_op != server->nfs_client->rpc_ops->dir_inode_ops) {
- 		dput(mntroot);
- 		error = -ESTALE;
- 		goto error_splat_super;
+ 
 _
 
-Patches currently in -mm which might be from trond.myklebust@fys.uio.no are
+Patches currently in -mm which might be from aaronc@gelato.unsw.edu.au are
 
-knfsd-change-mailing-list-for-nfsd-in-maintainers.patch
-nfs-use-gfp_nofs-preloads-for-radix-tree-insertion.patch
-git-nfsd.patch
-nfs-fix-an-oops-in-nfs-unmount.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-add-lock_page_killable.patch
-kernel-add-mutex_lock_killable.patch
-vfs-use-mutex_lock_killable-in-vfs_readdir.patch
-create-file_drop_write_access-helper.patch
-fix-up-new-filp-allocators.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-nfs4-fix.patch
+git-block.patch
