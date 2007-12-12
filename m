@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + libertas-select-wireless_ext.patch added to -mm tree
-Date: Wed, 12 Dec 2007 02:41:27 -0800
-Message-ID: <200712121041.lBCAfRKi005655@imap1.linux-foundation.org>
+Subject: + apm_eventinfo_t-are-userspace-types.patch added to -mm tree
+Date: Wed, 12 Dec 2007 02:47:10 -0800
+Message-ID: <200712121047.lBCAlAvj005940@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46321 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53878 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756578AbXLLKnH (ORCPT
+	by vger.kernel.org with ESMTP id S1759230AbXLLKrt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 05:43:07 -0500
+	Wed, 12 Dec 2007 05:47:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dcbw@redhat.com, linville@tuxdriver.com
+Cc: ajax@redhat.com
 
 
 The patch titled
-     libertas: select WIRELESS_EXT
+     apm_event{,info}_t are userspace types
 has been added to the -mm tree.  Its filename is
-     libertas-select-wireless_ext.patch
+     apm_eventinfo_t-are-userspace-types.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,35 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: libertas: select WIRELESS_EXT
-From: Dan Williams <dcbw@redhat.com>
+Subject: apm_event{,info}_t are userspace types
+From: Adam Jackson <ajax@redhat.com>
 
-Ensure that libertas selects WIRELESS_EXT, since selecting other stuff that
-should depend on WEXT, like IEEE80211, doesn't seem to drag that in for us.
+These types define the size of data read from /dev/apm_bios.  They should
+not be hidden behind #ifdef __KERNEL__.
 
-Signed-off-by: Dan Williams <dcbw@redhat.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/apm_bios.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/wireless/Kconfig~libertas-select-wireless_ext drivers/net/wireless/Kconfig
---- a/drivers/net/wireless/Kconfig~libertas-select-wireless_ext
-+++ a/drivers/net/wireless/Kconfig
-@@ -264,6 +264,7 @@ config IPW2200_DEBUG
- config LIBERTAS
- 	tristate "Marvell 8xxx Libertas WLAN driver support"
- 	depends on WLAN_80211
-+	select WIRELESS_EXT
- 	select IEEE80211
- 	select FW_LOADER
- 	---help---
+diff -puN include/linux/apm_bios.h~apm_eventinfo_t-are-userspace-types include/linux/apm_bios.h
+--- a/include/linux/apm_bios.h~apm_eventinfo_t-are-userspace-types
++++ a/include/linux/apm_bios.h
+@@ -18,6 +18,9 @@
+ 
+ #include <linux/types.h>
+ 
++typedef unsigned short	apm_event_t;
++typedef unsigned short	apm_eventinfo_t;
++
+ struct apm_bios_info {
+ 	__u16	version;
+ 	__u16	cseg;
+@@ -32,9 +35,6 @@ struct apm_bios_info {
+ 
+ #ifdef __KERNEL__
+ 
+-typedef unsigned short	apm_event_t;
+-typedef unsigned short	apm_eventinfo_t;
+-
+ #define APM_CS		(GDT_ENTRY_APMBIOS_BASE * 8)
+ #define APM_CS_16	(APM_CS + 8)
+ #define APM_DS		(APM_CS_16 + 8)
 _
 
-Patches currently in -mm which might be from dcbw@redhat.com are
+Patches currently in -mm which might be from ajax@redhat.com are
 
-git-netdev-all.patch
-wireless-libertas-dont-cast-a-pointer-to-pointer-of-list_head.patch
-libertas-select-wireless_ext.patch
+apm_eventinfo_t-are-userspace-types.patch
