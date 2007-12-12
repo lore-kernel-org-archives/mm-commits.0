@@ -1,101 +1,202 @@
 From: akpm@linux-foundation.org
-Subject: + ext-cleanup-ext_bg_num_gdb.patch added to -mm tree
-Date: Tue, 11 Dec 2007 21:40:12 -0800
-Message-ID: <200712120540.lBC5eClg027906__26455.3910507404$1197438050$gmane$org@imap1.linux-foundation.org>
+Subject: - move-kprobes-examples-to-samples-resend-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 11 Dec 2007 21:39:16 -0800
+Message-ID: <200712120539.lBC5dGcM027860@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46224 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55326 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753180AbXLLFkO (ORCPT
+	by vger.kernel.org with ESMTP id S1753404AbXLLFkS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 00:40:14 -0500
+	Wed, 12 Dec 2007 00:40:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, linux-ext4@vger.kernel.org
+To: ananth@in.ibm.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext[234]: cleanup ext[234]_bg_num_gdb()
-has been added to the -mm tree.  Its filename is
-     ext-cleanup-ext_bg_num_gdb.patch
+     Move kprobes examples to samples/ (checkpatch fixes)
+has been removed from the -mm tree.  Its filename was
+     move-kprobes-examples-to-samples-resend-checkpatch-fixes.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: ext[234]: cleanup ext[234]_bg_num_gdb()
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: Move kprobes examples to samples/ (checkpatch fixes)
+From: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
 
-Use ext[234]_bg_has_super() to remove duplicate code.
+o Modified examples code to build on multiple architectures. Currently,
+  the examples code works for x86_64, x86_32 and powerpc
+o Cleaned up unneeded #includes
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/balloc.c |    5 +----
- fs/ext3/balloc.c |    6 +-----
- fs/ext4/balloc.c |    6 +-----
- 3 files changed, 3 insertions(+), 14 deletions(-)
+ samples/kprobes/jprobe_example.c    |   11 ++++++-----
+ samples/kprobes/kprobe_example.c    |   24 ++++++++++++++----------
+ samples/kprobes/kretprobe_example.c |   12 +++++++-----
+ 3 files changed, 27 insertions(+), 20 deletions(-)
 
-diff -puN fs/ext2/balloc.c~ext-cleanup-ext_bg_num_gdb fs/ext2/balloc.c
---- a/fs/ext2/balloc.c~ext-cleanup-ext_bg_num_gdb
-+++ a/fs/ext2/balloc.c
-@@ -1533,9 +1533,6 @@ int ext2_bg_has_super(struct super_block
+diff -puN samples/kprobes/jprobe_example.c~move-kprobes-examples-to-samples-resend-checkpatch-fixes samples/kprobes/jprobe_example.c
+--- a/samples/kprobes/jprobe_example.c~move-kprobes-examples-to-samples-resend-checkpatch-fixes
++++ a/samples/kprobes/jprobe_example.c
+@@ -22,9 +22,10 @@
+ /* Proxy routine having the same arguments as actual do_fork() routine */
+ static long jdo_fork(unsigned long clone_flags, unsigned long stack_start,
+ 	      struct pt_regs *regs, unsigned long stack_size,
+-	      int __user * parent_tidptr, int __user * child_tidptr)
++	      int __user *parent_tidptr, int __user *child_tidptr)
+ {
+-	printk("jprobe: clone_flags = 0x%lx, stack_size = 0x%lx, regs = 0x%p\n",
++	printk(KERN_INFO "jprobe: clone_flags = 0x%lx, stack_size = 0x%lx,"
++			" regs = 0x%p\n",
+ 	       clone_flags, stack_size, regs);
+ 
+ 	/* Always end with a call to jprobe_return(). */
+@@ -45,10 +46,10 @@ static int __init jprobe_init(void)
+ 
+ 	ret = register_jprobe(&my_jprobe);
+ 	if (ret < 0) {
+-		printk("register_jprobe failed, returned %d\n", ret);
++		printk(KERN_INFO "register_jprobe failed, returned %d\n", ret);
+ 		return -1;
+ 	}
+-	printk("Planted jprobe at %p, handler addr %p\n",
++	printk(KERN_INFO "Planted jprobe at %p, handler addr %p\n",
+ 	       my_jprobe.kp.addr, my_jprobe.entry);
+ 	return 0;
+ }
+@@ -56,7 +57,7 @@ static int __init jprobe_init(void)
+ static void __exit jprobe_exit(void)
+ {
+ 	unregister_jprobe(&my_jprobe);
+-	printk("jprobe at %p unregistered\n", my_jprobe.kp.addr);
++	printk(KERN_INFO "jprobe at %p unregistered\n", my_jprobe.kp.addr);
+ }
+ 
+ module_init(jprobe_init)
+diff -puN samples/kprobes/kprobe_example.c~move-kprobes-examples-to-samples-resend-checkpatch-fixes samples/kprobes/kprobe_example.c
+--- a/samples/kprobes/kprobe_example.c~move-kprobes-examples-to-samples-resend-checkpatch-fixes
++++ a/samples/kprobes/kprobe_example.c
+@@ -20,15 +20,18 @@ static struct kprobe kp = {
+ static int handler_pre(struct kprobe *p, struct pt_regs *regs)
+ {
+ #ifdef CONFIG_X86_32
+-	printk("pre_handler: p->addr = 0x%p, eip = %lx, eflags = 0x%lx\n",
++	printk(KERN_INFO "pre_handler: p->addr = 0x%p, eip = %lx,"
++			" eflags = 0x%lx\n",
+ 		p->addr, regs->eip, regs->eflags);
+ #endif
+ #ifdef CONFIG_X86_64
+-	printk("pre_handler: p->addr = 0x%p, rip = %lx, eflags = 0x%lx\n",
++	printk(KERN_INFO "pre_handler: p->addr = 0x%p, rip = %lx,"
++			" eflags = 0x%lx\n",
+ 		p->addr, regs->rip, regs->eflags);
+ #endif
+ #ifdef CONFIG_PPC
+-	printk("pre_handler: p->addr = 0x%p, nip = 0x%lx, msr = 0x%lx\n",
++	printk(KERN_INFO "pre_handler: p->addr = 0x%p, nip = 0x%lx,"
++			" msr = 0x%lx\n",
+ 		p->addr, regs->nip, regs->msr);
+ #endif
+ 
+@@ -37,14 +40,15 @@ static int handler_pre(struct kprobe *p,
+ }
+ 
+ /* kprobe post_handler: called after the probed instruction is executed */
+-static void handler_post(struct kprobe *p, struct pt_regs *regs, unsigned long flags)
++static void handler_post(struct kprobe *p, struct pt_regs *regs,
++				unsigned long flags)
+ {
+ #if defined(CONFIG_X86_32) || defined(CONFIG_X86_64)
+-	printk("post_handler: p->addr = 0x%p, eflags = 0x%lx\n",
++	printk(KERN_INFO "post_handler: p->addr = 0x%p, eflags = 0x%lx\n",
+ 		p->addr, regs->eflags);
+ #endif
+ #ifdef CONFIG_PPC
+-	printk("post_handler: p->addr = 0x%p, msr = 0x%lx\n",
++	printk(KERN_INFO "post_handler: p->addr = 0x%p, msr = 0x%lx\n",
+ 		p->addr, regs->msr);
+ #endif
+ }
+@@ -56,7 +60,7 @@ static void handler_post(struct kprobe *
   */
- unsigned long ext2_bg_num_gdb(struct super_block *sb, int group)
+ static int handler_fault(struct kprobe *p, struct pt_regs *regs, int trapnr)
  {
--	if (EXT2_HAS_RO_COMPAT_FEATURE(sb,EXT2_FEATURE_RO_COMPAT_SPARSE_SUPER)&&
--	    !ext2_group_sparse(group))
--		return 0;
--	return EXT2_SB(sb)->s_gdb_count;
-+	return ext2_bg_has_super(sb, group) ? EXT2_SB(sb)->s_gdb_count : 0;
+-	printk("fault_handler: p->addr = 0x%p, trap #%dn",
++	printk(KERN_INFO "fault_handler: p->addr = 0x%p, trap #%dn",
+ 		p->addr, trapnr);
+ 	/* Return 0 because we don't handle the fault. */
+ 	return 0;
+@@ -71,17 +75,17 @@ static int __init kprobe_init(void)
+ 
+ 	ret = register_kprobe(&kp);
+ 	if (ret < 0) {
+-		printk("register_kprobe failed, returned %d\n", ret);
++		printk(KERN_INFO "register_kprobe failed, returned %d\n", ret);
+ 		return ret;
+ 	}
+-	printk("Planted kprobe at %p\n", kp.addr);
++	printk(KERN_INFO "Planted kprobe at %p\n", kp.addr);
+ 	return 0;
  }
  
-diff -puN fs/ext3/balloc.c~ext-cleanup-ext_bg_num_gdb fs/ext3/balloc.c
---- a/fs/ext3/balloc.c~ext-cleanup-ext_bg_num_gdb
-+++ a/fs/ext3/balloc.c
-@@ -1848,11 +1848,7 @@ static unsigned long ext3_bg_num_gdb_met
- 
- static unsigned long ext3_bg_num_gdb_nometa(struct super_block *sb, int group)
+ static void __exit kprobe_exit(void)
  {
--	if (EXT3_HAS_RO_COMPAT_FEATURE(sb,
--				EXT3_FEATURE_RO_COMPAT_SPARSE_SUPER) &&
--			!ext3_group_sparse(group))
--		return 0;
--	return EXT3_SB(sb)->s_gdb_count;
-+	return ext3_bg_has_super(sb, group) ? EXT3_SB(sb)->s_gdb_count : 0;
+ 	unregister_kprobe(&kp);
+-	printk("kprobe at %p unregistered\n", kp.addr);
++	printk(KERN_INFO "kprobe at %p unregistered\n", kp.addr);
  }
  
- /**
-diff -puN fs/ext4/balloc.c~ext-cleanup-ext_bg_num_gdb fs/ext4/balloc.c
---- a/fs/ext4/balloc.c~ext-cleanup-ext_bg_num_gdb
-+++ a/fs/ext4/balloc.c
-@@ -2017,11 +2017,7 @@ static unsigned long ext4_bg_num_gdb_met
- static unsigned long ext4_bg_num_gdb_nometa(struct super_block *sb,
- 					ext4_grpnum_t group)
+ module_init(kprobe_init)
+diff -puN samples/kprobes/kretprobe_example.c~move-kprobes-examples-to-samples-resend-checkpatch-fixes samples/kprobes/kretprobe_example.c
+--- a/samples/kprobes/kretprobe_example.c~move-kprobes-examples-to-samples-resend-checkpatch-fixes
++++ a/samples/kprobes/kretprobe_example.c
+@@ -18,7 +18,7 @@ static int ret_handler(struct kretprobe_
  {
--	if (EXT4_HAS_RO_COMPAT_FEATURE(sb,
--				EXT4_FEATURE_RO_COMPAT_SPARSE_SUPER) &&
--			!ext4_group_sparse(group))
--		return 0;
--	return EXT4_SB(sb)->s_gdb_count;
-+	return ext4_bg_has_super(sb, group) ? EXT4_SB(sb)->s_gdb_count : 0;
+ 	int retval = regs_return_value(regs);
+ 
+-	printk("do_fork returns %d\n", retval);
++	printk(KERN_INFO "do_fork returns %d\n", retval);
+ 	return 0;
  }
  
- /**
+@@ -37,20 +37,22 @@ static int __init kretprobe_init(void)
+ 
+ 	ret = register_kretprobe(&my_kretprobe);
+ 	if (ret < 0) {
+-		printk("register_kretprobe failed, returned %d\n", ret);
++		printk(KERN_INFO "register_kretprobe failed, returned %d\n",
++				ret);
+ 		return -1;
+ 	}
+-	printk("Planted return probe at %p\n", my_kretprobe.kp.addr);
++	printk(KERN_INFO "Planted return probe at %p\n", my_kretprobe.kp.addr);
+ 	return 0;
+ }
+ 
+ static void __exit kretprobe_exit(void)
+ {
+ 	unregister_kretprobe(&my_kretprobe);
+-	printk("kretprobe at %p unregistered\n", my_kretprobe.kp.addr);
++	printk(KERN_INFO "kretprobe at %p unregistered\n",
++			my_kretprobe.kp.addr);
+ 
+ 	/* nmissed > 0 suggests that maxactive was set too low. */
+-	printk("Missed probing %d instances of do_fork()\n",
++	printk(KERN_INFO "Missed probing %d instances of do_fork()\n",
+ 		my_kretprobe.nmissed);
+ }
+ 
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from ananth@in.ibm.com are
 
-git-net.patch
-git-battery.patch
-fs-use-hlist_unhashed.patch
-fs-use-list_for_each_entry_reverse-and-kill-sb_entry.patch
-ext-fix-comment-for-nonexistent-variable.patch
-ext-use-ext_get_group_desc.patch
-ext-remove-unused-argument-for-ext_find_goal.patch
-ext-cleanup-ext_bg_num_gdb.patch
+create-arch-kconfig.patch
+add-have_oprofile.patch
+add-have_kprobes.patch
+move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig.patch
+move-kprobes-examples-to-samples-resend-checkpatch-fixes.patch
+move-kprobes-examples-to-samples-resend-vs-git-x86.patch
