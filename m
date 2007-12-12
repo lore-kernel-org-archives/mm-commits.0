@@ -1,64 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: + partition-use-default_sgi_partition-for-sgi_partion-default.patch added to -mm tree
-Date: Wed, 12 Dec 2007 02:35:17 -0800
-Message-ID: <200712121035.lBCAZHhB005444@imap1.linux-foundation.org>
+Subject: + acpi-remove-duplicated-warning-message.patch added to -mm tree
+Date: Wed, 12 Dec 2007 02:37:49 -0800
+Message-ID: <200712121037.lBCAbnhO005557@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60252 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49938 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757406AbXLLKfU (ORCPT
+	by vger.kernel.org with ESMTP id S1758257AbXLLKiG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 05:35:20 -0500
+	Wed, 12 Dec 2007 05:38:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tsbogend@alpha.franken.de
+Cc: mboton@gmail.com, lenb@kernel.org
 
 
 The patch titled
-     partition: use DEFAULT_SGI_PARTITION for SGI_PARTION default
+     acpi: remove duplicated warning message
 has been added to the -mm tree.  Its filename is
-     partition-use-default_sgi_partition-for-sgi_partion-default.patch
+     acpi-remove-duplicated-warning-message.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
 ------------------------------------------------------
-Subject: partition: use DEFAULT_SGI_PARTITION for SGI_PARTION default
-From: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Subject: acpi: remove duplicated warning message
+=46rom: Miguel Bot=C3=B3n <mboton@gmail.com
 
-Use DEFAULT_SGI_PARTITION for SGI_PARTION default
+Remove duplicated warning message in acpi_power_transition()
 
-Signed-off-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+This warning message is printed by acpi_bus_set_power() so we don't
+need to print it again.
+
+Signed-off-by: Miguel Bot=C3=B3n <mboton@gmail.com
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/power.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN fs/partitions/Kconfig~partition-use-default_sgi_partition-for-sgi_partion-default fs/partitions/Kconfig
---- a/fs/partitions/Kconfig~partition-use-default_sgi_partition-for-sgi_partion-default
-+++ a/fs/partitions/Kconfig
-@@ -198,7 +198,7 @@ config LDM_DEBUG
- 
- config SGI_PARTITION
- 	bool "SGI partition support" if PARTITION_ADVANCED
--	default y if (SGI_IP22 || SGI_IP27 || ((MACH_JAZZ || SNI_RM) && !CPU_LITTLE_ENDIAN))
-+	default y if DEFAULT_SGI_PARTITION
- 	help
- 	  Say Y here if you would like to be able to read the hard disk
- 	  partition table format used by SGI machines.
+diff -puN drivers/acpi/power.c~acpi-remove-duplicated-warning-message d=
+rivers/acpi/power.c
+--- a/drivers/acpi/power.c~acpi-remove-duplicated-warning-message
++++ a/drivers/acpi/power.c
+@@ -458,11 +458,9 @@ int acpi_power_transition(struct acpi_de
+ 	}
+=20
+      end:
+-	if (result) {
++	if (result)
+ 		device->power.state =3D ACPI_STATE_UNKNOWN;
+-		printk(KERN_WARNING PREFIX "Transitioning device [%s] to D%d\n",
+-			      device->pnp.bus_id, state);
+-	} else {
++	else {
+ 	/* We shouldn't change the state till all above operations succeed */
+ 		device->power.state =3D state;
+ 	}
 _
 
-Patches currently in -mm which might be from tsbogend@alpha.franken.de are
+Patches currently in -mm which might be from mboton@gmail.com are
 
-git-mips.patch
+sparsemem-make-sparsemem_vmemmap-selectable.patch
+acpi-remove-duplicated-warning-message.patch
 git-netdev-all.patch
-watchdog-use-sgi_has_indydog-for-indydog-depends.patch
-serial-use-sgi_has_zilog-for-ip22_zilog-depends.patch
-char-use-sgi_has_ds1286-for-sgi_ds1286-depends.patch
-sc26xx-new-serial-driver-for-sc2681-uarts.patch
-sc26xx-new-serial-driver-for-sc2681-uarts-update.patch
-partition-use-default_sgi_partition-for-sgi_partion-default.patch
