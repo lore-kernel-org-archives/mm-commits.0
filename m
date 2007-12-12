@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-dvb-drivers-media-video-et61x251-et61x251_corec-fix-warnings.patch added to -mm tree
-Date: Wed, 12 Dec 2007 14:55:49 -0800
-Message-ID: <200712122303.lBCN3Osh001693@imap1.linux-foundation.org>
+Subject: + pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch added to -mm tree
+Date: Wed, 12 Dec 2007 15:05:03 -0800
+Message-ID: <200712122312.lBCNCcw5001988@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45189 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37815 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759615AbXLLXEI (ORCPT
+	by vger.kernel.org with ESMTP id S1752183AbXLLXRG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 18:04:08 -0500
+	Wed, 12 Dec 2007 18:17:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mchehab@infradead.org
+Cc: akpm@linux-foundation.org, greg@kroah.com, kristen.c.accardi@intel.com, yinghai.lu@sun.com
 
 
 The patch titled
-     git-dvb: drivers/media/video/et61x251/et61x251_core.c: fix warnings
+     pci-dont-load-acpi_php-when-acpi-is-disabled-fix
 has been added to the -mm tree.  Its filename is
-     git-dvb-drivers-media-video-et61x251-et61x251_corec-fix-warnings.patch
+     pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,198 +26,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-dvb: drivers/media/video/et61x251/et61x251_core.c: fix warnings
+Subject: pci-dont-load-acpi_php-when-acpi-is-disabled-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/media/video/et61x251/et61x251_core.c:390: warning: 'et61x251_i2c_read' defined but not used
-drivers/media/video/et61x251/et61x251_core.c:397: warning: 'et61x251_i2c_write' defined but not used
+Fix this:
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+ERROR: "acpi_pci_disabled" [drivers/pci/hotplug/acpiphp.ko] undefined!
+
+And fix the sectioning too - it's referred to from both __init and __exit.
+
+That's a lot of errors for such a small and basic patch.
+
+Cc: Greg KH <greg@kroah.com>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Yinghai Lu <yinghai.lu@sun.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/et61x251/et61x251_core.c |  155 ++++++++---------
- 1 file changed, 77 insertions(+), 78 deletions(-)
+ arch/x86/kernel/acpi/boot.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/media/video/et61x251/et61x251_core.c~git-dvb-drivers-media-video-et61x251-et61x251_corec-fix-warnings drivers/media/video/et61x251/et61x251_core.c
---- a/drivers/media/video/et61x251/et61x251_core.c~git-dvb-drivers-media-video-et61x251-et61x251_corec-fix-warnings
-+++ a/drivers/media/video/et61x251/et61x251_core.c
-@@ -268,72 +268,6 @@ et61x251_i2c_wait(struct et61x251_device
- }
+diff -puN arch/x86/kernel/acpi/boot.c~pci-dont-load-acpi_php-when-acpi-is-disabled-fix arch/x86/kernel/acpi/boot.c
+--- a/arch/x86/kernel/acpi/boot.c~pci-dont-load-acpi_php-when-acpi-is-disabled-fix
++++ a/arch/x86/kernel/acpi/boot.c
+@@ -72,7 +72,8 @@ static inline int acpi_madt_oem_check(ch
+ #define PREFIX			"ACPI: "
  
+ int acpi_noirq;				/* skip ACPI IRQ initialization */
+-int acpi_pci_disabled __initdata;	/* skip ACPI PCI scan and IRQ initialization */
++int acpi_pci_disabled;			/* skip ACPI PCI scan and IRQ initialization */
++EXPORT_SYMBOL(acpi_pci_disabled);
+ int acpi_ht __initdata = 1;	/* enable HT */
  
--static int et61x251_i2c_try_read(struct et61x251_device* cam,
--				 const struct et61x251_sensor* sensor,
--				 u8 address)
--{
--	struct usb_device* udev = cam->usbdev;
--	u8* data = cam->control_buffer;
--	int err = 0, res;
--
--	data[0] = address;
--	data[1] = cam->sensor.i2c_slave_id;
--	data[2] = cam->sensor.rsta | 0x10;
--	data[3] = !(et61x251_read_reg(cam, 0x8b) & 0x02);
--	res = usb_control_msg(udev, usb_sndctrlpipe(udev, 0), 0x00, 0x41,
--			      0, 0x88, data, 4, ET61X251_CTRL_TIMEOUT);
--	if (res < 0)
--		err += res;
--
--	err += et61x251_i2c_wait(cam, sensor);
--
--	res = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0), 0x00, 0xc1,
--			      0, 0x80, data, 8, ET61X251_CTRL_TIMEOUT);
--	if (res < 0)
--		err += res;
--
--	if (err)
--		DBG(3, "I2C read failed for %s image sensor", sensor->name);
--
--	PDBGG("I2C read: address 0x%02X, value: 0x%02X", address, data[0]);
--
--	return err ? -1 : (int)data[0];
--}
--
--
--static int et61x251_i2c_try_write(struct et61x251_device* cam,
--				  const struct et61x251_sensor* sensor,
--				  u8 address, u8 value)
--{
--	struct usb_device* udev = cam->usbdev;
--	u8* data = cam->control_buffer;
--	int err = 0, res;
--
--	data[0] = address;
--	data[1] = cam->sensor.i2c_slave_id;
--	data[2] = cam->sensor.rsta | 0x12;
--	res = usb_control_msg(udev, usb_sndctrlpipe(udev, 0), 0x00, 0x41,
--			      0, 0x88, data, 3, ET61X251_CTRL_TIMEOUT);
--	if (res < 0)
--		err += res;
--
--	data[0] = value;
--	res = usb_control_msg(udev, usb_sndctrlpipe(udev, 0), 0x00, 0x41,
--			      0, 0x80, data, 1, ET61X251_CTRL_TIMEOUT);
--	if (res < 0)
--		err += res;
--
--	err += et61x251_i2c_wait(cam, sensor);
--
--	if (err)
--		DBG(3, "I2C write failed for %s image sensor", sensor->name);
--
--	PDBGG("I2C write: address 0x%02X, value: 0x%02X", address, value);
--
--	return err ? -1 : 0;
--}
--
--
- int
- et61x251_i2c_raw_write(struct et61x251_device* cam, u8 n, u8 data1, u8 data2,
- 		       u8 data3, u8 data4, u8 data5, u8 data6, u8 data7,
-@@ -386,18 +320,6 @@ et61x251_i2c_raw_write(struct et61x251_d
- }
- 
- 
--static int et61x251_i2c_read(struct et61x251_device* cam, u8 address)
--{
--	return et61x251_i2c_try_read(cam, &cam->sensor, address);
--}
--
--
--static int et61x251_i2c_write(struct et61x251_device* cam,
--			      u8 address, u8 value)
--{
--	return et61x251_i2c_try_write(cam, &cam->sensor, address, value);
--}
--
- /*****************************************************************************/
- 
- static void et61x251_urb_complete(struct urb *urb)
-@@ -675,6 +597,83 @@ static int et61x251_stream_interrupt(str
- /*****************************************************************************/
- 
- #ifdef CONFIG_VIDEO_ADV_DEBUG
-+
-+static int et61x251_i2c_try_read(struct et61x251_device* cam,
-+				 const struct et61x251_sensor* sensor,
-+				 u8 address)
-+{
-+	struct usb_device* udev = cam->usbdev;
-+	u8* data = cam->control_buffer;
-+	int err = 0, res;
-+
-+	data[0] = address;
-+	data[1] = cam->sensor.i2c_slave_id;
-+	data[2] = cam->sensor.rsta | 0x10;
-+	data[3] = !(et61x251_read_reg(cam, 0x8b) & 0x02);
-+	res = usb_control_msg(udev, usb_sndctrlpipe(udev, 0), 0x00, 0x41,
-+			      0, 0x88, data, 4, ET61X251_CTRL_TIMEOUT);
-+	if (res < 0)
-+		err += res;
-+
-+	err += et61x251_i2c_wait(cam, sensor);
-+
-+	res = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0), 0x00, 0xc1,
-+			      0, 0x80, data, 8, ET61X251_CTRL_TIMEOUT);
-+	if (res < 0)
-+		err += res;
-+
-+	if (err)
-+		DBG(3, "I2C read failed for %s image sensor", sensor->name);
-+
-+	PDBGG("I2C read: address 0x%02X, value: 0x%02X", address, data[0]);
-+
-+	return err ? -1 : (int)data[0];
-+}
-+
-+
-+static int et61x251_i2c_try_write(struct et61x251_device* cam,
-+				  const struct et61x251_sensor* sensor,
-+				  u8 address, u8 value)
-+{
-+	struct usb_device* udev = cam->usbdev;
-+	u8* data = cam->control_buffer;
-+	int err = 0, res;
-+
-+	data[0] = address;
-+	data[1] = cam->sensor.i2c_slave_id;
-+	data[2] = cam->sensor.rsta | 0x12;
-+	res = usb_control_msg(udev, usb_sndctrlpipe(udev, 0), 0x00, 0x41,
-+			      0, 0x88, data, 3, ET61X251_CTRL_TIMEOUT);
-+	if (res < 0)
-+		err += res;
-+
-+	data[0] = value;
-+	res = usb_control_msg(udev, usb_sndctrlpipe(udev, 0), 0x00, 0x41,
-+			      0, 0x80, data, 1, ET61X251_CTRL_TIMEOUT);
-+	if (res < 0)
-+		err += res;
-+
-+	err += et61x251_i2c_wait(cam, sensor);
-+
-+	if (err)
-+		DBG(3, "I2C write failed for %s image sensor", sensor->name);
-+
-+	PDBGG("I2C write: address 0x%02X, value: 0x%02X", address, value);
-+
-+	return err ? -1 : 0;
-+}
-+
-+static int et61x251_i2c_read(struct et61x251_device* cam, u8 address)
-+{
-+	return et61x251_i2c_try_read(cam, &cam->sensor, address);
-+}
-+
-+static int et61x251_i2c_write(struct et61x251_device* cam,
-+			      u8 address, u8 value)
-+{
-+	return et61x251_i2c_try_write(cam, &cam->sensor, address, value);
-+}
-+
- static u8 et61x251_strtou8(const char* buff, size_t len, ssize_t* count)
- {
- 	char str[5];
+ int acpi_lapic;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -256,6 +97,7 @@ intel-agp-enable-i915-recognition.patch
 git-dvb.patch
 git-dvb-fix-build-in-drivers-media-dvb-frontends-tda18271h.patch
 git-dvb-one-videobuf_read_start-is-enough.patch
+git-dvb-drivers-media-video-et61x251-et61x251_corec-fix-warnings.patch
 media-video-usbvision-add-mutex_unlock-to-error-paths-fix.patch
 fix-jdelvare-i2c-i2c-constify-client-address-data.patch
 git-hid.patch
@@ -284,6 +126,7 @@ git-battery.patch
 bluetooth-uninlining.patch
 git-nfsd.patch
 quirk-enable-msi-mapping-on-ht1000.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
 kernel-time-make-tick_do_broadcast-static.patch
 git-sh.patch
 ips-trim-trailing-whitespace.patch
@@ -438,4 +281,3 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-git-dvb-drivers-media-video-et61x251-et61x251_corec-fix-warnings.patch
