@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mcheck-mce_64-mce_read_sem-to-mutex.patch added to -mm tree
-Date: Tue, 11 Dec 2007 22:02:08 -0800
-Message-ID: <200712120602.lBC628Ag028726@imap1.linux-foundation.org>
+Subject: + media-video-usbvision-remove-ctrlurblock.patch added to -mm tree
+Date: Tue, 11 Dec 2007 22:03:27 -0800
+Message-ID: <200712120603.lBC63R7B028766@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47688 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35870 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751671AbXLLGDV (ORCPT
+	by vger.kernel.org with ESMTP id S1753012AbXLLGEX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 01:03:21 -0500
+	Wed, 12 Dec 2007 01:04:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dwalker@mvista.com, mingo@elte.hu, tglx@linutronix.de
+Cc: dwalker@mvista.com, mchehab@infradead.org
 
 
 The patch titled
-     mcheck mce_64: mce_read_sem to mutex
+     media: video: usbvision: remove ctrlUrbLock
 has been added to the -mm tree.  Its filename is
-     mcheck-mce_64-mce_read_sem-to-mutex.patch
+     media-video-usbvision-remove-ctrlurblock.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,67 +26,74 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mcheck mce_64: mce_read_sem to mutex
+Subject: media: video: usbvision: remove ctrlUrbLock
 From: Daniel Walker <dwalker@mvista.com>
 
-Converted to a mutex, and changed the name to mce_read_mutex.
+The ctrlUrbLock has all it's users commented out, and so it's unused.  This
+patch removes it.
 
 Signed-off-by: Daniel Walker <dwalker@mvista.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/mcheck/mce_64.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/media/video/usbvision/usbvision-core.c  |    3 ---
+ drivers/media/video/usbvision/usbvision-video.c |    1 -
+ drivers/media/video/usbvision/usbvision.h       |    1 -
+ 3 files changed, 5 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/mcheck/mce_64.c~mcheck-mce_64-mce_read_sem-to-mutex arch/x86/kernel/cpu/mcheck/mce_64.c
---- a/arch/x86/kernel/cpu/mcheck/mce_64.c~mcheck-mce_64-mce_read_sem-to-mutex
-+++ a/arch/x86/kernel/cpu/mcheck/mce_64.c
-@@ -564,7 +564,7 @@ static ssize_t mce_read(struct file *fil
- 			loff_t *off)
- {
- 	unsigned long *cpu_tsc;
--	static DECLARE_MUTEX(mce_read_sem);
-+	static DEFINE_MUTEX(mce_read_mutex);
- 	unsigned next;
- 	char __user *buf = ubuf;
- 	int i, err;
-@@ -573,12 +573,12 @@ static ssize_t mce_read(struct file *fil
- 	if (!cpu_tsc)
- 		return -ENOMEM;
- 
--	down(&mce_read_sem);
-+	mutex_lock(&mce_read_mutex);
- 	next = rcu_dereference(mcelog.next);
- 
- 	/* Only supports full reads right now */
- 	if (*off != 0 || usize < MCE_LOG_LEN*sizeof(struct mce)) {
--		up(&mce_read_sem);
-+		mutex_unlock(&mce_read_mutex);
- 		kfree(cpu_tsc);
- 		return -EINVAL;
+diff -puN drivers/media/video/usbvision/usbvision-core.c~media-video-usbvision-remove-ctrlurblock drivers/media/video/usbvision/usbvision-core.c
+--- a/drivers/media/video/usbvision/usbvision-core.c~media-video-usbvision-remove-ctrlurblock
++++ a/drivers/media/video/usbvision/usbvision-core.c
+@@ -1561,13 +1561,10 @@ static int usbvision_write_reg_irq(struc
+ 	if (len > 8) {
+ 		return -EFAULT;
  	}
-@@ -621,7 +621,7 @@ static ssize_t mce_read(struct file *fil
- 			memset(&mcelog.entry[i], 0, sizeof(struct mce));
- 		}
+-//	down(&usbvision->ctrlUrbLock);
+ 	if (usbvision->ctrlUrbBusy) {
+-//		up(&usbvision->ctrlUrbLock);
+ 		return -EBUSY;
  	}
--	up(&mce_read_sem);
-+	mutex_unlock(&mce_read_mutex);
- 	kfree(cpu_tsc);
- 	return err ? -EFAULT : buf - ubuf;
- }
+ 	usbvision->ctrlUrbBusy = 1;
+-//	up(&usbvision->ctrlUrbLock);
+ 
+ 	usbvision->ctrlUrbSetup.bRequestType = USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_ENDPOINT;
+ 	usbvision->ctrlUrbSetup.bRequest     = USBVISION_OP_CODE;
+diff -puN drivers/media/video/usbvision/usbvision.h~media-video-usbvision-remove-ctrlurblock drivers/media/video/usbvision/usbvision.h
+--- a/drivers/media/video/usbvision/usbvision.h~media-video-usbvision-remove-ctrlurblock
++++ a/drivers/media/video/usbvision/usbvision.h
+@@ -370,7 +370,6 @@ struct usb_usbvision {
+ 	int ctrlUrbBusy;
+ 	struct usb_ctrlrequest ctrlUrbSetup;
+ 	wait_queue_head_t ctrlUrb_wq;					// Processes waiting
+-	struct semaphore ctrlUrbLock;
+ 
+ 	/* configuration part */
+ 	int have_tuner;
+diff -puN drivers/media/video/usbvision/usbvision-video.c~media-video-usbvision-remove-ctrlurblock drivers/media/video/usbvision/usbvision-video.c
+--- a/drivers/media/video/usbvision/usbvision-video.c~media-video-usbvision-remove-ctrlurblock
++++ a/drivers/media/video/usbvision/usbvision-video.c
+@@ -1651,7 +1651,6 @@ static struct usb_usbvision *usbvision_a
+ 		goto err_exit;
+ 	}
+ 	init_waitqueue_head(&usbvision->ctrlUrb_wq);
+-	init_MUTEX(&usbvision->ctrlUrbLock);	/* to 1 == available */
+ 
+ 	usbvision_init_powerOffTimer(usbvision);
+ 
 _
 
 Patches currently in -mm which might be from dwalker@mvista.com are
 
 media-video-usbvision-add-mutex_unlock-to-error-paths.patch
 media-video-usbvision-add-mutex_unlock-to-error-paths-fix.patch
+media-video-usbvision-remove-ctrlurblock.patch
 usb-testing-driver-dont-free-a-locked-mutex.patch
 mcheck-mce_64-mce_read_sem-to-mutex.patch
 drivers-char-tty_ioc-remove-pty_sem.patch
 drivers-isdn-i4l-isdn_ttyc-remove-write_sem.patch
 unix98-allocated_ptys_lock-semaphore-to-mutex.patch
+docs-kernel-locking-convert-semaphore-references.patch
 isapnp-driver-semaphore-to-mutex.patch
 isapnp-driver-semaphore-to-mutex-fix.patch
 isapnp-driver-semaphore-to-mutex-fix-fix.patch
