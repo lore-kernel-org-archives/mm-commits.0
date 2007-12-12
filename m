@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + uglify-kill_pid_info-to-fix-kill-vs-exec-race.patch added to -mm tree
-Date: Tue, 11 Dec 2007 21:11:56 -0800
-Message-ID: <200712120511.lBC5BudF026758@imap1.linux-foundation.org>
+Subject: + uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice.patch added to -mm tree
+Date: Tue, 11 Dec 2007 21:12:13 -0800
+Message-ID: <200712120512.lBC5CDGh026833@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43238 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43692 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752048AbXLLFMo (ORCPT
+	by vger.kernel.org with ESMTP id S1752317AbXLLFNC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 00:12:44 -0500
+	Wed, 12 Dec 2007 00:13:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@tv-sign.ru, davidel@xmailserver.org, ebiederm@xmission.com, roland@redh
 
 
 The patch titled
-     uglify kill_pid_info() to fix kill() vs exec() race
+     uglify while_each_pid_task() to make sure we don't count the execing pricess twice
 has been added to the -mm tree.  Its filename is
-     uglify-kill_pid_info-to-fix-kill-vs-exec-race.patch
+     uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,16 +26,16 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uglify kill_pid_info() to fix kill() vs exec() race
+Subject: uglify while_each_pid_task() to make sure we don't count the execing pricess twice
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-kill_pid_info()->pid_task() could be the old leader of the execing process.
-In that case it is possible that the leader will be released before we take
-siglock. This means that kill_pid_info() (and thus sys_kill()) can return a
-false -ESRCH.
+There is a window when de_thread() switches the leader and drops
+tasklist_lock.  In that window do_each_pid_task(PIDTYPE_PID) finds both new
+and old leaders.
 
-Change the code to retry when lock_task_sighand() fails. The endless loop is
-not possible, __exit_signal() both clears ->sighand and does detach_pid().
+The problem is pretty much theoretical and probably can be ignored.  Currently
+the only users of do_each_pid_task(PIDTYPE_PID) are send_sigio/send_sigurg, so
+they can send the signal to the same process twice.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -45,42 +45,26 @@ Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+ include/linux/pid.h |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN kernel/signal.c~uglify-kill_pid_info-to-fix-kill-vs-exec-race kernel/signal.c
---- a/kernel/signal.c~uglify-kill_pid_info-to-fix-kill-vs-exec-race
-+++ a/kernel/signal.c
-@@ -1049,17 +1049,26 @@ int kill_pgrp_info(int sig, struct sigin
+diff -puN include/linux/pid.h~uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice include/linux/pid.h
+--- a/include/linux/pid.h~uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice
++++ a/include/linux/pid.h
+@@ -152,7 +152,13 @@ pid_t pid_vnr(struct pid *pid);
+ 			hlist_for_each_entry_rcu((task), pos___,	\
+ 				&pid->tasks[type], pids[type].node) {
  
- int kill_pid_info(int sig, struct siginfo *info, struct pid *pid)
- {
--	int error;
-+	int error = -ESRCH;
- 	struct task_struct *p;
- 
- 	rcu_read_lock();
- 	if (unlikely(sig_needs_tasklist(sig)))
- 		read_lock(&tasklist_lock);
- 
-+retry:
- 	p = pid_task(pid, PIDTYPE_PID);
--	error = -ESRCH;
--	if (p)
-+	if (p) {
- 		error = group_send_sig_info(sig, info, p);
-+		if (unlikely(error == -ESRCH))
 +			/*
-+			 * The task was unhashed in between, try again.
-+			 * If it is dead, pid_task() will return NULL,
-+			 * if we race with de_thread() it will find the
-+			 * new leader.
++			 * Both old and new leaders may be attached to
++			 * the same pid in the middle of de_thread().
 +			 */
-+			goto retry;
-+	}
+ #define while_each_pid_task(pid, type, task)				\
++				if (type == PIDTYPE_PID)		\
++					break;				\
+ 			}						\
+ 	} while (0)
  
- 	if (unlikely(sig_needs_tasklist(sig)))
- 		read_unlock(&tasklist_lock);
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
