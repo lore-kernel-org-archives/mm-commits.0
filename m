@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + revert-gregkh-driver-infiband-make-ipath-driver-use-default-driver-groups.patch added to -mm tree
-Date: Wed, 12 Dec 2007 14:25:38 -0800
-Message-ID: <200712122233.lBCMXD3M000542@imap1.linux-foundation.org>
+Subject: + git-dvb-fix-build-in-drivers-media-dvb-frontends-tda18271h.patch added to -mm tree
+Date: Wed, 12 Dec 2007 14:27:57 -0800
+Message-ID: <200712122235.lBCMZWU6000580@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40559 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45981 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751334AbXLLWdp (ORCPT
+	by vger.kernel.org with ESMTP id S1751012AbXLLWgP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 17:33:45 -0500
+	Wed, 12 Dec 2007 17:36:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com
+Cc: akpm@linux-foundation.org, mchehab@infradead.org
 
 
 The patch titled
-     revert gregkh-driver-infiband-make-ipath-driver-use-default-driver-groups
+     git-dvb: fix build in drivers/media/dvb/frontends/tda18271.h
 has been added to the -mm tree.  Its filename is
-     revert-gregkh-driver-infiband-make-ipath-driver-use-default-driver-groups.patch
+     git-dvb-fix-build-in-drivers-media-dvb-frontends-tda18271h.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,157 +26,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: revert gregkh-driver-infiband-make-ipath-driver-use-default-driver-groups
+Subject: git-dvb: fix build in drivers/media/dvb/frontends/tda18271.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/infiniband/hw/ipath/ipath_verbs.o: In function `ipath_copy_sge':
-drivers/infiniband/hw/ipath/ipath_verbs.c:161: multiple definition of `ipath_driver_attr_groups'
-drivers/infiniband/hw/ipath/ipath_cq.o:drivers/infiniband/hw/ipath/ipath_cq.c:167: first defined here
-drivers/infiniband/hw/ipath/ipath_iba6110.o: In function `ipath_setup_ht_setextled':
-drivers/infiniband/hw/ipath/ipath_iba6110.c:1024: multiple definition of `ipath_driver_attr_groups'
-drivers/infiniband/hw/ipath/ipath_cq.o:drivers/infiniband/hw/ipath/ipath_cq.c:167: first defined here
-drivers/infiniband/hw/ipath/ipath_iba6120.o: In function `ipath_setup_pe_setextled':
-drivers/infiniband/hw/ipath/ipath_iba6120.c:787: multiple definition of `ipath_driver_attr_groups'
-drivers/infiniband/hw/ipath/ipath_cq.o:drivers/infiniband/hw/ipath/ipath_cq.c:167: first defined here
-drivers/infiniband/hw/ipath/ipath_wc_x86_64.o: In function `ipath_enable_wc':
-drivers/infiniband/hw/ipath/ipath_wc_x86_64.c:53: multiple definition of `ipath_driver_attr_groups'
-drivers/infiniband/hw/ipath/ipath_cq.o:drivers/infiniband/hw/ipath/ipath_cq.c:167: first defined here
-
-Cc: Greg KH <greg@kroah.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/ipath/ipath_driver.c |   17 ++++++++--
- drivers/infiniband/hw/ipath/ipath_kernel.h |    3 +
- drivers/infiniband/hw/ipath/ipath_sysfs.c  |   30 +++++++++++++++----
- 3 files changed, 40 insertions(+), 10 deletions(-)
+ drivers/media/dvb/frontends/tda18271.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/infiniband/hw/ipath/ipath_driver.c~revert-gregkh-driver-infiband-make-ipath-driver-use-default-driver-groups drivers/infiniband/hw/ipath/ipath_driver.c
---- a/drivers/infiniband/hw/ipath/ipath_driver.c~revert-gregkh-driver-infiband-make-ipath-driver-use-default-driver-groups
-+++ a/drivers/infiniband/hw/ipath/ipath_driver.c
-@@ -121,9 +121,6 @@ static struct pci_driver ipath_driver = 
- 	.probe = ipath_init_one,
- 	.remove = __devexit_p(ipath_remove_one),
- 	.id_table = ipath_pci_tbl,
--	.driver = {
--		.groups = ipath_driver_attr_groups,
--	},
- };
- 
- static void ipath_check_status(struct work_struct *work)
-@@ -2220,15 +2217,25 @@ static int __init infinipath_init(void)
- 		goto bail_unit;
- 	}
- 
-+	ret = ipath_driver_create_group(&ipath_driver.driver);
-+	if (ret < 0) {
-+		printk(KERN_ERR IPATH_DRV_NAME ": Unable to create driver "
-+		       "sysfs entries: error %d\n", -ret);
-+		goto bail_pci;
-+	}
-+
- 	ret = ipath_init_ipathfs();
- 	if (ret < 0) {
- 		printk(KERN_ERR IPATH_DRV_NAME ": Unable to create "
- 		       "ipathfs: error %d\n", -ret);
--		goto bail_pci;
-+		goto bail_group;
- 	}
- 
- 	goto bail;
- 
-+bail_group:
-+	ipath_driver_remove_group(&ipath_driver.driver);
-+
- bail_pci:
- 	pci_unregister_driver(&ipath_driver);
- 
-@@ -2243,6 +2250,8 @@ static void __exit infinipath_cleanup(vo
+diff -puN drivers/media/dvb/frontends/tda18271.h~git-dvb-fix-build-in-drivers-media-dvb-frontends-tda18271h drivers/media/dvb/frontends/tda18271.h
+--- a/drivers/media/dvb/frontends/tda18271.h~git-dvb-fix-build-in-drivers-media-dvb-frontends-tda18271h
++++ a/drivers/media/dvb/frontends/tda18271.h
+@@ -38,7 +38,7 @@ extern struct dvb_frontend *tda18271_att
+ static inline struct dvb_frontend *tda18271_attach(struct dvb_frontend *fe,
+ 						   u8 addr,
+ 						   struct i2c_adapter *i2c,
+-						   enum tda18271_i2c_gate gate);
++						   enum tda18271_i2c_gate gate)
  {
- 	ipath_exit_ipathfs();
- 
-+	ipath_driver_remove_group(&ipath_driver.driver);
-+
- 	ipath_cdbg(VERBOSE, "Unregistering pci driver\n");
- 	pci_unregister_driver(&ipath_driver);
- 
-diff -puN drivers/infiniband/hw/ipath/ipath_kernel.h~revert-gregkh-driver-infiband-make-ipath-driver-use-default-driver-groups drivers/infiniband/hw/ipath/ipath_kernel.h
---- a/drivers/infiniband/hw/ipath/ipath_kernel.h~revert-gregkh-driver-infiband-make-ipath-driver-use-default-driver-groups
-+++ a/drivers/infiniband/hw/ipath/ipath_kernel.h
-@@ -938,7 +938,8 @@ struct device_driver;
- 
- extern const char ib_ipath_version[];
- 
--struct attribute_group *ipath_driver_attr_groups[];
-+int ipath_driver_create_group(struct device_driver *);
-+void ipath_driver_remove_group(struct device_driver *);
- 
- int ipath_device_create_group(struct device *, struct ipath_devdata *);
- void ipath_device_remove_group(struct device *, struct ipath_devdata *);
-diff -puN drivers/infiniband/hw/ipath/ipath_sysfs.c~revert-gregkh-driver-infiband-make-ipath-driver-use-default-driver-groups drivers/infiniband/hw/ipath/ipath_sysfs.c
---- a/drivers/infiniband/hw/ipath/ipath_sysfs.c~revert-gregkh-driver-infiband-make-ipath-driver-use-default-driver-groups
-+++ a/drivers/infiniband/hw/ipath/ipath_sysfs.c
-@@ -683,11 +683,6 @@ static struct attribute_group driver_att
- 	.attrs = driver_attributes
- };
- 
--struct attribute_group *ipath_driver_attr_groups[] = {
--	&driver_attr_group,
--	NULL,
--};
--
- static DEVICE_ATTR(guid, S_IWUSR | S_IRUGO, show_guid, store_guid);
- static DEVICE_ATTR(lmc, S_IWUSR | S_IRUGO, show_lmc, store_lmc);
- static DEVICE_ATTR(lid, S_IWUSR | S_IRUGO, show_lid, store_lid);
-@@ -758,9 +753,24 @@ int ipath_expose_reset(struct device *de
- 	return ret;
- }
- 
-+int ipath_driver_create_group(struct device_driver *drv)
-+{
-+	int ret;
-+
-+	ret = sysfs_create_group(&drv->kobj, &driver_attr_group);
-+
-+	return ret;
-+}
-+
-+void ipath_driver_remove_group(struct device_driver *drv)
-+{
-+	sysfs_remove_group(&drv->kobj, &driver_attr_group);
-+}
-+
- int ipath_device_create_group(struct device *dev, struct ipath_devdata *dd)
- {
- 	int ret;
-+	char unit[5];
- 
- 	ret = sysfs_create_group(&dev->kobj, &dev_attr_group);
- 	if (ret)
-@@ -770,6 +780,11 @@ int ipath_device_create_group(struct dev
- 	if (ret)
- 		goto bail_attrs;
- 
-+	snprintf(unit, sizeof(unit), "%02d", dd->ipath_unit);
-+	ret = sysfs_create_link(&dev->driver->kobj, &dev->kobj, unit);
-+	if (ret == 0)
-+		goto bail;
-+
- 	sysfs_remove_group(&dev->kobj, &dev_counter_attr_group);
- bail_attrs:
- 	sysfs_remove_group(&dev->kobj, &dev_attr_group);
-@@ -779,6 +794,11 @@ bail:
- 
- void ipath_device_remove_group(struct device *dev, struct ipath_devdata *dd)
- {
-+	char unit[5];
-+
-+	snprintf(unit, sizeof(unit), "%02d", dd->ipath_unit);
-+	sysfs_remove_link(&dev->driver->kobj, unit);
-+
- 	sysfs_remove_group(&dev->kobj, &dev_counter_attr_group);
- 	sysfs_remove_group(&dev->kobj, &dev_attr_group);
- 
+ 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __FUNCTION__);
+ 	return NULL;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -393,3 +264,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+git-dvb-fix-build-in-drivers-media-dvb-frontends-tda18271h.patch
