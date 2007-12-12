@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + smack-getpeercred_stream-fix-for-so_peersec-and-tcp.patch added to -mm tree
-Date: Tue, 11 Dec 2007 22:00:36 -0800
-Message-ID: <200712120600.lBC60aeX028634@imap1.linux-foundation.org>
+Subject: + docs-kernel-locking-convert-semaphore-references.patch added to -mm tree
+Date: Tue, 11 Dec 2007 22:02:38 -0800
+Message-ID: <200712120602.lBC62c2c028731@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55512 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51491 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752761AbXLLGBH (ORCPT
+	by vger.kernel.org with ESMTP id S1753147AbXLLGDY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 01:01:07 -0500
+	Wed, 12 Dec 2007 01:03:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: casey@schaufler-ca.com
+Cc: dwalker@mvista.com
 
 
 The patch titled
-     Smack getpeercred_stream fix for SO_PEERSEC and TCP
+     docs: kernel-locking: Convert semaphore references
 has been added to the -mm tree.  Its filename is
-     smack-getpeercred_stream-fix-for-so_peersec-and-tcp.patch
+     docs-kernel-locking-convert-semaphore-references.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,103 +26,155 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Smack getpeercred_stream fix for SO_PEERSEC and TCP
-From: Casey Schaufler <casey@schaufler-ca.com>
+Subject: docs: kernel-locking: Convert semaphore references
+From: Daniel Walker <dwalker@mvista.com>
 
-Collect the Smack label of the other end on connection so that
-getsockopt(..., SO_PEERSEC, ...) can report it.  This is done in
-smack_inet_conn_request().  Report the correct value in
-smack_socket_getpeersec_stream().  Initialize the smk_packet field in the
-socket blob.  Comment on the purpose of smk_packet in the header file and
-remove the unused smk_depth field from the blob.
+I converted some of the document to reflect mutex usage instead of
+semaphore usage.  Since we shouldin't be promoting semaphore usage when
+it's on it's way out..
 
-Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
+Signed-off-by: Daniel Walker <dwalker@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/smack/smack.h     |    7 +++----
- security/smack/smack_lsm.c |   14 +++++++++++---
- 2 files changed, 14 insertions(+), 7 deletions(-)
+ Documentation/DocBook/kernel-locking.tmpl |   32 ++++++++++----------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
-diff -puN security/smack/smack.h~smack-getpeercred_stream-fix-for-so_peersec-and-tcp security/smack/smack.h
---- a/security/smack/smack.h~smack-getpeercred_stream-fix-for-so_peersec-and-tcp
-+++ a/security/smack/smack.h
-@@ -44,10 +44,9 @@ struct superblock_smack {
+diff -puN Documentation/DocBook/kernel-locking.tmpl~docs-kernel-locking-convert-semaphore-references Documentation/DocBook/kernel-locking.tmpl
+--- a/Documentation/DocBook/kernel-locking.tmpl~docs-kernel-locking-convert-semaphore-references
++++ a/Documentation/DocBook/kernel-locking.tmpl
+@@ -717,7 +717,7 @@ used, and when it gets full, throws out 
+     <para>
+ For our first example, we assume that all operations are in user
+ context (ie. from system calls), so we can sleep.  This means we can
+-use a semaphore to protect the cache and all the objects within
++use a mutex to protect the cache and all the objects within
+ it.  Here's the code:
+     </para>
+ 
+@@ -725,7 +725,7 @@ it.  Here's the code:
+ #include &lt;linux/list.h&gt;
+ #include &lt;linux/slab.h&gt;
+ #include &lt;linux/string.h&gt;
+-#include &lt;asm/semaphore.h&gt;
++#include &lt;linux/mutex.h&gt;
+ #include &lt;asm/errno.h&gt;
+ 
+ struct object
+@@ -737,7 +737,7 @@ struct object
  };
  
- struct socket_smack {
--	char		*smk_out;	/* outbound label */
--	char		*smk_in;	/* inbound label */
--	char		smk_packet[SMK_LABELLEN];
--	int		smk_depth;
-+	char		*smk_out;			/* outbound label */
-+	char		*smk_in;			/* inbound label */
-+	char		smk_packet[SMK_LABELLEN];	/* TCP peer label */
- };
+ /* Protects the cache, cache_num, and the objects within it */
+-static DECLARE_MUTEX(cache_lock);
++static DEFINE_MUTEX(cache_lock);
+ static LIST_HEAD(cache);
+ static unsigned int cache_num = 0;
+ #define MAX_CACHE_SIZE 10
+@@ -789,17 +789,17 @@ int cache_add(int id, const char *name)
+         obj-&gt;id = id;
+         obj-&gt;popularity = 0;
  
- /*
-diff -puN security/smack/smack_lsm.c~smack-getpeercred_stream-fix-for-so_peersec-and-tcp security/smack/smack_lsm.c
---- a/security/smack/smack_lsm.c~smack-getpeercred_stream-fix-for-so_peersec-and-tcp
-+++ a/security/smack/smack_lsm.c
-@@ -1232,6 +1232,7 @@ static int smack_sk_alloc_security(struc
- 
- 	ssp->smk_in = csp;
- 	ssp->smk_out = csp;
-+	ssp->smk_packet[0] = '\0';
- 
- 	sk->sk_security = ssp;
- 
-@@ -2115,11 +2116,11 @@ static int smack_socket_getpeersec_strea
- 	int rc = 0;
- 
- 	ssp = sock->sk->sk_security;
--	slen = strlen(ssp->smk_out);
-+	slen = strlen(ssp->smk_packet) + 1;
- 
- 	if (slen > len)
- 		rc = -ERANGE;
--	else if (copy_to_user(optval, ssp->smk_out, slen) != 0)
-+	else if (copy_to_user(optval, ssp->smk_packet, slen) != 0)
- 		rc = -EFAULT;
- 
- 	if (put_user(slen, optlen) != 0)
-@@ -2251,8 +2252,15 @@ static int smack_inet_conn_request(struc
- 	/*
- 	 * Receiving a packet requires that the other end
- 	 * be able to write here. Read access is not required.
-+	 *
-+	 * If the request is successful save the peer's label
-+	 * so that SO_PEERCRED can report it.
- 	 */
--	return smk_access(smack, ssp->smk_in, MAY_WRITE);
-+	rc = smk_access(smack, ssp->smk_in, MAY_WRITE);
-+	if (rc == 0)
-+		strncpy(ssp->smk_packet, smack, SMK_MAXLEN);
-+
-+	return rc;
+-        down(&amp;cache_lock);
++        mutex_lock(&amp;cache_lock);
+         __cache_add(obj);
+-        up(&amp;cache_lock);
++        mutex_unlock(&amp;cache_lock);
+         return 0;
  }
  
- /*
+ void cache_delete(int id)
+ {
+-        down(&amp;cache_lock);
++        mutex_lock(&amp;cache_lock);
+         __cache_delete(__cache_find(id));
+-        up(&amp;cache_lock);
++        mutex_unlock(&amp;cache_lock);
+ }
+ 
+ int cache_find(int id, char *name)
+@@ -807,13 +807,13 @@ int cache_find(int id, char *name)
+         struct object *obj;
+         int ret = -ENOENT;
+ 
+-        down(&amp;cache_lock);
++        mutex_lock(&amp;cache_lock);
+         obj = __cache_find(id);
+         if (obj) {
+                 ret = 0;
+                 strcpy(name, obj-&gt;name);
+         }
+-        up(&amp;cache_lock);
++        mutex_unlock(&amp;cache_lock);
+         return ret;
+ }
+ </programlisting>
+@@ -853,7 +853,7 @@ The change is shown below, in standard p
+          int popularity;
+  };
+ 
+--static DECLARE_MUTEX(cache_lock);
++-static DEFINE_MUTEX(cache_lock);
+ +static spinlock_t cache_lock = SPIN_LOCK_UNLOCKED;
+  static LIST_HEAD(cache);
+  static unsigned int cache_num = 0;
+@@ -870,22 +870,22 @@ The change is shown below, in standard p
+          obj-&gt;id = id;
+          obj-&gt;popularity = 0;
+ 
+--        down(&amp;cache_lock);
++-        mutex_lock(&amp;cache_lock);
+ +        spin_lock_irqsave(&amp;cache_lock, flags);
+          __cache_add(obj);
+--        up(&amp;cache_lock);
++-        mutex_unlock(&amp;cache_lock);
+ +        spin_unlock_irqrestore(&amp;cache_lock, flags);
+          return 0;
+  }
+ 
+  void cache_delete(int id)
+  {
+--        down(&amp;cache_lock);
++-        mutex_lock(&amp;cache_lock);
+ +        unsigned long flags;
+ +
+ +        spin_lock_irqsave(&amp;cache_lock, flags);
+          __cache_delete(__cache_find(id));
+--        up(&amp;cache_lock);
++-        mutex_unlock(&amp;cache_lock);
+ +        spin_unlock_irqrestore(&amp;cache_lock, flags);
+  }
+ 
+@@ -895,14 +895,14 @@ The change is shown below, in standard p
+          int ret = -ENOENT;
+ +        unsigned long flags;
+ 
+--        down(&amp;cache_lock);
++-        mutex_lock(&amp;cache_lock);
+ +        spin_lock_irqsave(&amp;cache_lock, flags);
+          obj = __cache_find(id);
+          if (obj) {
+                  ret = 0;
+                  strcpy(name, obj-&gt;name);
+          }
+--        up(&amp;cache_lock);
++-        mutex_unlock(&amp;cache_lock);
+ +        spin_unlock_irqrestore(&amp;cache_lock, flags);
+          return ret;
+  }
 _
 
-Patches currently in -mm which might be from casey@schaufler-ca.com are
+Patches currently in -mm which might be from dwalker@mvista.com are
 
-vfs-security-rework-inode_getsecurity-and-callers-to.patch
-vfs-reorder-vfs_getxattr-to-avoid-unnecessary-calls-to-the-lsm.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-64bit-capability-support-legacy-support-fix.patch
-capabilities-introduce-per-process-capability-bounding-set.patch
-netlabel-introduce-a-new-kernel-configuration-api-for-netlabel.patch
-smack-version-11c-simplified-mandatory-access-control-kernel.patch
-smack-using-capabilities-32-and-33.patch
-smack-using-capabilities-32-and-33-update-cap_last_cap-to-reflect-cap_mac_admin.patch
-smack-mutex-capability-pointers-and-spelling-cleanup.patch
-smack-getpeercred_stream-fix-for-so_peersec-and-tcp.patch
+media-video-usbvision-add-mutex_unlock-to-error-paths.patch
+media-video-usbvision-add-mutex_unlock-to-error-paths-fix.patch
+usb-testing-driver-dont-free-a-locked-mutex.patch
+mcheck-mce_64-mce_read_sem-to-mutex.patch
+drivers-char-tty_ioc-remove-pty_sem.patch
+drivers-isdn-i4l-isdn_ttyc-remove-write_sem.patch
+unix98-allocated_ptys_lock-semaphore-to-mutex.patch
+docs-kernel-locking-convert-semaphore-references.patch
+isapnp-driver-semaphore-to-mutex.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
