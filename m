@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-dvb-one-videobuf_read_start-is-enough.patch added to -mm tree
-Date: Wed, 12 Dec 2007 14:51:22 -0800
-Message-ID: <200712122258.lBCMwvU7001501@imap1.linux-foundation.org>
+Subject: + greg-broke-infiniband-again.patch added to -mm tree
+Date: Wed, 12 Dec 2007 14:53:15 -0800
+Message-ID: <200712122300.lBCN0oMB001560@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59192 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54246 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752708AbXLLW7O (ORCPT
+	by vger.kernel.org with ESMTP id S1752147AbXLLXBY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 17:59:14 -0500
+	Wed, 12 Dec 2007 18:01:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mchehab@infradead.org
+Cc: akpm@linux-foundation.org, greg@kroah.com
 
 
 The patch titled
-     git-dvb: one videobuf_read_start() is enough
+     greg-broke-infiniband-again
 has been added to the -mm tree.  Its filename is
-     git-dvb-one-videobuf_read_start-is-enough.patch
+     greg-broke-infiniband-again.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,37 +26,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-dvb: one videobuf_read_start() is enough
+Subject: greg-broke-infiniband-again
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+drivers/infiniband/hw/ipath/ipath_sysfs.c: In function 'ipath_driver_create_group':
+drivers/infiniband/hw/ipath/ipath_sysfs.c:760: error: 'struct device_driver' has no member named 'kobj'
+drivers/infiniband/hw/ipath/ipath_sysfs.c: In function 'ipath_driver_remove_group':
+drivers/infiniband/hw/ipath/ipath_sysfs.c:767: error: 'struct device_driver' has no member named 'kobj'
+drivers/infiniband/hw/ipath/ipath_sysfs.c: In function 'ipath_device_create_group':
+drivers/infiniband/hw/ipath/ipath_sysfs.c:784: error: 'struct device_driver' has no member named 'kobj'
+drivers/infiniband/hw/ipath/ipath_sysfs.c: In function 'ipath_device_remove_group':
+drivers/infiniband/hw/ipath/ipath_sysfs.c:800: error: 'struct device_driver' has no member named 'kobj'
+
+sigh
+
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/videobuf-core.c |   11 -----------
- 1 file changed, 11 deletions(-)
+ drivers/infiniband/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/media/video/videobuf-core.c~git-dvb-one-videobuf_read_start-is-enough drivers/media/video/videobuf-core.c
---- a/drivers/media/video/videobuf-core.c~git-dvb-one-videobuf_read_start-is-enough
-+++ a/drivers/media/video/videobuf-core.c
-@@ -879,17 +879,6 @@ int videobuf_read_start(struct videobuf_
- 	return rc;
- }
- 
--int videobuf_read_start(struct videobuf_queue *q)
--{
--	int rc;
--
--	mutex_lock(&q->lock);
--	rc = __videobuf_read_start(q);
--	mutex_unlock(&q->lock);
--
--	return rc;
--}
--
- void videobuf_read_stop(struct videobuf_queue *q)
- {
- 	mutex_lock(&q->lock);
+diff -puN drivers/infiniband/Kconfig~greg-broke-infiniband-again drivers/infiniband/Kconfig
+--- a/drivers/infiniband/Kconfig~greg-broke-infiniband-again
++++ a/drivers/infiniband/Kconfig
+@@ -1,6 +1,7 @@
+ menuconfig INFINIBAND
+ 	tristate "InfiniBand support"
+ 	depends on PCI || BROKEN
++	depends on BROKEN
+ 	depends on HAS_IOMEM
+ 	---help---
+ 	  Core support for InfiniBand (IB).  Make sure to also select
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -93,6 +94,7 @@ git-drm-oops-fix.patch
 intel-agp-enable-i915-recognition.patch
 git-dvb.patch
 git-dvb-fix-build-in-drivers-media-dvb-frontends-tda18271h.patch
+git-dvb-one-videobuf_read_start-is-enough.patch
 media-video-usbvision-add-mutex_unlock-to-error-paths-fix.patch
 fix-jdelvare-i2c-i2c-constify-client-address-data.patch
 git-hid.patch
@@ -275,4 +277,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-git-dvb-one-videobuf_read_start-is-enough.patch
+greg-broke-infiniband-again.patch
