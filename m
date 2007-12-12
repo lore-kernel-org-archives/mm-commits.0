@@ -1,279 +1,188 @@
 From: akpm@linux-foundation.org
-Subject: - move-kprobes-examples-to-samples-resend-vs-git-x86.patch removed from -mm tree
-Date: Tue, 11 Dec 2007 21:39:18 -0800
-Message-ID: <200712120539.lBC5dISo027864@imap1.linux-foundation.org>
+Subject: + create-arch-kconfig.patch added to -mm tree
+Date: Tue, 11 Dec 2007 21:38:58 -0800
+Message-ID: <200712120538.lBC5cw22027830@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45552 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51925 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753459AbXLLFlc (ORCPT
+	by vger.kernel.org with ESMTP id S1753440AbXLLFln (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 00:41:32 -0500
+	Wed, 12 Dec 2007 00:41:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ananth@in.ibm.com, mingo@elte.hu, randy.dunlap@oracle.com, roland@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mathieu.desnoyers@polymtl.ca, ananth@in.ibm.com, dhowells@redhat.com, jdike@addtoit.com, sam@ravnborg.org
 
 
 The patch titled
-     move-kprobes-examples-to-samples-resend-vs-git-x86
-has been removed from the -mm tree.  Its filename was
-     move-kprobes-examples-to-samples-resend-vs-git-x86.patch
+     Create arch/Kconfig
+has been added to the -mm tree.  Its filename is
+     create-arch-kconfig.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: move-kprobes-examples-to-samples-resend-vs-git-x86
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Create arch/Kconfig
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-That seemed like a pretty dumb change to me.
+Puts the content of arch/Kconfig in the "General setup" menu.
 
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Linus:
+
+> Should it come with a re-duplication of it's content into each
+> architecture, which was the case previously ? The oprofile and kprobes
+> menu entries were litteraly cut and pasted from one architecture to
+> another. Should we put its content in init/Kconfig then ?
+
+I don't think it's a good idea to go back to making it per-architecture,
+although that extensive "depends on <list-of-archiectures-here>" might
+indicate that there certainly is room for cleanup there.
+
+And I don't think it's wrong keeping it in kernel/Kconfig.xyz per se, I
+just think it's wrong to (a) lump the code together when it really doesn't
+necessarily need to and (b) show it to users as some kind of choice that
+is tied together (whether it then has common code or not).
+
+On the per-architecture side, I do think it would be better to *not* have
+internal architecture knowledge in a generic file, and as such a line like
+
+        depends on X86_32 || IA64 || PPC || S390 || SPARC64 || X86_64 || AVR32
+
+really shouldn't exist in a file like kernel/Kconfig.instrumentation.
+
+It would be much better to do
+
+        depends on ARCH_SUPPORTS_KPROBES
+
+in that generic file, and then architectures that do support it would just
+have a
+
+        bool ARCH_SUPPORTS_KPROBES
+                default y
+
+in *their* architecture files. That would seem to be much more logical,
+and is readable both for arch maintainers *and* for people who have no
+clue - and don't care - about which architecture is supposed to support
+which interface...
+
+
+Sam Ravnborg:
+
+Stuff it into a new file: arch/Kconfig
+We can then extend this file to include all the 'trailing'
+Kconfig things that are anyway equal for all ARCHs.
+
+But it should be kept clean - so if we introduce such a file
+then we should use ARCH_HAS_whatever in the arch specific Kconfig
+files to enable stuff that is not shared.
+
+[...]
+
+The above suggestion is actually not exactly the best way to do it...
+First the naming..
+A quick grep shows following usage today (in Kconfig files)
+ARCH_HAS        51
+ARCH_SUPPORTS   4
+HAVE_ARCH       7
+
+ARCH_HAS is the clear winner.
+
+In the common Kconfig file do:
+
+config FOO
+        depends on ARCH_HAS_FOO
+        bool "bla bla"
+
+config ARCH_HAS_FOO
+        def_bool n
+
+In the arch specific Kconfig file in a suitable place do:
+
+config SUITABLE_OPTION
+        select ARCH_HAS_FOO
+
+The naming of ARCH_HAS_ is fixed and shall be:
+ARCH_HAS_<config option it will enable>
+
+Only a single line added pr. architecture.
+And we will end up with a (maybe even commented) list of trivial selects.
+
+- Yet another update :
+
+Moving to HAVE_* now.
+
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: David Howells <dhowells@redhat.com>
 Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/kprobes/kprobe_example.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/Kconfig |    3 +++
+ init/Kconfig |    2 ++
+ 2 files changed, 5 insertions(+)
 
-diff -puN samples/kprobes/kprobe_example.c~move-kprobes-examples-to-samples-resend-vs-git-x86 samples/kprobes/kprobe_example.c
---- a/samples/kprobes/kprobe_example.c~move-kprobes-examples-to-samples-resend-vs-git-x86
-+++ a/samples/kprobes/kprobe_example.c
-@@ -22,12 +22,12 @@ static int handler_pre(struct kprobe *p,
- #ifdef CONFIG_X86_32
- 	printk(KERN_INFO "pre_handler: p->addr = 0x%p, eip = %lx,"
- 			" eflags = 0x%lx\n",
--		p->addr, regs->eip, regs->eflags);
-+		p->addr, regs->ip, regs->flags);
- #endif
- #ifdef CONFIG_X86_64
- 	printk(KERN_INFO "pre_handler: p->addr = 0x%p, rip = %lx,"
- 			" eflags = 0x%lx\n",
--		p->addr, regs->rip, regs->eflags);
-+		p->addr, regs->ip, regs->flags);
- #endif
- #ifdef CONFIG_PPC
- 	printk(KERN_INFO "pre_handler: p->addr = 0x%p, nip = 0x%lx,"
-@@ -45,7 +45,7 @@ static void handler_post(struct kprobe *
- {
- #if defined(CONFIG_X86_32) || defined(CONFIG_X86_64)
- 	printk(KERN_INFO "post_handler: p->addr = 0x%p, eflags = 0x%lx\n",
--		p->addr, regs->eflags);
-+		p->addr, regs->flags);
- #endif
- #ifdef CONFIG_PPC
- 	printk(KERN_INFO "post_handler: p->addr = 0x%p, msr = 0x%lx\n",
+diff -puN /dev/null arch/Kconfig
+--- /dev/null
++++ a/arch/Kconfig
+@@ -0,0 +1,3 @@
++#
++# General architecture dependent options
++#
+diff -puN init/Kconfig~create-arch-kconfig init/Kconfig
+--- a/init/Kconfig~create-arch-kconfig
++++ a/init/Kconfig
+@@ -665,6 +665,8 @@ config PROC_PAGE_MONITOR
+ 	  /proc/kpagecount, and /proc/kpageflags. Disabling these
+           interfaces will reduce the size of the kernel by approximately 4kb.
+ 
++source "arch/Kconfig"
++
+ endmenu		# General setup
+ 
+ config RT_MUTEXES
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
-revert-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-timerfd-v3-new-timerfd-api-ia64-fix.patch
-timerfd-v3-new-timerfd-api-m68k-fix.patch
-timerfd-v3-new-timerfd-api-mips-fix.patch
-timerfd-v3-new-timerfd-api-arch-fixes.patch
-timerfd-v3-new-timerfd-api-powerpc-fix.patch
-timerfd-v3-new-timerfd-api-sparc64-fix.patch
-git-acpi-ia64-build-fix.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-git-agpgart.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-kernel-auditc-warning-fix.patch
-git-cpufreq.patch
-git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-dm-persistent_read_metadata-warning-fix.patch
-ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-git-drm.patch
-git-drm-oops-fix.patch
-intel-agp-enable-i915-recognition.patch
-git-dvb.patch
-media-video-usbvision-add-mutex_unlock-to-error-paths-fix.patch
-fix-jdelvare-i2c-i2c-constify-client-address-data.patch
-git-hid.patch
-revert-git-hrt.patch
-ia64-slim-down-__clear_bit_unlock.patch
-git-infiniband.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-libata-xfer_mask-is-unsigned-int-not-unsigned-long-fix.patch
-libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
-libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
-git-mmc.patch
-git-mtd.patch
-git-net.patch
-git-net-vs-git-lblnet.patch
-net-use-mutex_is_locked-for-assert_rtnl.patch
-tipc-fix-semaphore-handling.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-bluetooth-uninlining.patch
-git-nfsd.patch
-quirk-enable-msi-mapping-on-ht1000.patch
-kernel-time-make-tick_do_broadcast-static.patch
-git-sh.patch
-git-scsi-misc-fixup.patch
-ips-trim-trailing-whitespace.patch
-scsi-gdth-kill-unneeded-irq-argument.patch
-drivers-scsi-sgiwd93c-export-sgiwd93_reset.patch
-libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-mct232-speed-new-termios-and-compliance-cleanups-fix.patch
-usb-testing-driver-dont-free-a-locked-mutex.patch
-9p-util-fix-semaphore-handling.patch
-git-watchdog.patch
-add-support-for-sb1-hardware-watchdog-fix.patch
-git-wireless.patch
-bcm43xx_debugfs-sscanf-fix.patch
-git-ipwireless_cs.patch
 git-x86.patch
-git-x86-__vdso_getcpu-warning-fix.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-git-xtensa.patch
-bonding-locking-fix.patch
-sata_nv-fix-oops.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-optimise-the-clearing-of-__gfp_zero.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
+kallsyms-should-prefer-non-weak-symbols.patch
 kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
-sync_sb_inodes-propagate-errors.patch
+create-arch-kconfig.patch
 add-have_oprofile.patch
-move-kprobes-examples-to-samples-resend-vs-git-x86.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-logo-move-declarations-of-logos-to-linux_logoh-fix.patch
-declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
-64-bit-i_version-afs-fixes.patch
-ext4-add-block-bitmap-validation.patch
-ext4-fix-up-ext4fs_debug-builds.patch
-ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-pid-sys_wait-fixes-v2-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-rewrite-rd-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+add-have_kprobes.patch
+move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig.patch
+add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
+add-cmpxchg64-and-cmpxchg64_local-to-alpha.patch
+add-cmpxchg64-and-cmpxchg64_local-to-mips.patch
+add-cmpxchg64-and-cmpxchg64_local-to-powerpc.patch
+add-cmpxchg64-and-cmpxchg64_local-to-x86_64.patch
+add-cmpxchg_local-to-arm.patch
+add-cmpxchg_local-to-avr32.patch
+add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
+add-cmpxchg_local-to-cris.patch
+add-cmpxchg_local-to-frv.patch
+add-cmpxchg_local-to-h8300.patch
+add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
+new-cmpxchg_local-optimized-for-up-case-for-m32r.patch
+fix-m32r-__xchg.patch
+m32r-build-fix-of-arch-m32r-kernel-smpbootc.patch
+local_t-m32r-use-architecture-specific-cmpxchg_local.patch
+add-cmpxchg_local-to-m86k.patch
+add-cmpxchg_local-to-m68knommu.patch
+add-cmpxchg_local-to-parisc.patch
+add-cmpxchg_local-to-ppc.patch
+add-cmpxchg_local-to-s390.patch
+add-cmpxchg_local-to-sparc-move-__cmpxchg-to-systemh.patch
+add-cmpxchg_local-to-sparc64.patch
+add-cmpxchg_local-to-v850.patch
+add-cmpxchg_local-to-xtensa.patch
+modules-handle-symbols-that-have-a-zero-value.patch
+linux-kernel-markers-support-multiple-probes.patch
+linux-kernel-markers-support-multiple-probes-update.patch
+linux-kernel-markers-create-modpost-file.patch
