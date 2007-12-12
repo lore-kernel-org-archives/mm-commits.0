@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ppp-synchronous-tty-convert-dead_sem-to-completion.patch added to -mm tree
-Date: Tue, 11 Dec 2007 21:43:18 -0800
-Message-ID: <200712120543.lBC5hIqq028076@imap1.linux-foundation.org>
+Subject: + acpi-sbs-ignore-alarms-coming-from-unknown-devices.patch added to -mm tree
+Date: Tue, 11 Dec 2007 21:44:38 -0800
+Message-ID: <200712120544.lBC5icc4028088@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46585 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40515 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752622AbXLLFnV (ORCPT
+	by vger.kernel.org with ESMTP id S1752826AbXLLFoy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 00:43:21 -0500
+	Wed, 12 Dec 2007 00:44:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matthias.kaehlcke@gmail.com, paulus@samba.org
+Cc: astarikovskiy@suse.de, lenb@kernel.org
 
 
 The patch titled
-     PPP synchronous tty: convert dead_sem to completion
+     ACPI: SBS: Ignore alarms coming from unknown devices
 has been added to the -mm tree.  Its filename is
-     ppp-synchronous-tty-convert-dead_sem-to-completion.patch
+     acpi-sbs-ignore-alarms-coming-from-unknown-devices.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,86 +26,102 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: PPP synchronous tty: convert dead_sem to completion
-From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Subject: ACPI: SBS: Ignore alarms coming from unknown devices
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
 
-PPP synchronous tty channel driver: convert the semaphore dead_sem to a
-completion
+Reference: http://bugzilla.kernel.org/show_bug.cgi?id=9362
 
-Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
-Cc: Paul Mackerras <paulus@samba.org>
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ppp_synctty.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/acpi/sbs.c   |    6 ------
+ drivers/acpi/sbshc.c |   16 ++++++++++++----
+ drivers/acpi/sbshc.h |    6 ++++++
+ 3 files changed, 18 insertions(+), 10 deletions(-)
 
-diff -puN drivers/net/ppp_synctty.c~ppp-synchronous-tty-convert-dead_sem-to-completion drivers/net/ppp_synctty.c
---- a/drivers/net/ppp_synctty.c~ppp-synchronous-tty-convert-dead_sem-to-completion
-+++ a/drivers/net/ppp_synctty.c
-@@ -42,9 +42,9 @@
- #include <linux/if_ppp.h>
- #include <linux/ppp_channel.h>
- #include <linux/spinlock.h>
-+#include <linux/completion.h>
- #include <linux/init.h>
- #include <asm/uaccess.h>
--#include <asm/semaphore.h>
+diff -puN drivers/acpi/sbs.c~acpi-sbs-ignore-alarms-coming-from-unknown-devices drivers/acpi/sbs.c
+--- a/drivers/acpi/sbs.c~acpi-sbs-ignore-alarms-coming-from-unknown-devices
++++ a/drivers/acpi/sbs.c
+@@ -54,12 +54,6 @@
+ #define ACPI_BATTERY_DIR_NAME		"BAT%i"
+ #define ACPI_AC_DIR_NAME		"AC0"
  
- #define PPP_VERSION	"2.4.2"
+-enum acpi_sbs_device_addr {
+-	ACPI_SBS_CHARGER = 0x9,
+-	ACPI_SBS_MANAGER = 0xa,
+-	ACPI_SBS_BATTERY = 0xb,
+-};
+-
+ #define ACPI_SBS_NOTIFY_STATUS		0x80
+ #define ACPI_SBS_NOTIFY_INFO		0x81
  
-@@ -70,7 +70,7 @@ struct syncppp {
- 	struct tasklet_struct tsk;
+diff -puN drivers/acpi/sbshc.c~acpi-sbs-ignore-alarms-coming-from-unknown-devices drivers/acpi/sbshc.c
+--- a/drivers/acpi/sbshc.c~acpi-sbs-ignore-alarms-coming-from-unknown-devices
++++ a/drivers/acpi/sbshc.c
+@@ -202,10 +202,9 @@ int acpi_smbus_unregister_callback(struc
  
- 	atomic_t	refcnt;
--	struct semaphore dead_sem;
-+	struct completion dead_cmp;
- 	struct ppp_channel chan;	/* interface to generic ppp layer */
- };
+ EXPORT_SYMBOL_GPL(acpi_smbus_unregister_callback);
  
-@@ -195,7 +195,7 @@ static struct syncppp *sp_get(struct tty
- static void sp_put(struct syncppp *ap)
+-static void acpi_smbus_callback(void *context)
++static inline void acpi_smbus_callback(void *context)
  {
- 	if (atomic_dec_and_test(&ap->refcnt))
--		up(&ap->dead_sem);
-+		complete(&ap->dead_cmp);
+ 	struct acpi_smb_hc *hc = context;
+-
+ 	if (hc->callback)
+ 		hc->callback(hc->context);
  }
+@@ -214,6 +213,7 @@ static int smbus_alarm(void *context)
+ {
+ 	struct acpi_smb_hc *hc = context;
+ 	union acpi_smb_status status;
++	u8 address;
+ 	if (smb_hc_read(hc, ACPI_SMB_STATUS, &status.raw))
+ 		return 0;
+ 	/* Check if it is only a completion notify */
+@@ -222,10 +222,18 @@ static int smbus_alarm(void *context)
+ 	if (!status.fields.alarm)
+ 		return 0;
+ 	mutex_lock(&hc->lock);
++	smb_hc_read(hc, ACPI_SMB_ALARM_ADDRESS, &address);
+ 	status.fields.alarm = 0;
+ 	smb_hc_write(hc, ACPI_SMB_STATUS, status.raw);
+-	if (hc->callback)
+-		acpi_os_execute(OSL_GPE_HANDLER, acpi_smbus_callback, hc);
++	/* We are only interested in events coming from known devices */
++	switch (address >> 1) {
++		case ACPI_SBS_CHARGER:
++		case ACPI_SBS_MANAGER:
++		case ACPI_SBS_BATTERY:
++			acpi_os_execute(OSL_GPE_HANDLER,
++					acpi_smbus_callback, hc);
++		default:;
++	}
+ 	mutex_unlock(&hc->lock);
+ 	return 0;
+ }
+diff -puN drivers/acpi/sbshc.h~acpi-sbs-ignore-alarms-coming-from-unknown-devices drivers/acpi/sbshc.h
+--- a/drivers/acpi/sbshc.h~acpi-sbs-ignore-alarms-coming-from-unknown-devices
++++ a/drivers/acpi/sbshc.h
+@@ -16,6 +16,12 @@ enum acpi_smb_protocol {
  
- /*
-@@ -225,7 +225,7 @@ ppp_sync_open(struct tty_struct *tty)
- 	tasklet_init(&ap->tsk, ppp_sync_process, (unsigned long) ap);
+ static const u8 SMBUS_PEC = 0x80;
  
- 	atomic_set(&ap->refcnt, 1);
--	init_MUTEX_LOCKED(&ap->dead_sem);
-+	init_completion(&ap->dead_cmp);
++enum acpi_sbs_device_addr {
++	ACPI_SBS_CHARGER = 0x9,
++	ACPI_SBS_MANAGER = 0xa,
++	ACPI_SBS_BATTERY = 0xb,
++};
++
+ typedef void (*smbus_alarm_callback)(void *context);
  
- 	ap->chan.private = ap;
- 	ap->chan.ops = &sync_ops;
-@@ -273,7 +273,7 @@ ppp_sync_close(struct tty_struct *tty)
- 	 * by the time it returns.
- 	 */
- 	if (!atomic_dec_and_test(&ap->refcnt))
--		down(&ap->dead_sem);
-+		wait_for_completion(&ap->dead_cmp);
- 	tasklet_kill(&ap->tsk);
- 
- 	ppp_unregister_channel(&ap->chan);
+ extern int acpi_smbus_read(struct acpi_smb_hc *hc, u8 protocol, u8 address,
 _
 
-Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
+Patches currently in -mm which might be from astarikovskiy@suse.de are
 
-acpi_pci_irq_find_prt_entry-use-list_for_each_entry-instead-of-list_for_each.patch
-git-dvb.patch
-git-infiniband.patch
-ppp-synchronous-tty-convert-dead_sem-to-completion.patch
-git-netdev-all.patch
-plip-driver-convert-killed_timer_sem-to-completion.patch
-git-scsi-misc.patch
-edgeport-usb-serial-converter-convert-es_sem-to-mutex.patch
-usb-testing-driver-convert-dev-sem-to-mutex.patch
-usb-testing-driver-dont-free-a-locked-mutex.patch
-parallel-port-convert-port_mutex-to-the-mutex-api.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-mbcs-convert-algolock-to-mutex.patch
-mbcs-convert-dmawritelock-to-mutex.patch
-mbcs-convert-dmareadlock-to-mutex.patch
+git-acpi.patch
+acpi-sbs-reset-alarm-bit.patch
+acpi-sbs-ignore-alarms-coming-from-unknown-devices.patch
+acpi-sbs-return-rate-in-mw-if-capacity-in-mwh.patch
