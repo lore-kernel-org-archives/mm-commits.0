@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + remove-unused-arguments-in-zone_init_free_lists.patch added to -mm tree
-Date: Wed, 12 Dec 2007 01:51:56 -0800
-Message-ID: <200712120951.lBC9pu5b003823@imap1.linux-foundation.org>
+Subject: + as-iosched-fix-write-batch-start-point.patch added to -mm tree
+Date: Wed, 12 Dec 2007 01:50:45 -0800
+Message-ID: <200712120950.lBC9ojQc003800@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50000 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51003 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753366AbXLLJwa (ORCPT
+	by vger.kernel.org with ESMTP id S1755740AbXLLJwr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 04:52:30 -0500
+	Wed, 12 Dec 2007 04:52:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ak@suse.de
+Cc: aaronc@gelato.unsw.edu.au, jens.axboe@oracle.com, npiggin@suse.de
 
 
 The patch titled
-     page allcoator: remove unused arguments in zone_init_free_lists()
+     as-iosched: fix write batch start point
 has been added to the -mm tree.  Its filename is
-     remove-unused-arguments-in-zone_init_free_lists.patch
+     as-iosched-fix-write-batch-start-point.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,66 +26,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: page allcoator: remove unused arguments in zone_init_free_lists()
-From: Andi Kleen <ak@suse.de>
+Subject: as-iosched: fix write batch start point
+From: Aaron Carroll <aaronc@gelato.unsw.edu.au>
 
-Signed-off-by: Andi Kleen <ak@suse.de>
+New write batches currently start from where the last one completed.  We
+have no idea where the head is after switching batches, so this makes
+little sense.  Instead, start the next batch from the request with the
+earliest deadline in the hope that we avoid a deadline expiry later on.
+
+Signed-off-by: Aaron Carroll <aaronc@gelato.unsw.edu.au>
+Acked-by: Nick Piggin <npiggin@suse.de>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ block/as-iosched.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~remove-unused-arguments-in-zone_init_free_lists mm/page_alloc.c
---- a/mm/page_alloc.c~remove-unused-arguments-in-zone_init_free_lists
-+++ a/mm/page_alloc.c
-@@ -2535,8 +2535,7 @@ void __meminit memmap_init_zone(unsigned
+diff -puN block/as-iosched.c~as-iosched-fix-write-batch-start-point block/as-iosched.c
+--- a/block/as-iosched.c~as-iosched-fix-write-batch-start-point
++++ a/block/as-iosched.c
+@@ -1097,7 +1097,8 @@ dispatch_writes:
+ 		ad->batch_data_dir = REQ_ASYNC;
+ 		ad->current_write_count = ad->write_batch_count;
+ 		ad->write_batch_idled = 0;
+-		rq = ad->next_rq[ad->batch_data_dir];
++		rq = rq_entry_fifo(ad->fifo_list[REQ_ASYNC].next);
++		ad->last_check_fifo[REQ_ASYNC] = jiffies;
+ 		goto dispatch_request;
  	}
- }
  
--static void __meminit zone_init_free_lists(struct pglist_data *pgdat,
--				struct zone *zone, unsigned long size)
-+static void __meminit zone_init_free_lists(struct zone *zone)
- {
- 	int order, t;
- 	for_each_migratetype_order(order, t) {
-@@ -2809,7 +2808,7 @@ __meminit int init_currently_empty_zone(
- 
- 	memmap_init(size, pgdat->node_id, zone_idx(zone), zone_start_pfn);
- 
--	zone_init_free_lists(pgdat, zone, zone->spanned_pages);
-+	zone_init_free_lists(zone);
- 
- 	return 0;
- }
 _
 
-Patches currently in -mm which might be from ak@suse.de are
+Patches currently in -mm which might be from aaronc@gelato.unsw.edu.au are
 
-revert-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch
-acpi-add-reboot-mechanism.patch
-updates-to-nfsroot-documentation-take-3.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-pci-disable-decoding-during-sizing-of-bars.patch
-git-x86.patch
-x86_64-add-acpi-reboot-option.patch
-x86_64-efi-runtime-service-support-efi-basic-runtime-service-support.patch
-x86_64-efi-runtime-service-support-efi-basic-runtime-service-support-fixes.patch
-x86_64-efi-runtime-service-support-efi-basic-runtime-service-support-calling-convention-fix.patch
-x86_64-efi-runtime-service-support-efi-runtime-services.patch
-x86_64-efi-runtime-service-support-document-for-efi-runtime-services.patch
-x86_64-efi-runtime-service-support-remove-duplicated-code-from-efi_32c.patch
-x86-boot-use-e820-memory-map-on-efi-32-platform.patch
-iommu-sg-merging-x86-make-pci-gart-iommu-respect-the-segment-size-limits.patch
-iommu-sg-x86-convert-calgary-iommu-to-use-the-iommu-helper.patch
-iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper.patch
-iommu-sg-kill-__clear_bit_string-and-find_next_zero_string.patch
-git-xfs.patch
-swapin_readahead-excise-numa-bogosity.patch
-remove-unused-arguments-in-zone_init_free_lists.patch
-read_current_time-cleanups.patch
-printk-trivial-optimizations.patch
-modules-handle-symbols-that-have-a-zero-value.patch
-modules-fold-percpu_modcopy-into-modulec-and-get-rid-of-the-macro-from-hell.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
+as-iosched-fix-write-batch-start-point.patch
