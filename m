@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + amiga-serial-driver-port_write_mutex-fixup.patch added to -mm tree
-Date: Wed, 12 Dec 2007 00:50:35 -0800
-Message-ID: <200712120850.lBC8oZtc001758@imap1.linux-foundation.org>
+Subject: + ext2-xip-check-fix.patch added to -mm tree
+Date: Wed, 12 Dec 2007 00:53:58 -0800
+Message-ID: <200712120853.lBC8rwSu001900@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59270 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37107 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755574AbXLLIvB (ORCPT
+	by vger.kernel.org with ESMTP id S1755735AbXLLIyF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 03:51:01 -0500
+	Wed, 12 Dec 2007 03:54:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dwalker@mvista.com, geert@linux-m68k.org
+Cc: npiggin@suse.de, cotte@de.ibm.com
 
 
 The patch titled
-     Amiga serial driver: port_write_mutex fixup
+     ext2: xip check fix
 has been added to the -mm tree.  Its filename is
-     amiga-serial-driver-port_write_mutex-fixup.patch
+     ext2-xip-check-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,50 +26,62 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Amiga serial driver: port_write_mutex fixup
-From: Daniel Walker <dwalker@mvista.com>
+Subject: ext2: xip check fix
+From: Nick Piggin <npiggin@suse.de>
 
-The port_write_mutex was converted from a semaphore to a mutex,
-but there was still this ifdef'd init_MUTEX reference remaining.
+ext2 should not worry about checking sb->s_blocksize for XIP before the
+sb's blocksize actually gets set.
 
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Acked-by: Carsten Otte <cotte@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ser_a2232.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ext2/super.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/char/ser_a2232.c~amiga-serial-driver-port_write_mutex-fixup drivers/char/ser_a2232.c
---- a/drivers/char/ser_a2232.c~amiga-serial-driver-port_write_mutex-fixup
-+++ a/drivers/char/ser_a2232.c
-@@ -653,7 +653,7 @@ static void a2232_init_portstructs(void)
- 		port->gs.closing_wait = 30 * HZ;
- 		port->gs.rd = &a2232_real_driver;
- #ifdef NEW_WRITE_LOCKING
--		init_MUTEX(&(port->gs.port_write_mutex));
-+		mutex_init(&(port->gs.port_write_mutex));
- #endif
- 		init_waitqueue_head(&port->gs.open_wait);
- 		init_waitqueue_head(&port->gs.close_wait);
+diff -puN fs/ext2/super.c~ext2-xip-check-fix fs/ext2/super.c
+--- a/fs/ext2/super.c~ext2-xip-check-fix
++++ a/fs/ext2/super.c
+@@ -844,8 +844,7 @@ static int ext2_fill_super(struct super_
+ 
+ 	blocksize = BLOCK_SIZE << le32_to_cpu(sbi->s_es->s_log_block_size);
+ 
+-	if ((ext2_use_xip(sb)) && ((blocksize != PAGE_SIZE) ||
+-				  (sb->s_blocksize != blocksize))) {
++	if (ext2_use_xip(sb) && blocksize != PAGE_SIZE) {
+ 		if (!silent)
+ 			printk("XIP: Unsupported blocksize\n");
+ 		goto failed_mount;
 _
 
-Patches currently in -mm which might be from dwalker@mvista.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-media-video-usbvision-add-mutex_unlock-to-error-paths.patch
-media-video-usbvision-add-mutex_unlock-to-error-paths-fix.patch
-media-video-usbvision-remove-ctrlurblock.patch
-usb-testing-driver-dont-free-a-locked-mutex.patch
-mcheck-mce_64-mce_read_sem-to-mutex.patch
-drivers-char-tty_ioc-remove-pty_sem.patch
-drivers-isdn-i4l-isdn_ttyc-remove-write_sem.patch
-unix98-allocated_ptys_lock-semaphore-to-mutex.patch
-docs-kernel-locking-convert-semaphore-references.patch
-stopmachine-semaphore-to-mutex.patch
-stopmachine-semaphore-to-mutex-fix.patch
-amiga-serial-driver-port_write_mutex-fixup.patch
-isapnp-driver-semaphore-to-mutex.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
+alsa-nopage.patch
+alsa-usx2y-nopage.patch
+git-dvb.patch
+ia64-ia32-nopage.patch
+ieee1394-nopage.patch
+ib-nopage.patch
+git-jfs.patch
+git-kvm.patch
+nfs-use-gfp_nofs-preloads-for-radix-tree-insertion.patch
+sg-nopage.patch
+usb-mon-nopage.patch
+slub-use-non-atomic-bit-unlock.patch
+radix-tree-avoid-atomic-allocations-for-preloaded-insertions.patch
+mm-dont-allow-ioremapping-of-ranges-larger-than-vmalloc-space.patch
+mm-special-mapping-nopage.patch
+agp-alpha-nopage.patch
+vt-bitlock-fix.patch
+radix_treeh-trivial-comment-correction.patch
+inotify-fix-race.patch
+inotify-remove-debug-code.patch
+relay-nopage.patch
+uio-nopage.patch
+ext2-xip-check-fix.patch
+fb-defio-nopage.patch
+rewrite-rd.patch
+rewrite-rd-fix.patch
+rd-support-xip.patch
+reiser4.patch
