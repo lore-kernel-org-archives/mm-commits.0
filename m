@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pid-extend-fix-pid_vnr.patch added to -mm tree
-Date: Tue, 11 Dec 2007 21:05:19 -0800
-Message-ID: <200712120505.lBC55J84026561@imap1.linux-foundation.org>
+Subject: + logo-move-declarations-of-logos-to-linux_logoh-fix.patch added to -mm tree
+Date: Tue, 11 Dec 2007 21:05:57 -0800
+Message-ID: <200712120505.lBC55wIV026572@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33317 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50253 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751096AbXLLFFW (ORCPT
+	by vger.kernel.org with ESMTP id S1751269AbXLLFGF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 00:05:22 -0500
+	Wed, 12 Dec 2007 00:06:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com
+Cc: akpm@linux-foundation.org, adaplas@pol.net, marcin.slusarz@gmail.com
 
 
 The patch titled
-     pid: Extend/Fix pid_vnr
+     logo-move-declarations-of-logos-to-linux_logoh-fix
 has been added to the -mm tree.  Its filename is
-     pid-extend-fix-pid_vnr.patch
+     logo-move-declarations-of-logos-to-linux_logoh-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,181 +26,252 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pid: Extend/Fix pid_vnr
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: logo-move-declarations-of-logos-to-linux_logoh-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-pid_vnr returns the user space pid with respect to the pid namespace the
-struct pid was allocated in.  What we want before we return a pid to user
-space is the user space pid with respect to the pid namespace of current.
+drivers/video/logo/logo_linux_clut224.c:598: error: conflicting type qualifiers for 'logo_linux_clut224'
+include/linux/linux_logo.h:47: error: previous declaration of 'logo_linux_clut224' was here
 
-pid_vnr is a very nice optimization but because it isn't quite what we want
-it is easy to use pid_vnr at times when we aren't certain the struct pid
-was allocated in our pid namespace.
-
-Currently this describes at least tiocgpgrp and tiocgsid in ttyio.c the
-parent process reported in the core dumps and the parent process in
-get_signal_to_deliver.
-
-So unless the performance impact is huge having an interface that does what
-we want instead of always what we want should be much more reliable and
-much less error prone.
-
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Marcin Slusarz <marcin.slusarz@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pid.h   |   14 +++-----------
- include/linux/sched.h |    5 ++---
- kernel/pid.c          |    6 ++++++
- 3 files changed, 11 insertions(+), 14 deletions(-)
+ drivers/video/logo/logo.c       |    1 -
+ scripts/pnmtologo.c             |    2 +-
+ video/logo/logo_linux_clut224.c |    0 
+ 3 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/pid.h~pid-extend-fix-pid_vnr include/linux/pid.h
---- a/include/linux/pid.h~pid-extend-fix-pid_vnr
-+++ a/include/linux/pid.h
-@@ -127,9 +127,8 @@ extern void FASTCALL(free_pid(struct pid
-  * the helpers to get the pid's id seen from different namespaces
-  *
-  * pid_nr()    : global id, i.e. the id seen from the init namespace;
-- * pid_vnr()   : virtual id, i.e. the id seen from the namespace this pid
-- *               belongs to. this only makes sence when called in the
-- *               context of the task that belongs to the same namespace;
-+ * pid_vnr()   : virtual id, i.e. the id seen from the pid namespace of
-+ *               current.
-  * pid_nr_ns() : id seen from the ns specified.
-  *
-  * see also task_xid_nr() etc in include/linux/sched.h
-@@ -144,14 +143,7 @@ static inline pid_t pid_nr(struct pid *p
- }
- 
- pid_t pid_nr_ns(struct pid *pid, struct pid_namespace *ns);
+diff -puN drivers/video/logo/logo.c~logo-move-declarations-of-logos-to-linux_logoh-fix drivers/video/logo/logo.c
+--- a/drivers/video/logo/logo.c~logo-move-declarations-of-logos-to-linux_logoh-fix
++++ a/drivers/video/logo/logo.c
+@@ -1,4 +1,3 @@
 -
--static inline pid_t pid_vnr(struct pid *pid)
--{
--	pid_t nr = 0;
--	if (pid)
--		nr = pid->numbers[pid->level].nr;
--	return nr;
--}
-+pid_t pid_vnr(struct pid *pid);
- 
- #define do_each_pid_task(pid, type, task)				\
- 	do {								\
-diff -puN include/linux/sched.h~pid-extend-fix-pid_vnr include/linux/sched.h
---- a/include/linux/sched.h~pid-extend-fix-pid_vnr
-+++ a/include/linux/sched.h
-@@ -1298,9 +1298,8 @@ struct pid_namespace;
-  * from various namespaces
+ /*
+  *  Linux logo to be displayed on boot
   *
-  * task_xid_nr()     : global id, i.e. the id seen from the init namespace;
-- * task_xid_vnr()    : virtual id, i.e. the id seen from the namespace the task
-- *                     belongs to. this only makes sence when called in the
-- *                     context of the task that belongs to the same namespace;
-+ * task_xid_vnr()    : virtual id, i.e. the id seen from the pid namespace of
-+ *                     current.
-  * task_xid_nr_ns()  : id seen from the ns specified;
-  *
-  * set_task_vxid()   : assigns a virtual id to a task;
-diff -puN kernel/pid.c~pid-extend-fix-pid_vnr kernel/pid.c
---- a/kernel/pid.c~pid-extend-fix-pid_vnr
-+++ a/kernel/pid.c
-@@ -442,6 +442,12 @@ pid_t pid_nr_ns(struct pid *pid, struct 
- 	return nr;
- }
- 
-+pid_t pid_vnr(struct pid *pid)
-+{
-+	return pid_nr_ns(pid, current->nsproxy->pid_ns);
-+}
-+EXPORT_SYMBOL_GPL(pid_vnr);
-+
- pid_t task_pid_nr_ns(struct task_struct *tsk, struct pid_namespace *ns)
+diff -puN include/linux/linux_logo.h~logo-move-declarations-of-logos-to-linux_logoh-fix include/linux/linux_logo.h
+diff -puN scripts/pnmtologo.c~logo-move-declarations-of-logos-to-linux_logoh-fix scripts/pnmtologo.c
+--- a/scripts/pnmtologo.c~logo-move-declarations-of-logos-to-linux_logoh-fix
++++ a/scripts/pnmtologo.c
+@@ -244,7 +244,7 @@ static void write_header(void)
+ static void write_footer(void)
  {
- 	return pid_nr_ns(task_pid(tsk), ns);
+     fputs("\n};\n\n", out);
+-    fprintf(out, "const struct linux_logo %s __initdata = {\n", logoname);
++    fprintf(out, "const struct linux_logo %s = {\n", logoname);
+     fprintf(out, "    .type\t= %s,\n", logo_types[logo_type]);
+     fprintf(out, "    .width\t= %d,\n", logo_width);
+     fprintf(out, "    .height\t= %d,\n", logo_height);
+diff -puN drivers/video/logo/logo_linux_clut224.c~logo-move-declarations-of-logos-to-linux_logoh-fix drivers/video/logo/logo_linux_clut224.c
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+revert-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+timerfd-v3-new-timerfd-api-ia64-fix.patch
+timerfd-v3-new-timerfd-api-m68k-fix.patch
+timerfd-v3-new-timerfd-api-mips-fix.patch
+timerfd-v3-new-timerfd-api-arch-fixes.patch
+timerfd-v3-new-timerfd-api-powerpc-fix.patch
+timerfd-v3-new-timerfd-api-sparc64-fix.patch
+git-acpi-ia64-build-fix.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-add-reboot-mechanism.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+git-agpgart.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+kernel-auditc-warning-fix.patch
+git-cpufreq.patch
+git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
+agk-dm-dm-ioctl-move-compat-code-fix.patch
+dm-persistent_read_metadata-warning-fix.patch
+ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+git-drm.patch
+git-drm-oops-fix.patch
+intel-agp-enable-i915-recognition.patch
+git-dvb.patch
+media-video-usbvision-add-mutex_unlock-to-error-paths-fix.patch
+fix-jdelvare-i2c-i2c-constify-client-address-data.patch
+git-hid.patch
+revert-git-hrt.patch
+ia64-slim-down-__clear_bit_unlock.patch
+git-infiniband.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+libata-xfer_mask-is-unsigned-int-not-unsigned-long-fix.patch
+libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
+libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
+git-mmc.patch
+git-mtd.patch
 git-net.patch
+git-net-vs-git-lblnet.patch
+net-use-mutex_is_locked-for-assert_rtnl.patch
+tipc-fix-semaphore-handling.patch
+git-netdev-all.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+bluetooth-uninlining.patch
+git-nfsd.patch
 quirk-enable-msi-mapping-on-ht1000.patch
-quirk-enable-msi-mapping-on-ht1000-v2.patch
+kernel-time-make-tick_do_broadcast-static.patch
+git-sh.patch
+git-scsi-misc-fixup.patch
+ips-trim-trailing-whitespace.patch
+scsi-gdth-kill-unneeded-irq-argument.patch
+drivers-scsi-sgiwd93c-export-sgiwd93_reset.patch
+libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+mct232-speed-new-termios-and-compliance-cleanups-fix.patch
+usb-testing-driver-dont-free-a-locked-mutex.patch
+9p-util-fix-semaphore-handling.patch
+git-watchdog.patch
+add-support-for-sb1-hardware-watchdog-fix.patch
+git-wireless.patch
+bcm43xx_debugfs-sscanf-fix.patch
+git-ipwireless_cs.patch
 git-x86.patch
-fix-proc-dcache-deadlock-in-do_exit.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
+git-x86-__vdso_getcpu-warning-fix.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-xtensa.patch
+bonding-locking-fix.patch
+sata_nv-fix-oops.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-optimise-the-clearing-of-__gfp_zero.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+sync_sb_inodes-propagate-errors.patch
+move-kprobes-examples-to-samples-resend-vs-git-x86.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+logo-move-declarations-of-logos-to-linux_logoh-fix.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+64-bit-i_version-afs-fixes.patch
+ext4-add-block-bitmap-validation.patch
+ext4-fix-up-ext4fs_debug-builds.patch
+ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+cgroup-simplify-space-stripping-fix.patch
 memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
 memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-memcgroup-fix-try_to_free-order.patch
-memory-controller-improve-user-interface.patch
 memory-controller-oom-handling-v7.patch
 memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-memcgroup-reinstate-swapoff-mod.patch
-bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
-bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
-bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
-memcgroup-fix-zone-isolation-oom.patch
-memcgroup-revert-swap_state-mods.patch
-bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
-memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
-memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
 memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
 memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-memory-cgroup-enhancements-add-pre_destroy-handler.patch
-memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
-introduce-flags-for-reserve_bootmem.patch
-use-bootmem_exclusive-for-kdump.patch
-iget-stop-procfs-from-using-iget-and-read_inode.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
 iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-d_path-make-proc_get_link-use-a-struct-path-argument.patch
-add-the-namespaces-config-option.patch
-move-the-uts-namespace-under-uts_ns-option.patch
-move-the-ipc-namespace-under-ipc_ns-option.patch
-cleanup-the-code-managed-with-the-user_ns-option.patch
-cleanup-the-code-managed-with-pid_ns-option.patch
-mark-net_ns-with-depends-on-namespaces.patch
-proc-implement-proc_single_file_operations.patch
-proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces.patch
-proc-seqfile-convert-proc_pid_statm.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
 proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
 proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
 proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
 proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
-proc-proper-pidns-handling-for-proc-self.patch
-proc-fix-the-threaded-proc-self.patch
-sys_setpgid-simplify-pid-ns-interaction.patch
-fix-setsid-for-sub-namespace-sbin-init.patch
-teach-set_special_pids-to-use-struct-pid.patch
-move-daemonized-kernel-threads-into-the-swappers-session.patch
-start-the-global-sbin-init-with-00-special-pids.patch
-sys_setsid-remove-now-unneeded-session-=-1-check.patch
-pid-sys_wait-fixes-v2.patch
-pid-extend-fix-pid_vnr.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
 pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
