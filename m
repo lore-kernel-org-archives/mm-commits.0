@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-powerpc-platforms-cell-cbe_regsc-add-missing-of_node_put.patch added to -mm tree
-Date: Wed, 12 Dec 2007 02:31:25 -0800
-Message-ID: <200712121031.lBCAVP1v005277@imap1.linux-foundation.org>
+Subject: + watchdog-use-sgi_has_indydog-for-indydog-depends.patch added to -mm tree
+Date: Wed, 12 Dec 2007 02:34:37 -0800
+Message-ID: <200712121034.lBCAYbQQ005425@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52680 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40124 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756366AbXLLKbo (ORCPT
+	by vger.kernel.org with ESMTP id S1754237AbXLLKe4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 05:31:44 -0500
+	Wed, 12 Dec 2007 05:34:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, benh@kernel.crashing.org, djerb@us.ibm.com, krafft@de.ibm.com, paulus@samba.org
+Cc: tsbogend@alpha.franken.de, ralf@linux-mips.org, wim@iguana.be
 
 
 The patch titled
-     arch/powerpc/platforms/cell/cbe_regs.c: add missing of_node_put
+     watchdog: use SGI_HAS_INDYDOG for INDYDOG depends
 has been added to the -mm tree.  Its filename is
-     arch-powerpc-platforms-cell-cbe_regsc-add-missing-of_node_put.patch
+     watchdog-use-sgi_has_indydog-for-indydog-depends.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,68 +26,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: arch/powerpc/platforms/cell/cbe_regs.c: add missing of_node_put
-From: Julia Lawall <julia@diku.dk>
+Subject: watchdog: use SGI_HAS_INDYDOG for INDYDOG depends
+From: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 
-There should be an of_node_put when breaking out of a loop that iterates
-using for_each_node_by_type.
+Use SGI_HAS_INDYDOG for INDYDOG depends.
 
-This was detected and fixed using the following semantic patch.
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@@
-identifier d;
-type T;
-expression e;
-iterator for_each_node_by_type;
-@@
-
-T *d;
-...
-for_each_node_by_type(d,...)
-  {... when != of_node_put(d)
-       when != e = d
-(
-   return d;
-|
-+  of_node_put(d);
-?  return ...;
-)
-...}
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Christian Krafft <krafft@de.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: David Erb <djerb@us.ibm.com>
+Signed-off-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Wim Van Sebroeck <wim@iguana.be>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/cell/cbe_regs.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/watchdog/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/powerpc/platforms/cell/cbe_regs.c~arch-powerpc-platforms-cell-cbe_regsc-add-missing-of_node_put arch/powerpc/platforms/cell/cbe_regs.c
---- a/arch/powerpc/platforms/cell/cbe_regs.c~arch-powerpc-platforms-cell-cbe_regsc-add-missing-of_node_put
-+++ a/arch/powerpc/platforms/cell/cbe_regs.c
-@@ -256,6 +256,7 @@ void __init cbe_regs_init(void)
- 			printk(KERN_ERR "cbe_regs: More BE chips than supported"
- 			       "!\n");
- 			cbe_regs_map_count--;
-+			of_node_put(cpu);
- 			return;
- 		}
- 		map->cpu_node = cpu;
+diff -puN drivers/watchdog/Kconfig~watchdog-use-sgi_has_indydog-for-indydog-depends drivers/watchdog/Kconfig
+--- a/drivers/watchdog/Kconfig~watchdog-use-sgi_has_indydog-for-indydog-depends
++++ a/drivers/watchdog/Kconfig
+@@ -624,7 +624,7 @@ config SBC_EPX_C3_WATCHDOG
+ 
+ config INDYDOG
+ 	tristate "Indy/I2 Hardware Watchdog"
+-	depends on SGI_IP22
++	depends on SGI_HAS_INDYDOG
+ 	help
+ 	  Hardware driver for the Indy's/I2's watchdog. This is a
+ 	  watchdog timer that will reboot the machine after a 60 second
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from tsbogend@alpha.franken.de are
 
-origin.patch
-git-alsa.patch
-drivers-char-remove-unnecessary-pci_dev_put.patch
-arch-ppc-remove-an-unnecessary-pci_dev_put.patch
-arch-powerpc-add-missing-of_node_put.patch
-arch-powerpc-platforms-cell-cbe_regsc-add-missing-of_node_put.patch
-git-input.patch
-drivers-video-remove-unnecessary-pci_dev_put.patch
+git-mips.patch
+git-netdev-all.patch
+watchdog-use-sgi_has_indydog-for-indydog-depends.patch
+serial-use-sgi_has_zilog-for-ip22_zilog-depends.patch
+char-use-sgi_has_ds1286-for-sgi_ds1286-depends.patch
+sc26xx-new-serial-driver-for-sc2681-uarts.patch
+sc26xx-new-serial-driver-for-sc2681-uarts-update.patch
+partition-use-default_sgi_partition-for-sgi_partion-default.patch
