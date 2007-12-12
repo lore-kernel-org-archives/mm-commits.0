@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-scsi-misc-fix-build-in-drivers-scsi-scsi_tgt_libc.patch added to -mm tree
-Date: Wed, 12 Dec 2007 15:34:30 -0800
-Message-ID: <200712122342.lBCNg7bw003045@imap1.linux-foundation.org>
+Subject: + iwlwifi3945-4965-fix-rate-control-algo-reference-leak-fix.patch added to -mm tree
+Date: Wed, 12 Dec 2007 15:38:19 -0800
+Message-ID: <200712122345.lBCNjtBl003203@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34012 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50535 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752173AbXLLXmT (ORCPT
+	by vger.kernel.org with ESMTP id S1752115AbXLLXrE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 18:42:19 -0500
+	Wed, 12 Dec 2007 18:47:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@steeleye.com
+Cc: akpm@linux-foundation.org, gorcunov@gmail.com, linville@tuxdriver.com, yi.zhu@intel.com
 
 
 The patch titled
-     git-scsi-misc: fix build in drivers/scsi/scsi_tgt_lib.c
+     iwlwifi3945-4965-fix-rate-control-algo-reference-leak-fix
 has been added to the -mm tree.  Its filename is
-     git-scsi-misc-fix-build-in-drivers-scsi-scsi_tgt_libc.patch
+     iwlwifi3945-4965-fix-rate-control-algo-reference-leak-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,28 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-scsi-misc: fix build in drivers/scsi/scsi_tgt_lib.c
+Subject: iwlwifi3945-4965-fix-rate-control-algo-reference-leak-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: Zhu Yi <yi.zhu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_tgt_lib.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/wireless/iwlwifi/iwl3945-base.c |    2 +-
+ drivers/net/wireless/iwlwifi/iwl4965-base.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/scsi_tgt_lib.c~git-scsi-misc-fix-build-in-drivers-scsi-scsi_tgt_libc drivers/scsi/scsi_tgt_lib.c
---- a/drivers/scsi/scsi_tgt_lib.c~git-scsi-misc-fix-build-in-drivers-scsi-scsi_tgt_libc
-+++ a/drivers/scsi/scsi_tgt_lib.c
-@@ -613,7 +613,7 @@ int scsi_tgt_kspace_it_nexus_rsp(int hos
- 	struct Scsi_Host *shost;
- 	int err = -EINVAL;
+diff -puN drivers/net/wireless/iwlwifi/iwl3945-base.c~iwlwifi3945-4965-fix-rate-control-algo-reference-leak-fix drivers/net/wireless/iwlwifi/iwl3945-base.c
+--- a/drivers/net/wireless/iwlwifi/iwl3945-base.c~iwlwifi3945-4965-fix-rate-control-algo-reference-leak-fix
++++ a/drivers/net/wireless/iwlwifi/iwl3945-base.c
+@@ -6280,7 +6280,7 @@ static void iwl3945_alive_start(struct i
+ 		mutex_lock(&priv->mutex);
  
--	dprintk("%d %d%llx\n", host_no, result, unsigned long long)itn_id);
-+	dprintk("%d %d%llx\n", host_no, result, (unsigned long long)itn_id);
+ 		if (rc) {
+-			iwl_rate_control_unregister(priv->hw);
++			iwl3945_rate_control_unregister(priv->hw);
+ 			IWL_ERROR("Failed to register network "
+ 				  "device (error %d)\n", rc);
+ 			return;
+diff -puN drivers/net/wireless/iwlwifi/iwl4965-base.c~iwlwifi3945-4965-fix-rate-control-algo-reference-leak-fix drivers/net/wireless/iwlwifi/iwl4965-base.c
+--- a/drivers/net/wireless/iwlwifi/iwl4965-base.c~iwlwifi3945-4965-fix-rate-control-algo-reference-leak-fix
++++ a/drivers/net/wireless/iwlwifi/iwl4965-base.c
+@@ -6693,7 +6693,7 @@ static void iwl4965_alive_start(struct i
+ 		mutex_lock(&priv->mutex);
  
- 	shost = scsi_host_lookup(host_no);
- 	if (IS_ERR(shost)) {
+ 		if (rc) {
+-			iwl_rate_control_unregister(priv->hw);
++			iwl4965_rate_control_unregister(priv->hw);
+ 			IWL_ERROR("Failed to register network "
+ 				  "device (error %d)\n", rc);
+ 			return;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -118,6 +133,7 @@ quirk-enable-msi-mapping-on-ht1000.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
 kernel-time-make-tick_do_broadcast-static.patch
 git-sh.patch
+git-scsi-misc-fix-build-in-drivers-scsi-scsi_tgt_libc.patch
 ips-trim-trailing-whitespace.patch
 scsi-gdth-kill-unneeded-irq-argument.patch
 drivers-scsi-sgiwd93c-export-sgiwd93_reset.patch
@@ -138,6 +154,7 @@ git-cryptodev.patch
 git-cryptodev-fixup.patch
 git-xtensa.patch
 bonding-locking-fix.patch
+iwlwifi3945-4965-fix-rate-control-algo-reference-leak-fix.patch
 bcm43xx_debugfs-sscanf-fix.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
@@ -270,4 +287,3 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-git-scsi-misc-fix-build-in-drivers-scsi-scsi_tgt_libc.patch
