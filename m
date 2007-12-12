@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix-accounting-in-vmscanc-for-memory-controller.patch added to -mm tree
-Date: Tue, 11 Dec 2007 16:08:25 -0800
-Message-ID: <200712120008.lBC08Pkj016080@imap1.linux-foundation.org>
+Subject: + updates-to-nfsroot-documentation-take-3.patch added to -mm tree
+Date: Tue, 11 Dec 2007 16:12:46 -0800
+Message-ID: <200712120012.lBC0CkN4016229@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44831 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53171 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751527AbXLLAIz (ORCPT
+	by vger.kernel.org with ESMTP id S1754836AbXLLANI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Dec 2007 19:08:55 -0500
+	Tue, 11 Dec 2007 19:13:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com
+Cc: apw@us.ibm.com, ak@suse.de, davem@davemloft.net, horms@verge.net.au
 
 
 The patch titled
-     fix accounting in vmscan.c for memory controller
+     Updates to nfsroot documentation
 has been added to the -mm tree.  Its filename is
-     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix-accounting-in-vmscanc-for-memory-controller.patch
+     updates-to-nfsroot-documentation-take-3.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,101 +26,86 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix accounting in vmscan.c for memory controller
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: Updates to nfsroot documentation
+From: Amos Waterland <apw@us.ibm.com>
 
-Some amount of accounting is done while page reclaiming.
+The difference between ip=off and ip=::::::off has been a cause of much
+confusion.  Document how each behaves, and do not contradict ourselves by
+saying that "off" is the default when in fact "any" is the default and is
+descibed as being so lower in the file.
 
-Now, there are 2 types of page reclaim (if memory controller is used)
-  - global: shortage of (global) pages.
-  - under cgroup: use up to limit.
-
-I think 2 accountings, ALLOCSTALL and DIRECT should be accounted only under
-global lru scan. They are accounted against memory shortage at alloc_pages().
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Signed-off-by: Amos Waterland <apw@us.ibm.com>
+Cc: Simon Horman <horms@verge.net.au>
+Cc: Andi Kleen <ak@suse.de>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ Documentation/nfsroot.txt |   12 +++++++++---
+ net/ipv4/ipconfig.c       |   20 +-------------------
+ 2 files changed, 10 insertions(+), 22 deletions(-)
 
-diff -puN mm/vmscan.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix-accounting-in-vmscanc-for-memory-controller mm/vmscan.c
---- a/mm/vmscan.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix-accounting-in-vmscanc-for-memory-controller
-+++ a/mm/vmscan.c
-@@ -889,8 +889,9 @@ static unsigned long shrink_inactive_lis
- 		if (current_is_kswapd()) {
- 			__count_zone_vm_events(PGSCAN_KSWAPD, zone, nr_scan);
- 			__count_vm_events(KSWAPD_STEAL, nr_freed);
--		} else
-+		} else if (scan_global_lru(sc))
- 			__count_zone_vm_events(PGSCAN_DIRECT, zone, nr_scan);
+diff -puN Documentation/nfsroot.txt~updates-to-nfsroot-documentation-take-3 Documentation/nfsroot.txt
+--- a/Documentation/nfsroot.txt~updates-to-nfsroot-documentation-take-3
++++ a/Documentation/nfsroot.txt
+@@ -92,8 +92,14 @@ ip=<client-ip>:<server-ip>:<gw-ip>:<netm
+   autoconfiguration.
+ 
+   The <autoconf> parameter can appear alone as the value to the `ip'
+-  parameter (without all the ':' characters before) in which case auto-
+-  configuration is used.
++  parameter (without all the ':' characters before).  If the value is
++  "ip=off" or "ip=none", no autoconfiguration will take place, otherwise
++  autoconfiguration will take place.  The most common way to use this
++  is "ip=dhcp".
 +
- 		__count_zone_vm_events(PGSTEAL, zone, nr_freed);
++  Note that "ip=off" is not the same thing as "ip=::::::off", because in
++  the latter autoconfiguration will take place if any of DHCP, BOOTP or RARP
++  are compiled in the kernel.
  
- 		if (nr_taken == 0)
-@@ -1326,7 +1327,8 @@ static unsigned long do_try_to_free_page
- 	unsigned long lru_pages = 0;
- 	int i;
+   <client-ip>	IP address of the client.
  
--	count_vm_event(ALLOCSTALL);
-+	if (scan_global_lru(sc))
-+		count_vm_event(ALLOCSTALL);
- 	/*
- 	 * mem_cgroup will not do shrink_slab.
- 	 */
+@@ -142,7 +148,7 @@ ip=<client-ip>:<server-ip>:<gw-ip>:<netm
+ 		into the kernel will be used, regardless of the value of
+ 		this option.
+ 
+-                  off or none: don't use autoconfiguration (default)
++                  off or none: don't use autoconfiguration
+ 		  on or any:   use any protocol available in the kernel
+ 		  dhcp:        use DHCP
+ 		  bootp:       use BOOTP
+diff -puN net/ipv4/ipconfig.c~updates-to-nfsroot-documentation-take-3 net/ipv4/ipconfig.c
+--- a/net/ipv4/ipconfig.c~updates-to-nfsroot-documentation-take-3
++++ a/net/ipv4/ipconfig.c
+@@ -1410,25 +1410,7 @@ late_initcall(ip_auto_config);
+ 
+ /*
+  *  Decode any IP configuration options in the "ip=" or "nfsaddrs=" kernel
+- *  command line parameter. It consists of option fields separated by colons in
+- *  the following order:
+- *
+- *  <client-ip>:<server-ip>:<gw-ip>:<netmask>:<host name>:<device>:<PROTO>
+- *
+- *  Any of the fields can be empty which means to use a default value:
+- *	<client-ip>	- address given by BOOTP or RARP
+- *	<server-ip>	- address of host returning BOOTP or RARP packet
+- *	<gw-ip>		- none, or the address returned by BOOTP
+- *	<netmask>	- automatically determined from <client-ip>, or the
+- *			  one returned by BOOTP
+- *	<host name>	- <client-ip> in ASCII notation, or the name returned
+- *			  by BOOTP
+- *	<device>	- use all available devices
+- *	<PROTO>:
+- *	   off|none	    - don't do autoconfig at all (DEFAULT)
+- *	   on|any           - use any configured protocol
+- *	   dhcp|bootp|rarp  - use only the specified protocol
+- *	   both             - use both BOOTP and RARP (not DHCP)
++ *  command line parameter.  See Documentation/nfsroot.txt.
+  */
+ static int __init ic_proto_name(char *name)
+ {
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from apw@us.ibm.com are
 
-git-x86.patch
-swapoff-scan-ptes-preemptibly.patch
-memory-hotplug-add-removable-to-sysfs-to-show-memblock-removability.patch
-add-remove_memory-for-ppc64-2.patch
-enable-hotplug-memory-remove-for-ppc64.patch
-add-arch-specific-walk_memory_remove-for-ppc64.patch
-mm-dont-waste-swap-on-locked-pages.patch
-memcgroup-temporarily-revert-swapoff-mod.patch
-memory-controller-improve-user-interface-memory-controller-enhancements-for-reclaiming-take2-possible-race-fix-in-res_counter.patch
-memory-controller-make-charging-gfp-mask-aware-fix.patch
-bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
-bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
-bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
-bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
-memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
-memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
-memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-memory-cgroup-enhancements-add-pre_destroy-handler.patch
-memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter-memory-controller-enhancements-for-reclaiming-take2-clean-up-remove-unused-variable.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter-memory-controller-enhancements-for-reclaiming-take2-add-bug_on-in-mem_cgroup_zoneinfo.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix-accounting-in-vmscanc-for-memory-controller.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-bugfix-for-memory-cgroup-per-zone-struct-allocation.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-memory-controller-enhancements-for-reclaiming-take2-define-free_mem_cgroup_per_zone_info.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
-update-documentation-controller-memorytxt.patch
+updates-to-nfsroot-documentation-take-3.patch
