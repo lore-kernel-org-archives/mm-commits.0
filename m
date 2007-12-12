@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + logo-move-declarations-of-logos-to-linux_logoh-fix.patch added to -mm tree
-Date: Tue, 11 Dec 2007 21:06:39 -0800
-Message-ID: <200712120506.lBC56dOD026581@imap1.linux-foundation.org>
+Date: Tue, 11 Dec 2007 21:07:08 -0800
+Message-ID: <200712120507.lBC578CT026657@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43285 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47581 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751639AbXLLFGn (ORCPT
+	by vger.kernel.org with ESMTP id S1751727AbXLLFHQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 00:06:43 -0500
+	Wed, 12 Dec 2007 00:07:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
