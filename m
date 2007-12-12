@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext2-xip-check-fix.patch added to -mm tree
-Date: Wed, 12 Dec 2007 00:53:58 -0800
-Message-ID: <200712120853.lBC8rwSu001900@imap1.linux-foundation.org>
+Subject: + wireless-libertas-dont-cast-a-pointer-to-pointer-of-list_head.patch added to -mm tree
+Date: Wed, 12 Dec 2007 00:57:23 -0800
+Message-ID: <200712120857.lBC8vNan002032@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37107 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35209 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755735AbXLLIyF (ORCPT
+	by vger.kernel.org with ESMTP id S1754945AbXLLI7M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 03:54:05 -0500
+	Wed, 12 Dec 2007 03:59:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, cotte@de.ibm.com
+Cc: lizf@cn.fujitsu.com, dcbw@redhat.com, linville@tuxdriver.com
 
 
 The patch titled
-     ext2: xip check fix
+     wireless/libertas: don't cast a pointer to pointer of list_head
 has been added to the -mm tree.  Its filename is
-     ext2-xip-check-fix.patch
+     wireless-libertas-dont-cast-a-pointer-to-pointer-of-list_head.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,62 +26,108 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ext2: xip check fix
-From: Nick Piggin <npiggin@suse.de>
+Subject: wireless/libertas: don't cast a pointer to pointer of list_head
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-ext2 should not worry about checking sb->s_blocksize for XIP before the
-sb's blocksize actually gets set.
+Don't cast struct foo * to struct list_head *, it's safe only when
+the list member is the first member of struct foo.
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Acked-by: Carsten Otte <cotte@de.ibm.com>
+Also don't cast struct list_head * to struct foo *.
+
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Dan Williams <dcbw@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/super.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/net/wireless/libertas/cmd.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN fs/ext2/super.c~ext2-xip-check-fix fs/ext2/super.c
---- a/fs/ext2/super.c~ext2-xip-check-fix
-+++ a/fs/ext2/super.c
-@@ -844,8 +844,7 @@ static int ext2_fill_super(struct super_
+diff -puN drivers/net/wireless/libertas/cmd.c~wireless-libertas-dont-cast-a-pointer-to-pointer-of-list_head drivers/net/wireless/libertas/cmd.c
+--- a/drivers/net/wireless/libertas/cmd.c~wireless-libertas-dont-cast-a-pointer-to-pointer-of-list_head
++++ a/drivers/net/wireless/libertas/cmd.c
+@@ -1016,11 +1016,10 @@ void lbs_queue_cmd(struct lbs_adapter *a
+ 	spin_lock_irqsave(&adapter->driver_lock, flags);
  
- 	blocksize = BLOCK_SIZE << le32_to_cpu(sbi->s_es->s_log_block_size);
+ 	if (addtail) {
+-		list_add_tail((struct list_head *)cmdnode,
+-			      &adapter->cmdpendingq);
++		list_add_tail(&cmdnode->list, &adapter->cmdpendingq);
+ 		adapter->nr_cmd_pending++;
+ 	} else
+-		list_add((struct list_head *)cmdnode, &adapter->cmdpendingq);
++		list_add(&cmdnode->list, &adapter->cmdpendingq);
  
--	if ((ext2_use_xip(sb)) && ((blocksize != PAGE_SIZE) ||
--				  (sb->s_blocksize != blocksize))) {
-+	if (ext2_use_xip(sb) && blocksize != PAGE_SIZE) {
- 		if (!silent)
- 			printk("XIP: Unsupported blocksize\n");
- 		goto failed_mount;
+ 	spin_unlock_irqrestore(&adapter->driver_lock, flags);
+ 
+@@ -1139,7 +1138,7 @@ void __lbs_cleanup_and_insert_cmd(struct
+ 		return;
+ 
+ 	cleanup_cmdnode(ptempcmd);
+-	list_add_tail((struct list_head *)ptempcmd, &adapter->cmdfreeq);
++	list_add_tail(&ptempcmd->list, &adapter->cmdfreeq);
+ }
+ 
+ static void lbs_cleanup_and_insert_cmd(struct lbs_private *priv,
+@@ -1637,8 +1636,9 @@ struct cmd_ctrl_node *lbs_get_free_cmd_c
+ 	spin_lock_irqsave(&adapter->driver_lock, flags);
+ 
+ 	if (!list_empty(&adapter->cmdfreeq)) {
+-		tempnode = (struct cmd_ctrl_node *)adapter->cmdfreeq.next;
+-		list_del((struct list_head *)tempnode);
++		tempnode = list_first_entry(&adapter->cmdfreeq,
++					    struct cmd_ctrl_node, list);
++		list_del(&tempnode->list);
+ 	} else {
+ 		lbs_deb_host("GET_CMD_NODE: cmd_ctrl_node is not available\n");
+ 		tempnode = NULL;
+@@ -1735,8 +1735,8 @@ int lbs_execute_next_command(struct lbs_
+ 	}
+ 
+ 	if (!list_empty(&adapter->cmdpendingq)) {
+-		cmdnode = (struct cmd_ctrl_node *)
+-		    adapter->cmdpendingq.next;
++		cmdnode = list_first_entry(&adapter->cmdpendingq,
++					   struct cmd_ctrl_node, list);
+ 	}
+ 
+ 	spin_unlock_irqrestore(&adapter->driver_lock, flags);
+@@ -1800,7 +1800,7 @@ int lbs_execute_next_command(struct lbs_
+ 				    cpu_to_le16(CMD_SUBCMD_EXIT_PS)) {
+ 					lbs_deb_host(
+ 					       "EXEC_NEXT_CMD: ignore ENTER_PS cmd\n");
+-					list_del((struct list_head *)cmdnode);
++					list_del(&cmdnode->list);
+ 					lbs_cleanup_and_insert_cmd(priv, cmdnode);
+ 
+ 					ret = 0;
+@@ -1811,7 +1811,7 @@ int lbs_execute_next_command(struct lbs_
+ 				    (adapter->psstate == PS_STATE_PRE_SLEEP)) {
+ 					lbs_deb_host(
+ 					       "EXEC_NEXT_CMD: ignore EXIT_PS cmd in sleep\n");
+-					list_del((struct list_head *)cmdnode);
++					list_del(&cmdnode->list);
+ 					lbs_cleanup_and_insert_cmd(priv, cmdnode);
+ 					adapter->needtowakeup = 1;
+ 
+@@ -1823,7 +1823,7 @@ int lbs_execute_next_command(struct lbs_
+ 				       "EXEC_NEXT_CMD: sending EXIT_PS\n");
+ 			}
+ 		}
+-		list_del((struct list_head *)cmdnode);
++		list_del(&cmdnode->list);
+ 		lbs_deb_host("EXEC_NEXT_CMD: sending command 0x%04x\n",
+ 			    le16_to_cpu(cmdptr->command));
+ 		DownloadcommandToStation(priv, cmdnode);
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
-alsa-nopage.patch
-alsa-usx2y-nopage.patch
-git-dvb.patch
-ia64-ia32-nopage.patch
-ieee1394-nopage.patch
-ib-nopage.patch
-git-jfs.patch
-git-kvm.patch
-nfs-use-gfp_nofs-preloads-for-radix-tree-insertion.patch
-sg-nopage.patch
-usb-mon-nopage.patch
-slub-use-non-atomic-bit-unlock.patch
-radix-tree-avoid-atomic-allocations-for-preloaded-insertions.patch
-mm-dont-allow-ioremapping-of-ranges-larger-than-vmalloc-space.patch
-mm-special-mapping-nopage.patch
-agp-alpha-nopage.patch
-vt-bitlock-fix.patch
-radix_treeh-trivial-comment-correction.patch
-inotify-fix-race.patch
-inotify-remove-debug-code.patch
-relay-nopage.patch
-uio-nopage.patch
-ext2-xip-check-fix.patch
-fb-defio-nopage.patch
-rewrite-rd.patch
-rewrite-rd-fix.patch
-rd-support-xip.patch
-reiser4.patch
+git-hid.patch
+git-net.patch
+wireless-libertas-dont-cast-a-pointer-to-pointer-of-list_head.patch
+clocksource-remove-redundant-code.patch
+clockevent-simplify-list-operations.patch
+timekeeping-rename-timekeeping_is_continuous-to-timekeeping_valid_for_hres.patch
+time-fix-typo-in-comments.patch
+time-delete-comments-that-refer-to-noexistent-symbols.patch
