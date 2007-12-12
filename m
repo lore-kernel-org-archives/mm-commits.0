@@ -1,383 +1,176 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-bidi-support.patch removed from -mm tree
-Date: Wed, 12 Dec 2007 12:55:19 -0800
-Message-ID: <200712122055.lBCKtJ6i029307@imap1.linux-foundation.org>
+Subject: - scsi-early-detection-of-medium-not-present-updated.patch removed from -mm tree
+Date: Wed, 12 Dec 2007 12:57:20 -0800
+Message-ID: <200712122057.lBCKvKQY029340@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51091 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37479 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751817AbXLLU6b (ORCPT
+	by vger.kernel.org with ESMTP id S1754409AbXLLU7F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 15:58:31 -0500
+	Wed, 12 Dec 2007 15:59:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bharrosh@panasas.com, mm-commits@vger.kernel.org
+To: stern@rowland.harvard.edu, James.Bottomley@steeleye.com, albertcc@tw.ibm.com, htejun@gmail.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SCSI: bidi support
+     SCSI: early detection of medium not present, updated
 has been removed from the -mm tree.  Its filename was
-     scsi-bidi-support.patch
+     scsi-early-detection-of-medium-not-present-updated.patch
 
-This patch was dropped because changes in git-scsi-misc destroyed it
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: SCSI: bidi support
-From: Boaz Harrosh <bharrosh@panasas.com>
+Subject: SCSI: early detection of medium not present, updated
+From: Alan Stern <stern@rowland.harvard.edu>
 
-At the block level bidi request uses req->next_rq pointer for a second
-bidi_read request.  At Scsi-midlayer a second scsi_data_buffer structure is
-used for the bidi_read part.  This bidi scsi_data_buffer is put on
-request->next_rq->special.  Struct scsi_cmnd is not changed.
+Taken from http://bugzilla.kernel.org/show_bug.cgi?id=8904
 
-- Define scsi_bidi_cmnd() to return true if it is a bidi request and a
-  second sgtable was allocated.
+An updated (by Albert, I assume) version of the fourteen-month-old patch here:
 
-- Define scsi_in()/scsi_out() to return the in or out scsi_data_buffer
-  from this command This API is to isolate users from the mechanics of
-  bidi.
+http://marc.info/?l=linux-kernel&m=115412002912837&w=2
 
-- Define scsi_end_bidi_request() to do what scsi_end_request() does but
-  for a bidi request. This is necessary because bidi commands are a bit
-  tricky here. (See comments in body)
+Apparently fixes the bug described at
+http://bugzilla.kernel.org/show_bug.cgi?id=8904
 
-- scsi_release_buffers() will also release the bidi_read scsi_data_buffer
+Needs some TLC.  Perhaps urgently.
 
-- scsi_io_completion() on bidi commands will now call
-  scsi_end_bidi_request() and return.
-
-- The previous work done in scsi_init_io() is now done in a new
-  scsi_init_sgtable() (which is 99% identical to old scsi_init_io())
-  The new scsi_init_io() will call the above twice if needed also for
-  the bidi_read command. Only at this point is a command bidi.
-
-- In scsi_error.c at scsi_eh_prep/restore_cmnd() make sure bidi-lld is not
-  confused by a get-sense command that looks like bidi. This is done
-  by puting NULL at request->next_rq, and restoring.
-
-Signed-off-by: Boaz Harrosh <bharrosh@panasas.com>
+Cc: Albert Lee <albertcc@tw.ibm.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Acked-by: Tejun Heo <htejun@gmail.com>
+Acked-by: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_error.c |    3 
- drivers/scsi/scsi_lib.c   |  154 ++++++++++++++++++++++++++++--------
- include/scsi/scsi_cmnd.h  |   23 +++++
- include/scsi/scsi_eh.h    |    1 
- 4 files changed, 149 insertions(+), 32 deletions(-)
+ drivers/scsi/scsi_ioctl.c  |    2 +-
+ drivers/scsi/scsi_lib.c    |   20 ++++++++++++++++++--
+ drivers/scsi/sd.c          |    2 +-
+ drivers/scsi/sr.c          |   15 +++++++++------
+ include/scsi/scsi_device.h |    2 +-
+ 5 files changed, 30 insertions(+), 11 deletions(-)
 
-diff -puN drivers/scsi/scsi_error.c~scsi-bidi-support drivers/scsi/scsi_error.c
---- a/drivers/scsi/scsi_error.c~scsi-bidi-support
-+++ a/drivers/scsi/scsi_error.c
-@@ -618,9 +618,11 @@ void scsi_eh_prep_cmnd(struct scsi_cmnd 
- 	memcpy(ses->cmnd, scmd->cmnd, sizeof(scmd->cmnd));
- 	ses->data_direction = scmd->sc_data_direction;
- 	ses->sdb = scmd->sdb;
-+	ses->next_rq = scmd->request->next_rq;
- 	ses->result = scmd->result;
- 
- 	memset(&scmd->sdb, 0, sizeof(scmd->sdb));
-+	scmd->request->next_rq = NULL;
- 
- 	if (sense_bytes) {
- 		scmd->sdb.length = min_t(unsigned,
-@@ -673,6 +675,7 @@ void scsi_eh_restore_cmnd(struct scsi_cm
- 	memcpy(scmd->cmnd, ses->cmnd, sizeof(scmd->cmnd));
- 	scmd->sc_data_direction = ses->data_direction;
- 	scmd->sdb = ses->sdb;
-+	scmd->request->next_rq = ses->next_rq;
- 	scmd->result = ses->result;
- }
- EXPORT_SYMBOL(scsi_eh_restore_cmnd);
-diff -puN drivers/scsi/scsi_lib.c~scsi-bidi-support drivers/scsi/scsi_lib.c
---- a/drivers/scsi/scsi_lib.c~scsi-bidi-support
+diff -puN drivers/scsi/scsi_ioctl.c~scsi-early-detection-of-medium-not-present-updated drivers/scsi/scsi_ioctl.c
+--- a/drivers/scsi/scsi_ioctl.c~scsi-early-detection-of-medium-not-present-updated
++++ a/drivers/scsi/scsi_ioctl.c
+@@ -244,7 +244,7 @@ int scsi_ioctl(struct scsi_device *sdev,
+ 		return scsi_set_medium_removal(sdev, SCSI_REMOVAL_ALLOW);
+ 	case SCSI_IOCTL_TEST_UNIT_READY:
+ 		return scsi_test_unit_ready(sdev, IOCTL_NORMAL_TIMEOUT,
+-					    NORMAL_RETRIES);
++					    NORMAL_RETRIES, NULL);
+ 	case SCSI_IOCTL_START_UNIT:
+ 		scsi_cmd[0] = START_STOP;
+ 		scsi_cmd[1] = 0;
+diff -puN drivers/scsi/scsi_lib.c~scsi-early-detection-of-medium-not-present-updated drivers/scsi/scsi_lib.c
+--- a/drivers/scsi/scsi_lib.c~scsi-early-detection-of-medium-not-present-updated
 +++ a/drivers/scsi/scsi_lib.c
-@@ -64,6 +64,8 @@ static struct scsi_host_sg_pool scsi_sg_
- };
- #undef SP
- 
-+static struct kmem_cache *scsi_bidi_sdb_cache;
-+
- static void scsi_run_queue(struct request_queue *q);
- 
- /*
-@@ -627,6 +629,28 @@ void scsi_run_host_queues(struct Scsi_Ho
- 		scsi_run_queue(sdev->request_queue);
+@@ -2092,15 +2092,26 @@ scsi_mode_sense(struct scsi_device *sdev
  }
+ EXPORT_SYMBOL(scsi_mode_sense);
  
-+static void scsi_finalize_request(struct scsi_cmnd *cmd, int uptodate)
-+{
-+	struct request_queue *q = cmd->device->request_queue;
-+	struct request *req = cmd->request;
-+	unsigned long flags;
-+
-+	add_disk_randomness(req->rq_disk);
-+
-+	spin_lock_irqsave(q->queue_lock, flags);
-+	if (blk_rq_tagged(req))
-+		blk_queue_end_tag(q, req);
-+
-+	end_that_request_last(req, uptodate);
-+	spin_unlock_irqrestore(q->queue_lock, flags);
-+
-+	/*
-+	 * This will goose the queue request function at the end, so we don't
-+	 * need to worry about launching another command.
-+	 */
-+	scsi_next_command(cmd);
-+}
-+
- /*
-  * Function:    scsi_end_request()
-  *
-@@ -654,7 +678,6 @@ static struct scsi_cmnd *scsi_end_reques
++/**
++ *	scsi_test_unit_ready - test if unit is ready
++ *	@sdev:	scsi device to change the state of.
++ *	@timeout: command timeout
++ *	@retries: number of retries before failing
++ *	@media_maybe_present: 1 if media maybe present or not.
++ *		              0 if media not present.
++ *
++ *	Returns zero if unsuccessful or an error if TUR failed.
++ **/
+ int
+-scsi_test_unit_ready(struct scsi_device *sdev, int timeout, int retries)
++scsi_test_unit_ready(struct scsi_device *sdev, int timeout, int retries, int *media_maybe_present)
  {
- 	struct request_queue *q = cmd->device->request_queue;
- 	struct request *req = cmd->request;
--	unsigned long flags;
+ 	char cmd[] = {
+ 		TEST_UNIT_READY, 0, 0, 0, 0, 0,
+ 	};
+ 	struct scsi_sense_hdr sshdr;
+ 	int result;
+-	
++	int maybe_present = 1;
++
+ 	result = scsi_execute_req(sdev, cmd, DMA_NONE, NULL, 0, &sshdr,
+ 				  timeout, retries);
  
- 	/*
- 	 * If there are blocks left over at the end, set up the command
-@@ -683,19 +706,7 @@ static struct scsi_cmnd *scsi_end_reques
+@@ -2109,10 +2120,15 @@ scsi_test_unit_ready(struct scsi_device 
+ 		if ((scsi_sense_valid(&sshdr)) &&
+ 		    ((sshdr.sense_key == UNIT_ATTENTION) ||
+ 		     (sshdr.sense_key == NOT_READY))) {
++			if (sshdr.asc == 0x3A)
++				maybe_present = 0;
+ 			sdev->changed = 1;
+ 			result = 0;
  		}
  	}
- 
--	add_disk_randomness(req->rq_disk);
--
--	spin_lock_irqsave(q->queue_lock, flags);
--	if (blk_rq_tagged(req))
--		blk_queue_end_tag(q, req);
--	end_that_request_last(req, uptodate);
--	spin_unlock_irqrestore(q->queue_lock, flags);
--
--	/*
--	 * This will goose the queue request function at the end, so we don't
--	 * need to worry about launching another command.
--	 */
--	scsi_next_command(cmd);
-+	scsi_finalize_request(cmd, uptodate);
- 	return NULL;
++
++	if (media_maybe_present)
++		*media_maybe_present = maybe_present;
+ 	return result;
  }
+ EXPORT_SYMBOL(scsi_test_unit_ready);
+diff -puN drivers/scsi/sd.c~scsi-early-detection-of-medium-not-present-updated drivers/scsi/sd.c
+--- a/drivers/scsi/sd.c~scsi-early-detection-of-medium-not-present-updated
++++ a/drivers/scsi/sd.c
+@@ -764,7 +764,7 @@ static int sd_media_changed(struct gendi
+ 	retval = -ENODEV;
  
-@@ -894,10 +905,47 @@ void scsi_release_buffers(struct scsi_cm
- 		scsi_free_sgtable(&cmd->sdb);
- 
- 	memset(&cmd->sdb, 0, sizeof(cmd->sdb));
-+
-+	if (scsi_bidi_cmnd(cmd)) {
-+		struct scsi_data_buffer *bidi_sdb =
-+			cmd->request->next_rq->special;
-+		scsi_free_sgtable(bidi_sdb);
-+		kmem_cache_free(scsi_bidi_sdb_cache, bidi_sdb);
-+		cmd->request->next_rq->special = NULL;
-+	}
- }
- EXPORT_SYMBOL(scsi_release_buffers);
- 
- /*
-+ * Bidi commands Must be complete as a whole, both sides at once.
-+ * If part of the bytes were written and lld returned
-+ * scsi_in()->resid and/or scsi_out()->resid this information will be left
-+ * in req->data_len and req->next_rq->data_len. The upper-layer driver can
-+ * decide what to do with this information.
-+ */
-+void scsi_end_bidi_request(struct scsi_cmnd *cmd)
-+{
-+	struct request *req = cmd->request;
-+
-+	end_that_request_chunk(req, 1, req->data_len);
-+	req->data_len = scsi_out(cmd)->resid;
-+
-+	end_that_request_chunk(req->next_rq, 1, req->next_rq->data_len);
-+	req->next_rq->data_len = scsi_in(cmd)->resid;
-+
-+	scsi_release_buffers(cmd);
-+
-+	/*
-+	 *FIXME: If ll_rw_blk.c is changed to also put_request(req->next_rq)
-+	 *       in end_that_request_last() then this WARN_ON must be removed.
-+	 *       for now, upper-driver must have registered an end_io.
-+	 */
-+	WARN_ON(!req->end_io);
-+
-+	scsi_finalize_request(cmd, 1);
-+}
-+
-+/*
-  * Function:    scsi_io_completion()
-  *
-  * Purpose:     Completion processing for block device I/O requests.
-@@ -958,9 +1006,15 @@ void scsi_io_completion(struct scsi_cmnd
- 				req->sense_len = len;
- 			}
- 		}
-+		if (scsi_bidi_cmnd(cmd)) {
-+			/* will also release_buffers */
-+			scsi_end_bidi_request(cmd);
-+			return;
-+		}
- 		req->data_len = scsi_get_resid(cmd);
- 	}
- 
-+	BUG_ON(blk_bidi_rq(req)); /* bidi not support for !blk_pc_request yet */
- 	scsi_release_buffers(cmd);
+ 	if (scsi_block_when_processing_errors(sdp))
+-		retval = scsi_test_unit_ready(sdp, SD_TIMEOUT, SD_MAX_RETRIES);
++		retval = scsi_test_unit_ready(sdp, SD_TIMEOUT, SD_MAX_RETRIES, NULL);
  
  	/*
-@@ -1086,25 +1140,12 @@ void scsi_io_completion(struct scsi_cmnd
- 	scsi_end_request(cmd, 0, this_count, !result);
- }
- 
--/*
-- * Function:    scsi_init_io()
-- *
-- * Purpose:     SCSI I/O initialize function.
-- *
-- * Arguments:   cmd   - Command descriptor we wish to initialize
-- *
-- * Returns:     0 on success
-- *		BLKPREP_DEFER if the failure is retryable
-- *		BLKPREP_KILL if the failure is fatal
-- */
--int scsi_init_io(struct scsi_cmnd *cmd, gfp_t gfp_mask)
-+static int scsi_init_sgtable(struct request *req, struct scsi_data_buffer *sdb,
-+								 gfp_t gfp_mask)
+ 	 * Unable to test, unit probably not ready.   This usually
+diff -puN drivers/scsi/sr.c~scsi-early-detection-of-medium-not-present-updated drivers/scsi/sr.c
+--- a/drivers/scsi/sr.c~scsi-early-detection-of-medium-not-present-updated
++++ a/drivers/scsi/sr.c
+@@ -179,18 +179,21 @@ static int sr_media_change(struct cdrom_
  {
--	struct request     *req = cmd->request;
--	int		   count;
--	struct scsi_data_buffer *sdb = &cmd->sdb;
-+	int count;
+ 	struct scsi_cd *cd = cdi->handle;
+ 	int retval;
++	int media_maybe_present;
  
- 	if (scsi_alloc_sgtable(sdb, req->nr_phys_segments, gfp_mask)) {
--		scsi_unprep_request(req);
- 		return BLKPREP_DEFER;
+ 	if (CDSL_CURRENT != slot) {
+ 		/* no changer support */
+ 		return -EINVAL;
  	}
  
-@@ -1128,9 +1169,52 @@ int scsi_init_io(struct scsi_cmnd *cmd, 
- 	printk(KERN_ERR "counted %d, received %d\n", count, sdb->sg_count);
- 	printk(KERN_ERR "req nr_sec %lu, cur_nr_sec %u\n", req->nr_sectors,
- 			req->current_nr_sectors);
--
- 	return BLKPREP_KILL;
- }
-+
-+/*
-+ * Function:    scsi_init_io()
-+ *
-+ * Purpose:     SCSI I/O initialize function.
-+ *
-+ * Arguments:   cmd   - Command descriptor we wish to initialize
-+ *
-+ * Returns:     0 on success
-+ *		BLKPREP_DEFER if the failure is retryable
-+ *		BLKPREP_KILL if the failure is fatal
-+ */
-+int scsi_init_io(struct scsi_cmnd *cmd, gfp_t gfp_mask)
-+{
-+	int error = scsi_init_sgtable(cmd->request, &cmd->sdb, gfp_mask);
-+	if (error)
-+		goto err_exit;
-+
-+	if (blk_bidi_rq(cmd->request)) {
-+		struct scsi_data_buffer *bidi_sdb = kmem_cache_zalloc(
-+			scsi_bidi_sdb_cache, GFP_ATOMIC);
-+		if (!bidi_sdb) {
-+			error = BLKPREP_DEFER;
-+			goto err_exit;
-+		}
-+
-+		cmd->request->next_rq->special = bidi_sdb;
-+		error = scsi_init_sgtable(cmd->request->next_rq, bidi_sdb,
-+								    GFP_ATOMIC);
-+		if (error)
-+			goto err_exit;
-+	}
-+
-+	return BLKPREP_OK ;
-+
-+err_exit:
-+	scsi_release_buffers(cmd);
-+	if (error == BLKPREP_KILL)
-+		scsi_put_command(cmd);
-+	else /* BLKPREP_DEFER */
-+		scsi_unprep_request(cmd->request);
-+
-+	return error;
-+}
- EXPORT_SYMBOL(scsi_init_io);
- 
- static struct scsi_cmnd *scsi_get_cmd_from_req(struct scsi_device *sdev,
-@@ -1774,6 +1858,14 @@ int __init scsi_init_queue(void)
- 		return -ENOMEM;
- 	}
- 
-+	scsi_bidi_sdb_cache = kmem_cache_create("scsi_bidi_sdb",
-+					sizeof(struct scsi_data_buffer),
-+					0, 0, NULL);
-+	if (!scsi_bidi_sdb_cache) {
-+		printk(KERN_ERR "SCSI: can't init scsi bidi sdb cache\n");
-+		return -ENOMEM;
-+	}
-+
- 	for (i = 0; i < SG_MEMPOOL_NR; i++) {
- 		struct scsi_host_sg_pool *sgp = scsi_sg_pools + i;
- 		int size = sgp->size * sizeof(struct scatterlist);
-diff -puN include/scsi/scsi_cmnd.h~scsi-bidi-support include/scsi/scsi_cmnd.h
---- a/include/scsi/scsi_cmnd.h~scsi-bidi-support
-+++ a/include/scsi/scsi_cmnd.h
-@@ -2,12 +2,12 @@
- #define _SCSI_SCSI_CMND_H
- 
- #include <linux/dma-mapping.h>
-+#include <linux/blkdev.h>
- #include <linux/list.h>
- #include <linux/types.h>
- #include <linux/timer.h>
- #include <linux/scatterlist.h>
- 
--struct request;
- struct scatterlist;
- struct Scsi_Host;
- struct scsi_device;
-@@ -162,4 +162,25 @@ static inline int scsi_get_resid(struct 
- #define scsi_for_each_sg(cmd, sg, nseg, __i)			\
- 	for_each_sg(scsi_sglist(cmd), sg, nseg, __i)
- 
-+static inline int scsi_bidi_cmnd(struct scsi_cmnd *cmd)
-+{
-+	return blk_bidi_rq(cmd->request) &&
-+		(cmd->request->next_rq->special != NULL);
-+}
-+
-+static inline struct scsi_data_buffer *scsi_in(struct scsi_cmnd *cmd)
-+{
-+	WARN_ON((cmd->sc_data_direction != DMA_FROM_DEVICE) &&
-+							!scsi_bidi_cmnd(cmd));
-+	return scsi_bidi_cmnd(cmd) ?
-+		cmd->request->next_rq->special : &cmd->sdb;
-+}
-+
-+static inline struct scsi_data_buffer *scsi_out(struct scsi_cmnd *cmd)
-+{
-+	WARN_ON((cmd->sc_data_direction != DMA_TO_DEVICE) &&
-+							!scsi_bidi_cmnd(cmd));
-+	return &cmd->sdb;
-+}
-+
- #endif /* _SCSI_SCSI_CMND_H */
-diff -puN include/scsi/scsi_eh.h~scsi-bidi-support include/scsi/scsi_eh.h
---- a/include/scsi/scsi_eh.h~scsi-bidi-support
-+++ a/include/scsi/scsi_eh.h
-@@ -74,6 +74,7 @@ struct scsi_eh_save {
- 	unsigned char cmd_len;
- 	unsigned char cmnd[MAX_COMMAND_SIZE];
- 	struct scsi_data_buffer sdb;
-+	struct request *next_rq;
- 
- 	/* new command support */
- 	struct scatterlist sense_sgl;
+-	retval = scsi_test_unit_ready(cd->device, SR_TIMEOUT, MAX_RETRIES);
+-	if (retval) {
+-		/* Unable to test, unit probably not ready.  This usually
+-		 * means there is no disc in the drive.  Mark as changed,
+-		 * and we will figure it out later once the drive is
+-		 * available again.  */
++	retval = scsi_test_unit_ready(cd->device, SR_TIMEOUT, MAX_RETRIES,
++				      &media_maybe_present);
++	if (retval || !media_maybe_present) {
++		/* Media not present or unable to test, unit probably not
++		 * ready. This usually means there is no disc in the drive.
++		 * Mark as changed, and we will figure it out later once
++		 * the drive is available again.
++		 */
+ 		cd->device->changed = 1;
+ 		/* This will force a flush, if called from check_disk_change */
+ 		retval = 1;
+diff -puN include/scsi/scsi_device.h~scsi-early-detection-of-medium-not-present-updated include/scsi/scsi_device.h
+--- a/include/scsi/scsi_device.h~scsi-early-detection-of-medium-not-present-updated
++++ a/include/scsi/scsi_device.h
+@@ -292,7 +292,7 @@ extern int scsi_mode_select(struct scsi_
+ 			    struct scsi_mode_data *data,
+ 			    struct scsi_sense_hdr *);
+ extern int scsi_test_unit_ready(struct scsi_device *sdev, int timeout,
+-				int retries);
++				int retries, int *media_maybe_present);
+ extern int scsi_device_set_state(struct scsi_device *sdev,
+ 				 enum scsi_device_state state);
+ extern struct scsi_event *sdev_evt_alloc(enum scsi_device_event evt_type,
 _
 
-Patches currently in -mm which might be from bharrosh@panasas.com are
+Patches currently in -mm which might be from stern@rowland.harvard.edu are
 
-git-scsi-misc.patch
-scsi-gdth-kill-unneeded-irq-argument.patch
-scsi-bidi-support.patch
+git-acpi.patch
+ohci-hcdcohci_irq-locking-fix.patch
+scsi-early-detection-of-medium-not-present-updated.patch
+usb-use-irqf_disabled-for-hcd-interrupt-handlers.patch
