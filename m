@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + logo-move-declarations-of-logos-to-linux_logoh-fix.patch added to -mm tree
-Date: Tue, 11 Dec 2007 21:07:08 -0800
-Message-ID: <200712120507.lBC578CT026657@imap1.linux-foundation.org>
+Subject: + pid-sys_wait-fixes-v2-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 11 Dec 2007 21:07:40 -0800
+Message-ID: <200712120507.lBC57eZn026665@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47581 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51488 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751727AbXLLFHQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751920AbXLLFHn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 00:07:16 -0500
+	Wed, 12 Dec 2007 00:07:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adaplas@pol.net, marcin.slusarz@gmail.com
+Cc: akpm@linux-foundation.org, ebiederm@xmission.com
 
 
 The patch titled
-     logo-move-declarations-of-logos-to-linux_logoh-fix
+     pid-sys_wait-fixes-v2-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     logo-move-declarations-of-logos-to-linux_logoh-fix.patch
+     pid-sys_wait-fixes-v2-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,44 +26,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: logo-move-declarations-of-logos-to-linux_logoh-fix
+Subject: pid-sys_wait-fixes-v2-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/video/logo/logo_linux_clut224.c:598: error: conflicting type qualifiers for 'logo_linux_clut224'
-include/linux/linux_logo.h:47: error: previous declaration of 'logo_linux_clut224' was here
+ERROR: else should follow close brace '}'
+#190: FILE: kernel/exit.c:1636:
++	}
++	else if (upid == 0) {
 
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Marcin Slusarz <marcin.slusarz@gmail.com>
+ERROR: else should follow close brace '}'
+#194: FILE: kernel/exit.c:1640:
++	}
++	else /* upid > 0 */ {
+
+ERROR: need spaces around that '=' (ctx:VxW)
+#195: FILE: kernel/exit.c:1641:
++		type= PIDTYPE_PID;
+ 		    ^
+
+total: 3 errors, 0 warnings, 160 lines checked
+
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/logo/logo.c       |    1 -
- scripts/pnmtologo.c             |    2 +-
- video/logo/logo_linux_clut224.c |    0 
- 3 files changed, 1 insertion(+), 2 deletions(-)
+ kernel/exit.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN drivers/video/logo/logo.c~logo-move-declarations-of-logos-to-linux_logoh-fix drivers/video/logo/logo.c
---- a/drivers/video/logo/logo.c~logo-move-declarations-of-logos-to-linux_logoh-fix
-+++ a/drivers/video/logo/logo.c
-@@ -1,4 +1,3 @@
--
- /*
-  *  Linux logo to be displayed on boot
-  *
-diff -puN include/linux/linux_logo.h~logo-move-declarations-of-logos-to-linux_logoh-fix include/linux/linux_logo.h
-diff -puN scripts/pnmtologo.c~logo-move-declarations-of-logos-to-linux_logoh-fix scripts/pnmtologo.c
---- a/scripts/pnmtologo.c~logo-move-declarations-of-logos-to-linux_logoh-fix
-+++ a/scripts/pnmtologo.c
-@@ -244,7 +244,7 @@ static void write_header(void)
- static void write_footer(void)
- {
-     fputs("\n};\n\n", out);
--    fprintf(out, "const struct linux_logo %s __initdata = {\n", logoname);
-+    fprintf(out, "const struct linux_logo %s = {\n", logoname);
-     fprintf(out, "    .type\t= %s,\n", logo_types[logo_type]);
-     fprintf(out, "    .width\t= %d,\n", logo_width);
-     fprintf(out, "    .height\t= %d,\n", logo_height);
-diff -puN drivers/video/logo/logo_linux_clut224.c~logo-move-declarations-of-logos-to-linux_logoh-fix drivers/video/logo/logo_linux_clut224.c
+diff -puN kernel/exit.c~pid-sys_wait-fixes-v2-checkpatch-fixes kernel/exit.c
+--- a/kernel/exit.c~pid-sys_wait-fixes-v2-checkpatch-fixes
++++ a/kernel/exit.c
+@@ -1632,13 +1632,11 @@ asmlinkage long sys_wait4(pid_t upid, in
+ 	else if (upid < 0) {
+ 		type = PIDTYPE_PGID;
+ 		pid = find_get_pid(-upid);
+-	}
+-	else if (upid == 0) {
++	} else if (upid == 0) {
+ 		type = PIDTYPE_PGID;
+ 		pid = get_pid(task_pgrp(current));
+-	}
+-	else /* upid > 0 */ {
+-		type= PIDTYPE_PID;
++	} else /* upid > 0 */ {
++		type = PIDTYPE_PID;
+ 		pid = find_get_pid(upid);
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
