@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pci-dont-load-acpi_php-when-acpi-is-disabled.patch added to -mm tree
-Date: Tue, 11 Dec 2007 20:43:54 -0800
-Message-ID: <200712120443.lBC4hsxo025871@imap1.linux-foundation.org>
+Subject: + media-video-usbvision-add-mutex_unlock-to-error-paths.patch added to -mm tree
+Date: Tue, 11 Dec 2007 20:54:13 -0800
+Message-ID: <200712120454.lBC4sD9w026195@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41167 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39190 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752548AbXLLEoA (ORCPT
+	by vger.kernel.org with ESMTP id S1752322AbXLLEys (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Dec 2007 23:44:00 -0500
+	Tue, 11 Dec 2007 23:54:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Yinghai.Lu@Sun.COM, greg@kroah.com, kristen.c.accardi@intel.com, yinghai.lu@Sun.COM
+Cc: dwalker@mvista.com, mchehab@infradead.org
 
 
 The patch titled
-     pci: don't load acpi_php when acpi is disabled
+     media: video: usbvision: add mutex_unlock() to error paths
 has been added to the -mm tree.  Its filename is
-     pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+     media-video-usbvision-add-mutex_unlock-to-error-paths.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,50 +26,52 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pci: don't load acpi_php when acpi is disabled
-From: Yinghai Lu <Yinghai.Lu@Sun.COM>
+Subject: media: video: usbvision: add mutex_unlock() to error paths
+From: Daniel Walker <dwalker@mvista.com>
 
-When acpi=off and pci=nomsi, don't load acpiphp
+There are a few error paths which don't unlock the usbvision->lock.
 
-Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Greg KH <greg@kroah.com>
+So I've added mutex_unlock() calls to fix those paths.
+
+Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/hotplug/acpiphp_core.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/media/video/usbvision/usbvision-video.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/pci/hotplug/acpiphp_core.c~pci-dont-load-acpi_php-when-acpi-is-disabled drivers/pci/hotplug/acpiphp_core.c
---- a/drivers/pci/hotplug/acpiphp_core.c~pci-dont-load-acpi_php-when-acpi-is-disabled
-+++ a/drivers/pci/hotplug/acpiphp_core.c
-@@ -392,6 +392,9 @@ static int __init acpiphp_init(void)
- {
- 	info(DRIVER_DESC " version: " DRIVER_VERSION "\n");
+diff -puN drivers/media/video/usbvision/usbvision-video.c~media-video-usbvision-add-mutex_unlock-to-error-paths drivers/media/video/usbvision/usbvision-video.c
+--- a/drivers/media/video/usbvision/usbvision-video.c~media-video-usbvision-add-mutex_unlock-to-error-paths
++++ a/drivers/media/video/usbvision/usbvision-video.c
+@@ -1290,6 +1290,7 @@ static int usbvision_radio_open(struct i
+ 		errCode = usbvision_set_alternate(usbvision);
+ 		if (errCode < 0) {
+ 			usbvision->last_error = errCode;
++			mutex_unlock(&usbvision->lock);
+ 			return -EBUSY;
+ 		}
  
-+	if (acpi_pci_disabled)
-+		return 0;
-+
- 	acpiphp_debug = debug;
+@@ -1807,6 +1808,7 @@ static int __devinit usbvision_probe(str
+ 					      usbvision->num_alt,GFP_KERNEL);
+ 	if (usbvision->alt_max_pkt_size == NULL) {
+ 		err("usbvision: out of memory!\n");
++		mutex_unlock(&usbvision->lock);
+ 		return -ENOMEM;
+ 	}
  
- 	/* read all the ACPI info from the system */
-@@ -401,6 +404,9 @@ static int __init acpiphp_init(void)
- 
- static void __exit acpiphp_exit(void)
- {
-+	if (acpi_pci_disabled)
-+		return 0;
-+
- 	/* deallocate internal data structures etc. */
- 	acpiphp_glue_exit();
- }
 _
 
-Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
+Patches currently in -mm which might be from dwalker@mvista.com are
 
-git-cpufreq.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-git-x86.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-pcie-aer-dont-check-_osc-when-acpi-is-disabled.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+media-video-usbvision-add-mutex_unlock-to-error-paths.patch
+media-video-usbvision-add-mutex_unlock-to-error-paths-fix.patch
+usb-testing-driver-dont-free-a-locked-mutex.patch
+drivers-char-tty_ioc-remove-pty_sem.patch
+drivers-isdn-i4l-isdn_ttyc-remove-write_sem.patch
+unix98-allocated_ptys_lock-semaphore-to-mutex.patch
+isapnp-driver-semaphore-to-mutex.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
