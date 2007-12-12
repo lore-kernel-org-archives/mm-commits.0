@@ -1,103 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-macintosh-via-pmuc-added-a-missing-iounmap.patch added to -mm tree
-Date: Wed, 12 Dec 2007 02:50:40 -0800
-Message-ID: <200712121050.lBCAoeG5006019@imap1.linux-foundation.org>
+Subject: - iwlwifi-3945-fix-race-conditional-panic.patch removed from -mm tree
+Date: Wed, 12 Dec 2007 03:40:57 -0800
+Message-ID: <200712121140.lBCBevlt007817@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41957 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49559 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759428AbXLLKv5 (ORCPT
+	by vger.kernel.org with ESMTP id S1754405AbXLLLlD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 05:51:57 -0500
+	Wed, 12 Dec 2007 06:41:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, benh@kernel.crashing.org, johannes@sipsolutions.net, olaf@aepfle.de, paulus@samba.org
+To: joonwpark81@gmail.com, yi.zhu@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/macintosh/via-pmu.c: Added a missing iounmap
-has been added to the -mm tree.  Its filename is
-     drivers-macintosh-via-pmuc-added-a-missing-iounmap.patch
+     iwlwifi 3945: fix race conditional panic
+has been removed from the -mm tree.  Its filename was
+     iwlwifi-3945-fix-race-conditional-panic.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: drivers/macintosh/via-pmu.c: Added a missing iounmap
-From: Julia Lawall <julia@diku.dk>
+Subject: iwlwifi 3945: fix race conditional panic
+From: "Joonwoo Park" <joonwpark81@gmail.com>
 
-The error handling code should undo the ioremap as well.
+iwl_pci_remove can be called before delayed work queue is completed or not
+called at init module, so delayed init_alive_start can have 'image' as NULL.
 
-The problem was detected using the following semantic match
-(http://www.emn.fr/x-info/coccinelle/)
+It can happen while putting module down right next it up.  I was able to make
+panic by : #while [ 1 ]; modprobe -r iwlx945; modprobe iwlx945; done
 
-// <smpl>
-@@
-type T,T1,T2;
-identifier E;
-statement S;
-expression x1,x2;
-constant C;
-int ret;
-@@
+iwl3945: Detected Intel PRO/Wireless 3945ABG Network Connection
+iwl3945: Intel(R) PRO/Wireless 3945ABG/BG Network Connection driver for Linux, 1.1.17ks
+iwl3945: Copyright(c) 2003-2007 Intel Corporation
+ACPI: PCI Interrupt 0000:03:00.0[A] -> GSI 17 (level, low) -> IRQ 22
+PCI: Setting latency timer of device 0000:03:00.0 to 64
+iwl3945: Detected Intel PRO/Wireless 3945ABG Network Connection
+BUG: unable to handle kernel NULL pointer dereference at virtual address 00000000
+printing eip: f885ff61 *pdpt = 0000000037785001 *pde = 0000000000000000
+Oops: 0000 [#1] PREEMPT SMP
+Modules linked in: iwl3945 e1000
 
-  T E;
-  ...
-* E = ioremap(...);
-  if (E == NULL) S
-  ... when != iounmap(E)
-      when != if (E != NULL) { ... iounmap(E); ...}
-      when != x1 = (T1)E
-  if (...) {
-    ... when != iounmap(E)
-        when != if (E != NULL) { ... iounmap(E); ...}
-        when != x2 = (T2)E
-(
-*   return;
-|
-*   return C;
-|
-*   return ret;
-)
-  }
-// </smpl>
+Pid: 11501, comm: iwl3945/0 Not tainted (2.6.24-rc3 #109)
+EIP: 0060:[<f885ff61>] EFLAGS: 00010246 CPU: 0
+EIP is at iwl_verify_inst_sparse+0x101/0x140 [iwl3945]
+EAX: 0f802020 EBX: 00000000 ECX: 00000000 EDX: f8878000
+ESI: 00000000 EDI: dfce8e40 EBP: dfef5f1c ESP: dfef5f00
+ DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
+Process iwl3945/0 (pid: 11501, ti=dfef4000 task=f7cc6c90 task.ti=dfef4000)
+Stack: f7cc6c90 00000000 00000384 00000000 dfcecdf0 dfce8e40 dfcecdf0 dfef5f4c
+       f885ffbc 22222222 22222222 22222222 22222222 dfce9384 dfce8e40 dfcecdf0
+       dfcecdf0 dfce8e40 dfcecdf0 dfef5f78 f8862fe9 00003b84 f7cc6dd0 c1b0eb00
+Call Trace:
+ [<c400542a>] show_trace_log_lvl+0x1a/0x30
+ [<c40054e9>] show_stack_log_lvl+0xa9/0xd0
+ [<c40055da>] show_registers+0xca/0x250
+ [<c4005880>] die+0x120/0x230
+ [<c401e21c>] do_page_fault+0x47c/0x790
+ [<c43ac38a>] error_code+0x72/0x78
+ [<f885ffbc>] iwl_verify_ucode+0x1c/0x1d0 [iwl3945]
+ [<f8862fe9>] iwl_bg_init_alive_start+0x69/0x210 [iwl3945]
+ [<c403abaf>] run_workqueue+0x7f/0x110
+ [<c403b76d>] worker_thread+0x9d/0x100
+ [<c403e922>] kthread+0x42/0x70
+ [<c4004fef>] kernel_thread_helper+0x7/0x18
+ =======================
+Code: 45 e8 00 00 00 00 85 c9 89 f6 74 38 31 db 31 c9 eb 04 83 45 f0 64 89 8a 0c 04 00 00 8b 97 74 05 00 00 8b 75 f0 8b 82 1c 04 00
+00 <3b> 06 74 0d 43 83 fb 02 77 23 c7 45 e8 fb ff ff ff 83 c1 64 39
+EIP: [<f885ff61>] iwl_verify_inst_sparse+0x101/0x140 [iwl3945] SS:ESP 0068:dfef5f00
 
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: Olaf Hering <olaf@aepfle.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Signed-off-by: Joonwoo Park <joonwpark81@gmail.com>
+Cc: "Zhu, Yi" <yi.zhu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/macintosh/via-pmu.c |    1 +
+ drivers/net/wireless/iwlwifi/iwl3945-base.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/macintosh/via-pmu.c~drivers-macintosh-via-pmuc-added-a-missing-iounmap drivers/macintosh/via-pmu.c
---- a/drivers/macintosh/via-pmu.c~drivers-macintosh-via-pmuc-added-a-missing-iounmap
-+++ a/drivers/macintosh/via-pmu.c
-@@ -2295,6 +2295,7 @@ powerbook_sleep_3400(void)
- 	ret = pmac_suspend_devices();
- 	if (ret) {
- 		pbook_free_pci_save();
-+		iounmap(mem_ctrl);
- 		printk(KERN_ERR "Sleep rejected by devices\n");
- 		return ret;
- 	}
+diff -puN drivers/net/wireless/iwlwifi/iwl3945-base.c~iwlwifi-3945-fix-race-conditional-panic drivers/net/wireless/iwlwifi/iwl3945-base.c
+--- a/drivers/net/wireless/iwlwifi/iwl3945-base.c~iwlwifi-3945-fix-race-conditional-panic
++++ a/drivers/net/wireless/iwlwifi/iwl3945-base.c
+@@ -8737,6 +8737,7 @@ static void iwl3945_pci_remove(struct pc
+ 	IWL_DEBUG_INFO("*** UNLOAD DRIVER ***\n");
+ 
+ 	mutex_lock(&priv->mutex);
++	cancel_delayed_work_sync(&priv->init_alive_start);
+ 	set_bit(STATUS_EXIT_PENDING, &priv->status);
+ 	__iwl3945_down(priv);
+ 	mutex_unlock(&priv->mutex);
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from joonwpark81@gmail.com are
 
-origin.patch
-git-alsa.patch
-drivers-char-remove-unnecessary-pci_dev_put.patch
-arch-ppc-remove-an-unnecessary-pci_dev_put.patch
-arch-powerpc-add-missing-of_node_put.patch
-arch-powerpc-platforms-cell-cbe_regsc-add-missing-of_node_put.patch
-git-input.patch
-drivers-macintosh-via-pmuc-added-a-missing-iounmap.patch
-arch-cris-added-a-missing-iounmap.patch
-drivers-video-remove-unnecessary-pci_dev_put.patch
+git-net.patch
+iwlwifi-3945-fix-race-conditional-panic.patch
+iwlwifi-4965-fix-race-conditional-panic.patch
