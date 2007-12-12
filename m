@@ -1,123 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: + hp6xx-hp7xx-clean-up-drivers-input-keyboardtouchscreen-kconfigs.patch added to -mm tree
-Date: Wed, 12 Dec 2007 01:09:50 -0800
-Message-ID: <200712120909.lBC99oTh002454@imap1.linux-foundation.org>
+Subject: + parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard.patch added to -mm tree
+Date: Wed, 12 Dec 2007 01:11:49 -0800
+Message-ID: <200712120911.lBC9Bn07002502@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55843 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44332 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758745AbXLLJKa (ORCPT
+	by vger.kernel.org with ESMTP id S1752514AbXLLJLy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 04:10:30 -0500
+	Wed, 12 Dec 2007 04:11:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kristoffer.ericson@gmail.com, dtor@mail.ru, lethal@linux-sh.org, linux@arm.linux.org.uk
+Cc: luis.p.mendes@gmail.com
 
 
 The patch titled
-     HP6xx/HP7xx: clean up drivers/input/keyboard|touchscreen Kconfigs
+     parport: add support for the Quatech SPPXP-100 Parallel port PCI E=
+xpressCard
 has been added to the -mm tree.  Its filename is
-     hp6xx-hp7xx-clean-up-drivers-input-keyboardtouchscreen-kconfigs.patch
+     parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-ex=
+presscard.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
 ------------------------------------------------------
-Subject: HP6xx/HP7xx: clean up drivers/input/keyboard|touchscreen Kconfigs
-From: Kristoffer Ericson <kristoffer.ericson@gmail.com>
+Subject: parport: add support for the Quatech SPPXP-100 Parallel port P=
+CI ExpressCard
+=46rom: Lu=EDs P Mendes <luis.p.mendes@gmail.com>
 
-Clean up the drivers/input/keyboard|touchscreen Kconfigs for platforms
-hp6xx and hp7xx.  It unifies the naming and descriptions.
+Added pci device id for the Quatech SPPXP-100 ExpressCard - 0x278 - to
+include/linux/pci_id.h
 
-Signed-off-by: Kristoffer Ericson <kristoffer.ericson@gmail.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Modified drivers/parport/parport_pc.c to support the Quatech SPPXP-100 =
+Parallel port PCI ExpressCard
+
+Signed-off-by: Lu=EDs P Mendes <luis.p.mendes@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/keyboard/Kconfig     |   12 ++++++------
- drivers/input/touchscreen/Kconfig  |   10 ++++------
- drivers/input/touchscreen/Makefile |    2 +-
- 3 files changed, 11 insertions(+), 13 deletions(-)
+ drivers/parport/parport_pc.c |    5 +++++
+ include/linux/pci_ids.h      |    3 +++
+ 2 files changed, 8 insertions(+)
 
-diff -puN drivers/input/keyboard/Kconfig~hp6xx-hp7xx-clean-up-drivers-input-keyboardtouchscreen-kconfigs drivers/input/keyboard/Kconfig
---- a/drivers/input/keyboard/Kconfig~hp6xx-hp7xx-clean-up-drivers-input-keyboardtouchscreen-kconfigs
-+++ a/drivers/input/keyboard/Kconfig
-@@ -209,22 +209,22 @@ config KEYBOARD_HIL
- 	  to your machine, so normally you should say Y here.
- 
- config KEYBOARD_HP6XX
--	tristate "HP Jornada 6XX Keyboard support"
-+	tristate "HP Jornada 6xx keyboard"
- 	depends on SH_HP6XX
- 	select INPUT_POLLDEV
- 	help
--	  This adds support for the onboard keyboard found on
--	  HP Jornada 620/660/680/690.
-+	  Say Y here if you have a HP Jornada 620/660/680/690 and want to
-+	  support the built-in keyboard.
- 
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called jornada680_kbd.
- 
- config KEYBOARD_HP7XX
--	tristate "HP Jornada 7XX Keyboard Driver"
-+	tristate "HP Jornada 7xx keyboard"
- 	depends on SA1100_JORNADA720_SSP && SA1100_SSP
- 	help
--	  Say Y here to add support for the HP Jornada 7xx (710/720/728)
--	  onboard keyboard.
-+	  Say Y here if you have a HP Jornada 710/720/728 and want to
-+	  support the built-in keyboard.
- 
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called jornada720_kbd.
-diff -puN drivers/input/touchscreen/Kconfig~hp6xx-hp7xx-clean-up-drivers-input-keyboardtouchscreen-kconfigs drivers/input/touchscreen/Kconfig
---- a/drivers/input/touchscreen/Kconfig~hp6xx-hp7xx-clean-up-drivers-input-keyboardtouchscreen-kconfigs
-+++ a/drivers/input/touchscreen/Kconfig
-@@ -114,20 +114,18 @@ config TOUCHSCREEN_MK712
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called mk712.
- 
--config TOUCHSCREEN_HP600
--	tristate "HP Jornada 680/690 touchscreen"
-+config TOUCHSCREEN_HP6XX
-+	tristate "HP Jornada 6xx touchscreen"
- 	depends on SH_HP6XX && SH_ADC
- 	help
--	  Say Y here if you have a HP Jornada 680 or 690 and want to
-+	  Say Y here if you have a HP Jornada 620/660/680/690 and want to
-           support the built-in touchscreen.
- 
--	  If unsure, say N.
--
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called hp680_ts_input.
- 
- config TOUCHSCREEN_HP7XX
--	tristate "HP Jornada 710/720/728 touchscreen"
-+	tristate "HP Jornada 7xx touchscreen"
- 	depends on SA1100_JORNADA720_SSP
- 	help
- 	  Say Y here if you have a HP Jornada 710/720/728 and want
-diff -puN drivers/input/touchscreen/Makefile~hp6xx-hp7xx-clean-up-drivers-input-keyboardtouchscreen-kconfigs drivers/input/touchscreen/Makefile
---- a/drivers/input/touchscreen/Makefile~hp6xx-hp7xx-clean-up-drivers-input-keyboardtouchscreen-kconfigs
-+++ a/drivers/input/touchscreen/Makefile
-@@ -12,7 +12,7 @@ obj-$(CONFIG_TOUCHSCREEN_ELO)		+= elo.o
- obj-$(CONFIG_TOUCHSCREEN_FUJITSU)	+= fujitsu_ts.o
- obj-$(CONFIG_TOUCHSCREEN_MTOUCH)	+= mtouch.o
- obj-$(CONFIG_TOUCHSCREEN_MK712)		+= mk712.o
--obj-$(CONFIG_TOUCHSCREEN_HP600)		+= hp680_ts_input.o
-+obj-$(CONFIG_TOUCHSCREEN_HP6XX)		+= hp680_ts_input.o
- obj-$(CONFIG_TOUCHSCREEN_HP7XX)		+= jornada720_ts.o
- obj-$(CONFIG_TOUCHSCREEN_USB_COMPOSITE)	+= usbtouchscreen.o
- obj-$(CONFIG_TOUCHSCREEN_PENMOUNT)	+= penmount.o
+diff -puN drivers/parport/parport_pc.c~parport-add-support-for-the-quat=
+ech-sppxp-100-parallel-port-pci-expresscard drivers/parport/parport_pc.=
+c
+--- a/drivers/parport/parport_pc.c~parport-add-support-for-the-quatech-=
+sppxp-100-parallel-port-pci-expresscard
++++ a/drivers/parport/parport_pc.c
+@@ -2767,6 +2767,7 @@ enum parport_pc_pci_cards {
+ 	netmos_9755,
+ 	netmos_9805,
+ 	netmos_9815,
++	quatech_sppxp100,
+ };
+=20
+=20
+@@ -2843,6 +2844,7 @@ static struct parport_pc_pci {
+         /* netmos_9755 */               { 2, { { 0, 1 }, { 2, 3 },} },=
+ /* untested */
+ 	/* netmos_9805 */               { 1, { { 0, -1 }, } }, /* untested */
+ 	/* netmos_9815 */               { 2, { { 0, -1 }, { 2, -1 }, } }, /* =
+untested */
++	/* quatech_sppxp100 */		{ 1, { { 0, 1 }, } },
+ };
+=20
+ static const struct pci_device_id parport_pc_pci_tbl[] =3D {
+@@ -2926,6 +2928,9 @@ static const struct pci_device_id parpor
+ 	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, netmos_9805 },
+ 	{ PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9815,
+ 	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, netmos_9815 },
++	/* Quatech SPPXP-100 Parallel port PCI ExpressCard */
++	{ PCI_VENDOR_ID_QUATECH, PCI_DEVICE_ID_QUATECH_SPPXP_100,
++	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, quatech_sppxp100 },
+ 	{ 0, } /* terminate list */
+ };
+ MODULE_DEVICE_TABLE(pci,parport_pc_pci_tbl);
+diff -puN include/linux/pci_ids.h~parport-add-support-for-the-quatech-s=
+ppxp-100-parallel-port-pci-expresscard include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h~parport-add-support-for-the-quatech-sppxp=
+-100-parallel-port-pci-expresscard
++++ a/include/linux/pci_ids.h
+@@ -2477,3 +2477,6 @@
+ #define PCI_DEVICE_ID_RME_DIGI32	0x9896
+ #define PCI_DEVICE_ID_RME_DIGI32_PRO	0x9897
+ #define PCI_DEVICE_ID_RME_DIGI32_8	0x9898
++
++#define PCI_VENDOR_ID_QUATECH		0x135c
++#define PCI_DEVICE_ID_QUATECH_SPPXP_100 0x0278
 _
 
-Patches currently in -mm which might be from kristoffer.ericson@gmail.com are
+Patches currently in -mm which might be from luis.p.mendes@gmail.com ar=
+e
 
-hp6xx-hp7xx-clean-up-drivers-input-keyboardtouchscreen-kconfigs.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-express=
+card.patch
