@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sendfile-fix-sending-of-block-special-files.patch added to -mm tree
-Date: Wed, 12 Dec 2007 15:40:34 -0800
-Message-ID: <200712122340.lBCNeY9E003003@imap1.linux-foundation.org>
+Subject: + git-scsi-misc-fix-build-in-drivers-scsi-scsi_tgt_libc.patch added to -mm tree
+Date: Wed, 12 Dec 2007 15:34:30 -0800
+Message-ID: <200712122342.lBCNg7bw003045@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37626 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34012 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751685AbXLLXlF (ORCPT
+	by vger.kernel.org with ESMTP id S1752173AbXLLXmT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 18:41:05 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lBCNeYm8013585
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2007 15:40:35 -0800
+	Wed, 12 Dec 2007 18:42:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, James.Bottomley@steeleye.com
 
 
 The patch titled
-     sendfile: fix sending of block-special files
+     git-scsi-misc: fix build in drivers/scsi/scsi_tgt_lib.c
 has been added to the -mm tree.  Its filename is
-     sendfile-fix-sending-of-block-special-files.patch
+     git-scsi-misc-fix-build-in-drivers-scsi-scsi_tgt_libc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,40 +26,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sendfile: fix sending of block-special files
+Subject: git-scsi-misc: fix build in drivers/scsi/scsi_tgt_lib.c
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/block_dev.c  |    1 +
- fs/read_write.c |    3 ++-
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ drivers/scsi/scsi_tgt_lib.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/read_write.c~sendfile-fix-sending-of-block-special-files fs/read_write.c
---- a/fs/read_write.c~sendfile-fix-sending-of-block-special-files
-+++ a/fs/read_write.c
-@@ -764,7 +764,8 @@ static ssize_t do_sendfile(int out_fd, i
- 		goto fput_out;
+diff -puN drivers/scsi/scsi_tgt_lib.c~git-scsi-misc-fix-build-in-drivers-scsi-scsi_tgt_libc drivers/scsi/scsi_tgt_lib.c
+--- a/drivers/scsi/scsi_tgt_lib.c~git-scsi-misc-fix-build-in-drivers-scsi-scsi_tgt_libc
++++ a/drivers/scsi/scsi_tgt_lib.c
+@@ -613,7 +613,7 @@ int scsi_tgt_kspace_it_nexus_rsp(int hos
+ 	struct Scsi_Host *shost;
+ 	int err = -EINVAL;
  
- 	if (!max)
--		max = min(in_inode->i_sb->s_maxbytes, out_inode->i_sb->s_maxbytes);
-+		max = min(in_inode->i_mapping->host->i_sb->s_maxbytes,
-+			out_inode->i_mapping->host->i_sb->s_maxbytes);
+-	dprintk("%d %d%llx\n", host_no, result, unsigned long long)itn_id);
++	dprintk("%d %d%llx\n", host_no, result, (unsigned long long)itn_id);
  
- 	pos = *ppos;
- 	retval = -EINVAL;
-diff -puN fs/block_dev.c~sendfile-fix-sending-of-block-special-files fs/block_dev.c
---- a/fs/block_dev.c~sendfile-fix-sending-of-block-special-files
-+++ a/fs/block_dev.c
-@@ -539,6 +539,7 @@ void __init bdev_cache_init(void)
- 	if (IS_ERR(bd_mnt))
- 		panic("Cannot create bdev pseudo-fs");
- 	blockdev_superblock = bd_mnt->mnt_sb;	/* For writeback */
-+	blockdev_superblock->s_maxbytes = LLONG_MAX;
- }
- 
- /*
+ 	shost = scsi_host_lookup(host_no);
+ 	if (IS_ERR(shost)) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -286,4 +270,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-sendfile-fix-sending-of-block-special-files.patch
+git-scsi-misc-fix-build-in-drivers-scsi-scsi_tgt_libc.patch
