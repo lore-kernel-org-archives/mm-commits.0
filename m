@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + greg-broke-infiniband-again.patch added to -mm tree
-Date: Wed, 12 Dec 2007 14:53:15 -0800
-Message-ID: <200712122300.lBCN0oMB001560@imap1.linux-foundation.org>
+Subject: + git-dvb-drivers-media-video-et61x251-et61x251_corec-fix-warnings.patch added to -mm tree
+Date: Wed, 12 Dec 2007 14:55:49 -0800
+Message-ID: <200712122303.lBCN3Osh001693@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54246 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45189 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752147AbXLLXBY (ORCPT
+	by vger.kernel.org with ESMTP id S1759615AbXLLXEI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 18:01:24 -0500
+	Wed, 12 Dec 2007 18:04:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com
+Cc: akpm@linux-foundation.org, mchehab@infradead.org
 
 
 The patch titled
-     greg-broke-infiniband-again
+     git-dvb: drivers/media/video/et61x251/et61x251_core.c: fix warnings
 has been added to the -mm tree.  Its filename is
-     greg-broke-infiniband-again.patch
+     git-dvb-drivers-media-video-et61x251-et61x251_corec-fix-warnings.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,38 +26,198 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: greg-broke-infiniband-again
+Subject: git-dvb: drivers/media/video/et61x251/et61x251_core.c: fix warnings
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/infiniband/hw/ipath/ipath_sysfs.c: In function 'ipath_driver_create_group':
-drivers/infiniband/hw/ipath/ipath_sysfs.c:760: error: 'struct device_driver' has no member named 'kobj'
-drivers/infiniband/hw/ipath/ipath_sysfs.c: In function 'ipath_driver_remove_group':
-drivers/infiniband/hw/ipath/ipath_sysfs.c:767: error: 'struct device_driver' has no member named 'kobj'
-drivers/infiniband/hw/ipath/ipath_sysfs.c: In function 'ipath_device_create_group':
-drivers/infiniband/hw/ipath/ipath_sysfs.c:784: error: 'struct device_driver' has no member named 'kobj'
-drivers/infiniband/hw/ipath/ipath_sysfs.c: In function 'ipath_device_remove_group':
-drivers/infiniband/hw/ipath/ipath_sysfs.c:800: error: 'struct device_driver' has no member named 'kobj'
+drivers/media/video/et61x251/et61x251_core.c:390: warning: 'et61x251_i2c_read' defined but not used
+drivers/media/video/et61x251/et61x251_core.c:397: warning: 'et61x251_i2c_write' defined but not used
 
-sigh
-
-Cc: Greg KH <greg@kroah.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/video/et61x251/et61x251_core.c |  155 ++++++++---------
+ 1 file changed, 77 insertions(+), 78 deletions(-)
 
-diff -puN drivers/infiniband/Kconfig~greg-broke-infiniband-again drivers/infiniband/Kconfig
---- a/drivers/infiniband/Kconfig~greg-broke-infiniband-again
-+++ a/drivers/infiniband/Kconfig
-@@ -1,6 +1,7 @@
- menuconfig INFINIBAND
- 	tristate "InfiniBand support"
- 	depends on PCI || BROKEN
-+	depends on BROKEN
- 	depends on HAS_IOMEM
- 	---help---
- 	  Core support for InfiniBand (IB).  Make sure to also select
+diff -puN drivers/media/video/et61x251/et61x251_core.c~git-dvb-drivers-media-video-et61x251-et61x251_corec-fix-warnings drivers/media/video/et61x251/et61x251_core.c
+--- a/drivers/media/video/et61x251/et61x251_core.c~git-dvb-drivers-media-video-et61x251-et61x251_corec-fix-warnings
++++ a/drivers/media/video/et61x251/et61x251_core.c
+@@ -268,72 +268,6 @@ et61x251_i2c_wait(struct et61x251_device
+ }
+ 
+ 
+-static int et61x251_i2c_try_read(struct et61x251_device* cam,
+-				 const struct et61x251_sensor* sensor,
+-				 u8 address)
+-{
+-	struct usb_device* udev = cam->usbdev;
+-	u8* data = cam->control_buffer;
+-	int err = 0, res;
+-
+-	data[0] = address;
+-	data[1] = cam->sensor.i2c_slave_id;
+-	data[2] = cam->sensor.rsta | 0x10;
+-	data[3] = !(et61x251_read_reg(cam, 0x8b) & 0x02);
+-	res = usb_control_msg(udev, usb_sndctrlpipe(udev, 0), 0x00, 0x41,
+-			      0, 0x88, data, 4, ET61X251_CTRL_TIMEOUT);
+-	if (res < 0)
+-		err += res;
+-
+-	err += et61x251_i2c_wait(cam, sensor);
+-
+-	res = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0), 0x00, 0xc1,
+-			      0, 0x80, data, 8, ET61X251_CTRL_TIMEOUT);
+-	if (res < 0)
+-		err += res;
+-
+-	if (err)
+-		DBG(3, "I2C read failed for %s image sensor", sensor->name);
+-
+-	PDBGG("I2C read: address 0x%02X, value: 0x%02X", address, data[0]);
+-
+-	return err ? -1 : (int)data[0];
+-}
+-
+-
+-static int et61x251_i2c_try_write(struct et61x251_device* cam,
+-				  const struct et61x251_sensor* sensor,
+-				  u8 address, u8 value)
+-{
+-	struct usb_device* udev = cam->usbdev;
+-	u8* data = cam->control_buffer;
+-	int err = 0, res;
+-
+-	data[0] = address;
+-	data[1] = cam->sensor.i2c_slave_id;
+-	data[2] = cam->sensor.rsta | 0x12;
+-	res = usb_control_msg(udev, usb_sndctrlpipe(udev, 0), 0x00, 0x41,
+-			      0, 0x88, data, 3, ET61X251_CTRL_TIMEOUT);
+-	if (res < 0)
+-		err += res;
+-
+-	data[0] = value;
+-	res = usb_control_msg(udev, usb_sndctrlpipe(udev, 0), 0x00, 0x41,
+-			      0, 0x80, data, 1, ET61X251_CTRL_TIMEOUT);
+-	if (res < 0)
+-		err += res;
+-
+-	err += et61x251_i2c_wait(cam, sensor);
+-
+-	if (err)
+-		DBG(3, "I2C write failed for %s image sensor", sensor->name);
+-
+-	PDBGG("I2C write: address 0x%02X, value: 0x%02X", address, value);
+-
+-	return err ? -1 : 0;
+-}
+-
+-
+ int
+ et61x251_i2c_raw_write(struct et61x251_device* cam, u8 n, u8 data1, u8 data2,
+ 		       u8 data3, u8 data4, u8 data5, u8 data6, u8 data7,
+@@ -386,18 +320,6 @@ et61x251_i2c_raw_write(struct et61x251_d
+ }
+ 
+ 
+-static int et61x251_i2c_read(struct et61x251_device* cam, u8 address)
+-{
+-	return et61x251_i2c_try_read(cam, &cam->sensor, address);
+-}
+-
+-
+-static int et61x251_i2c_write(struct et61x251_device* cam,
+-			      u8 address, u8 value)
+-{
+-	return et61x251_i2c_try_write(cam, &cam->sensor, address, value);
+-}
+-
+ /*****************************************************************************/
+ 
+ static void et61x251_urb_complete(struct urb *urb)
+@@ -675,6 +597,83 @@ static int et61x251_stream_interrupt(str
+ /*****************************************************************************/
+ 
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
++
++static int et61x251_i2c_try_read(struct et61x251_device* cam,
++				 const struct et61x251_sensor* sensor,
++				 u8 address)
++{
++	struct usb_device* udev = cam->usbdev;
++	u8* data = cam->control_buffer;
++	int err = 0, res;
++
++	data[0] = address;
++	data[1] = cam->sensor.i2c_slave_id;
++	data[2] = cam->sensor.rsta | 0x10;
++	data[3] = !(et61x251_read_reg(cam, 0x8b) & 0x02);
++	res = usb_control_msg(udev, usb_sndctrlpipe(udev, 0), 0x00, 0x41,
++			      0, 0x88, data, 4, ET61X251_CTRL_TIMEOUT);
++	if (res < 0)
++		err += res;
++
++	err += et61x251_i2c_wait(cam, sensor);
++
++	res = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0), 0x00, 0xc1,
++			      0, 0x80, data, 8, ET61X251_CTRL_TIMEOUT);
++	if (res < 0)
++		err += res;
++
++	if (err)
++		DBG(3, "I2C read failed for %s image sensor", sensor->name);
++
++	PDBGG("I2C read: address 0x%02X, value: 0x%02X", address, data[0]);
++
++	return err ? -1 : (int)data[0];
++}
++
++
++static int et61x251_i2c_try_write(struct et61x251_device* cam,
++				  const struct et61x251_sensor* sensor,
++				  u8 address, u8 value)
++{
++	struct usb_device* udev = cam->usbdev;
++	u8* data = cam->control_buffer;
++	int err = 0, res;
++
++	data[0] = address;
++	data[1] = cam->sensor.i2c_slave_id;
++	data[2] = cam->sensor.rsta | 0x12;
++	res = usb_control_msg(udev, usb_sndctrlpipe(udev, 0), 0x00, 0x41,
++			      0, 0x88, data, 3, ET61X251_CTRL_TIMEOUT);
++	if (res < 0)
++		err += res;
++
++	data[0] = value;
++	res = usb_control_msg(udev, usb_sndctrlpipe(udev, 0), 0x00, 0x41,
++			      0, 0x80, data, 1, ET61X251_CTRL_TIMEOUT);
++	if (res < 0)
++		err += res;
++
++	err += et61x251_i2c_wait(cam, sensor);
++
++	if (err)
++		DBG(3, "I2C write failed for %s image sensor", sensor->name);
++
++	PDBGG("I2C write: address 0x%02X, value: 0x%02X", address, value);
++
++	return err ? -1 : 0;
++}
++
++static int et61x251_i2c_read(struct et61x251_device* cam, u8 address)
++{
++	return et61x251_i2c_try_read(cam, &cam->sensor, address);
++}
++
++static int et61x251_i2c_write(struct et61x251_device* cam,
++			      u8 address, u8 value)
++{
++	return et61x251_i2c_try_write(cam, &cam->sensor, address, value);
++}
++
+ static u8 et61x251_strtou8(const char* buff, size_t len, ssize_t* count)
+ {
+ 	char str[5];
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,6 +247,7 @@ agk-dm-dm-ioctl-move-compat-code-fix.patch
 dm-persistent_read_metadata-warning-fix.patch
 ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
 revert-gregkh-driver-infiband-make-ipath-driver-use-default-driver-groups.patch
+greg-broke-infiniband-again.patch
 gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
 unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
 git-drm.patch
@@ -277,4 +438,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-greg-broke-infiniband-again.patch
+git-dvb-drivers-media-video-et61x251-et61x251_corec-fix-warnings.patch
