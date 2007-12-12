@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + net-use-mutex_is_locked-for-assert_rtnl.patch added to -mm tree
-Date: Tue, 11 Dec 2007 16:36:43 -0800
-Message-ID: <200712120036.lBC0ahqG017090@imap1.linux-foundation.org>
+Subject: + tipc-fix-semaphore-handling.patch added to -mm tree
+Date: Tue, 11 Dec 2007 16:46:31 -0800
+Message-ID: <200712120046.lBC0kV1C017451@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46467 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52102 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753597AbXLLAhQ (ORCPT
+	by vger.kernel.org with ESMTP id S1752051AbXLLAqx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Dec 2007 19:37:16 -0500
+	Tue, 11 Dec 2007 19:46:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net
+Cc: akpm@linux-foundation.org, allan.stephens@windriver.com, davem@davemloft.net, jon.maloy@ericsson.com, kjwinchester@gmail.com, per.liden@ericsson.com, stable@kernel.org
 
 
 The patch titled
-     net: use mutex_is_locked() for ASSERT_RTNL()
+     tipc: fix semaphore handling
 has been added to the -mm tree.  Its filename is
-     net-use-mutex_is_locked-for-assert_rtnl.patch
+     tipc-fix-semaphore-handling.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,89 +26,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: net: use mutex_is_locked() for ASSERT_RTNL()
+Subject: tipc: fix semaphore handling
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ASSERT_RTNL() uses mutex_trylock(), but it's better to use mutex_is_locked().
+As noted by Kevin, tipc's release() does down_interruptible() and ignores the
+return value.  So if signal_pending() we'll end up doing up() on a non-downed
+semaphore.  Fix.
 
-Make that change, and remove rtnl_trylock() altogether.
-
-(not tested yet!)
-
+Cc: Kevin Winchester <kjwinchester@gmail.com>
+Cc: Per Liden <per.liden@ericsson.com>
+Cc: Jon Maloy <jon.maloy@ericsson.com>
+Cc: Allan Stephens <allan.stephens@windriver.com>
 Cc: "David S. Miller" <davem@davemloft.net>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/cxgb3/cxgb3_main.c |    3 +--
- include/linux/rtnetlink.h      |    5 ++---
- net/core/rtnetlink.c           |    7 ++++---
- 3 files changed, 7 insertions(+), 8 deletions(-)
+ net/tipc/socket.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/cxgb3/cxgb3_main.c~net-use-mutex_is_locked-for-assert_rtnl drivers/net/cxgb3/cxgb3_main.c
---- a/drivers/net/cxgb3/cxgb3_main.c~net-use-mutex_is_locked-for-assert_rtnl
-+++ a/drivers/net/cxgb3/cxgb3_main.c
-@@ -2191,7 +2191,7 @@ static void check_t3b2_mac(struct adapte
- {
- 	int i;
- 
--	if (!rtnl_trylock())	/* synchronize with ifdown */
-+	if (rtnl_is_locked())	/* synchronize with ifdown */
- 		return;
- 
- 	for_each_port(adapter, i) {
-@@ -2219,7 +2219,6 @@ static void check_t3b2_mac(struct adapte
- 			p->mac.stats.num_resets++;
- 		}
- 	}
--	rtnl_unlock();
- }
- 
- 
-diff -puN include/linux/rtnetlink.h~net-use-mutex_is_locked-for-assert_rtnl include/linux/rtnetlink.h
---- a/include/linux/rtnetlink.h~net-use-mutex_is_locked-for-assert_rtnl
-+++ a/include/linux/rtnetlink.h
-@@ -751,14 +751,13 @@ extern void rtmsg_ifinfo(int type, struc
- /* RTNL is used as a global lock for all changes to network configuration  */
- extern void rtnl_lock(void);
- extern void rtnl_unlock(void);
--extern int rtnl_trylock(void);
-+extern int rtnl_is_locked(void);
- 
- extern void rtnetlink_init(void);
- extern void __rtnl_unlock(void);
- 
- #define ASSERT_RTNL() do { \
--	if (unlikely(rtnl_trylock())) { \
--		rtnl_unlock(); \
-+	if (unlikely(!rtnl_is_locked())) { \
- 		printk(KERN_ERR "RTNL: assertion failed at %s (%d)\n", \
- 		       __FILE__,  __LINE__); \
- 		dump_stack(); \
-diff -puN net/core/rtnetlink.c~net-use-mutex_is_locked-for-assert_rtnl net/core/rtnetlink.c
---- a/net/core/rtnetlink.c~net-use-mutex_is_locked-for-assert_rtnl
-+++ a/net/core/rtnetlink.c
-@@ -77,9 +77,10 @@ void rtnl_unlock(void)
- 	netdev_run_todo();
- }
- 
--int rtnl_trylock(void)
-+/* Return non-zero if rtnl_mutex is presently held */
-+int rtnl_is_locked(void)
- {
--	return mutex_trylock(&rtnl_mutex);
-+	return mutex_is_locked(&rtnl_mutex);
- }
- 
- int rtattr_parse(struct rtattr *tb[], int maxattr, struct rtattr *rta, int len)
-@@ -1424,7 +1425,7 @@ EXPORT_SYMBOL(rtattr_parse);
- EXPORT_SYMBOL(__rtattr_parse_nested_compat);
- EXPORT_SYMBOL(rtnetlink_put_metrics);
- EXPORT_SYMBOL(rtnl_lock);
--EXPORT_SYMBOL(rtnl_trylock);
-+EXPORT_SYMBOL(rtnl_is_locked);
- EXPORT_SYMBOL(rtnl_unlock);
- EXPORT_SYMBOL(rtnl_unicast);
- EXPORT_SYMBOL(rtnl_notify);
+diff -puN net/tipc/socket.c~tipc-fix-semaphore-handling net/tipc/socket.c
+--- a/net/tipc/socket.c~tipc-fix-semaphore-handling
++++ a/net/tipc/socket.c
+@@ -253,7 +253,7 @@ static int release(struct socket *sock)
+ 	dbg("sock_delete: %x\n",tsock);
+ 	if (!tsock)
+ 		return 0;
+-	down_interruptible(&tsock->sem);
++	down(&tsock->sem);
+ 	if (!sock->sk) {
+ 		up(&tsock->sem);
+ 		return 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -317,3 +265,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+tipc-fix-semaphore-handling.patch
