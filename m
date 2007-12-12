@@ -1,79 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - hptiop-add-more-adapter-models-and-other-fixes-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 12 Dec 2007 01:55:43 -0800
-Message-ID: <200712120955.lBC9tidD003983@imap1.linux-foundation.org>
+Subject: - hptiop-uninline-things.patch removed from -mm tree
+Date: Wed, 12 Dec 2007 01:55:50 -0800
+Message-ID: <200712120955.lBC9toPc003991@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52269 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34400 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752614AbXLLJ4Q (ORCPT
+	by vger.kernel.org with ESMTP id S1754051AbXLLJ4W (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 04:56:16 -0500
+	Wed, 12 Dec 2007 04:56:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, James.Bottomley@steeleye.com, linux@highpoint-tech.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hptiop-add-more-adapter-models-and-other-fixes-checkpatch-fixes
+     hptiop: uninline things
 has been removed from the -mm tree.  Its filename was
-     hptiop-add-more-adapter-models-and-other-fixes-checkpatch-fixes.patch
+     hptiop-uninline-things.patch
 
 This patch was dropped because it was folded into hptiop-add-more-adapter-models-and-other-fixes-update.patch
 
 ------------------------------------------------------
-Subject: hptiop-add-more-adapter-models-and-other-fixes-checkpatch-fixes
+Subject: hptiop: uninline things
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: open brace '{' following struct go on the same line
-#1058: FILE: drivers/scsi/hptiop.h:60:
-+struct hpt_iopmu_mv
-+{
+Those two inlinings were wrong.  Remove them and optimise a few others.
 
-ERROR: open brace '{' following struct go on the same line
-#1071: FILE: drivers/scsi/hptiop.h:73:
-+struct hpt_iopmv_regs
-+{
-
-total: 2 errors, 0 warnings, 1139 lines checked
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
+Before:
+   text    data     bss     dec     hex filename
+   6666    1352       0    8018    1f52 drivers/scsi/hptiop.o
+After:
+   6605    1352       0    7957    1f15 drivers/scsi/hptiop.o
 
 Cc: HighPoint Linux Team <linux@highpoint-tech.com>
 Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/hptiop.h |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/scsi/hptiop.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/scsi/hptiop.h~hptiop-add-more-adapter-models-and-other-fixes-checkpatch-fixes drivers/scsi/hptiop.h
---- a/drivers/scsi/hptiop.h~hptiop-add-more-adapter-models-and-other-fixes-checkpatch-fixes
-+++ a/drivers/scsi/hptiop.h
-@@ -56,8 +56,7 @@ struct hpt_iopmu_itl
+diff -puN drivers/scsi/hptiop.c~hptiop-uninline-things drivers/scsi/hptiop.c
+--- a/drivers/scsi/hptiop.c~hptiop-uninline-things
++++ a/drivers/scsi/hptiop.c
+@@ -77,7 +77,7 @@ static int iop_wait_ready_mv(struct hpti
+ 	return iop_send_sync_msg(hba, IOPMU_INBOUND_MSG0_NOP, millisec);
+ }
  
- #define MVIOP_QUEUE_LEN  512
+-static inline void hptiop_request_callback_itl(struct hptiop_hba *hba, u32 tag)
++static void hptiop_request_callback_itl(struct hptiop_hba *hba, u32 tag)
+ {
+ 	if (tag & IOPMU_QUEUE_ADDR_HOST_BIT)
+ 		hptiop_host_request_callback_itl(hba,
+@@ -86,7 +86,7 @@ static inline void hptiop_request_callba
+ 		hptiop_iop_request_callback_itl(hba, tag);
+ }
  
--struct hpt_iopmu_mv
--{
-+struct hpt_iopmu_mv {
- 	__le32 inbound_head;
- 	__le32 inbound_tail;
- 	__le32 outbound_head;
-@@ -69,8 +68,7 @@ struct hpt_iopmu_mv
- 	__le64 outbound_q[MVIOP_QUEUE_LEN];
- };
+-static inline void hptiop_drain_outbound_queue_itl(struct hptiop_hba *hba)
++static void hptiop_drain_outbound_queue_itl(struct hptiop_hba *hba)
+ {
+ 	u32 req;
  
--struct hpt_iopmv_regs
--{
-+struct hpt_iopmv_regs {
- 	__le32 reserved[0x20400 / 4];
- 	__le32 inbound_doorbell;
- 	__le32 inbound_intmask;
+@@ -138,7 +138,7 @@ static int iop_intr_itl(struct hptiop_hb
+ 	return ret;
+ }
+ 
+-static inline u64 mv_outbound_read(struct hpt_iopmu_mv __iomem *mu)
++static u64 mv_outbound_read(struct hpt_iopmu_mv __iomem *mu)
+ {
+ 	u32 outbound_tail = readl(&mu->outbound_tail);
+ 	u32 outbound_head = readl(&mu->outbound_head);
+@@ -157,7 +157,7 @@ static inline u64 mv_outbound_read(struc
+ 		return 0;
+ }
+ 
+-static inline void mv_inbound_write(u64 p, struct hptiop_hba *hba)
++static void mv_inbound_write(u64 p, struct hptiop_hba *hba)
+ {
+ 	u32 inbound_head = readl(&hba->u.mv.mu->inbound_head);
+ 	u32 head = inbound_head + 1;
+@@ -510,7 +510,7 @@ static void hptiop_message_callback(stru
+ 		hba->msg_done = 1;
+ }
+ 
+-static inline struct hptiop_request *get_req(struct hptiop_hba *hba)
++static struct hptiop_request *get_req(struct hptiop_hba *hba)
+ {
+ 	struct hptiop_request *ret;
+ 
+@@ -523,7 +523,7 @@ static inline struct hptiop_request *get
+ 	return ret;
+ }
+ 
+-static inline void free_req(struct hptiop_hba *hba, struct hptiop_request *req)
++static void free_req(struct hptiop_hba *hba, struct hptiop_request *req)
+ {
+ 	dprintk("free_req(%d, %p)\n", req->index, req);
+ 	req->next = hba->req_list;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -141,7 +165,6 @@ git-scsi-misc-fixup.patch
 ips-trim-trailing-whitespace.patch
 scsi-gdth-kill-unneeded-irq-argument.patch
 drivers-scsi-sgiwd93c-export-sgiwd93_reset.patch
-hptiop-add-more-adapter-models-and-other-fixes-checkpatch-fixes.patch
 hptiop-uninline-things.patch
 hptiop-add-more-adapter-models-and-other-fixes-fix-2.patch
 libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
