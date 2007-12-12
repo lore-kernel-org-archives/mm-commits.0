@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + wireless-libertas-dont-cast-a-pointer-to-pointer-of-list_head.patch added to -mm tree
-Date: Wed, 12 Dec 2007 00:57:23 -0800
-Message-ID: <200712120857.lBC8vNan002032@imap1.linux-foundation.org>
+Subject: + iwlwifi3945-4965-fix-rate-control-algo-reference-leak.patch added to -mm tree
+Date: Wed, 12 Dec 2007 00:58:38 -0800
+Message-ID: <200712120858.lBC8wc6I002075@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35209 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42887 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754945AbXLLI7M (ORCPT
+	by vger.kernel.org with ESMTP id S1756222AbXLLI7d (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 03:59:12 -0500
+	Wed, 12 Dec 2007 03:59:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, dcbw@redhat.com, linville@tuxdriver.com
+Cc: gorcunov@gmail.com, linville@tuxdriver.com, yi.zhu@intel.com
 
 
 The patch titled
-     wireless/libertas: don't cast a pointer to pointer of list_head
+     iwlwifi3945/4965: fix rate control algo reference leak
 has been added to the -mm tree.  Its filename is
-     wireless-libertas-dont-cast-a-pointer-to-pointer-of-list_head.patch
+     iwlwifi3945-4965-fix-rate-control-algo-reference-leak.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,108 +26,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: wireless/libertas: don't cast a pointer to pointer of list_head
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: iwlwifi3945/4965: fix rate control algo reference leak
+From: Cyrill Gorcunov <gorcunov@gmail.com>
 
-Don't cast struct foo * to struct list_head *, it's safe only when
-the list member is the first member of struct foo.
+Fix rate control algo reference leak in case if network device has been
+failed to register.  In this case special flag priv->mac80211_registered is
+not set and the rate algo reference is not freeing on module unload.  That
+leads to OOPs in further ieee80211 rate register/unregister procedure (by
+any callee).
 
-Also don't cast struct list_head * to struct foo *.
+It should fix the bug #9470
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+	http://bugzilla.kernel.org/show_bug.cgi?id=9470
+
+Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
+Acked-by: Zhu Yi <yi.zhu@intel.com>
 Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: Dan Williams <dcbw@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/libertas/cmd.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ drivers/net/wireless/iwlwifi/iwl3945-base.c |    1 +
+ drivers/net/wireless/iwlwifi/iwl4965-base.c |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN drivers/net/wireless/libertas/cmd.c~wireless-libertas-dont-cast-a-pointer-to-pointer-of-list_head drivers/net/wireless/libertas/cmd.c
---- a/drivers/net/wireless/libertas/cmd.c~wireless-libertas-dont-cast-a-pointer-to-pointer-of-list_head
-+++ a/drivers/net/wireless/libertas/cmd.c
-@@ -1016,11 +1016,10 @@ void lbs_queue_cmd(struct lbs_adapter *a
- 	spin_lock_irqsave(&adapter->driver_lock, flags);
+diff -puN drivers/net/wireless/iwlwifi/iwl3945-base.c~iwlwifi3945-4965-fix-rate-control-algo-reference-leak drivers/net/wireless/iwlwifi/iwl3945-base.c
+--- a/drivers/net/wireless/iwlwifi/iwl3945-base.c~iwlwifi3945-4965-fix-rate-control-algo-reference-leak
++++ a/drivers/net/wireless/iwlwifi/iwl3945-base.c
+@@ -6280,6 +6280,7 @@ static void iwl3945_alive_start(struct i
+ 		mutex_lock(&priv->mutex);
  
- 	if (addtail) {
--		list_add_tail((struct list_head *)cmdnode,
--			      &adapter->cmdpendingq);
-+		list_add_tail(&cmdnode->list, &adapter->cmdpendingq);
- 		adapter->nr_cmd_pending++;
- 	} else
--		list_add((struct list_head *)cmdnode, &adapter->cmdpendingq);
-+		list_add(&cmdnode->list, &adapter->cmdpendingq);
+ 		if (rc) {
++			iwl_rate_control_unregister(priv->hw);
+ 			IWL_ERROR("Failed to register network "
+ 				  "device (error %d)\n", rc);
+ 			return;
+diff -puN drivers/net/wireless/iwlwifi/iwl4965-base.c~iwlwifi3945-4965-fix-rate-control-algo-reference-leak drivers/net/wireless/iwlwifi/iwl4965-base.c
+--- a/drivers/net/wireless/iwlwifi/iwl4965-base.c~iwlwifi3945-4965-fix-rate-control-algo-reference-leak
++++ a/drivers/net/wireless/iwlwifi/iwl4965-base.c
+@@ -6693,6 +6693,7 @@ static void iwl4965_alive_start(struct i
+ 		mutex_lock(&priv->mutex);
  
- 	spin_unlock_irqrestore(&adapter->driver_lock, flags);
- 
-@@ -1139,7 +1138,7 @@ void __lbs_cleanup_and_insert_cmd(struct
- 		return;
- 
- 	cleanup_cmdnode(ptempcmd);
--	list_add_tail((struct list_head *)ptempcmd, &adapter->cmdfreeq);
-+	list_add_tail(&ptempcmd->list, &adapter->cmdfreeq);
- }
- 
- static void lbs_cleanup_and_insert_cmd(struct lbs_private *priv,
-@@ -1637,8 +1636,9 @@ struct cmd_ctrl_node *lbs_get_free_cmd_c
- 	spin_lock_irqsave(&adapter->driver_lock, flags);
- 
- 	if (!list_empty(&adapter->cmdfreeq)) {
--		tempnode = (struct cmd_ctrl_node *)adapter->cmdfreeq.next;
--		list_del((struct list_head *)tempnode);
-+		tempnode = list_first_entry(&adapter->cmdfreeq,
-+					    struct cmd_ctrl_node, list);
-+		list_del(&tempnode->list);
- 	} else {
- 		lbs_deb_host("GET_CMD_NODE: cmd_ctrl_node is not available\n");
- 		tempnode = NULL;
-@@ -1735,8 +1735,8 @@ int lbs_execute_next_command(struct lbs_
- 	}
- 
- 	if (!list_empty(&adapter->cmdpendingq)) {
--		cmdnode = (struct cmd_ctrl_node *)
--		    adapter->cmdpendingq.next;
-+		cmdnode = list_first_entry(&adapter->cmdpendingq,
-+					   struct cmd_ctrl_node, list);
- 	}
- 
- 	spin_unlock_irqrestore(&adapter->driver_lock, flags);
-@@ -1800,7 +1800,7 @@ int lbs_execute_next_command(struct lbs_
- 				    cpu_to_le16(CMD_SUBCMD_EXIT_PS)) {
- 					lbs_deb_host(
- 					       "EXEC_NEXT_CMD: ignore ENTER_PS cmd\n");
--					list_del((struct list_head *)cmdnode);
-+					list_del(&cmdnode->list);
- 					lbs_cleanup_and_insert_cmd(priv, cmdnode);
- 
- 					ret = 0;
-@@ -1811,7 +1811,7 @@ int lbs_execute_next_command(struct lbs_
- 				    (adapter->psstate == PS_STATE_PRE_SLEEP)) {
- 					lbs_deb_host(
- 					       "EXEC_NEXT_CMD: ignore EXIT_PS cmd in sleep\n");
--					list_del((struct list_head *)cmdnode);
-+					list_del(&cmdnode->list);
- 					lbs_cleanup_and_insert_cmd(priv, cmdnode);
- 					adapter->needtowakeup = 1;
- 
-@@ -1823,7 +1823,7 @@ int lbs_execute_next_command(struct lbs_
- 				       "EXEC_NEXT_CMD: sending EXIT_PS\n");
- 			}
- 		}
--		list_del((struct list_head *)cmdnode);
-+		list_del(&cmdnode->list);
- 		lbs_deb_host("EXEC_NEXT_CMD: sending command 0x%04x\n",
- 			    le16_to_cpu(cmdptr->command));
- 		DownloadcommandToStation(priv, cmdnode);
+ 		if (rc) {
++			iwl_rate_control_unregister(priv->hw);
+ 			IWL_ERROR("Failed to register network "
+ 				  "device (error %d)\n", rc);
+ 			return;
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
-git-hid.patch
-git-net.patch
-wireless-libertas-dont-cast-a-pointer-to-pointer-of-list_head.patch
-clocksource-remove-redundant-code.patch
-clockevent-simplify-list-operations.patch
-timekeeping-rename-timekeeping_is_continuous-to-timekeeping_valid_for_hres.patch
-time-fix-typo-in-comments.patch
-time-delete-comments-that-refer-to-noexistent-symbols.patch
+git-powerpc.patch
+ppc-fix-missed-increment-on-device-interface-counter.patch
+ppc-chrp-fix-possible-null-pointer-dereference.patch
+ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
+net-mac80211-fix-inappropriate-memory-freeing.patch
+git-x86.patch
+ieee80211_rate-missed-unlock.patch
+iwlwifi3945-4965-fix-rate-control-algo-reference-leak.patch
