@@ -1,161 +1,358 @@
 From: akpm@linux-foundation.org
-Subject: + usb-use-irqf_disabled-for-hcd-interrupt-handlers.patch added to -mm tree
-Date: Wed, 12 Dec 2007 00:30:32 -0800
-Message-ID: <200712120830.lBC8UWtP001051@imap1.linux-foundation.org>
+Subject: - sata_nv-fix-oops.patch removed from -mm tree
+Date: Wed, 12 Dec 2007 00:31:26 -0800
+Message-ID: <200712120831.lBC8VQw1001074@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41991 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37271 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756941AbXLLIbM (ORCPT
+	by vger.kernel.org with ESMTP id S1755754AbXLLIcQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 03:31:12 -0500
+	Wed, 12 Dec 2007 03:32:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: stern@rowland.harvard.edu, david-b@pacbell.net, greg@kroah.com
+To: akpm@linux-foundation.org, hancockr@shaw.ca, htejun@gmail.com, jeff@garzik.org, kluo@nvidia.com, peerchen@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     USB: use IRQF_DISABLED for HCD interrupt handlers
-has been added to the -mm tree.  Its filename is
-     usb-use-irqf_disabled-for-hcd-interrupt-handlers.patch
+     sata_nv: fix oops
+has been removed from the -mm tree.  Its filename was
+     sata_nv-fix-oops.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: USB: use IRQF_DISABLED for HCD interrupt handlers
-From: Alan Stern <stern@rowland.harvard.edu>
+Subject: sata_nv: fix oops
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Host controller IRQs are supposed to be serviced with interrupts disabled. 
-This patch (as1026) adds an IRQF_DISABLED flag to all the controller
-drivers that lack it.  It also replaces the spin_lock_irqsave() and
-spin_unlock_irqrestore() calls in uhci_irq() with simple spin_lock() and
-spin_unlock().
+"Kuan Luo" <kluo@nvidia.com> said:
 
-This fixes Bugzilla #9335.
+The below error happens when i rmmod sata_nv in adma mode on ck804
+chipset with 2.6.24 kernel.
+I traced the code and found that the driver attempts to write device mem
+that has been unmapped.
 
-Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
-Acked-by: David Brownell <david-b@pacbell.net>
-Cc: Greg KH <greg@kroah.com>
+Only simply removing the code" writew(0, mmio + NV_ADMA_CTL);" in the
+nv_adma_port_stop function or remove .port_stop field in nv_adma_ops,
+rmmod is ok.
+
+static void nv_adma_port_stop(struct ata_port *ap)
+{
+	struct nv_adma_port_priv *pp = ap->private_data;
+	void __iomem *mmio = pp->ctl_block;
+
+	VPRINTK("ENTER\n");
+-	writew(0, mmio + NV_ADMA_CTL);
+}
+
+Or
+ Place pcim_iomap_regions before ata_pci_prepare_native_host in
+nv_init_one function.
+This can guarantee that the code "writew(0, mmio + NV_ADMA_CTL) " write
+device mem before the device mem is unmapped.
+
+messages:
+Dec 19 02:23:24 localhost kernel: ata16.00: disabled
+Dec 19 02:23:24 localhost kernel: sd 15:0:0:0: [sda] Synchronizing SCSI
+cache
+Dec 19 02:23:24 localhost kernel: sd 15:0:0:0: [sda] Result:
+hostbyte=0x04 driverbyte=0x00
+Dec 19 02:23:24 localhost kernel: sd 15:0:0:0: [sda] Stopping disk
+Dec 19 02:23:24 localhost kernel: sd 15:0:0:0: [sda] START_STOP FAILED
+Dec 19 02:23:24 localhost kernel: sd 15:0:0:0: [sda] Result:
+hostbyte=0x04 driverbyte=0x00
+Dec 19 02:23:24 localhost kernel: BUG: unable to handle kernel paging
+request at virtual address e881a4c0
+Dec 19 02:23:24 localhost kernel: printing eip: e88224e9 *pde = 0180c067
+*pte = 00000000 
+Dec 19 02:23:24 localhost kernel: Oops: 0002 [#1] SMP 
+Dec 19 02:23:24 localhost kernel: Modules linked in: sata_nv libata
+Dec 19 02:23:24 localhost kernel: 
+Dec 19 02:23:24 localhost kernel: Pid: 4915, comm: rmmod Not tainted
+(2.6.24-rc1-ge2e031eb #2)
+Dec 19 02:23:24 localhost kernel: EIP: 0060:[<e88224e9>] EFLAGS:
+00210292 CPU: 1
+Dec 19 02:23:24 localhost kernel: EIP is at nv_adma_port_stop+0x3d/0x53
+[sata_nv]
+Dec 19 02:23:24 localhost kernel: EAX: 00000015 EBX: e881a480 ECX:
+00200046 EDX: 00200046
+Dec 19 02:23:24 localhost kernel: ESI: c220b50c EDI: c1979154 EBP:
+c197904c ESP: c2429ecc
+Dec 19 02:23:24 localhost kernel:  DS: 007b ES: 007b FS: 00d8 GS: 0033
+SS: 0068
+Dec 19 02:23:24 localhost kernel: Process rmmod (pid: 4915, ti=c2428000
+task=c25e5a40 task.ti=c2428000)
+Dec 19 02:23:24 localhost kernel: Stack: e8823e1b e881a480 00000000
+e884398e c220b500 c18a3ec0 c1979154 00000000 
+Dec 19 02:23:24 localhost kernel:        c02818be c1979154 c197904c
+0000000d c18a3ec0 c18a3a40 c197904c e88259d0 
+Dec 19 02:23:24 localhost kernel:        e88259d0 c2428000 c0281987
+00200286 c197904c c027f8bb c1834600 c197904c 
+Dec 19 02:23:24 localhost kernel: Call Trace:
+Dec 19 02:23:24 localhost kernel:  [<e884398e>]
+ata_host_release+0x2f/0x92 [libata]
+Dec 19 02:23:24 localhost kernel:  [<c02818be>]
+release_nodes+0x10f/0x12f
+Dec 19 02:23:24 localhost kernel:  [<c0281987>]
+devres_release_all+0x27/0x2a
+Dec 19 02:23:24 localhost kernel:  [<c027f8bb>]
+__device_release_driver+0x72/0x88
+Dec 19 02:23:24 localhost kernel:  [<c027fccb>] driver_detach+0x76/0xb3
+Dec 19 02:23:24 localhost kernel:  [<c027f49f>]
+bus_remove_driver+0x63/0x81
+Dec 19 02:23:24 localhost kernel:  [<c0228b5a>]
+pci_unregister_driver+0xc/0x57
+Dec 19 02:23:24 localhost kernel:  [<c0143792>]
+sys_delete_module+0x197/0x1bd
+Dec 19 02:23:24 localhost kernel:  [<c0417673>]
+do_page_fault+0x202/0x581
+Dec 19 02:23:24 localhost kernel:  [<c01570ec>] do_munmap+0x193/0x1ac
+Dec 19 02:23:24 localhost kernel:  [<c0104e4e>]
+sysenter_past_esp+0x5f/0x85
+Dec 19 02:23:24 localhost kernel:  =======================
+Dec 19 02:23:24 localhost kernel: Code: 3e 82 e8 e8 b8 30 90 d7 89 5c 24
+04 c7 04 24 0f 3e 82 e8 e8 a8 30 90 d7 8b 5b 10 c7 04 24 1b 3e 82 e8 89
+5c 24 04 e8 95 30 90 d7 <66> c7 43 40 00 00 c7 04 24 29 3e 82 e8 e8 83
+30 90 d7 5b 58 5b 
+Dec 19 02:23:24 localhost kernel: EIP: [<e88224e9>]
+nv_adma_port_stop+0x3d/0x53 [sata_nv] SS:ESP 0068:c2429ecc
+
+Cc: "Kuan Luo" <kluo@nvidia.com>
+Cc: "Jeff Garzik" <jeff@garzik.org>
+Cc: "peer chen" <peerchen@gmail.com>
+Cc: "Robert Hancock" <hancockr@shaw.ca>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/core/hcd-pci.c      |    2 +-
- drivers/usb/host/ehci-fsl.c     |    2 +-
- drivers/usb/host/ohci-ppc-of.c  |    2 +-
- drivers/usb/host/ohci-ssb.c     |    2 +-
- drivers/usb/host/r8a66597-hcd.c |    2 +-
- drivers/usb/host/uhci-hcd.c     |    9 ++++-----
- 6 files changed, 9 insertions(+), 10 deletions(-)
+ drivers/ata/sata_nv.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/core/hcd-pci.c~usb-use-irqf_disabled-for-hcd-interrupt-handlers drivers/usb/core/hcd-pci.c
---- a/drivers/usb/core/hcd-pci.c~usb-use-irqf_disabled-for-hcd-interrupt-handlers
-+++ a/drivers/usb/core/hcd-pci.c
-@@ -125,7 +125,7 @@ int usb_hcd_pci_probe (struct pci_dev *d
+diff -puN drivers/ata/sata_nv.c~sata_nv-fix-oops drivers/ata/sata_nv.c
+--- a/drivers/ata/sata_nv.c~sata_nv-fix-oops
++++ a/drivers/ata/sata_nv.c
+@@ -1211,7 +1211,7 @@ static void nv_adma_port_stop(struct ata
+ 	void __iomem *mmio = pp->ctl_block;
  
- 	pci_set_master (dev);
+ 	VPRINTK("ENTER\n");
+-	writew(0, mmio + NV_ADMA_CTL);
++//	writew(0, mmio + NV_ADMA_CTL);
+ }
  
--	retval = usb_add_hcd (hcd, dev->irq, IRQF_SHARED);
-+	retval = usb_add_hcd(hcd, dev->irq, IRQF_DISABLED | IRQF_SHARED);
- 	if (retval != 0)
- 		goto err4;
- 	return retval;
-diff -puN drivers/usb/host/ehci-fsl.c~usb-use-irqf_disabled-for-hcd-interrupt-handlers drivers/usb/host/ehci-fsl.c
---- a/drivers/usb/host/ehci-fsl.c~usb-use-irqf_disabled-for-hcd-interrupt-handlers
-+++ a/drivers/usb/host/ehci-fsl.c
-@@ -122,7 +122,7 @@ int usb_hcd_fsl_probe(const struct hc_dr
- 	temp = in_le32(hcd->regs + 0x1a8);
- 	out_le32(hcd->regs + 0x1a8, temp | 0x3);
- 
--	retval = usb_add_hcd(hcd, irq, IRQF_SHARED);
-+	retval = usb_add_hcd(hcd, irq, IRQF_DISABLED | IRQF_SHARED);
- 	if (retval != 0)
- 		goto err4;
- 	return retval;
-diff -puN drivers/usb/host/ohci-ppc-of.c~usb-use-irqf_disabled-for-hcd-interrupt-handlers drivers/usb/host/ohci-ppc-of.c
---- a/drivers/usb/host/ohci-ppc-of.c~usb-use-irqf_disabled-for-hcd-interrupt-handlers
-+++ a/drivers/usb/host/ohci-ppc-of.c
-@@ -142,7 +142,7 @@ ohci_hcd_ppc_of_probe(struct of_device *
- 
- 	ohci_hcd_init(ohci);
- 
--	rv = usb_add_hcd(hcd, irq, 0);
-+	rv = usb_add_hcd(hcd, irq, IRQF_DISABLED);
- 	if (rv == 0)
- 		return 0;
- 
-diff -puN drivers/usb/host/ohci-ssb.c~usb-use-irqf_disabled-for-hcd-interrupt-handlers drivers/usb/host/ohci-ssb.c
---- a/drivers/usb/host/ohci-ssb.c~usb-use-irqf_disabled-for-hcd-interrupt-handlers
-+++ a/drivers/usb/host/ohci-ssb.c
-@@ -160,7 +160,7 @@ static int ssb_ohci_attach(struct ssb_de
- 	hcd->regs = ioremap_nocache(hcd->rsrc_start, hcd->rsrc_len);
- 	if (!hcd->regs)
- 		goto err_put_hcd;
--	err = usb_add_hcd(hcd, dev->irq, IRQF_SHARED);
-+	err = usb_add_hcd(hcd, dev->irq, IRQF_DISABLED | IRQF_SHARED);
- 	if (err)
- 		goto err_iounmap;
- 
-diff -puN drivers/usb/host/r8a66597-hcd.c~usb-use-irqf_disabled-for-hcd-interrupt-handlers drivers/usb/host/r8a66597-hcd.c
---- a/drivers/usb/host/r8a66597-hcd.c~usb-use-irqf_disabled-for-hcd-interrupt-handlers
-+++ a/drivers/usb/host/r8a66597-hcd.c
-@@ -2197,7 +2197,7 @@ static int __init r8a66597_probe(struct 
- 	INIT_LIST_HEAD(&r8a66597->child_device);
- 
- 	hcd->rsrc_start = res->start;
--	ret = usb_add_hcd(hcd, irq, 0);
-+	ret = usb_add_hcd(hcd, irq, IRQF_DISABLED);
- 	if (ret != 0) {
- 		err("Failed to add hcd");
- 		goto clean_up;
-diff -puN drivers/usb/host/uhci-hcd.c~usb-use-irqf_disabled-for-hcd-interrupt-handlers drivers/usb/host/uhci-hcd.c
---- a/drivers/usb/host/uhci-hcd.c~usb-use-irqf_disabled-for-hcd-interrupt-handlers
-+++ a/drivers/usb/host/uhci-hcd.c
-@@ -378,7 +378,6 @@ static irqreturn_t uhci_irq(struct usb_h
- {
- 	struct uhci_hcd *uhci = hcd_to_uhci(hcd);
- 	unsigned short status;
--	unsigned long flags;
- 
- 	/*
- 	 * Read the interrupt status, and write it back to clear the
-@@ -398,7 +397,7 @@ static irqreturn_t uhci_irq(struct usb_h
- 			dev_err(uhci_dev(uhci), "host controller process "
- 					"error, something bad happened!\n");
- 		if (status & USBSTS_HCH) {
--			spin_lock_irqsave(&uhci->lock, flags);
-+			spin_lock(&uhci->lock);
- 			if (uhci->rh_state >= UHCI_RH_RUNNING) {
- 				dev_err(uhci_dev(uhci),
- 					"host controller halted, "
-@@ -415,16 +414,16 @@ static irqreturn_t uhci_irq(struct usb_h
- 				 * pending unlinks */
- 				mod_timer(&hcd->rh_timer, jiffies);
- 			}
--			spin_unlock_irqrestore(&uhci->lock, flags);
-+			spin_unlock(&uhci->lock);
- 		}
- 	}
- 
- 	if (status & USBSTS_RD)
- 		usb_hcd_poll_rh_status(hcd);
- 	else {
--		spin_lock_irqsave(&uhci->lock, flags);
-+		spin_lock(&uhci->lock);
- 		uhci_scan_schedule(uhci);
--		spin_unlock_irqrestore(&uhci->lock, flags);
-+		spin_unlock(&uhci->lock);
- 	}
- 
- 	return IRQ_HANDLED;
+ #ifdef CONFIG_PM
 _
 
-Patches currently in -mm which might be from stern@rowland.harvard.edu are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-git-acpi.patch
-ohci-hcdcohci_irq-locking-fix.patch
-scsi-early-detection-of-medium-not-present-updated.patch
-usb-use-irqf_disabled-for-hcd-interrupt-handlers.patch
+revert-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+timerfd-v3-new-timerfd-api-ia64-fix.patch
+timerfd-v3-new-timerfd-api-m68k-fix.patch
+timerfd-v3-new-timerfd-api-mips-fix.patch
+timerfd-v3-new-timerfd-api-arch-fixes.patch
+timerfd-v3-new-timerfd-api-powerpc-fix.patch
+timerfd-v3-new-timerfd-api-sparc64-fix.patch
+git-acpi-ia64-build-fix.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-add-reboot-mechanism.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+git-agpgart.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+kernel-auditc-warning-fix.patch
+git-cpufreq.patch
+git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
+agk-dm-dm-ioctl-move-compat-code-fix.patch
+dm-persistent_read_metadata-warning-fix.patch
+ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+git-drm.patch
+git-drm-oops-fix.patch
+intel-agp-enable-i915-recognition.patch
+git-dvb.patch
+media-video-usbvision-add-mutex_unlock-to-error-paths-fix.patch
+fix-jdelvare-i2c-i2c-constify-client-address-data.patch
+git-hid.patch
+revert-git-hrt.patch
+ia64-slim-down-__clear_bit_unlock.patch
+git-infiniband.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+libata-xfer_mask-is-unsigned-int-not-unsigned-long-fix.patch
+libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
+libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
+git-mmc.patch
+git-mtd.patch
+git-net.patch
+git-net-vs-git-lblnet.patch
+net-use-mutex_is_locked-for-assert_rtnl.patch
+tipc-fix-semaphore-handling.patch
+git-netdev-all.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+bluetooth-uninlining.patch
+git-nfsd.patch
+quirk-enable-msi-mapping-on-ht1000.patch
+kernel-time-make-tick_do_broadcast-static.patch
+git-sh.patch
+git-scsi-misc-fixup.patch
+ips-trim-trailing-whitespace.patch
+scsi-gdth-kill-unneeded-irq-argument.patch
+drivers-scsi-sgiwd93c-export-sgiwd93_reset.patch
+hptiop-add-more-adapter-models-and-other-fixes-checkpatch-fixes.patch
+hptiop-uninline-things.patch
+hptiop-add-more-adapter-models-and-other-fixes-fix-2.patch
+libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+mct232-speed-new-termios-and-compliance-cleanups-fix.patch
+usb-testing-driver-dont-free-a-locked-mutex.patch
+9p-util-fix-semaphore-handling.patch
+git-watchdog.patch
+add-support-for-sb1-hardware-watchdog-fix.patch
+git-wireless.patch
+bcm43xx_debugfs-sscanf-fix.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-__vdso_getcpu-warning-fix.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-xtensa.patch
+bonding-locking-fix.patch
+sata_nv-fix-oops.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-optimise-the-clearing-of-__gfp_zero.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+sync_sb_inodes-propagate-errors.patch
+add-have_oprofile.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-fix.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+logo-move-declarations-of-logos-to-linux_logoh-fix.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+64-bit-i_version-afs-fixes.patch
+ext4-add-block-bitmap-validation.patch
+ext4-fix-up-ext4fs_debug-builds.patch
+ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
