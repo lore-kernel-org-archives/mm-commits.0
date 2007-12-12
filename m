@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drm-dont-cast-a-pointer-to-pointer-of-list_head.patch added to -mm tree
-Date: Wed, 12 Dec 2007 00:59:24 -0800
-Message-ID: <200712120859.lBC8xOjK002091@imap1.linux-foundation.org>
+Subject: + powerpc-dont-cast-a-pointer-to-pointer-of-list_head.patch added to -mm tree
+Date: Wed, 12 Dec 2007 01:00:33 -0800
+Message-ID: <200712120900.lBC90Xd5002125@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47542 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49673 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756410AbXLLI7j (ORCPT
+	by vger.kernel.org with ESMTP id S1757255AbXLLJAk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 03:59:39 -0500
+	Wed, 12 Dec 2007 04:00:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, airlied@linux.ie
+Cc: lizf@cn.fujitsu.com, benh@kernel.crashing.org, galak@gate.crashing.org, paulus@samba.org
 
 
 The patch titled
-     drm: don't cast a pointer to pointer of list_head
+     powerpc: don't cast a pointer to pointer of list_head
 has been added to the -mm tree.  Its filename is
-     drm-dont-cast-a-pointer-to-pointer-of-list_head.patch
+     powerpc-dont-cast-a-pointer-to-pointer-of-list_head.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drm: don't cast a pointer to pointer of list_head
+Subject: powerpc: don't cast a pointer to pointer of list_head
 From: Li Zefan <lizf@cn.fujitsu.com>
 
 The casting is safe only when the list_head member is the first member of
 the structure.
 
 Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Dave Airlie <airlied@linux.ie>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Kumar Gala <galak@gate.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/i915_irq.c |    2 +-
+ arch/ppc/syslib/ocp.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/drm/i915_irq.c~drm-dont-cast-a-pointer-to-pointer-of-list_head drivers/char/drm/i915_irq.c
---- a/drivers/char/drm/i915_irq.c~drm-dont-cast-a-pointer-to-pointer-of-list_head
-+++ a/drivers/char/drm/i915_irq.c
-@@ -699,7 +699,7 @@ int i915_vblank_swap(struct drm_device *
+diff -puN arch/ppc/syslib/ocp.c~powerpc-dont-cast-a-pointer-to-pointer-of-list_head arch/ppc/syslib/ocp.c
+--- a/arch/ppc/syslib/ocp.c~powerpc-dont-cast-a-pointer-to-pointer-of-list_head
++++ a/arch/ppc/syslib/ocp.c
+@@ -376,7 +376,7 @@ ocp_remove_one_device(unsigned int vendo
  
- 	spin_lock_irqsave(&dev_priv->swaps_lock, irqflags);
+ 	down_write(&ocp_devices_sem);
+ 	dev = __ocp_find_device(vendor, function, index);
+-	list_del((struct list_head *)dev);
++	list_del(&dev->link);
+ 	up_write(&ocp_devices_sem);
  
--	list_add_tail((struct list_head *)vbl_swap, &dev_priv->vbl_swaps.head);
-+	list_add_tail(&vbl_swap->head, &dev_priv->vbl_swaps.head);
- 	dev_priv->swaps_pending++;
- 
- 	spin_unlock_irqrestore(&dev_priv->swaps_lock, irqflags);
+ 	DBG(("ocp: ocp_remove_one_device(vendor: %x, function: %x, index: %d)... done.\n", vendor, function, index));
 _
 
 Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
+powerpc-dont-cast-a-pointer-to-pointer-of-list_head.patch
 drm-dont-cast-a-pointer-to-pointer-of-list_head.patch
 git-hid.patch
 git-net.patch
