@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + iwlwifi3945-4965-fix-rate-control-algo-reference-leak.patch added to -mm tree
-Date: Wed, 12 Dec 2007 00:58:38 -0800
-Message-ID: <200712120858.lBC8wc6I002075@imap1.linux-foundation.org>
+Subject: + drm-dont-cast-a-pointer-to-pointer-of-list_head.patch added to -mm tree
+Date: Wed, 12 Dec 2007 00:59:24 -0800
+Message-ID: <200712120859.lBC8xOjK002091@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42887 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47542 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756222AbXLLI7d (ORCPT
+	by vger.kernel.org with ESMTP id S1756410AbXLLI7j (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 03:59:33 -0500
+	Wed, 12 Dec 2007 03:59:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gorcunov@gmail.com, linville@tuxdriver.com, yi.zhu@intel.com
+Cc: lizf@cn.fujitsu.com, airlied@linux.ie
 
 
 The patch titled
-     iwlwifi3945/4965: fix rate control algo reference leak
+     drm: don't cast a pointer to pointer of list_head
 has been added to the -mm tree.  Its filename is
-     iwlwifi3945-4965-fix-rate-control-algo-reference-leak.patch
+     drm-dont-cast-a-pointer-to-pointer-of-list_head.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,60 +26,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: iwlwifi3945/4965: fix rate control algo reference leak
-From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: drm: don't cast a pointer to pointer of list_head
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-Fix rate control algo reference leak in case if network device has been
-failed to register.  In this case special flag priv->mac80211_registered is
-not set and the rate algo reference is not freeing on module unload.  That
-leads to OOPs in further ieee80211 rate register/unregister procedure (by
-any callee).
+The casting is safe only when the list_head member is the first member of
+the structure.
 
-It should fix the bug #9470
-
-	http://bugzilla.kernel.org/show_bug.cgi?id=9470
-
-Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
-Acked-by: Zhu Yi <yi.zhu@intel.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/iwlwifi/iwl3945-base.c |    1 +
- drivers/net/wireless/iwlwifi/iwl4965-base.c |    1 +
- 2 files changed, 2 insertions(+)
+ drivers/char/drm/i915_irq.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/wireless/iwlwifi/iwl3945-base.c~iwlwifi3945-4965-fix-rate-control-algo-reference-leak drivers/net/wireless/iwlwifi/iwl3945-base.c
---- a/drivers/net/wireless/iwlwifi/iwl3945-base.c~iwlwifi3945-4965-fix-rate-control-algo-reference-leak
-+++ a/drivers/net/wireless/iwlwifi/iwl3945-base.c
-@@ -6280,6 +6280,7 @@ static void iwl3945_alive_start(struct i
- 		mutex_lock(&priv->mutex);
+diff -puN drivers/char/drm/i915_irq.c~drm-dont-cast-a-pointer-to-pointer-of-list_head drivers/char/drm/i915_irq.c
+--- a/drivers/char/drm/i915_irq.c~drm-dont-cast-a-pointer-to-pointer-of-list_head
++++ a/drivers/char/drm/i915_irq.c
+@@ -699,7 +699,7 @@ int i915_vblank_swap(struct drm_device *
  
- 		if (rc) {
-+			iwl_rate_control_unregister(priv->hw);
- 			IWL_ERROR("Failed to register network "
- 				  "device (error %d)\n", rc);
- 			return;
-diff -puN drivers/net/wireless/iwlwifi/iwl4965-base.c~iwlwifi3945-4965-fix-rate-control-algo-reference-leak drivers/net/wireless/iwlwifi/iwl4965-base.c
---- a/drivers/net/wireless/iwlwifi/iwl4965-base.c~iwlwifi3945-4965-fix-rate-control-algo-reference-leak
-+++ a/drivers/net/wireless/iwlwifi/iwl4965-base.c
-@@ -6693,6 +6693,7 @@ static void iwl4965_alive_start(struct i
- 		mutex_lock(&priv->mutex);
+ 	spin_lock_irqsave(&dev_priv->swaps_lock, irqflags);
  
- 		if (rc) {
-+			iwl_rate_control_unregister(priv->hw);
- 			IWL_ERROR("Failed to register network "
- 				  "device (error %d)\n", rc);
- 			return;
+-	list_add_tail((struct list_head *)vbl_swap, &dev_priv->vbl_swaps.head);
++	list_add_tail(&vbl_swap->head, &dev_priv->vbl_swaps.head);
+ 	dev_priv->swaps_pending++;
+ 
+ 	spin_unlock_irqrestore(&dev_priv->swaps_lock, irqflags);
 _
 
-Patches currently in -mm which might be from gorcunov@gmail.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
-git-powerpc.patch
-ppc-fix-missed-increment-on-device-interface-counter.patch
-ppc-chrp-fix-possible-null-pointer-dereference.patch
-ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
-net-mac80211-fix-inappropriate-memory-freeing.patch
-git-x86.patch
-ieee80211_rate-missed-unlock.patch
-iwlwifi3945-4965-fix-rate-control-algo-reference-leak.patch
+drm-dont-cast-a-pointer-to-pointer-of-list_head.patch
+git-hid.patch
+git-net.patch
+wireless-libertas-dont-cast-a-pointer-to-pointer-of-list_head.patch
+clocksource-remove-redundant-code.patch
+clockevent-simplify-list-operations.patch
+timekeeping-rename-timekeeping_is_continuous-to-timekeeping_valid_for_hres.patch
+time-fix-typo-in-comments.patch
+time-delete-comments-that-refer-to-noexistent-symbols.patch
