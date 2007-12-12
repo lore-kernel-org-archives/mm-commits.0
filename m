@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + uml-dont-allow-processes-to-call-into-stub.patch added to -mm tree
-Date: Wed, 12 Dec 2007 13:20:08 -0800
-Message-ID: <200712122120.lBCLK8Lc030265@imap1.linux-foundation.org>
+Subject: + uml-dont-kill-pid-0.patch added to -mm tree
+Date: Wed, 12 Dec 2007 13:20:04 -0800
+Message-ID: <200712122120.lBCLK4KW030258@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46905 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56104 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751089AbXLLVUM (ORCPT
+	by vger.kernel.org with ESMTP id S1751968AbXLLVUK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 16:20:12 -0500
+	Wed, 12 Dec 2007 16:20:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     uml: don't allow processes to call into stub
+     uml: don't kill pid 0
 has been added to the -mm tree.  Its filename is
-     uml-dont-allow-processes-to-call-into-stub.patch
+     uml-dont-kill-pid-0.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: don't allow processes to call into stub
+Subject: uml: don't kill pid 0
 From: Jeff Dike <jdike@addtoit.com>
 
-Kill a process that tries to branch into a stub and execute a system
-call.  There are no security implications here - a system call in a
-stub is treated the same as a system call anywhere else.  But if a
-process is trying to branch into a stub, either it is trying something
-nasty or it has gone haywire, so it's a good idea to get rid of it in
-either case.
+A bit of defensive programming - during development, it ocassionally
+happens that a call to init_new_context is missed, resulting in
+context holding a host pid of zero.  When that address space is torn
+down, destroy_context does a kill(0), which instantly kills the whole
+UML without any errors whatsoever.
+
+This patch add a check for pids less than 2, to also catch 1 and
+negative pids.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/skas/process.c |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/um/kernel/skas/mmu.c |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN arch/um/os-Linux/skas/process.c~uml-dont-allow-processes-to-call-into-stub arch/um/os-Linux/skas/process.c
---- a/arch/um/os-Linux/skas/process.c~uml-dont-allow-processes-to-call-into-stub
-+++ a/arch/um/os-Linux/skas/process.c
-@@ -146,6 +146,9 @@ static void handle_trap(int pid, struct 
- {
- 	int err, status;
+diff -puN arch/um/kernel/skas/mmu.c~uml-dont-kill-pid-0 arch/um/kernel/skas/mmu.c
+--- a/arch/um/kernel/skas/mmu.c~uml-dont-kill-pid-0
++++ a/arch/um/kernel/skas/mmu.c
+@@ -164,8 +164,20 @@ void destroy_context(struct mm_struct *m
  
-+	if ((UPT_IP(regs) >= STUB_START) && (UPT_IP(regs) < STUB_END))
-+		fatal_sigsegv();
-+
- 	/* Mark this as a syscall */
- 	UPT_SYSCALL_NR(regs) = PT_SYSCALL_NR(regs->gp);
+ 	if (proc_mm)
+ 		os_close_file(mmu->id.u.mm_fd);
+-	else
++	else {
++		/*
++		 * If init_new_context wasn't called, this will be
++		 * zero, resulting in a kill(0), which will result in the
++		 * whole UML suddenly dying.  Also, cover negative and
++		 * 1 cases, since they shouldn't happen either.
++		 */
++		if (mmu->id.u.pid < 2) {
++			printk(KERN_ERR "corrupt mm_context - pid = %d\n",
++			       mmu->id.u.pid);
++			return;
++		}
+ 		os_kill_ptraced_process(mmu->id.u.pid, 1);
++	}
  
+ 	if (skas_needs_stub)
+ 		free_page(mmu->id.stack);
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
