@@ -1,219 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: - git-dvb-drivers-media-video-et61x251-et61x251_corec-fix-warnings.patch removed from -mm tree
-Date: Thu, 13 Dec 2007 15:32:20 -0800
-Message-ID: <200712132332.lBDNWK1i023954@imap1.linux-foundation.org>
+Subject: - git-net-fix-drivers-net-ns83820c-build.patch removed from -mm tree
+Date: Thu, 13 Dec 2007 15:32:38 -0800
+Message-ID: <200712132332.lBDNWct8023980@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38584 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57993 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756069AbXLMXck (ORCPT
+	by vger.kernel.org with ESMTP id S1756697AbXLMXcm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Dec 2007 18:32:40 -0500
+	Thu, 13 Dec 2007 18:32:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-dvb: drivers/media/video/et61x251/et61x251_core.c: fix warnings
+     git-net: fix drivers/net/ns83820.c build
 has been removed from the -mm tree.  Its filename was
-     git-dvb-drivers-media-video-et61x251-et61x251_corec-fix-warnings.patch
+     git-net-fix-drivers-net-ns83820c-build.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-dvb: drivers/media/video/et61x251/et61x251_core.c: fix warnings
+Subject: git-net: fix drivers/net/ns83820.c build
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/media/video/et61x251/et61x251_core.c:390: warning: 'et61x251_i2c_read' defined but not used
-drivers/media/video/et61x251/et61x251_core.c:397: warning: 'et61x251_i2c_write' defined but not used
-
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/et61x251/et61x251_core.c |  155 ++++++++---------
- 1 file changed, 77 insertions(+), 78 deletions(-)
+ drivers/net/ns83820.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/video/et61x251/et61x251_core.c~git-dvb-drivers-media-video-et61x251-et61x251_corec-fix-warnings drivers/media/video/et61x251/et61x251_core.c
---- a/drivers/media/video/et61x251/et61x251_core.c~git-dvb-drivers-media-video-et61x251-et61x251_corec-fix-warnings
-+++ a/drivers/media/video/et61x251/et61x251_core.c
-@@ -268,72 +268,6 @@ et61x251_i2c_wait(struct et61x251_device
+diff -puN drivers/net/ns83820.c~git-net-fix-drivers-net-ns83820c-build drivers/net/ns83820.c
+--- a/drivers/net/ns83820.c~git-net-fix-drivers-net-ns83820c-build
++++ a/drivers/net/ns83820.c
+@@ -611,7 +611,7 @@ static inline int rx_refill(struct net_d
+ 	return i ? 0 : -ENOMEM;
  }
  
- 
--static int et61x251_i2c_try_read(struct et61x251_device* cam,
--				 const struct et61x251_sensor* sensor,
--				 u8 address)
--{
--	struct usb_device* udev = cam->usbdev;
--	u8* data = cam->control_buffer;
--	int err = 0, res;
--
--	data[0] = address;
--	data[1] = cam->sensor.i2c_slave_id;
--	data[2] = cam->sensor.rsta | 0x10;
--	data[3] = !(et61x251_read_reg(cam, 0x8b) & 0x02);
--	res = usb_control_msg(udev, usb_sndctrlpipe(udev, 0), 0x00, 0x41,
--			      0, 0x88, data, 4, ET61X251_CTRL_TIMEOUT);
--	if (res < 0)
--		err += res;
--
--	err += et61x251_i2c_wait(cam, sensor);
--
--	res = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0), 0x00, 0xc1,
--			      0, 0x80, data, 8, ET61X251_CTRL_TIMEOUT);
--	if (res < 0)
--		err += res;
--
--	if (err)
--		DBG(3, "I2C read failed for %s image sensor", sensor->name);
--
--	PDBGG("I2C read: address 0x%02X, value: 0x%02X", address, data[0]);
--
--	return err ? -1 : (int)data[0];
--}
--
--
--static int et61x251_i2c_try_write(struct et61x251_device* cam,
--				  const struct et61x251_sensor* sensor,
--				  u8 address, u8 value)
--{
--	struct usb_device* udev = cam->usbdev;
--	u8* data = cam->control_buffer;
--	int err = 0, res;
--
--	data[0] = address;
--	data[1] = cam->sensor.i2c_slave_id;
--	data[2] = cam->sensor.rsta | 0x12;
--	res = usb_control_msg(udev, usb_sndctrlpipe(udev, 0), 0x00, 0x41,
--			      0, 0x88, data, 3, ET61X251_CTRL_TIMEOUT);
--	if (res < 0)
--		err += res;
--
--	data[0] = value;
--	res = usb_control_msg(udev, usb_sndctrlpipe(udev, 0), 0x00, 0x41,
--			      0, 0x80, data, 1, ET61X251_CTRL_TIMEOUT);
--	if (res < 0)
--		err += res;
--
--	err += et61x251_i2c_wait(cam, sensor);
--
--	if (err)
--		DBG(3, "I2C write failed for %s image sensor", sensor->name);
--
--	PDBGG("I2C write: address 0x%02X, value: 0x%02X", address, value);
--
--	return err ? -1 : 0;
--}
--
--
- int
- et61x251_i2c_raw_write(struct et61x251_device* cam, u8 n, u8 data1, u8 data2,
- 		       u8 data3, u8 data4, u8 data5, u8 data6, u8 data7,
-@@ -386,18 +320,6 @@ et61x251_i2c_raw_write(struct et61x251_d
- }
- 
- 
--static int et61x251_i2c_read(struct et61x251_device* cam, u8 address)
--{
--	return et61x251_i2c_try_read(cam, &cam->sensor, address);
--}
--
--
--static int et61x251_i2c_write(struct et61x251_device* cam,
--			      u8 address, u8 value)
--{
--	return et61x251_i2c_try_write(cam, &cam->sensor, address, value);
--}
--
- /*****************************************************************************/
- 
- static void et61x251_urb_complete(struct urb *urb)
-@@ -675,6 +597,83 @@ static int et61x251_stream_interrupt(str
- /*****************************************************************************/
- 
- #ifdef CONFIG_VIDEO_ADV_DEBUG
-+
-+static int et61x251_i2c_try_read(struct et61x251_device* cam,
-+				 const struct et61x251_sensor* sensor,
-+				 u8 address)
-+{
-+	struct usb_device* udev = cam->usbdev;
-+	u8* data = cam->control_buffer;
-+	int err = 0, res;
-+
-+	data[0] = address;
-+	data[1] = cam->sensor.i2c_slave_id;
-+	data[2] = cam->sensor.rsta | 0x10;
-+	data[3] = !(et61x251_read_reg(cam, 0x8b) & 0x02);
-+	res = usb_control_msg(udev, usb_sndctrlpipe(udev, 0), 0x00, 0x41,
-+			      0, 0x88, data, 4, ET61X251_CTRL_TIMEOUT);
-+	if (res < 0)
-+		err += res;
-+
-+	err += et61x251_i2c_wait(cam, sensor);
-+
-+	res = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0), 0x00, 0xc1,
-+			      0, 0x80, data, 8, ET61X251_CTRL_TIMEOUT);
-+	if (res < 0)
-+		err += res;
-+
-+	if (err)
-+		DBG(3, "I2C read failed for %s image sensor", sensor->name);
-+
-+	PDBGG("I2C read: address 0x%02X, value: 0x%02X", address, data[0]);
-+
-+	return err ? -1 : (int)data[0];
-+}
-+
-+
-+static int et61x251_i2c_try_write(struct et61x251_device* cam,
-+				  const struct et61x251_sensor* sensor,
-+				  u8 address, u8 value)
-+{
-+	struct usb_device* udev = cam->usbdev;
-+	u8* data = cam->control_buffer;
-+	int err = 0, res;
-+
-+	data[0] = address;
-+	data[1] = cam->sensor.i2c_slave_id;
-+	data[2] = cam->sensor.rsta | 0x12;
-+	res = usb_control_msg(udev, usb_sndctrlpipe(udev, 0), 0x00, 0x41,
-+			      0, 0x88, data, 3, ET61X251_CTRL_TIMEOUT);
-+	if (res < 0)
-+		err += res;
-+
-+	data[0] = value;
-+	res = usb_control_msg(udev, usb_sndctrlpipe(udev, 0), 0x00, 0x41,
-+			      0, 0x80, data, 1, ET61X251_CTRL_TIMEOUT);
-+	if (res < 0)
-+		err += res;
-+
-+	err += et61x251_i2c_wait(cam, sensor);
-+
-+	if (err)
-+		DBG(3, "I2C write failed for %s image sensor", sensor->name);
-+
-+	PDBGG("I2C write: address 0x%02X, value: 0x%02X", address, value);
-+
-+	return err ? -1 : 0;
-+}
-+
-+static int et61x251_i2c_read(struct et61x251_device* cam, u8 address)
-+{
-+	return et61x251_i2c_try_read(cam, &cam->sensor, address);
-+}
-+
-+static int et61x251_i2c_write(struct et61x251_device* cam,
-+			      u8 address, u8 value)
-+{
-+	return et61x251_i2c_try_write(cam, &cam->sensor, address, value);
-+}
-+
- static u8 et61x251_strtou8(const char* buff, size_t len, ssize_t* count)
+-static void rx_refill_atomic(struct net_device *ndev));
++static void rx_refill_atomic(struct net_device *ndev);
+ static void fastcall rx_refill_atomic(struct net_device *ndev)
  {
- 	char str[5];
+ 	rx_refill(ndev, GFP_ATOMIC);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
