@@ -1,77 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - media-video-usbvision-add-mutex_unlock-to-error-paths.patch removed from -mm tree
-Date: Thu, 13 Dec 2007 15:32:22 -0800
-Message-ID: <200712132332.lBDNWMci023959@imap1.linux-foundation.org>
+Subject: - ipsec-fix-reversed-icmp6-policy-check.patch removed from -mm tree
+Date: Thu, 13 Dec 2007 15:32:34 -0800
+Message-ID: <200712132332.lBDNWYLt023974@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47783 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50824 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757501AbXLMXdR (ORCPT
+	by vger.kernel.org with ESMTP id S1757501AbXLMXdM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Dec 2007 18:33:17 -0500
+	Thu, 13 Dec 2007 18:33:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwalker@mvista.com, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: herbert@gondor.apana.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     media: video: usbvision: add mutex_unlock() to error paths
+     ipsec: fix reversed ICMP6 policy check
 has been removed from the -mm tree.  Its filename was
-     media-video-usbvision-add-mutex_unlock-to-error-paths.patch
+     ipsec-fix-reversed-icmp6-policy-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: media: video: usbvision: add mutex_unlock() to error paths
-From: Daniel Walker <dwalker@mvista.com>
+Subject: ipsec: fix reversed ICMP6 policy check
+From: Herbert Xu <herbert@gondor.apana.org.au>
 
-There are a few error paths which don't unlock the usbvision->lock.
+The policy check I added for ICMP on IPv6 is reversed.  This patch fixes
+that.
 
-So I've added mutex_unlock() calls to fix those paths.
+It also adds an skb->sp check so that unprotected packets that fail the
+policy check do not crash the machine.
 
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/usbvision/usbvision-video.c |    2 ++
- 1 file changed, 2 insertions(+)
+ net/ipv4/icmp.c |    2 +-
+ net/ipv6/icmp.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/media/video/usbvision/usbvision-video.c~media-video-usbvision-add-mutex_unlock-to-error-paths drivers/media/video/usbvision/usbvision-video.c
---- a/drivers/media/video/usbvision/usbvision-video.c~media-video-usbvision-add-mutex_unlock-to-error-paths
-+++ a/drivers/media/video/usbvision/usbvision-video.c
-@@ -1290,6 +1290,7 @@ static int usbvision_radio_open(struct i
- 		errCode = usbvision_set_alternate(usbvision);
- 		if (errCode < 0) {
- 			usbvision->last_error = errCode;
-+			mutex_unlock(&usbvision->lock);
- 			return -EBUSY;
- 		}
+diff -puN net/ipv4/icmp.c~ipsec-fix-reversed-icmp6-policy-check net/ipv4/icmp.c
+--- a/net/ipv4/icmp.c~ipsec-fix-reversed-icmp6-policy-check
++++ a/net/ipv4/icmp.c
+@@ -978,7 +978,7 @@ int icmp_rcv(struct sk_buff *skb)
+ 	struct icmphdr *icmph;
+ 	struct rtable *rt = (struct rtable *)skb->dst;
  
-@@ -1807,6 +1808,7 @@ static int __devinit usbvision_probe(str
- 					      usbvision->num_alt,GFP_KERNEL);
- 	if (usbvision->alt_max_pkt_size == NULL) {
- 		err("usbvision: out of memory!\n");
-+		mutex_unlock(&usbvision->lock);
- 		return -ENOMEM;
- 	}
+-	if (!xfrm4_policy_check(NULL, XFRM_POLICY_IN, skb) &&
++	if (!xfrm4_policy_check(NULL, XFRM_POLICY_IN, skb) && skb->sp &&
+ 	    skb->sp->xvec[skb->sp->len - 1]->props.flags & XFRM_STATE_ICMP) {
+ 		int nh;
+ 
+diff -puN net/ipv6/icmp.c~ipsec-fix-reversed-icmp6-policy-check net/ipv6/icmp.c
+--- a/net/ipv6/icmp.c~ipsec-fix-reversed-icmp6-policy-check
++++ a/net/ipv6/icmp.c
+@@ -646,7 +646,7 @@ static int icmpv6_rcv(struct sk_buff *sk
+ 	struct icmp6hdr *hdr;
+ 	int type;
+ 
+-	if (xfrm6_policy_check(NULL, XFRM_POLICY_IN, skb) &&
++	if (!xfrm6_policy_check(NULL, XFRM_POLICY_IN, skb) && skb->sp &&
+ 	    skb->sp->xvec[skb->sp->len - 1]->props.flags & XFRM_STATE_ICMP) {
+ 		int nh;
  
 _
 
-Patches currently in -mm which might be from dwalker@mvista.com are
+Patches currently in -mm which might be from herbert@gondor.apana.org.au are
 
-git-dvb.patch
-usb-testing-driver-dont-free-a-locked-mutex.patch
-mcheck-mce_64-mce_read_sem-to-mutex.patch
-drivers-char-tty_ioc-remove-pty_sem.patch
-drivers-isdn-i4l-isdn_ttyc-remove-write_sem.patch
-unix98-allocated_ptys_lock-semaphore-to-mutex.patch
-docs-kernel-locking-convert-semaphore-references.patch
-stopmachine-semaphore-to-mutex.patch
-stopmachine-semaphore-to-mutex-fix.patch
-amiga-serial-driver-port_write_mutex-fixup.patch
-isapnp-driver-semaphore-to-mutex.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
+origin.patch
+git-net.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+avoid-divide-in-is_align.patch
+remove-rcu_assign_pointer-penalty-for-null-pointers.patch
