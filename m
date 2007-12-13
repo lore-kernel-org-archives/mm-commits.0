@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-fix-allnoconfig-build.patch added to -mm tree
-Date: Wed, 12 Dec 2007 16:24:47 -0800
-Message-ID: <200712130032.lBD0WPt6004767@imap1.linux-foundation.org>
+Subject: + git-dvb-drivers-media-dvb-frontends-zl10353c-avoid-64-bit-divide.patch added to -mm tree
+Date: Wed, 12 Dec 2007 16:43:57 -0800
+Message-ID: <200712130051.lBD0pWb3005476@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50336 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47553 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752548AbXLMAde (ORCPT
+	by vger.kernel.org with ESMTP id S1751087AbXLMAwQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 19:33:34 -0500
+	Wed, 12 Dec 2007 19:52:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, mchehab@infradead.org
 
 
 The patch titled
-     git-x86: fix allnoconfig build
+     git-dvb: drivers/media/dvb/frontends/zl10353.c: avoid 64-bit divide
 has been added to the -mm tree.  Its filename is
-     git-x86-fix-allnoconfig-build.patch
+     git-dvb-drivers-media-dvb-frontends-zl10353c-avoid-64-bit-divide.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,42 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-x86: fix allnoconfig build
+Subject: git-dvb: drivers/media/dvb/frontends/zl10353.c: avoid 64-bit divide
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/mm/built-in.o: In function `vmemmap_populate':
-: undefined reference to `vmemmap_pgd_populate'
-arch/x86/mm/built-in.o: In function `vmemmap_populate':
-: undefined reference to `vmemmap_pud_populate'
-arch/x86/mm/built-in.o: In function `vmemmap_populate':
-: undefined reference to `vmemmap_verify'
-arch/x86/mm/built-in.o: In function `vmemmap_populate':
-: undefined reference to `vmemmap_alloc_block'
+ERROR: "__udivdi3" [fs/gfs2/gfs2.ko] undefined!
+ERROR: "__udivdi3" [drivers/media/dvb/frontends/zl10353.ko] undefined!
 
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/dvb/frontends/zl10353.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/mm/init_64.c~git-x86-fix-allnoconfig-build arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~git-x86-fix-allnoconfig-build
-+++ a/arch/x86/mm/init_64.c
-@@ -711,6 +711,7 @@ const char *arch_vma_name(struct vm_area
- 	return NULL;
- }
+diff -puN drivers/media/dvb/frontends/zl10353.c~git-dvb-drivers-media-dvb-frontends-zl10353c-avoid-64-bit-divide drivers/media/dvb/frontends/zl10353.c
+--- a/drivers/media/dvb/frontends/zl10353.c~git-dvb-drivers-media-dvb-frontends-zl10353c-avoid-64-bit-divide
++++ a/drivers/media/dvb/frontends/zl10353.c
+@@ -144,7 +144,8 @@ static void zl10353_calc_nominal_rate(st
+ 		break;
+ 	}
  
-+#ifdef CONFIG_SPARSEMEM_VMEMMAP
- /*
-  * Initialise the sparsemem vmemmap using huge-pages at the PMD level.
-  */
-@@ -752,3 +753,4 @@ int __meminit vmemmap_populate(struct pa
+-	value = (bw * (u64)10 * (1 << 23) / 7 * 125 + adc_clock / 2);
++	value = (u64)10 * (1 << 23) / 7 * 125;
++	value = (bw * value) + adc_clock / 2;
+ 	do_div(value, adc_clock);
+ 	*nominal_rate = value;
  
- 	return 0;
- }
-+#endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -287,3 +277,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+git-dvb-drivers-media-dvb-frontends-zl10353c-avoid-64-bit-divide.patch
