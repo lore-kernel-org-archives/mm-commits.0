@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-dvb-drivers-media-dvb-frontends-zl10353c-avoid-64-bit-divide.patch added to -mm tree
-Date: Wed, 12 Dec 2007 16:43:57 -0800
-Message-ID: <200712130051.lBD0pWb3005476@imap1.linux-foundation.org>
+Subject: + gfs2-avoid-64-bit-divide.patch added to -mm tree
+Date: Wed, 12 Dec 2007 16:57:32 -0800
+Message-ID: <200712130105.lBD15773005961@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47553 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55845 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751087AbXLMAwQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751492AbXLMBFu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 19:52:16 -0500
+	Wed, 12 Dec 2007 20:05:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mchehab@infradead.org
+Cc: akpm@linux-foundation.org, swhiteho@redhat.com
 
 
 The patch titled
-     git-dvb: drivers/media/dvb/frontends/zl10353.c: avoid 64-bit divide
+     gfs2: avoid 64-bit divide
 has been added to the -mm tree.  Its filename is
-     git-dvb-drivers-media-dvb-frontends-zl10353c-avoid-64-bit-divide.patch
+     gfs2-avoid-64-bit-divide.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,48 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-dvb: drivers/media/dvb/frontends/zl10353.c: avoid 64-bit divide
+Subject: gfs2: avoid 64-bit divide
 From: Andrew Morton <akpm@linux-foundation.org>
 
 ERROR: "__udivdi3" [fs/gfs2/gfs2.ko] undefined!
-ERROR: "__udivdi3" [drivers/media/dvb/frontends/zl10353.ko] undefined!
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+This fixes the build error (faster, too) but the choice of types in there
+looks fishy to me - please re-review.
+
+Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/frontends/zl10353.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/gfs2/ops_fstype.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/media/dvb/frontends/zl10353.c~git-dvb-drivers-media-dvb-frontends-zl10353c-avoid-64-bit-divide drivers/media/dvb/frontends/zl10353.c
---- a/drivers/media/dvb/frontends/zl10353.c~git-dvb-drivers-media-dvb-frontends-zl10353c-avoid-64-bit-divide
-+++ a/drivers/media/dvb/frontends/zl10353.c
-@@ -144,7 +144,8 @@ static void zl10353_calc_nominal_rate(st
- 		break;
- 	}
+diff -puN fs/gfs2/ops_fstype.c~gfs2-avoid-64-bit-divide fs/gfs2/ops_fstype.c
+--- a/fs/gfs2/ops_fstype.c~gfs2-avoid-64-bit-divide
++++ a/fs/gfs2/ops_fstype.c
+@@ -14,6 +14,7 @@
+ #include <linux/buffer_head.h>
+ #include <linux/blkdev.h>
+ #include <linux/kthread.h>
++#include <asm/div64.h>
+ #include <linux/namei.h>
+ #include <linux/mount.h>
+ #include <linux/gfs2_ondisk.h>
+@@ -342,11 +343,14 @@ static int map_journal_extents(struct gf
+ 	struct gfs2_journal_extent *jext = NULL;
+ 	struct buffer_head bh;
+ 	int rc = 0;
++	u64 last_lb;
  
--	value = (bw * (u64)10 * (1 << 23) / 7 * 125 + adc_clock / 2);
-+	value = (u64)10 * (1 << 23) / 7 * 125;
-+	value = (bw * value) + adc_clock / 2;
- 	do_div(value, adc_clock);
- 	*nominal_rate = value;
+ 	INIT_LIST_HEAD(&jd->extent_list);
+ 	prev_db = 0;
  
+-	for (lb = 0; lb < ip->i_di.di_size / sdp->sd_sb.sb_bsize; lb++) {
++	last_lb = ip->i_di.di_size;
++	do_div(last_lb, sdp->sd_sb.sb_bsize);
++	for (lb = 0; lb < last_lb; lb++) {
+ 		bh.b_state = 0;
+ 		bh.b_blocknr = 0;
+ 		bh.b_size = 1 << ip->i_inode.i_blkbits;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,6 +106,7 @@ intel-agp-enable-i915-recognition.patch
 git-dvb.patch
 git-dvb-fix-build-in-drivers-media-dvb-frontends-tda18271h.patch
 git-dvb-one-videobuf_read_start-is-enough.patch
+git-dvb-drivers-media-dvb-frontends-zl10353c-avoid-64-bit-divide.patch
 git-dvb-drivers-media-video-et61x251-et61x251_corec-fix-warnings.patch
 media-video-usbvision-add-mutex_unlock-to-error-paths-fix.patch
 fix-jdelvare-i2c-i2c-constify-client-address-data.patch
@@ -277,4 +294,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-git-dvb-drivers-media-dvb-frontends-zl10353c-avoid-64-bit-divide.patch
+gfs2-avoid-64-bit-divide.patch
