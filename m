@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + iwlwifi3945-4965-fix-rate-control-algo-reference-leak-fix.patch added to -mm tree
-Date: Wed, 12 Dec 2007 15:38:19 -0800
-Message-ID: <200712122345.lBCNjtBl003203@imap1.linux-foundation.org>
+Subject: + git-x86-fix-allnoconfig-build.patch added to -mm tree
+Date: Wed, 12 Dec 2007 16:24:47 -0800
+Message-ID: <200712130032.lBD0WPt6004767@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50535 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50336 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752115AbXLLXrE (ORCPT
+	by vger.kernel.org with ESMTP id S1752548AbXLMAde (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 18:47:04 -0500
+	Wed, 12 Dec 2007 19:33:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, gorcunov@gmail.com, linville@tuxdriver.com, yi.zhu@intel.com
+Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     iwlwifi3945-4965-fix-rate-control-algo-reference-leak-fix
+     git-x86: fix allnoconfig build
 has been added to the -mm tree.  Its filename is
-     iwlwifi3945-4965-fix-rate-control-algo-reference-leak-fix.patch
+     git-x86-fix-allnoconfig-build.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,43 +26,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: iwlwifi3945-4965-fix-rate-control-algo-reference-leak-fix
+Subject: git-x86: fix allnoconfig build
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: Cyrill Gorcunov <gorcunov@gmail.com>
-Cc: Zhu Yi <yi.zhu@intel.com>
+arch/x86/mm/built-in.o: In function `vmemmap_populate':
+: undefined reference to `vmemmap_pgd_populate'
+arch/x86/mm/built-in.o: In function `vmemmap_populate':
+: undefined reference to `vmemmap_pud_populate'
+arch/x86/mm/built-in.o: In function `vmemmap_populate':
+: undefined reference to `vmemmap_verify'
+arch/x86/mm/built-in.o: In function `vmemmap_populate':
+: undefined reference to `vmemmap_alloc_block'
+
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/iwlwifi/iwl3945-base.c |    2 +-
- drivers/net/wireless/iwlwifi/iwl4965-base.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/mm/init_64.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/net/wireless/iwlwifi/iwl3945-base.c~iwlwifi3945-4965-fix-rate-control-algo-reference-leak-fix drivers/net/wireless/iwlwifi/iwl3945-base.c
---- a/drivers/net/wireless/iwlwifi/iwl3945-base.c~iwlwifi3945-4965-fix-rate-control-algo-reference-leak-fix
-+++ a/drivers/net/wireless/iwlwifi/iwl3945-base.c
-@@ -6280,7 +6280,7 @@ static void iwl3945_alive_start(struct i
- 		mutex_lock(&priv->mutex);
+diff -puN arch/x86/mm/init_64.c~git-x86-fix-allnoconfig-build arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~git-x86-fix-allnoconfig-build
++++ a/arch/x86/mm/init_64.c
+@@ -711,6 +711,7 @@ const char *arch_vma_name(struct vm_area
+ 	return NULL;
+ }
  
- 		if (rc) {
--			iwl_rate_control_unregister(priv->hw);
-+			iwl3945_rate_control_unregister(priv->hw);
- 			IWL_ERROR("Failed to register network "
- 				  "device (error %d)\n", rc);
- 			return;
-diff -puN drivers/net/wireless/iwlwifi/iwl4965-base.c~iwlwifi3945-4965-fix-rate-control-algo-reference-leak-fix drivers/net/wireless/iwlwifi/iwl4965-base.c
---- a/drivers/net/wireless/iwlwifi/iwl4965-base.c~iwlwifi3945-4965-fix-rate-control-algo-reference-leak-fix
-+++ a/drivers/net/wireless/iwlwifi/iwl4965-base.c
-@@ -6693,7 +6693,7 @@ static void iwl4965_alive_start(struct i
- 		mutex_lock(&priv->mutex);
++#ifdef CONFIG_SPARSEMEM_VMEMMAP
+ /*
+  * Initialise the sparsemem vmemmap using huge-pages at the PMD level.
+  */
+@@ -752,3 +753,4 @@ int __meminit vmemmap_populate(struct pa
  
- 		if (rc) {
--			iwl_rate_control_unregister(priv->hw);
-+			iwl4965_rate_control_unregister(priv->hw);
- 			IWL_ERROR("Failed to register network "
- 				  "device (error %d)\n", rc);
- 			return;
+ 	return 0;
+ }
++#endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -150,6 +149,7 @@ git-wireless.patch
 git-ipwireless_cs.patch
 git-x86.patch
 git-x86-__vdso_getcpu-warning-fix.patch
+git-x86-fix-allnoconfig-build.patch
 git-cryptodev.patch
 git-cryptodev-fixup.patch
 git-xtensa.patch
