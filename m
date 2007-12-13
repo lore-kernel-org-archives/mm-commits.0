@@ -1,178 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - revert-gregkh-driver-infiband-make-ipath-driver-use-default-driver-groups.patch removed from -mm tree
-Date: Wed, 12 Dec 2007 17:41:43 -0800
-Message-ID: <200712130141.lBD1fhbN007153@imap1.linux-foundation.org>
+Subject: - greg-broke-infiniband-again.patch removed from -mm tree
+Date: Wed, 12 Dec 2007 17:41:46 -0800
+Message-ID: <200712130141.lBD1fkJm007156@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41649 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34815 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751561AbXLMBlr (ORCPT
+	by vger.kernel.org with ESMTP id S1751653AbXLMBlu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 20:41:47 -0500
+	Wed, 12 Dec 2007 20:41:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert gregkh-driver-infiband-make-ipath-driver-use-default-driver-groups
+     greg-broke-infiniband-again
 has been removed from the -mm tree.  Its filename was
-     revert-gregkh-driver-infiband-make-ipath-driver-use-default-driver-groups.patch
+     greg-broke-infiniband-again.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: revert gregkh-driver-infiband-make-ipath-driver-use-default-driver-groups
+Subject: greg-broke-infiniband-again
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/infiniband/hw/ipath/ipath_verbs.o: In function `ipath_copy_sge':
-drivers/infiniband/hw/ipath/ipath_verbs.c:161: multiple definition of `ipath_driver_attr_groups'
-drivers/infiniband/hw/ipath/ipath_cq.o:drivers/infiniband/hw/ipath/ipath_cq.c:167: first defined here
-drivers/infiniband/hw/ipath/ipath_iba6110.o: In function `ipath_setup_ht_setextled':
-drivers/infiniband/hw/ipath/ipath_iba6110.c:1024: multiple definition of `ipath_driver_attr_groups'
-drivers/infiniband/hw/ipath/ipath_cq.o:drivers/infiniband/hw/ipath/ipath_cq.c:167: first defined here
-drivers/infiniband/hw/ipath/ipath_iba6120.o: In function `ipath_setup_pe_setextled':
-drivers/infiniband/hw/ipath/ipath_iba6120.c:787: multiple definition of `ipath_driver_attr_groups'
-drivers/infiniband/hw/ipath/ipath_cq.o:drivers/infiniband/hw/ipath/ipath_cq.c:167: first defined here
-drivers/infiniband/hw/ipath/ipath_wc_x86_64.o: In function `ipath_enable_wc':
-drivers/infiniband/hw/ipath/ipath_wc_x86_64.c:53: multiple definition of `ipath_driver_attr_groups'
-drivers/infiniband/hw/ipath/ipath_cq.o:drivers/infiniband/hw/ipath/ipath_cq.c:167: first defined here
+drivers/infiniband/hw/ipath/ipath_sysfs.c: In function 'ipath_driver_create_group':
+drivers/infiniband/hw/ipath/ipath_sysfs.c:760: error: 'struct device_driver' has no member named 'kobj'
+drivers/infiniband/hw/ipath/ipath_sysfs.c: In function 'ipath_driver_remove_group':
+drivers/infiniband/hw/ipath/ipath_sysfs.c:767: error: 'struct device_driver' has no member named 'kobj'
+drivers/infiniband/hw/ipath/ipath_sysfs.c: In function 'ipath_device_create_group':
+drivers/infiniband/hw/ipath/ipath_sysfs.c:784: error: 'struct device_driver' has no member named 'kobj'
+drivers/infiniband/hw/ipath/ipath_sysfs.c: In function 'ipath_device_remove_group':
+drivers/infiniband/hw/ipath/ipath_sysfs.c:800: error: 'struct device_driver' has no member named 'kobj'
+
+sigh
 
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/ipath/ipath_driver.c |   17 ++++++++--
- drivers/infiniband/hw/ipath/ipath_kernel.h |    3 +
- drivers/infiniband/hw/ipath/ipath_sysfs.c  |   30 +++++++++++++++----
- 3 files changed, 40 insertions(+), 10 deletions(-)
+ drivers/infiniband/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/infiniband/hw/ipath/ipath_driver.c~revert-gregkh-driver-infiband-make-ipath-driver-use-default-driver-groups drivers/infiniband/hw/ipath/ipath_driver.c
---- a/drivers/infiniband/hw/ipath/ipath_driver.c~revert-gregkh-driver-infiband-make-ipath-driver-use-default-driver-groups
-+++ a/drivers/infiniband/hw/ipath/ipath_driver.c
-@@ -121,9 +121,6 @@ static struct pci_driver ipath_driver = 
- 	.probe = ipath_init_one,
- 	.remove = __devexit_p(ipath_remove_one),
- 	.id_table = ipath_pci_tbl,
--	.driver = {
--		.groups = ipath_driver_attr_groups,
--	},
- };
- 
- static void ipath_check_status(struct work_struct *work)
-@@ -2220,15 +2217,25 @@ static int __init infinipath_init(void)
- 		goto bail_unit;
- 	}
- 
-+	ret = ipath_driver_create_group(&ipath_driver.driver);
-+	if (ret < 0) {
-+		printk(KERN_ERR IPATH_DRV_NAME ": Unable to create driver "
-+		       "sysfs entries: error %d\n", -ret);
-+		goto bail_pci;
-+	}
-+
- 	ret = ipath_init_ipathfs();
- 	if (ret < 0) {
- 		printk(KERN_ERR IPATH_DRV_NAME ": Unable to create "
- 		       "ipathfs: error %d\n", -ret);
--		goto bail_pci;
-+		goto bail_group;
- 	}
- 
- 	goto bail;
- 
-+bail_group:
-+	ipath_driver_remove_group(&ipath_driver.driver);
-+
- bail_pci:
- 	pci_unregister_driver(&ipath_driver);
- 
-@@ -2243,6 +2250,8 @@ static void __exit infinipath_cleanup(vo
- {
- 	ipath_exit_ipathfs();
- 
-+	ipath_driver_remove_group(&ipath_driver.driver);
-+
- 	ipath_cdbg(VERBOSE, "Unregistering pci driver\n");
- 	pci_unregister_driver(&ipath_driver);
- 
-diff -puN drivers/infiniband/hw/ipath/ipath_kernel.h~revert-gregkh-driver-infiband-make-ipath-driver-use-default-driver-groups drivers/infiniband/hw/ipath/ipath_kernel.h
---- a/drivers/infiniband/hw/ipath/ipath_kernel.h~revert-gregkh-driver-infiband-make-ipath-driver-use-default-driver-groups
-+++ a/drivers/infiniband/hw/ipath/ipath_kernel.h
-@@ -938,7 +938,8 @@ struct device_driver;
- 
- extern const char ib_ipath_version[];
- 
--struct attribute_group *ipath_driver_attr_groups[];
-+int ipath_driver_create_group(struct device_driver *);
-+void ipath_driver_remove_group(struct device_driver *);
- 
- int ipath_device_create_group(struct device *, struct ipath_devdata *);
- void ipath_device_remove_group(struct device *, struct ipath_devdata *);
-diff -puN drivers/infiniband/hw/ipath/ipath_sysfs.c~revert-gregkh-driver-infiband-make-ipath-driver-use-default-driver-groups drivers/infiniband/hw/ipath/ipath_sysfs.c
---- a/drivers/infiniband/hw/ipath/ipath_sysfs.c~revert-gregkh-driver-infiband-make-ipath-driver-use-default-driver-groups
-+++ a/drivers/infiniband/hw/ipath/ipath_sysfs.c
-@@ -683,11 +683,6 @@ static struct attribute_group driver_att
- 	.attrs = driver_attributes
- };
- 
--struct attribute_group *ipath_driver_attr_groups[] = {
--	&driver_attr_group,
--	NULL,
--};
--
- static DEVICE_ATTR(guid, S_IWUSR | S_IRUGO, show_guid, store_guid);
- static DEVICE_ATTR(lmc, S_IWUSR | S_IRUGO, show_lmc, store_lmc);
- static DEVICE_ATTR(lid, S_IWUSR | S_IRUGO, show_lid, store_lid);
-@@ -758,9 +753,24 @@ int ipath_expose_reset(struct device *de
- 	return ret;
- }
- 
-+int ipath_driver_create_group(struct device_driver *drv)
-+{
-+	int ret;
-+
-+	ret = sysfs_create_group(&drv->kobj, &driver_attr_group);
-+
-+	return ret;
-+}
-+
-+void ipath_driver_remove_group(struct device_driver *drv)
-+{
-+	sysfs_remove_group(&drv->kobj, &driver_attr_group);
-+}
-+
- int ipath_device_create_group(struct device *dev, struct ipath_devdata *dd)
- {
- 	int ret;
-+	char unit[5];
- 
- 	ret = sysfs_create_group(&dev->kobj, &dev_attr_group);
- 	if (ret)
-@@ -770,6 +780,11 @@ int ipath_device_create_group(struct dev
- 	if (ret)
- 		goto bail_attrs;
- 
-+	snprintf(unit, sizeof(unit), "%02d", dd->ipath_unit);
-+	ret = sysfs_create_link(&dev->driver->kobj, &dev->kobj, unit);
-+	if (ret == 0)
-+		goto bail;
-+
- 	sysfs_remove_group(&dev->kobj, &dev_counter_attr_group);
- bail_attrs:
- 	sysfs_remove_group(&dev->kobj, &dev_attr_group);
-@@ -779,6 +794,11 @@ bail:
- 
- void ipath_device_remove_group(struct device *dev, struct ipath_devdata *dd)
- {
-+	char unit[5];
-+
-+	snprintf(unit, sizeof(unit), "%02d", dd->ipath_unit);
-+	sysfs_remove_link(&dev->driver->kobj, unit);
-+
- 	sysfs_remove_group(&dev->kobj, &dev_counter_attr_group);
- 	sysfs_remove_group(&dev->kobj, &dev_attr_group);
- 
+diff -puN drivers/infiniband/Kconfig~greg-broke-infiniband-again drivers/infiniband/Kconfig
+--- a/drivers/infiniband/Kconfig~greg-broke-infiniband-again
++++ a/drivers/infiniband/Kconfig
+@@ -1,6 +1,7 @@
+ menuconfig INFINIBAND
+ 	tristate "InfiniBand support"
+ 	depends on PCI || BROKEN
++	depends on BROKEN
+ 	depends on HAS_IOMEM
+ 	---help---
+ 	  Core support for InfiniBand (IB).  Make sure to also select
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -201,7 +82,6 @@ git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
 agk-dm-dm-ioctl-move-compat-code-fix.patch
 dm-persistent_read_metadata-warning-fix.patch
 ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
-revert-gregkh-driver-infiband-make-ipath-driver-use-default-driver-groups.patch
 greg-broke-infiniband-again.patch
 gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
 unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
