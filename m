@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-acpi-build-fix.patch added to -mm tree
-Date: Wed, 12 Dec 2007 19:43:10 -0800
-Message-ID: <200712130343.lBD3hAmY011894@imap1.linux-foundation.org>
+Subject: + mips-fix-makefile-borkage.patch added to -mm tree
+Date: Wed, 12 Dec 2007 20:15:13 -0800
+Message-ID: <200712130415.lBD4FDJd012890@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39275 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33663 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752105AbXLMDnp (ORCPT
+	by vger.kernel.org with ESMTP id S1750905AbXLMEPZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 22:43:45 -0500
+	Wed, 12 Dec 2007 23:15:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, lenb@kernel.org, rjw@sisk.pl
+Cc: akpm@linux-foundation.org, ralf@linux-mips.org
 
 
 The patch titled
-     git-acpi build fix
+     mips: fix Makefile borkage
 has been added to the -mm tree.  Its filename is
-     git-acpi-build-fix.patch
+     mips-fix-makefile-borkage.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-acpi build fix
+Subject: mips: fix Makefile borkage
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ia64 allmodconfig:
+/usr/src/devel/arch/mips/Makefile:625: Extraneous text after `else' directive
 
-kernel/power/main.c:493: error: `pm_test_attr' undeclared here (not in a function)
-
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/main.c |    3 ---
- 1 file changed, 3 deletions(-)
+ arch/mips/Makefile |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN kernel/power/main.c~git-acpi-build-fix kernel/power/main.c
---- a/kernel/power/main.c~git-acpi-build-fix
-+++ a/kernel/power/main.c
-@@ -489,9 +489,6 @@ static struct attribute * g[] = {
- #ifdef CONFIG_PM_TRACE
- 	&pm_trace_attr.attr,
- #endif
--#ifdef CONFIG_PM_DEBUG
--	&pm_test_attr.attr,
--#endif
- 	NULL,
- };
+diff -puN arch/mips/Makefile~mips-fix-makefile-borkage arch/mips/Makefile
+--- a/arch/mips/Makefile~mips-fix-makefile-borkage
++++ a/arch/mips/Makefile
+@@ -622,8 +622,10 @@ ifdef CONFIG_64BIT
+ 
+   ifeq ($(KBUILD_SYM32)$(call cc-option-yn,-msym32), yy)
+     cflags-y += -msym32 -DKBUILD_64BIT_SYM32
+-  else ifeq ($(CONFIG_CPU_DADDI_WORKAROUNDS), y)
+-    $(error CONFIG_CPU_DADDI_WORKAROUNDS unsupported without -msym32)
++  else
++    ifeq ($(CONFIG_CPU_DADDI_WORKAROUNDS), y)
++      $(error CONFIG_CPU_DADDI_WORKAROUNDS unsupported without -msym32)
++    endif
+   endif
+ endif
  
 _
 
@@ -69,6 +69,7 @@ timerfd-v3-new-timerfd-api-arch-fixes.patch
 timerfd-v3-new-timerfd-api-powerpc-fix.patch
 timerfd-v3-new-timerfd-api-sparc64-fix.patch
 git-acpi-ia64-build-fix.patch
+git-acpi-build-fix.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 acpi-add-reboot-mechanism.patch
 small-acpica-extension-to-be-able-to-store-the-name-of.patch
@@ -282,4 +283,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-git-acpi-build-fix.patch
+mips-fix-makefile-borkage.patch
