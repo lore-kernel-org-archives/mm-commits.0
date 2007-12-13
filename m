@@ -1,53 +1,219 @@
 From: akpm@linux-foundation.org
-Subject: - git-dvb-drivers-media-dvb-frontends-zl10353c-avoid-64-bit-divide.patch removed from -mm tree
-Date: Thu, 13 Dec 2007 15:32:18 -0800
-Message-ID: <200712132332.lBDNWIFu023951@imap1.linux-foundation.org>
+Subject: - git-dvb-drivers-media-video-et61x251-et61x251_corec-fix-warnings.patch removed from -mm tree
+Date: Thu, 13 Dec 2007 15:32:20 -0800
+Message-ID: <200712132332.lBDNWK1i023954@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37784 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38584 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756061AbXLMXcd (ORCPT
+	by vger.kernel.org with ESMTP id S1756069AbXLMXck (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Dec 2007 18:32:33 -0500
+	Thu, 13 Dec 2007 18:32:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-dvb: drivers/media/dvb/frontends/zl10353.c: avoid 64-bit divide
+     git-dvb: drivers/media/video/et61x251/et61x251_core.c: fix warnings
 has been removed from the -mm tree.  Its filename was
-     git-dvb-drivers-media-dvb-frontends-zl10353c-avoid-64-bit-divide.patch
+     git-dvb-drivers-media-video-et61x251-et61x251_corec-fix-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-dvb: drivers/media/dvb/frontends/zl10353.c: avoid 64-bit divide
+Subject: git-dvb: drivers/media/video/et61x251/et61x251_core.c: fix warnings
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "__udivdi3" [fs/gfs2/gfs2.ko] undefined!
-ERROR: "__udivdi3" [drivers/media/dvb/frontends/zl10353.ko] undefined!
+drivers/media/video/et61x251/et61x251_core.c:390: warning: 'et61x251_i2c_read' defined but not used
+drivers/media/video/et61x251/et61x251_core.c:397: warning: 'et61x251_i2c_write' defined but not used
 
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/frontends/zl10353.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/media/video/et61x251/et61x251_core.c |  155 ++++++++---------
+ 1 file changed, 77 insertions(+), 78 deletions(-)
 
-diff -puN drivers/media/dvb/frontends/zl10353.c~git-dvb-drivers-media-dvb-frontends-zl10353c-avoid-64-bit-divide drivers/media/dvb/frontends/zl10353.c
---- a/drivers/media/dvb/frontends/zl10353.c~git-dvb-drivers-media-dvb-frontends-zl10353c-avoid-64-bit-divide
-+++ a/drivers/media/dvb/frontends/zl10353.c
-@@ -144,7 +144,8 @@ static void zl10353_calc_nominal_rate(st
- 		break;
- 	}
+diff -puN drivers/media/video/et61x251/et61x251_core.c~git-dvb-drivers-media-video-et61x251-et61x251_corec-fix-warnings drivers/media/video/et61x251/et61x251_core.c
+--- a/drivers/media/video/et61x251/et61x251_core.c~git-dvb-drivers-media-video-et61x251-et61x251_corec-fix-warnings
++++ a/drivers/media/video/et61x251/et61x251_core.c
+@@ -268,72 +268,6 @@ et61x251_i2c_wait(struct et61x251_device
+ }
  
--	value = (bw * (u64)10 * (1 << 23) / 7 * 125 + adc_clock / 2);
-+	value = (u64)10 * (1 << 23) / 7 * 125;
-+	value = (bw * value) + adc_clock / 2;
- 	do_div(value, adc_clock);
- 	*nominal_rate = value;
  
+-static int et61x251_i2c_try_read(struct et61x251_device* cam,
+-				 const struct et61x251_sensor* sensor,
+-				 u8 address)
+-{
+-	struct usb_device* udev = cam->usbdev;
+-	u8* data = cam->control_buffer;
+-	int err = 0, res;
+-
+-	data[0] = address;
+-	data[1] = cam->sensor.i2c_slave_id;
+-	data[2] = cam->sensor.rsta | 0x10;
+-	data[3] = !(et61x251_read_reg(cam, 0x8b) & 0x02);
+-	res = usb_control_msg(udev, usb_sndctrlpipe(udev, 0), 0x00, 0x41,
+-			      0, 0x88, data, 4, ET61X251_CTRL_TIMEOUT);
+-	if (res < 0)
+-		err += res;
+-
+-	err += et61x251_i2c_wait(cam, sensor);
+-
+-	res = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0), 0x00, 0xc1,
+-			      0, 0x80, data, 8, ET61X251_CTRL_TIMEOUT);
+-	if (res < 0)
+-		err += res;
+-
+-	if (err)
+-		DBG(3, "I2C read failed for %s image sensor", sensor->name);
+-
+-	PDBGG("I2C read: address 0x%02X, value: 0x%02X", address, data[0]);
+-
+-	return err ? -1 : (int)data[0];
+-}
+-
+-
+-static int et61x251_i2c_try_write(struct et61x251_device* cam,
+-				  const struct et61x251_sensor* sensor,
+-				  u8 address, u8 value)
+-{
+-	struct usb_device* udev = cam->usbdev;
+-	u8* data = cam->control_buffer;
+-	int err = 0, res;
+-
+-	data[0] = address;
+-	data[1] = cam->sensor.i2c_slave_id;
+-	data[2] = cam->sensor.rsta | 0x12;
+-	res = usb_control_msg(udev, usb_sndctrlpipe(udev, 0), 0x00, 0x41,
+-			      0, 0x88, data, 3, ET61X251_CTRL_TIMEOUT);
+-	if (res < 0)
+-		err += res;
+-
+-	data[0] = value;
+-	res = usb_control_msg(udev, usb_sndctrlpipe(udev, 0), 0x00, 0x41,
+-			      0, 0x80, data, 1, ET61X251_CTRL_TIMEOUT);
+-	if (res < 0)
+-		err += res;
+-
+-	err += et61x251_i2c_wait(cam, sensor);
+-
+-	if (err)
+-		DBG(3, "I2C write failed for %s image sensor", sensor->name);
+-
+-	PDBGG("I2C write: address 0x%02X, value: 0x%02X", address, value);
+-
+-	return err ? -1 : 0;
+-}
+-
+-
+ int
+ et61x251_i2c_raw_write(struct et61x251_device* cam, u8 n, u8 data1, u8 data2,
+ 		       u8 data3, u8 data4, u8 data5, u8 data6, u8 data7,
+@@ -386,18 +320,6 @@ et61x251_i2c_raw_write(struct et61x251_d
+ }
+ 
+ 
+-static int et61x251_i2c_read(struct et61x251_device* cam, u8 address)
+-{
+-	return et61x251_i2c_try_read(cam, &cam->sensor, address);
+-}
+-
+-
+-static int et61x251_i2c_write(struct et61x251_device* cam,
+-			      u8 address, u8 value)
+-{
+-	return et61x251_i2c_try_write(cam, &cam->sensor, address, value);
+-}
+-
+ /*****************************************************************************/
+ 
+ static void et61x251_urb_complete(struct urb *urb)
+@@ -675,6 +597,83 @@ static int et61x251_stream_interrupt(str
+ /*****************************************************************************/
+ 
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
++
++static int et61x251_i2c_try_read(struct et61x251_device* cam,
++				 const struct et61x251_sensor* sensor,
++				 u8 address)
++{
++	struct usb_device* udev = cam->usbdev;
++	u8* data = cam->control_buffer;
++	int err = 0, res;
++
++	data[0] = address;
++	data[1] = cam->sensor.i2c_slave_id;
++	data[2] = cam->sensor.rsta | 0x10;
++	data[3] = !(et61x251_read_reg(cam, 0x8b) & 0x02);
++	res = usb_control_msg(udev, usb_sndctrlpipe(udev, 0), 0x00, 0x41,
++			      0, 0x88, data, 4, ET61X251_CTRL_TIMEOUT);
++	if (res < 0)
++		err += res;
++
++	err += et61x251_i2c_wait(cam, sensor);
++
++	res = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0), 0x00, 0xc1,
++			      0, 0x80, data, 8, ET61X251_CTRL_TIMEOUT);
++	if (res < 0)
++		err += res;
++
++	if (err)
++		DBG(3, "I2C read failed for %s image sensor", sensor->name);
++
++	PDBGG("I2C read: address 0x%02X, value: 0x%02X", address, data[0]);
++
++	return err ? -1 : (int)data[0];
++}
++
++
++static int et61x251_i2c_try_write(struct et61x251_device* cam,
++				  const struct et61x251_sensor* sensor,
++				  u8 address, u8 value)
++{
++	struct usb_device* udev = cam->usbdev;
++	u8* data = cam->control_buffer;
++	int err = 0, res;
++
++	data[0] = address;
++	data[1] = cam->sensor.i2c_slave_id;
++	data[2] = cam->sensor.rsta | 0x12;
++	res = usb_control_msg(udev, usb_sndctrlpipe(udev, 0), 0x00, 0x41,
++			      0, 0x88, data, 3, ET61X251_CTRL_TIMEOUT);
++	if (res < 0)
++		err += res;
++
++	data[0] = value;
++	res = usb_control_msg(udev, usb_sndctrlpipe(udev, 0), 0x00, 0x41,
++			      0, 0x80, data, 1, ET61X251_CTRL_TIMEOUT);
++	if (res < 0)
++		err += res;
++
++	err += et61x251_i2c_wait(cam, sensor);
++
++	if (err)
++		DBG(3, "I2C write failed for %s image sensor", sensor->name);
++
++	PDBGG("I2C write: address 0x%02X, value: 0x%02X", address, value);
++
++	return err ? -1 : 0;
++}
++
++static int et61x251_i2c_read(struct et61x251_device* cam, u8 address)
++{
++	return et61x251_i2c_try_read(cam, &cam->sensor, address);
++}
++
++static int et61x251_i2c_write(struct et61x251_device* cam,
++			      u8 address, u8 value)
++{
++	return et61x251_i2c_try_write(cam, &cam->sensor, address, value);
++}
++
+ static u8 et61x251_strtou8(const char* buff, size_t len, ssize_t* count)
+ {
+ 	char str[5];
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
