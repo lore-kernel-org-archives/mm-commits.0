@@ -1,59 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - greg-broke-infiniband-again.patch removed from -mm tree
-Date: Wed, 12 Dec 2007 17:41:46 -0800
-Message-ID: <200712130141.lBD1fkJm007156@imap1.linux-foundation.org>
+Subject: + alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch added to -mm tree
+Date: Wed, 12 Dec 2007 18:06:28 -0800
+Message-ID: <200712130214.lBD2E3uY008245@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34815 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52801 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751653AbXLMBlu (ORCPT
+	by vger.kernel.org with ESMTP id S1751769AbXLMCO2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 20:41:50 -0500
+	Wed, 12 Dec 2007 21:14:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, ink@jurassic.park.msu.ru, rth@twiddle.net
 
 
 The patch titled
-     greg-broke-infiniband-again
-has been removed from the -mm tree.  Its filename was
-     greg-broke-infiniband-again.patch
+     alpha: fix warning by fixing flush_tlb_kernel_range()
+has been added to the -mm tree.  Its filename is
+     alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: greg-broke-infiniband-again
+Subject: alpha: fix warning by fixing flush_tlb_kernel_range()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/infiniband/hw/ipath/ipath_sysfs.c: In function 'ipath_driver_create_group':
-drivers/infiniband/hw/ipath/ipath_sysfs.c:760: error: 'struct device_driver' has no member named 'kobj'
-drivers/infiniband/hw/ipath/ipath_sysfs.c: In function 'ipath_driver_remove_group':
-drivers/infiniband/hw/ipath/ipath_sysfs.c:767: error: 'struct device_driver' has no member named 'kobj'
-drivers/infiniband/hw/ipath/ipath_sysfs.c: In function 'ipath_device_create_group':
-drivers/infiniband/hw/ipath/ipath_sysfs.c:784: error: 'struct device_driver' has no member named 'kobj'
-drivers/infiniband/hw/ipath/ipath_sysfs.c: In function 'ipath_device_remove_group':
-drivers/infiniband/hw/ipath/ipath_sysfs.c:800: error: 'struct device_driver' has no member named 'kobj'
+mm/vmalloc.c: In function 'unmap_kernel_range':
+mm/vmalloc.c:75: warning: unused variable 'start'
 
-sigh
+Macros are so horrid.
 
-Cc: Greg KH <greg@kroah.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ include/asm-alpha/tlbflush.h |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/infiniband/Kconfig~greg-broke-infiniband-again drivers/infiniband/Kconfig
---- a/drivers/infiniband/Kconfig~greg-broke-infiniband-again
-+++ a/drivers/infiniband/Kconfig
-@@ -1,6 +1,7 @@
- menuconfig INFINIBAND
- 	tristate "InfiniBand support"
- 	depends on PCI || BROKEN
-+	depends on BROKEN
- 	depends on HAS_IOMEM
- 	---help---
- 	  Core support for InfiniBand (IB).  Make sure to also select
+diff -puN include/asm-alpha/tlbflush.h~alpha-fix-warning-by-fixing-flush_tlb_kernel_range include/asm-alpha/tlbflush.h
+--- a/include/asm-alpha/tlbflush.h~alpha-fix-warning-by-fixing-flush_tlb_kernel_range
++++ a/include/asm-alpha/tlbflush.h
+@@ -141,6 +141,9 @@ extern void flush_tlb_range(struct vm_ar
+ 
+ #endif /* CONFIG_SMP */
+ 
+-#define flush_tlb_kernel_range(start, end) flush_tlb_all()
++static inline void flush_tlb_kernel_range(unsigned long start,
++					unsigned long end)
++{
++}
+ 
+ #endif /* _ALPHA_TLBFLUSH_H */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -82,7 +84,6 @@ git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
 agk-dm-dm-ioctl-move-compat-code-fix.patch
 dm-persistent_read_metadata-warning-fix.patch
 ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
-greg-broke-infiniband-again.patch
 gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
 unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
 git-drm.patch
@@ -280,3 +281,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
