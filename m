@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-sched-fix-warning-in-kernel-softlockupcwatchdog.patch added to -mm tree
-Date: Wed, 12 Dec 2007 18:38:15 -0800
-Message-ID: <200712130238.lBD2cF4f009696@imap1.linux-foundation.org>
+Subject: + ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch added to -mm tree
+Date: Wed, 12 Dec 2007 18:36:42 -0800
+Message-ID: <200712130236.lBD2ag6v009647@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60161 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57152 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751012AbXLMCi1 (ORCPT
+	by vger.kernel.org with ESMTP id S1751184AbXLMCmy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 21:38:27 -0500
+	Wed, 12 Dec 2007 21:42:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu
+Cc: akpm@linux-foundation.org, mhalcrow@us.ibm.com, sandeen@redhat.com
 
 
 The patch titled
-     git-sched: fix warning in kernel/softlockup.c:watchdog()
+     ecryptfs-make-show_options-reflect-actual-mount-options-fix
 has been added to the -mm tree.  Its filename is
-     git-sched-fix-warning-in-kernel-softlockupcwatchdog.patch
+     ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-sched: fix warning in kernel/softlockup.c:watchdog()
+Subject: ecryptfs-make-show_options-reflect-actual-mount-options-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/softlockup.c: In function 'watchdog':
-kernel/softlockup.c:208: warning: cast from pointer to integer of different size
+fs/ecryptfs/super.c: In function 'ecryptfs_show_options':
+fs/ecryptfs/super.c:187: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
 
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Eric Sandeen <sandeen@redhat.com>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/softlockup.c |    2 +-
+ fs/ecryptfs/super.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/softlockup.c~git-sched-fix-warning-in-kernel-softlockupcwatchdog kernel/softlockup.c
---- a/kernel/softlockup.c~git-sched-fix-warning-in-kernel-softlockupcwatchdog
-+++ a/kernel/softlockup.c
-@@ -205,7 +205,7 @@ static void check_hung_uninterruptible_t
- static int watchdog(void *__bind_cpu)
- {
- 	struct sched_param param = { .sched_priority = MAX_RT_PRIO-1 };
--	int this_cpu = (int)__bind_cpu;
-+	int this_cpu = (long)__bind_cpu;
+diff -puN fs/ecryptfs/super.c~ecryptfs-make-show_options-reflect-actual-mount-options-fix fs/ecryptfs/super.c
+--- a/fs/ecryptfs/super.c~ecryptfs-make-show_options-reflect-actual-mount-options-fix
++++ a/fs/ecryptfs/super.c
+@@ -183,7 +183,7 @@ static int ecryptfs_show_options(struct 
+ 		mount_crypt_stat->global_default_cipher_name);
  
- 	sched_setscheduler(current, SCHED_FIFO, &param);
- 
+ 	if (mount_crypt_stat->global_default_cipher_key_size)
+-		seq_printf(m, ",ecryptfs_key_bytes=%d",
++		seq_printf(m, ",ecryptfs_key_bytes=%zd",
+ 			   mount_crypt_stat->global_default_cipher_key_size);
+ 	if (mount_crypt_stat->flags & ECRYPTFS_PLAINTEXT_PASSTHROUGH_ENABLED)
+ 		seq_printf(m, ",ecryptfs_passthrough");
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -278,4 +279,3 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-git-sched-fix-warning-in-kernel-softlockupcwatchdog.patch
