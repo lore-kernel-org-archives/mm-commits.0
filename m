@@ -1,49 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - git-dvb-fix-build-in-drivers-media-dvb-frontends-tda18271h.patch removed from -mm tree
-Date: Thu, 13 Dec 2007 15:32:16 -0800
-Message-ID: <200712132332.lBDNWGLD023947@imap1.linux-foundation.org>
+Subject: - git-dvb-drivers-media-dvb-frontends-zl10353c-avoid-64-bit-divide.patch removed from -mm tree
+Date: Thu, 13 Dec 2007 15:32:18 -0800
+Message-ID: <200712132332.lBDNWIFu023951@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56776 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37784 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755238AbXLMXcc (ORCPT
+	by vger.kernel.org with ESMTP id S1756061AbXLMXcd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Dec 2007 18:32:32 -0500
+	Thu, 13 Dec 2007 18:32:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-dvb: fix build in drivers/media/dvb/frontends/tda18271.h
+     git-dvb: drivers/media/dvb/frontends/zl10353.c: avoid 64-bit divide
 has been removed from the -mm tree.  Its filename was
-     git-dvb-fix-build-in-drivers-media-dvb-frontends-tda18271h.patch
+     git-dvb-drivers-media-dvb-frontends-zl10353c-avoid-64-bit-divide.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-dvb: fix build in drivers/media/dvb/frontends/tda18271.h
+Subject: git-dvb: drivers/media/dvb/frontends/zl10353.c: avoid 64-bit divide
 From: Andrew Morton <akpm@linux-foundation.org>
+
+ERROR: "__udivdi3" [fs/gfs2/gfs2.ko] undefined!
+ERROR: "__udivdi3" [drivers/media/dvb/frontends/zl10353.ko] undefined!
 
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/frontends/tda18271.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/dvb/frontends/zl10353.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/media/dvb/frontends/tda18271.h~git-dvb-fix-build-in-drivers-media-dvb-frontends-tda18271h drivers/media/dvb/frontends/tda18271.h
---- a/drivers/media/dvb/frontends/tda18271.h~git-dvb-fix-build-in-drivers-media-dvb-frontends-tda18271h
-+++ a/drivers/media/dvb/frontends/tda18271.h
-@@ -38,7 +38,7 @@ extern struct dvb_frontend *tda18271_att
- static inline struct dvb_frontend *tda18271_attach(struct dvb_frontend *fe,
- 						   u8 addr,
- 						   struct i2c_adapter *i2c,
--						   enum tda18271_i2c_gate gate);
-+						   enum tda18271_i2c_gate gate)
- {
- 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __FUNCTION__);
- 	return NULL;
+diff -puN drivers/media/dvb/frontends/zl10353.c~git-dvb-drivers-media-dvb-frontends-zl10353c-avoid-64-bit-divide drivers/media/dvb/frontends/zl10353.c
+--- a/drivers/media/dvb/frontends/zl10353.c~git-dvb-drivers-media-dvb-frontends-zl10353c-avoid-64-bit-divide
++++ a/drivers/media/dvb/frontends/zl10353.c
+@@ -144,7 +144,8 @@ static void zl10353_calc_nominal_rate(st
+ 		break;
+ 	}
+ 
+-	value = (bw * (u64)10 * (1 << 23) / 7 * 125 + adc_clock / 2);
++	value = (u64)10 * (1 << 23) / 7 * 125;
++	value = (bw * value) + adc_clock / 2;
+ 	do_div(value, adc_clock);
+ 	*nominal_rate = value;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
