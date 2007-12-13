@@ -1,52 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - i2c-fix-drivers-media-video-bt866c.patch removed from -mm tree
-Date: Thu, 13 Dec 2007 15:32:28 -0800
-Message-ID: <200712132332.lBDNWSFZ023968@imap1.linux-foundation.org>
+Subject: - kernel-time-make-tick_do_broadcast-static.patch removed from -mm tree
+Date: Thu, 13 Dec 2007 15:32:45 -0800
+Message-ID: <200712132332.lBDNWjwr023994@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33086 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60529 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756697AbXLMXdB (ORCPT
+	by vger.kernel.org with ESMTP id S1756705AbXLMXdL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Dec 2007 18:33:01 -0500
+	Thu, 13 Dec 2007 18:33:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, david-b@pacbell.net, khali@linux-fr.org, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i2c: fix drivers/media/video/bt866.c
+     kernel/time: make tick_do_broadcast() static
 has been removed from the -mm tree.  Its filename was
-     i2c-fix-drivers-media-video-bt866c.patch
+     kernel-time-make-tick_do_broadcast-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i2c: fix drivers/media/video/bt866.c
+Subject: kernel/time: make tick_do_broadcast() static
 From: Andrew Morton <akpm@linux-foundation.org>
 
-usage_count got removed.
-
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: David Brownell <david-b@pacbell.net>
+Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Cc: "Thomas Gleixner" <tglx@linutronix.de>
+Cc: "Ingo Molnar" <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/bt866.c |    1 -
- 1 file changed, 1 deletion(-)
+ kernel/time/tick-broadcast.c |    2 +-
+ kernel/time/tick-internal.h  |    2 --
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/media/video/bt866.c~i2c-fix-drivers-media-video-bt866c drivers/media/video/bt866.c
---- a/drivers/media/video/bt866.c~i2c-fix-drivers-media-video-bt866c
-+++ a/drivers/media/video/bt866.c
-@@ -300,7 +300,6 @@ static struct i2c_client bt866_client_tm
- 	.addr = 0,
- 	.adapter = NULL,
- 	.driver = &i2c_driver_bt866,
--	.usage_count = 0
- };
- 
- static int bt866_found_proc(struct i2c_adapter *adapter,
+diff -puN kernel/time/tick-broadcast.c~kernel-time-make-tick_do_broadcast-static kernel/time/tick-broadcast.c
+--- a/kernel/time/tick-broadcast.c~kernel-time-make-tick_do_broadcast-static
++++ a/kernel/time/tick-broadcast.c
+@@ -126,7 +126,7 @@ int tick_device_uses_broadcast(struct cl
+ /*
+  * Broadcast the event to the cpus, which are set in the mask
+  */
+-int tick_do_broadcast(cpumask_t mask)
++static int tick_do_broadcast(cpumask_t mask)
+ {
+ 	int ret = 0, cpu = smp_processor_id();
+ 	struct tick_device *td;
+diff -puN kernel/time/tick-internal.h~kernel-time-make-tick_do_broadcast-static kernel/time/tick-internal.h
+--- a/kernel/time/tick-internal.h~kernel-time-make-tick_do_broadcast-static
++++ a/kernel/time/tick-internal.h
+@@ -70,8 +70,6 @@ static inline int tick_resume_broadcast_
+  * Broadcasting support
+  */
+ #ifdef CONFIG_GENERIC_CLOCKEVENTS_BROADCAST
+-extern int tick_do_broadcast(cpumask_t mask);
+-
+ extern int tick_device_uses_broadcast(struct clock_event_device *dev, int cpu);
+ extern int tick_check_broadcast_device(struct clock_event_device *dev);
+ extern int tick_is_broadcast_device(struct clock_event_device *dev);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
