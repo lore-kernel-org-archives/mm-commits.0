@@ -1,49 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - git-scsi-misc-fix-build-in-drivers-scsi-scsi_tgt_libc.patch removed from -mm tree
-Date: Thu, 13 Dec 2007 15:32:43 -0800
-Message-ID: <200712132332.lBDNWh4B023989@imap1.linux-foundation.org>
+Subject: - i2c-fix-drivers-media-video-bt866c.patch removed from -mm tree
+Date: Thu, 13 Dec 2007 15:32:28 -0800
+Message-ID: <200712132332.lBDNWSFZ023968@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43768 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33086 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756165AbXLMXcw (ORCPT
+	by vger.kernel.org with ESMTP id S1756697AbXLMXdB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Dec 2007 18:32:52 -0500
+	Thu, 13 Dec 2007 18:33:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@steeleye.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, david-b@pacbell.net, khali@linux-fr.org, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-scsi-misc: fix build in drivers/scsi/scsi_tgt_lib.c
+     i2c: fix drivers/media/video/bt866.c
 has been removed from the -mm tree.  Its filename was
-     git-scsi-misc-fix-build-in-drivers-scsi-scsi_tgt_libc.patch
+     i2c-fix-drivers-media-video-bt866c.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-scsi-misc: fix build in drivers/scsi/scsi_tgt_lib.c
+Subject: i2c: fix drivers/media/video/bt866.c
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+usage_count got removed.
+
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_tgt_lib.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/video/bt866.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/scsi/scsi_tgt_lib.c~git-scsi-misc-fix-build-in-drivers-scsi-scsi_tgt_libc drivers/scsi/scsi_tgt_lib.c
---- a/drivers/scsi/scsi_tgt_lib.c~git-scsi-misc-fix-build-in-drivers-scsi-scsi_tgt_libc
-+++ a/drivers/scsi/scsi_tgt_lib.c
-@@ -613,7 +613,7 @@ int scsi_tgt_kspace_it_nexus_rsp(int hos
- 	struct Scsi_Host *shost;
- 	int err = -EINVAL;
+diff -puN drivers/media/video/bt866.c~i2c-fix-drivers-media-video-bt866c drivers/media/video/bt866.c
+--- a/drivers/media/video/bt866.c~i2c-fix-drivers-media-video-bt866c
++++ a/drivers/media/video/bt866.c
+@@ -300,7 +300,6 @@ static struct i2c_client bt866_client_tm
+ 	.addr = 0,
+ 	.adapter = NULL,
+ 	.driver = &i2c_driver_bt866,
+-	.usage_count = 0
+ };
  
--	dprintk("%d %d%llx\n", host_no, result, unsigned long long)itn_id);
-+	dprintk("%d %d%llx\n", host_no, result, (unsigned long long)itn_id);
- 
- 	shost = scsi_host_lookup(host_no);
- 	if (IS_ERR(shost)) {
+ static int bt866_found_proc(struct i2c_adapter *adapter,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
