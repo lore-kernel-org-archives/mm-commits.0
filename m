@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i2c-fix-drivers-media-video-bt866c.patch added to -mm tree
-Date: Wed, 12 Dec 2007 21:30:26 -0800
-Message-ID: <200712130530.lBD5URj3015461@imap1.linux-foundation.org>
+Subject: + revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch added to -mm tree
+Date: Wed, 12 Dec 2007 23:42:42 -0800
+Message-ID: <200712130742.lBD7gkCp020748@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43936 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38623 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751436AbXLMFbc (ORCPT
+	by vger.kernel.org with ESMTP id S1754265AbXLMHnF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Dec 2007 00:31:32 -0500
+	Thu, 13 Dec 2007 02:43:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, david-b@pacbell.net, khali@linux-fr.org, mchehab@infradead.org
+Cc: akpm@linux-foundation.org, greg@kroah.com, rjw@sisk.pl, stern@rowland.harvard.edu
 
 
 The patch titled
-     i2c: fix drivers/media/video/bt866.c
+     revert gregkh-driver-pm-acquire-device-locks-prior-to-suspending
 has been added to the -mm tree.  Its filename is
-     i2c-fix-drivers-media-video-bt866c.patch
+     revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,668 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i2c: fix drivers/media/video/bt866.c
+Subject: revert gregkh-driver-pm-acquire-device-locks-prior-to-suspending
 From: Andrew Morton <akpm@linux-foundation.org>
 
-usage_count got removed.
+Deadlocks the t61p during suspend-to-RAM.
 
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: David Brownell <david-b@pacbell.net>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg KH <greg@kroah.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/bt866.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/base/core.c        |   13 -
+ drivers/base/power/main.c  |  442 ++++++++++++++---------------------
+ drivers/base/power/power.h |   11 
+ 3 files changed, 187 insertions(+), 279 deletions(-)
 
-diff -puN drivers/media/video/bt866.c~i2c-fix-drivers-media-video-bt866c drivers/media/video/bt866.c
---- a/drivers/media/video/bt866.c~i2c-fix-drivers-media-video-bt866c
-+++ a/drivers/media/video/bt866.c
-@@ -300,7 +300,6 @@ static struct i2c_client bt866_client_tm
- 	.addr = 0,
- 	.adapter = NULL,
- 	.driver = &i2c_driver_bt866,
--	.usage_count = 0
- };
+diff -puN drivers/base/core.c~revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending drivers/base/core.c
+--- a/drivers/base/core.c~revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending
++++ a/drivers/base/core.c
+@@ -786,17 +786,11 @@ int device_add(struct device *dev)
+ {
+ 	struct device *parent = NULL;
+ 	struct class_interface *class_intf;
+-	int error;
+-
+-	error = pm_sleep_lock();
+-	if (error)
+-		return error;
++	int error = -EINVAL;
  
- static int bt866_found_proc(struct i2c_adapter *adapter,
+ 	dev = get_device(dev);
+-	if (!dev || !strlen(dev->bus_id)) {
+-		error = -EINVAL;
+-		goto Done;
+-	}
++	if (!dev || !strlen(dev->bus_id))
++		goto Error;
+ 
+ 	pr_debug("device: '%s': %s\n", dev->bus_id, __FUNCTION__);
+ 
+@@ -861,7 +855,6 @@ int device_add(struct device *dev)
+ 	}
+  Done:
+ 	put_device(dev);
+-	pm_sleep_unlock();
+ 	return error;
+  BusError:
+ 	device_pm_remove(dev);
+diff -puN drivers/base/power/main.c~revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending drivers/base/power/main.c
+--- a/drivers/base/power/main.c~revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending
++++ a/drivers/base/power/main.c
+@@ -24,38 +24,17 @@
+ #include <linux/mutex.h>
+ #include <linux/pm.h>
+ #include <linux/resume-trace.h>
+-#include <linux/rwsem.h>
+ 
+ #include "../base.h"
+ #include "power.h"
+ 
+-/*
+- * The entries in the dpm_active list are in a depth first order, simply
+- * because children are guaranteed to be discovered after parents, and
+- * are inserted at the back of the list on discovery.
+- *
+- * All the other lists are kept in the same order, for consistency.
+- * However the lists aren't always traversed in the same order.
+- * Semaphores must be acquired from the top (i.e., front) down
+- * and released in the opposite order.  Devices must be suspended
+- * from the bottom (i.e., end) up and resumed in the opposite order.
+- * That way no parent will be suspended while it still has an active
+- * child.
+- *
+- * Since device_pm_add() may be called with a device semaphore held,
+- * we must never try to acquire a device semaphore while holding
+- * dpm_list_mutex.
+- */
+-
+ LIST_HEAD(dpm_active);
+-static LIST_HEAD(dpm_locked);
+ static LIST_HEAD(dpm_off);
+ static LIST_HEAD(dpm_off_irq);
+ 
++static DEFINE_MUTEX(dpm_mtx);
+ static DEFINE_MUTEX(dpm_list_mtx);
+ 
+-static DECLARE_RWSEM(pm_sleep_rwsem);
+-
+ int (*platform_enable_wakeup)(struct device *dev, int is_on);
+ 
+ 
+@@ -74,113 +53,30 @@ void device_pm_remove(struct device *dev
+ 	pr_debug("PM: Removing info for %s:%s\n",
+ 		 dev->bus ? dev->bus->name : "No Bus",
+ 		 kobject_name(&dev->kobj));
+-
+-	/* Don't remove a device while the PM core has it locked for suspend */
+-	down(&dev->sem);
+ 	mutex_lock(&dpm_list_mtx);
+ 	dpm_sysfs_remove(dev);
+ 	list_del_init(&dev->power.entry);
+ 	mutex_unlock(&dpm_list_mtx);
+-	up(&dev->sem);
+-}
+-
+-/**
+- *	pm_sleep_lock - mutual exclusion for registration and suspend
+- *
+- *	Returns 0 if no suspend is underway and device registration
+- *	may proceed, otherwise -EBUSY.
+- */
+-int pm_sleep_lock(void)
+-{
+-	if (down_read_trylock(&pm_sleep_rwsem))
+-		return 0;
+-	return -EBUSY;
+-}
+-
+-/**
+- *	pm_sleep_unlock - mutual exclusion for registration and suspend
+- *
+- *	This routine undoes the effect of device_pm_add_lock
+- *	when a device's registration is complete.
+- */
+-void pm_sleep_unlock(void)
+-{
+-	up_read(&pm_sleep_rwsem);
+ }
+ 
+ 
+ /*------------------------- Resume routines -------------------------*/
+ 
+ /**
+- *	resume_device_early - Power on one device (early resume).
+- *	@dev:	Device.
+- *
+- *	Must be called with interrupts disabled.
+- */
+-static int resume_device_early(struct device *dev)
+-{
+-	int error = 0;
+-
+-	TRACE_DEVICE(dev);
+-	TRACE_RESUME(0);
+-
+-	if (dev->bus && dev->bus->resume_early) {
+-		dev_dbg(dev,"EARLY resume\n");
+-		error = dev->bus->resume_early(dev);
+-	}
+-
+-	TRACE_RESUME(error);
+-	return error;
+-}
+-
+-/**
+- *	dpm_power_up - Power on all regular (non-sysdev) devices.
+- *
+- *	Walk the dpm_off_irq list and power each device up. This
+- *	is used for devices that required they be powered down with
+- *	interrupts disabled. As devices are powered on, they are moved
+- *	to the dpm_off list.
+- *
+- *	Interrupts must be disabled when calling this.
+- */
+-static void dpm_power_up(void)
+-{
+-	while (!list_empty(&dpm_off_irq)) {
+-		struct list_head *entry = dpm_off_irq.next;
+-		struct device *dev = to_device(entry);
+-
+-		resume_device_early(dev);
+-		list_move_tail(entry, &dpm_off);
+-	}
+-}
+-
+-/**
+- *	device_power_up - Turn on all devices that need special attention.
+- *
+- *	Power on system devices, then devices that required we shut them down
+- *	with interrupts disabled.
+- *
+- *	Must be called with interrupts disabled.
+- */
+-void device_power_up(void)
+-{
+-	sysdev_resume();
+-	dpm_power_up();
+-}
+-EXPORT_SYMBOL_GPL(device_power_up);
+-
+-/**
+  *	resume_device - Restore state for one device.
+  *	@dev:	Device.
+  *
+  */
+-static int resume_device(struct device *dev)
++
++static int resume_device(struct device * dev)
+ {
+ 	int error = 0;
+ 
+ 	TRACE_DEVICE(dev);
+ 	TRACE_RESUME(0);
+ 
++	down(&dev->sem);
++
+ 	if (dev->bus && dev->bus->resume) {
+ 		dev_dbg(dev,"resuming\n");
+ 		error = dev->bus->resume(dev);
+@@ -196,68 +92,126 @@ static int resume_device(struct device *
+ 		error = dev->class->resume(dev);
+ 	}
+ 
++	up(&dev->sem);
++
+ 	TRACE_RESUME(error);
+ 	return error;
+ }
+ 
+-/**
+- *	dpm_resume - Resume every device.
+- *
+- *	Resume the devices that have either not gone through
+- *	the late suspend, or that did go through it but also
+- *	went through the early resume.
+- *
+- *	Take devices from the dpm_off_list, resume them,
+- *	and put them on the dpm_locked list.
+- */
+-static void dpm_resume(void)
++
++static int resume_device_early(struct device * dev)
+ {
+-	while(!list_empty(&dpm_off)) {
+-		struct list_head *entry = dpm_off.next;
+-		struct device *dev = to_device(entry);
++	int error = 0;
+ 
+-		resume_device(dev);
+-		list_move_tail(entry, &dpm_locked);
++	TRACE_DEVICE(dev);
++	TRACE_RESUME(0);
++	if (dev->bus && dev->bus->resume_early) {
++		dev_dbg(dev,"EARLY resume\n");
++		error = dev->bus->resume_early(dev);
+ 	}
++	TRACE_RESUME(error);
++	return error;
+ }
+ 
+-/**
+- *	unlock_all_devices - Release each device's semaphore
+- *
+- *	Go through the dpm_off list.  Put each device on the dpm_active
+- *	list and unlock it.
++/*
++ * Resume the devices that have either not gone through
++ * the late suspend, or that did go through it but also
++ * went through the early resume
+  */
+-static void unlock_all_devices(void)
++static void dpm_resume(void)
+ {
+ 	mutex_lock(&dpm_list_mtx);
+- 	while (!list_empty(&dpm_locked)) {
+- 		struct list_head *entry = dpm_locked.prev;
+- 		struct device *dev = to_device(entry);
+-
+- 		list_move(entry, &dpm_active);
+- 		up(&dev->sem);
+- 	}
++	while(!list_empty(&dpm_off)) {
++		struct list_head * entry = dpm_off.next;
++		struct device * dev = to_device(entry);
++
++		get_device(dev);
++		list_move_tail(entry, &dpm_active);
++
++		mutex_unlock(&dpm_list_mtx);
++		resume_device(dev);
++		mutex_lock(&dpm_list_mtx);
++		put_device(dev);
++	}
+ 	mutex_unlock(&dpm_list_mtx);
+ }
+ 
++
+ /**
+  *	device_resume - Restore state of each device in system.
+  *
+- *	Resume all the devices, unlock them all, and allow new
+- *	devices to be registered once again.
++ *	Walk the dpm_off list, remove each entry, resume the device,
++ *	then add it to the dpm_active list.
+  */
++
+ void device_resume(void)
+ {
+ 	might_sleep();
++	mutex_lock(&dpm_mtx);
+ 	dpm_resume();
+-	unlock_all_devices();
+-	up_write(&pm_sleep_rwsem);
++	mutex_unlock(&dpm_mtx);
+ }
++
+ EXPORT_SYMBOL_GPL(device_resume);
+ 
+ 
++/**
++ *	dpm_power_up - Power on some devices.
++ *
++ *	Walk the dpm_off_irq list and power each device up. This
++ *	is used for devices that required they be powered down with
++ *	interrupts disabled. As devices are powered on, they are moved
++ *	to the dpm_active list.
++ *
++ *	Interrupts must be disabled when calling this.
++ */
++
++static void dpm_power_up(void)
++{
++	while(!list_empty(&dpm_off_irq)) {
++		struct list_head * entry = dpm_off_irq.next;
++		struct device * dev = to_device(entry);
++
++		list_move_tail(entry, &dpm_off);
++		resume_device_early(dev);
++	}
++}
++
++
++/**
++ *	device_power_up - Turn on all devices that need special attention.
++ *
++ *	Power on system devices then devices that required we shut them down
++ *	with interrupts disabled.
++ *	Called with interrupts disabled.
++ */
++
++void device_power_up(void)
++{
++	sysdev_resume();
++	dpm_power_up();
++}
++
++EXPORT_SYMBOL_GPL(device_power_up);
++
++
+ /*------------------------- Suspend routines -------------------------*/
+ 
++/*
++ * The entries in the dpm_active list are in a depth first order, simply
++ * because children are guaranteed to be discovered after parents, and
++ * are inserted at the back of the list on discovery.
++ *
++ * All list on the suspend path are done in reverse order, so we operate
++ * on the leaves of the device tree (or forests, depending on how you want
++ * to look at it ;) first. As nodes are removed from the back of the list,
++ * they are inserted into the front of their destintation lists.
++ *
++ * Things are the reverse on the resume path - iterations are done in
++ * forward order, and nodes are inserted at the back of their destination
++ * lists. This way, the ancestors will be accessed before their descendents.
++ */
++
+ static inline char *suspend_verb(u32 event)
+ {
+ 	switch (event) {
+@@ -268,6 +222,7 @@ static inline char *suspend_verb(u32 eve
+ 	}
+ }
+ 
++
+ static void
+ suspend_device_dbg(struct device *dev, pm_message_t state, char *info)
+ {
+@@ -277,69 +232,16 @@ suspend_device_dbg(struct device *dev, p
+ }
+ 
+ /**
+- *	suspend_device_late - Shut down one device (late suspend).
+- *	@dev:	Device.
+- *	@state:	Power state device is entering.
+- *
+- *	This is called with interrupts off and only a single CPU running.
+- */
+-static int suspend_device_late(struct device *dev, pm_message_t state)
+-{
+-	int error = 0;
+-
+-	if (dev->bus && dev->bus->suspend_late) {
+-		suspend_device_dbg(dev, state, "LATE ");
+-		error = dev->bus->suspend_late(dev, state);
+-		suspend_report_result(dev->bus->suspend_late, error);
+-	}
+-	return error;
+-}
+-
+-/**
+- *	device_power_down - Shut down special devices.
+- *	@state:		Power state to enter.
+- *
+- *	Power down devices that require interrupts to be disabled
+- *	and move them from the dpm_off list to the dpm_off_irq list.
+- *	Then power down system devices.
+- *
+- *	Must be called with interrupts disabled and only one CPU running.
+- */
+-int device_power_down(pm_message_t state)
+-{
+-	int error = 0;
+-
+-	while (!list_empty(&dpm_off)) {
+-		struct list_head *entry = dpm_off.prev;
+-		struct device *dev = to_device(entry);
+-
+-		error = suspend_device_late(dev, state);
+-		if (error) {
+-			printk(KERN_ERR "Could not power down device %s: "
+-					"error %d\n",
+-					kobject_name(&dev->kobj), error);
+-			break;
+-		}
+-		list_move(&dev->power.entry, &dpm_off_irq);
+-	}
+-
+-	if (!error)
+-		error = sysdev_suspend(state);
+-	if (error)
+-		dpm_power_up();
+-	return error;
+-}
+-EXPORT_SYMBOL_GPL(device_power_down);
+-
+-/**
+  *	suspend_device - Save state of one device.
+  *	@dev:	Device.
+  *	@state:	Power state device is entering.
+  */
+-int suspend_device(struct device *dev, pm_message_t state)
++
++static int suspend_device(struct device * dev, pm_message_t state)
+ {
+ 	int error = 0;
+ 
++	down(&dev->sem);
+ 	if (dev->power.power_state.event) {
+ 		dev_dbg(dev, "PM: suspend %d-->%d\n",
+ 			dev->power.power_state.event, state.event);
+@@ -362,99 +264,123 @@ int suspend_device(struct device *dev, p
+ 		error = dev->bus->suspend(dev, state);
+ 		suspend_report_result(dev->bus->suspend, error);
+ 	}
++	up(&dev->sem);
+ 	return error;
+ }
+ 
+-/**
+- *	dpm_suspend - Suspend every device.
+- *	@state:	Power state to put each device in.
+- *
+- *	Walk the dpm_locked list.  Suspend each device and move it
+- *	to the dpm_off list.
+- *
+- *	(For historical reasons, if it returns -EAGAIN, that used to mean
+- *	that the device would be called again with interrupts disabled.
+- *	These days, we use the "suspend_late()" callback for that, so we
+- *	print a warning and consider it an error).
++
++/*
++ * This is called with interrupts off, only a single CPU
++ * running. We can't acquire a mutex or semaphore (and we don't
++ * need the protection)
+  */
+-static int dpm_suspend(pm_message_t state)
++static int suspend_device_late(struct device *dev, pm_message_t state)
+ {
+ 	int error = 0;
+ 
+-	while (!list_empty(&dpm_locked)) {
+-		struct list_head *entry = dpm_locked.prev;
+-		struct device *dev = to_device(entry);
+-
+-		error = suspend_device(dev, state);
+-		if (error) {
+-			printk(KERN_ERR "Could not suspend device %s: "
+-					"error %d%s\n",
+-					kobject_name(&dev->kobj),
+-					error,
+-					(error == -EAGAIN ?
+-					" (please convert to suspend_late)" :
+-					""));
+-			break;
+-		}
+- 		list_move(&dev->power.entry, &dpm_off);
++	if (dev->bus && dev->bus->suspend_late) {
++		suspend_device_dbg(dev, state, "LATE ");
++		error = dev->bus->suspend_late(dev, state);
++		suspend_report_result(dev->bus->suspend_late, error);
+ 	}
+-
+-	if (error)
+-		dpm_resume();
+ 	return error;
+ }
+ 
+ /**
+- *	lock_all_devices - Acquire every device's semaphore
++ *	device_suspend - Save state and stop all devices in system.
++ *	@state:		Power state to put each device in.
++ *
++ *	Walk the dpm_active list, call ->suspend() for each device, and move
++ *	it to the dpm_off list.
++ *
++ *	(For historical reasons, if it returns -EAGAIN, that used to mean
++ *	that the device would be called again with interrupts disabled.
++ *	These days, we use the "suspend_late()" callback for that, so we
++ *	print a warning and consider it an error).
++ *
++ *	If we get a different error, try and back out.
++ *
++ *	If we hit a failure with any of the devices, call device_resume()
++ *	above to bring the suspended devices back to life.
+  *
+- *	Go through the dpm_active list. Carefully lock each device's
+- *	semaphore and put it in on the dpm_locked list.
+  */
+-static void lock_all_devices(void)
++
++int device_suspend(pm_message_t state)
+ {
++	int error = 0;
++
++	might_sleep();
++	mutex_lock(&dpm_mtx);
+ 	mutex_lock(&dpm_list_mtx);
+-	while (!list_empty(&dpm_active)) {
+-		struct list_head *entry = dpm_active.next;
+-		struct device *dev = to_device(entry);
+-
+-		/* Required locking order is dev->sem first,
+-		 * then dpm_list_mutex.  Hence this awkward code.
+-		 */
++	while (!list_empty(&dpm_active) && error == 0) {
++		struct list_head * entry = dpm_active.prev;
++		struct device * dev = to_device(entry);
++
+ 		get_device(dev);
+ 		mutex_unlock(&dpm_list_mtx);
+-		down(&dev->sem);
++
++		error = suspend_device(dev, state);
++
+ 		mutex_lock(&dpm_list_mtx);
+ 
+-		if (list_empty(entry))
+-			up(&dev->sem);		/* Device was removed */
+-		else
+-			list_move_tail(entry, &dpm_locked);
++		/* Check if the device got removed */
++		if (!list_empty(&dev->power.entry)) {
++			/* Move it to the dpm_off list */
++			if (!error)
++				list_move(&dev->power.entry, &dpm_off);
++		}
++		if (error)
++			printk(KERN_ERR "Could not suspend device %s: "
++				"error %d%s\n",
++				kobject_name(&dev->kobj), error,
++				error == -EAGAIN ? " (please convert to suspend_late)" : "");
+ 		put_device(dev);
+ 	}
+ 	mutex_unlock(&dpm_list_mtx);
++	if (error)
++		dpm_resume();
++
++	mutex_unlock(&dpm_mtx);
++	return error;
+ }
+ 
++EXPORT_SYMBOL_GPL(device_suspend);
++
+ /**
+- *	device_suspend - Save state and stop all devices in system.
++ *	device_power_down - Shut down special devices.
++ *	@state:		Power state to enter.
+  *
+- *	Prevent new devices from being registered, then lock all devices
+- *	and suspend them.
++ *	Walk the dpm_off_irq list, calling ->power_down() for each device that
++ *	couldn't power down the device with interrupts enabled. When we're
++ *	done, power down system devices.
+  */
+-int device_suspend(pm_message_t state)
++
++int device_power_down(pm_message_t state)
+ {
+-	int error;
++	int error = 0;
++	struct device * dev;
+ 
+-	might_sleep();
+-	down_write(&pm_sleep_rwsem);
+-	lock_all_devices();
+-	error = dpm_suspend(state);
+-	if (error) {
+-		unlock_all_devices();
+-		up_write(&pm_sleep_rwsem);
++	while (!list_empty(&dpm_off)) {
++		struct list_head * entry = dpm_off.prev;
++
++		dev = to_device(entry);
++		error = suspend_device_late(dev, state);
++		if (error)
++			goto Error;
++		list_move(&dev->power.entry, &dpm_off_irq);
+ 	}
++
++	error = sysdev_suspend(state);
++ Done:
+ 	return error;
++ Error:
++	printk(KERN_ERR "Could not power down device %s: "
++		"error %d\n", kobject_name(&dev->kobj), error);
++	dpm_power_up();
++	goto Done;
+ }
+-EXPORT_SYMBOL_GPL(device_suspend);
++
++EXPORT_SYMBOL_GPL(device_power_down);
+ 
+ void __suspend_report_result(const char *function, void *fn, int ret)
+ {
+diff -puN drivers/base/power/power.h~revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending drivers/base/power/power.h
+--- a/drivers/base/power/power.h~revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending
++++ a/drivers/base/power/power.h
+@@ -13,8 +13,6 @@ static inline struct device *to_device(s
+ 
+ extern void device_pm_add(struct device *);
+ extern void device_pm_remove(struct device *);
+-extern int pm_sleep_lock(void);
+-extern void pm_sleep_unlock(void);
+ 
+ #else /* CONFIG_PM_SLEEP */
+ 
+@@ -27,15 +25,6 @@ static inline void device_pm_remove(stru
+ {
+ }
+ 
+-static inline int pm_sleep_lock(void)
+-{
+-	return 0;
+-}
+-
+-static inline void pm_sleep_unlock(void)
+-{
+-}
+-
+ #endif
+ 
+ #ifdef CONFIG_PM
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,6 +717,7 @@ git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
 agk-dm-dm-ioctl-move-compat-code-fix.patch
 dm-persistent_read_metadata-warning-fix.patch
 ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
+revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
 gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
 unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
 git-drm.patch
