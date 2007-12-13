@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mips-fix-makefile-borkage.patch added to -mm tree
-Date: Wed, 12 Dec 2007 20:15:13 -0800
-Message-ID: <200712130415.lBD4FDJd012890@imap1.linux-foundation.org>
+Subject: + i2c-fix-drivers-media-video-bt866c.patch added to -mm tree
+Date: Wed, 12 Dec 2007 21:30:26 -0800
+Message-ID: <200712130530.lBD5URj3015461@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33663 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43936 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750905AbXLMEPZ (ORCPT
+	by vger.kernel.org with ESMTP id S1751436AbXLMFbc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Dec 2007 23:15:25 -0500
+	Thu, 13 Dec 2007 00:31:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ralf@linux-mips.org
+Cc: akpm@linux-foundation.org, david-b@pacbell.net, khali@linux-fr.org, mchehab@infradead.org
 
 
 The patch titled
-     mips: fix Makefile borkage
+     i2c: fix drivers/media/video/bt866.c
 has been added to the -mm tree.  Its filename is
-     mips-fix-makefile-borkage.patch
+     i2c-fix-drivers-media-video-bt866c.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mips: fix Makefile borkage
+Subject: i2c: fix drivers/media/video/bt866.c
 From: Andrew Morton <akpm@linux-foundation.org>
 
-/usr/src/devel/arch/mips/Makefile:625: Extraneous text after `else' directive
+usage_count got removed.
 
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/Makefile |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/media/video/bt866.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/mips/Makefile~mips-fix-makefile-borkage arch/mips/Makefile
---- a/arch/mips/Makefile~mips-fix-makefile-borkage
-+++ a/arch/mips/Makefile
-@@ -622,8 +622,10 @@ ifdef CONFIG_64BIT
+diff -puN drivers/media/video/bt866.c~i2c-fix-drivers-media-video-bt866c drivers/media/video/bt866.c
+--- a/drivers/media/video/bt866.c~i2c-fix-drivers-media-video-bt866c
++++ a/drivers/media/video/bt866.c
+@@ -300,7 +300,6 @@ static struct i2c_client bt866_client_tm
+ 	.addr = 0,
+ 	.adapter = NULL,
+ 	.driver = &i2c_driver_bt866,
+-	.usage_count = 0
+ };
  
-   ifeq ($(KBUILD_SYM32)$(call cc-option-yn,-msym32), yy)
-     cflags-y += -msym32 -DKBUILD_64BIT_SYM32
--  else ifeq ($(CONFIG_CPU_DADDI_WORKAROUNDS), y)
--    $(error CONFIG_CPU_DADDI_WORKAROUNDS unsupported without -msym32)
-+  else
-+    ifeq ($(CONFIG_CPU_DADDI_WORKAROUNDS), y)
-+      $(error CONFIG_CPU_DADDI_WORKAROUNDS unsupported without -msym32)
-+    endif
-   endif
- endif
- 
+ static int bt866_found_proc(struct i2c_adapter *adapter,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -94,6 +91,7 @@ git-dvb-one-videobuf_read_start-is-enough.patch
 git-dvb-drivers-media-dvb-frontends-zl10353c-avoid-64-bit-divide.patch
 git-dvb-drivers-media-video-et61x251-et61x251_corec-fix-warnings.patch
 media-video-usbvision-add-mutex_unlock-to-error-paths-fix.patch
+i2c-fix-drivers-media-video-bt866c.patch
 fix-jdelvare-i2c-i2c-constify-client-address-data.patch
 gfs2-avoid-64-bit-divide.patch
 git-hid.patch
@@ -107,6 +105,7 @@ pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-check
 libata-xfer_mask-is-unsigned-int-not-unsigned-long-fix.patch
 libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
 libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
+mips-fix-makefile-borkage.patch
 git-mmc.patch
 git-mtd.patch
 git-net.patch
@@ -191,6 +190,7 @@ allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
 remove-__attribute_used__-checkpatch-fixes.patch
 read_current_time-cleanups.patch
 read_current_time-cleanups-build-fix-fix.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
 kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
 deprecate-smbfs-in-favour-of-cifs.patch
 quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
@@ -283,4 +283,3 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-mips-fix-makefile-borkage.patch
