@@ -1,86 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - ipsec-do-not-let-packets-pass-when-icmp-flag-is-off.patch removed from -mm tree
-Date: Thu, 13 Dec 2007 15:32:36 -0800
-Message-ID: <200712132332.lBDNWakS023977@imap1.linux-foundation.org>
+Subject: - knfsd-change-mailing-list-for-nfsd-in-maintainers.patch removed from -mm tree
+Date: Thu, 13 Dec 2007 15:32:40 -0800
+Message-ID: <200712132332.lBDNWeh4023984@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53560 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40883 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757514AbXLMXdM (ORCPT
+	by vger.kernel.org with ESMTP id S1757208AbXLMXdM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 13 Dec 2007 18:33:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: herbert@gondor.apana.org.au, mm-commits@vger.kernel.org
+To: neilb@suse.de, bfields@fieldses.org, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipsec: do not let packets pass when ICMP flag is off
+     knfsd: change mailing list for nfsd in MAINTAINERS
 has been removed from the -mm tree.  Its filename was
-     ipsec-do-not-let-packets-pass-when-icmp-flag-is-off.patch
+     knfsd-change-mailing-list-for-nfsd-in-maintainers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ipsec: do not let packets pass when ICMP flag is off
-From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: knfsd: change mailing list for nfsd in MAINTAINERS
+From: NeilBrown <neilb@suse.de>
 
-This fixes a logical error in ICMP policy checks which lets packets through
-if the state ICMP flag is off.
+nfs@lists.sourceforge.net is being decommissioned.
 
-Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
+Acked-by: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv4/icmp.c |    7 +++++--
- net/ipv6/icmp.c |    7 +++++--
- 2 files changed, 10 insertions(+), 4 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/ipv4/icmp.c~ipsec-do-not-let-packets-pass-when-icmp-flag-is-off net/ipv4/icmp.c
---- a/net/ipv4/icmp.c~ipsec-do-not-let-packets-pass-when-icmp-flag-is-off
-+++ a/net/ipv4/icmp.c
-@@ -978,10 +978,13 @@ int icmp_rcv(struct sk_buff *skb)
- 	struct icmphdr *icmph;
- 	struct rtable *rt = (struct rtable *)skb->dst;
- 
--	if (!xfrm4_policy_check(NULL, XFRM_POLICY_IN, skb) && skb->sp &&
--	    skb->sp->xvec[skb->sp->len - 1]->props.flags & XFRM_STATE_ICMP) {
-+	if (!xfrm4_policy_check(NULL, XFRM_POLICY_IN, skb)) {
- 		int nh;
- 
-+		if (!(skb->sp && skb->sp->xvec[skb->sp->len - 1]->props.flags &
-+				 XFRM_STATE_ICMP))
-+			goto drop;
-+
- 		if (!pskb_may_pull(skb, sizeof(*icmph) + sizeof(struct iphdr)))
- 			goto drop;
- 
-diff -puN net/ipv6/icmp.c~ipsec-do-not-let-packets-pass-when-icmp-flag-is-off net/ipv6/icmp.c
---- a/net/ipv6/icmp.c~ipsec-do-not-let-packets-pass-when-icmp-flag-is-off
-+++ a/net/ipv6/icmp.c
-@@ -646,10 +646,13 @@ static int icmpv6_rcv(struct sk_buff *sk
- 	struct icmp6hdr *hdr;
- 	int type;
- 
--	if (!xfrm6_policy_check(NULL, XFRM_POLICY_IN, skb) && skb->sp &&
--	    skb->sp->xvec[skb->sp->len - 1]->props.flags & XFRM_STATE_ICMP) {
-+	if (!xfrm6_policy_check(NULL, XFRM_POLICY_IN, skb)) {
- 		int nh;
- 
-+		if (!(skb->sp && skb->sp->xvec[skb->sp->len - 1]->props.flags &
-+				 XFRM_STATE_ICMP))
-+			goto drop_no_count;
-+
- 		if (!pskb_may_pull(skb, sizeof(*hdr) + sizeof(*orig_hdr)))
- 			goto drop_no_count;
+diff -puN MAINTAINERS~knfsd-change-mailing-list-for-nfsd-in-maintainers MAINTAINERS
+--- a/MAINTAINERS~knfsd-change-mailing-list-for-nfsd-in-maintainers
++++ a/MAINTAINERS
+@@ -2259,7 +2259,7 @@ P:	J. Bruce Fields
+ M:	bfields@fieldses.org
+ P:	Neil Brown
+ M:	neilb@suse.de
+-L:	nfs@lists.sourceforge.net
++L:	linux-nfs@vger.kernel.org
+ W:	http://nfs.sourceforge.net/
+ S:	Supported
  
 _
 
-Patches currently in -mm which might be from herbert@gondor.apana.org.au are
+Patches currently in -mm which might be from neilb@suse.de are
 
-origin.patch
-git-net.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-avoid-divide-in-is_align.patch
-remove-rcu_assign_pointer-penalty-for-null-pointers.patch
+git-nfs.patch
+git-nfsd.patch
+coding-style-cleanups-for-drivers-md-mktablesc.patch
+md-raid6-fix-mktablec.patch
+md-raid6-clean-up-the-style-of-raid6test-testc.patch
+md-update-md-bitmap-during-resync.patch
+md-update-md-bitmap-during-resync-fix.patch
+one-less-parameter-to-__d_path.patch
+d_path-kerneldoc-cleanup.patch
+d_path-use-struct-path-in-struct-avc_audit_data.patch
+d_path-make-proc_get_link-use-a-struct-path-argument.patch
+d_path-make-get_dcookie-use-a-struct-path-argument.patch
+use-struct-path-in-struct-svc_export.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_expkey.patch
+d_path-make-seq_path-use-a-struct-path-argument.patch
+d_path-make-d_path-use-a-struct-path.patch
