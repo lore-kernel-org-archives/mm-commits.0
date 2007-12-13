@@ -1,64 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - iwlwifi3945-4965-fix-rate-control-algo-reference-leak-fix.patch removed from -mm tree
-Date: Thu, 13 Dec 2007 15:51:37 -0800
-Message-ID: <200712132351.lBDNpbKN024733@imap1.linux-foundation.org>
+Subject: - ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 13 Dec 2007 15:55:32 -0800
+Message-ID: <200712132355.lBDNtXcm024984@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53398 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46194 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764163AbXLMXwx (ORCPT
+	by vger.kernel.org with ESMTP id S1761851AbXLMXzi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Dec 2007 18:52:53 -0500
+	Thu, 13 Dec 2007 18:55:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, gorcunov@gmail.com, linville@tuxdriver.com, yi.zhu@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, gorcunov@gmail.com, olof@lixom.net, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     iwlwifi3945-4965-fix-rate-control-algo-reference-leak-fix
+     ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     iwlwifi3945-4965-fix-rate-control-algo-reference-leak-fix.patch
+     ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into iwlwifi3945-4965-fix-rate-control-algo-reference-leak.patch
+This patch was dropped because it was folded into ppc-chrp-fix-possible-null-pointer-dereference.patch
 
 ------------------------------------------------------
-Subject: iwlwifi3945-4965-fix-rate-control-algo-reference-leak-fix
+Subject: ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "John W. Linville" <linville@tuxdriver.com>
+ERROR: need space after that ',' (ctx:VxV)
+#42: FILE: arch/powerpc/platforms/chrp/setup.c:213:
++	if (model && !strncmp(model,"IBM,LongTrail", 13)) {
+ 	                           ^
+
+total: 1 errors, 0 warnings, 31 lines checked
+
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Cyrill Gorcunov <gorcunov@gmail.com>
-Cc: Zhu Yi <yi.zhu@intel.com>
+Cc: Olof Johansson <olof@lixom.net>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/iwlwifi/iwl3945-base.c |    2 +-
- drivers/net/wireless/iwlwifi/iwl4965-base.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/powerpc/platforms/chrp/setup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/wireless/iwlwifi/iwl3945-base.c~iwlwifi3945-4965-fix-rate-control-algo-reference-leak-fix drivers/net/wireless/iwlwifi/iwl3945-base.c
---- a/drivers/net/wireless/iwlwifi/iwl3945-base.c~iwlwifi3945-4965-fix-rate-control-algo-reference-leak-fix
-+++ a/drivers/net/wireless/iwlwifi/iwl3945-base.c
-@@ -6280,7 +6280,7 @@ static void iwl3945_alive_start(struct i
- 		mutex_lock(&priv->mutex);
+diff -puN arch/powerpc/platforms/chrp/setup.c~ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes arch/powerpc/platforms/chrp/setup.c
+--- a/arch/powerpc/platforms/chrp/setup.c~ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes
++++ a/arch/powerpc/platforms/chrp/setup.c
+@@ -210,7 +210,7 @@ static void __init sio_init(void)
+ 		return;
  
- 		if (rc) {
--			iwl_rate_control_unregister(priv->hw);
-+			iwl3945_rate_control_unregister(priv->hw);
- 			IWL_ERROR("Failed to register network "
- 				  "device (error %d)\n", rc);
- 			return;
-diff -puN drivers/net/wireless/iwlwifi/iwl4965-base.c~iwlwifi3945-4965-fix-rate-control-algo-reference-leak-fix drivers/net/wireless/iwlwifi/iwl4965-base.c
---- a/drivers/net/wireless/iwlwifi/iwl4965-base.c~iwlwifi3945-4965-fix-rate-control-algo-reference-leak-fix
-+++ a/drivers/net/wireless/iwlwifi/iwl4965-base.c
-@@ -6693,7 +6693,7 @@ static void iwl4965_alive_start(struct i
- 		mutex_lock(&priv->mutex);
- 
- 		if (rc) {
--			iwl_rate_control_unregister(priv->hw);
-+			iwl4965_rate_control_unregister(priv->hw);
- 			IWL_ERROR("Failed to register network "
- 				  "device (error %d)\n", rc);
- 			return;
+ 	model = of_get_property(root, "model", NULL);
+-	if (model && !strncmp(model,"IBM,LongTrail", 13)) {
++	if (model && !strncmp(model, "IBM,LongTrail", 13)) {
+ 		/* logical device 0 (KBC/Keyboard) */
+ 		sio_fixup_irq("keyboard", 0, 1, 2);
+ 		/* select logical device 1 (KBC/Mouse) */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -88,6 +89,7 @@ git-cpufreq.patch
 git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
 agk-dm-dm-ioctl-move-compat-code-fix.patch
 dm-persistent_read_metadata-warning-fix.patch
+ppc-chrp-fix-possible-null-pointer-dereference.patch
 ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
 revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
 gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
@@ -150,7 +152,6 @@ git-cryptodev-fixup.patch
 git-xtensa.patch
 bonding-locking-fix.patch
 iwlwifi3945-4965-fix-rate-control-algo-reference-leak.patch
-iwlwifi3945-4965-fix-rate-control-algo-reference-leak-fix.patch
 bcm43xx_debugfs-sscanf-fix.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
