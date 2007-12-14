@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-page_alloc-for-larger-i-o-segments-fix.patch added to -mm tree
-Date: Thu, 13 Dec 2007 17:05:37 -0800
-Message-ID: <200712140105.lBE15bnD028437@imap1.linux-foundation.org>
+Subject: + i386-use-raw_smp_processor_id-in-die.patch added to -mm tree
+Date: Thu, 13 Dec 2007 22:16:05 -0800
+Message-ID: <200712140616.lBE6G5tu006269@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35435 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33621 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751436AbXLNBHB (ORCPT
+	by vger.kernel.org with ESMTP id S1752977AbXLNGQt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Dec 2007 20:07:01 -0500
+	Fri, 14 Dec 2007 01:16:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@steeleye.com, jens.axboe@oracle.com, liml@rtr.ca, mel@csn.ul.ie, mlord@pobox.com
+Cc: akpm@linux-foundation.org, miles.lane@gmail.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     fix-page_alloc-for-larger-i-o-segments-fix
+     i386: use raw_smp_processor_id() in die()
 has been added to the -mm tree.  Its filename is
-     fix-page_alloc-for-larger-i-o-segments-fix.patch
+     i386-use-raw_smp_processor_id-in-die.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,77 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix-page_alloc-for-larger-i-o-segments-fix
+Subject: i386: use raw_smp_processor_id() in die()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Mark Lord <liml@rtr.ca>
-Cc: Mark Lord <mlord@pobox.com
-Cc: Mel Gorman <mel@csn.ul.ie>
+We missed one:
+
+BUG: using smp_processor_id() in preemptible [00000001] code: modprobe/3107
+caller is die+0x5d/0x1db
+Pid: 3107, comm: modprobe Not tainted 2.6.24-rc5-mm1 #24
+ [<c0108eb2>] show_trace_log_lvl+0x12/0x25
+ [<c0109659>] show_trace+0xd/0x10
+ [<c0109981>] dump_stack+0x57/0x5f
+ [<c02017f5>] debug_smp_processor_id+0x99/0xb0
+ [<c0109174>] die+0x5d/0x1db
+ [<c03cdf38>] do_trap+0x8a/0xa3
+ [<c0109509>] do_invalid_op+0x6c/0x76
+ [<c03cdd02>] error_code+0x72/0x78
+ [<f8a446c7>] acpi_video_bus_add+0x85b/0xbf4 [video]
+ [<c023b3cf>] acpi_device_probe+0x3e/0xdb
+
+Convert the other debugging smp_processor_id() calls in there too - perhaps
+they are also callable under conditions where preemption is thought to be
+enabled.
+
+"Miles Lane" <miles.lane@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ arch/x86/kernel/traps_32.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/page_alloc.c~fix-page_alloc-for-larger-i-o-segments-fix mm/page_alloc.c
---- a/mm/page_alloc.c~fix-page_alloc-for-larger-i-o-segments-fix
-+++ a/mm/page_alloc.c
-@@ -847,6 +847,10 @@ static int rmqueue_bulk(struct zone *zon
- 		struct page *page = __rmqueue(zone, order, migratetype);
- 		if (unlikely(page == NULL))
- 			break;
-+		/*
-+		 * Doing a list_add_tail() here helps us to hand out pages in
-+		 * ascending physical-address order.
-+		 */
- 		list_add_tail(&page->lru, list);
- 		set_page_private(page, migratetype);
+diff -puN arch/x86/kernel/traps_32.c~i386-use-raw_smp_processor_id-in-die arch/x86/kernel/traps_32.c
+--- a/arch/x86/kernel/traps_32.c~i386-use-raw_smp_processor_id-in-die
++++ a/arch/x86/kernel/traps_32.c
+@@ -376,7 +376,7 @@ void die(const char * str, struct pt_reg
+ 		console_verbose();
+ 		__raw_spin_lock(&die.lock);
+ 		raw_local_save_flags(flags);
+-		die.lock_owner = smp_processor_id();
++		die.lock_owner = raw_smp_processor_id();
+ 		die.lock_owner_depth = 0;
+ 		bust_spinlocks(1);
  	}
+@@ -636,7 +636,7 @@ static __kprobes void
+ mem_parity_error(unsigned char reason, struct pt_regs * regs)
+ {
+ 	printk(KERN_EMERG "Uhhuh. NMI received for unknown reason %02x on "
+-		"CPU %d.\n", reason, smp_processor_id());
++		"CPU %d.\n", reason, raw_smp_processor_id());
+ 	printk(KERN_EMERG "You have some hardware problem, likely on the PCI bus.\n");
+ 
+ #if defined(CONFIG_EDAC)
+@@ -684,7 +684,7 @@ unknown_nmi_error(unsigned char reason, 
+ 	}
+ #endif
+ 	printk(KERN_EMERG "Uhhuh. NMI received for unknown reason %02x on "
+-		"CPU %d.\n", reason, smp_processor_id());
++		"CPU %d.\n", reason, raw_smp_processor_id());
+ 	printk(KERN_EMERG "Do you have a strange power saving mode enabled?\n");
+ 	if (panic_on_unrecovered_nmi)
+                 panic("NMI: Not continuing");
+@@ -708,7 +708,7 @@ void __kprobes die_nmi(struct pt_regs *r
+ 	bust_spinlocks(1);
+ 	printk(KERN_EMERG "%s", msg);
+ 	printk(" on CPU%d, ip %08lx, registers:\n",
+-		smp_processor_id(), regs->ip);
++		raw_smp_processor_id(), regs->ip);
+ 	show_registers(regs);
+ 	console_silent();
+ 	spin_unlock(&nmi_print_lock);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -139,6 +182,7 @@ git-ipwireless_cs.patch
 git-x86.patch
 git-x86-__vdso_getcpu-warning-fix.patch
 git-x86-fix-allnoconfig-build.patch
+i386-use-raw_smp_processor_id-in-die.patch
 git-cryptodev.patch
 git-cryptodev-fixup.patch
 git-xtensa.patch
