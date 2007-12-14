@@ -1,149 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - add-support-for-sb1-hardware-watchdog-fix.patch removed from -mm tree
-Date: Thu, 13 Dec 2007 16:16:08 -0800
-Message-ID: <200712140016.lBE0G8gc026354@imap1.linux-foundation.org>
+Subject: - mct232-speed-new-termios-and-compliance-cleanups-fix.patch removed from -mm tree
+Date: Thu, 13 Dec 2007 16:14:50 -0800
+Message-ID: <200712140014.lBE0Ep39026279@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36525 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51519 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932154AbXLNAYa (ORCPT
+	by vger.kernel.org with ESMTP id S1762555AbXLNAZP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Dec 2007 19:24:30 -0500
+	Thu, 13 Dec 2007 19:25:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andy.sharp@onstor.com, ralf@linux-mips.org, wim@iguana.be, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com, zaitcev@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-support-for-sb1-hardware-watchdog-fix
+     mct232-speed-new-termios-and-compliance-cleanups-fix
 has been removed from the -mm tree.  Its filename was
-     add-support-for-sb1-hardware-watchdog-fix.patch
+     mct232-speed-new-termios-and-compliance-cleanups-fix.patch
 
-This patch was dropped because it was folded into add-support-for-sb1-hardware-watchdog.patch
+This patch was dropped because it was folded into mct232-speed-new-termios-and-compliance-cleanups.patch
 
 ------------------------------------------------------
-Subject: add-support-for-sb1-hardware-watchdog-fix
+Subject: mct232-speed-new-termios-and-compliance-cleanups-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- remove strange spaces before function definitions
-
-- remove unneeded newlines while we're there.
-
-Cc: Andrew Sharp <andy.sharp@onstor.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Alan Cox <alan@redhat.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Pete Zaitcev <zaitcev@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/sb_wdog.c |   33 ++++++++++++---------------------
- 1 file changed, 12 insertions(+), 21 deletions(-)
+ drivers/usb/serial/mct_u232.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/watchdog/sb_wdog.c~add-support-for-sb1-hardware-watchdog-fix drivers/watchdog/sb_wdog.c
---- a/drivers/watchdog/sb_wdog.c~add-support-for-sb1-hardware-watchdog-fix
-+++ a/drivers/watchdog/sb_wdog.c
-@@ -63,8 +63,7 @@
-  *
-  * wdog is the iomem address of the cfg register
-  */
-- void
--sbwdog_set(char __iomem *wdog, unsigned long t)
-+void sbwdog_set(char __iomem *wdog, unsigned long t)
- {
- 	__raw_writeb(0, wdog - 0x10);
- 	__raw_writeq(t & 0x7fffffUL, wdog);
-@@ -76,8 +75,7 @@ sbwdog_set(char __iomem *wdog, unsigned 
-  *
-  * wdog is the iomem address of the cfg register
-  */
-- void
--sbwdog_pet(char __iomem *wdog)
-+void sbwdog_pet(char __iomem *wdog)
- {
- 	__raw_writeb(__raw_readb(wdog) | 1, wdog);
- }
-@@ -96,8 +94,7 @@ static struct watchdog_info ident = {
+diff -puN drivers/usb/serial/mct_u232.c~mct232-speed-new-termios-and-compliance-cleanups-fix drivers/usb/serial/mct_u232.c
+--- a/drivers/usb/serial/mct_u232.c~mct232-speed-new-termios-and-compliance-cleanups-fix
++++ a/drivers/usb/serial/mct_u232.c
+@@ -182,7 +182,6 @@ struct mct_u232_private {
  /*
-  * Allow only a single thread to walk the dog
+  * Later day 2.6.0-test kernels have new baud rates like B230400 which
+  * we do not know how to support. We ignore them for the moment.
+- * XXX Rate-limit the error message, it's user triggerable.
   */
-- static int
--sbwdog_open(struct inode *inode, struct file *file)
-+static int sbwdog_open(struct inode *inode, struct file *file)
+ static int mct_u232_calculate_baud_rate(struct usb_serial *serial, speed_t value, speed_t *result)
  {
- 	nonseekable_open(inode, file);
- 	if (test_and_set_bit(0, &sbwdog_gate)) {
-@@ -117,8 +114,7 @@ sbwdog_open(struct inode *inode, struct 
- /*
-  * Put the dog back in the kennel.
-  */
-- static int
--sbwdog_release(struct inode *inode, struct file *file)
-+static int sbwdog_release(struct inode *inode, struct file *file)
- {
- 	if (expect_close == 42) {
- 		__raw_writeb(0, user_dog);
-@@ -137,9 +133,8 @@ sbwdog_release(struct inode *inode, stru
- /*
-  * 42 - the answer
-  */
-- static ssize_t
--sbwdog_write(struct file *file, const char __user *data, size_t len,
--	loff_t *ppos)
-+static ssize_t sbwdog_write(struct file *file, const char __user *data,
-+			size_t len, loff_t *ppos)
- {
- 	int i;
- 
-@@ -165,9 +160,8 @@ sbwdog_write(struct file *file, const ch
- 	return len;
- }
- 
-- static int
--sbwdog_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
--	unsigned long arg)
-+static int sbwdog_ioctl(struct inode *inode, struct file *file,
-+			unsigned int cmd, unsigned long arg)
- {
- 	int ret = -ENOTTY;
- 	unsigned long time;
-@@ -218,7 +212,7 @@ sbwdog_ioctl(struct inode *inode, struct
- /*
-  *	Notifier for system down
-  */
-- static int
-+static int
- sbwdog_notify_sys(struct notifier_block *this, unsigned long code, void *erf)
- {
- 	if (code == SYS_DOWN || code == SYS_HALT) {
-@@ -261,8 +255,7 @@ static struct notifier_block sbwdog_noti
-  * having to create and maintain a timer, just to tickle another timer,
-  * which is just so wrong.
-  */
-- irqreturn_t
--sbwdog_interrupt(int irq, void *addr)
-+irqreturn_t sbwdog_interrupt(int irq, void *addr)
- {
- 	unsigned long wd_init;
- 	char *wd_cfg_reg = (char *)addr;
-@@ -287,8 +280,7 @@ sbwdog_interrupt(int irq, void *addr)
- 	return IRQ_HANDLED;
- }
- 
-- static int __init
--sbwdog_init(void)
-+static int __init sbwdog_init(void)
- {
- 	int ret;
- 
-@@ -322,8 +314,7 @@ sbwdog_init(void)
- 	return ret;
- }
- 
-- static void __exit
--sbwdog_exit(void)
-+static void __exit sbwdog_exit(void)
- {
- 	misc_deregister(&sbwdog_miscdev);
- }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -220,10 +122,11 @@ hptiop-add-more-adapter-models-and-other-fixes.patch
 libsas-convert-ata-bridge-to-use-new-eh.patch
 git-unionfs.patch
 vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+mct232-speed-new-termios-and-compliance-cleanups.patch
+mct232-speed-new-termios-and-compliance-cleanups-fix.patch
 usb-testing-driver-dont-free-a-locked-mutex.patch
 9p-util-fix-semaphore-handling.patch
 git-watchdog.patch
-add-support-for-sb1-hardware-watchdog.patch
 add-support-for-sb1-hardware-watchdog-fix.patch
 git-wireless.patch
 git-ipwireless_cs.patch
