@@ -1,102 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: + i386-use-raw_smp_processor_id-in-die.patch added to -mm tree
-Date: Thu, 13 Dec 2007 22:16:05 -0800
-Message-ID: <200712140616.lBE6G5tu006269@imap1.linux-foundation.org>
+Subject: - git-acpi-build-fix.patch removed from -mm tree
+Date: Thu, 13 Dec 2007 22:17:19 -0800
+Message-ID: <200712140617.lBE6HJKb006309@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33621 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53924 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752977AbXLNGQt (ORCPT
+	by vger.kernel.org with ESMTP id S1751810AbXLNGRq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Dec 2007 01:16:49 -0500
+	Fri, 14 Dec 2007 01:17:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, miles.lane@gmail.com, mingo@elte.hu, tglx@linutronix.de
+To: akpm@linux-foundation.org, lenb@kernel.org, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: use raw_smp_processor_id() in die()
-has been added to the -mm tree.  Its filename is
-     i386-use-raw_smp_processor_id-in-die.patch
+     git-acpi build fix
+has been removed from the -mm tree.  Its filename was
+     git-acpi-build-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: i386: use raw_smp_processor_id() in die()
+Subject: git-acpi build fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-We missed one:
+ia64 allmodconfig:
 
-BUG: using smp_processor_id() in preemptible [00000001] code: modprobe/3107
-caller is die+0x5d/0x1db
-Pid: 3107, comm: modprobe Not tainted 2.6.24-rc5-mm1 #24
- [<c0108eb2>] show_trace_log_lvl+0x12/0x25
- [<c0109659>] show_trace+0xd/0x10
- [<c0109981>] dump_stack+0x57/0x5f
- [<c02017f5>] debug_smp_processor_id+0x99/0xb0
- [<c0109174>] die+0x5d/0x1db
- [<c03cdf38>] do_trap+0x8a/0xa3
- [<c0109509>] do_invalid_op+0x6c/0x76
- [<c03cdd02>] error_code+0x72/0x78
- [<f8a446c7>] acpi_video_bus_add+0x85b/0xbf4 [video]
- [<c023b3cf>] acpi_device_probe+0x3e/0xdb
+kernel/power/main.c:493: error: `pm_test_attr' undeclared here (not in a function)
 
-Convert the other debugging smp_processor_id() calls in there too - perhaps
-they are also callable under conditions where preemption is thought to be
-enabled.
-
-"Miles Lane" <miles.lane@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Len Brown <lenb@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/traps_32.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ kernel/power/main.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN arch/x86/kernel/traps_32.c~i386-use-raw_smp_processor_id-in-die arch/x86/kernel/traps_32.c
---- a/arch/x86/kernel/traps_32.c~i386-use-raw_smp_processor_id-in-die
-+++ a/arch/x86/kernel/traps_32.c
-@@ -376,7 +376,7 @@ void die(const char * str, struct pt_reg
- 		console_verbose();
- 		__raw_spin_lock(&die.lock);
- 		raw_local_save_flags(flags);
--		die.lock_owner = smp_processor_id();
-+		die.lock_owner = raw_smp_processor_id();
- 		die.lock_owner_depth = 0;
- 		bust_spinlocks(1);
- 	}
-@@ -636,7 +636,7 @@ static __kprobes void
- mem_parity_error(unsigned char reason, struct pt_regs * regs)
- {
- 	printk(KERN_EMERG "Uhhuh. NMI received for unknown reason %02x on "
--		"CPU %d.\n", reason, smp_processor_id());
-+		"CPU %d.\n", reason, raw_smp_processor_id());
- 	printk(KERN_EMERG "You have some hardware problem, likely on the PCI bus.\n");
- 
- #if defined(CONFIG_EDAC)
-@@ -684,7 +684,7 @@ unknown_nmi_error(unsigned char reason, 
- 	}
+diff -puN kernel/power/main.c~git-acpi-build-fix kernel/power/main.c
+--- a/kernel/power/main.c~git-acpi-build-fix
++++ a/kernel/power/main.c
+@@ -489,9 +489,6 @@ static struct attribute * g[] = {
+ #ifdef CONFIG_PM_TRACE
+ 	&pm_trace_attr.attr,
  #endif
- 	printk(KERN_EMERG "Uhhuh. NMI received for unknown reason %02x on "
--		"CPU %d.\n", reason, smp_processor_id());
-+		"CPU %d.\n", reason, raw_smp_processor_id());
- 	printk(KERN_EMERG "Do you have a strange power saving mode enabled?\n");
- 	if (panic_on_unrecovered_nmi)
-                 panic("NMI: Not continuing");
-@@ -708,7 +708,7 @@ void __kprobes die_nmi(struct pt_regs *r
- 	bust_spinlocks(1);
- 	printk(KERN_EMERG "%s", msg);
- 	printk(" on CPU%d, ip %08lx, registers:\n",
--		smp_processor_id(), regs->ip);
-+		raw_smp_processor_id(), regs->ip);
- 	show_registers(regs);
- 	console_silent();
- 	spin_unlock(&nmi_print_lock);
+-#ifdef CONFIG_PM_DEBUG
+-	&pm_test_attr.attr,
+-#endif
+ 	NULL,
+ };
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
