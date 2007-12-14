@@ -1,54 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - hptiop-add-more-adapter-models-and-other-fixes-fix-2.patch removed from -mm tree
-Date: Thu, 13 Dec 2007 16:12:39 -0800
-Message-ID: <200712140012.lBE0Cdq1026044@imap1.linux-foundation.org>
+Subject: - libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 13 Dec 2007 16:13:33 -0800
+Message-ID: <200712140013.lBE0DYVc026091@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56421 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57869 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752895AbXLNAMo (ORCPT
+	by vger.kernel.org with ESMTP id S935159AbXLNANx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Dec 2007 19:12:44 -0500
+	Thu, 13 Dec 2007 19:13:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@steeleye.com, linux@highpoint-tech.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, djwong@us.ibm.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hptiop-add-more-adapter-models-and-other-fixes-fix-2
+     libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     hptiop-add-more-adapter-models-and-other-fixes-fix-2.patch
+     libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into hptiop-add-more-adapter-models-and-other-fixes.patch
+This patch was dropped because it was folded into libsas-convert-ata-bridge-to-use-new-eh.patch
 
 ------------------------------------------------------
-Subject: hptiop-add-more-adapter-models-and-other-fixes-fix-2
+Subject: libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/scsi/hptiop.c: In function 'hptiop_finish_scsi_req':
-drivers/scsi/hptiop.c:576: warning: comparison of distinct pointer types lacks a cast
-drivers/scsi/hptiop.c:576: warning: comparison of distinct pointer types lacks a cast
+ERROR: do not use C99 // comments
+#102: FILE: drivers/scsi/libsas/sas_ata.c:289:
++	//uh... hopefully there's no commands left in here?
 
-Cc: HighPoint Linux Team <linux@highpoint-tech.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+total: 1 errors, 0 warnings, 127 lines checked
+
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: "Darrick J. Wong" <djwong@us.ibm.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/hptiop.c |    2 +-
+ drivers/scsi/libsas/sas_ata.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/hptiop.c~hptiop-add-more-adapter-models-and-other-fixes-fix-2 drivers/scsi/hptiop.c
---- a/drivers/scsi/hptiop.c~hptiop-add-more-adapter-models-and-other-fixes-fix-2
-+++ a/drivers/scsi/hptiop.c
-@@ -574,7 +574,7 @@ static void hptiop_finish_scsi_req(struc
- 			scsi_bufflen(scp) - le32_to_cpu(req->dataxfer_length));
- 		scp->result = SAM_STAT_CHECK_CONDITION;
- 		memcpy(&scp->sense_buffer, &req->sg_list,
--				min(sizeof(scp->sense_buffer),
-+				min_t(size_t, sizeof(scp->sense_buffer),
- 					le32_to_cpu(req->dataxfer_length)));
- 		break;
+diff -puN drivers/scsi/libsas/sas_ata.c~libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes drivers/scsi/libsas/sas_ata.c
+--- a/drivers/scsi/libsas/sas_ata.c~libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes
++++ a/drivers/scsi/libsas/sas_ata.c
+@@ -286,7 +286,7 @@ static int sas_ata_soft_reset(struct ata
+ static void sas_ata_error_handler(struct ata_port *ap)
+ {
+ 	ata_do_eh(ap, NULL, sas_ata_soft_reset, NULL, NULL);
+-	//uh... hopefully there's no commands left in here?
++	/* uh... hopefully there's no commands left in here? */
+ }
  
+ static void sas_ata_post_internal(struct ata_queued_cmd *qc)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -122,7 +130,7 @@ ips-trim-trailing-whitespace.patch
 scsi-gdth-kill-unneeded-irq-argument.patch
 drivers-scsi-sgiwd93c-export-sgiwd93_reset.patch
 hptiop-add-more-adapter-models-and-other-fixes.patch
-hptiop-add-more-adapter-models-and-other-fixes-fix-2.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
 libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
 git-unionfs.patch
 vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
