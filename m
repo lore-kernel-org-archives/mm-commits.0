@@ -1,69 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - backlight-omap1-backlight-driver-fix.patch removed from -mm tree
-Date: Thu, 13 Dec 2007 16:07:00 -0800
-Message-ID: <200712140007.lBE070KQ025740@imap1.linux-foundation.org>
+Subject: - pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch removed from -mm tree
+Date: Thu, 13 Dec 2007 16:09:53 -0800
+Message-ID: <200712140009.lBE09sJ6025942@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60749 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50019 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934296AbXLNAH1 (ORCPT
+	by vger.kernel.org with ESMTP id S1763952AbXLNAJ7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Dec 2007 19:07:27 -0500
+	Thu, 13 Dec 2007 19:09:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, balrogg@gmail.com, dbrownell@users.sourceforge.net, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, kristen.c.accardi@intel.com, yinghai.lu@sun.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     backlight-omap1-backlight-driver-fix
+     pci-dont-load-acpi_php-when-acpi-is-disabled-fix
 has been removed from the -mm tree.  Its filename was
-     backlight-omap1-backlight-driver-fix.patch
+     pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
 
-This patch was dropped because it was folded into backlight-omap1-backlight-driver.patch
+This patch was dropped because it was folded into pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 
 ------------------------------------------------------
-Subject: backlight-omap1-backlight-driver-fix
+Subject: pci-dont-load-acpi_php-when-acpi-is-disabled-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- Putting the filename in the file is unneeded (breaks across renames too)
+Fix this:
 
-- Remove extraneous newlines
+ERROR: "acpi_pci_disabled" [drivers/pci/hotplug/acpiphp.ko] undefined!
 
-Cc: Andrzej Zaborowski <balrogg@gmail.com>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+And fix the sectioning too - it's referred to from both __init and __exit.
+
+That's a lot of errors for such a small and basic patch.
+
+Cc: Greg KH <greg@kroah.com>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Yinghai Lu <yinghai.lu@sun.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/omap1_bl.c |    4 ----
- 1 file changed, 4 deletions(-)
+ arch/x86/kernel/acpi/boot.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/omap1_bl.c~backlight-omap1-backlight-driver-fix drivers/video/backlight/omap1_bl.c
---- a/drivers/video/backlight/omap1_bl.c~backlight-omap1-backlight-driver-fix
-+++ a/drivers/video/backlight/omap1_bl.c
-@@ -1,6 +1,4 @@
- /*
-- * drivers/video/backlight/omap1_bl.c
-- *
-  * Backlight driver for OMAP based boards.
-  *
-  * Copyright (c) 2006 Andrzej Zaborowski  <balrog@zabor.org>
-@@ -124,7 +122,6 @@ static int omapbl_update_status(struct b
- 	return 0;
- }
+diff -puN arch/x86/kernel/acpi/boot.c~pci-dont-load-acpi_php-when-acpi-is-disabled-fix arch/x86/kernel/acpi/boot.c
+--- a/arch/x86/kernel/acpi/boot.c~pci-dont-load-acpi_php-when-acpi-is-disabled-fix
++++ a/arch/x86/kernel/acpi/boot.c
+@@ -72,7 +72,8 @@ static inline int acpi_madt_oem_check(ch
+ #define PREFIX			"ACPI: "
  
--
- static int omapbl_get_intensity(struct backlight_device *dev)
- {
- 	struct omap_backlight *bl = dev_get_drvdata(&dev->dev);
-@@ -136,7 +133,6 @@ static struct backlight_ops omapbl_ops =
- 	.update_status  = omapbl_update_status,
- };
+ int acpi_noirq;				/* skip ACPI IRQ initialization */
+-int acpi_pci_disabled __initdata;	/* skip ACPI PCI scan and IRQ initialization */
++int acpi_pci_disabled;			/* skip ACPI PCI scan and IRQ initialization */
++EXPORT_SYMBOL(acpi_pci_disabled);
+ int acpi_ht __initdata = 1;	/* enable HT */
  
--
- static int omapbl_probe(struct platform_device *pdev)
- {
- 	struct backlight_device *dev;
+ int acpi_lapic;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -127,11 +118,11 @@ git-netdev-all.patch
 ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 backlight-omap1-backlight-driver.patch
-backlight-omap1-backlight-driver-fix.patch
 git-battery.patch
 bluetooth-uninlining.patch
 git-nfsd.patch
 quirk-enable-msi-mapping-on-ht1000.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
 git-sh.patch
 ips-trim-trailing-whitespace.patch
