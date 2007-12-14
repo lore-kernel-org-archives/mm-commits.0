@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alsa-copy_ctl_value_from_user-warning-fix.patch added to -mm tree
-Date: Thu, 13 Dec 2007 22:30:39 -0800
-Message-ID: <200712140630.lBE6Udlr006896@imap1.linux-foundation.org>
+Subject: + revert-sched-update-root-domain-spans-upon-departure.patch added to -mm tree
+Date: Fri, 14 Dec 2007 01:49:11 -0800
+Message-ID: <200712140949.lBE9nEVh013729@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57733 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50760 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761880AbXLNGbW (ORCPT
+	by vger.kernel.org with ESMTP id S1752014AbXLNJv4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Dec 2007 01:31:22 -0500
+	Fri, 14 Dec 2007 04:51:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, perex@suse.cz, tiwai@suse.de
+Cc: akpm@linux-foundation.org, ego@in.ibm.com, ghaskins@novell.com, mingo@elte.hu
 
 
 The patch titled
-     alsa: copy_ctl_value_from_user() warning fix
+     revert "sched: update root-domain spans upon departure"
 has been added to the -mm tree.  Its filename is
-     alsa-copy_ctl_value_from_user-warning-fix.patch
+     revert-sched-update-root-domain-spans-upon-departure.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: alsa: copy_ctl_value_from_user() warning fix
+Subject: revert "sched: update root-domain spans upon departure"
 From: Andrew Morton <akpm@linux-foundation.org>
 
-sound/core/control_compat.c: In function 'copy_ctl_value_from_user':
-sound/core/control_compat.c:222: warning: 'count' may be used uninitialized in this function
+Revert from git-sched:
 
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+commit 9e76ad89f4fa93a789326bc0f4548cd2fbca8d8e
+Author: Gregory Haskins <ghaskins@novell.com>
+Date:   Thu Dec 13 21:35:26 2007 +0100
+
+    sched: update root-domain spans upon departure
+    
+    We shouldnt leave cpus enabled in the spans if that RQ has left the domain.
+    
+    Signed-off-by: Gregory Haskins <ghaskins@novell.com>
+    Signed-off-by: Ingo Molnar <mingo@elte.hu>
+
+As it causes my t61p to fail to come back to life after suspend-to-RAM.
+
+Cc: Gautham R Shenoy <ego@in.ibm.com>
+Cc: Gregory Haskins <ghaskins@novell.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/core/control_compat.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/sched.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN sound/core/control_compat.c~alsa-copy_ctl_value_from_user-warning-fix sound/core/control_compat.c
---- a/sound/core/control_compat.c~alsa-copy_ctl_value_from_user-warning-fix
-+++ a/sound/core/control_compat.c
-@@ -219,7 +219,8 @@ static int copy_ctl_value_from_user(stru
- 				    struct snd_ctl_elem_value32 __user *data32,
- 				    int *typep, int *countp)
- {
--	int i, type, count, size;
-+	int i, type, size;
-+	int uninitialized_var(count);
- 	unsigned int indirect;
+diff -puN kernel/sched.c~revert-sched-update-root-domain-spans-upon-departure kernel/sched.c
+--- a/kernel/sched.c~revert-sched-update-root-domain-spans-upon-departure
++++ a/kernel/sched.c
+@@ -5854,9 +5854,6 @@ static void rq_attach_root(struct rq *rq
+ 				class->leave_domain(rq);
+ 		}
  
- 	if (copy_from_user(&data->id, &data32->id, sizeof(data->id)))
+-		cpu_clear(rq->cpu, old_rd->span);
+-		cpu_clear(rq->cpu, old_rd->online);
+-
+ 		if (atomic_dec_and_test(&old_rd->refcount))
+ 			kfree(old_rd);
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,6 +88,7 @@ small-acpica-extension-to-be-able-to-store-the-name-of.patch
 git-alsa.patch
 git-alsa-fixup.patch
 git-alsa-build-fix.patch
+alsa-copy_ctl_value_from_user-warning-fix.patch
 git-agpgart.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
@@ -121,6 +135,7 @@ bluetooth-uninlining.patch
 git-nfsd.patch
 quirk-enable-msi-mapping-on-ht1000.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+revert-sched-update-root-domain-spans-upon-departure.patch
 git-sh.patch
 ips-trim-trailing-whitespace.patch
 scsi-gdth-kill-unneeded-irq-argument.patch
@@ -279,4 +294,3 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-alsa-copy_ctl_value_from_user-warning-fix.patch
