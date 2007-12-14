@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i-oat-fix-null-device-in-call-to-dev_err.patch added to -mm tree
-Date: Fri, 14 Dec 2007 15:43:57 -0800
-Message-ID: <200712142343.lBENhvhZ021891@imap1.linux-foundation.org>
+Subject: + fix-bloat-o-meter-for-ppc64.patch added to -mm tree
+Date: Fri, 14 Dec 2007 15:46:07 -0800
+Message-ID: <200712142346.lBENk75F021996@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48687 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37607 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751087AbXLNXob (ORCPT
+	by vger.kernel.org with ESMTP id S1751161AbXLNXrW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Dec 2007 18:44:31 -0500
+	Fri, 14 Dec 2007 18:47:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shannon.nelson@intel.com, snakebyte@gmx.de
+Cc: ntl@pobox.com, mpm@selenic.com
 
 
 The patch titled
-     I/OAT: fix null device in call to dev_err()
+     fix bloat-o-meter for ppc64
 has been added to the -mm tree.  Its filename is
-     i-oat-fix-null-device-in-call-to-dev_err.patch
+     fix-bloat-o-meter-for-ppc64.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,39 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: I/OAT: fix null device in call to dev_err()
-From: Shannon Nelson <shannon.nelson@intel.com>
+Subject: fix bloat-o-meter for ppc64
+From: Nathan Lynch <ntl@pobox.com>
 
-We can't use the device in a dev_err() after a kzalloc failure or after the
-kfree, so simplify it to the pdev that was originally passed in.
+bloat-o-meter assumes that a '.' anywhere in a symbol's name means that it
+is static and prepends 'static.' to the first part of the symbol name,
+discarding the portion of the name that follows the '.'.  However, the
+names of function entry points begin with '.' in the ppc64 ABI.  This
+causes all function text size changes to be accounted to a single 'static.'
+entry in the output when comparing ppc64 kernels.
 
-Cc: Eric Sesterhenn <snakebyte@gmx.de>
-Signed-off-by: Shannon Nelson <shannon.nelson@intel.com>
+Change getsizes() to ignore the first character of the symbol name when
+searching for '.'.
+
+Signed-off-by: Nathan Lynch <ntl@pobox.com>
+Cc: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/ioat_dma.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/bloat-o-meter |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/dma/ioat_dma.c~i-oat-fix-null-device-in-call-to-dev_err drivers/dma/ioat_dma.c
---- a/drivers/dma/ioat_dma.c~i-oat-fix-null-device-in-call-to-dev_err
-+++ a/drivers/dma/ioat_dma.c
-@@ -1363,7 +1363,7 @@ err_completion_pool:
- err_dma_pool:
- 	kfree(device);
- err_kzalloc:
--	dev_err(&device->pdev->dev,
-+	dev_err(&pdev->dev,
- 		"Intel(R) I/OAT DMA Engine initialization failed\n");
- 	return NULL;
- }
+diff -puN scripts/bloat-o-meter~fix-bloat-o-meter-for-ppc64 scripts/bloat-o-meter
+--- a/scripts/bloat-o-meter~fix-bloat-o-meter-for-ppc64
++++ a/scripts/bloat-o-meter
+@@ -18,7 +18,8 @@ def getsizes(file):
+     for l in os.popen("nm --size-sort " + file).readlines():
+         size, type, name = l[:-1].split()
+         if type in "tTdDbB":
+-            if "." in name: name = "static." + name.split(".")[0]
++            # function names begin with '.' on 64-bit powerpc
++            if "." in name[1:]: name = "static." + name.split(".")[0]
+             sym[name] = sym.get(name, 0) + int(size, 16)
+     return sym
+ 
 _
 
-Patches currently in -mm which might be from shannon.nelson@intel.com are
+Patches currently in -mm which might be from ntl@pobox.com are
 
-i-oat-fixups-from-code-comments.patch
-i-oat-fix-null-device-in-call-to-dev_err.patch
-dca-convert-struct-class_device-to-struct-device.patch
-add-dma-engine-driver-for-freescale-mpc85xx-processors.patch
-add-dma-engine-driver-for-freescale-mpc85xx-processors-fix.patch
-add-dma-engine-driver-for-freescale-mpc85xx-processors-fix-fix.patch
+fix-bloat-o-meter-for-ppc64.patch
+git-powerpc.patch
