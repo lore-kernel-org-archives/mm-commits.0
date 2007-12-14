@@ -1,76 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - libata-xfer_mask-is-unsigned-int-not-unsigned-long-fix.patch removed from -mm tree
-Date: Thu, 13 Dec 2007 16:00:52 -0800
-Message-ID: <200712140000.lBE00q0G025402@imap1.linux-foundation.org>
+Subject: - backlight-omap1-backlight-driver-fix.patch removed from -mm tree
+Date: Thu, 13 Dec 2007 16:07:00 -0800
+Message-ID: <200712140007.lBE070KQ025740@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52420 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60749 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934319AbXLNAA5 (ORCPT
+	by vger.kernel.org with ESMTP id S934296AbXLNAH1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Dec 2007 19:00:57 -0500
+	Thu, 13 Dec 2007 19:07:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, htejun@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, balrogg@gmail.com, dbrownell@users.sourceforge.net, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata-xfer_mask-is-unsigned-int-not-unsigned-long-fix
+     backlight-omap1-backlight-driver-fix
 has been removed from the -mm tree.  Its filename was
-     libata-xfer_mask-is-unsigned-int-not-unsigned-long-fix.patch
+     backlight-omap1-backlight-driver-fix.patch
 
-This patch was dropped because it was folded into libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
+This patch was dropped because it was folded into backlight-omap1-backlight-driver.patch
 
 ------------------------------------------------------
-Subject: libata-xfer_mask-is-unsigned-int-not-unsigned-long-fix
+Subject: backlight-omap1-backlight-driver-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/ata/pata_amd.c:521: warning: initialization from incompatible pointer type
-drivers/ata/pata_amd.c:556: warning: initialization from incompatible pointer type
+- Putting the filename in the file is unneeded (breaks across renames too)
 
-is this right?
+- Remove extraneous newlines
 
-Cc: Tejun Heo <htejun@gmail.com>
+Cc: Andrzej Zaborowski <balrogg@gmail.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_amd.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/video/backlight/omap1_bl.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/ata/pata_amd.c~libata-xfer_mask-is-unsigned-int-not-unsigned-long-fix drivers/ata/pata_amd.c
---- a/drivers/ata/pata_amd.c~libata-xfer_mask-is-unsigned-int-not-unsigned-long-fix
-+++ a/drivers/ata/pata_amd.c
-@@ -225,8 +225,8 @@ static void amd133_set_dmamode(struct at
-  * cached during driver attach and are consulted to select transfer
-  * mode.
-  */
--static unsigned long nv_mode_filter(struct ata_device *dev,
--				    unsigned long xfer_mask)
-+static unsigned int nv_mode_filter(struct ata_device *dev,
-+				    unsigned int xfer_mask)
+diff -puN drivers/video/backlight/omap1_bl.c~backlight-omap1-backlight-driver-fix drivers/video/backlight/omap1_bl.c
+--- a/drivers/video/backlight/omap1_bl.c~backlight-omap1-backlight-driver-fix
++++ a/drivers/video/backlight/omap1_bl.c
+@@ -1,6 +1,4 @@
+ /*
+- * drivers/video/backlight/omap1_bl.c
+- *
+  * Backlight driver for OMAP based boards.
+  *
+  * Copyright (c) 2006 Andrzej Zaborowski  <balrog@zabor.org>
+@@ -124,7 +122,6 @@ static int omapbl_update_status(struct b
+ 	return 0;
+ }
+ 
+-
+ static int omapbl_get_intensity(struct backlight_device *dev)
  {
- 	static const unsigned int udma_mask_map[] =
- 		{ ATA_UDMA2, ATA_UDMA1, ATA_UDMA0, 0,
-@@ -235,7 +235,7 @@ static unsigned long nv_mode_filter(stru
- 	char acpi_str[32] = "";
- 	u32 saved_udma, udma;
- 	const struct ata_acpi_gtm *gtm;
--	unsigned long bios_limit = 0, acpi_limit = 0, limit;
-+	unsigned int bios_limit = 0, acpi_limit = 0, limit;
+ 	struct omap_backlight *bl = dev_get_drvdata(&dev->dev);
+@@ -136,7 +133,6 @@ static struct backlight_ops omapbl_ops =
+ 	.update_status  = omapbl_update_status,
+ };
  
- 	/* find out what BIOS configured */
- 	udma = saved_udma = (unsigned long)ap->host->private_data;
-@@ -268,8 +268,8 @@ static unsigned long nv_mode_filter(stru
- 	if (!(limit & (ATA_MASK_MWDMA | ATA_MASK_UDMA)))
- 		limit |= ATA_MASK_MWDMA | ATA_MASK_UDMA;
- 
--	ata_port_printk(ap, KERN_DEBUG, "nv_mode_filter: 0x%lx&0x%lx->0x%lx, "
--			"BIOS=0x%lx (0x%x) ACPI=0x%lx%s\n",
-+	ata_port_printk(ap, KERN_DEBUG, "nv_mode_filter: 0x%x&0x%x->0x%x, "
-+			"BIOS=0x%x (0x%x) ACPI=0x%x%s\n",
- 			xfer_mask, limit, xfer_mask & limit, bios_limit,
- 			saved_udma, acpi_limit, acpi_str);
- 
+-
+ static int omapbl_probe(struct platform_device *pdev)
+ {
+ 	struct backlight_device *dev;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -120,7 +113,6 @@ git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
 pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
 libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
-libata-xfer_mask-is-unsigned-int-not-unsigned-long-fix.patch
 libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
 libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
 git-md-accel.patch
@@ -134,6 +126,7 @@ tipc-fix-semaphore-handling.patch
 git-netdev-all.patch
 ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
+backlight-omap1-backlight-driver.patch
 backlight-omap1-backlight-driver-fix.patch
 git-battery.patch
 bluetooth-uninlining.patch
