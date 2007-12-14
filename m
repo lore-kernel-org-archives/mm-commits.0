@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + git-alsa-build-fix.patch added to -mm tree
-Date: Thu, 13 Dec 2007 22:28:03 -0800
-Message-ID: <200712140628.lBE6S37G006747@imap1.linux-foundation.org>
+Subject: + alsa-copy_ctl_value_from_user-warning-fix.patch added to -mm tree
+Date: Thu, 13 Dec 2007 22:30:39 -0800
+Message-ID: <200712140630.lBE6Udlr006896@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58236 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57733 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762595AbXLNG2n (ORCPT
+	by vger.kernel.org with ESMTP id S1761880AbXLNGbW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Dec 2007 01:28:43 -0500
+	Fri, 14 Dec 2007 01:31:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, perex@suse.cz, tiwai@suse.de
 
 
 The patch titled
-     git-alsa: build fix
+     alsa: copy_ctl_value_from_user() warning fix
 has been added to the -mm tree.  Its filename is
-     git-alsa-build-fix.patch
+     alsa-copy_ctl_value_from_user-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-alsa: build fix
+Subject: alsa: copy_ctl_value_from_user() warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from sound/core/pcm_native.c:3308:
-sound/core/pcm_compat.c: In function 'snd_pcm_ioctl_compat':
-sound/core/pcm_compat.c:486: error: 'SNDRV_PCM_IOCTL_TSTAMP' undeclared (first use in this function)
-sound/core/pcm_compat.c:486: error: (Each undeclared identifier is reported only once
-sound/core/pcm_compat.c:486: error: for each function it appears in.)
+sound/core/control_compat.c: In function 'copy_ctl_value_from_user':
+sound/core/control_compat.c:222: warning: 'count' may be used uninitialized in this function
 
 Cc: Jaroslav Kysela <perex@suse.cz>
 Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/core/pcm_compat.c |    1 -
- 1 file changed, 1 deletion(-)
+ sound/core/control_compat.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN sound/core/pcm_compat.c~git-alsa-build-fix sound/core/pcm_compat.c
---- a/sound/core/pcm_compat.c~git-alsa-build-fix
-+++ a/sound/core/pcm_compat.c
-@@ -483,7 +483,6 @@ static long snd_pcm_ioctl_compat(struct 
- 	switch (cmd) {
- 	case SNDRV_PCM_IOCTL_PVERSION:
- 	case SNDRV_PCM_IOCTL_INFO:
--	case SNDRV_PCM_IOCTL_TSTAMP:
- 	case SNDRV_PCM_IOCTL_HWSYNC:
- 	case SNDRV_PCM_IOCTL_PREPARE:
- 	case SNDRV_PCM_IOCTL_RESET:
+diff -puN sound/core/control_compat.c~alsa-copy_ctl_value_from_user-warning-fix sound/core/control_compat.c
+--- a/sound/core/control_compat.c~alsa-copy_ctl_value_from_user-warning-fix
++++ a/sound/core/control_compat.c
+@@ -219,7 +219,8 @@ static int copy_ctl_value_from_user(stru
+ 				    struct snd_ctl_elem_value32 __user *data32,
+ 				    int *typep, int *countp)
+ {
+-	int i, type, count, size;
++	int i, type, size;
++	int uninitialized_var(count);
+ 	unsigned int indirect;
+ 
+ 	if (copy_from_user(&data->id, &data32->id, sizeof(data->id)))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,6 +74,7 @@ acpi-add-reboot-mechanism.patch
 small-acpica-extension-to-be-able-to-store-the-name-of.patch
 git-alsa.patch
 git-alsa-fixup.patch
+git-alsa-build-fix.patch
 git-agpgart.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
@@ -279,4 +279,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-git-alsa-build-fix.patch
+alsa-copy_ctl_value_from_user-warning-fix.patch
