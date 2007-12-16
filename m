@@ -1,167 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: + drm-i915-suspend-oops-fix.patch added to -mm tree
-Date: Sun, 16 Dec 2007 14:18:26 -0800
-Message-ID: <200712162218.lBGMIQvw015281@imap1.linux-foundation.org>
+Subject: - mips-remove-dead-config-symbols-from-mips-code.patch removed from -mm tree
+Date: Sun, 16 Dec 2007 15:25:07 -0800
+Message-ID: <200712162325.lBGNP707017603@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52279 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35622 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757592AbXLPWTF (ORCPT
+	by vger.kernel.org with ESMTP id S1760162AbXLPXZX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Dec 2007 17:19:05 -0500
+	Sun, 16 Dec 2007 18:25:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, airlied@linux.ie
+To: olsajiri@gmail.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drm: i915, suspend oops fix
-has been added to the -mm tree.  Its filename is
-     drm-i915-suspend-oops-fix.patch
+     mips: remove dead config symbols from MIPS code
+has been removed from the -mm tree.  Its filename was
+     mips-remove-dead-config-symbols-from-mips-code.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-Subject: drm: i915, suspend oops fix
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: mips: remove dead config symbols from MIPS code
+From: Jiri Olsa <olsajiri@gmail.com>
 
-Register mmio_map space when suspending, it might be lost due to DRM device
-closing with older X userspace drivers (it closes drm device and frees
-resources after X starts) and then it accesses bad address and oopses while
-suspending.
+remove dead config symbols from MIPS code
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Dave Airlie <airlied@linux.ie>
+Signed-off-by: Jiri Olsa <olsajiri@gmail.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/i915_dma.c |   24 +++++++++++++++---------
- drivers/char/drm/i915_drv.c |   10 +++++++++-
- drivers/char/drm/i915_drv.h |    1 +
- 3 files changed, 25 insertions(+), 10 deletions(-)
+ include/asm-mips/pmc-sierra/msp71xx/msp_regs.h |    4 ---
+ include/asm-mips/sn/addrs.h                    |    2 -
+ include/asm-mips/sn/agent.h                    |    4 ---
+ include/asm-mips/sn/klconfig.h                 |   18 ---------------
+ 4 files changed, 2 insertions(+), 26 deletions(-)
 
-diff -puN drivers/char/drm/i915_dma.c~drm-i915-suspend-oops-fix drivers/char/drm/i915_dma.c
---- a/drivers/char/drm/i915_dma.c~drm-i915-suspend-oops-fix
-+++ a/drivers/char/drm/i915_dma.c
-@@ -1276,11 +1276,23 @@ static int i915_set_status_page(struct d
- 	return 0;
- }
+diff -puN include/asm-mips/pmc-sierra/msp71xx/msp_regs.h~mips-remove-dead-config-symbols-from-mips-code include/asm-mips/pmc-sierra/msp71xx/msp_regs.h
+--- a/include/asm-mips/pmc-sierra/msp71xx/msp_regs.h~mips-remove-dead-config-symbols-from-mips-code
++++ a/include/asm-mips/pmc-sierra/msp71xx/msp_regs.h
+@@ -585,11 +585,7 @@
+  * UART defines                                                            *
+  ***************************************************************************
+  */
+-#ifndef CONFIG_MSP_FPGA
+ #define MSP_BASE_BAUD		25000000
+-#else
+-#define MSP_BASE_BAUD		6000000
+-#endif
+ #define MSP_UART_REG_LEN	0x20
  
--int i915_driver_load(struct drm_device *dev, unsigned long flags)
-+int i915_register_mmio_map(struct drm_device *dev)
- {
- 	struct drm_i915_private *dev_priv = dev->dev_private;
- 	unsigned long base, size;
--	int ret = 0, mmio_bar = IS_I9XX(dev) ? 0 : 1;
-+	int mmio_bar = IS_I9XX(dev) ? 0 : 1;
-+
-+	/* Add register map (needed for suspend/resume) */
-+	base = drm_get_resource_start(dev, mmio_bar);
-+	size = drm_get_resource_len(dev, mmio_bar);
-+
-+	return drm_addmap(dev, base, size, _DRM_REGISTERS, _DRM_KERNEL,
-+			 &dev_priv->mmio_map);
-+}
-+
-+int i915_driver_load(struct drm_device *dev, unsigned long flags)
-+{
-+	struct drm_i915_private *dev_priv = dev->dev_private;
+ /*
+diff -puN include/asm-mips/sibyte/board.h~mips-remove-dead-config-symbols-from-mips-code include/asm-mips/sibyte/board.h
+diff -puN include/asm-mips/sibyte/swarm.h~mips-remove-dead-config-symbols-from-mips-code include/asm-mips/sibyte/swarm.h
+diff -puN include/asm-mips/sn/addrs.h~mips-remove-dead-config-symbols-from-mips-code include/asm-mips/sn/addrs.h
+--- a/include/asm-mips/sn/addrs.h~mips-remove-dead-config-symbols-from-mips-code
++++ a/include/asm-mips/sn/addrs.h
+@@ -19,8 +19,6 @@
  
- 	/* i915 has 4 more counters */
- 	dev->counters += 4;
-@@ -1297,13 +1309,7 @@ int i915_driver_load(struct drm_device *
+ #if defined(CONFIG_SGI_IP27)
+ #include <asm/sn/sn0/addrs.h>
+-#elif defined(CONFIG_SGI_IP35)
+-#include <asm/sn/sn1/addrs.h>
+ #endif
  
- 	dev->dev_private = (void *)dev_priv;
  
--	/* Add register map (needed for suspend/resume) */
--	base = drm_get_resource_start(dev, mmio_bar);
--	size = drm_get_resource_len(dev, mmio_bar);
+diff -puN include/asm-mips/sn/agent.h~mips-remove-dead-config-symbols-from-mips-code include/asm-mips/sn/agent.h
+--- a/include/asm-mips/sn/agent.h~mips-remove-dead-config-symbols-from-mips-code
++++ a/include/asm-mips/sn/agent.h
+@@ -17,9 +17,7 @@
+ 
+ #if defined(CONFIG_SGI_IP27)
+ #include <asm/sn/sn0/hub.h>
+-#elif defined(CONFIG_SGI_IP35)
+-#include <asm/sn/sn1/hub.h>
+-#endif	/* !CONFIG_SGI_IP27 && !CONFIG_SGI_IP35 */
++#endif	/* !CONFIG_SGI_IP27 */
+ 
+ /*
+  * NIC register macros
+diff -puN include/asm-mips/sn/klconfig.h~mips-remove-dead-config-symbols-from-mips-code include/asm-mips/sn/klconfig.h
+--- a/include/asm-mips/sn/klconfig.h~mips-remove-dead-config-symbols-from-mips-code
++++ a/include/asm-mips/sn/klconfig.h
+@@ -40,26 +40,10 @@
+ //#include <sys/graph.h>
+ //#include <sys/xtalk/xbow.h>
+ 
+-#elif defined(CONFIG_SGI_IP35)
 -
--	ret = drm_addmap(dev, base, size, _DRM_REGISTERS, _DRM_KERNEL,
--			 &dev_priv->mmio_map);
--	return ret;
-+	return i915_register_mmio_map(dev);
- }
+-#include <asm/sn/sn1/addrs.h>
+-#include <sys/sn/router.h>
+-#include <sys/graph.h>
+-#include <asm/xtalk/xbow.h>
+-
+-#endif /* !CONFIG_SGI_IP27 && !CONFIG_SGI_IP35 */
+-
+-#if defined(CONFIG_SGI_IP27) || defined(CONFIG_SGI_IP35)
+ #include <asm/sn/agent.h>
+ #include <asm/fw/arc/types.h>
+ #include <asm/fw/arc/hinv.h>
+-#if defined(CONFIG_SGI_IP35)
+-// The hack file has to be before vector and after sn0_fru....
+-#include <asm/hack.h>
+-#include <asm/sn/vector.h>
+-#include <asm/xtalk/xtalk.h>
+-#endif /* CONFIG_SGI_IP35 */
+-#endif /* CONFIG_SGI_IP27 || CONFIG_SGI_IP35 */
++#endif /* CONFIG_SGI_IP27 */
  
- int i915_driver_unload(struct drm_device *dev)
-diff -puN drivers/char/drm/i915_drv.c~drm-i915-suspend-oops-fix drivers/char/drm/i915_drv.c
---- a/drivers/char/drm/i915_drv.c~drm-i915-suspend-oops-fix
-+++ a/drivers/char/drm/i915_drv.c
-@@ -266,7 +266,7 @@ static void i915_restore_vga(struct drm_
- static int i915_suspend(struct drm_device *dev)
- {
- 	struct drm_i915_private *dev_priv = dev->dev_private;
--	int i;
-+	int i, ret;
+ typedef u64  nic_t;
  
- 	if (!dev || !dev_priv) {
- 		printk(KERN_ERR "dev: %p, dev_priv: %p\n", dev, dev_priv);
-@@ -274,6 +274,14 @@ static int i915_suspend(struct drm_devic
- 		return -ENODEV;
- 	}
- 
-+	/* Every lastclose will destroy this mapping, we need it for suspend.
-+	 * It doesn't matter if it exists already, it will return the existing
-+	 * one. Also it will be surely destroyed; either on next lastclose or
-+	 * on lastclose called from drm unload path. -js */
-+	ret = i915_register_mmio_map(dev);
-+	if (ret)
-+		return ret;
-+
- 	pci_save_state(dev->pdev);
- 	pci_read_config_byte(dev->pdev, LBB, &dev_priv->saveLBB);
- 
-diff -puN drivers/char/drm/i915_drv.h~drm-i915-suspend-oops-fix drivers/char/drm/i915_drv.h
---- a/drivers/char/drm/i915_drv.h~drm-i915-suspend-oops-fix
-+++ a/drivers/char/drm/i915_drv.h
-@@ -216,6 +216,7 @@ extern int i915_max_ioctl;
- 
- 				/* i915_dma.c */
- extern void i915_kernel_lost_context(struct drm_device * dev);
-+extern int i915_register_mmio_map(struct drm_device *dev);
- extern int i915_driver_load(struct drm_device *, unsigned long flags);
- extern int i915_driver_unload(struct drm_device *);
- extern void i915_driver_lastclose(struct drm_device * dev);
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from olsajiri@gmail.com are
 
-git-drm.patch
-net-ibm_newemac-remove-spin_lock_unlocked.patch
-git-watchdog.patch
-git-wireless.patch
-drm-i915-suspend-oops-fix.patch
-drm-i915-fix-oops-after-killing-x.patch
-capabilities-introduce-per-process-capability-bounding-set-capabilities-correct-logic-at-capset_check.patch
-maintainers-order-auerswald-alphabetically.patch
-pnp-do-not-stop-start-devices-in-suspend-resume-path.patch
-dzh-remove-useless-unused-module-junk.patch
-dz-always-check-if-it-is-safe-to-console_putchar.patch
-dz-dont-panic-when-request_irq-fails.patch
-dz-add-and-reorder-inclusions-remove-unneeded-ones.patch
-dz-update-kconfig-description.patch
-dz-rename-the-serial-console-structure.patch
-dz-fix-locking-issues.patch
-dz-handle-special-conditions-on-reception-correctly.patch
-maintainers-add-self-for-the-dz-serial-driver.patch
-char-rocket-switch-long-delay-to-sleep.patch
-char-rocket-printk-cleanup.patch
-char-rocket-remove-useless-macros.patch
-char-char-serial-remove-serial_type_normal-redefines.patch
-char-mxser_new-ioaddresses-are-ulong.patch
-char-stallion-fix-compiler-warnings.patch
-char-riscom8-change-rc_init_drivers-prototype.patch
-char-esp-remove-hangup-and-wakeup-bottomhalves.patch
-char-istallion-remove-hangup-bottomhalf.patch
-char-specialix-remove-bottomhalves.patch
-char-stallion-remove-bottomhalf.patch
-char-serial167-remove-bottomhalf.patch
-char-riscom8-remove-wakeup-anf-hangup-bottomhalves.patch
-mxser-mxser_new-first-pass-over-termios-reporting-for-the.patch
-moxa-first-pass-at-termios-reporting.patch
-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
+git-alsa.patch
+m32r-remove-dead-config-symbols-from-m32r-code.patch
+mips-remove-dead-config-symbols-from-mips-code.patch
+drivers-serial-s3c2410c-remove-dead-config-symbols.patch
+frv-remove-dead-config-symbol-from-frv-code.patch
+m68knomu-remove-dead-config-symbols-from-m68knomu-code.patch
+m68knommu-removing-config-variable-dumptoflash.patch
+fs-remove-dead-config-config_has_compat_epoll_event-symbol.patch
+alpha-parisc-removing-config-variable-debug_rwlock.patch
