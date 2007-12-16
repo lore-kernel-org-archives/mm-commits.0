@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + initrd-fix-virtual-physical-mix-up-in-overwrite-test.patch added to -mm tree
-Date: Sun, 16 Dec 2007 02:58:25 -0800
-Message-ID: <200712161058.lBGAwP3F024606@imap1.linux-foundation.org>
+Subject: + scsi-make-pcmcia-directory-use-obj-ym-instead-of-subdir-ym.patch added to -mm tree
+Date: Sun, 16 Dec 2007 03:23:42 -0800
+Message-ID: <200712161123.lBGBNggE025444@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51068 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51680 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751992AbXLPK64 (ORCPT
+	by vger.kernel.org with ESMTP id S1763862AbXLPLXz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Dec 2007 05:58:56 -0500
+	Sun, 16 Dec 2007 06:23:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: geert@linux-m68k.org, benh@kernel.crashing.org, chris@zankel.net, galak@gate.crashing.org, grundler@parisc-linux.org, kyle@mcmartin.ca, nickpiggin@yahoo.com.au, paulus@samba.org, ralf@linux-mips.org
+Cc: htejun@gmail.com, James.Bottomley@SteelEye.com, sam@ravnborg.org
 
 
 The patch titled
-     initrd: fix virtual/physical mix-up in overwrite test
+     scsi: make pcmcia directory use obj-y|m instead of subdir-y|m
 has been added to the -mm tree.  Its filename is
-     initrd-fix-virtual-physical-mix-up-in-overwrite-test.patch
+     scsi-make-pcmcia-directory-use-obj-ym-instead-of-subdir-ym.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,90 +26,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: initrd: fix virtual/physical mix-up in overwrite test
-From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: scsi: make pcmcia directory use obj-y|m instead of subdir-y|m
+From: Tejun Heo <htejun@gmail.com>
 
-On recent kernels, I get the following error when using an initrd:
+subdir-y|m isn't supposed to contain modules or built-in components. 
+Change subdir-$(CONFIG_PCMCIA) to obj-$(CONFIG_PCMCIA).
 
-| initrd overwritten (0x00b78000 < 0x07668000) - disabling it.
-
-My Amiga 4000 has 12 MiB of RAM at physical address 0x07400000 (virtual
-0x00000000).
-The initrd is located at the end of RAM: 0x00b78000 - 0x00c00000 (virtual).
-The overwrite test compares the (virtual) initrd location to the (physical)
-first available memory location, which fails.
-
-This patch converts initrd_start to a page frame number, so it can be safely
-compared with min_low_pfn.
-
-Before the introduction of discontiguous memory support on m68k
-(12d810c1b8c2b913d48e629e2b5c01d105029839), min_low_pfn was just left
-untouched by the m68k-specific code (zero, I guess), and everything worked
-fine.
-
-On several platforms, initrd_below_start_ok is set to 1:
-
-| arch/mips/kernel/setup.c:       initrd_below_start_ok = 1;
-| arch/parisc/mm/init.c:                  initrd_below_start_ok = 1;
-| arch/powerpc/kernel/prom.c:                     initrd_below_start_ok = 1;
-| arch/ppc/platforms/hdpu.c:                      initrd_below_start_ok = 1;
-| arch/xtensa/kernel/setup.c:             initrd_below_start_ok = 1;
-
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Grant Grundler <grundler@parisc-linux.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Kumar Gala <galak@gate.crashing.org>
-Cc: Christian Zankel <chris@zankel.net>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Tejun Heo <htejun@gmail.com>
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: James Bottomley <James.Bottomley@SteelEye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/scsi/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN init/main.c~initrd-fix-virtual-physical-mix-up-in-overwrite-test init/main.c
---- a/init/main.c~initrd-fix-virtual-physical-mix-up-in-overwrite-test
-+++ a/init/main.c
-@@ -598,9 +598,9 @@ asmlinkage void __init start_kernel(void
+diff -puN drivers/scsi/Makefile~scsi-make-pcmcia-directory-use-obj-ym-instead-of-subdir-ym drivers/scsi/Makefile
+--- a/drivers/scsi/Makefile~scsi-make-pcmcia-directory-use-obj-ym-instead-of-subdir-ym
++++ a/drivers/scsi/Makefile
+@@ -17,7 +17,7 @@
+ CFLAGS_aha152x.o =   -DAHA152X_STAT -DAUTOCONF
+ CFLAGS_gdth.o    = # -DDEBUG_GDTH=2 -D__SERIAL__ -D__COM2__ -DGDTH_STATISTICS
  
- #ifdef CONFIG_BLK_DEV_INITRD
- 	if (initrd_start && !initrd_below_start_ok &&
--			initrd_start < min_low_pfn << PAGE_SHIFT) {
-+			virt_to_pfn(initrd_start) < min_low_pfn) {
- 		printk(KERN_CRIT "initrd overwritten (0x%08lx < 0x%08lx) - "
--		    "disabling it.\n",initrd_start,min_low_pfn << PAGE_SHIFT);
-+		    "disabling it.\n", virt_to_pfn(initrd_start), min_low_pfn);
- 		initrd_start = 0;
- 	}
- #endif
+-subdir-$(CONFIG_PCMCIA)		+= pcmcia
++obj-$(CONFIG_PCMCIA)		+= pcmcia/
+ 
+ obj-$(CONFIG_SCSI)		+= scsi_mod.o
+ obj-$(CONFIG_SCSI_TGT)		+= scsi_tgt.o
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from htejun@gmail.com are
 
-initrd-fix-virtual-physical-mix-up-in-overwrite-test.patch
-sdio-fix-module-device-table-definition-for-m68k.patch
-git-scsi-misc.patch
-m68k-use-cc-cross-prefix.patch
-m68k-array_size-cleanup.patch
-dio-array_size-cleanup.patch
-dio-array_size-cleanup-update.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-m68k-balance-ioremap-and-iounmap-in-m68k-atari-hades-pcic.patch
-nubus-kill-drivers-nubus-nubus_symsc.patch
-m68k-kill-arch-m68k-mac-mac_ksymsc.patch
-m68k-kill-arch-m68k-hp300-ksymsc.patch
-m68k-kill-arch-m68k-amiga-amiga_ksymsc.patch
-m68k-kill-arch-m68k-atari-atari_ksymsc.patch
-m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch
-mac68k-macii-adb-comment-correction.patch
-mac68k-remove-dead-code.patch
-mac68k-add-nubus-card-definitions-and-a-typo-fix.patch
-mac68k-remove-dead-mac_adbkeycodes.patch
-uml-borrow-consth-techniques.patch
-remove-pointless-casts-from-void-pointers.patch
-cleanup-after-apus-removal.patch
-amiga-serial-driver-port_write_mutex-fixup.patch
-add-cmpxchg_local-to-m86k.patch
+git-kbuild.patch
+git-libata-all.patch
+libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
+libata-add-toshiba-mk1637gsx-to-spurious-command-completion-list.patch
+libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
+libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
+scsi-make-pcmcia-directory-use-obj-ym-instead-of-subdir-ym.patch
+git-block.patch
