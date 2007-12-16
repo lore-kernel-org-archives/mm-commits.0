@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-proc-net-packet-crash-due-to-bogus-private-pointer.patch added to -mm tree
-Date: Sun, 16 Dec 2007 02:14:31 -0800
-Message-ID: <200712161014.lBGAEVAO023165@imap1.linux-foundation.org>
+Subject: + initrd-fix-virtual-physical-mix-up-in-overwrite-test.patch added to -mm tree
+Date: Sun, 16 Dec 2007 02:58:25 -0800
+Message-ID: <200712161058.lBGAwP3F024606@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59733 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51068 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758875AbXLPKPh (ORCPT
+	by vger.kernel.org with ESMTP id S1751992AbXLPK64 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Dec 2007 05:15:37 -0500
+	Sun, 16 Dec 2007 05:58:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: herbert@gondor.apana.org.au
+Cc: geert@linux-m68k.org, benh@kernel.crashing.org, chris@zankel.net, galak@gate.crashing.org, grundler@parisc-linux.org, kyle@mcmartin.ca, nickpiggin@yahoo.com.au, paulus@samba.org, ralf@linux-mips.org
 
 
 The patch titled
-     Fix /proc/net/packet crash due to bogus private pointer
+     initrd: fix virtual/physical mix-up in overwrite test
 has been added to the -mm tree.  Its filename is
-     fix-proc-net-packet-crash-due-to-bogus-private-pointer.patch
+     initrd-fix-virtual-physical-mix-up-in-overwrite-test.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,52 +26,90 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix /proc/net/packet crash due to bogus private pointer
-From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: initrd: fix virtual/physical mix-up in overwrite test
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-The seq_open_net patch changed the meaning of seq->private.  Unfortunately
-it missed two spots in AF_PACKET, which still used the old way of
-dereferencing seq->private, thus causing weird and wonderful crashes when
-reading /proc/net/packet.
+On recent kernels, I get the following error when using an initrd:
 
-This patch fixes them.
+| initrd overwritten (0x00b78000 < 0x07668000) - disabling it.
 
-Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
+My Amiga 4000 has 12 MiB of RAM at physical address 0x07400000 (virtual
+0x00000000).
+The initrd is located at the end of RAM: 0x00b78000 - 0x00c00000 (virtual).
+The overwrite test compares the (virtual) initrd location to the (physical)
+first available memory location, which fails.
+
+This patch converts initrd_start to a page frame number, so it can be safely
+compared with min_low_pfn.
+
+Before the introduction of discontiguous memory support on m68k
+(12d810c1b8c2b913d48e629e2b5c01d105029839), min_low_pfn was just left
+untouched by the m68k-specific code (zero, I guess), and everything worked
+fine.
+
+On several platforms, initrd_below_start_ok is set to 1:
+
+| arch/mips/kernel/setup.c:       initrd_below_start_ok = 1;
+| arch/parisc/mm/init.c:                  initrd_below_start_ok = 1;
+| arch/powerpc/kernel/prom.c:                     initrd_below_start_ok = 1;
+| arch/ppc/platforms/hdpu.c:                      initrd_below_start_ok = 1;
+| arch/xtensa/kernel/setup.c:             initrd_below_start_ok = 1;
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Grant Grundler <grundler@parisc-linux.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Kumar Gala <galak@gate.crashing.org>
+Cc: Christian Zankel <chris@zankel.net>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/packet/af_packet.c |    4 ++--
+ init/main.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN net/packet/af_packet.c~fix-proc-net-packet-crash-due-to-bogus-private-pointer net/packet/af_packet.c
---- a/net/packet/af_packet.c~fix-proc-net-packet-crash-due-to-bogus-private-pointer
-+++ a/net/packet/af_packet.c
-@@ -1878,7 +1878,7 @@ static void *packet_seq_start(struct seq
+diff -puN init/main.c~initrd-fix-virtual-physical-mix-up-in-overwrite-test init/main.c
+--- a/init/main.c~initrd-fix-virtual-physical-mix-up-in-overwrite-test
++++ a/init/main.c
+@@ -598,9 +598,9 @@ asmlinkage void __init start_kernel(void
  
- static void *packet_seq_next(struct seq_file *seq, void *v, loff_t *pos)
- {
--	struct net *net = seq->private;
-+	struct net *net = seq_file_net(seq);
- 	++*pos;
- 	return  (v == SEQ_START_TOKEN)
- 		? sk_head(&net->packet.sklist)
-@@ -1887,7 +1887,7 @@ static void *packet_seq_next(struct seq_
- 
- static void packet_seq_stop(struct seq_file *seq, void *v)
- {
--	struct net *net = seq->private;
-+	struct net *net = seq_file_net(seq);
- 	read_unlock(&net->packet.sklist_lock);
- }
- 
+ #ifdef CONFIG_BLK_DEV_INITRD
+ 	if (initrd_start && !initrd_below_start_ok &&
+-			initrd_start < min_low_pfn << PAGE_SHIFT) {
++			virt_to_pfn(initrd_start) < min_low_pfn) {
+ 		printk(KERN_CRIT "initrd overwritten (0x%08lx < 0x%08lx) - "
+-		    "disabling it.\n",initrd_start,min_low_pfn << PAGE_SHIFT);
++		    "disabling it.\n", virt_to_pfn(initrd_start), min_low_pfn);
+ 		initrd_start = 0;
+ 	}
+ #endif
 _
 
-Patches currently in -mm which might be from herbert@gondor.apana.org.au are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
-origin.patch
-git-net.patch
-fix-proc-net-packet-crash-due-to-bogus-private-pointer.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-avoid-divide-in-is_align.patch
-remove-rcu_assign_pointer-penalty-for-null-pointers.patch
+initrd-fix-virtual-physical-mix-up-in-overwrite-test.patch
+sdio-fix-module-device-table-definition-for-m68k.patch
+git-scsi-misc.patch
+m68k-use-cc-cross-prefix.patch
+m68k-array_size-cleanup.patch
+dio-array_size-cleanup.patch
+dio-array_size-cleanup-update.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+m68k-balance-ioremap-and-iounmap-in-m68k-atari-hades-pcic.patch
+nubus-kill-drivers-nubus-nubus_symsc.patch
+m68k-kill-arch-m68k-mac-mac_ksymsc.patch
+m68k-kill-arch-m68k-hp300-ksymsc.patch
+m68k-kill-arch-m68k-amiga-amiga_ksymsc.patch
+m68k-kill-arch-m68k-atari-atari_ksymsc.patch
+m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch
+mac68k-macii-adb-comment-correction.patch
+mac68k-remove-dead-code.patch
+mac68k-add-nubus-card-definitions-and-a-typo-fix.patch
+mac68k-remove-dead-mac_adbkeycodes.patch
+uml-borrow-consth-techniques.patch
+remove-pointless-casts-from-void-pointers.patch
+cleanup-after-apus-removal.patch
+amiga-serial-driver-port_write_mutex-fixup.patch
+add-cmpxchg_local-to-m86k.patch
