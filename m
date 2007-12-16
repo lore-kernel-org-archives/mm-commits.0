@@ -1,109 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - net-use-mutex_is_locked-for-assert_rtnl.patch removed from -mm tree
-Date: Sun, 16 Dec 2007 14:15:52 -0800
-Message-ID: <200712162215.lBGMFqEb015141@imap1.linux-foundation.org>
+Subject: - net-core-sockc-disable-softirqs-while-taking-sk-sk_callback_lock.patch removed from -mm tree
+Date: Sun, 16 Dec 2007 14:17:27 -0800
+Message-ID: <200712162217.lBGMHRDT015175@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58547 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56170 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763775AbXLPWQt (ORCPT
+	by vger.kernel.org with ESMTP id S1755029AbXLPWST (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Dec 2007 17:16:49 -0500
+	Sun, 16 Dec 2007 17:18:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, herbert@gondor.apana.org.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, miles.lane@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net: use mutex_is_locked() for ASSERT_RTNL()
+     net/core/sock.c: disable softirqs while taking sk->sk_callback_lock
 has been removed from the -mm tree.  Its filename was
-     net-use-mutex_is_locked-for-assert_rtnl.patch
+     net-core-sockc-disable-softirqs-while-taking-sk-sk_callback_lock.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-Subject: net: use mutex_is_locked() for ASSERT_RTNL()
+Subject: net/core/sock.c: disable softirqs while taking sk->sk_callback_lock
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ASSERT_RTNL() uses mutex_trylock(), but it's better to use mutex_is_locked().
+Might fix this:
 
-Make that change, and remove rtnl_trylock() altogether.
+inconsistent {in-softirq-W} -> {softirq-on-R} usage.
 
+Cc: "Miles Lane" <miles.lane@gmail.com>
 Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/cxgb3/cxgb3_main.c |    3 +--
- include/linux/rtnetlink.h      |    5 ++---
- net/core/rtnetlink.c           |    7 ++++---
- 3 files changed, 7 insertions(+), 8 deletions(-)
+ net/core/sock.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/cxgb3/cxgb3_main.c~net-use-mutex_is_locked-for-assert_rtnl drivers/net/cxgb3/cxgb3_main.c
---- a/drivers/net/cxgb3/cxgb3_main.c~net-use-mutex_is_locked-for-assert_rtnl
-+++ a/drivers/net/cxgb3/cxgb3_main.c
-@@ -2191,7 +2191,7 @@ static void check_t3b2_mac(struct adapte
+diff -puN net/core/sock.c~net-core-sockc-disable-softirqs-while-taking-sk-sk_callback_lock net/core/sock.c
+--- a/net/core/sock.c~net-core-sockc-disable-softirqs-while-taking-sk-sk_callback_lock
++++ a/net/core/sock.c
+@@ -1113,9 +1113,9 @@ int sock_i_uid(struct sock *sk)
  {
- 	int i;
+ 	int uid;
  
--	if (!rtnl_trylock())	/* synchronize with ifdown */
-+	if (rtnl_is_locked())	/* synchronize with ifdown */
- 		return;
- 
- 	for_each_port(adapter, i) {
-@@ -2219,7 +2219,6 @@ static void check_t3b2_mac(struct adapte
- 			p->mac.stats.num_resets++;
- 		}
- 	}
--	rtnl_unlock();
+-	read_lock(&sk->sk_callback_lock);
++	read_lock_bh(&sk->sk_callback_lock);
+ 	uid = sk->sk_socket ? SOCK_INODE(sk->sk_socket)->i_uid : 0;
+-	read_unlock(&sk->sk_callback_lock);
++	read_unlock_bh(&sk->sk_callback_lock);
+ 	return uid;
  }
  
- 
-diff -puN include/linux/rtnetlink.h~net-use-mutex_is_locked-for-assert_rtnl include/linux/rtnetlink.h
---- a/include/linux/rtnetlink.h~net-use-mutex_is_locked-for-assert_rtnl
-+++ a/include/linux/rtnetlink.h
-@@ -751,14 +751,13 @@ extern void rtmsg_ifinfo(int type, struc
- /* RTNL is used as a global lock for all changes to network configuration  */
- extern void rtnl_lock(void);
- extern void rtnl_unlock(void);
--extern int rtnl_trylock(void);
-+extern int rtnl_is_locked(void);
- 
- extern void rtnetlink_init(void);
- extern void __rtnl_unlock(void);
- 
- #define ASSERT_RTNL() do { \
--	if (unlikely(rtnl_trylock())) { \
--		rtnl_unlock(); \
-+	if (unlikely(!rtnl_is_locked())) { \
- 		printk(KERN_ERR "RTNL: assertion failed at %s (%d)\n", \
- 		       __FILE__,  __LINE__); \
- 		dump_stack(); \
-diff -puN net/core/rtnetlink.c~net-use-mutex_is_locked-for-assert_rtnl net/core/rtnetlink.c
---- a/net/core/rtnetlink.c~net-use-mutex_is_locked-for-assert_rtnl
-+++ a/net/core/rtnetlink.c
-@@ -77,9 +77,10 @@ void rtnl_unlock(void)
- 	netdev_run_todo();
- }
- 
--int rtnl_trylock(void)
-+/* Return non-zero if rtnl_mutex is presently held */
-+int rtnl_is_locked(void)
+@@ -1123,9 +1123,9 @@ unsigned long sock_i_ino(struct sock *sk
  {
--	return mutex_trylock(&rtnl_mutex);
-+	return mutex_is_locked(&rtnl_mutex);
+ 	unsigned long ino;
+ 
+-	read_lock(&sk->sk_callback_lock);
++	read_lock_bh(&sk->sk_callback_lock);
+ 	ino = sk->sk_socket ? SOCK_INODE(sk->sk_socket)->i_ino : 0;
+-	read_unlock(&sk->sk_callback_lock);
++	read_unlock_bh(&sk->sk_callback_lock);
+ 	return ino;
  }
  
- int rtattr_parse(struct rtattr *tb[], int maxattr, struct rtattr *rta, int len)
-@@ -1424,7 +1425,7 @@ EXPORT_SYMBOL(rtattr_parse);
- EXPORT_SYMBOL(__rtattr_parse_nested_compat);
- EXPORT_SYMBOL(rtnetlink_put_metrics);
- EXPORT_SYMBOL(rtnl_lock);
--EXPORT_SYMBOL(rtnl_trylock);
-+EXPORT_SYMBOL(rtnl_is_locked);
- EXPORT_SYMBOL(rtnl_unlock);
- EXPORT_SYMBOL(rtnl_unicast);
- EXPORT_SYMBOL(rtnl_notify);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -161,7 +121,6 @@ git-mmc.patch
 git-mtd.patch
 git-net.patch
 git-net-vs-git-lblnet.patch
-net-use-mutex_is_locked-for-assert_rtnl.patch
 tipc-fix-semaphore-handling.patch
 git-netdev-all.patch
 ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
