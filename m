@@ -1,156 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - usb-use-irqf_disabled-for-hcd-interrupt-handlers.patch removed from -mm tree
-Date: Mon, 17 Dec 2007 15:41:22 -0800
-Message-ID: <200712172341.lBHNfM2E008385@imap1.linux-foundation.org>
+Subject: - aic94-fix-section-mismatches.patch removed from -mm tree
+Date: Mon, 17 Dec 2007 15:40:16 -0800
+Message-ID: <200712172340.lBHNeGB5008277@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56979 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60843 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934141AbXLQXwH (ORCPT
+	by vger.kernel.org with ESMTP id S932398AbXLQXwG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:52:07 -0500
+	Mon, 17 Dec 2007 18:52:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stern@rowland.harvard.edu, david-b@pacbell.net, greg@kroah.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, James.Bottomley@steeleye.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     USB: use IRQF_DISABLED for HCD interrupt handlers
+     aic94: fix section mismatches
 has been removed from the -mm tree.  Its filename was
-     usb-use-irqf_disabled-for-hcd-interrupt-handlers.patch
+     aic94-fix-section-mismatches.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: USB: use IRQF_DISABLED for HCD interrupt handlers
-From: Alan Stern <stern@rowland.harvard.edu>
+Subject: aic94: fix section mismatches
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Host controller IRQs are supposed to be serviced with interrupts disabled. 
-This patch (as1026) adds an IRQF_DISABLED flag to all the controller
-drivers that lack it.  It also replaces the spin_lock_irqsave() and
-spin_unlock_irqrestore() calls in uhci_irq() with simple spin_lock() and
-spin_unlock().
+Fix section mismatch warning:
 
-This fixes Bugzilla #9335.
+WARNING: vmlinux.o(.init.text+0x23be6): Section mismatch: reference to .exit.text:asd_unmap_ha (between 'asd_pci_probe' and 'qla4xxx_module_init')
++
+WARNING: vmlinux.o(.text+0x1ec8a8): Section mismatch: reference to .exit.text:as
+d_unmap_ioport (between 'asd_unmap_ha' and 'asd_remove_dev_attrs')
+WARNING: vmlinux.o(.text+0x1ec8b1): Section mismatch: reference to .exit.text:as
+d_unmap_memio (between 'asd_unmap_ha' and 'asd_remove_dev_attrs')
 
-Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
-Acked-by: David Brownell <david-b@pacbell.net>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/core/hcd-pci.c      |    2 +-
- drivers/usb/host/ehci-fsl.c     |    2 +-
- drivers/usb/host/ohci-ppc-of.c  |    2 +-
- drivers/usb/host/ohci-ssb.c     |    2 +-
- drivers/usb/host/r8a66597-hcd.c |    2 +-
- drivers/usb/host/uhci-hcd.c     |    9 ++++-----
- 6 files changed, 9 insertions(+), 10 deletions(-)
+ drivers/scsi/aic94xx/aic94xx_init.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/usb/core/hcd-pci.c~usb-use-irqf_disabled-for-hcd-interrupt-handlers drivers/usb/core/hcd-pci.c
---- a/drivers/usb/core/hcd-pci.c~usb-use-irqf_disabled-for-hcd-interrupt-handlers
-+++ a/drivers/usb/core/hcd-pci.c
-@@ -125,7 +125,7 @@ int usb_hcd_pci_probe (struct pci_dev *d
+diff -puN drivers/scsi/aic94xx/aic94xx_init.c~aic94-fix-section-mismatches drivers/scsi/aic94xx/aic94xx_init.c
+--- a/drivers/scsi/aic94xx/aic94xx_init.c~aic94-fix-section-mismatches
++++ a/drivers/scsi/aic94xx/aic94xx_init.c
+@@ -136,7 +136,7 @@ Err:
+ 	return err;
+ }
  
- 	pci_set_master (dev);
- 
--	retval = usb_add_hcd (hcd, dev->irq, IRQF_SHARED);
-+	retval = usb_add_hcd(hcd, dev->irq, IRQF_DISABLED | IRQF_SHARED);
- 	if (retval != 0)
- 		goto err4;
- 	return retval;
-diff -puN drivers/usb/host/ehci-fsl.c~usb-use-irqf_disabled-for-hcd-interrupt-handlers drivers/usb/host/ehci-fsl.c
---- a/drivers/usb/host/ehci-fsl.c~usb-use-irqf_disabled-for-hcd-interrupt-handlers
-+++ a/drivers/usb/host/ehci-fsl.c
-@@ -122,7 +122,7 @@ int usb_hcd_fsl_probe(const struct hc_dr
- 	temp = in_le32(hcd->regs + 0x1a8);
- 	out_le32(hcd->regs + 0x1a8, temp | 0x3);
- 
--	retval = usb_add_hcd(hcd, irq, IRQF_SHARED);
-+	retval = usb_add_hcd(hcd, irq, IRQF_DISABLED | IRQF_SHARED);
- 	if (retval != 0)
- 		goto err4;
- 	return retval;
-diff -puN drivers/usb/host/ohci-ppc-of.c~usb-use-irqf_disabled-for-hcd-interrupt-handlers drivers/usb/host/ohci-ppc-of.c
---- a/drivers/usb/host/ohci-ppc-of.c~usb-use-irqf_disabled-for-hcd-interrupt-handlers
-+++ a/drivers/usb/host/ohci-ppc-of.c
-@@ -142,7 +142,7 @@ ohci_hcd_ppc_of_probe(struct of_device *
- 
- 	ohci_hcd_init(ohci);
- 
--	rv = usb_add_hcd(hcd, irq, 0);
-+	rv = usb_add_hcd(hcd, irq, IRQF_DISABLED);
- 	if (rv == 0)
- 		return 0;
- 
-diff -puN drivers/usb/host/ohci-ssb.c~usb-use-irqf_disabled-for-hcd-interrupt-handlers drivers/usb/host/ohci-ssb.c
---- a/drivers/usb/host/ohci-ssb.c~usb-use-irqf_disabled-for-hcd-interrupt-handlers
-+++ a/drivers/usb/host/ohci-ssb.c
-@@ -160,7 +160,7 @@ static int ssb_ohci_attach(struct ssb_de
- 	hcd->regs = ioremap_nocache(hcd->rsrc_start, hcd->rsrc_len);
- 	if (!hcd->regs)
- 		goto err_put_hcd;
--	err = usb_add_hcd(hcd, dev->irq, IRQF_SHARED);
-+	err = usb_add_hcd(hcd, dev->irq, IRQF_DISABLED | IRQF_SHARED);
- 	if (err)
- 		goto err_iounmap;
- 
-diff -puN drivers/usb/host/r8a66597-hcd.c~usb-use-irqf_disabled-for-hcd-interrupt-handlers drivers/usb/host/r8a66597-hcd.c
---- a/drivers/usb/host/r8a66597-hcd.c~usb-use-irqf_disabled-for-hcd-interrupt-handlers
-+++ a/drivers/usb/host/r8a66597-hcd.c
-@@ -2197,7 +2197,7 @@ static int __init r8a66597_probe(struct 
- 	INIT_LIST_HEAD(&r8a66597->child_device);
- 
- 	hcd->rsrc_start = res->start;
--	ret = usb_add_hcd(hcd, irq, 0);
-+	ret = usb_add_hcd(hcd, irq, IRQF_DISABLED);
- 	if (ret != 0) {
- 		err("Failed to add hcd");
- 		goto clean_up;
-diff -puN drivers/usb/host/uhci-hcd.c~usb-use-irqf_disabled-for-hcd-interrupt-handlers drivers/usb/host/uhci-hcd.c
---- a/drivers/usb/host/uhci-hcd.c~usb-use-irqf_disabled-for-hcd-interrupt-handlers
-+++ a/drivers/usb/host/uhci-hcd.c
-@@ -378,7 +378,6 @@ static irqreturn_t uhci_irq(struct usb_h
+-static void __devexit asd_unmap_memio(struct asd_ha_struct *asd_ha)
++static void asd_unmap_memio(struct asd_ha_struct *asd_ha)
  {
- 	struct uhci_hcd *uhci = hcd_to_uhci(hcd);
- 	unsigned short status;
--	unsigned long flags;
+ 	struct asd_ha_addrspace *io_handle;
  
- 	/*
- 	 * Read the interrupt status, and write it back to clear the
-@@ -398,7 +397,7 @@ static irqreturn_t uhci_irq(struct usb_h
- 			dev_err(uhci_dev(uhci), "host controller process "
- 					"error, something bad happened!\n");
- 		if (status & USBSTS_HCH) {
--			spin_lock_irqsave(&uhci->lock, flags);
-+			spin_lock(&uhci->lock);
- 			if (uhci->rh_state >= UHCI_RH_RUNNING) {
- 				dev_err(uhci_dev(uhci),
- 					"host controller halted, "
-@@ -415,16 +414,16 @@ static irqreturn_t uhci_irq(struct usb_h
- 				 * pending unlinks */
- 				mod_timer(&hcd->rh_timer, jiffies);
- 			}
--			spin_unlock_irqrestore(&uhci->lock, flags);
-+			spin_unlock(&uhci->lock);
- 		}
- 	}
+@@ -173,7 +173,7 @@ static int __devinit asd_map_ioport(stru
+ 	return err;
+ }
  
- 	if (status & USBSTS_RD)
- 		usb_hcd_poll_rh_status(hcd);
- 	else {
--		spin_lock_irqsave(&uhci->lock, flags);
-+		spin_lock(&uhci->lock);
- 		uhci_scan_schedule(uhci);
--		spin_unlock_irqrestore(&uhci->lock, flags);
-+		spin_unlock(&uhci->lock);
- 	}
+-static void __devexit asd_unmap_ioport(struct asd_ha_struct *asd_ha)
++static void asd_unmap_ioport(struct asd_ha_struct *asd_ha)
+ {
+ 	pci_release_region(asd_ha->pcidev, PCI_IOBAR_OFFSET);
+ }
+@@ -210,7 +210,7 @@ Err:
+ 	return err;
+ }
  
- 	return IRQ_HANDLED;
+-static void __devexit asd_unmap_ha(struct asd_ha_struct *asd_ha)
++static void asd_unmap_ha(struct asd_ha_struct *asd_ha)
+ {
+ 	if (asd_ha->iospace)
+ 		asd_unmap_ioport(asd_ha);
 _
 
-Patches currently in -mm which might be from stern@rowland.harvard.edu are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-git-acpi.patch
-revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
+git-dvb.patch
+git-kbuild.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+pcmcia-include-bad-cis-filename-in-error-message.patch
+git-scsi-misc.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+git-x86.patch
+register_cpu-__devinit-or-__cpuinit.patch
+cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
+dio-fix-kernel-doc-notation.patch
+fs-menu-small-reorg.patch
+profile-likely-unlikely-macros.patch
