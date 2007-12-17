@@ -1,228 +1,279 @@
 From: akpm@linux-foundation.org
-Subject: - track-accurate-idle-time-with-tick_schedidle_sleeptime.patch removed from -mm tree
-Date: Mon, 17 Dec 2007 15:40:42 -0800
-Message-ID: <200712172340.lBHNegNk008311@imap1.linux-foundation.org>
+Subject: - git-x86-fix-allnoconfig-build.patch removed from -mm tree
+Date: Mon, 17 Dec 2007 15:40:46 -0800
+Message-ID: <200712172340.lBHNekbw008317@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38615 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57684 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763457AbXLQXw0 (ORCPT
+	by vger.kernel.org with ESMTP id S934765AbXLQXwV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:52:26 -0500
+	Mon, 17 Dec 2007 18:52:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: venkatesh.pallipadi@intel.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Track accurate idle time with tick_sched.idle_sleeptime
+     git-x86: fix allnoconfig build
 has been removed from the -mm tree.  Its filename was
-     track-accurate-idle-time-with-tick_schedidle_sleeptime.patch
+     git-x86-fix-allnoconfig-build.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Track accurate idle time with tick_sched.idle_sleeptime
-From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: git-x86: fix allnoconfig build
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Current idle time in kstat is based on jiffies and is coarse grained. 
-tick_sched.idle_sleeptime is making some attempt to keep track of idle time
-in a fine grained manner.  But, it is not handling the time spent in
-interrupts fully.
+arch/x86/mm/built-in.o: In function `vmemmap_populate':
+: undefined reference to `vmemmap_pgd_populate'
+arch/x86/mm/built-in.o: In function `vmemmap_populate':
+: undefined reference to `vmemmap_pud_populate'
+arch/x86/mm/built-in.o: In function `vmemmap_populate':
+: undefined reference to `vmemmap_verify'
+arch/x86/mm/built-in.o: In function `vmemmap_populate':
+: undefined reference to `vmemmap_alloc_block'
 
-Make tick_sched.idle_sleeptime accurate with respect to time spent on
-handling interrupts and also add tick_sched.idle_lastupdate, which keeps
-track of last time when idle_sleeptime was updated.
-
-This statistics will be crucial for cpufreq-ondemand governor, which can
-shed some conservative gaurd band that is uses today while setting the
-frequency.  The ondemand changes that uses the exact idle time is coming
-soon.
-
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tick.h     |    6 +++
- kernel/softirq.c         |    7 +++
- kernel/time/tick-sched.c |   70 +++++++++++++++++++++++++------------
- 3 files changed, 60 insertions(+), 23 deletions(-)
+ arch/x86/mm/init_64.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/tick.h~track-accurate-idle-time-with-tick_schedidle_sleeptime include/linux/tick.h
---- a/include/linux/tick.h~track-accurate-idle-time-with-tick_schedidle_sleeptime
-+++ a/include/linux/tick.h
-@@ -51,8 +51,10 @@ struct tick_sched {
- 	unsigned long			idle_jiffies;
- 	unsigned long			idle_calls;
- 	unsigned long			idle_sleeps;
-+	int				idle_active;
- 	ktime_t				idle_entrytime;
- 	ktime_t				idle_sleeptime;
-+	ktime_t				idle_lastupdate;
- 	ktime_t				sleep_length;
- 	unsigned long			last_jiffies;
- 	unsigned long			next_jiffies;
-@@ -103,6 +105,8 @@ extern void tick_nohz_stop_sched_tick(vo
- extern void tick_nohz_restart_sched_tick(void);
- extern void tick_nohz_update_jiffies(void);
- extern ktime_t tick_nohz_get_sleep_length(void);
-+extern void tick_nohz_stop_idle(int cpu);
-+extern u64 get_cpu_idle_time_us(int cpu, u64 *last_update_time);
- # else
- static inline void tick_nohz_stop_sched_tick(void) { }
- static inline void tick_nohz_restart_sched_tick(void) { }
-@@ -113,6 +117,8 @@ static inline ktime_t tick_nohz_get_slee
- 
- 	return len;
+diff -puN arch/x86/mm/init_64.c~git-x86-fix-allnoconfig-build arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~git-x86-fix-allnoconfig-build
++++ a/arch/x86/mm/init_64.c
+@@ -711,6 +711,7 @@ const char *arch_vma_name(struct vm_area
+ 	return NULL;
  }
-+static inline void tick_nohz_stop_idle(int cpu) { }
-+static inline u64 get_cpu_idle_time_us(int cpu, u64 *unused) { return 0; }
- # endif /* !NO_HZ */
  
- #endif
-diff -puN kernel/softirq.c~track-accurate-idle-time-with-tick_schedidle_sleeptime kernel/softirq.c
---- a/kernel/softirq.c~track-accurate-idle-time-with-tick_schedidle_sleeptime
-+++ a/kernel/softirq.c
-@@ -278,9 +278,14 @@ asmlinkage void do_softirq(void)
++#ifdef CONFIG_SPARSEMEM_VMEMMAP
+ /*
+  * Initialise the sparsemem vmemmap using huge-pages at the PMD level.
   */
- void irq_enter(void)
- {
-+#ifdef CONFIG_NO_HZ
-+	int cpu = smp_processor_id();
-+	if (idle_cpu(cpu) && !in_interrupt())
-+		tick_nohz_stop_idle(cpu);
+@@ -752,3 +753,4 @@ int __meminit vmemmap_populate(struct pa
+ 
+ 	return 0;
+ }
 +#endif
- 	__irq_enter();
- #ifdef CONFIG_NO_HZ
--	if (idle_cpu(smp_processor_id()))
-+	if (idle_cpu(cpu))
- 		tick_nohz_update_jiffies();
- #endif
- }
-diff -puN kernel/time/tick-sched.c~track-accurate-idle-time-with-tick_schedidle_sleeptime kernel/time/tick-sched.c
---- a/kernel/time/tick-sched.c~track-accurate-idle-time-with-tick_schedidle_sleeptime
-+++ a/kernel/time/tick-sched.c
-@@ -143,6 +143,44 @@ void tick_nohz_update_jiffies(void)
- 	local_irq_restore(flags);
- }
- 
-+void tick_nohz_stop_idle(int cpu)
-+{
-+	struct tick_sched *ts = &per_cpu(tick_cpu_sched, cpu);
-+
-+	if (ts->idle_active) {
-+		ktime_t now, delta;
-+		now = ktime_get();
-+		delta = ktime_sub(now, ts->idle_entrytime);
-+		ts->idle_lastupdate = now;
-+		ts->idle_sleeptime = ktime_add(ts->idle_sleeptime, delta);
-+		ts->idle_active = 0;
-+	}
-+}
-+
-+static ktime_t tick_nohz_start_idle(int cpu)
-+{
-+	struct tick_sched *ts = &per_cpu(tick_cpu_sched, cpu);
-+	ktime_t now, delta;
-+
-+	now = ktime_get();
-+	if (ts->idle_active) {
-+		delta = ktime_sub(now, ts->idle_entrytime);
-+		ts->idle_lastupdate = now;
-+		ts->idle_sleeptime = ktime_add(ts->idle_sleeptime, delta);
-+	}
-+	ts->idle_entrytime = now;
-+	ts->idle_active = 1;
-+	return now;
-+}
-+
-+u64 get_cpu_idle_time_us(int cpu, u64 *last_update_time)
-+{
-+	struct tick_sched *ts = &per_cpu(tick_cpu_sched, cpu);
-+
-+	*last_update_time = ktime_to_us(ts->idle_lastupdate);
-+	return ktime_to_us(ts->idle_sleeptime);
-+}
-+
- /**
-  * tick_nohz_stop_sched_tick - stop the idle tick from the idle task
-  *
-@@ -154,13 +192,14 @@ void tick_nohz_stop_sched_tick(void)
- {
- 	unsigned long seq, last_jiffies, next_jiffies, delta_jiffies, flags;
- 	struct tick_sched *ts;
--	ktime_t last_update, expires, now, delta;
-+	ktime_t last_update, expires, now;
- 	struct clock_event_device *dev = __get_cpu_var(tick_cpu_device).evtdev;
- 	int cpu;
- 
- 	local_irq_save(flags);
- 
- 	cpu = smp_processor_id();
-+	now = tick_nohz_start_idle(cpu);
- 	ts = &per_cpu(tick_cpu_sched, cpu);
- 
- 	/*
-@@ -192,19 +231,7 @@ void tick_nohz_stop_sched_tick(void)
- 		}
- 	}
- 
--	now = ktime_get();
--	/*
--	 * When called from irq_exit we need to account the idle sleep time
--	 * correctly.
--	 */
--	if (ts->tick_stopped) {
--		delta = ktime_sub(now, ts->idle_entrytime);
--		ts->idle_sleeptime = ktime_add(ts->idle_sleeptime, delta);
--	}
--
--	ts->idle_entrytime = now;
- 	ts->idle_calls++;
--
- 	/* Read jiffies and the time when jiffies were updated last */
- 	do {
- 		seq = read_seqbegin(&xtime_lock);
-@@ -332,23 +359,22 @@ void tick_nohz_restart_sched_tick(void)
- 	int cpu = smp_processor_id();
- 	struct tick_sched *ts = &per_cpu(tick_cpu_sched, cpu);
- 	unsigned long ticks;
--	ktime_t now, delta;
-+	ktime_t now;
-+
-+	local_irq_disable();
-+	tick_nohz_stop_idle(cpu);
- 
--	if (!ts->tick_stopped)
-+	if (!ts->tick_stopped) {
-+		local_irq_enable();
- 		return;
-+	}
- 
- 	/* Update jiffies first */
--	now = ktime_get();
--
--	local_irq_disable();
- 	select_nohz_load_balancer(0);
-+	now = ktime_get();
- 	tick_do_update_jiffies64(now);
- 	cpu_clear(cpu, nohz_cpu_mask);
- 
--	/* Account the idle time */
--	delta = ktime_sub(now, ts->idle_entrytime);
--	ts->idle_sleeptime = ktime_add(ts->idle_sleeptime, delta);
--
- 	/*
- 	 * We stopped the tick in idle. Update process times would miss the
- 	 * time we slept as update_process_times does only a 1 tick
 _
 
-Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+revert-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+timerfd-v3-new-timerfd-api-ia64-fix.patch
+timerfd-v3-new-timerfd-api-m68k-fix.patch
+timerfd-v3-new-timerfd-api-mips-fix.patch
+timerfd-v3-new-timerfd-api-arch-fixes.patch
+timerfd-v3-new-timerfd-api-powerpc-fix.patch
+timerfd-v3-new-timerfd-api-sparc64-fix.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+kernel-auditc-warning-fix.patch
 git-cpufreq.patch
+ppc-chrp-fix-possible-null-pointer-dereference.patch
+revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+git-drm.patch
+intel-agp-enable-i915-recognition.patch
+git-dvb.patch
+git-dvb-one-videobuf_read_start-is-enough.patch
+fix-jdelvare-i2c-i2c-constify-client-address-data.patch
+git-hid.patch
+revert-git-hrt.patch
+ia64-slim-down-__clear_bit_unlock.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
+libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
+libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
+git-md-accel.patch
+git-mips-fixup.patch
+git-mmc.patch
+git-mtd.patch
+git-net.patch
+git-net-vs-git-lblnet.patch
+git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+backlight-omap1-backlight-driver.patch
+git-battery.patch
+bluetooth-uninlining.patch
+git-nfsd.patch
+git-ocfs2-fixup.patch
+quirk-enable-msi-mapping-on-ht1000.patch
+git-sched.patch
+git-sched-fixup.patch
+git-sh.patch
+git-scsi-misc.patch
+git-scsi-rc-fixes.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+usb-testing-driver-dont-free-a-locked-mutex.patch
+9p-util-fix-semaphore-handling.patch
+git-watchdog.patch
+git-watchdog-fixup.patch
+add-support-for-sb1-hardware-watchdog.patch
+git-wireless.patch
+git-ipwireless_cs.patch
 git-x86.patch
+git-x86-fixup.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+i386-use-raw_smp_processor_id-in-die.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-xtensa.patch
+bonding-locking-fix.patch
+iwlwifi3945-4965-fix-rate-control-algo-reference-leak.patch
+bcm43xx_debugfs-sscanf-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
 pm-qos-infrastructure-and-interface.patch
 pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-pm-qos-remove-locks-around-blocking-notifier.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+stopmachine-semaphore-to-mutex-fix.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
+mark-rwsem-functions-as-__sched-for-wchan-profiling-fix.patch
+sync_sb_inodes-propagate-errors.patch
+add-have_oprofile.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-fix.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+logo-move-declarations-of-logos-to-linux_logoh-fix.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+64-bit-i_version-afs-fixes.patch
+ext4-add-block-bitmap-validation.patch
+ext4-fix-up-ext4fs_debug-builds.patch
+ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
