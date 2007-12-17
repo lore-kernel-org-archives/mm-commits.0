@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slub-remove-useless-masking-of-gfp_zero.patch added to -mm tree
-Date: Mon, 17 Dec 2007 13:40:24 -0800
-Message-ID: <200712172140.lBHLeOuO003087@imap1.linux-foundation.org>
+Subject: + quicklist-set-tlb-need_flush-if-pages-are-remaining-in-quicklist-0.patch added to -mm tree
+Date: Mon, 17 Dec 2007 13:54:05 -0800
+Message-ID: <200712172154.lBHLs52I003660@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59566 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32963 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757243AbXLQVlS (ORCPT
+	by vger.kernel.org with ESMTP id S1754975AbXLQVy5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Dec 2007 16:41:18 -0500
+	Mon, 17 Dec 2007 16:54:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, mpm@selenic.com, penberg@cs.helsinki.fi, torvalds@linux-foundation.org
+Cc: clameter@sgi.com, dhaval@linux.vnet.ibm.com, stable@kernel.org
 
 
 The patch titled
-     SLUB: remove useless masking of GFP_ZERO
+     quicklist: Set tlb->need_flush if pages are remaining in quicklist 0
 has been added to the -mm tree.  Its filename is
-     slub-remove-useless-masking-of-gfp_zero.patch
+     quicklist-set-tlb-need_flush-if-pages-are-remaining-in-quicklist-0.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,37 +26,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: remove useless masking of GFP_ZERO
+Subject: quicklist: Set tlb->need_flush if pages are remaining in quicklist 0
 From: Christoph Lameter <clameter@sgi.com>
 
-Remove a recently added useless masking of GFP_ZERO.  GFP_ZERO is already
-masked out in new_slab() (See how it calls allocate_slab).  No need to do
-it twice.  This reverts the SLUB parts of
-7fd272550bd43cc1d7289ef0ab2fa50de137e767.
+This ensures that the quicklists are drained. Otherwise draining may only
+occur when the processor reaches an idle state.
 
-Cc: Linus Torvalds <torvalds@woody.linux-foundation.org>
-Cc: Matt Mackall <mpm@selenic.com>
-Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Fixes fatal leakage of pgd_t's on 2.6.22 and later.
+
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Reported-by: Dhaval Giani <dhaval@linux.vnet.ibm.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    3 ---
- 1 file changed, 3 deletions(-)
+ include/asm-generic/tlb.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN mm/slub.c~slub-remove-useless-masking-of-gfp_zero mm/slub.c
---- a/mm/slub.c~slub-remove-useless-masking-of-gfp_zero
-+++ a/mm/slub.c
-@@ -1468,9 +1468,6 @@ static void *__slab_alloc(struct kmem_ca
- 	void **object;
- 	struct page *new;
+diff -puN include/asm-generic/tlb.h~quicklist-set-tlb-need_flush-if-pages-are-remaining-in-quicklist-0 include/asm-generic/tlb.h
+--- a/include/asm-generic/tlb.h~quicklist-set-tlb-need_flush-if-pages-are-remaining-in-quicklist-0
++++ a/include/asm-generic/tlb.h
+@@ -14,6 +14,7 @@
+ #define _ASM_GENERIC__TLB_H
  
--	/* We handle __GFP_ZERO in the caller */
--	gfpflags &= ~__GFP_ZERO;
--
- 	if (!c->page)
- 		goto new_slab;
+ #include <linux/swap.h>
++#include <linux/quicklist.h>
+ #include <asm/pgalloc.h>
+ #include <asm/tlbflush.h>
  
+@@ -85,6 +86,9 @@ tlb_flush_mmu(struct mmu_gather *tlb, un
+ static inline void
+ tlb_finish_mmu(struct mmu_gather *tlb, unsigned long start, unsigned long end)
+ {
++#ifdef CONFIG_QUICKLIST
++	tlb->need_flush += &__get_cpu_var(quicklist)[0].nr_pages != 0;
++#endif
+ 	tlb_flush_mmu(tlb, start, end);
+ 
+ 	/* keep the page table cache within bounds */
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -65,6 +72,7 @@ sparsemem-make-sparsemem_vmemmap-selectable.patch
 mm-sparsec-check-the-return-value-of-sparse_index_alloc.patch
 mm-sparsec-improve-the-error-handling-for-sparse_add_one_section.patch
 slub-remove-useless-masking-of-gfp_zero.patch
+quicklist-set-tlb-need_flush-if-pages-are-remaining-in-quicklist-0.patch
 ia64-slim-down-__clear_bit_unlock.patch
 git-sched.patch
 git-unionfs.patch
