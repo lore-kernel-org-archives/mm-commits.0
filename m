@@ -1,59 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc-fix-typo-ifdef-ifndef.patch removed from -mm tree
-Date: Mon, 17 Dec 2007 15:38:59 -0800
-Message-ID: <200712172338.lBHNcxr9008082@imap1.linux-foundation.org>
+Subject: - drivers-char-remove-unnecessary-pci_dev_put.patch removed from -mm tree
+Date: Mon, 17 Dec 2007 15:38:52 -0800
+Message-ID: <200712172338.lBHNcqea008073@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49559 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43398 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754567AbXLQXjM (ORCPT
+	by vger.kernel.org with ESMTP id S1756930AbXLQXjQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:39:12 -0500
+	Mon, 17 Dec 2007 18:39:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jochen@scram.de, benh@kernel.crashing.org, jeff@garzik.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: julia@diku.dk, airlied@linux.ie, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc: fix typo #ifdef -> #ifndef
+     drivers/char: remove unnecessary pci_dev_put
 has been removed from the -mm tree.  Its filename was
-     powerpc-fix-typo-ifdef-ifndef.patch
+     drivers-char-remove-unnecessary-pci_dev_put.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: powerpc: fix typo #ifdef -> #ifndef
-From: Jochen Friedrich <jochen@scram.de>
+Subject: drivers/char: remove unnecessary pci_dev_put
+From: Julia Lawall <julia@diku.dk>
 
-fpi->cp_command should be overwritten only if CONFIG_PPC_CPM_NEW_BINDING
-is NOT set. Otherwise it is already set from the device tree.
+pci_get_class implicitly does a pci_dev_put on its second argument, so
+pci_dev_put is only needed if there is a break out of the loop.
 
-Signed-off-by: Jochen Friedrich <jochen@scram.de>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Jeff Garzik <jeff@garzik.org>
+The semantic match detecting this problem is as follows:
+
+// <smpl>
+@@
+expression dev;
+expression E;
+@@
+
+* pci_dev_put(dev)
+  ... when != dev = E
+(
+* pci_get_device(...,dev)
+|
+* pci_get_device_reverse(...,dev)
+|
+* pci_get_subsys(...,dev)
+|
+* pci_get_class(...,dev)
+)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Dave Airlie <airlied@linux.ie>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/fs_enet/mac-scc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/agp/amd-k7-agp.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/net/fs_enet/mac-scc.c~powerpc-fix-typo-ifdef-ifndef drivers/net/fs_enet/mac-scc.c
---- a/drivers/net/fs_enet/mac-scc.c~powerpc-fix-typo-ifdef-ifndef
-+++ a/drivers/net/fs_enet/mac-scc.c
-@@ -158,7 +158,7 @@ static int setup_data(struct net_device 
- {
- 	struct fs_enet_private *fep = netdev_priv(dev);
+diff -puN drivers/char/agp/amd-k7-agp.c~drivers-char-remove-unnecessary-pci_dev_put drivers/char/agp/amd-k7-agp.c
+--- a/drivers/char/agp/amd-k7-agp.c~drivers-char-remove-unnecessary-pci_dev_put
++++ a/drivers/char/agp/amd-k7-agp.c
+@@ -436,10 +436,6 @@ static int __devinit agp_amdk7_probe(str
+ 				return -ENODEV;
+ 			}
+ 			cap_ptr = pci_find_capability(gfxcard, PCI_CAP_ID_AGP);
+-			if (!cap_ptr) {
+-				pci_dev_put(gfxcard);
+-				continue;
+-			}
+ 		}
  
--#ifdef CONFIG_PPC_CPM_NEW_BINDING
-+#ifndef CONFIG_PPC_CPM_NEW_BINDING
- 	struct fs_platform_info *fpi = fep->fpi;
- 
- 	fep->scc.idx = fs_get_scc_index(fpi->fs_no);
+ 		/* With so many variants of NVidia cards, it's simpler just
 _
 
-Patches currently in -mm which might be from jochen@scram.de are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
-powerpc-add-support-for-porta-and-portb-odr-registers.patch
-dio-fix-kernel-doc-notation.patch
+drivers-macintosh-via-pmuc-added-a-missing-iounmap.patch
+git-alsa.patch
+git-agpgart.patch
+arch-ppc-remove-an-unnecessary-pci_dev_put.patch
+arch-powerpc-add-missing-of_node_put.patch
+arch-powerpc-platforms-cell-cbe_regsc-add-missing-of_node_put.patch
+git-input.patch
+arch-cris-added-a-missing-iounmap.patch
+drivers-video-remove-unnecessary-pci_dev_put.patch
