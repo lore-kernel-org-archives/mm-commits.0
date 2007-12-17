@@ -1,98 +1,212 @@
 From: akpm@linux-foundation.org
-Subject: - e100-free-irq-to-remove-warning-when-rebooting.patch removed from -mm tree
-Date: Mon, 17 Dec 2007 15:39:36 -0800
-Message-ID: <200712172339.lBHNdaf1008136@imap1.linux-foundation.org>
+Subject: - merge-multiple-error-paths-in-alloc_uid-into-one.patch removed from -mm tree
+Date: Mon, 17 Dec 2007 15:39:51 -0800
+Message-ID: <200712172339.lBHNdpPI008154@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60322 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38314 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S937613AbXLQXwo (ORCPT
+	by vger.kernel.org with ESMTP id S1763709AbXLQXwy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:52:44 -0500
+	Mon, 17 Dec 2007 18:52:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ianw@gelato.unsw.edu.au, auke-jan.h.kok@intel.com, jeff@garzik.org, jesse.brandeburg@intel.com, mm-commits@vger.kernel.org
+To: xemul@openvz.org, dhaval@linux.vnet.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     e100: free IRQ to remove warning when rebooting
+     Merge multiple error paths in alloc_uid into one
 has been removed from the -mm tree.  Its filename was
-     e100-free-irq-to-remove-warning-when-rebooting.patch
+     merge-multiple-error-paths-in-alloc_uid-into-one.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: e100: free IRQ to remove warning when rebooting
-From: Ian Wienand <ianw@gelato.unsw.edu.au>
+Subject: Merge multiple error paths in alloc_uid into one
+From: Pavel Emelyanov <xemul@openvz.org>
 
-When rebooting today I got
+There are already 4 error paths in alloc_uid() that do incremental rollbacks. 
+I think it's time to merge them.  This costs us 8 lines of code :)
 
-Will now restart.
-ACPI: PCI interrupt for device 0000:00:03.0 disabled
-GSI 20 (level, low) -> CPU 1 (0x0100) vector 53 unregistered
-Destroying IRQ53 without calling free_irq
-WARNING: at /home/insecure/ianw/programs/git-kernel/linux-2.6/kernel/irq/chip.c:76 dynamic_irq_cleanup()
+Maybe it would be better to merge this patch with the previous one, but I
+remember that some time ago I sent a similar patch (fixing the error path and
+cleaning it), but I was told to make two patches in such cases.
 
-Call Trace:
- [<a000000100014340>] show_stack+0x40/0xa0
-                                sp=e00000407c927b40 bsp=e00000407c920eb8
- [<a0000001000143d0>] dump_stack+0x30/0x60
-                                sp=e00000407c927d10 bsp=e00000407c920ea0
- [<a0000001000e58e0>] dynamic_irq_cleanup+0x160/0x1e0
-                                sp=e00000407c927d10 bsp=e00000407c920e70
- [<a0000001000106b0>] destroy_and_reserve_irq+0x30/0xc0
-                                sp=e00000407c927d10 bsp=e00000407c920e40
- [<a0000001000508f0>] iosapic_unregister_intr+0x5b0/0x5e0
-                                sp=e00000407c927d10 bsp=e00000407c920dd8
- [<a00000010000aa70>] acpi_unregister_gsi+0x30/0x60
-                                sp=e00000407c927d10 bsp=e00000407c920db8
- [<a00000010042e300>] acpi_pci_irq_disable+0x140/0x160
-                                sp=e00000407c927d10 bsp=e00000407c920d88
- [<a000000100774200>] pcibios_disable_device+0xa0/0xc0
-                                sp=e00000407c927d20 bsp=e00000407c920d68
- [<a0000001003778d0>] pci_disable_device+0x130/0x160
-                                sp=e00000407c927d20 bsp=e00000407c920d38
- [<a000000100525d20>] e100_shutdown+0x1c0/0x220
-                                sp=e00000407c927d30 bsp=e00000407c920d08
- [<a00000010037d0e0>] pci_device_shutdown+0x80/0xc0
-                                sp=e00000407c927d30 bsp=e00000407c920ce8
- [<a0000001004ecb70>] device_shutdown+0xf0/0x180
-                                sp=e00000407c927d30 bsp=e00000407c920cc8
- [<a0000001000ac4e0>] kernel_restart+0x60/0x120
-                                sp=e00000407c927d30 bsp=e00000407c920ca8
- [<a0000001000ac990>] sys_reboot+0x3b0/0x480
-                                sp=e00000407c927d30 bsp=e00000407c920c30
- [<a00000010000b4e0>] ia64_ret_from_syscall+0x0/0x20
-                                sp=e00000407c927e30 bsp=e00000407c920c30
- [<a000000000010620>] ia64_ivt+0xffffffff00010620/0x400
-                                sp=e00000407c928000 bsp=e00000407c920c30
-Restarting system.
-
-I think the solution might be to free the IRQ before the pci_device_shutdown
-
-Signed-off-by: Ian Wienand <ianw@gelato.unsw.edu.au>
-Cc: Jesse Brandeburg <jesse.brandeburg@intel.com>
-Cc: Auke Kok <auke-jan.h.kok@intel.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Acked-by: Dhaval Giani <dhaval@linux.vnet.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/e100.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/user.c |   47 ++++++++++++++++++++---------------------------
+ 1 file changed, 20 insertions(+), 27 deletions(-)
 
-diff -puN drivers/net/e100.c~e100-free-irq-to-remove-warning-when-rebooting drivers/net/e100.c
---- a/drivers/net/e100.c~e100-free-irq-to-remove-warning-when-rebooting
-+++ a/drivers/net/e100.c
-@@ -2852,6 +2852,7 @@ static void e100_shutdown(struct pci_dev
- 		pci_enable_wake(pdev, PCI_D3cold, 0);
- 	}
+diff -puN kernel/user.c~merge-multiple-error-paths-in-alloc_uid-into-one kernel/user.c
+--- a/kernel/user.c~merge-multiple-error-paths-in-alloc_uid-into-one
++++ a/kernel/user.c
+@@ -320,7 +320,7 @@ void free_uid(struct user_struct *up)
+ struct user_struct * alloc_uid(struct user_namespace *ns, uid_t uid)
+ {
+ 	struct hlist_head *hashent = uidhashentry(ns, uid);
+-	struct user_struct *up;
++	struct user_struct *up, *new;
  
-+	free_irq(pdev->irq, netdev);
- 	pci_disable_device(pdev);
- 	pci_set_power_state(pdev, PCI_D3hot);
+ 	/* Make uid_hash_find() + uids_user_create() + uid_hash_insert()
+ 	 * atomic.
+@@ -332,13 +332,9 @@ struct user_struct * alloc_uid(struct us
+ 	spin_unlock_irq(&uidhash_lock);
+ 
+ 	if (!up) {
+-		struct user_struct *new;
+-
+ 		new = kmem_cache_alloc(uid_cachep, GFP_KERNEL);
+-		if (!new) {
+-			uids_mutex_unlock();
+-			return NULL;
+-		}
++		if (!new)
++			goto out_unlock;
+ 
+ 		new->uid = uid;
+ 		atomic_set(&new->__count, 1);
+@@ -354,28 +350,14 @@ struct user_struct * alloc_uid(struct us
+ #endif
+ 		new->locked_shm = 0;
+ 
+-		if (alloc_uid_keyring(new, current) < 0) {
+-			kmem_cache_free(uid_cachep, new);
+-			uids_mutex_unlock();
+-			return NULL;
+-		}
++		if (alloc_uid_keyring(new, current) < 0)
++			goto out_free_user;
+ 
+-		if (sched_create_user(new) < 0) {
+-			key_put(new->uid_keyring);
+-			key_put(new->session_keyring);
+-			kmem_cache_free(uid_cachep, new);
+-			uids_mutex_unlock();
+-			return NULL;
+-		}
++		if (sched_create_user(new) < 0)
++			goto out_put_keys;
+ 
+-		if (uids_user_create(new)) {
+-			sched_destroy_user(new);
+-			key_put(new->uid_keyring);
+-			key_put(new->session_keyring);
+-			kmem_cache_free(uid_cachep, new);
+-			uids_mutex_unlock();
+-			return NULL;
+-		}
++		if (uids_user_create(new))
++			goto out_destoy_sched;
+ 
+ 		/*
+ 		 * Before adding this, check whether we raced
+@@ -403,6 +385,17 @@ struct user_struct * alloc_uid(struct us
+ 	uids_mutex_unlock();
+ 
+ 	return up;
++
++out_destoy_sched:
++	sched_destroy_user(new);
++out_put_keys:
++	key_put(new->uid_keyring);
++	key_put(new->session_keyring);
++out_free_user:
++	kmem_cache_free(uid_cachep, new);
++out_unlock:
++	uids_mutex_unlock();
++	return NULL;
  }
+ 
+ void switch_uid(struct user_struct *new_user)
 _
 
-Patches currently in -mm which might be from ianw@gelato.unsw.edu.au are
+Patches currently in -mm which might be from xemul@openvz.org are
 
-git-netdev-all.patch
+origin.patch
+git-net.patch
+git-sched.patch
+shmem-factor-out-sbi-free_inodes-manipulations.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-memcgroup-fix-try_to_free-order.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+memcgroup-reinstate-swapoff-mod.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
+memcgroup-fix-zone-isolation-oom.patch
+memcgroup-revert-swap_state-mods.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
+memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
+memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+memory-cgroup-enhancements-add-pre_destroy-handler.patch
+memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
+add-the-namespaces-config-option.patch
+move-the-uts-namespace-under-uts_ns-option.patch
+move-the-ipc-namespace-under-ipc_ns-option.patch
+cleanup-the-code-managed-with-the-user_ns-option.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+mark-net_ns-with-depends-on-namespaces.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-proper-pidns-handling-for-proc-self.patch
+proc-fix-the-threaded-proc-self.patch
+ipc-uninline-some-code-from-utilh.patch
+ipc-make-struct-ipc_ids-static-in-ipc_namespace.patch
+ipc-consolidate-sem_exit_ns-msg_exit_ns-and-shm_exit_ns.patch
+sys_setpgid-simplify-pid-ns-interaction.patch
+fix-setsid-for-sub-namespace-sbin-init.patch
+teach-set_special_pids-to-use-struct-pid.patch
+move-daemonized-kernel-threads-into-the-swappers-session.patch
+start-the-global-sbin-init-with-00-special-pids.patch
+pid-sys_wait-fixes-v2.patch
+pid-extend-fix-pid_vnr.patch
+sys_getsid-dont-use-nsproxy-directly.patch
+pid-fix-mips-irix-emulation-pid-usage.patch
+pid-fix-mips-irix-emulation-pid-usage-fix.patch
+pid-fix-solaris_procids.patch
+uglify-kill_pid_info-to-fix-kill-vs-exec-race.patch
+uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice.patch
+itimer_real-convert-to-use-struct-pid.patch
+reiser4.patch
