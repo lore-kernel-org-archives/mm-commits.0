@@ -1,113 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-sbs-return-rate-in-mw-if-capacity-in-mwh.patch removed from -mm tree
-Date: Mon, 17 Dec 2007 15:41:20 -0800
-Message-ID: <200712172341.lBHNfK4M008382@imap1.linux-foundation.org>
+Subject: - net-ibm_newemac-remove-spin_lock_unlocked.patch removed from -mm tree
+Date: Mon, 17 Dec 2007 15:39:34 -0800
+Message-ID: <200712172339.lBHNdYOt008133@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56516 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54503 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S937556AbXLQXwM (ORCPT
+	by vger.kernel.org with ESMTP id S932657AbXLQXwS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:52:12 -0500
+	Mon, 17 Dec 2007 18:52:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: astarikovskiy@suse.de, lenb@kernel.org, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, jgarzik@pobox.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ACPI: SBS: Return rate in mW if capacity in mWh
+     Net: ibm_newemac, remove SPIN_LOCK_UNLOCKED
 has been removed from the -mm tree.  Its filename was
-     acpi-sbs-return-rate-in-mw-if-capacity-in-mwh.patch
+     net-ibm_newemac-remove-spin_lock_unlocked.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ACPI: SBS: Return rate in mW if capacity in mWh
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: Net: ibm_newemac, remove SPIN_LOCK_UNLOCKED
+From: Jiri Slaby <jirislaby@gmail.com>
 
-klaptopd assumes rate to be in same units as capacity.
+SPIN_LOCK_UNLOCKED is deprecated, use DEFINE_SPINLOCK instead
 
-Reference: http://bugzilla.kernel.org/show_bug.cgi?id=9362
-
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Jeff Garzik <jgarzik@pobox.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/sbs.c |   21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ drivers/net/ibm_newemac/debug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/sbs.c~acpi-sbs-return-rate-in-mw-if-capacity-in-mwh drivers/acpi/sbs.c
---- a/drivers/acpi/sbs.c~acpi-sbs-return-rate-in-mw-if-capacity-in-mwh
-+++ a/drivers/acpi/sbs.c
-@@ -533,7 +533,7 @@ static struct proc_dir_entry *acpi_batte
+diff -puN drivers/net/ibm_newemac/debug.c~net-ibm_newemac-remove-spin_lock_unlocked drivers/net/ibm_newemac/debug.c
+--- a/drivers/net/ibm_newemac/debug.c~net-ibm_newemac-remove-spin_lock_unlocked
++++ a/drivers/net/ibm_newemac/debug.c
+@@ -21,7 +21,7 @@
  
- static inline char *acpi_battery_units(struct acpi_battery *battery)
+ #include "core.h"
+ 
+-static spinlock_t emac_dbg_lock = SPIN_LOCK_UNLOCKED;
++static DEFINE_SPINLOCK(emac_dbg_lock);
+ 
+ static void emac_desc_dump(struct emac_instance *p)
  {
--	return acpi_battery_mode(battery) ? " mWh" : " mAh";
-+	return acpi_battery_mode(battery) ? " mW" : " mA";
- }
- 
- 
-@@ -550,10 +550,10 @@ static int acpi_battery_read_info(struct
- 	if (!battery->present)
- 		goto end;
- 
--	seq_printf(seq, "design capacity:         %i%s\n",
-+	seq_printf(seq, "design capacity:         %i%sh\n",
- 		   battery->design_capacity * acpi_battery_scale(battery),
- 		   acpi_battery_units(battery));
--	seq_printf(seq, "last full capacity:      %i%s\n",
-+	seq_printf(seq, "last full capacity:      %i%sh\n",
- 		   battery->full_charge_capacity * acpi_battery_scale(battery),
- 		   acpi_battery_units(battery));
- 	seq_printf(seq, "battery technology:      rechargeable\n");
-@@ -584,7 +584,7 @@ static int acpi_battery_read_state(struc
- {
- 	struct acpi_battery *battery = seq->private;
- 	struct acpi_sbs *sbs = battery->sbs;
--	int result = 0;
-+	int rate;
- 
- 	mutex_lock(&sbs->lock);
- 	seq_printf(seq, "present:                 %s\n",
-@@ -598,9 +598,12 @@ static int acpi_battery_read_state(struc
- 	seq_printf(seq, "charging state:          %s\n",
- 		   (battery->current_now < 0) ? "discharging" :
- 		   ((battery->current_now > 0) ? "charging" : "charged"));
--	seq_printf(seq, "present rate:            %d mA\n",
--		   abs(battery->current_now) * acpi_battery_ipscale(battery));
--	seq_printf(seq, "remaining capacity:      %i%s\n",
-+	rate = abs(battery->current_now) * acpi_battery_ipscale(battery);
-+	rate *= (acpi_battery_mode(battery))?(battery->voltage_now *
-+			acpi_battery_vscale(battery)/1000):1;
-+	seq_printf(seq, "present rate:            %d%s\n", rate,
-+		   acpi_battery_units(battery));
-+	seq_printf(seq, "remaining capacity:      %i%sh\n",
- 		   battery->capacity_now * acpi_battery_scale(battery),
- 		   acpi_battery_units(battery));
- 	seq_printf(seq, "present voltage:         %i mV\n",
-@@ -608,7 +611,7 @@ static int acpi_battery_read_state(struc
- 
-       end:
- 	mutex_unlock(&sbs->lock);
--	return result;
-+	return 0;
- }
- 
- static int acpi_battery_state_open_fs(struct inode *inode, struct file *file)
-@@ -632,7 +635,7 @@ static int acpi_battery_read_alarm(struc
- 	acpi_battery_get_alarm(battery);
- 	seq_printf(seq, "alarm:                   ");
- 	if (battery->alarm_capacity)
--		seq_printf(seq, "%i%s\n",
-+		seq_printf(seq, "%i%sh\n",
- 			   battery->alarm_capacity *
- 			   acpi_battery_scale(battery),
- 			   acpi_battery_units(battery));
 _
 
-Patches currently in -mm which might be from astarikovskiy@suse.de are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-git-acpi.patch
+git-drm.patch
+git-netdev-all.patch
+git-watchdog.patch
+git-wireless.patch
+drm-i915-fix-oops-after-killing-x.patch
+capabilities-introduce-per-process-capability-bounding-set-capabilities-correct-logic-at-capset_check.patch
+maintainers-order-auerswald-alphabetically.patch
+pnp-do-not-stop-start-devices-in-suspend-resume-path.patch
+dzh-remove-useless-unused-module-junk.patch
+dz-always-check-if-it-is-safe-to-console_putchar.patch
+dz-dont-panic-when-request_irq-fails.patch
+dz-add-and-reorder-inclusions-remove-unneeded-ones.patch
+dz-update-kconfig-description.patch
+dz-rename-the-serial-console-structure.patch
+dz-fix-locking-issues.patch
+dz-handle-special-conditions-on-reception-correctly.patch
+maintainers-add-self-for-the-dz-serial-driver.patch
+char-rocket-switch-long-delay-to-sleep.patch
+char-rocket-printk-cleanup.patch
+char-rocket-remove-useless-macros.patch
+char-char-serial-remove-serial_type_normal-redefines.patch
+char-mxser_new-ioaddresses-are-ulong.patch
+char-stallion-fix-compiler-warnings.patch
+char-riscom8-change-rc_init_drivers-prototype.patch
+char-esp-remove-hangup-and-wakeup-bottomhalves.patch
+char-istallion-remove-hangup-bottomhalf.patch
+char-specialix-remove-bottomhalves.patch
+char-stallion-remove-bottomhalf.patch
+char-serial167-remove-bottomhalf.patch
+char-riscom8-remove-wakeup-anf-hangup-bottomhalves.patch
+mxser-mxser_new-first-pass-over-termios-reporting-for-the.patch
+moxa-first-pass-at-termios-reporting.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
