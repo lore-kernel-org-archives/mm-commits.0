@@ -1,138 +1,271 @@
 From: akpm@linux-foundation.org
-Subject: - ieee1394-nopage.patch removed from -mm tree
-Date: Mon, 17 Dec 2007 15:39:06 -0800
-Message-ID: <200712172339.lBHNd64m008097@imap1.linux-foundation.org>
+Subject: - mips-fix-makefile-borkage.patch removed from -mm tree
+Date: Mon, 17 Dec 2007 15:39:18 -0800
+Message-ID: <200712172339.lBHNdIfi008115@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39708 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43940 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756479AbXLQXjW (ORCPT
+	by vger.kernel.org with ESMTP id S1757034AbXLQXjd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:39:22 -0500
+	Mon, 17 Dec 2007 18:39:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, stefanr@s5r6.in-berlin.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ieee1394: nopage
+     mips: fix Makefile borkage
 has been removed from the -mm tree.  Its filename was
-     ieee1394-nopage.patch
+     mips-fix-makefile-borkage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ieee1394: nopage
-From: Nick Piggin <npiggin@suse.de>
+Subject: mips: fix Makefile borkage
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Convert ieee1394 from nopage to fault.
-Remove redundant vma range checks (correct resource range check is retained).
+/usr/src/devel/arch/mips/Makefile:625: Extraneous text after `else' directive
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ieee1394/dma.c |   39 +++++++++++++++++----------------------
- 1 file changed, 17 insertions(+), 22 deletions(-)
+ arch/mips/Makefile |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ieee1394/dma.c~ieee1394-nopage drivers/ieee1394/dma.c
---- a/drivers/ieee1394/dma.c~ieee1394-nopage
-+++ a/drivers/ieee1394/dma.c
-@@ -231,37 +231,32 @@ void dma_region_sync_for_device(struct d
+diff -puN arch/mips/Makefile~mips-fix-makefile-borkage arch/mips/Makefile
+--- a/arch/mips/Makefile~mips-fix-makefile-borkage
++++ a/arch/mips/Makefile
+@@ -622,8 +622,10 @@ ifdef CONFIG_64BIT
  
- #ifdef CONFIG_MMU
- 
--/* nopage() handler for mmap access */
-+/* fault() handler for mmap access */
- 
--static struct page *dma_region_pagefault(struct vm_area_struct *area,
--					 unsigned long address, int *type)
-+static int dma_region_pagefault(struct vm_area_struct *vma,
-+					struct vm_fault *vmf)
- {
--	unsigned long offset;
- 	unsigned long kernel_virt_addr;
--	struct page *ret = NOPAGE_SIGBUS;
- 
--	struct dma_region *dma = (struct dma_region *)area->vm_private_data;
-+	struct dma_region *dma = (struct dma_region *)vma->vm_private_data;
- 
- 	if (!dma->kvirt)
--		goto out;
-+		goto error;
- 
--	if ((address < (unsigned long)area->vm_start) ||
--	    (address >
--	     (unsigned long)area->vm_start + (dma->n_pages << PAGE_SHIFT)))
--		goto out;
--
--	if (type)
--		*type = VM_FAULT_MINOR;
--	offset = address - area->vm_start;
--	kernel_virt_addr = (unsigned long)dma->kvirt + offset;
--	ret = vmalloc_to_page((void *)kernel_virt_addr);
--	get_page(ret);
--      out:
--	return ret;
-+	if (vmf->pgoff >= dma->n_pages)
-+		goto error;
-+
-+	kernel_virt_addr = (unsigned long)dma->kvirt + (vmf->pgoff << PAGE_SHIFT);
-+	vmf->page = vmalloc_to_page((void *)kernel_virt_addr);
-+	get_page(vmf->page);
-+	return 0;
-+
-+      error:
-+	return VM_FAULT_SIGBUS;
- }
- 
- static struct vm_operations_struct dma_region_vm_ops = {
--	.nopage = dma_region_pagefault,
-+	.fault = dma_region_pagefault,
- };
- 
- /**
-@@ -275,7 +270,7 @@ int dma_region_mmap(struct dma_region *d
- 	if (!dma->kvirt)
- 		return -EINVAL;
- 
--	/* must be page-aligned */
-+	/* must be page-aligned (XXX: comment is wrong, we could allow pgoff) */
- 	if (vma->vm_pgoff != 0)
- 		return -EINVAL;
+   ifeq ($(KBUILD_SYM32)$(call cc-option-yn,-msym32), yy)
+     cflags-y += -msym32 -DKBUILD_64BIT_SYM32
+-  else ifeq ($(CONFIG_CPU_DADDI_WORKAROUNDS), y)
+-    $(error CONFIG_CPU_DADDI_WORKAROUNDS unsupported without -msym32)
++  else
++    ifeq ($(CONFIG_CPU_DADDI_WORKAROUNDS), y)
++      $(error CONFIG_CPU_DADDI_WORKAROUNDS unsupported without -msym32)
++    endif
+   endif
+ endif
  
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+revert-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+timerfd-v3-new-timerfd-api-ia64-fix.patch
+timerfd-v3-new-timerfd-api-m68k-fix.patch
+timerfd-v3-new-timerfd-api-mips-fix.patch
+timerfd-v3-new-timerfd-api-arch-fixes.patch
+timerfd-v3-new-timerfd-api-powerpc-fix.patch
+timerfd-v3-new-timerfd-api-sparc64-fix.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
 git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+kernel-auditc-warning-fix.patch
+git-cpufreq.patch
+ppc-chrp-fix-possible-null-pointer-dereference.patch
+revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+git-drm.patch
+intel-agp-enable-i915-recognition.patch
 git-dvb.patch
-ia64-ia32-nopage.patch
+git-dvb-one-videobuf_read_start-is-enough.patch
+fix-jdelvare-i2c-i2c-constify-client-address-data.patch
+git-hid.patch
+revert-git-hrt.patch
+ia64-slim-down-__clear_bit_unlock.patch
 git-ieee1394.patch
 git-infiniband.patch
-git-jfs.patch
 git-kvm.patch
-nfs-use-gfp_nofs-preloads-for-radix-tree-insertion.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
+libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
+libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
+git-md-accel.patch
+git-mips-fixup.patch
+git-mmc.patch
+git-mtd.patch
+git-net.patch
+git-net-vs-git-lblnet.patch
+git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+backlight-omap1-backlight-driver.patch
+git-battery.patch
+bluetooth-uninlining.patch
+git-nfsd.patch
+git-ocfs2-fixup.patch
+quirk-enable-msi-mapping-on-ht1000.patch
 git-sched.patch
-sg-nopage.patch
-git-block.patch
-usb-mon-nopage.patch
+git-sched-fixup.patch
+git-sh.patch
+git-scsi-misc.patch
+git-scsi-rc-fixes.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+usb-testing-driver-dont-free-a-locked-mutex.patch
+9p-util-fix-semaphore-handling.patch
+git-watchdog.patch
+git-watchdog-fixup.patch
+add-support-for-sb1-hardware-watchdog.patch
+git-wireless.patch
+git-ipwireless_cs.patch
 git-x86.patch
-slub-use-non-atomic-bit-unlock.patch
-radix-tree-avoid-atomic-allocations-for-preloaded-insertions.patch
-mm-dont-allow-ioremapping-of-ranges-larger-than-vmalloc-space.patch
-mm-special-mapping-nopage.patch
-agp-alpha-nopage.patch
-vt-bitlock-fix.patch
-radix_treeh-trivial-comment-correction.patch
-inotify-fix-race.patch
-inotify-remove-debug-code.patch
-relay-nopage.patch
-uio-nopage.patch
-ext2-xip-check-fix.patch
-fb-defio-nopage.patch
-rewrite-rd.patch
-rewrite-rd-fix.patch
-rd-support-xip.patch
+git-x86-fixup.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+i386-use-raw_smp_processor_id-in-die.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-xtensa.patch
+bonding-locking-fix.patch
+iwlwifi3945-4965-fix-rate-control-algo-reference-leak.patch
+bcm43xx_debugfs-sscanf-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+stopmachine-semaphore-to-mutex-fix.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
+mark-rwsem-functions-as-__sched-for-wchan-profiling-fix.patch
+sync_sb_inodes-propagate-errors.patch
+add-have_oprofile.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-fix.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+logo-move-declarations-of-logos-to-linux_logoh-fix.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+64-bit-i_version-afs-fixes.patch
+ext4-add-block-bitmap-validation.patch
+ext4-fix-up-ext4fs_debug-builds.patch
+ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
 reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
