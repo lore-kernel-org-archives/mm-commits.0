@@ -1,56 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - clocksource-make-clocksource_mask-bullet-proof.patch removed from -mm tree
-Date: Mon, 17 Dec 2007 15:40:54 -0800
-Message-ID: <200712172340.lBHNes3a008329@imap1.linux-foundation.org>
+Subject: - drivers-scsi-iprc-use-list_head-instead-of-list_head_init.patch removed from -mm tree
+Date: Mon, 17 Dec 2007 15:40:30 -0800
+Message-ID: <200712172340.lBHNeUEM008296@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55360 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38826 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S937657AbXLQX5b (ORCPT
+	by vger.kernel.org with ESMTP id S1756929AbXLRACX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:57:31 -0500
+	Mon, 17 Dec 2007 19:02:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anemo@mba.ocn.ne.jp, johnstul@us.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: crquan@gmail.com, brking@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     clocksource: Make CLOCKSOURCE_MASK bullet-proof
+     drivers/scsi/ipr.c: use LIST_HEAD instead of LIST_HEAD_INIT
 has been removed from the -mm tree.  Its filename was
-     clocksource-make-clocksource_mask-bullet-proof.patch
+     drivers-scsi-iprc-use-list_head-instead-of-list_head_init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: clocksource: Make CLOCKSOURCE_MASK bullet-proof
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: drivers/scsi/ipr.c: use LIST_HEAD instead of LIST_HEAD_INIT
+From: Denis Cheng <crquan@gmail.com>
 
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
+Signed-off-by: Denis Cheng <crquan@gmail.com>
+Acked-by: Brian King <brking@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/clocksource.h |    2 +-
+ drivers/scsi/ipr.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/clocksource.h~clocksource-make-clocksource_mask-bullet-proof include/linux/clocksource.h
---- a/include/linux/clocksource.h~clocksource-make-clocksource_mask-bullet-proof
-+++ a/include/linux/clocksource.h
-@@ -103,7 +103,7 @@ struct clocksource {
- #define CLOCK_SOURCE_VALID_FOR_HRES		0x20
- 
- /* simplify initialization of mask field */
--#define CLOCKSOURCE_MASK(bits) (cycle_t)(bits<64 ? ((1ULL<<bits)-1) : -1)
-+#define CLOCKSOURCE_MASK(bits) (cycle_t)((bits) < 64 ? ((1ULL<<(bits))-1) : -1)
- 
- /**
-  * clocksource_khz2mult - calculates mult from khz and shift
+diff -puN drivers/scsi/ipr.c~drivers-scsi-iprc-use-list_head-instead-of-list_head_init drivers/scsi/ipr.c
+--- a/drivers/scsi/ipr.c~drivers-scsi-iprc-use-list_head-instead-of-list_head_init
++++ a/drivers/scsi/ipr.c
+@@ -84,7 +84,7 @@
+ /*
+  *   Global Data
+  */
+-static struct list_head ipr_ioa_head = LIST_HEAD_INIT(ipr_ioa_head);
++static LIST_HEAD(ipr_ioa_head);
+ static unsigned int ipr_log_level = IPR_DEFAULT_LOG_LEVEL;
+ static unsigned int ipr_max_speed = 1;
+ static int ipr_testmode = 0;
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from crquan@gmail.com are
 
 origin.patch
-git-mips.patch
-git-watchdog.patch
-git-x86.patch
+git-md-accel.patch
+git-net.patch
+git-s390.patch
+git-scsi-misc.patch
+3w-raid-drivers-memset-not-needed-in-probe.patch
+git-cryptodev.patch
+drivers-char-use-list_head-instead-of-list_head_init.patch
+drivers-char-ipmi-ipmi_msghandlerc-use-list_head-instead-of-list_head_init.patch
+fs-reiserfs-xattrc-use-list_head-instead-of-list_head_init.patch
