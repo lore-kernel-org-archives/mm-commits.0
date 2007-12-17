@@ -1,91 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-pm_test-build-fix.patch removed from -mm tree
-Date: Mon, 17 Dec 2007 15:38:45 -0800
-Message-ID: <200712172338.lBHNcjAO008064@imap1.linux-foundation.org>
+Subject: - acpi-cleanup-linux-acpih.patch removed from -mm tree
+Date: Mon, 17 Dec 2007 15:38:47 -0800
+Message-ID: <200712172338.lBHNclGN008067@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34901 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47853 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753594AbXLQXit (ORCPT
+	by vger.kernel.org with ESMTP id S1754567AbXLQXiw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:38:49 -0500
+	Mon, 17 Dec 2007 18:38:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, mm-commits@vger.kernel.org
+To: jdelvare@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi: pm_test build fix
+     acpi: cleanup <linux/acpi.h>
 has been removed from the -mm tree.  Its filename was
-     acpi-pm_test-build-fix.patch
+     acpi-cleanup-linux-acpih.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: acpi: pm_test build fix
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: acpi: cleanup <linux/acpi.h>
+From: Jean Delvare <jdelvare@suse.de>
 
-Fix compilation problems related to the /sys/power/pm_test attribute. 
-Namely, this attribute should also be available when CONFIG_HIBERNATION is
-set and CONFIG_SUSPEND is unset and it should not break compilation when
-neither of them is set.
+Two cleanups to <linux/acpi.h>:
+* Stop defining acpi_mp_config, it isn't used anywhere.
+* Discard nested "#ifdef CONFIG_ACPI", they are useless and
+  error-prone.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-
+Signed-off-by: Jean Delvare <jdelvare@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/main.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ include/linux/acpi.h |   14 --------------
+ 1 file changed, 14 deletions(-)
 
-diff -puN kernel/power/main.c~acpi-pm_test-build-fix kernel/power/main.c
---- a/kernel/power/main.c~acpi-pm_test-build-fix
-+++ a/kernel/power/main.c
-@@ -50,10 +50,6 @@ int pm_notifier_call_chain(unsigned long
- 			== NOTIFY_BAD) ? -EINVAL : 0;
- }
+diff -puN include/linux/acpi.h~acpi-cleanup-linux-acpih include/linux/acpi.h
+--- a/include/linux/acpi.h~acpi-cleanup-linux-acpih
++++ a/include/linux/acpi.h
+@@ -42,8 +42,6 @@
+ #include <asm/acpi.h>
  
--#endif /* CONFIG_PM_SLEEP */
+ 
+-#ifdef CONFIG_ACPI
 -
--#ifdef CONFIG_SUSPEND
+ enum acpi_irq_model_id {
+ 	ACPI_IRQ_MODEL_PIC = 0,
+ 	ACPI_IRQ_MODEL_IOAPIC,
+@@ -114,20 +112,12 @@ int acpi_unmap_lsapic(int cpu);
+ int acpi_register_ioapic(acpi_handle handle, u64 phys_addr, u32 gsi_base);
+ int acpi_unregister_ioapic(acpi_handle handle, u32 gsi_base);
+ 
+-extern int acpi_mp_config;
 -
- #ifdef CONFIG_PM_DEBUG
- int pm_test_level = TEST_NONE;
+ extern struct acpi_mcfg_allocation *pci_mmcfg_config;
+ extern int pci_mmcfg_config_num;
  
-@@ -127,6 +123,10 @@ power_attr(pm_test);
- static inline int suspend_test(int level) { return 0; }
- #endif /* !CONFIG_PM_DEBUG */
+ extern int sbf_port;
+ extern unsigned long acpi_realmode_flags;
  
-+#endif /* CONFIG_PM_SLEEP */
-+
-+#ifdef CONFIG_SUSPEND
-+
- /* This is just an arbitrary number */
- #define FREE_PAGE_NUMBER (100)
+-#else	/* !CONFIG_ACPI */
+-
+-#define acpi_mp_config	0
+-
+-#endif 	/* !CONFIG_ACPI */
+-
+ int acpi_register_gsi (u32 gsi, int triggering, int polarity);
+ int acpi_gsi_to_irq (u32 gsi, unsigned int *irq);
  
-@@ -484,7 +484,7 @@ static struct attribute * g[] = {
- #ifdef CONFIG_PM_TRACE
- 	&pm_trace_attr.attr,
- #endif
--#ifdef CONFIG_PM_DEBUG
-+#if defined(CONFIG_PM_SLEEP) && defined(CONFIG_PM_DEBUG)
- 	&pm_test_attr.attr,
- #endif
- 	NULL,
+@@ -143,8 +133,6 @@ extern int acpi_get_override_irq(int bus
+  */
+ void acpi_unregister_gsi (u32 gsi);
+ 
+-#ifdef CONFIG_ACPI
+-
+ struct acpi_prt_entry {
+ 	struct list_head	node;
+ 	struct acpi_pci_id	id;
+@@ -177,8 +165,6 @@ struct acpi_pci_driver {
+ int acpi_pci_register_driver(struct acpi_pci_driver *driver);
+ void acpi_pci_unregister_driver(struct acpi_pci_driver *driver);
+ 
+-#endif /* CONFIG_ACPI */
+-
+ #ifdef CONFIG_ACPI_EC
+ 
+ extern int ec_read(u8 addr, u8 *val);
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from jdelvare@suse.de are
 
-revert-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch
-alpha-strncpy-strncat-fixes.patch
-sysctl-fix-ax25-checks.patch
 git-acpi.patch
-revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-git-xfs.patch
-page-allocator-clean-up-pcp-draining-functions.patch
-kernel-power-diskc-make-code-static.patch
-make-kernel_shutdown_prepare-static.patch
-pnp-do-not-stop-start-devices-in-suspend-resume-path.patch
-proc-fix-the-threaded-proc-self.patch
-shrink_slab-handle-bad-shrinkers.patch
+export-acpi_check_resource_conflict.patch
+check-for-acpi-resource-conflicts-in-i2c-bus-drivers.patch
+check-for-acpi-resource-conflicts-in-hwmon-drivers.patch
