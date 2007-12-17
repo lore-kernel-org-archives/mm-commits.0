@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-compilation-warning-in-dquotc.patch added to -mm tree
-Date: Mon, 17 Dec 2007 13:32:47 -0800
-Message-ID: <200712172132.lBHLWlNS002646@imap1.linux-foundation.org>
+Subject: + revert-hugetlb-add-hugetlb_dynamic_pool-sysctl.patch added to -mm tree
+Date: Mon, 17 Dec 2007 13:30:41 -0800
+Message-ID: <200712172130.lBHLUgG5002579@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60025 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58815 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935011AbXLQVdX (ORCPT
+	by vger.kernel.org with ESMTP id S965000AbXLQVga (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Dec 2007 16:33:23 -0500
+	Mon, 17 Dec 2007 16:36:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz
+Cc: nacc@us.ibm.com, agl@us.ibm.com, david@gibson.dropbear.id.au, haveblue@us.ibm.com, wli@holomorphy.com
 
 
 The patch titled
-     Fix compilation warning in dquot.c
+     Revert "hugetlb: Add hugetlb_dynamic_pool sysctl"
 has been added to the -mm tree.  Its filename is
-     fix-compilation-warning-in-dquotc.patch
+     revert-hugetlb-add-hugetlb_dynamic_pool-sysctl.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,50 +26,85 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix compilation warning in dquot.c
-From: Jan Kara <jack@suse.cz>
+Subject: Revert "hugetlb: Add hugetlb_dynamic_pool sysctl"
+From: Nishanth Aravamudan <nacc@us.ibm.com>
 
-Fix compilation warning about discarded const.
+Revert "hugetlb: Add hugetlb_dynamic_pool sysctl"
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+This reverts commit 54f9f80d6543fb7b157d3b11e2e7911dc1379790.
+
+Given the new sysctl nr_overcommit_hugepages, the boolean dynamic pool sysctl
+is not needed, as its semantics can be expressed by 0 in the overcommit sysctl
+(no dynamic pool) and non-0 in the overcommit sysctl (pool enabled).
+
+Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
+Acked-by: Adam Litke <agl@us.ibm.com>
+Cc: William Lee Irwin III <wli@holomorphy.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: David Gibson <david@gibson.dropbear.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dquot.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/hugetlb.h |    1 -
+ kernel/sysctl.c         |    8 --------
+ mm/hugetlb.c            |    5 -----
+ 3 files changed, 14 deletions(-)
 
-diff -puN fs/dquot.c~fix-compilation-warning-in-dquotc fs/dquot.c
---- a/fs/dquot.c~fix-compilation-warning-in-dquotc
-+++ a/fs/dquot.c
-@@ -965,7 +965,7 @@ err_out:
- }
- #endif
+diff -puN include/linux/hugetlb.h~revert-hugetlb-add-hugetlb_dynamic_pool-sysctl include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~revert-hugetlb-add-hugetlb_dynamic_pool-sysctl
++++ a/include/linux/hugetlb.h
+@@ -33,7 +33,6 @@ void hugetlb_unreserve_pages(struct inod
  
--static inline void flush_warnings(struct dquot **dquots, char *warntype)
-+static inline void flush_warnings(struct dquot * const *dquots, char *warntype)
- {
- 	int i;
+ extern unsigned long max_huge_pages;
+ extern unsigned long hugepages_treat_as_movable;
+-extern int hugetlb_dynamic_pool;
+ extern unsigned long nr_overcommit_huge_pages;
+ extern const unsigned long hugetlb_zero, hugetlb_infinity;
+ extern int sysctl_hugetlb_shm_group;
+diff -puN kernel/sysctl.c~revert-hugetlb-add-hugetlb_dynamic_pool-sysctl kernel/sysctl.c
+--- a/kernel/sysctl.c~revert-hugetlb-add-hugetlb_dynamic_pool-sysctl
++++ a/kernel/sysctl.c
+@@ -906,14 +906,6 @@ static struct ctl_table vm_table[] = {
+ 	},
+ 	{
+ 		.ctl_name	= CTL_UNNUMBERED,
+-		.procname	= "hugetlb_dynamic_pool",
+-		.data		= &hugetlb_dynamic_pool,
+-		.maxlen		= sizeof(hugetlb_dynamic_pool),
+-		.mode		= 0644,
+-		.proc_handler	= &proc_dointvec,
+-	},
+-	{
+-		.ctl_name	= CTL_UNNUMBERED,
+ 		.procname	= "nr_overcommit_hugepages",
+ 		.data		= &nr_overcommit_huge_pages,
+ 		.maxlen		= sizeof(nr_overcommit_huge_pages),
+diff -puN mm/hugetlb.c~revert-hugetlb-add-hugetlb_dynamic_pool-sysctl mm/hugetlb.c
+--- a/mm/hugetlb.c~revert-hugetlb-add-hugetlb_dynamic_pool-sysctl
++++ a/mm/hugetlb.c
+@@ -31,7 +31,6 @@ static unsigned int free_huge_pages_node
+ static unsigned int surplus_huge_pages_node[MAX_NUMNODES];
+ static gfp_t htlb_alloc_mask = GFP_HIGHUSER;
+ unsigned long hugepages_treat_as_movable;
+-int hugetlb_dynamic_pool;
+ unsigned long nr_overcommit_huge_pages;
+ static int hugetlb_next_nid;
  
-@@ -1216,7 +1216,7 @@ warn_put_all:
- 		for (cnt = 0; cnt < MAXQUOTAS; cnt++)
- 			if (inode->i_dquot[cnt])
- 				mark_dquot_dirty(inode->i_dquot[cnt]);
--	flush_warnings((struct dquot **)inode->i_dquot, warntype);
-+	flush_warnings(inode->i_dquot, warntype);
- 	up_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
- 	return ret;
- }
+@@ -230,10 +229,6 @@ static struct page *alloc_buddy_huge_pag
+ 	struct page *page;
+ 	unsigned int nid;
+ 
+-	/* Check if the dynamic pool is enabled */
+-	if (!hugetlb_dynamic_pool)
+-		return NULL;
+-
+ 	/*
+ 	 * Assume we will successfully allocate the surplus page to
+ 	 * prevent racing processes from causing the surplus to exceed
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from nacc@us.ibm.com are
 
-fix-compilation-warning-in-dquotc.patch
-inotify-send-in_attrib-events-when-link-count-changes.patch
-inotify-send-in_attrib-events-when-link-count-changes-fix.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
-jbd2-fix-assertion-failure-in-fs-jbd2-checkpointc.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext4-from-using-iget-and-read_inode-try.patch
+hugetlb-introduce-nr_overcommit_hugepages-sysctl.patch
+revert-hugetlb-add-hugetlb_dynamic_pool-sysctl.patch
+documetation-update-hugetlb-information.patch
