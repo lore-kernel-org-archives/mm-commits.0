@@ -1,67 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - revert-sched-update-root-domain-spans-upon-departure.patch removed from -mm tree
-Date: Mon, 17 Dec 2007 15:39:48 -0800
-Message-ID: <200712172339.lBHNdmDD008149@imap1.linux-foundation.org>
+Subject: - git-x86-__vdso_getcpu-warning-fix.patch removed from -mm tree
+Date: Mon, 17 Dec 2007 15:40:44 -0800
+Message-ID: <200712172340.lBHNeiPk008314@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59290 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59752 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S937557AbXLQXwM (ORCPT
+	by vger.kernel.org with ESMTP id S1763457AbXLQXwP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:52:12 -0500
+	Mon, 17 Dec 2007 18:52:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ego@in.ibm.com, ghaskins@novell.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert "sched: update root-domain spans upon departure"
+     git-x86: __vdso_getcpu() warning fix
 has been removed from the -mm tree.  Its filename was
-     revert-sched-update-root-domain-spans-upon-departure.patch
+     git-x86-__vdso_getcpu-warning-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: revert "sched: update root-domain spans upon departure"
+Subject: git-x86: __vdso_getcpu() warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Revert from git-sched:
+arch/x86/vdso/vgetcpu.c: In function '__vdso_getcpu':
+arch/x86/vdso/vgetcpu.c:22: warning: pointer targets in passing argument 1 of 'native_read_tscp' differ in signedness
 
-commit 9e76ad89f4fa93a789326bc0f4548cd2fbca8d8e
-Author: Gregory Haskins <ghaskins@novell.com>
-Date:   Thu Dec 13 21:35:26 2007 +0100
-
-    sched: update root-domain spans upon departure
-    
-    We shouldnt leave cpus enabled in the spans if that RQ has left the domain.
-    
-    Signed-off-by: Gregory Haskins <ghaskins@novell.com>
-    Signed-off-by: Ingo Molnar <mingo@elte.hu>
-
-As it causes my t61p to fail to come back to life after suspend-to-RAM.
-
-Cc: Gautham R Shenoy <ego@in.ibm.com>
-Cc: Gregory Haskins <ghaskins@novell.com>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |    3 ---
- 1 file changed, 3 deletions(-)
+ include/asm-x86/msr.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/sched.c~revert-sched-update-root-domain-spans-upon-departure kernel/sched.c
---- a/kernel/sched.c~revert-sched-update-root-domain-spans-upon-departure
-+++ a/kernel/sched.c
-@@ -5854,9 +5854,6 @@ static void rq_attach_root(struct rq *rq
- 				class->leave_domain(rq);
- 		}
+diff -puN include/asm-x86/msr.h~git-x86-__vdso_getcpu-warning-fix include/asm-x86/msr.h
+--- a/include/asm-x86/msr.h~git-x86-__vdso_getcpu-warning-fix
++++ a/include/asm-x86/msr.h
+@@ -9,7 +9,7 @@
+ #include <asm/asm.h>
+ #include <asm/errno.h>
  
--		cpu_clear(rq->cpu, old_rd->span);
--		cpu_clear(rq->cpu, old_rd->online);
--
- 		if (atomic_dec_and_test(&old_rd->refcount))
- 			kfree(old_rd);
- 	}
+-static inline unsigned long long native_read_tscp(int *aux)
++static inline unsigned long long native_read_tscp(unsigned int *aux)
+ {
+ 	unsigned long low, high;
+ 	asm volatile (".byte 0x0f,0x01,0xf9"
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
