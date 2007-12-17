@@ -1,55 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - git-alsa-build-fix.patch removed from -mm tree
-Date: Mon, 17 Dec 2007 15:01:16 -0800
-Message-ID: <200712172301.lBHN1GMI006309@imap1.linux-foundation.org>
+Subject: + git-sched-fixup.patch added to -mm tree
+Date: Mon, 17 Dec 2007 15:08:37 -0800
+Message-ID: <200712172308.lBHN8bCA006580@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36413 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53138 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755450AbXLQXBZ (ORCPT
+	by vger.kernel.org with ESMTP id S1760437AbXLQXJi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:01:25 -0500
+	Mon, 17 Dec 2007 18:09:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, greg@kroah.com, mingo@elte.hu
 
 
 The patch titled
-     git-alsa: build fix
-has been removed from the -mm tree.  Its filename was
-     git-alsa-build-fix.patch
+     git-sched-fixup
+has been added to the -mm tree.  Its filename is
+     git-sched-fixup.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-alsa: build fix
+Subject: git-sched-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from sound/core/pcm_native.c:3308:
-sound/core/pcm_compat.c: In function 'snd_pcm_ioctl_compat':
-sound/core/pcm_compat.c:486: error: 'SNDRV_PCM_IOCTL_TSTAMP' undeclared (first use in this function)
-sound/core/pcm_compat.c:486: error: (Each undeclared identifier is reported only once
-sound/core/pcm_compat.c:486: error: for each function it appears in.)
+Attempt to repair clash between gregkh-driver-struct-user_info-sysfs.patch and
+git-sched.
 
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Greg KH <greg@kroah.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/core/pcm_compat.c |    1 -
- 1 file changed, 1 deletion(-)
+ kernel/user.c |   26 ++++++--------------------
+ 1 file changed, 6 insertions(+), 20 deletions(-)
 
-diff -puN sound/core/pcm_compat.c~git-alsa-build-fix sound/core/pcm_compat.c
---- a/sound/core/pcm_compat.c~git-alsa-build-fix
-+++ a/sound/core/pcm_compat.c
-@@ -483,7 +483,6 @@ static long snd_pcm_ioctl_compat(struct 
- 	switch (cmd) {
- 	case SNDRV_PCM_IOCTL_PVERSION:
- 	case SNDRV_PCM_IOCTL_INFO:
--	case SNDRV_PCM_IOCTL_TSTAMP:
- 	case SNDRV_PCM_IOCTL_HWSYNC:
- 	case SNDRV_PCM_IOCTL_PREPARE:
- 	case SNDRV_PCM_IOCTL_RESET:
+diff -puN kernel/user.c~git-sched-fixup kernel/user.c
+--- a/kernel/user.c~git-sched-fixup
++++ a/kernel/user.c
+@@ -350,28 +350,14 @@ struct user_struct * alloc_uid(struct us
+ #endif
+ 		new->locked_shm = 0;
+ 
+-		if (alloc_uid_keyring(new, current) < 0) {
+-			kmem_cache_free(uid_cachep, new);
+-			uids_mutex_unlock();
+-			return NULL;
+-		}
++		if (alloc_uid_keyring(new, current) < 0)
++			goto out_free_user;
+ 
+-		if (sched_create_user(new) < 0) {
+-			key_put(new->uid_keyring);
+-			key_put(new->session_keyring);
+-			kmem_cache_free(uid_cachep, new);
+-			uids_mutex_unlock();
+-			return NULL;
+-		}
++		if (sched_create_user(new) < 0)
++			goto out_put_keys;
+ 
+-		if (uids_user_create(new)) {
+-			sched_destroy_user(new);
+-			key_put(new->uid_keyring);
+-			key_put(new->session_keyring);
+-			kmem_cache_free(uid_cachep, new);
+-			uids_mutex_unlock();
+-			return NULL;
+-		}
++		if (uids_user_create(new))
++			goto out_destoy_sched;
+ 
+ 		/*
+ 		 * Before adding this, check whether we raced
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -71,17 +99,11 @@ acpi-add-reboot-mechanism.patch
 small-acpica-extension-to-be-able-to-store-the-name-of.patch
 git-alsa.patch
 git-alsa-fixup.patch
-git-alsa-build-fix.patch
-alsa-copy_ctl_value_from_user-warning-fix.patch
 git-agpgart.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
 kernel-auditc-warning-fix.patch
 git-cpufreq.patch
-git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-dm-persistent_read_metadata-warning-fix.patch
-git-powerpc-galak.patch
 ppc-chrp-fix-possible-null-pointer-dereference.patch
 revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
 gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
@@ -91,7 +113,6 @@ intel-agp-enable-i915-recognition.patch
 git-dvb.patch
 git-dvb-one-videobuf_read_start-is-enough.patch
 fix-jdelvare-i2c-i2c-constify-client-address-data.patch
-gfs2-avoid-64-bit-divide.patch
 git-hid.patch
 revert-git-hrt.patch
 ia64-slim-down-__clear_bit_unlock.patch
@@ -105,14 +126,11 @@ libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
 libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
 libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
 git-md-accel.patch
-mips-fix-makefile-borkage.patch
 git-mmc.patch
 git-mtd.patch
 git-net.patch
 git-net-vs-git-lblnet.patch
-tipc-fix-semaphore-handling.patch
 git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 backlight-omap1-backlight-driver.patch
 git-battery.patch
@@ -121,6 +139,7 @@ git-nfsd.patch
 quirk-enable-msi-mapping-on-ht1000.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 git-sched.patch
+git-sched-fixup.patch
 revert-sched-update-root-domain-spans-upon-departure.patch
 git-sh.patch
 git-scsi-misc.patch
