@@ -1,269 +1,272 @@
 From: akpm@linux-foundation.org
-Subject: - git-x86-__vdso_getcpu-warning-fix.patch removed from -mm tree
-Date: Mon, 17 Dec 2007 15:40:44 -0800
-Message-ID: <200712172340.lBHNeiPk008314@imap1.linux-foundation.org>
+Subject: - pcie-fix-double-initialization-bug.patch removed from -mm tree
+Date: Mon, 17 Dec 2007 15:39:45 -0800
+Message-ID: <200712172339.lBHNdjVY008146@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59752 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38817 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763457AbXLQXwP (ORCPT
+	by vger.kernel.org with ESMTP id S937467AbXLQXw3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:52:15 -0500
+	Mon, 17 Dec 2007 18:52:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: lkml@rtr.ca, kristen.c.accardi@intel.com, mlord@pobox.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-x86: __vdso_getcpu() warning fix
+     PCIe: fix double initialization bug
 has been removed from the -mm tree.  Its filename was
-     git-x86-__vdso_getcpu-warning-fix.patch
+     pcie-fix-double-initialization-bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-x86: __vdso_getcpu() warning fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: PCIe: fix double initialization bug
+From: Mark Lord <lkml@rtr.ca>
 
-arch/x86/vdso/vgetcpu.c: In function '__vdso_getcpu':
-arch/x86/vdso/vgetcpu.c:22: warning: pointer targets in passing argument 1 of 'native_read_tscp' differ in signedness
+Earlier patches to split out the hardware init for PCIe hotplug resulted in
+some one-time initializations being redone on every resume cycle.  Eg. 
+irq/polling initialization.
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+This patch splits the hardware init into two parts, and separates the
+one-time initializations from those so that they only ever get done once,
+as intended.
+
+Signed-off-by: Mark Lord <mlord@pobox.com>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/msr.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pci/hotplug/pciehp.h      |    2 
+ drivers/pci/hotplug/pciehp_core.c |    2 
+ drivers/pci/hotplug/pciehp_hpc.c  |  119 +++++++++++++++-------------
+ 3 files changed, 69 insertions(+), 54 deletions(-)
 
-diff -puN include/asm-x86/msr.h~git-x86-__vdso_getcpu-warning-fix include/asm-x86/msr.h
---- a/include/asm-x86/msr.h~git-x86-__vdso_getcpu-warning-fix
-+++ a/include/asm-x86/msr.h
-@@ -9,7 +9,7 @@
- #include <asm/asm.h>
- #include <asm/errno.h>
+diff -puN drivers/pci/hotplug/pciehp.h~pcie-fix-double-initialization-bug drivers/pci/hotplug/pciehp.h
+--- a/drivers/pci/hotplug/pciehp.h~pcie-fix-double-initialization-bug
++++ a/drivers/pci/hotplug/pciehp.h
+@@ -163,7 +163,7 @@ extern void pciehp_queue_pushbutton_work
+ int pcie_init(struct controller *ctrl, struct pcie_device *dev);
+ int pciehp_enable_slot(struct slot *p_slot);
+ int pciehp_disable_slot(struct slot *p_slot);
+-int pcie_init_hardware(struct controller *ctrl, struct pcie_device *dev);
++int pcie_init_hardware_part2(struct controller *ctrl, struct pcie_device *dev);
  
--static inline unsigned long long native_read_tscp(int *aux)
-+static inline unsigned long long native_read_tscp(unsigned int *aux)
+ static inline struct slot *pciehp_find_slot(struct controller *ctrl, u8 device)
  {
- 	unsigned long low, high;
- 	asm volatile (".byte 0x0f,0x01,0xf9"
+diff -puN drivers/pci/hotplug/pciehp_core.c~pcie-fix-double-initialization-bug drivers/pci/hotplug/pciehp_core.c
+--- a/drivers/pci/hotplug/pciehp_core.c~pcie-fix-double-initialization-bug
++++ a/drivers/pci/hotplug/pciehp_core.c
+@@ -521,7 +521,7 @@ static int pciehp_resume (struct pcie_de
+ 		u8 status;
+ 
+ 		/* reinitialize the chipset's event detection logic */
+-		pcie_init_hardware(ctrl, dev);
++		pcie_init_hardware_part2(ctrl, dev);
+ 
+ 		t_slot = pciehp_find_slot(ctrl, ctrl->slot_device_offset);
+ 
+diff -puN drivers/pci/hotplug/pciehp_hpc.c~pcie-fix-double-initialization-bug drivers/pci/hotplug/pciehp_hpc.c
+--- a/drivers/pci/hotplug/pciehp_hpc.c~pcie-fix-double-initialization-bug
++++ a/drivers/pci/hotplug/pciehp_hpc.c
+@@ -1067,28 +1067,25 @@ int pciehp_acpi_get_hp_hw_control_from_f
+ }
+ #endif
+ 
+-int pcie_init_hardware(struct controller *ctrl, struct pcie_device *dev)
++static int pcie_init_hardware_part1(struct controller *ctrl,
++				    struct pcie_device *dev)
+ {
+ 	int rc;
+ 	u16 temp_word;
+-	u16 intr_enable = 0;
+ 	u32 slot_cap;
+ 	u16 slot_status;
+-	struct pci_dev *pdev;
+-
+-	pdev = dev->port;
+ 
+ 	rc = pciehp_readl(ctrl, SLOTCAP, &slot_cap);
+ 	if (rc) {
+ 		err("%s: Cannot read SLOTCAP register\n", __FUNCTION__);
+-		goto abort_free_ctlr;
++		return -1;
+ 	}
+ 
+ 	/* Mask Hot-plug Interrupt Enable */
+ 	rc = pciehp_readw(ctrl, SLOTCTRL, &temp_word);
+ 	if (rc) {
+ 		err("%s: Cannot read SLOTCTRL register\n", __FUNCTION__);
+-		goto abort_free_ctlr;
++		return -1;
+ 	}
+ 
+ 	dbg("%s: SLOTCTRL %x value read %x\n",
+@@ -1099,62 +1096,46 @@ int pcie_init_hardware(struct controller
+ 	rc = pciehp_writew(ctrl, SLOTCTRL, temp_word);
+ 	if (rc) {
+ 		err("%s: Cannot write to SLOTCTRL register\n", __FUNCTION__);
+-		goto abort_free_ctlr;
++		return -1;
+ 	}
+ 
+ 	rc = pciehp_readw(ctrl, SLOTSTATUS, &slot_status);
+ 	if (rc) {
+ 		err("%s: Cannot read SLOTSTATUS register\n", __FUNCTION__);
+-		goto abort_free_ctlr;
++		return -1;
+ 	}
+ 
+ 	temp_word = 0x1F; /* Clear all events */
+ 	rc = pciehp_writew(ctrl, SLOTSTATUS, temp_word);
+ 	if (rc) {
+ 		err("%s: Cannot write to SLOTSTATUS register\n", __FUNCTION__);
+-		goto abort_free_ctlr;
++		return -1;
+ 	}
++	return 0;
++}
+ 
+-	if (pciehp_poll_mode) {
+-		/* Install interrupt polling timer. Start with 10 sec delay */
+-		init_timer(&ctrl->poll_timer);
+-		start_int_poll_timer(ctrl, 10);
+-	} else {
+-		/* Installs the interrupt handler */
+-		rc = request_irq(ctrl->pci_dev->irq, pcie_isr, IRQF_SHARED,
+-				 MY_NAME, (void *)ctrl);
+-		dbg("%s: request_irq %d for hpc%d (returns %d)\n",
+-		    __FUNCTION__, ctrl->pci_dev->irq,
+-		    atomic_read(&pciehp_num_controllers), rc);
+-		if (rc) {
+-			err("Can't get irq %d for the hotplug controller\n",
+-			    ctrl->pci_dev->irq);
+-			goto abort_free_ctlr;
+-		}
+-	}
+-	dbg("pciehp ctrl b:d:f:irq=0x%x:%x:%x:%x\n", pdev->bus->number,
+-		PCI_SLOT(pdev->devfn), PCI_FUNC(pdev->devfn), dev->irq);
+-
+-	/*
+-	 * If this is the first controller to be initialized,
+-	 * initialize the pciehp work queue
+-	 */
+-	if (atomic_add_return(1, &pciehp_num_controllers) == 1) {
+-		pciehp_wq = create_singlethread_workqueue("pciehpd");
+-		if (!pciehp_wq) {
+-			rc = -ENOMEM;
+-			goto abort_free_irq;
+-		}
+-	}
++int pcie_init_hardware_part2(struct controller *ctrl, struct pcie_device *dev)
++{
++	int rc;
++	u16 temp_word;
++	u16 intr_enable = 0;
++	u32 slot_cap;
++	u16 slot_status;
+ 
+ 	rc = pciehp_readw(ctrl, SLOTCTRL, &temp_word);
+ 	if (rc) {
+ 		err("%s: Cannot read SLOTCTRL register\n", __FUNCTION__);
+-		goto abort_free_irq;
++		goto abort;
+ 	}
+ 
+ 	intr_enable = intr_enable | PRSN_DETECT_ENABLE;
+ 
++	rc = pciehp_readl(ctrl, SLOTCAP, &slot_cap);
++	if (rc) {
++		err("%s: Cannot read SLOTCAP register\n", __FUNCTION__);
++		goto abort;
++	}
++
+ 	if (ATTN_BUTTN(slot_cap))
+ 		intr_enable = intr_enable | ATTN_BUTTN_ENABLE;
+ 
+@@ -1179,7 +1160,7 @@ int pcie_init_hardware(struct controller
+ 	rc = pciehp_writew(ctrl, SLOTCTRL, temp_word);
+ 	if (rc) {
+ 		err("%s: Cannot write to SLOTCTRL register\n", __FUNCTION__);
+-		goto abort_free_irq;
++		goto abort;
+ 	}
+ 	rc = pciehp_readw(ctrl, SLOTSTATUS, &slot_status);
+ 	if (rc) {
+@@ -1214,14 +1195,7 @@ abort_disable_intr:
+ 	}
+ 	if (rc)
+ 		err("%s : disabling interrupts failed\n", __FUNCTION__);
+-
+-abort_free_irq:
+-	if (pciehp_poll_mode)
+-		del_timer_sync(&ctrl->poll_timer);
+-	else
+-		free_irq(ctrl->pci_dev->irq, ctrl);
+-
+-abort_free_ctlr:
++abort:
+ 	return -1;
+ }
+ 
+@@ -1318,11 +1292,52 @@ int pcie_init(struct controller *ctrl, s
+ 	ctrl->first_slot = slot_cap >> 19;
+ 	ctrl->ctrlcap = slot_cap & 0x0000007f;
+ 
+-	rc = pcie_init_hardware(ctrl, dev);
++	rc = pcie_init_hardware_part1(ctrl, dev);
++	if (rc)
++		goto abort;
++
++	if (pciehp_poll_mode) {
++		/* Install interrupt polling timer. Start with 10 sec delay */
++		init_timer(&ctrl->poll_timer);
++		start_int_poll_timer(ctrl, 10);
++	} else {
++		/* Installs the interrupt handler */
++		rc = request_irq(ctrl->pci_dev->irq, pcie_isr, IRQF_SHARED,
++				 MY_NAME, (void *)ctrl);
++		dbg("%s: request_irq %d for hpc%d (returns %d)\n",
++		    __FUNCTION__, ctrl->pci_dev->irq,
++		    atomic_read(&pciehp_num_controllers), rc);
++		if (rc) {
++			err("Can't get irq %d for the hotplug controller\n",
++			    ctrl->pci_dev->irq);
++			goto abort;
++		}
++	}
++	dbg("pciehp ctrl b:d:f:irq=0x%x:%x:%x:%x\n", pdev->bus->number,
++		PCI_SLOT(pdev->devfn), PCI_FUNC(pdev->devfn), dev->irq);
++
++	/*
++	 * If this is the first controller to be initialized,
++	 * initialize the pciehp work queue
++	 */
++	if (atomic_add_return(1, &pciehp_num_controllers) == 1) {
++		pciehp_wq = create_singlethread_workqueue("pciehpd");
++		if (!pciehp_wq) {
++			rc = -ENOMEM;
++			goto abort_free_irq;
++		}
++	}
++
++	rc = pcie_init_hardware_part2(ctrl, dev);
+ 	if (rc == 0) {
+ 		ctrl->hpc_ops = &pciehp_hpc_ops;
+ 		return 0;
+ 	}
++abort_free_irq:
++	if (pciehp_poll_mode)
++		del_timer_sync(&ctrl->poll_timer);
++	else
++		free_irq(ctrl->pci_dev->irq, ctrl);
+ abort:
+ 	return -1;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lkml@rtr.ca are
 
 origin.patch
-revert-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-timerfd-v3-new-timerfd-api-ia64-fix.patch
-timerfd-v3-new-timerfd-api-m68k-fix.patch
-timerfd-v3-new-timerfd-api-mips-fix.patch
-timerfd-v3-new-timerfd-api-arch-fixes.patch
-timerfd-v3-new-timerfd-api-powerpc-fix.patch
-timerfd-v3-new-timerfd-api-sparc64-fix.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-kernel-auditc-warning-fix.patch
-git-cpufreq.patch
-ppc-chrp-fix-possible-null-pointer-dereference.patch
-revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-git-drm.patch
-intel-agp-enable-i915-recognition.patch
-git-dvb.patch
-git-dvb-one-videobuf_read_start-is-enough.patch
-fix-jdelvare-i2c-i2c-constify-client-address-data.patch
-git-hid.patch
-revert-git-hrt.patch
-ia64-slim-down-__clear_bit_unlock.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
-libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
-libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
-git-md-accel.patch
-git-mips-fixup.patch
-git-mmc.patch
-git-mtd.patch
-git-net.patch
-git-net-vs-git-lblnet.patch
-git-netdev-all.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-backlight-omap1-backlight-driver.patch
-git-battery.patch
-bluetooth-uninlining.patch
-git-nfsd.patch
-git-ocfs2-fixup.patch
-quirk-enable-msi-mapping-on-ht1000.patch
-git-sched.patch
-git-sched-fixup.patch
-git-sh.patch
-git-scsi-misc.patch
-git-scsi-rc-fixes.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-usb-testing-driver-dont-free-a-locked-mutex.patch
-9p-util-fix-semaphore-handling.patch
-git-watchdog.patch
-git-watchdog-fixup.patch
-add-support-for-sb1-hardware-watchdog.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-x86-fixup.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-i386-use-raw_smp_processor_id-in-die.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-git-xtensa.patch
-bonding-locking-fix.patch
-iwlwifi3945-4965-fix-rate-control-algo-reference-leak.patch
-bcm43xx_debugfs-sscanf-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
-kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
-stopmachine-semaphore-to-mutex-fix.patch
-parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
-mark-rwsem-functions-as-__sched-for-wchan-profiling-fix.patch
-sync_sb_inodes-propagate-errors.patch
-add-have_oprofile.patch
-ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-rtc-add-support-for-the-s-35390a-rtc-chip-fix.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-logo-move-declarations-of-logos-to-linux_logoh-fix.patch
-declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
-64-bit-i_version-afs-fixes.patch
-ext4-add-block-bitmap-validation.patch
-ext4-fix-up-ext4fs_debug-builds.patch
-ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-pid-sys_wait-fixes-v2-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-rewrite-rd-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+rtc-dont-write-rtc-century-when-setting-a-wake-alarm.patch
