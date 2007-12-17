@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-fixup.patch added to -mm tree
-Date: Mon, 17 Dec 2007 15:17:25 -0800
-Message-ID: <200712172317.lBHNHPUQ007184@imap1.linux-foundation.org>
+Subject: + git-watchdog-fixup.patch added to -mm tree
+Date: Mon, 17 Dec 2007 15:21:27 -0800
+Message-ID: <200712172321.lBHNLRXa007377@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41457 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47375 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758345AbXLQXRn (ORCPT
+	by vger.kernel.org with ESMTP id S1764567AbXLQXWD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:17:43 -0500
+	Mon, 17 Dec 2007 18:22:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu
+Cc: akpm@linux-foundation.org, wim@iguana.be
 
 
 The patch titled
-     git-x86-fixup
+     git-watchdog-fixup
 has been added to the -mm tree.  Its filename is
-     git-x86-fixup.patch
+     git-watchdog-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,56 +26,54 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-x86-fixup
+Subject: git-watchdog-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Repair some of the damage against various things.
+Fix git conflicts
 
-Your arch/x86/kernel/traps_64.c:__die() change needs a checkpatch run.
-
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/traps_64.c |    8 +++++---
- drivers/acpi/bus.c         |    1 +
- 2 files changed, 6 insertions(+), 3 deletions(-)
+ drivers/watchdog/Kconfig  |    3 ---
+ drivers/watchdog/Makefile |    3 ---
+ 2 files changed, 6 deletions(-)
 
-diff -puN arch/x86/kernel/traps_64.c~git-x86-fixup arch/x86/kernel/traps_64.c
---- a/arch/x86/kernel/traps_64.c~git-x86-fixup
-+++ a/arch/x86/kernel/traps_64.c
-@@ -522,15 +522,17 @@ int __kprobes __die(const char * str, st
- #endif
- 	printk("\n");
- 	sysfs_printk_last_file();
--	notify_die(DIE_OOPS, str, regs, err, current->thread.trap_no, SIGSEGV);
-+	if (notify_die(DIE_OOPS, str, regs, err, current->thread.trap_no, SIGSEGV) == NOTIFY_STOP)
-+		return 1;
- 	show_registers(regs);
- 	add_taint(TAINT_DIE);
- 	/* Executive summary in case the oops scrolled away */
- 	printk(KERN_ALERT "RIP ");
--	printk_address(regs->rip); 
--	printk(" RSP <%016lx>\n", regs->rsp); 
-+	printk_address(regs->ip);
-+	printk(" RSP <%016lx>\n", regs->sp);
- 	if (kexec_should_crash(current))
- 		crash_kexec(regs);
-+	return 0;
- }
+diff -puN drivers/watchdog/Kconfig~git-watchdog-fixup drivers/watchdog/Kconfig
+--- a/drivers/watchdog/Kconfig~git-watchdog-fixup
++++ a/drivers/watchdog/Kconfig
+@@ -405,8 +405,6 @@ config IT8712F_WDT
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called it8712f_wdt.
  
- void die(const char * str, struct pt_regs * regs, long err)
-diff -puN drivers/acpi/bus.c~git-x86-fixup drivers/acpi/bus.c
---- a/drivers/acpi/bus.c~git-x86-fixup
-+++ a/drivers/acpi/bus.c
-@@ -763,6 +763,7 @@ static int __init acpi_init(void)
- 	result = acpi_bus_init();
+-<<<<<<< HEAD:drivers/watchdog/Kconfig
+-=======
+ config HP_WATCHDOG
+ 	tristate "HP Proliant iLO 2 Hardware Watchdog Timer"
+ 	depends on X86
+@@ -419,7 +417,6 @@ config HP_WATCHDOG
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called hpwdt.
  
- 	if (!result) {
-+		pci_mmcfg_late_init();
- 		if (!(pm_flags & PM_APM))
- 			pm_flags |= PM_ACPI;
- 		else {
+->>>>>>> FETCH_HEAD:drivers/watchdog/Kconfig
+ config SC1200_WDT
+ 	tristate "National Semiconductor PC87307/PC97307 (ala SC1200) Watchdog"
+ 	depends on X86
+diff -puN drivers/watchdog/Makefile~git-watchdog-fixup drivers/watchdog/Makefile
+--- a/drivers/watchdog/Makefile~git-watchdog-fixup
++++ a/drivers/watchdog/Makefile
+@@ -69,11 +69,8 @@ obj-$(CONFIG_WAFER_WDT) += wafer5823wdt.
+ obj-$(CONFIG_I6300ESB_WDT) += i6300esb.o
+ obj-$(CONFIG_ITCO_WDT) += iTCO_wdt.o iTCO_vendor_support.o
+ obj-$(CONFIG_IT8712F_WDT) += it8712f_wdt.o
+-<<<<<<< HEAD:drivers/watchdog/Makefile
+-=======
+ CFLAGS_hpwdt.o += -O
+ obj-$(CONFIG_HP_WATCHDOG) += hpwdt.o
+->>>>>>> FETCH_HEAD:drivers/watchdog/Makefile
+ obj-$(CONFIG_SC1200_WDT) += sc1200wdt.o
+ obj-$(CONFIG_SCx200_WDT) += scx200_wdt.o
+ obj-$(CONFIG_PC87413_WDT) += pc87413_wdt.o
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -145,15 +143,13 @@ vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
 usb-testing-driver-dont-free-a-locked-mutex.patch
 9p-util-fix-semaphore-handling.patch
 git-watchdog.patch
+git-watchdog-fixup.patch
 add-support-for-sb1-hardware-watchdog.patch
 git-wireless.patch
 git-ipwireless_cs.patch
 git-x86.patch
 git-x86-fixup.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-acpi-add-reboot-mechanism.patch
-git-x86-__vdso_getcpu-warning-fix.patch
-git-x86-fix-allnoconfig-build.patch
 i386-use-raw_smp_processor_id-in-die.patch
 git-cryptodev.patch
 git-cryptodev-fixup.patch
