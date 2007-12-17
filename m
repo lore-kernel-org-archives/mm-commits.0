@@ -1,129 +1,196 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-gdth-kill-unneeded-irq-argument.patch removed from -mm tree
-Date: Mon, 17 Dec 2007 15:40:08 -0800
-Message-ID: <200712172340.lBHNe8QB008265@imap1.linux-foundation.org>
+Subject: - ips-pci-api-cleanups.patch removed from -mm tree
+Date: Mon, 17 Dec 2007 15:40:02 -0800
+Message-ID: <200712172340.lBHNe2Wk008259@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52546 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42974 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936842AbXLQXy3 (ORCPT
+	by vger.kernel.org with ESMTP id S932632AbXLQX4P (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:54:29 -0500
+	Mon, 17 Dec 2007 18:56:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeff@garzik.org, James.Bottomley@steeleye.com, bharrosh@panasas.com, jgarzik@redhat.com, mm-commits@vger.kernel.org
+To: jeff@garzik.org, James.Bottomley@steeleye.com, jgarzik@redhat.com, mark_salyzyn@adaptec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SCSI/gdth: kill unneeded 'irq' argument
+     ips: PCI API cleanups
 has been removed from the -mm tree.  Its filename was
-     scsi-gdth-kill-unneeded-irq-argument.patch
+     ips-pci-api-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SCSI/gdth: kill unneeded 'irq' argument
+Subject: ips: PCI API cleanups
 From: Jeff Garzik <jeff@garzik.org>
 
-Neither gdth_get_status() nor __gdth_interrupt() need their 'irq' argument,
-so remove it.
+* pass Scsi_Host to ips_remove_device() via pci_set_drvdata(),
+  allowing us to eliminate the ips_ha[] search loop and call
+  ips_release() directly.
 
-[akpm@linux-foundation.org: coding style fixes]
+* call pci_{request,release}_regions() and eliminate individual
+  request/release_[mem_]region() calls
+
+* call pci_disable_device(), paired with pci_enable_device()
+
+* s/0/NULL/ in a few places
+
+* check ioremap() return value
+
 Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
-Acked-by: Boaz Harrosh <bharrosh@panasas.com>
 Cc: James Bottomley <James.Bottomley@steeleye.com>
+Acked-by: "Salyzyn, Mark" <mark_salyzyn@adaptec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/gdth.c |   22 ++++++++++------------
- 1 file changed, 10 insertions(+), 12 deletions(-)
+ drivers/scsi/ips.c |   72 ++++++++++++++++++-------------------------
+ 1 file changed, 31 insertions(+), 41 deletions(-)
 
-diff -puN drivers/scsi/gdth.c~scsi-gdth-kill-unneeded-irq-argument drivers/scsi/gdth.c
---- a/drivers/scsi/gdth.c~scsi-gdth-kill-unneeded-irq-argument
-+++ a/drivers/scsi/gdth.c
-@@ -141,7 +141,7 @@
- static void gdth_delay(int milliseconds);
- static void gdth_eval_mapping(ulong32 size, ulong32 *cyls, int *heads, int *secs);
- static irqreturn_t gdth_interrupt(int irq, void *dev_id);
--static irqreturn_t __gdth_interrupt(gdth_ha_str *ha, int irq,
-+static irqreturn_t __gdth_interrupt(gdth_ha_str *ha,
-                                     int gdth_from_wait, int* pIndex);
- static int gdth_sync_event(gdth_ha_str *ha, int service, unchar index,
-                                                                Scsi_Cmnd *scp);
-@@ -165,7 +165,6 @@ static int gdth_internal_cache_cmd(gdth_
- static int gdth_fill_cache_cmd(gdth_ha_str *ha, Scsi_Cmnd *scp, ushort hdrive);
+diff -puN drivers/scsi/ips.c~ips-pci-api-cleanups drivers/scsi/ips.c
+--- a/drivers/scsi/ips.c~ips-pci-api-cleanups
++++ a/drivers/scsi/ips.c
+@@ -702,10 +702,6 @@ ips_release(struct Scsi_Host *sh)
+ 	/* free extra memory */
+ 	ips_free(ha);
  
- static void gdth_enable_int(gdth_ha_str *ha);
--static unchar gdth_get_status(gdth_ha_str *ha, int irq);
- static int gdth_test_busy(gdth_ha_str *ha);
- static int gdth_get_cmd_index(gdth_ha_str *ha);
- static void gdth_release_event(gdth_ha_str *ha);
-@@ -1334,14 +1333,12 @@ static void __init gdth_enable_int(gdth_
+-	/* Free I/O Region */
+-	if (ha->io_addr)
+-		release_region(ha->io_addr, ha->io_len);
+-
+ 	/* free IRQ */
+ 	free_irq(ha->pcidev->irq, ha);
+ 
+@@ -4394,8 +4390,6 @@ ips_free(ips_ha_t * ha)
+ 			ha->mem_ptr = NULL;
+ 		}
+ 
+-		if (ha->mem_addr)
+-			release_mem_region(ha->mem_addr, ha->mem_len);
+ 		ha->mem_addr = 0;
+ 
+ 	}
+@@ -6880,20 +6874,14 @@ ips_register_scsi(int index)
+ static void __devexit
+ ips_remove_device(struct pci_dev *pci_dev)
+ {
+-	int i;
+-	struct Scsi_Host *sh;
+-	ips_ha_t *ha;
++	struct Scsi_Host *sh = pci_get_drvdata(pci_dev);
+ 
+-	for (i = 0; i < IPS_MAX_ADAPTERS; i++) {
+-		ha = ips_ha[i];
+-		if (ha) {
+-			if ((pci_dev->bus->number == ha->pcidev->bus->number) &&
+-			    (pci_dev->devfn == ha->pcidev->devfn)) {
+-				sh = ips_sh[i];
+-				ips_release(sh);
+-			}
+-		}
+-	}
++	pci_set_drvdata(pci_dev, NULL);
++
++	ips_release(sh);
++
++	pci_release_regions(pci_dev);
++	pci_disable_device(pci_dev);
  }
  
- /* return IStatus if interrupt was from this card else 0 */
--static unchar gdth_get_status(gdth_ha_str *ha, int irq)
-+static unchar gdth_get_status(gdth_ha_str *ha)
+ /****************************************************************************/
+@@ -6947,12 +6935,17 @@ module_exit(ips_module_exit);
+ static int __devinit
+ ips_insert_device(struct pci_dev *pci_dev, const struct pci_device_id *ent)
  {
-     unchar IStatus = 0;
+-	int uninitialized_var(index);
++	int index = -1;
+ 	int rc;
  
--    TRACE(("gdth_get_status() irq %d ctr_count %d\n", irq, gdth_ctr_count));
-+    TRACE(("gdth_get_status() irq %d ctr_count %d\n", ha->irq, gdth_ctr_count));
+ 	METHOD_TRACE("ips_insert_device", 1);
+-	if (pci_enable_device(pci_dev))
+-		return -1;
++	rc = pci_enable_device(pci_dev);
++	if (rc)
++		return rc;
++
++	rc = pci_request_regions(pci_dev, "ips");
++	if (rc)
++		goto err_out;
  
--        if (ha->irq != (unchar)irq)             /* check IRQ */
--            return false;
-         if (ha->type == GDT_EISA)
-             IStatus = inb((ushort)ha->bmic + EDOORREG);
-         else if (ha->type == GDT_ISA)
-@@ -1523,7 +1520,7 @@ static int gdth_wait(gdth_ha_str *ha, in
-         return 1;                               /* no wait required */
+ 	rc = ips_init_phase1(pci_dev, &index);
+ 	if (rc == SUCCESS)
+@@ -6968,6 +6961,19 @@ ips_insert_device(struct pci_dev *pci_de
+ 		ips_num_controllers++;
  
-     do {
--        __gdth_interrupt(ha, (int)ha->irq, true, &wait_index);
-+	__gdth_interrupt(ha, true, &wait_index);
-         if (wait_index == index) {
-             answer_found = TRUE;
-             break;
-@@ -3036,7 +3033,7 @@ static void gdth_clear_events(void)
- 
- /* SCSI interface functions */
- 
--static irqreturn_t __gdth_interrupt(gdth_ha_str *ha, int irq,
-+static irqreturn_t __gdth_interrupt(gdth_ha_str *ha,
-                                     int gdth_from_wait, int* pIndex)
- {
-     gdt6m_dpram_str __iomem *dp6m_ptr = NULL;
-@@ -3054,7 +3051,7 @@ static irqreturn_t __gdth_interrupt(gdth
-     int act_int_coal = 0;       
- #endif
- 
--    TRACE(("gdth_interrupt() IRQ %d\n",irq));
-+    TRACE(("gdth_interrupt() IRQ %d\n", ha->irq));
- 
-     /* if polling and not from gdth_wait() -> return */
-     if (gdth_polling) {
-@@ -3067,7 +3064,8 @@ static irqreturn_t __gdth_interrupt(gdth
-         spin_lock_irqsave(&ha->smp_lock, flags);
- 
-     /* search controller */
--    if (0 == (IStatus = gdth_get_status(ha, irq))) {
-+    IStatus = gdth_get_status(ha);
-+    if (IStatus == 0) {
-         /* spurious interrupt */
-         if (!gdth_polling)
-             spin_unlock_irqrestore(&ha->smp_lock, flags);
-@@ -3294,9 +3292,9 @@ static irqreturn_t __gdth_interrupt(gdth
- 
- static irqreturn_t gdth_interrupt(int irq, void *dev_id)
- {
--	gdth_ha_str *ha = (gdth_ha_str *)dev_id;
-+	gdth_ha_str *ha = dev_id;
- 
--	return __gdth_interrupt(ha, irq, false, NULL);
-+	return __gdth_interrupt(ha, false, NULL);
+ 	ips_next_controller = ips_num_controllers;
++
++	if (rc < 0) {
++		rc = -ENODEV;
++		goto err_out_regions;
++	}
++
++	pci_set_drvdata(pci_dev, ips_sh[index]);
++	return 0;
++
++err_out_regions:
++	pci_release_regions(pci_dev);
++err_out:
++	pci_disable_device(pci_dev);
+ 	return rc;
  }
  
- static int gdth_sync_event(gdth_ha_str *ha, int service, unchar index,
+@@ -7000,7 +7006,7 @@ ips_init_phase1(struct pci_dev *pci_dev,
+ 	METHOD_TRACE("ips_init_phase1", 1);
+ 	index = IPS_MAX_ADAPTERS;
+ 	for (j = 0; j < IPS_MAX_ADAPTERS; j++) {
+-		if (ips_ha[j] == 0) {
++		if (ips_ha[j] == NULL) {
+ 			index = j;
+ 			break;
+ 		}
+@@ -7037,32 +7043,17 @@ ips_init_phase1(struct pci_dev *pci_dev,
+ 		uint32_t base;
+ 		uint32_t offs;
+ 
+-		if (!request_mem_region(mem_addr, mem_len, "ips")) {
+-			IPS_PRINTK(KERN_WARNING, pci_dev,
+-				   "Couldn't allocate IO Memory space %x len %d.\n",
+-				   mem_addr, mem_len);
+-			return -1;
+-		}
+-
+ 		base = mem_addr & PAGE_MASK;
+ 		offs = mem_addr - base;
+ 		ioremap_ptr = ioremap(base, PAGE_SIZE);
++		if (!ioremap_ptr)
++			return -1;
+ 		mem_ptr = ioremap_ptr + offs;
+ 	} else {
+ 		ioremap_ptr = NULL;
+ 		mem_ptr = NULL;
+ 	}
+ 
+-	/* setup I/O mapped area (if applicable) */
+-	if (io_addr) {
+-		if (!request_region(io_addr, io_len, "ips")) {
+-			IPS_PRINTK(KERN_WARNING, pci_dev,
+-				   "Couldn't allocate IO space %x len %d.\n",
+-				   io_addr, io_len);
+-			return -1;
+-		}
+-	}
+-
+ 	/* found a controller */
+ 	ha = kzalloc(sizeof (ips_ha_t), GFP_KERNEL);
+ 	if (ha == NULL) {
+@@ -7071,7 +7062,6 @@ ips_init_phase1(struct pci_dev *pci_dev,
+ 		return -1;
+ 	}
+ 
+-
+ 	ips_sh[index] = NULL;
+ 	ips_ha[index] = ha;
+ 	ha->active = 1;
 _
 
 Patches currently in -mm which might be from jeff@garzik.org are
