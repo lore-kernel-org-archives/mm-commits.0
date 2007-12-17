@@ -1,305 +1,226 @@
 From: akpm@linux-foundation.org
-Subject: - ips-trim-trailing-whitespace.patch removed from -mm tree
-Date: Mon, 17 Dec 2007 15:40:00 -0800
-Message-ID: <200712172340.lBHNe0Bp008166@imap1.linux-foundation.org>
+Subject: - aacraid-driver-fails-with-dell-poweredge-expandable-raid-controller-3-di.patch removed from -mm tree
+Date: Mon, 17 Dec 2007 15:40:20 -0800
+Message-ID: <200712172340.lBHNeKss008287@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41976 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60415 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S937657AbXLQXxA (ORCPT
+	by vger.kernel.org with ESMTP id S937340AbXLQXxQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:53:00 -0500
+	Mon, 17 Dec 2007 18:53:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeff@garzik.org, James.Bottomley@steeleye.com, jgarzik@redhat.com, mark_salyzyn@adaptec.com, mm-commits@vger.kernel.org
+To: mark_salyzyn@adaptec.com, James.Bottomley@steeleye.com, Matt_Domsch@dell.com, aacraid@adaptec.com, hawk@pld-linux.org, mikevs@xs4all.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ips: trim trailing whitespace
+     aacraid driver fails with Dell PowerEdge Expandable RAID Controller 3/Di
 has been removed from the -mm tree.  Its filename was
-     ips-trim-trailing-whitespace.patch
+     aacraid-driver-fails-with-dell-poweredge-expandable-raid-controller-3-di.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ips: trim trailing whitespace
-From: Jeff Garzik <jeff@garzik.org>
+Subject: aacraid driver fails with Dell PowerEdge Expandable RAID Controller 3/Di
+From: "Salyzyn, Mark" <mark_salyzyn@adaptec.com>
 
-[akpm@linux-foundation.org: coding style fixes]
-Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
+As reported in http://bugzilla.kernel.org/show_bug.cgi?id=3D9133 it was
+discovered that the PERC line of controllers lacked a key 64 bit
+ScatterGather capable SCSI pass-through function. The adapters are still
+capable of 64 bit ScatterGather I/O commands, but these two can not be
+mixed. This problem was exacerbated by the introduction of the SCSI
+Generic access to the DASD physical devices.
+
+The fix for users before this patch is applied is aacraid.dacmode=3D0 on
+the kernel command line to disable 64 bit I/O.
+
+The enclosed patch introduces a new adapter quirk and tries to limp
+along by enabling pass-through in situations where memory is 32 bit
+addressable on 64 bit machines, or disable the pass-through functions
+altogether. I expect that the check for 32 bit addressable memory to be
+controversial in that it can be incorrect in non-Dell non-Intel systems
+that PERC would never be installed under, the alternative is to disable
+pass-through in all cases which could be reported as another regression.
+
+Pass-through is used for SCSI Generic access to the physical devices, or
+for the management applications to properly function.
+
+In systems where this patch has disabled pass-through because it is
+unsupportable in combination with I/O performance, the user can choose
+to enable pass-through by turning off dacmode (aacraid.dacmode=3D0) or
+limiting the discovered kernel memory (mem=3D4G) with an associated loss
+in runtime performance. If we chose instead to turn off 64 bit dacmode
+for the adapters with this quirk, then this would be reported as another
+regression.
+
+Signed-off-by: Mark Salyzyn <aacraid@adaptec.com>
+Cc: Marcin Krol <hawk@pld-linux.org>
+Cc: "Matt Domsch" <Matt_Domsch@dell.com>
 Cc: James Bottomley <James.Bottomley@steeleye.com>
-Acked-by: "Salyzyn, Mark" <mark_salyzyn@adaptec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ips.c |   49 +++++++++++++++++++++----------------------
- drivers/scsi/ips.h |   12 +++++-----
- 2 files changed, 31 insertions(+), 30 deletions(-)
+ drivers/scsi/aacraid/aachba.c  |   15 ++++++++++-
+ drivers/scsi/aacraid/aacraid.h |    6 ++++
+ drivers/scsi/aacraid/commsup.c |    6 ++--
+ drivers/scsi/aacraid/linit.c   |   42 +++++++++++++++++--------------
+ 4 files changed, 47 insertions(+), 22 deletions(-)
 
-diff -puN drivers/scsi/ips.c~ips-trim-trailing-whitespace drivers/scsi/ips.c
---- a/drivers/scsi/ips.c~ips-trim-trailing-whitespace
-+++ a/drivers/scsi/ips.c
-@@ -389,17 +389,17 @@ static struct  pci_device_id  ips_pci_ta
- MODULE_DEVICE_TABLE( pci, ips_pci_table );
+diff -puN drivers/scsi/aacraid/aachba.c~aacraid-driver-fails-with-dell-poweredge-expandable-raid-controller-3-di drivers/scsi/aacraid/aachba.c
+--- a/drivers/scsi/aacraid/aachba.c~aacraid-driver-fails-with-dell-poweredge-expandable-raid-controller-3-di
++++ a/drivers/scsi/aacraid/aachba.c
+@@ -1190,6 +1190,15 @@ static int aac_scsi_32(struct fib * fib,
+ 				  (fib_callback) aac_srb_callback, (void *) cmd);
+ }
  
- static char ips_hot_plug_name[] = "ips";
--   
++static int aac_scsi_32_64(struct fib * fib, struct scsi_cmnd * cmd)
++{
++	if ((sizeof(dma_addr_t) > 4) &&
++	 (num_physpages > (0xFFFFFFFFULL >> PAGE_SHIFT)) &&
++	 (fib->dev->adapter_info.options & AAC_OPT_SGMAP_HOST64))
++		return FAILED;
++	return aac_scsi_32(fib, cmd);
++}
 +
- static int __devinit  ips_insert_device(struct pci_dev *pci_dev, const struct pci_device_id *ent);
- static void __devexit ips_remove_device(struct pci_dev *pci_dev);
--   
-+
- static struct pci_driver ips_pci_driver = {
- 	.name		= ips_hot_plug_name,
- 	.id_table	= ips_pci_table,
- 	.probe		= ips_insert_device,
- 	.remove		= __devexit_p(ips_remove_device),
- };
--           
-+
+ int aac_get_adapter_info(struct aac_dev* dev)
+ {
+ 	struct fib* fibptr;
+@@ -1267,6 +1276,8 @@ int aac_get_adapter_info(struct aac_dev*
+ 			 1, 1,
+ 			 NULL, NULL);
+ 
++	/* reasoned default */
++	dev->maximum_num_physicals = 16;
+ 	if (rcode >= 0 && le32_to_cpu(bus_info->Status) == ST_OK) {
+ 		dev->maximum_num_physicals = le32_to_cpu(bus_info->TargetsPerBus);
+ 		dev->maximum_num_channels = le32_to_cpu(bus_info->BusCount);
+@@ -1376,7 +1387,9 @@ int aac_get_adapter_info(struct aac_dev*
+ 	 * interface.
+ 	 */
+ 	dev->a_ops.adapter_scsi = (dev->dac_support)
+-				? aac_scsi_64
++	  ? ((aac_get_driver_ident(dev->cardtype)->quirks & AAC_QUIRK_SCSI_32)
++				? aac_scsi_32_64
++				: aac_scsi_64)
+ 				: aac_scsi_32;
+ 	if (dev->raw_io_interface) {
+ 		dev->a_ops.adapter_bounds = (dev->raw_io_64)
+diff -puN drivers/scsi/aacraid/aacraid.h~aacraid-driver-fails-with-dell-poweredge-expandable-raid-controller-3-di drivers/scsi/aacraid/aacraid.h
+--- a/drivers/scsi/aacraid/aacraid.h~aacraid-driver-fails-with-dell-poweredge-expandable-raid-controller-3-di
++++ a/drivers/scsi/aacraid/aacraid.h
+@@ -521,6 +521,12 @@ struct aac_driver_ident
+ #define AAC_QUIRK_17SG	0x0010
  
  /*
-  * Necessary forward function protoypes
-@@ -587,7 +587,7 @@ static void
- ips_setup_funclist(ips_ha_t * ha)
- {
- 
--	/*                                
-+	/*
- 	 * Setup Functions
- 	 */
- 	if (IPS_IS_MORPHEUS(ha) || IPS_IS_MARCO(ha)) {
-@@ -2081,7 +2081,7 @@ ips_host_info(ips_ha_t * ha, char *ptr, 
-     /* That keeps everything happy for "text" operations on the proc file.                    */
- 
- 	if (le32_to_cpu(ha->nvram->signature) == IPS_NVRAM_P5_SIG) {
--        if (ha->nvram->bios_low[3] == 0) { 
-+	if (ha->nvram->bios_low[3] == 0) {
-             copy_info(&info,
- 			          "\tBIOS Version                      : %c%c%c%c%c%c%c\n",
- 			          ha->nvram->bios_high[0], ha->nvram->bios_high[1],
-@@ -2780,10 +2780,11 @@ ips_next(ips_ha_t * ha, int intr)
- 		scb->dcdb.cmd_attribute =
- 		    ips_command_direction[scb->scsi_cmd->cmnd[0]];
- 
--        /* Allow a WRITE BUFFER Command to Have no Data */
--        /* This is Used by Tape Flash Utilites          */
--        if ((scb->scsi_cmd->cmnd[0] == WRITE_BUFFER) && (scb->data_len == 0)) 
--            scb->dcdb.cmd_attribute = 0;                  
-+		/* Allow a WRITE BUFFER Command to Have no Data */
-+		/* This is Used by Tape Flash Utilites          */
-+		if ((scb->scsi_cmd->cmnd[0] == WRITE_BUFFER) &&
-+				(scb->data_len == 0))
-+			scb->dcdb.cmd_attribute = 0;
- 
- 		if (!(scb->dcdb.cmd_attribute & 0x3))
- 			scb->dcdb.transfer_length = 0;
-@@ -3404,7 +3405,7 @@ ips_map_status(ips_ha_t * ha, ips_scb_t 
- 
- 				/* Restrict access to physical DASD */
- 				if (scb->scsi_cmd->cmnd[0] == INQUIRY) {
--				    ips_scmd_buf_read(scb->scsi_cmd, 
-+				    ips_scmd_buf_read(scb->scsi_cmd,
-                                       &inquiryData, sizeof (inquiryData));
-  				    if ((inquiryData.DeviceType & 0x1f) == TYPE_DISK) {
- 				        errcode = DID_TIME_OUT;
-@@ -4090,10 +4091,10 @@ ips_chkstatus(ips_ha_t * ha, IPS_STATUS 
- 			scb->scsi_cmd->result = errcode << 16;
- 		} else {	/* bus == 0 */
- 			/* restrict access to physical drives */
--			if (scb->scsi_cmd->cmnd[0] == INQUIRY) { 
--			    ips_scmd_buf_read(scb->scsi_cmd, 
-+			if (scb->scsi_cmd->cmnd[0] == INQUIRY) {
-+			    ips_scmd_buf_read(scb->scsi_cmd,
-                                   &inquiryData, sizeof (inquiryData));
--			    if ((inquiryData.DeviceType & 0x1f) == TYPE_DISK) 
-+			    if ((inquiryData.DeviceType & 0x1f) == TYPE_DISK)
- 			        scb->scsi_cmd->result = DID_TIME_OUT << 16;
- 			}
- 		}		/* else */
-@@ -4661,8 +4662,8 @@ ips_isinit_morpheus(ips_ha_t * ha)
- 	uint32_t bits;
- 
- 	METHOD_TRACE("ips_is_init_morpheus", 1);
--   
--	if (ips_isintr_morpheus(ha)) 
++ *	Some adapter firmware does not support 64 bit scsi passthrough
++ * commands.
++ */
++#define AAC_QUIRK_SCSI_32	0x0020
 +
-+	if (ips_isintr_morpheus(ha))
- 	    ips_flush_and_reset(ha);
- 
- 	post = readl(ha->mem_ptr + IPS_REG_I960_MSG0);
-@@ -4686,7 +4687,7 @@ ips_isinit_morpheus(ips_ha_t * ha)
- /*   state ( was trying to INIT and an interrupt was already pending ) ...  */
- /*                                                                          */
- /****************************************************************************/
--static void 
-+static void
- ips_flush_and_reset(ips_ha_t *ha)
- {
- 	ips_scb_t *scb;
-@@ -4718,9 +4719,9 @@ ips_flush_and_reset(ips_ha_t *ha)
- 	    if (ret == IPS_SUCCESS) {
- 	        time = 60 * IPS_ONE_SEC;	              /* Max Wait time is 60 seconds */
- 	        done = 0;
--	            
-+
- 	        while ((time > 0) && (!done)) {
--	           done = ips_poll_for_flush_complete(ha); 	   
-+		   done = ips_poll_for_flush_complete(ha);
- 	           /* This may look evil, but it's only done during extremely rare start-up conditions ! */
- 	           udelay(1000);
- 	           time--;
-@@ -4749,17 +4750,17 @@ static int
- ips_poll_for_flush_complete(ips_ha_t * ha)
- {
- 	IPS_STATUS cstatus;
--    
-+
- 	while (TRUE) {
- 	    cstatus.value = (*ha->func.statupd) (ha);
- 
- 	    if (cstatus.value == 0xffffffff)      /* If No Interrupt to process */
- 			break;
--            
-+
- 	    /* Success is when we see the Flush Command ID */
--	    if (cstatus.fields.command_id == IPS_MAX_CMDS ) 
-+	    if (cstatus.fields.command_id == IPS_MAX_CMDS)
- 	        return 1;
--	 }	
-+	 }
- 
- 	return 0;
- }
-@@ -5920,7 +5921,7 @@ ips_read_config(ips_ha_t * ha, int intr)
- 
- 		return (0);
++/*
+  *	The adapter interface specs all queues to be located in the same
+  *	physically contigous block. The host structure that defines the
+  *	commuication queues will assume they are each a separate physically
+diff -puN drivers/scsi/aacraid/commsup.c~aacraid-driver-fails-with-dell-poweredge-expandable-raid-controller-3-di drivers/scsi/aacraid/commsup.c
+--- a/drivers/scsi/aacraid/commsup.c~aacraid-driver-fails-with-dell-poweredge-expandable-raid-controller-3-di
++++ a/drivers/scsi/aacraid/commsup.c
+@@ -1099,7 +1099,8 @@ static int _aac_reset_adapter(struct aac
+ 	free_irq(aac->pdev->irq, aac);
+ 	kfree(aac->fsa_dev);
+ 	aac->fsa_dev = NULL;
+-	if (aac_get_driver_ident(index)->quirks & AAC_QUIRK_31BIT) {
++	quirks = aac_get_driver_ident(index)->quirks;
++	if (quirks & AAC_QUIRK_31BIT) {
+ 		if (((retval = pci_set_dma_mask(aac->pdev, DMA_31BIT_MASK))) ||
+ 		  ((retval = pci_set_consistent_dma_mask(aac->pdev, DMA_31BIT_MASK))))
+ 			goto out;
+@@ -1110,7 +1111,7 @@ static int _aac_reset_adapter(struct aac
  	}
--	
-+
- 	memcpy(ha->conf, ha->ioctl_data, sizeof(*ha->conf));
- 	return (1);
- }
-@@ -5959,7 +5960,7 @@ ips_readwrite_page5(ips_ha_t * ha, int w
- 	scb->cmd.nvram.buffer_addr = ha->ioctl_busaddr;
- 	if (write)
- 		memcpy(ha->ioctl_data, ha->nvram, sizeof(*ha->nvram));
--	
-+
- 	/* issue the command */
- 	if (((ret =
- 	      ips_send_wait(ha, scb, ips_cmd_timeout, intr)) == IPS_FAILURE)
-diff -puN drivers/scsi/ips.h~ips-trim-trailing-whitespace drivers/scsi/ips.h
---- a/drivers/scsi/ips.h~ips-trim-trailing-whitespace
-+++ a/drivers/scsi/ips.h
-@@ -92,7 +92,7 @@
-    #ifndef min
-       #define min(x,y) ((x) < (y) ? x : y)
-    #endif
--   
-+
-    #ifndef __iomem       /* For clean compiles in earlier kernels without __iomem annotations */
-       #define __iomem
-    #endif
-@@ -171,7 +171,7 @@
-    #define IPS_CMD_DOWNLOAD             0x20
-    #define IPS_CMD_RW_BIOSFW            0x22
-    #define IPS_CMD_GET_VERSION_INFO     0xC6
--   #define IPS_CMD_RESET_CHANNEL        0x1A  
-+   #define IPS_CMD_RESET_CHANNEL        0x1A
+ 	if ((retval = (*(aac_get_driver_ident(index)->init))(aac)))
+ 		goto out;
+-	if (aac_get_driver_ident(index)->quirks & AAC_QUIRK_31BIT)
++	if (quirks & AAC_QUIRK_31BIT)
+ 		if ((retval = pci_set_dma_mask(aac->pdev, DMA_32BIT_MASK)))
+ 			goto out;
+ 	if (jafo) {
+@@ -1121,7 +1122,6 @@ static int _aac_reset_adapter(struct aac
+ 		}
+ 	}
+ 	(void)aac_get_adapter_info(aac);
+-	quirks = aac_get_driver_ident(index)->quirks;
+ 	if ((quirks & AAC_QUIRK_34SG) && (host->sg_tablesize > 34)) {
+  		host->sg_tablesize = 34;
+  		host->max_sectors = (host->sg_tablesize * 8) + 112;
+diff -puN drivers/scsi/aacraid/linit.c~aacraid-driver-fails-with-dell-poweredge-expandable-raid-controller-3-di drivers/scsi/aacraid/linit.c
+--- a/drivers/scsi/aacraid/linit.c~aacraid-driver-fails-with-dell-poweredge-expandable-raid-controller-3-di
++++ a/drivers/scsi/aacraid/linit.c
+@@ -164,22 +164,22 @@ MODULE_DEVICE_TABLE(pci, aac_pci_tbl);
+  * for the card.  At that time we can remove the channels from here
+  */
+ static struct aac_driver_ident aac_drivers[] = {
+-	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* PERC 2/Si (Iguana/PERC2Si) */
+-	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* PERC 3/Di (Opal/PERC3Di) */
+-	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* PERC 3/Si (SlimFast/PERC3Si */
+-	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* PERC 3/Di (Iguana FlipChip/PERC3DiF */
+-	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* PERC 3/Di (Viper/PERC3DiV) */
+-	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* PERC 3/Di (Lexus/PERC3DiL) */
+-	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 1, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* PERC 3/Di (Jaguar/PERC3DiJ) */
+-	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* PERC 3/Di (Dagger/PERC3DiD) */
+-	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* PERC 3/Di (Boxster/PERC3DiB) */
+-	{ aac_rx_init, "aacraid",  "ADAPTEC ", "catapult        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* catapult */
+-	{ aac_rx_init, "aacraid",  "ADAPTEC ", "tomcat          ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* tomcat */
+-	{ aac_rx_init, "aacraid",  "ADAPTEC ", "Adaptec 2120S   ", 1, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* Adaptec 2120S (Crusader) */
+-	{ aac_rx_init, "aacraid",  "ADAPTEC ", "Adaptec 2200S   ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* Adaptec 2200S (Vulcan) */
+-	{ aac_rx_init, "aacraid",  "ADAPTEC ", "Adaptec 2200S   ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* Adaptec 2200S (Vulcan-2m) */
+-	{ aac_rx_init, "aacraid",  "Legend  ", "Legend S220     ", 1, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* Legend S220 (Legend Crusader) */
+-	{ aac_rx_init, "aacraid",  "Legend  ", "Legend S230     ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* Legend S230 (Legend Vulcan) */
++	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* PERC 2/Si (Iguana/PERC2Si) */
++	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* PERC 3/Di (Opal/PERC3Di) */
++	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* PERC 3/Si (SlimFast/PERC3Si */
++	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* PERC 3/Di (Iguana FlipChip/PERC3DiF */
++	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* PERC 3/Di (Viper/PERC3DiV) */
++	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* PERC 3/Di (Lexus/PERC3DiL) */
++	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 1, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* PERC 3/Di (Jaguar/PERC3DiJ) */
++	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* PERC 3/Di (Dagger/PERC3DiD) */
++	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* PERC 3/Di (Boxster/PERC3DiB) */
++	{ aac_rx_init, "aacraid",  "ADAPTEC ", "catapult        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* catapult */
++	{ aac_rx_init, "aacraid",  "ADAPTEC ", "tomcat          ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* tomcat */
++	{ aac_rx_init, "aacraid",  "ADAPTEC ", "Adaptec 2120S   ", 1, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* Adaptec 2120S (Crusader) */
++	{ aac_rx_init, "aacraid",  "ADAPTEC ", "Adaptec 2200S   ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* Adaptec 2200S (Vulcan) */
++	{ aac_rx_init, "aacraid",  "ADAPTEC ", "Adaptec 2200S   ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* Adaptec 2200S (Vulcan-2m) */
++	{ aac_rx_init, "aacraid",  "Legend  ", "Legend S220     ", 1, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* Legend S220 (Legend Crusader) */
++	{ aac_rx_init, "aacraid",  "Legend  ", "Legend S230     ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* Legend S230 (Legend Vulcan) */
  
-    /*
-     * Adapter Equates
-@@ -458,7 +458,7 @@ typedef struct {
-    uint32_t reserved3;
-    uint32_t buffer_addr;
-    uint32_t reserved4;
--} IPS_IOCTL_CMD, *PIPS_IOCTL_CMD; 
-+} IPS_IOCTL_CMD, *PIPS_IOCTL_CMD;
+ 	{ aac_rx_init, "aacraid",  "ADAPTEC ", "Adaptec 3230S   ", 2 }, /* Adaptec 3230S (Harrier) */
+ 	{ aac_rx_init, "aacraid",  "ADAPTEC ", "Adaptec 3240S   ", 2 }, /* Adaptec 3240S (Tornado) */
+@@ -224,8 +224,8 @@ static struct aac_driver_ident aac_drive
+ 	{ aac_sa_init, "percraid", "DELL    ", "PERCRAID        ", 4, AAC_QUIRK_34SG }, /* Dell PERC2/QC */
+ 	{ aac_sa_init, "hpnraid",  "HP      ", "NetRAID         ", 4, AAC_QUIRK_34SG }, /* HP NetRAID-4M */
  
- typedef struct {
-    uint8_t  op_code;
-@@ -552,7 +552,7 @@ typedef struct {
-    uint32_t cccr;
- } IPS_NVRAM_CMD, *PIPS_NVRAM_CMD;
+-	{ aac_rx_init, "aacraid",  "DELL    ", "RAID            ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* Dell Catchall */
+-	{ aac_rx_init, "aacraid",  "Legend  ", "RAID            ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* Legend Catchall */
++	{ aac_rx_init, "aacraid",  "DELL    ", "RAID            ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* Dell Catchall */
++	{ aac_rx_init, "aacraid",  "Legend  ", "RAID            ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* Legend Catchall */
+ 	{ aac_rx_init, "aacraid",  "ADAPTEC ", "RAID            ", 2 }, /* Adaptec Catch All */
+ 	{ aac_rkt_init, "aacraid", "ADAPTEC ", "RAID            ", 2 }, /* Adaptec Rocket Catch All */
+ 	{ aac_nark_init, "aacraid", "ADAPTEC ", "RAID            ", 2 } /* Adaptec NEMER/ARK Catch All */
+@@ -420,6 +420,12 @@ static int aac_slave_configure(struct sc
+ 		unsigned num_one = 0;
+ 		unsigned depth;
  
--typedef struct 
-+typedef struct
- {
-     uint8_t  op_code;
-     uint8_t  command_id;
-@@ -650,7 +650,7 @@ typedef struct {
-    uint8_t   device_address;
-    uint8_t   cmd_attribute;
-    uint8_t   cdb_length;
--   uint8_t   reserved_for_LUN; 	 
-+   uint8_t   reserved_for_LUN;
-    uint32_t  transfer_length;
-    uint32_t  buffer_pointer;
-    uint16_t  sg_count;
-@@ -790,7 +790,7 @@ typedef struct {
-                                              /* SubSystem Parameter[4]      */
- #define  IPS_GET_VERSION_SUPPORT 0x00018000  /* Mask for Versioning Support */
- 
--typedef struct 
-+typedef struct
- {
-    uint32_t  revision;
-    uint8_t   bootBlkVersion[32];
++		/*
++		 * Firmware has an individual device recovery time typically
++		 * of 35 seconds, give us a margin.
++		 */
++		if (sdev->timeout < (45 * HZ))
++			sdev->timeout = 45 * HZ;
+ 		__shost_for_each_device(dev, host) {
+ 			if (dev->tagged_supported && (dev->type == TYPE_DISK) &&
+ 				(sdev_channel(dev) == CONTAINER_CHANNEL))
 _
 
-Patches currently in -mm which might be from jeff@garzik.org are
+Patches currently in -mm which might be from mark_salyzyn@adaptec.com are
 
-origin.patch
-git-arm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-libata-add-toshiba-mk1637gsx-to-spurious-command-completion-list.patch
-libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
-libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
-pata_legacy-restructure-and-revamp.patch
-git-netdev-all.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-forcedeth-power-down-phy-when-interface-is-down.patch
-forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
-pcmcia-net-use-roundup_pow_of_two-macro-instead-of-grotesque-loop.patch
-bnx2x-depends-on-zlib_inflate.patch
-plip-driver-convert-killed_timer_sem-to-completion.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
 git-scsi-misc.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-wireless.patch
-iommu-sg-merging-add-device_dma_parameters-structure.patch
-iommu-sg-merging-pci-add-device_dma_parameters-support.patch
-iommu-sg-merging-x86-make-pci-gart-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-ppc-make-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-ia64-make-sba_iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-alpha-make-pci_iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-parisc-make-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-call-blk_queue_segment_boundary-in-__scsi_alloc_queue.patch
-iommu-sg-merging-sata_inic162x-use-pci_set_dma_max_seg_size.patch
 iommu-sg-merging-aacraid-use-pci_set_dma_max_seg_size.patch
-iommu-sg-add-iommu-helper-functions-for-the-free-area-management.patch
-iommu-sg-powerpc-convert-iommu-to-use-the-iommu-helper.patch
-iommu-sg-powerpc-remove-dma-4gb-boundary-protection.patch
-iommu-sg-x86-convert-calgary-iommu-to-use-the-iommu-helper.patch
-iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper.patch
-iommu-sg-kill-__clear_bit_string-and-find_next_zero_string.patch
-add-accessors-for-segment_boundary_mask-in.patch
-pci-add-dma-segment-boundary-support.patch
-swiotlb-respect-the-segment-boundary-limits.patch
-call-dma_set_seg_boundary-in-__scsi_alloc_queue.patch
-tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls-x86-fix.patch
-fix-versus-precedence-in-various-places.patch
-riscom8-fix-smp-brokenness.patch
-riscom8-fix-smp-brokenness-fix.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-sound-oss-sb_commonc-fix-casting-warning.patch
-remove-warnings-for-longstanding-conditions.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-remove-pointless-casts-from-void-pointers.patch
-i8k-allow-i8k-driver-to-be-built-on-x86_64-systems.patch
-i8k-adds-i8k-driver-to-the-x86_64-kconfig.patch
-i8k-inspiron-e1705-fix.patch
