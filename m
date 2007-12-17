@@ -1,101 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - time-fold-__get_realtime_clock_ts-into-getnstimeofday.patch removed from -mm tree
-Date: Mon, 17 Dec 2007 15:40:56 -0800
-Message-ID: <200712172340.lBHNeue0008337@imap1.linux-foundation.org>
+Subject: - e100-free-irq-to-remove-warning-when-rebooting.patch removed from -mm tree
+Date: Mon, 17 Dec 2007 15:39:36 -0800
+Message-ID: <200712172339.lBHNdaf1008136@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53728 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60322 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S937595AbXLQXwl (ORCPT
+	by vger.kernel.org with ESMTP id S937613AbXLQXwo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:52:41 -0500
+	Mon, 17 Dec 2007 18:52:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Geert.Uytterhoeven@sonycom.com, johnstul@us.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: ianw@gelato.unsw.edu.au, auke-jan.h.kok@intel.com, jeff@garzik.org, jesse.brandeburg@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     time: fold __get_realtime_clock_ts() into getnstimeofday()
+     e100: free IRQ to remove warning when rebooting
 has been removed from the -mm tree.  Its filename was
-     time-fold-__get_realtime_clock_ts-into-getnstimeofday.patch
+     e100-free-irq-to-remove-warning-when-rebooting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: time: fold __get_realtime_clock_ts() into getnstimeofday()
-From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Subject: e100: free IRQ to remove warning when rebooting
+From: Ian Wienand <ianw@gelato.unsw.edu.au>
 
-  - getnstimeofday() was just a wrapper around __get_realtime_clock_ts()
-  - Replace calls to __get_realtime_clock_ts() by calls to getnstimeofday()
-  - Fix bogus reference to get_realtime_clock_ts(), which never existed
+When rebooting today I got
 
-Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Will now restart.
+ACPI: PCI interrupt for device 0000:00:03.0 disabled
+GSI 20 (level, low) -> CPU 1 (0x0100) vector 53 unregistered
+Destroying IRQ53 without calling free_irq
+WARNING: at /home/insecure/ianw/programs/git-kernel/linux-2.6/kernel/irq/chip.c:76 dynamic_irq_cleanup()
+
+Call Trace:
+ [<a000000100014340>] show_stack+0x40/0xa0
+                                sp=e00000407c927b40 bsp=e00000407c920eb8
+ [<a0000001000143d0>] dump_stack+0x30/0x60
+                                sp=e00000407c927d10 bsp=e00000407c920ea0
+ [<a0000001000e58e0>] dynamic_irq_cleanup+0x160/0x1e0
+                                sp=e00000407c927d10 bsp=e00000407c920e70
+ [<a0000001000106b0>] destroy_and_reserve_irq+0x30/0xc0
+                                sp=e00000407c927d10 bsp=e00000407c920e40
+ [<a0000001000508f0>] iosapic_unregister_intr+0x5b0/0x5e0
+                                sp=e00000407c927d10 bsp=e00000407c920dd8
+ [<a00000010000aa70>] acpi_unregister_gsi+0x30/0x60
+                                sp=e00000407c927d10 bsp=e00000407c920db8
+ [<a00000010042e300>] acpi_pci_irq_disable+0x140/0x160
+                                sp=e00000407c927d10 bsp=e00000407c920d88
+ [<a000000100774200>] pcibios_disable_device+0xa0/0xc0
+                                sp=e00000407c927d20 bsp=e00000407c920d68
+ [<a0000001003778d0>] pci_disable_device+0x130/0x160
+                                sp=e00000407c927d20 bsp=e00000407c920d38
+ [<a000000100525d20>] e100_shutdown+0x1c0/0x220
+                                sp=e00000407c927d30 bsp=e00000407c920d08
+ [<a00000010037d0e0>] pci_device_shutdown+0x80/0xc0
+                                sp=e00000407c927d30 bsp=e00000407c920ce8
+ [<a0000001004ecb70>] device_shutdown+0xf0/0x180
+                                sp=e00000407c927d30 bsp=e00000407c920cc8
+ [<a0000001000ac4e0>] kernel_restart+0x60/0x120
+                                sp=e00000407c927d30 bsp=e00000407c920ca8
+ [<a0000001000ac990>] sys_reboot+0x3b0/0x480
+                                sp=e00000407c927d30 bsp=e00000407c920c30
+ [<a00000010000b4e0>] ia64_ret_from_syscall+0x0/0x20
+                                sp=e00000407c927e30 bsp=e00000407c920c30
+ [<a000000000010620>] ia64_ivt+0xffffffff00010620/0x400
+                                sp=e00000407c928000 bsp=e00000407c920c30
+Restarting system.
+
+I think the solution might be to free the IRQ before the pci_device_shutdown
+
+Signed-off-by: Ian Wienand <ianw@gelato.unsw.edu.au>
+Cc: Jesse Brandeburg <jesse.brandeburg@intel.com>
+Cc: Auke Kok <auke-jan.h.kok@intel.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/timekeeping.c |   22 +++++-----------------
- 1 file changed, 5 insertions(+), 17 deletions(-)
+ drivers/net/e100.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/time/timekeeping.c~time-fold-__get_realtime_clock_ts-into-getnstimeofday kernel/time/timekeeping.c
---- a/kernel/time/timekeeping.c~time-fold-__get_realtime_clock_ts-into-getnstimeofday
-+++ a/kernel/time/timekeeping.c
-@@ -82,13 +82,12 @@ static inline s64 __get_nsec_offset(void
- }
+diff -puN drivers/net/e100.c~e100-free-irq-to-remove-warning-when-rebooting drivers/net/e100.c
+--- a/drivers/net/e100.c~e100-free-irq-to-remove-warning-when-rebooting
++++ a/drivers/net/e100.c
+@@ -2852,6 +2852,7 @@ static void e100_shutdown(struct pci_dev
+ 		pci_enable_wake(pdev, PCI_D3cold, 0);
+ 	}
  
- /**
-- * __get_realtime_clock_ts - Returns the time of day in a timespec
-+ * getnstimeofday - Returns the time of day in a timespec
-  * @ts:		pointer to the timespec to be set
-  *
-- * Returns the time of day in a timespec. Used by
-- * do_gettimeofday() and get_realtime_clock_ts().
-+ * Returns the time of day in a timespec.
-  */
--static inline void __get_realtime_clock_ts(struct timespec *ts)
-+void getnstimeofday(struct timespec *ts)
- {
- 	unsigned long seq;
- 	s64 nsecs;
-@@ -104,30 +103,19 @@ static inline void __get_realtime_clock_
- 	timespec_add_ns(ts, nsecs);
- }
- 
--/**
-- * getnstimeofday - Returns the time of day in a timespec
-- * @ts:		pointer to the timespec to be set
-- *
-- * Returns the time of day in a timespec.
-- */
--void getnstimeofday(struct timespec *ts)
--{
--	__get_realtime_clock_ts(ts);
--}
--
- EXPORT_SYMBOL(getnstimeofday);
- 
- /**
-  * do_gettimeofday - Returns the time of day in a timeval
-  * @tv:		pointer to the timeval to be set
-  *
-- * NOTE: Users should be converted to using get_realtime_clock_ts()
-+ * NOTE: Users should be converted to using getnstimeofday()
-  */
- void do_gettimeofday(struct timeval *tv)
- {
- 	struct timespec now;
- 
--	__get_realtime_clock_ts(&now);
-+	getnstimeofday(&now);
- 	tv->tv_sec = now.tv_sec;
- 	tv->tv_usec = now.tv_nsec/1000;
++	free_irq(pdev->irq, netdev);
+ 	pci_disable_device(pdev);
+ 	pci_set_power_state(pdev, PCI_D3hot);
  }
 _
 
-Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
+Patches currently in -mm which might be from ianw@gelato.unsw.edu.au are
 
-git-kbuild.patch
-git-x86.patch
-ps3-checkpatch-drivers-ps3-ps3-sys-managerc.patch
-ps3-checkpatch-drivers-ps3-ps3-vuartc.patch
+git-netdev-all.patch
