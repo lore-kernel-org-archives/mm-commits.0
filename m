@@ -1,73 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: - stc-remember-to-initialise-the-sg-table.patch removed from -mm tree
-Date: Mon, 17 Dec 2007 15:39:53 -0800
-Message-ID: <200712172339.lBHNdrtS008157@imap1.linux-foundation.org>
+Subject: - acpi-sbs-return-rate-in-mw-if-capacity-in-mwh.patch removed from -mm tree
+Date: Mon, 17 Dec 2007 15:41:20 -0800
+Message-ID: <200712172341.lBHNfK4M008382@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46379 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56516 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S937556AbXLQXwB (ORCPT
+	by vger.kernel.org with ESMTP id S937556AbXLQXwM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:52:01 -0500
+	Mon, 17 Dec 2007 18:52:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tomof@acm.org, James.Bottomley@steeleye.com, mm-commits@vger.kernel.org
+To: astarikovskiy@suse.de, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     st.c: remember to initialise the sg table
+     ACPI: SBS: Return rate in mW if capacity in mWh
 has been removed from the -mm tree.  Its filename was
-     stc-remember-to-initialise-the-sg-table.patch
+     acpi-sbs-return-rate-in-mw-if-capacity-in-mwh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: st.c: remember to initialise the sg table
-From: FUJITA Tomonori <tomof@acm.org>
+Subject: ACPI: SBS: Return rate in mW if capacity in mWh
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
 
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+klaptopd assumes rate to be in same units as capacity.
+
+Reference: http://bugzilla.kernel.org/show_bug.cgi?id=9362
+
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/st.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/acpi/sbs.c |   21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
 
-diff -puN drivers/scsi/st.c~stc-remember-to-initialise-the-sg-table drivers/scsi/st.c
---- a/drivers/scsi/st.c~stc-remember-to-initialise-the-sg-table
-+++ a/drivers/scsi/st.c
-@@ -3611,6 +3611,7 @@ static struct st_buffer *
+diff -puN drivers/acpi/sbs.c~acpi-sbs-return-rate-in-mw-if-capacity-in-mwh drivers/acpi/sbs.c
+--- a/drivers/acpi/sbs.c~acpi-sbs-return-rate-in-mw-if-capacity-in-mwh
++++ a/drivers/acpi/sbs.c
+@@ -533,7 +533,7 @@ static struct proc_dir_entry *acpi_batte
  
- 	tb->dma = need_dma;
- 	tb->buffer_size = got;
-+	sg_init_table(tb->sg, max_sg);
- 
- 	return tb;
+ static inline char *acpi_battery_units(struct acpi_battery *battery)
+ {
+-	return acpi_battery_mode(battery) ? " mWh" : " mAh";
++	return acpi_battery_mode(battery) ? " mW" : " mA";
  }
+ 
+ 
+@@ -550,10 +550,10 @@ static int acpi_battery_read_info(struct
+ 	if (!battery->present)
+ 		goto end;
+ 
+-	seq_printf(seq, "design capacity:         %i%s\n",
++	seq_printf(seq, "design capacity:         %i%sh\n",
+ 		   battery->design_capacity * acpi_battery_scale(battery),
+ 		   acpi_battery_units(battery));
+-	seq_printf(seq, "last full capacity:      %i%s\n",
++	seq_printf(seq, "last full capacity:      %i%sh\n",
+ 		   battery->full_charge_capacity * acpi_battery_scale(battery),
+ 		   acpi_battery_units(battery));
+ 	seq_printf(seq, "battery technology:      rechargeable\n");
+@@ -584,7 +584,7 @@ static int acpi_battery_read_state(struc
+ {
+ 	struct acpi_battery *battery = seq->private;
+ 	struct acpi_sbs *sbs = battery->sbs;
+-	int result = 0;
++	int rate;
+ 
+ 	mutex_lock(&sbs->lock);
+ 	seq_printf(seq, "present:                 %s\n",
+@@ -598,9 +598,12 @@ static int acpi_battery_read_state(struc
+ 	seq_printf(seq, "charging state:          %s\n",
+ 		   (battery->current_now < 0) ? "discharging" :
+ 		   ((battery->current_now > 0) ? "charging" : "charged"));
+-	seq_printf(seq, "present rate:            %d mA\n",
+-		   abs(battery->current_now) * acpi_battery_ipscale(battery));
+-	seq_printf(seq, "remaining capacity:      %i%s\n",
++	rate = abs(battery->current_now) * acpi_battery_ipscale(battery);
++	rate *= (acpi_battery_mode(battery))?(battery->voltage_now *
++			acpi_battery_vscale(battery)/1000):1;
++	seq_printf(seq, "present rate:            %d%s\n", rate,
++		   acpi_battery_units(battery));
++	seq_printf(seq, "remaining capacity:      %i%sh\n",
+ 		   battery->capacity_now * acpi_battery_scale(battery),
+ 		   acpi_battery_units(battery));
+ 	seq_printf(seq, "present voltage:         %i mV\n",
+@@ -608,7 +611,7 @@ static int acpi_battery_read_state(struc
+ 
+       end:
+ 	mutex_unlock(&sbs->lock);
+-	return result;
++	return 0;
+ }
+ 
+ static int acpi_battery_state_open_fs(struct inode *inode, struct file *file)
+@@ -632,7 +635,7 @@ static int acpi_battery_read_alarm(struc
+ 	acpi_battery_get_alarm(battery);
+ 	seq_printf(seq, "alarm:                   ");
+ 	if (battery->alarm_capacity)
+-		seq_printf(seq, "%i%s\n",
++		seq_printf(seq, "%i%sh\n",
+ 			   battery->alarm_capacity *
+ 			   acpi_battery_scale(battery),
+ 			   acpi_battery_units(battery));
 _
 
-Patches currently in -mm which might be from tomof@acm.org are
+Patches currently in -mm which might be from astarikovskiy@suse.de are
 
-git-scsi-misc.patch
-git-scsi-rc-fixes.patch
-iommu-sg-merging-add-device_dma_parameters-structure.patch
-iommu-sg-merging-pci-add-device_dma_parameters-support.patch
-iommu-sg-merging-x86-make-pci-gart-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-ppc-make-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-ia64-make-sba_iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-alpha-make-pci_iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-parisc-make-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-call-blk_queue_segment_boundary-in-__scsi_alloc_queue.patch
-iommu-sg-merging-sata_inic162x-use-pci_set_dma_max_seg_size.patch
-iommu-sg-merging-aacraid-use-pci_set_dma_max_seg_size.patch
-iommu-sg-add-iommu-helper-functions-for-the-free-area-management.patch
-iommu-sg-powerpc-convert-iommu-to-use-the-iommu-helper.patch
-iommu-sg-powerpc-remove-dma-4gb-boundary-protection.patch
-iommu-sg-x86-convert-calgary-iommu-to-use-the-iommu-helper.patch
-iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper.patch
-iommu-sg-kill-__clear_bit_string-and-find_next_zero_string.patch
-add-accessors-for-segment_boundary_mask-in.patch
-pci-add-dma-segment-boundary-support.patch
-swiotlb-respect-the-segment-boundary-limits.patch
-call-dma_set_seg_boundary-in-__scsi_alloc_queue.patch
-alpha-kill-deprecated-virt_to_bus.patch
+origin.patch
+git-acpi.patch
