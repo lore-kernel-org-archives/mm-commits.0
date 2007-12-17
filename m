@@ -1,51 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - git-cpufreq-query_current_values_with_pending_wait-build-fix.patch removed from -mm tree
-Date: Mon, 17 Dec 2007 15:38:55 -0800
-Message-ID: <200712172338.lBHNctSS008076@imap1.linux-foundation.org>
+Subject: - git-acpi-ia64-build-fix.patch removed from -mm tree
+Date: Mon, 17 Dec 2007 15:38:42 -0800
+Message-ID: <200712172338.lBHNcg1E008061__28521.8729208738$1197934780$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44002 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48937 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756479AbXLQXjG (ORCPT
+	by vger.kernel.org with ESMTP id S1755103AbXLQXjB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:39:06 -0500
+	Mon, 17 Dec 2007 18:39:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, lenb@kernel.org, linux-acpi@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-cpufreq: query_current_values_with_pending_wait() build fix
+     git-acpi: ia64 build fix
 has been removed from the -mm tree.  Its filename was
-     git-cpufreq-query_current_values_with_pending_wait-build-fix.patch
+     git-acpi-ia64-build-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-cpufreq: query_current_values_with_pending_wait() build fix
+Subject: git-acpi: ia64 build fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/kernel/cpu/cpufreq/powernow-k8.c: In function 'query_current_values_with_pending_wait':
-arch/x86/kernel/cpu/cpufreq/powernow-k8.c:127: error: implicit declaration of function 'msleep'
+arch/ia64/kernel/acpi.c: In function `acpi_get_sysname':
+arch/ia64/kernel/acpi.c:81: error: implicit declaration of function `acpi_find_rsdp'
+arch/ia64/kernel/acpi.c: At top level:
+arch/ia64/kernel/acpi.c:631: error: conflicting types for 'acpi_find_rsdp'
+arch/ia64/kernel/acpi.c:81: error: previous implicit declaration of 'acpi_find_rsdp' was here
 
-Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Len Brown <lenb@kernel.org>
+Cc: <linux-acpi@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/cpufreq/powernow-k8.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/ia64/kernel/acpi.c |   26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/cpufreq/powernow-k8.c~git-cpufreq-query_current_values_with_pending_wait-build-fix arch/x86/kernel/cpu/cpufreq/powernow-k8.c
---- a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c~git-cpufreq-query_current_values_with_pending_wait-build-fix
-+++ a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c
-@@ -29,6 +29,7 @@
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/cpufreq.h>
-+#include <linux/delay.h>
- #include <linux/slab.h>
- #include <linux/string.h>
- #include <linux/cpumask.h>
+diff -puN arch/ia64/kernel/acpi.c~git-acpi-ia64-build-fix arch/ia64/kernel/acpi.c
+--- a/arch/ia64/kernel/acpi.c~git-acpi-ia64-build-fix
++++ a/arch/ia64/kernel/acpi.c
+@@ -67,7 +67,19 @@ EXPORT_SYMBOL(pm_power_off);
+ unsigned int acpi_cpei_override;
+ unsigned int acpi_cpei_phys_cpuid;
+ 
+-unsigned long acpi_wakeup_address = 0;
++unsigned long acpi_wakeup_address;
++
++unsigned long __init acpi_find_rsdp(void)
++{
++	unsigned long rsdp_phys = 0;
++
++	if (efi.acpi20 != EFI_INVALID_TABLE_ADDR)
++		rsdp_phys = efi.acpi20;
++	else if (efi.acpi != EFI_INVALID_TABLE_ADDR)
++		printk(KERN_WARNING PREFIX
++		       "v1.0/r0.71 tables no longer supported\n");
++	return rsdp_phys;
++}
+ 
+ const char __init *
+ acpi_get_sysname(void)
+@@ -627,18 +639,6 @@ static int __init acpi_parse_fadt(struct
+ 	return 0;
+ }
+ 
+-unsigned long __init acpi_find_rsdp(void)
+-{
+-	unsigned long rsdp_phys = 0;
+-
+-	if (efi.acpi20 != EFI_INVALID_TABLE_ADDR)
+-		rsdp_phys = efi.acpi20;
+-	else if (efi.acpi != EFI_INVALID_TABLE_ADDR)
+-		printk(KERN_WARNING PREFIX
+-		       "v1.0/r0.71 tables no longer supported\n");
+-	return rsdp_phys;
+-}
+-
+ int __init acpi_boot_init(void)
+ {
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
