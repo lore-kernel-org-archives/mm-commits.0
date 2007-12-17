@@ -1,88 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - net-ibm_newemac-remove-spin_lock_unlocked.patch removed from -mm tree
-Date: Mon, 17 Dec 2007 15:39:34 -0800
-Message-ID: <200712172339.lBHNdYOt008133@imap1.linux-foundation.org>
+Subject: - ppp-synchronous-tty-convert-dead_sem-to-completion.patch removed from -mm tree
+Date: Mon, 17 Dec 2007 15:39:29 -0800
+Message-ID: <200712172339.lBHNdTsb008127@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54503 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47551 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932657AbXLQXwS (ORCPT
+	by vger.kernel.org with ESMTP id S937484AbXLQXv4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:52:18 -0500
+	Mon, 17 Dec 2007 18:51:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, jgarzik@pobox.com, mm-commits@vger.kernel.org
+To: matthias.kaehlcke@gmail.com, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Net: ibm_newemac, remove SPIN_LOCK_UNLOCKED
+     PPP synchronous tty: convert dead_sem to completion
 has been removed from the -mm tree.  Its filename was
-     net-ibm_newemac-remove-spin_lock_unlocked.patch
+     ppp-synchronous-tty-convert-dead_sem-to-completion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Net: ibm_newemac, remove SPIN_LOCK_UNLOCKED
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: PPP synchronous tty: convert dead_sem to completion
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-SPIN_LOCK_UNLOCKED is deprecated, use DEFINE_SPINLOCK instead
+PPP synchronous tty channel driver: convert the semaphore dead_sem to a
+completion
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Jeff Garzik <jgarzik@pobox.com>
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ibm_newemac/debug.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/ppp_synctty.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/net/ibm_newemac/debug.c~net-ibm_newemac-remove-spin_lock_unlocked drivers/net/ibm_newemac/debug.c
---- a/drivers/net/ibm_newemac/debug.c~net-ibm_newemac-remove-spin_lock_unlocked
-+++ a/drivers/net/ibm_newemac/debug.c
-@@ -21,7 +21,7 @@
+diff -puN drivers/net/ppp_synctty.c~ppp-synchronous-tty-convert-dead_sem-to-completion drivers/net/ppp_synctty.c
+--- a/drivers/net/ppp_synctty.c~ppp-synchronous-tty-convert-dead_sem-to-completion
++++ a/drivers/net/ppp_synctty.c
+@@ -42,9 +42,9 @@
+ #include <linux/if_ppp.h>
+ #include <linux/ppp_channel.h>
+ #include <linux/spinlock.h>
++#include <linux/completion.h>
+ #include <linux/init.h>
+ #include <asm/uaccess.h>
+-#include <asm/semaphore.h>
  
- #include "core.h"
+ #define PPP_VERSION	"2.4.2"
  
--static spinlock_t emac_dbg_lock = SPIN_LOCK_UNLOCKED;
-+static DEFINE_SPINLOCK(emac_dbg_lock);
+@@ -70,7 +70,7 @@ struct syncppp {
+ 	struct tasklet_struct tsk;
  
- static void emac_desc_dump(struct emac_instance *p)
+ 	atomic_t	refcnt;
+-	struct semaphore dead_sem;
++	struct completion dead_cmp;
+ 	struct ppp_channel chan;	/* interface to generic ppp layer */
+ };
+ 
+@@ -195,7 +195,7 @@ static struct syncppp *sp_get(struct tty
+ static void sp_put(struct syncppp *ap)
  {
+ 	if (atomic_dec_and_test(&ap->refcnt))
+-		up(&ap->dead_sem);
++		complete(&ap->dead_cmp);
+ }
+ 
+ /*
+@@ -225,7 +225,7 @@ ppp_sync_open(struct tty_struct *tty)
+ 	tasklet_init(&ap->tsk, ppp_sync_process, (unsigned long) ap);
+ 
+ 	atomic_set(&ap->refcnt, 1);
+-	init_MUTEX_LOCKED(&ap->dead_sem);
++	init_completion(&ap->dead_cmp);
+ 
+ 	ap->chan.private = ap;
+ 	ap->chan.ops = &sync_ops;
+@@ -273,7 +273,7 @@ ppp_sync_close(struct tty_struct *tty)
+ 	 * by the time it returns.
+ 	 */
+ 	if (!atomic_dec_and_test(&ap->refcnt))
+-		down(&ap->dead_sem);
++		wait_for_completion(&ap->dead_cmp);
+ 	tasklet_kill(&ap->tsk);
+ 
+ 	ppp_unregister_channel(&ap->chan);
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
 
-origin.patch
-git-drm.patch
+acpi_pci_irq_find_prt_entry-use-list_for_each_entry-instead-of-list_for_each.patch
+git-dvb.patch
+git-infiniband.patch
+git-net.patch
 git-netdev-all.patch
-git-watchdog.patch
-git-wireless.patch
-drm-i915-fix-oops-after-killing-x.patch
-capabilities-introduce-per-process-capability-bounding-set-capabilities-correct-logic-at-capset_check.patch
-maintainers-order-auerswald-alphabetically.patch
-pnp-do-not-stop-start-devices-in-suspend-resume-path.patch
-dzh-remove-useless-unused-module-junk.patch
-dz-always-check-if-it-is-safe-to-console_putchar.patch
-dz-dont-panic-when-request_irq-fails.patch
-dz-add-and-reorder-inclusions-remove-unneeded-ones.patch
-dz-update-kconfig-description.patch
-dz-rename-the-serial-console-structure.patch
-dz-fix-locking-issues.patch
-dz-handle-special-conditions-on-reception-correctly.patch
-maintainers-add-self-for-the-dz-serial-driver.patch
-char-rocket-switch-long-delay-to-sleep.patch
-char-rocket-printk-cleanup.patch
-char-rocket-remove-useless-macros.patch
-char-char-serial-remove-serial_type_normal-redefines.patch
-char-mxser_new-ioaddresses-are-ulong.patch
-char-stallion-fix-compiler-warnings.patch
-char-riscom8-change-rc_init_drivers-prototype.patch
-char-esp-remove-hangup-and-wakeup-bottomhalves.patch
-char-istallion-remove-hangup-bottomhalf.patch
-char-specialix-remove-bottomhalves.patch
-char-stallion-remove-bottomhalf.patch
-char-serial167-remove-bottomhalf.patch
-char-riscom8-remove-wakeup-anf-hangup-bottomhalves.patch
-mxser-mxser_new-first-pass-over-termios-reporting-for-the.patch
-moxa-first-pass-at-termios-reporting.patch
-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
+plip-driver-convert-killed_timer_sem-to-completion.patch
+git-scsi-misc.patch
+edgeport-usb-serial-converter-convert-es_sem-to-mutex.patch
+usb-testing-driver-convert-dev-sem-to-mutex.patch
+usb-testing-driver-dont-free-a-locked-mutex.patch
+parallel-port-convert-port_mutex-to-the-mutex-api.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+mbcs-convert-algolock-to-mutex.patch
+mbcs-convert-dmawritelock-to-mutex.patch
+mbcs-convert-dmareadlock-to-mutex.patch
