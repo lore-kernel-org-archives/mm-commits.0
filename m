@@ -1,70 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - bridge-assign-random-address.patch removed from -mm tree
-Date: Mon, 17 Dec 2007 15:41:14 -0800
-Message-ID: <200712172341.lBHNfET4008370@imap1.linux-foundation.org>
+Subject: - stc-remember-to-initialise-the-sg-table.patch removed from -mm tree
+Date: Mon, 17 Dec 2007 15:39:53 -0800
+Message-ID: <200712172339.lBHNdrtS008157@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32950 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46379 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S937340AbXLQXvr (ORCPT
+	by vger.kernel.org with ESMTP id S937556AbXLQXwB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:51:47 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lBHNpj34007844
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 17 Dec 2007 15:51:46 -0800
+	Mon, 17 Dec 2007 18:52:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shemminger@linux-foundation.org, mm-commits@vger.kernel.org
+To: tomof@acm.org, James.Bottomley@steeleye.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bridge: assign random address
+     st.c: remember to initialise the sg table
 has been removed from the -mm tree.  Its filename was
-     bridge-assign-random-address.patch
+     stc-remember-to-initialise-the-sg-table.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: bridge: assign random address
-From: Stephen Hemminger <shemminger@linux-foundation.org>
+Subject: st.c: remember to initialise the sg table
+From: FUJITA Tomonori <tomof@acm.org>
 
-Assigning a valid random address to bridge device solves problems when
-bridge device is brought up before adding real device to bridge.  When the
-first real device is added to the bridge, it's address will overide the
-bridges random address.
-
-Note: any device added to a bridge must already have a valid
-ethernet address.
- br_add_if -> br_fdb_insert -> fdb_insert -> is_valid_ether_addr
-
-Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bridge/br_device.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/scsi/st.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN net/bridge/br_device.c~bridge-assign-random-address net/bridge/br_device.c
---- a/net/bridge/br_device.c~bridge-assign-random-address
-+++ a/net/bridge/br_device.c
-@@ -157,8 +157,7 @@ static struct ethtool_ops br_ethtool_ops
+diff -puN drivers/scsi/st.c~stc-remember-to-initialise-the-sg-table drivers/scsi/st.c
+--- a/drivers/scsi/st.c~stc-remember-to-initialise-the-sg-table
++++ a/drivers/scsi/st.c
+@@ -3611,6 +3611,7 @@ static struct st_buffer *
  
- void br_dev_setup(struct net_device *dev)
- {
--	memset(dev->dev_addr, 0, ETH_ALEN);
--
-+	random_ether_addr(dev->dev_addr);
- 	ether_setup(dev);
+ 	tb->dma = need_dma;
+ 	tb->buffer_size = got;
++	sg_init_table(tb->sg, max_sg);
  
- 	dev->do_ioctl = br_dev_ioctl;
+ 	return tb;
+ }
 _
 
-Patches currently in -mm which might be from shemminger@linux-foundation.org are
+Patches currently in -mm which might be from tomof@acm.org are
 
-origin.patch
-git-input.patch
-git-net.patch
-git-netdev-all.patch
-git-wireless.patch
-bonding-locking-fix.patch
+git-scsi-misc.patch
+git-scsi-rc-fixes.patch
+iommu-sg-merging-add-device_dma_parameters-structure.patch
+iommu-sg-merging-pci-add-device_dma_parameters-support.patch
+iommu-sg-merging-x86-make-pci-gart-iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-ppc-make-iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-ia64-make-sba_iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-alpha-make-pci_iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-parisc-make-iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-call-blk_queue_segment_boundary-in-__scsi_alloc_queue.patch
+iommu-sg-merging-sata_inic162x-use-pci_set_dma_max_seg_size.patch
+iommu-sg-merging-aacraid-use-pci_set_dma_max_seg_size.patch
+iommu-sg-add-iommu-helper-functions-for-the-free-area-management.patch
+iommu-sg-powerpc-convert-iommu-to-use-the-iommu-helper.patch
+iommu-sg-powerpc-remove-dma-4gb-boundary-protection.patch
+iommu-sg-x86-convert-calgary-iommu-to-use-the-iommu-helper.patch
+iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper.patch
+iommu-sg-kill-__clear_bit_string-and-find_next_zero_string.patch
+add-accessors-for-segment_boundary_mask-in.patch
+pci-add-dma-segment-boundary-support.patch
+swiotlb-respect-the-segment-boundary-limits.patch
+call-dma_set_seg_boundary-in-__scsi_alloc_queue.patch
+alpha-kill-deprecated-virt_to_bus.patch
