@@ -1,64 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: - drm-dont-cast-a-pointer-to-pointer-of-list_head.patch removed from -mm tree
-Date: Mon, 17 Dec 2007 15:39:01 -0800
-Message-ID: <200712172339.lBHNd1j7008085@imap1.linux-foundation.org>
+Subject: - ib-nopage.patch removed from -mm tree
+Date: Mon, 17 Dec 2007 15:39:08 -0800
+Message-ID: <200712172339.lBHNd8B3008101@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42657 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46663 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757034AbXLQXjQ (ORCPT
+	by vger.kernel.org with ESMTP id S1756872AbXLQXjN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:39:16 -0500
+	Mon, 17 Dec 2007 18:39:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, airlied@linux.ie, mm-commits@vger.kernel.org
+To: npiggin@suse.de, rolandd@cisco.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drm: don't cast a pointer to pointer of list_head
+     ib: nopage
 has been removed from the -mm tree.  Its filename was
-     drm-dont-cast-a-pointer-to-pointer-of-list_head.patch
+     ib-nopage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drm: don't cast a pointer to pointer of list_head
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: ib: nopage
+From: Nick Piggin <npiggin@suse.de>
 
-The casting is safe only when the list_head member is the first member of
-the structure.
+Convert IB from nopage to fault.
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Dave Airlie <airlied@linux.ie>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/i915_irq.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/ipath/ipath_debug.h    |    4 +-
+ drivers/infiniband/hw/ipath/ipath_file_ops.c |   29 +++++------------
+ 2 files changed, 12 insertions(+), 21 deletions(-)
 
-diff -puN drivers/char/drm/i915_irq.c~drm-dont-cast-a-pointer-to-pointer-of-list_head drivers/char/drm/i915_irq.c
---- a/drivers/char/drm/i915_irq.c~drm-dont-cast-a-pointer-to-pointer-of-list_head
-+++ a/drivers/char/drm/i915_irq.c
-@@ -699,7 +699,7 @@ int i915_vblank_swap(struct drm_device *
+diff -puN drivers/infiniband/hw/ipath/ipath_debug.h~ib-nopage drivers/infiniband/hw/ipath/ipath_debug.h
+--- a/drivers/infiniband/hw/ipath/ipath_debug.h~ib-nopage
++++ a/drivers/infiniband/hw/ipath/ipath_debug.h
+@@ -55,7 +55,7 @@
+ #define __IPATH_PKTDBG      0x80	/* print packet data */
+ /* print process startup (init)/exit messages */
+ #define __IPATH_PROCDBG     0x100
+-/* print mmap/nopage stuff, not using VDBG any more */
++/* print mmap/fault stuff, not using VDBG any more */
+ #define __IPATH_MMDBG       0x200
+ #define __IPATH_ERRPKTDBG   0x400
+ #define __IPATH_USER_SEND   0x1000	/* use user mode send */
+@@ -81,7 +81,7 @@
+ #define __IPATH_VERBDBG   0x0	/* very verbose debug */
+ #define __IPATH_PKTDBG    0x0	/* print packet data */
+ #define __IPATH_PROCDBG   0x0	/* process startup (init)/exit messages */
+-/* print mmap/nopage stuff, not using VDBG any more */
++/* print mmap/fault stuff, not using VDBG any more */
+ #define __IPATH_MMDBG     0x0
+ #define __IPATH_EPKTDBG   0x0	/* print ethernet packet data */
+ #define __IPATH_IPATHDBG  0x0	/* Ethernet (IPATH) table dump on */
+diff -puN drivers/infiniband/hw/ipath/ipath_file_ops.c~ib-nopage drivers/infiniband/hw/ipath/ipath_file_ops.c
+--- a/drivers/infiniband/hw/ipath/ipath_file_ops.c~ib-nopage
++++ a/drivers/infiniband/hw/ipath/ipath_file_ops.c
+@@ -1120,33 +1120,24 @@ bail:
+ }
  
- 	spin_lock_irqsave(&dev_priv->swaps_lock, irqflags);
+ /*
+- * ipath_file_vma_nopage - handle a VMA page fault.
++ * ipath_file_vma_fault - handle a VMA page fault.
+  */
+-static struct page *ipath_file_vma_nopage(struct vm_area_struct *vma,
+-					  unsigned long address, int *type)
++static int ipath_file_vma_fault(struct vm_area_struct *vma,
++					struct vm_fault *vmf)
+ {
+-	unsigned long offset = address - vma->vm_start;
+-	struct page *page = NOPAGE_SIGBUS;
+-	void *pageptr;
++	struct page *page;
  
--	list_add_tail((struct list_head *)vbl_swap, &dev_priv->vbl_swaps.head);
-+	list_add_tail(&vbl_swap->head, &dev_priv->vbl_swaps.head);
- 	dev_priv->swaps_pending++;
+-	/*
+-	 * Convert the vmalloc address into a struct page.
+-	 */
+-	pageptr = (void *)(offset + (vma->vm_pgoff << PAGE_SHIFT));
+-	page = vmalloc_to_page(pageptr);
++	page = vmalloc_to_page((void *)(vmf->pgoff << PAGE_SHIFT));
+ 	if (!page)
+-		goto out;
+-
+-	/* Increment the reference count. */
++		return VM_FAULT_SIGBUS;
+ 	get_page(page);
+-	if (type)
+-		*type = VM_FAULT_MINOR;
+-out:
+-	return page;
++	vmf->page = page;
++
++	return 0;
+ }
  
- 	spin_unlock_irqrestore(&dev_priv->swaps_lock, irqflags);
+ static struct vm_operations_struct ipath_file_vm_ops = {
+-	.nopage = ipath_file_vma_nopage,
++	.fault = ipath_file_vma_fault,
+ };
+ 
+ static int mmap_kvaddr(struct vm_area_struct *vma, u64 pgaddr,
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-powerpc-dont-cast-a-pointer-to-pointer-of-list_head.patch
-git-drm.patch
-git-hid.patch
-git-net.patch
-wireless-libertas-dont-cast-a-pointer-to-pointer-of-list_head.patch
-clocksource-remove-redundant-code.patch
-clockevent-simplify-list-operations.patch
-timekeeping-rename-timekeeping_is_continuous-to-timekeeping_valid_for_hres.patch
-time-fix-typo-in-comments.patch
-time-delete-comments-that-refer-to-noexistent-symbols.patch
+git-alsa.patch
+git-dvb.patch
+ia64-ia32-nopage.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-jfs.patch
+git-kvm.patch
+nfs-use-gfp_nofs-preloads-for-radix-tree-insertion.patch
+git-sched.patch
+sg-nopage.patch
+git-block.patch
+usb-mon-nopage.patch
+git-x86.patch
+slub-use-non-atomic-bit-unlock.patch
+radix-tree-avoid-atomic-allocations-for-preloaded-insertions.patch
+mm-dont-allow-ioremapping-of-ranges-larger-than-vmalloc-space.patch
+mm-special-mapping-nopage.patch
+agp-alpha-nopage.patch
+vt-bitlock-fix.patch
+radix_treeh-trivial-comment-correction.patch
+inotify-fix-race.patch
+inotify-remove-debug-code.patch
+relay-nopage.patch
+uio-nopage.patch
+ext2-xip-check-fix.patch
+fb-defio-nopage.patch
+rewrite-rd.patch
+rewrite-rd-fix.patch
+rd-support-xip.patch
+reiser4.patch
