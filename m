@@ -1,212 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: - merge-multiple-error-paths-in-alloc_uid-into-one.patch removed from -mm tree
-Date: Mon, 17 Dec 2007 15:39:51 -0800
-Message-ID: <200712172339.lBHNdpPI008154@imap1.linux-foundation.org>
+Subject: - x86_64-efi-runtime-service-support-efi-runtime-services.patch removed from -mm tree
+Date: Mon, 17 Dec 2007 15:41:04 -0800
+Message-ID: <200712172341.lBHNf45J008352@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38314 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36071 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763709AbXLQXwy (ORCPT
+	by vger.kernel.org with ESMTP id S937641AbXLQXww (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:52:54 -0500
+	Mon, 17 Dec 2007 18:52:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, dhaval@linux.vnet.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: ying.huang@intel.com, ak@suse.de, mingo@elte.hu, mouli@linux.intel.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Merge multiple error paths in alloc_uid into one
+     x86_64 EFI runtime service support: EFI runtime services
 has been removed from the -mm tree.  Its filename was
-     merge-multiple-error-paths-in-alloc_uid-into-one.patch
+     x86_64-efi-runtime-service-support-efi-runtime-services.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Merge multiple error paths in alloc_uid into one
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: x86_64 EFI runtime service support: EFI runtime services
+From: "Huang, Ying" <ying.huang@intel.com>
 
-There are already 4 error paths in alloc_uid() that do incremental rollbacks. 
-I think it's time to merge them.  This costs us 8 lines of code :)
+This patch adds support for several EFI runtime services for EFI x86_64
+system.
 
-Maybe it would be better to merge this patch with the previous one, but I
-remember that some time ago I sent a similar patch (fixing the error path and
-cleaning it), but I was told to make two patches in such cases.
+The EFI support for emergency_restart is added.
 
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Acked-by: Dhaval Giani <dhaval@linux.vnet.ibm.com>
+Signed-off-by: Chandramouli Narayanan <mouli@linux.intel.com>
+Signed-off-by: Huang Ying <ying.huang@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/user.c |   47 ++++++++++++++++++++---------------------------
- 1 file changed, 20 insertions(+), 27 deletions(-)
+ arch/x86/kernel/reboot_64.c         |   20 +++++++++++++-------
+ include/asm-x86/emergency-restart.h |    9 +++++++++
+ 2 files changed, 22 insertions(+), 7 deletions(-)
 
-diff -puN kernel/user.c~merge-multiple-error-paths-in-alloc_uid-into-one kernel/user.c
---- a/kernel/user.c~merge-multiple-error-paths-in-alloc_uid-into-one
-+++ a/kernel/user.c
-@@ -320,7 +320,7 @@ void free_uid(struct user_struct *up)
- struct user_struct * alloc_uid(struct user_namespace *ns, uid_t uid)
- {
- 	struct hlist_head *hashent = uidhashentry(ns, uid);
--	struct user_struct *up;
-+	struct user_struct *up, *new;
+diff -puN arch/x86/kernel/reboot_64.c~x86_64-efi-runtime-service-support-efi-runtime-services arch/x86/kernel/reboot_64.c
+--- a/arch/x86/kernel/reboot_64.c~x86_64-efi-runtime-service-support-efi-runtime-services
++++ a/arch/x86/kernel/reboot_64.c
+@@ -9,6 +9,7 @@
+ #include <linux/pm.h>
+ #include <linux/kdebug.h>
+ #include <linux/sched.h>
++#include <linux/efi.h>
+ #include <acpi/reboot.h>
+ #include <asm/io.h>
+ #include <asm/delay.h>
+@@ -28,20 +29,17 @@ void (*pm_power_off)(void);
+ EXPORT_SYMBOL(pm_power_off);
  
- 	/* Make uid_hash_find() + uids_user_create() + uid_hash_insert()
- 	 * atomic.
-@@ -332,13 +332,9 @@ struct user_struct * alloc_uid(struct us
- 	spin_unlock_irq(&uidhash_lock);
+ static long no_idt[3];
+-static enum { 
+-	BOOT_TRIPLE = 't',
+-	BOOT_KBD = 'k',
+-	BOOT_ACPI = 'a'
+-} reboot_type = BOOT_KBD;
++enum reboot_type reboot_type = BOOT_KBD;
+ static int reboot_mode = 0;
+ int reboot_force;
  
- 	if (!up) {
--		struct user_struct *new;
--
- 		new = kmem_cache_alloc(uid_cachep, GFP_KERNEL);
--		if (!new) {
--			uids_mutex_unlock();
--			return NULL;
--		}
-+		if (!new)
-+			goto out_unlock;
- 
- 		new->uid = uid;
- 		atomic_set(&new->__count, 1);
-@@ -354,28 +350,14 @@ struct user_struct * alloc_uid(struct us
- #endif
- 		new->locked_shm = 0;
- 
--		if (alloc_uid_keyring(new, current) < 0) {
--			kmem_cache_free(uid_cachep, new);
--			uids_mutex_unlock();
--			return NULL;
--		}
-+		if (alloc_uid_keyring(new, current) < 0)
-+			goto out_free_user;
- 
--		if (sched_create_user(new) < 0) {
--			key_put(new->uid_keyring);
--			key_put(new->session_keyring);
--			kmem_cache_free(uid_cachep, new);
--			uids_mutex_unlock();
--			return NULL;
--		}
-+		if (sched_create_user(new) < 0)
-+			goto out_put_keys;
- 
--		if (uids_user_create(new)) {
--			sched_destroy_user(new);
--			key_put(new->uid_keyring);
--			key_put(new->session_keyring);
--			kmem_cache_free(uid_cachep, new);
--			uids_mutex_unlock();
--			return NULL;
--		}
-+		if (uids_user_create(new))
-+			goto out_destoy_sched;
- 
- 		/*
- 		 * Before adding this, check whether we raced
-@@ -403,6 +385,17 @@ struct user_struct * alloc_uid(struct us
- 	uids_mutex_unlock();
- 
- 	return up;
+-/* reboot=t[riple] | k[bd] [, [w]arm | [c]old]
++/* reboot=t[riple] | k[bd] | e[fi] [, [w]arm | [c]old]
+    warm   Don't set the cold reboot flag
+    cold   Set the cold reboot flag
+    triple Force a triple fault (init)
+    kbd    Use the keyboard controller. cold reset (default)
+    acpi   Use the RESET_REG in the FADT
++   efi    Use efi reset_system runtime service
+    force  Avoid anything that could hang.
+  */ 
+ static int __init reboot_setup(char *str)
+@@ -60,6 +58,7 @@ static int __init reboot_setup(char *str
+ 		case 'a':
+ 		case 'b':
+ 		case 'k':
++		case 'e':
+ 			reboot_type = *str;
+ 			break;
+ 		case 'f':
+@@ -155,7 +154,14 @@ void machine_emergency_restart(void)
+ 			acpi_reboot();
+ 			reboot_type = BOOT_KBD;
+ 			break;
+-		}      
 +
-+out_destoy_sched:
-+	sched_destroy_user(new);
-+out_put_keys:
-+	key_put(new->uid_keyring);
-+	key_put(new->session_keyring);
-+out_free_user:
-+	kmem_cache_free(uid_cachep, new);
-+out_unlock:
-+	uids_mutex_unlock();
-+	return NULL;
++		case BOOT_EFI:
++			if (efi_enabled)
++				efi.reset_system(reboot_mode ? EFI_RESET_WARM : EFI_RESET_COLD,
++						 EFI_SUCCESS, 0, NULL);
++			reboot_type = BOOT_KBD;
++			break;
++		}
+ 	}      
  }
  
- void switch_uid(struct user_struct *new_user)
+diff -puN include/asm-x86/emergency-restart.h~x86_64-efi-runtime-service-support-efi-runtime-services include/asm-x86/emergency-restart.h
+--- a/include/asm-x86/emergency-restart.h~x86_64-efi-runtime-service-support-efi-runtime-services
++++ a/include/asm-x86/emergency-restart.h
+@@ -1,6 +1,15 @@
+ #ifndef _ASM_EMERGENCY_RESTART_H
+ #define _ASM_EMERGENCY_RESTART_H
+ 
++enum reboot_type {
++	BOOT_TRIPLE = 't',
++	BOOT_KBD = 'k',
++	BOOT_ACPI = 'a',
++	BOOT_EFI = 'e'
++};
++
++extern enum reboot_type reboot_type;
++
+ extern void machine_emergency_restart(void);
+ 
+ #endif /* _ASM_EMERGENCY_RESTART_H */
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-origin.patch
-git-net.patch
-git-sched.patch
-shmem-factor-out-sbi-free_inodes-manipulations.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-memcgroup-fix-try_to_free-order.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-memcgroup-reinstate-swapoff-mod.patch
-bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
-bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
-bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
-memcgroup-fix-zone-isolation-oom.patch
-memcgroup-revert-swap_state-mods.patch
-bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
-memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
-memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-memory-cgroup-enhancements-add-pre_destroy-handler.patch
-memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
-add-the-namespaces-config-option.patch
-move-the-uts-namespace-under-uts_ns-option.patch
-move-the-ipc-namespace-under-ipc_ns-option.patch
-cleanup-the-code-managed-with-the-user_ns-option.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-mark-net_ns-with-depends-on-namespaces.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-proper-pidns-handling-for-proc-self.patch
-proc-fix-the-threaded-proc-self.patch
-ipc-uninline-some-code-from-utilh.patch
-ipc-make-struct-ipc_ids-static-in-ipc_namespace.patch
-ipc-consolidate-sem_exit_ns-msg_exit_ns-and-shm_exit_ns.patch
-sys_setpgid-simplify-pid-ns-interaction.patch
-fix-setsid-for-sub-namespace-sbin-init.patch
-teach-set_special_pids-to-use-struct-pid.patch
-move-daemonized-kernel-threads-into-the-swappers-session.patch
-start-the-global-sbin-init-with-00-special-pids.patch
-pid-sys_wait-fixes-v2.patch
-pid-extend-fix-pid_vnr.patch
-sys_getsid-dont-use-nsproxy-directly.patch
-pid-fix-mips-irix-emulation-pid-usage.patch
-pid-fix-mips-irix-emulation-pid-usage-fix.patch
-pid-fix-solaris_procids.patch
-uglify-kill_pid_info-to-fix-kill-vs-exec-race.patch
-uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice.patch
-itimer_real-convert-to-use-struct-pid.patch
-reiser4.patch
+git-x86.patch
+vmcoreinfo-add-the-array-length-of-free_list-for-filtering-free-pages.patch
