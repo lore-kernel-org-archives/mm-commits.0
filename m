@@ -1,55 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - advansys-fix-section-mismatch-warning.patch removed from -mm tree
-Date: Mon, 17 Dec 2007 15:40:14 -0800
-Message-ID: <200712172340.lBHNeEBI008274@imap1.linux-foundation.org>
+Subject: - sym2-fix-section-mismatch-warning.patch removed from -mm tree
+Date: Mon, 17 Dec 2007 15:40:18 -0800
+Message-ID: <200712172340.lBHNeI08008280@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45029 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55868 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964818AbXLQXxc (ORCPT
+	by vger.kernel.org with ESMTP id S964811AbXLQXxb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:53:32 -0500
+	Mon, 17 Dec 2007 18:53:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: randy.dunlap@oracle.com, James.Bottomley@steeleye.com, willy@debian.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     advansys: fix section mismatch warning
+     sym2: fix section mismatch warning
 has been removed from the -mm tree.  Its filename was
-     advansys-fix-section-mismatch-warning.patch
+     sym2-fix-section-mismatch-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: advansys: fix section mismatch warning
+Subject: sym2: fix section mismatch warning
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
 Fix section mismatch warning:
 
-WARNING: vmlinux.o(.exit.text+0x152a): Section mismatch: reference to .init.data:_asc_def_iop_base (between 'advansys_isa_remove' and 'advansys_exit')
+WARNING: vmlinux.o(.text+0x1ff3a2): Section mismatch: reference to .exit.text:sym2_remove (between 'sym2_io_error_detected' and 'sym_xpt_done')
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Matthew Wilcox <willy@debian.org>
 Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Matthew Wilcox <willy@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/advansys.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/sym53c8xx_2/sym_glue.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/advansys.c~advansys-fix-section-mismatch-warning drivers/scsi/advansys.c
---- a/drivers/scsi/advansys.c~advansys-fix-section-mismatch-warning
-+++ a/drivers/scsi/advansys.c
-@@ -13906,7 +13906,7 @@ static int advansys_release(struct Scsi_
+diff -puN drivers/scsi/sym53c8xx_2/sym_glue.c~sym2-fix-section-mismatch-warning drivers/scsi/sym53c8xx_2/sym_glue.c
+--- a/drivers/scsi/sym53c8xx_2/sym_glue.c~sym2-fix-section-mismatch-warning
++++ a/drivers/scsi/sym53c8xx_2/sym_glue.c
+@@ -1744,7 +1744,7 @@ static int __devinit sym2_probe(struct p
+ 	return -ENODEV;
+ }
  
- #define ASC_IOADR_TABLE_MAX_IX  11
+-static void __devexit sym2_remove(struct pci_dev *pdev)
++static void sym2_remove(struct pci_dev *pdev)
+ {
+ 	struct Scsi_Host *shost = pci_get_drvdata(pdev);
  
--static PortAddr _asc_def_iop_base[ASC_IOADR_TABLE_MAX_IX] __devinitdata = {
-+static PortAddr _asc_def_iop_base[ASC_IOADR_TABLE_MAX_IX] = {
- 	0x100, 0x0110, 0x120, 0x0130, 0x140, 0x0150, 0x0190,
- 	0x0210, 0x0230, 0x0250, 0x0330
+@@ -2056,7 +2056,7 @@ static struct pci_driver sym2_driver = {
+ 	.name		= NAME53C8XX,
+ 	.id_table	= sym2_id_table,
+ 	.probe		= sym2_probe,
+-	.remove		= __devexit_p(sym2_remove),
++	.remove		= sym2_remove,
+ 	.err_handler 	= &sym2_err_handler,
  };
+ 
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
