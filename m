@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-ocfs2-fixup.patch added to -mm tree
-Date: Mon, 17 Dec 2007 15:23:07 -0800
-Message-ID: <200712172323.lBHNN7ke007435@imap1.linux-foundation.org>
+Subject: + git-mips-fixup.patch added to -mm tree
+Date: Mon, 17 Dec 2007 15:23:55 -0800
+Message-ID: <200712172323.lBHNNtgK007472@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47572 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43594 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753740AbXLQXYf (ORCPT
+	by vger.kernel.org with ESMTP id S1754788AbXLQXYf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 17 Dec 2007 18:24:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mark.fasheh@oracle.com
+Cc: akpm@linux-foundation.org, ralf@linux-mips.org
 
 
 The patch titled
-     git-ocfs2-fixup
+     git-mips-fixup
 has been added to the -mm tree.  Its filename is
-     git-ocfs2-fixup.patch
+     git-mips-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-ocfs2-fixup
+Subject: git-mips-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Fix git conflicts
 
-Cc: Mark Fasheh <mark.fasheh@oracle.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/journal.c |    4 ----
+ arch/mips/cobalt/time.c |    4 ----
  1 file changed, 4 deletions(-)
 
-diff -puN fs/ocfs2/journal.c~git-ocfs2-fixup fs/ocfs2/journal.c
---- a/fs/ocfs2/journal.c~git-ocfs2-fixup
-+++ a/fs/ocfs2/journal.c
-@@ -1296,11 +1296,7 @@ static int ocfs2_queue_orphans(struct oc
- 	*head = priv.head;
+diff -puN arch/mips/cobalt/time.c~git-mips-fixup arch/mips/cobalt/time.c
+--- a/arch/mips/cobalt/time.c~git-mips-fixup
++++ a/arch/mips/cobalt/time.c
+@@ -35,11 +35,7 @@ void __init plat_time_init(void)
+ 	gt641xx_set_base_clock(GT641XX_BASE_CLOCK);
  
- out_cluster:
--<<<<<<< HEAD:fs/ocfs2/journal.c
--	ocfs2_meta_unlock(orphan_dir_inode, 0);
+ 	/*
+-<<<<<<< HEAD:arch/mips/cobalt/time.c
+-	 * MIPS counter frequency is measured during a 100msec interval
 -=======
- 	ocfs2_inode_unlock(orphan_dir_inode, 0);
-->>>>>>> FETCH_HEAD:fs/ocfs2/journal.c
- out:
- 	mutex_unlock(&orphan_dir_inode->i_mutex);
- 	iput(orphan_dir_inode);
+ 	 * MIPS counter frequency is measured between 100msec
+->>>>>>> FETCH_HEAD:arch/mips/cobalt/time.c
+ 	 * using GT64111 timer0.
+ 	 */
+ 	while (!gt641xx_timer0_state())
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -100,6 +100,7 @@ libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
 libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
 libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
 git-md-accel.patch
+git-mips-fixup.patch
 git-mmc.patch
 git-mtd.patch
 git-net.patch
