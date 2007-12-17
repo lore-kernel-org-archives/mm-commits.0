@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-watchdog-fixup.patch added to -mm tree
-Date: Mon, 17 Dec 2007 15:21:27 -0800
-Message-ID: <200712172321.lBHNLRXa007377@imap1.linux-foundation.org>
+Subject: + git-ocfs2-fixup.patch added to -mm tree
+Date: Mon, 17 Dec 2007 15:23:07 -0800
+Message-ID: <200712172323.lBHNN7ke007435@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47375 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47572 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764567AbXLQXWD (ORCPT
+	by vger.kernel.org with ESMTP id S1753740AbXLQXYf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Dec 2007 18:22:03 -0500
+	Mon, 17 Dec 2007 18:24:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, wim@iguana.be
+Cc: akpm@linux-foundation.org, mark.fasheh@oracle.com
 
 
 The patch titled
-     git-watchdog-fixup
+     git-ocfs2-fixup
 has been added to the -mm tree.  Its filename is
-     git-watchdog-fixup.patch
+     git-ocfs2-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,54 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-watchdog-fixup
+Subject: git-ocfs2-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Fix git conflicts
 
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Cc: Mark Fasheh <mark.fasheh@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/Kconfig  |    3 ---
- drivers/watchdog/Makefile |    3 ---
- 2 files changed, 6 deletions(-)
+ fs/ocfs2/journal.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/watchdog/Kconfig~git-watchdog-fixup drivers/watchdog/Kconfig
---- a/drivers/watchdog/Kconfig~git-watchdog-fixup
-+++ a/drivers/watchdog/Kconfig
-@@ -405,8 +405,6 @@ config IT8712F_WDT
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called it8712f_wdt.
+diff -puN fs/ocfs2/journal.c~git-ocfs2-fixup fs/ocfs2/journal.c
+--- a/fs/ocfs2/journal.c~git-ocfs2-fixup
++++ a/fs/ocfs2/journal.c
+@@ -1296,11 +1296,7 @@ static int ocfs2_queue_orphans(struct oc
+ 	*head = priv.head;
  
--<<<<<<< HEAD:drivers/watchdog/Kconfig
+ out_cluster:
+-<<<<<<< HEAD:fs/ocfs2/journal.c
+-	ocfs2_meta_unlock(orphan_dir_inode, 0);
 -=======
- config HP_WATCHDOG
- 	tristate "HP Proliant iLO 2 Hardware Watchdog Timer"
- 	depends on X86
-@@ -419,7 +417,6 @@ config HP_WATCHDOG
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called hpwdt.
- 
-->>>>>>> FETCH_HEAD:drivers/watchdog/Kconfig
- config SC1200_WDT
- 	tristate "National Semiconductor PC87307/PC97307 (ala SC1200) Watchdog"
- 	depends on X86
-diff -puN drivers/watchdog/Makefile~git-watchdog-fixup drivers/watchdog/Makefile
---- a/drivers/watchdog/Makefile~git-watchdog-fixup
-+++ a/drivers/watchdog/Makefile
-@@ -69,11 +69,8 @@ obj-$(CONFIG_WAFER_WDT) += wafer5823wdt.
- obj-$(CONFIG_I6300ESB_WDT) += i6300esb.o
- obj-$(CONFIG_ITCO_WDT) += iTCO_wdt.o iTCO_vendor_support.o
- obj-$(CONFIG_IT8712F_WDT) += it8712f_wdt.o
--<<<<<<< HEAD:drivers/watchdog/Makefile
--=======
- CFLAGS_hpwdt.o += -O
- obj-$(CONFIG_HP_WATCHDOG) += hpwdt.o
-->>>>>>> FETCH_HEAD:drivers/watchdog/Makefile
- obj-$(CONFIG_SC1200_WDT) += sc1200wdt.o
- obj-$(CONFIG_SCx200_WDT) += scx200_wdt.o
- obj-$(CONFIG_PC87413_WDT) += pc87413_wdt.o
+ 	ocfs2_inode_unlock(orphan_dir_inode, 0);
+->>>>>>> FETCH_HEAD:fs/ocfs2/journal.c
+ out:
+ 	mutex_unlock(&orphan_dir_inode->i_mutex);
+ 	iput(orphan_dir_inode);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -131,6 +110,7 @@ backlight-omap1-backlight-driver.patch
 git-battery.patch
 bluetooth-uninlining.patch
 git-nfsd.patch
+git-ocfs2-fixup.patch
 quirk-enable-msi-mapping-on-ht1000.patch
 git-sched.patch
 git-sched-fixup.patch
