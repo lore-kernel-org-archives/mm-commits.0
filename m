@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + usb-storage-initializersc-fix-signedness-difference.patch added to -mm tree
-Date: Tue, 18 Dec 2007 15:35:37 -0800
-Message-ID: <200712182335.lBINZgrN027663@imap1.linux-foundation.org>
+Subject: + usbdevfs_urb-__user-annotation.patch added to -mm tree
+Date: Tue, 18 Dec 2007 15:37:25 -0800
+Message-ID: <200712182337.lBINbP0k027712@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48552 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40950 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753566AbXLRXfq (ORCPT
+	by vger.kernel.org with ESMTP id S1753566AbXLRXh1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Dec 2007 18:35:46 -0500
+	Tue, 18 Dec 2007 18:37:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -19,9 +19,9 @@ Cc: marcin.slusarz@gmail.com, greg@kroah.com
 
 
 The patch titled
-     usb/storage/initializers.c: fix signedness difference
+     usbdevfs_urb: __user annotation
 has been added to the -mm tree.  Its filename is
-     usb-storage-initializersc-fix-signedness-difference.patch
+     usbdevfs_urb-__user-annotation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your cod=
 e ***
@@ -31,34 +31,30 @@ find
 out what to do about this
 
 ------------------------------------------------------
-Subject: usb/storage/initializers.c: fix signedness difference
+Subject: usbdevfs_urb: __user annotation
 =46rom: Marcin =C5=9Alusarz <marcin.slusarz@gmail.com>
-
-usb/storage/initializers.c: fix signedness difference
 
 Signed-off-by: Marcin =C5=9Alusarz <marcin.slusarz@gmail.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/storage/initializers.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/usbdevice_fs.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/storage/initializers.c~usb-storage-initializersc-=
-fix-signedness-difference drivers/usb/storage/initializers.c
---- a/drivers/usb/storage/initializers.c~usb-storage-initializersc-fix-=
-signedness-difference
-+++ a/drivers/usb/storage/initializers.c
-@@ -66,7 +66,8 @@ int usb_stor_ucr61s2b_init(struct us_dat
- {
- 	struct bulk_cb_wrap *bcb =3D (struct bulk_cb_wrap*) us->iobuf;
- 	struct bulk_cs_wrap *bcs =3D (struct bulk_cs_wrap*) us->iobuf;
--	int res, partial;
-+	int res;
-+	unsigned int partial;
- 	static char init_string[] =3D "\xec\x0a\x06\x00$PCCHIPS";
+diff -puN include/linux/usbdevice_fs.h~usbdevfs_urb-__user-annotation i=
+nclude/linux/usbdevice_fs.h
+--- a/include/linux/usbdevice_fs.h~usbdevfs_urb-__user-annotation
++++ a/include/linux/usbdevice_fs.h
+@@ -104,7 +104,7 @@ struct usbdevfs_urb {
+ 	int error_count;
+ 	unsigned int signr;	/* signal to be sent on completion,
+ 				  or 0 if none should be sent. */
+-	void *usercontext;
++	void __user *usercontext;
+ 	struct usbdevfs_iso_packet_desc iso_frame_desc[0];
+ };
 =20
- 	US_DEBUGP("Sending UCR-61S2B initialization packet...\n");
 _
 
 Patches currently in -mm which might be from marcin.slusarz@gmail.com a=
@@ -66,6 +62,7 @@ re
 
 git-alsa.patch
 usb-storage-initializersc-fix-signedness-difference.patch
+usbdevfs_urb-__user-annotation.patch
 vgacon-fix-sparse-warning-about-shadowing-i-symbol.patch
 fbcon-fix-sparse-warning-about-shadowing-p-symbol.patch
 fbcon-fix-sparse-warning-about-shadowing-rotate-symbol.patch
