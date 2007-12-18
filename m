@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + iscsi-project-page-changed.patch added to -mm tree
-Date: Tue, 18 Dec 2007 15:26:49 -0800
-Message-ID: <200712182326.lBINQn8m027339@imap1.linux-foundation.org>
+Subject: + mm-mmap-remove-sparse-warning-null-as-0.patch added to -mm tree
+Date: Tue, 18 Dec 2007 15:28:31 -0800
+Message-ID: <200712182328.lBINSVKM027440@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58114 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59520 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753249AbXLRX1k (ORCPT
+	by vger.kernel.org with ESMTP id S1753893AbXLRX3J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Dec 2007 18:27:40 -0500
+	Tue, 18 Dec 2007 18:29:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: crquan@gmail.com, James.Bottomley@steeleye.com
+Cc: ricknu-0@student.ltu.se
 
 
 The patch titled
-     iscsi project page changed
+     mm/mmap: remove sparse-warning (NULL as 0)
 has been added to the -mm tree.  Its filename is
-     iscsi-project-page-changed.patch
+     mm-mmap-remove-sparse-warning-null-as-0.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,52 +26,51 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: iscsi project page changed
-From: <crquan@gmail.com>
+Subject: mm/mmap: remove sparse-warning (NULL as 0)
+From: Richard Knutsson <ricknu-0@student.ltu.se>
 
-There's a merging news happened two years ago:
+Fixing:
+  CHECK   mm/mmap.c
+mm/mmap.c:1623:29: warning: Using plain integer as NULL pointer
+mm/mmap.c:1623:29: warning: Using plain integer as NULL pointer
+mm/mmap.c:1944:29: warning: Using plain integer as NULL pointer
 
-	http://www.open-iscsi.org/
-
-	Linux-iSCSI(sfnet) and Open-iSCSI projects merged!(April 11, 2005)
-	http://marc.theaimsgroup.com/?l=linux-kernel&m=111327337005048&w=2
-
-so the information should change,
-
-and there are needs about iscsi documentation under Documentation/scsi/,
-or just some links to the documents on the website.
-
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Signed-off-by: Richard Knutsson <ricknu-0@student.ltu.se>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mmap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/Kconfig~iscsi-project-page-changed drivers/scsi/Kconfig
---- a/drivers/scsi/Kconfig~iscsi-project-page-changed
-+++ a/drivers/scsi/Kconfig
-@@ -341,7 +341,7 @@ config ISCSI_TCP
- 	 The userspace component needed to initialize the driver, documentation,
- 	 and sample configuration files can be found here:
+diff -puN mm/mmap.c~mm-mmap-remove-sparse-warning-null-as-0 mm/mmap.c
+--- a/mm/mmap.c~mm-mmap-remove-sparse-warning-null-as-0
++++ a/mm/mmap.c
+@@ -1625,7 +1625,7 @@ static inline int expand_downwards(struc
+ 		return -ENOMEM;
  
--	 http://linux-iscsi.sf.net
-+	 http://www.open-iscsi.org/
+ 	address &= PAGE_MASK;
+-	error = security_file_mmap(0, 0, 0, 0, address, 1);
++	error = security_file_mmap(NULL, 0, 0, 0, address, 1);
+ 	if (error)
+ 		return error;
  
- config SGIWD93_SCSI
- 	tristate "SGI WD93C93 SCSI Driver"
+@@ -1946,7 +1946,7 @@ unsigned long do_brk(unsigned long addr,
+ 	if (is_hugepage_only_range(mm, addr, len))
+ 		return -EINVAL;
+ 
+-	error = security_file_mmap(0, 0, 0, 0, addr, 1);
++	error = security_file_mmap(NULL, 0, 0, 0, addr, 1);
+ 	if (error)
+ 		return error;
+ 
 _
 
-Patches currently in -mm which might be from crquan@gmail.com are
+Patches currently in -mm which might be from ricknu-0@student.ltu.se are
 
 origin.patch
-git-md-accel.patch
-git-net.patch
-git-s390.patch
-git-scsi-misc.patch
-3w-raid-drivers-memset-not-needed-in-probe.patch
-iscsi-project-page-changed.patch
-git-cryptodev.patch
-drivers-char-use-list_head-instead-of-list_head_init.patch
-drivers-char-ipmi-ipmi_msghandlerc-use-list_head-instead-of-list_head_init.patch
-fs-reiserfs-xattrc-use-list_head-instead-of-list_head_init.patch
+kernel-compliment-va_copy-with-va_end.patch
+git-dvb.patch
+mm-mmap-remove-sparse-warning-null-as-0.patch
+dio-array_size-cleanup-update.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+reiserfs-complement-va_start-with-va_end.patch
