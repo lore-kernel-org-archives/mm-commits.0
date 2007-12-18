@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-drm-fix.patch added to -mm tree
-Date: Tue, 18 Dec 2007 03:08:10 -0800
-Message-ID: <200712181108.lBIB8AQx031879@imap1.linux-foundation.org>
+Subject: + git-net-vs-git-lblnet-2.patch added to -mm tree
+Date: Tue, 18 Dec 2007 03:15:15 -0800
+Message-ID: <200712181115.lBIBFFll032106@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47779 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41958 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751149AbXLRLIR (ORCPT
+	by vger.kernel.org with ESMTP id S1752630AbXLRLPa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Dec 2007 06:08:17 -0500
+	Tue, 18 Dec 2007 06:15:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, airlied@linux.ie
+Cc: akpm@linux-foundation.org, davem@davemloft.net, kaber@trash.net, paul.moore@hp.com
 
 
 The patch titled
-     git-drm fix
+     git-net-vs-git-lblnet-2
 has been added to the -mm tree.  Its filename is
-     git-drm-fix.patch
+     git-net-vs-git-lblnet-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,28 +26,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-drm fix
+Subject: git-net-vs-git-lblnet-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Dave Airlie <airlied@linux.ie>
+everyone hates me.
+
+Cc: Paul Moore <paul.moore@hp.com>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/mga_dma.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ security/selinux/hooks.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/drm/mga_dma.c~git-drm-fix drivers/char/drm/mga_dma.c
---- a/drivers/char/drm/mga_dma.c~git-drm-fix
-+++ a/drivers/char/drm/mga_dma.c
-@@ -924,7 +924,7 @@ static int mga_do_init_dma(struct drm_de
- 		return -ENOMEM;
+diff -puN security/selinux/hooks.c~git-net-vs-git-lblnet-2 security/selinux/hooks.c
+--- a/security/selinux/hooks.c~git-net-vs-git-lblnet-2
++++ a/security/selinux/hooks.c
+@@ -5200,7 +5200,7 @@ static struct nf_hook_ops selinux_ipv4_o
+ 		.hook =		selinux_ipv4_forward,
+ 		.owner =	THIS_MODULE,
+ 		.pf =		PF_INET,
+-		.hooknum =	NF_IP_FORWARD,
++		.hooknum =	NF_INET_FORWARD,
+ 		.priority =	NF_IP_PRI_SELINUX_FIRST,
  	}
- 
--	return err;
-+	return 0;
- }
- 
- static int mga_do_cleanup_dma(struct drm_device *dev, int full_cleanup)
+ };
+@@ -5219,7 +5219,7 @@ static struct nf_hook_ops selinux_ipv6_o
+ 		.hook =		selinux_ipv6_forward,
+ 		.owner =	THIS_MODULE,
+ 		.pf =		PF_INET6,
+-		.hooknum =	NF_IP6_FORWARD,
++		.hooknum =	NF_INET_FORWARD,
+ 		.priority =	NF_IP6_PRI_SELINUX_FIRST,
+ 	}
+ };
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -102,6 +115,7 @@ git-mmc.patch
 git-mtd.patch
 git-net.patch
 git-net-vs-git-lblnet.patch
+git-net-vs-git-lblnet-2.patch
 git-netdev-all.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 backlight-omap1-backlight-driver.patch
