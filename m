@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pcmcia-3c574_cs-fix-shadow-variable-warning.patch added to -mm tree
-Date: Tue, 18 Dec 2007 15:52:44 -0800
-Message-ID: <200712182352.lBINqiBP028290@imap1.linux-foundation.org>
+Subject: + pcmcia-pcnet_cs-fix-shadow-variable-warning.patch added to -mm tree
+Date: Tue, 18 Dec 2007 15:52:52 -0800
+Message-ID: <200712182352.lBINqqpe028307@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48585 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43744 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754144AbXLRXx0 (ORCPT
+	by vger.kernel.org with ESMTP id S1754220AbXLRXxe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Dec 2007 18:53:26 -0500
+	Tue, 18 Dec 2007 18:53:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: ricknu-0@student.ltu.se, alan@redhat.com
 
 
 The patch titled
-     pcmcia/3c574_cs: fix 'shadow variable' warning
+     pcmcia/pcnet_cs: fix 'shadow variable' warning
 has been added to the -mm tree.  Its filename is
-     pcmcia-3c574_cs-fix-shadow-variable-warning.patch
+     pcmcia-pcnet_cs-fix-shadow-variable-warning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,69 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pcmcia/3c574_cs: fix 'shadow variable' warning
+Subject: pcmcia/pcnet_cs: fix 'shadow variable' warning
 From: Richard Knutsson <ricknu-0@student.ltu.se>
 
 Fixing:
-  CHECK   drivers/net/pcmcia/3c574_cs.c
-drivers/net/pcmcia/3c574_cs.c:695:7: warning: symbol 'i' shadows an earlier one
-drivers/net/pcmcia/3c574_cs.c:636:6: originally declared here
+  CHECK   drivers/net/pcmcia/pcnet_cs.c
+drivers/net/pcmcia/pcnet_cs.c:523:15: warning: symbol 'hw_info' shadows an earlier one
+drivers/net/pcmcia/pcnet_cs.c:148:18: originally declared here
 
-Signed-off-by: Richard Knutson <ricknu-0@student.ltu.se>
+Signed-off-by: Richard Knutsson <ricknu-0@student.ltu.se>
 Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/pcmcia/3c574_cs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/pcmcia/pcnet_cs.c |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN drivers/net/pcmcia/3c574_cs.c~pcmcia-3c574_cs-fix-shadow-variable-warning drivers/net/pcmcia/3c574_cs.c
---- a/drivers/net/pcmcia/3c574_cs.c~pcmcia-3c574_cs-fix-shadow-variable-warning
-+++ a/drivers/net/pcmcia/3c574_cs.c
-@@ -693,7 +693,7 @@ static void tc574_reset(struct net_devic
- 	mdio_write(ioaddr, lp->phys, 4, lp->advertising);
- 	if (!auto_polarity) {
- 		/* works for TDK 78Q2120 series MII's */
--		int i = mdio_read(ioaddr, lp->phys, 16) | 0x20;
-+		i = mdio_read(ioaddr, lp->phys, 16) | 0x20;
- 		mdio_write(ioaddr, lp->phys, 16, i);
- 	}
+diff -puN drivers/net/pcmcia/pcnet_cs.c~pcmcia-pcnet_cs-fix-shadow-variable-warning drivers/net/pcmcia/pcnet_cs.c
+--- a/drivers/net/pcmcia/pcnet_cs.c~pcmcia-pcnet_cs-fix-shadow-variable-warning
++++ a/drivers/net/pcmcia/pcnet_cs.c
+@@ -521,7 +521,7 @@ static int pcnet_config(struct pcmcia_de
+     int i, last_ret, last_fn, start_pg, stop_pg, cm_offset;
+     int has_shmem = 0;
+     u_short buf[64];
+-    hw_info_t *hw_info;
++    hw_info_t *local_hw_info;
+     DECLARE_MAC_BUF(mac);
  
+     DEBUG(0, "pcnet_config(0x%p)\n", link);
+@@ -590,23 +590,23 @@ static int pcnet_config(struct pcmcia_de
+ 	dev->if_port = 0;
+     }
+ 
+-    hw_info = get_hwinfo(link);
+-    if (hw_info == NULL)
+-	hw_info = get_prom(link);
+-    if (hw_info == NULL)
+-	hw_info = get_dl10019(link);
+-    if (hw_info == NULL)
+-	hw_info = get_ax88190(link);
+-    if (hw_info == NULL)
+-	hw_info = get_hwired(link);
++    local_hw_info = get_hwinfo(link);
++    if (local_hw_info == NULL)
++	local_hw_info = get_prom(link);
++    if (local_hw_info == NULL)
++	local_hw_info = get_dl10019(link);
++    if (local_hw_info == NULL)
++	local_hw_info = get_ax88190(link);
++    if (local_hw_info == NULL)
++	local_hw_info = get_hwired(link);
+ 
+-    if (hw_info == NULL) {
++    if (local_hw_info == NULL) {
+ 	printk(KERN_NOTICE "pcnet_cs: unable to read hardware net"
+ 	       " address for io base %#3lx\n", dev->base_addr);
+ 	goto failed;
+     }
+ 
+-    info->flags = hw_info->flags;
++    info->flags = local_hw_info->flags;
+     /* Check for user overrides */
+     info->flags |= (delay_output) ? DELAY_OUTPUT : 0;
+     if ((link->manf_id == MANFID_SOCKET) &&
 _
 
 Patches currently in -mm which might be from ricknu-0@student.ltu.se are
