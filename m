@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sched-dynamically-update-the-root-domain-span-online-maps.patch added to -mm tree
-Date: Tue, 18 Dec 2007 03:28:25 -0800
-Message-ID: <200712181128.lBIBSPHG032552@imap1.linux-foundation.org>
+Subject: + fix-crash-with-flat_memory-and-arch_pfn_offset-=-0.patch added to -mm tree
+Date: Tue, 18 Dec 2007 04:23:36 -0800
+Message-ID: <200712181223.lBICNaPN001987@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35574 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39501 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751962AbXLRL3g (ORCPT
+	by vger.kernel.org with ESMTP id S1753625AbXLRM0I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Dec 2007 06:29:36 -0500
+	Tue, 18 Dec 2007 07:26:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ghaskins@novell.com, ego@in.ibm.com, mingo@elte.hu
+Cc: tsbogend@alpha.franken.de, ak@muc.de, apw@shadowen.org, benh@kernel.crashing.org, bob.picco@hp.com, haveblue@us.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kmannth@gmail.com, mel@csn.ul.ie, paulus@samba.org, tony.luck@intel.com, y-goto@jp.fujitsu.com
 
 
 The patch titled
-     sched: dynamically update the root-domain span/online maps
+     Fix crash with FLAT_MEMORY and ARCH_PFN_OFFSET != 0
 has been added to the -mm tree.  Its filename is
-     sched-dynamically-update-the-root-domain-span-online-maps.patch
+     fix-crash-with-flat_memory-and-arch_pfn_offset-=-0.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,133 +26,53 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sched: dynamically update the root-domain span/online maps
-From: Gregory Haskins <ghaskins@novell.com>
+Subject: Fix crash with FLAT_MEMORY and ARCH_PFN_OFFSET != 0
+From: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 
-The baseline code statically builds the span maps when the domain is
-formed.  Previous attempts at dynamically updating the maps caused a
-suspend-to-ram regression, which should now be fixed.
+When using FLAT_MEMORY and ARCH_PFN_OFFSET is not 0, the kernel crashes in
+memmap_init_zone().  This bug got introduced by commit
+c713216deebd95d2b0ab38fef8bb2361c0180c2d
 
-Signed-off-by: Gregory Haskins <ghaskins@novell.com>
-Cc: Gautham R Shenoy <ego@in.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Bob Picco <bob.picco@hp.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Andi Kleen <ak@muc.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: "Keith Mannthey" <kmannth@gmail.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |   31 +++++++++++++++++++------------
- 1 file changed, 19 insertions(+), 12 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/sched.c~sched-dynamically-update-the-root-domain-span-online-maps kernel/sched.c
---- a/kernel/sched.c~sched-dynamically-update-the-root-domain-span-online-maps
-+++ a/kernel/sched.c
-@@ -359,8 +359,6 @@ struct rt_rq {
-  * exclusive cpuset is created, we also create and attach a new root-domain
-  * object.
-  *
-- * By default the system creates a single root-domain with all cpus as
-- * members (mimicking the global state we have today).
-  */
- struct root_domain {
- 	atomic_t refcount;
-@@ -375,6 +373,10 @@ struct root_domain {
- 	atomic_t rto_count;
- };
- 
-+/*
-+ * By default the system creates a single root-domain with all cpus as
-+ * members (mimicking the global state we have today).
-+ */
- static struct root_domain def_root_domain;
- 
- #endif
-@@ -5854,6 +5856,9 @@ static void rq_attach_root(struct rq *rq
- 				class->leave_domain(rq);
- 		}
- 
-+		cpu_clear(rq->cpu, old_rd->span);
-+		cpu_clear(rq->cpu, old_rd->online);
-+
- 		if (atomic_dec_and_test(&old_rd->refcount))
- 			kfree(old_rd);
+diff -puN mm/page_alloc.c~fix-crash-with-flat_memory-and-arch_pfn_offset-=-0 mm/page_alloc.c
+--- a/mm/page_alloc.c~fix-crash-with-flat_memory-and-arch_pfn_offset-=-0
++++ a/mm/page_alloc.c
+@@ -3438,7 +3438,7 @@ static void __init_refok alloc_node_mem_
+ 		mem_map = NODE_DATA(0)->node_mem_map;
+ #ifdef CONFIG_ARCH_POPULATES_NODE_MAP
+ 		if (page_to_pfn(mem_map) != pgdat->node_start_pfn)
+-			mem_map -= pgdat->node_start_pfn;
++			mem_map -= (pgdat->node_start_pfn - ARCH_PFN_OFFSET);
+ #endif /* CONFIG_ARCH_POPULATES_NODE_MAP */
  	}
-@@ -5861,6 +5866,10 @@ static void rq_attach_root(struct rq *rq
- 	atomic_inc(&rd->refcount);
- 	rq->rd = rd;
- 
-+	cpu_set(rq->cpu, rd->span);
-+	if (cpu_isset(rq->cpu, cpu_online_map))
-+		cpu_set(rq->cpu, rd->online);
-+
- 	for (class = sched_class_highest; class; class = class->next) {
- 		if (class->join_domain)
- 			class->join_domain(rq);
-@@ -5869,23 +5878,21 @@ static void rq_attach_root(struct rq *rq
- 	spin_unlock_irqrestore(&rq->lock, flags);
- }
- 
--static void init_rootdomain(struct root_domain *rd, const cpumask_t *map)
-+static void init_rootdomain(struct root_domain *rd)
- {
- 	memset(rd, 0, sizeof(*rd));
- 
--	rd->span = *map;
--	cpus_and(rd->online, rd->span, cpu_online_map);
-+	cpus_clear(rd->span);
-+	cpus_clear(rd->online);
- }
- 
- static void init_defrootdomain(void)
- {
--	cpumask_t cpus = CPU_MASK_ALL;
--
--	init_rootdomain(&def_root_domain, &cpus);
-+	init_rootdomain(&def_root_domain);
- 	atomic_set(&def_root_domain.refcount, 1);
- }
- 
--static struct root_domain *alloc_rootdomain(const cpumask_t *map)
-+static struct root_domain *alloc_rootdomain(void)
- {
- 	struct root_domain *rd;
- 
-@@ -5893,7 +5900,7 @@ static struct root_domain *alloc_rootdom
- 	if (!rd)
- 		return NULL;
- 
--	init_rootdomain(rd, map);
-+	init_rootdomain(rd);
- 
- 	return rd;
- }
-@@ -6314,7 +6321,7 @@ static int build_sched_domains(const cpu
- 	sched_group_nodes_bycpu[first_cpu(*cpu_map)] = sched_group_nodes;
  #endif
- 
--	rd = alloc_rootdomain(cpu_map);
-+	rd = alloc_rootdomain();
- 	if (!rd) {
- 		printk(KERN_WARNING "Cannot alloc root domain\n");
- 		return -ENOMEM;
-@@ -6886,7 +6893,6 @@ void __init sched_init(void)
- #ifdef CONFIG_SMP
- 		rq->sd = NULL;
- 		rq->rd = NULL;
--		rq_attach_root(rq, &def_root_domain);
- 		rq->active_balance = 0;
- 		rq->next_balance = jiffies;
- 		rq->push_cpu = 0;
-@@ -6895,6 +6901,7 @@ void __init sched_init(void)
- 		INIT_LIST_HEAD(&rq->migration_queue);
- 		rq->rt.highest_prio = MAX_RT_PRIO;
- 		rq->rt.overloaded = 0;
-+		rq_attach_root(rq, &def_root_domain);
- #endif
- 		atomic_set(&rq->nr_iowait, 0);
- 
 _
 
-Patches currently in -mm which might be from ghaskins@novell.com are
+Patches currently in -mm which might be from tsbogend@alpha.franken.de are
 
-git-kvm.patch
-git-sched.patch
-sched-dynamically-update-the-root-domain-span-online-maps.patch
+fix-crash-with-flat_memory-and-arch_pfn_offset-=-0.patch
+git-mips.patch
+git-netdev-all.patch
+watchdog-use-sgi_has_indydog-for-indydog-depends.patch
+serial-use-sgi_has_zilog-for-ip22_zilog-depends.patch
+char-use-sgi_has_ds1286-for-sgi_ds1286-depends.patch
+sc26xx-new-serial-driver-for-sc2681-uarts.patch
+sc26xx-new-serial-driver-for-sc2681-uarts-update.patch
+partition-use-default_sgi_partition-for-sgi_partion-default.patch
