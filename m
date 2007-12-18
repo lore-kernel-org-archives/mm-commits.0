@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-crash-with-flat_memory-and-arch_pfn_offset-=-0.patch added to -mm tree
-Date: Tue, 18 Dec 2007 04:23:36 -0800
-Message-ID: <200712181223.lBICNaPN001987@imap1.linux-foundation.org>
+Subject: + ecryptfs-fix-string-overflow-on-long-cipher-names.patch added to -mm tree
+Date: Tue, 18 Dec 2007 12:24:15 -0800
+Message-ID: <200712182024.lBIKOFLO020099@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39501 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34389 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753625AbXLRM0I (ORCPT
+	by vger.kernel.org with ESMTP id S1752297AbXLRUZZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Dec 2007 07:26:08 -0500
+	Tue, 18 Dec 2007 15:25:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tsbogend@alpha.franken.de, ak@muc.de, apw@shadowen.org, benh@kernel.crashing.org, bob.picco@hp.com, haveblue@us.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kmannth@gmail.com, mel@csn.ul.ie, paulus@samba.org, tony.luck@intel.com, y-goto@jp.fujitsu.com
+Cc: sandeen@redhat.com, mhalcrow@us.ibm.com
 
 
 The patch titled
-     Fix crash with FLAT_MEMORY and ARCH_PFN_OFFSET != 0
+     ecryptfs: fix string overflow on long cipher names
 has been added to the -mm tree.  Its filename is
-     fix-crash-with-flat_memory-and-arch_pfn_offset-=-0.patch
+     ecryptfs-fix-string-overflow-on-long-cipher-names.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,53 +26,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix crash with FLAT_MEMORY and ARCH_PFN_OFFSET != 0
-From: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Subject: ecryptfs: fix string overflow on long cipher names
+From: Eric Sandeen <sandeen@redhat.com>
 
-When using FLAT_MEMORY and ARCH_PFN_OFFSET is not 0, the kernel crashes in
-memmap_init_zone().  This bug got introduced by commit
-c713216deebd95d2b0ab38fef8bb2361c0180c2d
+Passing a cipher name > 32 chars on mount results in an overflow when the
+cipher name is printed, because the last character in the struct
+ecryptfs_key_tfm's cipher_name string was never zeroed.
 
-Signed-off-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Bob Picco <bob.picco@hp.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Andi Kleen <ak@muc.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: "Keith Mannthey" <kmannth@gmail.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Acked-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ecryptfs/crypto.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/page_alloc.c~fix-crash-with-flat_memory-and-arch_pfn_offset-=-0 mm/page_alloc.c
---- a/mm/page_alloc.c~fix-crash-with-flat_memory-and-arch_pfn_offset-=-0
-+++ a/mm/page_alloc.c
-@@ -3438,7 +3438,7 @@ static void __init_refok alloc_node_mem_
- 		mem_map = NODE_DATA(0)->node_mem_map;
- #ifdef CONFIG_ARCH_POPULATES_NODE_MAP
- 		if (page_to_pfn(mem_map) != pgdat->node_start_pfn)
--			mem_map -= pgdat->node_start_pfn;
-+			mem_map -= (pgdat->node_start_pfn - ARCH_PFN_OFFSET);
- #endif /* CONFIG_ARCH_POPULATES_NODE_MAP */
- 	}
- #endif
+diff -puN fs/ecryptfs/crypto.c~ecryptfs-fix-string-overflow-on-long-cipher-names fs/ecryptfs/crypto.c
+--- a/fs/ecryptfs/crypto.c~ecryptfs-fix-string-overflow-on-long-cipher-names
++++ a/fs/ecryptfs/crypto.c
+@@ -1847,6 +1847,7 @@ ecryptfs_add_new_key_tfm(struct ecryptfs
+ 	mutex_init(&tmp_tfm->key_tfm_mutex);
+ 	strncpy(tmp_tfm->cipher_name, cipher_name,
+ 		ECRYPTFS_MAX_CIPHER_NAME_SIZE);
++	tmp_tfm->cipher_name[ECRYPTFS_MAX_CIPHER_NAME_SIZE] = '\0';
+ 	tmp_tfm->key_size = key_size;
+ 	rc = ecryptfs_process_key_cipher(&tmp_tfm->key_tfm,
+ 					 tmp_tfm->cipher_name,
 _
 
-Patches currently in -mm which might be from tsbogend@alpha.franken.de are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
-fix-crash-with-flat_memory-and-arch_pfn_offset-=-0.patch
-git-mips.patch
-git-netdev-all.patch
-watchdog-use-sgi_has_indydog-for-indydog-depends.patch
-serial-use-sgi_has_zilog-for-ip22_zilog-depends.patch
-char-use-sgi_has_ds1286-for-sgi_ds1286-depends.patch
-sc26xx-new-serial-driver-for-sc2681-uarts.patch
-sc26xx-new-serial-driver-for-sc2681-uarts-update.patch
-partition-use-default_sgi_partition-for-sgi_partion-default.patch
+ecryptfs-initialize-new-auth_tokens-before-teardown.patch
+ecryptfs-set-s_blocksize-from-lower-fs-in-sb.patch
+ecryptfs-fix-fsx-data-corruption-problems.patch
+ecryptfs-fix-string-overflow-on-long-cipher-names.patch
+ext2-change-the-default-behaviour-on-error.patch
+ecryptfs-make-show_options-reflect-actual-mount-options.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+ext4-fix-mb_debug-format-warnings.patch
+ext4-fix-freespace-accounting-with-mballoc-on-32bit-machines.patch
+ext4-fix-oops-with-jbd-stats-through-procfs-and-external.patch
+ext4-fix-up-ext4fs_debug-builds.patch
+ext3-change-the-default-behaviour-on-error.patch
