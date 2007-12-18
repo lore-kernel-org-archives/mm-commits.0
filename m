@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-computation-of-skb-size-for-quota-messages.patch added to -mm tree
-Date: Tue, 18 Dec 2007 12:29:35 -0800
-Message-ID: <200712182029.lBIKTZ6V020298@imap1.linux-foundation.org>
+Subject: + ecryptfs-fix-unlocking-in-error-paths.patch added to -mm tree
+Date: Tue, 18 Dec 2007 13:01:55 -0800
+Message-ID: <200712182101.lBIL1tba021495@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54729 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58551 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751276AbXLRU3u (ORCPT
+	by vger.kernel.org with ESMTP id S1752675AbXLRVCo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Dec 2007 15:29:50 -0500
+	Tue, 18 Dec 2007 16:02:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz
+Cc: sandeen@redhat.com, jbacik@redhat.com, mhalcrow@us.ibm.com
 
 
 The patch titled
-     Fix computation of SKB size for quota messages
+     ecryptfs: fix unlocking in error paths
 has been added to the -mm tree.  Its filename is
-     fix-computation-of-skb-size-for-quota-messages.patch
+     ecryptfs-fix-unlocking-in-error-paths.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,69 +26,76 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix computation of SKB size for quota messages
-From: Jan Kara <jack@suse.cz>
+Subject: ecryptfs: fix unlocking in error paths
+From: Eric Sandeen <sandeen@redhat.com>
 
-Fix computation of size of skb needed for quota message.  We should use
-netlink provided functions and not just an ad-hoc number.  Also don't print
-the return value from nla_put_foo() as it is always -1.
+Thanks to Josef Bacik for finding these.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+A couple of ecryptfs error paths don't properly unlock things they locked.
+
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Cc: Josef Bacik <jbacik@redhat.com>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dquot.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ fs/ecryptfs/crypto.c    |    8 ++++----
+ fs/ecryptfs/messaging.c |    1 +
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN fs/dquot.c~fix-computation-of-skb-size-for-quota-messages fs/dquot.c
---- a/fs/dquot.c~fix-computation-of-skb-size-for-quota-messages
-+++ a/fs/dquot.c
-@@ -895,9 +895,6 @@ out_lock:
- 
- #ifdef CONFIG_QUOTA_NETLINK_INTERFACE
- 
--/* Size of quota netlink message - actually an upperbound for buffer size */
--#define QUOTA_NL_MSG_SIZE 32
--
- /* Netlink family structure for quota */
- static struct genl_family quota_genl_family = {
- 	.id = GENL_ID_GENERATE,
-@@ -914,11 +911,13 @@ static void send_warning(const struct dq
- 	struct sk_buff *skb;
- 	void *msg_head;
- 	int ret;
-+	int msg_size = 4 * nla_total_size(sizeof(u32)) +
-+		       2 * nla_total_size(sizeof(u64));
- 
- 	/* We have to allocate using GFP_NOFS as we are called from a
- 	 * filesystem performing write and thus further recursion into
- 	 * the fs to free some data could cause deadlocks. */
--	skb = genlmsg_new(QUOTA_NL_MSG_SIZE, GFP_NOFS);
-+	skb = genlmsg_new(msg_size, GFP_NOFS);
- 	if (!skb) {
- 		printk(KERN_ERR
- 		  "VFS: Not enough memory to send quota warning.\n");
-@@ -959,7 +958,7 @@ static void send_warning(const struct dq
- 			"VFS: Failed to send notification message: %d\n", ret);
- 	return;
- attr_err_out:
--	printk(KERN_ERR "VFS: Failed to compose quota message: %d\n", ret);
-+	printk(KERN_ERR "VFS: Not enough space to compose quota message!\n");
- err_out:
- 	kfree_skb(skb);
+diff -puN fs/ecryptfs/crypto.c~ecryptfs-fix-unlocking-in-error-paths fs/ecryptfs/crypto.c
+--- a/fs/ecryptfs/crypto.c~ecryptfs-fix-unlocking-in-error-paths
++++ a/fs/ecryptfs/crypto.c
+@@ -799,7 +799,7 @@ int ecryptfs_init_crypt_ctx(struct ecryp
+ 	rc = ecryptfs_crypto_api_algify_cipher_name(&full_alg_name,
+ 						    crypt_stat->cipher, "cbc");
+ 	if (rc)
+-		goto out;
++		goto out_unlock;
+ 	crypt_stat->tfm = crypto_alloc_blkcipher(full_alg_name, 0,
+ 						 CRYPTO_ALG_ASYNC);
+ 	kfree(full_alg_name);
+@@ -808,12 +808,12 @@ int ecryptfs_init_crypt_ctx(struct ecryp
+ 		ecryptfs_printk(KERN_ERR, "cryptfs: init_crypt_ctx(): "
+ 				"Error initializing cipher [%s]\n",
+ 				crypt_stat->cipher);
+-		mutex_unlock(&crypt_stat->cs_tfm_mutex);
+-		goto out;
++		goto out_unlock;
+ 	}
+ 	crypto_blkcipher_set_flags(crypt_stat->tfm, CRYPTO_TFM_REQ_WEAK_KEY);
+-	mutex_unlock(&crypt_stat->cs_tfm_mutex);
+ 	rc = 0;
++out_unlock:
++	mutex_unlock(&crypt_stat->cs_tfm_mutex);
+ out:
+ 	return rc;
  }
+diff -puN fs/ecryptfs/messaging.c~ecryptfs-fix-unlocking-in-error-paths fs/ecryptfs/messaging.c
+--- a/fs/ecryptfs/messaging.c~ecryptfs-fix-unlocking-in-error-paths
++++ a/fs/ecryptfs/messaging.c
+@@ -427,6 +427,7 @@ int ecryptfs_init_messaging(unsigned int
+ 	if (!ecryptfs_daemon_id_hash) {
+ 		rc = -ENOMEM;
+ 		ecryptfs_printk(KERN_ERR, "Failed to allocate memory\n");
++		mutex_unlock(&ecryptfs_daemon_id_hash_mux);
+ 		goto out;
+ 	}
+ 	for (i = 0; i < ecryptfs_hash_buckets; i++)
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
-fix-compilation-warning-in-dquotc.patch
-fix-computation-of-skb-size-for-quota-messages.patch
-inotify-send-in_attrib-events-when-link-count-changes.patch
-inotify-send-in_attrib-events-when-link-count-changes-fix.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
-jbd2-fix-assertion-failure-in-fs-jbd2-checkpointc.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext4-from-using-iget-and-read_inode-try.patch
+ecryptfs-initialize-new-auth_tokens-before-teardown.patch
+ecryptfs-set-s_blocksize-from-lower-fs-in-sb.patch
+ecryptfs-fix-fsx-data-corruption-problems.patch
+ecryptfs-fix-string-overflow-on-long-cipher-names.patch
+ecryptfs-fix-unlocking-in-error-paths.patch
+ext2-change-the-default-behaviour-on-error.patch
+ecryptfs-make-show_options-reflect-actual-mount-options.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+ext4-fix-mb_debug-format-warnings.patch
+ext4-fix-freespace-accounting-with-mballoc-on-32bit-machines.patch
+ext4-fix-oops-with-jbd-stats-through-procfs-and-external.patch
+ext4-fix-up-ext4fs_debug-builds.patch
+ext3-change-the-default-behaviour-on-error.patch
