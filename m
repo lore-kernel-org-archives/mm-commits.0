@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memcgroup-tidy-up-mem_cgroup_charge_common.patch added to -mm tree
-Date: Tue, 18 Dec 2007 14:41:51 -0800
-Message-ID: <200712182241.lBIMfp7B025702@imap1.linux-foundation.org>
+Subject: + memcgroup-fix-hang-with-shmem-tmpfs.patch added to -mm tree
+Date: Tue, 18 Dec 2007 14:43:15 -0800
+Message-ID: <200712182243.lBIMhFKa025800@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48124 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45594 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751535AbXLRWma (ORCPT
+	by vger.kernel.org with ESMTP id S1753265AbXLRWyA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Dec 2007 17:42:30 -0500
+	Tue, 18 Dec 2007 17:54:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hugh@veritas.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com,
 
 
 The patch titled
-     ] memcgroup: tidy up mem_cgroup_charge_common
+     memcgroup: fix hang with shmem/tmpfs
 has been added to the -mm tree.  Its filename is
-     memcgroup-tidy-up-mem_cgroup_charge_common.patch
+     memcgroup-fix-hang-with-shmem-tmpfs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,13 +26,26 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ] memcgroup: tidy up mem_cgroup_charge_common
+Subject: memcgroup: fix hang with shmem/tmpfs
 From: Hugh Dickins <hugh@veritas.com>
 
-Tidy up mem_cgroup_charge_common before extending it.  Adjust some comments,
-but mainly clean up its loop: I've an aversion to loops full of continues,
-then a break or a goto at the bottom.  And the is_atomic test should be on the
-__GFP_WAIT bit, not GFP_ATOMIC bits.
+The memcgroup regime relies upon a cgroup reclaiming pages from itself within
+add_to_page_cache: which may involve some waiting.  Whereas shmem and tmpfs
+rely upon using add_to_page_cache while holding a spinlock: when it cannot
+wait.  The consequence is that when a cgroup reaches its limit, shmem_getpage
+just hangs - unless there is outside memory pressure too, neither kswapd nor
+radix_tree_preload get it out of the retry loop.
+
+In most cases we can mem_cgroup_cache_charge the page waitably first, to
+attach the page_cgroup in advance, so add_to_page_cache will do no more than
+increment a count; then mem_cgroup_uncharge_page after (in both success and
+failure cases) to balance the books again.
+
+And where there used to be a congestion_wait for kswapd (recently made
+redundant by radix_tree_preload), use mem_cgroup_cache_charge with NULL page
+to go through a cycle of allocation and freeing, without accounting to any
+particular page, and without updating the statistics vector.  This brings the
+cgroup below its limit so the next try usually succeeds.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
@@ -41,107 +54,148 @@ Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   44 +++++++++++++++-----------------------------
- 1 file changed, 15 insertions(+), 29 deletions(-)
+ mm/memcontrol.c |   37 +++++++++++++++++++++----------------
+ mm/shmem.c      |   28 +++++++++++++++++++++++++++-
+ 2 files changed, 48 insertions(+), 17 deletions(-)
 
-diff -puN mm/memcontrol.c~memcgroup-tidy-up-mem_cgroup_charge_common mm/memcontrol.c
---- a/mm/memcontrol.c~memcgroup-tidy-up-mem_cgroup_charge_common
+diff -puN mm/memcontrol.c~memcgroup-fix-hang-with-shmem-tmpfs mm/memcontrol.c
+--- a/mm/memcontrol.c~memcgroup-fix-hang-with-shmem-tmpfs
 +++ a/mm/memcontrol.c
-@@ -345,23 +345,22 @@ retry:
- 			goto done;
+@@ -329,23 +329,26 @@ static int mem_cgroup_charge_common(stru
+ 	 * with it
+ 	 */
+ retry:
+-	lock_page_cgroup(page);
+-	pc = page_get_page_cgroup(page);
+-	/*
+-	 * The page_cgroup exists and the page has already been accounted
+-	 */
+-	if (pc) {
+-		if (unlikely(!atomic_inc_not_zero(&pc->ref_cnt))) {
+-			/* this page is under being uncharged ? */
+-			unlock_page_cgroup(page);
+-			cpu_relax();
+-			goto retry;
+-		} else {
+-			unlock_page_cgroup(page);
+-			goto done;
++	if (page) {
++		lock_page_cgroup(page);
++		pc = page_get_page_cgroup(page);
++		/*
++		 * The page_cgroup exists and
++		 * the page has already been accounted.
++		 */
++		if (pc) {
++			if (unlikely(!atomic_inc_not_zero(&pc->ref_cnt))) {
++				/* this page is under being uncharged ? */
++				unlock_page_cgroup(page);
++				cpu_relax();
++				goto retry;
++			} else {
++				unlock_page_cgroup(page);
++				goto done;
++			}
  		}
++		unlock_page_cgroup(page);
  	}
--
- 	unlock_page_cgroup(page);
+-	unlock_page_cgroup(page);
  
  	pc = kzalloc(sizeof(struct page_cgroup), gfp_mask);
  	if (pc == NULL)
- 		goto err;
- 
--	rcu_read_lock();
- 	/*
--	 * We always charge the cgroup the mm_struct belongs to
--	 * the mm_struct's mem_cgroup changes on task migration if the
-+	 * We always charge the cgroup the mm_struct belongs to.
-+	 * The mm_struct's mem_cgroup changes on task migration if the
- 	 * thread group leader migrates. It's possible that mm is not
- 	 * set, if so charge the init_mm (happens for pagecache usage).
- 	 */
- 	if (!mm)
- 		mm = &init_mm;
- 
-+	rcu_read_lock();
- 	mem = rcu_dereference(mm->mem_cgroup);
- 	/*
- 	 * For every charge from the cgroup, increment reference
-@@ -375,12 +374,8 @@ retry:
- 	 * the cgroup limit.
- 	 */
- 	while (res_counter_charge(&mem->res, PAGE_SIZE)) {
--		bool is_atomic = gfp_mask & GFP_ATOMIC;
--		/*
--		 * We cannot reclaim under GFP_ATOMIC, fail the charge
--		 */
--		if (is_atomic)
--			goto noreclaim;
-+		if (!(gfp_mask & __GFP_WAIT))
-+			goto out;
- 
- 		if (try_to_free_mem_cgroup_pages(mem, gfp_mask))
- 			continue;
-@@ -394,23 +389,12 @@ retry:
-  		 */
- 		if (res_counter_check_under_limit(&mem->res))
- 			continue;
--			/*
--			 * Since we control both RSS and cache, we end up with a
--			 * very interesting scenario where we end up reclaiming
--			 * memory (essentially RSS), since the memory is pushed
--			 * to swap cache, we eventually end up adding those
--			 * pages back to our list. Hence we give ourselves a
--			 * few chances before we fail
--			 */
--		else if (nr_retries--) {
--			congestion_wait(WRITE, HZ/10);
--			continue;
-+
-+		if (!nr_retries--) {
-+			mem_cgroup_out_of_memory(mem, gfp_mask);
-+			goto out;
- 		}
--noreclaim:
--		css_put(&mem->css);
--		if (!is_atomic)
--			mem_cgroup_out_of_memory(mem, GFP_KERNEL);
--		goto free_pc;
-+		congestion_wait(WRITE, HZ/10);
- 	}
- 
- 	atomic_set(&pc->ref_cnt, 1);
-@@ -419,10 +403,11 @@ noreclaim:
- 	pc->flags = 0;
+@@ -404,7 +407,7 @@ retry:
  	if (ctype == MEM_CGROUP_CHARGE_TYPE_CACHE)
  		pc->flags |= PAGE_CGROUP_FLAG_CACHE;
-+
- 	if (page_cgroup_assign_new_page_cgroup(page, pc)) {
- 		/*
--		 * an another charge is added to this page already.
--		 * we do take lock_page_cgroup(page) again and read
-+		 * Another charge has been added to this page already.
-+		 * We take lock_page_cgroup(page) again and read
- 		 * page->cgroup, increment refcnt.... just retry is OK.
- 		 */
- 		res_counter_uncharge(&mem->res, PAGE_SIZE);
-@@ -437,7 +422,8 @@ noreclaim:
  
- done:
- 	return 0;
--free_pc:
-+out:
-+	css_put(&mem->css);
- 	kfree(pc);
- err:
- 	return -ENOMEM;
+-	if (page_cgroup_assign_new_page_cgroup(page, pc)) {
++	if (!page || page_cgroup_assign_new_page_cgroup(page, pc)) {
+ 		/*
+ 		 * Another charge has been added to this page already.
+ 		 * We take lock_page_cgroup(page) again and read
+@@ -413,6 +416,8 @@ retry:
+ 		res_counter_uncharge(&mem->res, PAGE_SIZE);
+ 		css_put(&mem->css);
+ 		kfree(pc);
++		if (!page)
++			goto done;
+ 		goto retry;
+ 	}
+ 
+diff -puN mm/shmem.c~memcgroup-fix-hang-with-shmem-tmpfs mm/shmem.c
+--- a/mm/shmem.c~memcgroup-fix-hang-with-shmem-tmpfs
++++ a/mm/shmem.c
+@@ -912,9 +912,13 @@ found:
+ 	error = 1;
+ 	if (!inode)
+ 		goto out;
+-	error = radix_tree_preload(GFP_KERNEL);
++	/* Precharge page while we can wait, compensate afterwards */
++	error = mem_cgroup_cache_charge(page, current->mm, GFP_KERNEL);
+ 	if (error)
+ 		goto out;
++	error = radix_tree_preload(GFP_KERNEL);
++	if (error)
++		goto uncharge;
+ 	error = 1;
+ 
+ 	spin_lock(&info->lock);
+@@ -947,6 +951,8 @@ found:
+ 		shmem_swp_unmap(ptr);
+ 	spin_unlock(&info->lock);
+ 	radix_tree_preload_end();
++uncharge:
++	mem_cgroup_uncharge_page(page);
+ out:
+ 	unlock_page(page);
+ 	page_cache_release(page);
+@@ -1308,6 +1314,13 @@ repeat:
+ 			spin_unlock(&info->lock);
+ 			unlock_page(swappage);
+ 			page_cache_release(swappage);
++			if (error == -ENOMEM) {
++				/* allow reclaim from this memory cgroup */
++				error = mem_cgroup_cache_charge(NULL,
++					current->mm, gfp & ~__GFP_HIGHMEM);
++				if (error)
++					goto failed;
++			}
+ 			goto repeat;
+ 		}
+ 	} else if (sgp == SGP_READ && !filepage) {
+@@ -1353,6 +1366,17 @@ repeat:
+ 				goto failed;
+ 			}
+ 
++			/* Precharge page while we can wait, compensate after */
++			error = mem_cgroup_cache_charge(filepage, current->mm,
++							gfp & ~__GFP_HIGHMEM);
++			if (error) {
++				page_cache_release(filepage);
++				shmem_unacct_blocks(info->flags, 1);
++				shmem_free_blocks(inode, 1);
++				filepage = NULL;
++				goto failed;
++			}
++
+ 			spin_lock(&info->lock);
+ 			entry = shmem_swp_alloc(info, idx, sgp);
+ 			if (IS_ERR(entry))
+@@ -1364,6 +1388,7 @@ repeat:
+ 			if (error || swap.val || 0 != add_to_page_cache_lru(
+ 					filepage, mapping, idx, GFP_NOWAIT)) {
+ 				spin_unlock(&info->lock);
++				mem_cgroup_uncharge_page(filepage);
+ 				page_cache_release(filepage);
+ 				shmem_unacct_blocks(info->flags, 1);
+ 				shmem_free_blocks(inode, 1);
+@@ -1372,6 +1397,7 @@ repeat:
+ 					goto failed;
+ 				goto repeat;
+ 			}
++			mem_cgroup_uncharge_page(filepage);
+ 			info->flags |= SHMEM_PAGEIN;
+ 		}
+ 
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
