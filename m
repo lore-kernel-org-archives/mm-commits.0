@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ecryptfs-fix-unlocking-in-error-paths.patch added to -mm tree
-Date: Tue, 18 Dec 2007 13:01:55 -0800
-Message-ID: <200712182101.lBIL1tba021495@imap1.linux-foundation.org>
+Subject: + lib-extablec-removes-an-expensive-integer-divide-in-search_extable.patch added to -mm tree
+Date: Tue, 18 Dec 2007 14:01:09 -0800
+Message-ID: <200712182201.lBIM19aX024017@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58551 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54372 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752675AbXLRVCo (ORCPT
+	by vger.kernel.org with ESMTP id S1756165AbXLRWBj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Dec 2007 16:02:44 -0500
+	Tue, 18 Dec 2007 17:01:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sandeen@redhat.com, jbacik@redhat.com, mhalcrow@us.ibm.com
+Cc: dada1@cosmosbay.com
 
 
 The patch titled
-     ecryptfs: fix unlocking in error paths
+     lib/extable.c: remove an expensive integer divide in search_extable()
 has been added to the -mm tree.  Its filename is
-     ecryptfs-fix-unlocking-in-error-paths.patch
+     lib-extablec-removes-an-expensive-integer-divide-in-search_extable.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,76 +26,77 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ecryptfs: fix unlocking in error paths
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: lib/extable.c: remove an expensive integer divide in search_extable()
+From: Eric Dumazet <dada1@cosmosbay.com>
 
-Thanks to Josef Bacik for finding these.
+Actual code let compiler generates idiv instruction on x86.
 
-A couple of ecryptfs error paths don't properly unlock things they locked.
+Using a right shift is OK here and readable as well.
 
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
-Cc: Josef Bacik <jbacik@redhat.com>
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+Before patch
+   10:   57                      push   %edi
+   11:   56                      push   %esi
+   12:   89 d6                   mov    %edx,%esi
+   14:   53                      push   %ebx
+   15:   89 c3                   mov    %eax,%ebx
+   17:   eb 22                   jmp    3b <search_extable+0x2b>
+   19:   89 f0                   mov    %esi,%eax
+   1b:   ba 02 00 00 00          mov    $0x2,%edx
+   20:   29 d8                   sub    %ebx,%eax
+   22:   89 d7                   mov    %edx,%edi
+   24:   c1 f8 03                sar    $0x3,%eax
+   27:   99                      cltd
+   28:   f7 ff                   idiv   %edi
+   2a:   8d 04 c3                lea    (%ebx,%eax,8),%eax
+   2d:   39 08                   cmp    %ecx,(%eax)
+...
+
+After patch
+
+00000010 <search_extable>:
+   10:   53                      push   %ebx
+   11:   89 c3                   mov    %eax,%ebx
+   13:   eb 18                   jmp    2d <search_extable+0x1d>
+   15:   89 d0                   mov    %edx,%eax
+   17:   29 d8                   sub    %ebx,%eax
+   19:   c1 f8 04                sar    $0x4,%eax
+   1c:   8d 04 c3                lea    (%ebx,%eax,8),%eax
+   1f:   39 08                   cmp    %ecx,(%eax)
+...
+
+Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/crypto.c    |    8 ++++----
- fs/ecryptfs/messaging.c |    1 +
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ lib/extable.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/ecryptfs/crypto.c~ecryptfs-fix-unlocking-in-error-paths fs/ecryptfs/crypto.c
---- a/fs/ecryptfs/crypto.c~ecryptfs-fix-unlocking-in-error-paths
-+++ a/fs/ecryptfs/crypto.c
-@@ -799,7 +799,7 @@ int ecryptfs_init_crypt_ctx(struct ecryp
- 	rc = ecryptfs_crypto_api_algify_cipher_name(&full_alg_name,
- 						    crypt_stat->cipher, "cbc");
- 	if (rc)
--		goto out;
-+		goto out_unlock;
- 	crypt_stat->tfm = crypto_alloc_blkcipher(full_alg_name, 0,
- 						 CRYPTO_ALG_ASYNC);
- 	kfree(full_alg_name);
-@@ -808,12 +808,12 @@ int ecryptfs_init_crypt_ctx(struct ecryp
- 		ecryptfs_printk(KERN_ERR, "cryptfs: init_crypt_ctx(): "
- 				"Error initializing cipher [%s]\n",
- 				crypt_stat->cipher);
--		mutex_unlock(&crypt_stat->cs_tfm_mutex);
--		goto out;
-+		goto out_unlock;
- 	}
- 	crypto_blkcipher_set_flags(crypt_stat->tfm, CRYPTO_TFM_REQ_WEAK_KEY);
--	mutex_unlock(&crypt_stat->cs_tfm_mutex);
- 	rc = 0;
-+out_unlock:
-+	mutex_unlock(&crypt_stat->cs_tfm_mutex);
- out:
- 	return rc;
- }
-diff -puN fs/ecryptfs/messaging.c~ecryptfs-fix-unlocking-in-error-paths fs/ecryptfs/messaging.c
---- a/fs/ecryptfs/messaging.c~ecryptfs-fix-unlocking-in-error-paths
-+++ a/fs/ecryptfs/messaging.c
-@@ -427,6 +427,7 @@ int ecryptfs_init_messaging(unsigned int
- 	if (!ecryptfs_daemon_id_hash) {
- 		rc = -ENOMEM;
- 		ecryptfs_printk(KERN_ERR, "Failed to allocate memory\n");
-+		mutex_unlock(&ecryptfs_daemon_id_hash_mux);
- 		goto out;
- 	}
- 	for (i = 0; i < ecryptfs_hash_buckets; i++)
+diff -puN lib/extable.c~lib-extablec-removes-an-expensive-integer-divide-in-search_extable lib/extable.c
+--- a/lib/extable.c~lib-extablec-removes-an-expensive-integer-divide-in-search_extable
++++ a/lib/extable.c
+@@ -57,10 +57,10 @@ search_extable(const struct exception_ta
+ 	while (first <= last) {
+ 		const struct exception_table_entry *mid;
+ 
+-		mid = (last - first) / 2 + first;
++		mid = ((last - first) >> 1) + first;
+ 		/*
+-		 * careful, the distance between entries can be
+-		 * larger than 2GB:
++		 * careful, the distance between value and insn
++		 * can be larger than MAX_LONG:
+ 		 */
+ 		if (mid->insn < value)
+ 			first = mid + 1;
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from dada1@cosmosbay.com are
 
-ecryptfs-initialize-new-auth_tokens-before-teardown.patch
-ecryptfs-set-s_blocksize-from-lower-fs-in-sb.patch
-ecryptfs-fix-fsx-data-corruption-problems.patch
-ecryptfs-fix-string-overflow-on-long-cipher-names.patch
-ecryptfs-fix-unlocking-in-error-paths.patch
-ext2-change-the-default-behaviour-on-error.patch
-ecryptfs-make-show_options-reflect-actual-mount-options.patch
-ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
-ext4-fix-mb_debug-format-warnings.patch
-ext4-fix-freespace-accounting-with-mballoc-on-32bit-machines.patch
-ext4-fix-oops-with-jbd-stats-through-procfs-and-external.patch
-ext4-fix-up-ext4fs_debug-builds.patch
-ext3-change-the-default-behaviour-on-error.patch
+origin.patch
+parport-dev-timeslice-is-an-unsigned-long-not-an-int.patch
+git-net.patch
+git-sched.patch
+percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+lib-extablec-removes-an-expensive-integer-divide-in-search_extable.patch
