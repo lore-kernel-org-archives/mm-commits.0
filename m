@@ -1,128 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: + quicklists-do-not-release-off-node-pages-early.patch added to -mm tree
-Date: Mon, 17 Dec 2007 22:27:27 -0800
-Message-ID: <200712180627.lBI6RRw2022769@imap1.linux-foundation.org>
+Subject: - initrd-fix-virtual-physical-mix-up-in-overwrite-test.patch removed from -mm tree
+Date: Tue, 18 Dec 2007 03:01:39 -0800
+Message-ID: <200712181101.lBIB1dB1031604@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42542 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48206 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750836AbXLRG1p (ORCPT
+	by vger.kernel.org with ESMTP id S1752210AbXLRLCX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Dec 2007 01:27:45 -0500
+	Tue, 18 Dec 2007 06:02:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, stable@kernel.org
+To: geert@linux-m68k.org, benh@kernel.crashing.org, chris@zankel.net, galak@gate.crashing.org, grundler@parisc-linux.org, kyle@mcmartin.ca, nickpiggin@yahoo.com.au, paulus@samba.org, ralf
 
 
 The patch titled
-     quicklists: do not release off node pages early
-has been added to the -mm tree.  Its filename is
-     quicklists-do-not-release-off-node-pages-early.patch
+     initrd: fix virtual/physical mix-up in overwrite test
+has been removed from the -mm tree.  Its filename was
+     initrd-fix-virtual-physical-mix-up-in-overwrite-test.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: quicklists: do not release off node pages early
-From: Christoph Lameter <clameter@sgi.com>
+Subject: initrd: fix virtual/physical mix-up in overwrite test
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-quicklists must keep even off node pages on the quicklists until the TLB
-flush has been completed.
+On recent kernels, I get the following error when using an initrd:
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: <stable@kernel.org>
+| initrd overwritten (0x00b78000 < 0x07668000) - disabling it.
+
+My Amiga 4000 has 12 MiB of RAM at physical address 0x07400000 (virtual
+0x00000000).
+The initrd is located at the end of RAM: 0x00b78000 - 0x00c00000 (virtual).
+The overwrite test compares the (virtual) initrd location to the (physical)
+first available memory location, which fails.
+
+This patch converts initrd_start to a page frame number, so it can be safely
+compared with min_low_pfn.
+
+Before the introduction of discontiguous memory support on m68k
+(12d810c1b8c2b913d48e629e2b5c01d105029839), min_low_pfn was just left
+untouched by the m68k-specific code (zero, I guess), and everything worked
+fine.
+
+On several platforms, initrd_below_start_ok is set to 1:
+
+| arch/mips/kernel/setup.c:       initrd_below_start_ok = 1;
+| arch/parisc/mm/init.c:                  initrd_below_start_ok = 1;
+| arch/powerpc/kernel/prom.c:                     initrd_below_start_ok = 1;
+| arch/ppc/platforms/hdpu.c:                      initrd_below_start_ok = 1;
+| arch/xtensa/kernel/setup.c:             initrd_below_start_ok = 1;
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Grant Grundler <grundler@parisc-linux.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Kumar Gala <galak@gate.crashing.org>
+Cc: Christian Zankel <chris@zankel.net>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/quicklist.h |    8 --------
- 1 file changed, 8 deletions(-)
+ init/main.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/quicklist.h~quicklists-do-not-release-off-node-pages-early include/linux/quicklist.h
---- a/include/linux/quicklist.h~quicklists-do-not-release-off-node-pages-early
-+++ a/include/linux/quicklist.h
-@@ -56,14 +56,6 @@ static inline void __quicklist_free(int 
- 	struct page *page)
- {
- 	struct quicklist *q;
--	int nid = page_to_nid(page);
--
--	if (unlikely(nid != numa_node_id())) {
--		if (dtor)
--			dtor(p);
--		__free_page(page);
--		return;
--	}
+diff -puN init/main.c~initrd-fix-virtual-physical-mix-up-in-overwrite-test init/main.c
+--- a/init/main.c~initrd-fix-virtual-physical-mix-up-in-overwrite-test
++++ a/init/main.c
+@@ -598,9 +598,9 @@ asmlinkage void __init start_kernel(void
  
- 	q = &get_cpu_var(quicklist)[nr];
- 	*(void **)p = q->page;
+ #ifdef CONFIG_BLK_DEV_INITRD
+ 	if (initrd_start && !initrd_below_start_ok &&
+-			initrd_start < min_low_pfn << PAGE_SHIFT) {
++			virt_to_pfn(initrd_start) < min_low_pfn) {
+ 		printk(KERN_CRIT "initrd overwritten (0x%08lx < 0x%08lx) - "
+-		    "disabling it.\n",initrd_start,min_low_pfn << PAGE_SHIFT);
++		    "disabling it.\n", virt_to_pfn(initrd_start), min_low_pfn);
+ 		initrd_start = 0;
+ 	}
+ #endif
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
-sparsemem-make-sparsemem_vmemmap-selectable.patch
-mm-sparsec-check-the-return-value-of-sparse_index_alloc.patch
-mm-sparsec-improve-the-error-handling-for-sparse_add_one_section.patch
-slub-remove-useless-masking-of-gfp_zero.patch
-quicklist-set-tlb-need_flush-if-pages-are-remaining-in-quicklist-0.patch
-quicklists-do-not-release-off-node-pages-early.patch
-ia64-slim-down-__clear_bit_unlock.patch
-git-sched.patch
-git-unionfs.patch
-git-x86.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-move-vmalloc_to_page-to-mm-vmalloc.patch
-vmalloc-add-const-to-void-parameters.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries.patch
-vmalloc-clean-up-page-array-indexing.patch
-vunmap-return-page-array-passed-on-vmap.patch
-slub-move-count_partial.patch
-slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio.patch
-slub-consolidate-add_partial-and-add_partial_tail-to-one-function.patch
-slub-use-non-atomic-bit-unlock.patch
-slub-fix-coding-style-violations.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-noinline-some-functions-to-avoid-them-being-folded-into-alloc-free.patch
-slub-move-kmem_cache_node-determination-into-add_full-and-add_partial.patch
-slub-move-kmem_cache_node-determination-into-add_full-and-add_partial-slub-workaround-for-lockdep-confusion.patch
-slub-avoid-checking-for-a-valid-object-before-zeroing-on-the-fast-path.patch
-slub-__slab_alloc-exit-path-consolidation.patch
-slub-provide-unique-end-marker-for-each-slab.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-avoid-referencing-kmem_cache-structure-in-__slab_alloc.patch
-slub-optional-fast-path-using-cmpxchg_local.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-fix.patch
-slub-restructure-slab-alloc.patch
-slub-comment-kmem_cache_cpu-structure.patch
-vm-allow-get_page_unless_zero-on-compound-pages.patch
-bufferhead-revert-constructor-removal.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-swapin_readahead-excise-numa-bogosity.patch
-page-allocator-clean-up-pcp-draining-functions.patch
-vmstat-small-revisions-to-refresh_cpu_vm_stats.patch
-page-allocator-get-rid-of-the-list-of-cold-pages.patch
-page-allocator-get-rid-of-the-list-of-cold-pages-fix.patch
-vmstat-remove-prefetch.patch
-percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-oom-add-sysctl-to-enable-task-memory-dump.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-bugfix-for-memory-cgroup-per-zone-struct-allocation.patch
-add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
-add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
-dentries-extract-common-code-to-remove-dentry-from-lru.patch
-dentries-extract-common-code-to-remove-dentry-from-lru-fix.patch
-modules-handle-symbols-that-have-a-zero-value.patch
-modules-include-sectionsh-to-avoid-defining-linker-variables.patch
-modules-fold-percpu_modcopy-into-modulec-and-get-rid-of-the-macro-from-hell.patch
-reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
-page-owner-tracking-leak-detector.patch
+initrd-fix-virtual-physical-mix-up-in-overwrite-test.patch
+sdio-fix-module-device-table-definition-for-m68k.patch
+git-scsi-misc.patch
+m68k-use-cc-cross-prefix.patch
+m68k-array_size-cleanup.patch
+dio-array_size-cleanup.patch
+dio-array_size-cleanup-update.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+m68k-balance-ioremap-and-iounmap-in-m68k-atari-hades-pcic.patch
+nubus-kill-drivers-nubus-nubus_symsc.patch
+m68k-kill-arch-m68k-mac-mac_ksymsc.patch
+m68k-kill-arch-m68k-hp300-ksymsc.patch
+m68k-kill-arch-m68k-amiga-amiga_ksymsc.patch
+m68k-kill-arch-m68k-atari-atari_ksymsc.patch
+m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch
+mac68k-macii-adb-comment-correction.patch
+mac68k-remove-dead-code.patch
+mac68k-add-nubus-card-definitions-and-a-typo-fix.patch
+mac68k-remove-dead-mac_adbkeycodes.patch
+uml-borrow-consth-techniques.patch
+remove-pointless-casts-from-void-pointers.patch
+cleanup-after-apus-removal.patch
+amiga-serial-driver-port_write_mutex-fixup.patch
+add-cmpxchg_local-to-m86k.patch
