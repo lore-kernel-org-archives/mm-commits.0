@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-net-vs-git-lblnet-2.patch added to -mm tree
-Date: Tue, 18 Dec 2007 03:15:15 -0800
-Message-ID: <200712181115.lBIBFFll032106@imap1.linux-foundation.org>
+Subject: + gregkh-driver-kobject-change-drivers-cpuidle-sysfsc-to-use-kobject_init_and_add-fix.patch added to -mm tree
+Date: Tue, 18 Dec 2007 03:17:03 -0800
+Message-ID: <200712181117.lBIBH35I032135@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41958 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38880 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752630AbXLRLPa (ORCPT
+	by vger.kernel.org with ESMTP id S1753780AbXLRLRG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Dec 2007 06:15:30 -0500
+	Tue, 18 Dec 2007 06:17:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, kaber@trash.net, paul.moore@hp.com
+Cc: akpm@linux-foundation.org, greg@kroah.com
 
 
 The patch titled
-     git-net-vs-git-lblnet-2
+     gregkh-driver-kobject-change-drivers-cpuidle-sysfsc-to-use-kobject_init_and_add-fix
 has been added to the -mm tree.  Its filename is
-     git-net-vs-git-lblnet-2.patch
+     gregkh-driver-kobject-change-drivers-cpuidle-sysfsc-to-use-kobject_init_and_add-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,41 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-net-vs-git-lblnet-2
+Subject: gregkh-driver-kobject-change-drivers-cpuidle-sysfsc-to-use-kobject_init_and_add-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-everyone hates me.
+drivers/cpuidle/sysfs.c: In function 'cpuidle_add_sysfs':
+drivers/cpuidle/sysfs.c:348: warning: no return statement in function returning non-void
+drivers/cpuidle/sysfs.c:348: warning: control reaches end of non-void function
 
-Cc: Paul Moore <paul.moore@hp.com>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/selinux/hooks.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/cpuidle/sysfs.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN security/selinux/hooks.c~git-net-vs-git-lblnet-2 security/selinux/hooks.c
---- a/security/selinux/hooks.c~git-net-vs-git-lblnet-2
-+++ a/security/selinux/hooks.c
-@@ -5200,7 +5200,7 @@ static struct nf_hook_ops selinux_ipv4_o
- 		.hook =		selinux_ipv4_forward,
- 		.owner =	THIS_MODULE,
- 		.pf =		PF_INET,
--		.hooknum =	NF_IP_FORWARD,
-+		.hooknum =	NF_INET_FORWARD,
- 		.priority =	NF_IP_PRI_SELINUX_FIRST,
- 	}
- };
-@@ -5219,7 +5219,7 @@ static struct nf_hook_ops selinux_ipv6_o
- 		.hook =		selinux_ipv6_forward,
- 		.owner =	THIS_MODULE,
- 		.pf =		PF_INET6,
--		.hooknum =	NF_IP6_FORWARD,
-+		.hooknum =	NF_INET_FORWARD,
- 		.priority =	NF_IP6_PRI_SELINUX_FIRST,
- 	}
- };
+diff -puN drivers/cpuidle/sysfs.c~gregkh-driver-kobject-change-drivers-cpuidle-sysfsc-to-use-kobject_init_and_add-fix drivers/cpuidle/sysfs.c
+--- a/drivers/cpuidle/sysfs.c~gregkh-driver-kobject-change-drivers-cpuidle-sysfsc-to-use-kobject_init_and_add-fix
++++ a/drivers/cpuidle/sysfs.c
+@@ -345,6 +345,7 @@ int cpuidle_add_sysfs(struct sys_device 
+ 				     "cpuidle");
+ 	if (!error)
+ 		kobject_uevent(&dev->kobj, KOBJ_ADD);
++	return error;
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -88,6 +78,7 @@ git-arm.patch
 kernel-auditc-warning-fix.patch
 git-cpufreq.patch
 ppc-chrp-fix-possible-null-pointer-dereference.patch
+gregkh-driver-kobject-change-drivers-cpuidle-sysfsc-to-use-kobject_init_and_add-fix.patch
 revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
 gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
 unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
