@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + tmpfs-move-swap_state-stats-update.patch added to -mm tree
-Date: Tue, 18 Dec 2007 14:32:01 -0800
-Message-ID: <200712182232.lBIMW1uj025319@imap1.linux-foundation.org>
+Subject: + tmpfs-shuffle-add_to_swap_caches.patch added to -mm tree
+Date: Tue, 18 Dec 2007 14:32:22 -0800
+Message-ID: <200712182232.lBIMWMI6025337@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53547 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35296 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752256AbXLRWcI (ORCPT
+	by vger.kernel.org with ESMTP id S1752641AbXLRWce (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Dec 2007 17:32:08 -0500
+	Tue, 18 Dec 2007 17:32:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hugh@veritas.com
 
 
 The patch titled
-     tmpfs: move swap_state stats update
+     tmpfs: shuffle add_to_swap_caches
 has been added to the -mm tree.  Its filename is
-     tmpfs-move-swap_state-stats-update.patch
+     tmpfs-shuffle-add_to_swap_caches.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,103 +26,127 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: tmpfs: move swap_state stats update
+Subject: tmpfs: shuffle add_to_swap_caches
 From: Hugh Dickins <hugh@veritas.com>
 
-Both unionfs and memcgroups pose challenges to tmpfs and shmem.  To help fix,
-it's best to move the swap swizzling functions from swap_state.c to shmem.c. 
-As a preliminary to that, move swap stats updating down into
-__add_to_swap_cache, which will remain internal to swap_state.c.
+add_to_swap_cache doesn't amount to much: merge it into its sole caller
+read_swap_cache_async.  But we'll be needing to call __add_to_swap_cache from
+shmem.c, so promote it to the new add_to_swap_cache.  Both were static, so
+there's no interface confusion to worry about.
 
-Well, actually, just move down the incrementation of add_total: remove
-noent_race and exist_race completely, they are relics of my 2.4.11 testing. 
-Alt-SysRq-m users will be thrilled if 2.6.25 is at last free of "race M+N"s.
+And lose that inappropriate "Anon pages are already on the LRU" comment in the
+merging: they're not already on the LRU, as Nick Piggin noticed.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |   22 ++++++----------------
- 1 file changed, 6 insertions(+), 16 deletions(-)
+ mm/swap_state.c |   53 ++++++++++++++++------------------------------
+ 1 file changed, 19 insertions(+), 34 deletions(-)
 
-diff -puN mm/swap_state.c~tmpfs-move-swap_state-stats-update mm/swap_state.c
---- a/mm/swap_state.c~tmpfs-move-swap_state-stats-update
+diff -puN mm/swap_state.c~tmpfs-shuffle-add_to_swap_caches mm/swap_state.c
+--- a/mm/swap_state.c~tmpfs-shuffle-add_to_swap_caches
 +++ a/mm/swap_state.c
-@@ -52,16 +52,13 @@ static struct {
- 	unsigned long del_total;
- 	unsigned long find_success;
- 	unsigned long find_total;
--	unsigned long noent_race;
--	unsigned long exist_race;
- } swap_cache_info;
+@@ -64,10 +64,10 @@ void show_swap_cache_info(void)
+ }
  
- void show_swap_cache_info(void)
+ /*
+- * __add_to_swap_cache resembles add_to_page_cache on swapper_space,
++ * add_to_swap_cache resembles add_to_page_cache on swapper_space,
+  * but sets SwapCache flag and private instead of mapping and index.
+  */
+-static int __add_to_swap_cache(struct page *page, swp_entry_t entry,
++static int add_to_swap_cache(struct page *page, swp_entry_t entry,
+ 			       gfp_t gfp_mask)
  {
--	printk("Swap cache: add %lu, delete %lu, find %lu/%lu, race %lu+%lu\n",
-+	printk("Swap cache: add %lu, delete %lu, find %lu/%lu\n",
- 		swap_cache_info.add_total, swap_cache_info.del_total,
--		swap_cache_info.find_success, swap_cache_info.find_total,
--		swap_cache_info.noent_race, swap_cache_info.exist_race);
-+		swap_cache_info.find_success, swap_cache_info.find_total);
- 	printk("Free swap  = %lukB\n", nr_swap_pages << (PAGE_SHIFT - 10));
- 	printk("Total swap = %lukB\n", total_swap_pages << (PAGE_SHIFT - 10));
- }
-@@ -89,6 +86,7 @@ static int __add_to_swap_cache(struct pa
- 			set_page_private(page, entry.val);
- 			total_swapcache_pages++;
- 			__inc_zone_page_state(page, NR_FILE_PAGES);
-+			INC_CACHE_INFO(add_total);
- 		}
- 		write_unlock_irq(&swapper_space.tree_lock);
- 		radix_tree_preload_end();
-@@ -102,10 +100,9 @@ static int add_to_swap_cache(struct page
  	int error;
+@@ -94,28 +94,6 @@ static int __add_to_swap_cache(struct pa
+ 	return error;
+ }
  
- 	BUG_ON(PageLocked(page));
--	if (!swap_duplicate(entry)) {
--		INC_CACHE_INFO(noent_race);
-+	if (!swap_duplicate(entry))
- 		return -ENOENT;
+-static int add_to_swap_cache(struct page *page, swp_entry_t entry,
+-				gfp_t gfp_mask)
+-{
+-	int error;
+-
+-	BUG_ON(PageLocked(page));
+-	if (!swap_duplicate(entry))
+-		return -ENOENT;
+-
+-	SetPageLocked(page);
+-	error = __add_to_swap_cache(page, entry, gfp_mask & GFP_KERNEL);
+-	/*
+-	 * Anon pages are already on the LRU, we don't run lru_cache_add here.
+-	 */
+-	if (error) {
+-		ClearPageLocked(page);
+-		swap_free(entry);
+-		return error;
 -	}
+-	return 0;
+-}
+-
+ /*
+  * This must be called only on pages that have
+  * been verified to be in the swap cache.
+@@ -165,7 +143,7 @@ int add_to_swap(struct page * page, gfp_
+ 		/*
+ 		 * Add it to the swap cache and mark it dirty
+ 		 */
+-		err = __add_to_swap_cache(page, entry,
++		err = add_to_swap_cache(page, entry,
+ 				gfp_mask|__GFP_NOMEMALLOC|__GFP_NOWARN);
+ 
+ 		switch (err) {
+@@ -210,7 +188,7 @@ void delete_from_swap_cache(struct page 
+  */
+ int move_to_swap_cache(struct page *page, swp_entry_t entry)
+ {
+-	int err = __add_to_swap_cache(page, entry, GFP_ATOMIC);
++	int err = add_to_swap_cache(page, entry, GFP_ATOMIC);
+ 	if (!err) {
+ 		remove_from_page_cache(page);
+ 		page_cache_release(page);	/* pagecache ref */
+@@ -335,16 +313,21 @@ struct page *read_swap_cache_async(swp_e
+ 		}
+ 
+ 		/*
++		 * Swap entry may have been freed since our caller observed it.
++		 */
++		if (!swap_duplicate(entry))
++			break;
 +
- 	SetPageLocked(page);
- 	error = __add_to_swap_cache(page, entry, gfp_mask & GFP_KERNEL);
- 	/*
-@@ -114,11 +111,8 @@ static int add_to_swap_cache(struct page
- 	if (error) {
- 		ClearPageLocked(page);
- 		swap_free(entry);
--		if (error == -EEXIST)
--			INC_CACHE_INFO(exist_race);
- 		return error;
- 	}
--	INC_CACHE_INFO(add_total);
- 	return 0;
- }
++		/*
+ 		 * Associate the page with swap entry in the swap cache.
+-		 * May fail (-ENOENT) if swap entry has been freed since
+-		 * our caller observed it.  May fail (-EEXIST) if there
+-		 * is already a page associated with this entry in the
+-		 * swap cache: added by a racing read_swap_cache_async,
+-		 * or by try_to_swap_out (or shmem_writepage) re-using
+-		 * the just freed swap entry for an existing page.
++		 * May fail (-EEXIST) if there is already a page associated
++		 * with this entry in the swap cache: added by a racing
++		 * read_swap_cache_async, or add_to_swap or shmem_writepage
++		 * re-using the just freed swap entry for an existing page.
+ 		 * May fail (-ENOMEM) if radix-tree node allocation failed.
+ 		 */
+-		err = add_to_swap_cache(new_page, entry, gfp_mask);
++		SetPageLocked(new_page);
++		err = add_to_swap_cache(new_page, entry, gfp_mask & GFP_KERNEL);
+ 		if (!err) {
+ 			/*
+ 			 * Initiate read into locked page and return.
+@@ -353,7 +336,9 @@ struct page *read_swap_cache_async(swp_e
+ 			swap_readpage(NULL, new_page);
+ 			return new_page;
+ 		}
+-	} while (err != -ENOENT && err != -ENOMEM);
++		ClearPageLocked(new_page);
++		swap_free(entry);
++	} while (err != -ENOMEM);
  
-@@ -178,11 +172,9 @@ int add_to_swap(struct page * page, gfp_
- 		case 0:				/* Success */
- 			SetPageUptodate(page);
- 			SetPageDirty(page);
--			INC_CACHE_INFO(add_total);
- 			return 1;
- 		case -EEXIST:
- 			/* Raced with "speculative" read_swap_cache_async */
--			INC_CACHE_INFO(exist_race);
- 			swap_free(entry);
- 			continue;
- 		default:
-@@ -225,9 +217,7 @@ int move_to_swap_cache(struct page *page
- 		if (!swap_duplicate(entry))
- 			BUG();
- 		SetPageDirty(page);
--		INC_CACHE_INFO(add_total);
--	} else if (err == -EEXIST)
--		INC_CACHE_INFO(exist_race);
-+	}
- 	return err;
- }
- 
+ 	if (new_page)
+ 		page_cache_release(new_page);
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
