@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + tmpfs-move-swap-swizzling-into-shmem.patch added to -mm tree
-Date: Tue, 18 Dec 2007 14:32:53 -0800
-Message-ID: <200712182232.lBIMWr92025345@imap1.linux-foundation.org>
+Subject: + tmpfs-allocate-on-read-when-stacked.patch added to -mm tree
+Date: Tue, 18 Dec 2007 14:33:25 -0800
+Message-ID: <200712182233.lBIMXPfh025444@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48471 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47141 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752658AbXLRWc7 (ORCPT
+	by vger.kernel.org with ESMTP id S1751135AbXLRWdd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Dec 2007 17:32:59 -0500
+	Tue, 18 Dec 2007 17:33:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hugh@veritas.com
 
 
 The patch titled
-     tmpfs: move swap swizzling into shmem
+     tmpfs: allocate on read when stacked
 has been added to the -mm tree.  Its filename is
-     tmpfs-move-swap-swizzling-into-shmem.patch
+     tmpfs-allocate-on-read-when-stacked.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,169 +26,78 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: tmpfs: move swap swizzling into shmem
+Subject: tmpfs: allocate on read when stacked
 From: Hugh Dickins <hugh@veritas.com>
 
-move_to_swap_cache and move_from_swap_cache functions (which swizzle a page
-between tmpfs page cache and swap cache, to avoid page copying) are only used
-by shmem.c; and our subsequent fix for unionfs needs different treatments in
-the two instances of move_from_swap_cache.  Move them from swap_state.c into
-their callsites shmem_writepage, shmem_unuse_inode and shmem_getpage, making
-add_to_swap_cache externally visible.
+tmpfs is expected to limit the memory used (unless mounted with nr_blocks=0 or
+size=0).  But if a stacked filesystem such as unionfs gets pages from a sparse
+tmpfs file by reading holes, and then writes to them, it can easily exceed any
+such limit at present.
 
-shmem.c likes to say set_page_dirty where swap_state.c liked to say
-SetPageDirty: respect that diversity, which __set_page_dirty_no_writeback
-makes moot (and implies we should lose that "shift page from clean_pages to
-dirty_pages list" comment: it's on neither).
+So suppress the SGP_READ "don't allocate page" ZERO_PAGE optimization when
+reading for the kernel (a KERNEL_DS check, ugh, sorry about that).  Indeed,
+pessimistically mark such pages as dirty, so they cannot get reclaimed and
+unaccounted by mistake.  The venerable shmem_recalc_inode code (originally to
+account for the reclaim of clean pages) suffices to get the accounting right
+when swappages are dropped in favour of more uptodate filepages.
+
+This also fixes the NULL shmem_swp_entry BUG or oops in shmem_writepage,
+caused by unionfs writing to a very sparse tmpfs file: to minimize memory
+allocation in swapout, tmpfs requires the swap vector be allocated upfront,
+which wasn't always happening in this stacked case.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |   15 ++++-----------
- mm/shmem.c           |   16 ++++++++++++----
- mm/swap_state.c      |   35 +----------------------------------
- 3 files changed, 17 insertions(+), 49 deletions(-)
+ mm/shmem.c |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/swap.h~tmpfs-move-swap-swizzling-into-shmem include/linux/swap.h
---- a/include/linux/swap.h~tmpfs-move-swap-swizzling-into-shmem
-+++ a/include/linux/swap.h
-@@ -220,11 +220,9 @@ extern struct address_space swapper_spac
- #define total_swapcache_pages  swapper_space.nrpages
- extern void show_swap_cache_info(void);
- extern int add_to_swap(struct page *, gfp_t);
-+extern int add_to_swap_cache(struct page *, swp_entry_t, gfp_t);
- extern void __delete_from_swap_cache(struct page *);
- extern void delete_from_swap_cache(struct page *);
--extern int move_to_swap_cache(struct page *, swp_entry_t);
--extern int move_from_swap_cache(struct page *, unsigned long,
--		struct address_space *);
- extern void free_page_and_swap_cache(struct page *);
- extern void free_pages_and_swap_cache(struct page **, int);
- extern struct page *lookup_swap_cache(swp_entry_t);
-@@ -319,15 +317,10 @@ static inline struct page *lookup_swap_c
- 
- #define can_share_swap_page(p)			(page_mapcount(p) == 1)
- 
--static inline int move_to_swap_cache(struct page *page, swp_entry_t entry)
-+static inline int add_to_swap_cache(struct page *page, swp_entry_t entry,
-+							gfp_t gfp_mask)
- {
--	return 1;
--}
--
--static inline int move_from_swap_cache(struct page *page, unsigned long index,
--					struct address_space *mapping)
--{
--	return 1;
-+	return -1;
- }
- 
- static inline void __delete_from_swap_cache(struct page *page)
-diff -puN mm/shmem.c~tmpfs-move-swap-swizzling-into-shmem mm/shmem.c
---- a/mm/shmem.c~tmpfs-move-swap-swizzling-into-shmem
+diff -puN mm/shmem.c~tmpfs-allocate-on-read-when-stacked mm/shmem.c
+--- a/mm/shmem.c~tmpfs-allocate-on-read-when-stacked
 +++ a/mm/shmem.c
-@@ -884,7 +884,9 @@ lost2:
- found:
- 	idx += offset;
- 	inode = &info->vfs_inode;
--	if (move_from_swap_cache(page, idx, inode->i_mapping) == 0) {
-+	if (add_to_page_cache(page, inode->i_mapping, idx, GFP_ATOMIC) == 0) {
-+		delete_from_swap_cache(page);
-+		set_page_dirty(page);
- 		info->flags |= SHMEM_PAGEIN;
- 		shmem_swp_set(info, ptr + offset, 0);
- 	}
-@@ -972,7 +974,8 @@ static int shmem_writepage(struct page *
- 	BUG_ON(!entry);
- 	BUG_ON(entry->val);
+@@ -80,6 +80,7 @@
+ enum sgp_type {
+ 	SGP_READ,	/* don't exceed i_size, don't allocate page */
+ 	SGP_CACHE,	/* don't exceed i_size, may allocate page */
++	SGP_DIRTY,	/* like SGP_CACHE, but set new page dirty */
+ 	SGP_WRITE,	/* may exceed i_size, may allocate page */
+ };
  
--	if (move_to_swap_cache(page, swap) == 0) {
-+	if (add_to_swap_cache(page, swap, GFP_ATOMIC) == 0) {
-+		remove_from_page_cache(page);
- 		shmem_swp_set(info, entry, swap.val);
- 		shmem_swp_unmap(entry);
- 		spin_unlock(&info->lock);
-@@ -982,6 +985,9 @@ static int shmem_writepage(struct page *
- 			list_move_tail(&info->swaplist, &shmem_swaplist);
- 			spin_unlock(&shmem_swaplist_lock);
- 		}
-+		swap_duplicate(swap);
-+		page_cache_release(page);	/* pagecache ref */
-+		set_page_dirty(page);
- 		unlock_page(page);
- 		return 0;
- 	}
-@@ -1217,13 +1223,15 @@ repeat:
- 			SetPageUptodate(filepage);
- 			set_page_dirty(filepage);
- 			swap_free(swap);
--		} else if (!(error = move_from_swap_cache(
--				swappage, idx, mapping))) {
-+		} else if (!(error = add_to_page_cache(
-+				swappage, mapping, idx, GFP_ATOMIC))) {
- 			info->flags |= SHMEM_PAGEIN;
- 			shmem_swp_set(info, entry, 0);
- 			shmem_swp_unmap(entry);
-+			delete_from_swap_cache(swappage);
- 			spin_unlock(&info->lock);
- 			filepage = swappage;
+@@ -1333,6 +1334,8 @@ repeat:
+ 		clear_highpage(filepage);
+ 		flush_dcache_page(filepage);
+ 		SetPageUptodate(filepage);
++		if (sgp == SGP_DIRTY)
 +			set_page_dirty(filepage);
- 			swap_free(swap);
- 		} else {
- 			shmem_swp_unmap(entry);
-diff -puN mm/swap_state.c~tmpfs-move-swap-swizzling-into-shmem mm/swap_state.c
---- a/mm/swap_state.c~tmpfs-move-swap-swizzling-into-shmem
-+++ a/mm/swap_state.c
-@@ -67,8 +67,7 @@ void show_swap_cache_info(void)
-  * add_to_swap_cache resembles add_to_page_cache on swapper_space,
-  * but sets SwapCache flag and private instead of mapping and index.
-  */
--static int add_to_swap_cache(struct page *page, swp_entry_t entry,
--			       gfp_t gfp_mask)
-+int add_to_swap_cache(struct page *page, swp_entry_t entry, gfp_t gfp_mask)
- {
- 	int error;
+ 	}
+ done:
+ 	*pagep = filepage;
+@@ -1518,6 +1521,15 @@ static void do_shmem_file_read(struct fi
+ 	struct inode *inode = filp->f_path.dentry->d_inode;
+ 	struct address_space *mapping = inode->i_mapping;
+ 	unsigned long index, offset;
++	enum sgp_type sgp = SGP_READ;
++
++	/*
++	 * Might this read be for a stacking filesystem?  Then when reading
++	 * holes of a sparse file, we actually need to allocate those pages,
++	 * and even mark them dirty, so it cannot exceed the max_blocks limit.
++	 */
++	if (segment_eq(get_fs(), KERNEL_DS))
++		sgp = SGP_DIRTY;
  
-@@ -183,38 +182,6 @@ void delete_from_swap_cache(struct page 
- 	page_cache_release(page);
- }
+ 	index = *ppos >> PAGE_CACHE_SHIFT;
+ 	offset = *ppos & ~PAGE_CACHE_MASK;
+@@ -1536,7 +1548,7 @@ static void do_shmem_file_read(struct fi
+ 				break;
+ 		}
  
--/*
-- * Strange swizzling function only for use by shmem_writepage
-- */
--int move_to_swap_cache(struct page *page, swp_entry_t entry)
--{
--	int err = add_to_swap_cache(page, entry, GFP_ATOMIC);
--	if (!err) {
--		remove_from_page_cache(page);
--		page_cache_release(page);	/* pagecache ref */
--		if (!swap_duplicate(entry))
--			BUG();
--		SetPageDirty(page);
--	}
--	return err;
--}
--
--/*
-- * Strange swizzling function for shmem_getpage (and shmem_unuse)
-- */
--int move_from_swap_cache(struct page *page, unsigned long index,
--		struct address_space *mapping)
--{
--	int err = add_to_page_cache(page, mapping, index, GFP_ATOMIC);
--	if (!err) {
--		delete_from_swap_cache(page);
--		/* shift page from clean_pages to dirty_pages list */
--		ClearPageDirty(page);
--		set_page_dirty(page);
--	}
--	return err;
--}
--
- /* 
-  * If we are the only user, then try to free up the swap cache. 
-  * 
+-		desc->error = shmem_getpage(inode, index, &page, SGP_READ, NULL);
++		desc->error = shmem_getpage(inode, index, &page, sgp, NULL);
+ 		if (desc->error) {
+ 			if (desc->error == -EINVAL)
+ 				desc->error = 0;
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
