@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + tmpfs-make-shmem_unuse-more-preemptible.patch added to -mm tree
-Date: Tue, 18 Dec 2007 14:33:50 -0800
-Message-ID: <200712182233.lBIMXoRa025473@imap1.linux-foundation.org>
+Subject: + tmpfs-open-a-window-in-shmem_unuse_inode.patch added to -mm tree
+Date: Tue, 18 Dec 2007 14:34:14 -0800
+Message-ID: <200712182234.lBIMYENB025483@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42373 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52482 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752988AbXLRWd4 (ORCPT
+	by vger.kernel.org with ESMTP id S1753459AbXLRWeU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Dec 2007 17:33:56 -0500
+	Tue, 18 Dec 2007 17:34:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hugh@veritas.com
 
 
 The patch titled
-     tmpfs: make shmem_unuse more preemptible
+     tmpfs: open a window in shmem_unuse_inode
 has been added to the -mm tree.  Its filename is
-     tmpfs-make-shmem_unuse-more-preemptible.patch
+     tmpfs-open-a-window-in-shmem_unuse_inode.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,104 +26,194 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: tmpfs: make shmem_unuse more preemptible
+Subject: tmpfs: open a window in shmem_unuse_inode
 From: Hugh Dickins <hugh@veritas.com>
 
-shmem_unuse is at present an unbroken search through every swap vector page of
-every tmpfs file which might be swapped, all under shmem_swaplist_lock.  This
-dates from long ago, when the caller held mmlist_lock over it all too: long
-gone, but there's never been much pressure for preemptible swapoff.
+There are a couple of reasons (patches follow) why it would be good to open a
+window for sleep in shmem_unuse_inode, between its search for a matching swap
+entry, and its handling of the entry found.
 
-Make it a little more preemptible, replacing shmem_swaplist_lock by
-shmem_swaplist_mutex, inserting a cond_resched in the main loop, and a
-cond_resched_lock (on info->lock) at one convenient point in the
-shmem_unuse_inode loop, where it has no outstanding kmap_atomic.
+shmem_unuse_inode must then use igrab to hold the inode against deletion in
+that window, and its corresponding iput might result in deletion: so it had
+better unlock_page before the iput, and might as well release the page too.
 
-If we're serious about preemptible swapoff, there's much further to go e.g. 
-I'm stupid to let the kmap_atomics of the decreasingly significant HIGHMEM
-case dictate preemptiblility for other configs.  But as in the earlier patch
-to make swapoff scan ptes preemptibly, my hidden agenda is really towards
-making memcgroups work, hardly about preemptibility at all.
+Nor is there any need to hold on to shmem_swaplist_mutex once we know we'll
+leave the loop.  So this unwinding moves from try_to_unuse and shmem_unuse
+into shmem_unuse_inode, in the case when it finds a match.
+
+Let try_to_unuse break on error in the shmem_unuse case, as it does in the
+unuse_mm case: though at this point in the series, no error to break on.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   23 ++++++++++++++++-------
- 1 file changed, 16 insertions(+), 7 deletions(-)
+ mm/shmem.c    |   57 +++++++++++++++++++++++++++++-------------------
+ mm/swapfile.c |   23 ++++++++-----------
+ 2 files changed, 45 insertions(+), 35 deletions(-)
 
-diff -puN mm/shmem.c~tmpfs-make-shmem_unuse-more-preemptible mm/shmem.c
---- a/mm/shmem.c~tmpfs-make-shmem_unuse-more-preemptible
+diff -puN mm/shmem.c~tmpfs-open-a-window-in-shmem_unuse_inode mm/shmem.c
+--- a/mm/shmem.c~tmpfs-open-a-window-in-shmem_unuse_inode
 +++ a/mm/shmem.c
-@@ -193,7 +193,7 @@ static struct backing_dev_info shmem_bac
- };
+@@ -838,10 +838,8 @@ static int shmem_unuse_inode(struct shme
+ 	if (size > SHMEM_NR_DIRECT)
+ 		size = SHMEM_NR_DIRECT;
+ 	offset = shmem_find_swp(entry, ptr, ptr+size);
+-	if (offset >= 0) {
+-		shmem_swp_balance_unmap();
++	if (offset >= 0)
+ 		goto found;
+-	}
+ 	if (!info->i_indirect)
+ 		goto lost2;
  
- static LIST_HEAD(shmem_swaplist);
--static DEFINE_SPINLOCK(shmem_swaplist_lock);
-+static DEFINE_MUTEX(shmem_swaplist_mutex);
- 
- static void shmem_free_blocks(struct inode *inode, long pages)
- {
-@@ -796,9 +796,9 @@ static void shmem_delete_inode(struct in
- 		inode->i_size = 0;
- 		shmem_truncate(inode);
- 		if (!list_empty(&info->swaplist)) {
--			spin_lock(&shmem_swaplist_lock);
-+			mutex_lock(&shmem_swaplist_mutex);
- 			list_del_init(&info->swaplist);
--			spin_unlock(&shmem_swaplist_lock);
-+			mutex_unlock(&shmem_swaplist_mutex);
+@@ -879,11 +877,11 @@ static int shmem_unuse_inode(struct shme
+ 			if (size > ENTRIES_PER_PAGE)
+ 				size = ENTRIES_PER_PAGE;
+ 			offset = shmem_find_swp(entry, ptr, ptr+size);
++			shmem_swp_unmap(ptr);
+ 			if (offset >= 0) {
+ 				shmem_dir_unmap(dir);
+ 				goto found;
+ 			}
+-			shmem_swp_unmap(ptr);
  		}
  	}
- 	BUG_ON(inode->i_blocks);
-@@ -851,6 +851,14 @@ static int shmem_unuse_inode(struct shme
- 	for (idx = SHMEM_NR_DIRECT; idx < limit; idx += ENTRIES_PER_PAGE, dir++) {
- 		if (unlikely(idx == stage)) {
- 			shmem_dir_unmap(dir-1);
-+			if (cond_resched_lock(&info->lock)) {
-+				/* check it has not been truncated */
-+				if (limit > info->next_index) {
-+					limit = info->next_index;
-+					if (idx >= limit)
-+						goto lost2;
-+				}
-+			}
- 			dir = shmem_dir_map(info->i_indirect) +
- 			    ENTRIES_PER_PAGE/2 + idx/ENTRIES_PER_PAGEPAGE;
- 			while (!*dir) {
-@@ -924,7 +932,7 @@ int shmem_unuse(swp_entry_t entry, struc
- 	struct shmem_inode_info *info;
- 	int found = 0;
- 
--	spin_lock(&shmem_swaplist_lock);
-+	mutex_lock(&shmem_swaplist_mutex);
- 	list_for_each_safe(p, next, &shmem_swaplist) {
- 		info = list_entry(p, struct shmem_inode_info, swaplist);
- 		if (!info->swapped)
-@@ -935,8 +943,9 @@ int shmem_unuse(swp_entry_t entry, struc
- 			found = 1;
- 			break;
- 		}
-+		cond_resched();
- 	}
--	spin_unlock(&shmem_swaplist_lock);
+ lost1:
+@@ -893,10 +891,25 @@ lost2:
+ 	return 0;
+ found:
+ 	idx += offset;
+-	inode = &info->vfs_inode;
+-	error = add_to_page_cache(page, inode->i_mapping, idx, GFP_ATOMIC);
++	inode = igrab(&info->vfs_inode);
++	spin_unlock(&info->lock);
++
++	/* move head to start search for next from here */
++	list_move_tail(&shmem_swaplist, &info->swaplist);
 +	mutex_unlock(&shmem_swaplist_mutex);
- 	return found;
++
++	error = 1;
++	if (!inode)
++		goto out;
++
++	spin_lock(&info->lock);
++	ptr = shmem_swp_entry(info, idx, NULL);
++	if (ptr && ptr->val == entry.val)
++		error = add_to_page_cache(page, inode->i_mapping,
++						idx, GFP_ATOMIC);
+ 	if (error == -EEXIST) {
+ 		struct page *filepage = find_get_page(inode->i_mapping, idx);
++		error = 1;
+ 		if (filepage) {
+ 			/*
+ 			 * There might be a more uptodate page coming down
+@@ -911,16 +924,18 @@ found:
+ 		delete_from_swap_cache(page);
+ 		set_page_dirty(page);
+ 		info->flags |= SHMEM_PAGEIN;
+-		shmem_swp_set(info, ptr + offset, 0);
++		shmem_swp_set(info, ptr, 0);
++		swap_free(entry);
++		error = 1;	/* not an error, but entry was found */
+ 	}
+-	shmem_swp_unmap(ptr);
++	if (ptr)
++		shmem_swp_unmap(ptr);
+ 	spin_unlock(&info->lock);
+-	/*
+-	 * Decrement swap count even when the entry is left behind:
+-	 * try_to_unuse will skip over mms, then reincrement count.
+-	 */
+-	swap_free(entry);
+-	return 1;
++out:
++	unlock_page(page);
++	page_cache_release(page);
++	iput(inode);		/* allows for NULL */
++	return error;
  }
  
-@@ -996,10 +1005,10 @@ static int shmem_writepage(struct page *
- 		shmem_swp_unmap(entry);
- 		spin_unlock(&info->lock);
- 		if (list_empty(&info->swaplist)) {
--			spin_lock(&shmem_swaplist_lock);
-+			mutex_lock(&shmem_swaplist_mutex);
- 			/* move instead of add in case we're racing */
- 			list_move_tail(&info->swaplist, &shmem_swaplist);
--			spin_unlock(&shmem_swaplist_lock);
-+			mutex_unlock(&shmem_swaplist_mutex);
+ /*
+@@ -935,18 +950,16 @@ int shmem_unuse(swp_entry_t entry, struc
+ 	mutex_lock(&shmem_swaplist_mutex);
+ 	list_for_each_safe(p, next, &shmem_swaplist) {
+ 		info = list_entry(p, struct shmem_inode_info, swaplist);
+-		if (!info->swapped)
++		if (info->swapped)
++			found = shmem_unuse_inode(info, entry, page);
++		else
+ 			list_del_init(&info->swaplist);
+-		else if (shmem_unuse_inode(info, entry, page)) {
+-			/* move head to start search for next from here */
+-			list_move_tail(&shmem_swaplist, &info->swaplist);
+-			found = 1;
+-			break;
+-		}
+ 		cond_resched();
++		if (found)
++			goto out;
+ 	}
+ 	mutex_unlock(&shmem_swaplist_mutex);
+-	return found;
++out:	return found;	/* 0 or 1 or -ENOMEM */
+ }
+ 
+ /*
+diff -puN mm/swapfile.c~tmpfs-open-a-window-in-shmem_unuse_inode mm/swapfile.c
+--- a/mm/swapfile.c~tmpfs-open-a-window-in-shmem_unuse_inode
++++ a/mm/swapfile.c
+@@ -814,7 +814,7 @@ static int try_to_unuse(unsigned int typ
+ 			atomic_inc(&new_start_mm->mm_users);
+ 			atomic_inc(&prev_mm->mm_users);
+ 			spin_lock(&mmlist_lock);
+-			while (*swap_map > 1 && !retval &&
++			while (*swap_map > 1 && !retval && !shmem &&
+ 					(p = p->next) != &start_mm->mmlist) {
+ 				mm = list_entry(p, struct mm_struct, mmlist);
+ 				if (!atomic_inc_not_zero(&mm->mm_users))
+@@ -846,6 +846,13 @@ static int try_to_unuse(unsigned int typ
+ 			mmput(start_mm);
+ 			start_mm = new_start_mm;
  		}
- 		swap_duplicate(swap);
- 		BUG_ON(page_mapped(page));
++		if (shmem) {
++			/* page has already been unlocked and released */
++			if (shmem > 0)
++				continue;
++			retval = shmem;
++			break;
++		}
+ 		if (retval) {
+ 			unlock_page(page);
+ 			page_cache_release(page);
+@@ -884,12 +891,6 @@ static int try_to_unuse(unsigned int typ
+ 		 * read from disk into another page.  Splitting into two
+ 		 * pages would be incorrect if swap supported "shared
+ 		 * private" pages, but they are handled by tmpfs files.
+-		 *
+-		 * Note shmem_unuse already deleted a swappage from
+-		 * the swap cache, unless the move to filepage failed:
+-		 * in which case it left swappage in cache, lowered its
+-		 * swap count to pass quickly through the loops above,
+-		 * and now we must reincrement count to try again later.
+ 		 */
+ 		if ((*swap_map > 1) && PageDirty(page) && PageSwapCache(page)) {
+ 			struct writeback_control wbc = {
+@@ -900,12 +901,8 @@ static int try_to_unuse(unsigned int typ
+ 			lock_page(page);
+ 			wait_on_page_writeback(page);
+ 		}
+-		if (PageSwapCache(page)) {
+-			if (shmem)
+-				swap_duplicate(entry);
+-			else
+-				delete_from_swap_cache(page);
+-		}
++		if (PageSwapCache(page))
++			delete_from_swap_cache(page);
+ 
+ 		/*
+ 		 * So we could skip searching mms once swap count went
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
