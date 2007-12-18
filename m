@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pcmcia-pcnet_cs-fix-shadow-variable-warning.patch added to -mm tree
-Date: Tue, 18 Dec 2007 15:52:52 -0800
-Message-ID: <200712182352.lBINqqpe028307@imap1.linux-foundation.org>
+Subject: + pcmcia-3c574_cs-fix-dubious-bitfield-warning.patch added to -mm tree
+Date: Tue, 18 Dec 2007 15:52:42 -0800
+Message-ID: <200712182352.lBINqgVX028287@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43744 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51809 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754220AbXLRXxe (ORCPT
+	by vger.kernel.org with ESMTP id S1753811AbXLRXx0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Dec 2007 18:53:34 -0500
+	Tue, 18 Dec 2007 18:53:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: ricknu-0@student.ltu.se, alan@redhat.com
 
 
 The patch titled
-     pcmcia/pcnet_cs: fix 'shadow variable' warning
+     pcmcia/3c574_cs: fix dubious bitfield warning
 has been added to the -mm tree.  Its filename is
-     pcmcia-pcnet_cs-fix-shadow-variable-warning.patch
+     pcmcia-3c574_cs-fix-dubious-bitfield-warning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,69 +26,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pcmcia/pcnet_cs: fix 'shadow variable' warning
+Subject: pcmcia/3c574_cs: fix dubious bitfield warning
 From: Richard Knutsson <ricknu-0@student.ltu.se>
 
 Fixing:
-  CHECK   drivers/net/pcmcia/pcnet_cs.c
-drivers/net/pcmcia/pcnet_cs.c:523:15: warning: symbol 'hw_info' shadows an earlier one
-drivers/net/pcmcia/pcnet_cs.c:148:18: originally declared here
+  CHECK   drivers/net/pcmcia/3c574_cs.c
+drivers/net/pcmcia/3c574_cs.c:194:13: warning: dubious bitfield without explicit `signed' or `unsigned'
+drivers/net/pcmcia/3c574_cs.c:196:14: warning: dubious bitfield without explicit `signed' or `unsigned'
 
 Signed-off-by: Richard Knutsson <ricknu-0@student.ltu.se>
-Acked-by: Alan Cox <alan@redhat.com>
+Cc: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/pcmcia/pcnet_cs.c |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ drivers/net/pcmcia/3c574_cs.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/pcmcia/pcnet_cs.c~pcmcia-pcnet_cs-fix-shadow-variable-warning drivers/net/pcmcia/pcnet_cs.c
---- a/drivers/net/pcmcia/pcnet_cs.c~pcmcia-pcnet_cs-fix-shadow-variable-warning
-+++ a/drivers/net/pcmcia/pcnet_cs.c
-@@ -521,7 +521,7 @@ static int pcnet_config(struct pcmcia_de
-     int i, last_ret, last_fn, start_pg, stop_pg, cm_offset;
-     int has_shmem = 0;
-     u_short buf[64];
--    hw_info_t *hw_info;
-+    hw_info_t *local_hw_info;
-     DECLARE_MAC_BUF(mac);
+diff -puN drivers/net/pcmcia/3c574_cs.c~pcmcia-3c574_cs-fix-dubious-bitfield-warning drivers/net/pcmcia/3c574_cs.c
+--- a/drivers/net/pcmcia/3c574_cs.c~pcmcia-3c574_cs-fix-dubious-bitfield-warning
++++ a/drivers/net/pcmcia/3c574_cs.c
+@@ -190,10 +190,10 @@ enum Window3 {			/* Window 3: MAC/config
+ union wn3_config {
+ 	int i;
+ 	struct w3_config_fields {
+-		unsigned int ram_size:3, ram_width:1, ram_speed:2, rom_size:2;
+-		int pad8:8;
+-		unsigned int ram_split:2, pad18:2, xcvr:3, pad21:1, autoselect:1;
+-		int pad24:7;
++		u32 ram_size:3, ram_width:1, ram_speed:2, rom_size:2,
++		    pad8:8,
++		    ram_split:2, pad18:2, xcvr:3, pad21:1,
++		    autoselect:1, pad24:7;
+ 	} u;
+ };
  
-     DEBUG(0, "pcnet_config(0x%p)\n", link);
-@@ -590,23 +590,23 @@ static int pcnet_config(struct pcmcia_de
- 	dev->if_port = 0;
-     }
- 
--    hw_info = get_hwinfo(link);
--    if (hw_info == NULL)
--	hw_info = get_prom(link);
--    if (hw_info == NULL)
--	hw_info = get_dl10019(link);
--    if (hw_info == NULL)
--	hw_info = get_ax88190(link);
--    if (hw_info == NULL)
--	hw_info = get_hwired(link);
-+    local_hw_info = get_hwinfo(link);
-+    if (local_hw_info == NULL)
-+	local_hw_info = get_prom(link);
-+    if (local_hw_info == NULL)
-+	local_hw_info = get_dl10019(link);
-+    if (local_hw_info == NULL)
-+	local_hw_info = get_ax88190(link);
-+    if (local_hw_info == NULL)
-+	local_hw_info = get_hwired(link);
- 
--    if (hw_info == NULL) {
-+    if (local_hw_info == NULL) {
- 	printk(KERN_NOTICE "pcnet_cs: unable to read hardware net"
- 	       " address for io base %#3lx\n", dev->base_addr);
- 	goto failed;
-     }
- 
--    info->flags = hw_info->flags;
-+    info->flags = local_hw_info->flags;
-     /* Check for user overrides */
-     info->flags |= (delay_output) ? DELAY_OUTPUT : 0;
-     if ((link->manf_id == MANFID_SOCKET) &&
 _
 
 Patches currently in -mm which might be from ricknu-0@student.ltu.se are
