@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + tmpfs-open-a-window-in-shmem_unuse_inode.patch added to -mm tree
-Date: Tue, 18 Dec 2007 14:34:14 -0800
-Message-ID: <200712182234.lBIMYENB025483@imap1.linux-foundation.org>
+Subject: + tmpfs-radix_tree_preloading.patch added to -mm tree
+Date: Tue, 18 Dec 2007 14:34:50 -0800
+Message-ID: <200712182234.lBIMYoId025491@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52482 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38864 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753459AbXLRWeU (ORCPT
+	by vger.kernel.org with ESMTP id S1753457AbXLRWe5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Dec 2007 17:34:20 -0500
+	Tue, 18 Dec 2007 17:34:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hugh@veritas.com
 
 
 The patch titled
-     tmpfs: open a window in shmem_unuse_inode
+     tmpfs: radix_tree_preloading
 has been added to the -mm tree.  Its filename is
-     tmpfs-open-a-window-in-shmem_unuse_inode.patch
+     tmpfs-radix_tree_preloading.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,194 +26,112 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: tmpfs: open a window in shmem_unuse_inode
+Subject: tmpfs: radix_tree_preloading
 From: Hugh Dickins <hugh@veritas.com>
 
-There are a couple of reasons (patches follow) why it would be good to open a
-window for sleep in shmem_unuse_inode, between its search for a matching swap
-entry, and its handling of the entry found.
+Nick has observed that shmem.c still uses GFP_ATOMIC when adding to page cache
+or swap cache, without any radix tree preload: so tending to deplete emergency
+reserves of memory.
 
-shmem_unuse_inode must then use igrab to hold the inode against deletion in
-that window, and its corresponding iput might result in deletion: so it had
-better unlock_page before the iput, and might as well release the page too.
+GFP_ATOMIC remains appropriate in shmem_writepage's add_to_swap_cache: it's
+being called under memory pressure, so must not wait for more memory to become
+available.  But shmem_unuse_inode now has a window in which it can and should
+preload with GFP_KERNEL, and say GFP_NOWAIT instead of GFP_ATOMIC in its
+add_to_page_cache.
 
-Nor is there any need to hold on to shmem_swaplist_mutex once we know we'll
-leave the loop.  So this unwinding moves from try_to_unuse and shmem_unuse
-into shmem_unuse_inode, in the case when it finds a match.
+shmem_getpage is not so straightforward: its filepage/swappage integrity
+relies upon exchanging between caches under spinlock, and it would need a lot
+of restructuring to place the preloads correctly.  Instead, follow its pattern
+of retrying on races: use GFP_NOWAIT instead of GFP_ATOMIC in
+add_to_page_cache, and begin each circuit of the repeat loop with a sleeping
+radix_tree_preload, followed immediately by radix_tree_preload_end - that
+won't guarantee success in the next add_to_page_cache, but doesn't need to.
 
-Let try_to_unuse break on error in the shmem_unuse case, as it does in the
-unuse_mm case: though at this point in the series, no error to break on.
+And we can then remove that bothersome congestion_wait: when needed, it'll
+automatically get done in the course of the radix_tree_preload.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c    |   57 +++++++++++++++++++++++++++++-------------------
- mm/swapfile.c |   23 ++++++++-----------
- 2 files changed, 45 insertions(+), 35 deletions(-)
+ mm/shmem.c |   25 ++++++++++++++++++-------
+ 1 file changed, 18 insertions(+), 7 deletions(-)
 
-diff -puN mm/shmem.c~tmpfs-open-a-window-in-shmem_unuse_inode mm/shmem.c
---- a/mm/shmem.c~tmpfs-open-a-window-in-shmem_unuse_inode
+diff -puN mm/shmem.c~tmpfs-radix_tree_preloading mm/shmem.c
+--- a/mm/shmem.c~tmpfs-radix_tree_preloading
 +++ a/mm/shmem.c
-@@ -838,10 +838,8 @@ static int shmem_unuse_inode(struct shme
- 	if (size > SHMEM_NR_DIRECT)
- 		size = SHMEM_NR_DIRECT;
- 	offset = shmem_find_swp(entry, ptr, ptr+size);
--	if (offset >= 0) {
--		shmem_swp_balance_unmap();
-+	if (offset >= 0)
- 		goto found;
--	}
- 	if (!info->i_indirect)
- 		goto lost2;
- 
-@@ -879,11 +877,11 @@ static int shmem_unuse_inode(struct shme
- 			if (size > ENTRIES_PER_PAGE)
- 				size = ENTRIES_PER_PAGE;
- 			offset = shmem_find_swp(entry, ptr, ptr+size);
-+			shmem_swp_unmap(ptr);
- 			if (offset >= 0) {
- 				shmem_dir_unmap(dir);
- 				goto found;
- 			}
--			shmem_swp_unmap(ptr);
- 		}
- 	}
- lost1:
-@@ -893,10 +891,25 @@ lost2:
- 	return 0;
- found:
- 	idx += offset;
--	inode = &info->vfs_inode;
--	error = add_to_page_cache(page, inode->i_mapping, idx, GFP_ATOMIC);
-+	inode = igrab(&info->vfs_inode);
-+	spin_unlock(&info->lock);
-+
-+	/* move head to start search for next from here */
-+	list_move_tail(&shmem_swaplist, &info->swaplist);
-+	mutex_unlock(&shmem_swaplist_mutex);
-+
-+	error = 1;
-+	if (!inode)
+@@ -901,12 +901,16 @@ found:
+ 	error = 1;
+ 	if (!inode)
+ 		goto out;
++	error = radix_tree_preload(GFP_KERNEL);
++	if (error)
 +		goto out;
-+
-+	spin_lock(&info->lock);
-+	ptr = shmem_swp_entry(info, idx, NULL);
-+	if (ptr && ptr->val == entry.val)
-+		error = add_to_page_cache(page, inode->i_mapping,
-+						idx, GFP_ATOMIC);
++	error = 1;
+ 
+ 	spin_lock(&info->lock);
+ 	ptr = shmem_swp_entry(info, idx, NULL);
+ 	if (ptr && ptr->val == entry.val)
+ 		error = add_to_page_cache(page, inode->i_mapping,
+-						idx, GFP_ATOMIC);
++						idx, GFP_NOWAIT);
  	if (error == -EEXIST) {
  		struct page *filepage = find_get_page(inode->i_mapping, idx);
-+		error = 1;
- 		if (filepage) {
- 			/*
- 			 * There might be a more uptodate page coming down
-@@ -911,16 +924,18 @@ found:
- 		delete_from_swap_cache(page);
- 		set_page_dirty(page);
- 		info->flags |= SHMEM_PAGEIN;
--		shmem_swp_set(info, ptr + offset, 0);
-+		shmem_swp_set(info, ptr, 0);
-+		swap_free(entry);
-+		error = 1;	/* not an error, but entry was found */
- 	}
--	shmem_swp_unmap(ptr);
-+	if (ptr)
-+		shmem_swp_unmap(ptr);
+ 		error = 1;
+@@ -931,6 +935,7 @@ found:
+ 	if (ptr)
+ 		shmem_swp_unmap(ptr);
  	spin_unlock(&info->lock);
--	/*
--	 * Decrement swap count even when the entry is left behind:
--	 * try_to_unuse will skip over mms, then reincrement count.
--	 */
--	swap_free(entry);
--	return 1;
-+out:
-+	unlock_page(page);
-+	page_cache_release(page);
-+	iput(inode);		/* allows for NULL */
-+	return error;
- }
++	radix_tree_preload_end();
+ out:
+ 	unlock_page(page);
+ 	page_cache_release(page);
+@@ -1185,6 +1190,16 @@ repeat:
+ 		goto done;
+ 	error = 0;
+ 	gfp = mapping_gfp_mask(mapping);
++	if (!filepage) {
++		/*
++		 * Try to preload while we can wait, to not make a habit of
++		 * draining atomic reserves; but don't latch on to this cpu.
++		 */
++		error = radix_tree_preload(gfp & ~__GFP_HIGHMEM);
++		if (error)
++			goto failed;
++		radix_tree_preload_end();
++	}
  
- /*
-@@ -935,18 +950,16 @@ int shmem_unuse(swp_entry_t entry, struc
- 	mutex_lock(&shmem_swaplist_mutex);
- 	list_for_each_safe(p, next, &shmem_swaplist) {
- 		info = list_entry(p, struct shmem_inode_info, swaplist);
--		if (!info->swapped)
-+		if (info->swapped)
-+			found = shmem_unuse_inode(info, entry, page);
-+		else
- 			list_del_init(&info->swaplist);
--		else if (shmem_unuse_inode(info, entry, page)) {
--			/* move head to start search for next from here */
--			list_move_tail(&shmem_swaplist, &info->swaplist);
--			found = 1;
--			break;
--		}
- 		cond_resched();
-+		if (found)
-+			goto out;
- 	}
- 	mutex_unlock(&shmem_swaplist_mutex);
--	return found;
-+out:	return found;	/* 0 or 1 or -ENOMEM */
- }
- 
- /*
-diff -puN mm/swapfile.c~tmpfs-open-a-window-in-shmem_unuse_inode mm/swapfile.c
---- a/mm/swapfile.c~tmpfs-open-a-window-in-shmem_unuse_inode
-+++ a/mm/swapfile.c
-@@ -814,7 +814,7 @@ static int try_to_unuse(unsigned int typ
- 			atomic_inc(&new_start_mm->mm_users);
- 			atomic_inc(&prev_mm->mm_users);
- 			spin_lock(&mmlist_lock);
--			while (*swap_map > 1 && !retval &&
-+			while (*swap_map > 1 && !retval && !shmem &&
- 					(p = p->next) != &start_mm->mmlist) {
- 				mm = list_entry(p, struct mm_struct, mmlist);
- 				if (!atomic_inc_not_zero(&mm->mm_users))
-@@ -846,6 +846,13 @@ static int try_to_unuse(unsigned int typ
- 			mmput(start_mm);
- 			start_mm = new_start_mm;
+ 	spin_lock(&info->lock);
+ 	shmem_recalc_inode(inode);
+@@ -1266,7 +1281,7 @@ repeat:
+ 			set_page_dirty(filepage);
+ 			swap_free(swap);
+ 		} else if (!(error = add_to_page_cache(
+-				swappage, mapping, idx, GFP_ATOMIC))) {
++				swappage, mapping, idx, GFP_NOWAIT))) {
+ 			info->flags |= SHMEM_PAGEIN;
+ 			shmem_swp_set(info, entry, 0);
+ 			shmem_swp_unmap(entry);
+@@ -1280,10 +1295,6 @@ repeat:
+ 			spin_unlock(&info->lock);
+ 			unlock_page(swappage);
+ 			page_cache_release(swappage);
+-			if (error == -ENOMEM) {
+-				/* let kswapd refresh zone for GFP_ATOMICs */
+-				congestion_wait(WRITE, HZ/50);
+-			}
+ 			goto repeat;
  		}
-+		if (shmem) {
-+			/* page has already been unlocked and released */
-+			if (shmem > 0)
-+				continue;
-+			retval = shmem;
-+			break;
-+		}
- 		if (retval) {
- 			unlock_page(page);
- 			page_cache_release(page);
-@@ -884,12 +891,6 @@ static int try_to_unuse(unsigned int typ
- 		 * read from disk into another page.  Splitting into two
- 		 * pages would be incorrect if swap supported "shared
- 		 * private" pages, but they are handled by tmpfs files.
--		 *
--		 * Note shmem_unuse already deleted a swappage from
--		 * the swap cache, unless the move to filepage failed:
--		 * in which case it left swappage in cache, lowered its
--		 * swap count to pass quickly through the loops above,
--		 * and now we must reincrement count to try again later.
- 		 */
- 		if ((*swap_map > 1) && PageDirty(page) && PageSwapCache(page)) {
- 			struct writeback_control wbc = {
-@@ -900,12 +901,8 @@ static int try_to_unuse(unsigned int typ
- 			lock_page(page);
- 			wait_on_page_writeback(page);
- 		}
--		if (PageSwapCache(page)) {
--			if (shmem)
--				swap_duplicate(entry);
--			else
--				delete_from_swap_cache(page);
--		}
-+		if (PageSwapCache(page))
-+			delete_from_swap_cache(page);
- 
- 		/*
- 		 * So we could skip searching mms once swap count went
+ 	} else if (sgp == SGP_READ && !filepage) {
+@@ -1338,7 +1349,7 @@ repeat:
+ 				shmem_swp_unmap(entry);
+ 			}
+ 			if (error || swap.val || 0 != add_to_page_cache_lru(
+-					filepage, mapping, idx, GFP_ATOMIC)) {
++					filepage, mapping, idx, GFP_NOWAIT)) {
+ 				spin_unlock(&info->lock);
+ 				page_cache_release(filepage);
+ 				shmem_unacct_blocks(info->flags, 1);
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
