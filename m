@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-apic_32c-section-fix.patch added to -mm tree
-Date: Tue, 18 Dec 2007 16:52:17 -0800
-Message-ID: <200712190052.lBJ0qH8X030593@imap1.linux-foundation.org>
+Subject: + idle_regs-must-be-__cpuinit.patch added to -mm tree
+Date: Tue, 18 Dec 2007 16:53:21 -0800
+Message-ID: <200712190053.lBJ0rLcF030682@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37165 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43409 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755392AbXLSAw6 (ORCPT
+	by vger.kernel.org with ESMTP id S1753711AbXLSAyM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Dec 2007 19:52:58 -0500
+	Tue, 18 Dec 2007 19:54:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, mingo@elte.hu, tglx@linutronix.de
+Cc: bunk@kernel.org, mingo@elte.hu, tglx@linutronix.de, tony.luck@intel.com
 
 
 The patch titled
-     x86 apic_32.c section fix
+     idle_regs() must be __cpuinit
 has been added to the -mm tree.  Its filename is
-     x86-apic_32c-section-fix.patch
+     idle_regs-must-be-__cpuinit.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,35 +26,62 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86 apic_32.c section fix
+Subject: idle_regs() must be __cpuinit
 From: Adrian Bunk <bunk@kernel.org>
 
-tFix fixes the following section mismatch with CONFIG_HOTPLUG=n,
+Fix the following section mismatch with CONFIG_HOTPLUG=n,
 CONFIG_HOTPLUG_CPU=y:
 
-WARNING: vmlinux.o(.text+0x2390d): Section mismatch: reference to .init.text.5:setup_local_APIC (between 'start_secondary' and 'check_tsc_warp')
+WARNING: vmlinux.o(.text+0x399a6): Section mismatch: reference to .init.text.5:idle_regs (between 'fork_idle' and 'get_task_mm')
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/apic_32.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/ia64/kernel/smpboot.c   |    2 +-
+ arch/x86/kernel/cpu/common.c |    2 +-
+ kernel/fork.c                |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/kernel/apic_32.c~x86-apic_32c-section-fix arch/x86/kernel/apic_32.c
---- a/arch/x86/kernel/apic_32.c~x86-apic_32c-section-fix
-+++ a/arch/x86/kernel/apic_32.c
-@@ -850,7 +850,7 @@ void __init init_bsp_APIC(void)
- /**
-  * setup_local_APIC - setup the local APIC
-  */
--void __devinit setup_local_APIC(void)
-+void __cpuinit setup_local_APIC(void)
+diff -puN arch/ia64/kernel/smpboot.c~idle_regs-must-be-__cpuinit arch/ia64/kernel/smpboot.c
+--- a/arch/ia64/kernel/smpboot.c~idle_regs-must-be-__cpuinit
++++ a/arch/ia64/kernel/smpboot.c
+@@ -477,7 +477,7 @@ start_secondary (void *unused)
+ 	return 0;
+ }
+ 
+-struct pt_regs * __devinit idle_regs(struct pt_regs *regs)
++struct pt_regs * __cpuinit idle_regs(struct pt_regs *regs)
  {
- 	unsigned long oldvalue, value, maxlvt, integrated;
- 	int i, j;
+ 	return NULL;
+ }
+diff -puN arch/x86/kernel/cpu/common.c~idle_regs-must-be-__cpuinit arch/x86/kernel/cpu/common.c
+--- a/arch/x86/kernel/cpu/common.c~idle_regs-must-be-__cpuinit
++++ a/arch/x86/kernel/cpu/common.c
+@@ -638,7 +638,7 @@ void __init early_cpu_init(void)
+ }
+ 
+ /* Make sure %fs is initialized properly in idle threads */
+-struct pt_regs * __devinit idle_regs(struct pt_regs *regs)
++struct pt_regs * __cpuinit idle_regs(struct pt_regs *regs)
+ {
+ 	memset(regs, 0, sizeof(struct pt_regs));
+ 	regs->fs = __KERNEL_PERCPU;
+diff -puN kernel/fork.c~idle_regs-must-be-__cpuinit kernel/fork.c
+--- a/kernel/fork.c~idle_regs-must-be-__cpuinit
++++ a/kernel/fork.c
+@@ -1370,7 +1370,7 @@ fork_out:
+ 	return ERR_PTR(retval);
+ }
+ 
+-noinline struct pt_regs * __devinit __attribute__((weak)) idle_regs(struct pt_regs *regs)
++noinline struct pt_regs * __cpuinit __attribute__((weak)) idle_regs(struct pt_regs *regs)
+ {
+ 	memset(regs, 0, sizeof(struct pt_regs));
+ 	return regs;
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -116,6 +143,7 @@ proper-prototype-for-vty_init.patch
 drivers-misc-lkdtmc-cleanups.patch
 xen-fiddle_vdso-must-be-__init.patch
 calibrate_delay-must-be-__cpuinit.patch
+idle_regs-must-be-__cpuinit.patch
 fs-ecryptfs-possible-cleanups.patch
 make-video-geode-lxfb_corecgeode_modedb-static.patch
 video-hpfbc-section-fix.patch
