@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-pm3fbc-section-fix.patch added to -mm tree
-Date: Tue, 18 Dec 2007 16:40:21 -0800
-Message-ID: <200712190040.lBJ0eMT8030156@imap1.linux-foundation.org>
+Subject: + if-0-pci_cleanup_aer_correct_error_status.patch added to -mm tree
+Date: Tue, 18 Dec 2007 16:41:25 -0800
+Message-ID: <200712190041.lBJ0fPoN030180@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45522 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57706 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753110AbXLSAlG (ORCPT
+	by vger.kernel.org with ESMTP id S1753476AbXLSAmK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Dec 2007 19:41:06 -0500
+	Tue, 18 Dec 2007 19:42:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, adaplas@gmail.com, krzysztof.h1@wp.pl
+Cc: bunk@kernel.org, gregkh@suse.de, shemminger@linux-foundation.org
 
 
 The patch titled
-     drivers/video/pm3fb.c section fix
+     #if 0 pci_cleanup_aer_correct_error_status()
 has been added to the -mm tree.  Its filename is
-     drivers-video-pm3fbc-section-fix.patch
+     if-0-pci_cleanup_aer_correct_error_status.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,39 +26,68 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/video/pm3fb.c section fix
+Subject: #if 0 pci_cleanup_aer_correct_error_status()
 From: Adrian Bunk <bunk@kernel.org>
 
-WARNING: vmlinux.o(.text+0x46e456): Section mismatch: reference to .init.data: (between 'pm3fb_size_memory' and 'update_crtc2')
-WARNING: vmlinux.o(.text+0x46e45c): Section mismatch: reference to .init.data: (between 'pm3fb_size_memory' and 'update_crtc2')
-WARNING: vmlinux.o(.text+0x46e49b): Section mismatch: reference to .init.data: (between 'pm3fb_size_memory' and 'update_crtc2')
-WARNING: vmlinux.o(.text+0x46e4a0): Section mismatch: reference to .init.data: (between 'pm3fb_size_memory' and 'update_crtc2')
-WARNING: vmlinux.o(.text+0x46e4bc): Section mismatch: reference to .init.data: (between 'pm3fb_size_memory' and 'update_crtc2')
-WARNING: vmlinux.o(.text+0x46e4c2): Section mismatch: reference to .init.data: (between 'pm3fb_size_memory' and 'update_crtc2')
-WARNING: vmlinux.o(.text+0x46e5c1): Section mismatch: reference to .init.data: (between 'pm3fb_size_memory' and 'update_crtc2')
-WARNING: vmlinux.o(.text+0x46e5c7): Section mismatch: reference to .init.data: (between 'pm3fb_size_memory' and 'update_crtc2')
+#if 0 the no longer used pci_cleanup_aer_correct_error_status().
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: Antonino Daplas <adaplas@gmail.com>
+Cc: Stephen Hemminger <shemminger@linux-foundation.org>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/pm3fb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pci/pcie/aer/aerdrv_core.c |    3 ++-
+ include/linux/aer.h                |    5 -----
+ 2 files changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN drivers/video/pm3fb.c~drivers-video-pm3fbc-section-fix drivers/video/pm3fb.c
---- a/drivers/video/pm3fb.c~drivers-video-pm3fbc-section-fix
-+++ a/drivers/video/pm3fb.c
-@@ -1227,7 +1227,7 @@ static struct fb_ops pm3fb_ops = {
+diff -puN drivers/pci/pcie/aer/aerdrv_core.c~if-0-pci_cleanup_aer_correct_error_status drivers/pci/pcie/aer/aerdrv_core.c
+--- a/drivers/pci/pcie/aer/aerdrv_core.c~if-0-pci_cleanup_aer_correct_error_status
++++ a/drivers/pci/pcie/aer/aerdrv_core.c
+@@ -117,6 +117,7 @@ int pci_cleanup_aer_uncorrect_error_stat
+ 	return 0;
+ }
  
- /* mmio register are already mapped when this function is called */
- /* the pm3fb_fix.smem_start is also set */
--static unsigned long pm3fb_size_memory(struct pm3_par *par)
-+static unsigned long __devinit pm3fb_size_memory(struct pm3_par *par)
++#if 0
+ int pci_cleanup_aer_correct_error_status(struct pci_dev *dev)
  {
- 	unsigned long	memsize = 0;
- 	unsigned long	tempBypass, i, temp1, temp2;
+ 	int pos;
+@@ -131,6 +132,7 @@ int pci_cleanup_aer_correct_error_status
+ 
+ 	return 0;
+ }
++#endif  /*  0  */
+ 
+ static int find_device_iter(struct device *device, void *data)
+ {
+@@ -757,5 +759,4 @@ EXPORT_SYMBOL_GPL(pci_find_aer_capabilit
+ EXPORT_SYMBOL_GPL(pci_enable_pcie_error_reporting);
+ EXPORT_SYMBOL_GPL(pci_disable_pcie_error_reporting);
+ EXPORT_SYMBOL_GPL(pci_cleanup_aer_uncorrect_error_status);
+-EXPORT_SYMBOL_GPL(pci_cleanup_aer_correct_error_status);
+ 
+diff -puN include/linux/aer.h~if-0-pci_cleanup_aer_correct_error_status include/linux/aer.h
+--- a/include/linux/aer.h~if-0-pci_cleanup_aer_correct_error_status
++++ a/include/linux/aer.h
+@@ -13,7 +13,6 @@ extern int pci_enable_pcie_error_reporti
+ extern int pci_find_aer_capability(struct pci_dev *dev);
+ extern int pci_disable_pcie_error_reporting(struct pci_dev *dev);
+ extern int pci_cleanup_aer_uncorrect_error_status(struct pci_dev *dev);
+-extern int pci_cleanup_aer_correct_error_status(struct pci_dev *dev);
+ #else
+ static inline int pci_enable_pcie_error_reporting(struct pci_dev *dev)
+ {
+@@ -31,10 +30,6 @@ static inline int pci_cleanup_aer_uncorr
+ {
+ 	return -EINVAL;
+ }
+-static inline int pci_cleanup_aer_correct_error_status(struct pci_dev *dev)
+-{
+-	return -EINVAL;
+-}
+ #endif
+ 
+ #endif //_AER_H_
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -76,6 +105,7 @@ drivers-bluetooth-bpa10xc-fix-memleak.patch
 drivers-bluetooth-btsdioc-fix-double-free.patch
 fs-nfs-directc-remove-dead-code.patch
 drivers-pci-msic-move-arch-hooks-to-the-top.patch
+if-0-pci_cleanup_aer_correct_error_status.patch
 git-scsi-misc.patch
 scsi-advansysc-make-3-functions-static.patch
 scsi-qla2xxx-possible-cleanups.patch
