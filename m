@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + page-allocator-clean-up-pcp-draining-functions-swsusp-fix.patch added to -mm tree
-Date: Wed, 19 Dec 2007 15:37:26 -0800
-Message-ID: <200712192337.lBJNbV22025093@imap1.linux-foundation.org>
+Subject: + iget-stop-isofs-from-using-read_inode-fix-2-update.patch added to -mm tree
+Date: Wed, 19 Dec 2007 15:40:09 -0800
+Message-ID: <200712192340.lBJNeEtf025246@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60612 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45028 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753815AbXLSXiF (ORCPT
+	by vger.kernel.org with ESMTP id S1753172AbXLSXkz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Dec 2007 18:38:05 -0500
+	Wed, 19 Dec 2007 18:40:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, dwalker@mvista.com, rjw@sisk.pl
+Cc: dhowells@redhat.com, hidave.darkstar@gmail.com
 
 
 The patch titled
-     page-allocator-clean-up-pcp-draining-functions swsusp fix
+     IGET: Handle errors in ISOFS correctly [try #2]
 has been added to the -mm tree.  Its filename is
-     page-allocator-clean-up-pcp-draining-functions-swsusp-fix.patch
+     iget-stop-isofs-from-using-read_inode-fix-2-update.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,123 +26,173 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: page-allocator-clean-up-pcp-draining-functions swsusp fix
-From: Christoph Lameter <clameter@sgi.com>
+Subject: IGET: Handle errors in ISOFS correctly [try #2]
+From: David Howells <dhowells@redhat.com>
 
-Re-export drain_local_pages() again and use it for software suspend:
+Dave Young <hidave.darkstar@gmail.com> wrote:
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Daniel Walker <dwalker@mvista.com>
+> +     if (IS_ERR(inode))
+> +            goto out_no_root;
+
+How about this then?
+
+David
+
+---
+IGET: Handle errors in ISOFS correctly
+
+
+Handle errors in ISOFS correctly.
+
+Updated to correctly handle the iput() and re-isofs_iget() done when we change
+to the secondary root.
+
+Updated to return -ENOMEM from isofs_fill_super() rather than -EINVAL when the
+former is the actual error condition.  Also to return -EIO when that occurs
+within isofs_iget().
+
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: "Dave Young" <hidave.darkstar@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h     |    1 +
- kernel/power/snapshot.c |    2 +-
- mm/page_alloc.c         |    2 +-
- 3 files changed, 3 insertions(+), 2 deletions(-)
+ fs/isofs/inode.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/gfp.h~page-allocator-clean-up-pcp-draining-functions-swsusp-fix include/linux/gfp.h
---- a/include/linux/gfp.h~page-allocator-clean-up-pcp-draining-functions-swsusp-fix
-+++ a/include/linux/gfp.h
-@@ -229,5 +229,6 @@ extern void FASTCALL(free_cold_page(stru
- void page_alloc_init(void);
- void drain_zone_pages(struct zone *zone, struct per_cpu_pages *pcp);
- void drain_all_pages(void);
-+void drain_local_pages(void *dummy);
+diff -puN fs/isofs/inode.c~iget-stop-isofs-from-using-read_inode-fix-2-update fs/isofs/inode.c
+--- a/fs/isofs/inode.c~iget-stop-isofs-from-using-read_inode-fix-2-update
++++ a/fs/isofs/inode.c
+@@ -551,7 +551,7 @@ static int isofs_fill_super(struct super
+ 	int joliet_level = 0;
+ 	int iso_blknum, block;
+ 	int orig_zonesize;
+-	int table;
++	int table, error = -EINVAL;
+ 	unsigned int vol_desc_start;
  
- #endif /* __LINUX_GFP_H */
-diff -puN kernel/power/snapshot.c~page-allocator-clean-up-pcp-draining-functions-swsusp-fix kernel/power/snapshot.c
---- a/kernel/power/snapshot.c~page-allocator-clean-up-pcp-draining-functions-swsusp-fix
-+++ a/kernel/power/snapshot.c
-@@ -1203,7 +1203,7 @@ asmlinkage int swsusp_save(void)
+ 	sbi = kzalloc(sizeof(*sbi), GFP_KERNEL);
+@@ -809,6 +809,8 @@ root_found:
+ 	 * we then decide whether to use the Joliet descriptor.
+ 	 */
+ 	inode = isofs_iget(s, sbi->s_firstdatazone, 0);
++	if (IS_ERR(inode))
++		goto out_no_root;
  
- 	printk(KERN_INFO "PM: Creating hibernation image: \n");
+ 	/*
+ 	 * If this disk has both Rock Ridge and Joliet on it, then we
+@@ -828,6 +830,8 @@ root_found:
+ 				"ISOFS: changing to secondary root\n");
+ 			iput(inode);
+ 			inode = isofs_iget(s, sbi->s_firstdatazone, 0);
++			if (IS_ERR(inode))
++				goto out_no_root;
+ 		}
+ 	}
  
--	drain_all_pages();
-+	drain_local_pages(NULL);
- 	nr_pages = count_data_pages();
- 	nr_highmem = count_highmem_pages();
- 	printk(KERN_INFO "PM: Need to copy %u pages\n", nr_pages + nr_highmem);
-diff -puN mm/page_alloc.c~page-allocator-clean-up-pcp-draining-functions-swsusp-fix mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-clean-up-pcp-draining-functions-swsusp-fix
-+++ a/mm/page_alloc.c
-@@ -925,7 +925,7 @@ static void drain_pages(unsigned int cpu
- /*
-  * Spill all of this CPU's per-cpu pages back into the buddy allocator.
-  */
--static void drain_local_pages(void *arg)
-+void drain_local_pages(void *arg)
- {
- 	drain_pages(smp_processor_id());
+@@ -841,8 +845,6 @@ root_found:
+ 	sbi->s_joliet_level = joliet_level;
+ 
+ 	/* check the root inode */
+-	if (IS_ERR(inode))
+-		goto out_no_root;
+ 	if (!inode->i_op)
+ 		goto out_bad_root;
+ 
+@@ -879,7 +881,9 @@ out_iput:
+ 	iput(inode);
+ 	goto out_no_inode;
+ out_no_root:
+-	printk(KERN_WARNING "%s: get root inode failed\n", __func__);
++	error = PTR_ERR(inode);
++	if (error != -ENOMEM)
++		printk(KERN_WARNING "%s: get root inode failed\n", __func__);
+ out_no_inode:
+ #ifdef CONFIG_JOLIET
+ 	if (sbi->s_nls_iocharset)
+@@ -908,7 +912,7 @@ out_freesbi:
+ 	kfree(opt.iocharset);
+ 	kfree(sbi);
+ 	s->s_fs_info = NULL;
+-	return -EINVAL;
++	return error;
  }
+ 
+ static int isofs_statfs (struct dentry *dentry, struct kstatfs *buf)
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-sparsemem-make-sparsemem_vmemmap-selectable.patch
-mm-sparsec-check-the-return-value-of-sparse_index_alloc.patch
-mm-sparsec-improve-the-error-handling-for-sparse_add_one_section.patch
-slub-remove-useless-masking-of-gfp_zero.patch
-quicklist-set-tlb-need_flush-if-pages-are-remaining-in-quicklist-0.patch
-quicklists-do-not-release-off-node-pages-early.patch
-ia64-slim-down-__clear_bit_unlock.patch
-git-sched.patch
-git-unionfs.patch
-git-x86.patch
-x86-fix-show-cpuinfo-cpu-number-always-zero.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-move-vmalloc_to_page-to-mm-vmalloc.patch
-vmalloc-add-const-to-void-parameters.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries.patch
-vmalloc-clean-up-page-array-indexing.patch
-vunmap-return-page-array-passed-on-vmap.patch
-slub-move-count_partial.patch
-slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio.patch
-slub-consolidate-add_partial-and-add_partial_tail-to-one-function.patch
-slub-use-non-atomic-bit-unlock.patch
-slub-fix-coding-style-violations.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-noinline-some-functions-to-avoid-them-being-folded-into-alloc-free.patch
-slub-move-kmem_cache_node-determination-into-add_full-and-add_partial.patch
-slub-move-kmem_cache_node-determination-into-add_full-and-add_partial-slub-workaround-for-lockdep-confusion.patch
-slub-avoid-checking-for-a-valid-object-before-zeroing-on-the-fast-path.patch
-slub-__slab_alloc-exit-path-consolidation.patch
-slub-provide-unique-end-marker-for-each-slab.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-avoid-referencing-kmem_cache-structure-in-__slab_alloc.patch
-slub-optional-fast-path-using-cmpxchg_local.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-fix.patch
-slub-restructure-slab-alloc.patch
-slub-comment-kmem_cache_cpu-structure.patch
-vm-allow-get_page_unless_zero-on-compound-pages.patch
-bufferhead-revert-constructor-removal.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-swapin_readahead-excise-numa-bogosity.patch
-page-allocator-clean-up-pcp-draining-functions.patch
-page-allocator-clean-up-pcp-draining-functions-swsusp-fix.patch
-vmstat-small-revisions-to-refresh_cpu_vm_stats.patch
-page-allocator-get-rid-of-the-list-of-cold-pages.patch
-page-allocator-get-rid-of-the-list-of-cold-pages-fix.patch
-vmstat-remove-prefetch.patch
-percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-oom-add-sysctl-to-enable-task-memory-dump.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-bugfix-for-memory-cgroup-per-zone-struct-allocation.patch
-add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
-add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
-dentries-extract-common-code-to-remove-dentry-from-lru.patch
-dentries-extract-common-code-to-remove-dentry-from-lru-fix.patch
-modules-handle-symbols-that-have-a-zero-value.patch
-modules-include-sectionsh-to-avoid-defining-linker-variables.patch
-modules-fold-percpu_modcopy-into-modulec-and-get-rid-of-the-macro-from-hell.patch
-reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
-page-owner-tracking-leak-detector.patch
+git-mtd.patch
+frv-permit-the-memory-to-be-located-elsewhere-in-nommu-mode.patch
+frv-move-dma-macros-to-scatterlisth-for-consistency.patch
+frv-remove-dead-config-symbol-from-frv-code.patch
+nommu-add-new-vmalloc_user-and-remap_vmalloc_range-interfaces.patch
+create-arch-kconfig.patch
+add-have_oprofile.patch
+add-have_kprobes.patch
+move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig.patch
+64-bit-i_version-afs-fixes.patch
+add-an-err_cast-function-to-complement-err_ptr-and-co.patch
+convert-err_ptrptr_errp-instances-to-err_castp.patch
+iget-introduce-a-function-to-register-iget-failure.patch
+iget-use-iget_failed-in-afs.patch
+iget-use-iget_failed-in-gfs2.patch
+iget-stop-affs-from-using-iget-and-read_inode-try.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-autofs-from-using-iget-and-read_inode.patch
+iget-stop-befs-from-using-iget-and-read_inode-try.patch
+iget-stop-bfs-from-using-iget-and-read_inode-try.patch
+iget-stop-cifs-from-using-iget-and-read_inode-try.patch
+iget-stop-efs-from-using-iget-and-read_inode-try.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext4-from-using-iget-and-read_inode-try.patch
+iget-stop-fat-from-using-iget-and-read_inode-try.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-fix.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-fuse-from-using-iget-and-read_inode-try.patch
+iget-stop-hfsplus-from-using-iget-and-read_inode.patch
+iget-stop-isofs-from-using-read_inode.patch
+iget-stop-isofs-from-using-read_inode-fix-2.patch
+iget-stop-isofs-from-using-read_inode-fix-2-update.patch
+iget-stop-jffs2-from-using-iget-and-read_inode.patch
+iget-stop-jfs-from-using-iget-and-read_inode-try.patch
+iget-stop-the-minix-filesystem-from-using-iget-and.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-openpromfs-from-using-iget-and.patch
+iget-stop-hostfs-from-using-iget-and-read_inode.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-hppfs-from-using-iget-and-read_inode.patch
+iget-remove-iget-and-the-read_inode-super-op-as.patch
+iget-stop-unionfs-from-using-iget-and-read_inode.patch
+unexport-asm-pageh.patch
+add-cmpxchg_local-to-frv.patch
+use-path_put-in-a-few-places-instead-of-mntdput.patch
+tty-let-architectures-override-the-user-kernel-macros.patch
+aout-move-stack_top-to-asm-processorh.patch
+aout-mark-arches-that-support-aout-format.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+usb-net2280-cant-have-a-function-called-show_registers.patch
+mn10300-allocate-serial-port-uart-ids-for-on-chip-serial-ports.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+mn10300-add-platform-mtd-support-for-the-asb2303-board.patch
+mutex-subsystem-synchro-test-module.patch
