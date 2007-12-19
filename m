@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sata_mv-improve-warnings-about-highpoint-rocketraid-23xx-cards.patch added to -mm tree
-Date: Tue, 18 Dec 2007 16:06:37 -0800
-Message-ID: <200712190006.lBJ06bLE028834@imap1.linux-foundation.org>
+Subject: + usbtouchscreen-fix-buffer-overflow-make-more-egalax-work.patch added to -mm tree
+Date: Tue, 18 Dec 2007 16:12:59 -0800
+Message-ID: <200712190012.lBJ0CxOT029048@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60808 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57050 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751556AbXLSAHM (ORCPT
+	by vger.kernel.org with ESMTP id S1754876AbXLSANN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Dec 2007 19:07:12 -0500
+	Tue, 18 Dec 2007 19:13:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: liml@rtr.ca, mlord@pobox.com
+Cc: daniel.ritz-ml@swissonline.ch, daniel.ritz@gmx.ch, dtor@mail.ru, greg@kroah.com, jkosina@suse.cz
 
 
 The patch titled
-     sata_mv: improve warnings about Highpoint RocketRAID 23xx cards
+     usbtouchscreen: fix buffer overflow, make more egalax work
 has been added to the -mm tree.  Its filename is
-     sata_mv-improve-warnings-about-highpoint-rocketraid-23xx-cards.patch
+     usbtouchscreen-fix-buffer-overflow-make-more-egalax-work.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,64 +26,189 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sata_mv: improve warnings about Highpoint RocketRAID 23xx cards
-From: Mark Lord <liml@rtr.ca>
+Subject: usbtouchscreen: fix buffer overflow, make more egalax work
+From: Daniel Ritz <daniel.ritz-ml@swissonline.ch>
 
-Improve the existing boot/load time warnings from sata_mv for Highpoint
-RocketRAID 23xx cards, based on new knowledge about where the BIOS likes to
-overwrite sectors with metadata.
+Fixes a buffer overflow in mutli-packet handling code.  The overflow can
+only happen with eGalax devices and is even there very unlikely (only
+non-report packet are affected any only when truncated after the first
+byte).
 
-Harmless to us, but very useful for end users.
+It also changes the mutli-packet handling code not to drop unknown packets,
+but rather just drop one byte.  This allows synchronizing on report packets
+in the data stream.  It's required for some egalax devices to work at all.
 
-Signed-off-by: Mark Lord <mlord@pobox.com>
+Also removes the pointless 'flags' member of the device struct and sets the
+version number to 0.6.  And some minor cleanups.
+
+Signed-off-by: Daniel Ritz <daniel.ritz@gmx.ch>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Greg KH <greg@kroah.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_mv.c |   30 +++++++++++++++++++++++++-----
- 1 file changed, 25 insertions(+), 5 deletions(-)
+ drivers/input/touchscreen/usbtouchscreen.c |   54 +++++++++++--------
+ 1 file changed, 32 insertions(+), 22 deletions(-)
 
-diff -puN drivers/ata/sata_mv.c~sata_mv-improve-warnings-about-highpoint-rocketraid-23xx-cards drivers/ata/sata_mv.c
---- a/drivers/ata/sata_mv.c~sata_mv-improve-warnings-about-highpoint-rocketraid-23xx-cards
-+++ a/drivers/ata/sata_mv.c
-@@ -2506,11 +2506,31 @@ static int mv_chip_id(struct ata_host *h
- 		if (pdev->vendor == PCI_VENDOR_ID_TTI &&
- 		    (pdev->device == 0x2300 || pdev->device == 0x2310))
- 		{
--			printk(KERN_WARNING "sata_mv: Highpoint RocketRAID BIOS"
--				" will CORRUPT DATA on attached drives when"
--				" configured as \"Legacy\".  BEWARE!\n");
--			printk(KERN_WARNING "sata_mv: Use BIOS \"JBOD\" volumes"
--				" instead for safety.\n");
-+			/*
-+			 * Highpoint RocketRAID PCIe 23xx series cards:
-+			 *
-+			 * Unconfigured drives are treated as "Legacy"
-+			 * by the BIOS, and it overwrites sector 8 with
-+			 * a "Lgcy" metadata block prior to Linux boot.
-+			 *
-+			 * Configured drives (RAID or JBOD) leave sector 8
-+			 * alone, but instead overwrite a high numbered
-+			 * sector for the RAID metadata.  This sector can
-+			 * be determined exactly, by truncating the physical
-+			 * drive capacity to a nice even GB value.
-+			 *
-+			 * RAID metadata is at: (dev->n_sectors & ~0xfffff)
-+			 *
-+			 * Warn the user, lest they think we're just buggy.
-+			 */
-+			printk(KERN_WARNING DRV_NAME ": Highpoint RocketRAID"
-+				" BIOS CORRUPTS DATA on all attached drives,"
-+				" regardless of if/how they are configured."
-+				" BEWARE!\n");
-+			printk(KERN_WARNING DRV_NAME ": For data safety, do not"
-+				" use sectors 8-9 on \"Legacy\" drives,"
-+				" and avoid the final two gigabytes on"
-+				" all RocketRAID BIOS initialized drives.\n");
- 		}
- 	case chip_6042:
- 		hpriv->ops = &mv6xxx_ops;
+diff -puN drivers/input/touchscreen/usbtouchscreen.c~usbtouchscreen-fix-buffer-overflow-make-more-egalax-work drivers/input/touchscreen/usbtouchscreen.c
+--- a/drivers/input/touchscreen/usbtouchscreen.c~usbtouchscreen-fix-buffer-overflow-make-more-egalax-work
++++ a/drivers/input/touchscreen/usbtouchscreen.c
+@@ -11,6 +11,7 @@
+  *  - DMC TSC-10/25
+  *  - IRTOUCHSYSTEMS/UNITOP
+  *  - IdealTEK URTC1000
++ *  - General Touch
+  *  - GoTop Super_Q2/GogoPen/PenPower tablets
+  *
+  * Copyright (C) 2004-2007 by Daniel Ritz <daniel.ritz@gmx.ch>
+@@ -50,7 +51,7 @@
+ #include <linux/usb/input.h>
+ 
+ 
+-#define DRIVER_VERSION		"v0.5"
++#define DRIVER_VERSION		"v0.6"
+ #define DRIVER_AUTHOR		"Daniel Ritz <daniel.ritz@gmx.ch>"
+ #define DRIVER_DESC		"USB Touchscreen Driver"
+ 
+@@ -65,17 +66,21 @@ struct usbtouch_device_info {
+ 	int min_yc, max_yc;
+ 	int min_press, max_press;
+ 	int rept_size;
+-	int flags;
+ 
+ 	void (*process_pkt) (struct usbtouch_usb *usbtouch, unsigned char *pkt, int len);
++
++	/*
++	 * used to get the packet len. possible return values:
++	 * > 0: packet len
++	 * = 0: skip one byte
++	 * < 0: -return value more bytes needed
++	 */
+ 	int  (*get_pkt_len) (unsigned char *pkt, int len);
++
+ 	int  (*read_data)   (struct usbtouch_usb *usbtouch, unsigned char *pkt);
+ 	int  (*init)        (struct usbtouch_usb *usbtouch);
+ };
+ 
+-#define USBTOUCH_FLG_BUFFER	0x01
+-
+-
+ /* a usbtouch device */
+ struct usbtouch_usb {
+ 	unsigned char *data;
+@@ -94,15 +99,6 @@ struct usbtouch_usb {
+ };
+ 
+ 
+-#if defined(CONFIG_TOUCHSCREEN_USB_EGALAX) || defined(CONFIG_TOUCHSCREEN_USB_ETURBO) || defined(CONFIG_TOUCHSCREEN_USB_IDEALTEK)
+-#define MULTI_PACKET
+-#endif
+-
+-#ifdef MULTI_PACKET
+-static void usbtouch_process_multi(struct usbtouch_usb *usbtouch,
+-                                   unsigned char *pkt, int len);
+-#endif
+-
+ /* device types */
+ enum {
+ 	DEVTPYE_DUMMY = -1,
+@@ -186,6 +182,10 @@ static struct usb_device_id usbtouch_dev
+ 
+ #ifdef CONFIG_TOUCHSCREEN_USB_EGALAX
+ 
++#ifndef MULTI_PACKET
++#define MULTI_PACKET
++#endif
++
+ #define EGALAX_PKT_TYPE_MASK		0xFE
+ #define EGALAX_PKT_TYPE_REPT		0x80
+ #define EGALAX_PKT_TYPE_DIAG		0x0A
+@@ -323,6 +323,9 @@ static int itm_read_data(struct usbtouch
+  * eTurboTouch part
+  */
+ #ifdef CONFIG_TOUCHSCREEN_USB_ETURBO
++#ifndef MULTI_PACKET
++#define MULTI_PACKET
++#endif
+ static int eturbo_read_data(struct usbtouch_usb *dev, unsigned char *pkt)
+ {
+ 	unsigned int shift;
+@@ -461,6 +464,9 @@ static int irtouch_read_data(struct usbt
+  * IdealTEK URTC1000 Part
+  */
+ #ifdef CONFIG_TOUCHSCREEN_USB_IDEALTEK
++#ifndef MULTI_PACKET
++#define MULTI_PACKET
++#endif
+ static int idealtek_get_pkt_len(unsigned char *buf, int len)
+ {
+ 	if (buf[0] & 0x80)
+@@ -525,6 +531,11 @@ static int gotop_read_data(struct usbtou
+ /*****************************************************************************
+  * the different device descriptors
+  */
++#ifdef MULTI_PACKET
++static void usbtouch_process_multi(struct usbtouch_usb *usbtouch,
++                                   unsigned char *pkt, int len);
++#endif
++
+ static struct usbtouch_device_info usbtouch_dev_info[] = {
+ #ifdef CONFIG_TOUCHSCREEN_USB_EGALAX
+ 	[DEVTYPE_EGALAX] = {
+@@ -533,7 +544,6 @@ static struct usbtouch_device_info usbto
+ 		.min_yc		= 0x0,
+ 		.max_yc		= 0x07ff,
+ 		.rept_size	= 16,
+-		.flags		= USBTOUCH_FLG_BUFFER,
+ 		.process_pkt	= usbtouch_process_multi,
+ 		.get_pkt_len	= egalax_get_pkt_len,
+ 		.read_data	= egalax_read_data,
+@@ -582,7 +592,6 @@ static struct usbtouch_device_info usbto
+ 		.min_yc		= 0x0,
+ 		.max_yc		= 0x07ff,
+ 		.rept_size	= 8,
+-		.flags		= USBTOUCH_FLG_BUFFER,
+ 		.process_pkt	= usbtouch_process_multi,
+ 		.get_pkt_len	= eturbo_get_pkt_len,
+ 		.read_data	= eturbo_read_data,
+@@ -630,7 +639,6 @@ static struct usbtouch_device_info usbto
+ 		.min_yc		= 0x0,
+ 		.max_yc		= 0x0fff,
+ 		.rept_size	= 8,
+-		.flags		= USBTOUCH_FLG_BUFFER,
+ 		.process_pkt	= usbtouch_process_multi,
+ 		.get_pkt_len	= idealtek_get_pkt_len,
+ 		.read_data	= idealtek_read_data,
+@@ -738,11 +746,13 @@ static void usbtouch_process_multi(struc
+ 	pos = 0;
+ 	while (pos < buf_len) {
+ 		/* get packet len */
+-		pkt_len = usbtouch->type->get_pkt_len(buffer + pos, len);
++		pkt_len = usbtouch->type->get_pkt_len(buffer + pos, buf_len - pos);
+ 
+-		/* unknown packet: drop everything */
+-		if (unlikely(!pkt_len))
+-			goto out_flush_buf;
++		/* unknown packet: skip one byte */
++		if (unlikely(!pkt_len)) {
++			pos++;
++			continue;
++		}
+ 
+ 		/* full packet: process */
+ 		if (likely((pkt_len > 0) && (pkt_len <= buf_len - pos))) {
+@@ -857,7 +867,7 @@ static int usbtouch_probe(struct usb_int
+ 	if (!usbtouch->data)
+ 		goto out_free;
+ 
+-	if (type->flags & USBTOUCH_FLG_BUFFER) {
++	if (type->get_pkt_len) {
+ 		usbtouch->buffer = kmalloc(type->rept_size, GFP_KERNEL);
+ 		if (!usbtouch->buffer)
+ 			goto out_free_buffers;
 _
 
-Patches currently in -mm which might be from liml@rtr.ca are
+Patches currently in -mm which might be from daniel.ritz-ml@swissonline.ch are
 
-sata_mv-improve-warnings-about-highpoint-rocketraid-23xx-cards.patch
+usbtouchscreen-fix-buffer-overflow-make-more-egalax-work.patch
