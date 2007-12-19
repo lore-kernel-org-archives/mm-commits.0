@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + xen-fiddle_vdso-must-be-__init.patch added to -mm tree
-Date: Tue, 18 Dec 2007 16:33:00 -0800
-Message-ID: <200712190033.lBJ0X0Ve029801@imap1.linux-foundation.org>
+Subject: + fs-nfs-directc-remove-dead-code.patch added to -mm tree
+Date: Tue, 18 Dec 2007 16:31:56 -0800
+Message-ID: <200712190031.lBJ0VuJE029772@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33345 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39160 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755101AbXLSAdU (ORCPT
+	by vger.kernel.org with ESMTP id S1753160AbXLSAeY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Dec 2007 19:33:20 -0500
+	Tue, 18 Dec 2007 19:34:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, Jeremy.Fitzhardinge@citrix.com, jbeulich@novell.com
+Cc: bunk@kernel.org, Trond.Myklebust@netapp.com, chuck.lever@oracle.com
 
 
 The patch titled
-     xen: fiddle_vdso() must be __init
+     fs/nfs/direct.c: remove dead code
 has been added to the -mm tree.  Its filename is
-     xen-fiddle_vdso-must-be-__init.patch
+     fs-nfs-directc-remove-dead-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: xen: fiddle_vdso() must be __init
+Subject: fs/nfs/direct.c: remove dead code
 From: Adrian Bunk <bunk@kernel.org>
 
-WARNING: vmlinux.o(.text+0x2589): Section mismatch: reference to .init.data:vsyscall_int80_start (between 'fiddle_vdso' and 'xen_setup_features')
+This code became dead after commit b9148c6b80d802dbc2a7530b29915a80432e50c7
+(which BTW doesn't seem to have changed any behaviour) and can therefore
+be removed.
+
+Spotted by the Coverity checker.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Jeremy Fitzhardinge <Jeremy.Fitzhardinge@citrix.com>
-Cc: Jan Beulich <jbeulich@novell.com>
+Cc: Chuck Lever <chuck.lever@oracle.com>
+Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/xen/setup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/nfs/direct.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN arch/x86/xen/setup.c~xen-fiddle_vdso-must-be-__init arch/x86/xen/setup.c
---- a/arch/x86/xen/setup.c~xen-fiddle_vdso-must-be-__init
-+++ a/arch/x86/xen/setup.c
-@@ -59,7 +59,7 @@ static void xen_idle(void)
- /*
-  * Set the bit indicating "nosegneg" library variants should be used.
-  */
--static void fiddle_vdso(void)
-+static void __init fiddle_vdso(void)
- {
- 	extern u32 VDSO_NOTE_MASK; /* See ../kernel/vsyscall-note.S.  */
- 	extern char vsyscall_int80_start;
+diff -puN fs/nfs/direct.c~fs-nfs-directc-remove-dead-code fs/nfs/direct.c
+--- a/fs/nfs/direct.c~fs-nfs-directc-remove-dead-code
++++ a/fs/nfs/direct.c
+@@ -898,9 +898,6 @@ ssize_t nfs_file_direct_write(struct kio
+ 	retval = -EINVAL;
+ 	if ((ssize_t) count < 0)
+ 		goto out;
+-	retval = 0;
+-	if (!count)
+-		goto out;
+ 
+ 	retval = nfs_sync_mapping(mapping);
+ 	if (retval)
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -106,7 +111,6 @@ fs-signalfdc-should-include-linux-syscallsh.patch
 fs-eventfdc-should-include-linux-syscallsh.patch
 proper-prototype-for-vty_init.patch
 drivers-misc-lkdtmc-cleanups.patch
-xen-fiddle_vdso-must-be-__init.patch
 fs-ecryptfs-possible-cleanups.patch
 make-video-geode-lxfb_corecgeode_modedb-static.patch
 video-hpfbc-section-fix.patch
