@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + wireless-ipw2200c-add-__devinitexit-annotations.patch added to -mm tree
-Date: Tue, 18 Dec 2007 16:30:05 -0800
-Message-ID: <200712190030.lBJ0U5O7029723@imap1.linux-foundation.org>
+Subject: + xen-fiddle_vdso-must-be-__init.patch added to -mm tree
+Date: Tue, 18 Dec 2007 16:33:00 -0800
+Message-ID: <200712190033.lBJ0X0Ve029801@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47190 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33345 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754816AbXLSAbY (ORCPT
+	by vger.kernel.org with ESMTP id S1755101AbXLSAdU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Dec 2007 19:31:24 -0500
+	Tue, 18 Dec 2007 19:33:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, linville@tuxdriver.com, yi.zhu@intel.com
+Cc: bunk@kernel.org, Jeremy.Fitzhardinge@citrix.com, jbeulich@novell.com
 
 
 The patch titled
-     wireless/ipw2200.c: add __dev{init,exit} annotations
+     xen: fiddle_vdso() must be __init
 has been added to the -mm tree.  Its filename is
-     wireless-ipw2200c-add-__devinitexit-annotations.patch
+     xen-fiddle_vdso-must-be-__init.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,49 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: wireless/ipw2200.c: add __dev{init,exit} annotations
+Subject: xen: fiddle_vdso() must be __init
 From: Adrian Bunk <bunk@kernel.org>
 
+WARNING: vmlinux.o(.text+0x2589): Section mismatch: reference to .init.data:vsyscall_int80_start (between 'fiddle_vdso' and 'xen_setup_features')
+
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Zhu Yi <yi.zhu@intel.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Acked-by: Jeremy Fitzhardinge <Jeremy.Fitzhardinge@citrix.com>
+Cc: Jan Beulich <jbeulich@novell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ipw2200.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ arch/x86/xen/setup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/wireless/ipw2200.c~wireless-ipw2200c-add-__devinitexit-annotations drivers/net/wireless/ipw2200.c
---- a/drivers/net/wireless/ipw2200.c~wireless-ipw2200c-add-__devinitexit-annotations
-+++ a/drivers/net/wireless/ipw2200.c
-@@ -10751,7 +10751,7 @@ static void ipw_bg_link_down(struct work
- 	mutex_unlock(&priv->mutex);
- }
- 
--static int ipw_setup_deferred_work(struct ipw_priv *priv)
-+static int __devinit ipw_setup_deferred_work(struct ipw_priv *priv)
+diff -puN arch/x86/xen/setup.c~xen-fiddle_vdso-must-be-__init arch/x86/xen/setup.c
+--- a/arch/x86/xen/setup.c~xen-fiddle_vdso-must-be-__init
++++ a/arch/x86/xen/setup.c
+@@ -59,7 +59,7 @@ static void xen_idle(void)
+ /*
+  * Set the bit indicating "nosegneg" library variants should be used.
+  */
+-static void fiddle_vdso(void)
++static void __init fiddle_vdso(void)
  {
- 	int ret = 0;
- 
-@@ -11600,7 +11600,8 @@ static void ipw_prom_free(struct ipw_pri
- #endif
- 
- 
--static int ipw_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
-+static int __devinit ipw_pci_probe(struct pci_dev *pdev,
-+				   const struct pci_device_id *ent)
- {
- 	int err = 0;
- 	struct net_device *net_dev;
-@@ -11767,7 +11768,7 @@ static int ipw_pci_probe(struct pci_dev 
- 	return err;
- }
- 
--static void ipw_pci_remove(struct pci_dev *pdev)
-+static void __devexit ipw_pci_remove(struct pci_dev *pdev)
- {
- 	struct ipw_priv *priv = pci_get_drvdata(pdev);
- 	struct list_head *p, *q;
+ 	extern u32 VDSO_NOTE_MASK; /* See ../kernel/vsyscall-note.S.  */
+ 	extern char vsyscall_int80_start;
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -84,6 +67,7 @@ git-netdev-all.patch
 git-battery.patch
 drivers-bluetooth-bpa10xc-fix-memleak.patch
 drivers-bluetooth-btsdioc-fix-double-free.patch
+fs-nfs-directc-remove-dead-code.patch
 drivers-pci-msic-move-arch-hooks-to-the-top.patch
 git-scsi-misc.patch
 scsi-advansysc-make-3-functions-static.patch
@@ -122,6 +106,7 @@ fs-signalfdc-should-include-linux-syscallsh.patch
 fs-eventfdc-should-include-linux-syscallsh.patch
 proper-prototype-for-vty_init.patch
 drivers-misc-lkdtmc-cleanups.patch
+xen-fiddle_vdso-must-be-__init.patch
 fs-ecryptfs-possible-cleanups.patch
 make-video-geode-lxfb_corecgeode_modedb-static.patch
 video-hpfbc-section-fix.patch
