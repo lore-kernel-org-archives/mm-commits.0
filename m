@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-aic94xx-cleanups.patch added to -mm tree
-Date: Tue, 18 Dec 2007 16:59:50 -0800
-Message-ID: <200712190059.lBJ0xoTs030931@imap1.linux-foundation.org>
+Subject: + scsi-aic94xx-cleanups-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 18 Dec 2007 17:03:03 -0800
+Message-ID: <200712190103.lBJ1349r031079@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42272 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53688 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754565AbXLSBAn (ORCPT
+	by vger.kernel.org with ESMTP id S1752162AbXLSBDs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Dec 2007 20:00:43 -0500
+	Tue, 18 Dec 2007 20:03:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, James.Bottomley@steeleye.com, djwong@us.ibm.com
+Cc: akpm@linux-foundation.org, James.Bottomley@steeleye.com, bunk@kernel.org, djwong@us.ibm.com
 
 
 The patch titled
-     scsi/aic94xx/: cleanups
+     scsi-aic94xx-cleanups-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     scsi-aic94xx-cleanups.patch
+     scsi-aic94xx-cleanups-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,737 +26,302 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: scsi/aic94xx/: cleanups
-From: Adrian Bunk <bunk@kernel.org>
+Subject: scsi-aic94xx-cleanups-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-- static functions in .c files shouldn't be marked inline
-- make needlessly global code static
-- remove the unused aic94xx_seq.c:asd_unpause_lseq()
-- #if 0 other unused code
+WARNING: no space between function name and open parenthesis '('
+#357: FILE: drivers/scsi/aic94xx/aic94xx_reg.c:127:
++static type asd_read_##ww##_##ord (struct asd_ha_struct *asd_ha,       \
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+WARNING: no space between function name and open parenthesis '('
+#368: FILE: drivers/scsi/aic94xx/aic94xx_reg.c:136:
++static void asd_write_##ww##_##ord (struct asd_ha_struct *asd_ha,      \
+
+total: 0 errors, 2 warnings, 531 lines checked
+
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+(fix other stuff too.  tabs!)
+
 Cc: "Darrick J. Wong" <djwong@us.ibm.com>
+Cc: Adrian Bunk <bunk@kernel.org>
 Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/aic94xx/aic94xx_dev.c  |    8 +++---
- drivers/scsi/aic94xx/aic94xx_dump.c |   10 +++++++
- drivers/scsi/aic94xx/aic94xx_dump.h |    9 -------
- drivers/scsi/aic94xx/aic94xx_hwi.c  |   24 +++++++++---------
- drivers/scsi/aic94xx/aic94xx_hwi.h  |    2 -
- drivers/scsi/aic94xx/aic94xx_init.c |    8 +++---
- drivers/scsi/aic94xx/aic94xx_reg.c  |   33 ++++++++++++--------------
- drivers/scsi/aic94xx/aic94xx_scb.c  |   33 ++++++++++++++------------
- drivers/scsi/aic94xx/aic94xx_sds.c  |    4 +--
- drivers/scsi/aic94xx/aic94xx_seq.c  |   31 +++---------------------
- drivers/scsi/aic94xx/aic94xx_seq.h  |    4 ---
- drivers/scsi/aic94xx/aic94xx_task.c |   12 ++++-----
- drivers/scsi/aic94xx/aic94xx_tmf.c  |    4 +--
- 13 files changed, 78 insertions(+), 104 deletions(-)
+ drivers/scsi/aic94xx/aic94xx_reg.c |   32 +++++++++++++--------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
-diff -puN drivers/scsi/aic94xx/aic94xx_dev.c~scsi-aic94xx-cleanups drivers/scsi/aic94xx/aic94xx_dev.c
---- a/drivers/scsi/aic94xx/aic94xx_dev.c~scsi-aic94xx-cleanups
-+++ a/drivers/scsi/aic94xx/aic94xx_dev.c
-@@ -35,7 +35,7 @@
- #define SET_DDB(_ddb, _ha) set_bit(_ddb, (_ha)->hw_prof.ddb_bitmap)
- #define CLEAR_DDB(_ddb, _ha) clear_bit(_ddb, (_ha)->hw_prof.ddb_bitmap)
- 
--static inline int asd_get_ddb(struct asd_ha_struct *asd_ha)
-+static int asd_get_ddb(struct asd_ha_struct *asd_ha)
- {
- 	int ddb, i;
- 
-@@ -71,7 +71,7 @@ out:
- #define NCQ_DATA_SCB_PTR offsetof(struct asd_ddb_stp_sata_target_port, ncq_data_scb_ptr)
- #define ITNL_TIMEOUT    offsetof(struct asd_ddb_ssp_smp_target_port, itnl_timeout)
- 
--static inline void asd_free_ddb(struct asd_ha_struct *asd_ha, int ddb)
-+static void asd_free_ddb(struct asd_ha_struct *asd_ha, int ddb)
- {
- 	if (!ddb || ddb >= 0xFFFF)
- 		return;
-@@ -79,7 +79,7 @@ static inline void asd_free_ddb(struct a
- 	CLEAR_DDB(ddb, asd_ha);
- }
- 
--static inline void asd_set_ddb_type(struct domain_device *dev)
-+static void asd_set_ddb_type(struct domain_device *dev)
- {
- 	struct asd_ha_struct *asd_ha = dev->port->ha->lldd_ha;
- 	int ddb = (int) (unsigned long) dev->lldd_dev;
-@@ -109,7 +109,7 @@ static int asd_init_sata_tag_ddb(struct 
- 	return 0;
- }
- 
--static inline int asd_init_sata(struct domain_device *dev)
-+static int asd_init_sata(struct domain_device *dev)
- {
- 	struct asd_ha_struct *asd_ha = dev->port->ha->lldd_ha;
- 	int ddb = (int) (unsigned long) dev->lldd_dev;
-diff -puN drivers/scsi/aic94xx/aic94xx_dump.c~scsi-aic94xx-cleanups drivers/scsi/aic94xx/aic94xx_dump.c
---- a/drivers/scsi/aic94xx/aic94xx_dump.c~scsi-aic94xx-cleanups
-+++ a/drivers/scsi/aic94xx/aic94xx_dump.c
-@@ -738,6 +738,8 @@ static void asd_dump_lseq_state(struct a
- 	PRINT_LMIP_dword(asd_ha, lseq, DEV_PRES_TIMER_TERM_TS);
- }
- 
-+#if 0
-+
- /**
-  * asd_dump_ddb_site -- dump a CSEQ DDB site
-  * @asd_ha: pointer to host adapter structure
-@@ -880,6 +882,8 @@ void asd_dump_scb_sites(struct asd_ha_st
- 	}
- }
- 
-+#endif  /*  0  */
-+
- /**
-  * ads_dump_seq_state -- dump CSEQ and LSEQ states
-  * @asd_ha: pointer to host adapter structure
-@@ -922,7 +926,9 @@ void asd_dump_frame_rcvd(struct asd_phy 
- 	spin_unlock_irqrestore(&phy->sas_phy.frame_rcvd_lock, flags);
- }
- 
--static inline void asd_dump_scb(struct asd_ascb *ascb, int ind)
-+#if 0
-+
-+static void asd_dump_scb(struct asd_ascb *ascb, int ind)
- {
- 	asd_printk("scb%d: vaddr: 0x%p, dma_handle: 0x%llx, next: 0x%llx, "
- 		   "index:%d, opcode:0x%02x\n",
-@@ -956,4 +962,6 @@ void asd_dump_scb_list(struct asd_ascb *
- 	}
- }
- 
-+#endif  /*  0  */
-+
- #endif /* ASD_DEBUG */
-diff -puN drivers/scsi/aic94xx/aic94xx_dump.h~scsi-aic94xx-cleanups drivers/scsi/aic94xx/aic94xx_dump.h
---- a/drivers/scsi/aic94xx/aic94xx_dump.h~scsi-aic94xx-cleanups
-+++ a/drivers/scsi/aic94xx/aic94xx_dump.h
-@@ -29,24 +29,15 @@
- 
- #ifdef ASD_DEBUG
- 
--void asd_dump_ddb_0(struct asd_ha_struct *asd_ha);
--void asd_dump_target_ddb(struct asd_ha_struct *asd_ha, u16 site_no);
--void asd_dump_scb_sites(struct asd_ha_struct *asd_ha);
- void asd_dump_seq_state(struct asd_ha_struct *asd_ha, u8 lseq_mask);
- void asd_dump_frame_rcvd(struct asd_phy *phy,
- 			 struct done_list_struct *dl);
--void asd_dump_scb_list(struct asd_ascb *ascb, int num);
- #else /* ASD_DEBUG */
- 
--static inline void asd_dump_ddb_0(struct asd_ha_struct *asd_ha) { }
--static inline void asd_dump_target_ddb(struct asd_ha_struct *asd_ha,
--				     u16 site_no) { }
--static inline void asd_dump_scb_sites(struct asd_ha_struct *asd_ha) { }
- static inline void asd_dump_seq_state(struct asd_ha_struct *asd_ha,
- 				      u8 lseq_mask) { }
- static inline void asd_dump_frame_rcvd(struct asd_phy *phy,
- 				       struct done_list_struct *dl) { }
--static inline void asd_dump_scb_list(struct asd_ascb *ascb, int num) { }
- #endif /* ASD_DEBUG */
- 
- #endif /* _AIC94XX_DUMP_H_ */
-diff -puN drivers/scsi/aic94xx/aic94xx_hwi.c~scsi-aic94xx-cleanups drivers/scsi/aic94xx/aic94xx_hwi.c
---- a/drivers/scsi/aic94xx/aic94xx_hwi.c~scsi-aic94xx-cleanups
-+++ a/drivers/scsi/aic94xx/aic94xx_hwi.c
-@@ -251,7 +251,7 @@ static int asd_init_scbs(struct asd_ha_s
- 	return 0;
- }
- 
--static inline void asd_get_max_scb_ddb(struct asd_ha_struct *asd_ha)
-+static void asd_get_max_scb_ddb(struct asd_ha_struct *asd_ha)
- {
- 	asd_ha->hw_prof.max_scbs = asd_get_cmdctx_size(asd_ha)/ASD_SCB_SIZE;
- 	asd_ha->hw_prof.max_ddbs = asd_get_devctx_size(asd_ha)/ASD_DDB_SIZE;
-@@ -773,7 +773,7 @@ static void asd_dl_tasklet_handler(unsig
-  * asd_process_donelist_isr -- schedule processing of done list entries
-  * @asd_ha: pointer to host adapter structure
-  */
--static inline void asd_process_donelist_isr(struct asd_ha_struct *asd_ha)
-+static void asd_process_donelist_isr(struct asd_ha_struct *asd_ha)
- {
- 	tasklet_schedule(&asd_ha->seq.dl_tasklet);
- }
-@@ -782,7 +782,7 @@ static inline void asd_process_donelist_
-  * asd_com_sas_isr -- process device communication interrupt (COMINT)
-  * @asd_ha: pointer to host adapter structure
-  */
--static inline void asd_com_sas_isr(struct asd_ha_struct *asd_ha)
-+static void asd_com_sas_isr(struct asd_ha_struct *asd_ha)
- {
- 	u32 comstat = asd_read_reg_dword(asd_ha, COMSTAT);
- 
-@@ -821,7 +821,7 @@ static inline void asd_com_sas_isr(struc
- 	asd_chip_reset(asd_ha);
- }
- 
--static inline void asd_arp2_err(struct asd_ha_struct *asd_ha, u32 dchstatus)
-+static void asd_arp2_err(struct asd_ha_struct *asd_ha, u32 dchstatus)
- {
- 	static const char *halt_code[256] = {
- 		"UNEXPECTED_INTERRUPT0",
-@@ -908,7 +908,7 @@ static inline void asd_arp2_err(struct a
-  * asd_dch_sas_isr -- process device channel interrupt (DEVINT)
-  * @asd_ha: pointer to host adapter structure
-  */
--static inline void asd_dch_sas_isr(struct asd_ha_struct *asd_ha)
-+static void asd_dch_sas_isr(struct asd_ha_struct *asd_ha)
- {
- 	u32 dchstatus = asd_read_reg_dword(asd_ha, DCHSTATUS);
- 
-@@ -923,7 +923,7 @@ static inline void asd_dch_sas_isr(struc
-  * ads_rbi_exsi_isr -- process external system interface interrupt (INITERR)
-  * @asd_ha: pointer to host adapter structure
-  */
--static inline void asd_rbi_exsi_isr(struct asd_ha_struct *asd_ha)
-+static void asd_rbi_exsi_isr(struct asd_ha_struct *asd_ha)
- {
- 	u32 stat0r = asd_read_reg_dword(asd_ha, ASISTAT0R);
- 
-@@ -971,7 +971,7 @@ static inline void asd_rbi_exsi_isr(stru
-  *
-  * Asserted on PCIX errors: target abort, etc.
-  */
--static inline void asd_hst_pcix_isr(struct asd_ha_struct *asd_ha)
-+static void asd_hst_pcix_isr(struct asd_ha_struct *asd_ha)
- {
- 	u16 status;
- 	u32 pcix_status;
-@@ -1044,8 +1044,8 @@ irqreturn_t asd_hw_isr(int irq, void *de
- 
- /* ---------- SCB handling ---------- */
- 
--static inline struct asd_ascb *asd_ascb_alloc(struct asd_ha_struct *asd_ha,
--					      gfp_t gfp_flags)
-+static struct asd_ascb *asd_ascb_alloc(struct asd_ha_struct *asd_ha,
-+				       gfp_t gfp_flags)
- {
- 	extern struct kmem_cache *asd_ascb_cache;
- 	struct asd_seq_data *seq = &asd_ha->seq;
-@@ -1144,8 +1144,8 @@ struct asd_ascb *asd_ascb_alloc_list(str
-  *
-  * LOCKING: called with the pending list lock held.
-  */
--static inline void asd_swap_head_scb(struct asd_ha_struct *asd_ha,
--				     struct asd_ascb *ascb)
-+static void asd_swap_head_scb(struct asd_ha_struct *asd_ha,
-+			      struct asd_ascb *ascb)
- {
- 	struct asd_seq_data *seq = &asd_ha->seq;
- 	struct asd_ascb *last = list_entry(ascb->list.prev,
-@@ -1171,7 +1171,7 @@ static inline void asd_swap_head_scb(str
-  * intended to be called from asd_post_ascb_list(), just prior to
-  * posting the SCBs to the sequencer.
-  */
--static inline void asd_start_scb_timers(struct list_head *list)
-+static void asd_start_scb_timers(struct list_head *list)
- {
- 	struct asd_ascb *ascb;
- 	list_for_each_entry(ascb, list, list) {
-diff -puN drivers/scsi/aic94xx/aic94xx_hwi.h~scsi-aic94xx-cleanups drivers/scsi/aic94xx/aic94xx_hwi.h
---- a/drivers/scsi/aic94xx/aic94xx_hwi.h~scsi-aic94xx-cleanups
-+++ a/drivers/scsi/aic94xx/aic94xx_hwi.h
-@@ -392,8 +392,6 @@ void asd_build_control_phy(struct asd_as
- void asd_control_led(struct asd_ha_struct *asd_ha, int phy_id, int op);
- void asd_turn_led(struct asd_ha_struct *asd_ha, int phy_id, int op);
- int  asd_enable_phys(struct asd_ha_struct *asd_ha, const u8 phy_mask);
--void asd_build_initiate_link_adm_task(struct asd_ascb *ascb, int phy_id,
--				      u8 subfunc);
- 
- void asd_ascb_timedout(unsigned long data);
- int  asd_chip_hardrst(struct asd_ha_struct *asd_ha);
-diff -puN drivers/scsi/aic94xx/aic94xx_init.c~scsi-aic94xx-cleanups drivers/scsi/aic94xx/aic94xx_init.c
---- a/drivers/scsi/aic94xx/aic94xx_init.c~scsi-aic94xx-cleanups
-+++ a/drivers/scsi/aic94xx/aic94xx_init.c
-@@ -547,7 +547,7 @@ static struct asd_pcidev_struct {
- 	},
- };
- 
--static inline int asd_create_ha_caches(struct asd_ha_struct *asd_ha)
-+static int asd_create_ha_caches(struct asd_ha_struct *asd_ha)
- {
- 	asd_ha->scb_pool = dma_pool_create(ASD_DRIVER_NAME "_scb_pool",
- 					   &asd_ha->pcidev->dev,
-@@ -565,7 +565,7 @@ static inline int asd_create_ha_caches(s
-  * asd_free_edbs -- free empty data buffers
-  * asd_ha: pointer to host adapter structure
-  */
--static inline void asd_free_edbs(struct asd_ha_struct *asd_ha)
-+static void asd_free_edbs(struct asd_ha_struct *asd_ha)
- {
- 	struct asd_seq_data *seq = &asd_ha->seq;
- 	int i;
-@@ -576,7 +576,7 @@ static inline void asd_free_edbs(struct 
- 	seq->edb_arr = NULL;
- }
- 
--static inline void asd_free_escbs(struct asd_ha_struct *asd_ha)
-+static void asd_free_escbs(struct asd_ha_struct *asd_ha)
- {
- 	struct asd_seq_data *seq = &asd_ha->seq;
- 	int i;
-@@ -591,7 +591,7 @@ static inline void asd_free_escbs(struct
- 	seq->escb_arr = NULL;
- }
- 
--static inline void asd_destroy_ha_caches(struct asd_ha_struct *asd_ha)
-+static void asd_destroy_ha_caches(struct asd_ha_struct *asd_ha)
- {
- 	int i;
- 
-diff -puN drivers/scsi/aic94xx/aic94xx_reg.c~scsi-aic94xx-cleanups drivers/scsi/aic94xx/aic94xx_reg.c
---- a/drivers/scsi/aic94xx/aic94xx_reg.c~scsi-aic94xx-cleanups
+diff -puN drivers/scsi/aic94xx/aic94xx_reg.c~scsi-aic94xx-cleanups-checkpatch-fixes drivers/scsi/aic94xx/aic94xx_reg.c
+--- a/drivers/scsi/aic94xx/aic94xx_reg.c~scsi-aic94xx-cleanups-checkpatch-fixes
 +++ a/drivers/scsi/aic94xx/aic94xx_reg.c
-@@ -32,8 +32,8 @@
-  * Offset comes before value to remind that the operation of
-  * this function is *offs = val.
-  */
--static inline void asd_write_byte(struct asd_ha_struct *asd_ha,
--				  unsigned long offs, u8 val)
-+static void asd_write_byte(struct asd_ha_struct *asd_ha,
-+			   unsigned long offs, u8 val)
- {
- 	if (unlikely(asd_ha->iospace))
- 		outb(val,
-@@ -43,8 +43,8 @@ static inline void asd_write_byte(struct
- 	wmb();
- }
- 
--static inline void asd_write_word(struct asd_ha_struct *asd_ha,
--				  unsigned long offs, u16 val)
-+static void asd_write_word(struct asd_ha_struct *asd_ha,
-+			   unsigned long offs, u16 val)
- {
- 	if (unlikely(asd_ha->iospace))
- 		outw(val,
-@@ -54,8 +54,8 @@ static inline void asd_write_word(struct
- 	wmb();
- }
- 
--static inline void asd_write_dword(struct asd_ha_struct *asd_ha,
--				   unsigned long offs, u32 val)
-+static void asd_write_dword(struct asd_ha_struct *asd_ha,
-+			    unsigned long offs, u32 val)
- {
- 	if (unlikely(asd_ha->iospace))
- 		outl(val,
-@@ -67,8 +67,7 @@ static inline void asd_write_dword(struc
- 
- /* Reading from device address space.
-  */
--static inline u8 asd_read_byte(struct asd_ha_struct *asd_ha,
--			       unsigned long offs)
-+static u8 asd_read_byte(struct asd_ha_struct *asd_ha, unsigned long offs)
- {
- 	u8 val;
- 	if (unlikely(asd_ha->iospace))
-@@ -80,8 +79,8 @@ static inline u8 asd_read_byte(struct as
- 	return val;
- }
- 
--static inline u16 asd_read_word(struct asd_ha_struct *asd_ha,
--				unsigned long offs)
-+static u16 asd_read_word(struct asd_ha_struct *asd_ha,
-+			 unsigned long offs)
- {
- 	u16 val;
- 	if (unlikely(asd_ha->iospace))
-@@ -93,8 +92,8 @@ static inline u16 asd_read_word(struct a
- 	return val;
- }
- 
--static inline u32 asd_read_dword(struct asd_ha_struct *asd_ha,
--				 unsigned long offs)
-+static u32 asd_read_dword(struct asd_ha_struct *asd_ha,
-+			  unsigned long offs)
- {
- 	u32 val;
- 	if (unlikely(asd_ha->iospace))
-@@ -125,8 +124,8 @@ static inline u32 asd_mem_offs_swb(void)
+@@ -123,22 +123,22 @@ static inline u32 asd_mem_offs_swb(void)
+ /* We know that the register wanted is in the range
   * of the sliding window.
   */
- #define ASD_READ_SW(ww, type, ord)                                     \
--static inline type asd_read_##ww##_##ord (struct asd_ha_struct *asd_ha,\
--					  u32 reg)                     \
-+static type asd_read_##ww##_##ord (struct asd_ha_struct *asd_ha,       \
-+				   u32 reg)			       \
- {                                                                      \
- 	struct asd_ha_addrspace *io_handle = &asd_ha->io_handle[0];    \
- 	u32 map_offs=(reg - io_handle-> ww##_base )+asd_mem_offs_##ww ();\
-@@ -134,8 +133,8 @@ static inline type asd_read_##ww##_##ord
- }
- 
- #define ASD_WRITE_SW(ww, type, ord)                                    \
--static inline void asd_write_##ww##_##ord (struct asd_ha_struct *asd_ha,\
--				  u32 reg, type val)                   \
-+static void asd_write_##ww##_##ord (struct asd_ha_struct *asd_ha,      \
-+				    u32 reg, type val)		       \
- {                                                                      \
- 	struct asd_ha_addrspace *io_handle = &asd_ha->io_handle[0];    \
- 	u32 map_offs=(reg - io_handle-> ww##_base )+asd_mem_offs_##ww ();\
-@@ -186,7 +185,7 @@ ASD_WRITE_SW(swc, u32, dword);
-  * @asd_ha: pointer to host adapter structure
-  * @reg: register desired to be within range of the new window
-  */
--static inline void asd_move_swb(struct asd_ha_struct *asd_ha, u32 reg)
-+static void asd_move_swb(struct asd_ha_struct *asd_ha, u32 reg)
- {
- 	u32 base = reg & ~(MBAR0_SWB_SIZE-1);
- 	pci_write_config_dword(asd_ha->pcidev, PCI_CONF_MBAR0_SWB, base);
-diff -puN drivers/scsi/aic94xx/aic94xx_scb.c~scsi-aic94xx-cleanups drivers/scsi/aic94xx/aic94xx_scb.c
---- a/drivers/scsi/aic94xx/aic94xx_scb.c~scsi-aic94xx-cleanups
-+++ a/drivers/scsi/aic94xx/aic94xx_scb.c
-@@ -50,7 +50,7 @@
- 			   | CURRENT_SPINUP_HOLD | CURRENT_GTO_TIMEOUT \
- 			   | CURRENT_OOB_ERROR)
- 
--static inline void get_lrate_mode(struct asd_phy *phy, u8 oob_mode)
-+static void get_lrate_mode(struct asd_phy *phy, u8 oob_mode)
- {
- 	struct sas_phy *sas_phy = phy->sas_phy.phy;
- 
-@@ -81,7 +81,7 @@ static inline void get_lrate_mode(struct
- 		phy->sas_phy.oob_mode = SATA_OOB_MODE;
- }
- 
--static inline void asd_phy_event_tasklet(struct asd_ascb *ascb,
-+static void asd_phy_event_tasklet(struct asd_ascb *ascb,
- 					 struct done_list_struct *dl)
- {
- 	struct asd_ha_struct *asd_ha = ascb->ha;
-@@ -125,8 +125,7 @@ static inline void asd_phy_event_tasklet
- }
- 
- /* If phys are enabled sparsely, this will do the right thing. */
--static inline unsigned ord_phy(struct asd_ha_struct *asd_ha,
--			       struct asd_phy *phy)
-+static unsigned ord_phy(struct asd_ha_struct *asd_ha, struct asd_phy *phy)
- {
- 	u8 enabled_mask = asd_ha->hw_prof.enabled_phys;
- 	int i, k = 0;
-@@ -151,7 +150,7 @@ static inline unsigned ord_phy(struct as
-  * LOCKING: the frame_rcvd_lock needs to be held since this parses the frame
-  * buffer.
-  */
--static inline void asd_get_attached_sas_addr(struct asd_phy *phy, u8 *sas_addr)
-+static void asd_get_attached_sas_addr(struct asd_phy *phy, u8 *sas_addr)
- {
- 	if (phy->sas_phy.frame_rcvd[0] == 0x34
- 	    && phy->sas_phy.oob_mode == SATA_OOB_MODE) {
-@@ -232,9 +231,9 @@ static void asd_deform_port(struct asd_h
- 	spin_unlock_irqrestore(&asd_ha->asd_ports_lock, flags);
- }
- 
--static inline void asd_bytes_dmaed_tasklet(struct asd_ascb *ascb,
--					   struct done_list_struct *dl,
--					   int edb_id, int phy_id)
-+static void asd_bytes_dmaed_tasklet(struct asd_ascb *ascb,
-+				    struct done_list_struct *dl,
-+				    int edb_id, int phy_id)
- {
- 	unsigned long flags;
- 	int edb_el = edb_id + ascb->edb_index;
-@@ -255,9 +254,9 @@ static inline void asd_bytes_dmaed_taskl
- 	sas_ha->notify_port_event(&phy->sas_phy, PORTE_BYTES_DMAED);
- }
- 
--static inline void asd_link_reset_err_tasklet(struct asd_ascb *ascb,
--					      struct done_list_struct *dl,
--					      int phy_id)
-+static void asd_link_reset_err_tasklet(struct asd_ascb *ascb,
-+				       struct done_list_struct *dl,
-+				       int phy_id)
- {
- 	struct asd_ha_struct *asd_ha = ascb->ha;
- 	struct sas_ha_struct *sas_ha = &asd_ha->sas_ha;
-@@ -308,9 +307,9 @@ out:
- 	;
- }
- 
--static inline void asd_primitive_rcvd_tasklet(struct asd_ascb *ascb,
--					      struct done_list_struct *dl,
--					      int phy_id)
-+static void asd_primitive_rcvd_tasklet(struct asd_ascb *ascb,
-+				       struct done_list_struct *dl,
-+				       int phy_id)
- {
- 	unsigned long flags;
- 	struct sas_ha_struct *sas_ha = &ascb->ha->sas_ha;
-@@ -709,7 +708,7 @@ out:
- 	asd_ascb_free(ascb);
- }
- 
--static inline void set_speed_mask(u8 *speed_mask, struct asd_phy_desc *pd)
-+static void set_speed_mask(u8 *speed_mask, struct asd_phy_desc *pd)
- {
- 	/* disable all speeds, then enable defaults */
- 	*speed_mask = SAS_SPEED_60_DIS | SAS_SPEED_30_DIS | SAS_SPEED_15_DIS
-@@ -814,6 +813,8 @@ void asd_build_control_phy(struct asd_as
- 
- /* ---------- INITIATE LINK ADM TASK ---------- */
- 
-+#if 0
-+
- static void link_adm_tasklet_complete(struct asd_ascb *ascb,
- 				      struct done_list_struct *dl)
- {
-@@ -846,6 +847,8 @@ void asd_build_initiate_link_adm_task(st
- 	ascb->tasklet_complete = link_adm_tasklet_complete;
- }
- 
-+#endif  /*  0  */
-+
- /* ---------- SCB timer ---------- */
- 
- /**
-diff -puN drivers/scsi/aic94xx/aic94xx_sds.c~scsi-aic94xx-cleanups drivers/scsi/aic94xx/aic94xx_sds.c
---- a/drivers/scsi/aic94xx/aic94xx_sds.c~scsi-aic94xx-cleanups
-+++ a/drivers/scsi/aic94xx/aic94xx_sds.c
-@@ -590,8 +590,8 @@ static int asd_reset_flash(struct asd_ha
- 	return err;
- }
- 
--static inline int asd_read_flash_seg(struct asd_ha_struct *asd_ha,
--				     void *buffer, u32 offs, int size)
-+static int asd_read_flash_seg(struct asd_ha_struct *asd_ha,
-+			      void *buffer, u32 offs, int size)
- {
- 	asd_read_reg_string(asd_ha, buffer, asd_ha->hw_prof.flash.bar+offs,
- 			    size);
-diff -puN drivers/scsi/aic94xx/aic94xx_seq.c~scsi-aic94xx-cleanups drivers/scsi/aic94xx/aic94xx_seq.c
---- a/drivers/scsi/aic94xx/aic94xx_seq.c~scsi-aic94xx-cleanups
-+++ a/drivers/scsi/aic94xx/aic94xx_seq.c
-@@ -60,7 +60,7 @@ static u16 last_scb_site_no;
-  *
-  * Return 0 on success, negative on failure.
-  */
--int asd_pause_cseq(struct asd_ha_struct *asd_ha)
-+static int asd_pause_cseq(struct asd_ha_struct *asd_ha)
- {
- 	int	count = PAUSE_TRIES;
- 	u32	arp2ctl;
-@@ -87,7 +87,7 @@ int asd_pause_cseq(struct asd_ha_struct 
-  *
-  * Return 0 on success, negative on error.
-  */
--int asd_unpause_cseq(struct asd_ha_struct *asd_ha)
-+static int asd_unpause_cseq(struct asd_ha_struct *asd_ha)
- {
- 	u32	arp2ctl;
- 	int	count = PAUSE_TRIES;
-@@ -115,7 +115,7 @@ int asd_unpause_cseq(struct asd_ha_struc
-  *
-  * Return 0 on success, negative on error.
-  */
--static inline int asd_seq_pause_lseq(struct asd_ha_struct *asd_ha, int lseq)
-+static int asd_seq_pause_lseq(struct asd_ha_struct *asd_ha, int lseq)
- {
- 	u32    arp2ctl;
- 	int    count = PAUSE_TRIES;
-@@ -143,7 +143,7 @@ static inline int asd_seq_pause_lseq(str
-  *
-  * Return 0 on success, negative on failure.
-  */
--int asd_pause_lseq(struct asd_ha_struct *asd_ha, u8 lseq_mask)
-+static int asd_pause_lseq(struct asd_ha_struct *asd_ha, u8 lseq_mask)
- {
- 	int lseq;
- 	int err = 0;
-@@ -164,7 +164,7 @@ int asd_pause_lseq(struct asd_ha_struct 
-  *
-  * Return 0 on success, negative on error.
-  */
--static inline int asd_seq_unpause_lseq(struct asd_ha_struct *asd_ha, int lseq)
-+static int asd_seq_unpause_lseq(struct asd_ha_struct *asd_ha, int lseq)
- {
- 	u32 arp2ctl;
- 	int count = PAUSE_TRIES;
-@@ -186,27 +186,6 @@ static inline int asd_seq_unpause_lseq(s
- }
- 
- 
--/**
-- * asd_unpause_lseq - unpause the link sequencer(s)
-- * @asd_ha: pointer to host adapter structure
-- * @lseq_mask: mask of link sequencers of interest
-- *
-- * Return 0 on success, negative on failure.
-- */
--int asd_unpause_lseq(struct asd_ha_struct *asd_ha, u8 lseq_mask)
--{
--	int lseq;
--	int err = 0;
--
--	for_each_sequencer(lseq_mask, lseq_mask, lseq) {
--		err = asd_seq_unpause_lseq(asd_ha, lseq);
--		if (err)
--			return err;
--	}
--
--	return err;
+-#define ASD_READ_SW(ww, type, ord)                                     \
+-static type asd_read_##ww##_##ord (struct asd_ha_struct *asd_ha,       \
+-				   u32 reg)			       \
+-{                                                                      \
+-	struct asd_ha_addrspace *io_handle = &asd_ha->io_handle[0];    \
+-	u32 map_offs=(reg - io_handle-> ww##_base )+asd_mem_offs_##ww ();\
+-	return asd_read_##ord (asd_ha, (unsigned long) map_offs);      \
 -}
 -
- /* ---------- Downloading CSEQ/LSEQ microcode ---------- */
- 
- static int asd_verify_cseq(struct asd_ha_struct *asd_ha, const u8 *_prog,
-diff -puN drivers/scsi/aic94xx/aic94xx_seq.h~scsi-aic94xx-cleanups drivers/scsi/aic94xx/aic94xx_seq.h
---- a/drivers/scsi/aic94xx/aic94xx_seq.h~scsi-aic94xx-cleanups
-+++ a/drivers/scsi/aic94xx/aic94xx_seq.h
-@@ -58,10 +58,6 @@ struct sequencer_file_header {
- } __attribute__((packed));
- 
- #ifdef __KERNEL__
--int asd_pause_cseq(struct asd_ha_struct *asd_ha);
--int asd_unpause_cseq(struct asd_ha_struct *asd_ha);
--int asd_pause_lseq(struct asd_ha_struct *asd_ha, u8 lseq_mask);
--int asd_unpause_lseq(struct asd_ha_struct *asd_ha, u8 lseq_mask);
- int asd_init_seqs(struct asd_ha_struct *asd_ha);
- int asd_start_seqs(struct asd_ha_struct *asd_ha);
- int asd_release_firmware(void);
-diff -puN drivers/scsi/aic94xx/aic94xx_task.c~scsi-aic94xx-cleanups drivers/scsi/aic94xx/aic94xx_task.c
---- a/drivers/scsi/aic94xx/aic94xx_task.c~scsi-aic94xx-cleanups
-+++ a/drivers/scsi/aic94xx/aic94xx_task.c
-@@ -33,7 +33,7 @@ static void asd_unbuild_ata_ascb(struct 
- static void asd_unbuild_smp_ascb(struct asd_ascb *a);
- static void asd_unbuild_ssp_ascb(struct asd_ascb *a);
- 
--static inline void asd_can_dequeue(struct asd_ha_struct *asd_ha, int num)
-+static void asd_can_dequeue(struct asd_ha_struct *asd_ha, int num)
- {
- 	unsigned long flags;
- 
-@@ -51,9 +51,9 @@ static const u8 data_dir_flags[] = {
- 	[PCI_DMA_NONE]          = DATA_DIR_NONE, /* NO TRANSFER */
- };
- 
--static inline int asd_map_scatterlist(struct sas_task *task,
--				      struct sg_el *sg_arr,
--				      gfp_t gfp_flags)
-+static int asd_map_scatterlist(struct sas_task *task,
-+			       struct sg_el *sg_arr,
-+			       gfp_t gfp_flags)
- {
- 	struct asd_ascb *ascb = task->lldd_task;
- 	struct asd_ha_struct *asd_ha = ascb->ha;
-@@ -131,7 +131,7 @@ err_unmap:
- 	return res;
+-#define ASD_WRITE_SW(ww, type, ord)                                    \
+-static void asd_write_##ww##_##ord (struct asd_ha_struct *asd_ha,      \
+-				    u32 reg, type val)		       \
+-{                                                                      \
+-	struct asd_ha_addrspace *io_handle = &asd_ha->io_handle[0];    \
+-	u32 map_offs=(reg - io_handle-> ww##_base )+asd_mem_offs_##ww ();\
+-	asd_write_##ord (asd_ha, (unsigned long) map_offs, val);       \
++#define ASD_READ_SW(ww, type, ord)					\
++static type asd_read_##ww##_##ord(struct asd_ha_struct *asd_ha,		\
++				   u32 reg)				\
++{									\
++	struct asd_ha_addrspace *io_handle = &asd_ha->io_handle[0];	\
++	u32 map_offs=(reg - io_handle-> ww##_base )+asd_mem_offs_##ww();\
++	return asd_read_##ord (asd_ha, (unsigned long) map_offs);	\
++}
++
++#define ASD_WRITE_SW(ww, type, ord)					\
++static void asd_write_##ww##_##ord(struct asd_ha_struct *asd_ha,	\
++				    u32 reg, type val)			\
++{									\
++	struct asd_ha_addrspace *io_handle = &asd_ha->io_handle[0];	\
++	u32 map_offs=(reg - io_handle-> ww##_base )+asd_mem_offs_##ww();\
++	asd_write_##ord (asd_ha, (unsigned long)map_offs, val);		\
  }
  
--static inline void asd_unmap_scatterlist(struct asd_ascb *ascb)
-+static void asd_unmap_scatterlist(struct asd_ascb *ascb)
- {
- 	struct asd_ha_struct *asd_ha = ascb->ha;
- 	struct sas_task *task = ascb->uldd_task;
-@@ -541,7 +541,7 @@ static void asd_unbuild_ssp_ascb(struct 
- 
- /* ---------- Execute Task ---------- */
- 
--static inline int asd_can_queue(struct asd_ha_struct *asd_ha, int num)
-+static int asd_can_queue(struct asd_ha_struct *asd_ha, int num)
- {
- 	int res = 0;
- 	unsigned long flags;
-diff -puN drivers/scsi/aic94xx/aic94xx_tmf.c~scsi-aic94xx-cleanups drivers/scsi/aic94xx/aic94xx_tmf.c
---- a/drivers/scsi/aic94xx/aic94xx_tmf.c~scsi-aic94xx-cleanups
-+++ a/drivers/scsi/aic94xx/aic94xx_tmf.c
-@@ -53,7 +53,7 @@ static int asd_enqueue_internal(struct a
- 	return res;
- }
- 
--static inline void asd_timedout_common(unsigned long data)
-+static void asd_timedout_common(unsigned long data)
- {
- 	struct asd_ascb *ascb = (void *) data;
- 	struct asd_seq_data *seq = &ascb->ha->seq;
-@@ -287,7 +287,7 @@ static void asd_tmf_tasklet_complete(str
- 	complete(&ascb->completion);
- }
- 
--static inline int asd_clear_nexus(struct sas_task *task)
-+static int asd_clear_nexus(struct sas_task *task)
- {
- 	int res = TMF_RESP_FUNC_FAILED;
- 	int leftover;
+ ASD_READ_SW(swa, u8,  byte);
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-drivers-cpufreq-cpufreq_statsc-section-fix.patch
+fix-headers_install.patch
+revert-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+timerfd-v3-new-timerfd-api-ia64-fix.patch
+timerfd-v3-new-timerfd-api-m68k-fix.patch
+timerfd-v3-new-timerfd-api-mips-fix.patch
+timerfd-v3-new-timerfd-api-arch-fixes.patch
+timerfd-v3-new-timerfd-api-powerpc-fix.patch
+timerfd-v3-new-timerfd-api-sparc64-fix.patch
 git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+kernel-auditc-warning-fix.patch
+git-cpufreq.patch
+ppc-chrp-fix-possible-null-pointer-dereference.patch
+gregkh-driver-kobject-change-drivers-cpuidle-sysfsc-to-use-kobject_init_and_add-fix.patch
+revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+git-drm.patch
+git-drm-fix.patch
+intel-agp-enable-i915-recognition.patch
 git-dvb.patch
-git-gfs2-nmw.patch
+git-dvb-one-videobuf_read_start-is-enough.patch
+fix-jdelvare-i2c-i2c-constify-client-address-data.patch
+git-hid.patch
+revert-git-hrt.patch
+ia64-slim-down-__clear_bit_unlock.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
+libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
+libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
+git-md-accel.patch
+git-mips-fixup.patch
+git-mmc.patch
 git-mtd.patch
 git-net.patch
+git-net-vs-git-lblnet.patch
+git-net-vs-git-lblnet-2.patch
 git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+backlight-omap1-backlight-driver.patch
 git-battery.patch
-drivers-bluetooth-bpa10xc-fix-memleak.patch
-drivers-bluetooth-btsdioc-fix-double-free.patch
-drivers-pci-msic-move-arch-hooks-to-the-top.patch
-if-0-pci_cleanup_aer_correct_error_status.patch
+bluetooth-uninlining.patch
+git-nfsd.patch
+git-ocfs2-fixup.patch
+quirk-enable-msi-mapping-on-ht1000.patch
+git-sched.patch
+git-sched-fixup.patch
+git-sh.patch
 git-scsi-misc.patch
-scsi-advansysc-make-3-functions-static.patch
-scsi-qla2xxx-possible-cleanups.patch
-scsi-qla2xxx-qla_osc-section-fix.patch
-scsi-megaraidc-__devexit-annotation.patch
-scsi-aic94xx-cleanups.patch
-wireless-ipw2200c-add-__devinitexit-annotations.patch
+git-scsi-rc-fixes.patch
+scsi-aic94xx-cleanups-checkpatch-fixes.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+usb-testing-driver-dont-free-a-locked-mutex.patch
+ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
+9p-util-fix-semaphore-handling.patch
+git-watchdog.patch
+git-watchdog-fixup.patch
+add-support-for-sb1-hardware-watchdog.patch
+git-wireless.patch
+git-ipwireless_cs.patch
 git-x86.patch
-x86_32-disable_pse-must-be-__cpuinitdata.patch
+git-x86-fixup.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+i386-use-raw_smp_processor_id-in-die.patch
 x86_32-disable_pse-must-be-__cpuinitdata-fix.patch
-x86_32-select_idle_routine-must-be-__cpuinit.patch
-x86-smpboot_32c-section-fixes.patch
-x86-apic_32c-section-fix.patch
 git-cryptodev.patch
+git-cryptodev-fixup.patch
 git-xtensa.patch
-mm-page-writebackc-make-a-function-static.patch
-make-__vmalloc_area_node-static.patch
-kernel-power-diskc-make-code-static.patch
-make-kernel_shutdown_prepare-static.patch
-nubus-kill-drivers-nubus-nubus_symsc.patch
-m68k-kill-arch-m68k-mac-mac_ksymsc.patch
-m68k-kill-arch-m68k-hp300-ksymsc.patch
-m68k-kill-arch-m68k-amiga-amiga_ksymsc.patch
-m68k-kill-arch-m68k-atari-atari_ksymsc.patch
-m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch
-kill-udffs_dateversion.patch
-make-ipc-utilcsysvipc_find_ipc-static.patch
-cleanup-after-apus-removal.patch
-remove-mm_ptovvtop.patch
-remove-__attribute_used__.patch
+bonding-locking-fix.patch
+iwlwifi3945-4965-fix-rate-control-algo-reference-leak.patch
+bcm43xx_debugfs-sscanf-fix.patch
+usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
 remove-__attribute_used__-checkpatch-fixes.patch
-proper-show_interrupts-prototype.patch
-scheduled-oss-driver-removal.patch
-linux-inith-simplify-__meminitexit-dependencies.patch
-proper-prototype-for-signals_init.patch
-kernel-ptracec-should-include-linux-syscallsh.patch
-make-srcu_readers_active-static.patch
-kernel-notifierc-should-include-linux-rebooth.patch
-proper-prototype-for-get_filesystem_list.patch
-fs-utimesc-should-include-linux-syscallsh.patch
-fs-signalfdc-should-include-linux-syscallsh.patch
-fs-eventfdc-should-include-linux-syscallsh.patch
-proper-prototype-for-vty_init.patch
-drivers-misc-lkdtmc-cleanups.patch
-xen-fiddle_vdso-must-be-__init.patch
-calibrate_delay-must-be-__cpuinit.patch
-idle_regs-must-be-__cpuinit.patch
-fs-ecryptfs-possible-cleanups.patch
-make-video-geode-lxfb_corecgeode_modedb-static.patch
-video-hpfbc-section-fix.patch
-drivers-video-pm3fbc-section-fix.patch
-ext4-superc-fix-ifdefs.patch
-make-jbd-journalc__journal_abort_hard-static.patch
-move-edactxt-two-levels-up.patch
-remove-documentation-smptxt.patch
-kernel-cgroupc-remove-dead-code.patch
-kernel-cgroupc-make-2-functions-static.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+stopmachine-semaphore-to-mutex-fix.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
+mark-rwsem-functions-as-__sched-for-wchan-profiling-fix.patch
+sync_sb_inodes-propagate-errors.patch
+add-have_oprofile.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-fix.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+logo-move-declarations-of-logos-to-linux_logoh-fix.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+64-bit-i_version-afs-fixes.patch
+ext4-add-block-bitmap-validation.patch
+ext4-fix-up-ext4fs_debug-builds.patch
+ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
 memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
 memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-fix-m32r-__xchg.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
 reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
