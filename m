@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + iget-stop-isofs-from-using-read_inode-fix-2-update.patch added to -mm tree
-Date: Wed, 19 Dec 2007 15:40:09 -0800
-Message-ID: <200712192340.lBJNeEtf025246@imap1.linux-foundation.org>
+Subject: + hfs-handle-more-on-disk-corruptions-without-oopsing.patch added to -mm tree
+Date: Wed, 19 Dec 2007 15:43:29 -0800
+Message-ID: <200712192343.lBJNhTBs025391@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45028 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41178 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753172AbXLSXkz (ORCPT
+	by vger.kernel.org with ESMTP id S1757777AbXLSXov (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Dec 2007 18:40:55 -0500
+	Wed, 19 Dec 2007 18:44:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, hidave.darkstar@gmail.com
+Cc: sandeen@redhat.com, zippel@linux-m68k.org
 
 
 The patch titled
-     IGET: Handle errors in ISOFS correctly [try #2]
+     hfs: handle more on-disk corruptions without oopsing
 has been added to the -mm tree.  Its filename is
-     iget-stop-isofs-from-using-read_inode-fix-2-update.patch
+     hfs-handle-more-on-disk-corruptions-without-oopsing.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,173 +26,174 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: IGET: Handle errors in ISOFS correctly [try #2]
-From: David Howells <dhowells@redhat.com>
+Subject: hfs: handle more on-disk corruptions without oopsing
+From: Eric Sandeen <sandeen@redhat.com>
 
-Dave Young <hidave.darkstar@gmail.com> wrote:
+hfs seems prone to bad things when it encounters on disk corruption.  Many
+values are read from disk, and used as lengths to memcpy, as an example. 
+This patch fixes up several of these problematic cases.
 
-> +     if (IS_ERR(inode))
-> +            goto out_no_root;
+o sanity check the on-disk maximum key lengths on mount
+  (these are set to a defined value at mkfs time and shouldn't differ)
+o check on-disk node keylens against the maximum key length for each tree
+o fix hfs_btree_open so that going out via free_tree: doesn't wind
+  up in hfs_releasepage, which wants to follow the very pointer
+  we were trying to set up:
+	HFS_SB(sb)->cat_tree = hfs_btree_open()
+		...
+		failure gets to hfs_releasepage and tries
+		to follow HFS_SB(sb)->cat_tree
 
-How about this then?
+Tested with the fsfuzzer; it survives more than it used to.
 
-David
-
----
-IGET: Handle errors in ISOFS correctly
-
-
-Handle errors in ISOFS correctly.
-
-Updated to correctly handle the iput() and re-isofs_iget() done when we change
-to the secondary root.
-
-Updated to return -ENOMEM from isofs_fill_super() rather than -EINVAL when the
-former is the actual error condition.  Also to return -EIO when that occurs
-within isofs_iget().
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: "Dave Young" <hidave.darkstar@gmail.com>
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/isofs/inode.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ fs/hfs/bfind.c |   15 +++++++++++++++
+ fs/hfs/brec.c  |   15 +++++++++++++--
+ fs/hfs/btree.c |   13 ++++++++++++-
+ fs/hfs/hfs.h   |    5 +++++
+ 4 files changed, 45 insertions(+), 3 deletions(-)
 
-diff -puN fs/isofs/inode.c~iget-stop-isofs-from-using-read_inode-fix-2-update fs/isofs/inode.c
---- a/fs/isofs/inode.c~iget-stop-isofs-from-using-read_inode-fix-2-update
-+++ a/fs/isofs/inode.c
-@@ -551,7 +551,7 @@ static int isofs_fill_super(struct super
- 	int joliet_level = 0;
- 	int iso_blknum, block;
- 	int orig_zonesize;
--	int table;
-+	int table, error = -EINVAL;
- 	unsigned int vol_desc_start;
- 
- 	sbi = kzalloc(sizeof(*sbi), GFP_KERNEL);
-@@ -809,6 +809,8 @@ root_found:
- 	 * we then decide whether to use the Joliet descriptor.
- 	 */
- 	inode = isofs_iget(s, sbi->s_firstdatazone, 0);
-+	if (IS_ERR(inode))
-+		goto out_no_root;
- 
- 	/*
- 	 * If this disk has both Rock Ridge and Joliet on it, then we
-@@ -828,6 +830,8 @@ root_found:
- 				"ISOFS: changing to secondary root\n");
- 			iput(inode);
- 			inode = isofs_iget(s, sbi->s_firstdatazone, 0);
-+			if (IS_ERR(inode))
-+				goto out_no_root;
- 		}
+diff -puN fs/hfs/bfind.c~hfs-handle-more-on-disk-corruptions-without-oopsing fs/hfs/bfind.c
+--- a/fs/hfs/bfind.c~hfs-handle-more-on-disk-corruptions-without-oopsing
++++ a/fs/hfs/bfind.c
+@@ -52,6 +52,11 @@ int __hfs_brec_find(struct hfs_bnode *bn
+ 		rec = (e + b) / 2;
+ 		len = hfs_brec_lenoff(bnode, rec, &off);
+ 		keylen = hfs_brec_keylen(bnode, rec);
++		if (keylen == HFS_BAD_KEYLEN) {
++			printk(KERN_ERR "hfs: keylen %d too long\n", keylen);
++			res = -EINVAL;
++			goto done;
++		}
+ 		hfs_bnode_read(bnode, fd->key, off, keylen);
+ 		cmpval = bnode->tree->keycmp(fd->key, fd->search_key);
+ 		if (!cmpval) {
+@@ -67,6 +72,11 @@ int __hfs_brec_find(struct hfs_bnode *bn
+ 	if (rec != e && e >= 0) {
+ 		len = hfs_brec_lenoff(bnode, e, &off);
+ 		keylen = hfs_brec_keylen(bnode, e);
++		if (keylen == HFS_BAD_KEYLEN) {
++			printk(KERN_ERR "hfs: keylen %d too long\n", keylen);
++			res = -EINVAL;
++			goto done;
++		}
+ 		hfs_bnode_read(bnode, fd->key, off, keylen);
  	}
+ done:
+@@ -198,6 +208,11 @@ int hfs_brec_goto(struct hfs_find_data *
  
-@@ -841,8 +845,6 @@ root_found:
- 	sbi->s_joliet_level = joliet_level;
- 
- 	/* check the root inode */
--	if (IS_ERR(inode))
--		goto out_no_root;
- 	if (!inode->i_op)
- 		goto out_bad_root;
- 
-@@ -879,7 +881,9 @@ out_iput:
- 	iput(inode);
- 	goto out_no_inode;
- out_no_root:
--	printk(KERN_WARNING "%s: get root inode failed\n", __func__);
-+	error = PTR_ERR(inode);
-+	if (error != -ENOMEM)
-+		printk(KERN_WARNING "%s: get root inode failed\n", __func__);
- out_no_inode:
- #ifdef CONFIG_JOLIET
- 	if (sbi->s_nls_iocharset)
-@@ -908,7 +912,7 @@ out_freesbi:
- 	kfree(opt.iocharset);
- 	kfree(sbi);
- 	s->s_fs_info = NULL;
--	return -EINVAL;
-+	return error;
+ 	len = hfs_brec_lenoff(bnode, fd->record, &off);
+ 	keylen = hfs_brec_keylen(bnode, fd->record);
++	if (keylen == HFS_BAD_KEYLEN) {
++		printk(KERN_ERR "hfs: keylen %d too long\n", keylen);
++		res = -EINVAL;
++		goto out;
++	}
+ 	fd->keyoffset = off;
+ 	fd->keylength = keylen;
+ 	fd->entryoffset = off + keylen;
+diff -puN fs/hfs/brec.c~hfs-handle-more-on-disk-corruptions-without-oopsing fs/hfs/brec.c
+--- a/fs/hfs/brec.c~hfs-handle-more-on-disk-corruptions-without-oopsing
++++ a/fs/hfs/brec.c
+@@ -44,10 +44,21 @@ u16 hfs_brec_keylen(struct hfs_bnode *no
+ 		recoff = hfs_bnode_read_u16(node, node->tree->node_size - (rec + 1) * 2);
+ 		if (!recoff)
+ 			return 0;
+-		if (node->tree->attributes & HFS_TREE_BIGKEYS)
++		if (node->tree->attributes & HFS_TREE_BIGKEYS) {
+ 			retval = hfs_bnode_read_u16(node, recoff) + 2;
+-		else
++			if (retval > node->tree->max_key_len + 2) {
++				printk(KERN_ERR "hfs: keylen %d too large\n",
++					retval);
++				retval = HFS_BAD_KEYLEN;
++			}
++		} else {
+ 			retval = (hfs_bnode_read_u8(node, recoff) | 1) + 1;
++			if (retval > node->tree->max_key_len + 1) {
++				printk(KERN_ERR "hfs: keylen %d too large\n",
++					retval);
++				retval = HFS_BAD_KEYLEN;
++			}
++		}
+ 	}
+ 	return retval;
  }
+diff -puN fs/hfs/btree.c~hfs-handle-more-on-disk-corruptions-without-oopsing fs/hfs/btree.c
+--- a/fs/hfs/btree.c~hfs-handle-more-on-disk-corruptions-without-oopsing
++++ a/fs/hfs/btree.c
+@@ -81,6 +81,17 @@ struct hfs_btree *hfs_btree_open(struct 
+ 		goto fail_page;
+ 	if (!tree->node_count)
+ 		goto fail_page;
++	if ((id == HFS_EXT_CNID) && (tree->max_key_len != HFS_MAX_EXT_KEYLEN)) {
++		printk(KERN_ERR "hfs: invalid extent max_key_len %d\n",
++			tree->max_key_len);
++		goto fail_page;
++	}
++	if ((id == HFS_CAT_CNID) && (tree->max_key_len != HFS_MAX_CAT_KEYLEN)) {
++		printk(KERN_ERR "hfs: invalid catalog max_key_len %d\n",
++			tree->max_key_len);
++		goto fail_page;
++	}
++
+ 	tree->node_size_shift = ffs(size) - 1;
+ 	tree->pages_per_bnode = (tree->node_size + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
  
- static int isofs_statfs (struct dentry *dentry, struct kstatfs *buf)
+@@ -89,9 +100,9 @@ struct hfs_btree *hfs_btree_open(struct 
+ 	return tree;
+ 
+  fail_page:
+-	tree->inode->i_mapping->a_ops = &hfs_aops;
+ 	page_cache_release(page);
+  free_tree:
++	tree->inode->i_mapping->a_ops = &hfs_aops;
+ 	iput(tree->inode);
+ 	kfree(tree);
+ 	return NULL;
+diff -puN fs/hfs/hfs.h~hfs-handle-more-on-disk-corruptions-without-oopsing fs/hfs/hfs.h
+--- a/fs/hfs/hfs.h~hfs-handle-more-on-disk-corruptions-without-oopsing
++++ a/fs/hfs/hfs.h
+@@ -28,6 +28,8 @@
+ #define HFS_MAX_NAMELEN		128
+ #define HFS_MAX_VALENCE		32767U
+ 
++#define HFS_BAD_KEYLEN		0xFF
++
+ /* Meanings of the drAtrb field of the MDB,
+  * Reference: _Inside Macintosh: Files_ p. 2-61
+  */
+@@ -167,6 +169,9 @@ typedef union hfs_btree_key {
+ 	struct hfs_ext_key ext;
+ } hfs_btree_key;
+ 
++#define HFS_MAX_CAT_KEYLEN	(sizeof(struct hfs_cat_key) - sizeof(u8))
++#define HFS_MAX_EXT_KEYLEN	(sizeof(struct hfs_ext_key) - sizeof(u8))
++
+ typedef union hfs_btree_key btree_key;
+ 
+ struct hfs_extent {
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
-git-mtd.patch
-frv-permit-the-memory-to-be-located-elsewhere-in-nommu-mode.patch
-frv-move-dma-macros-to-scatterlisth-for-consistency.patch
-frv-remove-dead-config-symbol-from-frv-code.patch
-nommu-add-new-vmalloc_user-and-remap_vmalloc_range-interfaces.patch
-create-arch-kconfig.patch
-add-have_oprofile.patch
-add-have_kprobes.patch
-move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig.patch
-64-bit-i_version-afs-fixes.patch
-add-an-err_cast-function-to-complement-err_ptr-and-co.patch
-convert-err_ptrptr_errp-instances-to-err_castp.patch
-iget-introduce-a-function-to-register-iget-failure.patch
-iget-use-iget_failed-in-afs.patch
-iget-use-iget_failed-in-gfs2.patch
-iget-stop-affs-from-using-iget-and-read_inode-try.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-autofs-from-using-iget-and-read_inode.patch
-iget-stop-befs-from-using-iget-and-read_inode-try.patch
-iget-stop-bfs-from-using-iget-and-read_inode-try.patch
-iget-stop-cifs-from-using-iget-and-read_inode-try.patch
-iget-stop-efs-from-using-iget-and-read_inode-try.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext4-from-using-iget-and-read_inode-try.patch
-iget-stop-fat-from-using-iget-and-read_inode-try.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-fix.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-fuse-from-using-iget-and-read_inode-try.patch
-iget-stop-hfsplus-from-using-iget-and-read_inode.patch
-iget-stop-isofs-from-using-read_inode.patch
-iget-stop-isofs-from-using-read_inode-fix-2.patch
-iget-stop-isofs-from-using-read_inode-fix-2-update.patch
-iget-stop-jffs2-from-using-iget-and-read_inode.patch
-iget-stop-jfs-from-using-iget-and-read_inode-try.patch
-iget-stop-the-minix-filesystem-from-using-iget-and.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-openpromfs-from-using-iget-and.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-hppfs-from-using-iget-and-read_inode.patch
-iget-remove-iget-and-the-read_inode-super-op-as.patch
-iget-stop-unionfs-from-using-iget-and-read_inode.patch
-unexport-asm-pageh.patch
-add-cmpxchg_local-to-frv.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
-aout-move-stack_top-to-asm-processorh.patch
-aout-mark-arches-that-support-aout-format.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-usb-net2280-cant-have-a-function-called-show_registers.patch
-mn10300-allocate-serial-port-uart-ids-for-on-chip-serial-ports.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-mn10300-add-platform-mtd-support-for-the-asb2303-board.patch
-mutex-subsystem-synchro-test-module.patch
+ecryptfs-initialize-new-auth_tokens-before-teardown.patch
+ecryptfs-set-s_blocksize-from-lower-fs-in-sb.patch
+ecryptfs-fix-fsx-data-corruption-problems.patch
+ecryptfs-fix-string-overflow-on-long-cipher-names.patch
+ecryptfs-fix-unlocking-in-error-paths.patch
+ecryptfs-redo-dgetmntget-on-dentry_open-failure.patch
+hfs-handle-more-on-disk-corruptions-without-oopsing.patch
+ext2-change-the-default-behaviour-on-error.patch
+ecryptfs-make-show_options-reflect-actual-mount-options.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+ecryptfs-remove-debug-as-mount-option-and-warn-if-set-via-modprobe.patch
+ext4-fix-mb_debug-format-warnings.patch
+ext4-fix-freespace-accounting-with-mballoc-on-32bit-machines.patch
+ext4-fix-oops-with-jbd-stats-through-procfs-and-external.patch
+ext4-fix-up-ext4fs_debug-builds.patch
+ext3-change-the-default-behaviour-on-error.patch
