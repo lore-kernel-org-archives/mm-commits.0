@@ -1,58 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - fs-nfs-directc-remove-dead-code.patch removed from -mm tree
-Date: Tue, 18 Dec 2007 16:47:47 -0800
-Message-ID: <200712190047.lBJ0llPo030414@imap1.linux-foundation.org>
+Subject: + x86_32-disable_pse-must-be-__cpuinitdata.patch added to -mm tree
+Date: Tue, 18 Dec 2007 16:50:08 -0800
+Message-ID: <200712190050.lBJ0o8pC030543@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35281 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41668 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759409AbXLSAsW (ORCPT
+	by vger.kernel.org with ESMTP id S1755120AbXLSAuq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Dec 2007 19:48:22 -0500
+	Tue, 18 Dec 2007 19:50:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, Trond.Myklebust@netapp.com, chuck.lever@oracle.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: bunk@kernel.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     fs/nfs/direct.c: remove dead code
-has been removed from the -mm tree.  Its filename was
-     fs-nfs-directc-remove-dead-code.patch
+     x86_32: disable_pse must be __cpuinitdata
+has been added to the -mm tree.  Its filename is
+     x86_32-disable_pse-must-be-__cpuinitdata.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: fs/nfs/direct.c: remove dead code
+Subject: x86_32: disable_pse must be __cpuinitdata
 From: Adrian Bunk <bunk@kernel.org>
 
-This code became dead after commit b9148c6b80d802dbc2a7530b29915a80432e50c7
-(which BTW doesn't seem to have changed any behaviour) and can therefore
-be removed.
+Fix the following section mismatch with CONFIG_HOTPLUG=n,
+CONFIG_HOTPLUG_CPU=y:
 
-Spotted by the Coverity checker.
+WARNING: vmlinux.o(.text+0xfa52): Section mismatch: reference to .init.data:disable_pse (between 'identify_cpu' and 'identify_secondary_cpu')
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Chuck Lever <chuck.lever@oracle.com>
-Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/direct.c |    3 ---
- 1 file changed, 3 deletions(-)
+ arch/x86/kernel/setup_32.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/nfs/direct.c~fs-nfs-directc-remove-dead-code fs/nfs/direct.c
---- a/fs/nfs/direct.c~fs-nfs-directc-remove-dead-code
-+++ a/fs/nfs/direct.c
-@@ -898,9 +898,6 @@ ssize_t nfs_file_direct_write(struct kio
- 	retval = -EINVAL;
- 	if ((ssize_t) count < 0)
- 		goto out;
--	retval = 0;
--	if (!count)
--		goto out;
+diff -puN arch/x86/kernel/setup_32.c~x86_32-disable_pse-must-be-__cpuinitdata arch/x86/kernel/setup_32.c
+--- a/arch/x86/kernel/setup_32.c~x86_32-disable_pse-must-be-__cpuinitdata
++++ a/arch/x86/kernel/setup_32.c
+@@ -69,7 +69,7 @@
+    address, and must not be in the .bss segment! */
+ unsigned long init_pg_tables_end __initdata = ~0UL;
  
- 	retval = nfs_sync_mapping(mapping);
- 	if (retval)
+-int disable_pse __devinitdata = 0;
++int disable_pse __cpuinitdata = 0;
+ 
+ /*
+  * Machine setup..
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -68,7 +70,6 @@ git-netdev-all.patch
 git-battery.patch
 drivers-bluetooth-bpa10xc-fix-memleak.patch
 drivers-bluetooth-btsdioc-fix-double-free.patch
-fs-nfs-directc-remove-dead-code.patch
 drivers-pci-msic-move-arch-hooks-to-the-top.patch
 if-0-pci_cleanup_aer_correct_error_status.patch
 git-scsi-misc.patch
@@ -77,6 +78,7 @@ scsi-qla2xxx-possible-cleanups.patch
 scsi-qla2xxx-qla_osc-section-fix.patch
 wireless-ipw2200c-add-__devinitexit-annotations.patch
 git-x86.patch
+x86_32-disable_pse-must-be-__cpuinitdata.patch
 git-cryptodev.patch
 git-xtensa.patch
 mm-page-writebackc-make-a-function-static.patch
