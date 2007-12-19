@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hfs-handle-more-on-disk-corruptions-without-oopsing.patch added to -mm tree
-Date: Wed, 19 Dec 2007 15:43:29 -0800
-Message-ID: <200712192343.lBJNhTBs025391@imap1.linux-foundation.org>
+Subject: + memory-controller-memory-accounting-v7-move-page_assign_page_cgroup-to-vm_bug_on-in-free_hot_cold_page.patch added to -mm tree
+Date: Wed, 19 Dec 2007 15:48:04 -0800
+Message-ID: <200712192348.lBJNm41t025554@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41178 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52679 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757777AbXLSXov (ORCPT
+	by vger.kernel.org with ESMTP id S1752272AbXLSXs6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Dec 2007 18:44:51 -0500
+	Wed, 19 Dec 2007 18:48:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sandeen@redhat.com, zippel@linux-m68k.org
+Cc: balbir@linux.vnet.ibm.com, hugh@veritas.com
 
 
 The patch titled
-     hfs: handle more on-disk corruptions without oopsing
+     Move page_assign_page_cgroup to VM_BUG_ON in free_hot_cold_page
 has been added to the -mm tree.  Its filename is
-     hfs-handle-more-on-disk-corruptions-without-oopsing.patch
+     memory-controller-memory-accounting-v7-move-page_assign_page_cgroup-to-vm_bug_on-in-free_hot_cold_page.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,174 +26,100 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hfs: handle more on-disk corruptions without oopsing
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: Move page_assign_page_cgroup to VM_BUG_ON in free_hot_cold_page
+From: Balbir Singh <balbir@linux.vnet.ibm.com>
 
-hfs seems prone to bad things when it encounters on disk corruption.  Many
-values are read from disk, and used as lengths to memcpy, as an example. 
-This patch fixes up several of these problematic cases.
+Based on the recommendation and observations of Hugh Dickins,
+page_cgroup_assign_cgroup() is not required. This patch replaces it with
+a VM_BUG_ON, so that we can catch them in free_hot_cold_page()
 
-o sanity check the on-disk maximum key lengths on mount
-  (these are set to a defined value at mkfs time and shouldn't differ)
-o check on-disk node keylens against the maximum key length for each tree
-o fix hfs_btree_open so that going out via free_tree: doesn't wind
-  up in hfs_releasepage, which wants to follow the very pointer
-  we were trying to set up:
-	HFS_SB(sb)->cat_tree = hfs_btree_open()
-		...
-		failure gets to hfs_releasepage and tries
-		to follow HFS_SB(sb)->cat_tree
-
-Tested with the fsfuzzer; it survives more than it used to.
-
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfs/bfind.c |   15 +++++++++++++++
- fs/hfs/brec.c  |   15 +++++++++++++--
- fs/hfs/btree.c |   13 ++++++++++++-
- fs/hfs/hfs.h   |    5 +++++
- 4 files changed, 45 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/hfs/bfind.c~hfs-handle-more-on-disk-corruptions-without-oopsing fs/hfs/bfind.c
---- a/fs/hfs/bfind.c~hfs-handle-more-on-disk-corruptions-without-oopsing
-+++ a/fs/hfs/bfind.c
-@@ -52,6 +52,11 @@ int __hfs_brec_find(struct hfs_bnode *bn
- 		rec = (e + b) / 2;
- 		len = hfs_brec_lenoff(bnode, rec, &off);
- 		keylen = hfs_brec_keylen(bnode, rec);
-+		if (keylen == HFS_BAD_KEYLEN) {
-+			printk(KERN_ERR "hfs: keylen %d too long\n", keylen);
-+			res = -EINVAL;
-+			goto done;
-+		}
- 		hfs_bnode_read(bnode, fd->key, off, keylen);
- 		cmpval = bnode->tree->keycmp(fd->key, fd->search_key);
- 		if (!cmpval) {
-@@ -67,6 +72,11 @@ int __hfs_brec_find(struct hfs_bnode *bn
- 	if (rec != e && e >= 0) {
- 		len = hfs_brec_lenoff(bnode, e, &off);
- 		keylen = hfs_brec_keylen(bnode, e);
-+		if (keylen == HFS_BAD_KEYLEN) {
-+			printk(KERN_ERR "hfs: keylen %d too long\n", keylen);
-+			res = -EINVAL;
-+			goto done;
-+		}
- 		hfs_bnode_read(bnode, fd->key, off, keylen);
- 	}
- done:
-@@ -198,6 +208,11 @@ int hfs_brec_goto(struct hfs_find_data *
+diff -puN mm/page_alloc.c~memory-controller-memory-accounting-v7-move-page_assign_page_cgroup-to-vm_bug_on-in-free_hot_cold_page mm/page_alloc.c
+--- a/mm/page_alloc.c~memory-controller-memory-accounting-v7-move-page_assign_page_cgroup-to-vm_bug_on-in-free_hot_cold_page
++++ a/mm/page_alloc.c
+@@ -988,7 +988,7 @@ static void fastcall free_hot_cold_page(
  
- 	len = hfs_brec_lenoff(bnode, fd->record, &off);
- 	keylen = hfs_brec_keylen(bnode, fd->record);
-+	if (keylen == HFS_BAD_KEYLEN) {
-+		printk(KERN_ERR "hfs: keylen %d too long\n", keylen);
-+		res = -EINVAL;
-+		goto out;
-+	}
- 	fd->keyoffset = off;
- 	fd->keylength = keylen;
- 	fd->entryoffset = off + keylen;
-diff -puN fs/hfs/brec.c~hfs-handle-more-on-disk-corruptions-without-oopsing fs/hfs/brec.c
---- a/fs/hfs/brec.c~hfs-handle-more-on-disk-corruptions-without-oopsing
-+++ a/fs/hfs/brec.c
-@@ -44,10 +44,21 @@ u16 hfs_brec_keylen(struct hfs_bnode *no
- 		recoff = hfs_bnode_read_u16(node, node->tree->node_size - (rec + 1) * 2);
- 		if (!recoff)
- 			return 0;
--		if (node->tree->attributes & HFS_TREE_BIGKEYS)
-+		if (node->tree->attributes & HFS_TREE_BIGKEYS) {
- 			retval = hfs_bnode_read_u16(node, recoff) + 2;
--		else
-+			if (retval > node->tree->max_key_len + 2) {
-+				printk(KERN_ERR "hfs: keylen %d too large\n",
-+					retval);
-+				retval = HFS_BAD_KEYLEN;
-+			}
-+		} else {
- 			retval = (hfs_bnode_read_u8(node, recoff) | 1) + 1;
-+			if (retval > node->tree->max_key_len + 1) {
-+				printk(KERN_ERR "hfs: keylen %d too large\n",
-+					retval);
-+				retval = HFS_BAD_KEYLEN;
-+			}
-+		}
- 	}
- 	return retval;
- }
-diff -puN fs/hfs/btree.c~hfs-handle-more-on-disk-corruptions-without-oopsing fs/hfs/btree.c
---- a/fs/hfs/btree.c~hfs-handle-more-on-disk-corruptions-without-oopsing
-+++ a/fs/hfs/btree.c
-@@ -81,6 +81,17 @@ struct hfs_btree *hfs_btree_open(struct 
- 		goto fail_page;
- 	if (!tree->node_count)
- 		goto fail_page;
-+	if ((id == HFS_EXT_CNID) && (tree->max_key_len != HFS_MAX_EXT_KEYLEN)) {
-+		printk(KERN_ERR "hfs: invalid extent max_key_len %d\n",
-+			tree->max_key_len);
-+		goto fail_page;
-+	}
-+	if ((id == HFS_CAT_CNID) && (tree->max_key_len != HFS_MAX_CAT_KEYLEN)) {
-+		printk(KERN_ERR "hfs: invalid catalog max_key_len %d\n",
-+			tree->max_key_len);
-+		goto fail_page;
-+	}
-+
- 	tree->node_size_shift = ffs(size) - 1;
- 	tree->pages_per_bnode = (tree->node_size + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
+ 	if (!PageHighMem(page))
+ 		debug_check_no_locks_freed(page_address(page), PAGE_SIZE);
+-	page_assign_page_cgroup(page, NULL);
++	VM_BUG_ON(page_get_page_cgroup(page));
+ 	arch_free_page(page, 0);
+ 	kernel_map_pages(page, 1, 0);
  
-@@ -89,9 +100,9 @@ struct hfs_btree *hfs_btree_open(struct 
- 	return tree;
- 
-  fail_page:
--	tree->inode->i_mapping->a_ops = &hfs_aops;
- 	page_cache_release(page);
-  free_tree:
-+	tree->inode->i_mapping->a_ops = &hfs_aops;
- 	iput(tree->inode);
- 	kfree(tree);
- 	return NULL;
-diff -puN fs/hfs/hfs.h~hfs-handle-more-on-disk-corruptions-without-oopsing fs/hfs/hfs.h
---- a/fs/hfs/hfs.h~hfs-handle-more-on-disk-corruptions-without-oopsing
-+++ a/fs/hfs/hfs.h
-@@ -28,6 +28,8 @@
- #define HFS_MAX_NAMELEN		128
- #define HFS_MAX_VALENCE		32767U
- 
-+#define HFS_BAD_KEYLEN		0xFF
-+
- /* Meanings of the drAtrb field of the MDB,
-  * Reference: _Inside Macintosh: Files_ p. 2-61
-  */
-@@ -167,6 +169,9 @@ typedef union hfs_btree_key {
- 	struct hfs_ext_key ext;
- } hfs_btree_key;
- 
-+#define HFS_MAX_CAT_KEYLEN	(sizeof(struct hfs_cat_key) - sizeof(u8))
-+#define HFS_MAX_EXT_KEYLEN	(sizeof(struct hfs_ext_key) - sizeof(u8))
-+
- typedef union hfs_btree_key btree_key;
- 
- struct hfs_extent {
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
 
-ecryptfs-initialize-new-auth_tokens-before-teardown.patch
-ecryptfs-set-s_blocksize-from-lower-fs-in-sb.patch
-ecryptfs-fix-fsx-data-corruption-problems.patch
-ecryptfs-fix-string-overflow-on-long-cipher-names.patch
-ecryptfs-fix-unlocking-in-error-paths.patch
-ecryptfs-redo-dgetmntget-on-dentry_open-failure.patch
-hfs-handle-more-on-disk-corruptions-without-oopsing.patch
-ext2-change-the-default-behaviour-on-error.patch
-ecryptfs-make-show_options-reflect-actual-mount-options.patch
-ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
-ecryptfs-remove-debug-as-mount-option-and-warn-if-set-via-modprobe.patch
-ext4-fix-mb_debug-format-warnings.patch
-ext4-fix-freespace-accounting-with-mballoc-on-32bit-machines.patch
-ext4-fix-oops-with-jbd-stats-through-procfs-and-external.patch
-ext4-fix-up-ext4fs_debug-builds.patch
-ext3-change-the-default-behaviour-on-error.patch
+swapoff-scan-ptes-preemptibly.patch
+maps4-add-proportional-set-size-accounting-in-smaps.patch
+remove-unused-code-from-mm-tiny-shmemc.patch
+memory-controller-add-documentation.patch
+memcgroup-temporarily-revert-swapoff-mod.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-memory-accounting-v7-move-page_assign_page_cgroup-to-vm_bug_on-in-free_hot_cold_page.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-memcgroup-fix-try_to_free-order.patch
+memory-controller-improve-user-interface.patch
+memory-controller-improve-user-interface-memory-controller-enhancements-for-reclaiming-take2-possible-race-fix-in-res_counter.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+memory-controller-make-charging-gfp-mask-aware-fix.patch
+memcgroup-reinstate-swapoff-mod.patch
+memory-controller-bug_on.patch
+memcontrol-move-mm_cgroup-to-header-file.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+oom-add-sysctl-to-enable-task-memory-dump.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
+memcgroup-fix-zone-isolation-oom.patch
+memcgroup-revert-swap_state-mods.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
+memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
+memcgroup-tidy-up-mem_cgroup_charge_common.patch
+memcgroup-fix-hang-with-shmem-tmpfs.patch
+memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+memory-cgroup-enhancements-add-pre_destroy-handler.patch
+memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter-memory-controller-enhancements-for-reclaiming-take2-clean-up-remove-unused-variable.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter-memory-controller-enhancements-for-reclaiming-take2-add-bug_on-in-mem_cgroup_zoneinfo.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix-accounting-in-vmscanc-for-memory-controller.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-memory-controller-enhancements-for-reclaiming-take2-define-free_mem_cgroup_per_zone_info.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
+update-documentation-controller-memorytxt.patch
