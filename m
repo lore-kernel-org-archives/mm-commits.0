@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + x86-smpboot_32c-section-fixes.patch added to -mm tree
-Date: Tue, 18 Dec 2007 16:51:44 -0800
-Message-ID: <200712190051.lBJ0pimL030576@imap1.linux-foundation.org>
+Subject: + x86-apic_32c-section-fix.patch added to -mm tree
+Date: Tue, 18 Dec 2007 16:52:17 -0800
+Message-ID: <200712190052.lBJ0qH8X030593@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40189 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37165 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754873AbXLSAwO (ORCPT
+	by vger.kernel.org with ESMTP id S1755392AbXLSAw6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Dec 2007 19:52:14 -0500
+	Tue, 18 Dec 2007 19:52:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: bunk@kernel.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     x86 smpboot_32.c section fixes
+     x86 apic_32.c section fix
 has been added to the -mm tree.  Its filename is
-     x86-smpboot_32c-section-fixes.patch
+     x86-apic_32c-section-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,16 +26,13 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86 smpboot_32.c section fixes
+Subject: x86 apic_32.c section fix
 From: Adrian Bunk <bunk@kernel.org>
 
-Fix the following section mismatches with CONFIG_HOTPLUG=n,
+tFix fixes the following section mismatch with CONFIG_HOTPLUG=n,
 CONFIG_HOTPLUG_CPU=y:
 
-WARNING: vmlinux.o(.text+0x22c60): Section mismatch: reference to .init.data:cpu_idle_tasks (between 'do_boot_cpu' and 'do_warm_boot_cpu')
-WARNING: vmlinux.o(.text+0x22c99): Section mismatch: reference to .init.data:cpu_idle_tasks (between 'do_boot_cpu' and 'do_warm_boot_cpu')
-WARNING: vmlinux.o(.text+0x2359b): Section mismatch: reference to .init.data:smp_b_stepping (between 'smp_store_cpu_info' and 'cpu_exit_clear')
-WARNING: vmlinux.o(.text+0x235a0): Section mismatch: reference to .init.data:smp_b_stepping (between 'smp_store_cpu_info' and 'cpu_exit_clear')
+WARNING: vmlinux.o(.text+0x2390d): Section mismatch: reference to .init.text.5:setup_local_APIC (between 'start_secondary' and 'check_tsc_warp')
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -43,32 +40,21 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/smpboot_32.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/x86/kernel/apic_32.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/smpboot_32.c~x86-smpboot_32c-section-fixes arch/x86/kernel/smpboot_32.c
---- a/arch/x86/kernel/smpboot_32.c~x86-smpboot_32c-section-fixes
-+++ a/arch/x86/kernel/smpboot_32.c
-@@ -60,7 +60,7 @@
- #include <asm/mtrr.h>
- 
- /* Set if we find a B stepping CPU */
--static int __devinitdata smp_b_stepping;
-+static int __cpuinitdata smp_b_stepping;
- 
- /* Number of siblings per CPU package */
- int smp_num_siblings = 1;
-@@ -744,8 +744,8 @@ static inline int alloc_cpu_id(void)
- }
- 
- #ifdef CONFIG_HOTPLUG_CPU
--static struct task_struct * __devinitdata cpu_idle_tasks[NR_CPUS];
--static inline struct task_struct * alloc_idle_task(int cpu)
-+static struct task_struct * __cpuinitdata cpu_idle_tasks[NR_CPUS];
-+static inline struct task_struct * __cpuinit alloc_idle_task(int cpu)
+diff -puN arch/x86/kernel/apic_32.c~x86-apic_32c-section-fix arch/x86/kernel/apic_32.c
+--- a/arch/x86/kernel/apic_32.c~x86-apic_32c-section-fix
++++ a/arch/x86/kernel/apic_32.c
+@@ -850,7 +850,7 @@ void __init init_bsp_APIC(void)
+ /**
+  * setup_local_APIC - setup the local APIC
+  */
+-void __devinit setup_local_APIC(void)
++void __cpuinit setup_local_APIC(void)
  {
- 	struct task_struct *idle;
- 
+ 	unsigned long oldvalue, value, maxlvt, integrated;
+ 	int i, j;
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -96,6 +82,7 @@ x86_32-disable_pse-must-be-__cpuinitdata.patch
 x86_32-disable_pse-must-be-__cpuinitdata-fix.patch
 x86_32-select_idle_routine-must-be-__cpuinit.patch
 x86-smpboot_32c-section-fixes.patch
+x86-apic_32c-section-fix.patch
 git-cryptodev.patch
 git-xtensa.patch
 mm-page-writebackc-make-a-function-static.patch
