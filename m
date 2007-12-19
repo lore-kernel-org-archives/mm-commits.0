@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-pci-msic-move-arch-hooks-to-the-top.patch added to -mm tree
-Date: Tue, 18 Dec 2007 16:29:14 -0800
-Message-ID: <200712190029.lBJ0TEa0029714@imap1.linux-foundation.org>
+Subject: + wireless-ipw2200c-add-__devinitexit-annotations.patch added to -mm tree
+Date: Tue, 18 Dec 2007 16:30:05 -0800
+Message-ID: <200712190030.lBJ0U5O7029723@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57723 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47190 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753537AbXLSA3q (ORCPT
+	by vger.kernel.org with ESMTP id S1754816AbXLSAbY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Dec 2007 19:29:46 -0500
+	Tue, 18 Dec 2007 19:31:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, greg@kroah.com, michael@ellerman.id.au
+Cc: bunk@kernel.org, linville@tuxdriver.com, yi.zhu@intel.com
 
 
 The patch titled
-     drivers/pci/msi.c: move arch hooks to the top
+     wireless/ipw2200.c: add __dev{init,exit} annotations
 has been added to the -mm tree.  Its filename is
-     drivers-pci-msic-move-arch-hooks-to-the-top.patch
+     wireless-ipw2200c-add-__devinitexit-annotations.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,133 +26,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/pci/msi.c: move arch hooks to the top
+Subject: wireless/ipw2200.c: add __dev{init,exit} annotations
 From: Adrian Bunk <bunk@kernel.org>
 
-Fix the following problem present with older gcc versions:
-
-  CC      drivers/pci/msi.o
-/home/bunk/linux/kernel-2.6/git/linux-2.6/drivers/pci/msi.c:692: warning: weak declaration of `arch_msi_check_device' after first use results in unspecified behavior
-/home/bunk/linux/kernel-2.6/git/linux-2.6/drivers/pci/msi.c:704: warning: weak declaration of `arch_setup_msi_irqs' after first use results in unspecified behavior
-/home/bunk/linux/kernel-2.6/git/linux-2.6/drivers/pci/msi.c:724: warning: weak declaration of `arch_teardown_msi_irqs' after first use results in unspecified behavior
-
-Older gcc versions don't like that they cannot see that they are weak
-functions at the time when they are used.
-
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Michael Ellerman <michael@ellerman.id.au>
-Cc: Greg KH <greg@kroah.com>
+Acked-by: Zhu Yi <yi.zhu@intel.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/msi.c |   91 +++++++++++++++++++++-----------------------
- 1 file changed, 45 insertions(+), 46 deletions(-)
+ drivers/net/wireless/ipw2200.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/pci/msi.c~drivers-pci-msic-move-arch-hooks-to-the-top drivers/pci/msi.c
---- a/drivers/pci/msi.c~drivers-pci-msic-move-arch-hooks-to-the-top
-+++ a/drivers/pci/msi.c
-@@ -25,6 +25,51 @@
- 
- static int pci_msi_enable = 1;
- 
-+/* Arch hooks */
-+
-+int __attribute__ ((weak))
-+arch_msi_check_device(struct pci_dev *dev, int nvec, int type)
-+{
-+	return 0;
-+}
-+
-+int __attribute__ ((weak))
-+arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *entry)
-+{
-+	return 0;
-+}
-+
-+int __attribute__ ((weak))
-+arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
-+{
-+	struct msi_desc *entry;
-+	int ret;
-+
-+	list_for_each_entry(entry, &dev->msi_list, list) {
-+		ret = arch_setup_msi_irq(dev, entry);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+void __attribute__ ((weak)) arch_teardown_msi_irq(unsigned int irq)
-+{
-+	return;
-+}
-+
-+void __attribute__ ((weak))
-+arch_teardown_msi_irqs(struct pci_dev *dev)
-+{
-+	struct msi_desc *entry;
-+
-+	list_for_each_entry(entry, &dev->msi_list, list) {
-+		if (entry->irq != 0)
-+			arch_teardown_msi_irq(entry->irq);
-+	}
-+}
-+
- static void msi_set_enable(struct pci_dev *dev, int enable)
- {
- 	int pos;
-@@ -682,49 +727,3 @@ void pci_msi_init_pci_dev(struct pci_dev
- {
- 	INIT_LIST_HEAD(&dev->msi_list);
+diff -puN drivers/net/wireless/ipw2200.c~wireless-ipw2200c-add-__devinitexit-annotations drivers/net/wireless/ipw2200.c
+--- a/drivers/net/wireless/ipw2200.c~wireless-ipw2200c-add-__devinitexit-annotations
++++ a/drivers/net/wireless/ipw2200.c
+@@ -10751,7 +10751,7 @@ static void ipw_bg_link_down(struct work
+ 	mutex_unlock(&priv->mutex);
  }
--
--
--/* Arch hooks */
--
--int __attribute__ ((weak))
--arch_msi_check_device(struct pci_dev* dev, int nvec, int type)
--{
--	return 0;
--}
--
--int __attribute__ ((weak))
--arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *entry)
--{
--	return 0;
--}
--
--int __attribute__ ((weak))
--arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
--{
--	struct msi_desc *entry;
--	int ret;
--
--	list_for_each_entry(entry, &dev->msi_list, list) {
--		ret = arch_setup_msi_irq(dev, entry);
--		if (ret)
--			return ret;
--	}
--
--	return 0;
--}
--
--void __attribute__ ((weak)) arch_teardown_msi_irq(unsigned int irq)
--{
--	return;
--}
--
--void __attribute__ ((weak))
--arch_teardown_msi_irqs(struct pci_dev *dev)
--{
--	struct msi_desc *entry;
--
--	list_for_each_entry(entry, &dev->msi_list, list) {
--		if (entry->irq != 0)
--			arch_teardown_msi_irq(entry->irq);
--	}
--}
+ 
+-static int ipw_setup_deferred_work(struct ipw_priv *priv)
++static int __devinit ipw_setup_deferred_work(struct ipw_priv *priv)
+ {
+ 	int ret = 0;
+ 
+@@ -11600,7 +11600,8 @@ static void ipw_prom_free(struct ipw_pri
+ #endif
+ 
+ 
+-static int ipw_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
++static int __devinit ipw_pci_probe(struct pci_dev *pdev,
++				   const struct pci_device_id *ent)
+ {
+ 	int err = 0;
+ 	struct net_device *net_dev;
+@@ -11767,7 +11768,7 @@ static int ipw_pci_probe(struct pci_dev 
+ 	return err;
+ }
+ 
+-static void ipw_pci_remove(struct pci_dev *pdev)
++static void __devexit ipw_pci_remove(struct pci_dev *pdev)
+ {
+ 	struct ipw_priv *priv = pci_get_drvdata(pdev);
+ 	struct list_head *p, *q;
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -173,6 +89,7 @@ git-scsi-misc.patch
 scsi-advansysc-make-3-functions-static.patch
 scsi-qla2xxx-possible-cleanups.patch
 scsi-qla2xxx-qla_osc-section-fix.patch
+wireless-ipw2200c-add-__devinitexit-annotations.patch
 git-x86.patch
 git-cryptodev.patch
 git-xtensa.patch
