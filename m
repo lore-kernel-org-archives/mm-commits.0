@@ -1,168 +1,191 @@
 From: akpm@linux-foundation.org
-Subject: - pata_pcmcia-minor-cleanups-and-support-for-dual-channel-cards.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 15:37:44 -0800
-Message-ID: <200712202337.lBKNbiCH018923@imap1.linux-foundation.org>
+Subject: - ext4-fix-up-ext4fs_debug-builds.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:39:03 -0800
+Message-ID: <200712202339.lBKNd3UC019099@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40929 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57491 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755838AbXLTXs3 (ORCPT
+	by vger.kernel.org with ESMTP id S1755838AbXLTXsh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 18:48:29 -0500
+	Thu, 20 Dec 2007 18:48:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: sandeen@redhat.com, cmm@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_pcmcia: minor cleanups and support for dual channel cards
+     ext4: fix up EXT4FS_DEBUG builds
 has been removed from the -mm tree.  Its filename was
-     pata_pcmcia-minor-cleanups-and-support-for-dual-channel-cards.patch
+     ext4-fix-up-ext4fs_debug-builds.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata_pcmcia: minor cleanups and support for dual channel cards
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: ext4: fix up EXT4FS_DEBUG builds
+From: Eric Sandeen <sandeen@redhat.com>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+Builds with EXT4FS_DEBUG defined (to enable ext4_debug()) fail without
+these changes.  Clean up some format warnings too.
+
+[akpm@linux-foundation.org: add printk facility level]
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Cc: Mingming Cao <cmm@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_pcmcia.c |   31 +++++++++++++++++--------------
- 1 file changed, 17 insertions(+), 14 deletions(-)
+ fs/ext4/balloc.c  |    6 +++---
+ fs/ext4/ialloc.c  |    2 +-
+ fs/ext4/mballoc.c |    6 +++---
+ fs/ext4/resize.c  |   16 ++++++++--------
+ 4 files changed, 15 insertions(+), 15 deletions(-)
 
-diff -puN drivers/ata/pata_pcmcia.c~pata_pcmcia-minor-cleanups-and-support-for-dual-channel-cards drivers/ata/pata_pcmcia.c
---- a/drivers/ata/pata_pcmcia.c~pata_pcmcia-minor-cleanups-and-support-for-dual-channel-cards
-+++ a/drivers/ata/pata_pcmcia.c
-@@ -42,7 +42,7 @@
+diff -puN fs/ext4/balloc.c~ext4-fix-up-ext4fs_debug-builds fs/ext4/balloc.c
+--- a/fs/ext4/balloc.c~ext4-fix-up-ext4fs_debug-builds
++++ a/fs/ext4/balloc.c
+@@ -1645,7 +1645,7 @@ ext4_fsblk_t ext4_new_blocks_old(handle_
  
+ 	sbi = EXT4_SB(sb);
+ 	es = EXT4_SB(sb)->s_es;
+-	ext4_debug("goal=%lu.\n", goal);
++	ext4_debug("goal=%llu.\n", goal);
+ 	/*
+ 	 * Allocate a block from reservation only when
+ 	 * filesystem is mounted with reservation(default,-o reservation), and
+@@ -1755,7 +1755,7 @@ retry_alloc:
  
- #define DRV_NAME "pata_pcmcia"
--#define DRV_VERSION "0.3.2"
-+#define DRV_VERSION "0.3.3"
+ allocated:
  
- /*
-  *	Private data structure to glue stuff together
-@@ -198,7 +198,6 @@ do { last_fn = (fn); if ((last_ret = (re
- /**
-  *	pcmcia_init_one		-	attach a PCMCIA interface
-  *	@pdev: pcmcia device
-- *	@ops: operations for this device
-  *
-  *	Register a PCMCIA IDE interface. Such interfaces are PIO 0 and
-  *	shared IRQ.
-@@ -217,9 +216,10 @@ static int pcmcia_init_one(struct pcmcia
- 		cistpl_cftable_entry_t dflt;
- 	} *stk = NULL;
- 	cistpl_cftable_entry_t *cfg;
--	int pass, last_ret = 0, last_fn = 0, is_kme = 0, ret = -ENOMEM;
-+	int pass, last_ret = 0, last_fn = 0, is_kme = 0, ret = -ENOMEM, p;
- 	unsigned long io_base, ctl_base;
- 	void __iomem *io_addr, *ctl_addr;
-+	int n_ports = 1;
+-	ext4_debug("using block group %d(%d)\n",
++	ext4_debug("using block group %lu(%d)\n",
+ 			group_no, gdp->bg_free_blocks_count);
  
- 	struct ata_port_operations *ops = &pcmcia_port_ops;
+ 	BUFFER_TRACE(gdp_bh, "get_write_access");
+@@ -1949,7 +1949,7 @@ ext4_fsblk_t ext4_count_free_blocks(stru
+ 	brelse(bitmap_bh);
+ 	printk("ext4_count_free_blocks: stored = %llu"
+ 		", computed = %llu, %llu\n",
+-	       EXT4_FREE_BLOCKS_COUNT(es),
++		ext4_free_blocks_count(es),
+ 		desc_count, bitmap_count);
+ 	return bitmap_count;
+ #else
+diff -puN fs/ext4/ialloc.c~ext4-fix-up-ext4fs_debug-builds fs/ext4/ialloc.c
+--- a/fs/ext4/ialloc.c~ext4-fix-up-ext4fs_debug-builds
++++ a/fs/ext4/ialloc.c
+@@ -856,7 +856,7 @@ unsigned long ext4_count_free_inodes (st
+ 			continue;
  
-@@ -348,7 +348,7 @@ next_entry:
- 	/* FIXME: Could be more ports at base + 0x10 but we only deal with
- 	   one right now */
- 	if (pdev->io.NumPorts1 >= 0x20)
--		printk(KERN_WARNING DRV_NAME ": second channel not yet supported.\n");
-+		n_ports = 2;
+ 		x = ext4_count_free(bitmap_bh, EXT4_INODES_PER_GROUP(sb) / 8);
+-		printk("group %d: stored = %d, counted = %lu\n",
++		printk(KERN_DEBUG "group %lu: stored = %d, counted = %lu\n",
+ 			i, le16_to_cpu(gdp->bg_free_inodes_count), x);
+ 		bitmap_count += x;
+ 	}
+diff -puN fs/ext4/mballoc.c~ext4-fix-up-ext4fs_debug-builds fs/ext4/mballoc.c
+--- a/fs/ext4/mballoc.c~ext4-fix-up-ext4fs_debug-builds
++++ a/fs/ext4/mballoc.c
+@@ -2946,9 +2946,6 @@ static int ext4_mb_mark_diskspace_used(s
+ 	sbi = EXT4_SB(sb);
+ 	es = sbi->s_es;
  
- 	if (pdev->manf_id == 0x0097 && pdev->card_id == 0x1620)
- 		ops = &pcmcia_8bit_port_ops;
-@@ -357,20 +357,23 @@ next_entry:
- 	 *	sane.
- 	 */
- 	ret = -ENOMEM;
--	host = ata_host_alloc(&pdev->dev, 1);
-+	host = ata_host_alloc(&pdev->dev, n_ports);
- 	if (!host)
- 		goto failed;
--	ap = host->ports[0];
+-	ext4_debug("using block group %d(%d)\n", ac->ac_b_group.group,
+-			gdp->bg_free_blocks_count);
+-
+ 	err = -EIO;
+ 	bitmap_bh = read_block_bitmap(sb, ac->ac_b_ex.fe_group);
+ 	if (!bitmap_bh)
+@@ -2963,6 +2960,9 @@ static int ext4_mb_mark_diskspace_used(s
+ 	if (!gdp)
+ 		goto out_err;
  
--	ap->ops = ops;
--	ap->pio_mask = 1;		/* ISA so PIO 0 cycles */
--	ap->flags |= ATA_FLAG_SLAVE_POSS;
--	ap->ioaddr.cmd_addr = io_addr;
--	ap->ioaddr.altstatus_addr = ctl_addr;
--	ap->ioaddr.ctl_addr = ctl_addr;
--	ata_std_ports(&ap->ioaddr);
-+	for (p = 0; p < n_ports; p++) {
-+		ap = host->ports[p];
- 
--	ata_port_desc(ap, "cmd 0x%lx ctl 0x%lx", io_base, ctl_base);
-+		ap->ops = ops;
-+		ap->pio_mask = 1;		/* ISA so PIO 0 cycles */
-+		ap->flags |= ATA_FLAG_SLAVE_POSS;
-+		ap->ioaddr.cmd_addr = io_addr + 0x10 * p;
-+		ap->ioaddr.altstatus_addr = ctl_addr + 0x10 * p;
-+		ap->ioaddr.ctl_addr = ctl_addr + 0x10 * p;
-+		ata_std_ports(&ap->ioaddr);
++	ext4_debug("using block group %lu(%d)\n", ac->ac_b_ex.fe_group,
++			gdp->bg_free_blocks_count);
 +
-+		ata_port_desc(ap, "cmd 0x%lx ctl 0x%lx", io_base, ctl_base);
-+	}
+ 	err = ext4_journal_get_write_access(handle, gdp_bh);
+ 	if (err)
+ 		goto out_err;
+diff -puN fs/ext4/resize.c~ext4-fix-up-ext4fs_debug-builds fs/ext4/resize.c
+--- a/fs/ext4/resize.c~ext4-fix-up-ext4fs_debug-builds
++++ a/fs/ext4/resize.c
+@@ -206,7 +206,7 @@ static int setup_new_group_blocks(struct
+ 	}
  
- 	/* activate */
- 	ret = ata_host_activate(host, pdev->irq.AssignedIRQ, ata_interrupt,
+ 	if (ext4_bg_has_super(sb, input->group)) {
+-		ext4_debug("mark backup superblock %#04lx (+0)\n", start);
++		ext4_debug("mark backup superblock %#04llx (+0)\n", start);
+ 		ext4_set_bit(0, bh->b_data);
+ 	}
+ 
+@@ -215,7 +215,7 @@ static int setup_new_group_blocks(struct
+ 	     i < gdblocks; i++, block++, bit++) {
+ 		struct buffer_head *gdb;
+ 
+-		ext4_debug("update backup group %#04lx (+%d)\n", block, bit);
++		ext4_debug("update backup group %#04llx (+%d)\n", block, bit);
+ 
+ 		if ((err = extend_or_restart_transaction(handle, 1, bh)))
+ 			goto exit_bh;
+@@ -243,7 +243,7 @@ static int setup_new_group_blocks(struct
+ 	     i < reserved_gdb; i++, block++, bit++) {
+ 		struct buffer_head *gdb;
+ 
+-		ext4_debug("clear reserved block %#04lx (+%d)\n", block, bit);
++		ext4_debug("clear reserved block %#04llx (+%d)\n", block, bit);
+ 
+ 		if ((err = extend_or_restart_transaction(handle, 1, bh)))
+ 			goto exit_bh;
+@@ -256,10 +256,10 @@ static int setup_new_group_blocks(struct
+ 		ext4_set_bit(bit, bh->b_data);
+ 		brelse(gdb);
+ 	}
+-	ext4_debug("mark block bitmap %#04x (+%ld)\n", input->block_bitmap,
++	ext4_debug("mark block bitmap %#04llx (+%llu)\n", input->block_bitmap,
+ 		   input->block_bitmap - start);
+ 	ext4_set_bit(input->block_bitmap - start, bh->b_data);
+-	ext4_debug("mark inode bitmap %#04x (+%ld)\n", input->inode_bitmap,
++	ext4_debug("mark inode bitmap %#04llx (+%llu)\n", input->inode_bitmap,
+ 		   input->inode_bitmap - start);
+ 	ext4_set_bit(input->inode_bitmap - start, bh->b_data);
+ 
+@@ -268,7 +268,7 @@ static int setup_new_group_blocks(struct
+ 	     i < sbi->s_itb_per_group; i++, bit++, block++) {
+ 		struct buffer_head *it;
+ 
+-		ext4_debug("clear inode block %#04lx (+%d)\n", block, bit);
++		ext4_debug("clear inode block %#04llx (+%d)\n", block, bit);
+ 
+ 		if ((err = extend_or_restart_transaction(handle, 1, bh)))
+ 			goto exit_bh;
+@@ -291,7 +291,7 @@ static int setup_new_group_blocks(struct
+ 	brelse(bh);
+ 
+ 	/* Mark unused entries in inode bitmap used */
+-	ext4_debug("clear inode bitmap %#04x (+%ld)\n",
++	ext4_debug("clear inode bitmap %#04llx (+%llu)\n",
+ 		   input->inode_bitmap, input->inode_bitmap - start);
+ 	if (IS_ERR(bh = bclean(handle, sb, input->inode_bitmap))) {
+ 		err = PTR_ERR(bh);
+@@ -1054,7 +1054,7 @@ int ext4_group_extend(struct super_block
+ 	ext4_journal_dirty_metadata(handle, EXT4_SB(sb)->s_sbh);
+ 	sb->s_dirt = 1;
+ 	unlock_super(sb);
+-	ext4_debug("freeing blocks %lu through %llu\n", o_blocks_count,
++	ext4_debug("freeing blocks %llu through %llu\n", o_blocks_count,
+ 		   o_blocks_count + add);
+ 	ext4_free_blocks_sb(handle, sb, o_blocks_count, add, &freed_blocks);
+ 	ext4_debug("freed blocks %llu through %llu\n", o_blocks_count,
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
 origin.patch
-git-arm.patch
-git-libata-all.patch
-libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
-git-netdev-all.patch
-bluetooth-rfcomm-tty_close-before-destruct.patch
-pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch
-pcmcia-replace-kio_addr_t-with-unsigned-int-everywhere.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-belkin_sa-clean-up-for-new-style-termios-and-speed.patch
-keyspan_pda-clean-up-speed-handling.patch
-mct232-speed-new-termios-and-compliance-cleanups.patch
-geode-lists-are-subscriber-only.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
-sc26xx-new-serial-driver-for-sc2681-uarts.patch
-sc26xx-new-serial-driver-for-sc2681-uarts-update.patch
-documentation-about-unaligned-memory-access.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
-tty-kill-tty_flipbuf_size.patch
-drivers-edac-turnon-edac-device-error-logging.patch
-drivers-edac-use-round_jiffies_relative.patch
-drivers-edac-add-cell-xdr-memory-types.patch
-drivers-edac-add-cell-mc-driver.patch
-drivers-edac-i3000-code-tidying.patch
-drivers-edac-i3000-replace-macros-with-functions.patch
-drivers-edac-add-freescale-mpc85xx-driver.patch
-drivers-edac-add-marvell-mv64x60-driver.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-dz-clean-up-and-improve-the-setup-of-termios-settings.patch
-char-rocket-switch-long-delay-to-sleep.patch
-char-rocket-printk-cleanup.patch
-char-char-serial-remove-serial_type_normal-redefines.patch
-char-mxser_new-ioaddresses-are-ulong.patch
-char-stallion-fix-compiler-warnings.patch
-char-riscom8-change-rc_init_drivers-prototype.patch
-mxser-mxser_new-first-pass-over-termios-reporting-for-the.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
-tty-s390-support-for-termios2.patch
-moxa-first-pass-at-termios-reporting.patch
-n_tty-clean-up-old-code-to-follow-coding-style-and-mostly-checkpatch.patch
-rocket-first-pass-at-termios-reporting.patch
-rocket-dont-let-random-users-reset-the-controller.patch
-tty_audit-fix-checkpatch-complaint.patch
-tty_io-drag-screaming-into-coding-style-compliance.patch
-tty_ioctl-drag-screaming-into-compliance-with-the-coding.patch
-8250_early-coding-style.patch
-8250_gsc-coding-style.patch
-8250_hp300-coding-style.patch
-8250_hub6-codding-style.patch
-8250_pci-coding-style.patch
-serial8250-coding-style.patch
-8250-enable-rate-reporting-via-termios.patch
-serial_core-bring-mostly-into-line-with-coding-style.patch
+ecryptfs-fix-string-overflow-on-long-cipher-names.patch
+ecryptfs-fix-unlocking-in-error-paths.patch
+ecryptfs-redo-dgetmntget-on-dentry_open-failure.patch
+hfs-handle-more-on-disk-corruptions-without-oopsing.patch
+ext2-change-the-default-behaviour-on-error.patch
+ecryptfs-make-show_options-reflect-actual-mount-options.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+ecryptfs-remove-debug-as-mount-option-and-warn-if-set-via-modprobe.patch
+ext3-change-the-default-behaviour-on-error.patch
