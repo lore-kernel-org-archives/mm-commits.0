@@ -1,153 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - sched-dynamically-update-the-root-domain-span-online-maps.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 15:37:57 -0800
-Message-ID: <200712202337.lBKNbvPe018940@imap1.linux-foundation.org>
+Subject: - iwlwifi3945-4965-fix-rate-control-algo-reference-leak.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:38:33 -0800
+Message-ID: <200712202338.lBKNcXrB018982@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33033 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34517 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756498AbXLTXsc (ORCPT
+	by vger.kernel.org with ESMTP id S1755427AbXLTXss (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 18:48:32 -0500
+	Thu, 20 Dec 2007 18:48:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ghaskins@novell.com, ego@in.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: gorcunov@gmail.com, linville@tuxdriver.com, yi.zhu@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sched: dynamically update the root-domain span/online maps
+     iwlwifi3945/4965: fix rate control algo reference leak
 has been removed from the -mm tree.  Its filename was
-     sched-dynamically-update-the-root-domain-span-online-maps.patch
+     iwlwifi3945-4965-fix-rate-control-algo-reference-leak.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sched: dynamically update the root-domain span/online maps
-From: Gregory Haskins <ghaskins@novell.com>
+Subject: iwlwifi3945/4965: fix rate control algo reference leak
+From: Cyrill Gorcunov <gorcunov@gmail.com>
 
-The baseline code statically builds the span maps when the domain is
-formed.  Previous attempts at dynamically updating the maps caused a
-suspend-to-ram regression, which should now be fixed.
+Fix rate control algo reference leak in case if network device has been
+failed to register.  In this case special flag priv->mac80211_registered is
+not set and the rate algo reference is not freeing on module unload.  That
+leads to OOPs in further ieee80211 rate register/unregister procedure (by
+any callee).
 
-Signed-off-by: Gregory Haskins <ghaskins@novell.com>
-Cc: Gautham R Shenoy <ego@in.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+It should fix the bug #9470
+
+	http://bugzilla.kernel.org/show_bug.cgi?id=9470
+
+[akpm@linux-foundation.org: build fix]
+Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
+Acked-by: Zhu Yi <yi.zhu@intel.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |   31 +++++++++++++++++++------------
- 1 file changed, 19 insertions(+), 12 deletions(-)
+ drivers/net/wireless/iwlwifi/iwl3945-base.c |    1 +
+ drivers/net/wireless/iwlwifi/iwl4965-base.c |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN kernel/sched.c~sched-dynamically-update-the-root-domain-span-online-maps kernel/sched.c
---- a/kernel/sched.c~sched-dynamically-update-the-root-domain-span-online-maps
-+++ a/kernel/sched.c
-@@ -359,8 +359,6 @@ struct rt_rq {
-  * exclusive cpuset is created, we also create and attach a new root-domain
-  * object.
-  *
-- * By default the system creates a single root-domain with all cpus as
-- * members (mimicking the global state we have today).
-  */
- struct root_domain {
- 	atomic_t refcount;
-@@ -375,6 +373,10 @@ struct root_domain {
- 	atomic_t rto_count;
- };
+diff -puN drivers/net/wireless/iwlwifi/iwl3945-base.c~iwlwifi3945-4965-fix-rate-control-algo-reference-leak drivers/net/wireless/iwlwifi/iwl3945-base.c
+--- a/drivers/net/wireless/iwlwifi/iwl3945-base.c~iwlwifi3945-4965-fix-rate-control-algo-reference-leak
++++ a/drivers/net/wireless/iwlwifi/iwl3945-base.c
+@@ -6171,6 +6171,7 @@ static void iwl_alive_start(struct iwl_p
+ 		mutex_lock(&priv->mutex);
  
-+/*
-+ * By default the system creates a single root-domain with all cpus as
-+ * members (mimicking the global state we have today).
-+ */
- static struct root_domain def_root_domain;
+ 		if (rc) {
++			iwl3945_rate_control_unregister(priv->hw);
+ 			IWL_ERROR("Failed to register network "
+ 				  "device (error %d)\n", rc);
+ 			return;
+diff -puN drivers/net/wireless/iwlwifi/iwl4965-base.c~iwlwifi3945-4965-fix-rate-control-algo-reference-leak drivers/net/wireless/iwlwifi/iwl4965-base.c
+--- a/drivers/net/wireless/iwlwifi/iwl4965-base.c~iwlwifi3945-4965-fix-rate-control-algo-reference-leak
++++ a/drivers/net/wireless/iwlwifi/iwl4965-base.c
+@@ -6527,6 +6527,7 @@ static void iwl_alive_start(struct iwl_p
+ 		mutex_lock(&priv->mutex);
  
- #endif
-@@ -5854,6 +5856,9 @@ static void rq_attach_root(struct rq *rq
- 				class->leave_domain(rq);
- 		}
- 
-+		cpu_clear(rq->cpu, old_rd->span);
-+		cpu_clear(rq->cpu, old_rd->online);
-+
- 		if (atomic_dec_and_test(&old_rd->refcount))
- 			kfree(old_rd);
- 	}
-@@ -5861,6 +5866,10 @@ static void rq_attach_root(struct rq *rq
- 	atomic_inc(&rd->refcount);
- 	rq->rd = rd;
- 
-+	cpu_set(rq->cpu, rd->span);
-+	if (cpu_isset(rq->cpu, cpu_online_map))
-+		cpu_set(rq->cpu, rd->online);
-+
- 	for (class = sched_class_highest; class; class = class->next) {
- 		if (class->join_domain)
- 			class->join_domain(rq);
-@@ -5869,23 +5878,21 @@ static void rq_attach_root(struct rq *rq
- 	spin_unlock_irqrestore(&rq->lock, flags);
- }
- 
--static void init_rootdomain(struct root_domain *rd, const cpumask_t *map)
-+static void init_rootdomain(struct root_domain *rd)
- {
- 	memset(rd, 0, sizeof(*rd));
- 
--	rd->span = *map;
--	cpus_and(rd->online, rd->span, cpu_online_map);
-+	cpus_clear(rd->span);
-+	cpus_clear(rd->online);
- }
- 
- static void init_defrootdomain(void)
- {
--	cpumask_t cpus = CPU_MASK_ALL;
--
--	init_rootdomain(&def_root_domain, &cpus);
-+	init_rootdomain(&def_root_domain);
- 	atomic_set(&def_root_domain.refcount, 1);
- }
- 
--static struct root_domain *alloc_rootdomain(const cpumask_t *map)
-+static struct root_domain *alloc_rootdomain(void)
- {
- 	struct root_domain *rd;
- 
-@@ -5893,7 +5900,7 @@ static struct root_domain *alloc_rootdom
- 	if (!rd)
- 		return NULL;
- 
--	init_rootdomain(rd, map);
-+	init_rootdomain(rd);
- 
- 	return rd;
- }
-@@ -6314,7 +6321,7 @@ static int build_sched_domains(const cpu
- 	sched_group_nodes_bycpu[first_cpu(*cpu_map)] = sched_group_nodes;
- #endif
- 
--	rd = alloc_rootdomain(cpu_map);
-+	rd = alloc_rootdomain();
- 	if (!rd) {
- 		printk(KERN_WARNING "Cannot alloc root domain\n");
- 		return -ENOMEM;
-@@ -6886,7 +6893,6 @@ void __init sched_init(void)
- #ifdef CONFIG_SMP
- 		rq->sd = NULL;
- 		rq->rd = NULL;
--		rq_attach_root(rq, &def_root_domain);
- 		rq->active_balance = 0;
- 		rq->next_balance = jiffies;
- 		rq->push_cpu = 0;
-@@ -6895,6 +6901,7 @@ void __init sched_init(void)
- 		INIT_LIST_HEAD(&rq->migration_queue);
- 		rq->rt.highest_prio = MAX_RT_PRIO;
- 		rq->rt.overloaded = 0;
-+		rq_attach_root(rq, &def_root_domain);
- #endif
- 		atomic_set(&rq->nr_iowait, 0);
- 
+ 		if (rc) {
++			iwl4965_rate_control_unregister(priv->hw);
+ 			IWL_ERROR("Failed to register network "
+ 				  "device (error %d)\n", rc);
+ 			return;
 _
 
-Patches currently in -mm which might be from ghaskins@novell.com are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
-git-kvm.patch
-git-sched.patch
+origin.patch
+git-powerpc.patch
+ppc-fix-missed-increment-on-device-interface-counter.patch
+net-mac80211-fix-inappropriate-memory-freeing.patch
+git-x86.patch
