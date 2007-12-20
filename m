@@ -1,96 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-macintosh-via-pmuc-added-a-missing-iounmap.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 15:36:17 -0800
-Message-ID: <200712202336.lBKNaHTu018795@imap1.linux-foundation.org>
+Subject: - mm-sparsec-improve-the-error-handling-for-sparse_add_one_section.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:36:13 -0800
+Message-ID: <200712202336.lBKNaDiF018789@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50785 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47789 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753976AbXLTXhO (ORCPT
+	by vger.kernel.org with ESMTP id S1754043AbXLTXiG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 18:37:14 -0500
+	Thu, 20 Dec 2007 18:38:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, benh@kernel.crashing.org, johannes@sipsolutions.net, olaf@aepfle.de, paulus@samba.org, mm-commits@vger.kernel.org
+To: xiyou.wangcong@gmail.com, apw@shadowen.org, clameter@sgi.com, geoffrey.levand@am.sony.com, haveblue@us.ibm.com, riel@redhat.com, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/macintosh/via-pmu.c: Added a missing iounmap
+     mm/sparse.c: improve the error handling for sparse_add_one_section()
 has been removed from the -mm tree.  Its filename was
-     drivers-macintosh-via-pmuc-added-a-missing-iounmap.patch
+     mm-sparsec-improve-the-error-handling-for-sparse_add_one_section.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/macintosh/via-pmu.c: Added a missing iounmap
-From: Julia Lawall <julia@diku.dk>
+Subject: mm/sparse.c: improve the error handling for sparse_add_one_section()
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-The error handling code should undo the ioremap as well.
+Improve the error handling for mm/sparse.c::sparse_add_one_section().  And I
+see no reason to check 'usemap' until holding the 'pgdat_resize_lock'.
 
-The problem was detected using the following semantic match
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@@
-type T,T1,T2;
-identifier E;
-statement S;
-expression x1,x2;
-constant C;
-int ret;
-@@
-
-  T E;
-  ...
-* E = ioremap(...);
-  if (E == NULL) S
-  ... when != iounmap(E)
-      when != if (E != NULL) { ... iounmap(E); ...}
-      when != x1 = (T1)E
-  if (...) {
-    ... when != iounmap(E)
-        when != if (E != NULL) { ... iounmap(E); ...}
-        when != x2 = (T2)E
-(
-*   return;
-|
-*   return C;
-|
-*   return ret;
-)
-  }
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: Olaf Hering <olaf@aepfle.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+[geoffrey.levand@am.sony.com: sparse_index_init() returns -EEXIST]
+Cc: Christoph Lameter <clameter@sgi.com>
+Acked-by: Dave Hansen <haveblue@us.ibm.com>
+Cc: Rik van Riel <riel@redhat.com>
+Acked-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+Signed-off-by: Geoff Levand <geoffrey.levand@am.sony.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/macintosh/via-pmu.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/sparse.c |   18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
-diff -puN drivers/macintosh/via-pmu.c~drivers-macintosh-via-pmuc-added-a-missing-iounmap drivers/macintosh/via-pmu.c
---- a/drivers/macintosh/via-pmu.c~drivers-macintosh-via-pmuc-added-a-missing-iounmap
-+++ a/drivers/macintosh/via-pmu.c
-@@ -2336,6 +2336,7 @@ powerbook_sleep_3400(void)
- 	ret = pmac_suspend_devices();
- 	if (ret) {
- 		pbook_free_pci_save();
-+		iounmap(mem_ctrl);
- 		printk(KERN_ERR "Sleep rejected by devices\n");
- 		return ret;
+diff -puN mm/sparse.c~mm-sparsec-improve-the-error-handling-for-sparse_add_one_section mm/sparse.c
+--- a/mm/sparse.c~mm-sparsec-improve-the-error-handling-for-sparse_add_one_section
++++ a/mm/sparse.c
+@@ -391,9 +391,17 @@ int sparse_add_one_section(struct zone *
+ 	 * no locking for this, because it does its own
+ 	 * plus, it does a kmalloc
+ 	 */
+-	sparse_index_init(section_nr, pgdat->node_id);
++	ret = sparse_index_init(section_nr, pgdat->node_id);
++	if (ret < 0 && ret != -EEXIST)
++		return ret;
+ 	memmap = kmalloc_section_memmap(section_nr, pgdat->node_id, nr_pages);
++	if (!memmap)
++		return -ENOMEM;
+ 	usemap = __kmalloc_section_usemap();
++	if (!usemap) {
++		__kfree_section_memmap(memmap, nr_pages);
++		return -ENOMEM;
++	}
+ 
+ 	pgdat_resize_lock(pgdat, &flags);
+ 
+@@ -403,18 +411,16 @@ int sparse_add_one_section(struct zone *
+ 		goto out;
  	}
+ 
+-	if (!usemap) {
+-		ret = -ENOMEM;
+-		goto out;
+-	}
+ 	ms->section_mem_map |= SECTION_MARKED_PRESENT;
+ 
+ 	ret = sparse_init_one_section(ms, section_nr, memmap, usemap);
+ 
+ out:
+ 	pgdat_resize_unlock(pgdat, &flags);
+-	if (ret <= 0)
++	if (ret <= 0) {
++		kfree(usemap);
+ 		__kfree_section_memmap(memmap, nr_pages);
++	}
+ 	return ret;
+ }
+ #endif
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
 origin.patch
-git-alsa.patch
-git-agpgart.patch
-git-powerpc.patch
-git-input.patch
-arch-cris-added-a-missing-iounmap.patch
-drivers-video-remove-unnecessary-pci_dev_put.patch
+uml-code-tidying-under-arch-um-os-linux.patch
+uml-const-and-other-tidying.patch
+time-fix-sysfs_show_availablecurrent_clocksources-buffer-overflow-problem.patch
