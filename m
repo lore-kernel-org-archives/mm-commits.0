@@ -1,67 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-initialize-new-auth_tokens-before-teardown.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 15:35:54 -0800
-Message-ID: <200712202335.lBKNZstM018755@imap1.linux-foundation.org>
+Subject: - sparsemem-make-sparsemem_vmemmap-selectable.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:35:58 -0800
+Message-ID: <200712202335.lBKNZwJh018763@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41766 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40152 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753843AbXLTXgg (ORCPT
+	by vger.kernel.org with ESMTP id S1753849AbXLTXgh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 18:36:36 -0500
+	Thu, 20 Dec 2007 18:36:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sandeen@redhat.com, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
+To: geoffrey.levand@am.sony.com, apw@shadowen.org, clameter@sgi.com, mboton@gmail.com, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ecryptfs: initialize new auth_tokens before teardown
+     sparsemem: make SPARSEMEM_VMEMMAP selectable
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-initialize-new-auth_tokens-before-teardown.patch
+     sparsemem-make-sparsemem_vmemmap-selectable.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
 ------------------------------------------------------
-Subject: ecryptfs: initialize new auth_tokens before teardown
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: sparsemem: make SPARSEMEM_VMEMMAP selectable
+=46rom: Geoff Levand <geoffrey.levand@am.sony.com>
 
-ecryptfs_destroy_mount_crypt_stat() checks whether each
-auth_tok->global_auth_tok_key is nonzero and if so puts that key.  However,
-in some early mount error paths nothing has initialized the pointer, and we
-try to key_put() garbage.  Running the bad cipher tests in the testsuite
-exposes this, and it's happy with the following change.
+SPARSEMEM_VMEMMAP needs to be a selectable config option to support
+building the kernel both with and without sparsemem vmemmap support.  T=
+his
+selection is desirable for platforms which could be configured one way =
+for
+platform specific builds and the other for multi-platform builds.
 
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+Signed-off-by: Miguel Bot=F3n <mboton@gmail.com>
+Signed-off-by: Geoff Levand <geoffrey.levand@am.sony.com>
+Acked-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/keystore.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/Kconfig |   15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN fs/ecryptfs/keystore.c~ecryptfs-initialize-new-auth_tokens-before-teardown fs/ecryptfs/keystore.c
---- a/fs/ecryptfs/keystore.c~ecryptfs-initialize-new-auth_tokens-before-teardown
-+++ a/fs/ecryptfs/keystore.c
-@@ -1860,7 +1860,7 @@ ecryptfs_add_global_auth_tok(struct ecry
- 	struct ecryptfs_global_auth_tok *new_auth_tok;
- 	int rc = 0;
- 
--	new_auth_tok = kmem_cache_alloc(ecryptfs_global_auth_tok_cache,
-+	new_auth_tok = kmem_cache_zalloc(ecryptfs_global_auth_tok_cache,
- 					GFP_KERNEL);
- 	if (!new_auth_tok) {
- 		rc = -ENOMEM;
+diff -puN mm/Kconfig~sparsemem-make-sparsemem_vmemmap-selectable mm/Kco=
+nfig
+--- a/mm/Kconfig~sparsemem-make-sparsemem_vmemmap-selectable
++++ a/mm/Kconfig
+@@ -112,18 +112,17 @@ config SPARSEMEM_EXTREME
+ 	def_bool y
+ 	depends on SPARSEMEM && !SPARSEMEM_STATIC
+=20
+-#
+-# SPARSEMEM_VMEMMAP uses a virtually mapped mem_map to optimise pfn_to=
+_page
+-# and page_to_pfn.  The most efficient option where kernel virtual spa=
+ce is
+-# not under pressure.
+-#
+ config SPARSEMEM_VMEMMAP_ENABLE
+ 	def_bool n
+=20
+ config SPARSEMEM_VMEMMAP
+-	bool
+-	depends on SPARSEMEM
+-	default y if (SPARSEMEM_VMEMMAP_ENABLE)
++	bool "Sparse Memory virtual memmap"
++	depends on SPARSEMEM && SPARSEMEM_VMEMMAP_ENABLE
++	default y
++	help
++	 SPARSEMEM_VMEMMAP uses a virtually mapped memmap to optimise
++	 pfn_to_page and page_to_pfn operations.  This is the most
++	 efficient option when sufficient kernel resources are available.
+=20
+ # eventually, we can have this option just 'select SPARSEMEM'
+ config MEMORY_HOTPLUG
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from geoffrey.levand@am.sony.co=
+m are
 
 origin.patch
-ecryptfs-fix-string-overflow-on-long-cipher-names.patch
-ecryptfs-fix-unlocking-in-error-paths.patch
-ecryptfs-redo-dgetmntget-on-dentry_open-failure.patch
-hfs-handle-more-on-disk-corruptions-without-oopsing.patch
-ext2-change-the-default-behaviour-on-error.patch
-ecryptfs-make-show_options-reflect-actual-mount-options.patch
-ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
-ecryptfs-remove-debug-as-mount-option-and-warn-if-set-via-modprobe.patch
-ext3-change-the-default-behaviour-on-error.patch
+ps3-vuart-fix-error-path-locking.patch
+git-powerpc.patch
+git-kgdb.patch
