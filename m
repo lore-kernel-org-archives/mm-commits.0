@@ -1,72 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - iscsi-project-page-changed.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 15:38:01 -0800
-Message-ID: <200712202338.lBKNc19A018946@imap1.linux-foundation.org>
+Subject: - ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:39:07 -0800
+Message-ID: <200712202339.lBKNd7Hj019105@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50140 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33544 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751220AbXLTXri (ORCPT
+	by vger.kernel.org with ESMTP id S1755424AbXLTXrk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 18:47:38 -0500
+	Thu, 20 Dec 2007 18:47:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: crquan@gmail.com, James.Bottomley@steeleye.com, mm-commits@vger.kernel.org
+To: aneesh.kumar@linux.vnet.ibm.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     iscsi project page changed
+     ext4: check for the correct error return from ext4_ext_get_blocks
 has been removed from the -mm tree.  Its filename was
-     iscsi-project-page-changed.patch
+     ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: iscsi project page changed
-From: <crquan@gmail.com>
+Subject: ext4: check for the correct error return from ext4_ext_get_blocks
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 
-There's a merging news happened two years ago:
+ext4_ext_get_blocks returns negative values on error. We should
+check for  <= 0
 
-	http://www.open-iscsi.org/
-
-	Linux-iSCSI(sfnet) and Open-iSCSI projects merged!(April 11, 2005)
-	http://marc.theaimsgroup.com/?l=linux-kernel&m=111327337005048&w=2
-
-so the information should change,
-
-and there are needs about iscsi documentation under Documentation/scsi/,
-or just some links to the documents on the website.
-
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ext4/extents.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/Kconfig~iscsi-project-page-changed drivers/scsi/Kconfig
---- a/drivers/scsi/Kconfig~iscsi-project-page-changed
-+++ a/drivers/scsi/Kconfig
-@@ -341,7 +341,7 @@ config ISCSI_TCP
- 	 The userspace component needed to initialize the driver, documentation,
- 	 and sample configuration files can be found here:
- 
--	 http://linux-iscsi.sf.net
-+	 http://www.open-iscsi.org/
- 
- config SGIWD93_SCSI
- 	tristate "SGI WD93C93 SCSI Driver"
+diff -puN fs/ext4/extents.c~ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks fs/ext4/extents.c
+--- a/fs/ext4/extents.c~ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks
++++ a/fs/ext4/extents.c
+@@ -2628,8 +2628,8 @@ retry:
+ 		ret = ext4_ext_get_blocks(handle, inode, block,
+ 					  max_blocks, &map_bh,
+ 					  EXT4_CREATE_UNINITIALIZED_EXT, 0);
+-		WARN_ON(!ret);
+-		if (!ret) {
++		WARN_ON(ret <= 0);
++		if (ret <= 0) {
+ 			ext4_error(inode->i_sb, "ext4_fallocate",
+ 				   "ext4_ext_get_blocks returned 0! inode#%lu"
+ 				   ", block=%lu, max_blocks=%lu",
 _
 
-Patches currently in -mm which might be from crquan@gmail.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
-origin.patch
-git-md-accel.patch
-git-net.patch
-git-s390.patch
-git-scsi-misc.patch
-3w-raid-drivers-memset-not-needed-in-probe.patch
-git-cryptodev.patch
-drivers-char-use-list_head-instead-of-list_head_init.patch
-drivers-char-ipmi-ipmi_msghandlerc-use-list_head-instead-of-list_head_init.patch
-fs-reiserfs-xattrc-use-list_head-instead-of-list_head_init.patch
+ext2-return-after-ext2_error-in-case-of-failures.patch
+ext2-change-the-default-behaviour-on-error.patch
+add-buffer-head-related-helper-functions.patch
+ext2-add-block-bitmap-validation.patch
+ext3-add-block-bitmap-validation.patch
+ext3-return-after-ext3_error-in-case-of-failures.patch
+ext3-change-the-default-behaviour-on-error.patch
