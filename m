@@ -1,131 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - wireless-libertas-dont-cast-a-pointer-to-pointer-of-list_head.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 15:38:03 -0800
-Message-ID: <200712202338.lBKNc3uZ018955@imap1.linux-foundation.org>
+Subject: - revert-hugetlb-add-hugetlb_dynamic_pool-sysctl.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:36:46 -0800
+Message-ID: <200712202336.lBKNakTK018825@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51057 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45837 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752695AbXLTXtX (ORCPT
+	by vger.kernel.org with ESMTP id S1758849AbXLTXxq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 18:49:23 -0500
+	Thu, 20 Dec 2007 18:53:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, dcbw@redhat.com, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: nacc@us.ibm.com, agl@us.ibm.com, david@gibson.dropbear.id.au, haveblue@us.ibm.com, wli@holomorphy.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     wireless/libertas: don't cast a pointer to pointer of list_head
+     Revert "hugetlb: Add hugetlb_dynamic_pool sysctl"
 has been removed from the -mm tree.  Its filename was
-     wireless-libertas-dont-cast-a-pointer-to-pointer-of-list_head.patch
+     revert-hugetlb-add-hugetlb_dynamic_pool-sysctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: wireless/libertas: don't cast a pointer to pointer of list_head
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: Revert "hugetlb: Add hugetlb_dynamic_pool sysctl"
+From: Nishanth Aravamudan <nacc@us.ibm.com>
 
-Don't cast struct foo * to struct list_head *, it's safe only when
-the list member is the first member of struct foo.
+Revert "hugetlb: Add hugetlb_dynamic_pool sysctl"
 
-Also don't cast struct list_head * to struct foo *.
+This reverts commit 54f9f80d6543fb7b157d3b11e2e7911dc1379790.
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: Dan Williams <dcbw@redhat.com>
+Given the new sysctl nr_overcommit_hugepages, the boolean dynamic pool sysctl
+is not needed, as its semantics can be expressed by 0 in the overcommit sysctl
+(no dynamic pool) and non-0 in the overcommit sysctl (pool enabled).
+
+(Needed in 2.6.24 since it reverts a post-2.6.23 userspace-visible change)
+
+Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
+Acked-by: Adam Litke <agl@us.ibm.com>
+Cc: William Lee Irwin III <wli@holomorphy.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: David Gibson <david@gibson.dropbear.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/libertas/cmd.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ include/linux/hugetlb.h |    1 -
+ kernel/sysctl.c         |    8 --------
+ mm/hugetlb.c            |    5 -----
+ 3 files changed, 14 deletions(-)
 
-diff -puN drivers/net/wireless/libertas/cmd.c~wireless-libertas-dont-cast-a-pointer-to-pointer-of-list_head drivers/net/wireless/libertas/cmd.c
---- a/drivers/net/wireless/libertas/cmd.c~wireless-libertas-dont-cast-a-pointer-to-pointer-of-list_head
-+++ a/drivers/net/wireless/libertas/cmd.c
-@@ -1016,11 +1016,10 @@ void lbs_queue_cmd(struct lbs_adapter *a
- 	spin_lock_irqsave(&adapter->driver_lock, flags);
+diff -puN include/linux/hugetlb.h~revert-hugetlb-add-hugetlb_dynamic_pool-sysctl include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~revert-hugetlb-add-hugetlb_dynamic_pool-sysctl
++++ a/include/linux/hugetlb.h
+@@ -33,7 +33,6 @@ void hugetlb_unreserve_pages(struct inod
  
- 	if (addtail) {
--		list_add_tail((struct list_head *)cmdnode,
--			      &adapter->cmdpendingq);
-+		list_add_tail(&cmdnode->list, &adapter->cmdpendingq);
- 		adapter->nr_cmd_pending++;
- 	} else
--		list_add((struct list_head *)cmdnode, &adapter->cmdpendingq);
-+		list_add(&cmdnode->list, &adapter->cmdpendingq);
+ extern unsigned long max_huge_pages;
+ extern unsigned long hugepages_treat_as_movable;
+-extern int hugetlb_dynamic_pool;
+ extern unsigned long nr_overcommit_huge_pages;
+ extern const unsigned long hugetlb_zero, hugetlb_infinity;
+ extern int sysctl_hugetlb_shm_group;
+diff -puN kernel/sysctl.c~revert-hugetlb-add-hugetlb_dynamic_pool-sysctl kernel/sysctl.c
+--- a/kernel/sysctl.c~revert-hugetlb-add-hugetlb_dynamic_pool-sysctl
++++ a/kernel/sysctl.c
+@@ -906,14 +906,6 @@ static struct ctl_table vm_table[] = {
+ 	},
+ 	{
+ 		.ctl_name	= CTL_UNNUMBERED,
+-		.procname	= "hugetlb_dynamic_pool",
+-		.data		= &hugetlb_dynamic_pool,
+-		.maxlen		= sizeof(hugetlb_dynamic_pool),
+-		.mode		= 0644,
+-		.proc_handler	= &proc_dointvec,
+-	},
+-	{
+-		.ctl_name	= CTL_UNNUMBERED,
+ 		.procname	= "nr_overcommit_hugepages",
+ 		.data		= &nr_overcommit_huge_pages,
+ 		.maxlen		= sizeof(nr_overcommit_huge_pages),
+diff -puN mm/hugetlb.c~revert-hugetlb-add-hugetlb_dynamic_pool-sysctl mm/hugetlb.c
+--- a/mm/hugetlb.c~revert-hugetlb-add-hugetlb_dynamic_pool-sysctl
++++ a/mm/hugetlb.c
+@@ -31,7 +31,6 @@ static unsigned int free_huge_pages_node
+ static unsigned int surplus_huge_pages_node[MAX_NUMNODES];
+ static gfp_t htlb_alloc_mask = GFP_HIGHUSER;
+ unsigned long hugepages_treat_as_movable;
+-int hugetlb_dynamic_pool;
+ unsigned long nr_overcommit_huge_pages;
+ static int hugetlb_next_nid;
  
- 	spin_unlock_irqrestore(&adapter->driver_lock, flags);
+@@ -230,10 +229,6 @@ static struct page *alloc_buddy_huge_pag
+ 	struct page *page;
+ 	unsigned int nid;
  
-@@ -1139,7 +1138,7 @@ void __lbs_cleanup_and_insert_cmd(struct
- 		return;
- 
- 	cleanup_cmdnode(ptempcmd);
--	list_add_tail((struct list_head *)ptempcmd, &adapter->cmdfreeq);
-+	list_add_tail(&ptempcmd->list, &adapter->cmdfreeq);
- }
- 
- static void lbs_cleanup_and_insert_cmd(struct lbs_private *priv,
-@@ -1637,8 +1636,9 @@ struct cmd_ctrl_node *lbs_get_free_cmd_c
- 	spin_lock_irqsave(&adapter->driver_lock, flags);
- 
- 	if (!list_empty(&adapter->cmdfreeq)) {
--		tempnode = (struct cmd_ctrl_node *)adapter->cmdfreeq.next;
--		list_del((struct list_head *)tempnode);
-+		tempnode = list_first_entry(&adapter->cmdfreeq,
-+					    struct cmd_ctrl_node, list);
-+		list_del(&tempnode->list);
- 	} else {
- 		lbs_deb_host("GET_CMD_NODE: cmd_ctrl_node is not available\n");
- 		tempnode = NULL;
-@@ -1735,8 +1735,8 @@ int lbs_execute_next_command(struct lbs_
- 	}
- 
- 	if (!list_empty(&adapter->cmdpendingq)) {
--		cmdnode = (struct cmd_ctrl_node *)
--		    adapter->cmdpendingq.next;
-+		cmdnode = list_first_entry(&adapter->cmdpendingq,
-+					   struct cmd_ctrl_node, list);
- 	}
- 
- 	spin_unlock_irqrestore(&adapter->driver_lock, flags);
-@@ -1800,7 +1800,7 @@ int lbs_execute_next_command(struct lbs_
- 				    cpu_to_le16(CMD_SUBCMD_EXIT_PS)) {
- 					lbs_deb_host(
- 					       "EXEC_NEXT_CMD: ignore ENTER_PS cmd\n");
--					list_del((struct list_head *)cmdnode);
-+					list_del(&cmdnode->list);
- 					lbs_cleanup_and_insert_cmd(priv, cmdnode);
- 
- 					ret = 0;
-@@ -1811,7 +1811,7 @@ int lbs_execute_next_command(struct lbs_
- 				    (adapter->psstate == PS_STATE_PRE_SLEEP)) {
- 					lbs_deb_host(
- 					       "EXEC_NEXT_CMD: ignore EXIT_PS cmd in sleep\n");
--					list_del((struct list_head *)cmdnode);
-+					list_del(&cmdnode->list);
- 					lbs_cleanup_and_insert_cmd(priv, cmdnode);
- 					adapter->needtowakeup = 1;
- 
-@@ -1823,7 +1823,7 @@ int lbs_execute_next_command(struct lbs_
- 				       "EXEC_NEXT_CMD: sending EXIT_PS\n");
- 			}
- 		}
--		list_del((struct list_head *)cmdnode);
-+		list_del(&cmdnode->list);
- 		lbs_deb_host("EXEC_NEXT_CMD: sending command 0x%04x\n",
- 			    le16_to_cpu(cmdptr->command));
- 		DownloadcommandToStation(priv, cmdnode);
+-	/* Check if the dynamic pool is enabled */
+-	if (!hugetlb_dynamic_pool)
+-		return NULL;
+-
+ 	/*
+ 	 * Assume we will successfully allocate the surplus page to
+ 	 * prevent racing processes from causing the surplus to exceed
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from nacc@us.ibm.com are
 
-git-powerpc.patch
-git-drm.patch
-git-hid.patch
-git-net.patch
-git-netdev-all.patch
-clocksource-remove-redundant-code.patch
-clockevent-simplify-list-operations.patch
-timekeeping-rename-timekeeping_is_continuous-to-timekeeping_valid_for_hres.patch
-time-fix-typo-in-comments.patch
-time-delete-comments-that-refer-to-noexistent-symbols.patch
+origin.patch
