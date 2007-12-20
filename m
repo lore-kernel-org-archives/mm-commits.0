@@ -1,61 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - bnx2x-depends-on-zlib_inflate.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 15:37:52 -0800
-Message-ID: <200712202337.lBKNbqvK018934@imap1.linux-foundation.org>
+Subject: - ppc-chrp-fix-possible-null-pointer-dereference.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:37:17 -0800
+Message-ID: <200712202337.lBKNbHdL018875@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44867 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56691 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757568AbXLTXsG (ORCPT
+	by vger.kernel.org with ESMTP id S1759647AbXLTXsH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 18:48:06 -0500
+	Thu, 20 Dec 2007 18:48:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Lee.Schermerhorn@hp.com, eliezert@broadcom.com, jeff@garzik.org, lee.schermerhorn@hp.com, mm-commits@vger.kernel.org
+To: gorcunov@gmail.com, benh@kernel.crashing.org, olof@lixom.net, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bnx2x depends on ZLIB_INFLATE
+     PPC: CHRP: fix possible NULL pointer dereference
 has been removed from the -mm tree.  Its filename was
-     bnx2x-depends-on-zlib_inflate.patch
+     ppc-chrp-fix-possible-null-pointer-dereference.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: bnx2x depends on ZLIB_INFLATE
-From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Subject: PPC: CHRP: fix possible NULL pointer dereference
+From: Cyrill Gorcunov <gorcunov@gmail.com>
 
-The bnx2x module depends on the zlib_inflate functions.  The build will
-fail if ZLIB_INFLATE has not been selected manually or by building another
-module that automatically selects it.
+Fix possible NULL pointer dereference inside of strncmp() if
+of_get_property() failed.
 
-Modify BNX2X config option to 'select ZLIB_INFLATE' like BNX2
-and others.  This seems to fix it.
-
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Acked-by: Eliezer Tamir <eliezert@broadcom.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: Olof Johansson <olof@lixom.net>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ arch/powerpc/platforms/chrp/setup.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/Kconfig~bnx2x-depends-on-zlib_inflate drivers/net/Kconfig
---- a/drivers/net/Kconfig~bnx2x-depends-on-zlib_inflate
-+++ a/drivers/net/Kconfig
-@@ -2607,6 +2607,7 @@ config TEHUTI
- config BNX2X
- 	tristate "Broadcom NetXtremeII 10Gb support"
- 	depends on PCI
-+	select ZLIB_INFLATE
- 	help
- 	  This driver supports Broadcom NetXtremeII 10 gigabit Ethernet cards.
- 	  To compile this driver as a module, choose M here: the module
+diff -puN arch/powerpc/platforms/chrp/setup.c~ppc-chrp-fix-possible-null-pointer-dereference arch/powerpc/platforms/chrp/setup.c
+--- a/arch/powerpc/platforms/chrp/setup.c~ppc-chrp-fix-possible-null-pointer-dereference
++++ a/arch/powerpc/platforms/chrp/setup.c
+@@ -115,7 +115,7 @@ void chrp_show_cpuinfo(struct seq_file *
+ 	seq_printf(m, "machine\t\t: CHRP %s\n", model);
+ 
+ 	/* longtrail (goldengate) stuff */
+-	if (!strncmp(model, "IBM,LongTrail", 13)) {
++	if (model && !strncmp(model, "IBM,LongTrail", 13)) {
+ 		/* VLSI VAS96011/12 `Golden Gate 2' */
+ 		/* Memory banks */
+ 		sdramen = (in_le32(gg2_pci_config_base + GG2_PCI_DRAM_CTRL)
+@@ -203,15 +203,20 @@ static void __init sio_fixup_irq(const c
+ static void __init sio_init(void)
+ {
+ 	struct device_node *root;
++	const char *model;
+ 
+-	if ((root = of_find_node_by_path("/")) &&
+-	    !strncmp(of_get_property(root, "model", NULL),
+-			"IBM,LongTrail", 13)) {
++	root = of_find_node_by_path("/");
++	if (!root)
++		return;
++
++	model = of_get_property(root, "model", NULL);
++	if (model && !strncmp(model, "IBM,LongTrail", 13)) {
+ 		/* logical device 0 (KBC/Keyboard) */
+ 		sio_fixup_irq("keyboard", 0, 1, 2);
+ 		/* select logical device 1 (KBC/Mouse) */
+ 		sio_fixup_irq("mouse", 1, 12, 2);
+ 	}
++
+ 	of_node_put(root);
+ }
+ 
 _
 
-Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
-git-netdev-all.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-bugfix-for-memory-cgroup-per-zone-struct-allocation.patch
+origin.patch
+git-powerpc.patch
+ppc-fix-missed-increment-on-device-interface-counter.patch
+net-mac80211-fix-inappropriate-memory-freeing.patch
+git-x86.patch
