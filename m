@@ -1,66 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc-dont-cast-a-pointer-to-pointer-of-list_head.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 15:37:19 -0800
-Message-ID: <200712202337.lBKNbJbD018878@imap1.linux-foundation.org>
+Subject: - mark-rwsem-functions-as-__sched-for-wchan-profiling.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:38:41 -0800
+Message-ID: <200712202338.lBKNcfTq018995@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36402 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41767 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758380AbXLTXr7 (ORCPT
+	by vger.kernel.org with ESMTP id S1757173AbXLTXry (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 18:47:59 -0500
+	Thu, 20 Dec 2007 18:47:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, benh@kernel.crashing.org, galak@gate.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: livio@eecg.toronto.edu, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc: don't cast a pointer to pointer of list_head
+     Mark rwsem functions as __sched for wchan/profiling
 has been removed from the -mm tree.  Its filename was
-     powerpc-dont-cast-a-pointer-to-pointer-of-list_head.patch
+     mark-rwsem-functions-as-__sched-for-wchan-profiling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: powerpc: don't cast a pointer to pointer of list_head
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: Mark rwsem functions as __sched for wchan/profiling
+From: Livio Soares <livio@eecg.toronto.edu>
 
-The casting is safe only when the list_head member is the first member of
-the structure.
+This following commit
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Kumar Gala <galak@gate.crashing.org>
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=fdf8cb0909b531f9ae8f9b9d7e4eb35ba3505f07
+
+un-inlined a low-level rwsem function, but did not mark it as __sched.  The
+result is that it now shows up as thread wchan (which also affects
+/proc/profile stats).  The following simple patch fixes this by properly
+marking rwsem_down_failed_common() as a __sched function.
+
+Also in this patch, which is up for discussion, marks down_read() and
+down_write() proper as __sched.  For profiling, it is pretty much useless
+to know that a semaphore is beig help - it is necessary to know _which_
+one.  By going up another frame on the stack, the information becomes much
+more useful.
+
+In summary, the below change to lib/rwsem.c should be applied; the changes
+to kernel/rwsem.c could be applied if other kernel hackers agree with my
+proposal that down_read()/down_write() in the profile is not enough.
+
+Signed-off-by: Livio Soares <livio@eecg.toronto.edu>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ppc/syslib/ocp.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/rwsem.c |    4 ++--
+ lib/rwsem.c    |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/ppc/syslib/ocp.c~powerpc-dont-cast-a-pointer-to-pointer-of-list_head arch/ppc/syslib/ocp.c
---- a/arch/ppc/syslib/ocp.c~powerpc-dont-cast-a-pointer-to-pointer-of-list_head
-+++ a/arch/ppc/syslib/ocp.c
-@@ -376,7 +376,7 @@ ocp_remove_one_device(unsigned int vendo
- 
- 	down_write(&ocp_devices_sem);
- 	dev = __ocp_find_device(vendor, function, index);
--	list_del((struct list_head *)dev);
-+	list_del(&dev->link);
- 	up_write(&ocp_devices_sem);
- 
- 	DBG(("ocp: ocp_remove_one_device(vendor: %x, function: %x, index: %d)... done.\n", vendor, function, index));
+diff -puN kernel/rwsem.c~mark-rwsem-functions-as-__sched-for-wchan-profiling kernel/rwsem.c
+--- a/kernel/rwsem.c~mark-rwsem-functions-as-__sched-for-wchan-profiling
++++ a/kernel/rwsem.c
+@@ -15,7 +15,7 @@
+ /*
+  * lock for reading
+  */
+-void down_read(struct rw_semaphore *sem)
++void __sched down_read(struct rw_semaphore *sem)
+ {
+ 	might_sleep();
+ 	rwsem_acquire_read(&sem->dep_map, 0, 0, _RET_IP_);
+@@ -42,7 +42,7 @@ EXPORT_SYMBOL(down_read_trylock);
+ /*
+  * lock for writing
+  */
+-void down_write(struct rw_semaphore *sem)
++void __sched down_write(struct rw_semaphore *sem)
+ {
+ 	might_sleep();
+ 	rwsem_acquire(&sem->dep_map, 0, 0, _RET_IP_);
+diff -puN lib/rwsem.c~mark-rwsem-functions-as-__sched-for-wchan-profiling lib/rwsem.c
+--- a/lib/rwsem.c~mark-rwsem-functions-as-__sched-for-wchan-profiling
++++ a/lib/rwsem.c
+@@ -146,7 +146,7 @@ __rwsem_do_wake(struct rw_semaphore *sem
+ /*
+  * wait for a lock to be granted
+  */
+-static struct rw_semaphore *
++static struct rw_semaphore __sched *
+ rwsem_down_failed_common(struct rw_semaphore *sem,
+ 			struct rwsem_waiter *waiter, signed long adjustment)
+ {
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from livio@eecg.toronto.edu are
 
-git-powerpc.patch
-git-drm.patch
-git-hid.patch
-git-net.patch
-git-netdev-all.patch
-clocksource-remove-redundant-code.patch
-clockevent-simplify-list-operations.patch
-timekeeping-rename-timekeeping_is_continuous-to-timekeeping_valid_for_hres.patch
-time-fix-typo-in-comments.patch
-time-delete-comments-that-refer-to-noexistent-symbols.patch
+origin.patch
