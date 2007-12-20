@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - revert-hugetlb-add-hugetlb_dynamic_pool-sysctl.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 15:36:46 -0800
-Message-ID: <200712202336.lBKNakTK018825@imap1.linux-foundation.org>
+Subject: - documetation-update-hugetlb-information.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:36:49 -0800
+Message-ID: <200712202336.lBKNanj3018828@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45837 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44208 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758849AbXLTXxq (ORCPT
+	by vger.kernel.org with ESMTP id S1758631AbXLTXxq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 20 Dec 2007 18:53:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,25 +15,20 @@ To: nacc@us.ibm.com, agl@us.ibm.com, david@gibson.dropbear.id.au, haveblue@us.ib
 
 
 The patch titled
-     Revert "hugetlb: Add hugetlb_dynamic_pool sysctl"
+     Documentation: update hugetlb information
 has been removed from the -mm tree.  Its filename was
-     revert-hugetlb-add-hugetlb_dynamic_pool-sysctl.patch
+     documetation-update-hugetlb-information.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Revert "hugetlb: Add hugetlb_dynamic_pool sysctl"
+Subject: Documentation: update hugetlb information
 From: Nishanth Aravamudan <nacc@us.ibm.com>
 
-Revert "hugetlb: Add hugetlb_dynamic_pool sysctl"
-
-This reverts commit 54f9f80d6543fb7b157d3b11e2e7911dc1379790.
-
-Given the new sysctl nr_overcommit_hugepages, the boolean dynamic pool sysctl
-is not needed, as its semantics can be expressed by 0 in the overcommit sysctl
-(no dynamic pool) and non-0 in the overcommit sysctl (pool enabled).
-
-(Needed in 2.6.24 since it reverts a post-2.6.23 userspace-visible change)
+The hugetlb documentation has gotten a bit out of sync with the current code. 
+Updated the sysctl file to refer to Documentation/vm/hugetlbpage.txt.  Update
+that file to contain the current state of affairs (with the newer named sysctl
+in place).
 
 Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
 Acked-by: Adam Litke <agl@us.ibm.com>
@@ -43,62 +38,109 @@ Cc: David Gibson <david@gibson.dropbear.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    1 -
- kernel/sysctl.c         |    8 --------
- mm/hugetlb.c            |    5 -----
- 3 files changed, 14 deletions(-)
+ Documentation/sysctl/vm.txt      |   19 +++++++++++++++
+ Documentation/vm/hugetlbpage.txt |   35 ++++++++++++++++++++++++-----
+ 2 files changed, 48 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/hugetlb.h~revert-hugetlb-add-hugetlb_dynamic_pool-sysctl include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~revert-hugetlb-add-hugetlb_dynamic_pool-sysctl
-+++ a/include/linux/hugetlb.h
-@@ -33,7 +33,6 @@ void hugetlb_unreserve_pages(struct inod
+diff -puN Documentation/sysctl/vm.txt~documetation-update-hugetlb-information Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~documetation-update-hugetlb-information
++++ a/Documentation/sysctl/vm.txt
+@@ -34,6 +34,8 @@ Currently, these files are in /proc/sys/
+ - oom_kill_allocating_task
+ - mmap_min_address
+ - numa_zonelist_order
++- nr_hugepages
++- nr_overcommit_hugepages
  
- extern unsigned long max_huge_pages;
- extern unsigned long hugepages_treat_as_movable;
--extern int hugetlb_dynamic_pool;
- extern unsigned long nr_overcommit_huge_pages;
- extern const unsigned long hugetlb_zero, hugetlb_infinity;
- extern int sysctl_hugetlb_shm_group;
-diff -puN kernel/sysctl.c~revert-hugetlb-add-hugetlb_dynamic_pool-sysctl kernel/sysctl.c
---- a/kernel/sysctl.c~revert-hugetlb-add-hugetlb_dynamic_pool-sysctl
-+++ a/kernel/sysctl.c
-@@ -906,14 +906,6 @@ static struct ctl_table vm_table[] = {
- 	},
- 	{
- 		.ctl_name	= CTL_UNNUMBERED,
--		.procname	= "hugetlb_dynamic_pool",
--		.data		= &hugetlb_dynamic_pool,
--		.maxlen		= sizeof(hugetlb_dynamic_pool),
--		.mode		= 0644,
--		.proc_handler	= &proc_dointvec,
--	},
--	{
--		.ctl_name	= CTL_UNNUMBERED,
- 		.procname	= "nr_overcommit_hugepages",
- 		.data		= &nr_overcommit_huge_pages,
- 		.maxlen		= sizeof(nr_overcommit_huge_pages),
-diff -puN mm/hugetlb.c~revert-hugetlb-add-hugetlb_dynamic_pool-sysctl mm/hugetlb.c
---- a/mm/hugetlb.c~revert-hugetlb-add-hugetlb_dynamic_pool-sysctl
-+++ a/mm/hugetlb.c
-@@ -31,7 +31,6 @@ static unsigned int free_huge_pages_node
- static unsigned int surplus_huge_pages_node[MAX_NUMNODES];
- static gfp_t htlb_alloc_mask = GFP_HIGHUSER;
- unsigned long hugepages_treat_as_movable;
--int hugetlb_dynamic_pool;
- unsigned long nr_overcommit_huge_pages;
- static int hugetlb_next_nid;
+ ==============================================================
  
-@@ -230,10 +229,6 @@ static struct page *alloc_buddy_huge_pag
- 	struct page *page;
- 	unsigned int nid;
+@@ -305,3 +307,20 @@ will select "node" order in following ca
  
--	/* Check if the dynamic pool is enabled */
--	if (!hugetlb_dynamic_pool)
--		return NULL;
--
- 	/*
- 	 * Assume we will successfully allocate the surplus page to
- 	 * prevent racing processes from causing the surplus to exceed
+ Otherwise, "zone" order will be selected. Default order is recommended unless
+ this is causing problems for your system/application.
++
++==============================================================
++
++nr_hugepages
++
++Change the minimum size of the hugepage pool.
++
++See Documentation/vm/hugetlbpage.txt
++
++==============================================================
++
++nr_overcommit_hugepages
++
++Change the maximum size of the hugepage pool. The maximum is
++nr_hugepages + nr_overcommit_hugepages.
++
++See Documentation/vm/hugetlbpage.txt
+diff -puN Documentation/vm/hugetlbpage.txt~documetation-update-hugetlb-information Documentation/vm/hugetlbpage.txt
+--- a/Documentation/vm/hugetlbpage.txt~documetation-update-hugetlb-information
++++ a/Documentation/vm/hugetlbpage.txt
+@@ -30,9 +30,10 @@ alignment and size of the arguments to t
+ The output of "cat /proc/meminfo" will have lines like:
+ 
+ .....
+-HugePages_Total: xxx
+-HugePages_Free:  yyy
+-HugePages_Rsvd:  www
++HugePages_Total: vvv
++HugePages_Free:  www
++HugePages_Rsvd:  xxx
++HugePages_Surp:  yyy
+ Hugepagesize:    zzz kB
+ 
+ where:
+@@ -42,6 +43,10 @@ allocated.
+ HugePages_Rsvd is short for "reserved," and is the number of hugepages
+ for which a commitment to allocate from the pool has been made, but no
+ allocation has yet been made. It's vaguely analogous to overcommit.
++HugePages_Surp is short for "surplus," and is the number of hugepages in
++the pool above the value in /proc/sys/vm/nr_hugepages. The maximum
++number of surplus hugepages is controlled by
++/proc/sys/vm/nr_overcommit_hugepages.
+ 
+ /proc/filesystems should also show a filesystem of type "hugetlbfs" configured
+ in the kernel.
+@@ -71,7 +76,25 @@ or failure of allocation depends on the 
+ memory that is preset in system at this time.  System administrators may want
+ to put this command in one of the local rc init files.  This will enable the
+ kernel to request huge pages early in the boot process (when the possibility
+-of getting physical contiguous pages is still very high).
++of getting physical contiguous pages is still very high). In either
++case, adminstrators will want to verify the number of hugepages actually
++allocated by checking the sysctl or meminfo.
++
++/proc/sys/vm/nr_overcommit_hugepages indicates how large the pool of
++hugepages can grow, if more hugepages than /proc/sys/vm/nr_hugepages are
++requested by applications. echo'ing any non-zero value into this file
++indicates that the hugetlb subsystem is allowed to try to obtain
++hugepages from the buddy allocator, if the normal pool is exhausted. As
++these surplus hugepages go out of use, they are freed back to the buddy
++allocator.
++
++Caveat: Shrinking the pool via nr_hugepages while a surplus is in effect
++will allow the number of surplus huge pages to exceed the overcommit
++value, as the pool hugepages (which must have been in use for a surplus
++hugepages to be allocated) will become surplus hugepages.  As long as
++this condition holds, however, no more surplus huge pages will be
++allowed on the system until one of the two sysctls are increased
++sufficiently, or the surplus huge pages go out of use and are freed.
+ 
+ If the user applications are going to request hugepages using mmap system
+ call, then it is required that system administrator mount a file system of
+@@ -94,8 +117,8 @@ provided on command line then no limits 
+ options, you can use [G|g]/[M|m]/[K|k] to represent giga/mega/kilo. For
+ example, size=2K has the same meaning as size=2048.
+ 
+-read and write system calls are not supported on files that reside on hugetlb
+-file systems.
++While read system calls are supported on files that reside on hugetlb
++file systems, write system calls are not.
+ 
+ Regular chown, chgrp, and chmod commands (with right permissions) could be
+ used to change the file attributes on hugetlbfs.
 _
 
 Patches currently in -mm which might be from nacc@us.ibm.com are
