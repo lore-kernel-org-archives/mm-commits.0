@@ -1,64 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - fix-bloat-o-meter-for-ppc64.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 15:36:36 -0800
-Message-ID: <200712202336.lBKNaagV018816@imap1.linux-foundation.org>
+Subject: - powerpc-dont-cast-a-pointer-to-pointer-of-list_head.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:37:19 -0800
+Message-ID: <200712202337.lBKNbJbD018878@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56406 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36402 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757125AbXLTXry (ORCPT
+	by vger.kernel.org with ESMTP id S1758380AbXLTXr7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 18:47:54 -0500
+	Thu, 20 Dec 2007 18:47:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ntl@pobox.com, mpm@selenic.com, mm-commits@vger.kernel.org
+To: lizf@cn.fujitsu.com, benh@kernel.crashing.org, galak@gate.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix bloat-o-meter for ppc64
+     powerpc: don't cast a pointer to pointer of list_head
 has been removed from the -mm tree.  Its filename was
-     fix-bloat-o-meter-for-ppc64.patch
+     powerpc-dont-cast-a-pointer-to-pointer-of-list_head.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix bloat-o-meter for ppc64
-From: Nathan Lynch <ntl@pobox.com>
+Subject: powerpc: don't cast a pointer to pointer of list_head
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-bloat-o-meter assumes that a '.' anywhere in a symbol's name means that it
-is static and prepends 'static.' to the first part of the symbol name,
-discarding the portion of the name that follows the '.'.  However, the
-names of function entry points begin with '.' in the ppc64 ABI.  This
-causes all function text size changes to be accounted to a single 'static.'
-entry in the output when comparing ppc64 kernels.
+The casting is safe only when the list_head member is the first member of
+the structure.
 
-Change getsizes() to ignore the first character of the symbol name when
-searching for '.'.
-
-Signed-off-by: Nathan Lynch <ntl@pobox.com>
-Cc: Matt Mackall <mpm@selenic.com>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Kumar Gala <galak@gate.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/bloat-o-meter |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/ppc/syslib/ocp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/bloat-o-meter~fix-bloat-o-meter-for-ppc64 scripts/bloat-o-meter
---- a/scripts/bloat-o-meter~fix-bloat-o-meter-for-ppc64
-+++ a/scripts/bloat-o-meter
-@@ -18,7 +18,8 @@ def getsizes(file):
-     for l in os.popen("nm --size-sort " + file).readlines():
-         size, type, name = l[:-1].split()
-         if type in "tTdDbB":
--            if "." in name: name = "static." + name.split(".")[0]
-+            # function names begin with '.' on 64-bit powerpc
-+            if "." in name[1:]: name = "static." + name.split(".")[0]
-             sym[name] = sym.get(name, 0) + int(size, 16)
-     return sym
+diff -puN arch/ppc/syslib/ocp.c~powerpc-dont-cast-a-pointer-to-pointer-of-list_head arch/ppc/syslib/ocp.c
+--- a/arch/ppc/syslib/ocp.c~powerpc-dont-cast-a-pointer-to-pointer-of-list_head
++++ a/arch/ppc/syslib/ocp.c
+@@ -376,7 +376,7 @@ ocp_remove_one_device(unsigned int vendo
  
+ 	down_write(&ocp_devices_sem);
+ 	dev = __ocp_find_device(vendor, function, index);
+-	list_del((struct list_head *)dev);
++	list_del(&dev->link);
+ 	up_write(&ocp_devices_sem);
+ 
+ 	DBG(("ocp: ocp_remove_one_device(vendor: %x, function: %x, index: %d)... done.\n", vendor, function, index));
 _
 
-Patches currently in -mm which might be from ntl@pobox.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
-origin.patch
 git-powerpc.patch
+git-drm.patch
+git-hid.patch
+git-net.patch
+git-netdev-all.patch
+clocksource-remove-redundant-code.patch
+clockevent-simplify-list-operations.patch
+timekeeping-rename-timekeeping_is_continuous-to-timekeeping_valid_for_hres.patch
+time-fix-typo-in-comments.patch
+time-delete-comments-that-refer-to-noexistent-symbols.patch
