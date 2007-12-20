@@ -1,124 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: - ia64-ia32-nopage.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 15:37:35 -0800
-Message-ID: <200712202337.lBKNbZoa018905@imap1.linux-foundation.org>
+Subject: - jbd2-fix-assertion-failure-in-fs-jbd2-checkpointc.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:39:05 -0800
+Message-ID: <200712202339.lBKNd5pQ019102__32732.7537154362$1198194501$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54040 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38718 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755427AbXLTXrl (ORCPT
+	by vger.kernel.org with ESMTP id S1755431AbXLTXrl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 20 Dec 2007 18:47:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ia64: ia32 nopage
+     jbd2: Fix assertion failure in fs/jbd2/checkpoint.c
 has been removed from the -mm tree.  Its filename was
-     ia64-ia32-nopage.patch
+     jbd2-fix-assertion-failure-in-fs-jbd2-checkpointc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ia64: ia32 nopage
-From: Nick Piggin <npiggin@suse.de>
+Subject: jbd2: Fix assertion failure in fs/jbd2/checkpoint.c
+From: Jan Kara <jack@suse.cz>
 
-Convert ia64's ia32 support from nopage to fault.
+Before we start committing a transaction, we call
+__journal_clean_checkpoint_list() to cleanup transaction's written-back
+buffers.
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+If this call happens to remove all of them (and there were already some
+buffers), __journal_remove_checkpoint() will decide to free the transaction
+because it isn't (yet) a committing transaction and soon we fail some
+assertion - the transaction really isn't ready to be freed :).
+
+We change the check in __journal_remove_checkpoint() to free only a
+transaction in T_FINISHED state.  The locking there is subtle though (as
+everywhere in JBD ;().  We use j_list_lock to protect the check and a
+subsequent call to __journal_drop_transaction() and do the same in the end
+of journal_commit_transaction() which is the only place where a transaction
+can get to T_FINISHED state.
+
+Probably I'm too paranoid here and such locking is not really necessary -
+checkpoint lists are processed only from log_do_checkpoint() where a
+transaction must be already committed to be processed or from
+__journal_clean_checkpoint_list() where kjournald itself calls it and thus
+transaction cannot change state either.  Better be safe if something
+changes in future...
+
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/ia32/binfmt_elf32.c |   34 ++++++++++++++------------------
- 1 file changed, 15 insertions(+), 19 deletions(-)
+ fs/jbd2/checkpoint.c |   12 ++++++------
+ fs/jbd2/commit.c     |    8 ++++----
+ include/linux/jbd2.h |    2 ++
+ 3 files changed, 12 insertions(+), 10 deletions(-)
 
-diff -puN arch/ia64/ia32/binfmt_elf32.c~ia64-ia32-nopage arch/ia64/ia32/binfmt_elf32.c
---- a/arch/ia64/ia32/binfmt_elf32.c~ia64-ia32-nopage
-+++ a/arch/ia64/ia32/binfmt_elf32.c
-@@ -52,33 +52,29 @@ extern struct page *ia32_shared_page[];
- extern unsigned long *ia32_gdt;
- extern struct page *ia32_gate_page;
+diff -puN fs/jbd2/checkpoint.c~jbd2-fix-assertion-failure-in-fs-jbd2-checkpointc fs/jbd2/checkpoint.c
+--- a/fs/jbd2/checkpoint.c~jbd2-fix-assertion-failure-in-fs-jbd2-checkpointc
++++ a/fs/jbd2/checkpoint.c
+@@ -608,15 +608,15 @@ int __jbd2_journal_remove_checkpoint(str
  
--struct page *
--ia32_install_shared_page (struct vm_area_struct *vma, unsigned long address, int *type)
-+int
-+ia32_install_shared_page (struct vm_area_struct *vma, struct vm_fault *vmf)
- {
--	struct page *pg = ia32_shared_page[smp_processor_id()];
--	get_page(pg);
--	if (type)
--		*type = VM_FAULT_MINOR;
--	return pg;
--}
--
--struct page *
--ia32_install_gate_page (struct vm_area_struct *vma, unsigned long address, int *type)
--{
--	struct page *pg = ia32_gate_page;
--	get_page(pg);
--	if (type)
--		*type = VM_FAULT_MINOR;
--	return pg;
-+	vmf->page = ia32_shared_page[smp_processor_id()];
-+	get_page(vmf->page);
-+	return 0;
-+}
-+
-+int
-+ia32_install_gate_page (struct vm_area_struct *vma, struct vm_fault *vmf)
-+{
-+	vmf->page = ia32_gate_page;
-+	get_page(vmf->page);
-+	return 0;
- }
+ 	/*
+ 	 * There is one special case to worry about: if we have just pulled the
+-	 * buffer off a committing transaction's forget list, then even if the
+-	 * checkpoint list is empty, the transaction obviously cannot be
+-	 * dropped!
++	 * buffer off a running or committing transaction's checkpoing list,
++	 * then even if the checkpoint list is empty, the transaction obviously
++	 * cannot be dropped!
+ 	 *
+-	 * The locking here around j_committing_transaction is a bit sleazy.
++	 * The locking here around t_state is a bit sleazy.
+ 	 * See the comment at the end of jbd2_journal_commit_transaction().
+ 	 */
+-	if (transaction == journal->j_committing_transaction) {
+-		JBUFFER_TRACE(jh, "belongs to committing transaction");
++	if (transaction->t_state != T_FINISHED) {
++		JBUFFER_TRACE(jh, "belongs to running/committing transaction");
+ 		goto out;
+ 	}
  
- 
- static struct vm_operations_struct ia32_shared_page_vm_ops = {
--	.nopage = ia32_install_shared_page
-+	.fault = ia32_install_shared_page
- };
- 
- static struct vm_operations_struct ia32_gate_page_vm_ops = {
--	.nopage = ia32_install_gate_page
-+	.fault = ia32_install_gate_page
- };
- 
- void
+diff -puN fs/jbd2/commit.c~jbd2-fix-assertion-failure-in-fs-jbd2-checkpointc fs/jbd2/commit.c
+--- a/fs/jbd2/commit.c~jbd2-fix-assertion-failure-in-fs-jbd2-checkpointc
++++ a/fs/jbd2/commit.c
+@@ -971,10 +971,10 @@ restart_loop:
+ 	}
+ 	spin_unlock(&journal->j_list_lock);
+ 	/*
+-	 * This is a bit sleazy.  We borrow j_list_lock to protect
+-	 * journal->j_committing_transaction in __jbd2_journal_remove_checkpoint.
+-	 * Really, __jbd2_journal_remove_checkpoint should be using j_state_lock but
+-	 * it's a bit hassle to hold that across __jbd2_journal_remove_checkpoint
++	 * This is a bit sleazy.  We use j_list_lock to protect transition
++	 * of a transaction into T_FINISHED state and calling
++	 * __jbd2_journal_drop_transaction(). Otherwise we could race with
++	 * other checkpointing code processing the transaction...
+ 	 */
+ 	spin_lock(&journal->j_state_lock);
+ 	spin_lock(&journal->j_list_lock);
+diff -puN include/linux/jbd2.h~jbd2-fix-assertion-failure-in-fs-jbd2-checkpointc include/linux/jbd2.h
+--- a/include/linux/jbd2.h~jbd2-fix-assertion-failure-in-fs-jbd2-checkpointc
++++ a/include/linux/jbd2.h
+@@ -479,6 +479,8 @@ struct transaction_s
+ 	/*
+ 	 * Transaction's current state
+ 	 * [no locking - only kjournald2 alters this]
++	 * [j_list_lock] guards transition of a transaction into T_FINISHED
++	 * state and subsequent call of __jbd2_journal_drop_transaction()
+ 	 * FIXME: needs barriers
+ 	 * KLUDGE: [use j_state_lock]
+ 	 */
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
-git-alsa.patch
-git-dvb.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-jfs.patch
-git-kvm.patch
-nfs-use-gfp_nofs-preloads-for-radix-tree-insertion.patch
-git-sched.patch
-sg-nopage.patch
-usb-mon-nopage.patch
-git-x86.patch
-slub-use-non-atomic-bit-unlock.patch
-tmpfs-shuffle-add_to_swap_caches.patch
-tmpfs-radix_tree_preloading.patch
-radix-tree-avoid-atomic-allocations-for-preloaded-insertions.patch
-mm-dont-allow-ioremapping-of-ranges-larger-than-vmalloc-space.patch
-mm-special-mapping-nopage.patch
-agp-alpha-nopage.patch
-vt-bitlock-fix.patch
-radix_treeh-trivial-comment-correction.patch
-inotify-fix-race.patch
-inotify-remove-debug-code.patch
-relay-nopage.patch
-uio-nopage.patch
-ext2-xip-check-fix.patch
-fb-defio-nopage.patch
-rewrite-rd.patch
-rewrite-rd-fix.patch
-rd-support-xip.patch
-reiser4.patch
+fix-computation-of-skb-size-for-quota-messages.patch
+dont-send-quota-messages-repeatedly-when-hardlimit-reached.patch
+git-ocfs2.patch
+inotify-send-in_attrib-events-when-link-count-changes.patch
+inotify-send-in_attrib-events-when-link-count-changes-fix.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext4-from-using-iget-and-read_inode-try.patch
