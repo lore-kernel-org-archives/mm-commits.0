@@ -1,139 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: - x86-smpboot_32c-section-fixes.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 15:38:20 -0800
-Message-ID: <200712202338.lBKNcKRw018973@imap1.linux-foundation.org>
+Subject: - slub-remove-useless-masking-of-gfp_zero.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:36:55 -0800
+Message-ID: <200712202336.lBKNatAm018835@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33889 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58004 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755772AbXLTXss (ORCPT
+	by vger.kernel.org with ESMTP id S1760671AbXLTXsO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 18:48:48 -0500
+	Thu, 20 Dec 2007 18:48:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: clameter@sgi.com, mpm@selenic.com, penberg@cs.helsinki.fi, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86 smpboot_32.c section fixes
+     SLUB: remove useless masking of GFP_ZERO
 has been removed from the -mm tree.  Its filename was
-     x86-smpboot_32c-section-fixes.patch
+     slub-remove-useless-masking-of-gfp_zero.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86 smpboot_32.c section fixes
-From: Adrian Bunk <bunk@kernel.org>
+Subject: SLUB: remove useless masking of GFP_ZERO
+From: Christoph Lameter <clameter@sgi.com>
 
-Fix the following section mismatches with CONFIG_HOTPLUG=n,
-CONFIG_HOTPLUG_CPU=y:
+Remove a recently added useless masking of GFP_ZERO.  GFP_ZERO is already
+masked out in new_slab() (See how it calls allocate_slab).  No need to do
+it twice.  This reverts the SLUB parts of
+7fd272550bd43cc1d7289ef0ab2fa50de137e767.
 
-WARNING: vmlinux.o(.text+0x22c60): Section mismatch: reference to .init.data:cpu_idle_tasks (between 'do_boot_cpu' and 'do_warm_boot_cpu')
-WARNING: vmlinux.o(.text+0x22c99): Section mismatch: reference to .init.data:cpu_idle_tasks (between 'do_boot_cpu' and 'do_warm_boot_cpu')
-WARNING: vmlinux.o(.text+0x2359b): Section mismatch: reference to .init.data:smp_b_stepping (between 'smp_store_cpu_info' and 'cpu_exit_clear')
-WARNING: vmlinux.o(.text+0x235a0): Section mismatch: reference to .init.data:smp_b_stepping (between 'smp_store_cpu_info' and 'cpu_exit_clear')
-
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Linus Torvalds <torvalds@woody.linux-foundation.org>
+Cc: Matt Mackall <mpm@selenic.com>
+Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/smpboot_32.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/slub.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN arch/x86/kernel/smpboot_32.c~x86-smpboot_32c-section-fixes arch/x86/kernel/smpboot_32.c
---- a/arch/x86/kernel/smpboot_32.c~x86-smpboot_32c-section-fixes
-+++ a/arch/x86/kernel/smpboot_32.c
-@@ -60,7 +60,7 @@
- #include <asm/mtrr.h>
+diff -puN mm/slub.c~slub-remove-useless-masking-of-gfp_zero mm/slub.c
+--- a/mm/slub.c~slub-remove-useless-masking-of-gfp_zero
++++ a/mm/slub.c
+@@ -1468,9 +1468,6 @@ static void *__slab_alloc(struct kmem_ca
+ 	void **object;
+ 	struct page *new;
  
- /* Set if we find a B stepping CPU */
--static int __devinitdata smp_b_stepping;
-+static int __cpuinitdata smp_b_stepping;
- 
- /* Number of siblings per CPU package */
- int smp_num_siblings = 1;
-@@ -744,8 +744,8 @@ static inline int alloc_cpu_id(void)
- }
- 
- #ifdef CONFIG_HOTPLUG_CPU
--static struct task_struct * __devinitdata cpu_idle_tasks[NR_CPUS];
--static inline struct task_struct * alloc_idle_task(int cpu)
-+static struct task_struct * __cpuinitdata cpu_idle_tasks[NR_CPUS];
-+static inline struct task_struct * __cpuinit alloc_idle_task(int cpu)
- {
- 	struct task_struct *idle;
+-	/* We handle __GFP_ZERO in the caller */
+-	gfpflags &= ~__GFP_ZERO;
+-
+ 	if (!c->page)
+ 		goto new_slab;
  
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
-git-acpi.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-mtd.patch
-git-net.patch
-git-netdev-all.patch
-git-battery.patch
-drivers-bluetooth-bpa10xc-fix-memleak.patch
-drivers-bluetooth-btsdioc-fix-double-free.patch
-drivers-pci-msic-move-arch-hooks-to-the-top.patch
-if-0-pci_cleanup_aer_correct_error_status.patch
-git-scsi-misc.patch
-scsi-advansysc-make-3-functions-static.patch
-scsi-qla2xxx-possible-cleanups.patch
-scsi-qla2xxx-qla_osc-section-fix.patch
-scsi-megaraidc-__devexit-annotation.patch
-scsi-aic94xx-cleanups.patch
-scsi-aic94xx-cleanups-checkpatch-fixes.patch
-scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
+quicklists-do-not-release-off-node-pages-early.patch
+git-sched.patch
+git-unionfs.patch
 git-x86.patch
-git-cryptodev.patch
-git-xtensa.patch
-mm-page-writebackc-make-a-function-static.patch
-make-__vmalloc_area_node-static.patch
-kernel-power-diskc-make-code-static.patch
-make-kernel_shutdown_prepare-static.patch
-nubus-kill-drivers-nubus-nubus_symsc.patch
-m68k-kill-arch-m68k-mac-mac_ksymsc.patch
-m68k-kill-arch-m68k-hp300-ksymsc.patch
-m68k-kill-arch-m68k-amiga-amiga_ksymsc.patch
-m68k-kill-arch-m68k-atari-atari_ksymsc.patch
-m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch
-kill-udffs_dateversion.patch
-make-ipc-utilcsysvipc_find_ipc-static.patch
-cleanup-after-apus-removal.patch
-remove-mm_ptovvtop.patch
-remove-__attribute_used__.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-proper-show_interrupts-prototype.patch
-scheduled-oss-driver-removal.patch
-linux-inith-simplify-__meminitexit-dependencies.patch
-proper-prototype-for-signals_init.patch
-kernel-ptracec-should-include-linux-syscallsh.patch
-make-srcu_readers_active-static.patch
-kernel-notifierc-should-include-linux-rebooth.patch
-proper-prototype-for-get_filesystem_list.patch
-fs-utimesc-should-include-linux-syscallsh.patch
-fs-signalfdc-should-include-linux-syscallsh.patch
-fs-eventfdc-should-include-linux-syscallsh.patch
-proper-prototype-for-vty_init.patch
-drivers-misc-lkdtmc-cleanups.patch
-xen-fiddle_vdso-must-be-__init.patch
-calibrate_delay-must-be-__cpuinit.patch
-idle_regs-must-be-__cpuinit.patch
-fs-ecryptfs-possible-cleanups.patch
-make-video-geode-lxfb_corecgeode_modedb-static.patch
-video-hpfbc-section-fix.patch
-drivers-video-pm3fbc-section-fix.patch
-make-jbd-journalc__journal_abort_hard-static.patch
-move-edactxt-two-levels-up.patch
-remove-documentation-smptxt.patch
-kernel-cgroupc-remove-dead-code.patch
-kernel-cgroupc-make-2-functions-static.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-fix-m32r-__xchg.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+move-vmalloc_to_page-to-mm-vmalloc.patch
+vmalloc-add-const-to-void-parameters.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries.patch
+vmalloc-clean-up-page-array-indexing.patch
+vunmap-return-page-array-passed-on-vmap.patch
+slub-move-count_partial.patch
+slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio.patch
+slub-consolidate-add_partial-and-add_partial_tail-to-one-function.patch
+slub-use-non-atomic-bit-unlock.patch
+slub-fix-coding-style-violations.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-noinline-some-functions-to-avoid-them-being-folded-into-alloc-free.patch
+slub-move-kmem_cache_node-determination-into-add_full-and-add_partial.patch
+slub-move-kmem_cache_node-determination-into-add_full-and-add_partial-slub-workaround-for-lockdep-confusion.patch
+slub-avoid-checking-for-a-valid-object-before-zeroing-on-the-fast-path.patch
+slub-__slab_alloc-exit-path-consolidation.patch
+slub-provide-unique-end-marker-for-each-slab.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-avoid-referencing-kmem_cache-structure-in-__slab_alloc.patch
+slub-optional-fast-path-using-cmpxchg_local.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-fix.patch
+slub-restructure-slab-alloc.patch
+slub-comment-kmem_cache_cpu-structure.patch
+vm-allow-get_page_unless_zero-on-compound-pages.patch
+bufferhead-revert-constructor-removal.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+swapin_readahead-excise-numa-bogosity.patch
+page-allocator-clean-up-pcp-draining-functions.patch
+page-allocator-clean-up-pcp-draining-functions-swsusp-fix.patch
+page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
+vmstat-small-revisions-to-refresh_cpu_vm_stats.patch
+page-allocator-get-rid-of-the-list-of-cold-pages.patch
+page-allocator-get-rid-of-the-list-of-cold-pages-fix.patch
+vmstat-remove-prefetch.patch
+percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+oom-add-sysctl-to-enable-task-memory-dump.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-bugfix-for-memory-cgroup-per-zone-struct-allocation.patch
+add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
+add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
+dentries-extract-common-code-to-remove-dentry-from-lru.patch
+dentries-extract-common-code-to-remove-dentry-from-lru-fix.patch
+modules-handle-symbols-that-have-a-zero-value.patch
+modules-include-sectionsh-to-avoid-defining-linker-variables.patch
+modules-fold-percpu_modcopy-into-modulec-and-get-rid-of-the-macro-from-hell.patch
 reiser4.patch
+reiser4-portion-of-zero_user-cleanup-patch.patch
+page-owner-tracking-leak-detector.patch
