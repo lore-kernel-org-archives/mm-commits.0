@@ -1,125 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - x86-apic_32c-section-fix.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 15:38:25 -0800
-Message-ID: <200712202338.lBKNcPnT018976@imap1.linux-foundation.org>
+Subject: - mm-fix-page-allocation-for-larger-i-o-segments.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:36:26 -0800
+Message-ID: <200712202336.lBKNaQ2Z018804@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49459 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52676 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759647AbXLTXsP (ORCPT
+	by vger.kernel.org with ESMTP id S1755875AbXLTXsR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 18:48:15 -0500
+	Thu, 20 Dec 2007 18:48:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mel@csn.ul.ie, James.Bottomley@steeleye.com, jens.axboe@oracle.com, mlord@pobox.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86 apic_32.c section fix
+     mm: fix page allocation for larger I/O segments
 has been removed from the -mm tree.  Its filename was
-     x86-apic_32c-section-fix.patch
+     mm-fix-page-allocation-for-larger-i-o-segments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86 apic_32.c section fix
-From: Adrian Bunk <bunk@kernel.org>
+Subject: mm: fix page allocation for larger I/O segments
+From: Mel Gorman <mel@csn.ul.ie>
 
-tFix fixes the following section mismatch with CONFIG_HOTPLUG=n,
-CONFIG_HOTPLUG_CPU=y:
+In some cases the IO subsystem is able to merge requests if the pages are
+adjacent in physical memory.  This was achieved in the allocator by having
+expand() return pages in physically contiguous order in situations were a
+large buddy was split.  However, list-based anti-fragmentation changed the
+order pages were returned in to avoid searching in buffered_rmqueue() for a
+page of the appropriate migrate type.
 
-WARNING: vmlinux.o(.text+0x2390d): Section mismatch: reference to .init.text.5:setup_local_APIC (between 'start_secondary' and 'check_tsc_warp')
+This patch restores behaviour of rmqueue_bulk() preserving the physical
+order of pages returned by the allocator without incurring increased search
+costs for anti-fragmentation.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Mark Lord <mlord@pobox.com
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/apic_32.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN arch/x86/kernel/apic_32.c~x86-apic_32c-section-fix arch/x86/kernel/apic_32.c
---- a/arch/x86/kernel/apic_32.c~x86-apic_32c-section-fix
-+++ a/arch/x86/kernel/apic_32.c
-@@ -850,7 +850,7 @@ void __init init_bsp_APIC(void)
- /**
-  * setup_local_APIC - setup the local APIC
-  */
--void __devinit setup_local_APIC(void)
-+void __cpuinit setup_local_APIC(void)
- {
- 	unsigned long oldvalue, value, maxlvt, integrated;
- 	int i, j;
+diff -puN mm/page_alloc.c~mm-fix-page-allocation-for-larger-i-o-segments mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-fix-page-allocation-for-larger-i-o-segments
++++ a/mm/page_alloc.c
+@@ -847,8 +847,19 @@ static int rmqueue_bulk(struct zone *zon
+ 		struct page *page = __rmqueue(zone, order, migratetype);
+ 		if (unlikely(page == NULL))
+ 			break;
++
++		/*
++		 * Split buddy pages returned by expand() are received here
++		 * in physical page order. The page is added to the callers and
++		 * list and the list head then moves forward. From the callers
++		 * perspective, the linked list is ordered by page number in
++		 * some conditions. This is useful for IO devices that can
++		 * merge IO requests if the physical pages are ordered
++		 * properly.
++		 */
+ 		list_add(&page->lru, list);
+ 		set_page_private(page, migratetype);
++		list = &page->lru;
+ 	}
+ 	spin_unlock(&zone->lock);
+ 	return i;
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
 origin.patch
-git-acpi.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-mtd.patch
-git-net.patch
-git-netdev-all.patch
-git-battery.patch
-drivers-bluetooth-bpa10xc-fix-memleak.patch
-drivers-bluetooth-btsdioc-fix-double-free.patch
-drivers-pci-msic-move-arch-hooks-to-the-top.patch
-if-0-pci_cleanup_aer_correct_error_status.patch
-git-scsi-misc.patch
-scsi-advansysc-make-3-functions-static.patch
-scsi-qla2xxx-possible-cleanups.patch
-scsi-qla2xxx-qla_osc-section-fix.patch
-scsi-megaraidc-__devexit-annotation.patch
-scsi-aic94xx-cleanups.patch
-scsi-aic94xx-cleanups-checkpatch-fixes.patch
-scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
-git-x86.patch
-git-cryptodev.patch
-git-xtensa.patch
-mm-page-writebackc-make-a-function-static.patch
-make-__vmalloc_area_node-static.patch
-kernel-power-diskc-make-code-static.patch
-make-kernel_shutdown_prepare-static.patch
-nubus-kill-drivers-nubus-nubus_symsc.patch
-m68k-kill-arch-m68k-mac-mac_ksymsc.patch
-m68k-kill-arch-m68k-hp300-ksymsc.patch
-m68k-kill-arch-m68k-amiga-amiga_ksymsc.patch
-m68k-kill-arch-m68k-atari-atari_ksymsc.patch
-m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch
-kill-udffs_dateversion.patch
-make-ipc-utilcsysvipc_find_ipc-static.patch
-cleanup-after-apus-removal.patch
-remove-mm_ptovvtop.patch
-remove-__attribute_used__.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-proper-show_interrupts-prototype.patch
-scheduled-oss-driver-removal.patch
-linux-inith-simplify-__meminitexit-dependencies.patch
-proper-prototype-for-signals_init.patch
-kernel-ptracec-should-include-linux-syscallsh.patch
-make-srcu_readers_active-static.patch
-kernel-notifierc-should-include-linux-rebooth.patch
-proper-prototype-for-get_filesystem_list.patch
-fs-utimesc-should-include-linux-syscallsh.patch
-fs-signalfdc-should-include-linux-syscallsh.patch
-fs-eventfdc-should-include-linux-syscallsh.patch
-proper-prototype-for-vty_init.patch
-drivers-misc-lkdtmc-cleanups.patch
-xen-fiddle_vdso-must-be-__init.patch
-calibrate_delay-must-be-__cpuinit.patch
-idle_regs-must-be-__cpuinit.patch
-fs-ecryptfs-possible-cleanups.patch
-make-video-geode-lxfb_corecgeode_modedb-static.patch
-video-hpfbc-section-fix.patch
-drivers-video-pm3fbc-section-fix.patch
-make-jbd-journalc__journal_abort_hard-static.patch
-move-edactxt-two-levels-up.patch
-remove-documentation-smptxt.patch
-kernel-cgroupc-remove-dead-code.patch
-kernel-cgroupc-make-2-functions-static.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-fix-m32r-__xchg.patch
-reiser4.patch
+fix-crash-with-flat_memory-and-arch_pfn_offset-=-0.patch
+memory-hotplug-add-removable-to-sysfs-to-show-memblock-removability.patch
+page-allocator-clean-up-pcp-draining-functions.patch
+page-allocator-get-rid-of-the-list-of-cold-pages.patch
+page-allocator-get-rid-of-the-list-of-cold-pages-fix.patch
+memcgroup-tidy-up-mem_cgroup_charge_common.patch
+memcgroup-fix-hang-with-shmem-tmpfs.patch
+page-owner-tracking-leak-detector.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
