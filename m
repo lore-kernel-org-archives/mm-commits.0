@@ -1,53 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-ata-libata-ehc-fix-printk-warning.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 15:37:40 -0800
-Message-ID: <200712202337.lBKNbej8018912@imap1.linux-foundation.org>
+Subject: - gregkh-driver-kobject-change-drivers-cpuidle-sysfsc-to-use-kobject_init_and_add-fix.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:37:26 -0800
+Message-ID: <200712202337.lBKNbQjA018889@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58774 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45998 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751048AbXLTXm3 (ORCPT
+	by vger.kernel.org with ESMTP id S1754923AbXLTXmx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 18:42:29 -0500
+	Thu, 20 Dec 2007 18:42:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jeff@garzik.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/ata/libata-eh.c: fix printk warning
+     gregkh-driver-kobject-change-drivers-cpuidle-sysfsc-to-use-kobject_init_and_add-fix
 has been removed from the -mm tree.  Its filename was
-     drivers-ata-libata-ehc-fix-printk-warning.patch
+     gregkh-driver-kobject-change-drivers-cpuidle-sysfsc-to-use-kobject_init_and_add-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/ata/libata-eh.c: fix printk warning
+Subject: gregkh-driver-kobject-change-drivers-cpuidle-sysfsc-to-use-kobject_init_and_add-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/ata/libata-eh.c: In function `ata_port_pbar_desc':
-drivers/ata/libata-eh.c:215: warning: long long unsigned int format, long unsigned int arg (arg 4)
+drivers/cpuidle/sysfs.c: In function 'cpuidle_add_sysfs':
+drivers/cpuidle/sysfs.c:348: warning: no return statement in function returning non-void
+drivers/cpuidle/sysfs.c:348: warning: control reaches end of non-void function
 
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-eh.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/cpuidle/sysfs.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/ata/libata-eh.c~drivers-ata-libata-ehc-fix-printk-warning drivers/ata/libata-eh.c
---- a/drivers/ata/libata-eh.c~drivers-ata-libata-ehc-fix-printk-warning
-+++ a/drivers/ata/libata-eh.c
-@@ -231,7 +231,8 @@ void ata_port_pbar_desc(struct ata_port 
- 	if (offset < 0)
- 		ata_port_desc(ap, "%s %s%llu@0x%llx", name, type, len, start);
- 	else
--		ata_port_desc(ap, "%s 0x%llx", name, start + offset);
-+		ata_port_desc(ap, "%s 0x%llx", name,
-+				start + (unsigned long long)offset);
+diff -puN drivers/cpuidle/sysfs.c~gregkh-driver-kobject-change-drivers-cpuidle-sysfsc-to-use-kobject_init_and_add-fix drivers/cpuidle/sysfs.c
+--- a/drivers/cpuidle/sysfs.c~gregkh-driver-kobject-change-drivers-cpuidle-sysfsc-to-use-kobject_init_and_add-fix
++++ a/drivers/cpuidle/sysfs.c
+@@ -345,6 +345,7 @@ int cpuidle_add_sysfs(struct sys_device 
+ 				     "cpuidle");
+ 	if (!error)
+ 		kobject_uevent(&dev->kobj, KOBJ_ADD);
++	return error;
  }
  
- #endif /* CONFIG_PCI */
+ /**
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
