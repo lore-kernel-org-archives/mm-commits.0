@@ -1,51 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - x86_32-disable_pse-must-be-__cpuinitdata-fix.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 14:46:13 -0800
-Message-ID: <200712202246.lBKMkDNZ016887@imap1.linux-foundation.org>
+Subject: + git-sched-fixup-2.patch added to -mm tree
+Date: Thu, 20 Dec 2007 15:12:44 -0800
+Message-ID: <200712202312.lBKNCiPP017870@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36731 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47389 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753045AbXLTWrY (ORCPT
+	by vger.kernel.org with ESMTP id S1752954AbXLTXNo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 17:47:24 -0500
+	Thu, 20 Dec 2007 18:13:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bunk@kernel.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, mingo@elte.hu
 
 
 The patch titled
-     x86_32-disable_pse-must-be-__cpuinitdata-fix
-has been removed from the -mm tree.  Its filename was
-     x86_32-disable_pse-must-be-__cpuinitdata-fix.patch
+     git-sched-fixup-2
+has been added to the -mm tree.  Its filename is
+     git-sched-fixup-2.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: x86_32-disable_pse-must-be-__cpuinitdata-fix
+Subject: git-sched-fixup-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Adrian Bunk <bunk@kernel.org>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/setup_32.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/sched_rt.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN arch/x86/kernel/setup_32.c~x86_32-disable_pse-must-be-__cpuinitdata-fix arch/x86/kernel/setup_32.c
---- a/arch/x86/kernel/setup_32.c~x86_32-disable_pse-must-be-__cpuinitdata-fix
-+++ a/arch/x86/kernel/setup_32.c
-@@ -69,7 +69,7 @@
-    address, and must not be in the .bss segment! */
- unsigned long init_pg_tables_end __initdata = ~0UL;
+diff -puN kernel/sched_rt.c~git-sched-fixup-2 kernel/sched_rt.c
+--- a/kernel/sched_rt.c~git-sched-fixup-2
++++ a/kernel/sched_rt.c
+@@ -867,11 +867,8 @@ static void task_tick_rt(struct rq *rq, 
+ {
+ 	update_curr_rt(rq);
  
--int disable_pse __cpuinitdata = 0;
-+int disable_pse __cpuinitdata;
+-<<<<<<< HEAD:kernel/sched_rt.c
+-=======
+ 	watchdog(rq, p);
  
- /*
-  * Machine setup..
+->>>>>>> FETCH_HEAD:kernel/sched_rt.c
+ 	/*
+ 	 * RR tasks need a special form of timeslice management.
+ 	 * FIFO tasks have no timeslices.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -103,6 +108,7 @@ git-nfsd.patch
 quirk-enable-msi-mapping-on-ht1000.patch
 git-sched.patch
 git-sched-fixup.patch
+git-sched-fixup-2.patch
 git-sh.patch
 git-scsi-misc.patch
 scsi-aic94xx-cleanups-checkpatch-fixes.patch
@@ -122,11 +128,10 @@ git-x86.patch
 git-x86-fixup.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 i386-use-raw_smp_processor_id-in-die.patch
-x86_32-disable_pse-must-be-__cpuinitdata-fix.patch
-git-newsetup.patch
 git-cryptodev.patch
 git-cryptodev-fixup.patch
 git-xtensa.patch
+git-kgdb-fixup.patch
 bonding-locking-fix.patch
 iwlwifi3945-4965-fix-rate-control-algo-reference-leak.patch
 bcm43xx_debugfs-sscanf-fix.patch
