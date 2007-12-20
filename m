@@ -1,63 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 15:39:07 -0800
-Message-ID: <200712202339.lBKNd7Hj019105@imap1.linux-foundation.org>
+Subject: - arch-ppc-remove-an-unnecessary-pci_dev_put.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:37:09 -0800
+Message-ID: <200712202337.lBKNb9Jc018866@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33544 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42447 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755424AbXLTXrk (ORCPT
+	by vger.kernel.org with ESMTP id S1755427AbXLTXrq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 18:47:40 -0500
+	Thu, 20 Dec 2007 18:47:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: julia@diku.dk, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext4: check for the correct error return from ext4_ext_get_blocks
+     arch/ppc: remove an unnecessary pci_dev_put
 has been removed from the -mm tree.  Its filename was
-     ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks.patch
+     arch-ppc-remove-an-unnecessary-pci_dev_put.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ext4: check for the correct error return from ext4_ext_get_blocks
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: arch/ppc: remove an unnecessary pci_dev_put
+From: Julia Lawall <julia@diku.dk>
 
-ext4_ext_get_blocks returns negative values on error. We should
-check for  <= 0
+Remove an unnecessary pci_dev_put.  pci_dev_put is called implicitly by the
+subsequent call to pci_get_device.
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: <linux-ext4@vger.kernel.org>
+The problem was detected using the following semantic patch, and corrected by
+hand.
+
+@@
+expression dev;
+expression E;
+@@
+
+- pci_dev_put(dev)
+   ... when != dev = E
+- pci_get_device(...,dev)
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/extents.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/ppc/platforms/prep_pci.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/ext4/extents.c~ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks fs/ext4/extents.c
---- a/fs/ext4/extents.c~ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks
-+++ a/fs/ext4/extents.c
-@@ -2628,8 +2628,8 @@ retry:
- 		ret = ext4_ext_get_blocks(handle, inode, block,
- 					  max_blocks, &map_bh,
- 					  EXT4_CREATE_UNINITIALIZED_EXT, 0);
--		WARN_ON(!ret);
--		if (!ret) {
-+		WARN_ON(ret <= 0);
-+		if (ret <= 0) {
- 			ext4_error(inode->i_sb, "ext4_fallocate",
- 				   "ext4_ext_get_blocks returned 0! inode#%lu"
- 				   ", block=%lu, max_blocks=%lu",
+diff -puN arch/ppc/platforms/prep_pci.c~arch-ppc-remove-an-unnecessary-pci_dev_put arch/ppc/platforms/prep_pci.c
+--- a/arch/ppc/platforms/prep_pci.c~arch-ppc-remove-an-unnecessary-pci_dev_put
++++ a/arch/ppc/platforms/prep_pci.c
+@@ -1099,7 +1099,6 @@ prep_pib_init(void)
+ 				pci_write_config_byte(dev, 0x43, reg);
+ 			}
+ 		}
+-		pci_dev_put(dev);
+ 	}
+ 
+ 	if ((dev = pci_get_device(PCI_VENDOR_ID_WINBOND,
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
-ext2-return-after-ext2_error-in-case-of-failures.patch
-ext2-change-the-default-behaviour-on-error.patch
-add-buffer-head-related-helper-functions.patch
-ext2-add-block-bitmap-validation.patch
-ext3-add-block-bitmap-validation.patch
-ext3-return-after-ext3_error-in-case-of-failures.patch
-ext3-change-the-default-behaviour-on-error.patch
+origin.patch
+git-alsa.patch
+git-agpgart.patch
+git-powerpc.patch
+git-input.patch
+arch-cris-added-a-missing-iounmap.patch
+drivers-video-remove-unnecessary-pci_dev_put.patch
