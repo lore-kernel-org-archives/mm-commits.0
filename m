@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + git-sched-fixup-2.patch added to -mm tree
-Date: Thu, 20 Dec 2007 15:12:44 -0800
-Message-ID: <200712202312.lBKNCiPP017870@imap1.linux-foundation.org>
+Subject: + git-alsa-fixup.patch added to -mm tree
+Date: Thu, 20 Dec 2007 15:20:54 -0800
+Message-ID: <200712202320.lBKNKsTR018227@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47389 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54902 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752954AbXLTXNo (ORCPT
+	by vger.kernel.org with ESMTP id S1755741AbXLTXU6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 18:13:44 -0500
+	Thu, 20 Dec 2007 18:20:58 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lBKNKsNB025797
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 20 Dec 2007 15:20:55 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-sched-fixup-2
+     git-alsa-fixup
 has been added to the -mm tree.  Its filename is
-     git-sched-fixup-2.patch
+     git-alsa-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +30,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-sched-fixup-2
+Subject: git-alsa-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched_rt.c |    3 ---
- 1 file changed, 3 deletions(-)
+ sound/pci/hda/patch_sigmatel.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff -puN kernel/sched_rt.c~git-sched-fixup-2 kernel/sched_rt.c
---- a/kernel/sched_rt.c~git-sched-fixup-2
-+++ a/kernel/sched_rt.c
-@@ -867,11 +867,8 @@ static void task_tick_rt(struct rq *rq, 
- {
- 	update_curr_rt(rq);
+diff -puN sound/pci/hda/patch_sigmatel.c~git-alsa-fixup sound/pci/hda/patch_sigmatel.c
+--- a/sound/pci/hda/patch_sigmatel.c~git-alsa-fixup
++++ a/sound/pci/hda/patch_sigmatel.c
+@@ -770,11 +770,7 @@ static struct snd_kcontrol_new stac925x_
  
--<<<<<<< HEAD:kernel/sched_rt.c
+ static struct snd_kcontrol_new stac9205_mixer[] = {
+ 	STAC_INPUT_SOURCE(2),
+-<<<<<<< HEAD:sound/pci/hda/patch_sigmatel.c
+-	STAC_ANALOG_LOOPBACK(0xFE0, 0x7E0),
 -=======
- 	watchdog(rq, p);
+ 	STAC_ANALOG_LOOPBACK(0xFE0, 0x7E0, 1),
+->>>>>>> FETCH_HEAD:sound/pci/hda/patch_sigmatel.c
  
-->>>>>>> FETCH_HEAD:kernel/sched_rt.c
- 	/*
- 	 * RR tasks need a special form of timeslice management.
- 	 * FIFO tasks have no timeslices.
+ 	HDA_CODEC_VOLUME_IDX("Capture Volume", 0x0, 0x1b, 0x0, HDA_INPUT),
+ 	HDA_CODEC_MUTE_IDX("Capture Switch", 0x0, 0x1d, 0x0, HDA_OUTPUT),
+@@ -803,11 +799,7 @@ static struct snd_kcontrol_new stac922x_
+ 
+ static struct snd_kcontrol_new stac927x_mixer[] = {
+ 	STAC_INPUT_SOURCE(3),
+-<<<<<<< HEAD:sound/pci/hda/patch_sigmatel.c
+-	STAC_ANALOG_LOOPBACK(0xFEB, 0x7EB),
+-=======
+ 	STAC_ANALOG_LOOPBACK(0xFEB, 0x7EB, 1),
+->>>>>>> FETCH_HEAD:sound/pci/hda/patch_sigmatel.c
+ 
+ 	HDA_CODEC_VOLUME_IDX("Capture Volume", 0x0, 0x18, 0x0, HDA_INPUT),
+ 	HDA_CODEC_MUTE_IDX("Capture Switch", 0x0, 0x1b, 0x0, HDA_OUTPUT),
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,6 +84,7 @@ git-acpi.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 small-acpica-extension-to-be-able-to-store-the-name-of.patch
 git-alsa.patch
+git-alsa-fixup.patch
 git-agpgart.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
