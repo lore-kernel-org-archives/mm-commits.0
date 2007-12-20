@@ -1,76 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: - pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 15:37:42 -0800
-Message-ID: <200712202337.lBKNbgT8018920@imap1.linux-foundation.org>
+Subject: - mark-rwsem-functions-as-__sched-for-wchan-profiling-fix.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:38:45 -0800
+Message-ID: <200712202338.lBKNcjP9018998@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37514 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45389 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755038AbXLTXn2 (ORCPT
+	by vger.kernel.org with ESMTP id S1754561AbXLTXpd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 18:43:28 -0500
+	Thu, 20 Dec 2007 18:45:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, livio@eecg.toronto.edu, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes
+     mark-rwsem-functions-as-__sched-for-wchan-profiling-fix
 has been removed from the -mm tree.  Its filename was
-     pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+     mark-rwsem-functions-as-__sched-for-wchan-profiling-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes
+Subject: mark-rwsem-functions-as-__sched-for-wchan-profiling-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: line over 80 characters
-#70: FILE: drivers/ata/pata_hpt37x.c:850:
-+		struct pci_dev *pdev_0 = pci_get_slot(pdev->bus, pdev->devfn - 1);
-
-ERROR: else should follow close brace '}'
-#78: FILE: drivers/ata/pata_hpt37x.c:858:
-+	}
-+	else
-
-total: 1 errors, 1 warnings, 100 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Livio Soares <livio@eecg.toronto.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_hpt37x.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ kernel/rwsem.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/ata/pata_hpt37x.c~pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes drivers/ata/pata_hpt37x.c
---- a/drivers/ata/pata_hpt37x.c~pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes
-+++ a/drivers/ata/pata_hpt37x.c
-@@ -847,15 +847,16 @@ static u32 hpt374_read_freq(struct pci_d
- 	u32 freq;
- 	unsigned long io_base = pci_resource_start(pdev, 4);
- 	if (PCI_FUNC(pdev->devfn) & 1) {
--		struct pci_dev *pdev_0 = pci_get_slot(pdev->bus, pdev->devfn - 1);
-+		struct pci_dev *pdev_0;
-+
-+		pdev_0 = pci_get_slot(pdev->bus, pdev->devfn - 1);
- 		/* Someone hot plugged the controller on us ? */
- 		if (pdev_0 == NULL)
- 			return 0;
- 		io_base = pci_resource_start(pdev_0, 4);
- 		freq = inl(io_base + 0x90);
- 		pci_dev_put(pdev_0);
--	}
--	else
-+	} else
- 		freq = inl(io_base + 0x90);
- 	return freq;
- }
+diff -puN kernel/rwsem.c~mark-rwsem-functions-as-__sched-for-wchan-profiling-fix kernel/rwsem.c
+--- a/kernel/rwsem.c~mark-rwsem-functions-as-__sched-for-wchan-profiling-fix
++++ a/kernel/rwsem.c
+@@ -6,6 +6,7 @@
+ 
+ #include <linux/types.h>
+ #include <linux/kernel.h>
++#include <linux/sched.h>
+ #include <linux/module.h>
+ #include <linux/rwsem.h>
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
