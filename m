@@ -1,86 +1,177 @@
 From: akpm@linux-foundation.org
-Subject: - ppc-chrp-fix-possible-null-pointer-dereference.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 15:37:17 -0800
-Message-ID: <200712202337.lBKNbHdL018875@imap1.linux-foundation.org>
+Subject: - ext4-add-block-bitmap-validation.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:39:01 -0800
+Message-ID: <200712202339.lBKNd15N019024__27244.4857437678$1198194538$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56691 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52403 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759647AbXLTXsH (ORCPT
+	by vger.kernel.org with ESMTP id S1756649AbXLTXry (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 18:48:07 -0500
+	Thu, 20 Dec 2007 18:47:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gorcunov@gmail.com, benh@kernel.crashing.org, olof@lixom.net, paulus@samba.org, mm-commits@vger.kernel.org
+To: aneesh.kumar@linux.vnet.ibm.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PPC: CHRP: fix possible NULL pointer dereference
+     ext4: add block bitmap validation
 has been removed from the -mm tree.  Its filename was
-     ppc-chrp-fix-possible-null-pointer-dereference.patch
+     ext4-add-block-bitmap-validation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PPC: CHRP: fix possible NULL pointer dereference
-From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: ext4: add block bitmap validation
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 
-Fix possible NULL pointer dereference inside of strncmp() if
-of_get_property() failed.
+When a new block bitmap is read from disk in read_block_bitmap() there are a
+few bits that should ALWAYS be set.  In particular, the blocks given
+corresponding to block bitmap, inode bitmap and inode tables.  Validate the
+block bitmap against these blocks.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
-Cc: Olof Johansson <olof@lixom.net>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+[akpm@linux-foundation.org: fix printk warning]
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/chrp/setup.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ fs/ext4/balloc.c |  101 ++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 82 insertions(+), 19 deletions(-)
 
-diff -puN arch/powerpc/platforms/chrp/setup.c~ppc-chrp-fix-possible-null-pointer-dereference arch/powerpc/platforms/chrp/setup.c
---- a/arch/powerpc/platforms/chrp/setup.c~ppc-chrp-fix-possible-null-pointer-dereference
-+++ a/arch/powerpc/platforms/chrp/setup.c
-@@ -115,7 +115,7 @@ void chrp_show_cpuinfo(struct seq_file *
- 	seq_printf(m, "machine\t\t: CHRP %s\n", model);
- 
- 	/* longtrail (goldengate) stuff */
--	if (!strncmp(model, "IBM,LongTrail", 13)) {
-+	if (model && !strncmp(model, "IBM,LongTrail", 13)) {
- 		/* VLSI VAS96011/12 `Golden Gate 2' */
- 		/* Memory banks */
- 		sdramen = (in_le32(gg2_pci_config_base + GG2_PCI_DRAM_CTRL)
-@@ -203,15 +203,20 @@ static void __init sio_fixup_irq(const c
- static void __init sio_init(void)
- {
- 	struct device_node *root;
-+	const char *model;
- 
--	if ((root = of_find_node_by_path("/")) &&
--	    !strncmp(of_get_property(root, "model", NULL),
--			"IBM,LongTrail", 13)) {
-+	root = of_find_node_by_path("/");
-+	if (!root)
-+		return;
-+
-+	model = of_get_property(root, "model", NULL);
-+	if (model && !strncmp(model, "IBM,LongTrail", 13)) {
- 		/* logical device 0 (KBC/Keyboard) */
- 		sio_fixup_irq("keyboard", 0, 1, 2);
- 		/* select logical device 1 (KBC/Mouse) */
- 		sio_fixup_irq("mouse", 1, 12, 2);
- 	}
-+
- 	of_node_put(root);
+diff -puN fs/ext4/balloc.c~ext4-add-block-bitmap-validation fs/ext4/balloc.c
+--- a/fs/ext4/balloc.c~ext4-add-block-bitmap-validation
++++ a/fs/ext4/balloc.c
+@@ -189,13 +189,65 @@ struct ext4_group_desc * ext4_get_group_
+ 	return desc;
  }
  
++static int ext4_valid_block_bitmap(struct super_block *sb,
++					struct ext4_group_desc *desc,
++					unsigned int block_group,
++					struct buffer_head *bh)
++{
++	ext4_grpblk_t offset;
++	ext4_grpblk_t next_zero_bit;
++	ext4_fsblk_t bitmap_blk;
++	ext4_fsblk_t group_first_block;
++
++	if (EXT4_HAS_INCOMPAT_FEATURE(sb, EXT4_FEATURE_INCOMPAT_FLEX_BG)) {
++		/* with FLEX_BG, the inode/block bitmaps and itable
++		 * blocks may not be in the group at all
++		 * so the bitmap validation will be skipped for those groups
++		 * or it has to also read the block group where the bitmaps
++		 * are located to verify they are set.
++		 */
++		return 1;
++	}
++	group_first_block = ext4_group_first_block_no(sb, block_group);
++
++	/* check whether block bitmap block number is set */
++	bitmap_blk = ext4_block_bitmap(sb, desc);
++	offset = bitmap_blk - group_first_block;
++	if (!ext4_test_bit(offset, bh->b_data))
++		/* bad block bitmap */
++		goto err_out;
++
++	/* check whether the inode bitmap block number is set */
++	bitmap_blk = ext4_inode_bitmap(sb, desc);
++	offset = bitmap_blk - group_first_block;
++	if (!ext4_test_bit(offset, bh->b_data))
++		/* bad block bitmap */
++		goto err_out;
++
++	/* check whether the inode table block number is set */
++	bitmap_blk = ext4_inode_table(sb, desc);
++	offset = bitmap_blk - group_first_block;
++	next_zero_bit = ext4_find_next_zero_bit(bh->b_data,
++				offset + EXT4_SB(sb)->s_itb_per_group,
++				offset);
++	if (next_zero_bit >= offset + EXT4_SB(sb)->s_itb_per_group)
++		/* good bitmap for inode tables */
++		return 1;
++
++err_out:
++	ext4_error(sb, __FUNCTION__,
++			"Invalid block bitmap - "
++			"block_group = %d, block = %llu",
++			block_group, bitmap_blk);
++	return 0;
++}
+ /**
+  * read_block_bitmap()
+  * @sb:			super block
+  * @block_group:	given block group
+  *
+- * Read the bitmap for a given block_group, reading into the specified
+- * slot in the superblock's bitmap cache.
++ * Read the bitmap for a given block_group,and validate the
++ * bits for block/inode/inode tables are set in the bitmaps
+  *
+  * Return buffer_head on success or NULL in case of failure.
+  */
+@@ -210,25 +262,36 @@ read_block_bitmap(struct super_block *sb
+ 	if (!desc)
+ 		return NULL;
+ 	bitmap_blk = ext4_block_bitmap(sb, desc);
+-	if (desc->bg_flags & cpu_to_le16(EXT4_BG_BLOCK_UNINIT)) {
+-		bh = sb_getblk(sb, bitmap_blk);
+-		if (!buffer_uptodate(bh)) {
+-			lock_buffer(bh);
+-			if (!buffer_uptodate(bh)) {
+-				ext4_init_block_bitmap(sb, bh, block_group,
+-						       desc);
+-				set_buffer_uptodate(bh);
+-			}
+-			unlock_buffer(bh);
+-		}
+-	} else {
+-		bh = sb_bread(sb, bitmap_blk);
++	bh = sb_getblk(sb, bitmap_blk);
++	if (unlikely(!bh)) {
++		ext4_error(sb, __FUNCTION__,
++			    "Cannot read block bitmap - "
++			    "block_group = %d, block_bitmap = %llu",
++			    (int)block_group, (unsigned long long)bitmap_blk);
++		return NULL;
+ 	}
+-	if (!bh)
+-		ext4_error (sb, __FUNCTION__,
++	if (bh_uptodate_or_lock(bh))
++		return bh;
++
++	if (desc->bg_flags & cpu_to_le16(EXT4_BG_BLOCK_UNINIT)) {
++		ext4_init_block_bitmap(sb, bh, block_group, desc);
++		set_buffer_uptodate(bh);
++		unlock_buffer(bh);
++		return bh;
++	}
++	if (bh_submit_read(bh) < 0) {
++		brelse(bh);
++		ext4_error(sb, __FUNCTION__,
+ 			    "Cannot read block bitmap - "
+-			    "block_group = %lu, block_bitmap = %llu",
+-			    block_group, bitmap_blk);
++			    "block_group = %d, block_bitmap = %llu",
++			    (int)block_group, (unsigned long long)bitmap_blk);
++		return NULL;
++	}
++	if (!ext4_valid_block_bitmap(sb, desc, block_group, bh)) {
++		brelse(bh);
++		return NULL;
++	}
++
+ 	return bh;
+ }
+ /*
 _
 
-Patches currently in -mm which might be from gorcunov@gmail.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
-origin.patch
-git-powerpc.patch
-ppc-fix-missed-increment-on-device-interface-counter.patch
-net-mac80211-fix-inappropriate-memory-freeing.patch
-git-x86.patch
+ext2-return-after-ext2_error-in-case-of-failures.patch
+ext2-change-the-default-behaviour-on-error.patch
+add-buffer-head-related-helper-functions.patch
+ext2-add-block-bitmap-validation.patch
+ext3-add-block-bitmap-validation.patch
+ext3-return-after-ext3_error-in-case-of-failures.patch
+ext3-change-the-default-behaviour-on-error.patch
