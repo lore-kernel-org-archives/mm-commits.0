@@ -1,67 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - apm_eventinfo_t-are-userspace-types.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 15:36:24 -0800
-Message-ID: <200712202336.lBKNaOWO018801@imap1.linux-foundation.org>
+Subject: - cpufreq-fix-missing-unlocks-in-cpufreq_add_dev-error-paths.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:36:09 -0800
+Message-ID: <200712202336.lBKNa9Ne018783@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58284 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55219 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753913AbXLTXg7 (ORCPT
+	by vger.kernel.org with ESMTP id S1753962AbXLTXhA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 18:36:59 -0500
+	Thu, 20 Dec 2007 18:37:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ajax@redhat.com, mm-commits@vger.kernel.org
+To: davej@redhat.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     apm_event{,info}_t are userspace types
+     cpufreq: fix missing unlocks in cpufreq_add_dev error paths.
 has been removed from the -mm tree.  Its filename was
-     apm_eventinfo_t-are-userspace-types.patch
+     cpufreq-fix-missing-unlocks-in-cpufreq_add_dev-error-paths.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: apm_event{,info}_t are userspace types
-From: Adam Jackson <ajax@redhat.com>
+Subject: cpufreq: fix missing unlocks in cpufreq_add_dev error paths.
+From: Dave Jones <davej@redhat.com>
 
-These types define the size of data read from /dev/apm_bios.  They should
-not be hidden behind #ifdef __KERNEL__.
+Ingo hit some BUG_ONs that were probably caused by these missing unlocks
+causing an unbalance.  He couldn't reproduce the bug reliably, so it's
+unknown that it's definitly fixing the problem he hit, but it's a fairly
+good chance, and this fixes an obvious bug.
 
-This is killing my xserver compile, apm_event_t is used in the xserver 
-source.
-
+Signed-off-by: Dave Jones <davej@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/apm_bios.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/cpufreq/cpufreq.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/apm_bios.h~apm_eventinfo_t-are-userspace-types include/linux/apm_bios.h
---- a/include/linux/apm_bios.h~apm_eventinfo_t-are-userspace-types
-+++ a/include/linux/apm_bios.h
-@@ -18,6 +18,9 @@
+diff -puN drivers/cpufreq/cpufreq.c~cpufreq-fix-missing-unlocks-in-cpufreq_add_dev-error-paths drivers/cpufreq/cpufreq.c
+--- a/drivers/cpufreq/cpufreq.c~cpufreq-fix-missing-unlocks-in-cpufreq_add_dev-error-paths
++++ a/drivers/cpufreq/cpufreq.c
+@@ -841,19 +841,25 @@ static int cpufreq_add_dev (struct sys_d
+ 	drv_attr = cpufreq_driver->attr;
+ 	while ((drv_attr) && (*drv_attr)) {
+ 		ret = sysfs_create_file(&policy->kobj, &((*drv_attr)->attr));
+-		if (ret)
++		if (ret) {
++			unlock_policy_rwsem_write(cpu);
+ 			goto err_out_driver_exit;
++		}
+ 		drv_attr++;
+ 	}
+ 	if (cpufreq_driver->get){
+ 		ret = sysfs_create_file(&policy->kobj, &cpuinfo_cur_freq.attr);
+-		if (ret)
++		if (ret) {
++			unlock_policy_rwsem_write(cpu);
+ 			goto err_out_driver_exit;
++		}
+ 	}
+ 	if (cpufreq_driver->target){
+ 		ret = sysfs_create_file(&policy->kobj, &scaling_cur_freq.attr);
+-		if (ret)
++		if (ret) {
++			unlock_policy_rwsem_write(cpu);
+ 			goto err_out_driver_exit;
++		}
+ 	}
  
- #include <linux/types.h>
- 
-+typedef unsigned short	apm_event_t;
-+typedef unsigned short	apm_eventinfo_t;
-+
- struct apm_bios_info {
- 	__u16	version;
- 	__u16	cseg;
-@@ -32,9 +35,6 @@ struct apm_bios_info {
- 
- #ifdef __KERNEL__
- 
--typedef unsigned short	apm_event_t;
--typedef unsigned short	apm_eventinfo_t;
--
- #define APM_CS		(GDT_ENTRY_APMBIOS_BASE * 8)
- #define APM_CS_16	(APM_CS + 8)
- #define APM_DS		(APM_CS_16 + 8)
+ 	spin_lock_irqsave(&cpufreq_driver_lock, flags);
 _
 
-Patches currently in -mm which might be from ajax@redhat.com are
+Patches currently in -mm which might be from davej@redhat.com are
 
 origin.patch
+git-cpufreq.patch
+git-x86.patch
+via-rng-enable-secondary-noise-source-on-cpus-where-it-is-present.patch
