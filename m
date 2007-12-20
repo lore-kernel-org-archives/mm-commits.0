@@ -1,73 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - arch-ppc-remove-an-unnecessary-pci_dev_put.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 15:37:09 -0800
-Message-ID: <200712202337.lBKNb9Jc018866@imap1.linux-foundation.org>
+Subject: - ia64-make-flush_tlb_kernel_range-an-inline-function.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:37:38 -0800
+Message-ID: <200712202337.lBKNbc0j018909@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42447 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57411 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755427AbXLTXrq (ORCPT
+	by vger.kernel.org with ESMTP id S1755424AbXLTXri (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 18:47:46 -0500
+	Thu, 20 Dec 2007 18:47:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: jbeulich@novell.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/ppc: remove an unnecessary pci_dev_put
+     ia64: make flush_tlb_kernel_range() an inline function
 has been removed from the -mm tree.  Its filename was
-     arch-ppc-remove-an-unnecessary-pci_dev_put.patch
+     ia64-make-flush_tlb_kernel_range-an-inline-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: arch/ppc: remove an unnecessary pci_dev_put
-From: Julia Lawall <julia@diku.dk>
+Subject: ia64: make flush_tlb_kernel_range() an inline function
+From: "Jan Beulich" <jbeulich@novell.com>
 
-Remove an unnecessary pci_dev_put.  pci_dev_put is called implicitly by the
-subsequent call to pci_get_device.
+This fixes an unused variable warning in mm/vmalloc.c.
 
-The problem was detected using the following semantic patch, and corrected by
-hand.
-
-@@
-expression dev;
-expression E;
-@@
-
-- pci_dev_put(dev)
-   ... when != dev = E
-- pci_get_device(...,dev)
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ppc/platforms/prep_pci.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/asm-ia64/tlbflush.h |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN arch/ppc/platforms/prep_pci.c~arch-ppc-remove-an-unnecessary-pci_dev_put arch/ppc/platforms/prep_pci.c
---- a/arch/ppc/platforms/prep_pci.c~arch-ppc-remove-an-unnecessary-pci_dev_put
-+++ a/arch/ppc/platforms/prep_pci.c
-@@ -1099,7 +1099,6 @@ prep_pib_init(void)
- 				pci_write_config_byte(dev, 0x43, reg);
- 			}
- 		}
--		pci_dev_put(dev);
- 	}
+diff -puN include/asm-ia64/tlbflush.h~ia64-make-flush_tlb_kernel_range-an-inline-function include/asm-ia64/tlbflush.h
+--- a/include/asm-ia64/tlbflush.h~ia64-make-flush_tlb_kernel_range-an-inline-function
++++ a/include/asm-ia64/tlbflush.h
+@@ -92,6 +92,10 @@ void smp_local_flush_tlb(void);
+ #define smp_local_flush_tlb()
+ #endif
  
- 	if ((dev = pci_get_device(PCI_VENDOR_ID_WINBOND,
+-#define flush_tlb_kernel_range(start, end)	flush_tlb_all()	/* XXX fix me */
++static inline void flush_tlb_kernel_range(unsigned long start,
++					  unsigned long end)
++{
++	flush_tlb_all();	/* XXX fix me */
++}
+ 
+ #endif /* _ASM_IA64_TLBFLUSH_H */
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from jbeulich@novell.com are
 
 origin.patch
-git-alsa.patch
-git-agpgart.patch
-git-powerpc.patch
-git-input.patch
-arch-cris-added-a-missing-iounmap.patch
-drivers-video-remove-unnecessary-pci_dev_put.patch
+git-acpi.patch
+ia64-remove-dead-code.patch
+ia64-honor-notify_die-returning-notify_stop.patch
+pci-remove-default-pci-expansion-rom-memory-allocation.patch
+git-x86.patch
+xen-fiddle_vdso-must-be-__init.patch
