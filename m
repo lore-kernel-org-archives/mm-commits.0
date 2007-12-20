@@ -1,54 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - git-ocfs2-fixup.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 14:31:34 -0800
-Message-ID: <200712202231.lBKMVYZB016269@imap1.linux-foundation.org>
+Subject: - x86_32-disable_pse-must-be-__cpuinitdata-fix.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 14:46:13 -0800
+Message-ID: <200712202246.lBKMkDNZ016887@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50413 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36731 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755436AbXLTWmv (ORCPT
+	by vger.kernel.org with ESMTP id S1753045AbXLTWrY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 17:42:51 -0500
+	Thu, 20 Dec 2007 17:47:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mark.fasheh@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bunk@kernel.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-ocfs2-fixup
+     x86_32-disable_pse-must-be-__cpuinitdata-fix
 has been removed from the -mm tree.  Its filename was
-     git-ocfs2-fixup.patch
+     x86_32-disable_pse-must-be-__cpuinitdata-fix.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-ocfs2-fixup
+Subject: x86_32-disable_pse-must-be-__cpuinitdata-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix git conflicts
-
-Cc: Mark Fasheh <mark.fasheh@oracle.com>
+Cc: Adrian Bunk <bunk@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/journal.c |    4 ----
- 1 file changed, 4 deletions(-)
+ arch/x86/kernel/setup_32.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/journal.c~git-ocfs2-fixup fs/ocfs2/journal.c
---- a/fs/ocfs2/journal.c~git-ocfs2-fixup
-+++ a/fs/ocfs2/journal.c
-@@ -1296,11 +1296,7 @@ static int ocfs2_queue_orphans(struct oc
- 	*head = priv.head;
+diff -puN arch/x86/kernel/setup_32.c~x86_32-disable_pse-must-be-__cpuinitdata-fix arch/x86/kernel/setup_32.c
+--- a/arch/x86/kernel/setup_32.c~x86_32-disable_pse-must-be-__cpuinitdata-fix
++++ a/arch/x86/kernel/setup_32.c
+@@ -69,7 +69,7 @@
+    address, and must not be in the .bss segment! */
+ unsigned long init_pg_tables_end __initdata = ~0UL;
  
- out_cluster:
--<<<<<<< HEAD:fs/ocfs2/journal.c
--	ocfs2_meta_unlock(orphan_dir_inode, 0);
--=======
- 	ocfs2_inode_unlock(orphan_dir_inode, 0);
-->>>>>>> FETCH_HEAD:fs/ocfs2/journal.c
- out:
- 	mutex_unlock(&orphan_dir_inode->i_mutex);
- 	iput(orphan_dir_inode);
+-int disable_pse __cpuinitdata = 0;
++int disable_pse __cpuinitdata;
+ 
+ /*
+  * Machine setup..
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -103,7 +100,6 @@ backlight-omap1-backlight-driver.patch
 git-battery.patch
 bluetooth-uninlining.patch
 git-nfsd.patch
-git-ocfs2-fixup.patch
 quirk-enable-msi-mapping-on-ht1000.patch
 git-sched.patch
 git-sched-fixup.patch
