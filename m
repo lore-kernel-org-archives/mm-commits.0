@@ -1,74 +1,230 @@
 From: akpm@linux-foundation.org
-Subject: - jbd2-remove-printk-from-j_assert-macros.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 15:38:51 -0800
-Message-ID: <200712202338.lBKNcpSY019009@imap1.linux-foundation.org>
+Subject: - hugetlb-introduce-nr_overcommit_hugepages-sysctl.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:36:41 -0800
+Message-ID: <200712202336.lBKNafxU018822@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53836 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58631 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755822AbXLTXsh (ORCPT
+	by vger.kernel.org with ESMTP id S1756649AbXLTXsS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 18:48:37 -0500
+	Thu, 20 Dec 2007 18:48:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: csnook@redhat.com, sct@redhat.com, tytso@mit.edu, mm-commits@vger.kernel.org
+To: nacc@us.ibm.com, agl@us.ibm.com, david@gibson.dropbear.id.au, haveblue@us.ibm.com, wli@holomorphy.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jbd2: remove printk() from J_ASSERT macros
+     hugetlb: introduce nr_overcommit_hugepages sysctl
 has been removed from the -mm tree.  Its filename was
-     jbd2-remove-printk-from-j_assert-macros.patch
+     hugetlb-introduce-nr_overcommit_hugepages-sysctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: jbd2: remove printk() from J_ASSERT macros
-From: Chris Snook <csnook@redhat.com>
+Subject: hugetlb: introduce nr_overcommit_hugepages sysctl
+From: Nishanth Aravamudan <nacc@us.ibm.com>
 
-Remove printk from J_ASSERT to preserve registers during BUG.
+hugetlb: introduce nr_overcommit_hugepages sysctl
 
-Signed-off-by: Chris Snook <csnook@redhat.com>
-Cc: "Stephen C. Tweedie" <sct@redhat.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
+While examining the code to support /proc/sys/vm/hugetlb_dynamic_pool, I
+became convinced that having a boolean sysctl was insufficient:
+
+1) To support per-node control of hugepages, I have previously submitted
+patches to add a sysfs attribute related to nr_hugepages. However, with
+a boolean global value and per-mount quota enforcement constraining the
+dynamic pool, adding corresponding control of the dynamic pool on a
+per-node basis seems inconsistent to me.
+
+2) Administration of the hugetlb dynamic pool with multiple hugetlbfs
+mount points is, arguably, more arduous than it needs to be. Each quota
+would need to be set separately, and the sum would need to be monitored.
+
+To ease the administration, and to help make the way for per-node
+control of the static & dynamic hugepage pool, I added a separate
+sysctl, nr_overcommit_hugepages. This value serves as a high watermark
+for the overall hugepage pool, while nr_hugepages serves as a low
+watermark. The boolean sysctl can then be removed, as the condition
+
+	nr_overcommit_hugepages > 0
+
+indicates the same administrative setting as
+
+	hugetlb_dynamic_pool == 1
+
+Quotas still serve as local enforcement of the size of the pool on a
+per-mount basis.
+
+A few caveats:
+
+1) There is a race whereby the global surplus huge page counter is
+incremented before a hugepage has allocated. Another process could then
+try grow the pool, and fail to convert a surplus huge page to a normal
+huge page and instead allocate a fresh huge page. I believe this is
+benign, as no memory is leaked (the actual pages are still tracked
+correctly) and the counters won't go out of sync.
+
+2) Shrinking the static pool while a surplus is in effect will allow the
+number of surplus huge pages to exceed the overcommit value. As long as
+this condition holds, however, no more surplus huge pages will be
+allowed on the system until one of the two sysctls are increased
+sufficiently, or the surplus huge pages go out of use and are freed.
+
+Successfully tested on x86_64 with the current libhugetlbfs snapshot,
+modified to use the new sysctl.
+
+Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
+Acked-by: Adam Litke <agl@us.ibm.com>
+Cc: William Lee Irwin III <wli@holomorphy.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: David Gibson <david@gibson.dropbear.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/jbd2.h |   16 +---------------
- 1 file changed, 1 insertion(+), 15 deletions(-)
+ include/linux/hugetlb.h |    1 
+ kernel/sysctl.c         |    8 ++++
+ mm/hugetlb.c            |   67 ++++++++++++++++++++++++++++++++++----
+ 3 files changed, 70 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/jbd2.h~jbd2-remove-printk-from-j_assert-macros include/linux/jbd2.h
---- a/include/linux/jbd2.h~jbd2-remove-printk-from-j_assert-macros
-+++ a/include/linux/jbd2.h
-@@ -283,17 +283,7 @@ typedef struct journal_superblock_s
- #include <linux/fs.h>
- #include <linux/sched.h>
+diff -puN include/linux/hugetlb.h~hugetlb-introduce-nr_overcommit_hugepages-sysctl include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-introduce-nr_overcommit_hugepages-sysctl
++++ a/include/linux/hugetlb.h
+@@ -34,6 +34,7 @@ void hugetlb_unreserve_pages(struct inod
+ extern unsigned long max_huge_pages;
+ extern unsigned long hugepages_treat_as_movable;
+ extern int hugetlb_dynamic_pool;
++extern unsigned long nr_overcommit_huge_pages;
+ extern const unsigned long hugetlb_zero, hugetlb_infinity;
+ extern int sysctl_hugetlb_shm_group;
  
--#define JBD2_ASSERTIONS
--#ifdef JBD2_ASSERTIONS
--#define J_ASSERT(assert)						\
--do {									\
--	if (!(assert)) {						\
--		printk (KERN_EMERG					\
--			"Assertion failure in %s() at %s:%d: \"%s\"\n",	\
--			__FUNCTION__, __FILE__, __LINE__, # assert);	\
--		BUG();							\
--	}								\
--} while (0)
-+#define J_ASSERT(assert)	BUG_ON(!(assert))
- 
- #if defined(CONFIG_BUFFER_DEBUG)
- void buffer_assertion_failure(struct buffer_head *bh);
-@@ -309,10 +299,6 @@ void buffer_assertion_failure(struct buf
- #define J_ASSERT_JH(jh, expr)	J_ASSERT(expr)
+diff -puN kernel/sysctl.c~hugetlb-introduce-nr_overcommit_hugepages-sysctl kernel/sysctl.c
+--- a/kernel/sysctl.c~hugetlb-introduce-nr_overcommit_hugepages-sysctl
++++ a/kernel/sysctl.c
+@@ -912,6 +912,14 @@ static struct ctl_table vm_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= &proc_dointvec,
+ 	},
++	{
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "nr_overcommit_hugepages",
++		.data		= &nr_overcommit_huge_pages,
++		.maxlen		= sizeof(nr_overcommit_huge_pages),
++		.mode		= 0644,
++		.proc_handler	= &proc_doulongvec_minmax,
++	},
  #endif
+ 	{
+ 		.ctl_name	= VM_LOWMEM_RESERVE_RATIO,
+diff -puN mm/hugetlb.c~hugetlb-introduce-nr_overcommit_hugepages-sysctl mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-introduce-nr_overcommit_hugepages-sysctl
++++ a/mm/hugetlb.c
+@@ -32,6 +32,7 @@ static unsigned int surplus_huge_pages_n
+ static gfp_t htlb_alloc_mask = GFP_HIGHUSER;
+ unsigned long hugepages_treat_as_movable;
+ int hugetlb_dynamic_pool;
++unsigned long nr_overcommit_huge_pages;
+ static int hugetlb_next_nid;
  
--#else
--#define J_ASSERT(assert)	do { } while (0)
--#endif		/* JBD2_ASSERTIONS */
--
- #if defined(JBD2_PARANOID_IOFAIL)
- #define J_EXPECT(expr, why...)		J_ASSERT(expr)
- #define J_EXPECT_BH(bh, expr, why...)	J_ASSERT_BH(bh, expr)
+ /*
+@@ -227,22 +228,62 @@ static struct page *alloc_buddy_huge_pag
+ 						unsigned long address)
+ {
+ 	struct page *page;
++	unsigned int nid;
+ 
+ 	/* Check if the dynamic pool is enabled */
+ 	if (!hugetlb_dynamic_pool)
+ 		return NULL;
+ 
++	/*
++	 * Assume we will successfully allocate the surplus page to
++	 * prevent racing processes from causing the surplus to exceed
++	 * overcommit
++	 *
++	 * This however introduces a different race, where a process B
++	 * tries to grow the static hugepage pool while alloc_pages() is
++	 * called by process A. B will only examine the per-node
++	 * counters in determining if surplus huge pages can be
++	 * converted to normal huge pages in adjust_pool_surplus(). A
++	 * won't be able to increment the per-node counter, until the
++	 * lock is dropped by B, but B doesn't drop hugetlb_lock until
++	 * no more huge pages can be converted from surplus to normal
++	 * state (and doesn't try to convert again). Thus, we have a
++	 * case where a surplus huge page exists, the pool is grown, and
++	 * the surplus huge page still exists after, even though it
++	 * should just have been converted to a normal huge page. This
++	 * does not leak memory, though, as the hugepage will be freed
++	 * once it is out of use. It also does not allow the counters to
++	 * go out of whack in adjust_pool_surplus() as we don't modify
++	 * the node values until we've gotten the hugepage and only the
++	 * per-node value is checked there.
++	 */
++	spin_lock(&hugetlb_lock);
++	if (surplus_huge_pages >= nr_overcommit_huge_pages) {
++		spin_unlock(&hugetlb_lock);
++		return NULL;
++	} else {
++		nr_huge_pages++;
++		surplus_huge_pages++;
++	}
++	spin_unlock(&hugetlb_lock);
++
+ 	page = alloc_pages(htlb_alloc_mask|__GFP_COMP|__GFP_NOWARN,
+ 					HUGETLB_PAGE_ORDER);
++
++	spin_lock(&hugetlb_lock);
+ 	if (page) {
++		nid = page_to_nid(page);
+ 		set_compound_page_dtor(page, free_huge_page);
+-		spin_lock(&hugetlb_lock);
+-		nr_huge_pages++;
+-		nr_huge_pages_node[page_to_nid(page)]++;
+-		surplus_huge_pages++;
+-		surplus_huge_pages_node[page_to_nid(page)]++;
+-		spin_unlock(&hugetlb_lock);
++		/*
++		 * We incremented the global counters already
++		 */
++		nr_huge_pages_node[nid]++;
++		surplus_huge_pages_node[nid]++;
++	} else {
++		nr_huge_pages--;
++		surplus_huge_pages--;
+ 	}
++	spin_unlock(&hugetlb_lock);
+ 
+ 	return page;
+ }
+@@ -481,6 +522,12 @@ static unsigned long set_max_huge_pages(
+ 	 * Increase the pool size
+ 	 * First take pages out of surplus state.  Then make up the
+ 	 * remaining difference by allocating fresh huge pages.
++	 *
++	 * We might race with alloc_buddy_huge_page() here and be unable
++	 * to convert a surplus huge page to a normal huge page. That is
++	 * not critical, though, it just means the overall size of the
++	 * pool might be one hugepage larger than it needs to be, but
++	 * within all the constraints specified by the sysctls.
+ 	 */
+ 	spin_lock(&hugetlb_lock);
+ 	while (surplus_huge_pages && count > persistent_huge_pages) {
+@@ -509,6 +556,14 @@ static unsigned long set_max_huge_pages(
+ 	 * to keep enough around to satisfy reservations).  Then place
+ 	 * pages into surplus state as needed so the pool will shrink
+ 	 * to the desired size as pages become free.
++	 *
++	 * By placing pages into the surplus state independent of the
++	 * overcommit value, we are allowing the surplus pool size to
++	 * exceed overcommit. There are few sane options here. Since
++	 * alloc_buddy_huge_page() is checking the global counter,
++	 * though, we'll note that we're not allowed to exceed surplus
++	 * and won't grow the pool anywhere else. Not until one of the
++	 * sysctls are changed, or the surplus pages go out of use.
+ 	 */
+ 	min_count = resv_huge_pages + nr_huge_pages - free_huge_pages;
+ 	min_count = max(count, min_count);
 _
 
-Patches currently in -mm which might be from csnook@redhat.com are
+Patches currently in -mm which might be from nacc@us.ibm.com are
+
+origin.patch
