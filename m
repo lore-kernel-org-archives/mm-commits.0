@@ -1,191 +1,297 @@
 From: akpm@linux-foundation.org
-Subject: - ext4-fix-up-ext4fs_debug-builds.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 15:39:03 -0800
-Message-ID: <200712202339.lBKNd3UC019099@imap1.linux-foundation.org>
+Subject: - 64-bit-i_version-afs-fixes.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:38:53 -0800
+Message-ID: <200712202338.lBKNcrMG019012@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57491 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44323 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755838AbXLTXsh (ORCPT
+	by vger.kernel.org with ESMTP id S1755822AbXLTXs3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 18:48:37 -0500
+	Thu, 20 Dec 2007 18:48:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sandeen@redhat.com, cmm@us.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dhowells@redhat.com, jean-noel.cordenner@bull.net, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext4: fix up EXT4FS_DEBUG builds
+     64-bit i_version: afs fixes
 has been removed from the -mm tree.  Its filename was
-     ext4-fix-up-ext4fs_debug-builds.patch
+     64-bit-i_version-afs-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ext4: fix up EXT4FS_DEBUG builds
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: 64-bit i_version: afs fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Builds with EXT4FS_DEBUG defined (to enable ext4_debug()) fail without
-these changes.  Clean up some format warnings too.
+Please grep the whole tree and look for any similar bugs which this patch
+introduces.
 
-[akpm@linux-foundation.org: add printk facility level]
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
-Cc: Mingming Cao <cmm@us.ibm.com>
+Cc: Jean Noel Cordenner <jean-noel.cordenner@bull.net>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/balloc.c  |    6 +++---
- fs/ext4/ialloc.c  |    2 +-
- fs/ext4/mballoc.c |    6 +++---
- fs/ext4/resize.c  |   16 ++++++++--------
- 4 files changed, 15 insertions(+), 15 deletions(-)
+ fs/afs/dir.c   |    9 +++++----
+ fs/afs/inode.c |    3 ++-
+ 2 files changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN fs/ext4/balloc.c~ext4-fix-up-ext4fs_debug-builds fs/ext4/balloc.c
---- a/fs/ext4/balloc.c~ext4-fix-up-ext4fs_debug-builds
-+++ a/fs/ext4/balloc.c
-@@ -1645,7 +1645,7 @@ ext4_fsblk_t ext4_new_blocks_old(handle_
+diff -puN fs/afs/dir.c~64-bit-i_version-afs-fixes fs/afs/dir.c
+--- a/fs/afs/dir.c~64-bit-i_version-afs-fixes
++++ a/fs/afs/dir.c
+@@ -546,11 +546,11 @@ static struct dentry *afs_lookup(struct 
+ 	dentry->d_op = &afs_fs_dentry_operations;
  
- 	sbi = EXT4_SB(sb);
- 	es = EXT4_SB(sb)->s_es;
--	ext4_debug("goal=%lu.\n", goal);
-+	ext4_debug("goal=%llu.\n", goal);
- 	/*
- 	 * Allocate a block from reservation only when
- 	 * filesystem is mounted with reservation(default,-o reservation), and
-@@ -1755,7 +1755,7 @@ retry_alloc:
+ 	d_add(dentry, inode);
+-	_leave(" = 0 { vn=%u u=%u } -> { ino=%lu v=%lu }",
++	_leave(" = 0 { vn=%u u=%u } -> { ino=%lu v=%llu }",
+ 	       fid.vnode,
+ 	       fid.unique,
+ 	       dentry->d_inode->i_ino,
+-	       dentry->d_inode->i_version);
++	       (unsigned long long)dentry->d_inode->i_version);
  
- allocated:
+ 	return NULL;
+ }
+@@ -630,9 +630,10 @@ static int afs_d_revalidate(struct dentr
+ 		 * been deleted and replaced, and the original vnode ID has
+ 		 * been reused */
+ 		if (fid.unique != vnode->fid.unique) {
+-			_debug("%s: file deleted (uq %u -> %u I:%lu)",
++			_debug("%s: file deleted (uq %u -> %u I:%llu)",
+ 			       dentry->d_name.name, fid.unique,
+-			       vnode->fid.unique, dentry->d_inode->i_version);
++			       vnode->fid.unique,
++			       (unsigned long long)dentry->d_inode->i_version);
+ 			spin_lock(&vnode->lock);
+ 			set_bit(AFS_VNODE_DELETED, &vnode->flags);
+ 			spin_unlock(&vnode->lock);
+diff -puN fs/afs/inode.c~64-bit-i_version-afs-fixes fs/afs/inode.c
+--- a/fs/afs/inode.c~64-bit-i_version-afs-fixes
++++ a/fs/afs/inode.c
+@@ -301,7 +301,8 @@ int afs_getattr(struct vfsmount *mnt, st
  
--	ext4_debug("using block group %d(%d)\n",
-+	ext4_debug("using block group %lu(%d)\n",
- 			group_no, gdp->bg_free_blocks_count);
+ 	inode = dentry->d_inode;
  
- 	BUFFER_TRACE(gdp_bh, "get_write_access");
-@@ -1949,7 +1949,7 @@ ext4_fsblk_t ext4_count_free_blocks(stru
- 	brelse(bitmap_bh);
- 	printk("ext4_count_free_blocks: stored = %llu"
- 		", computed = %llu, %llu\n",
--	       EXT4_FREE_BLOCKS_COUNT(es),
-+		ext4_free_blocks_count(es),
- 		desc_count, bitmap_count);
- 	return bitmap_count;
- #else
-diff -puN fs/ext4/ialloc.c~ext4-fix-up-ext4fs_debug-builds fs/ext4/ialloc.c
---- a/fs/ext4/ialloc.c~ext4-fix-up-ext4fs_debug-builds
-+++ a/fs/ext4/ialloc.c
-@@ -856,7 +856,7 @@ unsigned long ext4_count_free_inodes (st
- 			continue;
+-	_enter("{ ino=%lu v=%lu }", inode->i_ino, inode->i_version);
++	_enter("{ ino=%lu v=%llu }", inode->i_ino,
++		(unsigned long long)inode->i_version);
  
- 		x = ext4_count_free(bitmap_bh, EXT4_INODES_PER_GROUP(sb) / 8);
--		printk("group %d: stored = %d, counted = %lu\n",
-+		printk(KERN_DEBUG "group %lu: stored = %d, counted = %lu\n",
- 			i, le16_to_cpu(gdp->bg_free_inodes_count), x);
- 		bitmap_count += x;
- 	}
-diff -puN fs/ext4/mballoc.c~ext4-fix-up-ext4fs_debug-builds fs/ext4/mballoc.c
---- a/fs/ext4/mballoc.c~ext4-fix-up-ext4fs_debug-builds
-+++ a/fs/ext4/mballoc.c
-@@ -2946,9 +2946,6 @@ static int ext4_mb_mark_diskspace_used(s
- 	sbi = EXT4_SB(sb);
- 	es = sbi->s_es;
- 
--	ext4_debug("using block group %d(%d)\n", ac->ac_b_group.group,
--			gdp->bg_free_blocks_count);
--
- 	err = -EIO;
- 	bitmap_bh = read_block_bitmap(sb, ac->ac_b_ex.fe_group);
- 	if (!bitmap_bh)
-@@ -2963,6 +2960,9 @@ static int ext4_mb_mark_diskspace_used(s
- 	if (!gdp)
- 		goto out_err;
- 
-+	ext4_debug("using block group %lu(%d)\n", ac->ac_b_ex.fe_group,
-+			gdp->bg_free_blocks_count);
-+
- 	err = ext4_journal_get_write_access(handle, gdp_bh);
- 	if (err)
- 		goto out_err;
-diff -puN fs/ext4/resize.c~ext4-fix-up-ext4fs_debug-builds fs/ext4/resize.c
---- a/fs/ext4/resize.c~ext4-fix-up-ext4fs_debug-builds
-+++ a/fs/ext4/resize.c
-@@ -206,7 +206,7 @@ static int setup_new_group_blocks(struct
- 	}
- 
- 	if (ext4_bg_has_super(sb, input->group)) {
--		ext4_debug("mark backup superblock %#04lx (+0)\n", start);
-+		ext4_debug("mark backup superblock %#04llx (+0)\n", start);
- 		ext4_set_bit(0, bh->b_data);
- 	}
- 
-@@ -215,7 +215,7 @@ static int setup_new_group_blocks(struct
- 	     i < gdblocks; i++, block++, bit++) {
- 		struct buffer_head *gdb;
- 
--		ext4_debug("update backup group %#04lx (+%d)\n", block, bit);
-+		ext4_debug("update backup group %#04llx (+%d)\n", block, bit);
- 
- 		if ((err = extend_or_restart_transaction(handle, 1, bh)))
- 			goto exit_bh;
-@@ -243,7 +243,7 @@ static int setup_new_group_blocks(struct
- 	     i < reserved_gdb; i++, block++, bit++) {
- 		struct buffer_head *gdb;
- 
--		ext4_debug("clear reserved block %#04lx (+%d)\n", block, bit);
-+		ext4_debug("clear reserved block %#04llx (+%d)\n", block, bit);
- 
- 		if ((err = extend_or_restart_transaction(handle, 1, bh)))
- 			goto exit_bh;
-@@ -256,10 +256,10 @@ static int setup_new_group_blocks(struct
- 		ext4_set_bit(bit, bh->b_data);
- 		brelse(gdb);
- 	}
--	ext4_debug("mark block bitmap %#04x (+%ld)\n", input->block_bitmap,
-+	ext4_debug("mark block bitmap %#04llx (+%llu)\n", input->block_bitmap,
- 		   input->block_bitmap - start);
- 	ext4_set_bit(input->block_bitmap - start, bh->b_data);
--	ext4_debug("mark inode bitmap %#04x (+%ld)\n", input->inode_bitmap,
-+	ext4_debug("mark inode bitmap %#04llx (+%llu)\n", input->inode_bitmap,
- 		   input->inode_bitmap - start);
- 	ext4_set_bit(input->inode_bitmap - start, bh->b_data);
- 
-@@ -268,7 +268,7 @@ static int setup_new_group_blocks(struct
- 	     i < sbi->s_itb_per_group; i++, bit++, block++) {
- 		struct buffer_head *it;
- 
--		ext4_debug("clear inode block %#04lx (+%d)\n", block, bit);
-+		ext4_debug("clear inode block %#04llx (+%d)\n", block, bit);
- 
- 		if ((err = extend_or_restart_transaction(handle, 1, bh)))
- 			goto exit_bh;
-@@ -291,7 +291,7 @@ static int setup_new_group_blocks(struct
- 	brelse(bh);
- 
- 	/* Mark unused entries in inode bitmap used */
--	ext4_debug("clear inode bitmap %#04x (+%ld)\n",
-+	ext4_debug("clear inode bitmap %#04llx (+%llu)\n",
- 		   input->inode_bitmap, input->inode_bitmap - start);
- 	if (IS_ERR(bh = bclean(handle, sb, input->inode_bitmap))) {
- 		err = PTR_ERR(bh);
-@@ -1054,7 +1054,7 @@ int ext4_group_extend(struct super_block
- 	ext4_journal_dirty_metadata(handle, EXT4_SB(sb)->s_sbh);
- 	sb->s_dirt = 1;
- 	unlock_super(sb);
--	ext4_debug("freeing blocks %lu through %llu\n", o_blocks_count,
-+	ext4_debug("freeing blocks %llu through %llu\n", o_blocks_count,
- 		   o_blocks_count + add);
- 	ext4_free_blocks_sb(handle, sb, o_blocks_count, add, &freed_blocks);
- 	ext4_debug("freed blocks %llu through %llu\n", o_blocks_count,
+ 	generic_fillattr(inode, stat);
+ 	return 0;
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-ecryptfs-fix-string-overflow-on-long-cipher-names.patch
-ecryptfs-fix-unlocking-in-error-paths.patch
-ecryptfs-redo-dgetmntget-on-dentry_open-failure.patch
-hfs-handle-more-on-disk-corruptions-without-oopsing.patch
-ext2-change-the-default-behaviour-on-error.patch
-ecryptfs-make-show_options-reflect-actual-mount-options.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+timerfd-v3-new-timerfd-api-ia64-fix.patch
+timerfd-v3-new-timerfd-api-m68k-fix.patch
+timerfd-v3-new-timerfd-api-mips-fix.patch
+timerfd-v3-new-timerfd-api-arch-fixes.patch
+timerfd-v3-new-timerfd-api-powerpc-fix.patch
+timerfd-v3-new-timerfd-api-sparc64-fix.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+kernel-auditc-warning-fix.patch
+git-cpufreq.patch
+git-powerpc.patch
+revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+git-drm.patch
+intel-agp-enable-i915-recognition.patch
+git-dvb.patch
+git-dvb-one-videobuf_read_start-is-enough.patch
+fix-jdelvare-i2c-i2c-constify-client-address-data.patch
+git-hid.patch
+revert-git-hrt.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-kvm.patch
+git-libata-all.patch
+libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
+libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
+libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
+git-md-accel.patch
+git-mmc.patch
+git-mtd.patch
+git-net.patch
+git-net-vs-git-lblnet.patch
+git-net-vs-git-lblnet-2.patch
+git-netdev-all.patch
+git-net-vs-git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+backlight-omap1-backlight-driver.patch
+git-battery.patch
+bluetooth-uninlining.patch
+git-nfsd.patch
+quirk-enable-msi-mapping-on-ht1000.patch
+git-sched.patch
+git-sched-fixup.patch
+git-sched-fixup-2.patch
+git-sh.patch
+git-scsi-misc.patch
+scsi-aic94xx-cleanups-checkpatch-fixes.patch
+scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+usb-testing-driver-dont-free-a-locked-mutex.patch
+ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
+9p-util-fix-semaphore-handling.patch
+git-watchdog.patch
+git-watchdog-fixup.patch
+add-support-for-sb1-hardware-watchdog.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-fixup.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+i386-use-raw_smp_processor_id-in-die.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-xtensa.patch
+git-kgdb-fixup.patch
+bonding-locking-fix.patch
+usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+stopmachine-semaphore-to-mutex-fix.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
+sync_sb_inodes-propagate-errors.patch
+add-have_oprofile.patch
 ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
-ecryptfs-remove-debug-as-mount-option-and-warn-if-set-via-modprobe.patch
-ext3-change-the-default-behaviour-on-error.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-fix.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+logo-move-declarations-of-logos-to-linux_logoh-fix.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
