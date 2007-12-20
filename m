@@ -1,54 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - ieee80211_rate-missed-unlock.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 15:38:30 -0800
-Message-ID: <200712202338.lBKNcUos018979@imap1.linux-foundation.org>
+Subject: - clocksourcec-use-init_timer_deferrable-for-clocksource_watchdog.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:38:47 -0800
+Message-ID: <200712202338.lBKNclVe019003@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57878 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35494 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757125AbXLTXtE (ORCPT
+	by vger.kernel.org with ESMTP id S1755922AbXLTXss (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 18:49:04 -0500
+	Thu, 20 Dec 2007 18:48:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gorcunov@gmail.com, flamingice@sourmilk.net, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: parag.warudkar@gmail.com, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ieee80211_rate: missed unlock
+     clocksource.c: use init_timer_deferrable for clocksource_watchdog
 has been removed from the -mm tree.  Its filename was
-     ieee80211_rate-missed-unlock.patch
+     clocksourcec-use-init_timer_deferrable-for-clocksource_watchdog.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ieee80211_rate: missed unlock
-From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: clocksource.c: use init_timer_deferrable for clocksource_watchdog
+From: Parag Warudkar <parag.warudkar@gmail.com>
 
-Cc: "John W. Linville" <linville@tuxdriver.com>
+clocksource_watchdog can use a deferrable timer - reduces wakeups from
+idle per second.
+
+Signed-off-by: Parag Warudkar <parag.warudkar@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/mac80211/ieee80211_rate.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/time/clocksource.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/mac80211/ieee80211_rate.c~ieee80211_rate-missed-unlock net/mac80211/ieee80211_rate.c
---- a/net/mac80211/ieee80211_rate.c~ieee80211_rate-missed-unlock
-+++ a/net/mac80211/ieee80211_rate.c
-@@ -33,6 +33,7 @@ int ieee80211_rate_control_register(stru
- 		if (!strcmp(alg->ops->name, ops->name)) {
- 			/* don't register an algorithm twice */
- 			WARN_ON(1);
-+			mutex_unlock(&rate_ctrl_mutex);
- 			return -EALREADY;
- 		}
- 	}
+diff -puN kernel/time/clocksource.c~clocksourcec-use-init_timer_deferrable-for-clocksource_watchdog kernel/time/clocksource.c
+--- a/kernel/time/clocksource.c~clocksourcec-use-init_timer_deferrable-for-clocksource_watchdog
++++ a/kernel/time/clocksource.c
+@@ -175,7 +175,7 @@ static void clocksource_check_watchdog(s
+ 			if (watchdog)
+ 				del_timer(&watchdog_timer);
+ 			watchdog = cs;
+-			init_timer(&watchdog_timer);
++			init_timer_deferrable(&watchdog_timer);
+ 			watchdog_timer.function = clocksource_watchdog;
+ 
+ 			/* Reset watchdog cycles */
 _
 
-Patches currently in -mm which might be from gorcunov@gmail.com are
+Patches currently in -mm which might be from parag.warudkar@gmail.com are
 
-origin.patch
-git-powerpc.patch
-ppc-fix-missed-increment-on-device-interface-counter.patch
-net-mac80211-fix-inappropriate-memory-freeing.patch
 git-x86.patch
