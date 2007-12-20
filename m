@@ -1,99 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: + git-net-vs-git-netdev-all.patch added to -mm tree
-Date: Thu, 20 Dec 2007 14:31:17 -0800
-Message-ID: <200712202231.lBKMVHjd016262@imap1.linux-foundation.org>
+Subject: - git-ocfs2-fixup.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 14:31:34 -0800
+Message-ID: <200712202231.lBKMVYZB016269@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47641 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50413 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753549AbXLTWbt (ORCPT
+	by vger.kernel.org with ESMTP id S1755436AbXLTWmv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 17:31:49 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lBKMVHKb022991
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 20 Dec 2007 14:31:18 -0800
+	Thu, 20 Dec 2007 17:42:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, mark.fasheh@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-net-vs-git-netdev-all
-has been added to the -mm tree.  Its filename is
-     git-net-vs-git-netdev-all.patch
+     git-ocfs2-fixup
+has been removed from the -mm tree.  Its filename was
+     git-ocfs2-fixup.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-net-vs-git-netdev-all
+Subject: git-ocfs2-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Fix git conflicts
+
+Cc: Mark Fasheh <mark.fasheh@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/b43/xmit.c       |   17 +++++++++++++++++
- drivers/net/wireless/b43legacy/xmit.c |   17 +++++++++++++++++
- 2 files changed, 34 insertions(+)
+ fs/ocfs2/journal.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/net/wireless/b43/xmit.c~git-net-vs-git-netdev-all drivers/net/wireless/b43/xmit.c
---- a/drivers/net/wireless/b43/xmit.c~git-net-vs-git-netdev-all
-+++ a/drivers/net/wireless/b43/xmit.c
-@@ -528,6 +528,23 @@ void b43_rx(struct b43_wldev *dev, struc
- 	status.mactime = mactime;
- 	status.flag |= RX_FLAG_TSFT;
+diff -puN fs/ocfs2/journal.c~git-ocfs2-fixup fs/ocfs2/journal.c
+--- a/fs/ocfs2/journal.c~git-ocfs2-fixup
++++ a/fs/ocfs2/journal.c
+@@ -1296,11 +1296,7 @@ static int ocfs2_queue_orphans(struct oc
+ 	*head = priv.head;
  
-+	/*
-+	 * If monitors are present get full 64-bit timestamp. This
-+	 * code assumes we get to process the packet within 16 bits
-+	 * of timestamp, i.e. about 65 milliseconds after the PHY
-+	 * received the first symbol.
-+	 */
-+	if (dev->wl->radiotap_enabled) {
-+		u16 low_mactime_now;
-+
-+		b43_tsf_read(dev, &status.mactime);
-+		low_mactime_now = status.mactime;
-+		status.mactime = status.mactime & ~0xFFFFULL;
-+		status.mactime += mactime;
-+		if (low_mactime_now <= mactime)
-+			status.mactime -= 0x10000;
-+	}
-+
- 	chanid = (chanstat & B43_RX_CHAN_ID) >> B43_RX_CHAN_ID_SHIFT;
- 	switch (chanstat & B43_RX_CHAN_PHYTYPE) {
- 	case B43_PHYTYPE_A:
-diff -puN drivers/net/wireless/b43legacy/xmit.c~git-net-vs-git-netdev-all drivers/net/wireless/b43legacy/xmit.c
---- a/drivers/net/wireless/b43legacy/xmit.c~git-net-vs-git-netdev-all
-+++ a/drivers/net/wireless/b43legacy/xmit.c
-@@ -535,6 +535,23 @@ void b43legacy_rx(struct b43legacy_wldev
- 	status.mactime = mactime;
- 	status.flag |= RX_FLAG_TSFT;
- 
-+	/*
-+	 * If monitors are present get full 64-bit timestamp. This
-+	 * code assumes we get to process the packet within 16 bits
-+	 * of timestamp, i.e. about 65 milliseconds after the PHY
-+	 * received the first symbol.
-+	 */
-+	if (dev->wl->radiotap_enabled) {
-+		u16 low_mactime_now;
-+
-+		b43legacy_tsf_read(dev, &status.mactime);
-+		low_mactime_now = status.mactime;
-+		status.mactime = status.mactime & ~0xFFFFULL;
-+		status.mactime += mactime;
-+		if (low_mactime_now <= mactime)
-+			status.mactime -= 0x10000;
-+	}
-+
- 	chanid = (chanstat & B43legacy_RX_CHAN_ID) >>
- 		  B43legacy_RX_CHAN_ID_SHIFT;
- 	switch (chanstat & B43legacy_RX_CHAN_PHYTYPE) {
+ out_cluster:
+-<<<<<<< HEAD:fs/ocfs2/journal.c
+-	ocfs2_meta_unlock(orphan_dir_inode, 0);
+-=======
+ 	ocfs2_inode_unlock(orphan_dir_inode, 0);
+->>>>>>> FETCH_HEAD:fs/ocfs2/journal.c
+ out:
+ 	mutex_unlock(&orphan_dir_inode->i_mutex);
+ 	iput(orphan_dir_inode);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
