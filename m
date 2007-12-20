@@ -1,67 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - git-alsa-fixup.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 14:22:27 -0800
-Message-ID: <200712202222.lBKMMRIh015857@imap1.linux-foundation.org>
+Subject: - git-mips-fixup.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 14:28:10 -0800
+Message-ID: <200712202228.lBKMSAaC016118@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59237 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48749 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765643AbXLTWWa (ORCPT
+	by vger.kernel.org with ESMTP id S1754103AbXLTW2W (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 17:22:30 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lBKMMSv5022560
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 20 Dec 2007 14:22:29 -0800
+	Thu, 20 Dec 2007 17:28:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-alsa-fixup
+     git-mips-fixup
 has been removed from the -mm tree.  Its filename was
-     git-alsa-fixup.patch
+     git-mips-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-alsa-fixup
+Subject: git-mips-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Fix git conflicts
+
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/hda/patch_sigmatel.c |    8 --------
- 1 file changed, 8 deletions(-)
+ arch/mips/cobalt/time.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN sound/pci/hda/patch_sigmatel.c~git-alsa-fixup sound/pci/hda/patch_sigmatel.c
---- a/sound/pci/hda/patch_sigmatel.c~git-alsa-fixup
-+++ a/sound/pci/hda/patch_sigmatel.c
-@@ -781,11 +781,7 @@ static struct snd_kcontrol_new stac925x_
- static struct snd_kcontrol_new stac9205_mixer[] = {
- 	STAC_DIGITAL_INPUT_SOURCE(1),
- 	STAC_INPUT_SOURCE(2),
--<<<<<<< HEAD:sound/pci/hda/patch_sigmatel.c
--	STAC_ANALOG_LOOPBACK(0xFE0, 0x7E0),
--=======
- 	STAC_ANALOG_LOOPBACK(0xFE0, 0x7E0, 1),
-->>>>>>> FETCH_HEAD:sound/pci/hda/patch_sigmatel.c
+diff -puN arch/mips/cobalt/time.c~git-mips-fixup arch/mips/cobalt/time.c
+--- a/arch/mips/cobalt/time.c~git-mips-fixup
++++ a/arch/mips/cobalt/time.c
+@@ -35,11 +35,7 @@ void __init plat_time_init(void)
+ 	gt641xx_set_base_clock(GT641XX_BASE_CLOCK);
  
- 	HDA_CODEC_VOLUME_IDX("Capture Volume", 0x0, 0x1b, 0x0, HDA_INPUT),
- 	HDA_CODEC_MUTE_IDX("Capture Switch", 0x0, 0x1d, 0x0, HDA_OUTPUT),
-@@ -815,11 +811,7 @@ static struct snd_kcontrol_new stac922x_
- static struct snd_kcontrol_new stac927x_mixer[] = {
- 	STAC_DIGITAL_INPUT_SOURCE(1),
- 	STAC_INPUT_SOURCE(3),
--<<<<<<< HEAD:sound/pci/hda/patch_sigmatel.c
--	STAC_ANALOG_LOOPBACK(0xFEB, 0x7EB),
+ 	/*
+-<<<<<<< HEAD:arch/mips/cobalt/time.c
+-	 * MIPS counter frequency is measured during a 100msec interval
 -=======
- 	STAC_ANALOG_LOOPBACK(0xFEB, 0x7EB, 1),
-->>>>>>> FETCH_HEAD:sound/pci/hda/patch_sigmatel.c
- 
- 	HDA_CODEC_VOLUME_IDX("Capture Volume", 0x0, 0x18, 0x0, HDA_INPUT),
- 	HDA_CODEC_MUTE_IDX("Capture Switch", 0x0, 0x1b, 0x0, HDA_OUTPUT),
+ 	 * MIPS counter frequency is measured between 100msec
+->>>>>>> FETCH_HEAD:arch/mips/cobalt/time.c
+ 	 * using GT64111 timer0.
+ 	 */
+ 	while (!gt641xx_timer0_state())
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,16 +67,12 @@ git-acpi.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 small-acpica-extension-to-be-able-to-store-the-name-of.patch
 git-alsa.patch
-git-alsa-fixup.patch
 git-agpgart.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
 kernel-auditc-warning-fix.patch
 git-cpufreq.patch
 git-powerpc.patch
-git-powerpc-galak.patch
-ppc-chrp-fix-possible-null-pointer-dereference.patch
-gregkh-driver-kobject-change-drivers-cpuidle-sysfsc-to-use-kobject_init_and_add-fix.patch
 revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
 gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
 unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
@@ -100,13 +83,10 @@ git-dvb-one-videobuf_read_start-is-enough.patch
 fix-jdelvare-i2c-i2c-constify-client-address-data.patch
 git-hid.patch
 revert-git-hrt.patch
-ia64-slim-down-__clear_bit_unlock.patch
 git-ieee1394.patch
 git-infiniband.patch
 git-kvm.patch
 git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
 libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
 libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
 libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
