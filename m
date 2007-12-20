@@ -1,52 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - gregkh-driver-kobject-change-drivers-cpuidle-sysfsc-to-use-kobject_init_and_add-fix.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 15:37:26 -0800
-Message-ID: <200712202337.lBKNbQjA018889@imap1.linux-foundation.org>
+Subject: - pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:37:42 -0800
+Message-ID: <200712202337.lBKNbgT8018920@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45998 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37514 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754923AbXLTXmx (ORCPT
+	by vger.kernel.org with ESMTP id S1755038AbXLTXn2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 18:42:53 -0500
+	Thu, 20 Dec 2007 18:43:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gregkh-driver-kobject-change-drivers-cpuidle-sysfsc-to-use-kobject_init_and_add-fix
+     pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     gregkh-driver-kobject-change-drivers-cpuidle-sysfsc-to-use-kobject_init_and_add-fix.patch
+     pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: gregkh-driver-kobject-change-drivers-cpuidle-sysfsc-to-use-kobject_init_and_add-fix
+Subject: pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/cpuidle/sysfs.c: In function 'cpuidle_add_sysfs':
-drivers/cpuidle/sysfs.c:348: warning: no return statement in function returning non-void
-drivers/cpuidle/sysfs.c:348: warning: control reaches end of non-void function
+WARNING: line over 80 characters
+#70: FILE: drivers/ata/pata_hpt37x.c:850:
++		struct pci_dev *pdev_0 = pci_get_slot(pdev->bus, pdev->devfn - 1);
 
-Cc: Greg KH <greg@kroah.com>
+ERROR: else should follow close brace '}'
+#78: FILE: drivers/ata/pata_hpt37x.c:858:
++	}
++	else
+
+total: 1 errors, 1 warnings, 100 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpuidle/sysfs.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/ata/pata_hpt37x.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/cpuidle/sysfs.c~gregkh-driver-kobject-change-drivers-cpuidle-sysfsc-to-use-kobject_init_and_add-fix drivers/cpuidle/sysfs.c
---- a/drivers/cpuidle/sysfs.c~gregkh-driver-kobject-change-drivers-cpuidle-sysfsc-to-use-kobject_init_and_add-fix
-+++ a/drivers/cpuidle/sysfs.c
-@@ -345,6 +345,7 @@ int cpuidle_add_sysfs(struct sys_device 
- 				     "cpuidle");
- 	if (!error)
- 		kobject_uevent(&dev->kobj, KOBJ_ADD);
-+	return error;
+diff -puN drivers/ata/pata_hpt37x.c~pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes drivers/ata/pata_hpt37x.c
+--- a/drivers/ata/pata_hpt37x.c~pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes
++++ a/drivers/ata/pata_hpt37x.c
+@@ -847,15 +847,16 @@ static u32 hpt374_read_freq(struct pci_d
+ 	u32 freq;
+ 	unsigned long io_base = pci_resource_start(pdev, 4);
+ 	if (PCI_FUNC(pdev->devfn) & 1) {
+-		struct pci_dev *pdev_0 = pci_get_slot(pdev->bus, pdev->devfn - 1);
++		struct pci_dev *pdev_0;
++
++		pdev_0 = pci_get_slot(pdev->bus, pdev->devfn - 1);
+ 		/* Someone hot plugged the controller on us ? */
+ 		if (pdev_0 == NULL)
+ 			return 0;
+ 		io_base = pci_resource_start(pdev_0, 4);
+ 		freq = inl(io_base + 0x90);
+ 		pci_dev_put(pdev_0);
+-	}
+-	else
++	} else
+ 		freq = inl(io_base + 0x90);
+ 	return freq;
  }
- 
- /**
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
