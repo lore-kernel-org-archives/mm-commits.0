@@ -1,71 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: + git-alsa-fixup.patch added to -mm tree
-Date: Thu, 20 Dec 2007 15:20:54 -0800
-Message-ID: <200712202320.lBKNKsTR018227@imap1.linux-foundation.org>
+Subject: - ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:30:51 -0800
+Message-ID: <200712202330.lBKNUpYh018564__40939.4204420552$1198193533$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54902 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33199 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755741AbXLTXU6 (ORCPT
+	by vger.kernel.org with ESMTP id S1750743AbXLTXbd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 18:20:58 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lBKNKsNB025797
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 20 Dec 2007 15:20:55 -0800
+	Thu, 20 Dec 2007 18:31:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-alsa-fixup
-has been added to the -mm tree.  Its filename is
-     git-alsa-fixup.patch
+     ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix
+has been removed from the -mm tree.  Its filename was
+     ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-alsa-fixup
+Subject: ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: <linux-ext4@vger.kernel.org>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/hda/patch_sigmatel.c |    8 --------
- 1 file changed, 8 deletions(-)
+ fs/ext4/extents.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN sound/pci/hda/patch_sigmatel.c~git-alsa-fixup sound/pci/hda/patch_sigmatel.c
---- a/sound/pci/hda/patch_sigmatel.c~git-alsa-fixup
-+++ a/sound/pci/hda/patch_sigmatel.c
-@@ -770,11 +770,7 @@ static struct snd_kcontrol_new stac925x_
- 
- static struct snd_kcontrol_new stac9205_mixer[] = {
- 	STAC_INPUT_SOURCE(2),
--<<<<<<< HEAD:sound/pci/hda/patch_sigmatel.c
--	STAC_ANALOG_LOOPBACK(0xFE0, 0x7E0),
--=======
- 	STAC_ANALOG_LOOPBACK(0xFE0, 0x7E0, 1),
-->>>>>>> FETCH_HEAD:sound/pci/hda/patch_sigmatel.c
- 
- 	HDA_CODEC_VOLUME_IDX("Capture Volume", 0x0, 0x1b, 0x0, HDA_INPUT),
- 	HDA_CODEC_MUTE_IDX("Capture Switch", 0x0, 0x1d, 0x0, HDA_OUTPUT),
-@@ -803,11 +799,7 @@ static struct snd_kcontrol_new stac922x_
- 
- static struct snd_kcontrol_new stac927x_mixer[] = {
- 	STAC_INPUT_SOURCE(3),
--<<<<<<< HEAD:sound/pci/hda/patch_sigmatel.c
--	STAC_ANALOG_LOOPBACK(0xFEB, 0x7EB),
--=======
- 	STAC_ANALOG_LOOPBACK(0xFEB, 0x7EB, 1),
-->>>>>>> FETCH_HEAD:sound/pci/hda/patch_sigmatel.c
- 
- 	HDA_CODEC_VOLUME_IDX("Capture Volume", 0x0, 0x18, 0x0, HDA_INPUT),
- 	HDA_CODEC_MUTE_IDX("Capture Switch", 0x0, 0x1b, 0x0, HDA_OUTPUT),
+diff -puN fs/ext4/extents.c~ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix fs/ext4/extents.c
+--- a/fs/ext4/extents.c~ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix
++++ a/fs/ext4/extents.c
+@@ -2631,8 +2631,8 @@ retry:
+ 		WARN_ON(ret <= 0);
+ 		if (ret <= 0) {
+ 			ext4_error(inode->i_sb, "ext4_fallocate",
+-				   "ext4_ext_get_blocks returned 0! inode#%lu"
+-				   ", block=%lu, max_blocks=%lu",
++				   "ext4_ext_get_blocks returned error: "
++				    "inode#%lu, block=%lu, max_blocks=%lu",
+ 				   inode->i_ino, (unsigned long)block,
+ 				   (unsigned long)max_blocks);
+ 			ret = -EIO;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -149,8 +130,6 @@ git-cryptodev-fixup.patch
 git-xtensa.patch
 git-kgdb-fixup.patch
 bonding-locking-fix.patch
-iwlwifi3945-4965-fix-rate-control-algo-reference-leak.patch
-bcm43xx_debugfs-sscanf-fix.patch
 usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
@@ -200,7 +179,6 @@ quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
 tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
 stopmachine-semaphore-to-mutex-fix.patch
 parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
-mark-rwsem-functions-as-__sched-for-wchan-profiling-fix.patch
 sync_sb_inodes-propagate-errors.patch
 add-have_oprofile.patch
 ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
@@ -212,9 +190,6 @@ logo-move-declarations-of-logos-to-linux_logoh-fix.patch
 declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
 isapnp-driver-semaphore-to-mutex-fix.patch
 isapnp-driver-semaphore-to-mutex-fix-fix.patch
-64-bit-i_version-afs-fixes.patch
-ext4-add-block-bitmap-validation.patch
-ext4-fix-up-ext4fs_debug-builds.patch
 ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix.patch
 kill-filp_open-checkpatch-fixes.patch
 rename-open_namei-to-open_pathname-fix.patch
