@@ -1,34 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: - x86_32-disable_pse-must-be-__cpuinitdata.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 15:38:11 -0800
-Message-ID: <200712202338.lBKNcB8h018967@imap1.linux-foundation.org>
+Subject: - x86_32-select_idle_routine-must-be-__cpuinit.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:38:15 -0800
+Message-ID: <200712202338.lBKNcFva018970@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47108 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33735 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756529AbXLTXs5 (ORCPT
+	by vger.kernel.org with ESMTP id S1755600AbXLTXsz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 18:48:57 -0500
+	Thu, 20 Dec 2007 18:48:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@kernel.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_32: disable_pse must be __cpuinitdata
+     x86_32: select_idle_routine() must be __cpuinit
 has been removed from the -mm tree.  Its filename was
-     x86_32-disable_pse-must-be-__cpuinitdata.patch
+     x86_32-select_idle_routine-must-be-__cpuinit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_32: disable_pse must be __cpuinitdata
+Subject: x86_32: select_idle_routine() must be __cpuinit
 From: Adrian Bunk <bunk@kernel.org>
 
 Fix the following section mismatch with CONFIG_HOTPLUG=n,
 CONFIG_HOTPLUG_CPU=y:
 
-WARNING: vmlinux.o(.text+0xfa52): Section mismatch: reference to .init.data:disable_pse (between 'identify_cpu' and 'identify_secondary_cpu')
+WARNING: vmlinux.o(.text+0x1199a): Section mismatch: reference to .init.text.5:select_idle_routine (between 'init_intel' and 'init_nexgen')
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -36,21 +36,21 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/setup_32.c |    2 +-
+ arch/x86/kernel/process_32.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/setup_32.c~x86_32-disable_pse-must-be-__cpuinitdata arch/x86/kernel/setup_32.c
---- a/arch/x86/kernel/setup_32.c~x86_32-disable_pse-must-be-__cpuinitdata
-+++ a/arch/x86/kernel/setup_32.c
-@@ -69,7 +69,7 @@
-    address, and must not be in the .bss segment! */
- unsigned long init_pg_tables_end __initdata = ~0UL;
+diff -puN arch/x86/kernel/process_32.c~x86_32-select_idle_routine-must-be-__cpuinit arch/x86/kernel/process_32.c
+--- a/arch/x86/kernel/process_32.c~x86_32-select_idle_routine-must-be-__cpuinit
++++ a/arch/x86/kernel/process_32.c
+@@ -271,7 +271,7 @@ static void mwait_idle(void)
+ 	mwait_idle_with_hints(0, 0);
+ }
  
--int disable_pse __devinitdata = 0;
-+int disable_pse __cpuinitdata = 0;
- 
- /*
-  * Machine setup..
+-void __devinit select_idle_routine(const struct cpuinfo_x86 *c)
++void __cpuinit select_idle_routine(const struct cpuinfo_x86 *c)
+ {
+ 	if (cpu_has(c, X86_FEATURE_MWAIT)) {
+ 		printk("monitor/mwait feature present.\n");
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
