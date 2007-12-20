@@ -1,125 +1,179 @@
 From: akpm@linux-foundation.org
-Subject: - x86_32-select_idle_routine-must-be-__cpuinit.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 15:38:15 -0800
-Message-ID: <200712202338.lBKNcFva018970@imap1.linux-foundation.org>
+Subject: - ecryptfs-fix-fsx-data-corruption-problems.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:36:39 -0800
+Message-ID: <200712202336.lBKNadfH018819@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33735 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36261 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755600AbXLTXsz (ORCPT
+	by vger.kernel.org with ESMTP id S1756665AbXLTXsx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 18:48:55 -0500
+	Thu, 20 Dec 2007 18:48:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: sandeen@redhat.com, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_32: select_idle_routine() must be __cpuinit
+     ecryptfs: fix fsx data corruption problems
 has been removed from the -mm tree.  Its filename was
-     x86_32-select_idle_routine-must-be-__cpuinit.patch
+     ecryptfs-fix-fsx-data-corruption-problems.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_32: select_idle_routine() must be __cpuinit
-From: Adrian Bunk <bunk@kernel.org>
+Subject: ecryptfs: fix fsx data corruption problems
+From: Eric Sandeen <sandeen@redhat.com>
 
-Fix the following section mismatch with CONFIG_HOTPLUG=n,
-CONFIG_HOTPLUG_CPU=y:
+ecryptfs in 2.6.24-rc3 wasn't surviving fsx for me at all, dying after 4
+ops.  Generally, encountering problems with stale data and improperly
+zeroed pages.  An extending truncate + write for example would expose stale
+data.
 
-WARNING: vmlinux.o(.text+0x1199a): Section mismatch: reference to .init.text.5:select_idle_routine (between 'init_intel' and 'init_nexgen')
+With the changes below I got to a million ops and beyond with all mmap ops
+disabled - mmap still needs work.  (A version of this patch on a RHEL5
+kernel ran for over 110 million fsx ops)
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+I added a few comments as well, to the best of my understanding
+as I read through the code.
+
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Acked-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/process_32.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ecryptfs/mmap.c       |   31 ++++++++++++++++++++-----------
+ fs/ecryptfs/read_write.c |   27 +++++++++++++++++++++------
+ 2 files changed, 41 insertions(+), 17 deletions(-)
 
-diff -puN arch/x86/kernel/process_32.c~x86_32-select_idle_routine-must-be-__cpuinit arch/x86/kernel/process_32.c
---- a/arch/x86/kernel/process_32.c~x86_32-select_idle_routine-must-be-__cpuinit
-+++ a/arch/x86/kernel/process_32.c
-@@ -271,7 +271,7 @@ static void mwait_idle(void)
- 	mwait_idle_with_hints(0, 0);
+diff -puN fs/ecryptfs/mmap.c~ecryptfs-fix-fsx-data-corruption-problems fs/ecryptfs/mmap.c
+--- a/fs/ecryptfs/mmap.c~ecryptfs-fix-fsx-data-corruption-problems
++++ a/fs/ecryptfs/mmap.c
+@@ -263,14 +263,13 @@ out:
+ 	return 0;
  }
  
--void __devinit select_idle_routine(const struct cpuinfo_x86 *c)
-+void __cpuinit select_idle_routine(const struct cpuinfo_x86 *c)
++/* This function must zero any hole we create */
+ static int ecryptfs_prepare_write(struct file *file, struct page *page,
+ 				  unsigned from, unsigned to)
  {
- 	if (cpu_has(c, X86_FEATURE_MWAIT)) {
- 		printk("monitor/mwait feature present.\n");
+ 	int rc = 0;
++	loff_t prev_page_end_size;
+ 
+-	if (from == 0 && to == PAGE_CACHE_SIZE)
+-		goto out;	/* If we are writing a full page, it will be
+-				   up to date. */
+ 	if (!PageUptodate(page)) {
+ 		rc = ecryptfs_read_lower_page_segment(page, page->index, 0,
+ 						      PAGE_CACHE_SIZE,
+@@ -283,22 +282,32 @@ static int ecryptfs_prepare_write(struct
+ 		} else
+ 			SetPageUptodate(page);
+ 	}
+-	if (page->index != 0) {
+-		loff_t end_of_prev_pg_pos =
+-			(((loff_t)page->index << PAGE_CACHE_SHIFT) - 1);
+ 
+-		if (end_of_prev_pg_pos > i_size_read(page->mapping->host)) {
++	prev_page_end_size = ((loff_t)page->index << PAGE_CACHE_SHIFT);
++
++	/*
++	 * If creating a page or more of holes, zero them out via truncate.
++	 * Note, this will increase i_size.
++	 */
++	if (page->index != 0) {
++		if (prev_page_end_size > i_size_read(page->mapping->host)) {
+ 			rc = ecryptfs_truncate(file->f_path.dentry,
+-					       end_of_prev_pg_pos);
++					       prev_page_end_size);
+ 			if (rc) {
+ 				printk(KERN_ERR "Error on attempt to "
+ 				       "truncate to (higher) offset [%lld];"
+-				       " rc = [%d]\n", end_of_prev_pg_pos, rc);
++				       " rc = [%d]\n", prev_page_end_size, rc);
+ 				goto out;
+ 			}
+ 		}
+-		if (end_of_prev_pg_pos + 1 > i_size_read(page->mapping->host))
+-			zero_user_page(page, 0, PAGE_CACHE_SIZE, KM_USER0);
++	}
++	/*
++	 * Writing to a new page, and creating a small hole from start of page?
++	 * Zero it out.
++	 */
++	if ((i_size_read(page->mapping->host) == prev_page_end_size) &&
++	    (from != 0)) {
++		zero_user_page(page, 0, PAGE_CACHE_SIZE, KM_USER0);
+ 	}
+ out:
+ 	return rc;
+diff -puN fs/ecryptfs/read_write.c~ecryptfs-fix-fsx-data-corruption-problems fs/ecryptfs/read_write.c
+--- a/fs/ecryptfs/read_write.c~ecryptfs-fix-fsx-data-corruption-problems
++++ a/fs/ecryptfs/read_write.c
+@@ -124,6 +124,10 @@ int ecryptfs_write(struct file *ecryptfs
+ 	loff_t pos;
+ 	int rc = 0;
+ 
++	/*
++	 * if we are writing beyond current size, then start pos
++	 * at the current size - we'll fill in zeros from there.
++	 */
+ 	if (offset > ecryptfs_file_size)
+ 		pos = ecryptfs_file_size;
+ 	else
+@@ -137,6 +141,7 @@ int ecryptfs_write(struct file *ecryptfs
+ 		if (num_bytes > total_remaining_bytes)
+ 			num_bytes = total_remaining_bytes;
+ 		if (pos < offset) {
++			/* remaining zeros to write, up to destination offset */
+ 			size_t total_remaining_zeros = (offset - pos);
+ 
+ 			if (num_bytes > total_remaining_zeros)
+@@ -167,17 +172,27 @@ int ecryptfs_write(struct file *ecryptfs
+ 			}
+ 		}
+ 		ecryptfs_page_virt = kmap_atomic(ecryptfs_page, KM_USER0);
++
++		/*
++		 * pos: where we're now writing, offset: where the request was
++		 * If current pos is before request, we are filling zeros
++		 * If we are at or beyond request, we are writing the *data*
++		 * If we're in a fresh page beyond eof, zero it in either case
++		 */
++		if (pos < offset || !start_offset_in_page) {
++			/* We are extending past the previous end of the file.
++			 * Fill in zero values to the end of the page */
++			memset(((char *)ecryptfs_page_virt
++				+ start_offset_in_page), 0,
++				PAGE_CACHE_SIZE - start_offset_in_page);
++		}
++
++		/* pos >= offset, we are now writing the data request */
+ 		if (pos >= offset) {
+ 			memcpy(((char *)ecryptfs_page_virt
+ 				+ start_offset_in_page),
+ 			       (data + data_offset), num_bytes);
+ 			data_offset += num_bytes;
+-		} else {
+-			/* We are extending past the previous end of the file.
+-			 * Fill in zero values up to the start of where we
+-			 * will be writing data. */
+-			memset(((char *)ecryptfs_page_virt
+-				+ start_offset_in_page), 0, num_bytes);
+ 		}
+ 		kunmap_atomic(ecryptfs_page_virt, KM_USER0);
+ 		flush_dcache_page(ecryptfs_page);
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
 origin.patch
-git-acpi.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-mtd.patch
-git-net.patch
-git-netdev-all.patch
-git-battery.patch
-drivers-bluetooth-bpa10xc-fix-memleak.patch
-drivers-bluetooth-btsdioc-fix-double-free.patch
-drivers-pci-msic-move-arch-hooks-to-the-top.patch
-if-0-pci_cleanup_aer_correct_error_status.patch
-git-scsi-misc.patch
-scsi-advansysc-make-3-functions-static.patch
-scsi-qla2xxx-possible-cleanups.patch
-scsi-qla2xxx-qla_osc-section-fix.patch
-scsi-megaraidc-__devexit-annotation.patch
-scsi-aic94xx-cleanups.patch
-scsi-aic94xx-cleanups-checkpatch-fixes.patch
-scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
-git-x86.patch
-git-cryptodev.patch
-git-xtensa.patch
-mm-page-writebackc-make-a-function-static.patch
-make-__vmalloc_area_node-static.patch
-kernel-power-diskc-make-code-static.patch
-make-kernel_shutdown_prepare-static.patch
-nubus-kill-drivers-nubus-nubus_symsc.patch
-m68k-kill-arch-m68k-mac-mac_ksymsc.patch
-m68k-kill-arch-m68k-hp300-ksymsc.patch
-m68k-kill-arch-m68k-amiga-amiga_ksymsc.patch
-m68k-kill-arch-m68k-atari-atari_ksymsc.patch
-m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch
-kill-udffs_dateversion.patch
-make-ipc-utilcsysvipc_find_ipc-static.patch
-cleanup-after-apus-removal.patch
-remove-mm_ptovvtop.patch
-remove-__attribute_used__.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-proper-show_interrupts-prototype.patch
-scheduled-oss-driver-removal.patch
-linux-inith-simplify-__meminitexit-dependencies.patch
-proper-prototype-for-signals_init.patch
-kernel-ptracec-should-include-linux-syscallsh.patch
-make-srcu_readers_active-static.patch
-kernel-notifierc-should-include-linux-rebooth.patch
-proper-prototype-for-get_filesystem_list.patch
-fs-utimesc-should-include-linux-syscallsh.patch
-fs-signalfdc-should-include-linux-syscallsh.patch
-fs-eventfdc-should-include-linux-syscallsh.patch
-proper-prototype-for-vty_init.patch
-drivers-misc-lkdtmc-cleanups.patch
-xen-fiddle_vdso-must-be-__init.patch
-calibrate_delay-must-be-__cpuinit.patch
-idle_regs-must-be-__cpuinit.patch
-fs-ecryptfs-possible-cleanups.patch
-make-video-geode-lxfb_corecgeode_modedb-static.patch
-video-hpfbc-section-fix.patch
-drivers-video-pm3fbc-section-fix.patch
-make-jbd-journalc__journal_abort_hard-static.patch
-move-edactxt-two-levels-up.patch
-remove-documentation-smptxt.patch
-kernel-cgroupc-remove-dead-code.patch
-kernel-cgroupc-make-2-functions-static.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-fix-m32r-__xchg.patch
-reiser4.patch
+ecryptfs-fix-string-overflow-on-long-cipher-names.patch
+ecryptfs-fix-unlocking-in-error-paths.patch
+ecryptfs-redo-dgetmntget-on-dentry_open-failure.patch
+hfs-handle-more-on-disk-corruptions-without-oopsing.patch
+ext2-change-the-default-behaviour-on-error.patch
+ecryptfs-make-show_options-reflect-actual-mount-options.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+ecryptfs-remove-debug-as-mount-option-and-warn-if-set-via-modprobe.patch
+ext3-change-the-default-behaviour-on-error.patch
