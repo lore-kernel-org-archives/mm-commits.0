@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ps3-vuart-fix-error-path-locking.patch added to -mm tree
-Date: Thu, 20 Dec 2007 12:19:58 -0800
-Message-ID: <200712202019.lBKKJwHF011153@imap1.linux-foundation.org>
+Subject: + ia64-remove-dead-code.patch added to -mm tree
+Date: Thu, 20 Dec 2007 13:40:50 -0800
+Message-ID: <200712202140.lBKLeorV014096@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52853 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48899 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754550AbXLTUUj (ORCPT
+	by vger.kernel.org with ESMTP id S1759239AbXLTVk4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 15:20:39 -0500
+	Thu, 20 Dec 2007 16:40:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dwalker@mvista.com, geoffrey.levand@am.sony.com
+Cc: jbeulich@novell.com, tony.luck@intel.com
 
 
 The patch titled
-     ps3: vuart: fix error path locking
+     ia64: remove dead code
 has been added to the -mm tree.  Its filename is
-     ps3-vuart-fix-error-path-locking.patch
+     ia64-remove-dead-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,52 +26,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ps3: vuart: fix error path locking
-From: Daniel Walker <dwalker@mvista.com>
+Subject: ia64: remove dead code
+From: "Jan Beulich" <jbeulich@novell.com>
 
-This stray down would cause a permanent sleep which doesn't seem correct. 
-The other uses of this semaphore appear fairly mutex like it's even
-initialized with init_MUTEX() ..  So here a patch for removing this one
-down().
+Neither __cpu_down() nor __cpu_die() are being referenced without
+CONFIG_HOTPLUG_CPU.
 
-Signed-off-by: Geoff Levand <geoffrey.levand@am.sony.com>
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ps3/ps3-vuart.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/ia64/kernel/smpboot.c |   11 -----------
+ 1 file changed, 11 deletions(-)
 
-diff -puN drivers/ps3/ps3-vuart.c~ps3-vuart-fix-error-path-locking drivers/ps3/ps3-vuart.c
---- a/drivers/ps3/ps3-vuart.c~ps3-vuart-fix-error-path-locking
-+++ a/drivers/ps3/ps3-vuart.c
-@@ -1074,7 +1074,6 @@ static int ps3_vuart_probe(struct ps3_sy
- 	if (result) {
- 		dev_dbg(&dev->core, "%s:%d: drv->probe failed\n",
- 			__func__, __LINE__);
--		down(&vuart_bus_priv.probe_mutex);
- 		goto fail_probe;
+diff -puN arch/ia64/kernel/smpboot.c~ia64-remove-dead-code arch/ia64/kernel/smpboot.c
+--- a/arch/ia64/kernel/smpboot.c~ia64-remove-dead-code
++++ a/arch/ia64/kernel/smpboot.c
+@@ -767,17 +767,6 @@ void __cpu_die(unsigned int cpu)
  	}
+  	printk(KERN_ERR "CPU %u didn't die...\n", cpu);
+ }
+-#else /* !CONFIG_HOTPLUG_CPU */
+-int __cpu_disable(void)
+-{
+-	return -ENOSYS;
+-}
+-
+-void __cpu_die(unsigned int cpu)
+-{
+-	/* We said "no" in __cpu_disable */
+-	BUG();
+-}
+ #endif /* CONFIG_HOTPLUG_CPU */
  
+ void
 _
 
-Patches currently in -mm which might be from dwalker@mvista.com are
+Patches currently in -mm which might be from jbeulich@novell.com are
 
-ps3-vuart-fix-error-path-locking.patch
-git-dvb.patch
-usb-testing-driver-dont-free-a-locked-mutex.patch
+origin.patch
+git-acpi.patch
+ia64-remove-dead-code.patch
+ia64-make-flush_tlb_kernel_range-an-inline-function.patch
+ia64-honor-notify_die-returning-notify_stop.patch
+pci-remove-default-pci-expansion-rom-memory-allocation.patch
 git-x86.patch
-page-allocator-clean-up-pcp-draining-functions-swsusp-fix.patch
-page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
-drivers-char-tty_ioc-remove-pty_sem.patch
-drivers-isdn-i4l-isdn_ttyc-remove-write_sem.patch
-unix98-allocated_ptys_lock-semaphore-to-mutex.patch
-docs-kernel-locking-convert-semaphore-references.patch
-stopmachine-semaphore-to-mutex.patch
-stopmachine-semaphore-to-mutex-fix.patch
-amiga-serial-driver-port_write_mutex-fixup.patch
-isapnp-driver-semaphore-to-mutex.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
+xen-fiddle_vdso-must-be-__init.patch
