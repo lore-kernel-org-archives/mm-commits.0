@@ -1,93 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - mark-rwsem-functions-as-__sched-for-wchan-profiling.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 15:38:41 -0800
-Message-ID: <200712202338.lBKNcfTq018995@imap1.linux-foundation.org>
+Subject: - ecryptfs-set-s_blocksize-from-lower-fs-in-sb.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:36:30 -0800
+Message-ID: <200712202336.lBKNaUvK018807@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41767 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48600 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757173AbXLTXry (ORCPT
+	by vger.kernel.org with ESMTP id S1759152AbXLTXsF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 18:47:54 -0500
+	Thu, 20 Dec 2007 18:48:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: livio@eecg.toronto.edu, mingo@elte.hu, mm-commits@vger.kernel.org
+To: sandeen@redhat.com, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Mark rwsem functions as __sched for wchan/profiling
+     ecryptfs: set s_blocksize from lower fs in sb
 has been removed from the -mm tree.  Its filename was
-     mark-rwsem-functions-as-__sched-for-wchan-profiling.patch
+     ecryptfs-set-s_blocksize-from-lower-fs-in-sb.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Mark rwsem functions as __sched for wchan/profiling
-From: Livio Soares <livio@eecg.toronto.edu>
+Subject: ecryptfs: set s_blocksize from lower fs in sb
+From: Eric Sandeen <sandeen@redhat.com>
 
-This following commit
+eCryptfs wasn't setting s_blocksize in it's superblock; just pick it up
+from the lower FS.  Having an s_blocksize of 0 made things like "filefrag"
+which call FIGETBSZ unhappy.
 
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=fdf8cb0909b531f9ae8f9b9d7e4eb35ba3505f07
-
-un-inlined a low-level rwsem function, but did not mark it as __sched.  The
-result is that it now shows up as thread wchan (which also affects
-/proc/profile stats).  The following simple patch fixes this by properly
-marking rwsem_down_failed_common() as a __sched function.
-
-Also in this patch, which is up for discussion, marks down_read() and
-down_write() proper as __sched.  For profiling, it is pretty much useless
-to know that a semaphore is beig help - it is necessary to know _which_
-one.  By going up another frame on the stack, the information becomes much
-more useful.
-
-In summary, the below change to lib/rwsem.c should be applied; the changes
-to kernel/rwsem.c could be applied if other kernel hackers agree with my
-proposal that down_read()/down_write() in the profile is not enough.
-
-Signed-off-by: Livio Soares <livio@eecg.toronto.edu>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Acked-by: Mike Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/rwsem.c |    4 ++--
- lib/rwsem.c    |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ fs/ecryptfs/main.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/rwsem.c~mark-rwsem-functions-as-__sched-for-wchan-profiling kernel/rwsem.c
---- a/kernel/rwsem.c~mark-rwsem-functions-as-__sched-for-wchan-profiling
-+++ a/kernel/rwsem.c
-@@ -15,7 +15,7 @@
- /*
-  * lock for reading
-  */
--void down_read(struct rw_semaphore *sem)
-+void __sched down_read(struct rw_semaphore *sem)
- {
- 	might_sleep();
- 	rwsem_acquire_read(&sem->dep_map, 0, 0, _RET_IP_);
-@@ -42,7 +42,7 @@ EXPORT_SYMBOL(down_read_trylock);
- /*
-  * lock for writing
-  */
--void down_write(struct rw_semaphore *sem)
-+void __sched down_write(struct rw_semaphore *sem)
- {
- 	might_sleep();
- 	rwsem_acquire(&sem->dep_map, 0, 0, _RET_IP_);
-diff -puN lib/rwsem.c~mark-rwsem-functions-as-__sched-for-wchan-profiling lib/rwsem.c
---- a/lib/rwsem.c~mark-rwsem-functions-as-__sched-for-wchan-profiling
-+++ a/lib/rwsem.c
-@@ -146,7 +146,7 @@ __rwsem_do_wake(struct rw_semaphore *sem
- /*
-  * wait for a lock to be granted
-  */
--static struct rw_semaphore *
-+static struct rw_semaphore __sched *
- rwsem_down_failed_common(struct rw_semaphore *sem,
- 			struct rwsem_waiter *waiter, signed long adjustment)
- {
+diff -puN fs/ecryptfs/main.c~ecryptfs-set-s_blocksize-from-lower-fs-in-sb fs/ecryptfs/main.c
+--- a/fs/ecryptfs/main.c~ecryptfs-set-s_blocksize-from-lower-fs-in-sb
++++ a/fs/ecryptfs/main.c
+@@ -523,6 +523,7 @@ static int ecryptfs_read_super(struct su
+ 	lower_mnt = nd.mnt;
+ 	ecryptfs_set_superblock_lower(sb, lower_root->d_sb);
+ 	sb->s_maxbytes = lower_root->d_sb->s_maxbytes;
++	sb->s_blocksize = lower_root->d_sb->s_blocksize;
+ 	ecryptfs_set_dentry_lower(sb->s_root, lower_root);
+ 	ecryptfs_set_dentry_lower_mnt(sb->s_root, lower_mnt);
+ 	rc = ecryptfs_interpose(lower_root, sb->s_root, sb, 0);
 _
 
-Patches currently in -mm which might be from livio@eecg.toronto.edu are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
 origin.patch
+ecryptfs-fix-string-overflow-on-long-cipher-names.patch
+ecryptfs-fix-unlocking-in-error-paths.patch
+ecryptfs-redo-dgetmntget-on-dentry_open-failure.patch
+hfs-handle-more-on-disk-corruptions-without-oopsing.patch
+ext2-change-the-default-behaviour-on-error.patch
+ecryptfs-make-show_options-reflect-actual-mount-options.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+ecryptfs-remove-debug-as-mount-option-and-warn-if-set-via-modprobe.patch
+ext3-change-the-default-behaviour-on-error.patch
