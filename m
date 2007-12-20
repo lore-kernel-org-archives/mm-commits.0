@@ -1,52 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 15:30:51 -0800
-Message-ID: <200712202330.lBKNUpYh018564__40939.4204420552$1198193533$gmane$org@imap1.linux-foundation.org>
+Subject: - fix-headers_install.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:35:34 -0800
+Message-ID: <200712202335.lBKNZYC0018735@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33199 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53948 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750743AbXLTXbd (ORCPT
+	by vger.kernel.org with ESMTP id S1752941AbXLTXfm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 18:31:33 -0500
+	Thu, 20 Dec 2007 18:35:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, gregkh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix
+     fix headers_install
 has been removed from the -mm tree.  Its filename was
-     ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix.patch
+     fix-headers_install.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix
+Subject: fix headers_install
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: <linux-ext4@vger.kernel.org>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+make[3]: *** No rule to make target `/usr/src/devel/include/linux/ticable.h', needed by `/usr/src/devel/usr/include/linux/ticable.h'.  Stop.
+
+Greg Kroah-Hartman <gregkh@suse.de>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/extents.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/Kbuild |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/ext4/extents.c~ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix fs/ext4/extents.c
---- a/fs/ext4/extents.c~ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix
-+++ a/fs/ext4/extents.c
-@@ -2631,8 +2631,8 @@ retry:
- 		WARN_ON(ret <= 0);
- 		if (ret <= 0) {
- 			ext4_error(inode->i_sb, "ext4_fallocate",
--				   "ext4_ext_get_blocks returned 0! inode#%lu"
--				   ", block=%lu, max_blocks=%lu",
-+				   "ext4_ext_get_blocks returned error: "
-+				    "inode#%lu, block=%lu, max_blocks=%lu",
- 				   inode->i_ino, (unsigned long)block,
- 				   (unsigned long)max_blocks);
- 			ret = -EIO;
+diff -puN include/linux/Kbuild~fix-headers_install include/linux/Kbuild
+--- a/include/linux/Kbuild~fix-headers_install
++++ a/include/linux/Kbuild
+@@ -145,7 +145,6 @@ header-y += sound.h
+ header-y += taskstats.h
+ header-y += telephony.h
+ header-y += termios.h
+-header-y += ticable.h
+ header-y += times.h
+ header-y += tiocl.h
+ header-y += tipc.h
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -190,7 +189,6 @@ logo-move-declarations-of-logos-to-linux_logoh-fix.patch
 declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
 isapnp-driver-semaphore-to-mutex-fix.patch
 isapnp-driver-semaphore-to-mutex-fix-fix.patch
-ext4-check-for-the-correct-error-return-from-ext4_ext_get_blocks-fix.patch
 kill-filp_open-checkpatch-fixes.patch
 rename-open_namei-to-open_pathname-fix.patch
 r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
