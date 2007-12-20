@@ -1,66 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - x86-fix-show-cpuinfo-cpu-number-always-zero.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 15:38:39 -0800
-Message-ID: <200712202338.lBKNcds6018991@imap1.linux-foundation.org>
+Subject: - powerpc-add-support-for-porta-and-portb-odr-registers.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:37:12 -0800
+Message-ID: <200712202337.lBKNbCss018869@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55071 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48166 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756649AbXLTXse (ORCPT
+	by vger.kernel.org with ESMTP id S1750920AbXLTXsq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 18:48:34 -0500
+	Thu, 20 Dec 2007 18:48:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: travis@sgi.com, ak@suse.de, clameter@sgi.com, mingo@elte.hu, steiner@sgi.com, suresh.b.siddha@intel.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: jochen@scram.de, benh@kernel.crashing.org, galak@gate.crashing.org, paulus@samba.org, scottwood@freescale.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: fix show cpuinfo cpu number always zero
+     powerpc: add support for PORTA and PORTB odr registers
 has been removed from the -mm tree.  Its filename was
-     x86-fix-show-cpuinfo-cpu-number-always-zero.patch
+     powerpc-add-support-for-porta-and-portb-odr-registers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86: fix show cpuinfo cpu number always zero
-From: Mike Travis <travis@sgi.com>
+Subject: powerpc: add support for PORTA and PORTB odr registers
+From: Jochen Friedrich <jochen@scram.de>
 
-Correct the problem that early_identify_cpu() sets cpu_index to '0' (needed
-when called by setup_arch) after smp_store_cpu_info() had set it to the
-correct value.
+PORTA and PORTB have odr registers, as well. However, the PORTB odr
+register is only 16bit.
 
-The error shows up in 'cat /proc/cpuinfo' will all cpus = 0.
-
-Signed-off-by: Mike Travis <travis@sgi.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Jack Steiner <steiner@sgi.com>
-Cc: Suresh B Siddha <suresh.b.siddha@intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Jochen Friedrich <jochen@scram.de>
+Acked-by: Scott Wood <scottwood@freescale.com>
+Cc: Kumar Gala <galak@gate.crashing.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/smpboot_64.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/powerpc/sysdev/commproc.c |   19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/kernel/smpboot_64.c~x86-fix-show-cpuinfo-cpu-number-always-zero arch/x86/kernel/smpboot_64.c
---- a/arch/x86/kernel/smpboot_64.c~x86-fix-show-cpuinfo-cpu-number-always-zero
-+++ a/arch/x86/kernel/smpboot_64.c
-@@ -139,8 +139,8 @@ static void __cpuinit smp_store_cpu_info
- 	struct cpuinfo_x86 *c = &cpu_data(id);
+diff -puN arch/powerpc/sysdev/commproc.c~powerpc-add-support-for-porta-and-portb-odr-registers arch/powerpc/sysdev/commproc.c
+--- a/arch/powerpc/sysdev/commproc.c~powerpc-add-support-for-porta-and-portb-odr-registers
++++ a/arch/powerpc/sysdev/commproc.c
+@@ -408,7 +408,7 @@ EXPORT_SYMBOL(cpm_dpram_phys);
+ #endif /* !CONFIG_PPC_CPM_NEW_BINDING */
  
- 	*c = boot_cpu_data;
--	c->cpu_index = id;
- 	identify_cpu(c);
-+	c->cpu_index = id;
- 	print_cpu_info(c);
+ struct cpm_ioport16 {
+-	__be16 dir, par, sor, dat, intr;
++	__be16 dir, par, odr_sor, dat, intr;
+ 	__be16 res[3];
+ };
+ 
+@@ -438,6 +438,13 @@ static void cpm1_set_pin32(int port, int
+ 	else
+ 		clrbits32(&iop->par, pin);
+ 
++	if (port == CPM_PORTB) {
++		if (flags & CPM_PIN_OPENDRAIN)
++			setbits16(&mpc8xx_immr->im_cpm.cp_pbodr, pin);
++		else
++			clrbits16(&mpc8xx_immr->im_cpm.cp_pbodr, pin);
++	}
++
+ 	if (port == CPM_PORTE) {
+ 		if (flags & CPM_PIN_SECONDARY)
+ 			setbits32(&iop->sor, pin);
+@@ -471,11 +478,17 @@ static void cpm1_set_pin16(int port, int
+ 	else
+ 		clrbits16(&iop->par, pin);
+ 
++	if (port == CPM_PORTA) {
++		if (flags & CPM_PIN_OPENDRAIN)
++			setbits16(&iop->odr_sor, pin);
++		else
++			clrbits16(&iop->odr_sor, pin);
++	}
+ 	if (port == CPM_PORTC) {
+ 		if (flags & CPM_PIN_SECONDARY)
+-			setbits16(&iop->sor, pin);
++			setbits16(&iop->odr_sor, pin);
+ 		else
+-			clrbits16(&iop->sor, pin);
++			clrbits16(&iop->odr_sor, pin);
+ 	}
  }
  
 _
 
-Patches currently in -mm which might be from travis@sgi.com are
+Patches currently in -mm which might be from jochen@scram.de are
 
 origin.patch
-git-x86.patch
-vmstat-remove-prefetch.patch
+git-powerpc.patch
+powerpc-add-fixed-phy-support-for-fs_enet.patch
+dio-fix-kernel-doc-notation.patch
