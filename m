@@ -1,331 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - revert-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 15:35:37 -0800
-Message-ID: <200712202335.lBKNZbdr018738@imap1.linux-foundation.org>
+Subject: - ecryptfs-initialize-new-auth_tokens-before-teardown.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:35:54 -0800
+Message-ID: <200712202335.lBKNZstM018755@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59933 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41766 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753692AbXLTXg2 (ORCPT
+	by vger.kernel.org with ESMTP id S1753843AbXLTXgg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 18:36:28 -0500
+	Thu, 20 Dec 2007 18:36:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, mingo@elte.hu, pavel@ucw.cz, rjw@sisk.pl, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: sandeen@redhat.com, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert "Hibernation: Use temporary page tables for kernel text mapping on x86_64"
+     ecryptfs: initialize new auth_tokens before teardown
 has been removed from the -mm tree.  Its filename was
-     revert-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch
+     ecryptfs-initialize-new-auth_tokens-before-teardown.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: revert "Hibernation: Use temporary page tables for kernel text mapping on x86_64"
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ecryptfs: initialize new auth_tokens before teardown
+From: Eric Sandeen <sandeen@redhat.com>
 
-Revert
+ecryptfs_destroy_mount_crypt_stat() checks whether each
+auth_tok->global_auth_tok_key is nonzero and if so puts that key.  However,
+in some early mount error paths nothing has initialized the pointer, and we
+try to key_put() garbage.  Running the bad cipher tests in the testsuite
+exposes this, and it's happy with the following change.
 
-    Commit: efa4d2fb047b25a6be67fe92178a2a78da6b3f6a
-
-        Hibernation: Use temporary page tables for kernel text mapping on x86_64
-
-Because it causes my t61p to reboot right at the end of resume-from-disk. 
-For reasons unknown at this time.
-
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Acked-by: "Rafael J. Wysocki" <rjw@sisk.pl>
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/suspend_64.c |   39 +++++----------------------------
- 1 file changed, 6 insertions(+), 33 deletions(-)
+ fs/ecryptfs/keystore.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/suspend_64.c~revert-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64 arch/x86/kernel/suspend_64.c
---- a/arch/x86/kernel/suspend_64.c~revert-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64
-+++ a/arch/x86/kernel/suspend_64.c
-@@ -192,42 +192,25 @@ static int res_phys_pud_init(pud_t *pud,
- 	return 0;
- }
+diff -puN fs/ecryptfs/keystore.c~ecryptfs-initialize-new-auth_tokens-before-teardown fs/ecryptfs/keystore.c
+--- a/fs/ecryptfs/keystore.c~ecryptfs-initialize-new-auth_tokens-before-teardown
++++ a/fs/ecryptfs/keystore.c
+@@ -1860,7 +1860,7 @@ ecryptfs_add_global_auth_tok(struct ecry
+ 	struct ecryptfs_global_auth_tok *new_auth_tok;
+ 	int rc = 0;
  
--static int res_kernel_text_pud_init(pud_t *pud, unsigned long start)
--{
--	pmd_t *pmd;
--	unsigned long paddr;
--
--	pmd = (pmd_t *)get_safe_page(GFP_ATOMIC);
--	if (!pmd)
--		return -ENOMEM;
--	set_pud(pud + pud_index(start), __pud(__pa(pmd) | _KERNPG_TABLE));
--	for (paddr = 0; paddr < KERNEL_TEXT_SIZE; pmd++, paddr += PMD_SIZE) {
--		unsigned long pe;
--
--		pe = __PAGE_KERNEL_LARGE_EXEC | _PAGE_GLOBAL | paddr;
--		pe &= __supported_pte_mask;
--		set_pmd(pmd, __pmd(pe));
--	}
--
--	return 0;
--}
--
- static int set_up_temporary_mappings(void)
- {
- 	unsigned long start, end, next;
--	pud_t *pud;
- 	int error;
- 
- 	temp_level4_pgt = (pgd_t *)get_safe_page(GFP_ATOMIC);
- 	if (!temp_level4_pgt)
- 		return -ENOMEM;
- 
-+	/* It is safe to reuse the original kernel mapping */
-+	set_pgd(temp_level4_pgt + pgd_index(__START_KERNEL_map),
-+		init_level4_pgt[pgd_index(__START_KERNEL_map)]);
-+
- 	/* Set up the direct mapping from scratch */
- 	start = (unsigned long)pfn_to_kaddr(0);
- 	end = (unsigned long)pfn_to_kaddr(end_pfn);
- 
- 	for (; start < end; start = next) {
--		pud = (pud_t *)get_safe_page(GFP_ATOMIC);
-+		pud_t *pud = (pud_t *)get_safe_page(GFP_ATOMIC);
- 		if (!pud)
- 			return -ENOMEM;
- 		next = start + PGDIR_SIZE;
-@@ -238,17 +221,7 @@ static int set_up_temporary_mappings(voi
- 		set_pgd(temp_level4_pgt + pgd_index(start),
- 			mk_kernel_pgd(__pa(pud)));
- 	}
--
--	/* Set up the kernel text mapping from scratch */
--	pud = (pud_t *)get_safe_page(GFP_ATOMIC);
--	if (!pud)
--		return -ENOMEM;
--	error = res_kernel_text_pud_init(pud, __START_KERNEL_map);
--	if (!error)
--		set_pgd(temp_level4_pgt + pgd_index(__START_KERNEL_map),
--			__pgd(__pa(pud) | _PAGE_TABLE));
--
--	return error;
-+	return 0;
- }
- 
- int swsusp_arch_resume(void)
+-	new_auth_tok = kmem_cache_alloc(ecryptfs_global_auth_tok_cache,
++	new_auth_tok = kmem_cache_zalloc(ecryptfs_global_auth_tok_cache,
+ 					GFP_KERNEL);
+ 	if (!new_auth_tok) {
+ 		rc = -ENOMEM;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
 origin.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-timerfd-v3-new-timerfd-api-ia64-fix.patch
-timerfd-v3-new-timerfd-api-m68k-fix.patch
-timerfd-v3-new-timerfd-api-mips-fix.patch
-timerfd-v3-new-timerfd-api-arch-fixes.patch
-timerfd-v3-new-timerfd-api-powerpc-fix.patch
-timerfd-v3-new-timerfd-api-sparc64-fix.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-kernel-auditc-warning-fix.patch
-git-cpufreq.patch
-git-powerpc.patch
-revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-git-drm.patch
-intel-agp-enable-i915-recognition.patch
-git-dvb.patch
-git-dvb-one-videobuf_read_start-is-enough.patch
-fix-jdelvare-i2c-i2c-constify-client-address-data.patch
-git-hid.patch
-revert-git-hrt.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-kvm.patch
-git-libata-all.patch
-libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
-libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
-libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
-git-md-accel.patch
-git-mmc.patch
-git-mtd.patch
-git-net.patch
-git-net-vs-git-lblnet.patch
-git-net-vs-git-lblnet-2.patch
-git-netdev-all.patch
-git-net-vs-git-netdev-all.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-backlight-omap1-backlight-driver.patch
-git-battery.patch
-bluetooth-uninlining.patch
-git-nfsd.patch
-quirk-enable-msi-mapping-on-ht1000.patch
-git-sched.patch
-git-sched-fixup.patch
-git-sched-fixup-2.patch
-git-sh.patch
-git-scsi-misc.patch
-scsi-aic94xx-cleanups-checkpatch-fixes.patch
-scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-usb-testing-driver-dont-free-a-locked-mutex.patch
-ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
-9p-util-fix-semaphore-handling.patch
-git-watchdog.patch
-git-watchdog-fixup.patch
-add-support-for-sb1-hardware-watchdog.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-x86-fixup.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-i386-use-raw_smp_processor_id-in-die.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-git-xtensa.patch
-git-kgdb-fixup.patch
-bonding-locking-fix.patch
-usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
-kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
-stopmachine-semaphore-to-mutex-fix.patch
-parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
-sync_sb_inodes-propagate-errors.patch
-add-have_oprofile.patch
+ecryptfs-fix-string-overflow-on-long-cipher-names.patch
+ecryptfs-fix-unlocking-in-error-paths.patch
+ecryptfs-redo-dgetmntget-on-dentry_open-failure.patch
+hfs-handle-more-on-disk-corruptions-without-oopsing.patch
+ext2-change-the-default-behaviour-on-error.patch
+ecryptfs-make-show_options-reflect-actual-mount-options.patch
 ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-rtc-add-support-for-the-s-35390a-rtc-chip-fix.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-logo-move-declarations-of-logos-to-linux_logoh-fix.patch
-declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-pid-sys_wait-fixes-v2-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-rewrite-rd-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+ecryptfs-remove-debug-as-mount-option-and-warn-if-set-via-modprobe.patch
+ext3-change-the-default-behaviour-on-error.patch
