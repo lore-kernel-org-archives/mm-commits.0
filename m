@@ -1,80 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - cpufreq-fix-missing-unlocks-in-cpufreq_add_dev-error-paths.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 15:36:09 -0800
-Message-ID: <200712202336.lBKNa9Ne018783@imap1.linux-foundation.org>
+Subject: - drivers-macintosh-via-pmuc-added-a-missing-iounmap.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:36:17 -0800
+Message-ID: <200712202336.lBKNaHTu018795@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55219 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50785 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753962AbXLTXhA (ORCPT
+	by vger.kernel.org with ESMTP id S1753976AbXLTXhO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 18:37:00 -0500
+	Thu, 20 Dec 2007 18:37:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davej@redhat.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: julia@diku.dk, benh@kernel.crashing.org, johannes@sipsolutions.net, olaf@aepfle.de, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpufreq: fix missing unlocks in cpufreq_add_dev error paths.
+     drivers/macintosh/via-pmu.c: Added a missing iounmap
 has been removed from the -mm tree.  Its filename was
-     cpufreq-fix-missing-unlocks-in-cpufreq_add_dev-error-paths.patch
+     drivers-macintosh-via-pmuc-added-a-missing-iounmap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cpufreq: fix missing unlocks in cpufreq_add_dev error paths.
-From: Dave Jones <davej@redhat.com>
+Subject: drivers/macintosh/via-pmu.c: Added a missing iounmap
+From: Julia Lawall <julia@diku.dk>
 
-Ingo hit some BUG_ONs that were probably caused by these missing unlocks
-causing an unbalance.  He couldn't reproduce the bug reliably, so it's
-unknown that it's definitly fixing the problem he hit, but it's a fairly
-good chance, and this fixes an obvious bug.
+The error handling code should undo the ioremap as well.
 
-Signed-off-by: Dave Jones <davej@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+The problem was detected using the following semantic match
+(http://www.emn.fr/x-info/coccinelle/)
+
+// <smpl>
+@@
+type T,T1,T2;
+identifier E;
+statement S;
+expression x1,x2;
+constant C;
+int ret;
+@@
+
+  T E;
+  ...
+* E = ioremap(...);
+  if (E == NULL) S
+  ... when != iounmap(E)
+      when != if (E != NULL) { ... iounmap(E); ...}
+      when != x1 = (T1)E
+  if (...) {
+    ... when != iounmap(E)
+        when != if (E != NULL) { ... iounmap(E); ...}
+        when != x2 = (T2)E
+(
+*   return;
+|
+*   return C;
+|
+*   return ret;
+)
+  }
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: Olaf Hering <olaf@aepfle.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpufreq/cpufreq.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ drivers/macintosh/via-pmu.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/cpufreq/cpufreq.c~cpufreq-fix-missing-unlocks-in-cpufreq_add_dev-error-paths drivers/cpufreq/cpufreq.c
---- a/drivers/cpufreq/cpufreq.c~cpufreq-fix-missing-unlocks-in-cpufreq_add_dev-error-paths
-+++ a/drivers/cpufreq/cpufreq.c
-@@ -841,19 +841,25 @@ static int cpufreq_add_dev (struct sys_d
- 	drv_attr = cpufreq_driver->attr;
- 	while ((drv_attr) && (*drv_attr)) {
- 		ret = sysfs_create_file(&policy->kobj, &((*drv_attr)->attr));
--		if (ret)
-+		if (ret) {
-+			unlock_policy_rwsem_write(cpu);
- 			goto err_out_driver_exit;
-+		}
- 		drv_attr++;
+diff -puN drivers/macintosh/via-pmu.c~drivers-macintosh-via-pmuc-added-a-missing-iounmap drivers/macintosh/via-pmu.c
+--- a/drivers/macintosh/via-pmu.c~drivers-macintosh-via-pmuc-added-a-missing-iounmap
++++ a/drivers/macintosh/via-pmu.c
+@@ -2336,6 +2336,7 @@ powerbook_sleep_3400(void)
+ 	ret = pmac_suspend_devices();
+ 	if (ret) {
+ 		pbook_free_pci_save();
++		iounmap(mem_ctrl);
+ 		printk(KERN_ERR "Sleep rejected by devices\n");
+ 		return ret;
  	}
- 	if (cpufreq_driver->get){
- 		ret = sysfs_create_file(&policy->kobj, &cpuinfo_cur_freq.attr);
--		if (ret)
-+		if (ret) {
-+			unlock_policy_rwsem_write(cpu);
- 			goto err_out_driver_exit;
-+		}
- 	}
- 	if (cpufreq_driver->target){
- 		ret = sysfs_create_file(&policy->kobj, &scaling_cur_freq.attr);
--		if (ret)
-+		if (ret) {
-+			unlock_policy_rwsem_write(cpu);
- 			goto err_out_driver_exit;
-+		}
- 	}
- 
- 	spin_lock_irqsave(&cpufreq_driver_lock, flags);
 _
 
-Patches currently in -mm which might be from davej@redhat.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
-git-cpufreq.patch
-git-x86.patch
-via-rng-enable-secondary-noise-source-on-cpus-where-it-is-present.patch
+git-alsa.patch
+git-agpgart.patch
+git-powerpc.patch
+git-input.patch
+arch-cris-added-a-missing-iounmap.patch
+drivers-video-remove-unnecessary-pci_dev_put.patch
