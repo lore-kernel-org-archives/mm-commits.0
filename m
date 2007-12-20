@@ -1,59 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - fs-kconfig-grammar-fix.patch removed from -mm tree
-Date: Thu, 20 Dec 2007 15:36:01 -0800
-Message-ID: <200712202336.lBKNa1uR018768@imap1.linux-foundation.org>
+Subject: - rtc-at32ap700x-fix-irq-init-oops.patch removed from -mm tree
+Date: Thu, 20 Dec 2007 15:35:49 -0800
+Message-ID: <200712202335.lBKNZn3V018747@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47678 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57135 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753083AbXLTXgS (ORCPT
+	by vger.kernel.org with ESMTP id S1753083AbXLTXgT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 18:36:18 -0500
+	Thu, 20 Dec 2007 18:36:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Uwe.Kleine-Koenig@digi.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, a.zummo@towertech.it, dbrownell@users.sourceforge.net, hcegtvedt@atmel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/Kconfig: grammar fix
+     rtc-at32ap700x: fix irq init oops
 has been removed from the -mm tree.  Its filename was
-     fs-kconfig-grammar-fix.patch
+     rtc-at32ap700x-fix-irq-init-oops.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fs/Kconfig: grammar fix
-=46rom: Uwe Kleine-K=C3=B6nig <Uwe.Kleine-Koenig@digi.com>
+Subject: rtc-at32ap700x: fix irq init oops
+From: David Brownell <david-b@pacbell.net>
 
-This was introduced in 4af8e944c22d8af92a7548354a9567250cc1a782
+Reorder at32_rtc_probe() so that it's safe (no oopsing) to fire the
+IRQ handler the instant that it's registered.  (Bug noted via "Debug
+shared IRQ handlers" kernel debug option.)
 
-Signed-off-by: Uwe Kleine-K=C3=B6nig <Uwe.Kleine-Koenig@digi.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: <hcegtvedt@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-at32ap700x.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN fs/Kconfig~fs-kconfig-grammar-fix fs/Kconfig
---- a/fs/Kconfig~fs-kconfig-grammar-fix
-+++ a/fs/Kconfig
-@@ -1305,7 +1305,7 @@ config JFFS2_COMPRESSION_OPTIONS
- 	help
- 	  Enabling this option allows you to explicitly choose which
- 	  compression modules, if any, are enabled in JFFS2. Removing
--	  compressors and mean you cannot read existing file systems,
-+	  compressors can mean you cannot read existing file systems,
- 	  and enabling experimental compressors can mean that you
- 	  write a file system which cannot be read by a standard kernel.
-=20
+diff -puN drivers/rtc/rtc-at32ap700x.c~rtc-at32ap700x-fix-irq-init-oops drivers/rtc/rtc-at32ap700x.c
+--- a/drivers/rtc/rtc-at32ap700x.c~rtc-at32ap700x-fix-irq-init-oops
++++ a/drivers/rtc/rtc-at32ap700x.c
+@@ -225,18 +225,12 @@ static int __init at32_rtc_probe(struct 
+ 		goto out;
+ 	}
+ 
+-	ret = request_irq(irq, at32_rtc_interrupt, IRQF_SHARED, "rtc", rtc);
+-	if (ret) {
+-		dev_dbg(&pdev->dev, "could not request irq %d\n", irq);
+-		goto out;
+-	}
+-
+ 	rtc->irq = irq;
+ 	rtc->regs = ioremap(regs->start, regs->end - regs->start + 1);
+ 	if (!rtc->regs) {
+ 		ret = -ENOMEM;
+ 		dev_dbg(&pdev->dev, "could not map I/O memory\n");
+-		goto out_free_irq;
++		goto out;
+ 	}
+ 	spin_lock_init(&rtc->lock);
+ 
+@@ -253,12 +247,18 @@ static int __init at32_rtc_probe(struct 
+ 				| RTC_BIT(CTRL_EN));
+ 	}
+ 
++	ret = request_irq(irq, at32_rtc_interrupt, IRQF_SHARED, "rtc", rtc);
++	if (ret) {
++		dev_dbg(&pdev->dev, "could not request irq %d\n", irq);
++		goto out_iounmap;
++	}
++
+ 	rtc->rtc = rtc_device_register(pdev->name, &pdev->dev,
+ 				&at32_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(rtc->rtc)) {
+ 		dev_dbg(&pdev->dev, "could not register rtc device\n");
+ 		ret = PTR_ERR(rtc->rtc);
+-		goto out_iounmap;
++		goto out_free_irq;
+ 	}
+ 
+ 	platform_set_drvdata(pdev, rtc);
+@@ -268,10 +268,10 @@ static int __init at32_rtc_probe(struct 
+ 
+ 	return 0;
+ 
+-out_iounmap:
+-	iounmap(rtc->regs);
+ out_free_irq:
+ 	free_irq(irq, rtc);
++out_iounmap:
++	iounmap(rtc->regs);
+ out:
+ 	kfree(rtc);
+ 	return ret;
 _
 
-Patches currently in -mm which might be from Uwe.Kleine-Koenig@digi.com=
- are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
+rtc-dont-write-rtc-century-when-setting-a-wake-alarm.patch
+git-arm.patch
+git-input.patch
+git-mmc.patch
+git-mtd.patch
+pcmcia-stop-updating-dev-powerpower_state.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+remove-pointless-casts-from-void-pointers.patch
+spi-core-stop-updating-dev-powerpower_state.patch
+cosmetic-fixes-to-rtc-subsystems-kconfig.patch
+rtc-pcf8583-dont-abuse-i2c_m_nostart.patch
+rtc-s3c-use-is_power_of_2-macro-for-simplicity.patch
+rtc-cmos-exports-nvram-in-sysfs.patch
+rtc-cmos-alarm-acts-as-oneshot.patch
+platform-real-time-clock-driver-for-dallas-1511-chip.patch
+rtc-add-support-for-the-s-35390a-rtc-chip.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-fix.patch
+generic-gpio-gpio_chip-support.patch
+generic-gpio-gpio_chip-support-fix.patch
+generic-gpio-gpio_chip-support-gpiolib-locking-simplified.patch
+avr32-uses-gpio_chip.patch
+mcp23s08-spi-gpio-expander.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+arm-pxa-gpiolib-support-make-pxa_gpio_chip-static.patch
