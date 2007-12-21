@@ -1,107 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: - belkin_sa-clean-up-for-new-style-termios-and-speed.patch removed from -mm tree
-Date: Fri, 21 Dec 2007 14:08:28 -0800
-Message-ID: <200712212208.lBLM8Stt001714@imap1.linux-foundation.org>
+Subject: - mct232-speed-new-termios-and-compliance-cleanups.patch removed from -mm tree
+Date: Fri, 21 Dec 2007 14:08:37 -0800
+Message-ID: <200712212208.lBLM8b7V001720@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41779 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57173 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756544AbXLUWJt (ORCPT
+	by vger.kernel.org with ESMTP id S1756555AbXLUWKB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Dec 2007 17:09:49 -0500
+	Fri, 21 Dec 2007 17:10:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com, zaitcev@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     belkin_sa: clean up for new style termios and speed  handling, plus style
+     mct232: speed, new termios and compliance cleanups
 has been removed from the -mm tree.  Its filename was
-     belkin_sa-clean-up-for-new-style-termios-and-speed.patch
+     mct232-speed-new-termios-and-compliance-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: belkin_sa: clean up for new style termios and speed  handling, plus style
+Subject: mct232: speed, new termios and compliance cleanups
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-A tester with actual hardware would be useful
-
 Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Pete Zaitcev <zaitcev@redhat.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/belkin_sa.c |   35 +++++++++++++------------------
- 1 file changed, 15 insertions(+), 20 deletions(-)
+ drivers/usb/serial/mct_u232.c |   26 +++++++++++++++++---------
+ drivers/usb/serial/mct_u232.h |    2 +-
+ 2 files changed, 18 insertions(+), 10 deletions(-)
 
-diff -puN drivers/usb/serial/belkin_sa.c~belkin_sa-clean-up-for-new-style-termios-and-speed drivers/usb/serial/belkin_sa.c
---- a/drivers/usb/serial/belkin_sa.c~belkin_sa-clean-up-for-new-style-termios-and-speed
-+++ a/drivers/usb/serial/belkin_sa.c
-@@ -350,14 +350,12 @@ static void belkin_sa_set_termios (struc
- 	unsigned long control_state;
- 	int bad_flow_control;
- 	speed_t baud;
-+	struct ktermios *termios = port->tty->termios;
- 	
--	if ((!port->tty) || (!port->tty->termios)) {
--		dbg ("%s - no tty or termios structure", __FUNCTION__);
--		return;
--	}
-+	iflag = termios->c_iflag;
-+	cflag = termios->c_cflag;
- 
--	iflag = port->tty->termios->c_iflag;
--	cflag = port->tty->termios->c_cflag;
-+	termios->c_cflag &= ~CMSPAR;
- 
- 	/* get a local copy of the current port settings */
- 	spin_lock_irqsave(&priv->lock, flags);
-@@ -369,33 +367,30 @@ static void belkin_sa_set_termios (struc
- 	old_cflag = old_termios->c_cflag;
- 
- 	/* Set the baud rate */
--	if( (cflag&CBAUD) != (old_cflag&CBAUD) ) {
-+	if ((cflag & CBAUD) != (old_cflag & CBAUD)) {
- 		/* reassert DTR and (maybe) RTS on transition from B0 */
- 		if( (old_cflag&CBAUD) == B0 ) {
- 			control_state |= (TIOCM_DTR|TIOCM_RTS);
- 			if (BSA_USB_CMD(BELKIN_SA_SET_DTR_REQUEST, 1) < 0)
- 				err("Set DTR error");
- 			/* don't set RTS if using hardware flow control */
--			if (!(old_cflag&CRTSCTS) )
-+			if (!(old_cflag & CRTSCTS))
- 				if (BSA_USB_CMD(BELKIN_SA_SET_RTS_REQUEST, 1) < 0)
- 					err("Set RTS error");
+diff -puN drivers/usb/serial/mct_u232.c~mct232-speed-new-termios-and-compliance-cleanups drivers/usb/serial/mct_u232.c
+--- a/drivers/usb/serial/mct_u232.c~mct232-speed-new-termios-and-compliance-cleanups
++++ a/drivers/usb/serial/mct_u232.c
+@@ -182,10 +182,11 @@ struct mct_u232_private {
+ /*
+  * Later day 2.6.0-test kernels have new baud rates like B230400 which
+  * we do not know how to support. We ignore them for the moment.
+- * XXX Rate-limit the error message, it's user triggerable.
+  */
+-static int mct_u232_calculate_baud_rate(struct usb_serial *serial, speed_t value)
++static int mct_u232_calculate_baud_rate(struct usb_serial *serial, speed_t value, speed_t *result)
+ {
++	*result = value;
++
+ 	if (le16_to_cpu(serial->dev->descriptor.idProduct) == MCT_U232_SITECOM_PID
+ 	  || le16_to_cpu(serial->dev->descriptor.idProduct) == MCT_U232_BELKIN_F5U109_PID) {
+ 		switch (value) {
+@@ -200,11 +201,13 @@ static int mct_u232_calculate_baud_rate(
+ 		case  57600: return 0x0b;
+ 		case 115200: return 0x0c;
+ 		default:
+-			err("MCT USB-RS232: unsupported baudrate request 0x%x,"
+-			    " using default of B9600", value);
++			*result = 9600;
+ 			return 0x08;
  		}
+ 	} else {
++		/* FIXME: Can we use any divider - should we do
++		   divider = 115200/value;
++		   real baud = 115200/divider */
+ 		switch (value) {
+ 		case 300: break;
+ 		case 600: break;
+@@ -217,9 +220,8 @@ static int mct_u232_calculate_baud_rate(
+ 		case 57600: break;
+ 		case 115200: break;
+ 		default:
+-			err("MCT USB-RS232: unsupported baudrate request 0x%x,"
+-			    " using default of B9600", value);
+ 			value = 9600;
++			*result = 9600;
+ 		}
+ 		return 115200/value;
+ 	}
+@@ -232,16 +234,19 @@ static int mct_u232_set_baud_rate(struct
+         int rc;
+         unsigned char zero_byte = 0;
+         unsigned char cts_enable_byte = 0;
++        speed_t speed;
+ 
+-	divisor = cpu_to_le32(mct_u232_calculate_baud_rate(serial, value));
++	divisor = cpu_to_le32(mct_u232_calculate_baud_rate(serial, value, &speed));
+ 
+         rc = usb_control_msg(serial->dev, usb_sndctrlpipe(serial->dev, 0),
+                              MCT_U232_SET_BAUD_RATE_REQUEST,
+ 			     MCT_U232_SET_REQUEST_TYPE,
+                              0, 0, &divisor, MCT_U232_SET_BAUD_RATE_SIZE,
+ 			     WDR_TIMEOUT);
+-	if (rc < 0)
++	if (rc < 0)	/*FIXME: What value speed results */
+ 		err("Set BAUD RATE %d failed (error = %d)", value, rc);
++	else
++		tty_encode_baud_rate(port->tty, speed, speed);
+ 	dbg("set_baud_rate: value: 0x%x, divisor: 0x%x", value, divisor);
+ 
+ 	/* Mimic the MCT-supplied Windows driver (version 1.21P.0104), which
+@@ -608,7 +613,8 @@ static void mct_u232_set_termios (struct
+ {
+ 	struct usb_serial *serial = port->serial;
+ 	struct mct_u232_private *priv = usb_get_serial_port_data(port);
+-	unsigned int cflag = port->tty->termios->c_cflag;
++	struct ktermios *termios = port->tty->termios;
++	unsigned int cflag = termios->c_cflag;
+ 	unsigned int old_cflag = old_termios->c_cflag;
+ 	unsigned long flags;
+ 	unsigned int control_state;
+@@ -670,6 +676,8 @@ static void mct_u232_set_termios (struct
+ 		break;
  	}
  
- 	baud = tty_get_baud_rate(port->tty);
--	if (baud == 0) {
--		dbg("%s - tty_get_baud_rate says 0 baud", __FUNCTION__);
--		return;
--	}
--	urb_value = BELKIN_SA_BAUD(baud);
--	/* Clip to maximum speed */
--	if (urb_value == 0)
--		urb_value = 1;
--	/* Turn it back into a resulting real baud rate */
--	baud = BELKIN_SA_BAUD(urb_value);
--	/* FIXME: Once the tty updates are done then push this back to the tty */
-+	if (baud) {
-+		urb_value = BELKIN_SA_BAUD(baud);
-+		/* Clip to maximum speed */
-+		if (urb_value == 0)
-+			urb_value = 1;
-+		/* Turn it back into a resulting real baud rate */
-+		baud = BELKIN_SA_BAUD(urb_value);
++	termios->c_cflag &= ~CMSPAR;
++
+ 	/* set the number of stop bits */
+ 	last_lcr |= (cflag & CSTOPB) ?
+ 		MCT_U232_STOP_BITS_2 : MCT_U232_STOP_BITS_1;
+diff -puN drivers/usb/serial/mct_u232.h~mct232-speed-new-termios-and-compliance-cleanups drivers/usb/serial/mct_u232.h
+--- a/drivers/usb/serial/mct_u232.h~mct232-speed-new-termios-and-compliance-cleanups
++++ a/drivers/usb/serial/mct_u232.h
+@@ -79,7 +79,7 @@
+  * and "Intel solution". They are the regular MCT and "Sitecom" for us.
+  * This is pointless to document in the header, see the code for the bits.
+  */
+-static int mct_u232_calculate_baud_rate(struct usb_serial *serial, speed_t value);
++static int mct_u232_calculate_baud_rate(struct usb_serial *serial, speed_t value, speed_t *result);
  
--	if ((cflag & CBAUD) != B0 ) {
-+		/* Report the actual baud rate back to the caller */
-+		tty_encode_baud_rate(port->tty, baud, baud);
- 		if (BSA_USB_CMD(BELKIN_SA_SET_BAUDRATE_REQUEST, urb_value) < 0)
- 			err("Set baudrate error");
- 	} else {
+ /*
+  * Line Control Register (LCR)
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
