@@ -1,115 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: - usb-mon-nopage.patch removed from -mm tree
-Date: Fri, 21 Dec 2007 14:08:52 -0800
-Message-ID: <200712212208.lBLM8qIJ001733@imap1.linux-foundation.org>
+Subject: - pci-remove-default-pci-expansion-rom-memory-allocation.patch removed from -mm tree
+Date: Fri, 21 Dec 2007 14:08:22 -0800
+Message-ID: <200712212208.lBLM8M7x001705@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41502 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50239 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756591AbXLUWKF (ORCPT
+	by vger.kernel.org with ESMTP id S1755951AbXLUWKo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Dec 2007 17:10:05 -0500
+	Fri, 21 Dec 2007 17:10:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, greg@kroah.com, zaitcev@redhat.com, mm-commits@vger.kernel.org
+To: garyhade@us.ibm.com, greg@kroah.com, j-nomura@ce.jp.nec.com, jbeulich@novell.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb: mon nopage
+     PCI: remove default PCI expansion ROM memory allocation
 has been removed from the -mm tree.  Its filename was
-     usb-mon-nopage.patch
+     pci-remove-default-pci-expansion-rom-memory-allocation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: usb: mon nopage
-From: Nick Piggin <npiggin@suse.de>
+Subject: PCI: remove default PCI expansion ROM memory allocation
+From: Gary Hade <garyhade@us.ibm.com>
 
-Convert USB mon driver from nopage to fault.
+Contention for scarce PCI memory resources has been growing due to an
+increasing number of PCI slots in large multi-node systems.  The kernel
+currently attempts by default to allocate memory for all PCI expansion ROMs
+so there has also been an increasing number of PCI memory allocation
+failures seen on these systems.  This occurs because the BIOS either (1)
+provides insufficient PCI memory resource for all the expansion ROMs or (2)
+provides adequate PCI memory resource for expansion ROMs but provides the
+space in kernel unexpected BIOS assigned P2P non-prefetch windows.
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Acked-by: Pete Zaitcev <zaitcev@redhat.com>
+The resulting PCI memory allocation failures may be benign when related to
+memory requests for expansion ROMs themselves but in some cases they can
+occur when attempting to allocate space for more critical BARs.  This can
+happen when a successful expansion ROM allocation request consumes memory
+resource that was intended for a non-ROM BAR.  We have seen this happen
+during PCI hotplug of an adapter that contains a P2P bridge where
+successful memory allocation for an expansion ROM BAR on device behind the
+bridge consumed memory that was intended for a non-ROM BAR on the P2P
+bridge.  In all cases the allocation failure messages can be very confusing
+for users.
+
+This patch addresses the issue by changing the kernel default behavior so
+that expansion ROM memory allocations are no longer attempted by default
+when the BIOS has not assigned a specific address range to the expansion
+ROM BAR.  This was done by changing the 'pci=rom' boot option behavior for
+BIOS unassigned expansion ROMs to actually match it's current
+kernel-parameters.txt description which already implies "off" by default. 
+Behavior for BIOS assigned expansion ROMs implemented in
+pcibios_assign_resources() [arch/x86/pci/i386.c] is unchanged.
+
+Signed-off-by: Gary Hade <garyhade@us.ibm.com>
 Cc: Greg KH <greg@kroah.com>
+Cc: Jan Beulich <jbeulich@novell.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Acked-by: "Jun'ichi Nomura" <j-nomura@ce.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/mon/mon_bin.c |   16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+ arch/x86/pci/common.c |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff -puN drivers/usb/mon/mon_bin.c~usb-mon-nopage drivers/usb/mon/mon_bin.c
---- a/drivers/usb/mon/mon_bin.c~usb-mon-nopage
-+++ a/drivers/usb/mon/mon_bin.c
-@@ -1047,33 +1047,31 @@ static void mon_bin_vma_close(struct vm_
- /*
-  * Map ring pages to user space.
-  */
--struct page *mon_bin_vma_nopage(struct vm_area_struct *vma,
--                                unsigned long address, int *type)
-+static int mon_bin_vma_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
- {
- 	struct mon_reader_bin *rp = vma->vm_private_data;
- 	unsigned long offset, chunk_idx;
- 	struct page *pageptr;
- 
--	offset = (address - vma->vm_start) + (vma->vm_pgoff << PAGE_SHIFT);
-+	offset = vmf->pgoff << PAGE_SHIFT;
- 	if (offset >= rp->b_size)
--		return NOPAGE_SIGBUS;
-+		return VM_FAULT_SIGBUS;
- 	chunk_idx = offset / CHUNK_SIZE;
- 	pageptr = rp->b_vec[chunk_idx].pg;
- 	get_page(pageptr);
--	if (type)
--		*type = VM_FAULT_MINOR;
--	return pageptr;
-+	vmf->page = pageptr;
-+	return 0;
+diff -puN arch/x86/pci/common.c~pci-remove-default-pci-expansion-rom-memory-allocation arch/x86/pci/common.c
+--- a/arch/x86/pci/common.c~pci-remove-default-pci-expansion-rom-memory-allocation
++++ a/arch/x86/pci/common.c
+@@ -109,6 +109,19 @@ static void __devinit pcibios_fixup_ghos
+ 	}
  }
  
- struct vm_operations_struct mon_bin_vm_ops = {
- 	.open =     mon_bin_vma_open,
- 	.close =    mon_bin_vma_close,
--	.nopage =   mon_bin_vma_nopage,
-+	.fault =    mon_bin_vma_fault,
- };
++static void __devinit pcibios_fixup_device_resources(struct pci_dev *dev)
++{
++	struct resource *rom_r = &dev->resource[PCI_ROM_RESOURCE];
++
++	if (rom_r->parent)
++		return;
++	if (rom_r->start)
++		/* we deal with BIOS assigned ROM later */
++		return;
++	if (!(pci_probe & PCI_ASSIGN_ROMS))
++		rom_r->start = rom_r->end = rom_r->flags = 0;
++}
++
+ /*
+  *  Called after each bus is probed, but before its children
+  *  are examined.
+@@ -116,8 +129,12 @@ static void __devinit pcibios_fixup_ghos
  
- int mon_bin_mmap(struct file *filp, struct vm_area_struct *vma)
+ void __devinit  pcibios_fixup_bus(struct pci_bus *b)
  {
--	/* don't do anything here: "nopage" will set up page table entries */
-+	/* don't do anything here: "fault" will set up page table entries */
- 	vma->vm_ops = &mon_bin_vm_ops;
- 	vma->vm_flags |= VM_RESERVED;
- 	vma->vm_private_data = filp->private_data;
++	struct pci_dev *dev;
++
+ 	pcibios_fixup_ghosts(b);
+ 	pci_read_bridge_bases(b);
++	list_for_each_entry(dev, &b->devices, bus_list)
++		pcibios_fixup_device_resources(dev);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from garyhade@us.ibm.com are
 
-git-alsa.patch
-git-dvb.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-jfs.patch
-git-kvm.patch
-nfs-use-gfp_nofs-preloads-for-radix-tree-insertion.patch
-git-sched.patch
-sg-nopage.patch
 git-x86.patch
-slub-use-non-atomic-bit-unlock.patch
-tmpfs-shuffle-add_to_swap_caches.patch
-tmpfs-radix_tree_preloading.patch
-radix-tree-avoid-atomic-allocations-for-preloaded-insertions.patch
-mm-dont-allow-ioremapping-of-ranges-larger-than-vmalloc-space.patch
-mm-special-mapping-nopage.patch
-agp-alpha-nopage.patch
-vt-bitlock-fix.patch
-radix_treeh-trivial-comment-correction.patch
-inotify-fix-race.patch
-inotify-remove-debug-code.patch
-relay-nopage.patch
-uio-nopage.patch
-ext2-xip-check-fix.patch
-fb-defio-nopage.patch
-rewrite-rd.patch
-rewrite-rd-fix.patch
-rd-support-xip.patch
-reiser4.patch
