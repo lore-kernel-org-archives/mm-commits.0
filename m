@@ -1,90 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - quirk-enable-msi-mapping-on-ht1000.patch removed from -mm tree
-Date: Fri, 21 Dec 2007 14:08:14 -0800
-Message-ID: <200712212208.lBLM8EaK001698@imap1.linux-foundation.org>
+Subject: - usb-storage-initializersc-fix-signedness-difference.patch removed from -mm tree
+Date: Fri, 21 Dec 2007 14:08:54 -0800
+Message-ID: <200712212208.lBLM8sic001738@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37729 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54920 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756312AbXLUWJc (ORCPT
+	by vger.kernel.org with ESMTP id S1756312AbXLUWJa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Dec 2007 17:09:32 -0500
+	Fri, 21 Dec 2007 17:09:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sebastien.dugue@bull.net, acurrid@nvidia.com, akpm@linux-foundation.org, ebiederm@xmission.com, greg@kroah.com, mchan@broadcom.com, pchen@nvidia.com, prakash@punnoor.de, mm-commits@vg
+To: marcin.slusarz@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     quirk: enable MSI Mapping on HT1000
+     usb/storage/initializers.c: fix signedness difference
 has been removed from the -mm tree.  Its filename was
-     quirk-enable-msi-mapping-on-ht1000.patch
+     usb-storage-initializersc-fix-signedness-difference.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
 ------------------------------------------------------
-Subject: quirk: enable MSI Mapping on HT1000
-From: Sebastien Dugue <sebastien.dugue@bull.net>
+Subject: usb/storage/initializers.c: fix signedness difference
+=46rom: Marcin =C5=9Alusarz <marcin.slusarz@gmail.com>
 
-Add a quirk to enable the MSI mapping capability on HyperTransport bridges.
+=46ix 2 sparse warnings:
 
-Wire Broadcom's HT1000 to use the quirk.
+drivers/usb/storage/initializers.c:83:26: warning: incorrect type in ar=
+gument 5 (different signedness)
+drivers/usb/storage/initializers.c:83:26:    expected unsigned int *act=
+_len
+drivers/usb/storage/initializers.c:83:26:    got int *<noident>
+drivers/usb/storage/initializers.c:89:26: warning: incorrect type in ar=
+gument 5 (different signedness)
+drivers/usb/storage/initializers.c:89:26:    expected unsigned int *act=
+_len
+drivers/usb/storage/initializers.c:89:26:    got int *<noident>
 
-Signed-off-by: Sebastien Dugue <sebastien.dugue@bull.net>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Andy Currid <acurrid@nvidia.com>
-Cc: Peer Chen <pchen@nvidia.com>
-Cc: Prakash Punnoor <prakash@punnoor.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Michael Chan <mchan@broadcom.com>
+Signed-off-by: Marcin =C5=9Alusarz <marcin.slusarz@gmail.com>
 Cc: Greg KH <greg@kroah.com>
-Cc: Andy Currid <acurrid@nvidia.com>
-Cc: Peer Chen <pchen@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/quirks.c |   30 +++++++++++++++++++++++++++---
- 1 file changed, 27 insertions(+), 3 deletions(-)
+ drivers/usb/storage/initializers.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/pci/quirks.c~quirk-enable-msi-mapping-on-ht1000 drivers/pci/quirks.c
---- a/drivers/pci/quirks.c~quirk-enable-msi-mapping-on-ht1000
-+++ a/drivers/pci/quirks.c
-@@ -1711,9 +1711,33 @@ static void __devinit quirk_msi_ht_cap(s
- }
- DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_SERVERWORKS, PCI_DEVICE_ID_SERVERWORKS_HT2000_PCIE,
- 			quirk_msi_ht_cap);
--DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_SERVERWORKS,
--			PCI_DEVICE_ID_SERVERWORKS_HT1000_PXB,
--			quirk_msi_ht_cap);
-+
-+
-+/*
-+ *  Force enable MSI mapping capability on HT bridges
-+ */
-+static void __devinit quirk_msi_ht_cap_enable(struct pci_dev *dev)
-+{
-+	int pos, ttl = 48;
-+
-+	pos = pci_find_ht_capability(dev, HT_CAPTYPE_MSI_MAPPING);
-+	while (pos && ttl--) {
-+		u8 flags;
-+
-+		if (pci_read_config_byte(dev, pos + HT_MSI_FLAGS, &flags) == 0) {
-+			printk(KERN_INFO "PCI: Enabling HT MSI Mapping on %s\n",
-+			       pci_name(dev));
-+
-+			pci_write_config_byte(dev, pos + HT_MSI_FLAGS,
-+					      flags | HT_MSI_FLAGS_ENABLE);
-+		}
-+		pos = pci_find_next_ht_capability(dev, pos,
-+						  HT_CAPTYPE_MSI_MAPPING);
-+	}
-+}
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_SERVERWORKS,
-+			 PCI_DEVICE_ID_SERVERWORKS_HT1000_PXB,
-+			 quirk_msi_ht_cap_enable);
- 
- /* The nVidia CK804 chipset may have 2 HT MSI mappings.
-  * MSI are supported if the MSI capability set in any of these mappings.
+diff -puN drivers/usb/storage/initializers.c~usb-storage-initializersc-=
+fix-signedness-difference drivers/usb/storage/initializers.c
+--- a/drivers/usb/storage/initializers.c~usb-storage-initializersc-fix-=
+signedness-difference
++++ a/drivers/usb/storage/initializers.c
+@@ -66,7 +66,8 @@ int usb_stor_ucr61s2b_init(struct us_dat
+ {
+ 	struct bulk_cb_wrap *bcb =3D (struct bulk_cb_wrap*) us->iobuf;
+ 	struct bulk_cs_wrap *bcs =3D (struct bulk_cs_wrap*) us->iobuf;
+-	int res, partial;
++	int res;
++	unsigned int partial;
+ 	static char init_string[] =3D "\xec\x0a\x06\x00$PCCHIPS";
+=20
+ 	US_DEBUGP("Sending UCR-61S2B initialization packet...\n");
 _
 
-Patches currently in -mm which might be from sebastien.dugue@bull.net are
+Patches currently in -mm which might be from marcin.slusarz@gmail.com a=
+re
+
+git-alsa.patch
+ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fi=
+xes.patch
+vgacon-fix-sparse-warning-about-shadowing-i-symbol.patch
+fbcon-fix-sparse-warning-about-shadowing-p-symbol.patch
+fbcon-fix-sparse-warning-about-shadowing-rotate-symbol.patch
+logo-move-declarations-of-logos-to-linux_logoh.patch
+logo-move-declarations-of-logos-to-linux_logoh-fix.patch
