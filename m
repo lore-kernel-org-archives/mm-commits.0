@@ -1,222 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-pci-msic-move-arch-hooks-to-the-top.patch removed from -mm tree
-Date: Fri, 21 Dec 2007 14:08:19 -0800
-Message-ID: <200712212208.lBLM8JHR001701@imap1.linux-foundation.org>
+Subject: - usb-testing-driver-convert-dev-sem-to-mutex.patch removed from -mm tree
+Date: Fri, 21 Dec 2007 14:08:46 -0800
+Message-ID: <200712212208.lBLM8kVU001726@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38213 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52162 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756238AbXLUWJN (ORCPT
+	by vger.kernel.org with ESMTP id S1755669AbXLUWJU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Dec 2007 17:09:13 -0500
+	Fri, 21 Dec 2007 17:09:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, greg@kroah.com, michael@ellerman.id.au, mm-commits@vger.kernel.org
+To: matthias.kaehlcke@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/pci/msi.c: move arch hooks to the top
+     USB testing driver: convert dev->sem to mutex
 has been removed from the -mm tree.  Its filename was
-     drivers-pci-msic-move-arch-hooks-to-the-top.patch
+     usb-testing-driver-convert-dev-sem-to-mutex.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/pci/msi.c: move arch hooks to the top
-From: Adrian Bunk <bunk@kernel.org>
+Subject: USB testing driver: convert dev->sem to mutex
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-Fix the following problem present with older gcc versions:
+USB testing driver: convert semaphore dev->sem to the mutex API
 
-  CC      drivers/pci/msi.o
-/home/bunk/linux/kernel-2.6/git/linux-2.6/drivers/pci/msi.c:692: warning: weak declaration of `arch_msi_check_device' after first use results in unspecified behavior
-/home/bunk/linux/kernel-2.6/git/linux-2.6/drivers/pci/msi.c:704: warning: weak declaration of `arch_setup_msi_irqs' after first use results in unspecified behavior
-/home/bunk/linux/kernel-2.6/git/linux-2.6/drivers/pci/msi.c:724: warning: weak declaration of `arch_teardown_msi_irqs' after first use results in unspecified behavior
-
-Older gcc versions don't like that they cannot see that they are weak
-functions at the time when they are used.
-
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Michael Ellerman <michael@ellerman.id.au>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/msi.c |   91 +++++++++++++++++++++-----------------------
- 1 file changed, 45 insertions(+), 46 deletions(-)
+ drivers/usb/misc/usbtest.c |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN drivers/pci/msi.c~drivers-pci-msic-move-arch-hooks-to-the-top drivers/pci/msi.c
---- a/drivers/pci/msi.c~drivers-pci-msic-move-arch-hooks-to-the-top
-+++ a/drivers/pci/msi.c
-@@ -25,6 +25,51 @@
+diff -puN drivers/usb/misc/usbtest.c~usb-testing-driver-convert-dev-sem-to-mutex drivers/usb/misc/usbtest.c
+--- a/drivers/usb/misc/usbtest.c~usb-testing-driver-convert-dev-sem-to-mutex
++++ a/drivers/usb/misc/usbtest.c
+@@ -6,6 +6,7 @@
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
+ #include <linux/scatterlist.h>
++#include <linux/mutex.h>
  
- static int pci_msi_enable = 1;
+ #include <linux/usb.h>
  
-+/* Arch hooks */
-+
-+int __attribute__ ((weak))
-+arch_msi_check_device(struct pci_dev *dev, int nvec, int type)
-+{
-+	return 0;
-+}
-+
-+int __attribute__ ((weak))
-+arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *entry)
-+{
-+	return 0;
-+}
-+
-+int __attribute__ ((weak))
-+arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
-+{
-+	struct msi_desc *entry;
-+	int ret;
-+
-+	list_for_each_entry(entry, &dev->msi_list, list) {
-+		ret = arch_setup_msi_irq(dev, entry);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+void __attribute__ ((weak)) arch_teardown_msi_irq(unsigned int irq)
-+{
-+	return;
-+}
-+
-+void __attribute__ ((weak))
-+arch_teardown_msi_irqs(struct pci_dev *dev)
-+{
-+	struct msi_desc *entry;
-+
-+	list_for_each_entry(entry, &dev->msi_list, list) {
-+		if (entry->irq != 0)
-+			arch_teardown_msi_irq(entry->irq);
-+	}
-+}
-+
- static void msi_set_enable(struct pci_dev *dev, int enable)
- {
- 	int pos;
-@@ -682,49 +727,3 @@ void pci_msi_init_pci_dev(struct pci_dev
- {
- 	INIT_LIST_HEAD(&dev->msi_list);
+@@ -64,7 +65,7 @@ struct usbtest_dev {
+ 	int			in_iso_pipe;
+ 	int			out_iso_pipe;
+ 	struct usb_endpoint_descriptor	*iso_in, *iso_out;
+-	struct semaphore	sem;
++	struct mutex		lock;
+ 
+ #define TBUF_SIZE	256
+ 	u8			*buf;
+@@ -1558,11 +1559,11 @@ usbtest_ioctl (struct usb_interface *int
+ 			|| param->sglen < 0 || param->vary < 0)
+ 		return -EINVAL;
+ 
+-	if (down_interruptible (&dev->sem))
++	if (mutex_lock_interruptible(&dev->lock))
+ 		return -ERESTARTSYS;
+ 
+ 	if (intf->dev.power.power_state.event != PM_EVENT_ON) {
+-		up (&dev->sem);
++		mutex_unlock(&dev->lock);
+ 		return -EHOSTUNREACH;
+ 	}
+ 
+@@ -1574,7 +1575,7 @@ usbtest_ioctl (struct usb_interface *int
+ 	    	int	res;
+ 
+ 		if (intf->altsetting->desc.bInterfaceNumber) {
+-			up (&dev->sem);
++			mutex_unlock(&dev->lock);
+ 			return -ENODEV;
+ 		}
+ 		res = set_altsetting (dev, dev->info->alt);
+@@ -1582,7 +1583,7 @@ usbtest_ioctl (struct usb_interface *int
+ 			dev_err (&intf->dev,
+ 					"set altsetting to %d failed, %d\n",
+ 					dev->info->alt, res);
+-			up (&dev->sem);
++			mutex_unlock(&dev->lock);
+ 			return res;
+ 		}
+ 	}
+@@ -1855,7 +1856,7 @@ usbtest_ioctl (struct usb_interface *int
+ 		param->duration.tv_usec += 1000 * 1000;
+ 		param->duration.tv_sec -= 1;
+ 	}
+-	up (&dev->sem);
++	mutex_unlock(&dev->lock);
+ 	return retval;
  }
--
--
--/* Arch hooks */
--
--int __attribute__ ((weak))
--arch_msi_check_device(struct pci_dev* dev, int nvec, int type)
--{
--	return 0;
--}
--
--int __attribute__ ((weak))
--arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *entry)
--{
--	return 0;
--}
--
--int __attribute__ ((weak))
--arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
--{
--	struct msi_desc *entry;
--	int ret;
--
--	list_for_each_entry(entry, &dev->msi_list, list) {
--		ret = arch_setup_msi_irq(dev, entry);
--		if (ret)
--			return ret;
--	}
--
--	return 0;
--}
--
--void __attribute__ ((weak)) arch_teardown_msi_irq(unsigned int irq)
--{
--	return;
--}
--
--void __attribute__ ((weak))
--arch_teardown_msi_irqs(struct pci_dev *dev)
--{
--	struct msi_desc *entry;
--
--	list_for_each_entry(entry, &dev->msi_list, list) {
--		if (entry->irq != 0)
--			arch_teardown_msi_irq(entry->irq);
--	}
--}
+ 
+@@ -1905,7 +1906,7 @@ usbtest_probe (struct usb_interface *int
+ 		return -ENOMEM;
+ 	info = (struct usbtest_info *) id->driver_info;
+ 	dev->info = info;
+-	init_MUTEX (&dev->sem);
++	mutex_init(&dev->lock);
+ 
+ 	dev->intf = intf;
+ 
+@@ -1990,7 +1991,7 @@ static void usbtest_disconnect (struct u
+ {
+ 	struct usbtest_dev	*dev = usb_get_intfdata (intf);
+ 
+-	down (&dev->sem);
++	mutex_lock(&dev->lock);
+ 
+ 	usb_set_intfdata (intf, NULL);
+ 	dev_dbg (&intf->dev, "disconnect\n");
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
 
-git-acpi.patch
+acpi_pci_irq_find_prt_entry-use-list_for_each_entry-instead-of-list_for_each.patch
 git-dvb.patch
-git-gfs2-nmw.patch
-git-mtd.patch
+git-infiniband.patch
 git-net.patch
 git-netdev-all.patch
-git-battery.patch
-drivers-bluetooth-bpa10xc-fix-memleak.patch
-drivers-bluetooth-btsdioc-fix-double-free.patch
-if-0-pci_cleanup_aer_correct_error_status.patch
 git-scsi-misc.patch
-scsi-advansysc-make-3-functions-static.patch
-scsi-qla2xxx-possible-cleanups.patch
-scsi-qla2xxx-qla_osc-section-fix.patch
-scsi-megaraidc-__devexit-annotation.patch
-scsi-aic94xx-cleanups.patch
-scsi-aic94xx-cleanups-checkpatch-fixes.patch
-scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
-git-x86.patch
-git-cryptodev.patch
-git-xtensa.patch
-mm-page-writebackc-make-a-function-static.patch
-make-__vmalloc_area_node-static.patch
-m68knommu-remove-duplicate-exports.patch
-kernel-power-diskc-make-code-static.patch
-make-kernel_shutdown_prepare-static.patch
-nubus-kill-drivers-nubus-nubus_symsc.patch
-m68k-kill-arch-m68k-mac-mac_ksymsc.patch
-m68k-kill-arch-m68k-hp300-ksymsc.patch
-m68k-kill-arch-m68k-amiga-amiga_ksymsc.patch
-m68k-kill-arch-m68k-atari-atari_ksymsc.patch
-m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch
-kill-udffs_dateversion.patch
-make-ipc-utilcsysvipc_find_ipc-static.patch
-cleanup-after-apus-removal.patch
-remove-mm_ptovvtop.patch
-remove-__attribute_used__.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-proper-show_interrupts-prototype.patch
-scheduled-oss-driver-removal.patch
-linux-inith-simplify-__meminitexit-dependencies.patch
-proper-prototype-for-signals_init.patch
-kernel-ptracec-should-include-linux-syscallsh.patch
-make-srcu_readers_active-static.patch
-kernel-notifierc-should-include-linux-rebooth.patch
-proper-prototype-for-get_filesystem_list.patch
-fs-utimesc-should-include-linux-syscallsh.patch
-fs-signalfdc-should-include-linux-syscallsh.patch
-fs-eventfdc-should-include-linux-syscallsh.patch
-proper-prototype-for-vty_init.patch
-drivers-misc-lkdtmc-cleanups.patch
-xen-fiddle_vdso-must-be-__init.patch
-calibrate_delay-must-be-__cpuinit.patch
-idle_regs-must-be-__cpuinit.patch
-fs-ecryptfs-possible-cleanups.patch
-make-video-geode-lxfb_corecgeode_modedb-static.patch
-video-hpfbc-section-fix.patch
-drivers-video-pm3fbc-section-fix.patch
-make-jbd-journalc__journal_abort_hard-static.patch
-move-edactxt-two-levels-up.patch
-remove-documentation-smptxt.patch
-kernel-cgroupc-remove-dead-code.patch
-kernel-cgroupc-make-2-functions-static.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-fix-m32r-__xchg.patch
-reiser4.patch
+parallel-port-convert-port_mutex-to-the-mutex-api.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+mbcs-convert-algolock-to-mutex.patch
+mbcs-convert-dmawritelock-to-mutex.patch
+mbcs-convert-dmareadlock-to-mutex.patch
