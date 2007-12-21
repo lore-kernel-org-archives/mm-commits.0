@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kconfig-help-dont-refer-to-the-pci-howto.patch added to -mm tree
-Date: Thu, 20 Dec 2007 18:41:39 -0800
-Message-ID: <200712210241.lBL2fdEU025946@imap1.linux-foundation.org>
+Subject: + m68knommu-remove-duplicate-exports.patch added to -mm tree
+Date: Thu, 20 Dec 2007 18:46:30 -0800
+Message-ID: <200712210246.lBL2kUpC026116@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34499 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42060 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753543AbXLUCl4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752754AbXLUCrW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 21:41:56 -0500
+	Thu, 20 Dec 2007 21:47:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, greg@kroah.com
+Cc: bunk@kernel.org, gerg@uclinux.org
 
 
 The patch titled
-     Kconfig help: don't refer to the PCI-HOWTO
+     m68knommu: remove duplicate exports
 has been added to the -mm tree.  Its filename is
-     kconfig-help-dont-refer-to-the-pci-howto.patch
+     m68knommu-remove-duplicate-exports.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,196 +26,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Kconfig help: don't refer to the PCI-HOWTO
+Subject: m68knommu: remove duplicate exports
 From: Adrian Bunk <bunk@kernel.org>
 
-A HOWTO that hasn't been updated for half a dozen years no longer "contains
-valuable information about which PCI hardware does work under Linux and
-which doesn't".
+One EXPORT_SYMBOL should be enough for everyone.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Greg KH <greg@kroah.com>
+Acked-by: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/Kconfig          |    5 -----
- arch/arm/Kconfig            |    5 -----
- arch/frv/Kconfig            |    5 -----
- arch/m32r/Kconfig           |    5 -----
- arch/m68k/Kconfig           |    5 -----
- arch/mips/Kconfig           |    5 -----
- arch/sh/drivers/pci/Kconfig |    5 -----
- arch/sh64/Kconfig           |    5 -----
- arch/sparc64/Kconfig        |    5 -----
- arch/x86/Kconfig            |    5 -----
- arch/xtensa/Kconfig         |    5 -----
- 11 files changed, 55 deletions(-)
+ arch/m68knommu/kernel/m68k_ksyms.c |   11 -----------
+ 1 file changed, 11 deletions(-)
 
-diff -puN arch/alpha/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/alpha/Kconfig
---- a/arch/alpha/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
-+++ a/arch/alpha/Kconfig
-@@ -318,11 +318,6 @@ config PCI
- 	  your box. Other bus systems are ISA, EISA, MicroChannel (MCA) or
- 	  VESA. If you have PCI, say Y, otherwise N.
+diff -puN arch/m68knommu/kernel/m68k_ksyms.c~m68knommu-remove-duplicate-exports arch/m68knommu/kernel/m68k_ksyms.c
+--- a/arch/m68knommu/kernel/m68k_ksyms.c~m68knommu-remove-duplicate-exports
++++ a/arch/m68knommu/kernel/m68k_ksyms.c
+@@ -24,14 +24,6 @@ extern int dump_fpu(struct pt_regs *, el
+ EXPORT_SYMBOL(__ioremap);
+ EXPORT_SYMBOL(iounmap);
+ EXPORT_SYMBOL(dump_fpu);
+-EXPORT_SYMBOL(strnlen);
+-EXPORT_SYMBOL(strrchr);
+-EXPORT_SYMBOL(strstr);
+-EXPORT_SYMBOL(strchr);
+-EXPORT_SYMBOL(strcat);
+-EXPORT_SYMBOL(strlen);
+-EXPORT_SYMBOL(strcmp);
+-EXPORT_SYMBOL(strncmp);
  
--	  The PCI-HOWTO, available from
--	  <http://www.tldp.org/docs.html#howto>, contains valuable
--	  information about which PCI hardware does work under Linux and which
--	  doesn't.
--
- config PCI_DOMAINS
- 	bool
- 	default y
-diff -puN arch/arm/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/arm/Kconfig
---- a/arch/arm/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
-+++ a/arch/arm/Kconfig
-@@ -547,11 +547,6 @@ config PCI
- 	  your box. Other bus systems are ISA, EISA, MicroChannel (MCA) or
- 	  VESA. If you have PCI, say Y, otherwise N.
+ EXPORT_SYMBOL(ip_fast_csum);
  
--	  The PCI-HOWTO, available from
--	  <http://www.tldp.org/docs.html#howto>, contains valuable
--	  information about which PCI hardware does work under Linux and which
--	  doesn't.
--
- config PCI_SYSCALL
- 	def_bool PCI
+@@ -46,9 +38,6 @@ EXPORT_SYMBOL(csum_partial_copy_nocheck)
+    it's OK to leave it out of version control.  */
+ EXPORT_SYMBOL(memcpy);
+ EXPORT_SYMBOL(memset);
+-EXPORT_SYMBOL(memcmp);
+-EXPORT_SYMBOL(memscan);
+-EXPORT_SYMBOL(memmove);
  
-diff -puN arch/frv/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/frv/Kconfig
---- a/arch/frv/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
-+++ a/arch/frv/Kconfig
-@@ -322,11 +322,6 @@ config PCI
- 	  onboard. If you have one of these boards and you wish to use the PCI
- 	  facilities, say Y here.
- 
--	  The PCI-HOWTO, available from
--	  <http://www.tldp.org/docs.html#howto>, contains valuable
--	  information about which PCI hardware does work under Linux and which
--	  doesn't.
--
- config RESERVE_DMA_COHERENT
- 	bool "Reserve DMA coherent memory"
- 	depends on PCI && !MMU
-diff -puN arch/m32r/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/m32r/Kconfig
---- a/arch/m32r/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
-+++ a/arch/m32r/Kconfig
-@@ -354,11 +354,6 @@ config PCI
- 	  your box. Other bus systems are ISA, EISA, MicroChannel (MCA) or
- 	  VESA. If you have PCI, say Y, otherwise N.
- 
--	  The PCI-HOWTO, available from
--	  <http://www.linuxdoc.org/docs.html#howto>, contains valuable
--	  information about which PCI hardware does work under Linux and which
--	  doesn't.
--
- choice
- 	prompt "PCI access mode"
- 	depends on PCI
-diff -puN arch/m68k/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/m68k/Kconfig
---- a/arch/m68k/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
-+++ a/arch/m68k/Kconfig
-@@ -145,11 +145,6 @@ config PCI
- 	  your box. Other bus systems are ISA, EISA, MicroChannel (MCA) or
- 	  VESA. If you have PCI, say Y, otherwise N.
- 
--	  The PCI-HOWTO, available from
--	  <http://www.tldp.org/docs.html#howto>, contains valuable
--	  information about which PCI hardware does work under Linux and which
--	  doesn't.
--
- config MAC
- 	bool "Macintosh support"
- 	depends on !MMU_SUN3
-diff -puN arch/mips/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/mips/Kconfig
---- a/arch/mips/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
-+++ a/arch/mips/Kconfig
-@@ -1933,11 +1933,6 @@ config PCI
- 	  your box. Other bus systems are ISA, EISA, or VESA. If you have PCI,
- 	  say Y, otherwise N.
- 
--	  The PCI-HOWTO, available from
--	  <http://www.tldp.org/docs.html#howto>, contains valuable
--	  information about which PCI hardware does work under Linux and which
--	  doesn't.
--
- config PCI_DOMAINS
- 	bool
- 
-diff -puN arch/sh64/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/sh64/Kconfig
---- a/arch/sh64/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
-+++ a/arch/sh64/Kconfig
-@@ -247,11 +247,6 @@ config PCI
- 	  your box. Other bus systems are ISA, EISA, MicroChannel (MCA) or
- 	  VESA. If you have PCI, say Y, otherwise N.
- 
--	  The PCI-HOWTO, available from
--	  <http://www.tldp.org/docs.html#howto>, contains valuable
--	  information about which PCI hardware does work under Linux and which
--	  doesn't.
--
- config SH_PCIDMA_NONCOHERENT
- 	bool "Cache and PCI noncoherent"
- 	depends on PCI
-diff -puN arch/sh/drivers/pci/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/sh/drivers/pci/Kconfig
---- a/arch/sh/drivers/pci/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
-+++ a/arch/sh/drivers/pci/Kconfig
-@@ -6,11 +6,6 @@ config PCI
- 	  bus system, i.e. the way the CPU talks to the other stuff inside
- 	  your box. If you have PCI, say Y, otherwise N.
- 
--	  The PCI-HOWTO, available from
--	  <http://www.tldp.org/docs.html#howto>, contains valuable
--	  information about which PCI hardware does work under Linux and which
--	  doesn't.
--
- config SH_PCIDMA_NONCOHERENT
- 	bool "Cache and PCI noncoherent"
- 	depends on PCI
-diff -puN arch/sparc64/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/sparc64/Kconfig
---- a/arch/sparc64/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
-+++ a/arch/sparc64/Kconfig
-@@ -343,11 +343,6 @@ config PCI
- 	  your box. Other bus systems are ISA, EISA, MicroChannel (MCA) or
- 	  VESA. If you have PCI, say Y, otherwise N.
- 
--	  The PCI-HOWTO, available from
--	  <http://www.tldp.org/docs.html#howto>, contains valuable
--	  information about which PCI hardware does work under Linux and which
--	  doesn't.
--
- config PCI_DOMAINS
- 	def_bool PCI
- 
-diff -puN arch/x86/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/x86/Kconfig
---- a/arch/x86/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
-+++ a/arch/x86/Kconfig
-@@ -1389,11 +1389,6 @@ config PCI
- 	  your box. Other bus systems are ISA, EISA, MicroChannel (MCA) or
- 	  VESA. If you have PCI, say Y, otherwise N.
- 
--	  The PCI-HOWTO, available from
--	  <http://www.tldp.org/docs.html#howto>, contains valuable
--	  information about which PCI hardware does work under Linux and which
--	  doesn't.
--
- choice
- 	prompt "PCI access mode"
- 	depends on X86_32 && PCI && !X86_VISWS
-diff -puN arch/xtensa/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/xtensa/Kconfig
---- a/arch/xtensa/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
-+++ a/arch/xtensa/Kconfig
-@@ -174,11 +174,6 @@ config PCI
- 	  your box. Other bus systems are ISA, EISA, MicroChannel (MCA) or
- 	  VESA. If you have PCI, say Y, otherwise N.
- 
--	  The PCI-HOWTO, available from
--	  <http://www.linuxdoc.org/docs.html#howto>, contains valuable
--	  information about which PCI hardware does work under Linux and which
--	  doesn't
--
- source "drivers/pci/Kconfig"
- 
- config HOTPLUG
+ EXPORT_SYMBOL(__down_failed);
+ EXPORT_SYMBOL(__down_failed_interruptible);
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -246,6 +97,7 @@ git-cryptodev.patch
 git-xtensa.patch
 mm-page-writebackc-make-a-function-static.patch
 make-__vmalloc_area_node-static.patch
+m68knommu-remove-duplicate-exports.patch
 kernel-power-diskc-make-code-static.patch
 make-kernel_shutdown_prepare-static.patch
 nubus-kill-drivers-nubus-nubus_symsc.patch
