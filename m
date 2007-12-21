@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + m68knommu-remove-duplicate-exports.patch added to -mm tree
-Date: Thu, 20 Dec 2007 18:46:30 -0800
-Message-ID: <200712210246.lBL2kUpC026116@imap1.linux-foundation.org>
+Subject: + ser_gigaset-convert-mutex-to-completion.patch added to -mm tree
+Date: Thu, 20 Dec 2007 18:48:14 -0800
+Message-ID: <200712210248.lBL2mEkK026149@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42060 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34708 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752754AbXLUCrW (ORCPT
+	by vger.kernel.org with ESMTP id S1764124AbXLUCsV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 21:47:22 -0500
+	Thu, 20 Dec 2007 21:48:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, gerg@uclinux.org
+Cc: tilman@imap.cc
 
 
 The patch titled
-     m68knommu: remove duplicate exports
+     ser_gigaset: convert mutex to completion
 has been added to the -mm tree.  Its filename is
-     m68knommu-remove-duplicate-exports.patch
+     ser_gigaset-convert-mutex-to-completion.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,118 +26,85 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: m68knommu: remove duplicate exports
-From: Adrian Bunk <bunk@kernel.org>
+Subject: ser_gigaset: convert mutex to completion
+From: Tilman Schmidt <tilman@imap.cc>
 
-One EXPORT_SYMBOL should be enough for everyone.
+The ser_gigaset ISDN driver was using a mutex in its close() method for
+waiting for other running ldisc methods to finish.  That's what completions
+are for.  Incidentally, this also avoids a spurious "BUG: lock held at task
+exit time" message when the driver's userspace daemon daemonizes itself.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Greg Ungerer <gerg@uclinux.org>
+Signed-off-by: Tilman Schmidt <tilman@imap.cc>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68knommu/kernel/m68k_ksyms.c |   11 -----------
- 1 file changed, 11 deletions(-)
+ drivers/isdn/gigaset/ser-gigaset.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN arch/m68knommu/kernel/m68k_ksyms.c~m68knommu-remove-duplicate-exports arch/m68knommu/kernel/m68k_ksyms.c
---- a/arch/m68knommu/kernel/m68k_ksyms.c~m68knommu-remove-duplicate-exports
-+++ a/arch/m68knommu/kernel/m68k_ksyms.c
-@@ -24,14 +24,6 @@ extern int dump_fpu(struct pt_regs *, el
- EXPORT_SYMBOL(__ioremap);
- EXPORT_SYMBOL(iounmap);
- EXPORT_SYMBOL(dump_fpu);
--EXPORT_SYMBOL(strnlen);
--EXPORT_SYMBOL(strrchr);
--EXPORT_SYMBOL(strstr);
--EXPORT_SYMBOL(strchr);
--EXPORT_SYMBOL(strcat);
--EXPORT_SYMBOL(strlen);
--EXPORT_SYMBOL(strcmp);
--EXPORT_SYMBOL(strncmp);
+diff -puN drivers/isdn/gigaset/ser-gigaset.c~ser_gigaset-convert-mutex-to-completion drivers/isdn/gigaset/ser-gigaset.c
+--- a/drivers/isdn/gigaset/ser-gigaset.c~ser_gigaset-convert-mutex-to-completion
++++ a/drivers/isdn/gigaset/ser-gigaset.c
+@@ -17,6 +17,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/tty.h>
+ #include <linux/poll.h>
++#include <linux/completion.h>
  
- EXPORT_SYMBOL(ip_fast_csum);
+ /* Version Information */
+ #define DRIVER_AUTHOR "Tilman Schmidt"
+@@ -48,7 +49,7 @@ struct ser_cardstate {
+ 	struct platform_device	dev;
+ 	struct tty_struct	*tty;
+ 	atomic_t		refcnt;
+-	struct mutex		dead_mutex;
++	struct completion	dead_cmp;
+ };
  
-@@ -46,9 +38,6 @@ EXPORT_SYMBOL(csum_partial_copy_nocheck)
-    it's OK to leave it out of version control.  */
- EXPORT_SYMBOL(memcpy);
- EXPORT_SYMBOL(memset);
--EXPORT_SYMBOL(memcmp);
--EXPORT_SYMBOL(memscan);
--EXPORT_SYMBOL(memmove);
+ static struct platform_driver device_driver = {
+@@ -498,7 +499,7 @@ static struct cardstate *cs_get(struct t
+ static void cs_put(struct cardstate *cs)
+ {
+ 	if (atomic_dec_and_test(&cs->hw.ser->refcnt))
+-		mutex_unlock(&cs->hw.ser->dead_mutex);
++		complete(&cs->hw.ser->dead_cmp);
+ }
  
- EXPORT_SYMBOL(__down_failed);
- EXPORT_SYMBOL(__down_failed_interruptible);
+ /*
+@@ -527,8 +528,8 @@ gigaset_tty_open(struct tty_struct *tty)
+ 
+ 	cs->dev = &cs->hw.ser->dev.dev;
+ 	cs->hw.ser->tty = tty;
+-	mutex_init(&cs->hw.ser->dead_mutex);
+ 	atomic_set(&cs->hw.ser->refcnt, 1);
++	init_completion(&cs->hw.ser->dead_cmp);
+ 
+ 	tty->disc_data = cs;
+ 
+@@ -543,7 +544,6 @@ gigaset_tty_open(struct tty_struct *tty)
+ 	}
+ 
+ 	gig_dbg(DEBUG_INIT, "Startup of HLL done");
+-	mutex_lock(&cs->hw.ser->dead_mutex);
+ 	return 0;
+ 
+ error:
+@@ -577,7 +577,7 @@ gigaset_tty_close(struct tty_struct *tty
+ 	else {
+ 		/* wait for running methods to finish */
+ 		if (!atomic_dec_and_test(&cs->hw.ser->refcnt))
+-			mutex_lock(&cs->hw.ser->dead_mutex);
++			wait_for_completion(&cs->hw.ser->dead_cmp);
+ 	}
+ 
+ 	/* stop operations */
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from tilman@imap.cc are
 
-origin.patch
-git-acpi.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-mtd.patch
-git-net.patch
-git-netdev-all.patch
-git-battery.patch
-drivers-bluetooth-bpa10xc-fix-memleak.patch
-drivers-bluetooth-btsdioc-fix-double-free.patch
-drivers-pci-msic-move-arch-hooks-to-the-top.patch
-if-0-pci_cleanup_aer_correct_error_status.patch
-kconfig-help-dont-refer-to-the-pci-howto.patch
-git-scsi-misc.patch
-scsi-advansysc-make-3-functions-static.patch
-scsi-qla2xxx-possible-cleanups.patch
-scsi-qla2xxx-qla_osc-section-fix.patch
-scsi-megaraidc-__devexit-annotation.patch
-scsi-aic94xx-cleanups.patch
-scsi-aic94xx-cleanups-checkpatch-fixes.patch
-scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
-git-x86.patch
-git-cryptodev.patch
-git-xtensa.patch
-mm-page-writebackc-make-a-function-static.patch
-make-__vmalloc_area_node-static.patch
-m68knommu-remove-duplicate-exports.patch
-kernel-power-diskc-make-code-static.patch
-make-kernel_shutdown_prepare-static.patch
-nubus-kill-drivers-nubus-nubus_symsc.patch
-m68k-kill-arch-m68k-mac-mac_ksymsc.patch
-m68k-kill-arch-m68k-hp300-ksymsc.patch
-m68k-kill-arch-m68k-amiga-amiga_ksymsc.patch
-m68k-kill-arch-m68k-atari-atari_ksymsc.patch
-m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch
-kill-udffs_dateversion.patch
-make-ipc-utilcsysvipc_find_ipc-static.patch
-cleanup-after-apus-removal.patch
-remove-mm_ptovvtop.patch
-remove-__attribute_used__.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-proper-show_interrupts-prototype.patch
-scheduled-oss-driver-removal.patch
-linux-inith-simplify-__meminitexit-dependencies.patch
-proper-prototype-for-signals_init.patch
-kernel-ptracec-should-include-linux-syscallsh.patch
-make-srcu_readers_active-static.patch
-kernel-notifierc-should-include-linux-rebooth.patch
-proper-prototype-for-get_filesystem_list.patch
-fs-utimesc-should-include-linux-syscallsh.patch
-fs-signalfdc-should-include-linux-syscallsh.patch
-fs-eventfdc-should-include-linux-syscallsh.patch
-proper-prototype-for-vty_init.patch
-drivers-misc-lkdtmc-cleanups.patch
-xen-fiddle_vdso-must-be-__init.patch
-calibrate_delay-must-be-__cpuinit.patch
-idle_regs-must-be-__cpuinit.patch
-fs-ecryptfs-possible-cleanups.patch
-make-video-geode-lxfb_corecgeode_modedb-static.patch
-video-hpfbc-section-fix.patch
-drivers-video-pm3fbc-section-fix.patch
-make-jbd-journalc__journal_abort_hard-static.patch
-move-edactxt-two-levels-up.patch
-remove-documentation-smptxt.patch
-kernel-cgroupc-remove-dead-code.patch
-kernel-cgroupc-make-2-functions-static.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-fix-m32r-__xchg.patch
-reiser4.patch
+gigaset-clean-up-urb-status-usage.patch
+gigaset-code-cleanups.patch
+bas_gigaset-suspend-support-v2.patch
+usb_gigaset-suspend-support-v3.patch
+gigaset-atomic-cleanup.patch
+gigaset-permit-module-unload.patch
+ser_gigaset-convert-mutex-to-completion.patch
