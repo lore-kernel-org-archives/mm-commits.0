@@ -1,189 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - mct232-speed-new-termios-and-compliance-cleanups.patch removed from -mm tree
-Date: Fri, 21 Dec 2007 14:08:37 -0800
-Message-ID: <200712212208.lBLM8b7V001720@imap1.linux-foundation.org>
+Subject: - usb-mon-nopage.patch removed from -mm tree
+Date: Fri, 21 Dec 2007 14:08:52 -0800
+Message-ID: <200712212208.lBLM8qIJ001733@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57173 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41502 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756555AbXLUWKB (ORCPT
+	by vger.kernel.org with ESMTP id S1756591AbXLUWKF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Dec 2007 17:10:01 -0500
+	Fri, 21 Dec 2007 17:10:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com, zaitcev@redhat.com, mm-commits@vger.kernel.org
+To: npiggin@suse.de, greg@kroah.com, zaitcev@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mct232: speed, new termios and compliance cleanups
+     usb: mon nopage
 has been removed from the -mm tree.  Its filename was
-     mct232-speed-new-termios-and-compliance-cleanups.patch
+     usb-mon-nopage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mct232: speed, new termios and compliance cleanups
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: usb: mon nopage
+From: Nick Piggin <npiggin@suse.de>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Pete Zaitcev <zaitcev@redhat.com>
+Convert USB mon driver from nopage to fault.
+
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Acked-by: Pete Zaitcev <zaitcev@redhat.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/mct_u232.c |   26 +++++++++++++++++---------
- drivers/usb/serial/mct_u232.h |    2 +-
- 2 files changed, 18 insertions(+), 10 deletions(-)
+ drivers/usb/mon/mon_bin.c |   16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN drivers/usb/serial/mct_u232.c~mct232-speed-new-termios-and-compliance-cleanups drivers/usb/serial/mct_u232.c
---- a/drivers/usb/serial/mct_u232.c~mct232-speed-new-termios-and-compliance-cleanups
-+++ a/drivers/usb/serial/mct_u232.c
-@@ -182,10 +182,11 @@ struct mct_u232_private {
+diff -puN drivers/usb/mon/mon_bin.c~usb-mon-nopage drivers/usb/mon/mon_bin.c
+--- a/drivers/usb/mon/mon_bin.c~usb-mon-nopage
++++ a/drivers/usb/mon/mon_bin.c
+@@ -1047,33 +1047,31 @@ static void mon_bin_vma_close(struct vm_
  /*
-  * Later day 2.6.0-test kernels have new baud rates like B230400 which
-  * we do not know how to support. We ignore them for the moment.
-- * XXX Rate-limit the error message, it's user triggerable.
+  * Map ring pages to user space.
   */
--static int mct_u232_calculate_baud_rate(struct usb_serial *serial, speed_t value)
-+static int mct_u232_calculate_baud_rate(struct usb_serial *serial, speed_t value, speed_t *result)
+-struct page *mon_bin_vma_nopage(struct vm_area_struct *vma,
+-                                unsigned long address, int *type)
++static int mon_bin_vma_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
  {
-+	*result = value;
-+
- 	if (le16_to_cpu(serial->dev->descriptor.idProduct) == MCT_U232_SITECOM_PID
- 	  || le16_to_cpu(serial->dev->descriptor.idProduct) == MCT_U232_BELKIN_F5U109_PID) {
- 		switch (value) {
-@@ -200,11 +201,13 @@ static int mct_u232_calculate_baud_rate(
- 		case  57600: return 0x0b;
- 		case 115200: return 0x0c;
- 		default:
--			err("MCT USB-RS232: unsupported baudrate request 0x%x,"
--			    " using default of B9600", value);
-+			*result = 9600;
- 			return 0x08;
- 		}
- 	} else {
-+		/* FIXME: Can we use any divider - should we do
-+		   divider = 115200/value;
-+		   real baud = 115200/divider */
- 		switch (value) {
- 		case 300: break;
- 		case 600: break;
-@@ -217,9 +220,8 @@ static int mct_u232_calculate_baud_rate(
- 		case 57600: break;
- 		case 115200: break;
- 		default:
--			err("MCT USB-RS232: unsupported baudrate request 0x%x,"
--			    " using default of B9600", value);
- 			value = 9600;
-+			*result = 9600;
- 		}
- 		return 115200/value;
- 	}
-@@ -232,16 +234,19 @@ static int mct_u232_set_baud_rate(struct
-         int rc;
-         unsigned char zero_byte = 0;
-         unsigned char cts_enable_byte = 0;
-+        speed_t speed;
+ 	struct mon_reader_bin *rp = vma->vm_private_data;
+ 	unsigned long offset, chunk_idx;
+ 	struct page *pageptr;
  
--	divisor = cpu_to_le32(mct_u232_calculate_baud_rate(serial, value));
-+	divisor = cpu_to_le32(mct_u232_calculate_baud_rate(serial, value, &speed));
+-	offset = (address - vma->vm_start) + (vma->vm_pgoff << PAGE_SHIFT);
++	offset = vmf->pgoff << PAGE_SHIFT;
+ 	if (offset >= rp->b_size)
+-		return NOPAGE_SIGBUS;
++		return VM_FAULT_SIGBUS;
+ 	chunk_idx = offset / CHUNK_SIZE;
+ 	pageptr = rp->b_vec[chunk_idx].pg;
+ 	get_page(pageptr);
+-	if (type)
+-		*type = VM_FAULT_MINOR;
+-	return pageptr;
++	vmf->page = pageptr;
++	return 0;
+ }
  
-         rc = usb_control_msg(serial->dev, usb_sndctrlpipe(serial->dev, 0),
-                              MCT_U232_SET_BAUD_RATE_REQUEST,
- 			     MCT_U232_SET_REQUEST_TYPE,
-                              0, 0, &divisor, MCT_U232_SET_BAUD_RATE_SIZE,
- 			     WDR_TIMEOUT);
--	if (rc < 0)
-+	if (rc < 0)	/*FIXME: What value speed results */
- 		err("Set BAUD RATE %d failed (error = %d)", value, rc);
-+	else
-+		tty_encode_baud_rate(port->tty, speed, speed);
- 	dbg("set_baud_rate: value: 0x%x, divisor: 0x%x", value, divisor);
+ struct vm_operations_struct mon_bin_vm_ops = {
+ 	.open =     mon_bin_vma_open,
+ 	.close =    mon_bin_vma_close,
+-	.nopage =   mon_bin_vma_nopage,
++	.fault =    mon_bin_vma_fault,
+ };
  
- 	/* Mimic the MCT-supplied Windows driver (version 1.21P.0104), which
-@@ -608,7 +613,8 @@ static void mct_u232_set_termios (struct
+ int mon_bin_mmap(struct file *filp, struct vm_area_struct *vma)
  {
- 	struct usb_serial *serial = port->serial;
- 	struct mct_u232_private *priv = usb_get_serial_port_data(port);
--	unsigned int cflag = port->tty->termios->c_cflag;
-+	struct ktermios *termios = port->tty->termios;
-+	unsigned int cflag = termios->c_cflag;
- 	unsigned int old_cflag = old_termios->c_cflag;
- 	unsigned long flags;
- 	unsigned int control_state;
-@@ -670,6 +676,8 @@ static void mct_u232_set_termios (struct
- 		break;
- 	}
- 
-+	termios->c_cflag &= ~CMSPAR;
-+
- 	/* set the number of stop bits */
- 	last_lcr |= (cflag & CSTOPB) ?
- 		MCT_U232_STOP_BITS_2 : MCT_U232_STOP_BITS_1;
-diff -puN drivers/usb/serial/mct_u232.h~mct232-speed-new-termios-and-compliance-cleanups drivers/usb/serial/mct_u232.h
---- a/drivers/usb/serial/mct_u232.h~mct232-speed-new-termios-and-compliance-cleanups
-+++ a/drivers/usb/serial/mct_u232.h
-@@ -79,7 +79,7 @@
-  * and "Intel solution". They are the regular MCT and "Sitecom" for us.
-  * This is pointless to document in the header, see the code for the bits.
-  */
--static int mct_u232_calculate_baud_rate(struct usb_serial *serial, speed_t value);
-+static int mct_u232_calculate_baud_rate(struct usb_serial *serial, speed_t value, speed_t *result);
- 
- /*
-  * Line Control Register (LCR)
+-	/* don't do anything here: "nopage" will set up page table entries */
++	/* don't do anything here: "fault" will set up page table entries */
+ 	vma->vm_ops = &mon_bin_vm_ops;
+ 	vma->vm_flags |= VM_RESERVED;
+ 	vma->vm_private_data = filp->private_data;
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-git-arm.patch
-git-libata-all.patch
-libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
-git-netdev-all.patch
-bluetooth-rfcomm-tty_close-before-destruct.patch
-pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch
-pcmcia-replace-kio_addr_t-with-unsigned-int-everywhere.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-geode-lists-are-subscriber-only.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
-sc26xx-new-serial-driver-for-sc2681-uarts.patch
-sc26xx-new-serial-driver-for-sc2681-uarts-update.patch
-documentation-about-unaligned-memory-access.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
-tty-kill-tty_flipbuf_size.patch
-drivers-edac-turnon-edac-device-error-logging.patch
-drivers-edac-use-round_jiffies_relative.patch
-drivers-edac-add-cell-xdr-memory-types.patch
-drivers-edac-add-cell-mc-driver.patch
-drivers-edac-i3000-code-tidying.patch
-drivers-edac-i3000-replace-macros-with-functions.patch
-drivers-edac-add-freescale-mpc85xx-driver.patch
-drivers-edac-add-marvell-mv64x60-driver.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-dz-clean-up-and-improve-the-setup-of-termios-settings.patch
-char-rocket-switch-long-delay-to-sleep.patch
-char-rocket-printk-cleanup.patch
-char-char-serial-remove-serial_type_normal-redefines.patch
-char-mxser_new-ioaddresses-are-ulong.patch
-char-stallion-fix-compiler-warnings.patch
-char-riscom8-change-rc_init_drivers-prototype.patch
-mxser-mxser_new-first-pass-over-termios-reporting-for-the.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
-tty-s390-support-for-termios2.patch
-moxa-first-pass-at-termios-reporting.patch
-n_tty-clean-up-old-code-to-follow-coding-style-and-mostly-checkpatch.patch
-rocket-first-pass-at-termios-reporting.patch
-rocket-dont-let-random-users-reset-the-controller.patch
-tty_audit-fix-checkpatch-complaint.patch
-tty_io-drag-screaming-into-coding-style-compliance.patch
-tty_ioctl-drag-screaming-into-compliance-with-the-coding.patch
-8250_early-coding-style.patch
-8250_gsc-coding-style.patch
-8250_hp300-coding-style.patch
-8250_hub6-codding-style.patch
-8250_pci-coding-style.patch
-serial8250-coding-style.patch
-8250-enable-rate-reporting-via-termios.patch
-serial_core-bring-mostly-into-line-with-coding-style.patch
+git-alsa.patch
+git-dvb.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-jfs.patch
+git-kvm.patch
+nfs-use-gfp_nofs-preloads-for-radix-tree-insertion.patch
+git-sched.patch
+sg-nopage.patch
+git-x86.patch
+slub-use-non-atomic-bit-unlock.patch
+tmpfs-shuffle-add_to_swap_caches.patch
+tmpfs-radix_tree_preloading.patch
+radix-tree-avoid-atomic-allocations-for-preloaded-insertions.patch
+mm-dont-allow-ioremapping-of-ranges-larger-than-vmalloc-space.patch
+mm-special-mapping-nopage.patch
+agp-alpha-nopage.patch
+vt-bitlock-fix.patch
+radix_treeh-trivial-comment-correction.patch
+inotify-fix-race.patch
+inotify-remove-debug-code.patch
+relay-nopage.patch
+uio-nopage.patch
+ext2-xip-check-fix.patch
+fb-defio-nopage.patch
+rewrite-rd.patch
+rewrite-rd-fix.patch
+rd-support-xip.patch
+reiser4.patch
