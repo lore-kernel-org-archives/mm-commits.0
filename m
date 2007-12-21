@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + misc-removal-of-final-callers-using-fastcall.patch added to -mm tree
-Date: Thu, 20 Dec 2007 18:28:03 -0800
-Message-ID: <200712210228.lBL2S3hi025459@imap1.linux-foundation.org>
+Subject: + kconfig-help-dont-refer-to-the-pci-howto.patch added to -mm tree
+Date: Thu, 20 Dec 2007 18:41:39 -0800
+Message-ID: <200712210241.lBL2fdEU025946@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42618 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34499 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752727AbXLUC2H (ORCPT
+	by vger.kernel.org with ESMTP id S1753543AbXLUCl4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 21:28:07 -0500
+	Thu, 20 Dec 2007 21:41:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com
+Cc: bunk@kernel.org, greg@kroah.com
 
 
 The patch titled
-     misc: removal of final callers using fastcall
+     Kconfig help: don't refer to the PCI-HOWTO
 has been added to the -mm tree.  Its filename is
-     misc-removal-of-final-callers-using-fastcall.patch
+     kconfig-help-dont-refer-to-the-pci-howto.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,101 +26,266 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: misc: removal of final callers using fastcall
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: Kconfig help: don't refer to the PCI-HOWTO
+From: Adrian Bunk <bunk@kernel.org>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+A HOWTO that hasn't been updated for half a dozen years no longer "contains
+valuable information about which PCI hardware does work under Linux and
+which doesn't".
+
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/sysdev/uic.c |    2 +-
- arch/sparc64/kernel/irq.c |    2 +-
- include/asm-arm/mutex.h   |    6 +++---
- mm/page_alloc.c           |    2 +-
- 4 files changed, 6 insertions(+), 6 deletions(-)
+ arch/alpha/Kconfig          |    5 -----
+ arch/arm/Kconfig            |    5 -----
+ arch/frv/Kconfig            |    5 -----
+ arch/m32r/Kconfig           |    5 -----
+ arch/m68k/Kconfig           |    5 -----
+ arch/mips/Kconfig           |    5 -----
+ arch/sh/drivers/pci/Kconfig |    5 -----
+ arch/sh64/Kconfig           |    5 -----
+ arch/sparc64/Kconfig        |    5 -----
+ arch/x86/Kconfig            |    5 -----
+ arch/xtensa/Kconfig         |    5 -----
+ 11 files changed, 55 deletions(-)
 
-diff -puN arch/powerpc/sysdev/uic.c~misc-removal-of-final-callers-using-fastcall arch/powerpc/sysdev/uic.c
---- a/arch/powerpc/sysdev/uic.c~misc-removal-of-final-callers-using-fastcall
-+++ a/arch/powerpc/sysdev/uic.c
-@@ -188,7 +188,7 @@ static struct irq_chip uic_irq_chip = {
-  * instead of the end, to keep the window in which we can miss an
-  * interrupt as small as possible.
-  */
--void fastcall handle_uic_irq(unsigned int irq, struct irq_desc *desc)
-+void handle_uic_irq(unsigned int irq, struct irq_desc *desc)
- {
- 	unsigned int cpu = smp_processor_id();
- 	struct irqaction *action;
-diff -puN arch/sparc64/kernel/irq.c~misc-removal-of-final-callers-using-fastcall arch/sparc64/kernel/irq.c
---- a/arch/sparc64/kernel/irq.c~misc-removal-of-final-callers-using-fastcall
-+++ a/arch/sparc64/kernel/irq.c
-@@ -522,7 +522,7 @@ static struct irq_chip sun4v_virq = {
- 	.set_affinity	= sun4v_virt_set_affinity,
- };
+diff -puN arch/alpha/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/alpha/Kconfig
+--- a/arch/alpha/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
++++ a/arch/alpha/Kconfig
+@@ -318,11 +318,6 @@ config PCI
+ 	  your box. Other bus systems are ISA, EISA, MicroChannel (MCA) or
+ 	  VESA. If you have PCI, say Y, otherwise N.
  
--static void fastcall pre_flow_handler(unsigned int virt_irq,
-+static void pre_flow_handler(unsigned int virt_irq,
- 				      struct irq_desc *desc)
- {
- 	struct irq_handler_data *data = get_irq_chip_data(virt_irq);
-diff -puN include/asm-arm/mutex.h~misc-removal-of-final-callers-using-fastcall include/asm-arm/mutex.h
---- a/include/asm-arm/mutex.h~misc-removal-of-final-callers-using-fastcall
-+++ a/include/asm-arm/mutex.h
-@@ -24,7 +24,7 @@
-  * reattempted until it succeeds.
-  */
- static inline void
--__mutex_fastpath_lock(atomic_t *count, fastcall void (*fail_fn)(atomic_t *))
-+__mutex_fastpath_lock(atomic_t *count, void (*fail_fn)(atomic_t *))
- {
- 	int __ex_flag, __res;
+-	  The PCI-HOWTO, available from
+-	  <http://www.tldp.org/docs.html#howto>, contains valuable
+-	  information about which PCI hardware does work under Linux and which
+-	  doesn't.
+-
+ config PCI_DOMAINS
+ 	bool
+ 	default y
+diff -puN arch/arm/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/arm/Kconfig
+--- a/arch/arm/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
++++ a/arch/arm/Kconfig
+@@ -547,11 +547,6 @@ config PCI
+ 	  your box. Other bus systems are ISA, EISA, MicroChannel (MCA) or
+ 	  VESA. If you have PCI, say Y, otherwise N.
  
-@@ -44,7 +44,7 @@ __mutex_fastpath_lock(atomic_t *count, f
- }
+-	  The PCI-HOWTO, available from
+-	  <http://www.tldp.org/docs.html#howto>, contains valuable
+-	  information about which PCI hardware does work under Linux and which
+-	  doesn't.
+-
+ config PCI_SYSCALL
+ 	def_bool PCI
  
- static inline int
--__mutex_fastpath_lock_retval(atomic_t *count, fastcall int (*fail_fn)(atomic_t *))
-+__mutex_fastpath_lock_retval(atomic_t *count, int (*fail_fn)(atomic_t *))
- {
- 	int __ex_flag, __res;
+diff -puN arch/frv/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/frv/Kconfig
+--- a/arch/frv/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
++++ a/arch/frv/Kconfig
+@@ -322,11 +322,6 @@ config PCI
+ 	  onboard. If you have one of these boards and you wish to use the PCI
+ 	  facilities, say Y here.
  
-@@ -70,7 +70,7 @@ __mutex_fastpath_lock_retval(atomic_t *c
-  * better generated assembly.
-  */
- static inline void
--__mutex_fastpath_unlock(atomic_t *count, fastcall void (*fail_fn)(atomic_t *))
-+__mutex_fastpath_unlock(atomic_t *count, void (*fail_fn)(atomic_t *))
- {
- 	int __ex_flag, __res, __orig;
+-	  The PCI-HOWTO, available from
+-	  <http://www.tldp.org/docs.html#howto>, contains valuable
+-	  information about which PCI hardware does work under Linux and which
+-	  doesn't.
+-
+ config RESERVE_DMA_COHERENT
+ 	bool "Reserve DMA coherent memory"
+ 	depends on PCI && !MMU
+diff -puN arch/m32r/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/m32r/Kconfig
+--- a/arch/m32r/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
++++ a/arch/m32r/Kconfig
+@@ -354,11 +354,6 @@ config PCI
+ 	  your box. Other bus systems are ISA, EISA, MicroChannel (MCA) or
+ 	  VESA. If you have PCI, say Y, otherwise N.
  
-diff -puN mm/page_alloc.c~misc-removal-of-final-callers-using-fastcall mm/page_alloc.c
---- a/mm/page_alloc.c~misc-removal-of-final-callers-using-fastcall
-+++ a/mm/page_alloc.c
-@@ -1451,7 +1451,7 @@ try_next_zone:
- /*
-  * This is the 'heart' of the zoned buddy allocator.
-  */
--struct page * fastcall
-+struct page *
- __alloc_pages(gfp_t gfp_mask, unsigned int order,
- 		struct zonelist *zonelist)
- {
+-	  The PCI-HOWTO, available from
+-	  <http://www.linuxdoc.org/docs.html#howto>, contains valuable
+-	  information about which PCI hardware does work under Linux and which
+-	  doesn't.
+-
+ choice
+ 	prompt "PCI access mode"
+ 	depends on PCI
+diff -puN arch/m68k/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/m68k/Kconfig
+--- a/arch/m68k/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
++++ a/arch/m68k/Kconfig
+@@ -145,11 +145,6 @@ config PCI
+ 	  your box. Other bus systems are ISA, EISA, MicroChannel (MCA) or
+ 	  VESA. If you have PCI, say Y, otherwise N.
+ 
+-	  The PCI-HOWTO, available from
+-	  <http://www.tldp.org/docs.html#howto>, contains valuable
+-	  information about which PCI hardware does work under Linux and which
+-	  doesn't.
+-
+ config MAC
+ 	bool "Macintosh support"
+ 	depends on !MMU_SUN3
+diff -puN arch/mips/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/mips/Kconfig
+--- a/arch/mips/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
++++ a/arch/mips/Kconfig
+@@ -1933,11 +1933,6 @@ config PCI
+ 	  your box. Other bus systems are ISA, EISA, or VESA. If you have PCI,
+ 	  say Y, otherwise N.
+ 
+-	  The PCI-HOWTO, available from
+-	  <http://www.tldp.org/docs.html#howto>, contains valuable
+-	  information about which PCI hardware does work under Linux and which
+-	  doesn't.
+-
+ config PCI_DOMAINS
+ 	bool
+ 
+diff -puN arch/sh64/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/sh64/Kconfig
+--- a/arch/sh64/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
++++ a/arch/sh64/Kconfig
+@@ -247,11 +247,6 @@ config PCI
+ 	  your box. Other bus systems are ISA, EISA, MicroChannel (MCA) or
+ 	  VESA. If you have PCI, say Y, otherwise N.
+ 
+-	  The PCI-HOWTO, available from
+-	  <http://www.tldp.org/docs.html#howto>, contains valuable
+-	  information about which PCI hardware does work under Linux and which
+-	  doesn't.
+-
+ config SH_PCIDMA_NONCOHERENT
+ 	bool "Cache and PCI noncoherent"
+ 	depends on PCI
+diff -puN arch/sh/drivers/pci/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/sh/drivers/pci/Kconfig
+--- a/arch/sh/drivers/pci/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
++++ a/arch/sh/drivers/pci/Kconfig
+@@ -6,11 +6,6 @@ config PCI
+ 	  bus system, i.e. the way the CPU talks to the other stuff inside
+ 	  your box. If you have PCI, say Y, otherwise N.
+ 
+-	  The PCI-HOWTO, available from
+-	  <http://www.tldp.org/docs.html#howto>, contains valuable
+-	  information about which PCI hardware does work under Linux and which
+-	  doesn't.
+-
+ config SH_PCIDMA_NONCOHERENT
+ 	bool "Cache and PCI noncoherent"
+ 	depends on PCI
+diff -puN arch/sparc64/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/sparc64/Kconfig
+--- a/arch/sparc64/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
++++ a/arch/sparc64/Kconfig
+@@ -343,11 +343,6 @@ config PCI
+ 	  your box. Other bus systems are ISA, EISA, MicroChannel (MCA) or
+ 	  VESA. If you have PCI, say Y, otherwise N.
+ 
+-	  The PCI-HOWTO, available from
+-	  <http://www.tldp.org/docs.html#howto>, contains valuable
+-	  information about which PCI hardware does work under Linux and which
+-	  doesn't.
+-
+ config PCI_DOMAINS
+ 	def_bool PCI
+ 
+diff -puN arch/x86/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/x86/Kconfig
+--- a/arch/x86/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
++++ a/arch/x86/Kconfig
+@@ -1389,11 +1389,6 @@ config PCI
+ 	  your box. Other bus systems are ISA, EISA, MicroChannel (MCA) or
+ 	  VESA. If you have PCI, say Y, otherwise N.
+ 
+-	  The PCI-HOWTO, available from
+-	  <http://www.tldp.org/docs.html#howto>, contains valuable
+-	  information about which PCI hardware does work under Linux and which
+-	  doesn't.
+-
+ choice
+ 	prompt "PCI access mode"
+ 	depends on X86_32 && PCI && !X86_VISWS
+diff -puN arch/xtensa/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/xtensa/Kconfig
+--- a/arch/xtensa/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
++++ a/arch/xtensa/Kconfig
+@@ -174,11 +174,6 @@ config PCI
+ 	  your box. Other bus systems are ISA, EISA, MicroChannel (MCA) or
+ 	  VESA. If you have PCI, say Y, otherwise N.
+ 
+-	  The PCI-HOWTO, available from
+-	  <http://www.linuxdoc.org/docs.html#howto>, contains valuable
+-	  information about which PCI hardware does work under Linux and which
+-	  doesn't
+-
+ source "drivers/pci/Kconfig"
+ 
+ config HOTPLUG
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
+origin.patch
+git-acpi.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-mtd.patch
 git-net.patch
-git-sh.patch
+git-netdev-all.patch
+git-battery.patch
+drivers-bluetooth-bpa10xc-fix-memleak.patch
+drivers-bluetooth-btsdioc-fix-double-free.patch
+drivers-pci-msic-move-arch-hooks-to-the-top.patch
+if-0-pci_cleanup_aer_correct_error_status.patch
+kconfig-help-dont-refer-to-the-pci-howto.patch
+git-scsi-misc.patch
+scsi-advansysc-make-3-functions-static.patch
+scsi-qla2xxx-possible-cleanups.patch
+scsi-qla2xxx-qla_osc-section-fix.patch
+scsi-megaraidc-__devexit-annotation.patch
+scsi-aic94xx-cleanups.patch
+scsi-aic94xx-cleanups-checkpatch-fixes.patch
+scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
 git-x86.patch
-mm-remove-fastcall-from-mm.patch
-mm-remove-fastcall-from-mm-checkpatch-fixes.patch
-fs-remove-fastcall-it-is-always-empty.patch
-fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
-kernel-remove-fastcall-in-kernel.patch
-kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
-lib-remove-fastcall-from-lib.patch
-lib-remove-fastcall-from-lib-checkpatch-fixes.patch
-remove-fastcall-from-linux-include.patch
-remove-fastcall-from-linux-include-checkpatch-fixes.patch
-asm-generic-remove-fastcall.patch
-misc-removal-of-final-callers-using-fastcall.patch
+git-cryptodev.patch
+git-xtensa.patch
+mm-page-writebackc-make-a-function-static.patch
+make-__vmalloc_area_node-static.patch
+kernel-power-diskc-make-code-static.patch
+make-kernel_shutdown_prepare-static.patch
+nubus-kill-drivers-nubus-nubus_symsc.patch
+m68k-kill-arch-m68k-mac-mac_ksymsc.patch
+m68k-kill-arch-m68k-hp300-ksymsc.patch
+m68k-kill-arch-m68k-amiga-amiga_ksymsc.patch
+m68k-kill-arch-m68k-atari-atari_ksymsc.patch
+m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch
+kill-udffs_dateversion.patch
+make-ipc-utilcsysvipc_find_ipc-static.patch
+cleanup-after-apus-removal.patch
+remove-mm_ptovvtop.patch
+remove-__attribute_used__.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+proper-show_interrupts-prototype.patch
+scheduled-oss-driver-removal.patch
+linux-inith-simplify-__meminitexit-dependencies.patch
+proper-prototype-for-signals_init.patch
+kernel-ptracec-should-include-linux-syscallsh.patch
+make-srcu_readers_active-static.patch
+kernel-notifierc-should-include-linux-rebooth.patch
+proper-prototype-for-get_filesystem_list.patch
+fs-utimesc-should-include-linux-syscallsh.patch
+fs-signalfdc-should-include-linux-syscallsh.patch
+fs-eventfdc-should-include-linux-syscallsh.patch
+proper-prototype-for-vty_init.patch
+drivers-misc-lkdtmc-cleanups.patch
+xen-fiddle_vdso-must-be-__init.patch
+calibrate_delay-must-be-__cpuinit.patch
+idle_regs-must-be-__cpuinit.patch
+fs-ecryptfs-possible-cleanups.patch
+make-video-geode-lxfb_corecgeode_modedb-static.patch
+video-hpfbc-section-fix.patch
+drivers-video-pm3fbc-section-fix.patch
+make-jbd-journalc__journal_abort_hard-static.patch
+move-edactxt-two-levels-up.patch
+remove-documentation-smptxt.patch
+kernel-cgroupc-remove-dead-code.patch
+kernel-cgroupc-make-2-functions-static.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+fix-m32r-__xchg.patch
+reiser4.patch
