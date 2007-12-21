@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maps4-add-proc-kpagecount-interface-fix.patch added to -mm tree
-Date: Thu, 20 Dec 2007 18:50:17 -0800
-Message-ID: <200712210250.lBL2oHdL026246@imap1.linux-foundation.org>
+Subject: + maps4-add-proc-kpageflags-interface-fix.patch added to -mm tree
+Date: Thu, 20 Dec 2007 18:51:02 -0800
+Message-ID: <200712210251.lBL2p2V3026262@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35277 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50445 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755424AbXLUCvZ (ORCPT
+	by vger.kernel.org with ESMTP id S1754876AbXLUCvg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 21:51:25 -0500
+	Thu, 20 Dec 2007 21:51:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bunk@stusta.de, haveblue@us.ibm.com, jeremy@goop.org, mpm@selenic.com, rientjes@google.com
+Cc: akpm@linux-foundation.org, haveblue@us.ibm.com, mpm@selenic.com
 
 
 The patch titled
-     maps4-add-proc-kpagecount-interface-fix
+     maps4-add-proc-kpageflags-interface-fix
 has been added to the -mm tree.  Its filename is
-     maps4-add-proc-kpagecount-interface-fix.patch
+     maps4-add-proc-kpageflags-interface-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: maps4-add-proc-kpagecount-interface-fix
+Subject: maps4-add-proc-kpageflags-interface-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-uaccess functions already do that.
+and that
 
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Adrian Bunk <bunk@stusta.de>
 Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  fs/proc/proc_misc.c |    3 ---
  1 file changed, 3 deletions(-)
 
-diff -puN fs/proc/proc_misc.c~maps4-add-proc-kpagecount-interface-fix fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~maps4-add-proc-kpagecount-interface-fix
+diff -puN fs/proc/proc_misc.c~maps4-add-proc-kpageflags-interface-fix fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~maps4-add-proc-kpageflags-interface-fix
 +++ a/fs/proc/proc_misc.c
-@@ -693,9 +693,6 @@ static ssize_t kpagecount_read(struct fi
+@@ -756,9 +756,6 @@ static ssize_t kpageflags_read(struct fi
  	ssize_t ret = 0;
- 	u64 pcount;
+ 	u64 kflags, uflags;
  
 -	if (!access_ok(VERIFY_WRITE, buf, count))
 -		return -EFAULT;
 -
  	pfn = src / KPMSIZE;
- 	count = min_t(size_t, count, (max_pfn * KPMSIZE) - src);
+ 	count = min_t(unsigned long, count, (max_pfn * KPMSIZE) - src);
  	if (src & KPMMASK || count & KPMMASK)
 _
 
@@ -150,6 +147,7 @@ bufferhead-revert-constructor-removal-checkpatch-fixes.patch
 shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
 maps4-rework-task_size-macros-mips-fix.patch
 maps4-add-proc-kpagecount-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix.patch
 maps4-make-page-monitoring-proc-file-optional-fix.patch
 page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
 mm-page-writeback-highmem_is_dirtyable-option-fix.patch
