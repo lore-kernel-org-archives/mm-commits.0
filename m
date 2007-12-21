@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lib-remove-fastcall-from-lib.patch added to -mm tree
-Date: Thu, 20 Dec 2007 16:52:11 -0800
-Message-ID: <200712210052.lBL0qBIx021962@imap1.linux-foundation.org>
+Subject: + kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 20 Dec 2007 16:51:48 -0800
+Message-ID: <200712210051.lBL0pnIX021942@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47140 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34263 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752921AbXLUAwO (ORCPT
+	by vger.kernel.org with ESMTP id S1765651AbXLUAxS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 19:52:14 -0500
+	Thu, 20 Dec 2007 19:53:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com
+Cc: akpm@linux-foundation.org, harvey.harrison@gmail.com, mingo@elte.hu
 
 
 The patch titled
-     lib: remove fastcall from lib/*
+     kernel-remove-fastcall-in-kernel-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     lib-remove-fastcall-from-lib.patch
+     kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,283 +26,336 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lib: remove fastcall from lib/*
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: kernel-remove-fastcall-in-kernel-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+ERROR: inline keyword should sit between storage class and type
+#144: FILE: kernel/mutex.c:61:
++static void noinline __sched
+
+ERROR: inline keyword should sit between storage class and type
+#153: FILE: kernel/mutex.c:85:
++void inline __sched mutex_lock(struct mutex *lock)
+
+ERROR: inline keyword should sit between storage class and type
+#162: FILE: kernel/mutex.c:98:
++static void noinline __sched
+
+ERROR: inline keyword should sit between storage class and type
+#198: FILE: kernel/mutex.c:285:
++static int noinline __sched
+
+ERROR: inline keyword should sit between storage class and type
+#229: FILE: kernel/mutex.c:319:
++static void noinline __sched
+
+ERROR: inline keyword should sit between storage class and type
+#238: FILE: kernel/mutex.c:327:
++static int noinline __sched
+
+ERROR: "foo * bar" should be "foo *bar"
+#295: FILE: kernel/pid.c:290:
++struct pid * find_pid_ns(int nr, struct pid_namespace *ns)
+
+ERROR: "foo * bar" should be "foo *bar"
+#331: FILE: kernel/pid.c:360:
++struct task_struct * pid_task(struct pid *pid, enum pid_type type)
+
+total: 8 errors, 0 warnings, 530 lines checked
+
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+(akpm: this is a bit weird)
+
+Cc: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/iomap.c              |   32 ++++++++++++++++----------------
- lib/rwsem-spinlock.c     |   16 ++++++++--------
- lib/rwsem.c              |    8 ++++----
- lib/semaphore-sleepers.c |    8 ++++----
- 4 files changed, 32 insertions(+), 32 deletions(-)
+ kernel/mutex.c |    9 ++++-----
+ kernel/pid.c   |    4 ++--
+ 2 files changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN lib/iomap.c~lib-remove-fastcall-from-lib lib/iomap.c
---- a/lib/iomap.c~lib-remove-fastcall-from-lib
-+++ a/lib/iomap.c
-@@ -69,27 +69,27 @@ static void bad_io_access(unsigned long 
- #define mmio_read32be(addr) be32_to_cpu(__raw_readl(addr))
+diff -puN kernel/mutex.c~kernel-remove-fastcall-in-kernel-checkpatch-fixes kernel/mutex.c
+--- a/kernel/mutex.c~kernel-remove-fastcall-in-kernel-checkpatch-fixes
++++ a/kernel/mutex.c
+@@ -95,8 +95,7 @@ void inline __sched mutex_lock(struct mu
+ EXPORT_SYMBOL(mutex_lock);
  #endif
  
--unsigned int fastcall ioread8(void __iomem *addr)
-+unsigned int ioread8(void __iomem *addr)
- {
- 	IO_COND(addr, return inb(port), return readb(addr));
- 	return 0xff;
- }
--unsigned int fastcall ioread16(void __iomem *addr)
-+unsigned int ioread16(void __iomem *addr)
- {
- 	IO_COND(addr, return inw(port), return readw(addr));
- 	return 0xffff;
- }
--unsigned int fastcall ioread16be(void __iomem *addr)
-+unsigned int ioread16be(void __iomem *addr)
- {
- 	IO_COND(addr, return pio_read16be(port), return mmio_read16be(addr));
- 	return 0xffff;
- }
--unsigned int fastcall ioread32(void __iomem *addr)
-+unsigned int ioread32(void __iomem *addr)
- {
- 	IO_COND(addr, return inl(port), return readl(addr));
- 	return 0xffffffff;
- }
--unsigned int fastcall ioread32be(void __iomem *addr)
-+unsigned int ioread32be(void __iomem *addr)
- {
- 	IO_COND(addr, return pio_read32be(port), return mmio_read32be(addr));
- 	return 0xffffffff;
-@@ -110,23 +110,23 @@ EXPORT_SYMBOL(ioread32be);
- #define mmio_write32be(val,port) __raw_writel(be32_to_cpu(val),port)
- #endif
+-static void noinline __sched
+-__mutex_unlock_slowpath(atomic_t *lock_count);
++static noinline void __sched __mutex_unlock_slowpath(atomic_t *lock_count);
  
--void fastcall iowrite8(u8 val, void __iomem *addr)
-+void iowrite8(u8 val, void __iomem *addr)
- {
- 	IO_COND(addr, outb(val,port), writeb(val, addr));
- }
--void fastcall iowrite16(u16 val, void __iomem *addr)
-+void iowrite16(u16 val, void __iomem *addr)
- {
- 	IO_COND(addr, outw(val,port), writew(val, addr));
- }
--void fastcall iowrite16be(u16 val, void __iomem *addr)
-+void iowrite16be(u16 val, void __iomem *addr)
- {
- 	IO_COND(addr, pio_write16be(val,port), mmio_write16be(val, addr));
- }
--void fastcall iowrite32(u32 val, void __iomem *addr)
-+void iowrite32(u32 val, void __iomem *addr)
- {
- 	IO_COND(addr, outl(val,port), writel(val, addr));
- }
--void fastcall iowrite32be(u32 val, void __iomem *addr)
-+void iowrite32be(u32 val, void __iomem *addr)
- {
- 	IO_COND(addr, pio_write32be(val,port), mmio_write32be(val, addr));
- }
-@@ -193,15 +193,15 @@ static inline void mmio_outsl(void __iom
- }
- #endif
+ /***
+  * mutex_unlock - release the mutex
+@@ -282,7 +281,7 @@ __mutex_unlock_slowpath(atomic_t *lock_c
+  * Here come the less common (and hence less performance-critical) APIs:
+  * mutex_lock_interruptible() and mutex_trylock().
+  */
+-static int noinline __sched
++static noinline int __sched
+ __mutex_lock_killable_slowpath(atomic_t *lock_count);
  
--void fastcall ioread8_rep(void __iomem *addr, void *dst, unsigned long count)
-+void ioread8_rep(void __iomem *addr, void *dst, unsigned long count)
- {
- 	IO_COND(addr, insb(port,dst,count), mmio_insb(addr, dst, count));
+ static noinline int __sched
+@@ -316,7 +315,7 @@ int __sched mutex_lock_killable(struct m
  }
--void fastcall ioread16_rep(void __iomem *addr, void *dst, unsigned long count)
-+void ioread16_rep(void __iomem *addr, void *dst, unsigned long count)
- {
- 	IO_COND(addr, insw(port,dst,count), mmio_insw(addr, dst, count));
- }
--void fastcall ioread32_rep(void __iomem *addr, void *dst, unsigned long count)
-+void ioread32_rep(void __iomem *addr, void *dst, unsigned long count)
- {
- 	IO_COND(addr, insl(port,dst,count), mmio_insl(addr, dst, count));
- }
-@@ -209,15 +209,15 @@ EXPORT_SYMBOL(ioread8_rep);
- EXPORT_SYMBOL(ioread16_rep);
- EXPORT_SYMBOL(ioread32_rep);
+ EXPORT_SYMBOL(mutex_lock_killable);
  
--void fastcall iowrite8_rep(void __iomem *addr, const void *src, unsigned long count)
-+void iowrite8_rep(void __iomem *addr, const void *src, unsigned long count)
+-static void noinline __sched
++static noinline void __sched
+ __mutex_lock_slowpath(atomic_t *lock_count)
  {
- 	IO_COND(addr, outsb(port, src, count), mmio_outsb(addr, src, count));
- }
--void fastcall iowrite16_rep(void __iomem *addr, const void *src, unsigned long count)
-+void iowrite16_rep(void __iomem *addr, const void *src, unsigned long count)
- {
- 	IO_COND(addr, outsw(port, src, count), mmio_outsw(addr, src, count));
- }
--void fastcall iowrite32_rep(void __iomem *addr, const void *src, unsigned long count)
-+void iowrite32_rep(void __iomem *addr, const void *src, unsigned long count)
- {
- 	IO_COND(addr, outsl(port, src,count), mmio_outsl(addr, src, count));
- }
-diff -puN lib/rwsem-spinlock.c~lib-remove-fastcall-from-lib lib/rwsem-spinlock.c
---- a/lib/rwsem-spinlock.c~lib-remove-fastcall-from-lib
-+++ a/lib/rwsem-spinlock.c
-@@ -125,7 +125,7 @@ __rwsem_wake_one_writer(struct rw_semaph
- /*
-  * get a read lock on the semaphore
-  */
--void fastcall __sched __down_read(struct rw_semaphore *sem)
-+void __sched __down_read(struct rw_semaphore *sem)
- {
- 	struct rwsem_waiter waiter;
- 	struct task_struct *tsk;
-@@ -168,7 +168,7 @@ void fastcall __sched __down_read(struct
- /*
-  * trylock for reading -- returns 1 if successful, 0 if contention
-  */
--int fastcall __down_read_trylock(struct rw_semaphore *sem)
-+int __down_read_trylock(struct rw_semaphore *sem)
- {
- 	unsigned long flags;
- 	int ret = 0;
-@@ -191,7 +191,7 @@ int fastcall __down_read_trylock(struct 
-  * get a write lock on the semaphore
-  * - we increment the waiting count anyway to indicate an exclusive lock
-  */
--void fastcall __sched __down_write_nested(struct rw_semaphore *sem, int subclass)
-+void __sched __down_write_nested(struct rw_semaphore *sem, int subclass)
- {
- 	struct rwsem_waiter waiter;
- 	struct task_struct *tsk;
-@@ -231,7 +231,7 @@ void fastcall __sched __down_write_neste
- 	;
+ 	struct mutex *lock = container_of(lock_count, struct mutex, count);
+@@ -324,7 +323,7 @@ __mutex_lock_slowpath(atomic_t *lock_cou
+ 	__mutex_lock_common(lock, TASK_UNINTERRUPTIBLE, 0, _RET_IP_);
  }
  
--void fastcall __sched __down_write(struct rw_semaphore *sem)
-+void __sched __down_write(struct rw_semaphore *sem)
+-static int noinline __sched
++static noinline int __sched
+ __mutex_lock_killable_slowpath(atomic_t *lock_count)
  {
- 	__down_write_nested(sem, 0);
- }
-@@ -239,7 +239,7 @@ void fastcall __sched __down_write(struc
- /*
-  * trylock for writing -- returns 1 if successful, 0 if contention
-  */
--int fastcall __down_write_trylock(struct rw_semaphore *sem)
-+int __down_write_trylock(struct rw_semaphore *sem)
- {
- 	unsigned long flags;
- 	int ret = 0;
-@@ -260,7 +260,7 @@ int fastcall __down_write_trylock(struct
- /*
-  * release a read lock on the semaphore
-  */
--void fastcall __up_read(struct rw_semaphore *sem)
-+void __up_read(struct rw_semaphore *sem)
- {
- 	unsigned long flags;
- 
-@@ -275,7 +275,7 @@ void fastcall __up_read(struct rw_semaph
- /*
-  * release a write lock on the semaphore
-  */
--void fastcall __up_write(struct rw_semaphore *sem)
-+void __up_write(struct rw_semaphore *sem)
- {
- 	unsigned long flags;
- 
-@@ -292,7 +292,7 @@ void fastcall __up_write(struct rw_semap
-  * downgrade a write lock into a read lock
-  * - just wake up any readers at the front of the queue
-  */
--void fastcall __downgrade_write(struct rw_semaphore *sem)
-+void __downgrade_write(struct rw_semaphore *sem)
- {
- 	unsigned long flags;
- 
-diff -puN lib/rwsem.c~lib-remove-fastcall-from-lib lib/rwsem.c
---- a/lib/rwsem.c~lib-remove-fastcall-from-lib
-+++ a/lib/rwsem.c
-@@ -187,7 +187,7 @@ rwsem_down_failed_common(struct rw_semap
- /*
-  * wait for the read lock to be granted
-  */
--struct rw_semaphore fastcall __sched *
-+struct rw_semaphore __sched *
- rwsem_down_read_failed(struct rw_semaphore *sem)
- {
- 	struct rwsem_waiter waiter;
-@@ -201,7 +201,7 @@ rwsem_down_read_failed(struct rw_semapho
- /*
-  * wait for the write lock to be granted
-  */
--struct rw_semaphore fastcall __sched *
-+struct rw_semaphore __sched *
- rwsem_down_write_failed(struct rw_semaphore *sem)
- {
- 	struct rwsem_waiter waiter;
-@@ -216,7 +216,7 @@ rwsem_down_write_failed(struct rw_semaph
-  * handle waking up a waiter on the semaphore
-  * - up_read/up_write has decremented the active part of count if we come here
-  */
--struct rw_semaphore fastcall *rwsem_wake(struct rw_semaphore *sem)
-+struct rw_semaphore *rwsem_wake(struct rw_semaphore *sem)
- {
- 	unsigned long flags;
- 
-@@ -236,7 +236,7 @@ struct rw_semaphore fastcall *rwsem_wake
-  * - caller incremented waiting part of count and discovered it still negative
-  * - just wake up any readers at the front of the queue
-  */
--struct rw_semaphore fastcall *rwsem_downgrade_wake(struct rw_semaphore *sem)
-+struct rw_semaphore *rwsem_downgrade_wake(struct rw_semaphore *sem)
- {
- 	unsigned long flags;
- 
-diff -puN lib/semaphore-sleepers.c~lib-remove-fastcall-from-lib lib/semaphore-sleepers.c
---- a/lib/semaphore-sleepers.c~lib-remove-fastcall-from-lib
-+++ a/lib/semaphore-sleepers.c
-@@ -48,12 +48,12 @@
-  *    we cannot lose wakeup events.
-  */
- 
--fastcall void __up(struct semaphore *sem)
-+void __up(struct semaphore *sem)
- {
- 	wake_up(&sem->wait);
+ 	struct mutex *lock = container_of(lock_count, struct mutex, count);
+diff -puN kernel/pid.c~kernel-remove-fastcall-in-kernel-checkpatch-fixes kernel/pid.c
+--- a/kernel/pid.c~kernel-remove-fastcall-in-kernel-checkpatch-fixes
++++ a/kernel/pid.c
+@@ -287,7 +287,7 @@ out_free:
+ 	goto out;
  }
  
--fastcall void __sched __down(struct semaphore * sem)
-+void __sched __down(struct semaphore * sem)
+-struct pid * find_pid_ns(int nr, struct pid_namespace *ns)
++struct pid *find_pid_ns(int nr, struct pid_namespace *ns)
  {
- 	struct task_struct *tsk = current;
- 	DECLARE_WAITQUEUE(wait, tsk);
-@@ -90,7 +90,7 @@ fastcall void __sched __down(struct sema
- 	tsk->state = TASK_RUNNING;
+ 	struct hlist_node *elem;
+ 	struct upid *pnr;
+@@ -357,7 +357,7 @@ void transfer_pid(struct task_struct *ol
+ 	old->pids[type].pid = NULL;
  }
  
--fastcall int __sched __down_interruptible(struct semaphore * sem)
-+int __sched __down_interruptible(struct semaphore * sem)
+-struct task_struct * pid_task(struct pid *pid, enum pid_type type)
++struct task_struct *pid_task(struct pid *pid, enum pid_type type)
  {
- 	int retval = 0;
- 	struct task_struct *tsk = current;
-@@ -153,7 +153,7 @@ fastcall int __sched __down_interruptibl
-  * single "cmpxchg" without failure cases,
-  * but then it wouldn't work on a 386.
-  */
--fastcall int __down_trylock(struct semaphore * sem)
-+int __down_trylock(struct semaphore * sem)
- {
- 	int sleepers;
- 	unsigned long flags;
+ 	struct task_struct *result = NULL;
+ 	if (pid) {
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+timerfd-v3-new-timerfd-api-ia64-fix.patch
+timerfd-v3-new-timerfd-api-m68k-fix.patch
+timerfd-v3-new-timerfd-api-mips-fix.patch
+timerfd-v3-new-timerfd-api-arch-fixes.patch
+timerfd-v3-new-timerfd-api-powerpc-fix.patch
+timerfd-v3-new-timerfd-api-sparc64-fix.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+kernel-auditc-warning-fix.patch
+git-cpufreq.patch
+git-powerpc.patch
+revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+git-drm.patch
+intel-agp-enable-i915-recognition.patch
+git-dvb.patch
+git-dvb-one-videobuf_read_start-is-enough.patch
+fix-jdelvare-i2c-i2c-constify-client-address-data.patch
+git-hid.patch
+revert-git-hrt.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-kvm.patch
+git-libata-all.patch
+libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
+libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
+libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
+git-md-accel.patch
+git-mmc.patch
+git-mtd.patch
 git-net.patch
+git-net-vs-git-lblnet.patch
+git-net-vs-git-lblnet-2.patch
+git-netdev-all.patch
+git-net-vs-git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+backlight-omap1-backlight-driver.patch
+git-battery.patch
+bluetooth-uninlining.patch
+git-nfsd.patch
+quirk-enable-msi-mapping-on-ht1000.patch
+git-sched.patch
+git-sched-fixup.patch
+git-sched-fixup-2.patch
 git-sh.patch
+git-scsi-misc.patch
+scsi-aic94xx-cleanups-checkpatch-fixes.patch
+scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+usb-testing-driver-dont-free-a-locked-mutex.patch
+ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
+9p-util-fix-semaphore-handling.patch
+git-watchdog.patch
+git-watchdog-fixup.patch
+add-support-for-sb1-hardware-watchdog.patch
+git-wireless.patch
+git-ipwireless_cs.patch
 git-x86.patch
-mm-remove-fastcall-from-mm.patch
+git-x86-fixup.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+i386-use-raw_smp_processor_id-in-die.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-xtensa.patch
+git-kgdb-fixup.patch
+bonding-locking-fix.patch
+usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
 mm-remove-fastcall-from-mm-checkpatch-fixes.patch
-fs-remove-fastcall-it-is-always-empty.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+stopmachine-semaphore-to-mutex-fix.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
+debug_smp_processor_id-fixlets.patch
 fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
-kernel-remove-fastcall-in-kernel.patch
 kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
-lib-remove-fastcall-from-lib.patch
+sync_sb_inodes-propagate-errors.patch
+add-have_oprofile.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-fix.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+logo-move-declarations-of-logos-to-linux_logoh-fix.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
