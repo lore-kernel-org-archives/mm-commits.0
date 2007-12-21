@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + md-allow-an-md-array-to-appear-with-0-drives-if-it-has-external-metadata.patch added to -mm tree
-Date: Fri, 21 Dec 2007 00:42:59 -0800
-Message-ID: <200712210842.lBL8gxiL005290@imap1.linux-foundation.org>
+Subject: + lib-proportion-fix-underflow-in-prop_norm_percpu.patch added to -mm tree
+Date: Fri, 21 Dec 2007 02:08:52 -0800
+Message-ID: <200712211008.lBLA8qVE008115@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60843 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33201 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752238AbXLUInD (ORCPT
+	by vger.kernel.org with ESMTP id S1750703AbXLUKJB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Dec 2007 03:43:03 -0500
+	Fri, 21 Dec 2007 05:09:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: neilb@suse.de
+Cc: a.p.zijlstra@chello.nl, zhe.jiang@intel.com
 
 
 The patch titled
-     md: allow an md array to appear with 0 drives if it has external metadata
+     lib: proportion: fix underflow in prop_norm_percpu()
 has been added to the -mm tree.  Its filename is
-     md-allow-an-md-array-to-appear-with-0-drives-if-it-has-external-metadata.patch
+     lib-proportion-fix-underflow-in-prop_norm_percpu.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,58 +26,155 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: md: allow an md array to appear with 0 drives if it has external metadata
-From: NeilBrown <neilb@suse.de>
+Subject: lib: proportion: fix underflow in prop_norm_percpu()
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Signed-off-by: Neil Brown <neilb@suse.de>
+Zhe Jiang noticed that its possible to underflow pl->events in
+prop_norm_percpu() when the value returned by percpu_counter_read() is less
+than the error on that read and the period delay > 1.  In that case half might
+not trigger the batch increment and the value will be identical on the next
+iteration, causing the same half to be subtracted again and again.
+
+Fix this by rewriting the division as a single subtraction instead of a
+subtraction loop and using percpu_counter_sum() when the value returned by
+percpu_counter_read() is smaller than the error.
+
+The latter is still needed if we want pl->events to shrink properly in the
+error region.
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Reviewed-by: Jiang Zhe <zhe.jiang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/md.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ lib/proportions.c |   36 +++++++++++++++---------------------
+ 1 file changed, 15 insertions(+), 21 deletions(-)
 
-diff -puN drivers/md/md.c~md-allow-an-md-array-to-appear-with-0-drives-if-it-has-external-metadata drivers/md/md.c
---- a/drivers/md/md.c~md-allow-an-md-array-to-appear-with-0-drives-if-it-has-external-metadata
-+++ a/drivers/md/md.c
-@@ -4647,9 +4647,10 @@ static int md_ioctl(struct inode *inode,
+diff -puN lib/proportions.c~lib-proportion-fix-underflow-in-prop_norm_percpu lib/proportions.c
+--- a/lib/proportions.c~lib-proportion-fix-underflow-in-prop_norm_percpu
++++ a/lib/proportions.c
+@@ -190,6 +190,8 @@ prop_adjust_shift(int *pl_shift, unsigne
+  * PERCPU
+  */
+ 
++#define PROP_BATCH (8*(1+ilog2(nr_cpu_ids)))
++
+ int prop_local_init_percpu(struct prop_local_percpu *pl)
+ {
+ 	spin_lock_init(&pl->lock);
+@@ -230,31 +232,23 @@ void prop_norm_percpu(struct prop_global
+ 
+ 	spin_lock_irqsave(&pl->lock, flags);
+ 	prop_adjust_shift(&pl->shift, &pl->period, pg->shift);
++
+ 	/*
+ 	 * For each missed period, we half the local counter.
+ 	 * basically:
+ 	 *   pl->events >> (global_period - pl->period);
+-	 *
+-	 * but since the distributed nature of percpu counters make division
+-	 * rather hard, use a regular subtraction loop. This is safe, because
+-	 * the events will only every be incremented, hence the subtraction
+-	 * can never result in a negative number.
  	 */
- 	/* if we are not initialised yet, only ADD_NEW_DISK, STOP_ARRAY,
- 	 * RUN_ARRAY, and GET_ and SET_BITMAP_FILE are allowed */
--	if (!mddev->raid_disks && cmd != ADD_NEW_DISK && cmd != STOP_ARRAY
--			&& cmd != RUN_ARRAY && cmd != SET_BITMAP_FILE
--	    		&& cmd != GET_BITMAP_FILE) {
-+	if ((!mddev->raid_disks && !mddev->external)
-+	    && cmd != ADD_NEW_DISK && cmd != STOP_ARRAY
-+	    && cmd != RUN_ARRAY && cmd != SET_BITMAP_FILE
-+	    && cmd != GET_BITMAP_FILE) {
- 		err = -ENODEV;
- 		goto abort_unlock;
- 	}
+-	while (pl->period != global_period) {
+-		unsigned long val = percpu_counter_read(&pl->events);
+-		unsigned long half = (val + 1) >> 1;
+-
+-		/*
+-		 * Half of zero won't be much less, break out.
+-		 * This limits the loop to shift iterations, even
+-		 * if we missed a million.
+-		 */
+-		if (!val)
+-			break;
+-
+-		percpu_counter_add(&pl->events, -half);
+-		pl->period += period;
+-	}
++	period = (global_period - pl->period) >> (pg->shift - 1);
++	if (period < BITS_PER_LONG) {
++		s64 val = percpu_counter_read(&pl->events);
++
++		if (val < (nr_cpu_ids * PROP_BATCH))
++			val = percpu_counter_sum(&pl->events);
++
++		__percpu_counter_add(&pl->events, -val + (val >> period), PROP_BATCH);
++	} else
++		percpu_counter_set(&pl->events, 0);
++
+ 	pl->period = global_period;
+ 	spin_unlock_irqrestore(&pl->lock, flags);
+ }
+@@ -267,7 +261,7 @@ void __prop_inc_percpu(struct prop_descr
+ 	struct prop_global *pg = prop_get_global(pd);
+ 
+ 	prop_norm_percpu(pg, pl);
+-	percpu_counter_add(&pl->events, 1);
++	__percpu_counter_add(&pl->events, 1, PROP_BATCH);
+ 	percpu_counter_add(&pg->events, 1);
+ 	prop_put_global(pd, pg);
+ }
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 origin.patch
-git-nfsd.patch
-coding-style-cleanups-for-drivers-md-mktablesc.patch
-md-raid6-fix-mktablec.patch
-md-raid6-clean-up-the-style-of-raid6test-testc.patch
-md-update-md-bitmap-during-resync.patch
-md-update-md-bitmap-during-resync-fix.patch
-md-support-external-metadata-for-md-arrays.patch
-md-give-userspace-control-over-removing-failed-devices-when-external-metdata-in-use.patch
-md-allow-a-maximum-extent-to-be-set-for-resyncing.patch
-md-allow-devices-to-be-shared-between-md-arrays.patch
-md-lock-address-when-changing-attributes-of-component-devices.patch
-md-allow-an-md-array-to-appear-with-0-drives-if-it-has-external-metadata.patch
-md-get-name-for-block-device-in-sysfs.patch
-one-less-parameter-to-__d_path.patch
-d_path-kerneldoc-cleanup.patch
-d_path-use-struct-path-in-struct-avc_audit_data.patch
-d_path-make-proc_get_link-use-a-struct-path-argument.patch
-d_path-make-get_dcookie-use-a-struct-path-argument.patch
-use-struct-path-in-struct-svc_export.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_expkey.patch
-d_path-make-seq_path-use-a-struct-path-argument.patch
-d_path-make-d_path-use-a-struct-path.patch
+lib-proportion-fix-underflow-in-prop_norm_percpu.patch
+git-sched.patch
+slub-move-kmem_cache_node-determination-into-add_full-and-add_partial-slub-workaround-for-lockdep-confusion.patch
+swapin-needs-gfp_mask-for-loop-on-tmpfs.patch
+mm-page-writeback-highmem_is_dirtyable-option.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+skip-writing-data-pages-when-inode-is-under-i_sync.patch
+kernel-add-mutex_lock_killable.patch
+vfs-use-mutex_lock_killable-in-vfs_readdir.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-memcgroup-fix-try_to_free-order.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+memcgroup-reinstate-swapoff-mod.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
+memcgroup-fix-zone-isolation-oom.patch
+memcgroup-revert-swap_state-mods.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
+memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
+memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+memory-cgroup-enhancements-add-pre_destroy-handler.patch
+memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
