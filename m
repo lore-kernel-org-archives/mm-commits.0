@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lib-remove-fastcall-from-lib-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 20 Dec 2007 16:52:49 -0800
-Message-ID: <200712210052.lBL0qnA3021974@imap1.linux-foundation.org>
+Subject: + remove-fastcall-from-linux-include.patch added to -mm tree
+Date: Thu, 20 Dec 2007 16:53:53 -0800
+Message-ID: <200712210053.lBL0rrZe021998@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59226 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52676 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757825AbXLUAxW (ORCPT
+	by vger.kernel.org with ESMTP id S1751184AbXLUAyZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Dec 2007 19:53:22 -0500
+	Thu, 20 Dec 2007 19:54:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, harvey.harrison@gmail.com
+Cc: harvey.harrison@gmail.com
 
 
 The patch titled
-     lib-remove-fastcall-from-lib-checkpatch-fixes
+     Remove fastcall from linux/include
 has been added to the -mm tree.  Its filename is
-     lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+     remove-fastcall-from-linux-include.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,282 +26,160 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lib-remove-fastcall-from-lib-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Remove fastcall from linux/include
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-ERROR: "foo * bar" should be "foo *bar"
-#244: FILE: lib/semaphore-sleepers.c:56:
-+void __sched __down(struct semaphore * sem)
-
-ERROR: "foo * bar" should be "foo *bar"
-#253: FILE: lib/semaphore-sleepers.c:93:
-+int __sched __down_interruptible(struct semaphore * sem)
-
-ERROR: "foo * bar" should be "foo *bar"
-#262: FILE: lib/semaphore-sleepers.c:156:
-+int __down_trylock(struct semaphore * sem)
-
-total: 3 errors, 0 warnings, 222 lines checked
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Harvey Harrison <harvey.harrison@gmail.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/semaphore-sleepers.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/irq.h      |   16 ++++++++--------
+ include/linux/kernel.h   |    2 +-
+ include/linux/mutex.h    |   12 ++++++------
+ include/linux/preempt.h  |    4 ++--
+ include/linux/spinlock.h |    2 +-
+ include/linux/timer.h    |    4 ++--
+ 6 files changed, 20 insertions(+), 20 deletions(-)
 
-diff -puN lib/semaphore-sleepers.c~lib-remove-fastcall-from-lib-checkpatch-fixes lib/semaphore-sleepers.c
---- a/lib/semaphore-sleepers.c~lib-remove-fastcall-from-lib-checkpatch-fixes
-+++ a/lib/semaphore-sleepers.c
-@@ -53,7 +53,7 @@ void __up(struct semaphore *sem)
- 	wake_up(&sem->wait);
- }
+diff -puN include/linux/irq.h~remove-fastcall-from-linux-include include/linux/irq.h
+--- a/include/linux/irq.h~remove-fastcall-from-linux-include
++++ a/include/linux/irq.h
+@@ -25,7 +25,7 @@
+ #include <asm/irq_regs.h>
  
--void __sched __down(struct semaphore * sem)
-+void __sched __down(struct semaphore *sem)
- {
- 	struct task_struct *tsk = current;
- 	DECLARE_WAITQUEUE(wait, tsk);
-@@ -90,7 +90,7 @@ void __sched __down(struct semaphore * s
- 	tsk->state = TASK_RUNNING;
- }
+ struct irq_desc;
+-typedef	void fastcall (*irq_flow_handler_t)(unsigned int irq,
++typedef	void (*irq_flow_handler_t)(unsigned int irq,
+ 					    struct irq_desc *desc);
  
--int __sched __down_interruptible(struct semaphore * sem)
-+int __sched __down_interruptible(struct semaphore *sem)
- {
- 	int retval = 0;
- 	struct task_struct *tsk = current;
-@@ -153,7 +153,7 @@ int __sched __down_interruptible(struct 
-  * single "cmpxchg" without failure cases,
-  * but then it wouldn't work on a 386.
+ 
+@@ -276,19 +276,19 @@ extern int handle_IRQ_event(unsigned int
+  * Built-in IRQ handlers for various IRQ types,
+  * callable via desc->chip->handle_irq()
   */
--int __down_trylock(struct semaphore * sem)
-+int __down_trylock(struct semaphore *sem)
+-extern void fastcall handle_level_irq(unsigned int irq, struct irq_desc *desc);
+-extern void fastcall handle_fasteoi_irq(unsigned int irq, struct irq_desc *desc);
+-extern void fastcall handle_edge_irq(unsigned int irq, struct irq_desc *desc);
+-extern void fastcall handle_simple_irq(unsigned int irq, struct irq_desc *desc);
+-extern void fastcall handle_percpu_irq(unsigned int irq, struct irq_desc *desc);
+-extern void fastcall handle_bad_irq(unsigned int irq, struct irq_desc *desc);
++extern void handle_level_irq(unsigned int irq, struct irq_desc *desc);
++extern void handle_fasteoi_irq(unsigned int irq, struct irq_desc *desc);
++extern void handle_edge_irq(unsigned int irq, struct irq_desc *desc);
++extern void handle_simple_irq(unsigned int irq, struct irq_desc *desc);
++extern void handle_percpu_irq(unsigned int irq, struct irq_desc *desc);
++extern void handle_bad_irq(unsigned int irq, struct irq_desc *desc);
+ 
+ /*
+  * Monolithic do_IRQ implementation.
+  * (is an explicit fastcall, because i386 4KSTACKS calls it from assembly)
+  */
+ #ifndef CONFIG_GENERIC_HARDIRQS_NO__DO_IRQ
+-extern fastcall unsigned int __do_IRQ(unsigned int irq);
++extern unsigned int __do_IRQ(unsigned int irq);
+ #endif
+ 
+ /*
+diff -puN include/linux/kernel.h~remove-fastcall-from-linux-include include/linux/kernel.h
+--- a/include/linux/kernel.h~remove-fastcall-from-linux-include
++++ a/include/linux/kernel.h
+@@ -133,7 +133,7 @@ NORET_TYPE void panic(const char * fmt, 
+ extern void oops_enter(void);
+ extern void oops_exit(void);
+ extern int oops_may_print(void);
+-fastcall NORET_TYPE void do_exit(long error_code)
++NORET_TYPE void do_exit(long error_code)
+ 	ATTRIB_NORET;
+ NORET_TYPE void complete_and_exit(struct completion *, long)
+ 	ATTRIB_NORET;
+diff -puN include/linux/mutex.h~remove-fastcall-from-linux-include include/linux/mutex.h
+--- a/include/linux/mutex.h~remove-fastcall-from-linux-include
++++ a/include/linux/mutex.h
+@@ -112,7 +112,7 @@ extern void __mutex_init(struct mutex *l
+  *
+  * Returns 1 if the mutex is locked, 0 if unlocked.
+  */
+-static inline int fastcall mutex_is_locked(struct mutex *lock)
++static inline int mutex_is_locked(struct mutex *lock)
  {
- 	int sleepers;
- 	unsigned long flags;
+ 	return atomic_read(&lock->count) != 1;
+ }
+@@ -132,9 +132,9 @@ extern int __must_check mutex_lock_killa
+ #define mutex_lock_interruptible(lock) mutex_lock_interruptible_nested(lock, 0)
+ #define mutex_lock_killable(lock) mutex_lock_killable_nested(lock, 0)
+ #else
+-extern void fastcall mutex_lock(struct mutex *lock);
+-extern int __must_check fastcall mutex_lock_interruptible(struct mutex *lock);
+-extern int __must_check fastcall mutex_lock_killable(struct mutex *lock);
++extern void mutex_lock(struct mutex *lock);
++extern int __must_check mutex_lock_interruptible(struct mutex *lock);
++extern int __must_check mutex_lock_killable(struct mutex *lock);
+ 
+ # define mutex_lock_nested(lock, subclass) mutex_lock(lock)
+ # define mutex_lock_interruptible_nested(lock, subclass) mutex_lock_interruptible(lock)
+@@ -145,7 +145,7 @@ extern int __must_check fastcall mutex_l
+  * NOTE: mutex_trylock() follows the spin_trylock() convention,
+  *       not the down_trylock() convention!
+  */
+-extern int fastcall mutex_trylock(struct mutex *lock);
+-extern void fastcall mutex_unlock(struct mutex *lock);
++extern int mutex_trylock(struct mutex *lock);
++extern void mutex_unlock(struct mutex *lock);
+ 
+ #endif
+diff -puN include/linux/preempt.h~remove-fastcall-from-linux-include include/linux/preempt.h
+--- a/include/linux/preempt.h~remove-fastcall-from-linux-include
++++ a/include/linux/preempt.h
+@@ -11,8 +11,8 @@
+ #include <linux/list.h>
+ 
+ #ifdef CONFIG_DEBUG_PREEMPT
+-  extern void fastcall add_preempt_count(int val);
+-  extern void fastcall sub_preempt_count(int val);
++  extern void add_preempt_count(int val);
++  extern void sub_preempt_count(int val);
+ #else
+ # define add_preempt_count(val)	do { preempt_count() += (val); } while (0)
+ # define sub_preempt_count(val)	do { preempt_count() -= (val); } while (0)
+diff -puN include/linux/spinlock.h~remove-fastcall-from-linux-include include/linux/spinlock.h
+--- a/include/linux/spinlock.h~remove-fastcall-from-linux-include
++++ a/include/linux/spinlock.h
+@@ -71,7 +71,7 @@
+ #define LOCK_SECTION_END                        \
+         ".previous\n\t"
+ 
+-#define __lockfunc fastcall __attribute__((section(".spinlock.text")))
++#define __lockfunc __attribute__((section(".spinlock.text")))
+ 
+ /*
+  * Pull the raw_spinlock_t and raw_rwlock_t definitions:
+diff -puN include/linux/timer.h~remove-fastcall-from-linux-include include/linux/timer.h
+--- a/include/linux/timer.h~remove-fastcall-from-linux-include
++++ a/include/linux/timer.h
+@@ -35,8 +35,8 @@ extern struct tvec_base boot_tvec_bases;
+ 	struct timer_list _name =				\
+ 		TIMER_INITIALIZER(_function, _expires, _data)
+ 
+-void fastcall init_timer(struct timer_list * timer);
+-void fastcall init_timer_deferrable(struct timer_list *timer);
++void init_timer(struct timer_list * timer);
++void init_timer_deferrable(struct timer_list *timer);
+ 
+ static inline void setup_timer(struct timer_list * timer,
+ 				void (*function)(unsigned long),
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-origin.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-timerfd-v3-new-timerfd-api-ia64-fix.patch
-timerfd-v3-new-timerfd-api-m68k-fix.patch
-timerfd-v3-new-timerfd-api-mips-fix.patch
-timerfd-v3-new-timerfd-api-arch-fixes.patch
-timerfd-v3-new-timerfd-api-powerpc-fix.patch
-timerfd-v3-new-timerfd-api-sparc64-fix.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-kernel-auditc-warning-fix.patch
-git-cpufreq.patch
-git-powerpc.patch
-revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-git-drm.patch
-intel-agp-enable-i915-recognition.patch
-git-dvb.patch
-git-dvb-one-videobuf_read_start-is-enough.patch
-fix-jdelvare-i2c-i2c-constify-client-address-data.patch
-git-hid.patch
-revert-git-hrt.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-kvm.patch
-git-libata-all.patch
-libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
-libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
-libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
-git-md-accel.patch
-git-mmc.patch
-git-mtd.patch
 git-net.patch
-git-net-vs-git-lblnet.patch
-git-net-vs-git-lblnet-2.patch
-git-netdev-all.patch
-git-net-vs-git-netdev-all.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-backlight-omap1-backlight-driver.patch
-git-battery.patch
-bluetooth-uninlining.patch
-git-nfsd.patch
-quirk-enable-msi-mapping-on-ht1000.patch
-git-sched.patch
-git-sched-fixup.patch
-git-sched-fixup-2.patch
 git-sh.patch
-git-scsi-misc.patch
-scsi-aic94xx-cleanups-checkpatch-fixes.patch
-scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-usb-testing-driver-dont-free-a-locked-mutex.patch
-ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
-9p-util-fix-semaphore-handling.patch
-git-watchdog.patch
-git-watchdog-fixup.patch
-add-support-for-sb1-hardware-watchdog.patch
-git-wireless.patch
-git-ipwireless_cs.patch
 git-x86.patch
-git-x86-fixup.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-i386-use-raw_smp_processor_id-in-die.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-git-xtensa.patch
-git-kgdb-fixup.patch
-bonding-locking-fix.patch
-usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+mm-remove-fastcall-from-mm.patch
 mm-remove-fastcall-from-mm-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
-kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
-stopmachine-semaphore-to-mutex-fix.patch
-parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
-debug_smp_processor_id-fixlets.patch
+fs-remove-fastcall-it-is-always-empty.patch
 fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel.patch
 kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib.patch
 lib-remove-fastcall-from-lib-checkpatch-fixes.patch
-sync_sb_inodes-propagate-errors.patch
-add-have_oprofile.patch
-ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-rtc-add-support-for-the-s-35390a-rtc-chip-fix.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-logo-move-declarations-of-logos-to-linux_logoh-fix.patch
-declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-pid-sys_wait-fixes-v2-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-rewrite-rd-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+remove-fastcall-from-linux-include.patch
