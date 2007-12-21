@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + md-allow-devices-to-be-shared-between-md-arrays.patch added to -mm tree
-Date: Fri, 21 Dec 2007 00:39:43 -0800
-Message-ID: <200712210839.lBL8dhch005132@imap1.linux-foundation.org>
+Subject: + md-lock-address-when-changing-attributes-of-component-devices.patch added to -mm tree
+Date: Fri, 21 Dec 2007 00:42:51 -0800
+Message-ID: <200712210842.lBL8gpi4005284@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41072 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43210 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750763AbXLUIjs (ORCPT
+	by vger.kernel.org with ESMTP id S1751651AbXLUIm4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Dec 2007 03:39:48 -0500
+	Fri, 21 Dec 2007 03:42:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: neilb@suse.de
 
 
 The patch titled
-     md: allow devices to be shared between md arrays
+     md: lock address when changing attributes of component devices
 has been added to the -mm tree.  Its filename is
-     md-allow-devices-to-be-shared-between-md-arrays.patch
+     md-lock-address-when-changing-attributes-of-component-devices.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,241 +26,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: md: allow devices to be shared between md arrays
+Subject: md: lock address when changing attributes of component devices
 From: NeilBrown <neilb@suse.de>
-
-Currently, a given device is "claimed" by a particular array so that it cannot
-be used by other arrays.
-
-This is not ideal for DDF and other metadata schemes which have their own
-partitioning concept.
-
-So for externally managed metadata, just claim the device for md in general,
-require that "offset" and "size" are set properly for each device, and make
-sure that if a device is included in different arrays then the active sections
-do not overlap.
-
-This involves adding another flag to the rdev which makes it awkward to set
-"->flags = 0" to clear certain flags.  So now clear flags explicitly by name
-when we want to clear things.
 
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/md.c           |   93 +++++++++++++++++++++++++++++++-----
- include/linux/raid/md_k.h |    2 
- 2 files changed, 84 insertions(+), 11 deletions(-)
+ drivers/md/md.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN drivers/md/md.c~md-allow-devices-to-be-shared-between-md-arrays drivers/md/md.c
---- a/drivers/md/md.c~md-allow-devices-to-be-shared-between-md-arrays
+diff -puN drivers/md/md.c~md-lock-address-when-changing-attributes-of-component-devices drivers/md/md.c
+--- a/drivers/md/md.c~md-lock-address-when-changing-attributes-of-component-devices
 +++ a/drivers/md/md.c
-@@ -774,7 +774,11 @@ static int super_90_validate(mddev_t *md
- 	__u64 ev1 = md_event(sb);
- 
- 	rdev->raid_disk = -1;
--	rdev->flags = 0;
-+	clear_bit(Faulty, &rdev->flags);
-+	clear_bit(In_sync, &rdev->flags);
-+	clear_bit(WriteMostly, &rdev->flags);
-+	clear_bit(BarriersNotsupp, &rdev->flags);
-+
- 	if (mddev->raid_disks == 0) {
- 		mddev->major_version = 0;
- 		mddev->minor_version = sb->minor_version;
-@@ -1155,7 +1159,11 @@ static int super_1_validate(mddev_t *mdd
- 	__u64 ev1 = le64_to_cpu(sb->events);
- 
- 	rdev->raid_disk = -1;
--	rdev->flags = 0;
-+	clear_bit(Faulty, &rdev->flags);
-+	clear_bit(In_sync, &rdev->flags);
-+	clear_bit(WriteMostly, &rdev->flags);
-+	clear_bit(BarriersNotsupp, &rdev->flags);
-+
- 	if (mddev->raid_disks == 0) {
- 		mddev->major_version = 1;
- 		mddev->patch_version = 0;
-@@ -1404,7 +1412,7 @@ static int bind_rdev_to_array(mdk_rdev_t
- 		goto fail;
- 	}
- 	list_add(&rdev->same_set, &mddev->disks);
--	bd_claim_by_disk(rdev->bdev, rdev, mddev->gendisk);
-+	bd_claim_by_disk(rdev->bdev, rdev->bdev->bd_holder, mddev->gendisk);
- 	return 0;
- 
-  fail:
-@@ -1444,7 +1452,7 @@ static void unbind_rdev_from_array(mdk_r
-  * otherwise reused by a RAID array (or any other kernel
-  * subsystem), by bd_claiming the device.
-  */
--static int lock_rdev(mdk_rdev_t *rdev, dev_t dev)
-+static int lock_rdev(mdk_rdev_t *rdev, dev_t dev, int shared)
+@@ -2077,12 +2077,18 @@ rdev_attr_store(struct kobject *kobj, st
  {
- 	int err = 0;
- 	struct block_device *bdev;
-@@ -1456,13 +1464,15 @@ static int lock_rdev(mdk_rdev_t *rdev, d
- 			__bdevname(dev, b));
- 		return PTR_ERR(bdev);
- 	}
--	err = bd_claim(bdev, rdev);
-+	err = bd_claim(bdev, shared ? (mdk_rdev_t *)lock_rdev : rdev);
- 	if (err) {
- 		printk(KERN_ERR "md: could not bd_claim %s.\n",
- 			bdevname(bdev, b));
- 		blkdev_put(bdev);
- 		return err;
- 	}
-+	if (!shared)
-+		set_bit(AllReserved, &rdev->flags);
- 	rdev->bdev = bdev;
- 	return err;
- }
-@@ -1927,7 +1937,8 @@ slot_store(mdk_rdev_t *rdev, const char 
- 			return -ENOSPC;
- 		rdev->raid_disk = slot;
- 		/* assume it is working */
--		rdev->flags = 0;
-+		clear_bit(Faulty, &rdev->flags);
-+		clear_bit(WriteMostly, &rdev->flags);
- 		set_bit(In_sync, &rdev->flags);
- 	}
- 	return len;
-@@ -1952,6 +1963,10 @@ offset_store(mdk_rdev_t *rdev, const cha
- 		return -EINVAL;
- 	if (rdev->mddev->pers)
- 		return -EBUSY;
-+	if (rdev->size && rdev->mddev->external)
-+		/* Must set offset before size, so overlap checks
-+		 * can be sane */
-+		return -EBUSY;
- 	rdev->data_offset = offset;
- 	return len;
- }
-@@ -1965,16 +1980,69 @@ rdev_size_show(mdk_rdev_t *rdev, char *p
- 	return sprintf(page, "%llu\n", (unsigned long long)rdev->size);
- }
+ 	struct rdev_sysfs_entry *entry = container_of(attr, struct rdev_sysfs_entry, attr);
+ 	mdk_rdev_t *rdev = container_of(kobj, mdk_rdev_t, kobj);
++	int rv;
  
-+static int overlaps(sector_t s1, sector_t l1, sector_t s2, sector_t l2)
-+{
-+	/* check if two start/length pairs overlap */
-+	if (s1+l1 <= s2)
-+		return 0;
-+	if (s2+l2 <= s1)
-+		return 0;
-+	return 1;
-+}
-+
- static ssize_t
- rdev_size_store(mdk_rdev_t *rdev, const char *buf, size_t len)
- {
- 	char *e;
- 	unsigned long long size = simple_strtoull(buf, &e, 10);
-+	unsigned long long oldsize = rdev->size;
- 	if (e==buf || (*e && *e != '\n'))
- 		return -EINVAL;
- 	if (rdev->mddev->pers)
- 		return -EBUSY;
- 	rdev->size = size;
-+	if (size > oldsize && rdev->mddev->external) {
-+		/* need to check that all other rdevs with the same ->bdev
-+		 * do not overlap.  We need to unlock the mddev to avoid
-+		 * a deadlock.  We have already changed rdev->size, and if
-+		 * we have to change it back, we will have the lock again.
-+		 */
-+		mddev_t *mddev;
-+		int overlap = 0;
-+		struct list_head *tmp, *tmp2;
-+
+ 	if (!entry->store)
+ 		return -EIO;
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EACCES;
+-	return entry->store(rdev, page, length);
++	rv = mddev_lock(rdev->mddev);
++	if (!rv) {
++		rv = entry->store(rdev, page, length);
 +		mddev_unlock(rdev->mddev);
-+		ITERATE_MDDEV(mddev, tmp) {
-+			mdk_rdev_t *rdev2;
-+
-+			mddev_lock(mddev);
-+			ITERATE_RDEV(mddev, rdev2, tmp2)
-+				if (test_bit(AllReserved, &rdev2->flags) ||
-+				    (rdev->bdev == rdev2->bdev &&
-+				     rdev != rdev2 &&
-+				     overlaps(rdev->data_offset, rdev->size,
-+					    rdev2->data_offset, rdev2->size))) {
-+					overlap = 1;
-+					break;
-+				}
-+			mddev_unlock(mddev);
-+			if (overlap) {
-+				mddev_put(mddev);
-+				break;
-+			}
-+		}
-+		mddev_lock(rdev->mddev);
-+		if (overlap) {
-+			/* Someone else could have slipped in a size
-+			 * change here, but doing so is just silly.
-+			 * We put oldsize back because we *know* it is
-+			 * safe, and trust userspace not to race with
-+			 * itself
-+			 */
-+			rdev->size = oldsize;
-+			return -EBUSY;
-+		}
 +	}
- 	if (size < rdev->mddev->size || rdev->mddev->size == 0)
- 		rdev->mddev->size = size;
- 	return len;
-@@ -2058,7 +2126,7 @@ static mdk_rdev_t *md_import_device(dev_
- 	if ((err = alloc_disk_sb(rdev)))
- 		goto abort_free;
++	return rv;
+ }
  
--	err = lock_rdev(rdev, newdev);
-+	err = lock_rdev(rdev, newdev, super_format == -2);
- 	if (err)
- 		goto abort_free;
- 
-@@ -2611,7 +2679,9 @@ new_dev_store(mddev_t *mddev, const char
- 			if (err < 0)
- 				goto out;
- 		}
--	} else
-+	} else if (mddev->external)
-+		rdev = md_import_device(dev, -2, -1);
-+	else
- 		rdev = md_import_device(dev, -1, -1);
- 
- 	if (IS_ERR(rdev))
-@@ -3213,8 +3283,11 @@ static int do_md_run(mddev_t * mddev)
- 	/*
- 	 * Analyze all RAID superblock(s)
- 	 */
--	if (!mddev->raid_disks)
-+	if (!mddev->raid_disks) {
-+		if (!mddev->persistent)
-+			return -EINVAL;
- 		analyze_sbs(mddev);
-+	}
- 
- 	chunk_size = mddev->chunk_size;
- 
-@@ -4016,8 +4089,6 @@ static int add_new_disk(mddev_t * mddev,
- 		else
- 			rdev->raid_disk = -1;
- 
--		rdev->flags = 0;
--
- 		if (rdev->raid_disk < mddev->raid_disks)
- 			if (info->state & (1<<MD_DISK_SYNC))
- 				set_bit(In_sync, &rdev->flags);
-diff -puN include/linux/raid/md_k.h~md-allow-devices-to-be-shared-between-md-arrays include/linux/raid/md_k.h
---- a/include/linux/raid/md_k.h~md-allow-devices-to-be-shared-between-md-arrays
-+++ a/include/linux/raid/md_k.h
-@@ -81,6 +81,8 @@ struct mdk_rdev_s
- #define	In_sync		2		/* device is in_sync with rest of array */
- #define	WriteMostly	4		/* Avoid reading if at all possible */
- #define	BarriersNotsupp	5		/* BIO_RW_BARRIER is not supported */
-+#define	AllReserved	6		/* If whole device is reserved for
-+					 * one array */
- 
- 	int desc_nr;			/* descriptor index in the superblock */
- 	int raid_disk;			/* role of device in array */
+ static void rdev_free(struct kobject *ko)
 _
 
 Patches currently in -mm which might be from neilb@suse.de are
