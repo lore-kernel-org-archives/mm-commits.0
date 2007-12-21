@@ -1,118 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: - usb-testing-driver-convert-dev-sem-to-mutex.patch removed from -mm tree
-Date: Fri, 21 Dec 2007 14:08:46 -0800
-Message-ID: <200712212208.lBLM8kVU001726@imap1.linux-foundation.org>
+Subject: - edgeport-usb-serial-converter-convert-es_sem-to-mutex.patch removed from -mm tree
+Date: Fri, 21 Dec 2007 14:08:42 -0800
+Message-ID: <200712212208.lBLM8gxN001723@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52162 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56858 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755669AbXLUWJU (ORCPT
+	by vger.kernel.org with ESMTP id S1756344AbXLUWJQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Dec 2007 17:09:20 -0500
+	Fri, 21 Dec 2007 17:09:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: matthias.kaehlcke@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     USB testing driver: convert dev->sem to mutex
+     Edgeport USB Serial Converter: convert es_sem to mutex
 has been removed from the -mm tree.  Its filename was
-     usb-testing-driver-convert-dev-sem-to-mutex.patch
+     edgeport-usb-serial-converter-convert-es_sem-to-mutex.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: USB testing driver: convert dev->sem to mutex
+Subject: Edgeport USB Serial Converter: convert es_sem to mutex
 From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-USB testing driver: convert semaphore dev->sem to the mutex API
+Edgeport USB Serial Converter: convert semaphore es_sem to the mutex API
 
 Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/misc/usbtest.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ drivers/usb/serial/io_ti.c |   21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN drivers/usb/misc/usbtest.c~usb-testing-driver-convert-dev-sem-to-mutex drivers/usb/misc/usbtest.c
---- a/drivers/usb/misc/usbtest.c~usb-testing-driver-convert-dev-sem-to-mutex
-+++ a/drivers/usb/misc/usbtest.c
-@@ -6,6 +6,7 @@
+diff -puN drivers/usb/serial/io_ti.c~edgeport-usb-serial-converter-convert-es_sem-to-mutex drivers/usb/serial/io_ti.c
+--- a/drivers/usb/serial/io_ti.c~edgeport-usb-serial-converter-convert-es_sem-to-mutex
++++ a/drivers/usb/serial/io_ti.c
+@@ -34,6 +34,7 @@
+ #include <linux/tty_flip.h>
  #include <linux/module.h>
- #include <linux/moduleparam.h>
- #include <linux/scatterlist.h>
+ #include <linux/spinlock.h>
 +#include <linux/mutex.h>
+ #include <linux/serial.h>
+ #include <linux/ioctl.h>
+ #include <asm/uaccess.h>
+@@ -133,7 +134,7 @@ struct edgeport_serial {
+ 	struct product_info product_info;
+ 	u8 TI_I2C_Type;			// Type of I2C in UMP
+ 	u8 TiReadI2C;			// Set to TRUE if we have read the I2c in Boot Mode
+-	struct semaphore es_sem;
++	struct mutex es_lock;
+ 	int num_ports_open;
+ 	struct usb_serial *serial;
+ };
+@@ -2044,7 +2045,7 @@ static int edge_open (struct usb_serial_
+ 	dbg ("ShadowMCR 0x%X", edge_port->shadow_mcr);
  
- #include <linux/usb.h>
- 
-@@ -64,7 +65,7 @@ struct usbtest_dev {
- 	int			in_iso_pipe;
- 	int			out_iso_pipe;
- 	struct usb_endpoint_descriptor	*iso_in, *iso_out;
--	struct semaphore	sem;
-+	struct mutex		lock;
- 
- #define TBUF_SIZE	256
- 	u8			*buf;
-@@ -1558,11 +1559,11 @@ usbtest_ioctl (struct usb_interface *int
- 			|| param->sglen < 0 || param->vary < 0)
- 		return -EINVAL;
- 
--	if (down_interruptible (&dev->sem))
-+	if (mutex_lock_interruptible(&dev->lock))
+ 	edge_serial = edge_port->edge_serial;
+-	if (down_interruptible(&edge_serial->es_sem))
++	if (mutex_lock_interruptible(&edge_serial->es_lock))
  		return -ERESTARTSYS;
- 
- 	if (intf->dev.power.power_state.event != PM_EVENT_ON) {
--		up (&dev->sem);
-+		mutex_unlock(&dev->lock);
- 		return -EHOSTUNREACH;
- 	}
- 
-@@ -1574,7 +1575,7 @@ usbtest_ioctl (struct usb_interface *int
- 	    	int	res;
- 
- 		if (intf->altsetting->desc.bInterfaceNumber) {
--			up (&dev->sem);
-+			mutex_unlock(&dev->lock);
- 			return -ENODEV;
+ 	if (edge_serial->num_ports_open == 0) {
+ 		/* we are the first port to be opened, let's post the interrupt urb */
+@@ -2052,7 +2053,7 @@ static int edge_open (struct usb_serial_
+ 		if (!urb) {
+ 			dev_err (&port->dev, "%s - no interrupt urb present, exiting\n", __FUNCTION__);
+ 			status = -EINVAL;
+-			goto up_es_sem;
++			goto release_es_lock;
  		}
- 		res = set_altsetting (dev, dev->info->alt);
-@@ -1582,7 +1583,7 @@ usbtest_ioctl (struct usb_interface *int
- 			dev_err (&intf->dev,
- 					"set altsetting to %d failed, %d\n",
- 					dev->info->alt, res);
--			up (&dev->sem);
-+			mutex_unlock(&dev->lock);
- 			return res;
+ 		urb->complete = edge_interrupt_callback;
+ 		urb->context = edge_serial;
+@@ -2060,7 +2061,7 @@ static int edge_open (struct usb_serial_
+ 		status = usb_submit_urb (urb, GFP_KERNEL);
+ 		if (status) {
+ 			dev_err (&port->dev, "%s - usb_submit_urb failed with value %d\n", __FUNCTION__, status);
+-			goto up_es_sem;
++			goto release_es_lock;
  		}
  	}
-@@ -1855,7 +1856,7 @@ usbtest_ioctl (struct usb_interface *int
- 		param->duration.tv_usec += 1000 * 1000;
- 		param->duration.tv_sec -= 1;
- 	}
--	up (&dev->sem);
-+	mutex_unlock(&dev->lock);
- 	return retval;
+ 
+@@ -2092,13 +2093,13 @@ static int edge_open (struct usb_serial_
+ 
+ 	dbg("%s - exited", __FUNCTION__);
+ 
+-	goto up_es_sem;
++	goto release_es_lock;
+ 
+ unlink_int_urb:
+ 	if (edge_port->edge_serial->num_ports_open == 0)
+ 		usb_kill_urb(port->serial->port[0]->interrupt_in_urb);
+-up_es_sem:
+-	up(&edge_serial->es_sem);
++release_es_lock:
++	mutex_unlock(&edge_serial->es_lock);
+ 	return status;
  }
  
-@@ -1905,7 +1906,7 @@ usbtest_probe (struct usb_interface *int
+@@ -2137,14 +2138,14 @@ static void edge_close (struct usb_seria
+ 				     0,
+ 				     NULL,
+ 				     0);
+-	down(&edge_serial->es_sem);
++	mutex_lock(&edge_serial->es_lock);
+ 	--edge_port->edge_serial->num_ports_open;
+ 	if (edge_port->edge_serial->num_ports_open <= 0) {
+ 		/* last port is now closed, let's shut down our interrupt urb */
+ 		usb_kill_urb(port->serial->port[0]->interrupt_in_urb);
+ 		edge_port->edge_serial->num_ports_open = 0;
+ 	}
+-	up(&edge_serial->es_sem);
++	mutex_unlock(&edge_serial->es_lock);
+ 	edge_port->close_pending = 0;
+ 
+ 	dbg("%s - exited", __FUNCTION__);
+@@ -2743,7 +2744,7 @@ static int edge_startup (struct usb_seri
+ 		dev_err(&serial->dev->dev, "%s - Out of memory\n", __FUNCTION__);
  		return -ENOMEM;
- 	info = (struct usbtest_info *) id->driver_info;
- 	dev->info = info;
--	init_MUTEX (&dev->sem);
-+	mutex_init(&dev->lock);
+ 	}
+-	sema_init(&edge_serial->es_sem, 1);
++	mutex_init(&edge_serial->es_lock);
+ 	edge_serial->serial = serial;
+ 	usb_set_serial_data(serial, edge_serial);
  
- 	dev->intf = intf;
- 
-@@ -1990,7 +1991,7 @@ static void usbtest_disconnect (struct u
- {
- 	struct usbtest_dev	*dev = usb_get_intfdata (intf);
- 
--	down (&dev->sem);
-+	mutex_lock(&dev->lock);
- 
- 	usb_set_intfdata (intf, NULL);
- 	dev_dbg (&intf->dev, "disconnect\n");
 _
 
 Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
