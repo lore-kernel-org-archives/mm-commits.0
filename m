@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + md-allow-a-maximum-extent-to-be-set-for-resyncing.patch added to -mm tree
-Date: Fri, 21 Dec 2007 00:31:11 -0800
-Message-ID: <200712210831.lBL8VBmN004931@imap1.linux-foundation.org>
+Subject: + md-allow-devices-to-be-shared-between-md-arrays.patch added to -mm tree
+Date: Fri, 21 Dec 2007 00:39:43 -0800
+Message-ID: <200712210839.lBL8dhch005132@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59824 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41072 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752928AbXLUIbq (ORCPT
+	by vger.kernel.org with ESMTP id S1750763AbXLUIjs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Dec 2007 03:31:46 -0500
+	Fri, 21 Dec 2007 03:39:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: neilb@suse.de
 
 
 The patch titled
-     md: allow a maximum extent to be set for resyncing
+     md: allow devices to be shared between md arrays
 has been added to the -mm tree.  Its filename is
-     md-allow-a-maximum-extent-to-be-set-for-resyncing.patch
+     md-allow-devices-to-be-shared-between-md-arrays.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,258 +26,241 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: md: allow a maximum extent to be set for resyncing
+Subject: md: allow devices to be shared between md arrays
 From: NeilBrown <neilb@suse.de>
 
-This allows userspace to control resync/reshape progress and synchronise it
-with other activities, such as shared access in a SAN, or backing up critical
-sections during a tricky reshape.
+Currently, a given device is "claimed" by a particular array so that it cannot
+be used by other arrays.
 
-Writing a number of sectors (which must be a multiple of the chunk size if
-such is meaningful) causes a resync to pause when it gets to that point.
+This is not ideal for DDF and other metadata schemes which have their own
+partitioning concept.
+
+So for externally managed metadata, just claim the device for md in general,
+require that "offset" and "size" are set properly for each device, and make
+sure that if a device is included in different arrays then the active sections
+do not overlap.
+
+This involves adding another flag to the rdev which makes it awkward to set
+"->flags = 0" to clear certain flags.  So now clear flags explicitly by name
+when we want to clear things.
 
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/md.txt      |   10 ++++
- drivers/md/md.c           |   75 +++++++++++++++++++++++++++++++-----
- drivers/md/raid1.c        |    2 
- drivers/md/raid10.c       |    3 +
- drivers/md/raid5.c        |   25 ++++++++++++
+ drivers/md/md.c           |   93 +++++++++++++++++++++++++++++++-----
  include/linux/raid/md_k.h |    2 
- 6 files changed, 107 insertions(+), 10 deletions(-)
+ 2 files changed, 84 insertions(+), 11 deletions(-)
 
-diff -puN Documentation/md.txt~md-allow-a-maximum-extent-to-be-set-for-resyncing Documentation/md.txt
---- a/Documentation/md.txt~md-allow-a-maximum-extent-to-be-set-for-resyncing
-+++ a/Documentation/md.txt
-@@ -416,6 +416,16 @@ also have
-      sectors in total that could need to be processed.  The two
-      numbers are separated by a '/'  thus effectively showing one
-      value, a fraction of the process that is complete.
-+     A 'select' on this attribute will return when resync completes,
-+     when it reaches the current sync_max (below) and possibly at
-+     other times.
-+
-+   sync_max
-+     This is a number of sectors at which point a resync/recovery
-+     process will pause.  When a resync is active, the value can
-+     only ever be increased, never decreased.  The value of 'max'
-+     effectively disables the limit.
-+
- 
-    sync_speed
-      This shows the current actual speed, in K/sec, of the current
-diff -puN drivers/md/md.c~md-allow-a-maximum-extent-to-be-set-for-resyncing drivers/md/md.c
---- a/drivers/md/md.c~md-allow-a-maximum-extent-to-be-set-for-resyncing
+diff -puN drivers/md/md.c~md-allow-devices-to-be-shared-between-md-arrays drivers/md/md.c
+--- a/drivers/md/md.c~md-allow-devices-to-be-shared-between-md-arrays
 +++ a/drivers/md/md.c
-@@ -275,6 +275,7 @@ static mddev_t * mddev_find(dev_t unit)
- 	spin_lock_init(&new->write_lock);
- 	init_waitqueue_head(&new->sb_wait);
- 	new->reshape_position = MaxSector;
-+	new->resync_max = MaxSector;
+@@ -774,7 +774,11 @@ static int super_90_validate(mddev_t *md
+ 	__u64 ev1 = md_event(sb);
  
- 	new->queue = blk_alloc_queue(GFP_KERNEL);
- 	if (!new->queue) {
-@@ -2921,6 +2922,43 @@ sync_completed_show(mddev_t *mddev, char
- static struct md_sysfs_entry md_sync_completed = __ATTR_RO(sync_completed);
+ 	rdev->raid_disk = -1;
+-	rdev->flags = 0;
++	clear_bit(Faulty, &rdev->flags);
++	clear_bit(In_sync, &rdev->flags);
++	clear_bit(WriteMostly, &rdev->flags);
++	clear_bit(BarriersNotsupp, &rdev->flags);
++
+ 	if (mddev->raid_disks == 0) {
+ 		mddev->major_version = 0;
+ 		mddev->minor_version = sb->minor_version;
+@@ -1155,7 +1159,11 @@ static int super_1_validate(mddev_t *mdd
+ 	__u64 ev1 = le64_to_cpu(sb->events);
  
- static ssize_t
-+max_sync_show(mddev_t *mddev, char *page)
-+{
-+	if (mddev->resync_max == MaxSector)
-+		return sprintf(page, "max\n");
-+	else
-+		return sprintf(page, "%llu\n",
-+			       (unsigned long long)mddev->resync_max);
-+}
-+static ssize_t
-+max_sync_store(mddev_t *mddev, const char *buf, size_t len)
-+{
-+	if (strncmp(buf, "max", 3) == 0)
-+		mddev->resync_max = MaxSector;
-+	else {
-+		char *ep;
-+		unsigned long long max = simple_strtoull(buf, &ep, 10);
-+		if (ep == buf || (*ep != 0 && *ep != '\n'))
-+			return -EINVAL;
-+		if (max < mddev->resync_max &&
-+		    test_bit(MD_RECOVERY_RUNNING, &mddev->recovery))
-+			return -EBUSY;
+ 	rdev->raid_disk = -1;
+-	rdev->flags = 0;
++	clear_bit(Faulty, &rdev->flags);
++	clear_bit(In_sync, &rdev->flags);
++	clear_bit(WriteMostly, &rdev->flags);
++	clear_bit(BarriersNotsupp, &rdev->flags);
 +
-+		/* Must be a multiple of chunk_size */
-+		if (mddev->chunk_size) {
-+			if (max & (sector_t)((mddev->chunk_size>>9)-1))
-+				return -EINVAL;
-+		}
-+		mddev->resync_max = max;
-+	}
-+	wake_up(&mddev->recovery_wait);
-+	return len;
-+}
-+
-+static struct md_sysfs_entry md_max_sync =
-+__ATTR(sync_max, S_IRUGO|S_IWUSR, max_sync_show, max_sync_store);
-+
-+static ssize_t
- suspend_lo_show(mddev_t *mddev, char *page)
+ 	if (mddev->raid_disks == 0) {
+ 		mddev->major_version = 1;
+ 		mddev->patch_version = 0;
+@@ -1404,7 +1412,7 @@ static int bind_rdev_to_array(mdk_rdev_t
+ 		goto fail;
+ 	}
+ 	list_add(&rdev->same_set, &mddev->disks);
+-	bd_claim_by_disk(rdev->bdev, rdev, mddev->gendisk);
++	bd_claim_by_disk(rdev->bdev, rdev->bdev->bd_holder, mddev->gendisk);
+ 	return 0;
+ 
+  fail:
+@@ -1444,7 +1452,7 @@ static void unbind_rdev_from_array(mdk_r
+  * otherwise reused by a RAID array (or any other kernel
+  * subsystem), by bd_claiming the device.
+  */
+-static int lock_rdev(mdk_rdev_t *rdev, dev_t dev)
++static int lock_rdev(mdk_rdev_t *rdev, dev_t dev, int shared)
  {
- 	return sprintf(page, "%llu\n", (unsigned long long)mddev->suspend_lo);
-@@ -3030,6 +3068,7 @@ static struct attribute *md_redundancy_a
- 	&md_sync_max.attr,
- 	&md_sync_speed.attr,
- 	&md_sync_completed.attr,
-+	&md_max_sync.attr,
- 	&md_suspend_lo.attr,
- 	&md_suspend_hi.attr,
- 	&md_bitmap.attr,
-@@ -3579,6 +3618,7 @@ static int do_md_stop(mddev_t * mddev, i
- 		mddev->size = 0;
- 		mddev->raid_disks = 0;
- 		mddev->recovery_cp = 0;
-+		mddev->resync_max = MaxSector;
- 		mddev->reshape_position = MaxSector;
- 		mddev->external = 0;
+ 	int err = 0;
+ 	struct block_device *bdev;
+@@ -1456,13 +1464,15 @@ static int lock_rdev(mdk_rdev_t *rdev, d
+ 			__bdevname(dev, b));
+ 		return PTR_ERR(bdev);
+ 	}
+-	err = bd_claim(bdev, rdev);
++	err = bd_claim(bdev, shared ? (mdk_rdev_t *)lock_rdev : rdev);
+ 	if (err) {
+ 		printk(KERN_ERR "md: could not bd_claim %s.\n",
+ 			bdevname(bdev, b));
+ 		blkdev_put(bdev);
+ 		return err;
+ 	}
++	if (!shared)
++		set_bit(AllReserved, &rdev->flags);
+ 	rdev->bdev = bdev;
+ 	return err;
+ }
+@@ -1927,7 +1937,8 @@ slot_store(mdk_rdev_t *rdev, const char 
+ 			return -ENOSPC;
+ 		rdev->raid_disk = slot;
+ 		/* assume it is working */
+-		rdev->flags = 0;
++		clear_bit(Faulty, &rdev->flags);
++		clear_bit(WriteMostly, &rdev->flags);
+ 		set_bit(In_sync, &rdev->flags);
+ 	}
+ 	return len;
+@@ -1952,6 +1963,10 @@ offset_store(mdk_rdev_t *rdev, const cha
+ 		return -EINVAL;
+ 	if (rdev->mddev->pers)
+ 		return -EBUSY;
++	if (rdev->size && rdev->mddev->external)
++		/* Must set offset before size, so overlap checks
++		 * can be sane */
++		return -EBUSY;
+ 	rdev->data_offset = offset;
+ 	return len;
+ }
+@@ -1965,16 +1980,69 @@ rdev_size_show(mdk_rdev_t *rdev, char *p
+ 	return sprintf(page, "%llu\n", (unsigned long long)rdev->size);
+ }
  
-@@ -5443,8 +5483,16 @@ void md_do_sync(mddev_t *mddev)
- 		sector_t sectors;
- 
- 		skipped = 0;
-+		if (j >= mddev->resync_max) {
-+			sysfs_notify(&mddev->kobj, NULL, "sync_completed");
-+			wait_event(mddev->recovery_wait,
-+				   mddev->resync_max > j
-+				   || kthread_should_stop());
++static int overlaps(sector_t s1, sector_t l1, sector_t s2, sector_t l2)
++{
++	/* check if two start/length pairs overlap */
++	if (s1+l1 <= s2)
++		return 0;
++	if (s2+l2 <= s1)
++		return 0;
++	return 1;
++}
++
+ static ssize_t
+ rdev_size_store(mdk_rdev_t *rdev, const char *buf, size_t len)
+ {
+ 	char *e;
+ 	unsigned long long size = simple_strtoull(buf, &e, 10);
++	unsigned long long oldsize = rdev->size;
+ 	if (e==buf || (*e && *e != '\n'))
+ 		return -EINVAL;
+ 	if (rdev->mddev->pers)
+ 		return -EBUSY;
+ 	rdev->size = size;
++	if (size > oldsize && rdev->mddev->external) {
++		/* need to check that all other rdevs with the same ->bdev
++		 * do not overlap.  We need to unlock the mddev to avoid
++		 * a deadlock.  We have already changed rdev->size, and if
++		 * we have to change it back, we will have the lock again.
++		 */
++		mddev_t *mddev;
++		int overlap = 0;
++		struct list_head *tmp, *tmp2;
++
++		mddev_unlock(rdev->mddev);
++		ITERATE_MDDEV(mddev, tmp) {
++			mdk_rdev_t *rdev2;
++
++			mddev_lock(mddev);
++			ITERATE_RDEV(mddev, rdev2, tmp2)
++				if (test_bit(AllReserved, &rdev2->flags) ||
++				    (rdev->bdev == rdev2->bdev &&
++				     rdev != rdev2 &&
++				     overlaps(rdev->data_offset, rdev->size,
++					    rdev2->data_offset, rdev2->size))) {
++					overlap = 1;
++					break;
++				}
++			mddev_unlock(mddev);
++			if (overlap) {
++				mddev_put(mddev);
++				break;
++			}
 +		}
-+		if (kthread_should_stop())
-+			goto interrupted;
- 		sectors = mddev->pers->sync_request(mddev, j, &skipped,
--					    currspeed < speed_min(mddev));
-+						  currspeed < speed_min(mddev));
- 		if (sectors == 0) {
- 			set_bit(MD_RECOVERY_ERR, &mddev->recovery);
- 			goto out;
-@@ -5486,15 +5534,9 @@ void md_do_sync(mddev_t *mddev)
- 		}
- 
- 
--		if (kthread_should_stop()) {
--			/*
--			 * got a signal, exit.
--			 */
--			printk(KERN_INFO 
--				"md: md_do_sync() got signal ... exiting\n");
--			set_bit(MD_RECOVERY_INTR, &mddev->recovery);
--			goto out;
--		}
-+		if (kthread_should_stop())
-+			goto interrupted;
-+
- 
- 		/*
- 		 * this loop exits only if either when we are slower than
-@@ -5558,9 +5600,22 @@ void md_do_sync(mddev_t *mddev)
- 
-  skip:
- 	mddev->curr_resync = 0;
-+	mddev->resync_max = MaxSector;
-+	sysfs_notify(&mddev->kobj, NULL, "sync_completed");
- 	wake_up(&resync_wait);
- 	set_bit(MD_RECOVERY_DONE, &mddev->recovery);
- 	md_wakeup_thread(mddev->thread);
-+	return;
-+
-+ interrupted:
-+	/*
-+	 * got a signal, exit.
-+	 */
-+	printk(KERN_INFO
-+	       "md: md_do_sync() got signal ... exiting\n");
-+	set_bit(MD_RECOVERY_INTR, &mddev->recovery);
-+	goto out;
-+
- }
- EXPORT_SYMBOL_GPL(md_do_sync);
- 
-diff -puN drivers/md/raid10.c~md-allow-a-maximum-extent-to-be-set-for-resyncing drivers/md/raid10.c
---- a/drivers/md/raid10.c~md-allow-a-maximum-extent-to-be-set-for-resyncing
-+++ a/drivers/md/raid10.c
-@@ -1657,6 +1657,9 @@ static sector_t sync_request(mddev_t *md
- 		return (max_sector - sector_nr) + sectors_skipped;
- 	}
- 
-+	if (max_sector > mddev->resync_max)
-+		max_sector = mddev->resync_max; /* Don't do IO beyond here */
-+
- 	/* make sure whole request will fit in a chunk - if chunks
- 	 * are meaningful
- 	 */
-diff -puN drivers/md/raid1.c~md-allow-a-maximum-extent-to-be-set-for-resyncing drivers/md/raid1.c
---- a/drivers/md/raid1.c~md-allow-a-maximum-extent-to-be-set-for-resyncing
-+++ a/drivers/md/raid1.c
-@@ -1767,6 +1767,8 @@ static sector_t sync_request(mddev_t *md
- 		return rv;
- 	}
- 
-+	if (max_sector > mddev->resync_max)
-+		max_sector = mddev->resync_max; /* Don't do IO beyond here */
- 	nr_sectors = 0;
- 	sync_blocks = 0;
- 	do {
-diff -puN drivers/md/raid5.c~md-allow-a-maximum-extent-to-be-set-for-resyncing drivers/md/raid5.c
---- a/drivers/md/raid5.c~md-allow-a-maximum-extent-to-be-set-for-resyncing
-+++ a/drivers/md/raid5.c
-@@ -3696,6 +3696,25 @@ static sector_t reshape_request(mddev_t 
- 		release_stripe(sh);
- 		first_sector += STRIPE_SECTORS;
- 	}
-+	/* If this takes us to the resync_max point where we have to pause,
-+	 * then we need to write out the superblock.
-+	 */
-+	sector_nr += conf->chunk_size>>9;
-+	if (sector_nr >= mddev->resync_max) {
-+		/* Cannot proceed until we've updated the superblock... */
-+		wait_event(conf->wait_for_overlap,
-+			   atomic_read(&conf->reshape_stripes) == 0);
-+		mddev->reshape_position = conf->expand_progress;
-+		set_bit(MD_CHANGE_DEVS, &mddev->flags);
-+		md_wakeup_thread(mddev->thread);
-+		wait_event(mddev->sb_wait,
-+			   !test_bit(MD_CHANGE_DEVS, &mddev->flags)
-+			   || kthread_should_stop());
-+		spin_lock_irq(&conf->device_lock);
-+		conf->expand_lo = mddev->reshape_position;
-+		spin_unlock_irq(&conf->device_lock);
-+		wake_up(&conf->wait_for_overlap);
++		mddev_lock(rdev->mddev);
++		if (overlap) {
++			/* Someone else could have slipped in a size
++			 * change here, but doing so is just silly.
++			 * We put oldsize back because we *know* it is
++			 * safe, and trust userspace not to race with
++			 * itself
++			 */
++			rdev->size = oldsize;
++			return -EBUSY;
++		}
 +	}
- 	return conf->chunk_size>>9;
- }
+ 	if (size < rdev->mddev->size || rdev->mddev->size == 0)
+ 		rdev->mddev->size = size;
+ 	return len;
+@@ -2058,7 +2126,7 @@ static mdk_rdev_t *md_import_device(dev_
+ 	if ((err = alloc_disk_sb(rdev)))
+ 		goto abort_free;
  
-@@ -3732,6 +3751,12 @@ static inline sector_t sync_request(mdde
- 	if (test_bit(MD_RECOVERY_RESHAPE, &mddev->recovery))
- 		return reshape_request(mddev, sector_nr, skipped);
+-	err = lock_rdev(rdev, newdev);
++	err = lock_rdev(rdev, newdev, super_format == -2);
+ 	if (err)
+ 		goto abort_free;
  
-+	/* No need to check resync_max as we never do more than one
-+	 * stripe, and as resync_max will always be on a chunk boundary,
-+	 * if the check in md_do_sync didn't fire, there is no chance
-+	 * of overstepping resync_max here
-+	 */
-+
- 	/* if there is too many failed drives and we are trying
- 	 * to resync, then assert that we are finished, because there is
- 	 * nothing we can do.
-diff -puN include/linux/raid/md_k.h~md-allow-a-maximum-extent-to-be-set-for-resyncing include/linux/raid/md_k.h
---- a/include/linux/raid/md_k.h~md-allow-a-maximum-extent-to-be-set-for-resyncing
+@@ -2611,7 +2679,9 @@ new_dev_store(mddev_t *mddev, const char
+ 			if (err < 0)
+ 				goto out;
+ 		}
+-	} else
++	} else if (mddev->external)
++		rdev = md_import_device(dev, -2, -1);
++	else
+ 		rdev = md_import_device(dev, -1, -1);
+ 
+ 	if (IS_ERR(rdev))
+@@ -3213,8 +3283,11 @@ static int do_md_run(mddev_t * mddev)
+ 	/*
+ 	 * Analyze all RAID superblock(s)
+ 	 */
+-	if (!mddev->raid_disks)
++	if (!mddev->raid_disks) {
++		if (!mddev->persistent)
++			return -EINVAL;
+ 		analyze_sbs(mddev);
++	}
+ 
+ 	chunk_size = mddev->chunk_size;
+ 
+@@ -4016,8 +4089,6 @@ static int add_new_disk(mddev_t * mddev,
+ 		else
+ 			rdev->raid_disk = -1;
+ 
+-		rdev->flags = 0;
+-
+ 		if (rdev->raid_disk < mddev->raid_disks)
+ 			if (info->state & (1<<MD_DISK_SYNC))
+ 				set_bit(In_sync, &rdev->flags);
+diff -puN include/linux/raid/md_k.h~md-allow-devices-to-be-shared-between-md-arrays include/linux/raid/md_k.h
+--- a/include/linux/raid/md_k.h~md-allow-devices-to-be-shared-between-md-arrays
 +++ a/include/linux/raid/md_k.h
-@@ -219,6 +219,8 @@ struct mddev_s
- 	atomic_t			recovery_active; /* blocks scheduled, but not written */
- 	wait_queue_head_t		recovery_wait;
- 	sector_t			recovery_cp;
-+	sector_t			resync_max;	/* resync should pause
-+							 * when it gets here */
+@@ -81,6 +81,8 @@ struct mdk_rdev_s
+ #define	In_sync		2		/* device is in_sync with rest of array */
+ #define	WriteMostly	4		/* Avoid reading if at all possible */
+ #define	BarriersNotsupp	5		/* BIO_RW_BARRIER is not supported */
++#define	AllReserved	6		/* If whole device is reserved for
++					 * one array */
  
- 	spinlock_t			write_lock;
- 	wait_queue_head_t		sb_wait;	/* for waiting on superblock updates */
+ 	int desc_nr;			/* descriptor index in the superblock */
+ 	int raid_disk;			/* role of device in array */
 _
 
 Patches currently in -mm which might be from neilb@suse.de are
