@@ -1,217 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: - kconfig-help-dont-refer-to-the-pci-howto.patch removed from -mm tree
-Date: Fri, 21 Dec 2007 14:08:25 -0800
-Message-ID: <200712212208.lBLM8PZW001708@imap1.linux-foundation.org>
+Subject: - drivers-pci-msic-move-arch-hooks-to-the-top.patch removed from -mm tree
+Date: Fri, 21 Dec 2007 14:08:19 -0800
+Message-ID: <200712212208.lBLM8JHR001701@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51701 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38213 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754563AbXLUWJK (ORCPT
+	by vger.kernel.org with ESMTP id S1756238AbXLUWJN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Dec 2007 17:09:10 -0500
+	Fri, 21 Dec 2007 17:09:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, greg@kroah.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, greg@kroah.com, michael@ellerman.id.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Kconfig help: don't refer to the PCI-HOWTO
+     drivers/pci/msi.c: move arch hooks to the top
 has been removed from the -mm tree.  Its filename was
-     kconfig-help-dont-refer-to-the-pci-howto.patch
+     drivers-pci-msic-move-arch-hooks-to-the-top.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Kconfig help: don't refer to the PCI-HOWTO
+Subject: drivers/pci/msi.c: move arch hooks to the top
 From: Adrian Bunk <bunk@kernel.org>
 
-A HOWTO that hasn't been updated for half a dozen years no longer "contains
-valuable information about which PCI hardware does work under Linux and
-which doesn't".
+Fix the following problem present with older gcc versions:
+
+  CC      drivers/pci/msi.o
+/home/bunk/linux/kernel-2.6/git/linux-2.6/drivers/pci/msi.c:692: warning: weak declaration of `arch_msi_check_device' after first use results in unspecified behavior
+/home/bunk/linux/kernel-2.6/git/linux-2.6/drivers/pci/msi.c:704: warning: weak declaration of `arch_setup_msi_irqs' after first use results in unspecified behavior
+/home/bunk/linux/kernel-2.6/git/linux-2.6/drivers/pci/msi.c:724: warning: weak declaration of `arch_teardown_msi_irqs' after first use results in unspecified behavior
+
+Older gcc versions don't like that they cannot see that they are weak
+functions at the time when they are used.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: Michael Ellerman <michael@ellerman.id.au>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/Kconfig          |    5 -----
- arch/arm/Kconfig            |    5 -----
- arch/frv/Kconfig            |    5 -----
- arch/m32r/Kconfig           |    5 -----
- arch/m68k/Kconfig           |    5 -----
- arch/mips/Kconfig           |    5 -----
- arch/sh/drivers/pci/Kconfig |    5 -----
- arch/sh64/Kconfig           |    5 -----
- arch/sparc64/Kconfig        |    5 -----
- arch/x86/Kconfig            |    5 -----
- arch/xtensa/Kconfig         |    5 -----
- 11 files changed, 55 deletions(-)
+ drivers/pci/msi.c |   91 +++++++++++++++++++++-----------------------
+ 1 file changed, 45 insertions(+), 46 deletions(-)
 
-diff -puN arch/alpha/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/alpha/Kconfig
---- a/arch/alpha/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
-+++ a/arch/alpha/Kconfig
-@@ -318,11 +318,6 @@ config PCI
- 	  your box. Other bus systems are ISA, EISA, MicroChannel (MCA) or
- 	  VESA. If you have PCI, say Y, otherwise N.
+diff -puN drivers/pci/msi.c~drivers-pci-msic-move-arch-hooks-to-the-top drivers/pci/msi.c
+--- a/drivers/pci/msi.c~drivers-pci-msic-move-arch-hooks-to-the-top
++++ a/drivers/pci/msi.c
+@@ -25,6 +25,51 @@
  
--	  The PCI-HOWTO, available from
--	  <http://www.tldp.org/docs.html#howto>, contains valuable
--	  information about which PCI hardware does work under Linux and which
--	  doesn't.
+ static int pci_msi_enable = 1;
+ 
++/* Arch hooks */
++
++int __attribute__ ((weak))
++arch_msi_check_device(struct pci_dev *dev, int nvec, int type)
++{
++	return 0;
++}
++
++int __attribute__ ((weak))
++arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *entry)
++{
++	return 0;
++}
++
++int __attribute__ ((weak))
++arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
++{
++	struct msi_desc *entry;
++	int ret;
++
++	list_for_each_entry(entry, &dev->msi_list, list) {
++		ret = arch_setup_msi_irq(dev, entry);
++		if (ret)
++			return ret;
++	}
++
++	return 0;
++}
++
++void __attribute__ ((weak)) arch_teardown_msi_irq(unsigned int irq)
++{
++	return;
++}
++
++void __attribute__ ((weak))
++arch_teardown_msi_irqs(struct pci_dev *dev)
++{
++	struct msi_desc *entry;
++
++	list_for_each_entry(entry, &dev->msi_list, list) {
++		if (entry->irq != 0)
++			arch_teardown_msi_irq(entry->irq);
++	}
++}
++
+ static void msi_set_enable(struct pci_dev *dev, int enable)
+ {
+ 	int pos;
+@@ -682,49 +727,3 @@ void pci_msi_init_pci_dev(struct pci_dev
+ {
+ 	INIT_LIST_HEAD(&dev->msi_list);
+ }
 -
- config PCI_DOMAINS
- 	bool
- 	default y
-diff -puN arch/arm/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/arm/Kconfig
---- a/arch/arm/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
-+++ a/arch/arm/Kconfig
-@@ -547,11 +547,6 @@ config PCI
- 	  your box. Other bus systems are ISA, EISA, MicroChannel (MCA) or
- 	  VESA. If you have PCI, say Y, otherwise N.
- 
--	  The PCI-HOWTO, available from
--	  <http://www.tldp.org/docs.html#howto>, contains valuable
--	  information about which PCI hardware does work under Linux and which
--	  doesn't.
 -
- config PCI_SYSCALL
- 	def_bool PCI
- 
-diff -puN arch/frv/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/frv/Kconfig
---- a/arch/frv/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
-+++ a/arch/frv/Kconfig
-@@ -322,11 +322,6 @@ config PCI
- 	  onboard. If you have one of these boards and you wish to use the PCI
- 	  facilities, say Y here.
- 
--	  The PCI-HOWTO, available from
--	  <http://www.tldp.org/docs.html#howto>, contains valuable
--	  information about which PCI hardware does work under Linux and which
--	  doesn't.
+-/* Arch hooks */
 -
- config RESERVE_DMA_COHERENT
- 	bool "Reserve DMA coherent memory"
- 	depends on PCI && !MMU
-diff -puN arch/m32r/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/m32r/Kconfig
---- a/arch/m32r/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
-+++ a/arch/m32r/Kconfig
-@@ -354,11 +354,6 @@ config PCI
- 	  your box. Other bus systems are ISA, EISA, MicroChannel (MCA) or
- 	  VESA. If you have PCI, say Y, otherwise N.
- 
--	  The PCI-HOWTO, available from
--	  <http://www.linuxdoc.org/docs.html#howto>, contains valuable
--	  information about which PCI hardware does work under Linux and which
--	  doesn't.
+-int __attribute__ ((weak))
+-arch_msi_check_device(struct pci_dev* dev, int nvec, int type)
+-{
+-	return 0;
+-}
 -
- choice
- 	prompt "PCI access mode"
- 	depends on PCI
-diff -puN arch/m68k/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/m68k/Kconfig
---- a/arch/m68k/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
-+++ a/arch/m68k/Kconfig
-@@ -145,11 +145,6 @@ config PCI
- 	  your box. Other bus systems are ISA, EISA, MicroChannel (MCA) or
- 	  VESA. If you have PCI, say Y, otherwise N.
- 
--	  The PCI-HOWTO, available from
--	  <http://www.tldp.org/docs.html#howto>, contains valuable
--	  information about which PCI hardware does work under Linux and which
--	  doesn't.
+-int __attribute__ ((weak))
+-arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *entry)
+-{
+-	return 0;
+-}
 -
- config MAC
- 	bool "Macintosh support"
- 	depends on !MMU_SUN3
-diff -puN arch/mips/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/mips/Kconfig
---- a/arch/mips/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
-+++ a/arch/mips/Kconfig
-@@ -1933,11 +1933,6 @@ config PCI
- 	  your box. Other bus systems are ISA, EISA, or VESA. If you have PCI,
- 	  say Y, otherwise N.
- 
--	  The PCI-HOWTO, available from
--	  <http://www.tldp.org/docs.html#howto>, contains valuable
--	  information about which PCI hardware does work under Linux and which
--	  doesn't.
+-int __attribute__ ((weak))
+-arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
+-{
+-	struct msi_desc *entry;
+-	int ret;
 -
- config PCI_DOMAINS
- 	bool
- 
-diff -puN arch/sh64/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/sh64/Kconfig
---- a/arch/sh64/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
-+++ a/arch/sh64/Kconfig
-@@ -247,11 +247,6 @@ config PCI
- 	  your box. Other bus systems are ISA, EISA, MicroChannel (MCA) or
- 	  VESA. If you have PCI, say Y, otherwise N.
- 
--	  The PCI-HOWTO, available from
--	  <http://www.tldp.org/docs.html#howto>, contains valuable
--	  information about which PCI hardware does work under Linux and which
--	  doesn't.
+-	list_for_each_entry(entry, &dev->msi_list, list) {
+-		ret = arch_setup_msi_irq(dev, entry);
+-		if (ret)
+-			return ret;
+-	}
 -
- config SH_PCIDMA_NONCOHERENT
- 	bool "Cache and PCI noncoherent"
- 	depends on PCI
-diff -puN arch/sh/drivers/pci/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/sh/drivers/pci/Kconfig
---- a/arch/sh/drivers/pci/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
-+++ a/arch/sh/drivers/pci/Kconfig
-@@ -6,11 +6,6 @@ config PCI
- 	  bus system, i.e. the way the CPU talks to the other stuff inside
- 	  your box. If you have PCI, say Y, otherwise N.
- 
--	  The PCI-HOWTO, available from
--	  <http://www.tldp.org/docs.html#howto>, contains valuable
--	  information about which PCI hardware does work under Linux and which
--	  doesn't.
+-	return 0;
+-}
 -
- config SH_PCIDMA_NONCOHERENT
- 	bool "Cache and PCI noncoherent"
- 	depends on PCI
-diff -puN arch/sparc64/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/sparc64/Kconfig
---- a/arch/sparc64/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
-+++ a/arch/sparc64/Kconfig
-@@ -343,11 +343,6 @@ config PCI
- 	  your box. Other bus systems are ISA, EISA, MicroChannel (MCA) or
- 	  VESA. If you have PCI, say Y, otherwise N.
- 
--	  The PCI-HOWTO, available from
--	  <http://www.tldp.org/docs.html#howto>, contains valuable
--	  information about which PCI hardware does work under Linux and which
--	  doesn't.
+-void __attribute__ ((weak)) arch_teardown_msi_irq(unsigned int irq)
+-{
+-	return;
+-}
 -
- config PCI_DOMAINS
- 	def_bool PCI
- 
-diff -puN arch/x86/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/x86/Kconfig
---- a/arch/x86/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
-+++ a/arch/x86/Kconfig
-@@ -1389,11 +1389,6 @@ config PCI
- 	  your box. Other bus systems are ISA, EISA, MicroChannel (MCA) or
- 	  VESA. If you have PCI, say Y, otherwise N.
- 
--	  The PCI-HOWTO, available from
--	  <http://www.tldp.org/docs.html#howto>, contains valuable
--	  information about which PCI hardware does work under Linux and which
--	  doesn't.
+-void __attribute__ ((weak))
+-arch_teardown_msi_irqs(struct pci_dev *dev)
+-{
+-	struct msi_desc *entry;
 -
- choice
- 	prompt "PCI access mode"
- 	depends on X86_32 && PCI && !X86_VISWS
-diff -puN arch/xtensa/Kconfig~kconfig-help-dont-refer-to-the-pci-howto arch/xtensa/Kconfig
---- a/arch/xtensa/Kconfig~kconfig-help-dont-refer-to-the-pci-howto
-+++ a/arch/xtensa/Kconfig
-@@ -174,11 +174,6 @@ config PCI
- 	  your box. Other bus systems are ISA, EISA, MicroChannel (MCA) or
- 	  VESA. If you have PCI, say Y, otherwise N.
- 
--	  The PCI-HOWTO, available from
--	  <http://www.linuxdoc.org/docs.html#howto>, contains valuable
--	  information about which PCI hardware does work under Linux and which
--	  doesn't
--
- source "drivers/pci/Kconfig"
- 
- config HOTPLUG
+-	list_for_each_entry(entry, &dev->msi_list, list) {
+-		if (entry->irq != 0)
+-			arch_teardown_msi_irq(entry->irq);
+-	}
+-}
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
