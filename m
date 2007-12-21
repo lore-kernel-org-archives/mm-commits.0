@@ -1,52 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - git-sched-fixup-2.patch removed from -mm tree
-Date: Fri, 21 Dec 2007 13:39:59 -0800
-Message-ID: <200712212140.lBLLdx3q000687@imap1.linux-foundation.org>
+Subject: - i386-use-raw_smp_processor_id-in-die.patch removed from -mm tree
+Date: Fri, 21 Dec 2007 13:48:47 -0800
+Message-ID: <200712212148.lBLLmljk001021@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42854 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35641 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754191AbXLUVkR (ORCPT
+	by vger.kernel.org with ESMTP id S1757297AbXLUVuV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Dec 2007 16:40:17 -0500
+	Fri, 21 Dec 2007 16:50:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, miles.lane@gmail.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-sched-fixup-2
+     i386: use raw_smp_processor_id() in die()
 has been removed from the -mm tree.  Its filename was
-     git-sched-fixup-2.patch
+     i386-use-raw_smp_processor_id-in-die.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-sched-fixup-2
+Subject: i386: use raw_smp_processor_id() in die()
 From: Andrew Morton <akpm@linux-foundation.org>
 
+We missed one:
+
+BUG: using smp_processor_id() in preemptible [00000001] code: modprobe/3107
+caller is die+0x5d/0x1db
+Pid: 3107, comm: modprobe Not tainted 2.6.24-rc5-mm1 #24
+ [<c0108eb2>] show_trace_log_lvl+0x12/0x25
+ [<c0109659>] show_trace+0xd/0x10
+ [<c0109981>] dump_stack+0x57/0x5f
+ [<c02017f5>] debug_smp_processor_id+0x99/0xb0
+ [<c0109174>] die+0x5d/0x1db
+ [<c03cdf38>] do_trap+0x8a/0xa3
+ [<c0109509>] do_invalid_op+0x6c/0x76
+ [<c03cdd02>] error_code+0x72/0x78
+ [<f8a446c7>] acpi_video_bus_add+0x85b/0xbf4 [video]
+ [<c023b3cf>] acpi_device_probe+0x3e/0xdb
+
+Convert the other debugging smp_processor_id() calls in there too - perhaps
+they are also callable under conditions where preemption is thought to be
+enabled.
+
+"Miles Lane" <miles.lane@gmail.com>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched_rt.c |    3 ---
- 1 file changed, 3 deletions(-)
+ arch/x86/kernel/traps_32.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN kernel/sched_rt.c~git-sched-fixup-2 kernel/sched_rt.c
---- a/kernel/sched_rt.c~git-sched-fixup-2
-+++ a/kernel/sched_rt.c
-@@ -867,11 +867,8 @@ static void task_tick_rt(struct rq *rq, 
+diff -puN arch/x86/kernel/traps_32.c~i386-use-raw_smp_processor_id-in-die arch/x86/kernel/traps_32.c
+--- a/arch/x86/kernel/traps_32.c~i386-use-raw_smp_processor_id-in-die
++++ a/arch/x86/kernel/traps_32.c
+@@ -376,7 +376,7 @@ void die(const char * str, struct pt_reg
+ 		console_verbose();
+ 		__raw_spin_lock(&die.lock);
+ 		raw_local_save_flags(flags);
+-		die.lock_owner = smp_processor_id();
++		die.lock_owner = raw_smp_processor_id();
+ 		die.lock_owner_depth = 0;
+ 		bust_spinlocks(1);
+ 	}
+@@ -636,7 +636,7 @@ static __kprobes void
+ mem_parity_error(unsigned char reason, struct pt_regs * regs)
  {
- 	update_curr_rt(rq);
+ 	printk(KERN_EMERG "Uhhuh. NMI received for unknown reason %02x on "
+-		"CPU %d.\n", reason, smp_processor_id());
++		"CPU %d.\n", reason, raw_smp_processor_id());
+ 	printk(KERN_EMERG "You have some hardware problem, likely on the PCI bus.\n");
  
--<<<<<<< HEAD:kernel/sched_rt.c
--=======
- 	watchdog(rq, p);
- 
-->>>>>>> FETCH_HEAD:kernel/sched_rt.c
- 	/*
- 	 * RR tasks need a special form of timeslice management.
- 	 * FIFO tasks have no timeslices.
+ #if defined(CONFIG_EDAC)
+@@ -684,7 +684,7 @@ unknown_nmi_error(unsigned char reason, 
+ 	}
+ #endif
+ 	printk(KERN_EMERG "Uhhuh. NMI received for unknown reason %02x on "
+-		"CPU %d.\n", reason, smp_processor_id());
++		"CPU %d.\n", reason, raw_smp_processor_id());
+ 	printk(KERN_EMERG "Do you have a strange power saving mode enabled?\n");
+ 	if (panic_on_unrecovered_nmi)
+                 panic("NMI: Not continuing");
+@@ -708,7 +708,7 @@ void __kprobes die_nmi(struct pt_regs *r
+ 	bust_spinlocks(1);
+ 	printk(KERN_EMERG "%s", msg);
+ 	printk(" on CPU%d, ip %08lx, registers:\n",
+-		smp_processor_id(), regs->ip);
++		raw_smp_processor_id(), regs->ip);
+ 	show_registers(regs);
+ 	console_silent();
+ 	spin_unlock(&nmi_print_lock);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -105,7 +151,6 @@ bluetooth-uninlining.patch
 git-nfsd.patch
 git-sched.patch
 git-sched-fixup.patch
-git-sched-fixup-2.patch
 git-sh.patch
 git-scsi-misc.patch
 scsi-aic94xx-cleanups-checkpatch-fixes.patch
@@ -113,7 +158,6 @@ scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
 libsas-convert-ata-bridge-to-use-new-eh.patch
 git-unionfs.patch
 vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-usb-testing-driver-dont-free-a-locked-mutex.patch
 ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
 9p-util-fix-semaphore-handling.patch
 git-watchdog.patch
