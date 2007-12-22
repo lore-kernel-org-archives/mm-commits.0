@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + aoe-make-error-messages-more-specific.patch added to -mm tree
-Date: Fri, 21 Dec 2007 22:04:00 -0800
-Message-ID: <200712220604.lBM640JF020135@imap1.linux-foundation.org>
+Subject: + tty-fix-logic-change-introduced-by-wait_event_interruptible_timeout.patch added to -mm tree
+Date: Fri, 21 Dec 2007 22:46:07 -0800
+Message-ID: <200712220646.lBM6k7qL021425@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55509 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44353 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751362AbXLVGED (ORCPT
+	by vger.kernel.org with ESMTP id S1752814AbXLVGqy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Dec 2007 01:04:03 -0500
+	Sat, 22 Dec 2007 01:46:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ecashin@coraid.com, greg@kroah.com
+Cc: ctusar@videon-central.com, alan@lxorguk.ukuu.org.uk, jirislaby@gmail.com
 
 
 The patch titled
-     aoe: make error messages more specific
+     tty: fix logic change introduced by wait_event_interruptible_timeout()
 has been added to the -mm tree.  Its filename is
-     aoe-make-error-messages-more-specific.patch
+     tty-fix-logic-change-introduced-by-wait_event_interruptible_timeout.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,71 +28,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aoe: make error messages more specific
-From: "Ed L. Cashin" <ecashin@coraid.com>
+Subject: tty: fix logic change introduced by wait_event_interruptible_timeout()
+From: "Cory T. Tusar" <ctusar@videon-central.com>
 
-Andrew Morton pointed out that the "too many targets" message in patch 2 could
-be printed for failing GFP_ATOMIC allocations.  This patch makes the messages
-more specific.
+Commit 5a52bd4a2dcb570333ce6fe2e16cd311650dbdc8 introduced a subtle logic
+change in tty_wait_until_sent().  The original version would only error out
+of the 'do { ...  } while (timeout)' loop if signal_pending() evaluated to
+true; a timeout or break due to an empty buffer would fall out of the loop
+and into the tty->driver->wait_until_sent handling.  The current
+implementation will error out on either a pending signal or an empty
+buffer, falling through to the tty->driver->wait_until_sent handling only
+on a timeout.
 
-Signed-off-by: Ed L. Cashin <ecashin@coraid.com>
-Cc: Greg KH <greg@kroah.com>
+This change reverts the logic flow in tty_wait_until_sent() to match that
+prior to the aforementioned commit.
+
+Signed-off-by: Cory T. Tusar <ctusar@videon-central.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoecmd.c |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ drivers/char/tty_ioctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/aoe/aoecmd.c~aoe-make-error-messages-more-specific drivers/block/aoe/aoecmd.c
---- a/drivers/block/aoe/aoecmd.c~aoe-make-error-messages-more-specific
-+++ a/drivers/block/aoe/aoecmd.c
-@@ -957,15 +957,17 @@ addtgt(struct aoedev *d, char *addr, ulo
- 	for (; tt < te && *tt; tt++)
- 		;
- 
--	if (tt == te)
-+	if (tt == te) {
-+		printk(KERN_INFO
-+			"aoe: device addtgt failure; too many targets\n");
- 		return NULL;
--
-+	}
- 	t = kcalloc(1, sizeof *t, GFP_ATOMIC);
--	if (!t)
--		return NULL;
- 	f = kcalloc(nframes, sizeof *f, GFP_ATOMIC);
--	if (!f) {
-+	if (!t || !f) {
-+		kfree(f);
- 		kfree(t);
-+		printk(KERN_INFO "aoe: cannot allocate memory to add target\n");
- 		return NULL;
- 	}
- 
-@@ -1029,9 +1031,6 @@ aoecmd_cfg_rsp(struct sk_buff *skb)
- 	if (!t) {
- 		t = addtgt(d, h->src, n);
- 		if (!t) {
--			printk(KERN_INFO
--				"aoe: device addtgt failure; "
--				"too many targets?\n");
- 			spin_unlock_irqrestore(&d->lock, flags);
- 			return;
- 		}
+diff -puN drivers/char/tty_ioctl.c~tty-fix-logic-change-introduced-by-wait_event_interruptible_timeout drivers/char/tty_ioctl.c
+--- a/drivers/char/tty_ioctl.c~tty-fix-logic-change-introduced-by-wait_event_interruptible_timeout
++++ a/drivers/char/tty_ioctl.c
+@@ -62,7 +62,7 @@ void tty_wait_until_sent(struct tty_stru
+ 	if (!timeout)
+ 		timeout = MAX_SCHEDULE_TIMEOUT;
+ 	if (wait_event_interruptible_timeout(tty->write_wait,
+-			!tty->driver->chars_in_buffer(tty), timeout))
++			!tty->driver->chars_in_buffer(tty), timeout) < 0)
+ 		return;
+ 	if (tty->driver->wait_until_sent)
+ 		tty->driver->wait_until_sent(tty, timeout);
 _
 
-Patches currently in -mm which might be from ecashin@coraid.com are
+Patches currently in -mm which might be from ctusar@videon-central.com are
 
-aoe-bring-driver-version-number-to-47.patch
-aoe-handle-multiple-network-paths-to-aoe-device.patch
-aoe-mac_addr-avoid-64-bit-arch-compiler-warnings.patch
-aoe-clean-up-udev-configuration-example.patch
-aoe-eliminate-goto-and-improve-readability.patch
-aoe-user-can-ask-driver-to-forget-previously-detected-devices.patch
-aoe-dynamically-allocate-a-capped-number-of-skbs-when-necessary.patch
-aoe-only-install-new-aoe-device-once.patch
-aoe-add-module-parameter-for-users-who-need-more-outstanding-i-o.patch
-aoe-the-aoeminor-doesnt-need-a-long-format.patch
-aoe-make-error-messages-more-specific.patch
-aoe-update-copyright-date.patch
-aoe-statically-initialise-devlist_lock.patch
+tty-fix-logic-change-introduced-by-wait_event_interruptible_timeout.patch
