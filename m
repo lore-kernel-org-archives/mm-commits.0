@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + docs-convert-kref-semaphore-to-mutex.patch added to -mm tree
-Date: Fri, 21 Dec 2007 20:16:56 -0800
-Message-ID: <200712220416.lBM4GuUB016665@imap1.linux-foundation.org>
+Subject: + prism54-remove-questionable-down_interruptible-usage.patch added to -mm tree
+Date: Fri, 21 Dec 2007 20:16:15 -0800
+Message-ID: <200712220416.lBM4GFCL016659@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44874 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50240 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751168AbXLVERJ (ORCPT
+	by vger.kernel.org with ESMTP id S1750940AbXLVERg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Dec 2007 23:17:09 -0500
+	Fri, 21 Dec 2007 23:17:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dwalker@mvista.com, greg@kroah.com, minyard@acm.org
+Cc: dwalker@mvista.com, flamingice@sourmilk.net, linville@tuxdriver.com
 
 
 The patch titled
-     docs: convert kref semaphore to mutex
+     prism54: remove questionable down_interruptible usage
 has been added to the -mm tree.  Its filename is
-     docs-convert-kref-semaphore-to-mutex.patch
+     prism54-remove-questionable-down_interruptible-usage.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,82 +28,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: docs: convert kref semaphore to mutex
+Subject: prism54: remove questionable down_interruptible usage
 From: Daniel Walker <dwalker@mvista.com>
 
-Just converting this documentation semaphore reference, since we don't
-want to promote semaphore usage.
+Reviewing the semaphore usage I noticed these down_interruptible calls.  Most
+of these aren't returning anything, so a caller can't tell if the operation
+completed or not.  prism54_wpa_bss_ie_get() returns zero, but it's treated as
+the function failing which doesn't seem correct.
 
 Signed-off-by: Daniel Walker <dwalker@mvista.com>
-Acked-by: Corey Minyard <minyard@acm.org>
-Cc: Greg KH <greg@kroah.com>
+Cc: Michael Wu <flamingice@sourmilk.net>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kref.txt |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/net/wireless/prism54/isl_ioctl.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN Documentation/kref.txt~docs-convert-kref-semaphore-to-mutex Documentation/kref.txt
---- a/Documentation/kref.txt~docs-convert-kref-semaphore-to-mutex
-+++ a/Documentation/kref.txt
-@@ -141,10 +141,10 @@ The last rule (rule 3) is the nastiest o
- instance, you have a list of items that are each kref-ed, and you wish
- to get the first one.  You can't just pull the first item off the list
- and kref_get() it.  That violates rule 3 because you are not already
--holding a valid pointer.  You must add locks or semaphores.  For
--instance:
-+holding a valid pointer.  You must add a mutex (or some other lock).
-+For instance:
+diff -puN drivers/net/wireless/prism54/isl_ioctl.c~prism54-remove-questionable-down_interruptible-usage drivers/net/wireless/prism54/isl_ioctl.c
+--- a/drivers/net/wireless/prism54/isl_ioctl.c~prism54-remove-questionable-down_interruptible-usage
++++ a/drivers/net/wireless/prism54/isl_ioctl.c
+@@ -165,8 +165,7 @@ prism54_update_stats(struct work_struct 
+ 	struct obj_bss bss, *bss2;
+ 	union oid_res_t r;
  
--static DECLARE_MUTEX(sem);
-+static DEFINE_MUTEX(mutex);
- static LIST_HEAD(q);
- struct my_data
- {
-@@ -155,12 +155,12 @@ struct my_data
- static struct my_data *get_entry()
- {
- 	struct my_data *entry = NULL;
--	down(&sem);
-+	mutex_lock(&mutex);
- 	if (!list_empty(&q)) {
- 		entry = container_of(q.next, struct my_q_entry, link);
- 		kref_get(&entry->refcount);
- 	}
--	up(&sem);
-+	mutex_unlock(&mutex);
- 	return entry;
- }
+-	if (down_interruptible(&priv->stats_sem))
+-		return;
++	down(&priv->stats_sem);
  
-@@ -174,9 +174,9 @@ static void release_entry(struct kref *r
+ /* Noise floor.
+  * I'm not sure if the unit is dBm.
+@@ -1793,8 +1792,7 @@ prism54_clear_mac(struct islpci_acl *acl
+ 	struct list_head *ptr, *next;
+ 	struct mac_entry *entry;
  
- static void put_entry(struct my_data *entry)
- {
--	down(&sem);
-+	mutex_lock(&mutex);
- 	kref_put(&entry->refcount, release_entry);
--	up(&sem);
-+	mutex_unlock(&mutex);
- }
+-	if (down_interruptible(&acl->sem))
+-		return;
++	down(&acl->sem);
  
- The kref_put() return value is useful if you do not want to hold the
-@@ -191,13 +191,13 @@ static void release_entry(struct kref *r
+ 	if (acl->size == 0) {
+ 		up(&acl->sem);
+@@ -2116,8 +2114,7 @@ prism54_wpa_bss_ie_add(islpci_private *p
+ 	if (wpa_ie_len > MAX_WPA_IE_LEN)
+ 		wpa_ie_len = MAX_WPA_IE_LEN;
  
- static void put_entry(struct my_data *entry)
- {
--	down(&sem);
-+	mutex_lock(&mutex);
- 	if (kref_put(&entry->refcount, release_entry)) {
- 		list_del(&entry->link);
--		up(&sem);
-+		mutex_unlock(&mutex);
- 		kfree(entry);
- 	} else
--		up(&sem);
-+		mutex_unlock(&mutex);
- }
+-	if (down_interruptible(&priv->wpa_sem))
+-		return;
++	down(&priv->wpa_sem);
  
- This is really more useful if you have to call other routines as part
+ 	/* try to use existing entry */
+ 	list_for_each(ptr, &priv->bss_wpa_list) {
+@@ -2178,8 +2175,7 @@ prism54_wpa_bss_ie_get(islpci_private *p
+ 	struct islpci_bss_wpa_ie *bss = NULL;
+ 	size_t len = 0;
+ 
+-	if (down_interruptible(&priv->wpa_sem))
+-		return 0;
++	down(&priv->wpa_sem);
+ 
+ 	list_for_each(ptr, &priv->bss_wpa_list) {
+ 		bss = list_entry(ptr, struct islpci_bss_wpa_ie, list);
 _
 
 Patches currently in -mm which might be from dwalker@mvista.com are
@@ -123,9 +107,9 @@ docs-kernel-locking-convert-semaphore-references.patch
 stopmachine-semaphore-to-mutex.patch
 stopmachine-semaphore-to-mutex-fix.patch
 amiga-serial-driver-port_write_mutex-fixup.patch
-docs-convert-kref-semaphore-to-mutex.patch
 isapnp-driver-semaphore-to-mutex.patch
 isapnp-driver-semaphore-to-mutex-fix.patch
 isapnp-driver-semaphore-to-mutex-fix-fix.patch
 profile-likely-unlikely-macros.patch
 profile-likely-unlikely-macros-fix.patch
+docs-convert-kref-semaphore-to-mutex.patch
