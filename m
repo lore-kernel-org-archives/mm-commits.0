@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-cris-arch-v10-vmlinuxldss-fix-boot-problem.patch added to -mm tree
-Date: Fri, 21 Dec 2007 16:08:30 -0800
-Message-ID: <200712220008.lBM08U4E005947@imap1.linux-foundation.org>
+Subject: + udf-remove-wrong-prototype-of-udf_readdir.patch added to -mm tree
+Date: Fri, 21 Dec 2007 16:16:52 -0800
+Message-ID: <200712220016.lBM0GvCu006174@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46054 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49319 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754523AbXLVAJN (ORCPT
+	by vger.kernel.org with ESMTP id S1753421AbXLVARX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Dec 2007 19:09:13 -0500
+	Fri, 21 Dec 2007 19:17:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kuwana@nyanyan.to, jesper.nilsson@axis.com, ryu@nyanyan.to
+Cc: marcin.slusarz@gmail.com, bfennema@falcon.csc.calpoly.edu, jack@suse.cz
 
 
 The patch titled
-     arch/cris/arch-v10/vmlinux.lds.S fix boot problem
+     udf: remove wrong prototype of udf_readdir
 has been added to the -mm tree.  Its filename is
-     arch-cris-arch-v10-vmlinuxldss-fix-boot-problem.patch
+     udf-remove-wrong-prototype-of-udf_readdir.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,69 +28,169 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/cris/arch-v10/vmlinux.lds.S fix boot problem
-From: Yuusei KUWANA <kuwana@nyanyan.to>
+Subject: udf: remove wrong prototype of udf_readdir
+From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-arch/cris/arch-v10/vmlinux.lds.S
- fix boot problem
-* too old initcall style. replace INITCALLS macro
-* __init_begin, __init_end move for free_initmem()
+sparse generated:
+fs/udf/dir.c:78:5: warning: symbol 'udf_readdir' was not declared. Should it be static?
+there are 2 different prototypes of udf_readdir - remove them and move
+code around to make it still compile
 
-Note: with this patch kernel boot and mount root,
-but after init done,  kernel panic at do_signal() ...
-
-Signed-off-by: Yuusei KUWANA <ryu@nyanyan.to>
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Cc: Ben Fennema <bfennema@falcon.csc.calpoly.edu>
+Acked-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v10/vmlinux.lds.S |   13 ++++---------
- 1 file changed, 4 insertions(+), 9 deletions(-)
+ fs/udf/dir.c |  118 +++++++++++++++++++++++--------------------------
+ 1 file changed, 56 insertions(+), 62 deletions(-)
 
-diff -puN arch/cris/arch-v10/vmlinux.lds.S~arch-cris-arch-v10-vmlinuxldss-fix-boot-problem arch/cris/arch-v10/vmlinux.lds.S
---- a/arch/cris/arch-v10/vmlinux.lds.S~arch-cris-arch-v10-vmlinuxldss-fix-boot-problem
-+++ a/arch/cris/arch-v10/vmlinux.lds.S
-@@ -53,26 +53,22 @@ SECTIONS
-   	.data.init_task : { *(.data.init_task) }
+diff -puN fs/udf/dir.c~udf-remove-wrong-prototype-of-udf_readdir fs/udf/dir.c
+--- a/fs/udf/dir.c~udf-remove-wrong-prototype-of-udf_readdir
++++ a/fs/udf/dir.c
+@@ -36,68 +36,8 @@
+ #include "udf_i.h"
+ #include "udf_sb.h"
  
-   	. = ALIGN(8192);              /* Init code and data */
--  	__init_begin = .;
- 	.init.text : { 
- 		   _sinittext = .;
- 		   *(.init.text)
- 		   _einittext = .;
- 	}
-+  	__init_begin = .;
-   	.init.data : { *(.init.data) }
-+  	__init_end = .;
+-/* Prototypes for file operations */
+-static int udf_readdir(struct file *, void *, filldir_t);
+-static int do_udf_readdir(struct inode *, struct file *, filldir_t, void *);
+-
+-/* readdir and lookup functions */
+-
+-const struct file_operations udf_dir_operations = {
+-	.read			= generic_read_dir,
+-	.readdir		= udf_readdir,
+-	.ioctl			= udf_ioctl,
+-	.fsync			= udf_fsync_file,
+-};
+-
+-/*
+- * udf_readdir
+- *
+- * PURPOSE
+- *	Read a directory entry.
+- *
+- * DESCRIPTION
+- *	Optional - sys_getdents() will return -ENOTDIR if this routine is not
+- *	available.
+- *
+- *	Refer to sys_getdents() in fs/readdir.c
+- *	sys_getdents() -> .
+- *
+- * PRE-CONDITIONS
+- *	filp			Pointer to directory file.
+- *	buf			Pointer to directory entry buffer.
+- *	filldir			Pointer to filldir function.
+- *
+- * POST-CONDITIONS
+- *	<return>		>=0 on success.
+- *
+- * HISTORY
+- *	July 1, 1997 - Andrew E. Mileski
+- *	Written, tested, and released.
+- */
+-
+-int udf_readdir(struct file *filp, void *dirent, filldir_t filldir)
+-{
+-	struct inode *dir = filp->f_path.dentry->d_inode;
+-	int result;
+-
+-	lock_kernel();
+-
+-	if (filp->f_pos == 0) {
+-		if (filldir(dirent, ".", 1, filp->f_pos, dir->i_ino, DT_DIR) < 0) {
+-			unlock_kernel();
+-			return 0;
+-		}
+-		filp->f_pos++;
+-	}
+-
+-	result = do_udf_readdir(dir, filp, filldir, dirent);
+-	unlock_kernel();
+- 	return result;
+-}
+-
+-static int
+-do_udf_readdir(struct inode *dir, struct file *filp, filldir_t filldir,
+-	       void *dirent)
++static int do_udf_readdir(struct inode *dir, struct file *filp,
++			  filldir_t filldir, void *dirent)
+ {
+ 	struct udf_fileident_bh fibh;
+ 	struct fileIdentDesc *fi = NULL;
+@@ -244,3 +184,57 @@ do_udf_readdir(struct inode *dir, struct
+ 
+ 	return 0;
+ }
 +
-   	. = ALIGN(16);
-   	__setup_start = .;
-   	.init.setup : { *(.init.setup) }
-   	__setup_end = .;
-   	.initcall.init : {
- 		__initcall_start = .;
--		*(.initcall1.init);
--		*(.initcall2.init);
--		*(.initcall3.init);
--		*(.initcall4.init);
--		*(.initcall5.init);
--		*(.initcall6.init);
--		*(.initcall7.init);
-+			INITCALLS
- 		__initcall_end = .;	
- 	}
- 
-@@ -97,7 +93,6 @@ SECTIONS
- #endif
- 	
- 	__vmlinux_end = .;            /* last address of the physical file */
--  	__init_end = .;
- 
- 	__data_end = . ;              /* Move to _edata ? */
- 	__bss_start = .;              /* BSS */
++/*
++ * udf_readdir
++ *
++ * PURPOSE
++ *	Read a directory entry.
++ *
++ * DESCRIPTION
++ *	Optional - sys_getdents() will return -ENOTDIR if this routine is not
++ *	available.
++ *
++ *	Refer to sys_getdents() in fs/readdir.c
++ *	sys_getdents() -> .
++ *
++ * PRE-CONDITIONS
++ *	filp			Pointer to directory file.
++ *	buf			Pointer to directory entry buffer.
++ *	filldir			Pointer to filldir function.
++ *
++ * POST-CONDITIONS
++ *	<return>		>=0 on success.
++ *
++ * HISTORY
++ *	July 1, 1997 - Andrew E. Mileski
++ *	Written, tested, and released.
++ */
++
++static int udf_readdir(struct file *filp, void *dirent, filldir_t filldir)
++{
++	struct inode *dir = filp->f_path.dentry->d_inode;
++	int result;
++
++	lock_kernel();
++
++	if (filp->f_pos == 0) {
++		if (filldir(dirent, ".", 1, filp->f_pos, dir->i_ino, DT_DIR) < 0) {
++			unlock_kernel();
++			return 0;
++		}
++		filp->f_pos++;
++	}
++
++	result = do_udf_readdir(dir, filp, filldir, dirent);
++	unlock_kernel();
++ 	return result;
++}
++
++/* readdir and lookup functions */
++const struct file_operations udf_dir_operations = {
++	.read			= generic_read_dir,
++	.readdir		= udf_readdir,
++	.ioctl			= udf_ioctl,
++	.fsync			= udf_fsync_file,
++};
 _
 
-Patches currently in -mm which might be from kuwana@nyanyan.to are
+Patches currently in -mm which might be from marcin.slusarz@gmail.com are
 
-arch-cris-arch-v10-vmlinuxldss-fix-boot-problem.patch
+git-alsa.patch
+ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
+vgacon-fix-sparse-warning-about-shadowing-i-symbol.patch
+fbcon-fix-sparse-warning-about-shadowing-p-symbol.patch
+fbcon-fix-sparse-warning-about-shadowing-rotate-symbol.patch
+logo-move-declarations-of-logos-to-linux_logoh.patch
+logo-move-declarations-of-logos-to-linux_logoh-fix.patch
+udf-remove-wrong-prototype-of-udf_readdir.patch
+udf-improve-readability-of-do_udf_readdir.patch
+udf-fix-coding-style-of-dirc.patch
+udf-fix-3-signedness-1-unitialized-variable-warnings.patch
+udf-fix-signedness-issue.patch
+udf-fix-sparse-warnings-shadowing-mismatch-between-declaration-and-definition.patch
