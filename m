@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources.patch added to -mm tree
-Date: Sat, 22 Dec 2007 00:45:42 -0800
-Message-ID: <200712220845.lBM8jgtJ025168@imap1.linux-foundation.org>
+Subject: + mm-fix-pageuptodate-memory-ordering-bug.patch added to -mm tree
+Date: Sat, 22 Dec 2007 00:57:58 -0800
+Message-ID: <200712220857.lBM8vwwg025610@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58377 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38477 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750825AbXLVIqa (ORCPT
+	by vger.kernel.org with ESMTP id S1751804AbXLVI6G (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Dec 2007 03:46:30 -0500
+	Sat, 22 Dec 2007 03:58:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, jgarzik@pobox.com, mid@zigamorph.net
+Cc: npiggin@suse.de
 
 
 The patch titled
-     MAINTAINERS: remove Adam Fritzler, update his email address in other sources
+     mm: fix PageUptodate memory ordering bug
 has been added to the -mm tree.  Its filename is
-     maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources.patch
+     mm-fix-pageuptodate-memory-ordering-bug.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,213 +28,250 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: remove Adam Fritzler, update his email address in other sources
-From: Joe Perches <joe@perches.com>
+Subject: mm: fix PageUptodate memory ordering bug
+From: Nick Piggin <npiggin@suse.de>
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Adam Fritzler <mid@zigamorph.net>
-Cc: Jeff Garzik <jgarzik@pobox.com>
+After running SetPageUptodate, preceding stores to the page contents to
+actually bring it uptodate may not be ordered with the store to set the
+page uptodate.
+
+Therefore, another CPU which checks PageUptodate is true, then reads the
+page contents can get stale data.
+
+Fix this by having an smp_wmb before SetPageUptodate, and smp_rmb after
+PageUptodate.
+
+Many places that test PageUptodate, do so with the page locked, and this
+would be enough to ensure memory ordering in those places if
+SetPageUptodate were only called while the page is locked.  Unfortunately
+that is not always the case for some filesystems, but it could be an idea
+for the future.
+
+One thing I like about it is that it brings the handling of anonymous page
+uptodateness in line with that of file backed page management, by marking
+anon pages as uptodate when they _are_ uptodate, rather than when our
+implementation requires that they be marked as such.  Doing this allows us
+to get rid of the smp_wmb's in the page copying functions, which were
+especially added for anonymous pages for an analogous memory ordering
+problem, and are now handled with the same code as the PageUptodate memory
+ordering problem.
+
+Introduce a SetNewPageUptodate for these anonymous pages: it contains non
+atomic bitops so as not to introduce too much overhead into these paths.
+
+Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- CREDITS                          |    3 +++
- MAINTAINERS                      |    7 -------
- drivers/net/eexpress.c           |    2 +-
- drivers/net/tokenring/abyss.c    |    2 +-
- drivers/net/tokenring/abyss.h    |    2 +-
- drivers/net/tokenring/madgemc.c  |    2 +-
- drivers/net/tokenring/madgemc.h  |    2 +-
- drivers/net/tokenring/proteon.c  |    2 +-
- drivers/net/tokenring/skisa.c    |    2 +-
- drivers/net/tokenring/tms380tr.c |    2 +-
- drivers/net/tokenring/tms380tr.h |    2 +-
- drivers/net/tokenring/tmspci.c   |    2 +-
- drivers/scsi/aha1542.c           |    2 +-
- 13 files changed, 14 insertions(+), 18 deletions(-)
+ include/linux/highmem.h    |    4 ---
+ include/linux/page-flags.h |   42 ++++++++++++++++++++++++++++++++---
+ mm/hugetlb.c               |    2 +
+ mm/memory.c                |    9 ++++---
+ mm/page_io.c               |    2 -
+ mm/swap_state.c            |    2 -
+ 6 files changed, 48 insertions(+), 13 deletions(-)
 
-diff -puN CREDITS~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources CREDITS
---- a/CREDITS~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources
-+++ a/CREDITS
-@@ -1124,6 +1124,9 @@ S: 1150 Ringwood Court
- S: San Jose, California 95131
- S: USA
+diff -puN include/linux/highmem.h~mm-fix-pageuptodate-memory-ordering-bug include/linux/highmem.h
+--- a/include/linux/highmem.h~mm-fix-pageuptodate-memory-ordering-bug
++++ a/include/linux/highmem.h
+@@ -68,8 +68,6 @@ static inline void clear_user_highpage(s
+ 	void *addr = kmap_atomic(page, KM_USER0);
+ 	clear_user_page(addr, vaddr, page);
+ 	kunmap_atomic(addr, KM_USER0);
+-	/* Make sure this page is cleared on other CPU's too before using it */
+-	smp_wmb();
+ }
  
-+N: Adam Fritzler
-+E: mid@zigamorph.net
+ #ifndef __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE
+@@ -160,8 +158,6 @@ static inline void copy_user_highpage(st
+ 	copy_user_page(vto, vfrom, vaddr, to);
+ 	kunmap_atomic(vfrom, KM_USER0);
+ 	kunmap_atomic(vto, KM_USER1);
+-	/* Make sure this page is cleared on other CPU's too before using it */
+-	smp_wmb();
+ }
+ 
+ #endif
+diff -puN include/linux/page-flags.h~mm-fix-pageuptodate-memory-ordering-bug include/linux/page-flags.h
+--- a/include/linux/page-flags.h~mm-fix-pageuptodate-memory-ordering-bug
++++ a/include/linux/page-flags.h
+@@ -131,16 +131,52 @@
+ #define ClearPageReferenced(page)	clear_bit(PG_referenced, &(page)->flags)
+ #define TestClearPageReferenced(page) test_and_clear_bit(PG_referenced, &(page)->flags)
+ 
+-#define PageUptodate(page)	test_bit(PG_uptodate, &(page)->flags)
++static inline int PageUptodate(struct page *page)
++{
++	int ret = test_bit(PG_uptodate, &(page)->flags);
 +
- N: Fernando Fuganti
- E: fuganti@conectiva.com.br
- E: fuganti@netbank.com.br
-diff -puN drivers/net/eexpress.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources drivers/net/eexpress.c
---- a/drivers/net/eexpress.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources
-+++ a/drivers/net/eexpress.c
-@@ -9,7 +9,7 @@
-  * Many modifications, and currently maintained, by
-  *  Philip Blundell <philb@gnu.org>
-  * Added the Compaq LTE  Alan Cox <alan@redhat.com>
-- * Added MCA support Adam Fritzler <mid@auk.cx>
-+ * Added MCA support Adam Fritzler
-  *
-  * Note - this driver is experimental still - it has problems on faster
-  * machines. Someone needs to sit down and go through it line by line with
-diff -puN drivers/net/tokenring/abyss.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources drivers/net/tokenring/abyss.c
---- a/drivers/net/tokenring/abyss.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources
-+++ a/drivers/net/tokenring/abyss.c
-@@ -10,7 +10,7 @@
-  *      - Madge Smart 16/4 PCI Mk2
-  *
-  *  Maintainer(s):
-- *    AF	Adam Fritzler		mid@auk.cx
-+ *    AF	Adam Fritzler
-  *
-  *  Modification History:
-  *	30-Dec-99	AF	Split off from the tms380tr driver.
-diff -puN drivers/net/tokenring/abyss.h~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources drivers/net/tokenring/abyss.h
---- a/drivers/net/tokenring/abyss.h~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources
-+++ a/drivers/net/tokenring/abyss.h
-@@ -2,7 +2,7 @@
-  * abyss.h: Header for the abyss tms380tr module
-  *
-  * Authors:
-- * - Adam Fritzler <mid@auk.cx>
-+ * - Adam Fritzler
-  */
++	/*
++	 * Must ensure that the data we read out of the page is loaded
++	 * _after_ we've loaded page->flags to check for PageUptodate.
++	 * We can skip the barrier if the page is not uptodate, because
++	 * we wouldn't be reading anything from it.
++	 *
++	 * See SetPageUptodate() for the other side of the story.
++	 */
++	if (ret)
++		smp_rmb();
++
++	return ret;
++}
++
++static inline void SetNewPageUptodate(struct page *page)
++{
++	smp_wmb();
++	__set_bit(PG_uptodate, &(page)->flags);
+ #ifdef CONFIG_S390
++	page_clear_dirty(page);
++#endif
++}
++
+ static inline void SetPageUptodate(struct page *page)
+ {
++#ifdef CONFIG_S390
+ 	if (!test_and_set_bit(PG_uptodate, &page->flags))
+ 		page_clear_dirty(page);
+-}
+ #else
+-#define SetPageUptodate(page)	set_bit(PG_uptodate, &(page)->flags)
++	/*
++	 * Memory barrier must be issued before setting the PG_uptodate bit,
++	 * so that all previous stores issued in order to bring the page
++	 * uptodate are actually visible before PageUptodate becomes true.
++	 *
++	 * s390 doesn't need an explicit smp_wmb here because the test and
++	 * set bit already provides full barriers.
++	 */
++	smp_wmb();
++	set_bit(PG_uptodate, &(page)->flags);
+ #endif
++}
++
+ #define ClearPageUptodate(page)	clear_bit(PG_uptodate, &(page)->flags)
  
- #ifndef __LINUX_MADGETR_H
-diff -puN drivers/net/tokenring/madgemc.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources drivers/net/tokenring/madgemc.c
---- a/drivers/net/tokenring/madgemc.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources
-+++ a/drivers/net/tokenring/madgemc.c
-@@ -11,7 +11,7 @@
-  *	- Madge Smart 16/4 Ringnode MC32 (??)
-  *
-  *  Maintainer(s):
-- *    AF	Adam Fritzler		mid@auk.cx
-+ *    AF	Adam Fritzler
-  *
-  *  Modification History:
-  *	16-Jan-00	AF	Created
-diff -puN drivers/net/tokenring/madgemc.h~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources drivers/net/tokenring/madgemc.h
---- a/drivers/net/tokenring/madgemc.h~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources
-+++ a/drivers/net/tokenring/madgemc.h
-@@ -2,7 +2,7 @@
-  * madgemc.h: Header for the madgemc tms380tr module
-  *
-  * Authors:
-- * - Adam Fritzler <mid@auk.cx>
-+ * - Adam Fritzler
-  */
+ #define PageDirty(page)		test_bit(PG_dirty, &(page)->flags)
+diff -puN mm/hugetlb.c~mm-fix-pageuptodate-memory-ordering-bug mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-fix-pageuptodate-memory-ordering-bug
++++ a/mm/hugetlb.c
+@@ -803,6 +803,7 @@ static int hugetlb_cow(struct mm_struct 
  
- #ifndef __LINUX_MADGEMC_H
-diff -puN drivers/net/tokenring/proteon.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources drivers/net/tokenring/proteon.c
---- a/drivers/net/tokenring/proteon.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources
-+++ a/drivers/net/tokenring/proteon.c
-@@ -12,7 +12,7 @@
-  *	- Proteon 1392, 1392+
-  *
-  *  Maintainer(s):
-- *    AF        Adam Fritzler           mid@auk.cx
-+ *    AF        Adam Fritzler
-  *    JF	Jochen Friedrich	jochen@scram.de
-  *
-  *  Modification History:
-diff -puN drivers/net/tokenring/skisa.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources drivers/net/tokenring/skisa.c
---- a/drivers/net/tokenring/skisa.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources
-+++ a/drivers/net/tokenring/skisa.c
-@@ -13,7 +13,7 @@
-  *	- SysKonnect TR4/16(+) ISA	(SK-4190)
-  *
-  *  Maintainer(s):
-- *    AF        Adam Fritzler           mid@auk.cx
-+ *    AF        Adam Fritzler
-  *    JF	Jochen Friedrich	jochen@scram.de
-  *
-  *  Modification History:
-diff -puN drivers/net/tokenring/tms380tr.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources drivers/net/tokenring/tms380tr.c
---- a/drivers/net/tokenring/tms380tr.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources
-+++ a/drivers/net/tokenring/tms380tr.c
-@@ -30,7 +30,7 @@
-  *  Maintainer(s):
-  *    JS	Jay Schulist		jschlst@samba.org
-  *    CG	Christoph Goos		cgoos@syskonnect.de
-- *    AF	Adam Fritzler		mid@auk.cx
-+ *    AF	Adam Fritzler
-  *    MLP       Mike Phillips           phillim@amtrak.com
-  *    JF	Jochen Friedrich	jochen@scram.de
-  *     
-diff -puN drivers/net/tokenring/tms380tr.h~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources drivers/net/tokenring/tms380tr.h
---- a/drivers/net/tokenring/tms380tr.h~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources
-+++ a/drivers/net/tokenring/tms380tr.h
-@@ -3,7 +3,7 @@
-  *
-  * Authors:
-  * - Christoph Goos <cgoos@syskonnect.de>
-- * - Adam Fritzler <mid@auk.cx>
-+ * - Adam Fritzler
-  */
+ 	spin_unlock(&mm->page_table_lock);
+ 	copy_huge_page(new_page, old_page, address, vma);
++	SetNewPageUptodate(new_page);
+ 	spin_lock(&mm->page_table_lock);
  
- #ifndef __LINUX_TMS380TR_H
-diff -puN drivers/net/tokenring/tmspci.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources drivers/net/tokenring/tmspci.c
---- a/drivers/net/tokenring/tmspci.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources
-+++ a/drivers/net/tokenring/tmspci.c
-@@ -14,7 +14,7 @@
-  *      - 3Com 3C339 Token Link Velocity
-  *
-  *  Maintainer(s):
-- *    AF	Adam Fritzler		mid@auk.cx
-+ *    AF	Adam Fritzler
-  *
-  *  Modification History:
-  *	30-Dec-99	AF	Split off from the tms380tr driver.
-diff -puN drivers/scsi/aha1542.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources drivers/scsi/aha1542.c
---- a/drivers/scsi/aha1542.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources
-+++ a/drivers/scsi/aha1542.c
-@@ -21,7 +21,7 @@
-  *  Modified by Chris Faulhaber <jedgar@fxp.org>
-  *        Added module command-line options
-  *        19-Jul-99
-- *  Modified by Adam Fritzler <mid@auk.cx>
-+ *  Modified by Adam Fritzler
-  *        Added proper detection of the AHA-1640 (MCA version of AHA-1540)
-  */
+ 	ptep = huge_pte_offset(mm, address & HPAGE_MASK);
+@@ -848,6 +849,7 @@ retry:
+ 			goto out;
+ 		}
+ 		clear_huge_page(page, address);
++		SetNewPageUptodate(page);
  
-diff -puN MAINTAINERS~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources
-+++ a/MAINTAINERS
-@@ -3814,13 +3814,6 @@ W:	http://www.kernel.org/pub/linux/kerne
- T:	git kernel.org:/pub/scm/linux/kernel/git/bunk/trivial.git
- S:	Maintained
- 
--TMS380 TOKEN-RING NETWORK DRIVER
--P:	Adam Fritzler
--M:	mid@auk.cx
--L:	linux-tr@linuxtr.net
--W:	http://www.auk.cx/tms380tr/
--S:	Maintained
+ 		if (vma->vm_flags & VM_SHARED) {
+ 			int err;
+diff -puN mm/memory.c~mm-fix-pageuptodate-memory-ordering-bug mm/memory.c
+--- a/mm/memory.c~mm-fix-pageuptodate-memory-ordering-bug
++++ a/mm/memory.c
+@@ -1515,10 +1515,8 @@ static inline void cow_user_page(struct 
+ 			memset(kaddr, 0, PAGE_SIZE);
+ 		kunmap_atomic(kaddr, KM_USER0);
+ 		flush_dcache_page(dst);
+-		return;
 -
- TULIP NETWORK DRIVER
- L:	tulip-users@lists.sourceforge.net
- W:	http://sourceforge.net/projects/tulip/
+-	}
+-	copy_user_highpage(dst, src, va, vma);
++	} else
++		copy_user_highpage(dst, src, va, vma);
+ }
+ 
+ /*
+@@ -1627,6 +1625,7 @@ gotten:
+ 	if (!new_page)
+ 		goto oom;
+ 	cow_user_page(new_page, old_page, address, vma);
++	SetNewPageUptodate(new_page);
+ 
+ 	/*
+ 	 * Re-check the pte - we dropped the lock
+@@ -2158,6 +2157,7 @@ static int do_anonymous_page(struct mm_s
+ 	page = alloc_zeroed_user_highpage_movable(vma, address);
+ 	if (!page)
+ 		goto oom;
++	SetNewPageUptodate(page);
+ 
+ 	entry = mk_pte(page, vma->vm_page_prot);
+ 	entry = maybe_mkwrite(pte_mkdirty(entry), vma);
+@@ -2258,6 +2258,7 @@ static int __do_fault(struct mm_struct *
+ 				goto out;
+ 			}
+ 			copy_user_highpage(page, vmf.page, address, vma);
++			SetNewPageUptodate(page);
+ 		} else {
+ 			/*
+ 			 * If the page will be shareable, see if the backing
+diff -puN mm/page_io.c~mm-fix-pageuptodate-memory-ordering-bug mm/page_io.c
+--- a/mm/page_io.c~mm-fix-pageuptodate-memory-ordering-bug
++++ a/mm/page_io.c
+@@ -126,7 +126,7 @@ int swap_readpage(struct file *file, str
+ 	int ret = 0;
+ 
+ 	BUG_ON(!PageLocked(page));
+-	ClearPageUptodate(page);
++	BUG_ON(PageUptodate(page));
+ 	bio = get_swap_bio(GFP_KERNEL, page_private(page), page,
+ 				end_swap_bio_read);
+ 	if (bio == NULL) {
+diff -puN mm/swap_state.c~mm-fix-pageuptodate-memory-ordering-bug mm/swap_state.c
+--- a/mm/swap_state.c~mm-fix-pageuptodate-memory-ordering-bug
++++ a/mm/swap_state.c
+@@ -152,6 +152,7 @@ int add_to_swap(struct page * page, gfp_
+ 	int err;
+ 
+ 	BUG_ON(!PageLocked(page));
++	BUG_ON(!PageUptodate(page));
+ 
+ 	for (;;) {
+ 		entry = get_swap_page();
+@@ -174,7 +175,6 @@ int add_to_swap(struct page * page, gfp_
+ 
+ 		switch (err) {
+ 		case 0:				/* Success */
+-			SetPageUptodate(page);
+ 			SetPageDirty(page);
+ 			INC_CACHE_INFO(add_total);
+ 			return 1;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-maintainers-mailing-list-archives-are-web-links.patch
 git-alsa.patch
-git-cpufreq.patch
-git-powerpc.patch
 git-dvb.patch
-git-hwmon.patch
 git-ieee1394.patch
 git-infiniband.patch
 git-jfs.patch
 git-kvm.patch
-git-net.patch
-git-netdev-all.patch
-git-selinux.patch
-git-s390.patch
-git-sh.patch
-git-sparc64.patch
+nfs-use-gfp_nofs-preloads-for-radix-tree-insertion.patch
+git-sched.patch
+sg-nopage.patch
 git-x86.patch
-uml-add-missing-space.patch
-printk_ratelimit-functions-should-use-config_printk.patch
-maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources.patch
+mm-fix-pageuptodate-memory-ordering-bug.patch
+slub-use-non-atomic-bit-unlock.patch
+tmpfs-shuffle-add_to_swap_caches.patch
+tmpfs-radix_tree_preloading.patch
+radix-tree-avoid-atomic-allocations-for-preloaded-insertions.patch
+mm-dont-allow-ioremapping-of-ranges-larger-than-vmalloc-space.patch
+mm-special-mapping-nopage.patch
+agp-alpha-nopage.patch
+vt-bitlock-fix.patch
+radix_treeh-trivial-comment-correction.patch
+inotify-fix-race.patch
+inotify-remove-debug-code.patch
+relay-nopage.patch
+uio-nopage.patch
+ext2-xip-check-fix.patch
+fb-defio-nopage.patch
+rewrite-rd.patch
+rewrite-rd-fix.patch
+rd-support-xip.patch
+reiser4.patch
