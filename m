@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-ixany-and-restart-after-signal-eg-ctrl-c-in-n_tty-line-discipline.patch added to -mm tree
-Date: Fri, 21 Dec 2007 22:49:46 -0800
-Message-ID: <200712220649.lBM6nkIp021564@imap1.linux-foundation.org>
+Subject: + memory-controller-use-rcu_read_lock-in-mem_cgroup_cache_charge.patch added to -mm tree
+Date: Fri, 21 Dec 2007 22:56:37 -0800
+Message-ID: <200712220656.lBM6ub3N021772@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34798 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48814 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751168AbXLVGu2 (ORCPT
+	by vger.kernel.org with ESMTP id S1750922AbXLVG46 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Dec 2007 01:50:28 -0500
+	Sat, 22 Dec 2007 01:56:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@skyrush.com, alan@lxorguk.ukuu.org.uk
+Cc: balbir@linux.vnet.ibm.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     Fix IXANY and restart after signal (e.g. ctrl-C) in n_tty line discipline
+     Memory controller use rcu_read_lock() in mem_cgroup_cache_charge()
 has been added to the -mm tree.  Its filename is
-     fix-ixany-and-restart-after-signal-eg-ctrl-c-in-n_tty-line-discipline.patch
+     memory-controller-use-rcu_read_lock-in-mem_cgroup_cache_charge.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,63 +28,119 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix IXANY and restart after signal (e.g. ctrl-C) in n_tty line discipline
-From: Joe Peterson <joe@skyrush.com>
+Subject: Memory controller use rcu_read_lock() in mem_cgroup_cache_charge()
+From: Balbir Singh <balbir@linux.vnet.ibm.com>
 
-Fix two N_TTY line discipline issues related to resuming a stopped TTY
-(typically done with ctrl-S):
+Hugh Dickins noticed that we were using rcu_dereference() without
+rcu_read_lock() in the cache charging routine. The patch below fixes
+this problem
 
-1) Fix handling of character that resumes a stopped TTY (with IXANY)
-
-With "stty ixany", the TTY line discipline would lose the first character
-after the stop, so typing, for example, "hi^Sthere" resulted in "hihere"
-(the 't' would cause the resume after ^S, but it would then be thrown away
-rather than processed as an input character).  This was inconsistent with
-the behavior of other Unix systems.
-
-2) Fix interrupt signal (e.g. ctrl-C) behavior in stopped TTYs
-
-With "stty -ixany" (often the default), interrupt signals were ignored
-in a stopped TTY until the TTY was resumed with the start char (typically
-ctrl-Q), which was inconsistent with the behavior of other Unix systems.
-
-Signed-off-by: Joe Peterson <joe@skyrush.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/n_tty.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/memcontrol.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN drivers/char/n_tty.c~fix-ixany-and-restart-after-signal-eg-ctrl-c-in-n_tty-line-discipline drivers/char/n_tty.c
---- a/drivers/char/n_tty.c~fix-ixany-and-restart-after-signal-eg-ctrl-c-in-n_tty-line-discipline
-+++ a/drivers/char/n_tty.c
-@@ -695,11 +695,8 @@ static inline void n_tty_receive_char(st
- 		return;
- 	}
- 	
--	if (tty->stopped && !tty->flow_stopped &&
--	    I_IXON(tty) && I_IXANY(tty)) {
-+	if (tty->stopped && !tty->flow_stopped && I_IXON(tty) && I_IXANY(tty))
- 		start_tty(tty);
--		return;
--	}
- 	
- 	if (I_ISTRIP(tty))
- 		c &= 0x7f;
-@@ -769,6 +766,8 @@ static inline void n_tty_receive_char(st
- 		signal = SIGTSTP;
- 		if (c == SUSP_CHAR(tty)) {
- send_signal:
-+			if (tty->stopped && !tty->flow_stopped && I_IXON(tty))
-+				start_tty(tty);
- 			/*
- 			 * Echo character, and then send the signal.
- 			 * Note that we do not use isig() here because we want
+diff -puN mm/memcontrol.c~memory-controller-use-rcu_read_lock-in-mem_cgroup_cache_charge mm/memcontrol.c
+--- a/mm/memcontrol.c~memory-controller-use-rcu_read_lock-in-mem_cgroup_cache_charge
++++ a/mm/memcontrol.c
+@@ -456,16 +456,20 @@ int mem_cgroup_charge(struct page *page,
+ int mem_cgroup_cache_charge(struct page *page, struct mm_struct *mm,
+ 				gfp_t gfp_mask)
+ {
++	int ret = 0;
+ 	struct mem_cgroup *mem;
+ 	if (!mm)
+ 		mm = &init_mm;
+ 
++	rcu_read_lock();
+ 	mem = rcu_dereference(mm->mem_cgroup);
++	css_get(&mem->css);
++	rcu_read_unlock();
+ 	if (mem->control_type == MEM_CGROUP_TYPE_ALL)
+-		return mem_cgroup_charge_common(page, mm, gfp_mask,
++		ret = mem_cgroup_charge_common(page, mm, gfp_mask,
+ 				MEM_CGROUP_CHARGE_TYPE_CACHE);
+-	else
+-		return 0;
++	css_put(&mem->css);
++	return ret;
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from joe@skyrush.com are
+Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
 
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
-fix-ixany-and-restart-after-signal-eg-ctrl-c-in-n_tty-line-discipline.patch
+git-powerpc.patch
+swapoff-scan-ptes-preemptibly.patch
+maps4-add-proportional-set-size-accounting-in-smaps.patch
+remove-unused-code-from-mm-tiny-shmemc.patch
+memory-controller-add-documentation.patch
+memcgroup-temporarily-revert-swapoff-mod.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-memory-accounting-v7-move-page_assign_page_cgroup-to-vm_bug_on-in-free_hot_cold_page.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-memcgroup-fix-try_to_free-order.patch
+memory-controller-improve-user-interface.patch
+memory-controller-improve-user-interface-memory-controller-enhancements-for-reclaiming-take2-possible-race-fix-in-res_counter.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+memory-controller-make-charging-gfp-mask-aware-fix.patch
+memcgroup-reinstate-swapoff-mod.patch
+memory-controller-bug_on.patch
+memcontrol-move-mm_cgroup-to-header-file.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+oom-add-sysctl-to-enable-task-memory-dump.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
+memcgroup-fix-zone-isolation-oom.patch
+memcgroup-revert-swap_state-mods.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
+memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
+memory-controller-use-rcu_read_lock-in-mem_cgroup_cache_charge.patch
+memcgroup-tidy-up-mem_cgroup_charge_common.patch
+memcgroup-fix-hang-with-shmem-tmpfs.patch
+memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+memory-cgroup-enhancements-add-pre_destroy-handler.patch
+memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter-memory-controller-enhancements-for-reclaiming-take2-clean-up-remove-unused-variable.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter-memory-controller-enhancements-for-reclaiming-take2-add-bug_on-in-mem_cgroup_zoneinfo.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix-accounting-in-vmscanc-for-memory-controller.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-memory-controller-enhancements-for-reclaiming-take2-define-free_mem_cgroup_per_zone_info.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
+update-documentation-controller-memorytxt.patch
+memory-controller-remove-control_type-feature.patch
