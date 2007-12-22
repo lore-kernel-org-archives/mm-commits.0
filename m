@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-pageuptodate-memory-ordering-bug.patch added to -mm tree
-Date: Sat, 22 Dec 2007 00:57:58 -0800
-Message-ID: <200712220857.lBM8vwwg025610@imap1.linux-foundation.org>
+Subject: + cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch added to -mm tree
+Date: Sat, 22 Dec 2007 01:21:03 -0800
+Message-ID: <200712220921.lBM9L3Ac026294@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38477 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52019 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751804AbXLVI6G (ORCPT
+	by vger.kernel.org with ESMTP id S1752221AbXLVJVI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Dec 2007 03:58:06 -0500
+	Sat, 22 Dec 2007 04:21:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de
+Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, greg@kroah.com
 
 
 The patch titled
-     mm: fix PageUptodate memory ordering bug
+     cleanup gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources
 has been added to the -mm tree.  Its filename is
-     mm-fix-pageuptodate-memory-ordering-bug.patch
+     cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,250 +28,262 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: fix PageUptodate memory ordering bug
-From: Nick Piggin <npiggin@suse.de>
+Subject: cleanup gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources
+From: Andrew Morton <akpm@linux-foundation.org>
 
-After running SetPageUptodate, preceding stores to the page contents to
-actually bring it uptodate may not be ordered with the store to set the
-page uptodate.
+Use upper_32_bits(): no code changes, one less ifdef.
 
-Therefore, another CPU which checks PageUptodate is true, then reads the
-page contents can get stale data.
-
-Fix this by having an smp_wmb before SetPageUptodate, and smp_rmb after
-PageUptodate.
-
-Many places that test PageUptodate, do so with the page locked, and this
-would be enough to ensure memory ordering in those places if
-SetPageUptodate were only called while the page is locked.  Unfortunately
-that is not always the case for some filesystems, but it could be an idea
-for the future.
-
-One thing I like about it is that it brings the handling of anonymous page
-uptodateness in line with that of file backed page management, by marking
-anon pages as uptodate when they _are_ uptodate, rather than when our
-implementation requires that they be marked as such.  Doing this allows us
-to get rid of the smp_wmb's in the page copying functions, which were
-especially added for anonymous pages for an analogous memory ordering
-problem, and are now handled with the same code as the PageUptodate memory
-ordering problem.
-
-Introduce a SetNewPageUptodate for these anonymous pages: it contains non
-atomic bitops so as not to introduce too much overhead into these paths.
-
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Greg KH <greg@kroah.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/highmem.h    |    4 ---
- include/linux/page-flags.h |   42 ++++++++++++++++++++++++++++++++---
- mm/hugetlb.c               |    2 +
- mm/memory.c                |    9 ++++---
- mm/page_io.c               |    2 -
- mm/swap_state.c            |    2 -
- 6 files changed, 48 insertions(+), 13 deletions(-)
+ drivers/pci/setup-bus.c |    6 ++----
+ linux/pci.h             |    0 
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/highmem.h~mm-fix-pageuptodate-memory-ordering-bug include/linux/highmem.h
---- a/include/linux/highmem.h~mm-fix-pageuptodate-memory-ordering-bug
-+++ a/include/linux/highmem.h
-@@ -68,8 +68,6 @@ static inline void clear_user_highpage(s
- 	void *addr = kmap_atomic(page, KM_USER0);
- 	clear_user_page(addr, vaddr, page);
- 	kunmap_atomic(addr, KM_USER0);
--	/* Make sure this page is cleared on other CPU's too before using it */
--	smp_wmb();
- }
- 
- #ifndef __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE
-@@ -160,8 +158,6 @@ static inline void copy_user_highpage(st
- 	copy_user_page(vto, vfrom, vaddr, to);
- 	kunmap_atomic(vfrom, KM_USER0);
- 	kunmap_atomic(vto, KM_USER1);
--	/* Make sure this page is cleared on other CPU's too before using it */
--	smp_wmb();
- }
- 
- #endif
-diff -puN include/linux/page-flags.h~mm-fix-pageuptodate-memory-ordering-bug include/linux/page-flags.h
---- a/include/linux/page-flags.h~mm-fix-pageuptodate-memory-ordering-bug
-+++ a/include/linux/page-flags.h
-@@ -131,16 +131,52 @@
- #define ClearPageReferenced(page)	clear_bit(PG_referenced, &(page)->flags)
- #define TestClearPageReferenced(page) test_and_clear_bit(PG_referenced, &(page)->flags)
- 
--#define PageUptodate(page)	test_bit(PG_uptodate, &(page)->flags)
-+static inline int PageUptodate(struct page *page)
-+{
-+	int ret = test_bit(PG_uptodate, &(page)->flags);
-+
-+	/*
-+	 * Must ensure that the data we read out of the page is loaded
-+	 * _after_ we've loaded page->flags to check for PageUptodate.
-+	 * We can skip the barrier if the page is not uptodate, because
-+	 * we wouldn't be reading anything from it.
-+	 *
-+	 * See SetPageUptodate() for the other side of the story.
-+	 */
-+	if (ret)
-+		smp_rmb();
-+
-+	return ret;
-+}
-+
-+static inline void SetNewPageUptodate(struct page *page)
-+{
-+	smp_wmb();
-+	__set_bit(PG_uptodate, &(page)->flags);
- #ifdef CONFIG_S390
-+	page_clear_dirty(page);
-+#endif
-+}
-+
- static inline void SetPageUptodate(struct page *page)
- {
-+#ifdef CONFIG_S390
- 	if (!test_and_set_bit(PG_uptodate, &page->flags))
- 		page_clear_dirty(page);
--}
- #else
--#define SetPageUptodate(page)	set_bit(PG_uptodate, &(page)->flags)
-+	/*
-+	 * Memory barrier must be issued before setting the PG_uptodate bit,
-+	 * so that all previous stores issued in order to bring the page
-+	 * uptodate are actually visible before PageUptodate becomes true.
-+	 *
-+	 * s390 doesn't need an explicit smp_wmb here because the test and
-+	 * set bit already provides full barriers.
-+	 */
-+	smp_wmb();
-+	set_bit(PG_uptodate, &(page)->flags);
- #endif
-+}
-+
- #define ClearPageUptodate(page)	clear_bit(PG_uptodate, &(page)->flags)
- 
- #define PageDirty(page)		test_bit(PG_dirty, &(page)->flags)
-diff -puN mm/hugetlb.c~mm-fix-pageuptodate-memory-ordering-bug mm/hugetlb.c
---- a/mm/hugetlb.c~mm-fix-pageuptodate-memory-ordering-bug
-+++ a/mm/hugetlb.c
-@@ -803,6 +803,7 @@ static int hugetlb_cow(struct mm_struct 
- 
- 	spin_unlock(&mm->page_table_lock);
- 	copy_huge_page(new_page, old_page, address, vma);
-+	SetNewPageUptodate(new_page);
- 	spin_lock(&mm->page_table_lock);
- 
- 	ptep = huge_pte_offset(mm, address & HPAGE_MASK);
-@@ -848,6 +849,7 @@ retry:
- 			goto out;
- 		}
- 		clear_huge_page(page, address);
-+		SetNewPageUptodate(page);
- 
- 		if (vma->vm_flags & VM_SHARED) {
- 			int err;
-diff -puN mm/memory.c~mm-fix-pageuptodate-memory-ordering-bug mm/memory.c
---- a/mm/memory.c~mm-fix-pageuptodate-memory-ordering-bug
-+++ a/mm/memory.c
-@@ -1515,10 +1515,8 @@ static inline void cow_user_page(struct 
- 			memset(kaddr, 0, PAGE_SIZE);
- 		kunmap_atomic(kaddr, KM_USER0);
- 		flush_dcache_page(dst);
--		return;
--
--	}
--	copy_user_highpage(dst, src, va, vma);
-+	} else
-+		copy_user_highpage(dst, src, va, vma);
- }
- 
- /*
-@@ -1627,6 +1625,7 @@ gotten:
- 	if (!new_page)
- 		goto oom;
- 	cow_user_page(new_page, old_page, address, vma);
-+	SetNewPageUptodate(new_page);
- 
- 	/*
- 	 * Re-check the pte - we dropped the lock
-@@ -2158,6 +2157,7 @@ static int do_anonymous_page(struct mm_s
- 	page = alloc_zeroed_user_highpage_movable(vma, address);
- 	if (!page)
- 		goto oom;
-+	SetNewPageUptodate(page);
- 
- 	entry = mk_pte(page, vma->vm_page_prot);
- 	entry = maybe_mkwrite(pte_mkdirty(entry), vma);
-@@ -2258,6 +2258,7 @@ static int __do_fault(struct mm_struct *
- 				goto out;
- 			}
- 			copy_user_highpage(page, vmf.page, address, vma);
-+			SetNewPageUptodate(page);
- 		} else {
- 			/*
- 			 * If the page will be shareable, see if the backing
-diff -puN mm/page_io.c~mm-fix-pageuptodate-memory-ordering-bug mm/page_io.c
---- a/mm/page_io.c~mm-fix-pageuptodate-memory-ordering-bug
-+++ a/mm/page_io.c
-@@ -126,7 +126,7 @@ int swap_readpage(struct file *file, str
- 	int ret = 0;
- 
- 	BUG_ON(!PageLocked(page));
--	ClearPageUptodate(page);
-+	BUG_ON(PageUptodate(page));
- 	bio = get_swap_bio(GFP_KERNEL, page_private(page), page,
- 				end_swap_bio_read);
- 	if (bio == NULL) {
-diff -puN mm/swap_state.c~mm-fix-pageuptodate-memory-ordering-bug mm/swap_state.c
---- a/mm/swap_state.c~mm-fix-pageuptodate-memory-ordering-bug
-+++ a/mm/swap_state.c
-@@ -152,6 +152,7 @@ int add_to_swap(struct page * page, gfp_
- 	int err;
- 
- 	BUG_ON(!PageLocked(page));
-+	BUG_ON(!PageUptodate(page));
- 
- 	for (;;) {
- 		entry = get_swap_page();
-@@ -174,7 +175,6 @@ int add_to_swap(struct page * page, gfp_
- 
- 		switch (err) {
- 		case 0:				/* Success */
--			SetPageUptodate(page);
- 			SetPageDirty(page);
- 			INC_CACHE_INFO(add_total);
- 			return 1;
+diff -puN drivers/pci/setup-bus.c~cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources drivers/pci/setup-bus.c
+--- a/drivers/pci/setup-bus.c~cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources
++++ a/drivers/pci/setup-bus.c
+@@ -208,10 +208,8 @@ pci_setup_bridge(struct pci_bus *bus)
+ 	if (bus->resource[2]->flags & IORESOURCE_PREFETCH) {
+ 		l = (region.start >> 16) & 0xfff0;
+ 		l |= region.end & 0xfff00000;
+-#ifdef CONFIG_RESOURCES_64BIT
+-		bu = region.start >> 32;
+-		lu = region.end >> 32;
+-#endif
++		bu = upper_32_bits(region.start);
++		lu = upper_32_bits(region.end);
+ 		DBG(KERN_INFO "  PREFETCH window: 0x%016llx-0x%016llx\n",
+ 		    (unsigned long long)region.start,
+ 		    (unsigned long long)region.end);
+diff -puN include/linux/pci.h~cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources include/linux/pci.h
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+lib-proportion-fix-underflow-in-prop_norm_percpu-checkpatch-fixes.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+timerfd-v3-new-timerfd-api-ia64-fix.patch
+timerfd-v3-new-timerfd-api-m68k-fix.patch
+timerfd-v3-new-timerfd-api-mips-fix.patch
+timerfd-v3-new-timerfd-api-arch-fixes.patch
+timerfd-v3-new-timerfd-api-powerpc-fix.patch
+timerfd-v3-new-timerfd-api-sparc64-fix.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
 git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-agpgart-intel-agp-dont-zero-an-already-registered-resource-during-resume.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+kernel-auditc-warning-fix.patch
+git-cpufreq.patch
+git-powerpc.patch
+revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+git-drm.patch
+intel-agp-enable-i915-recognition.patch
 git-dvb.patch
+git-dvb-one-videobuf_read_start-is-enough.patch
+fix-jdelvare-i2c-i2c-constify-client-address-data.patch
+git-hid.patch
+revert-git-hrt.patch
 git-ieee1394.patch
 git-infiniband.patch
-git-jfs.patch
 git-kvm.patch
-nfs-use-gfp_nofs-preloads-for-radix-tree-insertion.patch
+git-libata-all.patch
+libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
+libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
+libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
+git-md-accel.patch
+git-mmc.patch
+git-mtd.patch
+git-net.patch
+git-net-vs-git-lblnet.patch
+git-net-vs-git-lblnet-2.patch
+git-netdev-all.patch
+git-net-vs-git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+backlight-omap1-backlight-driver.patch
+git-battery.patch
+bluetooth-uninlining.patch
+git-nfsd.patch
+serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
 git-sched.patch
-sg-nopage.patch
+git-sched-fixup.patch
+git-sh.patch
+git-scsi-misc.patch
+scsi-aic94xx-cleanups-checkpatch-fixes.patch
+scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
+9p-util-fix-semaphore-handling.patch
+git-watchdog.patch
+git-watchdog-fixup.patch
+add-support-for-sb1-hardware-watchdog.patch
+git-wireless.patch
+git-ipwireless_cs.patch
 git-x86.patch
-mm-fix-pageuptodate-memory-ordering-bug.patch
-slub-use-non-atomic-bit-unlock.patch
-tmpfs-shuffle-add_to_swap_caches.patch
-tmpfs-radix_tree_preloading.patch
-radix-tree-avoid-atomic-allocations-for-preloaded-insertions.patch
-mm-dont-allow-ioremapping-of-ranges-larger-than-vmalloc-space.patch
-mm-special-mapping-nopage.patch
-agp-alpha-nopage.patch
-vt-bitlock-fix.patch
-radix_treeh-trivial-comment-correction.patch
-inotify-fix-race.patch
-inotify-remove-debug-code.patch
-relay-nopage.patch
-uio-nopage.patch
-ext2-xip-check-fix.patch
-fb-defio-nopage.patch
-rewrite-rd.patch
-rewrite-rd-fix.patch
-rd-support-xip.patch
+git-x86-fixup.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes.patch
+arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes-checkpatch-fixes.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-xtensa.patch
+git-kgdb-fixup.patch
+bonding-locking-fix.patch
+usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-add-proc-kpagecount-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix-2-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+mm-remove-fastcall-from-mm-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+stopmachine-semaphore-to-mutex-fix.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
+debug_smp_processor_id-fixlets.patch
+use-ilog2-in-fs-namespacec-fix.patch
+sync_sb_inodes-propagate-errors.patch
+add-have_oprofile.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-fix.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+logo-move-declarations-of-logos-to-linux_logoh-fix.patch
+neofb-avoid-overwriting-fb_info-fields.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
 reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
