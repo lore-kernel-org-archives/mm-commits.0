@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + aoe-clean-up-udev-configuration-example.patch added to -mm tree
-Date: Fri, 21 Dec 2007 22:03:46 -0800
-Message-ID: <200712220603.lBM63kWb020113@imap1.linux-foundation.org>
+Subject: + aoe-add-module-parameter-for-users-who-need-more-outstanding-i-o.patch added to -mm tree
+Date: Fri, 21 Dec 2007 22:03:56 -0800
+Message-ID: <200712220603.lBM63uFs020129@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49204 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40406 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752407AbXLVGDt (ORCPT
+	by vger.kernel.org with ESMTP id S1751420AbXLVGEA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Dec 2007 01:03:49 -0500
+	Sat, 22 Dec 2007 01:04:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: ecashin@coraid.com, greg@kroah.com
 
 
 The patch titled
-     aoe: clean up udev configuration example
+     aoe: add module parameter for users who need more outstanding I/O
 has been added to the -mm tree.  Its filename is
-     aoe-clean-up-udev-configuration-example.patch
+     aoe-add-module-parameter-for-users-who-need-more-outstanding-i-o.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,65 +28,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aoe: clean up udev configuration example
+Subject: aoe: add module parameter for users who need more outstanding I/O
 From: "Ed L. Cashin" <ecashin@coraid.com>
 
-This patch adds a known default location for the udev configuration file and
-uses the more recent "==" syntax for SUBSYSTEM and KERNEL.
+An AoE target provides an estimate of the number of outstanding commands that
+the AoE initiator can send before getting a response.  The aoe_maxout
+parameter provides a way to set an even lower limit.  It will not allow a user
+to use more outstanding commands than the target permits.  If a user discovers
+a problem with a large setting, this parameter provides a way for us to work
+with them to debug the problem.  We expect to improve the dynamic window
+sizing algorithm and drop this parameter.  For the time being, it is a
+debugging aid.
 
 Signed-off-by: Ed L. Cashin <ecashin@coraid.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/aoe/udev-install.sh |    5 ++++-
- Documentation/aoe/udev.txt        |   15 ++++++++-------
- 2 files changed, 12 insertions(+), 8 deletions(-)
+ drivers/block/aoe/aoecmd.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/aoe/udev-install.sh~aoe-clean-up-udev-configuration-example Documentation/aoe/udev-install.sh
---- a/Documentation/aoe/udev-install.sh~aoe-clean-up-udev-configuration-example
-+++ a/Documentation/aoe/udev-install.sh
-@@ -23,7 +23,10 @@ fi
- # /etc/udev/rules.d
- #
- rules_d="`sed -n '/^udev_rules=/{ s!udev_rules=!!; s!\"!!g; p; }' $conf`"
--if test -z "$rules_d" || test ! -d "$rules_d"; then
-+if test -z "$rules_d" ; then
-+	rules_d=/etc/udev/rules.d
-+fi
-+if test ! -d "$rules_d"; then
- 	echo "$me Error: cannot find udev rules directory" 1>&2
- 	exit 1
- fi
-diff -puN Documentation/aoe/udev.txt~aoe-clean-up-udev-configuration-example Documentation/aoe/udev.txt
---- a/Documentation/aoe/udev.txt~aoe-clean-up-udev-configuration-example
-+++ a/Documentation/aoe/udev.txt
-@@ -1,6 +1,7 @@
- # These rules tell udev what device nodes to create for aoe support.
--# They may be installed along the following lines (adjusted to what
--# you see on your system).
-+# They may be installed along the following lines.  Check the section
-+# 8 udev manpage to see whether your udev supports SUBSYSTEM, and
-+# whether it uses one or two equal signs for SUBSYSTEM and KERNEL.
- # 
- #   ecashin@makki ~$ su
- #   Password:
-@@ -15,10 +16,10 @@
- #  
+diff -puN drivers/block/aoe/aoecmd.c~aoe-add-module-parameter-for-users-who-need-more-outstanding-i-o drivers/block/aoe/aoecmd.c
+--- a/drivers/block/aoe/aoecmd.c~aoe-add-module-parameter-for-users-who-need-more-outstanding-i-o
++++ a/drivers/block/aoe/aoecmd.c
+@@ -18,6 +18,11 @@ static int aoe_deadsecs = 60 * 3;
+ module_param(aoe_deadsecs, int, 0644);
+ MODULE_PARM_DESC(aoe_deadsecs, "After aoe_deadsecs seconds, give up and fail dev.");
  
- # aoe char devices
--SUBSYSTEM="aoe", KERNEL="discover",	NAME="etherd/%k", GROUP="disk", MODE="0220"
--SUBSYSTEM="aoe", KERNEL="err",		NAME="etherd/%k", GROUP="disk", MODE="0440"
--SUBSYSTEM="aoe", KERNEL="interfaces",	NAME="etherd/%k", GROUP="disk", MODE="0220"
--SUBSYSTEM="aoe", KERNEL="revalidate",	NAME="etherd/%k", GROUP="disk", MODE="0220"
-+SUBSYSTEM=="aoe", KERNEL=="discover",	NAME="etherd/%k", GROUP="disk", MODE="0220"
-+SUBSYSTEM=="aoe", KERNEL=="err",	NAME="etherd/%k", GROUP="disk", MODE="0440"
-+SUBSYSTEM=="aoe", KERNEL=="interfaces",	NAME="etherd/%k", GROUP="disk", MODE="0220"
-+SUBSYSTEM=="aoe", KERNEL=="revalidate",	NAME="etherd/%k", GROUP="disk", MODE="0220"
++static int aoe_maxout = 16;
++module_param(aoe_maxout, int, 0644);
++MODULE_PARM_DESC(aoe_maxout,
++	"Only aoe_maxout outstanding packets for every MAC on eX.Y.");
++
+ static struct sk_buff *
+ new_skb(ulong len)
+ {
+@@ -984,7 +989,6 @@ aoecmd_cfg_rsp(struct sk_buff *skb)
+ 	struct aoeif *ifp;
+ 	ulong flags, sysminor, aoemajor;
+ 	struct sk_buff *sl;
+-	enum { MAXFRAMES = 16 };
+ 	u16 n;
  
- # aoe block devices     
--KERNEL="etherd*",       NAME="%k", GROUP="disk"
-+KERNEL=="etherd*",       NAME="%k", GROUP="disk"
+ 	h = (struct aoe_hdr *) skb_mac_header(skb);
+@@ -1009,8 +1013,8 @@ aoecmd_cfg_rsp(struct sk_buff *skb)
+ 	}
+ 
+ 	n = be16_to_cpu(ch->bufcnt);
+-	if (n > MAXFRAMES)	/* keep it reasonable */
+-		n = MAXFRAMES;
++	if (n > aoe_maxout)	/* keep it reasonable */
++		n = aoe_maxout;
+ 
+ 	d = aoedev_by_sysminor_m(sysminor);
+ 	if (d == NULL) {
 _
 
 Patches currently in -mm which might be from ecashin@coraid.com are
