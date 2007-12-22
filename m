@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + driver-base-memory-semaphore-to-mutex.patch added to -mm tree
-Date: Fri, 21 Dec 2007 20:12:00 -0800
-Message-ID: <200712220412.lBM4C0Li016508@imap1.linux-foundation.org>
+Subject: + usb-microtek-remove-unused-semaphore.patch added to -mm tree
+Date: Fri, 21 Dec 2007 20:14:56 -0800
+Message-ID: <200712220414.lBM4EuFr016617@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56853 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58831 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750884AbXLVEMZ (ORCPT
+	by vger.kernel.org with ESMTP id S1751003AbXLVEPH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Dec 2007 23:12:25 -0500
+	Fri, 21 Dec 2007 23:15:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: dwalker@mvista.com, greg@kroah.com
 
 
 The patch titled
-     driver base: memory: semaphore to mutex
+     usb microtek: remove unused semaphore
 has been added to the -mm tree.  Its filename is
-     driver-base-memory-semaphore-to-mutex.patch
+     usb-microtek-remove-unused-semaphore.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,91 +28,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: driver base: memory: semaphore to mutex
+Subject: usb microtek: remove unused semaphore
 From: Daniel Walker <dwalker@mvista.com>
+
+No current references, so removing it.
 
 Signed-off-by: Daniel Walker <dwalker@mvista.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c  |    7 ++++---
- include/linux/memory.h |    5 ++---
- mm/memory_hotplug.c    |    2 +-
- 3 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/usb/image/microtek.c |    1 -
+ drivers/usb/image/microtek.h |    1 -
+ 2 files changed, 2 deletions(-)
 
-diff -puN drivers/base/memory.c~driver-base-memory-semaphore-to-mutex drivers/base/memory.c
---- a/drivers/base/memory.c~driver-base-memory-semaphore-to-mutex
-+++ a/drivers/base/memory.c
-@@ -20,6 +20,7 @@
- #include <linux/kobject.h>
- #include <linux/memory_hotplug.h>
- #include <linux/mm.h>
-+#include <linux/mutex.h>
- #include <asm/atomic.h>
- #include <asm/uaccess.h>
+diff -puN drivers/usb/image/microtek.c~usb-microtek-remove-unused-semaphore drivers/usb/image/microtek.c
+--- a/drivers/usb/image/microtek.c~usb-microtek-remove-unused-semaphore
++++ a/drivers/usb/image/microtek.c
+@@ -794,7 +794,6 @@ static int mts_usb_probe(struct usb_inte
  
-@@ -205,7 +206,7 @@ static int memory_block_change_state(str
- 		unsigned long to_state, unsigned long from_state_req)
- {
- 	int ret = 0;
--	down(&mem->state_sem);
-+	mutex_lock(&mem->state_mutex);
+ 	new_desc->usb_dev = dev;
+ 	new_desc->usb_intf = intf;
+-	init_MUTEX(&new_desc->lock);
  
- 	if (mem->state != from_state_req) {
- 		ret = -EINVAL;
-@@ -217,7 +218,7 @@ static int memory_block_change_state(str
- 		mem->state = to_state;
+ 	/* endpoints */
+ 	new_desc->ep_out = ep_out;
+diff -puN drivers/usb/image/microtek.h~usb-microtek-remove-unused-semaphore drivers/usb/image/microtek.h
+--- a/drivers/usb/image/microtek.h~usb-microtek-remove-unused-semaphore
++++ a/drivers/usb/image/microtek.h
+@@ -39,7 +39,6 @@ struct mts_desc {
+ 	u8 ep_image;
  
- out:
--	up(&mem->state_sem);
-+	mutex_unlock(&mem->state_mutex);
- 	return ret;
- }
+ 	struct Scsi_Host * host;
+-	struct semaphore lock;
  
-@@ -341,7 +342,7 @@ static int add_memory_block(unsigned lon
- 
- 	mem->phys_index = __section_nr(section);
- 	mem->state = state;
--	init_MUTEX(&mem->state_sem);
-+	mutex_init(&mem->state_mutex);
- 	mem->phys_device = phys_device;
- 
- 	ret = register_memory(mem, section, NULL);
-diff -puN include/linux/memory.h~driver-base-memory-semaphore-to-mutex include/linux/memory.h
---- a/include/linux/memory.h~driver-base-memory-semaphore-to-mutex
-+++ a/include/linux/memory.h
-@@ -18,8 +18,7 @@
- #include <linux/sysdev.h>
- #include <linux/node.h>
- #include <linux/compiler.h>
--
--#include <asm/semaphore.h>
-+#include <linux/mutex.h>
- 
- struct memory_block {
- 	unsigned long phys_index;
-@@ -30,7 +29,7 @@ struct memory_block {
- 	 * created long after the critical areas during
- 	 * initialization.
- 	 */
--	struct semaphore state_sem;
-+	struct mutex state_mutex;
- 	int phys_device;		/* to which fru does this belong? */
- 	void *hw;			/* optional pointer to fw/hw data */
- 	int (*phys_callback)(struct memory_block *);
-diff -puN mm/memory_hotplug.c~driver-base-memory-semaphore-to-mutex mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~driver-base-memory-semaphore-to-mutex
-+++ a/mm/memory_hotplug.c
-@@ -208,7 +208,7 @@ int online_pages(unsigned long pfn, unsi
- 	/*
- 	 * This doesn't need a lock to do pfn_to_page().
- 	 * The section can't be removed here because of the
--	 * memory_block->state_sem.
-+	 * memory_block->state_mutex.
- 	 */
- 	zone = page_zone(pfn_to_page(pfn));
- 	pgdat_resize_lock(zone->zone_pgdat, &flags);
+ 	struct urb *urb;
+ 	struct mts_transfer_context context;
 _
 
 Patches currently in -mm which might be from dwalker@mvista.com are
@@ -120,6 +71,7 @@ Patches currently in -mm which might be from dwalker@mvista.com are
 ps3-vuart-fix-error-path-locking.patch
 driver-base-memory-semaphore-to-mutex.patch
 git-dvb.patch
+usb-microtek-remove-unused-semaphore.patch
 git-x86.patch
 page-allocator-clean-up-pcp-draining-functions-swsusp-fix.patch
 page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
@@ -135,3 +87,5 @@ isapnp-driver-semaphore-to-mutex-fix.patch
 isapnp-driver-semaphore-to-mutex-fix-fix.patch
 profile-likely-unlikely-macros.patch
 profile-likely-unlikely-macros-fix.patch
+prism54-remove-questionable-down_interruptible-usage.patch
+docs-convert-kref-semaphore-to-mutex.patch
