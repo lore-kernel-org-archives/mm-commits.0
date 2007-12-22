@@ -1,125 +1,265 @@
 From: akpm@linux-foundation.org
-Subject: - slub-improve-hackbench-speed.patch removed from -mm tree
-Date: Sat, 22 Dec 2007 15:26:23 -0800
-Message-ID: <200712222326.lBMNQNLB024667@imap1.linux-foundation.org>
+Subject: - i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support.patch removed from -mm tree
+Date: Sat, 22 Dec 2007 15:26:20 -0800
+Message-ID: <200712222326.lBMNQKlP024664@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43179 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39186 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752472AbXLVX1k (ORCPT
+	by vger.kernel.org with ESMTP id S1754040AbXLVX2d (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Dec 2007 18:27:40 -0500
+	Sat, 22 Dec 2007 18:28:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, cebbert@redhat.com, mingo@elte.hu, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
+To: ying.huang@intel.com, ak@suse.de, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slub: improve hackbench speed
+     i386 EFI runtime service support: fixes in sync with x86_64 support
 has been removed from the -mm tree.  Its filename was
-     slub-improve-hackbench-speed.patch
+     i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: slub: improve hackbench speed
-From: Christoph Lameter <clameter@sgi.com>
+Subject: i386 EFI runtime service support: fixes in sync with x86_64 support
+From: "Huang, Ying" <ying.huang@intel.com>
 
-Increase the mininum number of partial slabs to keep around and put partial
-slabs to the end of the partial queue so that they can add more objects.
+This patch fixes several issues of i386 EFI basic runtime service
+support according to fixes of x86_64 support.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
+- Delete efi_rt_lock because it is used during system early boot,
+  before SMP is initialized.
+
+- Change local_flush_tlb() to __flush_tlb_all() to flush global page
+  mapping.
+
+- Clean up includes.
+
+- Revise Kconfig description.
+
+- Enable noefi kernel parameter on i386.
+
+Signed-off-by: Huang Ying <ying.huang@intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ Documentation/kernel-parameters.txt   |    2 +
+ Documentation/x86_64/boot-options.txt |    4 ---
+ arch/x86/Kconfig                      |   19 +++++++-----------
+ arch/x86/kernel/efi.c                 |    7 ++++++
+ arch/x86/kernel/efi_32.c              |   25 ++++--------------------
+ arch/x86/kernel/efi_64.c              |    7 ------
+ arch/x86/kernel/setup_32.c            |    6 ++---
+ 7 files changed, 25 insertions(+), 45 deletions(-)
 
-diff -puN mm/slub.c~slub-improve-hackbench-speed mm/slub.c
---- a/mm/slub.c~slub-improve-hackbench-speed
-+++ a/mm/slub.c
-@@ -1608,12 +1608,12 @@ checks_ok:
- 		goto slab_empty;
+diff -puN arch/x86/Kconfig~i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support arch/x86/Kconfig
+--- a/arch/x86/Kconfig~i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support
++++ a/arch/x86/Kconfig
+@@ -993,21 +993,18 @@ config MTRR
+ 
+ config EFI
+ 	def_bool n
+-	prompt "Boot from EFI support"
++	prompt "EFI runtime service support"
+ 	depends on ACPI
+ 	---help---
+-	This enables the kernel to boot on EFI platforms using
+-	system configuration information passed to it from the firmware.
+-	This also enables the kernel to use any EFI runtime services that are
++	This enables the kernel to use EFI runtime services that are
+ 	available (such as the EFI variable services).
+ 
+-	This option is only useful on systems that have EFI firmware
+-	and will result in a kernel image that is ~8k larger.  In addition,
+-	you must use the latest ELILO loader available at
+-	<http://elilo.sourceforge.net> in order to take advantage of
+-	kernel initialization using EFI information (neither GRUB nor LILO know
+-	anything about EFI).  However, even with this option, the resultant
+-	kernel should continue to boot on existing non-EFI platforms.
++	This option is only useful on systems that have EFI firmware.
++  	In addition, you should use the latest ELILO loader available
++  	at <http://elilo.sourceforge.net> in order to take advantage
++  	of EFI runtime services. However, even with this option, the
++  	resultant kernel should continue to boot on existing non-EFI
++  	platforms.
+ 
+ config IRQBALANCE
+ 	def_bool y
+diff -puN arch/x86/kernel/efi_32.c~i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support arch/x86/kernel/efi_32.c
+--- a/arch/x86/kernel/efi_32.c~i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support
++++ a/arch/x86/kernel/efi_32.c
+@@ -20,27 +20,15 @@
+  */
+ 
+ #include <linux/kernel.h>
+-#include <linux/init.h>
+-#include <linux/mm.h>
+ #include <linux/types.h>
+-#include <linux/time.h>
+-#include <linux/spinlock.h>
+-#include <linux/bootmem.h>
+ #include <linux/ioport.h>
+-#include <linux/module.h>
+ #include <linux/efi.h>
+-#include <linux/kexec.h>
+ 
+-#include <asm/setup.h>
+ #include <asm/io.h>
+ #include <asm/page.h>
+ #include <asm/pgtable.h>
+-#include <asm/processor.h>
+-#include <asm/desc.h>
+ #include <asm/tlbflush.h>
+ 
+-#define PFX 		"EFI: "
+-
+ /*
+  * To make EFI call EFI runtime service in physical addressing mode we need
+  * prelog/epilog before/after the invocation to disable interrupt, to
+@@ -49,16 +37,14 @@
+  */
+ 
+ static unsigned long efi_rt_eflags;
+-static DEFINE_SPINLOCK(efi_rt_lock);
+ static pgd_t efi_bak_pg_dir_pointer[2];
+ 
+-void efi_call_phys_prelog(void) __acquires(efi_rt_lock)
++void efi_call_phys_prelog(void)
+ {
+ 	unsigned long cr4;
+ 	unsigned long temp;
+ 	struct desc_ptr gdt_descr;
+ 
+-	spin_lock(&efi_rt_lock);
+ 	local_irq_save(efi_rt_eflags);
  
  	/*
--	 * Objects left in the slab. If it
--	 * was not on the partial list before
--	 * then add it.
-+	 * Objects left in the slab. If it was not on the partial list before
-+	 * then add it. Add it to the end since there is only a single object
-+	 * which would make slab_alloc inefficient.
+@@ -88,14 +74,14 @@ void efi_call_phys_prelog(void) __acquir
+ 	/*
+ 	 * After the lock is released, the original page table is restored.
  	 */
- 	if (unlikely(!prior))
--		add_partial(get_node(s, page_to_nid(page)), page);
-+		add_partial_tail(get_node(s, page_to_nid(page)), page);
+-	local_flush_tlb();
++	__flush_tlb_all();
  
- out_unlock:
- 	slab_unlock(page);
+ 	gdt_descr.address = __pa(get_cpu_gdt_table(0));
+ 	gdt_descr.size = GDT_SIZE - 1;
+ 	load_gdt(&gdt_descr);
+ }
+ 
+-void efi_call_phys_epilog(void) __releases(efi_rt_lock)
++void efi_call_phys_epilog(void)
+ {
+ 	unsigned long cr4;
+ 	struct desc_ptr gdt_descr;
+@@ -119,10 +105,9 @@ void efi_call_phys_epilog(void) __releas
+ 	/*
+ 	 * After the lock is released, the original page table is restored.
+ 	 */
+-	local_flush_tlb();
++	__flush_tlb_all();
+ 
+ 	local_irq_restore(efi_rt_eflags);
+-	spin_unlock(&efi_rt_lock);
+ }
+ 
+ /*
+@@ -135,7 +120,7 @@ void __init efi_map_memmap(void)
+ 	memmap.map = bt_ioremap((unsigned long) memmap.phys_map,
+ 			(memmap.nr_map * memmap.desc_size));
+ 	if (memmap.map == NULL)
+-		printk(KERN_ERR PFX "Could not remap the EFI memmap!\n");
++		printk(KERN_ERR "Could not remap the EFI memmap!\n");
+ 
+ 	memmap.map_end = memmap.map + (memmap.nr_map * memmap.desc_size);
+ }
+diff -puN arch/x86/kernel/efi_64.c~i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support arch/x86/kernel/efi_64.c
+--- a/arch/x86/kernel/efi_64.c~i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support
++++ a/arch/x86/kernel/efi_64.c
+@@ -40,13 +40,6 @@
+ static pgd_t save_pgd __initdata;
+ static unsigned long efi_flags __initdata;
+ 
+-static int __init setup_noefi(char *arg)
+-{
+-	efi_enabled = 0;
+-	return 0;
+-}
+-early_param("noefi", setup_noefi);
+-
+ static void __init early_mapping_set_exec(unsigned long start,
+ 					  unsigned long end,
+ 					  int executable)
+diff -puN arch/x86/kernel/efi.c~i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support arch/x86/kernel/efi.c
+--- a/arch/x86/kernel/efi.c~i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support
++++ a/arch/x86/kernel/efi.c
+@@ -55,6 +55,13 @@ struct efi_memory_map memmap;
+ struct efi efi_phys __initdata;
+ static efi_system_table_t efi_systab __initdata;
+ 
++static int __init setup_noefi(char *arg)
++{
++	efi_enabled = 0;
++	return 0;
++}
++early_param("noefi", setup_noefi);
++
+ static efi_status_t virt_efi_get_time(efi_time_t *tm, efi_time_cap_t *tc)
+ {
+ 	return efi_call_virt2(get_time, tm, tc);
+diff -puN arch/x86/kernel/setup_32.c~i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support arch/x86/kernel/setup_32.c
+--- a/arch/x86/kernel/setup_32.c~i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support
++++ a/arch/x86/kernel/setup_32.c
+@@ -649,9 +649,6 @@ void __init setup_arch(char **cmdline_p)
+ 	printk(KERN_INFO "BIOS-provided physical RAM map:\n");
+ 	print_memory_map(memory_setup());
+ 
+-	if (efi_enabled)
+-		efi_init();
+-
+ 	copy_edd();
+ 
+ 	if (!boot_params.hdr.root_flags)
+@@ -678,6 +675,9 @@ void __init setup_arch(char **cmdline_p)
+ 	strlcpy(command_line, boot_command_line, COMMAND_LINE_SIZE);
+ 	*cmdline_p = command_line;
+ 
++	if (efi_enabled)
++		efi_init();
++
+ 	max_low_pfn = setup_memory();
+ 
+ #ifdef CONFIG_VMI
+diff -puN Documentation/kernel-parameters.txt~i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support
++++ a/Documentation/kernel-parameters.txt
+@@ -1155,6 +1155,8 @@ and is between 256 and 4096 characters. 
+ 
+ 	nodisconnect	[HW,SCSI,M68K] Disables SCSI disconnects.
+ 
++	noefi		[X86-32,X86-64] Disable EFI runtime services support.
++
+ 	noexec		[IA-64]
+ 
+ 	noexec		[X86-32,X86-64]
+diff -puN Documentation/x86_64/boot-options.txt~i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support Documentation/x86_64/boot-options.txt
+--- a/Documentation/x86_64/boot-options.txt~i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support
++++ a/Documentation/x86_64/boot-options.txt
+@@ -306,8 +306,4 @@ Debugging
+ 		newfallback: use new unwinder but fall back to old if it gets
+ 			stuck (default)
+ 
+-EFI
+-
+-  noefi		Disable EFI support
+-
+ Miscellaneous
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-origin.patch
-quicklists-do-not-release-off-node-pages-early.patch
-git-sched.patch
-git-unionfs.patch
 git-x86.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-move-vmalloc_to_page-to-mm-vmalloc.patch
-vmalloc-add-const-to-void-parameters.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries.patch
-vmalloc-clean-up-page-array-indexing.patch
-vunmap-return-page-array-passed-on-vmap.patch
-slub-move-count_partial.patch
-slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio.patch
-slub-consolidate-add_partial-and-add_partial_tail-to-one-function.patch
-slub-use-non-atomic-bit-unlock.patch
-slub-fix-coding-style-violations.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-noinline-some-functions-to-avoid-them-being-folded-into-alloc-free.patch
-slub-move-kmem_cache_node-determination-into-add_full-and-add_partial.patch
-slub-move-kmem_cache_node-determination-into-add_full-and-add_partial-slub-workaround-for-lockdep-confusion.patch
-slub-avoid-checking-for-a-valid-object-before-zeroing-on-the-fast-path.patch
-slub-__slab_alloc-exit-path-consolidation.patch
-slub-provide-unique-end-marker-for-each-slab.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-avoid-referencing-kmem_cache-structure-in-__slab_alloc.patch
-slub-optional-fast-path-using-cmpxchg_local.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-fix.patch
-slub-restructure-slab-alloc.patch
-slub-comment-kmem_cache_cpu-structure.patch
-vm-allow-get_page_unless_zero-on-compound-pages.patch
-bufferhead-revert-constructor-removal.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-swapin_readahead-excise-numa-bogosity.patch
-page-allocator-clean-up-pcp-draining-functions.patch
-page-allocator-clean-up-pcp-draining-functions-swsusp-fix.patch
-page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
-vmstat-small-revisions-to-refresh_cpu_vm_stats.patch
-page-allocator-get-rid-of-the-list-of-cold-pages.patch
-page-allocator-get-rid-of-the-list-of-cold-pages-fix.patch
-vmstat-remove-prefetch.patch
-set_page_refcounted-vm_bug_on-fix.patch
-percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-oom-add-sysctl-to-enable-task-memory-dump.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-bugfix-for-memory-cgroup-per-zone-struct-allocation.patch
-add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
-add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
-dentries-extract-common-code-to-remove-dentry-from-lru.patch
-dentries-extract-common-code-to-remove-dentry-from-lru-fix.patch
-modules-handle-symbols-that-have-a-zero-value.patch
-modules-include-sectionsh-to-avoid-defining-linker-variables.patch
-modules-fold-percpu_modcopy-into-modulec-and-get-rid-of-the-macro-from-hell.patch
-reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
-page-owner-tracking-leak-detector.patch
+vmcoreinfo-add-the-array-length-of-free_list-for-filtering-free-pages.patch
