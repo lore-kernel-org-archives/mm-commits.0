@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + aoe-eliminate-goto-and-improve-readability.patch added to -mm tree
-Date: Fri, 21 Dec 2007 22:03:47 -0800
-Message-ID: <200712220603.lBM63la8020116@imap1.linux-foundation.org>
+Subject: + aoe-only-install-new-aoe-device-once.patch added to -mm tree
+Date: Fri, 21 Dec 2007 22:03:54 -0800
+Message-ID: <200712220603.lBM63scU020125@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44263 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47112 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753960AbXLVGDu (ORCPT
+	by vger.kernel.org with ESMTP id S1751434AbXLVGD5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Dec 2007 01:03:50 -0500
+	Sat, 22 Dec 2007 01:03:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: ecashin@coraid.com, greg@kroah.com
 
 
 The patch titled
-     aoe: eliminate goto and improve readability
+     aoe: only install new AoE device once
 has been added to the -mm tree.  Its filename is
-     aoe-eliminate-goto-and-improve-readability.patch
+     aoe-only-install-new-aoe-device-once.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,110 +28,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aoe: eliminate goto and improve readability
+Subject: aoe: only install new AoE device once
 From: "Ed L. Cashin" <ecashin@coraid.com>
 
-Adam Richter suggested eliminating this goto.
+An aoe driver user who had about 70 AoE targets found that he was hitting a
+BUG in sysfs_create_file because the aoe driver was trying to tell the kernel
+about an AoE device more than once.  Each AoE device was reachable by several
+local network interfaces, and multiple ATA device indentify responses were
+returning from that single device.
+
+This patch eliminates a race condition so that aoe always informs the block
+layer of a new AoE device once in the presence of multiple incoming ATA device
+identify responses.
 
 Signed-off-by: Ed L. Cashin <ecashin@coraid.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoechr.c |   71 +++++++++++++++++------------------
- 1 file changed, 35 insertions(+), 36 deletions(-)
+ drivers/block/aoe/aoecmd.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/block/aoe/aoechr.c~aoe-eliminate-goto-and-improve-readability drivers/block/aoe/aoechr.c
---- a/drivers/block/aoe/aoechr.c~aoe-eliminate-goto-and-improve-readability
-+++ a/drivers/block/aoe/aoechr.c
-@@ -194,52 +194,51 @@ aoechr_read(struct file *filp, char __us
- 	ulong flags;
- 
- 	n = (unsigned long) filp->private_data;
--	switch (n) {
--	case MINOR_ERR:
--		spin_lock_irqsave(&emsgs_lock, flags);
--loop:
--		em = emsgs + emsgs_head_idx;
--		if ((em->flags & EMFL_VALID) == 0) {
--			if (filp->f_flags & O_NDELAY) {
--				spin_unlock_irqrestore(&emsgs_lock, flags);
--				return -EAGAIN;
--			}
--			nblocked_emsgs_readers++;
-+	if (n != MINOR_ERR)
-+		return -EFAULT;
- 
-+	spin_lock_irqsave(&emsgs_lock, flags);
-+
-+	for (;;) {
-+		em = emsgs + emsgs_head_idx;
-+		if ((em->flags & EMFL_VALID) != 0)
-+			break;
-+		if (filp->f_flags & O_NDELAY) {
- 			spin_unlock_irqrestore(&emsgs_lock, flags);
-+			return -EAGAIN;
-+		}
-+		nblocked_emsgs_readers++;
- 
--			n = down_interruptible(&emsgs_sema);
-+		spin_unlock_irqrestore(&emsgs_lock, flags);
- 
--			spin_lock_irqsave(&emsgs_lock, flags);
-+		n = down_interruptible(&emsgs_sema);
- 
--			nblocked_emsgs_readers--;
-+		spin_lock_irqsave(&emsgs_lock, flags);
- 
--			if (n) {
--				spin_unlock_irqrestore(&emsgs_lock, flags);
--				return -ERESTARTSYS;
--			}
--			goto loop;
--		}
--		if (em->len > cnt) {
-+		nblocked_emsgs_readers--;
-+
-+		if (n) {
- 			spin_unlock_irqrestore(&emsgs_lock, flags);
--			return -EAGAIN;
-+			return -ERESTARTSYS;
- 		}
--		mp = em->msg;
--		len = em->len;
--		em->msg = NULL;
--		em->flags &= ~EMFL_VALID;
--
--		emsgs_head_idx++;
--		emsgs_head_idx %= ARRAY_SIZE(emsgs);
--
-+	}
-+	if (em->len > cnt) {
- 		spin_unlock_irqrestore(&emsgs_lock, flags);
--
--		n = copy_to_user(buf, mp, len);
--		kfree(mp);
--		return n == 0 ? len : -EFAULT;
--	default:
--		return -EFAULT;
-+		return -EAGAIN;
- 	}
-+	mp = em->msg;
-+	len = em->len;
-+	em->msg = NULL;
-+	em->flags &= ~EMFL_VALID;
-+
-+	emsgs_head_idx++;
-+	emsgs_head_idx %= ARRAY_SIZE(emsgs);
-+
-+	spin_unlock_irqrestore(&emsgs_lock, flags);
-+
-+	n = copy_to_user(buf, mp, len);
-+	kfree(mp);
-+	return n == 0 ? len : -EFAULT;
- }
- 
- static const struct file_operations aoe_fops = {
+diff -puN drivers/block/aoe/aoecmd.c~aoe-only-install-new-aoe-device-once drivers/block/aoe/aoecmd.c
+--- a/drivers/block/aoe/aoecmd.c~aoe-only-install-new-aoe-device-once
++++ a/drivers/block/aoe/aoecmd.c
+@@ -698,6 +698,8 @@ ataid_complete(struct aoedev *d, struct 
+ 			d->fw_ver, (long long)ssize);
+ 	d->ssize = ssize;
+ 	d->geo.start = 0;
++	if (d->flags & (DEVFL_GDALLOC|DEVFL_NEWSIZE))
++		return;
+ 	if (d->gd != NULL) {
+ 		d->gd->capacity = ssize;
+ 		d->flags |= DEVFL_NEWSIZE;
 _
 
 Patches currently in -mm which might be from ecashin@coraid.com are
