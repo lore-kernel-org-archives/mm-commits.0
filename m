@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + udf-fix-coding-style-of-dirc.patch added to -mm tree
-Date: Fri, 21 Dec 2007 16:18:31 -0800
-Message-ID: <200712220018.lBM0IVIh006280@imap1.linux-foundation.org>
+Subject: + udf-fix-3-signedness-1-unitialized-variable-warnings.patch added to -mm tree
+Date: Fri, 21 Dec 2007 16:18:36 -0800
+Message-ID: <200712220018.lBM0IaA3006283@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37236 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49865 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754800AbXLVASs (ORCPT
+	by vger.kernel.org with ESMTP id S1754551AbXLVASr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Dec 2007 19:18:48 -0500
+	Fri, 21 Dec 2007 19:18:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: marcin.slusarz@gmail.com, jack@suse.cz
+Cc: marcin.slusarz@gmail.com, bfennema@falcon.csc.calpoly.edu, jack@suse.cz
 
 
 The patch titled
-     udf: fix coding style of dir.c
+     udf: fix 3 signedness & 1 unitialized variable warnings
 has been added to the -mm tree.  Its filename is
-     udf-fix-coding-style-of-dirc.patch
+     udf-fix-3-signedness-1-unitialized-variable-warnings.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,119 +28,128 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: udf: fix coding style of dir.c
+Subject: udf: fix 3 signedness & 1 unitialized variable warnings
 From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
+sparse generated:
+fs/udf/inode.c:324:41: warning: incorrect type in argument 4 (different signedness)
+fs/udf/inode.c:324:41:    expected long *<noident>
+fs/udf/inode.c:324:41:    got unsigned long *<noident>
+
+inode_getblk always set 4th argument to uint32_t value
+3rd parameter of map_bh is sector_t (which is unsigned long or u64)
+so convert phys value to sector_t
+
+fs/udf/inode.c:1818:47: warning: incorrect type in argument 3 (different signedness)
+fs/udf/inode.c:1818:47:    expected int *<noident>
+fs/udf/inode.c:1818:47:    got unsigned int *<noident>
+fs/udf/inode.c:1826:46: warning: incorrect type in argument 3 (different signedness)
+fs/udf/inode.c:1826:46:    expected int *<noident>
+fs/udf/inode.c:1826:46:    got unsigned int *<noident>
+
+udf_get_filelongad and udf_get_shortad are called always for uint32_t
+values (struct extent_position->offset), so it's safe to convert offset
+parameter to uint32_t
+
+gcc warned:
+fs/udf/inode.c: In function 'udf_get_block':
+fs/udf/inode.c:299: warning: 'phys' may be used uninitialized in this function
+initialize it to 0 (if someday someone will break inode_getblk we will catch it immediately)
+
 Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Cc: Ben Fennema <bfennema@falcon.csc.calpoly.edu>
 Acked-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/dir.c |   44 ++++++++++++++++++++++++++------------------
- 1 file changed, 26 insertions(+), 18 deletions(-)
+ fs/udf/directory.c |    8 ++++----
+ fs/udf/inode.c     |    6 +++---
+ fs/udf/udfdecl.h   |    4 ++--
+ 3 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN fs/udf/dir.c~udf-fix-coding-style-of-dirc fs/udf/dir.c
---- a/fs/udf/dir.c~udf-fix-coding-style-of-dirc
-+++ a/fs/udf/dir.c
-@@ -65,24 +65,26 @@ static int do_udf_readdir(struct inode *
- 	if (nf_pos == 0)
- 		nf_pos = (udf_ext0_offset(dir) >> 2);
+diff -puN fs/udf/directory.c~udf-fix-3-signedness-1-unitialized-variable-warnings fs/udf/directory.c
+--- a/fs/udf/directory.c~udf-fix-3-signedness-1-unitialized-variable-warnings
++++ a/fs/udf/directory.c
+@@ -271,7 +271,7 @@ static extent_ad *udf_get_fileextent(voi
+ }
+ #endif
  
--	fibh.soffset = fibh.eoffset = (nf_pos & ((dir->i_sb->s_blocksize - 1) >> 2)) << 2;
-+	fibh.soffset = fibh.eoffset =
-+		(nf_pos & ((dir->i_sb->s_blocksize - 1) >> 2)) << 2;
- 	bits = dir->i_sb->s_blocksize_bits;
+-short_ad *udf_get_fileshortad(uint8_t *ptr, int maxoffset, int *offset,
++short_ad *udf_get_fileshortad(uint8_t *ptr, int maxoffset, uint32_t *offset,
+ 			      int inc)
+ {
+ 	short_ad *sa;
+@@ -281,7 +281,7 @@ short_ad *udf_get_fileshortad(uint8_t *p
+ 		return NULL;
+ 	}
  
--	if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_IN_ICB) {
-+	if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_IN_ICB)
- 		fibh.sbh = fibh.ebh = NULL;
--	} else if (inode_bmap(dir, nf_pos >> (bits - 2),
--			      &epos, &eloc, &elen, &offset) == (EXT_RECORDED_ALLOCATED >> 30)) {
-+	else if (inode_bmap(dir, nf_pos >> (bits - 2),
-+			    &epos, &eloc, &elen, &offset) ==
-+			(EXT_RECORDED_ALLOCATED >> 30)) {
- 		block = udf_get_lb_pblock(dir->i_sb, eloc, offset);
- 		if ((++offset << bits) < elen) {
- 			if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_SHORT)
- 				epos.offset -= sizeof(short_ad);
- 			else if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_LONG)
- 				epos.offset -= sizeof(long_ad);
--		} else {
-+		} else
- 			offset = 0;
--		}
+-	if ((*offset < 0) || ((*offset + sizeof(short_ad)) > maxoffset))
++	if ((*offset + sizeof(short_ad)) > maxoffset)
+ 		return NULL;
+ 	else if ((sa = (short_ad *)ptr)->extLength == 0)
+ 		return NULL;
+@@ -291,7 +291,7 @@ short_ad *udf_get_fileshortad(uint8_t *p
+ 	return sa;
+ }
  
--		if (!(fibh.sbh = fibh.ebh = udf_tread(dir->i_sb, block))) {
-+		fibh.sbh = fibh.ebh = udf_tread(dir->i_sb, block);
-+		if (!fibh.sbh) {
- 			brelse(epos.bh);
- 			return -EIO;
- 		}
-@@ -92,9 +94,11 @@ static int do_udf_readdir(struct inode *
- 			if (i + offset > (elen >> bits))
- 				i = (elen >> bits) - offset;
- 			for (num = 0; i > 0; i--) {
--				block = udf_get_lb_pblock(dir->i_sb, eloc, offset + i);
-+				block = udf_get_lb_pblock(dir->i_sb, eloc,
-+							  offset + i);
- 				tmp = udf_tgetblk(dir->i_sb, block);
--				if (tmp && !buffer_uptodate(tmp) && !buffer_locked(tmp))
-+				if (tmp && !buffer_uptodate(tmp) &&
-+					!buffer_locked(tmp))
- 					bha[num++] = tmp;
- 				else
- 					brelse(tmp);
-@@ -126,16 +130,18 @@ static int do_udf_readdir(struct inode *
- 		liu = le16_to_cpu(cfi.lengthOfImpUse);
- 		lfi = cfi.lengthFileIdent;
+-long_ad *udf_get_filelongad(uint8_t *ptr, int maxoffset, int *offset, int inc)
++long_ad *udf_get_filelongad(uint8_t *ptr, int maxoffset, uint32_t *offset, int inc)
+ {
+ 	long_ad *la;
  
--		if (fibh.sbh == fibh.ebh) {
-+		if (fibh.sbh == fibh.ebh)
- 			nameptr = fi->fileIdent + liu;
--		} else {
-+		else {
- 			int poffset;	/* Unpaded ending offset */
+@@ -300,7 +300,7 @@ long_ad *udf_get_filelongad(uint8_t *ptr
+ 		return NULL;
+ 	}
  
--			poffset = fibh.soffset + sizeof(struct fileIdentDesc) + liu + lfi;
-+			poffset = fibh.soffset + sizeof(struct fileIdentDesc) +
-+					liu + lfi;
+-	if ((*offset < 0) || ((*offset + sizeof(long_ad)) > maxoffset))
++	if ((*offset + sizeof(long_ad)) > maxoffset)
+ 		return NULL;
+ 	else if ((la = (long_ad *)ptr)->extLength == 0)
+ 		return NULL;
+diff -puN fs/udf/inode.c~udf-fix-3-signedness-1-unitialized-variable-warnings fs/udf/inode.c
+--- a/fs/udf/inode.c~udf-fix-3-signedness-1-unitialized-variable-warnings
++++ a/fs/udf/inode.c
+@@ -51,7 +51,7 @@ static int udf_update_inode(struct inode
+ static void udf_fill_inode(struct inode *, struct buffer_head *);
+ static int udf_alloc_i_data(struct inode *inode, size_t size);
+ static struct buffer_head *inode_getblk(struct inode *, sector_t, int *,
+-					long *, int *);
++					sector_t *, int *);
+ static int8_t udf_insert_aext(struct inode *, struct extent_position,
+ 			      kernel_lb_addr, uint32_t);
+ static void udf_split_extents(struct inode *, int *, int, int,
+@@ -296,7 +296,7 @@ static int udf_get_block(struct inode *i
+ {
+ 	int err, new;
+ 	struct buffer_head *bh;
+-	unsigned long phys;
++	sector_t phys = 0;
  
--			if (poffset >= lfi) {
--				nameptr = (char *)(fibh.ebh->b_data + poffset - lfi);
--			} else {
-+			if (poffset >= lfi)
-+				nameptr = (char *)(fibh.ebh->b_data +
-+						   poffset - lfi);
-+			else {
- 				nameptr = fname;
- 				memcpy(nameptr, fi->fileIdent + liu,
- 				       lfi - poffset);
-@@ -168,12 +174,13 @@ static int do_udf_readdir(struct inode *
- 		}
+ 	if (!create) {
+ 		phys = udf_block_map(inode, block);
+@@ -469,7 +469,7 @@ out:
+ }
  
- 		if (flen) {
--			if (filldir(dirent, fname, flen, filp->f_pos, iblock, dt_type) < 0) {
-+			if (filldir(dirent, fname, flen, filp->f_pos, iblock,
-+				    dt_type) < 0) {
- 				if (fibh.sbh != fibh.ebh)
- 					brelse(fibh.ebh);
- 				brelse(fibh.sbh);
- 				brelse(epos.bh);
--	 			return 0;
-+				return 0;
- 			}
- 		}
- 	} /* end while */
-@@ -222,7 +229,8 @@ static int udf_readdir(struct file *filp
- 	lock_kernel();
+ static struct buffer_head *inode_getblk(struct inode *inode, sector_t block,
+-					int *err, long *phys, int *new)
++					int *err, sector_t *phys, int *new)
+ {
+ 	static sector_t last_block;
+ 	struct buffer_head *result = NULL;
+diff -puN fs/udf/udfdecl.h~udf-fix-3-signedness-1-unitialized-variable-warnings fs/udf/udfdecl.h
+--- a/fs/udf/udfdecl.h~udf-fix-3-signedness-1-unitialized-variable-warnings
++++ a/fs/udf/udfdecl.h
+@@ -185,8 +185,8 @@ extern struct fileIdentDesc *udf_fileide
+ 						sector_t *);
+ extern struct fileIdentDesc *udf_get_fileident(void *buffer, int bufsize,
+ 					       int *offset);
+-extern long_ad *udf_get_filelongad(uint8_t *, int, int *, int);
+-extern short_ad *udf_get_fileshortad(uint8_t *, int, int *, int);
++extern long_ad *udf_get_filelongad(uint8_t *, int, uint32_t *, int);
++extern short_ad *udf_get_fileshortad(uint8_t *, int, uint32_t *, int);
  
- 	if (filp->f_pos == 0) {
--		if (filldir(dirent, ".", 1, filp->f_pos, dir->i_ino, DT_DIR) < 0) {
-+		if (filldir(dirent, ".", 1, filp->f_pos, dir->i_ino,
-+			    DT_DIR) < 0) {
- 			unlock_kernel();
- 			return 0;
- 		}
+ /* crc.c */
+ extern uint16_t udf_crc(uint8_t *, uint32_t, uint16_t);
 _
 
 Patches currently in -mm which might be from marcin.slusarz@gmail.com are
