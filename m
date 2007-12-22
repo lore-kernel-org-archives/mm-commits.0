@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + export-iov_shorten-for-ext4s-use.patch added to -mm tree
-Date: Sat, 22 Dec 2007 01:51:59 -0800
-Message-ID: <200712220951.lBM9px3h027260@imap1.linux-foundation.org>
+Subject: + small-cleanups-for-scsi_hosth.patch added to -mm tree
+Date: Sat, 22 Dec 2007 01:53:21 -0800
+Message-ID: <200712220953.lBM9rLgE027357@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40798 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46787 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750780AbXLVJxF (ORCPT
+	by vger.kernel.org with ESMTP id S1750750AbXLVJxn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Dec 2007 04:53:05 -0500
+	Sat, 22 Dec 2007 04:53:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sandeen@redhat.com, cmm@us.ibm.com, tytso@mit.edu
+Cc: pavel@ucw.cz, James.Bottomley@steeleye.com, pavel@suse.cz
 
 
 The patch titled
-     export iov_shorten for ext4's use
+     Small cleanups for scsi_host.h
 has been added to the -mm tree.  Its filename is
-     export-iov_shorten-for-ext4s-use.patch
+     small-cleanups-for-scsi_hosth.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,55 +28,193 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: export iov_shorten for ext4's use
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: Small cleanups for scsi_host.h
+From: Pavel Machek <pavel@ucw.cz>
 
-ext4 needs to deal with 2 different max file offsets for block- and
-extent-allocated file formats, whereas the s_maxbytes scheme can only deal
-with one.  So, for block-allocated files, we must catch and fix up
-too-large offsets from within the filesystem.
+Small cleanups in scsi_host.h. Few #defines make me wonder if their
+description is still up to date..?
 
-Having iov_shorten exported allows such things as:
-
-		if (pos + length > sbi->s_bitmap_maxbytes) {
-			nr_segs = iov_shorten((struct iovec *)iov, nr_segs,
-					      sbi->s_bitmap_maxbytes - pos);
-		}
-
-to fix up too-large writes to these files in ext4_file_write().
-
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
-Cc: Mingming Cao <cmm@us.ibm.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
+Signed-off-by: Pavel Machek <pavel@suse.cz>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/read_write.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/scsi/scsi_host.h |   46 ++++++++++++++++++++-----------------
+ 1 file changed, 26 insertions(+), 20 deletions(-)
 
-diff -puN fs/read_write.c~export-iov_shorten-for-ext4s-use fs/read_write.c
---- a/fs/read_write.c~export-iov_shorten-for-ext4s-use
-+++ a/fs/read_write.c
-@@ -450,6 +450,7 @@ unsigned long iov_shorten(struct iovec *
- 	}
- 	return seg;
- }
-+EXPORT_SYMBOL(iov_shorten)
+diff -puN include/scsi/scsi_host.h~small-cleanups-for-scsi_hosth include/scsi/scsi_host.h
+--- a/include/scsi/scsi_host.h~small-cleanups-for-scsi_hosth
++++ a/include/scsi/scsi_host.h
+@@ -283,39 +283,45 @@ struct scsi_host_template {
+ 	 * If the host wants to be called before the scan starts, but
+ 	 * after the midlayer has set up ready for the scan, it can fill
+ 	 * in this function.
++	 *
++	 * Status: OPTIONAL
+ 	 */
+ 	void (* scan_start)(struct Scsi_Host *);
  
- ssize_t do_sync_readv_writev(struct file *filp, const struct iovec *iov,
- 		unsigned long nr_segs, size_t len, loff_t *ppos, iov_fn_t fn)
+ 	/*
+-	 * fill in this function to allow the queue depth of this host
+-	 * to be changeable (on a per device basis).  returns either
++	 * Fill in this function to allow the queue depth of this host
++	 * to be changeable (on a per device basis).  Returns either
+ 	 * the current queue depth setting (may be different from what
+ 	 * was passed in) or an error.  An error should only be
+ 	 * returned if the requested depth is legal but the driver was
+ 	 * unable to set it.  If the requested depth is illegal, the
+ 	 * driver should set and return the closest legal queue depth.
+ 	 *
++	 * Status: OPTIONAL
+ 	 */
+ 	int (* change_queue_depth)(struct scsi_device *, int);
+ 
+ 	/*
+-	 * fill in this function to allow the changing of tag types
++	 * Fill in this function to allow the changing of tag types
+ 	 * (this also allows the enabling/disabling of tag command
+ 	 * queueing).  An error should only be returned if something
+ 	 * went wrong in the driver while trying to set the tag type.
+ 	 * If the driver doesn't support the requested tag type, then
+ 	 * it should set the closest type it does support without
+ 	 * returning an error.  Returns the actual tag type set.
++	 *
++	 * Status: OPTIONAL
+ 	 */
+ 	int (* change_queue_type)(struct scsi_device *, int);
+ 
+ 	/*
+-	 * This function determines the bios parameters for a given
++	 * This function determines the BIOS parameters for a given
+ 	 * harddisk.  These tend to be numbers that are made up by
+ 	 * the host adapter.  Parameters:
+ 	 * size, device, list (heads, sectors, cylinders)
+ 	 *
+-	 * Status: OPTIONAL */
++	 * Status: OPTIONAL
++	 */
+ 	int (* bios_param)(struct scsi_device *, struct block_device *,
+ 			sector_t, int []);
+ 
+@@ -354,7 +360,7 @@ struct scsi_host_template {
+ 
+ 	/*
+ 	 * This determines if we will use a non-interrupt driven
+-	 * or an interrupt driven scheme,  It is set to the maximum number
++	 * or an interrupt driven scheme.  It is set to the maximum number
+ 	 * of simultaneous commands a given host adapter will accept.
+ 	 */
+ 	int can_queue;
+@@ -375,12 +381,12 @@ struct scsi_host_template {
+ 	unsigned short sg_tablesize;
+ 
+ 	/*
+-	 * If the host adapter has limitations beside segment count
++	 * Set this if the host adapter has limitations beside segment count.
+ 	 */
+ 	unsigned short max_sectors;
+ 
+ 	/*
+-	 * dma scatter gather segment boundary limit. a segment crossing this
++	 * DMA scatter gather segment boundary limit. A segment crossing this
+ 	 * boundary will be split in two.
+ 	 */
+ 	unsigned long dma_boundary;
+@@ -389,7 +395,7 @@ struct scsi_host_template {
+ 	 * This specifies "machine infinity" for host templates which don't
+ 	 * limit the transfer size.  Note this limit represents an absolute
+ 	 * maximum, and may be over the transfer limits allowed for
+-	 * individual devices (e.g. 256 for SCSI-1)
++	 * individual devices (e.g. 256 for SCSI-1).
+ 	 */
+ #define SCSI_DEFAULT_MAX_SECTORS	1024
+ 
+@@ -416,12 +422,12 @@ struct scsi_host_template {
+ 	unsigned supported_mode:2;
+ 
+ 	/*
+-	 * true if this host adapter uses unchecked DMA onto an ISA bus.
++	 * True if this host adapter uses unchecked DMA onto an ISA bus.
+ 	 */
+ 	unsigned unchecked_isa_dma:1;
+ 
+ 	/*
+-	 * true if this host adapter can make good use of clustering.
++	 * True if this host adapter can make good use of clustering.
+ 	 * I originally thought that if the tablesize was large that it
+ 	 * was a waste of CPU cycles to prepare a cluster list, but
+ 	 * it works out that the Buslogic is faster if you use a smaller
+@@ -431,7 +437,7 @@ struct scsi_host_template {
+ 	unsigned use_clustering:1;
+ 
+ 	/*
+-	 * True for emulated SCSI host adapters (e.g. ATAPI)
++	 * True for emulated SCSI host adapters (e.g. ATAPI).
+ 	 */
+ 	unsigned emulated:1;
+ 
+@@ -441,12 +447,12 @@ struct scsi_host_template {
+ 	unsigned skip_settle_delay:1;
+ 
+ 	/*
+-	 * ordered write support
++	 * True if we are using ordered write support.
+ 	 */
+ 	unsigned ordered_tag:1;
+ 
+ 	/*
+-	 * true if the low-level driver can support sg chaining. this
++	 * True if the low-level driver can support sg chaining. This
+ 	 * will be removed eventually when all the drivers are
+ 	 * converted to support sg chaining.
+ 	 *
+@@ -455,7 +461,7 @@ struct scsi_host_template {
+ 	unsigned use_sg_chaining:1;
+ 
+ 	/*
+-	 * Countdown for host blocking with no commands outstanding
++	 * Countdown for host blocking with no commands outstanding.
+ 	 */
+ 	unsigned int max_host_blocked;
+ 
+@@ -534,8 +540,8 @@ struct Scsi_Host {
+ 	struct scsi_transport_template *transportt;
+ 
+ 	/*
+-	 * area to keep a shared tag map (if needed, will be
+-	 * NULL if not)
++	 * Area to keep a shared tag map (if needed, will be
++	 * NULL if not).
+ 	 */
+ 	struct blk_queue_tag	*bqt;
+ 
+@@ -609,16 +615,16 @@ struct Scsi_Host {
+ 	/*
+ 	 * Host uses correct SCSI ordering not PC ordering. The bit is
+ 	 * set for the minority of drivers whose authors actually read
+-	 * the spec ;)
++	 * the spec ;).
+ 	 */
+ 	unsigned reverse_ordering:1;
+ 
+ 	/*
+-	 * ordered write support
++	 * Ordered write support
+ 	 */
+ 	unsigned ordered_tag:1;
+ 
+-	/* task mgmt function in progress */
++	/* Task mgmt function in progress */
+ 	unsigned tmf_in_progress:1;
+ 
+ 	/* Asynchronous scan in progress */
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from pavel@ucw.cz are
 
-ecryptfs-fix-string-overflow-on-long-cipher-names.patch
-ecryptfs-fix-unlocking-in-error-paths.patch
-ecryptfs-redo-dgetmntget-on-dentry_open-failure.patch
-hfs-handle-more-on-disk-corruptions-without-oopsing.patch
-hfs-handle-more-on-disk-corruptions-without-oopsing-fix.patch
-ext2-change-the-default-behaviour-on-error.patch
-export-iov_shorten-for-ext4s-use.patch
-ecryptfs-make-show_options-reflect-actual-mount-options.patch
-ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
-ecryptfs-remove-debug-as-mount-option-and-warn-if-set-via-modprobe.patch
-ext3-change-the-default-behaviour-on-error.patch
+git-acpi.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+small-cleanups-for-scsi_hosth.patch
+git-x86.patch
+kernel-power-diskc-make-code-static.patch
+make-kernel_shutdown_prepare-static.patch
