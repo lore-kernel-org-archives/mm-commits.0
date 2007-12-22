@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + udf-fix-coding-style-of-dirc.patch added to -mm tree
-Date: Fri, 21 Dec 2007 16:23:02 -0800
-Message-ID: <200712220023.lBM0N2os006488@imap1.linux-foundation.org>
+Subject: + udf-remove-wrong-prototype-of-udf_readdir.patch added to -mm tree
+Date: Fri, 21 Dec 2007 16:22:58 -0800
+Message-ID: <200712220022.lBM0MwLN006476@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58539 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33611 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757037AbXLVAXL (ORCPT
+	by vger.kernel.org with ESMTP id S1757458AbXLVAXK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Dec 2007 19:23:11 -0500
+	Fri, 21 Dec 2007 19:23:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: marcin.slusarz@gmail.com, bfennema@falcon.csc.calpoly.edu, jack@suse.cz
+Cc: marcin.slusarz@gmail.com, jack@suse.cz
 
 
 The patch titled
-     udf: fix coding style of dir.c
+     udf: remove wrong prototype of udf_readdir
 has been added to the -mm tree.  Its filename is
-     udf-fix-coding-style-of-dirc.patch
+     udf-remove-wrong-prototype-of-udf_readdir.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,135 +28,154 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: udf: fix coding style of dir.c
+Subject: udf: remove wrong prototype of udf_readdir
 From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-fix coding style, checkpatch warned about:
-- "braces {} are not necessary for single statement blocks"
-- "line over 80 characters"
-- "do not use assignment in if condition"
-- "use tabs not spaces"
+sparse generated:
+fs/udf/dir.c:78:5: warning: symbol 'udf_readdir' was not declared. Should it be static?
+there are 2 different prototypes of udf_readdir - remove them and move
+code around to make it still compile
 
 Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
-Cc: Ben Fennema <bfennema@falcon.csc.calpoly.edu>
 Acked-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/dir.c |   46 +++++++++++++++++++++++++++-------------------
- 1 file changed, 27 insertions(+), 19 deletions(-)
+ fs/udf/dir.c |  118 +++++++++++++++++++++++--------------------------
+ 1 file changed, 56 insertions(+), 62 deletions(-)
 
-diff -puN fs/udf/dir.c~udf-fix-coding-style-of-dirc fs/udf/dir.c
---- a/fs/udf/dir.c~udf-fix-coding-style-of-dirc
+diff -puN fs/udf/dir.c~udf-remove-wrong-prototype-of-udf_readdir fs/udf/dir.c
+--- a/fs/udf/dir.c~udf-remove-wrong-prototype-of-udf_readdir
 +++ a/fs/udf/dir.c
-@@ -65,24 +65,26 @@ static int do_udf_readdir(struct inode *
- 	if (nf_pos == 0)
- 		nf_pos = (udf_ext0_offset(dir) >> 2);
+@@ -36,68 +36,8 @@
+ #include "udf_i.h"
+ #include "udf_sb.h"
  
--	fibh.soffset = fibh.eoffset = (nf_pos & ((dir->i_sb->s_blocksize - 1) >> 2)) << 2;
-+	fibh.soffset = fibh.eoffset =
-+		(nf_pos & ((dir->i_sb->s_blocksize - 1) >> 2)) << 2;
- 	bits = dir->i_sb->s_blocksize_bits;
- 
--	if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_IN_ICB) {
-+	if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_IN_ICB)
- 		fibh.sbh = fibh.ebh = NULL;
--	} else if (inode_bmap(dir, nf_pos >> (bits - 2),
--			      &epos, &eloc, &elen, &offset) == (EXT_RECORDED_ALLOCATED >> 30)) {
-+	else if (inode_bmap(dir, nf_pos >> (bits - 2),
-+			    &epos, &eloc, &elen, &offset) ==
-+			(EXT_RECORDED_ALLOCATED >> 30)) {
- 		block = udf_get_lb_pblock(dir->i_sb, eloc, offset);
- 		if ((++offset << bits) < elen) {
- 			if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_SHORT)
- 				epos.offset -= sizeof(short_ad);
- 			else if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_LONG)
- 				epos.offset -= sizeof(long_ad);
--		} else {
-+		} else
- 			offset = 0;
--		}
- 
--		if (!(fibh.sbh = fibh.ebh = udf_tread(dir->i_sb, block))) {
-+		fibh.sbh = fibh.ebh = udf_tread(dir->i_sb, block);
-+		if (!fibh.sbh) {
- 			brelse(epos.bh);
- 			return -EIO;
- 		}
-@@ -92,9 +94,11 @@ static int do_udf_readdir(struct inode *
- 			if (i + offset > (elen >> bits))
- 				i = (elen >> bits) - offset;
- 			for (num = 0; i > 0; i--) {
--				block = udf_get_lb_pblock(dir->i_sb, eloc, offset + i);
-+				block = udf_get_lb_pblock(dir->i_sb, eloc,
-+							  offset + i);
- 				tmp = udf_tgetblk(dir->i_sb, block);
--				if (tmp && !buffer_uptodate(tmp) && !buffer_locked(tmp))
-+				if (tmp && !buffer_uptodate(tmp) &&
-+					!buffer_locked(tmp))
- 					bha[num++] = tmp;
- 				else
- 					brelse(tmp);
-@@ -126,16 +130,18 @@ static int do_udf_readdir(struct inode *
- 		liu = le16_to_cpu(cfi.lengthOfImpUse);
- 		lfi = cfi.lengthFileIdent;
- 
--		if (fibh.sbh == fibh.ebh) {
-+		if (fibh.sbh == fibh.ebh)
- 			nameptr = fi->fileIdent + liu;
--		} else {
-+		else {
- 			int poffset;	/* Unpaded ending offset */
- 
--			poffset = fibh.soffset + sizeof(struct fileIdentDesc) + liu + lfi;
-+			poffset = fibh.soffset + sizeof(struct fileIdentDesc) +
-+					liu + lfi;
- 
--			if (poffset >= lfi) {
--				nameptr = (char *)(fibh.ebh->b_data + poffset - lfi);
--			} else {
-+			if (poffset >= lfi)
-+				nameptr = (char *)(fibh.ebh->b_data +
-+						   poffset - lfi);
-+			else {
- 				nameptr = fname;
- 				memcpy(nameptr, fi->fileIdent + liu,
- 				       lfi - poffset);
-@@ -168,12 +174,13 @@ static int do_udf_readdir(struct inode *
- 		}
- 
- 		if (flen) {
--			if (filldir(dirent, fname, flen, filp->f_pos, iblock, dt_type) < 0) {
-+			if (filldir(dirent, fname, flen, filp->f_pos, iblock,
-+				    dt_type) < 0) {
- 				if (fibh.sbh != fibh.ebh)
- 					brelse(fibh.ebh);
- 				brelse(fibh.sbh);
- 				brelse(epos.bh);
--	 			return 0;
-+				return 0;
- 			}
- 		}
- 	} /* end while */
-@@ -222,7 +229,8 @@ static int udf_readdir(struct file *filp
- 	lock_kernel();
- 
- 	if (filp->f_pos == 0) {
+-/* Prototypes for file operations */
+-static int udf_readdir(struct file *, void *, filldir_t);
+-static int do_udf_readdir(struct inode *, struct file *, filldir_t, void *);
+-
+-/* readdir and lookup functions */
+-
+-const struct file_operations udf_dir_operations = {
+-	.read			= generic_read_dir,
+-	.readdir		= udf_readdir,
+-	.ioctl			= udf_ioctl,
+-	.fsync			= udf_fsync_file,
+-};
+-
+-/*
+- * udf_readdir
+- *
+- * PURPOSE
+- *	Read a directory entry.
+- *
+- * DESCRIPTION
+- *	Optional - sys_getdents() will return -ENOTDIR if this routine is not
+- *	available.
+- *
+- *	Refer to sys_getdents() in fs/readdir.c
+- *	sys_getdents() -> .
+- *
+- * PRE-CONDITIONS
+- *	filp			Pointer to directory file.
+- *	buf			Pointer to directory entry buffer.
+- *	filldir			Pointer to filldir function.
+- *
+- * POST-CONDITIONS
+- *	<return>		>=0 on success.
+- *
+- * HISTORY
+- *	July 1, 1997 - Andrew E. Mileski
+- *	Written, tested, and released.
+- */
+-
+-int udf_readdir(struct file *filp, void *dirent, filldir_t filldir)
+-{
+-	struct inode *dir = filp->f_path.dentry->d_inode;
+-	int result;
+-
+-	lock_kernel();
+-
+-	if (filp->f_pos == 0) {
 -		if (filldir(dirent, ".", 1, filp->f_pos, dir->i_ino, DT_DIR) < 0) {
-+		if (filldir(dirent, ".", 1, filp->f_pos, dir->i_ino,
-+			    DT_DIR) < 0) {
- 			unlock_kernel();
- 			return 0;
- 		}
-@@ -231,7 +239,7 @@ static int udf_readdir(struct file *filp
- 
- 	result = do_udf_readdir(dir, filp, filldir, dirent);
- 	unlock_kernel();
+-			unlock_kernel();
+-			return 0;
+-		}
+-		filp->f_pos++;
+-	}
+-
+-	result = do_udf_readdir(dir, filp, filldir, dirent);
+-	unlock_kernel();
 - 	return result;
-+	return result;
- }
+-}
+-
+-static int
+-do_udf_readdir(struct inode *dir, struct file *filp, filldir_t filldir,
+-	       void *dirent)
++static int do_udf_readdir(struct inode *dir, struct file *filp,
++			  filldir_t filldir, void *dirent)
+ {
+ 	struct udf_fileident_bh fibh;
+ 	struct fileIdentDesc *fi = NULL;
+@@ -244,3 +184,57 @@ do_udf_readdir(struct inode *dir, struct
  
- /* readdir and lookup functions */
+ 	return 0;
+ }
++
++/*
++ * udf_readdir
++ *
++ * PURPOSE
++ *	Read a directory entry.
++ *
++ * DESCRIPTION
++ *	Optional - sys_getdents() will return -ENOTDIR if this routine is not
++ *	available.
++ *
++ *	Refer to sys_getdents() in fs/readdir.c
++ *	sys_getdents() -> .
++ *
++ * PRE-CONDITIONS
++ *	filp			Pointer to directory file.
++ *	buf			Pointer to directory entry buffer.
++ *	filldir			Pointer to filldir function.
++ *
++ * POST-CONDITIONS
++ *	<return>		>=0 on success.
++ *
++ * HISTORY
++ *	July 1, 1997 - Andrew E. Mileski
++ *	Written, tested, and released.
++ */
++
++static int udf_readdir(struct file *filp, void *dirent, filldir_t filldir)
++{
++	struct inode *dir = filp->f_path.dentry->d_inode;
++	int result;
++
++	lock_kernel();
++
++	if (filp->f_pos == 0) {
++		if (filldir(dirent, ".", 1, filp->f_pos, dir->i_ino, DT_DIR) < 0) {
++			unlock_kernel();
++			return 0;
++		}
++		filp->f_pos++;
++	}
++
++	result = do_udf_readdir(dir, filp, filldir, dirent);
++	unlock_kernel();
++ 	return result;
++}
++
++/* readdir and lookup functions */
++const struct file_operations udf_dir_operations = {
++	.read			= generic_read_dir,
++	.readdir		= udf_readdir,
++	.ioctl			= udf_ioctl,
++	.fsync			= udf_fsync_file,
++};
 _
 
 Patches currently in -mm which might be from marcin.slusarz@gmail.com are
