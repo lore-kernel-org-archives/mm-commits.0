@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + prism54-remove-questionable-down_interruptible-usage.patch added to -mm tree
-Date: Fri, 21 Dec 2007 20:16:15 -0800
-Message-ID: <200712220416.lBM4GFCL016659@imap1.linux-foundation.org>
+Subject: + usb-libusual-locking-cleanup.patch added to -mm tree
+Date: Fri, 21 Dec 2007 20:20:25 -0800
+Message-ID: <200712220420.lBM4KPw8016806@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50240 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44268 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750940AbXLVERg (ORCPT
+	by vger.kernel.org with ESMTP id S1751229AbXLVEVQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Dec 2007 23:17:36 -0500
+	Fri, 21 Dec 2007 23:21:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dwalker@mvista.com, flamingice@sourmilk.net, linville@tuxdriver.com
+Cc: dwalker@mvista.com, greg@kroah.com, zaitcev@redhat.com
 
 
 The patch titled
-     prism54: remove questionable down_interruptible usage
+     usb: libusual: locking cleanup
 has been added to the -mm tree.  Its filename is
-     prism54-remove-questionable-down_interruptible-usage.patch
+     usb-libusual-locking-cleanup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,66 +28,76 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: prism54: remove questionable down_interruptible usage
+Subject: usb: libusual: locking cleanup
 From: Daniel Walker <dwalker@mvista.com>
 
-Reviewing the semaphore usage I noticed these down_interruptible calls.  Most
-of these aren't returning anything, so a caller can't tell if the operation
-completed or not.  prism54_wpa_bss_ie_get() returns zero, but it's treated as
-the function failing which doesn't seem correct.
+I converted the usu_init_notify semaphore to normal mutex usage, and it
+should still prevent the request_module before the init routine is
+complete.  Before it acted more like a complete, now the mutex protects two
+distinct section from running at the same time.
 
 Signed-off-by: Daniel Walker <dwalker@mvista.com>
-Cc: Michael Wu <flamingice@sourmilk.net>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Pete Zaitcev <zaitcev@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/prism54/isl_ioctl.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ drivers/usb/storage/libusual.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN drivers/net/wireless/prism54/isl_ioctl.c~prism54-remove-questionable-down_interruptible-usage drivers/net/wireless/prism54/isl_ioctl.c
---- a/drivers/net/wireless/prism54/isl_ioctl.c~prism54-remove-questionable-down_interruptible-usage
-+++ a/drivers/net/wireless/prism54/isl_ioctl.c
-@@ -165,8 +165,7 @@ prism54_update_stats(struct work_struct 
- 	struct obj_bss bss, *bss2;
- 	union oid_res_t r;
+diff -puN drivers/usb/storage/libusual.c~usb-libusual-locking-cleanup drivers/usb/storage/libusual.c
+--- a/drivers/usb/storage/libusual.c~usb-libusual-locking-cleanup
++++ a/drivers/usb/storage/libusual.c
+@@ -9,6 +9,7 @@
+ #include <linux/usb_usual.h>
+ #include <linux/vmalloc.h>
+ #include <linux/kthread.h>
++#include <linux/mutex.h>
  
--	if (down_interruptible(&priv->stats_sem))
--		return;
-+	down(&priv->stats_sem);
+ /*
+  */
+@@ -30,7 +31,7 @@ static atomic_t usu_bias = ATOMIC_INIT(U
+ #define BIAS_NAME_SIZE  (sizeof("usb-storage"))
+ static const char *bias_names[3] = { "none", "usb-storage", "ub" };
  
- /* Noise floor.
-  * I'm not sure if the unit is dBm.
-@@ -1793,8 +1792,7 @@ prism54_clear_mac(struct islpci_acl *acl
- 	struct list_head *ptr, *next;
- 	struct mac_entry *entry;
+-static struct semaphore usu_init_notify;
++static DEFINE_MUTEX(usu_probe_mutex);
+ static DECLARE_COMPLETION(usu_end_notify);
+ static atomic_t total_threads = ATOMIC_INIT(0);
  
--	if (down_interruptible(&acl->sem))
--		return;
-+	down(&acl->sem);
+@@ -178,10 +179,7 @@ static int usu_probe_thread(void *arg)
+ 	int rc;
+ 	unsigned long flags;
  
- 	if (acl->size == 0) {
- 		up(&acl->sem);
-@@ -2116,8 +2114,7 @@ prism54_wpa_bss_ie_add(islpci_private *p
- 	if (wpa_ie_len > MAX_WPA_IE_LEN)
- 		wpa_ie_len = MAX_WPA_IE_LEN;
+-	/* A completion does not work here because it's counted. */
+-	down(&usu_init_notify);
+-	up(&usu_init_notify);
+-
++	mutex_lock(&usu_probe_mutex);
+ 	rc = request_module(bias_names[type]);
+ 	spin_lock_irqsave(&usu_lock, flags);
+ 	if (rc == 0 && (st->fls & USU_MOD_FL_PRESENT) == 0) {
+@@ -194,6 +192,7 @@ static int usu_probe_thread(void *arg)
+ 	}
+ 	st->fls &= ~USU_MOD_FL_THREAD;
+ 	spin_unlock_irqrestore(&usu_lock, flags);
++	mutex_unlock(&usu_probe_mutex);
  
--	if (down_interruptible(&priv->wpa_sem))
--		return;
-+	down(&priv->wpa_sem);
+ 	complete_and_exit(&usu_end_notify, 0);
+ }
+@@ -204,10 +203,9 @@ static int __init usb_usual_init(void)
+ {
+ 	int rc;
  
- 	/* try to use existing entry */
- 	list_for_each(ptr, &priv->bss_wpa_list) {
-@@ -2178,8 +2175,7 @@ prism54_wpa_bss_ie_get(islpci_private *p
- 	struct islpci_bss_wpa_ie *bss = NULL;
- 	size_t len = 0;
+-	sema_init(&usu_init_notify, 0);
+-
++	mutex_lock(&usu_probe_mutex);
+ 	rc = usb_register(&usu_driver);
+-	up(&usu_init_notify);
++	mutex_unlock(&usu_probe_mutex);
+ 	return rc;
+ }
  
--	if (down_interruptible(&priv->wpa_sem))
--		return 0;
-+	down(&priv->wpa_sem);
- 
- 	list_for_each(ptr, &priv->bss_wpa_list) {
- 		bss = list_entry(ptr, struct islpci_bss_wpa_ie, list);
 _
 
 Patches currently in -mm which might be from dwalker@mvista.com are
@@ -96,6 +106,7 @@ ps3-vuart-fix-error-path-locking.patch
 driver-base-memory-semaphore-to-mutex.patch
 git-dvb.patch
 usb-microtek-remove-unused-semaphore.patch
+usb-libusual-locking-cleanup.patch
 prism54-remove-questionable-down_interruptible-usage.patch
 git-x86.patch
 page-allocator-clean-up-pcp-draining-functions-swsusp-fix.patch
@@ -107,9 +118,9 @@ docs-kernel-locking-convert-semaphore-references.patch
 stopmachine-semaphore-to-mutex.patch
 stopmachine-semaphore-to-mutex-fix.patch
 amiga-serial-driver-port_write_mutex-fixup.patch
+docs-convert-kref-semaphore-to-mutex.patch
 isapnp-driver-semaphore-to-mutex.patch
 isapnp-driver-semaphore-to-mutex-fix.patch
 isapnp-driver-semaphore-to-mutex-fix-fix.patch
 profile-likely-unlikely-macros.patch
 profile-likely-unlikely-macros-fix.patch
-docs-convert-kref-semaphore-to-mutex.patch
