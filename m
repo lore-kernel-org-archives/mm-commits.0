@@ -1,71 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - lib-proportion-fix-underflow-in-prop_norm_percpu-checkpatch-fixes.patch removed from -mm tree
-Date: Sat, 22 Dec 2007 14:02:37 -0800
-Message-ID: <200712222202.lBMM2b7f021899@imap1.linux-foundation.org>
+Subject: + git-lblnet-fixup.patch added to -mm tree
+Date: Sat, 22 Dec 2007 15:19:12 -0800
+Message-ID: <200712222319.lBMNJChC024445@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34287 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42620 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753234AbXLVWCn (ORCPT
+	by vger.kernel.org with ESMTP id S1753534AbXLVXTP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Dec 2007 17:02:43 -0500
+	Sat, 22 Dec 2007 18:19:15 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lBMNJCtn001262
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Sat, 22 Dec 2007 15:19:13 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     lib-proportion-fix-underflow-in-prop_norm_percpu-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     lib-proportion-fix-underflow-in-prop_norm_percpu-checkpatch-fixes.patch
+     git-lblnet-fixup
+has been added to the -mm tree.  Its filename is
+     git-lblnet-fixup.patch
 
-This patch was dropped because it was folded into lib-proportion-fix-underflow-in-prop_norm_percpu.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
+
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib-proportion-fix-underflow-in-prop_norm_percpu-checkpatch-fixes
+Subject: git-lblnet-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: line over 80 characters
-#73: FILE: lib/proportions.c:248:
-+		__percpu_counter_add(&pl->events, -val + (val >> period), PROP_BATCH);
-
-total: 0 errors, 1 warnings, 59 lines checked
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-(I don't normally bother with 80-col fixes, but this is the only offending
-line in that file...  )
-
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/proportions.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ net/netlabel/netlabel_mgmt.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN lib/proportions.c~lib-proportion-fix-underflow-in-prop_norm_percpu-checkpatch-fixes lib/proportions.c
---- a/lib/proportions.c~lib-proportion-fix-underflow-in-prop_norm_percpu-checkpatch-fixes
-+++ a/lib/proportions.c
-@@ -245,7 +245,8 @@ void prop_norm_percpu(struct prop_global
- 		if (val < (nr_cpu_ids * PROP_BATCH))
- 			val = percpu_counter_sum(&pl->events);
+diff -puN net/netlabel/netlabel_mgmt.c~git-lblnet-fixup net/netlabel/netlabel_mgmt.c
+--- a/net/netlabel/netlabel_mgmt.c~git-lblnet-fixup
++++ a/net/netlabel/netlabel_mgmt.c
+@@ -71,7 +71,6 @@ static const struct nla_policy netlbl_mg
+ };
  
--		__percpu_counter_add(&pl->events, -val + (val >> period), PROP_BATCH);
-+		__percpu_counter_add(&pl->events, -val + (val >> period),
-+					PROP_BATCH);
- 	} else
- 		percpu_counter_set(&pl->events, 0);
+ /*
+-<<<<<<< HEAD:net/netlabel/netlabel_mgmt.c
+  * NetLabel Misc Management Functions
+  */
+ 
+@@ -129,8 +128,6 @@ u32 netlbl_mgmt_protocount_value(void)
+ }
+ 
+ /*
+-=======
+->>>>>>> FETCH_HEAD:net/netlabel/netlabel_mgmt.c
+  * NetLabel Command Handlers
+  */
  
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 lib-proportion-fix-underflow-in-prop_norm_percpu.patch
-lib-proportion-fix-underflow-in-prop_norm_percpu-checkpatch-fixes.patch
 get_task_comm-return-the-result.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
@@ -101,6 +102,7 @@ revert-git-hrt.patch
 git-ieee1394.patch
 git-infiniband.patch
 git-kvm.patch
+git-lblnet-fixup.patch
 git-libata-all.patch
 libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
 libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
@@ -144,7 +146,6 @@ arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes-checkpatch-fixes
 git-cryptodev.patch
 git-cryptodev-fixup.patch
 git-xtensa.patch
-git-kgdb-fixup.patch
 bonding-locking-fix.patch
 usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
