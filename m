@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 21 Dec 2007 16:04:48 -0800
-Message-ID: <200712220004.lBM04mNL005798@imap1.linux-foundation.org>
+Subject: + arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes-checkpatch-fixes.patch added to -mm tree
+Date: Fri, 21 Dec 2007 16:05:44 -0800
+Message-ID: <200712220005.lBM05jEr005814@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32967 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39171 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755720AbXLVAFx (ORCPT
+	by vger.kernel.org with ESMTP id S1757007AbXLVAHI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Dec 2007 19:05:53 -0500
+	Fri, 21 Dec 2007 19:07:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, mingo@elte.hu, mzhang@mvista.com, tglx@linutronix
 
 
 The patch titled
-     arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes
+     arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes.patch
+     arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,62 +28,25 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes
+Subject: arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: no space between function name and open parenthesis '('
-#40: FILE: arch/x86/kernel/cpu/mcheck/k7.c:46:
-+				snprintf (misc, 20, "[%08x%08x]", ahigh, alow);
+ERROR: need space after that ',' (ctx:VxV)
+#88: FILE: arch/x86/kernel/cpu/mcheck/k7.c:34:
++		rdmsr(MSR_IA32_MC0_STATUS+i*4,low, high);
+ 		                             ^
 
-WARNING: line over 80 characters
-#45: FILE: arch/x86/kernel/cpu/mcheck/k7.c:50:
-+				snprintf (addr, 24, " at %08x%08x", ahigh, alow);
+ERROR: need space after that ',' (ctx:VxV)
+#142: FILE: arch/x86/kernel/cpu/mcheck/p4.c:170:
++		rdmsr(MSR_IA32_MC0_STATUS+i*4,low, high);
+ 		                             ^
 
-WARNING: no space between function name and open parenthesis '('
-#45: FILE: arch/x86/kernel/cpu/mcheck/k7.c:50:
-+				snprintf (addr, 24, " at %08x%08x", ahigh, alow);
+ERROR: need space after that ',' (ctx:VxV)
+#180: FILE: arch/x86/kernel/cpu/mcheck/p6.c:34:
++		rdmsr(MSR_IA32_MC0_STATUS+i*4,low, high);
+ 		                             ^
 
-WARNING: no space between function name and open parenthesis '('
-#48: FILE: arch/x86/kernel/cpu/mcheck/k7.c:52:
-+			printk (KERN_EMERG "CPU %d: Bank %d: %08x%08x%s%s\n",
-
-WARNING: no space between function name and open parenthesis '('
-#65: FILE: arch/x86/kernel/cpu/mcheck/p4.c:161:
-+		printk (KERN_DEBUG "CPU %d: EIP: %08x EFLAGS: %08x\n"
-
-WARNING: no space between function name and open parenthesis '('
-#88: FILE: arch/x86/kernel/cpu/mcheck/p4.c:182:
-+				snprintf (misc, 20, "[%08x%08x]", ahigh, alow);
-
-WARNING: line over 80 characters
-#93: FILE: arch/x86/kernel/cpu/mcheck/p4.c:186:
-+				snprintf (addr, 24, " at %08x%08x", ahigh, alow);
-
-WARNING: no space between function name and open parenthesis '('
-#93: FILE: arch/x86/kernel/cpu/mcheck/p4.c:186:
-+				snprintf (addr, 24, " at %08x%08x", ahigh, alow);
-
-WARNING: no space between function name and open parenthesis '('
-#96: FILE: arch/x86/kernel/cpu/mcheck/p4.c:188:
-+			printk (KERN_EMERG "CPU %d: Bank %d: %08x%08x%s%s\n",
-
-WARNING: no space between function name and open parenthesis '('
-#120: FILE: arch/x86/kernel/cpu/mcheck/p6.c:46:
-+				snprintf (misc, 20, "[%08x%08x]", ahigh, alow);
-
-WARNING: line over 80 characters
-#125: FILE: arch/x86/kernel/cpu/mcheck/p6.c:50:
-+				snprintf (addr, 24, " at %08x%08x", ahigh, alow);
-
-WARNING: no space between function name and open parenthesis '('
-#125: FILE: arch/x86/kernel/cpu/mcheck/p6.c:50:
-+				snprintf (addr, 24, " at %08x%08x", ahigh, alow);
-
-WARNING: no space between function name and open parenthesis '('
-#128: FILE: arch/x86/kernel/cpu/mcheck/p6.c:52:
-+			printk (KERN_EMERG "CPU %d: Bank %d: %08x%08x%s%s\n",
-
-total: 0 errors, 13 warnings, 100 lines checked
+total: 3 errors, 0 warnings, 114 lines checked
 
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
@@ -97,141 +60,47 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/mcheck/k7.c |   18 +++++++++---------
- arch/x86/kernel/cpu/mcheck/p4.c |   18 +++++++++---------
- arch/x86/kernel/cpu/mcheck/p6.c |   16 ++++++++--------
- 3 files changed, 26 insertions(+), 26 deletions(-)
+ arch/x86/kernel/cpu/mcheck/k7.c |    2 +-
+ arch/x86/kernel/cpu/mcheck/p4.c |    2 +-
+ arch/x86/kernel/cpu/mcheck/p6.c |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/mcheck/k7.c~arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes arch/x86/kernel/cpu/mcheck/k7.c
---- a/arch/x86/kernel/cpu/mcheck/k7.c~arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes
+diff -puN arch/x86/kernel/cpu/mcheck/k7.c~arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes-checkpatch-fixes arch/x86/kernel/cpu/mcheck/k7.c
+--- a/arch/x86/kernel/cpu/mcheck/k7.c~arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes-checkpatch-fixes
 +++ a/arch/x86/kernel/cpu/mcheck/k7.c
-@@ -27,11 +27,11 @@ static void k7_machine_check(struct pt_r
- 	if (mcgstl & (1<<0))	/* Recoverable ? */
- 		recover=0;
- 
--	printk (KERN_EMERG "CPU %d: Machine Check Exception: %08x%08x\n",
-+	printk(KERN_EMERG "CPU %d: Machine Check Exception: %08x%08x\n",
+@@ -31,7 +31,7 @@ static void k7_machine_check(struct pt_r
  		smp_processor_id(), mcgsth, mcgstl);
  
--	for (i=1; i<nr_mce_banks; i++) {
--		rdmsr (MSR_IA32_MC0_STATUS+i*4,low, high);
-+	for (i = 1; i < nr_mce_banks; i++) {
-+		rdmsr(MSR_IA32_MC0_STATUS+i*4,low, high);
+ 	for (i = 1; i < nr_mce_banks; i++) {
+-		rdmsr(MSR_IA32_MC0_STATUS+i*4,low, high);
++		rdmsr(MSR_IA32_MC0_STATUS+i*4, low, high);
  		if (high&(1<<31)) {
  			char misc[20];
  			char addr[24];
-@@ -42,17 +42,17 @@ static void k7_machine_check(struct pt_r
- 				recover |= 2;
- 			high &= ~(1<<31);
- 			if (high & (1<<27)) {
--				rdmsr (MSR_IA32_MC0_MISC+i*4, alow, ahigh);
--				snprintf (misc, 20, "[%08x%08x]", ahigh, alow);
-+				rdmsr(MSR_IA32_MC0_MISC+i*4, alow, ahigh);
-+				snprintf(misc, 20, "[%08x%08x]", ahigh, alow);
- 			}
- 			if (high & (1<<26)) {
--				rdmsr (MSR_IA32_MC0_ADDR+i*4, alow, ahigh);
--				snprintf (addr, 24, " at %08x%08x", ahigh, alow);
-+				rdmsr(MSR_IA32_MC0_ADDR+i*4, alow, ahigh);
-+				snprintf(addr, 24, " at %08x%08x", ahigh, alow);
- 			}
--			printk (KERN_EMERG "CPU %d: Bank %d: %08x%08x%s%s\n",
-+			printk(KERN_EMERG "CPU %d: Bank %d: %08x%08x%s%s\n",
- 				smp_processor_id(), i, high, low, misc, addr);
- 			/* Clear it */
--			wrmsr (MSR_IA32_MC0_STATUS+i*4, 0UL, 0UL);
-+			wrmsr(MSR_IA32_MC0_STATUS+i*4, 0UL, 0UL);
- 			/* Serialize */
- 			wmb();
- 			add_taint(TAINT_MACHINE_CHECK);
-diff -puN arch/x86/kernel/cpu/mcheck/p4.c~arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes arch/x86/kernel/cpu/mcheck/p4.c
---- a/arch/x86/kernel/cpu/mcheck/p4.c~arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes
+diff -puN arch/x86/kernel/cpu/mcheck/p4.c~arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes-checkpatch-fixes arch/x86/kernel/cpu/mcheck/p4.c
+--- a/arch/x86/kernel/cpu/mcheck/p4.c~arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes-checkpatch-fixes
 +++ a/arch/x86/kernel/cpu/mcheck/p4.c
-@@ -152,13 +152,13 @@ static void intel_machine_check(struct p
- 	if (mcgstl & (1<<0))	/* Recoverable ? */
- 		recover=0;
- 
--	printk (KERN_EMERG "CPU %d: Machine Check Exception: %08x%08x\n",
-+	printk(KERN_EMERG "CPU %d: Machine Check Exception: %08x%08x\n",
- 		smp_processor_id(), mcgsth, mcgstl);
- 
- 	if (mce_num_extended_msrs > 0) {
- 		struct intel_mce_extended_msrs dbg;
- 		intel_get_extended_msrs(&dbg);
--		printk (KERN_DEBUG "CPU %d: EIP: %08x EFLAGS: %08x\n"
-+		printk(KERN_DEBUG "CPU %d: EIP: %08x EFLAGS: %08x\n"
- 			"\teax: %08x ebx: %08x ecx: %08x edx: %08x\n"
- 			"\tesi: %08x edi: %08x ebp: %08x esp: %08x\n",
- 			smp_processor_id(), dbg.eip, dbg.eflags,
-@@ -166,8 +166,8 @@ static void intel_machine_check(struct p
- 			dbg.esi, dbg.edi, dbg.ebp, dbg.esp);
+@@ -167,7 +167,7 @@ static void intel_machine_check(struct p
  	}
  
--	for (i=0; i<nr_mce_banks; i++) {
--		rdmsr (MSR_IA32_MC0_STATUS+i*4,low, high);
-+	for (i = 0; i < nr_mce_banks; i++) {
-+		rdmsr(MSR_IA32_MC0_STATUS+i*4,low, high);
+ 	for (i = 0; i < nr_mce_banks; i++) {
+-		rdmsr(MSR_IA32_MC0_STATUS+i*4,low, high);
++		rdmsr(MSR_IA32_MC0_STATUS+i*4, low, high);
  		if (high & (1<<31)) {
  			char misc[20];
  			char addr[24];
-@@ -178,14 +178,14 @@ static void intel_machine_check(struct p
- 				recover |= 2;
- 			high &= ~(1<<31);
- 			if (high & (1<<27)) {
--				rdmsr (MSR_IA32_MC0_MISC+i*4, alow, ahigh);
--				snprintf (misc, 20, "[%08x%08x]", ahigh, alow);
-+				rdmsr(MSR_IA32_MC0_MISC+i*4, alow, ahigh);
-+				snprintf(misc, 20, "[%08x%08x]", ahigh, alow);
- 			}
- 			if (high & (1<<26)) {
--				rdmsr (MSR_IA32_MC0_ADDR+i*4, alow, ahigh);
--				snprintf (addr, 24, " at %08x%08x", ahigh, alow);
-+				rdmsr(MSR_IA32_MC0_ADDR+i*4, alow, ahigh);
-+				snprintf(addr, 24, " at %08x%08x", ahigh, alow);
- 			}
--			printk (KERN_EMERG "CPU %d: Bank %d: %08x%08x%s%s\n",
-+			printk(KERN_EMERG "CPU %d: Bank %d: %08x%08x%s%s\n",
- 				smp_processor_id(), i, high, low, misc, addr);
- 		}
- 	}
-diff -puN arch/x86/kernel/cpu/mcheck/p6.c~arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes arch/x86/kernel/cpu/mcheck/p6.c
---- a/arch/x86/kernel/cpu/mcheck/p6.c~arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes
+diff -puN arch/x86/kernel/cpu/mcheck/p6.c~arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes-checkpatch-fixes arch/x86/kernel/cpu/mcheck/p6.c
+--- a/arch/x86/kernel/cpu/mcheck/p6.c~arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes-checkpatch-fixes
 +++ a/arch/x86/kernel/cpu/mcheck/p6.c
-@@ -27,11 +27,11 @@ static void intel_machine_check(struct p
- 	if (mcgstl & (1<<0))	/* Recoverable ? */
- 		recover=0;
- 
--	printk (KERN_EMERG "CPU %d: Machine Check Exception: %08x%08x\n",
-+	printk(KERN_EMERG "CPU %d: Machine Check Exception: %08x%08x\n",
+@@ -31,7 +31,7 @@ static void intel_machine_check(struct p
  		smp_processor_id(), mcgsth, mcgstl);
  
--	for (i=0; i<nr_mce_banks; i++) {
--		rdmsr (MSR_IA32_MC0_STATUS+i*4,low, high);
-+	for (i = 0; i < nr_mce_banks; i++) {
-+		rdmsr(MSR_IA32_MC0_STATUS+i*4,low, high);
+ 	for (i = 0; i < nr_mce_banks; i++) {
+-		rdmsr(MSR_IA32_MC0_STATUS+i*4,low, high);
++		rdmsr(MSR_IA32_MC0_STATUS+i*4, low, high);
  		if (high & (1<<31)) {
  			char misc[20];
  			char addr[24];
-@@ -42,14 +42,14 @@ static void intel_machine_check(struct p
- 				recover |= 2;
- 			high &= ~(1<<31);
- 			if (high & (1<<27)) {
--				rdmsr (MSR_IA32_MC0_MISC+i*4, alow, ahigh);
--				snprintf (misc, 20, "[%08x%08x]", ahigh, alow);
-+				rdmsr(MSR_IA32_MC0_MISC+i*4, alow, ahigh);
-+				snprintf(misc, 20, "[%08x%08x]", ahigh, alow);
- 			}
- 			if (high & (1<<26)) {
--				rdmsr (MSR_IA32_MC0_ADDR+i*4, alow, ahigh);
--				snprintf (addr, 24, " at %08x%08x", ahigh, alow);
-+				rdmsr(MSR_IA32_MC0_ADDR+i*4, alow, ahigh);
-+				snprintf(addr, 24, " at %08x%08x", ahigh, alow);
- 			}
--			printk (KERN_EMERG "CPU %d: Bank %d: %08x%08x%s%s\n",
-+			printk(KERN_EMERG "CPU %d: Bank %d: %08x%08x%s%s\n",
- 				smp_processor_id(), i, high, low, misc, addr);
- 		}
- 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -308,6 +177,7 @@ git-x86.patch
 git-x86-fixup.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes.patch
+arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes-checkpatch-fixes.patch
 git-cryptodev.patch
 git-cryptodev-fixup.patch
 git-xtensa.patch
