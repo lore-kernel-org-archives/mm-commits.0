@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch added to -mm tree
-Date: Sat, 22 Dec 2007 00:37:36 -0800
-Message-ID: <200712220837.lBM8baiK024963@imap1.linux-foundation.org>
+Subject: + ecryptfs-change-the-type-of-cipher_code-from-u16-to-u8.patch added to -mm tree
+Date: Sat, 22 Dec 2007 00:39:12 -0800
+Message-ID: <200712220839.lBM8dCMj024986@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38375 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58574 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750920AbXLVIhs (ORCPT
+	by vger.kernel.org with ESMTP id S1750884AbXLVIj1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Dec 2007 03:37:48 -0500
+	Sat, 22 Dec 2007 03:39:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Krauth.Julien@addi-data.com, krauth.julien@addi-data.com, rmk@arm.linux.org.uk
+Cc: thighlan@gmail.com, mhalcrow@us.ibm.com, trevor.highland@gmail.com
 
 
 The patch titled
-     serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes
+     eCryptfs: change the type of cipher_code from u16 to u8
 has been added to the -mm tree.  Its filename is
-     serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
+     ecryptfs-change-the-type-of-cipher_code-from-u16-to-u8.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,294 +28,112 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: eCryptfs: change the type of cipher_code from u16 to u8
+From: Trevor Highland <thighlan@gmail.com>
 
-WARNING: line over 80 characters
-#28: FILE: drivers/serial/8250_pci.c:112:
-+addidata_apci7800_setup(struct serial_private *priv, struct pciserial_board *board,
+Only the lower byte of cipher_code is ever used, so it makes sense
+for its type to be u8.
 
-ERROR: use tabs not spaces
-#29: FILE: drivers/serial/8250_pci.c:113:
-+               struct uart_port *port, int idx)$
-
-ERROR: no space before that close parenthesis ')'
-#34: FILE: drivers/serial/8250_pci.c:118:
-+	if (idx < 2 ) {
-
-ERROR: no space before that close parenthesis ')'
-#39: FILE: drivers/serial/8250_pci.c:123:
-+	} else if ((idx >= 4) && (idx < 6 )) {
-
-total: 3 errors, 1 warnings, 180 lines checked
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "Krauth.Julien" <Krauth.Julien@addi-data.com>
-Cc: Krauth J. <krauth.julien@addi-data.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Trevor Highland <trevor.highland@gmail.com>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_pci.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/ecryptfs/crypto.c          |    8 ++++----
+ fs/ecryptfs/ecryptfs_kernel.h |    4 ++--
+ fs/ecryptfs/keystore.c        |    8 ++++----
+ 3 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/serial/8250_pci.c~serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes drivers/serial/8250_pci.c
---- a/drivers/serial/8250_pci.c~serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes
-+++ a/drivers/serial/8250_pci.c
-@@ -108,19 +108,19 @@ setup_port(struct serial_private *priv, 
- /*
-  * ADDI-DATA GmbH communication cards <info@addi-data.com>
-  */
--static int
--addidata_apci7800_setup(struct serial_private *priv, struct pciserial_board *board,
--               struct uart_port *port, int idx)
-+static int addidata_apci7800_setup(struct serial_private *priv,
-+				struct pciserial_board *board,
-+				struct uart_port *port, int idx)
- {
- 	unsigned int bar = 0, offset = board->first_offset;
- 	bar = FL_GET_BASE(board->flags);
+diff -puN fs/ecryptfs/crypto.c~ecryptfs-change-the-type-of-cipher_code-from-u16-to-u8 fs/ecryptfs/crypto.c
+--- a/fs/ecryptfs/crypto.c~ecryptfs-change-the-type-of-cipher_code-from-u16-to-u8
++++ a/fs/ecryptfs/crypto.c
+@@ -1128,7 +1128,7 @@ write_ecryptfs_flags(char *page_virt, st
  
--	if (idx < 2 ) {
-+	if (idx < 2) {
- 		offset += idx * board->uart_offset;
- 	} else if ((idx >= 2) && (idx < 4)) {
- 		bar += 1;
- 		offset += ((idx - 2) * board->uart_offset);
--	} else if ((idx >= 4) && (idx < 6 )) {
-+	} else if ((idx >= 4) && (idx < 6)) {
- 		bar += 2;
- 		offset += ((idx - 4) * board->uart_offset);
- 	} else if (idx >= 6) {
+ struct ecryptfs_cipher_code_str_map_elem {
+ 	char cipher_str[16];
+-	u16 cipher_code;
++	u8 cipher_code;
+ };
+ 
+ /* Add support for additional ciphers by adding elements here. The
+@@ -1152,10 +1152,10 @@ ecryptfs_cipher_code_str_map[] = {
+  *
+  * Returns zero on no match, or the cipher code on match
+  */
+-u16 ecryptfs_code_for_cipher_string(struct ecryptfs_crypt_stat *crypt_stat)
++u8 ecryptfs_code_for_cipher_string(struct ecryptfs_crypt_stat *crypt_stat)
+ {
+ 	int i;
+-	u16 code = 0;
++	u8 code = 0;
+ 	struct ecryptfs_cipher_code_str_map_elem *map =
+ 		ecryptfs_cipher_code_str_map;
+ 
+@@ -1187,7 +1187,7 @@ u16 ecryptfs_code_for_cipher_string(stru
+  *
+  * Returns zero on success
+  */
+-int ecryptfs_cipher_code_to_string(char *str, u16 cipher_code)
++int ecryptfs_cipher_code_to_string(char *str, u8 cipher_code)
+ {
+ 	int rc = 0;
+ 	int i;
+diff -puN fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-change-the-type-of-cipher_code-from-u16-to-u8 fs/ecryptfs/ecryptfs_kernel.h
+--- a/fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-change-the-type-of-cipher_code-from-u16-to-u8
++++ a/fs/ecryptfs/ecryptfs_kernel.h
+@@ -558,8 +558,8 @@ int ecryptfs_read_and_validate_header_re
+ 					     struct inode *ecryptfs_inode);
+ int ecryptfs_read_and_validate_xattr_region(char *page_virt,
+ 					    struct dentry *ecryptfs_dentry);
+-u16 ecryptfs_code_for_cipher_string(struct ecryptfs_crypt_stat *crypt_stat);
+-int ecryptfs_cipher_code_to_string(char *str, u16 cipher_code);
++u8 ecryptfs_code_for_cipher_string(struct ecryptfs_crypt_stat *crypt_stat);
++int ecryptfs_cipher_code_to_string(char *str, u8 cipher_code);
+ void ecryptfs_set_default_sizes(struct ecryptfs_crypt_stat *crypt_stat);
+ int ecryptfs_generate_key_packet_set(char *dest_base,
+ 				     struct ecryptfs_crypt_stat *crypt_stat,
+diff -puN fs/ecryptfs/keystore.c~ecryptfs-change-the-type-of-cipher_code-from-u16-to-u8 fs/ecryptfs/keystore.c
+--- a/fs/ecryptfs/keystore.c~ecryptfs-change-the-type-of-cipher_code-from-u16-to-u8
++++ a/fs/ecryptfs/keystore.c
+@@ -189,7 +189,7 @@ out:
+ }
+ 
+ static int
+-parse_tag_65_packet(struct ecryptfs_session_key *session_key, u16 *cipher_code,
++parse_tag_65_packet(struct ecryptfs_session_key *session_key, u8 *cipher_code,
+ 		    struct ecryptfs_message *msg)
+ {
+ 	size_t i = 0;
+@@ -275,7 +275,7 @@ out:
+ 
+ 
+ static int
+-write_tag_66_packet(char *signature, size_t cipher_code,
++write_tag_66_packet(char *signature, u8 cipher_code,
+ 		    struct ecryptfs_crypt_stat *crypt_stat, char **packet,
+ 		    size_t *packet_len)
+ {
+@@ -428,7 +428,7 @@ static int
+ decrypt_pki_encrypted_session_key(struct ecryptfs_auth_tok *auth_tok,
+ 				  struct ecryptfs_crypt_stat *crypt_stat)
+ {
+-	u16 cipher_code = 0;
++	u8 cipher_code = 0;
+ 	struct ecryptfs_msg_ctx *msg_ctx;
+ 	struct ecryptfs_message *msg = NULL;
+ 	char *auth_tok_sig;
+@@ -1537,7 +1537,7 @@ write_tag_3_packet(char *dest, size_t *r
+ 	struct scatterlist dst_sg;
+ 	struct scatterlist src_sg;
+ 	struct mutex *tfm_mutex = NULL;
+-	size_t cipher_code;
++	u8 cipher_code;
+ 	size_t packet_size_length;
+ 	size_t max_packet_size;
+ 	struct ecryptfs_mount_crypt_stat *mount_crypt_stat =
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from thighlan@gmail.com are
 
-lib-proportion-fix-underflow-in-prop_norm_percpu-checkpatch-fixes.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-timerfd-v3-new-timerfd-api-ia64-fix.patch
-timerfd-v3-new-timerfd-api-m68k-fix.patch
-timerfd-v3-new-timerfd-api-mips-fix.patch
-timerfd-v3-new-timerfd-api-arch-fixes.patch
-timerfd-v3-new-timerfd-api-powerpc-fix.patch
-timerfd-v3-new-timerfd-api-sparc64-fix.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-agpgart-intel-agp-dont-zero-an-already-registered-resource-during-resume.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-kernel-auditc-warning-fix.patch
-git-cpufreq.patch
-git-powerpc.patch
-revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-git-drm.patch
-intel-agp-enable-i915-recognition.patch
-git-dvb.patch
-git-dvb-one-videobuf_read_start-is-enough.patch
-fix-jdelvare-i2c-i2c-constify-client-address-data.patch
-git-hid.patch
-revert-git-hrt.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-kvm.patch
-git-libata-all.patch
-libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
-libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
-libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
-git-md-accel.patch
-git-mmc.patch
-git-mtd.patch
-git-net.patch
-git-net-vs-git-lblnet.patch
-git-net-vs-git-lblnet-2.patch
-git-netdev-all.patch
-git-net-vs-git-netdev-all.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-backlight-omap1-backlight-driver.patch
-git-battery.patch
-bluetooth-uninlining.patch
-git-nfsd.patch
-serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
-git-sched.patch
-git-sched-fixup.patch
-git-sh.patch
-git-scsi-misc.patch
-scsi-aic94xx-cleanups-checkpatch-fixes.patch
-scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
-9p-util-fix-semaphore-handling.patch
-git-watchdog.patch
-git-watchdog-fixup.patch
-add-support-for-sb1-hardware-watchdog.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-x86-fixup.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes.patch
-arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes-checkpatch-fixes.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-git-xtensa.patch
-git-kgdb-fixup.patch
-bonding-locking-fix.patch
-usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-add-proc-kpagecount-interface-fix.patch
-maps4-add-proc-kpageflags-interface-fix.patch
-maps4-add-proc-kpageflags-interface-fix-2-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-mm-remove-fastcall-from-mm-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
-kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
-stopmachine-semaphore-to-mutex-fix.patch
-parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
-debug_smp_processor_id-fixlets.patch
-use-ilog2-in-fs-namespacec-fix.patch
-sync_sb_inodes-propagate-errors.patch
-add-have_oprofile.patch
-ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-rtc-add-support-for-the-s-35390a-rtc-chip-fix.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-logo-move-declarations-of-logos-to-linux_logoh-fix.patch
-neofb-avoid-overwriting-fb_info-fields.patch
-declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-pid-sys_wait-fixes-v2-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-rewrite-rd-fixes.patch
-fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
-kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
-lib-remove-fastcall-from-lib-checkpatch-fixes.patch
-remove-fastcall-from-linux-include-checkpatch-fixes.patch
-constify-tables-in-kernel-sysctl_checkc-fix.patch
-aoe-statically-initialise-devlist_lock.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+ecryptfs-change-the-type-of-cipher_code-from-u16-to-u8.patch
+ecryptfs-load-each-file-decryption-key-only-once.patch
