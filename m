@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maps4-add-proc-kpageflags-interface-fix-2-fix.patch added to -mm tree
-Date: Fri, 21 Dec 2007 21:00:02 -0800
-Message-ID: <200712220500.lBM502ID018106@imap1.linux-foundation.org>
+Subject: + constify-tables-in-kernel-sysctl_checkc-fix.patch added to -mm tree
+Date: Fri, 21 Dec 2007 21:04:46 -0800
+Message-ID: <200712220504.lBM54k2s018260@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51297 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56223 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750764AbXLVFA1 (ORCPT
+	by vger.kernel.org with ESMTP id S1750723AbXLVFFA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Dec 2007 00:00:27 -0500
+	Sat, 22 Dec 2007 00:05:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, m.kozlowski@tuxland.pl, mpm@selenic.com
+Cc: akpm@linux-foundation.org, davej@codemonkey.org.uk, ebiederm@xmission.com, jbeulich@novell.com
 
 
 The patch titled
-     maps4-add-proc-kpageflags-interface-fix-2-fix
+     constify-tables-in-kernel-sysctl_checkc-fix
 has been added to the -mm tree.  Its filename is
-     maps4-add-proc-kpageflags-interface-fix-2-fix.patch
+     constify-tables-in-kernel-sysctl_checkc-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,39 +28,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: maps4-add-proc-kpageflags-interface-fix-2-fix
+Subject: constify-tables-in-kernel-sysctl_checkc-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: David Miller <davem@davemloft.net>
-Cc: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Matt Mackall <mpm@selenic.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Jan Beulich <jbeulich@novell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_misc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/sysctl_check.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/proc_misc.c~maps4-add-proc-kpageflags-interface-fix-2-fix fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~maps4-add-proc-kpageflags-interface-fix-2-fix
-+++ a/fs/proc/proc_misc.c
-@@ -699,7 +699,7 @@ static ssize_t kpagecount_read(struct fi
- 		return -EIO;
+diff -puN kernel/sysctl_check.c~constify-tables-in-kernel-sysctl_checkc-fix kernel/sysctl_check.c
+--- a/kernel/sysctl_check.c~constify-tables-in-kernel-sysctl_checkc-fix
++++ a/kernel/sysctl_check.c
+@@ -423,7 +423,7 @@ static const struct trans_ctl_table tran
+ 	{}
+ };
  
- 	while (count > 0) {
--		ppage = 0;
-+		ppage = NULL;
- 		if (pfn_valid(pfn))
- 			ppage = pfn_to_page(pfn);
- 		pfn++;
-@@ -765,7 +765,7 @@ static ssize_t kpageflags_read(struct fi
- 		return -EIO;
- 
- 	while (count > 0) {
--		ppage = 0;
-+		ppage = NULL;
- 		if (pfn_valid(pfn))
- 			ppage = pfn_to_page(pfn);
- 		pfn++;
+-static const struct trans_ctl_table trans_net_ax25_table[] = {
++static const struct trans_ctl_table trans_net_ax25_param_table[] = {
+ 	{ NET_AX25_IP_DEFAULT_MODE,	"ip_default_mode" },
+ 	{ NET_AX25_DEFAULT_MODE,	"ax25_default_mode" },
+ 	{ NET_AX25_BACKOFF_TYPE,	"backoff_type" },
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -272,6 +263,7 @@ fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
 kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
 lib-remove-fastcall-from-lib-checkpatch-fixes.patch
 remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
 make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
 reiser4.patch
 jens-broke-reiser4patch-added-to-mm-tree.patch
