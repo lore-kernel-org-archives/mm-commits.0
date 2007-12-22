@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh.patch added to -mm tree
-Date: Sat, 22 Dec 2007 00:35:24 -0800
-Message-ID: <200712220835.lBM8ZO3T024840@imap1.linux-foundation.org>
+Subject: + serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch added to -mm tree
+Date: Sat, 22 Dec 2007 00:37:36 -0800
+Message-ID: <200712220837.lBM8baiK024963@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55256 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38375 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751059AbXLVIgA (ORCPT
+	by vger.kernel.org with ESMTP id S1750920AbXLVIhs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Dec 2007 03:36:00 -0500
+	Sat, 22 Dec 2007 03:37:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Krauth.Julien@addi-data.com, krauth.julien@addi-data.com, rmk@arm.linux.org.uk
+Cc: akpm@linux-foundation.org, Krauth.Julien@addi-data.com, krauth.julien@addi-data.com, rmk@arm.linux.org.uk
 
 
 The patch titled
-     serial: add ADDI-DATA GmbH Communication cardsin8250_pci.c and pci_ids.h
+     serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh.patch
+     serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,217 +28,294 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial: add ADDI-DATA GmbH Communication cardsin8250_pci.c and pci_ids.h
-From: "Krauth.Julien" <Krauth.Julien@addi-data.com>
+Subject: serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add ADDI-DATA GmbH communication cards to 8250_pci driver.  Supported cards
-are:
+WARNING: line over 80 characters
+#28: FILE: drivers/serial/8250_pci.c:112:
++addidata_apci7800_setup(struct serial_private *priv, struct pciserial_board *board,
 
-APCI-7300, APCI-7420, APCI-7500, APCI-7800 APCI-7300-2, APCI-7420-2,
-APCI-7500-2 APCI-7300-3, APCI-7420-3, APCI-7500-3, APCI-7800-3
+ERROR: use tabs not spaces
+#29: FILE: drivers/serial/8250_pci.c:113:
++               struct uart_port *port, int idx)$
 
-Signed-off-by: Krauth J. <krauth.julien@addi-data.com>
+ERROR: no space before that close parenthesis ')'
+#34: FILE: drivers/serial/8250_pci.c:118:
++	if (idx < 2 ) {
+
+ERROR: no space before that close parenthesis ')'
+#39: FILE: drivers/serial/8250_pci.c:123:
++	} else if ((idx >= 4) && (idx < 6 )) {
+
+total: 3 errors, 1 warnings, 180 lines checked
+
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: "Krauth.Julien" <Krauth.Julien@addi-data.com>
+Cc: Krauth J. <krauth.julien@addi-data.com>
 Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_pci.c |  133 ++++++++++++++++++++++++++++++++++++
- include/linux/pci_ids.h   |   17 ++++
- 2 files changed, 150 insertions(+)
+ drivers/serial/8250_pci.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/serial/8250_pci.c~serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh drivers/serial/8250_pci.c
---- a/drivers/serial/8250_pci.c~serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh
+diff -puN drivers/serial/8250_pci.c~serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes drivers/serial/8250_pci.c
+--- a/drivers/serial/8250_pci.c~serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes
 +++ a/drivers/serial/8250_pci.c
-@@ -106,6 +106,32 @@ setup_port(struct serial_private *priv, 
- }
- 
+@@ -108,19 +108,19 @@ setup_port(struct serial_private *priv, 
  /*
-+ * ADDI-DATA GmbH communication cards <info@addi-data.com>
-+ */
-+static int
-+addidata_apci7800_setup(struct serial_private *priv, struct pciserial_board *board,
-+               struct uart_port *port, int idx)
-+{
-+	unsigned int bar = 0, offset = board->first_offset;
-+	bar = FL_GET_BASE(board->flags);
-+
-+	if (idx < 2 ) {
-+		offset += idx * board->uart_offset;
-+	} else if ((idx >= 2) && (idx < 4)) {
-+		bar += 1;
-+		offset += ((idx - 2) * board->uart_offset);
-+	} else if ((idx >= 4) && (idx < 6 )) {
-+		bar += 2;
-+		offset += ((idx - 4) * board->uart_offset);
-+	} else if (idx >= 6) {
-+		bar += 3;
-+		offset += ((idx - 6) * board->uart_offset);
-+	}
-+
-+	return setup_port(priv, port, bar, offset, board->reg_shift);
-+}
-+
-+/*
-  * AFAVLAB uses a different mixture of BARs and offsets
-  * Not that ugly ;) -- HW
+  * ADDI-DATA GmbH communication cards <info@addi-data.com>
   */
-@@ -752,6 +778,16 @@ pci_default_setup(struct serial_private 
-  */
- static struct pci_serial_quirk pci_serial_quirks[] = {
- 	/*
-+	* ADDI-DATA GmbH communication cards <info@addi-data.com>
-+	*/
-+	{
-+		.vendor         = PCI_VENDOR_ID_ADDIDATA_OLD,
-+		.device         = PCI_DEVICE_ID_ADDIDATA_APCI7800,
-+		.subvendor      = PCI_ANY_ID,
-+		.subdevice      = PCI_ANY_ID,
-+		.setup          = addidata_apci7800_setup,
-+	},
-+	/*
- 	 * AFAVLAB cards - these may be called via parport_serial
- 	 *  It is not clear whether this applies to all products.
- 	 */
-@@ -1179,6 +1215,12 @@ static struct pciserial_board pci_boards
- 		.base_baud	= 115200,
- 		.uart_offset	= 8,
- 	},
-+	[pbn_b0_8_115200] = {
-+		.flags		= FL_BASE0,
-+		.num_ports	= 8,
-+		.base_baud	= 115200,
-+		.uart_offset	= 8,
-+	},
+-static int
+-addidata_apci7800_setup(struct serial_private *priv, struct pciserial_board *board,
+-               struct uart_port *port, int idx)
++static int addidata_apci7800_setup(struct serial_private *priv,
++				struct pciserial_board *board,
++				struct uart_port *port, int idx)
+ {
+ 	unsigned int bar = 0, offset = board->first_offset;
+ 	bar = FL_GET_BASE(board->flags);
  
- 	[pbn_b0_1_921600] = {
- 		.flags		= FL_BASE0,
-@@ -2697,6 +2739,97 @@ static struct pci_device_id serial_pci_t
- 		pbn_pasemi_1682M },
- 
- 	/*
-+	* ADDI-DATA GmbH communication cards <info@addi-data.com>
-+	*/
-+	{	PCI_VENDOR_ID_ADDIDATA,
-+		PCI_DEVICE_ID_ADDIDATA_APCI7500,
-+		PCI_ANY_ID,
-+		PCI_ANY_ID,
-+		0,
-+		0,
-+		pbn_b0_4_115200 },
-+
-+	{	PCI_VENDOR_ID_ADDIDATA,
-+		PCI_DEVICE_ID_ADDIDATA_APCI7420,
-+		PCI_ANY_ID,
-+		PCI_ANY_ID,
-+		0,
-+		0,
-+		pbn_b0_2_115200 },
-+
-+	{	PCI_VENDOR_ID_ADDIDATA,
-+		PCI_DEVICE_ID_ADDIDATA_APCI7300,
-+		PCI_ANY_ID,
-+		PCI_ANY_ID,
-+		0,
-+		0,
-+		pbn_b0_1_115200 },
-+
-+	{	PCI_VENDOR_ID_ADDIDATA_OLD,
-+		PCI_DEVICE_ID_ADDIDATA_APCI7800,
-+		PCI_ANY_ID,
-+		PCI_ANY_ID,
-+		0,
-+		0,
-+		pbn_b1_8_115200 },
-+
-+	{	PCI_VENDOR_ID_ADDIDATA,
-+		PCI_DEVICE_ID_ADDIDATA_APCI7500_2,
-+		PCI_ANY_ID,
-+		PCI_ANY_ID,
-+		0,
-+		0,
-+		pbn_b0_4_115200 },
-+
-+	{	PCI_VENDOR_ID_ADDIDATA,
-+		PCI_DEVICE_ID_ADDIDATA_APCI7420_2,
-+		PCI_ANY_ID,
-+		PCI_ANY_ID,
-+		0,
-+		0,
-+		pbn_b0_2_115200 },
-+
-+	{	PCI_VENDOR_ID_ADDIDATA,
-+		PCI_DEVICE_ID_ADDIDATA_APCI7300_2,
-+		PCI_ANY_ID,
-+		PCI_ANY_ID,
-+		0,
-+		0,
-+		pbn_b0_1_115200 },
-+
-+	{	PCI_VENDOR_ID_ADDIDATA,
-+		PCI_DEVICE_ID_ADDIDATA_APCI7500_3,
-+		PCI_ANY_ID,
-+		PCI_ANY_ID,
-+		0,
-+		0,
-+		pbn_b0_4_115200 },
-+
-+	{	PCI_VENDOR_ID_ADDIDATA,
-+		PCI_DEVICE_ID_ADDIDATA_APCI7420_3,
-+		PCI_ANY_ID,
-+		PCI_ANY_ID,
-+		0,
-+		0,
-+		pbn_b0_2_115200 },
-+
-+	{	PCI_VENDOR_ID_ADDIDATA,
-+		PCI_DEVICE_ID_ADDIDATA_APCI7300_3,
-+		PCI_ANY_ID,
-+		PCI_ANY_ID,
-+		0,
-+		0,
-+		pbn_b0_1_115200 },
-+
-+	{	PCI_VENDOR_ID_ADDIDATA,
-+		PCI_DEVICE_ID_ADDIDATA_APCI7800_3,
-+		PCI_ANY_ID,
-+		PCI_ANY_ID,
-+		0,
-+		0,
-+		pbn_b0_8_115200 },
-+
-+	/*
- 	 * These entries match devices with class COMMUNICATION_SERIAL,
- 	 * COMMUNICATION_MODEM or COMMUNICATION_MULTISERIAL
- 	 */
-diff -puN include/linux/pci_ids.h~serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh
-+++ a/include/linux/pci_ids.h
-@@ -2043,6 +2043,23 @@
- #define PCI_VENDOR_ID_QUICKNET		0x15e2
- #define PCI_DEVICE_ID_QUICKNET_XJ	0x0500
- 
-+/*
-+ * ADDI-DATA GmbH communication cards <info@addi-data.com>
-+ */
-+#define PCI_VENDOR_ID_ADDIDATA_OLD             0x10E8
-+#define PCI_VENDOR_ID_ADDIDATA                 0x15B8
-+#define PCI_DEVICE_ID_ADDIDATA_APCI7500        0x7000
-+#define PCI_DEVICE_ID_ADDIDATA_APCI7420        0x7001
-+#define PCI_DEVICE_ID_ADDIDATA_APCI7300        0x7002
-+#define PCI_DEVICE_ID_ADDIDATA_APCI7800        0x818E
-+#define PCI_DEVICE_ID_ADDIDATA_APCI7500_2      0x7009
-+#define PCI_DEVICE_ID_ADDIDATA_APCI7420_2      0x700A
-+#define PCI_DEVICE_ID_ADDIDATA_APCI7300_2      0x700B
-+#define PCI_DEVICE_ID_ADDIDATA_APCI7500_3      0x700C
-+#define PCI_DEVICE_ID_ADDIDATA_APCI7420_3      0x700D
-+#define PCI_DEVICE_ID_ADDIDATA_APCI7300_3      0x700E
-+#define PCI_DEVICE_ID_ADDIDATA_APCI7800_3      0x700F
-+
- #define PCI_VENDOR_ID_PDC		0x15e9
- 
- #define PCI_VENDOR_ID_FARSITE           0x1619
+-	if (idx < 2 ) {
++	if (idx < 2) {
+ 		offset += idx * board->uart_offset;
+ 	} else if ((idx >= 2) && (idx < 4)) {
+ 		bar += 1;
+ 		offset += ((idx - 2) * board->uart_offset);
+-	} else if ((idx >= 4) && (idx < 6 )) {
++	} else if ((idx >= 4) && (idx < 6)) {
+ 		bar += 2;
+ 		offset += ((idx - 4) * board->uart_offset);
+ 	} else if (idx >= 6) {
 _
 
-Patches currently in -mm which might be from Krauth.Julien@addi-data.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh.patch
+lib-proportion-fix-underflow-in-prop_norm_percpu-checkpatch-fixes.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+timerfd-v3-new-timerfd-api-ia64-fix.patch
+timerfd-v3-new-timerfd-api-m68k-fix.patch
+timerfd-v3-new-timerfd-api-mips-fix.patch
+timerfd-v3-new-timerfd-api-arch-fixes.patch
+timerfd-v3-new-timerfd-api-powerpc-fix.patch
+timerfd-v3-new-timerfd-api-sparc64-fix.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-agpgart-intel-agp-dont-zero-an-already-registered-resource-during-resume.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+kernel-auditc-warning-fix.patch
+git-cpufreq.patch
+git-powerpc.patch
+revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+git-drm.patch
+intel-agp-enable-i915-recognition.patch
+git-dvb.patch
+git-dvb-one-videobuf_read_start-is-enough.patch
+fix-jdelvare-i2c-i2c-constify-client-address-data.patch
+git-hid.patch
+revert-git-hrt.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-kvm.patch
+git-libata-all.patch
+libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
+libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
+libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
+git-md-accel.patch
+git-mmc.patch
+git-mtd.patch
+git-net.patch
+git-net-vs-git-lblnet.patch
+git-net-vs-git-lblnet-2.patch
+git-netdev-all.patch
+git-net-vs-git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+backlight-omap1-backlight-driver.patch
+git-battery.patch
+bluetooth-uninlining.patch
+git-nfsd.patch
+serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
+git-sched.patch
+git-sched-fixup.patch
+git-sh.patch
+git-scsi-misc.patch
+scsi-aic94xx-cleanups-checkpatch-fixes.patch
+scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
+9p-util-fix-semaphore-handling.patch
+git-watchdog.patch
+git-watchdog-fixup.patch
+add-support-for-sb1-hardware-watchdog.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-fixup.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes.patch
+arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes-checkpatch-fixes.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-xtensa.patch
+git-kgdb-fixup.patch
+bonding-locking-fix.patch
+usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-add-proc-kpagecount-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix-2-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+mm-remove-fastcall-from-mm-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+stopmachine-semaphore-to-mutex-fix.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
+debug_smp_processor_id-fixlets.patch
+use-ilog2-in-fs-namespacec-fix.patch
+sync_sb_inodes-propagate-errors.patch
+add-have_oprofile.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-fix.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+logo-move-declarations-of-logos-to-linux_logoh-fix.patch
+neofb-avoid-overwriting-fb_info-fields.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
