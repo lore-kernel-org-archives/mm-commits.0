@@ -1,265 +1,323 @@
 From: akpm@linux-foundation.org
-Subject: - i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support.patch removed from -mm tree
-Date: Sat, 22 Dec 2007 15:26:20 -0800
-Message-ID: <200712222326.lBMNQKlP024664@imap1.linux-foundation.org>
+Subject: + aout-move-stack_top-to-asm-processorh-fix.patch added to -mm tree
+Date: Sat, 22 Dec 2007 15:47:43 -0800
+Message-ID: <200712222347.lBMNlhKx025304@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39186 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50610 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754040AbXLVX2d (ORCPT
+	by vger.kernel.org with ESMTP id S1754166AbXLVXsv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Dec 2007 18:28:33 -0500
+	Sat, 22 Dec 2007 18:48:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ying.huang@intel.com, ak@suse.de, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, dhowells@redhat.com, mingo@elte.hu
 
 
 The patch titled
-     i386 EFI runtime service support: fixes in sync with x86_64 support
-has been removed from the -mm tree.  Its filename was
-     i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support.patch
+     aout-move-stack_top-to-asm-processorh-fix
+has been added to the -mm tree.  Its filename is
+     aout-move-stack_top-to-asm-processorh-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
+
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i386 EFI runtime service support: fixes in sync with x86_64 support
-From: "Huang, Ying" <ying.huang@intel.com>
+Subject: aout-move-stack_top-to-asm-processorh-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch fixes several issues of i386 EFI basic runtime service
-support according to fixes of x86_64 support.
+my life is miserable.
 
-- Delete efi_rt_lock because it is used during system early boot,
-  before SMP is initialized.
-
-- Change local_flush_tlb() to __flush_tlb_all() to flush global page
-  mapping.
-
-- Clean up includes.
-
-- Revise Kconfig description.
-
-- Enable noefi kernel parameter on i386.
-
-Signed-off-by: Huang Ying <ying.huang@intel.com>
+Cc: David Howells <dhowells@redhat.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt   |    2 +
- Documentation/x86_64/boot-options.txt |    4 ---
- arch/x86/Kconfig                      |   19 +++++++-----------
- arch/x86/kernel/efi.c                 |    7 ++++++
- arch/x86/kernel/efi_32.c              |   25 ++++--------------------
- arch/x86/kernel/efi_64.c              |    7 ------
- arch/x86/kernel/setup_32.c            |    6 ++---
- 7 files changed, 25 insertions(+), 45 deletions(-)
+ include/asm-x86/processor.h    |    4 ++++
+ include/asm-x86/processor_32.h |    2 --
+ include/asm-x86/processor_64.h |    3 ---
+ 3 files changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN arch/x86/Kconfig~i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support arch/x86/Kconfig
---- a/arch/x86/Kconfig~i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support
-+++ a/arch/x86/Kconfig
-@@ -993,21 +993,18 @@ config MTRR
- 
- config EFI
- 	def_bool n
--	prompt "Boot from EFI support"
-+	prompt "EFI runtime service support"
- 	depends on ACPI
- 	---help---
--	This enables the kernel to boot on EFI platforms using
--	system configuration information passed to it from the firmware.
--	This also enables the kernel to use any EFI runtime services that are
-+	This enables the kernel to use EFI runtime services that are
- 	available (such as the EFI variable services).
- 
--	This option is only useful on systems that have EFI firmware
--	and will result in a kernel image that is ~8k larger.  In addition,
--	you must use the latest ELILO loader available at
--	<http://elilo.sourceforge.net> in order to take advantage of
--	kernel initialization using EFI information (neither GRUB nor LILO know
--	anything about EFI).  However, even with this option, the resultant
--	kernel should continue to boot on existing non-EFI platforms.
-+	This option is only useful on systems that have EFI firmware.
-+  	In addition, you should use the latest ELILO loader available
-+  	at <http://elilo.sourceforge.net> in order to take advantage
-+  	of EFI runtime services. However, even with this option, the
-+  	resultant kernel should continue to boot on existing non-EFI
-+  	platforms.
- 
- config IRQBALANCE
- 	def_bool y
-diff -puN arch/x86/kernel/efi_32.c~i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support arch/x86/kernel/efi_32.c
---- a/arch/x86/kernel/efi_32.c~i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support
-+++ a/arch/x86/kernel/efi_32.c
-@@ -20,27 +20,15 @@
+diff -puN include/asm-x86/processor.h~aout-move-stack_top-to-asm-processorh-fix include/asm-x86/processor.h
+--- a/include/asm-x86/processor.h~aout-move-stack_top-to-asm-processorh-fix
++++ a/include/asm-x86/processor.h
+@@ -799,6 +799,8 @@ static inline void prefetchw(const void 
+  * User space process size: 3GB (default).
   */
+ #define TASK_SIZE	(PAGE_OFFSET)
++#define STACK_TOP      TASK_SIZE
++#define STACK_TOP_MAX  STACK_TOP
  
- #include <linux/kernel.h>
--#include <linux/init.h>
--#include <linux/mm.h>
- #include <linux/types.h>
--#include <linux/time.h>
--#include <linux/spinlock.h>
--#include <linux/bootmem.h>
- #include <linux/ioport.h>
--#include <linux/module.h>
- #include <linux/efi.h>
--#include <linux/kexec.h>
- 
--#include <asm/setup.h>
- #include <asm/io.h>
- #include <asm/page.h>
- #include <asm/pgtable.h>
--#include <asm/processor.h>
--#include <asm/desc.h>
- #include <asm/tlbflush.h>
- 
--#define PFX 		"EFI: "
--
- /*
-  * To make EFI call EFI runtime service in physical addressing mode we need
-  * prelog/epilog before/after the invocation to disable interrupt, to
-@@ -49,16 +37,14 @@
+ #define INIT_THREAD  {							\
+ 	.sp0 = sizeof(init_stack) + (long)&init_stack,			\
+@@ -870,6 +872,8 @@ extern unsigned long thread_saved_pc(str
+  * User space process size. 47bits minus one guard page.
   */
+ #define TASK_SIZE64	(0x800000000000UL - 4096)
++#define STACK_TOP              TASK_SIZE
++#define STACK_TOP_MAX          TASK_SIZE64
  
- static unsigned long efi_rt_eflags;
--static DEFINE_SPINLOCK(efi_rt_lock);
- static pgd_t efi_bak_pg_dir_pointer[2];
+ /* This decides where the kernel will search for a free chunk of vm
+  * space during mmap's.
+diff -puN include/asm-x86/processor_32.h~aout-move-stack_top-to-asm-processorh-fix include/asm-x86/processor_32.h
+--- a/include/asm-x86/processor_32.h~aout-move-stack_top-to-asm-processorh-fix
++++ a/include/asm-x86/processor_32.h
+@@ -28,8 +28,6 @@ DECLARE_PER_CPU(u8, cpu_llc_id);
+  * User space process size: 3GB (default).
+  */
+ #define TASK_SIZE	(PAGE_OFFSET)
+-#define STACK_TOP	TASK_SIZE
+-#define STACK_TOP_MAX	STACK_TOP
  
--void efi_call_phys_prelog(void) __acquires(efi_rt_lock)
-+void efi_call_phys_prelog(void)
- {
- 	unsigned long cr4;
- 	unsigned long temp;
- 	struct desc_ptr gdt_descr;
+ #define INIT_THREAD  {							\
+ 	.sp0 = sizeof(init_stack) + (long)&init_stack,			\
+diff -puN include/asm-x86/processor_64.h~aout-move-stack_top-to-asm-processorh-fix include/asm-x86/processor_64.h
+--- a/include/asm-x86/processor_64.h~aout-move-stack_top-to-asm-processorh-fix
++++ a/include/asm-x86/processor_64.h
+@@ -30,9 +30,6 @@
+ #define TASK_SIZE 		(test_thread_flag(TIF_IA32) ? IA32_PAGE_OFFSET : TASK_SIZE64)
+ #define TASK_SIZE_OF(child) 	((test_tsk_thread_flag(child, TIF_IA32)) ? IA32_PAGE_OFFSET : TASK_SIZE64)
  
--	spin_lock(&efi_rt_lock);
- 	local_irq_save(efi_rt_eflags);
- 
- 	/*
-@@ -88,14 +74,14 @@ void efi_call_phys_prelog(void) __acquir
- 	/*
- 	 * After the lock is released, the original page table is restored.
- 	 */
--	local_flush_tlb();
-+	__flush_tlb_all();
- 
- 	gdt_descr.address = __pa(get_cpu_gdt_table(0));
- 	gdt_descr.size = GDT_SIZE - 1;
- 	load_gdt(&gdt_descr);
- }
- 
--void efi_call_phys_epilog(void) __releases(efi_rt_lock)
-+void efi_call_phys_epilog(void)
- {
- 	unsigned long cr4;
- 	struct desc_ptr gdt_descr;
-@@ -119,10 +105,9 @@ void efi_call_phys_epilog(void) __releas
- 	/*
- 	 * After the lock is released, the original page table is restored.
- 	 */
--	local_flush_tlb();
-+	__flush_tlb_all();
- 
- 	local_irq_restore(efi_rt_eflags);
--	spin_unlock(&efi_rt_lock);
- }
- 
- /*
-@@ -135,7 +120,7 @@ void __init efi_map_memmap(void)
- 	memmap.map = bt_ioremap((unsigned long) memmap.phys_map,
- 			(memmap.nr_map * memmap.desc_size));
- 	if (memmap.map == NULL)
--		printk(KERN_ERR PFX "Could not remap the EFI memmap!\n");
-+		printk(KERN_ERR "Could not remap the EFI memmap!\n");
- 
- 	memmap.map_end = memmap.map + (memmap.nr_map * memmap.desc_size);
- }
-diff -puN arch/x86/kernel/efi_64.c~i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support arch/x86/kernel/efi_64.c
---- a/arch/x86/kernel/efi_64.c~i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support
-+++ a/arch/x86/kernel/efi_64.c
-@@ -40,13 +40,6 @@
- static pgd_t save_pgd __initdata;
- static unsigned long efi_flags __initdata;
- 
--static int __init setup_noefi(char *arg)
--{
--	efi_enabled = 0;
--	return 0;
--}
--early_param("noefi", setup_noefi);
+-#define STACK_TOP		TASK_SIZE
+-#define STACK_TOP_MAX		TASK_SIZE64
 -
- static void __init early_mapping_set_exec(unsigned long start,
- 					  unsigned long end,
- 					  int executable)
-diff -puN arch/x86/kernel/efi.c~i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support arch/x86/kernel/efi.c
---- a/arch/x86/kernel/efi.c~i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support
-+++ a/arch/x86/kernel/efi.c
-@@ -55,6 +55,13 @@ struct efi_memory_map memmap;
- struct efi efi_phys __initdata;
- static efi_system_table_t efi_systab __initdata;
+ DECLARE_PER_CPU(struct orig_ist, orig_ist);
  
-+static int __init setup_noefi(char *arg)
-+{
-+	efi_enabled = 0;
-+	return 0;
-+}
-+early_param("noefi", setup_noefi);
-+
- static efi_status_t virt_efi_get_time(efi_time_t *tm, efi_time_cap_t *tc)
- {
- 	return efi_call_virt2(get_time, tm, tc);
-diff -puN arch/x86/kernel/setup_32.c~i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support arch/x86/kernel/setup_32.c
---- a/arch/x86/kernel/setup_32.c~i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support
-+++ a/arch/x86/kernel/setup_32.c
-@@ -649,9 +649,6 @@ void __init setup_arch(char **cmdline_p)
- 	printk(KERN_INFO "BIOS-provided physical RAM map:\n");
- 	print_memory_map(memory_setup());
- 
--	if (efi_enabled)
--		efi_init();
--
- 	copy_edd();
- 
- 	if (!boot_params.hdr.root_flags)
-@@ -678,6 +675,9 @@ void __init setup_arch(char **cmdline_p)
- 	strlcpy(command_line, boot_command_line, COMMAND_LINE_SIZE);
- 	*cmdline_p = command_line;
- 
-+	if (efi_enabled)
-+		efi_init();
-+
- 	max_low_pfn = setup_memory();
- 
- #ifdef CONFIG_VMI
-diff -puN Documentation/kernel-parameters.txt~i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support
-+++ a/Documentation/kernel-parameters.txt
-@@ -1155,6 +1155,8 @@ and is between 256 and 4096 characters. 
- 
- 	nodisconnect	[HW,SCSI,M68K] Disables SCSI disconnects.
- 
-+	noefi		[X86-32,X86-64] Disable EFI runtime services support.
-+
- 	noexec		[IA-64]
- 
- 	noexec		[X86-32,X86-64]
-diff -puN Documentation/x86_64/boot-options.txt~i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support Documentation/x86_64/boot-options.txt
---- a/Documentation/x86_64/boot-options.txt~i386-efi-runtime-service-support-fixes-in-sync-with-x86_64-support
-+++ a/Documentation/x86_64/boot-options.txt
-@@ -306,8 +306,4 @@ Debugging
- 		newfallback: use new unwinder but fall back to old if it gets
- 			stuck (default)
- 
--EFI
--
--  noefi		Disable EFI support
--
- Miscellaneous
+ #define INIT_THREAD  { \
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+lib-proportion-fix-underflow-in-prop_norm_percpu.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes.patch
+timerfd-v3-new-timerfd-api-ia64-fix.patch
+timerfd-v3-new-timerfd-api-m68k-fix.patch
+timerfd-v3-new-timerfd-api-mips-fix.patch
+timerfd-v3-new-timerfd-api-arch-fixes.patch
+timerfd-v3-new-timerfd-api-powerpc-fix.patch
+timerfd-v3-new-timerfd-api-sparc64-fix.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-agpgart-intel-agp-dont-zero-an-already-registered-resource-during-resume.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+kernel-auditc-warning-fix.patch
+git-cpufreq.patch
+git-powerpc.patch
+revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+git-drm.patch
+intel-agp-enable-i915-recognition.patch
+git-dvb.patch
+git-dvb-one-videobuf_read_start-is-enough.patch
+fix-jdelvare-i2c-i2c-constify-client-address-data.patch
+git-hid.patch
+revert-git-hrt.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-kvm.patch
+git-lblnet-fixup.patch
+git-libata-all.patch
+libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
+libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
+libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
+git-md-accel.patch
+git-mmc.patch
+git-mtd.patch
+git-net.patch
+git-net-fixup.patch
+git-net-vs-git-lblnet.patch
+git-net-vs-git-lblnet-2.patch
+git-netdev-all.patch
+git-net-vs-git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+backlight-omap1-backlight-driver.patch
+git-battery.patch
+bluetooth-uninlining.patch
+git-nfsd.patch
+serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+git-sched.patch
+git-sched-fixup.patch
+git-sh.patch
+git-scsi-misc.patch
+scsi-aic94xx-cleanups-checkpatch-fixes.patch
+scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
+9p-util-fix-semaphore-handling.patch
+git-watchdog.patch
+git-watchdog-fixup.patch
+add-support-for-sb1-hardware-watchdog.patch
+git-wireless.patch
+git-ipwireless_cs.patch
 git-x86.patch
-vmcoreinfo-add-the-array-length-of-free_list-for-filtering-free-pages.patch
+git-x86-fixup.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes.patch
+arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes-checkpatch-fixes.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-xtensa.patch
+bonding-locking-fix.patch
+usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-add-proc-kpagecount-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix-2-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+mm-remove-fastcall-from-mm-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+stopmachine-semaphore-to-mutex-fix.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
+debug_smp_processor_id-fixlets.patch
+use-ilog2-in-fs-namespacec-fix.patch
+sync_sb_inodes-propagate-errors.patch
+add-have_oprofile.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-fix.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+logo-move-declarations-of-logos-to-linux_logoh-fix.patch
+neofb-avoid-overwriting-fb_info-fields.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-move-stack_top-to-asm-processorh-fix.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
