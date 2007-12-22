@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: + git-lblnet-fixup.patch added to -mm tree
-Date: Sat, 22 Dec 2007 15:19:12 -0800
-Message-ID: <200712222319.lBMNJChC024445@imap1.linux-foundation.org>
+Subject: + git-net-fixup.patch added to -mm tree
+Date: Sat, 22 Dec 2007 15:21:38 -0800
+Message-ID: <200712222321.lBMNLcYu024510@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42620 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41861 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753534AbXLVXTP (ORCPT
+	by vger.kernel.org with ESMTP id S1753952AbXLVXVl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Dec 2007 18:19:15 -0500
+	Sat, 22 Dec 2007 18:21:41 -0500
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lBMNJCtn001262
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lBMNLcno001435
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sat, 22 Dec 2007 15:19:13 -0800
+	for <mm-commits@vger.kernel.org>; Sat, 22 Dec 2007 15:21:39 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -20,9 +20,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-lblnet-fixup
+     git-net-fixup
 has been added to the -mm tree.  Its filename is
-     git-lblnet-fixup.patch
+     git-net-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -32,35 +32,129 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-lblnet-fixup
+Subject: git-net-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/netlabel/netlabel_mgmt.c |    3 ---
- 1 file changed, 3 deletions(-)
+ net/dccp/ackvec.h      |    9 ---------
+ net/dccp/ccids/ccid3.c |    3 ---
+ net/xfrm/xfrm_policy.c |    8 --------
+ net/xfrm/xfrm_state.c  |    8 --------
+ 4 files changed, 28 deletions(-)
 
-diff -puN net/netlabel/netlabel_mgmt.c~git-lblnet-fixup net/netlabel/netlabel_mgmt.c
---- a/net/netlabel/netlabel_mgmt.c~git-lblnet-fixup
-+++ a/net/netlabel/netlabel_mgmt.c
-@@ -71,7 +71,6 @@ static const struct nla_policy netlbl_mg
- };
- 
- /*
--<<<<<<< HEAD:net/netlabel/netlabel_mgmt.c
-  * NetLabel Misc Management Functions
-  */
- 
-@@ -129,8 +128,6 @@ u32 netlbl_mgmt_protocount_value(void)
- }
- 
- /*
+diff -puN net/dccp/ackvec.h~git-net-fixup net/dccp/ackvec.h
+--- a/net/dccp/ackvec.h~git-net-fixup
++++ a/net/dccp/ackvec.h
+@@ -66,21 +66,12 @@ struct dccp_ackvec {
+  *
+  * The list is sorted by avr_ack_seqno
+  *
+-<<<<<<< HEAD:net/dccp/ackvec.h
+- * @dccpavr_node - node in dccpav_records
+- * @dccpavr_ack_seqno - sequence number of the packet this record was sent on
+- * @dccpavr_ack_ackno - sequence number being acknowledged
+- * @dccpavr_ack_ptr - pointer into dccpav_buf where this record starts
+- * @dccpavr_ack_nonce - dccpav_ack_nonce at the time this record was sent
+- * @dccpavr_sent_len - length of the record in dccpav_buf
 -=======
-->>>>>>> FETCH_HEAD:net/netlabel/netlabel_mgmt.c
-  * NetLabel Command Handlers
+  * @avr_node - node in av_records
+  * @avr_ack_seqno - sequence number of the packet this record was sent on
+  * @avr_ack_ackno - sequence number being acknowledged
+  * @avr_ack_ptr - pointer into av_buf where this record starts
+  * @avr_ack_nonce - av_ack_nonce at the time this record was sent
+  * @avr_sent_len - lenght of the record in av_buf
+->>>>>>> FETCH_HEAD:net/dccp/ackvec.h
   */
+ struct dccp_ackvec_record {
+ 	struct list_head avr_node;
+diff -puN net/dccp/ccids/ccid3.c~git-net-fixup net/dccp/ccids/ccid3.c
+--- a/net/dccp/ccids/ccid3.c~git-net-fixup
++++ a/net/dccp/ccids/ccid3.c
+@@ -244,7 +244,6 @@ static void ccid3_hc_tx_no_feedback_time
+ 		hctx->ccid3hctx_x = max(hctx->ccid3hctx_x / 2,
+ 					(((__u64)hctx->ccid3hctx_s) << 6) /
+ 								    TFRC_T_MBI);
+-<<<<<<< HEAD:net/dccp/ccids/ccid3.c
  
+ 		ccid3_pr_debug("%s(%p, state=%s), updated tx rate to %u "
+ 			       "bytes/s\n", dccp_role(sk), sk,
+@@ -253,8 +252,6 @@ static void ccid3_hc_tx_no_feedback_time
+ 		/* The value of R is still undefined and so we can not recompute
+ 		 * the timeout value. Keep initial value as per [RFC 4342, 5]. */
+ 		t_nfb = TFRC_INITIAL_TIMEOUT;
+-=======
+->>>>>>> FETCH_HEAD:net/dccp/ccids/ccid3.c
+ 		ccid3_update_send_interval(hctx);
+ 	} else {
+ 		/*
+diff -puN net/xfrm/xfrm_policy.c~git-net-fixup net/xfrm/xfrm_policy.c
+--- a/net/xfrm/xfrm_policy.c~git-net-fixup
++++ a/net/xfrm/xfrm_policy.c
+@@ -2407,13 +2407,9 @@ void xfrm_audit_policy_add(struct xfrm_p
+ {
+ 	struct audit_buffer *audit_buf;
+ 
+-<<<<<<< HEAD:net/xfrm/xfrm_policy.c
+ 	if (audit_enabled == 0)
+ 		return;
+-	audit_buf = xfrm_audit_start(auid, sid);
+-=======
+ 	audit_buf = xfrm_audit_start("SPD-add");
+->>>>>>> FETCH_HEAD:net/xfrm/xfrm_policy.c
+ 	if (audit_buf == NULL)
+ 		return;
+ 	xfrm_audit_helper_usrinfo(auid, secid, audit_buf);
+@@ -2428,13 +2424,9 @@ void xfrm_audit_policy_delete(struct xfr
+ {
+ 	struct audit_buffer *audit_buf;
+ 
+-<<<<<<< HEAD:net/xfrm/xfrm_policy.c
+ 	if (audit_enabled == 0)
+ 		return;
+-	audit_buf = xfrm_audit_start(auid, sid);
+-=======
+ 	audit_buf = xfrm_audit_start("SPD-delete");
+->>>>>>> FETCH_HEAD:net/xfrm/xfrm_policy.c
+ 	if (audit_buf == NULL)
+ 		return;
+ 	xfrm_audit_helper_usrinfo(auid, secid, audit_buf);
+diff -puN net/xfrm/xfrm_state.c~git-net-fixup net/xfrm/xfrm_state.c
+--- a/net/xfrm/xfrm_state.c~git-net-fixup
++++ a/net/xfrm/xfrm_state.c
+@@ -2070,9 +2070,6 @@ void xfrm_audit_state_add(struct xfrm_st
+ 	audit_buf = xfrm_audit_start("SAD-add");
+ 	if (audit_buf == NULL)
+ 		return;
+-<<<<<<< HEAD:net/xfrm/xfrm_state.c
+-	audit_buf = xfrm_audit_start(auid, sid);
+-=======
+ 	xfrm_audit_helper_usrinfo(auid, secid, audit_buf);
+ 	xfrm_audit_helper_sainfo(x, audit_buf);
+ 	audit_log_format(audit_buf, " res=%u", result);
+@@ -2086,7 +2083,6 @@ void xfrm_audit_state_delete(struct xfrm
+ 	struct audit_buffer *audit_buf;
+ 
+ 	audit_buf = xfrm_audit_start("SAD-delete");
+->>>>>>> FETCH_HEAD:net/xfrm/xfrm_state.c
+ 	if (audit_buf == NULL)
+ 		return;
+ 	xfrm_audit_helper_usrinfo(auid, secid, audit_buf);
+@@ -2120,13 +2116,9 @@ static void xfrm_audit_state_replay(stru
+ 	struct audit_buffer *audit_buf;
+ 	u32 spi;
+ 
+-<<<<<<< HEAD:net/xfrm/xfrm_state.c
+ 	if (audit_enabled == 0)
+ 		return;
+-	audit_buf = xfrm_audit_start(auid, sid);
+-=======
+ 	audit_buf = xfrm_audit_start("SA-replayed-pkt");
+->>>>>>> FETCH_HEAD:net/xfrm/xfrm_state.c
+ 	if (audit_buf == NULL)
+ 		return;
+ 	xfrm_audit_helper_pktinfo(skb, x->props.family, audit_buf);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -111,6 +205,7 @@ git-md-accel.patch
 git-mmc.patch
 git-mtd.patch
 git-net.patch
+git-net-fixup.patch
 git-net-vs-git-lblnet.patch
 git-net-vs-git-lblnet-2.patch
 git-netdev-all.patch
