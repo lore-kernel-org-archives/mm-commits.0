@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + aout-move-stack_top-to-asm-processorh-fix.patch added to -mm tree
-Date: Sat, 22 Dec 2007 15:47:43 -0800
-Message-ID: <200712222347.lBMNlhKx025304@imap1.linux-foundation.org>
+Subject: + export-iov_shorten-for-ext4s-use-fix.patch added to -mm tree
+Date: Sat, 22 Dec 2007 15:58:07 -0800
+Message-ID: <200712222358.lBMNw78B025609@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50610 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44201 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754166AbXLVXsv (ORCPT
+	by vger.kernel.org with ESMTP id S1752598AbXLVX7L (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Dec 2007 18:48:51 -0500
+	Sat, 22 Dec 2007 18:59:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dhowells@redhat.com, mingo@elte.hu
+Cc: akpm@linux-foundation.org, cmm@us.ibm.com, sandeen@redhat.com, tytso@mit.edu
 
 
 The patch titled
-     aout-move-stack_top-to-asm-processorh-fix
+     export-iov_shorten-for-ext4s-use-fix
 has been added to the -mm tree.  Its filename is
-     aout-move-stack_top-to-asm-processorh-fix.patch
+     export-iov_shorten-for-ext4s-use-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,67 +28,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aout-move-stack_top-to-asm-processorh-fix
+Subject: export-iov_shorten-for-ext4s-use-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-my life is miserable.
-
-Cc: David Howells <dhowells@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Eric Sandeen <sandeen@redhat.com>
+Cc: Mingming Cao <cmm@us.ibm.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/processor.h    |    4 ++++
- include/asm-x86/processor_32.h |    2 --
- include/asm-x86/processor_64.h |    3 ---
- 3 files changed, 4 insertions(+), 5 deletions(-)
+ fs/read_write.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-x86/processor.h~aout-move-stack_top-to-asm-processorh-fix include/asm-x86/processor.h
---- a/include/asm-x86/processor.h~aout-move-stack_top-to-asm-processorh-fix
-+++ a/include/asm-x86/processor.h
-@@ -799,6 +799,8 @@ static inline void prefetchw(const void 
-  * User space process size: 3GB (default).
-  */
- #define TASK_SIZE	(PAGE_OFFSET)
-+#define STACK_TOP      TASK_SIZE
-+#define STACK_TOP_MAX  STACK_TOP
+diff -puN fs/read_write.c~export-iov_shorten-for-ext4s-use-fix fs/read_write.c
+--- a/fs/read_write.c~export-iov_shorten-for-ext4s-use-fix
++++ a/fs/read_write.c
+@@ -450,7 +450,7 @@ unsigned long iov_shorten(struct iovec *
+ 	}
+ 	return seg;
+ }
+-EXPORT_SYMBOL(iov_shorten)
++EXPORT_SYMBOL(iov_shorten);
  
- #define INIT_THREAD  {							\
- 	.sp0 = sizeof(init_stack) + (long)&init_stack,			\
-@@ -870,6 +872,8 @@ extern unsigned long thread_saved_pc(str
-  * User space process size. 47bits minus one guard page.
-  */
- #define TASK_SIZE64	(0x800000000000UL - 4096)
-+#define STACK_TOP              TASK_SIZE
-+#define STACK_TOP_MAX          TASK_SIZE64
- 
- /* This decides where the kernel will search for a free chunk of vm
-  * space during mmap's.
-diff -puN include/asm-x86/processor_32.h~aout-move-stack_top-to-asm-processorh-fix include/asm-x86/processor_32.h
---- a/include/asm-x86/processor_32.h~aout-move-stack_top-to-asm-processorh-fix
-+++ a/include/asm-x86/processor_32.h
-@@ -28,8 +28,6 @@ DECLARE_PER_CPU(u8, cpu_llc_id);
-  * User space process size: 3GB (default).
-  */
- #define TASK_SIZE	(PAGE_OFFSET)
--#define STACK_TOP	TASK_SIZE
--#define STACK_TOP_MAX	STACK_TOP
- 
- #define INIT_THREAD  {							\
- 	.sp0 = sizeof(init_stack) + (long)&init_stack,			\
-diff -puN include/asm-x86/processor_64.h~aout-move-stack_top-to-asm-processorh-fix include/asm-x86/processor_64.h
---- a/include/asm-x86/processor_64.h~aout-move-stack_top-to-asm-processorh-fix
-+++ a/include/asm-x86/processor_64.h
-@@ -30,9 +30,6 @@
- #define TASK_SIZE 		(test_thread_flag(TIF_IA32) ? IA32_PAGE_OFFSET : TASK_SIZE64)
- #define TASK_SIZE_OF(child) 	((test_tsk_thread_flag(child, TIF_IA32)) ? IA32_PAGE_OFFSET : TASK_SIZE64)
- 
--#define STACK_TOP		TASK_SIZE
--#define STACK_TOP_MAX		TASK_SIZE64
--
- DECLARE_PER_CPU(struct orig_ist, orig_ist);
- 
- #define INIT_THREAD  { \
+ ssize_t do_sync_readv_writev(struct file *filp, const struct iovec *iov,
+ 		unsigned long nr_segs, size_t len, loff_t *ppos, iov_fn_t fn)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -231,6 +194,7 @@ stopmachine-semaphore-to-mutex-fix.patch
 parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
 debug_smp_processor_id-fixlets.patch
 use-ilog2-in-fs-namespacec-fix.patch
+export-iov_shorten-for-ext4s-use-fix.patch
 sync_sb_inodes-propagate-errors.patch
 add-have_oprofile.patch
 ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
