@@ -1,25 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - avoid-overflows-in-kernel-timec.patch removed from -mm tree
-Date: Sat, 22 Dec 2007 01:41:19 -0800
-Message-ID: <200712220941.lBM9fKa0026941@imap1.linux-foundation.org>
+Subject: + avoid-overflows-in-kernel-timec.patch added to -mm tree
+Date: Sat, 22 Dec 2007 01:46:54 -0800
+Message-ID: <200712220946.lBM9ksvu027086@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44895 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47682 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750700AbXLVJmW (ORCPT
+	by vger.kernel.org with ESMTP id S1750825AbXLVJs5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Dec 2007 04:42:22 -0500
+	Sat, 22 Dec 2007 04:48:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hpa@zytor.com, johnstul@us.ibm.com, mingo@elte.hu, sam@ravnborg.org, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: hpa@zytor.com, davem@davemloft.net, dhowells@redhat.com, geert@linux-m68k.org, ink@jurassic.park.msu.ru, jesper.nilsson@axis.com, johnstul@us.ibm.com, lethal@linux-sh.org, mingo@elte.hu, rth@twiddle.net, sam@ravnborg.org, tglx@linutronix.de, zippel@linux-m68k.org
 
 
 The patch titled
      Avoid overflows in kernel/time.c
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      avoid-overflows-in-kernel-timec.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
+
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 Subject: Avoid overflows in kernel/time.c
@@ -48,12 +54,21 @@ to deal with a potential 65-bit intermediate result.  Since the intent is
 to avoid overflow problems and most of the other time conversions are only
 semiexact, the off-by-one errors were considered an acceptable tradeoff.
 
-NOTE: This patch uses a bc-based shell script to compute the appropriate
-constants.  This script should be run by hand if new HZ values are created,
-as doing it automatically introduces a dependency on bc, and has been shown
-to be unreliable in some environments.  The flipside, unfortunately, is
-that this may cause problems for "make randconfig" on MIPS and OMAP, which
-appear to allow arbitrary values to be entered into CONFIG_HZ.
+At Ralf Baechle's suggestion, this version uses a Perl script to compute
+the necessary constants.  We already have dependencies on Perl for kernel
+compiles.  This does, however, require the Perl module Math::BigInt, which
+is included in the standard Perl distribution starting with version 5.8.0. 
+In order to support older versions of Perl, include a table of canned
+constants in the script itself, and structure the script so that
+Math::BigInt isn't required if pulling values from said table.
+
+Running the script requires that the HZ value is available from the
+Makefile.  Thus, this patch also adds the Kconfig variable CONFIG_HZ to the
+architectures which didn't already have it (alpha, cris, frv, h8300, m32r,
+m68k, m68knommu, sh64, sparc, v850, and xtensa.) It does *not* resolve a
+weird case in the sh architecture, where HZ != CONFIG_HZ if CONFIG_SH_WDT
+is set.  Paul Mundt has been contacted about that, and has agreed to fix it
+up.
 
 Signed-off-by: H. Peter Anvin <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -61,14 +76,443 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: john stultz <johnstul@us.ibm.com>
 Cc: Roman Zippel <zippel@linux-m68k.org>
 Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time.c       |   29 +-
- kernel/timeconst.h  |  482 ++++++++++++++++++++++++++++++++++++++++++
- kernel/timeconst.sh |  158 +++++++++++++
- 3 files changed, 661 insertions(+), 8 deletions(-)
+ arch/alpha/Kconfig            |    5 
+ arch/cris/Kconfig             |    4 
+ arch/frv/Kconfig              |    4 
+ arch/h8300/Kconfig            |    4 
+ arch/m32r/Kconfig             |    4 
+ arch/m68k/Kconfig             |    4 
+ arch/m68knommu/Kconfig        |    5 
+ arch/sh64/Kconfig             |    6 
+ arch/sparc/Kconfig            |    4 
+ arch/v850/Kconfig             |    7 
+ arch/xtensa/Kconfig           |    4 
+ include/asm-alpha/param.h     |   10 
+ include/asm-cris/param.h      |    2 
+ include/asm-frv/param.h       |    2 
+ include/asm-h8300/param.h     |    2 
+ include/asm-m32r/param.h      |    2 
+ include/asm-m68k/param.h      |    2 
+ include/asm-m68knommu/param.h |    8 
+ include/asm-sparc/param.h     |    2 
+ include/asm-v850/anna.h       |    6 
+ include/asm-v850/as85ep1.h    |    6 
+ include/asm-v850/fpga85e2c.h  |    6 
+ include/asm-v850/param.h      |    3 
+ include/asm-v850/rte_cb.h     |    6 
+ include/asm-v850/sim.h        |    5 
+ include/asm-v850/sim85e2.h    |    6 
+ include/asm-xtensa/param.h    |    2 
+ kernel/Makefile               |    8 
+ kernel/time.c                 |   29 +-
+ kernel/timeconst.pl           |  340 ++++++++++++++++++++++++++++++++
+ 30 files changed, 430 insertions(+), 68 deletions(-)
 
+diff -puN arch/alpha/Kconfig~avoid-overflows-in-kernel-timec arch/alpha/Kconfig
+--- a/arch/alpha/Kconfig~avoid-overflows-in-kernel-timec
++++ a/arch/alpha/Kconfig
+@@ -611,6 +611,11 @@ config VERBOSE_MCHECK_ON
+ 
+ 	  Take the default (1) unless you want more control or more info.
+ 
++config HZ
++	int
++	default 1200 if ALPHA_RAWHIDE
++	default 1024
++
+ source "drivers/pci/Kconfig"
+ source "drivers/eisa/Kconfig"
+ 
+diff -puN arch/cris/Kconfig~avoid-overflows-in-kernel-timec arch/cris/Kconfig
+--- a/arch/cris/Kconfig~avoid-overflows-in-kernel-timec
++++ a/arch/cris/Kconfig
+@@ -55,6 +55,10 @@ config CRIS
+ 	bool
+ 	default y
+ 
++config HZ
++	int
++	default 100
++
+ source "init/Kconfig"
+ 
+ menu "General setup"
+diff -puN arch/frv/Kconfig~avoid-overflows-in-kernel-timec arch/frv/Kconfig
+--- a/arch/frv/Kconfig~avoid-overflows-in-kernel-timec
++++ a/arch/frv/Kconfig
+@@ -57,6 +57,10 @@ config ARCH_HAS_ILOG2_U64
+ 	bool
+ 	default y
+ 
++config HZ
++	int
++	default 1000
++
+ mainmenu "Fujitsu FR-V Kernel Configuration"
+ 
+ source "init/Kconfig"
+diff -puN arch/h8300/Kconfig~avoid-overflows-in-kernel-timec arch/h8300/Kconfig
+--- a/arch/h8300/Kconfig~avoid-overflows-in-kernel-timec
++++ a/arch/h8300/Kconfig
+@@ -79,6 +79,10 @@ config PCI
+ 	bool
+ 	default n
+ 
++config HZ
++	int
++	default 100
++
+ source "init/Kconfig"
+ 
+ source "arch/h8300/Kconfig.cpu"
+diff -puN arch/m32r/Kconfig~avoid-overflows-in-kernel-timec arch/m32r/Kconfig
+--- a/arch/m32r/Kconfig~avoid-overflows-in-kernel-timec
++++ a/arch/m32r/Kconfig
+@@ -34,6 +34,10 @@ config NO_IOPORT
+ config NO_DMA
+ 	def_bool y
+ 
++config HZ
++	int
++	default 100
++
+ source "init/Kconfig"
+ 
+ 
+diff -puN arch/m68k/Kconfig~avoid-overflows-in-kernel-timec arch/m68k/Kconfig
+--- a/arch/m68k/Kconfig~avoid-overflows-in-kernel-timec
++++ a/arch/m68k/Kconfig
+@@ -52,6 +52,10 @@ config NO_IOPORT
+ config NO_DMA
+ 	def_bool SUN3
+ 
++config HZ
++	int
++	default 100
++
+ mainmenu "Linux/68k Kernel Configuration"
+ 
+ source "init/Kconfig"
+diff -puN arch/m68knommu/Kconfig~avoid-overflows-in-kernel-timec arch/m68knommu/Kconfig
+--- a/arch/m68knommu/Kconfig~avoid-overflows-in-kernel-timec
++++ a/arch/m68knommu/Kconfig
+@@ -518,6 +518,11 @@ config 4KSTACKS
+ 	  running more threads on a system and also reduces the pressure
+ 	  on the VM subsystem for higher order allocations.
+ 
++config HZ
++	int
++	default 1000 if CLEOPATRA
++	default 100
++
+ comment "RAM configuration"
+ 
+ config RAMBASE
+diff -puN arch/sh64/Kconfig~avoid-overflows-in-kernel-timec arch/sh64/Kconfig
+--- a/arch/sh64/Kconfig~avoid-overflows-in-kernel-timec
++++ a/arch/sh64/Kconfig
+@@ -288,3 +288,9 @@ source "security/Kconfig"
+ source "crypto/Kconfig"
+ 
+ source "lib/Kconfig"
++
++# Higher frequency needed for high-res WOVF
++config HZ
++	int
++	default 1000	if SH_WDT
++	default 100
+diff -puN arch/sparc/Kconfig~avoid-overflows-in-kernel-timec arch/sparc/Kconfig
+--- a/arch/sparc/Kconfig~avoid-overflows-in-kernel-timec
++++ a/arch/sparc/Kconfig
+@@ -27,6 +27,10 @@ config ARCH_NO_VIRT_TO_BUS
+ config OF
+ 	def_bool y
+ 
++config HZ
++	int
++	default 100
++
+ source "init/Kconfig"
+ 
+ menu "General machine setup"
+diff -puN arch/v850/Kconfig~avoid-overflows-in-kernel-timec arch/v850/Kconfig
+--- a/arch/v850/Kconfig~avoid-overflows-in-kernel-timec
++++ a/arch/v850/Kconfig
+@@ -212,6 +212,13 @@ menu "Processor type and features"
+    	  bool
+ 	  default !V850E_CACHE && !V850E2_CACHE
+ 
++   # HZ depends on the platform
++   config HZ
++	  int
++	  default 24  if V850E_SIM || V850E2_SIM85E2
++	  default 122 if V850E2_FPGA85E2C
++	  default 100
++
+    #### Misc config
+ 
+    config ROM_KERNEL
+diff -puN arch/xtensa/Kconfig~avoid-overflows-in-kernel-timec arch/xtensa/Kconfig
+--- a/arch/xtensa/Kconfig~avoid-overflows-in-kernel-timec
++++ a/arch/xtensa/Kconfig
+@@ -49,6 +49,10 @@ config ARCH_HAS_ILOG2_U64
+ config NO_IOPORT
+ 	def_bool y
+ 
++config HZ
++	int
++	default 100
++
+ source "init/Kconfig"
+ 
+ menu "Processor type and features"
+diff -puN include/asm-alpha/param.h~avoid-overflows-in-kernel-timec include/asm-alpha/param.h
+--- a/include/asm-alpha/param.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-alpha/param.h
+@@ -5,15 +5,7 @@
+    hardware ignores reprogramming.  We also need userland buy-in to the 
+    change in HZ, since this is visible in the wait4 resources etc.  */
+ 
+-
+-#ifndef HZ
+-# ifndef CONFIG_ALPHA_RAWHIDE
+-#  define HZ	1024
+-# else
+-#  define HZ	1200
+-# endif
+-#endif
+-
++#define HZ		CONFIG_HZ
+ #define USER_HZ		HZ
+ 
+ #define EXEC_PAGESIZE	8192
+diff -puN include/asm-cris/param.h~avoid-overflows-in-kernel-timec include/asm-cris/param.h
+--- a/include/asm-cris/param.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-cris/param.h
+@@ -3,7 +3,7 @@
+ 
+ /* Currently we assume that HZ=100 is good for CRIS. */
+ #ifdef __KERNEL__
+-# define HZ		100		/* Internal kernel timer frequency */
++# define HZ		CONFIG_HZ	/* Internal kernel timer frequency */
+ # define USER_HZ	100		/* .. some user interfaces are in "ticks" */
+ # define CLOCKS_PER_SEC	(USER_HZ)	/* like times() */
+ #endif
+diff -puN include/asm-frv/param.h~avoid-overflows-in-kernel-timec include/asm-frv/param.h
+--- a/include/asm-frv/param.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-frv/param.h
+@@ -2,7 +2,7 @@
+ #define _ASM_PARAM_H
+ 
+ #ifdef __KERNEL__
+-#define HZ		1000		/* Internal kernel timer frequency */
++#define HZ		CONFIG_HZ	/* Internal kernel timer frequency */
+ #define USER_HZ		100		/* .. some user interfaces are in "ticks" */
+ #define CLOCKS_PER_SEC	(USER_HZ)	/* like times() */
+ #endif
+diff -puN include/asm-h8300/param.h~avoid-overflows-in-kernel-timec include/asm-h8300/param.h
+--- a/include/asm-h8300/param.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-h8300/param.h
+@@ -3,7 +3,7 @@
+ 
+ 
+ #ifndef HZ
+-#define HZ 100
++#define HZ CONFIG_HZ
+ #endif
+ 
+ #ifdef __KERNEL__
+diff -puN include/asm-m32r/param.h~avoid-overflows-in-kernel-timec include/asm-m32r/param.h
+--- a/include/asm-m32r/param.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-m32r/param.h
+@@ -2,7 +2,7 @@
+ #define _ASM_M32R_PARAM_H
+ 
+ #ifdef __KERNEL__
+-# define HZ		100		/* Internal kernel timer frequency */
++# define HZ		CONFIG_HZ	/* Internal kernel timer frequency */
+ # define USER_HZ	100		/* .. some user interfaces are in "ticks" */
+ # define CLOCKS_PER_SEC	(USER_HZ)	/* like times() */
+ #endif
+diff -puN include/asm-m68k/param.h~avoid-overflows-in-kernel-timec include/asm-m68k/param.h
+--- a/include/asm-m68k/param.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-m68k/param.h
+@@ -2,7 +2,7 @@
+ #define _M68K_PARAM_H
+ 
+ #ifdef __KERNEL__
+-# define HZ		100		/* Internal kernel timer frequency */
++# define HZ		CONFIG_HZ	/* Internal kernel timer frequency */
+ # define USER_HZ	100		/* .. some user interfaces are in "ticks" */
+ # define CLOCKS_PER_SEC	(USER_HZ)	/* like times() */
+ #endif
+diff -puN include/asm-m68knommu/param.h~avoid-overflows-in-kernel-timec include/asm-m68knommu/param.h
+--- a/include/asm-m68knommu/param.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-m68knommu/param.h
+@@ -1,13 +1,7 @@
+ #ifndef _M68KNOMMU_PARAM_H
+ #define _M68KNOMMU_PARAM_H
+ 
+-
+-#if defined(CONFIG_CLEOPATRA)
+-#define	HZ 1000
+-#endif
+-#ifndef HZ
+-#define	HZ 100
+-#endif
++#define HZ CONFIG_HZ
+ 
+ #ifdef __KERNEL__
+ #define	USER_HZ		HZ
+diff -puN include/asm-sparc/param.h~avoid-overflows-in-kernel-timec include/asm-sparc/param.h
+--- a/include/asm-sparc/param.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-sparc/param.h
+@@ -3,7 +3,7 @@
+ #define _ASMSPARC_PARAM_H
+ 
+ #ifdef __KERNEL__
+-# define HZ		100	/* Internal kernel timer frequency */
++# define HZ		CONFIG_HZ	/* Internal kernel timer frequency */
+ # define USER_HZ	100	/* .. some user interfaces are in "ticks" */
+ # define CLOCKS_PER_SEC (USER_HZ)
+ #endif
+diff -puN include/asm-v850/anna.h~avoid-overflows-in-kernel-timec include/asm-v850/anna.h
+--- a/include/asm-v850/anna.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-v850/anna.h
+@@ -134,10 +134,4 @@ extern void anna_uart_pre_configure (uns
+ #define V850E_TIMER_D_TMCD_CS_MIN	1 /* min 2^1 divider */
+ 
+ 
+-/* For <asm/param.h> */
+-#ifndef HZ
+-#define HZ	100
+-#endif
+-
+-
+ #endif /* __V850_ANNA_H__ */
+diff -puN include/asm-v850/as85ep1.h~avoid-overflows-in-kernel-timec include/asm-v850/as85ep1.h
+--- a/include/asm-v850/as85ep1.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-v850/as85ep1.h
+@@ -149,10 +149,4 @@ extern void as85ep1_uart_pre_configure (
+ #define V850E_TIMER_D_TMCD_CS_MIN	2 /* min 2^2 divider */
+ 
+ 
+-/* For <asm/param.h> */
+-#ifndef HZ
+-#define HZ	100
+-#endif
+-
+-
+ #endif /* __V850_AS85EP1_H__ */
+diff -puN include/asm-v850/fpga85e2c.h~avoid-overflows-in-kernel-timec include/asm-v850/fpga85e2c.h
+--- a/include/asm-v850/fpga85e2c.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-v850/fpga85e2c.h
+@@ -79,10 +79,4 @@ extern char _r0_ram;
+ #endif
+ 
+ 
+-/* For <asm/param.h> */
+-#ifndef HZ
+-#define HZ			122 /* actually, 8.192ms ticks =~ 122.07 */
+-#endif
+-
+-
+ #endif /* __V850_FPGA85E2C_H__ */
+diff -puN include/asm-v850/param.h~avoid-overflows-in-kernel-timec include/asm-v850/param.h
+--- a/include/asm-v850/param.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-v850/param.h
+@@ -23,8 +23,7 @@
+ #define MAXHOSTNAMELEN	64	/* max length of hostname */
+ 
+ #ifdef __KERNEL__
+-#include <asm/machdep.h>	/* For HZ */
+-
++# define HZ		CONFIG_HZ
+ # define USER_HZ	100
+ # define CLOCKS_PER_SEC	USER_HZ
+ #endif
+diff -puN include/asm-v850/rte_cb.h~avoid-overflows-in-kernel-timec include/asm-v850/rte_cb.h
+--- a/include/asm-v850/rte_cb.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-v850/rte_cb.h
+@@ -69,12 +69,6 @@
+ #endif /* CONFIG_RTE_MB_A_PCI */
+ 
+ 
+-/* For <asm/param.h> */
+-#ifndef HZ
+-#define HZ	100
+-#endif
+-
+-
+ #ifndef __ASSEMBLY__
+ extern void rte_cb_early_init (void);
+ extern void rte_cb_init_irqs (void);
+diff -puN include/asm-v850/sim.h~avoid-overflows-in-kernel-timec include/asm-v850/sim.h
+--- a/include/asm-v850/sim.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-v850/sim.h
+@@ -40,11 +40,6 @@
+ #define R0_RAM_ADDR		0xFFFFF000
+ 
+ 
+-/* For <asm/param.h> */
+-#ifndef HZ
+-#define HZ			24	/* Minimum supported frequency.  */
+-#endif
+-
+ /* For <asm/irq.h> */
+ #define NUM_CPU_IRQS		6
+ 
+diff -puN include/asm-v850/sim85e2.h~avoid-overflows-in-kernel-timec include/asm-v850/sim85e2.h
+--- a/include/asm-v850/sim85e2.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-v850/sim85e2.h
+@@ -66,10 +66,4 @@
+ #define R0_RAM_ADDR		0xFFFFE000
+ 
+ 
+-/* For <asm/param.h> */
+-#ifndef HZ
+-#define HZ			24	/* Minimum supported frequency.  */
+-#endif
+-
+-
+ #endif /* __V850_SIM85E2_H__ */
+diff -puN include/asm-xtensa/param.h~avoid-overflows-in-kernel-timec include/asm-xtensa/param.h
+--- a/include/asm-xtensa/param.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-xtensa/param.h
+@@ -12,7 +12,7 @@
+ #define _XTENSA_PARAM_H
+ 
+ #ifdef __KERNEL__
+-# define HZ		100		/* internal timer frequency */
++# define HZ		CONFIG_HZ	/* internal timer frequency */
+ # define USER_HZ	100		/* for user interfaces in "ticks" */
+ # define CLOCKS_PER_SEC (USER_HZ)	/* frequnzy at which times() counts */
+ #endif
+diff -puN kernel/Makefile~avoid-overflows-in-kernel-timec kernel/Makefile
+--- a/kernel/Makefile~avoid-overflows-in-kernel-timec
++++ a/kernel/Makefile
+@@ -85,3 +85,11 @@ quiet_cmd_ikconfiggz = IKCFG   $@
+ targets += config_data.h
+ $(obj)/config_data.h: $(obj)/config_data.gz FORCE
+ 	$(call if_changed,ikconfiggz)
++
++$(obj)/time.o: $(obj)/timeconst.h
++
++quiet_cmd_timeconst  = TIMEC   $@
++      cmd_timeconst  = $(PERL) $< $(CONFIG_HZ) > $@
++targets += timeconst.h
++$(obj)/timeconst.h: $(src)/timeconst.pl FORCE
++	$(call if_changed,timeconst)
 diff -puN kernel/time.c~avoid-overflows-in-kernel-timec kernel/time.c
 --- a/kernel/time.c~avoid-overflows-in-kernel-timec
 +++ a/kernel/time.c
@@ -161,654 +605,350 @@ diff -puN kernel/time.c~avoid-overflows-in-kernel-timec kernel/time.c
  #endif
  }
  EXPORT_SYMBOL(usecs_to_jiffies);
-diff -puN /dev/null kernel/timeconst.h
+diff -puN /dev/null kernel/timeconst.pl
 --- /dev/null
-+++ a/kernel/timeconst.h
-@@ -0,0 +1,482 @@
-+/* Automatically generated by kernel/timeconst.sh */
-+
-+#ifndef KERNEL_TIMECONST_H
-+#define KERNEL_TIMECONST_H
-+
-+#include <linux/param.h>
-+
-+#if HZ == 24
-+
-+#define HZ_TO_MSEC_MUL32 0xA6AAAAAB
-+#define HZ_TO_MSEC_ADJ32 0x2AAAAAA
-+#define HZ_TO_MSEC_SHR32 26
-+#define HZ_TO_MSEC_MUL64 0xA6AAAAAAAAAAAAAB
-+#define HZ_TO_MSEC_ADJ64 0x2AAAAAAAAAAAAAA
-+#define HZ_TO_MSEC_SHR64 58
-+#define MSEC_TO_HZ_MUL32 0xC49BA5E4
-+#define MSEC_TO_HZ_ADJ32 0x1FBE76C8B4
-+#define MSEC_TO_HZ_SHR32 37
-+#define MSEC_TO_HZ_MUL64 0xC49BA5E353F7CEDA
-+#define MSEC_TO_HZ_ADJ64 0x1FBE76C8B439581062
-+#define MSEC_TO_HZ_SHR64 69
-+#define HZ_TO_MSEC_NUM 125
-+#define HZ_TO_MSEC_DEN 3
-+#define MSEC_TO_HZ_NUM 3
-+#define MSEC_TO_HZ_DEN 125
-+
-+#define HZ_TO_USEC_MUL32 0xA2C2AAAB
-+#define HZ_TO_USEC_ADJ32 0xAAAA
-+#define HZ_TO_USEC_SHR32 16
-+#define HZ_TO_USEC_MUL64 0xA2C2AAAAAAAAAAAB
-+#define HZ_TO_USEC_ADJ64 0xAAAAAAAAAAAA
-+#define HZ_TO_USEC_SHR64 48
-+#define USEC_TO_HZ_MUL32 0xC9539B89
-+#define USEC_TO_HZ_ADJ32 0x7FFFBCE4217D
-+#define USEC_TO_HZ_SHR32 47
-+#define USEC_TO_HZ_MUL64 0xC9539B8887229E91
-+#define USEC_TO_HZ_ADJ64 0x7FFFBCE4217D2849CB25
-+#define USEC_TO_HZ_SHR64 79
-+#define HZ_TO_USEC_NUM 125000
-+#define HZ_TO_USEC_DEN 3
-+#define USEC_TO_HZ_NUM 3
-+#define USEC_TO_HZ_DEN 125000
-+
-+#elif HZ == 32
-+
-+#define HZ_TO_MSEC_MUL32 0xFA000000
-+#define HZ_TO_MSEC_ADJ32 0x6000000
-+#define HZ_TO_MSEC_SHR32 27
-+#define HZ_TO_MSEC_MUL64 0xFA00000000000000
-+#define HZ_TO_MSEC_ADJ64 0x600000000000000
-+#define HZ_TO_MSEC_SHR64 59
-+#define MSEC_TO_HZ_MUL32 0x83126E98
-+#define MSEC_TO_HZ_ADJ32 0xFDF3B645A
-+#define MSEC_TO_HZ_SHR32 36
-+#define MSEC_TO_HZ_MUL64 0x83126E978D4FDF3C
-+#define MSEC_TO_HZ_ADJ64 0xFDF3B645A1CAC0831
-+#define MSEC_TO_HZ_SHR64 68
-+#define HZ_TO_MSEC_NUM 125
-+#define HZ_TO_MSEC_DEN 4
-+#define MSEC_TO_HZ_NUM 4
-+#define MSEC_TO_HZ_DEN 125
-+
-+#define HZ_TO_USEC_MUL32 0xF4240000
-+#define HZ_TO_USEC_ADJ32 0x0
-+#define HZ_TO_USEC_SHR32 17
-+#define HZ_TO_USEC_MUL64 0xF424000000000000
-+#define HZ_TO_USEC_ADJ64 0x0
-+#define HZ_TO_USEC_SHR64 49
-+#define USEC_TO_HZ_MUL32 0x8637BD06
-+#define USEC_TO_HZ_ADJ32 0x3FFF79C842FA
-+#define USEC_TO_HZ_SHR32 46
-+#define USEC_TO_HZ_MUL64 0x8637BD05AF6C69B6
-+#define USEC_TO_HZ_ADJ64 0x3FFF79C842FA5093964A
-+#define USEC_TO_HZ_SHR64 78
-+#define HZ_TO_USEC_NUM 31250
-+#define HZ_TO_USEC_DEN 1
-+#define USEC_TO_HZ_NUM 1
-+#define USEC_TO_HZ_DEN 31250
-+
-+#elif HZ == 48
-+
-+#define HZ_TO_MSEC_MUL32 0xA6AAAAAB
-+#define HZ_TO_MSEC_ADJ32 0x6AAAAAA
-+#define HZ_TO_MSEC_SHR32 27
-+#define HZ_TO_MSEC_MUL64 0xA6AAAAAAAAAAAAAB
-+#define HZ_TO_MSEC_ADJ64 0x6AAAAAAAAAAAAAA
-+#define HZ_TO_MSEC_SHR64 59
-+#define MSEC_TO_HZ_MUL32 0xC49BA5E4
-+#define MSEC_TO_HZ_ADJ32 0xFDF3B645A
-+#define MSEC_TO_HZ_SHR32 36
-+#define MSEC_TO_HZ_MUL64 0xC49BA5E353F7CEDA
-+#define MSEC_TO_HZ_ADJ64 0xFDF3B645A1CAC0831
-+#define MSEC_TO_HZ_SHR64 68
-+#define HZ_TO_MSEC_NUM 125
-+#define HZ_TO_MSEC_DEN 6
-+#define MSEC_TO_HZ_NUM 6
-+#define MSEC_TO_HZ_DEN 125
-+
-+#define HZ_TO_USEC_MUL32 0xA2C2AAAB
-+#define HZ_TO_USEC_ADJ32 0x15555
-+#define HZ_TO_USEC_SHR32 17
-+#define HZ_TO_USEC_MUL64 0xA2C2AAAAAAAAAAAB
-+#define HZ_TO_USEC_ADJ64 0x1555555555555
-+#define HZ_TO_USEC_SHR64 49
-+#define USEC_TO_HZ_MUL32 0xC9539B89
-+#define USEC_TO_HZ_ADJ32 0x3FFFBCE4217D
-+#define USEC_TO_HZ_SHR32 46
-+#define USEC_TO_HZ_MUL64 0xC9539B8887229E91
-+#define USEC_TO_HZ_ADJ64 0x3FFFBCE4217D2849CB25
-+#define USEC_TO_HZ_SHR64 78
-+#define HZ_TO_USEC_NUM 62500
-+#define HZ_TO_USEC_DEN 3
-+#define USEC_TO_HZ_NUM 3
-+#define USEC_TO_HZ_DEN 62500
-+
-+#elif HZ == 64
-+
-+#define HZ_TO_MSEC_MUL32 0xFA000000
-+#define HZ_TO_MSEC_ADJ32 0xE000000
-+#define HZ_TO_MSEC_SHR32 28
-+#define HZ_TO_MSEC_MUL64 0xFA00000000000000
-+#define HZ_TO_MSEC_ADJ64 0xE00000000000000
-+#define HZ_TO_MSEC_SHR64 60
-+#define MSEC_TO_HZ_MUL32 0x83126E98
-+#define MSEC_TO_HZ_ADJ32 0x7EF9DB22D
-+#define MSEC_TO_HZ_SHR32 35
-+#define MSEC_TO_HZ_MUL64 0x83126E978D4FDF3C
-+#define MSEC_TO_HZ_ADJ64 0x7EF9DB22D0E560418
-+#define MSEC_TO_HZ_SHR64 67
-+#define HZ_TO_MSEC_NUM 125
-+#define HZ_TO_MSEC_DEN 8
-+#define MSEC_TO_HZ_NUM 8
-+#define MSEC_TO_HZ_DEN 125
-+
-+#define HZ_TO_USEC_MUL32 0xF4240000
-+#define HZ_TO_USEC_ADJ32 0x0
-+#define HZ_TO_USEC_SHR32 18
-+#define HZ_TO_USEC_MUL64 0xF424000000000000
-+#define HZ_TO_USEC_ADJ64 0x0
-+#define HZ_TO_USEC_SHR64 50
-+#define USEC_TO_HZ_MUL32 0x8637BD06
-+#define USEC_TO_HZ_ADJ32 0x1FFF79C842FA
-+#define USEC_TO_HZ_SHR32 45
-+#define USEC_TO_HZ_MUL64 0x8637BD05AF6C69B6
-+#define USEC_TO_HZ_ADJ64 0x1FFF79C842FA5093964A
-+#define USEC_TO_HZ_SHR64 77
-+#define HZ_TO_USEC_NUM 15625
-+#define HZ_TO_USEC_DEN 1
-+#define USEC_TO_HZ_NUM 1
-+#define USEC_TO_HZ_DEN 15625
-+
-+#elif HZ == 100
-+
-+#define HZ_TO_MSEC_MUL32 0xA0000000
-+#define HZ_TO_MSEC_ADJ32 0x0
-+#define HZ_TO_MSEC_SHR32 28
-+#define HZ_TO_MSEC_MUL64 0xA000000000000000
-+#define HZ_TO_MSEC_ADJ64 0x0
-+#define HZ_TO_MSEC_SHR64 60
-+#define MSEC_TO_HZ_MUL32 0xCCCCCCCD
-+#define MSEC_TO_HZ_ADJ32 0x733333333
-+#define MSEC_TO_HZ_SHR32 35
-+#define MSEC_TO_HZ_MUL64 0xCCCCCCCCCCCCCCCD
-+#define MSEC_TO_HZ_ADJ64 0x73333333333333333
-+#define MSEC_TO_HZ_SHR64 67
-+#define HZ_TO_MSEC_NUM 10
-+#define HZ_TO_MSEC_DEN 1
-+#define MSEC_TO_HZ_NUM 1
-+#define MSEC_TO_HZ_DEN 10
-+
-+#define HZ_TO_USEC_MUL32 0x9C400000
-+#define HZ_TO_USEC_ADJ32 0x0
-+#define HZ_TO_USEC_SHR32 18
-+#define HZ_TO_USEC_MUL64 0x9C40000000000000
-+#define HZ_TO_USEC_ADJ64 0x0
-+#define HZ_TO_USEC_SHR64 50
-+#define USEC_TO_HZ_MUL32 0xD1B71759
-+#define USEC_TO_HZ_ADJ32 0x1FFF2E48E8A7
-+#define USEC_TO_HZ_SHR32 45
-+#define USEC_TO_HZ_MUL64 0xD1B71758E219652C
-+#define USEC_TO_HZ_ADJ64 0x1FFF2E48E8A71DE69AD4
-+#define USEC_TO_HZ_SHR64 77
-+#define HZ_TO_USEC_NUM 10000
-+#define HZ_TO_USEC_DEN 1
-+#define USEC_TO_HZ_NUM 1
-+#define USEC_TO_HZ_DEN 10000
-+
-+#elif HZ == 128
-+
-+#define HZ_TO_MSEC_MUL32 0xFA000000
-+#define HZ_TO_MSEC_ADJ32 0x1E000000
-+#define HZ_TO_MSEC_SHR32 29
-+#define HZ_TO_MSEC_MUL64 0xFA00000000000000
-+#define HZ_TO_MSEC_ADJ64 0x1E00000000000000
-+#define HZ_TO_MSEC_SHR64 61
-+#define MSEC_TO_HZ_MUL32 0x83126E98
-+#define MSEC_TO_HZ_ADJ32 0x3F7CED916
-+#define MSEC_TO_HZ_SHR32 34
-+#define MSEC_TO_HZ_MUL64 0x83126E978D4FDF3C
-+#define MSEC_TO_HZ_ADJ64 0x3F7CED916872B020C
-+#define MSEC_TO_HZ_SHR64 66
-+#define HZ_TO_MSEC_NUM 125
-+#define HZ_TO_MSEC_DEN 16
-+#define MSEC_TO_HZ_NUM 16
-+#define MSEC_TO_HZ_DEN 125
-+
-+#define HZ_TO_USEC_MUL32 0xF4240000
-+#define HZ_TO_USEC_ADJ32 0x40000
-+#define HZ_TO_USEC_SHR32 19
-+#define HZ_TO_USEC_MUL64 0xF424000000000000
-+#define HZ_TO_USEC_ADJ64 0x4000000000000
-+#define HZ_TO_USEC_SHR64 51
-+#define USEC_TO_HZ_MUL32 0x8637BD06
-+#define USEC_TO_HZ_ADJ32 0xFFFBCE4217D
-+#define USEC_TO_HZ_SHR32 44
-+#define USEC_TO_HZ_MUL64 0x8637BD05AF6C69B6
-+#define USEC_TO_HZ_ADJ64 0xFFFBCE4217D2849CB25
-+#define USEC_TO_HZ_SHR64 76
-+#define HZ_TO_USEC_NUM 15625
-+#define HZ_TO_USEC_DEN 2
-+#define USEC_TO_HZ_NUM 2
-+#define USEC_TO_HZ_DEN 15625
-+
-+#elif HZ == 200
-+
-+#define HZ_TO_MSEC_MUL32 0xA0000000
-+#define HZ_TO_MSEC_ADJ32 0x0
-+#define HZ_TO_MSEC_SHR32 29
-+#define HZ_TO_MSEC_MUL64 0xA000000000000000
-+#define HZ_TO_MSEC_ADJ64 0x0
-+#define HZ_TO_MSEC_SHR64 61
-+#define MSEC_TO_HZ_MUL32 0xCCCCCCCD
-+#define MSEC_TO_HZ_ADJ32 0x333333333
-+#define MSEC_TO_HZ_SHR32 34
-+#define MSEC_TO_HZ_MUL64 0xCCCCCCCCCCCCCCCD
-+#define MSEC_TO_HZ_ADJ64 0x33333333333333333
-+#define MSEC_TO_HZ_SHR64 66
-+#define HZ_TO_MSEC_NUM 5
-+#define HZ_TO_MSEC_DEN 1
-+#define MSEC_TO_HZ_NUM 1
-+#define MSEC_TO_HZ_DEN 5
-+
-+#define HZ_TO_USEC_MUL32 0x9C400000
-+#define HZ_TO_USEC_ADJ32 0x0
-+#define HZ_TO_USEC_SHR32 19
-+#define HZ_TO_USEC_MUL64 0x9C40000000000000
-+#define HZ_TO_USEC_ADJ64 0x0
-+#define HZ_TO_USEC_SHR64 51
-+#define USEC_TO_HZ_MUL32 0xD1B71759
-+#define USEC_TO_HZ_ADJ32 0xFFF2E48E8A7
-+#define USEC_TO_HZ_SHR32 44
-+#define USEC_TO_HZ_MUL64 0xD1B71758E219652C
-+#define USEC_TO_HZ_ADJ64 0xFFF2E48E8A71DE69AD4
-+#define USEC_TO_HZ_SHR64 76
-+#define HZ_TO_USEC_NUM 5000
-+#define HZ_TO_USEC_DEN 1
-+#define USEC_TO_HZ_NUM 1
-+#define USEC_TO_HZ_DEN 5000
-+
-+#elif HZ == 250
-+
-+#define HZ_TO_MSEC_MUL32 0x80000000
-+#define HZ_TO_MSEC_ADJ32 0x0
-+#define HZ_TO_MSEC_SHR32 29
-+#define HZ_TO_MSEC_MUL64 0x8000000000000000
-+#define HZ_TO_MSEC_ADJ64 0x0
-+#define HZ_TO_MSEC_SHR64 61
-+#define MSEC_TO_HZ_MUL32 0x80000000
-+#define MSEC_TO_HZ_ADJ32 0x180000000
-+#define MSEC_TO_HZ_SHR32 33
-+#define MSEC_TO_HZ_MUL64 0x8000000000000000
-+#define MSEC_TO_HZ_ADJ64 0x18000000000000000
-+#define MSEC_TO_HZ_SHR64 65
-+#define HZ_TO_MSEC_NUM 4
-+#define HZ_TO_MSEC_DEN 1
-+#define MSEC_TO_HZ_NUM 1
-+#define MSEC_TO_HZ_DEN 4
-+
-+#define HZ_TO_USEC_MUL32 0xFA000000
-+#define HZ_TO_USEC_ADJ32 0x0
-+#define HZ_TO_USEC_SHR32 20
-+#define HZ_TO_USEC_MUL64 0xFA00000000000000
-+#define HZ_TO_USEC_ADJ64 0x0
-+#define HZ_TO_USEC_SHR64 52
-+#define USEC_TO_HZ_MUL32 0x83126E98
-+#define USEC_TO_HZ_ADJ32 0x7FF7CED9168
-+#define USEC_TO_HZ_SHR32 43
-+#define USEC_TO_HZ_MUL64 0x83126E978D4FDF3C
-+#define USEC_TO_HZ_ADJ64 0x7FF7CED916872B020C4
-+#define USEC_TO_HZ_SHR64 75
-+#define HZ_TO_USEC_NUM 4000
-+#define HZ_TO_USEC_DEN 1
-+#define USEC_TO_HZ_NUM 1
-+#define USEC_TO_HZ_DEN 4000
-+
-+#elif HZ == 256
-+
-+#define HZ_TO_MSEC_MUL32 0xFA000000
-+#define HZ_TO_MSEC_ADJ32 0x3E000000
-+#define HZ_TO_MSEC_SHR32 30
-+#define HZ_TO_MSEC_MUL64 0xFA00000000000000
-+#define HZ_TO_MSEC_ADJ64 0x3E00000000000000
-+#define HZ_TO_MSEC_SHR64 62
-+#define MSEC_TO_HZ_MUL32 0x83126E98
-+#define MSEC_TO_HZ_ADJ32 0x1FBE76C8B
-+#define MSEC_TO_HZ_SHR32 33
-+#define MSEC_TO_HZ_MUL64 0x83126E978D4FDF3C
-+#define MSEC_TO_HZ_ADJ64 0x1FBE76C8B43958106
-+#define MSEC_TO_HZ_SHR64 65
-+#define HZ_TO_MSEC_NUM 125
-+#define HZ_TO_MSEC_DEN 32
-+#define MSEC_TO_HZ_NUM 32
-+#define MSEC_TO_HZ_DEN 125
-+
-+#define HZ_TO_USEC_MUL32 0xF4240000
-+#define HZ_TO_USEC_ADJ32 0xC0000
-+#define HZ_TO_USEC_SHR32 20
-+#define HZ_TO_USEC_MUL64 0xF424000000000000
-+#define HZ_TO_USEC_ADJ64 0xC000000000000
-+#define HZ_TO_USEC_SHR64 52
-+#define USEC_TO_HZ_MUL32 0x8637BD06
-+#define USEC_TO_HZ_ADJ32 0x7FFDE7210BE
-+#define USEC_TO_HZ_SHR32 43
-+#define USEC_TO_HZ_MUL64 0x8637BD05AF6C69B6
-+#define USEC_TO_HZ_ADJ64 0x7FFDE7210BE9424E592
-+#define USEC_TO_HZ_SHR64 75
-+#define HZ_TO_USEC_NUM 15625
-+#define HZ_TO_USEC_DEN 4
-+#define USEC_TO_HZ_NUM 4
-+#define USEC_TO_HZ_DEN 15625
-+
-+#elif HZ == 300
-+
-+#define HZ_TO_MSEC_MUL32 0xD5555556
-+#define HZ_TO_MSEC_ADJ32 0x2AAAAAAA
-+#define HZ_TO_MSEC_SHR32 30
-+#define HZ_TO_MSEC_MUL64 0xD555555555555556
-+#define HZ_TO_MSEC_ADJ64 0x2AAAAAAAAAAAAAAA
-+#define HZ_TO_MSEC_SHR64 62
-+#define MSEC_TO_HZ_MUL32 0x9999999A
-+#define MSEC_TO_HZ_ADJ32 0x1CCCCCCCC
-+#define MSEC_TO_HZ_SHR32 33
-+#define MSEC_TO_HZ_MUL64 0x999999999999999A
-+#define MSEC_TO_HZ_ADJ64 0x1CCCCCCCCCCCCCCCC
-+#define MSEC_TO_HZ_SHR64 65
-+#define HZ_TO_MSEC_NUM 10
-+#define HZ_TO_MSEC_DEN 3
-+#define MSEC_TO_HZ_NUM 3
-+#define MSEC_TO_HZ_DEN 10
-+
-+#define HZ_TO_USEC_MUL32 0xD0555556
-+#define HZ_TO_USEC_ADJ32 0xAAAAA
-+#define HZ_TO_USEC_SHR32 20
-+#define HZ_TO_USEC_MUL64 0xD055555555555556
-+#define HZ_TO_USEC_ADJ64 0xAAAAAAAAAAAAA
-+#define HZ_TO_USEC_SHR64 52
-+#define USEC_TO_HZ_MUL32 0x9D495183
-+#define USEC_TO_HZ_ADJ32 0x7FFCB923A29
-+#define USEC_TO_HZ_SHR32 43
-+#define USEC_TO_HZ_MUL64 0x9D495182A9930BE1
-+#define USEC_TO_HZ_ADJ64 0x7FFCB923A29C779A6B5
-+#define USEC_TO_HZ_SHR64 75
-+#define HZ_TO_USEC_NUM 10000
-+#define HZ_TO_USEC_DEN 3
-+#define USEC_TO_HZ_NUM 3
-+#define USEC_TO_HZ_DEN 10000
-+
-+#elif HZ == 512
-+
-+#define HZ_TO_MSEC_MUL32 0xFA000000
-+#define HZ_TO_MSEC_ADJ32 0x7E000000
-+#define HZ_TO_MSEC_SHR32 31
-+#define HZ_TO_MSEC_MUL64 0xFA00000000000000
-+#define HZ_TO_MSEC_ADJ64 0x7E00000000000000
-+#define HZ_TO_MSEC_SHR64 63
-+#define MSEC_TO_HZ_MUL32 0x83126E98
-+#define MSEC_TO_HZ_ADJ32 0xFDF3B645
-+#define MSEC_TO_HZ_SHR32 32
-+#define MSEC_TO_HZ_MUL64 0x83126E978D4FDF3C
-+#define MSEC_TO_HZ_ADJ64 0xFDF3B645A1CAC083
-+#define MSEC_TO_HZ_SHR64 64
-+#define HZ_TO_MSEC_NUM 125
-+#define HZ_TO_MSEC_DEN 64
-+#define MSEC_TO_HZ_NUM 64
-+#define MSEC_TO_HZ_DEN 125
-+
-+#define HZ_TO_USEC_MUL32 0xF4240000
-+#define HZ_TO_USEC_ADJ32 0x1C0000
-+#define HZ_TO_USEC_SHR32 21
-+#define HZ_TO_USEC_MUL64 0xF424000000000000
-+#define HZ_TO_USEC_ADJ64 0x1C000000000000
-+#define HZ_TO_USEC_SHR64 53
-+#define USEC_TO_HZ_MUL32 0x8637BD06
-+#define USEC_TO_HZ_ADJ32 0x3FFEF39085F
-+#define USEC_TO_HZ_SHR32 42
-+#define USEC_TO_HZ_MUL64 0x8637BD05AF6C69B6
-+#define USEC_TO_HZ_ADJ64 0x3FFEF39085F4A1272C9
-+#define USEC_TO_HZ_SHR64 74
-+#define HZ_TO_USEC_NUM 15625
-+#define HZ_TO_USEC_DEN 8
-+#define USEC_TO_HZ_NUM 8
-+#define USEC_TO_HZ_DEN 15625
-+
-+#elif HZ == 1000
-+
-+#define HZ_TO_MSEC_MUL32 0x80000000
-+#define HZ_TO_MSEC_ADJ32 0x0
-+#define HZ_TO_MSEC_SHR32 31
-+#define HZ_TO_MSEC_MUL64 0x8000000000000000
-+#define HZ_TO_MSEC_ADJ64 0x0
-+#define HZ_TO_MSEC_SHR64 63
-+#define MSEC_TO_HZ_MUL32 0x80000000
-+#define MSEC_TO_HZ_ADJ32 0x0
-+#define MSEC_TO_HZ_SHR32 31
-+#define MSEC_TO_HZ_MUL64 0x8000000000000000
-+#define MSEC_TO_HZ_ADJ64 0x0
-+#define MSEC_TO_HZ_SHR64 63
-+#define HZ_TO_MSEC_NUM 1
-+#define HZ_TO_MSEC_DEN 1
-+#define MSEC_TO_HZ_NUM 1
-+#define MSEC_TO_HZ_DEN 1
-+
-+#define HZ_TO_USEC_MUL32 0xFA000000
-+#define HZ_TO_USEC_ADJ32 0x0
-+#define HZ_TO_USEC_SHR32 22
-+#define HZ_TO_USEC_MUL64 0xFA00000000000000
-+#define HZ_TO_USEC_ADJ64 0x0
-+#define HZ_TO_USEC_SHR64 54
-+#define USEC_TO_HZ_MUL32 0x83126E98
-+#define USEC_TO_HZ_ADJ32 0x1FF7CED9168
-+#define USEC_TO_HZ_SHR32 41
-+#define USEC_TO_HZ_MUL64 0x83126E978D4FDF3C
-+#define USEC_TO_HZ_ADJ64 0x1FF7CED916872B020C4
-+#define USEC_TO_HZ_SHR64 73
-+#define HZ_TO_USEC_NUM 1000
-+#define HZ_TO_USEC_DEN 1
-+#define USEC_TO_HZ_NUM 1
-+#define USEC_TO_HZ_DEN 1000
-+
-+#elif HZ == 1024
-+
-+#define HZ_TO_MSEC_MUL32 0xFA000000
-+#define HZ_TO_MSEC_ADJ32 0xFE000000
-+#define HZ_TO_MSEC_SHR32 32
-+#define HZ_TO_MSEC_MUL64 0xFA00000000000000
-+#define HZ_TO_MSEC_ADJ64 0xFE00000000000000
-+#define HZ_TO_MSEC_SHR64 64
-+#define MSEC_TO_HZ_MUL32 0x83126E98
-+#define MSEC_TO_HZ_ADJ32 0x7EF9DB22
-+#define MSEC_TO_HZ_SHR32 31
-+#define MSEC_TO_HZ_MUL64 0x83126E978D4FDF3C
-+#define MSEC_TO_HZ_ADJ64 0x7EF9DB22D0E56041
-+#define MSEC_TO_HZ_SHR64 63
-+#define HZ_TO_MSEC_NUM 125
-+#define HZ_TO_MSEC_DEN 128
-+#define MSEC_TO_HZ_NUM 128
-+#define MSEC_TO_HZ_DEN 125
-+
-+#define HZ_TO_USEC_MUL32 0xF4240000
-+#define HZ_TO_USEC_ADJ32 0x3C0000
-+#define HZ_TO_USEC_SHR32 22
-+#define HZ_TO_USEC_MUL64 0xF424000000000000
-+#define HZ_TO_USEC_ADJ64 0x3C000000000000
-+#define HZ_TO_USEC_SHR64 54
-+#define USEC_TO_HZ_MUL32 0x8637BD06
-+#define USEC_TO_HZ_ADJ32 0x1FFF79C842F
-+#define USEC_TO_HZ_SHR32 41
-+#define USEC_TO_HZ_MUL64 0x8637BD05AF6C69B6
-+#define USEC_TO_HZ_ADJ64 0x1FFF79C842FA5093964
-+#define USEC_TO_HZ_SHR64 73
-+#define HZ_TO_USEC_NUM 15625
-+#define HZ_TO_USEC_DEN 16
-+#define USEC_TO_HZ_NUM 16
-+#define USEC_TO_HZ_DEN 15625
-+
-+#else
-+
-+#error "Update kernel/timeconst.h for your value of HZ"
-+
-+#endif /* HZ */
-+
-+#endif /* KERNEL_TIMECONST_H */
-diff -puN /dev/null kernel/timeconst.sh
---- /dev/null
-+++ a/kernel/timeconst.sh
-@@ -0,0 +1,158 @@
-+#!/bin/sh
++++ a/kernel/timeconst.pl
+@@ -0,0 +1,340 @@
++#!/usr/bin/perl
++# -----------------------------------------------------------------------
 +#
-+# Script to generate kernel/timeconst.h.
-+# Requires a working GNU bc on the system.
++#   Copyright 2007 rPath, Inc. - All Rights Reserved
 +#
-+# This script needs to be done manually if new HZ values are
-+# created.
++#   This file is part of the Linux kernel, and is made available under
++#   the terms of the GNU General Public License version 2 or (at your
++#   option) any later version; incorporated herein by reference.
++#
++# -----------------------------------------------------------------------
 +#
 +
-+# kernel/Kconfig.hz defines 100, 250, 300, and 1000.
-+# arch/mips/Kconfig adds 48, 128, 256, and 1024 (and "arbitrary"...)
-+# arch/arm/Kconfig adds 128 and 200.
-+# arch/arm/plat-omap/Kconfig adds 32, 64, 128, 256, 512 and 1024.
-+# include/asm-alpha/param.h adds 1024.
-+# include/asm-ia64/param.h adds 32.
-+# include/asm-v850/sim*.h adds 24.
-+HZ_LIST='24 32 48 64 100 128 200 250 256 300 512 1000 1024'
++#
++# Usage: timeconst.pl HZ > timeconst.h
++#
 +
-+echo '/* Automatically generated by kernel/timeconst.sh */'
-+echo ''
-+echo '#ifndef KERNEL_TIMECONST_H'
-+echo '#define KERNEL_TIMECONST_H'
-+echo ''
-+echo '#include <linux/param.h>'
-+echo ''
++# Precomputed values for systems without Math::BigInt
++# Generated by:
++# timeconst.pl --can 24 32 48 64 100 122 128 200 250 256 300 512 \
++# 1000 1024 1200
++%canned_values = (
++	24 => [
++		'0xa6aaaaab','0x2aaaaaa',26,
++		'0xa6aaaaaaaaaaaaab','0x2aaaaaaaaaaaaaa',58,
++		'0xc49ba5e4','0x1fbe76c8b4',37,
++		'0xc49ba5e353f7ceda','0x1fbe76c8b439581062',69,
++		'0xa2c2aaab','0xaaaa',16,
++		'0xa2c2aaaaaaaaaaab','0xaaaaaaaaaaaa',48,
++		'0xc9539b89','0x7fffbce4217d',47,
++		'0xc9539b8887229e91','0x7fffbce4217d2849cb25',79,
++	], 32 => [
++		'0xfa000000','0x6000000',27,
++		'0xfa00000000000000','0x600000000000000',59,
++		'0x83126e98','0xfdf3b645a',36,
++		'0x83126e978d4fdf3c','0xfdf3b645a1cac0831',68,
++		'0xf4240000','0x0',17,
++		'0xf424000000000000','0x0',49,
++		'0x8637bd06','0x3fff79c842fa',46,
++		'0x8637bd05af6c69b6','0x3fff79c842fa5093964a',78,
++	], 48 => [
++		'0xa6aaaaab','0x6aaaaaa',27,
++		'0xa6aaaaaaaaaaaaab','0x6aaaaaaaaaaaaaa',59,
++		'0xc49ba5e4','0xfdf3b645a',36,
++		'0xc49ba5e353f7ceda','0xfdf3b645a1cac0831',68,
++		'0xa2c2aaab','0x15555',17,
++		'0xa2c2aaaaaaaaaaab','0x1555555555555',49,
++		'0xc9539b89','0x3fffbce4217d',46,
++		'0xc9539b8887229e91','0x3fffbce4217d2849cb25',78,
++	], 64 => [
++		'0xfa000000','0xe000000',28,
++		'0xfa00000000000000','0xe00000000000000',60,
++		'0x83126e98','0x7ef9db22d',35,
++		'0x83126e978d4fdf3c','0x7ef9db22d0e560418',67,
++		'0xf4240000','0x0',18,
++		'0xf424000000000000','0x0',50,
++		'0x8637bd06','0x1fff79c842fa',45,
++		'0x8637bd05af6c69b6','0x1fff79c842fa5093964a',77,
++	], 100 => [
++		'0xa0000000','0x0',28,
++		'0xa000000000000000','0x0',60,
++		'0xcccccccd','0x733333333',35,
++		'0xcccccccccccccccd','0x73333333333333333',67,
++		'0x9c400000','0x0',18,
++		'0x9c40000000000000','0x0',50,
++		'0xd1b71759','0x1fff2e48e8a7',45,
++		'0xd1b71758e219652c','0x1fff2e48e8a71de69ad4',77,
++	], 122 => [
++		'0x8325c53f','0xfbcda3a',28,
++		'0x8325c53ef368eb05','0xfbcda3ac10c9714',60,
++		'0xf9db22d1','0x7fbe76c8b',35,
++		'0xf9db22d0e560418a','0x7fbe76c8b43958106',67,
++		'0x8012e2a0','0x3ef36',18,
++		'0x8012e29f79b47583','0x3ef368eb04325',50,
++		'0xffda4053','0x1ffffbce4217',45,
++		'0xffda4052d666a983','0x1ffffbce4217d2849cb2',77,
++	], 128 => [
++		'0xfa000000','0x1e000000',29,
++		'0xfa00000000000000','0x1e00000000000000',61,
++		'0x83126e98','0x3f7ced916',34,
++		'0x83126e978d4fdf3c','0x3f7ced916872b020c',66,
++		'0xf4240000','0x40000',19,
++		'0xf424000000000000','0x4000000000000',51,
++		'0x8637bd06','0xfffbce4217d',44,
++		'0x8637bd05af6c69b6','0xfffbce4217d2849cb25',76,
++	], 200 => [
++		'0xa0000000','0x0',29,
++		'0xa000000000000000','0x0',61,
++		'0xcccccccd','0x333333333',34,
++		'0xcccccccccccccccd','0x33333333333333333',66,
++		'0x9c400000','0x0',19,
++		'0x9c40000000000000','0x0',51,
++		'0xd1b71759','0xfff2e48e8a7',44,
++		'0xd1b71758e219652c','0xfff2e48e8a71de69ad4',76,
++	], 250 => [
++		'0x80000000','0x0',29,
++		'0x8000000000000000','0x0',61,
++		'0x80000000','0x180000000',33,
++		'0x8000000000000000','0x18000000000000000',65,
++		'0xfa000000','0x0',20,
++		'0xfa00000000000000','0x0',52,
++		'0x83126e98','0x7ff7ced9168',43,
++		'0x83126e978d4fdf3c','0x7ff7ced916872b020c4',75,
++	], 256 => [
++		'0xfa000000','0x3e000000',30,
++		'0xfa00000000000000','0x3e00000000000000',62,
++		'0x83126e98','0x1fbe76c8b',33,
++		'0x83126e978d4fdf3c','0x1fbe76c8b43958106',65,
++		'0xf4240000','0xc0000',20,
++		'0xf424000000000000','0xc000000000000',52,
++		'0x8637bd06','0x7ffde7210be',43,
++		'0x8637bd05af6c69b6','0x7ffde7210be9424e592',75,
++	], 300 => [
++		'0xd5555556','0x2aaaaaaa',30,
++		'0xd555555555555556','0x2aaaaaaaaaaaaaaa',62,
++		'0x9999999a','0x1cccccccc',33,
++		'0x999999999999999a','0x1cccccccccccccccc',65,
++		'0xd0555556','0xaaaaa',20,
++		'0xd055555555555556','0xaaaaaaaaaaaaa',52,
++		'0x9d495183','0x7ffcb923a29',43,
++		'0x9d495182a9930be1','0x7ffcb923a29c779a6b5',75,
++	], 512 => [
++		'0xfa000000','0x7e000000',31,
++		'0xfa00000000000000','0x7e00000000000000',63,
++		'0x83126e98','0xfdf3b645',32,
++		'0x83126e978d4fdf3c','0xfdf3b645a1cac083',64,
++		'0xf4240000','0x1c0000',21,
++		'0xf424000000000000','0x1c000000000000',53,
++		'0x8637bd06','0x3ffef39085f',42,
++		'0x8637bd05af6c69b6','0x3ffef39085f4a1272c9',74,
++	], 1000 => [
++		'0x80000000','0x0',31,
++		'0x8000000000000000','0x0',63,
++		'0x80000000','0x0',31,
++		'0x8000000000000000','0x0',63,
++		'0xfa000000','0x0',22,
++		'0xfa00000000000000','0x0',54,
++		'0x83126e98','0x1ff7ced9168',41,
++		'0x83126e978d4fdf3c','0x1ff7ced916872b020c4',73,
++	], 1024 => [
++		'0xfa000000','0xfe000000',32,
++		'0xfa00000000000000','0xfe00000000000000',64,
++		'0x83126e98','0x7ef9db22',31,
++		'0x83126e978d4fdf3c','0x7ef9db22d0e56041',63,
++		'0xf4240000','0x3c0000',22,
++		'0xf424000000000000','0x3c000000000000',54,
++		'0x8637bd06','0x1fff79c842f',41,
++		'0x8637bd05af6c69b6','0x1fff79c842fa5093964',73,
++	], 1200 => [
++		'0xd5555556','0xd5555555',32,
++		'0xd555555555555556','0xd555555555555555',64,
++		'0x9999999a','0x66666666',31,
++		'0x999999999999999a','0x6666666666666666',63,
++		'0xd0555556','0x2aaaaa',22,
++		'0xd055555555555556','0x2aaaaaaaaaaaaa',54,
++		'0x9d495183','0x1ffcb923a29',41,
++		'0x9d495182a9930be1','0x1ffcb923a29c779a6b5',73,
++	]
++);
 +
-+my_if='#if'
++$has_bigint = eval 'use Math::BigInt qw(bgcd); 1;';
 +
-+for h in $HZ_LIST; do
-+    echo "$my_if HZ == $h"
-+    bc -q <<EOF
-+hz=$h
-+scale=0
++sub bint($)
++{
++	my($x) = @_;
++	return Math::BigInt->new($x);
++}
 +
-+define gcd(a,b) {
-+	auto t;
-+	while (b) {
-+		t = b;
-+		b = a % b;
-+		a = t;
++#
++# Constants for division by reciprocal multiplication.
++# (bits, numerator, denominator)
++#
++sub fmul($$$)
++{
++	my ($b,$n,$d) = @_;
++
++	$n = bint($n);
++	$d = bint($d);
++
++	return scalar (($n << $b)+$d-bint(1))/$d;
++}
++
++sub fadj($$$)
++{
++	my($b,$n,$d) = @_;
++
++	$n = bint($n);
++	$d = bint($d);
++
++	$d = $d/bgcd($n, $d);
++	return scalar (($d-bint(1)) << $b)/$d;
++}
++
++sub fmuls($$$) {
++	my($b,$n,$d) = @_;
++	my($s,$m);
++	my($thres) = bint(1) << ($b-1);
++
++	$n = bint($n);
++	$d = bint($d);
++
++	for ($s = 0; 1; $s++) {
++		$m = fmul($s,$n,$d);
++		return $s if ($m >= $thres);
 +	}
-+	return(a);
++	return 0;
 +}
 +
-+/* Division by reciprocal multiplication. */
-+define fmul(b,n,d) {
-+       return((2^b*n+d-1)/d);
-+}
++sub compute_values($) {
++	my($hz) = @_;
++	my @val = ();
++	my $s, $m, $a;
 +
-+/* Adjustment factor when a ceiling value is used.  Use as:
-+   (imul * n) + (fmulxx * n + fadjxx) >> xx) */
-+define fadj(b,n,d) {
-+	auto v;
-+	d = d/gcd(n,d);
-+	v = 2^b*(d-1)/d;
-+	return(v);
-+}
-+
-+/* Compute the appropriate mul/adj values as well as a shift count,
-+   which brings the mul value into the range 2^b-1 <= x < 2^b.  Such
-+   a shift value will be correct in the signed integer range and off
-+   by at most one in the upper half of the unsigned range. */
-+define fmuls(b,n,d) {
-+	auto s, m;
-+	for (s = 0; 1; s++) {
-+		m = fmul(s,n,d);
-+		if (m >= 2^(b-1))
-+			return(s);
++	if (!$has_bigint) {
++		die "$0: HZ == $hz not canned and ".
++		    "Math::BigInt not available\n";
 +	}
-+	return(0);
++
++	# HZ_TO_MSEC_*32
++	$s = fmuls(32, 1000, $hz);
++	$m = fmul($s, 1000, $hz);
++	$a = fadj($s, 1000, $hz);
++	push(@val, $m->as_hex(), $a->as_hex(), $s);
++
++	# HZ_TO_MSEC_*64
++	$s = fmuls(64, 1000, $hz);
++	$m = fmul($s, 1000, $hz);
++	$a = fadj($s, 1000, $hz);
++	push(@val, $m->as_hex(), $a->as_hex(), $s);
++
++	# MSEC_TO_HZ_*32
++	$s = fmuls(32, $hz, 1000);
++	$m = fmul($s, $hz, 1000);
++	$a = fadj($s, $hz, 1000);
++	push(@val, $m->as_hex(), $a->as_hex(), $s);
++
++	# MSEC_TO_HZ_*64
++	$s = fmuls(64, $hz, 1000);
++	$m = fmul($s, $hz, 1000);
++	$a = fadj($s, $hz, 1000);
++	push(@val, $m->as_hex(), $a->as_hex(), $s);
++
++	# HZ_TO_USEC_*32
++	$s = fmuls(32, 1000000, $hz);
++	$m = fmul($s, 1000000, $hz);
++	$a = fadj($s, 1000000, $hz);
++	push(@val, $m->as_hex(), $a->as_hex(), $s);
++
++	# HZ_TO_USEC_*64
++	$s = fmuls(64, 1000000, $hz);
++	$m = fmul($s, 1000000, $hz);
++	$a = fadj($s, 1000000, $hz);
++	push(@val, $m->as_hex(), $a->as_hex(), $s);
++
++	# USEC_TO_HZ_*32
++	$s = fmuls(32, $hz, 1000000);
++	$m = fmul($s, $hz, 1000000);
++	$a = fadj($s, $hz, 1000000);
++	push(@val, $m->as_hex(), $a->as_hex(), $s);
++
++	# USEC_TO_HZ_*64
++	$s = fmuls(64, $hz, 1000000);
++	$m = fmul($s, $hz, 1000000);
++	$a = fadj($s, $hz, 1000000);
++	push(@val, $m->as_hex(), $a->as_hex(), $s);
++
++	return @val;
 +}
 +
-+print "\n"
++sub output($@)
++{
++	my($hz, @val) = @_;
++	my $pfx, $bit, $suf, $s, $m, $a;
 +
-+s=fmuls(32,1000,hz)
-+obase=16
-+print "#define HZ_TO_MSEC_MUL32 0x", fmul(s,1000,hz), "\n"
-+print "#define HZ_TO_MSEC_ADJ32 0x", fadj(s,1000,hz), "\n"
-+obase=10
-+print "#define HZ_TO_MSEC_SHR32 ", s, "\n"
++	print "/* Automatically generated by kernel/timeconst.pl */\n";
++	print "/* Conversion constants for HZ == $hz */\n";
++	print "\n";
++	print "#ifndef KERNEL_TIMECONST_H\n";
++	print "#define KERNEL_TIMECONST_H\n";
++	print "\n";
 +
-+s=fmuls(64,1000,hz)
-+obase=16
-+print "#define HZ_TO_MSEC_MUL64 0x", fmul(s,1000,hz), "\n"
-+print "#define HZ_TO_MSEC_ADJ64 0x", fadj(s,1000,hz), "\n"
-+obase=10
-+print "#define HZ_TO_MSEC_SHR64 ", s, "\n"
++	print "#include <linux/param.h>\n";
 +
-+s=fmuls(32,hz,1000)
-+obase=16
-+print "#define MSEC_TO_HZ_MUL32 0x", fmul(s,hz,1000), "\n"
-+print "#define MSEC_TO_HZ_ADJ32 0x", fadj(s,hz,1000), "\n"
-+obase=10
-+print "#define MSEC_TO_HZ_SHR32 ", s, "\n"
++	print "\n";
++	print "#if HZ != $hz\n";
++	print "#error \"kernel/timeconst.h has the wrong HZ value!\"\n";
++	print "#endif\n";
++	print "\n";
 +
-+s=fmuls(64,hz,1000)
-+obase=16
-+print "#define MSEC_TO_HZ_MUL64 0x", fmul(s,hz,1000), "\n"
-+print "#define MSEC_TO_HZ_ADJ64 0x", fadj(s,hz,1000), "\n"
-+obase=10
-+print "#define MSEC_TO_HZ_SHR64 ", s, "\n"
++	foreach $pfx ('HZ_TO_MSEC','MSEC_TO_HZ',
++		      'USEC_TO_HZ','HZ_TO_USEC') {
++		foreach $bit (32, 64) {
++			foreach $suf ('MUL', 'ADJ', 'SHR') {
++				printf "#define %-23s %s\n",
++				"${pfx}_$suf$bit", shift(@val);
++			}
++		}
++	}
 +
-+obase=10
-+cd=gcd(hz,1000)
-+print "#define HZ_TO_MSEC_NUM ", 1000/cd, "\n"
-+print "#define HZ_TO_MSEC_DEN ", hz/cd, "\n"
-+print "#define MSEC_TO_HZ_NUM ", hz/cd, "\n"
-+print "#define MSEC_TO_HZ_DEN ", 1000/cd, "\n"
-+print "\n"
++	print "\n";
++	print "#endif /* KERNEL_TIMECONST_H */\n";
++}
 +
-+s=fmuls(32,1000000,hz)
-+obase=16
-+print "#define HZ_TO_USEC_MUL32 0x", fmul(s,1000000,hz), "\n"
-+print "#define HZ_TO_USEC_ADJ32 0x", fadj(s,1000000,hz), "\n"
-+obase=10
-+print "#define HZ_TO_USEC_SHR32 ", s, "\n"
++($hz) = @ARGV;
 +
-+s=fmuls(64,1000000,hz)
-+obase=16
-+print "#define HZ_TO_USEC_MUL64 0x", fmul(s,1000000,hz), "\n"
-+print "#define HZ_TO_USEC_ADJ64 0x", fadj(s,1000000,hz), "\n"
-+obase=10
-+print "#define HZ_TO_USEC_SHR64 ", s, "\n"
++# Use this to generate the %canned_values structure
++if ($hz eq '--can') {
++	shift(@ARGV);
++	@hzlist = sort {$a <=> $b} (@ARGV);
 +
-+s=fmuls(32,hz,1000000)
-+obase=16
-+print "#define USEC_TO_HZ_MUL32 0x", fmul(s,hz,1000000), "\n"
-+print "#define USEC_TO_HZ_ADJ32 0x", fadj(s,hz,1000000), "\n"
-+obase=10
-+print "#define USEC_TO_HZ_SHR32 ", s, "\n"
++	print "# Precomputed values for systems without Math::BigInt\n";
++	print "# Generated by:\n";
++	print "# timeconst.pl --can ", join(' ', @hzlist), "\n";
++	print "\%canned_values = (\n";
++	my $pf = "\t";
++	foreach $hz (@hzlist) {
++		my @values = compute_values($hz);
++		print "$pf$hz => [\n";
++		while (scalar(@values)) {
++			my $m = shift(@values);
++			my $a = shift(@values);
++			my $s = shift(@values);
++			print "\t\t\'",$m,"\',\'",$a,"\',",$s,",\n";
++		}
++		print "\t]";
++		$pf = ', ';
++	}
++	print "\n);\n";
++} else {
++	$hz += 0;			# Force to number
++	if ($hz < 1) {
++		die "Usage: $0 HZ\n";
++	}
 +
-+s=fmuls(64,hz,1000000)
-+obase=16
-+print "#define USEC_TO_HZ_MUL64 0x", fmul(s,hz,1000000), "\n"
-+print "#define USEC_TO_HZ_ADJ64 0x", fadj(s,hz,1000000), "\n"
-+obase=10
-+print "#define USEC_TO_HZ_SHR64 ", s, "\n"
-+
-+obase=10
-+cd=gcd(hz,1000000)
-+print "#define HZ_TO_USEC_NUM ", 1000000/cd, "\n"
-+print "#define HZ_TO_USEC_DEN ", hz/cd, "\n"
-+print "#define USEC_TO_HZ_NUM ", hz/cd, "\n"
-+print "#define USEC_TO_HZ_DEN ", 1000000/cd, "\n"
-+print "\n"
-+
-+quit
-+EOF
-+my_if='#elif'
-+done
-+
-+echo '#else'
-+echo ''
-+echo '#error "Update kernel/timeconst.h for your value of HZ"'
-+echo ''
-+echo '#endif /* HZ */'
-+echo ''
-+echo '#endif /* KERNEL_TIMECONST_H */'
++	@val = @{$canned_values{$hz}};
++	if (!defined(@val)) {
++		@val = compute_values($hz);
++	}
++	output($hz, @val);
++}
++exit 0;
 _
 
 Patches currently in -mm which might be from hpa@zytor.com are
