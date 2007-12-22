@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration.patch added to -mm tree
-Date: Sat, 22 Dec 2007 01:50:32 -0800
-Message-ID: <200712220950.lBM9oW3c027219@imap1.linux-foundation.org>
+Subject: + export-iov_shorten-for-ext4s-use.patch added to -mm tree
+Date: Sat, 22 Dec 2007 01:51:59 -0800
+Message-ID: <200712220951.lBM9px3h027260@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50565 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40798 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750825AbXLVJvB (ORCPT
+	by vger.kernel.org with ESMTP id S1750780AbXLVJxF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Dec 2007 04:51:01 -0500
+	Sat, 22 Dec 2007 04:53:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davidel@xmailserver.org, mingo@elte.hu, mtk-manpages@gmx.net, tglx@linutronix.de
+Cc: sandeen@redhat.com, cmm@us.ibm.com, tytso@mit.edu
 
 
 The patch titled
-     timerfd: make the returned time to be the remaining time till the next expiration
+     export iov_shorten for ext4's use
 has been added to the -mm tree.  Its filename is
-     timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration.patch
+     export-iov_shorten-for-ext4s-use.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,88 +28,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: timerfd: make the returned time to be the remaining time till the next expiration
-From: Davide Libenzi <davidel@xmailserver.org>
+Subject: export iov_shorten for ext4's use
+From: Eric Sandeen <sandeen@redhat.com>
 
-Make the returned time to be the remaining time till the next expiration.  If
-the timer is already expired, and there's no next expiration, zero will be
-returned.
+ext4 needs to deal with 2 different max file offsets for block- and
+extent-allocated file formats, whereas the s_maxbytes scheme can only deal
+with one.  So, for block-allocated files, we must catch and fix up
+too-large offsets from within the filesystem.
 
-Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
-Cc: Michael Kerrisk <mtk-manpages@gmx.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Having iov_shorten exported allows such things as:
+
+		if (pos + length > sbi->s_bitmap_maxbytes) {
+			nr_segs = iov_shorten((struct iovec *)iov, nr_segs,
+					      sbi->s_bitmap_maxbytes - pos);
+		}
+
+to fix up too-large writes to these files in ext4_file_write().
+
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Cc: Mingming Cao <cmm@us.ibm.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/timerfd.c |   13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ fs/read_write.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/timerfd.c~timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration fs/timerfd.c
---- a/fs/timerfd.c~timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration
-+++ a/fs/timerfd.c
-@@ -49,6 +49,15 @@ static enum hrtimer_restart timerfd_tmrp
- 	return HRTIMER_NORESTART;
- }
- 
-+static ktime_t timerfd_get_remaining(struct timerfd_ctx *ctx) {
-+	ktime_t now, remaining;
-+
-+	now = ctx->tmr.base->get_time();
-+	remaining = ktime_sub(ctx->tmr.expires, now);
-+
-+	return remaining.tv64 < 0 ? ktime_set(0, 0): remaining;
-+}
-+
- static void timerfd_setup(struct timerfd_ctx *ctx, int flags,
- 			  const struct itimerspec *ktmr)
- {
-@@ -240,7 +249,7 @@ asmlinkage long sys_timerfd_settime(int 
- 	if (ctx->expired && ctx->tintv.tv64)
- 		hrtimer_forward_now(&ctx->tmr, ctx->tintv);
- 
--	kotmr.it_value = ktime_to_timespec(ctx->tmr.expires);
-+	kotmr.it_value = ktime_to_timespec(timerfd_get_remaining(ctx));
- 	kotmr.it_interval = ktime_to_timespec(ctx->tintv);
- 
- 	/*
-@@ -274,7 +283,7 @@ asmlinkage long sys_timerfd_gettime(int 
- 			hrtimer_forward_now(&ctx->tmr, ctx->tintv) - 1;
- 		hrtimer_restart(&ctx->tmr);
+diff -puN fs/read_write.c~export-iov_shorten-for-ext4s-use fs/read_write.c
+--- a/fs/read_write.c~export-iov_shorten-for-ext4s-use
++++ a/fs/read_write.c
+@@ -450,6 +450,7 @@ unsigned long iov_shorten(struct iovec *
  	}
--	kotmr.it_value = ktime_to_timespec(ctx->tmr.expires);
-+	kotmr.it_value = ktime_to_timespec(timerfd_get_remaining(ctx));
- 	kotmr.it_interval = ktime_to_timespec(ctx->tintv);
- 	spin_unlock_irq(&ctx->wqh.lock);
- 	fput(file);
+ 	return seg;
+ }
++EXPORT_SYMBOL(iov_shorten)
+ 
+ ssize_t do_sync_readv_writev(struct file *filp, const struct iovec *iov,
+ 		unsigned long nr_segs, size_t len, loff_t *ppos, iov_fn_t fn)
 _
 
-Patches currently in -mm which might be from davidel@xmailserver.org are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
-__group_complete_signal-fix-coredump-with-group-stop-race.patch
-remove-handle_group_stop-in-favor-of-do_signal_stop.patch
-exec-rework-the-group-exit-and-fix-the-race-with-kill.patch
-timerfd-v3-introduce-a-new-hrtimer_forward_now-function.patch
-timerfd-v3-new-timerfd-api.patch
-timerfd-v3-new-timerfd-api-make-hrtimer_forward-to-return-a-u64.patch
-timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration.patch
-timerfd-v3-new-timerfd-api-ia64-fix.patch
-timerfd-v3-new-timerfd-api-m68k-fix.patch
-timerfd-v3-new-timerfd-api-mips-fix.patch
-timerfd-v3-new-timerfd-api-arch-fixes.patch
-timerfd-v3-new-timerfd-api-s390-fix.patch
-timerfd-v3-new-timerfd-api-powerpc-fix.patch
-timerfd-v3-new-timerfd-api-sparc64-fix.patch
-timerfd-v3-new-timerfd-api-update-sys_nic-with-the-new-timerfd-syscalls.patch
-timerfd-v3-wire-the-new-timerfd-api-to-the-x86-family.patch
-timerfd-v3-un-break-config_timerfd.patch
-git-kvm.patch
-use-wake_up_locked-in-eventpoll.patch
-fs-signalfdc-should-include-linux-syscallsh.patch
-fs-eventfdc-should-include-linux-syscallsh.patch
-fs-remove-dead-config-config_has_compat_epoll_event-symbol.patch
-fix-group-stop-with-exit-race.patch
-move-the-related-code-from-exit_notify-to-exit_signals.patch
-uglify-kill_pid_info-to-fix-kill-vs-exec-race.patch
-uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice.patch
-itimer_real-convert-to-use-struct-pid.patch
+ecryptfs-fix-string-overflow-on-long-cipher-names.patch
+ecryptfs-fix-unlocking-in-error-paths.patch
+ecryptfs-redo-dgetmntget-on-dentry_open-failure.patch
+hfs-handle-more-on-disk-corruptions-without-oopsing.patch
+hfs-handle-more-on-disk-corruptions-without-oopsing-fix.patch
+ext2-change-the-default-behaviour-on-error.patch
+export-iov_shorten-for-ext4s-use.patch
+ecryptfs-make-show_options-reflect-actual-mount-options.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+ecryptfs-remove-debug-as-mount-option-and-warn-if-set-via-modprobe.patch
+ext3-change-the-default-behaviour-on-error.patch
