@@ -1,31 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + udf-remove-wrong-prototype-of-udf_readdir-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 21 Dec 2007 16:19:04 -0800
-Message-ID: <200712220019.lBM0J5m6006301@imap1.linux-foundation.org>
+Subject: - udf-remove-wrong-prototype-of-udf_readdir-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 21 Dec 2007 16:21:36 -0800
+Message-ID: <200712220021.lBM0Latv006370@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43490 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47299 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755697AbXLVATS (ORCPT
+	by vger.kernel.org with ESMTP id S1754308AbXLVAVs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Dec 2007 19:19:18 -0500
+	Fri, 21 Dec 2007 19:21:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bfennema@falcon.csc.calpoly.edu, jack@suse.cz, marcin.slusarz@gmail.com
+To: akpm@linux-foundation.org, bfennema@falcon.csc.calpoly.edu, jack@suse.cz, marcin.slusarz@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      udf-remove-wrong-prototype-of-udf_readdir-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      udf-remove-wrong-prototype-of-udf_readdir-checkpatch-fixes.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
-
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 Subject: udf-remove-wrong-prototype-of-udf_readdir-checkpatch-fixes
