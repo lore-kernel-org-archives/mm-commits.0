@@ -1,112 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - udf-fix-sparse-warnings-shadowing-mismatch-between-declaration-and-definition.patch removed from -mm tree
-Date: Fri, 21 Dec 2007 16:21:48 -0800
-Message-ID: <200712220021.lBM0LmZJ006385@imap1.linux-foundation.org>
+Subject: + udf-improve-readability-of-do_udf_readdir.patch added to -mm tree
+Date: Fri, 21 Dec 2007 16:23:00 -0800
+Message-ID: <200712220023.lBM0N0tH006479@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54306 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42196 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757649AbXLVAWB (ORCPT
+	by vger.kernel.org with ESMTP id S1754563AbXLVAXK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Dec 2007 19:22:01 -0500
+	Fri, 21 Dec 2007 19:23:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: marcin.slusarz@gmail.com, bfennema@falcon.csc.calpoly.edu, jack@suse.cz, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: marcin.slusarz@gmail.com, bfennema@falcon.csc.calpoly.edu, jack@suse.cz
 
 
 The patch titled
-     udf: fix sparse warnings (shadowing & mismatch between declaration and definition)
-has been removed from the -mm tree.  Its filename was
-     udf-fix-sparse-warnings-shadowing-mismatch-between-declaration-and-definition.patch
+     udf: improve readability of do_udf_readdir
+has been added to the -mm tree.  Its filename is
+     udf-improve-readability-of-do_udf_readdir.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
+
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: udf: fix sparse warnings (shadowing & mismatch between declaration and definition)
+Subject: udf: improve readability of do_udf_readdir
 From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-fix warnings:
-fs/udf/super.c:1320:24: warning: symbol 'bh' shadows an earlier one
-fs/udf/super.c:1240:21: originally declared here
-fs/udf/super.c:1583:4: warning: symbol 'i' shadows an earlier one
-fs/udf/super.c:1418:6: originally declared here
-fs/udf/super.c:1585:4: warning: symbol 'i' shadows an earlier one
-fs/udf/super.c:1418:6: originally declared here
-fs/udf/super.c:1658:4: warning: symbol 'i' shadows an earlier one
-fs/udf/super.c:1648:6: originally declared here
-fs/udf/super.c:1660:4: warning: symbol 'i' shadows an earlier one
-fs/udf/super.c:1648:6: originally declared here
-fs/udf/super.c:450:6: warning: symbol 'udf_write_super' was not declared. Should it be static?
+make reading do_udf_readdir easier by adding new variable
 
 Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
 Cc: Ben Fennema <bfennema@falcon.csc.calpoly.edu>
-Cc: Jan Kara <jack@suse.cz>
+Acked-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/super.c |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ fs/udf/dir.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN fs/udf/super.c~udf-fix-sparse-warnings-shadowing-mismatch-between-declaration-and-definition fs/udf/super.c
---- a/fs/udf/super.c~udf-fix-sparse-warnings-shadowing-mismatch-between-declaration-and-definition
-+++ a/fs/udf/super.c
-@@ -447,7 +447,7 @@ static int udf_parse_options(char *optio
- 	return 1;
- }
+diff -puN fs/udf/dir.c~udf-improve-readability-of-do_udf_readdir fs/udf/dir.c
+--- a/fs/udf/dir.c~udf-improve-readability-of-do_udf_readdir
++++ a/fs/udf/dir.c
+@@ -57,6 +57,7 @@ static int do_udf_readdir(struct inode *
+ 	int i, num;
+ 	unsigned int dt_type;
+ 	struct extent_position epos = { NULL, 0, {0, 0} };
++	unsigned char bits;
  
--void udf_write_super(struct super_block *sb)
-+static void udf_write_super(struct super_block *sb)
- {
- 	lock_kernel();
+ 	if (nf_pos >= size)
+ 		return 0;
+@@ -65,12 +66,14 @@ static int do_udf_readdir(struct inode *
+ 		nf_pos = (udf_ext0_offset(dir) >> 2);
  
-@@ -1317,7 +1317,6 @@ static int udf_load_partition(struct sup
- 				UDF_SB_TYPEVIRT(sb, i).s_num_entries =
- 					(UDF_SB_VAT(sb)->i_size - 36) >> 2;
- 			} else if (UDF_SB_PARTTYPE(sb, i) == UDF_VIRTUAL_MAP20) {
--				struct buffer_head *bh = NULL;
- 				uint32_t pos;
- 
- 				pos = udf_block_map(UDF_SB_VAT(sb), 0);
-@@ -1415,7 +1414,7 @@ static void udf_close_lvid(struct super_
-  */
- static int udf_fill_super(struct super_block *sb, void *options, int silent)
- {
--	int i;
-+	int idx;
- 	struct inode *inode = NULL;
- 	struct udf_options uopt;
- 	kernel_lb_addr rootdir, fileset;
-@@ -1583,8 +1582,8 @@ error_out:
- 		if (UDF_SB_PARTFLAGS(sb, UDF_SB_PARTITION(sb)) & UDF_PART_FLAG_FREED_BITMAP)
- 			UDF_SB_FREE_BITMAP(sb,UDF_SB_PARTITION(sb), s_fspace);
- 		if (UDF_SB_PARTTYPE(sb, UDF_SB_PARTITION(sb)) == UDF_SPARABLE_MAP15) {
--			for (i = 0; i < 4; i++)
--				brelse(UDF_SB_TYPESPAR(sb, UDF_SB_PARTITION(sb)).s_spar_map[i]);
-+			for (idx = 0; idx < 4; idx++)
-+				brelse(UDF_SB_TYPESPAR(sb, UDF_SB_PARTITION(sb)).s_spar_map[idx]);
+ 	fibh.soffset = fibh.eoffset = (nf_pos & ((dir->i_sb->s_blocksize - 1) >> 2)) << 2;
++	bits = dir->i_sb->s_blocksize_bits;
++
+ 	if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_IN_ICB) {
+ 		fibh.sbh = fibh.ebh = NULL;
+-	} else if (inode_bmap(dir, nf_pos >> (dir->i_sb->s_blocksize_bits - 2),
++	} else if (inode_bmap(dir, nf_pos >> (bits - 2),
+ 			      &epos, &eloc, &elen, &offset) == (EXT_RECORDED_ALLOCATED >> 30)) {
+ 		block = udf_get_lb_pblock(dir->i_sb, eloc, offset);
+-		if ((++offset << dir->i_sb->s_blocksize_bits) < elen) {
++		if ((++offset << bits) < elen) {
+ 			if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_SHORT)
+ 				epos.offset -= sizeof(short_ad);
+ 			else if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_LONG)
+@@ -84,10 +87,10 @@ static int do_udf_readdir(struct inode *
+ 			return -EIO;
  		}
- 	}
- #ifdef CONFIG_UDF_NLS
-@@ -1644,7 +1643,7 @@ void udf_warning(struct super_block *sb,
-  */
- static void udf_put_super(struct super_block *sb)
- {
--	int i;
-+	int idx;
  
- 	if (UDF_SB_VAT(sb))
- 		iput(UDF_SB_VAT(sb));
-@@ -1658,8 +1657,8 @@ static void udf_put_super(struct super_b
- 		if (UDF_SB_PARTFLAGS(sb, UDF_SB_PARTITION(sb)) & UDF_PART_FLAG_FREED_BITMAP)
- 			UDF_SB_FREE_BITMAP(sb,UDF_SB_PARTITION(sb), s_fspace);
- 		if (UDF_SB_PARTTYPE(sb, UDF_SB_PARTITION(sb)) == UDF_SPARABLE_MAP15) {
--			for (i = 0; i < 4; i++)
--				brelse(UDF_SB_TYPESPAR(sb, UDF_SB_PARTITION(sb)).s_spar_map[i]);
-+			for (idx = 0; idx < 4; idx++)
-+				brelse(UDF_SB_TYPESPAR(sb, UDF_SB_PARTITION(sb)).s_spar_map[idx]);
- 		}
- 	}
- #ifdef CONFIG_UDF_NLS
+-		if (!(offset & ((16 >> (dir->i_sb->s_blocksize_bits - 9)) - 1))) {
+-			i = 16 >> (dir->i_sb->s_blocksize_bits - 9);
+-			if (i + offset > (elen >> dir->i_sb->s_blocksize_bits))
+-				i = (elen >> dir->i_sb->s_blocksize_bits) - offset;
++		if (!(offset & ((16 >> (bits - 9)) - 1))) {
++			i = 16 >> (bits - 9);
++			if (i + offset > (elen >> bits))
++				i = (elen >> bits) - offset;
+ 			for (num = 0; i > 0; i--) {
+ 				block = udf_get_lb_pblock(dir->i_sb, eloc, offset + i);
+ 				tmp = udf_tgetblk(dir->i_sb, block);
 _
 
 Patches currently in -mm which might be from marcin.slusarz@gmail.com are
@@ -118,4 +96,8 @@ fbcon-fix-sparse-warning-about-shadowing-p-symbol.patch
 fbcon-fix-sparse-warning-about-shadowing-rotate-symbol.patch
 logo-move-declarations-of-logos-to-linux_logoh.patch
 logo-move-declarations-of-logos-to-linux_logoh-fix.patch
-udf-fix-sparse-warnings-shadowing-mismatch-between-declaration-and-definition.patch
+udf-remove-wrong-prototype-of-udf_readdir.patch
+udf-improve-readability-of-do_udf_readdir.patch
+udf-fix-coding-style-of-dirc.patch
+udf-fix-3-signedness-1-unitialized-variable-warnings.patch
+udf-fix-signedness-issue.patch
