@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sound-usb-usbaudioc-fix-build-with-config_pm=n.patch added to -mm tree
-Date: Sat, 22 Dec 2007 19:14:27 -0800
-Message-ID: <200712230314.lBN3ERCc031951@imap1.linux-foundation.org>
+Subject: + git-sched-fix-preempt-rcu-on-non-preemptible-architectures.patch added to -mm tree
+Date: Sat, 22 Dec 2007 19:30:37 -0800
+Message-ID: <200712230330.lBN3UbfT032428@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45343 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37286 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753046AbXLWDOo (ORCPT
+	by vger.kernel.org with ESMTP id S1752327AbXLWDcu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Dec 2007 22:14:44 -0500
+	Sat, 22 Dec 2007 22:32:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, perex@suse.cz, tiwai@suse.de
+Cc: akpm@linux-foundation.org, mingo@elte.hu, paulmck@us.ibm.com
 
 
 The patch titled
-     sound/usb/usbaudio.c: fix build with CONFIG_PM=n
+     git-sched: fix preempt-rcu on non-preemptible architectures
 has been added to the -mm tree.  Its filename is
-     sound-usb-usbaudioc-fix-build-with-config_pm=n.patch
+     git-sched-fix-preempt-rcu-on-non-preemptible-architectures.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,54 +28,115 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sound/usb/usbaudio.c: fix build with CONFIG_PM=n
+Subject: git-sched: fix preempt-rcu on non-preemptible architectures
 From: Andrew Morton <akpm@linux-foundation.org>
 
-sound/usb/usbaudio.c: In function 'usb_audio_suspend':
-sound/usb/usbaudio.c:3674: error: implicit declaration of function 'snd_pcm_suspend_all'
+Some architectures don't include Kconfig.preempt.
 
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+alpha allmodconfig:
+
+: undefined reference to `__rcu_read_lock'
+arch/alpha/kernel/built-in.o: In function `osf_select':
+: undefined reference to `__rcu_read_unlock'
+arch/alpha/kernel/built-in.o: In function `osf_select':
+: undefined reference to `__rcu_read_unlock'
+kernel/built-in.o: In function `sched_destroy_group':
+: undefined reference to `call_rcu'
+kernel/built-in.o: In function `sched_destroy_group':
+
+etc * 1,000,000
+
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/usb/usbaudio.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ fs/Kconfig             |    1 -
+ init/Kconfig           |   28 ++++++++++++++++++++++++++++
+ kernel/Kconfig.preempt |   28 ----------------------------
+ 3 files changed, 28 insertions(+), 29 deletions(-)
 
-diff -puN sound/usb/usbaudio.c~sound-usb-usbaudioc-fix-build-with-config_pm=n sound/usb/usbaudio.c
---- a/sound/usb/usbaudio.c~sound-usb-usbaudioc-fix-build-with-config_pm=n
-+++ a/sound/usb/usbaudio.c
-@@ -2077,8 +2077,14 @@ int snd_usb_ctl_msg(struct usb_device *d
- static int usb_audio_probe(struct usb_interface *intf,
- 			   const struct usb_device_id *id);
- static void usb_audio_disconnect(struct usb_interface *intf);
+diff -puN fs/Kconfig~git-sched-fix-preempt-rcu-on-non-preemptible-architectures fs/Kconfig
+--- a/fs/Kconfig~git-sched-fix-preempt-rcu-on-non-preemptible-architectures
++++ a/fs/Kconfig
+@@ -2157,4 +2157,3 @@ source "fs/nls/Kconfig"
+ source "fs/dlm/Kconfig"
+ 
+ endmenu
+-
+diff -puN init/Kconfig~git-sched-fix-preempt-rcu-on-non-preemptible-architectures init/Kconfig
+--- a/init/Kconfig~git-sched-fix-preempt-rcu-on-non-preemptible-architectures
++++ a/init/Kconfig
+@@ -815,3 +815,31 @@ source "block/Kconfig"
+ 
+ config PREEMPT_NOTIFIERS
+ 	bool
 +
-+#ifdef CONFIG_PM
- static int usb_audio_suspend(struct usb_interface *intf, pm_message_t message);
- static int usb_audio_resume(struct usb_interface *intf);
-+#else
-+#define usb_audio_suspend NULL
-+#define usb_audio_resume NULL
-+#endif
++choice
++	prompt "RCU implementation type:"
++	default CLASSIC_RCU
++
++config CLASSIC_RCU
++	bool "Classic RCU"
++	help
++	  This option selects the classic RCU implementation that is
++	  designed for best read-side performance on non-realtime
++	  systems.
++
++	  Say Y if you are unsure.
++
++config PREEMPT_RCU
++	bool "Preemptible RCU"
++	depends on PREEMPT
++	help
++	  This option reduces the latency of the kernel by making certain
++	  RCU sections preemptible. Normally RCU code is non-preemptible, if
++	  this option is selected then read-only RCU sections become
++	  preemptible. This helps latency, but may expose bugs due to
++	  now-naive assumptions about each RCU read-side critical section
++	  remaining on a given CPU through its execution.
++
++	  Say N if you are unsure.
++
++endchoice
+diff -puN kernel/Kconfig.preempt~git-sched-fix-preempt-rcu-on-non-preemptible-architectures kernel/Kconfig.preempt
+--- a/kernel/Kconfig.preempt~git-sched-fix-preempt-rcu-on-non-preemptible-architectures
++++ a/kernel/Kconfig.preempt
+@@ -63,34 +63,6 @@ config PREEMPT_BKL
+ 	  Say Y here if you are building a kernel for a desktop system.
+ 	  Say N if you are unsure.
  
- static struct usb_device_id usb_audio_ids [] = {
- #include "usbquirks.h"
-@@ -3658,6 +3664,7 @@ static void usb_audio_disconnect(struct 
- 				 dev_get_drvdata(&intf->dev));
- }
- 
-+#ifdef CONFIG_PM
- static int usb_audio_suspend(struct usb_interface *intf, pm_message_t message)
- {
- 	struct snd_usb_audio *chip = dev_get_drvdata(&intf->dev);
-@@ -3695,6 +3702,7 @@ static int usb_audio_resume(struct usb_i
- 
- 	return 0;
- }
-+#endif		/* CONFIG_PM */
- 
- static int __init snd_usb_audio_init(void)
- {
+-choice
+-	prompt "RCU implementation type:"
+-	default CLASSIC_RCU
+-
+-config CLASSIC_RCU
+-	bool "Classic RCU"
+-	help
+-	  This option selects the classic RCU implementation that is
+-	  designed for best read-side performance on non-realtime
+-	  systems.
+-
+-	  Say Y if you are unsure.
+-
+-config PREEMPT_RCU
+-	bool "Preemptible RCU"
+-	depends on PREEMPT
+-	help
+-	  This option reduces the latency of the kernel by making certain
+-	  RCU sections preemptible. Normally RCU code is non-preemptible, if
+-	  this option is selected then read-only RCU sections become
+-	  preemptible. This helps latency, but may expose bugs due to
+-	  now-naive assumptions about each RCU read-side critical section
+-	  remaining on a given CPU through its execution.
+-
+-	  Say N if you are unsure.
+-
+-endchoice
+-
+ config RCU_TRACE
+ 	bool "Enable tracing for RCU - currently stats in debugfs"
+ 	select DEBUG_FS
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,6 +158,7 @@ acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 small-acpica-extension-to-be-able-to-store-the-name-of.patch
 git-alsa.patch
 git-alsa-fixup.patch
+sound-usb-usbaudioc-fix-build-with-config_pm=n.patch
 git-agpgart.patch
 git-agpgart-intel-agp-dont-zero-an-already-registered-resource-during-resume.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
@@ -318,4 +380,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-sound-usb-usbaudioc-fix-build-with-config_pm=n.patch
+git-sched-fix-preempt-rcu-on-non-preemptible-architectures.patch
