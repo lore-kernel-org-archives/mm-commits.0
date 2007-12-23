@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-drivers-pnp-pnpbios-bioscallsc-build-fix.patch added to -mm tree
-Date: Sat, 22 Dec 2007 16:43:01 -0800
-Message-ID: <200712230043.lBN0h1aC027054@imap1.linux-foundation.org>
+Subject: + git-x86-fix-doubly-merged-patch.patch added to -mm tree
+Date: Sat, 22 Dec 2007 16:53:44 -0800
+Message-ID: <200712230053.lBN0riLf027363@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50517 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40112 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752855AbXLWAng (ORCPT
+	by vger.kernel.org with ESMTP id S1753225AbXLWAyU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Dec 2007 19:43:36 -0500
+	Sat, 22 Dec 2007 19:54:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     git-x86: drivers/pnp/pnpbios/bioscalls.c build fix
+     git-x86: fix doubly-merged patch
 has been added to the -mm tree.  Its filename is
-     git-x86-drivers-pnp-pnpbios-bioscallsc-build-fix.patch
+     git-x86-fix-doubly-merged-patch.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,42 +28,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-x86: drivers/pnp/pnpbios/bioscalls.c build fix
+Subject: git-x86: fix doubly-merged patch
 From: Andrew Morton <akpm@linux-foundation.org>
-
-drivers/pnp/pnpbios/bioscalls.c:64: warning: missing braces around initializer
-drivers/pnp/pnpbios/bioscalls.c:64: warning: (near initialization for 'bad_bios_desc.<anonymous>')
 
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/pnpbios/bioscalls.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ arch/x86/pci/common.c |   13 -------------
+ 1 file changed, 13 deletions(-)
 
-diff -puN drivers/pnp/pnpbios/bioscalls.c~git-x86-drivers-pnp-pnpbios-bioscallsc-build-fix drivers/pnp/pnpbios/bioscalls.c
---- a/drivers/pnp/pnpbios/bioscalls.c~git-x86-drivers-pnp-pnpbios-bioscallsc-build-fix
-+++ a/drivers/pnp/pnpbios/bioscalls.c
-@@ -61,7 +61,7 @@ set_base(gdt[(selname) >> 3], (u32)(addr
- set_limit(gdt[(selname) >> 3], size); \
- } while(0)
+diff -puN arch/x86/pci/common.c~git-x86-fix-doubly-merged-patch arch/x86/pci/common.c
+--- a/arch/x86/pci/common.c~git-x86-fix-doubly-merged-patch
++++ a/arch/x86/pci/common.c
+@@ -122,19 +122,6 @@ static void __devinit pcibios_fixup_devi
+ 		rom_r->start = rom_r->end = rom_r->flags = 0;
+ }
  
--static struct desc_struct bad_bios_desc = { 0, 0x00409200 };
-+static struct desc_struct bad_bios_desc;
- 
+-static void __devinit pcibios_fixup_device_resources(struct pci_dev *dev)
+-{
+-	struct resource *rom_r = &dev->resource[PCI_ROM_RESOURCE];
+-
+-	if (rom_r->parent)
+-		return;
+-	if (rom_r->start)
+-		/* we deal with BIOS assigned ROM later */
+-		return;
+-	if (!(pci_probe & PCI_ASSIGN_ROMS))
+-		rom_r->start = rom_r->end = rom_r->flags = 0;
+-}
+-
  /*
-  * At some point we want to use this stack frame pointer to unwind
-@@ -477,6 +477,9 @@ void pnpbios_calls_init(union pnp_bios_i
- 	pnp_bios_callpoint.offset = header->fields.pm16offset;
- 	pnp_bios_callpoint.segment = PNP_CS16;
- 
-+	bad_bios_desc.a = 0;
-+	bad_bios_desc.b = 0x00409200;
-+
- 	set_base(bad_bios_desc, __va((unsigned long)0x40 << 4));
- 	_set_limit((char *)&bad_bios_desc, 4095 - (0x40 << 4));
- 	for (i = 0; i < NR_CPUS; i++) {
+  *  Called after each bus is probed, but before its children
+  *  are examined.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -147,6 +145,7 @@ git-x86.patch
 git-x86-fixup.patch
 git-x86-arch-x86-math-emu-errorsc-fix-printk-warnings.patch
 git-x86-drivers-pnp-pnpbios-bioscallsc-build-fix.patch
+git-x86-fix-doubly-merged-patch.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes.patch
 arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes-checkpatch-fixes.patch
