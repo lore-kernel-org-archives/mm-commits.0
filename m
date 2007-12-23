@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch added to -mm tree
-Date: Sat, 22 Dec 2007 18:50:48 -0800
-Message-ID: <200712230250.lBN2on0K031175@imap1.linux-foundation.org>
+Subject: + avoid-overflows-in-kernel-timec-fix.patch added to -mm tree
+Date: Sat, 22 Dec 2007 19:02:00 -0800
+Message-ID: <200712230302.lBN320aa031537@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48343 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58673 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752949AbXLWCu6 (ORCPT
+	by vger.kernel.org with ESMTP id S1754091AbXLWDCE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Dec 2007 21:50:58 -0500
+	Sat, 22 Dec 2007 22:02:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, greg@kroah.com
+Cc: akpm@linux-foundation.org, hpa@zytor.com
 
 
 The patch titled
-     drivers/pcmcia/i82092.c: fix up after pci_bus_region changes
+     avoid-overflows-in-kernel-timec-fix
 has been added to the -mm tree.  Its filename is
-     drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+     avoid-overflows-in-kernel-timec-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,38 +28,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/pcmcia/i82092.c: fix up after pci_bus_region changes
+Subject: avoid-overflows-in-kernel-timec-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/pcmcia/i82092.c: In function 'i82092aa_set_mem_map':
-drivers/pcmcia/i82092.c:650: warning: format '%lx' expects type 'long unsigned int', but argument 3 has type 'resource_size_t'
-drivers/pcmcia/i82092.c:650: warning: format '%lx' expects type 'long unsigned int', but argument 4 has type 'resource_size_t'
+kernel/time.c: In function 'jiffies_to_msecs':
+kernel/time.c:248: error: 'HZ_TO_MSEC_NUM' undeclared (first use in this function)
+kernel/time.c:248: error: (Each undeclared identifier is reported only once
+kernel/time.c:248: error: for each function it appears in.)
+kernel/time.c:248: error: 'HZ_TO_MSEC_DEN' undeclared (first use in this function)
+kernel/time.c: In function 'jiffies_to_usecs':
+kernel/time.c:264: error: 'HZ_TO_USEC_NUM' undeclared (first use in this function)
+kernel/time.c:264: error: 'HZ_TO_USEC_DEN' undeclared (first use in this function)
+kernel/time.c: In function 'usecs_to_jiffies':
+kernel/time.c:486: error: 'm' undeclared (first use in this function)
+kernel/time.c:489: warning: control reaches end of non-void function
+kernel/time.c: In function 'jiffies_to_usecs':
+kernel/time.c:267: warning: control reaches end of non-void function
+kernel/time.c: In function 'jiffies_to_msecs':
+kernel/time.c:251: warning: control reaches end of non-void function
 
-Cc: Greg KH <greg@kroah.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/i82092.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ kernel/time.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/pcmcia/i82092.c~drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes drivers/pcmcia/i82092.c
---- a/drivers/pcmcia/i82092.c~drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes
-+++ a/drivers/pcmcia/i82092.c
-@@ -647,7 +647,12 @@ static int i82092aa_set_mem_map(struct p
- 	if ( (mem->card_start > 0x3ffffff) || (region.start > region.end) ||
- 	     (mem->speed > 1000) ) {
- 		leave("i82092aa_set_mem_map: invalid address / speed");
--		printk("invalid mem map for socket %i : %lx to %lx with a start of %x \n",sock,region.start, region.end, mem->card_start);
-+		printk("invalid mem map for socket %i: %llx to %llx with a "
-+			"start of %x\n",
-+			sock,
-+			(unsigned long long)region.start,
-+			(unsigned long long)region.end,
-+			mem->card_start);
- 		return -EINVAL;
- 	}
- 	
+diff -puN kernel/time.c~avoid-overflows-in-kernel-timec-fix kernel/time.c
+--- a/kernel/time.c~avoid-overflows-in-kernel-timec-fix
++++ a/kernel/time.c
+@@ -245,7 +245,7 @@ unsigned int inline jiffies_to_msecs(con
+ # if BITS_PER_LONG == 32
+ 	return ((u64)HZ_TO_MSEC_MUL32 * j) >> HZ_TO_MSEC_SHR32;
+ # else
+-	return (j * HZ_TO_MSEC_NUM) / HZ_TO_MSEC_DEN;
++	return (j * MSEC_PER_SEC) / HZ;
+ # endif
+ #endif
+ }
+@@ -261,7 +261,7 @@ unsigned int inline jiffies_to_usecs(con
+ # if BITS_PER_LONG == 32
+ 	return ((u64)HZ_TO_USEC_MUL32 * j) >> HZ_TO_USEC_SHR32;
+ # else
+-	return (j * HZ_TO_USEC_NUM) / HZ_TO_USEC_DEN;
++	return (j * USEC_PER_SEC) / HZ;
+ # endif
+ #endif
+ }
+@@ -483,7 +483,7 @@ unsigned long usecs_to_jiffies(const uns
+ #elif HZ > USEC_PER_SEC && !(HZ % USEC_PER_SEC)
+ 	return u * (HZ / USEC_PER_SEC);
+ #else
+-	return ((u64)USEC_TO_HZ_MUL32 * m + USEC_TO_HZ_ADJ32)
++	return ((u64)USEC_TO_HZ_MUL32 * u + USEC_TO_HZ_ADJ32)
+ 		>> USEC_TO_HZ_SHR32;
+ #endif
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -91,6 +115,7 @@ git-powerpc.patch
 revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
 gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
 unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
 git-drm.patch
 intel-agp-enable-i915-recognition.patch
 git-dvb.patch
@@ -209,6 +234,7 @@ stopmachine-semaphore-to-mutex-fix.patch
 parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
 debug_smp_processor_id-fixlets.patch
 use-ilog2-in-fs-namespacec-fix.patch
+avoid-overflows-in-kernel-timec-fix.patch
 export-iov_shorten-for-ext4s-use-fix.patch
 sync_sb_inodes-propagate-errors.patch
 add-have_oprofile.patch
@@ -300,4 +326,3 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
