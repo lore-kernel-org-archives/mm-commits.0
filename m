@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + export-iov_shorten-for-ext4s-use-fix.patch added to -mm tree
-Date: Sat, 22 Dec 2007 15:58:07 -0800
-Message-ID: <200712222358.lBMNw78B025609@imap1.linux-foundation.org>
+Subject: + kvm-ist-kaput.patch added to -mm tree
+Date: Sat, 22 Dec 2007 16:00:08 -0800
+Message-ID: <200712230000.lBN008VR025726@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44201 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55492 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752598AbXLVX7L (ORCPT
+	by vger.kernel.org with ESMTP id S1752598AbXLWAA4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Dec 2007 18:59:11 -0500
+	Sat, 22 Dec 2007 19:00:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cmm@us.ibm.com, sandeen@redhat.com, tytso@mit.edu
+Cc: akpm@linux-foundation.org, avi@qumranet.com, greg@kroah.com, mingo@elte.hu
 
 
 The patch titled
-     export-iov_shorten-for-ext4s-use-fix
+     kvm-ist-kaput
 has been added to the -mm tree.  Its filename is
-     export-iov_shorten-for-ext4s-use-fix.patch
+     kvm-ist-kaput.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,30 +28,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: export-iov_shorten-for-ext4s-use-fix
+Subject: kvm-ist-kaput
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Eric Sandeen <sandeen@redhat.com>
-Cc: Mingming Cao <cmm@us.ibm.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
+Greg and Ingo defeated my attempts to keep this in a compilable state.
+
+Cc: Greg KH <greg@kroah.com>
+Cc: Avi Kivity <avi@qumranet.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/read_write.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/kvm/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/read_write.c~export-iov_shorten-for-ext4s-use-fix fs/read_write.c
---- a/fs/read_write.c~export-iov_shorten-for-ext4s-use-fix
-+++ a/fs/read_write.c
-@@ -450,7 +450,7 @@ unsigned long iov_shorten(struct iovec *
- 	}
- 	return seg;
- }
--EXPORT_SYMBOL(iov_shorten)
-+EXPORT_SYMBOL(iov_shorten);
- 
- ssize_t do_sync_readv_writev(struct file *filp, const struct iovec *iov,
- 		unsigned long nr_segs, size_t len, loff_t *ppos, iov_fn_t fn)
+diff -puN arch/x86/kvm/Kconfig~kvm-ist-kaput arch/x86/kvm/Kconfig
+--- a/arch/x86/kvm/Kconfig~kvm-ist-kaput
++++ a/arch/x86/kvm/Kconfig
+@@ -19,6 +19,7 @@ config KVM
+ 	depends on ARCH_SUPPORTS_KVM && EXPERIMENTAL
+ 	select PREEMPT_NOTIFIERS
+ 	select ANON_INODES
++	depends on BROKEN
+ 	---help---
+ 	  Support hosting fully virtualized guest machines using hardware
+ 	  virtualization extensions.  You will need a fairly recent
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -93,6 +94,7 @@ revert-git-hrt.patch
 git-ieee1394.patch
 git-infiniband.patch
 git-kvm.patch
+kvm-ist-kaput.patch
 git-lblnet-fixup.patch
 git-libata-all.patch
 libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
