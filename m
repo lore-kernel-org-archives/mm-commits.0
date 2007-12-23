@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-export-leave_mm.patch added to -mm tree
-Date: Sat, 22 Dec 2007 17:38:53 -0800
-Message-ID: <200712230138.lBN1cr1t028797@imap1.linux-foundation.org>
+Subject: + drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch added to -mm tree
+Date: Sat, 22 Dec 2007 18:50:48 -0800
+Message-ID: <200712230250.lBN2on0K031175@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35555 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48343 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753395AbXLWBjb (ORCPT
+	by vger.kernel.org with ESMTP id S1752949AbXLWCu6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Dec 2007 20:39:31 -0500
+	Sat, 22 Dec 2007 21:50:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, greg@kroah.com
 
 
 The patch titled
-     git-x86: export leave_mm()
+     drivers/pcmcia/i82092.c: fix up after pci_bus_region changes
 has been added to the -mm tree.  Its filename is
-     git-x86-export-leave_mm.patch
+     drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,42 +28,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-x86: export leave_mm()
+Subject: drivers/pcmcia/i82092.c: fix up after pci_bus_region changes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "leave_mm" [drivers/acpi/processor.ko] undefined!
+drivers/pcmcia/i82092.c: In function 'i82092aa_set_mem_map':
+drivers/pcmcia/i82092.c:650: warning: format '%lx' expects type 'long unsigned int', but argument 3 has type 'resource_size_t'
+drivers/pcmcia/i82092.c:650: warning: format '%lx' expects type 'long unsigned int', but argument 4 has type 'resource_size_t'
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Greg KH <greg@kroah.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/smp_32.c |    1 +
- arch/x86/kernel/smp_64.c |    1 +
- 2 files changed, 2 insertions(+)
+ drivers/pcmcia/i82092.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/smp_64.c~git-x86-export-leave_mm arch/x86/kernel/smp_64.c
---- a/arch/x86/kernel/smp_64.c~git-x86-export-leave_mm
-+++ a/arch/x86/kernel/smp_64.c
-@@ -76,6 +76,7 @@ void leave_mm(int cpu)
- 	cpu_clear(cpu, read_pda(active_mm)->cpu_vm_mask);
- 	load_cr3(swapper_pg_dir);
- }
-+EXPORT_SYMBOL(leave_mm);
- 
- /*
-  *
-diff -puN arch/x86/kernel/smp_32.c~git-x86-export-leave_mm arch/x86/kernel/smp_32.c
---- a/arch/x86/kernel/smp_32.c~git-x86-export-leave_mm
-+++ a/arch/x86/kernel/smp_32.c
-@@ -263,6 +263,7 @@ void leave_mm(int cpu)
- 	cpu_clear(cpu, per_cpu(cpu_tlbstate, cpu).active_mm->cpu_vm_mask);
- 	load_cr3(swapper_pg_dir);
- }
-+EXPORT_SYMBOL(leave_mm);
- 
- /*
-  *
+diff -puN drivers/pcmcia/i82092.c~drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes drivers/pcmcia/i82092.c
+--- a/drivers/pcmcia/i82092.c~drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes
++++ a/drivers/pcmcia/i82092.c
+@@ -647,7 +647,12 @@ static int i82092aa_set_mem_map(struct p
+ 	if ( (mem->card_start > 0x3ffffff) || (region.start > region.end) ||
+ 	     (mem->speed > 1000) ) {
+ 		leave("i82092aa_set_mem_map: invalid address / speed");
+-		printk("invalid mem map for socket %i : %lx to %lx with a start of %x \n",sock,region.start, region.end, mem->card_start);
++		printk("invalid mem map for socket %i: %llx to %llx with a "
++			"start of %x\n",
++			sock,
++			(unsigned long long)region.start,
++			(unsigned long long)region.end,
++			mem->card_start);
+ 		return -EINVAL;
+ 	}
+ 	
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -304,3 +300,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
