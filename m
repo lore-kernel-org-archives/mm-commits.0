@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-arch-x86-math-emu-errorsc-fix-printk-warnings.patch added to -mm tree
-Date: Sat, 22 Dec 2007 16:33:23 -0800
-Message-ID: <200712230033.lBN0XNu1026732@imap1.linux-foundation.org>
+Subject: + git-x86-drivers-pnp-pnpbios-bioscallsc-build-fix.patch added to -mm tree
+Date: Sat, 22 Dec 2007 16:43:01 -0800
+Message-ID: <200712230043.lBN0h1aC027054@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56961 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50517 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752949AbXLWAf2 (ORCPT
+	by vger.kernel.org with ESMTP id S1752855AbXLWAng (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Dec 2007 19:35:28 -0500
+	Sat, 22 Dec 2007 19:43:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     git-x86: arch/x86/math-emu/errors.c: fix printk warnings
+     git-x86: drivers/pnp/pnpbios/bioscalls.c build fix
 has been added to the -mm tree.  Its filename is
-     git-x86-arch-x86-math-emu-errorsc-fix-printk-warnings.patch
+     git-x86-drivers-pnp-pnpbios-bioscallsc-build-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,45 +28,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-x86: arch/x86/math-emu/errors.c: fix printk warnings
+Subject: git-x86: drivers/pnp/pnpbios/bioscalls.c build fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/math-emu/errors.c: In function 'FPU_printall':
-arch/x86/math-emu/errors.c:163: warning: format '%ld' expects type 'long int', but argument 3 has type 'u32'
-arch/x86/math-emu/errors.c:175: warning: format '%ld' expects type 'long int', but argument 3 has type 'u32'
-arch/x86/math-emu/errors.c:175: warning: format '%ld' expects type 'long int', but argument 4 has type 'u32'
-arch/x86/math-emu/errors.c:175: warning: format '%ld' expects type 'long int', but argument 5 has type 'u32'
-arch/x86/math-emu/errors.c:175: warning: format '%ld' expects type 'long int', but argument 6 has type 'u32'
+drivers/pnp/pnpbios/bioscalls.c:64: warning: missing braces around initializer
+drivers/pnp/pnpbios/bioscalls.c:64: warning: (near initialization for 'bad_bios_desc.<anonymous>')
 
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/math-emu/errors.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/pnp/pnpbios/bioscalls.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/math-emu/errors.c~git-x86-arch-x86-math-emu-errorsc-fix-printk-warnings arch/x86/math-emu/errors.c
---- a/arch/x86/math-emu/errors.c~git-x86-arch-x86-math-emu-errorsc-fix-printk-warnings
-+++ a/arch/x86/math-emu/errors.c
-@@ -149,7 +149,7 @@ void FPU_printall(void)
- 		printk("SW: invalid operation\n");
- #endif /* DEBUGGING */
+diff -puN drivers/pnp/pnpbios/bioscalls.c~git-x86-drivers-pnp-pnpbios-bioscallsc-build-fix drivers/pnp/pnpbios/bioscalls.c
+--- a/drivers/pnp/pnpbios/bioscalls.c~git-x86-drivers-pnp-pnpbios-bioscallsc-build-fix
++++ a/drivers/pnp/pnpbios/bioscalls.c
+@@ -61,7 +61,7 @@ set_base(gdt[(selname) >> 3], (u32)(addr
+ set_limit(gdt[(selname) >> 3], size); \
+ } while(0)
  
--	printk(" SW: b=%d st=%ld es=%d sf=%d cc=%d%d%d%d ef=%d%d%d%d%d%d\n", partial_status & 0x8000 ? 1 : 0,	/* busy */
-+	printk(" SW: b=%d st=%d es=%d sf=%d cc=%d%d%d%d ef=%d%d%d%d%d%d\n", partial_status & 0x8000 ? 1 : 0,	/* busy */
- 	       (partial_status & 0x3800) >> 11,	/* stack top pointer */
- 	       partial_status & 0x80 ? 1 : 0,	/* Error summary status */
- 	       partial_status & 0x40 ? 1 : 0,	/* Stack flag */
-@@ -162,7 +162,7 @@ void FPU_printall(void)
- 	       partial_status & SW_Denorm_Op ? 1 : 0,
- 	       partial_status & SW_Invalid ? 1 : 0);
+-static struct desc_struct bad_bios_desc = { 0, 0x00409200 };
++static struct desc_struct bad_bios_desc;
  
--	printk(" CW: ic=%d rc=%ld%ld pc=%ld%ld iem=%d     ef=%d%d%d%d%d%d\n",
-+	printk(" CW: ic=%d rc=%d%d pc=%d%d iem=%d     ef=%d%d%d%d%d%d\n",
- 	       control_word & 0x1000 ? 1 : 0,
- 	       (control_word & 0x800) >> 11, (control_word & 0x400) >> 10,
- 	       (control_word & 0x200) >> 9, (control_word & 0x100) >> 8,
+ /*
+  * At some point we want to use this stack frame pointer to unwind
+@@ -477,6 +477,9 @@ void pnpbios_calls_init(union pnp_bios_i
+ 	pnp_bios_callpoint.offset = header->fields.pm16offset;
+ 	pnp_bios_callpoint.segment = PNP_CS16;
+ 
++	bad_bios_desc.a = 0;
++	bad_bios_desc.b = 0x00409200;
++
+ 	set_base(bad_bios_desc, __va((unsigned long)0x40 << 4));
+ 	_set_limit((char *)&bad_bios_desc, 4095 - (0x40 << 4));
+ 	for (i = 0; i < NR_CPUS; i++) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -149,6 +146,7 @@ git-ipwireless_cs.patch
 git-x86.patch
 git-x86-fixup.patch
 git-x86-arch-x86-math-emu-errorsc-fix-printk-warnings.patch
+git-x86-drivers-pnp-pnpbios-bioscallsc-build-fix.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes.patch
 arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes-checkpatch-fixes.patch
