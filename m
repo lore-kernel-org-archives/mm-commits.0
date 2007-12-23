@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-fix-doubly-merged-patch.patch added to -mm tree
-Date: Sat, 22 Dec 2007 16:53:44 -0800
-Message-ID: <200712230053.lBN0riLf027363@imap1.linux-foundation.org>
+Subject: + git-libata-all-fix-pata_winbond-borkage.patch added to -mm tree
+Date: Sat, 22 Dec 2007 17:00:35 -0800
+Message-ID: <200712230100.lBN10ZX2027627@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40112 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34887 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753225AbXLWAyU (ORCPT
+	by vger.kernel.org with ESMTP id S1752285AbXLWBAy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Dec 2007 19:54:20 -0500
+	Sat, 22 Dec 2007 20:00:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, jeff@garzik.org
 
 
 The patch titled
-     git-x86: fix doubly-merged patch
+     git-libata-all: fix pata_winbond borkage
 has been added to the -mm tree.  Its filename is
-     git-x86-fix-doubly-merged-patch.patch
+     git-libata-all-fix-pata_winbond-borkage.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,40 +28,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-x86: fix doubly-merged patch
+Subject: git-libata-all: fix pata_winbond borkage
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+drivers/spi/Kconfig:156:warning: 'select' used by config symbol 'SPI_PXA2XX' refers to undefined symbol 'PXA_SSP'
+drivers/ata/pata_winbond.c: In function 'winbond_data_xfer':
+drivers/ata/pata_winbond.c:109: error: 'read' undeclared (first use in this function)
+drivers/ata/pata_winbond.c:109: error: (Each undeclared identifier is reported only once
+drivers/ata/pata_winbond.c:109: error: for each function it appears in.)
+drivers/ata/pata_winbond.c:123: warning: 'return' with a value, in function returning void
+drivers/ata/pata_winbond.c: At top level:
+drivers/ata/pata_winbond.c:162: warning: initialization from incompatible pointer type
+distcc[29718] ERROR: compile drivers/ata/pata_winbond.c on bix/8 failed
+make[1]: *** [drivers/ata/pata_winbond.o] Error 1
+make: *** [drivers/ata/pata_winbond.o] Error 2
+
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/pci/common.c |   13 -------------
- 1 file changed, 13 deletions(-)
+ drivers/ata/pata_winbond.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/pci/common.c~git-x86-fix-doubly-merged-patch arch/x86/pci/common.c
---- a/arch/x86/pci/common.c~git-x86-fix-doubly-merged-patch
-+++ a/arch/x86/pci/common.c
-@@ -122,19 +122,6 @@ static void __devinit pcibios_fixup_devi
- 		rom_r->start = rom_r->end = rom_r->flags = 0;
+diff -puN drivers/ata/pata_winbond.c~git-libata-all-fix-pata_winbond-borkage drivers/ata/pata_winbond.c
+--- a/drivers/ata/pata_winbond.c~git-libata-all-fix-pata_winbond-borkage
++++ a/drivers/ata/pata_winbond.c
+@@ -92,8 +92,8 @@ static void winbond_set_piomode(struct a
  }
  
--static void __devinit pcibios_fixup_device_resources(struct pci_dev *dev)
--{
--	struct resource *rom_r = &dev->resource[PCI_ROM_RESOURCE];
--
--	if (rom_r->parent)
--		return;
--	if (rom_r->start)
--		/* we deal with BIOS assigned ROM later */
--		return;
--	if (!(pci_probe & PCI_ASSIGN_ROMS))
--		rom_r->start = rom_r->end = rom_r->flags = 0;
--}
--
- /*
-  *  Called after each bus is probed, but before its children
-  *  are examined.
+ 
+-static void winbond_data_xfer(struct ata_device *dev, unsigned char *buf,
+-			      unsigned int buflen, int rw)
++static unsigned int winbond_data_xfer(struct ata_device *dev,
++			unsigned char *buf, unsigned int buflen, int rw)
+ {
+ 	struct ata_port *ap = dev->link->ap;
+ 	int slop = buflen & 3;
+@@ -106,7 +106,7 @@ static void winbond_data_xfer(struct ata
+ 
+ 		if (unlikely(slop)) {
+ 			u32 pad;
+-			if (rw == read) {
++			if (rw == READ) {
+ 				pad = ioread32(ap->ioaddr.data_addr);
+ 				pad = cpu_to_le16(pad);
+ 				memcpy(buf + buflen - slop, &pad, slop);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,6 +118,7 @@ git-kvm.patch
 kvm-ist-kaput.patch
 git-lblnet-fixup.patch
 git-libata-all.patch
+git-libata-all-fix-pata_winbond-borkage.patch
 libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
 libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
 libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
