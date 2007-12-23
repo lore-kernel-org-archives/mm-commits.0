@@ -1,65 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - logo-move-declarations-of-logos-to-linux_logoh-fix.patch removed from -mm tree
-Date: Sat, 22 Dec 2007 17:24:27 -0800
-Message-ID: <200712230124.lBN1ORET028387@imap1.linux-foundation.org>
+Subject: + git-x86-export-leave_mm.patch added to -mm tree
+Date: Sat, 22 Dec 2007 17:38:53 -0800
+Message-ID: <200712230138.lBN1cr1t028797@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52993 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35555 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754165AbXLWBYd (ORCPT
+	by vger.kernel.org with ESMTP id S1753395AbXLWBjb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Dec 2007 20:24:33 -0500
+	Sat, 22 Dec 2007 20:39:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adaplas@pol.net, marcin.slusarz@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     logo-move-declarations-of-logos-to-linux_logoh-fix
-has been removed from the -mm tree.  Its filename was
-     logo-move-declarations-of-logos-to-linux_logoh-fix.patch
+     git-x86: export leave_mm()
+has been added to the -mm tree.  Its filename is
+     git-x86-export-leave_mm.patch
 
-This patch was dropped because sorry, I'd just bored of getting this to compile
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
+
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: logo-move-declarations-of-logos-to-linux_logoh-fix
+Subject: git-x86: export leave_mm()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/video/logo/logo_linux_clut224.c:598: error: conflicting type qualifiers for 'logo_linux_clut224'
-include/linux/linux_logo.h:47: error: previous declaration of 'logo_linux_clut224' was here
+ERROR: "leave_mm" [drivers/acpi/processor.ko] undefined!
 
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Marcin Slusarz <marcin.slusarz@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/logo/logo.c       |    1 -
- scripts/pnmtologo.c             |    2 +-
- video/logo/logo_linux_clut224.c |    0 
- 3 files changed, 1 insertion(+), 2 deletions(-)
+ arch/x86/kernel/smp_32.c |    1 +
+ arch/x86/kernel/smp_64.c |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN drivers/video/logo/logo.c~logo-move-declarations-of-logos-to-linux_logoh-fix drivers/video/logo/logo.c
---- a/drivers/video/logo/logo.c~logo-move-declarations-of-logos-to-linux_logoh-fix
-+++ a/drivers/video/logo/logo.c
-@@ -1,4 +1,3 @@
--
+diff -puN arch/x86/kernel/smp_64.c~git-x86-export-leave_mm arch/x86/kernel/smp_64.c
+--- a/arch/x86/kernel/smp_64.c~git-x86-export-leave_mm
++++ a/arch/x86/kernel/smp_64.c
+@@ -76,6 +76,7 @@ void leave_mm(int cpu)
+ 	cpu_clear(cpu, read_pda(active_mm)->cpu_vm_mask);
+ 	load_cr3(swapper_pg_dir);
+ }
++EXPORT_SYMBOL(leave_mm);
+ 
  /*
-  *  Linux logo to be displayed on boot
   *
-diff -puN include/linux/linux_logo.h~logo-move-declarations-of-logos-to-linux_logoh-fix include/linux/linux_logo.h
-diff -puN scripts/pnmtologo.c~logo-move-declarations-of-logos-to-linux_logoh-fix scripts/pnmtologo.c
---- a/scripts/pnmtologo.c~logo-move-declarations-of-logos-to-linux_logoh-fix
-+++ a/scripts/pnmtologo.c
-@@ -244,7 +244,7 @@ static void write_header(void)
- static void write_footer(void)
- {
-     fputs("\n};\n\n", out);
--    fprintf(out, "const struct linux_logo %s __initdata = {\n", logoname);
-+    fprintf(out, "const struct linux_logo %s = {\n", logoname);
-     fprintf(out, "    .type\t= %s,\n", logo_types[logo_type]);
-     fprintf(out, "    .width\t= %d,\n", logo_width);
-     fprintf(out, "    .height\t= %d,\n", logo_height);
-diff -puN drivers/video/logo/logo_linux_clut224.c~logo-move-declarations-of-logos-to-linux_logoh-fix drivers/video/logo/logo_linux_clut224.c
+diff -puN arch/x86/kernel/smp_32.c~git-x86-export-leave_mm arch/x86/kernel/smp_32.c
+--- a/arch/x86/kernel/smp_32.c~git-x86-export-leave_mm
++++ a/arch/x86/kernel/smp_32.c
+@@ -263,6 +263,7 @@ void leave_mm(int cpu)
+ 	cpu_clear(cpu, per_cpu(cpu_tlbstate, cpu).active_mm->cpu_vm_mask);
+ 	load_cr3(swapper_pg_dir);
+ }
++EXPORT_SYMBOL(leave_mm);
+ 
+ /*
+  *
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -146,6 +150,7 @@ git-x86-fixup.patch
 git-x86-arch-x86-math-emu-errorsc-fix-printk-warnings.patch
 git-x86-drivers-pnp-pnpbios-bioscallsc-build-fix.patch
 git-x86-fix-doubly-merged-patch.patch
+git-x86-export-leave_mm.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes.patch
 arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes-checkpatch-fixes.patch
@@ -216,7 +221,6 @@ rtc-ds1302-rtc-support-checkpatch-fixes.patch
 rtc-add-support-for-the-s-35390a-rtc-chip-fix.patch
 mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
 fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-logo-move-declarations-of-logos-to-linux_logoh-fix.patch
 neofb-avoid-overwriting-fb_info-fields.patch
 declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
 isapnp-driver-semaphore-to-mutex-fix.patch
