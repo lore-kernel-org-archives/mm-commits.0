@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext4-mm-ext4_store_maxbytes_for_bitmaped_files-warning-fix.patch added to -mm tree
-Date: Sat, 22 Dec 2007 16:29:13 -0800
-Message-ID: <200712230029.lBN0TD3X026662@imap1.linux-foundation.org>
+Subject: + git-x86-arch-x86-math-emu-errorsc-fix-printk-warnings.patch added to -mm tree
+Date: Sat, 22 Dec 2007 16:33:23 -0800
+Message-ID: <200712230033.lBN0XNu1026732@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40909 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56961 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753046AbXLWAa5 (ORCPT
+	by vger.kernel.org with ESMTP id S1752949AbXLWAf2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Dec 2007 19:30:57 -0500
+	Sat, 22 Dec 2007 19:35:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cmm@us.ibm.com, sandeen@redhat.com, tytso@mit.edu
+Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     ext4-mm-ext4_store_maxbytes_for_bitmaped_files-warning-fix
+     git-x86: arch/x86/math-emu/errors.c: fix printk warnings
 has been added to the -mm tree.  Its filename is
-     ext4-mm-ext4_store_maxbytes_for_bitmaped_files-warning-fix.patch
+     git-x86-arch-x86-math-emu-errorsc-fix-printk-warnings.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,38 +28,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext4-mm-ext4_store_maxbytes_for_bitmaped_files-warning-fix
+Subject: git-x86: arch/x86/math-emu/errors.c: fix printk warnings
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/ext4/inode.c: In function 'ext4_block_to_path':
-fs/ext4/inode.c:319: warning: format '%u' expects type 'unsigned int', but argument 4 has type 'long unsigned int'
+arch/x86/math-emu/errors.c: In function 'FPU_printall':
+arch/x86/math-emu/errors.c:163: warning: format '%ld' expects type 'long int', but argument 3 has type 'u32'
+arch/x86/math-emu/errors.c:175: warning: format '%ld' expects type 'long int', but argument 3 has type 'u32'
+arch/x86/math-emu/errors.c:175: warning: format '%ld' expects type 'long int', but argument 4 has type 'u32'
+arch/x86/math-emu/errors.c:175: warning: format '%ld' expects type 'long int', but argument 5 has type 'u32'
+arch/x86/math-emu/errors.c:175: warning: format '%ld' expects type 'long int', but argument 6 has type 'u32'
 
-Cc: Mingming Cao <cmm@us.ibm.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Eric Sandeen <sandeen@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/inode.c    |    3 ++-
- linux/ext4_fs_sb.h |    0 
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ arch/x86/math-emu/errors.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ext4/file.c~ext4-mm-ext4_store_maxbytes_for_bitmaped_files-warning-fix fs/ext4/file.c
-diff -puN fs/ext4/inode.c~ext4-mm-ext4_store_maxbytes_for_bitmaped_files-warning-fix fs/ext4/inode.c
---- a/fs/ext4/inode.c~ext4-mm-ext4_store_maxbytes_for_bitmaped_files-warning-fix
-+++ a/fs/ext4/inode.c
-@@ -309,7 +309,8 @@ static int ext4_block_to_path(struct ino
- 		offsets[n++] = i_block & (ptrs - 1);
- 		final = ptrs;
- 	} else {
--		ext4_warning(inode->i_sb, "ext4_block_to_path", "block %u > max",
-+		ext4_warning(inode->i_sb, "ext4_block_to_path",
-+				"block %lu > max",
- 				i_block + direct_blocks +
- 				indirect_blocks + double_blocks);
- 	}
-diff -puN fs/ext4/super.c~ext4-mm-ext4_store_maxbytes_for_bitmaped_files-warning-fix fs/ext4/super.c
-diff -puN include/linux/ext4_fs_sb.h~ext4-mm-ext4_store_maxbytes_for_bitmaped_files-warning-fix include/linux/ext4_fs_sb.h
+diff -puN arch/x86/math-emu/errors.c~git-x86-arch-x86-math-emu-errorsc-fix-printk-warnings arch/x86/math-emu/errors.c
+--- a/arch/x86/math-emu/errors.c~git-x86-arch-x86-math-emu-errorsc-fix-printk-warnings
++++ a/arch/x86/math-emu/errors.c
+@@ -149,7 +149,7 @@ void FPU_printall(void)
+ 		printk("SW: invalid operation\n");
+ #endif /* DEBUGGING */
+ 
+-	printk(" SW: b=%d st=%ld es=%d sf=%d cc=%d%d%d%d ef=%d%d%d%d%d%d\n", partial_status & 0x8000 ? 1 : 0,	/* busy */
++	printk(" SW: b=%d st=%d es=%d sf=%d cc=%d%d%d%d ef=%d%d%d%d%d%d\n", partial_status & 0x8000 ? 1 : 0,	/* busy */
+ 	       (partial_status & 0x3800) >> 11,	/* stack top pointer */
+ 	       partial_status & 0x80 ? 1 : 0,	/* Error summary status */
+ 	       partial_status & 0x40 ? 1 : 0,	/* Stack flag */
+@@ -162,7 +162,7 @@ void FPU_printall(void)
+ 	       partial_status & SW_Denorm_Op ? 1 : 0,
+ 	       partial_status & SW_Invalid ? 1 : 0);
+ 
+-	printk(" CW: ic=%d rc=%ld%ld pc=%ld%ld iem=%d     ef=%d%d%d%d%d%d\n",
++	printk(" CW: ic=%d rc=%d%d pc=%d%d iem=%d     ef=%d%d%d%d%d%d\n",
+ 	       control_word & 0x1000 ? 1 : 0,
+ 	       (control_word & 0x800) >> 11, (control_word & 0x400) >> 10,
+ 	       (control_word & 0x200) >> 9, (control_word & 0x100) >> 8,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -141,6 +148,7 @@ git-wireless.patch
 git-ipwireless_cs.patch
 git-x86.patch
 git-x86-fixup.patch
+git-x86-arch-x86-math-emu-errorsc-fix-printk-warnings.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes.patch
 arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes-checkpatch-fixes.patch
