@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + git-libata-all-fix-pata_winbond-borkage.patch added to -mm tree
-Date: Sat, 22 Dec 2007 17:00:35 -0800
-Message-ID: <200712230100.lBN10ZX2027627@imap1.linux-foundation.org>
+Subject: + git-libata-all-wtf.patch added to -mm tree
+Date: Sat, 22 Dec 2007 17:11:12 -0800
+Message-ID: <200712230111.lBN1BCiB027944@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34887 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39156 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752285AbXLWBAy (ORCPT
+	by vger.kernel.org with ESMTP id S1754233AbXLWBL1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Dec 2007 20:00:54 -0500
+	Sat, 22 Dec 2007 20:11:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, jeff@garzik.org
 
 
 The patch titled
-     git-libata-all: fix pata_winbond borkage
+     git-libata-all: wtf?
 has been added to the -mm tree.  Its filename is
-     git-libata-all-fix-pata_winbond-borkage.patch
+     git-libata-all-wtf.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,52 +28,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-libata-all: fix pata_winbond borkage
+Subject: git-libata-all: wtf?
 From: Andrew Morton <akpm@linux-foundation.org>
-
-drivers/spi/Kconfig:156:warning: 'select' used by config symbol 'SPI_PXA2XX' refers to undefined symbol 'PXA_SSP'
-drivers/ata/pata_winbond.c: In function 'winbond_data_xfer':
-drivers/ata/pata_winbond.c:109: error: 'read' undeclared (first use in this function)
-drivers/ata/pata_winbond.c:109: error: (Each undeclared identifier is reported only once
-drivers/ata/pata_winbond.c:109: error: for each function it appears in.)
-drivers/ata/pata_winbond.c:123: warning: 'return' with a value, in function returning void
-drivers/ata/pata_winbond.c: At top level:
-drivers/ata/pata_winbond.c:162: warning: initialization from incompatible pointer type
-distcc[29718] ERROR: compile drivers/ata/pata_winbond.c on bix/8 failed
-make[1]: *** [drivers/ata/pata_winbond.o] Error 1
-make: *** [drivers/ata/pata_winbond.o] Error 2
 
 Cc: Jeff Garzik <jeff@garzik.org>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_winbond.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/ata/pata_legacy.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_winbond.c~git-libata-all-fix-pata_winbond-borkage drivers/ata/pata_winbond.c
---- a/drivers/ata/pata_winbond.c~git-libata-all-fix-pata_winbond-borkage
-+++ a/drivers/ata/pata_winbond.c
-@@ -92,8 +92,8 @@ static void winbond_set_piomode(struct a
- }
- 
- 
--static void winbond_data_xfer(struct ata_device *dev, unsigned char *buf,
--			      unsigned int buflen, int rw)
-+static unsigned int winbond_data_xfer(struct ata_device *dev,
-+			unsigned char *buf, unsigned int buflen, int rw)
+diff -puN drivers/ata/pata_legacy.c~git-libata-all-wtf drivers/ata/pata_legacy.c
+--- a/drivers/ata/pata_legacy.c~git-libata-all-wtf
++++ a/drivers/ata/pata_legacy.c
+@@ -252,7 +252,7 @@ static void pdc20230_set_piomode(struct 
+ static unsigned int pdc_data_xfer_vlb(struct ata_device *dev,
+ 				unsigned char *buf, unsigned int buflen, int rw)
  {
- 	struct ata_port *ap = dev->link->ap;
- 	int slop = buflen & 3;
-@@ -106,7 +106,7 @@ static void winbond_data_xfer(struct ata
- 
- 		if (unlikely(slop)) {
- 			u32 pad;
--			if (rw == read) {
-+			if (rw == READ) {
- 				pad = ioread32(ap->ioaddr.data_addr);
- 				pad = cpu_to_le16(pad);
- 				memcpy(buf + buflen - slop, &pad, slop);
+-	if (ata_id_has_dword_io(adev->id)) {
++	if (ata_id_has_dword_io(dev->id)) {
+ 		struct ata_port *ap = dev->link->ap;
+ 		int slop = buflen & 3;
+ 		unsigned long flags;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -119,6 +96,7 @@ kvm-ist-kaput.patch
 git-lblnet-fixup.patch
 git-libata-all.patch
 git-libata-all-fix-pata_winbond-borkage.patch
+git-libata-all-wtf.patch
 libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
 libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
 libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
