@@ -1,66 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: + git-infiniband-versus-driver-tree.patch added to -mm tree
-Date: Sat, 22 Dec 2007 16:04:55 -0800
-Message-ID: <200712230004.lBN04tx2025865@imap1.linux-foundation.org>
+Subject: - git-dvb-one-videobuf_read_start-is-enough.patch removed from -mm tree
+Date: Sat, 22 Dec 2007 16:13:10 -0800
+Message-ID: <200712230013.lBN0DAlK026099@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55340 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51656 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752844AbXLWAGH (ORCPT
+	by vger.kernel.org with ESMTP id S1752859AbXLWAN4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Dec 2007 19:06:07 -0500
+	Sat, 22 Dec 2007 19:13:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org, rolandd@cisco.com
+To: akpm@linux-foundation.org, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-infiniband versus driver tree
-has been added to the -mm tree.  Its filename is
-     git-infiniband-versus-driver-tree.patch
+     git-dvb: one videobuf_read_start() is enough
+has been removed from the -mm tree.  Its filename was
+     git-dvb-one-videobuf_read_start-is-enough.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
-
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-infiniband versus driver tree
+Subject: git-dvb: one videobuf_read_start() is enough
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Roland Dreier <rolandd@cisco.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/core/cm.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/video/videobuf-core.c |   11 -----------
+ 1 file changed, 11 deletions(-)
 
-diff -puN drivers/infiniband/core/cm.c~git-infiniband-versus-driver-tree drivers/infiniband/core/cm.c
---- a/drivers/infiniband/core/cm.c~git-infiniband-versus-driver-tree
-+++ a/drivers/infiniband/core/cm.c
-@@ -3571,7 +3571,7 @@ static int cm_add_fs_obj(struct kobject 
- 	if (!obj->parent)
- 		return -EBUSY;
+diff -puN drivers/media/video/videobuf-core.c~git-dvb-one-videobuf_read_start-is-enough drivers/media/video/videobuf-core.c
+--- a/drivers/media/video/videobuf-core.c~git-dvb-one-videobuf_read_start-is-enough
++++ a/drivers/media/video/videobuf-core.c
+@@ -868,17 +868,6 @@ static void __videobuf_read_stop(struct 
  
--	ret = kobject_register(obj);
-+	ret = kobject_init_and_add(obj, type, parent, "%s", name);
- 	if (ret)
- 		kobject_put(parent);
- 
-@@ -3581,7 +3581,7 @@ static int cm_add_fs_obj(struct kobject 
- static void cm_remove_fs_obj(struct kobject *obj)
- {
- 	kobject_put(obj->parent);
--	kobject_unregister(obj);
-+	kobject_put(obj);
  }
  
- static int cm_create_port_fs(struct cm_port *port)
+-int videobuf_read_start(struct videobuf_queue *q)
+-{
+-	int rc;
+-
+-	mutex_lock(&q->lock);
+-	rc = __videobuf_read_start(q);
+-	mutex_unlock(&q->lock);
+-
+-	return rc;
+-}
+-
+ void videobuf_read_stop(struct videobuf_queue *q)
+ {
+ 	mutex_lock(&q->lock);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
