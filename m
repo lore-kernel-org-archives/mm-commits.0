@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + avoid-overflows-in-kernel-timec-fix.patch added to -mm tree
-Date: Sat, 22 Dec 2007 19:02:00 -0800
-Message-ID: <200712230302.lBN320aa031537@imap1.linux-foundation.org>
+Subject: + sound-usb-usbaudioc-fix-build-with-config_pm=n.patch added to -mm tree
+Date: Sat, 22 Dec 2007 19:14:27 -0800
+Message-ID: <200712230314.lBN3ERCc031951@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58673 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45343 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754091AbXLWDCE (ORCPT
+	by vger.kernel.org with ESMTP id S1753046AbXLWDOo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Dec 2007 22:02:04 -0500
+	Sat, 22 Dec 2007 22:14:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hpa@zytor.com
+Cc: akpm@linux-foundation.org, perex@suse.cz, tiwai@suse.de
 
 
 The patch titled
-     avoid-overflows-in-kernel-timec-fix
+     sound/usb/usbaudio.c: fix build with CONFIG_PM=n
 has been added to the -mm tree.  Its filename is
-     avoid-overflows-in-kernel-timec-fix.patch
+     sound-usb-usbaudioc-fix-build-with-config_pm=n.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,62 +28,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: avoid-overflows-in-kernel-timec-fix
+Subject: sound/usb/usbaudio.c: fix build with CONFIG_PM=n
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/time.c: In function 'jiffies_to_msecs':
-kernel/time.c:248: error: 'HZ_TO_MSEC_NUM' undeclared (first use in this function)
-kernel/time.c:248: error: (Each undeclared identifier is reported only once
-kernel/time.c:248: error: for each function it appears in.)
-kernel/time.c:248: error: 'HZ_TO_MSEC_DEN' undeclared (first use in this function)
-kernel/time.c: In function 'jiffies_to_usecs':
-kernel/time.c:264: error: 'HZ_TO_USEC_NUM' undeclared (first use in this function)
-kernel/time.c:264: error: 'HZ_TO_USEC_DEN' undeclared (first use in this function)
-kernel/time.c: In function 'usecs_to_jiffies':
-kernel/time.c:486: error: 'm' undeclared (first use in this function)
-kernel/time.c:489: warning: control reaches end of non-void function
-kernel/time.c: In function 'jiffies_to_usecs':
-kernel/time.c:267: warning: control reaches end of non-void function
-kernel/time.c: In function 'jiffies_to_msecs':
-kernel/time.c:251: warning: control reaches end of non-void function
+sound/usb/usbaudio.c: In function 'usb_audio_suspend':
+sound/usb/usbaudio.c:3674: error: implicit declaration of function 'snd_pcm_suspend_all'
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ sound/usb/usbaudio.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN kernel/time.c~avoid-overflows-in-kernel-timec-fix kernel/time.c
---- a/kernel/time.c~avoid-overflows-in-kernel-timec-fix
-+++ a/kernel/time.c
-@@ -245,7 +245,7 @@ unsigned int inline jiffies_to_msecs(con
- # if BITS_PER_LONG == 32
- 	return ((u64)HZ_TO_MSEC_MUL32 * j) >> HZ_TO_MSEC_SHR32;
- # else
--	return (j * HZ_TO_MSEC_NUM) / HZ_TO_MSEC_DEN;
-+	return (j * MSEC_PER_SEC) / HZ;
- # endif
- #endif
+diff -puN sound/usb/usbaudio.c~sound-usb-usbaudioc-fix-build-with-config_pm=n sound/usb/usbaudio.c
+--- a/sound/usb/usbaudio.c~sound-usb-usbaudioc-fix-build-with-config_pm=n
++++ a/sound/usb/usbaudio.c
+@@ -2077,8 +2077,14 @@ int snd_usb_ctl_msg(struct usb_device *d
+ static int usb_audio_probe(struct usb_interface *intf,
+ 			   const struct usb_device_id *id);
+ static void usb_audio_disconnect(struct usb_interface *intf);
++
++#ifdef CONFIG_PM
+ static int usb_audio_suspend(struct usb_interface *intf, pm_message_t message);
+ static int usb_audio_resume(struct usb_interface *intf);
++#else
++#define usb_audio_suspend NULL
++#define usb_audio_resume NULL
++#endif
+ 
+ static struct usb_device_id usb_audio_ids [] = {
+ #include "usbquirks.h"
+@@ -3658,6 +3664,7 @@ static void usb_audio_disconnect(struct 
+ 				 dev_get_drvdata(&intf->dev));
  }
-@@ -261,7 +261,7 @@ unsigned int inline jiffies_to_usecs(con
- # if BITS_PER_LONG == 32
- 	return ((u64)HZ_TO_USEC_MUL32 * j) >> HZ_TO_USEC_SHR32;
- # else
--	return (j * HZ_TO_USEC_NUM) / HZ_TO_USEC_DEN;
-+	return (j * USEC_PER_SEC) / HZ;
- # endif
- #endif
+ 
++#ifdef CONFIG_PM
+ static int usb_audio_suspend(struct usb_interface *intf, pm_message_t message)
+ {
+ 	struct snd_usb_audio *chip = dev_get_drvdata(&intf->dev);
+@@ -3695,6 +3702,7 @@ static int usb_audio_resume(struct usb_i
+ 
+ 	return 0;
  }
-@@ -483,7 +483,7 @@ unsigned long usecs_to_jiffies(const uns
- #elif HZ > USEC_PER_SEC && !(HZ % USEC_PER_SEC)
- 	return u * (HZ / USEC_PER_SEC);
- #else
--	return ((u64)USEC_TO_HZ_MUL32 * m + USEC_TO_HZ_ADJ32)
-+	return ((u64)USEC_TO_HZ_MUL32 * u + USEC_TO_HZ_ADJ32)
- 		>> USEC_TO_HZ_SHR32;
- #endif
- }
++#endif		/* CONFIG_PM */
+ 
+ static int __init snd_usb_audio_init(void)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -326,3 +318,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+sound-usb-usbaudioc-fix-build-with-config_pm=n.patch
