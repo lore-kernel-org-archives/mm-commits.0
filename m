@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kvm-ist-kaput.patch added to -mm tree
-Date: Sat, 22 Dec 2007 16:00:08 -0800
-Message-ID: <200712230000.lBN008VR025726@imap1.linux-foundation.org>
+Subject: + git-infiniband-versus-driver-tree.patch added to -mm tree
+Date: Sat, 22 Dec 2007 16:04:55 -0800
+Message-ID: <200712230004.lBN04tx2025865@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55492 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55340 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752598AbXLWAA4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752844AbXLWAGH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Dec 2007 19:00:56 -0500
+	Sat, 22 Dec 2007 19:06:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, avi@qumranet.com, greg@kroah.com, mingo@elte.hu
+Cc: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org, rolandd@cisco.com
 
 
 The patch titled
-     kvm-ist-kaput
+     git-infiniband versus driver tree
 has been added to the -mm tree.  Its filename is
-     kvm-ist-kaput.patch
+     git-infiniband-versus-driver-tree.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,31 +28,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kvm-ist-kaput
+Subject: git-infiniband versus driver tree
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Greg and Ingo defeated my attempts to keep this in a compilable state.
-
 Cc: Greg KH <greg@kroah.com>
-Cc: Avi Kivity <avi@qumranet.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kvm/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/core/cm.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kvm/Kconfig~kvm-ist-kaput arch/x86/kvm/Kconfig
---- a/arch/x86/kvm/Kconfig~kvm-ist-kaput
-+++ a/arch/x86/kvm/Kconfig
-@@ -19,6 +19,7 @@ config KVM
- 	depends on ARCH_SUPPORTS_KVM && EXPERIMENTAL
- 	select PREEMPT_NOTIFIERS
- 	select ANON_INODES
-+	depends on BROKEN
- 	---help---
- 	  Support hosting fully virtualized guest machines using hardware
- 	  virtualization extensions.  You will need a fairly recent
+diff -puN drivers/infiniband/core/cm.c~git-infiniband-versus-driver-tree drivers/infiniband/core/cm.c
+--- a/drivers/infiniband/core/cm.c~git-infiniband-versus-driver-tree
++++ a/drivers/infiniband/core/cm.c
+@@ -3571,7 +3571,7 @@ static int cm_add_fs_obj(struct kobject 
+ 	if (!obj->parent)
+ 		return -EBUSY;
+ 
+-	ret = kobject_register(obj);
++	ret = kobject_init_and_add(obj, type, parent, "%s", name);
+ 	if (ret)
+ 		kobject_put(parent);
+ 
+@@ -3581,7 +3581,7 @@ static int cm_add_fs_obj(struct kobject 
+ static void cm_remove_fs_obj(struct kobject *obj)
+ {
+ 	kobject_put(obj->parent);
+-	kobject_unregister(obj);
++	kobject_put(obj);
+ }
+ 
+ static int cm_create_port_fs(struct cm_port *port)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -93,6 +101,7 @@ git-hid.patch
 revert-git-hrt.patch
 git-ieee1394.patch
 git-infiniband.patch
+git-infiniband-versus-driver-tree.patch
 git-kvm.patch
 kvm-ist-kaput.patch
 git-lblnet-fixup.patch
