@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + nlm-have-lockd-call-try_to_freeze.patch added to -mm tree
-Date: Fri, 04 Jan 2008 22:52:02 -0800
-Message-ID: <200801050652.m056qmhL032508@imap1.linux-foundation.org>
+Subject: + sunrpc-export-svc_sock_update_bufs.patch added to -mm tree
+Date: Fri, 04 Jan 2008 22:51:58 -0800
+Message-ID: <200801050652.m056qihe032498@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56199 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57095 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752682AbYAEGxx (ORCPT
+	by vger.kernel.org with ESMTP id S1752698AbYAEGxx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Sat, 5 Jan 2008 01:53:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jlayton@redhat.com, bfields@fieldses.org, neilb@suse.de, trond.myklebust@fys
 
 
 The patch titled
-     nlm: have lockd call try_to_freeze
+     sunrpc: export svc_sock_update_bufs
 has been added to the -mm tree.  Its filename is
-     nlm-have-lockd-call-try_to_freeze.patch
+     sunrpc-export-svc_sock_update_bufs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -27,11 +27,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nlm: have lockd call try_to_freeze
+Subject: sunrpc: export svc_sock_update_bufs
 From: Jeff Layton <jlayton@redhat.com>
 
-lockd makes itself freezable, but never calls try_to_freeze().  Have it call
-try_to_freeze() within the main loop.
+Needed since the plan is to not have a svc_create_thread helper and to have
+current users of that function just call kthread_run directly.
 
 Signed-off-by: Jeff Layton <jlayton@redhat.com>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
@@ -40,22 +40,20 @@ Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/lockd/svc.c |    3 +++
- 1 file changed, 3 insertions(+)
+ net/sunrpc/sunrpc_syms.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/lockd/svc.c~nlm-have-lockd-call-try_to_freeze fs/lockd/svc.c
---- a/fs/lockd/svc.c~nlm-have-lockd-call-try_to_freeze
-+++ a/fs/lockd/svc.c
-@@ -155,6 +155,9 @@ lockd(struct svc_rqst *rqstp)
- 		long timeout = MAX_SCHEDULE_TIMEOUT;
- 		char buf[RPC_MAX_ADDRBUFLEN];
+diff -puN net/sunrpc/sunrpc_syms.c~sunrpc-export-svc_sock_update_bufs net/sunrpc/sunrpc_syms.c
+--- a/net/sunrpc/sunrpc_syms.c~sunrpc-export-svc_sock_update_bufs
++++ a/net/sunrpc/sunrpc_syms.c
+@@ -78,6 +78,7 @@ EXPORT_SYMBOL(svc_auth_register);
+ EXPORT_SYMBOL(auth_domain_lookup);
+ EXPORT_SYMBOL(svc_authenticate);
+ EXPORT_SYMBOL(svc_set_client);
++EXPORT_SYMBOL(svc_sock_update_bufs);
  
-+		if (try_to_freeze())
-+			continue;
-+
- 		if (signalled()) {
- 			flush_signals(current);
- 			if (nlmsvc_ops) {
+ /* RPC statistics */
+ #ifdef CONFIG_PROC_FS
 _
 
 Patches currently in -mm which might be from jlayton@redhat.com are
