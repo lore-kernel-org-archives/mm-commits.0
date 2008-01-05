@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + sunrpc-allow-svc_pool_map_set_cpumask-to-work-with-any-task.patch added to -mm tree
-Date: Fri, 04 Jan 2008 22:51:54 -0800
-Message-ID: <200801050652.m056qdTl032492@imap1.linux-foundation.org>
+Subject: + nlm-convert-lockd-to-use-kthreads.patch added to -mm tree
+Date: Fri, 04 Jan 2008 22:52:04 -0800
+Message-ID: <200801050652.m056qouM032511@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47388 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48590 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752700AbYAEGxx (ORCPT
+	by vger.kernel.org with ESMTP id S1752641AbYAEGxx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Sat, 5 Jan 2008 01:53:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jlayton@redhat.com, bfields@fieldses.org, neilb@suse.de, trond.myklebust@fys
 
 
 The patch titled
-     sunrpc: allow svc_pool_map_set_cpumask to work with any task
+     nlm: convert lockd to use kthreads
 has been added to the -mm tree.  Its filename is
-     sunrpc-allow-svc_pool_map_set_cpumask-to-work-with-any-task.patch
+     nlm-convert-lockd-to-use-kthreads.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -27,27 +27,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sunrpc: allow svc_pool_map_set_cpumask to work with any task
+Subject: nlm: convert lockd to use kthreads
 From: Jeff Layton <jlayton@redhat.com>
 
-This patchset fixes the use-after-free problem in lockd, and to convert lockd
-to use the kthread API instead of kernel_thread.  The main change from the
-last patchset is the elimination of the svc_create_kthread helper function,
-and having lockd_up call kthread_run directly.  I've also made some changes to
-the function prototype for the lockd function to eliminate the need for
-casting the function pointer.
-
-Tested against the reproducer I have for the main issue (detailed in patch
-#7).  As always, comments and suggestions are appreciated.
-
-
-
-This patch:
-
-svc_pool_map_set_cpumask will only affect "current" as of now.  Add a new arg
-so that it can change the cpumask on any given task.  Also if we're not
-changing "current" we don't care what the oldmask was, so allow it to be a
-NULL pointer.
+Have lockd_up start lockd using svc_create_kthread.  With this change,
+lockd_down now blocks until lockd actually exits, so there's no longer need
+for the waitqueue code at the end of lockd_down.  This also means that only
+one lockd can be running at a time which simplifies the code within lockd's
+main loop a bit.
 
 Signed-off-by: Jeff Layton <jlayton@redhat.com>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
@@ -56,52 +43,180 @@ Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/svc.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ fs/lockd/svc.c |   76 +++++++++++++++++++++--------------------------
+ 1 file changed, 35 insertions(+), 41 deletions(-)
 
-diff -puN net/sunrpc/svc.c~sunrpc-allow-svc_pool_map_set_cpumask-to-work-with-any-task net/sunrpc/svc.c
---- a/net/sunrpc/svc.c~sunrpc-allow-svc_pool_map_set_cpumask-to-work-with-any-task
-+++ a/net/sunrpc/svc.c
-@@ -297,7 +297,8 @@ svc_pool_map_put(void)
-  * Returns 1 and fills in oldmask iff a cpumask was applied.
+diff -puN fs/lockd/svc.c~nlm-convert-lockd-to-use-kthreads fs/lockd/svc.c
+--- a/fs/lockd/svc.c~nlm-convert-lockd-to-use-kthreads
++++ a/fs/lockd/svc.c
+@@ -25,6 +25,7 @@
+ #include <linux/smp.h>
+ #include <linux/smp_lock.h>
+ #include <linux/mutex.h>
++#include <linux/kthread.h>
+ #include <linux/freezer.h>
+ 
+ #include <linux/sunrpc/types.h>
+@@ -48,13 +49,12 @@ EXPORT_SYMBOL(nlmsvc_ops);
+ 
+ static DEFINE_MUTEX(nlmsvc_mutex);
+ static unsigned int		nlmsvc_users;
+-static pid_t			nlmsvc_pid;
+-static struct svc_serv		*nlmsvc_serv;
++static struct task_struct *	nlmsvc_task;
++static struct svc_serv *	nlmsvc_serv;
+ int				nlmsvc_grace_period;
+ unsigned long			nlmsvc_timeout;
+ 
+ static DECLARE_COMPLETION(lockd_start_done);
+-static DECLARE_WAIT_QUEUE_HEAD(lockd_exit);
+ 
+ /*
+  * These can be set at insmod time (useful for NFS as root filesystem),
+@@ -111,10 +111,11 @@ static inline void clear_grace_period(vo
+ /*
+  * This is the lockd kernel thread
   */
- static inline int
--svc_pool_map_set_cpumask(unsigned int pidx, cpumask_t *oldmask)
-+svc_pool_map_set_cpumask(struct task_struct *task, unsigned int pidx,
-+			 cpumask_t *oldmask)
+-static void
+-lockd(struct svc_rqst *rqstp)
++static int
++lockd(void *vrqstp)
  {
- 	struct svc_pool_map *m = &svc_pool_map;
- 	unsigned int node; /* or cpu */
-@@ -314,13 +315,15 @@ svc_pool_map_set_cpumask(unsigned int pi
- 		return 0;
- 	case SVC_POOL_PERCPU:
- 		node = m->pool_to[pidx];
--		*oldmask = current->cpus_allowed;
--		set_cpus_allowed(current, cpumask_of_cpu(node));
-+		if (oldmask != NULL)
-+			*oldmask = task->cpus_allowed;
-+		set_cpus_allowed(task, cpumask_of_cpu(node));
- 		return 1;
- 	case SVC_POOL_PERNODE:
- 		node = m->pool_to[pidx];
--		*oldmask = current->cpus_allowed;
--		set_cpus_allowed(current, node_to_cpumask(node));
-+		if (oldmask != NULL)
-+			*oldmask = task->cpus_allowed;
-+		set_cpus_allowed(task, node_to_cpumask(node));
- 		return 1;
- 	}
+ 	int		err = 0;
++	struct svc_rqst *rqstp = vrqstp;
+ 	unsigned long grace_period_expire;
+ 
+ 	/* Lock module and set up kernel thread */
+@@ -128,11 +129,9 @@ lockd(struct svc_rqst *rqstp)
+ 	/*
+ 	 * Let our maker know we're running.
+ 	 */
+-	nlmsvc_pid = current->pid;
+ 	nlmsvc_serv = rqstp->rq_server;
+ 	complete(&lockd_start_done);
+ 
+-	daemonize("lockd");
+ 	set_freezable();
+ 
+ 	/* Process request with signals blocked, but allow SIGKILL.  */
+@@ -151,7 +150,7 @@ lockd(struct svc_rqst *rqstp)
+ 	 * NFS mount or NFS daemon has gone away, and we've been sent a
+ 	 * signal, or else another process has taken over our job.
+ 	 */
+-	while ((nlmsvc_users || !signalled()) && nlmsvc_pid == current->pid) {
++	while (!kthread_should_stop()) {
+ 		long timeout = MAX_SCHEDULE_TIMEOUT;
+ 		char buf[RPC_MAX_ADDRBUFLEN];
+ 
+@@ -203,23 +202,19 @@ lockd(struct svc_rqst *rqstp)
+ 	 * Check whether there's a new lockd process before
+ 	 * shutting down the hosts and clearing the slot.
+ 	 */
+-	if (!nlmsvc_pid || current->pid == nlmsvc_pid) {
+-		if (nlmsvc_ops)
+-			nlmsvc_invalidate_all();
+-		nlm_shutdown_hosts();
+-		nlmsvc_pid = 0;
+-		nlmsvc_serv = NULL;
+-	} else
+-		printk(KERN_DEBUG
+-			"lockd: new process, skipping host shutdown\n");
+-	wake_up(&lockd_exit);
++	if (nlmsvc_ops)
++		nlmsvc_invalidate_all();
++	nlm_shutdown_hosts();
++	nlmsvc_task = NULL;
++	nlmsvc_serv = NULL;
+ 
+ 	/* Exit the RPC thread */
+ 	svc_exit_thread(rqstp);
+ 
+ 	/* Release module */
+ 	unlock_kernel();
+-	module_put_and_exit(0);
++	module_put(THIS_MODULE);
++	return 0;
  }
-@@ -564,7 +567,8 @@ __svc_create_thread(svc_thread_fn func, 
- 	rqstp->rq_pool = pool;
  
- 	if (serv->sv_nrpools > 1)
--		have_oldmask = svc_pool_map_set_cpumask(pool->sp_id, &oldmask);
-+		have_oldmask = svc_pool_map_set_cpumask(current, pool->sp_id,
-+							&oldmask);
+ /*
+@@ -257,13 +252,14 @@ int
+ lockd_up(int proto) /* Maybe add a 'family' option when IPv6 is supported ?? */
+ {
+ 	struct svc_serv *	serv;
++	struct svc_rqst *	rqstp;
+ 	int			error = 0;
  
- 	error = kernel_thread((int (*)(void *)) func, rqstp, 0);
+ 	mutex_lock(&nlmsvc_mutex);
+ 	/*
+ 	 * Check whether we're already up and running.
+ 	 */
+-	if (nlmsvc_pid) {
++	if (nlmsvc_task) {
+ 		if (proto)
+ 			error = make_socks(nlmsvc_serv, proto);
+ 		goto out;
+@@ -290,11 +286,24 @@ lockd_up(int proto) /* Maybe add a 'fami
+ 	/*
+ 	 * Create the kernel thread and wait for it to start.
+ 	 */
++	rqstp = svc_prepare_thread(serv, &serv->sv_pools[0]);
++	if (IS_ERR(rqstp)) {
++		error = PTR_ERR(rqstp);
++		printk(KERN_WARNING
++			"lockd_up: svc_rqst allocation failed, error=%d\n",
++			error);
++		goto destroy_and_out;
++	}
++
++	svc_sock_update_bufs(serv);
+ 	init_completion(&lockd_start_done);
+-	error = svc_create_thread(lockd, serv);
+-	if (error) {
++	nlmsvc_task = kthread_run(lockd, rqstp, serv->sv_name);
++	if (IS_ERR(nlmsvc_task)) {
++		error = PTR_ERR(nlmsvc_task);
++		nlmsvc_task = NULL;
+ 		printk(KERN_WARNING
+-			"lockd_up: create thread failed, error=%d\n", error);
++			"lockd_up: kthread_run failed, error=%d\n", error);
++		svc_exit_thread(rqstp);
+ 		goto destroy_and_out;
+ 	}
+ 	wait_for_completion(&lockd_start_done);
+@@ -326,30 +335,15 @@ lockd_down(void)
+ 		if (--nlmsvc_users)
+ 			goto out;
+ 	} else
+-		printk(KERN_WARNING "lockd_down: no users! pid=%d\n", nlmsvc_pid);
++		printk(KERN_WARNING "lockd_down: no users! task=%p\n", nlmsvc_task);
  
+-	if (!nlmsvc_pid) {
++	if (!nlmsvc_task) {
+ 		if (warned++ == 0)
+ 			printk(KERN_WARNING "lockd_down: no lockd running.\n"); 
+ 		goto out;
+ 	}
+ 	warned = 0;
+-
+-	kill_proc(nlmsvc_pid, SIGKILL, 1);
+-	/*
+-	 * Wait for the lockd process to exit, but since we're holding
+-	 * the lockd semaphore, we can't wait around forever ...
+-	 */
+-	clear_thread_flag(TIF_SIGPENDING);
+-	interruptible_sleep_on_timeout(&lockd_exit, HZ);
+-	if (nlmsvc_pid) {
+-		printk(KERN_WARNING 
+-			"lockd_down: lockd failed to exit, clearing pid\n");
+-		nlmsvc_pid = 0;
+-	}
+-	spin_lock_irq(&current->sighand->siglock);
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++	kthread_stop(nlmsvc_task);
+ out:
+ 	mutex_unlock(&nlmsvc_mutex);
+ }
 _
 
 Patches currently in -mm which might be from jlayton@redhat.com are
