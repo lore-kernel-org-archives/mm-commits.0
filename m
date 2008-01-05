@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + nlm-initialize-completion-variable-in-lockd_up.patch added to -mm tree
-Date: Fri, 04 Jan 2008 22:52:00 -0800
-Message-ID: <200801050652.m056qk7j032505@imap1.linux-foundation.org>
+Subject: + nlm-have-lockd-call-try_to_freeze.patch added to -mm tree
+Date: Fri, 04 Jan 2008 22:52:02 -0800
+Message-ID: <200801050652.m056qmhL032508@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38550 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56199 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752558AbYAEGxw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 5 Jan 2008 01:53:52 -0500
+	by vger.kernel.org with ESMTP id S1752682AbYAEGxx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 5 Jan 2008 01:53:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jlayton@redhat.com, bfields@fieldses.org, neilb@suse.de, trond.myklebust@fys
 
 
 The patch titled
-     nlm: initialize completion variable in lockd_up
+     nlm: have lockd call try_to_freeze
 has been added to the -mm tree.  Its filename is
-     nlm-initialize-completion-variable-in-lockd_up.patch
+     nlm-have-lockd-call-try_to_freeze.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -27,12 +27,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nlm: initialize completion variable in lockd_up
+Subject: nlm: have lockd call try_to_freeze
 From: Jeff Layton <jlayton@redhat.com>
 
-lockd_start_done is a global var that can be reused if lockd is restarted, but
-it's never reinitialized.  On all but the first use, wait_for_completion isn't
-actually waiting on it since it has already completed once.
+lockd makes itself freezable, but never calls try_to_freeze().  Have it call
+try_to_freeze() within the main loop.
 
 Signed-off-by: Jeff Layton <jlayton@redhat.com>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
@@ -41,20 +40,22 @@ Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/lockd/svc.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/lockd/svc.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN fs/lockd/svc.c~nlm-initialize-completion-variable-in-lockd_up fs/lockd/svc.c
---- a/fs/lockd/svc.c~nlm-initialize-completion-variable-in-lockd_up
+diff -puN fs/lockd/svc.c~nlm-have-lockd-call-try_to_freeze fs/lockd/svc.c
+--- a/fs/lockd/svc.c~nlm-have-lockd-call-try_to_freeze
 +++ a/fs/lockd/svc.c
-@@ -287,6 +287,7 @@ lockd_up(int proto) /* Maybe add a 'fami
- 	/*
- 	 * Create the kernel thread and wait for it to start.
- 	 */
-+	init_completion(&lockd_start_done);
- 	error = svc_create_thread(lockd, serv);
- 	if (error) {
- 		printk(KERN_WARNING
+@@ -155,6 +155,9 @@ lockd(struct svc_rqst *rqstp)
+ 		long timeout = MAX_SCHEDULE_TIMEOUT;
+ 		char buf[RPC_MAX_ADDRBUFLEN];
+ 
++		if (try_to_freeze())
++			continue;
++
+ 		if (signalled()) {
+ 			flush_signals(current);
+ 			if (nlmsvc_ops) {
 _
 
 Patches currently in -mm which might be from jlayton@redhat.com are
