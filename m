@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + uml-user-of-helper_wait-got-missed-when-it-got-extra-arguments.patch added to -mm tree
-Date: Fri, 04 Jan 2008 22:48:56 -0800
-Message-ID: <200801050649.m056nnq2032423@imap1.linux-foundation.org>
+Subject: + keys-fix-macro.patch added to -mm tree
+Date: Fri, 04 Jan 2008 22:49:09 -0800
+Message-ID: <200801050649.m056ntC0032450@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49173 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56549 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752073AbYAEGuG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 5 Jan 2008 01:50:06 -0500
+	by vger.kernel.org with ESMTP id S1752503AbYAEGu7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 5 Jan 2008 01:50:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: viro@ftp.linux.org.uk, jdike@addtoit.com, viro@zeniv.linux.org.uk
+Cc: sebastian@breakpoint.cc, dhowells@redhat.com
 
 
 The patch titled
-     uml: user of helper_wait() got missed when it got extra arguments
+     KEYS: fix macro
 has been added to the -mm tree.  Its filename is
-     uml-user-of-helper_wait-got-missed-when-it-got-extra-arguments.patch
+     keys-fix-macro.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -27,42 +27,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: user of helper_wait() got missed when it got extra arguments
-From: Al Viro <viro@ftp.linux.org.uk>
+Subject: KEYS: fix macro
+From: Sebastian Siewior <sebastian@breakpoint.cc>
 
-Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Jeff Dike <jdike@addtoit.com>
+Commit 664cceb0093b755739e56572b836a99104ee8a75 changed the parameters of
+the function make_key_ref().  The macros that are used in case CONFIG_KEY
+is not defined did not change.
+
+Cc: David Howells <dhowells@redhat.com>
+Signed-off-by: Sebastian Siewior <sebastian@breakpoint.cc>
+Acked-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/harddog_user.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/key.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/um/drivers/harddog_user.c~uml-user-of-helper_wait-got-missed-when-it-got-extra-arguments arch/um/drivers/harddog_user.c
---- a/arch/um/drivers/harddog_user.c~uml-user-of-helper_wait-got-missed-when-it-got-extra-arguments
-+++ a/arch/um/drivers/harddog_user.c
-@@ -79,14 +79,14 @@ int start_watchdog(int *in_fd_ret, int *
- 	n = read(in_fds[0], &c, sizeof(c));
- 	if (n == 0) {
- 		printk("harddog_open - EOF on watchdog pipe\n");
--		helper_wait(pid);
-+		helper_wait(pid, 1, NULL);
- 		err = -EIO;
- 		goto out_close_out;
- 	}
- 	else if (n < 0) {
- 		printk("harddog_open - read of watchdog pipe failed, "
- 		       "err = %d\n", errno);
--		helper_wait(pid);
-+		helper_wait(pid, 1, NULL);
- 		err = n;
- 		goto out_close_out;
- 	}
+diff -puN include/linux/key.h~keys-fix-macro include/linux/key.h
+--- a/include/linux/key.h~keys-fix-macro
++++ a/include/linux/key.h
+@@ -290,7 +290,7 @@ extern void key_init(void);
+ #define key_get(k) 			({ NULL; })
+ #define key_put(k)			do { } while(0)
+ #define key_ref_put(k)			do { } while(0)
+-#define make_key_ref(k)			({ NULL; })
++#define make_key_ref(k, p)			({ NULL; })
+ #define key_ref_to_ptr(k)		({ NULL; })
+ #define is_key_possessed(k)		0
+ #define alloc_uid_keyring(u,c)		0
 _
 
-Patches currently in -mm which might be from viro@ftp.linux.org.uk are
+Patches currently in -mm which might be from sebastian@breakpoint.cc are
 
-uml-user-of-helper_wait-got-missed-when-it-got-extra-arguments.patch
-sdio-fix-module-device-table-definition-for-m68k.patch
-git-netdev-all.patch
-slab-leaks3-default-y.patch
+keys-fix-macro.patch
+git-cryptodev.patch
