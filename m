@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + make-sys_poll-wait-at-least-timeout-ms.patch added to -mm tree
-Date: Fri, 04 Jan 2008 22:55:21 -0800
-Message-ID: <200801050656.m056u7Mc032661@imap1.linux-foundation.org>
+Subject: + md-fix-data-corruption-when-a-degraded-raid5-array-is-reshaped.patch added to -mm tree
+Date: Sat, 05 Jan 2008 12:23:23 -0800
+Message-ID: <200801052023.m05KN3lE009769@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35054 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40376 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752479AbYAEG4s (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 5 Jan 2008 01:56:48 -0500
+	by vger.kernel.org with ESMTP id S1756341AbYAEUXZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 5 Jan 2008 15:23:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fzu@wemgehoertderstaat.de, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
+Cc: dan.j.williams@intel.com, neilb@suse.de, stable@kernel.org
 
 
 The patch titled
-     make sys_poll() wait at least timeout ms
+     md: fix data corruption when a degraded raid5 array is reshaped
 has been added to the -mm tree.  Its filename is
-     make-sys_poll-wait-at-least-timeout-ms.patch
+     md-fix-data-corruption-when-a-degraded-raid5-array-is-reshaped.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -27,37 +27,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make sys_poll() wait at least timeout ms
-From: Karsten Wiese <fzu@wemgehoertderstaat.de>
+Subject: md: fix data corruption when a degraded raid5 array is reshaped
+From: Dan Williams <dan.j.williams@intel.com>
 
-schedule_timeout(jiffies) waits for at least jiffies - 1.  Add 1 jiffie to
-the timeout_jiffies calculated in sys_poll() to wait at least
-timeout_msecs, like poll() manpage says.
+md: Fix data corruption when a degraded raid5 array is reshaped.
 
-Signed-off-by: Karsten Wiese <fzu@wemgehoertderstaat.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+We currently do not wait for the block from the missing device to be
+computed from parity before copying data to the new stripe layout.
+
+The change in the raid6 code is not techincally needed as we don't delay
+data block recovery in the same way for raid6 yet.  But making the change
+now is safer long-term.
+
+This bug exists in 2.6.23 and 2.6.24-rc
+
+Cc: <stable@kernel.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Acked-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/select.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/md/raid5.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN fs/select.c~make-sys_poll-wait-at-least-timeout-ms fs/select.c
---- a/fs/select.c~make-sys_poll-wait-at-least-timeout-ms
-+++ a/fs/select.c
-@@ -739,7 +739,7 @@ asmlinkage long sys_poll(struct pollfd _
- 			timeout_jiffies = -1;
- 		else
- #endif
--			timeout_jiffies = msecs_to_jiffies(timeout_msecs);
-+			timeout_jiffies = msecs_to_jiffies(timeout_msecs) + 1;
- 	} else {
- 		/* Infinite (< 0) or no (0) timeout */
- 		timeout_jiffies = timeout_msecs;
+diff -puN drivers/md/raid5.c~md-fix-data-corruption-when-a-degraded-raid5-array-is-reshaped drivers/md/raid5.c
+--- a/drivers/md/raid5.c~md-fix-data-corruption-when-a-degraded-raid5-array-is-reshaped
++++ a/drivers/md/raid5.c
+@@ -2865,7 +2865,8 @@ static void handle_stripe5(struct stripe
+ 		md_done_sync(conf->mddev, STRIPE_SECTORS, 1);
+ 	}
+ 
+-	if (s.expanding && s.locked == 0)
++	if (s.expanding && s.locked == 0 &&
++	    !test_bit(STRIPE_OP_COMPUTE_BLK, &sh->ops.pending))
+ 		handle_stripe_expansion(conf, sh, NULL);
+ 
+ 	if (sh->ops.count)
+@@ -3067,7 +3068,8 @@ static void handle_stripe6(struct stripe
+ 		md_done_sync(conf->mddev, STRIPE_SECTORS, 1);
+ 	}
+ 
+-	if (s.expanding && s.locked == 0)
++	if (s.expanding && s.locked == 0 &&
++	    !test_bit(STRIPE_OP_COMPUTE_BLK, &sh->ops.pending))
+ 		handle_stripe_expansion(conf, sh, &r6s);
+ 
+ 	spin_unlock(&sh->lock);
 _
 
-Patches currently in -mm which might be from fzu@wemgehoertderstaat.de are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-make-sys_poll-wait-at-least-timeout-ms.patch
+md-fix-data-corruption-when-a-degraded-raid5-array-is-reshaped.patch
+git-arm.patch
+git-md-accel.patch
+dca-convert-struct-class_device-to-struct-device.patch
+add-dma-engine-driver-for-freescale-mpc85xx-processors.patch
+add-dma-engine-driver-for-freescale-mpc85xx-processors-fix.patch
+add-dma-engine-driver-for-freescale-mpc85xx-processors-fix-fix.patch
