@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + iwlwifi-fix-typo-in-drivers-net-wireless-iwlwifi-kconfig.patch added to -mm tree
-Date: Fri, 04 Jan 2008 22:53:11 -0800
-Message-ID: <200801050653.m056rvrM032609@imap1.linux-foundation.org>
+Subject: + fix-and-typo-in-eicons-addinfo.patch added to -mm tree
+Date: Fri, 04 Jan 2008 22:55:29 -0800
+Message-ID: <200801050656.m056uFnt032664@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59695 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34930 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752677AbYAEG4A (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 5 Jan 2008 01:56:00 -0500
+	by vger.kernel.org with ESMTP id S1751743AbYAEG4Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 5 Jan 2008 01:56:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yi.zhu@intel.com, linville@tuxdriver.com, mboton.lkml@gmail.com
+Cc: 12o3l@tiscali.nl, kkeil@suse.de
 
 
 The patch titled
-     iwlwifi: fix typo in 'drivers/net/wireless/iwlwifi/Kconfig'
+     drivers/isdn/hardware/eicon/message.c fix 'and' typo in eicons' AddInfo()
 has been added to the -mm tree.  Its filename is
-     iwlwifi-fix-typo-in-drivers-net-wireless-iwlwifi-kconfig.patch
+     fix-and-typo-in-eicons-addinfo.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -27,45 +27,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iwlwifi: fix typo in 'drivers/net/wireless/iwlwifi/Kconfig'
-From: Zhu Yi <yi.zhu@intel.com>
+Subject: drivers/isdn/hardware/eicon/message.c fix 'and' typo in eicons' AddInfo()
+From: Roel Kluin <12o3l@tiscali.nl>
 
-Based on a patch by Miguel.
+'!' has a higher priority than '&'.
 
-Signed-off-by: Zhu Yi <yi.zhu@intel.com>
-Cc: Miguel Boton <mboton.lkml@gmail.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/iwlwifi/Kconfig |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/isdn/hardware/eicon/message.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/wireless/iwlwifi/Kconfig~iwlwifi-fix-typo-in-drivers-net-wireless-iwlwifi-kconfig drivers/net/wireless/iwlwifi/Kconfig
---- a/drivers/net/wireless/iwlwifi/Kconfig~iwlwifi-fix-typo-in-drivers-net-wireless-iwlwifi-kconfig
-+++ a/drivers/net/wireless/iwlwifi/Kconfig
-@@ -31,7 +31,7 @@ config IWL4965_QOS
- 	depends on IWL4965
- 	---help---
- 	  This option will enable wireless quality of service (QoS) for the
--	  iw4965 driver.
-+	  iwl4965 driver.
+diff -puN drivers/isdn/hardware/eicon/message.c~fix-and-typo-in-eicons-addinfo drivers/isdn/hardware/eicon/message.c
+--- a/drivers/isdn/hardware/eicon/message.c~fix-and-typo-in-eicons-addinfo
++++ a/drivers/isdn/hardware/eicon/message.c
+@@ -9027,7 +9027,7 @@ static byte AddInfo(byte   **add_i,
+    /* facility is a nested structure */
+    /* FTY can be more than once      */
  
- config IWL4965_HT
- 	bool "Enable 802.11n HT features in iwl4965 driver"
-@@ -43,7 +43,7 @@ config IWL4965_HT
- 	  for the iwl4965 driver.
- 
- config IWL4965_SPECTRUM_MEASUREMENT
--	bool "Enable Spectrum Measurement in iw4965 driver"
-+	bool "Enable Spectrum Measurement in iwl4965 driver"
- 	depends on IWL4965
- 	---help---
- 	  This option will enable spectrum measurement for the iwl4965 driver.
+-  if(esc_chi[0] && !(esc_chi[esc_chi[0]])&0x7f )
++	if (esc_chi[0] && !(esc_chi[esc_chi[0]] & 0x7f))
+   {
+     add_i[0] = (byte   *)"\x02\x02\x00"; /* use neither b nor d channel */
+   }
 _
 
-Patches currently in -mm which might be from yi.zhu@intel.com are
+Patches currently in -mm which might be from 12o3l@tiscali.nl are
 
-git-net.patch
+git-acpi.patch
+git-dvb.patch
+git-mips.patch
 git-netdev-all.patch
-iwlwifi-fix-typo-in-drivers-net-wireless-iwlwifi-kconfig.patch
+m68k-balance-ioremap-and-iounmap-in-m68k-atari-hades-pcic.patch
+sound-oss-tridentc-fix-incorrect-test-in-trident_ac97_set.patch
+fix-and-typo-in-eicons-addinfo.patch
