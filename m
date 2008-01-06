@@ -1,239 +1,302 @@
 From: akpm@linux-foundation.org
-Subject: - nlm-add-reference-counting-to-lockd.patch removed from -mm tree
-Date: Sat, 05 Jan 2008 19:06:39 -0800
-Message-ID: <200801060306.m0636Jxj022924@imap1.linux-foundation.org>
+Subject: + drivers-media-radio-radio-sf16fmr2c-fix-error-handling.patch added to -mm tree
+Date: Sat, 05 Jan 2008 19:26:48 -0800
+Message-ID: <200801060326.m063QSve023621@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43668 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50636 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753843AbYAFDHR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 5 Jan 2008 22:07:17 -0500
+	by vger.kernel.org with ESMTP id S1753958AbYAFD1M (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 5 Jan 2008 22:27:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jlayton@redhat.com, bfields@fieldses.org, neilb@suse.de, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, devzero@web.de, mchehab@infradead.org
 
 
 The patch titled
-     nlm: add reference counting to lockd
-has been removed from the -mm tree.  Its filename was
-     nlm-add-reference-counting-to-lockd.patch
+     drivers/media/radio/radio-sf16fmr2.c: fix error handling
+has been added to the -mm tree.  Its filename is
+     drivers-media-radio-radio-sf16fmr2c-fix-error-handling.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nlm: add reference counting to lockd
-From: Jeff Layton <jlayton@redhat.com>
+Subject: drivers/media/radio/radio-sf16fmr2.c: fix error handling
+From: Andrew Morton <akpm@linux-foundation.org>
 
-...and only have lockd exit when the last reference is dropped.
+video_register_device() returns -EFOO on errr, not -1.
 
-The problem is this:
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=9699
 
-When a lock that a client is blocking on comes free, lockd does this in
-nlmsvc_grant_blocked():
-
-    nlm_async_call(block->b_call, NLMPROC_GRANTED_MSG, &nlmsvc_grant_ops);
-
-the callback from this call is nlmsvc_grant_callback(). That function
-does this at the end to wake up lockd:
-
-    svc_wake_up(block->b_daemon);
-
-However there is no guarantee that lockd will be up when this happens.  If
-someone shuts down or restarts lockd before the async call completes, then the
-b_daemon pointer will point to freed memory and the kernel may oops.
-
-I first noticed this on older kernels and had mistakenly thought that newer
-kernels weren't susceptible, but that's not correct.  There's a bit of a race
-to make sure that the nlm_host is bound when the async call is done, but I can
-now reproduce this at will on current kernels.
-
-This patch is based on Trond's suggestion to add a new reference counter to
-lockd, and only allows lockd to go down when it reaches 0.  With this change
-we can't use kthread_stop here.  nlmsvc_unlink_block is called by lockd and a
-kthread can't call kthread_stop on itself.  So the patch changes lockd to
-check the refcount itself and to return if it goes to 0.  We do the checking
-and exit while holding the nlmsvc_mutex to make sure that a new lockd is not
-started until the old one is down.
-
-Signed-off-by: Jeff Layton <jlayton@redhat.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: Neil Brown <neilb@suse.de>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Reported-By: <devzero@web.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/lockd/svc.c              |   51 ++++++++++++++++++++++++++--------
- fs/lockd/svclock.c          |    5 +++
- include/linux/lockd/lockd.h |    1 
- 3 files changed, 45 insertions(+), 12 deletions(-)
+ drivers/media/radio/radio-sf16fmr2.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/lockd/svc.c~nlm-add-reference-counting-to-lockd fs/lockd/svc.c
---- a/fs/lockd/svc.c~nlm-add-reference-counting-to-lockd
-+++ a/fs/lockd/svc.c
-@@ -51,6 +51,7 @@ static DEFINE_MUTEX(nlmsvc_mutex);
- static unsigned int		nlmsvc_users;
- static struct task_struct *	nlmsvc_task;
- static struct svc_serv *	nlmsvc_serv;
-+atomic_t			nlmsvc_ref = ATOMIC_INIT(0);
- int				nlmsvc_grace_period;
- unsigned long			nlmsvc_timeout;
- 
-@@ -134,7 +135,10 @@ lockd(void *vrqstp)
- 
- 	set_freezable();
- 
--	/* Process request with signals blocked, but allow SIGKILL.  */
-+	/*
-+	 * Process request with signals blocked, but allow SIGKILL which
-+	 * signifies that lockd should drop all of its locks.
-+	 */
- 	allow_signal(SIGKILL);
- 
- 	dprintk("NFS locking service started (ver " LOCKD_VERSION ").\n");
-@@ -147,15 +151,19 @@ lockd(void *vrqstp)
- 
- 	/*
- 	 * The main request loop. We don't terminate until the last
--	 * NFS mount or NFS daemon has gone away, and we've been sent a
--	 * signal, or else another process has taken over our job.
-+	 * NFS mount or NFS daemon has gone away, and the nlm_blocked
-+	 * list is empty. The nlmsvc_mutex ensures that we prevent a
-+	 * new lockd from being started before the old one is down.
- 	 */
--	while (!kthread_should_stop()) {
-+	mutex_lock(&nlmsvc_mutex);
-+	while (atomic_read(&nlmsvc_ref) != 0) {
- 		long timeout = MAX_SCHEDULE_TIMEOUT;
- 		char buf[RPC_MAX_ADDRBUFLEN];
- 
-+		mutex_unlock(&nlmsvc_mutex);
-+
- 		if (try_to_freeze())
--			continue;
-+			goto again;
- 
- 		if (signalled()) {
- 			flush_signals(current);
-@@ -182,11 +190,12 @@ lockd(void *vrqstp)
- 		 */
- 		err = svc_recv(rqstp, timeout);
- 		if (err == -EAGAIN || err == -EINTR)
--			continue;
-+			goto again;
- 		if (err < 0) {
- 			printk(KERN_WARNING
- 			       "lockd: terminating on error %d\n",
- 			       -err);
-+			mutex_lock(&nlmsvc_mutex);
- 			break;
- 		}
- 
-@@ -194,19 +203,22 @@ lockd(void *vrqstp)
- 				svc_print_addr(rqstp, buf, sizeof(buf)));
- 
- 		svc_process(rqstp);
-+again:
-+		mutex_lock(&nlmsvc_mutex);
+diff -puN drivers/media/radio/radio-sf16fmr2.c~drivers-media-radio-radio-sf16fmr2c-fix-error-handling drivers/media/radio/radio-sf16fmr2.c
+--- a/drivers/media/radio/radio-sf16fmr2.c~drivers-media-radio-radio-sf16fmr2c-fix-error-handling
++++ a/drivers/media/radio/radio-sf16fmr2.c
+@@ -476,8 +476,7 @@ static int __init fmr2_init(void)
+ 		return -EBUSY;
  	}
  
--	flush_signals(current);
--
- 	/*
--	 * Check whether there's a new lockd process before
--	 * shutting down the hosts and clearing the slot.
--	 */
-+	 * at this point lockd is committed to going down. We hold the
-+	 * nlmsvc_mutex until just before exit to prevent a new one
-+	 * from starting before it's down.
-+ 	 */
-+	flush_signals(current);
- 	if (nlmsvc_ops)
- 		nlmsvc_invalidate_all();
- 	nlm_shutdown_hosts();
- 	nlmsvc_task = NULL;
- 	nlmsvc_serv = NULL;
-+	mutex_unlock(&nlmsvc_mutex);
- 
- 	/* Exit the RPC thread */
- 	svc_exit_thread(rqstp);
-@@ -256,6 +268,10 @@ lockd_up(int proto) /* Maybe add a 'fami
- 	int			error = 0;
- 
- 	mutex_lock(&nlmsvc_mutex);
-+
-+	if (!nlmsvc_users)
-+		atomic_inc(&nlmsvc_ref);
-+
- 	/*
- 	 * Check whether we're already up and running.
- 	 */
-@@ -315,6 +331,8 @@ lockd_up(int proto) /* Maybe add a 'fami
- destroy_and_out:
- 	svc_destroy(serv);
- out:
-+	if (!nlmsvc_users && error)
-+		atomic_dec(&nlmsvc_ref);
- 	if (!error)
- 		nlmsvc_users++;
- 	mutex_unlock(&nlmsvc_mutex);
-@@ -343,7 +361,16 @@ lockd_down(void)
- 		goto out;
+-	if(video_register_device(&fmr2_radio, VFL_TYPE_RADIO, radio_nr)==-1)
+-	{
++	if (video_register_device(&fmr2_radio, VFL_TYPE_RADIO, radio_nr) < 0) {
+ 		release_region(io, 2);
+ 		return -EINVAL;
  	}
- 	warned = 0;
--	kthread_stop(nlmsvc_task);
-+	atomic_dec(&nlmsvc_ref);
-+
-+	/*
-+	 * Sending a signal is necessary here. If we get to this point and
-+	 * nlm_blocked isn't empty then lockd may be held hostage by clients
-+	 * that are still blocking. Sending the signal makes sure that lockd
-+	 * invalidates all of its locks so that it's just waiting on RPC
-+	 * callbacks to complete
-+	 */
-+	kill_proc(nlmsvc_task->pid, SIGKILL, 1);
- out:
- 	mutex_unlock(&nlmsvc_mutex);
- }
-diff -puN fs/lockd/svclock.c~nlm-add-reference-counting-to-lockd fs/lockd/svclock.c
---- a/fs/lockd/svclock.c~nlm-add-reference-counting-to-lockd
-+++ a/fs/lockd/svclock.c
-@@ -61,6 +61,9 @@ nlmsvc_insert_block(struct nlm_block *bl
- 	struct list_head *pos;
- 
- 	dprintk("lockd: nlmsvc_insert_block(%p, %ld)\n", block, when);
-+	if (list_empty(&nlm_blocked))
-+		atomic_inc(&nlmsvc_ref);
-+
- 	if (list_empty(&block->b_list)) {
- 		kref_get(&block->b_count);
- 	} else {
-@@ -239,6 +242,8 @@ static int nlmsvc_unlink_block(struct nl
- 	/* Remove block from list */
- 	status = posix_unblock_lock(block->b_file->f_file, &block->b_call->a_args.lock.fl);
- 	nlmsvc_remove_block(block);
-+	if (list_empty(&nlm_blocked))
-+		atomic_dec(&nlmsvc_ref);
- 	return status;
- }
- 
-diff -puN include/linux/lockd/lockd.h~nlm-add-reference-counting-to-lockd include/linux/lockd/lockd.h
---- a/include/linux/lockd/lockd.h~nlm-add-reference-counting-to-lockd
-+++ a/include/linux/lockd/lockd.h
-@@ -154,6 +154,7 @@ extern struct svc_procedure	nlmsvc_proce
- extern int			nlmsvc_grace_period;
- extern unsigned long		nlmsvc_timeout;
- extern int			nsm_use_hostnames;
-+extern atomic_t			nlmsvc_ref;
- 
- /*
-  * Lockd client functions
 _
 
-Patches currently in -mm which might be from jlayton@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-nlm-add-reference-counting-to-lockd.patch
+origin.patch
+lib-proportion-fix-underflow-in-prop_norm_percpu.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes.patch
+timerfd-v3-new-timerfd-api-ia64-fix.patch
+timerfd-v3-new-timerfd-api-m68k-fix.patch
+timerfd-v3-new-timerfd-api-mips-fix.patch
+timerfd-v3-new-timerfd-api-arch-fixes.patch
+timerfd-v3-new-timerfd-api-powerpc-fix.patch
+timerfd-v3-new-timerfd-api-sparc64-fix.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+git-alsa-fixup.patch
+sound-usb-usbaudioc-fix-build-with-config_pm=n.patch
+git-agpgart.patch
+git-agpgart-intel-agp-dont-zero-an-already-registered-resource-during-resume.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+kernel-auditc-warning-fix.patch
+git-cpufreq.patch
+git-powerpc.patch
+revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+intel-agp-enable-i915-recognition.patch
+git-dvb.patch
+fix-jdelvare-i2c-i2c-constify-client-address-data.patch
+git-hid.patch
+revert-git-hrt.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-versus-driver-tree.patch
+git-kvm.patch
+kvm-ist-kaput.patch
+git-lblnet-fixup.patch
+git-libata-all.patch
+git-libata-all-fix-pata_winbond-borkage.patch
+git-libata-all-wtf.patch
+libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
+libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
+libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
+git-md-accel.patch
+git-mmc.patch
+git-mtd.patch
+git-net.patch
+git-net-fixup.patch
+git-net-vs-git-lblnet.patch
+git-net-vs-git-lblnet-2.patch
+git-netdev-all.patch
+git-net-vs-git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+backlight-omap1-backlight-driver.patch
+git-battery.patch
+bluetooth-uninlining.patch
+git-nfsd.patch
+serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+git-sched.patch
+git-sched-fixup.patch
+git-sched-fix-preempt-rcu-on-non-preemptible-architectures.patch
+git-sh.patch
+git-scsi-misc.patch
+scsi-aic94xx-cleanups-checkpatch-fixes.patch
+scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
 git-unionfs.patch
-smbfs-fix-calculation-of-kernel_recvmsg-size-parameter-in-smb_receive.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
+9p-util-fix-semaphore-handling.patch
+git-watchdog.patch
+git-watchdog-fixup.patch
+add-support-for-sb1-hardware-watchdog.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-fixup.patch
+git-x86-arch-x86-math-emu-errorsc-fix-printk-warnings.patch
+git-x86-drivers-pnp-pnpbios-bioscallsc-build-fix.patch
+git-x86-fix-doubly-merged-patch.patch
+git-x86-export-leave_mm.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes.patch
+arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes-checkpatch-fixes.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-xtensa.patch
+bonding-locking-fix.patch
+usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-add-proc-kpagecount-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix-2-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+mm-remove-fastcall-from-mm-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
 deprecate-smbfs-in-favour-of-cifs.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+stopmachine-semaphore-to-mutex-fix.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
+debug_smp_processor_id-fixlets.patch
+use-ilog2-in-fs-namespacec-fix.patch
+avoid-overflows-in-kernel-timec-fix.patch
+export-iov_shorten-for-ext4s-use-fix.patch
+sync_sb_inodes-propagate-errors.patch
+add-have_oprofile.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-fix.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+neofb-avoid-overwriting-fb_info-fields.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+ext4-mm-ext4_store_maxbytes_for_bitmaped_files-warning-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-move-stack_top-to-asm-processorh-fix.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
+drivers-media-radio-radio-sf16fmr2c-fix-error-handling.patch
