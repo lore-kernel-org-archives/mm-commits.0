@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - sunrpc-export-svc_sock_update_bufs.patch removed from -mm tree
-Date: Sat, 05 Jan 2008 19:06:31 -0800
-Message-ID: <200801060306.m0636Bdg022912@imap1.linux-foundation.org>
+Subject: - sunrpc-spin-svc_rqst-initialization-to-its-own-function.patch removed from -mm tree
+Date: Sat, 05 Jan 2008 19:06:29 -0800
+Message-ID: <200801060306.m06369hw022909@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42253 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55849 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753714AbYAFDHN (ORCPT
+	by vger.kernel.org with ESMTP id S1753479AbYAFDHN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Sat, 5 Jan 2008 22:07:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,20 +14,22 @@ To: jlayton@redhat.com, bfields@fieldses.org, neilb@suse.de, trond.myklebust@fys
 
 
 The patch titled
-     sunrpc: export svc_sock_update_bufs
+     sunrpc: spin svc_rqst initialization to its own function
 has been removed from the -mm tree.  Its filename was
-     sunrpc-export-svc_sock_update_bufs.patch
+     sunrpc-spin-svc_rqst-initialization-to-its-own-function.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sunrpc: export svc_sock_update_bufs
+Subject: sunrpc: spin svc_rqst initialization to its own function
 From: Jeff Layton <jlayton@redhat.com>
 
-Needed since the plan is to not have a svc_create_thread helper and to have
-current users of that function just call kthread_run directly.
+Move the initialzation in __svc_create_thread that happens prior to thread
+creation to a new function.  Export the function so that when we replace
+__svc_create_thread with a kthread version, callers will have complete control
+over this initialization.
 
 Signed-off-by: Jeff Layton <jlayton@redhat.com>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
@@ -36,24 +38,103 @@ Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/sunrpc_syms.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/sunrpc/svc.h |    2 +
+ net/sunrpc/sunrpc_syms.c   |    1 
+ net/sunrpc/svc.c           |   42 +++++++++++++++++++++++++----------
+ 3 files changed, 33 insertions(+), 12 deletions(-)
 
-diff -puN net/sunrpc/sunrpc_syms.c~sunrpc-export-svc_sock_update_bufs net/sunrpc/sunrpc_syms.c
---- a/net/sunrpc/sunrpc_syms.c~sunrpc-export-svc_sock_update_bufs
+diff -puN include/linux/sunrpc/svc.h~sunrpc-spin-svc_rqst-initialization-to-its-own-function include/linux/sunrpc/svc.h
+--- a/include/linux/sunrpc/svc.h~sunrpc-spin-svc_rqst-initialization-to-its-own-function
++++ a/include/linux/sunrpc/svc.h
+@@ -384,6 +384,8 @@ struct svc_procedure {
+  */
+ struct svc_serv *  svc_create(struct svc_program *, unsigned int,
+ 			      void (*shutdown)(struct svc_serv*));
++struct svc_rqst *  svc_prepare_thread(struct svc_serv *serv,
++					struct svc_pool *pool);
+ int		   svc_create_thread(svc_thread_fn, struct svc_serv *);
+ void		   svc_exit_thread(struct svc_rqst *);
+ struct svc_serv *  svc_create_pooled(struct svc_program *, unsigned int,
+diff -puN net/sunrpc/sunrpc_syms.c~sunrpc-spin-svc_rqst-initialization-to-its-own-function net/sunrpc/sunrpc_syms.c
+--- a/net/sunrpc/sunrpc_syms.c~sunrpc-spin-svc_rqst-initialization-to-its-own-function
 +++ a/net/sunrpc/sunrpc_syms.c
-@@ -78,6 +78,7 @@ EXPORT_SYMBOL(svc_auth_register);
- EXPORT_SYMBOL(auth_domain_lookup);
- EXPORT_SYMBOL(svc_authenticate);
- EXPORT_SYMBOL(svc_set_client);
-+EXPORT_SYMBOL(svc_sock_update_bufs);
+@@ -63,6 +63,7 @@ EXPORT_SYMBOL(put_rpccred);
  
- /* RPC statistics */
- #ifdef CONFIG_PROC_FS
+ /* RPC server stuff */
+ EXPORT_SYMBOL(svc_create);
++EXPORT_SYMBOL(svc_prepare_thread);
+ EXPORT_SYMBOL(svc_create_thread);
+ EXPORT_SYMBOL(svc_create_pooled);
+ EXPORT_SYMBOL(svc_set_num_threads);
+diff -puN net/sunrpc/svc.c~sunrpc-spin-svc_rqst-initialization-to-its-own-function net/sunrpc/svc.c
+--- a/net/sunrpc/svc.c~sunrpc-spin-svc_rqst-initialization-to-its-own-function
++++ a/net/sunrpc/svc.c
+@@ -533,23 +533,14 @@ svc_release_buffer(struct svc_rqst *rqst
+ 			put_page(rqstp->rq_pages[i]);
+ }
+ 
+-/*
+- * Create a thread in the given pool.  Caller must hold BKL.
+- * On a NUMA or SMP machine, with a multi-pool serv, the thread
+- * will be restricted to run on the cpus belonging to the pool.
+- */
+-static int
+-__svc_create_thread(svc_thread_fn func, struct svc_serv *serv,
+-		    struct svc_pool *pool)
++struct svc_rqst *
++svc_prepare_thread(struct svc_serv *serv, struct svc_pool *pool)
+ {
+ 	struct svc_rqst	*rqstp;
+-	int		error = -ENOMEM;
+-	int		have_oldmask = 0;
+-	cpumask_t	oldmask;
+ 
+ 	rqstp = kzalloc(sizeof(*rqstp), GFP_KERNEL);
+ 	if (!rqstp)
+-		goto out;
++		goto out_enomem;
+ 
+ 	init_waitqueue_head(&rqstp->rq_wait);
+ 
+@@ -565,6 +556,33 @@ __svc_create_thread(svc_thread_fn func, 
+ 	spin_unlock_bh(&pool->sp_lock);
+ 	rqstp->rq_server = serv;
+ 	rqstp->rq_pool = pool;
++	return rqstp;
++
++out_thread:
++	svc_exit_thread(rqstp);
++out_enomem:
++	return ERR_PTR(-ENOMEM);
++}
++
++/*
++ * Create a thread in the given pool.  Caller must hold BKL.
++ * On a NUMA or SMP machine, with a multi-pool serv, the thread
++ * will be restricted to run on the cpus belonging to the pool.
++ */
++static int
++__svc_create_thread(svc_thread_fn func, struct svc_serv *serv,
++		    struct svc_pool *pool)
++{
++	struct svc_rqst	*rqstp;
++	int		error = -ENOMEM;
++	int		have_oldmask = 0;
++	cpumask_t	oldmask;
++
++	rqstp = svc_prepare_thread(serv, pool);
++	if (IS_ERR(rqstp)) {
++		error = PTR_ERR(rqstp);
++		goto out;
++	}
+ 
+ 	if (serv->sv_nrpools > 1)
+ 		have_oldmask = svc_pool_map_set_cpumask(current, pool->sp_id,
 _
 
 Patches currently in -mm which might be from jlayton@redhat.com are
 
+sunrpc-spin-svc_rqst-initialization-to-its-own-function.patch
 sunrpc-export-svc_sock_update_bufs.patch
 nlm-initialize-completion-variable-in-lockd_up.patch
 nlm-have-lockd-call-try_to_freeze.patch
