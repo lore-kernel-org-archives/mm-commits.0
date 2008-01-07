@@ -1,323 +1,215 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-add-support-for-the-s-35390a-rtc-chip-fix.patch removed from -mm tree
-Date: Mon, 07 Jan 2008 15:32:28 -0800
-Message-ID: <200801072332.m07NWSkj017754@imap1.linux-foundation.org>
+Subject: + rtc-add-support-for-the-s-35390a-rtc-chip-update.patch added to -mm tree
+Date: Mon, 07 Jan 2008 15:34:57 -0800
+Message-ID: <200801072334.m07NYvZ3017914@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35500 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60632 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755573AbYAGXdO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 18:33:14 -0500
+	by vger.kernel.org with ESMTP id S1755019AbYAGXfP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 18:35:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.zummo@towertech.it, byron.bbradley@gmail.com, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: byron.bbradley@gmail.com, david-b@pacbell.net, khali@linux-fr.org, tim@ngndg.com
 
 
 The patch titled
-     rtc-add-support-for-the-s-35390a-rtc-chip-fix
-has been removed from the -mm tree.  Its filename was
-     rtc-add-support-for-the-s-35390a-rtc-chip-fix.patch
+     rtc: add support for the S-35390A RTC chip
+has been added to the -mm tree.  Its filename is
+     rtc-add-support-for-the-s-35390a-rtc-chip-update.patch
 
-This patch was dropped because it was folded into rtc-add-support-for-the-s-35390a-rtc-chip.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-add-support-for-the-s-35390a-rtc-chip-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rtc: add support for the S-35390A RTC chip
+From: Byron Bradley <byron.bbradley@gmail.com>
 
-Use bitrev8()
+This adds basic get/set time support for the Seiko Instruments S-35390A. 
+This chip communicates using I2C and is used on the QNAP TS-109/TS-209 NAS
+devices.  It takes up eight addresses on the I2C bus and depends on the
+following patches:
 
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Byron Bradley <byron.bbradley@gmail.com>
+	i2c-remove-redundant-i2c_client-list.patch
+	i2c-add-i2c_new_dummy-utility.patch
+
+Signed-off-by: Byron Bradley <byron.bbradley@gmail.com>
+Tested-by: Tim Ellis <tim@ngndg.com>
+Acked-by: Jean Delvare <khali@linux-fr.org>
 Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-s35390a.c |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ drivers/rtc/rtc-s35390a.c |   64 +++++++++++++++++++++++-------------
+ 1 file changed, 42 insertions(+), 22 deletions(-)
 
-diff -puN drivers/rtc/rtc-s35390a.c~rtc-add-support-for-the-s-35390a-rtc-chip-fix drivers/rtc/rtc-s35390a.c
---- a/drivers/rtc/rtc-s35390a.c~rtc-add-support-for-the-s-35390a-rtc-chip-fix
+diff -puN drivers/rtc/rtc-s35390a.c~rtc-add-support-for-the-s-35390a-rtc-chip-update drivers/rtc/rtc-s35390a.c
+--- a/drivers/rtc/rtc-s35390a.c~rtc-add-support-for-the-s-35390a-rtc-chip-update
 +++ a/drivers/rtc/rtc-s35390a.c
-@@ -12,6 +12,7 @@
- #include <linux/module.h>
- #include <linux/rtc.h>
+@@ -14,6 +14,7 @@
  #include <linux/i2c.h>
-+#include <linux/bitrev.h>
+ #include <linux/bitrev.h>
  #include <linux/bcd.h>
++#include <linux/slab.h>
  
  #define S35390A_CMD_STATUS1	0
-@@ -121,13 +122,6 @@ static int s35390a_reg2hr(struct s35390a
- 	return hour;
+ #define S35390A_CMD_STATUS2	1
+@@ -34,22 +35,18 @@
+ #define S35390A_FLAG_TEST	0x01
+ 
+ struct s35390a {
+-	struct i2c_client *client;
++	struct i2c_client *client[8];
+ 	struct rtc_device *rtc;
+ 	int twentyfourhour;
+ };
+ 
+ static int s35390a_set_reg(struct s35390a *s35390a, int reg, char *buf, int len)
+ {
+-	struct i2c_client *client = s35390a->client;
++	struct i2c_client *client = s35390a->client[reg];
+ 	struct i2c_msg msg[] = {
+-		{ client->addr | reg, 0, len, buf },
++		{ client->addr, 0, len, buf },
+ 	};
+ 
+-	/* Only write to the writable bits in the status1 register */
+-	if (reg == S35390A_CMD_STATUS1)
+-		buf[0] &= 0xf;
+-
+ 	if ((i2c_transfer(client->adapter, msg, 1)) != 1)
+ 		return -EIO;
+ 
+@@ -58,9 +55,9 @@ static int s35390a_set_reg(struct s35390
+ 
+ static int s35390a_get_reg(struct s35390a *s35390a, int reg, char *buf, int len)
+ {
+-	struct i2c_client *client = s35390a->client;
++	struct i2c_client *client = s35390a->client[reg];
+ 	struct i2c_msg msg[] = {
+-		{ client->addr | reg, I2C_M_RD, len, buf },
++		{ client->addr, I2C_M_RD, len, buf },
+ 	};
+ 
+ 	if ((i2c_transfer(client->adapter, msg, 1)) != 1)
+@@ -79,7 +76,8 @@ static int s35390a_reset(struct s35390a 
+ 	if (!(buf[0] & (S35390A_FLAG_POC | S35390A_FLAG_BLD)))
+ 		return 0;
+ 
+-	buf[0] |= S35390A_FLAG_RESET;
++	buf[0] |= (S35390A_FLAG_RESET | S35390A_FLAG_24H);
++	buf[0] &= 0xf0;
+ 	return s35390a_set_reg(s35390a, S35390A_CMD_STATUS1, buf, sizeof(buf));
  }
  
--static inline char reverse(char x)
--{
--	x = ((x >> 1) & 0x55) | ((x << 1) & 0xaa);
--	x = ((x >> 2) & 0x33) | ((x << 2) & 0xcc);
--	return (x >> 4) | (x << 4);
--}
--
- static int s35390a_set_datetime(struct i2c_client *client, struct rtc_time *tm)
+@@ -199,7 +197,8 @@ static struct i2c_driver s35390a_driver;
+ 
+ static int s35390a_probe(struct i2c_client *client)
  {
- 	struct s35390a	*s35390a = i2c_get_clientdata(client);
-@@ -149,7 +143,7 @@ static int s35390a_set_datetime(struct i
+-	int err = 0;
++	int err;
++	unsigned int i;
+ 	struct s35390a *s35390a;
+ 	struct rtc_time tm;
+ 	char buf[1];
+@@ -215,25 +214,37 @@ static int s35390a_probe(struct i2c_clie
+ 		goto exit;
+ 	}
  
- 	/* This chip expects the bits of each byte to be in reverse order */
- 	for (i = 0; i < 7; ++i)
--		buf[i] = reverse(buf[i]);
-+		buf[i] = bitrev8(buf[i]);
+-	s35390a->client = client;
++	s35390a->client[0] = client;
+ 	i2c_set_clientdata(client, s35390a);
  
- 	err = s35390a_set_reg(s35390a, S35390A_CMD_TIME1, buf, sizeof(buf));
+-	err = s35390a_disable_test_mode(s35390a);
+-	if (err < 0) {
+-		dev_err(&client->dev, "error disabling test mode\n");
+-		goto exit_kfree;
++	/* This chip uses multiple addresses, use dummy devices for them */
++	for (i = 1; i < 8; ++i) {
++		s35390a->client[i] = i2c_new_dummy(client->adapter,
++					client->addr + i, "rtc-s35390a");
++		if (!s35390a->client[i]) {
++			dev_err(&client->dev, "Address %d unavailable\n",
++						client->addr + i);
++			err = -ENOCSI;
++			goto exit_dummy;
++		}
+ 	}
  
-@@ -168,7 +162,7 @@ static int s35390a_get_datetime(struct i
+ 	err = s35390a_reset(s35390a);
+ 	if (err < 0) {
+ 		dev_err(&client->dev, "error resetting chip\n");
+-		goto exit_kfree;
++		goto exit_dummy;
++	}
++
++	err = s35390a_disable_test_mode(s35390a);
++	if (err < 0) {
++		dev_err(&client->dev, "error disabling test mode\n");
++		goto exit_dummy;
+ 	}
  
- 	/* This chip returns the bits of each byte in reverse order */
- 	for (i = 0; i < 7; ++i)
--		buf[i] = reverse(buf[i]);
-+		buf[i] = bitrev8(buf[i]);
+ 	err = s35390a_get_reg(s35390a, S35390A_CMD_STATUS1, buf, sizeof(buf));
+ 	if (err < 0) {
+ 		dev_err(&client->dev, "error checking 12/24 hour mode\n");
+-		goto exit_kfree;
++		goto exit_dummy;
+ 	}
+ 	if (buf[0] & S35390A_FLAG_24H)
+ 		s35390a->twentyfourhour = 1;
+@@ -243,19 +254,21 @@ static int s35390a_probe(struct i2c_clie
+ 	if (s35390a_get_datetime(client, &tm) < 0)
+ 		dev_warn(&client->dev, "clock needs to be set\n");
  
- 	tm->tm_sec = BCD2BIN(buf[S35390A_BYTE_SECS]);
- 	tm->tm_min = BCD2BIN(buf[S35390A_BYTE_MINS]);
+-	dev_info(&client->dev, "S35390A found\n");
+-
+ 	s35390a->rtc = rtc_device_register(s35390a_driver.driver.name,
+ 				&client->dev, &s35390a_rtc_ops, THIS_MODULE);
+ 
+ 	if (IS_ERR(s35390a->rtc)) {
+ 		err = PTR_ERR(s35390a->rtc);
+-		goto exit_kfree;
++		goto exit_dummy;
+ 	}
+ 	return 0;
+ 
+-exit_kfree:
++exit_dummy:
++	for (i = 1; i < 8; ++i)
++		if (s35390a->client[i])
++			i2c_unregister_device(s35390a->client[i]);
+ 	kfree(s35390a);
++	i2c_set_clientdata(client, NULL);
+ 
+ exit:
+ 	return err;
+@@ -263,10 +276,17 @@ exit:
+ 
+ static int s35390a_remove(struct i2c_client *client)
+ {
++	unsigned int i;
++
+ 	struct s35390a *s35390a = i2c_get_clientdata(client);
++	for (i = 1; i < 8; ++i)
++		if (s35390a->client[i])
++			i2c_unregister_device(s35390a->client[i]);
+ 
+ 	rtc_device_unregister(s35390a->rtc);
+ 	kfree(s35390a);
++	i2c_set_clientdata(client, NULL);
++
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from byron.bbradley@gmail.com are
 
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes.patch
-timerfd-v3-new-timerfd-api-ia64-fix.patch
-timerfd-v3-new-timerfd-api-m68k-fix.patch
-timerfd-v3-new-timerfd-api-mips-fix.patch
-timerfd-v3-new-timerfd-api-arch-fixes.patch
-timerfd-v3-new-timerfd-api-powerpc-fix.patch
-timerfd-v3-new-timerfd-api-sparc64-fix.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-agpgart-intel-agp-dont-zero-an-already-registered-resource-during-resume.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
-kernel-auditc-warning-fix.patch
-git-cifs.patch
-git-cpufreq.patch
-git-powerpc.patch
-git-powerpc-fixup.patch
-revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-intel-agp-enable-i915-recognition.patch
-git-dvb.patch
-fix-jdelvare-i2c-i2c-constify-client-address-data.patch
-git-hid.patch
-revert-git-hrt.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-versus-driver-tree.patch
-git-kbuild.patch
-git-kvm.patch
-kvm-ist-kaput.patch
-git-libata-all.patch
-git-libata-all-fix-pata_winbond-borkage.patch
-git-libata-all-wtf.patch
-libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
-libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
-libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
-git-md-accel.patch
-git-mmc.patch
-git-mtd.patch
-git-net.patch
-git-net-vs-git-lblnet.patch
-git-net-vs-git-lblnet-2.patch
-git-netdev-all.patch
-git-net-vs-git-netdev-all.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-backlight-omap1-backlight-driver.patch
-git-battery.patch
-bluetooth-uninlining.patch
-net-sunrpc-schedc-revert-git-net-changes.patch
-net-sunrpc-schedc-reapply-git-net-changes.patch
-net-sunrpc-svcsockc-revert-git-nfs-changes.patch
-git-nfsd.patch
-net-sunrpc-svcsockc-reapply-git-nfs-changes.patch
-serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-git-sched.patch
-git-sched-fixup.patch
-git-sh.patch
-git-scsi-misc.patch
-scsi-aic94xx-cleanups-checkpatch-fixes.patch
-scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
-9p-util-fix-semaphore-handling.patch
-git-watchdog.patch
-git-watchdog-fixup.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-arch-x86-makefile-revert-git-kvm-change.patch
-git-x86.patch
-arch-x86-makefile-reapply-git-kvm-change.patch
-git-x86-fixup.patch
-git-x86-fix-doubly-merged-patch.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-git-xtensa.patch
-bonding-locking-fix.patch
-usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-add-proc-kpagecount-interface-fix.patch
-maps4-add-proc-kpageflags-interface-fix.patch
-maps4-add-proc-kpageflags-interface-fix-2-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-mm-remove-fastcall-from-mm-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
-kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
-stopmachine-semaphore-to-mutex-fix.patch
-parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
-debug_smp_processor_id-fixlets.patch
-use-ilog2-in-fs-namespacec-fix.patch
-avoid-overflows-in-kernel-timec-fix.patch
-export-iov_shorten-for-ext4s-use-fix.patch
-sync_sb_inodes-propagate-errors.patch
-add-have_oprofile.patch
-ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
 rtc-add-support-for-the-s-35390a-rtc-chip.patch
-rtc-add-support-for-the-s-35390a-rtc-chip-fix.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-neofb-avoid-overwriting-fb_info-fields.patch
-declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
-ext4-mm-ext4_store_maxbytes_for_bitmaped_files-warning-fix.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-pid-sys_wait-fixes-v2-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-rewrite-rd-fixes.patch
-fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
-kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
-lib-remove-fastcall-from-lib-checkpatch-fixes.patch
-remove-fastcall-from-linux-include-checkpatch-fixes.patch
-constify-tables-in-kernel-sysctl_checkc-fix.patch
-aoe-statically-initialise-devlist_lock.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-update.patch
