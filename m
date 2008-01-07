@@ -1,58 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-makefile-revert-git-kvm-change.patch added to -mm tree
-Date: Mon, 07 Jan 2008 12:52:45 -0800
-Message-ID: <200801072052.m07KqPwj011714@imap1.linux-foundation.org>
+Subject: - git-x86-export-leave_mm.patch removed from -mm tree
+Date: Mon, 07 Jan 2008 12:53:39 -0800
+Message-ID: <200801072053.m07KrJVl011808@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47545 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53309 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752857AbYAGUx3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 15:53:29 -0500
+	by vger.kernel.org with ESMTP id S1759268AbYAGUxm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 15:53:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, avi@qumranet.com, mingo@elte.hu, tglx@linutronix.de
+To: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/x86/Makefile: revert git-kvm change
-has been added to the -mm tree.  Its filename is
-     arch-x86-makefile-revert-git-kvm-change.patch
+     git-x86: export leave_mm()
+has been removed from the -mm tree.  Its filename was
+     git-x86-export-leave_mm.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/Makefile: revert git-kvm change
+Subject: git-x86: export leave_mm()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-To avoid a massive git-x86 reject.
+ERROR: "leave_mm" [drivers/acpi/processor.ko] undefined!
 
--mm's KVM is probably busted anyway due to uncoordinated changes in git-kvm
-and git-x86.
-
-Cc: Avi Kivity <avi@qumranet.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-CC: Thomas Gleixner <tglx@linutronix.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Makefile |    2 --
- 1 file changed, 2 deletions(-)
+ arch/x86/kernel/smp_32.c |    1 +
+ arch/x86/kernel/smp_64.c |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN arch/x86/Makefile~arch-x86-makefile-revert-git-kvm-change arch/x86/Makefile
---- a/arch/x86/Makefile~arch-x86-makefile-revert-git-kvm-change
-+++ a/arch/x86/Makefile
-@@ -17,5 +17,3 @@ else
-         UTS_MACHINE := x86_64
-         include $(srctree)/arch/x86/Makefile_64
- endif
--
--core-$(CONFIG_KVM) += arch/x86/kvm/
+diff -puN arch/x86/kernel/smp_64.c~git-x86-export-leave_mm arch/x86/kernel/smp_64.c
+--- a/arch/x86/kernel/smp_64.c~git-x86-export-leave_mm
++++ a/arch/x86/kernel/smp_64.c
+@@ -76,6 +76,7 @@ void leave_mm(int cpu)
+ 	cpu_clear(cpu, read_pda(active_mm)->cpu_vm_mask);
+ 	load_cr3(swapper_pg_dir);
+ }
++EXPORT_SYMBOL(leave_mm);
+ 
+ /*
+  *
+diff -puN arch/x86/kernel/smp_32.c~git-x86-export-leave_mm arch/x86/kernel/smp_32.c
+--- a/arch/x86/kernel/smp_32.c~git-x86-export-leave_mm
++++ a/arch/x86/kernel/smp_32.c
+@@ -263,6 +263,7 @@ void leave_mm(int cpu)
+ 	cpu_clear(cpu, per_cpu(cpu_tlbstate, cpu).active_mm->cpu_vm_mask);
+ 	load_cr3(swapper_pg_dir);
+ }
++EXPORT_SYMBOL(leave_mm);
+ 
+ /*
+  *
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -140,8 +146,6 @@ arch-x86-makefile-revert-git-kvm-change.patch
 git-x86.patch
 arch-x86-makefile-reapply-git-kvm-change.patch
 git-x86-fixup.patch
-git-x86-arch-x86-math-emu-errorsc-fix-printk-warnings.patch
-git-x86-drivers-pnp-pnpbios-bioscallsc-build-fix.patch
 git-x86-fix-doubly-merged-patch.patch
 git-x86-export-leave_mm.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
