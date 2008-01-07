@@ -1,84 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: + xip-fix-get_zeroed_page-with-__gfp_highmem.patch added to -mm tree
-Date: Mon, 07 Jan 2008 01:12:14 -0800
-Message-ID: <200801070911.m079BsqT017632@imap1.linux-foundation.org>
+Subject: - reintroduce-run-time-configurable-max_cstate-for-cpu_idle-case.patch removed from -mm tree
+Date: Mon, 07 Jan 2008 09:55:07 -0800
+Message-ID: <200801071754.m07Hsl38005090@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45559 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50429 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752908AbYAGJMT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 04:12:19 -0500
+	by vger.kernel.org with ESMTP id S1756590AbYAGR4E (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 12:56:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, cotte@de.ibm.com, hugh@veritas.com
+To: venkatesh.pallipadi@intel.com, arjan@infradead.org, lenb@kernel.org, lkml@rtr.ca, mingo@elte.hu, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xip: fix get_zeroed_page with __GFP_HIGHMEM
-has been added to the -mm tree.  Its filename is
-     xip-fix-get_zeroed_page-with-__gfp_highmem.patch
+     Reintroduce run time configurable max_cstate for !CPU_IDLE case
+has been removed from the -mm tree.  Its filename was
+     reintroduce-run-time-configurable-max_cstate-for-cpu_idle-case.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xip: fix get_zeroed_page with __GFP_HIGHMEM
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: Reintroduce run time configurable max_cstate for !CPU_IDLE case
+From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
 
-The use of get_zeroed_page() with __GFP_HIGHMEM is invalid.  Use
-alloc_page() with __GFP_ZERO instead of invalid get_zeroed_page().
+This was writeable in 2.6.23 but the cpuidle merge made it read-only.  But
+some people's scripts (ie: Mark's) were writing to it.
 
-(This patch is only compile tested)
+As an unhappy compromise, make max_cstate writeable again if the kernel was
+configured without CONFIG_CPU_IDLE.
 
-Cc: Carsten Otte <cotte@de.ibm.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Acked-by: Hugh Dickins <hugh@veritas.com>
-Acked-by: Carsten Otte <cotte@de.ibm.com>
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Mark Lord <lkml@rtr.ca>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap_xip.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/acpi/processor_idle.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN mm/filemap_xip.c~xip-fix-get_zeroed_page-with-__gfp_highmem mm/filemap_xip.c
---- a/mm/filemap_xip.c~xip-fix-get_zeroed_page-with-__gfp_highmem
-+++ a/mm/filemap_xip.c
-@@ -25,14 +25,15 @@ static struct page *__xip_sparse_page;
- static struct page *xip_sparse_page(void)
- {
- 	if (!__xip_sparse_page) {
--		unsigned long zeroes = get_zeroed_page(GFP_HIGHUSER);
--		if (zeroes) {
-+		struct page *page = alloc_page(GFP_HIGHUSER | __GFP_ZERO);
-+
-+		if (page) {
- 			static DEFINE_SPINLOCK(xip_alloc_lock);
- 			spin_lock(&xip_alloc_lock);
- 			if (!__xip_sparse_page)
--				__xip_sparse_page = virt_to_page(zeroes);
-+				__xip_sparse_page = page;
- 			else
--				free_page(zeroes);
-+				__free_page(page);
- 			spin_unlock(&xip_alloc_lock);
- 		}
- 	}
+diff -puN drivers/acpi/processor_idle.c~reintroduce-run-time-configurable-max_cstate-for-cpu_idle-case drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~reintroduce-run-time-configurable-max_cstate-for-cpu_idle-case
++++ a/drivers/acpi/processor_idle.c
+@@ -76,7 +76,11 @@ static void (*pm_idle_save) (void) __rea
+ #define PM_TIMER_TICKS_TO_US(p)		(((p) * 1000)/(PM_TIMER_FREQUENCY/1000))
+ 
+ static unsigned int max_cstate __read_mostly = ACPI_PROCESSOR_MAX_POWER;
++#ifdef CONFIG_CPU_IDLE
+ module_param(max_cstate, uint, 0000);
++#else
++module_param(max_cstate, uint, 0644);
++#endif
+ static unsigned int nocst __read_mostly;
+ module_param(nocst, uint, 0000);
+ 
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
 
-xip-fix-get_zeroed_page-with-__gfp_highmem.patch
-git-dvb.patch
-git-net.patch
-git-battery.patch
-fs-use-hlist_unhashed.patch
-fs-use-list_for_each_entry_reverse-and-kill-sb_entry.patch
-ext-fix-comment-for-nonexistent-variable.patch
-ext-use-ext_get_group_desc.patch
-ext-remove-unused-argument-for-ext_find_goal.patch
-ext-cleanup-ext_bg_num_gdb.patch
+reintroduce-run-time-configurable-max_cstate-for-cpu_idle-case.patch
+git-cpufreq.patch
+git-x86.patch
+cpufreq-initialise-default-governor-before-use.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+pm-qos-remove-locks-around-blocking-notifier.patch
