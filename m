@@ -1,121 +1,163 @@
 From: akpm@linux-foundation.org
-Subject: - kconfig-use-getopt-in-confc-for-handling-command-line.patch removed from -mm tree
-Date: Mon, 07 Jan 2008 13:39:36 -0800
-Message-ID: <200801072139.m07LdGGj013553@imap1.linux-foundation.org>
+Subject: - arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5.patch removed from -mm tree
+Date: Mon, 07 Jan 2008 13:40:00 -0800
+Message-ID: <200801072139.m07LdecB013586@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48545 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49942 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753028AbYAGVnR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 16:43:17 -0500
+	by vger.kernel.org with ESMTP id S1753543AbYAGVnV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 16:43:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dilinger@queued.net, dilinger@debian.org, sam@ravnborg.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: mzhang@mvista.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kconfig: use getopt() in conf.c for handling command line arguments
+     arch/x86/kernel/cpu/mcheck/p4.c: cleanups
 has been removed from the -mm tree.  Its filename was
-     kconfig-use-getopt-in-confc-for-handling-command-line.patch
+     arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kconfig: use getopt() in conf.c for handling command line arguments
-From: Andres Salomon <dilinger@queued.net>
+Subject: arch/x86/kernel/cpu/mcheck/p4.c: cleanups
+From: Min Zhang <mzhang@mvista.com>
 
-First, rename ac/av to argc/argv; those are pretty conventional names.
+Consolidate printk and insert CPU id to cleanup SMP interleaved output.  In
+SMP, the machine check exception dispatches all logical processors within a
+physical package to the machine-check exception handler, so the printk
+within each handler outputs concurrently and makes the output unreadable. 
+Refer to Intel system programming guide Part 1 Section 7.8.5
+http://developer.intel.com/design/processor/manuals/253668.pdf
 
-Second, switch from doing our own parsing of command line arguments to
-using getopt(3) to do it.  Aside from simplifying things, this allows us to
-specify multiple arguments; the old code could only accept two arguments
-(input_mode and kconfig name).
-
-Note some subtle changes:
- - The argument '-?' is no longer supported.
- - '-h' is not treated as an error, so output goes to stdout, and we
-   exit with '0'.
- - There is no compatibility checking amongst arguments; the last option
-   will simply override earlier options.  For example, 'conf -n -y foo'
-   is perfectly valid now (input_mode will be set_yes).  Previously, that
-   would have been an error ("can't find file -y").
-
-Signed-off-by: Andres Salomon <dilinger@debian.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Min Zhang <mzhang@mvista.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kconfig/conf.c |   28 +++++++++++++---------------
- 1 file changed, 13 insertions(+), 15 deletions(-)
+ arch/x86/kernel/cpu/mcheck/k7.c |   11 +++++++----
+ arch/x86/kernel/cpu/mcheck/p4.c |   21 ++++++++++++---------
+ arch/x86/kernel/cpu/mcheck/p6.c |   11 +++++++----
+ 3 files changed, 26 insertions(+), 17 deletions(-)
 
-diff -puN scripts/kconfig/conf.c~kconfig-use-getopt-in-confc-for-handling-command-line scripts/kconfig/conf.c
---- a/scripts/kconfig/conf.c~kconfig-use-getopt-in-confc-for-handling-command-line
-+++ a/scripts/kconfig/conf.c
-@@ -493,14 +493,14 @@ static void check_conf(struct menu *menu
- 		check_conf(child);
- }
+diff -puN arch/x86/kernel/cpu/mcheck/k7.c~arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5 arch/x86/kernel/cpu/mcheck/k7.c
+--- a/arch/x86/kernel/cpu/mcheck/k7.c~arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5
++++ a/arch/x86/kernel/cpu/mcheck/k7.c
+@@ -33,21 +33,24 @@ static void k7_machine_check(struct pt_r
+ 	for (i=1; i<nr_mce_banks; i++) {
+ 		rdmsr (MSR_IA32_MC0_STATUS+i*4,low, high);
+ 		if (high&(1<<31)) {
++			char misc[20];
++			char addr[24];
++			misc[0] = addr[0] = '\0';
+ 			if (high & (1<<29))
+ 				recover |= 1;
+ 			if (high & (1<<25))
+ 				recover |= 2;
+-			printk (KERN_EMERG "Bank %d: %08x%08x", i, high, low);
+ 			high &= ~(1<<31);
+ 			if (high & (1<<27)) {
+ 				rdmsr (MSR_IA32_MC0_MISC+i*4, alow, ahigh);
+-				printk ("[%08x%08x]", ahigh, alow);
++				snprintf (misc, 20, "[%08x%08x]", ahigh, alow);
+ 			}
+ 			if (high & (1<<26)) {
+ 				rdmsr (MSR_IA32_MC0_ADDR+i*4, alow, ahigh);
+-				printk (" at %08x%08x", ahigh, alow);
++				snprintf (addr, 24, " at %08x%08x", ahigh, alow);
+ 			}
+-			printk ("\n");
++			printk (KERN_EMERG "CPU %d: Bank %d: %08x%08x%s%s\n",
++				smp_processor_id(), i, high, low, misc, addr);
+ 			/* Clear it */
+ 			wrmsr (MSR_IA32_MC0_STATUS+i*4, 0UL, 0UL);
+ 			/* Serialize */
+diff -puN arch/x86/kernel/cpu/mcheck/p4.c~arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5 arch/x86/kernel/cpu/mcheck/p4.c
+--- a/arch/x86/kernel/cpu/mcheck/p4.c~arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5
++++ a/arch/x86/kernel/cpu/mcheck/p4.c
+@@ -158,32 +158,35 @@ static void intel_machine_check(struct p
+ 	if (mce_num_extended_msrs > 0) {
+ 		struct intel_mce_extended_msrs dbg;
+ 		intel_get_extended_msrs(&dbg);
+-		printk (KERN_DEBUG "CPU %d: EIP: %08x EFLAGS: %08x\n",
+-			smp_processor_id(), dbg.eip, dbg.eflags);
+-		printk (KERN_DEBUG "\teax: %08x ebx: %08x ecx: %08x edx: %08x\n",
+-			dbg.eax, dbg.ebx, dbg.ecx, dbg.edx);
+-		printk (KERN_DEBUG "\tesi: %08x edi: %08x ebp: %08x esp: %08x\n",
++		printk (KERN_DEBUG "CPU %d: EIP: %08x EFLAGS: %08x\n"
++			"\teax: %08x ebx: %08x ecx: %08x edx: %08x\n"
++			"\tesi: %08x edi: %08x ebp: %08x esp: %08x\n",
++			smp_processor_id(), dbg.eip, dbg.eflags,
++			dbg.eax, dbg.ebx, dbg.ecx, dbg.edx,
+ 			dbg.esi, dbg.edi, dbg.ebp, dbg.esp);
+ 	}
  
--int main(int ac, char **av)
-+int main(int argc, char **argv)
- {
--	int i = 1;
-+	int opt;
- 	const char *name;
- 	struct stat tmpstat;
- 
--	if (ac > i && av[i][0] == '-') {
--		switch (av[i++][1]) {
-+	while ((opt = getopt(argc, argv, "osdD:nmyrh")) != -1) {
-+		switch (opt) {
- 		case 'o':
- 			input_mode = ask_new;
- 			break;
-@@ -513,12 +513,7 @@ int main(int ac, char **av)
- 			break;
- 		case 'D':
- 			input_mode = set_default;
--			defconfig_file = av[i++];
--			if (!defconfig_file) {
--				printf(_("%s: No default config file specified\n"),
--					av[0]);
--				exit(1);
--			}
-+			defconfig_file = optarg;
- 			break;
- 		case 'n':
- 			input_mode = set_no;
-@@ -534,16 +529,19 @@ int main(int ac, char **av)
- 			srandom(time(NULL));
- 			break;
- 		case 'h':
--		case '?':
--			fprintf(stderr, "See README for usage info\n");
-+			printf("See README for usage info\n");
- 			exit(0);
-+			break;
-+		default:
-+			fprintf(stderr, "See README for usage info\n");
-+			exit(1);
+ 	for (i=0; i<nr_mce_banks; i++) {
+ 		rdmsr (MSR_IA32_MC0_STATUS+i*4,low, high);
+ 		if (high & (1<<31)) {
++			char misc[20];
++			char addr[24];
++			misc[0] = addr[0] = '\0';
+ 			if (high & (1<<29))
+ 				recover |= 1;
+ 			if (high & (1<<25))
+ 				recover |= 2;
+-			printk (KERN_EMERG "Bank %d: %08x%08x", i, high, low);
+ 			high &= ~(1<<31);
+ 			if (high & (1<<27)) {
+ 				rdmsr (MSR_IA32_MC0_MISC+i*4, alow, ahigh);
+-				printk ("[%08x%08x]", ahigh, alow);
++				snprintf (misc, 20, "[%08x%08x]", ahigh, alow);
+ 			}
+ 			if (high & (1<<26)) {
+ 				rdmsr (MSR_IA32_MC0_ADDR+i*4, alow, ahigh);
+-				printk (" at %08x%08x", ahigh, alow);
++				snprintf (addr, 24, " at %08x%08x", ahigh, alow);
+ 			}
+-			printk ("\n");
++			printk (KERN_EMERG "CPU %d: Bank %d: %08x%08x%s%s\n",
++				smp_processor_id(), i, high, low, misc, addr);
  		}
  	}
--  	name = av[i];
--	if (!name) {
--		printf(_("%s: Kconfig file missing\n"), av[0]);
-+	if (argc == optind) {
-+		printf(_("%s: Kconfig file missing\n"), argv[0]);
- 		exit(1);
+ 
+diff -puN arch/x86/kernel/cpu/mcheck/p6.c~arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5 arch/x86/kernel/cpu/mcheck/p6.c
+--- a/arch/x86/kernel/cpu/mcheck/p6.c~arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5
++++ a/arch/x86/kernel/cpu/mcheck/p6.c
+@@ -33,21 +33,24 @@ static void intel_machine_check(struct p
+ 	for (i=0; i<nr_mce_banks; i++) {
+ 		rdmsr (MSR_IA32_MC0_STATUS+i*4,low, high);
+ 		if (high & (1<<31)) {
++			char misc[20];
++			char addr[24];
++			misc[0] = addr[0] = '\0';
+ 			if (high & (1<<29))
+ 				recover |= 1;
+ 			if (high & (1<<25))
+ 				recover |= 2;
+-			printk (KERN_EMERG "Bank %d: %08x%08x", i, high, low);
+ 			high &= ~(1<<31);
+ 			if (high & (1<<27)) {
+ 				rdmsr (MSR_IA32_MC0_MISC+i*4, alow, ahigh);
+-				printk ("[%08x%08x]", ahigh, alow);
++				snprintf (misc, 20, "[%08x%08x]", ahigh, alow);
+ 			}
+ 			if (high & (1<<26)) {
+ 				rdmsr (MSR_IA32_MC0_ADDR+i*4, alow, ahigh);
+-				printk (" at %08x%08x", ahigh, alow);
++				snprintf (addr, 24, " at %08x%08x", ahigh, alow);
+ 			}
+-			printk ("\n");
++			printk (KERN_EMERG "CPU %d: Bank %d: %08x%08x%s%s\n",
++				smp_processor_id(), i, high, low, misc, addr);
+ 		}
  	}
-+	name = argv[optind];
- 	conf_parse(name);
- 	//zconfdump(stdout);
- 	switch (input_mode) {
+ 
 _
 
-Patches currently in -mm which might be from dilinger@queued.net are
+Patches currently in -mm which might be from mzhang@mvista.com are
 
-git-battery.patch
 git-x86.patch
-kernel-printkc-concerns-about-the-console-handover.patch
