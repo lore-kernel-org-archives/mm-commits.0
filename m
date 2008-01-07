@@ -1,75 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - tty-fix-logic-change-introduced-by-wait_event_interruptible_timeout.patch removed from -mm tree
-Date: Mon, 07 Jan 2008 13:39:24 -0800
-Message-ID: <200801072139.m07Ld4SZ013536@imap1.linux-foundation.org>
+Subject: - ecryptfs-fix-string-overflow-on-long-cipher-names.patch removed from -mm tree
+Date: Mon, 07 Jan 2008 13:39:04 -0800
+Message-ID: <200801072138.m07LcilR013496@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40898 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56640 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758768AbYAGVjg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 16:39:36 -0500
+	by vger.kernel.org with ESMTP id S1757142AbYAGVjp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 16:39:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ctusar@videon-central.com, alan@lxorguk.ukuu.org.uk, jirislaby@gmail.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: sandeen@redhat.com, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tty: fix logic change introduced by wait_event_interruptible_timeout()
+     ecryptfs: fix string overflow on long cipher names
 has been removed from the -mm tree.  Its filename was
-     tty-fix-logic-change-introduced-by-wait_event_interruptible_timeout.patch
+     ecryptfs-fix-string-overflow-on-long-cipher-names.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tty: fix logic change introduced by wait_event_interruptible_timeout()
-From: "Cory T. Tusar" <ctusar@videon-central.com>
+Subject: ecryptfs: fix string overflow on long cipher names
+From: Eric Sandeen <sandeen@redhat.com>
 
-Commit 5a52bd4a2dcb570333ce6fe2e16cd311650dbdc8 introduced a subtle logic
-change in tty_wait_until_sent().  The original version would only error out
-of the 'do { ...  } while (timeout)' loop if signal_pending() evaluated to
-true; a timeout or break due to an empty buffer would fall out of the loop
-and into the tty->driver->wait_until_sent handling.  The current
-implementation will error out on either a pending signal or an empty
-buffer, falling through to the tty->driver->wait_until_sent handling only
-on a timeout.
+Passing a cipher name > 32 chars on mount results in an overflow when the
+cipher name is printed, because the last character in the struct
+ecryptfs_key_tfm's cipher_name string was never zeroed.
 
-The ->wait_until_sent() will not be reached if the buffer empties before
-timeout jiffies have elapsed.  This behavior differs from that prior to commit
-5a52bd4a2dcb570333ce6fe2e16cd311650dbdc8.
-
-I turned this up while using a little serial download utility to bootstrap an
-ARM-based eval board.  The util worked fine on 2.6.22.x, but consistently
-failed on 2.6.23.x.  Once I'd determined that, I narrowed things down with git
-bisect, and found the above difference in logic in tty_wait_until_sent() by
-inspection.
-
-This change reverts the logic flow in tty_wait_until_sent() to match that
-prior to the aforementioned commit.
-
-Signed-off-by: Cory T. Tusar <ctusar@videon-central.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Acked-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Acked-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_ioctl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ecryptfs/crypto.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/char/tty_ioctl.c~tty-fix-logic-change-introduced-by-wait_event_interruptible_timeout drivers/char/tty_ioctl.c
---- a/drivers/char/tty_ioctl.c~tty-fix-logic-change-introduced-by-wait_event_interruptible_timeout
-+++ a/drivers/char/tty_ioctl.c
-@@ -62,7 +62,7 @@ void tty_wait_until_sent(struct tty_stru
- 	if (!timeout)
- 		timeout = MAX_SCHEDULE_TIMEOUT;
- 	if (wait_event_interruptible_timeout(tty->write_wait,
--			!tty->driver->chars_in_buffer(tty), timeout))
-+			!tty->driver->chars_in_buffer(tty), timeout) < 0)
- 		return;
- 	if (tty->driver->wait_until_sent)
- 		tty->driver->wait_until_sent(tty, timeout);
+diff -puN fs/ecryptfs/crypto.c~ecryptfs-fix-string-overflow-on-long-cipher-names fs/ecryptfs/crypto.c
+--- a/fs/ecryptfs/crypto.c~ecryptfs-fix-string-overflow-on-long-cipher-names
++++ a/fs/ecryptfs/crypto.c
+@@ -1847,6 +1847,7 @@ ecryptfs_add_new_key_tfm(struct ecryptfs
+ 	mutex_init(&tmp_tfm->key_tfm_mutex);
+ 	strncpy(tmp_tfm->cipher_name, cipher_name,
+ 		ECRYPTFS_MAX_CIPHER_NAME_SIZE);
++	tmp_tfm->cipher_name[ECRYPTFS_MAX_CIPHER_NAME_SIZE] = '\0';
+ 	tmp_tfm->key_size = key_size;
+ 	rc = ecryptfs_process_key_cipher(&tmp_tfm->key_tfm,
+ 					 tmp_tfm->cipher_name,
 _
 
-Patches currently in -mm which might be from ctusar@videon-central.com are
+Patches currently in -mm which might be from sandeen@redhat.com are
+
+hfs-handle-more-on-disk-corruptions-without-oopsing.patch
+hfs-handle-more-on-disk-corruptions-without-oopsing-fix.patch
+git-kbuild.patch
+ext2-change-the-default-behaviour-on-error.patch
+export-iov_shorten-for-ext4s-use.patch
+export-iov_shorten-for-ext4s-use-fix.patch
+ecryptfs-make-show_options-reflect-actual-mount-options.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+ecryptfs-remove-debug-as-mount-option-and-warn-if-set-via-modprobe.patch
+ext4-mm-ext4_store_maxbytes_for_bitmaped_files-warning-fix.patch
+ext3-change-the-default-behaviour-on-error.patch
