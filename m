@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-fixup.patch added to -mm tree
-Date: Mon, 07 Jan 2008 12:53:22 -0800
-Message-ID: <200801072053.m07Kr2X1011794@imap1.linux-foundation.org>
+Subject: + arch-x86-makefile-revert-git-kvm-change.patch added to -mm tree
+Date: Mon, 07 Jan 2008 12:52:45 -0800
+Message-ID: <200801072052.m07KqPwj011714@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52375 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47545 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757952AbYAGUxb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 15:53:31 -0500
+	by vger.kernel.org with ESMTP id S1752857AbYAGUx3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 15:53:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu
+Cc: akpm@linux-foundation.org, avi@qumranet.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     git-x86-fixup
+     arch/x86/Makefile: revert git-kvm change
 has been added to the -mm tree.  Its filename is
-     git-x86-fixup.patch
+     arch-x86-makefile-revert-git-kvm-change.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -27,113 +27,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-x86-fixup
+Subject: arch/x86/Makefile: revert git-kvm change
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Repair some of the damage against various things.
+To avoid a massive git-x86 reject.
 
+-mm's KVM is probably busted anyway due to uncoordinated changes in git-kvm
+and git-x86.
+
+Cc: Avi Kivity <avi@qumranet.com>
 Cc: Ingo Molnar <mingo@elte.hu>
+CC: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/entry_64.S       |    2 +-
- arch/x86/kernel/traps_64.c       |    8 +++++---
- arch/x86/oprofile/nmi_int.c      |    4 +++-
- drivers/acpi/bus.c               |    1 +
- include/asm-x86/thread_info_64.h |    6 +++++-
- 5 files changed, 15 insertions(+), 6 deletions(-)
+ arch/x86/Makefile |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN arch/x86/kernel/entry_64.S~git-x86-fixup arch/x86/kernel/entry_64.S
---- a/arch/x86/kernel/entry_64.S~git-x86-fixup
-+++ a/arch/x86/kernel/entry_64.S
-@@ -295,7 +295,7 @@ sysret_careful:
- 	/* Handle a signal */ 
- sysret_signal:
- 	TRACE_IRQS_ON
--	sti
-+	ENABLE_INTERRUPTS(CLBR_NONE)
- 	testl $_TIF_DO_NOTIFY_MASK,%edx
- 	jz    1f
- 
-diff -puN arch/x86/kernel/traps_64.c~git-x86-fixup arch/x86/kernel/traps_64.c
---- a/arch/x86/kernel/traps_64.c~git-x86-fixup
-+++ a/arch/x86/kernel/traps_64.c
-@@ -522,15 +522,17 @@ int __kprobes __die(const char * str, st
- #endif
- 	printk("\n");
- 	sysfs_printk_last_file();
--	notify_die(DIE_OOPS, str, regs, err, current->thread.trap_no, SIGSEGV);
-+	if (notify_die(DIE_OOPS, str, regs, err, current->thread.trap_no, SIGSEGV) == NOTIFY_STOP)
-+		return 1;
- 	show_registers(regs);
- 	add_taint(TAINT_DIE);
- 	/* Executive summary in case the oops scrolled away */
- 	printk(KERN_ALERT "RIP ");
--	printk_address(regs->rip); 
--	printk(" RSP <%016lx>\n", regs->rsp); 
-+	printk_address(regs->ip);
-+	printk(" RSP <%016lx>\n", regs->sp);
- 	if (kexec_should_crash(current))
- 		crash_kexec(regs);
-+	return 0;
- }
- 
- void die(const char * str, struct pt_regs * regs, long err)
-diff -puN arch/x86/oprofile/nmi_int.c~git-x86-fixup arch/x86/oprofile/nmi_int.c
---- a/arch/x86/oprofile/nmi_int.c~git-x86-fixup
-+++ a/arch/x86/oprofile/nmi_int.c
-@@ -65,7 +65,9 @@ static struct sys_device device_oprofile
- static int __init init_sysfs(void)
- {
- 	int error;
--	if (!(error = sysdev_class_register(&oprofile_sysclass)))
-+
-+	error = sysdev_class_register(&oprofile_sysclass);
-+	if (!error)
- 		error = sysdev_register(&device_oprofile);
- 	return error;
- }
-diff -puN drivers/acpi/bus.c~git-x86-fixup drivers/acpi/bus.c
---- a/drivers/acpi/bus.c~git-x86-fixup
-+++ a/drivers/acpi/bus.c
-@@ -763,6 +763,7 @@ static int __init acpi_init(void)
- 	result = acpi_bus_init();
- 
- 	if (!result) {
-+		pci_mmcfg_late_init();
- 		if (!(pm_flags & PM_APM))
- 			pm_flags |= PM_ACPI;
- 		else {
-diff -puN include/asm-x86/thread_info_64.h~git-x86-fixup include/asm-x86/thread_info_64.h
---- a/include/asm-x86/thread_info_64.h~git-x86-fixup
-+++ a/include/asm-x86/thread_info_64.h
-@@ -113,7 +113,7 @@ static inline struct thread_info *stack_
- #define TIF_RESTORE_SIGMASK	9	/* restore signal mask in do_signal */
- #define TIF_MCE_NOTIFY		10	/* notify userspace of an MCE */
- #define TIF_HRTICK_RESCHED	11	/* reprogram hrtick timer */
--/* 16 free */
-+#define TIF_FORCED_TF		16	/* true if TF in eflags artificially */
- #define TIF_IA32		17	/* 32bit process */ 
- #define TIF_FORK		18	/* ret_from_fork */
- #define TIF_ABI_PENDING		19
-@@ -134,6 +134,7 @@ static inline struct thread_info *stack_
- #define _TIF_SECCOMP		(1<<TIF_SECCOMP)
- #define _TIF_RESTORE_SIGMASK	(1<<TIF_RESTORE_SIGMASK)
- #define _TIF_MCE_NOTIFY		(1<<TIF_MCE_NOTIFY)
-+#define _TIF_FORCED_TF		(1<<TIF_FORCED_TF)
- #define _TIF_HRTICK_RESCHED	(1<<TIF_HRTICK_RESCHED)
- #define _TIF_IA32		(1<<TIF_IA32)
- #define _TIF_FORK		(1<<TIF_FORK)
-@@ -141,6 +142,9 @@ static inline struct thread_info *stack_
- #define _TIF_DEBUG		(1<<TIF_DEBUG)
- #define _TIF_IO_BITMAP		(1<<TIF_IO_BITMAP)
- #define _TIF_FREEZE		(1<<TIF_FREEZE)
-+#define _TIF_DEBUGCTLMSR	(1<<TIF_DEBUGCTLMSR)
-+#define _TIF_DS_AREA_MSR	(1<<TIF_DS_AREA_MSR)
-+#define _TIF_BTS_TRACE_TS	(1<<TIF_BTS_TRACE_TS)
- 
- /* work to do on interrupt/exception return */
- #define _TIF_WORK_MASK \
+diff -puN arch/x86/Makefile~arch-x86-makefile-revert-git-kvm-change arch/x86/Makefile
+--- a/arch/x86/Makefile~arch-x86-makefile-revert-git-kvm-change
++++ a/arch/x86/Makefile
+@@ -17,5 +17,3 @@ else
+         UTS_MACHINE := x86_64
+         include $(srctree)/arch/x86/Makefile_64
+ endif
+-
+-core-$(CONFIG_KVM) += arch/x86/kvm/
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
