@@ -1,48 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-fixup.patch removed from -mm tree
-Date: Mon, 07 Jan 2008 12:07:23 -0800
-Message-ID: <200801072007.m07K73Dr010028@imap1.linux-foundation.org>
+Subject: + net-sunrpc-schedc-reapply-git-net-changes.patch added to -mm tree
+Date: Mon, 07 Jan 2008 12:14:48 -0800
+Message-ID: <200801072014.m07KESp8010310@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40894 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48636 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752574AbYAGUHd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 15:07:33 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m07K736e004105
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 7 Jan 2008 12:07:04 -0800
+	by vger.kernel.org with ESMTP id S1752398AbYAGUOx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 15:14:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, bfields@fieldses.org, davem@davemloft.net, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     git-net-fixup
-has been removed from the -mm tree.  Its filename was
-     git-net-fixup.patch
+     net-sunrpc-schedc-reapply-git-net-changes
+has been added to the -mm tree.  Its filename is
+     net-sunrpc-schedc-reapply-git-net-changes.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-net-fixup
+Subject: net-sunrpc-schedc-reapply-git-net-changes
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- feature-removal-schedule.txt |    0 
- 1 file changed
+ net/sunrpc/sched.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN net/dccp/ackvec.h~git-net-fixup net/dccp/ackvec.h
-diff -puN net/dccp/ccids/ccid3.c~git-net-fixup net/dccp/ccids/ccid3.c
-diff -puN net/xfrm/xfrm_policy.c~git-net-fixup net/xfrm/xfrm_policy.c
-diff -puN net/xfrm/xfrm_state.c~git-net-fixup net/xfrm/xfrm_state.c
-diff -puN net/atm/atm_sysfs.c~git-net-fixup net/atm/atm_sysfs.c
-diff -puN include/linux/atmdev.h~git-net-fixup include/linux/atmdev.h
-diff -puN Documentation/feature-removal-schedule.txt~git-net-fixup Documentation/feature-removal-schedule.txt
+diff -puN net/sunrpc/sched.c~net-sunrpc-schedc-reapply-git-net-changes net/sunrpc/sched.c
+--- a/net/sunrpc/sched.c~net-sunrpc-schedc-reapply-git-net-changes
++++ a/net/sunrpc/sched.c
+@@ -817,9 +817,8 @@ EXPORT_SYMBOL_GPL(rpc_free);
+ void rpc_init_task(struct rpc_task *task, struct rpc_clnt *clnt, int flags, const struct rpc_call_ops *tk_ops, void *calldata)
+ {
+ 	memset(task, 0, sizeof(*task));
+-	init_timer(&task->tk_timer);
+-	task->tk_timer.data     = (unsigned long) task;
+-	task->tk_timer.function = (void (*)(unsigned long)) rpc_run_timer;
++	setup_timer(&task->tk_timer, (void (*)(unsigned long))rpc_run_timer,
++			(unsigned long)task);
+ 	atomic_set(&task->tk_count, 1);
+ 	task->tk_client = clnt;
+ 	task->tk_flags  = flags;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -96,7 +107,6 @@ git-md-accel.patch
 git-mmc.patch
 git-mtd.patch
 git-net.patch
-git-net-fixup.patch
 git-net-vs-git-lblnet.patch
 git-net-vs-git-lblnet-2.patch
 git-netdev-all.patch
@@ -105,6 +115,8 @@ update-smc91x-driver-with-arm-versatile-board-info.patch
 backlight-omap1-backlight-driver.patch
 git-battery.patch
 bluetooth-uninlining.patch
+net-sunrpc-schedc-revert-git-net-changes.patch
+net-sunrpc-schedc-reapply-git-net-changes.patch
 git-nfsd.patch
 serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
 cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
@@ -286,3 +298,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+git-nfs-fixup.patch
