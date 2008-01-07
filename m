@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-add-support-for-the-s-35390a-rtc-chip-update.patch added to -mm tree
-Date: Mon, 07 Jan 2008 15:34:57 -0800
-Message-ID: <200801072334.m07NYvZ3017914@imap1.linux-foundation.org>
+Subject: + byteorder-move-le32_add_cpu-friends-from-ocfs2-to-core.patch added to -mm tree
+Date: Mon, 07 Jan 2008 15:44:58 -0800
+Message-ID: <200801072344.m07NiwUn018286@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60632 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57897 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755019AbYAGXfP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 18:35:15 -0500
+	by vger.kernel.org with ESMTP id S1753125AbYAGXpp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 18:45:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: byron.bbradley@gmail.com, david-b@pacbell.net, khali@linux-fr.org, tim@ngndg.com
+Cc: marcin.slusarz@gmail.com, dgc@sgi.com, linux-ext4@vger.kernel.org, mark.fasheh@oracle.com, tes@sgi.com
 
 
 The patch titled
-     rtc: add support for the S-35390A RTC chip
+     byteorder: move le32_add_cpu & friends from OCFS2 to core
 has been added to the -mm tree.  Its filename is
-     rtc-add-support-for-the-s-35390a-rtc-chip-update.patch
+     byteorder-move-le32_add_cpu-friends-from-ocfs2-to-core.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -27,189 +27,218 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: add support for the S-35390A RTC chip
-From: Byron Bradley <byron.bbradley@gmail.com>
+Subject: byteorder: move le32_add_cpu & friends from OCFS2 to core
+From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-This adds basic get/set time support for the Seiko Instruments S-35390A. 
-This chip communicates using I2C and is used on the QNAP TS-109/TS-209 NAS
-devices.  It takes up eight addresses on the I2C bus and depends on the
-following patches:
+This patchset moves le*_add_cpu and be*_add_cpu functions from OCFS2 to core
+header (1st), converts ext3 filesystem to this API (2nd) and replaces XFS
+different named functions with new ones (3rd).
 
-	i2c-remove-redundant-i2c_client-list.patch
-	i2c-add-i2c_new_dummy-utility.patch
+There are many places where these functions will be useful.  Just look at:
+grep -r 'cpu_to_[ble12346]*([ble12346]*_to_cpu.*[-+]' linux-src/ Patch for
+ext3 is an example how conversions will probably look like.
 
-Signed-off-by: Byron Bradley <byron.bbradley@gmail.com>
-Tested-by: Tim Ellis <tim@ngndg.com>
-Acked-by: Jean Delvare <khali@linux-fr.org>
-Cc: David Brownell <david-b@pacbell.net>
+
+
+This patch:
+
+- move inline functions which add native byte order variable to
+  little/big endian variable to core header
+  * le16_add_cpu(__le16 *var, u16 val)
+  * le32_add_cpu(__le32 *var, u32 val)
+  * le64_add_cpu(__le64 *var, u64 val)
+  * be32_add_cpu(__be32 *var, u32 val)
+- add for completeness:
+  * be16_add_cpu(__be16 *var, u16 val)
+  * be64_add_cpu(__be64 *var, u64 val)
+
+Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Acked-by: Mark Fasheh <mark.fasheh@oracle.com>
+Cc: David Chinner <dgc@sgi.com>
+Cc: Timothy Shimmin <tes@sgi.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-s35390a.c |   64 +++++++++++++++++++++++-------------
- 1 file changed, 42 insertions(+), 22 deletions(-)
+ fs/ocfs2/cluster/endian.h         |   30 ------------------
+ fs/ocfs2/cluster/nodemanager.c    |    1 
+ fs/ocfs2/dlm/dlmast.c             |    1 
+ fs/ocfs2/endian.h                 |   45 ----------------------------
+ fs/ocfs2/ocfs2.h                  |    1 
+ include/linux/byteorder/generic.h |   30 ++++++++++++++++++
+ 6 files changed, 30 insertions(+), 78 deletions(-)
 
-diff -puN drivers/rtc/rtc-s35390a.c~rtc-add-support-for-the-s-35390a-rtc-chip-update drivers/rtc/rtc-s35390a.c
---- a/drivers/rtc/rtc-s35390a.c~rtc-add-support-for-the-s-35390a-rtc-chip-update
-+++ a/drivers/rtc/rtc-s35390a.c
-@@ -14,6 +14,7 @@
- #include <linux/i2c.h>
- #include <linux/bitrev.h>
- #include <linux/bcd.h>
-+#include <linux/slab.h>
- 
- #define S35390A_CMD_STATUS1	0
- #define S35390A_CMD_STATUS2	1
-@@ -34,22 +35,18 @@
- #define S35390A_FLAG_TEST	0x01
- 
- struct s35390a {
--	struct i2c_client *client;
-+	struct i2c_client *client[8];
- 	struct rtc_device *rtc;
- 	int twentyfourhour;
- };
- 
- static int s35390a_set_reg(struct s35390a *s35390a, int reg, char *buf, int len)
- {
--	struct i2c_client *client = s35390a->client;
-+	struct i2c_client *client = s35390a->client[reg];
- 	struct i2c_msg msg[] = {
--		{ client->addr | reg, 0, len, buf },
-+		{ client->addr, 0, len, buf },
- 	};
- 
--	/* Only write to the writable bits in the status1 register */
--	if (reg == S35390A_CMD_STATUS1)
--		buf[0] &= 0xf;
+diff -puN fs/ocfs2/cluster/endian.h~byteorder-move-le32_add_cpu-friends-from-ocfs2-to-core /dev/null
+--- a/fs/ocfs2/cluster/endian.h
++++ /dev/null
+@@ -1,30 +0,0 @@
+-/* -*- mode: c; c-basic-offset: 8; -*-
+- * vim: noexpandtab sw=8 ts=8 sts=0:
+- *
+- * Copyright (C) 2005 Oracle.  All rights reserved.
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public
+- * License as published by the Free Software Foundation; either
+- * version 2 of the License, or (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public
+- * License along with this program; if not, write to the
+- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+- * Boston, MA 021110-1307, USA.
+- */
 -
- 	if ((i2c_transfer(client->adapter, msg, 1)) != 1)
- 		return -EIO;
- 
-@@ -58,9 +55,9 @@ static int s35390a_set_reg(struct s35390
- 
- static int s35390a_get_reg(struct s35390a *s35390a, int reg, char *buf, int len)
- {
--	struct i2c_client *client = s35390a->client;
-+	struct i2c_client *client = s35390a->client[reg];
- 	struct i2c_msg msg[] = {
--		{ client->addr | reg, I2C_M_RD, len, buf },
-+		{ client->addr, I2C_M_RD, len, buf },
- 	};
- 
- 	if ((i2c_transfer(client->adapter, msg, 1)) != 1)
-@@ -79,7 +76,8 @@ static int s35390a_reset(struct s35390a 
- 	if (!(buf[0] & (S35390A_FLAG_POC | S35390A_FLAG_BLD)))
- 		return 0;
- 
--	buf[0] |= S35390A_FLAG_RESET;
-+	buf[0] |= (S35390A_FLAG_RESET | S35390A_FLAG_24H);
-+	buf[0] &= 0xf0;
- 	return s35390a_set_reg(s35390a, S35390A_CMD_STATUS1, buf, sizeof(buf));
- }
- 
-@@ -199,7 +197,8 @@ static struct i2c_driver s35390a_driver;
- 
- static int s35390a_probe(struct i2c_client *client)
- {
--	int err = 0;
-+	int err;
-+	unsigned int i;
- 	struct s35390a *s35390a;
- 	struct rtc_time tm;
- 	char buf[1];
-@@ -215,25 +214,37 @@ static int s35390a_probe(struct i2c_clie
- 		goto exit;
- 	}
- 
--	s35390a->client = client;
-+	s35390a->client[0] = client;
- 	i2c_set_clientdata(client, s35390a);
- 
--	err = s35390a_disable_test_mode(s35390a);
--	if (err < 0) {
--		dev_err(&client->dev, "error disabling test mode\n");
--		goto exit_kfree;
-+	/* This chip uses multiple addresses, use dummy devices for them */
-+	for (i = 1; i < 8; ++i) {
-+		s35390a->client[i] = i2c_new_dummy(client->adapter,
-+					client->addr + i, "rtc-s35390a");
-+		if (!s35390a->client[i]) {
-+			dev_err(&client->dev, "Address %d unavailable\n",
-+						client->addr + i);
-+			err = -ENOCSI;
-+			goto exit_dummy;
-+		}
- 	}
- 
- 	err = s35390a_reset(s35390a);
- 	if (err < 0) {
- 		dev_err(&client->dev, "error resetting chip\n");
--		goto exit_kfree;
-+		goto exit_dummy;
-+	}
-+
-+	err = s35390a_disable_test_mode(s35390a);
-+	if (err < 0) {
-+		dev_err(&client->dev, "error disabling test mode\n");
-+		goto exit_dummy;
- 	}
- 
- 	err = s35390a_get_reg(s35390a, S35390A_CMD_STATUS1, buf, sizeof(buf));
- 	if (err < 0) {
- 		dev_err(&client->dev, "error checking 12/24 hour mode\n");
--		goto exit_kfree;
-+		goto exit_dummy;
- 	}
- 	if (buf[0] & S35390A_FLAG_24H)
- 		s35390a->twentyfourhour = 1;
-@@ -243,19 +254,21 @@ static int s35390a_probe(struct i2c_clie
- 	if (s35390a_get_datetime(client, &tm) < 0)
- 		dev_warn(&client->dev, "clock needs to be set\n");
- 
--	dev_info(&client->dev, "S35390A found\n");
+-#ifndef OCFS2_CLUSTER_ENDIAN_H
+-#define OCFS2_CLUSTER_ENDIAN_H
 -
- 	s35390a->rtc = rtc_device_register(s35390a_driver.driver.name,
- 				&client->dev, &s35390a_rtc_ops, THIS_MODULE);
+-static inline void be32_add_cpu(__be32 *var, u32 val)
+-{
+-	*var = cpu_to_be32(be32_to_cpu(*var) + val);
+-}
+-
+-#endif /* OCFS2_CLUSTER_ENDIAN_H */
+diff -puN fs/ocfs2/cluster/nodemanager.c~byteorder-move-le32_add_cpu-friends-from-ocfs2-to-core fs/ocfs2/cluster/nodemanager.c
+--- a/fs/ocfs2/cluster/nodemanager.c~byteorder-move-le32_add_cpu-friends-from-ocfs2-to-core
++++ a/fs/ocfs2/cluster/nodemanager.c
+@@ -24,7 +24,6 @@
+ #include <linux/sysctl.h>
+ #include <linux/configfs.h>
  
- 	if (IS_ERR(s35390a->rtc)) {
- 		err = PTR_ERR(s35390a->rtc);
--		goto exit_kfree;
-+		goto exit_dummy;
- 	}
- 	return 0;
+-#include "endian.h"
+ #include "tcp.h"
+ #include "nodemanager.h"
+ #include "heartbeat.h"
+diff -puN fs/ocfs2/dlm/dlmast.c~byteorder-move-le32_add_cpu-friends-from-ocfs2-to-core fs/ocfs2/dlm/dlmast.c
+--- a/fs/ocfs2/dlm/dlmast.c~byteorder-move-le32_add_cpu-friends-from-ocfs2-to-core
++++ a/fs/ocfs2/dlm/dlmast.c
+@@ -43,7 +43,6 @@
+ #include "cluster/heartbeat.h"
+ #include "cluster/nodemanager.h"
+ #include "cluster/tcp.h"
+-#include "cluster/endian.h"
  
--exit_kfree:
-+exit_dummy:
-+	for (i = 1; i < 8; ++i)
-+		if (s35390a->client[i])
-+			i2c_unregister_device(s35390a->client[i]);
- 	kfree(s35390a);
-+	i2c_set_clientdata(client, NULL);
+ #include "dlmapi.h"
+ #include "dlmcommon.h"
+diff -puN fs/ocfs2/endian.h~byteorder-move-le32_add_cpu-friends-from-ocfs2-to-core /dev/null
+--- a/fs/ocfs2/endian.h
++++ /dev/null
+@@ -1,45 +0,0 @@
+-/* -*- mode: c; c-basic-offset: 8; -*-
+- * vim: noexpandtab sw=8 ts=8 sts=0:
+- *
+- * Copyright (C) 2005 Oracle.  All rights reserved.
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public
+- * License as published by the Free Software Foundation; either
+- * version 2 of the License, or (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public
+- * License along with this program; if not, write to the
+- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+- * Boston, MA 021110-1307, USA.
+- */
+-
+-#ifndef OCFS2_ENDIAN_H
+-#define OCFS2_ENDIAN_H
+-
+-static inline void le16_add_cpu(__le16 *var, u16 val)
+-{
+-	*var = cpu_to_le16(le16_to_cpu(*var) + val);
+-}
+-
+-static inline void le32_add_cpu(__le32 *var, u32 val)
+-{
+-	*var = cpu_to_le32(le32_to_cpu(*var) + val);
+-}
+-
+-static inline void le64_add_cpu(__le64 *var, u64 val)
+-{
+-	*var = cpu_to_le64(le64_to_cpu(*var) + val);
+-}
+-
+-static inline void be32_add_cpu(__be32 *var, u32 val)
+-{
+-	*var = cpu_to_be32(be32_to_cpu(*var) + val);
+-}
+-
+-#endif /* OCFS2_ENDIAN_H */
+diff -puN fs/ocfs2/ocfs2.h~byteorder-move-le32_add_cpu-friends-from-ocfs2-to-core fs/ocfs2/ocfs2.h
+--- a/fs/ocfs2/ocfs2.h~byteorder-move-le32_add_cpu-friends-from-ocfs2-to-core
++++ a/fs/ocfs2/ocfs2.h
+@@ -43,7 +43,6 @@
+ #include "dlm/dlmapi.h"
  
- exit:
- 	return err;
-@@ -263,10 +276,17 @@ exit:
+ #include "ocfs2_fs.h"
+-#include "endian.h"
+ #include "ocfs2_lockid.h"
  
- static int s35390a_remove(struct i2c_client *client)
- {
-+	unsigned int i;
+ /* Most user visible OCFS2 inodes will have very few pieces of
+diff -puN include/linux/byteorder/generic.h~byteorder-move-le32_add_cpu-friends-from-ocfs2-to-core include/linux/byteorder/generic.h
+--- a/include/linux/byteorder/generic.h~byteorder-move-le32_add_cpu-friends-from-ocfs2-to-core
++++ a/include/linux/byteorder/generic.h
+@@ -146,6 +146,36 @@
+ #define htons(x) ___htons(x)
+ #define ntohs(x) ___ntohs(x)
+ 
++static inline void le16_add_cpu(__le16 *var, u16 val)
++{
++	*var = cpu_to_le16(le16_to_cpu(*var) + val);
++}
 +
- 	struct s35390a *s35390a = i2c_get_clientdata(client);
-+	for (i = 1; i < 8; ++i)
-+		if (s35390a->client[i])
-+			i2c_unregister_device(s35390a->client[i]);
- 
- 	rtc_device_unregister(s35390a->rtc);
- 	kfree(s35390a);
-+	i2c_set_clientdata(client, NULL);
++static inline void le32_add_cpu(__le32 *var, u32 val)
++{
++	*var = cpu_to_le32(le32_to_cpu(*var) + val);
++}
 +
- 	return 0;
- }
++static inline void le64_add_cpu(__le64 *var, u64 val)
++{
++	*var = cpu_to_le64(le64_to_cpu(*var) + val);
++}
++
++static inline void be16_add_cpu(__be16 *var, u16 val)
++{
++	*var = cpu_to_be16(be16_to_cpu(*var) + val);
++}
++
++static inline void be32_add_cpu(__be32 *var, u32 val)
++{
++	*var = cpu_to_be32(be32_to_cpu(*var) + val);
++}
++
++static inline void be64_add_cpu(__be64 *var, u64 val)
++{
++	*var = cpu_to_be64(be64_to_cpu(*var) + val);
++}
++
+ #endif /* KERNEL */
  
+ #endif /* _LINUX_BYTEORDER_GENERIC_H */
 _
 
-Patches currently in -mm which might be from byron.bbradley@gmail.com are
+Patches currently in -mm which might be from marcin.slusarz@gmail.com are
 
-git-arm.patch
-rtc-add-support-for-the-s-35390a-rtc-chip.patch
-rtc-add-support-for-the-s-35390a-rtc-chip-update.patch
+git-alsa.patch
+git-ocfs2.patch
+ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
+vgacon-fix-sparse-warning-about-shadowing-i-symbol.patch
+fbcon-fix-sparse-warning-about-shadowing-p-symbol.patch
+fbcon-fix-sparse-warning-about-shadowing-rotate-symbol.patch
+udf-remove-wrong-prototype-of-udf_readdir.patch
+udf-improve-readability-of-do_udf_readdir.patch
+udf-fix-coding-style-of-dirc.patch
+udf-fix-3-signedness-1-unitialized-variable-warnings.patch
+udf-fix-signedness-issue.patch
+byteorder-move-le32_add_cpu-friends-from-ocfs2-to-core.patch
+ext3-replace-all-adds-to-little-endians-variables-with-le_add_cpu.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api.patch
