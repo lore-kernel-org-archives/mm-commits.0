@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + net-sunrpc-svcsockc-reapply-git-nfs-changes.patch added to -mm tree
-Date: Mon, 07 Jan 2008 12:28:17 -0800
-Message-ID: <200801072027.m07KRvjB010772@imap1.linux-foundation.org>
+Subject: + net-sunrpc-svcsockc-revert-git-nfs-changes.patch added to -mm tree
+Date: Mon, 07 Jan 2008 12:28:15 -0800
+Message-ID: <200801072027.m07KRtQd010769@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40199 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34975 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752398AbYAGU2p (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 15:28:45 -0500
+	by vger.kernel.org with ESMTP id S1754180AbYAGU2q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 15:28:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, bfields@fieldses.org, davem@davemloft.net, trond.
 
 
 The patch titled
-     net-sunrpc-svcsockc-reapply-git-nfs-changes
+     net/sunrpc/svcsock.c: revert git-nfs changes
 has been added to the -mm tree.  Its filename is
-     net-sunrpc-svcsockc-reapply-git-nfs-changes.patch
+     net-sunrpc-svcsockc-revert-git-nfs-changes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -27,8 +27,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net-sunrpc-svcsockc-reapply-git-nfs-changes
+Subject: net/sunrpc/svcsock.c: revert git-nfs changes
 From: Andrew Morton <akpm@linux-foundation.org>
+
+To avoid a massive reject from git-nfsd.
 
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
@@ -36,49 +38,49 @@ Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/svcsock.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ net/sunrpc/svcsock.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN net/sunrpc/svcsock.c~net-sunrpc-svcsockc-reapply-git-nfs-changes net/sunrpc/svcsock.c
---- a/net/sunrpc/svcsock.c~net-sunrpc-svcsockc-reapply-git-nfs-changes
+diff -puN net/sunrpc/svcsock.c~net-sunrpc-svcsockc-revert-git-nfs-changes net/sunrpc/svcsock.c
+--- a/net/sunrpc/svcsock.c~net-sunrpc-svcsockc-revert-git-nfs-changes
 +++ a/net/sunrpc/svcsock.c
-@@ -282,6 +282,7 @@ void svc_reserve(struct svc_rqst *rqstp,
+@@ -369,7 +369,6 @@ void svc_reserve(struct svc_rqst *rqstp,
  		svc_sock_enqueue(svsk);
  	}
  }
-+EXPORT_SYMBOL(svc_reserve);
+-EXPORT_SYMBOL(svc_reserve);
  
  /*
   * Release a socket after use.
-@@ -362,6 +363,7 @@ svc_wake_up(struct svc_serv *serv)
+@@ -450,7 +449,6 @@ svc_wake_up(struct svc_serv *serv)
  		spin_unlock_bh(&pool->sp_lock);
  	}
  }
-+EXPORT_SYMBOL(svc_wake_up);
+-EXPORT_SYMBOL(svc_wake_up);
  
  union svc_pktinfo_u {
  	struct in_pktinfo pkti;
-@@ -1461,6 +1463,7 @@ svc_recv(struct svc_rqst *rqstp, long ti
+@@ -1520,7 +1518,6 @@ svc_recv(struct svc_rqst *rqstp, long ti
  		serv->sv_stats->netcnt++;
  	return len;
  }
-+EXPORT_SYMBOL(svc_recv);
+-EXPORT_SYMBOL(svc_recv);
  
  /*
   * Drop request
-@@ -1471,6 +1474,7 @@ svc_drop(struct svc_rqst *rqstp)
+@@ -1531,7 +1528,6 @@ svc_drop(struct svc_rqst *rqstp)
  	dprintk("svc: socket %p dropped request\n", rqstp->rq_sock);
  	svc_sock_release(rqstp);
  }
-+EXPORT_SYMBOL(svc_drop);
+-EXPORT_SYMBOL(svc_drop);
  
  /*
   * Return reply to client.
-@@ -1797,6 +1801,7 @@ int svc_makesock(struct svc_serv *serv, 
+@@ -1871,7 +1867,6 @@ int svc_makesock(struct svc_serv *serv, 
  	return svc_create_socket(serv, protocol, (struct sockaddr *) &sin,
  							sizeof(sin), flags);
  }
-+EXPORT_SYMBOL(svc_makesock);
+-EXPORT_SYMBOL(svc_makesock);
  
  /*
   * Handle defer and revisit of requests
