@@ -1,72 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - reintroduce-run-time-configurable-max_cstate-for-cpu_idle-case.patch removed from -mm tree
-Date: Mon, 07 Jan 2008 09:55:07 -0800
-Message-ID: <200801071754.m07Hsl38005090@imap1.linux-foundation.org>
+Subject: - rtc-dont-write-rtc-century-when-setting-a-wake-alarm.patch removed from -mm tree
+Date: Mon, 07 Jan 2008 12:02:58 -0800
+Message-ID: <200801072002.m07K2cLn009856@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50429 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41893 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756590AbYAGR4E (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 12:56:04 -0500
+	by vger.kernel.org with ESMTP id S1751817AbYAGUEC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 15:04:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: venkatesh.pallipadi@intel.com, arjan@infradead.org, lenb@kernel.org, lkml@rtr.ca, mingo@elte.hu, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: lkml@rtr.ca, david-b@pacbell.net, lenb@kernel.org, mlord@pobox.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Reintroduce run time configurable max_cstate for !CPU_IDLE case
+     rtc: don't write RTC century when setting a wake alarm
 has been removed from the -mm tree.  Its filename was
-     reintroduce-run-time-configurable-max_cstate-for-cpu_idle-case.patch
+     rtc-dont-write-rtc-century-when-setting-a-wake-alarm.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because git-acpi changes destroyed it
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Reintroduce run time configurable max_cstate for !CPU_IDLE case
-From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: rtc: don't write RTC century when setting a wake alarm
+From: Mark Lord <lkml@rtr.ca>
 
-This was writeable in 2.6.23 but the cpuidle merge made it read-only.  But
-some people's scripts (ie: Mark's) were writing to it.
+Fix /proc/acpi/alarm to not overwrite the RTC century field when setting a
+wake alarm.  The alarm hardware doesn't have a century field, and we really
+should not be fiddling with the RTC century field here.
 
-As an unhappy compromise, make max_cstate writeable again if the kernel was
-configured without CONFIG_CPU_IDLE.
-
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Mark Lord <lkml@rtr.ca>
-Cc: Arjan van de Ven <arjan@infradead.org>
+Signed-off-by: Mark Lord <mlord@pobox.com>
+Cc: David Brownell <david-b@pacbell.net>
 Cc: Len Brown <lenb@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_idle.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/acpi/sleep/proc.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN drivers/acpi/processor_idle.c~reintroduce-run-time-configurable-max_cstate-for-cpu_idle-case drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~reintroduce-run-time-configurable-max_cstate-for-cpu_idle-case
-+++ a/drivers/acpi/processor_idle.c
-@@ -76,7 +76,11 @@ static void (*pm_idle_save) (void) __rea
- #define PM_TIMER_TICKS_TO_US(p)		(((p) * 1000)/(PM_TIMER_FREQUENCY/1000))
+diff -puN drivers/acpi/sleep/proc.c~rtc-dont-write-rtc-century-when-setting-a-wake-alarm drivers/acpi/sleep/proc.c
+--- a/drivers/acpi/sleep/proc.c~rtc-dont-write-rtc-century-when-setting-a-wake-alarm
++++ a/drivers/acpi/sleep/proc.c
+@@ -268,7 +268,6 @@ acpi_system_write_alarm(struct file *fil
+ 		day -= 31;
+ 	}
+ 	if (mo > 12) {
+-		yr += 1;
+ 		mo -= 12;
+ 	}
  
- static unsigned int max_cstate __read_mostly = ACPI_PROCESSOR_MAX_POWER;
-+#ifdef CONFIG_CPU_IDLE
- module_param(max_cstate, uint, 0000);
-+#else
-+module_param(max_cstate, uint, 0644);
-+#endif
- static unsigned int nocst __read_mostly;
- module_param(nocst, uint, 0000);
+@@ -277,7 +276,6 @@ acpi_system_write_alarm(struct file *fil
+ 	rtc_control = CMOS_READ(RTC_CONTROL);
  
+ 	if (adjust) {
+-		yr += cmos_bcd_read(RTC_YEAR, rtc_control);
+ 		mo += cmos_bcd_read(RTC_MONTH, rtc_control);
+ 		day += cmos_bcd_read(RTC_DAY_OF_MONTH, rtc_control);
+ 		hr += cmos_bcd_read(RTC_HOURS, rtc_control);
+@@ -304,7 +302,6 @@ acpi_system_write_alarm(struct file *fil
+ 		day -= 31;
+ 	}
+ 	if (mo > 12) {
+-		yr++;
+ 		mo -= 12;
+ 	}
+ 
+@@ -331,8 +328,6 @@ acpi_system_write_alarm(struct file *fil
+ 		cmos_bcd_write(day, acpi_gbl_FADT.day_alarm, rtc_control);
+ 	if (acpi_gbl_FADT.month_alarm)
+ 		cmos_bcd_write(mo, acpi_gbl_FADT.month_alarm, rtc_control);
+-	if (acpi_gbl_FADT.century)
+-		cmos_bcd_write(yr / 100, acpi_gbl_FADT.century, rtc_control);
+ 	/* enable the rtc alarm interrupt */
+ 	rtc_control |= RTC_AIE;
+ 	CMOS_WRITE(rtc_control, RTC_CONTROL);
 _
 
-Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
+Patches currently in -mm which might be from lkml@rtr.ca are
 
-reintroduce-run-time-configurable-max_cstate-for-cpu_idle-case.patch
-git-cpufreq.patch
-git-x86.patch
-cpufreq-initialise-default-governor-before-use.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-pm-qos-remove-locks-around-blocking-notifier.patch
+rtc-dont-write-rtc-century-when-setting-a-wake-alarm.patch
