@@ -1,122 +1,178 @@
 From: akpm@linux-foundation.org
-Subject: - quicklists-do-not-release-off-node-pages-early.patch removed from -mm tree
-Date: Mon, 07 Jan 2008 13:39:01 -0800
-Message-ID: <200801072138.m07LcfTx013493@imap1.linux-foundation.org>
+Subject: - lib-proportion-fix-underflow-in-prop_norm_percpu.patch removed from -mm tree
+Date: Mon, 07 Jan 2008 13:39:18 -0800
+Message-ID: <200801072138.m07LcwX4013518@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34652 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36664 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758831AbYAGVjA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 16:39:00 -0500
+	by vger.kernel.org with ESMTP id S1758793AbYAGVjD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 16:39:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, dhaval@linux.vnet.ibm.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: a.p.zijlstra@chello.nl, zhe.jiang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     quicklists: do not release off node pages early
+     lib: proportion: fix underflow in prop_norm_percpu()
 has been removed from the -mm tree.  Its filename was
-     quicklists-do-not-release-off-node-pages-early.patch
+     lib-proportion-fix-underflow-in-prop_norm_percpu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quicklists: do not release off node pages early
-From: Christoph Lameter <clameter@sgi.com>
+Subject: lib: proportion: fix underflow in prop_norm_percpu()
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-quicklists must keep even off node pages on the quicklists until the TLB
-flush has been completed.
+Zhe Jiang noticed that its possible to underflow pl->events in
+prop_norm_percpu() when the value returned by percpu_counter_read() is less
+than the error on that read and the period delay > 1.  In that case half might
+not trigger the batch increment and the value will be identical on the next
+iteration, causing the same half to be subtracted again and again.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com>
-Cc: <stable@kernel.org>
+Fix this by rewriting the division as a single subtraction instead of a
+subtraction loop and using percpu_counter_sum() when the value returned by
+percpu_counter_read() is smaller than the error.
+
+The latter is still needed if we want pl->events to shrink properly in the
+error region.
+
+[akpm@linux-foundation.org: cleanups]
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Reviewed-by: Jiang Zhe <zhe.jiang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/quicklist.h |    8 --------
- 1 file changed, 8 deletions(-)
+ lib/proportions.c |   37 ++++++++++++++++---------------------
+ 1 file changed, 16 insertions(+), 21 deletions(-)
 
-diff -puN include/linux/quicklist.h~quicklists-do-not-release-off-node-pages-early include/linux/quicklist.h
---- a/include/linux/quicklist.h~quicklists-do-not-release-off-node-pages-early
-+++ a/include/linux/quicklist.h
-@@ -56,14 +56,6 @@ static inline void __quicklist_free(int 
- 	struct page *page)
- {
- 	struct quicklist *q;
--	int nid = page_to_nid(page);
--
--	if (unlikely(nid != numa_node_id())) {
--		if (dtor)
--			dtor(p);
--		__free_page(page);
--		return;
--	}
+diff -puN lib/proportions.c~lib-proportion-fix-underflow-in-prop_norm_percpu lib/proportions.c
+--- a/lib/proportions.c~lib-proportion-fix-underflow-in-prop_norm_percpu
++++ a/lib/proportions.c
+@@ -190,6 +190,8 @@ prop_adjust_shift(int *pl_shift, unsigne
+  * PERCPU
+  */
  
- 	q = &get_cpu_var(quicklist)[nr];
- 	*(void **)p = q->page;
++#define PROP_BATCH (8*(1+ilog2(nr_cpu_ids)))
++
+ int prop_local_init_percpu(struct prop_local_percpu *pl)
+ {
+ 	spin_lock_init(&pl->lock);
+@@ -230,31 +232,24 @@ void prop_norm_percpu(struct prop_global
+ 
+ 	spin_lock_irqsave(&pl->lock, flags);
+ 	prop_adjust_shift(&pl->shift, &pl->period, pg->shift);
++
+ 	/*
+ 	 * For each missed period, we half the local counter.
+ 	 * basically:
+ 	 *   pl->events >> (global_period - pl->period);
+-	 *
+-	 * but since the distributed nature of percpu counters make division
+-	 * rather hard, use a regular subtraction loop. This is safe, because
+-	 * the events will only every be incremented, hence the subtraction
+-	 * can never result in a negative number.
+ 	 */
+-	while (pl->period != global_period) {
+-		unsigned long val = percpu_counter_read(&pl->events);
+-		unsigned long half = (val + 1) >> 1;
+-
+-		/*
+-		 * Half of zero won't be much less, break out.
+-		 * This limits the loop to shift iterations, even
+-		 * if we missed a million.
+-		 */
+-		if (!val)
+-			break;
+-
+-		percpu_counter_add(&pl->events, -half);
+-		pl->period += period;
+-	}
++	period = (global_period - pl->period) >> (pg->shift - 1);
++	if (period < BITS_PER_LONG) {
++		s64 val = percpu_counter_read(&pl->events);
++
++		if (val < (nr_cpu_ids * PROP_BATCH))
++			val = percpu_counter_sum(&pl->events);
++
++		__percpu_counter_add(&pl->events, -val + (val >> period),
++					PROP_BATCH);
++	} else
++		percpu_counter_set(&pl->events, 0);
++
+ 	pl->period = global_period;
+ 	spin_unlock_irqrestore(&pl->lock, flags);
+ }
+@@ -267,7 +262,7 @@ void __prop_inc_percpu(struct prop_descr
+ 	struct prop_global *pg = prop_get_global(pd);
+ 
+ 	prop_norm_percpu(pg, pl);
+-	percpu_counter_add(&pl->events, 1);
++	__percpu_counter_add(&pl->events, 1, PROP_BATCH);
+ 	percpu_counter_add(&pg->events, 1);
+ 	prop_put_global(pd, pg);
+ }
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 git-sched.patch
-git-unionfs.patch
-git-x86.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-move-vmalloc_to_page-to-mm-vmalloc.patch
-vmalloc-add-const-to-void-parameters.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries.patch
-vmalloc-clean-up-page-array-indexing.patch
-vunmap-return-page-array-passed-on-vmap.patch
-slub-move-count_partial.patch
-slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio.patch
-slub-consolidate-add_partial-and-add_partial_tail-to-one-function.patch
-slub-use-non-atomic-bit-unlock.patch
-slub-fix-coding-style-violations.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-noinline-some-functions-to-avoid-them-being-folded-into-alloc-free.patch
-slub-move-kmem_cache_node-determination-into-add_full-and-add_partial.patch
 slub-move-kmem_cache_node-determination-into-add_full-and-add_partial-slub-workaround-for-lockdep-confusion.patch
-slub-avoid-checking-for-a-valid-object-before-zeroing-on-the-fast-path.patch
-slub-__slab_alloc-exit-path-consolidation.patch
-slub-provide-unique-end-marker-for-each-slab.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-avoid-referencing-kmem_cache-structure-in-__slab_alloc.patch
-slub-optional-fast-path-using-cmpxchg_local.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-fix.patch
-slub-restructure-slab-alloc.patch
-slub-comment-kmem_cache_cpu-structure.patch
-vm-allow-get_page_unless_zero-on-compound-pages.patch
-bufferhead-revert-constructor-removal.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-swapin_readahead-excise-numa-bogosity.patch
-page-allocator-clean-up-pcp-draining-functions.patch
-page-allocator-clean-up-pcp-draining-functions-swsusp-fix.patch
-page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
-vmstat-small-revisions-to-refresh_cpu_vm_stats.patch
-page-allocator-get-rid-of-the-list-of-cold-pages.patch
-page-allocator-get-rid-of-the-list-of-cold-pages-fix.patch
-vmstat-remove-prefetch.patch
-set_page_refcounted-vm_bug_on-fix.patch
-percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-oom-add-sysctl-to-enable-task-memory-dump.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-bugfix-for-memory-cgroup-per-zone-struct-allocation.patch
-add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
-add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
-dentries-extract-common-code-to-remove-dentry-from-lru.patch
-dentries-extract-common-code-to-remove-dentry-from-lru-fix.patch
-modules-handle-symbols-that-have-a-zero-value.patch
-modules-include-sectionsh-to-avoid-defining-linker-variables.patch
-modules-fold-percpu_modcopy-into-modulec-and-get-rid-of-the-macro-from-hell.patch
-reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
-page-owner-tracking-leak-detector.patch
+swapin-needs-gfp_mask-for-loop-on-tmpfs.patch
+mm-page-writeback-highmem_is_dirtyable-option.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+skip-writing-data-pages-when-inode-is-under-i_sync.patch
+fix-dirty-page-accounting-leak-with-ext3-data=journal.patch
+kernel-add-mutex_lock_killable.patch
+vfs-use-mutex_lock_killable-in-vfs_readdir.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-memcgroup-fix-try_to_free-order.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+memcgroup-reinstate-swapoff-mod.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
+memcgroup-fix-zone-isolation-oom.patch
+memcgroup-revert-swap_state-mods.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
+memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
+memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+memory-cgroup-enhancements-add-pre_destroy-handler.patch
+memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
