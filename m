@@ -1,111 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: - git-lblnet-fixup.patch removed from -mm tree
-Date: Mon, 07 Jan 2008 12:04:49 -0800
-Message-ID: <200801072004.m07K4TDO009952@imap1.linux-foundation.org>
+Subject: - git-net-fixup.patch removed from -mm tree
+Date: Mon, 07 Jan 2008 12:07:23 -0800
+Message-ID: <200801072007.m07K73Dr010028@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53515 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40894 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753991AbYAGUFD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 15:05:03 -0500
+	by vger.kernel.org with ESMTP id S1752574AbYAGUHd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 15:07:33 -0500
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m07K4U2p004007
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m07K736e004105
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 7 Jan 2008 12:04:31 -0800
+	for <mm-commits@vger.kernel.org>; Mon, 7 Jan 2008 12:07:04 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-lblnet-fixup
+     git-net-fixup
 has been removed from the -mm tree.  Its filename was
-     git-lblnet-fixup.patch
+     git-net-fixup.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-lblnet-fixup
+Subject: git-net-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/netlabel/netlabel_mgmt.c |   60 ---------------------------------
- 1 file changed, 60 deletions(-)
+ feature-removal-schedule.txt |    0 
+ 1 file changed
 
-diff -puN net/netlabel/netlabel_mgmt.c~git-lblnet-fixup net/netlabel/netlabel_mgmt.c
---- a/net/netlabel/netlabel_mgmt.c~git-lblnet-fixup
-+++ a/net/netlabel/netlabel_mgmt.c
-@@ -71,66 +71,6 @@ static const struct nla_policy netlbl_mg
- };
- 
- /*
--<<<<<<< HEAD:net/netlabel/netlabel_mgmt.c
-- * NetLabel Misc Management Functions
-- */
--
--/**
-- * netlbl_mgmt_protocount_inc - Increment the configured labeled protocol count
-- *
-- * Description:
-- * Increment the number of labeled protocol configurations in the current
-- * NetLabel configuration.  Keep track of this for use in determining if
-- * NetLabel label enforcement should be active/enabled or not in the LSM.
-- *
-- */
--void netlbl_mgmt_protocount_inc(void)
--{
--	spin_lock(&netlabel_mgmt_protocount_lock);
--	netlabel_mgmt_protocount++;
--	spin_unlock(&netlabel_mgmt_protocount_lock);
--}
--
--/**
-- * netlbl_mgmt_protocount_dec - Decrement the configured labeled protocol count
-- *
-- * Description:
-- * Decrement the number of labeled protocol configurations in the current
-- * NetLabel configuration.  Keep track of this for use in determining if
-- * NetLabel label enforcement should be active/enabled or not in the LSM.
-- *
-- */
--void netlbl_mgmt_protocount_dec(void)
--{
--	spin_lock(&netlabel_mgmt_protocount_lock);
--	if (netlabel_mgmt_protocount > 0)
--		netlabel_mgmt_protocount--;
--	spin_unlock(&netlabel_mgmt_protocount_lock);
--}
--
--/**
-- * netlbl_mgmt_protocount_value - Return the number of configured protocols
-- *
-- * Description:
-- * Return the number of labeled protocols in the current NetLabel
-- * configuration.  This value is useful in  determining if NetLabel label
-- * enforcement should be active/enabled or not in the LSM.
-- *
-- */
--u32 netlbl_mgmt_protocount_value(void)
--{
--	u32 val;
--
--	rcu_read_lock();
--	val = netlabel_mgmt_protocount;
--	rcu_read_unlock();
--
--	return val;
--}
--
--/*
--=======
-->>>>>>> FETCH_HEAD:net/netlabel/netlabel_mgmt.c
-  * NetLabel Command Handlers
-  */
- 
+diff -puN net/dccp/ackvec.h~git-net-fixup net/dccp/ackvec.h
+diff -puN net/dccp/ccids/ccid3.c~git-net-fixup net/dccp/ccids/ccid3.c
+diff -puN net/xfrm/xfrm_policy.c~git-net-fixup net/xfrm/xfrm_policy.c
+diff -puN net/xfrm/xfrm_state.c~git-net-fixup net/xfrm/xfrm_state.c
+diff -puN net/atm/atm_sysfs.c~git-net-fixup net/atm/atm_sysfs.c
+diff -puN include/linux/atmdev.h~git-net-fixup include/linux/atmdev.h
+diff -puN Documentation/feature-removal-schedule.txt~git-net-fixup Documentation/feature-removal-schedule.txt
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -149,7 +86,6 @@ git-infiniband-versus-driver-tree.patch
 git-kbuild.patch
 git-kvm.patch
 kvm-ist-kaput.patch
-git-lblnet-fixup.patch
 git-libata-all.patch
 git-libata-all-fix-pata_winbond-borkage.patch
 git-libata-all-wtf.patch
