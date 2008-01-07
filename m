@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + net-sunrpc-svcsockc-revert-git-nfs-changes.patch added to -mm tree
-Date: Mon, 07 Jan 2008 12:28:15 -0800
-Message-ID: <200801072027.m07KRtQd010769@imap1.linux-foundation.org>
+Subject: + arch-x86-makefile-reapply-git-kvm-change.patch added to -mm tree
+Date: Mon, 07 Jan 2008 12:52:48 -0800
+Message-ID: <200801072052.m07KqSvf011717@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34975 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59110 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754180AbYAGU2q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 15:28:46 -0500
+	by vger.kernel.org with ESMTP id S1759268AbYAGUxd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 15:53:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bfields@fieldses.org, davem@davemloft.net, trond.myklebust@fys.uio.no
+Cc: akpm@linux-foundation.org, avi@qumranet.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     net/sunrpc/svcsock.c: revert git-nfs changes
+     arch-x86-makefile-reapply-git-kvm-change
 has been added to the -mm tree.  Its filename is
-     net-sunrpc-svcsockc-revert-git-nfs-changes.patch
+     arch-x86-makefile-reapply-git-kvm-change.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -27,63 +27,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net/sunrpc/svcsock.c: revert git-nfs changes
+Subject: arch-x86-makefile-reapply-git-kvm-change
 From: Andrew Morton <akpm@linux-foundation.org>
 
-To avoid a massive reject from git-nfsd.
-
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Avi Kivity <avi@qumranet.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/svcsock.c |    5 -----
- 1 file changed, 5 deletions(-)
+ arch/x86/Makefile |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN net/sunrpc/svcsock.c~net-sunrpc-svcsockc-revert-git-nfs-changes net/sunrpc/svcsock.c
---- a/net/sunrpc/svcsock.c~net-sunrpc-svcsockc-revert-git-nfs-changes
-+++ a/net/sunrpc/svcsock.c
-@@ -369,7 +369,6 @@ void svc_reserve(struct svc_rqst *rqstp,
- 		svc_sock_enqueue(svsk);
- 	}
- }
--EXPORT_SYMBOL(svc_reserve);
+diff -puN arch/x86/Makefile~arch-x86-makefile-reapply-git-kvm-change arch/x86/Makefile
+--- a/arch/x86/Makefile~arch-x86-makefile-reapply-git-kvm-change
++++ a/arch/x86/Makefile
+@@ -7,6 +7,8 @@ else
+         KBUILD_DEFCONFIG := $(ARCH)_defconfig
+ endif
  
- /*
-  * Release a socket after use.
-@@ -450,7 +449,6 @@ svc_wake_up(struct svc_serv *serv)
- 		spin_unlock_bh(&pool->sp_lock);
- 	}
- }
--EXPORT_SYMBOL(svc_wake_up);
- 
- union svc_pktinfo_u {
- 	struct in_pktinfo pkti;
-@@ -1520,7 +1518,6 @@ svc_recv(struct svc_rqst *rqstp, long ti
- 		serv->sv_stats->netcnt++;
- 	return len;
- }
--EXPORT_SYMBOL(svc_recv);
- 
- /*
-  * Drop request
-@@ -1531,7 +1528,6 @@ svc_drop(struct svc_rqst *rqstp)
- 	dprintk("svc: socket %p dropped request\n", rqstp->rq_sock);
- 	svc_sock_release(rqstp);
- }
--EXPORT_SYMBOL(svc_drop);
- 
- /*
-  * Return reply to client.
-@@ -1871,7 +1867,6 @@ int svc_makesock(struct svc_serv *serv, 
- 	return svc_create_socket(serv, protocol, (struct sockaddr *) &sin,
- 							sizeof(sin), flags);
- }
--EXPORT_SYMBOL(svc_makesock);
- 
- /*
-  * Handle defer and revisit of requests
++core-$(CONFIG_KVM) += arch/x86/kvm/
++
+ # BITS is used as extension for files which are available in a 32 bit
+ # and a 64 bit version to simplify shared Makefiles.
+ # e.g.: obj-y += foo_$(BITS).o
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -154,7 +121,6 @@ serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch
 cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
 git-sched.patch
 git-sched-fixup.patch
-git-sched-fix-preempt-rcu-on-non-preemptible-architectures.patch
 git-sh.patch
 git-scsi-misc.patch
 scsi-aic94xx-cleanups-checkpatch-fixes.patch
@@ -166,10 +132,11 @@ ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
 9p-util-fix-semaphore-handling.patch
 git-watchdog.patch
 git-watchdog-fixup.patch
-add-support-for-sb1-hardware-watchdog.patch
 git-wireless.patch
 git-ipwireless_cs.patch
+arch-x86-makefile-revert-git-kvm-change.patch
 git-x86.patch
+arch-x86-makefile-reapply-git-kvm-change.patch
 git-x86-fixup.patch
 git-x86-arch-x86-math-emu-errorsc-fix-printk-warnings.patch
 git-x86-drivers-pnp-pnpbios-bioscallsc-build-fix.patch
