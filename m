@@ -1,64 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - git-x86-export-leave_mm.patch removed from -mm tree
-Date: Mon, 07 Jan 2008 12:53:39 -0800
-Message-ID: <200801072053.m07KrJVl011808@imap1.linux-foundation.org>
+Subject: + git-powerpc-fixup.patch added to -mm tree
+Date: Mon, 07 Jan 2008 13:04:42 -0800
+Message-ID: <200801072104.m07L4MsT012194@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53309 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47747 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759268AbYAGUxm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 15:53:42 -0500
+	by vger.kernel.org with ESMTP id S1752940AbYAGVEZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 16:04:25 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m07L4M7L006495
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 7 Jan 2008 13:04:23 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-x86: export leave_mm()
-has been removed from the -mm tree.  Its filename was
-     git-x86-export-leave_mm.patch
+     git-powerpc-fixup
+has been added to the -mm tree.  Its filename is
+     git-powerpc-fixup.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-x86: export leave_mm()
+Subject: git-powerpc-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "leave_mm" [drivers/acpi/processor.ko] undefined!
-
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/smp_32.c |    1 +
- arch/x86/kernel/smp_64.c |    1 +
- 2 files changed, 2 insertions(+)
+ arch/powerpc/platforms/cell/Makefile |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN arch/x86/kernel/smp_64.c~git-x86-export-leave_mm arch/x86/kernel/smp_64.c
---- a/arch/x86/kernel/smp_64.c~git-x86-export-leave_mm
-+++ a/arch/x86/kernel/smp_64.c
-@@ -76,6 +76,7 @@ void leave_mm(int cpu)
- 	cpu_clear(cpu, read_pda(active_mm)->cpu_vm_mask);
- 	load_cr3(swapper_pg_dir);
- }
-+EXPORT_SYMBOL(leave_mm);
+diff -puN arch/powerpc/platforms/cell/Makefile~git-powerpc-fixup arch/powerpc/platforms/cell/Makefile
+--- a/arch/powerpc/platforms/cell/Makefile~git-powerpc-fixup
++++ a/arch/powerpc/platforms/cell/Makefile
+@@ -19,12 +19,9 @@ spu-manage-$(CONFIG_PPC_CELLEB)		+= spu_
+ spu-manage-$(CONFIG_PPC_CELL_NATIVE)	+= spu_manage.o
  
- /*
-  *
-diff -puN arch/x86/kernel/smp_32.c~git-x86-export-leave_mm arch/x86/kernel/smp_32.c
---- a/arch/x86/kernel/smp_32.c~git-x86-export-leave_mm
-+++ a/arch/x86/kernel/smp_32.c
-@@ -263,6 +263,7 @@ void leave_mm(int cpu)
- 	cpu_clear(cpu, per_cpu(cpu_tlbstate, cpu).active_mm->cpu_vm_mask);
- 	load_cr3(swapper_pg_dir);
- }
-+EXPORT_SYMBOL(leave_mm);
- 
- /*
-  *
+ obj-$(CONFIG_SPU_BASE)			+= spu_callbacks.o spu_base.o \
+-<<<<<<< HEAD:arch/powerpc/platforms/cell/Makefile
+ 					   spu_notify.o \
+ 					   spu_syscalls.o \
+-=======
+-					   spu_syscalls.o spu_fault.o \
+->>>>>>> FETCH_HEAD:arch/powerpc/platforms/cell/Makefile
++					   spu_fault.o \
+ 					   $(spu-priv1-y) \
+ 					   $(spu-manage-y) \
+ 					   spufs/
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -86,6 +84,7 @@ kernel-auditc-warning-fix.patch
 git-cifs.patch
 git-cpufreq.patch
 git-powerpc.patch
+git-powerpc-fixup.patch
 revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
 gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
 unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
@@ -147,11 +146,7 @@ git-x86.patch
 arch-x86-makefile-reapply-git-kvm-change.patch
 git-x86-fixup.patch
 git-x86-fix-doubly-merged-patch.patch
-git-x86-export-leave_mm.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes.patch
-arch-x86-kernel-cpu-mcheck-p4c-kernel-2624-rc5-checkpatch-fixes-checkpatch-fixes.patch
-git-newsetup.patch
 git-cryptodev.patch
 git-cryptodev-fixup.patch
 git-xtensa.patch
