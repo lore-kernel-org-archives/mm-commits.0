@@ -1,56 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-media-radio-radio-sf16fmr2c-fix-error-handling.patch removed from -mm tree
-Date: Mon, 07 Jan 2008 13:39:34 -0800
-Message-ID: <200801072139.m07LdEfb013550@imap1.linux-foundation.org>
+Subject: - git-x86-drivers-pnp-pnpbios-bioscallsc-build-fix.patch removed from -mm tree
+Date: Mon, 07 Jan 2008 13:39:58 -0800
+Message-ID: <200801072139.m07LdcaH013580@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42343 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54501 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752383AbYAGVme (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 16:42:34 -0500
+	by vger.kernel.org with ESMTP id S1753331AbYAGVms (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 16:42:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, devzero@web.de, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/media/radio/radio-sf16fmr2.c: fix error handling
+     git-x86: drivers/pnp/pnpbios/bioscalls.c build fix
 has been removed from the -mm tree.  Its filename was
-     drivers-media-radio-radio-sf16fmr2c-fix-error-handling.patch
+     git-x86-drivers-pnp-pnpbios-bioscallsc-build-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/radio/radio-sf16fmr2.c: fix error handling
+Subject: git-x86: drivers/pnp/pnpbios/bioscalls.c build fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-video_register_device() returns -EFOO on errr, not -1.
+drivers/pnp/pnpbios/bioscalls.c:64: warning: missing braces around initializer
+drivers/pnp/pnpbios/bioscalls.c:64: warning: (near initialization for 'bad_bios_desc.<anonymous>')
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=9699
-
-Reported-By: <devzero@web.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/radio/radio-sf16fmr2.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/pnp/pnpbios/bioscalls.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/media/radio/radio-sf16fmr2.c~drivers-media-radio-radio-sf16fmr2c-fix-error-handling drivers/media/radio/radio-sf16fmr2.c
---- a/drivers/media/radio/radio-sf16fmr2.c~drivers-media-radio-radio-sf16fmr2c-fix-error-handling
-+++ a/drivers/media/radio/radio-sf16fmr2.c
-@@ -476,8 +476,7 @@ static int __init fmr2_init(void)
- 		return -EBUSY;
- 	}
+diff -puN drivers/pnp/pnpbios/bioscalls.c~git-x86-drivers-pnp-pnpbios-bioscallsc-build-fix drivers/pnp/pnpbios/bioscalls.c
+--- a/drivers/pnp/pnpbios/bioscalls.c~git-x86-drivers-pnp-pnpbios-bioscallsc-build-fix
++++ a/drivers/pnp/pnpbios/bioscalls.c
+@@ -61,7 +61,7 @@ set_base(gdt[(selname) >> 3], (u32)(addr
+ set_limit(gdt[(selname) >> 3], size); \
+ } while(0)
  
--	if(video_register_device(&fmr2_radio, VFL_TYPE_RADIO, radio_nr)==-1)
--	{
-+	if (video_register_device(&fmr2_radio, VFL_TYPE_RADIO, radio_nr) < 0) {
- 		release_region(io, 2);
- 		return -EINVAL;
- 	}
+-static struct desc_struct bad_bios_desc = { 0, 0x00409200 };
++static struct desc_struct bad_bios_desc;
+ 
+ /*
+  * At some point we want to use this stack frame pointer to unwind
+@@ -477,6 +477,9 @@ void pnpbios_calls_init(union pnp_bios_i
+ 	pnp_bios_callpoint.offset = header->fields.pm16offset;
+ 	pnp_bios_callpoint.segment = PNP_CS16;
+ 
++	bad_bios_desc.a = 0;
++	bad_bios_desc.b = 0x00409200;
++
+ 	set_base(bad_bios_desc, __va((unsigned long)0x40 << 4));
+ 	_set_limit((char *)&bad_bios_desc, 4095 - (0x40 << 4));
+ 	for (i = 0; i < NR_CPUS; i++) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
