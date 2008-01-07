@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ecryptfs-check-for-existing-key_tfm-at-mount-time.patch added to -mm tree
-Date: Mon, 07 Jan 2008 14:38:15 -0800
-Message-ID: <200801072238.m07McHFC015661@imap1.linux-foundation.org>
+Subject: + reiser4-use-balance_dirty_pages_ratelimited_nr.patch added to -mm tree
+Date: Mon, 07 Jan 2008 15:03:41 -0800
+Message-ID: <200801072303.m07N3fYw016602@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34348 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36965 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753483AbYAGWjn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 17:39:43 -0500
+	by vger.kernel.org with ESMTP id S1753483AbYAGXEO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 18:04:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sandeen@redhat.com, jmoyer@redhat.com, mhalcrow@us.ibm.com
+Cc: edward.shishkin@gmail.com
 
 
 The patch titled
-     ecryptfs: check for existing key_tfm at mount time
+     reiser4: use balance_dirty_pages_ratelimited_nr
 has been added to the -mm tree.  Its filename is
-     ecryptfs-check-for-existing-key_tfm-at-mount-time.patch
+     reiser4-use-balance_dirty_pages_ratelimited_nr.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -27,204 +27,102 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ecryptfs: check for existing key_tfm at mount time
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: reiser4: use balance_dirty_pages_ratelimited_nr
+From: Edward Shishkin <edward.shishkin@gmail.com>
 
-Jeff Moyer pointed out that a mount; umount loop of ecryptfs, with the same
-cipher & other mount options, created a new ecryptfs_key_tfm_cache item
-each time, and the cache could grow quite large this way.
+Use balance_dirty_pages_ratelimited_nr() instead of
+balance_dirty_pages_ratelimited() for all reiser4 page cluster operations.
 
-Looking at this with mhalcrow, we saw that ecryptfs_parse_options()
-unconditionally called ecryptfs_add_new_key_tfm(), which is what was adding
-these items.
-
-Refactor ecryptfs_get_tfm_and_mutex_for_cipher_name() to create a new
-helper function, ecryptfs_tfm_exists(), which checks for the cipher on the
-cached key_tfm_list, and sets a pointer to it if it exists.  This can then
-be called from ecryptfs_parse_options(), and new key_tfm's can be added
-only when a cached one is not found.
-
-With list locking changes suggested by akpm.
-
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Edward Shishkin <edward.shishkin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/crypto.c          |   67 +++++++++++++++++++++++++-------
- fs/ecryptfs/ecryptfs_kernel.h |    3 +
- fs/ecryptfs/main.c            |   10 +++-
- 3 files changed, 63 insertions(+), 17 deletions(-)
+ fs/reiser4/plugin/cluster.h            |   12 ++++++++++++
+ fs/reiser4/plugin/file/cryptcompress.c |   16 +++++++++++-----
+ 2 files changed, 23 insertions(+), 5 deletions(-)
 
-diff -puN fs/ecryptfs/crypto.c~ecryptfs-check-for-existing-key_tfm-at-mount-time fs/ecryptfs/crypto.c
---- a/fs/ecryptfs/crypto.c~ecryptfs-check-for-existing-key_tfm-at-mount-time
-+++ a/fs/ecryptfs/crypto.c
-@@ -1780,7 +1780,7 @@ out:
- 
- struct kmem_cache *ecryptfs_key_tfm_cache;
- static struct list_head key_tfm_list;
--static struct mutex key_tfm_list_mutex;
-+struct mutex key_tfm_list_mutex;
- 
- int ecryptfs_init_crypto(void)
- {
-@@ -1789,6 +1789,11 @@ int ecryptfs_init_crypto(void)
- 	return 0;
+diff -puN fs/reiser4/plugin/cluster.h~reiser4-use-balance_dirty_pages_ratelimited_nr fs/reiser4/plugin/cluster.h
+--- a/fs/reiser4/plugin/cluster.h~reiser4-use-balance_dirty_pages_ratelimited_nr
++++ a/fs/reiser4/plugin/cluster.h
+@@ -188,6 +188,18 @@ static inline unsigned pbytes(pgoff_t in
+ 	return __mbp(i_size_read(inode), index);
  }
  
 +/**
-+ * ecryptfs_destroy_crypto - free all cached key_tfms on key_tfm_list
-+ *
-+ * Called only at module unload time
++ * number of pages occuped by @win->count bytes starting from
++ * @win->off at logical cluster defined by @win. This is exactly
++ * a number of pages to be modified and dirtied in any cluster operation.
 + */
- int ecryptfs_destroy_crypto(void)
- {
- 	struct ecryptfs_key_tfm *key_tfm, *key_tfm_tmp;
-@@ -1812,6 +1817,8 @@ ecryptfs_add_new_key_tfm(struct ecryptfs
- 	struct ecryptfs_key_tfm *tmp_tfm;
- 	int rc = 0;
- 
-+	BUG_ON(!mutex_is_locked(&key_tfm_list_mutex));
-+
- 	tmp_tfm = kmem_cache_alloc(ecryptfs_key_tfm_cache, GFP_KERNEL);
- 	if (key_tfm != NULL)
- 		(*key_tfm) = tmp_tfm;
-@@ -1838,13 +1845,50 @@ ecryptfs_add_new_key_tfm(struct ecryptfs
- 			(*key_tfm) = NULL;
- 		goto out;
- 	}
--	mutex_lock(&key_tfm_list_mutex);
- 	list_add(&tmp_tfm->key_tfm_list, &key_tfm_list);
--	mutex_unlock(&key_tfm_list_mutex);
- out:
- 	return rc;
- }
- 
-+/**
-+ * ecryptfs_tfm_exists - Search for existing tfm for cipher_name.
-+ * @cipher_name: the name of the cipher to search for
-+ * @key_tfm: set to corresponding tfm if found
-+ *
-+ * Searches for cached key_tfm matching @cipher_name
-+ * Must be called with &key_tfm_list_mutex held
-+ * Returns 1 if found, with @key_tfm set
-+ * Returns 0 if not found, with @key_tfm set to NULL
-+ */
-+int ecryptfs_tfm_exists(char *cipher_name, struct ecryptfs_key_tfm **key_tfm)
++static inline pgoff_t win_count_to_nrpages(struct reiser4_slide * win)
 +{
-+	struct ecryptfs_key_tfm *tmp_key_tfm;
-+
-+	BUG_ON(!mutex_is_locked(&key_tfm_list_mutex));
-+
-+	list_for_each_entry(tmp_key_tfm, &key_tfm_list, key_tfm_list) {
-+		if (strcmp(tmp_key_tfm->cipher_name, cipher_name) == 0) {
-+			if (key_tfm)
-+				(*key_tfm) = tmp_key_tfm;
-+			return 1;
-+		}
-+	}
-+	if (key_tfm)
-+		(*key_tfm) = NULL;
-+	return 0;
++	return ((win->off + win->count +
++		 (1UL << PAGE_CACHE_SHIFT) - 1) >> PAGE_CACHE_SHIFT) -
++		off_to_pg(win->off);
 +}
 +
-+/**
-+ * ecryptfs_get_tfm_and_mutex_for_cipher_name
-+ *
-+ * @tfm: set to cached tfm found, or new tfm created
-+ * @tfm_mutex: set to mutex for cached tfm found, or new tfm created
-+ * @cipher_name: the name of the cipher to search for and/or add
-+ *
-+ * Sets pointers to @tfm & @tfm_mutex matching @cipher_name.
-+ * Searches for cached item first, and creates new if not found.
-+ * Returns 0 on success, non-zero if adding new cipher failed
-+ */
- int ecryptfs_get_tfm_and_mutex_for_cipher_name(struct crypto_blkcipher **tfm,
- 					       struct mutex **tfm_mutex,
- 					       char *cipher_name)
-@@ -1854,22 +1898,17 @@ int ecryptfs_get_tfm_and_mutex_for_ciphe
+ /* return true, if logical cluster is not occupied by the file */
+ static inline int new_logical_cluster(struct cluster_handle * clust,
+ 				      struct inode *inode)
+diff -puN fs/reiser4/plugin/file/cryptcompress.c~reiser4-use-balance_dirty_pages_ratelimited_nr fs/reiser4/plugin/file/cryptcompress.c
+--- a/fs/reiser4/plugin/file/cryptcompress.c~reiser4-use-balance_dirty_pages_ratelimited_nr
++++ a/fs/reiser4/plugin/file/cryptcompress.c
+@@ -1952,13 +1952,16 @@ static void put_hint_cluster(struct clus
  
- 	(*tfm) = NULL;
- 	(*tfm_mutex) = NULL;
-+
- 	mutex_lock(&key_tfm_list_mutex);
--	list_for_each_entry(key_tfm, &key_tfm_list, key_tfm_list) {
--		if (strcmp(key_tfm->cipher_name, cipher_name) == 0) {
--			(*tfm) = key_tfm->key_tfm;
--			(*tfm_mutex) = &key_tfm->key_tfm_mutex;
--			mutex_unlock(&key_tfm_list_mutex);
-+	if (!ecryptfs_tfm_exists(cipher_name, &key_tfm)) {
-+		rc = ecryptfs_add_new_key_tfm(&key_tfm, cipher_name, 0);
-+		if (rc) {
-+			printk(KERN_ERR "Error adding new key_tfm to list; "
-+					"rc = [%d]\n", rc);
- 			goto out;
- 		}
- 	}
- 	mutex_unlock(&key_tfm_list_mutex);
--	rc = ecryptfs_add_new_key_tfm(&key_tfm, cipher_name, 0);
--	if (rc) {
--		printk(KERN_ERR "Error adding new key_tfm to list; rc = [%d]\n",
--		       rc);
--		goto out;
--	}
- 	(*tfm) = key_tfm->key_tfm;
- 	(*tfm_mutex) = &key_tfm->key_tfm_mutex;
- out:
-diff -puN fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-check-for-existing-key_tfm-at-mount-time fs/ecryptfs/ecryptfs_kernel.h
---- a/fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-check-for-existing-key_tfm-at-mount-time
-+++ a/fs/ecryptfs/ecryptfs_kernel.h
-@@ -323,6 +323,8 @@ struct ecryptfs_key_tfm {
- 	unsigned char cipher_name[ECRYPTFS_MAX_CIPHER_NAME_SIZE + 1];
- };
+ static int balance_dirty_page_cluster(struct cluster_handle * clust,
+ 				      struct inode *inode, loff_t off,
+-				      loff_t to_file)
++				      loff_t to_file,
++				      int nr_dirtied)
+ {
+ 	int result;
+ 	struct cryptcompress_info * info;
  
-+extern struct mutex key_tfm_list_mutex;
-+
- /**
-  * This struct is to enable a mount-wide passphrase/salt combo. This
-  * is more or less a stopgap to provide similar functionality to other
-@@ -617,6 +619,7 @@ ecryptfs_add_new_key_tfm(struct ecryptfs
- 			 size_t key_size);
- int ecryptfs_init_crypto(void);
- int ecryptfs_destroy_crypto(void);
-+int ecryptfs_tfm_exists(char *cipher_name, struct ecryptfs_key_tfm **key_tfm);
- int ecryptfs_get_tfm_and_mutex_for_cipher_name(struct crypto_blkcipher **tfm,
- 					       struct mutex **tfm_mutex,
- 					       char *cipher_name);
-diff -puN fs/ecryptfs/main.c~ecryptfs-check-for-existing-key_tfm-at-mount-time fs/ecryptfs/main.c
---- a/fs/ecryptfs/main.c~ecryptfs-check-for-existing-key_tfm-at-mount-time
-+++ a/fs/ecryptfs/main.c
-@@ -410,9 +410,13 @@ static int ecryptfs_parse_options(struct
- 	if (!cipher_key_bytes_set) {
- 		mount_crypt_stat->global_default_cipher_key_size = 0;
- 	}
--	rc = ecryptfs_add_new_key_tfm(
--		NULL, mount_crypt_stat->global_default_cipher_name,
--		mount_crypt_stat->global_default_cipher_key_size);
-+	mutex_lock(&key_tfm_list_mutex);
-+	if (!ecryptfs_tfm_exists(mount_crypt_stat->global_default_cipher_name,
-+				 NULL))
-+		rc = ecryptfs_add_new_key_tfm(
-+			NULL, mount_crypt_stat->global_default_cipher_name,
-+			mount_crypt_stat->global_default_cipher_key_size);
-+	mutex_unlock(&key_tfm_list_mutex);
- 	if (rc) {
- 		printk(KERN_ERR "Error attempting to initialize cipher with "
- 		       "name = [%s] and key size = [%td]; rc = [%d]\n",
+ 	assert("edward-724", inode != NULL);
+ 	assert("edward-725", cryptcompress_inode_ok(inode));
++	assert("edward-1547",
++	       nr_dirtied != 0 && nr_dirtied <= cluster_nrpages(inode));
+ 
+ 	/* set next window params */
+ 	move_update_window(inode, clust, off, to_file);
+@@ -1970,7 +1973,8 @@ static int balance_dirty_page_cluster(st
+ 	info = cryptcompress_inode_data(inode);
+ 
+ 	mutex_unlock(&info->checkin_mutex);
+-	reiser4_throttle_write(inode);
++	reiser4_txn_restart_current();
++	balance_dirty_pages_ratelimited_nr(inode->i_mapping, nr_dirtied);
+ 	mutex_lock(&info->checkin_mutex);
+ 	return 0;
+ }
+@@ -2038,8 +2042,9 @@ static int write_hole(struct inode *inod
+ 		if (result)
+ 			return result;
+ 		put_hint_cluster(clust, inode, ZNODE_WRITE_LOCK);
+-		result =
+-		    balance_dirty_page_cluster(clust, inode, file_off, to_file);
++		result = balance_dirty_page_cluster(clust,
++						    inode, file_off, to_file,
++						    win_count_to_nrpages(win));
+ 	} else
+ 		move_update_window(inode, clust, file_off, to_file);
+ 	return result;
+@@ -2756,7 +2761,8 @@ static loff_t do_write_cryptcompress(str
+ 		buf   += win.count;
+ 		count -= win.count;
+ 
+-		result = balance_dirty_page_cluster(&clust, inode, 0, count);
++		result = balance_dirty_page_cluster(&clust, inode, 0, count,
++						    win_count_to_nrpages(&win));
+ 		if (result)
+ 			goto err1;
+ 		assert("edward-755", hint->lh.owner == NULL);
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from edward.shishkin@gmail.com are
 
-hfs-handle-more-on-disk-corruptions-without-oopsing.patch
-hfs-handle-more-on-disk-corruptions-without-oopsing-fix.patch
-git-kbuild.patch
-ext2-change-the-default-behaviour-on-error.patch
-export-iov_shorten-for-ext4s-use.patch
-export-iov_shorten-for-ext4s-use-fix.patch
-ecryptfs-make-show_options-reflect-actual-mount-options.patch
-ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
-ecryptfs-remove-debug-as-mount-option-and-warn-if-set-via-modprobe.patch
-ecryptfs-check-for-existing-key_tfm-at-mount-time.patch
-ext4-mm-ext4_store_maxbytes_for_bitmaped_files-warning-fix.patch
-ext3-change-the-default-behaviour-on-error.patch
+reiser4-replace-uid==0-check-with-capability.patch
+reiser4-specify-splice-file-operations.patch
+reiser4-fix-dummy-ioctl_cryptcompress.patch
+reiser4-granulate-rw-serialization-when-accessing-file-conversion-set.patch
+reiser4-fix-disk-cluster-synchronization.patch
+reiser4-use-balance_dirty_pages_ratelimited_nr.patch
