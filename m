@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + net-sunrpc-schedc-revert-git-net-changes.patch added to -mm tree
-Date: Mon, 07 Jan 2008 12:14:46 -0800
-Message-ID: <200801072014.m07KEQ3T010307@imap1.linux-foundation.org>
+Subject: + net-sunrpc-svcsockc-reapply-git-nfs-changes.patch added to -mm tree
+Date: Mon, 07 Jan 2008 12:28:17 -0800
+Message-ID: <200801072027.m07KRvjB010772@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49954 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40199 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752556AbYAGUOy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 15:14:54 -0500
+	by vger.kernel.org with ESMTP id S1752398AbYAGU2p (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 15:28:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, bfields@fieldses.org, davem@davemloft.net, trond.
 
 
 The patch titled
-     net/sunrpc/sched.c: revert git-net changes
+     net-sunrpc-svcsockc-reapply-git-nfs-changes
 has been added to the -mm tree.  Its filename is
-     net-sunrpc-schedc-revert-git-net-changes.patch
+     net-sunrpc-svcsockc-reapply-git-nfs-changes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -27,11 +27,8 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net/sunrpc/sched.c: revert git-net changes
+Subject: net-sunrpc-svcsockc-reapply-git-nfs-changes
 From: Andrew Morton <akpm@linux-foundation.org>
-
-To prevent a huge reject from git-nfs.  It'd be nice if we could work out who
-owns sunrpc.
 
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
@@ -39,24 +36,52 @@ Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/sched.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ net/sunrpc/svcsock.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN net/sunrpc/sched.c~net-sunrpc-schedc-revert-git-net-changes net/sunrpc/sched.c
---- a/net/sunrpc/sched.c~net-sunrpc-schedc-revert-git-net-changes
-+++ a/net/sunrpc/sched.c
-@@ -811,8 +811,9 @@ EXPORT_SYMBOL_GPL(rpc_free);
- void rpc_init_task(struct rpc_task *task, struct rpc_clnt *clnt, int flags, const struct rpc_call_ops *tk_ops, void *calldata)
- {
- 	memset(task, 0, sizeof(*task));
--	setup_timer(&task->tk_timer, (void (*)(unsigned long))rpc_run_timer,
--			(unsigned long)task);
-+	init_timer(&task->tk_timer);
-+	task->tk_timer.data     = (unsigned long) task;
-+	task->tk_timer.function = (void (*)(unsigned long)) rpc_run_timer;
- 	atomic_set(&task->tk_count, 1);
- 	task->tk_client = clnt;
- 	task->tk_flags  = flags;
+diff -puN net/sunrpc/svcsock.c~net-sunrpc-svcsockc-reapply-git-nfs-changes net/sunrpc/svcsock.c
+--- a/net/sunrpc/svcsock.c~net-sunrpc-svcsockc-reapply-git-nfs-changes
++++ a/net/sunrpc/svcsock.c
+@@ -282,6 +282,7 @@ void svc_reserve(struct svc_rqst *rqstp,
+ 		svc_sock_enqueue(svsk);
+ 	}
+ }
++EXPORT_SYMBOL(svc_reserve);
+ 
+ /*
+  * Release a socket after use.
+@@ -362,6 +363,7 @@ svc_wake_up(struct svc_serv *serv)
+ 		spin_unlock_bh(&pool->sp_lock);
+ 	}
+ }
++EXPORT_SYMBOL(svc_wake_up);
+ 
+ union svc_pktinfo_u {
+ 	struct in_pktinfo pkti;
+@@ -1461,6 +1463,7 @@ svc_recv(struct svc_rqst *rqstp, long ti
+ 		serv->sv_stats->netcnt++;
+ 	return len;
+ }
++EXPORT_SYMBOL(svc_recv);
+ 
+ /*
+  * Drop request
+@@ -1471,6 +1474,7 @@ svc_drop(struct svc_rqst *rqstp)
+ 	dprintk("svc: socket %p dropped request\n", rqstp->rq_sock);
+ 	svc_sock_release(rqstp);
+ }
++EXPORT_SYMBOL(svc_drop);
+ 
+ /*
+  * Return reply to client.
+@@ -1797,6 +1801,7 @@ int svc_makesock(struct svc_serv *serv, 
+ 	return svc_create_socket(serv, protocol, (struct sockaddr *) &sin,
+ 							sizeof(sin), flags);
+ }
++EXPORT_SYMBOL(svc_makesock);
+ 
+ /*
+  * Handle defer and revisit of requests
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -120,7 +145,9 @@ git-battery.patch
 bluetooth-uninlining.patch
 net-sunrpc-schedc-revert-git-net-changes.patch
 net-sunrpc-schedc-reapply-git-net-changes.patch
+net-sunrpc-svcsockc-revert-git-nfs-changes.patch
 git-nfsd.patch
+net-sunrpc-svcsockc-reapply-git-nfs-changes.patch
 serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
 cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
 git-sched.patch
@@ -301,4 +328,3 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-git-nfs-fixup.patch
