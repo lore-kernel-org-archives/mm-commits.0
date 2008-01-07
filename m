@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + nlm-initialize-completion-variable-in-lockd_up.patch added to -mm tree
-Date: Mon, 07 Jan 2008 15:49:54 -0800
-Message-ID: <200801072349.m07NnsYd018458@imap1.linux-foundation.org>
+Subject: + sunrpc-spin-svc_rqst-initialization-to-its-own-function.patch added to -mm tree
+Date: Mon, 07 Jan 2008 15:49:47 -0800
+Message-ID: <200801072349.m07Nnll0018450@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56322 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33503 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755310AbYAGXvs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 18:51:48 -0500
+	by vger.kernel.org with ESMTP id S1755382AbYAGXvt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 18:51:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jlayton@redhat.com, bfields@fieldses.org, cel@citi.umich.edu, hch@lst.de, ne
 
 
 The patch titled
-     NLM: Initialize completion variable in lockd_up
+     SUNRPC: spin svc_rqst initialization to its own function
 has been added to the -mm tree.  Its filename is
-     nlm-initialize-completion-variable-in-lockd_up.patch
+     sunrpc-spin-svc_rqst-initialization-to-its-own-function.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -27,12 +27,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: NLM: Initialize completion variable in lockd_up
+Subject: SUNRPC: spin svc_rqst initialization to its own function
 From: Jeff Layton <jlayton@redhat.com>
 
-lockd_start_done is a global var that can be reused if lockd is restarted, but
-it's never reinitialized.  On all but the first use, wait_for_completion isn't
-actually waiting on it since it has already completed once.
+Move the initialization in __svc_create_thread that happens prior to thread
+creation to a new function.  Export the function to allow services to have
+better control over the svc_rqst structs.
 
 Signed-off-by: Jeff Layton <jlayton@redhat.com>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
@@ -43,20 +43,87 @@ Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/lockd/svc.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/sunrpc/svc.h |    2 +
+ net/sunrpc/svc.c           |   43 +++++++++++++++++++++++++----------
+ 2 files changed, 33 insertions(+), 12 deletions(-)
 
-diff -puN fs/lockd/svc.c~nlm-initialize-completion-variable-in-lockd_up fs/lockd/svc.c
---- a/fs/lockd/svc.c~nlm-initialize-completion-variable-in-lockd_up
-+++ a/fs/lockd/svc.c
-@@ -287,6 +287,7 @@ lockd_up(int proto) /* Maybe add a 'fami
- 	/*
- 	 * Create the kernel thread and wait for it to start.
- 	 */
-+	init_completion(&lockd_start_done);
- 	error = svc_create_thread(lockd, serv);
- 	if (error) {
- 		printk(KERN_WARNING
+diff -puN include/linux/sunrpc/svc.h~sunrpc-spin-svc_rqst-initialization-to-its-own-function include/linux/sunrpc/svc.h
+--- a/include/linux/sunrpc/svc.h~sunrpc-spin-svc_rqst-initialization-to-its-own-function
++++ a/include/linux/sunrpc/svc.h
+@@ -384,6 +384,8 @@ struct svc_procedure {
+  */
+ struct svc_serv *  svc_create(struct svc_program *, unsigned int,
+ 			      void (*shutdown)(struct svc_serv*));
++struct svc_rqst *svc_prepare_thread(struct svc_serv *serv,
++					struct svc_pool *pool);
+ int		   svc_create_thread(svc_thread_fn, struct svc_serv *);
+ void		   svc_exit_thread(struct svc_rqst *);
+ struct svc_serv *  svc_create_pooled(struct svc_program *, unsigned int,
+diff -puN net/sunrpc/svc.c~sunrpc-spin-svc_rqst-initialization-to-its-own-function net/sunrpc/svc.c
+--- a/net/sunrpc/svc.c~sunrpc-spin-svc_rqst-initialization-to-its-own-function
++++ a/net/sunrpc/svc.c
+@@ -533,23 +533,14 @@ svc_release_buffer(struct svc_rqst *rqst
+ 			put_page(rqstp->rq_pages[i]);
+ }
+ 
+-/*
+- * Create a thread in the given pool.  Caller must hold BKL.
+- * On a NUMA or SMP machine, with a multi-pool serv, the thread
+- * will be restricted to run on the cpus belonging to the pool.
+- */
+-static int
+-__svc_create_thread(svc_thread_fn func, struct svc_serv *serv,
+-		    struct svc_pool *pool)
++struct svc_rqst *
++svc_prepare_thread(struct svc_serv *serv, struct svc_pool *pool)
+ {
+ 	struct svc_rqst	*rqstp;
+-	int		error = -ENOMEM;
+-	int		have_oldmask = 0;
+-	cpumask_t	oldmask;
+ 
+ 	rqstp = kzalloc(sizeof(*rqstp), GFP_KERNEL);
+ 	if (!rqstp)
+-		goto out;
++		goto out_enomem;
+ 
+ 	init_waitqueue_head(&rqstp->rq_wait);
+ 
+@@ -565,6 +556,34 @@ __svc_create_thread(svc_thread_fn func, 
+ 	spin_unlock_bh(&pool->sp_lock);
+ 	rqstp->rq_server = serv;
+ 	rqstp->rq_pool = pool;
++	return rqstp;
++
++out_thread:
++	svc_exit_thread(rqstp);
++out_enomem:
++	return ERR_PTR(-ENOMEM);
++}
++EXPORT_SYMBOL(svc_prepare_thread);
++
++/*
++ * Create a thread in the given pool.  Caller must hold BKL.
++ * On a NUMA or SMP machine, with a multi-pool serv, the thread
++ * will be restricted to run on the cpus belonging to the pool.
++ */
++static int
++__svc_create_thread(svc_thread_fn func, struct svc_serv *serv,
++		    struct svc_pool *pool)
++{
++	struct svc_rqst	*rqstp;
++	int		error = -ENOMEM;
++	int		have_oldmask = 0;
++	cpumask_t	oldmask;
++
++	rqstp = svc_prepare_thread(serv, pool);
++	if (IS_ERR(rqstp)) {
++		error = PTR_ERR(rqstp);
++		goto out;
++	}
+ 
+ 	if (serv->sv_nrpools > 1)
+ 		have_oldmask = svc_pool_map_set_cpumask(pool->sp_id, &oldmask);
 _
 
 Patches currently in -mm which might be from jlayton@redhat.com are
