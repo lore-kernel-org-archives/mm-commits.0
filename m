@@ -1,72 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-load-each-file-decryption-key-only-once.patch removed from -mm tree
-Date: Tue, 08 Jan 2008 14:47:18 -0800
-Message-ID: <200801082247.m08MlJlw003602@imap1.linux-foundation.org>
+Subject: - hfs-handle-more-on-disk-corruptions-without-oopsing-fix.patch removed from -mm tree
+Date: Tue, 08 Jan 2008 14:56:37 -0800
+Message-ID: <200801082304.m08N4qCG004309@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49242 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53626 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754468AbYAHWsR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2008 17:48:17 -0500
+	by vger.kernel.org with ESMTP id S1751410AbYAHXFv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2008 18:05:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: thighlan@gmail.com, mhalcrow@us.ibm.com, trevor.highland@gmail.com, mm-commits@vger.kernel.org
+To: sandeen@redhat.com, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eCryptfs: load each file decryption key only once
+     hfs-handle-more-on-disk-corruptions-without-oopsing update
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-load-each-file-decryption-key-only-once.patch
+     hfs-handle-more-on-disk-corruptions-without-oopsing-fix.patch
 
-This patch was dropped because an updated version will be merged
-
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+This patch was dropped because it was folded into hfs-handle-more-on-disk-corruptions-without-oopsing.patch
 
 ------------------------------------------------------
-Subject: eCryptfs: load each file decryption key only once
-From: Trevor Highland <thighlan@gmail.com>
+Subject: hfs-handle-more-on-disk-corruptions-without-oopsing update
+From: Eric Sandeen <sandeen@redhat.com>
 
-There is no need to keep re-setting the same key for any given eCryptfs inode.
- This patch optimizes the use of the crypto API and helps performance a bit.
+I double-issued warnings in some cases.
 
-Signed-off-by: Trevor Highland <trevor.highland@gmail.com>
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/crypto.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ fs/hfs/bfind.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN fs/ecryptfs/crypto.c~ecryptfs-load-each-file-decryption-key-only-once fs/ecryptfs/crypto.c
---- a/fs/ecryptfs/crypto.c~ecryptfs-load-each-file-decryption-key-only-once
-+++ a/fs/ecryptfs/crypto.c
-@@ -353,7 +353,6 @@ static int encrypt_scatterlist(struct ec
- 		ecryptfs_dump_hex(crypt_stat->key,
- 				  crypt_stat->key_size);
+diff -puN fs/hfs/bfind.c~hfs-handle-more-on-disk-corruptions-without-oopsing-fix fs/hfs/bfind.c
+--- a/fs/hfs/bfind.c~hfs-handle-more-on-disk-corruptions-without-oopsing-fix
++++ a/fs/hfs/bfind.c
+@@ -53,7 +53,6 @@ int __hfs_brec_find(struct hfs_bnode *bn
+ 		len = hfs_brec_lenoff(bnode, rec, &off);
+ 		keylen = hfs_brec_keylen(bnode, rec);
+ 		if (keylen == HFS_BAD_KEYLEN) {
+-			printk(KERN_ERR "hfs: keylen %d too long\n", keylen);
+ 			res = -EINVAL;
+ 			goto done;
+ 		}
+@@ -73,7 +72,6 @@ int __hfs_brec_find(struct hfs_bnode *bn
+ 		len = hfs_brec_lenoff(bnode, e, &off);
+ 		keylen = hfs_brec_keylen(bnode, e);
+ 		if (keylen == HFS_BAD_KEYLEN) {
+-			printk(KERN_ERR "hfs: keylen %d too long\n", keylen);
+ 			res = -EINVAL;
+ 			goto done;
+ 		}
+@@ -209,7 +207,6 @@ int hfs_brec_goto(struct hfs_find_data *
+ 	len = hfs_brec_lenoff(bnode, fd->record, &off);
+ 	keylen = hfs_brec_keylen(bnode, fd->record);
+ 	if (keylen == HFS_BAD_KEYLEN) {
+-		printk(KERN_ERR "hfs: keylen %d too long\n", keylen);
+ 		res = -EINVAL;
+ 		goto out;
  	}
--	/* Consider doing this once, when the file is opened */
- 	mutex_lock(&crypt_stat->cs_tfm_mutex);
- 	if (!(crypt_stat->flags & ECRYPTFS_KEY_SET)) {
- 		rc = crypto_blkcipher_setkey(crypt_stat->tfm, crypt_stat->key,
-@@ -687,10 +686,12 @@ static int decrypt_scatterlist(struct ec
- 	};
- 	int rc = 0;
- 
--	/* Consider doing this once, when the file is opened */
- 	mutex_lock(&crypt_stat->cs_tfm_mutex);
--	rc = crypto_blkcipher_setkey(crypt_stat->tfm, crypt_stat->key,
--				     crypt_stat->key_size);
-+	if (!(crypt_stat->flags & ECRYPTFS_KEY_SET)) {
-+		rc = crypto_blkcipher_setkey(crypt_stat->tfm, crypt_stat->key,
-+					     crypt_stat->key_size);
-+		crypt_stat->flags |= ECRYPTFS_KEY_SET;
-+	}
- 	if (rc) {
- 		ecryptfs_printk(KERN_ERR, "Error setting key; rc = [%d]\n",
- 				rc);
 _
 
-Patches currently in -mm which might be from thighlan@gmail.com are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
-ecryptfs-change-the-type-of-cipher_code-from-u16-to-u8.patch
-ecryptfs-load-each-file-decryption-key-only-once.patch
+ecryptfs-fix-dentry-handling-on-create-error-unlink-and-inode-destroy.patch
+hfs-handle-more-on-disk-corruptions-without-oopsing.patch
+hfs-handle-more-on-disk-corruptions-without-oopsing-fix.patch
+git-kbuild.patch
+ext2-change-the-default-behaviour-on-error.patch
+export-iov_shorten-for-ext4s-use.patch
+export-iov_shorten-for-ext4s-use-fix.patch
+ecryptfs-make-show_options-reflect-actual-mount-options.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+ecryptfs-remove-debug-as-mount-option-and-warn-if-set-via-modprobe.patch
+ecryptfs-check-for-existing-key_tfm-at-mount-time.patch
+ext4-mm-ext4_store_maxbytes_for_bitmaped_files-warning-fix.patch
+ext3-change-the-default-behaviour-on-error.patch
