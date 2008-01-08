@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + dmi-id-fix-for-__you_cannot_kmalloc_that_much-failure.patch added to -mm tree
-Date: Tue, 08 Jan 2008 02:12:55 -0800
-Message-ID: <200801081012.m08ACZBM006634@imap1.linux-foundation.org>
+Subject: + snd_mixer_oss_build_input-fix-for-__you_cannot_kmalloc_that_much-failure-with-gcc-32.patch added to -mm tree
+Date: Tue, 08 Jan 2008 14:06:34 -0800
+Message-ID: <200801082206.m08M6YYd001567@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55042 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33344 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750707AbYAHKMw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2008 05:12:52 -0500
+	by vger.kernel.org with ESMTP id S1751091AbYAHWHj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2008 17:07:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khali@linux-fr.org, airlied@linux.ie
+Cc: khali@linux-fr.org, perex@suse.cz, tiwai@suse.de
 
 
 The patch titled
-     dmi-id: fix for __you_cannot_kmalloc_that_much failure
+     snd_mixer_oss_build_input(): fix for __you_cannot_kmalloc_that_much failure with gcc-3.2
 has been added to the -mm tree.  Its filename is
-     dmi-id-fix-for-__you_cannot_kmalloc_that_much-failure.patch
+     snd_mixer_oss_build_input-fix-for-__you_cannot_kmalloc_that_much-failure-with-gcc-32.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -27,68 +27,145 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dmi-id: fix for __you_cannot_kmalloc_that_much failure
+Subject: snd_mixer_oss_build_input(): fix for __you_cannot_kmalloc_that_much failure with gcc-3.2
 From: Jean Delvare <khali@linux-fr.org>
 
-gcc 3.2 has a hard time coping with the code in dmi_id_init():
-
-drivers/built-in.o(.init.text+0x789e): In function `dmi_id_init':
-: undefined reference to `__you_cannot_kmalloc_that_much'
-make: *** [.tmp_vmlinux1] Error 1
-
-Moving half of the code to a separate function seems to help.  This is a
-no-op for gcc 4.1 which will successfully inline the code anyway.
+Rework this functions so that gcc-3.2 can successfully perform
+constant-folding.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Dave Airlie <airlied@linux.ie>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/dmi-id.c |   19 ++++++++++++++-----
- 1 file changed, 14 insertions(+), 5 deletions(-)
+ sound/core/oss/mixer_oss.c |  101 +++++++++++++++++++++--------------
+ 1 file changed, 63 insertions(+), 38 deletions(-)
 
-diff -puN drivers/firmware/dmi-id.c~dmi-id-fix-for-__you_cannot_kmalloc_that_much-failure drivers/firmware/dmi-id.c
---- a/drivers/firmware/dmi-id.c~dmi-id-fix-for-__you_cannot_kmalloc_that_much-failure
-+++ a/drivers/firmware/dmi-id.c
-@@ -175,12 +175,11 @@ static struct device *dmi_dev;
+diff -puN sound/core/oss/mixer_oss.c~snd_mixer_oss_build_input-fix-for-__you_cannot_kmalloc_that_much-failure-with-gcc-32 sound/core/oss/mixer_oss.c
+--- a/sound/core/oss/mixer_oss.c~snd_mixer_oss_build_input-fix-for-__you_cannot_kmalloc_that_much-failure-with-gcc-32
++++ a/sound/core/oss/mixer_oss.c
+@@ -925,6 +925,68 @@ static void mixer_slot_clear(struct snd_
+ 	rslot->number = idx;
+ }
  
- extern int dmi_available;
- 
--static int __init dmi_id_init(void)
 +/* In a separate function to keep gcc 3.2 happy - do NOT merge this in
-+   dmi_id_init! */
-+static void __init dmi_id_init_attr_table(void)
- {
--	int ret, i;
--
--	if (!dmi_available)
--		return -ENODEV;
-+	int i;
- 
- 	/* Not necessarily all DMI fields are available on all
- 	 * systems, hence let's built an attribute table of just
-@@ -205,6 +204,16 @@ static int __init dmi_id_init(void)
- 	ADD_DMI_ATTR(chassis_serial,    DMI_CHASSIS_SERIAL);
- 	ADD_DMI_ATTR(chassis_asset_tag, DMI_CHASSIS_ASSET_TAG);
- 	sys_dmi_attributes[i++] = &sys_dmi_modalias_attr.attr;
++   snd_mixer_oss_build_input! */
++static int snd_mixer_oss_build_test_all(struct snd_mixer_oss *mixer,
++					struct snd_mixer_oss_assign_table *ptr,
++					struct slot *slot)
++{
++	char str[64];
++	int err;
++
++	err = snd_mixer_oss_build_test(mixer, slot, ptr->name, ptr->index,
++				       SNDRV_MIXER_OSS_ITEM_GLOBAL);
++	if (err)
++		return err;
++	sprintf(str, "%s Switch", ptr->name);
++	err = snd_mixer_oss_build_test(mixer, slot, str, ptr->index,
++				       SNDRV_MIXER_OSS_ITEM_GSWITCH);
++	if (err)
++		return err;
++	sprintf(str, "%s Route", ptr->name);
++	err = snd_mixer_oss_build_test(mixer, slot, str, ptr->index,
++				       SNDRV_MIXER_OSS_ITEM_GROUTE);
++	if (err)
++		return err;
++	sprintf(str, "%s Volume", ptr->name);
++	err = snd_mixer_oss_build_test(mixer, slot, str, ptr->index,
++				       SNDRV_MIXER_OSS_ITEM_GVOLUME);
++	if (err)
++		return err;
++	sprintf(str, "%s Playback Switch", ptr->name);
++	err = snd_mixer_oss_build_test(mixer, slot, str, ptr->index,
++				       SNDRV_MIXER_OSS_ITEM_PSWITCH);
++	if (err)
++		return err;
++	sprintf(str, "%s Playback Route", ptr->name);
++	err = snd_mixer_oss_build_test(mixer, slot, str, ptr->index,
++				       SNDRV_MIXER_OSS_ITEM_PROUTE);
++	if (err)
++		return err;
++	sprintf(str, "%s Playback Volume", ptr->name);
++	err = snd_mixer_oss_build_test(mixer, slot, str, ptr->index,
++				       SNDRV_MIXER_OSS_ITEM_PVOLUME);
++	if (err)
++		return err;
++	sprintf(str, "%s Capture Switch", ptr->name);
++	err = snd_mixer_oss_build_test(mixer, slot, str, ptr->index,
++				       SNDRV_MIXER_OSS_ITEM_CSWITCH);
++	if (err)
++		return err;
++	sprintf(str, "%s Capture Route", ptr->name);
++	err = snd_mixer_oss_build_test(mixer, slot, str, ptr->index,
++				       SNDRV_MIXER_OSS_ITEM_CROUTE);
++	if (err)
++		return err;
++	sprintf(str, "%s Capture Volume", ptr->name);
++	err = snd_mixer_oss_build_test(mixer, slot, str, ptr->index,
++				       SNDRV_MIXER_OSS_ITEM_CVOLUME);
++	if (err)
++		return err;
++
++	return 0;
 +}
 +
-+static int __init dmi_id_init(void)
-+{
-+	int ret;
-+
-+	if (!dmi_available)
-+		return -ENODEV;
-+
-+	dmi_id_init_attr_table();
+ /*
+  * build an OSS mixer element.
+  * ptr_allocated means the entry is dynamically allocated (change via proc file).
+@@ -944,44 +1006,7 @@ static int snd_mixer_oss_build_input(str
  
- 	ret = class_register(&dmi_class);
- 	if (ret)
+ 	memset(&slot, 0, sizeof(slot));
+ 	memset(slot.numid, 0xff, sizeof(slot.numid)); /* ID_UNKNOWN */
+-	if (snd_mixer_oss_build_test(mixer, &slot, ptr->name, ptr->index,
+-				     SNDRV_MIXER_OSS_ITEM_GLOBAL))
+-		return 0;
+-	sprintf(str, "%s Switch", ptr->name);
+-	if (snd_mixer_oss_build_test(mixer, &slot, str, ptr->index,
+-				     SNDRV_MIXER_OSS_ITEM_GSWITCH))
+-		return 0;
+-	sprintf(str, "%s Route", ptr->name);
+-	if (snd_mixer_oss_build_test(mixer, &slot, str, ptr->index,
+-				     SNDRV_MIXER_OSS_ITEM_GROUTE))
+-		return 0;
+-	sprintf(str, "%s Volume", ptr->name);
+-	if (snd_mixer_oss_build_test(mixer, &slot, str, ptr->index,
+-				     SNDRV_MIXER_OSS_ITEM_GVOLUME))
+-		return 0;
+-	sprintf(str, "%s Playback Switch", ptr->name);
+-	if (snd_mixer_oss_build_test(mixer, &slot, str, ptr->index,
+-				     SNDRV_MIXER_OSS_ITEM_PSWITCH))
+-		return 0;
+-	sprintf(str, "%s Playback Route", ptr->name);
+-	if (snd_mixer_oss_build_test(mixer, &slot, str, ptr->index,
+-				     SNDRV_MIXER_OSS_ITEM_PROUTE))
+-		return 0;
+-	sprintf(str, "%s Playback Volume", ptr->name);
+-	if (snd_mixer_oss_build_test(mixer, &slot, str, ptr->index,
+-				     SNDRV_MIXER_OSS_ITEM_PVOLUME))
+-		return 0;
+-	sprintf(str, "%s Capture Switch", ptr->name);
+-	if (snd_mixer_oss_build_test(mixer, &slot, str, ptr->index,
+-				     SNDRV_MIXER_OSS_ITEM_CSWITCH))
+-		return 0;
+-	sprintf(str, "%s Capture Route", ptr->name);
+-	if (snd_mixer_oss_build_test(mixer, &slot, str, ptr->index,
+-				     SNDRV_MIXER_OSS_ITEM_CROUTE))
+-		return 0;
+-	sprintf(str, "%s Capture Volume", ptr->name);
+-	if (snd_mixer_oss_build_test(mixer, &slot, str, ptr->index,
+-				     SNDRV_MIXER_OSS_ITEM_CVOLUME))
++	if (snd_mixer_oss_build_test_all(mixer, ptr, &slot))
+ 		return 0;
+ 	down_read(&mixer->card->controls_rwsem);
+ 	if (ptr->index == 0 && (kctl = snd_mixer_oss_test_id(mixer, "Capture Source", 0)) != NULL) {
 _
 
 Patches currently in -mm which might be from khali@linux-fr.org are
 
 dmi-id-fix-for-__you_cannot_kmalloc_that_much-failure.patch
+snd_mixer_oss_build_input-fix-for-__you_cannot_kmalloc_that_much-failure-with-gcc-32.patch
 small-acpica-extension-to-be-able-to-store-the-name-of.patch
 export-acpi_check_resource_conflict.patch
 mm-only-enforce-acpi-resource-conflict-checks.patch
