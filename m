@@ -1,238 +1,320 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-separate-invocations-of-_gts-and-_bfs-from-_pts-and-_wak.patch added to -mm tree
-Date: Mon, 07 Jan 2008 16:14:39 -0800
-Message-ID: <200801080014.m080EeZ1019360@imap1.linux-foundation.org>
+Subject: + suspend-introduce-begin-and-end-callbacks.patch added to -mm tree
+Date: Mon, 07 Jan 2008 16:14:37 -0800
+Message-ID: <200801080014.m080EcpB019356@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36383 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36977 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753939AbYAHAPW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 19:15:22 -0500
+	by vger.kernel.org with ESMTP id S1753265AbYAHAPU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 19:15:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl, pavel@suse.cz
+Cc: rjw@sisk.pl
 
 
 The patch titled
-     ACPI: Separate invocations of _GTS and _BFS from _PTS and _WAK
+     Suspend: Introduce begin() and end() callbacks
 has been added to the -mm tree.  Its filename is
-     acpi-separate-invocations-of-_gts-and-_bfs-from-_pts-and-_wak.patch
+     suspend-introduce-begin-and-end-callbacks.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: ACPI: Separate invocations of _GTS and _BFS from _PTS and _WAK
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: Suspend: Introduce begin() and end() callbacks
+=46rom: Rafael J. Wysocki <rjw@sisk.pl>
 
-The execution of ACPI global control methods _GTS and _BFS is currently tied
-to the preparation to enter a sleep state and to the leaving of the sleep
-state, respectively.  However, these functions are called before disabling the
-nonboot CPUs and after enabling them, respectively (in fact, on ACPI 1.0x
-systems the first of them ought to be called before suspending devices), while
-according to the ACPI specification, _GTS is to be executed right prior to
-entering the system sleep state and _BFS is to be executed right after the
-platfor firmware has returned control to the OS on wake up.
+On ACPI systems the target state set by acpi_pm_set_target() is reset b=
+y
+acpi_pm_finish(), but that need not be called if the suspend fails.  =A0=
+All
+platforms that use the .set_target() global suspend callback are affect=
+ed by
+analogous issues.
 
-Move the execution of _GTS and _BFS to the right places.
+=46or this reason, we need an additional global suspend callback that w=
+ill reset
+the target state regardless of whether or not the suspend is successful=
+=2E=20
+=A0Also, it is reasonable to rename the .set_target() callback, since i=
+t will be
+used for a different purpose on ACPI systems (due to ACPI 1.0x code ord=
+ering
+requirements).
+
+Introduce the global suspend callback .end() to be executed at the end =
+of the
+suspend sequence and rename the .set_target() global suspend callback t=
+o
+=2Ebegin().
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/hardware/hwsleep.c |   75 ++++++++++++++++++++++--------
- drivers/acpi/sleep/main.c       |    7 ++
- include/acpi/acpixf.h           |    2 
- 3 files changed, 66 insertions(+), 18 deletions(-)
+ arch/arm/mach-at91/pm.c                   |   17 ++++++++---
+ arch/powerpc/platforms/52xx/lite5200_pm.c |   10 +++++-
+ drivers/acpi/sleep/main.c                 |   22 ++++++++++++---
+ include/linux/suspend.h                   |   29 ++++++++++++--------
+ kernel/power/main.c                       |    9 ++++--
+ 5 files changed, 63 insertions(+), 24 deletions(-)
 
-diff -puN drivers/acpi/hardware/hwsleep.c~acpi-separate-invocations-of-_gts-and-_bfs-from-_pts-and-_wak drivers/acpi/hardware/hwsleep.c
---- a/drivers/acpi/hardware/hwsleep.c~acpi-separate-invocations-of-_gts-and-_bfs-from-_pts-and-_wak
-+++ a/drivers/acpi/hardware/hwsleep.c
-@@ -192,18 +192,13 @@ acpi_status acpi_enter_sleep_state_prep(
- 	arg.type = ACPI_TYPE_INTEGER;
- 	arg.integer.value = sleep_state;
- 
--	/* Run the _PTS and _GTS methods */
-+	/* Run the _PTS method */
- 
- 	status = acpi_evaluate_object(NULL, METHOD_NAME__PTS, &arg_list, NULL);
- 	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
- 		return_ACPI_STATUS(status);
- 	}
- 
--	status = acpi_evaluate_object(NULL, METHOD_NAME__GTS, &arg_list, NULL);
--	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
--		return_ACPI_STATUS(status);
--	}
--
- 	/* Setup the argument to _SST */
- 
- 	switch (sleep_state) {
-@@ -262,6 +257,8 @@ acpi_status asmlinkage acpi_enter_sleep_
- 	struct acpi_bit_register_info *sleep_type_reg_info;
- 	struct acpi_bit_register_info *sleep_enable_reg_info;
- 	u32 in_value;
-+	struct acpi_object_list arg_list;
-+	union acpi_object arg;
- 	acpi_status status;
- 
- 	ACPI_FUNCTION_TRACE(acpi_enter_sleep_state);
-@@ -307,6 +304,18 @@ acpi_status asmlinkage acpi_enter_sleep_
- 		return_ACPI_STATUS(status);
- 	}
- 
-+	/* Execute the _GTS method */
-+
-+	arg_list.count = 1;
-+	arg_list.pointer = &arg;
-+	arg.type = ACPI_TYPE_INTEGER;
-+	arg.integer.value = sleep_state;
-+
-+	status = acpi_evaluate_object(NULL, METHOD_NAME__GTS, &arg_list, NULL);
-+	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
-+		return_ACPI_STATUS(status);
-+	}
-+
- 	/* Get current value of PM1A control */
- 
- 	status = acpi_hw_register_read(ACPI_REGISTER_PM1_CONTROL, &PM1Acontrol);
-@@ -473,17 +482,18 @@ ACPI_EXPORT_SYMBOL(acpi_enter_sleep_stat
- 
- /*******************************************************************************
-  *
-- * FUNCTION:    acpi_leave_sleep_state
-+ * FUNCTION:    acpi_leave_sleep_state_prep
-  *
-- * PARAMETERS:  sleep_state         - Which sleep state we just exited
-+ * PARAMETERS:  sleep_state         - Which sleep state we are exiting
-  *
-  * RETURN:      Status
-  *
-- * DESCRIPTION: Perform OS-independent ACPI cleanup after a sleep
-- *              Called with interrupts ENABLED.
-+ * DESCRIPTION: Perform the first state of OS-independent ACPI cleanup after a
-+ *              sleep.
-+ *              Called with interrupts DISABLED.
-  *
-  ******************************************************************************/
--acpi_status acpi_leave_sleep_state(u8 sleep_state)
-+acpi_status acpi_leave_sleep_state_prep(u8 sleep_state)
+diff -puN arch/arm/mach-at91/pm.c~suspend-introduce-begin-and-end-callb=
+acks arch/arm/mach-at91/pm.c
+--- a/arch/arm/mach-at91/pm.c~suspend-introduce-begin-and-end-callbacks
++++ a/arch/arm/mach-at91/pm.c
+@@ -52,7 +52,7 @@ static suspend_state_t target_state;
+ /*
+  * Called after processes are frozen, but before we shutdown devices.
+  */
+-static int at91_pm_set_target(suspend_state_t state)
++static int at91_pm_begin(suspend_state_t state)
  {
- 	struct acpi_object_list arg_list;
- 	union acpi_object arg;
-@@ -493,7 +503,7 @@ acpi_status acpi_leave_sleep_state(u8 sl
- 	u32 PM1Acontrol;
- 	u32 PM1Bcontrol;
- 
--	ACPI_FUNCTION_TRACE(acpi_leave_sleep_state);
-+	ACPI_FUNCTION_TRACE(acpi_leave_sleep_state_prep);
- 
- 	/*
- 	 * Set SLP_TYPE and SLP_EN to state S0.
-@@ -540,6 +550,41 @@ acpi_status acpi_leave_sleep_state(u8 sl
- 		}
- 	}
- 
-+	/* Execute the _BFS method */
-+
-+	arg_list.count = 1;
-+	arg_list.pointer = &arg;
-+	arg.type = ACPI_TYPE_INTEGER;
-+	arg.integer.value = sleep_state;
-+
-+	status = acpi_evaluate_object(NULL, METHOD_NAME__BFS, &arg_list, NULL);
-+	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
-+		ACPI_EXCEPTION((AE_INFO, status, "During Method _BFS"));
-+	}
-+
-+	return_ACPI_STATUS(status);
+ 	target_state =3D state;
+ 	return 0;
+@@ -197,11 +197,20 @@ error:
+ 	return 0;
+ }
+=20
++/*
++ * Called right prior to thawing processes.
++ */
++static void at91_pm_end(void)
++{
++	target_state =3D PM_SUSPEND_ON;
 +}
 +
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_leave_sleep_state
-+ *
-+ * PARAMETERS:  sleep_state         - Which sleep state we just exited
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: Perform OS-independent ACPI cleanup after a sleep
-+ *              Called with interrupts ENABLED.
-+ *
-+ ******************************************************************************/
-+acpi_status acpi_leave_sleep_state(u8 sleep_state)
-+{
-+	struct acpi_object_list arg_list;
-+	union acpi_object arg;
-+	acpi_status status;
-+
-+	ACPI_FUNCTION_TRACE(acpi_leave_sleep_state);
-+
- 	/* Ensure enter_sleep_state_prep -> enter_sleep_state ordering */
- 
- 	acpi_gbl_sleep_type_a = ACPI_SLEEP_TYPE_INVALID;
-@@ -558,12 +603,6 @@ acpi_status acpi_leave_sleep_state(u8 sl
- 		ACPI_EXCEPTION((AE_INFO, status, "During Method _SST"));
+=20
+ static struct platform_suspend_ops at91_pm_ops =3D{
+-	.valid		=3D at91_pm_valid_state,
+-	.set_target	=3D at91_pm_set_target,
+-	.enter		=3D at91_pm_enter,
++	.valid	=3D at91_pm_valid_state,
++	.begin	=3D at91_pm_begin,
++	.enter	=3D at91_pm_enter,
++	.end	=3D at91_pm_end,
+ };
+=20
+ static int __init at91_pm_init(void)
+diff -puN arch/powerpc/platforms/52xx/lite5200_pm.c~suspend-introduce-b=
+egin-and-end-callbacks arch/powerpc/platforms/52xx/lite5200_pm.c
+--- a/arch/powerpc/platforms/52xx/lite5200_pm.c~suspend-introduce-begin=
+-and-end-callbacks
++++ a/arch/powerpc/platforms/52xx/lite5200_pm.c
+@@ -31,7 +31,7 @@ static int lite5200_pm_valid(suspend_sta
  	}
- 
--	arg.integer.value = sleep_state;
--	status = acpi_evaluate_object(NULL, METHOD_NAME__BFS, &arg_list, NULL);
--	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
--		ACPI_EXCEPTION((AE_INFO, status, "During Method _BFS"));
--	}
--
- 	/*
- 	 * GPEs must be enabled before _WAK is called as GPEs
- 	 * might get fired there
-diff -puN drivers/acpi/sleep/main.c~acpi-separate-invocations-of-_gts-and-_bfs-from-_pts-and-_wak drivers/acpi/sleep/main.c
---- a/drivers/acpi/sleep/main.c~acpi-separate-invocations-of-_gts-and-_bfs-from-_pts-and-_wak
-+++ a/drivers/acpi/sleep/main.c
-@@ -139,6 +139,9 @@ static int acpi_pm_enter(suspend_state_t
- 		break;
- 	}
- 
-+	/* Reprogram control registers and execute _BFS */
-+	acpi_leave_sleep_state_prep(acpi_state);
-+
- 	/* ACPI 3.0 specs (P62) says that it's the responsabilty
- 	 * of the OSPM to clear the status bit [ implying that the
- 	 * POWER_BUTTON event should not reach userspace ]
-@@ -272,6 +275,8 @@ static int acpi_hibernation_enter(void)
- 	acpi_enable_wakeup_device(ACPI_STATE_S4);
- 	/* This shouldn't return.  If it returns, we have a problem */
- 	status = acpi_enter_sleep_state(ACPI_STATE_S4);
-+	/* Reprogram control registers and execute _BFS */
-+	acpi_leave_sleep_state_prep(ACPI_STATE_S4);
- 	local_irq_restore(flags);
- 
- 	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
-@@ -284,6 +289,8 @@ static void acpi_hibernation_leave(void)
- 	 * enable it here.
- 	 */
- 	acpi_enable();
-+	/* Reprogram control registers and execute _BFS */
-+	acpi_leave_sleep_state_prep(ACPI_STATE_S4);
  }
- 
- static void acpi_hibernation_finish(void)
-diff -puN include/acpi/acpixf.h~acpi-separate-invocations-of-_gts-and-_bfs-from-_pts-and-_wak include/acpi/acpixf.h
---- a/include/acpi/acpixf.h~acpi-separate-invocations-of-_gts-and-_bfs-from-_pts-and-_wak
-+++ a/include/acpi/acpixf.h
-@@ -335,6 +335,8 @@ acpi_status asmlinkage acpi_enter_sleep_
- 
- acpi_status asmlinkage acpi_enter_sleep_state_s4bios(void);
- 
-+acpi_status acpi_leave_sleep_state_prep(u8 sleep_state);
+=20
+-static int lite5200_pm_set_target(suspend_state_t state)
++static int lite5200_pm_begin(suspend_state_t state)
+ {
+ 	if (lite5200_pm_valid(state)) {
+ 		lite5200_pm_target_state =3D state;
+@@ -208,12 +208,18 @@ static void lite5200_pm_finish(void)
+ 		mpc52xx_pm_finish();
+ }
+=20
++static void lite5200_pm_end(void)
++{
++	lite5200_pm_target_state =3D PM_SUSPEND_ON;
++}
 +
- acpi_status acpi_leave_sleep_state(u8 sleep_state);
- 
- #endif				/* __ACXFACE_H__ */
+ static struct platform_suspend_ops lite5200_pm_ops =3D {
+ 	.valid		=3D lite5200_pm_valid,
+-	.set_target	=3D lite5200_pm_set_target,
++	.begin		=3D lite5200_pm_begin,
+ 	.prepare	=3D lite5200_pm_prepare,
+ 	.enter		=3D lite5200_pm_enter,
+ 	.finish		=3D lite5200_pm_finish,
++	.end		=3D lite5200_pm_end,
+ };
+=20
+ int __init lite5200_pm_init(void)
+diff -puN drivers/acpi/sleep/main.c~suspend-introduce-begin-and-end-cal=
+lbacks drivers/acpi/sleep/main.c
+--- a/drivers/acpi/sleep/main.c~suspend-introduce-begin-and-end-callbac=
+ks
++++ a/drivers/acpi/sleep/main.c
+@@ -63,11 +63,11 @@ static u32 acpi_suspend_states[] =3D {
+ static int init_8259A_after_S1;
+=20
+ /**
+- *	acpi_pm_set_target - Set the target system sleep state to the state
++ *	acpi_pm_begin - Set the target system sleep state to the state
+  *		associated with given @pm_state, if supported.
+  */
+=20
+-static int acpi_pm_set_target(suspend_state_t pm_state)
++static int acpi_pm_begin(suspend_state_t pm_state)
+ {
+ 	u32 acpi_state =3D acpi_suspend_states[pm_state];
+ 	int error =3D 0;
+@@ -164,7 +164,7 @@ static int acpi_pm_enter(suspend_state_t
+ }
+=20
+ /**
+- *	acpi_pm_finish - Finish up suspend sequence.
++ *	acpi_pm_finish - Instruct the platform to leave a sleep state.
+  *
+  *	This is called after we wake back up (or if entering the sleep stat=
+e
+  *	failed).=20
+@@ -190,6 +190,19 @@ static void acpi_pm_finish(void)
+ #endif
+ }
+=20
++/**
++ *	acpi_pm_end - Finish up suspend sequence.
++ */
++
++static void acpi_pm_end(void)
++{
++	/*
++	 * This is necessary in case acpi_pm_finish() is not called during a
++	 * failing transition to a sleep state.
++	 */
++	acpi_target_sleep_state =3D ACPI_STATE_S0;
++}
++
+ static int acpi_pm_state_valid(suspend_state_t pm_state)
+ {
+ 	u32 acpi_state;
+@@ -208,10 +221,11 @@ static int acpi_pm_state_valid(suspend_s
+=20
+ static struct platform_suspend_ops acpi_pm_ops =3D {
+ 	.valid =3D acpi_pm_state_valid,
+-	.set_target =3D acpi_pm_set_target,
++	.begin =3D acpi_pm_begin,
+ 	.prepare =3D acpi_pm_prepare,
+ 	.enter =3D acpi_pm_enter,
+ 	.finish =3D acpi_pm_finish,
++	.end =3D acpi_pm_end,
+ };
+=20
+ /*
+diff -puN include/linux/suspend.h~suspend-introduce-begin-and-end-callb=
+acks include/linux/suspend.h
+--- a/include/linux/suspend.h~suspend-introduce-begin-and-end-callbacks
++++ a/include/linux/suspend.h
+@@ -38,18 +38,16 @@ typedef int __bitwise suspend_state_t;
+  *	There is the %suspend_valid_only_mem function available that can be
+  *	assigned to this if the platform only supports mem sleep.
+  *
+- * @set_target: Tell the platform which system sleep state is going to=
+ be
+- *	entered.
+- *	@set_target() is executed right prior to suspending devices.  The
+- *	information conveyed to the platform code by @set_target() should b=
+e
+- *	disregarded by the platform as soon as @finish() is executed and if
+- *	@prepare() fails.  If @set_target() fails (ie. returns nonzero),
++ * @begin: Initialise a transition to given system sleep state.
++ *	@begin() is executed right prior to suspending devices.  The inform=
+ation
++ *	conveyed to the platform code by @begin() should be disregarded by =
+it as
++ *	soon as @end() is executed.  If @begin() fails (ie. returns nonzero=
+),
+  *	@prepare(), @enter() and @finish() will not be called by the PM cor=
+e.
+  *	This callback is optional.  However, if it is implemented, the argu=
+ment
+- *	passed to @enter() is meaningless and should be ignored.
++ *	passed to @enter() is redundant and should be ignored.
+  *
+  * @prepare: Prepare the platform for entering the system sleep state =
+indicated
+- *	by @set_target().
++ *	by @begin().
+  *	@prepare() is called right after devices have been suspended (ie. t=
+he
+  *	appropriate .suspend() method has been executed for each device) an=
+d
+  *	before the nonboot CPUs are disabled (it is executed with IRQs enab=
+led).
+@@ -57,8 +55,8 @@ typedef int __bitwise suspend_state_t;
+  *	error code otherwise, in which case the system cannot enter the des=
+ired
+  *	sleep state (@enter() and @finish() will not be called in that case=
+).
+  *
+- * @enter: Enter the system sleep state indicated by @set_target() or
+- *	represented by the argument if @set_target() is not implemented.
++ * @enter: Enter the system sleep state indicated by @begin() or repre=
+sented by
++ *	the argument if @begin() is not implemented.
+  *	This callback is mandatory.  It returns 0 on success or a negative
+  *	error code otherwise, in which case the system cannot enter the des=
+ired
+  *	sleep state.
+@@ -69,13 +67,22 @@ typedef int __bitwise suspend_state_t;
+  *	This callback is optional, but should be implemented by the platfor=
+ms
+  *	that implement @prepare().  If implemented, it is always called aft=
+er
+  *	@enter() (even if @enter() fails).
++ *
++ * @end: Called by the PM core right after resuming devices, to indica=
+te to
++ *	the platform that the system has returned to the working state or
++ *	the transition to the sleep state has been aborted.
++ *	This callback is optional, but should be implemented by the platfor=
+ms
++ *	that implement @begin(), but platforms implementing @begin() should
++ *	also provide a @end() which cleans up transitions aborted before
++ *	@enter().
+  */
+ struct platform_suspend_ops {
+ 	int (*valid)(suspend_state_t state);
+-	int (*set_target)(suspend_state_t state);
++	int (*begin)(suspend_state_t state);
+ 	int (*prepare)(void);
+ 	int (*enter)(suspend_state_t state);
+ 	void (*finish)(void);
++	void (*end)(void);
+ };
+=20
+ #ifdef CONFIG_SUSPEND
+diff -puN kernel/power/main.c~suspend-introduce-begin-and-end-callbacks=
+ kernel/power/main.c
+--- a/kernel/power/main.c~suspend-introduce-begin-and-end-callbacks
++++ a/kernel/power/main.c
+@@ -256,10 +256,10 @@ int suspend_devices_and_enter(suspend_st
+ 	if (!suspend_ops)
+ 		return -ENOSYS;
+=20
+-	if (suspend_ops->set_target) {
+-		error =3D suspend_ops->set_target(state);
++	if (suspend_ops->begin) {
++		error =3D suspend_ops->begin(state);
+ 		if (error)
+-			return error;
++			goto Close;
+ 	}
+ 	suspend_console();
+ 	error =3D device_suspend(PMSG_SUSPEND);
+@@ -292,6 +292,9 @@ int suspend_devices_and_enter(suspend_st
+ 	device_resume();
+  Resume_console:
+ 	resume_console();
++ Close:
++	if (suspend_ops->end)
++		suspend_ops->end();
+ 	return error;
+ }
+=20
 _
 
 Patches currently in -mm which might be from rjw@sisk.pl are
