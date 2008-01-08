@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + system-timer-fix-crash-in-100hz-system-timer.patch added to -mm tree
-Date: Mon, 07 Jan 2008 16:09:59 -0800
-Message-ID: <200801080009.m0809xlS019200@imap1.linux-foundation.org>
+Subject: + acpi-separate-invocations-of-_gts-and-_bfs-from-_pts-and-_wak.patch added to -mm tree
+Date: Mon, 07 Jan 2008 16:14:39 -0800
+Message-ID: <200801080014.m080EeZ1019360@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40746 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36383 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759071AbYAHAK0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 19:10:26 -0500
+	by vger.kernel.org with ESMTP id S1753939AbYAHAPW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2008 19:15:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david@fries.net, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
+Cc: rjw@sisk.pl, pavel@suse.cz
 
 
 The patch titled
-     system timer: fix crash in <100Hz system timer
+     ACPI: Separate invocations of _GTS and _BFS from _PTS and _WAK
 has been added to the -mm tree.  Its filename is
-     system-timer-fix-crash-in-100hz-system-timer.patch
+     acpi-separate-invocations-of-_gts-and-_bfs-from-_pts-and-_wak.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -27,78 +27,234 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: system timer: fix crash in <100Hz system timer
-From: David Fries <david@fries.net>
+Subject: ACPI: Separate invocations of _GTS and _BFS from _PTS and _WAK
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-The kernel has a divide by zero crash when trying to run the system timer
-less than 100Hz.  The problem is x/(HZ/USER_HZ) and related.  Now
-x*(USER_HZ/HZ) will be used if HZ<USER_HZ.
+The execution of ACPI global control methods _GTS and _BFS is currently tied
+to the preparation to enter a sleep state and to the leaving of the sleep
+state, respectively.  However, these functions are called before disabling the
+nonboot CPUs and after enabling them, respectively (in fact, on ACPI 1.0x
+systems the first of them ought to be called before suspending devices), while
+according to the ACPI specification, _GTS is to be executed right prior to
+entering the system sleep state and _BFS is to be executed right after the
+platfor firmware has returned control to the OS on wake up.
 
-I'm running the Linux kernel under qemu and went to run a slower system
-timer to take less CPU (and battery) on the host.  I found that the kernel
-paniced under emulation because of a divide by zero in three places.  Here
-is the patch.  The base git was updated today 01-05-2008.  I went for a
-20Hz system time by adding config HZ_20 etc to kernel/Kconfig.hz.  With
-this patch I verified the system timer by looking at /proc/interrupts.
+Move the execution of _GTS and _BFS to the right places.
 
-Signed-off-by: David Fries <david@fries.net>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/acct.h |    6 +++++-
- kernel/time.c        |   11 ++++++++++-
- 2 files changed, 15 insertions(+), 2 deletions(-)
+ drivers/acpi/hardware/hwsleep.c |   75 ++++++++++++++++++++++--------
+ drivers/acpi/sleep/main.c       |    7 ++
+ include/acpi/acpixf.h           |    2 
+ 3 files changed, 66 insertions(+), 18 deletions(-)
 
-diff -puN include/linux/acct.h~system-timer-fix-crash-in-100hz-system-timer include/linux/acct.h
---- a/include/linux/acct.h~system-timer-fix-crash-in-100hz-system-timer
-+++ a/include/linux/acct.h
-@@ -173,7 +173,11 @@ typedef struct acct acct_t;
- static inline u32 jiffies_to_AHZ(unsigned long x)
+diff -puN drivers/acpi/hardware/hwsleep.c~acpi-separate-invocations-of-_gts-and-_bfs-from-_pts-and-_wak drivers/acpi/hardware/hwsleep.c
+--- a/drivers/acpi/hardware/hwsleep.c~acpi-separate-invocations-of-_gts-and-_bfs-from-_pts-and-_wak
++++ a/drivers/acpi/hardware/hwsleep.c
+@@ -192,18 +192,13 @@ acpi_status acpi_enter_sleep_state_prep(
+ 	arg.type = ACPI_TYPE_INTEGER;
+ 	arg.integer.value = sleep_state;
+ 
+-	/* Run the _PTS and _GTS methods */
++	/* Run the _PTS method */
+ 
+ 	status = acpi_evaluate_object(NULL, METHOD_NAME__PTS, &arg_list, NULL);
+ 	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+ 		return_ACPI_STATUS(status);
+ 	}
+ 
+-	status = acpi_evaluate_object(NULL, METHOD_NAME__GTS, &arg_list, NULL);
+-	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+-		return_ACPI_STATUS(status);
+-	}
+-
+ 	/* Setup the argument to _SST */
+ 
+ 	switch (sleep_state) {
+@@ -262,6 +257,8 @@ acpi_status asmlinkage acpi_enter_sleep_
+ 	struct acpi_bit_register_info *sleep_type_reg_info;
+ 	struct acpi_bit_register_info *sleep_enable_reg_info;
+ 	u32 in_value;
++	struct acpi_object_list arg_list;
++	union acpi_object arg;
+ 	acpi_status status;
+ 
+ 	ACPI_FUNCTION_TRACE(acpi_enter_sleep_state);
+@@ -307,6 +304,18 @@ acpi_status asmlinkage acpi_enter_sleep_
+ 		return_ACPI_STATUS(status);
+ 	}
+ 
++	/* Execute the _GTS method */
++
++	arg_list.count = 1;
++	arg_list.pointer = &arg;
++	arg.type = ACPI_TYPE_INTEGER;
++	arg.integer.value = sleep_state;
++
++	status = acpi_evaluate_object(NULL, METHOD_NAME__GTS, &arg_list, NULL);
++	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
++		return_ACPI_STATUS(status);
++	}
++
+ 	/* Get current value of PM1A control */
+ 
+ 	status = acpi_hw_register_read(ACPI_REGISTER_PM1_CONTROL, &PM1Acontrol);
+@@ -473,17 +482,18 @@ ACPI_EXPORT_SYMBOL(acpi_enter_sleep_stat
+ 
+ /*******************************************************************************
+  *
+- * FUNCTION:    acpi_leave_sleep_state
++ * FUNCTION:    acpi_leave_sleep_state_prep
+  *
+- * PARAMETERS:  sleep_state         - Which sleep state we just exited
++ * PARAMETERS:  sleep_state         - Which sleep state we are exiting
+  *
+  * RETURN:      Status
+  *
+- * DESCRIPTION: Perform OS-independent ACPI cleanup after a sleep
+- *              Called with interrupts ENABLED.
++ * DESCRIPTION: Perform the first state of OS-independent ACPI cleanup after a
++ *              sleep.
++ *              Called with interrupts DISABLED.
+  *
+  ******************************************************************************/
+-acpi_status acpi_leave_sleep_state(u8 sleep_state)
++acpi_status acpi_leave_sleep_state_prep(u8 sleep_state)
  {
- #if (TICK_NSEC % (NSEC_PER_SEC / AHZ)) == 0
--	return x / (HZ / AHZ);
-+	#if HZ < AHZ
-+		return x * (AHZ / HZ);
-+	#else
-+		return x / (HZ / AHZ);
-+	#endif
- #else
-         u64 tmp = (u64)x * TICK_NSEC;
-         do_div(tmp, (NSEC_PER_SEC / AHZ));
-diff -puN kernel/time.c~system-timer-fix-crash-in-100hz-system-timer kernel/time.c
---- a/kernel/time.c~system-timer-fix-crash-in-100hz-system-timer
-+++ a/kernel/time.c
-@@ -565,7 +565,11 @@ EXPORT_SYMBOL(jiffies_to_timeval);
- clock_t jiffies_to_clock_t(long x)
- {
- #if (TICK_NSEC % (NSEC_PER_SEC / USER_HZ)) == 0
-+	#if HZ < USER_HZ
-+	return x * (USER_HZ / HZ);
-+	#else
- 	return x / (HZ / USER_HZ);
-+	#endif
- #else
- 	u64 tmp = (u64)x * TICK_NSEC;
- 	do_div(tmp, (NSEC_PER_SEC / USER_HZ));
-@@ -598,7 +602,12 @@ EXPORT_SYMBOL(clock_t_to_jiffies);
- u64 jiffies_64_to_clock_t(u64 x)
- {
- #if (TICK_NSEC % (NSEC_PER_SEC / USER_HZ)) == 0
--	do_div(x, HZ / USER_HZ);
-+	#if HZ < USER_HZ
-+		x *= USER_HZ;
-+		do_div(x, HZ);
-+	#else
-+		do_div(x, HZ / USER_HZ);
-+	#endif
- #else
+ 	struct acpi_object_list arg_list;
+ 	union acpi_object arg;
+@@ -493,7 +503,7 @@ acpi_status acpi_leave_sleep_state(u8 sl
+ 	u32 PM1Acontrol;
+ 	u32 PM1Bcontrol;
+ 
+-	ACPI_FUNCTION_TRACE(acpi_leave_sleep_state);
++	ACPI_FUNCTION_TRACE(acpi_leave_sleep_state_prep);
+ 
  	/*
- 	 * There are better ways that don't overflow early,
+ 	 * Set SLP_TYPE and SLP_EN to state S0.
+@@ -540,6 +550,41 @@ acpi_status acpi_leave_sleep_state(u8 sl
+ 		}
+ 	}
+ 
++	/* Execute the _BFS method */
++
++	arg_list.count = 1;
++	arg_list.pointer = &arg;
++	arg.type = ACPI_TYPE_INTEGER;
++	arg.integer.value = sleep_state;
++
++	status = acpi_evaluate_object(NULL, METHOD_NAME__BFS, &arg_list, NULL);
++	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
++		ACPI_EXCEPTION((AE_INFO, status, "During Method _BFS"));
++	}
++
++	return_ACPI_STATUS(status);
++}
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_leave_sleep_state
++ *
++ * PARAMETERS:  sleep_state         - Which sleep state we just exited
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: Perform OS-independent ACPI cleanup after a sleep
++ *              Called with interrupts ENABLED.
++ *
++ ******************************************************************************/
++acpi_status acpi_leave_sleep_state(u8 sleep_state)
++{
++	struct acpi_object_list arg_list;
++	union acpi_object arg;
++	acpi_status status;
++
++	ACPI_FUNCTION_TRACE(acpi_leave_sleep_state);
++
+ 	/* Ensure enter_sleep_state_prep -> enter_sleep_state ordering */
+ 
+ 	acpi_gbl_sleep_type_a = ACPI_SLEEP_TYPE_INVALID;
+@@ -558,12 +603,6 @@ acpi_status acpi_leave_sleep_state(u8 sl
+ 		ACPI_EXCEPTION((AE_INFO, status, "During Method _SST"));
+ 	}
+ 
+-	arg.integer.value = sleep_state;
+-	status = acpi_evaluate_object(NULL, METHOD_NAME__BFS, &arg_list, NULL);
+-	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+-		ACPI_EXCEPTION((AE_INFO, status, "During Method _BFS"));
+-	}
+-
+ 	/*
+ 	 * GPEs must be enabled before _WAK is called as GPEs
+ 	 * might get fired there
+diff -puN drivers/acpi/sleep/main.c~acpi-separate-invocations-of-_gts-and-_bfs-from-_pts-and-_wak drivers/acpi/sleep/main.c
+--- a/drivers/acpi/sleep/main.c~acpi-separate-invocations-of-_gts-and-_bfs-from-_pts-and-_wak
++++ a/drivers/acpi/sleep/main.c
+@@ -139,6 +139,9 @@ static int acpi_pm_enter(suspend_state_t
+ 		break;
+ 	}
+ 
++	/* Reprogram control registers and execute _BFS */
++	acpi_leave_sleep_state_prep(acpi_state);
++
+ 	/* ACPI 3.0 specs (P62) says that it's the responsabilty
+ 	 * of the OSPM to clear the status bit [ implying that the
+ 	 * POWER_BUTTON event should not reach userspace ]
+@@ -272,6 +275,8 @@ static int acpi_hibernation_enter(void)
+ 	acpi_enable_wakeup_device(ACPI_STATE_S4);
+ 	/* This shouldn't return.  If it returns, we have a problem */
+ 	status = acpi_enter_sleep_state(ACPI_STATE_S4);
++	/* Reprogram control registers and execute _BFS */
++	acpi_leave_sleep_state_prep(ACPI_STATE_S4);
+ 	local_irq_restore(flags);
+ 
+ 	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
+@@ -284,6 +289,8 @@ static void acpi_hibernation_leave(void)
+ 	 * enable it here.
+ 	 */
+ 	acpi_enable();
++	/* Reprogram control registers and execute _BFS */
++	acpi_leave_sleep_state_prep(ACPI_STATE_S4);
+ }
+ 
+ static void acpi_hibernation_finish(void)
+diff -puN include/acpi/acpixf.h~acpi-separate-invocations-of-_gts-and-_bfs-from-_pts-and-_wak include/acpi/acpixf.h
+--- a/include/acpi/acpixf.h~acpi-separate-invocations-of-_gts-and-_bfs-from-_pts-and-_wak
++++ a/include/acpi/acpixf.h
+@@ -335,6 +335,8 @@ acpi_status asmlinkage acpi_enter_sleep_
+ 
+ acpi_status asmlinkage acpi_enter_sleep_state_s4bios(void);
+ 
++acpi_status acpi_leave_sleep_state_prep(u8 sleep_state);
++
+ acpi_status acpi_leave_sleep_state(u8 sleep_state);
+ 
+ #endif				/* __ACXFACE_H__ */
 _
 
-Patches currently in -mm which might be from david@fries.net are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-system-timer-fix-crash-in-100hz-system-timer.patch
+git-acpi.patch
+suspend-introduce-begin-and-end-callbacks.patch
+acpi-separate-invocations-of-_gts-and-_bfs-from-_pts-and-_wak.patch
+acpi-separate-disabling-of-gpes-from-_pts.patch
+acpi-suspend-call-_pts-before-suspending-devices.patch
+hibernation-introduce-begin-and-end-callbacks.patch
+acpi-hibernation-call-_pts-before-suspending-devices.patch
+acpi-print-message-before-calling-_pts.patch
+revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+git-x86.patch
+git-xfs.patch
+cpufreq-initialise-default-governor-before-use.patch
+page-allocator-clean-up-pcp-draining-functions.patch
+page-allocator-clean-up-pcp-draining-functions-swsusp-fix.patch
+page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
+kernel-power-diskc-make-code-static.patch
+make-kernel_shutdown_prepare-static.patch
+pnp-do-not-stop-start-devices-in-suspend-resume-path.patch
+proc-fix-the-threaded-proc-self.patch
+shrink_slab-handle-bad-shrinkers.patch
