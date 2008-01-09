@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + acct-real_parent-ppid.patch added to -mm tree
-Date: Tue, 08 Jan 2008 22:58:01 -0800
-Message-ID: <200801090657.m096vfBQ021216@imap1.linux-foundation.org>
+Subject: + core-dump-real_parent-ppid.patch added to -mm tree
+Date: Tue, 08 Jan 2008 22:57:59 -0800
+Message-ID: <200801090657.m096vdXG021213@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50577 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53580 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751084AbYAIG6s (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jan 2008 01:58:48 -0500
+	by vger.kernel.org with ESMTP id S1750899AbYAIG6t (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jan 2008 01:58:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: roland@redhat.com
 
 
 The patch titled
-     acct: real_parent ppid
+     core dump: real_parent ppid
 has been added to the -mm tree.  Its filename is
-     acct-real_parent-ppid.patch
+     core-dump-real_parent-ppid.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -27,32 +27,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acct: real_parent ppid
+Subject: core dump: real_parent ppid
 From: Roland McGrath <roland@redhat.com>
 
-The ac_ppid field reported in process accounting records should match what
-getppid() would have returned to that process, regardless of whether a
-debugger is attached.
+The pr_ppid field reported in core dumps should match what getppid() would
+have returned to that process, regardless of whether a debugger is attached.
 
 Signed-off-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/acct.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/binfmt_elf.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/acct.c~acct-real_parent-ppid kernel/acct.c
---- a/kernel/acct.c~acct-real_parent-ppid
-+++ a/kernel/acct.c
-@@ -482,7 +482,7 @@ static void do_acct_process(struct file 
- #endif
- #if ACCT_VERSION==3
- 	ac.ac_pid = current->tgid;
--	ac.ac_ppid = current->parent->tgid;
-+	ac.ac_ppid = current->real_parent->tgid;
- #endif
+diff -puN fs/binfmt_elf.c~core-dump-real_parent-ppid fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~core-dump-real_parent-ppid
++++ a/fs/binfmt_elf.c
+@@ -1473,7 +1473,7 @@ static void fill_prstatus(struct elf_prs
+ 	prstatus->pr_sigpend = p->pending.signal.sig[0];
+ 	prstatus->pr_sighold = p->blocked.sig[0];
+ 	prstatus->pr_pid = task_pid_vnr(p);
+-	prstatus->pr_ppid = task_pid_vnr(p->parent);
++	prstatus->pr_ppid = task_pid_vnr(p->real_parent);
+ 	prstatus->pr_pgrp = task_pgrp_vnr(p);
+ 	prstatus->pr_sid = task_session_vnr(p);
+ 	if (thread_group_leader(p)) {
+@@ -1519,7 +1519,7 @@ static int fill_psinfo(struct elf_prpsin
+ 	psinfo->pr_psargs[len] = 0;
  
- 	spin_lock_irq(&current->sighand->siglock);
+ 	psinfo->pr_pid = task_pid_vnr(p);
+-	psinfo->pr_ppid = task_pid_vnr(p->parent);
++	psinfo->pr_ppid = task_pid_vnr(p->real_parent);
+ 	psinfo->pr_pgrp = task_pgrp_vnr(p);
+ 	psinfo->pr_sid = task_session_vnr(p);
+ 
 _
 
 Patches currently in -mm which might be from roland@redhat.com are
