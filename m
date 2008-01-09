@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + reintroduce-run-time-configurable-max_cstate-for-cpu_idle-case.patch added to -mm tree
-Date: Tue, 08 Jan 2008 19:37:29 -0800
-Message-ID: <200801090337.m093b9Zd014720@imap1.linux-foundation.org>
+Subject: + provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc.patch added to -mm tree
+Date: Tue, 08 Jan 2008 22:17:08 -0800
+Message-ID: <200801090616.m096GmA6019905@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59348 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41269 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752166AbYAIDhs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2008 22:37:48 -0500
+	by vger.kernel.org with ESMTP id S1750961AbYAIGRt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jan 2008 01:17:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: venkatesh.pallipadi@intel.com, arjan@infradead.org, lenb@kernel.org, lkml@rtr.ca, mingo@elte.hu, rjw@sisk.pl
+Cc: jlim@sgi.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     Reintroduce run time configurable max_cstate for !CPU_IDLE case
+     Provide u64 version of jiffies_to_usecs() in kernel/tsacct.c
 has been added to the -mm tree.  Its filename is
-     reintroduce-run-time-configurable-max_cstate-for-cpu_idle-case.patch
+     provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -27,50 +27,86 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Reintroduce run time configurable max_cstate for !CPU_IDLE case
-From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: Provide u64 version of jiffies_to_usecs() in kernel/tsacct.c
+From: Jonathan Lim <jlim@sgi.com>
 
-This was writeable in 2.6.23 but the cpuidle merge made it read-only.  But
-some people's scripts (ie: Mark's) were writing to it.
+It's possible that the values used in and returned from jiffies_to_usecs()
+are incorrect because of truncation when variables of type u64 are
+involved.  So a function specific to that type is used instead.
 
-As an unhappy compromise, make max_cstate writeable again if the kernel was
-configured without CONFIG_CPU_IDLE.
-
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Mark Lord <lkml@rtr.ca>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Jonathan Lim <jlim@sgi.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_idle.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/jiffies.h |    5 +++--
+ kernel/time.c           |    6 ++++++
+ kernel/tsacct.c         |    4 ++--
+ 3 files changed, 11 insertions(+), 4 deletions(-)
 
-diff -puN drivers/acpi/processor_idle.c~reintroduce-run-time-configurable-max_cstate-for-cpu_idle-case drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~reintroduce-run-time-configurable-max_cstate-for-cpu_idle-case
-+++ a/drivers/acpi/processor_idle.c
-@@ -76,7 +76,11 @@ static void (*pm_idle_save) (void) __rea
- #define PM_TIMER_TICKS_TO_US(p)		(((p) * 1000)/(PM_TIMER_FREQUENCY/1000))
+diff -puN include/linux/jiffies.h~provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc include/linux/jiffies.h
+--- a/include/linux/jiffies.h~provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc
++++ a/include/linux/jiffies.h
+@@ -36,7 +36,7 @@
+ /* LATCH is used in the interval timer and ftape setup. */
+ #define LATCH  ((CLOCK_TICK_RATE + HZ/2) / HZ)	/* For divider */
  
- static unsigned int max_cstate __read_mostly = ACPI_PROCESSOR_MAX_POWER;
-+#ifdef CONFIG_CPU_IDLE
- module_param(max_cstate, uint, 0000);
-+#else
-+module_param(max_cstate, uint, 0644);
-+#endif
- static unsigned int nocst __read_mostly;
- module_param(nocst, uint, 0000);
+-/* Suppose we want to devide two numbers NOM and DEN: NOM/DEN, then we can
++/* Suppose we want to divide two numbers NOM and DEN: NOM/DEN, then we can
+  * improve accuracy by shifting LSH bits, hence calculating:
+  *     (NOM << LSH) / DEN
+  * This however means trouble for large NOM, because (NOM << LSH) may no
+@@ -198,7 +198,7 @@ extern unsigned long preset_lpj;
+  * operator if the result is a long long AND at least one of the
+  * operands is cast to long long (usually just prior to the "*" so as
+  * not to confuse it into thinking it really has a 64-bit operand,
+- * which, buy the way, it can do, but it takes more code and at least 2
++ * which, by the way, it can do, but it takes more code and at least 2
+  * mpys).
  
+  * We also need to be aware that one second in nanoseconds is only a
+@@ -263,6 +263,7 @@ extern unsigned long preset_lpj;
+  */
+ extern unsigned int jiffies_to_msecs(const unsigned long j);
+ extern unsigned int jiffies_to_usecs(const unsigned long j);
++extern u64 jiffies_64_to_usecs(const u64 j);
+ extern unsigned long msecs_to_jiffies(const unsigned int m);
+ extern unsigned long usecs_to_jiffies(const unsigned int u);
+ extern unsigned long timespec_to_jiffies(const struct timespec *value);
+diff -puN kernel/time.c~provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc kernel/time.c
+--- a/kernel/time.c~provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc
++++ a/kernel/time.c
+@@ -267,6 +267,12 @@ unsigned int inline jiffies_to_usecs(con
+ }
+ EXPORT_SYMBOL(jiffies_to_usecs);
+ 
++u64 inline jiffies_64_to_usecs(const u64 j)
++{
++	return (j*HZ_TO_USEC_NUM + HZ_TO_USEC_DEN-1) / HZ_TO_USEC_DEN;
++}
++EXPORT_SYMBOL(jiffies_64_to_usecs);
++
+ /**
+  * timespec_trunc - Truncate timespec to a granularity
+  * @t: Timespec
+diff -puN kernel/tsacct.c~provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc kernel/tsacct.c
+--- a/kernel/tsacct.c~provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc
++++ a/kernel/tsacct.c
+@@ -85,8 +85,8 @@ void xacct_add_tsk(struct taskstats *sta
+ 	struct mm_struct *mm;
+ 
+ 	/* convert pages-jiffies to Mbyte-usec */
+-	stats->coremem = jiffies_to_usecs(p->acct_rss_mem1) * PAGE_SIZE / MB;
+-	stats->virtmem = jiffies_to_usecs(p->acct_vm_mem1) * PAGE_SIZE / MB;
++	stats->coremem = jiffies_64_to_usecs(p->acct_rss_mem1) * PAGE_SIZE / MB;
++	stats->virtmem = jiffies_64_to_usecs(p->acct_vm_mem1) * PAGE_SIZE / MB;
+ 	mm = get_task_mm(p);
+ 	if (mm) {
+ 		/* adjust to KB unit */
 _
 
-Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
+Patches currently in -mm which might be from jlim@sgi.com are
 
-reintroduce-run-time-configurable-max_cstate-for-cpu_idle-case.patch
-git-cpufreq.patch
-git-x86.patch
-cpufreq-initialise-default-governor-before-use.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-pm-qos-remove-locks-around-blocking-notifier.patch
+provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc.patch
