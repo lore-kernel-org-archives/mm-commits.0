@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + system-timer-fix-crash-in-100hz-system-timer-cleanup.patch added to -mm tree
-Date: Tue, 08 Jan 2008 23:05:26 -0800
-Message-ID: <200801090705.m09756H1021442@imap1.linux-foundation.org>
+Subject: + speed-up-jiffies-conversion-functions-if-hz==user_hz.patch added to -mm tree
+Date: Tue, 08 Jan 2008 23:15:11 -0800
+Message-ID: <200801090714.m097Epn3021703@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46954 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54053 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750718AbYAIHFg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jan 2008 02:05:36 -0500
+	by vger.kernel.org with ESMTP id S1752154AbYAIHPu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jan 2008 02:15:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, david@fries.net, hpa@zytor.com, mingo@elte.hu, tg
 
 
 The patch titled
-     system-timer-fix-crash-in-100hz-system-timer-cleanup
+     speed up jiffies conversion functions if HZ==USER_HZ
 has been added to the -mm tree.  Its filename is
-     system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
+     speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -27,74 +27,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: system-timer-fix-crash-in-100hz-system-timer-cleanup
+Subject: speed up jiffies conversion functions if HZ==USER_HZ
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Be more conventional (and readable).
+Avoid calling do_div(x, 1) in this case.
 
-Signed-off-by: David Fries <david@fries.net>
+Cc: David Fries <david@fries.net>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/acct.h |    6 +++---
- kernel/time.c        |   12 ++++++------
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ kernel/time.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/acct.h~system-timer-fix-crash-in-100hz-system-timer-cleanup include/linux/acct.h
---- a/include/linux/acct.h~system-timer-fix-crash-in-100hz-system-timer-cleanup
-+++ a/include/linux/acct.h
-@@ -173,11 +173,11 @@ typedef struct acct acct_t;
- static inline u32 jiffies_to_AHZ(unsigned long x)
- {
- #if (TICK_NSEC % (NSEC_PER_SEC / AHZ)) == 0
--	#if HZ < AHZ
-+# if HZ < AHZ
- 		return x * (AHZ / HZ);
--	#else
-+# else
- 		return x / (HZ / AHZ);
--	#endif
-+# endif
- #else
-         u64 tmp = (u64)x * TICK_NSEC;
-         do_div(tmp, (NSEC_PER_SEC / AHZ));
-diff -puN kernel/time.c~system-timer-fix-crash-in-100hz-system-timer-cleanup kernel/time.c
---- a/kernel/time.c~system-timer-fix-crash-in-100hz-system-timer-cleanup
+diff -puN kernel/time.c~speed-up-jiffies-conversion-functions-if-hz==user_hz kernel/time.c
+--- a/kernel/time.c~speed-up-jiffies-conversion-functions-if-hz==user_hz
 +++ a/kernel/time.c
-@@ -578,11 +578,11 @@ EXPORT_SYMBOL(jiffies_to_timeval);
- clock_t jiffies_to_clock_t(long x)
- {
- #if (TICK_NSEC % (NSEC_PER_SEC / USER_HZ)) == 0
--	#if HZ < USER_HZ
-+# if HZ < USER_HZ
- 	return x * (USER_HZ / HZ);
--	#else
+@@ -618,8 +618,10 @@ u64 jiffies_64_to_clock_t(u64 x)
+ # if HZ < USER_HZ
+ 	x *= USER_HZ;
+ 	do_div(x, HZ);
+-# else
++# elif HZ > USER_HZ
+ 	do_div(x, HZ / USER_HZ);
 +# else
- 	return x / (HZ / USER_HZ);
--	#endif
-+# endif
- #else
- 	u64 tmp = (u64)x * TICK_NSEC;
- 	do_div(tmp, (NSEC_PER_SEC / USER_HZ));
-@@ -615,12 +615,12 @@ EXPORT_SYMBOL(clock_t_to_jiffies);
- u64 jiffies_64_to_clock_t(u64 x)
- {
- #if (TICK_NSEC % (NSEC_PER_SEC / USER_HZ)) == 0
--	#if HZ < USER_HZ
-+# if HZ < USER_HZ
- 		x *= USER_HZ;
- 		do_div(x, HZ);
--	#else
-+# else
- 		do_div(x, HZ / USER_HZ);
--	#endif
-+# endif
++	/* Nothing to do */
+ # endif
  #else
  	/*
- 	 * There are better ways that don't overflow early,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -249,7 +211,7 @@ use-ilog2-in-fs-namespacec-fix.patch
 avoid-overflows-in-kernel-timec-fix.patch
 export-iov_shorten-for-ext4s-use-fix.patch
 system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
-a.patch
+speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
 sync_sb_inodes-propagate-errors.patch
 add-have_oprofile.patch
 ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
