@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + serial-avoid-stalling-suspend-if-serial-port-wont-drain.patch added to -mm tree
-Date: Tue, 08 Jan 2008 16:06:27 -0800
-Message-ID: <200801090006.m0906RuM006832@imap1.linux-foundation.org>
+Subject: + modules-de-mutex-more-symbol-lookup-paths-in-the-module-code.patch added to -mm tree
+Date: Tue, 08 Jan 2008 16:10:51 -0800
+Message-ID: <200801090010.m090Apdr007000@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53712 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54280 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751835AbYAIAGp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2008 19:06:45 -0500
+	by vger.kernel.org with ESMTP id S1753219AbYAIAMA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2008 19:12:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rmk+lkml@arm.linux.org.uk, alan@lxorguk.ukuu.org.uk, rmk+kernel@arm.linux.org.uk
+Cc: rusty@rustcorp.com.au, kyle@mcmartin.ca, mingo@elte.hu
 
 
 The patch titled
-     serial: avoid stalling suspend if serial port won't drain
+     modules: de-mutex more symbol lookup paths in the module code
 has been added to the -mm tree.  Its filename is
-     serial-avoid-stalling-suspend-if-serial-port-wont-drain.patch
+     modules-de-mutex-more-symbol-lookup-paths-in-the-module-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -27,60 +27,156 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial: avoid stalling suspend if serial port won't drain
-From: Russell King <rmk+lkml@arm.linux.org.uk>
+Subject: modules: de-mutex more symbol lookup paths in the module code
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-Some ports seem to be unable to drain their transmitters on shut down.  Such a
-problem can occur if the port is programmed for hardware imposed flow control,
-characters are in the FIFO but the CTS signal is inactive.
+Kyle McMartin reports sysrq_timer_list_show() can hit the module
+mutex; these paths don't need to though, since we long ago changed all
+the module list manipulation to occur via stop_machine().
 
-Normally, this isn't a problem because most places where we wait for the
-transmitter to drain have a time-out.  However, there is no timeout in the
-suspend path.
+Disabling preemption is enough.
 
-Give a port 30ms to drain; this is an arbitary value chosen to avoid long
-delays if there are many such ports in the system, while giving a reasonable
-chance for a single port to drain.  Should a port not drain within this
-timeout, issue a warning.
-
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/serial_core.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ kernel/module.c |   29 ++++++++++++++++++-----------
+ 1 file changed, 18 insertions(+), 11 deletions(-)
 
-diff -puN drivers/serial/serial_core.c~serial-avoid-stalling-suspend-if-serial-port-wont-drain drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~serial-avoid-stalling-suspend-if-serial-port-wont-drain
-+++ a/drivers/serial/serial_core.c
-@@ -1977,6 +1977,7 @@ int uart_suspend_port(struct uart_driver
+diff -puN kernel/module.c~modules-de-mutex-more-symbol-lookup-paths-in-the-module-code kernel/module.c
+--- a/kernel/module.c~modules-de-mutex-more-symbol-lookup-paths-in-the-module-code
++++ a/kernel/module.c
+@@ -2218,29 +2218,34 @@ static const char *get_ksymbol(struct mo
+ /* For kallsyms to ask for address resolution.  NULL means not found.
+    We don't lock, as this is used for oops resolution and races are a
+    lesser concern. */
++/* FIXME: Risky: returns a pointer into a module w/o lock */
+ const char *module_address_lookup(unsigned long addr,
+ 				  unsigned long *size,
+ 				  unsigned long *offset,
+ 				  char **modname)
+ {
+ 	struct module *mod;
++	const char *ret = NULL;
  
- 	if (state->info && state->info->flags & UIF_INITIALIZED) {
- 		const struct uart_ops *ops = port->ops;
-+		int tries;
- 
- 		state->info->flags = (state->info->flags & ~UIF_INITIALIZED)
- 				     | UIF_SUSPENDED;
-@@ -1990,9 +1991,14 @@ int uart_suspend_port(struct uart_driver
- 		/*
- 		 * Wait for the transmitter to empty.
- 		 */
--		while (!ops->tx_empty(port)) {
-+		for (tries = 3; !ops->tx_empty(port) && tries; tries--) {
- 			msleep(10);
++	preempt_disable();
+ 	list_for_each_entry(mod, &modules, list) {
+ 		if (within(addr, mod->module_init, mod->init_size)
+ 		    || within(addr, mod->module_core, mod->core_size)) {
+ 			if (modname)
+ 				*modname = mod->name;
+-			return get_ksymbol(mod, addr, size, offset);
++			ret = get_ksymbol(mod, addr, size, offset);
++			break;
  		}
-+		if (!tries)
-+			printk(KERN_ERR "%s%s%s%d: Unable to drain transmitter\n",
-+			       port->dev ? port->dev->bus_id : "",
-+			       port->dev ? ": " : "",
-+			       drv->dev_name, port->line);
- 
- 		ops->shutdown(port);
  	}
+-	return NULL;
++	preempt_enable();
++	return ret;
+ }
+ 
+ int lookup_module_symbol_name(unsigned long addr, char *symname)
+ {
+ 	struct module *mod;
+ 
+-	mutex_lock(&module_mutex);
++	preempt_disable();
+ 	list_for_each_entry(mod, &modules, list) {
+ 		if (within(addr, mod->module_init, mod->init_size) ||
+ 		    within(addr, mod->module_core, mod->core_size)) {
+@@ -2250,12 +2255,12 @@ int lookup_module_symbol_name(unsigned l
+ 			if (!sym)
+ 				goto out;
+ 			strlcpy(symname, sym, KSYM_NAME_LEN);
+-			mutex_unlock(&module_mutex);
++			preempt_enable();
+ 			return 0;
+ 		}
+ 	}
+ out:
+-	mutex_unlock(&module_mutex);
++	preempt_enable();
+ 	return -ERANGE;
+ }
+ 
+@@ -2264,7 +2269,7 @@ int lookup_module_symbol_attrs(unsigned 
+ {
+ 	struct module *mod;
+ 
+-	mutex_lock(&module_mutex);
++	preempt_disable();
+ 	list_for_each_entry(mod, &modules, list) {
+ 		if (within(addr, mod->module_init, mod->init_size) ||
+ 		    within(addr, mod->module_core, mod->core_size)) {
+@@ -2277,12 +2282,12 @@ int lookup_module_symbol_attrs(unsigned 
+ 				strlcpy(modname, mod->name, MODULE_NAME_LEN);
+ 			if (name)
+ 				strlcpy(name, sym, KSYM_NAME_LEN);
+-			mutex_unlock(&module_mutex);
++			preempt_enable();
+ 			return 0;
+ 		}
+ 	}
+ out:
+-	mutex_unlock(&module_mutex);
++	preempt_enable();
+ 	return -ERANGE;
+ }
+ 
+@@ -2291,7 +2296,7 @@ int module_get_kallsym(unsigned int symn
+ {
+ 	struct module *mod;
+ 
+-	mutex_lock(&module_mutex);
++	preempt_disable();
+ 	list_for_each_entry(mod, &modules, list) {
+ 		if (symnum < mod->num_symtab) {
+ 			*value = mod->symtab[symnum].st_value;
+@@ -2300,12 +2305,12 @@ int module_get_kallsym(unsigned int symn
+ 				KSYM_NAME_LEN);
+ 			strlcpy(module_name, mod->name, MODULE_NAME_LEN);
+ 			*exported = is_exported(name, mod);
+-			mutex_unlock(&module_mutex);
++			preempt_enable();
+ 			return 0;
+ 		}
+ 		symnum -= mod->num_symtab;
+ 	}
+-	mutex_unlock(&module_mutex);
++	preempt_enable();
+ 	return -ERANGE;
+ }
+ 
+@@ -2328,6 +2333,7 @@ unsigned long module_kallsyms_lookup_nam
+ 	unsigned long ret = 0;
+ 
+ 	/* Don't lock: we're in enough trouble already. */
++	preempt_disable();
+ 	if ((colon = strchr(name, ':')) != NULL) {
+ 		*colon = '\0';
+ 		if ((mod = find_module(name)) != NULL)
+@@ -2338,6 +2344,7 @@ unsigned long module_kallsyms_lookup_nam
+ 			if ((ret = mod_find_symname(mod, name)) != 0)
+ 				break;
+ 	}
++	preempt_enable();
+ 	return ret;
+ }
+ #endif /* CONFIG_KALLSYMS */
 _
 
-Patches currently in -mm which might be from rmk+lkml@arm.linux.org.uk are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
-avoid-waking-up-closed-serial-ports-on-resume.patch
-serial-avoid-stalling-suspend-if-serial-port-wont-drain.patch
+git-kbuild.patch
+git-kvm.patch
+git-libata-all.patch
+git-scsi-misc.patch
+kallsyms-should-prefer-non-weak-symbols.patch
+virtio_net-remove-double-ether_setup.patch
+modules-handle-symbols-that-have-a-zero-value.patch
+modules-include-sectionsh-to-avoid-defining-linker-variables.patch
+modules-fold-percpu_modcopy-into-modulec-and-get-rid-of-the-macro-from-hell.patch
+modules-de-mutex-more-symbol-lookup-paths-in-the-module-code.patch
+reiser4.patch
