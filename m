@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drm-convert-from-nopage-to-fault-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 08 Jan 2008 16:36:50 -0800
-Message-ID: <200801090036.m090aoo5007900@imap1.linux-foundation.org>
+Subject: + reiser4-correct-references-to-filemap_nopage.patch added to -mm tree
+Date: Tue, 08 Jan 2008 16:50:51 -0800
+Message-ID: <200801090050.m090opWp008394@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42451 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45577 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753903AbYAIAh3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2008 19:37:29 -0500
+	by vger.kernel.org with ESMTP id S1752958AbYAIAzD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2008 19:55:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, airlied@linux.ie, npiggin@suse.de
+Cc: npiggin@suse.de, edward.shishkin@gmail.com, vs@namesys.com
 
 
 The patch titled
-     drm-convert-from-nopage-to-fault-checkpatch-fixes
+     reiser4: correct references to filemap_nopage()
 has been added to the -mm tree.  Its filename is
-     drm-convert-from-nopage-to-fault-checkpatch-fixes.patch
+     reiser4-correct-references-to-filemap_nopage.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -27,352 +27,78 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm-convert-from-nopage-to-fault-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: reiser4: correct references to filemap_nopage()
+From: Nick Piggin <npiggin@suse.de>
 
-WARNING: plain inline is preferred over __inline__
-#32: FILE: drivers/char/drm/drm_vm.c:83:
-+static __inline__ int drm_do_vm_fault(struct vm_area_struct *vma,
+Correct old reiser4 references to filemap_nopage. No code change.
 
-WARNING: labels should not be indented
-#91: FILE: drivers/char/drm/drm_vm.c:152:
-+      vm_fault_error:
-
-WARNING: plain inline is preferred over __inline__
-#97: FILE: drivers/char/drm/drm_vm.c:156:
-+static __inline__ int drm_do_vm_fault(struct vm_area_struct *vma,
-
-WARNING: plain inline is preferred over __inline__
-#117: FILE: drivers/char/drm/drm_vm.c:173:
-+static __inline__ int drm_do_vm_shm_fault(struct vm_area_struct *vma,
-
-WARNING: plain inline is preferred over __inline__
-#163: FILE: drivers/char/drm/drm_vm.c:286:
-+static __inline__ int drm_do_vm_dma_fault(struct vm_area_struct *vma,
-
-WARNING: line over 80 characters
-#182: FILE: drivers/char/drm/drm_vm.c:301:
-+	offset = (unsigned long)vmf->virtual_address - vma->vm_start;	/* vm_[pg]off[set] should be 0 */
-
-WARNING: plain inline is preferred over __inline__
-#207: FILE: drivers/char/drm/drm_vm.c:321:
-+static __inline__ int drm_do_vm_sg_fault(struct vm_area_struct *vma,
-
-total: 0 errors, 7 warnings, 295 lines checked
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Dave Airlie <airlied@linux.ie>
-Cc: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Edward Shishkin <edward.shishkin@gmail.com>
+Cc: "Vladimir V. Saveliev" <vs@namesys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/drm_vm.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ fs/reiser4/plugin/item/extent_file_ops.c |    2 +-
+ fs/reiser4/plugin/item/tail.c            |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/drm/drm_vm.c~drm-convert-from-nopage-to-fault-checkpatch-fixes drivers/char/drm/drm_vm.c
---- a/drivers/char/drm/drm_vm.c~drm-convert-from-nopage-to-fault-checkpatch-fixes
-+++ a/drivers/char/drm/drm_vm.c
-@@ -80,8 +80,8 @@ static pgprot_t drm_io_prot(uint32_t map
-  * map, get the page, increment the use count and return it.
-  */
- #if __OS_HAS_AGP
--static __inline__ int drm_do_vm_fault(struct vm_area_struct *vma,
--						struct vm_fault *vmf)
-+static inline int drm_do_vm_fault(struct vm_area_struct *vma,
-+				  struct vm_fault *vmf)
- {
- 	struct drm_file *priv = vma->vm_file->private_data;
- 	struct drm_device *dev = priv->head->dev;
-@@ -149,11 +149,11 @@ static __inline__ int drm_do_vm_fault(st
+diff -puN fs/reiser4/plugin/item/extent_file_ops.c~reiser4-correct-references-to-filemap_nopage fs/reiser4/plugin/item/extent_file_ops.c
+--- a/fs/reiser4/plugin/item/extent_file_ops.c~reiser4-correct-references-to-filemap_nopage
++++ a/fs/reiser4/plugin/item/extent_file_ops.c
+@@ -1311,7 +1311,7 @@ int reiser4_read_extent(struct file *fil
+    plugin->s.file.readpage
+    reiser4_read->unix_file_read->page_cache_readahead->reiser4_readpage->unix_file_readpage->extent_readpage
+    or
+-   filemap_nopage->reiser4_readpage->readpage_unix_file->->readpage_extent
++   filemap_fault->reiser4_readpage->readpage_unix_file->->readpage_extent
  
- 		return 0;
- 	}
--      vm_fault_error:
-+vm_fault_error:
- 	return VM_FAULT_SIGBUS;	/* Disallow mremap */
- }
- #else				/* __OS_HAS_AGP */
--static __inline__ int drm_do_vm_fault(struct vm_area_struct *vma,
-+static inline int drm_do_vm_fault(struct vm_area_struct *vma,
- 						struct vm_fault *vmf)
- {
- 	return VM_FAULT_SIGBUS;
-@@ -170,7 +170,7 @@ static __inline__ int drm_do_vm_fault(st
-  * Get the mapping, find the real physical page to map, get the page, and
-  * return it.
-  */
--static __inline__ int drm_do_vm_shm_fault(struct vm_area_struct *vma,
-+static inline int drm_do_vm_shm_fault(struct vm_area_struct *vma,
- 						    struct vm_fault *vmf)
- {
- 	struct drm_map *map = (struct drm_map *) vma->vm_private_data;
-@@ -283,8 +283,8 @@ static void drm_vm_shm_close(struct vm_a
-  *
-  * Determine the page number from the page offset and get it from drm_device_dma::pagelist.
-  */
--static __inline__ int drm_do_vm_dma_fault(struct vm_area_struct *vma,
--						    struct vm_fault *vmf)
-+static inline int drm_do_vm_dma_fault(struct vm_area_struct *vma,
-+				     struct vm_fault *vmf)
- {
- 	struct drm_file *priv = vma->vm_file->private_data;
- 	struct drm_device *dev = priv->head->dev;
-@@ -318,8 +318,8 @@ static __inline__ int drm_do_vm_dma_faul
-  *
-  * Determine the map offset from the page offset and get it from drm_sg_mem::pagelist.
-  */
--static __inline__ int drm_do_vm_sg_fault(struct vm_area_struct *vma,
--						   struct vm_fault *vmf)
-+static inline int drm_do_vm_sg_fault(struct vm_area_struct *vma,
-+				     struct vm_fault *vmf)
- {
- 	struct drm_map *map = (struct drm_map *) vma->vm_private_data;
- 	struct drm_file *priv = vma->vm_file->private_data;
+    At the beginning: coord->node is read locked, zloaded, page is
+    locked, coord is set to existing unit inside of extent item (it is not necessary that coord matches to page->index)
+diff -puN fs/reiser4/plugin/item/tail.c~reiser4-correct-references-to-filemap_nopage fs/reiser4/plugin/item/tail.c
+--- a/fs/reiser4/plugin/item/tail.c~reiser4-correct-references-to-filemap_nopage
++++ a/fs/reiser4/plugin/item/tail.c
+@@ -407,7 +407,7 @@ static int do_readpage_tail(uf_coord_t *
+    plugin->s.file.readpage
+    reiser4_read->unix_file_read->page_cache_readahead->reiser4_readpage->unix_file_readpage->readpage_tail
+    or
+-   filemap_nopage->reiser4_readpage->readpage_unix_file->->readpage_tail
++   filemap_fault->reiser4_readpage->readpage_unix_file->->readpage_tail
+ 
+    At the beginning: coord->node is read locked, zloaded, page is locked, coord is set to existing unit inside of tail
+    item. */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-pl2303-fix-mode-switching-regression-fix.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes.patch
-timerfd-v3-new-timerfd-api-ia64-fix.patch
-timerfd-v3-new-timerfd-api-m68k-fix.patch
-timerfd-v3-new-timerfd-api-mips-fix.patch
-timerfd-v3-new-timerfd-api-arch-fixes.patch
-timerfd-v3-new-timerfd-api-powerpc-fix.patch
-timerfd-v3-new-timerfd-api-sparc64-fix.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
 git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-agpgart-intel-agp-dont-zero-an-already-registered-resource-during-resume.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-kernel-auditc-warning-fix.patch
-git-cifs.patch
-git-cpufreq.patch
-git-powerpc.patch
-git-powerpc-fixup.patch
-revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-intel-agp-enable-i915-recognition.patch
+drm-convert-from-nopage-to-fault.patch
 drm-convert-from-nopage-to-fault-checkpatch-fixes.patch
 git-dvb.patch
-fix-jdelvare-i2c-i2c-constify-client-address-data.patch
-git-hid.patch
-revert-git-hrt.patch
 git-ieee1394.patch
 git-infiniband.patch
-git-infiniband-versus-driver-tree.patch
-git-kbuild.patch
+git-jfs.patch
 git-kvm.patch
-kvm-ist-kaput.patch
-git-libata-all.patch
-git-libata-all-fix-pata_winbond-borkage.patch
-git-libata-all-wtf.patch
-libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
-libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
-libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
-git-md-accel.patch
-git-mmc.patch
-git-mtd.patch
-git-net.patch
-git-net-vs-git-lblnet.patch
-git-net-vs-git-lblnet-2.patch
-git-netdev-all.patch
-git-net-vs-git-netdev-all.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-backlight-omap1-backlight-driver.patch
-git-battery.patch
-bluetooth-uninlining.patch
-net-sunrpc-schedc-revert-git-net-changes.patch
-net-sunrpc-schedc-reapply-git-net-changes.patch
-net-sunrpc-svcsockc-revert-git-nfs-changes.patch
-git-nfsd.patch
-net-sunrpc-svcsockc-reapply-git-nfs-changes.patch
-serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+nfs-use-gfp_nofs-preloads-for-radix-tree-insertion.patch
 git-sched.patch
-git-sched-fixup.patch
-git-sh.patch
-git-scsi-misc.patch
-scsi-aic94xx-cleanups-checkpatch-fixes.patch
-scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
-9p-util-fix-semaphore-handling.patch
-git-watchdog.patch
-git-watchdog-fixup.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-arch-x86-makefile-revert-git-kvm-change.patch
+sg-nopage.patch
 git-x86.patch
-arch-x86-makefile-reapply-git-kvm-change.patch
-git-x86-fixup.patch
-git-x86-fix-doubly-merged-patch.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-git-xtensa.patch
-bonding-locking-fix.patch
-usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-add-proc-kpagecount-interface-fix.patch
-maps4-add-proc-kpageflags-interface-fix.patch
-maps4-add-proc-kpageflags-interface-fix-2-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-mm-remove-fastcall-from-mm-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
-kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
-stopmachine-semaphore-to-mutex-fix.patch
-parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
-debug_smp_processor_id-fixlets.patch
-use-ilog2-in-fs-namespacec-fix.patch
-avoid-overflows-in-kernel-timec-fix.patch
-export-iov_shorten-for-ext4s-use-fix.patch
-sync_sb_inodes-propagate-errors.patch
-add-have_oprofile.patch
-ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-rtc-add-support-for-the-s-35390a-rtc-chip.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-neofb-avoid-overwriting-fb_info-fields.patch
-declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
-ext4-mm-ext4_store_maxbytes_for_bitmaped_files-warning-fix.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-pid-sys_wait-fixes-v2-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-rewrite-rd-fixes.patch
-fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
-kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
-lib-remove-fastcall-from-lib-checkpatch-fixes.patch
-remove-fastcall-from-linux-include-checkpatch-fixes.patch
-constify-tables-in-kernel-sysctl_checkc-fix.patch
-aoe-statically-initialise-devlist_lock.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+slub-use-non-atomic-bit-unlock.patch
+tmpfs-shuffle-add_to_swap_caches.patch
+tmpfs-radix_tree_preloading.patch
+radix-tree-avoid-atomic-allocations-for-preloaded-insertions.patch
+mm-dont-allow-ioremapping-of-ranges-larger-than-vmalloc-space.patch
+mm-special-mapping-nopage.patch
+agp-alpha-nopage.patch
+vt-bitlock-fix.patch
+radix_treeh-trivial-comment-correction.patch
+inotify-fix-race.patch
+inotify-remove-debug-code.patch
+relay-nopage.patch
+uio-nopage.patch
+ext2-xip-check-fix.patch
+fb-defio-nopage.patch
+rewrite-rd.patch
+rewrite-rd-fix.patch
+rd-support-xip.patch
 reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+reiser4-correct-references-to-filemap_nopage.patch
