@@ -1,62 +1,229 @@
 From: akpm@linux-foundation.org
-Subject: + speed-up-jiffies-conversion-functions-if-hz==user_hz.patch added to -mm tree
-Date: Tue, 08 Jan 2008 23:15:11 -0800
-Message-ID: <200801090714.m097Epn3021703@imap1.linux-foundation.org>
+Subject: - sync_sb_inodes-propagate-errors.patch removed from -mm tree
+Date: Tue, 08 Jan 2008 23:19:18 -0800
+Message-ID: <200801090718.m097IwZV021856@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54053 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48240 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752154AbYAIHPu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jan 2008 02:15:50 -0500
+	by vger.kernel.org with ESMTP id S1751812AbYAIHTb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jan 2008 02:19:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, david@fries.net, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
+To: akpm@linux-foundation.org, guichaz@yahoo.fr, mm-commits@vger.kernel.org
 
 
 The patch titled
-     speed up jiffies conversion functions if HZ==USER_HZ
-has been added to the -mm tree.  Its filename is
-     speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
+     sync_sb_inodes(): propagate errors
+has been removed from the -mm tree.  Its filename was
+     sync_sb_inodes-propagate-errors.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: speed up jiffies conversion functions if HZ==USER_HZ
+Subject: sync_sb_inodes(): propagate errors
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Avoid calling do_div(x, 1) in this case.
+Guillame points out that sync_sb_inodes() is failing to propagate error codes
+back.  Fix that, and make several other void-returning functions not drop
+reportable error codes.
 
-Cc: David Fries <david@fries.net>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Guillaume Chazarain <guichaz@yahoo.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/fs-writeback.c         |   54 ++++++++++++++++++++++++++----------
+ include/linux/writeback.h |    6 ++--
+ 2 files changed, 43 insertions(+), 17 deletions(-)
 
-diff -puN kernel/time.c~speed-up-jiffies-conversion-functions-if-hz==user_hz kernel/time.c
---- a/kernel/time.c~speed-up-jiffies-conversion-functions-if-hz==user_hz
-+++ a/kernel/time.c
-@@ -618,8 +618,10 @@ u64 jiffies_64_to_clock_t(u64 x)
- # if HZ < USER_HZ
- 	x *= USER_HZ;
- 	do_div(x, HZ);
--# else
-+# elif HZ > USER_HZ
- 	do_div(x, HZ / USER_HZ);
-+# else
-+	/* Nothing to do */
- # endif
- #else
- 	/*
+diff -puN fs/fs-writeback.c~sync_sb_inodes-propagate-errors fs/fs-writeback.c
+--- a/fs/fs-writeback.c~sync_sb_inodes-propagate-errors
++++ a/fs/fs-writeback.c
+@@ -392,10 +392,11 @@ __writeback_single_inode(struct inode *i
+  * on the writer throttling path, and we get decent balancing between many
+  * throttled threads: we don't want them all piling up on inode_sync_wait.
+  */
+-static void
++static int
+ sync_sb_inodes(struct super_block *sb, struct writeback_control *wbc)
+ {
+ 	const unsigned long start = jiffies;	/* livelock avoidance */
++	int ret = 0;
+ 
+ 	if (!wbc->for_kupdate || list_empty(&sb->s_io))
+ 		queue_io(sb, wbc->older_than_this);
+@@ -406,6 +407,7 @@ sync_sb_inodes(struct super_block *sb, s
+ 		struct address_space *mapping = inode->i_mapping;
+ 		struct backing_dev_info *bdi = mapping->backing_dev_info;
+ 		long pages_skipped;
++		int err;
+ 
+ 		if (!bdi_cap_writeback_dirty(bdi)) {
+ 			redirty_tail(inode);
+@@ -450,7 +452,9 @@ sync_sb_inodes(struct super_block *sb, s
+ 		BUG_ON(inode->i_state & I_FREEING);
+ 		__iget(inode);
+ 		pages_skipped = wbc->pages_skipped;
+-		__writeback_single_inode(inode, wbc);
++		err = __writeback_single_inode(inode, wbc);
++		if (!ret)
++			ret = err;
+ 		if (wbc->sync_mode == WB_SYNC_HOLD) {
+ 			inode->dirtied_when = jiffies;
+ 			list_move(&inode->i_list, &sb->s_dirty);
+@@ -473,7 +477,7 @@ sync_sb_inodes(struct super_block *sb, s
+ 	}
+ 	if (!list_empty(&sb->s_more_io))
+ 		wbc->more_io = 1;
+-	return;		/* Leave any unwritten inodes on s_io */
++	return ret;		/* Leave any unwritten inodes on s_io */
+ }
+ 
+ /*
+@@ -495,10 +499,10 @@ sync_sb_inodes(struct super_block *sb, s
+  * sync_sb_inodes will seekout the blockdev which matches `bdi'.  Maybe not
+  * super-efficient but we're about to do a ton of I/O...
+  */
+-void
+-writeback_inodes(struct writeback_control *wbc)
++int writeback_inodes(struct writeback_control *wbc)
+ {
+ 	struct super_block *sb;
++	int ret = 0;
+ 
+ 	might_sleep();
+ 	spin_lock(&sb_lock);
+@@ -515,9 +519,13 @@ restart:
+ 			 */
+ 			if (down_read_trylock(&sb->s_umount)) {
+ 				if (sb->s_root) {
++					int err;
++
+ 					spin_lock(&inode_lock);
+-					sync_sb_inodes(sb, wbc);
++					err = sync_sb_inodes(sb, wbc);
+ 					spin_unlock(&inode_lock);
++					if (!ret)
++						ret = err;
+ 				}
+ 				up_read(&sb->s_umount);
+ 			}
+@@ -529,6 +537,7 @@ restart:
+ 			break;
+ 	}
+ 	spin_unlock(&sb_lock);
++	return ret;
+ }
+ 
+ /*
+@@ -542,7 +551,7 @@ restart:
+  * We add in the number of potentially dirty inodes, because each inode write
+  * can dirty pagecache in the underlying blockdev.
+  */
+-void sync_inodes_sb(struct super_block *sb, int wait)
++int sync_inodes_sb(struct super_block *sb, int wait)
+ {
+ 	struct writeback_control wbc = {
+ 		.sync_mode	= wait ? WB_SYNC_ALL : WB_SYNC_HOLD,
+@@ -551,14 +560,16 @@ void sync_inodes_sb(struct super_block *
+ 	};
+ 	unsigned long nr_dirty = global_page_state(NR_FILE_DIRTY);
+ 	unsigned long nr_unstable = global_page_state(NR_UNSTABLE_NFS);
++	int ret;
+ 
+ 	wbc.nr_to_write = nr_dirty + nr_unstable +
+ 			(inodes_stat.nr_inodes - inodes_stat.nr_unused) +
+ 			nr_dirty + nr_unstable;
+ 	wbc.nr_to_write += wbc.nr_to_write / 2;		/* Bit more for luck */
+ 	spin_lock(&inode_lock);
+-	sync_sb_inodes(sb, &wbc);
++	ret = sync_sb_inodes(sb, &wbc);
+ 	spin_unlock(&inode_lock);
++	return ret;
+ }
+ 
+ /*
+@@ -592,13 +603,16 @@ static void set_sb_syncing(int val)
+  * outstanding dirty inodes, the writeback goes block-at-a-time within the
+  * filesystem's write_inode().  This is extremely slow.
+  */
+-static void __sync_inodes(int wait)
++static int __sync_inodes(int wait)
+ {
+ 	struct super_block *sb;
++	int ret = 0;
+ 
+ 	spin_lock(&sb_lock);
+ restart:
+ 	list_for_each_entry(sb, &super_blocks, s_list) {
++		int err;
++
+ 		if (sb->s_syncing)
+ 			continue;
+ 		sb->s_syncing = 1;
+@@ -606,8 +620,12 @@ restart:
+ 		spin_unlock(&sb_lock);
+ 		down_read(&sb->s_umount);
+ 		if (sb->s_root) {
+-			sync_inodes_sb(sb, wait);
+-			sync_blockdev(sb->s_bdev);
++			err = sync_inodes_sb(sb, wait);
++			if (!ret)
++				ret = err;
++			err = sync_blockdev(sb->s_bdev);
++			if (!ret)
++				ret = err;
+ 		}
+ 		up_read(&sb->s_umount);
+ 		spin_lock(&sb_lock);
+@@ -615,17 +633,25 @@ restart:
+ 			goto restart;
+ 	}
+ 	spin_unlock(&sb_lock);
++	return ret;
+ }
+ 
+-void sync_inodes(int wait)
++int sync_inodes(int wait)
+ {
++	int ret;
++
+ 	set_sb_syncing(0);
+-	__sync_inodes(0);
++	ret = __sync_inodes(0);
+ 
+ 	if (wait) {
++		int err;
++
+ 		set_sb_syncing(0);
+-		__sync_inodes(1);
++		err = __sync_inodes(1);
++		if (!ret)
++			ret = err;
+ 	}
++	return ret;
+ }
+ 
+ /**
+diff -puN include/linux/writeback.h~sync_sb_inodes-propagate-errors include/linux/writeback.h
+--- a/include/linux/writeback.h~sync_sb_inodes-propagate-errors
++++ a/include/linux/writeback.h
+@@ -68,10 +68,10 @@ struct writeback_control {
+ /*
+  * fs/fs-writeback.c
+  */	
+-void writeback_inodes(struct writeback_control *wbc);
++int writeback_inodes(struct writeback_control *wbc);
+ int inode_wait(void *);
+-void sync_inodes_sb(struct super_block *, int wait);
+-void sync_inodes(int wait);
++int sync_inodes_sb(struct super_block *, int wait);
++int sync_inodes(int wait);
+ 
+ /* writeback.h requires fs.h; it, too, is not included from here. */
+ static inline void wait_on_inode(struct inode *inode)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
