@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + modules-make-module_address_lookup-safe.patch added to -mm tree
-Date: Tue, 08 Jan 2008 16:22:07 -0800
-Message-ID: <200801090022.m090M732007467@imap1.linux-foundation.org>
+Subject: + iommu-sg-add-iommu-helper-functions-for-the-free-area-management-update.patch added to -mm tree
+Date: Tue, 08 Jan 2008 16:28:40 -0800
+Message-ID: <200801090028.m090SeIC007659@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36439 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33963 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751765AbYAIAWd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2008 19:22:33 -0500
+	by vger.kernel.org with ESMTP id S1752806AbYAIAaP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2008 19:30:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rusty@rustcorp.com.au, kyle@mcmartin.ca, mingo@elte.hu
+Cc: fujita.tomonori@lab.ntt.co.jp, James.Bottomley@steeleye.com, jeff@garzik.org, jens.axboe@oracle.com
 
 
 The patch titled
-     modules: make module_address_lookup safe
+     iommu-sg-add-iommu-helper-functions-for-the-free-area-management update
 has been added to the -mm tree.  Its filename is
-     modules-make-module_address_lookup-safe.patch
+     iommu-sg-add-iommu-helper-functions-for-the-free-area-management-update.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -27,151 +27,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: modules: make module_address_lookup safe
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: iommu-sg-add-iommu-helper-functions-for-the-free-area-management update
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-module_address_lookup releases preemption then returns a pointer into the
-module space.  The only user (kallsyms) copies the result, so just do that
-under the preempt disable.
+An undocumented alteration :(
 
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/module.h |   22 +++++++++++++---------
- kernel/kallsyms.c      |   11 ++++-------
- kernel/module.c        |   20 ++++++++++++--------
- 3 files changed, 29 insertions(+), 24 deletions(-)
+ lib/iommu-helper.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/module.h~modules-make-module_address_lookup-safe include/linux/module.h
---- a/include/linux/module.h~modules-make-module_address_lookup-safe
-+++ a/include/linux/module.h
-@@ -446,11 +446,14 @@ static inline void __module_get(struct m
- 	__mod ? __mod->name : "kernel";		\
- })
- 
--/* For kallsyms to ask for address resolution.  NULL means not found. */
--const char *module_address_lookup(unsigned long addr,
--				  unsigned long *symbolsize,
--				  unsigned long *offset,
--				  char **modname);
-+/* For kallsyms to ask for address resolution.  namebuf should be at
-+ * least KSYM_NAME_LEN long: a pointer to namebuf is returned if
-+ * found, otherwise NULL. */
-+char *module_address_lookup(unsigned long addr,
-+			    unsigned long *symbolsize,
-+			    unsigned long *offset,
-+			    char **modname,
-+			    char *namebuf);
- int lookup_module_symbol_name(unsigned long addr, char *symname);
- int lookup_module_symbol_attrs(unsigned long addr, unsigned long *size, unsigned long *offset, char *modname, char *name);
- 
-@@ -516,10 +519,11 @@ static inline void module_put(struct mod
- #define module_name(mod) "kernel"
- 
- /* For kallsyms to ask for address resolution.  NULL means not found. */
--static inline const char *module_address_lookup(unsigned long addr,
--						unsigned long *symbolsize,
--						unsigned long *offset,
--						char **modname)
-+static inline char *module_address_lookup(unsigned long addr,
-+					  unsigned long *symbolsize,
-+					  unsigned long *offset,
-+					  char **modname,
-+					  char *namebuf)
+diff -puN lib/iommu-helper.c~iommu-sg-add-iommu-helper-functions-for-the-free-area-management-update lib/iommu-helper.c
+--- a/lib/iommu-helper.c~iommu-sg-add-iommu-helper-functions-for-the-free-area-management-update
++++ a/lib/iommu-helper.c
+@@ -8,15 +8,20 @@
+ static unsigned long find_next_zero_area(unsigned long *map,
+ 					 unsigned long size,
+ 					 unsigned long start,
+-					 unsigned int nr)
++					 unsigned int nr,
++					 unsigned long align_mask)
  {
- 	return NULL;
- }
-diff -puN kernel/kallsyms.c~modules-make-module_address_lookup-safe kernel/kallsyms.c
---- a/kernel/kallsyms.c~modules-make-module_address_lookup-safe
-+++ a/kernel/kallsyms.c
-@@ -224,10 +224,11 @@ static unsigned long get_symbol_pos(unsi
- int kallsyms_lookup_size_offset(unsigned long addr, unsigned long *symbolsize,
- 				unsigned long *offset)
+ 	unsigned long index, end, i;
+ again:
+ 	index = find_next_zero_bit(map, size, start);
++
++	/* Align allocation */
++	index = (index + align_mask) & ~align_mask;
++
+ 	end = index + nr;
+-	if (end > size)
++	if (end >= size)
+ 		return -1;
+-	for (i = index + 1; i < end; i++) {
++	for (i = index; i < end; i++) {
+ 		if (test_bit(i, map)) {
+ 			start = i+1;
+ 			goto again;
+@@ -50,9 +55,8 @@ unsigned long iommu_area_alloc(unsigned 
  {
-+	char namebuf[KSYM_NAME_LEN];
- 	if (is_ksym_addr(addr))
- 		return !!get_symbol_pos(addr, symbolsize, offset);
- 
--	return !!module_address_lookup(addr, symbolsize, offset, NULL);
-+	return !!module_address_lookup(addr, symbolsize, offset, NULL, namebuf);
- }
- 
- /*
-@@ -242,8 +243,6 @@ const char *kallsyms_lookup(unsigned lon
- 			    unsigned long *offset,
- 			    char **modname, char *namebuf)
- {
--	const char *msym;
--
- 	namebuf[KSYM_NAME_LEN - 1] = 0;
- 	namebuf[0] = 0;
- 
-@@ -259,10 +258,8 @@ const char *kallsyms_lookup(unsigned lon
- 	}
- 
- 	/* see if it's in a module */
--	msym = module_address_lookup(addr, symbolsize, offset, modname);
--	if (msym)
--		return strncpy(namebuf, msym, KSYM_NAME_LEN - 1);
--
-+	return module_address_lookup(addr, symbolsize, offset, modname,
-+				     namebuf);
- 	return NULL;
- }
- 
-diff -puN kernel/module.c~modules-make-module_address_lookup-safe kernel/module.c
---- a/kernel/module.c~modules-make-module_address_lookup-safe
-+++ a/kernel/module.c
-@@ -2215,14 +2215,13 @@ static const char *get_ksymbol(struct mo
- 	return mod->strtab + mod->symtab[best].st_name;
- }
- 
--/* For kallsyms to ask for address resolution.  NULL means not found.
--   We don't lock, as this is used for oops resolution and races are a
--   lesser concern. */
--/* FIXME: Risky: returns a pointer into a module w/o lock */
--const char *module_address_lookup(unsigned long addr,
--				  unsigned long *size,
--				  unsigned long *offset,
--				  char **modname)
-+/* For kallsyms to ask for address resolution.  NULL means not found.  Careful
-+ * not to lock to avoid deadlock on oopses, simply disable preemption. */
-+char *module_address_lookup(unsigned long addr,
-+			    unsigned long *size,
-+			    unsigned long *offset,
-+			    char **modname,
-+			    char *namebuf)
- {
- 	struct module *mod;
- 	const char *ret = NULL;
-@@ -2237,6 +2236,11 @@ const char *module_address_lookup(unsign
- 			break;
- 		}
- 	}
-+	/* Make a copy in here where it's safe */
-+	if (ret) {
-+		strncpy(namebuf, ret, KSYM_NAME_LEN - 1);
-+		ret = namebuf;
-+	}
- 	preempt_enable();
- 	return ret;
- }
+ 	unsigned long index;
+ again:
+-	index = find_next_zero_area(map, size, start, nr);
++	index = find_next_zero_area(map, size, start, nr, align_mask);
+ 	if (index != -1) {
+-		index = (index + align_mask) & ~align_mask;
+ 		if (is_span_boundary(index, nr, shift, boundary_size)) {
+ 			/* we could do more effectively */
+ 			start = index + 1;
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
 
-git-kbuild.patch
-git-kvm.patch
-git-libata-all.patch
 git-scsi-misc.patch
-kallsyms-should-prefer-non-weak-symbols.patch
-virtio_net-remove-double-ether_setup.patch
-modules-handle-symbols-that-have-a-zero-value.patch
-modules-include-sectionsh-to-avoid-defining-linker-variables.patch
-modules-fold-percpu_modcopy-into-modulec-and-get-rid-of-the-macro-from-hell.patch
-modules-de-mutex-more-symbol-lookup-paths-in-the-module-code.patch
-modules-make-module_address_lookup-safe.patch
-reiser4.patch
+scsi-scsi_data_buffer.patch
+iommu-sg-merging-add-device_dma_parameters-structure.patch
+iommu-sg-merging-pci-add-device_dma_parameters-support.patch
+iommu-sg-merging-x86-make-pci-gart-iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-ppc-make-iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-ia64-make-sba_iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-alpha-make-pci_iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-parisc-make-iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-call-blk_queue_segment_boundary-in-__scsi_alloc_queue.patch
+iommu-sg-merging-sata_inic162x-use-pci_set_dma_max_seg_size.patch
+iommu-sg-merging-aacraid-use-pci_set_dma_max_seg_size.patch
+iommu-sg-add-iommu-helper-functions-for-the-free-area-management.patch
+iommu-sg-add-iommu-helper-functions-for-the-free-area-management-update.patch
+iommu-sg-powerpc-convert-iommu-to-use-the-iommu-helper.patch
+iommu-sg-powerpc-remove-dma-4gb-boundary-protection.patch
+iommu-sg-x86-convert-calgary-iommu-to-use-the-iommu-helper.patch
+iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper.patch
+iommu-sg-kill-__clear_bit_string-and-find_next_zero_string.patch
+add-accessors-for-segment_boundary_mask-in.patch
+pci-add-dma-segment-boundary-support.patch
+swiotlb-respect-the-segment-boundary-limits.patch
+call-dma_set_seg_boundary-in-__scsi_alloc_queue.patch
+alpha-kill-deprecated-virt_to_bus.patch
