@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-edac-i3000-missing-init-code.patch added to -mm tree
-Date: Wed, 09 Jan 2008 21:28:35 -0800
-Message-ID: <200801100528.m0A5SFIk006794@imap1.linux-foundation.org>
+Subject: + tpm-fix-suspend-and-resume-failure.patch added to -mm tree
+Date: Wed, 09 Jan 2008 21:31:31 -0800
+Message-ID: <200801100531.m0A5VBgu006930@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37069 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53980 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751324AbYAJF24 (ORCPT
+	by vger.kernel.org with ESMTP id S1751587AbYAJFb5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jan 2008 00:28:56 -0500
+	Thu, 10 Jan 2008 00:31:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: h.mitake@gmail.com, dougthompson@xmisson.com, juhlenko@akamai.com
+Cc: dds@google.com, pavel@ucw.cz, shpedoikal@gmail.com, tpm@selhorst.net
 
 
 The patch titled
-     drivers/edac: i3000: missing init code
+     TPM: fix suspend and resume failure
 has been added to the -mm tree.  Its filename is
-     drivers-edac-i3000-missing-init-code.patch
+     tpm-fix-suspend-and-resume-failure.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,56 +28,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/edac: i3000: missing init code
-From: Hitoshi Mitake <h.mitake@gmail.com>
+Subject: TPM: fix suspend and resume failure
+From: David Smith <dds@google.com>
 
-There is a missing sequence of initialization code during startup.
+The savestate command structure was being overwritten by the result of running
+the TPM_SaveState command after one run, so make it a local variable to the
+function instead of a global variable that gets overwritten.
 
-Signed-off-by: Hitoshi Mitake <h.mitake@gmail.com>
-Signed-off-by: Jason Uhlenkott <juhlenko@akamai.com>
-Signed-off-by: Doug Thompson <dougthompson@xmisson.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Kent Yoder <shpedoikal@gmail.com>
+Cc: Marcel Selhorst <tpm@selhorst.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/i3000_edac.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ drivers/char/tpm/tpm.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/edac/i3000_edac.c~drivers-edac-i3000-missing-init-code drivers/edac/i3000_edac.c
---- a/drivers/edac/i3000_edac.c~drivers-edac-i3000-missing-init-code
-+++ a/drivers/edac/i3000_edac.c
-@@ -14,6 +14,7 @@
- #include <linux/pci.h>
- #include <linux/pci_ids.h>
- #include <linux/slab.h>
-+#include <linux/edac.h>
- #include "edac_core.h"
+diff -puN drivers/char/tpm/tpm.c~tpm-fix-suspend-and-resume-failure drivers/char/tpm/tpm.c
+--- a/drivers/char/tpm/tpm.c~tpm-fix-suspend-and-resume-failure
++++ a/drivers/char/tpm/tpm.c
+@@ -1041,12 +1041,6 @@ void tpm_remove_hardware(struct device *
+ }
+ EXPORT_SYMBOL_GPL(tpm_remove_hardware);
  
- #define I3000_REVISION		"1.1"
-@@ -318,6 +319,15 @@ static int i3000_probe1(struct pci_dev *
+-static u8 savestate[] = {
+-	0, 193,			/* TPM_TAG_RQU_COMMAND */
+-	0, 0, 0, 10,		/* blob length (in bytes) */
+-	0, 0, 0, 152		/* TPM_ORD_SaveState */
+-};
+-
+ /*
+  * We are about to suspend. Save the TPM state
+  * so that it can be restored.
+@@ -1054,6 +1048,12 @@ static u8 savestate[] = {
+ int tpm_pm_suspend(struct device *dev, pm_message_t pm_state)
+ {
+ 	struct tpm_chip *chip = dev_get_drvdata(dev);
++	u8 savestate[] = {
++		0, 193,		/* TPM_TAG_RQU_COMMAND */
++		0, 0, 0, 10,	/* blob length (in bytes) */
++		0, 0, 0, 152	/* TPM_ORD_SaveState */
++	};
++
+ 	if (chip == NULL)
  		return -ENODEV;
- 	}
  
-+	switch (edac_op_state) {
-+	case EDAC_OPSTATE_POLL:
-+	case EDAC_OPSTATE_NMI:
-+		break;
-+	default:
-+		edac_op_state = EDAC_OPSTATE_POLL;
-+		break;
-+	}
-+
- 	c0dra[0] = readb(window + I3000_C0DRA + 0);	/* ranks 0,1 */
- 	c0dra[1] = readb(window + I3000_C0DRA + 1);	/* ranks 2,3 */
- 	c1dra[0] = readb(window + I3000_C1DRA + 0);	/* ranks 0,1 */
-@@ -537,3 +547,6 @@ module_exit(i3000_exit);
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Akamai Technologies Arthur Ulfeldt/Jason Uhlenkott");
- MODULE_DESCRIPTION("MC support for Intel 3000 memory hub controllers");
-+
-+module_param(edac_op_state, int, 0444);
-+MODULE_PARM_DESC(edac_op_state, "EDAC Error Reporting state: 0=Poll,1=NMI");
 _
 
-Patches currently in -mm which might be from h.mitake@gmail.com are
+Patches currently in -mm which might be from dds@google.com are
 
-drivers-edac-i3000-missing-init-code.patch
+tpm-fix-suspend-and-resume-failure.patch
