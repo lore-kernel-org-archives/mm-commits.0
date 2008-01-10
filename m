@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial-coding-style.patch added to -mm tree
-Date: Wed, 09 Jan 2008 22:24:27 -0800
-Message-ID: <200801100624.m0A6O7fU008686@imap1.linux-foundation.org>
+Subject: + serial-speed-setup-failure-reporting.patch added to -mm tree
+Date: Wed, 09 Jan 2008 22:23:56 -0800
+Message-ID: <200801100623.m0A6Naqm008669@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38422 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44159 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751893AbYAJGY4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752021AbYAJGYz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jan 2008 01:24:56 -0500
+	Thu, 10 Jan 2008 01:24:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, rmk@arm.linux.org.uk
 
 
 The patch titled
-     serial: Coding style
+     serial: speed setup failure reporting
 has been added to the -mm tree.  Its filename is
-     serial-coding-style.patch
+     serial-speed-setup-failure-reporting.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,59 +28,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial: Coding style
+Subject: serial: speed setup failure reporting
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Coding style tweaks and printk levels.
+Invalid speeds are forced to 9600. Update the code for this to encode new
+style baud rates properly.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250.c     |    2 +-
- drivers/serial/8250_pnp.c |   10 ++++++----
- 2 files changed, 7 insertions(+), 5 deletions(-)
+ drivers/serial/serial_core.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/serial/8250.c~serial-coding-style drivers/serial/8250.c
---- a/drivers/serial/8250.c~serial-coding-style
-+++ a/drivers/serial/8250.c
-@@ -2047,7 +2047,7 @@ serial8250_set_termios(struct uart_port 
- 	 * Oxford Semi 952 rev B workaround
- 	 */
- 	if (up->bugs & UART_BUG_QUOT && (quot & 0xff) == 0)
--		quot ++;
-+		quot++;
+diff -puN drivers/serial/serial_core.c~serial-speed-setup-failure-reporting drivers/serial/serial_core.c
+--- a/drivers/serial/serial_core.c~serial-speed-setup-failure-reporting
++++ a/drivers/serial/serial_core.c
+@@ -371,7 +371,8 @@ uart_get_baud_rate(struct uart_port *por
+ 		 */
+ 		termios->c_cflag &= ~CBAUD;
+ 		if (old) {
+-			termios->c_cflag |= old->c_cflag & CBAUD;
++			baud = tty_termios_baud_rate(old);
++			tty_termios_encode_baud_rate(termios, baud, baud);
+ 			old = NULL;
+ 			continue;
+ 		}
+@@ -380,7 +381,7 @@ uart_get_baud_rate(struct uart_port *por
+ 		 * As a last resort, if the quotient is zero,
+ 		 * default to 9600 bps
+ 		 */
+-		termios->c_cflag |= B9600;
++		tty_termios_encode_baud_rate(termios, 9600, 9600);
+ 	}
  
- 	if (up->capabilities & UART_CAP_FIFO && up->port.fifosize > 1) {
- 		if (baud < 2400)
-diff -puN drivers/serial/8250_pnp.c~serial-coding-style drivers/serial/8250_pnp.c
---- a/drivers/serial/8250_pnp.c~serial-coding-style
-+++ a/drivers/serial/8250_pnp.c
-@@ -414,8 +414,9 @@ static int __devinit check_resources(str
-  */
- static int __devinit serial_pnp_guess_board(struct pnp_dev *dev, int *flags)
- {
--	if (!(check_name(pnp_dev_name(dev)) || (dev->card && check_name(dev->card->name))))
--		return -ENODEV;
-+	if (!(check_name(pnp_dev_name(dev)) ||
-+		(dev->card && check_name(dev->card->name))))
-+			return -ENODEV;
- 
- 	if (check_resources(dev->independent))
- 		return 0;
-@@ -452,8 +453,9 @@ serial_pnp_probe(struct pnp_dev *dev, co
- 		return -ENODEV;
- 
- #ifdef SERIAL_DEBUG_PNP
--	printk("Setup PNP port: port %x, mem 0x%lx, irq %d, type %d\n",
--	       port.iobase, port.mapbase, port.irq, port.iotype);
-+	printk(KERN_DEBUG
-+		"Setup PNP port: port %x, mem 0x%lx, irq %d, type %d\n",
-+		       port.iobase, port.mapbase, port.irq, port.iotype);
- #endif
- 
- 	port.flags |= UPF_SKIP_TEST | UPF_BOOT_AUTOCONF;
+ 	return 0;
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -102,7 +85,6 @@ serial-keep-the-dtr-setting-for-serial-console.patch
 avoid-waking-up-closed-serial-ports-on-resume.patch
 serial-avoid-stalling-suspend-if-serial-port-wont-drain.patch
 serial-speed-setup-failure-reporting.patch
-serial-coding-style.patch
 ti_usb-termios-cleanups.patch
 mos7720-clean-up-termios.patch
 io_ti-clean-up-termios-handling.patch
