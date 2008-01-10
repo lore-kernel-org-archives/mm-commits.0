@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + libata-sff-pci-irq-handling-fix.patch added to -mm tree
-Date: Wed, 09 Jan 2008 21:32:43 -0800
-Message-ID: <200801100532.m0A5WNWO006950@imap1.linux-foundation.org>
+Subject: + libata-correct-handling-of-tss-dvd.patch added to -mm tree
+Date: Wed, 09 Jan 2008 21:34:57 -0800
+Message-ID: <200801100534.m0A5YbUZ006980@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45743 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47921 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750969AbYAJFdt (ORCPT
+	by vger.kernel.org with ESMTP id S1751010AbYAJFfm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jan 2008 00:33:49 -0500
+	Thu, 10 Jan 2008 00:35:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, jeff@garzik.org
 
 
 The patch titled
-     libata-sff: PCI IRQ handling fix
+     libata: correct handling of TSS DVD
 has been added to the -mm tree.  Its filename is
-     libata-sff-pci-irq-handling-fix.patch
+     libata-correct-handling-of-tss-dvd.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,46 +28,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: libata-sff: PCI IRQ handling fix
+Subject: libata: correct handling of TSS DVD
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-It is legitimate (although annoying and silly) for a PCI IDE controller not
-to be assigned an interrupt and to be polled.  The libata-sff code should
-therefore not try and request IRQ 0 in this case.
+Devices that misreport the validity bit for word 93 look like SATA.  If
+they are on the blacklist then we must not test for SATA but assume 40 wire
+in the 40 wire case (The TSSCorp reports 80 wire on SATA it seems!)
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Acked-by: Tejun Heo <htejun@gmail.com>
+Cc: Tejun Heo <htejun@gmail.com>
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-sff.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ include/linux/ata.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/ata/libata-sff.c~libata-sff-pci-irq-handling-fix drivers/ata/libata-sff.c
---- a/drivers/ata/libata-sff.c~libata-sff-pci-irq-handling-fix
-+++ a/drivers/ata/libata-sff.c
-@@ -808,7 +808,10 @@ int ata_pci_init_one(struct pci_dev *pde
- 	if (rc)
- 		goto err_out;
+diff -puN include/linux/ata.h~libata-correct-handling-of-tss-dvd include/linux/ata.h
+--- a/include/linux/ata.h~libata-correct-handling-of-tss-dvd
++++ a/include/linux/ata.h
+@@ -639,8 +639,6 @@ static inline int ata_drive_40wire(const
  
--	if (!legacy_mode) {
-+	if (!legacy_mode && pdev->irq) {
-+		/* We may have no IRQ assigned in which case we can poll. This
-+		   shouldn't happen on a sane system but robustness is cheap
-+		   in this case */
- 		rc = devm_request_irq(dev, pdev->irq, pi->port_ops->irq_handler,
- 				      IRQF_SHARED, DRV_NAME, host);
- 		if (rc)
-@@ -816,7 +819,7 @@ int ata_pci_init_one(struct pci_dev *pde
- 
- 		ata_port_desc(host->ports[0], "irq %d", pdev->irq);
- 		ata_port_desc(host->ports[1], "irq %d", pdev->irq);
--	} else {
-+	} else if (legacy_mode) {
- 		if (!ata_port_is_dummy(host->ports[0])) {
- 			rc = devm_request_irq(dev, ATA_PRIMARY_IRQ(pdev),
- 					      pi->port_ops->irq_handler,
+ static inline int ata_drive_40wire_relaxed(const u16 *dev_id)
+ {
+-	if (ata_id_is_sata(dev_id))
+-		return 0;	/* SATA */
+ 	if ((dev_id[93] & 0x2000) == 0x2000)
+ 		return 0;	/* 80 wire */
+ 	return 1;
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -89,6 +77,7 @@ serial-keep-the-dtr-setting-for-serial-console.patch
 avoid-waking-up-closed-serial-ports-on-resume.patch
 serial-avoid-stalling-suspend-if-serial-port-wont-drain.patch
 libata-sff-pci-irq-handling-fix.patch
+libata-correct-handling-of-tss-dvd.patch
 geode-lists-are-subscriber-only.patch
 get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
 get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
