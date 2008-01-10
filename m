@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + io_ti-clean-up-termios-handling.patch added to -mm tree
-Date: Wed, 09 Jan 2008 21:45:47 -0800
-Message-ID: <200801100545.m0A5jRQS007441@imap1.linux-foundation.org>
+Subject: + fix-x86-32-bit-frame_pointer-chasing-code.patch added to -mm tree
+Date: Wed, 09 Jan 2008 22:16:36 -0800
+Message-ID: <200801100616.m0A6GG5W008445@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35260 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58534 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751452AbYAJFqO (ORCPT
+	by vger.kernel.org with ESMTP id S1751297AbYAJGQ5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jan 2008 00:46:14 -0500
+	Thu, 10 Jan 2008 01:16:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com
+Cc: arjan@linux.intel.com, ak@suse.de, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     io_ti: clean up termios handling
+     x86: fix 32 bit FRAME_POINTER chasing code
 has been added to the -mm tree.  Its filename is
-     io_ti-clean-up-termios-handling.patch
+     fix-x86-32-bit-frame_pointer-chasing-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,162 +28,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: io_ti: clean up termios handling
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: x86: fix 32 bit FRAME_POINTER chasing code
+From: Arjan van de Ven <arjan@linux.intel.com>
 
-Don't pass NULL into termios functions when calling them internally Remove
-all the crap which then checks for NULL which can't occur now.
+The current x86 32 bit FRAME_POINTER chasing code has a nasty bug in that
+the EBP tracer doesn't actually update the value of EBP it is tracing, so
+that the code doesn't actually switch to the irq stack properly.
 
-Clear CMSPAR as it is not supported.
+The result is a truncated backtrace:
 
-Report the baud rate back to the caller properly (See FIXME someone with
-the docs).
+WARNING: at timeroops.c:8 kerneloops_regression_test() (Not tainted)
+Pid: 0, comm: swapper Not tainted 2.6.24-0.77.rc4.git4.fc9 #1
+ [<c040649a>] show_trace_log_lvl+0x1a/0x2f
+ [<c0406d41>] show_trace+0x12/0x14
+ [<c0407061>] dump_stack+0x6c/0x72
+ [<e0258049>] kerneloops_regression_test+0x44/0x46 [timeroops]
+ [<c04371ac>] run_timer_softirq+0x127/0x18f
+ [<c0434685>] __do_softirq+0x78/0xff
+ [<c0407759>] do_softirq+0x74/0xf7
+ =======================
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Greg KH <greg@kroah.com>
+This patch fixes the code to update EBP properly, and to check the EIP
+before printing (as the non-framepointer backtracer does) so that
+the same test backtrace now looks like this:
+
+WARNING: at timeroops.c:8 kerneloops_regression_test()
+Pid: 0, comm: swapper Not tainted 2.6.24-rc7 #4
+ [<c0405d17>] show_trace_log_lvl+0x1a/0x2f
+ [<c0406681>] show_trace+0x12/0x14
+ [<c0406ef2>] dump_stack+0x6a/0x70
+ [<e01f6040>] kerneloops_regression_test+0x3b/0x3d [timeroops]
+ [<c0426f07>] run_timer_softirq+0x11b/0x17c
+ [<c04243ac>] __do_softirq+0x42/0x94
+ [<c040704c>] do_softirq+0x50/0xb6
+ [<c04242a9>] irq_exit+0x37/0x67
+ [<c040714c>] do_IRQ+0x9a/0xaf
+ [<c04057da>] common_interrupt+0x2e/0x34
+ [<c05807fe>] cpuidle_idle_call+0x52/0x78
+ [<c04034f3>] cpu_idle+0x46/0x60
+ [<c05fbbd3>] rest_init+0x43/0x45
+ [<c070aa3d>] start_kernel+0x279/0x27f
+ =======================
+
+This shows that the backtrace goes all the way down to user context now.
+This bug was found during the port to 64 bit of the frame pointer backtracer.
+
+Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/io_ti.c |   26 ++++++++++----------------
- 1 file changed, 10 insertions(+), 16 deletions(-)
+ arch/x86/kernel/traps_32.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/usb/serial/io_ti.c~io_ti-clean-up-termios-handling drivers/usb/serial/io_ti.c
---- a/drivers/usb/serial/io_ti.c~io_ti-clean-up-termios-handling
-+++ a/drivers/usb/serial/io_ti.c
-@@ -1979,7 +1979,7 @@ static int edge_open (struct usb_serial_
- 	}
- 	
- 	/* set up the port settings */
--	edge_set_termios (port, NULL);
-+	edge_set_termios (port, port->tty->termios);
+diff -puN arch/x86/kernel/traps_32.c~fix-x86-32-bit-frame_pointer-chasing-code arch/x86/kernel/traps_32.c
+--- a/arch/x86/kernel/traps_32.c~fix-x86-32-bit-frame_pointer-chasing-code
++++ a/arch/x86/kernel/traps_32.c
+@@ -125,7 +125,8 @@ static inline unsigned long print_contex
+ 		unsigned long addr;
  
- 	/* open up the port */
- 
-@@ -2394,11 +2394,6 @@ static void change_port_settings (struct
- 	dbg("%s - port %d", __FUNCTION__, edge_port->port->number);
- 
- 	tty = edge_port->port->tty;
--	if ((!tty) ||
--	    (!tty->termios)) {
--		dbg("%s - no tty structures", __FUNCTION__);
--		return;
--	}
- 
- 	config = kmalloc (sizeof (*config), GFP_KERNEL);
- 	if (!config) {
-@@ -2493,14 +2488,20 @@ static void change_port_settings (struct
- 		}
- 	}
- 
-+	tty->termios->c_cflag &= ~CMSPAR;
-+
- 	/* Round the baud rate */
- 	baud = tty_get_baud_rate(tty);
- 	if (!baud) {
- 		/* pick a default, any default... */
- 		baud = 9600;
--	}
-+	} else
-+		tty_encode_baud_rate(tty, baud, baud);
-+
- 	edge_port->baud_rate = baud;
- 	config->wBaudRate = (__u16)((461550L + baud/2) / baud);
-+	
-+	/* FIXME: Recompute actual baud from divisor here */
- 
- 	dbg ("%s - baud rate = %d, wBaudRate = %d", __FUNCTION__, baud, config->wBaudRate);
- 
-@@ -2539,19 +2540,12 @@ static void edge_set_termios (struct usb
- 	struct tty_struct *tty = port->tty;
- 	unsigned int cflag;
- 
--	if (!port->tty || !port->tty->termios) {
--		dbg ("%s - no tty or termios", __FUNCTION__);
--		return;
--	}
--
- 	cflag = tty->termios->c_cflag;
- 
- 	dbg("%s - clfag %08x iflag %08x", __FUNCTION__, 
- 	    tty->termios->c_cflag, tty->termios->c_iflag);
--	if (old_termios) {
--		dbg("%s - old clfag %08x old iflag %08x", __FUNCTION__,
--		    old_termios->c_cflag, old_termios->c_iflag);
--	}
-+	dbg("%s - old clfag %08x old iflag %08x", __FUNCTION__,
-+	    old_termios->c_cflag, old_termios->c_iflag);
- 
- 	dbg("%s - port %d", __FUNCTION__, port->number);
- 
+ 		addr = frame->return_address;
+-		ops->address(data, addr);
++		if (__kernel_text_address(addr))
++			ops->address(data, addr);
+ 		/*
+ 		 * break out of recursive entries (such as
+ 		 * end_of_stack_stop_unwind_function). Also,
+@@ -133,6 +134,7 @@ static inline unsigned long print_contex
+ 		 * move downwards!
+ 		 */
+ 		next = frame->next_frame;
++		ebp = (unsigned long) next;
+ 		if (next <= frame)
+ 			break;
+ 		frame = next;
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from arjan@linux.intel.com are
 
-pl2303-fix-mode-switching-regression.patch
-pl2303-fix-mode-switching-regression-fix.patch
-git-arm.patch
-git-libata-all.patch
-git-libata-all-fix-pata_winbond-borkage.patch
-git-libata-all-wtf.patch
-libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
-pata_pdc202xx_old-further-fixups.patch
-git-netdev-all.patch
-bluetooth-rfcomm-tty_close-before-destruct.patch
-pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch
-pcmcia-replace-kio_addr_t-with-unsigned-int-everywhere.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-8250c-support-specifying-dw-apb-uarts-in-device-platform_data.patch
-avoid-waking-up-closed-serial-ports-on-resume.patch
-serial-avoid-stalling-suspend-if-serial-port-wont-drain.patch
-ti_usb-termios-cleanups.patch
-mos7720-clean-up-termios.patch
-io_ti-clean-up-termios-handling.patch
-wdt-fix-locking.patch
-wdt-fix-locking-checkpatch-fixes.patch
-libata-sff-pci-irq-handling-fix.patch
-libata-correct-handling-of-tss-dvd.patch
-keyspan-fix-oops.patch
-geode-lists-are-subscriber-only.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
-sc26xx-new-serial-driver-for-sc2681-uarts.patch
-sc26xx-new-serial-driver-for-sc2681-uarts-update.patch
-documentation-about-unaligned-memory-access.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
-fix-ixany-and-restart-after-signal-eg-ctrl-c-in-n_tty-line-discipline.patch
-tty-kill-tty_flipbuf_size.patch
-drivers-edac-turnon-edac-device-error-logging.patch
+git-input.patch
+git-sched.patch
+fix-x86-32-bit-frame_pointer-chasing-code.patch
 drivers-edac-use-round_jiffies_relative.patch
-drivers-edac-add-cell-xdr-memory-types.patch
-drivers-edac-add-cell-mc-driver.patch
-drivers-edac-i3000-code-tidying.patch
-drivers-edac-i3000-replace-macros-with-functions.patch
-drivers-edac-add-freescale-mpc85xx-driver.patch
-drivers-edac-add-marvell-mv64x60-driver.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-dz-clean-up-and-improve-the-setup-of-termios-settings.patch
-char-rocket-switch-long-delay-to-sleep.patch
-char-rocket-printk-cleanup.patch
-char-char-serial-remove-serial_type_normal-redefines.patch
-char-mxser_new-ioaddresses-are-ulong.patch
-char-stallion-fix-compiler-warnings.patch
-char-riscom8-change-rc_init_drivers-prototype.patch
-mxser-mxser_new-first-pass-over-termios-reporting-for-the.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
-tty-s390-support-for-termios2.patch
-moxa-first-pass-at-termios-reporting.patch
-n_tty-clean-up-old-code-to-follow-coding-style-and-mostly-checkpatch.patch
-rocket-first-pass-at-termios-reporting.patch
-rocket-dont-let-random-users-reset-the-controller.patch
-tty_audit-fix-checkpatch-complaint.patch
-tty_io-drag-screaming-into-coding-style-compliance.patch
-tty_ioctl-drag-screaming-into-compliance-with-the-coding.patch
-8250_early-coding-style.patch
-8250_gsc-coding-style.patch
-8250_hp300-coding-style.patch
-8250_hub6-codding-style.patch
-8250_pci-coding-style.patch
-serial8250-coding-style.patch
-8250-enable-rate-reporting-via-termios.patch
-serial_core-bring-mostly-into-line-with-coding-style.patch
