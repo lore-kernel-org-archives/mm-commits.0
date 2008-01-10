@@ -1,73 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix-accounting-in-vmscanc-for-memory-controller.patch removed from -mm tree
-Date: Thu, 10 Jan 2008 12:29:04 -0800
-Message-ID: <200801102029.m0AKT50N007867@imap1.linux-foundation.org>
+Subject: - per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-memory-controller-enhancements-for-reclaiming-take2-define-free_mem_cgroup_per_zone_info.patch removed from -mm tree
+Date: Thu, 10 Jan 2008 12:29:47 -0800
+Message-ID: <200801102029.m0AKTm3H007888@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58100 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50650 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753627AbYAJU3K (ORCPT
+	by vger.kernel.org with ESMTP id S1754079AbYAJUaA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jan 2008 15:29:10 -0500
+	Thu, 10 Jan 2008 15:30:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix accounting in vmscan.c for memory controller
+     memory controller enhancements for reclaiming take2: define free_mem_cgroup_per_zone_info
 has been removed from the -mm tree.  Its filename was
-     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix-accounting-in-vmscanc-for-memory-controller.patch
+     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-memory-controller-enhancements-for-reclaiming-take2-define-free_mem_cgroup_per_zone_info.patch
 
-This patch was dropped because it was folded into per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+This patch was dropped because it was folded into per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix accounting in vmscan.c for memory controller
+Subject: memory controller enhancements for reclaiming take2: define free_mem_cgroup_per_zone_info
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Some amount of accounting is done while page reclaiming.
-
-Now, there are 2 types of page reclaim (if memory controller is used)
-  - global: shortage of (global) pages.
-  - under cgroup: use up to limit.
-
-I think 2 accountings, ALLOCSTALL and DIRECT should be accounted only under
-global lru scan. They are accounted against memory shortage at alloc_pages().
+Now allocation of per_zone of mem_controller is done by
+alloc_mem_cgroup_per_zone_info(). Then it will be good to use
+free_mem_cgroup_per_zone_info() for maintainance.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix-accounting-in-vmscanc-for-memory-controller mm/vmscan.c
---- a/mm/vmscan.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix-accounting-in-vmscanc-for-memory-controller
-+++ a/mm/vmscan.c
-@@ -889,8 +889,9 @@ static unsigned long shrink_inactive_lis
- 		if (current_is_kswapd()) {
- 			__count_zone_vm_events(PGSCAN_KSWAPD, zone, nr_scan);
- 			__count_vm_events(KSWAPD_STEAL, nr_freed);
--		} else
-+		} else if (scan_global_lru(sc))
- 			__count_zone_vm_events(PGSCAN_DIRECT, zone, nr_scan);
+diff -puN mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-memory-controller-enhancements-for-reclaiming-take2-define-free_mem_cgroup_per_zone_info mm/memcontrol.c
+--- a/mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-memory-controller-enhancements-for-reclaiming-take2-define-free_mem_cgroup_per_zone_info
++++ a/mm/memcontrol.c
+@@ -1118,6 +1118,11 @@ static int alloc_mem_cgroup_per_zone_inf
+ 	return 0;
+ }
+ 
++static void free_mem_cgroup_per_zone_info(struct mem_cgroup *mem, int node)
++{
++	kfree(mem->info.nodeinfo[node]);
++}
 +
- 		__count_zone_vm_events(PGSTEAL, zone, nr_freed);
  
- 		if (nr_taken == 0)
-@@ -1326,7 +1327,8 @@ static unsigned long do_try_to_free_page
- 	unsigned long lru_pages = 0;
- 	int i;
+ static struct mem_cgroup init_mem_cgroup;
  
--	count_vm_event(ALLOCSTALL);
-+	if (scan_global_lru(sc))
-+		count_vm_event(ALLOCSTALL);
- 	/*
- 	 * mem_cgroup will not do shrink_slab.
- 	 */
+@@ -1149,7 +1154,7 @@ mem_cgroup_create(struct cgroup_subsys *
+ 	return &mem->css;
+ free_out:
+ 	for_each_node_state(node, N_POSSIBLE)
+-		kfree(mem->info.nodeinfo[node]);
++		free_mem_cgroup_per_zone_info(mem, node);
+ 	if (cont->parent != NULL)
+ 		kfree(mem);
+ 	return NULL;
+@@ -1169,7 +1174,7 @@ static void mem_cgroup_destroy(struct cg
+ 	struct mem_cgroup *mem = mem_cgroup_from_cont(cont);
+ 
+ 	for_each_node_state(node, N_POSSIBLE)
+-		kfree(mem->info.nodeinfo[node]);
++		free_mem_cgroup_per_zone_info(mem, node);
+ 
+ 	kfree(mem_cgroup_from_cont(cont));
+ }
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
@@ -108,9 +112,7 @@ per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix-accounting-in-vmscanc-for-memory-controller.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-bugfix-for-memory-cgroup-per-zone-struct-allocation.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-memory-controller-enhancements-for-reclaiming-take2-define-free_mem_cgroup_per_zone_info.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
 memory-controller-remove-control_type-feature.patch
