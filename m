@@ -1,34 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: - per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch removed from -mm tree
-Date: Thu, 10 Jan 2008 12:28:13 -0800
-Message-ID: <200801102028.m0AKSD8A007845@imap1.linux-foundation.org>
+Subject: - memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch removed from -mm tree
+Date: Thu, 10 Jan 2008 12:25:14 -0800
+Message-ID: <200801102025.m0AKPECk007720@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52610 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56456 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754108AbYAJUaE (ORCPT
+	by vger.kernel.org with ESMTP id S1751710AbYAJUbK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jan 2008 15:30:04 -0500
+	Thu, 10 Jan 2008 15:31:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com
 
 
 The patch titled
-     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix
+     memory-cgroup-enhancements-add-memorystat-file printk fix
 has been removed from the -mm tree.  Its filename was
-     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
+     memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
 
-This patch was dropped because it was folded into per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+This patch was dropped because it was folded into memory-cgroup-enhancements-add-memorystat-file.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix
+Subject: memory-cgroup-enhancements-add-memorystat-file printk fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mm/vmscan.c: In function 'shrink_zone':
-mm/vmscan.c:957: warning: 'reclaim_mapped' may be used uninitialized in this function
+alpha:
+
+mm/memcontrol.c: In function 'mem_control_stat_show':
+mm/memcontrol.c:823: warning: format '%lld' expects type 'long long int', but argument 4 has type 's64'
+
+s64 and u64 arguments always require a cast to be printed.
 
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
@@ -40,26 +44,27 @@ Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Cc: Paul Menage <menage@google.com>
 Cc: Pavel Emelianov <xemul@openvz.org>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Rik van Riel <riel@redhat.com>
 Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix mm/vmscan.c
---- a/mm/vmscan.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix
-+++ a/mm/vmscan.c
-@@ -954,7 +954,7 @@ static int calc_reclaim_mapped(struct sc
- 	long distress;
- 	long swap_tendency;
- 	long imbalance;
--	int reclaim_mapped;
-+	int reclaim_mapped = 0;
- 	int prev_priority;
+diff -puN mm/memcontrol.c~memory-cgroup-enhancements-add-memorystat-file-printk-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memory-cgroup-enhancements-add-memorystat-file-printk-fix
++++ a/mm/memcontrol.c
+@@ -815,7 +815,8 @@ static int mem_control_stat_show(struct 
  
- 	if (scan_global_lru(sc) && zone_is_near_oom(zone))
+ 		val = mem_cgroup_read_stat(stat, i);
+ 		val *= mem_cgroup_stat_desc[i].unit;
+-		seq_printf(m, "%s %lld\n", mem_cgroup_stat_desc[i].msg, val);
++		seq_printf(m, "%s %lld\n", mem_cgroup_stat_desc[i].msg,
++				(long long)val);
+ 	}
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -247,8 +252,9 @@ memcontrol-move-oom-task-exclusion-to-tasklist.patch
 memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
 memory-cgroup-enhancements-add-memorystat-file.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
 cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
 cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
