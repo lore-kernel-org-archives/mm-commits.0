@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 09 Jan 2008 22:44:51 -0800
-Message-ID: <200801100644.m0A6iVmg009369@imap1.linux-foundation.org>
+Subject: + cpusets-update_cpumask-revision-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 09 Jan 2008 22:44:55 -0800
+Message-ID: <200801100644.m0A6iZIu009375@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51847 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34725 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752360AbYAJGom (ORCPT
+	by vger.kernel.org with ESMTP id S1752379AbYAJGom (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 10 Jan 2008 01:44:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, cpw@sgi.com, menage@google.com, pj@sgi.com, rient
 
 
 The patch titled
-     hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes
+     cpusets-update_cpumask-revision-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
+     cpusets-update_cpumask-revision-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,14 +28,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes
+Subject: cpusets-update_cpumask-revision-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: use tabs not spaces
-#317: FILE: kernel/cpuset.c:1823:
-+^I^I        /* Move tasks from the empty cpuset to a parent */$
+WARNING: line over 80 characters
+#44: FILE: kernel/cpuset.c:754:
++	return !cpus_equal(tsk->cpus_allowed, (cgroup_cs(scan->cg))->cpus_allowed);
 
-total: 1 errors, 0 warnings, 303 lines checked
+total: 0 errors, 1 warnings, 149 lines checked
 
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
@@ -50,32 +50,22 @@ Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ kernel/cpuset.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/cpuset.c~hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes kernel/cpuset.c
---- a/kernel/cpuset.c~hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes
+diff -puN kernel/cpuset.c~cpusets-update_cpumask-revision-checkpatch-fixes kernel/cpuset.c
+--- a/kernel/cpuset.c~cpusets-update_cpumask-revision-checkpatch-fixes
 +++ a/kernel/cpuset.c
-@@ -1733,8 +1733,8 @@ static void move_member_tasks_to_cpuset(
- 	scan.to = to->css.cgroup;
- 
- 	if (cgroup_scan_tasks((struct cgroup_scanner *)&scan))
--		printk(
--		"move_member_tasks_to_cpuset: cgroup_scan_tasks failed\n");
-+		printk(KERN_ERR "move_member_tasks_to_cpuset: "
-+				"cgroup_scan_tasks failed\n");
+@@ -751,7 +751,8 @@ static inline int started_after(void *p1
+  */
+ int cpuset_test_cpumask(struct task_struct *tsk, struct cgroup_scanner *scan)
+ {
+-	return !cpus_equal(tsk->cpus_allowed, (cgroup_cs(scan->cg))->cpus_allowed);
++	return !cpus_equal(tsk->cpus_allowed,
++			(cgroup_cs(scan->cg))->cpus_allowed);
  }
  
- /*
-@@ -1820,7 +1820,7 @@ static void scan_for_empty_cpusets(const
- 		nodes_and(cp->mems_allowed, cp->mems_allowed, node_online_map);
- 		if ((cpus_empty(cp->cpus_allowed) ||
- 		     nodes_empty(cp->mems_allowed))) {
--		        /* Move tasks from the empty cpuset to a parent */
-+			/* Move tasks from the empty cpuset to a parent */
- 			mutex_unlock(&callback_mutex);
- 			remove_tasks_in_empty_cpuset(cp);
- 			mutex_lock(&callback_mutex);
+ /**
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
