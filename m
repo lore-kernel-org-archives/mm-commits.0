@@ -1,58 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch removed from -mm tree
-Date: Thu, 10 Jan 2008 12:22:34 -0800
-Message-ID: <200801102022.m0AKMZCY007571@imap1.linux-foundation.org>
+Subject: - memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch removed from -mm tree
+Date: Thu, 10 Jan 2008 12:23:19 -0800
+Message-ID: <200801102023.m0AKNJ0J007649@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35058 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33325 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752986AbYAJUWj (ORCPT
+	by vger.kernel.org with ESMTP id S1752197AbYAJUYs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jan 2008 15:22:39 -0500
+	Thu, 10 Jan 2008 15:24:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com
 
 
 The patch titled
-     memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix
+     memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1
 has been removed from the -mm tree.  Its filename was
-     memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
+     memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
 
-This patch was dropped because it was folded into memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+This patch was dropped because it was folded into memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix
+Subject: memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mm/vmscan.c: In function 'try_to_free_mem_cgroup_pages':
-mm/vmscan.c:1453: warning: unused variable 'node'
-
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Kirill Korotaev <dev@sw.ru>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Paul Menage <menage@google.com>
+Cc: Pavel Emelianov <xemul@openvz.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/memcontrol.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/vmscan.c~memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix mm/vmscan.c
---- a/mm/vmscan.c~memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix
-+++ a/mm/vmscan.c
-@@ -1368,11 +1368,10 @@ unsigned long try_to_free_mem_cgroup_pag
- 		.mem_cgroup = mem_cont,
- 		.isolate_pages = mem_cgroup_isolate_pages,
- 	};
--	int node = numa_node_id();
- 	struct zone **zones;
- 	int target_zone = gfp_zone(GFP_HIGHUSER_MOVABLE);
+diff -puN mm/memcontrol.c~memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1 mm/memcontrol.c
+--- a/mm/memcontrol.c~memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1
++++ a/mm/memcontrol.c
+@@ -21,6 +21,7 @@
+ #include <linux/memcontrol.h>
+ #include <linux/cgroup.h>
+ #include <linux/mm.h>
++#include <linux/smp.h>
+ #include <linux/page-flags.h>
+ #include <linux/backing-dev.h>
+ #include <linux/bit_spinlock.h>
+@@ -61,10 +62,10 @@ struct mem_cgroup_stat {
+ static inline void __mem_cgroup_stat_add(struct mem_cgroup_stat *stat,
+ 					enum mem_cgroup_stat_index idx, int val)
+ {
+-	int cpu = smp_processor_id();
+-	preempt_disable();
++	int cpu = get_cpu();
++
+ 	stat->cpustat[cpu].count[idx] += val;
+-	preempt_enable();
++	put_cpu();
+ }
  
--	zones = NODE_DATA(node)->node_zonelists[target_zone].zones;
-+	zones = NODE_DATA(numa_node_id())->node_zonelists[target_zone].zones;
- 	if (do_try_to_free_pages(zones, sc.gfp_mask, &sc))
- 		return 1;
- 	return 0;
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -238,8 +255,7 @@ memory-controller-oom-handling-v7.patch
 memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
 memcontrol-move-oom-task-exclusion-to-tasklist.patch
 memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
