@@ -1,79 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: + nfsv4-give-the-lock-stateid-its-own-sequence-queue.patch added to -mm tree
-Date: Thu, 10 Jan 2008 13:18:35 -0800
-Message-ID: <200801102118.m0ALIZBg009771@imap1.linux-foundation.org>
+Subject: - nlm-initialize-completion-variable-in-lockd_up.patch removed from -mm tree
+Date: Thu, 10 Jan 2008 15:57:38 -0800
+Message-ID: <200801102357.m0ANvcQe015834@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47565 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33771 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752184AbYAJVTn (ORCPT
+	by vger.kernel.org with ESMTP id S1755515AbYAJX6g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jan 2008 16:19:43 -0500
+	Thu, 10 Jan 2008 18:58:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: Trond.Myklebust@netapp.com
+To: jlayton@redhat.com, bfields@fieldses.org, cel@citi.umich.edu, neilb@suse.de, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     NFSv4: give the lock stateid its own sequence queue
-has been added to the -mm tree.  Its filename is
-     nfsv4-give-the-lock-stateid-its-own-sequence-queue.patch
+     NLM: Initialize completion variable in lockd_up
+has been removed from the -mm tree.  Its filename was
+     nlm-initialize-completion-variable-in-lockd_up.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it keeps on changing
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: NFSv4: give the lock stateid its own sequence queue
-From: Trond Myklebust <Trond.Myklebust@netapp.com>
+Subject: NLM: Initialize completion variable in lockd_up
+From: Jeff Layton <jlayton@redhat.com>
 
-Sharing the open sequence queue causes a deadlock when we try to take both
-a lock sequence id and and open sequence id.
+lockd_start_done is a global var that can be reused if lockd is restarted, but
+it's never reinitialized.  On all but the first use, wait_for_completion isn't
+actually waiting on it since it has already completed once.
 
-This fixes the regression reported by Dimitri Puzin and Jeff Garzik:
-See http://bugzilla.kernel.org/show_bug.cgi?id=9712
-
-Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+Signed-off-by: Jeff Layton <jlayton@redhat.com>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: Neil Brown <neilb@suse.de>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Chuck Lever <cel@citi.umich.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/nfs4_fs.h   |    1 +
- fs/nfs/nfs4state.c |    5 ++++-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ fs/lockd/svc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/nfs/nfs4_fs.h~nfsv4-give-the-lock-stateid-its-own-sequence-queue fs/nfs/nfs4_fs.h
---- a/fs/nfs/nfs4_fs.h~nfsv4-give-the-lock-stateid-its-own-sequence-queue
-+++ a/fs/nfs/nfs4_fs.h
-@@ -115,6 +115,7 @@ struct nfs4_lock_state {
- #define NFS_LOCK_INITIALIZED 1
- 	int			ls_flags;
- 	struct nfs_seqid_counter	ls_seqid;
-+	struct rpc_sequence	ls_sequence;
- 	struct nfs_unique_id	ls_id;
- 	nfs4_stateid		ls_stateid;
- 	atomic_t		ls_count;
-diff -puN fs/nfs/nfs4state.c~nfsv4-give-the-lock-stateid-its-own-sequence-queue fs/nfs/nfs4state.c
---- a/fs/nfs/nfs4state.c~nfsv4-give-the-lock-stateid-its-own-sequence-queue
-+++ a/fs/nfs/nfs4state.c
-@@ -509,7 +509,10 @@ static struct nfs4_lock_state *nfs4_allo
- 	lsp = kzalloc(sizeof(*lsp), GFP_KERNEL);
- 	if (lsp == NULL)
- 		return NULL;
--	lsp->ls_seqid.sequence = &state->owner->so_sequence;
-+	rpc_init_wait_queue(&lsp->ls_sequence.wait, "lock_seqid_waitqueue");
-+	spin_lock_init(&lsp->ls_sequence.lock);
-+	INIT_LIST_HEAD(&lsp->ls_sequence.list);
-+	lsp->ls_seqid.sequence = &lsp->ls_sequence;
- 	atomic_set(&lsp->ls_count, 1);
- 	lsp->ls_owner = fl_owner;
- 	spin_lock(&clp->cl_lock);
+diff -puN fs/lockd/svc.c~nlm-initialize-completion-variable-in-lockd_up fs/lockd/svc.c
+--- a/fs/lockd/svc.c~nlm-initialize-completion-variable-in-lockd_up
++++ a/fs/lockd/svc.c
+@@ -287,6 +287,7 @@ lockd_up(int proto) /* Maybe add a 'fami
+ 	/*
+ 	 * Create the kernel thread and wait for it to start.
+ 	 */
++	init_completion(&lockd_start_done);
+ 	error = svc_create_thread(lockd, serv);
+ 	if (error) {
+ 		printk(KERN_WARNING
 _
 
-Patches currently in -mm which might be from Trond.Myklebust@netapp.com are
+Patches currently in -mm which might be from jlayton@redhat.com are
 
-nfsv4-give-the-lock-stateid-its-own-sequence-queue.patch
-git-nfs.patch
+git-cifs.patch
+nlm-initialize-completion-variable-in-lockd_up.patch
+nlm-have-lockd-call-try_to_freeze.patch
+nlm-convert-lockd-to-use-kthreads.patch
+nlm-add-reference-counting-to-lockd.patch
+git-unionfs.patch
+smbfs-fix-calculation-of-kernel_recvmsg-size-parameter-in-smb_receive.patch
+deprecate-smbfs-in-favour-of-cifs.patch
