@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cpusets-update_cpumask-revision-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 09 Jan 2008 22:44:55 -0800
-Message-ID: <200801100644.m0A6iZIu009375@imap1.linux-foundation.org>
+Subject: + cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 09 Jan 2008 22:46:07 -0800
+Message-ID: <200801100645.m0A6jlfV009473@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34725 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38655 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752379AbYAJGom (ORCPT
+	by vger.kernel.org with ESMTP id S1751622AbYAJGp5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jan 2008 01:44:42 -0500
+	Thu, 10 Jan 2008 01:45:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, cpw@sgi.com, menage@google.com, pj@sgi.com, rient
 
 
 The patch titled
-     cpusets-update_cpumask-revision-checkpatch-fixes
+     cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     cpusets-update_cpumask-revision-checkpatch-fixes.patch
+     cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,14 +28,22 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpusets-update_cpumask-revision-checkpatch-fixes
+Subject: cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
 WARNING: line over 80 characters
-#44: FILE: kernel/cpuset.c:754:
-+	return !cpus_equal(tsk->cpus_allowed, (cgroup_cs(scan->cg))->cpus_allowed);
+#40: FILE: include/linux/cgroup.h:214:
++	void (*process_task)(struct task_struct *p, struct cgroup_scanner *scan);
 
-total: 0 errors, 1 warnings, 149 lines checked
+ERROR: use tabs not spaces
+#85: FILE: kernel/cgroup.c:1712:
++ ^Ido_each_thread(g, p) {$
+
+ERROR: use tabs not spaces
+#90: FILE: kernel/cgroup.c:1717:
++ ^I} while_each_thread(g, p);$
+
+total: 2 errors, 1 warnings, 252 lines checked
 
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
@@ -50,22 +58,41 @@ Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/cgroup.h |    3 ++-
+ kernel/cgroup.c        |    4 ++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN kernel/cpuset.c~cpusets-update_cpumask-revision-checkpatch-fixes kernel/cpuset.c
---- a/kernel/cpuset.c~cpusets-update_cpumask-revision-checkpatch-fixes
-+++ a/kernel/cpuset.c
-@@ -751,7 +751,8 @@ static inline int started_after(void *p1
-  */
- int cpuset_test_cpumask(struct task_struct *tsk, struct cgroup_scanner *scan)
- {
--	return !cpus_equal(tsk->cpus_allowed, (cgroup_cs(scan->cg))->cpus_allowed);
-+	return !cpus_equal(tsk->cpus_allowed,
-+			(cgroup_cs(scan->cg))->cpus_allowed);
+diff -puN include/linux/cgroup.h~cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes include/linux/cgroup.h
+--- a/include/linux/cgroup.h~cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes
++++ a/include/linux/cgroup.h
+@@ -211,7 +211,8 @@ struct cftype {
+ struct cgroup_scanner {
+ 	struct cgroup *cg;
+ 	int (*test_task)(struct task_struct *p, struct cgroup_scanner *scan);
+-	void (*process_task)(struct task_struct *p, struct cgroup_scanner *scan);
++	void (*process_task)(struct task_struct *p,
++			struct cgroup_scanner *scan);
+ 	struct ptr_heap *heap;
+ };
+ 
+diff -puN kernel/cgroup.c~cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes
++++ a/kernel/cgroup.c
+@@ -1709,12 +1709,12 @@ void cgroup_enable_task_cg_lists(void)
+ 	struct task_struct *p, *g;
+ 	write_lock(&css_set_lock);
+ 	use_task_css_set_links = 1;
+- 	do_each_thread(g, p) {
++	do_each_thread(g, p) {
+ 		task_lock(p);
+ 		if (list_empty(&p->cg_list))
+ 			list_add(&p->cg_list, &p->cgroups->tasks);
+ 		task_unlock(p);
+- 	} while_each_thread(g, p);
++	} while_each_thread(g, p);
+ 	write_unlock(&css_set_lock);
  }
  
- /**
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -261,6 +288,7 @@ per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
 cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
 hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
 cpusets-update_cpumask-revision-checkpatch-fixes.patch
 drivers-edac-add-marvell-mv64x60-driver-fix.patch
