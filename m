@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ti_usb-termios-cleanups.patch added to -mm tree
-Date: Wed, 09 Jan 2008 21:37:56 -0800
-Message-ID: <200801100537.m0A5bahb007120@imap1.linux-foundation.org>
+Subject: + mos7720-clean-up-termios.patch added to -mm tree
+Date: Wed, 09 Jan 2008 21:38:27 -0800
+Message-ID: <200801100538.m0A5c7Gn007129@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38884 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40664 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750785AbYAJFia (ORCPT
+	by vger.kernel.org with ESMTP id S1750976AbYAJFiw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jan 2008 00:38:30 -0500
+	Thu, 10 Jan 2008 00:38:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com
 
 
 The patch titled
-     ti_usb: termios cleanups
+     mos7720: clean up termios
 has been added to the -mm tree.  Its filename is
-     ti_usb-termios-cleanups.patch
+     mos7720-clean-up-termios.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,98 +28,82 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ti_usb: termios cleanups
+Subject: mos7720: clean up termios
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Remove internal NULL passing in termios code
-Remove all the if checks it causes
-Encode the baud rate back properly
-Clear CMSPAR as it is not supported
+Remove lots of NULL checks that can no longer occur
+Encode the baud rate back into the termios (again someone with docs see
+FIXME to improve this further)
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/ti_usb_3410_5052.c |   31 ++++++++++--------------
- 1 file changed, 13 insertions(+), 18 deletions(-)
+ drivers/usb/serial/mos7720.c |   28 ++++++++--------------------
+ 1 file changed, 8 insertions(+), 20 deletions(-)
 
-diff -puN drivers/usb/serial/ti_usb_3410_5052.c~ti_usb-termios-cleanups drivers/usb/serial/ti_usb_3410_5052.c
---- a/drivers/usb/serial/ti_usb_3410_5052.c~ti_usb-termios-cleanups
-+++ a/drivers/usb/serial/ti_usb_3410_5052.c
-@@ -581,7 +581,7 @@ static int ti_open(struct usb_serial_por
- 		}
- 	}
+diff -puN drivers/usb/serial/mos7720.c~mos7720-clean-up-termios drivers/usb/serial/mos7720.c
+--- a/drivers/usb/serial/mos7720.c~mos7720-clean-up-termios
++++ a/drivers/usb/serial/mos7720.c
+@@ -1040,11 +1040,6 @@ static void change_port_settings(struct 
  
--	ti_set_termios(port, NULL);
-+	ti_set_termios(port, &port->tty->termios);
+ 	tty = mos7720_port->port->tty;
  
- 	dbg("%s - sending TI_OPEN_PORT", __FUNCTION__);
- 	status = ti_command_out_sync(tdev, TI_OPEN_PORT,
-@@ -618,7 +618,7 @@ static int ti_open(struct usb_serial_por
- 	usb_clear_halt(dev, port->write_urb->pipe);
- 	usb_clear_halt(dev, port->read_urb->pipe);
+-	if ((!tty) || (!tty->termios)) {
+-		dbg("%s - no tty structures", __FUNCTION__);
+-		return;
+-	}
+-
+ 	dbg("%s: Entering ..........", __FUNCTION__);
  
--	ti_set_termios(port, NULL);
-+	ti_set_termios(port, &port->tty->termios);
+ 	lData = UART_LCR_WLEN8;
+@@ -1175,7 +1170,10 @@ static void change_port_settings(struct 
  
- 	dbg("%s - sending TI_OPEN_PORT (2)", __FUNCTION__);
- 	status = ti_command_out_sync(tdev, TI_OPEN_PORT,
-@@ -897,24 +897,11 @@ static void ti_set_termios(struct usb_se
+ 	dbg("%s - baud rate = %d", __FUNCTION__, baud);
+ 	status = send_cmd_write_baud_rate(mos7720_port, baud);
+-
++	/* FIXME: needs to write actual resulting baud back not just
++	   blindly do so */
++	if (cflag & CBAUD)
++		tty_encode_baud_rate(tty, baud, baud);
+ 	/* Enable Interrupts */
+ 	data = 0x0c;
+ 	send_mos_cmd(serial, MOS_WRITE, port_number, UART_IER, &data);
+@@ -1214,10 +1212,6 @@ static void mos7720_set_termios(struct u
  
- 	dbg("%s - port %d", __FUNCTION__, port->number);
+ 	tty = port->tty;
  
--	if (!tty || !tty->termios) {
+-	if (!port->tty || !port->tty->termios) {
 -		dbg("%s - no tty or termios", __FUNCTION__);
 -		return;
 -	}
--
- 	cflag = tty->termios->c_cflag;
- 	iflag = tty->termios->c_iflag;
  
--	if (old_termios && cflag == old_termios->c_cflag
--	&& iflag == old_termios->c_iflag) {
--		dbg("%s - nothing to change", __FUNCTION__);
+ 	if (!mos7720_port->open) {
+ 		dbg("%s - port not opened", __FUNCTION__);
+@@ -1228,19 +1222,13 @@ static void mos7720_set_termios(struct u
+ 
+ 	cflag = tty->termios->c_cflag;
+ 
+-	if (!cflag) {
+-		printk("%s %s\n",__FUNCTION__,"cflag is NULL");
 -		return;
 -	}
 -
--	dbg("%s - clfag %08x, iflag %08x", __FUNCTION__, cflag, iflag);
--
+-	dbg("%s - clfag %08x iflag %08x", __FUNCTION__,
++	dbg("%s - cflag %08x iflag %08x", __FUNCTION__,
+ 	    tty->termios->c_cflag,
+ 	    RELEVANT_IFLAG(tty->termios->c_iflag));
+ 
 -	if (old_termios)
--		dbg("%s - old clfag %08x, old iflag %08x", __FUNCTION__, old_termios->c_cflag, old_termios->c_iflag);
-+	dbg("%s - cflag %08x, iflag %08x", __FUNCTION__, cflag, iflag);
-+	dbg("%s - old clfag %08x, old iflag %08x", __FUNCTION__, old_termios->c_cflag, old_termios->c_iflag);
+-		dbg("%s - old clfag %08x old iflag %08x", __FUNCTION__,
+-		    old_termios->c_cflag,
+-		    RELEVANT_IFLAG(old_termios->c_iflag));
++	dbg("%s - old cflag %08x old iflag %08x", __FUNCTION__,
++	    old_termios->c_cflag,
++	    RELEVANT_IFLAG(old_termios->c_iflag));
  
- 	if (tport == NULL)
- 		return;
-@@ -948,6 +935,9 @@ static void ti_set_termios(struct usb_se
- 			    break;
- 	}
- 
-+	/* CMSPAR isn't supported by this driver */
-+	tty->termios->c_cflag &= ~CMSPAR;
-+
- 	if (cflag & PARENB) {
- 		if (cflag & PARODD) {
- 			config->wFlags |= TI_UART_ENABLE_PARITY_CHECKING;
-@@ -990,12 +980,17 @@ static void ti_set_termios(struct usb_se
- 	}
- 
- 	baud = tty_get_baud_rate(tty);
--	if (!baud) baud = 9600;
-+	if (!baud)
-+		baud = 9600;
- 	if (tport->tp_tdev->td_is_3410)
- 		config->wBaudRate = (__u16)((923077 + baud/2) / baud);
- 	else
- 		config->wBaudRate = (__u16)((461538 + baud/2) / baud);
- 
-+	/* FIXME: Should calculate resulting baud here and report it back */
-+	if ((cflag & CBAUD) != B0)
-+		tty_encode_baud_rate(tty, baud, baud);
-+
- 	dbg("%s - BaudRate=%d, wBaudRate=%d, wFlags=0x%04X, bDataBits=%d, bParity=%d, bStopBits=%d, cXon=%d, cXoff=%d, bUartMode=%d",
- 	__FUNCTION__, baud, config->wBaudRate, config->wFlags, config->bDataBits, config->bParity, config->bStopBits, config->cXon, config->cXoff, config->bUartMode);
+ 	dbg("%s - port %d", __FUNCTION__, port->number);
  
 _
 
@@ -142,6 +126,7 @@ serial-keep-the-dtr-setting-for-serial-console.patch
 avoid-waking-up-closed-serial-ports-on-resume.patch
 serial-avoid-stalling-suspend-if-serial-port-wont-drain.patch
 ti_usb-termios-cleanups.patch
+mos7720-clean-up-termios.patch
 wdt-fix-locking.patch
 wdt-fix-locking-checkpatch-fixes.patch
 libata-sff-pci-irq-handling-fix.patch
