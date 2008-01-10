@@ -1,160 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: - memory-controller-make-charging-gfp-mask-aware-fix.patch removed from -mm tree
-Date: Thu, 10 Jan 2008 12:17:30 -0800
-Message-ID: <200801102017.m0AKHU0Z007359@imap1.linux-foundation.org>
+Subject: - memory-controller-add-per-container-lru-and-reclaim-v7-memcgroup-fix-try_to_free-order.patch removed from -mm tree
+Date: Thu, 10 Jan 2008 12:15:22 -0800
+Message-ID: <200801102015.m0AKFNIV007305@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34509 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41319 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753568AbYAJURs (ORCPT
+	by vger.kernel.org with ESMTP id S1751587AbYAJUSH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jan 2008 15:17:48 -0500
+	Thu, 10 Jan 2008 15:18:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: hugh@veritas.com, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au, rientjes@googl
 
 
 The patch titled
-     problem with ZONE_MOVABLE
+     memcgroup: fix try_to_free order
 has been removed from the -mm tree.  Its filename was
-     memory-controller-make-charging-gfp-mask-aware-fix.patch
+     memory-controller-add-per-container-lru-and-reclaim-v7-memcgroup-fix-try_to_free-order.patch
 
-This patch was dropped because it was folded into memory-controller-make-charging-gfp-mask-aware.patch
+This patch was dropped because it was folded into memory-controller-add-per-container-lru-and-reclaim-v7.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: problem with ZONE_MOVABLE
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: memcgroup: fix try_to_free order
+From: Hugh Dickins <hugh@veritas.com>
 
-While I'm playing with memory controller of 2.6.23-rc4-mm1, I met following.
+Why does try_to_free_mem_cgroup_pages try for order 1 pages?  It's called
+when mem_cgroup_charge_common would go over the limit, and that's adding an
+order 0 page.  I see no reason: it has to be a typo: fix it.
 
-==
-[root@drpq test-2.6.23-rc4-mm1]# echo $$ > /opt/mem_control/group_1/tasks
-[root@drpq test-2.6.23-rc4-mm1]# cat /opt/mem_control/group_1/memory.limit
-32768
-[root@drpq test-2.6.23-rc4-mm1]# cat /opt/mem_control/group_1/memory.usage
-286
-// Memory is limited to 512 GiB. try "dd" 1GiB (page size is 16KB)
-
-[root@drpq test-2.6.23-rc4-mm1]# dd if=/dev/zero of=/tmp/tmpfile bs=1024 count=1048576
-Killed
-[root@drpq test-2.6.23-rc4-mm1]# ls
-Killed
-//above are caused by OOM.
-[root@drpq test-2.6.23-rc4-mm1]# cat /opt/mem_control/group_1/memory.usage
-32763
-[root@drpq test-2.6.23-rc4-mm1]# cat /opt/mem_control/group_1/memory.limit
-32768
-// fully filled by page cache. no reclaim run.
-==
-
-The reason  this happens is  because I used kernelcore= boot option, i.e
-ZONE_MOVABLE. Seems try_to_free_mem_cgroup_pages() ignores ZONE_MOVABLE.
-
-Quick fix is attached, but Mel's one-zonelist-pernode patch may change this.
-I'll continue to watch.
-
-Thanks,
--Kame
-==
-Now, there is ZONE_MOVABLE...
-
-page cache and user pages are allocated from gfp_zone(GFP_HIGHUSER_MOVABLE)
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Pavel Emelianov <xemul@openvz.org>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Kirill Korotaev <dev@sw.ru>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~memory-controller-make-charging-gfp-mask-aware-fix mm/vmscan.c
---- a/mm/vmscan.c~memory-controller-make-charging-gfp-mask-aware-fix
+diff -puN mm/vmscan.c~memory-controller-add-per-container-lru-and-reclaim-v7-memcgroup-fix-try_to_free-order mm/vmscan.c
+--- a/mm/vmscan.c~memory-controller-add-per-container-lru-and-reclaim-v7-memcgroup-fix-try_to_free-order
 +++ a/mm/vmscan.c
-@@ -1340,12 +1340,6 @@ unsigned long try_to_free_pages(struct z
- 
- #ifdef CONFIG_CGROUP_MEM_CONT
- 
--#ifdef CONFIG_HIGHMEM
--#define ZONE_USERPAGES ZONE_HIGHMEM
--#else
--#define ZONE_USERPAGES ZONE_NORMAL
--#endif
--
- unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem_cont,
- 						gfp_t gfp_mask)
- {
-@@ -1361,9 +1355,10 @@ unsigned long try_to_free_mem_cgroup_pag
+@@ -1354,7 +1354,7 @@ unsigned long try_to_free_mem_cgroup_pag
+ 		.may_swap = 1,
+ 		.swap_cluster_max = SWAP_CLUSTER_MAX,
+ 		.swappiness = vm_swappiness,
+-		.order = 1,
++		.order = 0,
+ 		.mem_cgroup = mem_cont,
+ 		.isolate_pages = mem_cgroup_isolate_pages,
  	};
- 	int node;
- 	struct zone **zones;
-+	int target_zone = gfp_zone(GFP_HIGHUSER_MOVABLE);
- 
- 	for_each_online_node(node) {
--		zones = NODE_DATA(node)->node_zonelists[ZONE_USERPAGES].zones;
-+		zones = NODE_DATA(node)->node_zonelists[target_zone].zones;
- 		if (do_try_to_free_pages(zones, sc.gfp_mask, &sc))
- 			return 1;
- 	}
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
-fix-crash-with-flat_memory-and-arch_pfn_offset-=-0.patch
-git-x86.patch
+xip-fix-get_zeroed_page-with-__gfp_highmem.patch
+git-unionfs.patch
+swapin_readahead-excise-numa-bogosity.patch
+swapin_readahead-move-and-rearrange-args.patch
+swapin-needs-gfp_mask-for-loop-on-tmpfs.patch
+shmem-sgp_quick-and-sgp_fault-redundant.patch
+shmem_getpage-return-page-locked.patch
+shmem_file_write-is-redundant.patch
+swapin-fix-valid_swaphandles-defect.patch
 swapoff-scan-ptes-preemptibly.patch
-memory-hotplug-add-removable-to-sysfs-to-show-memblock-removability.patch
-add-remove_memory-for-ppc64-2.patch
-enable-hotplug-memory-remove-for-ppc64.patch
-add-arch-specific-walk_memory_remove-for-ppc64.patch
+shmem-factor-out-sbi-free_inodes-manipulations.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+tmpfs-fix-mounts-when-size-is-less-than-the-page-size.patch
+tmpfs-move-swap_state-stats-update.patch
+tmpfs-shuffle-add_to_swap_caches.patch
+tmpfs-move-swap-swizzling-into-shmem.patch
+tmpfs-allow-filepage-alongside-swappage.patch
+tmpfs-allocate-on-read-when-stacked.patch
+tmpfs-make-shmem_unuse-more-preemptible.patch
+tmpfs-open-a-window-in-shmem_unuse_inode.patch
+tmpfs-radix_tree_preloading.patch
+tmpfs-fix-shmem_swaplist-races.patch
+maps4-add-proportional-set-size-accounting-in-smaps.patch
 mm-dont-waste-swap-on-locked-pages.patch
+skip-writing-data-pages-when-inode-is-under-i_sync.patch
+printk-trivial-optimizations-fix.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
 memcgroup-temporarily-revert-swapoff-mod.patch
-memory-controller-improve-user-interface.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-memory-controller-make-charging-gfp-mask-aware-fix.patch
-bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
-bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
-bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
-bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
-memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
-memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-memcgroup-fix-try_to_free-order.patch
+memcgroup-reinstate-swapoff-mod.patch
+memcgroup-fix-zone-isolation-oom.patch
+memcgroup-revert-swap_state-mods.patch
 memory-controller-use-rcu_read_lock-in-mem_cgroup_cache_charge.patch
 memcgroup-tidy-up-mem_cgroup_charge_common.patch
 memcgroup-fix-hang-with-shmem-tmpfs.patch
-memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-memory-cgroup-enhancements-add-pre_destroy-handler.patch
-memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter-memory-controller-enhancements-for-reclaiming-take2-clean-up-remove-unused-variable.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter-memory-controller-enhancements-for-reclaiming-take2-add-bug_on-in-mem_cgroup_zoneinfo.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix-accounting-in-vmscanc-for-memory-controller.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-bugfix-for-memory-cgroup-per-zone-struct-allocation.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-memory-controller-enhancements-for-reclaiming-take2-define-free_mem_cgroup_per_zone_info.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
-memory-controller-remove-control_type-feature.patch
-update-documentation-controller-memorytxt.patch
+prio_tree-debugging-patch.patch
