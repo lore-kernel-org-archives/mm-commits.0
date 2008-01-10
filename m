@@ -1,34 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch removed from -mm tree
-Date: Thu, 10 Jan 2008 12:27:10 -0800
-Message-ID: <200801102027.m0AKRAwn007752@imap1.linux-foundation.org>
+Subject: - per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch removed from -mm tree
+Date: Thu, 10 Jan 2008 12:27:01 -0800
+Message-ID: <200801102027.m0AKR1mv007743@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46896 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53032 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752677AbYAJU2h (ORCPT
+	by vger.kernel.org with ESMTP id S1752677AbYAJU2g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jan 2008 15:28:37 -0500
+	Thu, 10 Jan 2008 15:28:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com
 
 
 The patch titled
-     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2
+     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix
 has been removed from the -mm tree.  Its filename was
-     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
 
 This patch was dropped because it was folded into per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2
+Subject: per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix
 From: Andrew Morton <akpm@linux-foundation.org>
-
-mm/vmscan.c: In function 'calc_reclaim_mapped':
-mm/vmscan.c:969: error: too few arguments to function 'mem_cgroup_get_reclaim_priority'
 
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
@@ -45,22 +42,28 @@ Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/linux/memcontrol.h |    2 --
+ memcontrol.c               |    0 
+ 2 files changed, 2 deletions(-)
 
-diff -puN include/linux/memcontrol.h~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2 include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2
+diff -puN include/linux/memcontrol.h~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix
 +++ a/include/linux/memcontrol.h
-@@ -155,8 +155,7 @@ static inline int mem_cgroup_reclaim_imb
- 	return 0;
+@@ -164,13 +164,11 @@ static inline int mem_cgroup_get_reclaim
+ static inline void mem_cgroup_note_reclaim_priority(struct mem_cgroup *mem,
+ 						int priority)
+ {
+-	return 0;
  }
  
--static inline int mem_cgroup_get_reclaim_priority(struct mem_cgroup *mem,
--						int priority)
-+static inline int mem_cgroup_get_reclaim_priority(struct mem_cgroup *mem)
+ static inline void mem_cgroup_record_reclaim_priority(struct mem_cgroup *mem,
+ 						int priority)
  {
- 	return 0;
+-	return 0;
  }
+ 
+ #endif /* CONFIG_CGROUP_MEM_CONT */
+diff -puN mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix mm/memcontrol.c
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -249,6 +252,7 @@ memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patc
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
 memory-cgroup-enhancements-add-memorystat-file.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
 cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
