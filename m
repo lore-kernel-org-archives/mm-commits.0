@@ -1,31 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: - memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch removed from -mm tree
-Date: Thu, 10 Jan 2008 12:23:23 -0800
-Message-ID: <200801102023.m0AKNNNi007652@imap1.linux-foundation.org>
+Subject: - per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch removed from -mm tree
+Date: Thu, 10 Jan 2008 12:28:13 -0800
+Message-ID: <200801102028.m0AKSD8A007845@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53427 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52610 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753800AbYAJUaB (ORCPT
+	by vger.kernel.org with ESMTP id S1754108AbYAJUaE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jan 2008 15:30:01 -0500
+	Thu, 10 Jan 2008 15:30:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com
 
 
 The patch titled
-     memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining
+     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix
 has been removed from the -mm tree.  Its filename was
-     memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
 
-This patch was dropped because it was folded into memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+This patch was dropped because it was folded into per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining
+Subject: per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix
 From: Andrew Morton <akpm@linux-foundation.org>
+
+mm/vmscan.c: In function 'shrink_zone':
+mm/vmscan.c:957: warning: 'reclaim_mapped' may be used uninitialized in this function
 
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
@@ -37,94 +40,26 @@ Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Cc: Paul Menage <menage@google.com>
 Cc: Pavel Emelianov <xemul@openvz.org>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Rik van Riel <riel@redhat.com>
 Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
-Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   22 +++++++++-------------
- 1 file changed, 9 insertions(+), 13 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining mm/memcontrol.c
---- a/mm/memcontrol.c~memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining
-+++ a/mm/memcontrol.c
-@@ -59,7 +59,7 @@ struct mem_cgroup_stat {
- /*
-  * modifies value with disabling preempt.
-  */
--static inline void __mem_cgroup_stat_add(struct mem_cgroup_stat *stat,
-+static void __mem_cgroup_stat_add(struct mem_cgroup_stat *stat,
- 					enum mem_cgroup_stat_index idx, int val)
- {
- 	int cpu = get_cpu();
-@@ -71,14 +71,14 @@ static inline void __mem_cgroup_stat_add
- /*
-  * For accounting under irq disable, no need for increment preempt count.
-  */
--static inline void __mem_cgroup_stat_add_safe(struct mem_cgroup_stat *stat,
-+static void __mem_cgroup_stat_add_safe(struct mem_cgroup_stat *stat,
- 		enum mem_cgroup_stat_index idx, int val)
- {
- 	int cpu = smp_processor_id();
- 	stat->cpustat[cpu].count[idx] += val;
- }
+diff -puN mm/vmscan.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix mm/vmscan.c
+--- a/mm/vmscan.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix
++++ a/mm/vmscan.c
+@@ -954,7 +954,7 @@ static int calc_reclaim_mapped(struct sc
+ 	long distress;
+ 	long swap_tendency;
+ 	long imbalance;
+-	int reclaim_mapped;
++	int reclaim_mapped = 0;
+ 	int prev_priority;
  
--static inline s64 mem_cgroup_read_stat(struct mem_cgroup_stat *stat,
-+static s64 mem_cgroup_read_stat(struct mem_cgroup_stat *stat,
- 		enum mem_cgroup_stat_index idx)
- {
- 	int cpu;
-@@ -162,8 +162,8 @@ enum charge_type {
- /*
-  * Always modified under lru lock. Then, not necessary to preempt_disable()
-  */
--static inline void
--mem_cgroup_charge_statistics(struct mem_cgroup *mem, int flags, bool charge)
-+static void mem_cgroup_charge_statistics(struct mem_cgroup *mem, int flags,
-+					bool charge)
- {
- 	int val = (charge)? 1 : -1;
- 	struct mem_cgroup_stat *stat = &mem->stat;
-@@ -177,9 +177,6 @@ mem_cgroup_charge_statistics(struct mem_
- 
- }
- 
--
--
--
- static struct mem_cgroup init_mem_cgroup;
- 
- static inline
-@@ -254,8 +251,8 @@ static void __always_inline unlock_page_
-  * This can fail if the page has been tied to a page_cgroup.
-  * If success, returns 0.
-  */
--static inline int
--page_cgroup_assign_new_page_cgroup(struct page *page, struct page_cgroup *pc)
-+static int page_cgroup_assign_new_page_cgroup(struct page *page,
-+						struct page_cgroup *pc)
- {
- 	int ret = 0;
- 
-@@ -277,8 +274,8 @@ page_cgroup_assign_new_page_cgroup(struc
-  *  clear_page_cgroup(page, pc) == pc
-  */
- 
--static inline struct page_cgroup *
--clear_page_cgroup(struct page *page, struct page_cgroup *pc)
-+static struct page_cgroup *clear_page_cgroup(struct page *page,
-+						struct page_cgroup *pc)
- {
- 	struct page_cgroup *ret;
- 	/* lock and clear */
-@@ -290,7 +287,6 @@ clear_page_cgroup(struct page *page, str
- 	return ret;
- }
- 
--
- static void __mem_cgroup_move_lists(struct page_cgroup *pc, bool active)
- {
- 	if (active) {
+ 	if (scan_global_lru(sc) && zone_is_near_oom(zone))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -311,12 +246,9 @@ memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
 memcontrol-move-oom-task-exclusion-to-tasklist.patch
 memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
 cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
 cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
