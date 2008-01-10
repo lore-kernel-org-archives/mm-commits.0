@@ -1,37 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: - memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 10 Jan 2008 12:23:14 -0800
-Message-ID: <200801102023.m0AKNFDX007646@imap1.linux-foundation.org>
+Subject: - memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 10 Jan 2008 12:25:11 -0800
+Message-ID: <200801102025.m0AKPBq7007717@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50542 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37325 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753574AbYAJUZJ (ORCPT
+	by vger.kernel.org with ESMTP id S1751277AbYAJU0J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jan 2008 15:25:09 -0500
+	Thu, 10 Jan 2008 15:26:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com
 
 
 The patch titled
-     memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes
+     memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+     memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+This patch was dropped because it was folded into memory-cgroup-enhancements-add-memorystat-file.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes
+Subject: memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: use tabs not spaces
-#65: FILE: mm/memcontrol.c:62:
-+                enum mem_cgroup_stat_index idx, int val)$
+ERROR: need space after that ',' (ctx:VxV)
+#56: FILE: mm/memcontrol.c:830:
++		val = mem_cgroup_read_stat(stat,i);
+ 		                               ^
 
-total: 1 errors, 0 warnings, 118 lines checked
+total: 1 errors, 0 warnings, 65 lines checked
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
@@ -56,18 +57,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/memcontrol.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes mm/memcontrol.c
---- a/mm/memcontrol.c~memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes
+diff -puN mm/memcontrol.c~memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes mm/memcontrol.c
+--- a/mm/memcontrol.c~memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes
 +++ a/mm/memcontrol.c
-@@ -59,7 +59,7 @@ struct mem_cgroup_stat {
-  * modifies value with disabling preempt.
-  */
- static inline void __mem_cgroup_stat_add(struct mem_cgroup_stat *stat,
--                enum mem_cgroup_stat_index idx, int val)
-+					enum mem_cgroup_stat_index idx, int val)
- {
- 	int cpu = smp_processor_id();
- 	preempt_disable();
+@@ -813,7 +813,7 @@ static int mem_control_stat_show(struct 
+ 	for (i = 0; i < ARRAY_SIZE(stat->cpustat[0].count); i++) {
+ 		s64 val;
+ 
+-		val = mem_cgroup_read_stat(stat,i);
++		val = mem_cgroup_read_stat(stat, i);
+ 		val *= mem_cgroup_stat_desc[i].unit;
+ 		seq_printf(m, "%s %lld\n", mem_cgroup_stat_desc[i].msg, val);
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -254,10 +255,7 @@ memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
 memcontrol-move-oom-task-exclusion-to-tasklist.patch
 memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
 memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
 memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
