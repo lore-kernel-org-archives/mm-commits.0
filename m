@@ -1,69 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - memory-controller-improve-user-interface-memory-controller-enhancements-for-reclaiming-take2-possible-race-fix-in-res_counter.patch removed from -mm tree
-Date: Thu, 10 Jan 2008 12:16:49 -0800
-Message-ID: <200801102016.m0AKGo53007328@imap1.linux-foundation.org>
+Subject: - memory-controller-make-charging-gfp-mask-aware-fix.patch removed from -mm tree
+Date: Thu, 10 Jan 2008 12:17:30 -0800
+Message-ID: <200801102017.m0AKHU0Z007359@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42643 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34509 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751039AbYAJURA (ORCPT
+	by vger.kernel.org with ESMTP id S1753568AbYAJURs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jan 2008 15:17:00 -0500
+	Thu, 10 Jan 2008 15:17:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memory controller enhancements for reclaiming take2: possible race fix in res_counter
+     problem with ZONE_MOVABLE
 has been removed from the -mm tree.  Its filename was
-     memory-controller-improve-user-interface-memory-controller-enhancements-for-reclaiming-take2-possible-race-fix-in-res_counter.patch
+     memory-controller-make-charging-gfp-mask-aware-fix.patch
 
-This patch was dropped because it was folded into memory-controller-improve-user-interface.patch
+This patch was dropped because it was folded into memory-controller-make-charging-gfp-mask-aware.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory controller enhancements for reclaiming take2: possible race fix in res_counter
+Subject: problem with ZONE_MOVABLE
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-spinlock is necessary when someone changes res->counter value.
-splited out from YAMAMOTO's background page reclaim for memory cgroup set.
+While I'm playing with memory controller of 2.6.23-rc4-mm1, I met following.
 
-Changelog v1 -> v2:
- - fixed type of "flags".
+==
+[root@drpq test-2.6.23-rc4-mm1]# echo $$ > /opt/mem_control/group_1/tasks
+[root@drpq test-2.6.23-rc4-mm1]# cat /opt/mem_control/group_1/memory.limit
+32768
+[root@drpq test-2.6.23-rc4-mm1]# cat /opt/mem_control/group_1/memory.usage
+286
+// Memory is limited to 512 GiB. try "dd" 1GiB (page size is 16KB)
+
+[root@drpq test-2.6.23-rc4-mm1]# dd if=/dev/zero of=/tmp/tmpfile bs=1024 count=1048576
+Killed
+[root@drpq test-2.6.23-rc4-mm1]# ls
+Killed
+//above are caused by OOM.
+[root@drpq test-2.6.23-rc4-mm1]# cat /opt/mem_control/group_1/memory.usage
+32763
+[root@drpq test-2.6.23-rc4-mm1]# cat /opt/mem_control/group_1/memory.limit
+32768
+// fully filled by page cache. no reclaim run.
+==
+
+The reason  this happens is  because I used kernelcore= boot option, i.e
+ZONE_MOVABLE. Seems try_to_free_mem_cgroup_pages() ignores ZONE_MOVABLE.
+
+Quick fix is attached, but Mel's one-zonelist-pernode patch may change this.
+I'll continue to watch.
+
+Thanks,
+-Kame
+==
+Now, there is ZONE_MOVABLE...
+
+page cache and user pages are allocated from gfp_zone(GFP_HIGHUSER_MOVABLE)
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/res_counter.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/vmscan.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN kernel/res_counter.c~memory-controller-improve-user-interface-memory-controller-enhancements-for-reclaiming-take2-possible-race-fix-in-res_counter kernel/res_counter.c
---- a/kernel/res_counter.c~memory-controller-improve-user-interface-memory-controller-enhancements-for-reclaiming-take2-possible-race-fix-in-res_counter
-+++ a/kernel/res_counter.c
-@@ -98,6 +98,7 @@ ssize_t res_counter_write(struct res_cou
- {
- 	int ret;
- 	char *buf, *end;
-+	unsigned long flags;
- 	unsigned long long tmp, *val;
+diff -puN mm/vmscan.c~memory-controller-make-charging-gfp-mask-aware-fix mm/vmscan.c
+--- a/mm/vmscan.c~memory-controller-make-charging-gfp-mask-aware-fix
++++ a/mm/vmscan.c
+@@ -1340,12 +1340,6 @@ unsigned long try_to_free_pages(struct z
  
- 	buf = kmalloc(nbytes + 1, GFP_KERNEL);
-@@ -121,9 +122,10 @@ ssize_t res_counter_write(struct res_cou
- 		if (*end != '\0')
- 			goto out_free;
- 	}
+ #ifdef CONFIG_CGROUP_MEM_CONT
+ 
+-#ifdef CONFIG_HIGHMEM
+-#define ZONE_USERPAGES ZONE_HIGHMEM
+-#else
+-#define ZONE_USERPAGES ZONE_NORMAL
+-#endif
 -
-+	spin_lock_irqsave(&counter->lock, flags);
- 	val = res_counter_member(counter, member);
- 	*val = tmp;
-+	spin_unlock_irqrestore(&counter->lock, flags);
- 	ret = nbytes;
- out_free:
- 	kfree(buf);
+ unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem_cont,
+ 						gfp_t gfp_mask)
+ {
+@@ -1361,9 +1355,10 @@ unsigned long try_to_free_mem_cgroup_pag
+ 	};
+ 	int node;
+ 	struct zone **zones;
++	int target_zone = gfp_zone(GFP_HIGHUSER_MOVABLE);
+ 
+ 	for_each_online_node(node) {
+-		zones = NODE_DATA(node)->node_zonelists[ZONE_USERPAGES].zones;
++		zones = NODE_DATA(node)->node_zonelists[target_zone].zones;
+ 		if (do_try_to_free_pages(zones, sc.gfp_mask, &sc))
+ 			return 1;
+ 	}
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
@@ -78,7 +112,7 @@ add-arch-specific-walk_memory_remove-for-ppc64.patch
 mm-dont-waste-swap-on-locked-pages.patch
 memcgroup-temporarily-revert-swapoff-mod.patch
 memory-controller-improve-user-interface.patch
-memory-controller-improve-user-interface-memory-controller-enhancements-for-reclaiming-take2-possible-race-fix-in-res_counter.patch
+memory-controller-make-charging-gfp-mask-aware.patch
 memory-controller-make-charging-gfp-mask-aware-fix.patch
 bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
 bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
