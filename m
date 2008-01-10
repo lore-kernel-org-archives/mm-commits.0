@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + aio-negative-offset-should-return-einval.patch added to -mm tree
-Date: Wed, 09 Jan 2008 23:07:07 -0800
-Message-ID: <200801100706.m0A76l2Q010179@imap1.linux-foundation.org>
+Subject: + aio-partial-write-should-not-return-error-code.patch added to -mm tree
+Date: Wed, 09 Jan 2008 23:07:03 -0800
+Message-ID: <200801100706.m0A76h13010171@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37333 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46024 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752383AbYAJHHf (ORCPT
+	by vger.kernel.org with ESMTP id S1752550AbYAJHIL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jan 2008 02:07:35 -0500
+	Thu, 10 Jan 2008 02:08:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: rusty@rustcorp.com.au, zach.brown@oracle.com
 
 
 The patch titled
-     aio: negative offset should return -EINVAL
+     aio: partial write should not return error code
 has been added to the -mm tree.  Its filename is
-     aio-negative-offset-should-return-einval.patch
+     aio-partial-write-should-not-return-error-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,36 +28,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aio: negative offset should return -EINVAL
+Subject: aio: partial write should not return error code
 From: Rusty Russell <rusty@rustcorp.com.au>
 
-An AIO read or write should return -EINVAL if the offset is negative.
-This check matches the one in pread and pwrite.
+When an AIO write gets an error after writing some data (eg.  ENOSPC), it
+should return the amount written already, not the error.  Just like write()
+is supposed to.
 
 This was found by the libaio test suite.
 
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Acked-by: Zach Brown <zach.brown@oracle.com>
+Acked-By: Zach Brown <zach.brown@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/aio.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN fs/aio.c~aio-negative-offset-should-return-einval fs/aio.c
---- a/fs/aio.c~aio-negative-offset-should-return-einval
+diff -puN fs/aio.c~aio-partial-write-should-not-return-error-code fs/aio.c
+--- a/fs/aio.c~aio-partial-write-should-not-return-error-code
 +++ a/fs/aio.c
-@@ -1329,6 +1329,10 @@ static ssize_t aio_rw_vect_retry(struct 
- 		opcode = IOCB_CMD_PWRITEV;
- 	}
+@@ -1347,6 +1347,13 @@ static ssize_t aio_rw_vect_retry(struct 
+ 	if ((ret == 0) || (iocb->ki_left == 0))
+ 		ret = iocb->ki_nbytes - iocb->ki_left;
  
-+	/* This matches the pread()/pwrite() logic */
-+	if (iocb->ki_pos < 0)
-+		return -EINVAL;
++	/* If we managed to write some out we return that, rather than
++	 * the eventual error. */
++	if (opcode == IOCB_CMD_PWRITEV
++	    && ret < 0 && ret != -EIOCBQUEUED && ret != -EIOCBRETRY
++	    && iocb->ki_nbytes - iocb->ki_left)
++		ret = iocb->ki_nbytes - iocb->ki_left;
 +
- 	do {
- 		ret = rw_op(iocb, &iocb->ki_iovec[iocb->ki_cur_seg],
- 			    iocb->ki_nr_segs - iocb->ki_cur_seg,
+ 	return ret;
+ }
+ 
 _
 
 Patches currently in -mm which might be from rusty@rustcorp.com.au are
