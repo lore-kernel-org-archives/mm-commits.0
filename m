@@ -1,38 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: - sunrpc-spin-svc_rqst-initialization-to-its-own-function.patch removed from -mm tree
-Date: Thu, 10 Jan 2008 15:57:30 -0800
-Message-ID: <200801102357.m0ANvUMX015828@imap1.linux-foundation.org>
+Subject: - nlm-convert-lockd-to-use-kthreads.patch removed from -mm tree
+Date: Thu, 10 Jan 2008 15:57:46 -0800
+Message-ID: <200801102357.m0ANvk4T015841@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49234 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51254 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755664AbYAJX6h (ORCPT
+	by vger.kernel.org with ESMTP id S1757773AbYAJX6r (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jan 2008 18:58:37 -0500
+	Thu, 10 Jan 2008 18:58:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jlayton@redhat.com, bfields@fieldses.org, cel@citi.umich.edu, neilb@suse.de, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SUNRPC: spin svc_rqst initialization to its own function
+     NLM: Convert lockd to use kthreads
 has been removed from the -mm tree.  Its filename was
-     sunrpc-spin-svc_rqst-initialization-to-its-own-function.patch
+     nlm-convert-lockd-to-use-kthreads.patch
 
 This patch was dropped because it keeps on changing
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: SUNRPC: spin svc_rqst initialization to its own function
+Subject: NLM: Convert lockd to use kthreads
 From: Jeff Layton <jlayton@redhat.com>
 
-Move the initialzation in __svc_create_thread that happens prior to thread
-creation to a new function.  Export the function to allow services to have
-better control over the svc_rqst structs.
-
-Also rearrange the rqstp initialization to prevent NULL pointer dereferences
-in svc_exit_thread in case allocations fail.
+Have lockd_up start lockd using kthread_run.  With this change, lockd_down now
+blocks until lockd actually exits, so there's no longer need for the waitqueue
+code at the end of lockd_down.  This also means that only one lockd can be
+running at a time which simplifies the code within lockd's main loop.
 
 Signed-off-by: Jeff Layton <jlayton@redhat.com>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
@@ -42,115 +40,208 @@ Cc: Chuck Lever <cel@citi.umich.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sunrpc/svc.h |    2 +
- net/sunrpc/svc.c           |   59 ++++++++++++++++++++++++-----------
- 2 files changed, 44 insertions(+), 17 deletions(-)
+ fs/lockd/svc.c |   93 ++++++++++++++++++++---------------------------
+ 1 file changed, 40 insertions(+), 53 deletions(-)
 
-diff -puN include/linux/sunrpc/svc.h~sunrpc-spin-svc_rqst-initialization-to-its-own-function include/linux/sunrpc/svc.h
---- a/include/linux/sunrpc/svc.h~sunrpc-spin-svc_rqst-initialization-to-its-own-function
-+++ a/include/linux/sunrpc/svc.h
-@@ -384,6 +384,8 @@ struct svc_procedure {
+diff -puN fs/lockd/svc.c~nlm-convert-lockd-to-use-kthreads fs/lockd/svc.c
+--- a/fs/lockd/svc.c~nlm-convert-lockd-to-use-kthreads
++++ a/fs/lockd/svc.c
+@@ -25,6 +25,7 @@
+ #include <linux/smp.h>
+ #include <linux/smp_lock.h>
+ #include <linux/mutex.h>
++#include <linux/kthread.h>
+ #include <linux/freezer.h>
+ 
+ #include <linux/sunrpc/types.h>
+@@ -48,13 +49,12 @@ EXPORT_SYMBOL(nlmsvc_ops);
+ 
+ static DEFINE_MUTEX(nlmsvc_mutex);
+ static unsigned int		nlmsvc_users;
+-static pid_t			nlmsvc_pid;
++static struct task_struct	*nlmsvc_task;
+ static struct svc_serv		*nlmsvc_serv;
+ int				nlmsvc_grace_period;
+ unsigned long			nlmsvc_timeout;
+ 
+ static DECLARE_COMPLETION(lockd_start_done);
+-static DECLARE_WAIT_QUEUE_HEAD(lockd_exit);
+ 
+ /*
+  * These can be set at insmod time (useful for NFS as root filesystem),
+@@ -111,10 +111,11 @@ static inline void clear_grace_period(vo
+ /*
+  * This is the lockd kernel thread
   */
- struct svc_serv *  svc_create(struct svc_program *, unsigned int,
- 			      void (*shutdown)(struct svc_serv*));
-+struct svc_rqst *svc_prepare_thread(struct svc_serv *serv,
-+					struct svc_pool *pool);
- int		   svc_create_thread(svc_thread_fn, struct svc_serv *);
- void		   svc_exit_thread(struct svc_rqst *);
- struct svc_serv *  svc_create_pooled(struct svc_program *, unsigned int,
-diff -puN net/sunrpc/svc.c~sunrpc-spin-svc_rqst-initialization-to-its-own-function net/sunrpc/svc.c
---- a/net/sunrpc/svc.c~sunrpc-spin-svc_rqst-initialization-to-its-own-function
-+++ a/net/sunrpc/svc.c
-@@ -533,31 +533,17 @@ svc_release_buffer(struct svc_rqst *rqst
- 			put_page(rqstp->rq_pages[i]);
+-static void
+-lockd(struct svc_rqst *rqstp)
++static int
++lockd(void *vrqstp)
+ {
+ 	int		err = 0;
++	struct svc_rqst *rqstp = vrqstp;
+ 	unsigned long grace_period_expire;
+ 
+ 	/* Lock module and set up kernel thread */
+@@ -122,17 +123,14 @@ lockd(struct svc_rqst *rqstp)
+ 	 * be holding a reference to this module, so it
+ 	 * is safe to just claim another reference
+ 	 */
+-	__module_get(THIS_MODULE);
+ 	lock_kernel();
+ 
+ 	/*
+ 	 * Let our maker know we're running.
+ 	 */
+-	nlmsvc_pid = current->pid;
+ 	nlmsvc_serv = rqstp->rq_server;
+ 	complete(&lockd_start_done);
+ 
+-	daemonize("lockd");
+ 	set_freezable();
+ 
+ 	/* Process request with signals blocked, but allow SIGKILL.  */
+@@ -151,7 +149,7 @@ lockd(struct svc_rqst *rqstp)
+ 	 * NFS mount or NFS daemon has gone away, and we've been sent a
+ 	 * signal, or else another process has taken over our job.
+ 	 */
+-	while ((nlmsvc_users || !signalled()) && nlmsvc_pid == current->pid) {
++	while (!kthread_should_stop()) {
+ 		long timeout = MAX_SCHEDULE_TIMEOUT;
+ 		char buf[RPC_MAX_ADDRBUFLEN];
+ 
+@@ -199,27 +197,18 @@ lockd(struct svc_rqst *rqstp)
+ 
+ 	flush_signals(current);
+ 
+-	/*
+-	 * Check whether there's a new lockd process before
+-	 * shutting down the hosts and clearing the slot.
+-	 */
+-	if (!nlmsvc_pid || current->pid == nlmsvc_pid) {
+-		if (nlmsvc_ops)
+-			nlmsvc_invalidate_all();
+-		nlm_shutdown_hosts();
+-		nlmsvc_pid = 0;
+-		nlmsvc_serv = NULL;
+-	} else
+-		printk(KERN_DEBUG
+-			"lockd: new process, skipping host shutdown\n");
+-	wake_up(&lockd_exit);
++	if (nlmsvc_ops)
++		nlmsvc_invalidate_all();
++	nlm_shutdown_hosts();
++	nlmsvc_task = NULL;
++	nlmsvc_serv = NULL;
+ 
+ 	/* Exit the RPC thread */
+ 	svc_exit_thread(rqstp);
+ 
+ 	/* Release module */
+ 	unlock_kernel();
+-	module_put_and_exit(0);
++	return 0;
  }
  
--/*
-- * Create a thread in the given pool.  Caller must hold BKL.
-- * On a NUMA or SMP machine, with a multi-pool serv, the thread
-- * will be restricted to run on the cpus belonging to the pool.
-- */
--static int
--__svc_create_thread(svc_thread_fn func, struct svc_serv *serv,
--		    struct svc_pool *pool)
-+struct svc_rqst *
-+svc_prepare_thread(struct svc_serv *serv, struct svc_pool *pool)
+ /*
+@@ -256,14 +245,15 @@ static int make_socks(struct svc_serv *s
+ int
+ lockd_up(int proto) /* Maybe add a 'family' option when IPv6 is supported ?? */
  {
- 	struct svc_rqst	*rqstp;
--	int		error = -ENOMEM;
--	int		have_oldmask = 0;
--	cpumask_t	oldmask;
+-	struct svc_serv *	serv;
+-	int			error = 0;
++	struct svc_serv *serv;
++	struct svc_rqst *rqstp;
++	int		error = 0;
  
- 	rqstp = kzalloc(sizeof(*rqstp), GFP_KERNEL);
- 	if (!rqstp)
--		goto out;
-+		goto out_enomem;
- 
- 	init_waitqueue_head(&rqstp->rq_wait);
- 
--	if (!(rqstp->rq_argp = kmalloc(serv->sv_xdrsize, GFP_KERNEL))
--	 || !(rqstp->rq_resp = kmalloc(serv->sv_xdrsize, GFP_KERNEL))
--	 || !svc_init_buffer(rqstp, serv->sv_max_mesg))
--		goto out_thread;
--
- 	serv->sv_nrthreads++;
- 	spin_lock_bh(&pool->sp_lock);
- 	pool->sp_nrthreads++;
-@@ -566,6 +552,45 @@ __svc_create_thread(svc_thread_fn func, 
- 	rqstp->rq_server = serv;
- 	rqstp->rq_pool = pool;
- 
-+	rqstp->rq_argp = kmalloc(serv->sv_xdrsize, GFP_KERNEL);
-+	if (!rqstp->rq_argp)
-+		goto out_thread;
-+
-+	rqstp->rq_resp = kmalloc(serv->sv_xdrsize, GFP_KERNEL);
-+	if (!rqstp->rq_resp)
-+		goto out_thread;
-+
-+	if (!svc_init_buffer(rqstp, serv->sv_max_mesg))
-+		goto out_thread;
-+
-+	return rqstp;
-+out_thread:
-+	svc_exit_thread(rqstp);
-+out_enomem:
-+	return ERR_PTR(-ENOMEM);
-+}
-+EXPORT_SYMBOL(svc_prepare_thread);
-+
-+/*
-+ * Create a thread in the given pool.  Caller must hold BKL.
-+ * On a NUMA or SMP machine, with a multi-pool serv, the thread
-+ * will be restricted to run on the cpus belonging to the pool.
-+ */
-+static int
-+__svc_create_thread(svc_thread_fn func, struct svc_serv *serv,
-+		    struct svc_pool *pool)
-+{
-+	struct svc_rqst	*rqstp;
-+	int		error = -ENOMEM;
-+	int		have_oldmask = 0;
-+	cpumask_t	oldmask;
-+
-+	rqstp = svc_prepare_thread(serv, pool);
+ 	mutex_lock(&nlmsvc_mutex);
+ 	/*
+ 	 * Check whether we're already up and running.
+ 	 */
+-	if (nlmsvc_pid) {
++	if (nlmsvc_task) {
+ 		if (proto)
+ 			error = make_socks(nlmsvc_serv, proto);
+ 		goto out;
+@@ -290,11 +280,24 @@ lockd_up(int proto) /* Maybe add a 'fami
+ 	/*
+ 	 * Create the kernel thread and wait for it to start.
+ 	 */
++	rqstp = svc_prepare_thread(serv, &serv->sv_pools[0]);
 +	if (IS_ERR(rqstp)) {
 +		error = PTR_ERR(rqstp);
-+		goto out;
++		printk(KERN_WARNING
++			"lockd_up: svc_rqst allocation failed, error=%d\n",
++			error);
++		goto destroy_and_out;
 +	}
 +
- 	if (serv->sv_nrpools > 1)
- 		have_oldmask = svc_pool_map_set_cpumask(pool->sp_id, &oldmask);
++	svc_sock_update_bufs(serv);
+ 	init_completion(&lockd_start_done);
+-	error = svc_create_thread(lockd, serv);
+-	if (error) {
++	nlmsvc_task = kthread_run(lockd, rqstp, serv->sv_name);
++	if (IS_ERR(nlmsvc_task)) {
++		error = PTR_ERR(nlmsvc_task);
++		nlmsvc_task = NULL;
+ 		printk(KERN_WARNING
+-			"lockd_up: create thread failed, error=%d\n", error);
++			"lockd_up: kthread_run failed, error=%d\n", error);
++		svc_exit_thread(rqstp);
+ 		goto destroy_and_out;
+ 	}
+ 	wait_for_completion(&lockd_start_done);
+@@ -319,37 +322,21 @@ EXPORT_SYMBOL(lockd_up);
+ void
+ lockd_down(void)
+ {
+-	static int warned;
+-
+ 	mutex_lock(&nlmsvc_mutex);
+ 	if (nlmsvc_users) {
+ 		if (--nlmsvc_users)
+ 			goto out;
+-	} else
+-		printk(KERN_WARNING "lockd_down: no users! pid=%d\n", nlmsvc_pid);
+-
+-	if (!nlmsvc_pid) {
+-		if (warned++ == 0)
+-			printk(KERN_WARNING "lockd_down: no lockd running.\n"); 
+-		goto out;
++	} else {
++		printk(KERN_ERR "lockd_down: no users! task=%p\n",
++			nlmsvc_task);
++		BUG();
+ 	}
+-	warned = 0;
  
+-	kill_proc(nlmsvc_pid, SIGKILL, 1);
+-	/*
+-	 * Wait for the lockd process to exit, but since we're holding
+-	 * the lockd semaphore, we can't wait around forever ...
+-	 */
+-	clear_thread_flag(TIF_SIGPENDING);
+-	interruptible_sleep_on_timeout(&lockd_exit, HZ);
+-	if (nlmsvc_pid) {
+-		printk(KERN_WARNING 
+-			"lockd_down: lockd failed to exit, clearing pid\n");
+-		nlmsvc_pid = 0;
++	if (!nlmsvc_task) {
++		printk(KERN_ERR "lockd_down: no lockd running.\n");
++		BUG();
+ 	}
+-	spin_lock_irq(&current->sighand->siglock);
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++	kthread_stop(nlmsvc_task);
+ out:
+ 	mutex_unlock(&nlmsvc_mutex);
+ }
 _
 
 Patches currently in -mm which might be from jlayton@redhat.com are
 
 git-cifs.patch
-sunrpc-spin-svc_rqst-initialization-to-its-own-function.patch
-sunrpc-export-svc_sock_update_bufs.patch
-nlm-initialize-completion-variable-in-lockd_up.patch
-nlm-have-lockd-call-try_to_freeze.patch
 nlm-convert-lockd-to-use-kthreads.patch
 nlm-add-reference-counting-to-lockd.patch
 git-unionfs.patch
