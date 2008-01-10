@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dont-error-on-higher-hz-values.patch added to -mm tree
-Date: Wed, 09 Jan 2008 23:02:50 -0800
-Message-ID: <200801100702.m0A72Ugg010020@imap1.linux-foundation.org>
+Subject: + aio-negative-offset-should-return-einval.patch added to -mm tree
+Date: Wed, 09 Jan 2008 23:07:07 -0800
+Message-ID: <200801100706.m0A76l2Q010179@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54025 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37333 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752154AbYAJHDC (ORCPT
+	by vger.kernel.org with ESMTP id S1752383AbYAJHHf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jan 2008 02:03:02 -0500
+	Thu, 10 Jan 2008 02:07:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pavel@ucw.cz, mingo@elte.hu, pavel@suse.cz
+Cc: rusty@rustcorp.com.au, zach.brown@oracle.com
 
 
 The patch titled
-     don't #error on higher HZ values
+     aio: negative offset should return -EINVAL
 has been added to the -mm tree.  Its filename is
-     dont-error-on-higher-hz-values.patch
+     aio-negative-offset-should-return-einval.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,46 +28,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: don't #error on higher HZ values
-From: Pavel Machek <pavel@ucw.cz>
+Subject: aio: negative offset should return -EINVAL
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-For some crazy reason (trying to work around hw problem in i810) I wanted
-to use HZ around 4000.
+An AIO read or write should return -EINVAL if the offset is negative.
+This check matches the one in pread and pwrite.
 
-Signed-off-by: Pavel Machek <pavel@suse.cz>
-Cc: Ingo Molnar <mingo@elte.hu>
+This was found by the libaio test suite.
+
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Acked-by: Zach Brown <zach.brown@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/jiffies.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/aio.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN include/linux/jiffies.h~dont-error-on-higher-hz-values include/linux/jiffies.h
---- a/include/linux/jiffies.h~dont-error-on-higher-hz-values
-+++ a/include/linux/jiffies.h
-@@ -29,6 +29,12 @@
- # define SHIFT_HZ	9
- #elif HZ >= 768 && HZ < 1536
- # define SHIFT_HZ	10
-+#elif HZ >= 1536 && HZ < 3072
-+# define SHIFT_HZ	11
-+#elif HZ >= 3072 && HZ < 6144
-+# define SHIFT_HZ	12
-+#elif HZ >= 6144 && HZ < 12288
-+# define SHIFT_HZ	13
- #else
- # error You lose.
- #endif
+diff -puN fs/aio.c~aio-negative-offset-should-return-einval fs/aio.c
+--- a/fs/aio.c~aio-negative-offset-should-return-einval
++++ a/fs/aio.c
+@@ -1329,6 +1329,10 @@ static ssize_t aio_rw_vect_retry(struct 
+ 		opcode = IOCB_CMD_PWRITEV;
+ 	}
+ 
++	/* This matches the pread()/pwrite() logic */
++	if (iocb->ki_pos < 0)
++		return -EINVAL;
++
+ 	do {
+ 		ret = rw_op(iocb, &iocb->ki_iovec[iocb->ki_cur_seg],
+ 			    iocb->ki_nr_segs - iocb->ki_cur_seg,
 _
 
-Patches currently in -mm which might be from pavel@ucw.cz are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
-tpm-fix-suspend-and-resume-failure.patch
-git-acpi.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-small-cleanups-for-scsi_hosth.patch
-git-x86.patch
-kernel-power-diskc-make-code-static.patch
-make-kernel_shutdown_prepare-static.patch
-remove-obsolete-sys-devices-power-state-docs.patch
-dont-error-on-higher-hz-values.patch
+modules-de-mutex-more-symbol-lookup-paths-in-the-module-code.patch
+git-kbuild.patch
+git-kvm.patch
+git-libata-all.patch
+git-scsi-misc.patch
+kallsyms-should-prefer-non-weak-symbols.patch
+virtio_net-remove-double-ether_setup.patch
+modules-handle-symbols-that-have-a-zero-value.patch
+modules-include-sectionsh-to-avoid-defining-linker-variables.patch
+modules-fold-percpu_modcopy-into-modulec-and-get-rid-of-the-macro-from-hell.patch
+modules-make-module_address_lookup-safe.patch
+fixup-container_of-usage.patch
+aio-partial-write-should-not-return-error-code.patch
+aio-negative-offset-should-return-einval.patch
+reiser4.patch
