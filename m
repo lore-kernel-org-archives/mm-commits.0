@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + keyspan-fix-oops.patch added to -mm tree
-Date: Wed, 09 Jan 2008 21:45:08 -0800
-Message-ID: <200801100544.m0A5imk2007343@imap1.linux-foundation.org>
+Subject: + io_ti-clean-up-termios-handling.patch added to -mm tree
+Date: Wed, 09 Jan 2008 21:45:47 -0800
+Message-ID: <200801100545.m0A5jRQS007441@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44784 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35260 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750798AbYAJFpk (ORCPT
+	by vger.kernel.org with ESMTP id S1751452AbYAJFqO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jan 2008 00:45:40 -0500
+	Thu, 10 Jan 2008 00:46:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com
 
 
 The patch titled
-     keyspan: fix oops
+     io_ti: clean up termios handling
 has been added to the -mm tree.  Its filename is
-     keyspan-fix-oops.patch
+     io_ti-clean-up-termios-handling.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,33 +28,93 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: keyspan: fix oops
+Subject: io_ti: clean up termios handling
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-If we get a data URB back from the hardware after we have put the tty to
-bed we go kaboom.  Fortunately all we need to do is process the URB without
-trying to ram its contents down the throat of an ex-tty.
+Don't pass NULL into termios functions when calling them internally Remove
+all the crap which then checks for NULL which can't occur now.
+
+Clear CMSPAR as it is not supported.
+
+Report the baud rate back to the caller properly (See FIXME someone with
+the docs).
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/keyspan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/serial/io_ti.c |   26 ++++++++++----------------
+ 1 file changed, 10 insertions(+), 16 deletions(-)
 
-diff -puN drivers/usb/serial/keyspan.c~keyspan-fix-oops drivers/usb/serial/keyspan.c
---- a/drivers/usb/serial/keyspan.c~keyspan-fix-oops
-+++ a/drivers/usb/serial/keyspan.c
-@@ -447,7 +447,7 @@ static void	usa26_indat_callback(struct 
+diff -puN drivers/usb/serial/io_ti.c~io_ti-clean-up-termios-handling drivers/usb/serial/io_ti.c
+--- a/drivers/usb/serial/io_ti.c~io_ti-clean-up-termios-handling
++++ a/drivers/usb/serial/io_ti.c
+@@ -1979,7 +1979,7 @@ static int edge_open (struct usb_serial_
+ 	}
+ 	
+ 	/* set up the port settings */
+-	edge_set_termios (port, NULL);
++	edge_set_termios (port, port->tty->termios);
  
- 	port = (struct usb_serial_port *) urb->context;
- 	tty = port->tty;
--	if (urb->actual_length) {
-+	if (tty && urb->actual_length) {
- 		/* 0x80 bit is error flag */
- 		if ((data[0] & 0x80) == 0) {
- 			/* no errors on individual bytes, only possible overrun err*/
+ 	/* open up the port */
+ 
+@@ -2394,11 +2394,6 @@ static void change_port_settings (struct
+ 	dbg("%s - port %d", __FUNCTION__, edge_port->port->number);
+ 
+ 	tty = edge_port->port->tty;
+-	if ((!tty) ||
+-	    (!tty->termios)) {
+-		dbg("%s - no tty structures", __FUNCTION__);
+-		return;
+-	}
+ 
+ 	config = kmalloc (sizeof (*config), GFP_KERNEL);
+ 	if (!config) {
+@@ -2493,14 +2488,20 @@ static void change_port_settings (struct
+ 		}
+ 	}
+ 
++	tty->termios->c_cflag &= ~CMSPAR;
++
+ 	/* Round the baud rate */
+ 	baud = tty_get_baud_rate(tty);
+ 	if (!baud) {
+ 		/* pick a default, any default... */
+ 		baud = 9600;
+-	}
++	} else
++		tty_encode_baud_rate(tty, baud, baud);
++
+ 	edge_port->baud_rate = baud;
+ 	config->wBaudRate = (__u16)((461550L + baud/2) / baud);
++	
++	/* FIXME: Recompute actual baud from divisor here */
+ 
+ 	dbg ("%s - baud rate = %d, wBaudRate = %d", __FUNCTION__, baud, config->wBaudRate);
+ 
+@@ -2539,19 +2540,12 @@ static void edge_set_termios (struct usb
+ 	struct tty_struct *tty = port->tty;
+ 	unsigned int cflag;
+ 
+-	if (!port->tty || !port->tty->termios) {
+-		dbg ("%s - no tty or termios", __FUNCTION__);
+-		return;
+-	}
+-
+ 	cflag = tty->termios->c_cflag;
+ 
+ 	dbg("%s - clfag %08x iflag %08x", __FUNCTION__, 
+ 	    tty->termios->c_cflag, tty->termios->c_iflag);
+-	if (old_termios) {
+-		dbg("%s - old clfag %08x old iflag %08x", __FUNCTION__,
+-		    old_termios->c_cflag, old_termios->c_iflag);
+-	}
++	dbg("%s - old clfag %08x old iflag %08x", __FUNCTION__,
++	    old_termios->c_cflag, old_termios->c_iflag);
+ 
+ 	dbg("%s - port %d", __FUNCTION__, port->number);
+ 
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -77,6 +137,7 @@ avoid-waking-up-closed-serial-ports-on-resume.patch
 serial-avoid-stalling-suspend-if-serial-port-wont-drain.patch
 ti_usb-termios-cleanups.patch
 mos7720-clean-up-termios.patch
+io_ti-clean-up-termios-handling.patch
 wdt-fix-locking.patch
 wdt-fix-locking-checkpatch-fixes.patch
 libata-sff-pci-irq-handling-fix.patch
