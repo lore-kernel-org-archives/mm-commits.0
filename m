@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + uml-remove-init_irq_signals.patch added to -mm tree
-Date: Wed, 09 Jan 2008 23:59:46 -0800
-Message-ID: <200801100759.m0A7xQ28011867@imap1.linux-foundation.org>
+Subject: + uml-signal-handling-tidying.patch added to -mm tree
+Date: Wed, 09 Jan 2008 23:59:45 -0800
+Message-ID: <200801100759.m0A7xPwZ011864@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59712 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48502 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754301AbYAJH7c (ORCPT
+	by vger.kernel.org with ESMTP id S1753857AbYAJH7c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 10 Jan 2008 02:59:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     uml: remove init_irq_signals
+     uml: signal handling tidying
 has been added to the -mm tree.  Its filename is
-     uml-remove-init_irq_signals.patch
+     uml-signal-handling-tidying.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,67 +28,122 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: remove init_irq_signals
+Subject: uml: signal handling tidying
 From: Jeff Dike <jdike@addtoit.com>
 
-init_irq_signals doesn't need to be called from the context of a new process. 
-It initializes handlers, which are useless in process context.  With that call
-gone, init_irq_signals has only one caller, so it can be inlined into
-init_new_thread_signals.
+This patch tidies the signal handling code slightly.
+
+pending is renamed to signals_pending for symmetry with signals_enabled.
+
+remove_sigstack was unused, so can be deleted.
+
+The value of change_sig was never used, so it is now void and the
+return value is not calculated any more.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/os.h       |    1 -
- arch/um/os-Linux/irq.c     |   11 -----------
- arch/um/os-Linux/process.c |    5 ++++-
- 3 files changed, 4 insertions(+), 13 deletions(-)
+ arch/um/os-Linux/signal.c |   33 ++++++++++++---------------------
+ 1 file changed, 12 insertions(+), 21 deletions(-)
 
-diff -puN arch/um/include/os.h~uml-remove-init_irq_signals arch/um/include/os.h
---- a/arch/um/include/os.h~uml-remove-init_irq_signals
-+++ a/arch/um/include/os.h
-@@ -285,7 +285,6 @@ extern void os_free_irq_later(struct irq
- extern int os_get_pollfd(int i);
- extern void os_set_pollfd(int i, int fd);
- extern void os_set_ioignore(void);
--extern void init_irq_signals(int on_sigstack);
+diff -puN arch/um/os-Linux/signal.c~uml-signal-handling-tidying arch/um/os-Linux/signal.c
+--- a/arch/um/os-Linux/signal.c~uml-signal-handling-tidying
++++ a/arch/um/os-Linux/signal.c
+@@ -63,7 +63,7 @@ static void sig_handler_common(int sig, 
+ #define SIGVTALRM_MASK (1 << SIGVTALRM_BIT)
  
- /* sigio.c */
- extern int add_sigio_fd(int fd);
-diff -puN arch/um/os-Linux/irq.c~uml-remove-init_irq_signals arch/um/os-Linux/irq.c
---- a/arch/um/os-Linux/irq.c~uml-remove-init_irq_signals
-+++ a/arch/um/os-Linux/irq.c
-@@ -136,14 +136,3 @@ void os_set_ioignore(void)
+ static int signals_enabled;
+-static unsigned int pending;
++static unsigned int signals_pending;
+ 
+ void sig_handler(int sig, struct sigcontext *sc)
  {
- 	signal(SIGIO, SIG_IGN);
+@@ -71,7 +71,7 @@ void sig_handler(int sig, struct sigcont
+ 
+ 	enabled = signals_enabled;
+ 	if (!enabled && (sig == SIGIO)) {
+-		pending |= SIGIO_MASK;
++		signals_pending |= SIGIO_MASK;
+ 		return;
+ 	}
+ 
+@@ -99,7 +99,7 @@ void alarm_handler(int sig, struct sigco
+ 
+ 	enabled = signals_enabled;
+ 	if (!signals_enabled) {
+-		pending |= SIGVTALRM_MASK;
++		signals_pending |= SIGVTALRM_MASK;
+ 		return;
+ 	}
+ 
+@@ -125,16 +125,6 @@ void set_sigstack(void *sig_stack, int s
+ 		panic("enabling signal stack failed, errno = %d\n", errno);
  }
--
--void init_irq_signals(int on_sigstack)
+ 
+-void remove_sigstack(void)
 -{
--	int flags;
+-	stack_t stack = ((stack_t) { .ss_flags	= SS_DISABLE,
+-				     .ss_sp	= NULL,
+-				     .ss_size	= 0 });
 -
--	flags = on_sigstack ? SA_ONSTACK : 0;
--
--	set_handler(SIGIO, (__sighandler_t) sig_handler, flags | SA_RESTART,
--		    SIGUSR1, SIGIO, SIGWINCH, SIGVTALRM, -1);
--	signal(SIGWINCH, SIG_IGN);
+-	if (sigaltstack(&stack, NULL) != 0)
+-		panic("disabling signal stack failed, errno = %d\n", errno);
 -}
-diff -puN arch/um/os-Linux/process.c~uml-remove-init_irq_signals arch/um/os-Linux/process.c
---- a/arch/um/os-Linux/process.c~uml-remove-init_irq_signals
-+++ a/arch/um/os-Linux/process.c
-@@ -249,7 +249,10 @@ void init_new_thread_signals(void)
- 		    SIGUSR1, SIGIO, SIGWINCH, SIGVTALRM, -1);
- 	signal(SIGHUP, SIG_IGN);
+-
+ void (*handlers[_NSIG])(int sig, struct sigcontext *sc);
  
--	init_irq_signals(1);
-+	set_handler(SIGIO, (__sighandler_t) sig_handler,
-+		    SA_ONSTACK | SA_RESTART, SIGUSR1, SIGIO, SIGWINCH, SIGALRM,
-+		    SIGVTALRM, -1);
-+	signal(SIGWINCH, SIG_IGN);
+ void handle_signal(int sig, struct sigcontext *sc)
+@@ -213,13 +203,14 @@ void set_handler(int sig, void (*handler
+ 
+ int change_sig(int signal, int on)
+ {
+-	sigset_t sigset, old;
++	sigset_t sigset;
+ 
+ 	sigemptyset(&sigset);
+ 	sigaddset(&sigset, signal);
+-	if (sigprocmask(on ? SIG_UNBLOCK : SIG_BLOCK, &sigset, &old) < 0)
++	if (sigprocmask(on ? SIG_UNBLOCK : SIG_BLOCK, &sigset, NULL) < 0)
+ 		return -errno;
+-	return !sigismember(&old, signal);
++
++	return 0;
  }
  
- int run_kernel_thread(int (*fn)(void *), void *arg, jmp_buf **jmp_ptr)
+ void block_signals(void)
+@@ -244,26 +235,26 @@ void unblock_signals(void)
+ 	/*
+ 	 * We loop because the IRQ handler returns with interrupts off.  So,
+ 	 * interrupts may have arrived and we need to re-enable them and
+-	 * recheck pending.
++	 * recheck signals_pending.
+ 	 */
+ 	while(1) {
+ 		/*
+ 		 * Save and reset save_pending after enabling signals.  This
+-		 * way, pending won't be changed while we're reading it.
++		 * way, signals_pending won't be changed while we're reading it.
+ 		 */
+ 		signals_enabled = 1;
+ 
+ 		/*
+-		 * Setting signals_enabled and reading pending must
++		 * Setting signals_enabled and reading signals_pending must
+ 		 * happen in this order.
+ 		 */
+ 		barrier();
+ 
+-		save_pending = pending;
++		save_pending = signals_pending;
+ 		if (save_pending == 0)
+ 			return;
+ 
+-		pending = 0;
++		signals_pending = 0;
+ 
+ 		/*
+ 		 * We have pending interrupts, so disable signals, as the
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
