@@ -1,77 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-memory-controller-enhancements-for-reclaiming-take2-define-free_mem_cgroup_per_zone_info.patch removed from -mm tree
-Date: Thu, 10 Jan 2008 12:29:47 -0800
-Message-ID: <200801102029.m0AKTm3H007888@imap1.linux-foundation.org>
+Subject: - per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-bugfix-for-memory-cgroup-per-zone-struct-allocation.patch removed from -mm tree
+Date: Thu, 10 Jan 2008 12:29:32 -0800
+Message-ID: <200801102029.m0AKTW30007879@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50650 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46231 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754079AbYAJUaA (ORCPT
+	by vger.kernel.org with ESMTP id S1753087AbYAJU3t (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jan 2008 15:30:00 -0500
+	Thu, 10 Jan 2008 15:29:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, Lee.Schermerhorn@hp.com, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memory controller enhancements for reclaiming take2: define free_mem_cgroup_per_zone_info
+     bugfix for memory cgroup per-zone-struct allocation
 has been removed from the -mm tree.  Its filename was
-     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-memory-controller-enhancements-for-reclaiming-take2-define-free_mem_cgroup_per_zone_info.patch
+     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-bugfix-for-memory-cgroup-per-zone-struct-allocation.patch
 
 This patch was dropped because it was folded into per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory controller enhancements for reclaiming take2: define free_mem_cgroup_per_zone_info
+Subject: bugfix for memory cgroup per-zone-struct allocation
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Now allocation of per_zone of mem_controller is done by
-alloc_mem_cgroup_per_zone_info(). Then it will be good to use
-free_mem_cgroup_per_zone_info() for maintainance.
+This is a fix. tested on my ia64/NUMA box both on SLAB/SLUB.
+This patch fixes kmalloc_node() is called against node-without-memory.
+
+It's better to add memory hotplug callback for supporing possible nodes
+(memory hotplug) but here just uses kmalloc().
+
+Should be revisited later.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Tested-by: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-memory-controller-enhancements-for-reclaiming-take2-define-free_mem_cgroup_per_zone_info mm/memcontrol.c
---- a/mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-memory-controller-enhancements-for-reclaiming-take2-define-free_mem_cgroup_per_zone_info
+diff -puN mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-bugfix-for-memory-cgroup-per-zone-struct-allocation mm/memcontrol.c
+--- a/mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-bugfix-for-memory-cgroup-per-zone-struct-allocation
 +++ a/mm/memcontrol.c
-@@ -1118,6 +1118,11 @@ static int alloc_mem_cgroup_per_zone_inf
- 	return 0;
- }
+@@ -1092,8 +1092,18 @@ static int alloc_mem_cgroup_per_zone_inf
+ 	struct mem_cgroup_per_node *pn;
+ 	struct mem_cgroup_per_zone *mz;
+ 	int zone;
+-
+-	pn = kmalloc_node(sizeof(*pn), GFP_KERNEL, node);
++	/*
++	 * This routine is called against possible nodes.
++	 * But it's BUG to call kmalloc() against offline node.
++	 *
++	 * TODO: this routine can waste much memory for nodes which will
++	 *       never be onlined. It's better to use memory hotplug callback
++	 *       function.
++	 */
++	if (node_state(node, N_HIGH_MEMORY))
++		pn = kmalloc_node(sizeof(*pn), GFP_KERNEL, node);
++	else
++		pn = kmalloc(sizeof(*pn), GFP_KERNEL);
+ 	if (!pn)
+ 		return 1;
  
-+static void free_mem_cgroup_per_zone_info(struct mem_cgroup *mem, int node)
-+{
-+	kfree(mem->info.nodeinfo[node]);
-+}
-+
- 
- static struct mem_cgroup init_mem_cgroup;
- 
-@@ -1149,7 +1154,7 @@ mem_cgroup_create(struct cgroup_subsys *
- 	return &mem->css;
- free_out:
- 	for_each_node_state(node, N_POSSIBLE)
--		kfree(mem->info.nodeinfo[node]);
-+		free_mem_cgroup_per_zone_info(mem, node);
- 	if (cont->parent != NULL)
- 		kfree(mem);
- 	return NULL;
-@@ -1169,7 +1174,7 @@ static void mem_cgroup_destroy(struct cg
- 	struct mem_cgroup *mem = mem_cgroup_from_cont(cont);
- 
- 	for_each_node_state(node, N_POSSIBLE)
--		kfree(mem->info.nodeinfo[node]);
-+		free_mem_cgroup_per_zone_info(mem, node);
- 
- 	kfree(mem_cgroup_from_cont(cont));
- }
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
@@ -113,6 +109,7 @@ per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-bugfix-for-memory-cgroup-per-zone-struct-allocation.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup-memory-controller-enhancements-for-reclaiming-take2-define-free_mem_cgroup_per_zone_info.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
 memory-controller-remove-control_type-feature.patch
