@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-mechanism-to-process-each-task-in-a-cgroup.patch added to -mm tree
-Date: Wed, 09 Jan 2008 22:44:45 -0800
-Message-ID: <200801100644.m0A6iPeW009360@imap1.linux-foundation.org>
+Subject: + cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch added to -mm tree
+Date: Wed, 09 Jan 2008 22:44:47 -0800
+Message-ID: <200801100644.m0A6iRIT009363@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57775 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53541 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751751AbYAJGog (ORCPT
+	by vger.kernel.org with ESMTP id S1751622AbYAJGof (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jan 2008 01:44:36 -0500
+	Thu, 10 Jan 2008 01:44:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cpw@sgi.com, menage@google.com, pj@sgi.com, rientjes@google.com
+Cc: akpm@linux-foundation.org, cpw@sgi.com, menage@google.com, pj@sgi.com, rientjes@google.com
 
 
 The patch titled
-     cgroups: mechanism to process each task in a cgroup
+     cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup
 has been added to the -mm tree.  Its filename is
-     cgroups-mechanism-to-process-each-task-in-a-cgroup.patch
+     cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,299 +28,282 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: mechanism to process each task in a cgroup
-From: Cliff Wickman <cpw@sgi.com>
+Subject: cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Provide cgroup_scan_tasks(), which iterates through every task in a cgroup,
-calling a test function and a process function for each.  And call the process
-function without holding the css_set_lock lock.
+I had to change _something_.
 
-The idea is David Rientjes', predicting that such a function will make it much
-easier in the future to extend things that require access to each task in a
-cgroup without holding the lock,
-
-Signed-off-by: Cliff Wickman <cpw@sgi.com>
-Cc: Paul Menage <menage@google.com>
+Cc: Cliff Wickman <cpw@sgi.com>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Paul Jackson <pj@sgi.com>
-Acked-by: David Rientjes <rientjes@google.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h |   13 ++
- kernel/cgroup.c        |  198 ++++++++++++++++++++++++++++++++++++---
- 2 files changed, 199 insertions(+), 12 deletions(-)
+ kernel/cgroup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/cgroup.h~cgroups-mechanism-to-process-each-task-in-a-cgroup include/linux/cgroup.h
---- a/include/linux/cgroup.h~cgroups-mechanism-to-process-each-task-in-a-cgroup
-+++ a/include/linux/cgroup.h
-@@ -14,6 +14,7 @@
- #include <linux/nodemask.h>
- #include <linux/rcupdate.h>
- #include <linux/cgroupstats.h>
-+#include <linux/prio_heap.h>
- 
- #ifdef CONFIG_CGROUPS
- 
-@@ -207,6 +208,13 @@ struct cftype {
- 	int (*release) (struct inode *inode, struct file *file);
- };
- 
-+struct cgroup_scanner {
-+	struct cgroup *cg;
-+	int (*test_task)(struct task_struct *p, struct cgroup_scanner *scan);
-+	void (*process_task)(struct task_struct *p, struct cgroup_scanner *scan);
-+	struct ptr_heap *heap;
-+};
-+
- /* Add a new file to the given cgroup directory. Should only be
-  * called by subsystems from within a populate() method */
- int cgroup_add_file(struct cgroup *cont, struct cgroup_subsys *subsys,
-@@ -299,11 +307,16 @@ struct cgroup_iter {
-  *    returns NULL or until you want to end the iteration
-  *
-  * 3) call cgroup_iter_end() to destroy the iterator.
-+ *
-+ * Or, call cgroup_scan_tasks() to iterate through every task in a cpuset.
-+ *    - cgroup_scan_tasks() holds the css_set_lock when calling the test_task()
-+ *      callback, but not while calling the process_task() callback.
-  */
- void cgroup_iter_start(struct cgroup *cont, struct cgroup_iter *it);
- struct task_struct *cgroup_iter_next(struct cgroup *cont,
- 					struct cgroup_iter *it);
- void cgroup_iter_end(struct cgroup *cont, struct cgroup_iter *it);
-+int cgroup_scan_tasks(struct cgroup_scanner *scan);
- 
- #else /* !CONFIG_CGROUPS */
- 
-diff -puN kernel/cgroup.c~cgroups-mechanism-to-process-each-task-in-a-cgroup kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-mechanism-to-process-each-task-in-a-cgroup
+diff -puN kernel/cgroup.c~cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup
 +++ a/kernel/cgroup.c
-@@ -1695,6 +1695,29 @@ static void cgroup_advance_iter(struct c
- 	it->task = cg->tasks.next;
- }
- 
-+/*
-+ * To reduce the fork() overhead for systems that are not actually
-+ * using their cgroups capability, we don't maintain the lists running
-+ * through each css_set to its tasks until we see the list actually
-+ * used - in other words after the first call to cgroup_iter_start().
-+ *
-+ * The tasklist_lock is not held here, as do_each_thread() and
-+ * while_each_thread() are protected by RCU.
-+ */
-+void cgroup_enable_task_cg_lists(void)
-+{
-+	struct task_struct *p, *g;
-+	write_lock(&css_set_lock);
-+	use_task_css_set_links = 1;
-+ 	do_each_thread(g, p) {
-+		task_lock(p);
-+		if (list_empty(&p->cg_list))
-+			list_add(&p->cg_list, &p->cgroups->tasks);
-+		task_unlock(p);
-+ 	} while_each_thread(g, p);
-+	write_unlock(&css_set_lock);
-+}
+@@ -1893,8 +1893,8 @@ int cgroup_scan_tasks(struct cgroup_scan
+ 		 * the heap and wasn't inserted
+ 		 */
+ 	}
+-
+ 	cgroup_iter_end(scan->cg, &it);
 +
- void cgroup_iter_start(struct cgroup *cgrp, struct cgroup_iter *it)
- {
- 	/*
-@@ -1702,18 +1725,9 @@ void cgroup_iter_start(struct cgroup *cg
- 	 * we need to enable the list linking each css_set to its
- 	 * tasks, and fix up all existing tasks.
- 	 */
--	if (!use_task_css_set_links) {
--		struct task_struct *p, *g;
--		write_lock(&css_set_lock);
--		use_task_css_set_links = 1;
-- 		do_each_thread(g, p) {
--			task_lock(p);
--			if (list_empty(&p->cg_list))
--				list_add(&p->cg_list, &p->cgroups->tasks);
--			task_unlock(p);
-- 		} while_each_thread(g, p);
--		write_unlock(&css_set_lock);
--	}
-+	if (!use_task_css_set_links)
-+		cgroup_enable_task_cg_lists();
-+
- 	read_lock(&css_set_lock);
- 	it->cg_link = &cgrp->css_sets;
- 	cgroup_advance_iter(cgrp, it);
-@@ -1746,6 +1760,166 @@ void cgroup_iter_end(struct cgroup *cgrp
- 	read_unlock(&css_set_lock);
- }
- 
-+static inline int started_after_time(struct task_struct *t1,
-+				     struct timespec *time,
-+				     struct task_struct *t2)
-+{
-+	int start_diff = timespec_compare(&t1->start_time, time);
-+	if (start_diff > 0) {
-+		return 1;
-+	} else if (start_diff < 0) {
-+		return 0;
-+	} else {
-+		/*
-+		 * Arbitrarily, if two processes started at the same
-+		 * time, we'll say that the lower pointer value
-+		 * started first. Note that t2 may have exited by now
-+		 * so this may not be a valid pointer any longer, but
-+		 * that's fine - it still serves to distinguish
-+		 * between two tasks started (effectively) simultaneously.
-+		 */
-+		return t1 > t2;
-+	}
-+}
-+
-+/*
-+ * This function is a callback from heap_insert() and is used to order
-+ * the heap.
-+ * In this case we order the heap in descending task start time.
-+ */
-+static inline int started_after(void *p1, void *p2)
-+{
-+	struct task_struct *t1 = p1;
-+	struct task_struct *t2 = p2;
-+	return started_after_time(t1, &t2->start_time, t2);
-+}
-+
-+/**
-+ * cgroup_scan_tasks - iterate though all the tasks in a cgroup
-+ * @scan: struct cgroup_scanner containing arguments for the scan
-+ *
-+ * Arguments include pointers to callback functions test_task() and
-+ * process_task().
-+ * Iterate through all the tasks in a cgroup, calling test_task() for each,
-+ * and if it returns true, call process_task() for it also.
-+ * The test_task pointer may be NULL, meaning always true (select all tasks).
-+ * Effectively duplicates cgroup_iter_{start,next,end}()
-+ * but does not lock css_set_lock for the call to process_task().
-+ * The struct cgroup_scanner may be embedded in any structure of the caller's
-+ * creation.
-+ * It is guaranteed that process_task() will act on every task that
-+ * is a member of the cgroup for the duration of this call. This
-+ * function may or may not call process_task() for tasks that exit
-+ * or move to a different cgroup during the call, or are forked or
-+ * move into the cgroup during the call.
-+ *
-+ * Note that test_task() may be called with locks held, and may in some
-+ * situations be called multiple times for the same task, so it should
-+ * be cheap.
-+ * If the heap pointer in the struct cgroup_scanner is non-NULL, a heap has been
-+ * pre-allocated and will be used for heap operations (and its "gt" member will
-+ * be overwritten), else a temporary heap will be used (allocation of which
-+ * may cause this function to fail).
-+ */
-+int cgroup_scan_tasks(struct cgroup_scanner *scan)
-+{
-+	int retval, i;
-+	struct cgroup_iter it;
-+	struct task_struct *p, *dropped;
-+	/* Never dereference latest_task, since it's not refcounted */
-+	struct task_struct *latest_task = NULL;
-+	struct ptr_heap tmp_heap;
-+	struct ptr_heap *heap;
-+	struct timespec latest_time = { 0, 0 };
-+
-+	if (scan->heap) {
-+		/* The caller supplied our heap and pre-allocated its memory */
-+		heap = scan->heap;
-+		heap->gt = &started_after;
-+	} else {
-+		/* We need to allocate our own heap memory */
-+		heap = &tmp_heap;
-+		retval = heap_init(heap, PAGE_SIZE, GFP_KERNEL, &started_after);
-+		if (retval)
-+			/* cannot allocate the heap */
-+			return retval;
-+	}
-+
-+ again:
-+	/*
-+	 * Scan tasks in the cgroup, using the scanner's "test_task" callback
-+	 * to determine which are of interest, and using the scanner's
-+	 * "process_task" callback to process any of them that need an update.
-+	 * Since we don't want to hold any locks during the task updates,
-+	 * gather tasks to be processed in a heap structure.
-+	 * The heap is sorted by descending task start time.
-+	 * If the statically-sized heap fills up, we overflow tasks that
-+	 * started later, and in future iterations only consider tasks that
-+	 * started after the latest task in the previous pass. This
-+	 * guarantees forward progress and that we don't miss any tasks.
-+	 */
-+	heap->size = 0;
-+	cgroup_iter_start(scan->cg, &it);
-+	while ((p = cgroup_iter_next(scan->cg, &it))) {
-+		/*
-+		 * Only affect tasks that qualify per the caller's callback,
-+		 * if he provided one
-+		 */
-+		if (scan->test_task && !scan->test_task(p, scan))
-+			continue;
-+		/*
-+		 * Only process tasks that started after the last task
-+		 * we processed
-+		 */
-+		if (!started_after_time(p, &latest_time, latest_task))
-+			continue;
-+		dropped = heap_insert(heap, p);
-+		if (dropped == NULL) {
-+			/*
-+			 * The new task was inserted; the heap wasn't
-+			 * previously full
-+			 */
-+			get_task_struct(p);
-+		} else if (dropped != p) {
-+			/*
-+			 * The new task was inserted, and pushed out a
-+			 * different task
-+			 */
-+			get_task_struct(p);
-+			put_task_struct(dropped);
-+		}
-+		/*
-+		 * Else the new task was newer than anything already in
-+		 * the heap and wasn't inserted
-+		 */
-+	}
-+
-+	cgroup_iter_end(scan->cg, &it);
-+	if (heap->size) {
-+		for (i = 0; i < heap->size; i++) {
-+			struct task_struct *p = heap->ptrs[i];
-+			if (i == 0) {
-+				latest_time = p->start_time;
-+				latest_task = p;
-+			}
-+			/* Process the task per the caller's callback */
-+			scan->process_task(p, scan);
-+			put_task_struct(p);
-+		}
-+		/*
-+		 * If we had to process any tasks at all, scan again
-+		 * in case some of them were in the middle of forking
-+		 * children that didn't get processed.
-+		 * Not the most efficient way to do it, but it avoids
-+		 * having to take callback_mutex in the fork path
-+		 */
-+		goto again;
-+	}
-+	if (heap == &tmp_heap)
-+		heap_free(&tmp_heap);
-+	return 0;
-+}
-+
- /*
-  * Stuff for reading the 'tasks' file.
-  *
+ 	if (heap->size) {
+ 		for (i = 0; i < heap->size; i++) {
+ 			struct task_struct *p = heap->ptrs[i];
 _
 
-Patches currently in -mm which might be from cpw@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-cgroups-mechanism-to-process-each-task-in-a-cgroup.patch
+pl2303-fix-mode-switching-regression-fix.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes.patch
+timerfd-v3-new-timerfd-api-ia64-fix.patch
+timerfd-v3-new-timerfd-api-m68k-fix.patch
+timerfd-v3-new-timerfd-api-mips-fix.patch
+timerfd-v3-new-timerfd-api-arch-fixes.patch
+timerfd-v3-new-timerfd-api-powerpc-fix.patch
+timerfd-v3-new-timerfd-api-sparc64-fix.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-agpgart-intel-agp-dont-zero-an-already-registered-resource-during-resume.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+kernel-auditc-warning-fix.patch
+git-cifs.patch
+git-cpufreq.patch
+git-powerpc.patch
+git-powerpc-fixup.patch
+revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+intel-agp-enable-i915-recognition.patch
+drm-convert-from-nopage-to-fault-checkpatch-fixes.patch
+git-dvb.patch
+fix-jdelvare-i2c-i2c-constify-client-address-data.patch
+hwmon-new-chip-driver-for-ti-ads7828-a-d-checkpatch-fixes.patch
+git-hid.patch
+revert-git-hrt.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-versus-driver-tree.patch
+git-kbuild.patch
+git-kvm.patch
+kvm-ist-kaput.patch
+git-libata-all.patch
+git-libata-all-fix-pata_winbond-borkage.patch
+git-libata-all-wtf.patch
+libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
+libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
+libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
+git-md-accel.patch
+git-mmc.patch
+git-mtd.patch
+git-net.patch
+git-net-vs-git-lblnet.patch
+git-net-vs-git-lblnet-2.patch
+git-netdev-all.patch
+git-net-vs-git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+backlight-omap1-backlight-driver.patch
+git-battery.patch
+bluetooth-uninlining.patch
+net-sunrpc-schedc-revert-git-net-changes.patch
+net-sunrpc-schedc-reapply-git-net-changes.patch
+net-sunrpc-svcsockc-revert-git-nfs-changes.patch
+git-nfsd.patch
+net-sunrpc-svcsockc-reapply-git-nfs-changes.patch
+serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+git-sched.patch
+git-sched-fixup.patch
+git-sh.patch
+git-scsi-misc.patch
+scsi-aic94xx-cleanups-checkpatch-fixes.patch
+scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
+9p-util-fix-semaphore-handling.patch
+git-watchdog.patch
+git-watchdog-fixup.patch
+wdt-fix-locking-checkpatch-fixes.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+arch-x86-makefile-revert-git-kvm-change.patch
+git-x86.patch
+arch-x86-makefile-reapply-git-kvm-change.patch
+git-x86-fixup.patch
+git-x86-fix-doubly-merged-patch.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-xtensa.patch
+bonding-locking-fix.patch
+usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-add-proc-kpagecount-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix-2-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+mm-remove-fastcall-from-mm-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+stopmachine-semaphore-to-mutex-fix.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
+debug_smp_processor_id-fixlets.patch
+use-ilog2-in-fs-namespacec-fix.patch
+avoid-overflows-in-kernel-timec-fix.patch
+export-iov_shorten-for-ext4s-use-fix.patch
+system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
+speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
+add-have_oprofile.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+rtc-add-support-for-the-s-35390a-rtc-chip.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+neofb-avoid-overwriting-fb_info-fields.patch
+vermilionc-use-align-not-__align_mask.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+ext4-mm-ext4_store_maxbytes_for_bitmaped_files-warning-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
 cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
-hotplug-cpu-move-tasks-in-empty-cpusets-to-parent.patch
 hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
-cpusets-update_cpumask-revision.patch
 cpusets-update_cpumask-revision-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
