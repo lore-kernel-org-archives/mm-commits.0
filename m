@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch added to -mm tree
-Date: Thu, 10 Jan 2008 00:02:57 -0800
-Message-ID: <200801100802.m0A82bcs012009@imap1.linux-foundation.org>
+Subject: + asm-posix_typesh-scrub-__glibc__.patch added to -mm tree
+Date: Thu, 10 Jan 2008 00:05:21 -0800
+Message-ID: <200801100805.m0A851jS012049@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33387 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60944 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752214AbYAJIDT (ORCPT
+	by vger.kernel.org with ESMTP id S1752432AbYAJIGb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jan 2008 03:03:19 -0500
+	Thu, 10 Jan 2008 03:06:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, dhowells@redhat.com, jdike@linux.intel.com
+Cc: vapier@gentoo.org, drepper@redhat.com, linux-arch@vger.kernel.org, mingo@elte.hu, roland@redhat.com
 
 
 The patch titled
-     uml: re-remove accidentally restored code
+     asm-*/posix_types.h: scrub __GLIBC__
 has been added to the -mm tree.  Its filename is
-     aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
+     asm-posix_typesh-scrub-__glibc__.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,145 +28,458 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: re-remove accidentally restored code
-From: Jeff Dike <jdike@addtoit.com>
+Subject: asm-*/posix_types.h: scrub __GLIBC__
+From: Mike Frysinger <vapier@gentoo.org>
 
-aout-suppress-aout-library-support-if-config_arch_supports_aout.patch restores
-some code which had been deleted by uml-move-um_virt_to_phys.patch and
-uml-add-virt_to_pte.patch, presumably due to a botched diff.
+Some arches (like alpha and ia64) already have a clean posix_types.h header.
+This brings all the others in line by removing all references to __GLIBC__
+(and some undocumented __USE_ALL).
 
-This patch gets rid of it again.
-
-Cc: David Howells <dhowells@redhat.com>
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Ulrich Drepper <drepper@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/process.c |   44 -------------------------------------
- 1 file changed, 44 deletions(-)
+ include/asm-arm/posix_types.h      |    6 +-----
+ include/asm-avr32/posix_types.h    |    4 ----
+ include/asm-blackfin/posix_types.h |    8 ++------
+ include/asm-cris/posix_types.h     |    4 ----
+ include/asm-frv/posix_types.h      |    8 ++------
+ include/asm-h8300/posix_types.h    |    8 ++------
+ include/asm-m32r/posix_types.h     |    8 ++------
+ include/asm-m68k/posix_types.h     |    8 ++------
+ include/asm-mips/posix_types.h     |    4 ++--
+ include/asm-parisc/posix_types.h   |    8 ++------
+ include/asm-powerpc/posix_types.h  |    5 ++---
+ include/asm-sh/posix_types.h       |    8 ++------
+ include/asm-sparc/posix_types.h    |    8 ++------
+ include/asm-sparc64/posix_types.h  |    8 ++------
+ include/asm-v850/posix_types.h     |    8 ++------
+ include/asm-x86/posix_types_32.h   |    8 ++------
+ include/asm-xtensa/posix_types.h   |    5 ++---
+ 17 files changed, 29 insertions(+), 87 deletions(-)
 
-diff -puN arch/um/kernel/process.c~aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code arch/um/kernel/process.c
---- a/arch/um/kernel/process.c~aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code
-+++ a/arch/um/kernel/process.c
-@@ -6,7 +6,6 @@
+diff -puN include/asm-arm/posix_types.h~asm-posix_typesh-scrub-__glibc__ include/asm-arm/posix_types.h
+--- a/include/asm-arm/posix_types.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-arm/posix_types.h
+@@ -51,14 +51,10 @@ typedef long long		__kernel_loff_t;
+ #endif
  
- #include <linux/stddef.h>
- #include <linux/err.h>
--#include <linux/module.h>
- #include <linux/hardirq.h>
- #include <linux/gfp.h>
- #include <linux/mm.h>
-@@ -259,49 +258,6 @@ void cpu_idle(void)
- 	default_idle();
+ typedef struct {
+-#if defined(__KERNEL__) || defined(__USE_ALL)
+ 	int	val[2];
+-#else /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+-	int	__val[2];
+-#endif /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+ } __kernel_fsid_t;
+ 
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
++#if defined(__KERNEL__)
+ 
+ #undef	__FD_SET
+ #define __FD_SET(fd, fdsetp) \
+diff -puN include/asm-avr32/posix_types.h~asm-posix_typesh-scrub-__glibc__ include/asm-avr32/posix_types.h
+--- a/include/asm-avr32/posix_types.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-avr32/posix_types.h
+@@ -46,11 +46,7 @@ typedef long long       __kernel_loff_t;
+ #endif
+ 
+ typedef struct {
+-#if defined(__KERNEL__) || defined(__USE_ALL)
+     int     val[2];
+-#else /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+-    int     __val[2];
+-#endif /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+ } __kernel_fsid_t;
+ 
+ #if defined(__KERNEL__)
+diff -puN include/asm-blackfin/posix_types.h~asm-posix_typesh-scrub-__glibc__ include/asm-blackfin/posix_types.h
+--- a/include/asm-blackfin/posix_types.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-blackfin/posix_types.h
+@@ -39,14 +39,10 @@ typedef long long __kernel_loff_t;
+ #endif
+ 
+ typedef struct {
+-#if defined(__KERNEL__) || defined(__USE_ALL)
+ 	int val[2];
+-#else				/* !defined(__KERNEL__) && !defined(__USE_ALL) */
+-	int __val[2];
+-#endif				/* !defined(__KERNEL__) && !defined(__USE_ALL) */
+ } __kernel_fsid_t;
+ 
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
++#if defined(__KERNEL__)
+ 
+ #undef	__FD_SET
+ #define	__FD_SET(d, set)	((set)->fds_bits[__FDELT(d)] |= __FDMASK(d))
+@@ -60,6 +56,6 @@ typedef struct {
+ #undef	__FD_ZERO
+ #define __FD_ZERO(fdsetp) (memset (fdsetp, 0, sizeof(*(fd_set *)fdsetp)))
+ 
+-#endif				/* defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) */
++#endif				/* defined(__KERNEL__) */
+ 
+ #endif
+diff -puN include/asm-cris/posix_types.h~asm-posix_typesh-scrub-__glibc__ include/asm-cris/posix_types.h
+--- a/include/asm-cris/posix_types.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-cris/posix_types.h
+@@ -44,11 +44,7 @@ typedef long long	__kernel_loff_t;
+ #endif
+ 
+ typedef struct {
+-#if defined(__KERNEL__) || defined(__USE_ALL)
+ 	int	val[2];
+-#else /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+-	int	__val[2];
+-#endif /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+ } __kernel_fsid_t;
+ 
+ #ifdef __KERNEL__
+diff -puN include/asm-frv/posix_types.h~asm-posix_typesh-scrub-__glibc__ include/asm-frv/posix_types.h
+--- a/include/asm-frv/posix_types.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-frv/posix_types.h
+@@ -39,14 +39,10 @@ typedef long long	__kernel_loff_t;
+ #endif
+ 
+ typedef struct {
+-#if defined(__KERNEL__) || defined(__USE_ALL)
+ 	int	val[2];
+-#else /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+-	int	__val[2];
+-#endif /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+ } __kernel_fsid_t;
+ 
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
++#if defined(__KERNEL__)
+ 
+ #undef	__FD_SET
+ #define	__FD_SET(d, set)	((set)->fds_bits[__FDELT(d)] |= __FDMASK(d))
+@@ -60,7 +56,7 @@ typedef struct {
+ #undef	__FD_ZERO
+ #define __FD_ZERO(fdsetp) (memset (fdsetp, 0, sizeof(*(fd_set *)fdsetp)))
+ 
+-#endif /* defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) */
++#endif /* defined(__KERNEL__) */
+ 
+ #endif
+ 
+diff -puN include/asm-h8300/posix_types.h~asm-posix_typesh-scrub-__glibc__ include/asm-h8300/posix_types.h
+--- a/include/asm-h8300/posix_types.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-h8300/posix_types.h
+@@ -38,14 +38,10 @@ typedef long long	__kernel_loff_t;
+ #endif
+ 
+ typedef struct {
+-#if defined(__KERNEL__) || defined(__USE_ALL)
+ 	int	val[2];
+-#else /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+-	int	__val[2];
+-#endif /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+ } __kernel_fsid_t;
+ 
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
++#if defined(__KERNEL__)
+ 
+ #undef	__FD_SET
+ #define	__FD_SET(d, set)	((set)->fds_bits[__FDELT(d)] |= __FDMASK(d))
+@@ -59,6 +55,6 @@ typedef struct {
+ #undef	__FD_ZERO
+ #define __FD_ZERO(fdsetp) (memset (fdsetp, 0, sizeof(*(fd_set *)fdsetp)))
+ 
+-#endif /* defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) */
++#endif /* defined(__KERNEL__) */
+ 
+ #endif
+diff -puN include/asm-m32r/posix_types.h~asm-posix_typesh-scrub-__glibc__ include/asm-m32r/posix_types.h
+--- a/include/asm-m32r/posix_types.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-m32r/posix_types.h
+@@ -39,14 +39,10 @@ typedef long long	__kernel_loff_t;
+ #endif
+ 
+ typedef struct {
+-#if defined(__KERNEL__) || defined(__USE_ALL)
+ 	int	val[2];
+-#else /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+-	int	__val[2];
+-#endif /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+ } __kernel_fsid_t;
+ 
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
++#if defined(__KERNEL__)
+ 
+ #undef	__FD_SET
+ static __inline__ void __FD_SET(unsigned long __fd, __kernel_fd_set *__fdsetp)
+@@ -117,6 +113,6 @@ static __inline__ void __FD_ZERO(__kerne
+ 	}
  }
  
--void *um_virt_to_phys(struct task_struct *task, unsigned long addr,
--		      pte_t *pte_out)
--{
--	pgd_t *pgd;
--	pud_t *pud;
--	pmd_t *pmd;
--	pte_t *pte;
--	pte_t ptent;
--
--	if (task->mm == NULL)
--		return ERR_PTR(-EINVAL);
--	pgd = pgd_offset(task->mm, addr);
--	if (!pgd_present(*pgd))
--		return ERR_PTR(-EINVAL);
--
--	pud = pud_offset(pgd, addr);
--	if (!pud_present(*pud))
--		return ERR_PTR(-EINVAL);
--
--	pmd = pmd_offset(pud, addr);
--	if (!pmd_present(*pmd))
--		return ERR_PTR(-EINVAL);
--
--	pte = pte_offset_kernel(pmd, addr);
--	ptent = *pte;
--	if (!pte_present(ptent))
--		return ERR_PTR(-EINVAL);
--
--	if (pte_out != NULL)
--		*pte_out = ptent;
--	return (void *) (pte_val(ptent) & PAGE_MASK) + (addr & ~PAGE_MASK);
--}
--
--char *current_cmd(void)
--{
--#if defined(CONFIG_SMP) || defined(CONFIG_HIGHMEM)
--	return "(Unknown)";
--#else
--	void *addr = um_virt_to_phys(current, current->mm->arg_start, NULL);
--	return IS_ERR(addr) ? "(Unknown)": __va((unsigned long) addr);
--#endif
--}
--
- int __cant_sleep(void) {
- 	return in_atomic() || irqs_disabled() || in_interrupt();
- 	/* Is in_interrupt() really needed? */
+-#endif /* defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) */
++#endif /* defined(__KERNEL__) */
+ 
+ #endif  /* _ASM_M32R_POSIX_TYPES_H */
+diff -puN include/asm-m68k/posix_types.h~asm-posix_typesh-scrub-__glibc__ include/asm-m68k/posix_types.h
+--- a/include/asm-m68k/posix_types.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-m68k/posix_types.h
+@@ -39,14 +39,10 @@ typedef long long	__kernel_loff_t;
+ #endif
+ 
+ typedef struct {
+-#if defined(__KERNEL__) || defined(__USE_ALL)
+ 	int	val[2];
+-#else /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+-	int	__val[2];
+-#endif /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+ } __kernel_fsid_t;
+ 
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
++#if defined(__KERNEL__)
+ 
+ #undef	__FD_SET
+ #define	__FD_SET(d, set)	((set)->fds_bits[__FDELT(d)] |= __FDMASK(d))
+@@ -60,6 +56,6 @@ typedef struct {
+ #undef	__FD_ZERO
+ #define __FD_ZERO(fdsetp) (memset (fdsetp, 0, sizeof(*(fd_set *)fdsetp)))
+ 
+-#endif /* defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) */
++#endif /* defined(__KERNEL__) */
+ 
+ #endif
+diff -puN include/asm-mips/posix_types.h~asm-posix_typesh-scrub-__glibc__ include/asm-mips/posix_types.h
+--- a/include/asm-mips/posix_types.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-mips/posix_types.h
+@@ -69,7 +69,7 @@ typedef struct {
+ #endif
+ } __kernel_fsid_t;
+ 
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
++#if defined(__KERNEL__)
+ 
+ #undef __FD_SET
+ static __inline__ void __FD_SET(unsigned long __fd, __kernel_fd_set *__fdsetp)
+@@ -139,6 +139,6 @@ static __inline__ void __FD_ZERO(__kerne
+ 	}
+ }
+ 
+-#endif /* defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) */
++#endif /* defined(__KERNEL__) */
+ 
+ #endif /* _ASM_POSIX_TYPES_H */
+diff -puN include/asm-parisc/posix_types.h~asm-posix_typesh-scrub-__glibc__ include/asm-parisc/posix_types.h
+--- a/include/asm-parisc/posix_types.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-parisc/posix_types.h
+@@ -47,18 +47,14 @@ typedef unsigned long long	__kernel_ino6
+ typedef unsigned int		__kernel_old_dev_t;
+ 
+ typedef struct {
+-#if defined(__KERNEL__) || defined(__USE_ALL)
+ 	int	val[2];
+-#else /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+-	int	__val[2];
+-#endif /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+ } __kernel_fsid_t;
+ 
+ /* compatibility stuff */
+ typedef __kernel_uid_t __kernel_old_uid_t;
+ typedef __kernel_gid_t __kernel_old_gid_t;
+ 
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
++#if defined(__KERNEL__)
+ 
+ #undef __FD_SET
+ static __inline__ void __FD_SET(unsigned long __fd, __kernel_fd_set *__fdsetp)
+@@ -128,6 +124,6 @@ static __inline__ void __FD_ZERO(__kerne
+ 	}
+ }
+ 
+-#endif /* defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) */
++#endif /* defined(__KERNEL__) */
+ 
+ #endif
+diff -puN include/asm-powerpc/posix_types.h~asm-posix_typesh-scrub-__glibc__ include/asm-powerpc/posix_types.h
+--- a/include/asm-powerpc/posix_types.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-powerpc/posix_types.h
+@@ -64,8 +64,7 @@ typedef struct {
+ 
+ #else /* __GNUC__ */
+ 
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) \
+-    || (__GLIBC__ == 2 && __GLIBC_MINOR__ == 0)
++#if defined(__KERNEL__)
+ /* With GNU C, use inline functions instead so args are evaluated only once: */
+ 
+ #undef __FD_SET
+@@ -124,6 +123,6 @@ static __inline__ void __FD_ZERO(__kerne
+ 	}
+ }
+ 
+-#endif /* defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) */
++#endif /* defined(__KERNEL__) */
+ #endif /* __GNUC__ */
+ #endif /* _ASM_POWERPC_POSIX_TYPES_H */
+diff -puN include/asm-sh/posix_types.h~asm-posix_typesh-scrub-__glibc__ include/asm-sh/posix_types.h
+--- a/include/asm-sh/posix_types.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-sh/posix_types.h
+@@ -39,14 +39,10 @@ typedef long long	__kernel_loff_t;
+ #endif
+ 
+ typedef struct {
+-#if defined(__KERNEL__) || defined(__USE_ALL)
+ 	int	val[2];
+-#else /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+-	int	__val[2];
+-#endif /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+ } __kernel_fsid_t;
+ 
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
++#if defined(__KERNEL__)
+ 
+ #undef	__FD_SET
+ static __inline__ void __FD_SET(unsigned long __fd, __kernel_fd_set *__fdsetp)
+@@ -117,6 +113,6 @@ static __inline__ void __FD_ZERO(__kerne
+ 	}
+ }
+ 
+-#endif /* defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) */
++#endif /* defined(__KERNEL__) */
+ 
+ #endif /* __ASM_SH_POSIX_TYPES_H */
+diff -puN include/asm-sparc/posix_types.h~asm-posix_typesh-scrub-__glibc__ include/asm-sparc/posix_types.h
+--- a/include/asm-sparc/posix_types.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-sparc/posix_types.h
+@@ -39,14 +39,10 @@ typedef long long	__kernel_loff_t;
+ #endif
+ 
+ typedef struct {
+-#if defined(__KERNEL__) || defined(__USE_ALL)
+ 	int	val[2];
+-#else /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+-	int     __val[2];
+-#endif /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+ } __kernel_fsid_t;
+ 
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
++#if defined(__KERNEL__)
+ 
+ #undef __FD_SET
+ static inline void __FD_SET(unsigned long fd, __kernel_fd_set *fdsetp)
+@@ -117,6 +113,6 @@ static inline void __FD_ZERO(__kernel_fd
+ 	}
+ }
+ 
+-#endif /* defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) */
++#endif /* defined(__KERNEL__) */
+ 
+ #endif /* !(__ARCH_SPARC_POSIX_TYPES_H) */
+diff -puN include/asm-sparc64/posix_types.h~asm-posix_typesh-scrub-__glibc__ include/asm-sparc64/posix_types.h
+--- a/include/asm-sparc64/posix_types.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-sparc64/posix_types.h
+@@ -43,14 +43,10 @@ typedef long long              __kernel_
+ #endif
+ 
+ typedef struct {
+-#if defined(__KERNEL__) || defined(__USE_ALL)
+ 	int	val[2];
+-#else /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+-	int     __val[2];
+-#endif /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+ } __kernel_fsid_t;
+ 
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
++#if defined(__KERNEL__)
+ 
+ #undef __FD_SET
+ static inline void __FD_SET(unsigned long fd, __kernel_fd_set *fdsetp)
+@@ -121,6 +117,6 @@ static inline void __FD_ZERO(__kernel_fd
+ 	}
+ }
+ 
+-#endif /* defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) */
++#endif /* defined(__KERNEL__) */
+ 
+ #endif /* !(__ARCH_SPARC64_POSIX_TYPES_H) */
+diff -puN include/asm-v850/posix_types.h~asm-posix_typesh-scrub-__glibc__ include/asm-v850/posix_types.h
+--- a/include/asm-v850/posix_types.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-v850/posix_types.h
+@@ -44,15 +44,11 @@ typedef __kernel_uid_t __kernel_old_uid_
+ typedef unsigned int	__kernel_old_dev_t;
+ 
+ typedef struct {
+-#if defined(__KERNEL__) || defined(__USE_ALL)
+ 	int	val[2];
+-#else /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+-	int	__val[2];
+-#endif /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+ } __kernel_fsid_t;
+ 
+ 
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
++#if defined(__KERNEL__)
+ 
+ /* We used to include <asm/bitops.h> here, which seems the right thing, but
+    it caused nasty include-file definition order problems.  Removing the
+@@ -71,6 +67,6 @@ typedef struct {
+ #define __FD_ZERO(fd_set) \
+   memset (fd_set, 0, sizeof (*(fd_set *)fd_set))
+ 
+-#endif /* defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) */
++#endif /* defined(__KERNEL__) */
+ 
+ #endif /* __V850_POSIX_TYPES_H__ */
+diff -puN include/asm-x86/posix_types_32.h~asm-posix_typesh-scrub-__glibc__ include/asm-x86/posix_types_32.h
+--- a/include/asm-x86/posix_types_32.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-x86/posix_types_32.h
+@@ -39,14 +39,10 @@ typedef long long	__kernel_loff_t;
+ #endif
+ 
+ typedef struct {
+-#if defined(__KERNEL__) || defined(__USE_ALL)
+ 	int	val[2];
+-#else /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+-	int	__val[2];
+-#endif /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+ } __kernel_fsid_t;
+ 
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
++#if defined(__KERNEL__)
+ 
+ #undef	__FD_SET
+ #define __FD_SET(fd,fdsetp) \
+@@ -77,6 +73,6 @@ do { \
+ 			"2" ((__kernel_fd_set *) (fdsetp)) : "memory"); \
+ } while (0)
+ 
+-#endif /* defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) */
++#endif /* defined(__KERNEL__) */
+ 
+ #endif
+diff -puN include/asm-xtensa/posix_types.h~asm-posix_typesh-scrub-__glibc__ include/asm-xtensa/posix_types.h
+--- a/include/asm-xtensa/posix_types.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-xtensa/posix_types.h
+@@ -64,8 +64,7 @@ typedef struct {
+ 
+ #else /* __GNUC__ */
+ 
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) \
+-    || (__GLIBC__ == 2 && __GLIBC_MINOR__ == 0)
++#if defined(__KERNEL__)
+ /* With GNU C, use inline functions instead so args are evaluated only once: */
+ 
+ #undef __FD_SET
+@@ -118,6 +117,6 @@ static __inline__ void __FD_ZERO(__kerne
+ 	}
+ }
+ 
+-#endif /* defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) */
++#endif /* defined(__KERNEL__) */
+ #endif /* __GNUC__ */
+ #endif /* _XTENSA_POSIX_TYPES_H */
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
-git-kvm.patch
+git-kbuild.patch
 git-x86.patch
-uml-arch-um-include-inith-needs-a-definition-of-__used.patch
-uml-implement-get_wchan.patch
-uml-implement-get_wchan-fix.patch
-uml-get-rid-of-asmlinkage.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-document-new-ubd-flag.patch
-uml-further-bugsc-tidying.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-uml-smp-needs-to-depend-on-broken-for-now.patch
-uml-console-driver-cleanups.patch
-uml-clonec-tidying.patch
-uml-borrow-consth-techniques.patch
-uml-delete-some-unused-headers.patch
-uml-allow-lflags-on-command-line.patch
-uml-tidy-kern_utilh.patch
-uml-tidy-pgtableh.patch
-uml-tidy-pgtableh-fix.patch
-uml-reconst-a-parameter.patch
-arch-um-remove-duplicate-includes.patch
-uml-host-tls-diagnostics.patch
-uml-move-um_virt_to_phys.patch
-uml-header-untangling.patch
-uml-header-untangling-fix.patch
-uml-style-cleanup.patch
-uml-currenth-cleanup.patch
-uml-fix-page-table-data-sizes.patch
-uml-add-virt_to_pte.patch
-uml-simplify-sigsegv-handling.patch
-uml-use-ptrace-directly-in-libc-code.patch
-uml-kill-processes-instead-of-panicing-kernel.patch
-uml-clean-up-task_size-usage.patch
-uml-cover-stubs-with-a-vma.patch
-uml-fix-command-line-cflags-and-ldflags-support.patch
-uml-style-fixes-in-arch-um-os-linux.patch
-uml-miscellaneous-code-cleanups.patch
-uml-style-fixes-in-filec.patch
-uml-64-bit-tlb-fixes.patch
-uml-customize-tlbh.patch
-uml-eliminate-setjmp_wrapper.patch
-uml-install-panic-notifier-earlier.patch
-uml-use-barrier-instead-of-mb.patch
-uml-tidy-helper-code.patch
-uml-dont-kill-pid-0.patch
-uml-get-rid-of-syscall-counters.patch
-uml-dont-allow-processes-to-call-into-stub.patch
-uml-move-sig_handler_common_skas.patch
-uml-clean-up-sig_handler_common_skas.patch
-uml-style-fixes-in-arch-um-kernel.patch
-uml-signal-handling-tidying.patch
-uml-remove-init_irq_signals.patch
-fix-__const_udelay-declaration-and-definition-mismatches.patch
-create-arch-kconfig.patch
-add-have_oprofile.patch
-add-have_kprobes.patch
-move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
+asm-posix_typesh-scrub-__glibc__.patch
