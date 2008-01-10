@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ufs-fix-symlink-creation-on-ufs2-fix.patch added to -mm tree
-Date: Wed, 09 Jan 2008 23:53:22 -0800
-Message-ID: <200801100753.m0A7r2Go011666@imap1.linux-foundation.org>
+Subject: + uml-style-fixes-in-arch-um-kernel.patch added to -mm tree
+Date: Wed, 09 Jan 2008 23:59:41 -0800
+Message-ID: <200801100759.m0A7xLQa011858@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44282 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60261 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753907AbYAJHxi (ORCPT
+	by vger.kernel.org with ESMTP id S1754306AbYAJH7g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jan 2008 02:53:38 -0500
+	Thu, 10 Jan 2008 02:59:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dushistov@mail.ru, stevenaaus@yahoo.com
+Cc: jdike@addtoit.com, jdike@linux.intel.com, joe@perches.com
 
 
 The patch titled
-     ufs-fix-symlink-creation-on-ufs2-fix
+     uml: style fixes in arch/um/kernel
 has been added to the -mm tree.  Its filename is
-     ufs-fix-symlink-creation-on-ufs2-fix.patch
+     uml-style-fixes-in-arch-um-kernel.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,280 +28,683 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ufs-fix-symlink-creation-on-ufs2-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: uml: style fixes in arch/um/kernel
+From: Jeff Dike <jdike@addtoit.com>
 
-Cc: Evgeniy Dushistov <dushistov@mail.ru>
-Cc: Steven <stevenaaus@yahoo.com>
+Joe Perches noticed some printks in smp.c that needed fixing.
+
+While I was in there, I did the usual tidying in arch/um/kernel, which
+should be fairly style-clean at this point:
+	copyright updates
+	emacs formatting comments removal
+	include tidying
+	style fixes
+
+Cc: Joe Perches <joe@perches.com>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/super.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/um/kernel/exitcode.c   |   31 +++++++++++++----------
+ arch/um/kernel/gmon_syms.c  |   11 ++++----
+ arch/um/kernel/gprof_syms.c |   13 ----------
+ arch/um/kernel/process.c    |   41 +++++++++++++++++--------------
+ arch/um/kernel/reboot.c     |    6 ++--
+ arch/um/kernel/sigio.c      |   18 ++++---------
+ arch/um/kernel/signal.c     |   16 ++++++------
+ arch/um/kernel/smp.c        |    7 ++---
+ arch/um/kernel/sysrq.c      |   44 ++++++++++++++++------------------
+ arch/um/kernel/time.c       |   14 +++++-----
+ arch/um/kernel/tlb.c        |    2 -
+ arch/um/kernel/uaccess.c    |   11 +++++---
+ arch/um/kernel/um_arch.c    |   26 ++++++++++----------
+ arch/um/kernel/umid.c       |   15 +++++------
+ 14 files changed, 122 insertions(+), 133 deletions(-)
 
-diff -puN fs/ufs/super.c~ufs-fix-symlink-creation-on-ufs2-fix fs/ufs/super.c
---- a/fs/ufs/super.c~ufs-fix-symlink-creation-on-ufs2-fix
-+++ a/fs/ufs/super.c
-@@ -132,7 +132,7 @@ static void ufs_print_super_stuff(struct
- 		       (unsigned long long)
- 		       fs64_to_cpu(sb, usb3->fs_un1.fs_u2.cs_nffree));
- 		printk(KERN_INFO"  fs_maxsymlinklen: %u\n",
--		       usb3->fs_un2.fs_44.fs_maxsymlinklen);
-+		       fs32_to_cpu(sb, usb3->fs_un2.fs_44.fs_maxsymlinklen));
- 	} else {
- 		printk(" sblkno:      %u\n", fs32_to_cpu(sb, usb1->fs_sblkno));
- 		printk(" cblkno:      %u\n", fs32_to_cpu(sb, usb1->fs_cblkno));
+diff -puN arch/um/kernel/exitcode.c~uml-style-fixes-in-arch-um-kernel arch/um/kernel/exitcode.c
+--- a/arch/um/kernel/exitcode.c~uml-style-fixes-in-arch-um-kernel
++++ a/arch/um/kernel/exitcode.c
+@@ -1,15 +1,17 @@
+ /*
+- * Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
++ * Copyright (C) 2002 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  * Licensed under the GPL
+  */
+ 
+-#include "linux/kernel.h"
+-#include "linux/init.h"
+-#include "linux/ctype.h"
+-#include "linux/proc_fs.h"
+-#include "asm/uaccess.h"
++#include <linux/ctype.h>
++#include <linux/init.h>
++#include <linux/kernel.h>
++#include <linux/proc_fs.h>
++#include <linux/types.h>
++#include <asm/uaccess.h>
+ 
+-/* If read and write race, the read will still atomically read a valid
++/*
++ * If read and write race, the read will still atomically read a valid
+  * value.
+  */
+ int uml_exitcode = 0;
+@@ -19,18 +21,19 @@ static int read_proc_exitcode(char *page
+ {
+ 	int len, val;
+ 
+-	/* Save uml_exitcode in a local so that we don't need to guarantee
++	/*
++	 * Save uml_exitcode in a local so that we don't need to guarantee
+ 	 * that sprintf accesses it atomically.
+ 	 */
+ 	val = uml_exitcode;
+ 	len = sprintf(page, "%d\n", val);
+ 	len -= off;
+-	if(len <= off+count)
++	if (len <= off+count)
+ 		*eof = 1;
+ 	*start = page + off;
+-	if(len > count)
++	if (len > count)
+ 		len = count;
+-	if(len < 0)
++	if (len < 0)
+ 		len = 0;
+ 	return len;
+ }
+@@ -41,11 +44,11 @@ static int write_proc_exitcode(struct fi
+ 	char *end, buf[sizeof("nnnnn\0")];
+ 	int tmp;
+ 
+-	if(copy_from_user(buf, buffer, count))
++	if (copy_from_user(buf, buffer, count))
+ 		return -EFAULT;
+ 
+ 	tmp = simple_strtol(buf, &end, 0);
+-	if((*end != '\0') && !isspace(*end))
++	if ((*end != '\0') && !isspace(*end))
+ 		return -EINVAL;
+ 
+ 	uml_exitcode = tmp;
+@@ -57,7 +60,7 @@ static int make_proc_exitcode(void)
+ 	struct proc_dir_entry *ent;
+ 
+ 	ent = create_proc_entry("exitcode", 0600, &proc_root);
+-	if(ent == NULL){
++	if (ent == NULL) {
+ 		printk(KERN_WARNING "make_proc_exitcode : Failed to register "
+ 		       "/proc/exitcode\n");
+ 		return 0;
+diff -puN arch/um/kernel/gmon_syms.c~uml-style-fixes-in-arch-um-kernel arch/um/kernel/gmon_syms.c
+--- a/arch/um/kernel/gmon_syms.c~uml-style-fixes-in-arch-um-kernel
++++ a/arch/um/kernel/gmon_syms.c
+@@ -1,5 +1,5 @@
+-/* 
+- * Copyright (C) 2001, 2002 Jeff Dike (jdike@karaya.com)
++/*
++ * Copyright (C) 2001 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  * Licensed under the GPL
+  */
+ 
+@@ -8,12 +8,13 @@
+ extern void __bb_init_func(void *)  __attribute__((weak));
+ EXPORT_SYMBOL(__bb_init_func);
+ 
+-/* This is defined (and referred to in profiling stub code) only by some GCC
++/*
++ * This is defined (and referred to in profiling stub code) only by some GCC
+  * versions in libgcov.
+  *
+  * Since SuSE backported the fix, we cannot handle it depending on GCC version.
+- * So, unconditionally export it. But also give it a weak declaration, which will
+- * be overridden by any other one.
++ * So, unconditionally export it. But also give it a weak declaration, which
++ * will be overridden by any other one.
+  */
+ 
+ extern void __gcov_init(void *) __attribute__((weak));
+diff -puN arch/um/kernel/gprof_syms.c~uml-style-fixes-in-arch-um-kernel arch/um/kernel/gprof_syms.c
+--- a/arch/um/kernel/gprof_syms.c~uml-style-fixes-in-arch-um-kernel
++++ a/arch/um/kernel/gprof_syms.c
+@@ -1,5 +1,5 @@
+ /* 
+- * Copyright (C) 2001, 2002 Jeff Dike (jdike@karaya.com)
++ * Copyright (C) 2001 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  * Licensed under the GPL
+  */
+ 
+@@ -7,14 +7,3 @@
+ 
+ extern void mcount(void);
+ EXPORT_SYMBOL(mcount);
+-
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
+diff -puN arch/um/kernel/process.c~uml-style-fixes-in-arch-um-kernel arch/um/kernel/process.c
+--- a/arch/um/kernel/process.c~uml-style-fixes-in-arch-um-kernel
++++ a/arch/um/kernel/process.c
+@@ -4,19 +4,21 @@
+  * Licensed under the GPL
+  */
+ 
+-#include "linux/stddef.h"
+-#include "linux/err.h"
+-#include "linux/hardirq.h"
+-#include "linux/mm.h"
+-#include "linux/personality.h"
+-#include "linux/proc_fs.h"
+-#include "linux/ptrace.h"
+-#include "linux/random.h"
+-#include "linux/sched.h"
+-#include "linux/tick.h"
+-#include "linux/threads.h"
+-#include "asm/pgtable.h"
+-#include "asm/uaccess.h"
++#include <linux/stddef.h>
++#include <linux/err.h>
++#include <linux/hardirq.h>
++#include <linux/gfp.h>
++#include <linux/mm.h>
++#include <linux/personality.h>
++#include <linux/proc_fs.h>
++#include <linux/ptrace.h>
++#include <linux/random.h>
++#include <linux/sched.h>
++#include <linux/tick.h>
++#include <linux/threads.h>
++#include <asm/current.h>
++#include <asm/pgtable.h>
++#include <asm/uaccess.h>
+ #include "as-layout.h"
+ #include "kern_util.h"
+ #include "os.h"
+@@ -40,7 +42,7 @@ int pid_to_processor_id(int pid)
+ {
+ 	int i;
+ 
+-	for(i = 0; i < ncpus; i++) {
++	for (i = 0; i < ncpus; i++) {
+ 		if (cpu_tasks[i].pid == pid)
+ 			return i;
+ 	}
+@@ -94,14 +96,15 @@ void *_switch_to(void *prev, void *next,
+ 	do {
+ 		current->thread.saved_task = NULL;
+ 
+-		switch_threads(&from->thread.switch_buf, &to->thread.switch_buf);
++		switch_threads(&from->thread.switch_buf,
++			       &to->thread.switch_buf);
+ 
+ 		arch_switch_to(current);
+ 
+ 		if (current->thread.saved_task)
+ 			show_regs(&(current->thread.regs));
+-		next = current->thread.saved_task;
+-		prev = current;
++		to = current->thread.saved_task;
++		from = current;
+ 	} while (current->thread.saved_task);
+ 
+ 	return current->thread.prev_sched;
+@@ -232,7 +235,7 @@ void default_idle(void)
+ {
+ 	unsigned long long nsecs;
+ 
+-	while(1) {
++	while (1) {
+ 		/* endless idle loop with no priority at all */
+ 
+ 		/*
+@@ -387,7 +390,7 @@ int singlestepping(void * t)
+ {
+ 	struct task_struct *task = t ? t : current;
+ 
+-	if ( ! (task->ptrace & PT_DTRACE) )
++	if (!(task->ptrace & PT_DTRACE))
+ 		return 0;
+ 
+ 	if (task->thread.singlestep_syscall)
+diff -puN arch/um/kernel/reboot.c~uml-style-fixes-in-arch-um-kernel arch/um/kernel/reboot.c
+--- a/arch/um/kernel/reboot.c~uml-style-fixes-in-arch-um-kernel
++++ a/arch/um/kernel/reboot.c
+@@ -12,7 +12,7 @@ void (*pm_power_off)(void);
+ 
+ static void kill_off_processes(void)
+ {
+-	if(proc_mm)
++	if (proc_mm)
+ 		/*
+ 		 * FIXME: need to loop over userspace_pids
+ 		 */
+@@ -22,8 +22,8 @@ static void kill_off_processes(void)
+ 		int pid, me;
+ 
+ 		me = os_getpid();
+-		for_each_process(p){
+-			if(p->mm == NULL)
++		for_each_process(p) {
++			if (p->mm == NULL)
+ 				continue;
+ 
+ 			pid = p->mm->context.id.u.pid;
+diff -puN arch/um/kernel/sigio.c~uml-style-fixes-in-arch-um-kernel arch/um/kernel/sigio.c
+--- a/arch/um/kernel/sigio.c~uml-style-fixes-in-arch-um-kernel
++++ a/arch/um/kernel/sigio.c
+@@ -1,18 +1,12 @@
+ /*
+- * Copyright (C) 2002 - 2003 Jeff Dike (jdike@addtoit.com)
++ * Copyright (C) 2002 - 2007 Jeff Dike (jdike@{linux.intel,addtoit}.com)
+  * Licensed under the GPL
+  */
+ 
+-#include "linux/kernel.h"
+-#include "linux/list.h"
+-#include "linux/slab.h"
+-#include "linux/signal.h"
+-#include "linux/interrupt.h"
+-#include "init.h"
+-#include "sigio.h"
+-#include "irq_user.h"
++#include <linux/interrupt.h>
+ #include "irq_kern.h"
+ #include "os.h"
++#include "sigio.h"
+ 
+ /* Protected by sigio_lock() called from write_sigio_workaround */
+ static int sigio_irq_fd = -1;
+@@ -33,9 +27,9 @@ int write_sigio_irq(int fd)
+ 	err = um_request_irq(SIGIO_WRITE_IRQ, fd, IRQ_READ, sigio_interrupt,
+ 			     IRQF_DISABLED|IRQF_SAMPLE_RANDOM, "write sigio",
+ 			     NULL);
+-	if(err){
+-		printk("write_sigio_irq : um_request_irq failed, err = %d\n",
+-		       err);
++	if (err) {
++		printk(KERN_ERR "write_sigio_irq : um_request_irq failed, "
++		       "err = %d\n", err);
+ 		return -1;
+ 	}
+ 	sigio_irq_fd = fd;
+diff -puN arch/um/kernel/signal.c~uml-style-fixes-in-arch-um-kernel arch/um/kernel/signal.c
+--- a/arch/um/kernel/signal.c~uml-style-fixes-in-arch-um-kernel
++++ a/arch/um/kernel/signal.c
+@@ -3,12 +3,12 @@
+  * Licensed under the GPL
+  */
+ 
+-#include "linux/module.h"
+-#include "linux/ptrace.h"
+-#include "linux/sched.h"
+-#include "asm/siginfo.h"
+-#include "asm/signal.h"
+-#include "asm/unistd.h"
++#include <linux/module.h>
++#include <linux/ptrace.h>
++#include <linux/sched.h>
++#include <asm/siginfo.h>
++#include <asm/signal.h>
++#include <asm/unistd.h>
+ #include "frame_kern.h"
+ #include "kern_util.h"
+ #include "sigcontext.h"
+@@ -36,7 +36,7 @@ static int handle_signal(struct pt_regs 
+ 	/* Did we come from a system call? */
+ 	if (PT_REGS_SYSCALL_NR(regs) >= 0) {
+ 		/* If so, check system call restarting.. */
+-		switch(PT_REGS_SYSCALL_RET(regs)) {
++		switch (PT_REGS_SYSCALL_RET(regs)) {
+ 		case -ERESTART_RESTARTBLOCK:
+ 		case -ERESTARTNOHAND:
+ 			PT_REGS_SYSCALL_RET(regs) = -EINTR;
+@@ -116,7 +116,7 @@ static int kern_do_signal(struct pt_regs
+ 	/* Did we come from a system call? */
+ 	if (!handled_sig && (PT_REGS_SYSCALL_NR(regs) >= 0)) {
+ 		/* Restart the system call - no handlers present */
+-		switch(PT_REGS_SYSCALL_RET(regs)) {
++		switch (PT_REGS_SYSCALL_RET(regs)) {
+ 		case -ERESTARTNOHAND:
+ 		case -ERESTARTSYS:
+ 		case -ERESTARTNOINTR:
+diff -puN arch/um/kernel/smp.c~uml-style-fixes-in-arch-um-kernel arch/um/kernel/smp.c
+--- a/arch/um/kernel/smp.c~uml-style-fixes-in-arch-um-kernel
++++ a/arch/um/kernel/smp.c
+@@ -60,7 +60,7 @@ void smp_send_stop(void)
+ 			continue;
+ 		os_write_file(cpu_data[i].ipi_pipe[1], "S", 1);
+ 	}
+-	printk(KERN_INFO "done\n");
++	printk(KERN_CONT "done\n");
+ }
+ 
+ static cpumask_t smp_commenced_mask = CPU_MASK_NONE;
+@@ -140,9 +140,8 @@ void smp_prepare_cpus(unsigned int maxcp
+ 		while (waittime-- && !cpu_isset(cpu, cpu_callin_map))
+ 			cpu_relax();
+ 
+-		if (cpu_isset(cpu, cpu_callin_map))
+-			printk(KERN_INFO "done\n");
+-		else printk(KERN_INFO "failed\n");
++		printk(KERN_INFO "%s\n",
++		       cpu_isset(cpu, cpu_calling_map) ? "done" : "failed");
+ 	}
+ }
+ 
+diff -puN arch/um/kernel/sysrq.c~uml-style-fixes-in-arch-um-kernel arch/um/kernel/sysrq.c
+--- a/arch/um/kernel/sysrq.c~uml-style-fixes-in-arch-um-kernel
++++ a/arch/um/kernel/sysrq.c
+@@ -1,38 +1,37 @@
+-/* 
+- * Copyright (C) 2001 Jeff Dike (jdike@karaya.com)
++/*
++ * Copyright (C) 2001 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  * Licensed under the GPL
+  */
+ 
+-#include "linux/sched.h"
+-#include "linux/kernel.h"
+-#include "linux/module.h"
+-#include "linux/kallsyms.h"
+-#include "asm/page.h"
+-#include "asm/processor.h"
++#include <linux/kallsyms.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/sched.h>
+ #include "sysrq.h"
+ 
+ /* Catch non-i386 SUBARCH's. */
+ #if !defined(CONFIG_UML_X86) || defined(CONFIG_64BIT)
+ void show_trace(struct task_struct *task, unsigned long * stack)
+ {
+-        unsigned long addr;
++	unsigned long addr;
+ 
+-        if (!stack) {
++	if (!stack) {
+ 		stack = (unsigned long*) &stack;
+ 		WARN_ON(1);
+ 	}
+ 
+-        printk("Call Trace: \n");
+-        while (((long) stack & (THREAD_SIZE-1)) != 0) {
+-                addr = *stack;
++	printk(KERN_INFO "Call Trace: \n");
++	while (((long) stack & (THREAD_SIZE-1)) != 0) {
++		addr = *stack;
+ 		if (__kernel_text_address(addr)) {
+-			printk("%08lx:  [<%08lx>]", (unsigned long) stack, addr);
+-			print_symbol(" %s", addr);
+-			printk("\n");
+-                }
+-                stack++;
+-        }
+-        printk("\n");
++			printk(KERN_INFO "%08lx:  [<%08lx>]",
++			       (unsigned long) stack, addr);
++			print_symbol(KERN_CONT " %s", addr);
++			printk(KERN_CONT "\n");
++		}
++		stack++;
++	}
++	printk(KERN_INFO "\n");
+ }
+ #endif
+ 
+@@ -67,14 +66,13 @@ void show_stack(struct task_struct *task
+ 	}
+ 
+ 	stack = esp;
+-	for(i = 0; i < kstack_depth_to_print; i++) {
++	for (i = 0; i < kstack_depth_to_print; i++) {
+ 		if (kstack_end(stack))
+ 			break;
+ 		if (i && ((i % 8) == 0))
+-			printk("\n       ");
++			printk("\n" KERN_INFO "       ");
+ 		printk("%08lx ", *stack++);
+ 	}
+ 
+-	printk("Call Trace: \n");
+ 	show_trace(task, esp);
+ }
+diff -puN arch/um/kernel/time.c~uml-style-fixes-in-arch-um-kernel arch/um/kernel/time.c
+--- a/arch/um/kernel/time.c~uml-style-fixes-in-arch-um-kernel
++++ a/arch/um/kernel/time.c
+@@ -3,12 +3,12 @@
+  * Licensed under the GPL
+  */
+ 
+-#include "linux/clockchips.h"
+-#include "linux/interrupt.h"
+-#include "linux/jiffies.h"
+-#include "linux/threads.h"
+-#include "asm/irq.h"
+-#include "asm/param.h"
++#include <linux/clockchips.h>
++#include <linux/interrupt.h>
++#include <linux/jiffies.h>
++#include <linux/threads.h>
++#include <asm/irq.h>
++#include <asm/param.h>
+ #include "kern_util.h"
+ #include "os.h"
+ 
+@@ -32,7 +32,7 @@ void timer_handler(int sig, struct uml_p
+ static void itimer_set_mode(enum clock_event_mode mode,
+ 			    struct clock_event_device *evt)
+ {
+-	switch(mode) {
++	switch (mode) {
+ 	case CLOCK_EVT_MODE_PERIODIC:
+ 		set_interval();
+ 		break;
+diff -puN arch/um/kernel/tlb.c~uml-style-fixes-in-arch-um-kernel arch/um/kernel/tlb.c
+--- a/arch/um/kernel/tlb.c~uml-style-fixes-in-arch-um-kernel
++++ a/arch/um/kernel/tlb.c
+@@ -57,7 +57,7 @@ static int do_ops(struct host_vm_change 
+ 
+ 	for (i = 0; i < end && !ret; i++) {
+ 		op = &hvc->ops[i];
+-		switch(op->type) {
++		switch (op->type) {
+ 		case MMAP:
+ 			ret = map(hvc->id, op->u.mmap.addr, op->u.mmap.len,
+ 				  op->u.mmap.prot, op->u.mmap.fd,
+diff -puN arch/um/kernel/uaccess.c~uml-style-fixes-in-arch-um-kernel arch/um/kernel/uaccess.c
+--- a/arch/um/kernel/uaccess.c~uml-style-fixes-in-arch-um-kernel
++++ a/arch/um/kernel/uaccess.c
+@@ -1,10 +1,11 @@
+ /*
+  * Copyright (C) 2001 Chris Emerson (cemerson@chiark.greenend.org.uk)
+- * Copyright (C) 2001, 2002 Jeff Dike (jdike@karaya.com)
++ * Copyright (C) 2001 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  * Licensed under the GPL
+  */
+ 
+-/* These are here rather than tt/uaccess.c because skas mode needs them in
++/*
++ * These are here rather than tt/uaccess.c because skas mode needs them in
+  * order to do SIGBUS recovery when a tmpfs mount runs out of room.
+  */
+ 
+@@ -25,6 +26,8 @@ int __do_copy_to_user(void *to, const vo
+ 
+ 	fault = __do_user_copy(to, from, n, fault_addr, fault_catcher,
+ 			       __do_copy, &faulted);
+-	if(!faulted) return(0);
+-	else return(n - (fault - (unsigned long) to));
++	if (!faulted)
++		return 0;
++	else
++		return n - (fault - (unsigned long) to);
+ }
+diff -puN arch/um/kernel/um_arch.c~uml-style-fixes-in-arch-um-kernel arch/um/kernel/um_arch.c
+--- a/arch/um/kernel/um_arch.c~uml-style-fixes-in-arch-um-kernel
++++ a/arch/um/kernel/um_arch.c
+@@ -3,23 +3,23 @@
+  * Licensed under the GPL
+  */
+ 
+-#include "linux/delay.h"
+-#include "linux/mm.h"
+-#include "linux/module.h"
+-#include "linux/seq_file.h"
+-#include "linux/string.h"
+-#include "linux/utsname.h"
+-#include "asm/pgtable.h"
+-#include "asm/processor.h"
+-#include "asm/setup.h"
+-#include "arch.h"
++#include <linux/delay.h>
++#include <linux/init.h>
++#include <linux/mm.h>
++#include <linux/module.h>
++#include <linux/seq_file.h>
++#include <linux/string.h>
++#include <linux/utsname.h>
++#include <asm/pgtable.h>
++#include <asm/processor.h>
++#include <asm/setup.h>
+ #include "as-layout.h"
++#include "arch.h"
+ #include "init.h"
+ #include "kern.h"
+ #include "kern_util.h"
+ #include "mem_user.h"
+ #include "os.h"
+-#include "skas.h"
+ 
+ #define DEFAULT_COMMAND_LINE "root=98:0"
+ 
+@@ -201,7 +201,7 @@ static void __init uml_checksetup(char *
+ 	struct uml_param *p;
+ 
+ 	p = &__uml_setup_start;
+-	while(p < &__uml_setup_end) {
++	while (p < &__uml_setup_end) {
+ 		int n;
+ 
+ 		n = strlen(p->str);
+@@ -216,7 +216,7 @@ static void __init uml_postsetup(void)
+ 	initcall_t *p;
+ 
+ 	p = &__uml_postsetup_start;
+-	while(p < &__uml_postsetup_end) {
++	while (p < &__uml_postsetup_end) {
+ 		(*p)();
+ 		p++;
+ 	}
+diff -puN arch/um/kernel/umid.c~uml-style-fixes-in-arch-um-kernel arch/um/kernel/umid.c
+--- a/arch/um/kernel/umid.c~uml-style-fixes-in-arch-um-kernel
++++ a/arch/um/kernel/umid.c
+@@ -1,13 +1,12 @@
+-/* 
+- * Copyright (C) 2001, 2002 Jeff Dike (jdike@karaya.com)
++/*
++ * Copyright (C) 2001 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  * Licensed under the GPL
+  */
+ 
+-#include "asm/errno.h"
++#include <asm/errno.h>
+ #include "init.h"
+-#include "os.h"
+ #include "kern.h"
+-#include "linux/kernel.h"
++#include "os.h"
+ 
+ /* Changed by set_umid_arg */
+ static int umid_inited = 0;
+@@ -16,16 +15,16 @@ static int __init set_umid_arg(char *nam
+ {
+ 	int err;
+ 
+-	if(umid_inited){
++	if (umid_inited) {
+ 		printf("umid already set\n");
+ 		return 0;
+ 	}
+ 
+ 	*add = 0;
+ 	err = set_umid(name);
+-	if(err == -EEXIST)
++	if (err == -EEXIST)
+ 		printf("umid '%s' already in use\n", name);
+-	else if(!err)
++	else if (!err)
+ 		umid_inited = 1;
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
-pl2303-fix-mode-switching-regression-fix.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes.patch
-timerfd-v3-new-timerfd-api-ia64-fix.patch
-timerfd-v3-new-timerfd-api-m68k-fix.patch
-timerfd-v3-new-timerfd-api-mips-fix.patch
-timerfd-v3-new-timerfd-api-arch-fixes.patch
-timerfd-v3-new-timerfd-api-powerpc-fix.patch
-timerfd-v3-new-timerfd-api-sparc64-fix.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-agpgart-intel-agp-dont-zero-an-already-registered-resource-during-resume.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-kernel-auditc-warning-fix.patch
-git-cifs.patch
-git-cpufreq.patch
-git-powerpc.patch
-git-powerpc-fixup.patch
-revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-intel-agp-enable-i915-recognition.patch
-drm-convert-from-nopage-to-fault-checkpatch-fixes.patch
-git-dvb.patch
-fix-jdelvare-i2c-i2c-constify-client-address-data.patch
-hwmon-new-chip-driver-for-ti-ads7828-a-d-checkpatch-fixes.patch
-git-hid.patch
-revert-git-hrt.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-versus-driver-tree.patch
-git-kbuild.patch
 git-kvm.patch
-kvm-ist-kaput.patch
-git-libata-all.patch
-git-libata-all-fix-pata_winbond-borkage.patch
-git-libata-all-wtf.patch
-libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
-libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
-libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
-git-md-accel.patch
-git-mmc.patch
-git-mtd.patch
-git-net.patch
-git-net-vs-git-lblnet.patch
-git-net-vs-git-lblnet-2.patch
-git-netdev-all.patch
-git-net-vs-git-netdev-all.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-backlight-omap1-backlight-driver.patch
-git-battery.patch
-bluetooth-uninlining.patch
-net-sunrpc-schedc-revert-git-net-changes.patch
-net-sunrpc-schedc-reapply-git-net-changes.patch
-net-sunrpc-svcsockc-revert-git-nfs-changes.patch
-git-nfsd.patch
-net-sunrpc-svcsockc-reapply-git-nfs-changes.patch
-serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-git-sched.patch
-git-sched-fixup.patch
-git-sh.patch
-git-scsi-misc.patch
-scsi-aic94xx-cleanups-checkpatch-fixes.patch
-scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
-9p-util-fix-semaphore-handling.patch
-git-watchdog.patch
-git-watchdog-fixup.patch
-wdt-fix-locking-checkpatch-fixes.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-arch-x86-makefile-revert-git-kvm-change.patch
 git-x86.patch
-arch-x86-makefile-reapply-git-kvm-change.patch
-git-x86-fixup.patch
-git-x86-fix-doubly-merged-patch.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-git-xtensa.patch
-bonding-locking-fix.patch
-usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-add-proc-kpagecount-interface-fix.patch
-maps4-add-proc-kpageflags-interface-fix.patch
-maps4-add-proc-kpageflags-interface-fix-2-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-mm-remove-fastcall-from-mm-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-arch-um-include-inith-needs-a-definition-of-__used.patch
+uml-implement-get_wchan.patch
+uml-implement-get_wchan-fix.patch
+uml-get-rid-of-asmlinkage.patch
 uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-document-new-ubd-flag.patch
+uml-further-bugsc-tidying.patch
 uml-further-bugsc-tidying-checkpatch-fixes.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
-kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
-stopmachine-semaphore-to-mutex-fix.patch
-parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
-debug_smp_processor_id-fixlets.patch
-use-ilog2-in-fs-namespacec-fix.patch
-avoid-overflows-in-kernel-timec-fix.patch
-export-iov_shorten-for-ext4s-use-fix.patch
-system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
-speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
+uml-smp-needs-to-depend-on-broken-for-now.patch
+uml-console-driver-cleanups.patch
+uml-clonec-tidying.patch
+uml-borrow-consth-techniques.patch
+uml-delete-some-unused-headers.patch
+uml-allow-lflags-on-command-line.patch
+uml-tidy-kern_utilh.patch
+uml-tidy-pgtableh.patch
+uml-tidy-pgtableh-fix.patch
+uml-reconst-a-parameter.patch
+arch-um-remove-duplicate-includes.patch
+uml-host-tls-diagnostics.patch
+uml-move-um_virt_to_phys.patch
+uml-header-untangling.patch
+uml-header-untangling-fix.patch
+uml-style-cleanup.patch
+uml-currenth-cleanup.patch
+uml-fix-page-table-data-sizes.patch
+uml-add-virt_to_pte.patch
+uml-simplify-sigsegv-handling.patch
+uml-use-ptrace-directly-in-libc-code.patch
+uml-kill-processes-instead-of-panicing-kernel.patch
+uml-clean-up-task_size-usage.patch
+uml-cover-stubs-with-a-vma.patch
+uml-fix-command-line-cflags-and-ldflags-support.patch
+uml-style-fixes-in-arch-um-os-linux.patch
+uml-miscellaneous-code-cleanups.patch
+uml-style-fixes-in-filec.patch
+uml-64-bit-tlb-fixes.patch
+uml-customize-tlbh.patch
+uml-eliminate-setjmp_wrapper.patch
+uml-install-panic-notifier-earlier.patch
+uml-use-barrier-instead-of-mb.patch
+uml-tidy-helper-code.patch
+uml-dont-kill-pid-0.patch
+uml-get-rid-of-syscall-counters.patch
+uml-dont-allow-processes-to-call-into-stub.patch
+uml-move-sig_handler_common_skas.patch
+uml-clean-up-sig_handler_common_skas.patch
+uml-style-fixes-in-arch-um-kernel.patch
+uml-signal-handling-tidying.patch
+uml-remove-init_irq_signals.patch
+fix-__const_udelay-declaration-and-definition-mismatches.patch
+create-arch-kconfig.patch
 add-have_oprofile.patch
-ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-rtc-add-support-for-the-s-35390a-rtc-chip.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-neofb-avoid-overwriting-fb_info-fields.patch
-vermilionc-use-align-not-__align_mask.patch
-declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
-ext4-mm-ext4_store_maxbytes_for_bitmaped_files-warning-fix.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
-hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
-cpusets-update_cpumask-revision-fix.patch
-cpusets-update_cpumask-revision-checkpatch-fixes.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+add-have_kprobes.patch
+move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig.patch
+iget-stop-hostfs-from-using-iget-and-read_inode.patch
 iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-pid-sys_wait-fixes-v2-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-rewrite-rd-fixes.patch
-fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
-kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
-lib-remove-fastcall-from-lib-checkpatch-fixes.patch
-remove-fastcall-from-linux-include-checkpatch-fixes.patch
-constify-tables-in-kernel-sysctl_checkc-fix.patch
-aoe-statically-initialise-devlist_lock.patch
-provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc-fix.patch
-ufs-fix-symlink-creation-on-ufs2-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+uml-re-remove-accidentally-restored-code.patch
