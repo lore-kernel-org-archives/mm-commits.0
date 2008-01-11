@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + advansys-fix-section-mismatch-warning.patch added to -mm tree
-Date: Thu, 10 Jan 2008 21:44:27 -0800
-Message-ID: <200801110544.m0B5i7I8028235@imap1.linux-foundation.org>
+Subject: + hugetlbfs-fix-quota-leak.patch added to -mm tree
+Date: Fri, 11 Jan 2008 01:44:12 -0800
+Message-ID: <200801110943.m0B9hqC8003630@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37990 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48826 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750842AbYAKFpm (ORCPT
+	by vger.kernel.org with ESMTP id S1753408AbYAKJoJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jan 2008 00:45:42 -0500
+	Fri, 11 Jan 2008 04:44:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, James.Bottomley@steeleye.com, willy@debian.org
+Cc: kenchen@google.com, agl@us.ibm.com, david@gibson.dropbear.id.au, wli@holomorphy.com
 
 
 The patch titled
-     advansys: fix section mismatch warning
+     hugetlbfs: fix quota leak
 has been added to the -mm tree.  Its filename is
-     advansys-fix-section-mismatch-warning.patch
+     hugetlbfs-fix-quota-leak.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: advansys: fix section mismatch warning
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: hugetlbfs: fix quota leak
+From: "Ken Chen" <kenchen@google.com>
 
-Fix section mismatch warning:
+In the error path of both shared and private hugetlb page allocation, the file
+system quota is never undone, leading to fs quota leak.  Fix them up.
 
-WARNING: vmlinux.o(.exit.text+0x152a): Section mismatch: reference to .init.data:_asc_def_iop_base (between 'advansys_isa_remove' and 'advansys_exit')
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Matthew Wilcox <willy@debian.org>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+[akpm@linux-foundation.org: cleanup, micro-optimise]
+Signed-off-by: Ken Chen <kenchen@google.com>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: David Gibson <david@gibson.dropbear.id.au>
+Cc: William Lee Irwin III <wli@holomorphy.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/advansys.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
-diff -puN drivers/scsi/advansys.c~advansys-fix-section-mismatch-warning drivers/scsi/advansys.c
---- a/drivers/scsi/advansys.c~advansys-fix-section-mismatch-warning
-+++ a/drivers/scsi/advansys.c
-@@ -13906,7 +13906,7 @@ static int advansys_release(struct Scsi_
+diff -puN mm/hugetlb.c~hugetlbfs-fix-quota-leak mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlbfs-fix-quota-leak
++++ a/mm/hugetlb.c
+@@ -418,9 +418,14 @@ static struct page *alloc_huge_page_priv
+ 	if (free_huge_pages > resv_huge_pages)
+ 		page = dequeue_huge_page(vma, addr);
+ 	spin_unlock(&hugetlb_lock);
+-	if (!page)
++	if (!page) {
+ 		page = alloc_buddy_huge_page(vma, addr);
+-	return page ? page : ERR_PTR(-VM_FAULT_OOM);
++		if (!page) {
++			hugetlb_put_quota(vma->vm_file->f_mapping, 1);
++			return ERR_PTR(-VM_FAULT_OOM);
++		}
++	}
++	return page;
+ }
  
- #define ASC_IOADR_TABLE_MAX_IX  11
- 
--static PortAddr _asc_def_iop_base[ASC_IOADR_TABLE_MAX_IX] __devinitdata = {
-+static PortAddr _asc_def_iop_base[ASC_IOADR_TABLE_MAX_IX] = {
- 	0x100, 0x0110, 0x120, 0x0130, 0x140, 0x0150, 0x0190,
- 	0x0210, 0x0230, 0x0250, 0x0330
- };
+ static struct page *alloc_huge_page(struct vm_area_struct *vma,
+@@ -1206,8 +1211,10 @@ int hugetlb_reserve_pages(struct inode *
+ 	if (hugetlb_get_quota(inode->i_mapping, chg))
+ 		return -ENOSPC;
+ 	ret = hugetlb_acct_memory(chg);
+-	if (ret < 0)
++	if (ret < 0) {
++		hugetlb_put_quota(inode->i_mapping, chg);
+ 		return ret;
++	}
+ 	region_add(&inode->i_mapping->private_list, from, to);
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from kenchen@google.com are
 
-scsi-qla2xxx-qla_osc-section-fix.patch
-cciss-section-mismatch.patch
-advansys-fix-section-mismatch-warning.patch
-git-dvb.patch
-dvb-av7110-fix-section-mismatch.patch
-git-kbuild.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-pcmcia-include-bad-cis-filename-in-error-message.patch
-git-scsi-misc.patch
-megaraid-fix-section-mismatch.patch
-git-unionfs.patch
-hostap-section-mismatch-warning.patch
-git-ipwireless_cs.patch
-git-x86.patch
-x86-discover_ebda-section-mismatch.patch
-register_cpu-__devinit-or-__cpuinit.patch
-cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
-dio-fix-kernel-doc-notation.patch
-tpm-infineon-section-mismatch.patch
-fs-menu-small-reorg.patch
-profile-likely-unlikely-macros.patch
+hugetlbfs-fix-quota-leak.patch
+hugetlb-allow-sticky-directory-mount-option.patch
