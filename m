@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cris-v10-kernel-timec-needs-to-include-linux-vmstath-to-compile.patch added to -mm tree
-Date: Fri, 11 Jan 2008 15:45:21 -0800
-Message-ID: <200801112345.m0BNjLgN003994@imap1.linux-foundation.org>
+Subject: + cris-define-__arch_want_sys_rt_sigsuspend-in-unistdh-for-cris.patch added to -mm tree
+Date: Fri, 11 Jan 2008 15:49:20 -0800
+Message-ID: <200801112349.m0BNnKEV004153@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39690 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49768 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762904AbYAKXpZ (ORCPT
+	by vger.kernel.org with ESMTP id S1757148AbYAKXtY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jan 2008 18:45:25 -0500
+	Fri, 11 Jan 2008 18:49:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jesper.nilsson@axis.com, mikael.starvik@axis.com
 
 
 The patch titled
-     CRIS v10: kernel/time.c needs to include linux/vmstat.h to compile
+     CRIS: define __ARCH_WANT_SYS_RT_SIGSUSPEND in unistd.h for CRIS
 has been added to the -mm tree.  Its filename is
-     cris-v10-kernel-timec-needs-to-include-linux-vmstath-to-compile.patch
+     cris-define-__arch_want_sys_rt_sigsuspend-in-unistdh-for-cris.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: CRIS v10: kernel/time.c needs to include linux/vmstat.h to compile
+Subject: CRIS: define __ARCH_WANT_SYS_RT_SIGSUSPEND in unistd.h for CRIS
 From: Jesper Nilsson <jesper.nilsson@axis.com>
 
-This fixes compile error when nr_free_pages() from linux/swap.h
-expands to global_page_state(NR_FREE_PAGES), but linux/vmstat.h isn't
-included to declare global_page_state().
+This allows us to use the commong sys_rt_sigsuspend instead of
+having our own.
 
 Signed-off-by: Jesper Nilsson <jesper.nilsson@axis.com>
 Cc: Mikael Starvik <mikael.starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v10/kernel/time.c |    1 +
+ include/asm-cris/unistd.h |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN arch/cris/arch-v10/kernel/time.c~cris-v10-kernel-timec-needs-to-include-linux-vmstath-to-compile arch/cris/arch-v10/kernel/time.c
---- a/arch/cris/arch-v10/kernel/time.c~cris-v10-kernel-timec-needs-to-include-linux-vmstath-to-compile
-+++ a/arch/cris/arch-v10/kernel/time.c
-@@ -13,6 +13,7 @@
- #include <linux/swap.h>
- #include <linux/sched.h>
- #include <linux/init.h>
-+#include <linux/vmstat.h>
- #include <asm/arch/svinto.h>
- #include <asm/types.h>
- #include <asm/signal.h>
+diff -puN include/asm-cris/unistd.h~cris-define-__arch_want_sys_rt_sigsuspend-in-unistdh-for-cris include/asm-cris/unistd.h
+--- a/include/asm-cris/unistd.h~cris-define-__arch_want_sys_rt_sigsuspend-in-unistdh-for-cris
++++ a/include/asm-cris/unistd.h
+@@ -358,6 +358,7 @@
+ #define __ARCH_WANT_SYS_SIGPENDING
+ #define __ARCH_WANT_SYS_SIGPROCMASK
+ #define __ARCH_WANT_SYS_RT_SIGACTION
++#define __ARCH_WANT_SYS_RT_SIGSUSPEND
+ 
+ /*
+  * "Conditional" syscalls
 _
 
 Patches currently in -mm which might be from jesper.nilsson@axis.com are
