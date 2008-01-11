@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tpm-infineon-section-mismatch.patch added to -mm tree
-Date: Thu, 10 Jan 2008 16:04:48 -0800
-Message-ID: <200801110004.m0B04mGZ016484@imap1.linux-foundation.org>
+Subject: + cciss-section-mismatch.patch added to -mm tree
+Date: Thu, 10 Jan 2008 16:04:41 -0800
+Message-ID: <200801110004.m0B04fpc016468@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37824 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53157 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754781AbYAKAFD (ORCPT
+	by vger.kernel.org with ESMTP id S1754772AbYAKAE7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jan 2008 19:05:03 -0500
+	Thu, 10 Jan 2008 19:04:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, tpm@selhorst.net
+Cc: randy.dunlap@oracle.com, mike.miller@hp.com
 
 
 The patch titled
-     tpm: infineon section mismatch
+     cciss: section mismatch
 has been added to the -mm tree.  Its filename is
-     tpm-infineon-section-mismatch.patch
+     cciss-section-mismatch.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,49 +28,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tpm: infineon section mismatch
+Subject: cciss: section mismatch
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix section mismatch by making the driver template variable name
-match one of the whitelisted variable names in modpost.
+Mark cciss_pci_init() as __devinit, to fix section mismatch warning.
 
-WARNING: vmlinux.o(.data+0x7a9e8): Section mismatch: reference to .init.text:tpm_inf_pnp_probe (between 'tpm_inf_pnp' and 'cn_idx')
+WARNING: vmlinux.o(.text+0x601fc9): Section mismatch: reference to .init.text: (between 'cciss_pci_init' and 'cciss_getgeometry')
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Marcel Selhorst <tpm@selhorst.net>
+Cc: <mike.miller@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tpm/tpm_infineon.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/block/cciss.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/tpm/tpm_infineon.c~tpm-infineon-section-mismatch drivers/char/tpm/tpm_infineon.c
---- a/drivers/char/tpm/tpm_infineon.c~tpm-infineon-section-mismatch
-+++ a/drivers/char/tpm/tpm_infineon.c
-@@ -611,7 +611,7 @@ static __devexit void tpm_inf_pnp_remove
- 	}
+diff -puN drivers/block/cciss.c~cciss-section-mismatch drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-section-mismatch
++++ a/drivers/block/cciss.c
+@@ -2929,7 +2929,7 @@ default_int_mode:
+ 	return;
  }
  
--static struct pnp_driver tpm_inf_pnp = {
-+static struct pnp_driver tpm_inf_pnp_driver = {
- 	.name = "tpm_inf_pnp",
- 	.driver = {
- 		.owner = THIS_MODULE,
-@@ -625,12 +625,12 @@ static struct pnp_driver tpm_inf_pnp = {
- 
- static int __init init_inf(void)
+-static int cciss_pci_init(ctlr_info_t *c, struct pci_dev *pdev)
++static int __devinit cciss_pci_init(ctlr_info_t *c, struct pci_dev *pdev)
  {
--	return pnp_register_driver(&tpm_inf_pnp);
-+	return pnp_register_driver(&tpm_inf_pnp_driver);
- }
- 
- static void __exit cleanup_inf(void)
- {
--	pnp_unregister_driver(&tpm_inf_pnp);
-+	pnp_unregister_driver(&tpm_inf_pnp_driver);
- }
- 
- module_init(init_inf);
+ 	ushort subsystem_vendor_id, subsystem_device_id, command;
+ 	__u32 board_id, scratchpad = 0;
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
