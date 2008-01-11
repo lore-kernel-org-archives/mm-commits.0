@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cris-v10-correct-do_signal-to-fix-oops-and-clean-up-signal-handling-in-general.patch added to -mm tree
-Date: Fri, 11 Jan 2008 15:45:19 -0800
-Message-ID: <200801112345.m0BNjKE5003991@imap1.linux-foundation.org>
+Subject: + cris-v10-driver-for-ds1302-needs-to-include-cris-specific-i2ch.patch added to -mm tree
+Date: Fri, 11 Jan 2008 15:45:23 -0800
+Message-ID: <200801112345.m0BNjNpL003997@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51795 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59559 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757731AbYAKXpZ (ORCPT
+	by vger.kernel.org with ESMTP id S1762955AbYAKXp2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jan 2008 18:45:25 -0500
+	Fri, 11 Jan 2008 18:45:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jesper.nilsson@axis.com, mikael.starvik@axis.com
 
 
 The patch titled
-     CRIS v10: correct do_signal to fix oops and clean up signal handling in general
+     CRIS v10: driver for ds1302 needs to include cris-specific i2c.h
 has been added to the -mm tree.  Its filename is
-     cris-v10-correct-do_signal-to-fix-oops-and-clean-up-signal-handling-in-general.patch
+     cris-v10-driver-for-ds1302-needs-to-include-cris-specific-i2ch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,469 +34,172 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: CRIS v10: correct do_signal to fix oops and clean up signal handling in general
+Subject: CRIS v10: driver for ds1302 needs to include cris-specific i2c.h
 From: Jesper Nilsson <jesper.nilsson@axis.com>
 
-This fixes a kernel panic on boot due to do_signal not being compatible
-with it's callers.
+CRIS v10: Driver for ds1302 needs to include cris-specific i2c.h
 
-- do_signal now returns void, and does not have the previous signal set
-  as a parameter.
-- Remove sys_rt_sigsuspend, we can use the common one instead.
-- Change sys_sigsuspend to be more like x86, don't call do_signal here.
-- handle_signal, setup_frame and setup_rt_frame now return -EFAULT
-  if we've delivered a segfault, which is used by callers to perform
-  necessary cleanup.
-- Break long lines, correct whitespace and formatting errors.
+This fixes compilation error where i2c_init wasn't defined.
+Also, remove the CVS log and version tags, they are no longer useful.
 
 Signed-off-by: Jesper Nilsson <jesper.nilsson@axis.com>
 Cc: Mikael Starvik <mikael.starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v10/kernel/signal.c |  247 ++++++++++++---------------
- 1 file changed, 110 insertions(+), 137 deletions(-)
+ arch/cris/arch-v10/drivers/ds1302.c |  131 --------------------------
+ 1 file changed, 3 insertions(+), 128 deletions(-)
 
-diff -puN arch/cris/arch-v10/kernel/signal.c~cris-v10-correct-do_signal-to-fix-oops-and-clean-up-signal-handling-in-general arch/cris/arch-v10/kernel/signal.c
---- a/arch/cris/arch-v10/kernel/signal.c~cris-v10-correct-do_signal-to-fix-oops-and-clean-up-signal-handling-in-general
-+++ a/arch/cris/arch-v10/kernel/signal.c
-@@ -7,7 +7,7 @@
-  *
-  *  Ideas also taken from arch/arm.
-  *
-- *  Copyright (C) 2000, 2001 Axis Communications AB
-+ *  Copyright (C) 2000-2007 Axis Communications AB
-  *
-  *  Authors:  Bjorn Wesen (bjornw@axis.com)
-  *
-@@ -40,84 +40,30 @@
-  */
- #define RESTART_CRIS_SYS(regs) regs->r10 = regs->orig_r10; regs->irp -= 2;
+diff -puN arch/cris/arch-v10/drivers/ds1302.c~cris-v10-driver-for-ds1302-needs-to-include-cris-specific-i2ch arch/cris/arch-v10/drivers/ds1302.c
+--- a/arch/cris/arch-v10/drivers/ds1302.c~cris-v10-driver-for-ds1302-needs-to-include-cris-specific-i2ch
++++ a/arch/cris/arch-v10/drivers/ds1302.c
+@@ -6,136 +6,9 @@
+ *!
+ *! Functions exported: ds1302_readreg, ds1302_writereg, ds1302_init
+ *!
+-*! $Log: ds1302.c,v $
+-*! Revision 1.18  2005/01/24 09:11:26  mikaelam
+-*! Minor changes to get DS1302 RTC chip driver to work
+-*!
+-*! Revision 1.17  2005/01/05 06:11:22  starvik
+-*! No need to do local_irq_disable after local_irq_save.
+-*!
+-*! Revision 1.16  2004/12/13 12:21:52  starvik
+-*! Added I/O and DMA allocators from Linux 2.4
+-*!
+-*! Revision 1.14  2004/08/24 06:48:43  starvik
+-*! Whitespace cleanup
+-*!
+-*! Revision 1.13  2004/05/28 09:26:59  starvik
+-*! Modified I2C initialization to work in 2.6.
+-*!
+-*! Revision 1.12  2004/05/14 07:58:03  starvik
+-*! Merge of changes from 2.4
+-*!
+-*! Revision 1.10  2004/02/04 09:25:12  starvik
+-*! Merge of Linux 2.6.2
+-*!
+-*! Revision 1.9  2003/07/04 08:27:37  starvik
+-*! Merge of Linux 2.5.74
+-*!
+-*! Revision 1.8  2003/04/09 05:20:47  starvik
+-*! Merge of Linux 2.5.67
+-*!
+-*! Revision 1.6  2003/01/09 14:42:51  starvik
+-*! Merge of Linux 2.5.55
+-*!
+-*! Revision 1.4  2002/12/11 13:13:57  starvik
+-*! Added arch/ to v10 specific includes
+-*! Added fix from Linux 2.4 in serial.c (flush_to_flip_buffer)
+-*!
+-*! Revision 1.3  2002/11/20 11:56:10  starvik
+-*! Merge of Linux 2.5.48
+-*!
+-*! Revision 1.2  2002/11/18 13:16:06  starvik
+-*! Linux 2.5 port of latest 2.4 drivers
+-*!
+-*! Revision 1.15  2002/10/11 16:14:33  johana
+-*! Added CONFIG_ETRAX_DS1302_TRICKLE_CHARGE and initial setting of the
+-*! trcklecharge register.
+-*!
+-*! Revision 1.14  2002/10/10 12:15:38  magnusmn
+-*! Added support for having the RST signal on bit g0
+-*!
+-*! Revision 1.13  2002/05/29 15:16:08  johana
+-*! Removed unused variables.
+-*!
+-*! Revision 1.12  2002/04/10 15:35:25  johana
+-*! Moved probe function closer to init function and marked it __init.
+-*!
+-*! Revision 1.11  2001/06/14 12:35:52  jonashg
+-*! The ATA hack is back. It is unfortunately the only way to set g27 to output.
+-*!
+-*! Revision 1.9  2001/06/14 10:00:14  jonashg
+-*! No need for tempudelay to be inline anymore (had to adjust the usec to
+-*! loops conversion because of this to make it slow enough to be a udelay).
+-*!
+-*! Revision 1.8  2001/06/14 08:06:32  jonashg
+-*! Made tempudelay delay usecs (well, just a tad more).
+-*!
+-*! Revision 1.7  2001/06/13 14:18:11  jonashg
+-*! Only allow processes with SYS_TIME capability to set time and charge.
+-*!
+-*! Revision 1.6  2001/06/12 15:22:07  jonashg
+-*! * Made init function __init.
+-*! * Parameter to out_byte() is unsigned char.
+-*! * The magic number 42 has got a name.
+-*! * Removed comment about /proc (nothing is exported there).
+-*!
+-*! Revision 1.5  2001/06/12 14:35:13  jonashg
+-*! Gave the module a name and added it to printk's.
+-*!
+-*! Revision 1.4  2001/05/31 14:53:40  jonashg
+-*! Made tempudelay() inline so that the watchdog doesn't reset (see
+-*! function comment).
+-*!
+-*! Revision 1.3  2001/03/26 16:03:06  bjornw
+-*! Needs linux/config.h
+-*!
+-*! Revision 1.2  2001/03/20 19:42:00  bjornw
+-*! Use the ETRAX prefix on the DS1302 options
+-*!
+-*! Revision 1.1  2001/03/20 09:13:50  magnusmn
+-*! Linux 2.4 port
+-*!
+-*! Revision 1.10  2000/07/05 15:38:23  bjornw
+-*! Dont update kernel time when a RTC_SET_TIME is done
+-*!
+-*! Revision 1.9  2000/03/02 15:42:59  macce
+-*! * Hack to make RTC work on all 2100/2400
+-*!
+-*! Revision 1.8  2000/02/23 16:59:18  torbjore
+-*! added setup of R_GEN_CONFIG when RTC is connected to the generic port.
+-*!
+-*! Revision 1.7  2000/01/17 15:51:43  johana
+-*! Added RTC_SET_CHARGE ioctl to enable trickle charger.
+-*!
+-*! Revision 1.6  1999/10/27 13:19:47  bjornw
+-*! Added update_xtime_from_cmos which reads back the updated RTC into the kernel.
+-*! /dev/rtc calls it now.
+-*!
+-*! Revision 1.5  1999/10/27 12:39:37  bjornw
+-*! Disabled superuser check. Anyone can now set the time.
+-*!
+-*! Revision 1.4  1999/09/02 13:27:46  pkj
+-*! Added shadow for R_PORT_PB_CONFIG.
+-*! Renamed port_g_shadow to port_g_data_shadow.
+-*!
+-*! Revision 1.3  1999/09/02 08:28:06  pkj
+-*! Made it possible to select either port PB or the generic port for the RST
+-*! signal line to the DS1302 RTC.
+-*! Also make sure the RST bit is configured as output on Port PB (if used).
+-*!
+-*! Revision 1.2  1999/09/01 14:47:20  bjornw
+-*! Added support for /dev/rtc operations with ioctl RD_TIME and SET_TIME to read
+-*! and set the date. Register as major 121.
+-*!
+-*! Revision 1.1  1999/09/01 09:45:29  bjornw
+-*! Implemented a DS1302 RTC driver.
+-*!
+-*!
+ *! ---------------------------------------------------------------------------
+ *!
+-*! (C) Copyright 1999, 2000, 2001, 2002, 2003, 2004  Axis Communications AB, LUND, SWEDEN
+-*!
+-*! $Id: ds1302.c,v 1.18 2005/01/24 09:11:26 mikaelam Exp $
++*! (C) Copyright 1999-2007 Axis Communications AB, LUND, SWEDEN
+ *!
+ *!***************************************************************************/
  
--int do_signal(int canrestart, sigset_t *oldset, struct pt_regs *regs);
-+void do_signal(int canrestart, struct pt_regs *regs);
+@@ -156,6 +29,8 @@
+ #include <asm/rtc.h>
+ #include <asm/arch/io_interface_mux.h>
  
- /*
-- * Atomically swap in the new signal mask, and wait for a signal.  Define 
-+ * Atomically swap in the new signal mask, and wait for a signal.  Define
-  * dummy arguments to be able to reach the regs argument.  (Note that this
-  * arrangement relies on old_sigset_t occupying one register.)
-  */
--int
--sys_sigsuspend(old_sigset_t mask, long r11, long r12, long r13, long mof, 
--               long srp, struct pt_regs *regs)
-+int sys_sigsuspend(old_sigset_t mask, long r11, long r12, long r13, long mof,
-+	long srp, struct pt_regs *regs)
- {
--	sigset_t saveset;
--
- 	mask &= _BLOCKABLE;
- 	spin_lock_irq(&current->sighand->siglock);
--	saveset = current->blocked;
-+	current->saved_sigmask = current->blocked;
- 	siginitset(&current->blocked, mask);
- 	recalc_sigpending();
- 	spin_unlock_irq(&current->sighand->siglock);
--
--	regs->r10 = -EINTR;
--	while (1) {
--		current->state = TASK_INTERRUPTIBLE;
--		schedule();
--		if (do_signal(0, &saveset, regs))
--			/* We will get here twice: once to call the signal
--			   handler, then again to return from the
--			   sigsuspend system call.  When calling the
--			   signal handler, R10 holds the signal number as
--			   set through do_signal.  The sigsuspend call
--			   will return with the restored value set above;
--			   always -EINTR.  */
--			return regs->r10;
--	}
-+	current->state = TASK_INTERRUPTIBLE;
-+	schedule();
-+	set_thread_flag(TIF_RESTORE_SIGMASK);
-+	return -ERESTARTNOHAND;
- }
- 
--/* Define dummy arguments to be able to reach the regs argument.  (Note that
-- * this arrangement relies on size_t occupying one register.)
-- */
--int
--sys_rt_sigsuspend(sigset_t *unewset, size_t sigsetsize, long r12, long r13, 
--                  long mof, long srp, struct pt_regs *regs)
--{
--	sigset_t saveset, newset;
--
--	/* XXX: Don't preclude handling different sized sigset_t's.  */
--	if (sigsetsize != sizeof(sigset_t))
--		return -EINVAL;
--
--	if (copy_from_user(&newset, unewset, sizeof(newset)))
--		return -EFAULT;
--	sigdelsetmask(&newset, ~_BLOCKABLE);
--
--	spin_lock_irq(&current->sighand->siglock);
--	saveset = current->blocked;
--	current->blocked = newset;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
--
--	regs->r10 = -EINTR;
--	while (1) {
--		current->state = TASK_INTERRUPTIBLE;
--		schedule();
--		if (do_signal(0, &saveset, regs))
--			/* We will get here twice: once to call the signal
--			   handler, then again to return from the
--			   sigsuspend system call.  When calling the
--			   signal handler, R10 holds the signal number as
--			   set through do_signal.  The sigsuspend call
--			   will return with the restored value set above;
--			   always -EINTR.  */
--			return regs->r10;
--	}
--}
--
--int 
--sys_sigaction(int sig, const struct old_sigaction __user *act,
--	      struct old_sigaction *oact)
-+int sys_sigaction(int sig, const struct old_sigaction __user *act,
-+	struct old_sigaction *oact)
- {
- 	struct k_sigaction new_ka, old_ka;
- 	int ret;
-@@ -147,8 +93,7 @@ sys_sigaction(int sig, const struct old_
- 	return ret;
- }
- 
--int
--sys_sigaltstack(const stack_t *uss, stack_t __user *uoss)
-+int sys_sigaltstack(const stack_t *uss, stack_t __user *uoss)
- {
- 	return do_sigaltstack(uss, uoss, rdusp());
- }
-@@ -205,7 +150,7 @@ restore_sigcontext(struct pt_regs *regs,
- 
- 	/* TODO: the other ports use regs->orig_XX to disable syscall checks
- 	 * after this completes, but we don't use that mechanism. maybe we can
--	 * use it now ? 
-+	 * use it now ?
- 	 */
- 
- 	return err;
-@@ -216,7 +161,7 @@ badframe:
- 
- /* Define dummy arguments to be able to reach the regs argument.  */
- 
--asmlinkage int sys_sigreturn(long r10, long r11, long r12, long r13, long mof, 
-+asmlinkage int sys_sigreturn(long r10, long r11, long r12, long r13, long mof,
-                              long srp, struct pt_regs *regs)
- {
- 	struct sigframe __user *frame = (struct sigframe *)rdusp();
-@@ -243,7 +188,7 @@ asmlinkage int sys_sigreturn(long r10, l
- 	current->blocked = set;
- 	recalc_sigpending();
- 	spin_unlock_irq(&current->sighand->siglock);
--	
++#include "i2c.h"
 +
- 	if (restore_sigcontext(regs, &frame->sc))
- 		goto badframe;
+ #define RTC_MAJOR_NR 121 /* local major, change later */
  
-@@ -254,11 +199,11 @@ asmlinkage int sys_sigreturn(long r10, l
- badframe:
- 	force_sig(SIGSEGV, current);
- 	return 0;
--}	
-+}
- 
- /* Define dummy arguments to be able to reach the regs argument.  */
- 
--asmlinkage int sys_rt_sigreturn(long r10, long r11, long r12, long r13, 
-+asmlinkage int sys_rt_sigreturn(long r10, long r11, long r12, long r13,
-                                 long mof, long srp, struct pt_regs *regs)
- {
- 	struct rt_sigframe __user *frame = (struct rt_sigframe *)rdusp();
-@@ -282,7 +227,7 @@ asmlinkage int sys_rt_sigreturn(long r10
- 	current->blocked = set;
- 	recalc_sigpending();
- 	spin_unlock_irq(&current->sighand->siglock);
--	
-+
- 	if (restore_sigcontext(regs, &frame->uc.uc_mcontext))
- 		goto badframe;
- 
-@@ -294,14 +239,14 @@ asmlinkage int sys_rt_sigreturn(long r10
- badframe:
- 	force_sig(SIGSEGV, current);
- 	return 0;
--}	
-+}
- 
- /*
-  * Set up a signal frame.
-  */
- 
--static int
--setup_sigcontext(struct sigcontext __user *sc, struct pt_regs *regs, unsigned long mask)
-+static int setup_sigcontext(struct sigcontext __user *sc,
-+	struct pt_regs *regs, unsigned long mask)
- {
- 	int err = 0;
- 	unsigned long usp = rdusp();
-@@ -324,10 +269,11 @@ setup_sigcontext(struct sigcontext __use
- 	return err;
- }
- 
--/* figure out where we want to put the new signal frame - usually on the stack */
-+/* Figure out where we want to put the new signal frame
-+ * - usually on the stack. */
- 
- static inline void __user *
--get_sigframe(struct k_sigaction *ka, struct pt_regs * regs, size_t frame_size)
-+get_sigframe(struct k_sigaction *ka, struct pt_regs *regs, size_t frame_size)
- {
- 	unsigned long sp = rdusp();
- 
-@@ -345,15 +291,15 @@ get_sigframe(struct k_sigaction *ka, str
- }
- 
- /* grab and setup a signal frame.
-- * 
-+ *
-  * basically we stack a lot of state info, and arrange for the
-  * user-mode program to return to the kernel using either a
-  * trampoline which performs the syscall sigreturn, or a provided
-  * user-mode trampoline.
-  */
- 
--static void setup_frame(int sig, struct k_sigaction *ka,
--			sigset_t *set, struct pt_regs * regs)
-+static int setup_frame(int sig, struct k_sigaction *ka,
-+		       sigset_t *set, struct pt_regs *regs)
- {
- 	struct sigframe __user *frame;
- 	unsigned long return_ip;
-@@ -401,14 +347,15 @@ static void setup_frame(int sig, struct 
- 
- 	wrusp((unsigned long)frame);
- 
--	return;
-+	return 0;
- 
- give_sigsegv:
- 	force_sigsegv(sig, current);
-+	return -EFAULT;
- }
- 
--static void setup_rt_frame(int sig, struct k_sigaction *ka, siginfo_t *info,
--			   sigset_t *set, struct pt_regs * regs)
-+static int setup_rt_frame(int sig, struct k_sigaction *ka, siginfo_t *info,
-+	sigset_t *set, struct pt_regs *regs)
- {
- 	struct rt_sigframe __user *frame;
- 	unsigned long return_ip;
-@@ -443,9 +390,10 @@ static void setup_rt_frame(int sig, stru
- 		/* trampoline - the desired return ip is the retcode itself */
- 		return_ip = (unsigned long)&frame->retcode;
- 		/* This is movu.w __NR_rt_sigreturn, r9; break 13; */
--		err |= __put_user(0x9c5f,            (short __user*)(frame->retcode+0));
--		err |= __put_user(__NR_rt_sigreturn, (short __user*)(frame->retcode+2));
--		err |= __put_user(0xe93d,            (short __user*)(frame->retcode+4));
-+		err |= __put_user(0x9c5f, (short __user *)(frame->retcode+0));
-+		err |= __put_user(__NR_rt_sigreturn,
-+			(short __user *)(frame->retcode+2));
-+		err |= __put_user(0xe93d, (short __user *)(frame->retcode+4));
- 	}
- 
- 	if (err)
-@@ -455,73 +403,81 @@ static void setup_rt_frame(int sig, stru
- 
- 	/* Set up registers for signal handler */
- 
--	regs->irp = (unsigned long) ka->sa.sa_handler;  /* what we enter NOW   */
--	regs->srp = return_ip;                          /* what we enter LATER */
--	regs->r10 = sig;                                /* first argument is signo */
--        regs->r11 = (unsigned long) &frame->info;       /* second argument is (siginfo_t *) */
--        regs->r12 = 0;                                  /* third argument is unused */
--
--	/* actually move the usp to reflect the stacked frame */
-+	/* What we enter NOW   */
-+	regs->irp = (unsigned long) ka->sa.sa_handler;
-+	/* What we enter LATER */
-+	regs->srp = return_ip;
-+	/* First argument is signo */
-+	regs->r10 = sig;
-+	/* Second argument is (siginfo_t *) */
-+	regs->r11 = (unsigned long)&frame->info;
-+	/* Third argument is unused */
-+	regs->r12 = 0;
- 
-+	/* Actually move the usp to reflect the stacked frame */
- 	wrusp((unsigned long)frame);
- 
--	return;
-+	return 0;
- 
- give_sigsegv:
- 	force_sigsegv(sig, current);
-+	return -EFAULT;
- }
- 
- /*
-  * OK, we're invoking a handler
-- */	
-+ */
- 
--static inline void
--handle_signal(int canrestart, unsigned long sig,
--	      siginfo_t *info, struct k_sigaction *ka,
--              sigset_t *oldset, struct pt_regs * regs)
-+static inline int handle_signal(int canrestart, unsigned long sig,
-+	siginfo_t *info, struct k_sigaction *ka,
-+	sigset_t *oldset, struct pt_regs *regs)
- {
-+	int ret;
-+
- 	/* Are we from a system call? */
- 	if (canrestart) {
- 		/* If so, check system call restarting.. */
- 		switch (regs->r10) {
--			case -ERESTART_RESTARTBLOCK:
--			case -ERESTARTNOHAND:
--				/* ERESTARTNOHAND means that the syscall should only be
--				   restarted if there was no handler for the signal, and since
--				   we only get here if there is a handler, we don't restart */
-+		case -ERESTART_RESTARTBLOCK:
-+		case -ERESTARTNOHAND:
-+			/* ERESTARTNOHAND means that the syscall should
-+			 * only be restarted if there was no handler for
-+			 * the signal, and since we only get here if there
-+			 * is a handler, we don't restart */
-+			regs->r10 = -EINTR;
-+			break;
-+		case -ERESTARTSYS:
-+			/* ERESTARTSYS means to restart the syscall if
-+			 * there is no handler or the handler was
-+			 * registered with SA_RESTART */
-+			if (!(ka->sa.sa_flags & SA_RESTART)) {
- 				regs->r10 = -EINTR;
- 				break;
--
--			case -ERESTARTSYS:
--				/* ERESTARTSYS means to restart the syscall if there is no
--				   handler or the handler was registered with SA_RESTART */
--				if (!(ka->sa.sa_flags & SA_RESTART)) {
--					regs->r10 = -EINTR;
--					break;
--				}
--			/* fallthrough */
--			case -ERESTARTNOINTR:
--				/* ERESTARTNOINTR means that the syscall should be called again
--				   after the signal handler returns. */
--				RESTART_CRIS_SYS(regs);
-+			}
-+		/* fallthrough */
-+		case -ERESTARTNOINTR:
-+			/* ERESTARTNOINTR means that the syscall should
-+			 * be called again after the signal handler returns. */
-+			RESTART_CRIS_SYS(regs);
- 		}
- 	}
- 
- 	/* Set up the stack frame */
- 	if (ka->sa.sa_flags & SA_SIGINFO)
--		setup_rt_frame(sig, ka, info, oldset, regs);
-+		ret = setup_rt_frame(sig, ka, info, oldset, regs);
- 	else
--		setup_frame(sig, ka, oldset, regs);
--
--	if (ka->sa.sa_flags & SA_ONESHOT)
--		ka->sa.sa_handler = SIG_DFL;
-+		ret = setup_frame(sig, ka, oldset, regs);
- 
--	spin_lock_irq(&current->sighand->siglock);
--	sigorsets(&current->blocked,&current->blocked,&ka->sa.sa_mask);
--	if (!(ka->sa.sa_flags & SA_NODEFER))
--		sigaddset(&current->blocked,sig);
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	if (ret == 0) {
-+		spin_lock_irq(&current->sighand->siglock);
-+		sigorsets(&current->blocked, &current->blocked,
-+			&ka->sa.sa_mask);
-+		if (!(ka->sa.sa_flags & SA_NODEFER))
-+			sigaddset(&current->blocked, sig);
-+		recalc_sigpending();
-+		spin_unlock_irq(&current->sighand->siglock);
-+	}
-+	return ret;
- }
- 
- /*
-@@ -536,11 +492,12 @@ handle_signal(int canrestart, unsigned l
-  * mode below.
-  */
- 
--int do_signal(int canrestart, sigset_t *oldset, struct pt_regs *regs)
-+void do_signal(int canrestart, struct pt_regs *regs)
- {
- 	siginfo_t info;
- 	int signr;
-         struct k_sigaction ka;
-+	sigset_t *oldset;
- 
- 	/*
- 	 * We want the common case to go fast, which
-@@ -549,16 +506,26 @@ int do_signal(int canrestart, sigset_t *
- 	 * if so.
- 	 */
- 	if (!user_mode(regs))
--		return 1;
-+		return;
- 
--	if (!oldset)
-+	if (test_thread_flag(TIF_RESTORE_SIGMASK))
-+		oldset = &current->saved_sigmask;
-+	else
- 		oldset = &current->blocked;
- 
- 	signr = get_signal_to_deliver(&info, &ka, regs, NULL);
- 	if (signr > 0) {
- 		/* Whee!  Actually deliver the signal.  */
--		handle_signal(canrestart, signr, &info, &ka, oldset, regs);
--		return 1;
-+		if (handle_signal(canrestart, signr, &info, &ka,
-+				oldset, regs)) {
-+			/* a signal was successfully delivered; the saved
-+			 * sigmask will have been stored in the signal frame,
-+			 * and will be restored by sigreturn, so we can simply
-+			 * clear the TIF_RESTORE_SIGMASK flag */
-+			if (test_thread_flag(TIF_RESTORE_SIGMASK))
-+				clear_thread_flag(TIF_RESTORE_SIGMASK);
-+		}
-+		return;
- 	}
- 
- 	/* Did we come from a system call? */
-@@ -569,10 +536,16 @@ int do_signal(int canrestart, sigset_t *
- 		    regs->r10 == -ERESTARTNOINTR) {
- 			RESTART_CRIS_SYS(regs);
- 		}
--		if (regs->r10 == -ERESTART_RESTARTBLOCK){
-+		if (regs->r10 == -ERESTART_RESTARTBLOCK) {
- 			regs->r10 = __NR_restart_syscall;
- 			regs->irp -= 2;
- 		}
- 	}
--	return 0;
-+
-+	/* if there's no signal to deliver, we just put the saved sigmask
-+	 * back */
-+	if (test_thread_flag(TIF_RESTORE_SIGMASK)) {
-+		clear_thread_flag(TIF_RESTORE_SIGMASK);
-+		sigprocmask(SIG_SETMASK, &current->saved_sigmask, NULL);
-+	}
- }
+ static const char ds1302_name[] = "ds1302";
 _
 
 Patches currently in -mm which might be from jesper.nilsson@axis.com are
