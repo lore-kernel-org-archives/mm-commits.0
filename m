@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dvb-av7110-fix-section-mismatch.patch added to -mm tree
-Date: Thu, 10 Jan 2008 16:04:50 -0800
-Message-ID: <200801110004.m0B04o5I016491@imap1.linux-foundation.org>
+Subject: + tpm-infineon-section-mismatch.patch added to -mm tree
+Date: Thu, 10 Jan 2008 16:04:48 -0800
+Message-ID: <200801110004.m0B04mGZ016484@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39477 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37824 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754664AbYAKAFK (ORCPT
+	by vger.kernel.org with ESMTP id S1754781AbYAKAFD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jan 2008 19:05:10 -0500
+	Thu, 10 Jan 2008 19:05:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, mchehab@infradead.org
+Cc: randy.dunlap@oracle.com, tpm@selhorst.net
 
 
 The patch titled
-     dvb/av7110: fix section mismatch
+     tpm: infineon section mismatch
 has been added to the -mm tree.  Its filename is
-     dvb-av7110-fix-section-mismatch.patch
+     tpm-infineon-section-mismatch.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,66 +28,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dvb/av7110: fix section mismatch
+Subject: tpm: infineon section mismatch
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix driver data name to match whitelist of acceptable names that contain
-pointers init data so that section mismatch warning is placated.
+Fix section mismatch by making the driver template variable name
+match one of the whitelisted variable names in modpost.
 
-WARNING: vmlinux.o(.data+0x141288): Section mismatch: reference to .init.text:av7110_attach (between 'av7110_extension' and 'ir_protocol')
+WARNING: vmlinux.o(.data+0x7a9e8): Section mismatch: reference to .init.text:tpm_inf_pnp_probe (between 'tpm_inf_pnp' and 'cn_idx')
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Marcel Selhorst <tpm@selhorst.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/ttpci/av7110.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/char/tpm/tpm_infineon.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/media/dvb/ttpci/av7110.c~dvb-av7110-fix-section-mismatch drivers/media/dvb/ttpci/av7110.c
---- a/drivers/media/dvb/ttpci/av7110.c~dvb-av7110-fix-section-mismatch
-+++ a/drivers/media/dvb/ttpci/av7110.c
-@@ -2801,12 +2801,12 @@ static void av7110_irq(struct saa7146_de
+diff -puN drivers/char/tpm/tpm_infineon.c~tpm-infineon-section-mismatch drivers/char/tpm/tpm_infineon.c
+--- a/drivers/char/tpm/tpm_infineon.c~tpm-infineon-section-mismatch
++++ a/drivers/char/tpm/tpm_infineon.c
+@@ -611,7 +611,7 @@ static __devexit void tpm_inf_pnp_remove
+ 	}
  }
  
+-static struct pnp_driver tpm_inf_pnp = {
++static struct pnp_driver tpm_inf_pnp_driver = {
+ 	.name = "tpm_inf_pnp",
+ 	.driver = {
+ 		.owner = THIS_MODULE,
+@@ -625,12 +625,12 @@ static struct pnp_driver tpm_inf_pnp = {
  
--static struct saa7146_extension av7110_extension;
-+static struct saa7146_extension av7110_extension_driver;
- 
- #define MAKE_AV7110_INFO(x_var,x_name) \
- static struct saa7146_pci_extension_data x_var = { \
- 	.ext_priv = x_name, \
--	.ext = &av7110_extension }
-+	.ext = &av7110_extension_driver }
- 
- MAKE_AV7110_INFO(tts_1_X_fsc,"Technotrend/Hauppauge WinTV DVB-S rev1.X or Fujitsu Siemens DVB-C");
- MAKE_AV7110_INFO(ttt_1_X,    "Technotrend/Hauppauge WinTV DVB-T rev1.X");
-@@ -2844,7 +2844,7 @@ static struct pci_device_id pci_tbl[] = 
- MODULE_DEVICE_TABLE(pci, pci_tbl);
- 
- 
--static struct saa7146_extension av7110_extension = {
-+static struct saa7146_extension av7110_extension_driver = {
- 	.name		= "dvb",
- 	.flags		= SAA7146_USE_I2C_IRQ,
- 
-@@ -2861,14 +2861,14 @@ static struct saa7146_extension av7110_e
- static int __init av7110_init(void)
+ static int __init init_inf(void)
  {
- 	int retval;
--	retval = saa7146_register_extension(&av7110_extension);
-+	retval = saa7146_register_extension(&av7110_extension_driver);
- 	return retval;
+-	return pnp_register_driver(&tpm_inf_pnp);
++	return pnp_register_driver(&tpm_inf_pnp_driver);
  }
  
- 
- static void __exit av7110_exit(void)
+ static void __exit cleanup_inf(void)
  {
--	saa7146_unregister_extension(&av7110_extension);
-+	saa7146_unregister_extension(&av7110_extension_driver);
+-	pnp_unregister_driver(&tpm_inf_pnp);
++	pnp_unregister_driver(&tpm_inf_pnp_driver);
  }
  
- module_init(av7110_init);
+ module_init(init_inf);
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
