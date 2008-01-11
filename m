@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + s3c2410fb-fix-incorrect-argument-type-in-resume-function.patch added to -mm tree
-Date: Fri, 11 Jan 2008 13:45:41 -0800
-Message-ID: <200801112145.m0BLjL9M029128@imap1.linux-foundation.org>
+Subject: + reporting-bugs-cc-the-mailing-list-too.patch added to -mm tree
+Date: Fri, 11 Jan 2008 15:39:34 -0800
+Message-ID: <200801112339.m0BNdYrK003786@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48648 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48584 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752894AbYAKVp2 (ORCPT
+	by vger.kernel.org with ESMTP id S1761669AbYAKXjq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jan 2008 16:45:28 -0500
+	Fri, 11 Jan 2008 18:39:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl, adaplas@pol.net
+Cc: bfields@citi.umich.edu, randy.dunlap@oracle.com
 
 
 The patch titled
-     s3c2410fb: fix incorrect argument type in resume function
+     REPORTING-BUGS: cc the mailing list too
 has been added to the -mm tree.  Its filename is
-     s3c2410fb-fix-incorrect-argument-type-in-resume-function.patch
+     reporting-bugs-cc-the-mailing-list-too.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: s3c2410fb: fix incorrect argument type in resume function
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: REPORTING-BUGS: cc the mailing list too
+From: "J. Bruce Fields" <bfields@citi.umich.edu>
 
-Fix wrong pointer type passed into the s3c2410fb_init_registers() function.
+People should also cc relevant mailing lists when reporting bugs.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/s3c2410fb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ REPORTING-BUGS |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN drivers/video/s3c2410fb.c~s3c2410fb-fix-incorrect-argument-type-in-resume-function drivers/video/s3c2410fb.c
---- a/drivers/video/s3c2410fb.c~s3c2410fb-fix-incorrect-argument-type-in-resume-function
-+++ a/drivers/video/s3c2410fb.c
-@@ -1026,7 +1026,7 @@ static int s3c2410fb_resume(struct platf
- 	clk_enable(info->clk);
- 	msleep(1);
+diff -puN REPORTING-BUGS~reporting-bugs-cc-the-mailing-list-too REPORTING-BUGS
+--- a/REPORTING-BUGS~reporting-bugs-cc-the-mailing-list-too
++++ a/REPORTING-BUGS
+@@ -10,11 +10,12 @@ bug report. This explains what you shoul
+ to make it useful to the recipient.
  
--	s3c2410fb_init_registers(info);
-+	s3c2410fb_init_registers(fbinfo);
+       Send the output to the maintainer of the kernel area that seems to
+-be involved with the problem. Don't worry too much about getting the
+-wrong person. If you are unsure send it to the person responsible for the
+-code relevant to what you were doing. If it occurs repeatably try and
+-describe how to recreate it. That is worth even more than the oops itself.
+-The list of maintainers is in the MAINTAINERS file in this directory.
++be involved with the problem, and cc the relevant mailing list. Don't
++worry too much about getting the wrong person. If you are unsure send it
++to the person responsible for the code relevant to what you were doing.
++If it occurs repeatably try and describe how to recreate it. That is
++worth even more than the oops itself.  The list of maintainers and
++mailing lists is in the MAINTAINERS file in this directory.
  
- 	return 0;
- }
+       If it is a security bug, please copy the Security Contact listed
+ in the MAINTAINERS file.  They can help coordinate bugfix and disclosure.
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from bfields@citi.umich.edu are
 
-s3c2410fb-fix-incorrect-argument-type-in-resume-function.patch
-git-alsa.patch
-drivers-video-pm3fbc-section-fix.patch
+git-nfs.patch
+git-nfsd.patch
+documentation-move-dnotifytxt-to-filesystems.patch
+documentation-move-sharedsubtreestxt-to-filesystems.patch
+documentation-create-new-scheduler-subdirectory.patch
+reporting-bugs-cc-the-mailing-list-too.patch
+use-struct-path-in-struct-svc_export.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+reiser4.patch
