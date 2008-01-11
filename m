@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + megaraid-fix-section-mismatch.patch added to -mm tree
-Date: Thu, 10 Jan 2008 16:04:38 -0800
-Message-ID: <200801110004.m0B04c1n016459@imap1.linux-foundation.org>
+Subject: + x86-discover_ebda-section-mismatch.patch added to -mm tree
+Date: Thu, 10 Jan 2008 16:04:44 -0800
+Message-ID: <200801110004.m0B04jiH016475@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53604 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48875 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754766AbYAKAE7 (ORCPT
+	by vger.kernel.org with ESMTP id S1754829AbYAKAFX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jan 2008 19:04:59 -0500
+	Thu, 10 Jan 2008 19:05:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, James.Bottomley@steeleye.com, megaraidlinux@lsi.com, sumant.patro@lsi.com
+Cc: randy.dunlap@oracle.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     megaraid: fix section mismatch
+     x86: discover_ebda section mismatch
 has been added to the -mm tree.  Its filename is
-     megaraid-fix-section-mismatch.patch
+     x86-discover_ebda-section-mismatch.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,54 +28,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: megaraid: fix section mismatch
+Subject: x86: discover_ebda section mismatch
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Change megaraid_pci_driver_g variable name so that it matches the modpost
-whitelist that allows pointers to init text/data.
+Fix section mismatches.  discover_ebda() can be __init.
 
-WARNING: vmlinux.o(.data+0x1a8e30): Section mismatch: reference to .init.text:megaraid_probe_one (between 'megaraid_pci_driver_g' and 'class_device_attr_megaraid_mbox_app_hndl')
+WARNING: vmlinux.o(.text+0x738a): Section mismatch: reference to .init.data:ebda_addr (between 'discover_ebda' and 'get_model_name')
+WARNING: vmlinux.o(.text+0x73c4): Section mismatch: reference to .init.data:ebda_size (between 'discover_ebda' and 'get_model_name')
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Neela Syam Kolli <megaraidlinux@lsi.com>
-Cc: Sumant Patro <sumant.patro@lsi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/megaraid/megaraid_mbox.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/x86/kernel/setup_64.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/megaraid/megaraid_mbox.c~megaraid-fix-section-mismatch drivers/scsi/megaraid/megaraid_mbox.c
---- a/drivers/scsi/megaraid/megaraid_mbox.c~megaraid-fix-section-mismatch
-+++ a/drivers/scsi/megaraid/megaraid_mbox.c
-@@ -300,7 +300,7 @@ static struct pci_device_id pci_id_table
- MODULE_DEVICE_TABLE(pci, pci_id_table_g);
+diff -puN arch/x86/kernel/setup_64.c~x86-discover_ebda-section-mismatch arch/x86/kernel/setup_64.c
+--- a/arch/x86/kernel/setup_64.c~x86-discover_ebda-section-mismatch
++++ a/arch/x86/kernel/setup_64.c
+@@ -257,7 +257,7 @@ static inline void __init reserve_crashk
+ unsigned __initdata ebda_addr;
+ unsigned __initdata ebda_size;
  
- 
--static struct pci_driver megaraid_pci_driver_g = {
-+static struct pci_driver megaraid_pci_driver = {
- 	.name		= "megaraid",
- 	.id_table	= pci_id_table_g,
- 	.probe		= megaraid_probe_one,
-@@ -394,7 +394,7 @@ megaraid_init(void)
- 
- 
- 	// register as a PCI hot-plug driver module
--	rval = pci_register_driver(&megaraid_pci_driver_g);
-+	rval = pci_register_driver(&megaraid_pci_driver);
- 	if (rval < 0) {
- 		con_log(CL_ANN, (KERN_WARNING
- 			"megaraid: could not register hotplug support.\n"));
-@@ -415,7 +415,7 @@ megaraid_exit(void)
- 	con_log(CL_DLEVEL1, (KERN_NOTICE "megaraid: unloading framework\n"));
- 
- 	// unregister as PCI hotplug driver
--	pci_unregister_driver(&megaraid_pci_driver_g);
-+	pci_unregister_driver(&megaraid_pci_driver);
- 
- 	return;
- }
+-static void discover_ebda(void)
++static void __init discover_ebda(void)
+ {
+ 	/*
+ 	 * there is a real-mode segmented pointer pointing to the
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
