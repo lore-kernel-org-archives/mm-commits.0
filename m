@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cciss-section-mismatch.patch added to -mm tree
-Date: Thu, 10 Jan 2008 16:04:41 -0800
-Message-ID: <200801110004.m0B04fpc016468@imap1.linux-foundation.org>
+Subject: + megaraid-fix-section-mismatch.patch added to -mm tree
+Date: Thu, 10 Jan 2008 16:04:38 -0800
+Message-ID: <200801110004.m0B04c1n016459@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53157 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53604 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754772AbYAKAE7 (ORCPT
+	by vger.kernel.org with ESMTP id S1754766AbYAKAE7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 10 Jan 2008 19:04:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, mike.miller@hp.com
+Cc: randy.dunlap@oracle.com, James.Bottomley@steeleye.com, megaraidlinux@lsi.com, sumant.patro@lsi.com
 
 
 The patch titled
-     cciss: section mismatch
+     megaraid: fix section mismatch
 has been added to the -mm tree.  Its filename is
-     cciss-section-mismatch.patch
+     megaraid-fix-section-mismatch.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,33 +28,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: section mismatch
+Subject: megaraid: fix section mismatch
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Mark cciss_pci_init() as __devinit, to fix section mismatch warning.
+Change megaraid_pci_driver_g variable name so that it matches the modpost
+whitelist that allows pointers to init text/data.
 
-WARNING: vmlinux.o(.text+0x601fc9): Section mismatch: reference to .init.text: (between 'cciss_pci_init' and 'cciss_getgeometry')
+WARNING: vmlinux.o(.data+0x1a8e30): Section mismatch: reference to .init.text:megaraid_probe_one (between 'megaraid_pci_driver_g' and 'class_device_attr_megaraid_mbox_app_hndl')
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: <mike.miller@hp.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Neela Syam Kolli <megaraidlinux@lsi.com>
+Cc: Sumant Patro <sumant.patro@lsi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/megaraid/megaraid_mbox.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/block/cciss.c~cciss-section-mismatch drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-section-mismatch
-+++ a/drivers/block/cciss.c
-@@ -2929,7 +2929,7 @@ default_int_mode:
+diff -puN drivers/scsi/megaraid/megaraid_mbox.c~megaraid-fix-section-mismatch drivers/scsi/megaraid/megaraid_mbox.c
+--- a/drivers/scsi/megaraid/megaraid_mbox.c~megaraid-fix-section-mismatch
++++ a/drivers/scsi/megaraid/megaraid_mbox.c
+@@ -300,7 +300,7 @@ static struct pci_device_id pci_id_table
+ MODULE_DEVICE_TABLE(pci, pci_id_table_g);
+ 
+ 
+-static struct pci_driver megaraid_pci_driver_g = {
++static struct pci_driver megaraid_pci_driver = {
+ 	.name		= "megaraid",
+ 	.id_table	= pci_id_table_g,
+ 	.probe		= megaraid_probe_one,
+@@ -394,7 +394,7 @@ megaraid_init(void)
+ 
+ 
+ 	// register as a PCI hot-plug driver module
+-	rval = pci_register_driver(&megaraid_pci_driver_g);
++	rval = pci_register_driver(&megaraid_pci_driver);
+ 	if (rval < 0) {
+ 		con_log(CL_ANN, (KERN_WARNING
+ 			"megaraid: could not register hotplug support.\n"));
+@@ -415,7 +415,7 @@ megaraid_exit(void)
+ 	con_log(CL_DLEVEL1, (KERN_NOTICE "megaraid: unloading framework\n"));
+ 
+ 	// unregister as PCI hotplug driver
+-	pci_unregister_driver(&megaraid_pci_driver_g);
++	pci_unregister_driver(&megaraid_pci_driver);
+ 
  	return;
  }
- 
--static int cciss_pci_init(ctlr_info_t *c, struct pci_dev *pdev)
-+static int __devinit cciss_pci_init(ctlr_info_t *c, struct pci_dev *pdev)
- {
- 	ushort subsystem_vendor_id, subsystem_device_id, command;
- 	__u32 board_id, scratchpad = 0;
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
