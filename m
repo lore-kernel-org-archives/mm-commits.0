@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uvesafb-small-cleanups.patch added to -mm tree
-Date: Fri, 11 Jan 2008 17:22:59 -0800
-Message-ID: <200801120122.m0C1MxYD007574@imap1.linux-foundation.org>
+Subject: + oss-msnd-fix-array-overflows.patch added to -mm tree
+Date: Fri, 11 Jan 2008 17:35:07 -0800
+Message-ID: <200801120135.m0C1Z7Pn008040@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57798 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40645 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756962AbYALBXL (ORCPT
+	by vger.kernel.org with ESMTP id S1754440AbYALBfV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jan 2008 20:23:11 -0500
+	Fri, 11 Jan 2008 20:35:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, adaplas@pol.net, spock@gentoo.org
+Cc: bunk@kernel.org
 
 
 The patch titled
-     uvesafb: small cleanups
+     OSS msnd: fix array overflows
 has been added to the -mm tree.  Its filename is
-     uvesafb-small-cleanups.patch
+     oss-msnd-fix-array-overflows.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,85 +34,102 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uvesafb: small cleanups
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: OSS msnd: fix array overflows
+From: Adrian Bunk <bunk@kernel.org>
 
-Some cleanups in uvesafb:
-- The custom module_param() get/set functions don't need to be inlined
-  since it is referred to via a pointer in a struct.
-- don't end a #define with a ';'
-- remove one of the single quote marks in "''ypan'"
+Fix array overflows in the OSS msnd driver spotted by the Coverity checker.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Michal Januszewski <spock@gentoo.org>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/uvesafb.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ sound/oss/msnd.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/uvesafb.c~uvesafb-small-cleanups drivers/video/uvesafb.c
---- a/drivers/video/uvesafb.c~uvesafb-small-cleanups
-+++ a/drivers/video/uvesafb.c
-@@ -2003,12 +2003,12 @@ static void __devexit uvesafb_exit(void)
- 
- module_exit(uvesafb_exit);
- 
--static inline int param_get_scroll(char *buffer, struct kernel_param *kp)
-+static int param_get_scroll(char *buffer, struct kernel_param *kp)
- {
- 	return 0;
- }
- 
--static inline int param_set_scroll(const char *val, struct kernel_param *kp)
-+static int param_set_scroll(const char *val, struct kernel_param *kp)
- {
- 	ypan = 0;
- 
-@@ -2022,11 +2022,11 @@ static inline int param_set_scroll(const
- 	return 0;
- }
- 
--#define param_check_scroll(name, p) __param_check(name, p, void);
-+#define param_check_scroll(name, p) __param_check(name, p, void)
- 
- module_param_named(scroll, ypan, scroll, 0);
- MODULE_PARM_DESC(scroll,
--	"Scrolling mode, set to 'redraw', ''ypan' or 'ywrap'");
-+	"Scrolling mode, set to 'redraw', 'ypan', or 'ywrap'");
- module_param_named(vgapal, pmi_setpal, invbool, 0);
- MODULE_PARM_DESC(vgapal, "Set palette using VGA registers");
- module_param_named(pmipal, pmi_setpal, bool, 0);
+diff -puN sound/oss/msnd.h~oss-msnd-fix-array-overflows sound/oss/msnd.h
+--- a/sound/oss/msnd.h~oss-msnd-fix-array-overflows
++++ a/sound/oss/msnd.h
+@@ -233,8 +233,8 @@ typedef struct multisound_dev {
+ 	spinlock_t lock;
+ 	int nresets;
+ 	unsigned long recsrc;
+-	int left_levels[16];
+-	int right_levels[16];
++	int left_levels[32];
++	int right_levels[32];
+ 	int mixer_mod_count;
+ 	int calibrate_signal;
+ 	int play_sample_size, play_sample_rate, play_channels;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 scsi-qla2xxx-qla_osc-section-fix.patch
-cciss-section-mismatch.patch
-advansys-fix-section-mismatch-warning.patch
-uvesafb-fix-section-mismatch-warnings.patch
+oss-msnd-fix-array-overflows.patch
+git-acpi.patch
 git-dvb.patch
-dvb-av7110-fix-section-mismatch.patch
+git-gfs2-nmw.patch
+git-infiniband.patch
 git-kbuild.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-pcmcia-include-bad-cis-filename-in-error-message.patch
+git-mtd.patch
+git-net.patch
+git-netdev-all.patch
+git-battery.patch
+drivers-bluetooth-bpa10xc-fix-memleak.patch
+drivers-bluetooth-btsdioc-fix-double-free.patch
+if-0-pci_cleanup_aer_correct_error_status.patch
 git-scsi-misc.patch
-megaraid-fix-section-mismatch.patch
-git-unionfs.patch
-hostap-section-mismatch-warning.patch
-git-ipwireless_cs.patch
+scsi-advansysc-make-3-functions-static.patch
+scsi-qla2xxx-possible-cleanups.patch
+scsi-aic94xx-cleanups.patch
+scsi-aic94xx-cleanups-checkpatch-fixes.patch
+scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
 git-x86.patch
-x86-discover_ebda-section-mismatch.patch
-register_cpu-__devinit-or-__cpuinit.patch
-cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
-dio-fix-kernel-doc-notation.patch
-tpm-infineon-section-mismatch.patch
-tdfxfb-fix-section-mismatch-warnings.patch
-uvesafb-small-cleanups.patch
-documentation-move-dnotifytxt-to-filesystems.patch
-documentation-move-sharedsubtreestxt-to-filesystems.patch
-documentation-create-new-scheduler-subdirectory.patch
-reporting-bugs-cc-the-mailing-list-too.patch
-fs-menu-small-reorg.patch
-profile-likely-unlikely-macros.patch
+git-cryptodev.patch
+git-xtensa.patch
+mm-page-writebackc-make-a-function-static.patch
+make-__vmalloc_area_node-static.patch
+m68knommu-remove-duplicate-exports.patch
+kernel-power-diskc-make-code-static.patch
+make-kernel_shutdown_prepare-static.patch
+nubus-kill-drivers-nubus-nubus_symsc.patch
+m68k-kill-arch-m68k-mac-mac_ksymsc.patch
+m68k-kill-arch-m68k-hp300-ksymsc.patch
+m68k-kill-arch-m68k-amiga-amiga_ksymsc.patch
+m68k-kill-arch-m68k-atari-atari_ksymsc.patch
+m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch
+kill-udffs_dateversion.patch
+make-ipc-utilcsysvipc_find_ipc-static.patch
+cleanup-after-apus-removal.patch
+remove-mm_ptovvtop.patch
+remove-__attribute_used__.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+proper-show_interrupts-prototype.patch
+scheduled-oss-driver-removal.patch
+linux-inith-simplify-__meminitexit-dependencies.patch
+proper-prototype-for-signals_init.patch
+kernel-ptracec-should-include-linux-syscallsh.patch
+make-srcu_readers_active-static.patch
+kernel-notifierc-should-include-linux-rebooth.patch
+proper-prototype-for-get_filesystem_list.patch
+fs-utimesc-should-include-linux-syscallsh.patch
+fs-signalfdc-should-include-linux-syscallsh.patch
+fs-eventfdc-should-include-linux-syscallsh.patch
+proper-prototype-for-vty_init.patch
+drivers-misc-lkdtmc-cleanups.patch
+xen-fiddle_vdso-must-be-__init.patch
+calibrate_delay-must-be-__cpuinit.patch
+idle_regs-must-be-__cpuinit.patch
+fs-ecryptfs-possible-cleanups.patch
+make-video-geode-lxfb_corecgeode_modedb-static.patch
+video-hpfbc-section-fix.patch
+drivers-video-pm3fbc-section-fix.patch
+make-jbd-journalc__journal_abort_hard-static.patch
+move-edactxt-two-levels-up.patch
+remove-documentation-smptxt.patch
+kernel-cgroupc-remove-dead-code.patch
+kernel-cgroupc-make-2-functions-static.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+fix-m32r-__xchg.patch
+reiser4.patch
