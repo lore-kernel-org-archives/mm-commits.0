@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gpiolib-mcp23s08-spi-gpio-expander-support.patch added to -mm tree
-Date: Fri, 11 Jan 2008 18:23:00 -0800
-Message-ID: <200801120223.m0C2N0O3009697@imap1.linux-foundation.org>
+Subject: + gpiolib-pca9539-i2c-gpio-expander-support.patch added to -mm tree
+Date: Fri, 11 Jan 2008 18:23:02 -0800
+Message-ID: <200801120223.m0C2N3Sr009706@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46567 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47802 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755954AbYALCb2 (ORCPT
+	by vger.kernel.org with ESMTP id S1755929AbYALCb2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 11 Jan 2008 21:31:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dbrownell@users.sourceforge.net, bgardner@wabtec.com, eric.miao@marvell.com, hskinnemoen@atmel.com, khali@linux-fr.org, philipp.zabel@gmail.com, rmk@arm.linux.org.uk, sam@ravnborg.org
+Cc: eric.miao@marvell.com, bgardner@wabtec.com, dbrownell@users.sourceforge.net, hskinnemoen@atmel.com, khali@linux-fr.org, philipp.zabel@gmail.com, rmk@arm.linux.org.uk, sam@ravnborg.org
 
 
 The patch titled
-     mcp23s08 spi gpio expander support
+     gpiolib: pca9539 i2c gpio expander support
 has been added to the -mm tree.  Its filename is
-     gpiolib-mcp23s08-spi-gpio-expander-support.patch
+     gpiolib-pca9539-i2c-gpio-expander-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,24 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mcp23s08 spi gpio expander support
-From: David Brownell <dbrownell@users.sourceforge.net>
+Subject: gpiolib: pca9539 i2c gpio expander support
+From: eric miao <eric.miao@marvell.com>
 
-Basic driver for 8-bit SPI based MCP23S08 GPIO expander, without support for
-IRQs or the shared chipselect mechanism.
+This adds a new-style I2C driver with basic support for the sixteen bit
+PCA9539 GPIO expanders.  These chips have multiple registers, push-pull output
+drivers, and (not supported in this patch) pin change interrupts.
 
+Board-specific code must provide "pca9539_platform_data" with each chip's
+"i2c_board_info".  That provides the GPIO numbers to be used by that chip, and
+callbacks for board-specific setup/teardown logic.
+
+Derived from drivers/i2c/chips/pca9539.c (which has no current known users). 
+This is faster and simpler; it uses 16-bit register access, and cache the
+OUTPUT and DIRECTION registers for fast access
+
+Signed-off-by: eric miao <eric.miao@marvell.com>
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Eric Miao <eric.miao@marvell.com>
 Cc: Sam Ravnborg <sam@ravnborg.org>
 Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
 Cc: Philipp Zabel <philipp.zabel@gmail.com>
@@ -51,443 +60,343 @@ Cc: Ben Gardner <bgardner@wabtec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/Kconfig         |    7 
- drivers/gpio/Makefile        |    1 
- drivers/gpio/mcp23s08.c      |  357 +++++++++++++++++++++++++++++++++
- include/linux/spi/mcp23s08.h |   24 ++
- 4 files changed, 389 insertions(+)
+ drivers/gpio/Kconfig        |   10 +
+ drivers/gpio/Makefile       |    1 
+ drivers/gpio/pca9539.c      |  271 ++++++++++++++++++++++++++++++++++
+ include/linux/i2c/pca9539.h |   18 ++
+ 4 files changed, 300 insertions(+)
 
-diff -puN drivers/gpio/Kconfig~gpiolib-mcp23s08-spi-gpio-expander-support drivers/gpio/Kconfig
---- a/drivers/gpio/Kconfig~gpiolib-mcp23s08-spi-gpio-expander-support
+diff -puN drivers/gpio/Kconfig~gpiolib-pca9539-i2c-gpio-expander-support drivers/gpio/Kconfig
+--- a/drivers/gpio/Kconfig~gpiolib-pca9539-i2c-gpio-expander-support
 +++ a/drivers/gpio/Kconfig
-@@ -52,4 +52,11 @@ config GPIO_PCF857X
+@@ -27,6 +27,16 @@ config DEBUG_GPIO
  
- comment "SPI GPIO expanders:"
+ comment "I2C GPIO expanders:"
  
-+config GPIO_MCP23S08
-+	tristate "Microchip MCP23S08 I/O expander"
-+	depends on SPI_MASTER
++config GPIO_PCA9539
++	tristate "PCA9539 16-bit I/O port"
++	depends on I2C
 +	help
-+	  SPI driver for Microchip MCP23S08 I/O expander.  This provides
-+	  a GPIO interface supporting inputs and outputs.
++	  Say yes here to support the PCA9539 16-bit I/O port. These
++	  parts are made by NXP and TI.
 +
- endmenu
-diff -puN drivers/gpio/Makefile~gpiolib-mcp23s08-spi-gpio-expander-support drivers/gpio/Makefile
---- a/drivers/gpio/Makefile~gpiolib-mcp23s08-spi-gpio-expander-support
++	  This driver can also be built as a module.  If so, the module
++	  will be called pca9539.
++
+ config GPIO_PCF857X
+ 	tristate "PCF857x, PCA857x, and PCA967x I2C GPIO expanders"
+ 	depends on I2C
+diff -puN drivers/gpio/Makefile~gpiolib-pca9539-i2c-gpio-expander-support drivers/gpio/Makefile
+--- a/drivers/gpio/Makefile~gpiolib-pca9539-i2c-gpio-expander-support
 +++ a/drivers/gpio/Makefile
-@@ -4,4 +4,5 @@ ccflags-$(CONFIG_DEBUG_GPIO)	+= -DDEBUG
- 
+@@ -5,4 +5,5 @@ ccflags-$(CONFIG_DEBUG_GPIO)	+= -DDEBUG
  obj-$(CONFIG_HAVE_GPIO_LIB)	+= gpiolib.o
  
-+obj-$(CONFIG_GPIO_MCP23S08)	+= mcp23s08.o
+ obj-$(CONFIG_GPIO_MCP23S08)	+= mcp23s08.o
++obj-$(CONFIG_GPIO_PCA9539)	+= pca9539.o
  obj-$(CONFIG_GPIO_PCF857X)	+= pcf857x.o
-diff -puN /dev/null drivers/gpio/mcp23s08.c
+diff -puN /dev/null drivers/gpio/pca9539.c
 --- /dev/null
-+++ a/drivers/gpio/mcp23s08.c
-@@ -0,0 +1,357 @@
++++ a/drivers/gpio/pca9539.c
+@@ -0,0 +1,271 @@
 +/*
-+ * mcp23s08.c - SPI gpio expander driver
++ *  pca9539.c - 16-bit I/O port with interrupt and reset
++ *
++ *  Copyright (C) 2005 Ben Gardner <bgardner@wabtec.com>
++ *  Copyright (C) 2007 Marvell International Ltd.
++ *
++ *  Derived from drivers/i2c/chips/pca9539.c
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; version 2 of the License.
 + */
 +
-+#include <linux/kernel.h>
-+#include <linux/device.h>
-+#include <linux/workqueue.h>
-+#include <linux/mutex.h>
-+
-+#include <linux/spi/spi.h>
-+#include <linux/spi/mcp23s08.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/i2c.h>
++#include <linux/i2c/pca9539.h>
 +
 +#include <asm/gpio.h>
 +
 +
-+/* Registers are all 8 bits wide.
-+ *
-+ * The mcp23s17 has twice as many bits, and can be configured to work
-+ * with either 16 bit registers or with two adjacent 8 bit banks.
-+ *
-+ * Also, there are I2C versions of both chips.
-+ */
-+#define MCP_IODIR	0x00		/* init/reset:  all ones */
-+#define MCP_IPOL	0x01
-+#define MCP_GPINTEN	0x02
-+#define MCP_DEFVAL	0x03
-+#define MCP_INTCON	0x04
-+#define MCP_IOCON	0x05
-+#	define IOCON_SEQOP	(1 << 5)
-+#	define IOCON_HAEN	(1 << 3)
-+#	define IOCON_ODR	(1 << 2)
-+#	define IOCON_INTPOL	(1 << 1)
-+#define MCP_GPPU	0x06
-+#define MCP_INTF	0x07
-+#define MCP_INTCAP	0x08
-+#define MCP_GPIO	0x09
-+#define MCP_OLAT	0x0a
++#define NR_PCA9539_GPIOS	16
 +
-+struct mcp23s08 {
-+	struct spi_device	*spi;
-+	u8			addr;
++#define PCA9539_INPUT		0
++#define PCA9539_OUTPUT		2
++#define PCA9539_INVERT		4
++#define PCA9539_DIRECTION	6
 +
-+	/* lock protects the cached values */
-+	struct mutex		lock;
-+	u8			cache[11];
++struct pca9539_chip {
++	unsigned gpio_start;
++	uint16_t reg_output;
++	uint16_t reg_direction;
 +
-+	struct gpio_chip	chip;
-+
-+	struct work_struct	work;
++	struct i2c_client *client;
++	struct gpio_chip gpio_chip;
 +};
 +
-+static int mcp23s08_read(struct mcp23s08 *mcp, unsigned reg)
-+{
-+	u8	tx[2], rx[1];
-+	int	status;
-+
-+	tx[0] = mcp->addr | 0x01;
-+	tx[1] = reg;
-+	status = spi_write_then_read(mcp->spi, tx, sizeof tx, rx, sizeof rx);
-+	return (status < 0) ? status : rx[0];
-+}
-+
-+static int mcp23s08_write(struct mcp23s08 *mcp, unsigned reg, u8 val)
-+{
-+	u8	tx[3];
-+
-+	tx[0] = mcp->addr;
-+	tx[1] = reg;
-+	tx[2] = val;
-+	return spi_write_then_read(mcp->spi, tx, sizeof tx, NULL, 0);
-+}
-+
-+static int
-+mcp23s08_read_regs(struct mcp23s08 *mcp, unsigned reg, u8 *vals, unsigned n)
-+{
-+	u8	tx[2];
-+
-+	if ((n + reg) > sizeof mcp->cache)
-+		return -EINVAL;
-+	tx[0] = mcp->addr | 0x01;
-+	tx[1] = reg;
-+	return spi_write_then_read(mcp->spi, tx, sizeof tx, vals, n);
-+}
-+
-+/*----------------------------------------------------------------------*/
-+
-+static int mcp23s08_direction_input(struct gpio_chip *chip, unsigned offset)
-+{
-+	struct mcp23s08	*mcp = container_of(chip, struct mcp23s08, chip);
-+	int status;
-+
-+	mutex_lock(&mcp->lock);
-+	mcp->cache[MCP_IODIR] |= (1 << offset);
-+	status = mcp23s08_write(mcp, MCP_IODIR, mcp->cache[MCP_IODIR]);
-+	mutex_unlock(&mcp->lock);
-+	return status;
-+}
-+
-+static int mcp23s08_get(struct gpio_chip *chip, unsigned offset)
-+{
-+	struct mcp23s08	*mcp = container_of(chip, struct mcp23s08, chip);
-+	int status;
-+
-+	mutex_lock(&mcp->lock);
-+
-+	/* REVISIT reading this clears any IRQ ... */
-+	status = mcp23s08_read(mcp, MCP_GPIO);
-+	if (status < 0)
-+		status = 0;
-+	else {
-+		mcp->cache[MCP_GPIO] = status;
-+		status = !!(status & (1 << offset));
-+	}
-+	mutex_unlock(&mcp->lock);
-+	return status;
-+}
-+
-+static int __mcp23s08_set(struct mcp23s08 *mcp, unsigned mask, int value)
-+{
-+	u8 olat = mcp->cache[MCP_OLAT];
-+
-+	if (value)
-+		olat |= mask;
-+	else
-+		olat &= ~mask;
-+	mcp->cache[MCP_OLAT] = olat;
-+	return mcp23s08_write(mcp, MCP_OLAT, olat);
-+}
-+
-+static void mcp23s08_set(struct gpio_chip *chip, unsigned offset, int value)
-+{
-+	struct mcp23s08	*mcp = container_of(chip, struct mcp23s08, chip);
-+	u8 mask = 1 << offset;
-+
-+	mutex_lock(&mcp->lock);
-+	__mcp23s08_set(mcp, mask, value);
-+	mutex_unlock(&mcp->lock);
-+}
-+
-+static int
-+mcp23s08_direction_output(struct gpio_chip *chip, unsigned offset, int value)
-+{
-+	struct mcp23s08	*mcp = container_of(chip, struct mcp23s08, chip);
-+	u8 mask = 1 << offset;
-+	int status;
-+
-+	mutex_lock(&mcp->lock);
-+	status = __mcp23s08_set(mcp, mask, value);
-+	if (status == 0) {
-+		mcp->cache[MCP_IODIR] &= ~mask;
-+		status = mcp23s08_write(mcp, MCP_IODIR, mcp->cache[MCP_IODIR]);
-+	}
-+	mutex_unlock(&mcp->lock);
-+	return status;
-+}
-+
-+/*----------------------------------------------------------------------*/
-+
-+#ifdef CONFIG_DEBUG_FS
-+
-+#include <linux/seq_file.h>
-+
-+/*
-+ * This shows more info than the generic gpio dump code:
-+ * pullups, deglitching, open drain drive.
++/* NOTE:  we can't currently rely on fault codes to come from SMBus
++ * calls, so we map all errors to EIO here and return zero otherwise.
 + */
-+static void mcp23s08_dbg_show(struct seq_file *s, struct gpio_chip *chip)
++static int pca9539_write_reg(struct pca9539_chip *chip, int reg, uint16_t val)
 +{
-+	struct mcp23s08	*mcp;
-+	char		bank;
-+	unsigned	t;
-+	unsigned	mask;
-+
-+	mcp = container_of(chip, struct mcp23s08, chip);
-+
-+	/* NOTE: we only handle one bank for now ... */
-+	bank = '0' + ((mcp->addr >> 1) & 0x3);
-+
-+	mutex_lock(&mcp->lock);
-+	t = mcp23s08_read_regs(mcp, 0, mcp->cache, sizeof mcp->cache);
-+	if (t < 0) {
-+		seq_printf(s, " I/O ERROR %d\n", t);
-+		goto done;
-+	}
-+
-+	for (t = 0, mask = 1; t < 8; t++, mask <<= 1) {
-+		const char	*label;
-+
-+		label = gpiochip_is_requested(chip, t);
-+		if (!label)
-+			continue;
-+
-+		seq_printf(s, " gpio-%-3d P%c.%d (%-12s) %s %s %s",
-+			chip->base + t, bank, t, label,
-+			(mcp->cache[MCP_IODIR] & mask) ? "in " : "out",
-+			(mcp->cache[MCP_GPIO] & mask) ? "hi" : "lo",
-+			(mcp->cache[MCP_GPPU] & mask) ? "  " : "up");
-+		/* NOTE:  ignoring the irq-related registers */
-+		seq_printf(s, "\n");
-+	}
-+done:
-+	mutex_unlock(&mcp->lock);
++	if (i2c_smbus_write_word_data(chip->client, reg, val) < 0)
++		return -EIO;
++	else
++		return 0;
 +}
 +
-+#else
-+#define mcp23s08_dbg_show	NULL
-+#endif
-+
-+/*----------------------------------------------------------------------*/
-+
-+static int mcp23s08_probe(struct spi_device *spi)
++static int pca9539_read_reg(struct pca9539_chip *chip, int reg, uint16_t *val)
 +{
-+	struct mcp23s08			*mcp;
-+	struct mcp23s08_platform_data	*pdata;
-+	int				status;
-+	int				do_update = 0;
++	int ret;
 +
-+	pdata = spi->dev.platform_data;
-+	if (!pdata || pdata->slave > 3 || !pdata->base)
++	ret = i2c_smbus_read_word_data(chip->client, reg);
++	if (ret < 0) {
++		dev_err(&chip->client->dev, "failed reading register\n");
++		return -EIO;
++	}
++
++	*val = (uint16_t)ret;
++	return 0;
++}
++
++static int pca9539_gpio_direction_input(struct gpio_chip *gc, unsigned off)
++{
++	struct pca9539_chip *chip;
++	uint16_t reg_val;
++	int ret;
++
++	chip = container_of(gc, struct pca9539_chip, gpio_chip);
++
++	reg_val = chip->reg_direction | (1u << off);
++	ret = pca9539_write_reg(chip, PCA9539_DIRECTION, reg_val);
++	if (ret)
++		return ret;
++
++	chip->reg_direction = reg_val;
++	return 0;
++}
++
++static int pca9539_gpio_direction_output(struct gpio_chip *gc,
++		unsigned off, int val)
++{
++	struct pca9539_chip *chip;
++	uint16_t reg_val;
++	int ret;
++
++	chip = container_of(gc, struct pca9539_chip, gpio_chip);
++
++	/* set output level */
++	if (val)
++		reg_val = chip->reg_output | (1u << off);
++	else
++		reg_val = chip->reg_output & ~(1u << off);
++
++	ret = pca9539_write_reg(chip, PCA9539_OUTPUT, reg_val);
++	if (ret)
++		return ret;
++
++	chip->reg_output = reg_val;
++
++	/* then direction */
++	reg_val = chip->reg_direction & ~(1u << off);
++	ret = pca9539_write_reg(chip, PCA9539_DIRECTION, reg_val);
++	if (ret)
++		return ret;
++
++	chip->reg_direction = reg_val;
++	return 0;
++}
++
++static int pca9539_gpio_get_value(struct gpio_chip *gc, unsigned off)
++{
++	struct pca9539_chip *chip;
++	uint16_t reg_val;
++	int ret;
++
++	chip = container_of(gc, struct pca9539_chip, gpio_chip);
++
++	ret = pca9539_read_reg(chip, PCA9539_INPUT, &reg_val);
++	if (ret < 0) {
++		/* NOTE:  diagnostic already emitted; that's all we should
++		 * do unless gpio_*_value_cansleep() calls become different
++		 * from their nonsleeping siblings (and report faults).
++		 */
++		return 0;
++	}
++
++	return (reg_val & (1u << off)) ? 1 : 0;
++}
++
++static void pca9539_gpio_set_value(struct gpio_chip *gc, unsigned off, int val)
++{
++	struct pca9539_chip *chip;
++	uint16_t reg_val;
++	int ret;
++
++	chip = container_of(gc, struct pca9539_chip, gpio_chip);
++
++	if (val)
++		reg_val = chip->reg_output | (1u << off);
++	else
++		reg_val = chip->reg_output & ~(1u << off);
++
++	ret = pca9539_write_reg(chip, PCA9539_OUTPUT, reg_val);
++	if (ret)
++		return;
++
++	chip->reg_output = reg_val;
++}
++
++static int pca9539_init_gpio(struct pca9539_chip *chip)
++{
++	struct gpio_chip *gc;
++
++	gc = &chip->gpio_chip;
++
++	gc->direction_input  = pca9539_gpio_direction_input;
++	gc->direction_output = pca9539_gpio_direction_output;
++	gc->get = pca9539_gpio_get_value;
++	gc->set = pca9539_gpio_set_value;
++
++	gc->base = chip->gpio_start;
++	gc->ngpio = NR_PCA9539_GPIOS;
++	gc->label = "pca9539";
++
++	return gpiochip_add(gc);
++}
++
++static int __devinit pca9539_probe(struct i2c_client *client)
++{
++	struct pca9539_platform_data *pdata;
++	struct pca9539_chip *chip;
++	int ret;
++
++	pdata = client->dev.platform_data;
++	if (pdata == NULL)
 +		return -ENODEV;
 +
-+	mcp = kzalloc(sizeof *mcp, GFP_KERNEL);
-+	if (!mcp)
++	chip = kzalloc(sizeof(struct pca9539_chip), GFP_KERNEL);
++	if (chip == NULL)
 +		return -ENOMEM;
 +
-+	mutex_init(&mcp->lock);
++	chip->client = client;
 +
-+	mcp->spi = spi;
-+	mcp->addr = 0x40 | (pdata->slave << 1);
++	chip->gpio_start = pdata->gpio_base;
 +
-+	mcp->chip.label = "mcp23s08",
-+
-+	mcp->chip.direction_input = mcp23s08_direction_input;
-+	mcp->chip.get = mcp23s08_get;
-+	mcp->chip.direction_output = mcp23s08_direction_output;
-+	mcp->chip.set = mcp23s08_set;
-+	mcp->chip.dbg_show = mcp23s08_dbg_show;
-+
-+	mcp->chip.base = pdata->base;
-+	mcp->chip.ngpio = 8;
-+	mcp->chip.can_sleep = 1;
-+
-+	spi_set_drvdata(spi, mcp);
-+
-+	/* verify MCP_IOCON.SEQOP = 0, so sequential reads work */
-+	status = mcp23s08_read(mcp, MCP_IOCON);
-+	if (status < 0)
-+		goto fail;
-+	if (status & IOCON_SEQOP) {
-+		status &= ~IOCON_SEQOP;
-+		status = mcp23s08_write(mcp, MCP_IOCON, (u8) status);
-+		if (status < 0)
-+			goto fail;
-+	}
-+
-+	/* configure ~100K pullups */
-+	status = mcp23s08_write(mcp, MCP_GPPU, pdata->pullups);
-+	if (status < 0)
-+		goto fail;
-+
-+	status = mcp23s08_read_regs(mcp, 0, mcp->cache, sizeof mcp->cache);
-+	if (status < 0)
-+		goto fail;
-+
-+	/* disable inverter on input */
-+	if (mcp->cache[MCP_IPOL] != 0) {
-+		mcp->cache[MCP_IPOL] = 0;
-+		do_update = 1;
-+	}
-+
-+	/* disable irqs */
-+	if (mcp->cache[MCP_GPINTEN] != 0) {
-+		mcp->cache[MCP_GPINTEN] = 0;
-+		do_update = 1;
-+	}
-+
-+	if (do_update) {
-+		u8 tx[4];
-+
-+		tx[0] = mcp->addr;
-+		tx[1] = MCP_IPOL;
-+		memcpy(&tx[2], &mcp->cache[MCP_IPOL], sizeof(tx) - 2);
-+		status = spi_write_then_read(mcp->spi, tx, sizeof tx, NULL, 0);
-+
-+		/* FIXME check status... */
-+	}
-+
-+	status = gpiochip_add(&mcp->chip);
-+
-+	/* NOTE:  these chips have a relatively sane IRQ framework, with
-+	 * per-signal masking and level/edge triggering.  It's not yet
-+	 * handled here...
++	/* initialize cached registers from their original values.
++	 * we can't share this chip with another i2c master.
 +	 */
++	ret = pca9539_read_reg(chip, PCA9539_OUTPUT, &chip->reg_output);
++	if (ret)
++		goto out_failed;
++
++	ret = pca9539_read_reg(chip, PCA9539_DIRECTION, &chip->reg_direction);
++	if (ret)
++		goto out_failed;
++
++	/* set platform specific polarity inversion */
++	ret = pca9539_write_reg(chip, PCA9539_INVERT, pdata->invert);
++	if (ret)
++		goto out_failed;
++
++	ret = pca9539_init_gpio(chip);
++	if (ret)
++		goto out_failed;
 +
 +	if (pdata->setup) {
-+		status = pdata->setup(spi, mcp->chip.base,
-+				mcp->chip.ngpio, pdata->context);
-+		if (status < 0)
-+			dev_dbg(&spi->dev, "setup --> %d\n", status);
++		ret = pdata->setup(client, chip->gpio_chip.base,
++				chip->gpio_chip.ngpio, pdata->context);
++		if (ret < 0)
++			dev_warn(&client->dev, "setup failed, %d\n", ret);
 +	}
 +
++	i2c_set_clientdata(client, chip);
 +	return 0;
 +
-+fail:
-+	kfree(mcp);
-+	return status;
++out_failed:
++	kfree(chip);
++	return ret;
 +}
 +
-+static int mcp23s08_remove(struct spi_device *spi)
++static int pca9539_remove(struct i2c_client *client)
 +{
-+	struct mcp23s08			*mcp = spi_get_drvdata(spi);
-+	struct mcp23s08_platform_data	*pdata = spi->dev.platform_data;
-+	int				status = 0;
++	struct pca9539_platform_data *pdata = client->dev.platform_data;
++	struct pca9539_chip *chip = i2c_get_clientdata(client);
++	int ret = 0;
 +
 +	if (pdata->teardown) {
-+		status = pdata->teardown(spi,
-+				mcp->chip.base, mcp->chip.ngpio,
-+				pdata->context);
-+		if (status < 0) {
-+			dev_err(&spi->dev, "%s --> %d\n", "teardown", status);
-+			return status;
++		ret = pdata->teardown(client, chip->gpio_chip.base,
++				chip->gpio_chip.ngpio, pdata->context);
++		if (ret < 0) {
++			dev_err(&client->dev, "%s failed, %d\n",
++					"teardown", ret);
++			return ret;
 +		}
 +	}
 +
-+	status = gpiochip_remove(&mcp->chip);
-+	if (status == 0)
-+		kfree(mcp);
-+	else
-+		dev_err(&spi->dev, "%s --> %d\n", "remove", status);
-+	return status;
++	ret = gpiochip_remove(&chip->gpio_chip);
++	if (ret) {
++		dev_err(&client->dev, "%s failed, %d\n",
++				"gpiochip_remove()", ret);
++		return ret;
++	}
++
++	kfree(chip);
++	return 0;
 +}
 +
-+static struct spi_driver mcp23s08_driver = {
-+	.probe		= mcp23s08_probe,
-+	.remove		= mcp23s08_remove,
++static struct i2c_driver pca9539_driver = {
 +	.driver = {
-+		.name	= "mcp23s08",
-+		.owner	= THIS_MODULE,
++		.name	= "pca9539",
 +	},
++	.probe		= pca9539_probe,
++	.remove		= pca9539_remove,
 +};
 +
-+/*----------------------------------------------------------------------*/
-+
-+static int __init mcp23s08_init(void)
++static int __init pca9539_init(void)
 +{
-+	return spi_register_driver(&mcp23s08_driver);
++	return i2c_add_driver(&pca9539_driver);
 +}
-+module_init(mcp23s08_init);
++module_init(pca9539_init);
 +
-+static void __exit mcp23s08_exit(void)
++static void __exit pca9539_exit(void)
 +{
-+	spi_unregister_driver(&mcp23s08_driver);
++	i2c_del_driver(&pca9539_driver);
 +}
-+module_exit(mcp23s08_exit);
++module_exit(pca9539_exit);
 +
++MODULE_AUTHOR("eric miao <eric.miao@marvell.com>");
++MODULE_DESCRIPTION("GPIO expander driver for PCA9539");
 +MODULE_LICENSE("GPL");
-+
-diff -puN /dev/null include/linux/spi/mcp23s08.h
+diff -puN /dev/null include/linux/i2c/pca9539.h
 --- /dev/null
-+++ a/include/linux/spi/mcp23s08.h
-@@ -0,0 +1,24 @@
++++ a/include/linux/i2c/pca9539.h
+@@ -0,0 +1,18 @@
++/* platform data for the PCA9539 16-bit I/O expander driver */
 +
-+/* FIXME driver should be able to handle all four slaves that
-+ * can be hooked up to each chipselect, as well as IRQs...
-+ */
++struct pca9539_platform_data {
++	/* number of the first GPIO */
++	unsigned	gpio_base;
 +
-+struct mcp23s08_platform_data {
-+	/* four slaves can share one SPI chipselect */
-+	u8		slave;
-+
-+	/* number assigned to the first GPIO */
-+	unsigned	base;
-+
-+	/* pins with pullups */
-+	u8		pullups;
++	/* initial polarity inversion setting */
++	uint16_t	invert;
 +
 +	void		*context;	/* param to setup/teardown */
 +
-+	int		(*setup)(struct spi_device *spi,
-+					int gpio, unsigned ngpio,
-+					void *context);
-+	int		(*teardown)(struct spi_device *spi,
-+					int gpio, unsigned ngpio,
-+					void *context);
++	int		(*setup)(struct i2c_client *client,
++				unsigned gpio, unsigned ngpio,
++				void *context);
++	int		(*teardown)(struct i2c_client *client,
++				unsigned gpio, unsigned ngpio,
++				void *context);
 +};
 _
 
-Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
+Patches currently in -mm which might be from eric.miao@marvell.com are
 
-spi_bitbang-always-grab-lock-with-irqs-blocked.patch
 git-arm.patch
-git-input.patch
-backlight-omap1-backlight-driver.patch
-pcmcia-stop-updating-dev-powerpower_state.patch
-at91_cf-use-generic-gpio-calls.patch
-remove-obsolete-sys-devices-power-state-docs.patch
-spi-core-stop-updating-dev-powerpower_state.patch
-atmel_spi-throughput-improvement.patch
-atmel_spi-chain-dma-transfers.patch
-atmel_spi-chain-dma-transfers-update.patch
-atmel_spi-fix-dmachain-oops-with-debug-enabled.patch
-rtc-cmos-exports-nvram-in-sysfs.patch
-rtc-cmos-alarm-acts-as-oneshot.patch
 gpiolib-add-drivers-gpio-directory.patch
 gpiolib-add-gpio-provider-infrastructure.patch
 gpiolib-update-documentation-gpiotxt.patch
@@ -497,4 +406,3 @@ gpiolib-pcf857x-i2c-gpio-expander-support.patch
 gpiolib-mcp23s08-spi-gpio-expander-support.patch
 gpiolib-pca9539-i2c-gpio-expander-support.patch
 gpiolib-deprecate-obsolete-pca9539-driver.patch
-usb-net2280-cant-have-a-function-called-show_registers.patch
