@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gpiolib-pxa-platform-support.patch added to -mm tree
-Date: Fri, 11 Jan 2008 18:22:54 -0800
-Message-ID: <200801120222.m0C2Mtaq009691@imap1.linux-foundation.org>
+Subject: + gpiolib-pcf857x-i2c-gpio-expander-support.patch added to -mm tree
+Date: Fri, 11 Jan 2008 18:22:57 -0800
+Message-ID: <200801120222.m0C2Mw67009694@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44415 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60480 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755012AbYALCbV (ORCPT
+	by vger.kernel.org with ESMTP id S1755491AbYALCbX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jan 2008 21:31:21 -0500
+	Fri, 11 Jan 2008 21:31:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: philipp.zabel@gmail.com, bgardner@wabtec.com, dbrownell@users.sourceforge.net, eric.miao@marvell.com, hskinnemoen@atmel.com, khali@linux-fr.org, rmk+kernel@arm.linux.org.uk, sam@ravnborg.org
+Cc: dbrownell@users.sourceforge.net, bgardner@wabtec.com, eric.miao@marvell.com, hskinnemoen@atmel.com, khali@linux-fr.org, philipp.zabel@gmail.com, rmk@arm.linux.org.uk, sam@ravnborg.org
 
 
 The patch titled
-     gpiolib support for the PXA architecture
+     gpiolib: pcf857x i2c gpio expander support
 has been added to the -mm tree.  Its filename is
-     gpiolib-pxa-platform-support.patch
+     gpiolib-pcf857x-i2c-gpio-expander-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,498 +34,485 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpiolib support for the PXA architecture
-From: Philipp Zabel <philipp.zabel@gmail.com>
+Subject: gpiolib: pcf857x i2c gpio expander support
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-This adds gpiolib support for the PXA architecture:
-  - move all GPIO API functions from generic.c into gpio.c
-  - convert the gpio_get/set_value macros into inline functions
+This is a new-style I2C driver for most common 8 and 16 bit I2C based
+"quasi-bidirectional" GPIO expanders: pcf8574 or pcf8575, and several
+compatible models (mostly faster, supporting I2C at up to 1 MHz).
 
-This makes it easier to hook up GPIOs provided by external chips like
-ASICs and CPLDs.
+The driver exposes the GPIO signals using the platform-neutral GPIO
+programming interface, so they are easily accessed by other kernel code.  The
+lack of such a flexible kernel API has been a big factor in the proliferation
+of board-specific drivers for these chips...  stuff that rarely makes it
+upstream since it's so ugly.  This driver will let such boards use standard
+calls.
 
-Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
+Since it's a new-style driver, these devices must be configured as part of
+board-specific init.  That eliminates the need for error-prone manual
+configuration of module parameters, and makes compatibility with legacy
+drivers (pcf8574.c, pc8575.c) for these chips easier (there's a clear
+either/or disjunction).
+
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Jean Delvare <khali@linux-fr.org>
+Acked-by: Jean Delvare <khali@linux-fr.org>
 Cc: Eric Miao <eric.miao@marvell.com>
 Cc: Sam Ravnborg <sam@ravnborg.org>
 Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Philipp Zabel <philipp.zabel@gmail.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Cc: Ben Gardner <bgardner@wabtec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/Kconfig                    |    1 
- arch/arm/mach-pxa/Makefile          |    3 
- arch/arm/mach-pxa/generic.c         |   93 ------------
- arch/arm/mach-pxa/generic.h         |    1 
- arch/arm/mach-pxa/gpio.c            |  197 ++++++++++++++++++++++++++
- arch/arm/mach-pxa/irq.c             |    2 
- include/asm-arm/arch-pxa/gpio.h     |   48 ++----
- include/asm-arm/arch-pxa/pxa-regs.h |   13 +
- 8 files changed, 236 insertions(+), 122 deletions(-)
+ drivers/gpio/Kconfig        |   23 ++
+ drivers/gpio/Makefile       |    1 
+ drivers/gpio/pcf857x.c      |  330 ++++++++++++++++++++++++++++++++++
+ include/linux/i2c/pcf857x.h |   45 ++++
+ 4 files changed, 399 insertions(+)
 
-diff -puN arch/arm/Kconfig~gpiolib-pxa-platform-support arch/arm/Kconfig
---- a/arch/arm/Kconfig~gpiolib-pxa-platform-support
-+++ a/arch/arm/Kconfig
-@@ -347,6 +347,7 @@ config ARCH_ORION
- 	select GENERIC_GPIO
- 	select GENERIC_TIME
- 	select GENERIC_CLOCKEVENTS
-+	select HAVE_GPIO_LIB
- 	help
- 	  Support for Marvell Orion System on Chip family.
+diff -puN drivers/gpio/Kconfig~gpiolib-pcf857x-i2c-gpio-expander-support drivers/gpio/Kconfig
+--- a/drivers/gpio/Kconfig~gpiolib-pcf857x-i2c-gpio-expander-support
++++ a/drivers/gpio/Kconfig
+@@ -27,6 +27,29 @@ config DEBUG_GPIO
  
-diff -puN arch/arm/mach-pxa/Makefile~gpiolib-pxa-platform-support arch/arm/mach-pxa/Makefile
---- a/arch/arm/mach-pxa/Makefile~gpiolib-pxa-platform-support
-+++ a/arch/arm/mach-pxa/Makefile
-@@ -3,7 +3,8 @@
- #
+ comment "I2C GPIO expanders:"
  
- # Common support (must be linked before board specific support)
--obj-y				+= clock.o devices.o generic.o irq.o dma.o time.o
-+obj-y				+= clock.o devices.o generic.o irq.o dma.o \
-+				   time.o gpio.o
- obj-$(CONFIG_PXA25x)		+= pxa25x.o
- obj-$(CONFIG_PXA27x)		+= pxa27x.o
- obj-$(CONFIG_PXA3xx)		+= pxa3xx.o mfp.o
-diff -puN arch/arm/mach-pxa/generic.c~gpiolib-pxa-platform-support arch/arm/mach-pxa/generic.c
---- a/arch/arm/mach-pxa/generic.c~gpiolib-pxa-platform-support
-+++ a/arch/arm/mach-pxa/generic.c
-@@ -31,7 +31,6 @@
- #include <asm/mach/map.h>
++config GPIO_PCF857X
++	tristate "PCF857x, PCA857x, and PCA967x I2C GPIO expanders"
++	depends on I2C
++	help
++	  Say yes here to provide access to most "quasi-bidirectional" I2C
++	  GPIO expanders used for additional digital outputs or inputs.
++	  Most of these parts are from NXP, though TI is a second source for
++	  some of them.  Compatible models include:
++
++	  8 bits:   pcf8574, pcf8574a, pca8574, pca8574a,
++	            pca9670, pca9672, pca9674, pca9674a
++
++	  16 bits:  pcf8575, pcf8575c, pca8575,
++	            pca9671, pca9673, pca9675
++
++	  Your board setup code will need to declare the expanders in
++	  use, and assign numbers to the GPIOs they expose.  Those GPIOs
++	  can then be used from drivers and other kernel code, just like
++	  other GPIOs, but only accessible from task contexts.
++
++	  This driver provides an in-kernel interface to those GPIOs using
++	  platform-neutral GPIO calls.
++
+ comment "SPI GPIO expanders:"
  
- #include <asm/arch/pxa-regs.h>
--#include <asm/arch/gpio.h>
+ endmenu
+diff -puN drivers/gpio/Makefile~gpiolib-pcf857x-i2c-gpio-expander-support drivers/gpio/Makefile
+--- a/drivers/gpio/Makefile~gpiolib-pcf857x-i2c-gpio-expander-support
++++ a/drivers/gpio/Makefile
+@@ -4,3 +4,4 @@ ccflags-$(CONFIG_DEBUG_GPIO)	+= -DDEBUG
  
- #include "generic.h"
+ obj-$(CONFIG_HAVE_GPIO_LIB)	+= gpiolib.o
  
-@@ -66,97 +65,6 @@ unsigned int get_memclk_frequency_10khz(
- EXPORT_SYMBOL(get_memclk_frequency_10khz);
- 
- /*
-- * Handy function to set GPIO alternate functions
-- */
--int pxa_last_gpio;
--
--int pxa_gpio_mode(int gpio_mode)
--{
--	unsigned long flags;
--	int gpio = gpio_mode & GPIO_MD_MASK_NR;
--	int fn = (gpio_mode & GPIO_MD_MASK_FN) >> 8;
--	int gafr;
--
--	if (gpio > pxa_last_gpio)
--		return -EINVAL;
--
--	local_irq_save(flags);
--	if (gpio_mode & GPIO_DFLT_LOW)
--		GPCR(gpio) = GPIO_bit(gpio);
--	else if (gpio_mode & GPIO_DFLT_HIGH)
--		GPSR(gpio) = GPIO_bit(gpio);
--	if (gpio_mode & GPIO_MD_MASK_DIR)
--		GPDR(gpio) |= GPIO_bit(gpio);
--	else
--		GPDR(gpio) &= ~GPIO_bit(gpio);
--	gafr = GAFR(gpio) & ~(0x3 << (((gpio) & 0xf)*2));
--	GAFR(gpio) = gafr |  (fn  << (((gpio) & 0xf)*2));
--	local_irq_restore(flags);
--
--	return 0;
--}
--
--EXPORT_SYMBOL(pxa_gpio_mode);
--
--int gpio_direction_input(unsigned gpio)
--{
--	unsigned long flags;
--	u32 mask;
--
--	if (gpio > pxa_last_gpio)
--		return -EINVAL;
--
--	mask = GPIO_bit(gpio);
--	local_irq_save(flags);
--	GPDR(gpio) &= ~mask;
--	local_irq_restore(flags);
--
--	return 0;
--}
--EXPORT_SYMBOL(gpio_direction_input);
--
--int gpio_direction_output(unsigned gpio, int value)
--{
--	unsigned long flags;
--	u32 mask;
--
--	if (gpio > pxa_last_gpio)
--		return -EINVAL;
--
--	mask = GPIO_bit(gpio);
--	local_irq_save(flags);
--	if (value)
--		GPSR(gpio) = mask;
--	else
--		GPCR(gpio) = mask;
--	GPDR(gpio) |= mask;
--	local_irq_restore(flags);
--
--	return 0;
--}
--EXPORT_SYMBOL(gpio_direction_output);
--
--/*
-- * Return GPIO level
-- */
--int pxa_gpio_get_value(unsigned gpio)
--{
--	return __gpio_get_value(gpio);
--}
--
--EXPORT_SYMBOL(pxa_gpio_get_value);
--
--/*
-- * Set output GPIO level
-- */
--void pxa_gpio_set_value(unsigned gpio, int value)
--{
--	__gpio_set_value(gpio, value);
--}
--
--EXPORT_SYMBOL(pxa_gpio_set_value);
--
--/*
-  * Routine to safely enable or disable a clock in the CKEN
-  */
- void __pxa_set_cken(int clock, int enable)
-@@ -171,7 +79,6 @@ void __pxa_set_cken(int clock, int enabl
- 
- 	local_irq_restore(flags);
- }
--
- EXPORT_SYMBOL(__pxa_set_cken);
- 
- /*
-diff -puN arch/arm/mach-pxa/generic.h~gpiolib-pxa-platform-support arch/arm/mach-pxa/generic.h
---- a/arch/arm/mach-pxa/generic.h~gpiolib-pxa-platform-support
-+++ a/arch/arm/mach-pxa/generic.h
-@@ -16,6 +16,7 @@ extern void __init pxa_init_irq_low(void
- extern void __init pxa_init_irq_high(void);
- extern void __init pxa_init_irq_gpio(int gpio_nr);
- extern void __init pxa_init_irq_set_wake(int (*set_wake)(unsigned int, unsigned int));
-+extern void __init pxa_init_gpio(int gpio_nr);
- extern void __init pxa25x_init_irq(void);
- extern void __init pxa27x_init_irq(void);
- extern void __init pxa3xx_init_irq(void);
-diff -puN /dev/null arch/arm/mach-pxa/gpio.c
++obj-$(CONFIG_GPIO_PCF857X)	+= pcf857x.o
+diff -puN /dev/null drivers/gpio/pcf857x.c
 --- /dev/null
-+++ a/arch/arm/mach-pxa/gpio.c
-@@ -0,0 +1,197 @@
++++ a/drivers/gpio/pcf857x.c
+@@ -0,0 +1,330 @@
 +/*
-+ *  linux/arch/arm/mach-pxa/gpio.c
++ * pcf857x - driver for pcf857x, pca857x, and pca967x I2C GPIO expanders
 + *
-+ *  Generic PXA GPIO handling
++ * Copyright (C) 2007 David Brownell
 + *
-+ *  Author:	Nicolas Pitre
-+ *  Created:	Jun 15, 2001
-+ *  Copyright:	MontaVista Software Inc.
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
 + *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License version 2 as
-+ *  published by the Free Software Foundation.
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 + */
 +
-+#include <linux/init.h>
-+#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/slab.h>
++#include <linux/i2c.h>
++#include <linux/i2c/pcf857x.h>
 +
 +#include <asm/gpio.h>
-+#include <asm/hardware.h>
-+#include <asm/io.h>
-+#include <asm/arch/pxa-regs.h>
-+
-+#include "generic.h"
 +
 +
-+struct pxa_gpio_chip {
-+	struct gpio_chip chip;
-+	void __iomem     *regbase;
++/*
++ * The pcf857x, pca857x, and pca967x chips only expose one read and one
++ * write register.  Writing a "one" bit (to match the reset state) lets
++ * that pin be used as an input; it's not an open-drain model, but acts
++ * a bit like one.  This is described as "quasi-bidirectional"; read the
++ * chip documentation for details.
++ *
++ * Many other I2C GPIO expander chips (like the pca953x models) have
++ * more complex register models and more conventional circuitry using
++ * push/pull drivers.  They often use the same 0x20..0x27 addresses as
++ * pcf857x parts, making the "legacy" I2C driver model problematic.
++ */
++struct pcf857x {
++	struct gpio_chip	chip;
++	struct i2c_client	*client;
++	unsigned		out;		/* software latch */
 +};
 +
-+int pxa_last_gpio;
++/*-------------------------------------------------------------------------*/
 +
-+/*
-+ * Configure pins for GPIO or other functions
-+ */
-+int pxa_gpio_mode(int gpio_mode)
++/* Talk to 8-bit I/O expander */
++
++static int pcf857x_input8(struct gpio_chip *chip, unsigned offset)
 +{
-+	unsigned long flags;
-+	int gpio = gpio_mode & GPIO_MD_MASK_NR;
-+	int fn = (gpio_mode & GPIO_MD_MASK_FN) >> 8;
-+	int gafr;
++	struct pcf857x	*gpio = container_of(chip, struct pcf857x, chip);
 +
-+	if (gpio > pxa_last_gpio)
-+		return -EINVAL;
-+
-+	local_irq_save(flags);
-+	if (gpio_mode & GPIO_DFLT_LOW)
-+		GPCR(gpio) = GPIO_bit(gpio);
-+	else if (gpio_mode & GPIO_DFLT_HIGH)
-+		GPSR(gpio) = GPIO_bit(gpio);
-+	if (gpio_mode & GPIO_MD_MASK_DIR)
-+		GPDR(gpio) |= GPIO_bit(gpio);
-+	else
-+		GPDR(gpio) &= ~GPIO_bit(gpio);
-+	gafr = GAFR(gpio) & ~(0x3 << (((gpio) & 0xf)*2));
-+	GAFR(gpio) = gafr |  (fn  << (((gpio) & 0xf)*2));
-+	local_irq_restore(flags);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(pxa_gpio_mode);
-+
-+static int pxa_gpio_direction_input(struct gpio_chip *chip, unsigned offset)
-+{
-+	unsigned long        flags;
-+	u32                  mask = 1 << offset;
-+	u32                  value;
-+	struct pxa_gpio_chip *pxa;
-+	void __iomem         *gpdr;
-+
-+	pxa = container_of(chip, struct pxa_gpio_chip, chip);
-+	gpdr = pxa->regbase + GPDR_OFFSET;
-+	local_irq_save(flags);
-+	value = __raw_readl(gpdr);
-+	value &= ~mask;
-+	__raw_writel(value, gpdr);
-+	local_irq_restore(flags);
-+
-+	return 0;
++	gpio->out |= (1 << offset);
++	return i2c_smbus_write_byte(gpio->client, gpio->out);
 +}
 +
-+static int pxa_gpio_direction_output(struct gpio_chip *chip,
-+					unsigned offset, int value)
++static int pcf857x_get8(struct gpio_chip *chip, unsigned offset)
 +{
-+	unsigned long        flags;
-+	u32                  mask = 1 << offset;
-+	u32                  tmp;
-+	struct pxa_gpio_chip *pxa;
-+	void __iomem         *gpdr;
++	struct pcf857x	*gpio = container_of(chip, struct pcf857x, chip);
++	s32		value;
 +
-+	pxa = container_of(chip, struct pxa_gpio_chip, chip);
-+	__raw_writel(mask,
-+			pxa->regbase + (value ? GPSR_OFFSET : GPCR_OFFSET));
-+	gpdr = pxa->regbase + GPDR_OFFSET;
-+	local_irq_save(flags);
-+	tmp = __raw_readl(gpdr);
-+	tmp |= mask;
-+	__raw_writel(tmp, gpdr);
-+	local_irq_restore(flags);
-+
-+	return 0;
++	value = i2c_smbus_read_byte(gpio->client);
++	return (value < 0) ? 0 : (value & (1 << offset));
 +}
 +
-+/*
-+ * Return GPIO level
-+ */
-+static int pxa_gpio_get(struct gpio_chip *chip, unsigned offset)
++static int pcf857x_output8(struct gpio_chip *chip, unsigned offset, int value)
 +{
-+	u32                  mask = 1 << offset;
-+	struct pxa_gpio_chip *pxa;
-+
-+	pxa = container_of(chip, struct pxa_gpio_chip, chip);
-+	return __raw_readl(pxa->regbase + GPLR_OFFSET) & mask;
-+}
-+
-+/*
-+ * Set output GPIO level
-+ */
-+static void pxa_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
-+{
-+	u32                  mask = 1 << offset;
-+	struct pxa_gpio_chip *pxa;
-+
-+	pxa = container_of(chip, struct pxa_gpio_chip, chip);
++	struct pcf857x	*gpio = container_of(chip, struct pcf857x, chip);
++	unsigned	bit = 1 << offset;
 +
 +	if (value)
-+		__raw_writel(mask, pxa->regbase + GPSR_OFFSET);
++		gpio->out |= bit;
 +	else
-+		__raw_writel(mask, pxa->regbase + GPCR_OFFSET);
++		gpio->out &= ~bit;
++	return i2c_smbus_write_byte(gpio->client, gpio->out);
 +}
 +
-+static struct pxa_gpio_chip pxa_gpio_chip[] = {
-+	[0] = {
-+		.regbase = GPIO0_BASE,
-+		.chip = {
-+			.label            = "gpio-0",
-+			.direction_input  = pxa_gpio_direction_input,
-+			.direction_output = pxa_gpio_direction_output,
-+			.get              = pxa_gpio_get,
-+			.set              = pxa_gpio_set,
-+			.base             = 0,
-+			.ngpio            = 32,
-+		},
++static void pcf857x_set8(struct gpio_chip *chip, unsigned offset, int value)
++{
++	pcf857x_output8(chip, offset, value);
++}
++
++/*-------------------------------------------------------------------------*/
++
++/* Talk to 16-bit I/O expander */
++
++static int i2c_write_le16(struct i2c_client *client, u16 word)
++{
++	u8 buf[2] = { word & 0xff, word >> 8, };
++	int status;
++
++	status = i2c_master_send(client, buf, 2);
++	return (status < 0) ? status : 0;
++}
++
++static int i2c_read_le16(struct i2c_client *client)
++{
++	u8 buf[2];
++	int status;
++
++	status = i2c_master_recv(client, buf, 2);
++	if (status < 0)
++		return status;
++	return (buf[1] << 8) | buf[0];
++}
++
++static int pcf857x_input16(struct gpio_chip *chip, unsigned offset)
++{
++	struct pcf857x	*gpio = container_of(chip, struct pcf857x, chip);
++
++	gpio->out |= (1 << offset);
++	return i2c_write_le16(gpio->client, gpio->out);
++}
++
++static int pcf857x_get16(struct gpio_chip *chip, unsigned offset)
++{
++	struct pcf857x	*gpio = container_of(chip, struct pcf857x, chip);
++	int		value;
++
++	value = i2c_read_le16(gpio->client);
++	return (value < 0) ? 0 : (value & (1 << offset));
++}
++
++static int pcf857x_output16(struct gpio_chip *chip, unsigned offset, int value)
++{
++	struct pcf857x	*gpio = container_of(chip, struct pcf857x, chip);
++	unsigned	bit = 1 << offset;
++
++	if (value)
++		gpio->out |= bit;
++	else
++		gpio->out &= ~bit;
++	return i2c_write_le16(gpio->client, gpio->out);
++}
++
++static void pcf857x_set16(struct gpio_chip *chip, unsigned offset, int value)
++{
++	pcf857x_output16(chip, offset, value);
++}
++
++/*-------------------------------------------------------------------------*/
++
++static int pcf857x_probe(struct i2c_client *client)
++{
++	struct pcf857x_platform_data	*pdata;
++	struct pcf857x			*gpio;
++	int				status;
++
++	pdata = client->dev.platform_data;
++	if (!pdata)
++		return -ENODEV;
++
++	/* Allocate, initialize, and register this gpio_chip. */
++	gpio = kzalloc(sizeof *gpio, GFP_KERNEL);
++	if (!gpio)
++		return -ENOMEM;
++
++	gpio->chip.base = pdata->gpio_base;
++	gpio->chip.can_sleep = 1;
++
++	/* NOTE:  the OnSemi jlc1562b is also largely compatible with
++	 * these parts, notably for output.  It has a low-resolution
++	 * DAC instead of pin change IRQs; and its inputs can be the
++	 * result of comparators.
++	 */
++
++	/* 8574 addresses are 0x20..0x27; 8574a uses 0x38..0x3f;
++	 * 9670, 9672, 9764, and 9764a use quite a variety.
++	 *
++	 * NOTE: we don't distinguish here between *4 and *4a parts.
++	 */
++	if (strcmp(client->name, "pcf8574") == 0
++			|| strcmp(client->name, "pca8574") == 0
++			|| strcmp(client->name, "pca9670") == 0
++			|| strcmp(client->name, "pca9672") == 0
++			|| strcmp(client->name, "pca9674") == 0
++			) {
++		gpio->chip.ngpio = 8;
++		gpio->chip.direction_input = pcf857x_input8;
++		gpio->chip.get = pcf857x_get8;
++		gpio->chip.direction_output = pcf857x_output8;
++		gpio->chip.set = pcf857x_set8;
++
++		if (!i2c_check_functionality(client->adapter,
++				I2C_FUNC_SMBUS_BYTE))
++			status = -EIO;
++
++		/* fail if there's no chip present */
++		else
++			status = i2c_smbus_read_byte(client);
++
++	/* '75/'75c addresses are 0x20..0x27, just like the '74;
++	 * the '75c doesn't have a current source pulling high.
++	 * 9671, 9673, and 9765 use quite a variety of addresses.
++	 *
++	 * NOTE: we don't distinguish here between '75 and '75c parts.
++	 */
++	} else if (strcmp(client->name, "pcf8575") == 0
++			|| strcmp(client->name, "pca8575") == 0
++			|| strcmp(client->name, "pca9671") == 0
++			|| strcmp(client->name, "pca9673") == 0
++			|| strcmp(client->name, "pca9675") == 0
++			) {
++		gpio->chip.ngpio = 16;
++		gpio->chip.direction_input = pcf857x_input16;
++		gpio->chip.get = pcf857x_get16;
++		gpio->chip.direction_output = pcf857x_output16;
++		gpio->chip.set = pcf857x_set16;
++
++		if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
++			status = -EIO;
++
++		/* fail if there's no chip present */
++		else
++			status = i2c_read_le16(client);
++
++	} else
++		status = -ENODEV;
++
++	if (status < 0)
++		goto fail;
++
++	gpio->chip.label = client->name;
++
++	gpio->client = client;
++	i2c_set_clientdata(client, gpio);
++
++	/* NOTE:  these chips have strange "quasi-bidirectional" I/O pins.
++	 * We can't actually know whether a pin is configured (a) as output
++	 * and driving the signal low, or (b) as input and reporting a low
++	 * value ... without knowing the last value written since the chip
++	 * came out of reset (if any).  We can't read the latched output.
++	 *
++	 * In short, the only reliable solution for setting up pin direction
++	 * is to do it explicitly.  The setup() method can do that, but it
++	 * may cause transient glitching since it can't know the last value
++	 * written (some pins may need to be driven low).
++	 *
++	 * Using pdata->n_latch avoids that trouble.  When left initialized
++	 * to zero, our software copy of the "latch" then matches the chip's
++	 * all-ones reset state.  Otherwise it flags pins to be driven low.
++	 */
++	gpio->out = ~pdata->n_latch;
++
++	status = gpiochip_add(&gpio->chip);
++	if (status < 0)
++		goto fail;
++
++	/* NOTE: these chips can issue "some pin-changed" IRQs, which we
++	 * don't yet even try to use.  Among other issues, the relevant
++	 * genirq state isn't available to modular drivers; and most irq
++	 * methods can't be called from sleeping contexts.
++	 */
++
++	dev_info(&client->dev, "gpios %d..%d on a %s%s\n",
++			gpio->chip.base,
++			gpio->chip.base + gpio->chip.ngpio - 1,
++			client->name,
++			client->irq ? " (irq ignored)" : "");
++
++	/* Let platform code set up the GPIOs and their users.
++	 * Now is the first time anyone could use them.
++	 */
++	if (pdata->setup) {
++		status = pdata->setup(client,
++				gpio->chip.base, gpio->chip.ngpio,
++				pdata->context);
++		if (status < 0)
++			dev_warn(&client->dev, "setup --> %d\n", status);
++	}
++
++	return 0;
++
++fail:
++	dev_dbg(&client->dev, "probe error %d for '%s'\n",
++			status, client->name);
++	kfree(gpio);
++	return status;
++}
++
++static int pcf857x_remove(struct i2c_client *client)
++{
++	struct pcf857x_platform_data	*pdata = client->dev.platform_data;
++	struct pcf857x			*gpio = i2c_get_clientdata(client);
++	int				status = 0;
++
++	if (pdata->teardown) {
++		status = pdata->teardown(client,
++				gpio->chip.base, gpio->chip.ngpio,
++				pdata->context);
++		if (status < 0) {
++			dev_err(&client->dev, "%s --> %d\n",
++					"teardown", status);
++			return status;
++		}
++	}
++
++	status = gpiochip_remove(&gpio->chip);
++	if (status == 0)
++		kfree(gpio);
++	else
++		dev_err(&client->dev, "%s --> %d\n", "remove", status);
++	return status;
++}
++
++static struct i2c_driver pcf857x_driver = {
++	.driver = {
++		.name	= "pcf857x",
++		.owner	= THIS_MODULE,
 +	},
-+	[1] = {
-+		.regbase = GPIO1_BASE,
-+		.chip = {
-+			.label            = "gpio-1",
-+			.direction_input  = pxa_gpio_direction_input,
-+			.direction_output = pxa_gpio_direction_output,
-+			.get              = pxa_gpio_get,
-+			.set              = pxa_gpio_set,
-+			.base             = 32,
-+			.ngpio            = 32,
-+		},
-+	},
-+	[2] = {
-+		.regbase = GPIO2_BASE,
-+		.chip = {
-+			.label            = "gpio-2",
-+			.direction_input  = pxa_gpio_direction_input,
-+			.direction_output = pxa_gpio_direction_output,
-+			.get              = pxa_gpio_get,
-+			.set              = pxa_gpio_set,
-+			.base             = 64,
-+			.ngpio            = 32, /* 21 for PXA25x */
-+		},
-+	},
-+#if defined(CONFIG_PXA27x) || defined(CONFIG_PXA3xx)
-+	[3] = {
-+		.regbase = GPIO3_BASE,
-+		.chip = {
-+			.label            = "gpio-3",
-+			.direction_input  = pxa_gpio_direction_input,
-+			.direction_output = pxa_gpio_direction_output,
-+			.get              = pxa_gpio_get,
-+			.set              = pxa_gpio_set,
-+			.base             = 96,
-+			.ngpio            = 32,
-+		},
-+	},
-+#endif
++	.probe	= pcf857x_probe,
++	.remove	= pcf857x_remove,
 +};
 +
-+void __init pxa_init_gpio(int gpio_nr)
++static int __init pcf857x_init(void)
 +{
-+	int i;
-+
-+	/* add a GPIO chip for each register bank.
-+	 * the last PXA25x register only contains 21 GPIOs
-+	 */
-+	for (i = 0; i < gpio_nr; i += 32) {
-+		if (i+32 > gpio_nr)
-+			pxa_gpio_chip[i/32].chip.ngpio = gpio_nr - i;
-+		gpiochip_add(&pxa_gpio_chip[i/32].chip);
-+	}
++	return i2c_add_driver(&pcf857x_driver);
 +}
-diff -puN arch/arm/mach-pxa/irq.c~gpiolib-pxa-platform-support arch/arm/mach-pxa/irq.c
---- a/arch/arm/mach-pxa/irq.c~gpiolib-pxa-platform-support
-+++ a/arch/arm/mach-pxa/irq.c
-@@ -310,6 +310,8 @@ void __init pxa_init_irq_gpio(int gpio_n
- 	/* Install handler for GPIO>=2 edge detect interrupts */
- 	set_irq_chip(IRQ_GPIO_2_x, &pxa_internal_chip_low);
- 	set_irq_chained_handler(IRQ_GPIO_2_x, pxa_gpio_demux_handler);
++module_init(pcf857x_init);
 +
-+	pxa_init_gpio(gpio_nr);
- }
- 
- void __init pxa_init_irq_set_wake(int (*set_wake)(unsigned int, unsigned int))
-diff -puN include/asm-arm/arch-pxa/gpio.h~gpiolib-pxa-platform-support include/asm-arm/arch-pxa/gpio.h
---- a/include/asm-arm/arch-pxa/gpio.h~gpiolib-pxa-platform-support
-+++ a/include/asm-arm/arch-pxa/gpio.h
-@@ -28,43 +28,35 @@
- #include <asm/irq.h>
- #include <asm/hardware.h>
- 
--static inline int gpio_request(unsigned gpio, const char *label)
--{
--	return 0;
--}
-+#include <asm-generic/gpio.h>
- 
--static inline void gpio_free(unsigned gpio)
--{
--	return;
--}
- 
--extern int gpio_direction_input(unsigned gpio);
--extern int gpio_direction_output(unsigned gpio, int value);
-+/* NOTE: some PXAs have fewer on-chip GPIOs (like PXA255, with 85).
-+ * Those cases currently cause holes in the GPIO number space.
++static void __exit pcf857x_exit(void)
++{
++	i2c_del_driver(&pcf857x_driver);
++}
++module_exit(pcf857x_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("David Brownell");
+diff -puN /dev/null include/linux/i2c/pcf857x.h
+--- /dev/null
++++ a/include/linux/i2c/pcf857x.h
+@@ -0,0 +1,45 @@
++#ifndef __LINUX_PCF857X_H
++#define __LINUX_PCF857X_H
++
++/**
++ * struct pcf857x_platform_data - data to set up pcf857x driver
++ * @gpio_base: number of the chip's first GPIO
++ * @n_latch: optional bit-inverse of initial register value; if
++ *	you leave this initialized to zero the driver will act
++ *	like the chip was just reset
++ * @setup: optional callback issued once the GPIOs are valid
++ * @teardown: optional callback issued before the GPIOs are invalidated
++ * @context: optional parameter passed to setup() and teardown()
++ *
++ * In addition to the I2C_BOARD_INFO() state appropriate to each chip,
++ * the i2c_board_info used with the pcf875x driver must provide the
++ * chip "type" ("pcf8574", "pcf8574a", "pcf8575", "pcf8575c") and its
++ * platform_data (pointer to one of these structures) with at least
++ * the gpio_base value initialized.
++ *
++ * The @setup callback may be used with the kind of board-specific glue
++ * which hands the (now-valid) GPIOs to other drivers, or which puts
++ * devices in their initial states using these GPIOs.
++ *
++ * These GPIO chips are only "quasi-bidirectional"; read the chip specs
++ * to understand the behavior.  They don't have separate registers to
++ * record which pins are used for input or output, record which output
++ * values are driven, or provide access to input values.  That must be
++ * inferred by reading the chip's value and knowing the last value written
++ * to it.  If you leave n_latch initialized to zero, that last written
++ * value is presumed to be all ones (as if the chip were just reset).
 + */
-+#define NR_BUILTIN_GPIO 128
- 
--static inline int __gpio_get_value(unsigned gpio)
-+static inline int gpio_get_value(unsigned gpio)
- {
--	return GPLR(gpio) & GPIO_bit(gpio);
-+	if (__builtin_constant_p(gpio) && (gpio < NR_BUILTIN_GPIO))
-+		return GPLR(gpio) & GPIO_bit(gpio);
-+	else
-+		return __gpio_get_value(gpio);
- }
- 
--#define gpio_get_value(gpio)			\
--	(__builtin_constant_p(gpio) ?		\
--	 __gpio_get_value(gpio) :		\
--	 pxa_gpio_get_value(gpio))
--
--static inline void __gpio_set_value(unsigned gpio, int value)
-+static inline void gpio_set_value(unsigned gpio, int value)
- {
--	if (value)
--		GPSR(gpio) = GPIO_bit(gpio);
--	else
--		GPCR(gpio) = GPIO_bit(gpio);
-+	if (__builtin_constant_p(gpio) && (gpio < NR_BUILTIN_GPIO)) {
-+		if (value)
-+			GPSR(gpio) = GPIO_bit(gpio);
-+		else
-+			GPCR(gpio) = GPIO_bit(gpio);
-+	} else {
-+		__gpio_set_value(gpio, value);
-+	}
- }
- 
--#define gpio_set_value(gpio,value)		\
--	(__builtin_constant_p(gpio) ?		\
--	 __gpio_set_value(gpio, value) :	\
--	 pxa_gpio_set_value(gpio, value))
--
--#include <asm-generic/gpio.h>			/* cansleep wrappers */
-+#define gpio_cansleep __gpio_cansleep
- 
- #define gpio_to_irq(gpio)	IRQ_GPIO(gpio)
- #define irq_to_gpio(irq)	IRQ_TO_GPIO(irq)
-diff -puN include/asm-arm/arch-pxa/pxa-regs.h~gpiolib-pxa-platform-support include/asm-arm/arch-pxa/pxa-regs.h
---- a/include/asm-arm/arch-pxa/pxa-regs.h~gpiolib-pxa-platform-support
-+++ a/include/asm-arm/arch-pxa/pxa-regs.h
-@@ -1131,6 +1131,19 @@
-  * General Purpose I/O
-  */
- 
-+#define GPIO0_BASE	((void __iomem *)io_p2v(0x40E00000))
-+#define GPIO1_BASE	((void __iomem *)io_p2v(0x40E00004))
-+#define GPIO2_BASE	((void __iomem *)io_p2v(0x40E00008))
-+#define GPIO3_BASE	((void __iomem *)io_p2v(0x40E00100))
++struct pcf857x_platform_data {
++	unsigned	gpio_base;
++	unsigned	n_latch;
 +
-+#define GPLR_OFFSET	0x00
-+#define GPDR_OFFSET	0x0C
-+#define GPSR_OFFSET	0x18
-+#define GPCR_OFFSET	0x24
-+#define GRER_OFFSET	0x30
-+#define GFER_OFFSET	0x3C
-+#define GEDR_OFFSET	0x48
++	int		(*setup)(struct i2c_client *client,
++					int gpio, unsigned ngpio,
++					void *context);
++	int		(*teardown)(struct i2c_client *client,
++					int gpio, unsigned ngpio,
++					void *context);
++	void		*context;
++};
 +
- #define GPLR0		__REG(0x40E00000)  /* GPIO Pin-Level Register GPIO<31:0> */
- #define GPLR1		__REG(0x40E00004)  /* GPIO Pin-Level Register GPIO<63:32> */
- #define GPLR2		__REG(0x40E00008)  /* GPIO Pin-Level Register GPIO<80:64> */
++#endif /* __LINUX_PCF857X_H */
 _
 
-Patches currently in -mm which might be from philipp.zabel@gmail.com are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
+spi_bitbang-always-grab-lock-with-irqs-blocked.patch
 git-arm.patch
-ds1wm-decouple-host-irq-and-intr-active-state-settings.patch
+git-input.patch
+backlight-omap1-backlight-driver.patch
+pcmcia-stop-updating-dev-powerpower_state.patch
+at91_cf-use-generic-gpio-calls.patch
+remove-obsolete-sys-devices-power-state-docs.patch
+spi-core-stop-updating-dev-powerpower_state.patch
+atmel_spi-throughput-improvement.patch
+atmel_spi-chain-dma-transfers.patch
+atmel_spi-chain-dma-transfers-update.patch
+atmel_spi-fix-dmachain-oops-with-debug-enabled.patch
+rtc-cmos-exports-nvram-in-sysfs.patch
+rtc-cmos-alarm-acts-as-oneshot.patch
 gpiolib-add-drivers-gpio-directory.patch
 gpiolib-add-gpio-provider-infrastructure.patch
 gpiolib-update-documentation-gpiotxt.patch
@@ -535,3 +522,4 @@ gpiolib-pcf857x-i2c-gpio-expander-support.patch
 gpiolib-mcp23s08-spi-gpio-expander-support.patch
 gpiolib-pca9539-i2c-gpio-expander-support.patch
 gpiolib-deprecate-obsolete-pca9539-driver.patch
+usb-net2280-cant-have-a-function-called-show_registers.patch
