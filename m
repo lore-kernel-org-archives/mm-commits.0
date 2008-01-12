@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + libfs-rename-simple_attr_close-to-simple_attr_release.patch added to -mm tree
-Date: Fri, 11 Jan 2008 18:30:25 -0800
-Message-ID: <200801120230.m0C2UPYB010002@imap1.linux-foundation.org>
+Subject: + gpiolib-add-drivers-gpio-directory.patch added to -mm tree
+Date: Fri, 11 Jan 2008 18:22:42 -0800
+Message-ID: <200801120222.m0C2MgTn009677@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44711 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47173 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754181AbYALCay (ORCPT
+	by vger.kernel.org with ESMTP id S1753242AbYALCbP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jan 2008 21:30:54 -0500
+	Fri, 11 Jan 2008 21:31:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@lst.de, arnd@arndb.de, greg@kroah.com, stefano.brivio@polimi.it, viro@zeniv.linux.org.uk
+Cc: dbrownell@users.sourceforge.net, bgardner@wabtec.com, eric.miao@marvell.com, hskinnemoen@atmel.com, khali@linux-fr.org, philipp.zabel@gmail.com, rmk@arm.linux.org.uk, sam@ravnborg.org
 
 
 The patch titled
-     libfs: rename simple_attr_close to simple_attr_release
+     gpiolib: add drivers/gpio directory
 has been added to the -mm tree.  Its filename is
-     libfs-rename-simple_attr_close-to-simple_attr_release.patch
+     gpiolib-add-drivers-gpio-directory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,162 +34,142 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: libfs: rename simple_attr_close to simple_attr_release
-From: Christoph Hellwig <hch@lst.de>
+Subject: gpiolib: add drivers/gpio directory
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-simple_attr_close implementes ->release so it should be named accordingly.
+Add an empty drivers/gpio directory for gpiolib infrastructure and GPIO
+expanders.  It will be populated by later patches.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: <stefano.brivio@polimi.it>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Greg KH <greg@kroah.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+This won't be the only place to hold such gpio_chip code.  Many external chips
+add a few GPIOs as secondary functionality (such as MFD drivers) and platform
+code frequently needs to closely integrate GPIO and IRQ support.
+
+This is placed *early* in the build/link sequence since it's common for other
+drivers to depend on GPIOs to do their work, so they must be initialized early
+in the device_initcall() sequence.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Acked-by: Jean Delvare <khali@linux-fr.org>
+Cc: Eric Miao <eric.miao@marvell.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Philipp Zabel <philipp.zabel@gmail.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Ben Gardner <bgardner@wabtec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/cell/spufs/file.c |    2 +-
- fs/libfs.c                               |    4 ++--
- include/linux/fs.h                       |    4 ++--
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ arch/arm/Kconfig      |    2 ++
+ drivers/Kconfig       |    2 ++
+ drivers/Makefile      |    1 +
+ drivers/gpio/Kconfig  |   32 ++++++++++++++++++++++++++++++++
+ drivers/gpio/Makefile |    4 ++++
+ 5 files changed, 41 insertions(+)
 
-diff -puN arch/powerpc/platforms/cell/spufs/file.c~libfs-rename-simple_attr_close-to-simple_attr_release arch/powerpc/platforms/cell/spufs/file.c
---- a/arch/powerpc/platforms/cell/spufs/file.c~libfs-rename-simple_attr_close-to-simple_attr_release
-+++ a/arch/powerpc/platforms/cell/spufs/file.c
-@@ -464,7 +464,7 @@ spufs_cntl_release(struct inode *inode, 
- 	struct spufs_inode_info *i = SPUFS_I(inode);
- 	struct spu_context *ctx = i->i_ctx;
+diff -puN arch/arm/Kconfig~gpiolib-add-drivers-gpio-directory arch/arm/Kconfig
+--- a/arch/arm/Kconfig~gpiolib-add-drivers-gpio-directory
++++ a/arch/arm/Kconfig
+@@ -1079,6 +1079,8 @@ source "drivers/i2c/Kconfig"
  
--	simple_attr_close(inode, file);
-+	simple_attr_release(inode, file);
+ source "drivers/spi/Kconfig"
  
- 	mutex_lock(&ctx->mapping_lock);
- 	if (!--i->i_openers)
-diff -puN fs/libfs.c~libfs-rename-simple_attr_close-to-simple_attr_release fs/libfs.c
---- a/fs/libfs.c~libfs-rename-simple_attr_close-to-simple_attr_release
-+++ a/fs/libfs.c
-@@ -615,7 +615,7 @@ int simple_attr_open(struct inode *inode
- 	return nonseekable_open(inode, file);
- }
++source "drivers/gpio/Kconfig"
++
+ source "drivers/w1/Kconfig"
  
--int simple_attr_close(struct inode *inode, struct file *file)
-+int simple_attr_release(struct inode *inode, struct file *file)
- {
- 	kfree(file->private_data);
- 	return 0;
-@@ -804,6 +804,6 @@ EXPORT_SYMBOL(simple_transaction_get);
- EXPORT_SYMBOL(simple_transaction_read);
- EXPORT_SYMBOL(simple_transaction_release);
- EXPORT_SYMBOL_GPL(simple_attr_open);
--EXPORT_SYMBOL_GPL(simple_attr_close);
-+EXPORT_SYMBOL_GPL(simple_attr_release);
- EXPORT_SYMBOL_GPL(simple_attr_read);
- EXPORT_SYMBOL_GPL(simple_attr_write);
-diff -puN include/linux/fs.h~libfs-rename-simple_attr_close-to-simple_attr_release include/linux/fs.h
---- a/include/linux/fs.h~libfs-rename-simple_attr_close-to-simple_attr_release
-+++ a/include/linux/fs.h
-@@ -2058,7 +2058,7 @@ static int __fops ## _open(struct inode 
- static struct file_operations __fops = {				\
- 	.owner	 = THIS_MODULE,						\
- 	.open	 = __fops ## _open,					\
--	.release = simple_attr_close,					\
-+	.release = simple_attr_release,					\
- 	.read	 = simple_attr_read,					\
- 	.write	 = simple_attr_write,					\
- };
-@@ -2072,7 +2072,7 @@ __simple_attr_check_format(const char *f
- int simple_attr_open(struct inode *inode, struct file *file,
- 		     int (*get)(void *, u64 *), int (*set)(void *, u64),
- 		     const char *fmt);
--int simple_attr_close(struct inode *inode, struct file *file);
-+int simple_attr_release(struct inode *inode, struct file *file);
- ssize_t simple_attr_read(struct file *file, char __user *buf,
- 			 size_t len, loff_t *ppos);
- ssize_t simple_attr_write(struct file *file, const char __user *buf,
+ source "drivers/power/Kconfig"
+diff -puN drivers/Kconfig~gpiolib-add-drivers-gpio-directory drivers/Kconfig
+--- a/drivers/Kconfig~gpiolib-add-drivers-gpio-directory
++++ a/drivers/Kconfig
+@@ -52,6 +52,8 @@ source "drivers/i2c/Kconfig"
+ 
+ source "drivers/spi/Kconfig"
+ 
++source "drivers/gpio/Kconfig"
++
+ source "drivers/w1/Kconfig"
+ 
+ source "drivers/power/Kconfig"
+diff -puN drivers/Makefile~gpiolib-add-drivers-gpio-directory drivers/Makefile
+--- a/drivers/Makefile~gpiolib-add-drivers-gpio-directory
++++ a/drivers/Makefile
+@@ -5,6 +5,7 @@
+ # Rewritten to use lists instead of if-statements.
+ #
+ 
++obj-$(CONFIG_HAVE_GPIO_LIB)	+= gpio/
+ obj-$(CONFIG_PCI)		+= pci/
+ obj-$(CONFIG_PARISC)		+= parisc/
+ obj-$(CONFIG_RAPIDIO)		+= rapidio/
+diff -puN /dev/null drivers/gpio/Kconfig
+--- /dev/null
++++ a/drivers/gpio/Kconfig
+@@ -0,0 +1,32 @@
++#
++# GPIO infrastructure and expanders
++#
++
++config HAVE_GPIO_LIB
++	bool
++	help
++	  Platforms select gpiolib if they use this infrastructure
++	  for all their GPIOs, usually starting with ones integrated
++	  into SOC processors.
++
++menu "GPIO Support"
++	depends on HAVE_GPIO_LIB
++
++config DEBUG_GPIO
++	bool "Debug GPIO calls"
++	depends on DEBUG_KERNEL
++	help
++	  Say Y here to add some extra checks and diagnostics to GPIO calls.
++	  The checks help ensure that GPIOs have been properly initialized
++	  before they are used and that sleeping calls aren not made from
++	  nonsleeping contexts.  They can make bitbanged serial protocols
++	  slower.  The diagnostics help catch the type of setup errors
++	  that are most common when setting up new platforms or boards.
++
++# put expanders in the right section, in alphabetical order
++
++comment "I2C GPIO expanders:"
++
++comment "SPI GPIO expanders:"
++
++endmenu
+diff -puN /dev/null drivers/gpio/Makefile
+--- /dev/null
++++ a/drivers/gpio/Makefile
+@@ -0,0 +1,4 @@
++# gpio support: dedicated expander chips, etc
++
++ccflags-$(CONFIG_DEBUG_GPIO)	+= -DDEBUG
++
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
-git-powerpc.patch
-git-mips.patch
-git-netdev-all.patch
-pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch
-pcmcia-replace-kio_addr_t-with-unsigned-int-everywhere.patch
-git-scsi-misc.patch
-git-unionfs.patch
-vfs-apply-coding-standards-to-fs-ioctlc.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-vfs-factor-out-three-helpers-for-fibmap-fionbio-fioasync-file-ioctls.patch
-git-xfs.patch
-clean-up-vmtruncate.patch
-vfs-security-rework-inode_getsecurity-and-callers-to.patch
-vfs-reorder-vfs_getxattr-to-avoid-unnecessary-calls-to-the-lsm.patch
-kernel-add-mutex_lock_killable.patch
-vfs-use-mutex_lock_killable-in-vfs_readdir.patch
-reiserfs-eliminate-private-use-of-struct-file-in-xattr.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-stub-functions.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
-iget-introduce-a-function-to-register-iget-failure.patch
-iget-use-iget_failed-in-afs.patch
-iget-use-iget_failed-in-gfs2.patch
-iget-stop-affs-from-using-iget-and-read_inode-try.patch
-iget-stop-autofs-from-using-iget-and-read_inode.patch
-iget-stop-befs-from-using-iget-and-read_inode-try.patch
-iget-stop-bfs-from-using-iget-and-read_inode-try.patch
-iget-stop-cifs-from-using-iget-and-read_inode-try.patch
-iget-stop-efs-from-using-iget-and-read_inode-try.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try.patch
-iget-stop-ext4-from-using-iget-and-read_inode-try.patch
-iget-stop-fat-from-using-iget-and-read_inode-try.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-fix.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-fuse-from-using-iget-and-read_inode-try.patch
-iget-stop-hfsplus-from-using-iget-and-read_inode.patch
-iget-stop-isofs-from-using-read_inode.patch
-iget-stop-isofs-from-using-read_inode-fix-2.patch
-iget-stop-jffs2-from-using-iget-and-read_inode.patch
-iget-stop-jfs-from-using-iget-and-read_inode-try.patch
-iget-stop-the-minix-filesystem-from-using-iget-and.patch
-iget-stop-procfs-from-using-iget-and-read_inode.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try.patch
-iget-stop-romfs-from-using-iget-and-read_inode.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try.patch
-iget-stop-openpromfs-from-using-iget-and.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
-iget-stop-hppfs-from-using-iget-and-read_inode.patch
-iget-remove-iget-and-the-read_inode-super-op-as.patch
-dont-touch-fs_struct-in-drivers.patch
-dont-touch-fs_struct-in-usermodehelper.patch
-remove-path_release_on_umount.patch
-move-struct-path-into-its-own-header.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
-introduce-path_put.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-introduce-path_get.patch
-use-struct-path-in-fs_struct.patch
-make-set_fs_rootpwd-take-a-struct-path.patch
-introduce-path_get-unionfs.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs.patch
-introduce-path_put-unionfs.patch
-use-struct-path-in-struct-svc_expkey.patch
-d_path-make-seq_path-use-a-struct-path-argument.patch
-kill-pt_attached.patch
-kill-my_ptrace_child.patch
-ptrace_check_attach-remove-unneeded-signal-=-null-check.patch
-ext2-remove-unused-ext2_put_inode-prototype.patch
-libfs-allow-error-return-from-simple-attributes.patch
-libfs-make-simple-attributes-interruptible.patch
-libfs-rename-simple_attr_close-to-simple_attr_release.patch
+spi_bitbang-always-grab-lock-with-irqs-blocked.patch
+git-arm.patch
+git-input.patch
+backlight-omap1-backlight-driver.patch
+pcmcia-stop-updating-dev-powerpower_state.patch
+at91_cf-use-generic-gpio-calls.patch
+remove-obsolete-sys-devices-power-state-docs.patch
+spi-core-stop-updating-dev-powerpower_state.patch
+atmel_spi-throughput-improvement.patch
+atmel_spi-chain-dma-transfers.patch
+atmel_spi-chain-dma-transfers-update.patch
+atmel_spi-fix-dmachain-oops-with-debug-enabled.patch
+rtc-cmos-exports-nvram-in-sysfs.patch
+rtc-cmos-alarm-acts-as-oneshot.patch
+gpiolib-add-drivers-gpio-directory.patch
+gpiolib-add-gpio-provider-infrastructure.patch
+gpiolib-update-documentation-gpiotxt.patch
+gpiolib-avr32-at32ap-platform-support.patch
+gpiolib-pxa-platform-support.patch
+gpiolib-pcf857x-i2c-gpio-expander-support.patch
+gpiolib-mcp23s08-spi-gpio-expander-support.patch
+gpiolib-pca9539-i2c-gpio-expander-support.patch
+gpiolib-deprecate-obsolete-pca9539-driver.patch
+usb-net2280-cant-have-a-function-called-show_registers.patch
