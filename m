@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 11 Jan 2008 16:32:45 -0800
-Message-ID: <200801120032.m0C0WjDY005679@imap1.linux-foundation.org>
+Subject: + scsi-arcmsr-updates-1200015.patch added to -mm tree
+Date: Fri, 11 Jan 2008 16:38:06 -0800
+Message-ID: <200801120038.m0C0c6HJ005851@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43676 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40168 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763010AbYALAdx (ORCPT
+	by vger.kernel.org with ESMTP id S1758691AbYALAjA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jan 2008 19:33:53 -0500
+	Fri, 11 Jan 2008 19:39:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, acurrid@nvidia.com, ak@suse.de, ebiederm@xmission.com, greg@kroah.com, mingo@elte.hu, pchen@nvidia.com, tglx@linutronix.de
+Cc: nick.cheng@areca.com.tw, James.Bottomley@steeleye.com, mbroz@redhat.com, thenzl@redhat.com
 
 
 The patch titled
-     quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes
+     scsi: arcmsr updates (1.20.00.15)
 has been added to the -mm tree.  Its filename is
-     quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
+     scsi-arcmsr-updates-1200015.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,363 +34,375 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: scsi: arcmsr updates (1.20.00.15)
+From: Nick Cheng <nick.cheng@areca.com.tw>
 
-WARNING: line over 80 characters
-#38: FILE: drivers/pci/quirks.c:1788:
-+		if (pci_read_config_byte(dev, pos + HT_MSI_FLAGS, &flags) == 0) {
+- add arcmsr_enable_eoi_mode()and readl(reg->iop2drv_doorbell_reg) in
+  arcmsr_handle_hbb_isr() on adapter Type B in case of the doorbell
+  interrupt clearance is cached
 
-ERROR: open brace '{' following function declarations go on the next line
-#50: FILE: drivers/pci/quirks.c:1800:
-+static void __devinit nv_msi_ht_cap_quirk(struct pci_dev *dev) {
+- add conditional declaration for arcmsr_pci_error_detected() and
+  arcmsr_pci_slot_reset
 
-ERROR: use tabs not spaces
-#57: FILE: drivers/pci/quirks.c:1807:
-+ ^I */$
+- check if the sg list member number exceeds arcmsr default limit in
+  arcmsr_build_ccb()
 
-ERROR: need space after that ',' (ctx:VxV)
-#59: FILE: drivers/pci/quirks.c:1809:
-+	if ((host_bridge = pci_get_bus_and_slot(0, PCI_DEVFN(0,0))) == NULL) {
- 	                                                      ^
+- change the returned value type of arcmsr_build_ccb()from "void" to
+  "int" returns FAILED in arcmsr_queue_command()
 
-ERROR: do not use assignment in if condition (+	if ((host_bridge = pci_get_bus_and_slot(0, PCI_DEVFN(0,0))) == NULL))
-#59: FILE: drivers/pci/quirks.c:1809:
-+	if ((host_bridge = pci_get_bus_and_slot(0, PCI_DEVFN(0,0))) == NULL) {
+- modify arcmsr_drain_donequeue() to ignore unknown command and let
+  kernel process command timeout.  This could handle IO request violating
+  maximum segments, i.e.  Linux XFS over DM-CRYPT.  Thanks to Milan Broz's
+  comments <mbroz@redhat.com>
 
-WARNING: line over 80 characters
-#65: FILE: drivers/pci/quirks.c:1815:
-+	if ((pos = pci_find_ht_capability(host_bridge, HT_CAPTYPE_SLAVE)) != 0) {
+- fix the release of dma memory for type B in arcmsr_free_ccb_pool()
 
-ERROR: do not use assignment in if condition (+	if ((pos = pci_find_ht_capability(host_bridge, HT_CAPTYPE_SLAVE)) != 0))
-#65: FILE: drivers/pci/quirks.c:1815:
-+	if ((pos = pci_find_ht_capability(host_bridge, HT_CAPTYPE_SLAVE)) != 0) {
+- fix the arcmsr_polling_hbb_ccbdone()
 
-WARNING: line over 80 characters
-#77: FILE: drivers/pci/quirks.c:1827:
-+		if (pci_read_config_byte(dev, pos + HT_MSI_FLAGS, &flags) == 0) {
-
-WARNING: line over 80 characters
-#78: FILE: drivers/pci/quirks.c:1828:
-+			printk(KERN_INFO "PCI: Quirk disabling HT MSI mapping on %s\n",
-
-total: 5 errors, 4 warnings, 70 lines checked
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Andy Currid <acurrid@nvidia.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peer Chen <pchen@nvidia.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Nick Cheng <nick.cheng@areca.com.tw>
+Cc: Milan Broz <mbroz@redhat.com>
+Cc: <thenzl@redhat.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/quirks.c |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ Documentation/scsi/ChangeLog.arcmsr |   41 ++++++++++++
+ drivers/scsi/arcmsr/arcmsr.h        |    4 -
+ drivers/scsi/arcmsr/arcmsr_hba.c    |   87 ++++++++++++++++++--------
+ 3 files changed, 105 insertions(+), 27 deletions(-)
 
-diff -puN drivers/pci/quirks.c~quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes drivers/pci/quirks.c
---- a/drivers/pci/quirks.c~quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes
-+++ a/drivers/pci/quirks.c
-@@ -1797,22 +1797,26 @@ static inline void ht_enable_msi_mapping
+diff -puN Documentation/scsi/ChangeLog.arcmsr~scsi-arcmsr-updates-1200015 Documentation/scsi/ChangeLog.arcmsr
+--- a/Documentation/scsi/ChangeLog.arcmsr~scsi-arcmsr-updates-1200015
++++ a/Documentation/scsi/ChangeLog.arcmsr
+@@ -68,4 +68,45 @@
+ **						2. modify the arcmsr_pci_slot_reset function
+ **						3. modify the arcmsr_pci_ers_disconnect_forepart function
+ **						4. modify the arcmsr_pci_ers_need_reset_forepart function
++** 1.20.00.15   09/27/2007	 Erich Chen & Nick Cheng
++**						1. add arcmsr_enable_eoi_mode() on adapter Type B
++** 						2. add readl(reg->iop2drv_doorbell_reg) in arcmsr_handle_hbb_isr()
++**						in case of the doorbell interrupt clearance is cached
++** 1.20.00.15   10/01/2007	 Erich Chen & Nick Cheng
++**						1. modify acb->devstate[i][j]
++**						as ARECA_RAID_GOOD instead of
++**						ARECA_RAID_GONE in arcmsr_alloc_ccb_pool
++** 1.20.00.15   11/06/2007       Erich Chen & Nick Cheng
++**						1. add conditional declaration for
++** 						arcmsr_pci_error_detected() and
++**						arcmsr_pci_slot_reset
++** 1.20.00.15	11/23/2007       Erich Chen & Nick Cheng
++**						1.check if the sg list member number
++**						exceeds arcmsr default limit in arcmsr_build_ccb()
++**						2.change the returned value type of arcmsr_build_ccb()
++**						from "void" to "int"
++**						3.add the conditional check if arcmsr_build_ccb()
++**						returns FAILED
++** 1.20.00.15	12/04/2007	 Erich Chen & Nick Cheng
++**						1. modify arcmsr_drain_donequeue() to ignore unknown
++**						command and let kernel process command timeout.
++**						This could handle IO request violating max. segments
++**						while Linux XFS over DM-CRYPT.
++**						Thanks to Milan Broz's comments <mbroz@redhat.com>
++** 1.20.00.15	12/24/2007	 Erich Chen & Nick Cheng
++**						1.fix the portability problems
++**						2.fix type B where we should _not_ iounmap() acb->pmu;
++**						it's not ioremapped.
++**						3.add return -ENOMEM if ioremap() fails
++**						4.transfer IS_SG64_ADDR w/ cpu_to_le32()
++**						in arcmsr_build_ccb
++**						5. modify acb->devstate[i][j] as ARECA_RAID_GONE instead of
++**						ARECA_RAID_GOOD in arcmsr_alloc_ccb_pool()
++**						6.fix arcmsr_cdb->Context as (unsigned long)arcmsr_cdb
++**						7.add the checking state of
++**						(outbound_intstatus & ARCMSR_MU_OUTBOUND_HANDLE_INT) == 0
++**						in arcmsr_handle_hba_isr
++**						8.replace pci_alloc_consistent()/pci_free_consistent() with kmalloc()/kfree() in arcmsr_iop_message_xfer()
++**						9. fix the release of dma memory for type B in arcmsr_free_ccb_pool()
++**						10.fix the arcmsr_polling_hbb_ccbdone()
+ **************************************************************************
+diff -puN drivers/scsi/arcmsr/arcmsr.h~scsi-arcmsr-updates-1200015 drivers/scsi/arcmsr/arcmsr.h
+--- a/drivers/scsi/arcmsr/arcmsr.h~scsi-arcmsr-updates-1200015
++++ a/drivers/scsi/arcmsr/arcmsr.h
+@@ -48,7 +48,7 @@ struct class_device_attribute;
+ /*The limit of outstanding scsi command that firmware can handle*/
+ #define ARCMSR_MAX_OUTSTANDING_CMD						256
+ #define ARCMSR_MAX_FREECCB_NUM							320
+-#define ARCMSR_DRIVER_VERSION		     "Driver Version 1.20.00.15 2007/08/30"
++#define ARCMSR_DRIVER_VERSION		     "Driver Version 1.20.00.15 2007/12/24"
+ #define ARCMSR_SCSI_INITIATOR_ID						255
+ #define ARCMSR_MAX_XFER_SECTORS							512
+ #define ARCMSR_MAX_XFER_SECTORS_B						4096
+@@ -248,6 +248,7 @@ struct FIRMWARE_INFO
+ #define ARCMSR_MESSAGE_START_BGRB		      0x00060008
+ #define ARCMSR_MESSAGE_START_DRIVER_MODE	      0x000E0008
+ #define ARCMSR_MESSAGE_SET_POST_WINDOW		      0x000F0008
++#define ARCMSR_MESSAGE_ACTIVE_EOI_MODE		    0x00100008
+ /* ARCMSR_OUTBOUND_MESG1_FIRMWARE_OK */
+ #define ARCMSR_MESSAGE_FIRMWARE_OK		      0x80000000
+ /* ioctl transfer */
+@@ -256,6 +257,7 @@ struct FIRMWARE_INFO
+ #define ARCMSR_DRV2IOP_DATA_READ_OK                   0x00000002
+ #define ARCMSR_DRV2IOP_CDB_POSTED                     0x00000004
+ #define ARCMSR_DRV2IOP_MESSAGE_CMD_POSTED             0x00000008
++#define ARCMSR_DRV2IOP_END_OF_INTERRUPT		0x00000010
+ 
+ /* data tunnel buffer between user space program and its firmware */
+ /* user space data to iop 128bytes */
+diff -puN drivers/scsi/arcmsr/arcmsr_hba.c~scsi-arcmsr-updates-1200015 drivers/scsi/arcmsr/arcmsr_hba.c
+--- a/drivers/scsi/arcmsr/arcmsr_hba.c~scsi-arcmsr-updates-1200015
++++ a/drivers/scsi/arcmsr/arcmsr_hba.c
+@@ -316,9 +316,6 @@ static int arcmsr_alloc_ccb_pool(struct 
+ 				(0x20 - ((unsigned long)dma_coherent_handle & 0x1F));
+ 		}
+ 
+-		reg = (struct MessageUnit_B *)(dma_coherent +
+-		ARCMSR_MAX_FREECCB_NUM * sizeof(struct CommandControlBlock));
+-
+ 		dma_addr = dma_coherent_handle;
+ 		ccb_tmp = (struct CommandControlBlock *)dma_coherent;
+ 		for (i = 0; i < ARCMSR_MAX_FREECCB_NUM; i++) {
+@@ -372,8 +369,8 @@ static int arcmsr_alloc_ccb_pool(struct 
+ 
+ out:
+ 	dma_free_coherent(&acb->pdev->dev,
+-		ARCMSR_MAX_FREECCB_NUM * sizeof(struct CommandControlBlock) + 0x20,
+-		acb->dma_coherent, acb->dma_coherent_handle);
++		(ARCMSR_MAX_FREECCB_NUM * sizeof(struct CommandControlBlock) + 0x20 +
++		sizeof(struct MessageUnit_B)), acb->dma_coherent, acb->dma_coherent_handle);
+ 	return -ENOMEM;
+ }
+ 
+@@ -510,6 +507,7 @@ static uint8_t arcmsr_hbb_wait_msgint_re
+ 				& ARCMSR_IOP2DRV_MESSAGE_CMD_DONE) {
+ 				writel(ARCMSR_MESSAGE_INT_CLEAR_PATTERN
+ 					, reg->iop2drv_doorbell_reg);
++				writel(ARCMSR_DRV2IOP_END_OF_INTERRUPT, reg->drv2iop_doorbell_reg);
+ 				return 0x00;
+ 			}
+ 			msleep(10);
+@@ -749,6 +747,7 @@ static void arcmsr_drain_donequeue(struc
+ 				, ccb->startdone
+ 				, atomic_read(&acb->ccboutstandingcount));
+ 		}
++	else
+ 	arcmsr_report_ccb_state(acb, ccb, flag_ccb);
+ }
+ 
+@@ -887,7 +886,7 @@ static void arcmsr_enable_outbound_ints(
  	}
  }
  
--static void __devinit nv_msi_ht_cap_quirk(struct pci_dev *dev) {
-+static void __devinit nv_msi_ht_cap_quirk(struct pci_dev *dev)
-+{
+-static void arcmsr_build_ccb(struct AdapterControlBlock *acb,
++static int arcmsr_build_ccb(struct AdapterControlBlock *acb,
+ 	struct CommandControlBlock *ccb, struct scsi_cmnd *pcmd)
+ {
+ 	struct ARCMSR_CDB *arcmsr_cdb = (struct ARCMSR_CDB *)&ccb->arcmsr_cdb;
+@@ -907,6 +906,8 @@ static void arcmsr_build_ccb(struct Adap
+ 	memcpy(arcmsr_cdb->Cdb, pcmd->cmnd, pcmd->cmd_len);
  
- 	struct pci_dev *host_bridge;
- 	int pos, ttl = 48;
+ 	nseg = scsi_dma_map(pcmd);
++	if (nseg > ARCMSR_MAX_SG_ENTRIES)
++		return FAILED;
+ 	BUG_ON(nseg < 0);
  
--	/* HT MSI mapping should be disabled on devices that are below
-+	/*
-+	 * HT MSI mapping should be disabled on devices that are below
- 	 * a non-Hypertransport host bridge. Locate the host bridge...
-- 	 */
-+	 */
- 
--	if ((host_bridge = pci_get_bus_and_slot(0, PCI_DEVFN(0,0))) == NULL) {
-+	host_bridge = pci_get_bus_and_slot(0, PCI_DEVFN(0,0));
-+	if (host_bridge == NULL) {
- 		printk(KERN_WARNING
- 			"PCI: nv_msi_ht_cap_quirk didn't locate host bridge\n");
- 		return;
+ 	if (nseg) {
+@@ -947,6 +948,7 @@ static void arcmsr_build_ccb(struct Adap
+ 		arcmsr_cdb->Flags |= ARCMSR_CDB_FLAG_WRITE;
+ 		ccb->ccb_flags |= CCB_FLAG_WRITE;
  	}
++	return SUCCESS;
+ }
  
--	if ((pos = pci_find_ht_capability(host_bridge, HT_CAPTYPE_SLAVE)) != 0) {
-+	pos = pci_find_ht_capability(host_bridge, HT_CAPTYPE_SLAVE);
-+	if (pos != 0) {
- 		/* Host bridge is to HT */
- 		ht_enable_msi_mapping(dev);
- 		return;
-@@ -1825,8 +1829,8 @@ static void __devinit nv_msi_ht_cap_quir
- 		u8 flags;
+ static void arcmsr_post_ccb(struct AdapterControlBlock *acb, struct CommandControlBlock *ccb)
+@@ -1037,18 +1039,22 @@ static void arcmsr_free_ccb_pool(struct 
+ 	switch (acb->adapter_type) {
+ 	case ACB_ADAPTER_TYPE_A: {
+ 		iounmap(acb->pmuA);
++		dma_free_coherent(&acb->pdev->dev,
++		ARCMSR_MAX_FREECCB_NUM * sizeof (struct CommandControlBlock) + 0x20,
++		acb->dma_coherent,
++		acb->dma_coherent_handle);
+ 		break;
+ 	}
+ 	case ACB_ADAPTER_TYPE_B: {
+ 		struct MessageUnit_B *reg = acb->pmuB;
+ 		iounmap(reg->drv2iop_doorbell_reg - ARCMSR_DRV2IOP_DOORBELL);
+ 		iounmap(reg->ioctl_wbuffer_reg - ARCMSR_IOCTL_WBUFFER);
++		dma_free_coherent(&acb->pdev->dev,
++		(ARCMSR_MAX_FREECCB_NUM * sizeof(struct CommandControlBlock) + 0x20 +
++		sizeof(struct MessageUnit_B)), acb->dma_coherent, acb->dma_coherent_handle);
+ 	}
+ 	}
+-	dma_free_coherent(&acb->pdev->dev,
+-		ARCMSR_MAX_FREECCB_NUM * sizeof (struct CommandControlBlock) + 0x20,
+-		acb->dma_coherent,
+-		acb->dma_coherent_handle);
++
+ }
  
- 		if (pci_read_config_byte(dev, pos + HT_MSI_FLAGS, &flags) == 0) {
--			printk(KERN_INFO "PCI: Quirk disabling HT MSI mapping on %s\n",
--			       pci_name(dev));
-+			printk(KERN_INFO "PCI: Quirk disabling HT MSI mapping "
-+					"on %s\n", pci_name(dev));
+ void arcmsr_iop_message_read(struct AdapterControlBlock *acb)
+@@ -1274,7 +1280,9 @@ static int arcmsr_handle_hbb_isr(struct 
+ 		return 1;
  
- 			pci_write_config_byte(dev, pos + HT_MSI_FLAGS,
- 					      flags & ~HT_MSI_FLAGS_ENABLE);
+ 	writel(~outbound_doorbell, reg->iop2drv_doorbell_reg);
+-
++	/*in case the last action of doorbell interrupt clearance is cached, this action can push HW to write down the clear bit*/
++	readl(reg->iop2drv_doorbell_reg);
++	writel(ARCMSR_DRV2IOP_END_OF_INTERRUPT, reg->drv2iop_doorbell_reg);
+ 	if (outbound_doorbell & ARCMSR_IOP2DRV_DATA_WRITE_OK) 	{
+ 		arcmsr_iop2drv_data_wrote_handle(acb);
+ 	}
+@@ -1381,12 +1389,13 @@ static int arcmsr_iop_message_xfer(struc
+ 
+ 	case ARCMSR_MESSAGE_READ_RQBUFFER: {
+ 		unsigned long *ver_addr;
+-		dma_addr_t buf_handle;
+ 		uint8_t *pQbuffer, *ptmpQbuffer;
+ 		int32_t allxfer_len = 0;
++		void *tmp;
+ 
+-		ver_addr = pci_alloc_consistent(acb->pdev, 1032, &buf_handle);
+-		if (!ver_addr) {
++		tmp = kmalloc(1032, GFP_KERNEL|GFP_DMA);
++		ver_addr = (unsigned long *)tmp;
++		if (!tmp) {
+ 			retvalue = ARCMSR_MESSAGE_FAIL;
+ 			goto message_out;
+ 		}
+@@ -1422,18 +1431,19 @@ static int arcmsr_iop_message_xfer(struc
+ 		memcpy(pcmdmessagefld->messagedatabuffer, (uint8_t *)ver_addr, allxfer_len);
+ 		pcmdmessagefld->cmdmessage.Length = allxfer_len;
+ 		pcmdmessagefld->cmdmessage.ReturnCode = ARCMSR_MESSAGE_RETURNCODE_OK;
+-		pci_free_consistent(acb->pdev, 1032, ver_addr, buf_handle);
++		kfree(tmp);
+ 		}
+ 		break;
+ 
+ 	case ARCMSR_MESSAGE_WRITE_WQBUFFER: {
+ 		unsigned long *ver_addr;
+-		dma_addr_t buf_handle;
+ 		int32_t my_empty_len, user_len, wqbuf_firstindex, wqbuf_lastindex;
+ 		uint8_t *pQbuffer, *ptmpuserbuffer;
++		void *tmp;
+ 
+-		ver_addr = pci_alloc_consistent(acb->pdev, 1032, &buf_handle);
+-		if (!ver_addr) {
++		tmp = kmalloc(1032, GFP_KERNEL|GFP_DMA);
++		ver_addr = (unsigned long *)tmp;
++		if (!tmp) {
+ 			retvalue = ARCMSR_MESSAGE_FAIL;
+ 			goto message_out;
+ 		}
+@@ -1483,7 +1493,7 @@ static int arcmsr_iop_message_xfer(struc
+ 				retvalue = ARCMSR_MESSAGE_FAIL;
+ 			}
+ 			}
+-			pci_free_consistent(acb->pdev, 1032, ver_addr, buf_handle);
++			kfree(tmp);
+ 		}
+ 		break;
+ 
+@@ -1683,8 +1693,11 @@ static int arcmsr_queue_command(struct s
+ 	ccb = arcmsr_get_freeccb(acb);
+ 	if (!ccb)
+ 		return SCSI_MLQUEUE_HOST_BUSY;
+-
+-	arcmsr_build_ccb(acb, ccb, cmd);
++	if ( arcmsr_build_ccb( acb, ccb, cmd ) == FAILED ) {
++		cmd->result = (DID_ERROR << 16) | (RESERVATION_CONFLICT << 1);
++		cmd->scsi_done(cmd);
++		return 0;
++	}
+ 	arcmsr_post_ccb(acb, ccb);
+ 	return 0;
+ }
+@@ -1845,7 +1858,7 @@ static void arcmsr_polling_hba_ccbdone(s
+ 	}
+ }
+ 
+-static void arcmsr_polling_hbb_ccbdone(struct AdapterControlBlock *acb, \
++static void arcmsr_polling_hbb_ccbdone(struct AdapterControlBlock *acb,
+ 					struct CommandControlBlock *poll_ccb)
+ {
+ 		struct MessageUnit_B *reg = acb->pmuB;
+@@ -1879,7 +1892,7 @@ static void arcmsr_polling_hbb_ccbdone(s
+       (acb->vir2phy_offset + (flag_ccb << 5));/*frame must be 32 bytes aligned*/
+ 			poll_ccb_done = (ccb == poll_ccb) ? 1:0;
+ 			if ((ccb->acb != acb) || (ccb->startdone != ARCMSR_CCB_START)) {
+-				if (ccb->startdone == ARCMSR_CCB_ABORTED) {
++				if ((ccb->startdone == ARCMSR_CCB_ABORTED) || (ccb == poll_ccb)) {
+ 					printk(KERN_NOTICE "arcmsr%d: \
+ 		scsi id = %d lun = %d ccb = '0x%p' poll command abort successfully \n"
+ 						,acb->host->host_no
+@@ -1902,7 +1915,7 @@ static void arcmsr_polling_hbb_ccbdone(s
+ 		}	/*drain reply FIFO*/
+ }
+ 
+-static void arcmsr_polling_ccbdone(struct AdapterControlBlock *acb, \
++static void arcmsr_polling_ccbdone(struct AdapterControlBlock *acb,
+ 					struct CommandControlBlock *poll_ccb)
+ {
+ 	switch (acb->adapter_type) {
+@@ -2027,6 +2040,7 @@ static void arcmsr_wait_firmware_ready(s
+ 		do {
+ 			firmware_state = readl(reg->iop2drv_doorbell_reg);
+ 		} while ((firmware_state & ARCMSR_MESSAGE_FIRMWARE_OK) == 0);
++		writel(ARCMSR_DRV2IOP_END_OF_INTERRUPT, reg->drv2iop_doorbell_reg);
+ 		}
+ 		break;
+ 	}
+@@ -2091,19 +2105,39 @@ static void arcmsr_clear_doorbell_queue_
+ 	}
+ }
+ 
++static void arcmsr_enable_eoi_mode(struct AdapterControlBlock *acb)
++{
++	switch (acb->adapter_type) {
++	case ACB_ADAPTER_TYPE_A:
++		return;
++	case ACB_ADAPTER_TYPE_B:
++		{
++			struct MessageUnit_B *reg = acb->pmuB;
++			writel(ARCMSR_MESSAGE_ACTIVE_EOI_MODE, reg->drv2iop_doorbell_reg);
++			if(arcmsr_hbb_wait_msgint_ready(acb)) {
++				printk(KERN_NOTICE "ARCMSR IOP enables EOI_MODE TIMEOUT");
++				return;
++			}
++		}
++		break;
++	}
++	return;
++}
++
+ static void arcmsr_iop_init(struct AdapterControlBlock *acb)
+ {
+ 	uint32_t intmask_org;
+ 
+-	arcmsr_wait_firmware_ready(acb);
+-	arcmsr_iop_confirm(acb);
+        /* disable all outbound interrupt */
+        intmask_org = arcmsr_disable_outbound_ints(acb);
++	arcmsr_wait_firmware_ready(acb);
++	arcmsr_iop_confirm(acb);
+ 	arcmsr_get_firmware_spec(acb);
+ 	/*start background rebuild*/
+ 	arcmsr_start_adapter_bgrb(acb);
+ 	/* empty doorbell Qbuffer if door bell ringed */
+ 	arcmsr_clear_doorbell_queue_buffer(acb);
++	arcmsr_enable_eoi_mode(acb);
+ 	/* enable outbound Post Queue,outbound doorbell Interrupt */
+ 	arcmsr_enable_outbound_ints(acb, intmask_org);
+ 	acb->acb_flags |= ACB_F_IOP_INITED;
+@@ -2276,6 +2310,7 @@ static pci_ers_result_t arcmsr_pci_slot_
+ 	arcmsr_start_adapter_bgrb(acb);
+ 	/* empty doorbell Qbuffer if door bell ringed */
+ 	arcmsr_clear_doorbell_queue_buffer(acb);
++	arcmsr_enable_eoi_mode(acb);
+ 	/* enable outbound Post Queue,outbound doorbell Interrupt */
+ 	arcmsr_enable_outbound_ints(acb, intmask_org);
+ 	acb->acb_flags |= ACB_F_IOP_INITED;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from nick.cheng@areca.com.tw are
 
-hugetlbfs-fix-quota-leak.patch
-pl2303-fix-mode-switching-regression-fix.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes.patch
-timerfd-v3-new-timerfd-api-ia64-fix.patch
-timerfd-v3-new-timerfd-api-m68k-fix.patch
-timerfd-v3-new-timerfd-api-mips-fix.patch
-timerfd-v3-new-timerfd-api-arch-fixes.patch
-timerfd-v3-new-timerfd-api-powerpc-fix.patch
-timerfd-v3-new-timerfd-api-sparc64-fix.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-agpgart-intel-agp-dont-zero-an-already-registered-resource-during-resume.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-kernel-auditc-warning-fix.patch
-git-cifs.patch
-git-cpufreq.patch
-git-powerpc.patch
-git-powerpc-fixup.patch
-revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes.patch
-pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes-2.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-intel-agp-enable-i915-recognition.patch
-drm-convert-from-nopage-to-fault-checkpatch-fixes.patch
-git-dvb.patch
-fix-jdelvare-i2c-i2c-constify-client-address-data.patch
-hwmon-new-chip-driver-for-ti-ads7828-a-d-checkpatch-fixes.patch
-git-hid.patch
-revert-git-hrt.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-versus-driver-tree.patch
-git-kbuild.patch
-git-kvm.patch
-kvm-ist-kaput.patch
-git-libata-all.patch
-git-libata-all-fix-pata_winbond-borkage.patch
-git-libata-all-wtf.patch
-libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
-libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
-libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
-git-md-accel.patch
-git-mmc.patch
-git-mtd.patch
-git-net.patch
-git-net-vs-git-lblnet.patch
-git-net-vs-git-lblnet-2.patch
-git-netdev-all.patch
-git-net-vs-git-netdev-all.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-backlight-omap1-backlight-driver.patch
-git-battery.patch
-bluetooth-uninlining.patch
-net-sunrpc-schedc-revert-git-net-changes.patch
-net-sunrpc-schedc-reapply-git-net-changes.patch
-net-sunrpc-svcsockc-revert-git-nfs-changes.patch
-git-nfsd.patch
-net-sunrpc-svcsockc-reapply-git-nfs-changes.patch
-serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
-git-sched.patch
-git-sched-fixup.patch
-git-sh.patch
-git-scsi-misc.patch
-scsi-aic94xx-cleanups-checkpatch-fixes.patch
-scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
-9p-util-fix-semaphore-handling.patch
-git-watchdog.patch
-git-watchdog-fixup.patch
-wdt-fix-locking-checkpatch-fixes.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-arch-x86-makefile-revert-git-kvm-change.patch
-git-x86.patch
-arch-x86-makefile-reapply-git-kvm-change.patch
-git-x86-fixup.patch
-git-x86-fix-doubly-merged-patch.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-git-xtensa.patch
-bonding-locking-fix.patch
-usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-add-proc-kpagecount-interface-fix.patch
-maps4-add-proc-kpageflags-interface-fix.patch
-maps4-add-proc-kpageflags-interface-fix-2-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-mm-remove-fastcall-from-mm-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
-kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
-stopmachine-semaphore-to-mutex-fix.patch
-parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
-debug_smp_processor_id-fixlets.patch
-use-ilog2-in-fs-namespacec-fix.patch
-avoid-overflows-in-kernel-timec-fix.patch
-export-iov_shorten-for-ext4s-use-fix.patch
-system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
-speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
-add-have_oprofile.patch
-ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-rtc-add-support-for-the-s-35390a-rtc-chip.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-neofb-avoid-overwriting-fb_info-fields.patch
-vermilionc-use-align-not-__align_mask.patch
-declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
-ext4-mm-ext4_store_maxbytes_for_bitmaped_files-warning-fix.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
-hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
-cpusets-update_cpumask-revision-fix.patch
-cpusets-update_cpumask-revision-checkpatch-fixes.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-pid-sys_wait-fixes-v2-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-rewrite-rd-fixes.patch
-fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
-kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
-lib-remove-fastcall-from-lib-checkpatch-fixes.patch
-remove-fastcall-from-linux-include-checkpatch-fixes.patch
-constify-tables-in-kernel-sysctl_checkc-fix.patch
-aoe-statically-initialise-devlist_lock.patch
-provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc-fix.patch
-ufs-fix-symlink-creation-on-ufs2-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+scsi-arcmsr-updates-1200015.patch
