@@ -1,46 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + pm-do-not-destroy-create-devices-while-suspended-in-cpuidc.patch added to -mm tree
-Date: Fri, 11 Jan 2008 16:43:29 -0800
-Message-ID: <200801120043.m0C0hUBE006082@imap1.linux-foundation.org>
+Subject: - pm-do-not-destroy-create-devices-while-suspended-in-msrc-rev-2.patch removed from -mm tree
+Date: Fri, 11 Jan 2008 16:49:29 -0800
+Message-ID: <200801120049.m0C0nTdP006366@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43318 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59971 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761832AbYALAop (ORCPT
+	by vger.kernel.org with ESMTP id S1762774AbYALAuY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jan 2008 19:44:45 -0500
+	Fri, 11 Jan 2008 19:50:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl, ak@suse.de, greg@kroah.com, kay.sievers@vrfy.org, lenb@kernel.org, mingo@elte.hu, pavel@suse.cz, stern@rowland.harvard.edu, tglx@linutronix.de
+To: rjw@sisk.pl, ak@suse.de, greg@kroah.com, kay.sievers@vrfy.org, lenb@kernel.org, mingo@elte.hu, pavel@suse.cz, stern@rowland.harvard.edu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PM: Do not destroy/create devices while suspended in cpuid.c
-has been added to the -mm tree.  Its filename is
-     pm-do-not-destroy-create-devices-while-suspended-in-cpuidc.patch
+     PM: Do not destroy/create devices while suspended in msr.c (rev. 2)
+has been removed from the -mm tree.  Its filename was
+     pm-do-not-destroy-create-devices-while-suspended-in-msrc-rev-2.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PM: Do not destroy/create devices while suspended in cpuid.c
+Subject: PM: Do not destroy/create devices while suspended in msr.c (rev. 2)
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-The cpuid driver should not attempt to destroy/create a device while
-suspended, unless this device corresponds to a nonboot CPU that failed to go
-online during a resume, in which case the PM core should be asked to remove
-it.
+The MSR driver should not attempt to destroy/create a device while suspended,
+unless this device corresponds to a nonboot CPU that failed to go online
+during a resume, in which case the PM core should be asked to remove it.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Cc: Greg KH <greg@kroah.com>
@@ -54,27 +43,27 @@ Cc: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpuid.c |    6 +++---
+ arch/x86/kernel/msr.c |    6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/kernel/cpuid.c~pm-do-not-destroy-create-devices-while-suspended-in-cpuidc arch/x86/kernel/cpuid.c
---- a/arch/x86/kernel/cpuid.c~pm-do-not-destroy-create-devices-while-suspended-in-cpuidc
-+++ a/arch/x86/kernel/cpuid.c
-@@ -157,15 +157,15 @@ static int __cpuinit cpuid_class_cpu_cal
+diff -puN arch/x86/kernel/msr.c~pm-do-not-destroy-create-devices-while-suspended-in-msrc-rev-2 arch/x86/kernel/msr.c
+--- a/arch/x86/kernel/msr.c~pm-do-not-destroy-create-devices-while-suspended-in-msrc-rev-2
++++ a/arch/x86/kernel/msr.c
+@@ -155,15 +155,15 @@ static int __cpuinit msr_class_cpu_callb
  
  	switch (action) {
  	case CPU_UP_PREPARE:
 -	case CPU_UP_PREPARE_FROZEN:
- 		err = cpuid_device_create(cpu);
+ 		err = msr_device_create(cpu);
  		break;
  	case CPU_UP_CANCELED:
 -	case CPU_UP_CANCELED_FROZEN:
  	case CPU_DEAD:
 -	case CPU_DEAD_FROZEN:
- 		cpuid_device_destroy(cpu);
+ 		msr_device_destroy(cpu);
  		break;
 +	case CPU_UP_CANCELED_FROZEN:
-+		destroy_suspended_device(cpuid_class, MKDEV(CPUID_MAJOR, cpu));
++		destroy_suspended_device(msr_class, MKDEV(MSR_MAJOR, cpu));
 +		break;
  	}
  	return err ? NOTIFY_BAD : NOTIFY_OK;
@@ -93,7 +82,6 @@ hibernation-introduce-begin-and-end-callbacks.patch
 acpi-hibernation-call-_pts-before-suspending-devices.patch
 acpi-print-message-before-calling-_pts.patch
 gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-pm-introduce-destroy_suspended_device.patch
 pm-do-not-destroy-create-devices-while-suspended-in-msrc-rev-2.patch
 pm-do-not-destroy-create-devices-while-suspended-in-mce_64c.patch
 pm-do-not-destroy-create-devices-while-suspended-in-cpuidc.patch
