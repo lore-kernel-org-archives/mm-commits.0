@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gpiolib-add-gpio-provider-infrastructure.patch added to -mm tree
-Date: Fri, 11 Jan 2008 18:22:46 -0800
-Message-ID: <200801120222.m0C2MkYI009682@imap1.linux-foundation.org>
+Subject: + gpiolib-pxa-platform-support.patch added to -mm tree
+Date: Fri, 11 Jan 2008 18:22:54 -0800
+Message-ID: <200801120222.m0C2Mtaq009691@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42610 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44415 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754832AbYALCbV (ORCPT
+	by vger.kernel.org with ESMTP id S1755012AbYALCbV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 11 Jan 2008 21:31:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dbrownell@users.sourceforge.net, bgardner@wabtec.com, eric.miao@marvell.com, hskinnemoen@atmel.com, khali@linux-fr.org, philipp.zabel@gmail.com, rmk@arm.linux.org.uk, sam@ravnborg.org
+Cc: philipp.zabel@gmail.com, bgardner@wabtec.com, dbrownell@users.sourceforge.net, eric.miao@marvell.com, hskinnemoen@atmel.com, khali@linux-fr.org, rmk+kernel@arm.linux.org.uk, sam@ravnborg.org
 
 
 The patch titled
-     gpiolib: add gpio provider infrastructure
+     gpiolib support for the PXA architecture
 has been added to the -mm tree.  Its filename is
-     gpiolib-add-gpio-provider-infrastructure.patch
+     gpiolib-pxa-platform-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,763 +34,498 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpiolib: add gpio provider infrastructure
-From: David Brownell <dbrownell@users.sourceforge.net>
+Subject: gpiolib support for the PXA architecture
+From: Philipp Zabel <philipp.zabel@gmail.com>
 
-Provide new implementation infrastructure that platforms may choose to use
-when implementing the GPIO programming interface.  Platforms can update their
-GPIO support to use this.  In many cases the incremental cost to access a
-non-inlined GPIO should be less than a dozen instructions, with the memory
-cost being about a page (total) of extra data and code.  The upside is:
+This adds gpiolib support for the PXA architecture:
+  - move all GPIO API functions from generic.c into gpio.c
+  - convert the gpio_get/set_value macros into inline functions
 
-  * Providing two features which were "want to have (but OK to defer)" when
-    GPIO interfaces were first discussed in November 2006:
+This makes it easier to hook up GPIOs provided by external chips like
+ASICs and CPLDs.
 
-    -	A "struct gpio_chip" to plug in GPIOs that aren't directly supported
-	by SOC platforms, but come from FPGAs or other multifunction devices
-	using conventional device registers (like UCB-1x00 or SM501 GPIOs,
-	and southbridges in PCs with more open specs than usual).
-
-    -	Full support for message-based GPIO expanders, where registers are
-	accessed through sleeping I/O calls.  Previous support for these
-	"cansleep" calls was just stubs.  (One example: the widely used
-	pcf8574 I2C chips, with 8 GPIOs each.)
-
-  * Including a non-stub implementation of the gpio_{request,free}() calls,
-    making those calls much more useful.  The diagnostic labels are also
-    recorded given DEBUG_FS, so /sys/kernel/debug/gpio can show a snapshot
-    of all GPIOs known to this infrastructure.
-
-The driver programming interfaces introduced in 2.6.21 do not change at all;
-this infrastructure is entirely below those covers.
-
+Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
 Cc: Jean Delvare <khali@linux-fr.org>
 Cc: Eric Miao <eric.miao@marvell.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Philipp Zabel <philipp.zabel@gmail.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
 Cc: Ben Gardner <bgardner@wabtec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/Makefile      |    2 
- drivers/gpio/gpiolib.c     |  567 +++++++++++++++++++++++++++++++++++
- include/asm-generic/gpio.h |   98 ++++++
- 3 files changed, 667 insertions(+)
+ arch/arm/Kconfig                    |    1 
+ arch/arm/mach-pxa/Makefile          |    3 
+ arch/arm/mach-pxa/generic.c         |   93 ------------
+ arch/arm/mach-pxa/generic.h         |    1 
+ arch/arm/mach-pxa/gpio.c            |  197 ++++++++++++++++++++++++++
+ arch/arm/mach-pxa/irq.c             |    2 
+ include/asm-arm/arch-pxa/gpio.h     |   48 ++----
+ include/asm-arm/arch-pxa/pxa-regs.h |   13 +
+ 8 files changed, 236 insertions(+), 122 deletions(-)
 
-diff -puN drivers/gpio/Makefile~gpiolib-add-gpio-provider-infrastructure drivers/gpio/Makefile
---- a/drivers/gpio/Makefile~gpiolib-add-gpio-provider-infrastructure
-+++ a/drivers/gpio/Makefile
-@@ -2,3 +2,5 @@
+diff -puN arch/arm/Kconfig~gpiolib-pxa-platform-support arch/arm/Kconfig
+--- a/arch/arm/Kconfig~gpiolib-pxa-platform-support
++++ a/arch/arm/Kconfig
+@@ -347,6 +347,7 @@ config ARCH_ORION
+ 	select GENERIC_GPIO
+ 	select GENERIC_TIME
+ 	select GENERIC_CLOCKEVENTS
++	select HAVE_GPIO_LIB
+ 	help
+ 	  Support for Marvell Orion System on Chip family.
  
- ccflags-$(CONFIG_DEBUG_GPIO)	+= -DDEBUG
+diff -puN arch/arm/mach-pxa/Makefile~gpiolib-pxa-platform-support arch/arm/mach-pxa/Makefile
+--- a/arch/arm/mach-pxa/Makefile~gpiolib-pxa-platform-support
++++ a/arch/arm/mach-pxa/Makefile
+@@ -3,7 +3,8 @@
+ #
  
-+obj-$(CONFIG_HAVE_GPIO_LIB)	+= gpiolib.o
-+
-diff -puN /dev/null drivers/gpio/gpiolib.c
+ # Common support (must be linked before board specific support)
+-obj-y				+= clock.o devices.o generic.o irq.o dma.o time.o
++obj-y				+= clock.o devices.o generic.o irq.o dma.o \
++				   time.o gpio.o
+ obj-$(CONFIG_PXA25x)		+= pxa25x.o
+ obj-$(CONFIG_PXA27x)		+= pxa27x.o
+ obj-$(CONFIG_PXA3xx)		+= pxa3xx.o mfp.o
+diff -puN arch/arm/mach-pxa/generic.c~gpiolib-pxa-platform-support arch/arm/mach-pxa/generic.c
+--- a/arch/arm/mach-pxa/generic.c~gpiolib-pxa-platform-support
++++ a/arch/arm/mach-pxa/generic.c
+@@ -31,7 +31,6 @@
+ #include <asm/mach/map.h>
+ 
+ #include <asm/arch/pxa-regs.h>
+-#include <asm/arch/gpio.h>
+ 
+ #include "generic.h"
+ 
+@@ -66,97 +65,6 @@ unsigned int get_memclk_frequency_10khz(
+ EXPORT_SYMBOL(get_memclk_frequency_10khz);
+ 
+ /*
+- * Handy function to set GPIO alternate functions
+- */
+-int pxa_last_gpio;
+-
+-int pxa_gpio_mode(int gpio_mode)
+-{
+-	unsigned long flags;
+-	int gpio = gpio_mode & GPIO_MD_MASK_NR;
+-	int fn = (gpio_mode & GPIO_MD_MASK_FN) >> 8;
+-	int gafr;
+-
+-	if (gpio > pxa_last_gpio)
+-		return -EINVAL;
+-
+-	local_irq_save(flags);
+-	if (gpio_mode & GPIO_DFLT_LOW)
+-		GPCR(gpio) = GPIO_bit(gpio);
+-	else if (gpio_mode & GPIO_DFLT_HIGH)
+-		GPSR(gpio) = GPIO_bit(gpio);
+-	if (gpio_mode & GPIO_MD_MASK_DIR)
+-		GPDR(gpio) |= GPIO_bit(gpio);
+-	else
+-		GPDR(gpio) &= ~GPIO_bit(gpio);
+-	gafr = GAFR(gpio) & ~(0x3 << (((gpio) & 0xf)*2));
+-	GAFR(gpio) = gafr |  (fn  << (((gpio) & 0xf)*2));
+-	local_irq_restore(flags);
+-
+-	return 0;
+-}
+-
+-EXPORT_SYMBOL(pxa_gpio_mode);
+-
+-int gpio_direction_input(unsigned gpio)
+-{
+-	unsigned long flags;
+-	u32 mask;
+-
+-	if (gpio > pxa_last_gpio)
+-		return -EINVAL;
+-
+-	mask = GPIO_bit(gpio);
+-	local_irq_save(flags);
+-	GPDR(gpio) &= ~mask;
+-	local_irq_restore(flags);
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(gpio_direction_input);
+-
+-int gpio_direction_output(unsigned gpio, int value)
+-{
+-	unsigned long flags;
+-	u32 mask;
+-
+-	if (gpio > pxa_last_gpio)
+-		return -EINVAL;
+-
+-	mask = GPIO_bit(gpio);
+-	local_irq_save(flags);
+-	if (value)
+-		GPSR(gpio) = mask;
+-	else
+-		GPCR(gpio) = mask;
+-	GPDR(gpio) |= mask;
+-	local_irq_restore(flags);
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(gpio_direction_output);
+-
+-/*
+- * Return GPIO level
+- */
+-int pxa_gpio_get_value(unsigned gpio)
+-{
+-	return __gpio_get_value(gpio);
+-}
+-
+-EXPORT_SYMBOL(pxa_gpio_get_value);
+-
+-/*
+- * Set output GPIO level
+- */
+-void pxa_gpio_set_value(unsigned gpio, int value)
+-{
+-	__gpio_set_value(gpio, value);
+-}
+-
+-EXPORT_SYMBOL(pxa_gpio_set_value);
+-
+-/*
+  * Routine to safely enable or disable a clock in the CKEN
+  */
+ void __pxa_set_cken(int clock, int enable)
+@@ -171,7 +79,6 @@ void __pxa_set_cken(int clock, int enabl
+ 
+ 	local_irq_restore(flags);
+ }
+-
+ EXPORT_SYMBOL(__pxa_set_cken);
+ 
+ /*
+diff -puN arch/arm/mach-pxa/generic.h~gpiolib-pxa-platform-support arch/arm/mach-pxa/generic.h
+--- a/arch/arm/mach-pxa/generic.h~gpiolib-pxa-platform-support
++++ a/arch/arm/mach-pxa/generic.h
+@@ -16,6 +16,7 @@ extern void __init pxa_init_irq_low(void
+ extern void __init pxa_init_irq_high(void);
+ extern void __init pxa_init_irq_gpio(int gpio_nr);
+ extern void __init pxa_init_irq_set_wake(int (*set_wake)(unsigned int, unsigned int));
++extern void __init pxa_init_gpio(int gpio_nr);
+ extern void __init pxa25x_init_irq(void);
+ extern void __init pxa27x_init_irq(void);
+ extern void __init pxa3xx_init_irq(void);
+diff -puN /dev/null arch/arm/mach-pxa/gpio.c
 --- /dev/null
-+++ a/drivers/gpio/gpiolib.c
-@@ -0,0 +1,567 @@
-+#include <linux/kernel.h>
++++ a/arch/arm/mach-pxa/gpio.c
+@@ -0,0 +1,197 @@
++/*
++ *  linux/arch/arm/mach-pxa/gpio.c
++ *
++ *  Generic PXA GPIO handling
++ *
++ *  Author:	Nicolas Pitre
++ *  Created:	Jun 15, 2001
++ *  Copyright:	MontaVista Software Inc.
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License version 2 as
++ *  published by the Free Software Foundation.
++ */
++
++#include <linux/init.h>
 +#include <linux/module.h>
-+#include <linux/irq.h>
-+#include <linux/spinlock.h>
 +
 +#include <asm/gpio.h>
++#include <asm/hardware.h>
++#include <asm/io.h>
++#include <asm/arch/pxa-regs.h>
++
++#include "generic.h"
 +
 +
-+/* Optional implementation infrastructure for GPIO interfaces.
-+ *
-+ * Platforms may want to use this if they tend to use very many GPIOs
-+ * that aren't part of a System-On-Chip core; or across I2C/SPI/etc.
-+ *
-+ * When kernel footprint or instruction count is an issue, simpler
-+ * implementations may be preferred.  The GPIO programming interface
-+ * allows for inlining speed-critical get/set operations for common
-+ * cases, so that access to SOC-integrated GPIOs can sometimes cost
-+ * only an instruction or two per bit.
-+ */
-+
-+
-+/* When debugging, extend minimal trust to callers and platform code.
-+ * Also emit diagnostic messages that may help initial bringup, when
-+ * board setup or driver bugs are most common.
-+ *
-+ * Otherwise, minimize overhead in what may be bitbanging codepaths.
-+ */
-+#ifdef	DEBUG
-+#define	extra_checks	1
-+#else
-+#define	extra_checks	0
-+#endif
-+
-+/* gpio_lock prevents conflicts during gpio_desc[] table updates.
-+ * While any GPIO is requested, its gpio_chip is not removable;
-+ * each GPIO's "requested" flag serves as a lock and refcount.
-+ */
-+static DEFINE_SPINLOCK(gpio_lock);
-+
-+struct gpio_desc {
-+	struct gpio_chip	*chip;
-+	unsigned long		flags;
-+/* flag symbols are bit numbers */
-+#define FLAG_REQUESTED	0
-+#define FLAG_IS_OUT	1
-+
-+#ifdef CONFIG_DEBUG_FS
-+	const char		*label;
-+#endif
++struct pxa_gpio_chip {
++	struct gpio_chip chip;
++	void __iomem     *regbase;
 +};
-+static struct gpio_desc gpio_desc[ARCH_NR_GPIOS];
 +
-+static inline void desc_set_label(struct gpio_desc *d, const char *label)
-+{
-+#ifdef CONFIG_DEBUG_FS
-+	d->label = label;
-+#endif
-+}
++int pxa_last_gpio;
 +
-+/* Warn when drivers omit gpio_request() calls -- legal but ill-advised
-+ * when setting direction, and otherwise illegal.  Until board setup code
-+ * and drivers use explicit requests everywhere (which won't happen when
-+ * those calls have no teeth) we can't avoid autorequesting.  This nag
-+ * message should motivate switching to explicit requests...
++/*
++ * Configure pins for GPIO or other functions
 + */
-+static void gpio_ensure_requested(struct gpio_desc *desc)
++int pxa_gpio_mode(int gpio_mode)
 +{
-+	if (test_and_set_bit(FLAG_REQUESTED, &desc->flags) == 0) {
-+		pr_warning("GPIO-%d autorequested\n", (int)(desc - gpio_desc));
-+		desc_set_label(desc, "[auto]");
-+	}
-+}
++	unsigned long flags;
++	int gpio = gpio_mode & GPIO_MD_MASK_NR;
++	int fn = (gpio_mode & GPIO_MD_MASK_FN) >> 8;
++	int gafr;
 +
-+/* caller holds gpio_lock *OR* gpio is marked as requested */
-+static inline struct gpio_chip *gpio_to_chip(unsigned gpio)
-+{
-+	return gpio_desc[gpio].chip;
-+}
++	if (gpio > pxa_last_gpio)
++		return -EINVAL;
 +
-+/**
-+ * gpiochip_add() - register a gpio_chip
-+ * @chip: the chip to register, with chip->base initialized
-+ * Context: potentially before irqs or kmalloc will work
-+ *
-+ * Returns a negative errno if the chip can't be registered, such as
-+ * because the chip->base is invalid or already associated with a
-+ * different chip.  Otherwise it returns zero as a success code.
-+ */
-+int gpiochip_add(struct gpio_chip *chip)
-+{
-+	unsigned long	flags;
-+	int		status = 0;
-+	unsigned	id;
-+
-+	/* NOTE chip->base negative is reserved to mean a request for
-+	 * dynamic allocation.  We don't currently support that.
-+	 */
-+
-+	if (chip->base < 0 || (chip->base  + chip->ngpio) >= ARCH_NR_GPIOS) {
-+		status = -EINVAL;
-+		goto fail;
-+	}
-+
-+	spin_lock_irqsave(&gpio_lock, flags);
-+
-+	/* these GPIO numbers must not be managed by another gpio_chip */
-+	for (id = chip->base; id < chip->base + chip->ngpio; id++) {
-+		if (gpio_desc[id].chip != NULL) {
-+			status = -EBUSY;
-+			break;
-+		}
-+	}
-+	if (status == 0) {
-+		for (id = chip->base; id < chip->base + chip->ngpio; id++) {
-+			gpio_desc[id].chip = chip;
-+			gpio_desc[id].flags = 0;
-+		}
-+	}
-+
-+	spin_unlock_irqrestore(&gpio_lock, flags);
-+fail:
-+	/* failures here can mean systems won't boot... */
-+	if (status)
-+		pr_err("gpiochip_add: gpios %d..%d (%s) not registered\n",
-+			chip->base, chip->base + chip->ngpio,
-+			chip->label ? : "generic");
-+	return status;
-+}
-+EXPORT_SYMBOL_GPL(gpiochip_add);
-+
-+/**
-+ * gpiochip_remove() - unregister a gpio_chip
-+ * @chip: the chip to unregister
-+ *
-+ * A gpio_chip with any GPIOs still requested may not be removed.
-+ */
-+int gpiochip_remove(struct gpio_chip *chip)
-+{
-+	unsigned long	flags;
-+	int		status = 0;
-+	unsigned	id;
-+
-+	spin_lock_irqsave(&gpio_lock, flags);
-+
-+	for (id = chip->base; id < chip->base + chip->ngpio; id++) {
-+		if (test_bit(FLAG_REQUESTED, &gpio_desc[id].flags)) {
-+			status = -EBUSY;
-+			break;
-+		}
-+	}
-+	if (status == 0) {
-+		for (id = chip->base; id < chip->base + chip->ngpio; id++)
-+			gpio_desc[id].chip = NULL;
-+	}
-+
-+	spin_unlock_irqrestore(&gpio_lock, flags);
-+	return status;
-+}
-+EXPORT_SYMBOL_GPL(gpiochip_remove);
-+
-+
-+/* These "optional" allocation calls help prevent drivers from stomping
-+ * on each other, and help provide better diagnostics in debugfs.
-+ * They're called even less than the "set direction" calls.
-+ */
-+int gpio_request(unsigned gpio, const char *label)
-+{
-+	struct gpio_desc	*desc;
-+	int			status = -EINVAL;
-+	unsigned long		flags;
-+
-+	spin_lock_irqsave(&gpio_lock, flags);
-+
-+	if (gpio >= ARCH_NR_GPIOS)
-+		goto done;
-+	desc = &gpio_desc[gpio];
-+	if (desc->chip == NULL)
-+		goto done;
-+
-+	/* NOTE:  gpio_request() can be called in early boot,
-+	 * before IRQs are enabled.
-+	 */
-+
-+	if (test_and_set_bit(FLAG_REQUESTED, &desc->flags) == 0) {
-+		desc_set_label(desc, label ? : "?");
-+		status = 0;
-+	} else
-+		status = -EBUSY;
-+
-+done:
-+	if (status)
-+		pr_debug("gpio_request: gpio-%d (%s) status %d\n",
-+			gpio, label ? : "?", status);
-+	spin_unlock_irqrestore(&gpio_lock, flags);
-+	return status;
-+}
-+EXPORT_SYMBOL_GPL(gpio_request);
-+
-+void gpio_free(unsigned gpio)
-+{
-+	unsigned long		flags;
-+	struct gpio_desc	*desc;
-+
-+	if (gpio >= ARCH_NR_GPIOS) {
-+		WARN_ON(extra_checks);
-+		return;
-+	}
-+
-+	spin_lock_irqsave(&gpio_lock, flags);
-+
-+	desc = &gpio_desc[gpio];
-+	if (desc->chip && test_and_clear_bit(FLAG_REQUESTED, &desc->flags))
-+		desc_set_label(desc, NULL);
++	local_irq_save(flags);
++	if (gpio_mode & GPIO_DFLT_LOW)
++		GPCR(gpio) = GPIO_bit(gpio);
++	else if (gpio_mode & GPIO_DFLT_HIGH)
++		GPSR(gpio) = GPIO_bit(gpio);
++	if (gpio_mode & GPIO_MD_MASK_DIR)
++		GPDR(gpio) |= GPIO_bit(gpio);
 +	else
-+		WARN_ON(extra_checks);
++		GPDR(gpio) &= ~GPIO_bit(gpio);
++	gafr = GAFR(gpio) & ~(0x3 << (((gpio) & 0xf)*2));
++	GAFR(gpio) = gafr |  (fn  << (((gpio) & 0xf)*2));
++	local_irq_restore(flags);
 +
-+	spin_unlock_irqrestore(&gpio_lock, flags);
++	return 0;
 +}
-+EXPORT_SYMBOL_GPL(gpio_free);
++EXPORT_SYMBOL(pxa_gpio_mode);
 +
-+
-+/**
-+ * gpiochip_is_requested - return string iff signal was requested
-+ * @chip: controller managing the signal
-+ * @offset: of signal within controller's 0..(ngpio - 1) range
-+ *
-+ * Returns NULL if the GPIO is not currently requested, else a string.
-+ * If debugfs support is enabled, the string returned is the label passed
-+ * to gpio_request(); otherwise it is a meaningless constant.
-+ *
-+ * This function is for use by GPIO controller drivers.  The label can
-+ * help with diagnostics, and knowing that the signal is used as a GPIO
-+ * can help avoid accidentally multiplexing it to another controller.
-+ */
-+const char *gpiochip_is_requested(struct gpio_chip *chip, unsigned offset)
++static int pxa_gpio_direction_input(struct gpio_chip *chip, unsigned offset)
 +{
-+	unsigned gpio = chip->base + offset;
++	unsigned long        flags;
++	u32                  mask = 1 << offset;
++	u32                  value;
++	struct pxa_gpio_chip *pxa;
++	void __iomem         *gpdr;
 +
-+	if (gpio >= ARCH_NR_GPIOS || gpio_desc[gpio].chip != chip)
-+		return NULL;
-+	if (test_bit(FLAG_REQUESTED, &gpio_desc[gpio].flags) == 0)
-+		return NULL;
-+#ifdef CONFIG_DEBUG_FS
-+	return gpio_desc[gpio].label;
-+#else
-+	return "?";
-+#endif
-+}
-+EXPORT_SYMBOL_GPL(gpiochip_is_requested);
++	pxa = container_of(chip, struct pxa_gpio_chip, chip);
++	gpdr = pxa->regbase + GPDR_OFFSET;
++	local_irq_save(flags);
++	value = __raw_readl(gpdr);
++	value &= ~mask;
++	__raw_writel(value, gpdr);
++	local_irq_restore(flags);
 +
-+
-+/* Drivers MUST set GPIO direction before making get/set calls.  In
-+ * some cases this is done in early boot, before IRQs are enabled.
-+ *
-+ * As a rule these aren't called more than once (except for drivers
-+ * using the open-drain emulation idiom) so these are natural places
-+ * to accumulate extra debugging checks.  Note that we can't (yet)
-+ * rely on gpio_request() having been called beforehand.
-+ */
-+
-+int gpio_direction_input(unsigned gpio)
-+{
-+	unsigned long		flags;
-+	struct gpio_chip	*chip;
-+	struct gpio_desc	*desc = &gpio_desc[gpio];
-+	int			status = -EINVAL;
-+
-+	spin_lock_irqsave(&gpio_lock, flags);
-+
-+	if (gpio >= ARCH_NR_GPIOS)
-+		goto fail;
-+	chip = desc->chip;
-+	if (!chip || !chip->get || !chip->direction_input)
-+		goto fail;
-+	gpio -= chip->base;
-+	if (gpio >= chip->ngpio)
-+		goto fail;
-+	gpio_ensure_requested(desc);
-+
-+	/* now we know the gpio is valid and chip won't vanish */
-+
-+	spin_unlock_irqrestore(&gpio_lock, flags);
-+
-+	might_sleep_if(extra_checks && chip->can_sleep);
-+
-+	status = chip->direction_input(chip, gpio);
-+	if (status == 0)
-+		clear_bit(FLAG_IS_OUT, &desc->flags);
-+	return status;
-+fail:
-+	spin_unlock_irqrestore(&gpio_lock, flags);
-+	if (status)
-+		pr_debug("%s: gpio-%d status %d\n",
-+			__FUNCTION__, gpio, status);
-+	return status;
-+}
-+EXPORT_SYMBOL_GPL(gpio_direction_input);
-+
-+int gpio_direction_output(unsigned gpio, int value)
-+{
-+	unsigned long		flags;
-+	struct gpio_chip	*chip;
-+	struct gpio_desc	*desc = &gpio_desc[gpio];
-+	int			status = -EINVAL;
-+
-+	spin_lock_irqsave(&gpio_lock, flags);
-+
-+	if (gpio >= ARCH_NR_GPIOS)
-+		goto fail;
-+	chip = desc->chip;
-+	if (!chip || !chip->set || !chip->direction_output)
-+		goto fail;
-+	gpio -= chip->base;
-+	if (gpio >= chip->ngpio)
-+		goto fail;
-+	gpio_ensure_requested(desc);
-+
-+	/* now we know the gpio is valid and chip won't vanish */
-+
-+	spin_unlock_irqrestore(&gpio_lock, flags);
-+
-+	might_sleep_if(extra_checks && chip->can_sleep);
-+
-+	status = chip->direction_output(chip, gpio, value);
-+	if (status == 0)
-+		set_bit(FLAG_IS_OUT, &desc->flags);
-+	return status;
-+fail:
-+	spin_unlock_irqrestore(&gpio_lock, flags);
-+	if (status)
-+		pr_debug("%s: gpio-%d status %d\n",
-+			__FUNCTION__, gpio, status);
-+	return status;
-+}
-+EXPORT_SYMBOL_GPL(gpio_direction_output);
-+
-+
-+/* I/O calls are only valid after configuration completed; the relevant
-+ * "is this a valid GPIO" error checks should already have been done.
-+ *
-+ * "Get" operations are often inlinable as reading a pin value register,
-+ * and masking the relevant bit in that register.
-+ *
-+ * When "set" operations are inlinable, they involve writing that mask to
-+ * one register to set a low value, or a different register to set it high.
-+ * Otherwise locking is needed, so there may be little value to inlining.
-+ *
-+ *------------------------------------------------------------------------
-+ *
-+ * IMPORTANT!!!  The hot paths -- get/set value -- assume that callers
-+ * have requested the GPIO.  That can include implicit requesting by
-+ * a direction setting call.  Marking a gpio as requested locks its chip
-+ * in memory, guaranteeing that these table lookups need no more locking
-+ * and that gpiochip_remove() will fail.
-+ *
-+ * REVISIT when debugging, consider adding some instrumentation to ensure
-+ * that the GPIO was actually requested.
-+ */
-+
-+/**
-+ * __gpio_get_value() - return a gpio's value
-+ * @gpio: gpio whose value will be returned
-+ * Context: any
-+ *
-+ * This is used directly or indirectly to implement gpio_get_value().
-+ * It returns the zero or nonzero value provided by the associated
-+ * gpio_chip.get() method; or zero if no such method is provided.
-+ */
-+int __gpio_get_value(unsigned gpio)
-+{
-+	struct gpio_chip	*chip;
-+
-+	chip = gpio_to_chip(gpio);
-+	WARN_ON(extra_checks && chip->can_sleep);
-+	return chip->get ? chip->get(chip, gpio - chip->base) : 0;
-+}
-+EXPORT_SYMBOL_GPL(__gpio_get_value);
-+
-+/**
-+ * __gpio_set_value() - assign a gpio's value
-+ * @gpio: gpio whose value will be assigned
-+ * @value: value to assign
-+ * Context: any
-+ *
-+ * This is used directly or indirectly to implement gpio_set_value().
-+ * It invokes the associated gpio_chip.set() method.
-+ */
-+void __gpio_set_value(unsigned gpio, int value)
-+{
-+	struct gpio_chip	*chip;
-+
-+	chip = gpio_to_chip(gpio);
-+	WARN_ON(extra_checks && chip->can_sleep);
-+	chip->set(chip, gpio - chip->base, value);
-+}
-+EXPORT_SYMBOL_GPL(__gpio_set_value);
-+
-+/**
-+ * __gpio_cansleep() - report whether gpio value access will sleep
-+ * @gpio: gpio in question
-+ * Context: any
-+ *
-+ * This is used directly or indirectly to implement gpio_cansleep().  It
-+ * returns nonzero if access reading or writing the GPIO value can sleep.
-+ */
-+int __gpio_cansleep(unsigned gpio)
-+{
-+	struct gpio_chip	*chip;
-+
-+	/* only call this on GPIOs that are valid! */
-+	chip = gpio_to_chip(gpio);
-+
-+	return chip->can_sleep;
-+}
-+EXPORT_SYMBOL_GPL(__gpio_cansleep);
-+
-+
-+
-+/* There's no value in making it easy to inline GPIO calls that may sleep.
-+ * Common examples include ones connected to I2C or SPI chips.
-+ */
-+
-+int gpio_get_value_cansleep(unsigned gpio)
-+{
-+	struct gpio_chip	*chip;
-+
-+	might_sleep_if(extra_checks);
-+	chip = gpio_to_chip(gpio);
-+	return chip->get(chip, gpio - chip->base);
-+}
-+EXPORT_SYMBOL_GPL(gpio_get_value_cansleep);
-+
-+void gpio_set_value_cansleep(unsigned gpio, int value)
-+{
-+	struct gpio_chip	*chip;
-+
-+	might_sleep_if(extra_checks);
-+	chip = gpio_to_chip(gpio);
-+	chip->set(chip, gpio - chip->base, value);
-+}
-+EXPORT_SYMBOL_GPL(gpio_set_value_cansleep);
-+
-+
-+#ifdef CONFIG_DEBUG_FS
-+
-+#include <linux/debugfs.h>
-+#include <linux/seq_file.h>
-+
-+
-+static void gpiolib_dbg_show(struct seq_file *s, struct gpio_chip *chip)
-+{
-+	unsigned		i;
-+	unsigned		gpio = chip->base;
-+	struct gpio_desc	*gdesc = &gpio_desc[gpio];
-+	int			is_out;
-+
-+	for (i = 0; i < chip->ngpio; i++, gpio++, gdesc++) {
-+		if (!test_bit(FLAG_REQUESTED, &gdesc->flags))
-+			continue;
-+
-+		is_out = test_bit(FLAG_IS_OUT, &gdesc->flags);
-+		seq_printf(s, " gpio-%-3d (%-12s) %s %s",
-+			gpio, gdesc->label,
-+			is_out ? "out" : "in ",
-+			chip->get
-+				? (chip->get(chip, i) ? "hi" : "lo")
-+				: "?  ");
-+
-+		if (!is_out) {
-+			int		irq = gpio_to_irq(gpio);
-+			struct irq_desc	*desc = irq_desc + irq;
-+
-+			/* This races with request_irq(), set_irq_type(),
-+			 * and set_irq_wake() ... but those are "rare".
-+			 *
-+			 * More significantly, trigger type flags aren't
-+			 * currently maintained by genirq.
-+			 */
-+			if (irq >= 0 && desc->action) {
-+				char *trigger;
-+
-+				switch (desc->status & IRQ_TYPE_SENSE_MASK) {
-+				case IRQ_TYPE_NONE:
-+					trigger = "(default)";
-+					break;
-+				case IRQ_TYPE_EDGE_FALLING:
-+					trigger = "edge-falling";
-+					break;
-+				case IRQ_TYPE_EDGE_RISING:
-+					trigger = "edge-rising";
-+					break;
-+				case IRQ_TYPE_EDGE_BOTH:
-+					trigger = "edge-both";
-+					break;
-+				case IRQ_TYPE_LEVEL_HIGH:
-+					trigger = "level-high";
-+					break;
-+				case IRQ_TYPE_LEVEL_LOW:
-+					trigger = "level-low";
-+					break;
-+				default:
-+					trigger = "?trigger?";
-+					break;
-+				}
-+
-+				seq_printf(s, " irq-%d %s%s",
-+					irq, trigger,
-+					(desc->status & IRQ_WAKEUP)
-+						? " wakeup" : "");
-+			}
-+		}
-+
-+		seq_printf(s, "\n");
-+	}
-+}
-+
-+static int gpiolib_show(struct seq_file *s, void *unused)
-+{
-+	struct gpio_chip	*chip = NULL;
-+	unsigned		gpio;
-+	int			started = 0;
-+
-+	/* REVISIT this isn't locked against gpio_chip removal ... */
-+
-+	for (gpio = 0; gpio < ARCH_NR_GPIOS; gpio++) {
-+		if (chip == gpio_desc[gpio].chip)
-+			continue;
-+		chip = gpio_desc[gpio].chip;
-+		if (!chip)
-+			continue;
-+
-+		seq_printf(s, "%sGPIOs %d-%d, %s%s:\n",
-+				started ? "\n" : "",
-+				chip->base, chip->base + chip->ngpio - 1,
-+				chip->label ? : "generic",
-+				chip->can_sleep ? ", can sleep" : "");
-+		started = 1;
-+		if (chip->dbg_show)
-+			chip->dbg_show(s, chip);
-+		else
-+			gpiolib_dbg_show(s, chip);
-+	}
 +	return 0;
 +}
 +
-+static int gpiolib_open(struct inode *inode, struct file *file)
++static int pxa_gpio_direction_output(struct gpio_chip *chip,
++					unsigned offset, int value)
 +{
-+	return single_open(file, gpiolib_show, NULL);
-+}
++	unsigned long        flags;
++	u32                  mask = 1 << offset;
++	u32                  tmp;
++	struct pxa_gpio_chip *pxa;
++	void __iomem         *gpdr;
 +
-+static struct file_operations gpiolib_operations = {
-+	.open		= gpiolib_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
++	pxa = container_of(chip, struct pxa_gpio_chip, chip);
++	__raw_writel(mask,
++			pxa->regbase + (value ? GPSR_OFFSET : GPCR_OFFSET));
++	gpdr = pxa->regbase + GPDR_OFFSET;
++	local_irq_save(flags);
++	tmp = __raw_readl(gpdr);
++	tmp |= mask;
++	__raw_writel(tmp, gpdr);
++	local_irq_restore(flags);
 +
-+static int __init gpiolib_debugfs_init(void)
-+{
-+	/* /sys/kernel/debug/gpio */
-+	(void) debugfs_create_file("gpio", S_IFREG | S_IRUGO,
-+				NULL, NULL, &gpiolib_operations);
 +	return 0;
 +}
-+subsys_initcall(gpiolib_debugfs_init);
 +
-+#endif	/* DEBUG_FS */
-diff -puN include/asm-generic/gpio.h~gpiolib-add-gpio-provider-infrastructure include/asm-generic/gpio.h
---- a/include/asm-generic/gpio.h~gpiolib-add-gpio-provider-infrastructure
-+++ a/include/asm-generic/gpio.h
-@@ -1,6 +1,102 @@
- #ifndef _ASM_GENERIC_GPIO_H
- #define _ASM_GENERIC_GPIO_H
- 
-+#ifdef CONFIG_HAVE_GPIO_LIB
-+
-+/* Platforms may implement their GPIO interface with library code,
-+ * at a small performance cost for non-inlined operations and some
-+ * extra memory (for code and for per-GPIO table entries).
-+ *
-+ * While the GPIO programming interface defines valid GPIO numbers
-+ * to be in the range 0..MAX_INT, this library restricts them to the
-+ * smaller range 0..ARCH_NR_GPIOS.
++/*
++ * Return GPIO level
 + */
++static int pxa_gpio_get(struct gpio_chip *chip, unsigned offset)
++{
++	u32                  mask = 1 << offset;
++	struct pxa_gpio_chip *pxa;
 +
-+#ifndef ARCH_NR_GPIOS
-+#define ARCH_NR_GPIOS		256
++	pxa = container_of(chip, struct pxa_gpio_chip, chip);
++	return __raw_readl(pxa->regbase + GPLR_OFFSET) & mask;
++}
++
++/*
++ * Set output GPIO level
++ */
++static void pxa_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
++{
++	u32                  mask = 1 << offset;
++	struct pxa_gpio_chip *pxa;
++
++	pxa = container_of(chip, struct pxa_gpio_chip, chip);
++
++	if (value)
++		__raw_writel(mask, pxa->regbase + GPSR_OFFSET);
++	else
++		__raw_writel(mask, pxa->regbase + GPCR_OFFSET);
++}
++
++static struct pxa_gpio_chip pxa_gpio_chip[] = {
++	[0] = {
++		.regbase = GPIO0_BASE,
++		.chip = {
++			.label            = "gpio-0",
++			.direction_input  = pxa_gpio_direction_input,
++			.direction_output = pxa_gpio_direction_output,
++			.get              = pxa_gpio_get,
++			.set              = pxa_gpio_set,
++			.base             = 0,
++			.ngpio            = 32,
++		},
++	},
++	[1] = {
++		.regbase = GPIO1_BASE,
++		.chip = {
++			.label            = "gpio-1",
++			.direction_input  = pxa_gpio_direction_input,
++			.direction_output = pxa_gpio_direction_output,
++			.get              = pxa_gpio_get,
++			.set              = pxa_gpio_set,
++			.base             = 32,
++			.ngpio            = 32,
++		},
++	},
++	[2] = {
++		.regbase = GPIO2_BASE,
++		.chip = {
++			.label            = "gpio-2",
++			.direction_input  = pxa_gpio_direction_input,
++			.direction_output = pxa_gpio_direction_output,
++			.get              = pxa_gpio_get,
++			.set              = pxa_gpio_set,
++			.base             = 64,
++			.ngpio            = 32, /* 21 for PXA25x */
++		},
++	},
++#if defined(CONFIG_PXA27x) || defined(CONFIG_PXA3xx)
++	[3] = {
++		.regbase = GPIO3_BASE,
++		.chip = {
++			.label            = "gpio-3",
++			.direction_input  = pxa_gpio_direction_input,
++			.direction_output = pxa_gpio_direction_output,
++			.get              = pxa_gpio_get,
++			.set              = pxa_gpio_set,
++			.base             = 96,
++			.ngpio            = 32,
++		},
++	},
 +#endif
-+
-+struct seq_file;
-+
-+/**
-+ * struct gpio_chip - abstract a GPIO controller
-+ * @label: for diagnostics
-+ * @direction_input: configures signal "offset" as input, or returns error
-+ * @get: returns value for signal "offset"; for output signals this
-+ *	returns either the value actually sensed, or zero
-+ * @direction_output: configures signal "offset" as output, or returns error
-+ * @set: assigns output value for signal "offset"
-+ * @dbg_show: optional routine to show contents in debugfs; default code
-+ *	will be used when this is omitted, but custom code can show extra
-+ *	state (such as pullup/pulldown configuration).
-+ * @base: identifies the first GPIO number handled by this chip; or, if
-+ *	negative during registration, requests dynamic ID allocation.
-+ * @ngpio: the number of GPIOs handled by this controller; the last GPIO
-+ *	handled is (base + ngpio - 1).
-+ * @can_sleep: flag must be set iff get()/set() methods sleep, as they
-+ *	must while accessing GPIO expander chips over I2C or SPI
-+ *
-+ * A gpio_chip can help platforms abstract various sources of GPIOs so
-+ * they can all be accessed through a common programing interface.
-+ * Example sources would be SOC controllers, FPGAs, multifunction
-+ * chips, dedicated GPIO expanders, and so on.
-+ *
-+ * Each chip controls a number of signals, identified in method calls
-+ * by "offset" values in the range 0..(@ngpio - 1).  When those signals
-+ * are referenced through calls like gpio_get_value(gpio), the offset
-+ * is calculated by subtracting @base from the gpio number.
-+ */
-+struct gpio_chip {
-+	char			*label;
-+
-+	int			(*direction_input)(struct gpio_chip *chip,
-+						unsigned offset);
-+	int			(*get)(struct gpio_chip *chip,
-+						unsigned offset);
-+	int			(*direction_output)(struct gpio_chip *chip,
-+						unsigned offset, int value);
-+	void			(*set)(struct gpio_chip *chip,
-+						unsigned offset, int value);
-+	void			(*dbg_show)(struct seq_file *s,
-+						struct gpio_chip *chip);
-+	int			base;
-+	u16			ngpio;
-+	unsigned		can_sleep:1;
 +};
 +
-+extern const char *gpiochip_is_requested(struct gpio_chip *chip,
-+			unsigned offset);
++void __init pxa_init_gpio(int gpio_nr)
++{
++	int i;
 +
-+/* add/remove chips */
-+extern int gpiochip_add(struct gpio_chip *chip);
-+extern int __must_check gpiochip_remove(struct gpio_chip *chip);
++	/* add a GPIO chip for each register bank.
++	 * the last PXA25x register only contains 21 GPIOs
++	 */
++	for (i = 0; i < gpio_nr; i += 32) {
++		if (i+32 > gpio_nr)
++			pxa_gpio_chip[i/32].chip.ngpio = gpio_nr - i;
++		gpiochip_add(&pxa_gpio_chip[i/32].chip);
++	}
++}
+diff -puN arch/arm/mach-pxa/irq.c~gpiolib-pxa-platform-support arch/arm/mach-pxa/irq.c
+--- a/arch/arm/mach-pxa/irq.c~gpiolib-pxa-platform-support
++++ a/arch/arm/mach-pxa/irq.c
+@@ -310,6 +310,8 @@ void __init pxa_init_irq_gpio(int gpio_n
+ 	/* Install handler for GPIO>=2 edge detect interrupts */
+ 	set_irq_chip(IRQ_GPIO_2_x, &pxa_internal_chip_low);
+ 	set_irq_chained_handler(IRQ_GPIO_2_x, pxa_gpio_demux_handler);
 +
-+
-+/* Always use the library code for GPIO management calls,
-+ * or when sleeping may be involved.
-+ */
-+extern int gpio_request(unsigned gpio, const char *label);
-+extern void gpio_free(unsigned gpio);
-+
-+extern int gpio_direction_input(unsigned gpio);
-+extern int gpio_direction_output(unsigned gpio, int value);
-+
-+extern int gpio_get_value_cansleep(unsigned gpio);
-+extern void gpio_set_value_cansleep(unsigned gpio, int value);
-+
-+
-+/* A platform's <asm/gpio.h> code may want to inline the I/O calls when
-+ * the GPIO is constant and refers to some always-present controller,
-+ * giving direct access to chip registers and tight bitbanging loops.
-+ */
-+extern int __gpio_get_value(unsigned gpio);
-+extern void __gpio_set_value(unsigned gpio, int value);
-+
-+extern int __gpio_cansleep(unsigned gpio);
-+
-+
-+#else
-+
- /* platforms that don't directly support access to GPIOs through I2C, SPI,
-  * or other blocking infrastructure can use these wrappers.
-  */
-@@ -22,4 +118,6 @@ static inline void gpio_set_value_cansle
- 	gpio_set_value(gpio, value);
++	pxa_init_gpio(gpio_nr);
  }
  
-+#endif
+ void __init pxa_init_irq_set_wake(int (*set_wake)(unsigned int, unsigned int))
+diff -puN include/asm-arm/arch-pxa/gpio.h~gpiolib-pxa-platform-support include/asm-arm/arch-pxa/gpio.h
+--- a/include/asm-arm/arch-pxa/gpio.h~gpiolib-pxa-platform-support
++++ a/include/asm-arm/arch-pxa/gpio.h
+@@ -28,43 +28,35 @@
+ #include <asm/irq.h>
+ #include <asm/hardware.h>
+ 
+-static inline int gpio_request(unsigned gpio, const char *label)
+-{
+-	return 0;
+-}
++#include <asm-generic/gpio.h>
+ 
+-static inline void gpio_free(unsigned gpio)
+-{
+-	return;
+-}
+ 
+-extern int gpio_direction_input(unsigned gpio);
+-extern int gpio_direction_output(unsigned gpio, int value);
++/* NOTE: some PXAs have fewer on-chip GPIOs (like PXA255, with 85).
++ * Those cases currently cause holes in the GPIO number space.
++ */
++#define NR_BUILTIN_GPIO 128
+ 
+-static inline int __gpio_get_value(unsigned gpio)
++static inline int gpio_get_value(unsigned gpio)
+ {
+-	return GPLR(gpio) & GPIO_bit(gpio);
++	if (__builtin_constant_p(gpio) && (gpio < NR_BUILTIN_GPIO))
++		return GPLR(gpio) & GPIO_bit(gpio);
++	else
++		return __gpio_get_value(gpio);
+ }
+ 
+-#define gpio_get_value(gpio)			\
+-	(__builtin_constant_p(gpio) ?		\
+-	 __gpio_get_value(gpio) :		\
+-	 pxa_gpio_get_value(gpio))
+-
+-static inline void __gpio_set_value(unsigned gpio, int value)
++static inline void gpio_set_value(unsigned gpio, int value)
+ {
+-	if (value)
+-		GPSR(gpio) = GPIO_bit(gpio);
+-	else
+-		GPCR(gpio) = GPIO_bit(gpio);
++	if (__builtin_constant_p(gpio) && (gpio < NR_BUILTIN_GPIO)) {
++		if (value)
++			GPSR(gpio) = GPIO_bit(gpio);
++		else
++			GPCR(gpio) = GPIO_bit(gpio);
++	} else {
++		__gpio_set_value(gpio, value);
++	}
+ }
+ 
+-#define gpio_set_value(gpio,value)		\
+-	(__builtin_constant_p(gpio) ?		\
+-	 __gpio_set_value(gpio, value) :	\
+-	 pxa_gpio_set_value(gpio, value))
+-
+-#include <asm-generic/gpio.h>			/* cansleep wrappers */
++#define gpio_cansleep __gpio_cansleep
+ 
+ #define gpio_to_irq(gpio)	IRQ_GPIO(gpio)
+ #define irq_to_gpio(irq)	IRQ_TO_GPIO(irq)
+diff -puN include/asm-arm/arch-pxa/pxa-regs.h~gpiolib-pxa-platform-support include/asm-arm/arch-pxa/pxa-regs.h
+--- a/include/asm-arm/arch-pxa/pxa-regs.h~gpiolib-pxa-platform-support
++++ a/include/asm-arm/arch-pxa/pxa-regs.h
+@@ -1131,6 +1131,19 @@
+  * General Purpose I/O
+  */
+ 
++#define GPIO0_BASE	((void __iomem *)io_p2v(0x40E00000))
++#define GPIO1_BASE	((void __iomem *)io_p2v(0x40E00004))
++#define GPIO2_BASE	((void __iomem *)io_p2v(0x40E00008))
++#define GPIO3_BASE	((void __iomem *)io_p2v(0x40E00100))
 +
- #endif /* _ASM_GENERIC_GPIO_H */
++#define GPLR_OFFSET	0x00
++#define GPDR_OFFSET	0x0C
++#define GPSR_OFFSET	0x18
++#define GPCR_OFFSET	0x24
++#define GRER_OFFSET	0x30
++#define GFER_OFFSET	0x3C
++#define GEDR_OFFSET	0x48
++
+ #define GPLR0		__REG(0x40E00000)  /* GPIO Pin-Level Register GPIO<31:0> */
+ #define GPLR1		__REG(0x40E00004)  /* GPIO Pin-Level Register GPIO<63:32> */
+ #define GPLR2		__REG(0x40E00008)  /* GPIO Pin-Level Register GPIO<80:64> */
 _
 
-Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
+Patches currently in -mm which might be from philipp.zabel@gmail.com are
 
-spi_bitbang-always-grab-lock-with-irqs-blocked.patch
 git-arm.patch
-git-input.patch
-backlight-omap1-backlight-driver.patch
-pcmcia-stop-updating-dev-powerpower_state.patch
-at91_cf-use-generic-gpio-calls.patch
-remove-obsolete-sys-devices-power-state-docs.patch
-spi-core-stop-updating-dev-powerpower_state.patch
-atmel_spi-throughput-improvement.patch
-atmel_spi-chain-dma-transfers.patch
-atmel_spi-chain-dma-transfers-update.patch
-atmel_spi-fix-dmachain-oops-with-debug-enabled.patch
-rtc-cmos-exports-nvram-in-sysfs.patch
-rtc-cmos-alarm-acts-as-oneshot.patch
+ds1wm-decouple-host-irq-and-intr-active-state-settings.patch
 gpiolib-add-drivers-gpio-directory.patch
 gpiolib-add-gpio-provider-infrastructure.patch
 gpiolib-update-documentation-gpiotxt.patch
@@ -800,4 +535,3 @@ gpiolib-pcf857x-i2c-gpio-expander-support.patch
 gpiolib-mcp23s08-spi-gpio-expander-support.patch
 gpiolib-pca9539-i2c-gpio-expander-support.patch
 gpiolib-deprecate-obsolete-pca9539-driver.patch
-usb-net2280-cant-have-a-function-called-show_registers.patch
