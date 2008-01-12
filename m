@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-powerpc-sysdev-add-missing-of_node_put.patch added to -mm tree
-Date: Fri, 11 Jan 2008 17:08:34 -0800
-Message-ID: <200801120108.m0C18Y0k007049@imap1.linux-foundation.org>
+Subject: + powerpc-export-copy_page-on-32bit.patch added to -mm tree
+Date: Fri, 11 Jan 2008 17:10:24 -0800
+Message-ID: <200801120110.m0C1AOCv007163@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42664 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48692 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932087AbYALBIq (ORCPT
+	by vger.kernel.org with ESMTP id S932083AbYALBKh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jan 2008 20:08:46 -0500
+	Fri, 11 Jan 2008 20:10:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, benh@kernel.crashing.org, galak@gate.crashing.org, paulus@samba.org, sfr@canb.auug.org.au
+Cc: jfannin@gmail.com, benh@kernel.crashing.org, ezk@cs.sunysb.edu, paulus@samba.org
 
 
 The patch titled
-     arch/powerpc/sysdev: Add missing of_node_put
+     powerpc: export copy_page() on 32bit
 has been added to the -mm tree.  Its filename is
-     arch-powerpc-sysdev-add-missing-of_node_put.patch
+     powerpc-export-copy_page-on-32bit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,109 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/powerpc/sysdev: Add missing of_node_put
-From: Julia Lawall <julia@diku.dk>
+Subject: powerpc: export copy_page() on 32bit
+From: Joseph Fannin <jfannin@gmail.com>
 
+Export copy_page() on 32bit powerpc; unionfs needs it.
 
-The functions of_find_compatible_node and of_find_node_by_type both call
-of_node_get on their result.  So any error handling code thereafter should
-call of_node_put(np).  This is taken care of in the case where there is a goto
-out, but not when there is a direct return.
+Unionfs already builds as a module on 64bit powerpc, so the export is
+placed within an existing CONFIG_PPC32 #ifdef.
 
-The function irq_alloc_host puts np into the returned structure, which is
-stored in the global variable mpc8xx_pic_host, so the reference count
-should be set for the lifetime of that variable.  The current solution ups
-the reference count again in the argument to irq_alloc_host so that it can
-be decremented on the way out.  This seems a bit unnecessary, and also
-doesn't work in the case where irq_alloc_host fails, because then the
-reference count only goes does by one, whereas it should go down by two.  A
-better solution is to not increment the reference count in the argument to
-irq_alloc_host and only decrement it on the way out in an error case.
+(akpm: targetted at git-unionfs.patch)
 
-The problem was found using the following semantic match.
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@@
-type T,T1,T2;
-identifier E;
-statement S;
-expression x1,x2,x3;
-int ret;
-@@
-
-  T E;
-  ...
-* E = \(of_get_parent\|of_find_compatible_node\)(...);
-  if (E == NULL) S
-  ... when != of_node_put(...,(T1)E,...)
-      when != if (E != NULL) { ... of_node_put(...,(T1)E,...); ...}
-      when != x1 = (T1)E
-      when != E = x3;
-      when any
-  if (...) {
-    ... when != of_node_put(...,(T2)E,...)
-        when != if (E != NULL) { ... of_node_put(...,(T2)E,...); ...}
-        when != x2 = (T2)E
-(
-*   return;
-|
-*   return ret;
-)
-  }
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Joseph Fannin <jfannin@gmail.com>
+Cc: Erez Zadok <ezk@cs.sunysb.edu>
 Cc: Paul Mackerras <paulus@samba.org>
-Cc: Kumar Gala <galak@gate.crashing.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/sysdev/mpc8xx_pic.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ arch/powerpc/kernel/ppc_ksyms.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/powerpc/sysdev/mpc8xx_pic.c~arch-powerpc-sysdev-add-missing-of_node_put arch/powerpc/sysdev/mpc8xx_pic.c
---- a/arch/powerpc/sysdev/mpc8xx_pic.c~arch-powerpc-sysdev-add-missing-of_node_put
-+++ a/arch/powerpc/sysdev/mpc8xx_pic.c
-@@ -175,15 +175,19 @@ int mpc8xx_pic_init(void)
- 		goto out;
+diff -puN arch/powerpc/kernel/ppc_ksyms.c~powerpc-export-copy_page-on-32bit arch/powerpc/kernel/ppc_ksyms.c
+--- a/arch/powerpc/kernel/ppc_ksyms.c~powerpc-export-copy_page-on-32bit
++++ a/arch/powerpc/kernel/ppc_ksyms.c
+@@ -59,6 +59,7 @@ extern void single_step_exception(struct
+ extern int sys_sigreturn(struct pt_regs *regs);
  
- 	siu_reg = ioremap(res.start, res.end - res.start + 1);
--	if (siu_reg == NULL)
--		return -EINVAL;
-+	if (siu_reg == NULL) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
- 
--	mpc8xx_pic_host = irq_alloc_host(of_node_get(np), IRQ_HOST_MAP_LINEAR,
-+	mpc8xx_pic_host = irq_alloc_host(np, IRQ_HOST_MAP_LINEAR,
- 					 64, &mpc8xx_pic_host_ops, 64);
- 	if (mpc8xx_pic_host == NULL) {
- 		printk(KERN_ERR "MPC8xx PIC: failed to allocate irq host!\n");
- 		ret = -ENOMEM;
-+		goto out;
- 	}
-+	return 0;
- 
- out:
- 	of_node_put(np);
+ EXPORT_SYMBOL(clear_pages);
++EXPORT_SYMBOL(copy_page);
+ EXPORT_SYMBOL(ISA_DMA_THRESHOLD);
+ EXPORT_SYMBOL(DMA_MODE_READ);
+ EXPORT_SYMBOL(DMA_MODE_WRITE);
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from jfannin@gmail.com are
 
-git-alsa.patch
-git-agpgart.patch
-git-powerpc.patch
-arch-powerpc-platforms-pseries-add-missing-of_node_put.patch
-arch-powerpc-sysdev-add-missing-of_node_put.patch
-arch-powerpc-platforms-82xx-add-missing-of_node_put.patch
-drivers-media-radio-use-video_device_release-rather-than-kfree.patch
-drivers-media-common-add-missing-video_device_release.patch
-git-input.patch
-drivers-pcmcia-add-missing-iounmap.patch
-git-x86.patch
-arch-cris-added-a-missing-iounmap.patch
-drivers-video-remove-unnecessary-pci_dev_put.patch
+powerpc-export-copy_page-on-32bit.patch
