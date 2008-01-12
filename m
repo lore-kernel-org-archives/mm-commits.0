@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + oss-msnd-fix-array-overflows.patch added to -mm tree
-Date: Fri, 11 Jan 2008 17:35:07 -0800
-Message-ID: <200801120135.m0C1Z7Pn008040@imap1.linux-foundation.org>
+Subject: + usb-make-usb_storage_onetouch-available-with-pm.patch added to -mm tree
+Date: Fri, 11 Jan 2008 17:36:37 -0800
+Message-ID: <200801120136.m0C1ab0x008072@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40645 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42009 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754440AbYALBfV (ORCPT
+	by vger.kernel.org with ESMTP id S1756952AbYALBhZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jan 2008 20:35:21 -0500
+	Fri, 11 Jan 2008 20:37:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: bunk@kernel.org, gregkh@suse.de, just.for.lkml@googlemail.com, mdharm-usb@one-eyed-alien.net, n.sillik@temple.edu, stern@rowland.harvard.edu
 
 
 The patch titled
-     OSS msnd: fix array overflows
+     usb: make USB_STORAGE_ONETOUCH available with PM
 has been added to the -mm tree.  Its filename is
-     oss-msnd-fix-array-overflows.patch
+     usb-make-usb_storage_onetouch-available-with-pm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: OSS msnd: fix array overflows
+Subject: usb: make USB_STORAGE_ONETOUCH available with PM
 From: Adrian Bunk <bunk@kernel.org>
 
-Fix array overflows in the OSS msnd driver spotted by the Coverity checker.
+As Torsten Kaiser pointed out, it seems the dependency of
+USB_STORAGE_ONETOUCH on !PM should have been removed in commit
+7931e1c6f8007d5fef8a0bb2dc71bd97315eeae9.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Matthew Dharm <mdharm-usb@one-eyed-alien.net>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Nick Sillik <n.sillik@temple.edu>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Torsten Kaiser <just.for.lkml@googlemail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/oss/msnd.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/usb/storage/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN sound/oss/msnd.h~oss-msnd-fix-array-overflows sound/oss/msnd.h
---- a/sound/oss/msnd.h~oss-msnd-fix-array-overflows
-+++ a/sound/oss/msnd.h
-@@ -233,8 +233,8 @@ typedef struct multisound_dev {
- 	spinlock_t lock;
- 	int nresets;
- 	unsigned long recsrc;
--	int left_levels[16];
--	int right_levels[16];
-+	int left_levels[32];
-+	int right_levels[32];
- 	int mixer_mod_count;
- 	int calibrate_signal;
- 	int play_sample_size, play_sample_rate, play_channels;
+diff -puN drivers/usb/storage/Kconfig~usb-make-usb_storage_onetouch-available-with-pm drivers/usb/storage/Kconfig
+--- a/drivers/usb/storage/Kconfig~usb-make-usb_storage_onetouch-available-with-pm
++++ a/drivers/usb/storage/Kconfig
+@@ -123,7 +123,7 @@ config USB_STORAGE_ALAUDA
+ 
+ config USB_STORAGE_ONETOUCH
+ 	bool "Support OneTouch Button on Maxtor Hard Drives (EXPERIMENTAL)"
+-	depends on USB_STORAGE && INPUT_EVDEV && EXPERIMENTAL && !PM
++	depends on USB_STORAGE && INPUT_EVDEV && EXPERIMENTAL
+ 	help
+ 	  Say Y here to include additional code to support the Maxtor OneTouch
+ 	  USB hard drive's onetouch button.
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -84,6 +89,7 @@ scsi-qla2xxx-possible-cleanups.patch
 scsi-aic94xx-cleanups.patch
 scsi-aic94xx-cleanups-checkpatch-fixes.patch
 scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
+usb-make-usb_storage_onetouch-available-with-pm.patch
 git-x86.patch
 git-cryptodev.patch
 git-xtensa.patch
