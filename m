@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + tdfxfb-fix-section-mismatch-warnings.patch added to -mm tree
-Date: Fri, 11 Jan 2008 17:12:40 -0800
-Message-ID: <200801120112.m0C1CeJB007229@imap1.linux-foundation.org>
+Subject: + pm3fb-fix-section-mismatch-warnings.patch added to -mm tree
+Date: Fri, 11 Jan 2008 17:12:54 -0800
+Message-ID: <200801120112.m0C1CsOK007235@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60299 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40821 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932097AbYALBMu (ORCPT
+	by vger.kernel.org with ESMTP id S1756962AbYALBNG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jan 2008 20:12:50 -0500
+	Fri, 11 Jan 2008 20:13:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: randy.dunlap@oracle.com, adaplas@pol.net
 
 
 The patch titled
-     tdfxfb: fix section mismatch warnings
+     pm3fb: fix section mismatch warnings
 has been added to the -mm tree.  Its filename is
-     tdfxfb-fix-section-mismatch-warnings.patch
+     pm3fb-fix-section-mismatch-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tdfxfb: fix section mismatch warnings
+Subject: pm3fb: fix section mismatch warnings
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-tdfxfb_setup() can be __devinit.  This fixes the modpost section mismatch
-warnings:
+Add __devinit to one function to clean up section mismatch warnings:
 
-WARNING: vmlinux.o(.text+0x4cff9b): Section mismatch: reference to .init.data:mode_option (between 'tdfxfb_setup' and 'getclkMHz')
-WARNING: vmlinux.o(.text+0x4cffa8): Section mismatch: reference to .init.data: (between 'tdfxfb_setup' and 'getclkMHz')
+WARNING: vmlinux.o(.text+0x47c176): Section mismatch: reference to .init.data: (between 'pm3fb_size_memory' and 'update_crtc2')
+WARNING: vmlinux.o(.text+0x47c188): Section mismatch: reference to .init.data: (between 'pm3fb_size_memory' and 'update_crtc2')
+WARNING: vmlinux.o(.text+0x47c1ba): Section mismatch: reference to .init.data: (between 'pm3fb_size_memory' and 'update_crtc2')
+WARNING: vmlinux.o(.text+0x47c1c1): Section mismatch: reference to .init.data: (between 'pm3fb_size_memory' and 'update_crtc2')
+WARNING: vmlinux.o(.text+0x47c1e2): Section mismatch: reference to .init.data: (between 'pm3fb_size_memory' and 'update_crtc2')
+WARNING: vmlinux.o(.text+0x47c1e9): Section mismatch: reference to .init.data: (between 'pm3fb_size_memory' and 'update_crtc2')
+WARNING: vmlinux.o(.text+0x47c2f0): Section mismatch: reference to .init.data: (between 'pm3fb_size_memory' and 'update_crtc2')
+WARNING: vmlinux.o(.text+0x47c2f7): Section mismatch: reference to .init.data: (between 'pm3fb_size_memory' and 'update_crtc2')
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/tdfxfb.c |    2 +-
+ drivers/video/pm3fb.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/tdfxfb.c~tdfxfb-fix-section-mismatch-warnings drivers/video/tdfxfb.c
---- a/drivers/video/tdfxfb.c~tdfxfb-fix-section-mismatch-warnings
-+++ a/drivers/video/tdfxfb.c
-@@ -1342,7 +1342,7 @@ out_err:
- }
+diff -puN drivers/video/pm3fb.c~pm3fb-fix-section-mismatch-warnings drivers/video/pm3fb.c
+--- a/drivers/video/pm3fb.c~pm3fb-fix-section-mismatch-warnings
++++ a/drivers/video/pm3fb.c
+@@ -1227,7 +1227,7 @@ static struct fb_ops pm3fb_ops = {
  
- #ifndef MODULE
--static void tdfxfb_setup(char *options)
-+static void __devinit tdfxfb_setup(char *options)
+ /* mmio register are already mapped when this function is called */
+ /* the pm3fb_fix.smem_start is also set */
+-static unsigned long pm3fb_size_memory(struct pm3_par *par)
++static unsigned long __devinit pm3fb_size_memory(struct pm3_par *par)
  {
- 	char *this_opt;
- 
+ 	unsigned long	memsize = 0;
+ 	unsigned long	tempBypass, i, temp1, temp2;
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
