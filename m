@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch added to -mm tree
-Date: Fri, 11 Jan 2008 16:51:29 -0800
-Message-ID: <200801120051.m0C0pTCO006444@imap1.linux-foundation.org>
+Subject: + drivers-media-common-add-missing-video_device_release.patch added to -mm tree
+Date: Fri, 11 Jan 2008 17:03:42 -0800
+Message-ID: <200801120103.m0C13ghn006835@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54573 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36404 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762641AbYALAv7 (ORCPT
+	by vger.kernel.org with ESMTP id S1754440AbYALBD7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jan 2008 19:51:59 -0500
+	Fri, 11 Jan 2008 20:03:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pchen@nvidia.com, acurrid@nvidia.com, ak@suse.de, ebiederm@xmission.com, greg@kroah.com, mingo@elte.hu, tglx@linutronix.de
+Cc: julia@diku.dk, mchehab@infradead.org
 
 
 The patch titled
-     quirks: set 'En' bit of MSI Mapping for devices onHT-based nvidia platform
+     drivers/media/common: Add missing video_device_release
 has been added to the -mm tree.  Its filename is
-     quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
+     drivers-media-common-add-missing-video_device_release.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,104 +34,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quirks: set 'En' bit of MSI Mapping for devices onHT-based nvidia platform
-From: Peer Chen <pchen@nvidia.com>
+Subject: drivers/media/common: Add missing video_device_release
+From: Julia Lawall <julia@diku.dk>
 
-According to HT spec, to get message interrupt from devices mapped to HT
-interrupt message, the 'En' bit of MSI Mapping capability need to be set. 
-The patch do this setting in quirks code for the devices on HT-based nvidia
-platform.
+Video_device_alloc returns the result of a kzalloc.  In this case, the
+value is stored in a local variable which is not copied elsewhere before
+the point of the error return (video_register_device does not save its
+first argument anywhere if it returns a negative value).  Thus, a
+video_device_release it needed before the error return.
 
-Signed-off-by: Andy Currid <acurrid@nvidia.com>
-Signed-off-by: Peer Chen <pchen@nvidia.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <ak@suse.de>
+The problem was found using the following semantic match.
+(http://www.emn.fr/x-info/coccinelle/)
+
+// <smpl>
+@@
+type T,T1,T2;
+identifier E;
+statement S;
+expression x1,x2,x3;
+int ret;
+@@
+
+  T E;
+  ...
+* E = video_device_alloc(...);
+  if (E == NULL) S
+  ... when != video_device_release(...,(T1)E,...)
+      when != if (E != NULL) { ... video_device_release(...,(T1)E,...); ...}
+      when != x1 = (T1)E
+      when != E = x3;
+      when any
+  if (...) {
+    ... when != video_device_release(...,(T2)E,...)
+        when != if (E != NULL) { ... video_device_release(...,(T2)E,...); ...}
+        when != x2 = (T2)E
+(
+*   return;
+|
+*   return ret;
+)
+  }
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/quirks.c |   64 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 64 insertions(+)
+ drivers/media/common/saa7146_fops.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/pci/quirks.c~quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform drivers/pci/quirks.c
---- a/drivers/pci/quirks.c~quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform
-+++ a/drivers/pci/quirks.c
-@@ -1775,6 +1775,70 @@ static void __devinit quirk_nvidia_ck804
- DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_CK804_PCIE,
- 			quirk_nvidia_ck804_msi_ht_cap);
+diff -puN drivers/media/common/saa7146_fops.c~drivers-media-common-add-missing-video_device_release drivers/media/common/saa7146_fops.c
+--- a/drivers/media/common/saa7146_fops.c~drivers-media-common-add-missing-video_device_release
++++ a/drivers/media/common/saa7146_fops.c
+@@ -538,6 +538,7 @@ int saa7146_register_device(struct video
+ 	// fixme: -1 should be an insmod parameter *for the extension* (like "video_nr");
+ 	if (video_register_device(vfd, type, -1) < 0) {
+ 		ERR(("cannot register v4l2 device. skipping.\n"));
++		video_device_release(vfd);
+ 		return -1;
+ 	}
  
-+/*
-+ *  Force enable MSI mapping capability on HT bridges  */
-+static inline void ht_enable_msi_mapping(struct pci_dev *dev)
-+{
-+	int pos, ttl = 48;
-+
-+	pos = pci_find_ht_capability(dev, HT_CAPTYPE_MSI_MAPPING);
-+	while (pos && ttl--) {
-+		u8 flags;
-+
-+		if (pci_read_config_byte(dev, pos + HT_MSI_FLAGS, &flags) == 0) {
-+			printk(KERN_INFO "PCI: Enabling HT MSI Mapping on %s\n",
-+						dev->dev.bus_id);
-+
-+			pci_write_config_byte(dev, pos + HT_MSI_FLAGS,
-+					      flags | HT_MSI_FLAGS_ENABLE);
-+		}
-+		pos = pci_find_next_ht_capability(dev, pos,
-+						  HT_CAPTYPE_MSI_MAPPING);
-+	}
-+}
-+
-+static void __devinit nv_msi_ht_cap_quirk(struct pci_dev *dev) {
-+
-+	struct pci_dev *host_bridge;
-+	int pos, ttl = 48;
-+
-+	/* HT MSI mapping should be disabled on devices that are below
-+	 * a non-Hypertransport host bridge. Locate the host bridge...
-+ 	 */
-+
-+	if ((host_bridge = pci_get_bus_and_slot(0, PCI_DEVFN(0,0))) == NULL) {
-+		printk(KERN_WARNING
-+			"PCI: nv_msi_ht_cap_quirk didn't locate host bridge\n");
-+		return;
-+	}
-+
-+	if ((pos = pci_find_ht_capability(host_bridge, HT_CAPTYPE_SLAVE)) != 0) {
-+		/* Host bridge is to HT */
-+		ht_enable_msi_mapping(dev);
-+		return;
-+	}
-+
-+	/* Host bridge is not to HT, disable HT MSI mapping on this device */
-+
-+	pos = pci_find_ht_capability(dev, HT_CAPTYPE_MSI_MAPPING);
-+	while (pos && ttl--) {
-+		u8 flags;
-+
-+		if (pci_read_config_byte(dev, pos + HT_MSI_FLAGS, &flags) == 0) {
-+			printk(KERN_INFO "PCI: Quirk disabling HT MSI mapping on %s\n",
-+			       pci_name(dev));
-+
-+			pci_write_config_byte(dev, pos + HT_MSI_FLAGS,
-+					      flags & ~HT_MSI_FLAGS_ENABLE);
-+		}
-+		pos = pci_find_next_ht_capability(dev, pos,
-+						  HT_CAPTYPE_MSI_MAPPING);
-+	}
-+}
-+
-+DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_NVIDIA, PCI_ANY_ID,
-+							nv_msi_ht_cap_quirk);
-+
- static void __devinit quirk_msi_intx_disable_bug(struct pci_dev *dev)
- {
- 	dev->dev_flags |= PCI_DEV_FLAGS_MSI_INTX_DISABLE_BUG;
 _
 
-Patches currently in -mm which might be from pchen@nvidia.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
+git-alsa.patch
+git-agpgart.patch
+git-powerpc.patch
+drivers-media-radio-use-video_device_release-rather-than-kfree.patch
+drivers-media-common-add-missing-video_device_release.patch
+git-input.patch
+git-x86.patch
+arch-cris-added-a-missing-iounmap.patch
+drivers-video-remove-unnecessary-pci_dev_put.patch
