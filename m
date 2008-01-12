@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + gpiolib-update-documentation-gpiotxt.patch added to -mm tree
-Date: Fri, 11 Jan 2008 18:22:49 -0800
-Message-ID: <200801120222.m0C2MnUf009685@imap1.linux-foundation.org>
+Subject: + gpiolib-add-gpio-provider-infrastructure.patch added to -mm tree
+Date: Fri, 11 Jan 2008 18:22:46 -0800
+Message-ID: <200801120222.m0C2MkYI009682@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34527 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42610 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753242AbYALCbS (ORCPT
+	by vger.kernel.org with ESMTP id S1754832AbYALCbV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jan 2008 21:31:18 -0500
+	Fri, 11 Jan 2008 21:31:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: dbrownell@users.sourceforge.net, bgardner@wabtec.com, eric.miao@marvell.com,
 
 
 The patch titled
-     gpiolib: update Documentation/gpio.txt
+     gpiolib: add gpio provider infrastructure
 has been added to the -mm tree.  Its filename is
-     gpiolib-update-documentation-gpiotxt.patch
+     gpiolib-add-gpio-provider-infrastructure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpiolib: update Documentation/gpio.txt
+Subject: gpiolib: add gpio provider infrastructure
 From: David Brownell <dbrownell@users.sourceforge.net>
 
-Update Documentation/gpio.txt, primarily to include the new "gpiolib"
-infrastructure.
+Provide new implementation infrastructure that platforms may choose to use
+when implementing the GPIO programming interface.  Platforms can update their
+GPIO support to use this.  In many cases the incremental cost to access a
+non-inlined GPIO should be less than a dozen instructions, with the memory
+cost being about a page (total) of extra data and code.  The upside is:
+
+  * Providing two features which were "want to have (but OK to defer)" when
+    GPIO interfaces were first discussed in November 2006:
+
+    -	A "struct gpio_chip" to plug in GPIOs that aren't directly supported
+	by SOC platforms, but come from FPGAs or other multifunction devices
+	using conventional device registers (like UCB-1x00 or SM501 GPIOs,
+	and southbridges in PCs with more open specs than usual).
+
+    -	Full support for message-based GPIO expanders, where registers are
+	accessed through sleeping I/O calls.  Previous support for these
+	"cansleep" calls was just stubs.  (One example: the widely used
+	pcf8574 I2C chips, with 8 GPIOs each.)
+
+  * Including a non-stub implementation of the gpio_{request,free}() calls,
+    making those calls much more useful.  The diagnostic labels are also
+    recorded given DEBUG_FS, so /sys/kernel/debug/gpio can show a snapshot
+    of all GPIOs known to this infrastructure.
+
+The driver programming interfaces introduced in 2.6.21 do not change at all;
+this infrastructure is entirely below those covers.
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Cc: Jean Delvare <khali@linux-fr.org>
 Cc: Eric Miao <eric.miao@marvell.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
 Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
 Cc: Philipp Zabel <philipp.zabel@gmail.com>
 Cc: Russell King <rmk@arm.linux.org.uk>
@@ -51,224 +75,704 @@ Cc: Ben Gardner <bgardner@wabtec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/gpio.txt |  133 +++++++++++++++++++++++++++++++++++----
- 1 file changed, 121 insertions(+), 12 deletions(-)
+ drivers/gpio/Makefile      |    2 
+ drivers/gpio/gpiolib.c     |  567 +++++++++++++++++++++++++++++++++++
+ include/asm-generic/gpio.h |   98 ++++++
+ 3 files changed, 667 insertions(+)
 
-diff -puN Documentation/gpio.txt~gpiolib-update-documentation-gpiotxt Documentation/gpio.txt
---- a/Documentation/gpio.txt~gpiolib-update-documentation-gpiotxt
-+++ a/Documentation/gpio.txt
-@@ -32,7 +32,7 @@ The exact capabilities of GPIOs vary bet
-   - Input values are likewise readable (1, 0).  Some chips support readback
-     of pins configured as "output", which is very useful in such "wire-OR"
-     cases (to support bidirectional signaling).  GPIO controllers may have
--    input de-glitch logic, sometimes with software controls.
-+    input de-glitch/debounce logic, sometimes with software controls.
+diff -puN drivers/gpio/Makefile~gpiolib-add-gpio-provider-infrastructure drivers/gpio/Makefile
+--- a/drivers/gpio/Makefile~gpiolib-add-gpio-provider-infrastructure
++++ a/drivers/gpio/Makefile
+@@ -2,3 +2,5 @@
  
-   - Inputs can often be used as IRQ signals, often edge triggered but
-     sometimes level triggered.  Such IRQs may be configurable as system
-@@ -60,10 +60,13 @@ used on a board that's wired differently
- functionality can be very portable.  Other features are platform-specific,
- and that can be critical for glue logic.
+ ccflags-$(CONFIG_DEBUG_GPIO)	+= -DDEBUG
  
--Plus, this doesn't define an implementation framework, just an interface.
-+Plus, this doesn't require any implementation framework, just an interface.
- One platform might implement it as simple inline functions accessing chip
- registers; another might implement it by delegating through abstractions
--used for several very different kinds of GPIO controller.
-+used for several very different kinds of GPIO controller.  (There is some
-+optional code supporting such an implementation strategy, described later
-+in this document, but drivers acting as clients to the GPIO interface must
-+not care how it's implemented.)
++obj-$(CONFIG_HAVE_GPIO_LIB)	+= gpiolib.o
++
+diff -puN /dev/null drivers/gpio/gpiolib.c
+--- /dev/null
++++ a/drivers/gpio/gpiolib.c
+@@ -0,0 +1,567 @@
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/irq.h>
++#include <linux/spinlock.h>
++
++#include <asm/gpio.h>
++
++
++/* Optional implementation infrastructure for GPIO interfaces.
++ *
++ * Platforms may want to use this if they tend to use very many GPIOs
++ * that aren't part of a System-On-Chip core; or across I2C/SPI/etc.
++ *
++ * When kernel footprint or instruction count is an issue, simpler
++ * implementations may be preferred.  The GPIO programming interface
++ * allows for inlining speed-critical get/set operations for common
++ * cases, so that access to SOC-integrated GPIOs can sometimes cost
++ * only an instruction or two per bit.
++ */
++
++
++/* When debugging, extend minimal trust to callers and platform code.
++ * Also emit diagnostic messages that may help initial bringup, when
++ * board setup or driver bugs are most common.
++ *
++ * Otherwise, minimize overhead in what may be bitbanging codepaths.
++ */
++#ifdef	DEBUG
++#define	extra_checks	1
++#else
++#define	extra_checks	0
++#endif
++
++/* gpio_lock prevents conflicts during gpio_desc[] table updates.
++ * While any GPIO is requested, its gpio_chip is not removable;
++ * each GPIO's "requested" flag serves as a lock and refcount.
++ */
++static DEFINE_SPINLOCK(gpio_lock);
++
++struct gpio_desc {
++	struct gpio_chip	*chip;
++	unsigned long		flags;
++/* flag symbols are bit numbers */
++#define FLAG_REQUESTED	0
++#define FLAG_IS_OUT	1
++
++#ifdef CONFIG_DEBUG_FS
++	const char		*label;
++#endif
++};
++static struct gpio_desc gpio_desc[ARCH_NR_GPIOS];
++
++static inline void desc_set_label(struct gpio_desc *d, const char *label)
++{
++#ifdef CONFIG_DEBUG_FS
++	d->label = label;
++#endif
++}
++
++/* Warn when drivers omit gpio_request() calls -- legal but ill-advised
++ * when setting direction, and otherwise illegal.  Until board setup code
++ * and drivers use explicit requests everywhere (which won't happen when
++ * those calls have no teeth) we can't avoid autorequesting.  This nag
++ * message should motivate switching to explicit requests...
++ */
++static void gpio_ensure_requested(struct gpio_desc *desc)
++{
++	if (test_and_set_bit(FLAG_REQUESTED, &desc->flags) == 0) {
++		pr_warning("GPIO-%d autorequested\n", (int)(desc - gpio_desc));
++		desc_set_label(desc, "[auto]");
++	}
++}
++
++/* caller holds gpio_lock *OR* gpio is marked as requested */
++static inline struct gpio_chip *gpio_to_chip(unsigned gpio)
++{
++	return gpio_desc[gpio].chip;
++}
++
++/**
++ * gpiochip_add() - register a gpio_chip
++ * @chip: the chip to register, with chip->base initialized
++ * Context: potentially before irqs or kmalloc will work
++ *
++ * Returns a negative errno if the chip can't be registered, such as
++ * because the chip->base is invalid or already associated with a
++ * different chip.  Otherwise it returns zero as a success code.
++ */
++int gpiochip_add(struct gpio_chip *chip)
++{
++	unsigned long	flags;
++	int		status = 0;
++	unsigned	id;
++
++	/* NOTE chip->base negative is reserved to mean a request for
++	 * dynamic allocation.  We don't currently support that.
++	 */
++
++	if (chip->base < 0 || (chip->base  + chip->ngpio) >= ARCH_NR_GPIOS) {
++		status = -EINVAL;
++		goto fail;
++	}
++
++	spin_lock_irqsave(&gpio_lock, flags);
++
++	/* these GPIO numbers must not be managed by another gpio_chip */
++	for (id = chip->base; id < chip->base + chip->ngpio; id++) {
++		if (gpio_desc[id].chip != NULL) {
++			status = -EBUSY;
++			break;
++		}
++	}
++	if (status == 0) {
++		for (id = chip->base; id < chip->base + chip->ngpio; id++) {
++			gpio_desc[id].chip = chip;
++			gpio_desc[id].flags = 0;
++		}
++	}
++
++	spin_unlock_irqrestore(&gpio_lock, flags);
++fail:
++	/* failures here can mean systems won't boot... */
++	if (status)
++		pr_err("gpiochip_add: gpios %d..%d (%s) not registered\n",
++			chip->base, chip->base + chip->ngpio,
++			chip->label ? : "generic");
++	return status;
++}
++EXPORT_SYMBOL_GPL(gpiochip_add);
++
++/**
++ * gpiochip_remove() - unregister a gpio_chip
++ * @chip: the chip to unregister
++ *
++ * A gpio_chip with any GPIOs still requested may not be removed.
++ */
++int gpiochip_remove(struct gpio_chip *chip)
++{
++	unsigned long	flags;
++	int		status = 0;
++	unsigned	id;
++
++	spin_lock_irqsave(&gpio_lock, flags);
++
++	for (id = chip->base; id < chip->base + chip->ngpio; id++) {
++		if (test_bit(FLAG_REQUESTED, &gpio_desc[id].flags)) {
++			status = -EBUSY;
++			break;
++		}
++	}
++	if (status == 0) {
++		for (id = chip->base; id < chip->base + chip->ngpio; id++)
++			gpio_desc[id].chip = NULL;
++	}
++
++	spin_unlock_irqrestore(&gpio_lock, flags);
++	return status;
++}
++EXPORT_SYMBOL_GPL(gpiochip_remove);
++
++
++/* These "optional" allocation calls help prevent drivers from stomping
++ * on each other, and help provide better diagnostics in debugfs.
++ * They're called even less than the "set direction" calls.
++ */
++int gpio_request(unsigned gpio, const char *label)
++{
++	struct gpio_desc	*desc;
++	int			status = -EINVAL;
++	unsigned long		flags;
++
++	spin_lock_irqsave(&gpio_lock, flags);
++
++	if (gpio >= ARCH_NR_GPIOS)
++		goto done;
++	desc = &gpio_desc[gpio];
++	if (desc->chip == NULL)
++		goto done;
++
++	/* NOTE:  gpio_request() can be called in early boot,
++	 * before IRQs are enabled.
++	 */
++
++	if (test_and_set_bit(FLAG_REQUESTED, &desc->flags) == 0) {
++		desc_set_label(desc, label ? : "?");
++		status = 0;
++	} else
++		status = -EBUSY;
++
++done:
++	if (status)
++		pr_debug("gpio_request: gpio-%d (%s) status %d\n",
++			gpio, label ? : "?", status);
++	spin_unlock_irqrestore(&gpio_lock, flags);
++	return status;
++}
++EXPORT_SYMBOL_GPL(gpio_request);
++
++void gpio_free(unsigned gpio)
++{
++	unsigned long		flags;
++	struct gpio_desc	*desc;
++
++	if (gpio >= ARCH_NR_GPIOS) {
++		WARN_ON(extra_checks);
++		return;
++	}
++
++	spin_lock_irqsave(&gpio_lock, flags);
++
++	desc = &gpio_desc[gpio];
++	if (desc->chip && test_and_clear_bit(FLAG_REQUESTED, &desc->flags))
++		desc_set_label(desc, NULL);
++	else
++		WARN_ON(extra_checks);
++
++	spin_unlock_irqrestore(&gpio_lock, flags);
++}
++EXPORT_SYMBOL_GPL(gpio_free);
++
++
++/**
++ * gpiochip_is_requested - return string iff signal was requested
++ * @chip: controller managing the signal
++ * @offset: of signal within controller's 0..(ngpio - 1) range
++ *
++ * Returns NULL if the GPIO is not currently requested, else a string.
++ * If debugfs support is enabled, the string returned is the label passed
++ * to gpio_request(); otherwise it is a meaningless constant.
++ *
++ * This function is for use by GPIO controller drivers.  The label can
++ * help with diagnostics, and knowing that the signal is used as a GPIO
++ * can help avoid accidentally multiplexing it to another controller.
++ */
++const char *gpiochip_is_requested(struct gpio_chip *chip, unsigned offset)
++{
++	unsigned gpio = chip->base + offset;
++
++	if (gpio >= ARCH_NR_GPIOS || gpio_desc[gpio].chip != chip)
++		return NULL;
++	if (test_bit(FLAG_REQUESTED, &gpio_desc[gpio].flags) == 0)
++		return NULL;
++#ifdef CONFIG_DEBUG_FS
++	return gpio_desc[gpio].label;
++#else
++	return "?";
++#endif
++}
++EXPORT_SYMBOL_GPL(gpiochip_is_requested);
++
++
++/* Drivers MUST set GPIO direction before making get/set calls.  In
++ * some cases this is done in early boot, before IRQs are enabled.
++ *
++ * As a rule these aren't called more than once (except for drivers
++ * using the open-drain emulation idiom) so these are natural places
++ * to accumulate extra debugging checks.  Note that we can't (yet)
++ * rely on gpio_request() having been called beforehand.
++ */
++
++int gpio_direction_input(unsigned gpio)
++{
++	unsigned long		flags;
++	struct gpio_chip	*chip;
++	struct gpio_desc	*desc = &gpio_desc[gpio];
++	int			status = -EINVAL;
++
++	spin_lock_irqsave(&gpio_lock, flags);
++
++	if (gpio >= ARCH_NR_GPIOS)
++		goto fail;
++	chip = desc->chip;
++	if (!chip || !chip->get || !chip->direction_input)
++		goto fail;
++	gpio -= chip->base;
++	if (gpio >= chip->ngpio)
++		goto fail;
++	gpio_ensure_requested(desc);
++
++	/* now we know the gpio is valid and chip won't vanish */
++
++	spin_unlock_irqrestore(&gpio_lock, flags);
++
++	might_sleep_if(extra_checks && chip->can_sleep);
++
++	status = chip->direction_input(chip, gpio);
++	if (status == 0)
++		clear_bit(FLAG_IS_OUT, &desc->flags);
++	return status;
++fail:
++	spin_unlock_irqrestore(&gpio_lock, flags);
++	if (status)
++		pr_debug("%s: gpio-%d status %d\n",
++			__FUNCTION__, gpio, status);
++	return status;
++}
++EXPORT_SYMBOL_GPL(gpio_direction_input);
++
++int gpio_direction_output(unsigned gpio, int value)
++{
++	unsigned long		flags;
++	struct gpio_chip	*chip;
++	struct gpio_desc	*desc = &gpio_desc[gpio];
++	int			status = -EINVAL;
++
++	spin_lock_irqsave(&gpio_lock, flags);
++
++	if (gpio >= ARCH_NR_GPIOS)
++		goto fail;
++	chip = desc->chip;
++	if (!chip || !chip->set || !chip->direction_output)
++		goto fail;
++	gpio -= chip->base;
++	if (gpio >= chip->ngpio)
++		goto fail;
++	gpio_ensure_requested(desc);
++
++	/* now we know the gpio is valid and chip won't vanish */
++
++	spin_unlock_irqrestore(&gpio_lock, flags);
++
++	might_sleep_if(extra_checks && chip->can_sleep);
++
++	status = chip->direction_output(chip, gpio, value);
++	if (status == 0)
++		set_bit(FLAG_IS_OUT, &desc->flags);
++	return status;
++fail:
++	spin_unlock_irqrestore(&gpio_lock, flags);
++	if (status)
++		pr_debug("%s: gpio-%d status %d\n",
++			__FUNCTION__, gpio, status);
++	return status;
++}
++EXPORT_SYMBOL_GPL(gpio_direction_output);
++
++
++/* I/O calls are only valid after configuration completed; the relevant
++ * "is this a valid GPIO" error checks should already have been done.
++ *
++ * "Get" operations are often inlinable as reading a pin value register,
++ * and masking the relevant bit in that register.
++ *
++ * When "set" operations are inlinable, they involve writing that mask to
++ * one register to set a low value, or a different register to set it high.
++ * Otherwise locking is needed, so there may be little value to inlining.
++ *
++ *------------------------------------------------------------------------
++ *
++ * IMPORTANT!!!  The hot paths -- get/set value -- assume that callers
++ * have requested the GPIO.  That can include implicit requesting by
++ * a direction setting call.  Marking a gpio as requested locks its chip
++ * in memory, guaranteeing that these table lookups need no more locking
++ * and that gpiochip_remove() will fail.
++ *
++ * REVISIT when debugging, consider adding some instrumentation to ensure
++ * that the GPIO was actually requested.
++ */
++
++/**
++ * __gpio_get_value() - return a gpio's value
++ * @gpio: gpio whose value will be returned
++ * Context: any
++ *
++ * This is used directly or indirectly to implement gpio_get_value().
++ * It returns the zero or nonzero value provided by the associated
++ * gpio_chip.get() method; or zero if no such method is provided.
++ */
++int __gpio_get_value(unsigned gpio)
++{
++	struct gpio_chip	*chip;
++
++	chip = gpio_to_chip(gpio);
++	WARN_ON(extra_checks && chip->can_sleep);
++	return chip->get ? chip->get(chip, gpio - chip->base) : 0;
++}
++EXPORT_SYMBOL_GPL(__gpio_get_value);
++
++/**
++ * __gpio_set_value() - assign a gpio's value
++ * @gpio: gpio whose value will be assigned
++ * @value: value to assign
++ * Context: any
++ *
++ * This is used directly or indirectly to implement gpio_set_value().
++ * It invokes the associated gpio_chip.set() method.
++ */
++void __gpio_set_value(unsigned gpio, int value)
++{
++	struct gpio_chip	*chip;
++
++	chip = gpio_to_chip(gpio);
++	WARN_ON(extra_checks && chip->can_sleep);
++	chip->set(chip, gpio - chip->base, value);
++}
++EXPORT_SYMBOL_GPL(__gpio_set_value);
++
++/**
++ * __gpio_cansleep() - report whether gpio value access will sleep
++ * @gpio: gpio in question
++ * Context: any
++ *
++ * This is used directly or indirectly to implement gpio_cansleep().  It
++ * returns nonzero if access reading or writing the GPIO value can sleep.
++ */
++int __gpio_cansleep(unsigned gpio)
++{
++	struct gpio_chip	*chip;
++
++	/* only call this on GPIOs that are valid! */
++	chip = gpio_to_chip(gpio);
++
++	return chip->can_sleep;
++}
++EXPORT_SYMBOL_GPL(__gpio_cansleep);
++
++
++
++/* There's no value in making it easy to inline GPIO calls that may sleep.
++ * Common examples include ones connected to I2C or SPI chips.
++ */
++
++int gpio_get_value_cansleep(unsigned gpio)
++{
++	struct gpio_chip	*chip;
++
++	might_sleep_if(extra_checks);
++	chip = gpio_to_chip(gpio);
++	return chip->get(chip, gpio - chip->base);
++}
++EXPORT_SYMBOL_GPL(gpio_get_value_cansleep);
++
++void gpio_set_value_cansleep(unsigned gpio, int value)
++{
++	struct gpio_chip	*chip;
++
++	might_sleep_if(extra_checks);
++	chip = gpio_to_chip(gpio);
++	chip->set(chip, gpio - chip->base, value);
++}
++EXPORT_SYMBOL_GPL(gpio_set_value_cansleep);
++
++
++#ifdef CONFIG_DEBUG_FS
++
++#include <linux/debugfs.h>
++#include <linux/seq_file.h>
++
++
++static void gpiolib_dbg_show(struct seq_file *s, struct gpio_chip *chip)
++{
++	unsigned		i;
++	unsigned		gpio = chip->base;
++	struct gpio_desc	*gdesc = &gpio_desc[gpio];
++	int			is_out;
++
++	for (i = 0; i < chip->ngpio; i++, gpio++, gdesc++) {
++		if (!test_bit(FLAG_REQUESTED, &gdesc->flags))
++			continue;
++
++		is_out = test_bit(FLAG_IS_OUT, &gdesc->flags);
++		seq_printf(s, " gpio-%-3d (%-12s) %s %s",
++			gpio, gdesc->label,
++			is_out ? "out" : "in ",
++			chip->get
++				? (chip->get(chip, i) ? "hi" : "lo")
++				: "?  ");
++
++		if (!is_out) {
++			int		irq = gpio_to_irq(gpio);
++			struct irq_desc	*desc = irq_desc + irq;
++
++			/* This races with request_irq(), set_irq_type(),
++			 * and set_irq_wake() ... but those are "rare".
++			 *
++			 * More significantly, trigger type flags aren't
++			 * currently maintained by genirq.
++			 */
++			if (irq >= 0 && desc->action) {
++				char *trigger;
++
++				switch (desc->status & IRQ_TYPE_SENSE_MASK) {
++				case IRQ_TYPE_NONE:
++					trigger = "(default)";
++					break;
++				case IRQ_TYPE_EDGE_FALLING:
++					trigger = "edge-falling";
++					break;
++				case IRQ_TYPE_EDGE_RISING:
++					trigger = "edge-rising";
++					break;
++				case IRQ_TYPE_EDGE_BOTH:
++					trigger = "edge-both";
++					break;
++				case IRQ_TYPE_LEVEL_HIGH:
++					trigger = "level-high";
++					break;
++				case IRQ_TYPE_LEVEL_LOW:
++					trigger = "level-low";
++					break;
++				default:
++					trigger = "?trigger?";
++					break;
++				}
++
++				seq_printf(s, " irq-%d %s%s",
++					irq, trigger,
++					(desc->status & IRQ_WAKEUP)
++						? " wakeup" : "");
++			}
++		}
++
++		seq_printf(s, "\n");
++	}
++}
++
++static int gpiolib_show(struct seq_file *s, void *unused)
++{
++	struct gpio_chip	*chip = NULL;
++	unsigned		gpio;
++	int			started = 0;
++
++	/* REVISIT this isn't locked against gpio_chip removal ... */
++
++	for (gpio = 0; gpio < ARCH_NR_GPIOS; gpio++) {
++		if (chip == gpio_desc[gpio].chip)
++			continue;
++		chip = gpio_desc[gpio].chip;
++		if (!chip)
++			continue;
++
++		seq_printf(s, "%sGPIOs %d-%d, %s%s:\n",
++				started ? "\n" : "",
++				chip->base, chip->base + chip->ngpio - 1,
++				chip->label ? : "generic",
++				chip->can_sleep ? ", can sleep" : "");
++		started = 1;
++		if (chip->dbg_show)
++			chip->dbg_show(s, chip);
++		else
++			gpiolib_dbg_show(s, chip);
++	}
++	return 0;
++}
++
++static int gpiolib_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, gpiolib_show, NULL);
++}
++
++static struct file_operations gpiolib_operations = {
++	.open		= gpiolib_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
++static int __init gpiolib_debugfs_init(void)
++{
++	/* /sys/kernel/debug/gpio */
++	(void) debugfs_create_file("gpio", S_IFREG | S_IRUGO,
++				NULL, NULL, &gpiolib_operations);
++	return 0;
++}
++subsys_initcall(gpiolib_debugfs_init);
++
++#endif	/* DEBUG_FS */
+diff -puN include/asm-generic/gpio.h~gpiolib-add-gpio-provider-infrastructure include/asm-generic/gpio.h
+--- a/include/asm-generic/gpio.h~gpiolib-add-gpio-provider-infrastructure
++++ a/include/asm-generic/gpio.h
+@@ -1,6 +1,102 @@
+ #ifndef _ASM_GENERIC_GPIO_H
+ #define _ASM_GENERIC_GPIO_H
  
- That said, if the convention is supported on their platform, drivers should
- use it when possible.  Platforms should declare GENERIC_GPIO support in
-@@ -121,6 +124,11 @@ before tasking is enabled, as part of ea
- For output GPIOs, the value provided becomes the initial output value.
- This helps avoid signal glitching during system startup.
++#ifdef CONFIG_HAVE_GPIO_LIB
++
++/* Platforms may implement their GPIO interface with library code,
++ * at a small performance cost for non-inlined operations and some
++ * extra memory (for code and for per-GPIO table entries).
++ *
++ * While the GPIO programming interface defines valid GPIO numbers
++ * to be in the range 0..MAX_INT, this library restricts them to the
++ * smaller range 0..ARCH_NR_GPIOS.
++ */
++
++#ifndef ARCH_NR_GPIOS
++#define ARCH_NR_GPIOS		256
++#endif
++
++struct seq_file;
++
++/**
++ * struct gpio_chip - abstract a GPIO controller
++ * @label: for diagnostics
++ * @direction_input: configures signal "offset" as input, or returns error
++ * @get: returns value for signal "offset"; for output signals this
++ *	returns either the value actually sensed, or zero
++ * @direction_output: configures signal "offset" as output, or returns error
++ * @set: assigns output value for signal "offset"
++ * @dbg_show: optional routine to show contents in debugfs; default code
++ *	will be used when this is omitted, but custom code can show extra
++ *	state (such as pullup/pulldown configuration).
++ * @base: identifies the first GPIO number handled by this chip; or, if
++ *	negative during registration, requests dynamic ID allocation.
++ * @ngpio: the number of GPIOs handled by this controller; the last GPIO
++ *	handled is (base + ngpio - 1).
++ * @can_sleep: flag must be set iff get()/set() methods sleep, as they
++ *	must while accessing GPIO expander chips over I2C or SPI
++ *
++ * A gpio_chip can help platforms abstract various sources of GPIOs so
++ * they can all be accessed through a common programing interface.
++ * Example sources would be SOC controllers, FPGAs, multifunction
++ * chips, dedicated GPIO expanders, and so on.
++ *
++ * Each chip controls a number of signals, identified in method calls
++ * by "offset" values in the range 0..(@ngpio - 1).  When those signals
++ * are referenced through calls like gpio_get_value(gpio), the offset
++ * is calculated by subtracting @base from the gpio number.
++ */
++struct gpio_chip {
++	char			*label;
++
++	int			(*direction_input)(struct gpio_chip *chip,
++						unsigned offset);
++	int			(*get)(struct gpio_chip *chip,
++						unsigned offset);
++	int			(*direction_output)(struct gpio_chip *chip,
++						unsigned offset, int value);
++	void			(*set)(struct gpio_chip *chip,
++						unsigned offset, int value);
++	void			(*dbg_show)(struct seq_file *s,
++						struct gpio_chip *chip);
++	int			base;
++	u16			ngpio;
++	unsigned		can_sleep:1;
++};
++
++extern const char *gpiochip_is_requested(struct gpio_chip *chip,
++			unsigned offset);
++
++/* add/remove chips */
++extern int gpiochip_add(struct gpio_chip *chip);
++extern int __must_check gpiochip_remove(struct gpio_chip *chip);
++
++
++/* Always use the library code for GPIO management calls,
++ * or when sleeping may be involved.
++ */
++extern int gpio_request(unsigned gpio, const char *label);
++extern void gpio_free(unsigned gpio);
++
++extern int gpio_direction_input(unsigned gpio);
++extern int gpio_direction_output(unsigned gpio, int value);
++
++extern int gpio_get_value_cansleep(unsigned gpio);
++extern void gpio_set_value_cansleep(unsigned gpio, int value);
++
++
++/* A platform's <asm/gpio.h> code may want to inline the I/O calls when
++ * the GPIO is constant and refers to some always-present controller,
++ * giving direct access to chip registers and tight bitbanging loops.
++ */
++extern int __gpio_get_value(unsigned gpio);
++extern void __gpio_set_value(unsigned gpio, int value);
++
++extern int __gpio_cansleep(unsigned gpio);
++
++
++#else
++
+ /* platforms that don't directly support access to GPIOs through I2C, SPI,
+  * or other blocking infrastructure can use these wrappers.
+  */
+@@ -22,4 +118,6 @@ static inline void gpio_set_value_cansle
+ 	gpio_set_value(gpio, value);
+ }
  
-+For compatibility with legacy interfaces to GPIOs, setting the direction
-+of a GPIO implicitly requests that GPIO (see below) if it has not been
-+requested already.  That compatibility may be removed in the future;
-+explicitly requesting GPIOs is strongly preferred.
++#endif
 +
- Setting the direction can fail if the GPIO number is invalid, or when
- that particular GPIO can't be used in that mode.  It's generally a bad
- idea to rely on boot firmware to have set the direction correctly, since
-@@ -133,6 +141,7 @@ Spinlock-Safe GPIO access
- -------------------------
- Most GPIO controllers can be accessed with memory read/write instructions.
- That doesn't need to sleep, and can safely be done from inside IRQ handlers.
-+(That includes hardirq contexts on RT kernels.)
- 
- Use these calls to access such GPIOs:
- 
-@@ -145,7 +154,7 @@ Use these calls to access such GPIOs:
- The values are boolean, zero for low, nonzero for high.  When reading the
- value of an output pin, the value returned should be what's seen on the
- pin ... that won't always match the specified output value, because of
--issues including wire-OR and output latencies.
-+issues including open-drain signaling and output latencies.
- 
- The get/set calls have no error returns because "invalid GPIO" should have
- been reported earlier from gpio_direction_*().  However, note that not all
-@@ -170,7 +179,8 @@ get to the head of a queue to transmit a
- This requires sleeping, which can't be done from inside IRQ handlers.
- 
- Platforms that support this type of GPIO distinguish them from other GPIOs
--by returning nonzero from this call:
-+by returning nonzero from this call (which requires a valid GPIO number,
-+either explicitly or implicitly requested):
- 
- 	int gpio_cansleep(unsigned gpio);
- 
-@@ -209,8 +219,11 @@ before tasking is enabled, as part of ea
- These calls serve two basic purposes.  One is marking the signals which
- are actually in use as GPIOs, for better diagnostics; systems may have
- several hundred potential GPIOs, but often only a dozen are used on any
--given board.  Another is to catch conflicts between drivers, reporting
--errors when drivers wrongly think they have exclusive use of that signal.
-+given board.  Another is to catch conflicts, identifying errors when
-+(a) two or more drivers wrongly think they have exclusive use of that
-+signal, or (b) something wrongly believes it's safe to remove drivers
-+needed to manage a signal that's in active use.  That is, requesting a
-+GPIO can serve as a kind of lock.
- 
- These two calls are optional because not not all current Linux platforms
- offer such functionality in their GPIO support; a valid implementation
-@@ -223,6 +236,9 @@ Note that requesting a GPIO does NOT cau
- way; it just marks that GPIO as in use.  Separate code must handle any
- pin setup (e.g. controlling which pin the GPIO uses, pullup/pulldown).
- 
-+Also note that it's your responsibility to have stopped using a GPIO
-+before you free it.
-+
- 
- GPIOs mapped to IRQs
- --------------------
-@@ -238,7 +254,7 @@ map between them using calls like:
- 
- Those return either the corresponding number in the other namespace, or
- else a negative errno code if the mapping can't be done.  (For example,
--some GPIOs can't used as IRQs.)  It is an unchecked error to use a GPIO
-+some GPIOs can't be used as IRQs.)  It is an unchecked error to use a GPIO
- number that wasn't set up as an input using gpio_direction_input(), or
- to use an IRQ number that didn't originally come from gpio_to_irq().
- 
-@@ -299,17 +315,110 @@ Related to multiplexing is configuration
- pulldowns integrated on some platforms.  Not all platforms support them,
- or support them in the same way; and any given board might use external
- pullups (or pulldowns) so that the on-chip ones should not be used.
-+(When a circuit needs 5 kOhm, on-chip 100 kOhm resistors won't do.)
- 
- There are other system-specific mechanisms that are not specified here,
- like the aforementioned options for input de-glitching and wire-OR output.
- Hardware may support reading or writing GPIOs in gangs, but that's usually
- configuration dependent:  for GPIOs sharing the same bank.  (GPIOs are
- commonly grouped in banks of 16 or 32, with a given SOC having several such
--banks.)  Some systems can trigger IRQs from output GPIOs.  Code relying on
--such mechanisms will necessarily be nonportable.
-+banks.)  Some systems can trigger IRQs from output GPIOs, or read values
-+from pins not managed as GPIOs.  Code relying on such mechanisms will
-+necessarily be nonportable.
- 
--Dynamic definition of GPIOs is not currently supported; for example, as
-+Dynamic definition of GPIOs is not currently standard; for example, as
- a side effect of configuring an add-on board with some GPIO expanders.
- 
- These calls are purely for kernel space, but a userspace API could be built
--on top of it.
-+on top of them.
-+
-+
-+GPIO implementor's framework (OPTIONAL)
-+=======================================
-+As noted earlier, there is an optional implementation framework making it
-+easier for platforms to support different kinds of GPIO controller using
-+the same programming interface.
-+
-+As a debugging aid, if debugfs is available a /sys/kernel/debug/gpio file
-+will be found there.  That will list all the controllers registered through
-+this framework, and the state of the GPIOs currently in use.
-+
-+
-+Controller Drivers: gpio_chip
-+-----------------------------
-+In this framework each GPIO controller is packaged as a "struct gpio_chip"
-+with information common to each controller of that type:
-+
-+ - methods to establish GPIO direction
-+ - methods used to access GPIO values
-+ - flag saying whether calls to its methods may sleep
-+ - optional debugfs dump method (showing extra state like pullup config)
-+ - label for diagnostics
-+
-+There is also per-instance data, which may come from device.platform_data:
-+the number of its first GPIO, and how many GPIOs it exposes.
-+
-+The code implementing a gpio_chip should support multiple instances of the
-+controller, possibly using the driver model.  That code will configure each
-+gpio_chip and issue gpiochip_add().  Removing a GPIO controller should be
-+rare; use gpiochip_remove() when it is unavoidable.
-+
-+Most often a gpio_chip is part of an instance-specific structure with state
-+not exposed by the GPIO interfaces, such as addressing, power management,
-+and more.  Chips such as codecs will have complex non-GPIO state,
-+
-+Any debugfs dump method should normally ignore signals which haven't been
-+requested as GPIOs.  They can use gpiochip_is_requested(), which returns
-+either NULL or the label associated with that GPIO when it was requested.
-+
-+
-+Platform Support
-+----------------
-+To support this framework, a platform's Kconfig will "select HAVE_GPIO_LIB"
-+and arrange that its <asm/gpio.h> includes <asm-generic/gpio.h> and defines
-+three functions: gpio_get_value(), gpio_set_value(), and gpio_cansleep().
-+They may also want to provide a custom value for ARCH_NR_GPIOS.
-+
-+Trivial implementations of those functions can directly use framework
-+code, which always dispatches through the gpio_chip:
-+
-+  #define gpio_get_value	__gpio_get_value
-+  #define gpio_set_value	__gpio_set_value
-+  #define gpio_cansleep		__gpio_cansleep
-+
-+Fancier implementations could instead define those as inline functions with
-+logic optimizing access to specific SOC-based GPIOs.  For example, if the
-+referenced GPIO is the constant "12", getting or setting its value could
-+cost as little as two or three instructions, never sleeping.  When such an
-+optimization is not possible those calls must delegate to the framework
-+code, costing at least a few dozen instructions.  For bitbanged I/O, such
-+instruction savings can be significant.
-+
-+For SOCs, platform-specific code defines and registers gpio_chip instances
-+for each bank of on-chip GPIOs.  Those GPIOs should be numbered/labeled to
-+match chip vendor documentation, and directly match board schematics.  They
-+may well start at zero and go up to a platform-specific limit.  Such GPIOs
-+are normally integrated into platform initialization to make them always be
-+available, from arch_initcall() or earlier; they can often serve as IRQs.
-+
-+
-+Board Support
-+-------------
-+For external GPIO controllers -- such as I2C or SPI expanders, ASICs, multi
-+function devices, FPGAs or CPLDs -- most often board-specific code handles
-+registering controller devices and ensures that their drivers know what GPIO
-+numbers to use with gpiochip_add().  Their numbers often start right after
-+platform-specific GPIOs.
-+
-+For example, board setup code could create structures identifying the range
-+of GPIOs that chip will expose, and passes them to each GPIO expander chip
-+using platform_data.  Then the chip driver's probe() routine could pass that
-+data to gpiochip_add().
-+
-+Initialization order can be important.  For example, when a device relies on
-+an I2C-based GPIO, its probe() routine should only be called after that GPIO
-+becomes available.  That may mean the device should not be registered until
-+calls for that GPIO can work.  One way to address such dependencies is for
-+such gpio_chip controllers to provide setup() and teardown() callbacks to
-+board specific code; those board specific callbacks would register devices
-+once all the necessary resources are available.
+ #endif /* _ASM_GENERIC_GPIO_H */
 _
 
 Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
