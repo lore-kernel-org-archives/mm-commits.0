@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + pm-do-not-destroy-create-devices-while-suspended-in-mce_64c.patch added to -mm tree
-Date: Fri, 11 Jan 2008 16:43:27 -0800
-Message-ID: <200801120043.m0C0hRNl006077@imap1.linux-foundation.org>
+Subject: + pm-do-not-destroy-create-devices-while-suspended-in-msrc-rev-2.patch added to -mm tree
+Date: Fri, 11 Jan 2008 16:43:25 -0800
+Message-ID: <200801120043.m0C0hQ3N006074@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46329 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47976 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755430AbYALAoS (ORCPT
+	by vger.kernel.org with ESMTP id S1761833AbYALAoS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 11 Jan 2008 19:44:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: rjw@sisk.pl, ak@suse.de, greg@kroah.com, kay.sievers@vrfy.org, lenb@kernel.o
 
 
 The patch titled
-     PM: Do not destroy/create devices while suspended in mce_64.c
+     PM: Do not destroy/create devices while suspended in msr.c (rev. 2)
 has been added to the -mm tree.  Its filename is
-     pm-do-not-destroy-create-devices-while-suspended-in-mce_64c.patch
+     pm-do-not-destroy-create-devices-while-suspended-in-msrc-rev-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PM: Do not destroy/create devices while suspended in mce_64.c
+Subject: PM: Do not destroy/create devices while suspended in msr.c (rev. 2)
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-The x86-64 MCE driver should not attempt to destroy/create a suspended device,
-unless it corresponds to a nonboot CPU that failed to go online during a
-resume.
+The MSR driver should not attempt to destroy/create a device while suspended,
+unless this device corresponds to a nonboot CPU that failed to go online
+during a resume, in which case the PM core should be asked to remove it.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Cc: Greg KH <greg@kroah.com>
@@ -53,25 +53,31 @@ Cc: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/mcheck/mce_64.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/x86/kernel/msr.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/mcheck/mce_64.c~pm-do-not-destroy-create-devices-while-suspended-in-mce_64c arch/x86/kernel/cpu/mcheck/mce_64.c
---- a/arch/x86/kernel/cpu/mcheck/mce_64.c~pm-do-not-destroy-create-devices-while-suspended-in-mce_64c
-+++ a/arch/x86/kernel/cpu/mcheck/mce_64.c
-@@ -862,11 +862,10 @@ mce_cpu_callback(struct notifier_block *
+diff -puN arch/x86/kernel/msr.c~pm-do-not-destroy-create-devices-while-suspended-in-msrc-rev-2 arch/x86/kernel/msr.c
+--- a/arch/x86/kernel/msr.c~pm-do-not-destroy-create-devices-while-suspended-in-msrc-rev-2
++++ a/arch/x86/kernel/msr.c
+@@ -155,15 +155,15 @@ static int __cpuinit msr_class_cpu_callb
  
  	switch (action) {
- 	case CPU_ONLINE:
--	case CPU_ONLINE_FROZEN:
- 		mce_create_device(cpu);
+ 	case CPU_UP_PREPARE:
+-	case CPU_UP_PREPARE_FROZEN:
+ 		err = msr_device_create(cpu);
  		break;
+ 	case CPU_UP_CANCELED:
+-	case CPU_UP_CANCELED_FROZEN:
  	case CPU_DEAD:
 -	case CPU_DEAD_FROZEN:
-+	case CPU_UP_CANCELED_FROZEN:
- 		mce_remove_device(cpu);
+ 		msr_device_destroy(cpu);
  		break;
++	case CPU_UP_CANCELED_FROZEN:
++		destroy_suspended_device(msr_class, MKDEV(MSR_MAJOR, cpu));
++		break;
  	}
+ 	return err ? NOTIFY_BAD : NOTIFY_OK;
+ }
 _
 
 Patches currently in -mm which might be from rjw@sisk.pl are
