@@ -1,95 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: + w1-gpio-add-gpio-w1-bus-master-driver-v3.patch added to -mm tree
-Date: Fri, 11 Jan 2008 18:01:50 -0800
-Message-ID: <200801120201.m0C21ovS008957@imap1.linux-foundation.org>
+Subject: - proc-remove-useless-checks-in-proc_register.patch removed from -mm tree
+Date: Fri, 11 Jan 2008 18:04:23 -0800
+Message-ID: <200801120204.m0C24NxT009073@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58422 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50846 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756984AbYALCC7 (ORCPT
+	by vger.kernel.org with ESMTP id S1751191AbYALCFD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jan 2008 21:02:59 -0500
+	Fri, 11 Jan 2008 21:05:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: syrjala@sci.fi, david-b@pacbell.net, johnpol@2ka.mipt.ru
+To: adobriyan@sw.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     w1-gpio: add GPIO w1 bus master driver
-has been added to the -mm tree.  Its filename is
-     w1-gpio-add-gpio-w1-bus-master-driver-v3.patch
+     proc: remove useless checks in proc_register()
+has been removed from the -mm tree.  Its filename was
+     proc-remove-useless-checks-in-proc_register.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1-gpio: add GPIO w1 bus master driver
-From: Ville Syrjala <syrjala@sci.fi>
+Subject: proc: remove useless checks in proc_register()
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-Changes from version 2 to version 3:
-* Use platform_driver_probe() instead of platform_driver_register().
-* Remove useless address operators from function pointer assignments.
+Before proc_register() all PDEs are created by proc_create() which doesn't set
+->proc_iops and ->proc_fops -- they're NULL.  So those branches in
+proc_register() are always taken.
 
-Signed-off-by: Ville Syrjala <syrjala@sci.fi>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/w1-gpio.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ fs/proc/generic.c |   15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
-diff -puN drivers/w1/masters/w1-gpio.c~w1-gpio-add-gpio-w1-bus-master-driver-v3 drivers/w1/masters/w1-gpio.c
---- a/drivers/w1/masters/w1-gpio.c~w1-gpio-add-gpio-w1-bus-master-driver-v3
-+++ a/drivers/w1/masters/w1-gpio.c
-@@ -60,14 +60,14 @@ static int __init w1_gpio_probe(struct p
- 		goto free_master;
+diff -puN fs/proc/generic.c~proc-remove-useless-checks-in-proc_register fs/proc/generic.c
+--- a/fs/proc/generic.c~proc-remove-useless-checks-in-proc_register
++++ a/fs/proc/generic.c
+@@ -528,19 +528,14 @@ static int proc_register(struct proc_dir
+ 	dp->low_ino = i;
  
- 	master->data = pdata;
--	master->read_bit = &w1_gpio_read_bit;
-+	master->read_bit = w1_gpio_read_bit;
- 
- 	if (pdata->is_open_drain) {
- 		gpio_direction_output(pdata->pin, 1);
--		master->write_bit = &w1_gpio_write_bit_val;
-+		master->write_bit = w1_gpio_write_bit_val;
- 	} else {
- 		gpio_direction_input(pdata->pin);
--		master->write_bit = &w1_gpio_write_bit_dir;
-+		master->write_bit = w1_gpio_write_bit_dir;
+ 	if (S_ISDIR(dp->mode)) {
+-		if (dp->proc_iops == NULL) {
+-			dp->proc_fops = &proc_dir_operations;
+-			dp->proc_iops = &proc_dir_inode_operations;
+-		}
++		dp->proc_fops = &proc_dir_operations;
++		dp->proc_iops = &proc_dir_inode_operations;
+ 		dir->nlink++;
+ 	} else if (S_ISLNK(dp->mode)) {
+-		if (dp->proc_iops == NULL)
+-			dp->proc_iops = &proc_link_inode_operations;
++		dp->proc_iops = &proc_link_inode_operations;
+ 	} else if (S_ISREG(dp->mode)) {
+-		if (dp->proc_fops == NULL)
+-			dp->proc_fops = &proc_file_operations;
+-		if (dp->proc_iops == NULL)
+-			dp->proc_iops = &proc_file_inode_operations;
++		dp->proc_fops = &proc_file_operations;
++		dp->proc_iops = &proc_file_inode_operations;
  	}
  
- 	err = w1_add_master_device(master);
-@@ -103,13 +103,12 @@ static struct platform_driver w1_gpio_dr
- 		.name	= "w1-gpio",
- 		.owner	= THIS_MODULE,
- 	},
--	.probe	= w1_gpio_probe,
- 	.remove	= __exit_p(w1_gpio_remove),
- };
- 
- static int __init w1_gpio_init(void)
- {
--	return platform_driver_register(&w1_gpio_driver);
-+	return platform_driver_probe(&w1_gpio_driver, w1_gpio_probe);
- }
- 
- static void __exit w1_gpio_exit(void)
+ 	spin_lock(&proc_subdir_lock);
 _
 
-Patches currently in -mm which might be from syrjala@sci.fi are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
-git-alsa.patch
-w1-gpio-add-gpio-w1-bus-master-driver.patch
-w1-gpio-add-gpio-w1-bus-master-driver-v3.patch
+gregkh-driver-block-device-genhd-fixup-kobj_to_dev-macro.patch
+gregkh-driver-kobject-convert-hvcs-to-use-kref-not-kobject-hvcs-fixup-container_of-usage.patch
+proc-remove-module_license.patch
+proc-less-lock-operations-during-lookup.patch
+proc-simplify-function-prototypes.patch
+proc-remove-useless-check-on-symlink-removal.patch
+proc-remove-useless-checks-in-proc_register.patch
+proc-detect-duplicate-names-on-registration.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+fixup-container_of-usage.patch
+single_open-seq_release-leak-diagnostics.patch
