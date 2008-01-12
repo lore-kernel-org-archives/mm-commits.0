@@ -1,101 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: - pm-do-not-destroy-create-devices-while-suspended-in-cpuidc.patch removed from -mm tree
-Date: Fri, 11 Jan 2008 16:49:35 -0800
-Message-ID: <200801120049.m0C0nZT3006372@imap1.linux-foundation.org>
+Subject: + quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch added to -mm tree
+Date: Fri, 11 Jan 2008 16:51:29 -0800
+Message-ID: <200801120051.m0C0pTCO006444@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46553 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54573 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762757AbYALAuc (ORCPT
+	by vger.kernel.org with ESMTP id S1762641AbYALAv7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jan 2008 19:50:32 -0500
+	Fri, 11 Jan 2008 19:51:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, ak@suse.de, greg@kroah.com, kay.sievers@vrfy.org, lenb@kernel.org, mingo@elte.hu, pavel@suse.cz, stern@rowland.harvard.edu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: pchen@nvidia.com, acurrid@nvidia.com, ak@suse.de, ebiederm@xmission.com, greg@kroah.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     PM: Do not destroy/create devices while suspended in cpuid.c
-has been removed from the -mm tree.  Its filename was
-     pm-do-not-destroy-create-devices-while-suspended-in-cpuidc.patch
+     quirks: set 'En' bit of MSI Mapping for devices onHT-based nvidia platform
+has been added to the -mm tree.  Its filename is
+     quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PM: Do not destroy/create devices while suspended in cpuid.c
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: quirks: set 'En' bit of MSI Mapping for devices onHT-based nvidia platform
+From: Peer Chen <pchen@nvidia.com>
 
-The cpuid driver should not attempt to destroy/create a device while
-suspended, unless this device corresponds to a nonboot CPU that failed to go
-online during a resume, in which case the PM core should be asked to remove
-it.
+According to HT spec, to get message interrupt from devices mapped to HT
+interrupt message, the 'En' bit of MSI Mapping capability need to be set. 
+The patch do this setting in quirks code for the devices on HT-based nvidia
+platform.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Andy Currid <acurrid@nvidia.com>
+Signed-off-by: Peer Chen <pchen@nvidia.com>
 Cc: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Andi Kleen <ak@suse.de>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpuid.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/pci/quirks.c |   64 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 64 insertions(+)
 
-diff -puN arch/x86/kernel/cpuid.c~pm-do-not-destroy-create-devices-while-suspended-in-cpuidc arch/x86/kernel/cpuid.c
---- a/arch/x86/kernel/cpuid.c~pm-do-not-destroy-create-devices-while-suspended-in-cpuidc
-+++ a/arch/x86/kernel/cpuid.c
-@@ -157,15 +157,15 @@ static int __cpuinit cpuid_class_cpu_cal
+diff -puN drivers/pci/quirks.c~quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c~quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform
++++ a/drivers/pci/quirks.c
+@@ -1775,6 +1775,70 @@ static void __devinit quirk_nvidia_ck804
+ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_CK804_PCIE,
+ 			quirk_nvidia_ck804_msi_ht_cap);
  
- 	switch (action) {
- 	case CPU_UP_PREPARE:
--	case CPU_UP_PREPARE_FROZEN:
- 		err = cpuid_device_create(cpu);
- 		break;
- 	case CPU_UP_CANCELED:
--	case CPU_UP_CANCELED_FROZEN:
- 	case CPU_DEAD:
--	case CPU_DEAD_FROZEN:
- 		cpuid_device_destroy(cpu);
- 		break;
-+	case CPU_UP_CANCELED_FROZEN:
-+		destroy_suspended_device(cpuid_class, MKDEV(CPUID_MAJOR, cpu));
-+		break;
- 	}
- 	return err ? NOTIFY_BAD : NOTIFY_OK;
- }
++/*
++ *  Force enable MSI mapping capability on HT bridges  */
++static inline void ht_enable_msi_mapping(struct pci_dev *dev)
++{
++	int pos, ttl = 48;
++
++	pos = pci_find_ht_capability(dev, HT_CAPTYPE_MSI_MAPPING);
++	while (pos && ttl--) {
++		u8 flags;
++
++		if (pci_read_config_byte(dev, pos + HT_MSI_FLAGS, &flags) == 0) {
++			printk(KERN_INFO "PCI: Enabling HT MSI Mapping on %s\n",
++						dev->dev.bus_id);
++
++			pci_write_config_byte(dev, pos + HT_MSI_FLAGS,
++					      flags | HT_MSI_FLAGS_ENABLE);
++		}
++		pos = pci_find_next_ht_capability(dev, pos,
++						  HT_CAPTYPE_MSI_MAPPING);
++	}
++}
++
++static void __devinit nv_msi_ht_cap_quirk(struct pci_dev *dev) {
++
++	struct pci_dev *host_bridge;
++	int pos, ttl = 48;
++
++	/* HT MSI mapping should be disabled on devices that are below
++	 * a non-Hypertransport host bridge. Locate the host bridge...
++ 	 */
++
++	if ((host_bridge = pci_get_bus_and_slot(0, PCI_DEVFN(0,0))) == NULL) {
++		printk(KERN_WARNING
++			"PCI: nv_msi_ht_cap_quirk didn't locate host bridge\n");
++		return;
++	}
++
++	if ((pos = pci_find_ht_capability(host_bridge, HT_CAPTYPE_SLAVE)) != 0) {
++		/* Host bridge is to HT */
++		ht_enable_msi_mapping(dev);
++		return;
++	}
++
++	/* Host bridge is not to HT, disable HT MSI mapping on this device */
++
++	pos = pci_find_ht_capability(dev, HT_CAPTYPE_MSI_MAPPING);
++	while (pos && ttl--) {
++		u8 flags;
++
++		if (pci_read_config_byte(dev, pos + HT_MSI_FLAGS, &flags) == 0) {
++			printk(KERN_INFO "PCI: Quirk disabling HT MSI mapping on %s\n",
++			       pci_name(dev));
++
++			pci_write_config_byte(dev, pos + HT_MSI_FLAGS,
++					      flags & ~HT_MSI_FLAGS_ENABLE);
++		}
++		pos = pci_find_next_ht_capability(dev, pos,
++						  HT_CAPTYPE_MSI_MAPPING);
++	}
++}
++
++DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_NVIDIA, PCI_ANY_ID,
++							nv_msi_ht_cap_quirk);
++
+ static void __devinit quirk_msi_intx_disable_bug(struct pci_dev *dev)
+ {
+ 	dev->dev_flags |= PCI_DEV_FLAGS_MSI_INTX_DISABLE_BUG;
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from pchen@nvidia.com are
 
-reintroduce-run-time-configurable-max_cstate-for-cpu_idle-case.patch
-git-acpi.patch
-suspend-introduce-begin-and-end-callbacks.patch
-acpi-separate-invocations-of-_gts-and-_bfs-from-_pts-and-_wak.patch
-acpi-separate-disabling-of-gpes-from-_pts.patch
-acpi-suspend-call-_pts-before-suspending-devices.patch
-hibernation-introduce-begin-and-end-callbacks.patch
-acpi-hibernation-call-_pts-before-suspending-devices.patch
-acpi-print-message-before-calling-_pts.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-pm-do-not-destroy-create-devices-while-suspended-in-cpuidc.patch
-pm-acquire-device-locks-on-suspend-rev-3.patch
-pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes.patch
-pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes-2.patch
-git-x86.patch
-git-xfs.patch
-cpufreq-initialise-default-governor-before-use.patch
-page-allocator-clean-up-pcp-draining-functions.patch
-page-allocator-clean-up-pcp-draining-functions-swsusp-fix.patch
-page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
-kernel-power-diskc-make-code-static.patch
-make-kernel_shutdown_prepare-static.patch
-remove-obsolete-sys-devices-power-state-docs.patch
-pnp-do-not-stop-start-devices-in-suspend-resume-path.patch
-proc-fix-the-threaded-proc-self.patch
-shrink_slab-handle-bad-shrinkers.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
