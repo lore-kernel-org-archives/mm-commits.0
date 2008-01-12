@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + arch-powerpc-platforms-82xx-add-missing-of_node_put.patch added to -mm tree
-Date: Fri, 11 Jan 2008 17:08:37 -0800
-Message-ID: <200801120108.m0C18bR7007053@imap1.linux-foundation.org>
+Subject: + arch-powerpc-platforms-pseries-add-missing-of_node_put.patch added to -mm tree
+Date: Fri, 11 Jan 2008 17:08:31 -0800
+Message-ID: <200801120108.m0C18VdT007046@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53014 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54120 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932088AbYALBIq (ORCPT
+	by vger.kernel.org with ESMTP id S1763029AbYALBIk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jan 2008 20:08:46 -0500
+	Fri, 11 Jan 2008 20:08:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: julia@diku.dk, benh@kernel.crashing.org, galak@gate.crashing.org, paulus@sam
 
 
 The patch titled
-     arch/powerpc/platforms/82xx: Add missing of_node_put
+     arch/powerpc/platforms/pseries: Add missing of_node_put
 has been added to the -mm tree.  Its filename is
-     arch-powerpc-platforms-82xx-add-missing-of_node_put.patch
+     arch-powerpc-platforms-pseries-add-missing-of_node_put.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/powerpc/platforms/82xx: Add missing of_node_put
+Subject: arch/powerpc/platforms/pseries: Add missing of_node_put
 From: Julia Lawall <julia@diku.dk>
 
 
-Of_get_parent and of_find_compatible_node do a of_node_get, and thus a
-corresponding of_code_put is needed in both the error case and the normal
-return case.
+Of_get_parent and of_find_compatible_node do an of_node_get, and thus a
+corresponding of_code_put is needed in the error case.
 
 The problem was found using the following semantic match.
 (http://www.emn.fr/x-info/coccinelle/)
@@ -83,46 +82,20 @@ Cc: Kumar Gala <galak@gate.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/82xx/mpc8272_ads.c |    3 +--
- arch/powerpc/platforms/82xx/pq2fads.c     |    3 +--
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ arch/powerpc/platforms/pseries/reconfig.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/powerpc/platforms/82xx/mpc8272_ads.c~arch-powerpc-platforms-82xx-add-missing-of_node_put arch/powerpc/platforms/82xx/mpc8272_ads.c
---- a/arch/powerpc/platforms/82xx/mpc8272_ads.c~arch-powerpc-platforms-82xx-add-missing-of_node_put
-+++ a/arch/powerpc/platforms/82xx/mpc8272_ads.c
-@@ -134,13 +134,12 @@ static void __init mpc8272_ads_setup_arc
+diff -puN arch/powerpc/platforms/pseries/reconfig.c~arch-powerpc-platforms-pseries-add-missing-of_node_put arch/powerpc/platforms/pseries/reconfig.c
+--- a/arch/powerpc/platforms/pseries/reconfig.c~arch-powerpc-platforms-pseries-add-missing-of_node_put
++++ a/arch/powerpc/platforms/pseries/reconfig.c
+@@ -167,6 +167,7 @@ static int pSeries_reconfig_remove_node(
+ 
+ 	if ((child = of_get_next_child(np, NULL))) {
+ 		of_node_put(child);
++		of_node_put(parent);
+ 		return -EBUSY;
  	}
  
- 	bcsr = of_iomap(np, 0);
-+	of_node_put(np);
- 	if (!bcsr) {
- 		printk(KERN_ERR "Cannot map BCSR registers\n");
- 		return;
- 	}
- 
--	of_node_put(np);
--
- 	clrbits32(&bcsr[1], BCSR1_RS232_EN1 | BCSR1_RS232_EN2 | BCSR1_FETHIEN);
- 	setbits32(&bcsr[1], BCSR1_FETH_RST);
- 
-diff -puN arch/powerpc/platforms/82xx/pq2fads.c~arch-powerpc-platforms-82xx-add-missing-of_node_put arch/powerpc/platforms/82xx/pq2fads.c
---- a/arch/powerpc/platforms/82xx/pq2fads.c~arch-powerpc-platforms-82xx-add-missing-of_node_put
-+++ a/arch/powerpc/platforms/82xx/pq2fads.c
-@@ -130,13 +130,12 @@ static void __init pq2fads_setup_arch(vo
- 	}
- 
- 	bcsr = of_iomap(np, 0);
-+	of_node_put(np);
- 	if (!bcsr) {
- 		printk(KERN_ERR "Cannot map BCSR registers\n");
- 		return;
- 	}
- 
--	of_node_put(np);
--
- 	/* Enable the serial and ethernet ports */
- 
- 	clrbits32(&bcsr[1], BCSR1_RS232_EN1 | BCSR1_RS232_EN2 | BCSR1_FETHIEN);
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
