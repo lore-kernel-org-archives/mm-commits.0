@@ -1,317 +1,487 @@
 From: akpm@linux-foundation.org
-Subject: - mcp23s08-spi-gpio-expander-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 11 Jan 2008 18:12:59 -0800
-Message-ID: <200801120212.m0C2Cx5t009313@imap1.linux-foundation.org>
+Subject: - mcp23s08-spi-gpio-expander.patch removed from -mm tree
+Date: Fri, 11 Jan 2008 18:12:57 -0800
+Message-ID: <200801120212.m0C2CvXp009310@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49652 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35170 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753762AbYALCV0 (ORCPT
+	by vger.kernel.org with ESMTP id S1752631AbYALCV0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 11 Jan 2008 21:21:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, david-b@pacbell.net, dbrownell@users.sourceforge.net, florian.fainelli@telecomint.eu, hskinnemoen@atmel.com, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, dbrownell@users.sourceforge.net, florian.fainelli@telecomint.eu, hskinnemoen@atmel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mcp23s08-spi-gpio-expander-checkpatch-fixes
+     mcp23s08 spi gpio expander
 has been removed from the -mm tree.  Its filename was
-     mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+     mcp23s08-spi-gpio-expander.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mcp23s08-spi-gpio-expander-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mcp23s08 spi gpio expander
+From: David Brownell <david-b@pacbell.net>
 
-ERROR: do not use C99 // comments
-#332: FILE: drivers/spi/mcp23s08.c:283:
-+		// FIXME check status...
+Basic driver for 8-bit SPI based MCP23S08 GPIO expander, without support for
+IRQs or the shared chipselect mechanism.
 
-total: 1 errors, 0 warnings, 399 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: David Brownell <david-b@pacbell.net>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Cc: Florian Fainelli <florian.fainelli@telecomint.eu>
 Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/mcp23s08.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/spi/Kconfig          |    7 
+ drivers/spi/Makefile         |    1 
+ drivers/spi/mcp23s08.c       |  355 +++++++++++++++++++++++++++++++++
+ include/linux/spi/mcp23s08.h |   24 ++
+ 4 files changed, 387 insertions(+)
 
-diff -puN drivers/spi/mcp23s08.c~mcp23s08-spi-gpio-expander-checkpatch-fixes drivers/spi/mcp23s08.c
---- a/drivers/spi/mcp23s08.c~mcp23s08-spi-gpio-expander-checkpatch-fixes
+diff -puN drivers/spi/Kconfig~mcp23s08-spi-gpio-expander drivers/spi/Kconfig
+--- a/drivers/spi/Kconfig~mcp23s08-spi-gpio-expander
++++ a/drivers/spi/Kconfig
+@@ -214,6 +214,13 @@ config SPI_AT25
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called at25.
+ 
++config SPI_MCP23S08
++	tristate "Microchip MCP23S08 I/O expander"
++	depends on SPI_MASTER && GPIO_LIB
++	help
++	  SPI driver for Microchip MCP23S08 I/O expander.  This provides
++	  a GPIO interface supporting inputs and outputs.
++
+ config SPI_SPIDEV
+ 	tristate "User mode SPI device driver support"
+ 	depends on SPI_MASTER && EXPERIMENTAL
+diff -puN drivers/spi/Makefile~mcp23s08-spi-gpio-expander drivers/spi/Makefile
+--- a/drivers/spi/Makefile~mcp23s08-spi-gpio-expander
++++ a/drivers/spi/Makefile
+@@ -31,6 +31,7 @@ obj-$(CONFIG_SPI_XILINX)		+= xilinx_spi.
+ 
+ # SPI protocol drivers (device/link on bus)
+ obj-$(CONFIG_SPI_AT25)		+= at25.o
++obj-$(CONFIG_SPI_MCP23S08)	+= mcp23s08.o
+ obj-$(CONFIG_SPI_SPIDEV)	+= spidev.o
+ obj-$(CONFIG_SPI_TLE62X0)	+= tle62x0.o
+ # 	... add above this line ...
+diff -puN /dev/null drivers/spi/mcp23s08.c
+--- /dev/null
 +++ a/drivers/spi/mcp23s08.c
-@@ -280,7 +280,7 @@ static int mcp23s08_probe(struct spi_dev
- 		memcpy(&tx[2], &mcp->cache[MCP_IPOL], sizeof(tx) - 2);
- 		status = spi_write_then_read(mcp->spi, tx, sizeof tx, NULL, 0);
- 
--		// FIXME check status...
-+		/* FIXME check status... */
- 	}
- 
- 	status = gpiochip_add(&mcp->chip);
+@@ -0,0 +1,355 @@
++/*
++ * mcp23s08.c - SPI gpio expander driver
++ */
++
++#include <linux/kernel.h>
++#include <linux/device.h>
++#include <linux/workqueue.h>
++#include <linux/mutex.h>
++
++#include <linux/spi/spi.h>
++#include <linux/spi/mcp23s08.h>
++
++#include <asm/gpio.h>
++
++
++/* Registers are all 8 bits wide.
++ *
++ * The mcp23s17 has twice as many bits, and can be configured to work
++ * with either 16 bit registers or with two adjacent 8 bit banks.
++ *
++ * Also, there are I2C versions of both chips.
++ */
++#define MCP_IODIR	0x00		/* init/reset:  all ones */
++#define MCP_IPOL	0x01
++#define MCP_GPINTEN	0x02
++#define MCP_DEFVAL	0x03
++#define MCP_INTCON	0x04
++#define MCP_IOCON	0x05
++#	define IOCON_SEQOP	(1 << 5)
++#	define IOCON_HAEN	(1 << 3)
++#	define IOCON_ODR	(1 << 2)
++#	define IOCON_INTPOL	(1 << 1)
++#define MCP_GPPU	0x06
++#define MCP_INTF	0x07
++#define MCP_INTCAP	0x08
++#define MCP_GPIO	0x09
++#define MCP_OLAT	0x0a
++
++struct mcp23s08 {
++	struct spi_device	*spi;
++	u8			addr;
++
++	/* lock protects the cached values */
++	struct mutex		lock;
++	u8			cache[11];
++
++	struct gpio_chip	chip;
++
++	struct work_struct	work;
++};
++
++static int mcp23s08_read(struct mcp23s08 *mcp, unsigned reg)
++{
++	u8	tx[2], rx[1];
++	int	status;
++
++	tx[0] = mcp->addr | 0x01;
++	tx[1] = reg;
++	status = spi_write_then_read(mcp->spi, tx, sizeof tx, rx, sizeof rx);
++	return (status < 0) ? status : rx[0];
++}
++
++static int mcp23s08_write(struct mcp23s08 *mcp, unsigned reg, u8 val)
++{
++	u8	tx[3];
++
++	tx[0] = mcp->addr;
++	tx[1] = reg;
++	tx[2] = val;
++	return spi_write_then_read(mcp->spi, tx, sizeof tx, NULL, 0);
++}
++
++static int
++mcp23s08_read_regs(struct mcp23s08 *mcp, unsigned reg, u8 *vals, unsigned n)
++{
++	u8	tx[2];
++
++	if ((n + reg) > sizeof mcp->cache)
++		return -EINVAL;
++	tx[0] = mcp->addr | 0x01;
++	tx[1] = reg;
++	return spi_write_then_read(mcp->spi, tx, sizeof tx, vals, n);
++}
++
++/*----------------------------------------------------------------------*/
++
++static int mcp23s08_direction_input(struct gpio_chip *chip, unsigned offset)
++{
++	struct mcp23s08	*mcp = container_of(chip, struct mcp23s08, chip);
++	int status;
++
++	mutex_lock(&mcp->lock);
++	mcp->cache[MCP_IODIR] |= (1 << offset);
++	status = mcp23s08_write(mcp, MCP_IODIR, mcp->cache[MCP_IODIR]);
++	mutex_unlock(&mcp->lock);
++	return status;
++}
++
++static int mcp23s08_get(struct gpio_chip *chip, unsigned offset)
++{
++	struct mcp23s08	*mcp = container_of(chip, struct mcp23s08, chip);
++	int status;
++
++	mutex_lock(&mcp->lock);
++
++	/* REVISIT reading this clears any IRQ ... */
++	status = mcp23s08_read(mcp, MCP_GPIO);
++	if (status < 0)
++		status = 0;
++	else {
++		mcp->cache[MCP_GPIO] = status;
++		status = !!(status & (1 << offset));
++	}
++	mutex_unlock(&mcp->lock);
++	return status;
++}
++
++static int __mcp23s08_set(struct mcp23s08 *mcp, unsigned mask, int value)
++{
++	u8 olat = mcp->cache[MCP_OLAT];
++
++	if (value)
++		olat |= mask;
++	else
++		olat &= ~mask;
++	mcp->cache[MCP_OLAT] = olat;
++	return mcp23s08_write(mcp, MCP_OLAT, olat);
++}
++
++static void mcp23s08_set(struct gpio_chip *chip, unsigned offset, int value)
++{
++	struct mcp23s08	*mcp = container_of(chip, struct mcp23s08, chip);
++	u8 mask = 1 << offset;
++
++	mutex_lock(&mcp->lock);
++	__mcp23s08_set(mcp, mask, value);
++	mutex_unlock(&mcp->lock);
++}
++
++static int
++mcp23s08_direction_output(struct gpio_chip *chip, unsigned offset, int value)
++{
++	struct mcp23s08	*mcp = container_of(chip, struct mcp23s08, chip);
++	u8 mask = 1 << offset;
++	int status;
++
++	mutex_lock(&mcp->lock);
++	status = __mcp23s08_set(mcp, mask, value);
++	if (status == 0) {
++		mcp->cache[MCP_IODIR] &= ~mask;
++		status = mcp23s08_write(mcp, MCP_IODIR, mcp->cache[MCP_IODIR]);
++	}
++	mutex_unlock(&mcp->lock);
++	return status;
++}
++
++/*----------------------------------------------------------------------*/
++
++#ifdef CONFIG_DEBUG_FS
++
++#include <linux/seq_file.h>
++
++/*
++ * This shows more info than the generic gpio dump code:
++ * pullups, deglitching, open drain drive.
++ */
++static void mcp23s08_dbg_show(struct seq_file *s, struct gpio_chip *chip)
++{
++	struct mcp23s08	*mcp;
++	char		bank;
++	unsigned	t;
++	unsigned	mask;
++
++	mcp = container_of(chip, struct mcp23s08, chip);
++
++	/* NOTE: we only handle one bank for now ... */
++	bank = '0' + ((mcp->addr >> 1) & 0x3);
++
++	mutex_lock(&mcp->lock);
++	t = mcp23s08_read_regs(mcp, 0, mcp->cache, sizeof mcp->cache);
++	if (t < 0) {
++		seq_printf(s, " I/O ERROR %d\n", t);
++		goto done;
++	}
++
++	for (t = 0, mask = 1; t < 8; t++, mask <<= 1) {
++		if (!gpiochip_is_requested(chip, t))
++			continue;
++
++		seq_printf(s, " gpio-%-3d P%c.%d (%-12s) %s %s %s",
++			chip->base + t, bank, t,
++			chip->requested[t],
++			(mcp->cache[MCP_IODIR] & mask) ? "in " : "out",
++			(mcp->cache[MCP_GPIO] & mask) ? "hi" : "lo",
++			(mcp->cache[MCP_GPPU] & mask) ? "  " : "up");
++		/* NOTE:  ignoring the irq-related registers */
++		seq_printf(s, "\n");
++	}
++done:
++	mutex_unlock(&mcp->lock);
++}
++
++#else
++#define mcp23s08_dbg_show	NULL
++#endif
++
++/*----------------------------------------------------------------------*/
++
++static int mcp23s08_probe(struct spi_device *spi)
++{
++	struct mcp23s08			*mcp;
++	struct mcp23s08_platform_data	*pdata;
++	int				status;
++	int				do_update = 0;
++
++	pdata = spi->dev.platform_data;
++	if (!pdata || pdata->slave > 3 || !pdata->base)
++		return -ENODEV;
++
++	mcp = kzalloc(sizeof *mcp, GFP_KERNEL);
++	if (!mcp)
++		return -ENOMEM;
++
++	mutex_init(&mcp->lock);
++
++	mcp->spi = spi;
++	mcp->addr = 0x40 | (pdata->slave << 1);
++
++	mcp->chip.label = "mcp23s08",
++
++	mcp->chip.direction_input = mcp23s08_direction_input;
++	mcp->chip.get = mcp23s08_get;
++	mcp->chip.direction_output = mcp23s08_direction_output;
++	mcp->chip.set = mcp23s08_set;
++	mcp->chip.dbg_show = mcp23s08_dbg_show;
++
++	mcp->chip.base = pdata->base;
++	mcp->chip.ngpio = 8;
++	mcp->chip.can_sleep = 1;
++
++	spi_set_drvdata(spi, mcp);
++
++	/* verify MCP_IOCON.SEQOP = 0, so sequential reads work */
++	status = mcp23s08_read(mcp, MCP_IOCON);
++	if (status < 0)
++		goto fail;
++	if (status & IOCON_SEQOP) {
++		status &= ~IOCON_SEQOP;
++		status = mcp23s08_write(mcp, MCP_IOCON, (u8) status);
++		if (status < 0)
++			goto fail;
++	}
++
++	/* configure ~100K pullups */
++	status = mcp23s08_write(mcp, MCP_GPPU, pdata->pullups);
++	if (status < 0)
++		goto fail;
++
++	status = mcp23s08_read_regs(mcp, 0, mcp->cache, sizeof mcp->cache);
++	if (status < 0)
++		goto fail;
++
++	/* disable inverter on input */
++	if (mcp->cache[MCP_IPOL] != 0) {
++		mcp->cache[MCP_IPOL] = 0;
++		do_update = 1;
++	}
++
++	/* disable irqs */
++	if (mcp->cache[MCP_GPINTEN] != 0) {
++		mcp->cache[MCP_GPINTEN] = 0;
++		do_update = 1;
++	}
++
++	if (do_update) {
++		u8 tx[4];
++
++		tx[0] = mcp->addr;
++		tx[1] = MCP_IPOL;
++		memcpy(&tx[2], &mcp->cache[MCP_IPOL], sizeof(tx) - 2);
++		status = spi_write_then_read(mcp->spi, tx, sizeof tx, NULL, 0);
++
++		// FIXME check status...
++	}
++
++	status = gpiochip_add(&mcp->chip);
++
++	/* NOTE:  these chips have a relatively sane IRQ framework, with
++	 * per-signal masking and level/edge triggering.  It's not yet
++	 * handled here...
++	 */
++
++	if (pdata->setup) {
++		status = pdata->setup(spi, mcp->chip.base,
++				mcp->chip.ngpio, pdata->context);
++		if (status < 0)
++			dev_dbg(&spi->dev, "setup --> %d\n", status);
++	}
++
++	return 0;
++
++fail:
++	kfree(mcp);
++	return status;
++}
++
++static int mcp23s08_remove(struct spi_device *spi)
++{
++	struct mcp23s08			*mcp = spi_get_drvdata(spi);
++	struct mcp23s08_platform_data	*pdata = spi->dev.platform_data;
++	int				status = 0;
++
++	if (pdata->teardown) {
++		status = pdata->teardown(spi,
++				mcp->chip.base, mcp->chip.ngpio,
++				pdata->context);
++		if (status < 0) {
++			dev_err(&spi->dev, "%s --> %d\n", "teardown", status);
++			return status;
++		}
++	}
++
++	status = gpiochip_remove(&mcp->chip);
++	if (status == 0)
++		kfree(mcp);
++	else
++		dev_err(&spi->dev, "%s --> %d\n", "remove", status);
++	return status;
++}
++
++static struct spi_driver mcp23s08_driver = {
++	.probe		= mcp23s08_probe,
++	.remove		= mcp23s08_remove,
++	.driver = {
++		.name	= "mcp23s08",
++		.owner	= THIS_MODULE,
++	},
++};
++
++/*----------------------------------------------------------------------*/
++
++static int __init mcp23s08_init(void)
++{
++	return spi_register_driver(&mcp23s08_driver);
++}
++/* we want GPIOs to be ready at device_initcall() time when possible */
++subsys_initcall(mcp23s08_init);
++
++static void __exit mcp23s08_exit(void)
++{
++	spi_unregister_driver(&mcp23s08_driver);
++}
++module_exit(mcp23s08_exit);
++
++MODULE_LICENSE("GPL");
+diff -puN /dev/null include/linux/spi/mcp23s08.h
+--- /dev/null
++++ a/include/linux/spi/mcp23s08.h
+@@ -0,0 +1,24 @@
++
++/* FIXME driver should be able to handle all four slaves that
++ * can be hooked up to each chipselect, as well as IRQs...
++ */
++
++struct mcp23s08_platform_data {
++	/* four slaves can share one SPI chipselect */
++	u8		slave;
++
++	/* number assigned to the first GPIO */
++	unsigned	base;
++
++	/* pins with pullups */
++	u8		pullups;
++
++	void		*context;	/* param to setup/teardown */
++
++	int		(*setup)(struct spi_device *spi,
++					int gpio, unsigned ngpio,
++					void *context);
++	int		(*teardown)(struct spi_device *spi,
++					int gpio, unsigned ngpio,
++					void *context);
++};
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
-hugetlbfs-fix-quota-leak.patch
-pl2303-fix-mode-switching-regression-fix.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes.patch
-timerfd-v3-new-timerfd-api-ia64-fix.patch
-timerfd-v3-new-timerfd-api-m68k-fix.patch
-timerfd-v3-new-timerfd-api-mips-fix.patch
-timerfd-v3-new-timerfd-api-arch-fixes.patch
-timerfd-v3-new-timerfd-api-powerpc-fix.patch
-timerfd-v3-new-timerfd-api-sparc64-fix.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-agpgart-intel-agp-dont-zero-an-already-registered-resource-during-resume.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
-kernel-auditc-warning-fix.patch
-git-cifs.patch
-git-cpufreq.patch
-git-powerpc.patch
-git-powerpc-fixup.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
-pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes.patch
-pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes-2.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-intel-agp-enable-i915-recognition.patch
-drm-convert-from-nopage-to-fault-checkpatch-fixes.patch
-git-dvb.patch
-fix-jdelvare-i2c-i2c-constify-client-address-data.patch
-hwmon-new-chip-driver-for-ti-ads7828-a-d-checkpatch-fixes.patch
-git-hid.patch
-revert-git-hrt.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-versus-driver-tree.patch
-git-kbuild.patch
-git-kvm.patch
-kvm-ist-kaput.patch
-git-libata-all.patch
-git-libata-all-fix-pata_winbond-borkage.patch
-git-libata-all-wtf.patch
-libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
-libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
-libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
-git-md-accel.patch
+i2c-isp1301_omap-new-style-i2c-driver-updates-part-1.patch
+i2c-isp1301_omap-new-style-i2c-driver-updates-part-2.patch
+git-input.patch
 git-mmc.patch
 git-mtd.patch
-git-net.patch
-git-net-vs-git-lblnet.patch
-git-net-vs-git-lblnet-2.patch
-git-netdev-all.patch
-git-net-vs-git-netdev-all.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-backlight-omap1-backlight-driver.patch
-git-battery.patch
-bluetooth-uninlining.patch
-net-sunrpc-schedc-revert-git-net-changes.patch
-net-sunrpc-schedc-reapply-git-net-changes.patch
-net-sunrpc-svcsockc-revert-git-nfs-changes.patch
-git-nfsd.patch
-net-sunrpc-svcsockc-reapply-git-nfs-changes.patch
-serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
-git-sched.patch
-git-sched-fixup.patch
-git-sh.patch
-git-scsi-misc.patch
-scsi-aic94xx-cleanups-checkpatch-fixes.patch
-scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
-9p-util-fix-semaphore-handling.patch
-git-watchdog.patch
-git-watchdog-fixup.patch
-wdt-fix-locking-checkpatch-fixes.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-arch-x86-makefile-revert-git-kvm-change.patch
-git-x86.patch
-arch-x86-makefile-reapply-git-kvm-change.patch
-git-x86-fixup.patch
-git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
-git-x86-fix-doubly-merged-patch.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-git-xtensa.patch
-bonding-locking-fix.patch
-usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-add-proc-kpagecount-interface-fix.patch
-maps4-add-proc-kpageflags-interface-fix.patch
-maps4-add-proc-kpageflags-interface-fix-2-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-mm-remove-fastcall-from-mm-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
-kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
-stopmachine-semaphore-to-mutex-fix.patch
-parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
-debug_smp_processor_id-fixlets.patch
-use-ilog2-in-fs-namespacec-fix.patch
-avoid-overflows-in-kernel-timec-fix.patch
-export-iov_shorten-for-ext4s-use-fix.patch
-system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
-speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
-add-have_oprofile.patch
-ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
+pcmcia-stop-updating-dev-powerpower_state.patch
+remove-obsolete-sys-devices-power-state-docs.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+remove-pointless-casts-from-void-pointers.patch
+spi-core-stop-updating-dev-powerpower_state.patch
+cosmetic-fixes-to-rtc-subsystems-kconfig.patch
+rtc-pcf8583-dont-abuse-i2c_m_nostart.patch
+rtc-s3c-use-is_power_of_2-macro-for-simplicity.patch
+rtc-cmos-exports-nvram-in-sysfs.patch
+rtc-cmos-alarm-acts-as-oneshot.patch
+platform-real-time-clock-driver-for-dallas-1511-chip.patch
 rtc-add-support-for-the-s-35390a-rtc-chip.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-update.patch
+w1-gpio-add-gpio-w1-bus-master-driver.patch
+w1-gpio-add-gpio-w1-bus-master-driver-v3.patch
+mcp23s08-spi-gpio-expander.patch
 mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-neofb-avoid-overwriting-fb_info-fields.patch
-vermilionc-use-align-not-__align_mask.patch
-declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
-ext4-mm-ext4_store_maxbytes_for_bitmaped_files-warning-fix.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
-hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
-cpusets-update_cpumask-revision-fix.patch
-cpusets-update_cpumask-revision-checkpatch-fixes.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
-proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-pid-sys_wait-fixes-v2-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-rewrite-rd-fixes.patch
-fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
-kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
-lib-remove-fastcall-from-lib-checkpatch-fixes.patch
-remove-fastcall-from-linux-include-checkpatch-fixes.patch
-constify-tables-in-kernel-sysctl_checkc-fix.patch
-aoe-statically-initialise-devlist_lock.patch
-provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc-fix.patch
-ufs-fix-symlink-creation-on-ufs2-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+arm-pxa-gpiolib-support-make-pxa_gpio_chip-static.patch
