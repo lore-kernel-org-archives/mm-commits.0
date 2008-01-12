@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + document-make-prepare-in-make-help.patch added to -mm tree
-Date: Fri, 11 Jan 2008 18:24:44 -0800
-Message-ID: <200801120224.m0C2OiTN009808@imap1.linux-foundation.org>
+Subject: + libfs-make-simple-attributes-interruptible.patch added to -mm tree
+Date: Fri, 11 Jan 2008 18:30:22 -0800
+Message-ID: <200801120230.m0C2UMmv009999@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52735 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56977 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752631AbYALCYs (ORCPT
+	by vger.kernel.org with ESMTP id S1753822AbYALCaw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jan 2008 21:24:48 -0500
+	Fri, 11 Jan 2008 21:30:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: valdis.kletnieks@vt.edu, sam@ravnborg.org
+Cc: hch@lst.de, arnd@arndb.de, greg@kroah.com, stefano.brivio@polimi.it, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     document 'make prepare' in 'make help'
+     libfs: make simple attributes interruptible
 has been added to the -mm tree.  Its filename is
-     document-make-prepare-in-make-help.patch
+     libfs-make-simple-attributes-interruptible.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,134 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: document 'make prepare' in 'make help'
-From: Valdis Kletnieks <valdis.kletnieks@vt.edu>
+Subject: libfs: make simple attributes interruptible
+From: Christoph Hellwig <hch@lst.de>
 
-The output of 'make help' covers a lot of options, but doesn't include
-a listing for 'make prepare'.  Here's a one-liner to fix that...
+Use mutex_lock_interruptible in simple_attr_read/write.
 
-Signed-off-by: Valdis Kletnieks <valdis.kletnieks@vt.edu>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: <stefano.brivio@polimi.it>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Greg KH <greg@kroah.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    1 +
- 1 file changed, 1 insertion(+)
+ fs/libfs.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN Makefile~document-make-prepare-in-make-help Makefile
---- a/Makefile~document-make-prepare-in-make-help
-+++ a/Makefile
-@@ -1181,6 +1181,7 @@ help:
- 	@echo  '  dir/            - Build all files in dir and below'
- 	@echo  '  dir/file.[ois]  - Build specified target only'
- 	@echo  '  dir/file.ko     - Build module including final link'
-+	@echo  '  prepare         - Set up for building external modules'
- 	@echo  '  tags/TAGS	  - Generate tags file for editors'
- 	@echo  '  cscope	  - Generate cscope index'
- 	@echo  '  kernelrelease	  - Output the release version string'
-diff -puN /dev/null /dev/null
+diff -puN fs/libfs.c~libfs-make-simple-attributes-interruptible fs/libfs.c
+--- a/fs/libfs.c~libfs-make-simple-attributes-interruptible
++++ a/fs/libfs.c
+@@ -634,7 +634,10 @@ ssize_t simple_attr_read(struct file *fi
+ 	if (!attr->get)
+ 		return -EACCES;
+ 
+-	mutex_lock(&attr->mutex);
++	ret = mutex_lock_interruptible(&attr->mutex);
++	if (ret)
++		return ret;
++
+ 	if (*ppos) {		/* continued read */
+ 		size = strlen(attr->get_buf);
+ 	} else {		/* first read */
+@@ -666,7 +669,10 @@ ssize_t simple_attr_write(struct file *f
+ 	if (!attr->set)
+ 		return -EACCES;
+ 
+-	mutex_lock(&attr->mutex);
++	ret = mutex_lock_interruptible(&attr->mutex);
++	if (ret)
++		return ret;
++
+ 	ret = -EFAULT;
+ 	size = min(sizeof(attr->set_buf) - 1, len);
+ 	if (copy_from_user(attr->set_buf, buf, size))
 _
 
-Patches currently in -mm which might be from valdis.kletnieks@vt.edu are
+Patches currently in -mm which might be from hch@lst.de are
 
-document-make-prepare-in-make-help.patch
+git-powerpc.patch
+git-mips.patch
+git-netdev-all.patch
+pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch
+pcmcia-replace-kio_addr_t-with-unsigned-int-everywhere.patch
+git-scsi-misc.patch
+git-unionfs.patch
+vfs-apply-coding-standards-to-fs-ioctlc.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+vfs-factor-out-three-helpers-for-fibmap-fionbio-fioasync-file-ioctls.patch
+git-xfs.patch
+clean-up-vmtruncate.patch
+vfs-security-rework-inode_getsecurity-and-callers-to.patch
+vfs-reorder-vfs_getxattr-to-avoid-unnecessary-calls-to-the-lsm.patch
+kernel-add-mutex_lock_killable.patch
+vfs-use-mutex_lock_killable-in-vfs_readdir.patch
+reiserfs-eliminate-private-use-of-struct-file-in-xattr.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-stub-functions.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
+iget-introduce-a-function-to-register-iget-failure.patch
+iget-use-iget_failed-in-afs.patch
+iget-use-iget_failed-in-gfs2.patch
+iget-stop-affs-from-using-iget-and-read_inode-try.patch
+iget-stop-autofs-from-using-iget-and-read_inode.patch
+iget-stop-befs-from-using-iget-and-read_inode-try.patch
+iget-stop-bfs-from-using-iget-and-read_inode-try.patch
+iget-stop-cifs-from-using-iget-and-read_inode-try.patch
+iget-stop-efs-from-using-iget-and-read_inode-try.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try.patch
+iget-stop-ext4-from-using-iget-and-read_inode-try.patch
+iget-stop-fat-from-using-iget-and-read_inode-try.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-fix.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-fuse-from-using-iget-and-read_inode-try.patch
+iget-stop-hfsplus-from-using-iget-and-read_inode.patch
+iget-stop-isofs-from-using-read_inode.patch
+iget-stop-isofs-from-using-read_inode-fix-2.patch
+iget-stop-jffs2-from-using-iget-and-read_inode.patch
+iget-stop-jfs-from-using-iget-and-read_inode-try.patch
+iget-stop-the-minix-filesystem-from-using-iget-and.patch
+iget-stop-procfs-from-using-iget-and-read_inode.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try.patch
+iget-stop-romfs-from-using-iget-and-read_inode.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try.patch
+iget-stop-openpromfs-from-using-iget-and.patch
+iget-stop-hostfs-from-using-iget-and-read_inode.patch
+iget-stop-hppfs-from-using-iget-and-read_inode.patch
+iget-remove-iget-and-the-read_inode-super-op-as.patch
+dont-touch-fs_struct-in-drivers.patch
+dont-touch-fs_struct-in-usermodehelper.patch
+remove-path_release_on_umount.patch
+move-struct-path-into-its-own-header.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
+introduce-path_put.patch
+use-path_put-in-a-few-places-instead-of-mntdput.patch
+introduce-path_get.patch
+use-struct-path-in-fs_struct.patch
+make-set_fs_rootpwd-take-a-struct-path.patch
+introduce-path_get-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs.patch
+introduce-path_put-unionfs.patch
+use-struct-path-in-struct-svc_expkey.patch
+d_path-make-seq_path-use-a-struct-path-argument.patch
+kill-pt_attached.patch
+kill-my_ptrace_child.patch
+ptrace_check_attach-remove-unneeded-signal-=-null-check.patch
+ext2-remove-unused-ext2_put_inode-prototype.patch
+libfs-allow-error-return-from-simple-attributes.patch
+libfs-make-simple-attributes-interruptible.patch
+libfs-rename-simple_attr_close-to-simple_attr_release.patch
