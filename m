@@ -1,67 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-compliment-va_copy-with-va_end.patch removed from -mm tree
-Date: Sun, 13 Jan 2008 03:34:12 -0800
-Message-ID: <200801131133.m0DBXqaM009883@imap1.linux-foundation.org>
+Subject: - dvb-av7110-fix-section-mismatch.patch removed from -mm tree
+Date: Sun, 13 Jan 2008 03:33:56 -0800
+Message-ID: <200801131133.m0DBXa49009861@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51867 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49751 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751348AbYAMLjA (ORCPT
+	by vger.kernel.org with ESMTP id S1751399AbYAMLjQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Jan 2008 06:39:00 -0500
+	Sun, 13 Jan 2008 06:39:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ricknu-0@student.ltu.se, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mchehab@infradead.org, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     audit: complement va_copy with va_end()
+     dvb/av7110: fix section mismatch
 has been removed from the -mm tree.  Its filename was
-     kernel-compliment-va_copy-with-va_end.patch
+     dvb-av7110-fix-section-mismatch.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: audit: complement va_copy with va_end()
-From: Richard Knutsson <ricknu-0@student.ltu.se>
+Subject: dvb/av7110: fix section mismatch
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Complement va_copy() with va_end().
+Fix driver data name to match whitelist of acceptable names that contain
+pointers init data so that section mismatch warning is placated.
 
-Signed-off-by: Richard Knutsson <ricknu-0@student.ltu.se>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+WARNING: vmlinux.o(.data+0x141288): Section mismatch: reference to .init.text:av7110_attach (between 'av7110_extension' and 'ir_protocol')
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/audit.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/dvb/ttpci/av7110.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN kernel/audit.c~kernel-compliment-va_copy-with-va_end kernel/audit.c
---- a/kernel/audit.c~kernel-compliment-va_copy-with-va_end
-+++ a/kernel/audit.c
-@@ -1245,6 +1245,7 @@ static void audit_log_vformat(struct aud
- 			goto out;
- 		len = vsnprintf(skb_tail_pointer(skb), avail, fmt, args2);
- 	}
-+	va_end(args2);
- 	if (len > 0)
- 		skb_put(skb, len);
- out:
+diff -puN drivers/media/dvb/ttpci/av7110.c~dvb-av7110-fix-section-mismatch drivers/media/dvb/ttpci/av7110.c
+--- a/drivers/media/dvb/ttpci/av7110.c~dvb-av7110-fix-section-mismatch
++++ a/drivers/media/dvb/ttpci/av7110.c
+@@ -2801,12 +2801,12 @@ static void av7110_irq(struct saa7146_de
+ }
+ 
+ 
+-static struct saa7146_extension av7110_extension;
++static struct saa7146_extension av7110_extension_driver;
+ 
+ #define MAKE_AV7110_INFO(x_var,x_name) \
+ static struct saa7146_pci_extension_data x_var = { \
+ 	.ext_priv = x_name, \
+-	.ext = &av7110_extension }
++	.ext = &av7110_extension_driver }
+ 
+ MAKE_AV7110_INFO(tts_1_X_fsc,"Technotrend/Hauppauge WinTV DVB-S rev1.X or Fujitsu Siemens DVB-C");
+ MAKE_AV7110_INFO(ttt_1_X,    "Technotrend/Hauppauge WinTV DVB-T rev1.X");
+@@ -2844,7 +2844,7 @@ static struct pci_device_id pci_tbl[] = 
+ MODULE_DEVICE_TABLE(pci, pci_tbl);
+ 
+ 
+-static struct saa7146_extension av7110_extension = {
++static struct saa7146_extension av7110_extension_driver = {
+ 	.name		= "dvb",
+ 	.flags		= SAA7146_USE_I2C_IRQ,
+ 
+@@ -2861,14 +2861,14 @@ static struct saa7146_extension av7110_e
+ static int __init av7110_init(void)
+ {
+ 	int retval;
+-	retval = saa7146_register_extension(&av7110_extension);
++	retval = saa7146_register_extension(&av7110_extension_driver);
+ 	return retval;
+ }
+ 
+ 
+ static void __exit av7110_exit(void)
+ {
+-	saa7146_unregister_extension(&av7110_extension);
++	saa7146_unregister_extension(&av7110_extension_driver);
+ }
+ 
+ module_init(av7110_init);
 _
 
-Patches currently in -mm which might be from ricknu-0@student.ltu.se are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-git-audit-master.patch
+origin.patch
+scsi-qla2xxx-qla_osc-section-fix.patch
+cciss-section-mismatch.patch
+advansys-fix-section-mismatch-warning.patch
+uvesafb-fix-section-mismatch-warnings.patch
+driver-core-build-with-sysfs=n.patch
+sysfs-make-sysfs_deprecated-depend-on-sysfs.patch
 git-dvb.patch
-pcmcia-3c574_cs-fix-dubious-bitfield-warning.patch
-pcmcia-3c574_cs-fix-shadow-variable-warning.patch
-pcmcia-axnet_cs-make-functions-static.patch
-pcmcia-axnet_cs-make-use-of-max-instead-of-handcrafted-one.patch
-pcmcia-fmvj18x_cs-fix-shadow-variable-warning.patch
-pcmcia-pcnet_cs-fix-shadow-variable-warning.patch
-git-selinux.patch
-dio-array_size-cleanup-update.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-reiserfs-complement-va_start-with-va_end.patch
-kernel-paramsc-remove-sparse-warning-different-signedness.patch
+git-kbuild.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+pcmcia-include-bad-cis-filename-in-error-message.patch
+git-scsi-misc.patch
+megaraid-fix-section-mismatch.patch
+git-unionfs.patch
+hostap-section-mismatch-warning.patch
+git-ipwireless_cs.patch
+git-x86.patch
+register_cpu-__devinit-or-__cpuinit.patch
+cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
+dio-fix-kernel-doc-notation.patch
+tpm-infineon-section-mismatch.patch
+tdfxfb-fix-section-mismatch-warnings.patch
+uvesafb-small-cleanups.patch
+documentation-move-dnotifytxt-to-filesystems.patch
+documentation-move-sharedsubtreestxt-to-filesystems.patch
+documentation-create-new-scheduler-subdirectory.patch
+reporting-bugs-cc-the-mailing-list-too.patch
+fs-menu-small-reorg.patch
+profile-likely-unlikely-macros.patch
