@@ -1,76 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - add-dma-engine-driver-for-freescale-mpc85xx-processors-fix-fix.patch removed from -mm tree
-Date: Sun, 13 Jan 2008 03:34:21 -0800
-Message-ID: <200801131134.m0DBY1fp009893@imap1.linux-foundation.org>
+Subject: - acct-real_parent-ppid.patch removed from -mm tree
+Date: Sun, 13 Jan 2008 03:34:24 -0800
+Message-ID: <200801131134.m0DBY4Ul009899@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38963 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32990 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751434AbYAMLj3 (ORCPT
+	by vger.kernel.org with ESMTP id S1751381AbYAMLjj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Jan 2008 06:39:29 -0500
+	Sun, 13 Jan 2008 06:39:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wei.zhang@freescale.com, benh@kernel.crashing.org, dan.j.williams@intel.com, ebony.zhu@freescale.com, galak@gate.crashing.org, paulus@samba.org, shannon.nelson@intel.com, mm-commits@v
+To: roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix the issue of fsldma driver's VIRT_TO_BUS dependence in Kconfig
+     acct: real_parent ppid
 has been removed from the -mm tree.  Its filename was
-     add-dma-engine-driver-for-freescale-mpc85xx-processors-fix-fix.patch
+     acct-real_parent-ppid.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix the issue of fsldma driver's VIRT_TO_BUS dependence in Kconfig
-From: Zhang Wei <wei.zhang@freescale.com>
+Subject: acct: real_parent ppid
+From: Roland McGrath <roland@redhat.com>
 
-Remove virt_to_bus(), just using the saved phy address to match.
+The ac_ppid field reported in process accounting records should match what
+getppid() would have returned to that process, regardless of whether a
+debugger is attached.
 
-Signed-off-by: Zhang Wei <wei.zhang@freescale.com>
-Cc: Ebony Zhu <ebony.zhu@freescale.com>
-Cc: "Williams, Dan J" <dan.j.williams@intel.com>
-Cc: Shannon Nelson <shannon.nelson@intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Kumar Gala <galak@gate.crashing.org>
+Signed-off-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/fsldma.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ kernel/acct.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/dma/fsldma.c~add-dma-engine-driver-for-freescale-mpc85xx-processors-fix-fix drivers/dma/fsldma.c
---- a/drivers/dma/fsldma.c~add-dma-engine-driver-for-freescale-mpc85xx-processors-fix-fix
-+++ a/drivers/dma/fsldma.c
-@@ -495,15 +495,20 @@ static struct dma_async_tx_descriptor *f
-  */
- static void fsl_dma_update_completed_cookie(struct fsl_dma_chan *fsl_chan)
- {
--	struct fsl_desc_sw *cur_desc;
-+	struct fsl_desc_sw *cur_desc, *desc;
- 	dma_addr_t ld_phy;
+diff -puN kernel/acct.c~acct-real_parent-ppid kernel/acct.c
+--- a/kernel/acct.c~acct-real_parent-ppid
++++ a/kernel/acct.c
+@@ -482,7 +482,7 @@ static void do_acct_process(struct file 
+ #endif
+ #if ACCT_VERSION==3
+ 	ac.ac_pid = current->tgid;
+-	ac.ac_ppid = current->parent->tgid;
++	ac.ac_ppid = current->real_parent->tgid;
+ #endif
  
- 	ld_phy = get_cdar(fsl_chan) & FSL_DMA_NLDA_MASK;
- 
- 	if (ld_phy) {
--		cur_desc = (struct fsl_desc_sw *)bus_to_virt(ld_phy);
-+		cur_desc = NULL;
-+		list_for_each_entry(desc, &fsl_chan->ld_queue, node)
-+			if (desc->async_tx.phys == ld_phy) {
-+				cur_desc = desc;
-+				break;
-+			}
- 
--		if (cur_desc->async_tx.cookie) {
-+		if (cur_desc && cur_desc->async_tx.cookie) {
- 			if (dma_is_idle(fsl_chan))
- 				fsl_chan->completed_cookie =
- 					cur_desc->async_tx.cookie;
+ 	spin_lock_irq(&current->sighand->siglock);
 _
 
-Patches currently in -mm which might be from wei.zhang@freescale.com are
+Patches currently in -mm which might be from roland@redhat.com are
 
-git-md-accel.patch
+origin.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+__group_complete_signal-fix-coredump-with-group-stop-race.patch
+remove-handle_group_stop-in-favor-of-do_signal_stop.patch
+exec-rework-the-group-exit-and-fix-the-race-with-kill.patch
+git-s390.patch
+git-sched.patch
+git-x86.patch
+use-__set_task_state-for-traced-stopped-tasks.patch
+do_wait-remove-one-else-if-branch.patch
+add-arch_ptrace_stop.patch
+proc-fix-the-threaded-proc-self.patch
+kill-pt_attached.patch
+kill-my_ptrace_child.patch
+ptrace_check_attach-remove-unneeded-signal-=-null-check.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace.patch
+do_wait-factor-out-retval-=-0-checks.patch
+ptrace_stop-fix-racy-nonstop_code-setting.patch
+wait_task_stopped-remove-unneeded-delay_group_leader-check.patch
+do_wait-cleanup-delay_group_leader-usage.patch
+do_wait-fix-security-checks.patch
+do_wait-fix-security-checks-fix.patch
+wait_task_continued-zombie-dont-use-task_pid_nr_ns-lockless.patch
+wait_task_zombie-remove-exit_state-exit_signal-checks-for-wnowait.patch
+fix-group-stop-with-exit-race.patch
+sys_setsid-remove-now-unneeded-session-=-1-check.patch
+move-the-related-code-from-exit_notify-to-exit_signals.patch
+uglify-kill_pid_info-to-fix-kill-vs-exec-race.patch
+uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice.patch
+itimer_real-convert-to-use-struct-pid.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+linux-kernel-markers-create-modpost-file.patch
+asm-posix_typesh-scrub-__glibc__.patch
+remove-task_ppid_nr_ns.patch
