@@ -1,53 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - arch-x86-makefile-reapply-git-kvm-change.patch removed from -mm tree
-Date: Sun, 13 Jan 2008 03:19:45 -0800
-Message-ID: <200801131119.m0DBJPV3009318@imap1.linux-foundation.org>
+Subject: - arch-x86-makefile-revert-git-kvm-change.patch removed from -mm tree
+Date: Sun, 13 Jan 2008 03:19:55 -0800
+Message-ID: <200801131119.m0DBJaSQ009326@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34192 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34824 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751323AbYAMLUP (ORCPT
+	by vger.kernel.org with ESMTP id S1751394AbYAMLU2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Jan 2008 06:20:15 -0500
+	Sun, 13 Jan 2008 06:20:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, avi@qumranet.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch-x86-makefile-reapply-git-kvm-change
+     arch/x86/Makefile: revert git-kvm change
 has been removed from the -mm tree.  Its filename was
-     arch-x86-makefile-reapply-git-kvm-change.patch
+     arch-x86-makefile-revert-git-kvm-change.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch-x86-makefile-reapply-git-kvm-change
+Subject: arch/x86/Makefile: revert git-kvm change
 From: Andrew Morton <akpm@linux-foundation.org>
+
+To avoid a massive git-x86 reject.
+
+-mm's KVM is probably busted anyway due to uncoordinated changes in git-kvm
+and git-x86.
 
 Cc: Avi Kivity <avi@qumranet.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+CC: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Makefile |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/x86/Makefile |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN arch/x86/Makefile~arch-x86-makefile-reapply-git-kvm-change arch/x86/Makefile
---- a/arch/x86/Makefile~arch-x86-makefile-reapply-git-kvm-change
+diff -puN arch/x86/Makefile~arch-x86-makefile-revert-git-kvm-change arch/x86/Makefile
+--- a/arch/x86/Makefile~arch-x86-makefile-revert-git-kvm-change
 +++ a/arch/x86/Makefile
-@@ -7,6 +7,8 @@ else
-         KBUILD_DEFCONFIG := $(ARCH)_defconfig
+@@ -17,5 +17,3 @@ else
+         UTS_MACHINE := x86_64
+         include $(srctree)/arch/x86/Makefile_64
  endif
- 
-+core-$(CONFIG_KVM) += arch/x86/kvm/
-+
- # BITS is used as extension for files which are available in a 32 bit
- # and a 64 bit version to simplify shared Makefiles.
- # e.g.: obj-y += foo_$(BITS).o
+-
+-core-$(CONFIG_KVM) += arch/x86/kvm/
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -143,7 +145,6 @@ git-wireless.patch
 git-ipwireless_cs.patch
 arch-x86-makefile-revert-git-kvm-change.patch
 git-x86.patch
-arch-x86-makefile-reapply-git-kvm-change.patch
 git-x86-fixup.patch
 git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
 git-x86-fix-doubly-merged-patch.patch
