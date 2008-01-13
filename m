@@ -1,72 +1,188 @@
 From: akpm@linux-foundation.org
-Subject: - vmcoreinfo-add-the-array-length-of-free_list-for-filtering-free-pages.patch removed from -mm tree
-Date: Sun, 13 Jan 2008 03:33:07 -0800
-Message-ID: <200801131132.m0DBWlmu009797@imap1.linux-foundation.org>
+Subject: - snd_mixer_oss_build_input-fix-for-__you_cannot_kmalloc_that_much-failure-with-gcc-32.patch removed from -mm tree
+Date: Sun, 13 Jan 2008 03:33:13 -0800
+Message-ID: <200801131132.m0DBWr6N009804@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33125 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51896 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751323AbYAMLdG (ORCPT
+	by vger.kernel.org with ESMTP id S1751353AbYAMLdP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Jan 2008 06:33:06 -0500
+	Sun, 13 Jan 2008 06:33:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oomichi@mxs.nes.nec.co.jp, horms@verge.net.au, rientjes@google.com, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: khali@linux-fr.org, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmcoreinfo: add the array length of "free_list" for filtering free  pages
+     snd_mixer_oss_build_input(): fix for __you_cannot_kmalloc_that_much failure with gcc-3.2
 has been removed from the -mm tree.  Its filename was
-     vmcoreinfo-add-the-array-length-of-free_list-for-filtering-free-pages.patch
+     snd_mixer_oss_build_input-fix-for-__you_cannot_kmalloc_that_much-failure-with-gcc-32.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmcoreinfo: add the array length of "free_list" for filtering free  pages
-From: "Ken'ichi Ohmichi" <oomichi@mxs.nes.nec.co.jp>
+Subject: snd_mixer_oss_build_input(): fix for __you_cannot_kmalloc_that_much failure with gcc-3.2
+From: Jean Delvare <khali@linux-fr.org>
 
-This patch adds the array length of "free_area.free_list" to the vmcoreinfo
-data so that makedumpfile (dump filtering command) can exclude all free pages
-in linux-2.6.24.
+Rework this functions so that gcc-3.2 can successfully perform
+constant-folding.
 
-makedumpfile creates a small dumpfile by excluding unnecessary pages for the
-analysis. To distinguish unnecessary pages, makedumpfile gets the vmcoreinfo
-data which has the minimum debugging information only for dump filtering.
-
-In 2.6.24-rc1 or later, the free_area.free_list is an array which has one list
-for each migrate types instead of a single list. makedumpfile needs the array
-length of "free_area.free_list" and the vmcoreinfo data should contain it.
-
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Tested-by: Ken'ichi Ohmichi <oomichi@mxs.nes.nec.co.jp>
-Acked-by: Simon Horman <horms@verge.net.au>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec.c |    1 +
- 1 file changed, 1 insertion(+)
+ sound/core/oss/mixer_oss.c |  101 +++++++++++++++++++++--------------
+ 1 file changed, 63 insertions(+), 38 deletions(-)
 
-diff -puN kernel/kexec.c~vmcoreinfo-add-the-array-length-of-free_list-for-filtering-free-pages kernel/kexec.c
---- a/kernel/kexec.c~vmcoreinfo-add-the-array-length-of-free_list-for-filtering-free-pages
-+++ a/kernel/kexec.c
-@@ -1404,6 +1404,7 @@ static int __init crash_save_vmcoreinfo_
- 	VMCOREINFO_OFFSET(list_head, next);
- 	VMCOREINFO_OFFSET(list_head, prev);
- 	VMCOREINFO_LENGTH(zone.free_area, MAX_ORDER);
-+	VMCOREINFO_LENGTH(free_area.free_list, MIGRATE_TYPES);
- 	VMCOREINFO_NUMBER(NR_FREE_PAGES);
+diff -puN sound/core/oss/mixer_oss.c~snd_mixer_oss_build_input-fix-for-__you_cannot_kmalloc_that_much-failure-with-gcc-32 sound/core/oss/mixer_oss.c
+--- a/sound/core/oss/mixer_oss.c~snd_mixer_oss_build_input-fix-for-__you_cannot_kmalloc_that_much-failure-with-gcc-32
++++ a/sound/core/oss/mixer_oss.c
+@@ -925,6 +925,68 @@ static void mixer_slot_clear(struct snd_
+ 	rslot->number = idx;
+ }
  
- 	arch_crash_save_vmcoreinfo();
++/* In a separate function to keep gcc 3.2 happy - do NOT merge this in
++   snd_mixer_oss_build_input! */
++static int snd_mixer_oss_build_test_all(struct snd_mixer_oss *mixer,
++					struct snd_mixer_oss_assign_table *ptr,
++					struct slot *slot)
++{
++	char str[64];
++	int err;
++
++	err = snd_mixer_oss_build_test(mixer, slot, ptr->name, ptr->index,
++				       SNDRV_MIXER_OSS_ITEM_GLOBAL);
++	if (err)
++		return err;
++	sprintf(str, "%s Switch", ptr->name);
++	err = snd_mixer_oss_build_test(mixer, slot, str, ptr->index,
++				       SNDRV_MIXER_OSS_ITEM_GSWITCH);
++	if (err)
++		return err;
++	sprintf(str, "%s Route", ptr->name);
++	err = snd_mixer_oss_build_test(mixer, slot, str, ptr->index,
++				       SNDRV_MIXER_OSS_ITEM_GROUTE);
++	if (err)
++		return err;
++	sprintf(str, "%s Volume", ptr->name);
++	err = snd_mixer_oss_build_test(mixer, slot, str, ptr->index,
++				       SNDRV_MIXER_OSS_ITEM_GVOLUME);
++	if (err)
++		return err;
++	sprintf(str, "%s Playback Switch", ptr->name);
++	err = snd_mixer_oss_build_test(mixer, slot, str, ptr->index,
++				       SNDRV_MIXER_OSS_ITEM_PSWITCH);
++	if (err)
++		return err;
++	sprintf(str, "%s Playback Route", ptr->name);
++	err = snd_mixer_oss_build_test(mixer, slot, str, ptr->index,
++				       SNDRV_MIXER_OSS_ITEM_PROUTE);
++	if (err)
++		return err;
++	sprintf(str, "%s Playback Volume", ptr->name);
++	err = snd_mixer_oss_build_test(mixer, slot, str, ptr->index,
++				       SNDRV_MIXER_OSS_ITEM_PVOLUME);
++	if (err)
++		return err;
++	sprintf(str, "%s Capture Switch", ptr->name);
++	err = snd_mixer_oss_build_test(mixer, slot, str, ptr->index,
++				       SNDRV_MIXER_OSS_ITEM_CSWITCH);
++	if (err)
++		return err;
++	sprintf(str, "%s Capture Route", ptr->name);
++	err = snd_mixer_oss_build_test(mixer, slot, str, ptr->index,
++				       SNDRV_MIXER_OSS_ITEM_CROUTE);
++	if (err)
++		return err;
++	sprintf(str, "%s Capture Volume", ptr->name);
++	err = snd_mixer_oss_build_test(mixer, slot, str, ptr->index,
++				       SNDRV_MIXER_OSS_ITEM_CVOLUME);
++	if (err)
++		return err;
++
++	return 0;
++}
++
+ /*
+  * build an OSS mixer element.
+  * ptr_allocated means the entry is dynamically allocated (change via proc file).
+@@ -944,44 +1006,7 @@ static int snd_mixer_oss_build_input(str
+ 
+ 	memset(&slot, 0, sizeof(slot));
+ 	memset(slot.numid, 0xff, sizeof(slot.numid)); /* ID_UNKNOWN */
+-	if (snd_mixer_oss_build_test(mixer, &slot, ptr->name, ptr->index,
+-				     SNDRV_MIXER_OSS_ITEM_GLOBAL))
+-		return 0;
+-	sprintf(str, "%s Switch", ptr->name);
+-	if (snd_mixer_oss_build_test(mixer, &slot, str, ptr->index,
+-				     SNDRV_MIXER_OSS_ITEM_GSWITCH))
+-		return 0;
+-	sprintf(str, "%s Route", ptr->name);
+-	if (snd_mixer_oss_build_test(mixer, &slot, str, ptr->index,
+-				     SNDRV_MIXER_OSS_ITEM_GROUTE))
+-		return 0;
+-	sprintf(str, "%s Volume", ptr->name);
+-	if (snd_mixer_oss_build_test(mixer, &slot, str, ptr->index,
+-				     SNDRV_MIXER_OSS_ITEM_GVOLUME))
+-		return 0;
+-	sprintf(str, "%s Playback Switch", ptr->name);
+-	if (snd_mixer_oss_build_test(mixer, &slot, str, ptr->index,
+-				     SNDRV_MIXER_OSS_ITEM_PSWITCH))
+-		return 0;
+-	sprintf(str, "%s Playback Route", ptr->name);
+-	if (snd_mixer_oss_build_test(mixer, &slot, str, ptr->index,
+-				     SNDRV_MIXER_OSS_ITEM_PROUTE))
+-		return 0;
+-	sprintf(str, "%s Playback Volume", ptr->name);
+-	if (snd_mixer_oss_build_test(mixer, &slot, str, ptr->index,
+-				     SNDRV_MIXER_OSS_ITEM_PVOLUME))
+-		return 0;
+-	sprintf(str, "%s Capture Switch", ptr->name);
+-	if (snd_mixer_oss_build_test(mixer, &slot, str, ptr->index,
+-				     SNDRV_MIXER_OSS_ITEM_CSWITCH))
+-		return 0;
+-	sprintf(str, "%s Capture Route", ptr->name);
+-	if (snd_mixer_oss_build_test(mixer, &slot, str, ptr->index,
+-				     SNDRV_MIXER_OSS_ITEM_CROUTE))
+-		return 0;
+-	sprintf(str, "%s Capture Volume", ptr->name);
+-	if (snd_mixer_oss_build_test(mixer, &slot, str, ptr->index,
+-				     SNDRV_MIXER_OSS_ITEM_CVOLUME))
++	if (snd_mixer_oss_build_test_all(mixer, ptr, &slot))
+ 		return 0;
+ 	down_read(&mixer->card->controls_rwsem);
+ 	if (ptr->index == 0 && (kctl = snd_mixer_oss_test_id(mixer, "Capture Source", 0)) != NULL) {
 _
 
-Patches currently in -mm which might be from oomichi@mxs.nes.nec.co.jp are
+Patches currently in -mm which might be from khali@linux-fr.org are
 
 origin.patch
-vmcoreinfo-rename-vmcoreinfos-macros-returning-the-size.patch
-vmcoreinfo-use-the-existing-offsetof-for-vmcoreinfo_offset.patch
-vmcoreinfo-add-vmcoreinfo_-to-all-the-call-for-vmcoreinfo_append_str.patch
-vmcoreinfo-fix-the-configuration-dependencies.patch
-vmcoreinfo-fix-the-configuration-dependencies-fix.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+export-acpi_check_resource_conflict.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+git-arm.patch
+git-dvb.patch
+fix-jdelvare-i2c-i2c-constify-client-address-data.patch
+oz99x-i2c-button-and-led-support-driver.patch
+oz99x-i2c-button-and-led-support-driver-update.patch
+i2c-isp1301_omap-new-style-i2c-driver-updates-part-1.patch
+i2c-isp1301_omap-new-style-i2c-driver-updates-part-2.patch
+git-hwmon.patch
+hwmon-new-chip-driver-for-ti-ads7828-a-d.patch
+hwmon-new-chip-driver-for-ti-ads7828-a-d-checkpatch-fixes.patch
+rtc-pcf8583-dont-abuse-i2c_m_nostart.patch
+rtc-add-support-for-the-s-35390a-rtc-chip.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-update.patch
+gpiolib-add-drivers-gpio-directory.patch
+gpiolib-add-gpio-provider-infrastructure.patch
+gpiolib-update-documentation-gpiotxt.patch
+gpiolib-pxa-platform-support.patch
+gpiolib-pcf857x-i2c-gpio-expander-support.patch
+gpiolib-mcp23s08-spi-gpio-expander-support.patch
+gpiolib-pca9539-i2c-gpio-expander-support.patch
+gpiolib-deprecate-obsolete-pca9539-driver.patch
