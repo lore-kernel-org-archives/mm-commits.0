@@ -1,188 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: - snd_mixer_oss_build_input-fix-for-__you_cannot_kmalloc_that_much-failure-with-gcc-32.patch removed from -mm tree
-Date: Sun, 13 Jan 2008 03:33:13 -0800
-Message-ID: <200801131132.m0DBWr6N009804@imap1.linux-foundation.org>
+Subject: - x86-fix-do_fork_idle-section-mismatch.patch removed from -mm tree
+Date: Sun, 13 Jan 2008 03:33:25 -0800
+Message-ID: <200801131133.m0DBX59W009814@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51896 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50978 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751353AbYAMLdP (ORCPT
+	by vger.kernel.org with ESMTP id S1751300AbYAMLdW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Jan 2008 06:33:15 -0500
+	Sun, 13 Jan 2008 06:33:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khali@linux-fr.org, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     snd_mixer_oss_build_input(): fix for __you_cannot_kmalloc_that_much failure with gcc-3.2
+     x86: fix do_fork_idle section mismatch
 has been removed from the -mm tree.  Its filename was
-     snd_mixer_oss_build_input-fix-for-__you_cannot_kmalloc_that_much-failure-with-gcc-32.patch
+     x86-fix-do_fork_idle-section-mismatch.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: snd_mixer_oss_build_input(): fix for __you_cannot_kmalloc_that_much failure with gcc-3.2
-From: Jean Delvare <khali@linux-fr.org>
+Subject: x86: fix do_fork_idle section mismatch
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Rework this functions so that gcc-3.2 can successfully perform
-constant-folding.
+With CPU_HOTPLUG=n:
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+WARNING: vmlinux.o(.text+0x104f8): Section mismatch: reference to .init.text:fork_idle (between
+'do_fork_idle' and 'lapic_timer_broadcast')
+
+do_fork_idle() needs to be __cpuinit. It can be static as well.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/core/oss/mixer_oss.c |  101 +++++++++++++++++++++--------------
- 1 file changed, 63 insertions(+), 38 deletions(-)
+ arch/x86/kernel/smpboot_64.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN sound/core/oss/mixer_oss.c~snd_mixer_oss_build_input-fix-for-__you_cannot_kmalloc_that_much-failure-with-gcc-32 sound/core/oss/mixer_oss.c
---- a/sound/core/oss/mixer_oss.c~snd_mixer_oss_build_input-fix-for-__you_cannot_kmalloc_that_much-failure-with-gcc-32
-+++ a/sound/core/oss/mixer_oss.c
-@@ -925,6 +925,68 @@ static void mixer_slot_clear(struct snd_
- 	rslot->number = idx;
- }
+diff -puN arch/x86/kernel/smpboot_64.c~x86-fix-do_fork_idle-section-mismatch arch/x86/kernel/smpboot_64.c
+--- a/arch/x86/kernel/smpboot_64.c~x86-fix-do_fork_idle-section-mismatch
++++ a/arch/x86/kernel/smpboot_64.c
+@@ -526,7 +526,7 @@ struct create_idle {
+ 	int cpu;
+ };
  
-+/* In a separate function to keep gcc 3.2 happy - do NOT merge this in
-+   snd_mixer_oss_build_input! */
-+static int snd_mixer_oss_build_test_all(struct snd_mixer_oss *mixer,
-+					struct snd_mixer_oss_assign_table *ptr,
-+					struct slot *slot)
-+{
-+	char str[64];
-+	int err;
-+
-+	err = snd_mixer_oss_build_test(mixer, slot, ptr->name, ptr->index,
-+				       SNDRV_MIXER_OSS_ITEM_GLOBAL);
-+	if (err)
-+		return err;
-+	sprintf(str, "%s Switch", ptr->name);
-+	err = snd_mixer_oss_build_test(mixer, slot, str, ptr->index,
-+				       SNDRV_MIXER_OSS_ITEM_GSWITCH);
-+	if (err)
-+		return err;
-+	sprintf(str, "%s Route", ptr->name);
-+	err = snd_mixer_oss_build_test(mixer, slot, str, ptr->index,
-+				       SNDRV_MIXER_OSS_ITEM_GROUTE);
-+	if (err)
-+		return err;
-+	sprintf(str, "%s Volume", ptr->name);
-+	err = snd_mixer_oss_build_test(mixer, slot, str, ptr->index,
-+				       SNDRV_MIXER_OSS_ITEM_GVOLUME);
-+	if (err)
-+		return err;
-+	sprintf(str, "%s Playback Switch", ptr->name);
-+	err = snd_mixer_oss_build_test(mixer, slot, str, ptr->index,
-+				       SNDRV_MIXER_OSS_ITEM_PSWITCH);
-+	if (err)
-+		return err;
-+	sprintf(str, "%s Playback Route", ptr->name);
-+	err = snd_mixer_oss_build_test(mixer, slot, str, ptr->index,
-+				       SNDRV_MIXER_OSS_ITEM_PROUTE);
-+	if (err)
-+		return err;
-+	sprintf(str, "%s Playback Volume", ptr->name);
-+	err = snd_mixer_oss_build_test(mixer, slot, str, ptr->index,
-+				       SNDRV_MIXER_OSS_ITEM_PVOLUME);
-+	if (err)
-+		return err;
-+	sprintf(str, "%s Capture Switch", ptr->name);
-+	err = snd_mixer_oss_build_test(mixer, slot, str, ptr->index,
-+				       SNDRV_MIXER_OSS_ITEM_CSWITCH);
-+	if (err)
-+		return err;
-+	sprintf(str, "%s Capture Route", ptr->name);
-+	err = snd_mixer_oss_build_test(mixer, slot, str, ptr->index,
-+				       SNDRV_MIXER_OSS_ITEM_CROUTE);
-+	if (err)
-+		return err;
-+	sprintf(str, "%s Capture Volume", ptr->name);
-+	err = snd_mixer_oss_build_test(mixer, slot, str, ptr->index,
-+				       SNDRV_MIXER_OSS_ITEM_CVOLUME);
-+	if (err)
-+		return err;
-+
-+	return 0;
-+}
-+
- /*
-  * build an OSS mixer element.
-  * ptr_allocated means the entry is dynamically allocated (change via proc file).
-@@ -944,44 +1006,7 @@ static int snd_mixer_oss_build_input(str
- 
- 	memset(&slot, 0, sizeof(slot));
- 	memset(slot.numid, 0xff, sizeof(slot.numid)); /* ID_UNKNOWN */
--	if (snd_mixer_oss_build_test(mixer, &slot, ptr->name, ptr->index,
--				     SNDRV_MIXER_OSS_ITEM_GLOBAL))
--		return 0;
--	sprintf(str, "%s Switch", ptr->name);
--	if (snd_mixer_oss_build_test(mixer, &slot, str, ptr->index,
--				     SNDRV_MIXER_OSS_ITEM_GSWITCH))
--		return 0;
--	sprintf(str, "%s Route", ptr->name);
--	if (snd_mixer_oss_build_test(mixer, &slot, str, ptr->index,
--				     SNDRV_MIXER_OSS_ITEM_GROUTE))
--		return 0;
--	sprintf(str, "%s Volume", ptr->name);
--	if (snd_mixer_oss_build_test(mixer, &slot, str, ptr->index,
--				     SNDRV_MIXER_OSS_ITEM_GVOLUME))
--		return 0;
--	sprintf(str, "%s Playback Switch", ptr->name);
--	if (snd_mixer_oss_build_test(mixer, &slot, str, ptr->index,
--				     SNDRV_MIXER_OSS_ITEM_PSWITCH))
--		return 0;
--	sprintf(str, "%s Playback Route", ptr->name);
--	if (snd_mixer_oss_build_test(mixer, &slot, str, ptr->index,
--				     SNDRV_MIXER_OSS_ITEM_PROUTE))
--		return 0;
--	sprintf(str, "%s Playback Volume", ptr->name);
--	if (snd_mixer_oss_build_test(mixer, &slot, str, ptr->index,
--				     SNDRV_MIXER_OSS_ITEM_PVOLUME))
--		return 0;
--	sprintf(str, "%s Capture Switch", ptr->name);
--	if (snd_mixer_oss_build_test(mixer, &slot, str, ptr->index,
--				     SNDRV_MIXER_OSS_ITEM_CSWITCH))
--		return 0;
--	sprintf(str, "%s Capture Route", ptr->name);
--	if (snd_mixer_oss_build_test(mixer, &slot, str, ptr->index,
--				     SNDRV_MIXER_OSS_ITEM_CROUTE))
--		return 0;
--	sprintf(str, "%s Capture Volume", ptr->name);
--	if (snd_mixer_oss_build_test(mixer, &slot, str, ptr->index,
--				     SNDRV_MIXER_OSS_ITEM_CVOLUME))
-+	if (snd_mixer_oss_build_test_all(mixer, ptr, &slot))
- 		return 0;
- 	down_read(&mixer->card->controls_rwsem);
- 	if (ptr->index == 0 && (kctl = snd_mixer_oss_test_id(mixer, "Capture Source", 0)) != NULL) {
+-void do_fork_idle(struct work_struct *work)
++static void __cpuinit do_fork_idle(struct work_struct *work)
+ {
+ 	struct create_idle *c_idle =
+ 		container_of(work, struct create_idle, work);
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 origin.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-export-acpi_check_resource_conflict.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
+kick-cpus-that-might-be-sleeping-in-cpus_idle_wait.patch
+timerfd-v3-introduce-a-new-hrtimer_forward_now-function.patch
+timerfd-v3-new-timerfd-api.patch
+timerfd-v3-new-timerfd-api-make-hrtimer_forward-to-return-a-u64.patch
+timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration.patch
+timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes.patch
+timerfd-v3-new-timerfd-api-update-sys_nic-with-the-new-timerfd-syscalls.patch
+timerfd-v3-wire-the-new-timerfd-api-to-the-x86-family.patch
+timerfd-v3-un-break-config_timerfd.patch
 git-arm.patch
-git-dvb.patch
-fix-jdelvare-i2c-i2c-constify-client-address-data.patch
-oz99x-i2c-button-and-led-support-driver.patch
-oz99x-i2c-button-and-led-support-driver-update.patch
-i2c-isp1301_omap-new-style-i2c-driver-updates-part-1.patch
-i2c-isp1301_omap-new-style-i2c-driver-updates-part-2.patch
-git-hwmon.patch
-hwmon-new-chip-driver-for-ti-ads7828-a-d.patch
-hwmon-new-chip-driver-for-ti-ads7828-a-d-checkpatch-fixes.patch
-rtc-pcf8583-dont-abuse-i2c_m_nostart.patch
-rtc-add-support-for-the-s-35390a-rtc-chip.patch
-rtc-add-support-for-the-s-35390a-rtc-chip-update.patch
-gpiolib-add-drivers-gpio-directory.patch
-gpiolib-add-gpio-provider-infrastructure.patch
-gpiolib-update-documentation-gpiotxt.patch
-gpiolib-pxa-platform-support.patch
-gpiolib-pcf857x-i2c-gpio-expander-support.patch
-gpiolib-mcp23s08-spi-gpio-expander-support.patch
-gpiolib-pca9539-i2c-gpio-expander-support.patch
-gpiolib-deprecate-obsolete-pca9539-driver.patch
+git-hrt.patch
+revert-git-hrt.patch
+pci-disable-decoding-during-sizing-of-bars.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
+git-x86.patch
+git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
+git-x86-fix-doubly-merged-patch.patch
+serverworks-irq-routing-needs-no-_p.patch
+iommu-sg-merging-x86-make-pci-gart-iommu-respect-the-segment-size-limits.patch
+iommu-sg-x86-convert-calgary-iommu-to-use-the-iommu-helper.patch
+iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper.patch
+iommu-sg-kill-__clear_bit_string-and-find_next_zero_string.patch
+git-cryptodev-fixup.patch
+fix-rtc_aie-with-config_hpet_emulate_rtc.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+printk-trivial-optimizations.patch
+time-fix-sysfs_show_availablecurrent_clocksources-buffer-overflow-problem.patch
+proc-loadavg-reading-race.patch
+fix-__const_udelay-declaration-and-definition-mismatches.patch
+calibrate_delay-must-be-__cpuinit.patch
+idle_regs-must-be-__cpuinit.patch
+avoid-overflows-in-kernel-timec.patch
+make-sys_poll-wait-at-least-timeout-ms.patch
+system-timer-fix-crash-in-100hz-system-timer.patch
+system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
+speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
+asic3-driver.patch
+asic3-driver-update.patch
+unexport-asm-userh-and-linux-userh.patch
+unexport-asm-pageh.patch
+sanitize-the-type-of-struct-useru_ar0.patch
+add-cmpxchg64-and-cmpxchg64_local-to-x86_64.patch
+itimer_real-convert-to-use-struct-pid.patch
+clocksource-remove-redundant-code.patch
+clockevent-simplify-list-operations.patch
+timekeeping-rename-timekeeping_is_continuous-to-timekeeping_valid_for_hres.patch
+time-fix-typo-in-comments.patch
+time-delete-comments-that-refer-to-noexistent-symbols.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc.patch
+provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc-fix.patch
+efi-split-efi-tables-parsing-code-from-efi-runtime-service-support-code.patch
