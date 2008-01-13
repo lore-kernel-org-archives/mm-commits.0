@@ -1,118 +1,174 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc-switch-to-generic-warn_on-bug_on.patch removed from -mm tree
-Date: Sun, 13 Jan 2008 03:25:24 -0800
-Message-ID: <200801131125.m0DBP4RT009499@imap1.linux-foundation.org>
+Subject: - printk_ratelimit-functions-should-use-config_printk.patch removed from -mm tree
+Date: Sun, 13 Jan 2008 03:27:55 -0800
+Message-ID: <200801131127.m0DBRawu009627@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37252 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51932 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751307AbYAMLZQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751323AbYAML2M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Jan 2008 06:25:16 -0500
+	Sun, 13 Jan 2008 06:28:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: olof@lixom.net, benh@kernel.crashing.org, linux-arch@vger.kernel.org, paulus@samba.org, scottwood@freescale.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mingo@elte.hu, mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc: switch to generic WARN_ON()/BUG_ON()
+     printk_ratelimit functions should use CONFIG_PRINTK
 has been removed from the -mm tree.  Its filename was
-     powerpc-switch-to-generic-warn_on-bug_on.patch
+     printk_ratelimit-functions-should-use-config_printk.patch
 
-This patch was dropped because git-x86 changes wrecked it
+This patch was dropped because either git-sched or git-x86 wrecked it
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: switch to generic WARN_ON()/BUG_ON()
-From: Olof Johansson <olof@lixom.net>
+Subject: printk_ratelimit functions should use CONFIG_PRINTK
+From: Joe Perches <joe@perches.com>
 
-Not using the ppc-specific WARN_ON/BUG_ON constructs actually saves about
-4K text on a ppc64_defconfig.  The main reason seems to be that prepping
-the arguments to the conditional trap instructions is more work than just
-doing a compare and branch.
+Makes an embedded image a bit smaller
 
-Signed-off-by: Olof Johansson <olof@lixom.net>
-Cc: <linux-arch@vger.kernel.org>
-Cc: Scott Wood <scottwood@freescale.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>, 
+Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Matt Mackall <mpm@selenic.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-powerpc/bug.h |   37 ------------------------------------
- 1 file changed, 37 deletions(-)
+ include/linux/kernel.h |   20 +++++++++++++++-----
+ kernel/printk.c        |    2 ++
+ kernel/sysctl.c        |   20 ++++++++++----------
+ 3 files changed, 27 insertions(+), 15 deletions(-)
 
-diff -puN include/asm-powerpc/bug.h~powerpc-switch-to-generic-warn_on-bug_on include/asm-powerpc/bug.h
---- a/include/asm-powerpc/bug.h~powerpc-switch-to-generic-warn_on-bug_on
-+++ a/include/asm-powerpc/bug.h
-@@ -54,12 +54,6 @@
- 	".previous\n"
+diff -puN include/linux/kernel.h~printk_ratelimit-functions-should-use-config_printk include/linux/kernel.h
+--- a/include/linux/kernel.h~printk_ratelimit-functions-should-use-config_printk
++++ a/include/linux/kernel.h
+@@ -182,6 +182,13 @@ asmlinkage int printk(const char * fmt, 
+ extern int log_buf_get_len(void);
+ extern int log_buf_read(int idx);
+ extern int log_buf_copy(char *dest, int idx, int len);
++
++extern int printk_ratelimit_jiffies;
++extern int printk_ratelimit_burst;
++extern int printk_ratelimit(void);
++extern int __printk_ratelimit(int ratelimit_jiffies, int ratelimit_burst);
++extern bool printk_timed_ratelimit(unsigned long *caller_jiffies,
++				   unsigned int interval_msec);
+ #else
+ static inline int vprintk(const char *s, va_list args)
+ 	__attribute__ ((format (printf, 1, 0)));
+@@ -192,15 +199,18 @@ static inline int __cold printk(const ch
+ static inline int log_buf_get_len(void) { return 0; }
+ static inline int log_buf_read(int idx) { return 0; }
+ static inline int log_buf_copy(char *dest, int idx, int len) { return 0; }
++
++static inline int printk_ratelimit(void) { return 0; }
++static inline int __printk_ratelimit(int ratelimit_jiffies, \
++				     int ratelimit_burst) { return 0; }
++static inline bool printk_timed_ratelimit(unsigned long *caller_jiffies, \
++					  unsigned int interval_msec)	\
++		{ return false; }
++
  #endif
  
--/*
-- * BUG_ON() and WARN_ON() do their best to cooperate with compile-time
-- * optimisations. However depending on the complexity of the condition
-- * some compiler versions may not produce optimal results.
-- */
--
- #define BUG() do {						\
- 	__asm__ __volatile__(					\
- 		"1:	twi 31,0,0\n"				\
-@@ -69,20 +63,6 @@
- 	for(;;) ;						\
- } while (0)
+ unsigned long int_sqrt(unsigned long);
  
--#define BUG_ON(x) do {						\
--	if (__builtin_constant_p(x)) {				\
--		if (x)						\
--			BUG();					\
--	} else {						\
--		__asm__ __volatile__(				\
--		"1:	"PPC_TLNEI"	%4,0\n"			\
--		_EMIT_BUG_ENTRY					\
--		: : "i" (__FILE__), "i" (__LINE__), "i" (0),	\
--		  "i" (sizeof(struct bug_entry)),		\
--		  "r" ((__force long)(x)));			\
--	}							\
--} while (0)
+-extern int printk_ratelimit(void);
+-extern int __printk_ratelimit(int ratelimit_jiffies, int ratelimit_burst);
+-extern bool printk_timed_ratelimit(unsigned long *caller_jiffies,
+-				unsigned int interval_msec);
 -
- #define __WARN() do {						\
- 	__asm__ __volatile__(					\
- 		"1:	twi 31,0,0\n"				\
-@@ -92,23 +72,6 @@
- 		  "i" (sizeof(struct bug_entry)));		\
- } while (0)
+ static inline void console_silent(void)
+ {
+ 	console_loglevel = 0;
+diff -puN kernel/printk.c~printk_ratelimit-functions-should-use-config_printk kernel/printk.c
+--- a/kernel/printk.c~printk_ratelimit-functions-should-use-config_printk
++++ a/kernel/printk.c
+@@ -1258,6 +1258,7 @@ void tty_write_message(struct tty_struct
+ 	return;
+ }
  
--#define WARN_ON(x) ({						\
--	int __ret_warn_on = !!(x);				\
--	if (__builtin_constant_p(__ret_warn_on)) {		\
--		if (__ret_warn_on)				\
--			__WARN();				\
--	} else {						\
--		__asm__ __volatile__(				\
--		"1:	"PPC_TLNEI"	%4,0\n"			\
--		_EMIT_BUG_ENTRY					\
--		: : "i" (__FILE__), "i" (__LINE__),		\
--		  "i" (BUGFLAG_WARNING),			\
--		  "i" (sizeof(struct bug_entry)),		\
--		  "r" (__ret_warn_on));				\
--	}							\
--	unlikely(__ret_warn_on);				\
--})
--
- #endif /* __ASSEMBLY __ */
- #endif /* CONFIG_BUG */
- 
++#if defined CONFIG_PRINTK
+ /*
+  * printk rate limiting, lifted from the networking subsystem.
+  *
+@@ -1327,3 +1328,4 @@ bool printk_timed_ratelimit(unsigned lon
+ 	return false;
+ }
+ EXPORT_SYMBOL(printk_timed_ratelimit);
++#endif
+diff -puN kernel/sysctl.c~printk_ratelimit-functions-should-use-config_printk kernel/sysctl.c
+--- a/kernel/sysctl.c~printk_ratelimit-functions-should-use-config_printk
++++ a/kernel/sysctl.c
+@@ -73,8 +73,6 @@ extern int suid_dumpable;
+ extern char core_pattern[];
+ extern int pid_max;
+ extern int min_free_kbytes;
+-extern int printk_ratelimit_jiffies;
+-extern int printk_ratelimit_burst;
+ extern int pid_max_min, pid_max_max;
+ extern int sysctl_drop_caches;
+ extern int percpu_pagelist_fraction;
+@@ -475,14 +473,6 @@ static struct ctl_table kern_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= &proc_dointvec,
+ 	},
+-	{
+-		.ctl_name	= KERN_PRINTK,
+-		.procname	= "printk",
+-		.data		= &console_loglevel,
+-		.maxlen		= 4*sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= &proc_dointvec,
+-	},
+ #ifdef CONFIG_KMOD
+ 	{
+ 		.ctl_name	= KERN_MODPROBE,
+@@ -629,6 +619,15 @@ static struct ctl_table kern_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= &proc_dointvec,
+ 	},
++#if defined CONFIG_PRINTK
++	{
++		.ctl_name	= KERN_PRINTK,
++		.procname	= "printk",
++		.data		= &console_loglevel,
++		.maxlen		= 4*sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= &proc_dointvec,
++	},
+ 	{
+ 		.ctl_name	= KERN_PRINTK_RATELIMIT,
+ 		.procname	= "printk_ratelimit",
+@@ -646,6 +645,7 @@ static struct ctl_table kern_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= &proc_dointvec,
+ 	},
++#endif
+ 	{
+ 		.ctl_name	= KERN_NGROUPS_MAX,
+ 		.procname	= "ngroups_max",
 _
 
-Patches currently in -mm which might be from olof@lixom.net are
+Patches currently in -mm which might be from joe@perches.com are
 
+git-alsa.patch
+git-cpufreq.patch
 git-powerpc.patch
-git-mtd.patch
+git-dvb.patch
+git-hwmon.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-jfs.patch
+git-kvm.patch
+git-net.patch
 git-netdev-all.patch
-pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch
-pcmcia-replace-kio_addr_t-with-unsigned-int-everywhere.patch
-drivers-pcmcia-add-missing-iounmap.patch
+git-selinux.patch
+git-s390.patch
+git-sh.patch
+git-unionfs.patch
 git-x86.patch
-powerpc-switch-to-generic-warn_on-bug_on.patch
+uml-add-missing-space.patch
+uml-style-fixes-in-arch-um-kernel.patch
+printk_ratelimit-functions-should-use-config_printk.patch
+maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources.patch
