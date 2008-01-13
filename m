@@ -1,224 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: + revert-gregkh-driver-atm-convert-struct-class_device-to-struct-device.patch added to -mm tree
-Date: Sun, 13 Jan 2008 03:10:09 -0800
-Message-ID: <200801131109.m0DB9nMk008999@imap1.linux-foundation.org>
+Subject: - net-sunrpc-svcsockc-reapply-git-nfs-changes.patch removed from -mm tree
+Date: Sun, 13 Jan 2008 03:11:50 -0800
+Message-ID: <200801131111.m0DBBV2O009110@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37866 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59628 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751310AbYAMLJ5 (ORCPT
+	by vger.kernel.org with ESMTP id S1751235AbYAMLLz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Jan 2008 06:09:57 -0500
+	Sun, 13 Jan 2008 06:11:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com
+To: akpm@linux-foundation.org, bfields@fieldses.org, davem@davemloft.net, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert gregkh-driver-atm-convert-struct-class_device-to-struct-device
-has been added to the -mm tree.  Its filename is
-     revert-gregkh-driver-atm-convert-struct-class_device-to-struct-device.patch
+     net-sunrpc-svcsockc-reapply-git-nfs-changes
+has been removed from the -mm tree.  Its filename was
+     net-sunrpc-svcsockc-reapply-git-nfs-changes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert gregkh-driver-atm-convert-struct-class_device-to-struct-device
+Subject: net-sunrpc-svcsockc-reapply-git-nfs-changes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Davem merged it - please drop.
-
-Cc: Greg KH <greg@kroah.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/atmdev.h |    4 +-
- net/atm/atm_sysfs.c    |   66 +++++++++++++++++----------------------
- 2 files changed, 32 insertions(+), 38 deletions(-)
+ net/sunrpc/svcsock.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN include/linux/atmdev.h~revert-gregkh-driver-atm-convert-struct-class_device-to-struct-device include/linux/atmdev.h
---- a/include/linux/atmdev.h~revert-gregkh-driver-atm-convert-struct-class_device-to-struct-device
-+++ a/include/linux/atmdev.h
-@@ -359,7 +359,7 @@ struct atm_dev {
- 	struct proc_dir_entry *proc_entry; /* proc entry */
- 	char *proc_name;		/* proc entry name */
- #endif
--	struct device class_dev;	/* sysfs device */
-+	struct class_device class_dev;	/* sysfs class device */
- 	struct list_head dev_list;	/* linkage */
- };
- 
-@@ -461,7 +461,7 @@ static inline void atm_dev_put(struct at
- 		BUG_ON(!test_bit(ATM_DF_REMOVED, &dev->flags));
- 		if (dev->ops->dev_close)
- 			dev->ops->dev_close(dev);
--		put_device(&dev->class_dev);
-+		class_device_put(&dev->class_dev);
+diff -puN net/sunrpc/svcsock.c~net-sunrpc-svcsockc-reapply-git-nfs-changes net/sunrpc/svcsock.c
+--- a/net/sunrpc/svcsock.c~net-sunrpc-svcsockc-reapply-git-nfs-changes
++++ a/net/sunrpc/svcsock.c
+@@ -282,6 +282,7 @@ void svc_reserve(struct svc_rqst *rqstp,
+ 		svc_sock_enqueue(svsk);
  	}
  }
++EXPORT_SYMBOL(svc_reserve);
  
-diff -puN net/atm/atm_sysfs.c~revert-gregkh-driver-atm-convert-struct-class_device-to-struct-device net/atm/atm_sysfs.c
---- a/net/atm/atm_sysfs.c~revert-gregkh-driver-atm-convert-struct-class_device-to-struct-device
-+++ a/net/atm/atm_sysfs.c
-@@ -9,15 +9,13 @@
- 
- #define to_atm_dev(cldev) container_of(cldev, struct atm_dev, class_dev)
- 
--static ssize_t show_type(struct device *cdev,
--			 struct device_attribute *attr, char *buf)
-+static ssize_t show_type(struct class_device *cdev, char *buf)
- {
- 	struct atm_dev *adev = to_atm_dev(cdev);
- 	return sprintf(buf, "%s\n", adev->type);
- }
- 
--static ssize_t show_address(struct device *cdev,
--			    struct device_attribute *attr, char *buf)
-+static ssize_t show_address(struct class_device *cdev, char *buf)
- {
- 	char *pos = buf;
- 	struct atm_dev *adev = to_atm_dev(cdev);
-@@ -30,8 +28,7 @@ static ssize_t show_address(struct devic
- 	return pos - buf;
- }
- 
--static ssize_t show_atmaddress(struct device *cdev,
--			       struct device_attribute *attr, char *buf)
-+static ssize_t show_atmaddress(struct class_device *cdev, char *buf)
- {
- 	unsigned long flags;
- 	char *pos = buf;
-@@ -57,8 +54,7 @@ static ssize_t show_atmaddress(struct de
- 	return pos - buf;
- }
- 
--static ssize_t show_carrier(struct device *cdev,
--			    struct device_attribute *attr, char *buf)
-+static ssize_t show_carrier(struct class_device *cdev, char *buf)
- {
- 	char *pos = buf;
- 	struct atm_dev *adev = to_atm_dev(cdev);
-@@ -69,8 +65,7 @@ static ssize_t show_carrier(struct devic
- 	return pos - buf;
- }
- 
--static ssize_t show_link_rate(struct device *cdev,
--			      struct device_attribute *attr, char *buf)
-+static ssize_t show_link_rate(struct class_device *cdev, char *buf)
- {
- 	char *pos = buf;
- 	struct atm_dev *adev = to_atm_dev(cdev);
-@@ -95,23 +90,22 @@ static ssize_t show_link_rate(struct dev
- 	return pos - buf;
- }
- 
--static DEVICE_ATTR(address, S_IRUGO, show_address, NULL);
--static DEVICE_ATTR(atmaddress, S_IRUGO, show_atmaddress, NULL);
--static DEVICE_ATTR(carrier, S_IRUGO, show_carrier, NULL);
--static DEVICE_ATTR(type, S_IRUGO, show_type, NULL);
--static DEVICE_ATTR(link_rate, S_IRUGO, show_link_rate, NULL);
--
--static struct device_attribute *atm_attrs[] = {
--	&dev_attr_atmaddress,
--	&dev_attr_address,
--	&dev_attr_carrier,
--	&dev_attr_type,
--	&dev_attr_link_rate,
-+static CLASS_DEVICE_ATTR(address, S_IRUGO, show_address, NULL);
-+static CLASS_DEVICE_ATTR(atmaddress, S_IRUGO, show_atmaddress, NULL);
-+static CLASS_DEVICE_ATTR(carrier, S_IRUGO, show_carrier, NULL);
-+static CLASS_DEVICE_ATTR(type, S_IRUGO, show_type, NULL);
-+static CLASS_DEVICE_ATTR(link_rate, S_IRUGO, show_link_rate, NULL);
-+
-+static struct class_device_attribute *atm_attrs[] = {
-+	&class_device_attr_atmaddress,
-+	&class_device_attr_address,
-+	&class_device_attr_carrier,
-+	&class_device_attr_type,
-+	&class_device_attr_link_rate,
- 	NULL
- };
- 
--
--static int atm_uevent(struct device *cdev, struct kobj_uevent_env *env)
-+static int atm_uevent(struct class_device *cdev, struct kobj_uevent_env *env)
- {
- 	struct atm_dev *adev;
- 
-@@ -128,7 +122,7 @@ static int atm_uevent(struct device *cde
- 	return 0;
- }
- 
--static void atm_release(struct device *cdev)
-+static void atm_release(struct class_device *cdev)
- {
- 	struct atm_dev *adev = to_atm_dev(cdev);
- 
-@@ -137,25 +131,25 @@ static void atm_release(struct device *c
- 
- static struct class atm_class = {
- 	.name		= "atm",
--	.dev_release	= atm_release,
--	.dev_uevent		= atm_uevent,
-+	.release	= atm_release,
-+	.uevent		= atm_uevent,
- };
- 
- int atm_register_sysfs(struct atm_dev *adev)
- {
--	struct device *cdev = &adev->class_dev;
-+	struct class_device *cdev = &adev->class_dev;
- 	int i, j, err;
- 
- 	cdev->class = &atm_class;
--	dev_set_drvdata(cdev, adev);
-+	class_set_devdata(cdev, adev);
- 
--	snprintf(cdev->bus_id, BUS_ID_SIZE, "%s%d", adev->type, adev->number);
--	err = device_register(cdev);
-+	snprintf(cdev->class_id, BUS_ID_SIZE, "%s%d", adev->type, adev->number);
-+	err = class_device_register(cdev);
- 	if (err < 0)
- 		return err;
- 
- 	for (i = 0; atm_attrs[i]; i++) {
--		err = device_create_file(cdev, atm_attrs[i]);
-+		err = class_device_create_file(cdev, atm_attrs[i]);
- 		if (err)
- 			goto err_out;
+ /*
+  * Release a socket after use.
+@@ -362,6 +363,7 @@ svc_wake_up(struct svc_serv *serv)
+ 		spin_unlock_bh(&pool->sp_lock);
  	}
-@@ -164,16 +158,16 @@ int atm_register_sysfs(struct atm_dev *a
- 
- err_out:
- 	for (j = 0; j < i; j++)
--		device_remove_file(cdev, atm_attrs[j]);
--	device_del(cdev);
-+		class_device_remove_file(cdev, atm_attrs[j]);
-+	class_device_del(cdev);
- 	return err;
  }
++EXPORT_SYMBOL(svc_wake_up);
  
- void atm_unregister_sysfs(struct atm_dev *adev)
- {
--	struct device *cdev = &adev->class_dev;
-+	struct class_device *cdev = &adev->class_dev;
- 
--	device_del(cdev);
-+	class_device_del(cdev);
+ union svc_pktinfo_u {
+ 	struct in_pktinfo pkti;
+@@ -1461,6 +1463,7 @@ svc_recv(struct svc_rqst *rqstp, long ti
+ 		serv->sv_stats->netcnt++;
+ 	return len;
  }
++EXPORT_SYMBOL(svc_recv);
  
- int __init atm_sysfs_init(void)
+ /*
+  * Drop request
+@@ -1471,6 +1474,7 @@ svc_drop(struct svc_rqst *rqstp)
+ 	dprintk("svc: socket %p dropped request\n", rqstp->rq_sock);
+ 	svc_sock_release(rqstp);
+ }
++EXPORT_SYMBOL(svc_drop);
+ 
+ /*
+  * Return reply to client.
+@@ -1797,6 +1801,7 @@ int svc_makesock(struct svc_serv *serv, 
+ 	return svc_create_socket(serv, protocol, (struct sockaddr *) &sin,
+ 							sizeof(sin), flags);
+ }
++EXPORT_SYMBOL(svc_makesock);
+ 
+ /*
+  * Handle defer and revisit of requests
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
