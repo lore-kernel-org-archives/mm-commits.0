@@ -1,334 +1,608 @@
 From: akpm@linux-foundation.org
-Subject: + git-nfsd-fixup.patch added to -mm tree
-Date: Sun, 13 Jan 2008 03:14:01 -0800
-Message-ID: <200801131113.m0DBDfHc009138@imap1.linux-foundation.org>
+Subject: - scsi-scsi_data_buffer.patch removed from -mm tree
+Date: Sun, 13 Jan 2008 03:16:32 -0800
+Message-ID: <200801131116.m0DBGC39009234@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44882 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57317 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751323AbYAMLNo (ORCPT
+	by vger.kernel.org with ESMTP id S1751307AbYAMLSI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Jan 2008 06:13:44 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m0DBDg02001599
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sun, 13 Jan 2008 03:13:43 -0800
+	Sun, 13 Jan 2008 06:18:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: bharrosh@panasas.com, James.Bottomley@steeleye.com, fujita.tomonori@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-nfsd-fixup
-has been added to the -mm tree.  Its filename is
-     git-nfsd-fixup.patch
+     scsi: scsi_data_buffer
+has been removed from the -mm tree.  Its filename was
+     scsi-scsi_data_buffer.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-nfsd-fixup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: scsi: scsi_data_buffer
+From: Boaz Harrosh <bharrosh@panasas.com>
 
+  In preparation for bidi we abstract all IO members of scsi_cmnd,
+  that will need to duplicate, into a substructure.
+
+  - Group all IO members of scsi_cmnd into a scsi_data_buffer
+    structure.
+  - Adjust accessors to new members.
+  - scsi_{alloc,free}_sgtable receive a scsi_data_buffer instead of
+    scsi_cmnd. And work on it.
+  - Adjust scsi_init_io() and  scsi_release_buffers() for above
+    change.
+  - Fix other parts of scsi_lib/scsi.c to members migration. Use
+    accessors where appropriate.
+
+  - fix Documentation about scsi_cmnd in scsi_host.h
+
+  - scsi_error.c
+    * Changed needed members of struct scsi_eh_save.
+    * Careful considerations in scsi_eh_prep/restore_cmnd.
+
+  - sd.c and sr.c
+    * sd and sr would adjust IO size to align on device's block
+      size so code needs to change once we move to scsi_data_buff
+      implementation.
+    * Convert code to use scsi_for_each_sg
+    * Use data accessors where appropriate.
+
+  - tgt: convert libsrp to use scsi_data_buffer
+  - isd200: This driver still bangs on scsi_cmnd IO members,
+    so need changing
+
+Signed-off-by: Boaz Harrosh <bharrosh@panasas.com>
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/cache.c |    3 ++-
- net/sunrpc/svc.c   |    2 --
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ drivers/scsi/libsrp.c        |    4 -
+ drivers/scsi/scsi.c          |    2 
+ drivers/scsi/scsi_error.c    |   28 ++++--------
+ drivers/scsi/scsi_lib.c      |   77 ++++++++++++---------------------
+ drivers/scsi/sd.c            |    4 -
+ drivers/scsi/sr.c            |   25 +++++-----
+ drivers/usb/storage/isd200.c |    8 +--
+ include/scsi/scsi_cmnd.h     |   39 ++++++++++------
+ include/scsi/scsi_eh.h       |    8 +--
+ include/scsi/scsi_host.h     |    4 -
+ 10 files changed, 91 insertions(+), 108 deletions(-)
 
-diff -puN net/sunrpc/cache.c~git-nfsd-fixup net/sunrpc/cache.c
---- a/net/sunrpc/cache.c~git-nfsd-fixup
-+++ a/net/sunrpc/cache.c
-@@ -376,10 +376,11 @@ int cache_register(struct cache_detail *
+diff -puN drivers/scsi/libsrp.c~scsi-scsi_data_buffer drivers/scsi/libsrp.c
+--- a/drivers/scsi/libsrp.c~scsi-scsi_data_buffer
++++ a/drivers/scsi/libsrp.c
+@@ -426,8 +426,8 @@ int srp_cmd_queue(struct Scsi_Host *shos
  
- 	/* start the cleaning process */
- 	schedule_delayed_work(&cache_cleaner, 0);
-+	return 0;
+ 	sc->SCp.ptr = info;
+ 	memcpy(sc->cmnd, cmd->cdb, MAX_COMMAND_SIZE);
+-	sc->request_bufflen = len;
+-	sc->request_buffer = (void *) (unsigned long) addr;
++	sc->sdb.length = len;
++	sc->sdb.sglist = (void *) (unsigned long) addr;
+ 	sc->tag = tag;
+ 	err = scsi_tgt_queue_command(sc, itn_id, (struct scsi_lun *)&cmd->lun,
+ 				     cmd->tag);
+diff -puN drivers/scsi/scsi.c~scsi-scsi_data_buffer drivers/scsi/scsi.c
+--- a/drivers/scsi/scsi.c~scsi-scsi_data_buffer
++++ a/drivers/scsi/scsi.c
+@@ -712,7 +712,7 @@ void scsi_finish_command(struct scsi_cmn
+ 				"Notifying upper driver of completion "
+ 				"(result %x)\n", cmd->result));
+ 
+-	good_bytes = cmd->request_bufflen;
++	good_bytes = scsi_bufflen(cmd);
+         if (cmd->request->cmd_type != REQ_TYPE_BLOCK_PC) {
+ 		drv = scsi_cmd_to_driver(cmd);
+ 		if (drv->done)
+diff -puN drivers/scsi/scsi_error.c~scsi-scsi_data_buffer drivers/scsi/scsi_error.c
+--- a/drivers/scsi/scsi_error.c~scsi-scsi_data_buffer
++++ a/drivers/scsi/scsi_error.c
+@@ -617,29 +617,25 @@ void scsi_eh_prep_cmnd(struct scsi_cmnd 
+ 	ses->cmd_len = scmd->cmd_len;
+ 	memcpy(ses->cmnd, scmd->cmnd, sizeof(scmd->cmnd));
+ 	ses->data_direction = scmd->sc_data_direction;
+-	ses->bufflen = scmd->request_bufflen;
+-	ses->buffer = scmd->request_buffer;
+-	ses->use_sg = scmd->use_sg;
+-	ses->resid = scmd->resid;
++	ses->sdb = scmd->sdb;
+ 	ses->result = scmd->result;
+ 
++	memset(&scmd->sdb, 0, sizeof(scmd->sdb));
++
+ 	if (sense_bytes) {
+-		scmd->request_bufflen = min_t(unsigned,
++		scmd->sdb.length = min_t(unsigned,
+ 		                       sizeof(scmd->sense_buffer), sense_bytes);
+ 		sg_init_one(&ses->sense_sgl, scmd->sense_buffer,
+-		                                       scmd->request_bufflen);
+-		scmd->request_buffer = &ses->sense_sgl;
++							      scmd->sdb.length);
++		scmd->sdb.sglist = &ses->sense_sgl;
+ 		scmd->sc_data_direction = DMA_FROM_DEVICE;
+-		scmd->use_sg = 1;
++		scmd->sdb.sg_count = 1;
+ 		memset(scmd->cmnd, 0, sizeof(scmd->cmnd));
+ 		scmd->cmnd[0] = REQUEST_SENSE;
+-		scmd->cmnd[4] = scmd->request_bufflen;
++		scmd->cmnd[4] = scmd->sdb.length;
+ 		scmd->cmd_len = COMMAND_SIZE(scmd->cmnd[0]);
+ 	} else {
+-		scmd->request_buffer = NULL;
+-		scmd->request_bufflen = 0;
+ 		scmd->sc_data_direction = DMA_NONE;
+-		scmd->use_sg = 0;
+ 		if (cmnd) {
+ 			memset(scmd->cmnd, 0, sizeof(scmd->cmnd));
+ 			memcpy(scmd->cmnd, cmnd, cmnd_size);
+@@ -676,10 +672,7 @@ void scsi_eh_restore_cmnd(struct scsi_cm
+ 	scmd->cmd_len = ses->cmd_len;
+ 	memcpy(scmd->cmnd, ses->cmnd, sizeof(scmd->cmnd));
+ 	scmd->sc_data_direction = ses->data_direction;
+-	scmd->request_bufflen = ses->bufflen;
+-	scmd->request_buffer = ses->buffer;
+-	scmd->use_sg = ses->use_sg;
+-	scmd->resid = ses->resid;
++	scmd->sdb = ses->sdb;
+ 	scmd->result = ses->result;
  }
- EXPORT_SYMBOL(cache_register);
+ EXPORT_SYMBOL(scsi_eh_restore_cmnd);
+@@ -1700,8 +1693,7 @@ scsi_reset_provider(struct scsi_device *
+ 	memset(&scmd->cmnd, '\0', sizeof(scmd->cmnd));
+     
+ 	scmd->scsi_done		= scsi_reset_provider_done_command;
+-	scmd->request_buffer		= NULL;
+-	scmd->request_bufflen		= 0;
++	memset(&scmd->sdb, 0, sizeof(scmd->sdb));
  
--int cache_unregister(struct cache_detail *cd)
-+void cache_unregister(struct cache_detail *cd)
- {
- 	cache_purge(cd);
- 	spin_lock(&cache_list_lock);
-diff -puN net/sunrpc/svc.c~git-nfsd-fixup net/sunrpc/svc.c
---- a/net/sunrpc/svc.c~git-nfsd-fixup
-+++ a/net/sunrpc/svc.c
-@@ -1059,8 +1059,6 @@ u32 svc_max_payload(const struct svc_rqs
- {
- 	u32 max = RPCSVC_MAXPAYLOAD_TCP;
+ 	scmd->cmd_len			= 0;
  
--	if (rqstp->rq_sock->sk_sock->type == SOCK_DGRAM)
--		max = RPCSVC_MAXPAYLOAD_UDP;
- 	if (rqstp->rq_server->sv_max_payload < max)
- 		max = rqstp->rq_server->sv_max_payload;
- 	return max;
+diff -puN drivers/scsi/scsi_lib.c~scsi-scsi_data_buffer drivers/scsi/scsi_lib.c
+--- a/drivers/scsi/scsi_lib.c~scsi-scsi_data_buffer
++++ a/drivers/scsi/scsi_lib.c
+@@ -440,7 +440,7 @@ EXPORT_SYMBOL_GPL(scsi_execute_async);
+ static void scsi_init_cmd_errh(struct scsi_cmnd *cmd)
+ {
+ 	cmd->serial_number = 0;
+-	cmd->resid = 0;
++	scsi_set_resid(cmd, 0);
+ 	memset(cmd->sense_buffer, 0, sizeof cmd->sense_buffer);
+ 	if (cmd->cmd_len == 0)
+ 		cmd->cmd_len = COMMAND_SIZE(cmd->cmnd[0]);
+@@ -739,17 +739,15 @@ static inline unsigned int scsi_sgtable_
+ 	return index;
+ }
+ 
+-static struct scatterlist *scsi_alloc_sgtable(struct scsi_cmnd *cmd,
+-								gfp_t gfp_mask)
++static int scsi_alloc_sgtable(struct scsi_data_buffer *sdb,
++					unsigned short sg_count, gfp_t gfp_mask)
+ {
+ 	struct scsi_host_sg_pool *sgp;
+ 	struct scatterlist *sgl, *prev, *ret;
+ 	unsigned int index;
+ 	int this, left;
+ 
+-	BUG_ON(!cmd->use_sg);
+-
+-	left = cmd->use_sg;
++	left = sg_count;
+ 	ret = prev = NULL;
+ 	do {
+ 		this = left;
+@@ -803,8 +801,9 @@ static struct scatterlist *scsi_alloc_sg
+ 	 * ->use_sg may get modified after dma mapping has potentially
+ 	 * shrunk the number of segments, so keep a copy of it for free.
+ 	 */
+-	cmd->__use_sg = cmd->use_sg;
+-	return ret;
++	sdb->alloc_sg_count = sdb->sg_count = sg_count;
++	sdb->sglist = ret;
++	return 0;
+ enomem:
+ 	if (ret) {
+ 		/*
+@@ -823,24 +822,24 @@ enomem:
+ 
+ 		mempool_free(prev, sgp->pool);
+ 	}
+-	return NULL;
++	return -ENOMEM;
+ }
+ 
+-static void scsi_free_sgtable(struct scsi_cmnd *cmd)
++static void scsi_free_sgtable(struct scsi_data_buffer *sdb)
+ {
+-	struct scatterlist *sgl = cmd->request_buffer;
++	struct scatterlist *sgl = sdb->sglist;
+ 	struct scsi_host_sg_pool *sgp;
+ 
+ 	/*
+ 	 * if this is the biggest size sglist, check if we have
+ 	 * chained parts we need to free
+ 	 */
+-	if (cmd->__use_sg > SCSI_MAX_SG_SEGMENTS) {
++	if (sdb->alloc_sg_count > SCSI_MAX_SG_SEGMENTS) {
+ 		unsigned short this, left;
+ 		struct scatterlist *next;
+ 		unsigned int index;
+ 
+-		left = cmd->__use_sg - (SCSI_MAX_SG_SEGMENTS - 1);
++		left = sdb->alloc_sg_count - (SCSI_MAX_SG_SEGMENTS - 1);
+ 		next = sg_chain_ptr(&sgl[SCSI_MAX_SG_SEGMENTS - 1]);
+ 		while (left && next) {
+ 			sgl = next;
+@@ -864,10 +863,10 @@ static void scsi_free_sgtable(struct scs
+ 		/*
+ 		 * Restore original, will be freed below
+ 		 */
+-		sgl = cmd->request_buffer;
++		sgl = sdb->sglist;
+ 		sgp = scsi_sg_pools + SG_MEMPOOL_NR - 1;
+ 	} else
+-		sgp = scsi_sg_pools + scsi_sgtable_index(cmd->__use_sg);
++		sgp = scsi_sg_pools + scsi_sgtable_index(sdb->alloc_sg_count);
+ 
+ 	mempool_free(sgl, sgp->pool);
+ }
+@@ -891,15 +890,10 @@ static void scsi_free_sgtable(struct scs
+  */
+ void scsi_release_buffers(struct scsi_cmnd *cmd)
+ {
+-	if (cmd->use_sg)
+-		scsi_free_sgtable(cmd);
++	if (cmd->sdb.sglist)
++		scsi_free_sgtable(&cmd->sdb);
+ 
+-	/*
+-	 * Zero these out.  They now point to freed memory, and it is
+-	 * dangerous to hang onto the pointers.
+-	 */
+-	cmd->request_buffer = NULL;
+-	cmd->request_bufflen = 0;
++	memset(&cmd->sdb, 0, sizeof(cmd->sdb));
+ }
+ EXPORT_SYMBOL(scsi_release_buffers);
+ 
+@@ -934,7 +928,7 @@ EXPORT_SYMBOL(scsi_release_buffers);
+ void scsi_io_completion(struct scsi_cmnd *cmd, unsigned int good_bytes)
+ {
+ 	int result = cmd->result;
+-	int this_count = cmd->request_bufflen;
++	int this_count = scsi_bufflen(cmd);
+ 	struct request_queue *q = cmd->device->request_queue;
+ 	struct request *req = cmd->request;
+ 	int clear_errors = 1;
+@@ -942,8 +936,6 @@ void scsi_io_completion(struct scsi_cmnd
+ 	int sense_valid = 0;
+ 	int sense_deferred = 0;
+ 
+-	scsi_release_buffers(cmd);
+-
+ 	if (result) {
+ 		sense_valid = scsi_command_normalize_sense(cmd, &sshdr);
+ 		if (sense_valid)
+@@ -966,9 +958,11 @@ void scsi_io_completion(struct scsi_cmnd
+ 				req->sense_len = len;
+ 			}
+ 		}
+-		req->data_len = cmd->resid;
++		req->data_len = scsi_get_resid(cmd);
+ 	}
+ 
++	scsi_release_buffers(cmd);
++
+ 	/*
+ 	 * Next deal with any sectors which we were able to correctly
+ 	 * handle.
+@@ -976,7 +970,6 @@ void scsi_io_completion(struct scsi_cmnd
+ 	SCSI_LOG_HLCOMPLETE(1, printk("%ld sectors total, "
+ 				      "%d bytes done.\n",
+ 				      req->nr_sectors, good_bytes));
+-	SCSI_LOG_HLCOMPLETE(1, printk("use_sg is %d\n", cmd->use_sg));
+ 
+ 	if (clear_errors)
+ 		req->errors = 0;
+@@ -1107,36 +1100,26 @@ int scsi_init_io(struct scsi_cmnd *cmd, 
+ {
+ 	struct request     *req = cmd->request;
+ 	int		   count;
++	struct scsi_data_buffer *sdb = &cmd->sdb;
+ 
+-	/*
+-	 * We used to not use scatter-gather for single segment request,
+-	 * but now we do (it makes highmem I/O easier to support without
+-	 * kmapping pages)
+-	 */
+-	cmd->use_sg = req->nr_phys_segments;
+-
+-	/*
+-	 * If sg table allocation fails, requeue request later.
+-	 */
+-	cmd->request_buffer = scsi_alloc_sgtable(cmd, gfp_mask);
+-	if (unlikely(!cmd->request_buffer)) {
++	if (scsi_alloc_sgtable(sdb, req->nr_phys_segments, gfp_mask)) {
+ 		scsi_unprep_request(req);
+ 		return BLKPREP_DEFER;
+ 	}
+ 
+ 	req->buffer = NULL;
+ 	if (blk_pc_request(req))
+-		cmd->request_bufflen = req->data_len;
++		sdb->length = req->data_len;
+ 	else
+-		cmd->request_bufflen = req->nr_sectors << 9;
++		sdb->length = req->nr_sectors << 9;
+ 
+ 	/* 
+ 	 * Next, walk the list, and fill in the addresses and sizes of
+ 	 * each segment.
+ 	 */
+-	count = blk_rq_map_sg(req->q, req, cmd->request_buffer);
+-	BUG_ON(count > cmd->use_sg);
+-	cmd->use_sg = count;
++	count = blk_rq_map_sg(req->q, req, sdb->sglist);
++	BUG_ON(count > sdb->sg_count);
++	sdb->sg_count = count;
+ 	return BLKPREP_OK;
+ }
+ EXPORT_SYMBOL(scsi_init_io);
+@@ -1192,9 +1175,7 @@ int scsi_setup_blk_pc_cmnd(struct scsi_d
+ 		BUG_ON(req->data_len);
+ 		BUG_ON(req->data);
+ 
+-		cmd->request_bufflen = 0;
+-		cmd->request_buffer = NULL;
+-		cmd->use_sg = 0;
++		memset(&cmd->sdb, 0, sizeof(cmd->sdb));
+ 		req->buffer = NULL;
+ 	}
+ 
+diff -puN drivers/scsi/sd.c~scsi-scsi_data_buffer drivers/scsi/sd.c
+--- a/drivers/scsi/sd.c~scsi-scsi_data_buffer
++++ a/drivers/scsi/sd.c
+@@ -510,7 +510,7 @@ static int sd_prep_fn(struct request_que
+ 		SCpnt->cmnd[4] = (unsigned char) this_count;
+ 		SCpnt->cmnd[5] = 0;
+ 	}
+-	SCpnt->request_bufflen = this_count * sdp->sector_size;
++	SCpnt->sdb.length = this_count * sdp->sector_size;
+ 
+ 	/*
+ 	 * We shouldn't disconnect in the middle of a sector, so with a dumb
+@@ -917,7 +917,7 @@ static struct block_device_operations sd
+ static int sd_done(struct scsi_cmnd *SCpnt)
+ {
+ 	int result = SCpnt->result;
+- 	unsigned int xfer_size = SCpnt->request_bufflen;
++	unsigned int xfer_size = scsi_bufflen(SCpnt);
+  	unsigned int good_bytes = result ? 0 : xfer_size;
+  	u64 start_lba = SCpnt->request->sector;
+  	u64 bad_lba;
+diff -puN drivers/scsi/sr.c~scsi-scsi_data_buffer drivers/scsi/sr.c
+--- a/drivers/scsi/sr.c~scsi-scsi_data_buffer
++++ a/drivers/scsi/sr.c
+@@ -233,7 +233,7 @@ out:
+ static int sr_done(struct scsi_cmnd *SCpnt)
+ {
+ 	int result = SCpnt->result;
+-	int this_count = SCpnt->request_bufflen;
++	int this_count = scsi_bufflen(SCpnt);
+ 	int good_bytes = (result == 0 ? this_count : 0);
+ 	int block_sectors = 0;
+ 	long error_sector;
+@@ -381,17 +381,18 @@ static int sr_prep_fn(struct request_que
+ 	}
+ 
+ 	{
+-		struct scatterlist *sg = SCpnt->request_buffer;
+-		int i, size = 0;
+-		for (i = 0; i < SCpnt->use_sg; i++)
+-			size += sg[i].length;
++		struct scatterlist *sg;
++		int i, size = 0, sg_count = scsi_sg_count(SCpnt);
+ 
+-		if (size != SCpnt->request_bufflen && SCpnt->use_sg) {
++		scsi_for_each_sg(SCpnt, sg, sg_count, i)
++			size += sg->length;
++
++		if (size != scsi_bufflen(SCpnt)) {
+ 			scmd_printk(KERN_ERR, SCpnt,
+ 				"mismatch count %d, bytes %d\n",
+-				size, SCpnt->request_bufflen);
+-			if (SCpnt->request_bufflen > size)
+-				SCpnt->request_bufflen = size;
++				size, scsi_bufflen(SCpnt));
++			if (scsi_bufflen(SCpnt) > size)
++				SCpnt->sdb.length = size;
+ 		}
+ 	}
+ 
+@@ -399,12 +400,12 @@ static int sr_prep_fn(struct request_que
+ 	 * request doesn't start on hw block boundary, add scatter pads
+ 	 */
+ 	if (((unsigned int)rq->sector % (s_size >> 9)) ||
+-	    (SCpnt->request_bufflen % s_size)) {
++	    (scsi_bufflen(SCpnt) % s_size)) {
+ 		scmd_printk(KERN_NOTICE, SCpnt, "unaligned transfer\n");
+ 		goto out;
+ 	}
+ 
+-	this_count = (SCpnt->request_bufflen >> 9) / (s_size >> 9);
++	this_count = (scsi_bufflen(SCpnt) >> 9) / (s_size >> 9);
+ 
+ 
+ 	SCSI_LOG_HLQUEUE(2, printk("%s : %s %d/%ld 512 byte blocks.\n",
+@@ -418,7 +419,7 @@ static int sr_prep_fn(struct request_que
+ 
+ 	if (this_count > 0xffff) {
+ 		this_count = 0xffff;
+-		SCpnt->request_bufflen = this_count * s_size;
++		SCpnt->sdb.length = this_count * s_size;
+ 	}
+ 
+ 	SCpnt->cmnd[2] = (unsigned char) (block >> 24) & 0xff;
+diff -puN drivers/usb/storage/isd200.c~scsi-scsi_data_buffer drivers/usb/storage/isd200.c
+--- a/drivers/usb/storage/isd200.c~scsi-scsi_data_buffer
++++ a/drivers/usb/storage/isd200.c
+@@ -415,14 +415,14 @@ static void isd200_set_srb(struct isd200
+ 		sg_init_one(&info->sg, buff, bufflen);
+ 
+ 	srb->sc_data_direction = dir;
+-	srb->request_buffer = buff ? &info->sg : NULL;
+-	srb->request_bufflen = bufflen;
+-	srb->use_sg = buff ? 1 : 0;
++	srb->sdb.sglist = buff ? &info->sg : NULL;
++	srb->sdb.length = bufflen;
++	srb->sdb.sg_count = buff ? 1 : 0;
+ }
+ 
+ static void isd200_srb_set_bufflen(struct scsi_cmnd *srb, unsigned bufflen)
+ {
+-	srb->request_bufflen = bufflen;
++	srb->sdb.length = bufflen;
+ }
+ 
+ 
+diff -puN include/scsi/scsi_cmnd.h~scsi-scsi_data_buffer include/scsi/scsi_cmnd.h
+--- a/include/scsi/scsi_cmnd.h~scsi-scsi_data_buffer
++++ a/include/scsi/scsi_cmnd.h
+@@ -12,6 +12,13 @@ struct scatterlist;
+ struct Scsi_Host;
+ struct scsi_device;
+ 
++struct scsi_data_buffer {
++	struct scatterlist *sglist;
++	unsigned length;
++	int resid;
++	unsigned short sg_count;
++	unsigned short alloc_sg_count; /* private to scsi_lib */
++};
+ 
+ /* embedded in scsi_cmnd */
+ struct scsi_pointer {
+@@ -62,15 +69,10 @@ struct scsi_cmnd {
+ 	/* These elements define the operation we are about to perform */
+ #define MAX_COMMAND_SIZE	16
+ 	unsigned char cmnd[MAX_COMMAND_SIZE];
+-	unsigned request_bufflen;	/* Actual request size */
+ 
+ 	struct timer_list eh_timeout;	/* Used to time out the command. */
+-	void *request_buffer;		/* Actual requested buffer */
+ 
+ 	/* These elements define the operation we ultimately want to perform */
+-	unsigned short use_sg;	/* Number of pieces of scatter-gather */
+-	unsigned short __use_sg;
+-
+ 	unsigned underflow;	/* Return error if less than
+ 				   this amount is transferred */
+ 
+@@ -80,10 +82,6 @@ struct scsi_cmnd {
+ 				   reconnects.   Probably == sector
+ 				   size */
+ 
+-	int resid;		/* Number of bytes requested to be
+-				   transferred less actual number
+-				   transferred (0 if not supported) */
+-
+ 	struct request *request;	/* The command we are
+ 				   	   working on */
+ 
+@@ -114,6 +112,8 @@ struct scsi_cmnd {
+ 	int result;		/* Status code from lower level driver */
+ 
+ 	unsigned char tag;	/* SCSI-II queued command tag */
++
++	struct scsi_data_buffer sdb;
+ };
+ 
+ extern struct scsi_cmnd *scsi_get_command(struct scsi_device *, gfp_t);
+@@ -134,18 +134,29 @@ extern void scsi_release_buffers(struct 
+ extern int scsi_dma_map(struct scsi_cmnd *cmd);
+ extern void scsi_dma_unmap(struct scsi_cmnd *cmd);
+ 
+-#define scsi_sg_count(cmd) ((cmd)->use_sg)
+-#define scsi_sglist(cmd) ((struct scatterlist *)(cmd)->request_buffer)
+-#define scsi_bufflen(cmd) ((cmd)->request_bufflen)
++static inline unsigned scsi_sg_count(struct scsi_cmnd *cmd)
++{
++	return cmd->sdb.sg_count;
++}
++
++static inline struct scatterlist *scsi_sglist(struct scsi_cmnd *cmd)
++{
++	return cmd->sdb.sglist;
++}
++
++static inline unsigned scsi_bufflen(struct scsi_cmnd *cmd)
++{
++	return cmd->sdb.length;
++}
+ 
+ static inline void scsi_set_resid(struct scsi_cmnd *cmd, int resid)
+ {
+-	cmd->resid = resid;
++	cmd->sdb.resid = resid;
+ }
+ 
+ static inline int scsi_get_resid(struct scsi_cmnd *cmd)
+ {
+-	return cmd->resid;
++	return cmd->sdb.resid;
+ }
+ 
+ #define scsi_for_each_sg(cmd, sg, nseg, __i)			\
+diff -puN include/scsi/scsi_eh.h~scsi-scsi_data_buffer include/scsi/scsi_eh.h
+--- a/include/scsi/scsi_eh.h~scsi-scsi_data_buffer
++++ a/include/scsi/scsi_eh.h
+@@ -68,16 +68,14 @@ extern int scsi_get_sense_info_fld(const
+ extern int scsi_reset_provider(struct scsi_device *, int);
+ 
+ struct scsi_eh_save {
++	/* saved state */
+ 	int result;
+ 	enum dma_data_direction data_direction;
+ 	unsigned char cmd_len;
+ 	unsigned char cmnd[MAX_COMMAND_SIZE];
++	struct scsi_data_buffer sdb;
+ 
+-	void *buffer;
+-	unsigned bufflen;
+-	unsigned short use_sg;
+-	int resid;
+-
++	/* new command support */
+ 	struct scatterlist sense_sgl;
+ };
+ 
+diff -puN include/scsi/scsi_host.h~scsi-scsi_data_buffer include/scsi/scsi_host.h
+--- a/include/scsi/scsi_host.h~scsi-scsi_data_buffer
++++ a/include/scsi/scsi_host.h
+@@ -136,9 +136,9 @@ struct scsi_host_template {
+ 	 * the done callback is invoked.
+ 	 *
+ 	 * This is called to inform the LLD to transfer
+-	 * cmd->request_bufflen bytes. The cmd->use_sg speciefies the
++	 * scsi_bufflen(cmd) bytes. scsi_sg_count(cmd) speciefies the
+ 	 * number of scatterlist entried in the command and
+-	 * cmd->request_buffer contains the scatterlist.
++	 * scsi_sglist(cmd) returns the scatterlist.
+ 	 *
+ 	 * return values: see queuecommand
+ 	 *
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bharrosh@panasas.com are
 
-origin.patch
-hugetlbfs-fix-quota-leak.patch
-pl2303-fix-mode-switching-regression-fix.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes.patch
-timerfd-v3-new-timerfd-api-ia64-fix.patch
-timerfd-v3-new-timerfd-api-m68k-fix.patch
-timerfd-v3-new-timerfd-api-mips-fix.patch
-timerfd-v3-new-timerfd-api-arch-fixes.patch
-timerfd-v3-new-timerfd-api-powerpc-fix.patch
-timerfd-v3-new-timerfd-api-sparc64-fix.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-agpgart-intel-agp-dont-zero-an-already-registered-resource-during-resume.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-git-audit-master.patch
-git-cifs.patch
-git-cpufreq.patch
-git-powerpc.patch
-git-powerpc-fixup.patch
-revert-gregkh-driver-atm-convert-struct-class_device-to-struct-device.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
-pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes.patch
-pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes-2.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-intel-agp-enable-i915-recognition.patch
-drm-convert-from-nopage-to-fault-checkpatch-fixes.patch
-git-dvb.patch
-fix-jdelvare-i2c-i2c-constify-client-address-data.patch
-hwmon-new-chip-driver-for-ti-ads7828-a-d-checkpatch-fixes.patch
-git-hid.patch
-revert-git-hrt.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-versus-driver-tree.patch
-git-kbuild.patch
-git-kvm.patch
-git-libata-all.patch
-git-libata-all-fix-pata_winbond-borkage.patch
-git-libata-all-wtf.patch
-libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
-libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
-libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
-git-md-accel.patch
-git-mmc.patch
-git-mtd.patch
-git-net.patch
-git-net-vs-git-lblnet.patch
-git-net-vs-git-lblnet-2.patch
-git-netdev-all.patch
-git-net-vs-git-netdev-all.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-backlight-omap1-backlight-driver.patch
-git-battery.patch
-bluetooth-uninlining.patch
-net-sunrpc-schedc-revert-git-net-changes.patch
-net-sunrpc-schedc-reapply-git-net-changes.patch
-net-sunrpc-svcsockc-revert-git-nfs-changes.patch
-git-nfsd.patch
-git-nfsd-fixup.patch
-serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
-git-sched.patch
-git-sched-fixup.patch
-git-sh.patch
 git-scsi-misc.patch
-scsi-aic94xx-cleanups-checkpatch-fixes.patch
-scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
-9p-util-fix-semaphore-handling.patch
-git-watchdog.patch
-git-watchdog-fixup.patch
-wdt-fix-locking-checkpatch-fixes.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-arch-x86-makefile-revert-git-kvm-change.patch
-git-x86.patch
-arch-x86-makefile-reapply-git-kvm-change.patch
-git-x86-fixup.patch
-git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
-git-x86-fix-doubly-merged-patch.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-git-newsetup.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-git-xtensa.patch
-bonding-locking-fix.patch
-usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-add-proc-kpagecount-interface-fix.patch
-maps4-add-proc-kpageflags-interface-fix.patch
-maps4-add-proc-kpageflags-interface-fix-2-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-mm-remove-fastcall-from-mm-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
-kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
-stopmachine-semaphore-to-mutex-fix.patch
-parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
-debug_smp_processor_id-fixlets.patch
-use-ilog2-in-fs-namespacec-fix.patch
-avoid-overflows-in-kernel-timec-fix.patch
-export-iov_shorten-for-ext4s-use-fix.patch
-system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
-speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
-add-have_oprofile.patch
-ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-rtc-add-support-for-the-s-35390a-rtc-chip.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-neofb-avoid-overwriting-fb_info-fields.patch
-vermilionc-use-align-not-__align_mask.patch
-declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
-ext4-mm-ext4_store_maxbytes_for_bitmaped_files-warning-fix.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
-hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
-cpusets-update_cpumask-revision-fix.patch
-cpusets-update_cpumask-revision-checkpatch-fixes.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
-proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-pid-sys_wait-fixes-v2-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-rewrite-rd-fixes.patch
-fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
-kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
-lib-remove-fastcall-from-lib-checkpatch-fixes.patch
-remove-fastcall-from-linux-include-checkpatch-fixes.patch
-constify-tables-in-kernel-sysctl_checkc-fix.patch
-aoe-statically-initialise-devlist_lock.patch
-provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc-fix.patch
-ufs-fix-symlink-creation-on-ufs2-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+scsi-scsi_data_buffer.patch
+scsi-pending-arm-convert-to-accessors.patch
+scsi-bidi-support.patch
+git-block.patch
