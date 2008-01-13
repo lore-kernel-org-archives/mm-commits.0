@@ -1,174 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: - printk_ratelimit-functions-should-use-config_printk.patch removed from -mm tree
-Date: Sun, 13 Jan 2008 03:27:55 -0800
-Message-ID: <200801131127.m0DBRawu009627@imap1.linux-foundation.org>
+Subject: - fat-optimize-fat_count_free_clusters.patch removed from -mm tree
+Date: Sun, 13 Jan 2008 03:32:53 -0800
+Message-ID: <200801131132.m0DBWXmE009780@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51932 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36561 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751323AbYAML2M (ORCPT
+	by vger.kernel.org with ESMTP id S1751300AbYAMLch (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Jan 2008 06:28:12 -0500
+	Sun, 13 Jan 2008 06:32:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mingo@elte.hu, mpm@selenic.com, mm-commits@vger.kernel.org
+To: hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     printk_ratelimit functions should use CONFIG_PRINTK
+     fat: optimize fat_count_free_clusters()
 has been removed from the -mm tree.  Its filename was
-     printk_ratelimit-functions-should-use-config_printk.patch
+     fat-optimize-fat_count_free_clusters.patch
 
-This patch was dropped because either git-sched or git-x86 wrecked it
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: printk_ratelimit functions should use CONFIG_PRINTK
-From: Joe Perches <joe@perches.com>
+Subject: fat: optimize fat_count_free_clusters()
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 
-Makes an embedded image a bit smaller
+On large partition, scanning the free clusters is very slow if users
+doesn't use "usefree" option.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Matt Mackall <mpm@selenic.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+For optimizing it, this patch uses sb_breadahead() to read of FAT
+sectors. On some user's 15GB partition, this patch improved it very
+much (1min => 600ms).
+
+The following is the result of 2GB partition on my machine.
+
+without patch:
+	root@devron (/)# time df -h > /dev/null
+
+	real    0m1.202s
+	user    0m0.000s
+	sys     0m0.440s
+
+with patch:
+	root@devron (/)# time df -h > /dev/null
+
+	real    0m0.378s
+	user    0m0.012s
+	sys     0m0.168s
+
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |   20 +++++++++++++++-----
- kernel/printk.c        |    2 ++
- kernel/sysctl.c        |   20 ++++++++++----------
- 3 files changed, 27 insertions(+), 15 deletions(-)
+ fs/fat/fatent.c |   28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
-diff -puN include/linux/kernel.h~printk_ratelimit-functions-should-use-config_printk include/linux/kernel.h
---- a/include/linux/kernel.h~printk_ratelimit-functions-should-use-config_printk
-+++ a/include/linux/kernel.h
-@@ -182,6 +182,13 @@ asmlinkage int printk(const char * fmt, 
- extern int log_buf_get_len(void);
- extern int log_buf_read(int idx);
- extern int log_buf_copy(char *dest, int idx, int len);
-+
-+extern int printk_ratelimit_jiffies;
-+extern int printk_ratelimit_burst;
-+extern int printk_ratelimit(void);
-+extern int __printk_ratelimit(int ratelimit_jiffies, int ratelimit_burst);
-+extern bool printk_timed_ratelimit(unsigned long *caller_jiffies,
-+				   unsigned int interval_msec);
- #else
- static inline int vprintk(const char *s, va_list args)
- 	__attribute__ ((format (printf, 1, 0)));
-@@ -192,15 +199,18 @@ static inline int __cold printk(const ch
- static inline int log_buf_get_len(void) { return 0; }
- static inline int log_buf_read(int idx) { return 0; }
- static inline int log_buf_copy(char *dest, int idx, int len) { return 0; }
-+
-+static inline int printk_ratelimit(void) { return 0; }
-+static inline int __printk_ratelimit(int ratelimit_jiffies, \
-+				     int ratelimit_burst) { return 0; }
-+static inline bool printk_timed_ratelimit(unsigned long *caller_jiffies, \
-+					  unsigned int interval_msec)	\
-+		{ return false; }
-+
- #endif
+diff -puN fs/fat/fatent.c~fat-optimize-fat_count_free_clusters fs/fat/fatent.c
+--- a/fs/fat/fatent.c~fat-optimize-fat_count_free_clusters
++++ a/fs/fat/fatent.c
+@@ -590,21 +590,49 @@ error:
  
- unsigned long int_sqrt(unsigned long);
+ EXPORT_SYMBOL_GPL(fat_free_clusters);
  
--extern int printk_ratelimit(void);
--extern int __printk_ratelimit(int ratelimit_jiffies, int ratelimit_burst);
--extern bool printk_timed_ratelimit(unsigned long *caller_jiffies,
--				unsigned int interval_msec);
--
- static inline void console_silent(void)
++/* 128kb is the whole sectors for FAT12 and FAT16 */
++#define FAT_READA_SIZE		(128 * 1024)
++
++static void fat_ent_reada(struct super_block *sb, struct fat_entry *fatent,
++			  unsigned long reada_blocks)
++{
++	struct fatent_operations *ops = MSDOS_SB(sb)->fatent_ops;
++	sector_t blocknr;
++	int i, offset;
++
++	ops->ent_blocknr(sb, fatent->entry, &offset, &blocknr);
++
++	for (i = 0; i < reada_blocks; i++)
++		sb_breadahead(sb, blocknr + i);
++}
++
+ int fat_count_free_clusters(struct super_block *sb)
  {
- 	console_loglevel = 0;
-diff -puN kernel/printk.c~printk_ratelimit-functions-should-use-config_printk kernel/printk.c
---- a/kernel/printk.c~printk_ratelimit-functions-should-use-config_printk
-+++ a/kernel/printk.c
-@@ -1258,6 +1258,7 @@ void tty_write_message(struct tty_struct
- 	return;
- }
+ 	struct msdos_sb_info *sbi = MSDOS_SB(sb);
+ 	struct fatent_operations *ops = sbi->fatent_ops;
+ 	struct fat_entry fatent;
++	unsigned long reada_blocks, reada_mask, cur_block;
+ 	int err = 0, free;
  
-+#if defined CONFIG_PRINTK
- /*
-  * printk rate limiting, lifted from the networking subsystem.
-  *
-@@ -1327,3 +1328,4 @@ bool printk_timed_ratelimit(unsigned lon
- 	return false;
- }
- EXPORT_SYMBOL(printk_timed_ratelimit);
-+#endif
-diff -puN kernel/sysctl.c~printk_ratelimit-functions-should-use-config_printk kernel/sysctl.c
---- a/kernel/sysctl.c~printk_ratelimit-functions-should-use-config_printk
-+++ a/kernel/sysctl.c
-@@ -73,8 +73,6 @@ extern int suid_dumpable;
- extern char core_pattern[];
- extern int pid_max;
- extern int min_free_kbytes;
--extern int printk_ratelimit_jiffies;
--extern int printk_ratelimit_burst;
- extern int pid_max_min, pid_max_max;
- extern int sysctl_drop_caches;
- extern int percpu_pagelist_fraction;
-@@ -475,14 +473,6 @@ static struct ctl_table kern_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= &proc_dointvec,
- 	},
--	{
--		.ctl_name	= KERN_PRINTK,
--		.procname	= "printk",
--		.data		= &console_loglevel,
--		.maxlen		= 4*sizeof(int),
--		.mode		= 0644,
--		.proc_handler	= &proc_dointvec,
--	},
- #ifdef CONFIG_KMOD
- 	{
- 		.ctl_name	= KERN_MODPROBE,
-@@ -629,6 +619,15 @@ static struct ctl_table kern_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= &proc_dointvec,
- 	},
-+#if defined CONFIG_PRINTK
-+	{
-+		.ctl_name	= KERN_PRINTK,
-+		.procname	= "printk",
-+		.data		= &console_loglevel,
-+		.maxlen		= 4*sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec,
-+	},
- 	{
- 		.ctl_name	= KERN_PRINTK_RATELIMIT,
- 		.procname	= "printk_ratelimit",
-@@ -646,6 +645,7 @@ static struct ctl_table kern_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= &proc_dointvec,
- 	},
-+#endif
- 	{
- 		.ctl_name	= KERN_NGROUPS_MAX,
- 		.procname	= "ngroups_max",
+ 	lock_fat(sbi);
+ 	if (sbi->free_clusters != -1)
+ 		goto out;
+ 
++	reada_blocks = FAT_READA_SIZE >> sb->s_blocksize_bits;
++	reada_mask = reada_blocks - 1;
++	cur_block = 0;
++
+ 	free = 0;
+ 	fatent_init(&fatent);
+ 	fatent_set_entry(&fatent, FAT_START_ENT);
+ 	while (fatent.entry < sbi->max_cluster) {
++		/* readahead of fat blocks */
++		if ((cur_block & reada_mask) == 0) {
++			unsigned long rest = sbi->fat_length - cur_block;
++			fat_ent_reada(sb, &fatent, min(reada_blocks, rest));
++		}
++		cur_block++;
++
+ 		err = fat_ent_read_block(sb, &fatent);
+ 		if (err)
+ 			goto out;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
 
-git-alsa.patch
-git-cpufreq.patch
-git-powerpc.patch
-git-dvb.patch
-git-hwmon.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-jfs.patch
-git-kvm.patch
-git-net.patch
-git-netdev-all.patch
-git-selinux.patch
-git-s390.patch
-git-sh.patch
-git-unionfs.patch
-git-x86.patch
-uml-add-missing-space.patch
-uml-style-fixes-in-arch-um-kernel.patch
-printk_ratelimit-functions-should-use-config_printk.patch
-maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources.patch
+origin.patch
+fs-fat-refine-chmod-checks.patch
+fat-fix-printk-format-strings.patch
+iget-stop-fat-from-using-iget-and-read_inode-try.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-fix.patch
