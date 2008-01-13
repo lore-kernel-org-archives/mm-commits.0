@@ -1,376 +1,306 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-bidi-support.patch removed from -mm tree
-Date: Sun, 13 Jan 2008 03:17:03 -0800
-Message-ID: <200801131116.m0DBGhY4009267@imap1.linux-foundation.org>
+Subject: - arch-x86-makefile-reapply-git-kvm-change.patch removed from -mm tree
+Date: Sun, 13 Jan 2008 03:19:45 -0800
+Message-ID: <200801131119.m0DBJPV3009318@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58622 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34192 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751307AbYAMLTy (ORCPT
+	by vger.kernel.org with ESMTP id S1751323AbYAMLUP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Jan 2008 06:19:54 -0500
+	Sun, 13 Jan 2008 06:20:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bharrosh@panasas.com, James.Bottomley@steeleye.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, avi@qumranet.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: bidi support
+     arch-x86-makefile-reapply-git-kvm-change
 has been removed from the -mm tree.  Its filename was
-     scsi-bidi-support.patch
+     arch-x86-makefile-reapply-git-kvm-change.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: bidi support
-From: Boaz Harrosh <bharrosh@panasas.com>
+Subject: arch-x86-makefile-reapply-git-kvm-change
+From: Andrew Morton <akpm@linux-foundation.org>
 
-  At the block level bidi request uses req->next_rq pointer for a second
-  bidi_read request.
-  At Scsi-midlayer a second scsi_data_buffer structure is used for the
-  bidi_read part. This bidi scsi_data_buffer is put on
-  request->next_rq->special. Struct scsi_cmnd is not changed.
-
-  - Define scsi_bidi_cmnd() to return true if it is a bidi request and a
-    second sgtable was allocated.
-
-  - Define scsi_in()/scsi_out() to return the in or out scsi_data_buffer
-    from this command This API is to isolate users from the mechanics of
-    bidi.
-
-  - Define scsi_end_bidi_request() to do what scsi_end_request() does but
-    for a bidi request. This is necessary because bidi commands are a bit
-    tricky here. (See comments in body)
-
-  - scsi_release_buffers() will also release the bidi_read scsi_data_buffer
-
-  - scsi_io_completion() on bidi commands will now call
-    scsi_end_bidi_request() and return.
-
-  - The previous work done in scsi_init_io() is now done in a new
-    scsi_init_sgtable() (which is 99% identical to old scsi_init_io())
-    The new scsi_init_io() will call the above twice if needed also for
-    the bidi_read command. Only at this point is a command bidi.
-
-  - In scsi_error.c at scsi_eh_prep/restore_cmnd() make sure bidi-lld is not
-    confused by a get-sense command that looks like bidi. This is done
-    by puting NULL at request->next_rq, and restoring.
-
-Signed-off-by: Boaz Harrosh <bharrosh@panasas.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Avi Kivity <avi@qumranet.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_error.c |    3 
- drivers/scsi/scsi_lib.c   |  144 ++++++++++++++++++++++++++++--------
- include/scsi/scsi_cmnd.h  |   23 +++++
- include/scsi/scsi_eh.h    |    1 
- 4 files changed, 141 insertions(+), 30 deletions(-)
+ arch/x86/Makefile |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/scsi/scsi_error.c~scsi-bidi-support drivers/scsi/scsi_error.c
---- a/drivers/scsi/scsi_error.c~scsi-bidi-support
-+++ a/drivers/scsi/scsi_error.c
-@@ -618,9 +618,11 @@ void scsi_eh_prep_cmnd(struct scsi_cmnd 
- 	memcpy(ses->cmnd, scmd->cmnd, sizeof(scmd->cmnd));
- 	ses->data_direction = scmd->sc_data_direction;
- 	ses->sdb = scmd->sdb;
-+	ses->next_rq = scmd->request->next_rq;
- 	ses->result = scmd->result;
+diff -puN arch/x86/Makefile~arch-x86-makefile-reapply-git-kvm-change arch/x86/Makefile
+--- a/arch/x86/Makefile~arch-x86-makefile-reapply-git-kvm-change
++++ a/arch/x86/Makefile
+@@ -7,6 +7,8 @@ else
+         KBUILD_DEFCONFIG := $(ARCH)_defconfig
+ endif
  
- 	memset(&scmd->sdb, 0, sizeof(scmd->sdb));
-+	scmd->request->next_rq = NULL;
- 
- 	if (sense_bytes) {
- 		scmd->sdb.length = min_t(unsigned,
-@@ -673,6 +675,7 @@ void scsi_eh_restore_cmnd(struct scsi_cm
- 	memcpy(scmd->cmnd, ses->cmnd, sizeof(scmd->cmnd));
- 	scmd->sc_data_direction = ses->data_direction;
- 	scmd->sdb = ses->sdb;
-+	scmd->request->next_rq = ses->next_rq;
- 	scmd->result = ses->result;
- }
- EXPORT_SYMBOL(scsi_eh_restore_cmnd);
-diff -puN drivers/scsi/scsi_lib.c~scsi-bidi-support drivers/scsi/scsi_lib.c
---- a/drivers/scsi/scsi_lib.c~scsi-bidi-support
-+++ a/drivers/scsi/scsi_lib.c
-@@ -64,6 +64,8 @@ static struct scsi_host_sg_pool scsi_sg_
- };
- #undef SP
- 
-+static struct kmem_cache *scsi_bidi_sdb_cache;
++core-$(CONFIG_KVM) += arch/x86/kvm/
 +
- static void scsi_run_queue(struct request_queue *q);
- 
- /*
-@@ -627,6 +629,28 @@ void scsi_run_host_queues(struct Scsi_Ho
- 		scsi_run_queue(sdev->request_queue);
- }
- 
-+static void scsi_finalize_request(struct scsi_cmnd *cmd, int uptodate)
-+{
-+	struct request_queue *q = cmd->device->request_queue;
-+	struct request *req = cmd->request;
-+	unsigned long flags;
-+
-+	add_disk_randomness(req->rq_disk);
-+
-+	spin_lock_irqsave(q->queue_lock, flags);
-+	if (blk_rq_tagged(req))
-+		blk_queue_end_tag(q, req);
-+
-+	end_that_request_last(req, uptodate);
-+	spin_unlock_irqrestore(q->queue_lock, flags);
-+
-+	/*
-+	 * This will goose the queue request function at the end, so we don't
-+	 * need to worry about launching another command.
-+	 */
-+	scsi_next_command(cmd);
-+}
-+
- /*
-  * Function:    scsi_end_request()
-  *
-@@ -654,7 +678,6 @@ static struct scsi_cmnd *scsi_end_reques
- {
- 	struct request_queue *q = cmd->device->request_queue;
- 	struct request *req = cmd->request;
--	unsigned long flags;
- 
- 	/*
- 	 * If there are blocks left over at the end, set up the command
-@@ -683,19 +706,7 @@ static struct scsi_cmnd *scsi_end_reques
- 		}
- 	}
- 
--	add_disk_randomness(req->rq_disk);
--
--	spin_lock_irqsave(q->queue_lock, flags);
--	if (blk_rq_tagged(req))
--		blk_queue_end_tag(q, req);
--	end_that_request_last(req, uptodate);
--	spin_unlock_irqrestore(q->queue_lock, flags);
--
--	/*
--	 * This will goose the queue request function at the end, so we don't
--	 * need to worry about launching another command.
--	 */
--	scsi_next_command(cmd);
-+	scsi_finalize_request(cmd, uptodate);
- 	return NULL;
- }
- 
-@@ -894,10 +905,39 @@ void scsi_release_buffers(struct scsi_cm
- 		scsi_free_sgtable(&cmd->sdb);
- 
- 	memset(&cmd->sdb, 0, sizeof(cmd->sdb));
-+
-+	if (scsi_bidi_cmnd(cmd)) {
-+		struct scsi_data_buffer *bidi_sdb =
-+			cmd->request->next_rq->special;
-+		scsi_free_sgtable(bidi_sdb);
-+		kmem_cache_free(scsi_bidi_sdb_cache, bidi_sdb);
-+		cmd->request->next_rq->special = NULL;
-+	}
- }
- EXPORT_SYMBOL(scsi_release_buffers);
- 
- /*
-+ * Bidi commands Must be complete as a whole, both sides at once.
-+ * If part of the bytes were written and lld returned
-+ * scsi_in()->resid and/or scsi_out()->resid this information will be left
-+ * in req->data_len and req->next_rq->data_len. The upper-layer driver can
-+ * decide what to do with this information.
-+ */
-+void scsi_end_bidi_request(struct scsi_cmnd *cmd)
-+{
-+	struct request *req = cmd->request;
-+
-+	end_that_request_chunk(req, 1, req->data_len);
-+	req->data_len = scsi_out(cmd)->resid;
-+
-+	end_that_request_chunk(req->next_rq, 1, req->next_rq->data_len);
-+	req->next_rq->data_len = scsi_in(cmd)->resid;
-+
-+	scsi_release_buffers(cmd);
-+	scsi_finalize_request(cmd, 1);
-+}
-+
-+/*
-  * Function:    scsi_io_completion()
-  *
-  * Purpose:     Completion processing for block device I/O requests.
-@@ -958,9 +998,15 @@ void scsi_io_completion(struct scsi_cmnd
- 				req->sense_len = len;
- 			}
- 		}
-+		if (scsi_bidi_cmnd(cmd)) {
-+			/* will also release_buffers */
-+			scsi_end_bidi_request(cmd);
-+			return;
-+		}
- 		req->data_len = scsi_get_resid(cmd);
- 	}
- 
-+	BUG_ON(blk_bidi_rq(req)); /* bidi not support for !blk_pc_request yet */
- 	scsi_release_buffers(cmd);
- 
- 	/*
-@@ -1086,24 +1132,12 @@ void scsi_io_completion(struct scsi_cmnd
- 	scsi_end_request(cmd, 0, this_count, !result);
- }
- 
--/*
-- * Function:    scsi_init_io()
-- *
-- * Purpose:     SCSI I/O initialize function.
-- *
-- * Arguments:   cmd   - Command descriptor we wish to initialize
-- *
-- * Returns:     0 on success
-- *		BLKPREP_DEFER if the failure is retryable
-- */
--int scsi_init_io(struct scsi_cmnd *cmd, gfp_t gfp_mask)
-+static int scsi_init_sgtable(struct request *req, struct scsi_data_buffer *sdb,
-+								 gfp_t gfp_mask)
- {
--	struct request     *req = cmd->request;
--	int		   count;
--	struct scsi_data_buffer *sdb = &cmd->sdb;
-+	int count;
- 
- 	if (scsi_alloc_sgtable(sdb, req->nr_phys_segments, gfp_mask)) {
--		scsi_unprep_request(req);
- 		return BLKPREP_DEFER;
- 	}
- 
-@@ -1122,6 +1156,50 @@ int scsi_init_io(struct scsi_cmnd *cmd, 
- 	sdb->sg_count = count;
- 	return BLKPREP_OK;
- }
-+
-+/*
-+ * Function:    scsi_init_io()
-+ *
-+ * Purpose:     SCSI I/O initialize function.
-+ *
-+ * Arguments:   cmd   - Command descriptor we wish to initialize
-+ *
-+ * Returns:     0 on success
-+ *		BLKPREP_DEFER if the failure is retryable
-+ *		BLKPREP_KILL if the failure is fatal
-+ */
-+int scsi_init_io(struct scsi_cmnd *cmd, gfp_t gfp_mask)
-+{
-+	int error = scsi_init_sgtable(cmd->request, &cmd->sdb, gfp_mask);
-+	if (error)
-+		goto err_exit;
-+
-+	if (blk_bidi_rq(cmd->request)) {
-+		struct scsi_data_buffer *bidi_sdb = kmem_cache_zalloc(
-+			scsi_bidi_sdb_cache, GFP_ATOMIC);
-+		if (!bidi_sdb) {
-+			error = BLKPREP_DEFER;
-+			goto err_exit;
-+		}
-+
-+		cmd->request->next_rq->special = bidi_sdb;
-+		error = scsi_init_sgtable(cmd->request->next_rq, bidi_sdb,
-+								    GFP_ATOMIC);
-+		if (error)
-+			goto err_exit;
-+	}
-+
-+	return BLKPREP_OK ;
-+
-+err_exit:
-+	scsi_release_buffers(cmd);
-+	if (error == BLKPREP_KILL)
-+		scsi_put_command(cmd);
-+	else /* BLKPREP_DEFER */
-+		scsi_unprep_request(cmd->request);
-+
-+	return error;
-+}
- EXPORT_SYMBOL(scsi_init_io);
- 
- static struct scsi_cmnd *scsi_get_cmd_from_req(struct scsi_device *sdev,
-@@ -1731,6 +1809,14 @@ int __init scsi_init_queue(void)
- 		return -ENOMEM;
- 	}
- 
-+	scsi_bidi_sdb_cache = kmem_cache_create("scsi_bidi_sdb",
-+					sizeof(struct scsi_data_buffer),
-+					0, 0, NULL);
-+	if (!scsi_bidi_sdb_cache) {
-+		printk(KERN_ERR "SCSI: can't init scsi bidi sdb cache\n");
-+		return -ENOMEM;
-+	}
-+
- 	for (i = 0; i < SG_MEMPOOL_NR; i++) {
- 		struct scsi_host_sg_pool *sgp = scsi_sg_pools + i;
- 		int size = sgp->size * sizeof(struct scatterlist);
-diff -puN include/scsi/scsi_cmnd.h~scsi-bidi-support include/scsi/scsi_cmnd.h
---- a/include/scsi/scsi_cmnd.h~scsi-bidi-support
-+++ a/include/scsi/scsi_cmnd.h
-@@ -2,12 +2,12 @@
- #define _SCSI_SCSI_CMND_H
- 
- #include <linux/dma-mapping.h>
-+#include <linux/blkdev.h>
- #include <linux/list.h>
- #include <linux/types.h>
- #include <linux/timer.h>
- #include <linux/scatterlist.h>
- 
--struct request;
- struct scatterlist;
- struct Scsi_Host;
- struct scsi_device;
-@@ -162,4 +162,25 @@ static inline int scsi_get_resid(struct 
- #define scsi_for_each_sg(cmd, sg, nseg, __i)			\
- 	for_each_sg(scsi_sglist(cmd), sg, nseg, __i)
- 
-+static inline int scsi_bidi_cmnd(struct scsi_cmnd *cmd)
-+{
-+	return blk_bidi_rq(cmd->request) &&
-+		(cmd->request->next_rq->special != NULL);
-+}
-+
-+static inline struct scsi_data_buffer *scsi_in(struct scsi_cmnd *cmd)
-+{
-+	WARN_ON((cmd->sc_data_direction != DMA_FROM_DEVICE) &&
-+							!scsi_bidi_cmnd(cmd));
-+	return scsi_bidi_cmnd(cmd) ?
-+		cmd->request->next_rq->special : &cmd->sdb;
-+}
-+
-+static inline struct scsi_data_buffer *scsi_out(struct scsi_cmnd *cmd)
-+{
-+	WARN_ON((cmd->sc_data_direction != DMA_TO_DEVICE) &&
-+							!scsi_bidi_cmnd(cmd));
-+	return &cmd->sdb;
-+}
-+
- #endif /* _SCSI_SCSI_CMND_H */
-diff -puN include/scsi/scsi_eh.h~scsi-bidi-support include/scsi/scsi_eh.h
---- a/include/scsi/scsi_eh.h~scsi-bidi-support
-+++ a/include/scsi/scsi_eh.h
-@@ -74,6 +74,7 @@ struct scsi_eh_save {
- 	unsigned char cmd_len;
- 	unsigned char cmnd[MAX_COMMAND_SIZE];
- 	struct scsi_data_buffer sdb;
-+	struct request *next_rq;
- 
- 	/* new command support */
- 	struct scatterlist sense_sgl;
+ # BITS is used as extension for files which are available in a 32 bit
+ # and a 64 bit version to simplify shared Makefiles.
+ # e.g.: obj-y += foo_$(BITS).o
 _
 
-Patches currently in -mm which might be from bharrosh@panasas.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+hugetlbfs-fix-quota-leak.patch
+pl2303-fix-mode-switching-regression-fix.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes.patch
+timerfd-v3-new-timerfd-api-ia64-fix.patch
+timerfd-v3-new-timerfd-api-m68k-fix.patch
+timerfd-v3-new-timerfd-api-mips-fix.patch
+timerfd-v3-new-timerfd-api-arch-fixes.patch
+timerfd-v3-new-timerfd-api-powerpc-fix.patch
+timerfd-v3-new-timerfd-api-sparc64-fix.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-agpgart-intel-agp-dont-zero-an-already-registered-resource-during-resume.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+git-audit-master.patch
+git-cifs.patch
+git-cpufreq.patch
+git-powerpc.patch
+git-powerpc-fixup.patch
+revert-gregkh-driver-atm-convert-struct-class_device-to-struct-device.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
+pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes.patch
+pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes-2.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+intel-agp-enable-i915-recognition.patch
+drm-convert-from-nopage-to-fault-checkpatch-fixes.patch
+git-dvb.patch
+fix-jdelvare-i2c-i2c-constify-client-address-data.patch
+hwmon-new-chip-driver-for-ti-ads7828-a-d-checkpatch-fixes.patch
+git-hid.patch
+revert-git-hrt.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-versus-driver-tree.patch
+git-kbuild.patch
+git-kvm.patch
+git-libata-all.patch
+git-libata-all-fix-pata_winbond-borkage.patch
+git-libata-all-wtf.patch
+libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
+libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
+libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
+git-md-accel.patch
+git-mmc.patch
+git-mtd.patch
+git-net.patch
+git-net-vs-git-lblnet.patch
+git-net-vs-git-lblnet-2.patch
+git-netdev-all.patch
+git-net-vs-git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+backlight-omap1-backlight-driver.patch
+git-battery.patch
+bluetooth-uninlining.patch
+net-sunrpc-schedc-revert-git-net-changes.patch
+net-sunrpc-schedc-reapply-git-net-changes.patch
+net-sunrpc-svcsockc-revert-git-nfs-changes.patch
+git-nfsd.patch
+git-nfsd-fixup.patch
+serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
+git-sched.patch
+git-sched-fixup.patch
+git-sh.patch
 git-scsi-misc.patch
-scsi-pending-arm-convert-to-accessors.patch
-scsi-bidi-support.patch
-git-block.patch
+scsi-aic94xx-cleanups-checkpatch-fixes.patch
+scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
+9p-util-fix-semaphore-handling.patch
+git-watchdog.patch
+git-watchdog-fixup.patch
+wdt-fix-locking-checkpatch-fixes.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+arch-x86-makefile-revert-git-kvm-change.patch
+git-x86.patch
+arch-x86-makefile-reapply-git-kvm-change.patch
+git-x86-fixup.patch
+git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
+git-x86-fix-doubly-merged-patch.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+git-newsetup.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-xtensa.patch
+bonding-locking-fix.patch
+usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-add-proc-kpagecount-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix-2-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+mm-remove-fastcall-from-mm-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+stopmachine-semaphore-to-mutex-fix.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
+debug_smp_processor_id-fixlets.patch
+use-ilog2-in-fs-namespacec-fix.patch
+avoid-overflows-in-kernel-timec-fix.patch
+export-iov_shorten-for-ext4s-use-fix.patch
+system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
+speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
+add-have_oprofile.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+rtc-add-support-for-the-s-35390a-rtc-chip.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+neofb-avoid-overwriting-fb_info-fields.patch
+vermilionc-use-align-not-__align_mask.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+ext4-mm-ext4_store_maxbytes_for_bitmaped_files-warning-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
+hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
+cpusets-update_cpumask-revision-fix.patch
+cpusets-update_cpumask-revision-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc-fix.patch
+ufs-fix-symlink-creation-on-ufs2-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
