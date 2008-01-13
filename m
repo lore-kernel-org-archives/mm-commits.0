@@ -1,82 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - add-dma-engine-driver-for-freescale-mpc85xx-processors-fix.patch removed from -mm tree
-Date: Sun, 13 Jan 2008 03:34:18 -0800
-Message-ID: <200801131133.m0DBXwCe009889@imap1.linux-foundation.org>
+Subject: - core-dump-real_parent-ppid.patch removed from -mm tree
+Date: Sun, 13 Jan 2008 03:34:22 -0800
+Message-ID: <200801131134.m0DBY23a009896@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46126 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33686 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751420AbYAMLjU (ORCPT
+	by vger.kernel.org with ESMTP id S1751323AbYAMLj3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Jan 2008 06:39:20 -0500
+	Sun, 13 Jan 2008 06:39:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamalesh@linux.vnet.ibm.com, benh@kernel.crashing.org, dan.j.williams@intel.com, ebony.zhu@freescale.com, galak@gate.crashing.org, paulus@samba.org, shannon.nelson@intel.com, wei.zhan
+To: roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-dma-engine-driver-for-freescale-mpc85xx-processors fix
+     core dump: real_parent ppid
 has been removed from the -mm tree.  Its filename was
-     add-dma-engine-driver-for-freescale-mpc85xx-processors-fix.patch
+     core-dump-real_parent-ppid.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add-dma-engine-driver-for-freescale-mpc85xx-processors fix
-From: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Subject: core dump: real_parent ppid
+From: Roland McGrath <roland@redhat.com>
 
-  CC      net/9p/error.o
-drivers/dma/fsldma.h:152: error: conflicting types for `in_be64'
-include/asm/io.h:136: error: previous definition of `in_be64' was here
-drivers/dma/fsldma.h:157: error: conflicting types for `out_be64'
-include/asm/io.h:135: error: previous definition of `out_be64' was here
-drivers/dma/fsldma.h:164: error: conflicting types for `in_le64'
-include/asm/io.h:140: error: previous definition of `in_le64' was here
-drivers/dma/fsldma.h:169: error: conflicting types for `out_le64'
-include/asm/io.h:145: error: previous definition of `out_le64' was here
-drivers/dma/fsldma.c:504: error: implicit declaration of function `bus_to_virt'
+The pr_ppid field reported in core dumps should match what getppid() would
+have returned to that process, regardless of whether a debugger is attached.
 
-The following patch solves the conflict types error, but the bus_to_virt
-is under the CONFIG_PPC32 ifdef and we had a discuss on the same for the
-availability of the function for ppc64 at http://lkml.org/lkml/2007/10/17/524
-
-Signed-off-by: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
-Cc: Zhang Wei <wei.zhang@freescale.com>
-c: Ebony Zhu <ebony.zhu@freescale.com>
-Cc: "Williams, Dan J" <dan.j.williams@intel.com>
-Cc: Shannon Nelson <shannon.nelson@intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Kumar Gala <galak@gate.crashing.org>
+Signed-off-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/fsldma.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/binfmt_elf.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/dma/fsldma.h~add-dma-engine-driver-for-freescale-mpc85xx-processors-fix drivers/dma/fsldma.h
---- a/drivers/dma/fsldma.h~add-dma-engine-driver-for-freescale-mpc85xx-processors-fix
-+++ a/drivers/dma/fsldma.h
-@@ -147,7 +147,7 @@ struct fsl_dma_chan {
- #define to_fsl_desc(lh) container_of(lh, struct fsl_desc_sw, node)
- #define tx_to_fsl_desc(tx) container_of(tx, struct fsl_desc_sw, async_tx)
+diff -puN fs/binfmt_elf.c~core-dump-real_parent-ppid fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~core-dump-real_parent-ppid
++++ a/fs/binfmt_elf.c
+@@ -1473,7 +1473,7 @@ static void fill_prstatus(struct elf_prs
+ 	prstatus->pr_sigpend = p->pending.signal.sig[0];
+ 	prstatus->pr_sighold = p->blocked.sig[0];
+ 	prstatus->pr_pid = task_pid_vnr(p);
+-	prstatus->pr_ppid = task_pid_vnr(p->parent);
++	prstatus->pr_ppid = task_pid_vnr(p->real_parent);
+ 	prstatus->pr_pgrp = task_pgrp_vnr(p);
+ 	prstatus->pr_sid = task_session_vnr(p);
+ 	if (thread_group_leader(p)) {
+@@ -1519,7 +1519,7 @@ static int fill_psinfo(struct elf_prpsin
+ 	psinfo->pr_psargs[len] = 0;
  
--#ifndef __powerpc64
-+#ifndef __powerpc64__
- static u64 in_be64(const u64 __iomem *addr)
- {
- 	return ((u64)in_be32((u32 *)addr) << 32) | (in_be32((u32 *)addr + 1));
+ 	psinfo->pr_pid = task_pid_vnr(p);
+-	psinfo->pr_ppid = task_pid_vnr(p->parent);
++	psinfo->pr_ppid = task_pid_vnr(p->real_parent);
+ 	psinfo->pr_pgrp = task_pgrp_vnr(p);
+ 	psinfo->pr_sid = task_session_vnr(p);
+ 
 _
 
-Patches currently in -mm which might be from kamalesh@linux.vnet.ibm.com are
+Patches currently in -mm which might be from roland@redhat.com are
 
 origin.patch
-git-md-accel.patch
-git-cryptodev.patch
-slub-move-kmem_cache_node-determination-into-add_full-and-add_partial-slub-workaround-for-lockdep-confusion.patch
-config_highpte-vs-sub-page-page-tables-fix.patch
-inotify-send-in_attrib-events-when-link-count-changes-fix.patch
-iget-stop-bfs-from-using-iget-and-read_inode-try-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+__group_complete_signal-fix-coredump-with-group-stop-race.patch
+remove-handle_group_stop-in-favor-of-do_signal_stop.patch
+exec-rework-the-group-exit-and-fix-the-race-with-kill.patch
+git-s390.patch
+git-sched.patch
+git-x86.patch
+use-__set_task_state-for-traced-stopped-tasks.patch
+do_wait-remove-one-else-if-branch.patch
+add-arch_ptrace_stop.patch
+proc-fix-the-threaded-proc-self.patch
+kill-pt_attached.patch
+kill-my_ptrace_child.patch
+ptrace_check_attach-remove-unneeded-signal-=-null-check.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace.patch
+do_wait-factor-out-retval-=-0-checks.patch
+ptrace_stop-fix-racy-nonstop_code-setting.patch
+wait_task_stopped-remove-unneeded-delay_group_leader-check.patch
+do_wait-cleanup-delay_group_leader-usage.patch
+do_wait-fix-security-checks.patch
+do_wait-fix-security-checks-fix.patch
+wait_task_continued-zombie-dont-use-task_pid_nr_ns-lockless.patch
+wait_task_zombie-remove-exit_state-exit_signal-checks-for-wnowait.patch
+fix-group-stop-with-exit-race.patch
+sys_setsid-remove-now-unneeded-session-=-1-check.patch
+move-the-related-code-from-exit_notify-to-exit_signals.patch
+uglify-kill_pid_info-to-fix-kill-vs-exec-race.patch
+uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice.patch
+itimer_real-convert-to-use-struct-pid.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+linux-kernel-markers-create-modpost-file.patch
+asm-posix_typesh-scrub-__glibc__.patch
+remove-task_ppid_nr_ns.patch
