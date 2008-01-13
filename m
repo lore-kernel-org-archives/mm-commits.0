@@ -1,116 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - i386-make-the-32-bit-frame-pointer-backtracer-fall-back-to-traditional.patch removed from -mm tree
-Date: Sun, 13 Jan 2008 03:34:08 -0800
-Message-ID: <200801131133.m0DBXm0X009873@imap1.linux-foundation.org>
+Subject: - x86-discover_ebda-section-mismatch.patch removed from -mm tree
+Date: Sun, 13 Jan 2008 03:34:10 -0800
+Message-ID: <200801131133.m0DBXoHK009876@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45253 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44506 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751341AbYAMLjP (ORCPT
+	by vger.kernel.org with ESMTP id S1751420AbYAMLjZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Jan 2008 06:39:15 -0500
+	Sun, 13 Jan 2008 06:39:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arjan@linux.intel.com, ak@suse.de, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mingo@elte.hu, sam@ravnborg.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: make the 32 bit Frame Pointer backtracer fall back to traditional
+     x86: discover_ebda section mismatch
 has been removed from the -mm tree.  Its filename was
-     i386-make-the-32-bit-frame-pointer-backtracer-fall-back-to-traditional.patch
+     x86-discover_ebda-section-mismatch.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i386: make the 32 bit Frame Pointer backtracer fall back to traditional
-From: Arjan van de Ven <arjan@linux.intel.com>
+Subject: x86: discover_ebda section mismatch
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-The 32 bit Frame Pointer backtracer code checks if the EBP is valid to do a
-backtrace; however currently on a failure it just gives up and prints
-nothing.  That's not very nice; we can do better and still print a decent
-backtrace.
+Fix section mismatches.  discover_ebda() can be __init.
 
-This patch changes the backtracer to fall back to the non-framepointer
-backtracer if the EBP value isn't within the expected range; so on weird
-stack corruption cases we get at least something out...
+WARNING: vmlinux.o(.text+0x738a): Section mismatch: reference to .init.data:ebda_addr (between 'discover_ebda' and 'get_model_name')
+WARNING: vmlinux.o(.text+0x73c4): Section mismatch: reference to .init.data:ebda_size (between 'discover_ebda' and 'get_model_name')
 
-Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/traps_32.c |   43 +++++++++++++++++------------------
- 1 file changed, 22 insertions(+), 21 deletions(-)
+ arch/x86/kernel/setup_64.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/traps_32.c~i386-make-the-32-bit-frame-pointer-backtracer-fall-back-to-traditional arch/x86/kernel/traps_32.c
---- a/arch/x86/kernel/traps_32.c~i386-make-the-32-bit-frame-pointer-backtracer-fall-back-to-traditional
-+++ a/arch/x86/kernel/traps_32.c
-@@ -120,26 +120,28 @@ static inline unsigned long print_contex
+diff -puN arch/x86/kernel/setup_64.c~x86-discover_ebda-section-mismatch arch/x86/kernel/setup_64.c
+--- a/arch/x86/kernel/setup_64.c~x86-discover_ebda-section-mismatch
++++ a/arch/x86/kernel/setup_64.c
+@@ -257,7 +257,7 @@ static inline void __init reserve_crashk
+ unsigned __initdata ebda_addr;
+ unsigned __initdata ebda_size;
+ 
+-static void discover_ebda(void)
++static void __init discover_ebda(void)
  {
- #ifdef	CONFIG_FRAME_POINTER
- 	struct stack_frame *frame = (struct stack_frame *)bp;
--	while (valid_stack_ptr(tinfo, frame, sizeof(*frame))) {
--		struct stack_frame *next;
--		unsigned long addr;
--
--		addr = frame->return_address;
--		if (__kernel_text_address(addr))
--			ops->address(data, addr);
--		/*
--		 * break out of recursive entries (such as
--		 * end_of_stack_stop_unwind_function). Also,
--		 * we can never allow a frame pointer to
--		 * move downwards!
--		 */
--		next = frame->next_frame;
--		ebp = (unsigned long) next;
--		if (next <= frame)
--			break;
--		frame = next;
--	}
--#else
-+	if (valid_stack_ptr(tinfo, frame, sizeof(*frame)))
-+		while (valid_stack_ptr(tinfo, frame, sizeof(*frame))) {
-+			struct stack_frame *next;
-+			unsigned long addr;
-+
-+			addr = frame->return_address;
-+			if (__kernel_text_address(addr))
-+				ops->address(data, addr);
-+			/*
-+			 * break out of recursive entries (such as
-+			 * end_of_stack_stop_unwind_function). Also,
-+			 * we can never allow a frame pointer to
-+			 * move downwards!
-+			 */
-+			next = frame->next_frame;
-+			bp = (unsigned long)next;
-+			if (next <= frame)
-+				break;
-+			frame = next;
-+		}
-+	else
-+#endif
- 	while (valid_stack_ptr(tinfo, stack, sizeof(*stack))) {
- 		unsigned long addr;
- 
-@@ -147,7 +149,6 @@ static inline unsigned long print_contex
- 		if (__kernel_text_address(addr))
- 			ops->address(data, addr);
- 	}
--#endif
- 	return bp;
- }
- 
+ 	/*
+ 	 * there is a real-mode segmented pointer pointing to the
 _
 
-Patches currently in -mm which might be from arjan@linux.intel.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-git-input.patch
-git-sched.patch
+origin.patch
+scsi-qla2xxx-qla_osc-section-fix.patch
+cciss-section-mismatch.patch
+advansys-fix-section-mismatch-warning.patch
+uvesafb-fix-section-mismatch-warnings.patch
+driver-core-build-with-sysfs=n.patch
+sysfs-make-sysfs_deprecated-depend-on-sysfs.patch
+git-dvb.patch
+git-kbuild.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+pcmcia-include-bad-cis-filename-in-error-message.patch
+git-scsi-misc.patch
+megaraid-fix-section-mismatch.patch
+git-unionfs.patch
+hostap-section-mismatch-warning.patch
+git-ipwireless_cs.patch
 git-x86.patch
-drivers-edac-use-round_jiffies_relative.patch
+register_cpu-__devinit-or-__cpuinit.patch
+cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
+dio-fix-kernel-doc-notation.patch
+tpm-infineon-section-mismatch.patch
+tdfxfb-fix-section-mismatch-warnings.patch
+uvesafb-small-cleanups.patch
+documentation-move-dnotifytxt-to-filesystems.patch
+documentation-move-sharedsubtreestxt-to-filesystems.patch
+documentation-create-new-scheduler-subdirectory.patch
+reporting-bugs-cc-the-mailing-list-too.patch
+fs-menu-small-reorg.patch
+profile-likely-unlikely-macros.patch
