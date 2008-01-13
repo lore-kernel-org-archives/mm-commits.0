@@ -1,72 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-its-a-directory-not-a-folder.patch removed from -mm tree
-Date: Sun, 13 Jan 2008 03:33:52 -0800
-Message-ID: <200801131133.m0DBXWEM009855@imap1.linux-foundation.org>
+Subject: - libata-sff-pci-irq-handling-fix.patch removed from -mm tree
+Date: Sun, 13 Jan 2008 03:34:03 -0800
+Message-ID: <200801131133.m0DBXhmY009867@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33401 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44480 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751342AbYAMLjn (ORCPT
+	by vger.kernel.org with ESMTP id S1751353AbYAMLj6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Jan 2008 06:39:43 -0500
+	Sun, 13 Jan 2008 06:39:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, lenb@kernel.org, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi: it's a directory not a folder
+     libata-sff: PCI IRQ handling fix
 has been removed from the -mm tree.  Its filename was
-     acpi-its-a-directory-not-a-folder.patch
+     libata-sff-pci-irq-handling-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: it's a directory not a folder
+Subject: libata-sff: PCI IRQ handling fix
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Noticed this while fixing some other stuff.  The kernel help consistently
-uses 'directory', except for ACPI.
+It is legitimate (although annoying and silly) for a PCI IDE controller not
+to be assigned an interrupt and to be polled.  The libata-sff code should
+therefore not try and request IRQ 0 in this case.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Len Brown <lenb@kernel.org>
+Acked-by: Tejun Heo <htejun@gmail.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/Kconfig |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/ata/libata-sff.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/Kconfig~acpi-its-a-directory-not-a-folder drivers/acpi/Kconfig
---- a/drivers/acpi/Kconfig~acpi-its-a-directory-not-a-folder
-+++ a/drivers/acpi/Kconfig
-@@ -68,20 +68,20 @@ config ACPI_PROCFS
+diff -puN drivers/ata/libata-sff.c~libata-sff-pci-irq-handling-fix drivers/ata/libata-sff.c
+--- a/drivers/ata/libata-sff.c~libata-sff-pci-irq-handling-fix
++++ a/drivers/ata/libata-sff.c
+@@ -808,7 +808,10 @@ int ata_pci_init_one(struct pci_dev *pde
+ 	if (rc)
+ 		goto err_out;
  
- 	  Say N to delete /proc/acpi/ files that have moved to /sys/
- config ACPI_PROCFS_POWER
--	bool "Deprecated power /proc/acpi folders"
-+	bool "Deprecated power /proc/acpi directories"
- 	depends on PROC_FS
- 	default y
- 	---help---
- 	  For backwards compatibility, this option allows
--          deprecated power /proc/acpi/ folders to exist, even when
-+          deprecated power /proc/acpi/ directories to exist, even when
-           they have been replaced by functions in /sys.
--          The deprecated folders (and their replacements) include:
-+          The deprecated directories (and their replacements) include:
- 	  /proc/acpi/battery/* (/sys/class/power_supply/*)
- 	  /proc/acpi/ac_adapter/* (sys/class/power_supply/*)
--	  This option has no effect on /proc/acpi/ folders
-+	  This option has no effect on /proc/acpi/ directories
- 	  and functions, which do not yet exist in /sys
+-	if (!legacy_mode) {
++	if (!legacy_mode && pdev->irq) {
++		/* We may have no IRQ assigned in which case we can poll. This
++		   shouldn't happen on a sane system but robustness is cheap
++		   in this case */
+ 		rc = devm_request_irq(dev, pdev->irq, pi->port_ops->irq_handler,
+ 				      IRQF_SHARED, DRV_NAME, host);
+ 		if (rc)
+@@ -816,7 +819,7 @@ int ata_pci_init_one(struct pci_dev *pde
  
--	  Say N to delete power /proc/acpi/ folders that have moved to /sys/
-+	  Say N to delete power /proc/acpi/ directories that have moved to /sys/
- config ACPI_SYSFS_POWER
- 	bool "Future power /sys interface"
- 	select POWER_SUPPLY
+ 		ata_port_desc(host->ports[0], "irq %d", pdev->irq);
+ 		ata_port_desc(host->ports[1], "irq %d", pdev->irq);
+-	} else {
++	} else if (legacy_mode) {
+ 		if (!ata_port_is_dummy(host->ports[0])) {
+ 			rc = devm_request_irq(dev, ATA_PRIMARY_IRQ(pdev),
+ 					      pi->port_ops->irq_handler,
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
