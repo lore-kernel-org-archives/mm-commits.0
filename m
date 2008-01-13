@@ -1,162 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: - pata_pdc202xx_old-further-fixups.patch removed from -mm tree
-Date: Sun, 13 Jan 2008 03:33:58 -0800
-Message-ID: <200801131133.m0DBXceo009864@imap1.linux-foundation.org>
+Subject: - fix-x86-32-bit-frame_pointer-chasing-code.patch removed from -mm tree
+Date: Sun, 13 Jan 2008 03:34:05 -0800
+Message-ID: <200801131133.m0DBXj54009870@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48110 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58985 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751348AbYAMLj6 (ORCPT
+	by vger.kernel.org with ESMTP id S1751323AbYAMLl0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Jan 2008 06:39:58 -0500
+	Sun, 13 Jan 2008 06:41:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, bzolnier@gmail.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: arjan@linux.intel.com, ak@suse.de, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_pdc202xx_old: further fixups
+     x86: fix 32 bit FRAME_POINTER chasing code
 has been removed from the -mm tree.  Its filename was
-     pata_pdc202xx_old-further-fixups.patch
+     fix-x86-32-bit-frame_pointer-chasing-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pata_pdc202xx_old: further fixups
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: x86: fix 32 bit FRAME_POINTER chasing code
+From: Arjan van de Ven <arjan@linux.intel.com>
 
-Turns out distros always enabled burst mode and it is pretty essential so
-do the same.  Also sort out the post DMA mode restore properly.
+The current x86 32 bit FRAME_POINTER chasing code has a nasty bug in that
+the EBP tracer doesn't actually update the value of EBP it is tracing, so
+that the code doesn't actually switch to the irq stack properly.
 
-My 20263 card now seems happy but needs some four drive tests done yet
-(when I've persuaded the kernel not to hang in the edd boot code if I plug
-them in ..)
+The result is a truncated backtrace:
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+WARNING: at timeroops.c:8 kerneloops_regression_test() (Not tainted)
+Pid: 0, comm: swapper Not tainted 2.6.24-0.77.rc4.git4.fc9 #1
+ [<c040649a>] show_trace_log_lvl+0x1a/0x2f
+ [<c0406d41>] show_trace+0x12/0x14
+ [<c0407061>] dump_stack+0x6c/0x72
+ [<e0258049>] kerneloops_regression_test+0x44/0x46 [timeroops]
+ [<c04371ac>] run_timer_softirq+0x127/0x18f
+ [<c0434685>] __do_softirq+0x78/0xff
+ [<c0407759>] do_softirq+0x74/0xf7
+ =======================
+
+This patch fixes the code to update EBP properly, and to check the EIP
+before printing (as the non-framepointer backtracer does) so that
+the same test backtrace now looks like this:
+
+WARNING: at timeroops.c:8 kerneloops_regression_test()
+Pid: 0, comm: swapper Not tainted 2.6.24-rc7 #4
+ [<c0405d17>] show_trace_log_lvl+0x1a/0x2f
+ [<c0406681>] show_trace+0x12/0x14
+ [<c0406ef2>] dump_stack+0x6a/0x70
+ [<e01f6040>] kerneloops_regression_test+0x3b/0x3d [timeroops]
+ [<c0426f07>] run_timer_softirq+0x11b/0x17c
+ [<c04243ac>] __do_softirq+0x42/0x94
+ [<c040704c>] do_softirq+0x50/0xb6
+ [<c04242a9>] irq_exit+0x37/0x67
+ [<c040714c>] do_IRQ+0x9a/0xaf
+ [<c04057da>] common_interrupt+0x2e/0x34
+ [<c05807fe>] cpuidle_idle_call+0x52/0x78
+ [<c04034f3>] cpu_idle+0x46/0x60
+ [<c05fbbd3>] rest_init+0x43/0x45
+ [<c070aa3d>] start_kernel+0x279/0x27f
+ =======================
+
+This shows that the backtrace goes all the way down to user context now.
+This bug was found during the port to 64 bit of the frame pointer backtracer.
+
+Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_pdc202xx_old.c |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ arch/x86/kernel/traps_32.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_pdc202xx_old.c~pata_pdc202xx_old-further-fixups drivers/ata/pata_pdc202xx_old.c
---- a/drivers/ata/pata_pdc202xx_old.c~pata_pdc202xx_old-further-fixups
-+++ a/drivers/ata/pata_pdc202xx_old.c
-@@ -214,8 +214,8 @@ static void pdc2026x_bmdma_stop(struct a
- 	/* Flip back to 33Mhz for PIO */
- 	if (adev->dma_mode >= XFER_UDMA_2)
- 		iowrite8(ioread8(clock) & ~sel66, clock);
--
- 	ata_bmdma_stop(qc);
-+	pdc202xx_set_piomode(ap, adev);
- }
+diff -puN arch/x86/kernel/traps_32.c~fix-x86-32-bit-frame_pointer-chasing-code arch/x86/kernel/traps_32.c
+--- a/arch/x86/kernel/traps_32.c~fix-x86-32-bit-frame_pointer-chasing-code
++++ a/arch/x86/kernel/traps_32.c
+@@ -125,7 +125,8 @@ static inline unsigned long print_contex
+ 		unsigned long addr;
  
- /**
-@@ -232,6 +232,17 @@ static void pdc2026x_dev_config(struct a
- 	adev->max_sectors = 256;
- }
- 
-+static int pdc2026x_port_start(struct ata_port *ap)
-+{
-+	void __iomem *bmdma = ap->ioaddr.bmdma_addr;
-+	if (bmdma) {
-+		/* Enable burst mode */
-+		u8 burst = ioread8(bmdma + 0x1f);
-+		iowrite8(burst | 0x01, bmdma + 0x1f);
-+	}
-+	return ata_sff_port_start(ap);
-+}
-+
- static struct scsi_host_template pdc202xx_sht = {
- 	.module			= THIS_MODULE,
- 	.name			= DRV_NAME,
-@@ -312,7 +323,7 @@ static struct ata_port_operations pdc202
- 	.irq_clear	= ata_bmdma_irq_clear,
- 	.irq_on		= ata_irq_on,
- 
--	.port_start	= ata_sff_port_start,
-+	.port_start	= pdc2026x_port_start,
- };
- 
- static int pdc202xx_init_one(struct pci_dev *dev, const struct pci_device_id *id)
+ 		addr = frame->return_address;
+-		ops->address(data, addr);
++		if (__kernel_text_address(addr))
++			ops->address(data, addr);
+ 		/*
+ 		 * break out of recursive entries (such as
+ 		 * end_of_stack_stop_unwind_function). Also,
+@@ -133,6 +134,7 @@ static inline unsigned long print_contex
+ 		 * move downwards!
+ 		 */
+ 		next = frame->next_frame;
++		ebp = (unsigned long) next;
+ 		if (next <= frame)
+ 			break;
+ 		frame = next;
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from arjan@linux.intel.com are
 
-origin.patch
-pl2303-fix-mode-switching-regression-fix.patch
-git-acpi.patch
-git-arm.patch
-bw-qcam-adds-module-parameter-aggressive-to-skip-polite-auto-detection-prior-to-direct-initialization.patch
-git-libata-all.patch
-git-libata-all-fix-pata_winbond-borkage.patch
-git-libata-all-wtf.patch
-libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
-pata_legacy-resychronize-with-upstream-changes-and-resubmit.patch
-git-netdev-all.patch
-bluetooth-rfcomm-tty_close-before-destruct.patch
-pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch
-pcmcia-replace-kio_addr_t-with-unsigned-int-everywhere.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-8250c-support-specifying-dw-apb-uarts-in-device-platform_data.patch
-avoid-waking-up-closed-serial-ports-on-resume.patch
-serial-avoid-stalling-suspend-if-serial-port-wont-drain.patch
-serial-speed-setup-failure-reporting.patch
-serial-coding-style.patch
-ti_usb-termios-cleanups.patch
-mos7720-clean-up-termios.patch
-io_ti-clean-up-termios-handling.patch
-wdt-fix-locking.patch
-wdt-fix-locking-checkpatch-fixes.patch
-serverworks-irq-routing-needs-no-_p.patch
-libata-correct-handling-of-tss-dvd.patch
-keyspan-fix-oops.patch
-geode-lists-are-subscriber-only.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
-sc26xx-new-serial-driver-for-sc2681-uarts.patch
-sc26xx-new-serial-driver-for-sc2681-uarts-update.patch
-documentation-about-unaligned-memory-access.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
-fix-ixany-and-restart-after-signal-eg-ctrl-c-in-n_tty-line-discipline.patch
-tty-kill-tty_flipbuf_size.patch
-drivers-edac-turnon-edac-device-error-logging.patch
+git-input.patch
+git-sched.patch
+git-x86.patch
 drivers-edac-use-round_jiffies_relative.patch
-drivers-edac-add-cell-xdr-memory-types.patch
-drivers-edac-add-cell-mc-driver.patch
-drivers-edac-i3000-code-tidying.patch
-drivers-edac-i3000-replace-macros-with-functions.patch
-drivers-edac-add-freescale-mpc85xx-driver.patch
-drivers-edac-add-marvell-mv64x60-driver.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-dz-clean-up-and-improve-the-setup-of-termios-settings.patch
-char-rocket-switch-long-delay-to-sleep.patch
-char-rocket-printk-cleanup.patch
-char-char-serial-remove-serial_type_normal-redefines.patch
-char-mxser_new-ioaddresses-are-ulong.patch
-char-stallion-fix-compiler-warnings.patch
-char-riscom8-change-rc_init_drivers-prototype.patch
-mxser-mxser_new-first-pass-over-termios-reporting-for-the.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
-tty-s390-support-for-termios2.patch
-moxa-first-pass-at-termios-reporting.patch
-n_tty-clean-up-old-code-to-follow-coding-style-and-mostly-checkpatch.patch
-rocket-first-pass-at-termios-reporting.patch
-rocket-dont-let-random-users-reset-the-controller.patch
-tty_audit-fix-checkpatch-complaint.patch
-tty_io-drag-screaming-into-coding-style-compliance.patch
-tty_ioctl-drag-screaming-into-compliance-with-the-coding.patch
-8250_early-coding-style.patch
-8250_gsc-coding-style.patch
-8250_hp300-coding-style.patch
-8250_hub6-codding-style.patch
-8250_pci-coding-style.patch
-serial8250-coding-style.patch
-8250-enable-rate-reporting-via-termios.patch
-serial_core-bring-mostly-into-line-with-coding-style.patch
