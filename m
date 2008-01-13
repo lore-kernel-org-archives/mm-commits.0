@@ -1,101 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: + tdfxfb-fix-section-mismatch-warnings.patch added to -mm tree
-Date: Sat, 12 Jan 2008 03:54:11 -0800
-Message-ID: <200801121153.m0CBrph1028267@imap1.linux-foundation.org>
+Subject: - pnp-do-not-stop-start-devices-in-suspend-resume-path.patch removed from -mm tree
+Date: Sat, 12 Jan 2008 21:28:13 -0800
+Message-ID: <200801130527.m0D5RsMn030643@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39556 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41700 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760975AbYALLyx (ORCPT
+	by vger.kernel.org with ESMTP id S1751127AbYAMF3S (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 Jan 2008 06:54:53 -0500
+	Sun, 13 Jan 2008 00:29:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, adaplas@pol.net, krzysztof.h1@poczta.fm
+To: bjorn.helgaas@hp.com, ambx1@neo.rr.com, drzeus@drzeus.cx, jirislaby@gmail.com, kristen.c.accardi@intel.com, lenb@kernel.org, rjw@sisk.pl, shaohua.li@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tdfxfb: fix section mismatch warnings
-has been added to the -mm tree.  Its filename is
-     tdfxfb-fix-section-mismatch-warnings.patch
+     PNP: do not stop/start devices in suspend/resume path
+has been removed from the -mm tree.  Its filename was
+     pnp-do-not-stop-start-devices-in-suspend-resume-path.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tdfxfb: fix section mismatch warnings
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: PNP: do not stop/start devices in suspend/resume path
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-tdfxfb_setup() can be __init.  This fixes the modpost section mismatch
-warnings:
+Do not disable PNP devices in the suspend path.  We still call the driver's
+suspend method, which should prevent further use of the device, and the
+protocol suspend method, which may put the device in a low-power state.
 
-WARNING: vmlinux.o(.text+0x4cff9b): Section mismatch: reference to .init.data:mode_option (between 'tdfxfb_setup' and 'getclkMHz')
-WARNING: vmlinux.o(.text+0x4cffa8): Section mismatch: reference to .init.data: (between 'tdfxfb_setup' and 'getclkMHz')
+I'm told that Windows puts devices in a low-power state (Linux does this in
+the protocol suspend method), but does not use _DIS in the suspend path. 
+Other relevant references:
 
-[krzysztof.h1@poczta.fm: use __init, not __devinit]
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+  - In the ACPI 3.0b spec, I can't find any mention of _DIS in
+    connection with sleep.  And Device Object Notifications,
+    Section 5.6.3, Table 5-43, says we should get a bus check
+    after awakening if hardware was removed while we slept.
+
+  - This: http://msdn2.microsoft.com/en-us/library/ms810079.aspx
+    makes a similar point about how the OS re-enumerates devices
+    as a result of a power state change (3rd last paragraph of
+    text).
+
+  - This: http://msdn2.microsoft.com/en-us/library/aa489874.aspx
+    suggests that Windows only stops a device to rebalance hardware
+    resources.
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Adam Belay <ambx1@neo.rr.com>
+Cc: Li Shaohua <shaohua.li@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/tdfxfb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pnp/driver.c |   14 --------------
+ 1 file changed, 14 deletions(-)
 
-diff -puN drivers/video/tdfxfb.c~tdfxfb-fix-section-mismatch-warnings drivers/video/tdfxfb.c
---- a/drivers/video/tdfxfb.c~tdfxfb-fix-section-mismatch-warnings
-+++ a/drivers/video/tdfxfb.c
-@@ -1342,7 +1342,7 @@ out_err:
- }
+diff -puN drivers/pnp/driver.c~pnp-do-not-stop-start-devices-in-suspend-resume-path drivers/pnp/driver.c
+--- a/drivers/pnp/driver.c~pnp-do-not-stop-start-devices-in-suspend-resume-path
++++ a/drivers/pnp/driver.c
+@@ -161,13 +161,6 @@ static int pnp_bus_suspend(struct device
+ 			return error;
+ 	}
  
- #ifndef MODULE
--static void tdfxfb_setup(char *options)
-+static void __init tdfxfb_setup(char *options)
+-	if (!(pnp_drv->flags & PNP_DRIVER_RES_DO_NOT_CHANGE) &&
+-	    pnp_can_disable(pnp_dev)) {
+-		error = pnp_stop_dev(pnp_dev);
+-		if (error)
+-			return error;
+-	}
+-
+ 	if (pnp_dev->protocol && pnp_dev->protocol->suspend)
+ 		pnp_dev->protocol->suspend(pnp_dev, state);
+ 	return 0;
+@@ -177,7 +170,6 @@ static int pnp_bus_resume(struct device 
  {
- 	char *this_opt;
+ 	struct pnp_dev *pnp_dev = to_pnp_dev(dev);
+ 	struct pnp_driver *pnp_drv = pnp_dev->driver;
+-	int error;
+ 
+ 	if (!pnp_drv)
+ 		return 0;
+@@ -185,12 +177,6 @@ static int pnp_bus_resume(struct device 
+ 	if (pnp_dev->protocol && pnp_dev->protocol->resume)
+ 		pnp_dev->protocol->resume(pnp_dev);
+ 
+-	if (!(pnp_drv->flags & PNP_DRIVER_RES_DO_NOT_CHANGE)) {
+-		error = pnp_start_dev(pnp_dev);
+-		if (error)
+-			return error;
+-	}
+-
+ 	if (pnp_drv->resume)
+ 		return pnp_drv->resume(pnp_dev);
  
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
-scsi-qla2xxx-qla_osc-section-fix.patch
-cciss-section-mismatch.patch
-advansys-fix-section-mismatch-warning.patch
-uvesafb-fix-section-mismatch-warnings.patch
-driver-core-build-with-sysfs=n.patch
-sysfs-make-sysfs_deprecated-depend-on-sysfs.patch
-git-dvb.patch
-dvb-av7110-fix-section-mismatch.patch
-git-kbuild.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-pcmcia-include-bad-cis-filename-in-error-message.patch
-git-scsi-misc.patch
-megaraid-fix-section-mismatch.patch
-git-unionfs.patch
-hostap-section-mismatch-warning.patch
-git-ipwireless_cs.patch
-git-x86.patch
-x86-discover_ebda-section-mismatch.patch
-register_cpu-__devinit-or-__cpuinit.patch
-cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
-dio-fix-kernel-doc-notation.patch
-tpm-infineon-section-mismatch.patch
-tdfxfb-fix-section-mismatch-warnings.patch
-uvesafb-small-cleanups.patch
-documentation-move-dnotifytxt-to-filesystems.patch
-documentation-move-sharedsubtreestxt-to-filesystems.patch
-documentation-create-new-scheduler-subdirectory.patch
-reporting-bugs-cc-the-mailing-list-too.patch
-fs-menu-small-reorg.patch
-profile-likely-unlikely-macros.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+export-acpi_check_resource_conflict.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+parport_serial-netmos-9855-fix.patch
+rtc-cmos-exports-nvram-in-sysfs.patch
+pnp-simplify-pnp_activate_dev-and-pnp_disable_dev-return-values.patch
+declare-pnp-option-parsing-functions-as-__init.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+pnp-do-not-stop-start-devices-in-suspend-resume-path.patch
+dont-touch-fs_struct-in-drivers.patch
