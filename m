@@ -1,84 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - net-sunrpc-svcsockc-reapply-git-nfs-changes.patch removed from -mm tree
-Date: Sun, 13 Jan 2008 03:11:50 -0800
-Message-ID: <200801131111.m0DBBV2O009110@imap1.linux-foundation.org>
+Subject: + git-nfsd-fixup.patch added to -mm tree
+Date: Sun, 13 Jan 2008 03:14:01 -0800
+Message-ID: <200801131113.m0DBDfHc009138@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59628 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44882 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751235AbYAMLLz (ORCPT
+	by vger.kernel.org with ESMTP id S1751323AbYAMLNo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Jan 2008 06:11:55 -0500
+	Sun, 13 Jan 2008 06:13:44 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m0DBDg02001599
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Sun, 13 Jan 2008 03:13:43 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bfields@fieldses.org, davem@davemloft.net, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     net-sunrpc-svcsockc-reapply-git-nfs-changes
-has been removed from the -mm tree.  Its filename was
-     net-sunrpc-svcsockc-reapply-git-nfs-changes.patch
+     git-nfsd-fixup
+has been added to the -mm tree.  Its filename is
+     git-nfsd-fixup.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net-sunrpc-svcsockc-reapply-git-nfs-changes
+Subject: git-nfsd-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/svcsock.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ net/sunrpc/cache.c |    3 ++-
+ net/sunrpc/svc.c   |    2 --
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN net/sunrpc/svcsock.c~net-sunrpc-svcsockc-reapply-git-nfs-changes net/sunrpc/svcsock.c
---- a/net/sunrpc/svcsock.c~net-sunrpc-svcsockc-reapply-git-nfs-changes
-+++ a/net/sunrpc/svcsock.c
-@@ -282,6 +282,7 @@ void svc_reserve(struct svc_rqst *rqstp,
- 		svc_sock_enqueue(svsk);
- 	}
- }
-+EXPORT_SYMBOL(svc_reserve);
+diff -puN net/sunrpc/cache.c~git-nfsd-fixup net/sunrpc/cache.c
+--- a/net/sunrpc/cache.c~git-nfsd-fixup
++++ a/net/sunrpc/cache.c
+@@ -376,10 +376,11 @@ int cache_register(struct cache_detail *
  
- /*
-  * Release a socket after use.
-@@ -362,6 +363,7 @@ svc_wake_up(struct svc_serv *serv)
- 		spin_unlock_bh(&pool->sp_lock);
- 	}
+ 	/* start the cleaning process */
+ 	schedule_delayed_work(&cache_cleaner, 0);
++	return 0;
  }
-+EXPORT_SYMBOL(svc_wake_up);
+ EXPORT_SYMBOL(cache_register);
  
- union svc_pktinfo_u {
- 	struct in_pktinfo pkti;
-@@ -1461,6 +1463,7 @@ svc_recv(struct svc_rqst *rqstp, long ti
- 		serv->sv_stats->netcnt++;
- 	return len;
- }
-+EXPORT_SYMBOL(svc_recv);
+-int cache_unregister(struct cache_detail *cd)
++void cache_unregister(struct cache_detail *cd)
+ {
+ 	cache_purge(cd);
+ 	spin_lock(&cache_list_lock);
+diff -puN net/sunrpc/svc.c~git-nfsd-fixup net/sunrpc/svc.c
+--- a/net/sunrpc/svc.c~git-nfsd-fixup
++++ a/net/sunrpc/svc.c
+@@ -1059,8 +1059,6 @@ u32 svc_max_payload(const struct svc_rqs
+ {
+ 	u32 max = RPCSVC_MAXPAYLOAD_TCP;
  
- /*
-  * Drop request
-@@ -1471,6 +1474,7 @@ svc_drop(struct svc_rqst *rqstp)
- 	dprintk("svc: socket %p dropped request\n", rqstp->rq_sock);
- 	svc_sock_release(rqstp);
- }
-+EXPORT_SYMBOL(svc_drop);
- 
- /*
-  * Return reply to client.
-@@ -1797,6 +1801,7 @@ int svc_makesock(struct svc_serv *serv, 
- 	return svc_create_socket(serv, protocol, (struct sockaddr *) &sin,
- 							sizeof(sin), flags);
- }
-+EXPORT_SYMBOL(svc_makesock);
- 
- /*
-  * Handle defer and revisit of requests
+-	if (rqstp->rq_sock->sk_sock->type == SOCK_DGRAM)
+-		max = RPCSVC_MAXPAYLOAD_UDP;
+ 	if (rqstp->rq_server->sv_max_payload < max)
+ 		max = rqstp->rq_server->sv_max_payload;
+ 	return max;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -152,7 +149,7 @@ net-sunrpc-schedc-revert-git-net-changes.patch
 net-sunrpc-schedc-reapply-git-net-changes.patch
 net-sunrpc-svcsockc-revert-git-nfs-changes.patch
 git-nfsd.patch
-net-sunrpc-svcsockc-reapply-git-nfs-changes.patch
+git-nfsd-fixup.patch
 serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
 cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
 quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
