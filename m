@@ -1,181 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - pl2303-fix-mode-switching-regression.patch removed from -mm tree
-Date: Sun, 13 Jan 2008 03:33:29 -0800
-Message-ID: <200801131133.m0DBX9JG009825@imap1.linux-foundation.org>
+Subject: - fix-crash-with-flat_memory-and-arch_pfn_offset-=-0.patch removed from -mm tree
+Date: Sun, 13 Jan 2008 03:33:16 -0800
+Message-ID: <200801131132.m0DBWurC009807@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49762 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47109 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751348AbYAMLeB (ORCPT
+	by vger.kernel.org with ESMTP id S1751300AbYAMLeg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Jan 2008 06:34:01 -0500
+	Sun, 13 Jan 2008 06:34:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mirko.parthey@informatik.tu-chemnitz.de, mm-commits@vger.kernel.org
+To: tsbogend@alpha.franken.de, ak@muc.de, apw@shadowen.org, benh@kernel.crashing.org, bob.picco@hp.com, haveblue@us.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kmannth@gmail.com, mel@csn.ul.i
 
 
 The patch titled
-     pl2303: fix mode switching regression
+     Fix crash with FLAT_MEMORY and ARCH_PFN_OFFSET != 0
 has been removed from the -mm tree.  Its filename was
-     pl2303-fix-mode-switching-regression.patch
+     fix-crash-with-flat_memory-and-arch_pfn_offset-=-0.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pl2303: fix mode switching regression
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Fix crash with FLAT_MEMORY and ARCH_PFN_OFFSET != 0
+From: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 
-Cleaning out all the incorrect 'no change made' checks for termios settings
-showed up a problem with the PL2303.  The hardware here seems to lose sync
-and bits if you tell it to make no changes.  This shows up with a real
-world application.
+When using FLAT_MEMORY and ARCH_PFN_OFFSET is not 0, the kernel crashes in
+memmap_init_zone().  This bug got introduced by commit
+c713216deebd95d2b0ab38fef8bb2361c0180c2d
 
-To fix this the driver check for meaningful hardware changes is restored
-but doing the tests correctly and as a tty layer function so it doesn't get
-duplicated wrongly everywhere if other drivers turn out to need it.
-
-Signed-off-by: Alan Cox <alan@redhat.com>
-Tested-by: Mirko Parthey <mirko.parthey@informatik.tu-chemnitz.de>
+Signed-off-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Bob Picco <bob.picco@hp.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Andi Kleen <ak@muc.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: "Keith Mannthey" <kmannth@gmail.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_ioctl.c    |   19 +++++++++++++++++++
- drivers/usb/serial/pl2303.c |    7 +++++++
- include/linux/tty.h         |    1 +
- 3 files changed, 27 insertions(+)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/tty_ioctl.c~pl2303-fix-mode-switching-regression drivers/char/tty_ioctl.c
---- a/drivers/char/tty_ioctl.c~pl2303-fix-mode-switching-regression
-+++ a/drivers/char/tty_ioctl.c
-@@ -365,6 +365,25 @@ void tty_termios_copy_hw(struct ktermios
- EXPORT_SYMBOL(tty_termios_copy_hw);
- 
- /**
-+ *	tty_termios_hw_change	-	check for setting change
-+ *	@a: termios
-+ *	@b: termios to compare
-+ *
-+ *	Check if any of the bits that affect a dumb device have changed
-+ *	between the two termios structures, or a speed change is needed.
-+ */
-+
-+int tty_termios_hw_change(struct ktermios *a, struct ktermios *b)
-+{
-+	if (a->c_ispeed != b->c_ispeed || a->c_ospeed != b->c_ospeed)
-+		return 1;
-+	if ((a->c_cflag ^ b->c_cflag) & ~(HUPCL | CREAD | CLOCAL))
-+		return 1;
-+	return 0;
-+}
-+EXPORT_SYMBOL(tty_termios_hw_change);
-+
-+/**
-  *	change_termios		-	update termios values
-  *	@tty: tty to update
-  *	@new_termios: desired new value
-diff -puN drivers/usb/serial/pl2303.c~pl2303-fix-mode-switching-regression drivers/usb/serial/pl2303.c
---- a/drivers/usb/serial/pl2303.c~pl2303-fix-mode-switching-regression
-+++ a/drivers/usb/serial/pl2303.c
-@@ -483,6 +483,13 @@ static void pl2303_set_termios(struct us
+diff -puN mm/page_alloc.c~fix-crash-with-flat_memory-and-arch_pfn_offset-=-0 mm/page_alloc.c
+--- a/mm/page_alloc.c~fix-crash-with-flat_memory-and-arch_pfn_offset-=-0
++++ a/mm/page_alloc.c
+@@ -3438,7 +3438,7 @@ static void __init_refok alloc_node_mem_
+ 		mem_map = NODE_DATA(0)->node_mem_map;
+ #ifdef CONFIG_ARCH_POPULATES_NODE_MAP
+ 		if (page_to_pfn(mem_map) != pgdat->node_start_pfn)
+-			mem_map -= pgdat->node_start_pfn;
++			mem_map -= (pgdat->node_start_pfn - ARCH_PFN_OFFSET);
+ #endif /* CONFIG_ARCH_POPULATES_NODE_MAP */
  	}
- 	spin_unlock_irqrestore(&priv->lock, flags);
- 
-+	/* The PL2303 is reported to lose bytes if you change
-+	   serial settings even to the same values as before. Thus
-+	   we actually need to filter in this specific case */
-+
-+	if (!tty_termios_hw_change(port->tty->termios, old_termios))
-+		return;
-+
- 	cflag = port->tty->termios->c_cflag;
- 
- 	buf = kzalloc(7, GFP_KERNEL);
-diff -puN include/linux/tty.h~pl2303-fix-mode-switching-regression include/linux/tty.h
---- a/include/linux/tty.h~pl2303-fix-mode-switching-regression
-+++ a/include/linux/tty.h
-@@ -319,6 +319,7 @@ extern speed_t tty_termios_input_baud_ra
- extern void tty_termios_encode_baud_rate(struct ktermios *termios, speed_t ibaud, speed_t obaud);
- extern void tty_encode_baud_rate(struct tty_struct *tty, speed_t ibaud, speed_t obaud);
- extern void tty_termios_copy_hw(struct ktermios *new, struct ktermios *old);
-+extern int tty_termios_hw_change(struct ktermios *a, struct ktermios *b);
- 
- extern struct tty_ldisc *tty_ldisc_ref(struct tty_struct *);
- extern void tty_ldisc_deref(struct tty_ldisc *);
+ #endif
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from tsbogend@alpha.franken.de are
 
 origin.patch
-pl2303-fix-mode-switching-regression-fix.patch
-git-acpi.patch
-git-arm.patch
-bw-qcam-adds-module-parameter-aggressive-to-skip-polite-auto-detection-prior-to-direct-initialization.patch
-git-libata-all.patch
-git-libata-all-fix-pata_winbond-borkage.patch
-git-libata-all-wtf.patch
-libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
-pata_legacy-resychronize-with-upstream-changes-and-resubmit.patch
+git-mips.patch
 git-netdev-all.patch
-bluetooth-rfcomm-tty_close-before-destruct.patch
-pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch
-pcmcia-replace-kio_addr_t-with-unsigned-int-everywhere.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-8250c-support-specifying-dw-apb-uarts-in-device-platform_data.patch
-avoid-waking-up-closed-serial-ports-on-resume.patch
-serial-avoid-stalling-suspend-if-serial-port-wont-drain.patch
-serial-speed-setup-failure-reporting.patch
-serial-coding-style.patch
-ti_usb-termios-cleanups.patch
-mos7720-clean-up-termios.patch
-io_ti-clean-up-termios-handling.patch
-wdt-fix-locking.patch
-wdt-fix-locking-checkpatch-fixes.patch
-serverworks-irq-routing-needs-no-_p.patch
-libata-correct-handling-of-tss-dvd.patch
-keyspan-fix-oops.patch
-geode-lists-are-subscriber-only.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+git-watchdog.patch
+serial-use-sgi_has_zilog-for-ip22_zilog-depends.patch
+char-use-sgi_has_ds1286-for-sgi_ds1286-depends.patch
 sc26xx-new-serial-driver-for-sc2681-uarts.patch
 sc26xx-new-serial-driver-for-sc2681-uarts-update.patch
-documentation-about-unaligned-memory-access.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
-fix-ixany-and-restart-after-signal-eg-ctrl-c-in-n_tty-line-discipline.patch
-tty-kill-tty_flipbuf_size.patch
-drivers-edac-turnon-edac-device-error-logging.patch
-drivers-edac-use-round_jiffies_relative.patch
-drivers-edac-add-cell-xdr-memory-types.patch
-drivers-edac-add-cell-mc-driver.patch
-drivers-edac-i3000-code-tidying.patch
-drivers-edac-i3000-replace-macros-with-functions.patch
-drivers-edac-add-freescale-mpc85xx-driver.patch
-drivers-edac-add-marvell-mv64x60-driver.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-dz-clean-up-and-improve-the-setup-of-termios-settings.patch
-char-rocket-switch-long-delay-to-sleep.patch
-char-rocket-printk-cleanup.patch
-char-char-serial-remove-serial_type_normal-redefines.patch
-char-mxser_new-ioaddresses-are-ulong.patch
-char-stallion-fix-compiler-warnings.patch
-char-riscom8-change-rc_init_drivers-prototype.patch
-mxser-mxser_new-first-pass-over-termios-reporting-for-the.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
-tty-s390-support-for-termios2.patch
-moxa-first-pass-at-termios-reporting.patch
-n_tty-clean-up-old-code-to-follow-coding-style-and-mostly-checkpatch.patch
-rocket-first-pass-at-termios-reporting.patch
-rocket-dont-let-random-users-reset-the-controller.patch
-tty_audit-fix-checkpatch-complaint.patch
-tty_io-drag-screaming-into-coding-style-compliance.patch
-tty_ioctl-drag-screaming-into-compliance-with-the-coding.patch
-8250_early-coding-style.patch
-8250_gsc-coding-style.patch
-8250_hp300-coding-style.patch
-8250_hub6-codding-style.patch
-8250_pci-coding-style.patch
-serial8250-coding-style.patch
-8250-enable-rate-reporting-via-termios.patch
-serial_core-bring-mostly-into-line-with-coding-style.patch
+partition-use-default_sgi_partition-for-sgi_partion-default.patch
