@@ -1,92 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: - acct-real_parent-ppid.patch removed from -mm tree
-Date: Sun, 13 Jan 2008 03:34:24 -0800
-Message-ID: <200801131134.m0DBY4Ul009899@imap1.linux-foundation.org>
+Subject: - acpi-its-a-directory-not-a-folder.patch removed from -mm tree
+Date: Sun, 13 Jan 2008 03:33:52 -0800
+Message-ID: <200801131133.m0DBXWEM009855@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32990 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33401 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751381AbYAMLjj (ORCPT
+	by vger.kernel.org with ESMTP id S1751342AbYAMLjn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Jan 2008 06:39:39 -0500
+	Sun, 13 Jan 2008 06:39:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roland@redhat.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acct: real_parent ppid
+     acpi: it's a directory not a folder
 has been removed from the -mm tree.  Its filename was
-     acct-real_parent-ppid.patch
+     acpi-its-a-directory-not-a-folder.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acct: real_parent ppid
-From: Roland McGrath <roland@redhat.com>
+Subject: acpi: it's a directory not a folder
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-The ac_ppid field reported in process accounting records should match what
-getppid() would have returned to that process, regardless of whether a
-debugger is attached.
+Noticed this while fixing some other stuff.  The kernel help consistently
+uses 'directory', except for ACPI.
 
-Signed-off-by: Roland McGrath <roland@redhat.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/acct.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/Kconfig |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN kernel/acct.c~acct-real_parent-ppid kernel/acct.c
---- a/kernel/acct.c~acct-real_parent-ppid
-+++ a/kernel/acct.c
-@@ -482,7 +482,7 @@ static void do_acct_process(struct file 
- #endif
- #if ACCT_VERSION==3
- 	ac.ac_pid = current->tgid;
--	ac.ac_ppid = current->parent->tgid;
-+	ac.ac_ppid = current->real_parent->tgid;
- #endif
+diff -puN drivers/acpi/Kconfig~acpi-its-a-directory-not-a-folder drivers/acpi/Kconfig
+--- a/drivers/acpi/Kconfig~acpi-its-a-directory-not-a-folder
++++ a/drivers/acpi/Kconfig
+@@ -68,20 +68,20 @@ config ACPI_PROCFS
  
- 	spin_lock_irq(&current->sighand->siglock);
+ 	  Say N to delete /proc/acpi/ files that have moved to /sys/
+ config ACPI_PROCFS_POWER
+-	bool "Deprecated power /proc/acpi folders"
++	bool "Deprecated power /proc/acpi directories"
+ 	depends on PROC_FS
+ 	default y
+ 	---help---
+ 	  For backwards compatibility, this option allows
+-          deprecated power /proc/acpi/ folders to exist, even when
++          deprecated power /proc/acpi/ directories to exist, even when
+           they have been replaced by functions in /sys.
+-          The deprecated folders (and their replacements) include:
++          The deprecated directories (and their replacements) include:
+ 	  /proc/acpi/battery/* (/sys/class/power_supply/*)
+ 	  /proc/acpi/ac_adapter/* (sys/class/power_supply/*)
+-	  This option has no effect on /proc/acpi/ folders
++	  This option has no effect on /proc/acpi/ directories
+ 	  and functions, which do not yet exist in /sys
+ 
+-	  Say N to delete power /proc/acpi/ folders that have moved to /sys/
++	  Say N to delete power /proc/acpi/ directories that have moved to /sys/
+ config ACPI_SYSFS_POWER
+ 	bool "Future power /sys interface"
+ 	select POWER_SUPPLY
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-__group_complete_signal-fix-coredump-with-group-stop-race.patch
-remove-handle_group_stop-in-favor-of-do_signal_stop.patch
-exec-rework-the-group-exit-and-fix-the-race-with-kill.patch
-git-s390.patch
-git-sched.patch
-git-x86.patch
-use-__set_task_state-for-traced-stopped-tasks.patch
-do_wait-remove-one-else-if-branch.patch
-add-arch_ptrace_stop.patch
-proc-fix-the-threaded-proc-self.patch
-kill-pt_attached.patch
-kill-my_ptrace_child.patch
-ptrace_check_attach-remove-unneeded-signal-=-null-check.patch
-wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace.patch
-do_wait-factor-out-retval-=-0-checks.patch
-ptrace_stop-fix-racy-nonstop_code-setting.patch
-wait_task_stopped-remove-unneeded-delay_group_leader-check.patch
-do_wait-cleanup-delay_group_leader-usage.patch
-do_wait-fix-security-checks.patch
-do_wait-fix-security-checks-fix.patch
-wait_task_continued-zombie-dont-use-task_pid_nr_ns-lockless.patch
-wait_task_zombie-remove-exit_state-exit_signal-checks-for-wnowait.patch
-fix-group-stop-with-exit-race.patch
-sys_setsid-remove-now-unneeded-session-=-1-check.patch
-move-the-related-code-from-exit_notify-to-exit_signals.patch
-uglify-kill_pid_info-to-fix-kill-vs-exec-race.patch
-uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice.patch
-itimer_real-convert-to-use-struct-pid.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-linux-kernel-markers-create-modpost-file.patch
-asm-posix_typesh-scrub-__glibc__.patch
-remove-task_ppid_nr_ns.patch
+pl2303-fix-mode-switching-regression-fix.patch
+git-acpi.patch
+git-arm.patch
+bw-qcam-adds-module-parameter-aggressive-to-skip-polite-auto-detection-prior-to-direct-initialization.patch
+git-libata-all.patch
+git-libata-all-fix-pata_winbond-borkage.patch
+git-libata-all-wtf.patch
+libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
+pata_legacy-resychronize-with-upstream-changes-and-resubmit.patch
+git-netdev-all.patch
+bluetooth-rfcomm-tty_close-before-destruct.patch
+pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch
+pcmcia-replace-kio_addr_t-with-unsigned-int-everywhere.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+8250c-support-specifying-dw-apb-uarts-in-device-platform_data.patch
+avoid-waking-up-closed-serial-ports-on-resume.patch
+serial-avoid-stalling-suspend-if-serial-port-wont-drain.patch
+serial-speed-setup-failure-reporting.patch
+serial-coding-style.patch
+ti_usb-termios-cleanups.patch
+mos7720-clean-up-termios.patch
+io_ti-clean-up-termios-handling.patch
+wdt-fix-locking.patch
+wdt-fix-locking-checkpatch-fixes.patch
+serverworks-irq-routing-needs-no-_p.patch
+libata-correct-handling-of-tss-dvd.patch
+keyspan-fix-oops.patch
+geode-lists-are-subscriber-only.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+sc26xx-new-serial-driver-for-sc2681-uarts.patch
+sc26xx-new-serial-driver-for-sc2681-uarts-update.patch
+documentation-about-unaligned-memory-access.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+fix-ixany-and-restart-after-signal-eg-ctrl-c-in-n_tty-line-discipline.patch
+tty-kill-tty_flipbuf_size.patch
+drivers-edac-turnon-edac-device-error-logging.patch
+drivers-edac-use-round_jiffies_relative.patch
+drivers-edac-add-cell-xdr-memory-types.patch
+drivers-edac-add-cell-mc-driver.patch
+drivers-edac-i3000-code-tidying.patch
+drivers-edac-i3000-replace-macros-with-functions.patch
+drivers-edac-add-freescale-mpc85xx-driver.patch
+drivers-edac-add-marvell-mv64x60-driver.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+dz-clean-up-and-improve-the-setup-of-termios-settings.patch
+char-rocket-switch-long-delay-to-sleep.patch
+char-rocket-printk-cleanup.patch
+char-char-serial-remove-serial_type_normal-redefines.patch
+char-mxser_new-ioaddresses-are-ulong.patch
+char-stallion-fix-compiler-warnings.patch
+char-riscom8-change-rc_init_drivers-prototype.patch
+mxser-mxser_new-first-pass-over-termios-reporting-for-the.patch
+tty-let-architectures-override-the-user-kernel-macros.patch
+tty-s390-support-for-termios2.patch
+moxa-first-pass-at-termios-reporting.patch
+n_tty-clean-up-old-code-to-follow-coding-style-and-mostly-checkpatch.patch
+rocket-first-pass-at-termios-reporting.patch
+rocket-dont-let-random-users-reset-the-controller.patch
+tty_audit-fix-checkpatch-complaint.patch
+tty_io-drag-screaming-into-coding-style-compliance.patch
+tty_ioctl-drag-screaming-into-compliance-with-the-coding.patch
+8250_early-coding-style.patch
+8250_gsc-coding-style.patch
+8250_hp300-coding-style.patch
+8250_hub6-codding-style.patch
+8250_pci-coding-style.patch
+serial8250-coding-style.patch
+8250-enable-rate-reporting-via-termios.patch
+serial_core-bring-mostly-into-line-with-coding-style.patch
