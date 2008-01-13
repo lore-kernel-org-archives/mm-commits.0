@@ -1,75 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - nfsv4-give-the-lock-stateid-its-own-sequence-queue.patch removed from -mm tree
-Date: Sun, 13 Jan 2008 03:33:27 -0800
-Message-ID: <200801131133.m0DBX7D8009817@imap1.linux-foundation.org>
+Subject: - ecryptfs-fix-dentry-handling-on-create-error-unlink-and-inode-destroy.patch removed from -mm tree
+Date: Sun, 13 Jan 2008 03:33:04 -0800
+Message-ID: <200801131132.m0DBWiI6009792@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47371 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34111 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751341AbYAMLdZ (ORCPT
+	by vger.kernel.org with ESMTP id S1751377AbYAMLd1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Jan 2008 06:33:25 -0500
+	Sun, 13 Jan 2008 06:33:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Trond.Myklebust@netapp.com, mm-commits@vger.kernel.org
+To: mhalcrow@us.ibm.com, jmoyer@redhat.com, sandeen@redhat.com, shaggy@austin.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     NFSv4: give the lock stateid its own sequence queue
+     eCryptfs: fix dentry handling on create error, unlink, and inode destroy
 has been removed from the -mm tree.  Its filename was
-     nfsv4-give-the-lock-stateid-its-own-sequence-queue.patch
+     ecryptfs-fix-dentry-handling-on-create-error-unlink-and-inode-destroy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: NFSv4: give the lock stateid its own sequence queue
-From: Trond Myklebust <Trond.Myklebust@netapp.com>
+Subject: eCryptfs: fix dentry handling on create error, unlink, and inode destroy
+From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-Sharing the open sequence queue causes a deadlock when we try to take both
-a lock sequence id and and open sequence id.
+This patch corrects some erroneous dentry handling in eCryptfs.
 
-This fixes the regression reported by Dimitri Puzin and Jeff Garzik:
-See http://bugzilla.kernel.org/show_bug.cgi?id=9712
+If there is a problem creating the lower file, then there is nothing that
+the persistent lower file can do to really help us.  This patch makes a
+vfs_create() failure in the lower filesystem always lead to an
+unconditional do_create failure in eCryptfs.
 
-Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+Under certain sequences of operations, the eCryptfs dentry can remain in
+the dcache after an unlink.  This patch calls d_drop() on the eCryptfs
+dentry to correct this.
+
+eCryptfs has no business calling d_delete() directly on a lower
+filesystem's dentry.  This patch removes the call to d_delete() on the
+lower persistent file's dentry in ecryptfs_destroy_inode().
+
+(Thanks to David Kleikamp, Eric Sandeen, and Jeff Moyer for helping
+identify and resolve this issue)
+
+Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
+Cc: Dave Kleikamp <shaggy@austin.ibm.com>
+Cc: Eric Sandeen <sandeen@redhat.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/nfs4_fs.h   |    1 +
- fs/nfs/nfs4state.c |    5 ++++-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ fs/ecryptfs/inode.c |   20 ++++----------------
+ fs/ecryptfs/super.c |    1 -
+ 2 files changed, 4 insertions(+), 17 deletions(-)
 
-diff -puN fs/nfs/nfs4_fs.h~nfsv4-give-the-lock-stateid-its-own-sequence-queue fs/nfs/nfs4_fs.h
---- a/fs/nfs/nfs4_fs.h~nfsv4-give-the-lock-stateid-its-own-sequence-queue
-+++ a/fs/nfs/nfs4_fs.h
-@@ -115,6 +115,7 @@ struct nfs4_lock_state {
- #define NFS_LOCK_INITIALIZED 1
- 	int			ls_flags;
- 	struct nfs_seqid_counter	ls_seqid;
-+	struct rpc_sequence	ls_sequence;
- 	struct nfs_unique_id	ls_id;
- 	nfs4_stateid		ls_stateid;
- 	atomic_t		ls_count;
-diff -puN fs/nfs/nfs4state.c~nfsv4-give-the-lock-stateid-its-own-sequence-queue fs/nfs/nfs4state.c
---- a/fs/nfs/nfs4state.c~nfsv4-give-the-lock-stateid-its-own-sequence-queue
-+++ a/fs/nfs/nfs4state.c
-@@ -509,7 +509,10 @@ static struct nfs4_lock_state *nfs4_allo
- 	lsp = kzalloc(sizeof(*lsp), GFP_KERNEL);
- 	if (lsp == NULL)
- 		return NULL;
--	lsp->ls_seqid.sequence = &state->owner->so_sequence;
-+	rpc_init_wait_queue(&lsp->ls_sequence.wait, "lock_seqid_waitqueue");
-+	spin_lock_init(&lsp->ls_sequence.lock);
-+	INIT_LIST_HEAD(&lsp->ls_sequence.list);
-+	lsp->ls_seqid.sequence = &lsp->ls_sequence;
- 	atomic_set(&lsp->ls_count, 1);
- 	lsp->ls_owner = fl_owner;
- 	spin_lock(&clp->cl_lock);
+diff -puN fs/ecryptfs/inode.c~ecryptfs-fix-dentry-handling-on-create-error-unlink-and-inode-destroy fs/ecryptfs/inode.c
+--- a/fs/ecryptfs/inode.c~ecryptfs-fix-dentry-handling-on-create-error-unlink-and-inode-destroy
++++ a/fs/ecryptfs/inode.c
+@@ -120,22 +120,9 @@ ecryptfs_do_create(struct inode *directo
+ 	rc = ecryptfs_create_underlying_file(lower_dir_dentry->d_inode,
+ 					     ecryptfs_dentry, mode, nd);
+ 	if (rc) {
+-		struct inode *ecryptfs_inode = ecryptfs_dentry->d_inode;
+-		struct ecryptfs_inode_info *inode_info =
+-			ecryptfs_inode_to_private(ecryptfs_inode);
+-
+-		printk(KERN_WARNING "%s: Error creating underlying file; "
+-		       "rc = [%d]; checking for existing\n", __FUNCTION__, rc);
+-		if (inode_info) {
+-			mutex_lock(&inode_info->lower_file_mutex);
+-			if (!inode_info->lower_file) {
+-				mutex_unlock(&inode_info->lower_file_mutex);
+-				printk(KERN_ERR "%s: Failure to set underlying "
+-				       "file; rc = [%d]\n", __FUNCTION__, rc);
+-				goto out_lock;
+-			}
+-			mutex_unlock(&inode_info->lower_file_mutex);
+-		}
++		printk(KERN_ERR "%s: Failure to create dentry in lower fs; "
++		       "rc = [%d]\n", __FUNCTION__, rc);
++		goto out_lock;
+ 	}
+ 	rc = ecryptfs_interpose(lower_dentry, ecryptfs_dentry,
+ 				directory_inode->i_sb, 0);
+@@ -451,6 +438,7 @@ static int ecryptfs_unlink(struct inode 
+ 	dentry->d_inode->i_nlink =
+ 		ecryptfs_inode_to_lower(dentry->d_inode)->i_nlink;
+ 	dentry->d_inode->i_ctime = dir->i_ctime;
++	d_drop(dentry);
+ out_unlock:
+ 	unlock_parent(lower_dentry);
+ 	return rc;
+diff -puN fs/ecryptfs/super.c~ecryptfs-fix-dentry-handling-on-create-error-unlink-and-inode-destroy fs/ecryptfs/super.c
+--- a/fs/ecryptfs/super.c~ecryptfs-fix-dentry-handling-on-create-error-unlink-and-inode-destroy
++++ a/fs/ecryptfs/super.c
+@@ -86,7 +86,6 @@ static void ecryptfs_destroy_inode(struc
+ 			fput(inode_info->lower_file);
+ 			inode_info->lower_file = NULL;
+ 			d_drop(lower_dentry);
+-			d_delete(lower_dentry);
+ 		}
+ 	}
+ 	mutex_unlock(&inode_info->lower_file_mutex);
 _
 
-Patches currently in -mm which might be from Trond.Myklebust@netapp.com are
+Patches currently in -mm which might be from mhalcrow@us.ibm.com are
 
 origin.patch
-git-nfs.patch
+git-unionfs.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+fs-ecryptfs-possible-cleanups.patch
+ecryptfs-track-header-bytes-rather-than-extents.patch
+ecryptfs-set-inode-key-only-once-per-crypto-operation.patch
+ecryptfs-make-show_options-reflect-actual-mount-options.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+ecryptfs-remove-debug-as-mount-option-and-warn-if-set-via-modprobe.patch
+ecryptfs-minor-fixes-to-printk-messages.patch
+ecryptfs-change-the-type-of-cipher_code-from-u16-to-u8.patch
+ecryptfs-check-for-existing-key_tfm-at-mount-time.patch
+d_path-make-d_path-use-a-struct-path.patch
