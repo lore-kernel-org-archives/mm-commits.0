@@ -1,307 +1,313 @@
 From: akpm@linux-foundation.org
-Subject: - arch-x86-makefile-revert-git-kvm-change.patch removed from -mm tree
-Date: Sun, 13 Jan 2008 03:19:55 -0800
-Message-ID: <200801131119.m0DBJaSQ009326@imap1.linux-foundation.org>
+Subject: - bugh-remove-have_arch_bug--have_arch_warn.patch removed from -mm tree
+Date: Sun, 13 Jan 2008 03:25:15 -0800
+Message-ID: <200801131124.m0DBOtdr009495@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34824 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33769 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751394AbYAMLU2 (ORCPT
+	by vger.kernel.org with ESMTP id S1751381AbYAMLZB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Jan 2008 06:20:28 -0500
+	Sun, 13 Jan 2008 06:25:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, avi@qumranet.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: olof@lixom.net, linux-arch@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/x86/Makefile: revert git-kvm change
+     bug.h: Remove HAVE_ARCH_BUG.* / HAVE_ARCH_WARN.*
 has been removed from the -mm tree.  Its filename was
-     arch-x86-makefile-revert-git-kvm-change.patch
+     bugh-remove-have_arch_bug--have_arch_warn.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because git-x86 changes wrecked it
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/Makefile: revert git-kvm change
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: bug.h: Remove HAVE_ARCH_BUG.* / HAVE_ARCH_WARN.*
+From: Olof Johansson <olof@lixom.net>
 
-To avoid a massive git-x86 reject.
+No need to have the HAVE_ARCH_BUG.* / HAVE_ARCH_WARN.* defines, when
+the generic implementation can just use #ifndef on the macros themselves.
 
--mm's KVM is probably busted anyway due to uncoordinated changes in git-kvm
-and git-x86.
+Also, introduce __WARN() in the generic case, so the generic WARN_ON()
+can use arch-specific code for when the condition is true.
 
-Cc: Avi Kivity <avi@qumranet.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-CC: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Olof Johansson <olof@lixom.net>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Makefile |    2 --
- 1 file changed, 2 deletions(-)
+ include/asm-alpha/bug.h   |    1 -
+ include/asm-arm/bug.h     |    1 -
+ include/asm-avr32/bug.h   |    3 ---
+ include/asm-frv/bug.h     |    1 -
+ include/asm-generic/bug.h |   27 ++++++++++++++++-----------
+ include/asm-ia64/bug.h    |    1 -
+ include/asm-m68k/bug.h    |    1 -
+ include/asm-mips/bug.h    |    4 ----
+ include/asm-parisc/bug.h  |    2 --
+ include/asm-powerpc/bug.h |    3 ---
+ include/asm-s390/bug.h    |    2 --
+ include/asm-sh/bug.h      |    2 --
+ include/asm-sparc/bug.h   |    1 -
+ include/asm-sparc64/bug.h |    1 -
+ include/asm-v850/bug.h    |    1 -
+ include/asm-x86/bug.h     |    1 -
+ 16 files changed, 16 insertions(+), 36 deletions(-)
 
-diff -puN arch/x86/Makefile~arch-x86-makefile-revert-git-kvm-change arch/x86/Makefile
---- a/arch/x86/Makefile~arch-x86-makefile-revert-git-kvm-change
-+++ a/arch/x86/Makefile
-@@ -17,5 +17,3 @@ else
-         UTS_MACHINE := x86_64
-         include $(srctree)/arch/x86/Makefile_64
- endif
+diff -puN include/asm-alpha/bug.h~bugh-remove-have_arch_bug--have_arch_warn include/asm-alpha/bug.h
+--- a/include/asm-alpha/bug.h~bugh-remove-have_arch_bug--have_arch_warn
++++ a/include/asm-alpha/bug.h
+@@ -10,7 +10,6 @@
+   __asm__ __volatile__("call_pal %0  # bugchk\n\t"".long %1\n\t.8byte %2" \
+ 		       : : "i" (PAL_bugchk), "i"(__LINE__), "i"(__FILE__))
+ 
+-#define HAVE_ARCH_BUG
+ #endif
+ 
+ #include <asm-generic/bug.h>
+diff -puN include/asm-arm/bug.h~bugh-remove-have_arch_bug--have_arch_warn include/asm-arm/bug.h
+--- a/include/asm-arm/bug.h~bugh-remove-have_arch_bug--have_arch_warn
++++ a/include/asm-arm/bug.h
+@@ -16,7 +16,6 @@ extern void __bug(const char *file, int 
+ 
+ #endif
+ 
+-#define HAVE_ARCH_BUG
+ #endif
+ 
+ #include <asm-generic/bug.h>
+diff -puN include/asm-avr32/bug.h~bugh-remove-have_arch_bug--have_arch_warn include/asm-avr32/bug.h
+--- a/include/asm-avr32/bug.h~bugh-remove-have_arch_bug--have_arch_warn
++++ a/include/asm-avr32/bug.h
+@@ -63,9 +63,6 @@
+ 		unlikely(__ret_warn_on);				\
+ 	})
+ 
+-#define HAVE_ARCH_BUG
+-#define HAVE_ARCH_WARN_ON
 -
--core-$(CONFIG_KVM) += arch/x86/kvm/
+ #endif /* CONFIG_BUG */
+ 
+ #include <asm-generic/bug.h>
+diff -puN include/asm-frv/bug.h~bugh-remove-have_arch_bug--have_arch_warn include/asm-frv/bug.h
+--- a/include/asm-frv/bug.h~bugh-remove-have_arch_bug--have_arch_warn
++++ a/include/asm-frv/bug.h
+@@ -32,7 +32,6 @@ do {						\
+ 	asm volatile("nop");			\
+ } while(0)
+ 
+-#define HAVE_ARCH_BUG
+ #define BUG()					\
+ do {						\
+ 	_debug_bug_printk();			\
+diff -puN include/asm-generic/bug.h~bugh-remove-have_arch_bug--have_arch_warn include/asm-generic/bug.h
+--- a/include/asm-generic/bug.h~bugh-remove-have_arch_bug--have_arch_warn
++++ a/include/asm-generic/bug.h
+@@ -20,39 +20,44 @@ struct bug_entry {
+ #define BUGFLAG_WARNING	(1<<0)
+ #endif	/* CONFIG_GENERIC_BUG */
+ 
+-#ifndef HAVE_ARCH_BUG
++#ifndef BUG
+ #define BUG() do { \
+ 	printk("BUG: failure at %s:%d/%s()!\n", __FILE__, __LINE__, __FUNCTION__); \
+ 	panic("BUG!"); \
+ } while (0)
+ #endif
+ 
+-#ifndef HAVE_ARCH_BUG_ON
++#ifndef BUG_ON
+ #define BUG_ON(condition) do { if (unlikely(condition)) BUG(); } while(0)
+ #endif
+ 
+-#ifndef HAVE_ARCH_WARN_ON
++#ifndef __WARN
++#define __WARN() do {							\
++	printk("WARNING: at %s:%d %s()\n", __FILE__,			\
++		__LINE__, __FUNCTION__);				\
++	dump_stack();							\
++} while (0)
++#endif
++
++#ifndef WARN_ON
+ #define WARN_ON(condition) ({						\
+ 	int __ret_warn_on = !!(condition);				\
+-	if (unlikely(__ret_warn_on)) {					\
+-		printk("WARNING: at %s:%d %s()\n", __FILE__,		\
+-			__LINE__, __FUNCTION__);			\
+-		dump_stack();						\
+-	}								\
++	if (unlikely(__ret_warn_on))					\
++		__WARN();						\
+ 	unlikely(__ret_warn_on);					\
+ })
+ #endif
+ 
+ #else /* !CONFIG_BUG */
+-#ifndef HAVE_ARCH_BUG
++#ifndef BUG
+ #define BUG()
+ #endif
+ 
+-#ifndef HAVE_ARCH_BUG_ON
++#ifndef BUG_ON
+ #define BUG_ON(condition) do { if (condition) ; } while(0)
+ #endif
+ 
+-#ifndef HAVE_ARCH_WARN_ON
++#ifndef WARN_ON
+ #define WARN_ON(condition) ({						\
+ 	int __ret_warn_on = !!(condition);				\
+ 	unlikely(__ret_warn_on);					\
+diff -puN include/asm-ia64/bug.h~bugh-remove-have_arch_bug--have_arch_warn include/asm-ia64/bug.h
+--- a/include/asm-ia64/bug.h~bugh-remove-have_arch_bug--have_arch_warn
++++ a/include/asm-ia64/bug.h
+@@ -6,7 +6,6 @@
+ #define BUG() do { printk("kernel BUG at %s:%d!\n", __FILE__, __LINE__); ia64_abort(); } while (0)
+ 
+ /* should this BUG be made generic? */
+-#define HAVE_ARCH_BUG
+ #endif
+ 
+ #include <asm-generic/bug.h>
+diff -puN include/asm-m68k/bug.h~bugh-remove-have_arch_bug--have_arch_warn include/asm-m68k/bug.h
+--- a/include/asm-m68k/bug.h~bugh-remove-have_arch_bug--have_arch_warn
++++ a/include/asm-m68k/bug.h
+@@ -21,7 +21,6 @@
+ } while (0)
+ #endif
+ 
+-#define HAVE_ARCH_BUG
+ #endif
+ 
+ #include <asm-generic/bug.h>
+diff -puN include/asm-mips/bug.h~bugh-remove-have_arch_bug--have_arch_warn include/asm-mips/bug.h
+--- a/include/asm-mips/bug.h~bugh-remove-have_arch_bug--have_arch_warn
++++ a/include/asm-mips/bug.h
+@@ -12,8 +12,6 @@ do {									\
+ 	__asm__ __volatile__("break %0" : : "i" (BRK_BUG));		\
+ } while (0)
+ 
+-#define HAVE_ARCH_BUG
+-
+ #if (_MIPS_ISA > _MIPS_ISA_MIPS1)
+ 
+ #define BUG_ON(condition)						\
+@@ -22,8 +20,6 @@ do {									\
+ 			     : : "r" (condition), "i" (BRK_BUG));	\
+ } while (0)
+ 
+-#define HAVE_ARCH_BUG_ON
+-
+ #endif /* _MIPS_ISA > _MIPS_ISA_MIPS1 */
+ 
+ #endif
+diff -puN include/asm-parisc/bug.h~bugh-remove-have_arch_bug--have_arch_warn include/asm-parisc/bug.h
+--- a/include/asm-parisc/bug.h~bugh-remove-have_arch_bug--have_arch_warn
++++ a/include/asm-parisc/bug.h
+@@ -7,8 +7,6 @@
+  */
+ 
+ #ifdef CONFIG_BUG
+-#define HAVE_ARCH_BUG
+-#define HAVE_ARCH_WARN_ON
+ 
+ /* the break instruction is used as BUG() marker.  */
+ #define	PARISC_BUG_BREAK_ASM	"break 0x1f, 0x1fff"
+diff -puN include/asm-powerpc/bug.h~bugh-remove-have_arch_bug--have_arch_warn include/asm-powerpc/bug.h
+--- a/include/asm-powerpc/bug.h~bugh-remove-have_arch_bug--have_arch_warn
++++ a/include/asm-powerpc/bug.h
+@@ -109,9 +109,6 @@
+ 	unlikely(__ret_warn_on);				\
+ })
+ 
+-#define HAVE_ARCH_BUG
+-#define HAVE_ARCH_BUG_ON
+-#define HAVE_ARCH_WARN_ON
+ #endif /* __ASSEMBLY __ */
+ #endif /* CONFIG_BUG */
+ 
+diff -puN include/asm-s390/bug.h~bugh-remove-have_arch_bug--have_arch_warn include/asm-s390/bug.h
+--- a/include/asm-s390/bug.h~bugh-remove-have_arch_bug--have_arch_warn
++++ a/include/asm-s390/bug.h
+@@ -61,8 +61,6 @@
+ 	unlikely(__ret_warn_on);			\
+ })
+ 
+-#define HAVE_ARCH_BUG
+-#define HAVE_ARCH_WARN_ON
+ #endif /* CONFIG_BUG */
+ 
+ #include <asm-generic/bug.h>
+diff -puN include/asm-sh/bug.h~bugh-remove-have_arch_bug--have_arch_warn include/asm-sh/bug.h
+--- a/include/asm-sh/bug.h~bugh-remove-have_arch_bug--have_arch_warn
++++ a/include/asm-sh/bug.h
+@@ -4,8 +4,6 @@
+ #define TRAPA_BUG_OPCODE	0xc33e	/* trapa #0x3e */
+ 
+ #ifdef CONFIG_GENERIC_BUG
+-#define HAVE_ARCH_BUG
+-#define HAVE_ARCH_WARN_ON
+ 
+ /**
+  * _EMIT_BUG_ENTRY
+diff -puN /dev/null /dev/null
+diff -puN include/asm-sparc/bug.h~bugh-remove-have_arch_bug--have_arch_warn include/asm-sparc/bug.h
+--- a/include/asm-sparc/bug.h~bugh-remove-have_arch_bug--have_arch_warn
++++ a/include/asm-sparc/bug.h
+@@ -26,7 +26,6 @@ extern void do_BUG(const char *file, int
+ #define BUG()		__bug_trap()
+ #endif
+ 
+-#define HAVE_ARCH_BUG
+ #endif
+ 
+ #include <asm-generic/bug.h>
+diff -puN include/asm-sparc64/bug.h~bugh-remove-have_arch_bug--have_arch_warn include/asm-sparc64/bug.h
+--- a/include/asm-sparc64/bug.h~bugh-remove-have_arch_bug--have_arch_warn
++++ a/include/asm-sparc64/bug.h
+@@ -14,7 +14,6 @@ extern void do_BUG(const char *file, int
+ #define BUG()		__builtin_trap()
+ #endif
+ 
+-#define HAVE_ARCH_BUG
+ #endif
+ 
+ #include <asm-generic/bug.h>
+diff -puN include/asm-v850/bug.h~bugh-remove-have_arch_bug--have_arch_warn include/asm-v850/bug.h
+--- a/include/asm-v850/bug.h~bugh-remove-have_arch_bug--have_arch_warn
++++ a/include/asm-v850/bug.h
+@@ -17,7 +17,6 @@
+ #ifdef CONFIG_BUG
+ extern void __bug (void) __attribute__ ((noreturn));
+ #define BUG()		__bug()
+-#define HAVE_ARCH_BUG
+ #endif
+ 
+ #include <asm-generic/bug.h>
+diff -puN include/asm-x86/bug.h~bugh-remove-have_arch_bug--have_arch_warn include/asm-x86/bug.h
+--- a/include/asm-x86/bug.h~bugh-remove-have_arch_bug--have_arch_warn
++++ a/include/asm-x86/bug.h
+@@ -2,7 +2,6 @@
+ #define _ASM_X86_BUG_H
+ 
+ #ifdef CONFIG_BUG
+-#define HAVE_ARCH_BUG
+ 
+ #ifdef CONFIG_DEBUG_BUGVERBOSE
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from olof@lixom.net are
 
-origin.patch
-hugetlbfs-fix-quota-leak.patch
-pl2303-fix-mode-switching-regression-fix.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes.patch
-timerfd-v3-new-timerfd-api-ia64-fix.patch
-timerfd-v3-new-timerfd-api-m68k-fix.patch
-timerfd-v3-new-timerfd-api-mips-fix.patch
-timerfd-v3-new-timerfd-api-arch-fixes.patch
-timerfd-v3-new-timerfd-api-powerpc-fix.patch
-timerfd-v3-new-timerfd-api-sparc64-fix.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-agpgart-intel-agp-dont-zero-an-already-registered-resource-during-resume.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-git-audit-master.patch
-git-cifs.patch
-git-cpufreq.patch
 git-powerpc.patch
-git-powerpc-fixup.patch
-revert-gregkh-driver-atm-convert-struct-class_device-to-struct-device.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
-pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes.patch
-pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes-2.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-intel-agp-enable-i915-recognition.patch
-drm-convert-from-nopage-to-fault-checkpatch-fixes.patch
-git-dvb.patch
-fix-jdelvare-i2c-i2c-constify-client-address-data.patch
-hwmon-new-chip-driver-for-ti-ads7828-a-d-checkpatch-fixes.patch
-git-hid.patch
-revert-git-hrt.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-versus-driver-tree.patch
-git-kbuild.patch
-git-kvm.patch
-git-libata-all.patch
-git-libata-all-fix-pata_winbond-borkage.patch
-git-libata-all-wtf.patch
-libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
-libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
-libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
-git-md-accel.patch
-git-mmc.patch
 git-mtd.patch
-git-net.patch
-git-net-vs-git-lblnet.patch
-git-net-vs-git-lblnet-2.patch
 git-netdev-all.patch
-git-net-vs-git-netdev-all.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-backlight-omap1-backlight-driver.patch
-git-battery.patch
-bluetooth-uninlining.patch
-net-sunrpc-schedc-revert-git-net-changes.patch
-net-sunrpc-schedc-reapply-git-net-changes.patch
-net-sunrpc-svcsockc-revert-git-nfs-changes.patch
-git-nfsd.patch
-git-nfsd-fixup.patch
-serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
-git-sched.patch
-git-sched-fixup.patch
-git-sh.patch
-git-scsi-misc.patch
-scsi-aic94xx-cleanups-checkpatch-fixes.patch
-scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
-9p-util-fix-semaphore-handling.patch
-git-watchdog.patch
-git-watchdog-fixup.patch
-wdt-fix-locking-checkpatch-fixes.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-arch-x86-makefile-revert-git-kvm-change.patch
+pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch
+pcmcia-replace-kio_addr_t-with-unsigned-int-everywhere.patch
+drivers-pcmcia-add-missing-iounmap.patch
 git-x86.patch
-git-x86-fixup.patch
-git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
-git-x86-fix-doubly-merged-patch.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-git-newsetup.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-git-xtensa.patch
-bonding-locking-fix.patch
-usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-add-proc-kpagecount-interface-fix.patch
-maps4-add-proc-kpageflags-interface-fix.patch
-maps4-add-proc-kpageflags-interface-fix-2-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-mm-remove-fastcall-from-mm-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
-kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
-stopmachine-semaphore-to-mutex-fix.patch
-parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
-debug_smp_processor_id-fixlets.patch
-use-ilog2-in-fs-namespacec-fix.patch
-avoid-overflows-in-kernel-timec-fix.patch
-export-iov_shorten-for-ext4s-use-fix.patch
-system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
-speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
-add-have_oprofile.patch
-ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-rtc-add-support-for-the-s-35390a-rtc-chip.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-neofb-avoid-overwriting-fb_info-fields.patch
-vermilionc-use-align-not-__align_mask.patch
-declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
-ext4-mm-ext4_store_maxbytes_for_bitmaped_files-warning-fix.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
-hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
-cpusets-update_cpumask-revision-fix.patch
-cpusets-update_cpumask-revision-checkpatch-fixes.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
-proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-pid-sys_wait-fixes-v2-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-rewrite-rd-fixes.patch
-fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
-kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
-lib-remove-fastcall-from-lib-checkpatch-fixes.patch
-remove-fastcall-from-linux-include-checkpatch-fixes.patch
-constify-tables-in-kernel-sysctl_checkc-fix.patch
-aoe-statically-initialise-devlist_lock.patch
-provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc-fix.patch
-ufs-fix-symlink-creation-on-ufs2-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+bugh-remove-have_arch_bug--have_arch_warn.patch
+powerpc-switch-to-generic-warn_on-bug_on.patch
