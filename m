@@ -1,69 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - libata-sff-pci-irq-handling-fix.patch removed from -mm tree
-Date: Sun, 13 Jan 2008 03:34:03 -0800
-Message-ID: <200801131133.m0DBXhmY009867@imap1.linux-foundation.org>
+Subject: - pata_pdc202xx_old-further-fixups.patch removed from -mm tree
+Date: Sun, 13 Jan 2008 03:33:58 -0800
+Message-ID: <200801131133.m0DBXceo009864@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44480 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48110 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751353AbYAMLj6 (ORCPT
+	by vger.kernel.org with ESMTP id S1751348AbYAMLj6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sun, 13 Jan 2008 06:39:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, bzolnier@gmail.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata-sff: PCI IRQ handling fix
+     pata_pdc202xx_old: further fixups
 has been removed from the -mm tree.  Its filename was
-     libata-sff-pci-irq-handling-fix.patch
+     pata_pdc202xx_old-further-fixups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: libata-sff: PCI IRQ handling fix
+Subject: pata_pdc202xx_old: further fixups
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-It is legitimate (although annoying and silly) for a PCI IDE controller not
-to be assigned an interrupt and to be polled.  The libata-sff code should
-therefore not try and request IRQ 0 in this case.
+Turns out distros always enabled burst mode and it is pretty essential so
+do the same.  Also sort out the post DMA mode restore properly.
+
+My 20263 card now seems happy but needs some four drive tests done yet
+(when I've persuaded the kernel not to hang in the edd boot code if I plug
+them in ..)
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Acked-by: Tejun Heo <htejun@gmail.com>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Tejun Heo <htejun@gmail.com>
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-sff.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/ata/pata_pdc202xx_old.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/libata-sff.c~libata-sff-pci-irq-handling-fix drivers/ata/libata-sff.c
---- a/drivers/ata/libata-sff.c~libata-sff-pci-irq-handling-fix
-+++ a/drivers/ata/libata-sff.c
-@@ -808,7 +808,10 @@ int ata_pci_init_one(struct pci_dev *pde
- 	if (rc)
- 		goto err_out;
+diff -puN drivers/ata/pata_pdc202xx_old.c~pata_pdc202xx_old-further-fixups drivers/ata/pata_pdc202xx_old.c
+--- a/drivers/ata/pata_pdc202xx_old.c~pata_pdc202xx_old-further-fixups
++++ a/drivers/ata/pata_pdc202xx_old.c
+@@ -214,8 +214,8 @@ static void pdc2026x_bmdma_stop(struct a
+ 	/* Flip back to 33Mhz for PIO */
+ 	if (adev->dma_mode >= XFER_UDMA_2)
+ 		iowrite8(ioread8(clock) & ~sel66, clock);
+-
+ 	ata_bmdma_stop(qc);
++	pdc202xx_set_piomode(ap, adev);
+ }
  
--	if (!legacy_mode) {
-+	if (!legacy_mode && pdev->irq) {
-+		/* We may have no IRQ assigned in which case we can poll. This
-+		   shouldn't happen on a sane system but robustness is cheap
-+		   in this case */
- 		rc = devm_request_irq(dev, pdev->irq, pi->port_ops->irq_handler,
- 				      IRQF_SHARED, DRV_NAME, host);
- 		if (rc)
-@@ -816,7 +819,7 @@ int ata_pci_init_one(struct pci_dev *pde
+ /**
+@@ -232,6 +232,17 @@ static void pdc2026x_dev_config(struct a
+ 	adev->max_sectors = 256;
+ }
  
- 		ata_port_desc(host->ports[0], "irq %d", pdev->irq);
- 		ata_port_desc(host->ports[1], "irq %d", pdev->irq);
--	} else {
-+	} else if (legacy_mode) {
- 		if (!ata_port_is_dummy(host->ports[0])) {
- 			rc = devm_request_irq(dev, ATA_PRIMARY_IRQ(pdev),
- 					      pi->port_ops->irq_handler,
++static int pdc2026x_port_start(struct ata_port *ap)
++{
++	void __iomem *bmdma = ap->ioaddr.bmdma_addr;
++	if (bmdma) {
++		/* Enable burst mode */
++		u8 burst = ioread8(bmdma + 0x1f);
++		iowrite8(burst | 0x01, bmdma + 0x1f);
++	}
++	return ata_sff_port_start(ap);
++}
++
+ static struct scsi_host_template pdc202xx_sht = {
+ 	.module			= THIS_MODULE,
+ 	.name			= DRV_NAME,
+@@ -312,7 +323,7 @@ static struct ata_port_operations pdc202
+ 	.irq_clear	= ata_bmdma_irq_clear,
+ 	.irq_on		= ata_irq_on,
+ 
+-	.port_start	= ata_sff_port_start,
++	.port_start	= pdc2026x_port_start,
+ };
+ 
+ static int pdc202xx_init_one(struct pci_dev *dev, const struct pci_device_id *id)
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
