@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-add-support-for-the-s-35390a-rtc-chip-update2.patch added to -mm tree
-Date: Mon, 14 Jan 2008 15:21:51 -0800
-Message-ID: <200801142321.m0ENLpas020508@imap1.linux-foundation.org>
+Subject: + convert-drivers-scsi-chc-to-use-unlocked_ioctl.patch added to -mm tree
+Date: Mon, 14 Jan 2008 15:22:49 -0800
+Message-ID: <200801142322.m0ENMnwf020556@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41405 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39989 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752173AbYANXWL (ORCPT
+	by vger.kernel.org with ESMTP id S1753267AbYANXXF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Jan 2008 18:22:11 -0500
+	Mon, 14 Jan 2008 18:23:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: byron.bbradley@gmail.com, david-b@pacbell.net, khali@linux-fr.org, tim@ngndg.com
+Cc: mathieu.segaud@regala.cx, James.Bottomley@steeleye.com, willy@linux.intel.com
 
 
 The patch titled
-     rtc-add-support-for-the-s-35390a-rtc-chip-update2
+     Convert drivers/scsi/ch.c to use unlocked_ioctl
 has been added to the -mm tree.  Its filename is
-     rtc-add-support-for-the-s-35390a-rtc-chip-update2.patch
+     convert-drivers-scsi-chc-to-use-unlocked_ioctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,75 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-add-support-for-the-s-35390a-rtc-chip-update2
-From: Byron Bradley <byron.bbradley@gmail.com>
+Subject: Convert drivers/scsi/ch.c to use unlocked_ioctl
+From: Mathieu Segaud <mathieu.segaud@regala.cx>
 
-Print i2c address in hex and replace ENOCSI with EBUSY
+As of now, compat_ioctl already runs without the BKL, whereas ioctl runs
+with the BKL.  This patch first converts changer_fops to use a
+.unlocked_ioctl member.  It applies the same locking rationale than
+ch_ioctl_compat() uses to ch_ioctl().
 
-Signed-off-by: Byron Bradley <byron.bbradley@gmail.com>
-Acked-by: Jean Delvare <khali@linux-fr.org>
-Cc: Tim Ellis <tim@ngndg.com>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Mathieu Segaud <mathieu.segaud@regala.cx>
+Reviewed-by: Matthew Wilcox <willy@linux.intel.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-s35390a.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/scsi/ch.c |   18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
 
-diff -puN drivers/rtc/rtc-s35390a.c~rtc-add-support-for-the-s-35390a-rtc-chip-update2 drivers/rtc/rtc-s35390a.c
---- a/drivers/rtc/rtc-s35390a.c~rtc-add-support-for-the-s-35390a-rtc-chip-update2
-+++ a/drivers/rtc/rtc-s35390a.c
-@@ -222,9 +222,9 @@ static int s35390a_probe(struct i2c_clie
- 		s35390a->client[i] = i2c_new_dummy(client->adapter,
- 					client->addr + i, "rtc-s35390a");
- 		if (!s35390a->client[i]) {
--			dev_err(&client->dev, "Address %d unavailable\n",
-+			dev_err(&client->dev, "Address %02x unavailable\n",
- 						client->addr + i);
--			err = -ENOCSI;
-+			err = -EBUSY;
- 			goto exit_dummy;
- 		}
- 	}
+diff -puN drivers/scsi/ch.c~convert-drivers-scsi-chc-to-use-unlocked_ioctl drivers/scsi/ch.c
+--- a/drivers/scsi/ch.c~convert-drivers-scsi-chc-to-use-unlocked_ioctl
++++ a/drivers/scsi/ch.c
+@@ -92,8 +92,7 @@ static int  ch_probe(struct device *);
+ static int  ch_remove(struct device *);
+ static int  ch_open(struct inode * inode, struct file * filp);
+ static int  ch_release(struct inode * inode, struct file * filp);
+-static int  ch_ioctl(struct inode * inode, struct file * filp,
+-		     unsigned int cmd, unsigned long arg);
++static long ch_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
+ #ifdef CONFIG_COMPAT
+ static long ch_ioctl_compat(struct file * filp,
+ 			    unsigned int cmd, unsigned long arg);
+@@ -130,12 +129,12 @@ static struct scsi_driver ch_template =
+ 
+ static const struct file_operations changer_fops =
+ {
+-	.owner        = THIS_MODULE,
+-	.open         = ch_open,
+-	.release      = ch_release,
+-	.ioctl        = ch_ioctl,
++	.owner		= THIS_MODULE,
++	.open		= ch_open,
++	.release	= ch_release,
++	.unlocked_ioctl	= ch_ioctl,
+ #ifdef CONFIG_COMPAT
+-	.compat_ioctl = ch_ioctl_compat,
++	.compat_ioctl	= ch_ioctl_compat,
+ #endif
+ };
+ 
+@@ -626,7 +625,7 @@ ch_checkrange(scsi_changer *ch, unsigned
+ 	return 0;
+ }
+ 
+-static int ch_ioctl(struct inode * inode, struct file * file,
++static long ch_ioctl(struct file *file,
+ 		    unsigned int cmd, unsigned long arg)
+ {
+ 	scsi_changer *ch = file->private_data;
+@@ -887,8 +886,7 @@ static long ch_ioctl_compat(struct file 
+ 	case CHIOINITELEM:
+ 	case CHIOSVOLTAG:
+ 		/* compatible */
+-		return ch_ioctl(NULL /* inode, unused */,
+-				file, cmd, arg);
++		return ch_ioctl(file, cmd, arg);
+ 	case CHIOGSTATUS32:
+ 	{
+ 		struct changer_element_status32 ces32;
 _
 
-Patches currently in -mm which might be from byron.bbradley@gmail.com are
+Patches currently in -mm which might be from mathieu.segaud@regala.cx are
 
-git-arm.patch
-rtc-add-support-for-the-s-35390a-rtc-chip.patch
-rtc-add-support-for-the-s-35390a-rtc-chip-update.patch
-rtc-add-support-for-the-s-35390a-rtc-chip-update2.patch
+convert-drivers-scsi-chc-to-use-unlocked_ioctl.patch
