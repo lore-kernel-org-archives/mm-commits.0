@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + md-change-a-few-int-to-size_t-in-md.patch added to -mm tree
-Date: Sun, 13 Jan 2008 17:59:39 -0800
-Message-ID: <200801140159.m0E1xJbZ006872@imap1.linux-foundation.org>
+Subject: + md-change-interate_mddev-to-for_each_mddev.patch added to -mm tree
+Date: Sun, 13 Jan 2008 17:59:51 -0800
+Message-ID: <200801140159.m0E1xV2C006875@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40279 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58774 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753446AbYANB7Y (ORCPT
+	by vger.kernel.org with ESMTP id S1753645AbYANB7g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Jan 2008 20:59:24 -0500
+	Sun, 13 Jan 2008 20:59:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: neilb@suse.de
 
 
 The patch titled
-     md: change a few 'int' to 'size_t' in md
+     md: change INTERATE_MDDEV to for_each_mddev
 has been added to the -mm tree.  Its filename is
-     md-change-a-few-int-to-size_t-in-md.patch
+     md-change-interate_mddev-to-for_each_mddev.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,75 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md: change a few 'int' to 'size_t' in md
+Subject: md: change INTERATE_MDDEV to for_each_mddev
 From: NeilBrown <neilb@suse.de>
 
-As suggested by Andrew Morton.
+As this is more consistent with kernel style.
 
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/md.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/md/md.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/md/md.c~md-change-a-few-int-to-size_t-in-md drivers/md/md.c
---- a/drivers/md/md.c~md-change-a-few-int-to-size_t-in-md
+diff -puN drivers/md/md.c~md-change-interate_mddev-to-for_each_mddev drivers/md/md.c
+--- a/drivers/md/md.c~md-change-interate_mddev-to-for_each_mddev
 +++ a/drivers/md/md.c
-@@ -1802,7 +1802,7 @@ static ssize_t
- state_show(mdk_rdev_t *rdev, char *page)
- {
- 	char *sep = "";
--	int len=0;
-+	size_t len = 0;
+@@ -195,7 +195,7 @@ static DEFINE_SPINLOCK(all_mddevs_lock);
+  * Any code which breaks out of this loop while own
+  * a reference to the current mddev and must mddev_put it.
+  */
+-#define ITERATE_MDDEV(mddev,tmp)					\
++#define for_each_mddev(mddev,tmp)					\
+ 									\
+ 	for (({ spin_lock(&all_mddevs_lock); 				\
+ 		tmp = all_mddevs.next;					\
+@@ -1596,7 +1596,7 @@ static void md_print_devices(void)
+ 	printk("md:	**********************************\n");
+ 	printk("md:	* <COMPLETE RAID STATE PRINTOUT> *\n");
+ 	printk("md:	**********************************\n");
+-	ITERATE_MDDEV(mddev,tmp) {
++	for_each_mddev(mddev, tmp) {
  
- 	if (test_bit(Faulty, &rdev->flags)) {
- 		len+= sprintf(page+len, "%sfaulty",sep);
-@@ -2320,7 +2320,7 @@ level_show(mddev_t *mddev, char *page)
- static ssize_t
- level_store(mddev_t *mddev, const char *buf, size_t len)
- {
--	int rv = len;
-+	ssize_t rv = len;
- 	if (mddev->pers)
- 		return -EBUSY;
- 	if (len == 0)
-@@ -2807,7 +2807,7 @@ metadata_store(mddev_t *mddev, const cha
- 		return len;
- 	}
- 	if (strncmp(buf, "external:", 9) == 0) {
--		int namelen = len-9;
-+		size_t namelen = len-9;
- 		if (namelen >= sizeof(mddev->metadata_type))
- 			namelen = sizeof(mddev->metadata_type)-1;
- 		strncpy(mddev->metadata_type, buf+9, namelen);
+ 		if (mddev->bitmap)
+ 			bitmap_print_sb(mddev->bitmap);
+@@ -2014,7 +2014,7 @@ rdev_size_store(mdk_rdev_t *rdev, const 
+ 		struct list_head *tmp, *tmp2;
+ 
+ 		mddev_unlock(rdev->mddev);
+-		ITERATE_MDDEV(mddev, tmp) {
++		for_each_mddev(mddev, tmp) {
+ 			mdk_rdev_t *rdev2;
+ 
+ 			mddev_lock(mddev);
+@@ -5465,7 +5465,7 @@ void md_do_sync(mddev_t *mddev)
+ 			set_bit(MD_RECOVERY_INTR, &mddev->recovery);
+ 			goto skip;
+ 		}
+-		ITERATE_MDDEV(mddev2,tmp) {
++		for_each_mddev(mddev2, tmp) {
+ 			if (mddev2 == mddev)
+ 				continue;
+ 			if (mddev2->curr_resync && 
+@@ -5913,7 +5913,7 @@ static int md_notify_reboot(struct notif
+ 
+ 		printk(KERN_INFO "md: stopping all md devices.\n");
+ 
+-		ITERATE_MDDEV(mddev,tmp)
++		for_each_mddev(mddev, tmp)
+ 			if (mddev_trylock(mddev)) {
+ 				do_md_stop (mddev, 1);
+ 				mddev_unlock(mddev);
+@@ -6047,7 +6047,7 @@ static __exit void md_exit(void)
+ 	unregister_reboot_notifier(&md_notifier);
+ 	unregister_sysctl_table(raid_table_header);
+ 	remove_proc_entry("mdstat", NULL);
+-	ITERATE_MDDEV(mddev,tmp) {
++	for_each_mddev(mddev, tmp) {
+ 		struct gendisk *disk = mddev->gendisk;
+ 		if (!disk)
+ 			continue;
 _
 
 Patches currently in -mm which might be from neilb@suse.de are
