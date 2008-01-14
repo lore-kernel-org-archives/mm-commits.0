@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + md-fix-an-occasional-deadlock-in-raid5.patch added to -mm tree
-Date: Sun, 13 Jan 2008 17:59:27 -0800
-Message-ID: <200801140159.m0E1x7OD006866@imap1.linux-foundation.org>
+Subject: + md-change-a-few-int-to-size_t-in-md.patch added to -mm tree
+Date: Sun, 13 Jan 2008 17:59:39 -0800
+Message-ID: <200801140159.m0E1xJbZ006872@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44924 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40279 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753385AbYANB7R (ORCPT
+	by vger.kernel.org with ESMTP id S1753446AbYANB7Y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Jan 2008 20:59:17 -0500
+	Sun, 13 Jan 2008 20:59:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: neilb@suse.de, dan.j.williams@gmail.com
+Cc: neilb@suse.de
 
 
 The patch titled
-     md: fix an occasional deadlock in raid5
+     md: change a few 'int' to 'size_t' in md
 has been added to the -mm tree.  Its filename is
-     md-fix-an-occasional-deadlock-in-raid5.patch
+     md-change-a-few-int-to-size_t-in-md.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,79 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md: fix an occasional deadlock in raid5
+Subject: md: change a few 'int' to 'size_t' in md
 From: NeilBrown <neilb@suse.de>
 
-raid5's 'make_request' function calls generic_make_request on underlying
-devices and if we run out of stripe heads, it could end up waiting for one of
-those requests to complete.  This is bad as recursive calls to
-generic_make_request go on a queue and are not even attempted until
-make_request completes.
+As suggested by Andrew Morton.
 
-So: don't make any generic_make_request calls in raid5 make_request until all
-waiting has been done.  We do this by simply setting STRIPE_HANDLE instead of
-calling handle_stripe().
-
-If we need more stripe_heads, raid5d will get called to process the pending
-stripe_heads which will call generic_make_request from a
-
-This change by itself causes a performance hit.  So add a change so that
-raid5_activate_delayed is only called at unplug time, never in raid5.  This
-seems to bring back the performance numbers.  Calling it in raid5d was
-sometimes too soon...
-
-Cc: "Dan Williams" <dan.j.williams@gmail.com>
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/raid5.c |   13 ++++---------
- 1 file changed, 4 insertions(+), 9 deletions(-)
+ drivers/md/md.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/md/raid5.c~md-fix-an-occasional-deadlock-in-raid5 drivers/md/raid5.c
---- a/drivers/md/raid5.c~md-fix-an-occasional-deadlock-in-raid5
-+++ a/drivers/md/raid5.c
-@@ -3159,7 +3159,8 @@ static void raid5_activate_delayed(raid5
- 				atomic_inc(&conf->preread_active_stripes);
- 			list_add_tail(&sh->lru, &conf->handle_list);
- 		}
--	}
-+	} else
-+		blk_plug_device(conf->mddev->queue);
- }
- 
- static void activate_bit_delay(raid5_conf_t *conf)
-@@ -3549,7 +3550,7 @@ static int make_request(struct request_q
- 				goto retry;
- 			}
- 			finish_wait(&conf->wait_for_overlap, &w);
--			handle_stripe(sh, NULL);
-+			set_bit(STRIPE_HANDLE, &sh->state);
- 			release_stripe(sh);
- 		} else {
- 			/* cannot get stripe for read-ahead, just give-up */
-@@ -3892,7 +3893,7 @@ static int  retry_aligned_read(raid5_con
-  * During the scan, completed stripes are saved for us by the interrupt
-  * handler, so that they will not have to wait for our next wakeup.
-  */
--static void raid5d (mddev_t *mddev)
-+static void raid5d(mddev_t *mddev)
+diff -puN drivers/md/md.c~md-change-a-few-int-to-size_t-in-md drivers/md/md.c
+--- a/drivers/md/md.c~md-change-a-few-int-to-size_t-in-md
++++ a/drivers/md/md.c
+@@ -1802,7 +1802,7 @@ static ssize_t
+ state_show(mdk_rdev_t *rdev, char *page)
  {
- 	struct stripe_head *sh;
- 	raid5_conf_t *conf = mddev_to_conf(mddev);
-@@ -3917,12 +3918,6 @@ static void raid5d (mddev_t *mddev)
- 			activate_bit_delay(conf);
- 		}
+ 	char *sep = "";
+-	int len=0;
++	size_t len = 0;
  
--		if (list_empty(&conf->handle_list) &&
--		    atomic_read(&conf->preread_active_stripes) < IO_THRESHOLD &&
--		    !blk_queue_plugged(mddev->queue) &&
--		    !list_empty(&conf->delayed_list))
--			raid5_activate_delayed(conf);
--
- 		while ((bio = remove_bio_from_retry(conf))) {
- 			int ok;
- 			spin_unlock_irq(&conf->device_lock);
+ 	if (test_bit(Faulty, &rdev->flags)) {
+ 		len+= sprintf(page+len, "%sfaulty",sep);
+@@ -2320,7 +2320,7 @@ level_show(mddev_t *mddev, char *page)
+ static ssize_t
+ level_store(mddev_t *mddev, const char *buf, size_t len)
+ {
+-	int rv = len;
++	ssize_t rv = len;
+ 	if (mddev->pers)
+ 		return -EBUSY;
+ 	if (len == 0)
+@@ -2807,7 +2807,7 @@ metadata_store(mddev_t *mddev, const cha
+ 		return len;
+ 	}
+ 	if (strncmp(buf, "external:", 9) == 0) {
+-		int namelen = len-9;
++		size_t namelen = len-9;
+ 		if (namelen >= sizeof(mddev->metadata_type))
+ 			namelen = sizeof(mddev->metadata_type)-1;
+ 		strncpy(mddev->metadata_type, buf+9, namelen);
 _
 
 Patches currently in -mm which might be from neilb@suse.de are
