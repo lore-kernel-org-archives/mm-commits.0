@@ -1,522 +1,303 @@
 From: akpm@linux-foundation.org
-Subject: + md-change-iterate_rdev-to-rdev_for_each.patch added to -mm tree
-Date: Sun, 13 Jan 2008 18:00:00 -0800
-Message-ID: <200801140159.m0E1xecl006883@imap1.linux-foundation.org>
+Subject: - pl2303-fix-mode-switching-regression-fix.patch removed from -mm tree
+Date: Mon, 14 Jan 2008 00:53:58 -0800
+Message-ID: <200801140853.m0E8rcPl019997@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60744 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34617 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753670AbYANB7q (ORCPT
+	by vger.kernel.org with ESMTP id S1752121AbYANIy1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Jan 2008 20:59:46 -0500
+	Mon, 14 Jan 2008 03:54:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: neilb@suse.de
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md: change ITERATE_RDEV to rdev_for_each
-has been added to the -mm tree.  Its filename is
-     md-change-iterate_rdev-to-rdev_for_each.patch
+     pl2303-fix-mode-switching-regression-fix
+has been removed from the -mm tree.  Its filename was
+     pl2303-fix-mode-switching-regression-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md: change ITERATE_RDEV to rdev_for_each
-From: NeilBrown <neilb@suse.de>
+Subject: pl2303-fix-mode-switching-regression-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-As this is more in line with common practice in the kernel.  Also swap the
-args around to be more like list_for_each.
-
-Signed-off-by: Neil Brown <neilb@suse.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/bitmap.c       |    4 +-
- drivers/md/faulty.c       |    2 -
- drivers/md/linear.c       |    2 -
- drivers/md/md.c           |   64 ++++++++++++++++++------------------
- drivers/md/multipath.c    |    2 -
- drivers/md/raid0.c        |    8 ++--
- drivers/md/raid1.c        |    2 -
- drivers/md/raid10.c       |    2 -
- drivers/md/raid5.c        |    6 +--
- include/linux/raid/md_k.h |    2 -
- 10 files changed, 47 insertions(+), 47 deletions(-)
+ drivers/char/tty_ioctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/md/bitmap.c~md-change-iterate_rdev-to-rdev_for_each drivers/md/bitmap.c
---- a/drivers/md/bitmap.c~md-change-iterate_rdev-to-rdev_for_each
-+++ a/drivers/md/bitmap.c
-@@ -237,7 +237,7 @@ static struct page *read_sb_page(mddev_t
- 	if (!page)
- 		return ERR_PTR(-ENOMEM);
- 
--	ITERATE_RDEV(mddev, rdev, tmp) {
-+	rdev_for_each(rdev, tmp, mddev) {
- 		if (! test_bit(In_sync, &rdev->flags)
- 		    || test_bit(Faulty, &rdev->flags))
- 			continue;
-@@ -261,7 +261,7 @@ static int write_sb_page(struct bitmap *
- 	struct list_head *tmp;
- 	mddev_t *mddev = bitmap->mddev;
- 
--	ITERATE_RDEV(mddev, rdev, tmp)
-+	rdev_for_each(rdev, tmp, mddev)
- 		if (test_bit(In_sync, &rdev->flags)
- 		    && !test_bit(Faulty, &rdev->flags)) {
- 			int size = PAGE_SIZE;
-diff -puN drivers/md/faulty.c~md-change-iterate_rdev-to-rdev_for_each drivers/md/faulty.c
---- a/drivers/md/faulty.c~md-change-iterate_rdev-to-rdev_for_each
-+++ a/drivers/md/faulty.c
-@@ -294,7 +294,7 @@ static int run(mddev_t *mddev)
- 	}
- 	conf->nfaults = 0;
- 
--	ITERATE_RDEV(mddev, rdev, tmp)
-+	rdev_for_each(rdev, tmp, mddev)
- 		conf->rdev = rdev;
- 
- 	mddev->array_size = mddev->size;
-diff -puN drivers/md/linear.c~md-change-iterate_rdev-to-rdev_for_each drivers/md/linear.c
---- a/drivers/md/linear.c~md-change-iterate_rdev-to-rdev_for_each
-+++ a/drivers/md/linear.c
-@@ -122,7 +122,7 @@ static linear_conf_t *linear_conf(mddev_
- 	cnt = 0;
- 	conf->array_size = 0;
- 
--	ITERATE_RDEV(mddev,rdev,tmp) {
-+	rdev_for_each(rdev, tmp, mddev) {
- 		int j = rdev->raid_disk;
- 		dev_info_t *disk = conf->disks + j;
- 
-diff -puN drivers/md/md.c~md-change-iterate_rdev-to-rdev_for_each drivers/md/md.c
---- a/drivers/md/md.c~md-change-iterate_rdev-to-rdev_for_each
-+++ a/drivers/md/md.c
-@@ -311,7 +311,7 @@ static mdk_rdev_t * find_rdev_nr(mddev_t
- 	mdk_rdev_t * rdev;
- 	struct list_head *tmp;
- 
--	ITERATE_RDEV(mddev,rdev,tmp) {
-+	rdev_for_each(rdev, tmp, mddev) {
- 		if (rdev->desc_nr == nr)
- 			return rdev;
- 	}
-@@ -323,7 +323,7 @@ static mdk_rdev_t * find_rdev(mddev_t * 
- 	struct list_head *tmp;
- 	mdk_rdev_t *rdev;
- 
--	ITERATE_RDEV(mddev,rdev,tmp) {
-+	rdev_for_each(rdev, tmp, mddev) {
- 		if (rdev->bdev->bd_dev == dev)
- 			return rdev;
- 	}
-@@ -944,7 +944,7 @@ static void super_90_sync(mddev_t *mddev
- 		sb->state |= (1<<MD_SB_BITMAP_PRESENT);
- 
- 	sb->disks[0].state = (1<<MD_DISK_REMOVED);
--	ITERATE_RDEV(mddev,rdev2,tmp) {
-+	rdev_for_each(rdev2, tmp, mddev) {
- 		mdp_disk_t *d;
- 		int desc_nr;
- 		if (rdev2->raid_disk >= 0 && test_bit(In_sync, &rdev2->flags)
-@@ -1297,7 +1297,7 @@ static void super_1_sync(mddev_t *mddev,
- 	}
- 
- 	max_dev = 0;
--	ITERATE_RDEV(mddev,rdev2,tmp)
-+	rdev_for_each(rdev2, tmp, mddev)
- 		if (rdev2->desc_nr+1 > max_dev)
- 			max_dev = rdev2->desc_nr+1;
- 
-@@ -1306,7 +1306,7 @@ static void super_1_sync(mddev_t *mddev,
- 	for (i=0; i<max_dev;i++)
- 		sb->dev_roles[i] = cpu_to_le16(0xfffe);
- 	
--	ITERATE_RDEV(mddev,rdev2,tmp) {
-+	rdev_for_each(rdev2, tmp, mddev) {
- 		i = rdev2->desc_nr;
- 		if (test_bit(Faulty, &rdev2->flags))
- 			sb->dev_roles[i] = cpu_to_le16(0xfffe);
-@@ -1344,8 +1344,8 @@ static int match_mddev_units(mddev_t *md
- 	struct list_head *tmp, *tmp2;
- 	mdk_rdev_t *rdev, *rdev2;
- 
--	ITERATE_RDEV(mddev1,rdev,tmp)
--		ITERATE_RDEV(mddev2, rdev2, tmp2)
-+	rdev_for_each(rdev, tmp, mddev1)
-+		rdev_for_each(rdev2, tmp2, mddev2)
- 			if (rdev->bdev->bd_contains ==
- 			    rdev2->bdev->bd_contains)
- 				return 1;
-@@ -1518,7 +1518,7 @@ static void export_array(mddev_t *mddev)
- 	struct list_head *tmp;
- 	mdk_rdev_t *rdev;
- 
--	ITERATE_RDEV(mddev,rdev,tmp) {
-+	rdev_for_each(rdev, tmp, mddev) {
- 		if (!rdev->mddev) {
- 			MD_BUG();
- 			continue;
-@@ -1602,11 +1602,11 @@ static void md_print_devices(void)
- 			bitmap_print_sb(mddev->bitmap);
- 		else
- 			printk("%s: ", mdname(mddev));
--		ITERATE_RDEV(mddev,rdev,tmp2)
-+		rdev_for_each(rdev, tmp2, mddev)
- 			printk("<%s>", bdevname(rdev->bdev,b));
- 		printk("\n");
- 
--		ITERATE_RDEV(mddev,rdev,tmp2)
-+		rdev_for_each(rdev, tmp2, mddev)
- 			print_rdev(rdev);
- 	}
- 	printk("md:	**********************************\n");
-@@ -1625,7 +1625,7 @@ static void sync_sbs(mddev_t * mddev, in
- 	mdk_rdev_t *rdev;
- 	struct list_head *tmp;
- 
--	ITERATE_RDEV(mddev,rdev,tmp) {
-+	rdev_for_each(rdev, tmp, mddev) {
- 		if (rdev->sb_events == mddev->events ||
- 		    (nospares &&
- 		     rdev->raid_disk < 0 &&
-@@ -1732,7 +1732,7 @@ repeat:
- 		mdname(mddev),mddev->in_sync);
- 
- 	bitmap_update_sb(mddev->bitmap);
--	ITERATE_RDEV(mddev,rdev,tmp) {
-+	rdev_for_each(rdev, tmp, mddev) {
- 		char b[BDEVNAME_SIZE];
- 		dprintk(KERN_INFO "md: ");
- 		if (rdev->sb_loaded != 1)
-@@ -2018,7 +2018,7 @@ rdev_size_store(mdk_rdev_t *rdev, const 
- 			mdk_rdev_t *rdev2;
- 
- 			mddev_lock(mddev);
--			ITERATE_RDEV(mddev, rdev2, tmp2)
-+			rdev_for_each(rdev2, tmp2, mddev)
- 				if (test_bit(AllReserved, &rdev2->flags) ||
- 				    (rdev->bdev == rdev2->bdev &&
- 				     rdev != rdev2 &&
-@@ -2204,7 +2204,7 @@ static void analyze_sbs(mddev_t * mddev)
- 	char b[BDEVNAME_SIZE];
- 
- 	freshest = NULL;
--	ITERATE_RDEV(mddev,rdev,tmp)
-+	rdev_for_each(rdev, tmp, mddev)
- 		switch (super_types[mddev->major_version].
- 			load_super(rdev, freshest, mddev->minor_version)) {
- 		case 1:
-@@ -2225,7 +2225,7 @@ static void analyze_sbs(mddev_t * mddev)
- 		validate_super(mddev, freshest);
- 
- 	i = 0;
--	ITERATE_RDEV(mddev,rdev,tmp) {
-+	rdev_for_each(rdev, tmp, mddev) {
- 		if (rdev != freshest)
- 			if (super_types[mddev->major_version].
- 			    validate_super(mddev, rdev)) {
-@@ -3319,7 +3319,7 @@ static int do_md_run(mddev_t * mddev)
- 		}
- 
- 		/* devices must have minimum size of one chunk */
--		ITERATE_RDEV(mddev,rdev,tmp) {
-+		rdev_for_each(rdev, tmp, mddev) {
- 			if (test_bit(Faulty, &rdev->flags))
- 				continue;
- 			if (rdev->size < chunk_size / 1024) {
-@@ -3346,7 +3346,7 @@ static int do_md_run(mddev_t * mddev)
- 	 * the only valid external interface is through the md
- 	 * device.
- 	 */
--	ITERATE_RDEV(mddev,rdev,tmp) {
-+	rdev_for_each(rdev, tmp, mddev) {
- 		if (test_bit(Faulty, &rdev->flags))
- 			continue;
- 		sync_blockdev(rdev->bdev);
-@@ -3412,8 +3412,8 @@ static int do_md_run(mddev_t * mddev)
- 		mdk_rdev_t *rdev2;
- 		struct list_head *tmp2;
- 		int warned = 0;
--		ITERATE_RDEV(mddev, rdev, tmp) {
--			ITERATE_RDEV(mddev, rdev2, tmp2) {
-+		rdev_for_each(rdev, tmp, mddev) {
-+			rdev_for_each(rdev2, tmp2, mddev) {
- 				if (rdev < rdev2 &&
- 				    rdev->bdev->bd_contains ==
- 				    rdev2->bdev->bd_contains) {
-@@ -3473,7 +3473,7 @@ static int do_md_run(mddev_t * mddev)
- 	mddev->safemode_delay = (200 * HZ)/1000 +1; /* 200 msec delay */
- 	mddev->in_sync = 1;
- 
--	ITERATE_RDEV(mddev,rdev,tmp)
-+	rdev_for_each(rdev, tmp, mddev)
- 		if (rdev->raid_disk >= 0) {
- 			char nm[20];
- 			sprintf(nm, "rd%d", rdev->raid_disk);
-@@ -3506,7 +3506,7 @@ static int do_md_run(mddev_t * mddev)
- 	if (mddev->degraded && !mddev->sync_thread) {
- 		struct list_head *rtmp;
- 		int spares = 0;
--		ITERATE_RDEV(mddev,rdev,rtmp)
-+		rdev_for_each(rdev, rtmp, mddev)
- 			if (rdev->raid_disk >= 0 &&
- 			    !test_bit(In_sync, &rdev->flags) &&
- 			    !test_bit(Faulty, &rdev->flags))
-@@ -3683,7 +3683,7 @@ static int do_md_stop(mddev_t * mddev, i
- 		}
- 		mddev->bitmap_offset = 0;
- 
--		ITERATE_RDEV(mddev,rdev,tmp)
-+		rdev_for_each(rdev, tmp, mddev)
- 			if (rdev->raid_disk >= 0) {
- 				char nm[20];
- 				sprintf(nm, "rd%d", rdev->raid_disk);
-@@ -3724,7 +3724,7 @@ static void autorun_array(mddev_t *mddev
- 
- 	printk(KERN_INFO "md: running: ");
- 
--	ITERATE_RDEV(mddev,rdev,tmp) {
-+	rdev_for_each(rdev, tmp, mddev) {
- 		char b[BDEVNAME_SIZE];
- 		printk("<%s>", bdevname(rdev->bdev,b));
- 	}
-@@ -3851,7 +3851,7 @@ static int get_array_info(mddev_t * mdde
- 	struct list_head *tmp;
- 
- 	nr=working=active=failed=spare=0;
--	ITERATE_RDEV(mddev,rdev,tmp) {
-+	rdev_for_each(rdev, tmp, mddev) {
- 		nr++;
- 		if (test_bit(Faulty, &rdev->flags))
- 			failed++;
-@@ -4391,7 +4391,7 @@ static int update_size(mddev_t *mddev, u
- 	 */
- 	if (mddev->sync_thread)
- 		return -EBUSY;
--	ITERATE_RDEV(mddev,rdev,tmp) {
-+	rdev_for_each(rdev, tmp, mddev) {
- 		sector_t avail;
- 		avail = rdev->size * 2;
- 
-@@ -5132,7 +5132,7 @@ static int md_seq_show(struct seq_file *
- 		}
- 
- 		size = 0;
--		ITERATE_RDEV(mddev,rdev,tmp2) {
-+		rdev_for_each(rdev, tmp2, mddev) {
- 			char b[BDEVNAME_SIZE];
- 			seq_printf(seq, " %s[%d]",
- 				bdevname(rdev->bdev,b), rdev->desc_nr);
-@@ -5288,7 +5288,7 @@ static int is_mddev_idle(mddev_t *mddev)
- 	long curr_events;
- 
- 	idle = 1;
--	ITERATE_RDEV(mddev,rdev,tmp) {
-+	rdev_for_each(rdev, tmp, mddev) {
- 		struct gendisk *disk = rdev->bdev->bd_contains->bd_disk;
- 		curr_events = disk_stat_read(disk, sectors[0]) + 
- 				disk_stat_read(disk, sectors[1]) - 
-@@ -5515,7 +5515,7 @@ void md_do_sync(mddev_t *mddev)
- 		/* recovery follows the physical size of devices */
- 		max_sectors = mddev->size << 1;
- 		j = MaxSector;
--		ITERATE_RDEV(mddev,rdev,rtmp)
-+		rdev_for_each(rdev, rtmp, mddev)
- 			if (rdev->raid_disk >= 0 &&
- 			    !test_bit(Faulty, &rdev->flags) &&
- 			    !test_bit(In_sync, &rdev->flags) &&
-@@ -5668,7 +5668,7 @@ void md_do_sync(mddev_t *mddev)
- 		} else {
- 			if (!test_bit(MD_RECOVERY_INTR, &mddev->recovery))
- 				mddev->curr_resync = MaxSector;
--			ITERATE_RDEV(mddev,rdev,rtmp)
-+			rdev_for_each(rdev, rtmp, mddev)
- 				if (rdev->raid_disk >= 0 &&
- 				    !test_bit(Faulty, &rdev->flags) &&
- 				    !test_bit(In_sync, &rdev->flags) &&
-@@ -5706,7 +5706,7 @@ static int remove_and_add_spares(mddev_t
- 	struct list_head *rtmp;
- 	int spares = 0;
- 
--	ITERATE_RDEV(mddev,rdev,rtmp)
-+	rdev_for_each(rdev, rtmp, mddev)
- 		if (rdev->raid_disk >= 0 &&
- 		    !mddev->external &&
- 		    (test_bit(Faulty, &rdev->flags) ||
-@@ -5722,7 +5722,7 @@ static int remove_and_add_spares(mddev_t
- 		}
- 
- 	if (mddev->degraded) {
--		ITERATE_RDEV(mddev,rdev,rtmp)
-+		rdev_for_each(rdev, rtmp, mddev)
- 			if (rdev->raid_disk < 0
- 			    && !test_bit(Faulty, &rdev->flags)) {
- 				rdev->recovery_offset = 0;
-@@ -5836,7 +5836,7 @@ void md_check_recovery(mddev_t *mddev)
- 			 * information must be scrapped
- 			 */
- 			if (!mddev->degraded)
--				ITERATE_RDEV(mddev,rdev,rtmp)
-+				rdev_for_each(rdev, rtmp, mddev)
- 					rdev->saved_raid_disk = -1;
- 
- 			mddev->recovery = 0;
-diff -puN drivers/md/multipath.c~md-change-iterate_rdev-to-rdev_for_each drivers/md/multipath.c
---- a/drivers/md/multipath.c~md-change-iterate_rdev-to-rdev_for_each
-+++ a/drivers/md/multipath.c
-@@ -436,7 +436,7 @@ static int multipath_run (mddev_t *mddev
- 	}
- 
- 	conf->working_disks = 0;
--	ITERATE_RDEV(mddev,rdev,tmp) {
-+	rdev_for_each(rdev, tmp, mddev) {
- 		disk_idx = rdev->raid_disk;
- 		if (disk_idx < 0 ||
- 		    disk_idx >= mddev->raid_disks)
-diff -puN drivers/md/raid0.c~md-change-iterate_rdev-to-rdev_for_each drivers/md/raid0.c
---- a/drivers/md/raid0.c~md-change-iterate_rdev-to-rdev_for_each
-+++ a/drivers/md/raid0.c
-@@ -72,11 +72,11 @@ static int create_strip_zones (mddev_t *
- 	 */
- 	conf->nr_strip_zones = 0;
-  
--	ITERATE_RDEV(mddev,rdev1,tmp1) {
-+	rdev_for_each(rdev1, tmp1, mddev) {
- 		printk("raid0: looking at %s\n",
- 			bdevname(rdev1->bdev,b));
- 		c = 0;
--		ITERATE_RDEV(mddev,rdev2,tmp2) {
-+		rdev_for_each(rdev2, tmp2, mddev) {
- 			printk("raid0:   comparing %s(%llu)",
- 			       bdevname(rdev1->bdev,b),
- 			       (unsigned long long)rdev1->size);
-@@ -124,7 +124,7 @@ static int create_strip_zones (mddev_t *
- 	cnt = 0;
- 	smallest = NULL;
- 	zone->dev = conf->devlist;
--	ITERATE_RDEV(mddev, rdev1, tmp1) {
-+	rdev_for_each(rdev1, tmp1, mddev) {
- 		int j = rdev1->raid_disk;
- 
- 		if (j < 0 || j >= mddev->raid_disks) {
-@@ -293,7 +293,7 @@ static int raid0_run (mddev_t *mddev)
- 
- 	/* calculate array device size */
- 	mddev->array_size = 0;
--	ITERATE_RDEV(mddev,rdev,tmp)
-+	rdev_for_each(rdev, tmp, mddev)
- 		mddev->array_size += rdev->size;
- 
- 	printk("raid0 : md_size is %llu blocks.\n", 
-diff -puN drivers/md/raid1.c~md-change-iterate_rdev-to-rdev_for_each drivers/md/raid1.c
---- a/drivers/md/raid1.c~md-change-iterate_rdev-to-rdev_for_each
-+++ a/drivers/md/raid1.c
-@@ -1887,7 +1887,7 @@ static int run(mddev_t *mddev)
- 	if (!conf->r1bio_pool)
- 		goto out_no_mem;
- 
--	ITERATE_RDEV(mddev, rdev, tmp) {
-+	rdev_for_each(rdev, tmp, mddev) {
- 		disk_idx = rdev->raid_disk;
- 		if (disk_idx >= mddev->raid_disks
- 		    || disk_idx < 0)
-diff -puN drivers/md/raid10.c~md-change-iterate_rdev-to-rdev_for_each drivers/md/raid10.c
---- a/drivers/md/raid10.c~md-change-iterate_rdev-to-rdev_for_each
-+++ a/drivers/md/raid10.c
-@@ -2026,7 +2026,7 @@ static int run(mddev_t *mddev)
- 		goto out_free_conf;
- 	}
- 
--	ITERATE_RDEV(mddev, rdev, tmp) {
-+	rdev_for_each(rdev, tmp, mddev) {
- 		disk_idx = rdev->raid_disk;
- 		if (disk_idx >= mddev->raid_disks
- 		    || disk_idx < 0)
-diff -puN drivers/md/raid5.c~md-change-iterate_rdev-to-rdev_for_each drivers/md/raid5.c
---- a/drivers/md/raid5.c~md-change-iterate_rdev-to-rdev_for_each
-+++ a/drivers/md/raid5.c
-@@ -4131,7 +4131,7 @@ static int run(mddev_t *mddev)
- 
- 	pr_debug("raid5: run(%s) called.\n", mdname(mddev));
- 
--	ITERATE_RDEV(mddev,rdev,tmp) {
-+	rdev_for_each(rdev, tmp, mddev) {
- 		raid_disk = rdev->raid_disk;
- 		if (raid_disk >= conf->raid_disks
- 		    || raid_disk < 0)
-@@ -4544,7 +4544,7 @@ static int raid5_start_reshape(mddev_t *
- 	if (test_bit(MD_RECOVERY_RUNNING, &mddev->recovery))
- 		return -EBUSY;
- 
--	ITERATE_RDEV(mddev, rdev, rtmp)
-+	rdev_for_each(rdev, rtmp, mddev)
- 		if (rdev->raid_disk < 0 &&
- 		    !test_bit(Faulty, &rdev->flags))
- 			spares++;
-@@ -4566,7 +4566,7 @@ static int raid5_start_reshape(mddev_t *
- 	/* Add some new drives, as many as will fit.
- 	 * We know there are enough to make the newly sized array work.
- 	 */
--	ITERATE_RDEV(mddev, rdev, rtmp)
-+	rdev_for_each(rdev, rtmp, mddev)
- 		if (rdev->raid_disk < 0 &&
- 		    !test_bit(Faulty, &rdev->flags)) {
- 			if (raid5_add_disk(mddev, rdev)) {
-diff -puN include/linux/raid/md_k.h~md-change-iterate_rdev-to-rdev_for_each include/linux/raid/md_k.h
---- a/include/linux/raid/md_k.h~md-change-iterate_rdev-to-rdev_for_each
-+++ a/include/linux/raid/md_k.h
-@@ -322,7 +322,7 @@ static inline char * mdname (mddev_t * m
- /*
-  * iterates through the 'same array disks' ringlist
+diff -puN drivers/char/tty_ioctl.c~pl2303-fix-mode-switching-regression-fix drivers/char/tty_ioctl.c
+--- a/drivers/char/tty_ioctl.c~pl2303-fix-mode-switching-regression-fix
++++ a/drivers/char/tty_ioctl.c
+@@ -370,7 +370,7 @@ EXPORT_SYMBOL(tty_termios_copy_hw);
+  *	@b: termios to compare
+  *
+  *	Check if any of the bits that affect a dumb device have changed
+- *	between the two termios structures, or a speed change is needed.
++ *	between the two termios structures, or if a speed change is needed.
   */
--#define ITERATE_RDEV(mddev,rdev,tmp)					\
-+#define rdev_for_each(rdev, tmp, mddev)				\
- 	ITERATE_RDEV_GENERIC((mddev)->disks,rdev,tmp)
  
- /*
+ int tty_termios_hw_change(struct ktermios *a, struct ktermios *b)
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+hugetlbfs-fix-quota-leak.patch
+pl2303-fix-mode-switching-regression-fix.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes.patch
+timerfd-v3-new-timerfd-api-ia64-fix.patch
+timerfd-v3-new-timerfd-api-m68k-fix.patch
+timerfd-v3-new-timerfd-api-mips-fix.patch
+timerfd-v3-new-timerfd-api-arch-fixes.patch
+timerfd-v3-new-timerfd-api-powerpc-fix.patch
+timerfd-v3-new-timerfd-api-sparc64-fix.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-agpgart-intel-agp-dont-zero-an-already-registered-resource-during-resume.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+git-audit-master.patch
+git-cifs.patch
+git-cpufreq.patch
+git-powerpc.patch
+git-powerpc-fixup.patch
+revert-gregkh-driver-atm-convert-struct-class_device-to-struct-device.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
+pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes.patch
+pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes-2.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+intel-agp-enable-i915-recognition.patch
+drm-convert-from-nopage-to-fault-checkpatch-fixes.patch
+git-dvb.patch
+fix-jdelvare-i2c-i2c-constify-client-address-data.patch
+hwmon-new-chip-driver-for-ti-ads7828-a-d-checkpatch-fixes.patch
+git-hid.patch
+revert-git-hrt.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-versus-driver-tree.patch
+git-kbuild.patch
+git-kvm.patch
+git-libata-all.patch
+git-libata-all-fix-pata_winbond-borkage.patch
+git-libata-all-wtf.patch
+libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
+libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
+libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
+git-md-accel.patch
+git-mmc.patch
+git-mtd.patch
+git-net.patch
+git-net-vs-git-lblnet.patch
+git-net-vs-git-lblnet-2.patch
+git-netdev-all.patch
+git-net-vs-git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+backlight-omap1-backlight-driver.patch
+git-battery.patch
+bluetooth-uninlining.patch
+net-sunrpc-schedc-revert-git-net-changes.patch
+net-sunrpc-schedc-reapply-git-net-changes.patch
+net-sunrpc-svcsockc-revert-git-nfs-changes.patch
 git-nfsd.patch
-coding-style-cleanups-for-drivers-md-mktablesc.patch
-md-raid6-fix-mktablec.patch
-md-raid6-clean-up-the-style-of-raid6test-testc.patch
-md-update-md-bitmap-during-resync.patch
-md-update-md-bitmap-during-resync-fix.patch
-md-support-external-metadata-for-md-arrays.patch
-md-give-userspace-control-over-removing-failed-devices-when-external-metdata-in-use.patch
-md-allow-a-maximum-extent-to-be-set-for-resyncing.patch
-md-allow-devices-to-be-shared-between-md-arrays.patch
-md-lock-address-when-changing-attributes-of-component-devices.patch
-md-allow-an-md-array-to-appear-with-0-drives-if-it-has-external-metadata.patch
-md-fix-an-occasional-deadlock-in-raid5.patch
-md-fix-use-after-free-bug-when-dropping-an-rdev-from-an-md-array.patch
-md-change-a-few-int-to-size_t-in-md.patch
-md-change-interate_mddev-to-for_each_mddev.patch
-md-change-iterate_rdev-to-rdev_for_each.patch
-md-change-iterate_rdev_generic-to-rdev_for_each_list-and-remove-iterate_rdev_pending.patch
-one-less-parameter-to-__d_path.patch
-d_path-kerneldoc-cleanup.patch
-d_path-use-struct-path-in-struct-avc_audit_data.patch
-d_path-make-proc_get_link-use-a-struct-path-argument.patch
-d_path-make-get_dcookie-use-a-struct-path-argument.patch
-use-struct-path-in-struct-svc_export.patch
+git-nfsd-fixup.patch
+serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
+git-sched.patch
+git-sched-fixup.patch
+git-sh.patch
+git-scsi-misc.patch
+scsi-aic94xx-cleanups-checkpatch-fixes.patch
+scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
+9p-util-fix-semaphore-handling.patch
+git-watchdog.patch
+git-watchdog-fixup.patch
+wdt-fix-locking-checkpatch-fixes.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-fixup.patch
+git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
+git-x86-fix-doubly-merged-patch.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-xtensa.patch
+bonding-locking-fix.patch
+usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes.patch
+revert-sky2-enable-pci-config-writes.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-add-proc-kpagecount-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix-2-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+mm-remove-fastcall-from-mm-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+stopmachine-semaphore-to-mutex-fix.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
+debug_smp_processor_id-fixlets.patch
+use-ilog2-in-fs-namespacec-fix.patch
+avoid-overflows-in-kernel-timec-fix.patch
+export-iov_shorten-for-ext4s-use-fix.patch
+system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
+speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
+add-have_oprofile.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+rtc-add-support-for-the-s-35390a-rtc-chip.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+neofb-avoid-overwriting-fb_info-fields.patch
+vermilionc-use-align-not-__align_mask.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+ext4-mm-ext4_store_maxbytes_for_bitmaped_files-warning-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
+hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
+cpusets-update_cpumask-revision-fix.patch
+cpusets-update_cpumask-revision-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
 use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_expkey.patch
-d_path-make-seq_path-use-a-struct-path-argument.patch
-d_path-make-d_path-use-a-struct-path.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc-fix.patch
+ufs-fix-symlink-creation-on-ufs2-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
