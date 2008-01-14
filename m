@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-the-remove-task_ppid_nr_ns-commit.patch added to -mm tree
-Date: Mon, 14 Jan 2008 13:49:08 -0800
-Message-ID: <200801142149.m0ELn8rM016110@imap1.linux-foundation.org>
+Subject: + address-hfs-on-disk-corruption-robustness-review-comments.patch added to -mm tree
+Date: Mon, 14 Jan 2008 15:17:06 -0800
+Message-ID: <200801142317.m0ENH6G6020304@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48387 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38266 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753095AbYANVty (ORCPT
+	by vger.kernel.org with ESMTP id S1755322AbYANXRx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Jan 2008 16:49:54 -0500
+	Mon, 14 Jan 2008 18:17:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, roland@redhat.com
+Cc: sandeen@redhat.com, zippel@linux-m68k.org
 
 
 The patch titled
-     fix the "remove task_ppid_nr_ns" commit
+     address hfs on-disk corruption robustness review comments
 has been added to the -mm tree.  Its filename is
-     fix-the-remove-task_ppid_nr_ns-commit.patch
+     address-hfs-on-disk-corruption-robustness-review-comments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,93 +34,149 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix the "remove task_ppid_nr_ns" commit
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: address hfs on-disk corruption robustness review comments
+From: Eric Sandeen <sandeen@redhat.com>
 
-The commit 84427eaef1fb91704c7112bdb598c810003b99f3 (remove
-task_ppid_nr_ns) moves the task_tgid_nr_ns(task->real_parent) outside of
-lock_task_sighand().  This is wrong, ->real_parent could be freed/reused.
+Address Roman's review comments for the previously sent on-disk
+corruption hfs robustness patch.
 
-Both ->parent/real_parent point to nothnig after __exit_signal() because we
-remove the child from ->children list, and thus the child can't be
-reparented when its parent exits.
-
-rcu_read_lock() protects ->parent/real_parent, but _only_ if we know it was
-valid before we take rcu lock.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: Roland McGrath <roland@redhat.com>
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/hfs/bfind.c |   11 ++++++-----
+ fs/hfs/brec.c  |    4 ++--
+ fs/hfs/btree.c |   26 +++++++++++++++++---------
+ fs/hfs/hfs.h   |    2 --
+ 4 files changed, 25 insertions(+), 18 deletions(-)
 
-diff -puN fs/proc/array.c~fix-the-remove-task_ppid_nr_ns-commit fs/proc/array.c
---- a/fs/proc/array.c~fix-the-remove-task_ppid_nr_ns-commit
-+++ a/fs/proc/array.c
-@@ -426,7 +426,6 @@ static int do_task_stat(struct seq_file 
- 	cgtime = gtime = cputime_zero;
- 
- 	rcu_read_lock();
--	ppid = task_tgid_nr_ns(task->real_parent, ns);
- 	if (lock_task_sighand(task, &flags)) {
- 		struct signal_struct *sig = task->signal;
- 
-@@ -465,6 +464,7 @@ static int do_task_stat(struct seq_file 
+diff -puN fs/hfs/bfind.c~address-hfs-on-disk-corruption-robustness-review-comments fs/hfs/bfind.c
+--- a/fs/hfs/bfind.c~address-hfs-on-disk-corruption-robustness-review-comments
++++ a/fs/hfs/bfind.c
+@@ -52,9 +52,9 @@ int __hfs_brec_find(struct hfs_bnode *bn
+ 		rec = (e + b) / 2;
+ 		len = hfs_brec_lenoff(bnode, rec, &off);
+ 		keylen = hfs_brec_keylen(bnode, rec);
+-		if (keylen == HFS_BAD_KEYLEN) {
++		if (keylen == 0) {
+ 			res = -EINVAL;
+-			goto done;
++			goto fail;
  		}
+ 		hfs_bnode_read(bnode, fd->key, off, keylen);
+ 		cmpval = bnode->tree->keycmp(fd->key, fd->search_key);
+@@ -71,9 +71,9 @@ int __hfs_brec_find(struct hfs_bnode *bn
+ 	if (rec != e && e >= 0) {
+ 		len = hfs_brec_lenoff(bnode, e, &off);
+ 		keylen = hfs_brec_keylen(bnode, e);
+-		if (keylen == HFS_BAD_KEYLEN) {
++		if (keylen == 0) {
+ 			res = -EINVAL;
+-			goto done;
++			goto fail;
+ 		}
+ 		hfs_bnode_read(bnode, fd->key, off, keylen);
+ 	}
+@@ -83,6 +83,7 @@ done:
+ 	fd->keylength = keylen;
+ 	fd->entryoffset = off + keylen;
+ 	fd->entrylength = len - keylen;
++fail:
+ 	return res;
+ }
  
- 		sid = task_session_nr_ns(task, ns);
-+		ppid = task_tgid_nr_ns(task->real_parent, ns);
- 		pgid = task_pgrp_nr_ns(task, ns);
+@@ -206,7 +207,7 @@ int hfs_brec_goto(struct hfs_find_data *
  
- 		unlock_task_sighand(task, &flags);
+ 	len = hfs_brec_lenoff(bnode, fd->record, &off);
+ 	keylen = hfs_brec_keylen(bnode, fd->record);
+-	if (keylen == HFS_BAD_KEYLEN) {
++	if (keylen == 0) {
+ 		res = -EINVAL;
+ 		goto out;
+ 	}
+diff -puN fs/hfs/brec.c~address-hfs-on-disk-corruption-robustness-review-comments fs/hfs/brec.c
+--- a/fs/hfs/brec.c~address-hfs-on-disk-corruption-robustness-review-comments
++++ a/fs/hfs/brec.c
+@@ -49,14 +49,14 @@ u16 hfs_brec_keylen(struct hfs_bnode *no
+ 			if (retval > node->tree->max_key_len + 2) {
+ 				printk(KERN_ERR "hfs: keylen %d too large\n",
+ 					retval);
+-				retval = HFS_BAD_KEYLEN;
++				retval = 0;
+ 			}
+ 		} else {
+ 			retval = (hfs_bnode_read_u8(node, recoff) | 1) + 1;
+ 			if (retval > node->tree->max_key_len + 1) {
+ 				printk(KERN_ERR "hfs: keylen %d too large\n",
+ 					retval);
+-				retval = HFS_BAD_KEYLEN;
++				retval = 0;
+ 			}
+ 		}
+ 	}
+diff -puN fs/hfs/btree.c~address-hfs-on-disk-corruption-robustness-review-comments fs/hfs/btree.c
+--- a/fs/hfs/btree.c~address-hfs-on-disk-corruption-robustness-review-comments
++++ a/fs/hfs/btree.c
+@@ -81,15 +81,23 @@ struct hfs_btree *hfs_btree_open(struct 
+ 		goto fail_page;
+ 	if (!tree->node_count)
+ 		goto fail_page;
+-	if ((id == HFS_EXT_CNID) && (tree->max_key_len != HFS_MAX_EXT_KEYLEN)) {
+-		printk(KERN_ERR "hfs: invalid extent max_key_len %d\n",
+-			tree->max_key_len);
+-		goto fail_page;
+-	}
+-	if ((id == HFS_CAT_CNID) && (tree->max_key_len != HFS_MAX_CAT_KEYLEN)) {
+-		printk(KERN_ERR "hfs: invalid catalog max_key_len %d\n",
+-			tree->max_key_len);
+-		goto fail_page;
++	switch(id) {
++	case HFS_EXT_CNID:
++		if (tree->max_key_len != HFS_MAX_EXT_KEYLEN) {
++			printk(KERN_ERR "hfs: invalid extent max_key_len %d\n",
++				tree->max_key_len);
++			goto fail_page;
++		}
++		break;
++	case HFS_CAT_CNID:
++		if (tree->max_key_len != HFS_MAX_CAT_KEYLEN) {
++			printk(KERN_ERR "hfs: invalid catalog max_key_len %d\n",
++				tree->max_key_len);
++			goto fail_page;
++		}
++		break;
++	default:
++		BUG();
+ 	}
+ 
+ 	tree->node_size_shift = ffs(size) - 1;
+diff -puN fs/hfs/hfs.h~address-hfs-on-disk-corruption-robustness-review-comments fs/hfs/hfs.h
+--- a/fs/hfs/hfs.h~address-hfs-on-disk-corruption-robustness-review-comments
++++ a/fs/hfs/hfs.h
+@@ -28,8 +28,6 @@
+ #define HFS_MAX_NAMELEN		128
+ #define HFS_MAX_VALENCE		32767U
+ 
+-#define HFS_BAD_KEYLEN		0xFF
+-
+ /* Meanings of the drAtrb field of the MDB,
+  * Reference: _Inside Macintosh: Files_ p. 2-61
+  */
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
-remove-task_ppid_nr_ns.patch
-fix-the-remove-task_ppid_nr_ns-commit.patch
-__group_complete_signal-fix-coredump-with-group-stop-race.patch
-remove-handle_group_stop-in-favor-of-do_signal_stop.patch
-exec-rework-the-group-exit-and-fix-the-race-with-kill.patch
-use-__set_task_state-for-traced-stopped-tasks.patch
-add-task_wakekill.patch
-do_wait-remove-one-else-if-branch.patch
-proc-implement-proc_single_file_operations.patch
-proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces.patch
-proc-seqfile-convert-proc_pid_statm.patch
-proc-proper-pidns-handling-for-proc-self.patch
-proc-fix-the-threaded-proc-self.patch
-proc-fix-openless-usage-due-to-proc_fops-flip.patch
-proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
-kill-pt_attached.patch
-kill-my_ptrace_child.patch
-ptrace_check_attach-remove-unneeded-signal-=-null-check.patch
-ptrace_stop-fix-the-race-with-ptrace-detachattach.patch
-wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace.patch
-do_wait-factor-out-retval-=-0-checks.patch
-ptrace_stop-fix-racy-nonstop_code-setting.patch
-wait_task_stopped-remove-unneeded-delay_group_leader-check.patch
-do_wait-cleanup-delay_group_leader-usage.patch
-do_wait-fix-security-checks.patch
-do_wait-fix-security-checks-fix.patch
-wait_task_continued-zombie-dont-use-task_pid_nr_ns-lockless.patch
-wait_task_zombie-remove-exit_state-exit_signal-checks-for-wnowait.patch
-sys_setpgid-simplify-pid-ns-interaction.patch
-fix-setsid-for-sub-namespace-sbin-init.patch
-teach-set_special_pids-to-use-struct-pid.patch
-move-daemonized-kernel-threads-into-the-swappers-session.patch
-start-the-global-sbin-init-with-00-special-pids.patch
-fix-group-stop-with-exit-race.patch
-sys_setsid-remove-now-unneeded-session-=-1-check.patch
-move-the-related-code-from-exit_notify-to-exit_signals.patch
-pid-sys_wait-fixes-v2.patch
-pid-extend-fix-pid_vnr.patch
-sys_getsid-dont-use-nsproxy-directly.patch
-pid-fix-mips-irix-emulation-pid-usage.patch
-pid-fix-mips-irix-emulation-pid-usage-fix.patch
-pid-fix-solaris_procids.patch
-uglify-kill_pid_info-to-fix-kill-vs-exec-race.patch
-uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice.patch
-itimer_real-convert-to-use-struct-pid.patch
+origin.patch
+hfs-fix-coverity-found-null-deref.patch
+address-hfs-on-disk-corruption-robustness-review-comments.patch
+git-kbuild.patch
+ext2-change-the-default-behaviour-on-error.patch
+export-iov_shorten-for-ext4s-use.patch
+export-iov_shorten-for-ext4s-use-fix.patch
+ecryptfs-make-show_options-reflect-actual-mount-options.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+ecryptfs-remove-debug-as-mount-option-and-warn-if-set-via-modprobe.patch
+ecryptfs-check-for-existing-key_tfm-at-mount-time.patch
+ext4-mm-ext4_store_maxbytes_for_bitmaped_files-warning-fix.patch
+ext3-change-the-default-behaviour-on-error.patch
