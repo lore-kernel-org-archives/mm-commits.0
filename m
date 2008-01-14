@@ -1,81 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 14 Jan 2008 01:03:05 -0800
-Message-ID: <200801140902.m0E92jDL020379@imap1.linux-foundation.org>
+Subject: - revert-sky2-enable-pci-config-writes.patch removed from -mm tree
+Date: Mon, 14 Jan 2008 13:17:06 -0800
+Message-ID: <200801142117.m0ELH7rJ014735@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38609 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50742 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752121AbYANJDI (ORCPT
+	by vger.kernel.org with ESMTP id S1751403AbYANVR3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Jan 2008 04:03:08 -0500
+	Mon, 14 Jan 2008 16:17:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, daniel.ritz-ml@swissonline.ch, daniel.ritz@gmx.ch, dtor@mail.ru, greg@kroah.com, jkosina@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, jeff@garzik.org, rjw@sisk.pl, shemminger@linux-foundation.org, supersud501@yahoo.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes
+     revert "sky2: enable PCI config writes"
 has been removed from the -mm tree.  Its filename was
-     usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes.patch
+     revert-sky2-enable-pci-config-writes.patch
 
-This patch was dropped because it was folded into usbtouchscreen-fix-buffer-overflow-make-more-egalax-work.patch
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes
+Subject: revert "sky2: enable PCI config writes"
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: use tabs not spaces
-#124: FILE: drivers/input/touchscreen/usbtouchscreen.c:536:
-+                                   unsigned char *pkt, int len);$
+Revert
 
-WARNING: line over 80 characters
-#159: FILE: drivers/input/touchscreen/usbtouchscreen.c:749:
-+		pkt_len = usbtouch->type->get_pkt_len(buffer + pos, buf_len - pos);
+commit ac93a3946b676025fa55356180e8321639744b31
+Author: Stephen Hemminger <shemminger@linux-foundation.org>
+Date:   Mon Nov 5 15:52:08 2007 -0800
 
-total: 1 errors, 1 warnings, 140 lines checked
+Due to the WOL regression reported at
+http://bugzilla.kernel.org/show_bug.cgi?id=9721
 
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+Thanks "supersud501" for testing, reporting and bisecting.
 
-Please run checkpatch prior to sending patches
-
-Cc: Daniel Ritz <daniel.ritz-ml@swissonline.ch>
-Cc: Daniel Ritz <daniel.ritz@gmx.ch>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Greg KH <greg@kroah.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: supersud501 <supersud501@yahoo.de>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Stephen Hemminger <shemminger@linux-foundation.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/usbtouchscreen.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/net/sky2.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/input/touchscreen/usbtouchscreen.c~usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes drivers/input/touchscreen/usbtouchscreen.c
---- a/drivers/input/touchscreen/usbtouchscreen.c~usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes
-+++ a/drivers/input/touchscreen/usbtouchscreen.c
-@@ -533,7 +533,7 @@ static int gotop_read_data(struct usbtou
-  */
- #ifdef MULTI_PACKET
- static void usbtouch_process_multi(struct usbtouch_usb *usbtouch,
--                                   unsigned char *pkt, int len);
-+				   unsigned char *pkt, int len);
- #endif
+diff -puN drivers/net/sky2.c~revert-sky2-enable-pci-config-writes drivers/net/sky2.c
+--- a/drivers/net/sky2.c~revert-sky2-enable-pci-config-writes
++++ a/drivers/net/sky2.c
+@@ -2793,9 +2793,6 @@ static void sky2_reset(struct sky2_hw *h
+ 	sky2_write8(hw, B0_CTST, CS_RST_SET);
+ 	sky2_write8(hw, B0_CTST, CS_RST_CLR);
  
- static struct usbtouch_device_info usbtouch_dev_info[] = {
-@@ -746,7 +746,8 @@ static void usbtouch_process_multi(struc
- 	pos = 0;
- 	while (pos < buf_len) {
- 		/* get packet len */
--		pkt_len = usbtouch->type->get_pkt_len(buffer + pos, buf_len - pos);
-+		pkt_len = usbtouch->type->get_pkt_len(buffer + pos,
-+							buf_len - pos);
- 
- 		/* unknown packet: skip one byte */
- 		if (unlikely(!pkt_len)) {
+-	/* allow writes to PCI config */
+-	sky2_write8(hw, B2_TST_CTRL1, TST_CFG_WRITE_ON);
+-
+ 	/* clear PCI errors, if any */
+ 	status = sky2_pci_read16(hw, PCI_STATUS);
+ 	status |= PCI_STATUS_ERROR_BITS;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -178,7 +164,6 @@ git-cryptodev-fixup.patch
 git-xtensa.patch
 bonding-locking-fix.patch
 usbtouchscreen-fix-buffer-overflow-make-more-egalax-work.patch
-usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes.patch
 revert-sky2-enable-pci-config-writes.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
