@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sky2-wake-on-lan-configuration-issues.patch added to -mm tree
-Date: Mon, 14 Jan 2008 13:17:28 -0800
-Message-ID: <200801142117.m0ELHSxr014741@imap1.linux-foundation.org>
+Subject: + fix-the-remove-task_ppid_nr_ns-commit.patch added to -mm tree
+Date: Mon, 14 Jan 2008 13:49:08 -0800
+Message-ID: <200801142149.m0ELn8rM016110@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50862 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48387 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751558AbYANVRa (ORCPT
+	by vger.kernel.org with ESMTP id S1753095AbYANVty (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Jan 2008 16:17:30 -0500
+	Mon, 14 Jan 2008 16:49:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shemminger@linux-foundation.org, supersud501@yahoo.de
+Cc: oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     sky2: wake-on-lan configuration issues
+     fix the "remove task_ppid_nr_ns" commit
 has been added to the -mm tree.  Its filename is
-     sky2-wake-on-lan-configuration-issues.patch
+     fix-the-remove-task_ppid_nr_ns-commit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,88 +34,93 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sky2: wake-on-lan configuration issues
-From: Stephen Hemminger <shemminger@linux-foundation.org>
+Subject: fix the "remove task_ppid_nr_ns" commit
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-This patch disables config mode access after clearing PCI settings.
+The commit 84427eaef1fb91704c7112bdb598c810003b99f3 (remove
+task_ppid_nr_ns) moves the task_tgid_nr_ns(task->real_parent) outside of
+lock_task_sighand().  This is wrong, ->real_parent could be freed/reused.
 
-Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
-Tested-by: supersud501 <supersud501@yahoo.de>
+Both ->parent/real_parent point to nothnig after __exit_signal() because we
+remove the child from ->children list, and thus the child can't be
+reparented when its parent exits.
+
+rcu_read_lock() protects ->parent/real_parent, but _only_ if we know it was
+valid before we take rcu lock.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Acked-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/sky2.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ fs/proc/array.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/sky2.c~sky2-wake-on-lan-configuration-issues drivers/net/sky2.c
---- a/drivers/net/sky2.c~sky2-wake-on-lan-configuration-issues
-+++ a/drivers/net/sky2.c
-@@ -621,6 +621,7 @@ static void sky2_phy_power(struct sky2_h
- 	static const u32 phy_power[] = { PCI_Y2_PHY1_POWD, PCI_Y2_PHY2_POWD };
- 	static const u32 coma_mode[] = { PCI_Y2_PHY1_COMA, PCI_Y2_PHY2_COMA };
+diff -puN fs/proc/array.c~fix-the-remove-task_ppid_nr_ns-commit fs/proc/array.c
+--- a/fs/proc/array.c~fix-the-remove-task_ppid_nr_ns-commit
++++ a/fs/proc/array.c
+@@ -426,7 +426,6 @@ static int do_task_stat(struct seq_file 
+ 	cgtime = gtime = cputime_zero;
  
-+	sky2_write8(hw, B2_TST_CTRL1, TST_CFG_WRITE_ON);
- 	reg1 = sky2_pci_read32(hw, PCI_DEV_REG1);
- 	/* Turn on/off phy power saving */
- 	if (onoff)
-@@ -632,7 +633,8 @@ static void sky2_phy_power(struct sky2_h
- 		reg1 |= coma_mode[port];
+ 	rcu_read_lock();
+-	ppid = task_tgid_nr_ns(task->real_parent, ns);
+ 	if (lock_task_sighand(task, &flags)) {
+ 		struct signal_struct *sig = task->signal;
  
- 	sky2_pci_write32(hw, PCI_DEV_REG1, reg1);
--	reg1 = sky2_pci_read32(hw, PCI_DEV_REG1);
-+	sky2_write8(hw, B2_TST_CTRL1, TST_CFG_WRITE_OFF);
-+	sky2_pci_read32(hw, PCI_DEV_REG1);
+@@ -465,6 +464,7 @@ static int do_task_stat(struct seq_file 
+ 		}
  
- 	udelay(100);
- }
-@@ -2432,6 +2434,7 @@ static void sky2_hw_intr(struct sky2_hw 
- 	if (status & (Y2_IS_MST_ERR | Y2_IS_IRQ_STAT)) {
- 		u16 pci_err;
+ 		sid = task_session_nr_ns(task, ns);
++		ppid = task_tgid_nr_ns(task->real_parent, ns);
+ 		pgid = task_pgrp_nr_ns(task, ns);
  
-+		sky2_write8(hw, B2_TST_CTRL1, TST_CFG_WRITE_ON);
- 		pci_err = sky2_pci_read16(hw, PCI_STATUS);
- 		if (net_ratelimit())
- 			dev_err(&pdev->dev, "PCI hardware error (0x%x)\n",
-@@ -2439,12 +2442,14 @@ static void sky2_hw_intr(struct sky2_hw 
- 
- 		sky2_pci_write16(hw, PCI_STATUS,
- 				      pci_err | PCI_STATUS_ERROR_BITS);
-+		sky2_write8(hw, B2_TST_CTRL1, TST_CFG_WRITE_OFF);
- 	}
- 
- 	if (status & Y2_IS_PCI_EXP) {
- 		/* PCI-Express uncorrectable Error occurred */
- 		u32 err;
- 
-+		sky2_write8(hw, B2_TST_CTRL1, TST_CFG_WRITE_ON);
- 		err = sky2_read32(hw, Y2_CFG_AER + PCI_ERR_UNCOR_STATUS);
- 		sky2_write32(hw, Y2_CFG_AER + PCI_ERR_UNCOR_STATUS,
- 			     0xfffffffful);
-@@ -2452,6 +2457,7 @@ static void sky2_hw_intr(struct sky2_hw 
- 			dev_err(&pdev->dev, "PCI Express error (0x%x)\n", err);
- 
- 		sky2_read32(hw, Y2_CFG_AER + PCI_ERR_UNCOR_STATUS);
-+		sky2_write8(hw, B2_TST_CTRL1, TST_CFG_WRITE_OFF);
- 	}
- 
- 	if (status & Y2_HWE_L1_MASK)
-@@ -2817,6 +2823,7 @@ static void sky2_reset(struct sky2_hw *h
- 	}
- 
- 	sky2_power_on(hw);
-+	sky2_write8(hw, B2_TST_CTRL1, TST_CFG_WRITE_OFF);
- 
- 	for (i = 0; i < hw->ports; i++) {
- 		sky2_write8(hw, SK_REG(i, GMAC_LINK_CTRL), GMLC_RST_SET);
+ 		unlock_task_sighand(task, &flags);
 _
 
-Patches currently in -mm which might be from shemminger@linux-foundation.org are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-origin.patch
-git-input.patch
-git-net.patch
-git-netdev-all.patch
-if-0-pci_cleanup_aer_correct_error_status.patch
-git-wireless.patch
-bonding-locking-fix.patch
-sky2-wake-on-lan-configuration-issues.patch
+remove-task_ppid_nr_ns.patch
+fix-the-remove-task_ppid_nr_ns-commit.patch
+__group_complete_signal-fix-coredump-with-group-stop-race.patch
+remove-handle_group_stop-in-favor-of-do_signal_stop.patch
+exec-rework-the-group-exit-and-fix-the-race-with-kill.patch
+use-__set_task_state-for-traced-stopped-tasks.patch
+add-task_wakekill.patch
+do_wait-remove-one-else-if-branch.patch
+proc-implement-proc_single_file_operations.patch
+proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces.patch
+proc-seqfile-convert-proc_pid_statm.patch
+proc-proper-pidns-handling-for-proc-self.patch
+proc-fix-the-threaded-proc-self.patch
+proc-fix-openless-usage-due-to-proc_fops-flip.patch
+proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
+kill-pt_attached.patch
+kill-my_ptrace_child.patch
+ptrace_check_attach-remove-unneeded-signal-=-null-check.patch
+ptrace_stop-fix-the-race-with-ptrace-detachattach.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace.patch
+do_wait-factor-out-retval-=-0-checks.patch
+ptrace_stop-fix-racy-nonstop_code-setting.patch
+wait_task_stopped-remove-unneeded-delay_group_leader-check.patch
+do_wait-cleanup-delay_group_leader-usage.patch
+do_wait-fix-security-checks.patch
+do_wait-fix-security-checks-fix.patch
+wait_task_continued-zombie-dont-use-task_pid_nr_ns-lockless.patch
+wait_task_zombie-remove-exit_state-exit_signal-checks-for-wnowait.patch
+sys_setpgid-simplify-pid-ns-interaction.patch
+fix-setsid-for-sub-namespace-sbin-init.patch
+teach-set_special_pids-to-use-struct-pid.patch
+move-daemonized-kernel-threads-into-the-swappers-session.patch
+start-the-global-sbin-init-with-00-special-pids.patch
+fix-group-stop-with-exit-race.patch
+sys_setsid-remove-now-unneeded-session-=-1-check.patch
+move-the-related-code-from-exit_notify-to-exit_signals.patch
+pid-sys_wait-fixes-v2.patch
+pid-extend-fix-pid_vnr.patch
+sys_getsid-dont-use-nsproxy-directly.patch
+pid-fix-mips-irix-emulation-pid-usage.patch
+pid-fix-mips-irix-emulation-pid-usage-fix.patch
+pid-fix-solaris_procids.patch
+uglify-kill_pid_info-to-fix-kill-vs-exec-race.patch
+uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice.patch
+itimer_real-convert-to-use-struct-pid.patch
