@@ -1,59 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - pl2303-fix-mode-switching-regression-fix.patch removed from -mm tree
-Date: Mon, 14 Jan 2008 00:53:58 -0800
-Message-ID: <200801140853.m0E8rcPl019997@imap1.linux-foundation.org>
+Subject: - usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 14 Jan 2008 01:03:05 -0800
+Message-ID: <200801140902.m0E92jDL020379@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34617 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38609 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752121AbYANIy1 (ORCPT
+	by vger.kernel.org with ESMTP id S1752121AbYANJDI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Jan 2008 03:54:27 -0500
+	Mon, 14 Jan 2008 04:03:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, daniel.ritz-ml@swissonline.ch, daniel.ritz@gmx.ch, dtor@mail.ru, greg@kroah.com, jkosina@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pl2303-fix-mode-switching-regression-fix
+     usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     pl2303-fix-mode-switching-regression-fix.patch
+     usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into usbtouchscreen-fix-buffer-overflow-make-more-egalax-work.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pl2303-fix-mode-switching-regression-fix
+Subject: usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Alan Cox <alan@redhat.com>
+ERROR: use tabs not spaces
+#124: FILE: drivers/input/touchscreen/usbtouchscreen.c:536:
++                                   unsigned char *pkt, int len);$
+
+WARNING: line over 80 characters
+#159: FILE: drivers/input/touchscreen/usbtouchscreen.c:749:
++		pkt_len = usbtouch->type->get_pkt_len(buffer + pos, buf_len - pos);
+
+total: 1 errors, 1 warnings, 140 lines checked
+
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Daniel Ritz <daniel.ritz-ml@swissonline.ch>
+Cc: Daniel Ritz <daniel.ritz@gmx.ch>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Greg KH <greg@kroah.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_ioctl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/input/touchscreen/usbtouchscreen.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/tty_ioctl.c~pl2303-fix-mode-switching-regression-fix drivers/char/tty_ioctl.c
---- a/drivers/char/tty_ioctl.c~pl2303-fix-mode-switching-regression-fix
-+++ a/drivers/char/tty_ioctl.c
-@@ -370,7 +370,7 @@ EXPORT_SYMBOL(tty_termios_copy_hw);
-  *	@b: termios to compare
-  *
-  *	Check if any of the bits that affect a dumb device have changed
-- *	between the two termios structures, or a speed change is needed.
-+ *	between the two termios structures, or if a speed change is needed.
+diff -puN drivers/input/touchscreen/usbtouchscreen.c~usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes drivers/input/touchscreen/usbtouchscreen.c
+--- a/drivers/input/touchscreen/usbtouchscreen.c~usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes
++++ a/drivers/input/touchscreen/usbtouchscreen.c
+@@ -533,7 +533,7 @@ static int gotop_read_data(struct usbtou
   */
+ #ifdef MULTI_PACKET
+ static void usbtouch_process_multi(struct usbtouch_usb *usbtouch,
+-                                   unsigned char *pkt, int len);
++				   unsigned char *pkt, int len);
+ #endif
  
- int tty_termios_hw_change(struct ktermios *a, struct ktermios *b)
+ static struct usbtouch_device_info usbtouch_dev_info[] = {
+@@ -746,7 +746,8 @@ static void usbtouch_process_multi(struc
+ 	pos = 0;
+ 	while (pos < buf_len) {
+ 		/* get packet len */
+-		pkt_len = usbtouch->type->get_pkt_len(buffer + pos, buf_len - pos);
++		pkt_len = usbtouch->type->get_pkt_len(buffer + pos,
++							buf_len - pos);
+ 
+ 		/* unknown packet: skip one byte */
+ 		if (unlikely(!pkt_len)) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 hugetlbfs-fix-quota-leak.patch
-pl2303-fix-mode-switching-regression-fix.patch
 get_task_comm-return-the-result.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
@@ -149,6 +177,7 @@ git-cryptodev.patch
 git-cryptodev-fixup.patch
 git-xtensa.patch
 bonding-locking-fix.patch
+usbtouchscreen-fix-buffer-overflow-make-more-egalax-work.patch
 usbtouchscreen-fix-buffer-overflow-make-more-egalax-work-checkpatch-fixes.patch
 revert-sky2-enable-pci-config-writes.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
