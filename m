@@ -1,82 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: + restore-armv6-oprofile-support.patch added to -mm tree
-Date: Tue, 15 Jan 2008 12:08:39 -0800
-Message-ID: <200801152008.m0FK8Jb2000846@imap1.linux-foundation.org>
+Subject: - arch-cris-arch-v10-vmlinuxldss-fix-boot-problem.patch removed from -mm tree
+Date: Tue, 15 Jan 2008 12:33:50 -0800
+Message-ID: <200801152033.m0FKXVIL001838@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39767 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54819 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750733AbYAOUIx (ORCPT
+	by vger.kernel.org with ESMTP id S1751708AbYAOUeW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Jan 2008 15:08:53 -0500
+	Tue, 15 Jan 2008 15:34:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: adrian.bunk@movial.fi, mathieu.desnoyers@polymtl.ca, rmk+lkml@arm.linux.org.uk
+To: kuwana@nyanyan.to, jesper.nilsson@axis.com, ryu@nyanyan.to, mm-commits@vger.kernel.org
 
 
 The patch titled
-     restore ARMv6 OProfile support
-has been added to the -mm tree.  Its filename is
-     restore-armv6-oprofile-support.patch
+     arch/cris/arch-v10/vmlinux.lds.S fix boot problem
+has been removed from the -mm tree.  Its filename was
+     arch-cris-arch-v10-vmlinuxldss-fix-boot-problem.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: restore ARMv6 OProfile support
-From: Adrian Bunk <adrian.bunk@movial.fi>
+Subject: arch/cris/arch-v10/vmlinux.lds.S fix boot problem
+From: Yuusei KUWANA <kuwana@nyanyan.to>
 
-Restore the ARMv6 OProfile support that was killed by commit
-09cadedbdc01f1a4bea1f427d4fb4642eaa19da9.
+arch/cris/arch-v10/vmlinux.lds.S
+ fix boot problem
+* too old initcall style. replace INITCALLS macro
+* __init_begin, __init_end move for free_initmem()
 
-Signed-off-by: Adrian Bunk <adrian.bunk@movial.fi>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Russell King <rmk+lkml@arm.linux.org.uk>
+Note: with this patch kernel boot and mount root,
+but after init done,  kernel panic at do_signal() ...
+
+Signed-off-by: Yuusei KUWANA <ryu@nyanyan.to>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/Kconfig.instrumentation |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ arch/cris/arch-v10/vmlinux.lds.S |   13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
 
-diff -puN kernel/Kconfig.instrumentation~restore-armv6-oprofile-support kernel/Kconfig.instrumentation
---- a/kernel/Kconfig.instrumentation~restore-armv6-oprofile-support
-+++ a/kernel/Kconfig.instrumentation
-@@ -29,6 +29,21 @@ config OPROFILE
+diff -puN arch/cris/arch-v10/vmlinux.lds.S~arch-cris-arch-v10-vmlinuxldss-fix-boot-problem arch/cris/arch-v10/vmlinux.lds.S
+--- a/arch/cris/arch-v10/vmlinux.lds.S~arch-cris-arch-v10-vmlinuxldss-fix-boot-problem
++++ a/arch/cris/arch-v10/vmlinux.lds.S
+@@ -53,26 +53,22 @@ SECTIONS
+   	.data.init_task : { *(.data.init_task) }
  
- 	  If unsure, say N.
+   	. = ALIGN(8192);              /* Init code and data */
+-  	__init_begin = .;
+ 	.init.text : { 
+ 		   _sinittext = .;
+ 		   *(.init.text)
+ 		   _einittext = .;
+ 	}
++  	__init_begin = .;
+   	.init.data : { *(.init.data) }
++  	__init_end = .;
++
+   	. = ALIGN(16);
+   	__setup_start = .;
+   	.init.setup : { *(.init.setup) }
+   	__setup_end = .;
+   	.initcall.init : {
+ 		__initcall_start = .;
+-		*(.initcall1.init);
+-		*(.initcall2.init);
+-		*(.initcall3.init);
+-		*(.initcall4.init);
+-		*(.initcall5.init);
+-		*(.initcall6.init);
+-		*(.initcall7.init);
++			INITCALLS
+ 		__initcall_end = .;	
+ 	}
  
-+config OPROFILE_ARMV6
-+	bool
-+	depends on OPROFILE && ARM && CPU_V6 && !SMP
-+	default y
-+	select OPROFILE_ARM11_CORE
-+
-+config OPROFILE_MPCORE
-+	bool
-+	depends on OPROFILE && ARM && CPU_V6 && SMP
-+	default y
-+	select OPROFILE_ARM11_CORE
-+
-+config OPROFILE_ARM11_CORE
-+	bool
-+
- config KPROBES
- 	bool "Kprobes"
- 	depends on KALLSYMS && MODULES && !UML
+@@ -97,7 +93,6 @@ SECTIONS
+ #endif
+ 	
+ 	__vmlinux_end = .;            /* last address of the physical file */
+-  	__init_end = .;
+ 
+ 	__data_end = . ;              /* Move to _edata ? */
+ 	__bss_start = .;              /* BSS */
 _
 
-Patches currently in -mm which might be from adrian.bunk@movial.fi are
+Patches currently in -mm which might be from kuwana@nyanyan.to are
 
-origin.patch
-restore-armv6-oprofile-support.patch
+arch-cris-arch-v10-vmlinuxldss-fix-boot-problem.patch
