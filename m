@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + udf-fix-sparse-warnings-shadowing-mismatch-between-declaration-and-definition.patch added to -mm tree
-Date: Tue, 15 Jan 2008 02:46:40 -0800
-Message-ID: <200801151046.m0FAkKAf011660@imap1.linux-foundation.org>
+Subject: + udf-improve-readability-of-udf_load_partition.patch added to -mm tree
+Date: Tue, 15 Jan 2008 02:47:04 -0800
+Message-ID: <200801151046.m0FAkiM3011689@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49140 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40253 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751252AbYAOKrF (ORCPT
+	by vger.kernel.org with ESMTP id S1753883AbYAOKrO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Jan 2008 05:47:05 -0500
+	Tue, 15 Jan 2008 05:47:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: marcin.slusarz@gmail.com, bfennema@falcon.csc.calpoly.edu, hch@infradead.org, jack@suse.cz
+Cc: marcin.slusarz@gmail.com, hch@infradead.org, jack@suse.cz
 
 
 The patch titled
-     udf: fix sparse warnings (shadowing & mismatch between declaration and definition)
+     udf: improve readability of udf_load_partition
 has been added to the -mm tree.  Its filename is
-     udf-fix-sparse-warnings-shadowing-mismatch-between-declaration-and-definition.patch
+     udf-improve-readability-of-udf_load_partition.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,95 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: udf: fix sparse warnings (shadowing & mismatch between declaration and definition)
+Subject: udf: improve readability of udf_load_partition
 From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-fix sparse warnings:
-fs/udf/super.c:1431:24: warning: symbol 'bh' shadows an earlier one
-fs/udf/super.c:1347:21: originally declared here
-fs/udf/super.c:472:6: warning: symbol 'udf_write_super' was not declared. Should it be static?
-
 Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
-Cc: Ben Fennema <bfennema@falcon.csc.calpoly.edu>
-Cc: Jan Kara <jack@suse.cz>
-Acked-by: Christoph Hellwig <hch@infradead.org>
+Acked-by: Jan Kara <jack@suse.cz>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/super.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/udf/super.c |   57 +++++++++++++++++++++++------------------------
+ 1 file changed, 29 insertions(+), 28 deletions(-)
 
-diff -puN fs/udf/super.c~udf-fix-sparse-warnings-shadowing-mismatch-between-declaration-and-definition fs/udf/super.c
---- a/fs/udf/super.c~udf-fix-sparse-warnings-shadowing-mismatch-between-declaration-and-definition
+diff -puN fs/udf/super.c~udf-improve-readability-of-udf_load_partition fs/udf/super.c
+--- a/fs/udf/super.c~udf-improve-readability-of-udf_load_partition
 +++ a/fs/udf/super.c
-@@ -474,7 +474,7 @@ static int udf_parse_options(char *optio
- 	return 1;
- }
+@@ -1447,44 +1447,45 @@ static int udf_load_partition(struct sup
+ 	sbi = UDF_SB(sb);
  
--void udf_write_super(struct super_block *sb)
-+static void udf_write_super(struct super_block *sb)
- {
- 	lock_kernel();
+ 	for (i = 0; i < ARRAY_SIZE(sbi->s_anchor); i++) {
+-		if (sbi->s_anchor[i] &&
+-		    (bh = udf_read_tagged(sb, sbi->s_anchor[i],
+-					  sbi->s_anchor[i], &ident))) {
+-			anchor = (struct anchorVolDescPtr *)bh->b_data;
+-
+-			/* Locate the main sequence */
+-			main_s = le32_to_cpu(
+-					anchor->mainVolDescSeqExt.extLocation);
+-			main_e = le32_to_cpu(
+-					anchor->mainVolDescSeqExt.extLength);
+-			main_e = main_e >> sb->s_blocksize_bits;
+-			main_e += main_s;
++		if (!sbi->s_anchor[i])
++			continue;
++		bh = udf_read_tagged(sb, sbi->s_anchor[i], sbi->s_anchor[i],
++				     &ident);
++		if (!bh)
++			continue;
++
++		anchor = (struct anchorVolDescPtr *)bh->b_data;
++
++		/* Locate the main sequence */
++		main_s = le32_to_cpu(anchor->mainVolDescSeqExt.extLocation);
++		main_e = le32_to_cpu(anchor->mainVolDescSeqExt.extLength);
++		main_e = main_e >> sb->s_blocksize_bits;
++		main_e += main_s;
  
-@@ -1447,7 +1447,6 @@ static int udf_load_partition(struct sup
- 				map->s_type_specific.s_virtual.s_num_entries =
- 					(sbi->s_vat_inode->i_size - 36) >> 2;
- 			} else if (map->s_partition_type == UDF_VIRTUAL_MAP20) {
--				struct buffer_head *bh = NULL;
- 				uint32_t pos;
+-			/* Locate the reserve sequence */
+-			reserve_s = le32_to_cpu(
++		/* Locate the reserve sequence */
++		reserve_s = le32_to_cpu(
+ 				anchor->reserveVolDescSeqExt.extLocation);
+-			reserve_e = le32_to_cpu(
++		reserve_e = le32_to_cpu(
+ 				anchor->reserveVolDescSeqExt.extLength);
+-			reserve_e = reserve_e >> sb->s_blocksize_bits;
+-			reserve_e += reserve_s;
++		reserve_e = reserve_e >> sb->s_blocksize_bits;
++		reserve_e += reserve_s;
  
- 				pos = udf_block_map(sbi->s_vat_inode, 0);
+-			brelse(bh);
++		brelse(bh);
+ 
+-			/* Process the main & reserve sequences */
+-			/* responsible for finding the PartitionDesc(s) */
+-			if (!(udf_process_sequence(sb, main_s, main_e,
+-						   fileset) &&
+-			      udf_process_sequence(sb, reserve_s, reserve_e,
+-						   fileset)))
+-				break;
+-		}
++		/* Process the main & reserve sequences */
++		/* responsible for finding the PartitionDesc(s) */
++		if (!(udf_process_sequence(sb, main_s, main_e,
++					   fileset) &&
++		      udf_process_sequence(sb, reserve_s, reserve_e,
++					   fileset)))
++			break;
+ 	}
+ 
+ 	if (i == ARRAY_SIZE(sbi->s_anchor)) {
+ 		udf_debug("No Anchor block found\n");
+ 		return 1;
+-	} else
+-		udf_debug("Using anchor in block %d\n", sbi->s_anchor[i]);
++	}
++	udf_debug("Using anchor in block %d\n", sbi->s_anchor[i]);
+ 
+ 	for (i = 0; i < sbi->s_partitions; i++) {
+ 		kernel_lb_addr uninitialized_var(ino);
 _
 
 Patches currently in -mm which might be from marcin.slusarz@gmail.com are
