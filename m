@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + udf-move-calculating-of-nr_groups-into-helper-function.patch added to -mm tree
-Date: Tue, 15 Jan 2008 02:46:38 -0800
-Message-ID: <200801151046.m0FAkIj5011655@imap1.linux-foundation.org>
+Subject: + udf-create-common-function-for-tag-checksumming.patch added to -mm tree
+Date: Tue, 15 Jan 2008 02:46:48 -0800
+Message-ID: <200801151046.m0FAkSIm011666@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37654 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58639 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751217AbYAOKrF (ORCPT
+	by vger.kernel.org with ESMTP id S1751291AbYAOKrG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Jan 2008 05:47:05 -0500
+	Tue, 15 Jan 2008 05:47:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: marcin.slusarz@gmail.com, bfennema@falcon.csc.calpoly.edu, hch@infradead.org, jack@suse.cz
+Cc: marcin.slusarz@gmail.com, hch@infradead.org, jack@suse.cz
 
 
 The patch titled
-     udf: move calculating of nr_groups into helper function
+     udf: create common function for tag checksumming
 has been added to the -mm tree.  Its filename is
-     udf-move-calculating-of-nr_groups-into-helper-function.patch
+     udf-create-common-function-for-tag-checksumming.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,79 +34,229 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: udf: move calculating of nr_groups into helper function
+Subject: udf: create common function for tag checksumming
 From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
 Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
-Cc: Ben Fennema <bfennema@falcon.csc.calpoly.edu>
 Acked-by: Jan Kara <jack@suse.cz>
 Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/balloc.c |    4 +---
- fs/udf/super.c  |   16 ++++++++++------
- fs/udf/udf_sb.h |    2 ++
- 3 files changed, 13 insertions(+), 9 deletions(-)
+ fs/udf/inode.c   |   15 ++-------------
+ fs/udf/misc.c    |   35 ++++++++++++++---------------------
+ fs/udf/namei.c   |    9 +--------
+ fs/udf/super.c   |   16 ++--------------
+ fs/udf/udfdecl.h |    3 +++
+ 5 files changed, 22 insertions(+), 56 deletions(-)
 
-diff -puN fs/udf/balloc.c~udf-move-calculating-of-nr_groups-into-helper-function fs/udf/balloc.c
---- a/fs/udf/balloc.c~udf-move-calculating-of-nr_groups-into-helper-function
-+++ a/fs/udf/balloc.c
-@@ -231,9 +231,7 @@ static int udf_bitmap_prealloc_blocks(st
- 		block_count = part_len - first_block;
+diff -puN fs/udf/inode.c~udf-create-common-function-for-tag-checksumming fs/udf/inode.c
+--- a/fs/udf/inode.c~udf-create-common-function-for-tag-checksumming
++++ a/fs/udf/inode.c
+@@ -1440,7 +1440,6 @@ static int udf_update_inode(struct inode
+ 	uint32_t udfperms;
+ 	uint16_t icbflags;
+ 	uint16_t crclen;
+-	int i;
+ 	kernel_timestamp cpu_time;
+ 	int err = 0;
+ 	struct udf_sb_info *sbi = UDF_SB(inode->i_sb);
+@@ -1476,12 +1475,7 @@ static int udf_update_inode(struct inode
+ 		use->descTag.descCRC = cpu_to_le16(udf_crc((char *)use +
+ 							   sizeof(tag), crclen,
+ 							   0));
+-
+-		use->descTag.tagChecksum = 0;
+-		for (i = 0; i < 16; i++)
+-			if (i != 4)
+-				use->descTag.tagChecksum +=
+-						((uint8_t *)&(use->descTag))[i];
++		use->descTag.tagChecksum = udf_tag_checksum(&use->descTag);
  
- repeat:
--	nr_groups = (sbi->s_partmaps[partition].s_partition_len +
--		     (sizeof(struct spaceBitmapDesc) << 3) +
--		     (sb->s_blocksize * 8) - 1) / (sb->s_blocksize * 8);
-+	nr_groups = udf_compute_nr_groups(sb, partition);
- 	block = first_block + (sizeof(struct spaceBitmapDesc) << 3);
- 	block_group = block >> (sb->s_blocksize_bits + 3);
- 	group_start = block_group ? 0 : sizeof(struct spaceBitmapDesc);
-diff -puN fs/udf/super.c~udf-move-calculating-of-nr_groups-into-helper-function fs/udf/super.c
---- a/fs/udf/super.c~udf-move-calculating-of-nr_groups-into-helper-function
-+++ a/fs/udf/super.c
-@@ -937,18 +937,22 @@ static void udf_load_fileset(struct supe
- 		  root->logicalBlockNum, root->partitionReferenceNum);
+ 		mark_buffer_dirty(bh);
+ 		brelse(bh);
+@@ -1650,12 +1644,7 @@ static int udf_update_inode(struct inode
+ 	fe->descTag.descCRCLength = cpu_to_le16(crclen);
+ 	fe->descTag.descCRC = cpu_to_le16(udf_crc((char *)fe + sizeof(tag),
+ 						  crclen, 0));
+-
+-	fe->descTag.tagChecksum = 0;
+-	for (i = 0; i < 16; i++)
+-		if (i != 4)
+-			fe->descTag.tagChecksum +=
+-				((uint8_t *)&(fe->descTag))[i];
++	fe->descTag.tagChecksum = udf_tag_checksum(&fe->descTag);
+ 
+ 	/* write the data blocks */
+ 	mark_buffer_dirty(bh);
+diff -puN fs/udf/misc.c~udf-create-common-function-for-tag-checksumming fs/udf/misc.c
+--- a/fs/udf/misc.c~udf-create-common-function-for-tag-checksumming
++++ a/fs/udf/misc.c
+@@ -51,7 +51,6 @@ struct genericFormat *udf_add_extendedat
+ 	uint8_t *ea = NULL, *ad = NULL;
+ 	int offset;
+ 	uint16_t crclen;
+-	int i;
+ 
+ 	ea = UDF_I_DATA(inode);
+ 	if (UDF_I_LENEATTR(inode)) {
+@@ -138,11 +137,7 @@ struct genericFormat *udf_add_extendedat
+ 		eahd->descTag.descCRCLength = cpu_to_le16(crclen);
+ 		eahd->descTag.descCRC = cpu_to_le16(udf_crc((char *)eahd +
+ 						sizeof(tag), crclen, 0));
+-		eahd->descTag.tagChecksum = 0;
+-		for (i = 0; i < 16; i++)
+-			if (i != 4)
+-				eahd->descTag.tagChecksum +=
+-					((uint8_t *)&(eahd->descTag))[i];
++		eahd->descTag.tagChecksum = udf_tag_checksum(&eahd->descTag);
+ 		UDF_I_LENEATTR(inode) += size;
+ 		return (struct genericFormat *)&ea[offset];
+ 	}
+@@ -207,8 +202,6 @@ struct buffer_head *udf_read_tagged(stru
+ {
+ 	tag *tag_p;
+ 	struct buffer_head *bh = NULL;
+-	register uint8_t checksum;
+-	register int i;
+ 	struct udf_sb_info *sbi = UDF_SB(sb);
+ 
+ 	/* Read the block */
+@@ -234,12 +227,7 @@ struct buffer_head *udf_read_tagged(stru
+ 	}
+ 
+ 	/* Verify the tag checksum */
+-	checksum = 0U;
+-	for (i = 0; i < 4; i++)
+-		checksum += (uint8_t)(bh->b_data[i]);
+-	for (i = 5; i < 16; i++)
+-		checksum += (uint8_t)(bh->b_data[i]);
+-	if (checksum != tag_p->tagChecksum) {
++	if (udf_tag_checksum(tag_p) != tag_p->tagChecksum) {
+ 		printk(KERN_ERR "udf: tag checksum failed block %d\n", block);
+ 		goto error_out;
+ 	}
+@@ -277,17 +265,11 @@ struct buffer_head *udf_read_ptagged(str
+ void udf_update_tag(char *data, int length)
+ {
+ 	tag *tptr = (tag *)data;
+-	int i;
+-
+ 	length -= sizeof(tag);
+ 
+-	tptr->tagChecksum = 0;
+ 	tptr->descCRCLength = cpu_to_le16(length);
+ 	tptr->descCRC = cpu_to_le16(udf_crc(data + sizeof(tag), length, 0));
+-
+-	for (i = 0; i < 16; i++)
+-		if (i != 4)
+-			tptr->tagChecksum += (uint8_t)(data[i]);
++	tptr->tagChecksum = udf_tag_checksum(tptr);
  }
  
-+int udf_compute_nr_groups(struct super_block *sb, u32 partition)
+ void udf_new_tag(char *data, uint16_t ident, uint16_t version, uint16_t snum,
+@@ -300,3 +282,14 @@ void udf_new_tag(char *data, uint16_t id
+ 	tptr->tagLocation = cpu_to_le32(loc);
+ 	udf_update_tag(data, length);
+ }
++
++u8 udf_tag_checksum(const tag *t)
 +{
-+	struct udf_part_map *map = &UDF_SB(sb)->s_partmaps[partition];
-+	return (map->s_partition_len +
-+		(sizeof(struct spaceBitmapDesc) << 3) +
-+		(sb->s_blocksize * 8) - 1) /
-+		(sb->s_blocksize * 8);
++	u8 *data = (u8 *)t;
++	u8 checksum = 0;
++	int i;
++	for (i = 0; i < sizeof(tag); ++i)
++		if (i != 4) /* position of checksum */
++			checksum += data[i];
++	return checksum;
 +}
-+
- static struct udf_bitmap *udf_sb_alloc_bitmap(struct super_block *sb, u32 index)
+diff -puN fs/udf/namei.c~udf-create-common-function-for-tag-checksumming fs/udf/namei.c
+--- a/fs/udf/namei.c~udf-create-common-function-for-tag-checksumming
++++ a/fs/udf/namei.c
+@@ -47,8 +47,6 @@ int udf_write_fi(struct inode *inode, st
  {
--	struct udf_part_map *map = &UDF_SB(sb)->s_partmaps[index];
- 	struct udf_bitmap *bitmap;
- 	int nr_groups;
- 	int size;
+ 	uint16_t crclen = fibh->eoffset - fibh->soffset - sizeof(tag);
+ 	uint16_t crc;
+-	uint8_t checksum = 0;
+-	int i;
+ 	int offset;
+ 	uint16_t liu = le16_to_cpu(cfi->lengthOfImpUse);
+ 	uint8_t lfi = cfi->lengthFileIdent;
+@@ -122,13 +120,8 @@ int udf_write_fi(struct inode *inode, st
  
--	/* TODO: move calculating of nr_groups into helper function */
--	nr_groups = (map->s_partition_len +
--			(sizeof(struct spaceBitmapDesc) << 3) +
--			(sb->s_blocksize * 8) - 1) /
--			(sb->s_blocksize * 8);
-+	nr_groups = udf_compute_nr_groups(sb, index);
- 	size = sizeof(struct udf_bitmap) +
- 		(sizeof(struct buffer_head *) * nr_groups);
+ 	cfi->descTag.descCRC = cpu_to_le16(crc);
+ 	cfi->descTag.descCRCLength = cpu_to_le16(crclen);
++	cfi->descTag.tagChecksum = udf_tag_checksum(&cfi->descTag);
  
-diff -puN fs/udf/udf_sb.h~udf-move-calculating-of-nr_groups-into-helper-function fs/udf/udf_sb.h
---- a/fs/udf/udf_sb.h~udf-move-calculating-of-nr_groups-into-helper-function
-+++ a/fs/udf/udf_sb.h
-@@ -43,6 +43,8 @@ static inline struct udf_sb_info *UDF_SB
+-	for (i = 0; i < 16; i++) {
+-		if (i != 4)
+-			checksum += ((uint8_t *)&cfi->descTag)[i];
+-	}
+-
+-	cfi->descTag.tagChecksum = checksum;
+ 	if (adinicb || (sizeof(struct fileIdentDesc) <= -fibh->soffset)) {
+ 		memcpy((uint8_t *)sfi, (uint8_t *)cfi,
+ 			sizeof(struct fileIdentDesc));
+diff -puN fs/udf/super.c~udf-create-common-function-for-tag-checksumming fs/udf/super.c
+--- a/fs/udf/super.c~udf-create-common-function-for-tag-checksumming
++++ a/fs/udf/super.c
+@@ -1564,7 +1564,6 @@ static void udf_open_lvid(struct super_b
+ 	struct udf_sb_info *sbi = UDF_SB(sb);
+ 	struct buffer_head *bh = sbi->s_lvid_bh;
+ 	if (bh) {
+-		int i;
+ 		kernel_timestamp cpu_time;
+ 		struct logicalVolIntegrityDesc *lvid =
+ 				(struct logicalVolIntegrityDesc *)bh->b_data;
+@@ -1582,12 +1581,7 @@ static void udf_open_lvid(struct super_b
+ 				le16_to_cpu(lvid->descTag.descCRCLength),
+ 				0));
  
- struct logicalVolIntegrityDescImpUse *udf_sb_lvidiu(struct udf_sb_info *sbi);
+-		lvid->descTag.tagChecksum = 0;
+-		for (i = 0; i < 16; i++)
+-			if (i != 4)
+-				lvid->descTag.tagChecksum +=
+-					((uint8_t *) &(lvid->descTag))[i];
+-
++		lvid->descTag.tagChecksum = udf_tag_checksum(&lvid->descTag);
+ 		mark_buffer_dirty(bh);
+ 	}
+ }
+@@ -1595,7 +1589,6 @@ static void udf_open_lvid(struct super_b
+ static void udf_close_lvid(struct super_block *sb)
+ {
+ 	kernel_timestamp cpu_time;
+-	int i;
+ 	struct udf_sb_info *sbi = UDF_SB(sb);
+ 	struct buffer_head *bh = sbi->s_lvid_bh;
+ 	struct logicalVolIntegrityDesc *lvid;
+@@ -1626,12 +1619,7 @@ static void udf_close_lvid(struct super_
+ 				le16_to_cpu(lvid->descTag.descCRCLength),
+ 				0));
  
-+int udf_compute_nr_groups(struct super_block *sb, u32 partition);
+-		lvid->descTag.tagChecksum = 0;
+-		for (i = 0; i < 16; i++)
+-			if (i != 4)
+-				lvid->descTag.tagChecksum +=
+-					((uint8_t *)&(lvid->descTag))[i];
+-
++		lvid->descTag.tagChecksum = udf_tag_checksum(&lvid->descTag);
+ 		mark_buffer_dirty(bh);
+ 	}
+ }
+diff -puN fs/udf/udfdecl.h~udf-create-common-function-for-tag-checksumming fs/udf/udfdecl.h
+--- a/fs/udf/udfdecl.h~udf-create-common-function-for-tag-checksumming
++++ a/fs/udf/udfdecl.h
+@@ -36,6 +36,9 @@
+ 
+ #define udf_get_lb_pblock(sb,loc,offset) udf_get_pblock((sb), (loc).logicalBlockNum, (loc).partitionReferenceNum, (offset))
+ 
++/* computes tag checksum */
++u8 udf_tag_checksum(const tag *t);
 +
- #define UDF_QUERY_FLAG(X,Y)			( UDF_SB(X)->s_flags & ( 1 << (Y) ) )
- #define UDF_SET_FLAG(X,Y)			( UDF_SB(X)->s_flags |= ( 1 << (Y) ) )
- #define UDF_CLEAR_FLAG(X,Y)			( UDF_SB(X)->s_flags &= ~( 1 << (Y) ) )
+ struct dentry;
+ struct inode;
+ struct task_struct;
 _
 
 Patches currently in -mm which might be from marcin.slusarz@gmail.com are
