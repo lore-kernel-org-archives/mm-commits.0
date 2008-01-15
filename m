@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-cpufreq-add-calls-to-cpufreq_cpu_put.patch added to -mm tree
-Date: Tue, 15 Jan 2008 01:35:00 -0800
-Message-ID: <200801150934.m0F9Yec3009054@imap1.linux-foundation.org>
+Subject: + include-count-of-pagecache-pages-in-show_mem-output.patch added to -mm tree
+Date: Tue, 15 Jan 2008 01:47:31 -0800
+Message-ID: <200801150947.m0F9lBm2009473@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55939 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45105 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751198AbYAOJey (ORCPT
+	by vger.kernel.org with ESMTP id S1750768AbYAOJrw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Jan 2008 04:34:54 -0500
+	Tue, 15 Jan 2008 04:47:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, davej@codemonkey.org.uk
+Cc: lwoodman@redhat.com
 
 
 The patch titled
-     drivers/cpufreq: add calls to cpufreq_cpu_put
+     Include count of pagecache pages in show_mem() output
 has been added to the -mm tree.  Its filename is
-     drivers-cpufreq-add-calls-to-cpufreq_cpu_put.patch
+     include-count-of-pagecache-pages-in-show_mem-output.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,101 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/cpufreq: add calls to cpufreq_cpu_put
-From: Julia Lawall <julia@diku.dk>
+Subject: Include count of pagecache pages in show_mem() output
+From: Larry Woodman <lwoodman@redhat.com>
 
+The show_mem() output does not include the total number of pagecache pages.
+ This would be helpful when analyzing the debug information in the
+/var/log/messages file after OOM kills occur.
 
-A call to cpufreq_cpu_get should be matched by a call to cpufreq_cpu_put.
+This patch includes the total pagecache pages in that output.
 
-The problem was fixed using the following semantic patch.
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@@
-type T;
-identifier E;
-expression E1, E2;
-int ret;
-statement S;
-@@
-
-  T E;
-  ... when any
-(
-  E = cpufreq_cpu_get(...);
-  if (E == NULL) S
-|
-  if ((E = cpufreq_cpu_get(...)) == NULL) S
-)
-  ... when != E2 = E
-      when strict
-(
-  cpufreq_cpu_put(E);
-|
-  E1 = E;
-|
-+ cpufreq_cpu_put(E);
-  return;
-|
-+ cpufreq_cpu_put(E);
-  return ret;
-)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+Signed-off-by: Larry Woodman <lwoodman@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpufreq/cpufreq.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/cpufreq/cpufreq.c~drivers-cpufreq-add-calls-to-cpufreq_cpu_put drivers/cpufreq/cpufreq.c
---- a/drivers/cpufreq/cpufreq.c~drivers-cpufreq-add-calls-to-cpufreq_cpu_put
-+++ a/drivers/cpufreq/cpufreq.c
-@@ -676,8 +676,10 @@ static ssize_t show(struct kobject * kob
- 	if (!policy)
- 		return -EINVAL;
+diff -puN mm/page_alloc.c~include-count-of-pagecache-pages-in-show_mem-output mm/page_alloc.c
+--- a/mm/page_alloc.c~include-count-of-pagecache-pages-in-show_mem-output
++++ a/mm/page_alloc.c
+@@ -1874,6 +1874,8 @@ void show_free_areas(void)
+ 		printk("= %lukB\n", K(total));
+ 	}
  
--	if (lock_policy_rwsem_read(policy->cpu) < 0)
-+	if (lock_policy_rwsem_read(policy->cpu) < 0) {
-+		cpufreq_cpu_put(policy);
- 		return -EINVAL;
-+	}
++	printk("%ld total pagecache pages\n", global_page_state(NR_FILE_PAGES));
++
+ 	show_swap_cache_info();
+ }
  
- 	if (fattr->show)
- 		ret = fattr->show(policy, buf);
-@@ -700,8 +702,10 @@ static ssize_t store(struct kobject * ko
- 	if (!policy)
- 		return -EINVAL;
- 
--	if (lock_policy_rwsem_write(policy->cpu) < 0)
-+	if (lock_policy_rwsem_write(policy->cpu) < 0) {
-+		cpufreq_cpu_put(policy);
- 		return -EINVAL;
-+	}
- 
- 	if (fattr->store)
- 		ret = fattr->store(policy, buf, count);
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from lwoodman@redhat.com are
 
-git-alsa.patch
-git-agpgart.patch
-drivers-cpufreq-add-calls-to-cpufreq_cpu_put.patch
-git-powerpc.patch
-arch-powerpc-platforms-pseries-add-missing-of_node_put.patch
-arch-powerpc-sysdev-add-missing-of_node_put.patch
-arch-powerpc-platforms-82xx-add-missing-of_node_put.patch
-drivers-media-radio-use-video_device_release-rather-than-kfree.patch
-drivers-media-common-add-missing-video_device_release.patch
-git-input.patch
-git-mtd.patch
-git-net.patch
-drivers-pcmcia-add-missing-iounmap.patch
-drivers-pcmcia-add-missing-pci_dev_get.patch
-git-x86.patch
-arch-cris-added-a-missing-iounmap.patch
-drivers-video-remove-unnecessary-pci_dev_put.patch
-drivers-video-add-missing-pci_dev_get.patch
+include-count-of-pagecache-pages-in-show_mem-output.patch
