@@ -1,158 +1,198 @@
 From: akpm@linux-foundation.org
-Subject: - udf-fix-coding-style-of-dirc.patch removed from -mm tree
-Date: Tue, 15 Jan 2008 02:44:41 -0800
-Message-ID: <200801151044.m0FAiLdh011562@imap1.linux-foundation.org>
+Subject: + udf-replace-loops-coded-with-goto-to-real-loops.patch added to -mm tree
+Date: Tue, 15 Jan 2008 02:46:52 -0800
+Message-ID: <200801151046.m0FAkWXL011672@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56852 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41247 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753473AbYAOKqr (ORCPT
+	by vger.kernel.org with ESMTP id S1751028AbYAOKqx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Jan 2008 05:46:47 -0500
+	Tue, 15 Jan 2008 05:46:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: marcin.slusarz@gmail.com, bfennema@falcon.csc.calpoly.edu, jack@suse.cz, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: marcin.slusarz@gmail.com, hch@infradead.org, jack@suse.cz
 
 
 The patch titled
-     udf: fix coding style of dir.c
-has been removed from the -mm tree.  Its filename was
-     udf-fix-coding-style-of-dirc.patch
+     udf: replace loops coded with goto to real loops
+has been added to the -mm tree.  Its filename is
+     udf-replace-loops-coded-with-goto-to-real-loops.patch
 
-This patch was dropped because Marcin's changes killed it
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: udf: fix coding style of dir.c
+Subject: udf: replace loops coded with goto to real loops
 From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-fix coding style, checkpatch warned about:
-- "braces {} are not necessary for single statement blocks"
-- "line over 80 characters"
-- "do not use assignment in if condition"
-- "use tabs not spaces"
-
 Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
-Cc: Ben Fennema <bfennema@falcon.csc.calpoly.edu>
 Acked-by: Jan Kara <jack@suse.cz>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/dir.c |   46 +++++++++++++++++++++++++++-------------------
- 1 file changed, 27 insertions(+), 19 deletions(-)
+ fs/udf/balloc.c |  118 +++++++++++++++++++++++-----------------------
+ 1 file changed, 59 insertions(+), 59 deletions(-)
 
-diff -puN fs/udf/dir.c~udf-fix-coding-style-of-dirc fs/udf/dir.c
---- a/fs/udf/dir.c~udf-fix-coding-style-of-dirc
-+++ a/fs/udf/dir.c
-@@ -65,24 +65,26 @@ static int do_udf_readdir(struct inode *
- 	if (nf_pos == 0)
- 		nf_pos = (udf_ext0_offset(dir) >> 2);
+diff -puN fs/udf/balloc.c~udf-replace-loops-coded-with-goto-to-real-loops fs/udf/balloc.c
+--- a/fs/udf/balloc.c~udf-replace-loops-coded-with-goto-to-real-loops
++++ a/fs/udf/balloc.c
+@@ -183,46 +183,46 @@ static void udf_bitmap_free_blocks(struc
+ 	block = bloc.logicalBlockNum + offset +
+ 		(sizeof(struct spaceBitmapDesc) << 3);
  
--	fibh.soffset = fibh.eoffset = (nf_pos & ((dir->i_sb->s_blocksize - 1) >> 2)) << 2;
-+	fibh.soffset = fibh.eoffset =
-+		(nf_pos & ((dir->i_sb->s_blocksize - 1) >> 2)) << 2;
- 	bits = dir->i_sb->s_blocksize_bits;
+-do_more:
+-	overflow = 0;
+-	block_group = block >> (sb->s_blocksize_bits + 3);
+-	bit = block % (sb->s_blocksize << 3);
++	do {
++		overflow = 0;
++		block_group = block >> (sb->s_blocksize_bits + 3);
++		bit = block % (sb->s_blocksize << 3);
  
--	if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_IN_ICB) {
-+	if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_IN_ICB)
- 		fibh.sbh = fibh.ebh = NULL;
--	} else if (inode_bmap(dir, nf_pos >> (bits - 2),
--			      &epos, &eloc, &elen, &offset) == (EXT_RECORDED_ALLOCATED >> 30)) {
-+	else if (inode_bmap(dir, nf_pos >> (bits - 2),
-+			    &epos, &eloc, &elen, &offset) ==
-+			(EXT_RECORDED_ALLOCATED >> 30)) {
- 		block = udf_get_lb_pblock(dir->i_sb, eloc, offset);
- 		if ((++offset << bits) < elen) {
- 			if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_SHORT)
- 				epos.offset -= sizeof(short_ad);
- 			else if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_LONG)
- 				epos.offset -= sizeof(long_ad);
+-	/*
+-	 * Check to see if we are freeing blocks across a group boundary.
+-	 */
+-	if (bit + count > (sb->s_blocksize << 3)) {
+-		overflow = bit + count - (sb->s_blocksize << 3);
+-		count -= overflow;
+-	}
+-	bitmap_nr = load_block_bitmap(sb, bitmap, block_group);
+-	if (bitmap_nr < 0)
+-		goto error_return;
++		/*
++		* Check to see if we are freeing blocks across a group boundary.
++		*/
++		if (bit + count > (sb->s_blocksize << 3)) {
++			overflow = bit + count - (sb->s_blocksize << 3);
++			count -= overflow;
++		}
++		bitmap_nr = load_block_bitmap(sb, bitmap, block_group);
++		if (bitmap_nr < 0)
++			goto error_return;
+ 
+-	bh = bitmap->s_block_bitmap[bitmap_nr];
+-	for (i = 0; i < count; i++) {
+-		if (udf_set_bit(bit + i, bh->b_data)) {
+-			udf_debug("bit %ld already set\n", bit + i);
+-			udf_debug("byte=%2x\n",
+-				  ((char *)bh->b_data)[(bit + i) >> 3]);
 -		} else {
-+		} else
- 			offset = 0;
--		}
- 
--		if (!(fibh.sbh = fibh.ebh = udf_tread(dir->i_sb, block))) {
-+		fibh.sbh = fibh.ebh = udf_tread(dir->i_sb, block);
-+		if (!fibh.sbh) {
- 			brelse(epos.bh);
- 			return -EIO;
+-			if (inode)
+-				DQUOT_FREE_BLOCK(inode, 1);
+-			udf_inc_free_space(sbi, sbi->s_partition, 1);
++		bh = bitmap->s_block_bitmap[bitmap_nr];
++		for (i = 0; i < count; i++) {
++			if (udf_set_bit(bit + i, bh->b_data)) {
++				udf_debug("bit %ld already set\n", bit + i);
++				udf_debug("byte=%2x\n",
++					((char *)bh->b_data)[(bit + i) >> 3]);
++			} else {
++				if (inode)
++					DQUOT_FREE_BLOCK(inode, 1);
++				udf_inc_free_space(sbi, sbi->s_partition, 1);
++			}
  		}
-@@ -92,9 +94,11 @@ static int do_udf_readdir(struct inode *
- 			if (i + offset > (elen >> bits))
- 				i = (elen >> bits) - offset;
- 			for (num = 0; i > 0; i--) {
--				block = udf_get_lb_pblock(dir->i_sb, eloc, offset + i);
-+				block = udf_get_lb_pblock(dir->i_sb, eloc,
-+							  offset + i);
- 				tmp = udf_tgetblk(dir->i_sb, block);
--				if (tmp && !buffer_uptodate(tmp) && !buffer_locked(tmp))
-+				if (tmp && !buffer_uptodate(tmp) &&
-+					!buffer_locked(tmp))
- 					bha[num++] = tmp;
- 				else
- 					brelse(tmp);
-@@ -126,16 +130,18 @@ static int do_udf_readdir(struct inode *
- 		liu = le16_to_cpu(cfi.lengthOfImpUse);
- 		lfi = cfi.lengthFileIdent;
- 
--		if (fibh.sbh == fibh.ebh) {
-+		if (fibh.sbh == fibh.ebh)
- 			nameptr = fi->fileIdent + liu;
--		} else {
-+		else {
- 			int poffset;	/* Unpaded ending offset */
- 
--			poffset = fibh.soffset + sizeof(struct fileIdentDesc) + liu + lfi;
-+			poffset = fibh.soffset + sizeof(struct fileIdentDesc) +
-+					liu + lfi;
- 
--			if (poffset >= lfi) {
--				nameptr = (char *)(fibh.ebh->b_data + poffset - lfi);
--			} else {
-+			if (poffset >= lfi)
-+				nameptr = (char *)(fibh.ebh->b_data +
-+						   poffset - lfi);
-+			else {
- 				nameptr = fname;
- 				memcpy(nameptr, fi->fileIdent + liu,
- 				       lfi - poffset);
-@@ -168,12 +174,13 @@ static int do_udf_readdir(struct inode *
- 		}
- 
- 		if (flen) {
--			if (filldir(dirent, fname, flen, filp->f_pos, iblock, dt_type) < 0) {
-+			if (filldir(dirent, fname, flen, filp->f_pos, iblock,
-+				    dt_type) < 0) {
- 				if (fibh.sbh != fibh.ebh)
- 					brelse(fibh.ebh);
- 				brelse(fibh.sbh);
- 				brelse(epos.bh);
--	 			return 0;
-+				return 0;
- 			}
- 		}
- 	} /* end while */
-@@ -222,7 +229,8 @@ static int udf_readdir(struct file *filp
- 	lock_kernel();
- 
- 	if (filp->f_pos == 0) {
--		if (filldir(dirent, ".", 1, filp->f_pos, dir->i_ino, DT_DIR) < 0) {
-+		if (filldir(dirent, ".", 1, filp->f_pos, dir->i_ino,
-+			    DT_DIR) < 0) {
- 			unlock_kernel();
- 			return 0;
- 		}
-@@ -231,7 +239,7 @@ static int udf_readdir(struct file *filp
- 
- 	result = do_udf_readdir(dir, filp, filldir, dirent);
- 	unlock_kernel();
-- 	return result;
-+	return result;
+-	}
+-	mark_buffer_dirty(bh);
+-	if (overflow) {
+-		block += count;
+-		count = overflow;
+-		goto do_more;
+-	}
++		mark_buffer_dirty(bh);
++		if (overflow) {
++			block += count;
++			count = overflow;
++		}
++	} while (overflow);
++
+ error_return:
+ 	sb->s_dirt = 1;
+ 	if (sbi->s_lvid_bh)
+ 		mark_buffer_dirty(sbi->s_lvid_bh);
+ 	mutex_unlock(&sbi->s_alloc_mutex);
+-	return;
  }
  
- /* readdir and lookup functions */
+ static int udf_bitmap_prealloc_blocks(struct super_block *sb,
+@@ -246,37 +246,37 @@ static int udf_bitmap_prealloc_blocks(st
+ 	if (first_block + block_count > part_len)
+ 		block_count = part_len - first_block;
+ 
+-repeat:
+-	nr_groups = udf_compute_nr_groups(sb, partition);
+-	block = first_block + (sizeof(struct spaceBitmapDesc) << 3);
+-	block_group = block >> (sb->s_blocksize_bits + 3);
+-	group_start = block_group ? 0 : sizeof(struct spaceBitmapDesc);
++	do {
++		nr_groups = udf_compute_nr_groups(sb, partition);
++		block = first_block + (sizeof(struct spaceBitmapDesc) << 3);
++		block_group = block >> (sb->s_blocksize_bits + 3);
++		group_start = block_group ? 0 : sizeof(struct spaceBitmapDesc);
+ 
+-	bitmap_nr = load_block_bitmap(sb, bitmap, block_group);
+-	if (bitmap_nr < 0)
+-		goto out;
+-	bh = bitmap->s_block_bitmap[bitmap_nr];
++		bitmap_nr = load_block_bitmap(sb, bitmap, block_group);
++		if (bitmap_nr < 0)
++			goto out;
++		bh = bitmap->s_block_bitmap[bitmap_nr];
+ 
+-	bit = block % (sb->s_blocksize << 3);
++		bit = block % (sb->s_blocksize << 3);
+ 
+-	while (bit < (sb->s_blocksize << 3) && block_count > 0) {
+-		if (!udf_test_bit(bit, bh->b_data)) {
+-			goto out;
+-		} else if (DQUOT_PREALLOC_BLOCK(inode, 1)) {
+-			goto out;
+-		} else if (!udf_clear_bit(bit, bh->b_data)) {
+-			udf_debug("bit already cleared for block %d\n", bit);
+-			DQUOT_FREE_BLOCK(inode, 1);
+-			goto out;
++		while (bit < (sb->s_blocksize << 3) && block_count > 0) {
++			if (!udf_test_bit(bit, bh->b_data))
++				goto out;
++			else if (DQUOT_PREALLOC_BLOCK(inode, 1))
++				goto out;
++			else if (!udf_clear_bit(bit, bh->b_data)) {
++				udf_debug("bit already cleared for block %d\n", bit);
++				DQUOT_FREE_BLOCK(inode, 1);
++				goto out;
++			}
++			block_count--;
++			alloc_count++;
++			bit++;
++			block++;
+ 		}
+-		block_count--;
+-		alloc_count++;
+-		bit++;
+-		block++;
+-	}
+-	mark_buffer_dirty(bh);
+-	if (block_count > 0)
+-		goto repeat;
++		mark_buffer_dirty(bh);
++	} while (block_count > 0);
++
+ out:
+ 	if (udf_inc_free_space(sbi, partition, -alloc_count))
+ 		mark_buffer_dirty(sbi->s_lvid_bh);
 _
 
 Patches currently in -mm which might be from marcin.slusarz@gmail.com are
@@ -183,6 +223,5 @@ udf-cache-struct-udf_inode_info.patch
 udf-fix-udf_debug-macro.patch
 udf-improve-readability-of-udf_load_partition.patch
 udf-remove-wrong-prototype-of-udf_readdir.patch
-udf-fix-coding-style-of-dirc.patch
 udf-fix-3-signedness-1-unitialized-variable-warnings.patch
 udf-fix-signedness-issue.patch
