@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hfs-fix-coverity-found-null-deref.patch added to -mm tree
-Date: Mon, 14 Jan 2008 17:19:24 -0800
-Message-ID: <200801150119.m0F1JOkd024931@imap1.linux-foundation.org>
+Subject: + drivers-pcmcia-add-missing-pci_dev_get.patch added to -mm tree
+Date: Tue, 15 Jan 2008 01:23:29 -0800
+Message-ID: <200801150923.m0F9N9dw008702@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58963 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39786 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752187AbYAOBUY (ORCPT
+	by vger.kernel.org with ESMTP id S1751912AbYAOJXU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Jan 2008 20:20:24 -0500
+	Tue, 15 Jan 2008 04:23:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sandeen@redhat.com, bunk@stusta.de, zippel@linux-m68k.org
+Cc: julia@diku.dk
 
 
 The patch titled
-     hfs: fix coverity-found null deref
+     drivers/pcmcia: add missing pci_dev_get
 has been added to the -mm tree.  Its filename is
-     hfs-fix-coverity-found-null-deref.patch
+     drivers-pcmcia-add-missing-pci_dev_get.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,96 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hfs: fix coverity-found null deref
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: drivers/pcmcia: add missing pci_dev_get
+From: Julia Lawall <julia@diku.dk>
 
-Fix potential null deref introduced by commit
-cf0594625083111ae522496dc1c256f7476939c2
-http://bugzilla.kernel.org/show_bug.cgi?id=9748
+pci_get_slot does a pci_dev_get, so pci_dev_put needs to be called in an
+error case.
 
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Reported-by: Adrian Bunk <bunk@stusta.de>
+An extract of the semantic match used to find the problem is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
+
+// <smpl>
+@@
+type find1.T,T1,T2;
+identifier find1.E;
+statement find1.S;
+expression x1,x2,x3;
+expression find1.test;
+int ret != 0;
+@@
+
+  T E;
+  ...
+(
+* E = pci_get_slot(...);
+  if (E == NULL) S
+|
+* if ((E = pci_get_slot(...)) == NULL)
+  S
+)
+  ... when != pci_dev_put(...,(T1)E,...)
+      when != if (E != NULL) { ... pci_dev_put(...,(T1)E,...); ...}
+      when != x1 = (T1)E
+      when != E = x3;
+      when any
+  if (test) {
+    ... when != pci_dev_put(...,(T2)E,...)
+        when != if (E != NULL) { ... pci_dev_put(...,(T2)E,...); ...}
+        when != x2 = (T2)E
+(
+*   return;
+|
+*   return ret;
+)
+  }
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfs/btree.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/pcmcia/cardbus.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN fs/hfs/btree.c~hfs-fix-coverity-found-null-deref fs/hfs/btree.c
---- a/fs/hfs/btree.c~hfs-fix-coverity-found-null-deref
-+++ a/fs/hfs/btree.c
-@@ -61,7 +61,7 @@ struct hfs_btree *hfs_btree_open(struct 
- 	mapping = tree->inode->i_mapping;
- 	page = read_mapping_page(mapping, 0, NULL);
- 	if (IS_ERR(page))
--		goto free_tree;
-+		goto free_inode;
+diff -puN drivers/pcmcia/cardbus.c~drivers-pcmcia-add-missing-pci_dev_get drivers/pcmcia/cardbus.c
+--- a/drivers/pcmcia/cardbus.c~drivers-pcmcia-add-missing-pci_dev_get
++++ a/drivers/pcmcia/cardbus.c
+@@ -143,7 +143,7 @@ int read_cb_mem(struct pcmcia_socket * s
+ 	/* Config space? */
+ 	if (space == 0) {
+ 		if (addr + len > 0x100)
+-			goto fail;
++			goto failput;
+ 		for (; len; addr++, ptr++, len--)
+ 			pci_read_config_byte(dev, addr, ptr);
+ 		return 0;
+@@ -171,6 +171,8 @@ int read_cb_mem(struct pcmcia_socket * s
+ 	memcpy_fromio(ptr, s->cb_cis_virt + addr, len);
+ 	return 0;
  
- 	/* Load the header */
- 	head = (struct hfs_btree_header_rec *)(kmap(page) + sizeof(struct hfs_bnode_desc));
-@@ -99,11 +99,12 @@ struct hfs_btree *hfs_btree_open(struct 
- 	page_cache_release(page);
- 	return tree;
- 
-- fail_page:
-+fail_page:
- 	page_cache_release(page);
-- free_tree:
-+free_inode:
- 	tree->inode->i_mapping->a_ops = &hfs_aops;
- 	iput(tree->inode);
-+free_tree:
- 	kfree(tree);
- 	return NULL;
- }
++failput:
++	pci_dev_put(dev);
+ fail:
+ 	memset(ptr, 0xff, len);
+ 	return -1;
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
-origin.patch
-hfs-fix-coverity-found-null-deref.patch
-address-hfs-on-disk-corruption-robustness-review-comments.patch
-address-hfs-on-disk-corruption-robustness-review-comments-checkpatch-fixes.patch
-git-kbuild.patch
-ext2-change-the-default-behaviour-on-error.patch
-export-iov_shorten-for-ext4s-use.patch
-export-iov_shorten-for-ext4s-use-fix.patch
-ecryptfs-make-show_options-reflect-actual-mount-options.patch
-ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
-ecryptfs-remove-debug-as-mount-option-and-warn-if-set-via-modprobe.patch
-ecryptfs-check-for-existing-key_tfm-at-mount-time.patch
-ext4-mm-ext4_store_maxbytes_for_bitmaped_files-warning-fix.patch
-ext3-change-the-default-behaviour-on-error.patch
+git-alsa.patch
+git-agpgart.patch
+git-powerpc.patch
+arch-powerpc-platforms-pseries-add-missing-of_node_put.patch
+arch-powerpc-sysdev-add-missing-of_node_put.patch
+arch-powerpc-platforms-82xx-add-missing-of_node_put.patch
+drivers-media-radio-use-video_device_release-rather-than-kfree.patch
+drivers-media-common-add-missing-video_device_release.patch
+git-input.patch
+git-mtd.patch
+git-net.patch
+drivers-pcmcia-add-missing-iounmap.patch
+drivers-pcmcia-add-missing-pci_dev_get.patch
+git-x86.patch
+arch-cris-added-a-missing-iounmap.patch
+drivers-video-remove-unnecessary-pci_dev_put.patch
