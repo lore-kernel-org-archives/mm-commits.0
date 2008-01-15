@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + udf-improve-readability-of-udf_load_partition.patch added to -mm tree
-Date: Tue, 15 Jan 2008 02:47:04 -0800
-Message-ID: <200801151046.m0FAkiM3011689@imap1.linux-foundation.org>
+Subject: + udf-check-if-udf_load_logicalvol-failed.patch added to -mm tree
+Date: Tue, 15 Jan 2008 02:46:34 -0800
+Message-ID: <200801151046.m0FAkE0x011640@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40253 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37614 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753883AbYAOKrO (ORCPT
+	by vger.kernel.org with ESMTP id S1753847AbYAOKrP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Jan 2008 05:47:14 -0500
+	Tue, 15 Jan 2008 05:47:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: marcin.slusarz@gmail.com, hch@infradead.org, jack@suse.cz
+Cc: marcin.slusarz@gmail.com, bfennema@falcon.csc.calpoly.edu, hch@infradead.org, jack@suse.cz
 
 
 The patch titled
-     udf: improve readability of udf_load_partition
+     udf: check if udf_load_logicalvol failed
 has been added to the -mm tree.  Its filename is
-     udf-improve-readability-of-udf_load_partition.patch
+     udf-check-if-udf_load_logicalvol-failed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,95 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: udf: improve readability of udf_load_partition
+Subject: udf: check if udf_load_logicalvol failed
 From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
+udf_load_logicalvol may fail eg in out of memory conditions - check it
+and propagate error further
+
 Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Cc: Ben Fennema <bfennema@falcon.csc.calpoly.edu>
 Acked-by: Jan Kara <jack@suse.cz>
 Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/super.c |   57 +++++++++++++++++++++++------------------------
- 1 file changed, 29 insertions(+), 28 deletions(-)
+ fs/udf/super.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/udf/super.c~udf-improve-readability-of-udf_load_partition fs/udf/super.c
---- a/fs/udf/super.c~udf-improve-readability-of-udf_load_partition
+diff -puN fs/udf/super.c~udf-check-if-udf_load_logicalvol-failed fs/udf/super.c
+--- a/fs/udf/super.c~udf-check-if-udf_load_logicalvol-failed
 +++ a/fs/udf/super.c
-@@ -1447,44 +1447,45 @@ static int udf_load_partition(struct sup
- 	sbi = UDF_SB(sb);
- 
- 	for (i = 0; i < ARRAY_SIZE(sbi->s_anchor); i++) {
--		if (sbi->s_anchor[i] &&
--		    (bh = udf_read_tagged(sb, sbi->s_anchor[i],
--					  sbi->s_anchor[i], &ident))) {
--			anchor = (struct anchorVolDescPtr *)bh->b_data;
--
--			/* Locate the main sequence */
--			main_s = le32_to_cpu(
--					anchor->mainVolDescSeqExt.extLocation);
--			main_e = le32_to_cpu(
--					anchor->mainVolDescSeqExt.extLength);
--			main_e = main_e >> sb->s_blocksize_bits;
--			main_e += main_s;
-+		if (!sbi->s_anchor[i])
-+			continue;
-+		bh = udf_read_tagged(sb, sbi->s_anchor[i], sbi->s_anchor[i],
-+				     &ident);
-+		if (!bh)
-+			continue;
-+
-+		anchor = (struct anchorVolDescPtr *)bh->b_data;
-+
-+		/* Locate the main sequence */
-+		main_s = le32_to_cpu(anchor->mainVolDescSeqExt.extLocation);
-+		main_e = le32_to_cpu(anchor->mainVolDescSeqExt.extLength);
-+		main_e = main_e >> sb->s_blocksize_bits;
-+		main_e += main_s;
- 
--			/* Locate the reserve sequence */
--			reserve_s = le32_to_cpu(
-+		/* Locate the reserve sequence */
-+		reserve_s = le32_to_cpu(
- 				anchor->reserveVolDescSeqExt.extLocation);
--			reserve_e = le32_to_cpu(
-+		reserve_e = le32_to_cpu(
- 				anchor->reserveVolDescSeqExt.extLength);
--			reserve_e = reserve_e >> sb->s_blocksize_bits;
--			reserve_e += reserve_s;
-+		reserve_e = reserve_e >> sb->s_blocksize_bits;
-+		reserve_e += reserve_s;
- 
--			brelse(bh);
-+		brelse(bh);
- 
--			/* Process the main & reserve sequences */
--			/* responsible for finding the PartitionDesc(s) */
--			if (!(udf_process_sequence(sb, main_s, main_e,
--						   fileset) &&
--			      udf_process_sequence(sb, reserve_s, reserve_e,
--						   fileset)))
--				break;
--		}
-+		/* Process the main & reserve sequences */
-+		/* responsible for finding the PartitionDesc(s) */
-+		if (!(udf_process_sequence(sb, main_s, main_e,
-+					   fileset) &&
-+		      udf_process_sequence(sb, reserve_s, reserve_e,
-+					   fileset)))
-+			break;
- 	}
- 
- 	if (i == ARRAY_SIZE(sbi->s_anchor)) {
- 		udf_debug("No Anchor block found\n");
- 		return 1;
--	} else
--		udf_debug("Using anchor in block %d\n", sbi->s_anchor[i]);
-+	}
-+	udf_debug("Using anchor in block %d\n", sbi->s_anchor[i]);
- 
- 	for (i = 0; i < sbi->s_partitions; i++) {
- 		kernel_lb_addr uninitialized_var(ino);
+@@ -1263,7 +1263,10 @@ static int udf_process_sequence(struct s
+ 			if (i == VDS_POS_PRIMARY_VOL_DESC) {
+ 				udf_load_pvoldesc(sb, bh);
+ 			} else if (i == VDS_POS_LOGICAL_VOL_DESC) {
+-				udf_load_logicalvol(sb, bh, fileset); /* TODO: check return value */
++				if (udf_load_logicalvol(sb, bh, fileset)) {
++					brelse(bh);
++					return 1;
++				}
+ 			} else if (i == VDS_POS_PARTITION_DESC) {
+ 				struct buffer_head *bh2 = NULL;
+ 				if (udf_load_partdesc(sb, bh)) {
 _
 
 Patches currently in -mm which might be from marcin.slusarz@gmail.com are
