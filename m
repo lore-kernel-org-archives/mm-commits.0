@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-pcmcia-add-missing-pci_dev_get.patch added to -mm tree
-Date: Tue, 15 Jan 2008 01:23:29 -0800
-Message-ID: <200801150923.m0F9N9dw008702@imap1.linux-foundation.org>
+Subject: + drivers-video-add-missing-pci_dev_get.patch added to -mm tree
+Date: Tue, 15 Jan 2008 01:27:40 -0800
+Message-ID: <200801150927.m0F9RKSs008790@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39786 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45344 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751912AbYAOJXU (ORCPT
+	by vger.kernel.org with ESMTP id S1752448AbYAOJ1g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Jan 2008 04:23:20 -0500
+	Tue, 15 Jan 2008 04:27:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk
+Cc: julia@diku.dk, adaplas@pol.net, davem@davemloft.net
 
 
 The patch titled
-     drivers/pcmcia: add missing pci_dev_get
+     drivers/video: add missing pci_dev_get
 has been added to the -mm tree.  Its filename is
-     drivers-pcmcia-add-missing-pci_dev_get.patch
+     drivers-video-add-missing-pci_dev_get.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,79 +34,118 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/pcmcia: add missing pci_dev_get
+Subject: drivers/video: add missing pci_dev_get
 From: Julia Lawall <julia@diku.dk>
 
-pci_get_slot does a pci_dev_get, so pci_dev_put needs to be called in an
-error case.
+pci_get_device does a pci_dev_get, so pci_dev_put needs to be called in an
+error case
 
-An extract of the semantic match used to find the problem is as follows:
+The problem was fixed using the following semantic patch.
 (http://www.emn.fr/x-info/coccinelle/)
 
 // <smpl>
-@@
-type find1.T,T1,T2;
-identifier find1.E;
-statement find1.S;
+@exists@
+type T1,T2;
+identifier E;
+statement S,S1;
 expression x1,x2,x3;
-expression find1.test;
+expression test;
 int ret != 0;
 @@
 
-  T E;
+  struct pci_dev *E;
   ...
 (
-* E = pci_get_slot(...);
+  E = \(pci_get_slot\|pci_get_device\|pci_get_bus_and_slot\)(...);
   if (E == NULL) S
 |
-* if ((E = pci_get_slot(...)) == NULL)
-  S
+  if ((E = \(pci_get_slot\|pci_get_device\|pci_get_bus_and_slot\)(...)) == NULL) S
 )
   ... when != pci_dev_put(...,(T1)E,...)
       when != if (E != NULL) { ... pci_dev_put(...,(T1)E,...); ...}
       when != x1 = (T1)E
       when != E = x3;
       when any
+(
+  if (E == NULL) S1
+|
+  if (test)
++   {
+(
++   pci_dev_put(E);
+    return;
+|
++   pci_dev_put(E);
+    return ret;
+)
++   }
+|
   if (test) {
     ... when != pci_dev_put(...,(T2)E,...)
         when != if (E != NULL) { ... pci_dev_put(...,(T2)E,...); ...}
         when != x2 = (T2)E
 (
-*   return;
++   pci_dev_put(E);
+    return;
 |
-*   return ret;
++   pci_dev_put(E);
+    return ret;
 )
   }
+)
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/cardbus.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/video/igafb.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN drivers/pcmcia/cardbus.c~drivers-pcmcia-add-missing-pci_dev_get drivers/pcmcia/cardbus.c
---- a/drivers/pcmcia/cardbus.c~drivers-pcmcia-add-missing-pci_dev_get
-+++ a/drivers/pcmcia/cardbus.c
-@@ -143,7 +143,7 @@ int read_cb_mem(struct pcmcia_socket * s
- 	/* Config space? */
- 	if (space == 0) {
- 		if (addr + len > 0x100)
--			goto fail;
-+			goto failput;
- 		for (; len; addr++, ptr++, len--)
- 			pci_read_config_byte(dev, addr, ptr);
- 		return 0;
-@@ -171,6 +171,8 @@ int read_cb_mem(struct pcmcia_socket * s
- 	memcpy_fromio(ptr, s->cb_cis_virt + addr, len);
- 	return 0;
+diff -puN drivers/video/igafb.c~drivers-video-add-missing-pci_dev_get drivers/video/igafb.c
+--- a/drivers/video/igafb.c~drivers-video-add-missing-pci_dev_get
++++ a/drivers/video/igafb.c
+@@ -400,6 +400,7 @@ int __init igafb_init(void)
+         info = kzalloc(size, GFP_ATOMIC);
+         if (!info) {
+                 printk("igafb_init: can't alloc fb_info\n");
++		 pci_dev_put(pdev);
+                 return -ENOMEM;
+         }
  
-+failput:
-+	pci_dev_put(dev);
- fail:
- 	memset(ptr, 0xff, len);
- 	return -1;
+@@ -409,12 +410,14 @@ int __init igafb_init(void)
+ 	if ((addr = pdev->resource[0].start) == 0) {
+                 printk("igafb_init: no memory start\n");
+ 		kfree(info);
++		pci_dev_put(pdev);
+ 		return -ENXIO;
+ 	}
+ 
+ 	if ((info->screen_base = ioremap(addr, 1024*1024*2)) == 0) {
+                 printk("igafb_init: can't remap %lx[2M]\n", addr);
+ 		kfree(info);
++		pci_dev_put(pdev);
+ 		return -ENXIO;
+ 	}
+ 
+@@ -449,6 +452,7 @@ int __init igafb_init(void)
+                 printk("igafb_init: can't remap %lx[4K]\n", igafb_fix.mmio_start);
+ 		iounmap((void *)info->screen_base);
+ 		kfree(info);
++		pci_dev_put(pdev);
+ 		return -ENXIO;
+ 	}
+ 
+@@ -466,6 +470,7 @@ int __init igafb_init(void)
+ 		iounmap((void *)par->io_base);
+ 		iounmap(info->screen_base);
+ 		kfree(info);
++		pci_dev_put(pdev);
+ 		return -ENOMEM;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
@@ -127,3 +166,4 @@ drivers-pcmcia-add-missing-pci_dev_get.patch
 git-x86.patch
 arch-cris-added-a-missing-iounmap.patch
 drivers-video-remove-unnecessary-pci_dev_put.patch
+drivers-video-add-missing-pci_dev_get.patch
