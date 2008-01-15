@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + intel_agp-add-new-chipset-ids-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 15 Jan 2008 02:11:45 -0800
-Message-ID: <200801151011.m0FABPHA010345@imap1.linux-foundation.org>
+Subject: + check-advice-of-fadvice64_64-even-if-get_xip_page-is-given.patch added to -mm tree
+Date: Tue, 15 Jan 2008 02:13:35 -0800
+Message-ID: <200801151013.m0FADFtN010458@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60355 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48370 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751894AbYAOKLb (ORCPT
+	by vger.kernel.org with ESMTP id S1753329AbYAOKOF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Jan 2008 05:11:31 -0500
+	Tue, 15 Jan 2008 05:14:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, airlied@linux.ie, zhenyu.z.wang@intel.com
+Cc: yamato@redhat.com, cotte@de.ibm.com
 
 
 The patch titled
-     intel_agp-add-new-chipset-ids-checkpatch-fixes
+     check ADVICE of fadvise64_64 even if get_xip_page is given
 has been added to the -mm tree.  Its filename is
-     intel_agp-add-new-chipset-ids-checkpatch-fixes.patch
+     check-advice-of-fadvice64_64-even-if-get_xip_page-is-given.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,299 +34,127 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: intel_agp-add-new-chipset-ids-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: check ADVICE of fadvise64_64 even if get_xip_page is given
+From: Masatake YAMATO <yamato@redhat.com>
 
-ERROR: use tabs not spaces
-#44: FILE: drivers/char/agp/intel-agp.c:41:
-+                 agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82965GME_HB || \$
+I've written some test programs in ltp project.  During writing I met an
+problem which I cannot solve in user land.  So I wrote a patch for linux
+kernel.  Please, include this patch if acceptable.
 
-ERROR: use tabs not spaces
-#45: FILE: drivers/char/agp/intel-agp.c:42:
-+                 agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_IGD_HB)$
+The test program tests the 4th parameter of fadvise64_64:
 
-total: 2 errors, 0 warnings, 85 lines checked
+    long sys_fadvise64_64(int fd, loff_t offset, loff_t len, int advice);
 
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+My test case calls fadvise64_64 with invalid advice value and checks errno is
+set to EINVAL.  About the advice parameter man page says:
 
-Please run checkpatch prior to sending patches
+    ...
+    Permissible values for advice include:
 
-Cc: Dave Airlie <airlied@linux.ie>
-Cc: Zhenyu Wang <zhenyu.z.wang@intel.com>
+	   POSIX_FADV_NORMAL
+                  ...
+	   POSIX_FADV_SEQUENTIAL
+                  ...
+	   POSIX_FADV_RANDOM
+		  ...
+	   POSIX_FADV_NOREUSE
+                  ...
+	   POSIX_FADV_WILLNEED
+                  ...
+	   POSIX_FADV_DONTNEED
+		  ...
+    ERRORS
+           ...
+	   EINVAL An invalid value was specified for advice.
+
+However, I got a bug report that the system call invocations
+in my test case returned 0 unexpectedly.
+
+I've inspected the kernel code:
+
+    asmlinkage long sys_fadvise64_64(int fd, loff_t offset, loff_t len, int advice)
+    {
+	    struct file *file = fget(fd);
+	    struct address_space *mapping;
+	    struct backing_dev_info *bdi;
+	    loff_t endbyte;			/* inclusive */
+	    pgoff_t start_index;
+	    pgoff_t end_index;
+	    unsigned long nrpages;
+	    int ret = 0;
+
+	    if (!file)
+		    return -EBADF;
+
+	    if (S_ISFIFO(file->f_path.dentry->d_inode->i_mode)) {
+		    ret = -ESPIPE;
+		    goto out;
+	    }
+
+	    mapping = file->f_mapping;
+	    if (!mapping || len < 0) {
+		    ret = -EINVAL;
+		    goto out;
+	    }
+
+	    if (mapping->a_ops->get_xip_page)
+		    /* no bad return value, but ignore advice */
+		    goto out;
+    ...
+    out:
+	    fput(file);
+	    return ret;
+    }
+
+I found the advice parameter is just ignored in the case
+mapping->a_ops->get_xip_page is given. This behavior is different from
+what is written on the man page. Is this o.k.?
+
+get_xip_page is given if CONFIG_EXT2_FS_XIP is true.
+Anyway I cannot find the easy way to detect get_xip_page
+field is given or CONFIG_EXT2_FS_XIP is true from the
+user space.
+
+I propose the following patch which checks the advice parameter
+even if get_xip_page is given.
+
+Signed-off-by: Masatake YAMATO <yamato@redhat.com>
+Cc: Carsten Otte <cotte@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/intel-agp.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/fadvise.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/agp/intel-agp.c~intel_agp-add-new-chipset-ids-checkpatch-fixes drivers/char/agp/intel-agp.c
---- a/drivers/char/agp/intel-agp.c~intel_agp-add-new-chipset-ids-checkpatch-fixes
-+++ a/drivers/char/agp/intel-agp.c
-@@ -38,8 +38,8 @@
-                  agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82965Q_HB || \
-                  agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82965G_HB || \
-                  agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82965GM_HB || \
--                 agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82965GME_HB || \
--                 agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_IGD_HB)
-+		 agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82965GME_HB || \
-+		 agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_IGD_HB)
+diff -puN mm/fadvise.c~check-advice-of-fadvice64_64-even-if-get_xip_page-is-given mm/fadvise.c
+--- a/mm/fadvise.c~check-advice-of-fadvice64_64-even-if-get_xip_page-is-given
++++ a/mm/fadvise.c
+@@ -49,9 +49,21 @@ asmlinkage long sys_fadvise64_64(int fd,
+ 		goto out;
+ 	}
  
- #define IS_G33 (agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_G33_HB || \
- 		agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_Q35_HB || \
+-	if (mapping->a_ops->get_xip_page)
+-		/* no bad return value, but ignore advice */
++	if (mapping->a_ops->get_xip_page) {
++		switch (advice) {
++		case POSIX_FADV_NORMAL:
++		case POSIX_FADV_RANDOM:
++		case POSIX_FADV_SEQUENTIAL:
++		case POSIX_FADV_WILLNEED:
++		case POSIX_FADV_NOREUSE:
++		case POSIX_FADV_DONTNEED:
++			/* no bad return value, but ignore advice */
++			break;
++		default:
++			ret = -EINVAL;
++		}
+ 		goto out;
++	}
+ 
+ 	/* Careful about overflows. Len == 0 means "as much as possible" */
+ 	endbyte = offset + len;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from yamato@redhat.com are
 
-origin.patch
-hugetlbfs-fix-quota-leak.patch
-address-hfs-on-disk-corruption-robustness-review-comments-checkpatch-fixes.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes.patch
-timerfd-v3-new-timerfd-api-ia64-fix.patch
-timerfd-v3-new-timerfd-api-m68k-fix.patch
-timerfd-v3-new-timerfd-api-mips-fix.patch
-timerfd-v3-new-timerfd-api-arch-fixes.patch
-timerfd-v3-new-timerfd-api-powerpc-fix.patch
-timerfd-v3-new-timerfd-api-sparc64-fix.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-agpgart-intel-agp-dont-zero-an-already-registered-resource-during-resume.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-intel_agp-add-new-chipset-ids-checkpatch-fixes.patch
-git-arm.patch
-git-audit-master.patch
-git-cifs.patch
-git-cpufreq.patch
-git-powerpc.patch
-git-powerpc-fixup.patch
-revert-gregkh-driver-atm-convert-struct-class_device-to-struct-device.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
-pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes.patch
-pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes-2.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-intel-agp-enable-i915-recognition.patch
-drm-convert-from-nopage-to-fault-checkpatch-fixes.patch
-git-dvb.patch
-fix-jdelvare-i2c-i2c-constify-client-address-data.patch
-hwmon-new-chip-driver-for-ti-ads7828-a-d.patch
-hwmon-new-chip-driver-for-ti-ads7828-a-d-checkpatch-fixes.patch
-git-hid.patch
-revert-git-hrt.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-versus-driver-tree.patch
-git-kbuild.patch
-git-kvm.patch
-git-libata-all.patch
-git-libata-all-fix-pata_winbond-borkage.patch
-git-libata-all-wtf.patch
-libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
-libata-set-proper-ata-udma-mode-for-bf548-according-to-system-clock-checkpatch-fixes.patch
-libata-fix-early-use-of-port-printk-checkpatch-fixes.patch
-git-md-accel.patch
-git-mmc.patch
-git-mtd.patch
-git-net.patch
-git-net-vs-git-lblnet.patch
-git-net-vs-git-lblnet-2.patch
-git-netdev-all.patch
-git-net-vs-git-netdev-all.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-backlight-omap1-backlight-driver.patch
-git-battery.patch
-bluetooth-uninlining.patch
-net-sunrpc-schedc-revert-git-net-changes.patch
-net-sunrpc-schedc-reapply-git-net-changes.patch
-net-sunrpc-svcsockc-revert-git-nfs-changes.patch
-git-nfsd.patch
-git-nfsd-fixup.patch
-serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
-git-sched.patch
-git-sched-fixup.patch
-git-sh.patch
-git-scsi-misc.patch
-scsi-aic94xx-cleanups-checkpatch-fixes.patch
-scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
-9p-util-fix-semaphore-handling.patch
-git-watchdog.patch
-git-watchdog-fixup.patch
-wdt-fix-locking-checkpatch-fixes.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-x86-fixup.patch
-git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
-git-x86-fix-doubly-merged-patch.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-git-xtensa.patch
-bonding-locking-fix.patch
-usbtouchscreen-fix-buffer-overflow-make-more-egalax-work.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-add-proc-kpagecount-interface-fix.patch
-maps4-add-proc-kpageflags-interface-fix.patch
-maps4-add-proc-kpageflags-interface-fix-2-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-mm-remove-fastcall-from-mm-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
-kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
-stopmachine-semaphore-to-mutex-fix.patch
-parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
-debug_smp_processor_id-fixlets.patch
-use-ilog2-in-fs-namespacec-fix.patch
-avoid-overflows-in-kernel-timec-fix.patch
-export-iov_shorten-for-ext4s-use-fix.patch
-system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
-speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
-add-have_oprofile.patch
-ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-rtc-add-support-for-the-s-35390a-rtc-chip.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-neofb-avoid-overwriting-fb_info-fields.patch
-vermilionc-use-align-not-__align_mask.patch
-declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
-ext4-mm-ext4_store_maxbytes_for_bitmaped_files-warning-fix.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
-hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
-cpusets-update_cpumask-revision-fix.patch
-cpusets-update_cpumask-revision-checkpatch-fixes.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
-proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-pid-sys_wait-fixes-v2-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-rewrite-rd-fixes.patch
-fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
-kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
-lib-remove-fastcall-from-lib-checkpatch-fixes.patch
-remove-fastcall-from-linux-include-checkpatch-fixes.patch
-constify-tables-in-kernel-sysctl_checkc-fix.patch
-aoe-statically-initialise-devlist_lock.patch
-provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc-fix.patch
-ufs-fix-symlink-creation-on-ufs2-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+check-advice-of-fadvice64_64-even-if-get_xip_page-is-given.patch
