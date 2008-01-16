@@ -1,80 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - advansys-fix-section-mismatch-warning.patch removed from -mm tree
-Date: Tue, 15 Jan 2008 17:38:29 -0800
-Message-ID: <200801160138.m0G1cToV013912@imap1.linux-foundation.org>
+Subject: - drivers-media-radio-use-video_device_release-rather-than-kfree.patch removed from -mm tree
+Date: Tue, 15 Jan 2008 17:39:20 -0800
+Message-ID: <200801160139.m0G1dK8G013999@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56170 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51881 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753345AbYAPBjx (ORCPT
+	by vger.kernel.org with ESMTP id S1752881AbYAPBs6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Jan 2008 20:39:53 -0500
+	Tue, 15 Jan 2008 20:48:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, James.Bottomley@steeleye.com, willy@debian.org, mm-commits@vger.kernel.org
+To: julia@diku.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     advansys: fix section mismatch warning
+     drivers/media/radio: Use video_device_release rather than kfree
 has been removed from the -mm tree.  Its filename was
-     advansys-fix-section-mismatch-warning.patch
+     drivers-media-radio-use-video_device_release-rather-than-kfree.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: advansys: fix section mismatch warning
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: drivers/media/radio: Use video_device_release rather than kfree
+From: Julia Lawall <julia@diku.dk>
 
-Fix section mismatch warning:
+The file drivers/media/video/videodev.c defines both video_device_alloc and
+video_device_release.  These are essentially just kzmalloc and kfree,
+respectively, but it seems better to use video_device_release, as done in
+the other media files, rather than kfree, in case the implementation some
+day changes.
 
-WARNING: vmlinux.o(.exit.text+0x152a): Section mismatch: reference to .init.data:_asc_def_iop_base (between 'advansys_isa_remove' and 'advansys_exit')
+The problem was found using the following semantic match.
+(http://www.emn.fr/x-info/coccinelle/)
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Matthew Wilcox <willy@debian.org>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+// <smpl>
+@@
+type T,T1,T2;
+identifier E;
+statement S;
+expression x1,x2,x3;
+int ret;
+@@
+
+  T E;
+  ...
+* E = video_device_alloc(...);
+  if (E == NULL) S
+  ... when != video_device_release(...,(T1)E,...)
+      when != if (E != NULL) { ... video_device_release(...,(T1)E,...); ...}
+      when != x1 = (T1)E
+      when != E = x3;
+      when any
+  if (...) {
+    ... when != video_device_release(...,(T2)E,...)
+        when != if (E != NULL) { ... video_device_release(...,(T2)E,...); ...}
+        when != x2 = (T2)E
+(
+*   return;
+|
+*   return ret;
+)
+  }
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/advansys.c |    2 +-
+ drivers/media/radio/radio-maestro.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/advansys.c~advansys-fix-section-mismatch-warning drivers/scsi/advansys.c
---- a/drivers/scsi/advansys.c~advansys-fix-section-mismatch-warning
-+++ a/drivers/scsi/advansys.c
-@@ -13906,7 +13906,7 @@ static int advansys_release(struct Scsi_
- 
- #define ASC_IOADR_TABLE_MAX_IX  11
- 
--static PortAddr _asc_def_iop_base[ASC_IOADR_TABLE_MAX_IX] __devinitdata = {
-+static PortAddr _asc_def_iop_base[ASC_IOADR_TABLE_MAX_IX] = {
- 	0x100, 0x0110, 0x120, 0x0130, 0x140, 0x0150, 0x0190,
- 	0x0210, 0x0230, 0x0250, 0x0330
- };
+diff -puN drivers/media/radio/radio-maestro.c~drivers-media-radio-use-video_device_release-rather-than-kfree drivers/media/radio/radio-maestro.c
+--- a/drivers/media/radio/radio-maestro.c~drivers-media-radio-use-video_device_release-rather-than-kfree
++++ a/drivers/media/radio/radio-maestro.c
+@@ -423,7 +423,7 @@ static int __devinit maestro_probe(struc
+ errunr:
+ 	video_unregister_device(maestro_radio_inst);
+ errfr1:
+-	kfree(maestro_radio_inst);
++	video_device_release(maestro_radio_inst);
+ errfr:
+ 	kfree(radio_unit);
+ err:
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
-origin.patch
+git-alsa.patch
+git-agpgart.patch
+drivers-cpufreq-add-calls-to-cpufreq_cpu_put.patch
+git-powerpc.patch
+arch-powerpc-platforms-pseries-add-missing-of_node_put.patch
+arch-powerpc-sysdev-add-missing-of_node_put.patch
+arch-powerpc-platforms-82xx-add-missing-of_node_put.patch
 git-dvb.patch
-git-kbuild.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-pcmcia-include-bad-cis-filename-in-error-message.patch
-git-scsi-misc.patch
-git-unionfs.patch
-hostap-section-mismatch-warning.patch
-git-ipwireless_cs.patch
+git-input.patch
+git-mtd.patch
+git-net.patch
+drivers-pcmcia-add-missing-iounmap.patch
+drivers-pcmcia-add-missing-pci_dev_get.patch
 git-x86.patch
-register_cpu-__devinit-or-__cpuinit.patch
-cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
-dio-fix-kernel-doc-notation.patch
-tpm-infineon-section-mismatch.patch
-tdfxfb-fix-section-mismatch-warnings.patch
-uvesafb-small-cleanups.patch
-documentation-move-dnotifytxt-to-filesystems.patch
-documentation-move-sharedsubtreestxt-to-filesystems.patch
-documentation-create-new-scheduler-subdirectory.patch
-reporting-bugs-cc-the-mailing-list-too.patch
-fs-menu-small-reorg.patch
-profile-likely-unlikely-macros.patch
+arch-cris-added-a-missing-iounmap.patch
+drivers-video-remove-unnecessary-pci_dev_put.patch
+drivers-video-add-missing-pci_dev_get.patch
