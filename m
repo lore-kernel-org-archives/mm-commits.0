@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-net-fix-conflicts.patch added to -mm tree
-Date: Tue, 15 Jan 2008 16:39:03 -0800
-Message-ID: <200801160039.m0G0d39X011641@imap1.linux-foundation.org>
+Subject: + git-netdev-all-fix-conflicts.patch added to -mm tree
+Date: Tue, 15 Jan 2008 16:41:56 -0800
+Message-ID: <200801160041.m0G0fu7Y011717@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53406 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57597 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752485AbYAPAjG (ORCPT
+	by vger.kernel.org with ESMTP id S1754040AbYAPAmJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Jan 2008 19:39:06 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m0G0d3FG000535
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 15 Jan 2008 16:39:04 -0800
+	Tue, 15 Jan 2008 19:42:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, jeff@garzik.org
 
 
 The patch titled
-     git-net-fix-conflicts
+     git-netdev-all-fix-conflicts
 has been added to the -mm tree.  Its filename is
-     git-net-fix-conflicts.patch
+     git-netdev-all-fix-conflicts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,34 +34,102 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-net-fix-conflicts
+Subject: git-netdev-all-fix-conflicts
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/802/tr.c |    7 -------
- 1 file changed, 7 deletions(-)
+ drivers/net/netxen/netxen_nic_init.c    |    5 -----
+ drivers/net/wireless/rt2x00/rt2x00pci.c |    6 ------
+ drivers/net/wireless/rt2x00/rt2x00usb.c |    3 ---
+ drivers/net/wireless/rt2x00/rt61pci.c   |    8 --------
+ 4 files changed, 22 deletions(-)
 
-diff -puN net/802/tr.c~git-net-fix-conflicts net/802/tr.c
---- a/net/802/tr.c~git-net-fix-conflicts
-+++ a/net/802/tr.c
-@@ -662,15 +662,8 @@ static __initdata struct ctl_path tr_pat
- 
- static int __init rif_init(void)
- {
--<<<<<<< HEAD:net/802/tr.c
--	init_timer(&rif_timer);
--	rif_timer.expires  = jiffies + sysctl_tr_rif_timeout;
--	rif_timer.data     = 0L;
--	rif_timer.function = rif_check_expire;
+diff -puN drivers/net/netxen/netxen_nic_init.c~git-netdev-all-fix-conflicts drivers/net/netxen/netxen_nic_init.c
+--- a/drivers/net/netxen/netxen_nic_init.c~git-netdev-all-fix-conflicts
++++ a/drivers/net/netxen/netxen_nic_init.c
+@@ -1281,14 +1281,9 @@ int netxen_process_cmd_ring(unsigned lon
+ 	while ((last_consumer != consumer) && (count1 < MAX_STATUS_HANDLE)) {
+ 		buffer = &adapter->cmd_buf_arr[last_consumer];
+ 		pdev = adapter->pdev;
+-<<<<<<< HEAD:drivers/net/netxen/netxen_nic_init.c
+-		if (buffer->skb) {
+-			frag = &buffer->frag_array[0];
 -=======
- 	rif_timer.expires  = sysctl_tr_rif_timeout;
- 	setup_timer(&rif_timer, rif_check_expire, 0);
-->>>>>>> FETCH_HEAD:net/802/tr.c
- 	add_timer(&rif_timer);
- #ifdef CONFIG_SYSCTL
- 	register_sysctl_paths(tr_path, tr_table);
+ 		frag = &buffer->frag_array[0];
+ 		skb = buffer->skb;
+ 		if (skb && (cmpxchg(&buffer->skb, skb, NULL) == skb)) {
+->>>>>>> FETCH_HEAD:drivers/net/netxen/netxen_nic_init.c
+ 			pci_unmap_single(pdev, frag->dma, frag->length,
+ 					 PCI_DMA_TODEVICE);
+ 			frag->dma = 0ULL;
+diff -puN drivers/net/wireless/rt2x00/rt2x00pci.c~git-netdev-all-fix-conflicts drivers/net/wireless/rt2x00/rt2x00pci.c
+--- a/drivers/net/wireless/rt2x00/rt2x00pci.c~git-netdev-all-fix-conflicts
++++ a/drivers/net/wireless/rt2x00/rt2x00pci.c
+@@ -134,18 +134,12 @@ void rt2x00pci_rxdone(struct rt2x00_dev 
+ 	struct data_ring *ring = rt2x00dev->rx;
+ 	struct data_entry *entry;
+ 	struct sk_buff *skb;
+-<<<<<<< HEAD:drivers/net/wireless/rt2x00/rt2x00pci.c
+ 	struct ieee80211_hdr *hdr;
+-=======
+ 	struct skb_desc *skbdesc;
+->>>>>>> FETCH_HEAD:drivers/net/wireless/rt2x00/rt2x00pci.c
+ 	struct rxdata_entry_desc desc;
+-<<<<<<< HEAD:drivers/net/wireless/rt2x00/rt2x00pci.c
+ 	int header_size;
+ 	int align;
+-=======
+ 	__le32 *rxd;
+->>>>>>> FETCH_HEAD:drivers/net/wireless/rt2x00/rt2x00pci.c
+ 	u32 word;
+ 
+ 	while (1) {
+diff -puN drivers/net/wireless/rt2x00/rt2x00usb.c~git-netdev-all-fix-conflicts drivers/net/wireless/rt2x00/rt2x00usb.c
+--- a/drivers/net/wireless/rt2x00/rt2x00usb.c~git-netdev-all-fix-conflicts
++++ a/drivers/net/wireless/rt2x00/rt2x00usb.c
+@@ -245,11 +245,8 @@ static void rt2x00usb_interrupt_rxdone(s
+ 	struct data_ring *ring = entry->ring;
+ 	struct rt2x00_dev *rt2x00dev = ring->rt2x00dev;
+ 	struct sk_buff *skb;
+-<<<<<<< HEAD:drivers/net/wireless/rt2x00/rt2x00usb.c
+ 	struct ieee80211_hdr *hdr;
+-=======
+ 	struct skb_desc *skbdesc;
+->>>>>>> FETCH_HEAD:drivers/net/wireless/rt2x00/rt2x00usb.c
+ 	struct rxdata_entry_desc desc;
+ 	int header_size;
+ 	int frame_size;
+diff -puN drivers/net/wireless/rt2x00/rt61pci.c~git-netdev-all-fix-conflicts drivers/net/wireless/rt2x00/rt61pci.c
+--- a/drivers/net/wireless/rt2x00/rt61pci.c~git-netdev-all-fix-conflicts
++++ a/drivers/net/wireless/rt2x00/rt61pci.c
+@@ -1704,11 +1704,7 @@ static void rt61pci_txdone(struct rt2x00
+ 	struct data_ring *ring;
+ 	struct data_entry *entry;
+ 	struct data_entry *entry_done;
+-<<<<<<< HEAD:drivers/net/wireless/rt2x00/rt61pci.c
+-	struct data_desc *txd;
+-=======
+ 	__le32 *txd;
+->>>>>>> FETCH_HEAD:drivers/net/wireless/rt2x00/rt61pci.c
+ 	u32 word;
+ 	u32 reg;
+ 	u32 old_reg;
+@@ -1768,12 +1764,8 @@ static void rt61pci_txdone(struct rt2x00
+ 			WARNING(rt2x00dev,
+ 				"TX status report missed for entry %p\n",
+ 				entry_done);
+-<<<<<<< HEAD:drivers/net/wireless/rt2x00/rt61pci.c
+-			rt2x00lib_txdone(entry_done, TX_FAIL_OTHER, 0);
+-=======
+ 			rt2x00pci_txdone(rt2x00dev, entry_done, TX_FAIL_OTHER,
+ 					 0);
+->>>>>>> FETCH_HEAD:drivers/net/wireless/rt2x00/rt61pci.c
+ 			entry_done = rt2x00_get_data_entry_done(ring);
+ 		}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -128,6 +192,7 @@ git-net-fix-conflicts.patch
 git-net-vs-git-lblnet.patch
 git-net-vs-git-lblnet-2.patch
 git-netdev-all.patch
+git-netdev-all-fix-conflicts.patch
 git-net-vs-git-netdev-all.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 git-backlight.patch
