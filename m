@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-alsa-disable-sound-pci-ice1712-ice1724c.patch added to -mm tree
-Date: Wed, 16 Jan 2008 13:48:37 -0800
-Message-ID: <200801162157.m0GLv0MN026179@imap1.linux-foundation.org>
+Subject: + git-infiniband-fix-build-with-config_infiniband_ipoib_cm=n.patch added to -mm tree
+Date: Wed, 16 Jan 2008 14:35:36 -0800
+Message-ID: <200801162243.m0GMhw4p028409@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44581 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39362 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751513AbYAPV5Q (ORCPT
+	by vger.kernel.org with ESMTP id S1751270AbYAPWop (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 16:57:16 -0500
+	Wed, 16 Jan 2008 17:44:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, perex@suse.cz, tiwai@suse.de
+Cc: akpm@linux-foundation.org, rolandd@cisco.com
 
 
 The patch titled
-     git-alsa: disable sound/pci/ice1712/ice1724.c
+     git-infiniband: fix build with CONFIG_INFINIBAND_IPOIB_CM=n
 has been added to the -mm tree.  Its filename is
-     git-alsa-disable-sound-pci-ice1712-ice1724c.patch
+     git-infiniband-fix-build-with-config_infiniband_ipoib_cm=n.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-alsa: disable sound/pci/ice1712/ice1724.c
+Subject: git-infiniband: fix build with CONFIG_INFINIBAND_IPOIB_CM=n
 From: Andrew Morton <akpm@linux-foundation.org>
 
-sound/pci/ice1712/ice1724.c:50:26: error: prodigy_hifi.h: No such file or directory
+drivers/infiniband/ulp/ipoib/ipoib_main.c: In function 'ipoib_change_mtu':
+drivers/infiniband/ulp/ipoib/ipoib_main.c:186: error: 'struct ipoib_dev_priv' has no member named 'cm'
 
-Someone forgot to check in a file?
-
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/ulp/ipoib/ipoib_main.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN sound/pci/Kconfig~git-alsa-disable-sound-pci-ice1712-ice1724c sound/pci/Kconfig
---- a/sound/pci/Kconfig~git-alsa-disable-sound-pci-ice1712-ice1724c
-+++ a/sound/pci/Kconfig
-@@ -668,6 +668,7 @@ config SND_ICE1712
- config SND_ICE1724
- 	tristate "ICE/VT1724/1720 (Envy24HT/PT)"
- 	depends on SND
-+	depends on BROKEN
- 	select SND_MPU401_UART
- 	select SND_AC97_CODEC
- 	help
+diff -puN drivers/infiniband/ulp/ipoib/ipoib_main.c~git-infiniband-fix-build-with-config_infiniband_ipoib_cm=n drivers/infiniband/ulp/ipoib/ipoib_main.c
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c~git-infiniband-fix-build-with-config_infiniband_ipoib_cm=n
++++ a/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -183,9 +183,10 @@ static int ipoib_change_mtu(struct net_d
+ 
+ 	/* dev->mtu > 2K ==> connected mode */
+ 	if (ipoib_cm_admin_enabled(dev)) {
++#ifdef CONFIG_INFINIBAND_IPOIB_CM
+ 		if (new_mtu > priv->cm.max_cm_mtu)
+ 			return -EINVAL;
+-
++#endif
+ 		if (new_mtu > priv->mcast_mtu)
+ 			ipoib_warn(priv, "mtu > %d will cause multicast packet drops.\n",
+ 				   priv->mcast_mtu);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,6 +82,7 @@ acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 small-acpica-extension-to-be-able-to-store-the-name-of.patch
 git-alsa.patch
 git-alsa-fixup.patch
+git-alsa-disable-sound-pci-ice1712-ice1724c.patch
 git-agpgart.patch
 git-agpgart-intel-agp-dont-zero-an-already-registered-resource-during-resume.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
@@ -337,4 +340,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-git-alsa-disable-sound-pci-ice1712-ice1724c.patch
+git-infiniband-fix-build-with-config_infiniband_ipoib_cm=n.patch
