@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-md-dm-tablec-fix-uninitialized-var-warning.patch added to -mm tree
-Date: Wed, 16 Jan 2008 02:42:33 -0800
-Message-ID: <200801161050.m0GAosQj000456@imap1.linux-foundation.org>
+Subject: + drivers-media-dvb-frontends-xc5000c-dont-return-garbage-from-xc5000_init.patch added to -mm tree
+Date: Wed, 16 Jan 2008 02:44:42 -0800
+Message-ID: <200801161053.m0GAr3ns000575@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58083 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43046 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751333AbYAPKvf (ORCPT
+	by vger.kernel.org with ESMTP id S1751658AbYAPKxb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 05:51:35 -0500
+	Wed, 16 Jan 2008 05:53:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, agk@redhat.com
+Cc: akpm@linux-foundation.org, mchehab@infradead.org
 
 
 The patch titled
-     drivers/md/dm-table.c: fix uninitialized var warning
+     drivers/media/dvb/frontends/xc5000.c: don't return garbage from xc5000_init()
 has been added to the -mm tree.  Its filename is
-     drivers-md-dm-tablec-fix-uninitialized-var-warning.patch
+     drivers-media-dvb-frontends-xc5000c-dont-return-garbage-from-xc5000_init.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/md/dm-table.c: fix uninitialized var warning
+Subject: drivers/media/dvb/frontends/xc5000.c: don't return garbage from xc5000_init()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/md/dm-table.c: In function 'dm_get_device':
-drivers/md/dm-table.c:478: warning: 'dev' may be used uninitialized in this function
+drivers/media/dvb/frontends/xc5000.c: In function 'xc5000_init':
+drivers/media/dvb/frontends/xc5000.c:694: warning: 'ret' may be used uninitialized in this function
 
-Cc: Alasdair G Kergon <agk@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-table.c |    2 +-
+ drivers/media/dvb/frontends/xc5000.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/md/dm-table.c~drivers-md-dm-tablec-fix-uninitialized-var-warning drivers/md/dm-table.c
---- a/drivers/md/dm-table.c~drivers-md-dm-tablec-fix-uninitialized-var-warning
-+++ a/drivers/md/dm-table.c
-@@ -475,7 +475,7 @@ static int __table_get_device(struct dm_
- 			      int mode, struct dm_dev **result)
+diff -puN drivers/media/dvb/frontends/xc5000.c~drivers-media-dvb-frontends-xc5000c-dont-return-garbage-from-xc5000_init drivers/media/dvb/frontends/xc5000.c
+--- a/drivers/media/dvb/frontends/xc5000.c~drivers-media-dvb-frontends-xc5000c-dont-return-garbage-from-xc5000_init
++++ a/drivers/media/dvb/frontends/xc5000.c
+@@ -691,7 +691,7 @@ static int xc5000_get_status(struct dvb_
+ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe)
  {
- 	int r;
--	dev_t dev;
-+	dev_t uninitialized_var(dev);
- 	struct dm_dev *dd;
- 	unsigned int major, minor;
+ 	struct xc5000_priv *priv = fe->tuner_priv;
+-	int ret;
++	int ret = 0;
  
+ 	if (priv->fwloaded == 0) {
+ 		ret = xc5000_fwupload(fe);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -83,6 +83,7 @@ git-cifs.patch
 git-cpufreq.patch
 revert-agk-dm-dm-loop.patch
 drivers-md-dm-ioctlc-fix-uninitialized-var-warning.patch
+drivers-md-dm-tablec-fix-uninitialized-var-warning.patch
 git-powerpc.patch
 git-powerpc-fixup.patch
 revert-gregkh-driver-atm-convert-struct-class_device-to-struct-device.patch
@@ -322,4 +323,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-drivers-md-dm-tablec-fix-uninitialized-var-warning.patch
+drivers-media-dvb-frontends-xc5000c-dont-return-garbage-from-xc5000_init.patch
