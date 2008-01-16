@@ -1,100 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - driver-core-build-with-sysfs=n.patch removed from -mm tree
-Date: Tue, 15 Jan 2008 17:39:08 -0800
-Message-ID: <200801160139.m0G1d8HE013977@imap1.linux-foundation.org>
+Subject: - usb-add-support-for-43485523-winchiphead-usb-rs-232-adapter.patch removed from -mm tree
+Date: Tue, 15 Jan 2008 17:39:53 -0800
+Message-ID: <200801160139.m0G1drJT014041@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53974 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59400 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752693AbYAPBtd (ORCPT
+	by vger.kernel.org with ESMTP id S1756463AbYAPBtk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Jan 2008 20:49:33 -0500
+	Tue, 15 Jan 2008 20:49:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, greg@kroah.com, kay.sievers@vrfy.org, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: dexter@debian.org, greg@kroah.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     driver core: build with SYSFS=n
+     usb: add support for 4348:5523 WinChipHead USB->RS 232 adapter
 has been removed from the -mm tree.  Its filename was
-     driver-core-build-with-sysfs=n.patch
+     usb-add-support-for-43485523-winchiphead-usb-rs-232-adapter.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: driver core: build with SYSFS=n
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: usb: add support for 4348:5523 WinChipHead USB->RS 232 adapter
+From: Piotr Roszatycki <dexter@debian.org>
 
-When SYSFS=n and MODULES=y, build ends with:
+add support for:
 
-linux-2.6.24-rc6-mm1/drivers/base/module.c: In function 'module_add_driver':
-linux-2.6.24-rc6-mm1/drivers/base/module.c:49: error: 'module_kset' undeclared (first use in this function)
-make[3]: *** [drivers/base/module.o] Error 1
+  4348:5523 WinChipHead USB->RS 232 adapter with Prolifec PL 2303 chipset
 
-Below is one possible fix.
-Build-tested with all 4 config combinations of SYSFS & MODULES.
+[ mingo@elte.hu: merged it and nursed it upstream ]
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Cc: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/Makefile |    2 ++
- drivers/base/base.h   |    2 +-
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ drivers/usb/serial/pl2303.c |    1 +
+ drivers/usb/serial/pl2303.h |    5 +++++
+ 2 files changed, 6 insertions(+)
 
-diff -puN drivers/base/Makefile~driver-core-build-with-sysfs=n drivers/base/Makefile
---- a/drivers/base/Makefile~driver-core-build-with-sysfs=n
-+++ a/drivers/base/Makefile
-@@ -11,7 +11,9 @@ obj-$(CONFIG_FW_LOADER)	+= firmware_clas
- obj-$(CONFIG_NUMA)	+= node.o
- obj-$(CONFIG_MEMORY_HOTPLUG_SPARSE) += memory.o
- obj-$(CONFIG_SMP)	+= topology.o
-+ifeq ($(CONFIG_SYSFS),y)
- obj-$(CONFIG_MODULES)	+= module.o
-+endif
- obj-$(CONFIG_SYS_HYPERVISOR) += hypervisor.o
+diff -puN drivers/usb/serial/pl2303.c~usb-add-support-for-43485523-winchiphead-usb-rs-232-adapter drivers/usb/serial/pl2303.c
+--- a/drivers/usb/serial/pl2303.c~usb-add-support-for-43485523-winchiphead-usb-rs-232-adapter
++++ a/drivers/usb/serial/pl2303.c
+@@ -87,6 +87,7 @@ static struct usb_device_id id_table [] 
+ 	{ USB_DEVICE(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_ID) },
+ 	{ USB_DEVICE(WS002IN_VENDOR_ID, WS002IN_PRODUCT_ID) },
+ 	{ USB_DEVICE(COREGA_VENDOR_ID, COREGA_PRODUCT_ID) },
++	{ USB_DEVICE(HL340_VENDOR_ID, HL340_PRODUCT_ID) },
+ 	{ }					/* Terminating entry */
+ };
  
- ifeq ($(CONFIG_DEBUG_DRIVER),y)
-diff -puN drivers/base/base.h~driver-core-build-with-sysfs=n drivers/base/base.h
---- a/drivers/base/base.h~driver-core-build-with-sysfs=n
-+++ a/drivers/base/base.h
-@@ -79,7 +79,7 @@ extern char *make_class_name(const char 
- 
- extern int devres_release_all(struct device *dev);
- 
--#ifdef CONFIG_MODULES
-+#if defined(CONFIG_MODULES) && defined(CONFIG_SYSFS)
- extern void module_add_driver(struct module *mod, struct device_driver *drv);
- extern void module_remove_driver(struct device_driver *drv);
- #else
+diff -puN drivers/usb/serial/pl2303.h~usb-add-support-for-43485523-winchiphead-usb-rs-232-adapter drivers/usb/serial/pl2303.h
+--- a/drivers/usb/serial/pl2303.h~usb-add-support-for-43485523-winchiphead-usb-rs-232-adapter
++++ a/drivers/usb/serial/pl2303.h
+@@ -107,3 +107,8 @@
+ /* Corega CG-USBRS232R Serial Adapter */
+ #define COREGA_VENDOR_ID	0x07aa
+ #define COREGA_PRODUCT_ID	0x002a
++
++/* HL HL-340 (ID: 4348:5523) */
++#define HL340_VENDOR_ID		0x4348
++#define HL340_PRODUCT_ID	0x5523
++
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
-
-origin.patch
-git-dvb.patch
-git-kbuild.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-pcmcia-include-bad-cis-filename-in-error-message.patch
-git-scsi-misc.patch
-git-unionfs.patch
-hostap-section-mismatch-warning.patch
-git-ipwireless_cs.patch
-git-x86.patch
-register_cpu-__devinit-or-__cpuinit.patch
-cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
-dio-fix-kernel-doc-notation.patch
-tpm-infineon-section-mismatch.patch
-tdfxfb-fix-section-mismatch-warnings.patch
-uvesafb-small-cleanups.patch
-documentation-move-dnotifytxt-to-filesystems.patch
-documentation-move-sharedsubtreestxt-to-filesystems.patch
-documentation-create-new-scheduler-subdirectory.patch
-reporting-bugs-cc-the-mailing-list-too.patch
-fs-menu-small-reorg.patch
-profile-likely-unlikely-macros.patch
+Patches currently in -mm which might be from dexter@debian.org are
