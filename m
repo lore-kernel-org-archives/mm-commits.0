@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-wireless-iwlwifi-iwl-4965c-fix-printk-warning.patch added to -mm tree
-Date: Wed, 16 Jan 2008 02:57:31 -0800
-Message-ID: <200801161105.m0GB5qhD000964@imap1.linux-foundation.org>
+Subject: + drivers-net-wireless-rt2x00-rt2x00usbc-fix-uninitialized-var-warning.patch added to -mm tree
+Date: Wed, 16 Jan 2008 02:58:24 -0800
+Message-ID: <200801161106.m0GB6jBZ000975@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58049 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35754 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751300AbYAPLHY (ORCPT
+	by vger.kernel.org with ESMTP id S1751253AbYAPLIS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 06:07:24 -0500
+	Wed, 16 Jan 2008 06:08:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, linville@tuxdriver.com
 
 
 The patch titled
-     drivers/net/wireless/iwlwifi/iwl-4965.c: fix printk warning
+     drivers/net/wireless/rt2x00/rt2x00usb.c: fix uninitialized var warning
 has been added to the -mm tree.  Its filename is
-     drivers-net-wireless-iwlwifi-iwl-4965c-fix-printk-warning.patch
+     drivers-net-wireless-rt2x00-rt2x00usbc-fix-uninitialized-var-warning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/net/wireless/iwlwifi/iwl-4965.c: fix printk warning
+Subject: drivers/net/wireless/rt2x00/rt2x00usb.c: fix uninitialized var warning
 From: Andrew Morton <akpm@linux-foundation.org>
-
-drivers/net/wireless/iwlwifi/iwl-4965.c: In function 'iwl4965_add_radiotap':
-drivers/net/wireless/iwlwifi/iwl-4965.c:3620: warning: format '%d' expects type 'int', but argument 3 has type 'long unsigned int'
 
 Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/iwlwifi/iwl-4965.c |    2 +-
+ drivers/net/wireless/rt2x00/rt2x00usb.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/wireless/iwlwifi/iwl-4965.c~drivers-net-wireless-iwlwifi-iwl-4965c-fix-printk-warning drivers/net/wireless/iwlwifi/iwl-4965.c
---- a/drivers/net/wireless/iwlwifi/iwl-4965.c~drivers-net-wireless-iwlwifi-iwl-4965c-fix-printk-warning
-+++ a/drivers/net/wireless/iwlwifi/iwl-4965.c
-@@ -3616,7 +3616,7 @@ static void iwl4965_add_radiotap(struct 
- 	if (skb_headroom(skb) < sizeof(*iwl4965_rt)) {
- 		if (net_ratelimit())
- 			printk(KERN_ERR "not enough headroom [%d] for "
--			       "radiotap head [%d]\n",
-+			       "radiotap head [%td]\n",
- 			       skb_headroom(skb), sizeof(*iwl4965_rt));
- 		return;
- 	}
+diff -puN drivers/net/wireless/rt2x00/rt2x00usb.c~drivers-net-wireless-rt2x00-rt2x00usbc-fix-uninitialized-var-warning drivers/net/wireless/rt2x00/rt2x00usb.c
+--- a/drivers/net/wireless/rt2x00/rt2x00usb.c~drivers-net-wireless-rt2x00-rt2x00usbc-fix-uninitialized-var-warning
++++ a/drivers/net/wireless/rt2x00/rt2x00usb.c
+@@ -429,7 +429,7 @@ int rt2x00usb_initialize(struct rt2x00_d
+ 	struct sk_buff *skb;
+ 	unsigned int entry_size;
+ 	unsigned int i;
+-	int status;
++	int uninitialized_var(status);
+ 
+ 	/*
+ 	 * Allocate DMA
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -161,6 +158,7 @@ git-watchdog-fixup.patch
 wdt-fix-locking-checkpatch-fixes.patch
 git-wireless.patch
 drivers-net-wireless-iwlwifi-iwl-3945c-fix-printk-warning.patch
+drivers-net-wireless-iwlwifi-iwl-4965c-fix-printk-warning.patch
 git-ipwireless_cs.patch
 revert-kvm-stuff-to-make-git-x86-apply.patch
 git-x86.patch
@@ -329,4 +327,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-drivers-net-wireless-iwlwifi-iwl-4965c-fix-printk-warning.patch
+drivers-net-wireless-rt2x00-rt2x00usbc-fix-uninitialized-var-warning.patch
