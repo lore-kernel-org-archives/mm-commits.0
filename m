@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch added to -mm tree
-Date: Wed, 16 Jan 2008 02:55:01 -0800
-Message-ID: <200801161103.m0GB3MaF000915@imap1.linux-foundation.org>
+Subject: + drivers-net-wireless-iwlwifi-iwl-3945c-fix-printk-warning.patch added to -mm tree
+Date: Wed, 16 Jan 2008 02:56:33 -0800
+Message-ID: <200801161104.m0GB4saF000944@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43590 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46388 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753581AbYAPLED (ORCPT
+	by vger.kernel.org with ESMTP id S1751262AbYAPLGa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 06:04:03 -0500
+	Wed, 16 Jan 2008 06:06:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mchehab@infradead.org
+Cc: akpm@linux-foundation.org, linville@tuxdriver.com
 
 
 The patch titled
-     drivers/media/video/em28xx/em28xx-core.c: fix use of potentially uninitialized variable
+     drivers/net/wireless/iwlwifi/iwl-3945.c: fix printk warning
 has been added to the -mm tree.  Its filename is
-     drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
+     drivers-net-wireless-iwlwifi-iwl-3945c-fix-printk-warning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/media/video/em28xx/em28xx-core.c: fix use of potentially uninitialized variable
+Subject: drivers/net/wireless/iwlwifi/iwl-3945.c: fix printk warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/media/video/em28xx/em28xx-core.c: In function 'em28xx_set_audio_source':
-drivers/media/video/em28xx/em28xx-core.c:276: warning: 'no_ac97' may be used uninitialized in this function
+drivers/net/wireless/iwlwifi/iwl-3945.c: In function 'iwl3945_add_radiotap':
+drivers/net/wireless/iwlwifi/iwl-3945.c:269: warning: format '%d' expects type 'int', but argument 3 has type 'long unsigned int'
 
-This looks like a genuine bug to me.
-
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/em28xx/em28xx-core.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/net/wireless/iwlwifi/iwl-3945.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/video/em28xx/em28xx-core.c~drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable drivers/media/video/em28xx/em28xx-core.c
---- a/drivers/media/video/em28xx/em28xx-core.c~drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable
-+++ a/drivers/media/video/em28xx/em28xx-core.c
-@@ -273,7 +273,8 @@ int em28xx_set_audio_source(struct em28x
- 	static char *enable  = "\x08\x08";
- 	static char *disable = "\x08\x88";
- 	char *video = enable, *line = disable;
--	int ret, no_ac97;
-+	int ret;
-+	int no_ac97 = 0;
- 	u8 input;
- 
- 	if (dev->is_em2800) {
+diff -puN drivers/net/wireless/iwlwifi/iwl-3945.c~drivers-net-wireless-iwlwifi-iwl-3945c-fix-printk-warning drivers/net/wireless/iwlwifi/iwl-3945.c
+--- a/drivers/net/wireless/iwlwifi/iwl-3945.c~drivers-net-wireless-iwlwifi-iwl-3945c-fix-printk-warning
++++ a/drivers/net/wireless/iwlwifi/iwl-3945.c
+@@ -265,7 +265,7 @@ void iwl3945_add_radiotap(struct iwl3945
+ 	if (skb_headroom(skb) < sizeof(*iwl3945_rt)) {
+ 		if (net_ratelimit())
+ 			printk(KERN_ERR "not enough headroom [%d] for "
+-			       "radiotap head [%d]\n",
++			       "radiotap head [%td]\n",
+ 			       skb_headroom(skb), sizeof(*iwl3945_rt));
+ 		return;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -101,6 +98,7 @@ intel-agp-enable-i915-recognition.patch
 drm-convert-from-nopage-to-fault-checkpatch-fixes.patch
 git-dvb.patch
 drivers-media-dvb-frontends-xc5000c-dont-return-garbage-from-xc5000_init.patch
+drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
 fix-jdelvare-i2c-i2c-constify-client-address-data.patch
 hwmon-new-chip-driver-for-ti-ads7828-a-d.patch
 hwmon-new-chip-driver-for-ti-ads7828-a-d-checkpatch-fixes.patch
@@ -330,4 +328,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
+drivers-net-wireless-iwlwifi-iwl-3945c-fix-printk-warning.patch
