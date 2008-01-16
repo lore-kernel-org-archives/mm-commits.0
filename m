@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch added to -mm tree
-Date: Wed, 16 Jan 2008 03:12:12 -0800
-Message-ID: <200801161120.m0GBKXl3001439@imap1.linux-foundation.org>
+Subject: + fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch added to -mm tree
+Date: Wed, 16 Jan 2008 03:14:27 -0800
+Message-ID: <200801161122.m0GBMmXc001558@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46619 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51777 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751252AbYAPLUg (ORCPT
+	by vger.kernel.org with ESMTP id S1751405AbYAPLXN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 06:20:36 -0500
+	Wed, 16 Jan 2008 06:23:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com
+Cc: akpm@linux-foundation.org, zippel@linux-m68k.org
 
 
 The patch titled
-     drivers/usb/storage/sddr55.c: fix uninitialized var warnings
+     fs/hfsplus/unicode.c: fix uninitialized var warning
 has been added to the -mm tree.  Its filename is
-     drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+     fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/usb/storage/sddr55.c: fix uninitialized var warnings
+Subject: fs/hfsplus/unicode.c: fix uninitialized var warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/usb/storage/sddr55.c: In function 'sddr55_transport':
-drivers/usb/storage/sddr55.c:526: warning: 'deviceID' may be used uninitialized in this function
-drivers/usb/storage/sddr55.c:525: warning: 'manufacturerID' may be used uninitialized in this function
+fs/hfsplus/unicode.c: In function 'hfsplus_hash_dentry':
+fs/hfsplus/unicode.c:328: warning: 'dsize' may be used uninitialized in this function
 
-Cc: Greg KH <greg@kroah.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/storage/sddr55.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/hfsplus/unicode.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/usb/storage/sddr55.c~drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings drivers/usb/storage/sddr55.c
---- a/drivers/usb/storage/sddr55.c~drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings
-+++ a/drivers/usb/storage/sddr55.c
-@@ -522,8 +522,8 @@ int sddr55_reset(struct us_data *us) {
- 
- static unsigned long sddr55_get_capacity(struct us_data *us) {
- 
--	unsigned char manufacturerID;
--	unsigned char deviceID;
-+	unsigned char uninitialized_var(manufacturerID);
-+	unsigned char uninitialized_var(deviceID);
- 	int result;
- 	struct sddr55_card_info *info = (struct sddr55_card_info *)us->extra;
- 
+diff -puN fs/hfsplus/unicode.c~fs-hfsplus-unicodec-fix-uninitialized-var-warning fs/hfsplus/unicode.c
+--- a/fs/hfsplus/unicode.c~fs-hfsplus-unicodec-fix-uninitialized-var-warning
++++ a/fs/hfsplus/unicode.c
+@@ -325,7 +325,7 @@ int hfsplus_hash_dentry(struct dentry *d
+ 	struct super_block *sb = dentry->d_sb;
+ 	const char *astr;
+ 	const u16 *dstr;
+-	int casefold, decompose, size, dsize, len;
++	int casefold, decompose, size, len;
+ 	unsigned long hash;
+ 	wchar_t c;
+ 	u16 c2;
+@@ -336,6 +336,7 @@ int hfsplus_hash_dentry(struct dentry *d
+ 	astr = str->name;
+ 	len = str->len;
+ 	while (len > 0) {
++		int uninitialized_var(dsize);
+ 		size = asc2unichar(sb, astr, len, &c);
+ 		astr += size;
+ 		len -= size;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -158,6 +163,7 @@ git-unionfs.patch
 vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
 revert-gregkh-usb-usb-ti_usb-termios-cleanups.patch
 ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
 9p-util-fix-semaphore-handling.patch
 git-watchdog.patch
 git-watchdog-fixup.patch
@@ -335,4 +341,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
