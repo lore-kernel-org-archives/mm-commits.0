@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-libata-drivers-ata-pata_pcmciac-fixup.patch added to -mm tree
-Date: Wed, 16 Jan 2008 00:49:02 -0800
-Message-ID: <200801160857.m0G8vOLd029171@imap1.linux-foundation.org>
+Subject: + xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch added to -mm tree
+Date: Wed, 16 Jan 2008 00:57:56 -0800
+Message-ID: <200801160906.m0G96H8k029410@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48791 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54759 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750998AbYAPI6L (ORCPT
+	by vger.kernel.org with ESMTP id S1751400AbYAPJGm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 03:58:11 -0500
+	Wed, 16 Jan 2008 04:06:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, jeff@garzik.org
+Cc: akpm@linux-foundation.org, dgc@sgi.com, linux-ext4@vger.kernel.org, marcin.slusarz@gmail.com, mark.fasheh@oracle.com, tes@sgi.com
 
 
 The patch titled
-     git-libata: drivers/ata/pata_pcmcia.c fixup
+     xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix
 has been added to the -mm tree.  Its filename is
-     git-libata-drivers-ata-pata_pcmciac-fixup.patch
+     xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,40 +26,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-libata: drivers/ata/pata_pcmcia.c fixup
+Subject: xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/ata/pata_pcmcia.c:187: warning: initialization from incompatible pointer type
-
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: <linux-ext4@vger.kernel.org>
+Cc: David Chinner <dgc@sgi.com>
+Cc: Marcin Slusarz <marcin.slusarz@gmail.com>
+Cc: Mark Fasheh <mark.fasheh@oracle.com>
+Cc: Timothy Shimmin <tes@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_pcmcia.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/xfs/xfs_log.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ata/pata_pcmcia.c~a drivers/ata/pata_pcmcia.c
---- a/drivers/ata/pata_pcmcia.c~a
-+++ a/drivers/ata/pata_pcmcia.c
-@@ -113,14 +113,15 @@ static int pcmcia_set_mode_8bit(struct a
-  *	Inherited from caller.
-  */
+diff -puN fs/xfs/xfs_log.c~xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix fs/xfs/xfs_log.c
+--- a/fs/xfs/xfs_log.c~xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix
++++ a/fs/xfs/xfs_log.c
+@@ -1490,9 +1490,9 @@ xlog_sync(xlog_t		*log,
+ 		 * case, though.
+ 		 */
+ 		for (i = 0; i < split; i += BBSIZE) {
+-			be32_add((__be32 *)dptr, 1);
++			be32_add_cpu((__be32 *)dptr, 1);
+ 			if (be32_to_cpu(*(__be32 *)dptr) == XLOG_HEADER_MAGIC_NUM)
+-				be32_add((__be32 *)dptr, 1);
++				be32_add_cpu((__be32 *)dptr, 1);
+ 			dptr += BBSIZE;
+ 		}
  
--static void ata_data_xfer_8bit(struct ata_device *adev, unsigned char *buf,
--		   unsigned int buflen, int write_data)
-+static unsigned int ata_data_xfer_8bit(struct ata_device *adev,
-+		unsigned char *buf, unsigned int buflen, int write_data)
+@@ -1581,7 +1581,7 @@ xlog_state_finish_copy(xlog_t		*log,
  {
- 	struct ata_port *ap = adev->link->ap;
- 	if (write_data)
- 		iowrite8_rep(ap->ioaddr.data_addr, buf, buflen);
- 	else
- 		ioread8_rep(ap->ioaddr.data_addr, buf, buflen);
-+	return 0;
- }
+ 	spin_lock(&log->l_icloglock);
  
+-	be32_add(&iclog->ic_header.h_num_logops, record_cnt);
++	be32_add_cpu(&iclog->ic_header.h_num_logops, record_cnt);
+ 	iclog->ic_offset += copy_bytes;
  
+ 	spin_unlock(&log->l_icloglock);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -304,6 +308,7 @@ lib-remove-fastcall-from-lib-checkpatch-fixes.patch
 remove-fastcall-from-linux-include-checkpatch-fixes.patch
 constify-tables-in-kernel-sysctl_checkc-fix.patch
 aoe-statically-initialise-devlist_lock.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
 ufs-fix-symlink-creation-on-ufs2-fix.patch
 libfs-allow-error-return-from-simple-attributes-fix.patch
 make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
