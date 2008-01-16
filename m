@@ -1,203 +1,176 @@
 From: akpm@linux-foundation.org
-Subject: - cris-v10-driver-for-ds1302-needs-to-include-cris-specific-i2ch.patch removed from -mm tree
-Date: Tue, 15 Jan 2008 17:38:46 -0800
-Message-ID: <200801160138.m0G1ckiV013936@imap1.linux-foundation.org>
+Subject: - kick-cpus-that-might-be-sleeping-in-cpus_idle_wait.patch removed from -mm tree
+Date: Tue, 15 Jan 2008 17:38:07 -0800
+Message-ID: <200801160138.m0G1c7Ux013883@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51904 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36080 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755179AbYAPBiu (ORCPT
+	by vger.kernel.org with ESMTP id S1754785AbYAPBj1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Jan 2008 20:38:50 -0500
+	Tue, 15 Jan 2008 20:39:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.nilsson@axis.com, mikael.starvik@axis.com, mm-commits@vger.kernel.org
+To: rostedt@goodmis.org, ak@suse.de, lenb@kernel.org, mingo@elte.hu, srostedt@redhat.com, tglx@linutronix.de, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     CRIS v10: driver for ds1302 needs to include cris-specific i2c.h
+     Kick CPUS that might be sleeping in cpus_idle_wait
 has been removed from the -mm tree.  Its filename was
-     cris-v10-driver-for-ds1302-needs-to-include-cris-specific-i2ch.patch
+     kick-cpus-that-might-be-sleeping-in-cpus_idle_wait.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: CRIS v10: driver for ds1302 needs to include cris-specific i2c.h
-From: Jesper Nilsson <jesper.nilsson@axis.com>
+Subject: Kick CPUS that might be sleeping in cpus_idle_wait
+From: Steven Rostedt <rostedt@goodmis.org>
 
-CRIS v10: Driver for ds1302 needs to include cris-specific i2c.h
+Sometimes cpu_idle_wait gets stuck because it might miss CPUS that are
+already in idle, have no tasks waiting to run and have no interrupts going
+to them.  This is common on bootup when switching cpu idle governors.
 
-This fixes compilation error where i2c_init wasn't defined.
-Also, remove the CVS log and version tags, they are no longer useful.
+This patch gives those CPUS that don't check in an IPI kick.
 
-Signed-off-by: Jesper Nilsson <jesper.nilsson@axis.com>
-Cc: Mikael Starvik <mikael.starvik@axis.com>
+Background:
+-----------
+I notice this while developing the mcount patches, that every once in a
+while the system would hang. Looking deeper, the hang was always at boot
+up when registering init_menu of the cpu_idle menu governor. Talking
+with Thomas Gliexner, we discovered that one of the CPUS had no timer
+events scheduled for it and it was in idle (running with NO_HZ). So the
+CPU would not set the cpu_idle_state bit.
+
+Hitting sysrq-t a few times would eventually route the interrupt to the
+stuck CPU and the system would continue.
+
+Note, I would have used the PDA isidle but that is set after the
+cpu_idle_state bit is cleared, and would leave a window open where we
+may miss being kicked.
+
+hmm, looking closer at this, we still have a small race window between
+clearing the cpu_idle_state and disabling interrupts (hence the RFC).
+
+    CPU0:                          CPU 1:
+  ---------                       ---------
+ cpu_idle_wait():                 cpu_idle():
+      |                           __cpu_cpu_var(is_idle) = 1;
+      |                           if (__get_cpu_var(cpu_idle_state)) /* == 0 */
+ per_cpu(cpu_idle_state, 1) = 1;         |
+ if (per_cpu(is_idle, 1)) /* == 1 */     |
+ smp_call_function(1)                    |
+      |                             receives ipi and runs do_nothing.
+ wait on map == empty               idle();
+   /* waits forever */
+
+
+So really we need interrupts off for most of this then. One might think
+that we could simply clear the cpu_idle_state from do_nothing, but I'm
+assuming that cpu_idle governors can be removed, and this might cause a
+race that a governor might be used after the module was removed.
+
+
+Venki said:
+
+  I think your RFC patch is the right solution here.  As I see it, there is
+  no race with your RFC patch.  As long as you call a dummy smp_call_function
+  on all CPUs, we should be OK.  We can get rid of cpu_idle_state and the
+  current wait forever logic altogether with dummy smp_call_function.  And so
+  there wont be any wait forever scenario.
+
+  The whole point of cpu_idle_wait() is to make all CPUs come out of idle
+  loop atleast once.  The caller will use cpu_idle_wait something like this.
+
+  // Want to change idle handler
+
+  - Switch global idle handler to always present default_idle
+
+  - call cpu_idle_wait so that all cpus come out of idle for an instant
+    and stop using old idle pointer and start using default idle
+
+  - Change the idle handler to a new handler
+
+  - optional cpu_idle_wait if you want all cpus to start using the new
+    handler immediately.
+
+Maybe the below 1s patch is safe bet for .24.  But for .25, I would say we
+just replace all complicated logic by simple dummy smp_call_function and
+remove cpu_idle_state altogether.
+
+Signed-off-by: Steven Rostedt <srostedt@redhat.com>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v10/drivers/ds1302.c |  131 --------------------------
- 1 file changed, 3 insertions(+), 128 deletions(-)
+ arch/x86/kernel/process_32.c |   11 +++++++++++
+ arch/x86/kernel/process_64.c |   11 +++++++++++
+ 2 files changed, 22 insertions(+)
 
-diff -puN arch/cris/arch-v10/drivers/ds1302.c~cris-v10-driver-for-ds1302-needs-to-include-cris-specific-i2ch arch/cris/arch-v10/drivers/ds1302.c
---- a/arch/cris/arch-v10/drivers/ds1302.c~cris-v10-driver-for-ds1302-needs-to-include-cris-specific-i2ch
-+++ a/arch/cris/arch-v10/drivers/ds1302.c
-@@ -6,136 +6,9 @@
- *!
- *! Functions exported: ds1302_readreg, ds1302_writereg, ds1302_init
- *!
--*! $Log: ds1302.c,v $
--*! Revision 1.18  2005/01/24 09:11:26  mikaelam
--*! Minor changes to get DS1302 RTC chip driver to work
--*!
--*! Revision 1.17  2005/01/05 06:11:22  starvik
--*! No need to do local_irq_disable after local_irq_save.
--*!
--*! Revision 1.16  2004/12/13 12:21:52  starvik
--*! Added I/O and DMA allocators from Linux 2.4
--*!
--*! Revision 1.14  2004/08/24 06:48:43  starvik
--*! Whitespace cleanup
--*!
--*! Revision 1.13  2004/05/28 09:26:59  starvik
--*! Modified I2C initialization to work in 2.6.
--*!
--*! Revision 1.12  2004/05/14 07:58:03  starvik
--*! Merge of changes from 2.4
--*!
--*! Revision 1.10  2004/02/04 09:25:12  starvik
--*! Merge of Linux 2.6.2
--*!
--*! Revision 1.9  2003/07/04 08:27:37  starvik
--*! Merge of Linux 2.5.74
--*!
--*! Revision 1.8  2003/04/09 05:20:47  starvik
--*! Merge of Linux 2.5.67
--*!
--*! Revision 1.6  2003/01/09 14:42:51  starvik
--*! Merge of Linux 2.5.55
--*!
--*! Revision 1.4  2002/12/11 13:13:57  starvik
--*! Added arch/ to v10 specific includes
--*! Added fix from Linux 2.4 in serial.c (flush_to_flip_buffer)
--*!
--*! Revision 1.3  2002/11/20 11:56:10  starvik
--*! Merge of Linux 2.5.48
--*!
--*! Revision 1.2  2002/11/18 13:16:06  starvik
--*! Linux 2.5 port of latest 2.4 drivers
--*!
--*! Revision 1.15  2002/10/11 16:14:33  johana
--*! Added CONFIG_ETRAX_DS1302_TRICKLE_CHARGE and initial setting of the
--*! trcklecharge register.
--*!
--*! Revision 1.14  2002/10/10 12:15:38  magnusmn
--*! Added support for having the RST signal on bit g0
--*!
--*! Revision 1.13  2002/05/29 15:16:08  johana
--*! Removed unused variables.
--*!
--*! Revision 1.12  2002/04/10 15:35:25  johana
--*! Moved probe function closer to init function and marked it __init.
--*!
--*! Revision 1.11  2001/06/14 12:35:52  jonashg
--*! The ATA hack is back. It is unfortunately the only way to set g27 to output.
--*!
--*! Revision 1.9  2001/06/14 10:00:14  jonashg
--*! No need for tempudelay to be inline anymore (had to adjust the usec to
--*! loops conversion because of this to make it slow enough to be a udelay).
--*!
--*! Revision 1.8  2001/06/14 08:06:32  jonashg
--*! Made tempudelay delay usecs (well, just a tad more).
--*!
--*! Revision 1.7  2001/06/13 14:18:11  jonashg
--*! Only allow processes with SYS_TIME capability to set time and charge.
--*!
--*! Revision 1.6  2001/06/12 15:22:07  jonashg
--*! * Made init function __init.
--*! * Parameter to out_byte() is unsigned char.
--*! * The magic number 42 has got a name.
--*! * Removed comment about /proc (nothing is exported there).
--*!
--*! Revision 1.5  2001/06/12 14:35:13  jonashg
--*! Gave the module a name and added it to printk's.
--*!
--*! Revision 1.4  2001/05/31 14:53:40  jonashg
--*! Made tempudelay() inline so that the watchdog doesn't reset (see
--*! function comment).
--*!
--*! Revision 1.3  2001/03/26 16:03:06  bjornw
--*! Needs linux/config.h
--*!
--*! Revision 1.2  2001/03/20 19:42:00  bjornw
--*! Use the ETRAX prefix on the DS1302 options
--*!
--*! Revision 1.1  2001/03/20 09:13:50  magnusmn
--*! Linux 2.4 port
--*!
--*! Revision 1.10  2000/07/05 15:38:23  bjornw
--*! Dont update kernel time when a RTC_SET_TIME is done
--*!
--*! Revision 1.9  2000/03/02 15:42:59  macce
--*! * Hack to make RTC work on all 2100/2400
--*!
--*! Revision 1.8  2000/02/23 16:59:18  torbjore
--*! added setup of R_GEN_CONFIG when RTC is connected to the generic port.
--*!
--*! Revision 1.7  2000/01/17 15:51:43  johana
--*! Added RTC_SET_CHARGE ioctl to enable trickle charger.
--*!
--*! Revision 1.6  1999/10/27 13:19:47  bjornw
--*! Added update_xtime_from_cmos which reads back the updated RTC into the kernel.
--*! /dev/rtc calls it now.
--*!
--*! Revision 1.5  1999/10/27 12:39:37  bjornw
--*! Disabled superuser check. Anyone can now set the time.
--*!
--*! Revision 1.4  1999/09/02 13:27:46  pkj
--*! Added shadow for R_PORT_PB_CONFIG.
--*! Renamed port_g_shadow to port_g_data_shadow.
--*!
--*! Revision 1.3  1999/09/02 08:28:06  pkj
--*! Made it possible to select either port PB or the generic port for the RST
--*! signal line to the DS1302 RTC.
--*! Also make sure the RST bit is configured as output on Port PB (if used).
--*!
--*! Revision 1.2  1999/09/01 14:47:20  bjornw
--*! Added support for /dev/rtc operations with ioctl RD_TIME and SET_TIME to read
--*! and set the date. Register as major 121.
--*!
--*! Revision 1.1  1999/09/01 09:45:29  bjornw
--*! Implemented a DS1302 RTC driver.
--*!
--*!
- *! ---------------------------------------------------------------------------
- *!
--*! (C) Copyright 1999, 2000, 2001, 2002, 2003, 2004  Axis Communications AB, LUND, SWEDEN
--*!
--*! $Id: ds1302.c,v 1.18 2005/01/24 09:11:26 mikaelam Exp $
-+*! (C) Copyright 1999-2007 Axis Communications AB, LUND, SWEDEN
- *!
- *!***************************************************************************/
+diff -puN arch/x86/kernel/process_32.c~kick-cpus-that-might-be-sleeping-in-cpus_idle_wait arch/x86/kernel/process_32.c
+--- a/arch/x86/kernel/process_32.c~kick-cpus-that-might-be-sleeping-in-cpus_idle_wait
++++ a/arch/x86/kernel/process_32.c
+@@ -204,6 +204,10 @@ void cpu_idle(void)
+ 	}
+ }
  
-@@ -156,6 +29,8 @@
- #include <asm/rtc.h>
- #include <asm/arch/io_interface_mux.h>
- 
-+#include "i2c.h"
++static void do_nothing(void *unused)
++{
++}
 +
- #define RTC_MAJOR_NR 121 /* local major, change later */
+ void cpu_idle_wait(void)
+ {
+ 	unsigned int cpu, this_cpu = get_cpu();
+@@ -228,6 +232,13 @@ void cpu_idle_wait(void)
+ 				cpu_clear(cpu, map);
+ 		}
+ 		cpus_and(map, map, cpu_online_map);
++		/*
++		 * We waited 1 sec, if a CPU still did not call idle
++		 * it may be because it is in idle and not waking up
++		 * because it has nothing to do.
++		 * Give all the remaining CPUS a kick.
++		 */
++		smp_call_function_mask(map, do_nothing, 0, 0);
+ 	} while (!cpus_empty(map));
  
- static const char ds1302_name[] = "ds1302";
+ 	set_cpus_allowed(current, tmp);
+diff -puN arch/x86/kernel/process_64.c~kick-cpus-that-might-be-sleeping-in-cpus_idle_wait arch/x86/kernel/process_64.c
+--- a/arch/x86/kernel/process_64.c~kick-cpus-that-might-be-sleeping-in-cpus_idle_wait
++++ a/arch/x86/kernel/process_64.c
+@@ -135,6 +135,10 @@ static void poll_idle (void)
+ 	cpu_relax();
+ }
+ 
++static void do_nothing(void *unused)
++{
++}
++
+ void cpu_idle_wait(void)
+ {
+ 	unsigned int cpu, this_cpu = get_cpu();
+@@ -160,6 +164,13 @@ void cpu_idle_wait(void)
+ 				cpu_clear(cpu, map);
+ 		}
+ 		cpus_and(map, map, cpu_online_map);
++		/*
++		 * We waited 1 sec, if a CPU still did not call idle
++		 * it may be because it is in idle and not waking up
++		 * because it has nothing to do.
++		 * Give all the remaining CPUS a kick.
++		 */
++		smp_call_function_mask(map, do_nothing, 0, 0);
+ 	} while (!cpus_empty(map));
+ 
+ 	set_cpus_allowed(current, tmp);
 _
 
-Patches currently in -mm which might be from jesper.nilsson@axis.com are
+Patches currently in -mm which might be from rostedt@goodmis.org are
 
 origin.patch
-cris-v10-vmlinuxldss-fix-kernel-oops-on-boot-and-use-common-defines.patch
-git-kbuild.patch
-git-mtd.patch
-cris-avoid-using-arch-links-in-kconfig.patch
-cris-remove-unused-__dummy-const_addr-and-addr-from-bitopsh.patch
-avoid-overflows-in-kernel-timec.patch
+git-sched.patch
+git-x86.patch
