@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch added to -mm tree
-Date: Wed, 16 Jan 2008 03:17:16 -0800
-Message-ID: <200801161125.m0GBPbLs001608@imap1.linux-foundation.org>
+Subject: + drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch added to -mm tree
+Date: Wed, 16 Jan 2008 03:19:55 -0800
+Message-ID: <200801161128.m0GBSGdI001727@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37889 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57173 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751514AbYAPLZl (ORCPT
+	by vger.kernel.org with ESMTP id S1750801AbYAPL22 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 06:25:41 -0500
+	Wed, 16 Jan 2008 06:28:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, bzolnier@gmail.com
 
 
 The patch titled
-     drivers/ide/ide-acpi.c: fix uninitialized var warning
+     drivers/ide/legacy/hd.c: fix uninitialized var warning
 has been added to the -mm tree.  Its filename is
-     drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
+     drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/ide/ide-acpi.c: fix uninitialized var warning
+Subject: drivers/ide/legacy/hd.c: fix uninitialized var warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/ide/ide-acpi.c: In function 'ide_acpi_init':
-drivers/ide/ide-acpi.c:175: warning: 'dev_handle' may be used uninitialized in this function
+drivers/ide/legacy/hd.c: In function 'hd_request':
+drivers/ide/legacy/hd.c:424: warning: 'stat' may be used uninitialized in this function
+
+gcc is being stupid.
 
 Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/ide-acpi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ide/legacy/hd.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ide/ide-acpi.c~drivers-ide-ide-acpic-fix-uninitialized-var-warning drivers/ide/ide-acpi.c
---- a/drivers/ide/ide-acpi.c~drivers-ide-ide-acpic-fix-uninitialized-var-warning
-+++ a/drivers/ide/ide-acpi.c
-@@ -172,7 +172,7 @@ err:
- static acpi_handle ide_acpi_hwif_get_handle(ide_hwif_t *hwif)
+diff -puN drivers/ide/legacy/hd.c~drivers-ide-legacy-hdc-fix-uninitialized-var-warning drivers/ide/legacy/hd.c
+--- a/drivers/ide/legacy/hd.c~drivers-ide-legacy-hdc-fix-uninitialized-var-warning
++++ a/drivers/ide/legacy/hd.c
+@@ -421,11 +421,14 @@ static void bad_rw_intr(void)
+ 
+ static inline int wait_DRQ(void)
  {
- 	struct device		*dev = hwif->gendev.parent;
--	acpi_handle		dev_handle;
-+	acpi_handle		uninitialized_var(dev_handle);
- 	acpi_integer		pcidevfn;
- 	acpi_handle		chan_handle;
- 	int			err;
+-	int retries = 100000, stat;
++	int retries;
++	int stat;
+ 
+-	while (--retries > 0)
+-		if ((stat = inb_p(HD_STATUS)) & DRQ_STAT)
++	for (retries = 0; retries < 100000; retries++) {
++		stat = inb_p(HD_STATUS);
++		if (stat & DRQ_STAT)
+ 			return 0;
++	}
+ 	dump_status("wait_DRQ", stat);
+ 	return -1;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -115,6 +126,7 @@ git-libata-all.patch
 git-libata-all-wtf.patch
 git-libata-drivers-ata-pata_pcmciac-fixup.patch
 git-libata-more-pata-fixes.patch
+drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
 git-md-accel.patch
 git-mmc.patch
 git-mtd.patch
@@ -335,4 +347,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
+drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
