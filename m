@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch added to -mm tree
-Date: Wed, 16 Jan 2008 00:57:56 -0800
-Message-ID: <200801160906.m0G96H8k029410@imap1.linux-foundation.org>
+Subject: + git-x86-vs-something-else.patch added to -mm tree
+Date: Wed, 16 Jan 2008 01:03:02 -0800
+Message-ID: <200801160911.m0G9BNhQ029595@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54759 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49568 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751400AbYAPJGm (ORCPT
+	by vger.kernel.org with ESMTP id S1750940AbYAPJLx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 04:06:42 -0500
+	Wed, 16 Jan 2008 04:11:53 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m0G9BNFM020065
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 16 Jan 2008 01:11:24 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dgc@sgi.com, linux-ext4@vger.kernel.org, marcin.slusarz@gmail.com, mark.fasheh@oracle.com, tes@sgi.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix
+     git-x86-vs-something-else
 has been added to the -mm tree.  Its filename is
-     xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
+     git-x86-vs-something-else.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,44 +30,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix
+Subject: git-x86-vs-something-else
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: <linux-ext4@vger.kernel.org>
-Cc: David Chinner <dgc@sgi.com>
-Cc: Marcin Slusarz <marcin.slusarz@gmail.com>
-Cc: Mark Fasheh <mark.fasheh@oracle.com>
-Cc: Timothy Shimmin <tes@sgi.com>
+fix a reject fix I guess
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/xfs_log.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/pci/probe.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN fs/xfs/xfs_log.c~xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix fs/xfs/xfs_log.c
---- a/fs/xfs/xfs_log.c~xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix
-+++ a/fs/xfs/xfs_log.c
-@@ -1490,9 +1490,9 @@ xlog_sync(xlog_t		*log,
- 		 * case, though.
- 		 */
- 		for (i = 0; i < split; i += BBSIZE) {
--			be32_add((__be32 *)dptr, 1);
-+			be32_add_cpu((__be32 *)dptr, 1);
- 			if (be32_to_cpu(*(__be32 *)dptr) == XLOG_HEADER_MAGIC_NUM)
--				be32_add((__be32 *)dptr, 1);
-+				be32_add_cpu((__be32 *)dptr, 1);
- 			dptr += BBSIZE;
- 		}
+diff -puN drivers/pci/probe.c~git-x86-vs-something-else drivers/pci/probe.c
+--- a/drivers/pci/probe.c~git-x86-vs-something-else
++++ a/drivers/pci/probe.c
+@@ -391,9 +391,6 @@ void pci_read_bridge_bases(struct pci_bu
+ 		res->start = base;
+ 		res->end = limit + 0xfffff;
+ 	}
+-
+-	if ((dev->class >> 8) != PCI_CLASS_BRIDGE_HOST)
+-		pci_write_config_word(dev, PCI_COMMAND, orig_cmd);
+ }
  
-@@ -1581,7 +1581,7 @@ xlog_state_finish_copy(xlog_t		*log,
- {
- 	spin_lock(&log->l_icloglock);
- 
--	be32_add(&iclog->ic_header.h_num_logops, record_cnt);
-+	be32_add_cpu(&iclog->ic_header.h_num_logops, record_cnt);
- 	iclog->ic_offset += copy_bytes;
- 
- 	spin_unlock(&log->l_icloglock);
+ static struct pci_bus * pci_alloc_bus(void)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -165,6 +155,7 @@ revert-kvm-stuff-to-make-git-x86-apply.patch
 git-x86.patch
 git-x86-fix-conflicts.patch
 git-x86-fixup.patch
+git-x86-vs-something-else.patch
 git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
 git-x86-fix-doubly-merged-patch.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
