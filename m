@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-media-radio-use-video_device_release-rather-than-kfree.patch removed from -mm tree
-Date: Tue, 15 Jan 2008 17:39:20 -0800
-Message-ID: <200801160139.m0G1dK8G013999@imap1.linux-foundation.org>
+Subject: - drivers-media-common-add-missing-video_device_release.patch removed from -mm tree
+Date: Tue, 15 Jan 2008 17:39:24 -0800
+Message-ID: <200801160139.m0G1dOtj014002@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51881 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39808 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752881AbYAPBs6 (ORCPT
+	by vger.kernel.org with ESMTP id S1752992AbYAPBtI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Jan 2008 20:48:58 -0500
+	Tue, 15 Jan 2008 20:49:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, mm-commits@vger.kernel.org
+To: julia@diku.dk, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/media/radio: Use video_device_release rather than kfree
+     drivers/media/common: Add missing video_device_release
 has been removed from the -mm tree.  Its filename was
-     drivers-media-radio-use-video_device_release-rather-than-kfree.patch
+     drivers-media-common-add-missing-video_device_release.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/radio: Use video_device_release rather than kfree
+Subject: drivers/media/common: Add missing video_device_release
 From: Julia Lawall <julia@diku.dk>
 
-The file drivers/media/video/videodev.c defines both video_device_alloc and
-video_device_release.  These are essentially just kzmalloc and kfree,
-respectively, but it seems better to use video_device_release, as done in
-the other media files, rather than kfree, in case the implementation some
-day changes.
+Video_device_alloc returns the result of a kzalloc.  In this case, the
+value is stored in a local variable which is not copied elsewhere before
+the point of the error return (video_register_device does not save its
+first argument anywhere if it returns a negative value).  Thus, a
+video_device_release it needed before the error return.
 
 The problem was found using the following semantic match.
 (http://www.emn.fr/x-info/coccinelle/)
@@ -67,24 +67,24 @@ int ret;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/radio/radio-maestro.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/common/saa7146_fops.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/media/radio/radio-maestro.c~drivers-media-radio-use-video_device_release-rather-than-kfree drivers/media/radio/radio-maestro.c
---- a/drivers/media/radio/radio-maestro.c~drivers-media-radio-use-video_device_release-rather-than-kfree
-+++ a/drivers/media/radio/radio-maestro.c
-@@ -423,7 +423,7 @@ static int __devinit maestro_probe(struc
- errunr:
- 	video_unregister_device(maestro_radio_inst);
- errfr1:
--	kfree(maestro_radio_inst);
-+	video_device_release(maestro_radio_inst);
- errfr:
- 	kfree(radio_unit);
- err:
+diff -puN drivers/media/common/saa7146_fops.c~drivers-media-common-add-missing-video_device_release drivers/media/common/saa7146_fops.c
+--- a/drivers/media/common/saa7146_fops.c~drivers-media-common-add-missing-video_device_release
++++ a/drivers/media/common/saa7146_fops.c
+@@ -538,6 +538,7 @@ int saa7146_register_device(struct video
+ 	// fixme: -1 should be an insmod parameter *for the extension* (like "video_nr");
+ 	if (video_register_device(vfd, type, -1) < 0) {
+ 		ERR(("cannot register v4l2 device. skipping.\n"));
++		video_device_release(vfd);
+ 		return -1;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
