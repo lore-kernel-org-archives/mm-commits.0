@@ -1,123 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: + revert-gregkh-usb-usb-ti_usb-termios-cleanups.patch added to -mm tree
-Date: Wed, 16 Jan 2008 01:48:42 -0800
-Message-ID: <200801160957.m0G9v3eK031152@imap1.linux-foundation.org>
+Subject: - net-sunrpc-svcsockc-revert-git-nfs-changes.patch removed from -mm tree
+Date: Wed, 16 Jan 2008 02:01:15 -0800
+Message-ID: <200801161009.m0GA9amA031546@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46838 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59054 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751304AbYAPJ5Y (ORCPT
+	by vger.kernel.org with ESMTP id S1751974AbYAPKKR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 04:57:24 -0500
+	Wed, 16 Jan 2008 05:10:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, greg@kroah.com
+To: akpm@linux-foundation.org, bfields@fieldses.org, davem@davemloft.net, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert gregkh-usb-usb-ti_usb-termios-cleanups
-has been added to the -mm tree.  Its filename is
-     revert-gregkh-usb-usb-ti_usb-termios-cleanups.patch
+     net/sunrpc/svcsock.c: revert git-nfs changes
+has been removed from the -mm tree.  Its filename was
+     net-sunrpc-svcsockc-revert-git-nfs-changes.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: revert gregkh-usb-usb-ti_usb-termios-cleanups
+Subject: net/sunrpc/svcsock.c: revert git-nfs changes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/usb/serial/ti_usb_3410_5052.c: In function 'ti_open':
-drivers/usb/serial/ti_usb_3410_5052.c:584: warning: passing argument 2 of 'ti_set_termios' from incompatible pointer type
-drivers/usb/serial/ti_usb_3410_5052.c:621: warning: passing argument 2 of 'ti_set_termios' from incompatible pointer type
+To avoid a massive reject from git-nfsd.
 
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/ti_usb_3410_5052.c |   31 +++++++++++++-----------
- 1 file changed, 18 insertions(+), 13 deletions(-)
+ net/sunrpc/svcsock.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN drivers/usb/serial/ti_usb_3410_5052.c~revert-gregkh-usb-usb-ti_usb-termios-cleanups drivers/usb/serial/ti_usb_3410_5052.c
---- a/drivers/usb/serial/ti_usb_3410_5052.c~revert-gregkh-usb-usb-ti_usb-termios-cleanups
-+++ a/drivers/usb/serial/ti_usb_3410_5052.c
-@@ -581,7 +581,7 @@ static int ti_open(struct usb_serial_por
- 		}
+diff -puN net/sunrpc/svcsock.c~net-sunrpc-svcsockc-revert-git-nfs-changes net/sunrpc/svcsock.c
+--- a/net/sunrpc/svcsock.c~net-sunrpc-svcsockc-revert-git-nfs-changes
++++ a/net/sunrpc/svcsock.c
+@@ -369,7 +369,6 @@ void svc_reserve(struct svc_rqst *rqstp,
+ 		svc_sock_enqueue(svsk);
  	}
+ }
+-EXPORT_SYMBOL(svc_reserve);
  
--	ti_set_termios(port, &port->tty->termios);
-+	ti_set_termios(port, NULL);
- 
- 	dbg("%s - sending TI_OPEN_PORT", __FUNCTION__);
- 	status = ti_command_out_sync(tdev, TI_OPEN_PORT,
-@@ -618,7 +618,7 @@ static int ti_open(struct usb_serial_por
- 	usb_clear_halt(dev, port->write_urb->pipe);
- 	usb_clear_halt(dev, port->read_urb->pipe);
- 
--	ti_set_termios(port, &port->tty->termios);
-+	ti_set_termios(port, NULL);
- 
- 	dbg("%s - sending TI_OPEN_PORT (2)", __FUNCTION__);
- 	status = ti_command_out_sync(tdev, TI_OPEN_PORT,
-@@ -897,11 +897,24 @@ static void ti_set_termios(struct usb_se
- 
- 	dbg("%s - port %d", __FUNCTION__, port->number);
- 
-+	if (!tty || !tty->termios) {
-+		dbg("%s - no tty or termios", __FUNCTION__);
-+		return;
-+	}
-+
- 	cflag = tty->termios->c_cflag;
- 	iflag = tty->termios->c_iflag;
- 
--	dbg("%s - cflag %08x, iflag %08x", __FUNCTION__, cflag, iflag);
--	dbg("%s - old clfag %08x, old iflag %08x", __FUNCTION__, old_termios->c_cflag, old_termios->c_iflag);
-+	if (old_termios && cflag == old_termios->c_cflag
-+	&& iflag == old_termios->c_iflag) {
-+		dbg("%s - nothing to change", __FUNCTION__);
-+		return;
-+	}
-+
-+	dbg("%s - clfag %08x, iflag %08x", __FUNCTION__, cflag, iflag);
-+
-+	if (old_termios)
-+		dbg("%s - old clfag %08x, old iflag %08x", __FUNCTION__, old_termios->c_cflag, old_termios->c_iflag);
- 
- 	if (tport == NULL)
- 		return;
-@@ -935,9 +948,6 @@ static void ti_set_termios(struct usb_se
- 			    break;
+ /*
+  * Release a socket after use.
+@@ -450,7 +449,6 @@ svc_wake_up(struct svc_serv *serv)
+ 		spin_unlock_bh(&pool->sp_lock);
  	}
+ }
+-EXPORT_SYMBOL(svc_wake_up);
  
--	/* CMSPAR isn't supported by this driver */
--	tty->termios->c_cflag &= ~CMSPAR;
--
- 	if (cflag & PARENB) {
- 		if (cflag & PARODD) {
- 			config->wFlags |= TI_UART_ENABLE_PARITY_CHECKING;
-@@ -980,17 +990,12 @@ static void ti_set_termios(struct usb_se
- 	}
+ union svc_pktinfo_u {
+ 	struct in_pktinfo pkti;
+@@ -1520,7 +1518,6 @@ svc_recv(struct svc_rqst *rqstp, long ti
+ 		serv->sv_stats->netcnt++;
+ 	return len;
+ }
+-EXPORT_SYMBOL(svc_recv);
  
- 	baud = tty_get_baud_rate(tty);
--	if (!baud)
--		baud = 9600;
-+	if (!baud) baud = 9600;
- 	if (tport->tp_tdev->td_is_3410)
- 		config->wBaudRate = (__u16)((923077 + baud/2) / baud);
- 	else
- 		config->wBaudRate = (__u16)((461538 + baud/2) / baud);
+ /*
+  * Drop request
+@@ -1531,7 +1528,6 @@ svc_drop(struct svc_rqst *rqstp)
+ 	dprintk("svc: socket %p dropped request\n", rqstp->rq_sock);
+ 	svc_sock_release(rqstp);
+ }
+-EXPORT_SYMBOL(svc_drop);
  
--	/* FIXME: Should calculate resulting baud here and report it back */
--	if ((cflag & CBAUD) != B0)
--		tty_encode_baud_rate(tty, baud, baud);
--
- 	dbg("%s - BaudRate=%d, wBaudRate=%d, wFlags=0x%04X, bDataBits=%d, bParity=%d, bStopBits=%d, cXon=%d, cXoff=%d, bUartMode=%d",
- 	__FUNCTION__, baud, config->wBaudRate, config->wFlags, config->bDataBits, config->bParity, config->bStopBits, config->cXon, config->cXoff, config->bUartMode);
+ /*
+  * Return reply to client.
+@@ -1871,7 +1867,6 @@ int svc_makesock(struct svc_serv *serv, 
+ 	return svc_create_socket(serv, protocol, (struct sockaddr *) &sin,
+ 							sizeof(sin), flags);
+ }
+-EXPORT_SYMBOL(svc_makesock);
  
+ /*
+  * Handle defer and revisit of requests
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
