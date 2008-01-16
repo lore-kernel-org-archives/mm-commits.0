@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + modules-make-module_address_lookup-safe-fix.patch added to -mm tree
-Date: Wed, 16 Jan 2008 02:06:40 -0800
-Message-ID: <200801161015.m0GAF1aI031739@imap1.linux-foundation.org>
+Subject: + git-x86-fixup-2.patch added to -mm tree
+Date: Wed, 16 Jan 2008 02:20:12 -0800
+Message-ID: <200801161028.m0GASXnH032226@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52728 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37860 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751645AbYAPKPe (ORCPT
+	by vger.kernel.org with ESMTP id S1751307AbYAPK2v (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 05:15:34 -0500
+	Wed, 16 Jan 2008 05:28:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kyle@mcmartin.ca, mingo@elte.hu, rusty@rustcorp.com.au
+Cc: akpm@linux-foundation.org, mingo@elte.hu
 
 
 The patch titled
-     modules-make-module_address_lookup-safe-fix
+     git-x86-fixup-2
 has been added to the -mm tree.  Its filename is
-     modules-make-module_address_lookup-safe-fix.patch
+     git-x86-fixup-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,55 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: modules-make-module_address_lookup-safe-fix
+Subject: git-x86-fixup-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/module.c: In function 'module_address_lookup':
-kernel/module.c:2241: warning: return discards qualifiers from pointer target type
+nfi.
 
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/module.h |    4 ++--
- kernel/module.c        |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ arch/x86/kernel/traps_64.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/module.h~modules-make-module_address_lookup-safe-fix include/linux/module.h
---- a/include/linux/module.h~modules-make-module_address_lookup-safe-fix
-+++ a/include/linux/module.h
-@@ -449,7 +449,7 @@ static inline void __module_get(struct m
- /* For kallsyms to ask for address resolution.  namebuf should be at
-  * least KSYM_NAME_LEN long: a pointer to namebuf is returned if
-  * found, otherwise NULL. */
--char *module_address_lookup(unsigned long addr,
-+const char *module_address_lookup(unsigned long addr,
- 			    unsigned long *symbolsize,
- 			    unsigned long *offset,
- 			    char **modname,
-@@ -519,7 +519,7 @@ static inline void module_put(struct mod
- #define module_name(mod) "kernel"
- 
- /* For kallsyms to ask for address resolution.  NULL means not found. */
--static inline char *module_address_lookup(unsigned long addr,
-+static inline const char *module_address_lookup(unsigned long addr,
- 					  unsigned long *symbolsize,
- 					  unsigned long *offset,
- 					  char **modname,
-diff -puN kernel/module.c~modules-make-module_address_lookup-safe-fix kernel/module.c
---- a/kernel/module.c~modules-make-module_address_lookup-safe-fix
-+++ a/kernel/module.c
-@@ -2213,7 +2213,7 @@ static const char *get_ksymbol(struct mo
- 
- /* For kallsyms to ask for address resolution.  NULL means not found.  Careful
-  * not to lock to avoid deadlock on oopses, simply disable preemption. */
--char *module_address_lookup(unsigned long addr,
-+const char *module_address_lookup(unsigned long addr,
- 			    unsigned long *size,
- 			    unsigned long *offset,
- 			    char **modname,
+diff -puN arch/x86/kernel/traps_64.c~git-x86-fixup-2 arch/x86/kernel/traps_64.c
+--- a/arch/x86/kernel/traps_64.c~git-x86-fixup-2
++++ a/arch/x86/kernel/traps_64.c
+@@ -583,7 +583,7 @@ int __kprobes __die(const char * str, st
+ 	add_taint(TAINT_DIE);
+ 	/* Executive summary in case the oops scrolled away */
+ 	printk(KERN_ALERT "RIP ");
+-	printk_address(regs->ip);
++	printk_address(regs->ip, 1);
+ 	printk(" RSP <%016lx>\n", regs->sp);
+ 	if (kexec_should_crash(current))
+ 		crash_kexec(regs);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -181,6 +156,7 @@ revert-kvm-stuff-to-make-git-x86-apply.patch
 git-x86.patch
 git-x86-fix-conflicts.patch
 git-x86-fixup.patch
+git-x86-fixup-2.patch
 git-x86-vs-something-else.patch
 git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
 git-x86-fix-doubly-merged-patch.patch
