@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-netdev-all-fix-conflicts.patch added to -mm tree
-Date: Tue, 15 Jan 2008 16:41:56 -0800
-Message-ID: <200801160041.m0G0fu7Y011717@imap1.linux-foundation.org>
+Subject: + git-x86-fix-conflicts.patch added to -mm tree
+Date: Tue, 15 Jan 2008 16:43:47 -0800
+Message-ID: <200801160043.m0G0hliF011848@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57597 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43818 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754040AbYAPAmJ (ORCPT
+	by vger.kernel.org with ESMTP id S1753159AbYAPAoE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Jan 2008 19:42:09 -0500
+	Tue, 15 Jan 2008 19:44:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeff@garzik.org
+Cc: akpm@linux-foundation.org, mingo@elte.hu
 
 
 The patch titled
-     git-netdev-all-fix-conflicts
+     git-x86-fix-conflicts
 has been added to the -mm tree.  Its filename is
-     git-netdev-all-fix-conflicts.patch
+     git-x86-fix-conflicts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,102 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-netdev-all-fix-conflicts
+Subject: git-x86-fix-conflicts
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/netxen/netxen_nic_init.c    |    5 -----
- drivers/net/wireless/rt2x00/rt2x00pci.c |    6 ------
- drivers/net/wireless/rt2x00/rt2x00usb.c |    3 ---
- drivers/net/wireless/rt2x00/rt61pci.c   |    8 --------
- 4 files changed, 22 deletions(-)
+ arch/x86/mm/init_32.c |    4 ----
+ include/asm-x86/msr.h |    5 -----
+ 2 files changed, 9 deletions(-)
 
-diff -puN drivers/net/netxen/netxen_nic_init.c~git-netdev-all-fix-conflicts drivers/net/netxen/netxen_nic_init.c
---- a/drivers/net/netxen/netxen_nic_init.c~git-netdev-all-fix-conflicts
-+++ a/drivers/net/netxen/netxen_nic_init.c
-@@ -1281,14 +1281,9 @@ int netxen_process_cmd_ring(unsigned lon
- 	while ((last_consumer != consumer) && (count1 < MAX_STATUS_HANDLE)) {
- 		buffer = &adapter->cmd_buf_arr[last_consumer];
- 		pdev = adapter->pdev;
--<<<<<<< HEAD:drivers/net/netxen/netxen_nic_init.c
--		if (buffer->skb) {
--			frag = &buffer->frag_array[0];
+diff -puN arch/x86/mm/init_32.c~git-x86-fix-conflicts arch/x86/mm/init_32.c
+--- a/arch/x86/mm/init_32.c~git-x86-fix-conflicts
++++ a/arch/x86/mm/init_32.c
+@@ -388,11 +388,7 @@ static void __init set_highmem_pages_ini
+ 	int pfn;
+ 	for (pfn = highstart_pfn; pfn < highend_pfn; pfn++) {
+ 		/*
+-<<<<<<< HEAD:arch/x86/mm/init_32.c
+-		 * Holes under sparsemem might not have no mem_map[]:
 -=======
- 		frag = &buffer->frag_array[0];
- 		skb = buffer->skb;
- 		if (skb && (cmpxchg(&buffer->skb, skb, NULL) == skb)) {
-->>>>>>> FETCH_HEAD:drivers/net/netxen/netxen_nic_init.c
- 			pci_unmap_single(pdev, frag->dma, frag->length,
- 					 PCI_DMA_TODEVICE);
- 			frag->dma = 0ULL;
-diff -puN drivers/net/wireless/rt2x00/rt2x00pci.c~git-netdev-all-fix-conflicts drivers/net/wireless/rt2x00/rt2x00pci.c
---- a/drivers/net/wireless/rt2x00/rt2x00pci.c~git-netdev-all-fix-conflicts
-+++ a/drivers/net/wireless/rt2x00/rt2x00pci.c
-@@ -134,18 +134,12 @@ void rt2x00pci_rxdone(struct rt2x00_dev 
- 	struct data_ring *ring = rt2x00dev->rx;
- 	struct data_entry *entry;
- 	struct sk_buff *skb;
--<<<<<<< HEAD:drivers/net/wireless/rt2x00/rt2x00pci.c
- 	struct ieee80211_hdr *hdr;
+ 		 * Holes under sparsemem might not have a mem-map:
+->>>>>>> FETCH_HEAD:arch/x86/mm/init_32.c
+ 		 */
+ 		if (pfn_valid(pfn))
+ 			add_one_highpage_init(pfn_to_page(pfn), pfn, bad_ppro);
+diff -puN include/asm-x86/msr.h~git-x86-fix-conflicts include/asm-x86/msr.h
+--- a/include/asm-x86/msr.h~git-x86-fix-conflicts
++++ a/include/asm-x86/msr.h
+@@ -6,11 +6,6 @@
+ #ifndef __ASSEMBLY__
+ # include <linux/types.h>
+ #endif
+-<<<<<<< HEAD:include/asm-x86/msr.h
+-
+-#ifdef __i386__
 -=======
- 	struct skb_desc *skbdesc;
-->>>>>>> FETCH_HEAD:drivers/net/wireless/rt2x00/rt2x00pci.c
- 	struct rxdata_entry_desc desc;
--<<<<<<< HEAD:drivers/net/wireless/rt2x00/rt2x00pci.c
- 	int header_size;
- 	int align;
--=======
- 	__le32 *rxd;
-->>>>>>> FETCH_HEAD:drivers/net/wireless/rt2x00/rt2x00pci.c
- 	u32 word;
+->>>>>>> FETCH_HEAD:include/asm-x86/msr.h
  
- 	while (1) {
-diff -puN drivers/net/wireless/rt2x00/rt2x00usb.c~git-netdev-all-fix-conflicts drivers/net/wireless/rt2x00/rt2x00usb.c
---- a/drivers/net/wireless/rt2x00/rt2x00usb.c~git-netdev-all-fix-conflicts
-+++ a/drivers/net/wireless/rt2x00/rt2x00usb.c
-@@ -245,11 +245,8 @@ static void rt2x00usb_interrupt_rxdone(s
- 	struct data_ring *ring = entry->ring;
- 	struct rt2x00_dev *rt2x00dev = ring->rt2x00dev;
- 	struct sk_buff *skb;
--<<<<<<< HEAD:drivers/net/wireless/rt2x00/rt2x00usb.c
- 	struct ieee80211_hdr *hdr;
--=======
- 	struct skb_desc *skbdesc;
-->>>>>>> FETCH_HEAD:drivers/net/wireless/rt2x00/rt2x00usb.c
- 	struct rxdata_entry_desc desc;
- 	int header_size;
- 	int frame_size;
-diff -puN drivers/net/wireless/rt2x00/rt61pci.c~git-netdev-all-fix-conflicts drivers/net/wireless/rt2x00/rt61pci.c
---- a/drivers/net/wireless/rt2x00/rt61pci.c~git-netdev-all-fix-conflicts
-+++ a/drivers/net/wireless/rt2x00/rt61pci.c
-@@ -1704,11 +1704,7 @@ static void rt61pci_txdone(struct rt2x00
- 	struct data_ring *ring;
- 	struct data_entry *entry;
- 	struct data_entry *entry_done;
--<<<<<<< HEAD:drivers/net/wireless/rt2x00/rt61pci.c
--	struct data_desc *txd;
--=======
- 	__le32 *txd;
-->>>>>>> FETCH_HEAD:drivers/net/wireless/rt2x00/rt61pci.c
- 	u32 word;
- 	u32 reg;
- 	u32 old_reg;
-@@ -1768,12 +1764,8 @@ static void rt61pci_txdone(struct rt2x00
- 			WARNING(rt2x00dev,
- 				"TX status report missed for entry %p\n",
- 				entry_done);
--<<<<<<< HEAD:drivers/net/wireless/rt2x00/rt61pci.c
--			rt2x00lib_txdone(entry_done, TX_FAIL_OTHER, 0);
--=======
- 			rt2x00pci_txdone(rt2x00dev, entry_done, TX_FAIL_OTHER,
- 					 0);
-->>>>>>> FETCH_HEAD:drivers/net/wireless/rt2x00/rt61pci.c
- 			entry_done = rt2x00_get_data_entry_done(ring);
- 		}
- 
+ #ifdef __KERNEL__
+ #ifndef __ASSEMBLY__
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -224,6 +169,7 @@ git-wireless.patch
 git-ipwireless_cs.patch
 revert-kvm-stuff-to-make-git-x86-apply.patch
 git-x86.patch
+git-x86-fix-conflicts.patch
 git-x86-fixup.patch
 git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
 git-x86-fix-doubly-merged-patch.patch
