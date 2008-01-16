@@ -1,126 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: - revert-gregkh-usb-usb-ti_usb-termios-cleanups.patch removed from -mm tree
-Date: Wed, 16 Jan 2008 11:09:37 -0800
-Message-ID: <200801161909.m0GJ9IEi019445@imap1.linux-foundation.org>
+Subject: - revert-gregkh-usb-usb-export-suspend-statistics.patch removed from -mm tree
+Date: Wed, 16 Jan 2008 13:00:35 -0800
+Message-ID: <200801162100.m0GL0aAP023985@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45510 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34071 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751472AbYAPTJz (ORCPT
+	by vger.kernel.org with ESMTP id S1750753AbYAPVAk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 14:09:55 -0500
+	Wed, 16 Jan 2008 16:00:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, greg@kroah.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, arjan@linux.intel.com, greg@kroah.com, saharabeara@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert gregkh-usb-usb-ti_usb-termios-cleanups
+     revert gregkh-usb-usb-export-suspend-statistics
 has been removed from the -mm tree.  Its filename was
-     revert-gregkh-usb-usb-ti_usb-termios-cleanups.patch
+     revert-gregkh-usb-usb-export-suspend-statistics.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert gregkh-usb-usb-ti_usb-termios-cleanups
+Subject: revert gregkh-usb-usb-export-suspend-statistics
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/usb/serial/ti_usb_3410_5052.c: In function 'ti_open':
-drivers/usb/serial/ti_usb_3410_5052.c:584: warning: passing argument 2 of 'ti_set_termios' from incompatible pointer type
-drivers/usb/serial/ti_usb_3410_5052.c:621: warning: passing argument 2 of 'ti_set_termios' from incompatible pointer type
+busted with CONFIG_PM=n
 
+Cc: Sarah Sharp <saharabeara@gmail.com>
 Cc: Greg KH <greg@kroah.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Arjan Van De Ven <arjan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/ti_usb_3410_5052.c |   31 +++++++++++++-----------
- 1 file changed, 18 insertions(+), 13 deletions(-)
+ drivers/usb/core/hub.c   |   10 --------
+ drivers/usb/core/sysfs.c |   46 -------------------------------------
+ drivers/usb/core/usb.c   |    2 -
+ include/linux/usb.h      |    2 -
+ 4 files changed, 1 insertion(+), 59 deletions(-)
 
-diff -puN drivers/usb/serial/ti_usb_3410_5052.c~revert-gregkh-usb-usb-ti_usb-termios-cleanups drivers/usb/serial/ti_usb_3410_5052.c
---- a/drivers/usb/serial/ti_usb_3410_5052.c~revert-gregkh-usb-usb-ti_usb-termios-cleanups
-+++ a/drivers/usb/serial/ti_usb_3410_5052.c
-@@ -581,7 +581,7 @@ static int ti_open(struct usb_serial_por
+diff -puN drivers/usb/core/hub.c~revert-gregkh-usb-usb-export-suspend-statistics drivers/usb/core/hub.c
+--- a/drivers/usb/core/hub.c~revert-gregkh-usb-usb-export-suspend-statistics
++++ a/drivers/usb/core/hub.c
+@@ -1034,10 +1034,8 @@ static void recursively_mark_NOTATTACHED
+ 		if (udev->children[i])
+ 			recursively_mark_NOTATTACHED(udev->children[i]);
+ 	}
+-	if (udev->state == USB_STATE_SUSPENDED) {
++	if (udev->state == USB_STATE_SUSPENDED)
+ 		udev->discon_suspended = 1;
+-		udev->active_duration -= jiffies;
+-	}
+ 	udev->state = USB_STATE_NOTATTACHED;
+ }
+ 
+@@ -1086,12 +1084,6 @@ void usb_set_device_state(struct usb_dev
+ 			else
+ 				device_init_wakeup(&udev->dev, 0);
  		}
- 	}
+-		if (udev->state == USB_STATE_SUSPENDED &&
+-			new_state != USB_STATE_SUSPENDED)
+-			udev->active_duration -= jiffies;
+-		else if (new_state == USB_STATE_SUSPENDED &&
+-				udev->state != USB_STATE_SUSPENDED)
+-			udev->active_duration += jiffies;
+ 		udev->state = new_state;
+ 	} else
+ 		recursively_mark_NOTATTACHED(udev);
+diff -puN drivers/usb/core/sysfs.c~revert-gregkh-usb-usb-export-suspend-statistics drivers/usb/core/sysfs.c
+--- a/drivers/usb/core/sysfs.c~revert-gregkh-usb-usb-export-suspend-statistics
++++ a/drivers/usb/core/sysfs.c
+@@ -249,38 +249,6 @@ static void remove_persist_attributes(st
+ #ifdef	CONFIG_USB_SUSPEND
  
--	ti_set_termios(port, &port->tty->termios);
-+	ti_set_termios(port, NULL);
- 
- 	dbg("%s - sending TI_OPEN_PORT", __FUNCTION__);
- 	status = ti_command_out_sync(tdev, TI_OPEN_PORT,
-@@ -618,7 +618,7 @@ static int ti_open(struct usb_serial_por
- 	usb_clear_halt(dev, port->write_urb->pipe);
- 	usb_clear_halt(dev, port->read_urb->pipe);
- 
--	ti_set_termios(port, &port->tty->termios);
-+	ti_set_termios(port, NULL);
- 
- 	dbg("%s - sending TI_OPEN_PORT (2)", __FUNCTION__);
- 	status = ti_command_out_sync(tdev, TI_OPEN_PORT,
-@@ -897,11 +897,24 @@ static void ti_set_termios(struct usb_se
- 
- 	dbg("%s - port %d", __FUNCTION__, port->number);
- 
-+	if (!tty || !tty->termios) {
-+		dbg("%s - no tty or termios", __FUNCTION__);
-+		return;
-+	}
-+
- 	cflag = tty->termios->c_cflag;
- 	iflag = tty->termios->c_iflag;
- 
--	dbg("%s - cflag %08x, iflag %08x", __FUNCTION__, cflag, iflag);
--	dbg("%s - old clfag %08x, old iflag %08x", __FUNCTION__, old_termios->c_cflag, old_termios->c_iflag);
-+	if (old_termios && cflag == old_termios->c_cflag
-+	&& iflag == old_termios->c_iflag) {
-+		dbg("%s - nothing to change", __FUNCTION__);
-+		return;
-+	}
-+
-+	dbg("%s - clfag %08x, iflag %08x", __FUNCTION__, cflag, iflag);
-+
-+	if (old_termios)
-+		dbg("%s - old clfag %08x, old iflag %08x", __FUNCTION__, old_termios->c_cflag, old_termios->c_iflag);
- 
- 	if (tport == NULL)
- 		return;
-@@ -935,9 +948,6 @@ static void ti_set_termios(struct usb_se
- 			    break;
- 	}
- 
--	/* CMSPAR isn't supported by this driver */
--	tty->termios->c_cflag &= ~CMSPAR;
+ static ssize_t
+-show_connected_duration(struct device *dev, struct device_attribute *attr,
+-		char *buf)
+-{
+-	struct usb_device *udev = to_usb_device(dev);
 -
- 	if (cflag & PARENB) {
- 		if (cflag & PARODD) {
- 			config->wFlags |= TI_UART_ENABLE_PARITY_CHECKING;
-@@ -980,17 +990,12 @@ static void ti_set_termios(struct usb_se
- 	}
- 
- 	baud = tty_get_baud_rate(tty);
--	if (!baud)
--		baud = 9600;
-+	if (!baud) baud = 9600;
- 	if (tport->tp_tdev->td_is_3410)
- 		config->wBaudRate = (__u16)((923077 + baud/2) / baud);
- 	else
- 		config->wBaudRate = (__u16)((461538 + baud/2) / baud);
- 
--	/* FIXME: Should calculate resulting baud here and report it back */
--	if ((cflag & CBAUD) != B0)
--		tty_encode_baud_rate(tty, baud, baud);
+-	return sprintf(buf, "%lu\n", jiffies - udev->connect_time);
+-}
 -
- 	dbg("%s - BaudRate=%d, wBaudRate=%d, wFlags=0x%04X, bDataBits=%d, bParity=%d, bStopBits=%d, cXon=%d, cXoff=%d, bUartMode=%d",
- 	__FUNCTION__, baud, config->wBaudRate, config->wFlags, config->bDataBits, config->bParity, config->bStopBits, config->cXon, config->cXoff, config->bUartMode);
+-static DEVICE_ATTR(connected_duration, S_IRUGO, show_connected_duration, NULL);
+-
+-/*
+- * If the device is resumed, the last time the device was suspended has
+- * been pre-subtracted from active_duration.  We add the current time to
+- * get the duration that the device was actually active.
+- *
+- * If the device is suspended, the active_duration is up-to-date.
+- */
+-static ssize_t
+-show_active_duration(struct device *dev, struct device_attribute *attr,
+-		char *buf)
+-{
+-	struct usb_device *udev = to_usb_device(dev);
+-
+-	if (udev->state != USB_STATE_SUSPENDED)
+-		return sprintf(buf, "%lu\n", jiffies + udev->active_duration);
+-	else
+-		return sprintf(buf, "%lu\n", udev->active_duration);
+-}
+-
+-static DEVICE_ATTR(active_duration, S_IRUGO, show_active_duration, NULL);
+-
+-static ssize_t
+ show_autosuspend(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+ 	struct usb_device *udev = to_usb_device(dev);
+@@ -397,14 +365,6 @@ static int add_power_attributes(struct d
+ 			rc = sysfs_add_file_to_group(&dev->kobj,
+ 					&dev_attr_level.attr,
+ 					power_group);
+-		if (rc == 0)
+-			rc = sysfs_add_file_to_group(&dev->kobj,
+-					&dev_attr_connected_duration.attr,
+-					power_group);
+-		if (rc == 0)
+-			rc = sysfs_add_file_to_group(&dev->kobj,
+-					&dev_attr_active_duration.attr,
+-					power_group);
+ 	}
+ 	return rc;
+ }
+@@ -412,12 +372,6 @@ static int add_power_attributes(struct d
+ static void remove_power_attributes(struct device *dev)
+ {
+ 	sysfs_remove_file_from_group(&dev->kobj,
+-			&dev_attr_active_duration.attr,
+-			power_group);
+-	sysfs_remove_file_from_group(&dev->kobj,
+-			&dev_attr_connected_duration.attr,
+-			power_group);
+-	sysfs_remove_file_from_group(&dev->kobj,
+ 			&dev_attr_level.attr,
+ 			power_group);
+ 	sysfs_remove_file_from_group(&dev->kobj,
+diff -puN drivers/usb/core/usb.c~revert-gregkh-usb-usb-export-suspend-statistics drivers/usb/core/usb.c
+--- a/drivers/usb/core/usb.c~revert-gregkh-usb-usb-export-suspend-statistics
++++ a/drivers/usb/core/usb.c
+@@ -339,8 +339,6 @@ usb_alloc_dev(struct usb_device *parent,
+ 	mutex_init(&dev->pm_mutex);
+ 	INIT_DELAYED_WORK(&dev->autosuspend, usb_autosuspend_work);
+ 	dev->autosuspend_delay = usb_autosuspend_delay * HZ;
+-	dev->connect_time = jiffies;
+-	dev->active_duration = -jiffies;
+ #endif
+ 	if (root_hub)	/* Root hub always ok [and always wired] */
+ 		dev->authorized = 1;
+diff -puN include/linux/usb.h~revert-gregkh-usb-usb-export-suspend-statistics include/linux/usb.h
+--- a/include/linux/usb.h~revert-gregkh-usb-usb-export-suspend-statistics
++++ a/include/linux/usb.h
+@@ -425,8 +425,6 @@ struct usb_device {
  
+ 	unsigned long last_busy;	/* time of last use */
+ 	int autosuspend_delay;		/* in jiffies */
+-	unsigned long active_duration;	/* total time device is not suspended */
+-	unsigned long connect_time;	/* time device was first connected */
+ 
+ 	unsigned auto_pm:1;		/* autosuspend/resume in progress */
+ 	unsigned do_remote_wakeup:1;	/* remote wakeup should be enabled */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
 address-hfs-on-disk-corruption-robustness-review-comments-checkpatch-fixes.patch
 get_task_comm-return-the-result.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
@@ -147,8 +193,6 @@ git-audit-printk-warning-fix.patch
 git-cifs.patch
 git-cpufreq.patch
 revert-agk-dm-dm-loop.patch
-drivers-md-dm-ioctlc-fix-uninitialized-var-warning.patch
-drivers-md-dm-tablec-fix-uninitialized-var-warning.patch
 git-powerpc.patch
 git-powerpc-fixup.patch
 revert-gregkh-driver-atm-convert-struct-class_device-to-struct-device.patch
@@ -171,15 +215,11 @@ git-hid.patch
 revert-git-hrt.patch
 git-ieee1394.patch
 git-infiniband.patch
-git-infiniband-dont-direct-your-stderr-to-dev-null.patch
 git-infiniband-versus-driver-tree.patch
 drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
 git-kbuild.patch
 git-kvm.patch
 git-libata-all.patch
-git-libata-all-wtf.patch
-git-libata-drivers-ata-pata_pcmciac-fixup.patch
-git-libata-more-pata-fixes.patch
 drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
 drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
 git-md-accel.patch
@@ -213,7 +253,6 @@ git-sched.patch
 git-sched-fixup.patch
 git-sh.patch
 git-scsi-misc.patch
-git-scsi-misc-vs-git-libata-all.patch
 git-scsi-misc-vs-gregkh-pci-pci-remove-users-of-pci_enable_device_bars.patch
 scsi-aic94xx-cleanups-checkpatch-fixes.patch
 scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
@@ -222,7 +261,6 @@ libsas-convert-ata-bridge-to-use-new-eh.patch
 git-unionfs.patch
 vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
 fix-gregkh-usb-usb-ti_usb-termios-cleanups.patch
-revert-gregkh-usb-usb-ti_usb-termios-cleanups.patch
 revert-gregkh-usb-usb-export-suspend-statistics.patch
 ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
 drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
@@ -246,6 +284,7 @@ git-x86-fix-doubly-merged-patch.patch
 arch-x86-mm-numa_64c-section-fix.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
+git-newsetup.patch
 git-cryptodev.patch
 git-cryptodev-fixup.patch
 git-xtensa.patch
