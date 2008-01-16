@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-audit-printk-warning-fix.patch added to -mm tree
-Date: Wed, 16 Jan 2008 00:16:10 -0800
-Message-ID: <200801160824.m0G8OV8w028098@imap1.linux-foundation.org>
+Subject: + embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch added to -mm tree
+Date: Wed, 16 Jan 2008 00:27:04 -0800
+Message-ID: <200801160835.m0G8ZPUN028400@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37740 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43698 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754684AbYAPIZE (ORCPT
+	by vger.kernel.org with ESMTP id S1756747AbYAPIfh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 03:25:04 -0500
+	Wed, 16 Jan 2008 03:35:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org, ezk@cs.sunysb.edu
 
 
 The patch titled
-     git-audit: printk warning fix
+     embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs
 has been added to the -mm tree.  Its filename is
-     git-audit-printk-warning-fix.patch
+     embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-audit: printk warning fix
+Subject: embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/auditsc.c: In function 'audit_log_single_execve_arg':
-kernel/auditsc.c:1072: warning: format '%ld' expects type 'long int', but argument 4 has type 'size_t'
-
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Erez Zadok <ezk@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/auditsc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/unionfs/inode.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN kernel/auditsc.c~git-audit-printk-warning-fix kernel/auditsc.c
---- a/kernel/auditsc.c~git-audit-printk-warning-fix
-+++ a/kernel/auditsc.c
-@@ -1068,7 +1068,7 @@ static int audit_log_single_execve_arg(s
- 		 * so we can be sure nothing was lost.
- 		 */
- 		if ((i == 0) && (too_long))
--			audit_log_format(*ab, "a%d_len=%ld ", arg_num,
-+			audit_log_format(*ab, "a%d_len=%zd ", arg_num,
- 					 has_cntl ? 2*len : len);
+diff -puN fs/unionfs/inode.c~embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs fs/unionfs/inode.c
+--- a/fs/unionfs/inode.c~embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs
++++ a/fs/unionfs/inode.c
+@@ -190,8 +190,8 @@ static struct dentry *unionfs_lookup(str
  
- 		/*
+ 	/* save the dentry & vfsmnt from namei */
+ 	if (nd) {
+-		path_save.dentry = nd->dentry;
+-		path_save.mnt = nd->mnt;
++		path_save.dentry = nd->path.dentry;
++		path_save.mnt = nd->path.mnt;
+ 	}
+ 
+ 	/*
+@@ -202,8 +202,8 @@ static struct dentry *unionfs_lookup(str
+ 
+ 	/* restore the dentry & vfsmnt in namei */
+ 	if (nd) {
+-		nd->dentry = path_save.dentry;
+-		nd->mnt = path_save.mnt;
++		nd->path.dentry = path_save.dentry;
++		nd->path.mnt = path_save.mnt;
+ 	}
+ 	if (!IS_ERR(ret)) {
+ 		if (ret)
+@@ -944,7 +944,7 @@ static int unionfs_permission(struct ino
+ 	const int write_mask = (mask & MAY_WRITE) && !(mask & MAY_READ);
+ 
+ 	if (nd)
+-		unionfs_lock_dentry(nd->dentry, UNIONFS_DMUTEX_CHILD);
++		unionfs_lock_dentry(nd->path.dentry, UNIONFS_DMUTEX_CHILD);
+ 
+ 	if (!UNIONFS_I(inode)->lower_inodes) {
+ 		if (is_file)	/* dirs can be unlinked but chdir'ed to */
+@@ -1019,7 +1019,7 @@ out:
+ 	unionfs_check_inode(inode);
+ 	unionfs_check_nd(nd);
+ 	if (nd)
+-		unionfs_unlock_dentry(nd->dentry);
++		unionfs_unlock_dentry(nd->path.dentry);
+ 	return err;
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,6 +134,7 @@ git-kbuild.patch
 git-kvm.patch
 git-libata-all.patch
 git-libata-all-wtf.patch
+git-libata-drivers-ata-pata_pcmciac-fixup.patch
 git-md-accel.patch
 git-mmc.patch
 git-mtd.patch
@@ -266,6 +295,7 @@ iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
 iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
 iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
 one-less-parameter-to-__d_path-checkpatch-fixes.patch
 d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
 d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
