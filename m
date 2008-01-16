@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-fixup-2.patch added to -mm tree
-Date: Wed, 16 Jan 2008 02:20:12 -0800
-Message-ID: <200801161028.m0GASXnH032226@imap1.linux-foundation.org>
+Subject: + drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch added to -mm tree
+Date: Wed, 16 Jan 2008 02:38:27 -0800
+Message-ID: <200801161046.m0GAkmI3000313@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37860 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46007 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751307AbYAPK2v (ORCPT
+	by vger.kernel.org with ESMTP id S1751633AbYAPKq5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 05:28:51 -0500
+	Wed, 16 Jan 2008 05:46:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu
+Cc: akpm@linux-foundation.org, dtor@mail.ru
 
 
 The patch titled
-     git-x86-fixup-2
+     drivers/input/touchscreen/ads7846.c: fix uninitialized var warning
 has been added to the -mm tree.  Its filename is
-     git-x86-fixup-2.patch
+     drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-x86-fixup-2
+Subject: drivers/input/touchscreen/ads7846.c: fix uninitialized var warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-nfi.
+drivers/input/touchscreen/ads7846.c: In function 'ads7846_read12_ser':
+drivers/input/touchscreen/ads7846.c:216: warning: 'sample' may be used uninitialized in this function
 
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/traps_64.c |    2 +-
+ drivers/input/touchscreen/ads7846.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/traps_64.c~git-x86-fixup-2 arch/x86/kernel/traps_64.c
---- a/arch/x86/kernel/traps_64.c~git-x86-fixup-2
-+++ a/arch/x86/kernel/traps_64.c
-@@ -583,7 +583,7 @@ int __kprobes __die(const char * str, st
- 	add_taint(TAINT_DIE);
- 	/* Executive summary in case the oops scrolled away */
- 	printk(KERN_ALERT "RIP ");
--	printk_address(regs->ip);
-+	printk_address(regs->ip, 1);
- 	printk(" RSP <%016lx>\n", regs->sp);
- 	if (kexec_should_crash(current))
- 		crash_kexec(regs);
+diff -puN drivers/input/touchscreen/ads7846.c~drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning drivers/input/touchscreen/ads7846.c
+--- a/drivers/input/touchscreen/ads7846.c~drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning
++++ a/drivers/input/touchscreen/ads7846.c
+@@ -213,7 +213,7 @@ static int ads7846_read12_ser(struct dev
+ 	struct ads7846		*ts = dev_get_drvdata(dev);
+ 	struct ser_req		*req = kzalloc(sizeof *req, GFP_KERNEL);
+ 	int			status;
+-	int			sample;
++	int			uninitialized_var(sample);
+ 	int			use_internal;
+ 
+ 	if (!req)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -319,3 +320,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
