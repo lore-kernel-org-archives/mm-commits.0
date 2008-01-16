@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch added to -mm tree
-Date: Wed, 16 Jan 2008 02:38:27 -0800
-Message-ID: <200801161046.m0GAkmI3000313@imap1.linux-foundation.org>
+Subject: + drivers-md-dm-ioctlc-fix-uninitialized-var-warning.patch added to -mm tree
+Date: Wed, 16 Jan 2008 02:40:40 -0800
+Message-ID: <200801161049.m0GAn1Fk000433@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46007 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36872 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751633AbYAPKq5 (ORCPT
+	by vger.kernel.org with ESMTP id S1751333AbYAPKtn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 05:46:57 -0500
+	Wed, 16 Jan 2008 05:49:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dtor@mail.ru
+Cc: akpm@linux-foundation.org, agk@redhat.com
 
 
 The patch titled
-     drivers/input/touchscreen/ads7846.c: fix uninitialized var warning
+     drivers/md/dm-ioctl.c: fix uninitialized var warning
 has been added to the -mm tree.  Its filename is
-     drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+     drivers-md-dm-ioctlc-fix-uninitialized-var-warning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/input/touchscreen/ads7846.c: fix uninitialized var warning
+Subject: drivers/md/dm-ioctl.c: fix uninitialized var warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/input/touchscreen/ads7846.c: In function 'ads7846_read12_ser':
-drivers/input/touchscreen/ads7846.c:216: warning: 'sample' may be used uninitialized in this function
+drivers/md/dm-ioctl.c:1405: warning: 'param' may be used uninitialized in this function
 
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/ads7846.c |    2 +-
+ drivers/md/dm-ioctl.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/input/touchscreen/ads7846.c~drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning drivers/input/touchscreen/ads7846.c
---- a/drivers/input/touchscreen/ads7846.c~drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning
-+++ a/drivers/input/touchscreen/ads7846.c
-@@ -213,7 +213,7 @@ static int ads7846_read12_ser(struct dev
- 	struct ads7846		*ts = dev_get_drvdata(dev);
- 	struct ser_req		*req = kzalloc(sizeof *req, GFP_KERNEL);
- 	int			status;
--	int			sample;
-+	int			uninitialized_var(sample);
- 	int			use_internal;
+diff -puN drivers/md/dm-ioctl.c~drivers-md-dm-ioctlc-fix-uninitialized-var-warning drivers/md/dm-ioctl.c
+--- a/drivers/md/dm-ioctl.c~drivers-md-dm-ioctlc-fix-uninitialized-var-warning
++++ a/drivers/md/dm-ioctl.c
+@@ -1402,7 +1402,7 @@ static int ctl_ioctl(uint command, struc
+ {
+ 	int r = 0;
+ 	unsigned int cmd;
+-	struct dm_ioctl *param;
++	struct dm_ioctl *uninitialized_var(param);
+ 	ioctl_fn fn = NULL;
+ 	size_t param_size;
  
- 	if (!req)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -104,6 +103,7 @@ git-ieee1394.patch
 git-infiniband.patch
 git-infiniband-dont-direct-your-stderr-to-dev-null.patch
 git-infiniband-versus-driver-tree.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
 git-kbuild.patch
 git-kvm.patch
 git-libata-all.patch
@@ -320,4 +320,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+drivers-md-dm-ioctlc-fix-uninitialized-var-warning.patch
