@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ifdef-very-expensive-debug-check-in-page-fault-path.patch added to -mm tree
-Date: Wed, 16 Jan 2008 10:54:54 -0800
-Message-ID: <200801161854.m0GIsYSD018805@imap1.linux-foundation.org>
+Subject: + fix-misparenthesization-introduced-by-commit-78b65179d08e7e4466ba69d5ede85035a2c96358.patch added to -mm tree
+Date: Wed, 16 Jan 2008 11:03:22 -0800
+Message-ID: <200801161903.m0GJ32c1019215@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37992 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48988 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750824AbYAPSyk (ORCPT
+	by vger.kernel.org with ESMTP id S1750702AbYAPTDi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 13:54:40 -0500
+	Wed, 16 Jan 2008 14:03:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cotte@de.ibm.com, nickpiggin@yahoo.com.au
+Cc: scottwood@freescale.com
 
 
 The patch titled
-     #ifdef very expensive debug check in page fault path
+     Fix misparenthesization introduced by commit 78b65179d08e7e4466ba69d5ede85035a2c96358
 has been added to the -mm tree.  Its filename is
-     ifdef-very-expensive-debug-check-in-page-fault-path.patch
+     fix-misparenthesization-introduced-by-commit-78b65179d08e7e4466ba69d5ede85035a2c96358.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: #ifdef very expensive debug check in page fault path
-From: Carsten Otte <cotte@de.ibm.com>
+Subject: Fix misparenthesization introduced by commit 78b65179d08e7e4466ba69d5ede85035a2c96358
+From: Scott Wood <scottwood@freescale.com>
 
-This patch puts #ifdef CONFIG_DEBUG_VM around a check in vm_normal_page
-that verifies that a pfn is valid.  This patch increases performance of the
-page fault microbenchmark in lmbench by 13% and overall dbench performance
-by 7% on s390x.  pfn_valid() is an expensive operation on s390 that needs a
-high double digit amount of CPU cycles.  Nick Piggin suggested that
-pfn_valid() involves an array lookup on systems with sparsemem, and
-therefore is an expensive operation there too.
-
-The check looks like a clear debug thing to me, it should never trigger on
-regular kernels.  And if a pte is created for an invalid pfn, we'll find
-out once the memory gets accessed later on anyway.  Please consider
-inclusion of this patch into mm.
-
-Signed-off-by: Carsten Otte <cotte@de.ibm.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Scott Wood <scottwood@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/mtd/nand/nand_base.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory.c~ifdef-very-expensive-debug-check-in-page-fault-path mm/memory.c
---- a/mm/memory.c~ifdef-very-expensive-debug-check-in-page-fault-path
-+++ a/mm/memory.c
-@@ -392,6 +392,7 @@ struct page *vm_normal_page(struct vm_ar
- 			return NULL;
- 	}
- 
-+#ifdef CONFIG_DEBUG_VM
- 	/*
- 	 * Add some anal sanity checks for now. Eventually,
- 	 * we should just do "return pfn_to_page(pfn)", but
-@@ -402,6 +403,7 @@ struct page *vm_normal_page(struct vm_ar
- 		print_bad_pte(vma, pte, addr);
- 		return NULL;
- 	}
-+#endif
- 
- 	/*
- 	 * NOTE! We still have PageReserved() pages in the page 
+diff -puN drivers/mtd/nand/nand_base.c~fix-misparenthesization-introduced-by-commit-78b65179d08e7e4466ba69d5ede85035a2c96358 drivers/mtd/nand/nand_base.c
+--- a/drivers/mtd/nand/nand_base.c~fix-misparenthesization-introduced-by-commit-78b65179d08e7e4466ba69d5ede85035a2c96358
++++ a/drivers/mtd/nand/nand_base.c
+@@ -2472,9 +2472,9 @@ int nand_scan_tail(struct mtd_info *mtd)
+ 		if ((!chip->ecc.calculate || !chip->ecc.correct ||
+ 		     !chip->ecc.hwctl) &&
+ 		    (!chip->ecc.read_page ||
+-		     chip->ecc.read_page == nand_read_page_hwecc) ||
++		     chip->ecc.read_page == nand_read_page_hwecc ||
+ 		     !chip->ecc.write_page ||
+-		     chip->ecc.write_page == nand_write_page_hwecc) {
++		     chip->ecc.write_page == nand_write_page_hwecc)) {
+ 			printk(KERN_WARNING "No ECC functions supplied, "
+ 			       "Hardware ECC not possible\n");
+ 			BUG();
 _
 
-Patches currently in -mm which might be from cotte@de.ibm.com are
+Patches currently in -mm which might be from scottwood@freescale.com are
 
-origin.patch
-ifdef-very-expensive-debug-check-in-page-fault-path.patch
-git-kvm.patch
-check-advice-of-fadvice64_64-even-if-get_xip_page-is-given.patch
-ext2-xip-check-fix.patch
+git-powerpc.patch
+git-mtd.patch
+fix-misparenthesization-introduced-by-commit-78b65179d08e7e4466ba69d5ede85035a2c96358.patch
