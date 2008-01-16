@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch added to -mm tree
-Date: Wed, 16 Jan 2008 03:19:55 -0800
-Message-ID: <200801161128.m0GBSGdI001727@imap1.linux-foundation.org>
+Subject: + fs-afs-securityc-fix-uninitialized-var-warning.patch added to -mm tree
+Date: Wed, 16 Jan 2008 03:22:09 -0800
+Message-ID: <200801161130.m0GBUU12001755@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57173 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35610 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750801AbYAPL22 (ORCPT
+	by vger.kernel.org with ESMTP id S1751359AbYAPLbR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 06:28:28 -0500
+	Wed, 16 Jan 2008 06:31:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bzolnier@gmail.com
+Cc: akpm@linux-foundation.org, dhowells@redhat.com
 
 
 The patch titled
-     drivers/ide/legacy/hd.c: fix uninitialized var warning
+     fs/afs/security.c: fix uninitialized var warning
 has been added to the -mm tree.  Its filename is
-     drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
+     fs-afs-securityc-fix-uninitialized-var-warning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,42 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/ide/legacy/hd.c: fix uninitialized var warning
+Subject: fs/afs/security.c: fix uninitialized var warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/ide/legacy/hd.c: In function 'hd_request':
-drivers/ide/legacy/hd.c:424: warning: 'stat' may be used uninitialized in this function
+fs/afs/security.c: In function 'afs_permission':
+fs/afs/security.c:290: warning: 'access' may be used uninitialized in this function
 
-gcc is being stupid.
-
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/legacy/hd.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ fs/afs/security.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ide/legacy/hd.c~drivers-ide-legacy-hdc-fix-uninitialized-var-warning drivers/ide/legacy/hd.c
---- a/drivers/ide/legacy/hd.c~drivers-ide-legacy-hdc-fix-uninitialized-var-warning
-+++ a/drivers/ide/legacy/hd.c
-@@ -421,11 +421,14 @@ static void bad_rw_intr(void)
- 
- static inline int wait_DRQ(void)
+diff -puN fs/afs/security.c~fs-afs-securityc-fix-uninitialized-var-warning fs/afs/security.c
+--- a/fs/afs/security.c~fs-afs-securityc-fix-uninitialized-var-warning
++++ a/fs/afs/security.c
+@@ -287,7 +287,7 @@ static int afs_check_permit(struct afs_v
+ int afs_permission(struct inode *inode, int mask, struct nameidata *nd)
  {
--	int retries = 100000, stat;
-+	int retries;
-+	int stat;
+ 	struct afs_vnode *vnode = AFS_FS_I(inode);
+-	afs_access_t access;
++	afs_access_t uninitialized_var(access);
+ 	struct key *key;
+ 	int ret;
  
--	while (--retries > 0)
--		if ((stat = inb_p(HD_STATUS)) & DRQ_STAT)
-+	for (retries = 0; retries < 100000; retries++) {
-+		stat = inb_p(HD_STATUS);
-+		if (stat & DRQ_STAT)
- 			return 0;
-+	}
- 	dump_status("wait_DRQ", stat);
- 	return -1;
- }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -127,6 +116,7 @@ git-libata-all-wtf.patch
 git-libata-drivers-ata-pata_pcmciac-fixup.patch
 git-libata-more-pata-fixes.patch
 drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
+drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
 git-md-accel.patch
 git-mmc.patch
 git-mtd.patch
@@ -334,6 +324,7 @@ xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
 ufs-fix-symlink-creation-on-ufs2-fix.patch
 libfs-allow-error-return-from-simple-attributes-fix.patch
 fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
 make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
 reiser4.patch
 jens-broke-reiser4patch-added-to-mm-tree.patch
@@ -347,4 +338,3 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
