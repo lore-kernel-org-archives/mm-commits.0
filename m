@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-mm-numa_64c-section-fix.patch added to -mm tree
-Date: Wed, 16 Jan 2008 03:09:45 -0800
-Message-ID: <200801161118.m0GBI64G001384@imap1.linux-foundation.org>
+Subject: + drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch added to -mm tree
+Date: Wed, 16 Jan 2008 03:12:12 -0800
+Message-ID: <200801161120.m0GBKXl3001439@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39322 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46619 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751298AbYAPLS4 (ORCPT
+	by vger.kernel.org with ESMTP id S1751252AbYAPLUg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 06:18:56 -0500
+	Wed, 16 Jan 2008 06:20:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clameter@sgi.com, colpatch@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, travis@sgi.com
+Cc: akpm@linux-foundation.org, greg@kroah.com
 
 
 The patch titled
-     arch/x86/mm/numa_64.c: section fix
+     drivers/usb/storage/sddr55.c: fix uninitialized var warnings
 has been added to the -mm tree.  Its filename is
-     arch-x86-mm-numa_64c-section-fix.patch
+     drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,48 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: arch/x86/mm/numa_64.c: section fix
+Subject: drivers/usb/storage/sddr55.c: fix uninitialized var warnings
 From: Andrew Morton <akpm@linux-foundation.org>
 
-x86_64 allmodconfig:
+drivers/usb/storage/sddr55.c: In function 'sddr55_transport':
+drivers/usb/storage/sddr55.c:526: warning: 'deviceID' may be used uninitialized in this function
+drivers/usb/storage/sddr55.c:525: warning: 'manufacturerID' may be used uninitialized in this function
 
-WARNING: vmlinux.o(__ksymtab+0x670): Section mismatch: reference to .init.data:x86_cpu_to_node_map_init (between '__ksymtab_x86_cpu_to_node_map_init' and '__ksymtab_node_data')
-
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Matthew Dobson <colpatch@us.ibm.com>
-Cc: Mike Travis <travis@sgi.com>
-Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/numa_64.c      |    2 +-
- include/asm-x86/topology.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/usb/storage/sddr55.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/mm/numa_64.c~arch-x86-mm-numa_64c-section-fix arch/x86/mm/numa_64.c
---- a/arch/x86/mm/numa_64.c~arch-x86-mm-numa_64c-section-fix
-+++ a/arch/x86/mm/numa_64.c
-@@ -31,7 +31,7 @@ bootmem_data_t plat_node_bdata[MAX_NUMNO
+diff -puN drivers/usb/storage/sddr55.c~drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings drivers/usb/storage/sddr55.c
+--- a/drivers/usb/storage/sddr55.c~drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings
++++ a/drivers/usb/storage/sddr55.c
+@@ -522,8 +522,8 @@ int sddr55_reset(struct us_data *us) {
  
- struct memnode memnode;
+ static unsigned long sddr55_get_capacity(struct us_data *us) {
  
--u16 x86_cpu_to_node_map_init[NR_CPUS] __initdata = {
-+u16 x86_cpu_to_node_map_init[NR_CPUS] = {
- 	[0 ... NR_CPUS-1] = NUMA_NO_NODE
- };
- void *x86_cpu_to_node_map_early_ptr;
-diff -puN include/asm-x86/topology.h~arch-x86-mm-numa_64c-section-fix include/asm-x86/topology.h
---- a/include/asm-x86/topology.h~arch-x86-mm-numa_64c-section-fix
-+++ a/include/asm-x86/topology.h
-@@ -31,7 +31,7 @@
- 
- /* Mappings between logical cpu number and node number */
- DECLARE_PER_CPU(u16, x86_cpu_to_node_map);
--extern u16 __initdata x86_cpu_to_node_map_init[];
-+extern u16 x86_cpu_to_node_map_init[];
- extern void *x86_cpu_to_node_map_early_ptr;
- extern cpumask_t node_to_cpumask_map[];
+-	unsigned char manufacturerID;
+-	unsigned char deviceID;
++	unsigned char uninitialized_var(manufacturerID);
++	unsigned char uninitialized_var(deviceID);
+ 	int result;
+ 	struct sddr55_card_info *info = (struct sddr55_card_info *)us->extra;
  
 _
 
@@ -190,6 +175,7 @@ git-x86-fixup-2.patch
 git-x86-vs-something-else.patch
 git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
 git-x86-fix-doubly-merged-patch.patch
+arch-x86-mm-numa_64c-section-fix.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
 git-cryptodev.patch
@@ -349,4 +335,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-arch-x86-mm-numa_64c-section-fix.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
