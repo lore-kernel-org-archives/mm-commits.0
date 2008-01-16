@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-infiniband-fix-build-with-config_infiniband_ipoib_cm=n.patch added to -mm tree
-Date: Wed, 16 Jan 2008 14:35:36 -0800
-Message-ID: <200801162243.m0GMhw4p028409@imap1.linux-foundation.org>
+Subject: + git-dvb-fix-drivers-media-video-bt8xx-bttv-driverc-build.patch added to -mm tree
+Date: Wed, 16 Jan 2008 14:42:09 -0800
+Message-ID: <200801162250.m0GMoVMC028635@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39362 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55839 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751270AbYAPWop (ORCPT
+	by vger.kernel.org with ESMTP id S1752521AbYAPWut (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 17:44:45 -0500
+	Wed, 16 Jan 2008 17:50:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, rolandd@cisco.com
+Cc: akpm@linux-foundation.org, mchehab@infradead.org
 
 
 The patch titled
-     git-infiniband: fix build with CONFIG_INFINIBAND_IPOIB_CM=n
+     git-dvb: fix drivers/media/video/bt8xx/bttv-driver.c build
 has been added to the -mm tree.  Its filename is
-     git-infiniband-fix-build-with-config_infiniband_ipoib_cm=n.patch
+     git-dvb-fix-drivers-media-video-bt8xx-bttv-driverc-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-infiniband: fix build with CONFIG_INFINIBAND_IPOIB_CM=n
+Subject: git-dvb: fix drivers/media/video/bt8xx/bttv-driver.c build
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/infiniband/ulp/ipoib/ipoib_main.c: In function 'ipoib_change_mtu':
-drivers/infiniband/ulp/ipoib/ipoib_main.c:186: error: 'struct ipoib_dev_priv' has no member named 'cm'
+drivers/media/video/bt8xx/bttv-driver.c:3405: error: unknown field 'vidioc_g_register' specified in initializer
+drivers/media/video/bt8xx/bttv-driver.c:3405: error: 'bttv_g_register' undeclared here (not in a function)
+drivers/media/video/bt8xx/bttv-driver.c:3406: error: unknown field 'vidioc_s_register' specified in initializer
+drivers/media/video/bt8xx/bttv-driver.c:3406: error: 'bttv_s_register' undeclared here (not in a function)
 
-Cc: Roland Dreier <rolandd@cisco.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/ulp/ipoib/ipoib_main.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/media/video/bt8xx/bttv-driver.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/infiniband/ulp/ipoib/ipoib_main.c~git-infiniband-fix-build-with-config_infiniband_ipoib_cm=n drivers/infiniband/ulp/ipoib/ipoib_main.c
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c~git-infiniband-fix-build-with-config_infiniband_ipoib_cm=n
-+++ a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -183,9 +183,10 @@ static int ipoib_change_mtu(struct net_d
- 
- 	/* dev->mtu > 2K ==> connected mode */
- 	if (ipoib_cm_admin_enabled(dev)) {
-+#ifdef CONFIG_INFINIBAND_IPOIB_CM
- 		if (new_mtu > priv->cm.max_cm_mtu)
- 			return -EINVAL;
--
+diff -puN drivers/media/video/bt8xx/bttv-driver.c~git-dvb-fix-drivers-media-video-bt8xx-bttv-driverc-build drivers/media/video/bt8xx/bttv-driver.c
+--- a/drivers/media/video/bt8xx/bttv-driver.c~git-dvb-fix-drivers-media-video-bt8xx-bttv-driverc-build
++++ a/drivers/media/video/bt8xx/bttv-driver.c
+@@ -3402,8 +3402,10 @@ static struct video_device bttv_video_te
+ 	.vidioc_s_frequency             = bttv_s_frequency,
+ 	.vidioc_log_status		= bttv_log_status,
+ 	.vidioc_querystd		= bttv_querystd,
++#ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	.vidioc_g_register		= bttv_g_register,
+ 	.vidioc_s_register		= bttv_s_register,
 +#endif
- 		if (new_mtu > priv->mcast_mtu)
- 			ipoib_warn(priv, "mtu > %d will cause multicast packet drops.\n",
- 				   priv->mcast_mtu);
+ 	.tvnorms                        = BTTV_NORMS,
+ 	.current_norm                   = V4L2_STD_PAL,
+ };
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -116,6 +117,7 @@ revert-git-hrt.patch
 git-ieee1394.patch
 git-infiniband.patch
 git-infiniband-versus-driver-tree.patch
+git-infiniband-fix-build-with-config_infiniband_ipoib_cm=n.patch
 drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
 git-kbuild.patch
 git-kvm.patch
@@ -340,4 +342,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-git-infiniband-fix-build-with-config_infiniband_ipoib_cm=n.patch
+git-dvb-fix-drivers-media-video-bt8xx-bttv-driverc-build.patch
