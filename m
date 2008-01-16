@@ -1,63 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - cris-v10-kernel-timec-needs-to-include-linux-vmstath-to-compile.patch removed from -mm tree
-Date: Tue, 15 Jan 2008 17:38:44 -0800
-Message-ID: <200801160138.m0G1cife013931@imap1.linux-foundation.org>
+Subject: - oss-msnd-fix-array-overflows.patch removed from -mm tree
+Date: Tue, 15 Jan 2008 17:38:51 -0800
+Message-ID: <200801160138.m0G1cpfw013943@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36881 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60712 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755179AbYAPBis (ORCPT
+	by vger.kernel.org with ESMTP id S1755910AbYAPBjG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Jan 2008 20:38:48 -0500
+	Tue, 15 Jan 2008 20:39:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.nilsson@axis.com, mikael.starvik@axis.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     CRIS v10: kernel/time.c needs to include linux/vmstat.h to compile
+     OSS msnd: fix array overflows
 has been removed from the -mm tree.  Its filename was
-     cris-v10-kernel-timec-needs-to-include-linux-vmstath-to-compile.patch
+     oss-msnd-fix-array-overflows.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: CRIS v10: kernel/time.c needs to include linux/vmstat.h to compile
-From: Jesper Nilsson <jesper.nilsson@axis.com>
+Subject: OSS msnd: fix array overflows
+From: Adrian Bunk <bunk@kernel.org>
 
-This fixes compile error when nr_free_pages() from linux/swap.h
-expands to global_page_state(NR_FREE_PAGES), but linux/vmstat.h isn't
-included to declare global_page_state().
+Fix array overflows in the OSS msnd driver spotted by the Coverity checker.
 
-Signed-off-by: Jesper Nilsson <jesper.nilsson@axis.com>
-Cc: Mikael Starvik <mikael.starvik@axis.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v10/kernel/time.c |    1 +
- 1 file changed, 1 insertion(+)
+ sound/oss/msnd.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/cris/arch-v10/kernel/time.c~cris-v10-kernel-timec-needs-to-include-linux-vmstath-to-compile arch/cris/arch-v10/kernel/time.c
---- a/arch/cris/arch-v10/kernel/time.c~cris-v10-kernel-timec-needs-to-include-linux-vmstath-to-compile
-+++ a/arch/cris/arch-v10/kernel/time.c
-@@ -13,6 +13,7 @@
- #include <linux/swap.h>
- #include <linux/sched.h>
- #include <linux/init.h>
-+#include <linux/vmstat.h>
- #include <asm/arch/svinto.h>
- #include <asm/types.h>
- #include <asm/signal.h>
+diff -puN sound/oss/msnd.h~oss-msnd-fix-array-overflows sound/oss/msnd.h
+--- a/sound/oss/msnd.h~oss-msnd-fix-array-overflows
++++ a/sound/oss/msnd.h
+@@ -233,8 +233,8 @@ typedef struct multisound_dev {
+ 	spinlock_t lock;
+ 	int nresets;
+ 	unsigned long recsrc;
+-	int left_levels[16];
+-	int right_levels[16];
++	int left_levels[32];
++	int right_levels[32];
+ 	int mixer_mod_count;
+ 	int calibrate_signal;
+ 	int play_sample_size, play_sample_rate, play_channels;
 _
 
-Patches currently in -mm which might be from jesper.nilsson@axis.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-cris-v10-vmlinuxldss-fix-kernel-oops-on-boot-and-use-common-defines.patch
+git-acpi.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-infiniband.patch
 git-kbuild.patch
 git-mtd.patch
-cris-avoid-using-arch-links-in-kconfig.patch
-cris-remove-unused-__dummy-const_addr-and-addr-from-bitopsh.patch
-avoid-overflows-in-kernel-timec.patch
+git-net.patch
+git-netdev-all.patch
+git-battery.patch
+drivers-bluetooth-bpa10xc-fix-memleak.patch
+drivers-bluetooth-btsdioc-fix-double-free.patch
+if-0-pci_cleanup_aer_correct_error_status.patch
+git-scsi-misc.patch
+scsi-advansysc-make-3-functions-static.patch
+scsi-qla2xxx-possible-cleanups.patch
+scsi-aic94xx-cleanups.patch
+scsi-aic94xx-cleanups-checkpatch-fixes.patch
+scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
+usb-make-usb_storage_onetouch-available-with-pm.patch
+git-x86.patch
+git-cryptodev.patch
+git-xtensa.patch
+mm-page-writebackc-make-a-function-static.patch
+make-__vmalloc_area_node-static.patch
+m68knommu-remove-duplicate-exports.patch
+kernel-power-diskc-make-code-static.patch
+make-kernel_shutdown_prepare-static.patch
+nubus-kill-drivers-nubus-nubus_symsc.patch
+m68k-kill-arch-m68k-mac-mac_ksymsc.patch
+m68k-kill-arch-m68k-hp300-ksymsc.patch
+m68k-kill-arch-m68k-amiga-amiga_ksymsc.patch
+m68k-kill-arch-m68k-atari-atari_ksymsc.patch
+m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch
+make-ipc-utilcsysvipc_find_ipc-static.patch
+cleanup-after-apus-removal.patch
+remove-mm_ptovvtop.patch
+remove-__attribute_used__.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+proper-show_interrupts-prototype.patch
+scheduled-oss-driver-removal.patch
+linux-inith-simplify-__meminitexit-dependencies.patch
+proper-prototype-for-signals_init.patch
+kernel-ptracec-should-include-linux-syscallsh.patch
+make-srcu_readers_active-static.patch
+kernel-notifierc-should-include-linux-rebooth.patch
+proper-prototype-for-get_filesystem_list.patch
+fs-utimesc-should-include-linux-syscallsh.patch
+fs-signalfdc-should-include-linux-syscallsh.patch
+fs-eventfdc-should-include-linux-syscallsh.patch
+proper-prototype-for-vty_init.patch
+drivers-misc-lkdtmc-cleanups.patch
+xen-fiddle_vdso-must-be-__init.patch
+calibrate_delay-must-be-__cpuinit.patch
+idle_regs-must-be-__cpuinit.patch
+fs-ecryptfs-possible-cleanups.patch
+make-video-geode-lxfb_corecgeode_modedb-static.patch
+video-hpfbc-section-fix.patch
+drivers-video-pm3fbc-section-fix.patch
+make-jbd-journalc__journal_abort_hard-static.patch
+move-edactxt-two-levels-up.patch
+remove-documentation-smptxt.patch
+kernel-cgroupc-remove-dead-code.patch
+kernel-cgroupc-make-2-functions-static.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+fix-m32r-__xchg.patch
+kill-udffs_dateversion.patch
+reiser4.patch
