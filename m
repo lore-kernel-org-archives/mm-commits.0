@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch added to -mm tree
-Date: Wed, 16 Jan 2008 03:14:27 -0800
-Message-ID: <200801161122.m0GBMmXc001558@imap1.linux-foundation.org>
+Subject: + drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch added to -mm tree
+Date: Wed, 16 Jan 2008 03:15:33 -0800
+Message-ID: <200801161123.m0GBNsDZ001581@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51777 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35195 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751405AbYAPLXN (ORCPT
+	by vger.kernel.org with ESMTP id S1751283AbYAPLYA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 06:23:13 -0500
+	Wed, 16 Jan 2008 06:24:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, zippel@linux-m68k.org
+Cc: akpm@linux-foundation.org, kkeil@suse.de
 
 
 The patch titled
-     fs/hfsplus/unicode.c: fix uninitialized var warning
+     drivers/isdn/hardware/eicon/debug.c: fix uninitialized var warning
 has been added to the -mm tree.  Its filename is
-     fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
+     drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,39 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fs/hfsplus/unicode.c: fix uninitialized var warning
+Subject: drivers/isdn/hardware/eicon/debug.c: fix uninitialized var warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/hfsplus/unicode.c: In function 'hfsplus_hash_dentry':
-fs/hfsplus/unicode.c:328: warning: 'dsize' may be used uninitialized in this function
+drivers/isdn/hardware/eicon/debug.c: In function 'SuperTraceASSIGN':
+drivers/isdn/hardware/eicon/debug.c:1191: warning: 'rx_dma_magic' may be used uninitialized in this function
 
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/unicode.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/isdn/hardware/eicon/debug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/hfsplus/unicode.c~fs-hfsplus-unicodec-fix-uninitialized-var-warning fs/hfsplus/unicode.c
---- a/fs/hfsplus/unicode.c~fs-hfsplus-unicodec-fix-uninitialized-var-warning
-+++ a/fs/hfsplus/unicode.c
-@@ -325,7 +325,7 @@ int hfsplus_hash_dentry(struct dentry *d
- 	struct super_block *sb = dentry->d_sb;
- 	const char *astr;
- 	const u16 *dstr;
--	int casefold, decompose, size, dsize, len;
-+	int casefold, decompose, size, len;
- 	unsigned long hash;
- 	wchar_t c;
- 	u16 c2;
-@@ -336,6 +336,7 @@ int hfsplus_hash_dentry(struct dentry *d
- 	astr = str->name;
- 	len = str->len;
- 	while (len > 0) {
-+		int uninitialized_var(dsize);
- 		size = asc2unichar(sb, astr, len, &c);
- 		astr += size;
- 		len -= size;
+diff -puN drivers/isdn/hardware/eicon/debug.c~drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning drivers/isdn/hardware/eicon/debug.c
+--- a/drivers/isdn/hardware/eicon/debug.c~drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning
++++ a/drivers/isdn/hardware/eicon/debug.c
+@@ -1188,7 +1188,7 @@ int SuperTraceASSIGN (void* AdapterHandl
+ 
+     if ((features[0] & DIVA_XDI_EXTENDED_FEATURES_VALID) &&
+         (features[0] & DIVA_XDI_EXTENDED_FEATURE_MANAGEMENT_DMA)) {
+-      dword rx_dma_magic;
++      dword uninitialized_var(rx_dma_magic);
+       if ((pC->dma_handle = diva_get_dma_descriptor (pC->request, &rx_dma_magic)) >= 0) {
+         pC->xbuffer[0] = LLI;
+         pC->xbuffer[1] = 8;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -328,6 +320,7 @@ aoe-statically-initialise-devlist_lock.patch
 xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
 ufs-fix-symlink-creation-on-ufs2-fix.patch
 libfs-allow-error-return-from-simple-attributes-fix.patch
+fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
 make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
 reiser4.patch
 jens-broke-reiser4patch-added-to-mm-tree.patch
@@ -341,4 +334,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
+drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
