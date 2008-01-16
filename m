@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - mos7720-clean-up-termios.patch removed from -mm tree
-Date: Tue, 15 Jan 2008 17:39:48 -0800
-Message-ID: <200801160139.m0G1dmtx014035@imap1.linux-foundation.org>
+Subject: - io_ti-clean-up-termios-handling.patch removed from -mm tree
+Date: Tue, 15 Jan 2008 17:39:50 -0800
+Message-ID: <200801160139.m0G1dofQ014038@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41234 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44289 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756438AbYAPBto (ORCPT
+	by vger.kernel.org with ESMTP id S1756460AbYAPBto (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 15 Jan 2008 20:49:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,89 +15,99 @@ To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com, mm-commits@vger.k
 
 
 The patch titled
-     mos7720: clean up termios
+     io_ti: clean up termios handling
 has been removed from the -mm tree.  Its filename was
-     mos7720-clean-up-termios.patch
+     io_ti-clean-up-termios-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mos7720: clean up termios
+Subject: io_ti: clean up termios handling
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Remove lots of NULL checks that can no longer occur
-Encode the baud rate back into the termios (again someone with docs see
-FIXME to improve this further)
+Don't pass NULL into termios functions when calling them internally Remove
+all the crap which then checks for NULL which can't occur now.
+
+Clear CMSPAR as it is not supported.
+
+Report the baud rate back to the caller properly (See FIXME someone with
+the docs).
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/mos7720.c |   28 ++++++++--------------------
- 1 file changed, 8 insertions(+), 20 deletions(-)
+ drivers/usb/serial/io_ti.c |   26 ++++++++++----------------
+ 1 file changed, 10 insertions(+), 16 deletions(-)
 
-diff -puN drivers/usb/serial/mos7720.c~mos7720-clean-up-termios drivers/usb/serial/mos7720.c
---- a/drivers/usb/serial/mos7720.c~mos7720-clean-up-termios
-+++ a/drivers/usb/serial/mos7720.c
-@@ -1040,11 +1040,6 @@ static void change_port_settings(struct 
+diff -puN drivers/usb/serial/io_ti.c~io_ti-clean-up-termios-handling drivers/usb/serial/io_ti.c
+--- a/drivers/usb/serial/io_ti.c~io_ti-clean-up-termios-handling
++++ a/drivers/usb/serial/io_ti.c
+@@ -1979,7 +1979,7 @@ static int edge_open (struct usb_serial_
+ 	}
+ 	
+ 	/* set up the port settings */
+-	edge_set_termios (port, NULL);
++	edge_set_termios (port, port->tty->termios);
  
- 	tty = mos7720_port->port->tty;
+ 	/* open up the port */
  
--	if ((!tty) || (!tty->termios)) {
+@@ -2394,11 +2394,6 @@ static void change_port_settings (struct
+ 	dbg("%s - port %d", __FUNCTION__, edge_port->port->number);
+ 
+ 	tty = edge_port->port->tty;
+-	if ((!tty) ||
+-	    (!tty->termios)) {
 -		dbg("%s - no tty structures", __FUNCTION__);
 -		return;
 -	}
--
- 	dbg("%s: Entering ..........", __FUNCTION__);
  
- 	lData = UART_LCR_WLEN8;
-@@ -1175,7 +1170,10 @@ static void change_port_settings(struct 
+ 	config = kmalloc (sizeof (*config), GFP_KERNEL);
+ 	if (!config) {
+@@ -2493,14 +2488,20 @@ static void change_port_settings (struct
+ 		}
+ 	}
  
- 	dbg("%s - baud rate = %d", __FUNCTION__, baud);
- 	status = send_cmd_write_baud_rate(mos7720_port, baud);
--
-+	/* FIXME: needs to write actual resulting baud back not just
-+	   blindly do so */
-+	if (cflag & CBAUD)
++	tty->termios->c_cflag &= ~CMSPAR;
++
+ 	/* Round the baud rate */
+ 	baud = tty_get_baud_rate(tty);
+ 	if (!baud) {
+ 		/* pick a default, any default... */
+ 		baud = 9600;
+-	}
++	} else
 +		tty_encode_baud_rate(tty, baud, baud);
- 	/* Enable Interrupts */
- 	data = 0x0c;
- 	send_mos_cmd(serial, MOS_WRITE, port_number, UART_IER, &data);
-@@ -1214,10 +1212,6 @@ static void mos7720_set_termios(struct u
++
+ 	edge_port->baud_rate = baud;
+ 	config->wBaudRate = (__u16)((461550L + baud/2) / baud);
++
++	/* FIXME: Recompute actual baud from divisor here */
  
- 	tty = port->tty;
+ 	dbg ("%s - baud rate = %d, wBaudRate = %d", __FUNCTION__, baud, config->wBaudRate);
+ 
+@@ -2539,19 +2540,12 @@ static void edge_set_termios (struct usb
+ 	struct tty_struct *tty = port->tty;
+ 	unsigned int cflag;
  
 -	if (!port->tty || !port->tty->termios) {
--		dbg("%s - no tty or termios", __FUNCTION__);
--		return;
--	}
- 
- 	if (!mos7720_port->open) {
- 		dbg("%s - port not opened", __FUNCTION__);
-@@ -1228,19 +1222,13 @@ static void mos7720_set_termios(struct u
- 
- 	cflag = tty->termios->c_cflag;
- 
--	if (!cflag) {
--		printk("%s %s\n",__FUNCTION__,"cflag is NULL");
+-		dbg ("%s - no tty or termios", __FUNCTION__);
 -		return;
 -	}
 -
--	dbg("%s - clfag %08x iflag %08x", __FUNCTION__,
-+	dbg("%s - cflag %08x iflag %08x", __FUNCTION__,
- 	    tty->termios->c_cflag,
- 	    RELEVANT_IFLAG(tty->termios->c_iflag));
+ 	cflag = tty->termios->c_cflag;
  
--	if (old_termios)
+ 	dbg("%s - clfag %08x iflag %08x", __FUNCTION__, 
+ 	    tty->termios->c_cflag, tty->termios->c_iflag);
+-	if (old_termios) {
 -		dbg("%s - old clfag %08x old iflag %08x", __FUNCTION__,
--		    old_termios->c_cflag,
--		    RELEVANT_IFLAG(old_termios->c_iflag));
-+	dbg("%s - old cflag %08x old iflag %08x", __FUNCTION__,
-+	    old_termios->c_cflag,
-+	    RELEVANT_IFLAG(old_termios->c_iflag));
+-		    old_termios->c_cflag, old_termios->c_iflag);
+-	}
++	dbg("%s - old clfag %08x old iflag %08x", __FUNCTION__,
++	    old_termios->c_cflag, old_termios->c_iflag);
  
  	dbg("%s - port %d", __FUNCTION__, port->number);
  
