@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-media-dvb-frontends-xc5000c-dont-return-garbage-from-xc5000_init.patch added to -mm tree
-Date: Wed, 16 Jan 2008 02:44:42 -0800
-Message-ID: <200801161053.m0GAr3ns000575@imap1.linux-foundation.org>
+Subject: + drivers-mtd-ubi-wlc-fix-uninitialized-var-warning.patch added to -mm tree
+Date: Wed, 16 Jan 2008 02:47:01 -0800
+Message-ID: <200801161055.m0GAtMKv000608@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43046 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43755 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751658AbYAPKxb (ORCPT
+	by vger.kernel.org with ESMTP id S1751745AbYAPKzg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 05:53:31 -0500
+	Wed, 16 Jan 2008 05:55:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mchehab@infradead.org
+Cc: akpm@linux-foundation.org, dwmw2@infradead.org
 
 
 The patch titled
-     drivers/media/dvb/frontends/xc5000.c: don't return garbage from xc5000_init()
+     drivers/mtd/ubi/wl.c: fix uninitialized var warning
 has been added to the -mm tree.  Its filename is
-     drivers-media-dvb-frontends-xc5000c-dont-return-garbage-from-xc5000_init.patch
+     drivers-mtd-ubi-wlc-fix-uninitialized-var-warning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/media/dvb/frontends/xc5000.c: don't return garbage from xc5000_init()
+Subject: drivers/mtd/ubi/wl.c: fix uninitialized var warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/media/dvb/frontends/xc5000.c: In function 'xc5000_init':
-drivers/media/dvb/frontends/xc5000.c:694: warning: 'ret' may be used uninitialized in this function
+drivers/mtd/ubi/wl.c:746: warning: 'pe' may be used uninitialized in this function
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/frontends/xc5000.c |    2 +-
+ drivers/mtd/ubi/wl.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/dvb/frontends/xc5000.c~drivers-media-dvb-frontends-xc5000c-dont-return-garbage-from-xc5000_init drivers/media/dvb/frontends/xc5000.c
---- a/drivers/media/dvb/frontends/xc5000.c~drivers-media-dvb-frontends-xc5000c-dont-return-garbage-from-xc5000_init
-+++ a/drivers/media/dvb/frontends/xc5000.c
-@@ -691,7 +691,7 @@ static int xc5000_get_status(struct dvb_
- static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe)
+diff -puN drivers/mtd/ubi/wl.c~drivers-mtd-ubi-wlc-fix-uninitialized-var-warning drivers/mtd/ubi/wl.c
+--- a/drivers/mtd/ubi/wl.c~drivers-mtd-ubi-wlc-fix-uninitialized-var-warning
++++ a/drivers/mtd/ubi/wl.c
+@@ -743,7 +743,7 @@ static int wear_leveling_worker(struct u
+ 				int cancel)
  {
- 	struct xc5000_priv *priv = fe->tuner_priv;
--	int ret;
-+	int ret = 0;
+ 	int err, put = 0, scrubbing = 0, protect = 0;
+-	struct ubi_wl_prot_entry *pe;
++	struct ubi_wl_prot_entry *uninitialized_var(pe);
+ 	struct ubi_wl_entry *e1, *e2;
+ 	struct ubi_vid_hdr *vid_hdr;
  
- 	if (priv->fwloaded == 0) {
- 		ret = xc5000_fwupload(fe);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,6 +96,7 @@ git-drm.patch
 intel-agp-enable-i915-recognition.patch
 drm-convert-from-nopage-to-fault-checkpatch-fixes.patch
 git-dvb.patch
+drivers-media-dvb-frontends-xc5000c-dont-return-garbage-from-xc5000_init.patch
 fix-jdelvare-i2c-i2c-constify-client-address-data.patch
 hwmon-new-chip-driver-for-ti-ads7828-a-d.patch
 hwmon-new-chip-driver-for-ti-ads7828-a-d-checkpatch-fixes.patch
@@ -323,4 +323,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-drivers-media-dvb-frontends-xc5000c-dont-return-garbage-from-xc5000_init.patch
+drivers-mtd-ubi-wlc-fix-uninitialized-var-warning.patch
