@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch added to -mm tree
-Date: Wed, 16 Jan 2008 03:15:33 -0800
-Message-ID: <200801161123.m0GBNsDZ001581@imap1.linux-foundation.org>
+Subject: + drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch added to -mm tree
+Date: Wed, 16 Jan 2008 03:17:16 -0800
+Message-ID: <200801161125.m0GBPbLs001608@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35195 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37889 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751283AbYAPLYA (ORCPT
+	by vger.kernel.org with ESMTP id S1751514AbYAPLZl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 06:24:00 -0500
+	Wed, 16 Jan 2008 06:25:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kkeil@suse.de
+Cc: akpm@linux-foundation.org, bzolnier@gmail.com
 
 
 The patch titled
-     drivers/isdn/hardware/eicon/debug.c: fix uninitialized var warning
+     drivers/ide/ide-acpi.c: fix uninitialized var warning
 has been added to the -mm tree.  Its filename is
-     drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
+     drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/isdn/hardware/eicon/debug.c: fix uninitialized var warning
+Subject: drivers/ide/ide-acpi.c: fix uninitialized var warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/isdn/hardware/eicon/debug.c: In function 'SuperTraceASSIGN':
-drivers/isdn/hardware/eicon/debug.c:1191: warning: 'rx_dma_magic' may be used uninitialized in this function
+drivers/ide/ide-acpi.c: In function 'ide_acpi_init':
+drivers/ide/ide-acpi.c:175: warning: 'dev_handle' may be used uninitialized in this function
 
-Cc: Karsten Keil <kkeil@suse.de>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hardware/eicon/debug.c |    2 +-
+ drivers/ide/ide-acpi.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/isdn/hardware/eicon/debug.c~drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning drivers/isdn/hardware/eicon/debug.c
---- a/drivers/isdn/hardware/eicon/debug.c~drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning
-+++ a/drivers/isdn/hardware/eicon/debug.c
-@@ -1188,7 +1188,7 @@ int SuperTraceASSIGN (void* AdapterHandl
- 
-     if ((features[0] & DIVA_XDI_EXTENDED_FEATURES_VALID) &&
-         (features[0] & DIVA_XDI_EXTENDED_FEATURE_MANAGEMENT_DMA)) {
--      dword rx_dma_magic;
-+      dword uninitialized_var(rx_dma_magic);
-       if ((pC->dma_handle = diva_get_dma_descriptor (pC->request, &rx_dma_magic)) >= 0) {
-         pC->xbuffer[0] = LLI;
-         pC->xbuffer[1] = 8;
+diff -puN drivers/ide/ide-acpi.c~drivers-ide-ide-acpic-fix-uninitialized-var-warning drivers/ide/ide-acpi.c
+--- a/drivers/ide/ide-acpi.c~drivers-ide-ide-acpic-fix-uninitialized-var-warning
++++ a/drivers/ide/ide-acpi.c
+@@ -172,7 +172,7 @@ err:
+ static acpi_handle ide_acpi_hwif_get_handle(ide_hwif_t *hwif)
+ {
+ 	struct device		*dev = hwif->gendev.parent;
+-	acpi_handle		dev_handle;
++	acpi_handle		uninitialized_var(dev_handle);
+ 	acpi_integer		pcidevfn;
+ 	acpi_handle		chan_handle;
+ 	int			err;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -239,6 +239,7 @@ export-iov_shorten-for-ext4s-use-fix.patch
 system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
 speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
 add-have_oprofile.patch
+drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
 ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
 rtc-ds1302-rtc-support-checkpatch-fixes.patch
 rtc-add-support-for-the-s-35390a-rtc-chip.patch
@@ -334,4 +335,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
+drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
