@@ -1,54 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc-fix.patch removed from -mm tree
-Date: Tue, 15 Jan 2008 23:59:02 -0800
-Message-ID: <200801160807.m0G87OLP027548@imap1.linux-foundation.org>
+Subject: + git-audit-printk-warning-fix.patch added to -mm tree
+Date: Wed, 16 Jan 2008 00:16:10 -0800
+Message-ID: <200801160824.m0G8OV8w028098@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48767 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37740 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753582AbYAPIIU (ORCPT
+	by vger.kernel.org with ESMTP id S1754684AbYAPIZE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 03:08:20 -0500
+	Wed, 16 Jan 2008 03:25:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hpa@zytor.com, jlim@sgi.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc-fix
-has been removed from the -mm tree.  Its filename was
-     provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc-fix.patch
+     git-audit: printk warning fix
+has been added to the -mm tree.  Its filename is
+     git-audit-printk-warning-fix.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc-fix
+Subject: git-audit: printk warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Remove pointless inline.
+kernel/auditsc.c: In function 'audit_log_single_execve_arg':
+kernel/auditsc.c:1072: warning: format '%ld' expects type 'long int', but argument 4 has type 'size_t'
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jonathan Lim <jlim@sgi.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time.c |    2 +-
+ kernel/auditsc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/time.c~provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc-fix kernel/time.c
---- a/kernel/time.c~provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc-fix
-+++ a/kernel/time.c
-@@ -267,7 +267,7 @@ unsigned int inline jiffies_to_usecs(con
- }
- EXPORT_SYMBOL(jiffies_to_usecs);
+diff -puN kernel/auditsc.c~git-audit-printk-warning-fix kernel/auditsc.c
+--- a/kernel/auditsc.c~git-audit-printk-warning-fix
++++ a/kernel/auditsc.c
+@@ -1068,7 +1068,7 @@ static int audit_log_single_execve_arg(s
+ 		 * so we can be sure nothing was lost.
+ 		 */
+ 		if ((i == 0) && (too_long))
+-			audit_log_format(*ab, "a%d_len=%ld ", arg_num,
++			audit_log_format(*ab, "a%d_len=%zd ", arg_num,
+ 					 has_cntl ? 2*len : len);
  
--u64 inline jiffies_64_to_usecs(const u64 j)
-+u64 jiffies_64_to_usecs(const u64 j)
- {
- 	return (j*HZ_TO_USEC_NUM + HZ_TO_USEC_DEN-1) / HZ_TO_USEC_DEN;
- }
+ 		/*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -76,6 +78,7 @@ working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 intel_agp-add-new-chipset-ids-checkpatch-fixes.patch
 git-arm.patch
 git-audit-master.patch
+git-audit-printk-warning-fix.patch
 git-cifs.patch
 git-cpufreq.patch
 git-powerpc.patch
@@ -288,7 +291,6 @@ lib-remove-fastcall-from-lib-checkpatch-fixes.patch
 remove-fastcall-from-linux-include-checkpatch-fixes.patch
 constify-tables-in-kernel-sysctl_checkc-fix.patch
 aoe-statically-initialise-devlist_lock.patch
-provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc-fix.patch
 ufs-fix-symlink-creation-on-ufs2-fix.patch
 make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
 reiser4.patch
