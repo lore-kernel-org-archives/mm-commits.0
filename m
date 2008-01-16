@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-fix-conflicts.patch added to -mm tree
-Date: Tue, 15 Jan 2008 16:43:47 -0800
-Message-ID: <200801160043.m0G0hliF011848@imap1.linux-foundation.org>
+Subject: + git-x86-fixup.patch added to -mm tree
+Date: Tue, 15 Jan 2008 17:07:09 -0800
+Message-ID: <200801160107.m0G17ARg012806@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43818 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50355 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753159AbYAPAoE (ORCPT
+	by vger.kernel.org with ESMTP id S1756544AbYAPBH3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Jan 2008 19:44:04 -0500
+	Tue, 15 Jan 2008 20:07:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, mingo@elte.hu
 
 
 The patch titled
-     git-x86-fix-conflicts
+     git-x86-fixup
 has been added to the -mm tree.  Its filename is
-     git-x86-fix-conflicts.patch
+     git-x86-fixup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,253 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-x86-fix-conflicts
+Subject: git-x86-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
+
+Repair some of the damage against various things.
 
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_32.c |    4 ----
- include/asm-x86/msr.h |    5 -----
- 2 files changed, 9 deletions(-)
+ arch/x86/kernel/acpi/boot.c           |   11 +++++-
+ arch/x86/kernel/cpu/intel_cacheinfo.c |   14 ++++----
+ arch/x86/kernel/entry_64.S            |    2 -
+ arch/x86/kernel/traps_32.c            |   41 ++----------------------
+ arch/x86/kernel/traps_64.c            |    8 ++--
+ arch/x86/oprofile/nmi_int.c           |    4 +-
+ arch/x86/pci/init.c                   |    4 --
+ include/asm-x86/thread_info_64.h      |    3 +
+ include/linux/acpi.h                  |    1 
+ 9 files changed, 35 insertions(+), 53 deletions(-)
 
-diff -puN arch/x86/mm/init_32.c~git-x86-fix-conflicts arch/x86/mm/init_32.c
---- a/arch/x86/mm/init_32.c~git-x86-fix-conflicts
-+++ a/arch/x86/mm/init_32.c
-@@ -388,11 +388,7 @@ static void __init set_highmem_pages_ini
- 	int pfn;
- 	for (pfn = highstart_pfn; pfn < highend_pfn; pfn++) {
- 		/*
--<<<<<<< HEAD:arch/x86/mm/init_32.c
--		 * Holes under sparsemem might not have no mem_map[]:
--=======
- 		 * Holes under sparsemem might not have a mem-map:
-->>>>>>> FETCH_HEAD:arch/x86/mm/init_32.c
- 		 */
- 		if (pfn_valid(pfn))
- 			add_one_highpage_init(pfn_to_page(pfn), pfn, bad_ppro);
-diff -puN include/asm-x86/msr.h~git-x86-fix-conflicts include/asm-x86/msr.h
---- a/include/asm-x86/msr.h~git-x86-fix-conflicts
-+++ a/include/asm-x86/msr.h
-@@ -6,11 +6,6 @@
- #ifndef __ASSEMBLY__
- # include <linux/types.h>
- #endif
--<<<<<<< HEAD:include/asm-x86/msr.h
--
--#ifdef __i386__
--=======
-->>>>>>> FETCH_HEAD:include/asm-x86/msr.h
+diff -puN arch/x86/kernel/acpi/boot.c~git-x86-fixup arch/x86/kernel/acpi/boot.c
+--- a/arch/x86/kernel/acpi/boot.c~git-x86-fixup
++++ a/arch/x86/kernel/acpi/boot.c
+@@ -104,7 +104,6 @@ enum acpi_irq_model_id acpi_irq_model = 
  
- #ifdef __KERNEL__
- #ifndef __ASSEMBLY__
+ #ifdef	CONFIG_X86_64
+ 
+-/* rely on all ACPI tables being in the direct mapping */
+ char *__init __acpi_map_table(unsigned long phys_addr, unsigned long size)
+ {
+ 	if (!phys_addr || !size)
+@@ -113,7 +112,15 @@ char *__init __acpi_map_table(unsigned l
+ 	if (phys_addr+size <= (end_pfn_map << PAGE_SHIFT) + PAGE_SIZE)
+ 		return __va(phys_addr);
+ 
+-	return NULL;
++	return early_ioremap(phys_addr, size);
++}
++
++void __acpi_unmap_table(void * addr, unsigned long size)
++{
++	if (!addr || !size)
++		return;
++
++	early_iounmap(addr, size);
+ }
+ 
+ #else
+diff -puN arch/x86/kernel/cpu/intel_cacheinfo.c~git-x86-fixup arch/x86/kernel/cpu/intel_cacheinfo.c
+--- a/arch/x86/kernel/cpu/intel_cacheinfo.c~git-x86-fixup
++++ a/arch/x86/kernel/cpu/intel_cacheinfo.c
+@@ -734,8 +734,9 @@ static int __cpuinit cache_add_dev(struc
+ 	if (unlikely(retval < 0))
+ 		return retval;
+ 
+-	retval = kobject_init_and_add(cache_kobject[cpu], &ktype_percpu_entry,
+-				      &sys_dev->kobj, "%s", "cache");
++	retval = kobject_init_and_add(per_cpu(cache_kobject, cpu),
++				      &ktype_percpu_entry, &sys_dev->kobj,
++				      "%s", "cache");
+ 	if (retval < 0) {
+ 		cpuid4_cache_sysfs_exit(cpu);
+ 		return retval;
+@@ -746,13 +747,14 @@ static int __cpuinit cache_add_dev(struc
+ 		this_object->cpu = cpu;
+ 		this_object->index = i;
+ 		retval = kobject_init_and_add(&(this_object->kobj),
+-					      &ktype_cache, cache_kobject[cpu],
++					      &ktype_cache,
++					      per_cpu(cache_kobject, cpu),
+ 					      "index%1lu", i);
+ 		if (unlikely(retval)) {
+ 			for (j = 0; j < i; j++) {
+ 				kobject_put(&(INDEX_KOBJECT_PTR(cpu,j)->kobj));
+ 			}
+-			kobject_put(cache_kobject[cpu]);
++			kobject_put(per_cpu(cache_kobject, cpu));
+ 			cpuid4_cache_sysfs_exit(cpu);
+ 			break;
+ 		}
+@@ -761,7 +763,7 @@ static int __cpuinit cache_add_dev(struc
+ 	if (!retval)
+ 		cpu_set(cpu, cache_dev_map);
+ 
+-	kobject_uevent(cache_kobject[cpu], KOBJ_ADD);
++	kobject_uevent(per_cpu(cache_kobject, cpu), KOBJ_ADD);
+ 	return retval;
+ }
+ 
+@@ -778,7 +780,7 @@ static void __cpuinit cache_remove_dev(s
+ 
+ 	for (i = 0; i < num_cache_leaves; i++)
+ 		kobject_put(&(INDEX_KOBJECT_PTR(cpu,i)->kobj));
+-	kobject_put(cache_kobject[cpu]);
++	kobject_put(per_cpu(cache_kobject, cpu));
+ 	cpuid4_cache_sysfs_exit(cpu);
+ }
+ 
+diff -puN arch/x86/kernel/entry_64.S~git-x86-fixup arch/x86/kernel/entry_64.S
+--- a/arch/x86/kernel/entry_64.S~git-x86-fixup
++++ a/arch/x86/kernel/entry_64.S
+@@ -295,7 +295,7 @@ sysret_careful:
+ 	/* Handle a signal */ 
+ sysret_signal:
+ 	TRACE_IRQS_ON
+-	sti
++	ENABLE_INTERRUPTS(CLBR_NONE)
+ 	testl $_TIF_DO_NOTIFY_MASK,%edx
+ 	jz    1f
+ 
+diff -puN arch/x86/kernel/traps_32.c~git-x86-fixup arch/x86/kernel/traps_32.c
+--- a/arch/x86/kernel/traps_32.c~git-x86-fixup
++++ a/arch/x86/kernel/traps_32.c
+@@ -416,45 +416,14 @@ void die(const char * str, struct pt_reg
+ 		raw_local_irq_save(flags);
+ 
+ 	if (++die.lock_owner_depth < 3) {
+-		unsigned long esp;
+-		unsigned short ss;
+-
+-		report_bug(regs->eip, regs);
+-
+-		printk(KERN_EMERG "%s: %04lx [#%d] ", str, err & 0xffff,
+-		       ++die_counter);
+-#ifdef CONFIG_PREEMPT
+-		printk("PREEMPT ");
+-#endif
+-#ifdef CONFIG_SMP
+-		printk("SMP ");
+-#endif
+-#ifdef CONFIG_DEBUG_PAGEALLOC
+-		printk("DEBUG_PAGEALLOC");
+-#endif
+-		printk("\n");
+-
+ 		sysfs_printk_last_file();
+-		if (notify_die(DIE_OOPS, str, regs, err,
+-					current->thread.trap_no, SIGSEGV) !=
+-				NOTIFY_STOP) {
+-			show_registers(regs);
+-			/* Executive summary in case the oops scrolled away */
+-			esp = (unsigned long) (&regs->esp);
+-			savesegment(ss, ss);
+-			if (user_mode(regs)) {
+-				esp = regs->esp;
+-				ss = regs->xss & 0xffff;
+-			}
+-			printk(KERN_EMERG "EIP: [<%08lx>] ", regs->eip);
+-			print_symbol("%s", regs->eip);
+-			printk(" SS:ESP %04x:%08lx\n", ss, esp);
+-		}
+-		else
++		report_bug(regs->ip, regs);
++
++		if (__die(str, regs, err))
+ 			regs = NULL;
+-  	} else
++	} else {
+ 		printk(KERN_EMERG "Recursive die() failure, output suppressed\n");
+-
++	}
+ 	bust_spinlocks(0);
+ 	die.lock_owner = -1;
+ 	add_taint(TAINT_DIE);
+diff -puN arch/x86/kernel/traps_64.c~git-x86-fixup arch/x86/kernel/traps_64.c
+--- a/arch/x86/kernel/traps_64.c~git-x86-fixup
++++ a/arch/x86/kernel/traps_64.c
+@@ -577,15 +577,17 @@ int __kprobes __die(const char * str, st
+ #endif
+ 	printk("\n");
+ 	sysfs_printk_last_file();
+-	notify_die(DIE_OOPS, str, regs, err, current->thread.trap_no, SIGSEGV);
++	if (notify_die(DIE_OOPS, str, regs, err, current->thread.trap_no, SIGSEGV) == NOTIFY_STOP)
++		return 1;
+ 	show_registers(regs);
+ 	add_taint(TAINT_DIE);
+ 	/* Executive summary in case the oops scrolled away */
+ 	printk(KERN_ALERT "RIP ");
+-	printk_address(regs->rip); 
+-	printk(" RSP <%016lx>\n", regs->rsp); 
++	printk_address(regs->ip);
++	printk(" RSP <%016lx>\n", regs->sp);
+ 	if (kexec_should_crash(current))
+ 		crash_kexec(regs);
++	return 0;
+ }
+ 
+ void die(const char * str, struct pt_regs * regs, long err)
+diff -puN arch/x86/oprofile/nmi_int.c~git-x86-fixup arch/x86/oprofile/nmi_int.c
+--- a/arch/x86/oprofile/nmi_int.c~git-x86-fixup
++++ a/arch/x86/oprofile/nmi_int.c
+@@ -65,7 +65,9 @@ static struct sys_device device_oprofile
+ static int __init init_sysfs(void)
+ {
+ 	int error;
+-	if (!(error = sysdev_class_register(&oprofile_sysclass)))
++
++	error = sysdev_class_register(&oprofile_sysclass);
++	if (!error)
+ 		error = sysdev_register(&device_oprofile);
+ 	return error;
+ }
+diff -puN arch/x86/pci/init.c~git-x86-fixup arch/x86/pci/init.c
+--- a/arch/x86/pci/init.c~git-x86-fixup
++++ a/arch/x86/pci/init.c
+@@ -11,9 +11,7 @@ static __init int pci_access_init(void)
+ #ifdef CONFIG_PCI_DIRECT
+ 	type = pci_direct_probe();
+ #endif
+-#ifdef CONFIG_PCI_MMCONFIG
+-	pci_mmcfg_init(type);
+-#endif
++	pci_mmcfg_early_init(type);
+ 	/* if we ONLY have MMCONFIG, we need to use it always */
+ 	if (!raw_pci_ops && raw_pci_ops_extcfg) {
+ 		printk(KERN_INFO "No direct PCI access, using MMCONFIG always\n");
+diff -puN include/asm-x86/thread_info_64.h~git-x86-fixup include/asm-x86/thread_info_64.h
+--- a/include/asm-x86/thread_info_64.h~git-x86-fixup
++++ a/include/asm-x86/thread_info_64.h
+@@ -113,7 +113,7 @@ static inline struct thread_info *stack_
+ #define TIF_RESTORE_SIGMASK	9	/* restore signal mask in do_signal */
+ #define TIF_MCE_NOTIFY		10	/* notify userspace of an MCE */
+ #define TIF_HRTICK_RESCHED	11	/* reprogram hrtick timer */
+-/* 16 free */
++#define TIF_FORCED_TF		16	/* true if TF in eflags artificially */
+ #define TIF_IA32		17	/* 32bit process */ 
+ #define TIF_FORK		18	/* ret_from_fork */
+ #define TIF_ABI_PENDING		19
+@@ -135,6 +135,7 @@ static inline struct thread_info *stack_
+ #define _TIF_SECCOMP		(1<<TIF_SECCOMP)
+ #define _TIF_RESTORE_SIGMASK	(1<<TIF_RESTORE_SIGMASK)
+ #define _TIF_MCE_NOTIFY		(1<<TIF_MCE_NOTIFY)
++#define _TIF_FORCED_TF		(1<<TIF_FORCED_TF)
+ #define _TIF_HRTICK_RESCHED	(1<<TIF_HRTICK_RESCHED)
+ #define _TIF_IA32		(1<<TIF_IA32)
+ #define _TIF_FORK		(1<<TIF_FORK)
+diff -puN include/linux/acpi.h~git-x86-fixup include/linux/acpi.h
+--- a/include/linux/acpi.h~git-x86-fixup
++++ a/include/linux/acpi.h
+@@ -78,6 +78,7 @@ typedef int (*acpi_table_handler) (struc
+ typedef int (*acpi_table_entry_handler) (struct acpi_subtable_header *header, const unsigned long end);
+ 
+ char * __acpi_map_table (unsigned long phys_addr, unsigned long size);
++void __acpi_unmap_table (void * addr, unsigned long size);
+ int acpi_boot_init (void);
+ int acpi_boot_table_init (void);
+ int acpi_numa_init (void);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
