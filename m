@@ -1,129 +1,184 @@
 From: akpm@linux-foundation.org
-Subject: - quicklists-only-consider-memory-that-can-be-used-with-gfp_kernel.patch removed from -mm tree
-Date: Tue, 15 Jan 2008 17:38:17 -0800
-Message-ID: <200801160138.m0G1cHJe013895@imap1.linux-foundation.org>
+Subject: - modules-de-mutex-more-symbol-lookup-paths-in-the-module-code.patch removed from -mm tree
+Date: Tue, 15 Jan 2008 17:37:57 -0800
+Message-ID: <200801160137.m0G1bvFb013870@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39881 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59459 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756866AbYAPBiV (ORCPT
+	by vger.kernel.org with ESMTP id S1756977AbYAPBi2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Jan 2008 20:38:21 -0500
+	Tue, 15 Jan 2008 20:38:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, dhaval@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: rusty@rustcorp.com.au, kyle@mcmartin.ca, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     quicklists: Only consider memory that can be used with GFP_KERNEL
+     modules: de-mutex more symbol lookup paths in the module code
 has been removed from the -mm tree.  Its filename was
-     quicklists-only-consider-memory-that-can-be-used-with-gfp_kernel.patch
+     modules-de-mutex-more-symbol-lookup-paths-in-the-module-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quicklists: Only consider memory that can be used with GFP_KERNEL
-From: Christoph Lameter <clameter@sgi.com>
+Subject: modules: de-mutex more symbol lookup paths in the module code
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-Quicklists calculates the size of the quicklists based on the number of
-free pages.  This must be the number of free pages that can be allocated
-with GFP_KERNEL.  node_page_state() includes the pages in ZONE_HIGHMEM and
-ZONE_MOVABLE which may lead the quicklists to become too large causing OOM.
+Kyle McMartin reports sysrq_timer_list_show() can hit the module mutex from
+hard interrupt context.  These paths don't need to though, since we long ago
+changed all the module list manipulation to occur via stop_machine().
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Tested-by: Dhaval Giani <dhaval@linux.vnet.ibm.com>
+Disabling preemption is enough.
+
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/quicklist.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ kernel/module.c |   29 ++++++++++++++++++-----------
+ 1 file changed, 18 insertions(+), 11 deletions(-)
 
-diff -puN mm/quicklist.c~quicklists-only-consider-memory-that-can-be-used-with-gfp_kernel mm/quicklist.c
---- a/mm/quicklist.c~quicklists-only-consider-memory-that-can-be-used-with-gfp_kernel
-+++ a/mm/quicklist.c
-@@ -26,9 +26,17 @@ DEFINE_PER_CPU(struct quicklist, quickli
- static unsigned long max_pages(unsigned long min_pages)
+diff -puN kernel/module.c~modules-de-mutex-more-symbol-lookup-paths-in-the-module-code kernel/module.c
+--- a/kernel/module.c~modules-de-mutex-more-symbol-lookup-paths-in-the-module-code
++++ a/kernel/module.c
+@@ -2214,29 +2214,34 @@ static const char *get_ksymbol(struct mo
+ /* For kallsyms to ask for address resolution.  NULL means not found.
+    We don't lock, as this is used for oops resolution and races are a
+    lesser concern. */
++/* FIXME: Risky: returns a pointer into a module w/o lock */
+ const char *module_address_lookup(unsigned long addr,
+ 				  unsigned long *size,
+ 				  unsigned long *offset,
+ 				  char **modname)
  {
- 	unsigned long node_free_pages, max;
-+	struct zone *zones = NODE_DATA(numa_node_id())->node_zones;
-+
-+	node_free_pages =
-+#ifdef CONFIG_ZONE_DMA
-+		zone_page_state(&zones[ZONE_DMA], NR_FREE_PAGES) +
-+#endif
-+#ifdef CONFIG_ZONE_DMA32
-+		zone_page_state(&zones[ZONE_DMA32], NR_FREE_PAGES) +
-+#endif
-+		zone_page_state(&zones[ZONE_NORMAL], NR_FREE_PAGES);
+ 	struct module *mod;
++	const char *ret = NULL;
  
--	node_free_pages = node_page_state(numa_node_id(),
--			NR_FREE_PAGES);
- 	max = node_free_pages / FRACTION_OF_NODE_MEM;
- 	return max(max, min_pages);
++	preempt_disable();
+ 	list_for_each_entry(mod, &modules, list) {
+ 		if (within(addr, mod->module_init, mod->init_size)
+ 		    || within(addr, mod->module_core, mod->core_size)) {
+ 			if (modname)
+ 				*modname = mod->name;
+-			return get_ksymbol(mod, addr, size, offset);
++			ret = get_ksymbol(mod, addr, size, offset);
++			break;
+ 		}
+ 	}
+-	return NULL;
++	preempt_enable();
++	return ret;
  }
+ 
+ int lookup_module_symbol_name(unsigned long addr, char *symname)
+ {
+ 	struct module *mod;
+ 
+-	mutex_lock(&module_mutex);
++	preempt_disable();
+ 	list_for_each_entry(mod, &modules, list) {
+ 		if (within(addr, mod->module_init, mod->init_size) ||
+ 		    within(addr, mod->module_core, mod->core_size)) {
+@@ -2246,12 +2251,12 @@ int lookup_module_symbol_name(unsigned l
+ 			if (!sym)
+ 				goto out;
+ 			strlcpy(symname, sym, KSYM_NAME_LEN);
+-			mutex_unlock(&module_mutex);
++			preempt_enable();
+ 			return 0;
+ 		}
+ 	}
+ out:
+-	mutex_unlock(&module_mutex);
++	preempt_enable();
+ 	return -ERANGE;
+ }
+ 
+@@ -2260,7 +2265,7 @@ int lookup_module_symbol_attrs(unsigned 
+ {
+ 	struct module *mod;
+ 
+-	mutex_lock(&module_mutex);
++	preempt_disable();
+ 	list_for_each_entry(mod, &modules, list) {
+ 		if (within(addr, mod->module_init, mod->init_size) ||
+ 		    within(addr, mod->module_core, mod->core_size)) {
+@@ -2273,12 +2278,12 @@ int lookup_module_symbol_attrs(unsigned 
+ 				strlcpy(modname, mod->name, MODULE_NAME_LEN);
+ 			if (name)
+ 				strlcpy(name, sym, KSYM_NAME_LEN);
+-			mutex_unlock(&module_mutex);
++			preempt_enable();
+ 			return 0;
+ 		}
+ 	}
+ out:
+-	mutex_unlock(&module_mutex);
++	preempt_enable();
+ 	return -ERANGE;
+ }
+ 
+@@ -2287,7 +2292,7 @@ int module_get_kallsym(unsigned int symn
+ {
+ 	struct module *mod;
+ 
+-	mutex_lock(&module_mutex);
++	preempt_disable();
+ 	list_for_each_entry(mod, &modules, list) {
+ 		if (symnum < mod->num_symtab) {
+ 			*value = mod->symtab[symnum].st_value;
+@@ -2296,12 +2301,12 @@ int module_get_kallsym(unsigned int symn
+ 				KSYM_NAME_LEN);
+ 			strlcpy(module_name, mod->name, MODULE_NAME_LEN);
+ 			*exported = is_exported(name, mod);
+-			mutex_unlock(&module_mutex);
++			preempt_enable();
+ 			return 0;
+ 		}
+ 		symnum -= mod->num_symtab;
+ 	}
+-	mutex_unlock(&module_mutex);
++	preempt_enable();
+ 	return -ERANGE;
+ }
+ 
+@@ -2324,6 +2329,7 @@ unsigned long module_kallsyms_lookup_nam
+ 	unsigned long ret = 0;
+ 
+ 	/* Don't lock: we're in enough trouble already. */
++	preempt_disable();
+ 	if ((colon = strchr(name, ':')) != NULL) {
+ 		*colon = '\0';
+ 		if ((mod = find_module(name)) != NULL)
+@@ -2334,6 +2340,7 @@ unsigned long module_kallsyms_lookup_nam
+ 			if ((ret = mod_find_symname(mod, name)) != 0)
+ 				break;
+ 	}
++	preempt_enable();
+ 	return ret;
+ }
+ #endif /* CONFIG_KALLSYMS */
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
 origin.patch
-gregkh-driver-kset-move-sys-slab-to-sys-kernel-slab-slabinfo-fallback-from-sys-kernel-slab-to-sys-slab.patch
+git-kbuild.patch
+git-kvm.patch
+git-libata-all.patch
 git-sched.patch
-git-unionfs.patch
+git-scsi-misc.patch
 git-x86.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-move-vmalloc_to_page-to-mm-vmalloc.patch
-vmalloc-add-const-to-void-parameters.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries.patch
-vmalloc-clean-up-page-array-indexing.patch
-vunmap-return-page-array-passed-on-vmap.patch
-slub-move-count_partial.patch
-slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio.patch
-slub-consolidate-add_partial-and-add_partial_tail-to-one-function.patch
-slub-use-non-atomic-bit-unlock.patch
-slub-fix-coding-style-violations.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-noinline-some-functions-to-avoid-them-being-folded-into-alloc-free.patch
-slub-move-kmem_cache_node-determination-into-add_full-and-add_partial.patch
-slub-move-kmem_cache_node-determination-into-add_full-and-add_partial-slub-workaround-for-lockdep-confusion.patch
-slub-avoid-checking-for-a-valid-object-before-zeroing-on-the-fast-path.patch
-slub-__slab_alloc-exit-path-consolidation.patch
-slub-provide-unique-end-marker-for-each-slab.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-avoid-referencing-kmem_cache-structure-in-__slab_alloc.patch
-slub-optional-fast-path-using-cmpxchg_local.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-fix.patch
-slub-restructure-slab-alloc.patch
-slub-comment-kmem_cache_cpu-structure.patch
-vm-allow-get_page_unless_zero-on-compound-pages.patch
-bufferhead-revert-constructor-removal.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-swapin_readahead-excise-numa-bogosity.patch
-page-allocator-clean-up-pcp-draining-functions.patch
-page-allocator-clean-up-pcp-draining-functions-swsusp-fix.patch
-page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
-vmstat-small-revisions-to-refresh_cpu_vm_stats.patch
-page-allocator-get-rid-of-the-list-of-cold-pages.patch
-page-allocator-get-rid-of-the-list-of-cold-pages-fix.patch
-vmstat-remove-prefetch.patch
-set_page_refcounted-vm_bug_on-fix.patch
-percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-oom-add-sysctl-to-enable-task-memory-dump.patch
-add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
-add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
-dentries-extract-common-code-to-remove-dentry-from-lru.patch
-dentries-extract-common-code-to-remove-dentry-from-lru-fix.patch
+kallsyms-should-prefer-non-weak-symbols.patch
+virtio_net-remove-double-ether_setup.patch
 modules-handle-symbols-that-have-a-zero-value.patch
 modules-include-sectionsh-to-avoid-defining-linker-variables.patch
+modules-make-module_address_lookup-safe.patch
+fixup-container_of-usage.patch
+aio-partial-write-should-not-return-error-code.patch
+aio-negative-offset-should-return-einval.patch
 reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
-page-owner-tracking-leak-detector.patch
