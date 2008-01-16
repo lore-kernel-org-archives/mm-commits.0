@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-mtd-ubi-scanc-fix-uninitialized-var-warning.patch added to -mm tree
-Date: Wed, 16 Jan 2008 02:48:49 -0800
-Message-ID: <200801161057.m0GAvAnv000723@imap1.linux-foundation.org>
+Subject: + drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch added to -mm tree
+Date: Wed, 16 Jan 2008 02:52:54 -0800
+Message-ID: <200801161101.m0GB1FlR000805@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49481 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53166 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752049AbYAPK5Y (ORCPT
+	by vger.kernel.org with ESMTP id S1751139AbYAPLBt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 05:57:24 -0500
+	Wed, 16 Jan 2008 06:01:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dwmw2@infradead.org
+Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com
 
 
 The patch titled
-     drivers/mtd/ubi/scan.c: fix uninitialized var warning
+     drivers/scsi/dc395x.c: fix uninitialized var warning
 has been added to the -mm tree.  Its filename is
-     drivers-mtd-ubi-scanc-fix-uninitialized-var-warning.patch
+     drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/mtd/ubi/scan.c: fix uninitialized var warning
+Subject: drivers/scsi/dc395x.c: fix uninitialized var warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/mtd/ubi/scan.c: In function 'ubi_scan':
-drivers/mtd/ubi/scan.c:772: warning: 'ec' may be used uninitialized in this function
+drivers/scsi/dc395x.c: In function 'dc395x_init_one':
+drivers/scsi/dc395x.c:4270: warning: 'ptr' may be used uninitialized in this function
 
-Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/ubi/scan.c |    2 +-
+ drivers/scsi/dc395x.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mtd/ubi/scan.c~drivers-mtd-ubi-scanc-fix-uninitialized-var-warning drivers/mtd/ubi/scan.c
---- a/drivers/mtd/ubi/scan.c~drivers-mtd-ubi-scanc-fix-uninitialized-var-warning
-+++ a/drivers/mtd/ubi/scan.c
-@@ -769,7 +769,7 @@ struct ubi_scan_leb *ubi_scan_get_free_p
-  */
- static int process_eb(struct ubi_device *ubi, struct ubi_scan_info *si, int pnum)
- {
--	long long ec;
-+	long long uninitialized_var(ec);
- 	int err, bitflips = 0, vol_id, ec_corr = 0;
+diff -puN drivers/scsi/dc395x.c~drivers-scsi-dc395xc-fix-uninitialized-var-warning drivers/scsi/dc395x.c
+--- a/drivers/scsi/dc395x.c~drivers-scsi-dc395xc-fix-uninitialized-var-warning
++++ a/drivers/scsi/dc395x.c
+@@ -4267,7 +4267,7 @@ static int __devinit adapter_sg_tables_a
+ 	const unsigned srbs_per_page = PAGE_SIZE/SEGMENTX_LEN;
+ 	int srb_idx = 0;
+ 	unsigned i = 0;
+-	struct SGentry *ptr;
++	struct SGentry *uninitialized_var(ptr);
  
- 	dbg_bld("scan PEB %d", pnum);
+ 	for (i = 0; i < DC395x_MAX_SRB_CNT; i++)
+ 		acb->srb_array[i].segment_x = NULL;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -326,3 +326,4 @@ getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
 drivers-mtd-ubi-scanc-fix-uninitialized-var-warning.patch
+drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch
