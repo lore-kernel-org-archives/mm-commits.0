@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-wireless-iwlwifi-iwl-3945c-fix-printk-warning.patch added to -mm tree
-Date: Wed, 16 Jan 2008 02:56:33 -0800
-Message-ID: <200801161104.m0GB4saF000944@imap1.linux-foundation.org>
+Subject: + drivers-net-wireless-iwlwifi-iwl-4965c-fix-printk-warning.patch added to -mm tree
+Date: Wed, 16 Jan 2008 02:57:31 -0800
+Message-ID: <200801161105.m0GB5qhD000964@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46388 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58049 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751262AbYAPLGa (ORCPT
+	by vger.kernel.org with ESMTP id S1751300AbYAPLHY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 06:06:30 -0500
+	Wed, 16 Jan 2008 06:07:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, linville@tuxdriver.com
 
 
 The patch titled
-     drivers/net/wireless/iwlwifi/iwl-3945.c: fix printk warning
+     drivers/net/wireless/iwlwifi/iwl-4965.c: fix printk warning
 has been added to the -mm tree.  Its filename is
-     drivers-net-wireless-iwlwifi-iwl-3945c-fix-printk-warning.patch
+     drivers-net-wireless-iwlwifi-iwl-4965c-fix-printk-warning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,29 +26,29 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/net/wireless/iwlwifi/iwl-3945.c: fix printk warning
+Subject: drivers/net/wireless/iwlwifi/iwl-4965.c: fix printk warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/wireless/iwlwifi/iwl-3945.c: In function 'iwl3945_add_radiotap':
-drivers/net/wireless/iwlwifi/iwl-3945.c:269: warning: format '%d' expects type 'int', but argument 3 has type 'long unsigned int'
+drivers/net/wireless/iwlwifi/iwl-4965.c: In function 'iwl4965_add_radiotap':
+drivers/net/wireless/iwlwifi/iwl-4965.c:3620: warning: format '%d' expects type 'int', but argument 3 has type 'long unsigned int'
 
 Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/iwlwifi/iwl-3945.c |    2 +-
+ drivers/net/wireless/iwlwifi/iwl-4965.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/wireless/iwlwifi/iwl-3945.c~drivers-net-wireless-iwlwifi-iwl-3945c-fix-printk-warning drivers/net/wireless/iwlwifi/iwl-3945.c
---- a/drivers/net/wireless/iwlwifi/iwl-3945.c~drivers-net-wireless-iwlwifi-iwl-3945c-fix-printk-warning
-+++ a/drivers/net/wireless/iwlwifi/iwl-3945.c
-@@ -265,7 +265,7 @@ void iwl3945_add_radiotap(struct iwl3945
- 	if (skb_headroom(skb) < sizeof(*iwl3945_rt)) {
+diff -puN drivers/net/wireless/iwlwifi/iwl-4965.c~drivers-net-wireless-iwlwifi-iwl-4965c-fix-printk-warning drivers/net/wireless/iwlwifi/iwl-4965.c
+--- a/drivers/net/wireless/iwlwifi/iwl-4965.c~drivers-net-wireless-iwlwifi-iwl-4965c-fix-printk-warning
++++ a/drivers/net/wireless/iwlwifi/iwl-4965.c
+@@ -3616,7 +3616,7 @@ static void iwl4965_add_radiotap(struct 
+ 	if (skb_headroom(skb) < sizeof(*iwl4965_rt)) {
  		if (net_ratelimit())
  			printk(KERN_ERR "not enough headroom [%d] for "
 -			       "radiotap head [%d]\n",
 +			       "radiotap head [%td]\n",
- 			       skb_headroom(skb), sizeof(*iwl3945_rt));
+ 			       skb_headroom(skb), sizeof(*iwl4965_rt));
  		return;
  	}
 _
@@ -160,6 +160,7 @@ git-watchdog.patch
 git-watchdog-fixup.patch
 wdt-fix-locking-checkpatch-fixes.patch
 git-wireless.patch
+drivers-net-wireless-iwlwifi-iwl-3945c-fix-printk-warning.patch
 git-ipwireless_cs.patch
 revert-kvm-stuff-to-make-git-x86-apply.patch
 git-x86.patch
@@ -328,4 +329,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-drivers-net-wireless-iwlwifi-iwl-3945c-fix-printk-warning.patch
+drivers-net-wireless-iwlwifi-iwl-4965c-fix-printk-warning.patch
