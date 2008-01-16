@@ -1,168 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - revert-gregkh-usb-usb-export-suspend-statistics.patch removed from -mm tree
-Date: Wed, 16 Jan 2008 13:00:35 -0800
-Message-ID: <200801162100.m0GL0aAP023985@imap1.linux-foundation.org>
+Subject: - git-x86-fix-conflicts.patch removed from -mm tree
+Date: Wed, 16 Jan 2008 13:00:56 -0800
+Message-ID: <200801162100.m0GL0u9h023990@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34071 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41421 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750753AbYAPVAk (ORCPT
+	by vger.kernel.org with ESMTP id S1750702AbYAPVBN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 16:00:40 -0500
+	Wed, 16 Jan 2008 16:01:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arjan@linux.intel.com, greg@kroah.com, saharabeara@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert gregkh-usb-usb-export-suspend-statistics
+     git-x86-fix-conflicts
 has been removed from the -mm tree.  Its filename was
-     revert-gregkh-usb-usb-export-suspend-statistics.patch
+     git-x86-fix-conflicts.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert gregkh-usb-usb-export-suspend-statistics
+Subject: git-x86-fix-conflicts
 From: Andrew Morton <akpm@linux-foundation.org>
 
-busted with CONFIG_PM=n
-
-Cc: Sarah Sharp <saharabeara@gmail.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Arjan Van De Ven <arjan@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/core/hub.c   |   10 --------
- drivers/usb/core/sysfs.c |   46 -------------------------------------
- drivers/usb/core/usb.c   |    2 -
- include/linux/usb.h      |    2 -
- 4 files changed, 1 insertion(+), 59 deletions(-)
+ arch/x86/mm/init_32.c |    4 ----
+ include/asm-x86/msr.h |    5 -----
+ 2 files changed, 9 deletions(-)
 
-diff -puN drivers/usb/core/hub.c~revert-gregkh-usb-usb-export-suspend-statistics drivers/usb/core/hub.c
---- a/drivers/usb/core/hub.c~revert-gregkh-usb-usb-export-suspend-statistics
-+++ a/drivers/usb/core/hub.c
-@@ -1034,10 +1034,8 @@ static void recursively_mark_NOTATTACHED
- 		if (udev->children[i])
- 			recursively_mark_NOTATTACHED(udev->children[i]);
- 	}
--	if (udev->state == USB_STATE_SUSPENDED) {
-+	if (udev->state == USB_STATE_SUSPENDED)
- 		udev->discon_suspended = 1;
--		udev->active_duration -= jiffies;
--	}
- 	udev->state = USB_STATE_NOTATTACHED;
- }
- 
-@@ -1086,12 +1084,6 @@ void usb_set_device_state(struct usb_dev
- 			else
- 				device_init_wakeup(&udev->dev, 0);
- 		}
--		if (udev->state == USB_STATE_SUSPENDED &&
--			new_state != USB_STATE_SUSPENDED)
--			udev->active_duration -= jiffies;
--		else if (new_state == USB_STATE_SUSPENDED &&
--				udev->state != USB_STATE_SUSPENDED)
--			udev->active_duration += jiffies;
- 		udev->state = new_state;
- 	} else
- 		recursively_mark_NOTATTACHED(udev);
-diff -puN drivers/usb/core/sysfs.c~revert-gregkh-usb-usb-export-suspend-statistics drivers/usb/core/sysfs.c
---- a/drivers/usb/core/sysfs.c~revert-gregkh-usb-usb-export-suspend-statistics
-+++ a/drivers/usb/core/sysfs.c
-@@ -249,38 +249,6 @@ static void remove_persist_attributes(st
- #ifdef	CONFIG_USB_SUSPEND
- 
- static ssize_t
--show_connected_duration(struct device *dev, struct device_attribute *attr,
--		char *buf)
--{
--	struct usb_device *udev = to_usb_device(dev);
--
--	return sprintf(buf, "%lu\n", jiffies - udev->connect_time);
--}
--
--static DEVICE_ATTR(connected_duration, S_IRUGO, show_connected_duration, NULL);
--
--/*
-- * If the device is resumed, the last time the device was suspended has
-- * been pre-subtracted from active_duration.  We add the current time to
-- * get the duration that the device was actually active.
-- *
-- * If the device is suspended, the active_duration is up-to-date.
-- */
--static ssize_t
--show_active_duration(struct device *dev, struct device_attribute *attr,
--		char *buf)
--{
--	struct usb_device *udev = to_usb_device(dev);
--
--	if (udev->state != USB_STATE_SUSPENDED)
--		return sprintf(buf, "%lu\n", jiffies + udev->active_duration);
--	else
--		return sprintf(buf, "%lu\n", udev->active_duration);
--}
--
--static DEVICE_ATTR(active_duration, S_IRUGO, show_active_duration, NULL);
--
--static ssize_t
- show_autosuspend(struct device *dev, struct device_attribute *attr, char *buf)
- {
- 	struct usb_device *udev = to_usb_device(dev);
-@@ -397,14 +365,6 @@ static int add_power_attributes(struct d
- 			rc = sysfs_add_file_to_group(&dev->kobj,
- 					&dev_attr_level.attr,
- 					power_group);
--		if (rc == 0)
--			rc = sysfs_add_file_to_group(&dev->kobj,
--					&dev_attr_connected_duration.attr,
--					power_group);
--		if (rc == 0)
--			rc = sysfs_add_file_to_group(&dev->kobj,
--					&dev_attr_active_duration.attr,
--					power_group);
- 	}
- 	return rc;
- }
-@@ -412,12 +372,6 @@ static int add_power_attributes(struct d
- static void remove_power_attributes(struct device *dev)
- {
- 	sysfs_remove_file_from_group(&dev->kobj,
--			&dev_attr_active_duration.attr,
--			power_group);
--	sysfs_remove_file_from_group(&dev->kobj,
--			&dev_attr_connected_duration.attr,
--			power_group);
--	sysfs_remove_file_from_group(&dev->kobj,
- 			&dev_attr_level.attr,
- 			power_group);
- 	sysfs_remove_file_from_group(&dev->kobj,
-diff -puN drivers/usb/core/usb.c~revert-gregkh-usb-usb-export-suspend-statistics drivers/usb/core/usb.c
---- a/drivers/usb/core/usb.c~revert-gregkh-usb-usb-export-suspend-statistics
-+++ a/drivers/usb/core/usb.c
-@@ -339,8 +339,6 @@ usb_alloc_dev(struct usb_device *parent,
- 	mutex_init(&dev->pm_mutex);
- 	INIT_DELAYED_WORK(&dev->autosuspend, usb_autosuspend_work);
- 	dev->autosuspend_delay = usb_autosuspend_delay * HZ;
--	dev->connect_time = jiffies;
--	dev->active_duration = -jiffies;
+diff -puN arch/x86/mm/init_32.c~git-x86-fix-conflicts arch/x86/mm/init_32.c
+--- a/arch/x86/mm/init_32.c~git-x86-fix-conflicts
++++ a/arch/x86/mm/init_32.c
+@@ -388,11 +388,7 @@ static void __init set_highmem_pages_ini
+ 	int pfn;
+ 	for (pfn = highstart_pfn; pfn < highend_pfn; pfn++) {
+ 		/*
+-<<<<<<< HEAD:arch/x86/mm/init_32.c
+-		 * Holes under sparsemem might not have no mem_map[]:
+-=======
+ 		 * Holes under sparsemem might not have a mem-map:
+->>>>>>> FETCH_HEAD:arch/x86/mm/init_32.c
+ 		 */
+ 		if (pfn_valid(pfn))
+ 			add_one_highpage_init(pfn_to_page(pfn), pfn, bad_ppro);
+diff -puN include/asm-x86/msr.h~git-x86-fix-conflicts include/asm-x86/msr.h
+--- a/include/asm-x86/msr.h~git-x86-fix-conflicts
++++ a/include/asm-x86/msr.h
+@@ -6,11 +6,6 @@
+ #ifndef __ASSEMBLY__
+ # include <linux/types.h>
  #endif
- 	if (root_hub)	/* Root hub always ok [and always wired] */
- 		dev->authorized = 1;
-diff -puN include/linux/usb.h~revert-gregkh-usb-usb-export-suspend-statistics include/linux/usb.h
---- a/include/linux/usb.h~revert-gregkh-usb-usb-export-suspend-statistics
-+++ a/include/linux/usb.h
-@@ -425,8 +425,6 @@ struct usb_device {
+-<<<<<<< HEAD:include/asm-x86/msr.h
+-
+-#ifdef __i386__
+-=======
+->>>>>>> FETCH_HEAD:include/asm-x86/msr.h
  
- 	unsigned long last_busy;	/* time of last use */
- 	int autosuspend_delay;		/* in jiffies */
--	unsigned long active_duration;	/* total time device is not suspended */
--	unsigned long connect_time;	/* time device was first connected */
- 
- 	unsigned auto_pm:1;		/* autosuspend/resume in progress */
- 	unsigned do_remote_wakeup:1;	/* remote wakeup should be enabled */
+ #ifdef __KERNEL__
+ #ifndef __ASSEMBLY__
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -261,7 +163,6 @@ libsas-convert-ata-bridge-to-use-new-eh.patch
 git-unionfs.patch
 vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
 fix-gregkh-usb-usb-ti_usb-termios-cleanups.patch
-revert-gregkh-usb-usb-export-suspend-statistics.patch
 ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
 drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
 9p-util-fix-semaphore-handling.patch
