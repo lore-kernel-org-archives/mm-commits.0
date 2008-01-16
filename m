@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-vs-something-else.patch added to -mm tree
-Date: Wed, 16 Jan 2008 01:03:02 -0800
-Message-ID: <200801160911.m0G9BNhQ029595@imap1.linux-foundation.org>
+Subject: + git-infiniband-dont-direct-your-stderr-to-dev-null.patch added to -mm tree
+Date: Wed, 16 Jan 2008 01:06:09 -0800
+Message-ID: <200801160914.m0G9EUca029726@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49568 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59101 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750940AbYAPJLx (ORCPT
+	by vger.kernel.org with ESMTP id S1751351AbYAPJPH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 04:11:53 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m0G9BNFM020065
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 16 Jan 2008 01:11:24 -0800
+	Wed, 16 Jan 2008 04:15:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, rolandd@cisco.com
 
 
 The patch titled
-     git-x86-vs-something-else
+     git-infiniband-dont-direct-your-stderr-to-dev-null
 has been added to the -mm tree.  Its filename is
-     git-x86-vs-something-else.patch
+     git-infiniband-dont-direct-your-stderr-to-dev-null.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,30 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-x86-vs-something-else
+Subject: git-infiniband-dont-direct-your-stderr-to-dev-null
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix a reject fix I guess
+drivers/infiniband/core/cma.c: In function 'cma_accept_ib':
+drivers/infiniband/core/cma.c:2358: warning: unused variable 'qp_attr_mask'
+drivers/infiniband/core/cma.c:2357: warning: unused variable 'qp_attr'
 
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/probe.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/infiniband/core/cma.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/pci/probe.c~git-x86-vs-something-else drivers/pci/probe.c
---- a/drivers/pci/probe.c~git-x86-vs-something-else
-+++ a/drivers/pci/probe.c
-@@ -391,9 +391,6 @@ void pci_read_bridge_bases(struct pci_bu
- 		res->start = base;
- 		res->end = limit + 0xfffff;
- 	}
--
--	if ((dev->class >> 8) != PCI_CLASS_BRIDGE_HOST)
--		pci_write_config_word(dev, PCI_COMMAND, orig_cmd);
- }
+diff -puN drivers/infiniband/core/cma.c~git-infiniband-dont-direct-your-stderr-to-dev-null drivers/infiniband/core/cma.c
+--- a/drivers/infiniband/core/cma.c~git-infiniband-dont-direct-your-stderr-to-dev-null
++++ a/drivers/infiniband/core/cma.c
+@@ -2353,8 +2353,7 @@ static int cma_accept_ib(struct rdma_id_
+ 			 struct rdma_conn_param *conn_param)
+ {
+ 	struct ib_cm_rep_param rep;
+-	struct ib_qp_attr qp_attr;
+-	int qp_attr_mask, ret;
++	int ret;
  
- static struct pci_bus * pci_alloc_bus(void)
+ 	ret = cma_modify_qp_rtr(id_priv, conn_param);
+ 	if (ret)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -105,6 +104,7 @@ git-hid.patch
 revert-git-hrt.patch
 git-ieee1394.patch
 git-infiniband.patch
+git-infiniband-dont-direct-your-stderr-to-dev-null.patch
 git-infiniband-versus-driver-tree.patch
 git-kbuild.patch
 git-kvm.patch
