@@ -1,115 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: - io_ti-clean-up-termios-handling.patch removed from -mm tree
-Date: Tue, 15 Jan 2008 17:39:50 -0800
-Message-ID: <200801160139.m0G1dofQ014038@imap1.linux-foundation.org>
+Subject: - ti_usb-termios-cleanups.patch removed from -mm tree
+Date: Tue, 15 Jan 2008 17:39:46 -0800
+Message-ID: <200801160139.m0G1dkbn014032@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44289 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41405 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756460AbYAPBto (ORCPT
+	by vger.kernel.org with ESMTP id S1756464AbYAPBts (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Jan 2008 20:49:44 -0500
+	Tue, 15 Jan 2008 20:49:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     io_ti: clean up termios handling
+     ti_usb: termios cleanups
 has been removed from the -mm tree.  Its filename was
-     io_ti-clean-up-termios-handling.patch
+     ti_usb-termios-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: io_ti: clean up termios handling
+Subject: ti_usb: termios cleanups
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Don't pass NULL into termios functions when calling them internally Remove
-all the crap which then checks for NULL which can't occur now.
-
-Clear CMSPAR as it is not supported.
-
-Report the baud rate back to the caller properly (See FIXME someone with
-the docs).
+Remove internal NULL passing in termios code
+Remove all the if checks it causes
+Encode the baud rate back properly
+Clear CMSPAR as it is not supported
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/io_ti.c |   26 ++++++++++----------------
- 1 file changed, 10 insertions(+), 16 deletions(-)
+ drivers/usb/serial/ti_usb_3410_5052.c |   31 ++++++++++--------------
+ 1 file changed, 13 insertions(+), 18 deletions(-)
 
-diff -puN drivers/usb/serial/io_ti.c~io_ti-clean-up-termios-handling drivers/usb/serial/io_ti.c
---- a/drivers/usb/serial/io_ti.c~io_ti-clean-up-termios-handling
-+++ a/drivers/usb/serial/io_ti.c
-@@ -1979,7 +1979,7 @@ static int edge_open (struct usb_serial_
- 	}
- 	
- 	/* set up the port settings */
--	edge_set_termios (port, NULL);
-+	edge_set_termios (port, port->tty->termios);
- 
- 	/* open up the port */
- 
-@@ -2394,11 +2394,6 @@ static void change_port_settings (struct
- 	dbg("%s - port %d", __FUNCTION__, edge_port->port->number);
- 
- 	tty = edge_port->port->tty;
--	if ((!tty) ||
--	    (!tty->termios)) {
--		dbg("%s - no tty structures", __FUNCTION__);
--		return;
--	}
- 
- 	config = kmalloc (sizeof (*config), GFP_KERNEL);
- 	if (!config) {
-@@ -2493,14 +2488,20 @@ static void change_port_settings (struct
+diff -puN drivers/usb/serial/ti_usb_3410_5052.c~ti_usb-termios-cleanups drivers/usb/serial/ti_usb_3410_5052.c
+--- a/drivers/usb/serial/ti_usb_3410_5052.c~ti_usb-termios-cleanups
++++ a/drivers/usb/serial/ti_usb_3410_5052.c
+@@ -581,7 +581,7 @@ static int ti_open(struct usb_serial_por
  		}
  	}
  
-+	tty->termios->c_cflag &= ~CMSPAR;
-+
- 	/* Round the baud rate */
- 	baud = tty_get_baud_rate(tty);
- 	if (!baud) {
- 		/* pick a default, any default... */
- 		baud = 9600;
--	}
-+	} else
-+		tty_encode_baud_rate(tty, baud, baud);
-+
- 	edge_port->baud_rate = baud;
- 	config->wBaudRate = (__u16)((461550L + baud/2) / baud);
-+
-+	/* FIXME: Recompute actual baud from divisor here */
+-	ti_set_termios(port, NULL);
++	ti_set_termios(port, &port->tty->termios);
  
- 	dbg ("%s - baud rate = %d, wBaudRate = %d", __FUNCTION__, baud, config->wBaudRate);
+ 	dbg("%s - sending TI_OPEN_PORT", __FUNCTION__);
+ 	status = ti_command_out_sync(tdev, TI_OPEN_PORT,
+@@ -618,7 +618,7 @@ static int ti_open(struct usb_serial_por
+ 	usb_clear_halt(dev, port->write_urb->pipe);
+ 	usb_clear_halt(dev, port->read_urb->pipe);
  
-@@ -2539,19 +2540,12 @@ static void edge_set_termios (struct usb
- 	struct tty_struct *tty = port->tty;
- 	unsigned int cflag;
+-	ti_set_termios(port, NULL);
++	ti_set_termios(port, &port->tty->termios);
  
--	if (!port->tty || !port->tty->termios) {
--		dbg ("%s - no tty or termios", __FUNCTION__);
+ 	dbg("%s - sending TI_OPEN_PORT (2)", __FUNCTION__);
+ 	status = ti_command_out_sync(tdev, TI_OPEN_PORT,
+@@ -897,24 +897,11 @@ static void ti_set_termios(struct usb_se
+ 
+ 	dbg("%s - port %d", __FUNCTION__, port->number);
+ 
+-	if (!tty || !tty->termios) {
+-		dbg("%s - no tty or termios", __FUNCTION__);
 -		return;
 -	}
 -
  	cflag = tty->termios->c_cflag;
+ 	iflag = tty->termios->c_iflag;
  
- 	dbg("%s - clfag %08x iflag %08x", __FUNCTION__, 
- 	    tty->termios->c_cflag, tty->termios->c_iflag);
--	if (old_termios) {
--		dbg("%s - old clfag %08x old iflag %08x", __FUNCTION__,
--		    old_termios->c_cflag, old_termios->c_iflag);
+-	if (old_termios && cflag == old_termios->c_cflag
+-	&& iflag == old_termios->c_iflag) {
+-		dbg("%s - nothing to change", __FUNCTION__);
+-		return;
 -	}
-+	dbg("%s - old clfag %08x old iflag %08x", __FUNCTION__,
-+	    old_termios->c_cflag, old_termios->c_iflag);
+-
+-	dbg("%s - clfag %08x, iflag %08x", __FUNCTION__, cflag, iflag);
+-
+-	if (old_termios)
+-		dbg("%s - old clfag %08x, old iflag %08x", __FUNCTION__, old_termios->c_cflag, old_termios->c_iflag);
++	dbg("%s - cflag %08x, iflag %08x", __FUNCTION__, cflag, iflag);
++	dbg("%s - old clfag %08x, old iflag %08x", __FUNCTION__, old_termios->c_cflag, old_termios->c_iflag);
  
- 	dbg("%s - port %d", __FUNCTION__, port->number);
+ 	if (tport == NULL)
+ 		return;
+@@ -948,6 +935,9 @@ static void ti_set_termios(struct usb_se
+ 			    break;
+ 	}
+ 
++	/* CMSPAR isn't supported by this driver */
++	tty->termios->c_cflag &= ~CMSPAR;
++
+ 	if (cflag & PARENB) {
+ 		if (cflag & PARODD) {
+ 			config->wFlags |= TI_UART_ENABLE_PARITY_CHECKING;
+@@ -990,12 +980,17 @@ static void ti_set_termios(struct usb_se
+ 	}
+ 
+ 	baud = tty_get_baud_rate(tty);
+-	if (!baud) baud = 9600;
++	if (!baud)
++		baud = 9600;
+ 	if (tport->tp_tdev->td_is_3410)
+ 		config->wBaudRate = (__u16)((923077 + baud/2) / baud);
+ 	else
+ 		config->wBaudRate = (__u16)((461538 + baud/2) / baud);
+ 
++	/* FIXME: Should calculate resulting baud here and report it back */
++	if ((cflag & CBAUD) != B0)
++		tty_encode_baud_rate(tty, baud, baud);
++
+ 	dbg("%s - BaudRate=%d, wBaudRate=%d, wFlags=0x%04X, bDataBits=%d, bParity=%d, bStopBits=%d, cXon=%d, cXoff=%d, bUartMode=%d",
+ 	__FUNCTION__, baud, config->wBaudRate, config->wFlags, config->bDataBits, config->bParity, config->bStopBits, config->cXon, config->cXoff, config->bUartMode);
  
 _
 
