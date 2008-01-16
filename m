@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch added to -mm tree
-Date: Wed, 16 Jan 2008 00:27:04 -0800
-Message-ID: <200801160835.m0G8ZPUN028400@imap1.linux-foundation.org>
+Subject: + git-libata-more-pata-fixes.patch added to -mm tree
+Date: Wed, 16 Jan 2008 00:28:58 -0800
+Message-ID: <200801160837.m0G8bJWL028522@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43698 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39730 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756747AbYAPIfh (ORCPT
+	by vger.kernel.org with ESMTP id S1753216AbYAPIhl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 03:35:37 -0500
+	Wed, 16 Jan 2008 03:37:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ezk@cs.sunysb.edu
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, jeff@garzik.org
 
 
 The patch titled
-     embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs
+     git-libata: more pata fixes
 has been added to the -mm tree.  Its filename is
-     embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+     git-libata-more-pata-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,59 +26,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs
+Subject: git-libata: more pata fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Erez Zadok <ezk@cs.sunysb.edu>
+drivers/ata/pata_winbond.c: In function 'winbond_data_xfer':
+drivers/ata/pata_winbond.c:121: warning: 'return' with a value, in function returning void
+drivers/ata/pata_winbond.c: At top level:
+drivers/ata/pata_winbond.c:160: warning: initialization from incompatible pointer type
+
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/unionfs/inode.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/ata/pata_winbond.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN fs/unionfs/inode.c~embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs fs/unionfs/inode.c
---- a/fs/unionfs/inode.c~embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs
-+++ a/fs/unionfs/inode.c
-@@ -190,8 +190,8 @@ static struct dentry *unionfs_lookup(str
- 
- 	/* save the dentry & vfsmnt from namei */
- 	if (nd) {
--		path_save.dentry = nd->dentry;
--		path_save.mnt = nd->mnt;
-+		path_save.dentry = nd->path.dentry;
-+		path_save.mnt = nd->path.mnt;
- 	}
- 
- 	/*
-@@ -202,8 +202,8 @@ static struct dentry *unionfs_lookup(str
- 
- 	/* restore the dentry & vfsmnt in namei */
- 	if (nd) {
--		nd->dentry = path_save.dentry;
--		nd->mnt = path_save.mnt;
-+		nd->path.dentry = path_save.dentry;
-+		nd->path.mnt = path_save.mnt;
- 	}
- 	if (!IS_ERR(ret)) {
- 		if (ret)
-@@ -944,7 +944,7 @@ static int unionfs_permission(struct ino
- 	const int write_mask = (mask & MAY_WRITE) && !(mask & MAY_READ);
- 
- 	if (nd)
--		unionfs_lock_dentry(nd->dentry, UNIONFS_DMUTEX_CHILD);
-+		unionfs_lock_dentry(nd->path.dentry, UNIONFS_DMUTEX_CHILD);
- 
- 	if (!UNIONFS_I(inode)->lower_inodes) {
- 		if (is_file)	/* dirs can be unlinked but chdir'ed to */
-@@ -1019,7 +1019,7 @@ out:
- 	unionfs_check_inode(inode);
- 	unionfs_check_nd(nd);
- 	if (nd)
--		unionfs_unlock_dentry(nd->dentry);
-+		unionfs_unlock_dentry(nd->path.dentry);
- 	return err;
+diff -puN drivers/ata/pata_winbond.c~git-libata-more-pata-fixes drivers/ata/pata_winbond.c
+--- a/drivers/ata/pata_winbond.c~git-libata-more-pata-fixes
++++ a/drivers/ata/pata_winbond.c
+@@ -91,9 +91,8 @@ static void winbond_set_piomode(struct a
+ 	winbond_writecfg(winbond->config, timing + 1, reg);
  }
  
+-
+-static void winbond_data_xfer(struct ata_device *dev, unsigned char *buf,
+-			      unsigned int buflen, int rw)
++static unsigned int winbond_data_xfer(struct ata_device *dev,
++			unsigned char *buf, unsigned int buflen, int rw)
+ {
+ 	struct ata_port *ap = dev->link->ap;
+ 	int slop = buflen & 3;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -335,3 +313,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+git-libata-more-pata-fixes.patch
