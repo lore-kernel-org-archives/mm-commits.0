@@ -1,84 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - net-sunrpc-svcsockc-revert-git-nfs-changes.patch removed from -mm tree
-Date: Wed, 16 Jan 2008 02:01:15 -0800
-Message-ID: <200801161009.m0GA9amA031546@imap1.linux-foundation.org>
+Subject: + modules-make-module_address_lookup-safe-fix.patch added to -mm tree
+Date: Wed, 16 Jan 2008 02:06:40 -0800
+Message-ID: <200801161015.m0GAF1aI031739@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59054 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52728 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751974AbYAPKKR (ORCPT
+	by vger.kernel.org with ESMTP id S1751645AbYAPKPe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 05:10:17 -0500
+	Wed, 16 Jan 2008 05:15:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bfields@fieldses.org, davem@davemloft.net, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, kyle@mcmartin.ca, mingo@elte.hu, rusty@rustcorp.com.au
 
 
 The patch titled
-     net/sunrpc/svcsock.c: revert git-nfs changes
-has been removed from the -mm tree.  Its filename was
-     net-sunrpc-svcsockc-revert-git-nfs-changes.patch
+     modules-make-module_address_lookup-safe-fix
+has been added to the -mm tree.  Its filename is
+     modules-make-module_address_lookup-safe-fix.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: net/sunrpc/svcsock.c: revert git-nfs changes
+Subject: modules-make-module_address_lookup-safe-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-To avoid a massive reject from git-nfsd.
+kernel/module.c: In function 'module_address_lookup':
+kernel/module.c:2241: warning: return discards qualifiers from pointer target type
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/svcsock.c |    5 -----
- 1 file changed, 5 deletions(-)
+ include/linux/module.h |    4 ++--
+ kernel/module.c        |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN net/sunrpc/svcsock.c~net-sunrpc-svcsockc-revert-git-nfs-changes net/sunrpc/svcsock.c
---- a/net/sunrpc/svcsock.c~net-sunrpc-svcsockc-revert-git-nfs-changes
-+++ a/net/sunrpc/svcsock.c
-@@ -369,7 +369,6 @@ void svc_reserve(struct svc_rqst *rqstp,
- 		svc_sock_enqueue(svsk);
- 	}
- }
--EXPORT_SYMBOL(svc_reserve);
+diff -puN include/linux/module.h~modules-make-module_address_lookup-safe-fix include/linux/module.h
+--- a/include/linux/module.h~modules-make-module_address_lookup-safe-fix
++++ a/include/linux/module.h
+@@ -449,7 +449,7 @@ static inline void __module_get(struct m
+ /* For kallsyms to ask for address resolution.  namebuf should be at
+  * least KSYM_NAME_LEN long: a pointer to namebuf is returned if
+  * found, otherwise NULL. */
+-char *module_address_lookup(unsigned long addr,
++const char *module_address_lookup(unsigned long addr,
+ 			    unsigned long *symbolsize,
+ 			    unsigned long *offset,
+ 			    char **modname,
+@@ -519,7 +519,7 @@ static inline void module_put(struct mod
+ #define module_name(mod) "kernel"
  
- /*
-  * Release a socket after use.
-@@ -450,7 +449,6 @@ svc_wake_up(struct svc_serv *serv)
- 		spin_unlock_bh(&pool->sp_lock);
- 	}
- }
--EXPORT_SYMBOL(svc_wake_up);
+ /* For kallsyms to ask for address resolution.  NULL means not found. */
+-static inline char *module_address_lookup(unsigned long addr,
++static inline const char *module_address_lookup(unsigned long addr,
+ 					  unsigned long *symbolsize,
+ 					  unsigned long *offset,
+ 					  char **modname,
+diff -puN kernel/module.c~modules-make-module_address_lookup-safe-fix kernel/module.c
+--- a/kernel/module.c~modules-make-module_address_lookup-safe-fix
++++ a/kernel/module.c
+@@ -2213,7 +2213,7 @@ static const char *get_ksymbol(struct mo
  
- union svc_pktinfo_u {
- 	struct in_pktinfo pkti;
-@@ -1520,7 +1518,6 @@ svc_recv(struct svc_rqst *rqstp, long ti
- 		serv->sv_stats->netcnt++;
- 	return len;
- }
--EXPORT_SYMBOL(svc_recv);
- 
- /*
-  * Drop request
-@@ -1531,7 +1528,6 @@ svc_drop(struct svc_rqst *rqstp)
- 	dprintk("svc: socket %p dropped request\n", rqstp->rq_sock);
- 	svc_sock_release(rqstp);
- }
--EXPORT_SYMBOL(svc_drop);
- 
- /*
-  * Return reply to client.
-@@ -1871,7 +1867,6 @@ int svc_makesock(struct svc_serv *serv, 
- 	return svc_create_socket(serv, protocol, (struct sockaddr *) &sin,
- 							sizeof(sin), flags);
- }
--EXPORT_SYMBOL(svc_makesock);
- 
- /*
-  * Handle defer and revisit of requests
+ /* For kallsyms to ask for address resolution.  NULL means not found.  Careful
+  * not to lock to avoid deadlock on oopses, simply disable preemption. */
+-char *module_address_lookup(unsigned long addr,
++const char *module_address_lookup(unsigned long addr,
+ 			    unsigned long *size,
+ 			    unsigned long *offset,
+ 			    char **modname,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -156,7 +152,6 @@ git-battery.patch
 bluetooth-uninlining.patch
 net-sunrpc-schedc-revert-git-net-changes.patch
 net-sunrpc-schedc-reapply-git-net-changes.patch
-net-sunrpc-svcsockc-revert-git-nfs-changes.patch
 serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
 revert-gregkh-pci-pci-use-dev_printk-in-x86-quirk-messages.patch
 fix-gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in.patch
@@ -319,6 +314,7 @@ proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.pat
 proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
 proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
 intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+modules-make-module_address_lookup-safe-fix.patch
 pid-sys_wait-fixes-v2-checkpatch-fixes.patch
 aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
 aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
