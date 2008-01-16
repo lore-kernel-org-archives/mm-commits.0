@@ -1,70 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: - usb-add-support-for-43485523-winchiphead-usb-rs-232-adapter.patch removed from -mm tree
-Date: Tue, 15 Jan 2008 17:39:53 -0800
-Message-ID: <200801160139.m0G1drJT014041@imap1.linux-foundation.org>
+Subject: - remove-task_ppid_nr_ns.patch removed from -mm tree
+Date: Tue, 15 Jan 2008 17:38:53 -0800
+Message-ID: <200801160138.m0G1crdx013946@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59400 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58220 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756463AbYAPBtk (ORCPT
+	by vger.kernel.org with ESMTP id S1756427AbYAPBtg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Jan 2008 20:49:40 -0500
+	Tue, 15 Jan 2008 20:49:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dexter@debian.org, greg@kroah.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: roland@redhat.com, ebiederm@xmission.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb: add support for 4348:5523 WinChipHead USB->RS 232 adapter
+     remove task_ppid_nr_ns
 has been removed from the -mm tree.  Its filename was
-     usb-add-support-for-43485523-winchiphead-usb-rs-232-adapter.patch
+     remove-task_ppid_nr_ns.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: add support for 4348:5523 WinChipHead USB->RS 232 adapter
-From: Piotr Roszatycki <dexter@debian.org>
+Subject: remove task_ppid_nr_ns
+From: Roland McGrath <roland@redhat.com>
 
-add support for:
+task_ppid_nr_ns is called in three places.  One of these should never have
+called it.  In the other two, using it broke the existing semantics.  This
+was presumably accidental.  If the function had not been there, it would
+have been much more obvious to the eye that those patches were changing the
+behavior.  We don't need this function.
 
-  4348:5523 WinChipHead USB->RS 232 adapter with Prolifec PL 2303 chipset
+In task_state, the pid of the ptracer is not the ppid of the ptracer.
 
-[ mingo@elte.hu: merged it and nursed it upstream ]
+In do_task_stat, ppid is the tgid of the real_parent, not its pid.  I also
+moved the call outside of lock_task_sighand, since it doesn't need it.
 
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: Greg KH <greg@kroah.com>
+In sys_getppid, ppid is the tgid of the real_parent, not its pid.
+
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/pl2303.c |    1 +
- drivers/usb/serial/pl2303.h |    5 +++++
- 2 files changed, 6 insertions(+)
+ fs/proc/array.c       |    4 ++--
+ include/linux/sched.h |   13 -------------
+ kernel/timer.c        |    2 +-
+ 3 files changed, 3 insertions(+), 16 deletions(-)
 
-diff -puN drivers/usb/serial/pl2303.c~usb-add-support-for-43485523-winchiphead-usb-rs-232-adapter drivers/usb/serial/pl2303.c
---- a/drivers/usb/serial/pl2303.c~usb-add-support-for-43485523-winchiphead-usb-rs-232-adapter
-+++ a/drivers/usb/serial/pl2303.c
-@@ -87,6 +87,7 @@ static struct usb_device_id id_table [] 
- 	{ USB_DEVICE(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_ID) },
- 	{ USB_DEVICE(WS002IN_VENDOR_ID, WS002IN_PRODUCT_ID) },
- 	{ USB_DEVICE(COREGA_VENDOR_ID, COREGA_PRODUCT_ID) },
-+	{ USB_DEVICE(HL340_VENDOR_ID, HL340_PRODUCT_ID) },
- 	{ }					/* Terminating entry */
- };
+diff -puN fs/proc/array.c~remove-task_ppid_nr_ns fs/proc/array.c
+--- a/fs/proc/array.c~remove-task_ppid_nr_ns
++++ a/fs/proc/array.c
+@@ -169,7 +169,7 @@ static inline char *task_state(struct ta
+ 	ppid = pid_alive(p) ?
+ 		task_tgid_nr_ns(rcu_dereference(p->real_parent), ns) : 0;
+ 	tpid = pid_alive(p) && p->ptrace ?
+-		task_ppid_nr_ns(rcu_dereference(p->parent), ns) : 0;
++		task_pid_nr_ns(rcu_dereference(p->parent), ns) : 0;
+ 	buffer += sprintf(buffer,
+ 		"State:\t%s\n"
+ 		"Tgid:\t%d\n"
+@@ -426,6 +426,7 @@ static int do_task_stat(struct task_stru
+ 	cgtime = gtime = cputime_zero;
  
-diff -puN drivers/usb/serial/pl2303.h~usb-add-support-for-43485523-winchiphead-usb-rs-232-adapter drivers/usb/serial/pl2303.h
---- a/drivers/usb/serial/pl2303.h~usb-add-support-for-43485523-winchiphead-usb-rs-232-adapter
-+++ a/drivers/usb/serial/pl2303.h
-@@ -107,3 +107,8 @@
- /* Corega CG-USBRS232R Serial Adapter */
- #define COREGA_VENDOR_ID	0x07aa
- #define COREGA_PRODUCT_ID	0x002a
-+
-+/* HL HL-340 (ID: 4348:5523) */
-+#define HL340_VENDOR_ID		0x4348
-+#define HL340_PRODUCT_ID	0x5523
-+
+ 	rcu_read_lock();
++	ppid = task_tgid_nr_ns(task->real_parent, ns);
+ 	if (lock_task_sighand(task, &flags)) {
+ 		struct signal_struct *sig = task->signal;
+ 
+@@ -465,7 +466,6 @@ static int do_task_stat(struct task_stru
+ 
+ 		sid = task_session_nr_ns(task, ns);
+ 		pgid = task_pgrp_nr_ns(task, ns);
+-		ppid = task_ppid_nr_ns(task, ns);
+ 
+ 		unlock_task_sighand(task, &flags);
+ 	}
+diff -puN include/linux/sched.h~remove-task_ppid_nr_ns include/linux/sched.h
+--- a/include/linux/sched.h~remove-task_ppid_nr_ns
++++ a/include/linux/sched.h
+@@ -1255,13 +1255,6 @@ struct pid_namespace;
+  *
+  * set_task_vxid()   : assigns a virtual id to a task;
+  *
+- * task_ppid_nr_ns() : the parent's id as seen from the namespace specified.
+- *                     the result depends on the namespace and whether the
+- *                     task in question is the namespace's init. e.g. for the
+- *                     namespace's init this will return 0 when called from
+- *                     the namespace of this init, or appropriate id otherwise.
+- *
+- *
+  * see also pid_nr() etc in include/linux/pid.h
+  */
+ 
+@@ -1317,12 +1310,6 @@ static inline pid_t task_session_vnr(str
+ }
+ 
+ 
+-static inline pid_t task_ppid_nr_ns(struct task_struct *tsk,
+-		struct pid_namespace *ns)
+-{
+-	return pid_nr_ns(task_pid(rcu_dereference(tsk->real_parent)), ns);
+-}
+-
+ /**
+  * pid_alive - check that a task structure is not stale
+  * @p: Task structure to be checked.
+diff -puN kernel/timer.c~remove-task_ppid_nr_ns kernel/timer.c
+--- a/kernel/timer.c~remove-task_ppid_nr_ns
++++ a/kernel/timer.c
+@@ -978,7 +978,7 @@ asmlinkage long sys_getppid(void)
+ 	int pid;
+ 
+ 	rcu_read_lock();
+-	pid = task_ppid_nr_ns(current, current->nsproxy->pid_ns);
++	pid = task_tgid_nr_ns(current->real_parent, current->nsproxy->pid_ns);
+ 	rcu_read_unlock();
+ 
+ 	return pid;
 _
 
-Patches currently in -mm which might be from dexter@debian.org are
+Patches currently in -mm which might be from roland@redhat.com are
+
+origin.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+__group_complete_signal-fix-coredump-with-group-stop-race.patch
+remove-handle_group_stop-in-favor-of-do_signal_stop.patch
+exec-rework-the-group-exit-and-fix-the-race-with-kill.patch
+git-s390.patch
+git-x86.patch
+use-__set_task_state-for-traced-stopped-tasks.patch
+do_wait-remove-one-else-if-branch.patch
+add-arch_ptrace_stop.patch
+proc-fix-the-threaded-proc-self.patch
+kill-pt_attached.patch
+kill-my_ptrace_child.patch
+ptrace_check_attach-remove-unneeded-signal-=-null-check.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace.patch
+do_wait-factor-out-retval-=-0-checks.patch
+ptrace_stop-fix-racy-nonstop_code-setting.patch
+wait_task_stopped-remove-unneeded-delay_group_leader-check.patch
+do_wait-cleanup-delay_group_leader-usage.patch
+do_wait-fix-security-checks.patch
+do_wait-fix-security-checks-fix.patch
+wait_task_continued-zombie-dont-use-task_pid_nr_ns-lockless.patch
+wait_task_zombie-remove-exit_state-exit_signal-checks-for-wnowait.patch
+fix-group-stop-with-exit-race.patch
+sys_setsid-remove-now-unneeded-session-=-1-check.patch
+move-the-related-code-from-exit_notify-to-exit_signals.patch
+uglify-kill_pid_info-to-fix-kill-vs-exec-race.patch
+uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice.patch
+itimer_real-convert-to-use-struct-pid.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+linux-kernel-markers-create-modpost-file.patch
+asm-posix_typesh-scrub-__glibc__.patch
