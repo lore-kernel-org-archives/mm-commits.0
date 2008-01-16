@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + revert-kvm-stuff-to-make-git-x86-apply.patch added to -mm tree
-Date: Tue, 15 Jan 2008 16:23:48 -0800
-Message-ID: <200801160023.m0G0Nmbx011108@imap1.linux-foundation.org>
+Subject: + git-net-fix-conflicts.patch added to -mm tree
+Date: Tue, 15 Jan 2008 16:39:03 -0800
+Message-ID: <200801160039.m0G0d39X011641@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55838 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53406 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751871AbYAPAYg (ORCPT
+	by vger.kernel.org with ESMTP id S1752485AbYAPAjG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Jan 2008 19:24:36 -0500
+	Tue, 15 Jan 2008 19:39:06 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m0G0d3FG000535
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 15 Jan 2008 16:39:04 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, avi@qumranet.com, mingo@elte.hu
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     revert kvm stuff to make git-x86 apply
+     git-net-fix-conflicts
 has been added to the -mm tree.  Its filename is
-     revert-kvm-stuff-to-make-git-x86-apply.patch
+     git-net-fix-conflicts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,28 +38,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert kvm stuff to make git-x86 apply
+Subject: git-net-fix-conflicts
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kvm is busted in mm anyway.
-
-Cc: Avi Kivity <avi@qumranet.com>
-Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Makefile |    2 --
- 1 file changed, 2 deletions(-)
+ net/802/tr.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN arch/x86/Makefile~revert-kvm-stuff-to-make-git-x86-apply arch/x86/Makefile
---- a/arch/x86/Makefile~revert-kvm-stuff-to-make-git-x86-apply
-+++ a/arch/x86/Makefile
-@@ -17,5 +17,3 @@ else
-         UTS_MACHINE := x86_64
-         include $(srctree)/arch/x86/Makefile_64
- endif
--
--core-$(CONFIG_KVM) += arch/x86/kvm/
+diff -puN net/802/tr.c~git-net-fix-conflicts net/802/tr.c
+--- a/net/802/tr.c~git-net-fix-conflicts
++++ a/net/802/tr.c
+@@ -662,15 +662,8 @@ static __initdata struct ctl_path tr_pat
+ 
+ static int __init rif_init(void)
+ {
+-<<<<<<< HEAD:net/802/tr.c
+-	init_timer(&rif_timer);
+-	rif_timer.expires  = jiffies + sysctl_tr_rif_timeout;
+-	rif_timer.data     = 0L;
+-	rif_timer.function = rif_check_expire;
+-=======
+ 	rif_timer.expires  = sysctl_tr_rif_timeout;
+ 	setup_timer(&rif_timer, rif_check_expire, 0);
+->>>>>>> FETCH_HEAD:net/802/tr.c
+ 	add_timer(&rif_timer);
+ #ifdef CONFIG_SYSCTL
+ 	register_sysctl_paths(tr_path, tr_table);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -114,6 +124,7 @@ git-md-accel.patch
 git-mmc.patch
 git-mtd.patch
 git-net.patch
+git-net-fix-conflicts.patch
 git-net-vs-git-lblnet.patch
 git-net-vs-git-lblnet-2.patch
 git-netdev-all.patch
