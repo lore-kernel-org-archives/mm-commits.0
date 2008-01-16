@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-libata-more-pata-fixes.patch added to -mm tree
-Date: Wed, 16 Jan 2008 00:28:58 -0800
-Message-ID: <200801160837.m0G8bJWL028522@imap1.linux-foundation.org>
+Subject: + libfs-allow-error-return-from-simple-attributes-fix.patch added to -mm tree
+Date: Wed, 16 Jan 2008 00:39:01 -0800
+Message-ID: <200801160847.m0G8lM6i028844@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39730 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53497 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753216AbYAPIhl (ORCPT
+	by vger.kernel.org with ESMTP id S1751210AbYAPIru (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 03:37:41 -0500
+	Wed, 16 Jan 2008 03:47:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, jeff@garzik.org
+Cc: akpm@linux-foundation.org, arnd@arndb.de, greg@kroah.com, hch@lst.de, stefano.brivio@polimi.it, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     git-libata: more pata fixes
+     libfs-allow-error-return-from-simple-attributes fix
 has been added to the -mm tree.  Its filename is
-     git-libata-more-pata-fixes.patch
+     libfs-allow-error-return-from-simple-attributes-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,37 +26,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-libata: more pata fixes
+Subject: libfs-allow-error-return-from-simple-attributes fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/ata/pata_winbond.c: In function 'winbond_data_xfer':
-drivers/ata/pata_winbond.c:121: warning: 'return' with a value, in function returning void
-drivers/ata/pata_winbond.c: At top level:
-drivers/ata/pata_winbond.c:160: warning: initialization from incompatible pointer type
+lib/fault-inject.c: In function 'fops_ul_MAX_STACK_TRACE_DEPTH_open':
+lib/fault-inject.c:167: warning: passing argument 4 of 'simple_attr_open' from i
 
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: <stefano.brivio@polimi.it>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Greg KH <greg@kroah.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_winbond.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ lib/fault-inject.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_winbond.c~git-libata-more-pata-fixes drivers/ata/pata_winbond.c
---- a/drivers/ata/pata_winbond.c~git-libata-more-pata-fixes
-+++ a/drivers/ata/pata_winbond.c
-@@ -91,9 +91,8 @@ static void winbond_set_piomode(struct a
- 	winbond_writecfg(winbond->config, timing + 1, reg);
+diff -puN lib/fault-inject.c~libfs-allow-error-return-from-simple-attributes-fix lib/fault-inject.c
+--- a/lib/fault-inject.c~libfs-allow-error-return-from-simple-attributes-fix
++++ a/lib/fault-inject.c
+@@ -141,11 +141,12 @@ static int debugfs_ul_set(void *data, u6
  }
  
--
--static void winbond_data_xfer(struct ata_device *dev, unsigned char *buf,
--			      unsigned int buflen, int rw)
-+static unsigned int winbond_data_xfer(struct ata_device *dev,
-+			unsigned char *buf, unsigned int buflen, int rw)
+ #ifdef CONFIG_FAULT_INJECTION_STACKTRACE_FILTER
+-static void debugfs_ul_set_MAX_STACK_TRACE_DEPTH(void *data, u64 val)
++static int debugfs_ul_set_MAX_STACK_TRACE_DEPTH(void *data, u64 val)
  {
- 	struct ata_port *ap = dev->link->ap;
- 	int slop = buflen & 3;
+ 	*(unsigned long *)data =
+ 		val < MAX_STACK_TRACE_DEPTH ?
+ 		val : MAX_STACK_TRACE_DEPTH;
++	return 0;
+ }
+ #endif /* CONFIG_FAULT_INJECTION_STACKTRACE_FILTER */
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -113,6 +116,7 @@ git-kvm.patch
 git-libata-all.patch
 git-libata-all-wtf.patch
 git-libata-drivers-ata-pata_pcmciac-fixup.patch
+git-libata-more-pata-fixes.patch
 git-md-accel.patch
 git-mmc.patch
 git-mtd.patch
@@ -300,6 +304,7 @@ remove-fastcall-from-linux-include-checkpatch-fixes.patch
 constify-tables-in-kernel-sysctl_checkc-fix.patch
 aoe-statically-initialise-devlist_lock.patch
 ufs-fix-symlink-creation-on-ufs2-fix.patch
+libfs-allow-error-return-from-simple-attributes-fix.patch
 make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
 reiser4.patch
 jens-broke-reiser4patch-added-to-mm-tree.patch
@@ -313,4 +318,3 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-git-libata-more-pata-fixes.patch
