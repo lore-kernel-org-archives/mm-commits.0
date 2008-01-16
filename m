@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-mtd-ubi-cdevc-unused-var.patch added to -mm tree
-Date: Wed, 16 Jan 2008 01:24:27 -0800
-Message-ID: <200801160932.m0G9WmeB030375@imap1.linux-foundation.org>
+Subject: + git-scsi-misc-vs-gregkh-pci-pci-remove-users-of-pci_enable_device_bars.patch added to -mm tree
+Date: Wed, 16 Jan 2008 01:31:41 -0800
+Message-ID: <200801160940.m0G9e2eq030580@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36292 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37593 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751477AbYAPJdc (ORCPT
+	by vger.kernel.org with ESMTP id S1751482AbYAPJkP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 04:33:32 -0500
+	Wed, 16 Jan 2008 04:40:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dwmw2@infradead.org
+Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, greg@kroah.com
 
 
 The patch titled
-     drivers/mtd/ubi/cdev.c: unused var
+     git-scsi-misc vs gregkh-pci-pci-remove-users-of-pci_enable_device_bars
 has been added to the -mm tree.  Its filename is
-     drivers-mtd-ubi-cdevc-unused-var.patch
+     git-scsi-misc-vs-gregkh-pci-pci-remove-users-of-pci_enable_device_bars.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,28 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/mtd/ubi/cdev.c: unused var
+Subject: git-scsi-misc vs gregkh-pci-pci-remove-users-of-pci_enable_device_bars
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: David Woodhouse <dwmw2@infradead.org>
+Whoever merges last needs this.
+
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/ubi/cdev.c |    2 +-
+ drivers/scsi/lpfc/lpfc_init.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mtd/ubi/cdev.c~drivers-mtd-ubi-cdevc-unused-var drivers/mtd/ubi/cdev.c
---- a/drivers/mtd/ubi/cdev.c~drivers-mtd-ubi-cdevc-unused-var
-+++ a/drivers/mtd/ubi/cdev.c
-@@ -268,7 +268,7 @@ static ssize_t vol_cdev_direct_write(str
- 	struct ubi_volume_desc *desc = file->private_data;
- 	struct ubi_volume *vol = desc->vol;
- 	struct ubi_device *ubi = vol->ubi;
--	int lnum, off, len, tbuf_size, vol_id = vol->vol_id, err = 0;
-+	int lnum, off, len, tbuf_size, err = 0;
- 	size_t count_save = count;
- 	char *tbuf;
- 	uint64_t tmp;
+diff -puN drivers/scsi/lpfc/lpfc_init.c~git-scsi-misc-vs-gregkh-pci-pci-remove-users-of-pci_enable_device_bars drivers/scsi/lpfc/lpfc_init.c
+--- a/drivers/scsi/lpfc/lpfc_init.c~git-scsi-misc-vs-gregkh-pci-pci-remove-users-of-pci_enable_device_bars
++++ a/drivers/scsi/lpfc/lpfc_init.c
+@@ -1894,7 +1894,7 @@ lpfc_pci_probe_one(struct pci_dev *pdev,
+ 	uint16_t iotag;
+ 	int bars = pci_select_bars(pdev, IORESOURCE_MEM);
+ 
+-	if (pci_enable_device_bars(pdev, bars))
++	if (pci_enable_device_mem(pdev))
+ 		goto out;
+ 	if (pci_request_selected_regions(pdev, bars, LPFC_DRIVER_NAME))
+ 		goto out_disable_device;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -110,6 +113,7 @@ git-libata-more-pata-fixes.patch
 git-md-accel.patch
 git-mmc.patch
 git-mtd.patch
+drivers-mtd-ubi-cdevc-unused-var.patch
 git-net.patch
 git-net-fix-conflicts.patch
 git-net-vs-git-lblnet.patch
@@ -136,6 +140,7 @@ git-sched-fixup.patch
 git-sh.patch
 git-scsi-misc.patch
 git-scsi-misc-vs-git-libata-all.patch
+git-scsi-misc-vs-gregkh-pci-pci-remove-users-of-pci_enable_device_bars.patch
 scsi-aic94xx-cleanups-checkpatch-fixes.patch
 scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
 libsas-convert-ata-bridge-to-use-new-eh.patch
@@ -312,4 +317,3 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-drivers-mtd-ubi-cdevc-unused-var.patch
