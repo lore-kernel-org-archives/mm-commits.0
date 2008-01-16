@@ -1,65 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - gregkh-driver-kobject-convert-hvcs-to-use-kref-not-kobject-hvcs-fixup-container_of-usage.patch removed from -mm tree
-Date: Tue, 15 Jan 2008 17:39:05 -0800
-Message-ID: <200801160139.m0G1d5h6013971@imap1.linux-foundation.org>
+Subject: - driver-core-build-with-sysfs=n.patch removed from -mm tree
+Date: Tue, 15 Jan 2008 17:39:08 -0800
+Message-ID: <200801160139.m0G1d8HE013977@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42438 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53974 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756405AbYAPBtf (ORCPT
+	by vger.kernel.org with ESMTP id S1752693AbYAPBtd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Jan 2008 20:49:35 -0500
+	Tue, 15 Jan 2008 20:49:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@sw.ru, greg@kroah.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, greg@kroah.com, kay.sievers@vrfy.org, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hvcs: fixup container_of() usage
+     driver core: build with SYSFS=n
 has been removed from the -mm tree.  Its filename was
-     gregkh-driver-kobject-convert-hvcs-to-use-kref-not-kobject-hvcs-fixup-container_of-usage.patch
+     driver-core-build-with-sysfs=n.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hvcs: fixup container_of() usage
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: driver core: build with SYSFS=n
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+When SYSFS=n and MODULES=y, build ends with:
+
+linux-2.6.24-rc6-mm1/drivers/base/module.c: In function 'module_add_driver':
+linux-2.6.24-rc6-mm1/drivers/base/module.c:49: error: 'module_kset' undeclared (first use in this function)
+make[3]: *** [drivers/base/module.o] Error 1
+
+Below is one possible fix.
+Build-tested with all 4 config combinations of SYSFS & MODULES.
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: Greg KH <greg@kroah.com>
 Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/hvcs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/base/Makefile |    2 ++
+ drivers/base/base.h   |    2 +-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/hvcs.c~gregkh-driver-kobject-convert-hvcs-to-use-kref-not-kobject-hvcs-fixup-container_of-usage drivers/char/hvcs.c
---- a/drivers/char/hvcs.c~gregkh-driver-kobject-convert-hvcs-to-use-kref-not-kobject-hvcs-fixup-container_of-usage
-+++ a/drivers/char/hvcs.c
-@@ -304,7 +304,7 @@ struct hvcs_struct {
- };
+diff -puN drivers/base/Makefile~driver-core-build-with-sysfs=n drivers/base/Makefile
+--- a/drivers/base/Makefile~driver-core-build-with-sysfs=n
++++ a/drivers/base/Makefile
+@@ -11,7 +11,9 @@ obj-$(CONFIG_FW_LOADER)	+= firmware_clas
+ obj-$(CONFIG_NUMA)	+= node.o
+ obj-$(CONFIG_MEMORY_HOTPLUG_SPARSE) += memory.o
+ obj-$(CONFIG_SMP)	+= topology.o
++ifeq ($(CONFIG_SYSFS),y)
+ obj-$(CONFIG_MODULES)	+= module.o
++endif
+ obj-$(CONFIG_SYS_HYPERVISOR) += hypervisor.o
  
- /* Required to back map a kref to its containing object */
--#define from_kref(kref) container_of(kref, struct hvcs_struct, kref)
-+#define from_kref(k) container_of(k, struct hvcs_struct, kref)
+ ifeq ($(CONFIG_DEBUG_DRIVER),y)
+diff -puN drivers/base/base.h~driver-core-build-with-sysfs=n drivers/base/base.h
+--- a/drivers/base/base.h~driver-core-build-with-sysfs=n
++++ a/drivers/base/base.h
+@@ -79,7 +79,7 @@ extern char *make_class_name(const char 
  
- static struct list_head hvcs_structs = LIST_HEAD_INIT(hvcs_structs);
- static DEFINE_SPINLOCK(hvcs_structs_lock);
+ extern int devres_release_all(struct device *dev);
+ 
+-#ifdef CONFIG_MODULES
++#if defined(CONFIG_MODULES) && defined(CONFIG_SYSFS)
+ extern void module_add_driver(struct module *mod, struct device_driver *drv);
+ extern void module_remove_driver(struct device_driver *drv);
+ #else
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-git-cryptodev.patch
-proc-remove-module_license.patch
-proc-less-lock-operations-during-lookup.patch
-proc-simplify-function-prototypes.patch
-proc-remove-useless-check-on-symlink-removal.patch
-proc-detect-duplicate-names-on-registration.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-fix-openless-usage-due-to-proc_fops-flip.patch
-proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
-fixup-container_of-usage.patch
-single_open-seq_release-leak-diagnostics.patch
+origin.patch
+git-dvb.patch
+git-kbuild.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+pcmcia-include-bad-cis-filename-in-error-message.patch
+git-scsi-misc.patch
+git-unionfs.patch
+hostap-section-mismatch-warning.patch
+git-ipwireless_cs.patch
+git-x86.patch
+register_cpu-__devinit-or-__cpuinit.patch
+cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
+dio-fix-kernel-doc-notation.patch
+tpm-infineon-section-mismatch.patch
+tdfxfb-fix-section-mismatch-warnings.patch
+uvesafb-small-cleanups.patch
+documentation-move-dnotifytxt-to-filesystems.patch
+documentation-move-sharedsubtreestxt-to-filesystems.patch
+documentation-create-new-scheduler-subdirectory.patch
+reporting-bugs-cc-the-mailing-list-too.patch
+fs-menu-small-reorg.patch
+profile-likely-unlikely-macros.patch
