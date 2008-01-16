@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch added to -mm tree
-Date: Wed, 16 Jan 2008 02:52:54 -0800
-Message-ID: <200801161101.m0GB1FlR000805@imap1.linux-foundation.org>
+Subject: + drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch added to -mm tree
+Date: Wed, 16 Jan 2008 02:55:01 -0800
+Message-ID: <200801161103.m0GB3MaF000915@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53166 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43590 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751139AbYAPLBt (ORCPT
+	by vger.kernel.org with ESMTP id S1753581AbYAPLED (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 06:01:49 -0500
+	Wed, 16 Jan 2008 06:04:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com
+Cc: akpm@linux-foundation.org, mchehab@infradead.org
 
 
 The patch titled
-     drivers/scsi/dc395x.c: fix uninitialized var warning
+     drivers/media/video/em28xx/em28xx-core.c: fix use of potentially uninitialized variable
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch
+     drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/scsi/dc395x.c: fix uninitialized var warning
+Subject: drivers/media/video/em28xx/em28xx-core.c: fix use of potentially uninitialized variable
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/scsi/dc395x.c: In function 'dc395x_init_one':
-drivers/scsi/dc395x.c:4270: warning: 'ptr' may be used uninitialized in this function
+drivers/media/video/em28xx/em28xx-core.c: In function 'em28xx_set_audio_source':
+drivers/media/video/em28xx/em28xx-core.c:276: warning: 'no_ac97' may be used uninitialized in this function
 
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+This looks like a genuine bug to me.
+
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/dc395x.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/video/em28xx/em28xx-core.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/scsi/dc395x.c~drivers-scsi-dc395xc-fix-uninitialized-var-warning drivers/scsi/dc395x.c
---- a/drivers/scsi/dc395x.c~drivers-scsi-dc395xc-fix-uninitialized-var-warning
-+++ a/drivers/scsi/dc395x.c
-@@ -4267,7 +4267,7 @@ static int __devinit adapter_sg_tables_a
- 	const unsigned srbs_per_page = PAGE_SIZE/SEGMENTX_LEN;
- 	int srb_idx = 0;
- 	unsigned i = 0;
--	struct SGentry *ptr;
-+	struct SGentry *uninitialized_var(ptr);
+diff -puN drivers/media/video/em28xx/em28xx-core.c~drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable drivers/media/video/em28xx/em28xx-core.c
+--- a/drivers/media/video/em28xx/em28xx-core.c~drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable
++++ a/drivers/media/video/em28xx/em28xx-core.c
+@@ -273,7 +273,8 @@ int em28xx_set_audio_source(struct em28x
+ 	static char *enable  = "\x08\x08";
+ 	static char *disable = "\x08\x88";
+ 	char *video = enable, *line = disable;
+-	int ret, no_ac97;
++	int ret;
++	int no_ac97 = 0;
+ 	u8 input;
  
- 	for (i = 0; i < DC395x_MAX_SRB_CNT; i++)
- 		acb->srb_array[i].segment_x = NULL;
+ 	if (dev->is_em2800) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -118,6 +121,7 @@ git-md-accel.patch
 git-mmc.patch
 git-mtd.patch
 drivers-mtd-ubi-wlc-fix-uninitialized-var-warning.patch
+drivers-mtd-ubi-scanc-fix-uninitialized-var-warning.patch
 drivers-mtd-ubi-cdevc-unused-var.patch
 git-net.patch
 git-net-fix-conflicts.patch
@@ -147,6 +151,7 @@ git-scsi-misc-vs-git-libata-all.patch
 git-scsi-misc-vs-gregkh-pci-pci-remove-users-of-pci_enable_device_bars.patch
 scsi-aic94xx-cleanups-checkpatch-fixes.patch
 scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
+drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch
 libsas-convert-ata-bridge-to-use-new-eh.patch
 git-unionfs.patch
 vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
@@ -325,5 +330,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-drivers-mtd-ubi-scanc-fix-uninitialized-var-warning.patch
-drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch
+drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
