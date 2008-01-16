@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-infiniband-dont-direct-your-stderr-to-dev-null.patch added to -mm tree
-Date: Wed, 16 Jan 2008 01:06:09 -0800
-Message-ID: <200801160914.m0G9EUca029726@imap1.linux-foundation.org>
+Subject: + git-netdev-all-fix-conflicts-fix.patch added to -mm tree
+Date: Wed, 16 Jan 2008 01:10:33 -0800
+Message-ID: <200801160918.m0G9IssS029877@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59101 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32771 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751351AbYAPJPH (ORCPT
+	by vger.kernel.org with ESMTP id S1751232AbYAPJTG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 04:15:07 -0500
+	Wed, 16 Jan 2008 04:19:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, rolandd@cisco.com
+Cc: akpm@linux-foundation.org, jeff@garzik.org
 
 
 The patch titled
-     git-infiniband-dont-direct-your-stderr-to-dev-null
+     git-netdev-all-fix-conflicts-fix
 has been added to the -mm tree.  Its filename is
-     git-infiniband-dont-direct-your-stderr-to-dev-null.patch
+     git-netdev-all-fix-conflicts-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-infiniband-dont-direct-your-stderr-to-dev-null
+Subject: git-netdev-all-fix-conflicts-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/infiniband/core/cma.c: In function 'cma_accept_ib':
-drivers/infiniband/core/cma.c:2358: warning: unused variable 'qp_attr_mask'
-drivers/infiniband/core/cma.c:2357: warning: unused variable 'qp_attr'
-
-Cc: Roland Dreier <rolandd@cisco.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/core/cma.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/net/netxen/netxen_nic_init.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/infiniband/core/cma.c~git-infiniband-dont-direct-your-stderr-to-dev-null drivers/infiniband/core/cma.c
---- a/drivers/infiniband/core/cma.c~git-infiniband-dont-direct-your-stderr-to-dev-null
-+++ a/drivers/infiniband/core/cma.c
-@@ -2353,8 +2353,7 @@ static int cma_accept_ib(struct rdma_id_
- 			 struct rdma_conn_param *conn_param)
- {
- 	struct ib_cm_rep_param rep;
--	struct ib_qp_attr qp_attr;
--	int qp_attr_mask, ret;
-+	int ret;
+diff -puN drivers/net/netxen/netxen_nic_init.c~git-netdev-all-fix-conflicts-fix drivers/net/netxen/netxen_nic_init.c
+--- a/drivers/net/netxen/netxen_nic_init.c~git-netdev-all-fix-conflicts-fix
++++ a/drivers/net/netxen/netxen_nic_init.c
+@@ -1279,6 +1279,8 @@ int netxen_process_cmd_ring(unsigned lon
+ 	spin_unlock(&adapter->tx_lock);
  
- 	ret = cma_modify_qp_rtr(id_priv, conn_param);
- 	if (ret)
+ 	while ((last_consumer != consumer) && (count1 < MAX_STATUS_HANDLE)) {
++		struct sk_buff *skb;
++
+ 		buffer = &adapter->cmd_buf_arr[last_consumer];
+ 		pdev = adapter->pdev;
+ 		frag = &buffer->frag_array[0];
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -121,6 +116,7 @@ git-net-vs-git-lblnet.patch
 git-net-vs-git-lblnet-2.patch
 git-netdev-all.patch
 git-netdev-all-fix-conflicts.patch
+git-netdev-all-fix-conflicts-fix.patch
 git-net-vs-git-netdev-all.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 git-backlight.patch
