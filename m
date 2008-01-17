@@ -1,30 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-ignore-acpi-video-devices-that-arent-present-in-hardware-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 16 Jan 2008 20:34:40 -0800
-Message-ID: <200801170434.m0H4YKFc009110@imap1.linux-foundation.org>
+Subject: + fix-ide-mm-ide-use-ide_destroy_dmatable-instead-of-pci_unmap_sg.patch added to -mm tree
+Date: Thu, 17 Jan 2008 01:24:49 -0700
+Message-ID: <200801170824.m0H8OUU4016612@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60870 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59169 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753075AbYAQEeo (ORCPT
+	by vger.kernel.org with ESMTP id S1751821AbYAQIYl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 23:34:44 -0500
+	Thu, 17 Jan 2008 03:24:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, lenb@kernel.org, mjg59@srcf.ucam.org, shaohua.li@intel.com, trenn@suse.de
+Cc: akpm@linux-foundation.org, bzolnier@gmail.com
 
 
 The patch titled
-     acpi-ignore-acpi-video-devices-that-arent-present-in-hardware-checkpatch-fixes
+     fix-ide-mm-ide-use-ide_destroy_dmatable-instead-of-pci_unmap_sg
 has been added to the -mm tree.  Its filename is
-     acpi-ignore-acpi-video-devices-that-arent-present-in-hardware-checkpatch-fixes.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+     fix-ide-mm-ide-use-ide_destroy_dmatable-instead-of-pci_unmap_sg.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -34,43 +28,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi-ignore-acpi-video-devices-that-arent-present-in-hardware-checkpatch-fixes
+Subject: fix-ide-mm-ide-use-ide_destroy_dmatable-instead-of-pci_unmap_sg
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: trailing whitespace
-#31: FILE: drivers/acpi/video.c:1276:
-+^I$
+drivers/ide/ppc/pmac.c: In function `pmac_ide_destroy_dmatable':
+drivers/ide/ppc/pmac.c:1551: error: `nents' undeclared (first use in this function)
+drivers/ide/ppc/pmac.c:1551: error: (Each undeclared identifier is reported only once
+drivers/ide/ppc/pmac.c:1551: error: for each function it appears in.)
 
-total: 1 errors, 0 warnings, 37 lines checked
+This, I assume:
 
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "Li, Shaohua" <shaohua.li@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Thomas Renninger <trenn@suse.de>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/video.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ide/ppc/pmac.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/video.c~acpi-ignore-acpi-video-devices-that-arent-present-in-hardware-checkpatch-fixes drivers/acpi/video.c
---- a/drivers/acpi/video.c~acpi-ignore-acpi-video-devices-that-arent-present-in-hardware-checkpatch-fixes
-+++ a/drivers/acpi/video.c
-@@ -1273,7 +1273,7 @@ static int acpi_video_bus_add_fs(struct 
- 	struct proc_dir_entry *entry = NULL;
- 	struct acpi_video_bus *video;
- 	struct device *dev;
--	
-+
- 	status =
- 	    acpi_evaluate_integer(device->handle, "_ADR", NULL, &device_id);
+diff -puN drivers/ide/ppc/pmac.c~fix-ide-mm-ide-use-ide_destroy_dmatable-instead-of-pci_unmap_sg drivers/ide/ppc/pmac.c
+--- a/drivers/ide/ppc/pmac.c~fix-ide-mm-ide-use-ide_destroy_dmatable-instead-of-pci_unmap_sg
++++ a/drivers/ide/ppc/pmac.c
+@@ -1556,7 +1556,7 @@ pmac_ide_destroy_dmatable (ide_drive_t *
+ {
+ 	ide_hwif_t *hwif = drive->hwif;
  
+-	if (nents) {
++	if (hwif->sg_nents) {
+ 		ide_destroy_dmatable(drive);
+ 		hwif->sg_nents = 0;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -132,6 +118,7 @@ drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
 git-kbuild.patch
 git-kvm.patch
 git-libata-all.patch
+fix-ide-mm-ide-use-ide_destroy_dmatable-instead-of-pci_unmap_sg.patch
 drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
 drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
 git-md-accel.patch
