@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + include-asm-powerpc-nvramh-needs-listh.patch added to -mm tree
-Date: Thu, 17 Jan 2008 11:28:00 -0800
-Message-ID: <200801171927.m0HJReS9008766@imap1.linux-foundation.org>
+Subject: + git-libata-all-fix-drivers-ata-sata_fslc.patch added to -mm tree
+Date: Thu, 17 Jan 2008 11:33:52 -0800
+Message-ID: <200801171933.m0HJXWWf009072@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49275 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36529 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751558AbYAQT1t (ORCPT
+	by vger.kernel.org with ESMTP id S1751510AbYAQTeT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jan 2008 14:27:49 -0500
+	Thu, 17 Jan 2008 14:34:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, m.kozlowski@tuxland.pl, paulus@samba.org
+Cc: akpm@linux-foundation.org, jeff@garzik.org, olof@lixom.net
 
 
 The patch titled
-     include/asm-powerpc/nvram.h needs list.h
+     git-libata-all: fix drivers/ata/sata_fsl.c
 has been added to the -mm tree.  Its filename is
-     include-asm-powerpc-nvramh-needs-listh.patch
+     git-libata-all-fix-drivers-ata-sata_fslc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/asm-powerpc/nvram.h needs list.h
+Subject: git-libata-all: fix drivers/ata/sata_fsl.c
 From: Andrew Morton <akpm@linux-foundation.org>
 
-CC [M]  sound/ppc/awacs.o
-In file included from sound/ppc/awacs.c:24:
-include/asm/nvram.h:62: error: field 'partition' has incomplete type
+drivers/ata/sata_fsl.c: In function 'sata_fsl_fill_sg':
+drivers/ata/sata_fsl.c:337: error: redeclaration of 'si' with no linkage
+drivers/ata/sata_fsl.c:326: error: previous declaration of 'si' was here
 
-Reported-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>	
+Reported-by: Olof Johansson <olof@lixom.net>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-powerpc/nvram.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/ata/sata_fsl.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/asm-powerpc/nvram.h~include-asm-powerpc-nvramh-needs-listh include/asm-powerpc/nvram.h
---- a/include/asm-powerpc/nvram.h~include-asm-powerpc-nvramh-needs-listh
-+++ a/include/asm-powerpc/nvram.h
-@@ -11,6 +11,7 @@
- #define _ASM_POWERPC_NVRAM_H
+diff -puN drivers/ata/sata_fsl.c~git-libata-all-fix-drivers-ata-sata_fslc drivers/ata/sata_fsl.c
+--- a/drivers/ata/sata_fsl.c~git-libata-all-fix-drivers-ata-sata_fslc
++++ a/drivers/ata/sata_fsl.c
+@@ -323,7 +323,6 @@ static unsigned int sata_fsl_fill_sg(str
+ 	struct scatterlist *sg;
+ 	unsigned int num_prde = 0;
+ 	u32 ttl_dwords = 0;
+-	unsigned int si;
  
- #include <linux/errno.h>
-+#include <linux/list.h>
- 
- #define NVRW_CNT 0x20
- #define NVRAM_HEADER_LEN 16 /* sizeof(struct nvram_header) */
+ 	/*
+ 	 * NOTE : direct & indirect prdt's are contigiously allocated
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -344,3 +343,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+git-libata-all-fix-drivers-ata-sata_fslc.patch
