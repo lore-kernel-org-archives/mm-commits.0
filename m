@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-radeonfb-regression-with-xpress-200m-5955.patch added to -mm tree
-Date: Wed, 16 Jan 2008 17:56:47 -0800
-Message-ID: <200801170156.m0H1uStF003656@imap1.linux-foundation.org>
+Subject: + revert-local_t-documentation-update.patch added to -mm tree
+Date: Wed, 16 Jan 2008 17:58:11 -0800
+Message-ID: <200801170157.m0H1vpd0003693@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58483 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49504 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752773AbYAQB5P (ORCPT
+	by vger.kernel.org with ESMTP id S1752739AbYAQB6G (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 20:57:15 -0500
+	Wed, 16 Jan 2008 20:58:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alevkovich@tut.by, adaplas@pol.net, geert@linux-m68k.org, rjw@sisk.pl
+Cc: lizf@cn.fujitsu.com, mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     fix radeonfb regression with Xpress 200m 5955
+     Revert "local_t Documentation update"
 has been added to the -mm tree.  Its filename is
-     fix-radeonfb-regression-with-xpress-200m-5955.patch
+     revert-local_t-documentation-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,67 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix radeonfb regression with Xpress 200m 5955
-From: Alex <alevkovich@tut.by>
+Subject: Revert "local_t Documentation update"
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-Fix http://bugzilla.kernel.org/show_bug.cgi?id=9762
+This reverts commit e1265205c0ee3919c3f2c750662630154c8faab2.
 
-Framebuffer is ok only with default parameters only (it is 1280x800-8@60).  If
-parameters are video=radeonfb:1280x800-32@60 then xres, yres and xres_virtual
-are ok but yres_virtual is 1024.  It can be corrected by fbset utility so I
-think it can be corrected in the driver code also.
+It's a duplicate commit of commit 74beb9db77930be476b267ec8518a642f39a04bf,
+resulting in a duplicate section.
 
-Steps to reproduce: video=radeonfb:1280x800-32@60 or
-video=radeonfb:1280x800-16@60
-
-Add 1280x800 mode into modedb
-
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/modedb.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ Documentation/local_ops.txt |   23 -----------------------
+ 1 file changed, 23 deletions(-)
 
-diff -puN drivers/video/modedb.c~fix-radeonfb-regression-with-xpress-200m-5955 drivers/video/modedb.c
---- a/drivers/video/modedb.c~fix-radeonfb-regression-with-xpress-200m-5955
-+++ a/drivers/video/modedb.c
-@@ -259,6 +259,10 @@ static const struct fb_videomode modedb[
- 	/* 1366x768, 60 Hz, 47.403 kHz hsync, WXGA 16:9 aspect ratio */
- 	NULL, 60, 1366, 768, 13806, 120, 10, 14, 3, 32, 5,
- 	0, FB_VMODE_NONINTERLACED
-+   }, {
-+	/* 1280x800, 60 Hz, 47.403 kHz hsync, WXGA 16:10 aspect ratio */
-+	NULL, 60, 1280, 800, 12048, 200, 64, 24, 1, 136, 3,
-+	0, FB_VMODE_NONINTERLACED
-     },
- };
+diff -puN Documentation/local_ops.txt~revert-local_t-documentation-update Documentation/local_ops.txt
+--- a/Documentation/local_ops.txt~revert-local_t-documentation-update
++++ a/Documentation/local_ops.txt
+@@ -68,29 +68,6 @@ typedef struct { atomic_long_t a; } loca
+   variable can be read when reading some _other_ cpu's variables.
  
+ 
+-* Rules to follow when using local atomic operations
+-
+-- Variables touched by local ops must be per cpu variables.
+-- _Only_ the CPU owner of these variables must write to them.
+-- This CPU can use local ops from any context (process, irq, softirq, nmi, ...)
+-  to update its local_t variables.
+-- Preemption (or interrupts) must be disabled when using local ops in
+-  process context to   make sure the process won't be migrated to a
+-  different CPU between getting the per-cpu variable and doing the
+-  actual local op.
+-- When using local ops in interrupt context, no special care must be
+-  taken on a mainline kernel, since they will run on the local CPU with
+-  preemption already disabled. I suggest, however, to explicitly
+-  disable preemption anyway to make sure it will still work correctly on
+-  -rt kernels.
+-- Reading the local cpu variable will provide the current copy of the
+-  variable.
+-- Reads of these variables can be done from any CPU, because updates to
+-  "long", aligned, variables are always atomic. Since no memory
+-  synchronization is done by the writer CPU, an outdated copy of the
+-  variable can be read when reading some _other_ cpu's variables.
+-
+-
+ * How to use local atomic operations
+ 
+ #include <linux/percpu.h>
 _
 
-Patches currently in -mm which might be from alevkovich@tut.by are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
-fix-radeonfb-regression-with-xpress-200m-5955.patch
+revert-local_t-documentation-update.patch
+git-powerpc.patch
+git-drm.patch
+git-hid.patch
+git-net.patch
+git-netdev-all.patch
+clocksource-remove-redundant-code.patch
+clockevent-simplify-list-operations.patch
+timekeeping-rename-timekeeping_is_continuous-to-timekeeping_valid_for_hres.patch
+time-fix-typo-in-comments.patch
+time-delete-comments-that-refer-to-noexistent-symbols.patch
