@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-sched-fix-bug_on.patch added to -mm tree
-Date: Thu, 17 Jan 2008 11:22:42 -0800
-Message-ID: <200801171922.m0HJMMtr008550@imap1.linux-foundation.org>
+Subject: + include-asm-powerpc-nvramh-needs-listh.patch added to -mm tree
+Date: Thu, 17 Jan 2008 11:28:00 -0800
+Message-ID: <200801171927.m0HJReS9008766@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35295 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49275 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752281AbYAQTWo (ORCPT
+	by vger.kernel.org with ESMTP id S1751558AbYAQT1t (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jan 2008 14:22:44 -0500
+	Thu, 17 Jan 2008 14:27:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mingo@elte.hu, rdunlap@xenotime.net
+Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, m.kozlowski@tuxland.pl, paulus@samba.org
 
 
 The patch titled
-     git-sched-fix-bug_on
+     include/asm-powerpc/nvram.h needs list.h
 has been added to the -mm tree.  Its filename is
-     git-sched-fix-bug_on.patch
+     include-asm-powerpc-nvramh-needs-listh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-sched-fix-bug_on
+Subject: include/asm-powerpc/nvram.h needs list.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
-Cc: Ingo Molnar <mingo@elte.hu>
+CC [M]  sound/ppc/awacs.o
+In file included from sound/ppc/awacs.c:24:
+include/asm/nvram.h:62: error: field 'partition' has incomplete type
+
+Reported-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>	
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched_rt.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/asm-powerpc/nvram.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/sched_rt.c~git-sched-fix-bug_on kernel/sched_rt.c
---- a/kernel/sched_rt.c~git-sched-fix-bug_on
-+++ a/kernel/sched_rt.c
-@@ -225,7 +225,8 @@ static void update_curr_rt(struct rq *rq
- 	struct rt_rq *rt_rq = rt_rq_of_se(rt_se);
- 	u64 delta_exec;
+diff -puN include/asm-powerpc/nvram.h~include-asm-powerpc-nvramh-needs-listh include/asm-powerpc/nvram.h
+--- a/include/asm-powerpc/nvram.h~include-asm-powerpc-nvramh-needs-listh
++++ a/include/asm-powerpc/nvram.h
+@@ -11,6 +11,7 @@
+ #define _ASM_POWERPC_NVRAM_H
  
--	BUG_ON(!task_has_rt_policy(curr));
-+	if (!task_has_rt_policy(curr))
-+		return;
+ #include <linux/errno.h>
++#include <linux/list.h>
  
- 	delta_exec = rq->clock - curr->se.exec_start;
- 	if (unlikely((s64)delta_exec < 0))
+ #define NVRW_CNT 0x20
+ #define NVRAM_HEADER_LEN 16 /* sizeof(struct nvram_header) */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -93,6 +95,7 @@ git-cpufreq.patch
 revert-agk-dm-dm-loop.patch
 git-powerpc.patch
 git-powerpc-fixup.patch
+include-asm-powerpc-nvramh-needs-listh.patch
 revert-gregkh-driver-atm-convert-struct-class_device-to-struct-device.patch
 gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
 revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
