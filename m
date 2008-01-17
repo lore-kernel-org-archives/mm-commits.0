@@ -1,58 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - x86-fix-system-gate-related-crash.patch removed from -mm tree
-Date: Thu, 17 Jan 2008 01:49:33 -0800
-Message-ID: <200801170949.m0H9nDVf019428@imap1.linux-foundation.org>
+Subject: + acpi-default-unmap-fixpatch.patch added to -mm tree
+Date: Thu, 17 Jan 2008 02:12:01 -0800
+Message-ID: <200801171011.m0HABiYF020093@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52645 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50425 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751132AbYAQJtn (ORCPT
+	by vger.kernel.org with ESMTP id S1754031AbYAQKML (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jan 2008 04:49:43 -0500
+	Thu, 17 Jan 2008 05:12:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mingo@elte.hu, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mingo@elte.hu
 
 
 The patch titled
-     x86: fix system gate related crash
-has been removed from the -mm tree.  Its filename was
-     x86-fix-system-gate-related-crash.patch
+     acpi-default-unmap-fix.patch
+has been added to the -mm tree.  Its filename is
+     acpi-default-unmap-fixpatch.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: fix system gate related crash
+Subject: acpi-default-unmap-fix.patch
 From: Ingo Molnar <mingo@elte.hu>
-
-on 32-bit, system gates are traps.
-
-on 64-bit, they are interrupts (which disable hardirqs).
 
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/desc.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/acpi/osl.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN include/asm-x86/desc.h~x86-fix-system-gate-related-crash include/asm-x86/desc.h
---- a/include/asm-x86/desc.h~x86-fix-system-gate-related-crash
-+++ a/include/asm-x86/desc.h
-@@ -332,7 +332,11 @@ static inline void set_trap_gate(unsigne
- static inline void set_system_gate(unsigned int n, void *addr)
- {
- 	BUG_ON((unsigned)n > 0xFF);
-+#ifdef CONFIG_X86_32
-+	_set_gate(n, GATE_TRAP, addr, 0x3, 0, __KERNEL_CS);
-+#else
- 	_set_gate(n, GATE_INTERRUPT, addr, 0x3, 0, __KERNEL_CS);
-+#endif
+diff -puN drivers/acpi/osl.c~acpi-default-unmap-fixpatch drivers/acpi/osl.c
+--- a/drivers/acpi/osl.c~acpi-default-unmap-fixpatch
++++ a/drivers/acpi/osl.c
+@@ -244,6 +244,15 @@ acpi_os_map_memory(acpi_physical_address
  }
+ EXPORT_SYMBOL_GPL(acpi_os_map_memory);
  
- static inline void set_task_gate(unsigned int n, unsigned int gdt_entry)
++/*
++ * Architectures can provide an unmap method - but for most this NOP
++ * will be fine because they use state-less __va() for mapping, which
++ * needs no unmap component:
++ */
++void __attribute__((weak)) __acpi_unmap_table (void * addr, unsigned long size)
++{
++}
++
+ void acpi_os_unmap_memory(void __iomem * virt, acpi_size size)
+ {
+ 	if (acpi_gbl_permanent_mmap) {
 _
 
 Patches currently in -mm which might be from mingo@elte.hu are
@@ -83,9 +93,9 @@ revert-kvm-stuff-to-make-git-x86-apply.patch
 git-x86.patch
 git-x86-fixup.patch
 git-x86-fixup-2.patch
+acpi-default-unmap-fixpatch.patch
 git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
 git-x86-fix-doubly-merged-patch.patch
-x86-fix-system-gate-related-crash.patch
 iommu-sg-merging-x86-make-pci-gart-iommu-respect-the-segment-size-limits.patch
 iommu-sg-x86-convert-calgary-iommu-to-use-the-iommu-helper.patch
 iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper.patch
