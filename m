@@ -1,100 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: + revert-local_t-documentation-update.patch added to -mm tree
-Date: Wed, 16 Jan 2008 17:58:11 -0800
-Message-ID: <200801170157.m0H1vpd0003693@imap1.linux-foundation.org>
+Subject: - recent-lenovo-thinkpads-define-a-dummy-grahpics-device-find-it-and-ignore-it.patch removed from -mm tree
+Date: Wed, 16 Jan 2008 20:33:18 -0800
+Message-ID: <200801170432.m0H4Ww2C009078@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49504 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50843 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752739AbYAQB6G (ORCPT
+	by vger.kernel.org with ESMTP id S1752653AbYAQEdW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jan 2008 20:58:06 -0500
+	Wed, 16 Jan 2008 23:33:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, mathieu.desnoyers@polymtl.ca
+To: trenn@suse.de, lenb@kernel.org, mjg59@srcf.ucam.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Revert "local_t Documentation update"
-has been added to the -mm tree.  Its filename is
-     revert-local_t-documentation-update.patch
+     Recent Lenovo ThinkPads define a dummy grahpics device, find it and ignore it
+has been removed from the -mm tree.  Its filename was
+     recent-lenovo-thinkpads-define-a-dummy-grahpics-device-find-it-and-ignore-it.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Revert "local_t Documentation update"
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: Recent Lenovo ThinkPads define a dummy grahpics device, find it and ignore it
+From: Thomas Renninger <trenn@suse.de>
 
-This reverts commit e1265205c0ee3919c3f2c750662630154c8faab2.
+I posted this one already and Matthew had some concerns about it:
+http://www.mail-archive.com/linux-acpi@vger.kernel.org/msg09510.html
 
-It's a duplicate commit of commit 74beb9db77930be476b267ec8518a642f39a04bf,
-resulting in a duplicate section.
+IMO, this one should still be added to -mm, because:
+  - The patch itself is correct, it is the function that is called
+    that must make sure to return the corresponding pci device
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+  - There currently is a bug: Lenovos will register a device for which
+    no physical device exists.
+
+  - That means on these machines HW is addressed/poked
+    which does not exist -> danger.
+
+  - There is no other way to fix up acpi_get_physical_device, than to
+    just do this change (at least I don't see it). People have to
+    complain that their device is not found (the message they see in
+    dmesg is obvious).
+    Then we can make acpi_get_physical_device more robust, which will
+    come out as a benefit for other functionality too sooner or later to
+    be able to rely on getting struct pci in the video (and possibly
+    other) driver(s).
+
+Recent Lenovo ThinkPads define a dummy grahpics device, find it and ignore it
+
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/local_ops.txt |   23 -----------------------
- 1 file changed, 23 deletions(-)
+ drivers/acpi/video.c |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff -puN Documentation/local_ops.txt~revert-local_t-documentation-update Documentation/local_ops.txt
---- a/Documentation/local_ops.txt~revert-local_t-documentation-update
-+++ a/Documentation/local_ops.txt
-@@ -68,29 +68,6 @@ typedef struct { atomic_long_t a; } loca
-   variable can be read when reading some _other_ cpu's variables.
+diff -puN drivers/acpi/video.c~recent-lenovo-thinkpads-define-a-dummy-grahpics-device-find-it-and-ignore-it drivers/acpi/video.c
+--- a/drivers/acpi/video.c~recent-lenovo-thinkpads-define-a-dummy-grahpics-device-find-it-and-ignore-it
++++ a/drivers/acpi/video.c
+@@ -35,6 +35,7 @@
+ #include <linux/input.h>
+ #include <linux/backlight.h>
+ #include <linux/video_output.h>
++#include <linux/acpi.h>
+ #include <asm/uaccess.h>
  
+ #include <acpi/acpi_bus.h>
+@@ -1390,6 +1391,21 @@ acpi_video_bus_get_one_device(struct acp
+ 	u32 max_brightness;
+ 	int status;
+ 	int error;
++	struct device *dev;
++
++
++	/*
++	 *	Check whether we have really  a graphics device physically
++	 *      in the slot and registered at the system.
++	 */
++	dev = acpi_get_physical_device(device->handle);
++	if (!dev) {
++		printk (KERN_DEBUG PREFIX "Video device %s.%s not physically"
++			" connected, ignoring\n", acpi_device_bid(device),
++			device->parent ? acpi_device_bid(device->parent) : "");
++		return -ENODEV;
++	}
++	put_device(dev);
  
--* Rules to follow when using local atomic operations
--
--- Variables touched by local ops must be per cpu variables.
--- _Only_ the CPU owner of these variables must write to them.
--- This CPU can use local ops from any context (process, irq, softirq, nmi, ...)
--  to update its local_t variables.
--- Preemption (or interrupts) must be disabled when using local ops in
--  process context to   make sure the process won't be migrated to a
--  different CPU between getting the per-cpu variable and doing the
--  actual local op.
--- When using local ops in interrupt context, no special care must be
--  taken on a mainline kernel, since they will run on the local CPU with
--  preemption already disabled. I suggest, however, to explicitly
--  disable preemption anyway to make sure it will still work correctly on
--  -rt kernels.
--- Reading the local cpu variable will provide the current copy of the
--  variable.
--- Reads of these variables can be done from any CPU, because updates to
--  "long", aligned, variables are always atomic. Since no memory
--  synchronization is done by the writer CPU, an outdated copy of the
--  variable can be read when reading some _other_ cpu's variables.
--
--
- * How to use local atomic operations
- 
- #include <linux/percpu.h>
+ 	status = acpi_evaluate_integer(device->handle, "_ADR", NULL,
+ 					&device_id);
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from trenn@suse.de are
 
-revert-local_t-documentation-update.patch
-git-powerpc.patch
-git-drm.patch
-git-hid.patch
-git-net.patch
-git-netdev-all.patch
-clocksource-remove-redundant-code.patch
-clockevent-simplify-list-operations.patch
-timekeeping-rename-timekeeping_is_continuous-to-timekeeping_valid_for_hres.patch
-time-fix-typo-in-comments.patch
-time-delete-comments-that-refer-to-noexistent-symbols.patch
+git-acpi.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+export-acpi_check_resource_conflict.patch
+git-alsa.patch
+check-for-acpi-resource-conflicts-in-i2c-bus-drivers.patch
+check-for-acpi-resource-conflicts-in-hwmon-drivers.patch
+git-x86.patch
+declare-pnp-option-parsing-functions-as-__init.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
