@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + update-checkpatchpl-to-version-013.patch added to -mm tree
-Date: Thu, 17 Jan 2008 11:19:34 -0800
-Message-ID: <200801171919.m0HJJF5K008416@imap1.linux-foundation.org>
+Subject: + git-sched-fix-bug_on.patch added to -mm tree
+Date: Thu, 17 Jan 2008 11:22:42 -0800
+Message-ID: <200801171922.m0HJMMtr008550@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46085 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35295 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751882AbYAQTT1 (ORCPT
+	by vger.kernel.org with ESMTP id S1752281AbYAQTWo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jan 2008 14:19:27 -0500
+	Thu, 17 Jan 2008 14:22:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@shadowen.org
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mingo@elte.hu, rdunlap@xenotime.net
 
 
 The patch titled
-     update checkpatch.pl to version 0.13
+     git-sched-fix-bug_on
 has been added to the -mm tree.  Its filename is
-     update-checkpatchpl-to-version-013.patch
+     git-sched-fix-bug_on.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,749 +34,310 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: update checkpatch.pl to version 0.13
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: git-sched-fix-bug_on
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This version brings a large number of fixes which have built up over
-the Christmas period.  Mostly these are fixes for false positives, both
-through improvments to unary checks and possible type detection.  It
-also brings new checks for while location and CVS keywords.  Of note:
-
-  - a number of fixes to unary detection
-  - detection of a number of new forms of types to improve type matching
-  - better inline handling
-  - recognision of '%' as an operator
-
-Andy Whitcroft (28):
-      Version: 0.13
-      unary detection: maintain bracket state across lines
-      move to pre-sanitising the entire file
-      the text of a #error statement should be treated like it is in quotes
-      line sanitisation needs to target double backslash correctly
-      tighten comment guestimation for lines starting ' * '
-      debug: add a debug framework
-      prevent unclosed single quotes from spreading
-      add % as an operator
-      the text of a #warning statement should be treated like it is in quotes
-      possible matching applies in typedefs
-      single statement block checks must not trigger when two or more statements
-      possible types: local variables may also be const
-      treat inline as a type attribute to even when out of place
-      possible types: sparse annotations are valid indicators
-      possible types: beef up the possible type testing
-      check for hanging while statements on the wrong line
-      utf8 checks need to occur against the raw lines
-      function brace checks should use any whitespece matches
-      comments should take up space in the line when sanitised
-      remove debugging from if assignment checks
-      possible types -- ensure we detect all pointer casts
-      fix tests for function spacing in the presence of #define
-      clean up the UTF-8 error message to be clearer
-      test-lib: invert the status report, output success counts
-      detect and report CVS keywords
-      tests: break out tests
-      Add $Id$ to the CVS keyword checks
-
-Benny Halevy (1):
-      checkpatch.pl: recognize the #elif preprocessor directive
-
-Geert Uytterhoeven (1):
-      print the filenames of patches where available
-
-Mauro Carvalho Chehab (1):
-      Fix missing \n in checkpatch.pl
-
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |  296 ++++++++++++++++++++++++++--------------
- 1 file changed, 199 insertions(+), 97 deletions(-)
+ kernel/sched_rt.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~update-checkpatchpl-to-version-013 scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~update-checkpatchpl-to-version-013
-+++ a/scripts/checkpatch.pl
-@@ -9,7 +9,7 @@ use strict;
- my $P = $0;
- $P =~ s@.*/@@g;
- 
--my $V = '0.12';
-+my $V = '0.13';
- 
- use Getopt::Long qw(:config no_auto_abbrev);
- 
-@@ -25,6 +25,7 @@ my $check = 0;
- my $summary = 1;
- my $mailback = 0;
- my $root;
-+my %debug;
- GetOptions(
- 	'q|quiet+'	=> \$quiet,
- 	'tree!'		=> \$tree,
-@@ -39,6 +40,7 @@ GetOptions(
- 	'root=s'	=> \$root,
- 	'summary!'	=> \$summary,
- 	'mailback!'	=> \$mailback,
-+	'debug=s'	=> \%debug,
- ) or exit;
- 
- my $exit = 0;
-@@ -56,6 +58,12 @@ if ($#ARGV < 0) {
- 	exit(1);
- }
- 
-+my $dbg_values = 0;
-+my $dbg_possible = 0;
-+for my $key (keys %debug) {
-+	eval "\${dbg_$key} = '$debug{$key}';"
-+}
-+
- if ($terse) {
- 	$emacs = 1;
- 	$quiet++;
-@@ -110,7 +118,7 @@ our $Assignment	= qr{(?:\*\=|/=|%=|\+=|-
- our $Operators	= qr{
- 			<=|>=|==|!=|
- 			=>|->|<<|>>|<|>|!|~|
--			&&|\|\||,|\^|\+\+|--|&|\||\+|-|\*|\/
-+			&&|\|\||,|\^|\+\+|--|&|\||\+|-|\*|\/|%
- 		  }x;
- 
- our $NonptrType;
-@@ -152,7 +160,7 @@ sub build_types {
- 	$Type	= qr{
- 			\b$NonptrType\b
- 			(?:\s*\*+\s*const|\s*\*+|(?:\s*\[\s*\])+)?
--			(?:\s+$Sparse|\s+$Attribute)*
-+			(?:\s+$Inline|\s+$Sparse|\s+$Attribute)*
- 		  }x;
- 	$Declare	= qr{(?:$Storage\s+)?$Type};
- }
-@@ -181,6 +189,8 @@ if ($tree && -f "$root/$removal") {
- }
- 
- my @rawlines = ();
-+my @lines = ();
-+my $vname;
- for my $filename (@ARGV) {
- 	if ($file) {
- 		open(FILE, "diff -u /dev/null $filename|") ||
-@@ -189,12 +199,17 @@ for my $filename (@ARGV) {
- 		open(FILE, "<$filename") ||
- 			die "$P: $filename: open failed - $!\n";
- 	}
-+	if ($filename eq '-') {
-+		$vname = 'Your patch';
-+	} else {
-+		$vname = $filename;
-+	}
- 	while (<FILE>) {
- 		chomp;
- 		push(@rawlines, $_);
- 	}
- 	close(FILE);
--	if (!process($filename, @rawlines)) {
-+	if (!process($filename)) {
- 		$exit = 1;
- 	}
- 	@rawlines = ();
-@@ -274,20 +289,30 @@ sub sanitise_line {
- 	my $l = '';
- 
- 	my $quote = '';
-+	my $qlen = 0;
- 
- 	foreach my $c (split(//, $line)) {
-+		# The second backslash of a pair is not a "quote".
-+		if ($l eq "\\" && $c eq "\\") {
-+			$c = 'X';
-+		}
- 		if ($l ne "\\" && ($c eq "'" || $c eq '"')) {
- 			if ($quote eq '') {
- 				$quote = $c;
- 				$res .= $c;
- 				$l = $c;
-+				$qlen = 0;
- 				next;
- 			} elsif ($quote eq $c) {
- 				$quote = '';
- 			}
- 		}
-+		if ($quote eq "'" && $qlen > 1) {
-+			$quote = '';
-+		}
- 		if ($quote && $c ne "\t") {
- 			$res .= "X";
-+			$qlen++;
- 		} else {
- 			$res .= $c;
- 		}
-@@ -295,6 +320,28 @@ sub sanitise_line {
- 		$l = $c;
- 	}
- 
-+	# Clear out the comments.
-+	while ($res =~ m@(/\*.*?\*/)@) {
-+		substr($res, $-[1], $+[1] - $-[1]) = ' ' x ($+[1] - $-[1]);
-+	}
-+	if ($res =~ m@(/\*.*)@) {
-+		substr($res, $-[1], $+[1] - $-[1]) = ' ' x ($+[1] - $-[1]);
-+	}
-+	if ($res =~ m@^.(.*\*/)@) {
-+		substr($res, $-[1], $+[1] - $-[1]) = ' ' x ($+[1] - $-[1]);
-+	}
-+
-+	# The pathname on a #include may be surrounded by '<' and '>'.
-+	if ($res =~ /^.#\s*include\s+\<(.*)\>/) {
-+		my $clean = 'X' x length($1);
-+		$res =~ s@\<.*\>@<$clean>@;
-+
-+	# The whole of a #error is a string.
-+	} elsif ($res =~ /^.#\s*(?:error|warning)\s+(.*)\b/) {
-+		my $clean = 'X' x length($1);
-+		$res =~ s@(#\s*(?:error|warning)\s+).*@$1$clean@;
-+	}
-+
- 	return $res;
- }
- 
-@@ -315,9 +362,9 @@ sub ctx_statement_block {
- 		# context.
- 		if ($off >= $len) {
- 			for (; $remain > 0; $line++) {
--				next if ($rawlines[$line] =~ /^-/);
-+				next if ($lines[$line] =~ /^-/);
- 				$remain--;
--				$blk .= sanitise_line($rawlines[$line]) . "\n";
-+				$blk .= $lines[$line] . "\n";
- 				$len = length($blk);
- 				$line++;
- 				last;
-@@ -500,103 +547,106 @@ sub cat_vet {
- 	return $res;
- }
- 
-+my $av_preprocessor = 0;
-+my $av_paren = 0;
-+my @av_paren_type;
-+
-+sub annotate_reset {
-+	$av_preprocessor = 0;
-+	$av_paren = 0;
-+	@av_paren_type = ();
-+}
-+
- sub annotate_values {
- 	my ($stream, $type) = @_;
- 
- 	my $res;
- 	my $cur = $stream;
- 
--	my $debug = 0;
--
--	print "$stream\n" if ($debug);
--
--	##my $type = 'N';
--	my $pos = 0;
--	my $preprocessor = 0;
--	my $paren = 0;
--	my @paren_type;
-+	print "$stream\n" if ($dbg_values > 1);
- 
- 	while (length($cur)) {
--		print " <$type> " if ($debug);
-+		print " <$type> " if ($dbg_values > 1);
- 		if ($cur =~ /^(\s+)/o) {
--			print "WS($1)\n" if ($debug);
--			if ($1 =~ /\n/ && $preprocessor) {
--				$preprocessor = 0;
-+			print "WS($1)\n" if ($dbg_values > 1);
-+			if ($1 =~ /\n/ && $av_preprocessor) {
-+				$av_preprocessor = 0;
- 				$type = 'N';
- 			}
- 
- 		} elsif ($cur =~ /^($Type)/) {
--			print "DECLARE($1)\n" if ($debug);
-+			print "DECLARE($1)\n" if ($dbg_values > 1);
- 			$type = 'T';
- 
- 		} elsif ($cur =~ /^(#\s*define\s*$Ident)(\(?)/o) {
--			print "DEFINE($1)\n" if ($debug);
--			$preprocessor = 1;
--			$paren_type[$paren] = 'N';
--
--		} elsif ($cur =~ /^(#\s*(?:ifdef|ifndef|if|else|endif))/o) {
--			print "PRE($1)\n" if ($debug);
--			$preprocessor = 1;
-+			print "DEFINE($1)\n" if ($dbg_values > 1);
-+			$av_preprocessor = 1;
-+			$av_paren_type[$av_paren] = 'N';
-+
-+		} elsif ($cur =~ /^(#\s*(?:ifdef|ifndef|if|else|elif|endif))/o) {
-+			print "PRE($1)\n" if ($dbg_values > 1);
-+			$av_preprocessor = 1;
- 			$type = 'N';
- 
- 		} elsif ($cur =~ /^(\\\n)/o) {
--			print "PRECONT($1)\n" if ($debug);
-+			print "PRECONT($1)\n" if ($dbg_values > 1);
- 
- 		} elsif ($cur =~ /^(sizeof)\s*(\()?/o) {
--			print "SIZEOF($1)\n" if ($debug);
-+			print "SIZEOF($1)\n" if ($dbg_values > 1);
- 			if (defined $2) {
--				$paren_type[$paren] = 'V';
-+				$av_paren_type[$av_paren] = 'V';
- 			}
- 			$type = 'N';
- 
- 		} elsif ($cur =~ /^(if|while|typeof|for)\b/o) {
--			print "COND($1)\n" if ($debug);
--			$paren_type[$paren] = 'N';
-+			print "COND($1)\n" if ($dbg_values > 1);
-+			$av_paren_type[$av_paren] = 'N';
- 			$type = 'N';
- 
- 		} elsif ($cur =~/^(return|case|else)/o) {
--			print "KEYWORD($1)\n" if ($debug);
-+			print "KEYWORD($1)\n" if ($dbg_values > 1);
- 			$type = 'N';
- 
- 		} elsif ($cur =~ /^(\()/o) {
--			print "PAREN('$1')\n" if ($debug);
--			$paren++;
-+			print "PAREN('$1')\n" if ($dbg_values > 1);
-+			$av_paren++;
- 			$type = 'N';
- 
- 		} elsif ($cur =~ /^(\))/o) {
--			$paren-- if ($paren > 0);
--			if (defined $paren_type[$paren]) {
--				$type = $paren_type[$paren];
--				undef $paren_type[$paren];
--				print "PAREN('$1') -> $type\n" if ($debug);
-+			$av_paren-- if ($av_paren > 0);
-+			if (defined $av_paren_type[$av_paren]) {
-+				$type = $av_paren_type[$av_paren];
-+				undef $av_paren_type[$av_paren];
-+				print "PAREN('$1') -> $type\n"
-+							if ($dbg_values > 1);
- 			} else {
--				print "PAREN('$1')\n" if ($debug);
-+				print "PAREN('$1')\n" if ($dbg_values > 1);
- 			}
- 
- 		} elsif ($cur =~ /^($Ident)\(/o) {
--			print "FUNC($1)\n" if ($debug);
--			$paren_type[$paren] = 'V';
-+			print "FUNC($1)\n" if ($dbg_values > 1);
-+			$av_paren_type[$av_paren] = 'V';
- 
- 		} elsif ($cur =~ /^($Ident|$Constant)/o) {
--			print "IDENT($1)\n" if ($debug);
-+			print "IDENT($1)\n" if ($dbg_values > 1);
- 			$type = 'V';
- 
- 		} elsif ($cur =~ /^($Assignment)/o) {
--			print "ASSIGN($1)\n" if ($debug);
-+			print "ASSIGN($1)\n" if ($dbg_values > 1);
- 			$type = 'N';
- 
- 		} elsif ($cur =~ /^(;|{|}|\?|:|\[)/o) {
--			print "END($1)\n" if ($debug);
-+			print "END($1)\n" if ($dbg_values > 1);
- 			$type = 'N';
- 
- 		} elsif ($cur =~ /^($Operators)/o) {
--			print "OP($1)\n" if ($debug);
-+			print "OP($1)\n" if ($dbg_values > 1);
- 			if ($1 ne '++' && $1 ne '--') {
- 				$type = 'N';
- 			}
- 
- 		} elsif ($cur =~ /(^.)/o) {
--			print "C($1)\n" if ($debug);
-+			print "C($1)\n" if ($dbg_values > 1);
- 		}
- 		if (defined $1) {
- 			$cur = substr($cur, length($1));
-@@ -616,7 +666,7 @@ sub possible {
- 	    $possible ne 'struct' && $possible ne 'enum' &&
- 	    $possible ne 'case' && $possible ne 'else' &&
- 	    $possible ne 'typedef') {
--		#print "POSSIBLE<$possible>\n";
-+		warn "POSSIBLE: $possible\n" if ($dbg_possible);
- 		push(@typeList, $possible);
- 		build_types();
- 	}
-@@ -655,11 +705,12 @@ sub CHK {
- 
- sub process {
- 	my $filename = shift;
--	my @lines = @_;
- 
- 	my $linenr=0;
- 	my $prevline="";
-+	my $prevrawline="";
- 	my $stashline="";
-+	my $stashrawline="";
- 
- 	my $length;
- 	my $indent;
-@@ -681,14 +732,26 @@ sub process {
- 	my $realcnt = 0;
- 	my $here = '';
- 	my $in_comment = 0;
-+	my $comment_edge = 0;
- 	my $first_line = 0;
- 
- 	my $prev_values = 'N';
- 
-+	# Pre-scan the patch sanitizing the lines.
- 	# Pre-scan the patch looking for any __setup documentation.
-+	#
- 	my @setup_docs = ();
- 	my $setup_docs = 0;
--	foreach my $line (@lines) {
-+	my $line;
-+	foreach my $rawline (@rawlines) {
-+		# Standardise the strings and chars within the input to
-+		# simplify matching.
-+		$line = sanitise_line($rawline);
-+		push(@lines, $line);
-+
-+		##print "==>$rawline\n";
-+		##print "-->$line\n";
-+
- 		if ($line=~/^\+\+\+\s+(\S+)/) {
- 			$setup_docs = 0;
- 			if ($1 =~ m@Documentation/kernel-parameters.txt$@) {
-@@ -707,8 +770,7 @@ sub process {
- 	foreach my $line (@lines) {
- 		$linenr++;
- 
--		my $rawline = $line;
--
-+		my $rawline = $rawlines[$linenr - 1];
- 
- #extract the filename as it passes
- 		if ($line=~/^\+\+\+\s+(\S+)/) {
-@@ -728,6 +790,7 @@ sub process {
- 			} else {
- 				$realcnt=1+1;
- 			}
-+			annotate_reset();
- 			$prev_values = 'N';
- 			next;
- 		}
-@@ -746,7 +809,7 @@ sub process {
- 			if ($linenr == $first_line) {
- 				my $edge;
- 				for (my $ln = $first_line; $ln < ($linenr + $realcnt); $ln++) {
--					($edge) = ($lines[$ln - 1] =~ m@(/\*|\*/)@);
-+					($edge) = ($rawlines[$ln - 1] =~ m@(/\*|\*/)@);
- 					last if (defined $edge);
- 				}
- 				if (defined $edge && $edge eq '*/') {
-@@ -757,25 +820,30 @@ sub process {
- 			# Guestimate if this is a continuing comment.  If this
- 			# is the start of a diff block and this line starts
- 			# ' *' then it is very likely a comment.
--			if ($linenr == $first_line and $line =~ m@^.\s*\*@) {
-+			if ($linenr == $first_line and $rawline =~ m@^.\s* \*(?:\s|$)@) {
- 				$in_comment = 1;
- 			}
- 
- 			# Find the last comment edge on _this_ line.
--			while (($line =~ m@(/\*|\*/)@g)) {
-+			$comment_edge = 0;
-+			while (($rawline =~ m@(/\*|\*/)@g)) {
- 				if ($1 eq '/*') {
- 					$in_comment = 1;
- 				} else {
- 					$in_comment = 0;
- 				}
-+				$comment_edge = 1;
- 			}
- 
- 			# Measure the line length and indent.
--			($length, $indent) = line_stats($line);
-+			($length, $indent) = line_stats($rawline);
- 
- 			# Track the previous line.
- 			($prevline, $stashline) = ($stashline, $line);
- 			($previndent, $stashindent) = ($stashindent, $indent);
-+			($prevrawline, $stashrawline) = ($stashrawline, $rawline);
-+
-+			#warn "ic<$in_comment> ce<$comment_edge> line<$line>\n";
- 
- 		} elsif ($realcnt == 1) {
- 			$realcnt--;
-@@ -786,9 +854,9 @@ sub process {
- 		$here = "#$realline: " if ($file);
- 		$here .= "FILE: $realfile:$realline:" if ($realcnt != 0);
- 
--		my $hereline = "$here\n$line\n";
--		my $herecurr = "$here\n$line\n";
--		my $hereprev = "$here\n$prevline\n$line\n";
-+		my $hereline = "$here\n$rawline\n";
-+		my $herecurr = "$here\n$rawline\n";
-+		my $hereprev = "$here\n$prevrawline\n$rawline\n";
- 
- 		$prefix = "$filename:$realline: " if ($emacs && $file);
- 		$prefix = "$filename:$linenr: " if ($emacs && !$file);
-@@ -816,7 +884,7 @@ sub process {
- 
- # UTF-8 regex found at http://www.w3.org/International/questions/qa-forms-utf-8.en.php
- 		if (($realfile =~ /^$/ || $line =~ /^\+/) &&
--		     !($line =~ m/^(
-+		     !($rawline =~ m/^(
- 				[\x09\x0A\x0D\x20-\x7E]              # ASCII
- 				| [\xC2-\xDF][\x80-\xBF]             # non-overlong 2-byte
- 				|  \xE0[\xA0-\xBF][\x80-\xBF]        # excluding overlongs
-@@ -826,7 +894,7 @@ sub process {
- 				| [\xF1-\xF3][\x80-\xBF]{3}          # planes 4-15
- 				|  \xF4[\x80-\x8F][\x80-\xBF]{2}     # plane 16
- 				)*$/x )) {
--			ERROR("Invalid UTF-8\n" . $herecurr);
-+			ERROR("Invalid UTF-8, patch and commit message should be encoded in UTF-8\n" . $herecurr);
- 		}
- 
- #ignore lines being removed
-@@ -837,15 +905,15 @@ sub process {
- 
- #trailing whitespace
- 		if ($line =~ /^\+.*\015/) {
--			my $herevet = "$here\n" . cat_vet($line) . "\n";
-+			my $herevet = "$here\n" . cat_vet($rawline) . "\n";
- 			ERROR("DOS line endings\n" . $herevet);
- 
--		} elsif ($line =~ /^\+.*\S\s+$/ || $line =~ /^\+\s+$/) {
--			my $herevet = "$here\n" . cat_vet($line) . "\n";
-+		} elsif ($rawline =~ /^\+.*\S\s+$/ || $rawline =~ /^\+\s+$/) {
-+			my $herevet = "$here\n" . cat_vet($rawline) . "\n";
- 			ERROR("trailing whitespace\n" . $herevet);
- 		}
- #80 column limit
--		if ($line =~ /^\+/ && !($prevline=~/\/\*\*/) && $length > 80) {
-+		if ($line =~ /^\+/ && !($prevrawline=~/\/\*\*/) && $length > 80) {
- 			WARN("line over 80 characters\n" . $herecurr);
- 		}
- 
-@@ -859,46 +927,48 @@ sub process {
- 
- # at the beginning of a line any tabs must come first and anything
- # more than 8 must use tabs.
--		if ($line=~/^\+\s* \t\s*\S/ or $line=~/^\+\s*        \s*/) {
--			my $herevet = "$here\n" . cat_vet($line) . "\n";
-+		if ($rawline =~ /^\+\s* \t\s*\S/ ||
-+		    $rawline =~ /^\+\s*        \s*/) {
-+			my $herevet = "$here\n" . cat_vet($rawline) . "\n";
- 			ERROR("use tabs not spaces\n" . $herevet);
- 		}
- 
--# Remove comments from the line before processing.
--		my $comment_edge = ($line =~ s@/\*.*\*/@@g) +
--				   ($line =~ s@/\*.*@@) +
--				   ($line =~ s@^(.).*\*/@$1@);
-+# check for RCS/CVS revision markers
-+		if ($rawline =~ /\$(Revision|Log|Id)(?:\$|)/) {
-+			WARN("CVS style keyword markers, these will _not_ be updated\n". $herecurr);
-+		}
- 
- # The rest of our checks refer specifically to C style
- # only apply those _outside_ comments.  Only skip
- # lines in the middle of comments.
- 		next if (!$comment_edge && $in_comment);
- 
--# Standardise the strings and chars within the input to simplify matching.
--		$line = sanitise_line($line);
--
- # Check for potential 'bare' types
--		if ($realcnt &&
--		    $line !~ /$Ident:\s*$/ &&
--		    ($line =~ /^.\s*$Ident\s*\(\*+\s*$Ident\)\s*\(/ ||
--		     $line !~ /^.\s*$Ident\s*\(/)) {
-+		if ($realcnt) {
-+			# Ignore goto labels.
-+			if ($line =~ /$Ident:\*$/) {
-+
-+			# Ignore functions being called
-+			} elsif ($line =~ /^.\s*$Ident\s*\(/) {
-+
- 			# definitions in global scope can only start with types
--			if ($line =~ /^.(?:$Storage\s+)?(?:$Inline\s+)?(?:const\s+)?($Ident)\b/) {
-+			} elsif ($line =~ /^.(?:$Storage\s+)?(?:$Inline\s+)?(?:const\s+)?($Ident)\b/) {
- 				possible($1);
- 
- 			# declarations always start with types
--			} elsif ($prev_values eq 'N' && $line =~ /^.\s*(?:$Storage\s+)?($Ident)\b\s*\**\s*$Ident\s*(?:;|=)/) {
-+			} elsif ($prev_values eq 'N' && $line =~ /^.\s*(?:$Storage\s+)?(?:const\s+)?($Ident)\b(:?\s+$Sparse)?\s*\**\s*$Ident\s*(?:;|=)/) {
- 				possible($1);
-+			}
- 
- 			# any (foo ... *) is a pointer cast, and foo is a type
--			} elsif ($line =~ /\(($Ident)(?:\s+$Sparse)*\s*\*+\s*\)/) {
-+			while ($line =~ /\(($Ident)(?:\s+$Sparse)*\s*\*+\s*\)/g) {
- 				possible($1);
- 			}
- 
- 			# Check for any sort of function declaration.
- 			# int foo(something bar, other baz);
- 			# void (*store_gdt)(x86_descr_ptr *);
--			if ($prev_values eq 'N' && $line =~ /^(.(?:(?:$Storage|$Inline)\s*)*\s*$Type\s*(?:\b$Ident|\(\*\s*$Ident\))\s*)\(/) {
-+			if ($prev_values eq 'N' && $line =~ /^(.(?:typedef\s*)?(?:(?:$Storage|$Inline)\s*)*\s*$Type\s*(?:\b$Ident|\(\*\s*$Ident\))\s*)\(/) {
- 				my ($name_len) = length($1);
- 				my ($level, @ctx) = ctx_statement_level($linenr, $realcnt, $name_len);
- 				my $ctx = join("\n", @ctx);
-@@ -974,8 +1044,11 @@ sub process {
- 		my $opline = $line; $opline =~ s/^./ /;
- 		my $curr_values = annotate_values($opline . "\n", $prev_values);
- 		$curr_values = $prev_values . $curr_values;
--		#warn "--> $opline\n";
--		#warn "--> $curr_values ($prev_values)\n";
-+		if ($dbg_values) {
-+			my $outline = $opline; $outline =~ s/\t/ /g;
-+			warn "--> .$outline\n";
-+			warn "--> $curr_values\n";
-+		}
- 		$prev_values = substr($curr_values, -1);
- 
- #ignore lines not being added
-@@ -1004,9 +1077,6 @@ sub process {
- 				ERROR("malformed #include filename\n" .
- 					$herecurr);
- 			}
--			# Sanitise this special form of string.
--			$path = 'X' x length($path);
--			$line =~ s{\<.*\>}{<$path>};
- 		}
- 
- # no C99 // comments
-@@ -1074,7 +1144,7 @@ sub process {
- # 		}
- 
- 		if ($line =~ /\bLINUX_VERSION_CODE\b/) {
--			WARN("LINUX_VERSION_CODE should be avoided, code should be for the version to which it is merged" . $herecurr);
-+			WARN("LINUX_VERSION_CODE should be avoided, code should be for the version to which it is merged\n" . $herecurr);
- 		}
- 
- # printk should use KERN_* levels.  Note that follow on printk's on the
-@@ -1102,7 +1172,7 @@ sub process {
- 
- # function brace can't be on same line, except for #defines of do while,
- # or if closed on same line
--		if (($line=~/$Type\s*[A-Za-z\d_]+\(.*\).* {/) and
-+		if (($line=~/$Type\s*[A-Za-z\d_]+\(.*\).*\s{/) and
- 		    !($line=~/\#define.*do\s{/) and !($line=~/}/)) {
- 			ERROR("open brace '{' following function declarations go on the next line\n" . $herecurr);
- 		}
-@@ -1115,8 +1185,22 @@ sub process {
- 
- # check for spaces between functions and their parentheses.
- 		while ($line =~ /($Ident)\s+\(/g) {
--			if ($1 !~ /^(?:if|for|while|switch|return|volatile|__volatile__|__attribute__|format|__extension__|Copyright|case)$/ &&
--		            $line !~ /$Type\s+\(/ && $line !~ /^.\#\s*define\b/) {
-+			my $name = $1;
-+			my $ctx = substr($line, 0, $-[1]);
-+
-+			# Ignore those directives where spaces _are_ permitted.
-+			if ($name =~ /^(?:if|for|while|switch|return|volatile|__volatile__|__attribute__|format|__extension__|Copyright|case)$/) {
-+
-+			# cpp #define statements have non-optional spaces, ie
-+			# if there is a space between the name and the open
-+			# parenthesis it is simply not a parameter group.
-+			} elsif ($ctx =~ /^.\#\s*define\s*$/) {
-+
-+			# If this whole things ends with a type its most
-+			# likely a typedef for a function.
-+			} elsif ("$ctx$name" =~ /$Type$/) {
-+
-+			} else {
- 				WARN("no space between function name and open parenthesis '('\n" . $herecurr);
- 			}
- 		}
-@@ -1126,7 +1210,7 @@ sub process {
- 				<<=|>>=|<=|>=|==|!=|
- 				\+=|-=|\*=|\/=|%=|\^=|\|=|&=|
- 				=>|->|<<|>>|<|>|=|!|~|
--				&&|\|\||,|\^|\+\+|--|&|\||\+|-|\*|\/
-+				&&|\|\||,|\^|\+\+|--|&|\||\+|-|\*|\/|%
- 			}x;
- 			my @elements = split(/($ops|;)/, $opline);
- 			my $off = 0;
-@@ -1239,7 +1323,8 @@ sub process {
- 				} elsif ($op eq '<<' or $op eq '>>' or
- 					 $op eq '&' or $op eq '^' or $op eq '|' or
- 					 $op eq '+' or $op eq '-' or
--					 $op eq '*' or $op eq '/')
-+					 $op eq '*' or $op eq '/' or
-+					 $op eq '%')
- 				{
- 					if ($ctx !~ /VxV|WxW|VxE|WxE|VxO/) {
- 						ERROR("need consistent spacing around '$op' $at\n" .
-@@ -1324,7 +1409,7 @@ sub process {
- 			my ($s, $c) = ctx_statement_block($linenr, $realcnt, 0);
- 
- 			if ($c =~ /\bif\s*\(.*[^<>!=]=[^=].*/) {
--				ERROR("do not use assignment in if condition ($c)\n" . $herecurr);
-+				ERROR("do not use assignment in if condition\n" . $herecurr);
- 			}
- 
- 			# Find out what is on the end of the line after the
-@@ -1350,6 +1435,20 @@ sub process {
- 			ERROR("else should follow close brace '}'\n" . $hereprev);
- 		}
- 
-+		if ($prevline=~/}\s*$/ and $line=~/^.\s*while\s*/ and
-+						$previndent == $indent) {
-+			my ($s, $c) = ctx_statement_block($linenr, $realcnt, 0);
-+
-+			# Find out what is on the end of the line after the
-+			# conditional.
-+			substr($s, 0, length($c)) = '';
-+			$s =~ s/\n.*//g;
-+
-+			if ($s =~ /^\s*;/) {
-+				ERROR("while should follow close brace '}'\n" . $hereprev);
-+			}
-+		}
-+
- #studly caps, commented out until figure out how to distinguish between use of existing and adding new
- #		if (($line=~/[\w_][a-z\d]+[A-Z]/) and !($line=~/print/)) {
- #		    print "No studly caps, use _\n";
-@@ -1447,8 +1546,11 @@ sub process {
- 				# Count the newlines, if there is only one
- 				# then the block should not have {}'s.
- 				my @lines = ($stmt =~ /\n/g);
-+				my @statements = ($stmt =~ /;/g);
- 				#print "lines<" . scalar(@lines) . ">\n";
-+				#print "statements<" . scalar(@statements) . ">\n";
- 				if ($lvl == 0 && scalar(@lines) == 0 &&
-+				    scalar(@statements) < 2 &&
- 				    $stmt !~ /{/ && $stmt !~ /\bif\b/ &&
- 				    $before !~ /}/ && $after !~ /{/) {
- 				    	my $herectx = "$here\n" . join("\n", @control, @block[1 .. $#block]) . "\n";
-@@ -1587,10 +1689,10 @@ sub process {
- 	}
- 
- 	if ($clean == 1 && $quiet == 0) {
--		print "Your patch has no obvious style problems and is ready for submission.\n"
-+		print "$vname has no obvious style problems and is ready for submission.\n"
- 	}
- 	if ($clean == 0 && $quiet == 0) {
--		print "Your patch has style problems, please review.  If any of these errors\n";
-+		print "$vname has style problems, please review.  If any of these errors\n";
- 		print "are false positives report them to the maintainer, see\n";
- 		print "CHECKPATCH in MAINTAINERS.\n";
- 	}
+diff -puN kernel/sched_rt.c~git-sched-fix-bug_on kernel/sched_rt.c
+--- a/kernel/sched_rt.c~git-sched-fix-bug_on
++++ a/kernel/sched_rt.c
+@@ -225,7 +225,8 @@ static void update_curr_rt(struct rq *rq
+ 	struct rt_rq *rt_rq = rt_rq_of_se(rt_se);
+ 	u64 delta_exec;
+ 
+-	BUG_ON(!task_has_rt_policy(curr));
++	if (!task_has_rt_policy(curr))
++		return;
+ 
+ 	delta_exec = rq->clock - curr->se.exec_start;
+ 	if (unlikely((s64)delta_exec < 0))
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+address-hfs-on-disk-corruption-robustness-review-comments-checkpatch-fixes.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes.patch
+timerfd-v3-new-timerfd-api-ia64-fix.patch
+timerfd-v3-new-timerfd-api-m68k-fix.patch
+timerfd-v3-new-timerfd-api-mips-fix.patch
+timerfd-v3-new-timerfd-api-arch-fixes.patch
+timerfd-v3-new-timerfd-api-powerpc-fix.patch
+timerfd-v3-new-timerfd-api-sparc64-fix.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-ignore-acpi-video-devices-that-arent-present-in-hardware-checkpatch-fixes.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-alsa-disable-sound-pci-ice1712-ice1724c.patch
+git-agpgart.patch
+git-agpgart-intel-agp-dont-zero-an-already-registered-resource-during-resume.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+intel_agp-add-new-chipset-ids-checkpatch-fixes.patch
+git-arm.patch
+git-audit-master.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+git-cpufreq.patch
+revert-agk-dm-dm-loop.patch
+git-powerpc.patch
+git-powerpc-fixup.patch
+revert-gregkh-driver-atm-convert-struct-class_device-to-struct-device.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
+pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes.patch
+pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes-2.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+intel-agp-enable-i915-recognition.patch
+drm-convert-from-nopage-to-fault-checkpatch-fixes.patch
+git-dvb.patch
+drivers-media-dvb-frontends-xc5000c-dont-return-garbage-from-xc5000_init.patch
+drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
+git-dvb-fix-drivers-media-video-bt8xx-bttv-driverc-build.patch
+fix-jdelvare-i2c-i2c-constify-client-address-data.patch
+hwmon-new-chip-driver-for-ti-ads7828-a-d.patch
+hwmon-new-chip-driver-for-ti-ads7828-a-d-checkpatch-fixes.patch
+git-hid.patch
+revert-git-hrt.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-versus-driver-tree.patch
+git-infiniband-fix-build-with-config_infiniband_ipoib_cm=n.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+git-kbuild.patch
+git-kvm.patch
+git-libata-all.patch
+fix-ide-mm-ide-use-ide_destroy_dmatable-instead-of-pci_unmap_sg.patch
+drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
+drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
+git-md-accel.patch
+memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
+git-mmc.patch
+git-mtd.patch
+drivers-mtd-ubi-wlc-fix-uninitialized-var-warning.patch
+drivers-mtd-ubi-scanc-fix-uninitialized-var-warning.patch
+drivers-mtd-ubi-cdevc-unused-var.patch
+git-net.patch
+git-net-fix-conflicts.patch
+git-net-vs-git-lblnet.patch
+git-net-vs-git-lblnet-2.patch
+git-netdev-all.patch
+git-netdev-all-fix-conflicts.patch
+git-netdev-all-fix-conflicts-fix.patch
+git-net-vs-git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-backlight.patch
+git-battery.patch
+bluetooth-uninlining.patch
+net-sunrpc-schedc-revert-git-net-changes.patch
+net-sunrpc-schedc-reapply-git-net-changes.patch
+serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
+revert-gregkh-pci-pci-use-dev_printk-in-x86-quirk-messages.patch
+fix-gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
+x86-validate-against-acpi-motherboard-resources.patch
+git-sched.patch
+git-sched-fixup.patch
+git-sched-fix-bug_on.patch
+git-sh.patch
+git-scsi-misc.patch
+git-scsi-misc-vs-gregkh-pci-pci-remove-users-of-pci_enable_device_bars.patch
+scsi-aic94xx-cleanups-checkpatch-fixes.patch
+scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
+drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+fix-gregkh-usb-usb-ti_usb-termios-cleanups.patch
+ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+9p-util-fix-semaphore-handling.patch
+git-watchdog.patch
+git-watchdog-fixup.patch
+wdt-fix-locking-checkpatch-fixes.patch
+git-wireless.patch
+drivers-net-wireless-iwlwifi-iwl-3945c-fix-printk-warning.patch
+drivers-net-wireless-iwlwifi-iwl-4965c-fix-printk-warning.patch
+drivers-net-wireless-rt2x00-rt2x00usbc-fix-uninitialized-var-warning.patch
+git-ipwireless_cs.patch
+revert-kvm-stuff-to-make-git-x86-apply.patch
 git-x86.patch
-fix-missing-n-in-checkpatchpl.patch
-claim-maintainership-for-block2mtd-and-update-email-addresses.patch
-update-checkpatchpl-to-version-013.patch
+git-x86-fixup.patch
+git-x86-fixup-2.patch
+git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
+git-x86-fix-doubly-merged-patch.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-xtensa.patch
+bonding-locking-fix.patch
+usbtouchscreen-fix-buffer-overflow-make-more-egalax-work.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-add-proc-kpagecount-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix-2-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+mm-remove-fastcall-from-mm-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+stopmachine-semaphore-to-mutex-fix.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
+debug_smp_processor_id-fixlets.patch
+use-ilog2-in-fs-namespacec-fix.patch
+export-iov_shorten-for-ext4s-use-fix.patch
+system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
+speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
+add-have_oprofile.patch
+drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+neofb-avoid-overwriting-fb_info-fields.patch
+vermilionc-use-align-not-__align_mask.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+ext4-mm-ext4_store_maxbytes_for_bitmaped_files-warning-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
+hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
+cpusets-update_cpumask-revision-fix.patch
+cpusets-update_cpumask-revision-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+modules-make-module_address_lookup-safe-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
+ufs-fix-symlink-creation-on-ufs2-fix.patch
+libfs-allow-error-return-from-simple-attributes-fix.patch
+fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
 page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
