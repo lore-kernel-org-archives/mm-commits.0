@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + bonding-fix-locking-during-alb-failover-and-slave-removal.patch added to -mm tree
-Date: Thu, 17 Jan 2008 16:40:42 -0800
-Message-ID: <200801180040.m0I0egn3022611@imap1.linux-foundation.org>
+Subject: + bonding-fix-up-parameter-parsing.patch added to -mm tree
+Date: Thu, 17 Jan 2008 16:40:46 -0800
+Message-ID: <200801180040.m0I0elnR022617@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36394 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40020 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758242AbYARAlQ (ORCPT
+	by vger.kernel.org with ESMTP id S1757433AbYARAl2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jan 2008 19:41:16 -0500
+	Thu, 17 Jan 2008 19:41:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: fubar@us.ibm.com
 
 
 The patch titled
-     bonding: fix locking during alb failover and slave removal
+     bonding: fix up parameter parsing
 has been added to the -mm tree.  Its filename is
-     bonding-fix-locking-during-alb-failover-and-slave-removal.patch
+     bonding-fix-up-parameter-parsing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,123 +34,123 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bonding: fix locking during alb failover and slave removal
+Subject: bonding: fix up parameter parsing
 From: Jay Vosburgh <fubar@us.ibm.com>
 
-alb_fasten_mac_swap (actually rlb_teach_disabled_mac_on_primary) requries RTNL
-and no other locks.  This could cause dev_set_promiscuity and/or
-dev_set_mac_address to be called with improper locking.
+A recent change to add an additional hash policy modified bond_parse_parm, but
+it now does not correctly match parameters passed in via sysfs.
 
-Changed callers to hold only RTNL during calls to alb_fasten_mac_swap or
-functions calling it.  Updated header comments in affected functions to
-reflect proper reality of locking requirements.
+Rewrote bond_parse_parm to handle (a) parameter matches that are substrings of
+one another and (b) user input with whitespace (e.g., sysfs input often has a
+trailing newline).
 
 Signed-off-by: Jay Vosburgh <fubar@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/bonding/bond_alb.c  |   18 ++++++++++++------
- drivers/net/bonding/bond_main.c |   14 ++++++++------
- 2 files changed, 20 insertions(+), 12 deletions(-)
+ drivers/net/bonding/bond_main.c  |   23 ++++++++++++++++-------
+ drivers/net/bonding/bond_sysfs.c |    8 ++++----
+ drivers/net/bonding/bonding.h    |    4 +++-
+ 3 files changed, 23 insertions(+), 12 deletions(-)
 
-diff -puN drivers/net/bonding/bond_alb.c~bonding-fix-locking-during-alb-failover-and-slave-removal drivers/net/bonding/bond_alb.c
---- a/drivers/net/bonding/bond_alb.c~bonding-fix-locking-during-alb-failover-and-slave-removal
-+++ a/drivers/net/bonding/bond_alb.c
-@@ -979,7 +979,7 @@ static void alb_swap_mac_addr(struct bon
- /*
-  * Send learning packets after MAC address swap.
-  *
-- * Called with RTNL and bond->lock held for read.
-+ * Called with RTNL and no other locks
-  */
- static void alb_fasten_mac_swap(struct bonding *bond, struct slave *slave1,
- 				struct slave *slave2)
-@@ -987,6 +987,8 @@ static void alb_fasten_mac_swap(struct b
- 	int slaves_state_differ = (SLAVE_IS_OK(slave1) != SLAVE_IS_OK(slave2));
- 	struct slave *disabled_slave = NULL;
- 
-+	ASSERT_RTNL();
-+
- 	/* fasten the change in the switch */
- 	if (SLAVE_IS_OK(slave1)) {
- 		alb_send_learning_packets(slave1, slave1->dev->dev_addr);
-@@ -1031,7 +1033,7 @@ static void alb_fasten_mac_swap(struct b
-  * a slave that has @slave's permanet address as its current address.
-  * We'll make sure that that slave no longer uses @slave's permanent address.
-  *
-- * Caller must hold bond lock
-+ * Caller must hold RTNL and no other locks
-  */
- static void alb_change_hw_addr_on_detach(struct bonding *bond, struct slave *slave)
- {
-@@ -1542,7 +1544,12 @@ int bond_alb_init_slave(struct bonding *
- 	return 0;
- }
- 
--/* Caller must hold bond lock for write */
-+/*
-+ * Remove slave from tlb and rlb hash tables, and fix up MAC addresses
-+ * if necessary.
-+ *
-+ * Caller must hold RTNL and no other locks
-+ */
- void bond_alb_deinit_slave(struct bonding *bond, struct slave *slave)
- {
- 	if (bond->slave_cnt > 1) {
-@@ -1658,12 +1665,11 @@ void bond_alb_handle_active_change(struc
- 				       bond->alb_info.rlb_enabled);
- 	}
- 
--	read_lock(&bond->lock);
--
- 	if (swap_slave) {
- 		alb_fasten_mac_swap(bond, swap_slave, new_slave);
-+		read_lock(&bond->lock);
- 	} else {
--		/* fasten bond mac on new current slave */
-+		read_lock(&bond->lock);
- 		alb_send_learning_packets(new_slave, bond->dev->dev_addr);
- 	}
- 
-diff -puN drivers/net/bonding/bond_main.c~bonding-fix-locking-during-alb-failover-and-slave-removal drivers/net/bonding/bond_main.c
---- a/drivers/net/bonding/bond_main.c~bonding-fix-locking-during-alb-failover-and-slave-removal
+diff -puN drivers/net/bonding/bond_main.c~bonding-fix-up-parameter-parsing drivers/net/bonding/bond_main.c
+--- a/drivers/net/bonding/bond_main.c~bonding-fix-up-parameter-parsing
 +++ a/drivers/net/bonding/bond_main.c
-@@ -1746,7 +1746,9 @@ int bond_release(struct net_device *bond
- 		 * has been cleared (if our_slave == old_current),
- 		 * but before a new active slave is selected.
- 		 */
-+		write_unlock_bh(&bond->lock);
- 		bond_alb_deinit_slave(bond, slave);
-+		write_lock_bh(&bond->lock);
+@@ -4540,18 +4540,27 @@ static void bond_free_all(void)
+ 
+ /*
+  * Convert string input module parms.  Accept either the
+- * number of the mode or its string name.
++ * number of the mode or its string name.  A bit complicated because
++ * some mode names are substrings of other names, and calls from sysfs
++ * may have whitespace in the name (trailing newlines, for example).
+  */
+-int bond_parse_parm(char *mode_arg, struct bond_parm_tbl *tbl)
++int bond_parse_parm(const char *buf, struct bond_parm_tbl *tbl)
+ {
+-	int i;
++	int mode = -1, i, rv;
++	char modestr[BOND_MAX_MODENAME_LEN + 1] = { 0, };
++
++	rv = sscanf(buf, "%d", &mode);
++	if (!rv) {
++		rv = sscanf(buf, "%20s", modestr);
++		if (!rv)
++			return -1;
++	}
+ 
+ 	for (i = 0; tbl[i].modename; i++) {
+-		if ((isdigit(*mode_arg) &&
+-		     tbl[i].mode == simple_strtol(mode_arg, NULL, 0)) ||
+-		    (strcmp(mode_arg, tbl[i].modename) == 0)) {
++		if (mode == tbl[i].mode)
++			return tbl[i].mode;
++		if (strcmp(modestr, tbl[i].modename) == 0)
+ 			return tbl[i].mode;
+-		}
  	}
  
- 	if (oldcurrent == slave) {
-@@ -1905,6 +1907,12 @@ static int bond_release_all(struct net_d
- 		slave_dev = slave->dev;
- 		bond_detach_slave(bond, slave);
+ 	return -1;
+diff -puN drivers/net/bonding/bond_sysfs.c~bonding-fix-up-parameter-parsing drivers/net/bonding/bond_sysfs.c
+--- a/drivers/net/bonding/bond_sysfs.c~bonding-fix-up-parameter-parsing
++++ a/drivers/net/bonding/bond_sysfs.c
+@@ -423,7 +423,7 @@ static ssize_t bonding_store_mode(struct
+ 		goto out;
+ 	}
  
-+		/* now that the slave is detached, unlock and perform
-+		 * all the undo steps that should not be called from
-+		 * within a lock.
-+		 */
-+		write_unlock_bh(&bond->lock);
+-	new_value = bond_parse_parm((char *)buf, bond_mode_tbl);
++	new_value = bond_parse_parm(buf, bond_mode_tbl);
+ 	if (new_value < 0)  {
+ 		printk(KERN_ERR DRV_NAME
+ 		       ": %s: Ignoring invalid mode value %.*s.\n",
+@@ -478,7 +478,7 @@ static ssize_t bonding_store_xmit_hash(s
+ 		goto out;
+ 	}
+ 
+-	new_value = bond_parse_parm((char *)buf, xmit_hashtype_tbl);
++	new_value = bond_parse_parm(buf, xmit_hashtype_tbl);
+ 	if (new_value < 0)  {
+ 		printk(KERN_ERR DRV_NAME
+ 		       ": %s: Ignoring invalid xmit hash policy value %.*s.\n",
+@@ -518,7 +518,7 @@ static ssize_t bonding_store_arp_validat
+ 	int new_value;
+ 	struct bonding *bond = to_bond(d);
+ 
+-	new_value = bond_parse_parm((char *)buf, arp_validate_tbl);
++	new_value = bond_parse_parm(buf, arp_validate_tbl);
+ 	if (new_value < 0) {
+ 		printk(KERN_ERR DRV_NAME
+ 		       ": %s: Ignoring invalid arp_validate value %s\n",
+@@ -941,7 +941,7 @@ static ssize_t bonding_store_lacp(struct
+ 		goto out;
+ 	}
+ 
+-	new_value = bond_parse_parm((char *)buf, bond_lacp_tbl);
++	new_value = bond_parse_parm(buf, bond_lacp_tbl);
+ 
+ 	if ((new_value == 1) || (new_value == 0)) {
+ 		bond->params.lacp_fast = new_value;
+diff -puN drivers/net/bonding/bonding.h~bonding-fix-up-parameter-parsing drivers/net/bonding/bonding.h
+--- a/drivers/net/bonding/bonding.h~bonding-fix-up-parameter-parsing
++++ a/drivers/net/bonding/bonding.h
+@@ -141,6 +141,8 @@ struct bond_parm_tbl {
+ 	int mode;
+ };
+ 
++#define BOND_MAX_MODENAME_LEN 20
 +
- 		if ((bond->params.mode == BOND_MODE_TLB) ||
- 		    (bond->params.mode == BOND_MODE_ALB)) {
- 			/* must be called only after the slave
-@@ -1915,12 +1923,6 @@ static int bond_release_all(struct net_d
- 
- 		bond_compute_features(bond);
- 
--		/* now that the slave is detached, unlock and perform
--		 * all the undo steps that should not be called from
--		 * within a lock.
--		 */
--		write_unlock_bh(&bond->lock);
--
- 		bond_destroy_slave_symlinks(bond_dev, slave_dev);
- 		bond_del_vlans_from_slave(bond, slave_dev);
- 
+ struct vlan_entry {
+ 	struct list_head vlan_list;
+ 	__be32 vlan_ip;
+@@ -314,7 +316,7 @@ void bond_mii_monitor(struct work_struct
+ void bond_loadbalance_arp_mon(struct work_struct *);
+ void bond_activebackup_arp_mon(struct work_struct *);
+ void bond_set_mode_ops(struct bonding *bond, int mode);
+-int bond_parse_parm(char *mode_arg, struct bond_parm_tbl *tbl);
++int bond_parse_parm(const char *mode_arg, struct bond_parm_tbl *tbl);
+ void bond_select_active_slave(struct bonding *bond);
+ void bond_change_active_slave(struct bonding *bond, struct slave *new_active);
+ void bond_register_arp(struct bonding *);
 _
 
 Patches currently in -mm which might be from fubar@us.ibm.com are
