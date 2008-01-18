@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maps4-add-proc-pid-pagemap-interface-fix.patch added to -mm tree
-Date: Thu, 17 Jan 2008 17:08:31 -0800
-Message-ID: <200801180108.m0I18VKC023815@imap1.linux-foundation.org>
+Subject: + aha152x-fix-isa-pcmcia-compile-problem.patch added to -mm tree
+Date: Thu, 17 Jan 2008 17:13:10 -0800
+Message-ID: <200801180113.m0I1DAZ7024015@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54380 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53201 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757616AbYARBI4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752088AbYARBNO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jan 2008 20:08:56 -0500
+	Thu, 17 Jan 2008 20:13:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mpm@selenic.com
+Cc: htejun@gmail.com
 
 
 The patch titled
-     Subject: Re: 2.6.24-rc8-mm1: powerpc oopses
+     git-scsi-misc: aha152x: fix isa/pcmcia compile problem
 has been added to the -mm tree.  Its filename is
-     maps4-add-proc-pid-pagemap-interface-fix.patch
+     aha152x-fix-isa-pcmcia-compile-problem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,80 +34,167 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Subject: Re: 2.6.24-rc8-mm1: powerpc oopses
-From: Matt Mackall <mpm@selenic.com>
+Subject: git-scsi-misc: aha152x: fix isa/pcmcia compile problem
+From: Tejun Heo <htejun@gmail.com>
 
-On Thu, 2008-01-17 at 16:29 -0800, Andrew Morton wrote:
-> Do we need `offset' at all?
+aha152x.c is built twice - once for the isa driver and once for the
+PCMCIA one.  Through #ifdefs, the compiled codes are slightly
+depending on which flavor is being built.  This patch adds GLOBAL()
+macro to aha152x.h which changes the symbol depending on PCMCIA.
 
-Looks like no.
+This bug has always existed but has been masked by the fact the
+drivers/scsi/pcmcia used subdir-(y|m) instead of obj-(y|m) which made
+drivers/scsi/pcmcia/built_in.o not linked into the kernel and thus
+avoided the duplicate symbols during compilation.
 
-I wonder if there's a good argument for adding a pte_offset_val() which
-would let us do:
-
-pteval = pte_offset_val(pmd, addr);
-
-and shrink the map/unmap window and overhead here and possibly
-elsewhere?
-
-Anyway, updated but still untested patch now with revealing comment:
-
-
+Signed-off-by: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/scsi/aha152x.c             |   12 ++++++------
+ drivers/scsi/aha152x.h             |   20 +++++++++++++++++---
+ drivers/scsi/pcmcia/aha152x_stub.c |   10 ++++++----
+ 3 files changed, 29 insertions(+), 13 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~maps4-add-proc-pid-pagemap-interface-fix fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~maps4-add-proc-pid-pagemap-interface-fix
-+++ a/fs/proc/task_mmu.c
-@@ -583,18 +583,19 @@ static int pagemap_pte_range(pmd_t *pmd,
- 	pte_t *pte;
- 	int err = 0;
+diff -puN drivers/scsi/aha152x.c~aha152x-fix-isa-pcmcia-compile-problem drivers/scsi/aha152x.c
+--- a/drivers/scsi/aha152x.c~aha152x-fix-isa-pcmcia-compile-problem
++++ a/drivers/scsi/aha152x.c
+@@ -768,7 +768,7 @@ static irqreturn_t swintr(int irqno, voi
+ 	return IRQ_HANDLED;
+ }
  
--	pte = pte_offset_map(pmd, addr);
--	for (; addr != end; pte++, addr += PAGE_SIZE) {
-+	for (; addr != end; addr += PAGE_SIZE) {
- 		u64 pfn = PM_NOT_PRESENT;
-+		pte = pte_offset_map(pmd, addr);
- 		if (is_swap_pte(*pte))
- 			pfn = swap_pte_to_pagemap_entry(*pte);
- 		else if (pte_present(*pte))
- 			pfn = pte_pfn(*pte);
-+		/* unmap so we're not in atomic when we copy to userspace */
-+		pte_unmap(pte);
- 		err = add_to_pagemap(addr, pfn, pm);
- 		if (err)
- 			return err;
+-struct Scsi_Host *aha152x_probe_one(struct aha152x_setup *setup)
++struct Scsi_Host *GLOBAL(aha152x_probe_one)(struct aha152x_setup *setup)
+ {
+ 	struct Scsi_Host *shpnt;
+ 
+@@ -904,7 +904,7 @@ out_host_put:
+ 	return NULL;
+ }
+ 
+-void aha152x_release(struct Scsi_Host *shpnt)
++void GLOBAL(aha152x_release)(struct Scsi_Host *shpnt)
+ {
+ 	if (!shpnt)
+ 		return;
+@@ -1320,7 +1320,7 @@ static void reset_ports(struct Scsi_Host
+  * Reset the host (bus and controller)
+  *
+  */
+-int aha152x_host_reset_host(struct Scsi_Host *shpnt)
++int GLOBAL(aha152x_host_reset_host)(struct Scsi_Host *shpnt)
+ {
+ 	DPRINTK(debug_eh, KERN_DEBUG "scsi%d: host reset\n", shpnt->host_no);
+ 
+@@ -1338,7 +1338,7 @@ int aha152x_host_reset_host(struct Scsi_
+  */
+ static int aha152x_host_reset(Scsi_Cmnd *SCpnt)
+ {
+-	return aha152x_host_reset_host(SCpnt->device->host);
++	return GLOBAL(aha152x_host_reset_host)(SCpnt->device->host);
+ }
+ 
+ /*
+@@ -3894,7 +3894,7 @@ static int __init aha152x_init(void)
+ 
+ 	for (i=0; i<setup_count; i++) {
+ 		if ( request_region(setup[i].io_port, IO_RANGE, "aha152x") ) {
+-			struct Scsi_Host *shpnt = aha152x_probe_one(&setup[i]);
++			struct Scsi_Host *shpnt = GLOBAL(aha152x_probe_one)(&setup[i]);
+ 
+ 			if( !shpnt ) {
+ 				release_region(setup[i].io_port, IO_RANGE);
+@@ -3924,7 +3924,7 @@ static void __exit aha152x_exit(void)
+ 	list_for_each_entry(hd, &aha152x_host_list, host_list) {
+ 		struct Scsi_Host *shost = container_of((void *)hd, struct Scsi_Host, hostdata);
+ 
+-		aha152x_release(shost);
++		GLOBAL(aha152x_release)(shost);
  	}
--	pte_unmap(pte - 1);
+ }
  
- 	cond_resched();
+diff -puN drivers/scsi/aha152x.h~aha152x-fix-isa-pcmcia-compile-problem drivers/scsi/aha152x.h
+--- a/drivers/scsi/aha152x.h~aha152x-fix-isa-pcmcia-compile-problem
++++ a/drivers/scsi/aha152x.h
+@@ -330,8 +330,22 @@ struct aha152x_setup {
+ 	char *conf;
+ };
  
+-struct Scsi_Host *aha152x_probe_one(struct aha152x_setup *);
+-void aha152x_release(struct Scsi_Host *);
+-int aha152x_host_reset_host(struct Scsi_Host *);
++/*
++ * This file and aha152x.c are compiled in two different ways - for
++ * the isa driver and pcmcia one.  When building the pcmcia one, the
++ * file is slightly modified, so they can't share the same object
++ * file.  The following macro alters a symbol depending on whether
++ * pcmcia driver is being built or not and should be used for any
++ * global symbol.
++ */
++#if defined(PCMCIA)
++#define GLOBAL(x)	CS_##x
++#else
++#define GLOBAL(x)	x
++#endif
++
++struct Scsi_Host *GLOBAL(aha152x_probe_one)(struct aha152x_setup *);
++void GLOBAL(aha152x_release)(struct Scsi_Host *);
++int GLOBAL(aha152x_host_reset_host)(struct Scsi_Host *);
+ 
+ #endif /* _AHA152X_H */
+diff -puN drivers/scsi/pcmcia/aha152x_stub.c~aha152x-fix-isa-pcmcia-compile-problem drivers/scsi/pcmcia/aha152x_stub.c
+--- a/drivers/scsi/pcmcia/aha152x_stub.c~aha152x-fix-isa-pcmcia-compile-problem
++++ a/drivers/scsi/pcmcia/aha152x_stub.c
+@@ -47,13 +47,15 @@
+ 
+ #include "scsi.h"
+ #include <scsi/scsi_host.h>
+-#include "aha152x.h"
+ 
+ #include <pcmcia/cs_types.h>
+ #include <pcmcia/cs.h>
+ #include <pcmcia/cistpl.h>
+ #include <pcmcia/ds.h>
+ 
++#define PCMCIA	1
++#include "aha152x.h"
++
+ #ifdef PCMCIA_DEBUG
+ static int pc_debug = PCMCIA_DEBUG;
+ module_param(pc_debug, int, 0644);
+@@ -194,7 +196,7 @@ static int aha152x_config_cs(struct pcmc
+     if (ext_trans)
+         s.ext_trans = ext_trans;
+ 
+-    host = aha152x_probe_one(&s);
++    host = GLOBAL(aha152x_probe_one)(&s);
+     if (host == NULL) {
+ 	printk(KERN_INFO "aha152x_cs: no SCSI devices found\n");
+ 	goto cs_failed;
+@@ -216,7 +218,7 @@ static void aha152x_release_cs(struct pc
+ {
+ 	scsi_info_t *info = link->priv;
+ 
+-	aha152x_release(info->host);
++	GLOBAL(aha152x_release)(info->host);
+ 	pcmcia_disable_device(link);
+ }
+ 
+@@ -224,7 +226,7 @@ static int aha152x_resume(struct pcmcia_
+ {
+ 	scsi_info_t *info = link->priv;
+ 
+-	aha152x_host_reset_host(info->host);
++	GLOBAL(aha152x_host_reset_host)(info->host);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from mpm@selenic.com are
+Patches currently in -mm which might be from htejun@gmail.com are
 
-git-x86.patch
-maps4-add-proportional-set-size-accounting-in-smaps.patch
-maps4-rework-task_size-macros.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-move-is_swap_pte.patch
-maps4-introduce-a-generic-page-walker.patch
-maps4-use-pagewalker-in-clear_refs-and-smaps.patch
-maps4-simplify-interdependence-of-maps-and-smaps.patch
-maps4-move-clear_refs-code-to-task_mmuc.patch
-maps4-regroup-task_mmu-by-interface.patch
-maps4-add-proc-pid-pagemap-interface.patch
-maps4-add-proc-pid-pagemap-interface-fix.patch
-maps4-add-proc-kpagecount-interface.patch
-maps4-add-proc-kpagecount-interface-fix.patch
-maps4-add-proc-kpageflags-interface.patch
-maps4-add-proc-kpageflags-interface-fix.patch
-maps4-add-proc-kpageflags-interface-fix-2.patch
-maps4-add-proc-kpageflags-interface-fix-2-fix.patch
-maps4-make-page-monitoring-proc-file-optional.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-remove-unused-code-from-mm-tiny-shmemc.patch
-drivers-char-randomcwrite_pool-cond_resched-needed.patch
+origin.patch
+git-kbuild.patch
+git-libata-all.patch
+git-scsi-misc.patch
+aha152x-fix-isa-pcmcia-compile-problem.patch
