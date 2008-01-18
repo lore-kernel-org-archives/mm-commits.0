@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-fix-isa-pcmcia-compile-problem.patch added to -mm tree
-Date: Thu, 17 Jan 2008 23:35:18 -0800
-Message-ID: <200801180734.m0I7YwOX005312@imap1.linux-foundation.org>
+Subject: + scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 17 Jan 2008 23:36:31 -0800
+Message-ID: <200801180736.m0I7aB2x005338@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51053 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59039 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751905AbYARHfT (ORCPT
+	by vger.kernel.org with ESMTP id S1752900AbYARHgR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Jan 2008 02:35:19 -0500
+	Fri, 18 Jan 2008 02:36:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: htejun@gmail.com, James.Bottomley@HansenPartnership.com, kamalesh@linux.vnet.ibm.com
+Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, htejun@gmail.com
 
 
 The patch titled
-     git-scsi-misc: fix isa/pcmcia compile problem
+     scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     scsi-fix-isa-pcmcia-compile-problem.patch
+     scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,328 +34,353 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-scsi-misc: fix isa/pcmcia compile problem
-From: Tejun Heo <htejun@gmail.com>
+Subject: scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-aha152x.c and fdomain are built twice - once for the isa driver and once
-for the PCMCIA one.  Through #ifdefs, the compiled codes are slightly
-different; thus, global symbols need to be given different names depending
-on which flavor is being built.  This patch adds GLOBAL() macro to
-aha152x.h and fdomain.h which change the symbol depending on PCMCIA.
+WARNING: line over 80 characters
+#72: FILE: drivers/scsi/aha152x.c:3897:
++			struct Scsi_Host *shpnt = GLOBAL(aha152x_probe_one)(&setup[i]);
 
-This bug has always existed but has been masked by the fact the
-drivers/scsi/pcmcia used subdir-(y|m) instead of obj-(y|m) which made
-drivers/scsi/pcmcia/built_in.o not linked into the kernel and thus avoided
-the duplicate symbols during compilation.
+WARNING: line over 80 characters
+#140: FILE: drivers/scsi/fdomain.c:893:
++struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct scsi_host_template *tpnt )
 
-Signed-off-by: Tejun Heo <htejun@gmail.com>
-Tested-by: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+ERROR: no space before that close parenthesis ')'
+#140: FILE: drivers/scsi/fdomain.c:893:
++struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct scsi_host_template *tpnt )
+
+ERROR: open brace '{' following function declarations go on the next line
+#178: FILE: drivers/scsi/fdomain.c:1749:
++struct scsi_host_template GLOBAL(fdomain_driver_template) = {
+
+WARNING: line over 80 characters
+#226: FILE: drivers/scsi/fdomain.h:36:
++extern struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct  scsi_host_template *tpnt );
+
+ERROR: no space before that close parenthesis ')'
+#226: FILE: drivers/scsi/fdomain.h:36:
++extern struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct  scsi_host_template *tpnt );
+
+total: 3 errors, 3 warnings, 246 lines checked
+
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/aha152x.c             |   12 ++++++------
- drivers/scsi/aha152x.h             |   20 +++++++++++++++++---
- drivers/scsi/fdomain.c             |   20 ++++++++++----------
- drivers/scsi/fdomain.h             |   21 +++++++++++++++++----
- drivers/scsi/pcmcia/aha152x_stub.c |   10 ++++++----
- drivers/scsi/pcmcia/fdomain_stub.c |   10 ++++++----
- 6 files changed, 62 insertions(+), 31 deletions(-)
+ drivers/scsi/fdomain.c |    2 +-
+ drivers/scsi/fdomain.h |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/aha152x.c~scsi-fix-isa-pcmcia-compile-problem drivers/scsi/aha152x.c
---- a/drivers/scsi/aha152x.c~scsi-fix-isa-pcmcia-compile-problem
-+++ a/drivers/scsi/aha152x.c
-@@ -768,7 +768,7 @@ static irqreturn_t swintr(int irqno, voi
- 	return IRQ_HANDLED;
- }
- 
--struct Scsi_Host *aha152x_probe_one(struct aha152x_setup *setup)
-+struct Scsi_Host *GLOBAL(aha152x_probe_one)(struct aha152x_setup *setup)
- {
- 	struct Scsi_Host *shpnt;
- 
-@@ -904,7 +904,7 @@ out_host_put:
- 	return NULL;
- }
- 
--void aha152x_release(struct Scsi_Host *shpnt)
-+void GLOBAL(aha152x_release)(struct Scsi_Host *shpnt)
- {
- 	if (!shpnt)
- 		return;
-@@ -1320,7 +1320,7 @@ static void reset_ports(struct Scsi_Host
-  * Reset the host (bus and controller)
-  *
-  */
--int aha152x_host_reset_host(struct Scsi_Host *shpnt)
-+int GLOBAL(aha152x_host_reset_host)(struct Scsi_Host *shpnt)
- {
- 	DPRINTK(debug_eh, KERN_DEBUG "scsi%d: host reset\n", shpnt->host_no);
- 
-@@ -1338,7 +1338,7 @@ int aha152x_host_reset_host(struct Scsi_
-  */
- static int aha152x_host_reset(Scsi_Cmnd *SCpnt)
- {
--	return aha152x_host_reset_host(SCpnt->device->host);
-+	return GLOBAL(aha152x_host_reset_host)(SCpnt->device->host);
- }
- 
- /*
-@@ -3894,7 +3894,7 @@ static int __init aha152x_init(void)
- 
- 	for (i=0; i<setup_count; i++) {
- 		if ( request_region(setup[i].io_port, IO_RANGE, "aha152x") ) {
--			struct Scsi_Host *shpnt = aha152x_probe_one(&setup[i]);
-+			struct Scsi_Host *shpnt = GLOBAL(aha152x_probe_one)(&setup[i]);
- 
- 			if( !shpnt ) {
- 				release_region(setup[i].io_port, IO_RANGE);
-@@ -3924,7 +3924,7 @@ static void __exit aha152x_exit(void)
- 	list_for_each_entry(hd, &aha152x_host_list, host_list) {
- 		struct Scsi_Host *shost = container_of((void *)hd, struct Scsi_Host, hostdata);
- 
--		aha152x_release(shost);
-+		GLOBAL(aha152x_release)(shost);
- 	}
- }
- 
-diff -puN drivers/scsi/aha152x.h~scsi-fix-isa-pcmcia-compile-problem drivers/scsi/aha152x.h
---- a/drivers/scsi/aha152x.h~scsi-fix-isa-pcmcia-compile-problem
-+++ a/drivers/scsi/aha152x.h
-@@ -330,8 +330,22 @@ struct aha152x_setup {
- 	char *conf;
- };
- 
--struct Scsi_Host *aha152x_probe_one(struct aha152x_setup *);
--void aha152x_release(struct Scsi_Host *);
--int aha152x_host_reset_host(struct Scsi_Host *);
-+/*
-+ * This file and aha152x.c are compiled in two different ways - for
-+ * the isa driver and pcmcia one.  When building the pcmcia one, the
-+ * file is slightly modified, so they can't share the same object
-+ * file.  The following macro alters a symbol depending on whether
-+ * pcmcia driver is being built or not and should be used for any
-+ * global symbol.
-+ */
-+#if defined(PCMCIA)
-+#define GLOBAL(x)	CS_##x
-+#else
-+#define GLOBAL(x)	ISA_##x
-+#endif
-+
-+struct Scsi_Host *GLOBAL(aha152x_probe_one)(struct aha152x_setup *);
-+void GLOBAL(aha152x_release)(struct Scsi_Host *);
-+int GLOBAL(aha152x_host_reset_host)(struct Scsi_Host *);
- 
- #endif /* _AHA152X_H */
-diff -puN drivers/scsi/fdomain.c~scsi-fix-isa-pcmcia-compile-problem drivers/scsi/fdomain.c
---- a/drivers/scsi/fdomain.c~scsi-fix-isa-pcmcia-compile-problem
+diff -puN drivers/scsi/fdomain.c~scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes drivers/scsi/fdomain.c
+--- a/drivers/scsi/fdomain.c~scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes
 +++ a/drivers/scsi/fdomain.c
-@@ -550,7 +550,7 @@ static void print_banner( struct Scsi_Ho
-    printk( "\n" );
- }
- 
--int fdomain_setup(char *str)
-+int GLOBAL(fdomain_setup)(char *str)
- {
- 	int ints[4];
- 
-@@ -571,7 +571,7 @@ int fdomain_setup(char *str)
- 	return 1;
- }
- 
--__setup("fdomain=", fdomain_setup);
-+__setup("fdomain=", GLOBAL(fdomain_setup));
- 
- 
- static void do_pause(unsigned amount)	/* Pause for amount*10 milliseconds */
 @@ -890,7 +890,7 @@ fail:
  
  #endif
  
--struct Scsi_Host *__fdomain_16x0_detect(struct scsi_host_template *tpnt )
-+struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct scsi_host_template *tpnt )
+-struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct scsi_host_template *tpnt )
++struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct scsi_host_template *tpnt)
  {
     int              retcode;
     struct Scsi_Host *shpnt;
-@@ -931,7 +931,7 @@ struct Scsi_Host *__fdomain_16x0_detect(
-       }
-    }
- 
--   fdomain_16x0_bus_reset(NULL);
-+   GLOBAL(fdomain_16x0_bus_reset)(NULL);
- 
-    if (fdomain_test_loopback()) {
-       printk(KERN_ERR  "scsi: <fdomain> Detection failed (loopback test failed at port base 0x%x)\n", port_base);
-@@ -1004,8 +1004,8 @@ fail:
- static int fdomain_16x0_detect(struct scsi_host_template *tpnt)
- {
- 	if (fdomain)
--		fdomain_setup(fdomain);
--	return (__fdomain_16x0_detect(tpnt) != NULL);
-+		GLOBAL(fdomain_setup)(fdomain);
-+	return (GLOBAL(__fdomain_16x0_detect)(tpnt) != NULL);
- }
- 
- static const char *fdomain_16x0_info( struct Scsi_Host *ignore )
-@@ -1564,7 +1564,7 @@ static int fdomain_16x0_abort(struct scs
-    return SUCCESS;
- }
- 
--int fdomain_16x0_bus_reset(struct scsi_cmnd *SCpnt)
-+int GLOBAL(fdomain_16x0_bus_reset)(struct scsi_cmnd *SCpnt)
- {
-    unsigned long flags;
- 
-@@ -1746,7 +1746,7 @@ static int fdomain_16x0_release(struct S
- 	return 0;
- }
- 
--struct scsi_host_template fdomain_driver_template = {
-+struct scsi_host_template GLOBAL(fdomain_driver_template) = {
- 	.module			= THIS_MODULE,
- 	.name			= "fdomain",
- 	.proc_name		= "fdomain",
-@@ -1754,7 +1754,7 @@ struct scsi_host_template fdomain_driver
- 	.info			= fdomain_16x0_info,
- 	.queuecommand		= fdomain_16x0_queue,
- 	.eh_abort_handler	= fdomain_16x0_abort,
--	.eh_bus_reset_handler	= fdomain_16x0_bus_reset,
-+	.eh_bus_reset_handler	= GLOBAL(fdomain_16x0_bus_reset),
- 	.bios_param		= fdomain_16x0_biosparam,
- 	.release		= fdomain_16x0_release,
- 	.can_queue		= 1,
-@@ -1774,7 +1774,7 @@ static struct pci_device_id fdomain_pci_
- };
- MODULE_DEVICE_TABLE(pci, fdomain_pci_tbl);
- #endif
--#define driver_template fdomain_driver_template
-+#define driver_template GLOBAL(fdomain_driver_template)
- #include "scsi_module.c"
- 
- #endif
-diff -puN drivers/scsi/fdomain.h~scsi-fix-isa-pcmcia-compile-problem drivers/scsi/fdomain.h
---- a/drivers/scsi/fdomain.h~scsi-fix-isa-pcmcia-compile-problem
+diff -puN drivers/scsi/fdomain.h~scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes drivers/scsi/fdomain.h
+--- a/drivers/scsi/fdomain.h~scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes
 +++ a/drivers/scsi/fdomain.h
-@@ -18,7 +18,20 @@
-  * 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
+@@ -33,5 +33,5 @@
  
--extern struct scsi_host_template fdomain_driver_template;
--extern int fdomain_setup(char *str);
--extern struct Scsi_Host *__fdomain_16x0_detect(struct  scsi_host_template *tpnt );
--extern int fdomain_16x0_bus_reset(struct scsi_cmnd *SCpnt);
-+/*
-+ * fdomain is compiled in two different ways - for the isa driver and
-+ * pcmcia one.  When building the pcmcia one, the file is slightly
-+ * modified, so they can't share the same object file.  The following
-+ * macro alters a symbol depending on whether pcmcia driver is being
-+ * built or not and should be used for any global symbol.
-+ */
-+#if defined(PCMCIA)
-+#define GLOBAL(x)	CS_##x
-+#else
-+#define GLOBAL(x)	ISA_##x
-+#endif
-+
-+extern struct scsi_host_template GLOBAL(fdomain_driver_template);
-+extern int GLOBAL(fdomain_setup)(char *str);
-+extern struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct  scsi_host_template *tpnt );
-+extern int GLOBAL(fdomain_16x0_bus_reset)(struct scsi_cmnd *SCpnt);
-diff -puN drivers/scsi/pcmcia/aha152x_stub.c~scsi-fix-isa-pcmcia-compile-problem drivers/scsi/pcmcia/aha152x_stub.c
---- a/drivers/scsi/pcmcia/aha152x_stub.c~scsi-fix-isa-pcmcia-compile-problem
-+++ a/drivers/scsi/pcmcia/aha152x_stub.c
-@@ -47,13 +47,15 @@
- 
- #include "scsi.h"
- #include <scsi/scsi_host.h>
--#include "aha152x.h"
- 
- #include <pcmcia/cs_types.h>
- #include <pcmcia/cs.h>
- #include <pcmcia/cistpl.h>
- #include <pcmcia/ds.h>
- 
-+#define PCMCIA	1
-+#include "aha152x.h"
-+
- #ifdef PCMCIA_DEBUG
- static int pc_debug = PCMCIA_DEBUG;
- module_param(pc_debug, int, 0644);
-@@ -194,7 +196,7 @@ static int aha152x_config_cs(struct pcmc
-     if (ext_trans)
-         s.ext_trans = ext_trans;
- 
--    host = aha152x_probe_one(&s);
-+    host = GLOBAL(aha152x_probe_one)(&s);
-     if (host == NULL) {
- 	printk(KERN_INFO "aha152x_cs: no SCSI devices found\n");
- 	goto cs_failed;
-@@ -216,7 +218,7 @@ static void aha152x_release_cs(struct pc
- {
- 	scsi_info_t *info = link->priv;
- 
--	aha152x_release(info->host);
-+	GLOBAL(aha152x_release)(info->host);
- 	pcmcia_disable_device(link);
- }
- 
-@@ -224,7 +226,7 @@ static int aha152x_resume(struct pcmcia_
- {
- 	scsi_info_t *info = link->priv;
- 
--	aha152x_host_reset_host(info->host);
-+	GLOBAL(aha152x_host_reset_host)(info->host);
- 
- 	return 0;
- }
-diff -puN drivers/scsi/pcmcia/fdomain_stub.c~scsi-fix-isa-pcmcia-compile-problem drivers/scsi/pcmcia/fdomain_stub.c
---- a/drivers/scsi/pcmcia/fdomain_stub.c~scsi-fix-isa-pcmcia-compile-problem
-+++ a/drivers/scsi/pcmcia/fdomain_stub.c
-@@ -44,13 +44,15 @@
- 
- #include "scsi.h"
- #include <scsi/scsi_host.h>
--#include "fdomain.h"
- 
- #include <pcmcia/cs_types.h>
- #include <pcmcia/cs.h>
- #include <pcmcia/cistpl.h>
- #include <pcmcia/ds.h>
- 
-+#define PCMCIA	1
-+#include "fdomain.h"
-+
- /*====================================================================*/
- 
- /* Module parameters */
-@@ -161,9 +163,9 @@ static int fdomain_config(struct pcmcia_
- 
-     /* Set configuration options for the fdomain driver */
-     sprintf(str, "%d,%d", link->io.BasePort1, link->irq.AssignedIRQ);
--    fdomain_setup(str);
-+    GLOBAL(fdomain_setup)(str);
- 
--    host = __fdomain_16x0_detect(&fdomain_driver_template);
-+    host = GLOBAL(__fdomain_16x0_detect)(&GLOBAL(fdomain_driver_template));
-     if (!host) {
-         printk(KERN_INFO "fdomain_cs: no SCSI devices found\n");
- 	goto cs_failed;
-@@ -202,7 +204,7 @@ static void fdomain_release(struct pcmci
- 
- static int fdomain_resume(struct pcmcia_device *link)
- {
--	fdomain_16x0_bus_reset(NULL);
-+	GLOBAL(fdomain_16x0_bus_reset)(NULL);
- 
- 	return 0;
- }
+ extern struct scsi_host_template GLOBAL(fdomain_driver_template);
+ extern int GLOBAL(fdomain_setup)(char *str);
+-extern struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct  scsi_host_template *tpnt );
++extern struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct scsi_host_template *tpnt);
+ extern int GLOBAL(fdomain_16x0_bus_reset)(struct scsi_cmnd *SCpnt);
 _
 
-Patches currently in -mm which might be from htejun@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes.patch
+timerfd-v3-new-timerfd-api-ia64-fix.patch
+timerfd-v3-new-timerfd-api-m68k-fix.patch
+timerfd-v3-new-timerfd-api-mips-fix.patch
+timerfd-v3-new-timerfd-api-arch-fixes.patch
+timerfd-v3-new-timerfd-api-powerpc-fix.patch
+timerfd-v3-new-timerfd-api-sparc64-fix.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-ignore-acpi-video-devices-that-arent-present-in-hardware-checkpatch-fixes.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-alsa-disable-sound-pci-ice1712-ice1724c.patch
+git-agpgart.patch
+git-agpgart-intel-agp-dont-zero-an-already-registered-resource-during-resume.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+intel_agp-add-new-chipset-ids-checkpatch-fixes.patch
+git-arm.patch
+git-audit-master.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+git-cpufreq.patch
+revert-agk-dm-dm-loop.patch
+git-powerpc.patch
+git-powerpc-fixup.patch
+include-asm-powerpc-nvramh-needs-listh.patch
+revert-gregkh-driver-atm-convert-struct-class_device-to-struct-device.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
+pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes.patch
+pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes-2.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+intel-agp-enable-i915-recognition.patch
+drm-convert-from-nopage-to-fault-checkpatch-fixes.patch
+git-dvb.patch
+drivers-media-dvb-frontends-xc5000c-dont-return-garbage-from-xc5000_init.patch
+drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
+git-dvb-fix-drivers-media-video-bt8xx-bttv-driverc-build.patch
+fix-jdelvare-i2c-i2c-constify-client-address-data.patch
+hwmon-new-chip-driver-for-ti-ads7828-a-d.patch
+hwmon-new-chip-driver-for-ti-ads7828-a-d-checkpatch-fixes.patch
+git-hid.patch
+revert-git-hrt.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-versus-driver-tree.patch
+git-infiniband-fix-build-with-config_infiniband_ipoib_cm=n.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
 git-kbuild.patch
+git-kvm.patch
 git-libata-all.patch
+git-libata-all-fix-drivers-ata-sata_fslc.patch
+fix-ide-mm-ide-use-ide_destroy_dmatable-instead-of-pci_unmap_sg.patch
+drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
+drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
+git-md-accel.patch
+memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
+git-mmc.patch
+git-mtd.patch
+drivers-mtd-ubi-wlc-fix-uninitialized-var-warning.patch
+drivers-mtd-ubi-scanc-fix-uninitialized-var-warning.patch
+drivers-mtd-ubi-cdevc-unused-var.patch
+git-net.patch
+git-net-fix-conflicts.patch
+git-net-vs-git-lblnet.patch
+git-net-vs-git-lblnet-2.patch
+git-netdev-all.patch
+git-netdev-all-fix-conflicts.patch
+git-netdev-all-fix-conflicts-fix.patch
+git-net-vs-git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-backlight.patch
+git-battery.patch
+bluetooth-uninlining.patch
+net-sunrpc-schedc-revert-git-net-changes.patch
+net-sunrpc-schedc-reapply-git-net-changes.patch
+serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
+revert-gregkh-pci-pci-use-dev_printk-in-x86-quirk-messages.patch
+fix-gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
+x86-validate-against-acpi-motherboard-resources.patch
+git-sched.patch
+git-sched-fixup.patch
+git-sched-fix-bug_on.patch
+git-sh.patch
 git-scsi-misc.patch
-scsi-fix-isa-pcmcia-compile-problem.patch
+git-scsi-misc-vs-gregkh-pci-pci-remove-users-of-pci_enable_device_bars.patch
+scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes.patch
+scsi-aic94xx-cleanups-checkpatch-fixes.patch
+scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
+drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+fix-gregkh-usb-usb-ti_usb-termios-cleanups.patch
+ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+9p-util-fix-semaphore-handling.patch
+git-watchdog.patch
+git-watchdog-fixup.patch
+wdt-fix-locking-checkpatch-fixes.patch
+git-wireless.patch
+drivers-net-wireless-iwlwifi-iwl-3945c-fix-printk-warning.patch
+drivers-net-wireless-iwlwifi-iwl-4965c-fix-printk-warning.patch
+drivers-net-wireless-rt2x00-rt2x00usbc-fix-uninitialized-var-warning.patch
+git-ipwireless_cs.patch
+revert-kvm-stuff-to-make-git-x86-apply.patch
+git-x86.patch
+git-x86-fixup.patch
+git-x86-fixup-2.patch
+git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
+git-x86-fix-doubly-merged-patch.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-xtensa.patch
+usbtouchscreen-fix-buffer-overflow-make-more-egalax-work.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-add-proc-kpagecount-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix-2-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+mm-remove-fastcall-from-mm-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+address-hfs-on-disk-corruption-robustness-review-comments.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+stopmachine-semaphore-to-mutex-fix.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
+debug_smp_processor_id-fixlets.patch
+use-ilog2-in-fs-namespacec-fix.patch
+export-iov_shorten-for-ext4s-use-fix.patch
+system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
+speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
+add-have_oprofile.patch
+drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+neofb-avoid-overwriting-fb_info-fields.patch
+vermilionc-use-align-not-__align_mask.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+ext4-mm-ext4_store_maxbytes_for_bitmaped_files-warning-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
+hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
+cpusets-update_cpumask-revision-fix.patch
+cpusets-update_cpumask-revision-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+modules-make-module_address_lookup-safe-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
+ufs-fix-symlink-creation-on-ufs2-fix.patch
+libfs-allow-error-return-from-simple-attributes-fix.patch
+fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
