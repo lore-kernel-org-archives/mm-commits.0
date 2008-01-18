@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + add-hpet-rtc-emulation-to-rtc_drv_cmos.patch added to -mm tree
-Date: Fri, 18 Jan 2008 14:41:43 -0800
-Message-ID: <200801182241.m0IMfhtU009058@imap1.linux-foundation.org>
+Subject: + make-config_hpet_emulate_rtc-usable-from-modules.patch added to -mm tree
+Date: Fri, 18 Jan 2008 14:41:38 -0800
+Message-ID: <200801182241.m0IMfcE0009050@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45810 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45596 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761915AbYARWmy (ORCPT
+	by vger.kernel.org with ESMTP id S932884AbYARWr1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Jan 2008 17:42:54 -0500
+	Fri, 18 Jan 2008 17:47:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: bwalle@suse.de, Robert.Picco@hp.com, a.zummo@towertech.it, ak@suse.de, david
 
 
 The patch titled
-     rtc: add HPET RTC emulation to RTC_DRV_CMOS
+     rtc: make CONFIG_HPET_EMULATE_RTC usable from modules
 has been added to the -mm tree.  Its filename is
-     add-hpet-rtc-emulation-to-rtc_drv_cmos.patch
+     make-config_hpet_emulate_rtc-usable-from-modules.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: add HPET RTC emulation to RTC_DRV_CMOS
+Subject: rtc: make CONFIG_HPET_EMULATE_RTC usable from modules
 From: Bernhard Walle <bwalle@suse.de>
 
-That patch adds the RTC emulation of the HPET timer to the new RTC_DRV_CMOS. 
-The old drivers/char/rtc.ko driver had that functionality and it's important
-on new systems.
+The new rtc-cmos driver misses HPET support.  If the hardware has HPET
+enabled, then interrupts don't work for the rtc-cmos driver which results in
+RTC_AIE*, RTC_PIE* and RTC_ALM being unusable.  This affects hwclock from
+util-linux-ng at least on i386 since that uses RTC_PIE_ON.  (For x86-64, a
+polling method is used for unknown reasons.)
+
+This patch series now
+
+  1. export the functions from arch/x86/kernel/hpet.c that the old char/rtc
+     driver uses to work around that problem,
+
+  2. makes it possible to compile the old rtc driver as module, while still
+     having CONFIG_HPET_EMULATE_RTC enabled and
+
+  3. makes use of the exported functions in (1) in the new rtc-cmos driver.
+
+
+This patch:
+
+This patch makes the RTC emulation functions in arch/x86/kernel/hpet.c usable
+for kernel modules. It
+
+  - exports the functions (EXPORT_SYMBOL_GPL()),
+  - adds an interface to register the interrupt callback function
+    instead of using only a fixed callback function and
+  - replaces the rtc_get_rtc_time() function which depends on
+    CONFIG_RTC with a call to get_rtc_time() which is defined in
+    include/asm-generic/rtc.h.
+
+The only dependency to CONFIG_RTC is the call to rtc_interrupt() which is
+removed by the next patch. After this, there's no (code) dependency of
+this functions to CONFIG_RTC=y any more.
 
 Signed-off-by: Bernhard Walle <bwalle@suse.de>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
@@ -52,195 +81,159 @@ Cc: Robert Picco <Robert.Picco@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig       |    2 
- drivers/rtc/rtc-cmos.c |   79 ++++++++++++++++++++++++++++++++-------
- 2 files changed, 67 insertions(+), 14 deletions(-)
+ arch/x86/kernel/hpet.c |   47 ++++++++++++++++++++++++++++++++++++++-
+ include/asm-x86/hpet.h |    3 ++
+ 2 files changed, 49 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/Kconfig~add-hpet-rtc-emulation-to-rtc_drv_cmos arch/x86/Kconfig
---- a/arch/x86/Kconfig~add-hpet-rtc-emulation-to-rtc_drv_cmos
-+++ a/arch/x86/Kconfig
-@@ -417,7 +417,7 @@ config HPET_TIMER
- 
- config HPET_EMULATE_RTC
- 	def_bool y
--	depends on HPET_TIMER && (RTC=y || RTC=m)
-+	depends on HPET_TIMER && (RTC=y || RTC=m || RTC_DRV_CMOS=m || RTC_DRV_CMOS=y)
- 
- # Mark as embedded because too many people got it wrong.
- # The code disables itself when not needed.
-diff -puN drivers/rtc/rtc-cmos.c~add-hpet-rtc-emulation-to-rtc_drv_cmos drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~add-hpet-rtc-emulation-to-rtc_drv_cmos
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -35,10 +35,22 @@
- #include <linux/spinlock.h>
- #include <linux/platform_device.h>
- #include <linux/mod_devicetable.h>
-+#include <asm/hpet.h>
- 
- /* this is for "generic access to PC-style RTC" using CMOS_READ/CMOS_WRITE */
- #include <asm-generic/rtc.h>
- 
-+#ifndef CONFIG_HPET_EMULATE_RTC
-+#define is_hpet_enabled()			0
-+#define hpet_set_alarm_time(hrs, min, sec) 	do { } while (0)
-+#define hpet_set_periodic_freq(arg) 		0
-+#define hpet_mask_rtc_irq_bit(arg) 		do { } while (0)
-+#define hpet_set_rtc_irq_bit(arg) 		do { } while (0)
-+#define hpet_rtc_timer_init() 			do { } while (0)
-+#define hpet_register_irq_handler(h) 		0
-+#define hpet_unregister_irq_handler(h)		do { } while (0)
-+extern irqreturn_t hpet_rtc_interrupt(int irq, void *dev_id);
-+#endif
- 
- struct cmos_rtc {
- 	struct rtc_device	*rtc;
-@@ -199,6 +211,7 @@ static int cmos_set_alarm(struct device 
- 	sec = t->time.tm_sec;
- 	sec = (sec < 60) ? BIN2BCD(sec) : 0xff;
- 
-+	hpet_set_alarm_time(t->time.tm_hour, t->time.tm_min, t->time.tm_sec);
- 	spin_lock_irq(&rtc_lock);
- 
- 	/* next rtc irq must not be from previous alarm setting */
-@@ -252,7 +265,8 @@ static int cmos_irq_set_freq(struct devi
- 	f = 16 - f;
- 
- 	spin_lock_irqsave(&rtc_lock, flags);
--	CMOS_WRITE(RTC_REF_CLCK_32KHZ | f, RTC_FREQ_SELECT);
-+	if (!hpet_set_periodic_freq(freq))
-+		CMOS_WRITE(RTC_REF_CLCK_32KHZ | f, RTC_FREQ_SELECT);
- 	spin_unlock_irqrestore(&rtc_lock, flags);
- 
- 	return 0;
-@@ -314,28 +328,37 @@ cmos_rtc_ioctl(struct device *dev, unsig
- 	switch (cmd) {
- 	case RTC_AIE_OFF:	/* alarm off */
- 		rtc_control &= ~RTC_AIE;
-+		hpet_mask_rtc_irq_bit(RTC_AIE);
- 		break;
- 	case RTC_AIE_ON:	/* alarm on */
- 		rtc_control |= RTC_AIE;
-+		hpet_set_rtc_irq_bit(RTC_AIE);
- 		break;
- 	case RTC_UIE_OFF:	/* update off */
- 		rtc_control &= ~RTC_UIE;
-+		hpet_mask_rtc_irq_bit(RTC_UIE);
- 		break;
- 	case RTC_UIE_ON:	/* update on */
- 		rtc_control |= RTC_UIE;
-+		hpet_set_rtc_irq_bit(RTC_UIE);
- 		break;
- 	case RTC_PIE_OFF:	/* periodic off */
- 		rtc_control &= ~RTC_PIE;
-+		hpet_mask_rtc_irq_bit(RTC_PIE);
- 		break;
- 	case RTC_PIE_ON:	/* periodic on */
- 		rtc_control |= RTC_PIE;
-+		hpet_set_rtc_irq_bit(RTC_PIE);
- 		break;
- 	}
--	CMOS_WRITE(rtc_control, RTC_CONTROL);
-+	if (!is_hpet_enabled())
-+		CMOS_WRITE(rtc_control, RTC_CONTROL);
-+
- 	rtc_intr = CMOS_READ(RTC_INTR_FLAGS);
- 	rtc_intr &= (rtc_control & RTC_IRQMASK) | RTC_IRQF;
- 	if (is_intr(rtc_intr))
- 		rtc_update_irq(cmos->rtc, 1, rtc_intr);
-+
- 	spin_unlock_irqrestore(&rtc_lock, flags);
- 	return 0;
+diff -puN arch/x86/kernel/hpet.c~make-config_hpet_emulate_rtc-usable-from-modules arch/x86/kernel/hpet.c
+--- a/arch/x86/kernel/hpet.c~make-config_hpet_emulate_rtc-usable-from-modules
++++ a/arch/x86/kernel/hpet.c
+@@ -107,6 +107,7 @@ int is_hpet_enabled(void)
+ {
+ 	return is_hpet_capable() && hpet_legacy_int_enabled;
  }
-@@ -475,15 +498,25 @@ static irqreturn_t cmos_interrupt(int ir
- 	u8		rtc_control;
++EXPORT_SYMBOL_GPL(is_hpet_enabled);
  
- 	spin_lock(&rtc_lock);
--	irqstat = CMOS_READ(RTC_INTR_FLAGS);
--	rtc_control = CMOS_READ(RTC_CONTROL);
--	irqstat &= (rtc_control & RTC_IRQMASK) | RTC_IRQF;
-+	/*
-+	 * In this case it is HPET RTC interrupt handler
-+	 * calling us, with the interrupt information
-+	 * passed as arg1, instead of irq.
-+	 */
-+	if (is_hpet_enabled())
-+		irqstat = (unsigned long)irq & 0xF0;
-+	else {
-+		irqstat = CMOS_READ(RTC_INTR_FLAGS);
-+		rtc_control = CMOS_READ(RTC_CONTROL);
-+		irqstat &= (rtc_control & RTC_IRQMASK) | RTC_IRQF;
-+	}
+ /*
+  * When the hpet driver (/dev/hpet) is enabled, we need to reserve
+@@ -478,6 +479,7 @@ void hpet_disable(void)
+  */
+ #include <linux/mc146818rtc.h>
+ #include <linux/rtc.h>
++#include <asm/rtc.h>
  
- 	/* All Linux RTC alarms should be treated as if they were oneshot.
- 	 * Similar code may be needed in system wakeup paths, in case the
- 	 * alarm woke the system.
- 	 */
- 	if (irqstat & RTC_AIE) {
-+		rtc_control = CMOS_READ(RTC_CONTROL);
- 		rtc_control &= ~RTC_AIE;
- 		CMOS_WRITE(rtc_control, RTC_CONTROL);
- 		CMOS_READ(RTC_INTR_FLAGS);
-@@ -591,8 +624,9 @@ cmos_do_probe(struct device *dev, struct
- 	 * doesn't use 32KHz here ... for portability we might need to
- 	 * do something about other clock frequencies.
- 	 */
--	CMOS_WRITE(RTC_REF_CLCK_32KHZ | 0x06, RTC_FREQ_SELECT);
- 	cmos_rtc.rtc->irq_freq = 1024;
-+	if (!hpet_set_periodic_freq(cmos_rtc.rtc->irq_freq))
-+		CMOS_WRITE(RTC_REF_CLCK_32KHZ | 0x06, RTC_FREQ_SELECT);
+ #define DEFAULT_RTC_INT_FREQ	64
+ #define DEFAULT_RTC_SHIFT	6
+@@ -492,6 +494,38 @@ static unsigned long hpet_default_delta;
+ static unsigned long hpet_pie_delta;
+ static unsigned long hpet_pie_limit;
  
- 	/* disable irqs.
- 	 *
-@@ -615,14 +649,31 @@ cmos_do_probe(struct device *dev, struct
- 		goto cleanup1;
++static rtc_irq_handler irq_handler;
++
++/*
++ * Registers a IRQ handler.
++ */
++int hpet_register_irq_handler(rtc_irq_handler handler)
++{
++	if (!is_hpet_enabled())
++		return -ENODEV;
++	if (irq_handler)
++		return -EBUSY;
++
++	irq_handler = handler;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(hpet_register_irq_handler);
++
++/*
++ * Deregisters the IRQ handler registered with hpet_register_irq_handler()
++ * and does cleanup.
++ */
++void hpet_unregister_irq_handler(rtc_irq_handler handler)
++{
++	if (!is_hpet_enabled())
++		return;
++
++	irq_handler = NULL;
++	hpet_rtc_flags = 0;
++}
++EXPORT_SYMBOL_GPL(hpet_unregister_irq_handler);
++
+ /*
+  * Timer 1 for RTC emulation. We use one shot mode, as periodic mode
+  * is not supported by all HPET implementations for timer 1.
+@@ -533,6 +567,7 @@ int hpet_rtc_timer_init(void)
+ 
+ 	return 1;
+ }
++EXPORT_SYMBOL_GPL(hpet_rtc_timer_init);
+ 
+ /*
+  * The functions below are called from rtc driver.
+@@ -547,6 +582,7 @@ int hpet_mask_rtc_irq_bit(unsigned long 
+ 	hpet_rtc_flags &= ~bit_mask;
+ 	return 1;
+ }
++EXPORT_SYMBOL_GPL(hpet_mask_rtc_irq_bit);
+ 
+ int hpet_set_rtc_irq_bit(unsigned long bit_mask)
+ {
+@@ -562,6 +598,7 @@ int hpet_set_rtc_irq_bit(unsigned long b
+ 
+ 	return 1;
+ }
++EXPORT_SYMBOL_GPL(hpet_set_rtc_irq_bit);
+ 
+ int hpet_set_alarm_time(unsigned char hrs, unsigned char min,
+ 			unsigned char sec)
+@@ -575,6 +612,7 @@ int hpet_set_alarm_time(unsigned char hr
+ 
+ 	return 1;
+ }
++EXPORT_SYMBOL_GPL(hpet_set_alarm_time);
+ 
+ int hpet_set_periodic_freq(unsigned long freq)
+ {
+@@ -593,11 +631,13 @@ int hpet_set_periodic_freq(unsigned long
  	}
+ 	return 1;
+ }
++EXPORT_SYMBOL_GPL(hpet_set_periodic_freq);
  
--	if (is_valid_irq(rtc_irq))
--		retval = request_irq(rtc_irq, cmos_interrupt, IRQF_DISABLED,
--				cmos_rtc.rtc->dev.bus_id,
-+	if (is_valid_irq(rtc_irq)) {
-+		irq_handler_t rtc_cmos_int_handler;
+ int hpet_rtc_dropped_irq(void)
+ {
+ 	return is_hpet_enabled();
+ }
++EXPORT_SYMBOL_GPL(hpet_rtc_dropped_irq);
+ 
+ static void hpet_rtc_timer_reinit(void)
+ {
+@@ -641,9 +681,10 @@ irqreturn_t hpet_rtc_interrupt(int irq, 
+ 	unsigned long rtc_int_flag = 0;
+ 
+ 	hpet_rtc_timer_reinit();
++	memset(&curr_time, 0, sizeof(struct rtc_time));
+ 
+ 	if (hpet_rtc_flags & (RTC_UIE | RTC_AIE))
+-		rtc_get_rtc_time(&curr_time);
++		get_rtc_time(&curr_time);
+ 
+ 	if (hpet_rtc_flags & RTC_UIE &&
+ 	    curr_time.tm_sec != hpet_prev_update_sec) {
+@@ -665,8 +706,12 @@ irqreturn_t hpet_rtc_interrupt(int irq, 
+ 
+ 	if (rtc_int_flag) {
+ 		rtc_int_flag |= (RTC_IRQF | (RTC_NUM_INTS << 8));
++		if (irq_handler)
++			irq_handler(rtc_int_flag, dev_id);
 +
-+		if (is_hpet_enabled()) {
-+			int err;
-+
-+			rtc_cmos_int_handler = hpet_rtc_interrupt;
-+			err = hpet_register_irq_handler(cmos_interrupt);
-+			if (err != 0) {
-+				printk(KERN_WARNING "hpet_register_irq_handler "
-+						" failed in rtc_init().");
-+				goto cleanup1;
-+			}
-+		} else
-+			rtc_cmos_int_handler = cmos_interrupt;
-+
-+		retval = request_irq(rtc_irq, rtc_cmos_int_handler,
-+				IRQF_DISABLED, cmos_rtc.rtc->dev.bus_id,
- 				cmos_rtc.rtc);
--	if (retval < 0) {
--		dev_dbg(dev, "IRQ %d is already in use\n", rtc_irq);
--		goto cleanup1;
-+		if (retval < 0) {
-+			dev_dbg(dev, "IRQ %d is already in use\n", rtc_irq);
-+			goto cleanup1;
-+		}
+ 		rtc_interrupt(rtc_int_flag, dev_id);
  	}
-+	hpet_rtc_timer_init();
+ 	return IRQ_HANDLED;
+ }
++EXPORT_SYMBOL_GPL(hpet_rtc_interrupt);
+ #endif
+diff -puN include/asm-x86/hpet.h~make-config_hpet_emulate_rtc-usable-from-modules include/asm-x86/hpet.h
+--- a/include/asm-x86/hpet.h~make-config_hpet_emulate_rtc-usable-from-modules
++++ a/include/asm-x86/hpet.h
+@@ -69,6 +69,7 @@ extern void force_hpet_resume(void);
  
- 	/* export at least the first block of NVRAM */
- 	nvram.size = address_space - NVRAM_OFFSET;
-@@ -677,8 +728,10 @@ static void __exit cmos_do_remove(struct
+ #include <linux/interrupt.h>
  
- 	sysfs_remove_bin_file(&dev->kobj, &nvram);
++typedef irqreturn_t (*rtc_irq_handler)(int interrupt, void *cookie);
+ extern int hpet_mask_rtc_irq_bit(unsigned long bit_mask);
+ extern int hpet_set_rtc_irq_bit(unsigned long bit_mask);
+ extern int hpet_set_alarm_time(unsigned char hrs, unsigned char min,
+@@ -77,6 +78,8 @@ extern int hpet_set_periodic_freq(unsign
+ extern int hpet_rtc_dropped_irq(void);
+ extern int hpet_rtc_timer_init(void);
+ extern irqreturn_t hpet_rtc_interrupt(int irq, void *dev_id);
++extern int hpet_register_irq_handler(rtc_irq_handler handler);
++extern void hpet_unregister_irq_handler(rtc_irq_handler handler);
  
--	if (is_valid_irq(cmos->irq))
-+	if (is_valid_irq(cmos->irq)) {
- 		free_irq(cmos->irq, cmos->rtc);
-+		hpet_unregister_irq_handler(cmos_interrupt);
-+	}
+ #endif /* CONFIG_HPET_EMULATE_RTC */
  
- 	rtc_device_unregister(cmos->rtc);
- 	cmos->rtc = NULL;
 _
 
 Patches currently in -mm which might be from bwalle@suse.de are
