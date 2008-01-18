@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 17 Jan 2008 23:36:31 -0800
-Message-ID: <200801180736.m0I7aB2x005338@imap1.linux-foundation.org>
+Subject: + include-asm-powerpc-nvramh-needs-listh-fix.patch added to -mm tree
+Date: Thu, 17 Jan 2008 23:38:34 -0800
+Message-ID: <200801180738.m0I7cE1W005449@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59039 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44010 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752900AbYARHgR (ORCPT
+	by vger.kernel.org with ESMTP id S1750853AbYARHi2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Jan 2008 02:36:17 -0500
+	Fri, 18 Jan 2008 02:38:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, htejun@gmail.com
+Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, kamalesh@linux.vnet.ibm.com, paulus@samba.org
 
 
 The patch titled
-     scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes
+     include-asm-powerpc-nvramh-needs-listh-fix
 has been added to the -mm tree.  Its filename is
-     scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes.patch
+     include-asm-powerpc-nvramh-needs-listh-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,72 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes
+Subject: include-asm-powerpc-nvramh-needs-listh-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: line over 80 characters
-#72: FILE: drivers/scsi/aha152x.c:3897:
-+			struct Scsi_Host *shpnt = GLOBAL(aha152x_probe_one)(&setup[i]);
-
-WARNING: line over 80 characters
-#140: FILE: drivers/scsi/fdomain.c:893:
-+struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct scsi_host_template *tpnt )
-
-ERROR: no space before that close parenthesis ')'
-#140: FILE: drivers/scsi/fdomain.c:893:
-+struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct scsi_host_template *tpnt )
-
-ERROR: open brace '{' following function declarations go on the next line
-#178: FILE: drivers/scsi/fdomain.c:1749:
-+struct scsi_host_template GLOBAL(fdomain_driver_template) = {
-
-WARNING: line over 80 characters
-#226: FILE: drivers/scsi/fdomain.h:36:
-+extern struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct  scsi_host_template *tpnt );
-
-ERROR: no space before that close parenthesis ')'
-#226: FILE: drivers/scsi/fdomain.h:36:
-+extern struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct  scsi_host_template *tpnt );
-
-total: 3 errors, 3 warnings, 246 lines checked
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Tejun Heo <htejun@gmail.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>	
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/fdomain.c |    2 +-
- drivers/scsi/fdomain.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ include/asm-powerpc/nvram.h |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/scsi/fdomain.c~scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes drivers/scsi/fdomain.c
---- a/drivers/scsi/fdomain.c~scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes
-+++ a/drivers/scsi/fdomain.c
-@@ -890,7 +890,7 @@ fail:
+diff -puN include/asm-powerpc/nvram.h~include-asm-powerpc-nvramh-needs-listh-fix include/asm-powerpc/nvram.h
+--- a/include/asm-powerpc/nvram.h~include-asm-powerpc-nvramh-needs-listh-fix
++++ a/include/asm-powerpc/nvram.h
+@@ -11,7 +11,6 @@
+ #define _ASM_POWERPC_NVRAM_H
  
- #endif
+ #include <linux/errno.h>
+-#include <linux/list.h>
  
--struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct scsi_host_template *tpnt )
-+struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct scsi_host_template *tpnt)
- {
-    int              retcode;
-    struct Scsi_Host *shpnt;
-diff -puN drivers/scsi/fdomain.h~scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes drivers/scsi/fdomain.h
---- a/drivers/scsi/fdomain.h~scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes
-+++ a/drivers/scsi/fdomain.h
-@@ -33,5 +33,5 @@
+ #define NVRW_CNT 0x20
+ #define NVRAM_HEADER_LEN 16 /* sizeof(struct nvram_header) */
+@@ -59,6 +58,9 @@ struct nvram_header {
+ };
  
- extern struct scsi_host_template GLOBAL(fdomain_driver_template);
- extern int GLOBAL(fdomain_setup)(char *str);
--extern struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct  scsi_host_template *tpnt );
-+extern struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct scsi_host_template *tpnt);
- extern int GLOBAL(fdomain_16x0_bus_reset)(struct scsi_cmnd *SCpnt);
+ #ifdef __KERNEL__
++
++#include <linux/list.h>
++
+ struct nvram_partition {
+ 	struct list_head partition;
+ 	struct nvram_header header;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -134,6 +101,7 @@ revert-agk-dm-dm-loop.patch
 git-powerpc.patch
 git-powerpc-fixup.patch
 include-asm-powerpc-nvramh-needs-listh.patch
+include-asm-powerpc-nvramh-needs-listh-fix.patch
 revert-gregkh-driver-atm-convert-struct-class_device-to-struct-device.patch
 gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
 revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
