@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i915-fix-invalid-opcode-exception-on-cpus-without-clflush.patch added to -mm tree
-Date: Thu, 17 Jan 2008 16:18:38 -0800
-Message-ID: <200801180018.m0I0IcZv021583@imap1.linux-foundation.org>
+Subject: + bonding-fix-locking-in-sysfs-primary-active-selection.patch added to -mm tree
+Date: Thu, 17 Jan 2008 16:40:38 -0800
+Message-ID: <200801180040.m0I0ec9V022605@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41711 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36735 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755946AbYARATZ (ORCPT
+	by vger.kernel.org with ESMTP id S1757040AbYARAlK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jan 2008 19:19:25 -0500
+	Thu, 17 Jan 2008 19:41:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kyle@mcmartin.ca, airlied@linux.ie, kmcmartin@redhat.com
+Cc: fubar@us.ibm.com, andy@greyhouse.net
 
 
 The patch titled
-     i915: fix invalid opcode exception on cpus without clflush
+     bonding: fix locking in sysfs primary/active selection
 has been added to the -mm tree.  Its filename is
-     i915-fix-invalid-opcode-exception-on-cpus-without-clflush.patch
+     bonding-fix-locking-in-sysfs-primary-active-selection.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i915: fix invalid opcode exception on cpus without clflush
-From: Kyle McMartin <kyle@mcmartin.ca>
+Subject: bonding: fix locking in sysfs primary/active selection
+From: Jay Vosburgh <fubar@us.ibm.com>
 
-i915_flush_ttm was unconditionally executing a clflush instruction to
-(obviously) flush the cache.  Instead, check if the cpu supports clflush,
-and if not, fall back to calling wbinvd to flush the entire cache.
+Fix the functions that store the primary and active slave options via sysfs to
+hold the correct locks in the correct order.
 
-Signed-off-by: Kyle McMartin <kmcmartin@redhat.com>
-Cc: Dave Airlie <airlied@linux.ie>
+The bond_change_active_slave and bond_select_active_slave functions both
+require rtnl, bond->lock for read and curr_slave_lock for write_bh, and no
+other locks.  This is so that the lower level mode-specific functions (notably
+for balance-alb mode) can release locks down to just rtnl in order to call,
+e.g., dev_set_mac_address with the locks it expects (rtnl only).
+
+Signed-off-by: Jay Vosburgh <fubar@us.ibm.com>
+Signed-off-by: Andy Gospodarek <andy@greyhouse.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/i915_buffer.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/net/bonding/bond_sysfs.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff -puN drivers/char/drm/i915_buffer.c~i915-fix-invalid-opcode-exception-on-cpus-without-clflush drivers/char/drm/i915_buffer.c
---- a/drivers/char/drm/i915_buffer.c~i915-fix-invalid-opcode-exception-on-cpus-without-clflush
-+++ a/drivers/char/drm/i915_buffer.c
-@@ -169,7 +169,18 @@ void i915_flush_ttm(struct drm_ttm *ttm)
- 		return;
+diff -puN drivers/net/bonding/bond_sysfs.c~bonding-fix-locking-in-sysfs-primary-active-selection drivers/net/bonding/bond_sysfs.c
+--- a/drivers/net/bonding/bond_sysfs.c~bonding-fix-locking-in-sysfs-primary-active-selection
++++ a/drivers/net/bonding/bond_sysfs.c
+@@ -1075,7 +1075,10 @@ static ssize_t bonding_store_primary(str
+ 	struct slave *slave;
+ 	struct bonding *bond = to_bond(d);
  
- 	DRM_MEMORYBARRIER();
+-	write_lock_bh(&bond->lock);
++	rtnl_lock();
++	read_lock(&bond->lock);
++	write_lock_bh(&bond->curr_slave_lock);
 +
-+#ifdef CONFIG_X86_32
-+	/* Hopefully nobody has built an x86-64 processor without clflush */
-+	if (!cpu_has_clflush) {
-+		wbinvd();
-+		DRM_MEMORYBARRIER();
-+		return;
-+	}
-+#endif
-+
- 	for (i = ttm->num_pages - 1; i >= 0; i--)
- 		drm_cache_flush_page(drm_ttm_get_page(ttm, i));
-+
- 	DRM_MEMORYBARRIER();
- }
+ 	if (!USES_PRIMARY(bond->params.mode)) {
+ 		printk(KERN_INFO DRV_NAME
+ 		       ": %s: Unable to set primary slave; %s is in mode %d\n",
+@@ -1109,8 +1112,8 @@ static ssize_t bonding_store_primary(str
+ 		}
+ 	}
+ out:
+-	write_unlock_bh(&bond->lock);
+-
++	write_unlock_bh(&bond->curr_slave_lock);
++	read_unlock(&bond->lock);
+ 	rtnl_unlock();
+ 
+ 	return count;
+@@ -1190,7 +1193,8 @@ static ssize_t bonding_store_active_slav
+ 	struct bonding *bond = to_bond(d);
+ 
+ 	rtnl_lock();
+-	write_lock_bh(&bond->lock);
++	read_lock(&bond->lock);
++	write_lock_bh(&bond->curr_slave_lock);
+ 
+ 	if (!USES_PRIMARY(bond->params.mode)) {
+ 		printk(KERN_INFO DRV_NAME
+@@ -1247,7 +1251,8 @@ static ssize_t bonding_store_active_slav
+ 		}
+ 	}
+ out:
+-	write_unlock_bh(&bond->lock);
++	write_unlock_bh(&bond->curr_slave_lock);
++	read_unlock(&bond->lock);
+ 	rtnl_unlock();
+ 
+ 	return count;
 _
 
-Patches currently in -mm which might be from kyle@mcmartin.ca are
+Patches currently in -mm which might be from fubar@us.ibm.com are
 
-i915-fix-invalid-opcode-exception-on-cpus-without-clflush.patch
-kill-warnings-in-mptbaseh-on-parisc64.patch
-iommu-sg-merging-parisc-make-iommu-respect-the-segment-size-limits.patch
-alpha-parisc-removing-config-variable-debug_rwlock.patch
-documentation-about-unaligned-memory-access.patch
-add-cmpxchg_local-to-parisc.patch
-modules-make-module_address_lookup-safe.patch
-modules-make-module_address_lookup-safe-fix.patch
+git-netdev-all.patch
+bonding-fix-locking-in-sysfs-primary-active-selection.patch
+bonding-fix-assert_rtnl-that-produces-spurious-warnings.patch
+bonding-fix-locking-during-alb-failover-and-slave-removal.patch
+bonding-release-slaves-when-master-removed-via-sysfs.patch
+bonding-fix-up-parameter-parsing.patch
+bonding-fix-lock-ordering-for-rtnl-and-bonding_rwsem.patch
+bonding-dont-hold-lock-when-calling-rtnl_unlock.patch
