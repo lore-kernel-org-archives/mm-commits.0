@@ -1,77 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - ifdef-very-expensive-debug-check-in-page-fault-path.patch removed from -mm tree
-Date: Sat, 19 Jan 2008 23:04:56 -0800
-Message-ID: <200801200704.m0K74avK007818@imap1.linux-foundation.org>
+Subject: - revert-local_t-documentation-update.patch removed from -mm tree
+Date: Sat, 19 Jan 2008 23:05:02 -0800
+Message-ID: <200801200704.m0K74gvR007824@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38644 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45459 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753713AbYATHEp (ORCPT
+	by vger.kernel.org with ESMTP id S1753917AbYATHFA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 20 Jan 2008 02:04:45 -0500
+	Sun, 20 Jan 2008 02:05:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cotte@de.ibm.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: lizf@cn.fujitsu.com, mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     #ifdef very expensive debug check in page fault path
+     Revert "local_t Documentation update"
 has been removed from the -mm tree.  Its filename was
-     ifdef-very-expensive-debug-check-in-page-fault-path.patch
+     revert-local_t-documentation-update.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: #ifdef very expensive debug check in page fault path
-From: Carsten Otte <cotte@de.ibm.com>
+Subject: Revert "local_t Documentation update"
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-This patch puts #ifdef CONFIG_DEBUG_VM around a check in vm_normal_page
-that verifies that a pfn is valid.  This patch increases performance of the
-page fault microbenchmark in lmbench by 13% and overall dbench performance
-by 7% on s390x.  pfn_valid() is an expensive operation on s390 that needs a
-high double digit amount of CPU cycles.  Nick Piggin suggested that
-pfn_valid() involves an array lookup on systems with sparsemem, and
-therefore is an expensive operation there too.
+This reverts commit e1265205c0ee3919c3f2c750662630154c8faab2.
 
-The check looks like a clear debug thing to me, it should never trigger on
-regular kernels.  And if a pte is created for an invalid pfn, we'll find
-out once the memory gets accessed later on anyway.  Please consider
-inclusion of this patch into mm.
+It's a duplicate commit of commit 74beb9db77930be476b267ec8518a642f39a04bf,
+resulting in a duplicate section.
 
-Signed-off-by: Carsten Otte <cotte@de.ibm.com>
-Acked-by: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 ++
- 1 file changed, 2 insertions(+)
+ Documentation/local_ops.txt |   23 -----------------------
+ 1 file changed, 23 deletions(-)
 
-diff -puN mm/memory.c~ifdef-very-expensive-debug-check-in-page-fault-path mm/memory.c
---- a/mm/memory.c~ifdef-very-expensive-debug-check-in-page-fault-path
-+++ a/mm/memory.c
-@@ -392,6 +392,7 @@ struct page *vm_normal_page(struct vm_ar
- 			return NULL;
- 	}
+diff -puN Documentation/local_ops.txt~revert-local_t-documentation-update Documentation/local_ops.txt
+--- a/Documentation/local_ops.txt~revert-local_t-documentation-update
++++ a/Documentation/local_ops.txt
+@@ -68,29 +68,6 @@ typedef struct { atomic_long_t a; } loca
+   variable can be read when reading some _other_ cpu's variables.
  
-+#ifdef CONFIG_DEBUG_VM
- 	/*
- 	 * Add some anal sanity checks for now. Eventually,
- 	 * we should just do "return pfn_to_page(pfn)", but
-@@ -402,6 +403,7 @@ struct page *vm_normal_page(struct vm_ar
- 		print_bad_pte(vma, pte, addr);
- 		return NULL;
- 	}
-+#endif
  
- 	/*
- 	 * NOTE! We still have PageReserved() pages in the page 
+-* Rules to follow when using local atomic operations
+-
+-- Variables touched by local ops must be per cpu variables.
+-- _Only_ the CPU owner of these variables must write to them.
+-- This CPU can use local ops from any context (process, irq, softirq, nmi, ...)
+-  to update its local_t variables.
+-- Preemption (or interrupts) must be disabled when using local ops in
+-  process context to   make sure the process won't be migrated to a
+-  different CPU between getting the per-cpu variable and doing the
+-  actual local op.
+-- When using local ops in interrupt context, no special care must be
+-  taken on a mainline kernel, since they will run on the local CPU with
+-  preemption already disabled. I suggest, however, to explicitly
+-  disable preemption anyway to make sure it will still work correctly on
+-  -rt kernels.
+-- Reading the local cpu variable will provide the current copy of the
+-  variable.
+-- Reads of these variables can be done from any CPU, because updates to
+-  "long", aligned, variables are always atomic. Since no memory
+-  synchronization is done by the writer CPU, an outdated copy of the
+-  variable can be read when reading some _other_ cpu's variables.
+-
+-
+ * How to use local atomic operations
+ 
+ #include <linux/percpu.h>
 _
 
-Patches currently in -mm which might be from cotte@de.ibm.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
 origin.patch
-git-kvm.patch
-check-advice-of-fadvice64_64-even-if-get_xip_page-is-given.patch
-ext2-xip-check-fix.patch
+git-powerpc.patch
+git-drm.patch
+git-hid.patch
+git-net.patch
+git-netdev-all.patch
+clocksource-remove-redundant-code.patch
+clockevent-simplify-list-operations.patch
+timekeeping-rename-timekeeping_is_continuous-to-timekeeping_valid_for_hres.patch
+time-fix-typo-in-comments.patch
+time-delete-comments-that-refer-to-noexistent-symbols.patch
