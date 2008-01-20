@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hrtimer-fix-section-mismatch.patch added to -mm tree
-Date: Sat, 19 Jan 2008 17:00:36 -0800
-Message-ID: <200801200100.m0K10GBX028839@imap1.linux-foundation.org>
+Subject: + remove-bogus-duplicate-config_lguest_guest-entry.patch added to -mm tree
+Date: Sat, 19 Jan 2008 17:03:56 -0800
+Message-ID: <200801200103.m0K13aS3028952@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39210 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53189 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754273AbYATBB5 (ORCPT
+	by vger.kernel.org with ESMTP id S1754057AbYATBE2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 19 Jan 2008 20:01:57 -0500
+	Sat, 19 Jan 2008 20:04:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, mingo@elte.hu, sam@ravnborg.org, tglx@linutronix.de
+Cc: rusty@rustcorp.com.au, bunk@kernel.org
 
 
 The patch titled
-     hrtimer: fix section mismatch
+     Remove bogus duplicate CONFIG_LGUEST_GUEST entry
 has been added to the -mm tree.  Its filename is
-     hrtimer-fix-section-mismatch.patch
+     remove-bogus-duplicate-config_lguest_guest-entry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hrtimer: fix section mismatch
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Remove bogus duplicate CONFIG_LGUEST_GUEST entry
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-Fix section mismatch in hrtimer.c:
+It was moved to arch/x86/lguest/Kconfig, but I lost the deletion part in a
+patch suffle.  My confused one-liner "fix" to turn it on is also reverted:
+84f7466ee20cc094aa38617abfa2f3834871f054
 
-WARNING: vmlinux.o(.text+0x50c61): Section mismatch: reference to .init.text: (between 'hrtimer_cpu_notify' and 'down_read_trylock')
-
-Noticed by Johannes Berg and confirmed by Sam Ravnborg.
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Reported-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/hrtimer.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/lguest/Kconfig |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN kernel/hrtimer.c~hrtimer-fix-section-mismatch kernel/hrtimer.c
---- a/kernel/hrtimer.c~hrtimer-fix-section-mismatch
-+++ a/kernel/hrtimer.c
-@@ -1378,7 +1378,7 @@ sys_nanosleep(struct timespec __user *rq
- /*
-  * Functions related to boot-time initialization:
-  */
--static void __devinit init_hrtimers_cpu(int cpu)
-+static void __cpuinit init_hrtimers_cpu(int cpu)
- {
- 	struct hrtimer_cpu_base *cpu_base = &per_cpu(hrtimer_bases, cpu);
- 	int i;
+diff -puN drivers/lguest/Kconfig~remove-bogus-duplicate-config_lguest_guest-entry drivers/lguest/Kconfig
+--- a/drivers/lguest/Kconfig~remove-bogus-duplicate-config_lguest_guest-entry
++++ a/drivers/lguest/Kconfig
+@@ -2,7 +2,6 @@ config LGUEST
+ 	tristate "Linux hypervisor example code"
+ 	depends on X86_32 && EXPERIMENTAL && !X86_PAE && FUTEX && !(X86_VISWS || X86_VOYAGER)
+ 	select HVC_DRIVER
+-	select LGUEST_GUEST
+ 	---help---
+ 	  This is a very simple module which allows you to run
+ 	  multiple instances of the same Linux kernel, using the
+@@ -11,9 +10,3 @@ config LGUEST
+ 	  not "rustyvisor".  See Documentation/lguest/lguest.txt.
+ 
+ 	  If unsure, say N.  If curious, say M.  If masochistic, say Y.
+-
+-config LGUEST_GUEST
+-	bool
+-	help
+-	  The guest needs code built-in, even if the host has lguest
+-	  support as a module.
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
-rcu-fix-section-mismatch.patch
-hrtimer-fix-section-mismatch.patch
-timer-fix-section-mismatch.patch
-git-alsa.patch
-git-dvb.patch
+origin.patch
+remove-bogus-duplicate-config_lguest_guest-entry.patch
 git-kbuild.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-pcmcia-include-bad-cis-filename-in-error-message.patch
+git-kvm.patch
+git-libata-all.patch
+git-sched.patch
 git-scsi-misc.patch
-git-unionfs.patch
-hostap-section-mismatch-warning.patch
-git-ipwireless_cs.patch
 git-x86.patch
-register_cpu-__devinit-or-__cpuinit.patch
-cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
-dio-fix-kernel-doc-notation.patch
-tpm-infineon-section-mismatch.patch
-tdfxfb-fix-section-mismatch-warnings.patch
-uvesafb-small-cleanups.patch
-documentation-move-dnotifytxt-to-filesystems.patch
-documentation-move-sharedsubtreestxt-to-filesystems.patch
-documentation-create-new-scheduler-subdirectory.patch
-reporting-bugs-cc-the-mailing-list-too.patch
-fs-menu-small-reorg.patch
-profile-likely-unlikely-macros.patch
+kallsyms-should-prefer-non-weak-symbols.patch
+virtio_net-remove-double-ether_setup.patch
+modules-handle-symbols-that-have-a-zero-value.patch
+modules-include-sectionsh-to-avoid-defining-linker-variables.patch
+modules-make-module_address_lookup-safe.patch
+modules-make-module_address_lookup-safe-fix.patch
+fixup-container_of-usage.patch
+aio-partial-write-should-not-return-error-code.patch
+aio-negative-offset-should-return-einval.patch
+reiser4.patch
