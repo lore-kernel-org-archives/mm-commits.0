@@ -1,74 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - alpha-fix-conversion-from-denormal-float-to-double.patch removed from -mm tree
-Date: Sat, 19 Jan 2008 23:04:51 -0800
-Message-ID: <200801200704.m0K74V7j007811@imap1.linux-foundation.org>
+Subject: - ifdef-very-expensive-debug-check-in-page-fault-path.patch removed from -mm tree
+Date: Sat, 19 Jan 2008 23:04:56 -0800
+Message-ID: <200801200704.m0K74avK007818@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58029 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38644 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753921AbYATHFA (ORCPT
+	by vger.kernel.org with ESMTP id S1753713AbYATHEp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 20 Jan 2008 02:05:00 -0500
+	Sun, 20 Jan 2008 02:04:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ink@jurassic.park.msu.ru, bonzini@gnu.org, rth@twiddle.net, mm-commits@vger.kernel.org
+To: cotte@de.ibm.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha: fix conversion from denormal float to double
+     #ifdef very expensive debug check in page fault path
 has been removed from the -mm tree.  Its filename was
-     alpha-fix-conversion-from-denormal-float-to-double.patch
+     ifdef-very-expensive-debug-check-in-page-fault-path.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: fix conversion from denormal float to double
-From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Subject: #ifdef very expensive debug check in page fault path
+From: Carsten Otte <cotte@de.ibm.com>
 
-The trap handler does properly update the fraction,
-but not the exponent...
+This patch puts #ifdef CONFIG_DEBUG_VM around a check in vm_normal_page
+that verifies that a pfn is valid.  This patch increases performance of the
+page fault microbenchmark in lmbench by 13% and overall dbench performance
+by 7% on s390x.  pfn_valid() is an expensive operation on s390 that needs a
+high double digit amount of CPU cycles.  Nick Piggin suggested that
+pfn_valid() involves an array lookup on systems with sparsemem, and
+therefore is an expensive operation there too.
 
-Thanks to Paolo Bonzini for the bug report and the testcase.
+The check looks like a clear debug thing to me, it should never trigger on
+regular kernels.  And if a pte is created for an invalid pfn, we'll find
+out once the memory gets accessed later on anyway.  Please consider
+inclusion of this patch into mm.
 
-Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Paolo Bonzini <bonzini@gnu.org>
-Cc: Richard Henderson <rth@twiddle.net>
+Signed-off-by: Carsten Otte <cotte@de.ibm.com>
+Acked-by: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/math-emu/math.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/alpha/math-emu/math.c~alpha-fix-conversion-from-denormal-float-to-double arch/alpha/math-emu/math.c
---- a/arch/alpha/math-emu/math.c~alpha-fix-conversion-from-denormal-float-to-double
-+++ a/arch/alpha/math-emu/math.c
-@@ -225,7 +225,7 @@ alpha_fp_emul (unsigned long pc)
- 				FP_UNPACK_SP(SB, &vb);
- 				DR_c = DB_c;
- 				DR_s = DB_s;
--				DR_e = DB_e;
-+				DR_e = DB_e + (1024 - 128);
- 				DR_f = SB_f << (52 - 23);
- 				goto pack_d;
- 			}
+diff -puN mm/memory.c~ifdef-very-expensive-debug-check-in-page-fault-path mm/memory.c
+--- a/mm/memory.c~ifdef-very-expensive-debug-check-in-page-fault-path
++++ a/mm/memory.c
+@@ -392,6 +392,7 @@ struct page *vm_normal_page(struct vm_ar
+ 			return NULL;
+ 	}
+ 
++#ifdef CONFIG_DEBUG_VM
+ 	/*
+ 	 * Add some anal sanity checks for now. Eventually,
+ 	 * we should just do "return pfn_to_page(pfn)", but
+@@ -402,6 +403,7 @@ struct page *vm_normal_page(struct vm_ar
+ 		print_bad_pte(vma, pte, addr);
+ 		return NULL;
+ 	}
++#endif
+ 
+ 	/*
+ 	 * NOTE! We still have PageReserved() pages in the page 
 _
 
-Patches currently in -mm which might be from ink@jurassic.park.msu.ru are
+Patches currently in -mm which might be from cotte@de.ibm.com are
 
 origin.patch
-iommu-sg-merging-alpha-make-pci_iommu-respect-the-segment-size-limits.patch
-arch-alpha-removed-duplicate-includes.patch
-alpha-atomic_add_return-should-return-int.patch
-alpha-kill-deprecated-virt_to_bus.patch
-alpha-doesnt-use-socketcall.patch
-agp-alpha-nopage.patch
-alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
-alpha-parisc-removing-config-variable-debug_rwlock.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
-calibrate_delay-must-be-__cpuinit.patch
-sanitize-the-type-of-struct-useru_ar0.patch
-add-cmpxchg64-and-cmpxchg64_local-to-alpha.patch
-make-sure-nobodys-leaking-resources.patch
+git-kvm.patch
+check-advice-of-fadvice64_64-even-if-get_xip_page-is-given.patch
+ext2-xip-check-fix.patch
