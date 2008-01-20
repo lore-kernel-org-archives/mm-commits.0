@@ -1,114 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: + slab-partially-revert-list3-changes.patch added to -mm tree
-Date: Sat, 19 Jan 2008 23:03:25 -0800
-Message-ID: <200801200703.m0K735Ra007764@imap1.linux-foundation.org>
+Subject: - pnpacpi-print-resource-shortage-message-only-once-more.patch removed from -mm tree
+Date: Sat, 19 Jan 2008 23:04:41 -0800
+Message-ID: <200801200704.m0K74LKl007799@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40285 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58740 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752837AbYATHDq (ORCPT
+	by vger.kernel.org with ESMTP id S1753518AbYATHEY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 20 Jan 2008 02:03:46 -0500
+	Sun, 20 Jan 2008 02:04:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, clameter@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, nacc@us.ibm.com, paulus@samba.org, penberg@cs.helsinki.fi
+To: len.brown@intel.com, oliver.hartkopp@volkswagen.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slab: partially revert list3 changes
-has been added to the -mm tree.  Its filename is
-     slab-partially-revert-list3-changes.patch
+     pnpacpi: print resource shortage message only once (more)
+has been removed from the -mm tree.  Its filename was
+     pnpacpi-print-resource-shortage-message-only-once-more.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: slab: partially revert list3 changes
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: pnpacpi: print resource shortage message only once (more)
+From: Len Brown <len.brown@intel.com>
 
-Partial revert the changes made by 04231b3002ac53f8a64a7bd142fde3fa4b6808c6
-to the kmem_list3 management. On a machine with a memoryless node, this
-BUG_ON was triggering
+Wups, previous patch was ineffective in 2 cases.
 
-static void *____cache_alloc_node(struct kmem_cache *cachep, gfp_t
-flags,
-                                int nodeid)
-{
-        struct list_head *entry;
-        struct slab *slabp;
-        struct kmem_list3 *l3;
-        void *obj;
-        int x;
+http://bugzilla.kernel.org/show_bug.cgi?id=9535
 
-        l3 = cachep->nodelists[nodeid];
-        BUG_ON(!l3);
-
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Nishanth Aravamudan <nacc@us.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Len Brown <len.brown@intel.com>
+Reported-by: "Hartkopp, Oliver (K-EFE/E)" <oliver.hartkopp@volkswagen.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/pnp/pnpacpi/rsparser.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/slab.c~slab-partially-revert-list3-changes mm/slab.c
---- a/mm/slab.c~slab-partially-revert-list3-changes
-+++ a/mm/slab.c
-@@ -1590,7 +1590,7 @@ void __init kmem_cache_init(void)
- 		/* Replace the static kmem_list3 structures for the boot cpu */
- 		init_list(&cache_cache, &initkmem_list3[CACHE_CACHE], node);
+diff -puN drivers/pnp/pnpacpi/rsparser.c~pnpacpi-print-resource-shortage-message-only-once-more drivers/pnp/pnpacpi/rsparser.c
+--- a/drivers/pnp/pnpacpi/rsparser.c~pnpacpi-print-resource-shortage-message-only-once-more
++++ a/drivers/pnp/pnpacpi/rsparser.c
+@@ -215,6 +215,7 @@ static void pnpacpi_parse_allocated_iore
+ 	} else if (!warned) {
+ 		printk(KERN_ERR "pnpacpi: exceeded the max number of IO "
+ 				"resources: %d \n", PNP_MAX_PORT);
++		warned = 1;
+ 	}
+ }
  
--		for_each_node_state(nid, N_NORMAL_MEMORY) {
-+		for_each_online_node(nid) {
- 			init_list(malloc_sizes[INDEX_AC].cs_cachep,
- 				  &initkmem_list3[SIZE_AC + nid], nid);
+@@ -242,6 +243,7 @@ static void pnpacpi_parse_allocated_memr
+ 	} else if (!warned) {
+ 		printk(KERN_ERR "pnpacpi: exceeded the max number of mem "
+ 				"resources: %d\n", PNP_MAX_MEM);
++		warned = 1;
+ 	}
+ }
  
-@@ -1968,7 +1968,7 @@ static void __init set_up_list3s(struct 
- {
- 	int node;
- 
--	for_each_node_state(node, N_NORMAL_MEMORY) {
-+	for_each_online_node(node) {
- 		cachep->nodelists[node] = &initkmem_list3[index + node];
- 		cachep->nodelists[node]->next_reap = jiffies +
- 		    REAPTIMEOUT_LIST3 +
-@@ -3815,7 +3815,7 @@ static int alloc_kmemlist(struct kmem_ca
- 	struct array_cache *new_shared;
- 	struct array_cache **new_alien = NULL;
- 
--	for_each_node_state(node, N_NORMAL_MEMORY) {
-+	for_each_online_node(node) {
- 
-                 if (use_alien_caches) {
-                         new_alien = alloc_alien_cache(node, cachep->limit);
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from len.brown@intel.com are
 
-slab-partially-revert-list3-changes.patch
+origin.patch
+git-acpi.patch
+git-libata-all.patch
 git-x86.patch
-memory-hotplug-add-removable-to-sysfs-to-show-memblock-removability.patch
-page-allocator-clean-up-pcp-draining-functions.patch
-page-allocator-get-rid-of-the-list-of-cold-pages.patch
-page-allocator-get-rid-of-the-list-of-cold-pages-fix.patch
-memcgroup-tidy-up-mem_cgroup_charge_common.patch
-memcgroup-fix-hang-with-shmem-tmpfs.patch
-page-owner-tracking-leak-detector.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
