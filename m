@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + rcu-fix-section-mismatch.patch added to -mm tree
-Date: Sat, 19 Jan 2008 17:00:34 -0800
-Message-ID: <200801200100.m0K10Ex5028836@imap1.linux-foundation.org>
+Subject: + hrtimer-fix-section-mismatch.patch added to -mm tree
+Date: Sat, 19 Jan 2008 17:00:36 -0800
+Message-ID: <200801200100.m0K10GBX028839@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36424 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39210 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754792AbYATBBT (ORCPT
+	by vger.kernel.org with ESMTP id S1754273AbYATBB5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 19 Jan 2008 20:01:19 -0500
+	Sat, 19 Jan 2008 20:01:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: randy.dunlap@oracle.com, mingo@elte.hu, sam@ravnborg.org, tglx@linutronix.de
 
 
 The patch titled
-     rcu: fix section mismatch
+     hrtimer: fix section mismatch
 has been added to the -mm tree.  Its filename is
-     rcu-fix-section-mismatch.patch
+     hrtimer-fix-section-mismatch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rcu: fix section mismatch
+Subject: hrtimer: fix section mismatch
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-rcu_online_cpu() should be __cpuinit instead of __devinit.
+Fix section mismatch in hrtimer.c:
 
-WARNING: vmlinux.o(.text+0x4b6d5): Section mismatch: reference to .init.text: (between 'rcu_cpu_notify' and 'wakeme_after_rcu')
+WARNING: vmlinux.o(.text+0x50c61): Section mismatch: reference to .init.text: (between 'hrtimer_cpu_notify' and 'down_read_trylock')
+
+Noticed by Johannes Berg and confirmed by Sam Ravnborg.
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: Sam Ravnborg <sam@ravnborg.org>
@@ -48,21 +50,21 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/rcupdate.c |    2 +-
+ kernel/hrtimer.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/rcupdate.c~rcu-fix-section-mismatch kernel/rcupdate.c
---- a/kernel/rcupdate.c~rcu-fix-section-mismatch
-+++ a/kernel/rcupdate.c
-@@ -549,7 +549,7 @@ static void rcu_init_percpu_data(int cpu
- 	rdp->blimit = blimit;
- }
- 
--static void __devinit rcu_online_cpu(int cpu)
-+static void __cpuinit rcu_online_cpu(int cpu)
+diff -puN kernel/hrtimer.c~hrtimer-fix-section-mismatch kernel/hrtimer.c
+--- a/kernel/hrtimer.c~hrtimer-fix-section-mismatch
++++ a/kernel/hrtimer.c
+@@ -1378,7 +1378,7 @@ sys_nanosleep(struct timespec __user *rq
+ /*
+  * Functions related to boot-time initialization:
+  */
+-static void __devinit init_hrtimers_cpu(int cpu)
++static void __cpuinit init_hrtimers_cpu(int cpu)
  {
- 	struct rcu_data *rdp = &per_cpu(rcu_data, cpu);
- 	struct rcu_data *bh_rdp = &per_cpu(rcu_bh_data, cpu);
+ 	struct hrtimer_cpu_base *cpu_base = &per_cpu(hrtimer_bases, cpu);
+ 	int i;
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
