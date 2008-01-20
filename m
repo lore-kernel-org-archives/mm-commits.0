@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + timer-fix-section-mismatch.patch added to -mm tree
-Date: Sat, 19 Jan 2008 17:00:38 -0800
-Message-ID: <200801200100.m0K10I0m028842@imap1.linux-foundation.org>
+Subject: + rcu-fix-section-mismatch.patch added to -mm tree
+Date: Sat, 19 Jan 2008 17:00:34 -0800
+Message-ID: <200801200100.m0K10Ex5028836@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55298 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36424 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754655AbYATBBT (ORCPT
+	by vger.kernel.org with ESMTP id S1754792AbYATBBT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sat, 19 Jan 2008 20:01:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: randy.dunlap@oracle.com, mingo@elte.hu, sam@ravnborg.org, tglx@linutronix.de
 
 
 The patch titled
-     timer: fix section mismatch
+     rcu: fix section mismatch
 has been added to the -mm tree.  Its filename is
-     timer-fix-section-mismatch.patch
+     rcu-fix-section-mismatch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: timer: fix section mismatch
+Subject: rcu: fix section mismatch
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-The caller is __cpuinit.
-Also, this code block and its caller are inside #ifdef CONFIG_HOTPLUG_CPU
-blocks, so this code should reflect that config symbol's usage.
+rcu_online_cpu() should be __cpuinit instead of __devinit.
 
-WARNING: vmlinux.o(.text+0x4252f): Section mismatch: reference to .init.text: (between 'timer_cpu_notify' and 'msleep')
+WARNING: vmlinux.o(.text+0x4b6d5): Section mismatch: reference to .init.text: (between 'rcu_cpu_notify' and 'wakeme_after_rcu')
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: Sam Ravnborg <sam@ravnborg.org>
@@ -50,21 +48,21 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/timer.c |    2 +-
+ kernel/rcupdate.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/timer.c~timer-fix-section-mismatch kernel/timer.c
---- a/kernel/timer.c~timer-fix-section-mismatch
-+++ a/kernel/timer.c
-@@ -1289,7 +1289,7 @@ static void migrate_timer_list(tvec_base
- 	}
+diff -puN kernel/rcupdate.c~rcu-fix-section-mismatch kernel/rcupdate.c
+--- a/kernel/rcupdate.c~rcu-fix-section-mismatch
++++ a/kernel/rcupdate.c
+@@ -549,7 +549,7 @@ static void rcu_init_percpu_data(int cpu
+ 	rdp->blimit = blimit;
  }
  
--static void __devinit migrate_timers(int cpu)
-+static void __cpuinit migrate_timers(int cpu)
+-static void __devinit rcu_online_cpu(int cpu)
++static void __cpuinit rcu_online_cpu(int cpu)
  {
- 	tvec_base_t *old_base;
- 	tvec_base_t *new_base;
+ 	struct rcu_data *rdp = &per_cpu(rcu_data, cpu);
+ 	struct rcu_data *bh_rdp = &per_cpu(rcu_bh_data, cpu);
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
