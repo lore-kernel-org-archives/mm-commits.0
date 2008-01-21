@@ -1,54 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - git-x86-unbreak-uml.patch removed from -mm tree
-Date: Mon, 21 Jan 2008 15:14:05 -0800
-Message-ID: <200801212314.m0LNE5Q5024954@imap1.linux-foundation.org>
+Subject: - git-x86-uml-fix-a-building-error.patch removed from -mm tree
+Date: Mon, 21 Jan 2008 15:14:08 -0800
+Message-ID: <200801212314.m0LNE8oh024957@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54629 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53679 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761153AbYAUXTe (ORCPT
+	by vger.kernel.org with ESMTP id S1760446AbYAUXTf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Jan 2008 18:19:34 -0500
+	Mon, 21 Jan 2008 18:19:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiyou.wangcong@gmail.com, jdike@addtoit.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: xiyou.wangcong@gmail.com, jdike@addtoit.com, mingo@elte.hu, tglx@linutronix.de, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-x86: unbreak UML
+     git-x86: uml: fix a building error
 has been removed from the -mm tree.  Its filename was
-     git-x86-unbreak-uml.patch
+     git-x86-uml-fix-a-building-error.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-x86: unbreak UML
+Subject: git-x86: uml: fix a building error
 From: WANG Cong <xiyou.wangcong@gmail.com>
 
-include/asm/arch/system.h:8:22: error: asm/nops.h: No such file or directory
+This patch fixes this building error:
+...
+drivers/char/mem.c: In function `read_mem':
+drivers/char/mem.c:136: error: implicit declaration of function `unxlate_dev_mem_ptr'
+...
 
 Acked-by: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-um/nops.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/asm-um/io.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN /dev/null include/asm-um/nops.h
---- /dev/null
-+++ a/include/asm-um/nops.h
-@@ -0,0 +1,6 @@
-+#ifndef __UM_NOPS_H
-+#define __UM_NOPS_H
-+
-+#include "asm/arch/nops.h"
-+
-+#endif
+diff -puN include/asm-um/io.h~git-x86-uml-fix-a-building-error include/asm-um/io.h
+--- a/include/asm-um/io.h~git-x86-uml-fix-a-building-error
++++ a/include/asm-um/io.h
+@@ -27,6 +27,7 @@ static inline void * phys_to_virt(unsign
+  * access
+  */
+ #define xlate_dev_mem_ptr(p)	__va(p)
++#define unxlate_dev_mem_ptr(p, ptr)
+ 
+ /*
+  * Convert a virtual cached pointer to an uncached pointer
 _
 
 Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
