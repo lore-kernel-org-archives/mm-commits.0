@@ -1,128 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-vs-git-netdev-all.patch removed from -mm tree
-Date: Mon, 21 Jan 2008 14:31:58 -0800
-Message-ID: <200801212231.m0LMVwuR023239@imap1.linux-foundation.org>
+Subject: + git-selinux-vs-git-lblnet.patch added to -mm tree
+Date: Mon, 21 Jan 2008 14:35:56 -0800
+Message-ID: <200801212235.m0LMZuYs023394@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58674 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41508 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752616AbYAUWcf (ORCPT
+	by vger.kernel.org with ESMTP id S1752616AbYAUWgh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Jan 2008 17:32:35 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m0LMVxeJ030921
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 21 Jan 2008 14:32:00 -0800
+	Mon, 21 Jan 2008 17:36:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, jmorris@namei.org, paul.moore@hp.com, sds@tycho.nsa.gov
 
 
 The patch titled
-     git-net-vs-git-netdev-all
-has been removed from the -mm tree.  Its filename was
-     git-net-vs-git-netdev-all.patch
+     git-selinux-vs-git-lblnet
+has been added to the -mm tree.  Its filename is
+     git-selinux-vs-git-lblnet.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-net-vs-git-netdev-all
+Subject: git-selinux-vs-git-lblnet
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Both trees appear to have the same patch.
+
+Cc: Paul Moore <paul.moore@hp.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/b43/xmit.c            |   17 +++++++++++++++++
- drivers/net/wireless/b43legacy/xmit.c      |   17 +++++++++++++++++
- drivers/net/wireless/iwlwifi/iwl-3945-rs.c |    2 +-
- drivers/net/wireless/iwlwifi/iwl-4965-rs.c |    5 +++--
- 4 files changed, 38 insertions(+), 3 deletions(-)
+ security/dummy.c         |    5 -----
+ security/selinux/hooks.c |    5 -----
+ 2 files changed, 10 deletions(-)
 
-diff -puN drivers/net/wireless/b43/xmit.c~git-net-vs-git-netdev-all drivers/net/wireless/b43/xmit.c
---- a/drivers/net/wireless/b43/xmit.c~git-net-vs-git-netdev-all
-+++ a/drivers/net/wireless/b43/xmit.c
-@@ -528,6 +528,23 @@ void b43_rx(struct b43_wldev *dev, struc
- 	status.mactime = mactime;
- 	status.flag |= RX_FLAG_TSFT;
+diff -puN include/linux/security.h~git-selinux-vs-git-lblnet include/linux/security.h
+diff -puN security/dummy.c~git-selinux-vs-git-lblnet security/dummy.c
+--- a/security/dummy.c~git-selinux-vs-git-lblnet
++++ a/security/dummy.c
+@@ -951,11 +951,6 @@ static int dummy_secctx_to_secid(char *s
+ 	return -EOPNOTSUPP;
+ }
  
-+	/*
-+	 * If monitors are present get full 64-bit timestamp. This
-+	 * code assumes we get to process the packet within 16 bits
-+	 * of timestamp, i.e. about 65 milliseconds after the PHY
-+	 * received the first symbol.
-+	 */
-+	if (dev->wl->radiotap_enabled) {
-+		u16 low_mactime_now;
-+
-+		b43_tsf_read(dev, &status.mactime);
-+		low_mactime_now = status.mactime;
-+		status.mactime = status.mactime & ~0xFFFFULL;
-+		status.mactime += mactime;
-+		if (low_mactime_now <= mactime)
-+			status.mactime -= 0x10000;
-+	}
-+
- 	chanid = (chanstat & B43_RX_CHAN_ID) >> B43_RX_CHAN_ID_SHIFT;
- 	switch (chanstat & B43_RX_CHAN_PHYTYPE) {
- 	case B43_PHYTYPE_A:
-diff -puN drivers/net/wireless/b43legacy/xmit.c~git-net-vs-git-netdev-all drivers/net/wireless/b43legacy/xmit.c
---- a/drivers/net/wireless/b43legacy/xmit.c~git-net-vs-git-netdev-all
-+++ a/drivers/net/wireless/b43legacy/xmit.c
-@@ -535,6 +535,23 @@ void b43legacy_rx(struct b43legacy_wldev
- 	status.mactime = mactime;
- 	status.flag |= RX_FLAG_TSFT;
+-static int dummy_secctx_to_secid(char *secdata, u32 seclen, u32 *secid)
+-{
+-	return -EOPNOTSUPP;
+-}
+-
+ static void dummy_release_secctx(char *secdata, u32 seclen)
+ {
+ }
+diff -puN security/selinux/hooks.c~git-selinux-vs-git-lblnet security/selinux/hooks.c
+--- a/security/selinux/hooks.c~git-selinux-vs-git-lblnet
++++ a/security/selinux/hooks.c
+@@ -5158,11 +5158,6 @@ static int selinux_secctx_to_secid(char 
+ 	return security_context_to_sid(secdata, seclen, secid);
+ }
  
-+	/*
-+	 * If monitors are present get full 64-bit timestamp. This
-+	 * code assumes we get to process the packet within 16 bits
-+	 * of timestamp, i.e. about 65 milliseconds after the PHY
-+	 * received the first symbol.
-+	 */
-+	if (dev->wl->radiotap_enabled) {
-+		u16 low_mactime_now;
-+
-+		b43legacy_tsf_read(dev, &status.mactime);
-+		low_mactime_now = status.mactime;
-+		status.mactime = status.mactime & ~0xFFFFULL;
-+		status.mactime += mactime;
-+		if (low_mactime_now <= mactime)
-+			status.mactime -= 0x10000;
-+	}
-+
- 	chanid = (chanstat & B43legacy_RX_CHAN_ID) >>
- 		  B43legacy_RX_CHAN_ID_SHIFT;
- 	switch (chanstat & B43legacy_RX_CHAN_PHYTYPE) {
-diff -puN drivers/net/wireless/iwlwifi/iwl-3945-rs.c~git-net-vs-git-netdev-all drivers/net/wireless/iwlwifi/iwl-3945-rs.c
---- a/drivers/net/wireless/iwlwifi/iwl-3945-rs.c~git-net-vs-git-netdev-all
-+++ a/drivers/net/wireless/iwlwifi/iwl-3945-rs.c
-@@ -658,7 +658,7 @@ static void rs_get_rate(void *priv_rate,
- 	struct ieee80211_hdr *hdr = (struct ieee80211_hdr *)skb->data;
- 	struct sta_info *sta;
- 	u16 rate_mask;
--	struct iwl_priv *priv = (struct iwl_priv *)priv_rate;
-+	struct iwl3945_priv *priv = (struct iwl3945_priv *)priv_rate;
- 	DECLARE_MAC_BUF(mac);
- 
- 	IWL_DEBUG_RATE("enter\n");
-diff -puN drivers/net/wireless/iwlwifi/iwl-4965-rs.c~git-net-vs-git-netdev-all drivers/net/wireless/iwlwifi/iwl-4965-rs.c
---- a/drivers/net/wireless/iwlwifi/iwl-4965-rs.c~git-net-vs-git-netdev-all
-+++ a/drivers/net/wireless/iwlwifi/iwl-4965-rs.c
-@@ -2014,10 +2014,11 @@ static void rs_get_rate(void *priv_rate,
- 
- 	int i;
- 	struct ieee80211_local *local = wdev_priv(dev->ieee80211_ptr);
-+	struct ieee80211_conf *conf = &local->hw.conf;
- 	struct ieee80211_hdr *hdr = (struct ieee80211_hdr *)skb->data;
- 	struct sta_info *sta;
--	struct iwl_priv *priv = (struct iwl_priv *)priv_rate;
--	struct iwl_rate_scale_priv *lq;
-+	struct iwl4965_priv *priv = (struct iwl4965_priv *)priv_rate;
-+	struct iwl4965_rate_scale_priv *lq;
- 
- 	IWL_DEBUG_RATE_LIMIT("rate scale calculate new rate for skb\n");
- 
+-static int selinux_secctx_to_secid(char *secdata, u32 seclen, u32 *secid)
+-{
+-	return security_context_to_sid(secdata, seclen, secid);
+-}
+-
+ static void selinux_release_secctx(char *secdata, u32 seclen)
+ {
+ 	kfree(secdata);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -199,14 +156,13 @@ git-net-vs-git-lblnet.patch
 git-net-vs-git-lblnet-2.patch
 git-netdev-all-fix-conflicts.patch
 git-netdev-all-fix-conflicts-fix.patch
-git-net-vs-git-netdev-all.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 git-backlight.patch
 git-battery.patch
 bluetooth-uninlining.patch
 net-sunrpc-schedc-revert-git-net-changes.patch
 net-sunrpc-schedc-reapply-git-net-changes.patch
-git-nfsd.patch
+git-selinux-vs-git-lblnet.patch
 serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
 revert-gregkh-pci-pci-use-dev_printk-in-x86-quirk-messages.patch
 fix-gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in.patch
