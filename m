@@ -1,58 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - git-dvb-fix-drivers-media-video-bt8xx-bttv-driverc-build.patch removed from -mm tree
-Date: Mon, 21 Jan 2008 15:13:51 -0800
-Message-ID: <200801212313.m0LNDp0O024932@imap1.linux-foundation.org>
+Subject: - drivers-media-dvb-frontends-xc5000c-dont-return-garbage-from-xc5000_init.patch removed from -mm tree
+Date: Mon, 21 Jan 2008 15:13:49 -0800
+Message-ID: <200801212313.m0LNDn2W024929@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50812 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44181 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755893AbYAUXOH (ORCPT
+	by vger.kernel.org with ESMTP id S1755215AbYAUXOG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Jan 2008 18:14:07 -0500
+	Mon, 21 Jan 2008 18:14:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-dvb: fix drivers/media/video/bt8xx/bttv-driver.c build
+     drivers/media/dvb/frontends/xc5000.c: don't return garbage from xc5000_init()
 has been removed from the -mm tree.  Its filename was
-     git-dvb-fix-drivers-media-video-bt8xx-bttv-driverc-build.patch
+     drivers-media-dvb-frontends-xc5000c-dont-return-garbage-from-xc5000_init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-dvb: fix drivers/media/video/bt8xx/bttv-driver.c build
+Subject: drivers/media/dvb/frontends/xc5000.c: don't return garbage from xc5000_init()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/media/video/bt8xx/bttv-driver.c:3405: error: unknown field 'vidioc_g_register' specified in initializer
-drivers/media/video/bt8xx/bttv-driver.c:3405: error: 'bttv_g_register' undeclared here (not in a function)
-drivers/media/video/bt8xx/bttv-driver.c:3406: error: unknown field 'vidioc_s_register' specified in initializer
-drivers/media/video/bt8xx/bttv-driver.c:3406: error: 'bttv_s_register' undeclared here (not in a function)
+drivers/media/dvb/frontends/xc5000.c: In function 'xc5000_init':
+drivers/media/dvb/frontends/xc5000.c:694: warning: 'ret' may be used uninitialized in this function
 
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/bt8xx/bttv-driver.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/dvb/frontends/xc5000.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/video/bt8xx/bttv-driver.c~git-dvb-fix-drivers-media-video-bt8xx-bttv-driverc-build drivers/media/video/bt8xx/bttv-driver.c
---- a/drivers/media/video/bt8xx/bttv-driver.c~git-dvb-fix-drivers-media-video-bt8xx-bttv-driverc-build
-+++ a/drivers/media/video/bt8xx/bttv-driver.c
-@@ -3402,8 +3402,10 @@ static struct video_device bttv_video_te
- 	.vidioc_s_frequency             = bttv_s_frequency,
- 	.vidioc_log_status		= bttv_log_status,
- 	.vidioc_querystd		= bttv_querystd,
-+#ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.vidioc_g_register		= bttv_g_register,
- 	.vidioc_s_register		= bttv_s_register,
-+#endif
- 	.tvnorms                        = BTTV_NORMS,
- 	.current_norm                   = V4L2_STD_PAL,
- };
+diff -puN drivers/media/dvb/frontends/xc5000.c~drivers-media-dvb-frontends-xc5000c-dont-return-garbage-from-xc5000_init drivers/media/dvb/frontends/xc5000.c
+--- a/drivers/media/dvb/frontends/xc5000.c~drivers-media-dvb-frontends-xc5000c-dont-return-garbage-from-xc5000_init
++++ a/drivers/media/dvb/frontends/xc5000.c
+@@ -691,7 +691,7 @@ static int xc5000_get_status(struct dvb_
+ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe)
+ {
+ 	struct xc5000_priv *priv = fe->tuner_priv;
+-	int ret;
++	int ret = 0;
+ 
+ 	if (priv->fwloaded == 0) {
+ 		ret = xc5000_fwupload(fe);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
