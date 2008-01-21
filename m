@@ -1,54 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - git-scsi-misc-vs-git-libata-all.patch removed from -mm tree
-Date: Mon, 21 Jan 2008 15:13:31 -0800
-Message-ID: <200801212313.m0LNDVLI024907@imap1.linux-foundation.org>
+Subject: - git-libata-more-pata-fixes.patch removed from -mm tree
+Date: Mon, 21 Jan 2008 15:13:26 -0800
+Message-ID: <200801212313.m0LNDQ4I024901@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41911 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47606 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755816AbYAUXNs (ORCPT
+	by vger.kernel.org with ESMTP id S1755932AbYAUXN5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Jan 2008 18:13:48 -0500
+	Mon, 21 Jan 2008 18:13:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-scsi-misc vs git-libata-all
+     git-libata: more pata fixes
 has been removed from the -mm tree.  Its filename was
-     git-scsi-misc-vs-git-libata-all.patch
+     git-libata-more-pata-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-scsi-misc vs git-libata-all
+Subject: git-libata: more pata fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Please merge ata patches via the ata tree.  Even if it requires extra work.
+drivers/ata/pata_winbond.c: In function 'winbond_data_xfer':
+drivers/ata/pata_winbond.c:121: warning: 'return' with a value, in function returning void
+drivers/ata/pata_winbond.c: At top level:
+drivers/ata/pata_winbond.c:160: warning: initialization from incompatible pointer type
 
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-scsi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ata/pata_winbond.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ata/libata-scsi.c~git-scsi-misc-vs-git-libata-all drivers/ata/libata-scsi.c
---- a/drivers/ata/libata-scsi.c~git-scsi-misc-vs-git-libata-all
-+++ a/drivers/ata/libata-scsi.c
-@@ -2345,7 +2345,7 @@ static void atapi_request_sense(struct a
- 	ata_qc_reinit(qc);
+diff -puN drivers/ata/pata_winbond.c~git-libata-more-pata-fixes drivers/ata/pata_winbond.c
+--- a/drivers/ata/pata_winbond.c~git-libata-more-pata-fixes
++++ a/drivers/ata/pata_winbond.c
+@@ -91,9 +91,8 @@ static void winbond_set_piomode(struct a
+ 	winbond_writecfg(winbond->config, timing + 1, reg);
+ }
  
- 	/* setup sg table and init transfer direction */
--	sg_init_one(&qc->sgent, cmd->sense_buffer, sizeof(cmd->sense_buffer));
-+	sg_init_one(&qc->sgent, cmd->sense_buffer, SCSI_SENSE_BUFFERSIZE);
- 	ata_sg_init(qc, &qc->sgent, 1);
- 	qc->dma_dir = DMA_FROM_DEVICE;
- 
+-
+-static void winbond_data_xfer(struct ata_device *dev, unsigned char *buf,
+-			      unsigned int buflen, int rw)
++static unsigned int winbond_data_xfer(struct ata_device *dev,
++			unsigned char *buf, unsigned int buflen, int rw)
+ {
+ 	struct ata_port *ap = dev->link->ap;
+ 	int slop = buflen & 3;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
