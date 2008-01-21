@@ -1,54 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-md-dm-tablec-fix-uninitialized-var-warning.patch removed from -mm tree
-Date: Mon, 21 Jan 2008 15:13:18 -0800
-Message-ID: <200801212313.m0LNDIW6024889@imap1.linux-foundation.org>
+Subject: - git-dvb-fix-drivers-media-video-bt8xx-bttv-driverc-build.patch removed from -mm tree
+Date: Mon, 21 Jan 2008 15:13:51 -0800
+Message-ID: <200801212313.m0LNDp0O024932@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43581 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50812 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755838AbYAUXN4 (ORCPT
+	by vger.kernel.org with ESMTP id S1755893AbYAUXOH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Jan 2008 18:13:56 -0500
+	Mon, 21 Jan 2008 18:14:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, agk@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/md/dm-table.c: fix uninitialized var warning
+     git-dvb: fix drivers/media/video/bt8xx/bttv-driver.c build
 has been removed from the -mm tree.  Its filename was
-     drivers-md-dm-tablec-fix-uninitialized-var-warning.patch
+     git-dvb-fix-drivers-media-video-bt8xx-bttv-driverc-build.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/md/dm-table.c: fix uninitialized var warning
+Subject: git-dvb: fix drivers/media/video/bt8xx/bttv-driver.c build
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/md/dm-table.c: In function 'dm_get_device':
-drivers/md/dm-table.c:478: warning: 'dev' may be used uninitialized in this function
+drivers/media/video/bt8xx/bttv-driver.c:3405: error: unknown field 'vidioc_g_register' specified in initializer
+drivers/media/video/bt8xx/bttv-driver.c:3405: error: 'bttv_g_register' undeclared here (not in a function)
+drivers/media/video/bt8xx/bttv-driver.c:3406: error: unknown field 'vidioc_s_register' specified in initializer
+drivers/media/video/bt8xx/bttv-driver.c:3406: error: 'bttv_s_register' undeclared here (not in a function)
 
-Cc: Alasdair G Kergon <agk@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-table.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/video/bt8xx/bttv-driver.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/md/dm-table.c~drivers-md-dm-tablec-fix-uninitialized-var-warning drivers/md/dm-table.c
---- a/drivers/md/dm-table.c~drivers-md-dm-tablec-fix-uninitialized-var-warning
-+++ a/drivers/md/dm-table.c
-@@ -475,7 +475,7 @@ static int __table_get_device(struct dm_
- 			      int mode, struct dm_dev **result)
- {
- 	int r;
--	dev_t dev;
-+	dev_t uninitialized_var(dev);
- 	struct dm_dev *dd;
- 	unsigned int major, minor;
- 
+diff -puN drivers/media/video/bt8xx/bttv-driver.c~git-dvb-fix-drivers-media-video-bt8xx-bttv-driverc-build drivers/media/video/bt8xx/bttv-driver.c
+--- a/drivers/media/video/bt8xx/bttv-driver.c~git-dvb-fix-drivers-media-video-bt8xx-bttv-driverc-build
++++ a/drivers/media/video/bt8xx/bttv-driver.c
+@@ -3402,8 +3402,10 @@ static struct video_device bttv_video_te
+ 	.vidioc_s_frequency             = bttv_s_frequency,
+ 	.vidioc_log_status		= bttv_log_status,
+ 	.vidioc_querystd		= bttv_querystd,
++#ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	.vidioc_g_register		= bttv_g_register,
+ 	.vidioc_s_register		= bttv_s_register,
++#endif
+ 	.tvnorms                        = BTTV_NORMS,
+ 	.current_norm                   = V4L2_STD_PAL,
+ };
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
