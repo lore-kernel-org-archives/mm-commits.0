@@ -1,26 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: - pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 21 Jan 2008 14:26:14 -0800
-Message-ID: <200801212226.m0LMQETY023055@imap1.linux-foundation.org>
+Subject: - pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes-2.patch removed from -mm tree
+Date: Mon, 21 Jan 2008 14:26:21 -0800
+Message-ID: <200801212226.m0LMQL5J023059@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58330 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45972 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754822AbYAUW1N (ORCPT
+	by vger.kernel.org with ESMTP id S1755324AbYAUW1Q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Jan 2008 17:27:13 -0500
+	Mon, 21 Jan 2008 17:27:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, greg@kroah.com, rjw@sisk.pl, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes
+     pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes-2
 has been removed from the -mm tree.  Its filename was
-     pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes.patch
+     pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes-2.patch
 
 This patch was dropped because it is obsolete
 
@@ -28,58 +28,8 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes
+Subject: pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes-2
 =46rom: Andrew Morton <akpm@linux-foundation.org>
-
-ERROR: Invalid UTF-8
-#175: FILE: drivers/base/core.c:1201:
-+ * It can only be called within the scope of a system sleep transition=
-=2E =A0In
-
-ERROR: Invalid UTF-8
-#260: FILE: drivers/base/power/main.c:87:
-+	 * lead to a deadlock. =A0In that case we want to print a warning.
-
-ERROR: need space after that ',' (ctx:VxV)
-#352: FILE: drivers/base/power/main.c:175:
-+		dev_dbg(dev,"EARLY resume\n");
- 		           ^
-
-ERROR: use tabs not spaces
-#490: FILE: drivers/base/power/main.c:285:
-+ ^Iwhile (!list_empty(&dpm_locked)) {$
-
-ERROR: use tabs not spaces
-#491: FILE: drivers/base/power/main.c:286:
-+ ^I^Istruct list_head *entry =3D dpm_locked.prev;$
-
-ERROR: use tabs not spaces
-#492: FILE: drivers/base/power/main.c:287:
-+ ^I^Istruct device *dev =3D to_device(entry);$
-
-ERROR: use tabs not spaces
-#494: FILE: drivers/base/power/main.c:289:
-+ ^I^Ilist_move(entry, &dpm_active);$
-
-ERROR: use tabs not spaces
-#495: FILE: drivers/base/power/main.c:290:
-+ ^I^Iup(&dev->sem);$
-
-ERROR: use tabs not spaces
-#496: FILE: drivers/base/power/main.c:291:
-+ ^I}$
-
-ERROR: use tabs not spaces
-#770: FILE: drivers/base/power/main.c:486:
-+ ^I^I^Ilist_add(&dev->power.entry, &dpm_off);$
-
-total: 10 errors, 0 warnings, 843 lines checked
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
 
 Cc: Alan Stern <stern@rowland.harvard.edu>
 Cc: Greg KH <greg@kroah.com>
@@ -87,53 +37,44 @@ Cc: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/power/main.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ drivers/base/core.c       |    2 +-
+ drivers/base/power/main.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
+diff -puN drivers/base/core.c~pm-acquire-device-locks-on-suspend-rev-3-=
+checkpatch-fixes-2 drivers/base/core.c
+--- a/drivers/base/core.c~pm-acquire-device-locks-on-suspend-rev-3-chec=
+kpatch-fixes-2
++++ a/drivers/base/core.c
+@@ -1198,7 +1198,7 @@ EXPORT_SYMBOL_GPL(device_destroy);
+  * unregistered directly while suspended, since the PM core holds thei=
+r
+  * semaphores at that time).
+  *
+- * It can only be called within the scope of a system sleep transition=
+=2E =A0In
++ * It can only be called within the scope of a system sleep transition=
+=2E In
+  * practice this means it has to be directly or indirectly invoked eit=
+her by
+  * a suspend or resume method, or by the PM core (e.g. via
+  * disable_nonboot_cpus() or enable_nonboot_cpus()).
 diff -puN drivers/base/power/main.c~pm-acquire-device-locks-on-suspend-=
-rev-3-checkpatch-fixes drivers/base/power/main.c
+rev-3-checkpatch-fixes-2 drivers/base/power/main.c
 --- a/drivers/base/power/main.c~pm-acquire-device-locks-on-suspend-rev-=
-3-checkpatch-fixes
+3-checkpatch-fixes-2
 +++ a/drivers/base/power/main.c
-@@ -172,7 +172,7 @@ static int resume_device_early(struct de
- 	TRACE_RESUME(0);
-=20
- 	if (dev->bus && dev->bus->resume_early) {
--		dev_dbg(dev,"EARLY resume\n");
-+		dev_dbg(dev, "EARLY resume\n");
- 		error =3D dev->bus->resume_early(dev);
- 	}
-=20
-@@ -282,13 +282,13 @@ static void dpm_resume(void)
- static void unlock_all_devices(void)
- {
- 	mutex_lock(&dpm_list_mtx);
-- 	while (!list_empty(&dpm_locked)) {
-- 		struct list_head *entry =3D dpm_locked.prev;
-- 		struct device *dev =3D to_device(entry);
--
-- 		list_move(entry, &dpm_active);
-- 		up(&dev->sem);
-- 	}
-+	while (!list_empty(&dpm_locked)) {
-+		struct list_head *entry =3D dpm_locked.prev;
-+		struct device *dev =3D to_device(entry);
-+
-+		list_move(entry, &dpm_active);
-+		up(&dev->sem);
-+	}
- 	mutex_unlock(&dpm_list_mtx);
- }
-=20
-@@ -483,7 +483,7 @@ static int dpm_suspend(pm_message_t stat
- 		}
- 		mutex_lock(&dpm_list_mtx);
- 		if (list_empty(&dev->power.entry))
-- 			list_add(&dev->power.entry, &dpm_off);
-+			list_add(&dev->power.entry, &dpm_off);
- 	}
- 	mutex_unlock(&dpm_list_mtx);
-=20
+@@ -84,7 +84,7 @@ void device_pm_remove(struct device *dev
+ 	/*
+ 	 * If this function is called during a suspend, it will be blocked,
+ 	 * because we're holding the device's semaphore at that time, which m=
+ay
+-	 * lead to a deadlock. =A0In that case we want to print a warning.
++	 * lead to a deadlock.  In that case we want to print a warning.
+ 	 * However, it may also be called by unregister_dropped_devices() wit=
+h
+ 	 * the device's semaphore released, in which case the warning should
+ 	 * not be printed.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org =
@@ -179,7 +120,6 @@ include-asm-powerpc-nvramh-needs-listh-fix.patch
 revert-gregkh-driver-atm-convert-struct-class_device-to-struct-device.p=
 atch
 gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes.patch
 pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes-2.patch
 unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.p=
 atch
