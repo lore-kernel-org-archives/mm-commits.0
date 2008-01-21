@@ -1,63 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - git-libata-drivers-ata-pata_pcmciac-fixup.patch removed from -mm tree
-Date: Mon, 21 Jan 2008 15:13:24 -0800
-Message-ID: <200801212313.m0LNDOaA024898@imap1.linux-foundation.org>
+Subject: - git-libata-all-wtf.patch removed from -mm tree
+Date: Mon, 21 Jan 2008 15:13:22 -0800
+Message-ID: <200801212313.m0LNDMYv024895@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38226 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43278 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755777AbYAUXNq (ORCPT
+	by vger.kernel.org with ESMTP id S1755467AbYAUXNn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Jan 2008 18:13:46 -0500
+	Mon, 21 Jan 2008 18:13:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-libata: drivers/ata/pata_pcmcia.c fixup
+     git-libata-all: typo fix
 has been removed from the -mm tree.  Its filename was
-     git-libata-drivers-ata-pata_pcmciac-fixup.patch
+     git-libata-all-wtf.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-libata: drivers/ata/pata_pcmcia.c fixup
+Subject: git-libata-all: typo fix
 From: Andrew Morton <akpm@linux-foundation.org>
-
-drivers/ata/pata_pcmcia.c:187: warning: initialization from incompatible pointer type
 
 Cc: Jeff Garzik <jeff@garzik.org>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_pcmcia.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/ata/pata_legacy.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_pcmcia.c~a drivers/ata/pata_pcmcia.c
---- a/drivers/ata/pata_pcmcia.c~a
-+++ a/drivers/ata/pata_pcmcia.c
-@@ -113,14 +113,15 @@ static int pcmcia_set_mode_8bit(struct a
-  *	Inherited from caller.
-  */
- 
--static void ata_data_xfer_8bit(struct ata_device *adev, unsigned char *buf,
--		   unsigned int buflen, int write_data)
-+static unsigned int ata_data_xfer_8bit(struct ata_device *adev,
-+		unsigned char *buf, unsigned int buflen, int write_data)
+diff -puN drivers/ata/pata_legacy.c~git-libata-all-wtf drivers/ata/pata_legacy.c
+--- a/drivers/ata/pata_legacy.c~git-libata-all-wtf
++++ a/drivers/ata/pata_legacy.c
+@@ -252,7 +252,7 @@ static void pdc20230_set_piomode(struct 
+ static unsigned int pdc_data_xfer_vlb(struct ata_device *dev,
+ 				unsigned char *buf, unsigned int buflen, int rw)
  {
- 	struct ata_port *ap = adev->link->ap;
- 	if (write_data)
- 		iowrite8_rep(ap->ioaddr.data_addr, buf, buflen);
- 	else
- 		ioread8_rep(ap->ioaddr.data_addr, buf, buflen);
-+	return 0;
- }
- 
- 
+-	if (ata_id_has_dword_io(adev->id)) {
++	if (ata_id_has_dword_io(dev->id)) {
+ 		struct ata_port *ap = dev->link->ap;
+ 		int slop = buflen & 3;
+ 		unsigned long flags;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
