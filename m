@@ -1,60 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - git-libata-more-pata-fixes.patch removed from -mm tree
-Date: Mon, 21 Jan 2008 15:13:26 -0800
-Message-ID: <200801212313.m0LNDQ4I024901@imap1.linux-foundation.org>
+Subject: - drivers-md-dm-tablec-fix-uninitialized-var-warning.patch removed from -mm tree
+Date: Mon, 21 Jan 2008 15:13:18 -0800
+Message-ID: <200801212313.m0LNDIW6024889@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47606 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43581 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755932AbYAUXN5 (ORCPT
+	by vger.kernel.org with ESMTP id S1755838AbYAUXN4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Jan 2008 18:13:57 -0500
+	Mon, 21 Jan 2008 18:13:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, jeff@garzik.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, agk@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-libata: more pata fixes
+     drivers/md/dm-table.c: fix uninitialized var warning
 has been removed from the -mm tree.  Its filename was
-     git-libata-more-pata-fixes.patch
+     drivers-md-dm-tablec-fix-uninitialized-var-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-libata: more pata fixes
+Subject: drivers/md/dm-table.c: fix uninitialized var warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/ata/pata_winbond.c: In function 'winbond_data_xfer':
-drivers/ata/pata_winbond.c:121: warning: 'return' with a value, in function returning void
-drivers/ata/pata_winbond.c: At top level:
-drivers/ata/pata_winbond.c:160: warning: initialization from incompatible pointer type
+drivers/md/dm-table.c: In function 'dm_get_device':
+drivers/md/dm-table.c:478: warning: 'dev' may be used uninitialized in this function
 
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_winbond.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/md/dm-table.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_winbond.c~git-libata-more-pata-fixes drivers/ata/pata_winbond.c
---- a/drivers/ata/pata_winbond.c~git-libata-more-pata-fixes
-+++ a/drivers/ata/pata_winbond.c
-@@ -91,9 +91,8 @@ static void winbond_set_piomode(struct a
- 	winbond_writecfg(winbond->config, timing + 1, reg);
- }
- 
--
--static void winbond_data_xfer(struct ata_device *dev, unsigned char *buf,
--			      unsigned int buflen, int rw)
-+static unsigned int winbond_data_xfer(struct ata_device *dev,
-+			unsigned char *buf, unsigned int buflen, int rw)
+diff -puN drivers/md/dm-table.c~drivers-md-dm-tablec-fix-uninitialized-var-warning drivers/md/dm-table.c
+--- a/drivers/md/dm-table.c~drivers-md-dm-tablec-fix-uninitialized-var-warning
++++ a/drivers/md/dm-table.c
+@@ -475,7 +475,7 @@ static int __table_get_device(struct dm_
+ 			      int mode, struct dm_dev **result)
  {
- 	struct ata_port *ap = dev->link->ap;
- 	int slop = buflen & 3;
+ 	int r;
+-	dev_t dev;
++	dev_t uninitialized_var(dev);
+ 	struct dm_dev *dd;
+ 	unsigned int major, minor;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
