@@ -1,91 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes-2.patch removed from -mm tree
-Date: Mon, 21 Jan 2008 14:26:21 -0800
-Message-ID: <200801212226.m0LMQL5J023059@imap1.linux-foundation.org>
+Subject: - git-infiniband-fix-build-with-config_infiniband_ipoib_cm=n.patch removed from -mm tree
+Date: Mon, 21 Jan 2008 14:27:47 -0800
+Message-ID: <200801212227.m0LMRlAb023148@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45972 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47172 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755324AbYAUW1Q (ORCPT
+	by vger.kernel.org with ESMTP id S1751772AbYAUW2n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Jan 2008 17:27:16 -0500
+	Mon, 21 Jan 2008 17:28:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, rjw@sisk.pl, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, rolandd@cisco.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes-2
+     git-infiniband: fix build with CONFIG_INFINIBAND_IPOIB_CM=n
 has been removed from the -mm tree.  Its filename was
-     pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes-2.patch
+     git-infiniband-fix-build-with-config_infiniband_ipoib_cm=n.patch
 
 This patch was dropped because it is obsolete
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes-2
-=46rom: Andrew Morton <akpm@linux-foundation.org>
+Subject: git-infiniband: fix build with CONFIG_INFINIBAND_IPOIB_CM=n
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg KH <greg@kroah.com>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
+drivers/infiniband/ulp/ipoib/ipoib_main.c: In function 'ipoib_change_mtu':
+drivers/infiniband/ulp/ipoib/ipoib_main.c:186: error: 'struct ipoib_dev_priv' has no member named 'cm'
+
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/core.c       |    2 +-
- drivers/base/power/main.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_main.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/base/core.c~pm-acquire-device-locks-on-suspend-rev-3-=
-checkpatch-fixes-2 drivers/base/core.c
---- a/drivers/base/core.c~pm-acquire-device-locks-on-suspend-rev-3-chec=
-kpatch-fixes-2
-+++ a/drivers/base/core.c
-@@ -1198,7 +1198,7 @@ EXPORT_SYMBOL_GPL(device_destroy);
-  * unregistered directly while suspended, since the PM core holds thei=
-r
-  * semaphores at that time).
-  *
-- * It can only be called within the scope of a system sleep transition=
-=2E =A0In
-+ * It can only be called within the scope of a system sleep transition=
-=2E In
-  * practice this means it has to be directly or indirectly invoked eit=
-her by
-  * a suspend or resume method, or by the PM core (e.g. via
-  * disable_nonboot_cpus() or enable_nonboot_cpus()).
-diff -puN drivers/base/power/main.c~pm-acquire-device-locks-on-suspend-=
-rev-3-checkpatch-fixes-2 drivers/base/power/main.c
---- a/drivers/base/power/main.c~pm-acquire-device-locks-on-suspend-rev-=
-3-checkpatch-fixes-2
-+++ a/drivers/base/power/main.c
-@@ -84,7 +84,7 @@ void device_pm_remove(struct device *dev
- 	/*
- 	 * If this function is called during a suspend, it will be blocked,
- 	 * because we're holding the device's semaphore at that time, which m=
-ay
--	 * lead to a deadlock. =A0In that case we want to print a warning.
-+	 * lead to a deadlock.  In that case we want to print a warning.
- 	 * However, it may also be called by unregister_dropped_devices() wit=
-h
- 	 * the device's semaphore released, in which case the warning should
- 	 * not be printed.
+diff -puN drivers/infiniband/ulp/ipoib/ipoib_main.c~git-infiniband-fix-build-with-config_infiniband_ipoib_cm=n drivers/infiniband/ulp/ipoib/ipoib_main.c
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c~git-infiniband-fix-build-with-config_infiniband_ipoib_cm=n
++++ a/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -183,9 +183,10 @@ static int ipoib_change_mtu(struct net_d
+ 
+ 	/* dev->mtu > 2K ==> connected mode */
+ 	if (ipoib_cm_admin_enabled(dev)) {
++#ifdef CONFIG_INFINIBAND_IPOIB_CM
+ 		if (new_mtu > priv->cm.max_cm_mtu)
+ 			return -EINVAL;
+-
++#endif
+ 		if (new_mtu > priv->mcast_mtu)
+ 			ipoib_warn(priv, "mtu > %d will cause multicast packet drops.\n",
+ 				   priv->mcast_mtu);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org =
-are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 get_task_comm-return-the-result.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-t=
-ime-till-the-next-expiration-checkpatch-fixes.patch
+timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes.patch
 timerfd-v3-new-timerfd-api-ia64-fix.patch
 timerfd-v3-new-timerfd-api-m68k-fix.patch
 timerfd-v3-new-timerfd-api-mips-fix.patch
@@ -94,15 +69,13 @@ timerfd-v3-new-timerfd-api-powerpc-fix.patch
 timerfd-v3-new-timerfd-api-sparc64-fix.patch
 git-acpi.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-ignore-acpi-video-devices-that-arent-present-in-hardware-checkpatc=
-h-fixes.patch
+acpi-ignore-acpi-video-devices-that-arent-present-in-hardware-checkpatch-fixes.patch
 small-acpica-extension-to-be-able-to-store-the-name-of.patch
 git-alsa.patch
 git-alsa-fixup.patch
 git-alsa-disable-sound-pci-ice1712-ice1724c.patch
 git-agpgart.patch
-git-agpgart-intel-agp-dont-zero-an-already-registered-resource-during-r=
-esume.patch
+git-agpgart-intel-agp-dont-zero-an-already-registered-resource-during-resume.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 intel_agp-add-new-chipset-ids-checkpatch-fixes.patch
 git-arm.patch
@@ -110,29 +83,21 @@ git-audit-master.patch
 git-audit-printk-warning-fix.patch
 git-cifs.patch
 git-cpufreq.patch
-cpufreq-revert-get-core-affinity-from-acpi_processor_preregister_perfor=
-mance.patch
+cpufreq-revert-get-core-affinity-from-acpi_processor_preregister_performance.patch
 revert-agk-dm-dm-loop.patch
 git-powerpc.patch
 git-powerpc-fixup.patch
 include-asm-powerpc-nvramh-needs-listh.patch
 include-asm-powerpc-nvramh-needs-listh-fix.patch
-revert-gregkh-driver-atm-convert-struct-class_device-to-struct-device.p=
-atch
+revert-gregkh-driver-atm-convert-struct-class_device-to-struct-device.patch
 gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes-2.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.p=
-atch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
 drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
 git-drm.patch
 intel-agp-enable-i915-recognition.patch
 drm-convert-from-nopage-to-fault-checkpatch-fixes.patch
 git-dvb.patch
-drivers-media-dvb-frontends-xc5000c-dont-return-garbage-from-xc5000_ini=
-t.patch
-drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitia=
-lized-variable.patch
-git-dvb-fix-drivers-media-video-bt8xx-bttv-driverc-build.patch
+drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
 fix-jdelvare-i2c-i2c-constify-client-address-data.patch
 adt7473-new-driver-for-analog-devices-adt7473-sensor-chip-fix.patch
 hwmon-new-chip-driver-for-ti-ads7828-a-d.patch
@@ -142,7 +107,7 @@ revert-git-hrt.patch
 git-ieee1394.patch
 git-infiniband.patch
 git-infiniband-versus-driver-tree.patch
-git-infiniband-fix-build-with-config_infiniband_ipoib_cm=3Dn.patch
+git-infiniband-fix-build-with-config_infiniband_ipoib_cm=n.patch
 drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
 git-kbuild.patch
 git-kvm.patch
@@ -174,22 +139,18 @@ bluetooth-uninlining.patch
 net-sunrpc-schedc-revert-git-net-changes.patch
 net-sunrpc-schedc-reapply-git-net-changes.patch
 git-nfsd.patch
-serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-c=
-heckpatch-fixes.patch
+serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
 revert-gregkh-pci-pci-use-dev_printk-in-x86-quirk-messages.patch
 fix-gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-=
-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform=
--checkpatch-fixes.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
 x86-validate-against-acpi-motherboard-resources.patch
 git-sched.patch
 git-sched-fixup.patch
 git-sched-fix-bug_on.patch
 git-sh.patch
 git-scsi-misc.patch
-git-scsi-misc-vs-gregkh-pci-pci-remove-users-of-pci_enable_device_bars.=
-patch
+git-scsi-misc-vs-gregkh-pci-pci-remove-users-of-pci_enable_device_bars.patch
 scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes.patch
 scsi-aic94xx-cleanups-checkpatch-fixes.patch
 scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
@@ -198,8 +159,7 @@ libsas-convert-ata-bridge-to-use-new-eh.patch
 git-unionfs.patch
 vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
 fix-gregkh-usb-usb-ti_usb-termios-cleanups.patch
-ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fi=
-xes.patch
+ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
 drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
 9p-util-fix-semaphore-handling.patch
 git-watchdog.patch
@@ -207,8 +167,7 @@ git-watchdog-fixup.patch
 wdt-fix-locking-checkpatch-fixes.patch
 drivers-net-wireless-iwlwifi-iwl-3945c-fix-printk-warning.patch
 drivers-net-wireless-iwlwifi-iwl-4965c-fix-printk-warning.patch
-drivers-net-wireless-rt2x00-rt2x00usbc-fix-uninitialized-var-warning.pa=
-tch
+drivers-net-wireless-rt2x00-rt2x00usbc-fix-uninitialized-var-warning.patch
 git-ipwireless_cs.patch
 revert-kvm-stuff-to-make-git-x86-apply.patch
 git-x86.patch
@@ -225,17 +184,13 @@ git-cryptodev.patch
 git-cryptodev-fixup.patch
 git-xtensa.patch
 usbtouchscreen-fix-buffer-overflow-make-more-egalax-work.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fi=
-x.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fi=
-x-2.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
 vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fix=
-es.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
 slub-fix-coding-style-violations-checkpatch-fixes.patch
 slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.=
-patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
 bufferhead-revert-constructor-removal-checkpatch-fixes.patch
 shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
 maps4-rework-task_size-macros-mips-fix.patch
@@ -246,23 +201,18 @@ maps4-make-page-monitoring-proc-file-optional-fix.patch
 page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
 mm-page-writeback-highmem_is_dirtyable-option-fix.patch
 mm-remove-fastcall-from-mm-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-t=
-he-lru.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.p=
-atch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
 add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
 add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warni=
-ng-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warni=
-ng-message-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
 alpha-atomic_add_return-should-return-int.patch
 alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
 pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking=
--notifiers.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
 dio-array_size-cleanup-update-checkpatch-fixes.patch
 uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
 uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
@@ -270,12 +220,10 @@ uml-further-bugsc-tidying-checkpatch-fixes.patch
 kernel-printkc-concerns-about-the-console-handover.patch
 riscom8-fix-smp-brokenness-fix.patch
 use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatc=
-h-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
 remove-warnings-for-longstanding-conditions-fix.patch
 genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patc=
-h
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
 remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
 allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
 remove-__attribute_used__-checkpatch-fixes.patch
@@ -286,16 +234,14 @@ get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
 kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
 deprecate-smbfs-in-favour-of-cifs.patch
 quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.pa=
-tch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
 stopmachine-semaphore-to-mutex-fix.patch
-parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-express=
-card-fix.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
 debug_smp_processor_id-fixlets.patch
 use-ilog2-in-fs-namespacec-fix.patch
 export-iov_shorten-for-ext4s-use-fix.patch
 system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
-speed-up-jiffies-conversion-functions-if-hz=3D=3Duser_hz.patch
+speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
 add-have_oprofile.patch
 drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
 ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
@@ -311,88 +257,61 @@ kill-filp_open-checkpatch-fixes.patch
 rename-open_namei-to-open_pathname-fix.patch
 r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
 r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.pa=
-tch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-c=
-hange-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
 r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch=
--fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-=
-fixes.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
 cgroup-simplify-space-stripping-fix.patch
 memory-controller-memory-accounting-v7.patch
 memory-controller-add-per-container-lru-and-reclaim-v7.patch
 memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.=
-patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
 memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_=
-page.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cg=
-roup.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
 memory-cgroup-enhancements-add-memorystat-file.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember=
--reclaim-priority-in-memory-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies=
--vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
 cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.pat=
-ch
-hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patc=
-h
+cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
+hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
 cpusets-update_cpumask-revision-fix.patch
 cpusets-update_cpumask-revision-checkpatch-fixes.patch
 drivers-edac-add-marvell-mv64x60-driver-fix.patch
 introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patc=
-h
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
 iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patc=
-h
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patc=
-h
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patc=
-h
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.pat=
-ch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
 iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patc=
-h
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
 iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patc=
-h
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
 iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
 iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
 iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-check=
-patch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-gi=
-t-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
 one-less-parameter-to-__d_path-checkpatch-fixes.patch
 d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.pat=
-ch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
 use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
 cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
 cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
 proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-=
-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-=
-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-=
-fix-2.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-=
-fix-3.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
 proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
 intel-iommu-fault_reason_index_cleanuppatch-fix.patch
 modules-make-module_address_lookup-safe-fix.patch
 pid-sys_wait-fixes-v2-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-=
-x86.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sani=
-tize-the-type-of-struct-useru_ar0.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
 aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
 mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
 rewrite-rd-fixes.patch
