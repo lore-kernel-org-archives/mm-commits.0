@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + git-selinux-vs-git-lblnet.patch added to -mm tree
-Date: Mon, 21 Jan 2008 14:35:56 -0800
-Message-ID: <200801212235.m0LMZuYs023394@imap1.linux-foundation.org>
+Subject: + git-scsi-misc-vs-git-net.patch added to -mm tree
+Date: Mon, 21 Jan 2008 14:51:14 -0800
+Message-ID: <200801212251.m0LMpEp2023944@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41508 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54658 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752616AbYAUWgh (ORCPT
+	by vger.kernel.org with ESMTP id S1755982AbYAUWvs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Jan 2008 17:36:37 -0500
+	Mon, 21 Jan 2008 17:51:48 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m0LMpEFx032105
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 21 Jan 2008 14:51:16 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jmorris@namei.org, paul.moore@hp.com, sds@tycho.nsa.gov
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-selinux-vs-git-lblnet
+     git-scsi-misc-vs-git-net
 has been added to the -mm tree.  Its filename is
-     git-selinux-vs-git-lblnet.patch
+     git-scsi-misc-vs-git-net.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +38,26 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-selinux-vs-git-lblnet
+Subject: git-scsi-misc-vs-git-net
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Both trees appear to have the same patch.
-
-Cc: Paul Moore <paul.moore@hp.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/dummy.c         |    5 -----
- security/selinux/hooks.c |    5 -----
- 2 files changed, 10 deletions(-)
+ drivers/scsi/scsi_transport_iscsi.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/security.h~git-selinux-vs-git-lblnet include/linux/security.h
-diff -puN security/dummy.c~git-selinux-vs-git-lblnet security/dummy.c
---- a/security/dummy.c~git-selinux-vs-git-lblnet
-+++ a/security/dummy.c
-@@ -951,11 +951,6 @@ static int dummy_secctx_to_secid(char *s
- 	return -EOPNOTSUPP;
- }
+diff -puN drivers/scsi/scsi_transport_iscsi.c~git-scsi-misc-vs-git-net drivers/scsi/scsi_transport_iscsi.c
+--- a/drivers/scsi/scsi_transport_iscsi.c~git-scsi-misc-vs-git-net
++++ a/drivers/scsi/scsi_transport_iscsi.c
+@@ -1572,6 +1572,7 @@ unregister_transport_class:
  
--static int dummy_secctx_to_secid(char *secdata, u32 seclen, u32 *secid)
--{
--	return -EOPNOTSUPP;
--}
--
- static void dummy_release_secctx(char *secdata, u32 seclen)
+ static void __exit iscsi_transport_exit(void)
  {
- }
-diff -puN security/selinux/hooks.c~git-selinux-vs-git-lblnet security/selinux/hooks.c
---- a/security/selinux/hooks.c~git-selinux-vs-git-lblnet
-+++ a/security/selinux/hooks.c
-@@ -5158,11 +5158,6 @@ static int selinux_secctx_to_secid(char 
- 	return security_context_to_sid(secdata, seclen, secid);
- }
- 
--static int selinux_secctx_to_secid(char *secdata, u32 seclen, u32 *secid)
--{
--	return security_context_to_sid(secdata, seclen, secid);
--}
--
- static void selinux_release_secctx(char *secdata, u32 seclen)
- {
- 	kfree(secdata);
++	destroy_workqueue(iscsi_eh_timer_workq);
+ 	netlink_kernel_release(nls);
+ 	transport_class_unregister(&iscsi_connection_class);
+ 	transport_class_unregister(&iscsi_session_class);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -171,9 +149,9 @@ quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpat
 x86-validate-against-acpi-motherboard-resources.patch
 git-sched.patch
 git-sched-fixup.patch
-git-sched-fix-bug_on.patch
 git-sh.patch
 git-scsi-misc.patch
+git-scsi-misc-vs-git-net.patch
 git-scsi-misc-vs-gregkh-pci-pci-remove-users-of-pci_enable_device_bars.patch
 scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes.patch
 scsi-aic94xx-cleanups-checkpatch-fixes.patch
