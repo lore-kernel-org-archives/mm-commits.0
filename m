@@ -1,52 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - git-libata-all-wtf.patch removed from -mm tree
-Date: Mon, 21 Jan 2008 15:13:22 -0800
-Message-ID: <200801212313.m0LNDMYv024895@imap1.linux-foundation.org>
+Subject: - drivers-md-dm-ioctlc-fix-uninitialized-var-warning.patch removed from -mm tree
+Date: Mon, 21 Jan 2008 15:13:15 -0800
+Message-ID: <200801212313.m0LNDGgP024886@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43278 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49631 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755467AbYAUXNn (ORCPT
+	by vger.kernel.org with ESMTP id S1755836AbYAUXNz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Jan 2008 18:13:43 -0500
+	Mon, 21 Jan 2008 18:13:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, jeff@garzik.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, agk@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-libata-all: typo fix
+     drivers/md/dm-ioctl.c: fix uninitialized var warning
 has been removed from the -mm tree.  Its filename was
-     git-libata-all-wtf.patch
+     drivers-md-dm-ioctlc-fix-uninitialized-var-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-libata-all: typo fix
+Subject: drivers/md/dm-ioctl.c: fix uninitialized var warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+drivers/md/dm-ioctl.c:1405: warning: 'param' may be used uninitialized in this function
+
+Cc: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_legacy.c |    2 +-
+ drivers/md/dm-ioctl.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_legacy.c~git-libata-all-wtf drivers/ata/pata_legacy.c
---- a/drivers/ata/pata_legacy.c~git-libata-all-wtf
-+++ a/drivers/ata/pata_legacy.c
-@@ -252,7 +252,7 @@ static void pdc20230_set_piomode(struct 
- static unsigned int pdc_data_xfer_vlb(struct ata_device *dev,
- 				unsigned char *buf, unsigned int buflen, int rw)
+diff -puN drivers/md/dm-ioctl.c~drivers-md-dm-ioctlc-fix-uninitialized-var-warning drivers/md/dm-ioctl.c
+--- a/drivers/md/dm-ioctl.c~drivers-md-dm-ioctlc-fix-uninitialized-var-warning
++++ a/drivers/md/dm-ioctl.c
+@@ -1402,7 +1402,7 @@ static int ctl_ioctl(uint command, struc
  {
--	if (ata_id_has_dword_io(adev->id)) {
-+	if (ata_id_has_dword_io(dev->id)) {
- 		struct ata_port *ap = dev->link->ap;
- 		int slop = buflen & 3;
- 		unsigned long flags;
+ 	int r = 0;
+ 	unsigned int cmd;
+-	struct dm_ioctl *param;
++	struct dm_ioctl *uninitialized_var(param);
+ 	ioctl_fn fn = NULL;
+ 	size_t param_size;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
