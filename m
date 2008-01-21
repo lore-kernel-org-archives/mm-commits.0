@@ -1,57 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: - git-infiniband-fix-build-with-config_infiniband_ipoib_cm=n.patch removed from -mm tree
-Date: Mon, 21 Jan 2008 14:27:47 -0800
-Message-ID: <200801212227.m0LMRlAb023148@imap1.linux-foundation.org>
+Subject: - git-net-vs-git-netdev-all.patch removed from -mm tree
+Date: Mon, 21 Jan 2008 14:31:58 -0800
+Message-ID: <200801212231.m0LMVwuR023239@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47172 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58674 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751772AbYAUW2n (ORCPT
+	by vger.kernel.org with ESMTP id S1752616AbYAUWcf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Jan 2008 17:28:43 -0500
+	Mon, 21 Jan 2008 17:32:35 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m0LMVxeJ030921
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 21 Jan 2008 14:32:00 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, rolandd@cisco.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-infiniband: fix build with CONFIG_INFINIBAND_IPOIB_CM=n
+     git-net-vs-git-netdev-all
 has been removed from the -mm tree.  Its filename was
-     git-infiniband-fix-build-with-config_infiniband_ipoib_cm=n.patch
+     git-net-vs-git-netdev-all.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-infiniband: fix build with CONFIG_INFINIBAND_IPOIB_CM=n
+Subject: git-net-vs-git-netdev-all
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/infiniband/ulp/ipoib/ipoib_main.c: In function 'ipoib_change_mtu':
-drivers/infiniband/ulp/ipoib/ipoib_main.c:186: error: 'struct ipoib_dev_priv' has no member named 'cm'
-
-Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/ulp/ipoib/ipoib_main.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/net/wireless/b43/xmit.c            |   17 +++++++++++++++++
+ drivers/net/wireless/b43legacy/xmit.c      |   17 +++++++++++++++++
+ drivers/net/wireless/iwlwifi/iwl-3945-rs.c |    2 +-
+ drivers/net/wireless/iwlwifi/iwl-4965-rs.c |    5 +++--
+ 4 files changed, 38 insertions(+), 3 deletions(-)
 
-diff -puN drivers/infiniband/ulp/ipoib/ipoib_main.c~git-infiniband-fix-build-with-config_infiniband_ipoib_cm=n drivers/infiniband/ulp/ipoib/ipoib_main.c
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c~git-infiniband-fix-build-with-config_infiniband_ipoib_cm=n
-+++ a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -183,9 +183,10 @@ static int ipoib_change_mtu(struct net_d
+diff -puN drivers/net/wireless/b43/xmit.c~git-net-vs-git-netdev-all drivers/net/wireless/b43/xmit.c
+--- a/drivers/net/wireless/b43/xmit.c~git-net-vs-git-netdev-all
++++ a/drivers/net/wireless/b43/xmit.c
+@@ -528,6 +528,23 @@ void b43_rx(struct b43_wldev *dev, struc
+ 	status.mactime = mactime;
+ 	status.flag |= RX_FLAG_TSFT;
  
- 	/* dev->mtu > 2K ==> connected mode */
- 	if (ipoib_cm_admin_enabled(dev)) {
-+#ifdef CONFIG_INFINIBAND_IPOIB_CM
- 		if (new_mtu > priv->cm.max_cm_mtu)
- 			return -EINVAL;
--
-+#endif
- 		if (new_mtu > priv->mcast_mtu)
- 			ipoib_warn(priv, "mtu > %d will cause multicast packet drops.\n",
- 				   priv->mcast_mtu);
++	/*
++	 * If monitors are present get full 64-bit timestamp. This
++	 * code assumes we get to process the packet within 16 bits
++	 * of timestamp, i.e. about 65 milliseconds after the PHY
++	 * received the first symbol.
++	 */
++	if (dev->wl->radiotap_enabled) {
++		u16 low_mactime_now;
++
++		b43_tsf_read(dev, &status.mactime);
++		low_mactime_now = status.mactime;
++		status.mactime = status.mactime & ~0xFFFFULL;
++		status.mactime += mactime;
++		if (low_mactime_now <= mactime)
++			status.mactime -= 0x10000;
++	}
++
+ 	chanid = (chanstat & B43_RX_CHAN_ID) >> B43_RX_CHAN_ID_SHIFT;
+ 	switch (chanstat & B43_RX_CHAN_PHYTYPE) {
+ 	case B43_PHYTYPE_A:
+diff -puN drivers/net/wireless/b43legacy/xmit.c~git-net-vs-git-netdev-all drivers/net/wireless/b43legacy/xmit.c
+--- a/drivers/net/wireless/b43legacy/xmit.c~git-net-vs-git-netdev-all
++++ a/drivers/net/wireless/b43legacy/xmit.c
+@@ -535,6 +535,23 @@ void b43legacy_rx(struct b43legacy_wldev
+ 	status.mactime = mactime;
+ 	status.flag |= RX_FLAG_TSFT;
+ 
++	/*
++	 * If monitors are present get full 64-bit timestamp. This
++	 * code assumes we get to process the packet within 16 bits
++	 * of timestamp, i.e. about 65 milliseconds after the PHY
++	 * received the first symbol.
++	 */
++	if (dev->wl->radiotap_enabled) {
++		u16 low_mactime_now;
++
++		b43legacy_tsf_read(dev, &status.mactime);
++		low_mactime_now = status.mactime;
++		status.mactime = status.mactime & ~0xFFFFULL;
++		status.mactime += mactime;
++		if (low_mactime_now <= mactime)
++			status.mactime -= 0x10000;
++	}
++
+ 	chanid = (chanstat & B43legacy_RX_CHAN_ID) >>
+ 		  B43legacy_RX_CHAN_ID_SHIFT;
+ 	switch (chanstat & B43legacy_RX_CHAN_PHYTYPE) {
+diff -puN drivers/net/wireless/iwlwifi/iwl-3945-rs.c~git-net-vs-git-netdev-all drivers/net/wireless/iwlwifi/iwl-3945-rs.c
+--- a/drivers/net/wireless/iwlwifi/iwl-3945-rs.c~git-net-vs-git-netdev-all
++++ a/drivers/net/wireless/iwlwifi/iwl-3945-rs.c
+@@ -658,7 +658,7 @@ static void rs_get_rate(void *priv_rate,
+ 	struct ieee80211_hdr *hdr = (struct ieee80211_hdr *)skb->data;
+ 	struct sta_info *sta;
+ 	u16 rate_mask;
+-	struct iwl_priv *priv = (struct iwl_priv *)priv_rate;
++	struct iwl3945_priv *priv = (struct iwl3945_priv *)priv_rate;
+ 	DECLARE_MAC_BUF(mac);
+ 
+ 	IWL_DEBUG_RATE("enter\n");
+diff -puN drivers/net/wireless/iwlwifi/iwl-4965-rs.c~git-net-vs-git-netdev-all drivers/net/wireless/iwlwifi/iwl-4965-rs.c
+--- a/drivers/net/wireless/iwlwifi/iwl-4965-rs.c~git-net-vs-git-netdev-all
++++ a/drivers/net/wireless/iwlwifi/iwl-4965-rs.c
+@@ -2014,10 +2014,11 @@ static void rs_get_rate(void *priv_rate,
+ 
+ 	int i;
+ 	struct ieee80211_local *local = wdev_priv(dev->ieee80211_ptr);
++	struct ieee80211_conf *conf = &local->hw.conf;
+ 	struct ieee80211_hdr *hdr = (struct ieee80211_hdr *)skb->data;
+ 	struct sta_info *sta;
+-	struct iwl_priv *priv = (struct iwl_priv *)priv_rate;
+-	struct iwl_rate_scale_priv *lq;
++	struct iwl4965_priv *priv = (struct iwl4965_priv *)priv_rate;
++	struct iwl4965_rate_scale_priv *lq;
+ 
+ 	IWL_DEBUG_RATE_LIMIT("rate scale calculate new rate for skb\n");
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -107,7 +178,6 @@ revert-git-hrt.patch
 git-ieee1394.patch
 git-infiniband.patch
 git-infiniband-versus-driver-tree.patch
-git-infiniband-fix-build-with-config_infiniband_ipoib_cm=n.patch
 drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
 git-kbuild.patch
 git-kvm.patch
@@ -123,12 +193,10 @@ git-mtd.patch
 drivers-mtd-ubi-wlc-fix-uninitialized-var-warning.patch
 drivers-mtd-ubi-scanc-fix-uninitialized-var-warning.patch
 drivers-mtd-ubi-cdevc-unused-var.patch
-git-ubi.patch
 git-net.patch
 git-net-fix-conflicts.patch
 git-net-vs-git-lblnet.patch
 git-net-vs-git-lblnet-2.patch
-git-netdev-all.patch
 git-netdev-all-fix-conflicts.patch
 git-netdev-all-fix-conflicts-fix.patch
 git-net-vs-git-netdev-all.patch
