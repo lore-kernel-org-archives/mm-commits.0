@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lockdep-annotate-epoll.patch added to -mm tree
-Date: Tue, 22 Jan 2008 15:03:23 -0800
-Message-ID: <200801222303.m0MN3CAk012167@imap1.linux-foundation.org>
+Subject: + keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on.patch added to -mm tree
+Date: Tue, 22 Jan 2008 15:30:36 -0800
+Message-ID: <200801222330.m0MNUPHF013291@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58334 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53754 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757823AbYAVXEY (ORCPT
+	by vger.kernel.org with ESMTP id S1752735AbYAVXbc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jan 2008 18:04:24 -0500
+	Tue, 22 Jan 2008 18:31:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: a.p.zijlstra@chello.nl, davidel@xmailserver.org, stable@kernel.org, stefanr@s5r6.in-berlin.de
+Cc: haveblue@us.ibm.com, m.kozlowski@tuxland.pl
 
 
 The patch titled
-     lockdep: annotate epoll
+     r-o-bind-mounts: fix WARN_ON
 has been added to the -mm tree.  Its filename is
-     lockdep-annotate-epoll.patch
+     keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,144 +34,156 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lockdep: annotate epoll
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: r-o-bind-mounts: fix WARN_ON
+From: Dave Hansen <haveblue@us.ibm.com>
 
-On Sat, 2008-01-05 at 13:35 -0800, Davide Libenzi wrote:
+On Tue, 2008-01-22 at 13:02 -0800, Andrew Morton wrote:
+> > On Tue, 22 Jan 2008 21:30:23 +0100 Mariusz Kozlowski <m.kozlowski@tuxland.pl> wrote:
+> > Hello,
+> >
+> > Issuing "sysrq-s sysrq-u" sequence causes these warnings on sparc64:
+> >
+> > ------------[ cut here ]------------
+> > WARNING: at fs/file_table.c:49 __fput+0x1a8/0x1e0()
+> > Modules linked in: sg sr_mod cdrom
+> > Call Trace:
+> >  [00000000004c9ac8] __fput+0x1b0/0x1e0
+> >  [00000000004c6978] filp_close+0x60/0x80
+> >  [00000000004c6a18] sys_close+0x80/0xe0
+> >  [00000000004062d4] linux_sparc_syscall32+0x3c/0x40
+> >  [0000000000012f1c] 0x12f24
+> > ---[ end trace 6dbe14ff8ec57744 ]---
+> > ------------[ cut here ]------------
+...
+> That's
+>
+>         WARN_ON(f->f_mnt_write_state == FILE_MNT_WRITE_TAKEN);
 
-> I remember I talked with Arjan about this time ago. Basically, since 1)
-> you can drop an epoll fd inside another epoll fd 2) callback-based wakeups
-> are used, you can see a wake_up() from inside another wake_up(), but they
-> will never refer to the same lock instance.
-> Think about:
->
-> 	dfd = socket(...);
-> 	efd1 = epoll_create();
-> 	efd2 = epoll_create();
-> 	epoll_ctl(efd1, EPOLL_CTL_ADD, dfd, ...);
-> 	epoll_ctl(efd2, EPOLL_CTL_ADD, efd1, ...);
->
-> When a packet arrives to the device underneath "dfd", the net code will
-> issue a wake_up() on its poll wake list. Epoll (efd1) has installed a
-> callback wakeup entry on that queue, and the wake_up() performed by the
-> "dfd" net code will end up in ep_poll_callback(). At this point epoll
-> (efd1) notices that it may have some event ready, so it needs to wake up
-> the waiters on its poll wait list (efd2). So it calls ep_poll_safewake()
-> that ends up in another wake_up(), after having checked about the
-> recursion constraints. That are, no more than EP_MAX_POLLWAKE_NESTS, to
-> avoid stack blasting. Never hit the same queue, to avoid loops like:
->
-> 	epoll_ctl(efd2, EPOLL_CTL_ADD, efd1, ...);
-> 	epoll_ctl(efd3, EPOLL_CTL_ADD, efd2, ...);
-> 	epoll_ctl(efd4, EPOLL_CTL_ADD, efd3, ...);
-> 	epoll_ctl(efd1, EPOLL_CTL_ADD, efd4, ...);
->
-> The code "if (tncur->wq == wq || ..." prevents re-entering the same
-> queue/lock.
+The emergency remount code forcibly removes FMODE_WRITE from filps.  The r/o
+bind mount code notices that this was done without a proper mnt_drop_write()
+and properly gives a warning.
 
-Since the epoll code is very careful to not nest same instance locks
-allow the recursion.
+This patch does a mnt_drop_write() and also notes in the filp that this was
+done to suppress any warning that would have otherwise been triggered.
 
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Tested-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Acked-by: Davide Libenzi <davidel@xmailserver.org>
-Cc: <stable@kernel.org>
+I also wonder if inode->i_writecount is made inconsistent by the emergency
+remount code.  I guess it is, but the damage is limited to a single inode
+instead of being visible more globally like the mnt write count.  Probably not
+really worth fixing.
+
+BTW, this wasn't just a sparc thing.  I triggered it in about 3 seconds on a
+plain old x86 machine.
+
+Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c       |    2 +-
- include/linux/wait.h |   16 ++++++++++++++++
- 2 files changed, 17 insertions(+), 1 deletion(-)
+ fs/super.c |   21 +++++++++++++++++++--
+ 1 file changed, 19 insertions(+), 2 deletions(-)
 
-diff -puN fs/eventpoll.c~lockdep-annotate-epoll fs/eventpoll.c
---- a/fs/eventpoll.c~lockdep-annotate-epoll
-+++ a/fs/eventpoll.c
-@@ -353,7 +353,7 @@ static void ep_poll_safewake(struct poll
- 	spin_unlock_irqrestore(&psw->lock, flags);
+diff -puN fs/super.c~keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on fs/super.c
+--- a/fs/super.c~keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on
++++ a/fs/super.c
+@@ -37,6 +37,7 @@
+ #include <linux/idr.h>
+ #include <linux/kobject.h>
+ #include <linux/mutex.h>
++#include <linux/file.h>
+ #include <asm/uaccess.h>
  
- 	/* Do really wake up now */
--	wake_up(wq);
-+	wake_up_nested(wq, 1 + wake_nests);
  
- 	/* Remove the current task from the list */
- 	spin_lock_irqsave(&psw->lock, flags);
-diff -puN include/linux/wait.h~lockdep-annotate-epoll include/linux/wait.h
---- a/include/linux/wait.h~lockdep-annotate-epoll
-+++ a/include/linux/wait.h
-@@ -161,6 +161,22 @@ wait_queue_head_t *FASTCALL(bit_waitqueu
- #define	wake_up_locked(x)		__wake_up_locked((x), TASK_UNINTERRUPTIBLE | TASK_INTERRUPTIBLE)
- #define wake_up_interruptible_sync(x)   __wake_up_sync((x),TASK_INTERRUPTIBLE, 1)
+@@ -566,10 +567,26 @@ static void mark_files_ro(struct super_b
+ {
+ 	struct file *f;
  
-+#ifdef CONFIG_DEBUG_LOCK_ALLOC
-+/*
-+ * macro to avoid include hell
-+ */
-+#define wake_up_nested(x, s)						\
-+do {									\
-+	unsigned long flags;						\
-+									\
-+	spin_lock_irqsave_nested(&(x)->lock, flags, (s));		\
-+	wake_up_locked(x); 						\
-+	spin_unlock_irqrestore(&(x)->lock, flags);			\
-+} while (0)
-+#else
-+#define wake_up_nested(x, s)		wake_up(x)
-+#endif
-+
- #define __wait_event(wq, condition) 					\
- do {									\
- 	DEFINE_WAIT(__wait);						\
++retry:
+ 	file_list_lock();
+ 	list_for_each_entry(f, &sb->s_files, f_u.fu_list) {
+-		if (S_ISREG(f->f_path.dentry->d_inode->i_mode) && file_count(f))
+-			f->f_mode &= ~FMODE_WRITE;
++		struct vfsmount mnt;
++		if (!S_ISREG(f->f_path.dentry->d_inode->i_mode))
++		       continue;
++		if (!file_count(f))
++			continue;
++		if (!(f->f_mode & FMODE_WRITE))
++			continue;
++		f->f_mode &= ~FMODE_WRITE;
++		f->f_mnt_write_state |= FILE_MNT_WRITE_RELEASED;
++		mnt = f->f_path.mnt;
++		file_list_unlock();
++		/*
++		 * This can sleep, so we can't hold
++		 * the file_list_lock() spinlock.
++		 */
++		mnt_drop_write(mnt);
++		goto retry;
+ 	}
+ 	file_list_unlock();
+ }
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from haveblue@us.ibm.com are
 
-origin.patch
-lockdep-annotate-epoll.patch
-git-sched.patch
-slub-move-kmem_cache_node-determination-into-add_full-and-add_partial-slub-workaround-for-lockdep-confusion.patch
-swapin-needs-gfp_mask-for-loop-on-tmpfs.patch
-mm-page-writeback-highmem_is_dirtyable-option.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-skip-writing-data-pages-when-inode-is-under-i_sync.patch
-fix-dirty-page-accounting-leak-with-ext3-data=journal.patch
-kernel-add-mutex_lock_killable.patch
-vfs-use-mutex_lock_killable-in-vfs_readdir.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-memcgroup-reinstate-swapoff-mod.patch
-bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
-bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
-bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
-bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
-memcgroup-fix-zone-isolation-oom.patch
-memcgroup-revert-swap_state-mods.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
-memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
-memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
-memory-cgroup-enhancements-add-pre_destroy-handler.patch
-memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
+maps4-add-proportional-set-size-accounting-in-smaps.patch
+maps4-rework-task_size-macros.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-move-is_swap_pte.patch
+maps4-introduce-a-generic-page-walker.patch
+maps4-use-pagewalker-in-clear_refs-and-smaps.patch
+maps4-simplify-interdependence-of-maps-and-smaps.patch
+maps4-move-clear_refs-code-to-task_mmuc.patch
+maps4-regroup-task_mmu-by-interface.patch
+maps4-add-proc-pid-pagemap-interface.patch
+maps4-add-proc-kpagecount-interface.patch
+maps4-add-proc-kpagecount-interface-fix.patch
+maps4-add-proc-kpageflags-interface.patch
+maps4-add-proc-kpageflags-interface-fix.patch
+maps4-make-page-monitoring-proc-file-optional.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+add-remove_memory-for-ppc64-2.patch
+enable-hotplug-memory-remove-for-ppc64.patch
+add-arch-specific-walk_memory_remove-for-ppc64.patch
+reiserfs-eliminate-private-use-of-struct-file-in-xattr.patch
+do-namei_flags-calculation-inside-open_namei.patch
+make-open_namei-return-a-filp.patch
+kill-do_filp_open.patch
+kill-filp_open.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-stub-functions.patch
+r-o-bind-mounts-do_rmdir-elevate-write-count.patch
+r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
+r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
+r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
+r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
+r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
+r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate.patch
+r-o-bind-mounts-make-access-use-mnt-check.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
+r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
+keep-track-of-mnt_writer-state-of-struct-file.patch
+keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on.patch
+create-file_drop_write_access-helper.patch
+fix-up-new-filp-allocators.patch
+use-struct-path-in-struct-svc_export-nfsd-fix-wrong-mnt_writer-count-in-rename.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
