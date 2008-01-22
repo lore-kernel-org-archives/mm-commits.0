@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + parisc-new-termios-definitions.patch added to -mm tree
-Date: Mon, 21 Jan 2008 23:36:29 -0800
-Message-ID: <200801220736.m0M7a9df010579@imap1.linux-foundation.org>
+Subject: + sh-termios-ioctl-definitions.patch added to -mm tree
+Date: Mon, 21 Jan 2008 23:37:09 -0800
+Message-ID: <200801220736.m0M7aoAF010598@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54781 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60823 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752968AbYAVHiE (ORCPT
+	by vger.kernel.org with ESMTP id S1754237AbYAVHiH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jan 2008 02:38:04 -0500
+	Tue, 22 Jan 2008 02:38:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, grundler@parisc-linux.org, kyle@mcmartin.ca, willy@debian.org
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, lethal@linux-sh.org
 
 
 The patch titled
-     parisc: new termios definitions
+     sh: termios ioctl definitions
 has been added to the -mm tree.  Its filename is
-     parisc-new-termios-definitions.patch
+     sh-termios-ioctl-definitions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: parisc: new termios definitions
+Subject: sh: termios ioctl definitions
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
+These ports are holding up progress and now have been for months. Do the
+job for them.
+
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Grant Grundler <grundler@parisc-linux.org>
-Cc: Matthew Wilcox <willy@debian.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-parisc/ioctls.h   |    4 ++++
- include/asm-parisc/termbits.h |    5 ++++-
- include/asm-parisc/termios.h  |    6 ++++--
+ include/asm-sh/ioctls.h   |    4 ++++
+ include/asm-sh/termbits.h |    5 ++++-
+ include/asm-sh/termios.h  |    6 ++++--
  3 files changed, 12 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-parisc/ioctls.h~parisc-new-termios-definitions include/asm-parisc/ioctls.h
---- a/include/asm-parisc/ioctls.h~parisc-new-termios-definitions
-+++ a/include/asm-parisc/ioctls.h
-@@ -46,6 +46,10 @@
- #define TIOCSBRK	0x5427  /* BSD compatibility */
- #define TIOCCBRK	0x5428  /* BSD compatibility */
- #define TIOCGSID	_IOR('T', 20, int) /* Return the session ID of FD */
-+#define TCGETS2		_IOR('T',0x2A, struct termios2)
-+#define TCSETS2		_IOW('T',0x2B, struct termios2)
-+#define TCSETSW2	_IOW('T',0x2C, struct termios2)
-+#define TCSETSF2	_IOW('T',0x2D, struct termios2)
+diff -puN include/asm-sh/ioctls.h~sh-termios-ioctl-definitions include/asm-sh/ioctls.h
+--- a/include/asm-sh/ioctls.h~sh-termios-ioctl-definitions
++++ a/include/asm-sh/ioctls.h
+@@ -78,6 +78,10 @@
+ #define TIOCSBRK	_IO('T', 39) /* 0x5427 */ /* BSD compatibility */
+ #define TIOCCBRK	_IO('T', 40) /* 0x5428 */ /* BSD compatibility */
+ #define TIOCGSID	_IOR('T', 41, pid_t) /* 0x5429 */ /* Return the session ID of FD */
++#define TCGETS2		_IOR('T', 42, struct termios2)
++#define TCSETS2		_IOW('T', 43, struct termios2)
++#define TCSETSW2	_IOW('T', 44, struct termios2)
++#define TCSETSF2	_IOW('T', 45, struct termios2)
  #define TIOCGPTN	_IOR('T',0x30, unsigned int) /* Get Pty Number (of pty-mux device) */
  #define TIOCSPTLCK	_IOW('T',0x31, int)  /* Lock/unlock Pty */
  
-diff -puN include/asm-parisc/termbits.h~parisc-new-termios-definitions include/asm-parisc/termbits.h
---- a/include/asm-parisc/termbits.h~parisc-new-termios-definitions
-+++ a/include/asm-parisc/termbits.h
-@@ -141,6 +141,7 @@ struct ktermios {
- #define HUPCL   0002000
- #define CLOCAL  0004000
+diff -puN include/asm-sh/termbits.h~sh-termios-ioctl-definitions include/asm-sh/termbits.h
+--- a/include/asm-sh/termbits.h~sh-termios-ioctl-definitions
++++ a/include/asm-sh/termbits.h
+@@ -140,6 +140,7 @@ struct ktermios {
+ #define HUPCL	0002000
+ #define CLOCAL	0004000
  #define CBAUDEX 0010000
-+#define    BOTHER 0010000
++#define	   BOTHER 0010000
  #define    B57600 0010001
  #define   B115200 0010002
  #define   B230400 0010003
-@@ -156,10 +157,12 @@ struct ktermios {
+@@ -155,10 +156,12 @@ struct ktermios {
  #define  B3000000 0010015
  #define  B3500000 0010016
  #define  B4000000 0010017
--#define CIBAUD    002003600000  /* input baud rate (not used) */
-+#define CIBAUD    002003600000		/* input baud rate */
- #define CMSPAR    010000000000          /* mark or space (stick) parity */
- #define CRTSCTS   020000000000          /* flow control */
+-#define CIBAUD	  002003600000	/* input baud rate (not used) */
++#define CIBAUD	  002003600000		/* input baud rate */
+ #define CMSPAR	  010000000000		/* mark or space (stick) parity */
+ #define CRTSCTS	  020000000000		/* flow control */
  
 +#define IBSHIFT	16		/* Shift from CBAUD to CIBAUD */
 +
- 
  /* c_lflag bits */
- #define ISIG    0000001
-diff -puN include/asm-parisc/termios.h~parisc-new-termios-definitions include/asm-parisc/termios.h
---- a/include/asm-parisc/termios.h~parisc-new-termios-definitions
-+++ a/include/asm-parisc/termios.h
+ #define ISIG	0000001
+ #define ICANON	0000002
+diff -puN include/asm-sh/termios.h~sh-termios-ioctl-definitions include/asm-sh/termios.h
+--- a/include/asm-sh/termios.h~sh-termios-ioctl-definitions
++++ a/include/asm-sh/termios.h
 @@ -80,8 +80,10 @@ struct termio {
  	copy_to_user((termio)->c_cc, (termios)->c_cc, NCC); \
  })
@@ -120,7 +121,7 @@ pata_pdc202xx_old-fix-crashes-with-atapi.patch
 pata_serverworks-fix-cable-types-and-cosmetics.patch
 pata_winbond-error-return.patch
 git-net.patch
-resend-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
 bluetooth-rfcomm-tty_close-before-destruct.patch
 hci_ldisc-fix-null-pointer-deref.patch
 parisc-new-termios-definitions.patch
