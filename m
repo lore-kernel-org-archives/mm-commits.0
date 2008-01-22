@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + random-simplify-add_ptr-logic.patch added to -mm tree
-Date: Tue, 22 Jan 2008 01:33:24 -0800
-Message-ID: <200801220933.m0M9X4EM014453@imap1.linux-foundation.org>
+Subject: + random-simplify-and-rename-credit_entropy_store.patch added to -mm tree
+Date: Tue, 22 Jan 2008 01:33:28 -0800
+Message-ID: <200801220933.m0M9X8dD014462@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48248 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38255 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756475AbYAVJdy (ORCPT
+	by vger.kernel.org with ESMTP id S1756461AbYAVJdw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jan 2008 04:33:54 -0500
+	Tue, 22 Jan 2008 04:33:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mpm@selenic.com, tytso@mit.edu
 
 
 The patch titled
-     random: simplify add_ptr logic
+     random: simplify and rename credit_entropy_store
 has been added to the -mm tree.  Its filename is
-     random-simplify-add_ptr-logic.patch
+     random-simplify-and-rename-credit_entropy_store.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,78 +34,105 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: random: simplify add_ptr logic
+Subject: random: simplify and rename credit_entropy_store
 From: Matt Mackall <mpm@selenic.com>
 
-The add_ptr variable wasn't used in a sensible way, use only i instead.
-i got reused later for a different purpose, use j instead.
-
-While we're here, put tap0 first in the tap list and add a comment.
+- emphasize bits in the name
+- make zero bits lock-free
+- simplify logic
 
 Signed-off-by: Matt Mackall <mpm@selenic.com>
 Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/random.c |   21 ++++++++++-----------
- 1 file changed, 10 insertions(+), 11 deletions(-)
+ drivers/char/random.c |   32 +++++++++++++++-----------------
+ 1 file changed, 15 insertions(+), 17 deletions(-)
 
-diff -puN drivers/char/random.c~random-simplify-add_ptr-logic drivers/char/random.c
---- a/drivers/char/random.c~random-simplify-add_ptr-logic
+diff -puN drivers/char/random.c~random-simplify-and-rename-credit_entropy_store drivers/char/random.c
+--- a/drivers/char/random.c~random-simplify-and-rename-credit_entropy_store
 +++ a/drivers/char/random.c
-@@ -454,7 +454,7 @@ static void __add_entropy_words(struct e
- 	static __u32 const twist_table[8] = {
- 		0x00000000, 0x3b6e20c8, 0x76dc4190, 0x4db26158,
- 		0xedb88320, 0xd6d6a3e8, 0x9b64c2b0, 0xa00ae278 };
--	unsigned long i, add_ptr, tap1, tap2, tap3, tap4, tap5;
-+	unsigned long i, j, tap1, tap2, tap3, tap4, tap5;
- 	int input_rotate;
- 	int wordmask = r->poolinfo->poolwords - 1;
- 	__u32 w;
-@@ -469,19 +469,21 @@ static void __add_entropy_words(struct e
+@@ -441,7 +441,7 @@ static struct entropy_store nonblocking_
+ /*
+  * This function adds bytes into the entropy "pool".  It does not
+  * update the entropy estimate.  The caller should call
+- * credit_entropy_store if this is appropriate.
++ * credit_entropy_bits if this is appropriate.
+  *
+  * The pool is stirred with a primitive polynomial of the appropriate
+  * degree, and then twisted.  We twist by three bits at a time because
+@@ -515,24 +515,22 @@ static void mix_pool_bytes(struct entrop
+ /*
+  * Credit (or debit) the entropy store with n bits of entropy
+  */
+-static void credit_entropy_store(struct entropy_store *r, int nbits)
++static void credit_entropy_bits(struct entropy_store *r, int nbits)
+ {
+ 	unsigned long flags;
  
- 	spin_lock_irqsave(&r->lock, flags);
- 	input_rotate = r->input_rotate;
--	add_ptr = r->add_ptr;
-+	i = r->add_ptr;
- 
- 	while (nwords--) {
- 		w = rol32(*in++, input_rotate & 31);
--		i = add_ptr = (add_ptr - 1) & wordmask;
-+		i = (i - 1) & wordmask;
- 
- 		/* XOR in the various taps */
-+		w ^= r->pool[i];
- 		w ^= r->pool[(i + tap1) & wordmask];
- 		w ^= r->pool[(i + tap2) & wordmask];
- 		w ^= r->pool[(i + tap3) & wordmask];
- 		w ^= r->pool[(i + tap4) & wordmask];
- 		w ^= r->pool[(i + tap5) & wordmask];
--		w ^= r->pool[i];
++	if (!nbits)
++		return;
 +
-+		/* Mix the result back in with a twist */
- 		r->pool[i] = (w >> 3) ^ twist_table[w & 7];
+ 	spin_lock_irqsave(&r->lock, flags);
  
- 		/*
-@@ -494,14 +496,11 @@ static void __add_entropy_words(struct e
- 	}
- 
- 	r->input_rotate = input_rotate;
--	r->add_ptr = add_ptr;
-+	r->add_ptr = i;
- 
--	if (out) {
--		for (i = 0; i < 16; i++) {
--			out[i] = r->pool[add_ptr];
--			add_ptr = (add_ptr - 1) & wordmask;
--		}
+-	if (r->entropy_count + nbits < 0) {
+-		DEBUG_ENT("negative entropy/overflow (%d+%d)\n",
+-			  r->entropy_count, nbits);
++	DEBUG_ENT("added %d entropy credits to %s\n", nbits, r->name);
++	r->entropy_count += nbits;
++	if (r->entropy_count < 0) {
++		DEBUG_ENT("negative entropy/overflow\n");
+ 		r->entropy_count = 0;
+-	} else if (r->entropy_count + nbits > r->poolinfo->POOLBITS) {
++	} else if (r->entropy_count > r->poolinfo->POOLBITS)
+ 		r->entropy_count = r->poolinfo->POOLBITS;
+-	} else {
+-		r->entropy_count += nbits;
+-		if (nbits)
+-			DEBUG_ENT("added %d entropy credits to %s\n",
+-				  nbits, r->name);
 -	}
-+	if (out)
-+		for (j = 0; j < 16; j++)
-+			out[j] = r->pool[(i - j) & wordmask];
  
- 	spin_unlock_irqrestore(&r->lock, flags);
+ 	/* should we wake readers? */
+ 	if (r == &input_pool && r->entropy_count >= random_read_wakeup_thresh)
+@@ -619,8 +617,8 @@ static void add_timer_randomness(struct 
+ 		 * Round down by 1 bit on general principles,
+ 		 * and limit entropy entimate to 12 bits.
+ 		 */
+-		credit_entropy_store(&input_pool,
+-				     min_t(int, fls(delta>>1), 11));
++		credit_entropy_bits(&input_pool,
++				    min_t(int, fls(delta>>1), 11));
+ 	}
+ out:
+ 	preempt_enable();
+@@ -703,7 +701,7 @@ static void xfer_secondary_pool(struct e
+ 		bytes = extract_entropy(r->pull, tmp, bytes,
+ 					random_read_wakeup_thresh / 8, rsvd);
+ 		mix_pool_bytes(r, tmp, bytes);
+-		credit_entropy_store(r, bytes*8);
++		credit_entropy_bits(r, bytes*8);
+ 	}
  }
+ 
+@@ -1074,7 +1072,7 @@ static long random_ioctl(struct file *f,
+ 			return -EPERM;
+ 		if (get_user(ent_count, p))
+ 			return -EFAULT;
+-		credit_entropy_store(&input_pool, ent_count);
++		credit_entropy_bits(&input_pool, ent_count);
+ 		return 0;
+ 	case RNDADDENTROPY:
+ 		if (!capable(CAP_SYS_ADMIN))
+@@ -1089,7 +1087,7 @@ static long random_ioctl(struct file *f,
+ 				    size);
+ 		if (retval < 0)
+ 			return retval;
+-		credit_entropy_store(&input_pool, ent_count);
++		credit_entropy_bits(&input_pool, ent_count);
+ 		return 0;
+ 	case RNDZAPENTCNT:
+ 	case RNDCLEARPOOL:
 _
 
 Patches currently in -mm which might be from mpm@selenic.com are
