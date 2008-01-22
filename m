@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + random-add-async-notification-support-to-dev-random.patch added to -mm tree
-Date: Tue, 22 Jan 2008 11:06:20 -0800
-Message-ID: <200801221906.m0MJ6A41002799@imap1.linux-foundation.org>
+Subject: + lockdep-annotate-epoll.patch added to -mm tree
+Date: Tue, 22 Jan 2008 15:03:23 -0800
+Message-ID: <200801222303.m0MN3CAk012167@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57560 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58334 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752172AbYAVTHc (ORCPT
+	by vger.kernel.org with ESMTP id S1757823AbYAVXEY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jan 2008 14:07:32 -0500
+	Tue, 22 Jan 2008 18:04:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, jdike@linux.intel.com, mpm@selenic.com, tytso@mit.edu
+Cc: a.p.zijlstra@chello.nl, davidel@xmailserver.org, stable@kernel.org, stefanr@s5r6.in-berlin.de
 
 
 The patch titled
-     random: add async notification support to /dev/random
+     lockdep: annotate epoll
 has been added to the -mm tree.  Its filename is
-     random-add-async-notification-support-to-dev-random.patch
+     lockdep-annotate-epoll.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,229 +34,144 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: random: add async notification support to /dev/random
-From: Jeff Dike <jdike@addtoit.com>
+Subject: lockdep: annotate epoll
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Add async notification support to /dev/random.
+On Sat, 2008-01-05 at 13:35 -0800, Davide Libenzi wrote:
 
-A little test case is below.  Without this patch, you get:
+> I remember I talked with Arjan about this time ago. Basically, since 1)
+> you can drop an epoll fd inside another epoll fd 2) callback-based wakeups
+> are used, you can see a wake_up() from inside another wake_up(), but they
+> will never refer to the same lock instance.
+> Think about:
+>
+> 	dfd = socket(...);
+> 	efd1 = epoll_create();
+> 	efd2 = epoll_create();
+> 	epoll_ctl(efd1, EPOLL_CTL_ADD, dfd, ...);
+> 	epoll_ctl(efd2, EPOLL_CTL_ADD, efd1, ...);
+>
+> When a packet arrives to the device underneath "dfd", the net code will
+> issue a wake_up() on its poll wake list. Epoll (efd1) has installed a
+> callback wakeup entry on that queue, and the wake_up() performed by the
+> "dfd" net code will end up in ep_poll_callback(). At this point epoll
+> (efd1) notices that it may have some event ready, so it needs to wake up
+> the waiters on its poll wait list (efd2). So it calls ep_poll_safewake()
+> that ends up in another wake_up(), after having checked about the
+> recursion constraints. That are, no more than EP_MAX_POLLWAKE_NESTS, to
+> avoid stack blasting. Never hit the same queue, to avoid loops like:
+>
+> 	epoll_ctl(efd2, EPOLL_CTL_ADD, efd1, ...);
+> 	epoll_ctl(efd3, EPOLL_CTL_ADD, efd2, ...);
+> 	epoll_ctl(efd4, EPOLL_CTL_ADD, efd3, ...);
+> 	epoll_ctl(efd1, EPOLL_CTL_ADD, efd4, ...);
+>
+> The code "if (tncur->wq == wq || ..." prevents re-entering the same
+> queue/lock.
 
-$ ./async-random
-Drained the pool
-Found more randomness
+Since the epoll code is very careful to not nest same instance locks
+allow the recursion.
 
-With it, you get:
-
-$ ./async-random
-Drained the pool
-SIGIO
-Found more randomness
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <signal.h>
-#include <errno.h>
-#include <fcntl.h>
-
-static void handler(int sig)
-{
-        printf("SIGIO\n");
-}
-
-int main(int argc, char **argv)
-{
-        int fd, n, err, flags;
-
-        if(signal(SIGIO, handler) < 0){
-                perror("setting SIGIO handler");
-                exit(1);
-        }
-
-        fd = open("/dev/random", O_RDONLY);
-        if(fd < 0){
-                perror("open");
-                exit(1);
-        }
-
-        flags = fcntl(fd, F_GETFL);
-        if (flags < 0){
-                perror("getting flags");
-                exit(1);
-        }
-
-        flags |= O_NONBLOCK;
-        if (fcntl(fd, F_SETFL, flags) < 0){
-                perror("setting flags");
-                exit(1);
-        }
-
-        while((err = read(fd, &n, sizeof(n))) > 0) ;
-
-        if(err == 0){
-                printf("random returned 0\n");
-                exit(1);
-        }
-        else if(errno != EAGAIN){
-                perror("read");
-                exit(1);
-        }
-
-        flags |= O_ASYNC;
-        if (fcntl(fd, F_SETFL, flags) < 0){
-                perror("setting flags");
-                exit(1);
-        }
-
-        if (fcntl(fd, F_SETOWN, getpid()) < 0) {
-                perror("Setting SIGIO");
-                exit(1);
-        }
-
-        printf("Drained the pool\n");
-        read(fd, &n, sizeof(n));
-        printf("Found more randomness\n");
-
-        return(0);
-}
-
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-Signed-off-by: Matt Mackall <mpm@selenic.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Tested-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Acked-by: Davide Libenzi <davidel@xmailserver.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/random.c |   24 ++++++++++++++++++++++--
- 1 file changed, 22 insertions(+), 2 deletions(-)
+ fs/eventpoll.c       |    2 +-
+ include/linux/wait.h |   16 ++++++++++++++++
+ 2 files changed, 17 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/random.c~random-add-async-notification-support-to-dev-random drivers/char/random.c
---- a/drivers/char/random.c~random-add-async-notification-support-to-dev-random
-+++ a/drivers/char/random.c
-@@ -370,6 +370,7 @@ static struct poolinfo {
-  */
- static DECLARE_WAIT_QUEUE_HEAD(random_read_wait);
- static DECLARE_WAIT_QUEUE_HEAD(random_write_wait);
-+static struct fasync_struct *fasync;
+diff -puN fs/eventpoll.c~lockdep-annotate-epoll fs/eventpoll.c
+--- a/fs/eventpoll.c~lockdep-annotate-epoll
++++ a/fs/eventpoll.c
+@@ -353,7 +353,7 @@ static void ep_poll_safewake(struct poll
+ 	spin_unlock_irqrestore(&psw->lock, flags);
  
- #if 0
- static int debug;
-@@ -533,8 +534,11 @@ static void credit_entropy_bits(struct e
- 		r->entropy_count = r->poolinfo->POOLBITS;
+ 	/* Do really wake up now */
+-	wake_up(wq);
++	wake_up_nested(wq, 1 + wake_nests);
  
- 	/* should we wake readers? */
--	if (r == &input_pool && r->entropy_count >= random_read_wakeup_thresh)
-+	if (r == &input_pool &&
-+	    r->entropy_count >= random_read_wakeup_thresh) {
- 		wake_up_interruptible(&random_read_wait);
-+		kill_fasync(&fasync, SIGIO, POLL_IN);
-+	}
+ 	/* Remove the current task from the list */
+ 	spin_lock_irqsave(&psw->lock, flags);
+diff -puN include/linux/wait.h~lockdep-annotate-epoll include/linux/wait.h
+--- a/include/linux/wait.h~lockdep-annotate-epoll
++++ a/include/linux/wait.h
+@@ -161,6 +161,22 @@ wait_queue_head_t *FASTCALL(bit_waitqueu
+ #define	wake_up_locked(x)		__wake_up_locked((x), TASK_UNINTERRUPTIBLE | TASK_INTERRUPTIBLE)
+ #define wake_up_interruptible_sync(x)   __wake_up_sync((x),TASK_INTERRUPTIBLE, 1)
  
- 	spin_unlock_irqrestore(&r->lock, flags);
- }
-@@ -743,8 +747,10 @@ static size_t account(struct entropy_sto
- 		else
- 			r->entropy_count = reserved;
- 
--		if (r->entropy_count < random_write_wakeup_thresh)
-+		if (r->entropy_count < random_write_wakeup_thresh) {
- 			wake_up_interruptible(&random_write_wait);
-+			kill_fasync(&fasync, SIGIO, POLL_OUT);
-+		}
- 	}
- 
- 	DEBUG_ENT("debiting %d entropy credits from %s%s\n",
-@@ -1101,17 +1107,31 @@ static long random_ioctl(struct file *f,
- 	}
- }
- 
-+static int random_fasync(int fd, struct file *filp, int on)
-+{
-+	return fasync_helper(fd, filp, on, &fasync);
-+}
++#ifdef CONFIG_DEBUG_LOCK_ALLOC
++/*
++ * macro to avoid include hell
++ */
++#define wake_up_nested(x, s)						\
++do {									\
++	unsigned long flags;						\
++									\
++	spin_lock_irqsave_nested(&(x)->lock, flags, (s));		\
++	wake_up_locked(x); 						\
++	spin_unlock_irqrestore(&(x)->lock, flags);			\
++} while (0)
++#else
++#define wake_up_nested(x, s)		wake_up(x)
++#endif
 +
-+static int random_release(struct inode *inode, struct file *filp)
-+{
-+	return fasync_helper(-1, filp, 0, &fasync);
-+}
-+
- const struct file_operations random_fops = {
- 	.read  = random_read,
- 	.write = random_write,
- 	.poll  = random_poll,
- 	.unlocked_ioctl = random_ioctl,
-+	.fasync = random_fasync,
-+	.release = random_release,
- };
- 
- const struct file_operations urandom_fops = {
- 	.read  = urandom_read,
- 	.write = random_write,
- 	.unlocked_ioctl = random_ioctl,
-+	.fasync = random_fasync,
-+	.release = random_release,
- };
- 
- /***************************************************************
+ #define __wait_event(wq, condition) 					\
+ do {									\
+ 	DEFINE_WAIT(__wait);						\
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
-git-kvm.patch
-git-x86.patch
-uml-arch-um-include-inith-needs-a-definition-of-__used.patch
-uml-implement-get_wchan.patch
-uml-implement-get_wchan-fix.patch
-uml-get-rid-of-asmlinkage.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-document-new-ubd-flag.patch
-uml-further-bugsc-tidying.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-uml-smp-needs-to-depend-on-broken-for-now.patch
-uml-console-driver-cleanups.patch
-uml-clonec-tidying.patch
-uml-borrow-consth-techniques.patch
-uml-delete-some-unused-headers.patch
-uml-allow-lflags-on-command-line.patch
-uml-tidy-kern_utilh.patch
-uml-tidy-pgtableh.patch
-uml-tidy-pgtableh-fix.patch
-uml-reconst-a-parameter.patch
-arch-um-remove-duplicate-includes.patch
-uml-host-tls-diagnostics.patch
-uml-move-um_virt_to_phys.patch
-uml-header-untangling.patch
-uml-header-untangling-fix.patch
-uml-style-cleanup.patch
-uml-currenth-cleanup.patch
-uml-fix-page-table-data-sizes.patch
-uml-add-virt_to_pte.patch
-uml-simplify-sigsegv-handling.patch
-uml-use-ptrace-directly-in-libc-code.patch
-uml-kill-processes-instead-of-panicing-kernel.patch
-uml-clean-up-task_size-usage.patch
-uml-cover-stubs-with-a-vma.patch
-uml-fix-command-line-cflags-and-ldflags-support.patch
-uml-style-fixes-in-arch-um-os-linux.patch
-uml-miscellaneous-code-cleanups.patch
-uml-style-fixes-in-filec.patch
-uml-64-bit-tlb-fixes.patch
-uml-customize-tlbh.patch
-uml-eliminate-setjmp_wrapper.patch
-uml-install-panic-notifier-earlier.patch
-uml-use-barrier-instead-of-mb.patch
-uml-tidy-helper-code.patch
-uml-dont-kill-pid-0.patch
-uml-get-rid-of-syscall-counters.patch
-uml-dont-allow-processes-to-call-into-stub.patch
-uml-move-sig_handler_common_skas.patch
-uml-clean-up-sig_handler_common_skas.patch
-uml-style-fixes-in-arch-um-kernel.patch
-uml-signal-handling-tidying.patch
-uml-remove-init_irq_signals.patch
-fix-__const_udelay-declaration-and-definition-mismatches.patch
-create-arch-kconfig.patch
-add-have_oprofile.patch
-add-have_kprobes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
-random-add-async-notification-support-to-dev-random.patch
+origin.patch
+lockdep-annotate-epoll.patch
+git-sched.patch
+slub-move-kmem_cache_node-determination-into-add_full-and-add_partial-slub-workaround-for-lockdep-confusion.patch
+swapin-needs-gfp_mask-for-loop-on-tmpfs.patch
+mm-page-writeback-highmem_is_dirtyable-option.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+skip-writing-data-pages-when-inode-is-under-i_sync.patch
+fix-dirty-page-accounting-leak-with-ext3-data=journal.patch
+kernel-add-mutex_lock_killable.patch
+vfs-use-mutex_lock_killable-in-vfs_readdir.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+memcgroup-reinstate-swapoff-mod.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
+memcgroup-fix-zone-isolation-oom.patch
+memcgroup-revert-swap_state-mods.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
+memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
+memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+memory-cgroup-enhancements-add-pre_destroy-handler.patch
+memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
