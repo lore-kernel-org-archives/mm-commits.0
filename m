@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pata_mpc52xx-remove-un-needed-assignment.patch added to -mm tree
-Date: Mon, 21 Jan 2008 19:00:27 -0800
-Message-ID: <200801220300.m0M307U3001084@imap1.linux-foundation.org>
+Subject: + x86-reboot-remove-inb_p-usage.patch added to -mm tree
+Date: Mon, 21 Jan 2008 19:00:20 -0800
+Message-ID: <200801220300.m0M300Il001050@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52363 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49541 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751953AbYAVDBG (ORCPT
+	by vger.kernel.org with ESMTP id S1752203AbYAVDBK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Jan 2008 22:01:06 -0500
+	Mon, 21 Jan 2008 22:01:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, jeff@garzik.org
+Cc: alan@lxorguk.ukuu.org.uk, ak@suse.de, alan@redhat.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     pata_mpc52xx: remove un-needed assignment
+     x86 reboot: Remove inb_p usage
 has been added to the -mm tree.  Its filename is
-     pata_mpc52xx-remove-un-needed-assignment.patch
+     x86-reboot-remove-inb_p-usage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pata_mpc52xx: remove un-needed assignment
+Subject: x86 reboot: Remove inb_p usage
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-ata_irq is always assigned so does not need to be initialised to zero.
+We are driving a motherboard port so use a 2uS explicit delay at this
+point.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_mpc52xx.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/kernel/reboot.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/pata_mpc52xx.c~pata_mpc52xx-remove-un-needed-assignment drivers/ata/pata_mpc52xx.c
---- a/drivers/ata/pata_mpc52xx.c~pata_mpc52xx-remove-un-needed-assignment
-+++ a/drivers/ata/pata_mpc52xx.c
-@@ -364,7 +364,7 @@ mpc52xx_ata_probe(struct of_device *op, 
+diff -puN arch/x86/kernel/reboot.c~x86-reboot-remove-inb_p-usage arch/x86/kernel/reboot.c
+--- a/arch/x86/kernel/reboot.c~x86-reboot-remove-inb_p-usage
++++ a/arch/x86/kernel/reboot.c
+@@ -319,9 +319,11 @@ static inline void kb_wait(void)
  {
- 	unsigned int ipb_freq;
- 	struct resource res_mem;
--	int ata_irq = NO_IRQ;
-+	int ata_irq;
- 	struct mpc52xx_ata __iomem *ata_regs;
- 	struct mpc52xx_ata_priv *priv;
- 	int rv;
+ 	int i;
+ 
+-	for (i = 0; i < 0x10000; i++)
+-		if ((inb_p(0x64) & 0x02) == 0)
++	for (i = 0; i < 0x10000; i++) {
++		if ((inb(0x64) & 0x02) == 0)
+ 			break;
++		udelay(2);
++	}
+ }
+ 
+ void machine_emergency_restart(void)
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
