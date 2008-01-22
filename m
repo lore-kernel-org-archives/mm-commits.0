@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-ohci-sm501-driver-v2-fix.patch added to -mm tree
-Date: Mon, 21 Jan 2008 21:05:50 -0800
-Message-ID: <200801220505.m0M55Ug3005686@imap1.linux-foundation.org>
+Subject: + usb-dma-bounce-buffer-support-v3.patch added to -mm tree
+Date: Mon, 21 Jan 2008 21:06:15 -0800
+Message-ID: <200801220505.m0M55t2O005691@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32814 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55342 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750935AbYAVFFk (ORCPT
+	by vger.kernel.org with ESMTP id S1751034AbYAVFGf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jan 2008 00:05:40 -0500
+	Tue, 22 Jan 2008 00:06:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, damm@igel.co.jp, greg@kroah.com, magnus.damm@gmail.com, stern@rowland.harvard.edu
+Cc: magnus.damm@gmail.com, damm@igel.co.jp, greg@kroah.com, stern@rowland.harvard.edu
 
 
 The patch titled
-     usb-ohci-sm501-driver-v2-fix
+     usb: dma bounce buffer support
 has been added to the -mm tree.  Its filename is
-     usb-ohci-sm501-driver-v2-fix.patch
+     usb-dma-bounce-buffer-support-v3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,323 +34,280 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb-ohci-sm501-driver-v2-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: usb: dma bounce buffer support
+From: Magnus Damm <magnus.damm@gmail.com>
 
-be conventional
+The sm501 usb host controller is a regular ohci implementation but with the
+exception that it can only do dma to a certain area of memory.  This memory is
+sm501 specific and the mfd driver for sm501 currently divides this memory
+between the framebuffer and the usb host controller.
 
-Cc: Alan Stern <stern@rowland.harvard.edu>
+To support the sm501 usb host controller we need to allocate all usb data from
+this sm501 memory.  The function dma_declare_coherent_memory() helps us with
+that - all dma_alloc_coherent() calls will end up allocating such memory.
+
+The USB core does however allocate data using kmalloc, so to fully support
+such a behaviour we need dma bounce buffer support.  These bounce buffers can
+be requested using the flag HCD_LOCAL_MEM.
+
+
+This patch:
+
+Add dma bounce buffer support to the usb core.  These buffers can be
+enabled with the HCD_LOCAL_MEM flag, and they make sure that all data
+passed to the host controller is allocated using dma_alloc_coherent().
+
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+Acked-by: Alan Stern <stern@rowland.harvard.edu>
 Cc: Greg KH <greg@kroah.com>
-Cc: Magnus Damm <damm@igel.co.jp>
-Cc: Magnus Damm <magnus.damm@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/ohci-sm501.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/usb/core/buffer.c |    9 +-
+ drivers/usb/core/hcd.c    |  134 ++++++++++++++++++++++++++++++------
+ drivers/usb/core/hcd.h    |    1 
+ 3 files changed, 122 insertions(+), 22 deletions(-)
 
-diff -puN drivers/usb/host/ohci-sm501.c~usb-ohci-sm501-driver-v2-fix drivers/usb/host/ohci-sm501.c
---- a/drivers/usb/host/ohci-sm501.c~usb-ohci-sm501-driver-v2-fix
-+++ a/drivers/usb/host/ohci-sm501.c
-@@ -242,6 +242,9 @@ static int ohci_sm501_resume(struct plat
- 	usb_hcd_resume_root_hub(platform_get_drvdata(pdev));
- 	return 0;
- }
-+#else
-+#define ohci_sm501_suspend NULL
-+#define ohci_sm501_resume NULL
- #endif
+diff -puN drivers/usb/core/buffer.c~usb-dma-bounce-buffer-support-v3 drivers/usb/core/buffer.c
+--- a/drivers/usb/core/buffer.c~usb-dma-bounce-buffer-support-v3
++++ a/drivers/usb/core/buffer.c
+@@ -53,7 +53,8 @@ int hcd_buffer_create(struct usb_hcd *hc
+ 	char		name[16];
+ 	int 		i, size;
  
- /*-------------------------------------------------------------------------*/
-@@ -253,10 +256,8 @@ static struct platform_driver ohci_hcd_s
- 	.probe		= ohci_hcd_sm501_drv_probe,
- 	.remove		= ohci_hcd_sm501_drv_remove,
- 	.shutdown	= usb_hcd_platform_shutdown,
--#ifdef	CONFIG_PM
- 	.suspend	= ohci_sm501_suspend,
- 	.resume		= ohci_sm501_resume,
--#endif
- 	.driver		= {
- 		.owner	= THIS_MODULE,
- 		.name	= "sm501-usb",
+-	if (!hcd->self.controller->dma_mask)
++	if (!hcd->self.controller->dma_mask &&
++	    !(hcd->driver->flags & HCD_LOCAL_MEM))
+ 		return 0;
+ 
+ 	for (i = 0; i < HCD_BUFFER_POOLS; i++) { 
+@@ -107,7 +108,8 @@ void *hcd_buffer_alloc(
+ 	int 			i;
+ 
+ 	/* some USB hosts just use PIO */
+-	if (!bus->controller->dma_mask) {
++	if (!bus->controller->dma_mask &&
++	    !(hcd->driver->flags & HCD_LOCAL_MEM)) {
+ 		*dma = ~(dma_addr_t) 0;
+ 		return kmalloc(size, mem_flags);
+ 	}
+@@ -132,7 +134,8 @@ void hcd_buffer_free(
+ 	if (!addr)
+ 		return;
+ 
+-	if (!bus->controller->dma_mask) {
++	if (!bus->controller->dma_mask &&
++	    !(hcd->driver->flags & HCD_LOCAL_MEM)) {
+ 		kfree(addr);
+ 		return;
+ 	}
+diff -puN drivers/usb/core/hcd.c~usb-dma-bounce-buffer-support-v3 drivers/usb/core/hcd.c
+--- a/drivers/usb/core/hcd.c~usb-dma-bounce-buffer-support-v3
++++ a/drivers/usb/core/hcd.c
+@@ -35,6 +35,7 @@
+ #include <linux/mutex.h>
+ #include <asm/irq.h>
+ #include <asm/byteorder.h>
++#include <asm/unaligned.h>
+ #include <linux/platform_device.h>
+ #include <linux/workqueue.h>
+ 
+@@ -1112,48 +1113,137 @@ void usb_hcd_unlink_urb_from_ep(struct u
+ }
+ EXPORT_SYMBOL_GPL(usb_hcd_unlink_urb_from_ep);
+ 
+-static void map_urb_for_dma(struct usb_hcd *hcd, struct urb *urb)
++static int hcd_alloc_coherent(struct usb_bus *bus,
++			      gfp_t mem_flags, dma_addr_t *dma_handle,
++			      void **vaddr_handle, size_t size,
++			      enum dma_data_direction dir)
+ {
++	unsigned char *vaddr;
++
++	vaddr = hcd_buffer_alloc(bus, size + sizeof(vaddr),
++				 mem_flags, dma_handle);
++	if (!vaddr)
++		return -ENOMEM;
++
++	put_unaligned((unsigned long)*vaddr_handle,
++		      (unsigned long *)(vaddr + size));
++
++	if (dir == DMA_TO_DEVICE)
++		memcpy(vaddr, *vaddr_handle, size);
++
++	*vaddr_handle = vaddr;
++	return 0;
++}
++
++static void hcd_free_coherent(struct usb_bus *bus, dma_addr_t *dma_handle,
++			      void **vaddr_handle, size_t size,
++			      enum dma_data_direction dir)
++{
++	unsigned char *vaddr = *vaddr_handle;
++
++	vaddr = (void *)get_unaligned((unsigned long *)(vaddr + size));
++
++	if (dir == DMA_FROM_DEVICE)
++		memcpy(vaddr, *vaddr_handle, size);
++
++	hcd_buffer_free(bus, size + sizeof(vaddr), *vaddr_handle, *dma_handle);
++
++	*vaddr_handle = vaddr;
++	*dma_handle = 0;
++}
++
++static int map_urb_for_dma(struct usb_hcd *hcd, struct urb *urb,
++			   gfp_t mem_flags)
++{
++	enum dma_data_direction dir;
++	int ret = 0;
++
+ 	/* Map the URB's buffers for DMA access.
+ 	 * Lower level HCD code should use *_dma exclusively,
+ 	 * unless it uses pio or talks to another transport.
+ 	 */
+-	if (hcd->self.uses_dma && !is_root_hub(urb->dev)) {
+-		if (usb_endpoint_xfer_control(&urb->ep->desc)
+-			&& !(urb->transfer_flags & URB_NO_SETUP_DMA_MAP))
+-			urb->setup_dma = dma_map_single (
++	if (is_root_hub(urb->dev))
++		return 0;
++
++	if (usb_endpoint_xfer_control(&urb->ep->desc)
++	    && !(urb->transfer_flags & URB_NO_SETUP_DMA_MAP)) {
++		if (hcd->self.uses_dma)
++			urb->setup_dma = dma_map_single(
+ 					hcd->self.controller,
+ 					urb->setup_packet,
+ 					sizeof (struct usb_ctrlrequest),
+ 					DMA_TO_DEVICE);
+-		if (urb->transfer_buffer_length != 0
+-			&& !(urb->transfer_flags & URB_NO_TRANSFER_DMA_MAP))
++		else if (hcd->driver->flags & HCD_LOCAL_MEM)
++			ret = hcd_alloc_coherent(
++					urb->dev->bus, mem_flags,
++					&urb->setup_dma,
++					(void **)&urb->setup_packet,
++					sizeof (struct usb_ctrlrequest),
++					DMA_TO_DEVICE);
++	}
++
++	dir = usb_urb_dir_in(urb) ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
++	if (ret == 0 && urb->transfer_buffer_length != 0
++	    && !(urb->transfer_flags & URB_NO_TRANSFER_DMA_MAP)) {
++		if (hcd->self.uses_dma)
+ 			urb->transfer_dma = dma_map_single (
+ 					hcd->self.controller,
+ 					urb->transfer_buffer,
+ 					urb->transfer_buffer_length,
+-					usb_urb_dir_in(urb)
+-					    ? DMA_FROM_DEVICE
+-					    : DMA_TO_DEVICE);
++					dir);
++		else if (hcd->driver->flags & HCD_LOCAL_MEM) {
++			ret = hcd_alloc_coherent(
++					urb->dev->bus, mem_flags,
++					&urb->transfer_dma,
++					&urb->transfer_buffer,
++					urb->transfer_buffer_length,
++					dir);
++
++			if (ret && usb_endpoint_xfer_control(&urb->ep->desc)
++			    && !(urb->transfer_flags & URB_NO_SETUP_DMA_MAP))
++				hcd_free_coherent(urb->dev->bus,
++					&urb->setup_dma,
++					(void **)&urb->setup_packet,
++					sizeof (struct usb_ctrlrequest),
++					DMA_TO_DEVICE);
++		}
+ 	}
++	return ret;
+ }
+ 
+ static void unmap_urb_for_dma(struct usb_hcd *hcd, struct urb *urb)
+ {
+-	if (hcd->self.uses_dma && !is_root_hub(urb->dev)) {
+-		if (usb_endpoint_xfer_control(&urb->ep->desc)
+-			&& !(urb->transfer_flags & URB_NO_SETUP_DMA_MAP))
++	enum dma_data_direction dir;
++
++	if (is_root_hub(urb->dev))
++		return;
++
++	if (usb_endpoint_xfer_control(&urb->ep->desc)
++	    && !(urb->transfer_flags & URB_NO_SETUP_DMA_MAP)) {
++		if (hcd->self.uses_dma)
+ 			dma_unmap_single(hcd->self.controller, urb->setup_dma,
+ 					sizeof(struct usb_ctrlrequest),
+ 					DMA_TO_DEVICE);
+-		if (urb->transfer_buffer_length != 0
+-			&& !(urb->transfer_flags & URB_NO_TRANSFER_DMA_MAP))
++		else if (hcd->driver->flags & HCD_LOCAL_MEM)
++			hcd_free_coherent(urb->dev->bus, &urb->setup_dma,
++					(void **)&urb->setup_packet,
++					sizeof (struct usb_ctrlrequest),
++					DMA_TO_DEVICE);
++	}
++
++	dir = usb_urb_dir_in(urb) ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
++	if (urb->transfer_buffer_length != 0
++	    && !(urb->transfer_flags & URB_NO_TRANSFER_DMA_MAP)) {
++		if (hcd->self.uses_dma)
+ 			dma_unmap_single(hcd->self.controller,
+ 					urb->transfer_dma,
+ 					urb->transfer_buffer_length,
+-					usb_urb_dir_in(urb)
+-					    ? DMA_FROM_DEVICE
+-					    : DMA_TO_DEVICE);
++					dir);
++		else if (hcd->driver->flags & HCD_LOCAL_MEM)
++			hcd_free_coherent(urb->dev->bus, &urb->transfer_dma,
++					&urb->transfer_buffer,
++					urb->transfer_buffer_length,
++					dir);
+ 	}
+ }
+ 
+@@ -1185,7 +1275,12 @@ int usb_hcd_submit_urb (struct urb *urb,
+ 	 * URBs must be submitted in process context with interrupts
+ 	 * enabled.
+ 	 */
+-	map_urb_for_dma(hcd, urb);
++	status = map_urb_for_dma(hcd, urb, mem_flags);
++	if (unlikely(status)) {
++		usbmon_urb_submit_error(&hcd->self, urb, status);
++		goto error;
++	}
++
+ 	if (is_root_hub(urb->dev))
+ 		status = rh_urb_enqueue(hcd, urb);
+ 	else
+@@ -1194,6 +1289,7 @@ int usb_hcd_submit_urb (struct urb *urb,
+ 	if (unlikely(status)) {
+ 		usbmon_urb_submit_error(&hcd->self, urb, status);
+ 		unmap_urb_for_dma(hcd, urb);
++ error:
+ 		urb->hcpriv = NULL;
+ 		INIT_LIST_HEAD(&urb->urb_list);
+ 		atomic_dec(&urb->use_count);
+diff -puN drivers/usb/core/hcd.h~usb-dma-bounce-buffer-support-v3 drivers/usb/core/hcd.h
+--- a/drivers/usb/core/hcd.h~usb-dma-bounce-buffer-support-v3
++++ a/drivers/usb/core/hcd.h
+@@ -165,6 +165,7 @@ struct hc_driver {
+ 
+ 	int	flags;
+ #define	HCD_MEMORY	0x0001		/* HC regs use memory (else I/O) */
++#define	HCD_LOCAL_MEM	0x0002		/* HC needs dma_alloc_coherent() */
+ #define	HCD_USB11	0x0010		/* USB 1.1 */
+ #define	HCD_USB2	0x0020		/* USB 2.0 */
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from magnus.damm@gmail.com are
 
-origin.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes.patch
-timerfd-v3-new-timerfd-api-ia64-fix.patch
-timerfd-v3-new-timerfd-api-m68k-fix.patch
-timerfd-v3-new-timerfd-api-mips-fix.patch
-timerfd-v3-new-timerfd-api-arch-fixes.patch
-timerfd-v3-new-timerfd-api-powerpc-fix.patch
-timerfd-v3-new-timerfd-api-sparc64-fix.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-ignore-acpi-video-devices-that-arent-present-in-hardware-checkpatch-fixes.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-alsa-disable-sound-pci-ice1712-ice1724c.patch
-git-agpgart.patch
-git-agpgart-intel-agp-dont-zero-an-already-registered-resource-during-resume.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-intel_agp-add-new-chipset-ids-checkpatch-fixes.patch
-git-arm.patch
-git-audit-master.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-git-cpufreq.patch
-cpufreq-revert-get-core-affinity-from-acpi_processor_preregister_performance.patch
-revert-agk-dm-dm-loop.patch
-git-powerpc.patch
-git-powerpc-fixup.patch
-include-asm-powerpc-nvramh-needs-listh.patch
-include-asm-powerpc-nvramh-needs-listh-fix.patch
-revert-gregkh-driver-atm-convert-struct-class_device-to-struct-device.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-intel-agp-enable-i915-recognition.patch
-drm-convert-from-nopage-to-fault-checkpatch-fixes.patch
-git-dvb.patch
-drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
-fix-jdelvare-i2c-i2c-constify-client-address-data.patch
-adt7473-new-driver-for-analog-devices-adt7473-sensor-chip-fix.patch
-hwmon-new-chip-driver-for-ti-ads7828-a-d.patch
-hwmon-new-chip-driver-for-ti-ads7828-a-d-checkpatch-fixes.patch
-git-hid.patch
-revert-git-hrt.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-versus-driver-tree.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-git-kbuild.patch
-git-kvm.patch
-git-libata-all.patch
-git-libata-all-fix-drivers-ata-sata_fslc.patch
-fix-ide-mm-ide-use-ide_destroy_dmatable-instead-of-pci_unmap_sg.patch
-drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
-drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
-git-md-accel.patch
-memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
-git-mmc.patch
-git-mtd.patch
-drivers-mtd-ubi-wlc-fix-uninitialized-var-warning.patch
-drivers-mtd-ubi-scanc-fix-uninitialized-var-warning.patch
-drivers-mtd-ubi-cdevc-unused-var.patch
-git-net.patch
-git-net-fix-conflicts.patch
-git-net-vs-git-lblnet.patch
-git-net-vs-git-lblnet-2.patch
-git-net-fix-more-conflicts.patch
-git-netdev-all-fix-conflicts.patch
-git-netdev-all-fix-conflicts-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-backlight.patch
-git-battery.patch
-bluetooth-uninlining.patch
-net-sunrpc-schedc-revert-git-net-changes.patch
-net-sunrpc-schedc-reapply-git-net-changes.patch
-git-selinux-vs-git-lblnet.patch
-serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
-revert-gregkh-pci-pci-use-dev_printk-in-x86-quirk-messages.patch
-fix-gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
-x86-validate-against-acpi-motherboard-resources.patch
-git-sched.patch
-git-sched-fixup.patch
-git-sh.patch
-git-scsi-misc.patch
-git-scsi-misc-vs-git-net.patch
-git-scsi-misc-vs-gregkh-pci-pci-remove-users-of-pci_enable_device_bars.patch
-scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes.patch
-scsi-aic94xx-cleanups-checkpatch-fixes.patch
-scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
-drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-fix-gregkh-usb-usb-ti_usb-termios-cleanups.patch
-ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-dma-bounce-buffer-support-v3.patch
 usb-dma-bounce-buffer-support-v3-checkpatch-fixes.patch
+usb-ohci-sm501-driver-v2.patch
 usb-ohci-sm501-driver-v2-fix.patch
-9p-util-fix-semaphore-handling.patch
-git-watchdog.patch
-git-watchdog-fixup.patch
-drivers-net-wireless-iwlwifi-iwl-3945c-fix-printk-warning.patch
-drivers-net-wireless-iwlwifi-iwl-4965c-fix-printk-warning.patch
-drivers-net-wireless-rt2x00-rt2x00usbc-fix-uninitialized-var-warning.patch
-git-ipwireless_cs.patch
-revert-kvm-stuff-to-make-git-x86-apply.patch
-git-x86.patch
-git-x86-fixup.patch
-git-x86-fixup-2.patch
-git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
-git-x86-fix-doubly-merged-patch.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
-x86-mmconf-enable-mcfg-early-cleanup.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-git-xtensa.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-add-proc-kpagecount-interface-fix.patch
-maps4-add-proc-kpageflags-interface-fix.patch
-maps4-add-proc-kpageflags-interface-fix-2-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-mm-remove-fastcall-from-mm-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-address-hfs-on-disk-corruption-robustness-review-comments.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
-kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
-stopmachine-semaphore-to-mutex-fix.patch
-parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
-debug_smp_processor_id-fixlets.patch
-use-ilog2-in-fs-namespacec-fix.patch
-export-iov_shorten-for-ext4s-use-fix.patch
-system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
-speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
-add-have_oprofile.patch
-drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
-ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-neofb-avoid-overwriting-fb_info-fields.patch
-vermilionc-use-align-not-__align_mask.patch
-declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
-ext4-mm-ext4_store_maxbytes_for_bitmaped_files-warning-fix.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
-hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
-cpusets-update_cpumask-revision-fix.patch
-cpusets-update_cpumask-revision-checkpatch-fixes.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
-proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-modules-make-module_address_lookup-safe-fix.patch
-pid-sys_wait-fixes-v2-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-rewrite-rd-fixes.patch
-fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
-kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
-lib-remove-fastcall-from-lib-checkpatch-fixes.patch
-remove-fastcall-from-linux-include-checkpatch-fixes.patch
-constify-tables-in-kernel-sysctl_checkc-fix.patch
-aoe-statically-initialise-devlist_lock.patch
-xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
-ufs-fix-symlink-creation-on-ufs2-fix.patch
-libfs-allow-error-return-from-simple-attributes-fix.patch
-fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
-fs-afs-securityc-fix-uninitialized-var-warning.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+sm501fb-control-panel-pin-usage-with-platform-data-flags.patch
+sm501fb-clear-framebuffer-memory-and-palette.patch
