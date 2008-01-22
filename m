@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + random-simplify-and-rename-credit_entropy_store.patch added to -mm tree
-Date: Tue, 22 Jan 2008 01:33:28 -0800
-Message-ID: <200801220933.m0M9X8dD014462@imap1.linux-foundation.org>
+Subject: + pnp-disable-supermicro-h8dce-motherboard-resources-that-overlap-sata-bars.patch added to -mm tree
+Date: Tue, 22 Jan 2008 01:42:31 -0800
+Message-ID: <200801220942.m0M9gB4d014767@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38255 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36769 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756461AbYAVJdw (ORCPT
+	by vger.kernel.org with ESMTP id S1755052AbYAVJmX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jan 2008 04:33:52 -0500
+	Tue, 22 Jan 2008 04:42:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mpm@selenic.com, tytso@mit.edu
+Cc: bjorn.helgaas@hp.com
 
 
 The patch titled
-     random: simplify and rename credit_entropy_store
+     PNP: disable Supermicro H8DCE motherboard resources that overlap SATA BARs
 has been added to the -mm tree.  Its filename is
-     random-simplify-and-rename-credit_entropy_store.patch
+     pnp-disable-supermicro-h8dce-motherboard-resources-that-overlap-sata-bars.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,140 +34,127 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: random: simplify and rename credit_entropy_store
-From: Matt Mackall <mpm@selenic.com>
+Subject: PNP: disable Supermicro H8DCE motherboard resources that overlap SATA BARs
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-- emphasize bits in the name
-- make zero bits lock-free
-- simplify logic
+Some Supermicro BIOSes describe a SATA PCI BAR as a motherboard resource. 
+The PNP system driver claims motherboard resources, and this prevents the
+sata_nv driver from requesting it later.
 
-Signed-off-by: Matt Mackall <mpm@selenic.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
+This patch disables the PNP0C01/PNP0C02 resources so they won't be claimed
+by the PNP system driver, so they'll available for sata_nv.
+
+This fixes the bugs below, where sata_nv detects only two out of four SATA
+drives.  The signature includes dmesg lines similar to these:
+
+  pnp: 00:09: iomem range 0xdfefc000-0xdfefcfff has been reserved
+  pnp: 00:09: iomem range 0xdfefd000-0xdfefd3ff has been reserved
+  pnp: 00:09: iomem range 0xdfefe000-0xdfefe3ff has been reserved
+
+  PCI: Unable to reserve mem region #6:1000@dfefd000 for device 0000:80:07.0
+  sata_nv: probe of 0000:80:07.0 failed with error -16
+  PCI: Unable to reserve mem region #6:1000@dfefe000 for device 0000:80:08.0
+  sata_nv: probe of 0000:80:08.0 failed with error -16
+
+References:
+    https://bugzilla.redhat.com/show_bug.cgi?id=280641
+    https://bugzilla.redhat.com/show_bug.cgi?id=313491
+    http://lkml.org/lkml/2008/1/9/449
+    http://thread.gmane.org/gmane.linux.acpi.devel/27312
+
+This is post-2.6.24 material.
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/random.c |   32 +++++++++++++++-----------------
- 1 file changed, 15 insertions(+), 17 deletions(-)
+ drivers/pnp/quirks.c |   43 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
 
-diff -puN drivers/char/random.c~random-simplify-and-rename-credit_entropy_store drivers/char/random.c
---- a/drivers/char/random.c~random-simplify-and-rename-credit_entropy_store
-+++ a/drivers/char/random.c
-@@ -441,7 +441,7 @@ static struct entropy_store nonblocking_
- /*
-  * This function adds bytes into the entropy "pool".  It does not
-  * update the entropy estimate.  The caller should call
-- * credit_entropy_store if this is appropriate.
-+ * credit_entropy_bits if this is appropriate.
-  *
-  * The pool is stirred with a primitive polynomial of the appropriate
-  * degree, and then twisted.  We twist by three bits at a time because
-@@ -515,24 +515,22 @@ static void mix_pool_bytes(struct entrop
- /*
-  * Credit (or debit) the entropy store with n bits of entropy
-  */
--static void credit_entropy_store(struct entropy_store *r, int nbits)
-+static void credit_entropy_bits(struct entropy_store *r, int nbits)
- {
- 	unsigned long flags;
+diff -puN drivers/pnp/quirks.c~pnp-disable-supermicro-h8dce-motherboard-resources-that-overlap-sata-bars drivers/pnp/quirks.c
+--- a/drivers/pnp/quirks.c~pnp-disable-supermicro-h8dce-motherboard-resources-that-overlap-sata-bars
++++ a/drivers/pnp/quirks.c
+@@ -17,6 +17,7 @@
+ #include <linux/slab.h>
+ #include <linux/pnp.h>
+ #include <linux/io.h>
++#include <linux/dmi.h>
+ #include <linux/kallsyms.h>
+ #include "base.h"
  
-+	if (!nbits)
-+		return;
-+
- 	spin_lock_irqsave(&r->lock, flags);
- 
--	if (r->entropy_count + nbits < 0) {
--		DEBUG_ENT("negative entropy/overflow (%d+%d)\n",
--			  r->entropy_count, nbits);
-+	DEBUG_ENT("added %d entropy credits to %s\n", nbits, r->name);
-+	r->entropy_count += nbits;
-+	if (r->entropy_count < 0) {
-+		DEBUG_ENT("negative entropy/overflow\n");
- 		r->entropy_count = 0;
--	} else if (r->entropy_count + nbits > r->poolinfo->POOLBITS) {
-+	} else if (r->entropy_count > r->poolinfo->POOLBITS)
- 		r->entropy_count = r->poolinfo->POOLBITS;
--	} else {
--		r->entropy_count += nbits;
--		if (nbits)
--			DEBUG_ENT("added %d entropy credits to %s\n",
--				  nbits, r->name);
--	}
- 
- 	/* should we wake readers? */
- 	if (r == &input_pool && r->entropy_count >= random_read_wakeup_thresh)
-@@ -619,8 +617,8 @@ static void add_timer_randomness(struct 
- 		 * Round down by 1 bit on general principles,
- 		 * and limit entropy entimate to 12 bits.
- 		 */
--		credit_entropy_store(&input_pool,
--				     min_t(int, fls(delta>>1), 11));
-+		credit_entropy_bits(&input_pool,
-+				    min_t(int, fls(delta>>1), 11));
- 	}
- out:
- 	preempt_enable();
-@@ -703,7 +701,7 @@ static void xfer_secondary_pool(struct e
- 		bytes = extract_entropy(r->pull, tmp, bytes,
- 					random_read_wakeup_thresh / 8, rsvd);
- 		mix_pool_bytes(r, tmp, bytes);
--		credit_entropy_store(r, bytes*8);
-+		credit_entropy_bits(r, bytes*8);
- 	}
+@@ -108,6 +109,46 @@ static void quirk_sb16audio_resources(st
+ 		       "pnp: SB audio device quirk - increasing port range\n");
  }
  
-@@ -1074,7 +1072,7 @@ static long random_ioctl(struct file *f,
- 			return -EPERM;
- 		if (get_user(ent_count, p))
- 			return -EFAULT;
--		credit_entropy_store(&input_pool, ent_count);
-+		credit_entropy_bits(&input_pool, ent_count);
- 		return 0;
- 	case RNDADDENTROPY:
- 		if (!capable(CAP_SYS_ADMIN))
-@@ -1089,7 +1087,7 @@ static long random_ioctl(struct file *f,
- 				    size);
- 		if (retval < 0)
- 			return retval;
--		credit_entropy_store(&input_pool, ent_count);
-+		credit_entropy_bits(&input_pool, ent_count);
- 		return 0;
- 	case RNDZAPENTCNT:
- 	case RNDCLEARPOOL:
++static void quirk_supermicro_h8dce_system(struct pnp_dev *dev)
++{
++	int i;
++	static struct dmi_system_id supermicro_h8dce[] = {
++		{
++			.ident = "Supermicro H8DCE",
++			.matches = {
++				DMI_MATCH(DMI_SYS_VENDOR, "Supermicro"),
++				DMI_MATCH(DMI_PRODUCT_NAME, "H8DCE"),
++			},
++		},
++		{ }
++	};
++
++	if (!dmi_check_system(supermicro_h8dce))
++		return;
++
++	/*
++	 * On the Supermicro H8DCE, there's a system device with resources
++	 * that overlap BAR 6 of the built-in SATA PCI adapter.  If the PNP
++	 * system device claims them, the sata_nv driver won't be able to.
++	 * More details at:
++	 *     https://bugzilla.redhat.com/show_bug.cgi?id=280641
++	 *     https://bugzilla.redhat.com/show_bug.cgi?id=313491
++	 *     http://lkml.org/lkml/2008/1/9/449
++	 *     http://thread.gmane.org/gmane.linux.acpi.devel/27312
++	 */
++	for (i = 0; i < PNP_MAX_MEM; i++) {
++		if (pnp_mem_valid(dev, i) && pnp_mem_len(dev, i) &&
++		    (pnp_mem_start(dev, i) & 0xdfef0000) == 0xdfef0000) {
++			dev_warn(&dev->dev, "disabling 0x%llx-0x%llx to prevent"
++				" conflict with sata_nv PCI device\n",
++				(unsigned long long) pnp_mem_start(dev, i),
++				(unsigned long long) (pnp_mem_start(dev, i) +
++					pnp_mem_len(dev, i) - 1));
++			pnp_mem_flags(dev, i) = 0;
++		}
++	}
++}
++
+ /*
+  *  PnP Quirks
+  *  Cards or devices that need some tweaking due to incomplete resource info
+@@ -128,6 +169,8 @@ static struct pnp_fixup pnp_fixups[] = {
+ 	{"CTL0043", quirk_sb16audio_resources},
+ 	{"CTL0044", quirk_sb16audio_resources},
+ 	{"CTL0045", quirk_sb16audio_resources},
++	{"PNP0c01", quirk_supermicro_h8dce_system},
++	{"PNP0c02", quirk_supermicro_h8dce_system},
+ 	{""}
+ };
+ 
 _
 
-Patches currently in -mm which might be from mpm@selenic.com are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
-git-x86.patch
-maps4-add-proportional-set-size-accounting-in-smaps.patch
-maps4-rework-task_size-macros.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-move-is_swap_pte.patch
-maps4-introduce-a-generic-page-walker.patch
-maps4-use-pagewalker-in-clear_refs-and-smaps.patch
-maps4-simplify-interdependence-of-maps-and-smaps.patch
-maps4-move-clear_refs-code-to-task_mmuc.patch
-maps4-regroup-task_mmu-by-interface.patch
-maps4-add-proc-pid-pagemap-interface.patch
-maps4-add-proc-pid-pagemap-interface-fix.patch
-maps4-add-proc-kpagecount-interface.patch
-maps4-add-proc-kpagecount-interface-fix.patch
-maps4-add-proc-kpageflags-interface.patch
-maps4-add-proc-kpageflags-interface-fix.patch
-maps4-add-proc-kpageflags-interface-fix-2.patch
-maps4-add-proc-kpageflags-interface-fix-2-fix.patch
-maps4-make-page-monitoring-proc-file-optional.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-remove-unused-code-from-mm-tiny-shmemc.patch
-drivers-char-randomcwrite_pool-cond_resched-needed.patch
-random-clean-up-checkpatch-complaints.patch
-random-consolidate-wakeup-logic.patch
-random-use-unlocked_ioctl.patch
-random-reuse-rand_initialize.patch
-random-improve-variable-naming-clear-extract-buffer.patch
-random-make-backtracking-attacks-harder.patch
-random-remove-cacheline-alignment-for-locks.patch
-random-eliminate-redundant-new_rotate-variable.patch
-random-remove-some-prefetch-logic.patch
-random-simplify-add_ptr-logic.patch
-random-make-mixing-interface-byte-oriented.patch
-random-simplify-and-rename-credit_entropy_store.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+export-acpi_check_resource_conflict.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+parport_serial-netmos-9855-fix.patch
+rtc-cmos-exports-nvram-in-sysfs.patch
+pnp-simplify-pnp_activate_dev-and-pnp_disable_dev-return-values.patch
+declare-pnp-option-parsing-functions-as-__init.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+pnp-do-not-test-pnp_driver_res_do_not_change-on-suspend-resume.patch
+pnp-disable-supermicro-h8dce-motherboard-resources-that-overlap-sata-bars.patch
+dont-touch-fs_struct-in-drivers.patch
