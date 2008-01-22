@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + random-use-unlocked_ioctl.patch added to -mm tree
-Date: Tue, 22 Jan 2008 01:33:15 -0800
-Message-ID: <200801220932.m0M9Wtgv014420@imap1.linux-foundation.org>
+Subject: + random-improve-variable-naming-clear-extract-buffer.patch added to -mm tree
+Date: Tue, 22 Jan 2008 01:33:17 -0800
+Message-ID: <200801220932.m0M9Wwh1014427@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50703 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35011 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755671AbYAVJde (ORCPT
+	by vger.kernel.org with ESMTP id S1755942AbYAVJdm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jan 2008 04:33:34 -0500
+	Tue, 22 Jan 2008 04:33:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mpm@selenic.com, tytso@mit.edu
 
 
 The patch titled
-     random: use unlocked_ioctl
+     random: improve variable naming, clear extract buffer
 has been added to the -mm tree.  Its filename is
-     random-use-unlocked_ioctl.patch
+     random-improve-variable-naming-clear-extract-buffer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: random: use unlocked_ioctl
+Subject: random: improve variable naming, clear extract buffer
 From: Matt Mackall <mpm@selenic.com>
 
-No locking actually needed.
+- split the SHA variables apart into hash and workspace
+- rename data to extract
+- wipe extract and workspace after hashing
 
 Signed-off-by: Matt Mackall <mpm@selenic.com>
 Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/random.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ drivers/char/random.c |   24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
-diff -puN drivers/char/random.c~random-use-unlocked_ioctl drivers/char/random.c
---- a/drivers/char/random.c~random-use-unlocked_ioctl
+diff -puN drivers/char/random.c~random-improve-variable-naming-clear-extract-buffer drivers/char/random.c
+--- a/drivers/char/random.c~random-improve-variable-naming-clear-extract-buffer
 +++ a/drivers/char/random.c
-@@ -1063,8 +1063,7 @@ static ssize_t random_write(struct file 
- 	return (ssize_t)count;
+@@ -766,9 +766,9 @@ static size_t account(struct entropy_sto
+ static void extract_buf(struct entropy_store *r, __u8 *out)
+ {
+ 	int i;
+-	__u32 data[16], buf[5 + SHA_WORKSPACE_WORDS];
++	__u32 extract[16], hash[5], workspace[SHA_WORKSPACE_WORDS];
+ 
+-	sha_init(buf);
++	sha_init(hash);
+ 	/*
+ 	 * As we hash the pool, we mix intermediate values of
+ 	 * the hash back into the pool.  This eliminates
+@@ -779,9 +779,9 @@ static void extract_buf(struct entropy_s
+ 	 */
+ 	for (i = 0; i < r->poolinfo->poolwords; i += 16) {
+ 		/* hash blocks of 16 words = 512 bits */
+-		sha_transform(buf, (__u8 *)(r->pool + i), buf + 5);
++		sha_transform(hash, (__u8 *)(r->pool + i), workspace);
+ 		/* feed back portion of the resulting hash */
+-		add_entropy_words(r, &buf[i % 5], 1);
++		add_entropy_words(r, &hash[i % 5], 1);
+ 	}
+ 
+ 	/*
+@@ -789,19 +789,21 @@ static void extract_buf(struct entropy_s
+ 	 * portion of the pool while mixing, and hash one
+ 	 * final time.
+ 	 */
+-	__add_entropy_words(r, &buf[i % 5], 1, data);
+-	sha_transform(buf, (__u8 *)data, buf + 5);
++	__add_entropy_words(r, &hash[i % 5], 1, extract);
++	sha_transform(hash, (__u8 *)extract, workspace);
++	memset(extract, 0, sizeof(extract));
++	memset(workspace, 0, sizeof(workspace));
+ 
+ 	/*
+ 	 * In case the hash function has some recognizable
+ 	 * output pattern, we fold it in half.
+ 	 */
+ 
+-	buf[0] ^= buf[3];
+-	buf[1] ^= buf[4];
+-	buf[2] ^= rol32(buf[2], 16);
+-	memcpy(out, buf, EXTRACT_SIZE);
+-	memset(buf, 0, sizeof(buf));
++	hash[0] ^= hash[3];
++	hash[1] ^= hash[4];
++	hash[2] ^= rol32(hash[2], 16);
++	memcpy(out, hash, EXTRACT_SIZE);
++	memset(hash, 0, sizeof(hash));
  }
  
--static int random_ioctl(struct inode *inode, struct file *file,
--			unsigned int cmd, unsigned long arg)
-+static long random_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
- {
- 	int size, ent_count;
- 	int __user *p = (int __user *)arg;
-@@ -1072,8 +1071,8 @@ static int random_ioctl(struct inode *in
- 
- 	switch (cmd) {
- 	case RNDGETENTCNT:
--		ent_count = input_pool.entropy_count;
--		if (put_user(ent_count, p))
-+		/* inherently racy, no point locking */
-+		if (put_user(input_pool.entropy_count, p))
- 			return -EFAULT;
- 		return 0;
- 	case RNDADDTOENTCNT:
-@@ -1116,13 +1115,13 @@ const struct file_operations random_fops
- 	.read  = random_read,
- 	.write = random_write,
- 	.poll  = random_poll,
--	.ioctl = random_ioctl,
-+	.unlocked_ioctl = random_ioctl,
- };
- 
- const struct file_operations urandom_fops = {
- 	.read  = urandom_read,
- 	.write = random_write,
--	.ioctl = random_ioctl,
-+	.unlocked_ioctl = random_ioctl,
- };
- 
- /***************************************************************
+ static ssize_t extract_entropy(struct entropy_store *r, void *buf,
 _
 
 Patches currently in -mm which might be from mpm@selenic.com are
