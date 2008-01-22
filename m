@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + document-about-lowmem_reserve_ratio.patch added to -mm tree
-Date: Tue, 22 Jan 2008 01:25:56 -0800
-Message-ID: <200801220925.m0M9PaE8014236@imap1.linux-foundation.org>
+Subject: + random-remove-cacheline-alignment-for-locks.patch added to -mm tree
+Date: Tue, 22 Jan 2008 01:33:21 -0800
+Message-ID: <200801220933.m0M9X1JJ014444@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45878 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48648 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756222AbYAVJ0S (ORCPT
+	by vger.kernel.org with ESMTP id S1752766AbYAVJdP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jan 2008 04:26:18 -0500
+	Tue, 22 Jan 2008 04:33:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: y-goto@jp.fujitsu.com, andrea@cpushare.com
+Cc: mpm@selenic.com, tytso@mit.edu
 
 
 The patch titled
-     Document lowmem_reserve_ratio
+     random: remove cacheline alignment for locks
 has been added to the -mm tree.  Its filename is
-     document-about-lowmem_reserve_ratio.patch
+     random-remove-cacheline-alignment-for-locks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,122 +34,76 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Document lowmem_reserve_ratio
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: random: remove cacheline alignment for locks
+From: Matt Mackall <mpm@selenic.com>
 
-Though the lower_zone_protection was changed to lowmem_reserve_ratio, the
-document has been not changed.  The lowmem_reserve_ratio seems quite hard
-to estimate, but there is no guidance.  This patch is to change document
-for it.
+Earlier changes greatly reduce the number of times we grab the lock
+per output byte, so we shouldn't need this particular hack any more.
 
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Andrea Arcangeli <andrea@cpushare.com>
+Signed-off-by: Matt Mackall <mpm@selenic.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |   76 +++++++++++++++++++++------
- 1 file changed, 61 insertions(+), 15 deletions(-)
+ drivers/char/random.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~document-about-lowmem_reserve_ratio Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~document-about-lowmem_reserve_ratio
-+++ a/Documentation/filesystems/proc.txt
-@@ -1304,7 +1304,7 @@ legacy_va_layout
- If non-zero, this sysctl disables the new 32-bit mmap mmap layout - the kernel
- will use the legacy (2.4) layout for all processes.
+diff -puN drivers/char/random.c~random-remove-cacheline-alignment-for-locks drivers/char/random.c
+--- a/drivers/char/random.c~random-remove-cacheline-alignment-for-locks
++++ a/drivers/char/random.c
+@@ -395,7 +395,7 @@ module_param(debug, bool, 0644);
  
--lower_zone_protection
-+lowmem_reserve_ratio
- ---------------------
+ struct entropy_store;
+ struct entropy_store {
+-	/* mostly-read data: */
++	/* read-only data: */
+ 	struct poolinfo *poolinfo;
+ 	__u32 *pool;
+ 	const char *name;
+@@ -403,7 +403,7 @@ struct entropy_store {
+ 	struct entropy_store *pull;
  
- For some specialised workloads on highmem machines it is dangerous for
-@@ -1324,25 +1324,71 @@ captured into pinned user memory.
- mechanism will also defend that region from allocations which could use
- highmem or lowmem).
- 
--The `lower_zone_protection' tunable determines how aggressive the kernel is
--in defending these lower zones.  The default value is zero - no
--protection at all.
-+The `lowmem_reserve_ratio' tunable determines how aggressive the kernel is
-+in defending these lower zones.
- 
- If you have a machine which uses highmem or ISA DMA and your
- applications are using mlock(), or if you are running with no swap then
--you probably should increase the lower_zone_protection setting.
-+you probably should change the lowmem_reserve_ratio setting.
- 
--The units of this tunable are fairly vague.  It is approximately equal
--to "megabytes," so setting lower_zone_protection=100 will protect around 100
--megabytes of the lowmem zone from user allocations.  It will also make
--those 100 megabytes unavailable for use by applications and by
--pagecache, so there is a cost.
--
--The effects of this tunable may be observed by monitoring
--/proc/meminfo:LowFree.  Write a single huge file and observe the point
--at which LowFree ceases to fall.
-+The lowmem_reserve_ratio is an array. You can see them by reading this file.
-+-
-+% cat /proc/sys/vm/lowmem_reserve_ratio
-+256     256     32
-+-
-+Note: # of this elements is one fewer than number of zones. Because the highest
-+      zone's value is not necessary for following calculation.
-+
-+But, these values are not used directly. The kernel calculates # of protection
-+pages for each zones from them. These are shown as array of protection pages
-+in /proc/zoneinfo like followings. (This is an example of x86-64 box).
-+Each zone has an array of protection pages like this.
-+
-+-
-+Node 0, zone      DMA
-+  pages free     1355
-+        min      3
-+        low      3
-+        high     4
-+	:
-+	:
-+    numa_other   0
-+        protection: (0, 2004, 2004, 2004)
-+	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-+  pagesets
-+    cpu: 0 pcp: 0
-+        :
-+-
-+These protections are added to score to judge whether this zone should be used
-+for page allocation or should be reclaimed.
-+
-+In this example, if normal pages (index=2) are required to this DMA zone and
-+pages_high is used for watermark, the kernel judges this zone should not be
-+used because pages_free(1355) is smaller than watermark + protection[2]
-+(4 + 2004 = 2008). If this protection value is 0, this zone would be used for
-+normal page requirement. If requirement is DMA zone(index=0), protection[0]
-+(=0) is used.
-+
-+zone[i]'s protection[j] is calculated by following exprssion.
-+
-+(i < j):
-+  zone[i]->protection[j]
-+  = (total sums of present_pages from zone[i+1] to zone[j] on the node)
-+    / lowmem_reserve_ratio[i];
-+(i = j):
-+   (should not be protected. = 0;
-+(i > j):
-+   (not necessary, but looks 0)
-+
-+The default values of lowmem_reserve_ratio[i] are
-+    256 (if zone[i] means DMA or DMA32 zone)
-+    32  (others).
-+As above expression, they are reciprocal number of ratio.
-+256 means 1/256. # of protection pages becomes about "0.39%" of total present
-+pages of higher zones on the node.
- 
--A reasonable value for lower_zone_protection is 100.
-+If you would like to protect more pages, smaller values are effective.
-+The minimum value is 1 (1/1 -> 100%).
- 
- page-cluster
- ------------
+ 	/* read-write data: */
+-	spinlock_t lock ____cacheline_aligned_in_smp;
++	spinlock_t lock;
+ 	unsigned add_ptr;
+ 	int entropy_count;
+ 	int input_rotate;
 _
 
-Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
+Patches currently in -mm which might be from mpm@selenic.com are
 
-document-about-lowmem_reserve_ratio.patch
+git-x86.patch
+maps4-add-proportional-set-size-accounting-in-smaps.patch
+maps4-rework-task_size-macros.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-move-is_swap_pte.patch
+maps4-introduce-a-generic-page-walker.patch
+maps4-use-pagewalker-in-clear_refs-and-smaps.patch
+maps4-simplify-interdependence-of-maps-and-smaps.patch
+maps4-move-clear_refs-code-to-task_mmuc.patch
+maps4-regroup-task_mmu-by-interface.patch
+maps4-add-proc-pid-pagemap-interface.patch
+maps4-add-proc-pid-pagemap-interface-fix.patch
+maps4-add-proc-kpagecount-interface.patch
+maps4-add-proc-kpagecount-interface-fix.patch
+maps4-add-proc-kpageflags-interface.patch
+maps4-add-proc-kpageflags-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix-2.patch
+maps4-add-proc-kpageflags-interface-fix-2-fix.patch
+maps4-make-page-monitoring-proc-file-optional.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+remove-unused-code-from-mm-tiny-shmemc.patch
+drivers-char-randomcwrite_pool-cond_resched-needed.patch
+random-clean-up-checkpatch-complaints.patch
+random-consolidate-wakeup-logic.patch
+random-use-unlocked_ioctl.patch
+random-reuse-rand_initialize.patch
+random-improve-variable-naming-clear-extract-buffer.patch
+random-make-backtracking-attacks-harder.patch
+random-remove-cacheline-alignment-for-locks.patch
+random-eliminate-redundant-new_rotate-variable.patch
+random-remove-some-prefetch-logic.patch
+random-simplify-add_ptr-logic.patch
+random-make-mixing-interface-byte-oriented.patch
+random-simplify-and-rename-credit_entropy_store.patch
