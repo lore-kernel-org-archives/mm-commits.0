@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pata_serverworks-fix-cable-types-and-cosmetics.patch added to -mm tree
-Date: Mon, 21 Jan 2008 19:00:52 -0800
-Message-ID: <200801220300.m0M30WkT001095@imap1.linux-foundation.org>
+Subject: + pata_winbond-error-return.patch added to -mm tree
+Date: Mon, 21 Jan 2008 19:00:56 -0800
+Message-ID: <200801220300.m0M30aQo001098@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50984 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55655 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752446AbYAVDBW (ORCPT
+	by vger.kernel.org with ESMTP id S1752520AbYAVDBi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Jan 2008 22:01:22 -0500
+	Mon, 21 Jan 2008 22:01:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, jeff@garzik.org
 
 
 The patch titled
-     pata_serverworks: Fix cable types and cosmetics
+     pata_winbond: error return
 has been added to the -mm tree.  Its filename is
-     pata_serverworks-fix-cable-types-and-cosmetics.patch
+     pata_winbond-error-return.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pata_serverworks: Fix cable types and cosmetics
+Subject: pata_winbond: error return
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Minor tidying up. Only real change is to return UNK not 80 wire when we
-don't know the cable type. This didn't use to matter but with Tejun's
-reworking of cable detection it may.
+If no device is active return an error not zero.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Jeff Garzik <jeff@garzik.org>
@@ -47,56 +45,21 @@ Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_serverworks.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/ata/pata_winbond.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_serverworks.c~pata_serverworks-fix-cable-types-and-cosmetics drivers/ata/pata_serverworks.c
---- a/drivers/ata/pata_serverworks.c~pata_serverworks-fix-cable-types-and-cosmetics
-+++ a/drivers/ata/pata_serverworks.c
-@@ -41,7 +41,7 @@
- #include <linux/libata.h>
+diff -puN drivers/ata/pata_winbond.c~pata_winbond-error-return drivers/ata/pata_winbond.c
+--- a/drivers/ata/pata_winbond.c~pata_winbond-error-return
++++ a/drivers/ata/pata_winbond.c
+@@ -195,7 +195,7 @@ static __init int winbond_init_one(unsig
+ 	reg = winbond_readcfg(port, 0x81);
  
- #define DRV_NAME "pata_serverworks"
--#define DRV_VERSION "0.4.2"
-+#define DRV_VERSION "0.4.3"
+ 	if (!(reg & 0x03))		/* Disabled */
+-		return 0;
++		return -ENODEV;
  
- #define SVWKS_CSB5_REVISION_NEW	0x92 /* min PCI_REVISION_ID for UDMA5 (A2.0) */
- #define SVWKS_CSB6_REVISION	0xa0 /* min PCI_REVISION_ID for UDMA4 (A1.0) */
-@@ -102,7 +102,7 @@ static int osb4_cable(struct ata_port *a
- }
- 
- /**
-- *	csb4_cable	-	CSB5/6 cable detect
-+ *	csb_cable	-	CSB5/6 cable detect
-  *	@ap: ATA port to check
-  *
-  *	Serverworks default arrangement is to use the drive side detection
-@@ -110,7 +110,7 @@ static int osb4_cable(struct ata_port *a
-  */
- 
- static int csb_cable(struct ata_port *ap) {
--	return ATA_CBL_PATA80;
-+	return ATA_CBL_PATA_UNK;
- }
- 
- struct sv_cable_table {
-@@ -231,7 +231,6 @@ static unsigned long serverworks_csb_fil
- 	return ata_pci_default_filter(adev, mask);
- }
- 
--
- /**
-  *	serverworks_set_piomode	-	set initial PIO mode data
-  *	@ap: ATA interface
-@@ -243,7 +242,7 @@ static unsigned long serverworks_csb_fil
- static void serverworks_set_piomode(struct ata_port *ap, struct ata_device *adev)
- {
- 	static const u8 pio_mode[] = { 0x5d, 0x47, 0x34, 0x22, 0x20 };
--	int offset = 1 + (2 * ap->port_no) - adev->devno;
-+	int offset = 1 + 2 * ap->port_no - adev->devno;
- 	int devbits = (2 * ap->port_no + adev->devno) * 4;
- 	u16 csb5_pio;
- 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
+ 	for (i = 0; i < 2 ; i ++) {
+ 		unsigned long cmd_port = 0x1F0 - (0x80 * i);
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
