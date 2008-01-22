@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + random-improve-variable-naming-clear-extract-buffer.patch added to -mm tree
-Date: Tue, 22 Jan 2008 01:33:17 -0800
-Message-ID: <200801220932.m0M9Wwh1014427@imap1.linux-foundation.org>
+Subject: + random-consolidate-wakeup-logic.patch added to -mm tree
+Date: Tue, 22 Jan 2008 01:33:14 -0800
+Message-ID: <200801220932.m0M9WsIx014417@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35011 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34927 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755942AbYAVJdm (ORCPT
+	by vger.kernel.org with ESMTP id S1756079AbYAVJdk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jan 2008 04:33:42 -0500
+	Tue, 22 Jan 2008 04:33:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mpm@selenic.com, tytso@mit.edu
 
 
 The patch titled
-     random: improve variable naming, clear extract buffer
+     random: consolidate wakeup logic
 has been added to the -mm tree.  Its filename is
-     random-improve-variable-naming-clear-extract-buffer.patch
+     random-consolidate-wakeup-logic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,77 +34,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: random: improve variable naming, clear extract buffer
+Subject: random: consolidate wakeup logic
 From: Matt Mackall <mpm@selenic.com>
-
-- split the SHA variables apart into hash and workspace
-- rename data to extract
-- wipe extract and workspace after hashing
 
 Signed-off-by: Matt Mackall <mpm@selenic.com>
 Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/random.c |   24 +++++++++++++-----------
- 1 file changed, 13 insertions(+), 11 deletions(-)
+ drivers/char/random.c |   20 ++++----------------
+ 1 file changed, 4 insertions(+), 16 deletions(-)
 
-diff -puN drivers/char/random.c~random-improve-variable-naming-clear-extract-buffer drivers/char/random.c
---- a/drivers/char/random.c~random-improve-variable-naming-clear-extract-buffer
+diff -puN drivers/char/random.c~random-consolidate-wakeup-logic drivers/char/random.c
+--- a/drivers/char/random.c~random-consolidate-wakeup-logic
 +++ a/drivers/char/random.c
-@@ -766,9 +766,9 @@ static size_t account(struct entropy_sto
- static void extract_buf(struct entropy_store *r, __u8 *out)
- {
- 	int i;
--	__u32 data[16], buf[5 + SHA_WORKSPACE_WORDS];
-+	__u32 extract[16], hash[5], workspace[SHA_WORKSPACE_WORDS];
- 
--	sha_init(buf);
-+	sha_init(hash);
- 	/*
- 	 * As we hash the pool, we mix intermediate values of
- 	 * the hash back into the pool.  This eliminates
-@@ -779,9 +779,9 @@ static void extract_buf(struct entropy_s
- 	 */
- 	for (i = 0; i < r->poolinfo->poolwords; i += 16) {
- 		/* hash blocks of 16 words = 512 bits */
--		sha_transform(buf, (__u8 *)(r->pool + i), buf + 5);
-+		sha_transform(hash, (__u8 *)(r->pool + i), workspace);
- 		/* feed back portion of the resulting hash */
--		add_entropy_words(r, &buf[i % 5], 1);
-+		add_entropy_words(r, &hash[i % 5], 1);
+@@ -540,6 +540,10 @@ static void credit_entropy_store(struct 
+ 				  nbits, r->name);
  	}
  
- 	/*
-@@ -789,19 +789,21 @@ static void extract_buf(struct entropy_s
- 	 * portion of the pool while mixing, and hash one
- 	 * final time.
- 	 */
--	__add_entropy_words(r, &buf[i % 5], 1, data);
--	sha_transform(buf, (__u8 *)data, buf + 5);
-+	__add_entropy_words(r, &hash[i % 5], 1, extract);
-+	sha_transform(hash, (__u8 *)extract, workspace);
-+	memset(extract, 0, sizeof(extract));
-+	memset(workspace, 0, sizeof(workspace));
- 
- 	/*
- 	 * In case the hash function has some recognizable
- 	 * output pattern, we fold it in half.
- 	 */
- 
--	buf[0] ^= buf[3];
--	buf[1] ^= buf[4];
--	buf[2] ^= rol32(buf[2], 16);
--	memcpy(out, buf, EXTRACT_SIZE);
--	memset(buf, 0, sizeof(buf));
-+	hash[0] ^= hash[3];
-+	hash[1] ^= hash[4];
-+	hash[2] ^= rol32(hash[2], 16);
-+	memcpy(out, hash, EXTRACT_SIZE);
-+	memset(hash, 0, sizeof(hash));
++	/* should we wake readers? */
++	if (r == &input_pool && r->entropy_count >= random_read_wakeup_thresh)
++		wake_up_interruptible(&random_read_wait);
++
+ 	spin_unlock_irqrestore(&r->lock, flags);
  }
  
- static ssize_t extract_entropy(struct entropy_store *r, void *buf,
+@@ -624,10 +628,6 @@ static void add_timer_randomness(struct 
+ 		credit_entropy_store(&input_pool,
+ 				     min_t(int, fls(delta>>1), 11));
+ 	}
+-
+-	if (input_pool.entropy_count >= random_read_wakeup_thresh)
+-		wake_up_interruptible(&random_read_wait);
+-
+ out:
+ 	preempt_enable();
+ }
+@@ -1082,12 +1082,6 @@ static int random_ioctl(struct inode *in
+ 		if (get_user(ent_count, p))
+ 			return -EFAULT;
+ 		credit_entropy_store(&input_pool, ent_count);
+-		/*
+-		 * Wake up waiting processes if we have enough
+-		 * entropy.
+-		 */
+-		if (input_pool.entropy_count >= random_read_wakeup_thresh)
+-			wake_up_interruptible(&random_read_wait);
+ 		return 0;
+ 	case RNDADDENTROPY:
+ 		if (!capable(CAP_SYS_ADMIN))
+@@ -1103,12 +1097,6 @@ static int random_ioctl(struct inode *in
+ 		if (retval < 0)
+ 			return retval;
+ 		credit_entropy_store(&input_pool, ent_count);
+-		/*
+-		 * Wake up waiting processes if we have enough
+-		 * entropy.
+-		 */
+-		if (input_pool.entropy_count >= random_read_wakeup_thresh)
+-			wake_up_interruptible(&random_read_wait);
+ 		return 0;
+ 	case RNDZAPENTCNT:
+ 	case RNDCLEARPOOL:
 _
 
 Patches currently in -mm which might be from mpm@selenic.com are
