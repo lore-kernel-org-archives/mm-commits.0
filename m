@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used-vs-gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in.patch added to -mm tree
-Date: Tue, 22 Jan 2008 01:18:54 -0800
-Message-ID: <200801220918.m0M9IYt3013921@imap1.linux-foundation.org>
+Subject: + md-set-and-test-the-persistent-flag-for-md-devices-more-consistently.patch added to -mm tree
+Date: Tue, 22 Jan 2008 01:22:54 -0800
+Message-ID: <200801220922.m0M9MYte014098@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35583 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50967 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761018AbYAVJTb (ORCPT
+	by vger.kernel.org with ESMTP id S1755908AbYAVJXI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jan 2008 04:19:31 -0500
+	Tue, 22 Jan 2008 04:23:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Yinghai.Lu@Sun.COM, ak@suse.de, greg@kroah.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, yinghai.lu@Sun.COM
+Cc: neilb@suse.de
 
 
 The patch titled
-     x86_64: AMD Family 10h enable ext config in quirk
+     md: set and test the ->persistent flag for md devices more consistently
 has been added to the -mm tree.  Its filename is
-     x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used-vs-gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in.patch
+     md-set-and-test-the-persistent-flag-for-md-devices-more-consistently.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,112 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86_64: AMD Family 10h enable ext config in quirk
-From: Yinghai Lu <Yinghai.Lu@Sun.COM>
+Subject: md: set and test the ->persistent flag for md devices more consistently
+From: NeilBrown <neilb@suse.de>
 
-Because of changes of
-gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in.patch
+If you try to start an array for which the number of raid disks is listed as
+zero, md will currently try to read metadata off any devices that have been
+given.  This was done because the value of raid_disks is used to signal
+whether array details have been provided by userspace (raid_disks > 0) or must
+be read from the devices (raid_disks == 0).
 
-need to call pci_enable_ext_config to enable mmconfig before set right cfg_size
-even MCFG is there
+However for an array without persistent metadata (or with externally managed
+metadata) this is the wrong thing to do.  So we add a test in do_md_run to
+give an error if raid_disks is zero for non-persistent arrays.
 
-Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Greg KH <greg@kroah.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+This requires that mddev->persistent is set corrently at this point, which it
+currently isn't for in-kernel autodetected arrays.
+
+So set ->persistent for autodetect arrays, and remove the settign in
+super_*_validate which is now redundant.
+
+Also clear ->persistent when stopping an array so it is consistently zero when
+starting an array.
+
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/pci/fixup.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/md/md.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/pci/fixup.c~x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used-vs-gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in arch/x86/pci/fixup.c
---- a/arch/x86/pci/fixup.c~x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used-vs-gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in
-+++ a/arch/x86/pci/fixup.c
-@@ -498,10 +498,12 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_S
-  * access it.  Maybe we don't have a way to generate extended config space
-  * accesses.   So check it
-  */
--static void fam10h_pci_cfg_space_size(struct pci_dev *dev)
-+static void fam10h_enable_pci_ext_cfg(struct pci_dev *dev)
- {
-+	pci_enable_ext_config(dev);
-+	/* recheck cfg_size without pcie_pcix checking */
- 	dev->cfg_size = pci_cfg_space_size_ext(dev, 0);
- }
+diff -puN drivers/md/md.c~md-set-and-test-the-persistent-flag-for-md-devices-more-consistently drivers/md/md.c
+--- a/drivers/md/md.c~md-set-and-test-the-persistent-flag-for-md-devices-more-consistently
++++ a/drivers/md/md.c
+@@ -779,7 +779,6 @@ static int super_90_validate(mddev_t *md
+ 		mddev->major_version = 0;
+ 		mddev->minor_version = sb->minor_version;
+ 		mddev->patch_version = sb->patch_version;
+-		mddev->persistent = 1;
+ 		mddev->external = 0;
+ 		mddev->chunk_size = sb->chunk_size;
+ 		mddev->ctime = sb->ctime;
+@@ -1159,7 +1158,6 @@ static int super_1_validate(mddev_t *mdd
+ 	if (mddev->raid_disks == 0) {
+ 		mddev->major_version = 1;
+ 		mddev->patch_version = 0;
+-		mddev->persistent = 1;
+ 		mddev->external = 0;
+ 		mddev->chunk_size = le32_to_cpu(sb->chunksize) << 9;
+ 		mddev->ctime = le64_to_cpu(sb->ctime) & ((1ULL << 32)-1);
+@@ -3213,8 +3211,11 @@ static int do_md_run(mddev_t * mddev)
+ 	/*
+ 	 * Analyze all RAID superblock(s)
+ 	 */
+-	if (!mddev->raid_disks)
++	if (!mddev->raid_disks) {
++		if (!mddev->persistent)
++			return -EINVAL;
+ 		analyze_sbs(mddev);
++	}
  
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_AMD, PCI_ANY_ID,
--			 fam10h_pci_cfg_space_size);
-+			 fam10h_enable_pci_ext_cfg);
+ 	chunk_size = mddev->chunk_size;
+ 
+@@ -3621,6 +3622,7 @@ static int do_md_stop(mddev_t * mddev, i
+ 		mddev->resync_max = MaxSector;
+ 		mddev->reshape_position = MaxSector;
+ 		mddev->external = 0;
++		mddev->persistent = 0;
+ 
+ 	} else if (mddev->pers)
+ 		printk(KERN_INFO "md: %s switched to read-only mode.\n",
+@@ -3729,6 +3731,7 @@ static void autorun_devices(int part)
+ 			mddev_unlock(mddev);
+ 		} else {
+ 			printk(KERN_INFO "md: created %s\n", mdname(mddev));
++			mddev->persistent = 1;
+ 			ITERATE_RDEV_GENERIC(candidates,rdev,tmp) {
+ 				list_del_init(&rdev->same_set);
+ 				if (bind_rdev_to_array(rdev, mddev))
 _
 
-Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
+Patches currently in -mm which might be from neilb@suse.de are
 
-git-cpufreq.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-pcie-aer-dont-check-_osc-when-acpi-is-disabled.patch
-git-x86.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-x86-clear-pci_mmcfg_virt-when-mmcfg-get-rejected.patch
-x86-mmconf-enable-mcfg-early.patch
-x86-mmconf-enable-mcfg-early-cleanup.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-v3.patch
-x86_64-check-msr-to-get-mmconfig-for-amd-family-10h-opteron-v3.patch
-x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used.patch
-x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used-vs-gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in.patch
-kernel-printkc-concerns-about-the-console-handover.patch
+coding-style-cleanups-for-drivers-md-mktablesc.patch
+md-raid6-fix-mktablec.patch
+md-raid6-clean-up-the-style-of-raid6test-testc.patch
+md-update-md-bitmap-during-resync.patch
+md-update-md-bitmap-during-resync-fix.patch
+md-support-external-metadata-for-md-arrays.patch
+md-give-userspace-control-over-removing-failed-devices-when-external-metdata-in-use.patch
+md-allow-a-maximum-extent-to-be-set-for-resyncing.patch
+md-set-and-test-the-persistent-flag-for-md-devices-more-consistently.patch
+md-allow-devices-to-be-shared-between-md-arrays.patch
+md-lock-address-when-changing-attributes-of-component-devices.patch
+md-allow-an-md-array-to-appear-with-0-drives-if-it-has-external-metadata.patch
+md-fix-use-after-free-bug-when-dropping-an-rdev-from-an-md-array.patch
+md-change-a-few-int-to-size_t-in-md.patch
+md-change-interate_mddev-to-for_each_mddev.patch
+md-change-iterate_rdev-to-rdev_for_each.patch
+md-change-iterate_rdev_generic-to-rdev_for_each_list-and-remove-iterate_rdev_pending.patch
+md-fix-an-occasional-deadlock-in-raid5.patch
+one-less-parameter-to-__d_path.patch
+d_path-kerneldoc-cleanup.patch
+d_path-use-struct-path-in-struct-avc_audit_data.patch
+d_path-make-proc_get_link-use-a-struct-path-argument.patch
+d_path-make-get_dcookie-use-a-struct-path-argument.patch
+use-struct-path-in-struct-svc_export.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_expkey.patch
+d_path-make-seq_path-use-a-struct-path-argument.patch
+d_path-make-d_path-use-a-struct-path.patch
