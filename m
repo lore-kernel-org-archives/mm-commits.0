@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pata_pdc202xx_old-fix-crashes-with-atapi.patch added to -mm tree
-Date: Mon, 21 Jan 2008 19:00:31 -0800
-Message-ID: <200801220300.m0M30BgN001087@imap1.linux-foundation.org>
+Subject: + pata_mpc52xx-remove-un-needed-assignment.patch added to -mm tree
+Date: Mon, 21 Jan 2008 19:00:27 -0800
+Message-ID: <200801220300.m0M307U3001084@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44193 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52363 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752293AbYAVDBL (ORCPT
+	by vger.kernel.org with ESMTP id S1751953AbYAVDBG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Jan 2008 22:01:11 -0500
+	Mon, 21 Jan 2008 22:01:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, jeff@garzik.org
 
 
 The patch titled
-     pata_pdc202xx_old: Fix crashes with ATAPI
+     pata_mpc52xx: remove un-needed assignment
 has been added to the -mm tree.  Its filename is
-     pata_pdc202xx_old-fix-crashes-with-atapi.patch
+     pata_mpc52xx-remove-un-needed-assignment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pata_pdc202xx_old: Fix crashes with ATAPI
+Subject: pata_mpc52xx: remove un-needed assignment
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-The PDC202xx older devices do not support ATAPI DMA via the usual
-interfaces. What documentation I have isn't sufficient to support DMA and
-it isn't clear if the Windows drivers do this or it is possible at all.
-(Neither do the drivers/ide old drivers)
-
-So turn it ATAPI DMA off, these are disk optimised controllers.
+ata_irq is always assigned so does not need to be initialised to zero.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Jeff Garzik <jeff@garzik.org>
@@ -50,45 +45,21 @@ Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_pdc202xx_old.c |   19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ drivers/ata/pata_mpc52xx.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_pdc202xx_old.c~pata_pdc202xx_old-fix-crashes-with-atapi drivers/ata/pata_pdc202xx_old.c
---- a/drivers/ata/pata_pdc202xx_old.c~pata_pdc202xx_old-fix-crashes-with-atapi
-+++ a/drivers/ata/pata_pdc202xx_old.c
-@@ -261,6 +261,24 @@ static int pdc2026x_check_atapi_dma(stru
- 	return 1;
- }
- 
-+/**
-+ *	pdc2026x_check_atapi_dma - Check whether ATAPI DMA can be supported for this command
-+ *	@qc: Metadata associated with taskfile to check
-+ *
-+ *	Just say no - not supported on older Promise.
-+ *
-+ *	LOCKING:
-+ *	None (inherited from caller).
-+ *
-+ *	RETURNS: 0 when ATAPI DMA can be used
-+ *		 1 otherwise
-+ */
-+
-+static int pdc2026x_check_atapi_dma(struct ata_queued_cmd *qc)
-+{
-+	return 1;
-+}
-+
- static struct scsi_host_template pdc202xx_sht = {
- 	.module			= THIS_MODULE,
- 	.name			= DRV_NAME,
-@@ -295,6 +313,7 @@ static struct ata_port_operations pdc202
- 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
- 	.cable_detect	= ata_cable_40wire,
- 
-+	.check_atapi_dma= pdc2026x_check_atapi_dma,
- 	.bmdma_setup 	= ata_bmdma_setup,
- 	.bmdma_start 	= ata_bmdma_start,
- 	.bmdma_stop	= ata_bmdma_stop,
+diff -puN drivers/ata/pata_mpc52xx.c~pata_mpc52xx-remove-un-needed-assignment drivers/ata/pata_mpc52xx.c
+--- a/drivers/ata/pata_mpc52xx.c~pata_mpc52xx-remove-un-needed-assignment
++++ a/drivers/ata/pata_mpc52xx.c
+@@ -364,7 +364,7 @@ mpc52xx_ata_probe(struct of_device *op, 
+ {
+ 	unsigned int ipb_freq;
+ 	struct resource res_mem;
+-	int ata_irq = NO_IRQ;
++	int ata_irq;
+ 	struct mpc52xx_ata __iomem *ata_regs;
+ 	struct mpc52xx_ata_priv *priv;
+ 	int rv;
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
