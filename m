@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + random-consolidate-wakeup-logic.patch added to -mm tree
-Date: Tue, 22 Jan 2008 01:33:14 -0800
-Message-ID: <200801220932.m0M9WsIx014417@imap1.linux-foundation.org>
+Subject: + random-make-backtracking-attacks-harder.patch added to -mm tree
+Date: Tue, 22 Jan 2008 01:33:19 -0800
+Message-ID: <200801220933.m0M9X02Y014430@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34927 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51753 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756079AbYAVJdk (ORCPT
+	by vger.kernel.org with ESMTP id S1756222AbYAVJdp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jan 2008 04:33:40 -0500
+	Tue, 22 Jan 2008 04:33:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mpm@selenic.com, tytso@mit.edu
 
 
 The patch titled
-     random: consolidate wakeup logic
+     random: make backtracking attacks harder
 has been added to the -mm tree.  Its filename is
-     random-consolidate-wakeup-logic.patch
+     random-make-backtracking-attacks-harder.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: random: consolidate wakeup logic
+Subject: random: make backtracking attacks harder
 From: Matt Mackall <mpm@selenic.com>
+
+At each extraction, we change (poolbits / 16) + 32 bits in the pool,
+or 96 bits in the case of the secondary pools. Thus, a brute-force
+backtracking attack on the pool state is less difficult than breaking
+the hash. In certain cases, this difficulty may be is reduced to 2^64
+iterations.
+
+Instead, hash the entire pool in one go, then feedback the whole hash
+(160 bits) in one go. This will make backtracking at least as hard as
+inverting the hash.
 
 Signed-off-by: Matt Mackall <mpm@selenic.com>
 Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/random.c |   20 ++++----------------
- 1 file changed, 4 insertions(+), 16 deletions(-)
+ drivers/char/random.c |   36 +++++++++++++++++-------------------
+ 1 file changed, 17 insertions(+), 19 deletions(-)
 
-diff -puN drivers/char/random.c~random-consolidate-wakeup-logic drivers/char/random.c
---- a/drivers/char/random.c~random-consolidate-wakeup-logic
+diff -puN drivers/char/random.c~random-make-backtracking-attacks-harder drivers/char/random.c
+--- a/drivers/char/random.c~random-make-backtracking-attacks-harder
 +++ a/drivers/char/random.c
-@@ -540,6 +540,10 @@ static void credit_entropy_store(struct 
- 				  nbits, r->name);
- 	}
+@@ -768,37 +768,35 @@ static void extract_buf(struct entropy_s
+ 	int i;
+ 	__u32 extract[16], hash[5], workspace[SHA_WORKSPACE_WORDS];
  
-+	/* should we wake readers? */
-+	if (r == &input_pool && r->entropy_count >= random_read_wakeup_thresh)
-+		wake_up_interruptible(&random_read_wait);
++	/* Generate a hash across the pool, 16 words (512 bits) at a time */
+ 	sha_init(hash);
++	for (i = 0; i < r->poolinfo->poolwords; i += 16)
++		sha_transform(hash, (__u8 *)(r->pool + i), workspace);
 +
- 	spin_unlock_irqrestore(&r->lock, flags);
- }
+ 	/*
+-	 * As we hash the pool, we mix intermediate values of
+-	 * the hash back into the pool.  This eliminates
+-	 * backtracking attacks (where the attacker knows
+-	 * the state of the pool plus the current outputs, and
+-	 * attempts to find previous ouputs), unless the hash
+-	 * function can be inverted.
++	 * We mix the hash back into the pool to prevent backtracking
++	 * attacks (where the attacker knows the state of the pool
++	 * plus the current outputs, and attempts to find previous
++	 * ouputs), unless the hash function can be inverted. By
++	 * mixing at least a SHA1 worth of hash data back, we make
++	 * brute-forcing the feedback as hard as brute-forcing the
++	 * hash.
+ 	 */
+-	for (i = 0; i < r->poolinfo->poolwords; i += 16) {
+-		/* hash blocks of 16 words = 512 bits */
+-		sha_transform(hash, (__u8 *)(r->pool + i), workspace);
+-		/* feed back portion of the resulting hash */
+-		add_entropy_words(r, &hash[i % 5], 1);
+-	}
++	__add_entropy_words(r, hash, 5, extract);
  
-@@ -624,10 +628,6 @@ static void add_timer_randomness(struct 
- 		credit_entropy_store(&input_pool,
- 				     min_t(int, fls(delta>>1), 11));
- 	}
+ 	/*
+-	 * To avoid duplicates, we atomically extract a
+-	 * portion of the pool while mixing, and hash one
+-	 * final time.
++	 * To avoid duplicates, we atomically extract a portion of the
++	 * pool while mixing, and hash one final time.
+ 	 */
+-	__add_entropy_words(r, &hash[i % 5], 1, extract);
+ 	sha_transform(hash, (__u8 *)extract, workspace);
+ 	memset(extract, 0, sizeof(extract));
+ 	memset(workspace, 0, sizeof(workspace));
+ 
+ 	/*
+-	 * In case the hash function has some recognizable
+-	 * output pattern, we fold it in half.
++	 * In case the hash function has some recognizable output
++	 * pattern, we fold it in half. Thus, we always feed back
++	 * twice as much data as we output.
+ 	 */
 -
--	if (input_pool.entropy_count >= random_read_wakeup_thresh)
--		wake_up_interruptible(&random_read_wait);
--
- out:
- 	preempt_enable();
- }
-@@ -1082,12 +1082,6 @@ static int random_ioctl(struct inode *in
- 		if (get_user(ent_count, p))
- 			return -EFAULT;
- 		credit_entropy_store(&input_pool, ent_count);
--		/*
--		 * Wake up waiting processes if we have enough
--		 * entropy.
--		 */
--		if (input_pool.entropy_count >= random_read_wakeup_thresh)
--			wake_up_interruptible(&random_read_wait);
- 		return 0;
- 	case RNDADDENTROPY:
- 		if (!capable(CAP_SYS_ADMIN))
-@@ -1103,12 +1097,6 @@ static int random_ioctl(struct inode *in
- 		if (retval < 0)
- 			return retval;
- 		credit_entropy_store(&input_pool, ent_count);
--		/*
--		 * Wake up waiting processes if we have enough
--		 * entropy.
--		 */
--		if (input_pool.entropy_count >= random_read_wakeup_thresh)
--			wake_up_interruptible(&random_read_wait);
- 		return 0;
- 	case RNDZAPENTCNT:
- 	case RNDCLEARPOOL:
+ 	hash[0] ^= hash[3];
+ 	hash[1] ^= hash[4];
+ 	hash[2] ^= rol32(hash[2], 16);
 _
 
 Patches currently in -mm which might be from mpm@selenic.com are
