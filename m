@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + char-mxser-reorder-mxser_cardinfo-fields.patch added to -mm tree
-Date: Tue, 22 Jan 2008 00:52:28 -0800
-Message-ID: <200801220852.m0M8q8GS013052@imap1.linux-foundation.org>
+Subject: + char-mxser-simplify-mxser_get_serial_info.patch added to -mm tree
+Date: Tue, 22 Jan 2008 00:52:30 -0800
+Message-ID: <200801220852.m0M8qAgw013055@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54120 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55923 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758269AbYAVIx0 (ORCPT
+	by vger.kernel.org with ESMTP id S1755908AbYAVIxZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jan 2008 03:53:26 -0500
+	Tue, 22 Jan 2008 03:53:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jirislaby@gmail.com, alan@redhat.com, jengelh@computergmbh.de
 
 
 The patch titled
-     Char: mxser, reorder mxser_cardinfo fields
+     Char: mxser, simplify mxser_get_serial_info
 has been added to the -mm tree.  Its filename is
-     char-mxser-reorder-mxser_cardinfo-fields.patch
+     char-mxser-simplify-mxser_get_serial_info.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Char: mxser, reorder mxser_cardinfo fields
+Subject: Char: mxser, simplify mxser_get_serial_info
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Reorder fields to save some memory and code on 64bit due to alignment as
-suggested by Jan.
+Initialize temp structure directly with proper values without first zeroing
+it and setting later as suggested by Jan.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Cc: Jan Engelhardt <jengelh@computergmbh.de>
@@ -46,84 +46,46 @@ Reviewed-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mxser_new.c |   60 ++++++++++++++++++-------------------
- 1 file changed, 30 insertions(+), 30 deletions(-)
+ drivers/char/mxser_new.c |   27 ++++++++++++---------------
+ 1 file changed, 12 insertions(+), 15 deletions(-)
 
-diff -puN drivers/char/mxser_new.c~char-mxser-reorder-mxser_cardinfo-fields drivers/char/mxser_new.c
---- a/drivers/char/mxser_new.c~char-mxser-reorder-mxser_cardinfo-fields
+diff -puN drivers/char/mxser_new.c~char-mxser-simplify-mxser_get_serial_info drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~char-mxser-simplify-mxser_get_serial_info
 +++ a/drivers/char/mxser_new.c
-@@ -106,41 +106,41 @@ static const struct {
- #define UART_INFO_NUM	ARRAY_SIZE(Gpci_uart_info)
- 
- struct mxser_cardinfo {
--	unsigned int nports;
- 	char *name;
-+	unsigned int nports;
- 	unsigned int flags;
- };
- 
- static const struct mxser_cardinfo mxser_cards[] = {
--/* 0*/	{ 8, "C168 series", },
--	{ 4, "C104 series", },
--	{ 4, "CI-104J series", },
--	{ 8, "C168H/PCI series", },
--	{ 4, "C104H/PCI series", },
--/* 5*/	{ 4, "C102 series", MXSER_HAS2 },	/* C102-ISA */
--	{ 4, "CI-132 series", MXSER_HAS2 },
--	{ 4, "CI-134 series", },
--	{ 2, "CP-132 series", },
--	{ 4, "CP-114 series", },
--/*10*/	{ 4, "CT-114 series", },
--	{ 2, "CP-102 series", MXSER_HIGHBAUD },
--	{ 4, "CP-104U series", },
--	{ 8, "CP-168U series", },
--	{ 2, "CP-132U series", },
--/*15*/	{ 4, "CP-134U series", },
--	{ 4, "CP-104JU series", },
--	{ 8, "Moxa UC7000 Serial", },		/* RC7000 */
--	{ 8, "CP-118U series", },
--	{ 2, "CP-102UL series", },
--/*20*/	{ 2, "CP-102U series", },
--	{ 8, "CP-118EL series", },
--	{ 8, "CP-168EL series", },
--	{ 4, "CP-104EL series", },
--	{ 8, "CB-108 series", },
--/*25*/	{ 4, "CB-114 series", },
--	{ 4, "CB-134I series", },
--	{ 8, "CP-138U series", },
--	{ 4, "POS-104UL series", }
-+/* 0*/	{ "C168 series",	8, },
-+	{ "C104 series",	4, },
-+	{ "CI-104J series",	4, },
-+	{ "C168H/PCI series",	8, },
-+	{ "C104H/PCI series",	4, },
-+/* 5*/	{ "C102 series",	4, MXSER_HAS2 },	/* C102-ISA */
-+	{ "CI-132 series",	4, MXSER_HAS2 },
-+	{ "CI-134 series",	4, },
-+	{ "CP-132 series",	2, },
-+	{ "CP-114 series",	4, },
-+/*10*/	{ "CT-114 series",	4, },
-+	{ "CP-102 series",	2, MXSER_HIGHBAUD },
-+	{ "CP-104U series",	4, },
-+	{ "CP-168U series",	8, },
-+	{ "CP-132U series",	2, },
-+/*15*/	{ "CP-134U series",	4, },
-+	{ "CP-104JU series",	4, },
-+	{ "Moxa UC7000 Serial",	8, },		/* RC7000 */
-+	{ "CP-118U series",	8, },
-+	{ "CP-102UL series",	2, },
-+/*20*/	{ "CP-102U series",	2, },
-+	{ "CP-118EL series",	8, },
-+	{ "CP-168EL series",	8, },
-+	{ "CP-104EL series",	4, },
-+	{ "CB-108 series",	8, },
-+/*25*/	{ "CB-114 series",	4, },
-+	{ "CB-134I series",	4, },
-+	{ "CP-138U series",	8, },
-+	{ "POS-104UL series",	4, }
- };
- 
- /* driver_data correspond to the lines in the structure above
+@@ -1168,21 +1168,18 @@ static void mxser_flush_buffer(struct tt
+ static int mxser_get_serial_info(struct mxser_port *info,
+ 		struct serial_struct __user *retinfo)
+ {
+-	struct serial_struct tmp;
+-
+-	if (!retinfo)
+-		return -EFAULT;
+-	memset(&tmp, 0, sizeof(tmp));
+-	tmp.type = info->type;
+-	tmp.line = info->tty->index;
+-	tmp.port = info->ioaddr;
+-	tmp.irq = info->board->irq;
+-	tmp.flags = info->flags;
+-	tmp.baud_base = info->baud_base;
+-	tmp.close_delay = info->close_delay;
+-	tmp.closing_wait = info->closing_wait;
+-	tmp.custom_divisor = info->custom_divisor;
+-	tmp.hub6 = 0;
++	struct serial_struct tmp = {
++		.type = info->type,
++		.line = info->tty->index,
++		.port = info->ioaddr,
++		.irq = info->board->irq,
++		.flags = info->flags,
++		.baud_base = info->baud_base,
++		.close_delay = info->close_delay,
++		.closing_wait = info->closing_wait,
++		.custom_divisor = info->custom_divisor,
++		.hub6 = 0
++	};
+ 	if (copy_to_user(retinfo, &tmp, sizeof(*retinfo)))
+ 		return -EFAULT;
+ 	return 0;
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
