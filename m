@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + random-reuse-rand_initialize.patch added to -mm tree
-Date: Tue, 22 Jan 2008 01:33:16 -0800
-Message-ID: <200801220932.m0M9Wu3V014423@imap1.linux-foundation.org>
+Subject: + random-use-unlocked_ioctl.patch added to -mm tree
+Date: Tue, 22 Jan 2008 01:33:15 -0800
+Message-ID: <200801220932.m0M9Wtgv014420@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33444 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50703 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755774AbYAVJdi (ORCPT
+	by vger.kernel.org with ESMTP id S1755671AbYAVJde (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jan 2008 04:33:38 -0500
+	Tue, 22 Jan 2008 04:33:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mpm@selenic.com, tytso@mit.edu
 
 
 The patch titled
-     random: reuse rand_initialize
+     random: use unlocked_ioctl
 has been added to the -mm tree.  Its filename is
-     random-reuse-rand_initialize.patch
+     random-use-unlocked_ioctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: random: reuse rand_initialize
+Subject: random: use unlocked_ioctl
 From: Matt Mackall <mpm@selenic.com>
+
+No locking actually needed.
 
 Signed-off-by: Matt Mackall <mpm@selenic.com>
 Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/random.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/char/random.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN drivers/char/random.c~random-reuse-rand_initialize drivers/char/random.c
---- a/drivers/char/random.c~random-reuse-rand_initialize
+diff -puN drivers/char/random.c~random-use-unlocked_ioctl drivers/char/random.c
+--- a/drivers/char/random.c~random-use-unlocked_ioctl
 +++ a/drivers/char/random.c
-@@ -900,7 +900,7 @@ static void init_std_data(struct entropy
- 			  sizeof(*(utsname()))/4);
+@@ -1063,8 +1063,7 @@ static ssize_t random_write(struct file 
+ 	return (ssize_t)count;
  }
  
--static int __init rand_initialize(void)
-+static int rand_initialize(void)
+-static int random_ioctl(struct inode *inode, struct file *file,
+-			unsigned int cmd, unsigned long arg)
++static long random_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
  {
- 	init_std_data(&input_pool);
- 	init_std_data(&blocking_pool);
-@@ -1102,9 +1102,7 @@ static long random_ioctl(struct file *f,
- 		/* Clear the entropy pool counters. */
- 		if (!capable(CAP_SYS_ADMIN))
- 			return -EPERM;
--		init_std_data(&input_pool);
--		init_std_data(&blocking_pool);
--		init_std_data(&nonblocking_pool);
-+		rand_initialize();
+ 	int size, ent_count;
+ 	int __user *p = (int __user *)arg;
+@@ -1072,8 +1071,8 @@ static int random_ioctl(struct inode *in
+ 
+ 	switch (cmd) {
+ 	case RNDGETENTCNT:
+-		ent_count = input_pool.entropy_count;
+-		if (put_user(ent_count, p))
++		/* inherently racy, no point locking */
++		if (put_user(input_pool.entropy_count, p))
+ 			return -EFAULT;
  		return 0;
- 	default:
- 		return -EINVAL;
+ 	case RNDADDTOENTCNT:
+@@ -1116,13 +1115,13 @@ const struct file_operations random_fops
+ 	.read  = random_read,
+ 	.write = random_write,
+ 	.poll  = random_poll,
+-	.ioctl = random_ioctl,
++	.unlocked_ioctl = random_ioctl,
+ };
+ 
+ const struct file_operations urandom_fops = {
+ 	.read  = urandom_read,
+ 	.write = random_write,
+-	.ioctl = random_ioctl,
++	.unlocked_ioctl = random_ioctl,
+ };
+ 
+ /***************************************************************
 _
 
 Patches currently in -mm which might be from mpm@selenic.com are
