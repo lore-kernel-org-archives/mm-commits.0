@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + md-fix-an-occasional-deadlock-in-raid5-fix.patch added to -mm tree
-Date: Tue, 22 Jan 2008 01:24:30 -0800
-Message-ID: <200801220924.m0M9OArY014131@imap1.linux-foundation.org>
+Subject: + document-about-lowmem_reserve_ratio.patch added to -mm tree
+Date: Tue, 22 Jan 2008 01:25:56 -0800
+Message-ID: <200801220925.m0M9PaE8014236@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44419 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45878 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756079AbYAVJYl (ORCPT
+	by vger.kernel.org with ESMTP id S1756222AbYAVJ0S (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jan 2008 04:24:41 -0500
+	Tue, 22 Jan 2008 04:26:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: neilb@suse.de
+Cc: y-goto@jp.fujitsu.com, andrea@cpushare.com
 
 
 The patch titled
-     md: fix an occasional deadlock in raid5 - FIX
+     Document lowmem_reserve_ratio
 has been added to the -mm tree.  Its filename is
-     md-fix-an-occasional-deadlock-in-raid5-fix.patch
+     document-about-lowmem_reserve_ratio.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,122 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md: fix an occasional deadlock in raid5 - FIX
-From: NeilBrown <neilb@suse.de>
+Subject: Document lowmem_reserve_ratio
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
 
-(This should be merged with fix-occasional-deadlock-in-raid5.patch)
+Though the lower_zone_protection was changed to lowmem_reserve_ratio, the
+document has been not changed.  The lowmem_reserve_ratio seems quite hard
+to estimate, but there is no guidance.  This patch is to change document
+for it.
 
-As we don't call stripe_handle in make_request any more, we need to
-clear STRIPE_DELAYED to (previously done by stripe_handle) to ensure
-that we test if the stripe still needs to be delayed or not.
-
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Andrea Arcangeli <andrea@cpushare.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/raid5.c |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/filesystems/proc.txt |   76 +++++++++++++++++++++------
+ 1 file changed, 61 insertions(+), 15 deletions(-)
 
-diff -puN drivers/md/raid5.c~md-fix-an-occasional-deadlock-in-raid5-fix drivers/md/raid5.c
---- a/drivers/md/raid5.c~md-fix-an-occasional-deadlock-in-raid5-fix
-+++ a/drivers/md/raid5.c
-@@ -3551,6 +3551,7 @@ static int make_request(struct request_q
- 			}
- 			finish_wait(&conf->wait_for_overlap, &w);
- 			set_bit(STRIPE_HANDLE, &sh->state);
-+			clear_bit(STRIPE_DELAYED, &sh->state);
- 			release_stripe(sh);
- 		} else {
- 			/* cannot get stripe for read-ahead, just give-up */
+diff -puN Documentation/filesystems/proc.txt~document-about-lowmem_reserve_ratio Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~document-about-lowmem_reserve_ratio
++++ a/Documentation/filesystems/proc.txt
+@@ -1304,7 +1304,7 @@ legacy_va_layout
+ If non-zero, this sysctl disables the new 32-bit mmap mmap layout - the kernel
+ will use the legacy (2.4) layout for all processes.
+ 
+-lower_zone_protection
++lowmem_reserve_ratio
+ ---------------------
+ 
+ For some specialised workloads on highmem machines it is dangerous for
+@@ -1324,25 +1324,71 @@ captured into pinned user memory.
+ mechanism will also defend that region from allocations which could use
+ highmem or lowmem).
+ 
+-The `lower_zone_protection' tunable determines how aggressive the kernel is
+-in defending these lower zones.  The default value is zero - no
+-protection at all.
++The `lowmem_reserve_ratio' tunable determines how aggressive the kernel is
++in defending these lower zones.
+ 
+ If you have a machine which uses highmem or ISA DMA and your
+ applications are using mlock(), or if you are running with no swap then
+-you probably should increase the lower_zone_protection setting.
++you probably should change the lowmem_reserve_ratio setting.
+ 
+-The units of this tunable are fairly vague.  It is approximately equal
+-to "megabytes," so setting lower_zone_protection=100 will protect around 100
+-megabytes of the lowmem zone from user allocations.  It will also make
+-those 100 megabytes unavailable for use by applications and by
+-pagecache, so there is a cost.
+-
+-The effects of this tunable may be observed by monitoring
+-/proc/meminfo:LowFree.  Write a single huge file and observe the point
+-at which LowFree ceases to fall.
++The lowmem_reserve_ratio is an array. You can see them by reading this file.
++-
++% cat /proc/sys/vm/lowmem_reserve_ratio
++256     256     32
++-
++Note: # of this elements is one fewer than number of zones. Because the highest
++      zone's value is not necessary for following calculation.
++
++But, these values are not used directly. The kernel calculates # of protection
++pages for each zones from them. These are shown as array of protection pages
++in /proc/zoneinfo like followings. (This is an example of x86-64 box).
++Each zone has an array of protection pages like this.
++
++-
++Node 0, zone      DMA
++  pages free     1355
++        min      3
++        low      3
++        high     4
++	:
++	:
++    numa_other   0
++        protection: (0, 2004, 2004, 2004)
++	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
++  pagesets
++    cpu: 0 pcp: 0
++        :
++-
++These protections are added to score to judge whether this zone should be used
++for page allocation or should be reclaimed.
++
++In this example, if normal pages (index=2) are required to this DMA zone and
++pages_high is used for watermark, the kernel judges this zone should not be
++used because pages_free(1355) is smaller than watermark + protection[2]
++(4 + 2004 = 2008). If this protection value is 0, this zone would be used for
++normal page requirement. If requirement is DMA zone(index=0), protection[0]
++(=0) is used.
++
++zone[i]'s protection[j] is calculated by following exprssion.
++
++(i < j):
++  zone[i]->protection[j]
++  = (total sums of present_pages from zone[i+1] to zone[j] on the node)
++    / lowmem_reserve_ratio[i];
++(i = j):
++   (should not be protected. = 0;
++(i > j):
++   (not necessary, but looks 0)
++
++The default values of lowmem_reserve_ratio[i] are
++    256 (if zone[i] means DMA or DMA32 zone)
++    32  (others).
++As above expression, they are reciprocal number of ratio.
++256 means 1/256. # of protection pages becomes about "0.39%" of total present
++pages of higher zones on the node.
+ 
+-A reasonable value for lower_zone_protection is 100.
++If you would like to protect more pages, smaller values are effective.
++The minimum value is 1 (1/1 -> 100%).
+ 
+ page-cluster
+ ------------
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
 
-coding-style-cleanups-for-drivers-md-mktablesc.patch
-md-raid6-fix-mktablec.patch
-md-raid6-clean-up-the-style-of-raid6test-testc.patch
-md-update-md-bitmap-during-resync.patch
-md-update-md-bitmap-during-resync-fix.patch
-md-support-external-metadata-for-md-arrays.patch
-md-give-userspace-control-over-removing-failed-devices-when-external-metdata-in-use.patch
-md-allow-a-maximum-extent-to-be-set-for-resyncing.patch
-md-set-and-test-the-persistent-flag-for-md-devices-more-consistently.patch
-md-allow-devices-to-be-shared-between-md-arrays.patch
-md-lock-address-when-changing-attributes-of-component-devices.patch
-md-allow-an-md-array-to-appear-with-0-drives-if-it-has-external-metadata.patch
-md-fix-use-after-free-bug-when-dropping-an-rdev-from-an-md-array.patch
-md-change-a-few-int-to-size_t-in-md.patch
-md-change-interate_mddev-to-for_each_mddev.patch
-md-change-iterate_rdev-to-rdev_for_each.patch
-md-change-iterate_rdev_generic-to-rdev_for_each_list-and-remove-iterate_rdev_pending.patch
-md-fix-an-occasional-deadlock-in-raid5.patch
-md-fix-an-occasional-deadlock-in-raid5-fix.patch
-one-less-parameter-to-__d_path.patch
-d_path-kerneldoc-cleanup.patch
-d_path-use-struct-path-in-struct-avc_audit_data.patch
-d_path-make-proc_get_link-use-a-struct-path-argument.patch
-d_path-make-get_dcookie-use-a-struct-path-argument.patch
-use-struct-path-in-struct-svc_export.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_expkey.patch
-d_path-make-seq_path-use-a-struct-path-argument.patch
-d_path-make-d_path-use-a-struct-path.patch
+document-about-lowmem_reserve_ratio.patch
