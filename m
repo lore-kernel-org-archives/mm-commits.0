@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + random-remove-cacheline-alignment-for-locks.patch added to -mm tree
-Date: Tue, 22 Jan 2008 01:33:21 -0800
-Message-ID: <200801220933.m0M9X1JJ014444@imap1.linux-foundation.org>
+Subject: + random-eliminate-redundant-new_rotate-variable.patch added to -mm tree
+Date: Tue, 22 Jan 2008 01:33:22 -0800
+Message-ID: <200801220933.m0M9X2Gm014447@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48648 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42936 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752766AbYAVJdP (ORCPT
+	by vger.kernel.org with ESMTP id S1754977AbYAVJdR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jan 2008 04:33:15 -0500
+	Tue, 22 Jan 2008 04:33:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mpm@selenic.com, tytso@mit.edu
 
 
 The patch titled
-     random: remove cacheline alignment for locks
+     random: eliminate redundant new_rotate variable
 has been added to the -mm tree.  Its filename is
-     random-remove-cacheline-alignment-for-locks.patch
+     random-eliminate-redundant-new_rotate-variable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: random: remove cacheline alignment for locks
+Subject: random: eliminate redundant new_rotate variable
 From: Matt Mackall <mpm@selenic.com>
 
-Earlier changes greatly reduce the number of times we grab the lock
-per output byte, so we shouldn't need this particular hack any more.
+- eliminate new_rotate
+- move input_rotate masking
+- simplify input_rotate update
+- move input_rotate update to end of inner loop for readability
 
 Signed-off-by: Matt Mackall <mpm@selenic.com>
 Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/random.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/random.c |   22 ++++++++++------------
+ 1 file changed, 10 insertions(+), 12 deletions(-)
 
-diff -puN drivers/char/random.c~random-remove-cacheline-alignment-for-locks drivers/char/random.c
---- a/drivers/char/random.c~random-remove-cacheline-alignment-for-locks
+diff -puN drivers/char/random.c~random-eliminate-redundant-new_rotate-variable drivers/char/random.c
+--- a/drivers/char/random.c~random-eliminate-redundant-new_rotate-variable
 +++ a/drivers/char/random.c
-@@ -395,7 +395,7 @@ module_param(debug, bool, 0644);
+@@ -455,7 +455,7 @@ static void __add_entropy_words(struct e
+ 		0x00000000, 0x3b6e20c8, 0x76dc4190, 0x4db26158,
+ 		0xedb88320, 0xd6d6a3e8, 0x9b64c2b0, 0xa00ae278 };
+ 	unsigned long i, add_ptr, tap1, tap2, tap3, tap4, tap5;
+-	int new_rotate, input_rotate;
++	int input_rotate;
+ 	int wordmask = r->poolinfo->poolwords - 1;
+ 	__u32 w, next_w;
+ 	unsigned long flags;
+@@ -474,20 +474,10 @@ static void __add_entropy_words(struct e
+ 	add_ptr = r->add_ptr;
  
- struct entropy_store;
- struct entropy_store {
--	/* mostly-read data: */
-+	/* read-only data: */
- 	struct poolinfo *poolinfo;
- 	__u32 *pool;
- 	const char *name;
-@@ -403,7 +403,7 @@ struct entropy_store {
- 	struct entropy_store *pull;
+ 	while (nwords--) {
+-		w = rol32(next_w, input_rotate);
++		w = rol32(next_w, input_rotate & 31);
+ 		if (nwords > 0)
+ 			next_w = *in++;
+ 		i = add_ptr = (add_ptr - 1) & wordmask;
+-		/*
+-		 * Normally, we add 7 bits of rotation to the pool.
+-		 * At the beginning of the pool, add an extra 7 bits
+-		 * rotation, so that successive passes spread the
+-		 * input bits across the pool evenly.
+-		 */
+-		new_rotate = input_rotate + 14;
+-		if (i)
+-			new_rotate = input_rotate + 7;
+-		input_rotate = new_rotate & 31;
  
- 	/* read-write data: */
--	spinlock_t lock ____cacheline_aligned_in_smp;
-+	spinlock_t lock;
- 	unsigned add_ptr;
- 	int entropy_count;
- 	int input_rotate;
+ 		/* XOR in the various taps */
+ 		w ^= r->pool[(i + tap1) & wordmask];
+@@ -497,6 +487,14 @@ static void __add_entropy_words(struct e
+ 		w ^= r->pool[(i + tap5) & wordmask];
+ 		w ^= r->pool[i];
+ 		r->pool[i] = (w >> 3) ^ twist_table[w & 7];
++
++		/*
++		 * Normally, we add 7 bits of rotation to the pool.
++		 * At the beginning of the pool, add an extra 7 bits
++		 * rotation, so that successive passes spread the
++		 * input bits across the pool evenly.
++		 */
++		input_rotate += i ? 7 : 14;
+ 	}
+ 
+ 	r->input_rotate = input_rotate;
 _
 
 Patches currently in -mm which might be from mpm@selenic.com are
