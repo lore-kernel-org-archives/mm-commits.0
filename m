@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + request_irq-always-returns-einval-with-a-null-handler.patch added to -mm tree
-Date: Wed, 23 Jan 2008 13:42:24 -0800
-Message-ID: <200801232142.m0NLgGq3027790@imap1.linux-foundation.org>
+Subject: + usb-yet-another-dell-wireless-cdma-evdo-modem.patch added to -mm tree
+Date: Wed, 23 Jan 2008 13:53:14 -0800
+Message-ID: <200801232153.m0NLr6iA028163@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52122 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46337 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751473AbYAWVmg (ORCPT
+	by vger.kernel.org with ESMTP id S1751736AbYAWVxj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jan 2008 16:42:36 -0500
+	Wed, 23 Jan 2008 16:53:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rusty@rustcorp.com.au, jeff@garzik.org
+Cc: andy@smile.org.ua, greg@kroah.com, smurf@smurf.noris.de
 
 
 The patch titled
-     request_irq() always returns -EINVAL with a NULL handler
+     usb: yet another Dell wireless CDMA/EVDO modem
 has been added to the -mm tree.  Its filename is
-     request_irq-always-returns-einval-with-a-null-handler.patch
+     usb-yet-another-dell-wireless-cdma-evdo-modem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,109 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: request_irq() always returns -EINVAL with a NULL handler
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: usb: yet another Dell wireless CDMA/EVDO modem
+From: Andy Shevchenko <andy@smile.org.ua>
 
-I assume that these ancient network drivers were trying to find out if
-an irq is available.  eepro.c expecting +EBUSY was doubly wrong.
+Add native support of the Dell wireless CDMA/EVDO modem.
 
-I'm not sure that can_request_irq() is the right thing, but these drivers
-are definitely wrong.
+# modprobe usbserial vendor=0x413c product=0x8129
 
-request_irq should BUG() on bad input, and these would have been found
-earlier.
+Following seesion lines describe modem itself
+at
+OK
+ati3
+Manufacturer: NOVATEL WIRELESS INCORPORATED
+Model: EXPEDITE ET620
+Revision: M6500C-BBIRD_TLS_MINI_DELL-Q40306.166 [Aug 25 2006 14:00:00]
+ESN: 0x5B39071D
++GCAP: +CIS707-A, CIS-856, +MS, +ES, +DS, +FCLASS
 
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Jeff Garzik <jeff@garzik.org>
+OK
+
+Signed-off-by: Andy Shevchenko <andy@smile.org.ua>
+Cc: Greg KH <greg@kroah.com>
+Cc: Matthias Urlichs <smurf@smurf.noris.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/3c503.c |    2 +-
- drivers/net/e2100.c |    2 +-
- drivers/net/eepro.c |    2 +-
- drivers/net/hp.c    |    2 +-
- kernel/irq/manage.c |    1 +
- 5 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/usb/serial/option.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/net/3c503.c~request_irq-always-returns-einval-with-a-null-handler drivers/net/3c503.c
---- a/drivers/net/3c503.c~request_irq-always-returns-einval-with-a-null-handler
-+++ a/drivers/net/3c503.c
-@@ -379,7 +379,7 @@ el2_open(struct net_device *dev)
- 
- 	outb(EGACFR_NORM, E33G_GACFR);	/* Enable RAM and interrupts. */
- 	do {
--	    if (request_irq (*irqp, NULL, 0, "bogus", dev) != -EBUSY) {
-+	    if (can_request_irq(*irqp, 0)) {
- 		/* Twinkle the interrupt, and check if it's seen. */
- 		unsigned long cookie = probe_irq_on();
- 		outb_p(0x04 << ((*irqp == 9) ? 2 : *irqp), E33G_IDCFR);
-diff -puN drivers/net/e2100.c~request_irq-always-returns-einval-with-a-null-handler drivers/net/e2100.c
---- a/drivers/net/e2100.c~request_irq-always-returns-einval-with-a-null-handler
-+++ a/drivers/net/e2100.c
-@@ -202,7 +202,7 @@ static int __init e21_probe1(struct net_
- 	if (dev->irq < 2) {
- 		int irqlist[] = {15,11,10,12,5,9,3,4}, i;
- 		for (i = 0; i < 8; i++)
--			if (request_irq (irqlist[i], NULL, 0, "bogus", NULL) != -EBUSY) {
-+			if (can_request_irq(irqlist[i], 0)) {
- 				dev->irq = irqlist[i];
- 				break;
- 			}
-diff -puN drivers/net/eepro.c~request_irq-always-returns-einval-with-a-null-handler drivers/net/eepro.c
---- a/drivers/net/eepro.c~request_irq-always-returns-einval-with-a-null-handler
-+++ a/drivers/net/eepro.c
-@@ -914,7 +914,7 @@ static int	eepro_grab_irq(struct net_dev
- 
- 		eepro_sw2bank0(ioaddr); /* Switch back to Bank 0 */
- 
--		if (request_irq (*irqp, NULL, IRQF_SHARED, "bogus", dev) != EBUSY) {
-+		if (can_request_irq(*irqp, IRQF_SHARED)) {
- 			unsigned long irq_mask;
- 			/* Twinkle the interrupt, and check if it's seen */
- 			irq_mask = probe_irq_on();
-diff -puN drivers/net/hp.c~request_irq-always-returns-einval-with-a-null-handler drivers/net/hp.c
---- a/drivers/net/hp.c~request_irq-always-returns-einval-with-a-null-handler
-+++ a/drivers/net/hp.c
-@@ -170,7 +170,7 @@ static int __init hp_probe1(struct net_d
- 		int *irqp = wordmode ? irq_16list : irq_8list;
- 		do {
- 			int irq = *irqp;
--			if (request_irq (irq, NULL, 0, "bogus", NULL) != -EBUSY) {
-+			if (can_request_irq(irq, 0)) {
- 				unsigned long cookie = probe_irq_on();
- 				/* Twinkle the interrupt, and check if it's seen. */
- 				outb_p(irqmap[irq] | HP_RUN, ioaddr + HP_CONFIGURE);
-diff -puN kernel/irq/manage.c~request_irq-always-returns-einval-with-a-null-handler kernel/irq/manage.c
---- a/kernel/irq/manage.c~request_irq-always-returns-einval-with-a-null-handler
-+++ a/kernel/irq/manage.c
-@@ -252,6 +252,7 @@ int can_request_irq(unsigned int irq, un
- 
- 	return !action;
- }
-+EXPORT_SYMBOL(can_request_irq);
- 
- void compat_irq_chip_set_default_handler(struct irq_desc *desc)
- {
+diff -puN drivers/usb/serial/option.c~usb-yet-another-dell-wireless-cdma-evdo-modem drivers/usb/serial/option.c
+--- a/drivers/usb/serial/option.c~usb-yet-another-dell-wireless-cdma-evdo-modem
++++ a/drivers/usb/serial/option.c
+@@ -180,6 +180,7 @@ static struct usb_device_id option_ids[]
+ 	{ USB_DEVICE(DELL_VENDOR_ID, 0x8117) },	/* Dell Wireless 5700 Mobile Broadband CDMA/EVDO ExpressCard == Novatel Merlin XV620 CDMA/EV-DO */
+ 	{ USB_DEVICE(DELL_VENDOR_ID, 0x8118) },	/* Dell Wireless 5510 Mobile Broadband HSDPA ExpressCard == Novatel Merlin XU870 HSDPA/3G */
+ 	{ USB_DEVICE(DELL_VENDOR_ID, 0x8128) },	/* Dell Wireless 5700 Mobile Broadband CDMA/EVDO Mini-Card == Novatel Expedite E720 CDMA/EV-DO */
++	{ USB_DEVICE(DELL_VENDOR_ID, 0x8129) },	/* Dell Wireless 5700 Mobile Broadband CDMA/EVDO Mini-Card == Novatel Expedite ET620 CDMA/EV-DO */
+ 	{ USB_DEVICE(DELL_VENDOR_ID, 0x8137) },	/* Dell Wireless HSDPA 5520 */
+ 	{ USB_DEVICE(ANYDATA_VENDOR_ID, ANYDATA_PRODUCT_ADU_E100A) },
+ 	{ USB_DEVICE(ANYDATA_VENDOR_ID, ANYDATA_PRODUCT_ADU_500A) },
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from andy@smile.org.ua are
 
-origin.patch
-fix-drivers-lguest-makefile-entry.patch
-git-kbuild.patch
-git-kvm.patch
-git-libata-all.patch
-request_irq-always-returns-einval-with-a-null-handler.patch
-git-sched.patch
-git-scsi-misc.patch
-git-x86.patch
-kallsyms-should-prefer-non-weak-symbols.patch
-virtio_net-remove-double-ether_setup.patch
-modules-handle-symbols-that-have-a-zero-value.patch
-modules-include-sectionsh-to-avoid-defining-linker-variables.patch
-modules-make-module_address_lookup-safe.patch
-modules-make-module_address_lookup-safe-fix.patch
-fixup-container_of-usage.patch
-aio-partial-write-should-not-return-error-code.patch
-aio-negative-offset-should-return-einval.patch
-reiser4.patch
+git-alsa.patch
+bluetooth-blacklist-another-broadcom-bcm2035-device.patch
+usb-yet-another-dell-wireless-cdma-evdo-modem.patch
