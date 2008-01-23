@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-yet-another-dell-wireless-cdma-evdo-modem.patch added to -mm tree
-Date: Wed, 23 Jan 2008 13:53:14 -0800
-Message-ID: <200801232153.m0NLr6iA028163@imap1.linux-foundation.org>
+Subject: + rtc-ds1307-ds_1340-change-init.patch added to -mm tree
+Date: Wed, 23 Jan 2008 14:18:40 -0800
+Message-ID: <200801232218.m0NMIWnX029309@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46337 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53417 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751736AbYAWVxj (ORCPT
+	by vger.kernel.org with ESMTP id S1752358AbYAWWTM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jan 2008 16:53:39 -0500
+	Wed, 23 Jan 2008 17:19:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andy@smile.org.ua, greg@kroah.com, smurf@smurf.noris.de
+Cc: f.rodo@til-technologies.fr, a.zummo@towertech.it, david-b@pacbell.net, khali@linux-fr.org, rmk@arm.linux.org.uk
 
 
 The patch titled
-     usb: yet another Dell wireless CDMA/EVDO modem
+     rtc-ds1307: ds_1340 change init
 has been added to the -mm tree.  Its filename is
-     usb-yet-another-dell-wireless-cdma-evdo-modem.patch
+     rtc-ds1307-ds_1340-change-init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,96 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: yet another Dell wireless CDMA/EVDO modem
-From: Andy Shevchenko <andy@smile.org.ua>
+Subject: rtc-ds1307: ds_1340 change init
+From: frederic RODO <f.rodo@til-technologies.fr>
 
-Add native support of the Dell wireless CDMA/EVDO modem.
+Change the initialization of ds1340 according to the FIXME.
 
-# modprobe usbserial vendor=0x413c product=0x8129
+It was tested on a arm custom board, this is the log when I plug the board
+without backup battery.
 
-Following seesion lines describe modem itself
-at
-OK
-ati3
-Manufacturer: NOVATEL WIRELESS INCORPORATED
-Model: EXPEDITE ET620
-Revision: M6500C-BBIRD_TLS_MINI_DELL-Q40306.166 [Aug 25 2006 14:00:00]
-ESN: 0x5B39071D
-+GCAP: +CIS707-A, CIS-856, +MS, +ES, +DS, +FCLASS
+Linux version 2.6.24-rc7 (fredo@srv-devhard) (gcc version 3.4.6) #22 Tue
+Jan 15 19:45:16 CET 2008
+.......
+Kernel command line: debug
+.......
+atmel_spi atmel_spi.1: Atmel SPI Controller at 0xfffcc000 (irq 13)
+i2c /dev entries driver
+rtc-ds1307 0-0068: SET TIME!
+rtc-ds1307 0-0068: rtc core: registered ds1340 as rtc0
+i2c-gpio i2c-gpio: using pins 55 (SDA) and 56 (SCL)
+.......
 
-OK
-
-Signed-off-by: Andy Shevchenko <andy@smile.org.ua>
-Cc: Greg KH <greg@kroah.com>
-Cc: Matthias Urlichs <smurf@smurf.noris.de>
+Signed-off-by: Frederic RODO <f.rodo@til-technologies.fr>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/option.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/rtc/rtc-ds1307.c |   33 ++++++++++++++++++++++++++++-----
+ 1 file changed, 28 insertions(+), 5 deletions(-)
 
-diff -puN drivers/usb/serial/option.c~usb-yet-another-dell-wireless-cdma-evdo-modem drivers/usb/serial/option.c
---- a/drivers/usb/serial/option.c~usb-yet-another-dell-wireless-cdma-evdo-modem
-+++ a/drivers/usb/serial/option.c
-@@ -180,6 +180,7 @@ static struct usb_device_id option_ids[]
- 	{ USB_DEVICE(DELL_VENDOR_ID, 0x8117) },	/* Dell Wireless 5700 Mobile Broadband CDMA/EVDO ExpressCard == Novatel Merlin XV620 CDMA/EV-DO */
- 	{ USB_DEVICE(DELL_VENDOR_ID, 0x8118) },	/* Dell Wireless 5510 Mobile Broadband HSDPA ExpressCard == Novatel Merlin XU870 HSDPA/3G */
- 	{ USB_DEVICE(DELL_VENDOR_ID, 0x8128) },	/* Dell Wireless 5700 Mobile Broadband CDMA/EVDO Mini-Card == Novatel Expedite E720 CDMA/EV-DO */
-+	{ USB_DEVICE(DELL_VENDOR_ID, 0x8129) },	/* Dell Wireless 5700 Mobile Broadband CDMA/EVDO Mini-Card == Novatel Expedite ET620 CDMA/EV-DO */
- 	{ USB_DEVICE(DELL_VENDOR_ID, 0x8137) },	/* Dell Wireless HSDPA 5520 */
- 	{ USB_DEVICE(ANYDATA_VENDOR_ID, ANYDATA_PRODUCT_ADU_E100A) },
- 	{ USB_DEVICE(ANYDATA_VENDOR_ID, ANYDATA_PRODUCT_ADU_500A) },
+diff -puN drivers/rtc/rtc-ds1307.c~rtc-ds1307-ds_1340-change-init drivers/rtc/rtc-ds1307.c
+--- a/drivers/rtc/rtc-ds1307.c~rtc-ds1307-ds_1340-change-init
++++ a/drivers/rtc/rtc-ds1307.c
+@@ -392,6 +392,33 @@ static int __devinit ds1307_probe(struct
+ 			dev_warn(&client->dev, "SET TIME!\n");
+ 		}
+ 		break;
++	case ds_1340:
++		/* Test nEOSC before OSF */
++		tmp = i2c_smbus_read_byte_data(client, DS1307_REG_SECS);
++		if (tmp < 0) {
++			pr_debug("read error %d\n", tmp);
++			err = -EIO;
++			goto exit_free;
++		}
++
++		/* oscillator off?  turn it on, so clock can tick. */
++		if (tmp & DS1340_BIT_nEOSC)
++			i2c_smbus_write_byte_data(client, DS1307_REG_SECS,
++				tmp & ~DS1340_BIT_nEOSC);
++
++		tmp = i2c_smbus_read_byte_data(client, DS1340_REG_FLAG);
++		if (tmp < 0) {
++			pr_debug("read error %d\n", tmp);
++			err = -EIO;
++			goto exit_free;
++		}
++
++		/* oscillator fault?  clear flag, and warn */
++		if (tmp & DS1340_BIT_OSF) {
++			i2c_smbus_write_byte_data(client, DS1340_REG_FLAG, 0);
++			dev_warn(&client->dev, "SET TIME!\n");
++		}
++		break;
+ 	default:
+ 		break;
+ 	}
+@@ -412,11 +439,6 @@ read_rtc:
+ 	 */
+ 	tmp = ds1307->regs[DS1307_REG_SECS];
+ 	switch (ds1307->type) {
+-	case ds_1340:
+-		/* FIXME read register with DS1340_BIT_OSF, use that to
+-		 * trigger the "set time" warning (*after* restarting the
+-		 * oscillator!) instead of this weaker ds1307/m41t00 test.
+-		 */
+ 	case ds_1307:
+ 	case m41t00:
+ 		/* clock halted?  turn it on, so clock can tick. */
+@@ -442,6 +464,7 @@ read_rtc:
+ 		break;
+ 	case ds_1337:
+ 	case ds_1339:
++	case ds_1340:
+ 		break;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from andy@smile.org.ua are
+Patches currently in -mm which might be from f.rodo@til-technologies.fr are
 
-git-alsa.patch
-bluetooth-blacklist-another-broadcom-bcm2035-device.patch
-usb-yet-another-dell-wireless-cdma-evdo-modem.patch
+rtc-ds1307-ds_1340-change-init.patch
