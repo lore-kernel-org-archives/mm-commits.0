@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-fix-the-order-of-atomic-operations-in-restore_previous_kprobes.patch added to -mm tree
-Date: Wed, 23 Jan 2008 13:25:58 -0800
-Message-ID: <200801232125.m0NLPoFl027177@imap1.linux-foundation.org>
+Subject: + request_irq-always-returns-einval-with-a-null-handler.patch added to -mm tree
+Date: Wed, 23 Jan 2008 13:42:24 -0800
+Message-ID: <200801232142.m0NLgGq3027790@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41758 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52122 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751814AbYAWV0a (ORCPT
+	by vger.kernel.org with ESMTP id S1751473AbYAWVmg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jan 2008 16:26:30 -0500
+	Wed, 23 Jan 2008 16:42:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhiramat@redhat.com, shaohua.li@intel.com, tony.luck@intel.com
+Cc: rusty@rustcorp.com.au, jeff@garzik.org
 
 
 The patch titled
-     ia64: fix the order of atomic operations in restore_previous_kprobes()
+     request_irq() always returns -EINVAL with a NULL handler
 has been added to the -mm tree.  Its filename is
-     ia64-fix-the-order-of-atomic-operations-in-restore_previous_kprobes.patch
+     request_irq-always-returns-einval-with-a-null-handler.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,109 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia64: fix the order of atomic operations in restore_previous_kprobes()
-From: Masami Hiramatsu <mhiramat@redhat.com>
+Subject: request_irq() always returns -EINVAL with a NULL handler
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-Fix the order of atomic operations to prevent overwriting prev_kprobe[0]. 
-To pop values from stack, we must decrement stack index right AFTER reading
-values.
+I assume that these ancient network drivers were trying to find out if
+an irq is available.  eepro.c expecting +EBUSY was doubly wrong.
 
-Details of this issue was reported to
-http://sources.redhat.com/bugzilla/show_bug.cgi?id=2071
+I'm not sure that can_request_irq() is the right thing, but these drivers
+are definitely wrong.
 
-Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
-Acked-by: Shaohua Li <shaohua.li@intel.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+request_irq should BUG() on bad input, and these would have been found
+earlier.
+
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/kprobes.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/net/3c503.c |    2 +-
+ drivers/net/e2100.c |    2 +-
+ drivers/net/eepro.c |    2 +-
+ drivers/net/hp.c    |    2 +-
+ kernel/irq/manage.c |    1 +
+ 5 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN arch/ia64/kernel/kprobes.c~ia64-fix-the-order-of-atomic-operations-in-restore_previous_kprobes arch/ia64/kernel/kprobes.c
---- a/arch/ia64/kernel/kprobes.c~ia64-fix-the-order-of-atomic-operations-in-restore_previous_kprobes
-+++ a/arch/ia64/kernel/kprobes.c
-@@ -381,9 +381,10 @@ static void __kprobes save_previous_kpro
- static void __kprobes restore_previous_kprobe(struct kprobe_ctlblk *kcb)
- {
- 	unsigned int i;
--	i = atomic_sub_return(1, &kcb->prev_kprobe_index);
--	__get_cpu_var(current_kprobe) = kcb->prev_kprobe[i].kp;
--	kcb->kprobe_status = kcb->prev_kprobe[i].status;
-+	i = atomic_read(&kcb->prev_kprobe_index);
-+	__get_cpu_var(current_kprobe) = kcb->prev_kprobe[i-1].kp;
-+	kcb->kprobe_status = kcb->prev_kprobe[i-1].status;
-+	atomic_sub(1, &kcb->prev_kprobe_index);
- }
+diff -puN drivers/net/3c503.c~request_irq-always-returns-einval-with-a-null-handler drivers/net/3c503.c
+--- a/drivers/net/3c503.c~request_irq-always-returns-einval-with-a-null-handler
++++ a/drivers/net/3c503.c
+@@ -379,7 +379,7 @@ el2_open(struct net_device *dev)
  
- static void __kprobes set_current_kprobe(struct kprobe *p,
+ 	outb(EGACFR_NORM, E33G_GACFR);	/* Enable RAM and interrupts. */
+ 	do {
+-	    if (request_irq (*irqp, NULL, 0, "bogus", dev) != -EBUSY) {
++	    if (can_request_irq(*irqp, 0)) {
+ 		/* Twinkle the interrupt, and check if it's seen. */
+ 		unsigned long cookie = probe_irq_on();
+ 		outb_p(0x04 << ((*irqp == 9) ? 2 : *irqp), E33G_IDCFR);
+diff -puN drivers/net/e2100.c~request_irq-always-returns-einval-with-a-null-handler drivers/net/e2100.c
+--- a/drivers/net/e2100.c~request_irq-always-returns-einval-with-a-null-handler
++++ a/drivers/net/e2100.c
+@@ -202,7 +202,7 @@ static int __init e21_probe1(struct net_
+ 	if (dev->irq < 2) {
+ 		int irqlist[] = {15,11,10,12,5,9,3,4}, i;
+ 		for (i = 0; i < 8; i++)
+-			if (request_irq (irqlist[i], NULL, 0, "bogus", NULL) != -EBUSY) {
++			if (can_request_irq(irqlist[i], 0)) {
+ 				dev->irq = irqlist[i];
+ 				break;
+ 			}
+diff -puN drivers/net/eepro.c~request_irq-always-returns-einval-with-a-null-handler drivers/net/eepro.c
+--- a/drivers/net/eepro.c~request_irq-always-returns-einval-with-a-null-handler
++++ a/drivers/net/eepro.c
+@@ -914,7 +914,7 @@ static int	eepro_grab_irq(struct net_dev
+ 
+ 		eepro_sw2bank0(ioaddr); /* Switch back to Bank 0 */
+ 
+-		if (request_irq (*irqp, NULL, IRQF_SHARED, "bogus", dev) != EBUSY) {
++		if (can_request_irq(*irqp, IRQF_SHARED)) {
+ 			unsigned long irq_mask;
+ 			/* Twinkle the interrupt, and check if it's seen */
+ 			irq_mask = probe_irq_on();
+diff -puN drivers/net/hp.c~request_irq-always-returns-einval-with-a-null-handler drivers/net/hp.c
+--- a/drivers/net/hp.c~request_irq-always-returns-einval-with-a-null-handler
++++ a/drivers/net/hp.c
+@@ -170,7 +170,7 @@ static int __init hp_probe1(struct net_d
+ 		int *irqp = wordmode ? irq_16list : irq_8list;
+ 		do {
+ 			int irq = *irqp;
+-			if (request_irq (irq, NULL, 0, "bogus", NULL) != -EBUSY) {
++			if (can_request_irq(irq, 0)) {
+ 				unsigned long cookie = probe_irq_on();
+ 				/* Twinkle the interrupt, and check if it's seen. */
+ 				outb_p(irqmap[irq] | HP_RUN, ioaddr + HP_CONFIGURE);
+diff -puN kernel/irq/manage.c~request_irq-always-returns-einval-with-a-null-handler kernel/irq/manage.c
+--- a/kernel/irq/manage.c~request_irq-always-returns-einval-with-a-null-handler
++++ a/kernel/irq/manage.c
+@@ -252,6 +252,7 @@ int can_request_irq(unsigned int irq, un
+ 
+ 	return !action;
+ }
++EXPORT_SYMBOL(can_request_irq);
+ 
+ void compat_irq_chip_set_default_handler(struct irq_desc *desc)
+ {
 _
 
-Patches currently in -mm which might be from mhiramat@redhat.com are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
-ia64-fix-the-order-of-atomic-operations-in-restore_previous_kprobes.patch
+origin.patch
+fix-drivers-lguest-makefile-entry.patch
+git-kbuild.patch
+git-kvm.patch
+git-libata-all.patch
+request_irq-always-returns-einval-with-a-null-handler.patch
+git-sched.patch
+git-scsi-misc.patch
 git-x86.patch
+kallsyms-should-prefer-non-weak-symbols.patch
+virtio_net-remove-double-ether_setup.patch
+modules-handle-symbols-that-have-a-zero-value.patch
+modules-include-sectionsh-to-avoid-defining-linker-variables.patch
+modules-make-module_address_lookup-safe.patch
+modules-make-module_address_lookup-safe-fix.patch
+fixup-container_of-usage.patch
+aio-partial-write-should-not-return-error-code.patch
+aio-negative-offset-should-return-einval.patch
+reiser4.patch
