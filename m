@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-hugepages-leak-due-to-pagetable-page-sharing.patch added to -mm tree
-Date: Wed, 23 Jan 2008 13:05:47 -0800
-Message-ID: <200801232105.m0NL5dIi026437@imap1.linux-foundation.org>
+Subject: + at91-correct-at91sam9263ek-lcd-power-gpio-pin.patch added to -mm tree
+Date: Wed, 23 Jan 2008 13:08:31 -0800
+Message-ID: <200801232108.m0NL8NOC026498@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59768 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47621 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751865AbYAWVG7 (ORCPT
+	by vger.kernel.org with ESMTP id S1751987AbYAWVJe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jan 2008 16:06:59 -0500
+	Wed, 23 Jan 2008 16:09:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lwoodman@redhat.com, agl@us.ibm.com, david@gibson.dropbear.id.au, kenchen@google.com, pbadari@us.ibm.com, wli@holomorphy.com
+Cc: nicolas.ferre@atmel.com, david-b@pacbell.net, rmk@arm.linux.org.uk
 
 
 The patch titled
-     fix hugepages leak due to pagetable page sharing
+     AT91: correct at91sam9263ek LCD power gpio pin
 has been added to the -mm tree.  Its filename is
-     fix-hugepages-leak-due-to-pagetable-page-sharing.patch
+     at91-correct-at91sam9263ek-lcd-power-gpio-pin.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,74 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix hugepages leak due to pagetable page sharing
-From: Larry Woodman <lwoodman@redhat.com>
+Subject: AT91: correct at91sam9263ek LCD power gpio pin
+From: Nicolas Ferre <nicolas.ferre@atmel.com>
 
-The shared page table code for hugetlb memory on x86 and x86_64
-is causing a leak.  When a user of hugepages exits using this code
-the system leaks some of the hugepages.
+Correct GPIO pin assignment for the LCD power control (PCI)
 
--------------------------------------------------------
-Part of /proc/meminfo just before database startup:
-HugePages_Total:  5500
-HugePages_Free:   5500
-HugePages_Rsvd:      0
-Hugepagesize:     2048 kB
-
-Just before shutdown:
-HugePages_Total:  5500
-HugePages_Free:   4475
-HugePages_Rsvd:      0
-Hugepagesize:     2048 kB
-
-After shutdown:
-HugePages_Total:  5500
-HugePages_Free:   4988
-HugePages_Rsvd:
-0 Hugepagesize:     2048 kB
-----------------------------------------------------------
-
-The problem occurs durring a fork, in copy_hugetlb_page_range().  It
-locates the dst_pte using huge_pte_alloc().  Since huge_pte_alloc() calls
-huge_pmd_share() it will share the pmd page if can, yet the main loop in
-copy_hugetlb_page_range() does a get_page() on every hugepage.  This is a
-violation of the shared hugepmd pagetable protocol and creates additional
-referenced to the hugepages causing a leak when the unmap of the VMA
-occurs.  We can skip the entire replication of the ptes when the hugepage
-pagetables are shared.  The attached patch skips copying the ptes and the
-get_page() calls if the hugetlbpage pagetable is shared.
-
-Signed-off-by: Larry Woodman <lwoodman@redhat.com>
-Cc: Adam Litke <agl@us.ibm.com>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Ken Chen <kenchen@google.com>
-Cc: David Gibson <david@gibson.dropbear.id.au>
-Cc: William Lee Irwin III <wli@holomorphy.com>
+Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ arch/arm/mach-at91/board-sam9263ek.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN mm/hugetlb.c~fix-hugepages-leak-due-to-pagetable-page-sharing mm/hugetlb.c
---- a/mm/hugetlb.c~fix-hugepages-leak-due-to-pagetable-page-sharing
-+++ a/mm/hugetlb.c
-@@ -699,6 +699,11 @@ int copy_hugetlb_page_range(struct mm_st
- 		dst_pte = huge_pte_alloc(dst, addr);
- 		if (!dst_pte)
- 			goto nomem;
-+
-+		/* if the pagetables are shared dont copy or take references */
-+		if(dst_pte == src_pte)
-+			continue;
-+
- 		spin_lock(&dst->page_table_lock);
- 		spin_lock(&src->page_table_lock);
- 		if (!pte_none(*src_pte)) {
+diff -puN arch/arm/mach-at91/board-sam9263ek.c~at91-correct-at91sam9263ek-lcd-power-gpio-pin arch/arm/mach-at91/board-sam9263ek.c
+--- a/arch/arm/mach-at91/board-sam9263ek.c~at91-correct-at91sam9263ek-lcd-power-gpio-pin
++++ a/arch/arm/mach-at91/board-sam9263ek.c
+@@ -242,10 +242,7 @@ static struct fb_monspecs at91fb_default
+ 
+ static void at91_lcdc_power_control(int on)
+ {
+-	if (on)
+-		at91_set_gpio_value(AT91_PIN_PD12, 0);	/* power up */
+-	else
+-		at91_set_gpio_value(AT91_PIN_PD12, 1);	/* power down */
++	at91_set_gpio_value(AT91_PIN_PA30, on);
+ }
+ 
+ /* Driver datas */
 _
 
-Patches currently in -mm which might be from lwoodman@redhat.com are
+Patches currently in -mm which might be from nicolas.ferre@atmel.com are
 
-fix-hugepages-leak-due-to-pagetable-page-sharing.patch
-fix-hugepages-leak-due-to-pagetable-page-sharing-checkpatch-fixes.patch
-include-count-of-pagecache-pages-in-show_mem-output.patch
+at91-correct-at91sam9263ek-lcd-power-gpio-pin.patch
+atmel_lcdfb-backlight-control.patch
