@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
 Subject: + sysctl-kill-binary-sysctl-kern_ppc_l2cr.patch added to -mm tree
-Date: Thu, 24 Jan 2008 05:23:52 -0800
-Message-ID: <200801241323.m0ODNjbm027519@imap1.linux-foundation.org>
+Date: Thu, 24 Jan 2008 05:24:33 -0800
+Message-ID: <200801241324.m0ODORB4027551@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41712 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39126 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751312AbYAXNYM (ORCPT
+	by vger.kernel.org with ESMTP id S1751315AbYAXNYh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jan 2008 08:24:12 -0500
+	Thu, 24 Jan 2008 08:24:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, benh@kernel.crashing.org, jwboyer@gmail.com, paulus@samba.org, sr@denx.de, wd@denx.de
+Cc: ebiederm@xmission.com, akpm@linux-foundation.org, benh@kernel.crashing.org, jwboyer@gmail.com, paulus@samba.org, sr@denx.de, wd@denx.de
 
 
 The patch titled
@@ -56,6 +56,7 @@ Cc: Josh Boyer <jwboyer@gmail.com>
 Cc: Wolfgang Denk <wd@denx.de>
 Cc: Paul Mackerras <paulus@samba.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
