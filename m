@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sound-fix-cs5535-section-mismatch.patch added to -mm tree
-Date: Sat, 26 Jan 2008 21:07:06 -0800
-Message-ID: <200801270507.m0R573Vg030715@imap1.linux-foundation.org>
+Subject: + audit-let-userspace-fully-control-tty-input-auditing.patch added to -mm tree
+Date: Sat, 26 Jan 2008 21:07:11 -0800
+Message-ID: <200801270507.m0R578R1030718@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46068 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53900 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750813AbYA0FHk (ORCPT
+	by vger.kernel.org with ESMTP id S1750822AbYA0FIN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Jan 2008 00:07:40 -0500
+	Sun, 27 Jan 2008 00:08:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, perex@suse.cz, sam@ravnborg.org, tiwai@suse.de
+Cc: mitr@redhat.com, dwmw2@infradead.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     sound: fix cs5535 section mismatch
+     audit: let userspace fully control TTY input auditing
 has been added to the -mm tree.  Its filename is
-     sound-fix-cs5535-section-mismatch.patch
+     audit-let-userspace-fully-control-tty-input-auditing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,153 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sound: fix cs5535 section mismatch
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: audit: let userspace fully control TTY input auditing
+From: Miloslav Trmac <mitr@redhat.com>
 
-snd_cs5535audio_mixer() is only called by __devinit
-snd_cs5535audio_probe(), so the mixer function can also be __devinit.
+Remove the code that automatically disables TTY input auditing in processes
+that open TTYs when they have no other TTY open; this heuristic was
+intended to automatically handle daemons, but it has false positives (e.g. 
+with sshd) that make it impossible to control TTY input auditing from a PAM
+module.  With this patch, TTY input auditing is controlled from user-space
+only.
 
-WARNING: vmlinux.o(.text+0xfdbba0): Section mismatch: reference to .init.data:ac97_quirks (between 'snd_cs5535audio_mixer' and 'process_bm0_irq')
+On the other hand, not even for daemons does it make sense to audit "input"
+from PTY masters; this data was produced by a program writing to the PTY
+slave, and does not represent data entered by the user.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Jaroslav Kysela <perex@suse.cz>
+Signed-off-by: Miloslav Trmac <mitr@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/cs5535audio/cs5535audio.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/tty_audit.c |   54 ++-----------------------------------
+ drivers/char/tty_io.c    |    5 ---
+ include/linux/tty.h      |    5 ---
+ 3 files changed, 5 insertions(+), 59 deletions(-)
 
-diff -puN sound/pci/cs5535audio/cs5535audio.c~sound-fix-cs5535-section-mismatch sound/pci/cs5535audio/cs5535audio.c
---- a/sound/pci/cs5535audio/cs5535audio.c~sound-fix-cs5535-section-mismatch
-+++ a/sound/pci/cs5535audio/cs5535audio.c
-@@ -144,7 +144,7 @@ static unsigned short snd_cs5535audio_ac
- 	return snd_cs5535audio_codec_read(cs5535au, reg);
+diff -puN drivers/char/tty_audit.c~audit-let-userspace-fully-control-tty-input-auditing drivers/char/tty_audit.c
+--- a/drivers/char/tty_audit.c~audit-let-userspace-fully-control-tty-input-auditing
++++ a/drivers/char/tty_audit.c
+@@ -238,6 +238,10 @@ void tty_audit_add_data(struct tty_struc
+ 	if (unlikely(size == 0))
+ 		return;
+ 
++	if (tty->driver->type == TTY_DRIVER_TYPE_PTY
++	    && tty->driver->subtype == PTY_TYPE_MASTER)
++		return;
++
+ 	buf = tty_audit_buf_get(tty);
+ 	if (!buf)
+ 		return;
+@@ -300,53 +304,3 @@ void tty_audit_push(struct tty_struct *t
+ 		tty_audit_buf_put(buf);
+ 	}
+ }
+-
+-/**
+- *	tty_audit_opening	-	A TTY is being opened.
+- *
+- *	As a special hack, tasks that close all their TTYs and open new ones
+- *	are assumed to be system daemons (e.g. getty) and auditing is
+- *	automatically disabled for them.
+- */
+-void tty_audit_opening(void)
+-{
+-	int disable;
+-
+-	disable = 1;
+-	spin_lock_irq(&current->sighand->siglock);
+-	if (current->signal->audit_tty == 0)
+-		disable = 0;
+-	spin_unlock_irq(&current->sighand->siglock);
+-	if (!disable)
+-		return;
+-
+-	task_lock(current);
+-	if (current->files) {
+-		struct fdtable *fdt;
+-		unsigned i;
+-
+-		/*
+-		 * We don't take a ref to the file, so we must hold ->file_lock
+-		 * instead.
+-		 */
+-		spin_lock(&current->files->file_lock);
+-		fdt = files_fdtable(current->files);
+-		for (i = 0; i < fdt->max_fds; i++) {
+-			struct file *filp;
+-
+-			filp = fcheck_files(current->files, i);
+-			if (filp && is_tty(filp)) {
+-				disable = 0;
+-				break;
+-			}
+-		}
+-		spin_unlock(&current->files->file_lock);
+-	}
+-	task_unlock(current);
+-	if (!disable)
+-		return;
+-
+-	spin_lock_irq(&current->sighand->siglock);
+-	current->signal->audit_tty = 0;
+-	spin_unlock_irq(&current->sighand->siglock);
+-}
+diff -puN drivers/char/tty_io.c~audit-let-userspace-fully-control-tty-input-auditing drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~audit-let-userspace-fully-control-tty-input-auditing
++++ a/drivers/char/tty_io.c
+@@ -2710,7 +2710,6 @@ got_driver:
+ 		__proc_set_tty(current, tty);
+ 	spin_unlock_irq(&current->sighand->siglock);
+ 	mutex_unlock(&tty_mutex);
+-	tty_audit_opening();
+ 	return 0;
  }
  
--static int snd_cs5535audio_mixer(struct cs5535audio *cs5535au)
-+static int __devinit snd_cs5535audio_mixer(struct cs5535audio *cs5535au)
+@@ -2773,10 +2772,8 @@ static int ptmx_open(struct inode * inod
+ 
+ 	check_tty_count(tty, "tty_open");
+ 	retval = ptm_driver->open(tty, filp);
+-	if (!retval) {
+-		tty_audit_opening();
++	if (!retval)
+ 		return 0;
+-	}
+ out1:
+ 	release_dev(filp);
+ 	return retval;
+diff -puN include/linux/tty.h~audit-let-userspace-fully-control-tty-input-auditing include/linux/tty.h
+--- a/include/linux/tty.h~audit-let-userspace-fully-control-tty-input-auditing
++++ a/include/linux/tty.h
+@@ -307,7 +307,6 @@ extern void tty_hangup(struct tty_struct
+ extern void tty_vhangup(struct tty_struct * tty);
+ extern void tty_unhangup(struct file *filp);
+ extern int tty_hung_up_p(struct file * filp);
+-extern int is_tty(struct file *filp);
+ extern void do_SAK(struct tty_struct *tty);
+ extern void __do_SAK(struct tty_struct *tty);
+ extern void disassociate_ctty(int priv);
+@@ -359,7 +358,6 @@ extern void tty_audit_exit(void);
+ extern void tty_audit_fork(struct signal_struct *sig);
+ extern void tty_audit_push(struct tty_struct *tty);
+ extern void tty_audit_push_task(struct task_struct *tsk, uid_t loginuid);
+-extern void tty_audit_opening(void);
+ #else
+ static inline void tty_audit_add_data(struct tty_struct *tty,
+ 				      unsigned char *data, size_t size)
+@@ -377,9 +375,6 @@ static inline void tty_audit_push(struct
+ static inline void tty_audit_push_task(struct task_struct *tsk, uid_t loginuid)
  {
- 	struct snd_card *card = cs5535au->card;
- 	struct snd_ac97_bus *pbus;
+ }
+-static inline void tty_audit_opening(void)
+-{
+-}
+ #endif
+ 
+ /* tty_ioctl.c */
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from mitr@redhat.com are
 
-origin.patch
-hrtimer-fix-section-mismatch.patch
-timer-fix-section-mismatch.patch
-rcu-fix-section-mismatch.patch
-git-alsa.patch
-sound-fix-cs5535-section-mismatch.patch
-git-dvb.patch
-radio-fix-sf16fmi-section-mismatch.patch
-git-kbuild.patch
-hamradio-fix-dmascc-section-mismatch.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-pcmcia-include-bad-cis-filename-in-error-message.patch
-git-scsi-misc.patch
-scsi-fix-ncr5380-section-mismatch.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-git-x86.patch
-register_cpu-__devinit-or-__cpuinit.patch
-cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
-dio-fix-kernel-doc-notation.patch
-tpm-infineon-section-mismatch.patch
-tdfxfb-fix-section-mismatch-warnings.patch
-uvesafb-small-cleanups.patch
-documentation-move-dnotifytxt-to-filesystems.patch
-documentation-move-sharedsubtreestxt-to-filesystems.patch
-documentation-create-new-scheduler-subdirectory.patch
-reporting-bugs-cc-the-mailing-list-too.patch
-fs-menu-small-reorg.patch
-the-scheduled-time-option-removal.patch
-sound-fix-opti9xx-miro-section-mismatch.patch
-profile-likely-unlikely-macros.patch
+audit-let-userspace-fully-control-tty-input-auditing.patch
