@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-ds1307-ds_1340-change-init.patch added to -mm tree
-Date: Sat, 26 Jan 2008 21:14:09 -0800
-Message-ID: <200801270514.m0R5E6Am030963@imap1.linux-foundation.org>
+Subject: + rtc-add-support-for-epson-rtc-9701je-v4.patch added to -mm tree
+Date: Sat, 26 Jan 2008 21:14:06 -0800
+Message-ID: <200801270514.m0R5E3Rd030960@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45492 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33231 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750793AbYA0FOV (ORCPT
+	by vger.kernel.org with ESMTP id S1750756AbYA0FOT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Jan 2008 00:14:21 -0500
+	Sun, 27 Jan 2008 00:14:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: f.rodo@til-technologies.fr, dbrownell@users.sourceforge.net
+Cc: magnus.damm@gmail.com, a.zummo@towertech.it, damm@igel.co.jp, david-b@pacbell.net
 
 
 The patch titled
-     rtc ds1307: ds_1340 change init
+     rtc: add support for Epson RTC-9701JE V4
 has been added to the -mm tree.  Its filename is
-     rtc-ds1307-ds_1340-change-init.patch
+     rtc-add-support-for-epson-rtc-9701je-v4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,80 +34,119 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc ds1307: ds_1340 change init
-From: frederic Rodo <f.rodo@til-technologies.fr>
+Subject: rtc: add support for Epson RTC-9701JE V4
+From: Magnus Damm <magnus.damm@gmail.com>
 
-For DS140, clear the oscillator fault flag as needed.
+Add support for the Epson RTC-9701JE SPI RTC device.
 
-Signed-off-by: Frederic RODO <f.rodo@til-technologies.fr>
-[ And remove some "sparse" warnings. ]
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Acked-by: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1307.c |   27 ++++++++++++++++++++-------
- 1 file changed, 20 insertions(+), 7 deletions(-)
+ drivers/rtc/rtc-r9701.c |   37 ++++++++++---------------------------
+ 1 file changed, 10 insertions(+), 27 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1307.c~rtc-ds1307-ds_1340-change-init drivers/rtc/rtc-ds1307.c
---- a/drivers/rtc/rtc-ds1307.c~rtc-ds1307-ds_1340-change-init
-+++ a/drivers/rtc/rtc-ds1307.c
-@@ -256,7 +256,7 @@ ds1307_nvram_read(struct kobject *kobj, 
- 	struct i2c_msg		msg[2];
- 	int			result;
+diff -puN drivers/rtc/rtc-r9701.c~rtc-add-support-for-epson-rtc-9701je-v4 drivers/rtc/rtc-r9701.c
+--- a/drivers/rtc/rtc-r9701.c~rtc-add-support-for-epson-rtc-9701je-v4
++++ a/drivers/rtc/rtc-r9701.c
+@@ -1,10 +1,9 @@
+-/* drivers/rtc/rtc-r9701.c
+- *
++/*
+  * Driver for Epson RTC-9701JE
+  *
+  * Copyright (C) 2008 Magnus Damm
+  *
+- * Based on drivers/rtc/rtc-max6902.c
++ * Based on rtc-max6902.c
+  *
+  * Copyright (C) 2006 8D Technologies inc.
+  * Copyright (C) 2004 Compulab Ltd.
+@@ -72,13 +71,12 @@ static int read_regs(struct device *dev,
  
--	client = to_i2c_client(container_of(kobj, struct device, kobj));
-+	client = kobj_to_i2c_client(kobj);
- 	ds1307 = i2c_get_clientdata(client);
+ static int r9701_get_datetime(struct device *dev, struct rtc_time *dt)
+ {
+-	struct spi_device *spi = to_spi_device(dev);
+ 	unsigned long time;
+ 	int ret;
+ 	unsigned char buf[] = { RSECCNT, RMINCNT, RHRCNT,
+ 				RDAYCNT, RMONCNT, RYRCNT };
  
- 	if (unlikely(off >= NVRAM_SIZE))
-@@ -294,7 +294,7 @@ ds1307_nvram_write(struct kobject *kobj,
- 	u8			buffer[NVRAM_SIZE + 1];
- 	int			ret;
+-	ret = read_regs(&spi->dev, buf, ARRAY_SIZE(buf));
++	ret = read_regs(dev, buf, ARRAY_SIZE(buf));
+ 	if (ret)
+ 		return ret;
  
--	client = to_i2c_client(container_of(kobj, struct device, kobj));
-+	client = kobj_to_i2c_client(kobj);
- 
- 	if (unlikely(off >= NVRAM_SIZE))
- 		return -EFBIG;
-@@ -412,11 +412,6 @@ read_rtc:
+@@ -96,17 +94,7 @@ static int r9701_get_datetime(struct dev
+ 	 * according to the data sheet. make sure they are valid.
  	 */
- 	tmp = ds1307->regs[DS1307_REG_SECS];
- 	switch (ds1307->type) {
--	case ds_1340:
--		/* FIXME read register with DS1340_BIT_OSF, use that to
--		 * trigger the "set time" warning (*after* restarting the
--		 * oscillator!) instead of this weaker ds1307/m41t00 test.
--		 */
- 	case ds_1307:
- 	case m41t00:
- 		/* clock halted?  turn it on, so clock can tick. */
-@@ -440,6 +435,24 @@ read_rtc:
- 			goto read_rtc;
- 		}
- 		break;
-+	case ds_1340:
-+		/* clock halted?  turn it on, so clock can tick. */
-+		if (tmp & DS1340_BIT_nEOSC)
-+			i2c_smbus_write_byte_data(client, DS1307_REG_SECS, 0);
-+
-+		tmp = i2c_smbus_read_byte_data(client, DS1340_REG_FLAG);
-+		if (tmp < 0) {
-+			pr_debug("read error %d\n", tmp);
-+			err = -EIO;
-+			goto exit_free;
-+		}
-+
-+		/* oscillator fault?  clear flag, and warn */
-+		if (tmp & DS1340_BIT_OSF) {
-+			i2c_smbus_write_byte_data(client, DS1340_REG_FLAG, 0);
-+			dev_warn(&client->dev, "SET TIME!\n");
-+		}
-+		break;
- 	case ds_1337:
- 	case ds_1339:
- 		break;
+ 
+-	ret = rtc_valid_tm(dt);
+-	if (ret)
+-		return ret;
+-
+-	/* don't bother with yday, wday and isdst.
+-	 * let the rtc core calculate them for us.
+-	 */
+-
+-	rtc_tm_to_time(dt, &time);
+-	rtc_time_to_tm(time, dt);
+-	return 0;
++	return rtc_valid_tm(dt);
+ }
+ 
+ static int r9701_set_datetime(struct device *dev, struct rtc_time *dt)
+@@ -118,12 +106,12 @@ static int r9701_set_datetime(struct dev
+ 		return -EINVAL;
+ 
+ 	ret = write_reg(dev, RHRCNT, BIN2BCD(dt->tm_hour));
+-	ret |= write_reg(dev, RMINCNT, BIN2BCD(dt->tm_min));
+-	ret |= write_reg(dev, RSECCNT, BIN2BCD(dt->tm_sec));
+-	ret |= write_reg(dev, RDAYCNT, BIN2BCD(dt->tm_mday));
+-	ret |= write_reg(dev, RMONCNT, BIN2BCD(dt->tm_mon + 1));
+-	ret |= write_reg(dev, RYRCNT, BIN2BCD(dt->tm_year - 100));
+-	ret |= write_reg(dev, RWKCNT, 1 << dt->tm_wday);
++	ret = ret ? ret : write_reg(dev, RMINCNT, BIN2BCD(dt->tm_min));
++	ret = ret ? ret : write_reg(dev, RSECCNT, BIN2BCD(dt->tm_sec));
++	ret = ret ? ret : write_reg(dev, RDAYCNT, BIN2BCD(dt->tm_mday));
++	ret = ret ? ret : write_reg(dev, RMONCNT, BIN2BCD(dt->tm_mon + 1));
++	ret = ret ? ret : write_reg(dev, RYRCNT, BIN2BCD(dt->tm_year - 100));
++	ret = ret ? ret : write_reg(dev, RWKCNT, 1 << dt->tm_wday);
+ 
+ 	return ret;
+ }
+@@ -146,10 +134,6 @@ static int __devinit r9701_probe(struct 
+ 
+ 	dev_set_drvdata(&spi->dev, rtc);
+ 
+-	spi->mode = SPI_MODE_3;
+-	spi->bits_per_word = 8;
+-	spi_setup(spi);
+-
+ 	tmp = R100CNT;
+ 	res = read_regs(&spi->dev, &tmp, 1);
+ 	if (res || tmp != 0x20) {
+@@ -171,7 +155,6 @@ static int __devexit r9701_remove(struct
+ static struct spi_driver r9701_driver = {
+ 	.driver = {
+ 		.name	= "rtc-r9701",
+-		.bus	= &spi_bus_type,
+ 		.owner	= THIS_MODULE,
+ 	},
+ 	.probe	= r9701_probe,
 _
 
-Patches currently in -mm which might be from f.rodo@til-technologies.fr are
+Patches currently in -mm which might be from magnus.damm@gmail.com are
 
-rtc-ds1307-ds_1340-change-init.patch
+usb-dma-bounce-buffer-support-v3.patch
+usb-dma-bounce-buffer-support-v3-checkpatch-fixes.patch
+usb-dma-bounce-buffer-support-v3-fix.patch
+usb-ohci-sm501-driver-v2.patch
+usb-ohci-sm501-driver-v2-fix.patch
+spi-superh-spi-using-sci.patch
+rtc-add-support-for-epson-rtc-9701je-v2.patch
+rtc-add-support-for-epson-rtc-9701je-v4.patch
+sm501fb-control-panel-pin-usage-with-platform-data-flags.patch
+sm501fb-clear-framebuffer-memory-and-palette.patch
