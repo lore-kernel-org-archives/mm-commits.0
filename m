@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hamradio-fix-dmascc-section-mismatch.patch added to -mm tree
-Date: Sat, 26 Jan 2008 21:10:01 -0800
-Message-ID: <200801270509.m0R59wrI030785@imap1.linux-foundation.org>
+Subject: + drivers-net-tlanc-compilation-warning-fix.patch added to -mm tree
+Date: Sat, 26 Jan 2008 21:10:08 -0800
+Message-ID: <200801270510.m0R5A5XH030797@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32901 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44436 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750822AbYA0FKN (ORCPT
+	by vger.kernel.org with ESMTP id S1750831AbYA0FKN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sun, 27 Jan 2008 00:10:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, klaus.kudielka@gmx.net, sam@ravnborg.org
+Cc: lpotenza@inwind.it
 
 
 The patch titled
-     hamradio: fix dmascc section mismatch
+     drivers/net/tlan.c: compilation warning fix
 has been added to the -mm tree.  Its filename is
-     hamradio-fix-dmascc-section-mismatch.patch
+     drivers-net-tlanc-compilation-warning-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,69 +34,84 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hamradio: fix dmascc section mismatch
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: drivers/net/tlan.c: compilation warning fix
+From: Leonardo Potenza <lpotenza@inwind.it>
 
-hw[] is used in both init and exit functions so it cannot be initdata (section
-mismatch is when CONFIG_MODULES=n and CONFIG_DMASCC=y).
+Add a check for the pci_register_driver() return value.  Removed unused
+variable pad_allocated.
 
-WARNING: vmlinux.o(.exit.text+0xba7): Section mismatch: reference to .init.data: (between 'dmascc_exit' and 'sixpack_exit_driver')
+The aim of this patch is to remove the following warning messages:
+drivers/net/tlan.c: In function 'tlan_probe':
+drivers/net/tlan.c:486: warning: ignoring return value of 'pci_register_driver', declared with attribute warn_unused_result
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Klaus Kudielka <klaus.kudielka@gmx.net>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Leonardo Potenza <lpotenza@inwind.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/hamradio/dmascc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/tlan.c |   25 ++++++++++++++++++-------
+ 1 file changed, 18 insertions(+), 7 deletions(-)
 
-diff -puN drivers/net/hamradio/dmascc.c~hamradio-fix-dmascc-section-mismatch drivers/net/hamradio/dmascc.c
---- a/drivers/net/hamradio/dmascc.c~hamradio-fix-dmascc-section-mismatch
-+++ a/drivers/net/hamradio/dmascc.c
-@@ -262,8 +262,8 @@ static void tm_isr(struct scc_priv *priv
+diff -puN drivers/net/tlan.c~drivers-net-tlanc-compilation-warning-fix drivers/net/tlan.c
+--- a/drivers/net/tlan.c~drivers-net-tlanc-compilation-warning-fix
++++ a/drivers/net/tlan.c
+@@ -465,7 +465,7 @@ static struct pci_driver tlan_driver = {
  
- static int io[MAX_NUM_DEVS] __initdata = { 0, };
+ static int __init tlan_probe(void)
+ {
+-	static int	pad_allocated;
++	int rc = -ENODEV;
  
--/* Beware! hw[] is also used in cleanup_module(). */
--static struct scc_hardware hw[NUM_TYPES] __initdata_or_module = HARDWARE;
-+/* Beware! hw[] is also used in dmascc_exit(). */
-+static struct scc_hardware hw[NUM_TYPES] = HARDWARE;
+ 	printk(KERN_INFO "%s", tlan_banner);
+ 
+@@ -473,17 +473,22 @@ static int __init tlan_probe(void)
+ 
+ 	if (TLanPadBuffer == NULL) {
+ 		printk(KERN_ERR "TLAN: Could not allocate memory for pad buffer.\n");
+-		return -ENOMEM;
++		rc = -ENOMEM;
++		goto err_out;
+ 	}
+ 
+ 	memset(TLanPadBuffer, 0, TLAN_MIN_FRAME_SIZE);
+-	pad_allocated = 1;
+ 
+ 	TLAN_DBG(TLAN_DEBUG_PROBE, "Starting PCI Probe....\n");
+ 
+ 	/* Use new style PCI probing. Now the kernel will
+ 	   do most of this for us */
+-	pci_register_driver(&tlan_driver);
++	rc = pci_register_driver(&tlan_driver);
++
++	if (rc != 0) {
++		printk(KERN_ERR "TLAN: Could not register pci driver.\n");
++		goto err_out_pci_free;
++	}
+ 
+ 	TLAN_DBG(TLAN_DEBUG_PROBE, "Starting EISA Probe....\n");
+ 	TLan_EisaProbe();
+@@ -493,11 +498,17 @@ static int __init tlan_probe(void)
+ 		 tlan_have_pci, tlan_have_eisa);
+ 
+ 	if (TLanDevicesInstalled == 0) {
+-		pci_unregister_driver(&tlan_driver);
+-		pci_free_consistent(NULL, TLAN_MIN_FRAME_SIZE, TLanPadBuffer, TLanPadBufferDMA);
+-		return -ENODEV;
++		rc = -ENODEV;
++		goto  err_out_pci_unreg;
+ 	}
+ 	return 0;
++
++err_out_pci_unreg:
++	pci_unregister_driver(&tlan_driver);
++err_out_pci_free:
++	pci_free_consistent(NULL, TLAN_MIN_FRAME_SIZE, TLanPadBuffer, TLanPadBufferDMA);
++err_out:
++	return rc;
+ }
  
  
- /* Global variables */
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from lpotenza@inwind.it are
 
-origin.patch
-hrtimer-fix-section-mismatch.patch
-timer-fix-section-mismatch.patch
-rcu-fix-section-mismatch.patch
-git-alsa.patch
-sound-fix-cs5535-section-mismatch.patch
-git-dvb.patch
-radio-fix-sf16fmi-section-mismatch.patch
-git-kbuild.patch
-hamradio-fix-dmascc-section-mismatch.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-pcmcia-include-bad-cis-filename-in-error-message.patch
-git-scsi-misc.patch
-scsi-fix-ncr5380-section-mismatch.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-git-x86.patch
-register_cpu-__devinit-or-__cpuinit.patch
-cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
-dio-fix-kernel-doc-notation.patch
-tpm-infineon-section-mismatch.patch
-tdfxfb-fix-section-mismatch-warnings.patch
-uvesafb-small-cleanups.patch
-documentation-move-dnotifytxt-to-filesystems.patch
-documentation-move-sharedsubtreestxt-to-filesystems.patch
-documentation-create-new-scheduler-subdirectory.patch
-reporting-bugs-cc-the-mailing-list-too.patch
-fs-menu-small-reorg.patch
-the-scheduled-time-option-removal.patch
-sound-fix-opti9xx-miro-section-mismatch.patch
-profile-likely-unlikely-macros.patch
+drivers-net-tlanc-compilation-warning-fix.patch
