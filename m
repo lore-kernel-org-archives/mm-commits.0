@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + atmel_serial-show-tty-name-in-proc-interrupts.patch added to -mm tree
-Date: Sat, 26 Jan 2008 21:18:13 -0800
-Message-ID: <200801270518.m0R5IAAH031177@imap1.linux-foundation.org>
+Subject: + workqueue-make-delayed_work_timer_fn-static.patch added to -mm tree
+Date: Sat, 26 Jan 2008 21:18:15 -0800
+Message-ID: <200801270518.m0R5IC9D031180@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39193 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50884 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750951AbYA0FST (ORCPT
+	by vger.kernel.org with ESMTP id S1750936AbYA0FS2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Jan 2008 00:18:19 -0500
+	Sun, 27 Jan 2008 00:18:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hskinnemoen@atmel.com, linux@maxim.org.za, marc.pignat@hevs.ch
+Cc: lizf@cn.fujitsu.com
 
 
 The patch titled
-     atmel_serial: show tty name in /proc/interrupts
+     workqueue: make delayed_work_timer_fn() static
 has been added to the -mm tree.  Its filename is
-     atmel_serial-show-tty-name-in-proc-interrupts.patch
+     workqueue-make-delayed_work_timer_fn-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,75 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_serial: show tty name in /proc/interrupts
-From: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Subject: workqueue: make delayed_work_timer_fn() static
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-When possible, pass the tty name to request_irq() so that the user can easily
-distinguish the different serial ports in /proc/interrupts.
+delayed_work_timer_fn() is a timer function, make it static.
 
-Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Andrew Victor <linux@maxim.org.za>
-Tested-by: Marc Pignat <marc.pignat@hevs.ch>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/atmel_serial.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/timer.h |    2 --
+ kernel/workqueue.c    |    2 +-
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-show-tty-name-in-proc-interrupts drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-show-tty-name-in-proc-interrupts
-+++ a/drivers/serial/atmel_serial.c
-@@ -795,6 +795,7 @@ static void atmel_tasklet_func(unsigned 
- static int atmel_startup(struct uart_port *port)
- {
- 	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
-+	struct tty_struct *tty = port->info->tty;
- 	int retval;
+diff -puN include/linux/timer.h~workqueue-make-delayed_work_timer_fn-static include/linux/timer.h
+--- a/include/linux/timer.h~workqueue-make-delayed_work_timer_fn-static
++++ a/include/linux/timer.h
+@@ -124,8 +124,6 @@ static inline void timer_stats_timer_cle
+ }
+ #endif
  
- 	/*
-@@ -808,7 +809,7 @@ static int atmel_startup(struct uart_por
- 	 * Allocate the IRQ
- 	 */
- 	retval = request_irq(port->irq, atmel_interrupt, IRQF_SHARED,
--			"atmel_serial", port);
-+			tty ? tty->name : "atmel_serial", port);
- 	if (retval) {
- 		printk("atmel_serial: atmel_startup - Can't get irq\n");
- 		return retval;
+-extern void delayed_work_timer_fn(unsigned long __data);
+-
+ /**
+  * add_timer - start a timer
+  * @timer: the timer to be added
+diff -puN kernel/workqueue.c~workqueue-make-delayed_work_timer_fn-static kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueue-make-delayed_work_timer_fn-static
++++ a/kernel/workqueue.c
+@@ -175,7 +175,7 @@ int queue_work(struct workqueue_struct *
+ }
+ EXPORT_SYMBOL_GPL(queue_work);
+ 
+-void delayed_work_timer_fn(unsigned long __data)
++static void delayed_work_timer_fn(unsigned long __data)
+ {
+ 	struct delayed_work *dwork = (struct delayed_work *)__data;
+ 	struct cpu_workqueue_struct *cwq = get_wq_data(&dwork->work);
 _
 
-Patches currently in -mm which might be from hskinnemoen@atmel.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
-git-avr32.patch
-fix-timerfd-breakage-on-avr32-was-re-fix-variable-use-in-avr32-pte_alloc_one.patch
-git-mtd.patch
-gpiolib-add-drivers-gpio-directory.patch
-gpiolib-add-gpio-provider-infrastructure.patch
-gpiolib-update-documentation-gpiotxt.patch
-gpiolib-pxa-platform-support.patch
-gpiolib-pcf857x-i2c-gpio-expander-support.patch
-gpiolib-mcp23s08-spi-gpio-expander-support.patch
-gpiolib-pca9539-i2c-gpio-expander-support.patch
-gpiolib-deprecate-obsolete-pca9539-driver.patch
-gpiolib-avr32-at32ap-platform-support.patch
-config_highpte-vs-sub-page-page-tables-avr32-fix.patch
-read_current_time-cleanups.patch
-fix-__const_udelay-declaration-and-definition-mismatches.patch
-atmel_spi-throughput-improvement.patch
-atmel_spi-chain-dma-transfers.patch
-atmel_spi-chain-dma-transfers-update.patch
-atmel_spi-fix-dmachain-oops-with-debug-enabled.patch
-add-have_oprofile.patch
-atmel_lcdfb-validate-display-timings.patch
-sanitize-the-type-of-struct-useru_ar0.patch
-add-cmpxchg_local-to-avr32.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
-maintainers-add-haavard-as-maintainer-of-the-atmel_serial-driver.patch
-atmel_serial-clean-up-the-code.patch
-atmel_serial-use-cpu_relax-when-busy-waiting.patch
-atmel_serial-use-existing-console-options-only-if-brg-is-running.patch
-atmel_serial-fix-bugs-in-probe-error-path-and-remove.patch
-atmel_serial-split-the-interrupt-handler.patch
-atmel_serial-add-dma-support.patch
-atmel_serial-use-container_of-instead-of-direct-cast.patch
-atmel_serial-show-tty-name-in-proc-interrupts.patch
+origin.patch
+git-powerpc.patch
+git-drm.patch
+git-hid.patch
+git-net.patch
+clocksource-remove-redundant-code.patch
+clockevent-simplify-list-operations.patch
+timekeeping-rename-timekeeping_is_continuous-to-timekeeping_valid_for_hres.patch
+time-fix-typo-in-comments.patch
+time-delete-comments-that-refer-to-noexistent-symbols.patch
+workqueue-make-delayed_work_timer_fn-static.patch
