@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-tlanc-compilation-warning-fix.patch added to -mm tree
-Date: Sat, 26 Jan 2008 21:10:08 -0800
-Message-ID: <200801270510.m0R5A5XH030797@imap1.linux-foundation.org>
+Subject: + rfcomm-tty-destroy-before-tty_close.patch added to -mm tree
+Date: Sat, 26 Jan 2008 21:10:14 -0800
+Message-ID: <200801270510.m0R5AB4M030800@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44436 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52510 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750831AbYA0FKN (ORCPT
+	by vger.kernel.org with ESMTP id S1750836AbYA0FKX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Jan 2008 00:10:13 -0500
+	Sun, 27 Jan 2008 00:10:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lpotenza@inwind.it
+Cc: hidave.darkstar@gmail.com, marcel@holtmann.org
 
 
 The patch titled
-     drivers/net/tlan.c: compilation warning fix
+     rfcomm tty: destroy before tty_close()
 has been added to the -mm tree.  Its filename is
-     drivers-net-tlanc-compilation-warning-fix.patch
+     rfcomm-tty-destroy-before-tty_close.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,84 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/tlan.c: compilation warning fix
-From: Leonardo Potenza <lpotenza@inwind.it>
+Subject: rfcomm tty: destroy before tty_close()
+From: Dave Young <hidave.darkstar@gmail.com>
 
-Add a check for the pci_register_driver() return value.  Removed unused
-variable pad_allocated.
+rfcomm dev could be deleted in tty_hangup, so we must not call
+rfcomm_dev_del again to prevent from destroying rfcomm dev before tty
+close.
 
-The aim of this patch is to remove the following warning messages:
-drivers/net/tlan.c: In function 'tlan_probe':
-drivers/net/tlan.c:486: warning: ignoring return value of 'pci_register_driver', declared with attribute warn_unused_result
-
-Signed-off-by: Leonardo Potenza <lpotenza@inwind.it>
+Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
+Cc: Marcel Holtmann <marcel@holtmann.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tlan.c |   25 ++++++++++++++++++-------
- 1 file changed, 18 insertions(+), 7 deletions(-)
+ net/bluetooth/rfcomm/tty.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/tlan.c~drivers-net-tlanc-compilation-warning-fix drivers/net/tlan.c
---- a/drivers/net/tlan.c~drivers-net-tlanc-compilation-warning-fix
-+++ a/drivers/net/tlan.c
-@@ -465,7 +465,7 @@ static struct pci_driver tlan_driver = {
+diff -puN net/bluetooth/rfcomm/tty.c~rfcomm-tty-destroy-before-tty_close net/bluetooth/rfcomm/tty.c
+--- a/net/bluetooth/rfcomm/tty.c~rfcomm-tty-destroy-before-tty_close
++++ a/net/bluetooth/rfcomm/tty.c
+@@ -429,7 +429,8 @@ static int rfcomm_release_dev(void __use
+ 	if (dev->tty)
+ 		tty_vhangup(dev->tty);
  
- static int __init tlan_probe(void)
- {
--	static int	pad_allocated;
-+	int rc = -ENODEV;
- 
- 	printk(KERN_INFO "%s", tlan_banner);
- 
-@@ -473,17 +473,22 @@ static int __init tlan_probe(void)
- 
- 	if (TLanPadBuffer == NULL) {
- 		printk(KERN_ERR "TLAN: Could not allocate memory for pad buffer.\n");
--		return -ENOMEM;
-+		rc = -ENOMEM;
-+		goto err_out;
- 	}
- 
- 	memset(TLanPadBuffer, 0, TLAN_MIN_FRAME_SIZE);
--	pad_allocated = 1;
- 
- 	TLAN_DBG(TLAN_DEBUG_PROBE, "Starting PCI Probe....\n");
- 
- 	/* Use new style PCI probing. Now the kernel will
- 	   do most of this for us */
--	pci_register_driver(&tlan_driver);
-+	rc = pci_register_driver(&tlan_driver);
-+
-+	if (rc != 0) {
-+		printk(KERN_ERR "TLAN: Could not register pci driver.\n");
-+		goto err_out_pci_free;
-+	}
- 
- 	TLAN_DBG(TLAN_DEBUG_PROBE, "Starting EISA Probe....\n");
- 	TLan_EisaProbe();
-@@ -493,11 +498,17 @@ static int __init tlan_probe(void)
- 		 tlan_have_pci, tlan_have_eisa);
- 
- 	if (TLanDevicesInstalled == 0) {
--		pci_unregister_driver(&tlan_driver);
--		pci_free_consistent(NULL, TLAN_MIN_FRAME_SIZE, TLanPadBuffer, TLanPadBufferDMA);
--		return -ENODEV;
-+		rc = -ENODEV;
-+		goto  err_out_pci_unreg;
- 	}
+-	rfcomm_dev_del(dev);
++	if (!test_bit(RFCOMM_RELEASE_ONHUP, &dev->flags))
++		rfcomm_dev_del(dev);
+ 	rfcomm_dev_put(dev);
  	return 0;
-+
-+err_out_pci_unreg:
-+	pci_unregister_driver(&tlan_driver);
-+err_out_pci_free:
-+	pci_free_consistent(NULL, TLAN_MIN_FRAME_SIZE, TLanPadBuffer, TLanPadBufferDMA);
-+err_out:
-+	return rc;
  }
- 
- 
 _
 
-Patches currently in -mm which might be from lpotenza@inwind.it are
+Patches currently in -mm which might be from hidave.darkstar@gmail.com are
 
-drivers-net-tlanc-compilation-warning-fix.patch
+git-cpufreq.patch
+tcp-newreno-must-count-every-skb-while-marking-losses.patch
+bluetooth-hidp_process_hid_control-remove-unnecessary-parameter-dealing.patch
+rfcomm-tty-destroy-before-tty_close.patch
+iget-stop-isofs-from-using-read_inode.patch
+iget-stop-isofs-from-using-read_inode-fix-2.patch
+iget-stop-isofs-from-using-read_inode-fix-2-update.patch
