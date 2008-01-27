@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-slab-kmem_list3-for-booting-on-machines-with-memoryless-nodes-full-revert-of-04231b3002ac53f8a64a7bd142fde3fa4b6808c6.patch added to -mm tree
-Date: Sat, 26 Jan 2008 21:06:51 -0800
-Message-ID: <200801270506.m0R56mLu030633@imap1.linux-foundation.org>
+Subject: + sound-fix-cs5535-section-mismatch.patch added to -mm tree
+Date: Sat, 26 Jan 2008 21:07:06 -0800
+Message-ID: <200801270507.m0R573Vg030715@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36903 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46068 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750792AbYA0FHW (ORCPT
+	by vger.kernel.org with ESMTP id S1750813AbYA0FHk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Jan 2008 00:07:22 -0500
+	Sun, 27 Jan 2008 00:07:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, clameter@sgi.com, olaf@aepfle.de, penberg@cs.helsinki.fi, stable@kernel.org
+Cc: randy.dunlap@oracle.com, perex@suse.cz, sam@ravnborg.org, tiwai@suse.de
 
 
 The patch titled
-     Fix SLAB kmem_list3 for booting on machines with memoryless nodes (full revert of 04231b3002ac53f8a64a7bd142fde3fa4b6808c6)
+     sound: fix cs5535 section mismatch
 has been added to the -mm tree.  Its filename is
-     fix-slab-kmem_list3-for-booting-on-machines-with-memoryless-nodes-full-revert-of-04231b3002ac53f8a64a7bd142fde3fa4b6808c6.patch
+     sound-fix-cs5535-section-mismatch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix SLAB kmem_list3 for booting on machines with memoryless nodes (full revert of 04231b3002ac53f8a64a7bd142fde3fa4b6808c6)
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: sound: fix cs5535 section mismatch
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Complete the revert of the changes made by
-04231b3002ac53f8a64a7bd142fde3fa4b6808c6 to the kmem_list3 management in slab.
- On a machine with a memoryless node, BUG_ONs are triggering related to lists
-not being initialised and this affects 2.6.24 so should be considered a
-candidate for the stable tree.  The intention was to fully revert with commit
-9c09a95cf431fcf5720f2e408befa24b32b8cf4d but I mucked it up.
+snd_cs5535audio_mixer() is only called by __devinit
+snd_cs5535audio_probe(), so the mixer function can also be __devinit.
 
-This patch partially addresses a problem in 2.6.24 where SLAB in use with a
-machine with memoryless nodes fails to boot.  SLUB is not affected.  Pekka
-Enberg has the remainder of the fix which alters when the lists are
-initialised.
+WARNING: vmlinux.o(.text+0xfdbba0): Section mismatch: reference to .init.data:ac97_quirks (between 'snd_cs5535audio_mixer' and 'process_bm0_irq')
 
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Olaf Hering <olaf@aepfle.de>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: <stable@kernel.org>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Jaroslav Kysela <perex@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    2 +-
+ sound/pci/cs5535audio/cs5535audio.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slab.c~fix-slab-kmem_list3-for-booting-on-machines-with-memoryless-nodes-full-revert-of-04231b3002ac53f8a64a7bd142fde3fa4b6808c6 mm/slab.c
---- a/mm/slab.c~fix-slab-kmem_list3-for-booting-on-machines-with-memoryless-nodes-full-revert-of-04231b3002ac53f8a64a7bd142fde3fa4b6808c6
-+++ a/mm/slab.c
-@@ -2099,7 +2099,7 @@ static int __init_refok setup_cpu_cache(
- 			g_cpucache_up = PARTIAL_L3;
- 		} else {
- 			int node;
--			for_each_node_state(node, N_NORMAL_MEMORY) {
-+			for_each_online_node(node) {
- 				cachep->nodelists[node] =
- 				    kmalloc_node(sizeof(struct kmem_list3),
- 						GFP_KERNEL, node);
+diff -puN sound/pci/cs5535audio/cs5535audio.c~sound-fix-cs5535-section-mismatch sound/pci/cs5535audio/cs5535audio.c
+--- a/sound/pci/cs5535audio/cs5535audio.c~sound-fix-cs5535-section-mismatch
++++ a/sound/pci/cs5535audio/cs5535audio.c
+@@ -144,7 +144,7 @@ static unsigned short snd_cs5535audio_ac
+ 	return snd_cs5535audio_codec_read(cs5535au, reg);
+ }
+ 
+-static int snd_cs5535audio_mixer(struct cs5535audio *cs5535au)
++static int __devinit snd_cs5535audio_mixer(struct cs5535audio *cs5535au)
+ {
+ 	struct snd_card *card = cs5535au->card;
+ 	struct snd_ac97_bus *pbus;
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-slab-partially-revert-list3-changes.patch
-slab-fix-bootstrap-on-memoryless-node.patch
-fix-slab-kmem_list3-for-booting-on-machines-with-memoryless-nodes-full-revert-of-04231b3002ac53f8a64a7bd142fde3fa4b6808c6.patch
+origin.patch
+hrtimer-fix-section-mismatch.patch
+timer-fix-section-mismatch.patch
+rcu-fix-section-mismatch.patch
+git-alsa.patch
+sound-fix-cs5535-section-mismatch.patch
+git-dvb.patch
+radio-fix-sf16fmi-section-mismatch.patch
+git-kbuild.patch
+hamradio-fix-dmascc-section-mismatch.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+pcmcia-include-bad-cis-filename-in-error-message.patch
+git-scsi-misc.patch
+scsi-fix-ncr5380-section-mismatch.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
 git-x86.patch
-memory-hotplug-add-removable-to-sysfs-to-show-memblock-removability.patch
-page-allocator-clean-up-pcp-draining-functions.patch
-page-allocator-get-rid-of-the-list-of-cold-pages.patch
-page-allocator-get-rid-of-the-list-of-cold-pages-fix.patch
-memcgroup-tidy-up-mem_cgroup_charge_common.patch
-memcgroup-fix-hang-with-shmem-tmpfs.patch
-page-owner-tracking-leak-detector.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+register_cpu-__devinit-or-__cpuinit.patch
+cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
+dio-fix-kernel-doc-notation.patch
+tpm-infineon-section-mismatch.patch
+tdfxfb-fix-section-mismatch-warnings.patch
+uvesafb-small-cleanups.patch
+documentation-move-dnotifytxt-to-filesystems.patch
+documentation-move-sharedsubtreestxt-to-filesystems.patch
+documentation-create-new-scheduler-subdirectory.patch
+reporting-bugs-cc-the-mailing-list-too.patch
+fs-menu-small-reorg.patch
+the-scheduled-time-option-removal.patch
+sound-fix-opti9xx-miro-section-mismatch.patch
+profile-likely-unlikely-macros.patch
