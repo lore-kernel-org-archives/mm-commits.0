@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fix-drivers-lguest-makefile-entry.patch added to -mm tree
-Date: Sat, 26 Jan 2008 21:18:17 -0800
-Message-ID: <200801270518.m0R5IEfj031186@imap1.linux-foundation.org>
+Subject: + lguest-remove-pv_info-dependency.patch added to -mm tree
+Date: Sat, 26 Jan 2008 21:18:19 -0800
+Message-ID: <200801270518.m0R5IGji031189@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42458 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33933 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751282AbYA0FSx (ORCPT
+	by vger.kernel.org with ESMTP id S1751321AbYA0FSz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Jan 2008 00:18:53 -0500
+	Sun, 27 Jan 2008 00:18:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: gcosta@redhat.com, rusty@rustcorp.com.au
 
 
 The patch titled
-     fix drivers/lguest Makefile entry
+     lguest: remove pv_info dependency
 has been added to the -mm tree.  Its filename is
-     fix-drivers-lguest-makefile-entry.patch
+     lguest-remove-pv_info-dependency.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix drivers/lguest Makefile entry
+Subject: lguest: remove pv_info dependency
 From: Glauber de Oliveira Costa <gcosta@redhat.com>
 
-Parts depend on CONFIG_LGUEST, not just CONFIG_LGUEST_GUEST
+Currently, lguest module can't be compiled without the PARAVIRT flag being
+on.  This is a fake dependency, since the module itself shouldn't need any
+paravirt override.  Reason for that is the reference to pv_info structure
+in initial loading tests.
+
+This patch removes it in favour of a more generic error message.
 
 Signed-off-by: Glauber de Oliveira Costa <gcosta@redhat.com>
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/Makefile |    2 +-
+ drivers/lguest/core.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/Makefile~fix-drivers-lguest-makefile-entry drivers/Makefile
---- a/drivers/Makefile~fix-drivers-lguest-makefile-entry
-+++ a/drivers/Makefile
-@@ -73,7 +73,7 @@ obj-$(CONFIG_ISDN)		+= isdn/
- obj-$(CONFIG_EDAC)		+= edac/
- obj-$(CONFIG_MCA)		+= mca/
- obj-$(CONFIG_EISA)		+= eisa/
--obj-$(CONFIG_LGUEST_GUEST)	+= lguest/
-+obj-y				+= lguest/
- obj-$(CONFIG_CPU_FREQ)		+= cpufreq/
- obj-$(CONFIG_CPU_IDLE)		+= cpuidle/
- obj-$(CONFIG_MMC)		+= mmc/
+diff -puN drivers/lguest/core.c~lguest-remove-pv_info-dependency drivers/lguest/core.c
+--- a/drivers/lguest/core.c~lguest-remove-pv_info-dependency
++++ a/drivers/lguest/core.c
+@@ -253,7 +253,7 @@ static int __init init(void)
+ 
+ 	/* Lguest can't run under Xen, VMI or itself.  It does Tricky Stuff. */
+ 	if (paravirt_enabled()) {
+-		printk("lguest is afraid of %s\n", pv_info.name);
++		printk("lguest is afraid of being a guest\n");
+ 		return -EPERM;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from gcosta@redhat.com are
