@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + atmel_serial-split-the-interrupt-handler.patch added to -mm tree
-Date: Sat, 26 Jan 2008 21:17:59 -0800
-Message-ID: <200801270517.m0R5Hufv031159@imap1.linux-foundation.org>
+Subject: + reiser4-fix-null-pointer-dereference-in-reiser4_write_extent.patch added to -mm tree
+Date: Sat, 26 Jan 2008 21:18:56 -0800
+Message-ID: <200801270518.m0R5IsEw031214@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46621 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40344 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751354AbYA0FUJ (ORCPT
+	by vger.kernel.org with ESMTP id S1751371AbYA0FVm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Jan 2008 00:20:09 -0500
+	Sun, 27 Jan 2008 00:21:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linux@bohmer.net, hskinnemoen@atmel.com, linux@maxim.org.za, marc.pignat@hevs.ch
+Cc: edward.shishkin@gmail.com, vs@namesys.com
 
 
 The patch titled
-     atmel_serial: split the interrupt handler
+     reiser4: fix null pointer dereference in reiser4_write_extent
 has been added to the -mm tree.  Its filename is
-     atmel_serial-split-the-interrupt-handler.patch
+     reiser4-fix-null-pointer-dereference-in-reiser4_write_extent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,425 +34,508 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_serial: split the interrupt handler
-From: Remy Bohmer <linux@bohmer.net>
+Subject: reiser4: fix null pointer dereference in reiser4_write_extent
+From: Edward Shishkin <edward.shishkin@gmail.com>
 
-Split up the interrupt handler of the serial port into a interrupt top-half
-and a tasklet.
+Problem:
+Oops when starting kde4:
+BUG: unable to handle kernel NULL pointer dereference
+at virtual address 0000000c
+printing eip: c025eba5 *pde = 00000000
+Oops: 0000 [#1] SMP
+last sysfs file: /devices/pci0000:00/0000:00:1e.0/0000:04:04.0/resource
+Modules linked in: thermal processor fan button
 
-The goal is to get the interrupt top-half as short as possible to minimize
-latencies on interrupts.  But the old code also does some calls in the
-interrupt handler that are not allowed on preempt-RT in IRQF_NODELAY context. 
-This handler is executed in this context because of the interrupt sharing with
-the timer interrupt.  The timer interrupt on Preempt-RT runs in IRQF_NODELAY
-context.
+Pid: 3705, comm: kwrite Not tainted (2.6.23-mm1 #8)
+EIP: 0060:[<c025eba5>] EFLAGS: 00010246 CPU: 0
+EIP is at update_extents+0x44/0x2e7
 
-The tasklet takes care of handling control status changes, pushing incoming
-characters to the tty layer, handling break and other errors.  It also handles
-pushing TX data into the data register.
+Bug:
+Trying to look at not persistent struct file in the
+case of expanded truncate via sys_truncate64(path, length).
 
-Reading the complete receive queue is still done in the top-half because we
-never want to miss any incoming character.
+The fixup:
+. Don't look at struct file at truncate_file_body();
+. Add an inode *inode argument to the following
+  functions to handle the case of not persistent
+  struct file.
+  . reiser4_write_extent();
+  . reiser4_write_tail();
+  . reiser4_update_extents();
+Other changes:
+. Add missesd identifier in some asserts.
+. Comments cleanups.
 
-[hskinnemoen@atmel.com: misc cleanups and simplifications]
-Signed-off-by: Remy Bohmer <linux@bohmer.net>
-Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Andrew Victor <linux@maxim.org.za>
-Tested-by: Marc Pignat <marc.pignat@hevs.ch>
+Signed-off-by: Edward Shishkin <edward.shishkin@gmail.com>
+Cc: "Vladimir V. Saveliev" <vs@namesys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/atmel_serial.c |  245 ++++++++++++++++++++++++--------
- 1 file changed, 190 insertions(+), 55 deletions(-)
+ fs/reiser4/plugin/file/cryptcompress.c   |    8 -
+ fs/reiser4/plugin/file/file.c            |  115 +++++++++++----------
+ fs/reiser4/plugin/file/file.h            |    8 -
+ fs/reiser4/plugin/file/tail_conversion.c |    2 
+ fs/reiser4/plugin/item/extent.h          |    4 
+ fs/reiser4/plugin/item/extent_file_ops.c |   15 +-
+ fs/reiser4/plugin/item/item.h            |    3 
+ fs/reiser4/plugin/item/tail.c            |    9 -
+ fs/reiser4/plugin/item/tail.h            |    4 
+ 9 files changed, 86 insertions(+), 82 deletions(-)
 
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-split-the-interrupt-handler drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-split-the-interrupt-handler
-+++ a/drivers/serial/atmel_serial.c
-@@ -104,6 +104,13 @@
- static int (*atmel_open_hook)(struct uart_port *);
- static void (*atmel_close_hook)(struct uart_port *);
- 
-+struct atmel_uart_char {
-+	u16		status;
-+	u16		ch;
-+};
-+
-+#define ATMEL_SERIAL_RINGSIZE 1024
-+
- /*
-  * We wrap our port structure around the generic uart_port.
-  */
-@@ -112,6 +119,12 @@ struct atmel_uart_port {
- 	struct clk		*clk;		/* uart clock */
- 	unsigned short		suspended;	/* is port suspended? */
- 	int			break_active;	/* break being received */
-+
-+	struct tasklet_struct	tasklet;
-+	unsigned int		irq_status;
-+	unsigned int		irq_status_prev;
-+
-+	struct circ_buf		rx_ring;
- };
- 
- static struct atmel_uart_port atmel_ports[ATMEL_MAX_UART];
-@@ -241,22 +254,42 @@ static void atmel_break_ctl(struct uart_
+diff -puN fs/reiser4/plugin/file/cryptcompress.c~reiser4-fix-null-pointer-dereference-in-reiser4_write_extent fs/reiser4/plugin/file/cryptcompress.c
+--- a/fs/reiser4/plugin/file/cryptcompress.c~reiser4-fix-null-pointer-dereference-in-reiser4_write_extent
++++ a/fs/reiser4/plugin/file/cryptcompress.c
+@@ -3198,11 +3198,11 @@ static int cryptcompress_append_hole(str
+ 	return result;
  }
  
- /*
-+ * Stores the incoming character in the ring buffer
-+ */
-+static void
-+atmel_buffer_rx_char(struct uart_port *port, unsigned int status,
-+		     unsigned int ch)
-+{
-+	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+	struct circ_buf *ring = &atmel_port->rx_ring;
-+	struct atmel_uart_char *c;
-+
-+	if (!CIRC_SPACE(ring->head, ring->tail, ATMEL_SERIAL_RINGSIZE))
-+		/* Buffer overflow, ignore char */
-+		return;
-+
-+	c = &((struct atmel_uart_char *)ring->buf)[ring->head];
-+	c->status	= status;
-+	c->ch		= ch;
-+
-+	/* Make sure the character is stored before we update head. */
-+	smp_wmb();
-+
-+	ring->head = (ring->head + 1) & (ATMEL_SERIAL_RINGSIZE - 1);
-+}
-+
-+/*
-  * Characters received (called from interrupt handler)
-  */
- static void atmel_rx_chars(struct uart_port *port)
+-static int
+-update_cryptcompress_size(struct inode *inode, reiser4_key * key, int update_sd)
++static int update_cryptcompress_size(struct inode *inode, loff_t new_size,
++				     int update_sd)
  {
- 	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
--	struct tty_struct *tty = port->info->tty;
--	unsigned int status, ch, flg;
-+	unsigned int status, ch;
+-	return (get_key_offset(key) & ((loff_t) (inode_cluster_size(inode)) - 1)
+-		? 0 : reiser4_update_file_size(inode, key, update_sd));
++	return (new_size & ((loff_t) (inode_cluster_size(inode)) - 1)
++		? 0 : reiser4_update_file_size(inode, new_size, update_sd));
+ }
  
- 	status = UART_GET_CSR(port);
- 	while (status & ATMEL_US_RXRDY) {
- 		ch = UART_GET_CHAR(port);
+ /* Prune cryptcompress file in two steps:
+diff -puN fs/reiser4/plugin/file/file.c~reiser4-fix-null-pointer-dereference-in-reiser4_write_extent fs/reiser4/plugin/file/file.c
+--- a/fs/reiser4/plugin/file/file.c~reiser4-fix-null-pointer-dereference-in-reiser4_write_extent
++++ a/fs/reiser4/plugin/file/file.c
+@@ -328,9 +328,14 @@ static int find_file_state(struct inode 
+ 	return result;
+ }
  
--		port->icount.rx++;
--
--		flg = TTY_NORMAL;
--
- 		/*
- 		 * note that the error handling code is
- 		 * out of the main execution path
-@@ -264,17 +297,14 @@ static void atmel_rx_chars(struct uart_p
- 		if (unlikely(status & (ATMEL_US_PARE | ATMEL_US_FRAME
- 				       | ATMEL_US_OVRE | ATMEL_US_RXBRK)
- 			     || atmel_port->break_active)) {
-+
- 			/* clear error */
- 			UART_PUT_CR(port, ATMEL_US_RSTSTA);
-+
- 			if (status & ATMEL_US_RXBRK
- 			    && !atmel_port->break_active) {
--				/* ignore side-effect */
--				status &= ~(ATMEL_US_PARE | ATMEL_US_FRAME);
--				port->icount.brk++;
- 				atmel_port->break_active = 1;
- 				UART_PUT_IER(port, ATMEL_US_RXBRK);
--				if (uart_handle_break(port))
--					goto ignore_char;
- 			} else {
- 				/*
- 				 * This is either the end-of-break
-@@ -287,52 +317,30 @@ static void atmel_rx_chars(struct uart_p
- 				status &= ~ATMEL_US_RXBRK;
- 				atmel_port->break_active = 0;
+-/* estimate and reserve space needed to truncate page which gets partially truncated: one block for page itself, stat
+-   data update (estimate_one_insert_into_item) and one item insertion (estimate_one_insert_into_item) which may happen
+-   if page corresponds to hole extent and unallocated one will have to be created */
++/**
++ * Estimate and reserve space needed to truncate page
++ * which gets partially truncated: one block for page
++ * itself, stat-data update (estimate_one_insert_into_item)
++ * and one item insertion (estimate_one_insert_into_item)
++ * which may happen if page corresponds to hole extent and
++ * unallocated one will have to be created
++ */
+ static int reserve_partial_page(reiser4_tree * tree)
+ {
+ 	grab_space_enable();
+@@ -355,12 +360,12 @@ static int reserve_cut_iteration(reiser4
+ 				     BA_CAN_COMMIT);
+ }
+ 
+-int reiser4_update_file_size(struct inode *inode, reiser4_key * key,
++int reiser4_update_file_size(struct inode *inode, loff_t new_size,
+ 			     int update_sd)
+ {
+ 	int result = 0;
+ 
+-	INODE_SET_SIZE(inode, get_key_offset(key));
++	INODE_SET_SIZE(inode, new_size);
+ 	if (update_sd) {
+ 		inode->i_ctime = inode->i_mtime = CURRENT_TIME;
+ 		result = reiser4_update_sd(inode);
+@@ -368,12 +373,14 @@ int reiser4_update_file_size(struct inod
+ 	return result;
+ }
+ 
+-/* cut file items one by one starting from the last one until new file size (inode->i_size) is reached. Reserve space
+-   and update file stat data on every single cut from the tree */
+-int
+-cut_file_items(struct inode *inode, loff_t new_size, int update_sd,
+-	       loff_t cur_size, int (*update_actor) (struct inode *,
+-						     reiser4_key *, int))
++/**
++ * Cut file items one by one starting from the last one until
++ * new file size (inode->i_size) is reached. Reserve space
++ * and update file stat data on every single cut from the tree
++ */
++int cut_file_items(struct inode *inode, loff_t new_size,
++		   int update_sd, loff_t cur_size,
++		   int (*update_actor) (struct inode *, loff_t, int))
+ {
+ 	reiser4_key from_key, to_key;
+ 	reiser4_key smallest_removed;
+@@ -398,21 +405,25 @@ cut_file_items(struct inode *inode, loff
+ 						 &smallest_removed, inode, 1,
+ 						 &progress);
+ 		if (result == -E_REPEAT) {
+-			/* -E_REPEAT is a signal to interrupt a long file truncation process */
++			/**
++			 * -E_REPEAT is a signal to interrupt a long
++			 * file truncation process
++			 */
+ 			if (progress) {
+-				result =
+-				    update_actor(inode, &smallest_removed,
+-						 update_sd);
++				result = update_actor(inode,
++					      get_key_offset(&smallest_removed),
++					      update_sd);
+ 				if (result)
+ 					break;
  			}
--			if (status & ATMEL_US_PARE)
--				port->icount.parity++;
--			if (status & ATMEL_US_FRAME)
--				port->icount.frame++;
--			if (status & ATMEL_US_OVRE)
--				port->icount.overrun++;
 -
--			status &= port->read_status_mask;
+-			/* the below does up(sbinfo->delete_mutex). Do not get folled */
++			/* the below does up(sbinfo->delete_mutex).
++			 * Do not get folled */
+ 			reiser4_release_reserved(inode->i_sb);
 -
--			if (status & ATMEL_US_RXBRK)
--				flg = TTY_BREAK;
--			else if (status & ATMEL_US_PARE)
--				flg = TTY_PARITY;
--			else if (status & ATMEL_US_FRAME)
--				flg = TTY_FRAME;
+-			/* reiser4_cut_tree_object() was interrupted probably because
+-			 * current atom requires commit, we have to release
+-			 * transaction handle to allow atom commit. */
++			/**
++			 * reiser4_cut_tree_object() was interrupted probably
++			 * because current atom requires commit, we have to
++			 * release transaction handle to allow atom commit.
++			 */
+ 			reiser4_txn_restart_current();
+ 			continue;
+ 		}
+@@ -423,7 +434,8 @@ cut_file_items(struct inode *inode, loff
+ 
+ 		set_key_offset(&smallest_removed, new_size);
+ 		/* Final sd update after the file gets its correct size */
+-		result = update_actor(inode, &smallest_removed, update_sd);
++		result = update_actor(inode, get_key_offset(&smallest_removed),
++				      update_sd);
+ 		break;
+ 	}
+ 
+@@ -573,11 +585,8 @@ static int truncate_file_body(struct ino
+ 
+ 	if (inode->i_size < new_size) {
+ 		/* expanding truncate */
+-		struct file * file = attr->ia_file;
+ 		struct unix_file_info *uf_info = unix_file_inode_data(inode);
+ 
+-		assert("edward-1532", attr->ia_valid & ATTR_FILE);
+-
+ 		result = find_file_state(inode, uf_info);
+ 		if (result)
+ 			return result;
+@@ -610,31 +619,28 @@ static int truncate_file_body(struct ino
+ 						return result;
+ 				}
+ 			}
+-			result = reiser4_write_extent(file, NULL, 0,
+-						      &new_size);
++			result = reiser4_write_extent(NULL, inode, NULL,
++						      0, &new_size);
+ 			if (result)
+ 				return result;
+ 			uf_info->container = UF_CONTAINER_EXTENTS;
+ 		} else {
+ 			if (uf_info->container ==  UF_CONTAINER_EXTENTS) {
+-				result = reiser4_write_extent(file, NULL, 0,
+-							      &new_size);
++				result = reiser4_write_extent(NULL, inode, NULL,
++							      0, &new_size);
+ 				if (result)
+ 					return result;
+ 			} else {
+-				result = reiser4_write_tail(file, NULL, 0,
+-							    &new_size);
++				result = reiser4_write_tail(NULL, inode, NULL,
++							    0, &new_size);
+ 				if (result)
+ 					return result;
+ 				uf_info->container = UF_CONTAINER_TAILS;
+ 			}
+ 		}
+ 		BUG_ON(result > 0);
+-		INODE_SET_FIELD(inode, i_size, new_size);
+-		file_update_time(file);
+-		result = reiser4_update_sd(inode);
++		result = reiser4_update_file_size(inode, new_size, 1);
+ 		BUG_ON(result != 0);
+-		reiser4_free_file_fsdata(file);
+ 	} else
+ 		result = shorten_file(inode, new_size);
+ 	return result;
+@@ -771,13 +777,10 @@ hint_validate(hint_t * hint, const reise
+ }
+ 
+ /**
+- * find_or_create_extent -
+- * @page:
+- *
+- *
++ * Look for place at twig level for extent corresponding to page,
++ * call extent's writepage method to create unallocated extent if
++ * it does not exist yet, initialize jnode, capture page
+  */
+-/* look for place at twig level for extent corresponding to page, call extent's writepage method to create
+-   unallocated extent if it does not exist yet, initialize jnode, capture page */
+ int find_or_create_extent(struct page *page)
+ {
+ 	int result;
+@@ -805,7 +808,8 @@ int find_or_create_extent(struct page *p
+ 		if (result) {
+  			JF_CLR(node, JNODE_WRITE_PREPARED);
+ 			jput(node);
+-			warning("", "reiser4_update_extent failed: %d", result);
++			warning("edward-1549",
++				"reiser4_update_extent failed: %d", result);
+ 			return result;
+ 		}
+ 		if (plugged_hole)
+@@ -1138,12 +1142,13 @@ static int sync_page_list(struct inode *
+ 		found =
+ 		    radix_tree_gang_lookup(&mapping->page_tree, (void **)&page,
+ 					   from, 1);
+-		assert("", found < 2);
++		assert("edward-1550", found < 2);
+ 		if (found == 0)
+ 			break;
+-
+-		/* page may not leave radix tree because it is protected from truncating by inode->i_mutex locked by
+-		   sys_fsync */
++		/**
++		 * page may not leave radix tree because it is protected from
++		 * truncating by inode->i_mutex locked by sys_fsync
++		 */
+ 		page_cache_get(page);
+ 		read_unlock_irq(&mapping->tree_lock);
+ 
+@@ -1270,8 +1275,8 @@ int writepages_unix_file(struct address_
+ 		/* avoid recursive calls to ->sync_inodes */
+ 		ctx->nobalance = 1;
+ 		assert("zam-760", lock_stack_isclean(get_current_lock_stack()));
+-		assert("", LOCK_CNT_NIL(inode_sem_w));
+-		assert("", LOCK_CNT_NIL(inode_sem_r));
++		assert("edward-1551", LOCK_CNT_NIL(inode_sem_w));
++		assert("edward-1552", LOCK_CNT_NIL(inode_sem_r));
+ 
+ 		reiser4_txn_restart_current();
+ 
+@@ -2097,7 +2102,8 @@ ssize_t write_unix_file(struct file *fil
+ 	int try_free_space;
+ 	int to_write = PAGE_CACHE_SIZE * WRITE_GRANULARITY;
+ 	size_t left;
+-	ssize_t (*write_op)(struct file *, const char __user *, size_t,
++	ssize_t (*write_op)(struct file *, struct inode *,
++			    const char __user *, size_t,
+ 			    loff_t *pos);
+ 	int ea;
+ 	loff_t new_size;
+@@ -2212,7 +2218,7 @@ ssize_t write_unix_file(struct file *fil
+ 			write_op = reiser4_write_tail;
  		}
  
--		if (uart_handle_sysrq_char(port, ch))
--			goto ignore_char;
--
--		uart_insert_char(port, status, ATMEL_US_OVRE, ch, flg);
--
--ignore_char:
-+		atmel_buffer_rx_char(port, status, ch);
- 		status = UART_GET_CSR(port);
+-		written = write_op(file, buf, to_write, pos);
++		written = write_op(file, inode, buf, to_write, pos);
+ 		if (written == -ENOSPC && try_free_space) {
+ 			drop_access(uf_info);
+ 			txnmgr_force_commit_all(inode->i_sb, 0);
+@@ -2226,14 +2232,14 @@ ssize_t write_unix_file(struct file *fil
+ 		}
+ 		/* something is written. */
+ 		if (uf_info->container == UF_CONTAINER_EMPTY) {
+-			assert("", ea == EA_OBTAINED);
++			assert("edward-1553", ea == EA_OBTAINED);
+ 			uf_info->container =
+ 				(write_op == reiser4_write_extent) ?
+ 				UF_CONTAINER_EXTENTS : UF_CONTAINER_TAILS;
+ 		} else {
+-			assert("", ergo(uf_info->container == UF_CONTAINER_EXTENTS,
++			assert("edward-1554", ergo(uf_info->container == UF_CONTAINER_EXTENTS,
+ 					write_op == reiser4_write_extent));
+-			assert("", ergo(uf_info->container == UF_CONTAINER_TAILS,
++			assert("edward-1555", ergo(uf_info->container == UF_CONTAINER_TAILS,
+ 					write_op == reiser4_write_tail));
+ 		}
+ 		if (*pos + written > inode->i_size)
+@@ -2669,7 +2675,8 @@ int delete_object_unix_file(struct inode
+ 	drop_exclusive_access(uf_info);
+ 
+ 	if (result)
+-		warning("", "failed to truncate file (%llu) on removal: %d",
++		warning("edward-1556",
++			"failed to truncate file (%llu) on removal: %d",
+ 			get_inode_oid(inode), result);
+ 
+ 	/* remove stat data and safe link */
+diff -puN fs/reiser4/plugin/file/file.h~reiser4-fix-null-pointer-dereference-in-reiser4_write_extent fs/reiser4/plugin/file/file.h
+--- a/fs/reiser4/plugin/file/file.h~reiser4-fix-null-pointer-dereference-in-reiser4_write_extent
++++ a/fs/reiser4/plugin/file/file.h
+@@ -280,10 +280,10 @@ void reiser4_set_hint(hint_t *, const re
+ int hint_is_set(const hint_t *);
+ void reiser4_unset_hint(hint_t *);
+ 
+-int reiser4_update_file_size(struct inode *, reiser4_key *, int update_sd);
+-int cut_file_items(struct inode *, loff_t new_size, int update_sd,
+-		   loff_t cur_size, int (*update_actor) (struct inode *,
+-							 reiser4_key *, int));
++int reiser4_update_file_size(struct inode *, loff_t, int update_sd);
++int cut_file_items(struct inode *, loff_t new_size,
++		   int update_sd, loff_t cur_size,
++		   int (*update_actor) (struct inode *, loff_t, int));
+ #if REISER4_DEBUG
+ 
+ /* return 1 is exclusive access is obtained, 0 - otherwise */
+diff -puN fs/reiser4/plugin/file/tail_conversion.c~reiser4-fix-null-pointer-dereference-in-reiser4_write_extent fs/reiser4/plugin/file/tail_conversion.c
+--- a/fs/reiser4/plugin/file/tail_conversion.c~reiser4-fix-null-pointer-dereference-in-reiser4_write_extent
++++ a/fs/reiser4/plugin/file/tail_conversion.c
+@@ -651,7 +651,7 @@ int extent2tail(struct file * file, stru
+ 			assert("edward-1538",
+ 			       file->f_dentry->d_inode == inode);
+ 
+-			result = reiser4_write_tail(file,
++			result = reiser4_write_tail(file, inode,
+ 						    (char __user *)kmap(page),
+ 						    count, &pos);
+ 			reiser4_free_file_fsdata(file);
+diff -puN fs/reiser4/plugin/item/extent.h~reiser4-fix-null-pointer-dereference-in-reiser4_write_extent fs/reiser4/plugin/item/extent.h
+--- a/fs/reiser4/plugin/item/extent.h~reiser4-fix-null-pointer-dereference-in-reiser4_write_extent
++++ a/fs/reiser4/plugin/item/extent.h
+@@ -131,8 +131,8 @@ void item_stat_extent(const coord_t * co
+ int reiser4_check_extent(const coord_t * coord, const char **error);
+ 
+ /* plugin->u.item.s.file.* */
+-ssize_t reiser4_write_extent(struct file *, const char __user *,
+-			     size_t, loff_t *);
++ssize_t reiser4_write_extent(struct file *, struct inode * inode,
++			     const char __user *, size_t, loff_t *);
+ int reiser4_read_extent(struct file *, flow_t *, hint_t *);
+ int reiser4_readpage_extent(void *, struct page *);
+ int reiser4_do_readpage_extent(reiser4_extent*, reiser4_block_nr, struct page*);
+diff -puN fs/reiser4/plugin/item/extent_file_ops.c~reiser4-fix-null-pointer-dereference-in-reiser4_write_extent fs/reiser4/plugin/item/extent_file_ops.c
+--- a/fs/reiser4/plugin/item/extent_file_ops.c~reiser4-fix-null-pointer-dereference-in-reiser4_write_extent
++++ a/fs/reiser4/plugin/item/extent_file_ops.c
+@@ -814,9 +814,9 @@ int reiser4_update_extent(struct inode *
+  * @off:
+  *
+  */
+-static int update_extents(struct file *file, jnode **jnodes, int count, loff_t pos)
++static int update_extents(struct file *file, struct inode *inode,
++			  jnode **jnodes, int count, loff_t pos)
+ {
+-	struct inode *inode;
+ 	struct hint hint;
+ 	reiser4_key key;
+ 	int result;
+@@ -825,7 +825,6 @@ static int update_extents(struct file *f
+ 	result = load_file_hint(file, &hint);
+ 	BUG_ON(result != 0);
+ 
+-	inode = file->f_dentry->d_inode;
+ 	if (count != 0)
+ 		/*
+ 		 * count == 0 is special case: expanding truncate
+@@ -969,14 +968,13 @@ filemap_copy_from_user(struct page *page
+  * @pos: position in file to write to
+  *
+  */
+-ssize_t reiser4_write_extent(struct file *file, const char __user *buf,
+-			     size_t count, loff_t *pos)
++ssize_t reiser4_write_extent(struct file *file, struct inode * inode,
++			     const char __user *buf, size_t count, loff_t *pos)
+ {
+ 	int have_to_update_extent;
+ 	int nr_pages, nr_dirty;
+ 	struct page *page;
+ 	jnode *jnodes[WRITE_GRANULARITY + 1];
+-	struct inode *inode;
+ 	unsigned long index;
+ 	unsigned long end;
+ 	int i;
+@@ -984,13 +982,12 @@ ssize_t reiser4_write_extent(struct file
+ 	size_t left, written;
+ 	int result = 0;
+ 
+-	inode = file->f_dentry->d_inode;
+ 	if (write_extent_reserve_space(inode))
+ 		return RETERR(-ENOSPC);
+ 
+ 	if (count == 0) {
+ 		/* truncate case */
+-		update_extents(file, jnodes, 0, *pos);
++		update_extents(file, inode, jnodes, 0, *pos);
+ 		return 0;
  	}
  
--	tty_flip_buffer_push(tty);
-+	tasklet_schedule(&atmel_port->tasklet);
- }
- 
- /*
-- * Transmit characters (called from interrupt handler)
-+ * Transmit characters (called from tasklet with TXRDY interrupt
-+ * disabled)
-  */
- static void atmel_tx_chars(struct uart_port *port)
- {
- 	struct circ_buf *xmit = &port->info->xmit;
- 
--	if (port->x_char) {
-+	if (port->x_char && UART_GET_CSR(port) & ATMEL_US_TXRDY) {
- 		UART_PUT_CHAR(port, port->x_char);
- 		port->icount.tx++;
- 		port->x_char = 0;
--		return;
+@@ -1090,7 +1087,7 @@ ssize_t reiser4_write_extent(struct file
  	}
--	if (uart_circ_empty(xmit) || uart_tx_stopped(port)) {
--		atmel_stop_tx(port);
-+	if (uart_circ_empty(xmit) || uart_tx_stopped(port))
- 		return;
--	}
  
- 	while (UART_GET_CSR(port) & ATMEL_US_TXRDY) {
- 		UART_PUT_CHAR(port, xmit->buf[xmit->tail]);
-@@ -345,8 +353,8 @@ static void atmel_tx_chars(struct uart_p
- 	if (uart_circ_chars_pending(xmit) < WAKEUP_CHARS)
- 		uart_write_wakeup(port);
+ 	if (have_to_update_extent) {
+-		update_extents(file, jnodes, nr_dirty, *pos);
++		update_extents(file, inode, jnodes, nr_dirty, *pos);
+ 	} else {
+ 		for (i = 0; i < nr_dirty; i ++) {
+ 			int ret;
+diff -puN fs/reiser4/plugin/item/item.h~reiser4-fix-null-pointer-dereference-in-reiser4_write_extent fs/reiser4/plugin/item/item.h
+--- a/fs/reiser4/plugin/item/item.h~reiser4-fix-null-pointer-dereference-in-reiser4_write_extent
++++ a/fs/reiser4/plugin/item/item.h
+@@ -233,7 +233,8 @@ struct dir_entry_iops {
  
--	if (uart_circ_empty(xmit))
--		atmel_stop_tx(port);
-+	if (!uart_circ_empty(xmit))
-+		UART_PUT_IER(port, ATMEL_US_TXRDY);
+ /* operations specific to items regular (unix) file metadata are built of */
+ struct file_iops{
+-	int (*write) (struct file *, const char __user *, size_t, loff_t *pos);
++	int (*write) (struct file *, struct inode *,
++		      const char __user *, size_t, loff_t *pos);
+ 	int (*read) (struct file *, flow_t *, hint_t *);
+ 	int (*readpage) (void *, struct page *);
+ 	int (*get_block) (const coord_t *, sector_t, sector_t *);
+diff -puN fs/reiser4/plugin/item/tail.c~reiser4-fix-null-pointer-dereference-in-reiser4_write_extent fs/reiser4/plugin/item/tail.c
+--- a/fs/reiser4/plugin/item/tail.c~reiser4-fix-null-pointer-dereference-in-reiser4_write_extent
++++ a/fs/reiser4/plugin/item/tail.c
+@@ -626,7 +626,7 @@ static loff_t faultin_user_pages(const c
  }
  
- /*
-@@ -372,14 +380,18 @@ atmel_handle_receive(struct uart_port *p
- }
- 
- /*
-- * transmit interrupt handler.
-+ * transmit interrupt handler. (Transmit is IRQF_NODELAY safe)
+ /**
+- * reiser4_write_extent - write method of tail item plugin
++ * reiser4_write_tail - write method of tail item plugin
+  * @file: file to write to
+  * @buf: address of user-space buffer
+  * @count: number of bytes to write
+@@ -634,10 +634,9 @@ static loff_t faultin_user_pages(const c
+  *
+  * Returns number of written bytes or error code.
   */
- static void
- atmel_handle_transmit(struct uart_port *port, unsigned int pending)
+-ssize_t reiser4_write_tail(struct file *file, const char __user *buf,
+-			   size_t count, loff_t *pos)
++ssize_t reiser4_write_tail(struct file *file, struct inode * inode,
++			   const char __user *buf, size_t count, loff_t *pos)
  {
-+	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+
- 	/* Interrupt transmit */
--	if (pending & ATMEL_US_TXRDY)
--		atmel_tx_chars(port);
-+	if (pending & ATMEL_US_TXRDY) {
-+		UART_PUT_IDR(port, ATMEL_US_TXRDY);
-+		tasklet_schedule(&atmel_port->tasklet);
-+	}
- }
+-	struct inode *inode;
+ 	struct hint hint;
+ 	int result;
+ 	flow_t flow;
+@@ -645,7 +644,7 @@ ssize_t reiser4_write_tail(struct file *
+ 	lock_handle *lh;
+ 	znode *loaded;
  
- /*
-@@ -389,18 +401,13 @@ static void
- atmel_handle_status(struct uart_port *port, unsigned int pending,
- 		    unsigned int status)
- {
--	/* TODO: All reads to CSR will clear these interrupts! */
--	if (pending & ATMEL_US_RIIC)
--		port->icount.rng++;
--	if (pending & ATMEL_US_DSRIC)
--		port->icount.dsr++;
--	if (pending & ATMEL_US_DCDIC)
--		uart_handle_dcd_change(port, !(status & ATMEL_US_DCD));
--	if (pending & ATMEL_US_CTSIC)
--		uart_handle_cts_change(port, !(status & ATMEL_US_CTS));
-+	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+
- 	if (pending & (ATMEL_US_RIIC | ATMEL_US_DSRIC | ATMEL_US_DCDIC
--				| ATMEL_US_CTSIC))
--		wake_up_interruptible(&port->info->delta_msr_wait);
-+				| ATMEL_US_CTSIC)) {
-+		atmel_port->irq_status = status;
-+		tasklet_schedule(&atmel_port->tasklet);
-+	}
- }
+-	inode = file->f_dentry->d_inode;
++	assert("edward-1548", inode != NULL);
  
- /*
-@@ -427,6 +434,114 @@ static irqreturn_t atmel_interrupt(int i
- 	return IRQ_HANDLED;
- }
+ 	if (write_extent_reserve_space(inode))
+ 		return RETERR(-ENOSPC);
+diff -puN fs/reiser4/plugin/item/tail.h~reiser4-fix-null-pointer-dereference-in-reiser4_write_extent fs/reiser4/plugin/item/tail.h
+--- a/fs/reiser4/plugin/item/tail.h~reiser4-fix-null-pointer-dereference-in-reiser4_write_extent
++++ a/fs/reiser4/plugin/item/tail.h
+@@ -33,8 +33,8 @@ int kill_units_tail(coord_t *, pos_in_no
+ reiser4_key *unit_key_tail(const coord_t *, reiser4_key *);
  
-+static void atmel_rx_from_ring(struct uart_port *port)
-+{
-+	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+	struct circ_buf *ring = &atmel_port->rx_ring;
-+	unsigned int flg;
-+	unsigned int status;
-+
-+	while (ring->head != ring->tail) {
-+		struct atmel_uart_char c;
-+
-+		/* Make sure c is loaded after head. */
-+		smp_rmb();
-+
-+		c = ((struct atmel_uart_char *)ring->buf)[ring->tail];
-+
-+		ring->tail = (ring->tail + 1) & (ATMEL_SERIAL_RINGSIZE - 1);
-+
-+		port->icount.rx++;
-+		status = c.status;
-+		flg = TTY_NORMAL;
-+
-+		/*
-+		 * note that the error handling code is
-+		 * out of the main execution path
-+		 */
-+		if (unlikely(status & (ATMEL_US_PARE | ATMEL_US_FRAME
-+				       | ATMEL_US_OVRE | ATMEL_US_RXBRK))) {
-+			if (status & ATMEL_US_RXBRK) {
-+				/* ignore side-effect */
-+				status &= ~(ATMEL_US_PARE | ATMEL_US_FRAME);
-+
-+				port->icount.brk++;
-+				if (uart_handle_break(port))
-+					continue;
-+			}
-+			if (status & ATMEL_US_PARE)
-+				port->icount.parity++;
-+			if (status & ATMEL_US_FRAME)
-+				port->icount.frame++;
-+			if (status & ATMEL_US_OVRE)
-+				port->icount.overrun++;
-+
-+			status &= port->read_status_mask;
-+
-+			if (status & ATMEL_US_RXBRK)
-+				flg = TTY_BREAK;
-+			else if (status & ATMEL_US_PARE)
-+				flg = TTY_PARITY;
-+			else if (status & ATMEL_US_FRAME)
-+				flg = TTY_FRAME;
-+		}
-+
-+
-+		if (uart_handle_sysrq_char(port, c.ch))
-+			continue;
-+
-+		uart_insert_char(port, status, ATMEL_US_OVRE, c.ch, flg);
-+	}
-+
-+	/*
-+	 * Drop the lock here since it might end up calling
-+	 * uart_start(), which takes the lock.
-+	 */
-+	spin_unlock(&port->lock);
-+	tty_flip_buffer_push(port->info->tty);
-+	spin_lock(&port->lock);
-+}
-+
-+/*
-+ * tasklet handling tty stuff outside the interrupt handler.
-+ */
-+static void atmel_tasklet_func(unsigned long data)
-+{
-+	struct uart_port *port = (struct uart_port *)data;
-+	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+	unsigned int status;
-+	unsigned int status_change;
-+
-+	/* The interrupt handler does not take the lock */
-+	spin_lock(&port->lock);
-+
-+	atmel_tx_chars(port);
-+
-+	status = atmel_port->irq_status;
-+	status_change = status ^ atmel_port->irq_status_prev;
-+
-+	if (status_change & (ATMEL_US_RI | ATMEL_US_DSR
-+				| ATMEL_US_DCD | ATMEL_US_CTS)) {
-+		/* TODO: All reads to CSR will clear these interrupts! */
-+		if (status_change & ATMEL_US_RI)
-+			port->icount.rng++;
-+		if (status_change & ATMEL_US_DSR)
-+			port->icount.dsr++;
-+		if (status_change & ATMEL_US_DCD)
-+			uart_handle_dcd_change(port, !(status & ATMEL_US_DCD));
-+		if (status_change & ATMEL_US_CTS)
-+			uart_handle_cts_change(port, !(status & ATMEL_US_CTS));
-+
-+		wake_up_interruptible(&port->info->delta_msr_wait);
-+
-+		atmel_port->irq_status_prev = status;
-+	}
-+
-+	atmel_rx_from_ring(port);
-+
-+	spin_unlock(&port->lock);
-+}
-+
- /*
-  * Perform initialization and enable port for reception
-  */
-@@ -758,6 +873,11 @@ static void __devinit atmel_init_port(st
- 	port->mapbase	= pdev->resource[0].start;
- 	port->irq	= pdev->resource[1].start;
- 
-+	tasklet_init(&atmel_port->tasklet, atmel_tasklet_func,
-+			(unsigned long)port);
-+
-+	memset(&atmel_port->rx_ring, 0, sizeof(atmel_port->rx_ring));
-+
- 	if (data->regs)
- 		/* Already mapped by setup code */
- 		port->membase = data->regs;
-@@ -998,11 +1118,20 @@ static int atmel_serial_resume(struct pl
- static int __devinit atmel_serial_probe(struct platform_device *pdev)
- {
- 	struct atmel_uart_port *port;
-+	void *data;
- 	int ret;
- 
-+	BUILD_BUG_ON(!is_power_of_2(ATMEL_SERIAL_RINGSIZE));
-+
- 	port = &atmel_ports[pdev->id];
- 	atmel_init_port(port, pdev);
- 
-+	ret = -ENOMEM;
-+	data = kmalloc(ATMEL_SERIAL_RINGSIZE, GFP_KERNEL);
-+	if (!data)
-+		goto err_alloc_ring;
-+	port->rx_ring.buf = data;
-+
- 	ret = uart_add_one_port(&atmel_uart, &port->uart);
- 	if (ret)
- 		goto err_add_port;
-@@ -1013,6 +1142,9 @@ static int __devinit atmel_serial_probe(
- 	return 0;
- 
- err_add_port:
-+	kfree(port->rx_ring.buf);
-+	port->rx_ring.buf = NULL;
-+err_alloc_ring:
- 	if (!atmel_is_console_port(&port->uart)) {
- 		clk_disable(port->clk);
- 		clk_put(port->clk);
-@@ -1033,6 +1165,9 @@ static int __devexit atmel_serial_remove
- 
- 	ret = uart_remove_one_port(&atmel_uart, port);
- 
-+	tasklet_kill(&atmel_port->tasklet);
-+	kfree(atmel_port->rx_ring.buf);
-+
- 	/* "port" is allocated statically, so we shouldn't free it */
- 
- 	clk_disable(atmel_port->clk);
+ /* plugin->u.item.s.* */
+-ssize_t reiser4_write_tail(struct file *file, const char __user *buf,
+-			   size_t count, loff_t *pos);
++ssize_t reiser4_write_tail(struct file *file, struct inode * inode,
++			   const char __user *buf, size_t count, loff_t *pos);
+ int reiser4_read_tail(struct file *, flow_t *, hint_t *);
+ int readpage_tail(void *vp, struct page *page);
+ reiser4_key *append_key_tail(const coord_t *, reiser4_key *);
 _
 
-Patches currently in -mm which might be from linux@bohmer.net are
+Patches currently in -mm which might be from edward.shishkin@gmail.com are
 
-atmel_serial-clean-up-the-code.patch
-atmel_serial-split-the-interrupt-handler.patch
-atmel_serial-add-dma-support.patch
+reiser4-replace-uid==0-check-with-capability.patch
+reiser4-specify-splice-file-operations.patch
+reiser4-fix-dummy-ioctl_cryptcompress.patch
+reiser4-granulate-rw-serialization-when-accessing-file-conversion-set.patch
+reiser4-fix-disk-cluster-synchronization.patch
+reiser4-use-balance_dirty_pages_ratelimited_nr.patch
+reiser4-correct-references-to-filemap_nopage.patch
+reiser4-fix-null-pointer-dereference-in-reiser4_write_extent.patch
