@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + misc-add-possibility-to-remove-misc-devices-during-suspend-resume.patch added to -mm tree
-Date: Sat, 26 Jan 2008 21:12:36 -0800
-Message-ID: <200801270512.m0R5CX62030921@imap1.linux-foundation.org>
+Subject: + jbdh-hide-kernel-only-code.patch added to -mm tree
+Date: Sat, 26 Jan 2008 21:15:08 -0800
+Message-ID: <200801270515.m0R5F5BO031034@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56132 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35483 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751181AbYA0FPH (ORCPT
+	by vger.kernel.org with ESMTP id S1750741AbYA0FPJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Jan 2008 00:15:07 -0500
+	Sun, 27 Jan 2008 00:15:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl, greg@kroah.com, kay.sievers@vrfy.org, lenb@kernel.org, linville@tuxdriver.com, mb@bu3sch.de, pavel@ucw.cz, rpurdie@rpsys.net, stern@rowland.harvard.edu
+Cc: olaf@aepfle.de
 
 
 The patch titled
-     Misc: Add possibility to remove misc devices during suspend/resume
+     jbd.h: hide kernel only code
 has been added to the -mm tree.  Its filename is
-     misc-add-possibility-to-remove-misc-devices-during-suspend-resume.patch
+     jbdh-hide-kernel-only-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,113 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Misc: Add possibility to remove misc devices during suspend/resume
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: jbd.h: hide kernel only code
+From: Olaf Hering <olaf@aepfle.de>
 
-Make it possible to unregister a misc device object in a safe way during a
-suspend/resume cycle.
+Move a few kernel-only things into __KERNEL__.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Michael Buesch <mb@bu3sch.de>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Olaf Hering <olaf@aepfle.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/misc.c        |   13 +++++++++----
- include/linux/miscdevice.h |   10 +++++++++-
- 2 files changed, 18 insertions(+), 5 deletions(-)
+ include/linux/jbd.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/char/misc.c~misc-add-possibility-to-remove-misc-devices-during-suspend-resume drivers/char/misc.c
---- a/drivers/char/misc.c~misc-add-possibility-to-remove-misc-devices-during-suspend-resume
-+++ a/drivers/char/misc.c
-@@ -232,8 +232,9 @@ int misc_register(struct miscdevice * mi
- }
+diff -puN include/linux/jbd.h~jbdh-hide-kernel-only-code include/linux/jbd.h
+--- a/include/linux/jbd.h~jbdh-hide-kernel-only-code
++++ a/include/linux/jbd.h
+@@ -33,7 +33,6 @@
+ #include <linux/lockdep.h>
+ 
+ #include <asm/semaphore.h>
+-#endif
+ 
+ #define journal_oom_retry 1
+ 
+@@ -84,7 +83,6 @@ static inline void jbd_free(void *ptr, s
+ 
+ #define JFS_MIN_JOURNAL_BLOCKS 1024
+ 
+-#ifdef __KERNEL__
  
  /**
-- *	misc_deregister - unregister a miscellaneous device
-+ *	__misc_deregister - unregister a miscellaneous device
-  *	@misc: device to unregister
-+ *	@suspended: to be set if the function is used during suspend/resume
-  *
-  *	Unregister a miscellaneous device that was previously
-  *	successfully registered with misc_register(). Success
-@@ -241,7 +242,7 @@ int misc_register(struct miscdevice * mi
-  *	indicates an error.
-  */
- 
--int misc_deregister(struct miscdevice * misc)
-+int __misc_deregister(struct miscdevice *misc, bool suspended)
- {
- 	int i = misc->minor;
- 
-@@ -250,7 +251,11 @@ int misc_deregister(struct miscdevice * 
- 
- 	mutex_lock(&misc_mtx);
- 	list_del(&misc->list);
--	device_destroy(misc_class, MKDEV(MISC_MAJOR, misc->minor));
-+	if (suspended)
-+		destroy_suspended_device(misc_class,
-+					MKDEV(MISC_MAJOR, misc->minor));
-+	else
-+		device_destroy(misc_class, MKDEV(MISC_MAJOR, misc->minor));
- 	if (i < DYNAMIC_MINORS && i>0) {
- 		misc_minors[i>>3] &= ~(1 << (misc->minor & 7));
- 	}
-@@ -259,7 +264,7 @@ int misc_deregister(struct miscdevice * 
- }
- 
- EXPORT_SYMBOL(misc_register);
--EXPORT_SYMBOL(misc_deregister);
-+EXPORT_SYMBOL(__misc_deregister);
- 
- static int __init misc_init(void)
- {
-diff -puN include/linux/miscdevice.h~misc-add-possibility-to-remove-misc-devices-during-suspend-resume include/linux/miscdevice.h
---- a/include/linux/miscdevice.h~misc-add-possibility-to-remove-misc-devices-during-suspend-resume
-+++ a/include/linux/miscdevice.h
-@@ -43,7 +43,15 @@ struct miscdevice  {
- };
- 
- extern int misc_register(struct miscdevice * misc);
--extern int misc_deregister(struct miscdevice * misc);
-+extern int __misc_deregister(struct miscdevice *misc, bool suspended);
-+static inline int misc_deregister(struct miscdevice *misc)
-+{
-+	return __misc_deregister(misc, false);
-+}
-+static inline int misc_deregister_suspended(struct miscdevice *misc)
-+{
-+	return __misc_deregister(misc, true);
-+}
- 
- #define MODULE_ALIAS_MISCDEV(minor)				\
- 	MODULE_ALIAS("char-major-" __stringify(MISC_MAJOR)	\
+  * typedef handle_t - The handle_t type represents a single atomic update being performed by some process.
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from olaf@aepfle.de are
 
-origin.patch
-git-acpi.patch
-cpufreq-revert-get-core-affinity-from-acpi_processor_preregister_performance.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-git-x86.patch
-git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
-git-xfs.patch
-page-allocator-clean-up-pcp-draining-functions.patch
-page-allocator-clean-up-pcp-draining-functions-swsusp-fix.patch
-page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
-kernel-power-diskc-make-code-static.patch
-make-kernel_shutdown_prepare-static.patch
-pm-export-device_pm_schedule_removal.patch
-misc-add-possibility-to-remove-misc-devices-during-suspend-resume.patch
-hwrng-add-possibility-to-remove-hwrng-devices-during-suspend-resume.patch
-leds-add-possibility-to-remove-leds-classdevs-during-suspend-resume.patch
-b43-avoid-unregistering-device-objects-during-suspend.patch
-proc-fix-the-threaded-proc-self.patch
-shrink_slab-handle-bad-shrinkers.patch
+slab-fix-bootstrap-on-memoryless-node.patch
+fix-slab-kmem_list3-for-booting-on-machines-with-memoryless-nodes-full-revert-of-04231b3002ac53f8a64a7bd142fde3fa4b6808c6.patch
+git-net.patch
+jbdh-hide-kernel-only-code.patch
+keep-track-of-network-interface-renaming.patch
