@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + atmel_serial-add-dma-support.patch added to -mm tree
-Date: Sat, 26 Jan 2008 21:18:06 -0800
-Message-ID: <200801270518.m0R5I3wP031169@imap1.linux-foundation.org>
+Subject: + fix-procfs-task-exe-symlink.patch added to -mm tree
+Date: Sat, 26 Jan 2008 21:18:24 -0800
+Message-ID: <200801270518.m0R5ILbT031199@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57265 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56314 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751337AbYA0FS4 (ORCPT
+	by vger.kernel.org with ESMTP id S1751354AbYA0FTY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Jan 2008 00:18:56 -0500
+	Sun, 27 Jan 2008 00:19:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: coldwell@redhat.com, hskinnemoen@atmel.com, linux@bohmer.net, linux@maxim.org.za, marc.pignat@hevs.ch
+Cc: matthltc@us.ibm.com, dhowells@redhat.com, ebiederm@xmission.com, hch@lst.de, oleg@tv-sign.ru, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     atmel_serial: add DMA support
+     Fix procfs task exe symlink
 has been added to the -mm tree.  Its filename is
-     atmel_serial-add-dma-support.patch
+     fix-procfs-task-exe-symlink.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,632 +34,562 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_serial: add DMA support
-From: Chip Coldwell <coldwell@redhat.com>
+Subject: Fix procfs task exe symlink
+From: Matt Helsley <matthltc@us.ibm.com>
 
-This patch is based on the DMA-patch by Chip Coldwell for the AT91/AT32 serial
-USARTS, with some tweaks to make it apply neatly on top of the other patches
-in this series.
+The kernel implements readlink of /proc/pid/exe by getting the file from
+the first executable VMA.  Then the path to the file is reconstructed and
+reported as the result.  While this method is often correct it does not
+always identify the correct path.
 
-The RX and TX code has been moved to a tasklet and reworked a bit.  Instead of
-depending on the ENDRX and TIMEOUT bits in CSR, we simply grab as much data as
-we can from the DMA buffers.  I think this closes a race where the ENDRX bit
-is set after we read CSR but before we read RPR, although I haven't confirmed
-this.
+Some applications may play games with the executable mappings.  Al Viro
+mentioned an example where the executable region is copied and subsequently
+unmapped.  In this case the kernel wanders down the VMA list to the next
+file-backed, executable VMA -- which is not necessarily the destination of
+the copy.  Worse, any transformation of the executable could conceivably
+take place and the symlink could be deceptive.  In this case, since we
+can't be certain what is being executed it might be better to simply
+"delete" the symlink.
 
-Similarly, the two TX handlers (ENDTX and TXBUFE) have been combined into one.
- Since the current code only uses a single TX buffer, there's no point in
-handling those interrupts separately.
+Another scenario where the symlink might be broken includes some potential
+implementations of checkpoint/restart.  If restart is implemented as a
+loader application then it will be reported in the symlink instead of the
+application being restarted.  This would break restarted Java applications
+for example (see the java example below).
 
-This also fixes a DMA sync bug in the original patch.
+For executables on the stackable MVFS filesystem the current procfs methods
+for implementing a task's exe symlink do not point to the correct file and
+applications relying on the symlink fail (see the java example below).
 
-[linux@bohmer.net: rebased onto irq-splitup patch]
-[hskinnemoen@atmel.com: moved to tasklet, fixed dma bug, misc cleanups]
-Signed-off-by: Remy Bohmer <linux@bohmer.net>
-Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Andrew Victor <linux@maxim.org.za>
-Tested-by: Marc Pignat <marc.pignat@hevs.ch>
+So there are multiple ways in which a task's exe symlink in /proc can break
+using the current VMA walk method.
+
+This patch tries to address the case of running Java installed on an MVFS
+filesystem.  However the patch solves the problems with the symlink for
+more than just MVFS.
+
+Java uses the /proc/self/exe symlink to determine JAVAHOME by reading the
+link and trimming the path.  This breaks under MVFS because MVFS
+reorganizes files and directories to enable versioning and stores these on
+a filesystem lower in the "stack".  This is further complicated by the need
+for efficient IO because reads and mapping of the file must access the file
+contents from the "lower" filesystem.  The symlink points to the
+mapped/read file and not the MVFS file.  Because MVFS utilizes a different
+organization of the files in the lower filesystem the symlink cannot be
+used to correctly determine JAVAHOME.  This could be a problem for any
+stacking filesystem which reorganizes files and directories -- though I
+don't know of another besides MVFS.
+
+	Top FS (e.g. MVFS)		Lower FS (e.g. ext3)
+	/foo/bar/jvm/bin/java		/qux/baz/java
+	/foo/bar/jvm/lib		/bee/buzz
+
+When the executable file is opened MVFS returns its own file struct.  When
+the MVFS file is subsequently mmap'd or read MVFS transforms the path to
+/qux/baz/java, opens, and uses the contents of the lower filesystem's file
+to satisfy the read or the mmap.
+
+Since the bytes of the java executable are at /qux/baz/java, /proc/self/exe
+points to /qux/baz/java instead of /foo/bar/jvm/bin/java.  Hence JAVAHOME
+points to the wrong directory and Java subsequently fails to find the files
+it needs to run.
+
+To solve the problem this patch changes the way that the kernel resolves a
+task's exe symlink.  Instead of walking the VMAs to find the first
+executable file-backed VMA we store a reference to the exec'd file in the
+mm_struct -- /foo/bar/jvm/bin/java in the example above.
+
+That reference would prevent the filesystem holding the executable file
+from being unmounted even if the VMA(s) were unmapped.  So we track the
+number of VMAs that mapped the executable file during exec.  Then we drop
+the new reference on exit or when the last such VMA is unmapped.  This
+avoids pinning the filesystem.
+
+A minor added benefit of this approach is we no longer need separate code
+to offer this symlink on mmu-less systems.
+
+Signed-off-by: Matt Helsley <matthltc@us.ibm.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc:"Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/Kconfig        |   15 +
- drivers/serial/atmel_serial.c |  393 ++++++++++++++++++++++++++++++--
- 2 files changed, 384 insertions(+), 24 deletions(-)
+ fs/binfmt_flat.c          |    3 -
+ fs/exec.c                 |    2 
+ fs/proc/base.c            |   77 ++++++++++++++++++++++++++++++++++++
+ fs/proc/internal.h        |    1 
+ fs/proc/task_mmu.c        |   34 ---------------
+ fs/proc/task_nommu.c      |   34 ---------------
+ include/linux/init_task.h |    8 +++
+ include/linux/mm.h        |   22 ++++++++++
+ include/linux/mm_types.h  |    7 +++
+ include/linux/proc_fs.h   |   14 ++++++
+ kernel/fork.c             |    3 +
+ mm/mmap.c                 |   22 ++++++++--
+ mm/nommu.c                |   15 +++++--
+ 13 files changed, 164 insertions(+), 78 deletions(-)
 
-diff -puN drivers/serial/Kconfig~atmel_serial-add-dma-support drivers/serial/Kconfig
---- a/drivers/serial/Kconfig~atmel_serial-add-dma-support
-+++ a/drivers/serial/Kconfig
-@@ -380,6 +380,21 @@ config SERIAL_ATMEL_CONSOLE
- 	  console is the device which receives all kernel messages and
- 	  warnings and which allows logins in single user mode).
+diff -puN fs/binfmt_flat.c~fix-procfs-task-exe-symlink fs/binfmt_flat.c
+--- a/fs/binfmt_flat.c~fix-procfs-task-exe-symlink
++++ a/fs/binfmt_flat.c
+@@ -531,7 +531,8 @@ static int load_flat_file(struct linux_b
+ 		DBG_FLT("BINFMT_FLAT: ROM mapping of file (we hope)\n");
  
-+config SERIAL_ATMEL_PDC
-+	bool "Support DMA transfers on AT91 / AT32 serial port"
-+	depends on SERIAL_ATMEL
-+	default y
-+	help
-+	  Say Y here if you wish to use the PDC to do DMA transfers to
-+	  and from the Atmel AT91 / AT32 serial port. In order to
-+	  actually use DMA transfers, make sure that the use_dma_tx
-+	  and use_dma_rx members in the atmel_uart_data struct is set
-+	  appropriately for each port.
-+
-+	  Note that break and error handling currently doesn't work
-+	  properly when DMA is enabled. Make sure that ports where
-+	  this matters don't use DMA.
-+
- config SERIAL_ATMEL_TTYAT
- 	bool "Install as device ttyATn instead of ttySn"
- 	depends on SERIAL_ATMEL=y
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-add-dma-support drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-add-dma-support
-+++ a/drivers/serial/atmel_serial.c
-@@ -7,6 +7,8 @@
-  *  Based on drivers/char/serial_sa1100.c, by Deep Blue Solutions Ltd.
-  *  Based on drivers/char/serial.c, by Linus Torvalds, Theodore Ts'o.
-  *
-+ *  DMA support added by Chip Coldwell.
-+ *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation; either version 2 of the License, or
-@@ -33,6 +35,7 @@
- #include <linux/sysrq.h>
- #include <linux/tty_flip.h>
- #include <linux/platform_device.h>
-+#include <linux/dma-mapping.h>
- #include <linux/atmel_pdc.h>
+ 		down_write(&current->mm->mmap_sem);
+-		textpos = do_mmap(bprm->file, 0, text_len, PROT_READ|PROT_EXEC, MAP_PRIVATE, 0);
++		textpos = do_mmap(bprm->file, 0, text_len, PROT_READ|PROT_EXEC,
++				  MAP_PRIVATE|MAP_EXECUTABLE, 0);
+ 		up_write(&current->mm->mmap_sem);
+ 		if (!textpos  || textpos >= (unsigned long) -4096) {
+ 			if (!textpos)
+diff -puN fs/exec.c~fix-procfs-task-exe-symlink fs/exec.c
+--- a/fs/exec.c~fix-procfs-task-exe-symlink
++++ a/fs/exec.c
+@@ -1024,6 +1024,8 @@ int flush_old_exec(struct linux_binprm *
+ 	flush_signal_handlers(current, 0);
+ 	flush_old_files(current->files);
  
- #include <asm/io.h>
-@@ -47,6 +50,10 @@
++	get_file(bprm->file);
++	set_mm_exe_file(current->mm, bprm->file);
+ 	return 0;
  
- #include "atmel_serial.h"
+ mmap_failed:
+diff -puN fs/proc/base.c~fix-procfs-task-exe-symlink fs/proc/base.c
+--- a/fs/proc/base.c~fix-procfs-task-exe-symlink
++++ a/fs/proc/base.c
+@@ -1144,6 +1144,83 @@ static const struct file_operations proc
  
-+#define PDC_BUFFER_SIZE		512
-+/* Revisit: We should calculate this based on the actual port settings */
-+#define PDC_RX_TIMEOUT		(3 * 10)		/* 3 bytes */
-+
- #if defined(CONFIG_SERIAL_ATMEL_CONSOLE) && defined(CONFIG_MAGIC_SYSRQ)
- #define SUPPORT_SYSRQ
- #endif
-@@ -104,6 +111,13 @@
- static int (*atmel_open_hook)(struct uart_port *);
- static void (*atmel_close_hook)(struct uart_port *);
- 
-+struct atmel_dma_buffer {
-+	unsigned char	*buf;
-+	dma_addr_t	dma_addr;
-+	size_t		dma_size;
-+	unsigned int	ofs;
-+};
-+
- struct atmel_uart_char {
- 	u16		status;
- 	u16		ch;
-@@ -120,6 +134,13 @@ struct atmel_uart_port {
- 	unsigned short		suspended;	/* is port suspended? */
- 	int			break_active;	/* break being received */
- 
-+	short			use_dma_rx;	/* enable PDC receiver */
-+	short			pdc_rx_idx;	/* current PDC RX buffer */
-+	struct atmel_dma_buffer	pdc_rx[2];	/* PDC receier */
-+
-+	short			use_dma_tx;	/* enable PDC transmitter */
-+	struct atmel_dma_buffer	pdc_tx;		/* PDC transmitter */
-+
- 	struct tasklet_struct	tasklet;
- 	unsigned int		irq_status;
- 	unsigned int		irq_status_prev;
-@@ -129,10 +150,39 @@ struct atmel_uart_port {
- 
- static struct atmel_uart_port atmel_ports[ATMEL_MAX_UART];
- 
-+#define PDC_RX_BUF(port)	&(port)->pdc_rx[(port)->pdc_rx_idx]
-+#define PDC_RX_SWITCH(port)	(port)->pdc_rx_idx = !(port)->pdc_rx_idx
-+
- #ifdef SUPPORT_SYSRQ
- static struct console atmel_console;
  #endif
  
-+#ifdef CONFIG_SERIAL_ATMEL_PDC
-+static bool atmel_use_dma_rx(struct uart_port *port)
++/* We added or removed a vma mapping the executable. The vmas are only mapped
++ * during exec and are not mapped with the mmap system call.
++ * Callers must _not_ hold the mm's exe_file_lock for these */
++void added_exe_file_vma(struct mm_struct *mm)
 +{
-+	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+
-+	return atmel_port->use_dma_rx;
++	spin_lock(&mm->exe_file_lock);
++	mm->num_exe_file_vmas++;
++	spin_unlock(&mm->exe_file_lock);
 +}
 +
-+static bool atmel_use_dma_tx(struct uart_port *port)
++void removed_exe_file_vma(struct mm_struct *mm)
 +{
-+	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
++	struct file *exe_file = NULL;
 +
-+	return atmel_port->use_dma_tx;
++	spin_lock(&mm->exe_file_lock);
++	mm->num_exe_file_vmas--;
++	if (mm->num_exe_file_vmas == 0) {
++		exe_file = mm->exe_file;
++		mm->exe_file = NULL;
++	}
++	spin_unlock(&mm->exe_file_lock);
++
++	if (exe_file)
++		fput(exe_file);
 +}
++
++/* Takes a reference to new_exe_file from caller -- does not get a new
++ * reference; only puts old ones */
++void set_mm_exe_file(struct mm_struct *mm, struct file *new_exe_file)
++{
++	struct file *old_exe_file;
++
++	spin_lock(&mm->exe_file_lock);
++	old_exe_file = mm->exe_file;
++	mm->exe_file = new_exe_file;
++	mm->num_exe_file_vmas = 0;
++	spin_unlock(&mm->exe_file_lock);
++	if (old_exe_file)
++		fput(old_exe_file);
++}
++
++struct file *get_mm_exe_file(struct mm_struct *mm)
++{
++	struct file *exe_file;
++
++	spin_lock(&mm->exe_file_lock);
++	exe_file = mm->exe_file;
++	if (exe_file)
++		get_file(exe_file);
++	spin_unlock(&mm->exe_file_lock);
++	return exe_file;
++}
++
++static int proc_exe_link(struct inode *inode, struct path *exe_path)
++{
++	struct task_struct *task;
++	struct mm_struct *mm;
++	struct file *exe_file;
++
++	task = get_proc_task(inode);
++	if (!task)
++		return -ENOENT;
++	mm = get_task_mm(task);
++	put_task_struct(task);
++	if (!mm)
++		return -ENOENT;
++	exe_file = get_mm_exe_file(mm);
++	mmput(mm);
++	if (exe_file) {
++		*exe_path = exe_file->f_path;
++		path_get(&exe_file->f_path);
++		fput(exe_file);
++		return 0;
++	} else
++		return -ENOENT;
++}
++
+ static void *proc_pid_follow_link(struct dentry *dentry, struct nameidata *nd)
+ {
+ 	struct inode *inode = dentry->d_inode;
+diff -puN fs/proc/internal.h~fix-procfs-task-exe-symlink fs/proc/internal.h
+--- a/fs/proc/internal.h~fix-procfs-task-exe-symlink
++++ a/fs/proc/internal.h
+@@ -48,7 +48,6 @@ extern int maps_protect;
+ 
+ extern void create_seq_entry(char *name, mode_t mode,
+ 				const struct file_operations *f);
+-extern int proc_exe_link(struct inode *, struct path *);
+ extern int proc_tid_stat(struct seq_file *m, struct pid_namespace *ns,
+ 				struct pid *pid, struct task_struct *task);
+ extern int proc_tgid_stat(struct seq_file *m, struct pid_namespace *ns,
+diff -puN fs/proc/task_mmu.c~fix-procfs-task-exe-symlink fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~fix-procfs-task-exe-symlink
++++ a/fs/proc/task_mmu.c
+@@ -75,40 +75,6 @@ int task_statm(struct mm_struct *mm, int
+ 	return mm->total_vm;
+ }
+ 
+-int proc_exe_link(struct inode *inode, struct path *path)
+-{
+-	struct vm_area_struct * vma;
+-	int result = -ENOENT;
+-	struct task_struct *task = get_proc_task(inode);
+-	struct mm_struct * mm = NULL;
+-
+-	if (task) {
+-		mm = get_task_mm(task);
+-		put_task_struct(task);
+-	}
+-	if (!mm)
+-		goto out;
+-	down_read(&mm->mmap_sem);
+-
+-	vma = mm->mmap;
+-	while (vma) {
+-		if ((vma->vm_flags & VM_EXECUTABLE) && vma->vm_file)
+-			break;
+-		vma = vma->vm_next;
+-	}
+-
+-	if (vma) {
+-		*path = vma->vm_file->f_path;
+-		path_get(&vma->vm_file->f_path);
+-		result = 0;
+-	}
+-
+-	up_read(&mm->mmap_sem);
+-	mmput(mm);
+-out:
+-	return result;
+-}
+-
+ static void pad_len_spaces(struct seq_file *m, int len)
+ {
+ 	len = 25 + sizeof(void*) * 6 - len;
+diff -puN fs/proc/task_nommu.c~fix-procfs-task-exe-symlink fs/proc/task_nommu.c
+--- a/fs/proc/task_nommu.c~fix-procfs-task-exe-symlink
++++ a/fs/proc/task_nommu.c
+@@ -104,40 +104,6 @@ int task_statm(struct mm_struct *mm, int
+ 	return size;
+ }
+ 
+-int proc_exe_link(struct inode *inode, struct path *path)
+-{
+-	struct vm_list_struct *vml;
+-	struct vm_area_struct *vma;
+-	struct task_struct *task = get_proc_task(inode);
+-	struct mm_struct *mm = get_task_mm(task);
+-	int result = -ENOENT;
+-
+-	if (!mm)
+-		goto out;
+-	down_read(&mm->mmap_sem);
+-
+-	vml = mm->context.vmlist;
+-	vma = NULL;
+-	while (vml) {
+-		if ((vml->vma->vm_flags & VM_EXECUTABLE) && vml->vma->vm_file) {
+-			vma = vml->vma;
+-			break;
+-		}
+-		vml = vml->next;
+-	}
+-
+-	if (vma) {
+-		*path = vma->vm_file->f_path;
+-		path_get(&vma->vm_file->f_path);
+-		result = 0;
+-	}
+-
+-	up_read(&mm->mmap_sem);
+-	mmput(mm);
+-out:
+-	return result;
+-}
+-
+ /*
+  * display mapping lines for a particular process's /proc/pid/maps
+  */
+diff -puN include/linux/init_task.h~fix-procfs-task-exe-symlink include/linux/init_task.h
+--- a/include/linux/init_task.h~fix-procfs-task-exe-symlink
++++ a/include/linux/init_task.h
+@@ -46,6 +46,13 @@
+ 	.max_reqs	= ~0U,				\
+ }
+ 
++#ifdef CONFIG_PROC_FS
++#define INIT_MM_EXE_FILE(name) \
++	.exe_file_lock	= __SPIN_LOCK_UNLOCKED(name.exe_file_lock),
 +#else
-+static bool atmel_use_dma_rx(struct uart_port *port)
-+{
-+	return false;
-+}
-+
-+static bool atmel_use_dma_tx(struct uart_port *port)
-+{
-+	return false;
-+}
++#define INIT_MM_EXE_FILE(name)
 +#endif
 +
- /*
-  * Return TIOCSER_TEMT when transmitter FIFO and Shift register is empty.
-  */
-@@ -214,7 +264,12 @@ static u_int atmel_get_mctrl(struct uart
-  */
- static void atmel_stop_tx(struct uart_port *port)
- {
--	UART_PUT_IDR(port, ATMEL_US_TXRDY);
-+	if (atmel_use_dma_tx(port)) {
-+		/* disable PDC transmit */
-+		UART_PUT_PTCR(port, ATMEL_PDC_TXTDIS);
-+		UART_PUT_IDR(port, ATMEL_US_ENDTX | ATMEL_US_TXBUFE);
-+	} else
-+		UART_PUT_IDR(port, ATMEL_US_TXRDY);
+ #define INIT_MM(name) \
+ {			 					\
+ 	.mm_rb		= RB_ROOT,				\
+@@ -56,6 +63,7 @@
+ 	.page_table_lock =  __SPIN_LOCK_UNLOCKED(name.page_table_lock),	\
+ 	.mmlist		= LIST_HEAD_INIT(name.mmlist),		\
+ 	.cpu_vm_mask	= CPU_MASK_ALL,				\
++	INIT_MM_EXE_FILE(name)					\
  }
  
- /*
-@@ -222,7 +277,17 @@ static void atmel_stop_tx(struct uart_po
-  */
- static void atmel_start_tx(struct uart_port *port)
- {
--	UART_PUT_IER(port, ATMEL_US_TXRDY);
-+	if (atmel_use_dma_tx(port)) {
-+		if (UART_GET_PTSR(port) & ATMEL_PDC_TXTEN)
-+			/* The transmitter is already running.  Yes, we
-+			   really need this.*/
-+			return;
+ #define INIT_SIGNALS(sig) {						\
+diff -puN include/linux/mm.h~fix-procfs-task-exe-symlink include/linux/mm.h
+--- a/include/linux/mm.h~fix-procfs-task-exe-symlink
++++ a/include/linux/mm.h
+@@ -1028,6 +1028,28 @@ extern void unlink_file_vma(struct vm_ar
+ extern struct vm_area_struct *copy_vma(struct vm_area_struct **,
+ 	unsigned long addr, unsigned long len, pgoff_t pgoff);
+ extern void exit_mmap(struct mm_struct *);
 +
-+		UART_PUT_IER(port, ATMEL_US_ENDTX | ATMEL_US_TXBUFE);
-+		/* re-enable PDC transmit */
-+		UART_PUT_PTCR(port, ATMEL_PDC_TXTEN);
-+	} else
-+		UART_PUT_IER(port, ATMEL_US_TXRDY);
- }
- 
- /*
-@@ -230,7 +295,12 @@ static void atmel_start_tx(struct uart_p
-  */
- static void atmel_stop_rx(struct uart_port *port)
- {
--	UART_PUT_IDR(port, ATMEL_US_RXRDY);
-+	if (atmel_use_dma_rx(port)) {
-+		/* disable PDC receive */
-+		UART_PUT_PTCR(port, ATMEL_PDC_RXTDIS);
-+		UART_PUT_IDR(port, ATMEL_US_ENDRX | ATMEL_US_TIMEOUT);
-+	} else
-+		UART_PUT_IDR(port, ATMEL_US_RXRDY);
- }
- 
- /*
-@@ -279,6 +349,27 @@ atmel_buffer_rx_char(struct uart_port *p
- }
- 
- /*
-+ * Deal with parity, framing and overrun errors.
-+ */
-+static void atmel_pdc_rxerr(struct uart_port *port, unsigned int status)
++#ifdef CONFIG_PROC_FS
++static inline void init_mm_exe_file(struct mm_struct *mm)
 +{
-+	/* clear error */
-+	UART_PUT_CR(port, ATMEL_US_RSTSTA);
++	/* The exe_file field itself is already correctly set at this point */
++	spin_lock_init(&mm->exe_file_lock);
++}
 +
-+	if (status & ATMEL_US_RXBRK) {
-+		/* ignore side-effect */
-+		status &= ~(ATMEL_US_PARE | ATMEL_US_FRAME);
-+		port->icount.brk++;
++/* From fs/proc/base.c. callers must _not_ hold the mm's exe_file_lock */
++extern void added_exe_file_vma(struct mm_struct *mm);
++extern void removed_exe_file_vma(struct mm_struct *mm);
++#else
++static inline void init_mm_exe_file(struct mm_struct *mm)
++{}
++
++static inline void added_exe_file_vma(struct mm_struct *mm)
++{}
++
++static inline void removed_exe_file_vma(struct mm_struct *mm)
++{}
++#endif /* CONFIG_PROC_FS */
++
+ extern int may_expand_vm(struct mm_struct *mm, unsigned long npages);
+ extern int install_special_mapping(struct mm_struct *mm,
+ 				   unsigned long addr, unsigned long len,
+diff -puN include/linux/mm_types.h~fix-procfs-task-exe-symlink include/linux/mm_types.h
+--- a/include/linux/mm_types.h~fix-procfs-task-exe-symlink
++++ a/include/linux/mm_types.h
+@@ -228,6 +228,13 @@ struct mm_struct {
+ #ifdef CONFIG_CGROUP_MEM_CONT
+ 	struct mem_cgroup *mem_cgroup;
+ #endif
++
++#ifdef CONFIG_PROC_FS
++	/* store ref to file /proc/<pid>/exe symlink points to */
++	spinlock_t exe_file_lock;
++	struct file *exe_file;
++	unsigned long num_exe_file_vmas;
++#endif
+ };
+ 
+ #endif /* _LINUX_MM_TYPES_H */
+diff -puN include/linux/proc_fs.h~fix-procfs-task-exe-symlink include/linux/proc_fs.h
+--- a/include/linux/proc_fs.h~fix-procfs-task-exe-symlink
++++ a/include/linux/proc_fs.h
+@@ -9,7 +9,6 @@
+ 
+ struct net;
+ struct completion;
+-
+ /*
+  * The proc filesystem constants/structures
+  */
+@@ -209,6 +208,11 @@ extern void proc_net_remove(struct net *
+ extern struct proc_dir_entry *proc_net_mkdir(struct net *net, const char *name,
+ 	struct proc_dir_entry *parent);
+ 
++/* While the {get|set}_mm_exe_file functions are for mm_structs, they are
++ * only needed to implement /proc/<pid>|self/exe so we define them here. */
++extern void set_mm_exe_file(struct mm_struct *mm, struct file *new_exe_file);
++extern struct file *get_mm_exe_file(struct mm_struct *mm);
++
+ #else
+ 
+ #define proc_root_driver NULL
+@@ -258,6 +262,14 @@ static inline void pid_ns_release_proc(s
+ {
+ }
+ 
++static inline void set_mm_exe_file(struct mm_struct *mm,
++				   struct file *new_exe_file)
++{}
++
++static inline struct file *get_mm_exe_file(struct mm_struct *mm)
++{
++	return NULL;
++}
+ #endif /* CONFIG_PROC_FS */
+ 
+ #if !defined(CONFIG_PROC_KCORE)
+diff -puN kernel/fork.c~fix-procfs-task-exe-symlink kernel/fork.c
+--- a/kernel/fork.c~fix-procfs-task-exe-symlink
++++ a/kernel/fork.c
+@@ -358,6 +358,7 @@ static struct mm_struct * mm_init(struct
+ 	mm->free_area_cache = TASK_UNMAPPED_BASE;
+ 	mm->cached_hole_size = ~0UL;
+ 	mm_init_cgroup(mm, p);
++	init_mm_exe_file(mm);
+ 
+ 	if (likely(!mm_alloc_pgd(mm))) {
+ 		mm->def_flags = 0;
+@@ -409,6 +410,7 @@ void mmput(struct mm_struct *mm)
+ 	if (atomic_dec_and_test(&mm->mm_users)) {
+ 		exit_aio(mm);
+ 		exit_mmap(mm);
++		set_mm_exe_file(mm, NULL);
+ 		if (!list_empty(&mm->mmlist)) {
+ 			spin_lock(&mmlist_lock);
+ 			list_del(&mm->mmlist);
+@@ -525,6 +527,7 @@ static struct mm_struct *dup_mm(struct t
+ 	if (err)
+ 		goto free_pt;
+ 
++	mm->exe_file = get_mm_exe_file(oldmm);
+ 	mm->hiwater_rss = get_mm_rss(mm);
+ 	mm->hiwater_vm = mm->total_vm;
+ 
+diff -puN mm/mmap.c~fix-procfs-task-exe-symlink mm/mmap.c
+--- a/mm/mmap.c~fix-procfs-task-exe-symlink
++++ a/mm/mmap.c
+@@ -230,8 +230,11 @@ static struct vm_area_struct *remove_vma
+ 	might_sleep();
+ 	if (vma->vm_ops && vma->vm_ops->close)
+ 		vma->vm_ops->close(vma);
+-	if (vma->vm_file)
++	if (vma->vm_file) {
+ 		fput(vma->vm_file);
++		if (vma->vm_flags & VM_EXECUTABLE)
++			removed_exe_file_vma(vma->vm_mm);
 +	}
-+	if (status & ATMEL_US_PARE)
-+		port->icount.parity++;
-+	if (status & ATMEL_US_FRAME)
-+		port->icount.frame++;
-+	if (status & ATMEL_US_OVRE)
-+		port->icount.overrun++;
-+}
-+
-+/*
-  * Characters received (called from interrupt handler)
-  */
- static void atmel_rx_chars(struct uart_port *port)
-@@ -365,6 +456,25 @@ atmel_handle_receive(struct uart_port *p
- {
- 	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
+ 	mpol_free(vma_policy(vma));
+ 	kmem_cache_free(vm_area_cachep, vma);
+ 	return next;
+@@ -623,8 +626,11 @@ again:			remove_next = 1 + (end > next->
+ 		spin_unlock(&mapping->i_mmap_lock);
  
-+	if (atmel_use_dma_rx(port)) {
-+		/*
-+		 * PDC receive. Just schedule the tasklet and let it
-+		 * figure out the details.
-+		 *
-+		 * TODO: We're not handling error flags correctly at
-+		 * the moment.
-+		 */
-+		if (pending & (ATMEL_US_ENDRX | ATMEL_US_TIMEOUT)) {
-+			UART_PUT_IDR(port, (ATMEL_US_ENDRX
-+						| ATMEL_US_TIMEOUT));
-+			tasklet_schedule(&atmel_port->tasklet);
+ 	if (remove_next) {
+-		if (file)
++		if (file) {
+ 			fput(file);
++			if (next->vm_flags & VM_EXECUTABLE)
++				removed_exe_file_vma(mm);
 +		}
-+
-+		if (pending & (ATMEL_US_RXBRK | ATMEL_US_OVRE |
-+				ATMEL_US_FRAME | ATMEL_US_PARE))
-+			atmel_pdc_rxerr(port, pending);
+ 		mm->map_count--;
+ 		mpol_free(vma_policy(next));
+ 		kmem_cache_free(vm_area_cachep, next);
+@@ -1155,6 +1161,8 @@ munmap_back:
+ 		error = file->f_op->mmap(file, vma);
+ 		if (error)
+ 			goto unmap_and_free_vma;
++		if (vm_flags & VM_EXECUTABLE)
++			added_exe_file_vma(mm);
+ 	} else if (vm_flags & VM_SHARED) {
+ 		error = shmem_zero_setup(vma);
+ 		if (error)
+@@ -1820,8 +1828,11 @@ int split_vma(struct mm_struct * mm, str
+ 	}
+ 	vma_set_policy(new, pol);
+ 
+-	if (new->vm_file)
++	if (new->vm_file) {
+ 		get_file(new->vm_file);
++		if (vma->vm_flags & VM_EXECUTABLE)
++			added_exe_file_vma(mm);
 +	}
-+
- 	/* Interrupt receive */
- 	if (pending & ATMEL_US_RXRDY)
- 		atmel_rx_chars(port);
-@@ -387,10 +497,18 @@ atmel_handle_transmit(struct uart_port *
- {
- 	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
  
--	/* Interrupt transmit */
--	if (pending & ATMEL_US_TXRDY) {
--		UART_PUT_IDR(port, ATMEL_US_TXRDY);
--		tasklet_schedule(&atmel_port->tasklet);
-+	if (atmel_use_dma_tx(port)) {
-+		/* PDC transmit */
-+		if (pending & (ATMEL_US_ENDTX | ATMEL_US_TXBUFE)) {
-+			UART_PUT_IDR(port, ATMEL_US_ENDTX | ATMEL_US_TXBUFE);
-+			tasklet_schedule(&atmel_port->tasklet);
-+		}
-+	} else {
-+		/* Interrupt transmit */
-+		if (pending & ATMEL_US_TXRDY) {
-+			UART_PUT_IDR(port, ATMEL_US_TXRDY);
-+			tasklet_schedule(&atmel_port->tasklet);
-+		}
- 	}
- }
- 
-@@ -418,20 +536,67 @@ static irqreturn_t atmel_interrupt(int i
- 	struct uart_port *port = dev_id;
- 	unsigned int status, pending, pass_counter = 0;
- 
--	status = UART_GET_CSR(port);
--	pending = status & UART_GET_IMR(port);
--	while (pending) {
-+	do {
-+		status = UART_GET_CSR(port);
-+		pending = status & UART_GET_IMR(port);
-+		if (!pending)
-+			break;
-+
- 		atmel_handle_receive(port, pending);
- 		atmel_handle_status(port, pending, status);
- 		atmel_handle_transmit(port, pending);
-+	} while (pass_counter++ < ATMEL_ISR_PASS_LIMIT);
- 
--		if (pass_counter++ > ATMEL_ISR_PASS_LIMIT)
--			break;
-+	return IRQ_HANDLED;
-+}
- 
--		status = UART_GET_CSR(port);
--		pending = status & UART_GET_IMR(port);
-+/*
-+ * Called from tasklet with ENDTX and TXBUFE interrupts disabled.
-+ */
-+static void atmel_tx_dma(struct uart_port *port)
-+{
-+	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+	struct circ_buf *xmit = &port->info->xmit;
-+	struct atmel_dma_buffer *pdc = &atmel_port->pdc_tx;
-+	int count;
-+
-+	xmit->tail += pdc->ofs;
-+	if (xmit->tail >= SERIAL_XMIT_SIZE)
-+		xmit->tail -= SERIAL_XMIT_SIZE;
-+
-+	port->icount.tx += pdc->ofs;
-+	pdc->ofs = 0;
-+
-+	if (!uart_circ_empty(xmit)) {
-+		/* more to transmit - setup next transfer */
-+
-+		/* disable PDC transmit */
-+		UART_PUT_PTCR(port, ATMEL_PDC_TXTDIS);
-+		dma_sync_single_for_device(port->dev,
-+					   pdc->dma_addr,
-+					   pdc->dma_size,
-+					   DMA_TO_DEVICE);
-+
-+		if (xmit->tail < xmit->head)
-+			count = xmit->head - xmit->tail;
-+		else
-+			count = SERIAL_XMIT_SIZE - xmit->tail;
-+		pdc->ofs = count;
-+
-+		UART_PUT_TPR(port, pdc->dma_addr + xmit->tail);
-+		UART_PUT_TCR(port, count);
-+		/* re-enable PDC transmit and interrupts */
-+		UART_PUT_PTCR(port, ATMEL_PDC_TXTEN);
-+		UART_PUT_IER(port, ATMEL_US_ENDTX | ATMEL_US_TXBUFE);
-+	} else {
-+		/* nothing left to transmit - disable the transmitter */
-+
-+		/* disable PDC transmit */
-+		UART_PUT_PTCR(port, ATMEL_PDC_TXTDIS);
- 	}
--	return IRQ_HANDLED;
-+
-+	if (uart_circ_chars_pending(xmit) < WAKEUP_CHARS)
-+		uart_write_wakeup(port);
- }
- 
- static void atmel_rx_from_ring(struct uart_port *port)
-@@ -502,6 +667,76 @@ static void atmel_rx_from_ring(struct ua
- 	spin_lock(&port->lock);
- }
- 
-+static void atmel_rx_from_dma(struct uart_port *port)
-+{
-+	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+	struct tty_struct *tty = port->info->tty;
-+	struct atmel_dma_buffer *pdc;
-+	int rx_idx = atmel_port->pdc_rx_idx;
-+	unsigned int head;
-+	unsigned int tail;
-+	unsigned int count;
-+
-+	do {
-+		/* Reset the UART timeout early so that we don't miss one */
-+		UART_PUT_CR(port, ATMEL_US_STTTO);
-+
-+		pdc = &atmel_port->pdc_rx[rx_idx];
-+		head = UART_GET_RPR(port) - pdc->dma_addr;
-+		tail = pdc->ofs;
-+
-+		/* If the PDC has switched buffers, RPR won't contain
-+		 * any address within the current buffer. Since head
-+		 * is unsigned, we just need a one-way comparison to
-+		 * find out.
-+		 *
-+		 * In this case, we just need to consume the entire
-+		 * buffer and resubmit it for DMA. This will clear the
-+		 * ENDRX bit as well, so that we can safely re-enable
-+		 * all interrupts below.
-+		 */
-+		if (head >= pdc->dma_size)
-+			head = pdc->dma_size;
-+
-+		if (likely(head != tail)) {
-+			dma_sync_single_for_cpu(port->dev, pdc->dma_addr,
-+					pdc->dma_size, DMA_FROM_DEVICE);
-+
-+			count = head - tail;
-+			tty_insert_flip_string(tty, pdc->buf + pdc->ofs, count);
-+
-+			dma_sync_single_for_device(port->dev, pdc->dma_addr,
-+					pdc->dma_size, DMA_FROM_DEVICE);
-+
-+			port->icount.rx += count;
-+			pdc->ofs = head;
-+		}
-+
-+		/*
-+		 * If the current buffer is full, we need to check if
-+		 * the next one contains any additional data.
-+		 */
-+		if (head >= pdc->dma_size) {
-+			pdc->ofs = 0;
-+			UART_PUT_RNPR(port, pdc->dma_addr);
-+			UART_PUT_RNCR(port, pdc->dma_size);
-+
-+			rx_idx = !rx_idx;
-+			atmel_port->pdc_rx_idx = rx_idx;
-+		}
-+	} while (head >= pdc->dma_size);
-+
-+	/*
-+	 * Drop the lock here since it might end up calling
-+	 * uart_start(), which takes the lock.
-+	 */
-+	spin_unlock(&port->lock);
-+	tty_flip_buffer_push(tty);
-+	spin_lock(&port->lock);
-+
-+	UART_PUT_IER(port, ATMEL_US_ENDRX | ATMEL_US_TIMEOUT);
-+}
-+
- /*
-  * tasklet handling tty stuff outside the interrupt handler.
-  */
-@@ -515,7 +750,10 @@ static void atmel_tasklet_func(unsigned 
- 	/* The interrupt handler does not take the lock */
- 	spin_lock(&port->lock);
- 
--	atmel_tx_chars(port);
-+	if (atmel_use_dma_tx(port))
-+		atmel_tx_dma(port);
-+	else
-+		atmel_tx_chars(port);
- 
- 	status = atmel_port->irq_status;
- 	status_change = status ^ atmel_port->irq_status_prev;
-@@ -537,7 +775,10 @@ static void atmel_tasklet_func(unsigned 
- 		atmel_port->irq_status_prev = status;
- 	}
- 
--	atmel_rx_from_ring(port);
-+	if (atmel_use_dma_rx(port))
-+		atmel_rx_from_dma(port);
-+	else
-+		atmel_rx_from_ring(port);
- 
- 	spin_unlock(&port->lock);
- }
-@@ -547,6 +788,7 @@ static void atmel_tasklet_func(unsigned 
-  */
- static int atmel_startup(struct uart_port *port)
- {
-+	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
- 	int retval;
- 
- 	/*
-@@ -567,6 +809,56 @@ static int atmel_startup(struct uart_por
- 	}
- 
- 	/*
-+	 * Initialize DMA (if necessary)
-+	 */
-+	if (atmel_use_dma_rx(port)) {
-+		int i;
-+
-+		for (i = 0; i < 2; i++) {
-+			struct atmel_dma_buffer *pdc = &atmel_port->pdc_rx[i];
-+
-+			pdc->buf = kmalloc(PDC_BUFFER_SIZE, GFP_KERNEL);
-+			if (pdc->buf == NULL) {
-+				if (i != 0) {
-+					dma_unmap_single(port->dev,
-+						atmel_port->pdc_rx[0].dma_addr,
-+						PDC_BUFFER_SIZE,
-+						DMA_FROM_DEVICE);
-+					kfree(atmel_port->pdc_rx[0].buf);
-+				}
-+				free_irq(port->irq, port);
-+				return -ENOMEM;
+ 	if (new->vm_ops && new->vm_ops->open)
+ 		new->vm_ops->open(new);
+@@ -2138,8 +2149,11 @@ struct vm_area_struct *copy_vma(struct v
+ 			new_vma->vm_start = addr;
+ 			new_vma->vm_end = addr + len;
+ 			new_vma->vm_pgoff = pgoff;
+-			if (new_vma->vm_file)
++			if (new_vma->vm_file) {
+ 				get_file(new_vma->vm_file);
++				if (vma->vm_flags & VM_EXECUTABLE)
++					added_exe_file_vma(mm);
 +			}
-+			pdc->dma_addr = dma_map_single(port->dev,
-+						       pdc->buf,
-+						       PDC_BUFFER_SIZE,
-+						       DMA_FROM_DEVICE);
-+			pdc->dma_size = PDC_BUFFER_SIZE;
-+			pdc->ofs = 0;
+ 			if (new_vma->vm_ops && new_vma->vm_ops->open)
+ 				new_vma->vm_ops->open(new_vma);
+ 			vma_link(mm, new_vma, prev, rb_link, rb_parent);
+diff -puN mm/nommu.c~fix-procfs-task-exe-symlink mm/nommu.c
+--- a/mm/nommu.c~fix-procfs-task-exe-symlink
++++ a/mm/nommu.c
+@@ -962,8 +962,11 @@ unsigned long do_mmap_pgoff(struct file 
+ 
+ 	INIT_LIST_HEAD(&vma->anon_vma_node);
+ 	atomic_set(&vma->vm_usage, 1);
+-	if (file)
++	if (file) {
+ 		get_file(file);
++		if (vm_flags & VM_EXECUTABLE)
++			added_exe_file_vma(mm);
++	}
+ 	vma->vm_file	= file;
+ 	vma->vm_flags	= vm_flags;
+ 	vma->vm_start	= addr;
+@@ -1018,8 +1021,11 @@ unsigned long do_mmap_pgoff(struct file 
+ 	up_write(&nommu_vma_sem);
+ 	kfree(vml);
+ 	if (vma) {
+-		if (vma->vm_file)
++		if (vma->vm_file) {
+ 			fput(vma->vm_file);
++			if (vma->vm_flags & VM_EXECUTABLE)
++				removed_exe_file_vma(vma->vm_mm);
 +		}
-+
-+		atmel_port->pdc_rx_idx = 0;
-+
-+		UART_PUT_RPR(port, atmel_port->pdc_rx[0].dma_addr);
-+		UART_PUT_RCR(port, PDC_BUFFER_SIZE);
-+
-+		UART_PUT_RNPR(port, atmel_port->pdc_rx[1].dma_addr);
-+		UART_PUT_RNCR(port, PDC_BUFFER_SIZE);
-+	}
-+	if (atmel_use_dma_tx(port)) {
-+		struct atmel_dma_buffer *pdc = &atmel_port->pdc_tx;
-+		struct circ_buf *xmit = &port->info->xmit;
-+
-+		pdc->buf = xmit->buf;
-+		pdc->dma_addr = dma_map_single(port->dev,
-+					       pdc->buf,
-+					       SERIAL_XMIT_SIZE,
-+					       DMA_TO_DEVICE);
-+		pdc->dma_size = SERIAL_XMIT_SIZE;
-+		pdc->ofs = 0;
-+	}
-+
-+	/*
- 	 * If there is a specific "open" function (to register
- 	 * control line interrupts)
- 	 */
-@@ -585,8 +877,18 @@ static int atmel_startup(struct uart_por
- 	/* enable xmit & rcvr */
- 	UART_PUT_CR(port, ATMEL_US_TXEN | ATMEL_US_RXEN);
- 
--	/* enable receive only */
--	UART_PUT_IER(port, ATMEL_US_RXRDY);
-+	if (atmel_use_dma_rx(port)) {
-+		/* set UART timeout */
-+		UART_PUT_RTOR(port, PDC_RX_TIMEOUT);
-+		UART_PUT_CR(port, ATMEL_US_STTTO);
-+
-+		UART_PUT_IER(port, ATMEL_US_ENDRX | ATMEL_US_TIMEOUT);
-+		/* enable PDC controller */
-+		UART_PUT_PTCR(port, ATMEL_PDC_RXTEN);
-+	} else {
-+		/* enable receive only */
-+		UART_PUT_IER(port, ATMEL_US_RXRDY);
-+	}
- 
- 	return 0;
- }
-@@ -596,6 +898,38 @@ static int atmel_startup(struct uart_por
-  */
- static void atmel_shutdown(struct uart_port *port)
- {
-+	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+	/*
-+	 * Ensure everything is stopped.
-+	 */
-+	atmel_stop_rx(port);
-+	atmel_stop_tx(port);
-+
-+	/*
-+	 * Shut-down the DMA.
-+	 */
-+	if (atmel_use_dma_rx(port)) {
-+		int i;
-+
-+		for (i = 0; i < 2; i++) {
-+			struct atmel_dma_buffer *pdc = &atmel_port->pdc_rx[i];
-+
-+			dma_unmap_single(port->dev,
-+					 pdc->dma_addr,
-+					 pdc->dma_size,
-+					 DMA_FROM_DEVICE);
-+			kfree(pdc->buf);
-+		}
-+	}
-+	if (atmel_use_dma_tx(port)) {
-+		struct atmel_dma_buffer *pdc = &atmel_port->pdc_tx;
-+
-+		dma_unmap_single(port->dev,
-+				 pdc->dma_addr,
-+				 pdc->dma_size,
-+				 DMA_TO_DEVICE);
-+	}
-+
- 	/*
- 	 * Disable all interrupts, port and break condition.
- 	 */
-@@ -707,6 +1041,10 @@ static void atmel_set_termios(struct uar
- 	if (termios->c_iflag & (BRKINT | PARMRK))
- 		port->read_status_mask |= ATMEL_US_RXBRK;
- 
-+	if (atmel_use_dma_rx(port))
-+		/* need to enable error interrupts */
-+		UART_PUT_IER(port, port->read_status_mask);
-+
- 	/*
- 	 * Characters to ignore
- 	 */
-@@ -892,6 +1230,11 @@ static void __devinit atmel_init_port(st
- 		clk_enable(atmel_port->clk);
- 		port->uartclk = clk_get_rate(atmel_port->clk);
+ 		kfree(vma);
  	}
-+
-+	atmel_port->use_dma_rx = data->use_dma_rx;
-+	atmel_port->use_dma_tx = data->use_dma_tx;
-+	if (atmel_use_dma_tx(port))
-+		port->fifosize = PDC_BUFFER_SIZE;
- }
+ 	return ret;
+@@ -1071,8 +1077,11 @@ static void put_vma(struct vm_area_struc
+ 			realalloc -= kobjsize(vma);
+ 			askedalloc -= sizeof(*vma);
  
- /*
-@@ -1126,11 +1469,13 @@ static int __devinit atmel_serial_probe(
- 	port = &atmel_ports[pdev->id];
- 	atmel_init_port(port, pdev);
+-			if (vma->vm_file)
++			if (vma->vm_file) {
+ 				fput(vma->vm_file);
++				if (vma->vm_flags & VM_EXECUTABLE)
++					removed_exe_file_vma(vma->vm_mm);
++			}
+ 			kfree(vma);
+ 		}
  
--	ret = -ENOMEM;
--	data = kmalloc(ATMEL_SERIAL_RINGSIZE, GFP_KERNEL);
--	if (!data)
--		goto err_alloc_ring;
--	port->rx_ring.buf = data;
-+	if (!atmel_use_dma_rx(&port->uart)) {
-+		ret = -ENOMEM;
-+		data = kmalloc(ATMEL_SERIAL_RINGSIZE, GFP_KERNEL);
-+		if (!data)
-+			goto err_alloc_ring;
-+		port->rx_ring.buf = data;
-+	}
- 
- 	ret = uart_add_one_port(&atmel_uart, &port->uart);
- 	if (ret)
 _
 
-Patches currently in -mm which might be from coldwell@redhat.com are
+Patches currently in -mm which might be from matthltc@us.ibm.com are
 
-atmel_serial-add-dma-support.patch
+fix-procfs-task-exe-symlink.patch
