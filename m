@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + atmel_serial-use-cpu_relax-when-busy-waiting.patch added to -mm tree
-Date: Sat, 26 Jan 2008 21:17:50 -0800
-Message-ID: <200801270517.m0R5Hld3031148@imap1.linux-foundation.org>
+Subject: + oss-constify-function-pointer-tables.patch added to -mm tree
+Date: Sat, 26 Jan 2008 21:18:40 -0800
+Message-ID: <200801270518.m0R5IbmK031211@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41284 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49299 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751424AbYA0FV7 (ORCPT
+	by vger.kernel.org with ESMTP id S1751480AbYA0FXc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Jan 2008 00:21:59 -0500
+	Sun, 27 Jan 2008 00:23:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hskinnemoen@atmel.com, linux@maxim.org.za, marc.pignat@hevs.ch
+Cc: jengelh@computergmbh.de
 
 
 The patch titled
-     atmel_serial: use cpu_relax() when busy-waiting
+     OSS: constify function pointer tables
 has been added to the -mm tree.  Its filename is
-     atmel_serial-use-cpu_relax-when-busy-waiting.patch
+     oss-constify-function-pointer-tables.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,77 +34,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_serial: use cpu_relax() when busy-waiting
-From: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Subject: OSS: constify function pointer tables
+From: Jan Engelhardt <jengelh@computergmbh.de>
 
-Replace two instances of barrier() with cpu_relax() since that's the right
-thing to do when busy-waiting.  This does not actually change anything since
-cpu_relax() is defined as barrier() on both ARM and AVR32.
-
-Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Acked-by: Andrew Victor <linux@maxim.org.za>
-Tested-by: Marc Pignat <marc.pignat@hevs.ch>
+Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/atmel_serial.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ sound/oss/swarm_cs4297a.c |    4 ++--
+ sound/oss/trident.c       |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-use-cpu_relax-when-busy-waiting drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-use-cpu_relax-when-busy-waiting
-+++ a/drivers/serial/atmel_serial.c
-@@ -616,7 +616,7 @@ static void atmel_set_termios(struct uar
- 	imr = UART_GET_IMR(port);
- 	UART_PUT_IDR(port, -1);
- 	while (!(UART_GET_CSR(port) & ATMEL_US_TXEMPTY))
--		barrier();
-+		cpu_relax();
- 
- 	/* disable receiver and transmitter */
- 	UART_PUT_CR(port, ATMEL_US_TXDIS | ATMEL_US_RXDIS);
-@@ -795,7 +795,7 @@ void __init atmel_register_uart_fns(stru
- static void atmel_console_putchar(struct uart_port *port, int ch)
- {
- 	while (!(UART_GET_CSR(port) & ATMEL_US_TXRDY))
--		barrier();
-+		cpu_relax();
- 	UART_PUT_CHAR(port, ch);
+diff -puN sound/oss/swarm_cs4297a.c~oss-constify-function-pointer-tables sound/oss/swarm_cs4297a.c
+--- a/sound/oss/swarm_cs4297a.c~oss-constify-function-pointer-tables
++++ a/sound/oss/swarm_cs4297a.c
+@@ -1580,7 +1580,7 @@ static int cs4297a_ioctl_mixdev(struct i
+ // ******************************************************************************************
+ //   Mixer file operations struct.
+ // ******************************************************************************************
+-static /*const */ struct file_operations cs4297a_mixer_fops = {
++static const struct file_operations cs4297a_mixer_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.llseek		= no_llseek,
+ 	.ioctl		= cs4297a_ioctl_mixdev,
+@@ -2491,7 +2491,7 @@ static int cs4297a_open(struct inode *in
+ // ******************************************************************************************
+ //   Wave (audio) file operations struct.
+ // ******************************************************************************************
+-static /*const */ struct file_operations cs4297a_audio_fops = {
++static const struct file_operations cs4297a_audio_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.llseek		= no_llseek,
+ 	.read		= cs4297a_read,
+diff -puN sound/oss/trident.c~oss-constify-function-pointer-tables sound/oss/trident.c
+--- a/sound/oss/trident.c~oss-constify-function-pointer-tables
++++ a/sound/oss/trident.c
+@@ -2878,7 +2878,7 @@ trident_release(struct inode *inode, str
+ 	return 0;
  }
  
+-static /*const */ struct file_operations trident_audio_fops = {
++static const struct file_operations trident_audio_fops = {
+ 	.owner = THIS_MODULE,
+ 	.llseek = no_llseek,
+ 	.read = trident_read,
+@@ -4104,7 +4104,7 @@ trident_ioctl_mixdev(struct inode *inode
+ 	return codec->mixer_ioctl(codec, cmd, arg);
+ }
+ 
+-static /*const */ struct file_operations trident_mixer_fops = {
++static const struct file_operations trident_mixer_fops = {
+ 	.owner = THIS_MODULE,
+ 	.llseek = no_llseek,
+ 	.ioctl = trident_ioctl_mixdev,
 _
 
-Patches currently in -mm which might be from hskinnemoen@atmel.com are
+Patches currently in -mm which might be from jengelh@computergmbh.de are
 
-git-avr32.patch
-fix-timerfd-breakage-on-avr32-was-re-fix-variable-use-in-avr32-pte_alloc_one.patch
-git-mtd.patch
-gpiolib-add-drivers-gpio-directory.patch
-gpiolib-add-gpio-provider-infrastructure.patch
-gpiolib-update-documentation-gpiotxt.patch
-gpiolib-pxa-platform-support.patch
-gpiolib-pcf857x-i2c-gpio-expander-support.patch
-gpiolib-mcp23s08-spi-gpio-expander-support.patch
-gpiolib-pca9539-i2c-gpio-expander-support.patch
-gpiolib-deprecate-obsolete-pca9539-driver.patch
-gpiolib-avr32-at32ap-platform-support.patch
-config_highpte-vs-sub-page-page-tables-avr32-fix.patch
-read_current_time-cleanups.patch
-fix-__const_udelay-declaration-and-definition-mismatches.patch
-atmel_spi-throughput-improvement.patch
-atmel_spi-chain-dma-transfers.patch
-atmel_spi-chain-dma-transfers-update.patch
-atmel_spi-fix-dmachain-oops-with-debug-enabled.patch
-add-have_oprofile.patch
-atmel_lcdfb-validate-display-timings.patch
-sanitize-the-type-of-struct-useru_ar0.patch
-add-cmpxchg_local-to-avr32.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
-maintainers-add-haavard-as-maintainer-of-the-atmel_serial-driver.patch
-atmel_serial-clean-up-the-code.patch
-atmel_serial-use-cpu_relax-when-busy-waiting.patch
-atmel_serial-use-existing-console-options-only-if-brg-is-running.patch
-atmel_serial-fix-bugs-in-probe-error-path-and-remove.patch
-atmel_serial-split-the-interrupt-handler.patch
-atmel_serial-add-dma-support.patch
-atmel_serial-use-container_of-instead-of-direct-cast.patch
-atmel_serial-show-tty-name-in-proc-interrupts.patch
+git-kbuild.patch
+git-net.patch
+git-unionfs.patch
+git-x86.patch
+fs-fat-refine-chmod-checks.patch
+documentation-about-unaligned-memory-access.patch
+char-mxser-reorder-mxser_cardinfo-fields.patch
+char-mxser-simplify-mxser_get_serial_info.patch
+reiserfs-constify-function-pointer-tables.patch
+procfs-constify-function-pointer-tables.patch
+oss-constify-function-pointer-tables.patch
