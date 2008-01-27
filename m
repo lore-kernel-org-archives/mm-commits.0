@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-add-support-for-epson-rtc-9701je-v4.patch added to -mm tree
-Date: Sat, 26 Jan 2008 21:14:06 -0800
-Message-ID: <200801270514.m0R5E3Rd030960@imap1.linux-foundation.org>
+Subject: + atmel_lcdfb-backlight-control-tiny-rework.patch added to -mm tree
+Date: Sat, 26 Jan 2008 21:14:17 -0800
+Message-ID: <200801270514.m0R5EEZR030967@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33231 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33259 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750756AbYA0FOT (ORCPT
+	by vger.kernel.org with ESMTP id S1750813AbYA0FOn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Jan 2008 00:14:19 -0500
+	Sun, 27 Jan 2008 00:14:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: magnus.damm@gmail.com, a.zummo@towertech.it, damm@igel.co.jp, david-b@pacbell.net
+Cc: nicolas.ferre@atmel.com, adaplas@pol.net, dbrownell@users.sourceforge.net, linux@maxim.org.za, rmk@arm.linux.org.uk
 
 
 The patch titled
-     rtc: add support for Epson RTC-9701JE V4
+     atmel_lcdfb: backlight control - tiny rework
 has been added to the -mm tree.  Its filename is
-     rtc-add-support-for-epson-rtc-9701je-v4.patch
+     atmel_lcdfb-backlight-control-tiny-rework.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,119 +34,88 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: add support for Epson RTC-9701JE V4
-From: Magnus Damm <magnus.damm@gmail.com>
+Subject: atmel_lcdfb: backlight control - tiny rework
+From: Nicolas Ferre <nicolas.ferre@atmel.com>
 
-Add support for the Epson RTC-9701JE SPI RTC device.
+Tiny patch that removes not needed "inline" and renames function :
+exit_contrast() -> exit_backlight().  It adds the missing exit_backlight() in
+probe() error path.
 
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
-Acked-by: David Brownell <david-b@pacbell.net>
+Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Andrew Victor <linux@maxim.org.za>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-r9701.c |   37 ++++++++++---------------------------
- 1 file changed, 10 insertions(+), 27 deletions(-)
+ drivers/video/atmel_lcdfb.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-r9701.c~rtc-add-support-for-epson-rtc-9701je-v4 drivers/rtc/rtc-r9701.c
---- a/drivers/rtc/rtc-r9701.c~rtc-add-support-for-epson-rtc-9701je-v4
-+++ a/drivers/rtc/rtc-r9701.c
-@@ -1,10 +1,9 @@
--/* drivers/rtc/rtc-r9701.c
-- *
-+/*
-  * Driver for Epson RTC-9701JE
-  *
-  * Copyright (C) 2008 Magnus Damm
-  *
-- * Based on drivers/rtc/rtc-max6902.c
-+ * Based on rtc-max6902.c
-  *
-  * Copyright (C) 2006 8D Technologies inc.
-  * Copyright (C) 2004 Compulab Ltd.
-@@ -72,13 +71,12 @@ static int read_regs(struct device *dev,
+diff -puN drivers/video/atmel_lcdfb.c~atmel_lcdfb-backlight-control-tiny-rework drivers/video/atmel_lcdfb.c
+--- a/drivers/video/atmel_lcdfb.c~atmel_lcdfb-backlight-control-tiny-rework
++++ a/drivers/video/atmel_lcdfb.c
+@@ -118,7 +118,7 @@ static struct backlight_ops atmel_lcdc_b
+ 	.get_brightness = atmel_bl_get_brightness,
+ };
  
- static int r9701_get_datetime(struct device *dev, struct rtc_time *dt)
+-static inline void init_backlight(struct atmel_lcdfb_info *sinfo)
++static void init_backlight(struct atmel_lcdfb_info *sinfo)
  {
--	struct spi_device *spi = to_spi_device(dev);
- 	unsigned long time;
- 	int ret;
- 	unsigned char buf[] = { RSECCNT, RMINCNT, RHRCNT,
- 				RDAYCNT, RMONCNT, RYRCNT };
+ 	struct backlight_device	*bl;
  
--	ret = read_regs(&spi->dev, buf, ARRAY_SIZE(buf));
-+	ret = read_regs(dev, buf, ARRAY_SIZE(buf));
- 	if (ret)
- 		return ret;
- 
-@@ -96,17 +94,7 @@ static int r9701_get_datetime(struct dev
- 	 * according to the data sheet. make sure they are valid.
- 	 */
- 
--	ret = rtc_valid_tm(dt);
--	if (ret)
--		return ret;
--
--	/* don't bother with yday, wday and isdst.
--	 * let the rtc core calculate them for us.
--	 */
--
--	rtc_tm_to_time(dt, &time);
--	rtc_time_to_tm(time, dt);
--	return 0;
-+	return rtc_valid_tm(dt);
+@@ -142,7 +142,7 @@ static inline void init_backlight(struct
+ 	bl->props.brightness = atmel_bl_get_brightness(bl);
  }
  
- static int r9701_set_datetime(struct device *dev, struct rtc_time *dt)
-@@ -118,12 +106,12 @@ static int r9701_set_datetime(struct dev
- 		return -EINVAL;
+-static inline void exit_contrast(struct atmel_lcdfb_info *sinfo)
++static void exit_backlight(struct atmel_lcdfb_info *sinfo)
+ {
+ 	if (sinfo->backlight)
+ 		backlight_device_unregister(sinfo->backlight);
+@@ -150,18 +150,18 @@ static inline void exit_contrast(struct 
  
- 	ret = write_reg(dev, RHRCNT, BIN2BCD(dt->tm_hour));
--	ret |= write_reg(dev, RMINCNT, BIN2BCD(dt->tm_min));
--	ret |= write_reg(dev, RSECCNT, BIN2BCD(dt->tm_sec));
--	ret |= write_reg(dev, RDAYCNT, BIN2BCD(dt->tm_mday));
--	ret |= write_reg(dev, RMONCNT, BIN2BCD(dt->tm_mon + 1));
--	ret |= write_reg(dev, RYRCNT, BIN2BCD(dt->tm_year - 100));
--	ret |= write_reg(dev, RWKCNT, 1 << dt->tm_wday);
-+	ret = ret ? ret : write_reg(dev, RMINCNT, BIN2BCD(dt->tm_min));
-+	ret = ret ? ret : write_reg(dev, RSECCNT, BIN2BCD(dt->tm_sec));
-+	ret = ret ? ret : write_reg(dev, RDAYCNT, BIN2BCD(dt->tm_mday));
-+	ret = ret ? ret : write_reg(dev, RMONCNT, BIN2BCD(dt->tm_mon + 1));
-+	ret = ret ? ret : write_reg(dev, RYRCNT, BIN2BCD(dt->tm_year - 100));
-+	ret = ret ? ret : write_reg(dev, RWKCNT, 1 << dt->tm_wday);
+ #else
  
- 	return ret;
+-static inline void init_backlight(struct atmel_lcdfb_info *sinfo)
++static void init_backlight(struct atmel_lcdfb_info *sinfo)
+ {
+ 	dev_warn(&sinfo->pdev->dev, "backlight control is not available\n");
  }
-@@ -146,10 +134,6 @@ static int __devinit r9701_probe(struct 
  
- 	dev_set_drvdata(&spi->dev, rtc);
+-static inline void exit_contrast(struct atmel_lcdfb_info *sinfo)
++static void exit_backlight(struct atmel_lcdfb_info *sinfo)
+ {
+ }
  
--	spi->mode = SPI_MODE_3;
--	spi->bits_per_word = 8;
--	spi_setup(spi);
--
- 	tmp = R100CNT;
- 	res = read_regs(&spi->dev, &tmp, 1);
- 	if (res || tmp != 0x20) {
-@@ -171,7 +155,6 @@ static int __devexit r9701_remove(struct
- static struct spi_driver r9701_driver = {
- 	.driver = {
- 		.name	= "rtc-r9701",
--		.bus	= &spi_bus_type,
- 		.owner	= THIS_MODULE,
- 	},
- 	.probe	= r9701_probe,
+ #endif
+ 
+-static inline void init_contrast(struct atmel_lcdfb_info *sinfo)
++static void init_contrast(struct atmel_lcdfb_info *sinfo)
+ {
+ 	/* have some default contrast/backlight settings */
+ 	lcdc_writel(sinfo, ATMEL_LCDC_CONTRAST_CTR, contrast_ctr);
+@@ -843,6 +843,7 @@ free_cmap:
+ unregister_irqs:
+ 	free_irq(sinfo->irq_base, info);
+ unmap_mmio:
++	exit_backlight(sinfo);
+ 	iounmap(sinfo->mmio);
+ release_mem:
+  	release_mem_region(info->fix.mmio_start, info->fix.mmio_len);
+@@ -877,7 +878,7 @@ static int __exit atmel_lcdfb_remove(str
+ 	if (!sinfo)
+ 		return 0;
+ 
+-	exit_contrast(sinfo);
++	exit_backlight(sinfo);
+ 	if (sinfo->atmel_lcdfb_power_control)
+ 		sinfo->atmel_lcdfb_power_control(0);
+ 	unregister_framebuffer(info);
 _
 
-Patches currently in -mm which might be from magnus.damm@gmail.com are
+Patches currently in -mm which might be from nicolas.ferre@atmel.com are
 
-usb-dma-bounce-buffer-support-v3.patch
-usb-dma-bounce-buffer-support-v3-checkpatch-fixes.patch
-usb-dma-bounce-buffer-support-v3-fix.patch
-usb-ohci-sm501-driver-v2.patch
-usb-ohci-sm501-driver-v2-fix.patch
-spi-superh-spi-using-sci.patch
-rtc-add-support-for-epson-rtc-9701je-v2.patch
-rtc-add-support-for-epson-rtc-9701je-v4.patch
-sm501fb-control-panel-pin-usage-with-platform-data-flags.patch
-sm501fb-clear-framebuffer-memory-and-palette.patch
+at91-correct-at91sam9263ek-lcd-power-gpio-pin.patch
+atmel_lcdfb-backlight-control.patch
+atmel_lcdfb-backlight-control-tiny-rework.patch
