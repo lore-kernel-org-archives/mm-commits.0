@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tcm825xfix-logical-typo-error.patch added to -mm tree
-Date: Sat, 26 Jan 2008 21:08:22 -0800
-Message-ID: <200801270508.m0R58J79030747@imap1.linux-foundation.org>
+Subject: + hwmon-new-chip-driver-for-ti-ads7828-a-d-update-2.patch added to -mm tree
+Date: Sat, 26 Jan 2008 21:08:40 -0800
+Message-ID: <200801270508.m0R58bMh030753@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54929 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49248 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750792AbYA0FJC (ORCPT
+	by vger.kernel.org with ESMTP id S1750741AbYA0FJD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Jan 2008 00:09:02 -0500
+	Sun, 27 Jan 2008 00:09:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gorcunov@gmail.com, g.liakhovetski@pengutronix.de, mchehab@infradead.org, stable@kernel.org
+Cc: steve@linuxrealtime.co.uk, khali@linux-fr.org, mhoffman@lightlink.com
 
 
 The patch titled
-     tcm825x:fix logical typo error
+     hwmon-new-chip-driver-for-ti-ads7828-a-d update 2
 has been added to the -mm tree.  Its filename is
-     tcm825xfix-logical-typo-error.patch
+     hwmon-new-chip-driver-for-ti-ads7828-a-d-update-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tcm825x:fix logical typo error
-From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: hwmon-new-chip-driver-for-ti-ads7828-a-d update 2
+From: Steve Hardy <steve@linuxrealtime.co.uk>
 
-Fix potential NULL pointer dereference due to logical typo error.
+Fix minor final issues identified by Jean Delarve which I mis-interpreted
+in the third revision
 
-The issue is pointed out by Guennadi Liakhovetski.
-
-Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: <stable@kernel.org>
+Signed-off-by: Steve Hardy <steve@linuxrealtime.co.uk>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Mark M. Hoffman <mhoffman@lightlink.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/tcm825x.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/hwmon/ads7828 |    4 ++--
+ drivers/hwmon/ads7828.c     |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/media/video/tcm825x.c~tcm825xfix-logical-typo-error drivers/media/video/tcm825x.c
---- a/drivers/media/video/tcm825x.c~tcm825xfix-logical-typo-error
-+++ a/drivers/media/video/tcm825x.c
-@@ -851,7 +851,7 @@ static int tcm825x_probe(struct i2c_clie
- 	sensor->platform_data = client->dev.platform_data;
+diff -puN Documentation/hwmon/ads7828~hwmon-new-chip-driver-for-ti-ads7828-a-d-update-2 Documentation/hwmon/ads7828
+--- a/Documentation/hwmon/ads7828~hwmon-new-chip-driver-for-ti-ads7828-a-d-update-2
++++ a/Documentation/hwmon/ads7828
+@@ -5,7 +5,7 @@ Supported chips:
+   * Texas Instruments/Burr-Brown ADS7828
+     Prefix: 'ads7828'
+     Addresses scanned: I2C 0x48, 0x49, 0x4a, 0x4b
+-    Datasheet : Publicly available at the Texas Instruments website :
++    Datasheet: Publicly available at the Texas Instruments website :
+                http://focus.ti.com/lit/ds/symlink/ads7828.pdf
  
- 	if (sensor->platform_data == NULL
--	    && !sensor->platform_data->is_okay())
-+	    || !sensor->platform_data->is_okay())
- 		return -ENODEV;
+ Authors:
+@@ -18,7 +18,7 @@ Module Parameters
+   Single ended operation - set to N for differential mode
+ * int_vref: bool (default Y)
+   Operate with the internal 2.5V reference - set to N for external reference
+-* vref_mV: int (default 2500)
++* vref_mv: int (default 2500)
+   If using an external reference, set this to the reference voltage in mV
  
- 	sensor->v4l2_int_device = &tcm825x_int_device;
+ Description
+diff -puN drivers/hwmon/ads7828.c~hwmon-new-chip-driver-for-ti-ads7828-a-d-update-2 drivers/hwmon/ads7828.c
+--- a/drivers/hwmon/ads7828.c~hwmon-new-chip-driver-for-ti-ads7828-a-d-update-2
++++ a/drivers/hwmon/ads7828.c
+@@ -6,7 +6,7 @@
+ 
+ 	Written by Steve Hardy <steve@linuxrealtime.co.uk>
+ 
+-	Datasheet available at : http://focus.ti.com/lit/ds/symlink/ads7828.pdf
++	Datasheet available at: http://focus.ti.com/lit/ds/symlink/ads7828.pdf
+ 
+ 	This program is free software; you can redistribute it and/or modify
+ 	it under the terms of the GNU General Public License as published by
 _
 
-Patches currently in -mm which might be from gorcunov@gmail.com are
+Patches currently in -mm which might be from steve@linuxrealtime.co.uk are
 
-cris-add-missed-local_irq_restore-call.patch
-git-powerpc.patch
-tcm825xfix-logical-typo-error.patch
-git-x86.patch
-driver-ip27-rtc-convert-ioctl-to-unlocked_ioctl-v2.patch
+hwmon-new-chip-driver-for-ti-ads7828-a-d.patch
+hwmon-new-chip-driver-for-ti-ads7828-a-d-checkpatch-fixes.patch
+hwmon-new-chip-driver-for-ti-ads7828-a-d-update.patch
+hwmon-new-chip-driver-for-ti-ads7828-a-d-update-2.patch
