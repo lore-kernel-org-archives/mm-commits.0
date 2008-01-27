@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + atmel_serial-fix-bugs-in-probe-error-path-and-remove.patch added to -mm tree
-Date: Sat, 26 Jan 2008 21:17:55 -0800
-Message-ID: <200801270517.m0R5HqEN031155@imap1.linux-foundation.org>
+Subject: + atmel_serial-use-existing-console-options-only-if-brg-is-running.patch added to -mm tree
+Date: Sat, 26 Jan 2008 21:17:52 -0800
+Message-ID: <200801270517.m0R5HnaJ031152@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49798 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41153 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750828AbYA0FSC (ORCPT
+	by vger.kernel.org with ESMTP id S1750882AbYA0FSE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Jan 2008 00:18:02 -0500
+	Sun, 27 Jan 2008 00:18:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hskinnemoen@atmel.com, linux@maxim.org.za, marc.pignat@hevs.ch
 
 
 The patch titled
-     atmel_serial: fix bugs in probe() error path and remove()
+     atmel_serial: use existing console options only if BRG is running
 has been added to the -mm tree.  Its filename is
-     atmel_serial-fix-bugs-in-probe-error-path-and-remove.patch
+     atmel_serial-use-existing-console-options-only-if-brg-is-running.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,92 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_serial: fix bugs in probe() error path and remove()
+Subject: atmel_serial: use existing console options only if BRG is running
 From: Haavard Skinnemoen <hskinnemoen@atmel.com>
 
-When an error happens in probe(), the clocks should be disabled, but
-only if the port isn't already used as a console.
-
-In remove(), the port struct shouldn't be freed because it's defined
-statically.
+If BRGR is zero, the baud rate generator isn't running, so the boot loader
+can't have initialized the port.
 
 Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Andrew Victor <linux@maxim.org.za>
+Acked-by: Andrew Victor <linux@maxim.org.za>
 Tested-by: Marc Pignat <marc.pignat@hevs.ch>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/atmel_serial.c |   39 +++++++++++++++++++++++---------
- 1 file changed, 29 insertions(+), 10 deletions(-)
+ drivers/serial/atmel_serial.c |   15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-fix-bugs-in-probe-error-path-and-remove drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-fix-bugs-in-probe-error-path-and-remove
+diff -puN drivers/serial/atmel_serial.c~atmel_serial-use-existing-console-options-only-if-brg-is-running drivers/serial/atmel_serial.c
+--- a/drivers/serial/atmel_serial.c~atmel_serial-use-existing-console-options-only-if-brg-is-running
 +++ a/drivers/serial/atmel_serial.c
-@@ -935,8 +935,18 @@ static int __init atmel_late_console_ini
+@@ -835,13 +835,13 @@ static void __init atmel_console_get_opt
+ {
+ 	unsigned int mr, quot;
  
- core_initcall(atmel_late_console_init);
+-// TODO: CR is a write-only register
+-//	unsigned int cr;
+-//
+-//	cr = UART_GET_CR(port) & (ATMEL_US_RXEN | ATMEL_US_TXEN);
+-//	if (cr == (ATMEL_US_RXEN | ATMEL_US_TXEN)) {
+-//		/* ok, the port was enabled */
+-//	}
++	/*
++	 * If the baud rate generator isn't running, the port wasn't
++	 * initialized by the boot loader.
++	 */
++	quot = UART_GET_BRGR(port);
++	if (!quot)
++		return;
  
-+static inline bool atmel_is_console_port(struct uart_port *port)
-+{
-+	return port->cons && port->cons->index == port->line;
-+}
-+
- #else
- #define ATMEL_CONSOLE_DEVICE	NULL
-+
-+static inline bool atmel_is_console_port(struct uart_port *port)
-+{
-+	return false;
-+}
- #endif
- 
- static struct uart_driver atmel_uart = {
-@@ -994,9 +1004,19 @@ static int __devinit atmel_serial_probe(
- 	atmel_init_port(port, pdev);
- 
- 	ret = uart_add_one_port(&atmel_uart, &port->uart);
--	if (!ret) {
--		device_init_wakeup(&pdev->dev, 1);
--		platform_set_drvdata(pdev, port);
-+	if (ret)
-+		goto err_add_port;
-+
-+	device_init_wakeup(&pdev->dev, 1);
-+	platform_set_drvdata(pdev, port);
-+
-+	return 0;
-+
-+err_add_port:
-+	if (!atmel_is_console_port(&port->uart)) {
-+		clk_disable(port->clk);
-+		clk_put(port->clk);
-+		port->clk = NULL;
- 	}
- 
- 	return ret;
-@@ -1008,16 +1028,15 @@ static int __devexit atmel_serial_remove
- 	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
- 	int ret = 0;
- 
--	clk_disable(atmel_port->clk);
--	clk_put(atmel_port->clk);
--
- 	device_init_wakeup(&pdev->dev, 0);
- 	platform_set_drvdata(pdev, NULL);
- 
--	if (port) {
--		ret = uart_remove_one_port(&atmel_uart, port);
--		kfree(port);
--	}
-+	ret = uart_remove_one_port(&atmel_uart, port);
-+
-+	/* "port" is allocated statically, so we shouldn't free it */
-+
-+	clk_disable(atmel_port->clk);
-+	clk_put(atmel_port->clk);
- 
- 	return ret;
+ 	mr = UART_GET_MR(port) & ATMEL_US_CHRL;
+ 	if (mr == ATMEL_US_CHRL_8)
+@@ -861,7 +861,6 @@ static void __init atmel_console_get_opt
+ 	 * lower than one of those, as it would make us fall through
+ 	 * to a much lower baud rate than we really want.
+ 	 */
+-	quot = UART_GET_BRGR(port);
+ 	*baud = port->uartclk / (16 * (quot - 1));
  }
+ 
 _
 
 Patches currently in -mm which might be from hskinnemoen@atmel.com are
