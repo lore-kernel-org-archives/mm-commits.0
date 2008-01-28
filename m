@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + uml-ldt-mutex-conversion.patch added to -mm tree
-Date: Sun, 27 Jan 2008 21:23:44 -0800
-Message-ID: <200801280524.m0S5OcHi013806@imap1.linux-foundation.org>
+Subject: + uml-mconsole-mutex-conversion.patch added to -mm tree
+Date: Sun, 27 Jan 2008 21:23:46 -0800
+Message-ID: <200801280524.m0S5OeHJ013809@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54471 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48595 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751297AbYA1FZA (ORCPT
+	by vger.kernel.org with ESMTP id S1751306AbYA1FZC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 00:25:00 -0500
+	Mon, 28 Jan 2008 00:25:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: dwalker@mvista.com, jdike@linux.intel.com
 
 
 The patch titled
-     uml: LDT mutex conversion
+     uml: mconsole mutex conversion
 has been added to the -mm tree.  Its filename is
-     uml-ldt-mutex-conversion.patch
+     uml-mconsole-mutex-conversion.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,108 +34,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: LDT mutex conversion
+Subject: uml: mconsole mutex conversion
 From: Daniel Walker <dwalker@mvista.com>
 
-The ldt.semaphore conforms to the new struct mutex requirments, so I converted
-it to use the new API and changed the name.
+The plug_mem_mutex is already used as a mutex since it's using
+DECLARE_MUTEX(), but the underlying construct is still a semaphore ..  This
+patch switches it over to a struct mutex.
 
 Signed-off-by: Daniel Walker <dwalker@mvista.com>
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/sys-i386/ldt.c |   14 +++++++-------
- include/asm-um/ldt.h   |    4 ++--
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ arch/um/drivers/mconsole_kern.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN arch/um/sys-i386/ldt.c~uml-ldt-mutex-conversion arch/um/sys-i386/ldt.c
---- a/arch/um/sys-i386/ldt.c~uml-ldt-mutex-conversion
-+++ a/arch/um/sys-i386/ldt.c
-@@ -147,7 +147,7 @@ static int read_ldt(void __user * ptr, u
- 	if (ptrace_ldt)
- 		return read_ldt_from_host(ptr, bytecount);
+diff -puN arch/um/drivers/mconsole_kern.c~uml-mconsole-mutex-conversion arch/um/drivers/mconsole_kern.c
+--- a/arch/um/drivers/mconsole_kern.c~uml-mconsole-mutex-conversion
++++ a/arch/um/drivers/mconsole_kern.c
+@@ -17,6 +17,7 @@
+ #include "linux/syscalls.h"
+ #include "linux/utsname.h"
+ #include "linux/workqueue.h"
++#include "linux/mutex.h"
+ #include "asm/uaccess.h"
+ #include "init.h"
+ #include "irq_kern.h"
+@@ -360,7 +361,7 @@ struct unplugged_pages {
+ 	void *pages[UNPLUGGED_PER_PAGE];
+ };
  
--	down(&ldt->semaphore);
-+	mutex_lock(&ldt->lock);
- 	if (ldt->entry_count <= LDT_DIRECT_ENTRIES) {
- 		size = LDT_ENTRY_SIZE*LDT_DIRECT_ENTRIES;
- 		if (size > bytecount)
-@@ -171,7 +171,7 @@ static int read_ldt(void __user * ptr, u
- 			ptr += size;
- 		}
- 	}
--	up(&ldt->semaphore);
-+	mutex_unlock(&ldt->lock);
+-static DECLARE_MUTEX(plug_mem_mutex);
++static DEFINE_MUTEX(plug_mem_mutex);
+ static unsigned long long unplugged_pages_count = 0;
+ static LIST_HEAD(unplugged_pages);
+ static int unplug_index = UNPLUGGED_PER_PAGE;
+@@ -396,7 +397,7 @@ static int mem_config(char *str, char **
  
- 	if (bytecount == 0 || err == -EFAULT)
- 		goto out;
-@@ -229,7 +229,7 @@ static int write_ldt(void __user * ptr, 
- 	}
+ 	diff /= PAGE_SIZE;
  
- 	if (!ptrace_ldt)
--		down(&ldt->semaphore);
-+		mutex_lock(&ldt->lock);
+-	down(&plug_mem_mutex);
++	mutex_lock(&plug_mem_mutex);
+ 	for (i = 0; i < diff; i++) {
+ 		struct unplugged_pages *unplugged;
+ 		void *addr;
+@@ -453,7 +454,7 @@ static int mem_config(char *str, char **
  
- 	err = write_ldt_entry(mm_idp, func, &ldt_info, &addr, 1);
- 	if (err)
-@@ -289,7 +289,7 @@ static int write_ldt(void __user * ptr, 
  	err = 0;
- 
  out_unlock:
--	up(&ldt->semaphore);
-+	mutex_unlock(&ldt->lock);
+-	up(&plug_mem_mutex);
++	mutex_unlock(&plug_mem_mutex);
  out:
  	return err;
  }
-@@ -396,7 +396,7 @@ long init_new_ldt(struct mm_context *new
- 
- 
- 	if (!ptrace_ldt)
--		init_MUTEX(&new_mm->ldt.semaphore);
-+		mutex_init(&new_mm->ldt.lock);
- 
- 	if (!from_mm) {
- 		memset(&desc, 0, sizeof(desc));
-@@ -456,7 +456,7 @@ long init_new_ldt(struct mm_context *new
- 		 * i.e., we have to use the stub for modify_ldt, which
- 		 * can't handle the big read buffer of up to 64kB.
- 		 */
--		down(&from_mm->ldt.semaphore);
-+		mutex_lock(&from_mm->ldt.lock);
- 		if (from_mm->ldt.entry_count <= LDT_DIRECT_ENTRIES)
- 			memcpy(new_mm->ldt.u.entries, from_mm->ldt.u.entries,
- 			       sizeof(new_mm->ldt.u.entries));
-@@ -475,7 +475,7 @@ long init_new_ldt(struct mm_context *new
- 			}
- 		}
- 		new_mm->ldt.entry_count = from_mm->ldt.entry_count;
--		up(&from_mm->ldt.semaphore);
-+		mutex_unlock(&from_mm->ldt.lock);
- 	}
- 
-     out:
-diff -puN include/asm-um/ldt.h~uml-ldt-mutex-conversion include/asm-um/ldt.h
---- a/include/asm-um/ldt.h~uml-ldt-mutex-conversion
-+++ a/include/asm-um/ldt.h
-@@ -8,7 +8,7 @@
- #ifndef __ASM_LDT_H
- #define __ASM_LDT_H
- 
--#include "asm/semaphore.h"
-+#include <linux/mutex.h>
- #include "asm/host_ldt.h"
- 
- extern void ldt_host_info(void);
-@@ -27,7 +27,7 @@ struct ldt_entry {
- 
- typedef struct uml_ldt {
- 	int entry_count;
--	struct semaphore semaphore;
-+	struct mutex lock;
- 	union {
- 		struct ldt_entry * pages[LDT_PAGES_MAX];
- 		struct ldt_entry entries[LDT_DIRECT_ENTRIES];
 _
 
 Patches currently in -mm which might be from dwalker@mvista.com are
