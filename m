@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uml-remove-topdir.patch added to -mm tree
-Date: Sun, 27 Jan 2008 21:23:30 -0800
-Message-ID: <200801280524.m0S5OOiT013768@imap1.linux-foundation.org>
+Subject: + uml-fix-infinite-mconsole-loop.patch added to -mm tree
+Date: Sun, 27 Jan 2008 21:23:40 -0800
+Message-ID: <200801280524.m0S5OZde013798@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39596 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55827 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751277AbYA1FYk (ORCPT
+	by vger.kernel.org with ESMTP id S1751277AbYA1FYh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 00:24:40 -0500
+	Mon, 28 Jan 2008 00:24:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xiyou.wangcong@gmail.com, jdike@linux.intel.com, sam@ravnborg.org
+Cc: magotari@gmail.com, jdike@linux.intel.com
 
 
 The patch titled
-     uml: remove TOPDIR
+     uml: fix infinite mconsole loop
 has been added to the -mm tree.  Its filename is
-     uml-remove-topdir.patch
+     uml-fix-infinite-mconsole-loop.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,115 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: remove TOPDIR
-From: WANG Cong <xiyou.wangcong@gmail.com>
+Subject: uml: fix infinite mconsole loop
+From: Karol Swietlicki <magotari@gmail.com>
 
-TOPDIR is obsolete, use srctree instead.  This patch removes TOPDIR from all
-UML Makefiles.
+This patch takes care of a problem with the stopping code.
 
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+The function inside the while condition returns 0 to signify a problem.  A
+problem could be for example a bad command or a bad version of the mconsole
+client.  A bad command would terminate the stopping loop and resume the
+kernel.  This is a problem.
+
+A better solution is to make the loop infinite and don't leave it until we are
+explicitly told to.
+
+Signed-off-by: Karol Swietlicki <magotari@gmail.com>
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/Makefile         |    4 ++--
- arch/um/sys-ppc/Makefile |   22 +++++++++++-----------
- 2 files changed, 13 insertions(+), 13 deletions(-)
+ arch/um/drivers/mconsole_kern.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN arch/um/Makefile~uml-remove-topdir arch/um/Makefile
---- a/arch/um/Makefile~uml-remove-topdir
-+++ a/arch/um/Makefile
-@@ -160,7 +160,7 @@ ifneq ($(KBUILD_SRC),)
- 	$(Q)mkdir -p $(objtree)/include/asm-um
- 	$(Q)ln -fsn $(srctree)/include/asm-um/$(basename $(notdir $@))-$(SUBARCH)$(suffix $@) $@
- else
--	$(Q)cd $(TOPDIR)/$(dir $@) ; \
-+	$(Q)cd $(srctree)/$(dir $@) ; \
- 	ln -sf $(basename $(notdir $@))-$(SUBARCH)$(suffix $@) $(notdir $@)
- endif
- 
-@@ -170,7 +170,7 @@ ifneq ($(KBUILD_SRC),)
- 	$(Q)mkdir -p $(objtree)/include/asm-um
- 	$(Q)ln -fsn $(srctree)/include/asm-$(HEADER_ARCH) include/asm-um/arch
- else
--	$(Q)cd $(TOPDIR)/include/asm-um && ln -fsn ../asm-$(HEADER_ARCH) arch
-+	$(Q)cd $(srctree)/include/asm-um && ln -fsn ../asm-$(HEADER_ARCH) arch
- endif
- 
- $(objtree)/$(ARCH_DIR)/include:
-diff -puN arch/um/sys-ppc/Makefile~uml-remove-topdir arch/um/sys-ppc/Makefile
---- a/arch/um/sys-ppc/Makefile~uml-remove-topdir
-+++ a/arch/um/sys-ppc/Makefile
-@@ -6,7 +6,7 @@ OBJ = built-in.o
- OBJS = ptrace.o sigcontext.o semaphore.o checksum.o miscthings.o misc.o \
- 	ptrace_user.o sysrq.o
- 
--EXTRA_AFLAGS := -DCONFIG_PPC32 -I. -I$(TOPDIR)/arch/ppc/kernel
-+EXTRA_AFLAGS := -DCONFIG_PPC32 -I. -I$(srctree)/arch/ppc/kernel
- 
- all: $(OBJ)
- 
-@@ -22,25 +22,25 @@ sigcontext.o: sigcontext.c
- 
- semaphore.c:
- 	rm -f $@
--	ln -s $(TOPDIR)/arch/ppc/kernel/$@ $@
-+	ln -s $(srctree)/arch/ppc/kernel/$@ $@
- 
- checksum.S:
- 	rm -f $@
--	ln -s $(TOPDIR)/arch/ppc/lib/$@ $@
-+	ln -s $(srctree)/arch/ppc/lib/$@ $@
- 
- mk_defs.c:
- 	rm -f $@
--	ln -s $(TOPDIR)/arch/ppc/kernel/$@ $@
-+	ln -s $(srctree)/arch/ppc/kernel/$@ $@
- 
- ppc_defs.head:
- 	rm -f $@
--	ln -s $(TOPDIR)/arch/ppc/kernel/$@ $@
-+	ln -s $(srctree)/arch/ppc/kernel/$@ $@
- 
- ppc_defs.h: mk_defs.c ppc_defs.head \
--		$(TOPDIR)/include/asm-ppc/mmu.h \
--		$(TOPDIR)/include/asm-ppc/processor.h \
--		$(TOPDIR)/include/asm-ppc/pgtable.h \
--		$(TOPDIR)/include/asm-ppc/ptrace.h
-+		$(srctree)/include/asm-ppc/mmu.h \
-+		$(srctree)/include/asm-ppc/processor.h \
-+		$(srctree)/include/asm-ppc/pgtable.h \
-+		$(srctree)/include/asm-ppc/ptrace.h
- #	$(CC) $(CFLAGS) -S mk_defs.c
- 	cp ppc_defs.head ppc_defs.h
- # for bk, this way we can write to the file even if it's not checked out
-@@ -56,13 +56,13 @@ ppc_defs.h: mk_defs.c ppc_defs.head \
- 
- checksum.o: checksum.S
- 	rm -f asm
--	ln -s $(TOPDIR)/include/asm-ppc asm
-+	ln -s $(srctree)/include/asm-ppc asm
- 	$(CC) $(EXTRA_AFLAGS) $(KBUILD_AFLAGS) -D__ASSEMBLY__ -D__UM_PPC__ -c $< -o $*.o
- 	rm -f asm
- 
- misc.o: misc.S ppc_defs.h
- 	rm -f asm
--	ln -s $(TOPDIR)/include/asm-ppc asm
-+	ln -s $(srctree)/include/asm-ppc asm
- 	$(CC) $(EXTRA_AFLAGS) $(KBUILD_AFLAGS) -D__ASSEMBLY__ -D__UM_PPC__ -c $< -o $*.o
- 	rm -f asm
- 
+diff -puN arch/um/drivers/mconsole_kern.c~uml-fix-infinite-mconsole-loop arch/um/drivers/mconsole_kern.c
+--- a/arch/um/drivers/mconsole_kern.c~uml-fix-infinite-mconsole-loop
++++ a/arch/um/drivers/mconsole_kern.c
+@@ -305,7 +305,9 @@ void mconsole_stop(struct mc_request *re
+ 	deactivate_fd(req->originating_fd, MCONSOLE_IRQ);
+ 	os_set_fd_block(req->originating_fd, 1);
+ 	mconsole_reply(req, "stopped", 0, 0);
+-	while (mconsole_get_request(req->originating_fd, req)) {
++	for (;;) {
++		if (!mconsole_get_request(req->originating_fd, req))
++			continue;
+ 		if (req->cmd->handler == mconsole_go)
+ 			break;
+ 		if (req->cmd->handler == mconsole_stop) {
 _
 
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
+Patches currently in -mm which might be from magotari@gmail.com are
 
-git-kbuild.patch
-git-net.patch
-git-s390.patch
-git-x86.patch
-xen-fix-section-usage-in-xen-heads-and-setupc.patch
-uml-code-tidying-under-arch-um-os-linux.patch
-uml-const-and-other-tidying.patch
-uml-remove-topdir.patch
-time-fix-sysfs_show_availablecurrent_clocksources-buffer-overflow-problem.patch
+uml-remove-xmm-checking-on-x86.patch
+uml-fix-urls-in-kconfig-and-help-strings.patch
+uml-improve-detection-of-host-cmov.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes-fix.patch
+uml-remove-now-unused-code.patch
+uml-gprof-needs-to-depend-on-frame_pointer.patch
+uml-remove-unused-variables-in-the-context-switcher.patch
+uml-convert-functions-to-void.patch
+uml-remove-duplicate-config-symbol-and-unused-file-and-variables.patch
+uml-fix-mconsole-stop.patch
+uml-debug_shirq-fixes.patch
+uml-fix-infinite-mconsole-loop.patch
