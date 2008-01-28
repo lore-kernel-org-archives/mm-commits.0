@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-fix-userspace-compile-error-in-gcc_intrinh.patch added to -mm tree
-Date: Sun, 27 Jan 2008 21:15:25 -0800
-Message-ID: <200801280516.m0S5GKs9013431@imap1.linux-foundation.org>
+Subject: + atari-falcon-ide-add-missing-hwif-variable.patch added to -mm tree
+Date: Sun, 27 Jan 2008 21:16:40 -0800
+Message-ID: <200801280517.m0S5HZIE013458@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33192 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37230 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751986AbYA1FQe (ORCPT
+	by vger.kernel.org with ESMTP id S1750727AbYA1FR5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 00:16:34 -0500
+	Mon, 28 Jan 2008 00:17:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: doug.chapman@hp.com, tony.luck@intel.com
+Cc: geert@linux-m68k.org, bzolnier@gmail.com, sshtylyov@ru.mvista.com
 
 
 The patch titled
-     ia64: fix userspace compile error in gcc_intrin.h
+     Atari Falcon IDE: Add missing hwif variable
 has been added to the -mm tree.  Its filename is
-     ia64-fix-userspace-compile-error-in-gcc_intrinh.patch
+     atari-falcon-ide-add-missing-hwif-variable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,76 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia64: fix userspace compile error in gcc_intrin.h
-From: Doug Chapman <doug.chapman@hp.com>
+Subject: Atari Falcon IDE: Add missing hwif variable
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-Fixes userspace build errors when linux/ipv6.h is included such as in the
-dhcpv6 package under fedora.  Likely causes other userspace build errors as
-well.  I found this in akpm's tree from 2.6.18 but could not find any case
-of anyone proposing it for the main tree.
+Commit cbb010c180294a5242a7681555c28737d9dd26ab
 
-Signed-off-by: Doug Chapman <doug.chapman@hp.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+    ide: drop 'initializing' argument from ide_register_hw()
+
+    * Rename init_hwif_data() to ide_init_port_data() and export it.
+
+    * For all users of ide_register_hw() with 'initializing' argument set
+      hwif->present and hwif->hold are always zero so convert these host
+      drivers to use ide_find_port()+ide_init_port_data()+ide_init_port_hw()
+      instead (also no need for init_hwif_default() call since the setup
+      done by it gets over-ridden by ide_init_port_hw() call).
+
+    * Drop 'initializing' argument from ide_register_hw().
+
+introduced the usage of a hwif variable, but forgot to declare the actual
+variable.
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-ia64/gcc_intrin.h |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/ide/legacy/falconide.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/asm-ia64/gcc_intrin.h~ia64-fix-userspace-compile-error-in-gcc_intrinh include/asm-ia64/gcc_intrin.h
---- a/include/asm-ia64/gcc_intrin.h~ia64-fix-userspace-compile-error-in-gcc_intrinh
-+++ a/include/asm-ia64/gcc_intrin.h
-@@ -24,7 +24,9 @@
- extern void ia64_bad_param_for_setreg (void);
- extern void ia64_bad_param_for_getreg (void);
+diff -puN drivers/ide/legacy/falconide.c~atari-falcon-ide-add-missing-hwif-variable drivers/ide/legacy/falconide.c
+--- a/drivers/ide/legacy/falconide.c~atari-falcon-ide-add-missing-hwif-variable
++++ a/drivers/ide/legacy/falconide.c
+@@ -66,6 +66,7 @@ static int __init falconide_init(void)
+ {
+     if (MACH_IS_ATARI && ATARIHW_PRESENT(IDE)) {
+ 	hw_regs_t hw;
++	ide_hwif_t *hwif;
  
-+#ifdef __KERNEL__
- register unsigned long ia64_r13 asm ("r13") __attribute_used__;
-+#endif
+ 	printk(KERN_INFO "ide: Falcon IDE controller\n");
  
- #define ia64_setreg(regnum, val)						\
- ({										\
 _
 
-Patches currently in -mm which might be from doug.chapman@hp.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
-ia64-fix-userspace-compile-error-in-gcc_intrinh.patch
+origin.patch
+sdio-fix-module-device-table-definition-for-m68k.patch
+atari-falcon-ide-add-missing-hwif-variable.patch
+git-scsi-misc.patch
+m68k-use-cc-cross-prefix.patch
+m68k-array_size-cleanup.patch
+dio-array_size-cleanup.patch
+dio-array_size-cleanup-update.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+m68k-balance-ioremap-and-iounmap-in-m68k-atari-hades-pcic.patch
+nubus-kill-drivers-nubus-nubus_symsc.patch
+m68k-kill-arch-m68k-mac-mac_ksymsc.patch
+m68k-kill-arch-m68k-hp300-ksymsc.patch
+m68k-kill-arch-m68k-amiga-amiga_ksymsc.patch
+m68k-kill-arch-m68k-atari-atari_ksymsc.patch
+m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch
+mac68k-macii-adb-comment-correction.patch
+mac68k-remove-dead-code.patch
+mac68k-add-nubus-card-definitions-and-a-typo-fix.patch
+mac68k-remove-dead-mac_adbkeycodes.patch
+uml-borrow-consth-techniques.patch
+remove-pointless-casts-from-void-pointers.patch
+cleanup-after-apus-removal.patch
+amiga-serial-driver-port_write_mutex-fixup.patch
+atari-floppy-rename-disk_type-to-atari_disk_type.patch
+pm2fb-big-endian-fix.patch
+add-cmpxchg_local-to-m86k.patch
+procfs-constify-function-pointer-tables.patch
+avoid-overflows-in-kernel-timec.patch
