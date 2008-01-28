@@ -1,59 +1,214 @@
 From: akpm@linux-foundation.org
-Subject: - git-powerpc-fixup.patch removed from -mm tree
-Date: Mon, 28 Jan 2008 15:59:26 -0800
-Message-ID: <200801282359.m0SNxQMI023164@imap1.linux-foundation.org>
+Subject: - revert-gregkh-driver-atm-convert-struct-class_device-to-struct-device.patch removed from -mm tree
+Date: Mon, 28 Jan 2008 15:59:49 -0800
+Message-ID: <200801282359.m0SNxnBV023189@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36263 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52680 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753940AbYA1X7c (ORCPT
+	by vger.kernel.org with ESMTP id S1756967AbYA1X7x (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 18:59:32 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m0SNxQ1n020660
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 28 Jan 2008 15:59:28 -0800
+	Mon, 28 Jan 2008 18:59:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-powerpc-fixup
+     revert gregkh-driver-atm-convert-struct-class_device-to-struct-device
 has been removed from the -mm tree.  Its filename was
-     git-powerpc-fixup.patch
+     revert-gregkh-driver-atm-convert-struct-class_device-to-struct-device.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-powerpc-fixup
+Subject: revert gregkh-driver-atm-convert-struct-class_device-to-struct-device
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Davem merged it - please drop.
+
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/cell/Makefile |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ include/linux/atmdev.h |    4 +-
+ net/atm/atm_sysfs.c    |   66 +++++++++++++++++----------------------
+ 2 files changed, 32 insertions(+), 38 deletions(-)
 
-diff -puN arch/powerpc/platforms/cell/Makefile~git-powerpc-fixup arch/powerpc/platforms/cell/Makefile
---- a/arch/powerpc/platforms/cell/Makefile~git-powerpc-fixup
-+++ a/arch/powerpc/platforms/cell/Makefile
-@@ -19,12 +19,9 @@ spu-manage-$(CONFIG_PPC_CELLEB)		+= spu_
- spu-manage-$(CONFIG_PPC_CELL_NATIVE)	+= spu_manage.o
+diff -puN include/linux/atmdev.h~revert-gregkh-driver-atm-convert-struct-class_device-to-struct-device include/linux/atmdev.h
+--- a/include/linux/atmdev.h~revert-gregkh-driver-atm-convert-struct-class_device-to-struct-device
++++ a/include/linux/atmdev.h
+@@ -359,7 +359,7 @@ struct atm_dev {
+ 	struct proc_dir_entry *proc_entry; /* proc entry */
+ 	char *proc_name;		/* proc entry name */
+ #endif
+-	struct device class_dev;	/* sysfs device */
++	struct class_device class_dev;	/* sysfs class device */
+ 	struct list_head dev_list;	/* linkage */
+ };
  
- obj-$(CONFIG_SPU_BASE)			+= spu_callbacks.o spu_base.o \
--<<<<<<< HEAD:arch/powerpc/platforms/cell/Makefile
- 					   spu_notify.o \
- 					   spu_syscalls.o \
--=======
--					   spu_syscalls.o spu_fault.o \
-->>>>>>> FETCH_HEAD:arch/powerpc/platforms/cell/Makefile
-+					   spu_fault.o \
- 					   $(spu-priv1-y) \
- 					   $(spu-manage-y) \
- 					   spufs/
+@@ -461,7 +461,7 @@ static inline void atm_dev_put(struct at
+ 		BUG_ON(!test_bit(ATM_DF_REMOVED, &dev->flags));
+ 		if (dev->ops->dev_close)
+ 			dev->ops->dev_close(dev);
+-		put_device(&dev->class_dev);
++		class_device_put(&dev->class_dev);
+ 	}
+ }
+ 
+diff -puN net/atm/atm_sysfs.c~revert-gregkh-driver-atm-convert-struct-class_device-to-struct-device net/atm/atm_sysfs.c
+--- a/net/atm/atm_sysfs.c~revert-gregkh-driver-atm-convert-struct-class_device-to-struct-device
++++ a/net/atm/atm_sysfs.c
+@@ -9,15 +9,13 @@
+ 
+ #define to_atm_dev(cldev) container_of(cldev, struct atm_dev, class_dev)
+ 
+-static ssize_t show_type(struct device *cdev,
+-			 struct device_attribute *attr, char *buf)
++static ssize_t show_type(struct class_device *cdev, char *buf)
+ {
+ 	struct atm_dev *adev = to_atm_dev(cdev);
+ 	return sprintf(buf, "%s\n", adev->type);
+ }
+ 
+-static ssize_t show_address(struct device *cdev,
+-			    struct device_attribute *attr, char *buf)
++static ssize_t show_address(struct class_device *cdev, char *buf)
+ {
+ 	char *pos = buf;
+ 	struct atm_dev *adev = to_atm_dev(cdev);
+@@ -30,8 +28,7 @@ static ssize_t show_address(struct devic
+ 	return pos - buf;
+ }
+ 
+-static ssize_t show_atmaddress(struct device *cdev,
+-			       struct device_attribute *attr, char *buf)
++static ssize_t show_atmaddress(struct class_device *cdev, char *buf)
+ {
+ 	unsigned long flags;
+ 	char *pos = buf;
+@@ -57,8 +54,7 @@ static ssize_t show_atmaddress(struct de
+ 	return pos - buf;
+ }
+ 
+-static ssize_t show_carrier(struct device *cdev,
+-			    struct device_attribute *attr, char *buf)
++static ssize_t show_carrier(struct class_device *cdev, char *buf)
+ {
+ 	char *pos = buf;
+ 	struct atm_dev *adev = to_atm_dev(cdev);
+@@ -69,8 +65,7 @@ static ssize_t show_carrier(struct devic
+ 	return pos - buf;
+ }
+ 
+-static ssize_t show_link_rate(struct device *cdev,
+-			      struct device_attribute *attr, char *buf)
++static ssize_t show_link_rate(struct class_device *cdev, char *buf)
+ {
+ 	char *pos = buf;
+ 	struct atm_dev *adev = to_atm_dev(cdev);
+@@ -95,23 +90,22 @@ static ssize_t show_link_rate(struct dev
+ 	return pos - buf;
+ }
+ 
+-static DEVICE_ATTR(address, S_IRUGO, show_address, NULL);
+-static DEVICE_ATTR(atmaddress, S_IRUGO, show_atmaddress, NULL);
+-static DEVICE_ATTR(carrier, S_IRUGO, show_carrier, NULL);
+-static DEVICE_ATTR(type, S_IRUGO, show_type, NULL);
+-static DEVICE_ATTR(link_rate, S_IRUGO, show_link_rate, NULL);
+-
+-static struct device_attribute *atm_attrs[] = {
+-	&dev_attr_atmaddress,
+-	&dev_attr_address,
+-	&dev_attr_carrier,
+-	&dev_attr_type,
+-	&dev_attr_link_rate,
++static CLASS_DEVICE_ATTR(address, S_IRUGO, show_address, NULL);
++static CLASS_DEVICE_ATTR(atmaddress, S_IRUGO, show_atmaddress, NULL);
++static CLASS_DEVICE_ATTR(carrier, S_IRUGO, show_carrier, NULL);
++static CLASS_DEVICE_ATTR(type, S_IRUGO, show_type, NULL);
++static CLASS_DEVICE_ATTR(link_rate, S_IRUGO, show_link_rate, NULL);
++
++static struct class_device_attribute *atm_attrs[] = {
++	&class_device_attr_atmaddress,
++	&class_device_attr_address,
++	&class_device_attr_carrier,
++	&class_device_attr_type,
++	&class_device_attr_link_rate,
+ 	NULL
+ };
+ 
+-
+-static int atm_uevent(struct device *cdev, struct kobj_uevent_env *env)
++static int atm_uevent(struct class_device *cdev, struct kobj_uevent_env *env)
+ {
+ 	struct atm_dev *adev;
+ 
+@@ -128,7 +122,7 @@ static int atm_uevent(struct device *cde
+ 	return 0;
+ }
+ 
+-static void atm_release(struct device *cdev)
++static void atm_release(struct class_device *cdev)
+ {
+ 	struct atm_dev *adev = to_atm_dev(cdev);
+ 
+@@ -137,25 +131,25 @@ static void atm_release(struct device *c
+ 
+ static struct class atm_class = {
+ 	.name		= "atm",
+-	.dev_release	= atm_release,
+-	.dev_uevent		= atm_uevent,
++	.release	= atm_release,
++	.uevent		= atm_uevent,
+ };
+ 
+ int atm_register_sysfs(struct atm_dev *adev)
+ {
+-	struct device *cdev = &adev->class_dev;
++	struct class_device *cdev = &adev->class_dev;
+ 	int i, j, err;
+ 
+ 	cdev->class = &atm_class;
+-	dev_set_drvdata(cdev, adev);
++	class_set_devdata(cdev, adev);
+ 
+-	snprintf(cdev->bus_id, BUS_ID_SIZE, "%s%d", adev->type, adev->number);
+-	err = device_register(cdev);
++	snprintf(cdev->class_id, BUS_ID_SIZE, "%s%d", adev->type, adev->number);
++	err = class_device_register(cdev);
+ 	if (err < 0)
+ 		return err;
+ 
+ 	for (i = 0; atm_attrs[i]; i++) {
+-		err = device_create_file(cdev, atm_attrs[i]);
++		err = class_device_create_file(cdev, atm_attrs[i]);
+ 		if (err)
+ 			goto err_out;
+ 	}
+@@ -164,16 +158,16 @@ int atm_register_sysfs(struct atm_dev *a
+ 
+ err_out:
+ 	for (j = 0; j < i; j++)
+-		device_remove_file(cdev, atm_attrs[j]);
+-	device_del(cdev);
++		class_device_remove_file(cdev, atm_attrs[j]);
++	class_device_del(cdev);
+ 	return err;
+ }
+ 
+ void atm_unregister_sysfs(struct atm_dev *adev)
+ {
+-	struct device *cdev = &adev->class_dev;
++	struct class_device *cdev = &adev->class_dev;
+ 
+-	device_del(cdev);
++	class_device_del(cdev);
+ }
+ 
+ int __init atm_sysfs_init(void)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -83,7 +238,6 @@ git-audit-printk-warning-fix.patch
 git-cpufreq.patch
 revert-agk-dm-dm-loop.patch
 git-powerpc.patch
-git-powerpc-fixup.patch
 include-asm-powerpc-nvramh-needs-listh.patch
 include-asm-powerpc-nvramh-needs-listh-fix.patch
 revert-gregkh-driver-atm-convert-struct-class_device-to-struct-device.patch
