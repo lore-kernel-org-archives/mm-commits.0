@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pm2fb-big-endian-fix.patch added to -mm tree
-Date: Sun, 27 Jan 2008 21:25:20 -0800
-Message-ID: <200801280526.m0S5QEmv013847@imap1.linux-foundation.org>
+Subject: + bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2.patch added to -mm tree
+Date: Sun, 27 Jan 2008 21:25:53 -0800
+Message-ID: <200801280526.m0S5Qlt3013850@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52568 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49581 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751388AbYA1F0a (ORCPT
+	by vger.kernel.org with ESMTP id S1751344AbYA1F0w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 00:26:30 -0500
+	Mon, 28 Jan 2008 00:26:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl, adaplas@pol.net, davem@davemloft.net, geert@linux-m68k.org
+Cc: ak@suse.de, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     pm2fb: big endian fix
+     BKL-removal: remove incorrect comment refering to lock_kernel() from jbd/jbd2
 has been added to the -mm tree.  Its filename is
-     pm2fb-big-endian-fix.patch
+     bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,67 +34,88 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pm2fb: big endian fix
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: BKL-removal: remove incorrect comment refering to lock_kernel() from jbd/jbd2
+From: Andi Kleen <ak@suse.de>
 
-Fix garbled letters on big endian machines with acceleration enabled.
+None of the callers of this function does actually take the BKL as far as I
+can see.  So remove the comment refering to the BKL.
 
-This makes pm2fb works fine with full acceleration on sparc machine (card
-known as Sun PGX-32 or TechSource Raptor GFX-8P).
-
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Andi Kleen <ak@suse.de>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/pm2fb.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ fs/jbd/recovery.c  |    2 +-
+ fs/jbd2/recovery.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/pm2fb.c~pm2fb-big-endian-fix drivers/video/pm2fb.c
---- a/drivers/video/pm2fb.c~pm2fb-big-endian-fix
-+++ a/drivers/video/pm2fb.c
-@@ -1159,6 +1159,11 @@ static void pm2fb_imageblit(struct fb_in
- 	u32 fgx, bgx;
- 	const u32 *src = (const u32 *)image->data;
- 	u32 xres = (info->var.xres + 31) & ~31;
-+	int raster_mode = 1; /* invert bits */
-+
-+#ifdef __LITTLE_ENDIAN
-+	raster_mode |= 3 << 7; /* reverse byte order */
-+#endif
+diff -puN fs/jbd/recovery.c~bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2 fs/jbd/recovery.c
+--- a/fs/jbd/recovery.c~bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2
++++ a/fs/jbd/recovery.c
+@@ -354,7 +354,7 @@ static int do_one_pass(journal_t *journa
+ 		struct buffer_head *	obh;
+ 		struct buffer_head *	nbh;
  
- 	if (info->state != FBINFO_STATE_RUNNING)
- 		return;
-@@ -1208,9 +1213,8 @@ static void pm2fb_imageblit(struct fb_in
- 		pm2_WR(par, PM2R_RENDER,
- 			PM2F_RENDER_RECTANGLE |
- 			PM2F_INCREASE_X | PM2F_INCREASE_Y);
--		/* BitMapPackEachScanline & invert bits and byte order*/
--		/* force background */
--		pm2_WR(par, PM2R_RASTERIZER_MODE,  (1 << 9) | 1 | (3 << 7));
-+		/* BitMapPackEachScanline */
-+		pm2_WR(par, PM2R_RASTERIZER_MODE, raster_mode | (1 << 9));
- 		pm2_WR(par, PM2R_CONSTANT_COLOR, fgx);
- 		pm2_WR(par, PM2R_RENDER,
- 			PM2F_RENDER_RECTANGLE |
-@@ -1224,8 +1228,7 @@ static void pm2fb_imageblit(struct fb_in
- 			PM2F_RENDER_RECTANGLE |
- 			PM2F_RENDER_FASTFILL |
- 			PM2F_INCREASE_X | PM2F_INCREASE_Y);
--		/* invert bits and byte order*/
--		pm2_WR(par, PM2R_RASTERIZER_MODE,  1 | (3 << 7));
-+		pm2_WR(par, PM2R_RASTERIZER_MODE, raster_mode);
- 		pm2_WR(par, PM2R_FB_BLOCK_COLOR, fgx);
- 		pm2_WR(par, PM2R_RENDER,
- 			PM2F_RENDER_RECTANGLE |
+-		cond_resched();		/* We're under lock_kernel() */
++		cond_resched();
+ 
+ 		/* If we already know where to stop the log traversal,
+ 		 * check right now that we haven't gone past the end of
+diff -puN fs/jbd2/recovery.c~bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2 fs/jbd2/recovery.c
+--- a/fs/jbd2/recovery.c~bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2
++++ a/fs/jbd2/recovery.c
+@@ -397,7 +397,7 @@ static int do_one_pass(journal_t *journa
+ 		struct buffer_head *	obh;
+ 		struct buffer_head *	nbh;
+ 
+-		cond_resched();		/* We're under lock_kernel() */
++		cond_resched();
+ 
+ 		/* If we already know where to stop the log traversal,
+ 		 * check right now that we haven't gone past the end of
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from ak@suse.de are
 
-s3c2410_fb-fix-line-length-calculation.patch
-git-alsa.patch
+git-cifs.patch
+bkl-removal-convert-cifs-over-to-unlocked_ioctl.patch
+git-kbuild.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
+pci-disable-decoding-during-sizing-of-bars.patch
+x86-validate-against-acpi-motherboard-resources.patch
+git-sched.patch
 git-scsi-misc.patch
-drivers-video-pm3fbc-section-fix.patch
-pm2fb-big-endian-fix.patch
+git-x86.patch
+x86-amd-thermal-interrupt-support.patch
+x86-fix-early-cpu_to_node-panic-from-nr_free_zone_pages.patch
+x86-reboot-remove-inb_p-usage.patch
+x86-clear-pci_mmcfg_virt-when-mmcfg-get-rejected.patch
+x86-mmconf-enable-mcfg-early.patch
+x86-mmconf-enable-mcfg-early-cleanup.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-v3.patch
+x86_64-check-msr-to-get-mmconfig-for-amd-family-10h-opteron-v3.patch
+x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used.patch
+x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used-vs-gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in.patch
+iommu-sg-merging-x86-make-pci-gart-iommu-respect-the-segment-size-limits.patch
+iommu-sg-x86-convert-calgary-iommu-to-use-the-iommu-helper.patch
+iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper.patch
+iommu-sg-kill-__clear_bit_string-and-find_next_zero_string.patch
+git-xfs.patch
+swapin_readahead-excise-numa-bogosity.patch
+remove-unused-arguments-in-zone_init_free_lists.patch
+read_current_time-cleanups.patch
+printk-trivial-optimizations.patch
+make-config_hpet_emulate_rtc-usable-from-modules.patch
+use-the-irq-callback-interface-in-old-rtc-driver.patch
+add-hpet-rtc-emulation-to-rtc_drv_cmos.patch
+bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2.patch
+modules-handle-symbols-that-have-a-zero-value.patch
+allow-executables-larger-than-2gb.patch
+remove-ibcs-support.patch
+bkl-removal-convert-ext2-over-to-use-unlocked_ioctl.patch
+bkl-removal-remove-incorrect-bkl-comment-in-ext2.patch
+bkl-removal-convert-pipe-to-use-unlocked_ioctl-too.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
