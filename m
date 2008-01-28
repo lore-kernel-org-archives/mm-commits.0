@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + uml-add-newlines-to-printks.patch added to -mm tree
-Date: Sun, 27 Jan 2008 21:23:24 -0800
-Message-ID: <200801280524.m0S5OIiL013759@imap1.linux-foundation.org>
+Subject: + uml-move-register-initialization.patch added to -mm tree
+Date: Sun, 27 Jan 2008 21:23:26 -0800
+Message-ID: <200801280524.m0S5OKiu013762@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47288 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58572 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750798AbYA1FYY (ORCPT
+	by vger.kernel.org with ESMTP id S1750878AbYA1FYY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 28 Jan 2008 00:24:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     uml: add newlines to printks
+     uml: move register initialization
 has been added to the -mm tree.  Its filename is
-     uml-add-newlines-to-printks.patch
+     uml-move-register-initialization.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: add newlines to printks
+Subject: uml: move register initialization
 From: Jeff Dike <jdike@addtoit.com>
 
-Some printks were missing newlines.
+Calling init_registers inside the skas3 checking causes mysterious crashes if
+it doesn't happen because the skas3 checking is bypassed.  This patch moves it
+to os_early_checks.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/skas/process.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/um/os-Linux/start_up.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN arch/um/os-Linux/skas/process.c~uml-add-newlines-to-printks arch/um/os-Linux/skas/process.c
---- a/arch/um/os-Linux/skas/process.c~uml-add-newlines-to-printks
-+++ a/arch/um/os-Linux/skas/process.c
-@@ -273,7 +273,7 @@ int start_userspace(unsigned long stub_s
- 	if (stack == MAP_FAILED) {
- 		err = -errno;
- 		printk(UM_KERN_ERR "start_userspace : mmap failed, "
--		       "errno = %d", errno);
-+		       "errno = %d\n", errno);
- 		return err;
+diff -puN arch/um/os-Linux/start_up.c~uml-move-register-initialization arch/um/os-Linux/start_up.c
+--- a/arch/um/os-Linux/start_up.c~uml-move-register-initialization
++++ a/arch/um/os-Linux/start_up.c
+@@ -342,6 +342,8 @@ static void __init check_coredump_limit(
+ 
+ void __init os_early_checks(void)
+ {
++	int pid;
++
+ 	/* Print out the core dump limits early */
+ 	check_coredump_limit();
+ 
+@@ -351,6 +353,11 @@ void __init os_early_checks(void)
+ 	 * kernel is running.
+ 	 */
+ 	check_tmpexec();
++
++	pid = start_ptraced_child();
++	if (init_registers(pid))
++		fatal("Failed to initialize default registers");
++	stop_ptraced_child(pid, 1, 1);
+ }
+ 
+ static int __init noprocmm_cmd_param(char *str, int* add)
+@@ -412,9 +419,6 @@ static inline void check_skas3_ptrace_fa
+ 			non_fatal("found\n");
  	}
  
-@@ -289,7 +289,7 @@ int start_userspace(unsigned long stub_s
- 	if (pid < 0) {
- 		err = -errno;
- 		printk(UM_KERN_ERR "start_userspace : clone failed, "
--		       "errno = %d", errno);
-+		       "errno = %d\n", errno);
- 		return err;
- 	}
- 
-@@ -298,7 +298,7 @@ int start_userspace(unsigned long stub_s
- 		if (n < 0) {
- 			err = -errno;
- 			printk(UM_KERN_ERR "start_userspace : wait failed, "
--			       "errno = %d", errno);
-+			       "errno = %d\n", errno);
- 			goto out_kill;
- 		}
- 	} while (WIFSTOPPED(status) && (WSTOPSIG(status) == SIGVTALRM));
-@@ -306,7 +306,7 @@ int start_userspace(unsigned long stub_s
- 	if (!WIFSTOPPED(status) || (WSTOPSIG(status) != SIGSTOP)) {
- 		err = -EINVAL;
- 		printk(UM_KERN_ERR "start_userspace : expected SIGSTOP, got "
--		       "status = %d", status);
-+		       "status = %d\n", status);
- 		goto out_kill;
- 	}
+-	if (init_registers(pid))
+-		fatal("Failed to initialize default registers");
+-
+ 	stop_ptraced_child(pid, 1, 1);
+ }
  
 _
 
