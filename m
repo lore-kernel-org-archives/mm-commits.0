@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + remove-__strict_ansi__-from-linux-typesh.patch added to -mm tree
-Date: Sun, 27 Jan 2008 21:29:06 -0800
-Message-ID: <200801280530.m0S5U0OG014014@imap1.linux-foundation.org>
+Subject: + smbios-dmi-add-type-41-=-onboard-devices-extended-information.patch added to -mm tree
+Date: Sun, 27 Jan 2008 21:28:39 -0800
+Message-ID: <200801280529.m0S5TXkc013993@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59097 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40261 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750932AbYA1FaF (ORCPT
+	by vger.kernel.org with ESMTP id S1750886AbYA1FaM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 00:30:05 -0500
+	Mon, 28 Jan 2008 00:30:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vapier@gentoo.org
+Cc: wim@iguana.be, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, jeff@garzik.org, khali@linux-fr.org, lenb@kernel.org
 
 
 The patch titled
-     Remove __STRICT_ANSI__ from linux/types.h
+     SMBIOS/DMI: add type 41 = Onboard Devices Extended Information
 has been added to the -mm tree.  Its filename is
-     remove-__strict_ansi__-from-linux-typesh.patch
+     smbios-dmi-add-type-41-=-onboard-devices-extended-information.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,107 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Remove __STRICT_ANSI__ from linux/types.h
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: SMBIOS/DMI: add type 41 = Onboard Devices Extended Information
+From: Wim Van Sebroeck <wim@iguana.be>
 
-All of the asm-*/types.h headers have been updated to no longer check
-__STRICT_ANSI__ for the 64bit types, so this brings linux/types.h in line.
+From version 2.6 of the SMBIOS standard, type 10 (On Board Devices
+Information) becomes obsolete.  The reason for this is that no further
+fields can be added to this structure without adversely affecting existing
+software's ability to properly parse the data.
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Therefore type 41 (Onboard Devices Extended Information) was added.
+The structure is as follows:
+
+struct smbios_type_41 {
+	u8 type;
+	u8 length;
+	u16 handle;
+	u8 reference_designation_string;
+	u8 device_type;		/* same device type as in type 10 */
+	u8 device_type_instance;
+	u16 segment_group_number;
+	u8 bus_number;
+	u8 device_function_number;
+};
+
+For more info: http://www.dmtf.org/standards/smbios
+
+Signed-off-by: Wim Van Sebroeck <wim@iguana.be>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/types.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/firmware/dmi_scan.c |   25 +++++++++++++++++++++++++
+ include/linux/dmi.h         |    5 ++++-
+ 2 files changed, 29 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/types.h~remove-__strict_ansi__-from-linux-typesh include/linux/types.h
---- a/include/linux/types.h~remove-__strict_ansi__-from-linux-typesh
-+++ a/include/linux/types.h
-@@ -53,7 +53,7 @@ typedef __kernel_uid_t		uid_t;
- typedef __kernel_gid_t		gid_t;
- #endif /* __KERNEL__ */
+diff -puN drivers/firmware/dmi_scan.c~smbios-dmi-add-type-41-=-onboard-devices-extended-information drivers/firmware/dmi_scan.c
+--- a/drivers/firmware/dmi_scan.c~smbios-dmi-add-type-41-=-onboard-devices-extended-information
++++ a/drivers/firmware/dmi_scan.c
+@@ -250,6 +250,28 @@ static void __init dmi_save_ipmi_device(
+ 	list_add(&dev->list, &dmi_devices);
+ }
  
--#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
-+#if defined(__GNUC__)
- typedef __kernel_loff_t		loff_t;
- #endif
++static void __init dmi_save_extended_devices(const struct dmi_header *dm)
++{
++	const u8 *d = (u8*) dm + 5;
++	struct dmi_device *dev;
++
++	/* Skip disabled device */
++	if ((*d & 0x80) == 0)
++		return;
++
++	dev = dmi_alloc(sizeof(*dev));
++	if (!dev) {
++		printk(KERN_ERR "dmi_save_extended_devices: out of memory.\n");
++		return;
++	}
++
++	dev->type = *d-- & 0x7f;
++	dev->name = dmi_string(dm, *d);
++	dev->device_data = NULL;
++
++	list_add(&dev->list, &dmi_devices);
++}
++
+ /*
+  *	Process a DMI table entry. Right now all we care about are the BIOS
+  *	and machine entries. For 2.5 we should pull the smbus controller info
+@@ -292,6 +314,9 @@ static void __init dmi_decode(const stru
+ 		break;
+ 	case 38:	/* IPMI Device Information */
+ 		dmi_save_ipmi_device(dm);
++		break;
++	case 41:	/* Onboard Devices Extended Information */
++		dmi_save_extended_devices(dm);
+ 	}
+ }
  
-@@ -119,7 +119,7 @@ typedef		__u8		uint8_t;
- typedef		__u16		uint16_t;
- typedef		__u32		uint32_t;
+diff -puN include/linux/dmi.h~smbios-dmi-add-type-41-=-onboard-devices-extended-information include/linux/dmi.h
+--- a/include/linux/dmi.h~smbios-dmi-add-type-41-=-onboard-devices-extended-information
++++ a/include/linux/dmi.h
+@@ -35,8 +35,11 @@ enum dmi_device_type {
+ 	DMI_DEV_TYPE_ETHERNET,
+ 	DMI_DEV_TYPE_TOKENRING,
+ 	DMI_DEV_TYPE_SOUND,
++	DMI_DEV_TYPE_PATA,
++	DMI_DEV_TYPE_SATA,
++	DMI_DEV_TYPE_SAS,
+ 	DMI_DEV_TYPE_IPMI = -1,
+-	DMI_DEV_TYPE_OEM_STRING = -2
++	DMI_DEV_TYPE_OEM_STRING = -2,
+ };
  
--#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
-+#if defined(__GNUC__)
- typedef		__u64		uint64_t;
- typedef		__u64		u_int64_t;
- typedef		__s64		int64_t;
-@@ -181,7 +181,7 @@ typedef __u16 __bitwise __le16;
- typedef __u16 __bitwise __be16;
- typedef __u32 __bitwise __le32;
- typedef __u32 __bitwise __be32;
--#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
-+#if defined(__GNUC__)
- typedef __u64 __bitwise __le64;
- typedef __u64 __bitwise __be64;
- #endif
+ struct dmi_header {
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from wim@iguana.be are
 
-git-kbuild.patch
-asm-posix_typesh-scrub-__glibc__.patch
-procfs-constify-function-pointer-tables.patch
-remove-__strict_ansi__-from-linux-typesh.patch
-linux-typesh-always-export-64bit-aligned-defines.patch
+origin.patch
+git-watchdog.patch
+git-watchdog-fixup.patch
+smbios-dmi-add-type-41-=-onboard-devices-extended-information.patch
