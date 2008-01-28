@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uml-debug_shirq-fixes.patch added to -mm tree
-Date: Sun, 27 Jan 2008 21:23:18 -0800
-Message-ID: <200801280524.m0S5ODJs013750@imap1.linux-foundation.org>
+Subject: + uml-remove-fakehd.patch added to -mm tree
+Date: Sun, 27 Jan 2008 21:23:16 -0800
+Message-ID: <200801280524.m0S5OAKY013747@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36402 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44875 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750932AbYA1FY3 (ORCPT
+	by vger.kernel.org with ESMTP id S1750961AbYA1FYY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 00:24:29 -0500
+	Mon, 28 Jan 2008 00:24:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, jdike@linux.intel.com, magotari@gmail.com
+Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     uml: DEBUG_SHIRQ fixes
+     uml: remove fakehd
 has been added to the -mm tree.  Its filename is
-     uml-debug_shirq-fixes.patch
+     uml-remove-fakehd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,79 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: DEBUG_SHIRQ fixes
+Subject: uml: remove fakehd
 From: Jeff Dike <jdike@addtoit.com>
 
-A couple more DEBUG_SHIRQ fixes.
+The fakehd switch lost its implementation at some point.  Since no one is
+screaming for it, we might as well remove it.
 
-The previous mconsole blocking fix exposed the lack of O_NONBLOCK on the
-mconsole socket.
-
-Also, winch_interrupt started crashing because it is called at irq free time
-and it tries to dereference tty->driver_data, which has already been set to
-NULL.
-
-I added some error cleanup in mconsole_init while I was there.
-
-Cc: "Karol Swietlicki" <magotari@gmail.com>
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/line.c          |    8 +++++---
- arch/um/drivers/mconsole_kern.c |    8 +++++++-
- 2 files changed, 12 insertions(+), 4 deletions(-)
+ arch/um/drivers/ubd_kern.c |   20 ++++----------------
+ 1 file changed, 4 insertions(+), 16 deletions(-)
 
-diff -puN arch/um/drivers/line.c~uml-debug_shirq-fixes arch/um/drivers/line.c
---- a/arch/um/drivers/line.c~uml-debug_shirq-fixes
-+++ a/arch/um/drivers/line.c
-@@ -774,9 +774,11 @@ static irqreturn_t winch_interrupt(int i
- 	tty = winch->tty;
- 	if (tty != NULL) {
- 		line = tty->driver_data;
--		chan_window_size(&line->chan_list, &tty->winsize.ws_row,
--				 &tty->winsize.ws_col);
--		kill_pgrp(tty->pgrp, SIGWINCH, 1);
-+		if (line != NULL) {
-+			chan_window_size(&line->chan_list, &tty->winsize.ws_row,
-+					 &tty->winsize.ws_col);
-+			kill_pgrp(tty->pgrp, SIGWINCH, 1);
-+		}
- 	}
-  out:
- 	if (winch->fd != -1)
-diff -puN arch/um/drivers/mconsole_kern.c~uml-debug_shirq-fixes arch/um/drivers/mconsole_kern.c
---- a/arch/um/drivers/mconsole_kern.c~uml-debug_shirq-fixes
-+++ a/arch/um/drivers/mconsole_kern.c
-@@ -792,6 +792,8 @@ static int __init mconsole_init(void)
- 		printk(KERN_ERR "Failed to initialize management console\n");
- 		return 1;
- 	}
-+	if (os_set_fd_block(sock, 0))
-+		goto out;
+diff -puN arch/um/drivers/ubd_kern.c~uml-remove-fakehd arch/um/drivers/ubd_kern.c
+--- a/arch/um/drivers/ubd_kern.c~uml-remove-fakehd
++++ a/arch/um/drivers/ubd_kern.c
+@@ -460,20 +460,6 @@ __uml_help(udb_setup,
+ "    in the boot output.\n\n"
+ );
  
- 	register_reboot_notifier(&reboot_notifier);
+-static int fakehd_set = 0;
+-static int fakehd(char *str)
+-{
+-	printk(KERN_INFO "fakehd : Changing ubd name to \"hd\".\n");
+-	fakehd_set = 1;
+-	return 1;
+-}
+-
+-__setup("fakehd", fakehd);
+-__uml_help(fakehd,
+-"fakehd\n"
+-"    Change the ubd device name to \"hd\".\n\n"
+-);
+-
+ static void do_ubd_request(struct request_queue * q);
  
-@@ -800,7 +802,7 @@ static int __init mconsole_init(void)
- 			     "mconsole", (void *)sock);
- 	if (err) {
- 		printk(KERN_ERR "Failed to get IRQ for management console\n");
--		return 1;
-+		goto out;
- 	}
+ /* Only changed by ubd_init, which is an initcall. */
+@@ -730,8 +716,10 @@ static int ubd_add(int n, char **error_o
+ 		ubd_disk_register(fake_major, ubd_dev->size, n,
+ 				  &fake_gendisk[n]);
  
- 	if (notify_socket != NULL) {
-@@ -816,6 +818,10 @@ static int __init mconsole_init(void)
- 	printk(KERN_INFO "mconsole (version %d) initialized on %s\n",
- 	       MCONSOLE_VERSION, mconsole_socket_name);
- 	return 0;
-+
-+ out:
-+	os_close_file(sock);
-+	return 1;
- }
+-	/* perhaps this should also be under the "if (fake_major)" above */
+-	/* using the fake_disk->disk_name and also the fakehd_set name */
++	/*
++	 * Perhaps this should also be under the "if (fake_major)" above
++	 * using the fake_disk->disk_name
++	 */
+ 	if (fake_ide)
+ 		make_ide_entries(ubd_gendisk[n]->disk_name);
  
- __initcall(mconsole_init);
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
