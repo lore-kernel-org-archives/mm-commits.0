@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uml-remove-map_cb.patch added to -mm tree
-Date: Sun, 27 Jan 2008 21:23:34 -0800
-Message-ID: <200801280524.m0S5OSAX013779@imap1.linux-foundation.org>
+Subject: + uml-use-of-a-public-mac-is-a-warning-not-an-error.patch added to -mm tree
+Date: Sun, 27 Jan 2008 21:23:42 -0800
+Message-ID: <200801280524.m0S5OaqF013803@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36503 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43610 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751288AbYA1FYo (ORCPT
+	by vger.kernel.org with ESMTP id S1751285AbYA1FYm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 00:24:44 -0500
+	Mon, 28 Jan 2008 00:24:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, jdike@linux.intel.com, jreiser@BitWagon.com
+Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     uml: remove map_cb
+     uml: use of a public MAC is a warning, not an error
 has been added to the -mm tree.  Its filename is
-     uml-remove-map_cb.patch
+     uml-use-of-a-public-mac-is-a-warning-not-an-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: remove map_cb
+Subject: uml: use of a public MAC is a warning, not an error
 From: Jeff Dike <jdike@addtoit.com>
 
-John Reiser noticed that a physical memory region was being mapped twice.
+Downgrade one of the MAC validity checks.  If it's one that could be possibly
+assigned to a physical NIC, then nothing will break.  So, emit a warning in
+this case, but keep the requested MAC.
 
-This patch fixes that, and it inlines the responsible function, as that had
-only one caller.
-
-Cc: John Reiser <jreiser@BitWagon.com>
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/mem.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ arch/um/drivers/net_kern.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN arch/um/kernel/mem.c~uml-remove-map_cb arch/um/kernel/mem.c
---- a/arch/um/kernel/mem.c~uml-remove-map_cb
-+++ a/arch/um/kernel/mem.c
-@@ -36,11 +36,6 @@ int kmalloc_ok = 0;
- /* Used during early boot */
- static unsigned long brk_end;
+diff -puN arch/um/drivers/net_kern.c~uml-use-of-a-public-mac-is-a-warning-not-an-error arch/um/drivers/net_kern.c
+--- a/arch/um/drivers/net_kern.c~uml-use-of-a-public-mac-is-a-warning-not-an-error
++++ a/arch/um/drivers/net_kern.c
+@@ -318,7 +318,7 @@ static void setup_etheraddr(char *str, u
+ 	if (str == NULL)
+ 		goto random;
  
--static void map_cb(void *unused)
--{
--	map_memory(brk_end, __pa(brk_end), uml_reserved - brk_end, 1, 1, 0);
--}
--
- #ifdef CONFIG_HIGHMEM
- static void setup_highmem(unsigned long highmem_start,
- 			  unsigned long highmem_len)
-@@ -68,8 +63,7 @@ void __init mem_init(void)
- 	 * to be turned on.
- 	 */
- 	brk_end = (unsigned long) UML_ROUND_UP(sbrk(0));
--	map_cb(NULL);
--	initial_thread_cb(map_cb, NULL);
-+	map_memory(brk_end, __pa(brk_end), uml_reserved - brk_end, 1, 1, 0);
- 	free_bootmem(__pa(brk_end), uml_reserved - brk_end);
- 	uml_reserved = brk_end;
+-	for (i = 0;i < 6; i++) {
++	for (i = 0; i < 6; i++) {
+ 		addr[i] = simple_strtoul(str, &end, 16);
+ 		if ((end == str) ||
+ 		   ((*end != ':') && (*end != ',') && (*end != '\0'))) {
+@@ -343,14 +343,13 @@ static void setup_etheraddr(char *str, u
+ 	}
+ 	if (!is_local_ether_addr(addr)) {
+ 		printk(KERN_WARNING
+-		       "Warning: attempt to assign a globally valid ethernet "
++		       "Warning: Assigning a globally valid ethernet "
+ 		       "address to a device\n");
+-		printk(KERN_WARNING "You should better enable the 2nd "
+-		       "rightmost bit in the first byte of the MAC,\n");
++		printk(KERN_WARNING "You should set the 2nd rightmost bit in "
++		       "the first byte of the MAC,\n");
+ 		printk(KERN_WARNING "i.e. %02x:%02x:%02x:%02x:%02x:%02x\n",
+ 		       addr[0] | 0x02, addr[1], addr[2], addr[3], addr[4],
+ 		       addr[5]);
+-		goto random;
+ 	}
+ 	return;
  
 _
 
