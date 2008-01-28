@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uml-implement-o_append.patch added to -mm tree
-Date: Sun, 27 Jan 2008 21:23:14 -0800
-Message-ID: <200801280524.m0S5O88D013744@imap1.linux-foundation.org>
+Subject: + uml-add-back-config_hz.patch added to -mm tree
+Date: Sun, 27 Jan 2008 21:23:20 -0800
+Message-ID: <200801280524.m0S5OEOY013753@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51643 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39377 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750802AbYA1FYY (ORCPT
+	by vger.kernel.org with ESMTP id S1750932AbYA1FYY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 28 Jan 2008 00:24:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, jdike@linux.intel.com
+Cc: jdike@addtoit.com, hpa@zytor.com, jdike@linux.intel.com
 
 
 The patch titled
-     uml: implement O_APPEND
+     uml: add back CONFIG_HZ
 has been added to the -mm tree.  Its filename is
-     uml-implement-o_append.patch
+     uml-add-back-config_hz.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: implement O_APPEND
+Subject: uml: add back CONFIG_HZ
 From: Jeff Dike <jdike@addtoit.com>
 
-The .a flags in openflags never had an implementation.
+avoid-overflows-in-kernel-timec.patch makes CONFIG_HZ necessary for a
+successful build.  UML lacks a definition, so this patch adds one.  It also
+changes the hard-wired definition of HZ to CONFIG_HZ.
 
+Note: this patch is a good idea even in the absence of hpa's time fixes.
+
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/file.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/um/Kconfig        |    4 ++++
+ include/asm-um/param.h |    2 +-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN arch/um/os-Linux/file.c~uml-implement-o_append arch/um/os-Linux/file.c
---- a/arch/um/os-Linux/file.c~uml-implement-o_append
-+++ a/arch/um/os-Linux/file.c
-@@ -191,6 +191,8 @@ int os_open_file(const char *file, struc
- 		f |= O_TRUNC;
- 	if (flags.e)
- 		f |= O_EXCL;
-+	if (flags.a)
-+		f |= O_APPEND;
+diff -puN arch/um/Kconfig~uml-add-back-config_hz arch/um/Kconfig
+--- a/arch/um/Kconfig~uml-add-back-config_hz
++++ a/arch/um/Kconfig
+@@ -68,6 +68,10 @@ config IRQ_RELEASE_METHOD
+ 	bool
+ 	default y
  
- 	fd = open64(file, f, mode);
- 	if (fd < 0)
++config HZ
++	int
++	default 100
++
+ menu "UML-specific options"
+ 
+ config STATIC_LINK
+diff -puN include/asm-um/param.h~uml-add-back-config_hz include/asm-um/param.h
+--- a/include/asm-um/param.h~uml-add-back-config_hz
++++ a/include/asm-um/param.h
+@@ -10,7 +10,7 @@
+ #define MAXHOSTNAMELEN  64      /* max length of hostname */
+ 
+ #ifdef __KERNEL__
+-#define HZ 100
++#define HZ CONFIG_HZ
+ #define USER_HZ	100	   /* .. some user interfaces are in "ticks" */
+ #define CLOCKS_PER_SEC (USER_HZ)  /* frequency at which times() counts */
+ #endif
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
