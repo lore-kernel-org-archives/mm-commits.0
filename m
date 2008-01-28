@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + bkl-removal-convert-ext2-over-to-use-unlocked_ioctl.patch added to -mm tree
-Date: Sun, 27 Jan 2008 21:28:56 -0800
-Message-ID: <200801280529.m0S5Tods014005@imap1.linux-foundation.org>
+Subject: + bkl-removal-remove-incorrect-bkl-comment-in-ext2.patch added to -mm tree
+Date: Sun, 27 Jan 2008 21:29:01 -0800
+Message-ID: <200801280529.m0S5TtFG014008@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49629 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39489 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750777AbYA1F37 (ORCPT
+	by vger.kernel.org with ESMTP id S1750878AbYA1FaA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 00:29:59 -0500
+	Mon, 28 Jan 2008 00:30:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: ak@suse.de
 
 
 The patch titled
-     BKL-removal: convert ext2 over to use unlocked_ioctl
+     BKL-removal: remove incorrect BKL comment in ext2
 has been added to the -mm tree.  Its filename is
-     bkl-removal-convert-ext2-over-to-use-unlocked_ioctl.patch
+     bkl-removal-remove-incorrect-bkl-comment-in-ext2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,104 +34,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: BKL-removal: convert ext2 over to use unlocked_ioctl
+Subject: BKL-removal: remove incorrect BKL comment in ext2
 From: Andi Kleen <ak@suse.de>
 
-I checked ext2_ioctl and could not find anything in there that would need the
-BKL.  So convert it over to use unlocked_ioctl
+No BKL used anywhere, so don't mention it.
 
 Signed-off-by: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/dir.c   |    2 +-
- fs/ext2/ext2.h  |    3 +--
- fs/ext2/file.c  |    4 ++--
- fs/ext2/ioctl.c |   12 +++---------
- 4 files changed, 7 insertions(+), 14 deletions(-)
+ fs/ext2/inode.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/ext2/dir.c~bkl-removal-convert-ext2-over-to-use-unlocked_ioctl fs/ext2/dir.c
---- a/fs/ext2/dir.c~bkl-removal-convert-ext2-over-to-use-unlocked_ioctl
-+++ a/fs/ext2/dir.c
-@@ -703,7 +703,7 @@ const struct file_operations ext2_dir_op
- 	.llseek		= generic_file_llseek,
- 	.read		= generic_read_dir,
- 	.readdir	= ext2_readdir,
--	.ioctl		= ext2_ioctl,
-+	.unlocked_ioctl = ext2_ioctl,
- #ifdef CONFIG_COMPAT
- 	.compat_ioctl	= ext2_compat_ioctl,
- #endif
-diff -puN fs/ext2/ext2.h~bkl-removal-convert-ext2-over-to-use-unlocked_ioctl fs/ext2/ext2.h
---- a/fs/ext2/ext2.h~bkl-removal-convert-ext2-over-to-use-unlocked_ioctl
-+++ a/fs/ext2/ext2.h
-@@ -138,8 +138,7 @@ int __ext2_write_begin(struct file *file
- 		struct page **pagep, void **fsdata);
- 
- /* ioctl.c */
--extern int ext2_ioctl (struct inode *, struct file *, unsigned int,
--		       unsigned long);
-+extern long ext2_ioctl(struct file *, unsigned int, unsigned long);
- extern long ext2_compat_ioctl(struct file *, unsigned int, unsigned long);
- 
- /* namei.c */
-diff -puN fs/ext2/file.c~bkl-removal-convert-ext2-over-to-use-unlocked_ioctl fs/ext2/file.c
---- a/fs/ext2/file.c~bkl-removal-convert-ext2-over-to-use-unlocked_ioctl
-+++ a/fs/ext2/file.c
-@@ -48,7 +48,7 @@ const struct file_operations ext2_file_o
- 	.write		= do_sync_write,
- 	.aio_read	= generic_file_aio_read,
- 	.aio_write	= generic_file_aio_write,
--	.ioctl		= ext2_ioctl,
-+	.unlocked_ioctl = ext2_ioctl,
- #ifdef CONFIG_COMPAT
- 	.compat_ioctl	= ext2_compat_ioctl,
- #endif
-@@ -65,7 +65,7 @@ const struct file_operations ext2_xip_fi
- 	.llseek		= generic_file_llseek,
- 	.read		= xip_file_read,
- 	.write		= xip_file_write,
--	.ioctl		= ext2_ioctl,
-+	.unlocked_ioctl = ext2_ioctl,
- #ifdef CONFIG_COMPAT
- 	.compat_ioctl	= ext2_compat_ioctl,
- #endif
-diff -puN fs/ext2/ioctl.c~bkl-removal-convert-ext2-over-to-use-unlocked_ioctl fs/ext2/ioctl.c
---- a/fs/ext2/ioctl.c~bkl-removal-convert-ext2-over-to-use-unlocked_ioctl
-+++ a/fs/ext2/ioctl.c
-@@ -18,9 +18,9 @@
- #include <asm/uaccess.h>
- 
- 
--int ext2_ioctl (struct inode * inode, struct file * filp, unsigned int cmd,
--		unsigned long arg)
-+long ext2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
- {
-+	struct inode *inode = filp->f_dentry->d_inode;
- 	int ret;
- 	struct ext2_inode_info *ei = EXT2_I(inode);
- 	unsigned int flags;
-@@ -156,9 +156,6 @@ setflags_out:
- #ifdef CONFIG_COMPAT
- long ext2_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
--	struct inode *inode = file->f_path.dentry->d_inode;
--	int ret;
--
- 	/* These are just misnamed, they actually get/put from/to user an int */
- 	switch (cmd) {
- 	case EXT2_IOC32_GETFLAGS:
-@@ -176,9 +173,6 @@ long ext2_compat_ioctl(struct file *file
- 	default:
- 		return -ENOIOCTLCMD;
- 	}
--	lock_kernel();
--	ret = ext2_ioctl(inode, file, cmd, (unsigned long) compat_ptr(arg));
--	unlock_kernel();
--	return ret;
-+	return ext2_ioctl(file, cmd, (unsigned long) compat_ptr(arg));
- }
- #endif
+diff -puN fs/ext2/inode.c~bkl-removal-remove-incorrect-bkl-comment-in-ext2 fs/ext2/inode.c
+--- a/fs/ext2/inode.c~bkl-removal-remove-incorrect-bkl-comment-in-ext2
++++ a/fs/ext2/inode.c
+@@ -566,7 +566,6 @@ static void ext2_splice_branch(struct in
+  *
+  * `handle' can be NULL if create == 0.
+  *
+- * The BKL may not be held on entry here.  Be sure to take it early.
+  * return > 0, # of blocks mapped or allocated.
+  * return = 0, if plain lookup failed.
+  * return < 0, error case.
 _
 
 Patches currently in -mm which might be from ak@suse.de are
