@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + bkl-removal-convert-pipe-to-use-unlocked_ioctl-too.patch added to -mm tree
-Date: Sun, 27 Jan 2008 21:29:03 -0800
-Message-ID: <200801280529.m0S5Tvpv014011@imap1.linux-foundation.org>
+Subject: + avoid-overflows-in-kernel-timec.patch added to -mm tree
+Date: Sun, 27 Jan 2008 21:29:15 -0800
+Message-ID: <200801280530.m0S5UA5f014032@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53417 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37474 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750959AbYA1Fa7 (ORCPT
+	by vger.kernel.org with ESMTP id S1750764AbYA1FcO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 00:30:59 -0500
+	Mon, 28 Jan 2008 00:32:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ak@suse.de, jens.axboe@oracle.com
+Cc: hpa@zytor.com, chris@zankel.net, dhowells@redhat.com, geert@linux-m68k.org, jengelh@computergmbh.de, lethal@linux-sh.org, ralf@linux-mips.org, rth@twiddle.net, sam@ravnborg.org, sparclinux@vger.kernel.org, starvik@axis.com, takata@linux-m32r.org, ysato@users.sourceforge.jp, zippel@linux-m68k.org
 
 
 The patch titled
-     BKL-Removal: convert pipe to use unlocked_ioctl too
+     avoid overflows in kernel/time.c
 has been added to the -mm tree.  Its filename is
-     bkl-removal-convert-pipe-to-use-unlocked_ioctl-too.patch
+     avoid-overflows-in-kernel-timec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,130 +34,1002 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: BKL-Removal: convert pipe to use unlocked_ioctl too
-From: Andi Kleen <ak@suse.de>
+Subject: avoid overflows in kernel/time.c
+From: H. Peter Anvin <hpa@zytor.com>
 
-No BKL needed in pipe_ioctl
+When the conversion factor between jiffies and milli- or microseconds is
+not a single multiply or divide, as for the case of HZ == 300, we currently
+do a multiply followed by a divide.  The intervening result, however, is
+subject to overflows, especially since the fraction is not simplified (for
+HZ == 300, we multiply by 300 and divide by 1000).
 
-Signed-off-by: Andi Kleen <ak@suse.de>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+This is exposed to the user when passing a large timeout to poll(), for
+example.
+
+This patch replaces the multiply-divide with a reciprocal multiplication on
+32-bit platforms.  When the input is an unsigned long, there is no portable
+way to do this on 64-bit platforms there is no portable way to do this
+since it requires a 128-bit intermediate result (which gcc does support on
+64-bit platforms but may generate libgcc calls, e.g.  on 64-bit s390), but
+since the output is a 32-bit integer in the cases affected, just simplify
+the multiply-divide (*3/10 instead of *300/1000).
+
+The reciprocal multiply used can have off-by-one errors in the upper half
+of the valid output range.  This could be avoided at the expense of having
+to deal with a potential 65-bit intermediate result.  Since the intent is
+to avoid overflow problems and most of the other time conversions are only
+semiexact, the off-by-one errors were considered an acceptable tradeoff.
+
+At Ralf Baechle's suggestion, this version uses a Perl script to compute
+the necessary constants.  We already have dependencies on Perl for kernel
+compiles.  This does, however, require the Perl module Math::BigInt, which
+is included in the standard Perl distribution starting with version 5.8.0. 
+In order to support older versions of Perl, include a table of canned
+constants in the script itself, and structure the script so that
+Math::BigInt isn't required if pulling values from said table.
+
+Running the script requires that the HZ value is available from the
+Makefile.  Thus, this patch also adds the Kconfig variable CONFIG_HZ to the
+architectures which didn't already have it (alpha, cris, frv, h8300, m32r,
+m68k, m68knommu, sparc, v850, and xtensa.) It does *not* touch the sh or
+sh64 architectures, since Paul Mundt has dealt with those separately in the
+sh tree.
+
+Signed-off-by: H. Peter Anvin <hpa@zytor.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>,
+Cc: Sam Ravnborg <sam@ravnborg.org>,
+Cc: Paul Mundt <lethal@linux-sh.org>,
+Cc: Richard Henderson <rth@twiddle.net>,
+Cc: Michael Starvik <starvik@axis.com>,
+Cc: David Howells <dhowells@redhat.com>,
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>,
+Cc: Hirokazu Takata <takata@linux-m32r.org>,
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
+Cc: Roman Zippel <zippel@linux-m68k.org>,
+Cc: William L. Irwin <sparclinux@vger.kernel.org>,
+Cc: Chris Zankel <chris@zankel.net>,
+Cc: H. Peter Anvin <hpa@zytor.com>,
+Cc: Jan Engelhardt <jengelh@computergmbh.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c |   16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+ arch/alpha/Kconfig            |    5 
+ arch/cris/Kconfig             |    4 
+ arch/frv/Kconfig              |    4 
+ arch/h8300/Kconfig            |    4 
+ arch/m32r/Kconfig             |    4 
+ arch/m68k/Kconfig             |    4 
+ arch/m68knommu/Kconfig        |    5 
+ arch/sparc/Kconfig            |    4 
+ arch/v850/Kconfig             |    7 
+ arch/xtensa/Kconfig           |    4 
+ include/asm-alpha/param.h     |   10 
+ include/asm-cris/param.h      |    2 
+ include/asm-frv/param.h       |    2 
+ include/asm-h8300/param.h     |    2 
+ include/asm-m32r/param.h      |    2 
+ include/asm-m68k/param.h      |    2 
+ include/asm-m68knommu/param.h |    8 
+ include/asm-sparc/param.h     |    2 
+ include/asm-v850/anna.h       |    6 
+ include/asm-v850/as85ep1.h    |    6 
+ include/asm-v850/fpga85e2c.h  |    6 
+ include/asm-v850/param.h      |    3 
+ include/asm-v850/rte_cb.h     |    6 
+ include/asm-v850/sim.h        |    5 
+ include/asm-v850/sim85e2.h    |    6 
+ include/asm-xtensa/param.h    |    2 
+ kernel/Makefile               |    8 
+ kernel/time.c                 |   29 +-
+ kernel/timeconst.pl           |  402 ++++++++++++++++++++++++++++++++
+ 29 files changed, 486 insertions(+), 68 deletions(-)
 
-diff -puN fs/pipe.c~bkl-removal-convert-pipe-to-use-unlocked_ioctl-too fs/pipe.c
---- a/fs/pipe.c~bkl-removal-convert-pipe-to-use-unlocked_ioctl-too
-+++ a/fs/pipe.c
-@@ -576,9 +576,7 @@ bad_pipe_w(struct file *filp, const char
- 	return -EBADF;
- }
+diff -puN arch/alpha/Kconfig~avoid-overflows-in-kernel-timec arch/alpha/Kconfig
+--- a/arch/alpha/Kconfig~avoid-overflows-in-kernel-timec
++++ a/arch/alpha/Kconfig
+@@ -615,6 +615,11 @@ config VERBOSE_MCHECK_ON
  
--static int
--pipe_ioctl(struct inode *pino, struct file *filp,
--	   unsigned int cmd, unsigned long arg)
-+static long pipe_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 	  Take the default (1) unless you want more control or more info.
+ 
++config HZ
++	int
++	default 1200 if ALPHA_RAWHIDE
++	default 1024
++
+ source "drivers/pci/Kconfig"
+ source "drivers/eisa/Kconfig"
+ 
+diff -puN arch/cris/Kconfig~avoid-overflows-in-kernel-timec arch/cris/Kconfig
+--- a/arch/cris/Kconfig~avoid-overflows-in-kernel-timec
++++ a/arch/cris/Kconfig
+@@ -55,6 +55,10 @@ config CRIS
+ 	bool
+ 	default y
+ 
++config HZ
++	int
++	default 100
++
+ source "init/Kconfig"
+ 
+ menu "General setup"
+diff -puN arch/frv/Kconfig~avoid-overflows-in-kernel-timec arch/frv/Kconfig
+--- a/arch/frv/Kconfig~avoid-overflows-in-kernel-timec
++++ a/arch/frv/Kconfig
+@@ -57,6 +57,10 @@ config ARCH_HAS_ILOG2_U64
+ 	bool
+ 	default y
+ 
++config HZ
++	int
++	default 1000
++
+ mainmenu "Fujitsu FR-V Kernel Configuration"
+ 
+ source "init/Kconfig"
+diff -puN arch/h8300/Kconfig~avoid-overflows-in-kernel-timec arch/h8300/Kconfig
+--- a/arch/h8300/Kconfig~avoid-overflows-in-kernel-timec
++++ a/arch/h8300/Kconfig
+@@ -82,6 +82,10 @@ config PCI
+ 	bool
+ 	default n
+ 
++config HZ
++	int
++	default 100
++
+ source "init/Kconfig"
+ 
+ source "arch/h8300/Kconfig.cpu"
+diff -puN arch/m32r/Kconfig~avoid-overflows-in-kernel-timec arch/m32r/Kconfig
+--- a/arch/m32r/Kconfig~avoid-overflows-in-kernel-timec
++++ a/arch/m32r/Kconfig
+@@ -38,6 +38,10 @@ config NO_DMA
+ config ARCH_SUPPORTS_AOUT
+ 	def_bool y
+ 
++config HZ
++	int
++	default 100
++
+ source "init/Kconfig"
+ 
+ 
+diff -puN arch/m68k/Kconfig~avoid-overflows-in-kernel-timec arch/m68k/Kconfig
+--- a/arch/m68k/Kconfig~avoid-overflows-in-kernel-timec
++++ a/arch/m68k/Kconfig
+@@ -55,6 +55,10 @@ config NO_DMA
+ config ARCH_SUPPORTS_AOUT
+ 	def_bool y
+ 
++config HZ
++	int
++	default 100
++
+ mainmenu "Linux/68k Kernel Configuration"
+ 
+ source "init/Kconfig"
+diff -puN arch/m68knommu/Kconfig~avoid-overflows-in-kernel-timec arch/m68knommu/Kconfig
+--- a/arch/m68knommu/Kconfig~avoid-overflows-in-kernel-timec
++++ a/arch/m68knommu/Kconfig
+@@ -521,6 +521,11 @@ config 4KSTACKS
+ 	  running more threads on a system and also reduces the pressure
+ 	  on the VM subsystem for higher order allocations.
+ 
++config HZ
++	int
++	default 1000 if CLEOPATRA
++	default 100
++
+ comment "RAM configuration"
+ 
+ config RAMBASE
+diff -puN arch/sparc/Kconfig~avoid-overflows-in-kernel-timec arch/sparc/Kconfig
+--- a/arch/sparc/Kconfig~avoid-overflows-in-kernel-timec
++++ a/arch/sparc/Kconfig
+@@ -30,6 +30,10 @@ config OF
+ config ARCH_SUPPORTS_AOUT
+ 	def_bool y
+ 
++config HZ
++	int
++	default 100
++
+ source "init/Kconfig"
+ 
+ menu "General machine setup"
+diff -puN arch/v850/Kconfig~avoid-overflows-in-kernel-timec arch/v850/Kconfig
+--- a/arch/v850/Kconfig~avoid-overflows-in-kernel-timec
++++ a/arch/v850/Kconfig
+@@ -215,6 +215,13 @@ menu "Processor type and features"
+    	  bool
+ 	  default !V850E_CACHE && !V850E2_CACHE
+ 
++   # HZ depends on the platform
++   config HZ
++	  int
++	  default 24  if V850E_SIM || V850E2_SIM85E2
++	  default 122 if V850E2_FPGA85E2C
++	  default 100
++
+    #### Misc config
+ 
+    config ROM_KERNEL
+diff -puN arch/xtensa/Kconfig~avoid-overflows-in-kernel-timec arch/xtensa/Kconfig
+--- a/arch/xtensa/Kconfig~avoid-overflows-in-kernel-timec
++++ a/arch/xtensa/Kconfig
+@@ -49,6 +49,10 @@ config ARCH_HAS_ILOG2_U64
+ config NO_IOPORT
+ 	def_bool y
+ 
++config HZ
++	int
++	default 100
++
+ source "init/Kconfig"
+ 
+ menu "Processor type and features"
+diff -puN include/asm-alpha/param.h~avoid-overflows-in-kernel-timec include/asm-alpha/param.h
+--- a/include/asm-alpha/param.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-alpha/param.h
+@@ -5,15 +5,7 @@
+    hardware ignores reprogramming.  We also need userland buy-in to the 
+    change in HZ, since this is visible in the wait4 resources etc.  */
+ 
+-
+-#ifndef HZ
+-# ifndef CONFIG_ALPHA_RAWHIDE
+-#  define HZ	1024
+-# else
+-#  define HZ	1200
+-# endif
+-#endif
+-
++#define HZ		CONFIG_HZ
+ #define USER_HZ		HZ
+ 
+ #define EXEC_PAGESIZE	8192
+diff -puN include/asm-cris/param.h~avoid-overflows-in-kernel-timec include/asm-cris/param.h
+--- a/include/asm-cris/param.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-cris/param.h
+@@ -3,7 +3,7 @@
+ 
+ /* Currently we assume that HZ=100 is good for CRIS. */
+ #ifdef __KERNEL__
+-# define HZ		100		/* Internal kernel timer frequency */
++# define HZ		CONFIG_HZ	/* Internal kernel timer frequency */
+ # define USER_HZ	100		/* .. some user interfaces are in "ticks" */
+ # define CLOCKS_PER_SEC	(USER_HZ)	/* like times() */
+ #endif
+diff -puN include/asm-frv/param.h~avoid-overflows-in-kernel-timec include/asm-frv/param.h
+--- a/include/asm-frv/param.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-frv/param.h
+@@ -2,7 +2,7 @@
+ #define _ASM_PARAM_H
+ 
+ #ifdef __KERNEL__
+-#define HZ		1000		/* Internal kernel timer frequency */
++#define HZ		CONFIG_HZ	/* Internal kernel timer frequency */
+ #define USER_HZ		100		/* .. some user interfaces are in "ticks" */
+ #define CLOCKS_PER_SEC	(USER_HZ)	/* like times() */
+ #endif
+diff -puN include/asm-h8300/param.h~avoid-overflows-in-kernel-timec include/asm-h8300/param.h
+--- a/include/asm-h8300/param.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-h8300/param.h
+@@ -3,7 +3,7 @@
+ 
+ 
+ #ifndef HZ
+-#define HZ 100
++#define HZ CONFIG_HZ
+ #endif
+ 
+ #ifdef __KERNEL__
+diff -puN include/asm-m32r/param.h~avoid-overflows-in-kernel-timec include/asm-m32r/param.h
+--- a/include/asm-m32r/param.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-m32r/param.h
+@@ -2,7 +2,7 @@
+ #define _ASM_M32R_PARAM_H
+ 
+ #ifdef __KERNEL__
+-# define HZ		100		/* Internal kernel timer frequency */
++# define HZ		CONFIG_HZ	/* Internal kernel timer frequency */
+ # define USER_HZ	100		/* .. some user interfaces are in "ticks" */
+ # define CLOCKS_PER_SEC	(USER_HZ)	/* like times() */
+ #endif
+diff -puN include/asm-m68k/param.h~avoid-overflows-in-kernel-timec include/asm-m68k/param.h
+--- a/include/asm-m68k/param.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-m68k/param.h
+@@ -2,7 +2,7 @@
+ #define _M68K_PARAM_H
+ 
+ #ifdef __KERNEL__
+-# define HZ		100		/* Internal kernel timer frequency */
++# define HZ		CONFIG_HZ	/* Internal kernel timer frequency */
+ # define USER_HZ	100		/* .. some user interfaces are in "ticks" */
+ # define CLOCKS_PER_SEC	(USER_HZ)	/* like times() */
+ #endif
+diff -puN include/asm-m68knommu/param.h~avoid-overflows-in-kernel-timec include/asm-m68knommu/param.h
+--- a/include/asm-m68knommu/param.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-m68knommu/param.h
+@@ -1,13 +1,7 @@
+ #ifndef _M68KNOMMU_PARAM_H
+ #define _M68KNOMMU_PARAM_H
+ 
+-
+-#if defined(CONFIG_CLEOPATRA)
+-#define	HZ 1000
+-#endif
+-#ifndef HZ
+-#define	HZ 100
+-#endif
++#define HZ CONFIG_HZ
+ 
+ #ifdef __KERNEL__
+ #define	USER_HZ		HZ
+diff -puN include/asm-sparc/param.h~avoid-overflows-in-kernel-timec include/asm-sparc/param.h
+--- a/include/asm-sparc/param.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-sparc/param.h
+@@ -3,7 +3,7 @@
+ #define _ASMSPARC_PARAM_H
+ 
+ #ifdef __KERNEL__
+-# define HZ		100	/* Internal kernel timer frequency */
++# define HZ		CONFIG_HZ	/* Internal kernel timer frequency */
+ # define USER_HZ	100	/* .. some user interfaces are in "ticks" */
+ # define CLOCKS_PER_SEC (USER_HZ)
+ #endif
+diff -puN include/asm-v850/anna.h~avoid-overflows-in-kernel-timec include/asm-v850/anna.h
+--- a/include/asm-v850/anna.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-v850/anna.h
+@@ -134,10 +134,4 @@ extern void anna_uart_pre_configure (uns
+ #define V850E_TIMER_D_TMCD_CS_MIN	1 /* min 2^1 divider */
+ 
+ 
+-/* For <asm/param.h> */
+-#ifndef HZ
+-#define HZ	100
+-#endif
+-
+-
+ #endif /* __V850_ANNA_H__ */
+diff -puN include/asm-v850/as85ep1.h~avoid-overflows-in-kernel-timec include/asm-v850/as85ep1.h
+--- a/include/asm-v850/as85ep1.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-v850/as85ep1.h
+@@ -149,10 +149,4 @@ extern void as85ep1_uart_pre_configure (
+ #define V850E_TIMER_D_TMCD_CS_MIN	2 /* min 2^2 divider */
+ 
+ 
+-/* For <asm/param.h> */
+-#ifndef HZ
+-#define HZ	100
+-#endif
+-
+-
+ #endif /* __V850_AS85EP1_H__ */
+diff -puN include/asm-v850/fpga85e2c.h~avoid-overflows-in-kernel-timec include/asm-v850/fpga85e2c.h
+--- a/include/asm-v850/fpga85e2c.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-v850/fpga85e2c.h
+@@ -79,10 +79,4 @@ extern char _r0_ram;
+ #endif
+ 
+ 
+-/* For <asm/param.h> */
+-#ifndef HZ
+-#define HZ			122 /* actually, 8.192ms ticks =~ 122.07 */
+-#endif
+-
+-
+ #endif /* __V850_FPGA85E2C_H__ */
+diff -puN include/asm-v850/param.h~avoid-overflows-in-kernel-timec include/asm-v850/param.h
+--- a/include/asm-v850/param.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-v850/param.h
+@@ -23,8 +23,7 @@
+ #define MAXHOSTNAMELEN	64	/* max length of hostname */
+ 
+ #ifdef __KERNEL__
+-#include <asm/machdep.h>	/* For HZ */
+-
++# define HZ		CONFIG_HZ
+ # define USER_HZ	100
+ # define CLOCKS_PER_SEC	USER_HZ
+ #endif
+diff -puN include/asm-v850/rte_cb.h~avoid-overflows-in-kernel-timec include/asm-v850/rte_cb.h
+--- a/include/asm-v850/rte_cb.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-v850/rte_cb.h
+@@ -69,12 +69,6 @@
+ #endif /* CONFIG_RTE_MB_A_PCI */
+ 
+ 
+-/* For <asm/param.h> */
+-#ifndef HZ
+-#define HZ	100
+-#endif
+-
+-
+ #ifndef __ASSEMBLY__
+ extern void rte_cb_early_init (void);
+ extern void rte_cb_init_irqs (void);
+diff -puN include/asm-v850/sim.h~avoid-overflows-in-kernel-timec include/asm-v850/sim.h
+--- a/include/asm-v850/sim.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-v850/sim.h
+@@ -40,11 +40,6 @@
+ #define R0_RAM_ADDR		0xFFFFF000
+ 
+ 
+-/* For <asm/param.h> */
+-#ifndef HZ
+-#define HZ			24	/* Minimum supported frequency.  */
+-#endif
+-
+ /* For <asm/irq.h> */
+ #define NUM_CPU_IRQS		6
+ 
+diff -puN include/asm-v850/sim85e2.h~avoid-overflows-in-kernel-timec include/asm-v850/sim85e2.h
+--- a/include/asm-v850/sim85e2.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-v850/sim85e2.h
+@@ -66,10 +66,4 @@
+ #define R0_RAM_ADDR		0xFFFFE000
+ 
+ 
+-/* For <asm/param.h> */
+-#ifndef HZ
+-#define HZ			24	/* Minimum supported frequency.  */
+-#endif
+-
+-
+ #endif /* __V850_SIM85E2_H__ */
+diff -puN include/asm-xtensa/param.h~avoid-overflows-in-kernel-timec include/asm-xtensa/param.h
+--- a/include/asm-xtensa/param.h~avoid-overflows-in-kernel-timec
++++ a/include/asm-xtensa/param.h
+@@ -12,7 +12,7 @@
+ #define _XTENSA_PARAM_H
+ 
+ #ifdef __KERNEL__
+-# define HZ		100		/* internal timer frequency */
++# define HZ		CONFIG_HZ	/* internal timer frequency */
+ # define USER_HZ	100		/* for user interfaces in "ticks" */
+ # define CLOCKS_PER_SEC (USER_HZ)	/* frequnzy at which times() counts */
+ #endif
+diff -puN kernel/Makefile~avoid-overflows-in-kernel-timec kernel/Makefile
+--- a/kernel/Makefile~avoid-overflows-in-kernel-timec
++++ a/kernel/Makefile
+@@ -93,3 +93,11 @@ quiet_cmd_ikconfiggz = IKCFG   $@
+ targets += config_data.h
+ $(obj)/config_data.h: $(obj)/config_data.gz FORCE
+ 	$(call if_changed,ikconfiggz)
++
++$(obj)/time.o: $(obj)/timeconst.h
++
++quiet_cmd_timeconst  = TIMEC   $@
++      cmd_timeconst  = $(PERL) $< $(CONFIG_HZ) > $@
++targets += timeconst.h
++$(obj)/timeconst.h: $(src)/timeconst.pl FORCE
++	$(call if_changed,timeconst)
+diff -puN kernel/time.c~avoid-overflows-in-kernel-timec kernel/time.c
+--- a/kernel/time.c~avoid-overflows-in-kernel-timec
++++ a/kernel/time.c
+@@ -39,6 +39,8 @@
+ #include <asm/uaccess.h>
+ #include <asm/unistd.h>
+ 
++#include "timeconst.h"
++
+ /*
+  * The timezone where the local system is located.  Used as a default by some
+  * programs who obtain this value by using gettimeofday.
+@@ -93,7 +95,8 @@ asmlinkage long sys_stime(time_t __user 
+ 
+ #endif /* __ARCH_WANT_SYS_TIME */
+ 
+-asmlinkage long sys_gettimeofday(struct timeval __user *tv, struct timezone __user *tz)
++asmlinkage long sys_gettimeofday(struct timeval __user *tv,
++				 struct timezone __user *tz)
  {
- 	struct inode *inode = filp->f_path.dentry->d_inode;
- 	struct pipe_inode_info *pipe;
-@@ -785,7 +783,7 @@ const struct file_operations read_fifo_f
- 	.aio_read	= pipe_read,
- 	.write		= bad_pipe_w,
- 	.poll		= pipe_poll,
--	.ioctl		= pipe_ioctl,
-+	.unlocked_ioctl	= pipe_ioctl,
- 	.open		= pipe_read_open,
- 	.release	= pipe_read_release,
- 	.fasync		= pipe_read_fasync,
-@@ -797,7 +795,7 @@ const struct file_operations write_fifo_
- 	.write		= do_sync_write,
- 	.aio_write	= pipe_write,
- 	.poll		= pipe_poll,
--	.ioctl		= pipe_ioctl,
-+	.unlocked_ioctl	= pipe_ioctl,
- 	.open		= pipe_write_open,
- 	.release	= pipe_write_release,
- 	.fasync		= pipe_write_fasync,
-@@ -810,7 +808,7 @@ const struct file_operations rdwr_fifo_f
- 	.write		= do_sync_write,
- 	.aio_write	= pipe_write,
- 	.poll		= pipe_poll,
--	.ioctl		= pipe_ioctl,
-+	.unlocked_ioctl	= pipe_ioctl,
- 	.open		= pipe_rdwr_open,
- 	.release	= pipe_rdwr_release,
- 	.fasync		= pipe_rdwr_fasync,
-@@ -822,7 +820,7 @@ static const struct file_operations read
- 	.aio_read	= pipe_read,
- 	.write		= bad_pipe_w,
- 	.poll		= pipe_poll,
--	.ioctl		= pipe_ioctl,
-+	.unlocked_ioctl	= pipe_ioctl,
- 	.open		= pipe_read_open,
- 	.release	= pipe_read_release,
- 	.fasync		= pipe_read_fasync,
-@@ -834,7 +832,7 @@ static const struct file_operations writ
- 	.write		= do_sync_write,
- 	.aio_write	= pipe_write,
- 	.poll		= pipe_poll,
--	.ioctl		= pipe_ioctl,
-+	.unlocked_ioctl	= pipe_ioctl,
- 	.open		= pipe_write_open,
- 	.release	= pipe_write_release,
- 	.fasync		= pipe_write_fasync,
-@@ -847,7 +845,7 @@ static const struct file_operations rdwr
- 	.write		= do_sync_write,
- 	.aio_write	= pipe_write,
- 	.poll		= pipe_poll,
--	.ioctl		= pipe_ioctl,
-+	.unlocked_ioctl	= pipe_ioctl,
- 	.open		= pipe_rdwr_open,
- 	.release	= pipe_rdwr_release,
- 	.fasync		= pipe_rdwr_fasync,
+ 	if (likely(tv != NULL)) {
+ 		struct timeval ktv;
+@@ -118,7 +121,7 @@ asmlinkage long sys_gettimeofday(struct 
+  * hard to make the program warp the clock precisely n hours)  or
+  * compile in the timezone information into the kernel.  Bad, bad....
+  *
+- *              				- TYT, 1992-01-01
++ *						- TYT, 1992-01-01
+  *
+  * The best thing to do is to keep the CMOS clock in universal time (UTC)
+  * as real UNIX machines always do it. This avoids all headaches about
+@@ -239,7 +242,11 @@ unsigned int inline jiffies_to_msecs(con
+ #elif HZ > MSEC_PER_SEC && !(HZ % MSEC_PER_SEC)
+ 	return (j + (HZ / MSEC_PER_SEC) - 1)/(HZ / MSEC_PER_SEC);
+ #else
+-	return (j * MSEC_PER_SEC) / HZ;
++# if BITS_PER_LONG == 32
++	return ((u64)HZ_TO_MSEC_MUL32 * j) >> HZ_TO_MSEC_SHR32;
++# else
++	return (j * HZ_TO_MSEC_NUM) / HZ_TO_MSEC_DEN;
++# endif
+ #endif
+ }
+ EXPORT_SYMBOL(jiffies_to_msecs);
+@@ -251,7 +258,11 @@ unsigned int inline jiffies_to_usecs(con
+ #elif HZ > USEC_PER_SEC && !(HZ % USEC_PER_SEC)
+ 	return (j + (HZ / USEC_PER_SEC) - 1)/(HZ / USEC_PER_SEC);
+ #else
+-	return (j * USEC_PER_SEC) / HZ;
++# if BITS_PER_LONG == 32
++	return ((u64)HZ_TO_USEC_MUL32 * j) >> HZ_TO_USEC_SHR32;
++# else
++	return (j * HZ_TO_USEC_NUM) / HZ_TO_USEC_DEN;
++# endif
+ #endif
+ }
+ EXPORT_SYMBOL(jiffies_to_usecs);
+@@ -351,7 +362,7 @@ EXPORT_SYMBOL(mktime);
+  * normalize to the timespec storage format
+  *
+  * Note: The tv_nsec part is always in the range of
+- * 	0 <= tv_nsec < NSEC_PER_SEC
++ *	0 <= tv_nsec < NSEC_PER_SEC
+  * For negative values only the tv_sec field is negative !
+  */
+ void set_normalized_timespec(struct timespec *ts, time_t sec, long nsec)
+@@ -452,12 +463,13 @@ unsigned long msecs_to_jiffies(const uns
+ 	/*
+ 	 * Generic case - multiply, round and divide. But first
+ 	 * check that if we are doing a net multiplication, that
+-	 * we wouldnt overflow:
++	 * we wouldn't overflow:
+ 	 */
+ 	if (HZ > MSEC_PER_SEC && m > jiffies_to_msecs(MAX_JIFFY_OFFSET))
+ 		return MAX_JIFFY_OFFSET;
+ 
+-	return (m * HZ + MSEC_PER_SEC - 1) / MSEC_PER_SEC;
++	return ((u64)MSEC_TO_HZ_MUL32 * m + MSEC_TO_HZ_ADJ32)
++		>> MSEC_TO_HZ_SHR32;
+ #endif
+ }
+ EXPORT_SYMBOL(msecs_to_jiffies);
+@@ -471,7 +483,8 @@ unsigned long usecs_to_jiffies(const uns
+ #elif HZ > USEC_PER_SEC && !(HZ % USEC_PER_SEC)
+ 	return u * (HZ / USEC_PER_SEC);
+ #else
+-	return (u * HZ + USEC_PER_SEC - 1) / USEC_PER_SEC;
++	return ((u64)USEC_TO_HZ_MUL32 * u + USEC_TO_HZ_ADJ32)
++		>> USEC_TO_HZ_SHR32;
+ #endif
+ }
+ EXPORT_SYMBOL(usecs_to_jiffies);
+diff -puN /dev/null kernel/timeconst.pl
+--- /dev/null
++++ a/kernel/timeconst.pl
+@@ -0,0 +1,402 @@
++#!/usr/bin/perl
++# -----------------------------------------------------------------------
++#
++#   Copyright 2007 rPath, Inc. - All Rights Reserved
++#
++#   This file is part of the Linux kernel, and is made available under
++#   the terms of the GNU General Public License version 2 or (at your
++#   option) any later version; incorporated herein by reference.
++#
++# -----------------------------------------------------------------------
++#
++
++#
++# Usage: timeconst.pl HZ > timeconst.h
++#
++
++# Precomputed values for systems without Math::BigInt
++# Generated by:
++# timeconst.pl --can 24 32 48 64 100 122 128 200 250 256 300 512 1000 1024 1200
++%canned_values = (
++	24 => [
++		'0xa6aaaaab','0x2aaaaaa',26,
++		'0xa6aaaaaaaaaaaaab','0x2aaaaaaaaaaaaaa',58,
++		125,3,
++		'0xc49ba5e4','0x1fbe76c8b4',37,
++		'0xc49ba5e353f7ceda','0x1fbe76c8b439581062',69,
++		3,125,
++		'0xa2c2aaab','0xaaaa',16,
++		'0xa2c2aaaaaaaaaaab','0xaaaaaaaaaaaa',48,
++		125000,3,
++		'0xc9539b89','0x7fffbce4217d',47,
++		'0xc9539b8887229e91','0x7fffbce4217d2849cb25',79,
++		3,125000,
++	], 32 => [
++		'0xfa000000','0x6000000',27,
++		'0xfa00000000000000','0x600000000000000',59,
++		125,4,
++		'0x83126e98','0xfdf3b645a',36,
++		'0x83126e978d4fdf3c','0xfdf3b645a1cac0831',68,
++		4,125,
++		'0xf4240000','0x0',17,
++		'0xf424000000000000','0x0',49,
++		31250,1,
++		'0x8637bd06','0x3fff79c842fa',46,
++		'0x8637bd05af6c69b6','0x3fff79c842fa5093964a',78,
++		1,31250,
++	], 48 => [
++		'0xa6aaaaab','0x6aaaaaa',27,
++		'0xa6aaaaaaaaaaaaab','0x6aaaaaaaaaaaaaa',59,
++		125,6,
++		'0xc49ba5e4','0xfdf3b645a',36,
++		'0xc49ba5e353f7ceda','0xfdf3b645a1cac0831',68,
++		6,125,
++		'0xa2c2aaab','0x15555',17,
++		'0xa2c2aaaaaaaaaaab','0x1555555555555',49,
++		62500,3,
++		'0xc9539b89','0x3fffbce4217d',46,
++		'0xc9539b8887229e91','0x3fffbce4217d2849cb25',78,
++		3,62500,
++	], 64 => [
++		'0xfa000000','0xe000000',28,
++		'0xfa00000000000000','0xe00000000000000',60,
++		125,8,
++		'0x83126e98','0x7ef9db22d',35,
++		'0x83126e978d4fdf3c','0x7ef9db22d0e560418',67,
++		8,125,
++		'0xf4240000','0x0',18,
++		'0xf424000000000000','0x0',50,
++		15625,1,
++		'0x8637bd06','0x1fff79c842fa',45,
++		'0x8637bd05af6c69b6','0x1fff79c842fa5093964a',77,
++		1,15625,
++	], 100 => [
++		'0xa0000000','0x0',28,
++		'0xa000000000000000','0x0',60,
++		10,1,
++		'0xcccccccd','0x733333333',35,
++		'0xcccccccccccccccd','0x73333333333333333',67,
++		1,10,
++		'0x9c400000','0x0',18,
++		'0x9c40000000000000','0x0',50,
++		10000,1,
++		'0xd1b71759','0x1fff2e48e8a7',45,
++		'0xd1b71758e219652c','0x1fff2e48e8a71de69ad4',77,
++		1,10000,
++	], 122 => [
++		'0x8325c53f','0xfbcda3a',28,
++		'0x8325c53ef368eb05','0xfbcda3ac10c9714',60,
++		500,61,
++		'0xf9db22d1','0x7fbe76c8b',35,
++		'0xf9db22d0e560418a','0x7fbe76c8b43958106',67,
++		61,500,
++		'0x8012e2a0','0x3ef36',18,
++		'0x8012e29f79b47583','0x3ef368eb04325',50,
++		500000,61,
++		'0xffda4053','0x1ffffbce4217',45,
++		'0xffda4052d666a983','0x1ffffbce4217d2849cb2',77,
++		61,500000,
++	], 128 => [
++		'0xfa000000','0x1e000000',29,
++		'0xfa00000000000000','0x1e00000000000000',61,
++		125,16,
++		'0x83126e98','0x3f7ced916',34,
++		'0x83126e978d4fdf3c','0x3f7ced916872b020c',66,
++		16,125,
++		'0xf4240000','0x40000',19,
++		'0xf424000000000000','0x4000000000000',51,
++		15625,2,
++		'0x8637bd06','0xfffbce4217d',44,
++		'0x8637bd05af6c69b6','0xfffbce4217d2849cb25',76,
++		2,15625,
++	], 200 => [
++		'0xa0000000','0x0',29,
++		'0xa000000000000000','0x0',61,
++		5,1,
++		'0xcccccccd','0x333333333',34,
++		'0xcccccccccccccccd','0x33333333333333333',66,
++		1,5,
++		'0x9c400000','0x0',19,
++		'0x9c40000000000000','0x0',51,
++		5000,1,
++		'0xd1b71759','0xfff2e48e8a7',44,
++		'0xd1b71758e219652c','0xfff2e48e8a71de69ad4',76,
++		1,5000,
++	], 250 => [
++		'0x80000000','0x0',29,
++		'0x8000000000000000','0x0',61,
++		4,1,
++		'0x80000000','0x180000000',33,
++		'0x8000000000000000','0x18000000000000000',65,
++		1,4,
++		'0xfa000000','0x0',20,
++		'0xfa00000000000000','0x0',52,
++		4000,1,
++		'0x83126e98','0x7ff7ced9168',43,
++		'0x83126e978d4fdf3c','0x7ff7ced916872b020c4',75,
++		1,4000,
++	], 256 => [
++		'0xfa000000','0x3e000000',30,
++		'0xfa00000000000000','0x3e00000000000000',62,
++		125,32,
++		'0x83126e98','0x1fbe76c8b',33,
++		'0x83126e978d4fdf3c','0x1fbe76c8b43958106',65,
++		32,125,
++		'0xf4240000','0xc0000',20,
++		'0xf424000000000000','0xc000000000000',52,
++		15625,4,
++		'0x8637bd06','0x7ffde7210be',43,
++		'0x8637bd05af6c69b6','0x7ffde7210be9424e592',75,
++		4,15625,
++	], 300 => [
++		'0xd5555556','0x2aaaaaaa',30,
++		'0xd555555555555556','0x2aaaaaaaaaaaaaaa',62,
++		10,3,
++		'0x9999999a','0x1cccccccc',33,
++		'0x999999999999999a','0x1cccccccccccccccc',65,
++		3,10,
++		'0xd0555556','0xaaaaa',20,
++		'0xd055555555555556','0xaaaaaaaaaaaaa',52,
++		10000,3,
++		'0x9d495183','0x7ffcb923a29',43,
++		'0x9d495182a9930be1','0x7ffcb923a29c779a6b5',75,
++		3,10000,
++	], 512 => [
++		'0xfa000000','0x7e000000',31,
++		'0xfa00000000000000','0x7e00000000000000',63,
++		125,64,
++		'0x83126e98','0xfdf3b645',32,
++		'0x83126e978d4fdf3c','0xfdf3b645a1cac083',64,
++		64,125,
++		'0xf4240000','0x1c0000',21,
++		'0xf424000000000000','0x1c000000000000',53,
++		15625,8,
++		'0x8637bd06','0x3ffef39085f',42,
++		'0x8637bd05af6c69b6','0x3ffef39085f4a1272c9',74,
++		8,15625,
++	], 1000 => [
++		'0x80000000','0x0',31,
++		'0x8000000000000000','0x0',63,
++		1,1,
++		'0x80000000','0x0',31,
++		'0x8000000000000000','0x0',63,
++		1,1,
++		'0xfa000000','0x0',22,
++		'0xfa00000000000000','0x0',54,
++		1000,1,
++		'0x83126e98','0x1ff7ced9168',41,
++		'0x83126e978d4fdf3c','0x1ff7ced916872b020c4',73,
++		1,1000,
++	], 1024 => [
++		'0xfa000000','0xfe000000',32,
++		'0xfa00000000000000','0xfe00000000000000',64,
++		125,128,
++		'0x83126e98','0x7ef9db22',31,
++		'0x83126e978d4fdf3c','0x7ef9db22d0e56041',63,
++		128,125,
++		'0xf4240000','0x3c0000',22,
++		'0xf424000000000000','0x3c000000000000',54,
++		15625,16,
++		'0x8637bd06','0x1fff79c842f',41,
++		'0x8637bd05af6c69b6','0x1fff79c842fa5093964',73,
++		16,15625,
++	], 1200 => [
++		'0xd5555556','0xd5555555',32,
++		'0xd555555555555556','0xd555555555555555',64,
++		5,6,
++		'0x9999999a','0x66666666',31,
++		'0x999999999999999a','0x6666666666666666',63,
++		6,5,
++		'0xd0555556','0x2aaaaa',22,
++		'0xd055555555555556','0x2aaaaaaaaaaaaa',54,
++		2500,3,
++		'0x9d495183','0x1ffcb923a29',41,
++		'0x9d495182a9930be1','0x1ffcb923a29c779a6b5',73,
++		3,2500,
++	]
++);
++
++$has_bigint = eval 'use Math::BigInt qw(bgcd); 1;';
++
++sub bint($)
++{
++	my($x) = @_;
++	return Math::BigInt->new($x);
++}
++
++#
++# Constants for division by reciprocal multiplication.
++# (bits, numerator, denominator)
++#
++sub fmul($$$)
++{
++	my ($b,$n,$d) = @_;
++
++	$n = bint($n);
++	$d = bint($d);
++
++	return scalar (($n << $b)+$d-bint(1))/$d;
++}
++
++sub fadj($$$)
++{
++	my($b,$n,$d) = @_;
++
++	$n = bint($n);
++	$d = bint($d);
++
++	$d = $d/bgcd($n, $d);
++	return scalar (($d-bint(1)) << $b)/$d;
++}
++
++sub fmuls($$$) {
++	my($b,$n,$d) = @_;
++	my($s,$m);
++	my($thres) = bint(1) << ($b-1);
++
++	$n = bint($n);
++	$d = bint($d);
++
++	for ($s = 0; 1; $s++) {
++		$m = fmul($s,$n,$d);
++		return $s if ($m >= $thres);
++	}
++	return 0;
++}
++
++# Provides mul, adj, and shr factors for a specific
++# (bit, time, hz) combination
++sub muladj($$$) {
++	my($b, $t, $hz) = @_;
++	my $s = fmuls($b, $t, $hz);
++	my $m = fmul($s, $t, $hz);
++	my $a = fadj($s, $t, $hz);
++	return ($m->as_hex(), $a->as_hex(), $s);
++}
++
++# Provides numerator, denominator values
++sub numden($$) {
++	my($n, $d) = @_;
++	my $g = bgcd($n, $d);
++	return ($n/$g, $d/$g);
++}
++
++# All values for a specific (time, hz) combo
++sub conversions($$) {
++	my ($t, $hz) = @_;
++	my @val = ();
++
++	# HZ_TO_xx
++	push(@val, muladj(32, $t, $hz));
++	push(@val, muladj(64, $t, $hz));
++	push(@val, numden($t, $hz));
++
++	# xx_TO_HZ
++	push(@val, muladj(32, $hz, $t));
++	push(@val, muladj(64, $hz, $t));
++	push(@val, numden($hz, $t));
++
++	return @val;
++}
++
++sub compute_values($) {
++	my($hz) = @_;
++	my @val = ();
++	my $s, $m, $a, $g;
++
++	if (!$has_bigint) {
++		die "$0: HZ == $hz not canned and ".
++		    "Math::BigInt not available\n";
++	}
++
++	# MSEC conversions
++	push(@val, conversions(1000, $hz));
++
++	# USEC conversions
++	push(@val, conversions(1000000, $hz));
++
++	return @val;
++}
++
++sub output($@)
++{
++	my($hz, @val) = @_;
++	my $pfx, $bit, $suf, $s, $m, $a;
++
++	print "/* Automatically generated by kernel/timeconst.pl */\n";
++	print "/* Conversion constants for HZ == $hz */\n";
++	print "\n";
++	print "#ifndef KERNEL_TIMECONST_H\n";
++	print "#define KERNEL_TIMECONST_H\n";
++	print "\n";
++
++	print "#include <linux/param.h>\n";
++
++	print "\n";
++	print "#if HZ != $hz\n";
++	print "#error \"kernel/timeconst.h has the wrong HZ value!\"\n";
++	print "#endif\n";
++	print "\n";
++
++	foreach $pfx ('HZ_TO_MSEC','MSEC_TO_HZ',
++		      'USEC_TO_HZ','HZ_TO_USEC') {
++		foreach $bit (32, 64) {
++			foreach $suf ('MUL', 'ADJ', 'SHR') {
++				printf "#define %-23s %s\n",
++					"${pfx}_$suf$bit", shift(@val);
++			}
++		}
++		foreach $suf ('NUM', 'DEN') {
++			printf "#define %-23s %s\n",
++				"${pfx}_$suf", shift(@val);
++		}
++	}
++
++	print "\n";
++	print "#endif /* KERNEL_TIMECONST_H */\n";
++}
++
++($hz) = @ARGV;
++
++# Use this to generate the %canned_values structure
++if ($hz eq '--can') {
++	shift(@ARGV);
++	@hzlist = sort {$a <=> $b} (@ARGV);
++
++	print "# Precomputed values for systems without Math::BigInt\n";
++	print "# Generated by:\n";
++	print "# timeconst.pl --can ", join(' ', @hzlist), "\n";
++	print "\%canned_values = (\n";
++	my $pf = "\t";
++	foreach $hz (@hzlist) {
++		my @values = compute_values($hz);
++		print "$pf$hz => [\n";
++		while (scalar(@values)) {
++			my $bit;
++			foreach $bit (32, 64) {
++				my $m = shift(@values);
++				my $a = shift(@values);
++				my $s = shift(@values);
++				print "\t\t\'",$m,"\',\'",$a,"\',",$s,",\n";
++			}
++			my $n = shift(@values);
++			my $d = shift(@values);
++			print "\t\t",$n,',',$d,",\n";
++		}
++		print "\t]";
++		$pf = ', ';
++	}
++	print "\n);\n";
++} else {
++	$hz += 0;			# Force to number
++	if ($hz < 1) {
++		die "Usage: $0 HZ\n";
++	}
++
++	@val = @{$canned_values{$hz}};
++	if (!defined(@val)) {
++		@val = compute_values($hz);
++	}
++	output($hz, @val);
++}
++exit 0;
 _
 
-Patches currently in -mm which might be from ak@suse.de are
+Patches currently in -mm which might be from hpa@zytor.com are
 
-git-cifs.patch
-bkl-removal-convert-cifs-over-to-unlocked_ioctl.patch
-git-kbuild.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
-pci-disable-decoding-during-sizing-of-bars.patch
-x86-validate-against-acpi-motherboard-resources.patch
-git-sched.patch
-git-scsi-misc.patch
+origin.patch
+i915-fix-invalid-opcode-exception-on-cpus-without-clflush.patch
+git-kvm.patch
+git-selinux.patch
+git-sh.patch
 git-x86.patch
-x86-amd-thermal-interrupt-support.patch
-x86-fix-early-cpu_to_node-panic-from-nr_free_zone_pages.patch
-x86-reboot-remove-inb_p-usage.patch
-x86-clear-pci_mmcfg_virt-when-mmcfg-get-rejected.patch
-x86-mmconf-enable-mcfg-early.patch
-x86-mmconf-enable-mcfg-early-cleanup.patch
 x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-v3.patch
 x86_64-check-msr-to-get-mmconfig-for-amd-family-10h-opteron-v3.patch
 x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used.patch
 x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used-vs-gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in.patch
-iommu-sg-merging-x86-make-pci-gart-iommu-respect-the-segment-size-limits.patch
-iommu-sg-x86-convert-calgary-iommu-to-use-the-iommu-helper.patch
-iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper.patch
-iommu-sg-kill-__clear_bit_string-and-find_next_zero_string.patch
-git-xfs.patch
-swapin_readahead-excise-numa-bogosity.patch
-remove-unused-arguments-in-zone_init_free_lists.patch
-read_current_time-cleanups.patch
-printk-trivial-optimizations.patch
-make-config_hpet_emulate_rtc-usable-from-modules.patch
-use-the-irq-callback-interface-in-old-rtc-driver.patch
-add-hpet-rtc-emulation-to-rtc_drv_cmos.patch
-bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2.patch
-modules-handle-symbols-that-have-a-zero-value.patch
-allow-executables-larger-than-2gb.patch
-remove-ibcs-support.patch
-bkl-removal-convert-ext2-over-to-use-unlocked_ioctl.patch
-bkl-removal-remove-incorrect-bkl-comment-in-ext2.patch
-bkl-removal-convert-pipe-to-use-unlocked_ioctl-too.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
+uml-add-back-config_hz.patch
+drivers-char-tty_ioc-remove-pty_sem.patch
+unix98-allocated_ptys_lock-semaphore-to-mutex.patch
+make-sys_poll-wait-at-least-timeout-ms.patch
+system-timer-fix-crash-in-100hz-system-timer.patch
+system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
+speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
+coding-style-cleanups-for-drivers-md-mktablesc.patch
+md-raid6-fix-mktablec.patch
+md-raid6-clean-up-the-style-of-raid6test-testc.patch
+unexport-asm-userh-and-linux-userh.patch
+unexport-asm-pageh.patch
+sanitize-the-type-of-struct-useru_ar0.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+avoid-overflows-in-kernel-timec.patch
