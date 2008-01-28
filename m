@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + uml-smp-locking-commentary.patch added to -mm tree
-Date: Sun, 27 Jan 2008 21:23:12 -0800
-Message-ID: <200801280524.m0S5O66N013741@imap1.linux-foundation.org>
+Subject: + uml-remove-unused-fields-from-mm_context.patch added to -mm tree
+Date: Sun, 27 Jan 2008 21:23:28 -0800
+Message-ID: <200801280524.m0S5OMdh013765@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53087 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52758 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750964AbYA1FYZ (ORCPT
+	by vger.kernel.org with ESMTP id S1751273AbYA1FY1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 00:24:25 -0500
+	Mon, 28 Jan 2008 00:24:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     uml: SMP locking commentary
+     uml: remove unused fields from mm_context
 has been added to the -mm tree.  Its filename is
-     uml-smp-locking-commentary.patch
+     uml-remove-unused-fields-from-mm_context.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,105 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: SMP locking commentary
+Subject: uml: remove unused fields from mm_context
 From: Jeff Dike <jdike@addtoit.com>
 
-Add some more commentary about various pieces of global data not needing
-locking.
-
-Also got rid of unmap_physmem since that is no longer used.
+The 3-level page table fixes forgot to remove a couple now-unused fields from
+struct mm_context.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/net_kern.c |    7 ++++++-
- arch/um/include/mem_user.h |    1 -
- arch/um/kernel/mem.c       |   13 ++++++++-----
- arch/um/kernel/physmem.c   |    6 +++---
- 4 files changed, 17 insertions(+), 10 deletions(-)
+ arch/um/include/um_mmu.h |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN arch/um/drivers/net_kern.c~uml-smp-locking-commentary arch/um/drivers/net_kern.c
---- a/arch/um/drivers/net_kern.c~uml-smp-locking-commentary
-+++ a/arch/um/drivers/net_kern.c
-@@ -368,7 +368,6 @@ static struct platform_driver uml_net_dr
- 		.name  = DRIVER_NAME,
- 	},
- };
--static int driver_registered;
+diff -puN arch/um/include/um_mmu.h~uml-remove-unused-fields-from-mm_context arch/um/include/um_mmu.h
+--- a/arch/um/include/um_mmu.h~uml-remove-unused-fields-from-mm_context
++++ a/arch/um/include/um_mmu.h
+@@ -12,10 +12,6 @@
  
- static void net_device_release(struct device *dev)
- {
-@@ -383,6 +382,12 @@ static void net_device_release(struct de
- 	free_netdev(netdev);
- }
+ typedef struct mm_context {
+ 	struct mm_id id;
+-	unsigned long last_page_table;
+-#ifdef CONFIG_3_LEVEL_PGTABLES
+-	unsigned long last_pmd;
+-#endif
+ 	struct uml_ldt ldt;
+ } mm_context_t;
  
-+/*
-+ * Ensures that platform_driver_register is called only once by
-+ * eth_configure.  Will be set in an initcall.
-+ */
-+static int driver_registered;
-+
- static void eth_configure(int n, void *init, char *mac,
- 			  struct transport *transport)
- {
-diff -puN arch/um/include/mem_user.h~uml-smp-locking-commentary arch/um/include/mem_user.h
---- a/arch/um/include/mem_user.h~uml-smp-locking-commentary
-+++ a/arch/um/include/mem_user.h
-@@ -56,7 +56,6 @@ extern void setup_physmem(unsigned long 
- 			  unsigned long len, unsigned long long highmem);
- extern void add_iomem(char *name, int fd, unsigned long size);
- extern unsigned long phys_offset(unsigned long phys);
--extern void unmap_physmem(void);
- extern void map_memory(unsigned long virt, unsigned long phys,
- 		       unsigned long len, int r, int w, int x);
- 
-diff -puN arch/um/kernel/mem.c~uml-smp-locking-commentary arch/um/kernel/mem.c
---- a/arch/um/kernel/mem.c~uml-smp-locking-commentary
-+++ a/arch/um/kernel/mem.c
-@@ -22,17 +22,20 @@
- unsigned long *empty_zero_page = NULL;
- /* allocated in paging_init and unchanged thereafter */
- unsigned long *empty_bad_page = NULL;
-+
-+/*
-+ * Initialized during boot, and readonly for initializing page tables
-+ * afterwards
-+ */
- pgd_t swapper_pg_dir[PTRS_PER_PGD];
-+
-+/* Initialized at boot time, and readonly after that */
- unsigned long long highmem;
- int kmalloc_ok = 0;
- 
-+/* Used during early boot */
- static unsigned long brk_end;
- 
--void unmap_physmem(void)
--{
--	os_unmap_memory((void *) brk_end, uml_reserved - brk_end);
--}
--
- static void map_cb(void *unused)
- {
- 	map_memory(brk_end, __pa(brk_end), uml_reserved - brk_end, 1, 1, 0);
-diff -puN arch/um/kernel/physmem.c~uml-smp-locking-commentary arch/um/kernel/physmem.c
---- a/arch/um/kernel/physmem.c~uml-smp-locking-commentary
-+++ a/arch/um/kernel/physmem.c
-@@ -164,10 +164,10 @@ __uml_setup("iomem=", parse_iomem,
-  * setup_iomem, both of which run during early boot.  Afterwards, it's
-  * unchanged.
-  */
--struct iomem_region *iomem_regions = NULL;
-+struct iomem_region *iomem_regions;
- 
--/* Initialized in parse_iomem */
--int iomem_size = 0;
-+/* Initialized in parse_iomem and unchanged thereafter */
-+int iomem_size;
- 
- unsigned long find_iomem(char *driver, unsigned long *len_out)
- {
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
