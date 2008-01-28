@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slob-correct-kconfig-description.patch added to -mm tree
-Date: Sun, 27 Jan 2008 21:22:23 -0800
-Message-ID: <200801280523.m0S5NHuc013647@imap1.linux-foundation.org>
+Subject: + uml-add-newlines-to-printks.patch added to -mm tree
+Date: Sun, 27 Jan 2008 21:23:24 -0800
+Message-ID: <200801280524.m0S5OIiL013759@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53978 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47288 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751061AbYA1FXp (ORCPT
+	by vger.kernel.org with ESMTP id S1750798AbYA1FYY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 00:23:45 -0500
+	Mon, 28 Jan 2008 00:24:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mpm@selenic.com
+Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     slob: correct Kconfig description
+     uml: add newlines to printks
 has been added to the -mm tree.  Its filename is
-     slob-correct-kconfig-description.patch
+     uml-add-newlines-to-printks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,73 +34,130 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: slob: correct Kconfig description
-From: Matt Mackall <mpm@selenic.com>
+Subject: uml: add newlines to printks
+From: Jeff Dike <jdike@addtoit.com>
 
-Signed-off-by: Matt Mackall <mpm@selenic.com>
+Some printks were missing newlines.
+
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ arch/um/os-Linux/skas/process.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN init/Kconfig~slob-correct-kconfig-description init/Kconfig
---- a/init/Kconfig~slob-correct-kconfig-description
-+++ a/init/Kconfig
-@@ -656,11 +656,9 @@ config SLOB
- 	depends on EMBEDDED
- 	bool "SLOB (Simple Allocator)"
- 	help
--	   SLOB replaces the SLAB allocator with a drastically simpler
--	   allocator.  SLOB is more space efficient than SLAB but does not
--	   scale well (single lock for all operations) and is also highly
--	   susceptible to fragmentation. SLUB can accomplish a higher object
--	   density. It is usually better to use SLUB instead of SLOB.
-+	   SLOB replaces the stock allocator with a drastically simpler
-+	   allocator. SLOB is generally more space efficient but
-+	   does not perform as well on large systems.
+diff -puN arch/um/os-Linux/skas/process.c~uml-add-newlines-to-printks arch/um/os-Linux/skas/process.c
+--- a/arch/um/os-Linux/skas/process.c~uml-add-newlines-to-printks
++++ a/arch/um/os-Linux/skas/process.c
+@@ -273,7 +273,7 @@ int start_userspace(unsigned long stub_s
+ 	if (stack == MAP_FAILED) {
+ 		err = -errno;
+ 		printk(UM_KERN_ERR "start_userspace : mmap failed, "
+-		       "errno = %d", errno);
++		       "errno = %d\n", errno);
+ 		return err;
+ 	}
  
- endchoice
+@@ -289,7 +289,7 @@ int start_userspace(unsigned long stub_s
+ 	if (pid < 0) {
+ 		err = -errno;
+ 		printk(UM_KERN_ERR "start_userspace : clone failed, "
+-		       "errno = %d", errno);
++		       "errno = %d\n", errno);
+ 		return err;
+ 	}
+ 
+@@ -298,7 +298,7 @@ int start_userspace(unsigned long stub_s
+ 		if (n < 0) {
+ 			err = -errno;
+ 			printk(UM_KERN_ERR "start_userspace : wait failed, "
+-			       "errno = %d", errno);
++			       "errno = %d\n", errno);
+ 			goto out_kill;
+ 		}
+ 	} while (WIFSTOPPED(status) && (WSTOPSIG(status) == SIGVTALRM));
+@@ -306,7 +306,7 @@ int start_userspace(unsigned long stub_s
+ 	if (!WIFSTOPPED(status) || (WSTOPSIG(status) != SIGSTOP)) {
+ 		err = -EINVAL;
+ 		printk(UM_KERN_ERR "start_userspace : expected SIGSTOP, got "
+-		       "status = %d", status);
++		       "status = %d\n", status);
+ 		goto out_kill;
+ 	}
  
 _
 
-Patches currently in -mm which might be from mpm@selenic.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
+git-kvm.patch
 git-x86.patch
-maps4-add-proportional-set-size-accounting-in-smaps.patch
-maps4-rework-task_size-macros.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-move-is_swap_pte.patch
-maps4-introduce-a-generic-page-walker.patch
-maps4-use-pagewalker-in-clear_refs-and-smaps.patch
-maps4-simplify-interdependence-of-maps-and-smaps.patch
-maps4-move-clear_refs-code-to-task_mmuc.patch
-maps4-regroup-task_mmu-by-interface.patch
-maps4-add-proc-pid-pagemap-interface.patch
-maps4-add-proc-pid-pagemap-interface-fix.patch
-maps4-add-proc-kpagecount-interface.patch
-maps4-add-proc-kpagecount-interface-fix.patch
-maps4-add-proc-kpageflags-interface.patch
-maps4-add-proc-kpageflags-interface-fix.patch
-maps4-add-proc-kpageflags-interface-fix-2.patch
-maps4-add-proc-kpageflags-interface-fix-2-fix.patch
-maps4-make-page-monitoring-proc-file-optional.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-remove-unused-code-from-mm-tiny-shmemc.patch
-slob-fix-free-block-merging-at-head-of-subpage.patch
-slob-reduce-external-fragmentation-by-using-three-free-lists.patch
-slob-correct-kconfig-description.patch
-drivers-char-randomcwrite_pool-cond_resched-needed.patch
-random-clean-up-checkpatch-complaints.patch
-random-consolidate-wakeup-logic.patch
-random-use-unlocked_ioctl.patch
-random-reuse-rand_initialize.patch
-random-improve-variable-naming-clear-extract-buffer.patch
-random-make-backtracking-attacks-harder.patch
-random-remove-cacheline-alignment-for-locks.patch
-random-eliminate-redundant-new_rotate-variable.patch
-random-remove-some-prefetch-logic.patch
-random-simplify-add_ptr-logic.patch
-random-make-mixing-interface-byte-oriented.patch
-random-simplify-and-rename-credit_entropy_store.patch
+uml-arch-um-include-inith-needs-a-definition-of-__used.patch
+uml-implement-get_wchan.patch
+uml-implement-get_wchan-fix.patch
+uml-get-rid-of-asmlinkage.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-document-new-ubd-flag.patch
+uml-further-bugsc-tidying.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+uml-smp-needs-to-depend-on-broken-for-now.patch
+uml-console-driver-cleanups.patch
+uml-clonec-tidying.patch
+uml-borrow-consth-techniques.patch
+uml-delete-some-unused-headers.patch
+uml-allow-lflags-on-command-line.patch
+uml-tidy-kern_utilh.patch
+uml-tidy-pgtableh.patch
+uml-tidy-pgtableh-fix.patch
+uml-reconst-a-parameter.patch
+arch-um-remove-duplicate-includes.patch
+uml-host-tls-diagnostics.patch
+uml-move-um_virt_to_phys.patch
+uml-header-untangling.patch
+uml-header-untangling-fix.patch
+uml-style-cleanup.patch
+uml-currenth-cleanup.patch
+uml-fix-page-table-data-sizes.patch
+uml-add-virt_to_pte.patch
+uml-simplify-sigsegv-handling.patch
+uml-use-ptrace-directly-in-libc-code.patch
+uml-kill-processes-instead-of-panicing-kernel.patch
+uml-clean-up-task_size-usage.patch
+uml-cover-stubs-with-a-vma.patch
+uml-fix-command-line-cflags-and-ldflags-support.patch
+uml-style-fixes-in-arch-um-os-linux.patch
+uml-miscellaneous-code-cleanups.patch
+uml-style-fixes-in-filec.patch
+uml-64-bit-tlb-fixes.patch
+uml-customize-tlbh.patch
+uml-eliminate-setjmp_wrapper.patch
+uml-install-panic-notifier-earlier.patch
+uml-use-barrier-instead-of-mb.patch
+uml-tidy-helper-code.patch
+uml-dont-kill-pid-0.patch
+uml-get-rid-of-syscall-counters.patch
+uml-dont-allow-processes-to-call-into-stub.patch
+uml-move-sig_handler_common_skas.patch
+uml-clean-up-sig_handler_common_skas.patch
+uml-style-fixes-in-arch-um-kernel.patch
+uml-signal-handling-tidying.patch
+uml-remove-init_irq_signals.patch
+uml-smp-locking-commentary.patch
+uml-implement-o_append.patch
+uml-remove-fakehd.patch
+uml-debug_shirq-fixes.patch
+uml-add-back-config_hz.patch
+uml-style-fixes-in-arch-um-sys-x86_64.patch
+uml-add-newlines-to-printks.patch
+uml-move-register-initialization.patch
+uml-remove-unused-fields-from-mm_context.patch
+uml-remove-map_cb.patch
+uml-use-of-a-public-mac-is-a-warning-not-an-error.patch
+uml-defconfig-tweaks.patch
+fix-__const_udelay-declaration-and-definition-mismatches.patch
+create-arch-kconfig.patch
+add-have_oprofile.patch
+add-have_kprobes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
 random-add-async-notification-support-to-dev-random.patch
