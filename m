@@ -1,122 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: - pata_mpc52xx-remove-un-needed-assignment.patch removed from -mm tree
-Date: Mon, 28 Jan 2008 17:49:00 -0800
-Message-ID: <200801290149.m0T1n0HS027387@imap1.linux-foundation.org>
+Subject: - b44-power-down-phy-when-interface-down.patch removed from -mm tree
+Date: Mon, 28 Jan 2008 17:49:58 -0800
+Message-ID: <200801290149.m0T1nw1F027535@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40021 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45737 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756182AbYA2CAL (ORCPT
+	by vger.kernel.org with ESMTP id S1756417AbYA2CAN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 21:00:11 -0500
+	Mon, 28 Jan 2008 21:00:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: mboton@gmail.com, linville@tuxdriver.com, mb@bu3sch.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_mpc52xx: remove un-needed assignment
+     b44: power down PHY when interface down
 has been removed from the -mm tree.  Its filename was
-     pata_mpc52xx-remove-un-needed-assignment.patch
+     b44-power-down-phy-when-interface-down.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pata_mpc52xx: remove un-needed assignment
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: b44: power down PHY when interface down
+From: Miguel Boton <mboton@gmail.com>
 
-ata_irq is always assigned so does not need to be initialised to zero.
+This is just this patch (http://lkml.org/lkml/2007/7/1/51) but adapted
+to the 'b44' ssb driver.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
+Signed-off-by: Miguel Boton <mboton@gmail.com>
+Cc: Michael Buesch <mb@bu3sch.de>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_mpc52xx.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/b44.c |   28 +++++++++++++++++++++++-----
+ 1 file changed, 23 insertions(+), 5 deletions(-)
 
-diff -puN drivers/ata/pata_mpc52xx.c~pata_mpc52xx-remove-un-needed-assignment drivers/ata/pata_mpc52xx.c
---- a/drivers/ata/pata_mpc52xx.c~pata_mpc52xx-remove-un-needed-assignment
-+++ a/drivers/ata/pata_mpc52xx.c
-@@ -364,7 +364,7 @@ mpc52xx_ata_probe(struct of_device *op, 
+diff -puN drivers/net/b44.c~b44-power-down-phy-when-interface-down drivers/net/b44.c
+--- a/drivers/net/b44.c~b44-power-down-phy-when-interface-down
++++ a/drivers/net/b44.c
+@@ -128,6 +128,8 @@ static void b44_init_rings(struct b44 *)
+ #define B44_FULL_RESET		1
+ #define B44_FULL_RESET_SKIP_PHY	2
+ #define B44_PARTIAL_RESET	3
++#define B44_CHIP_RESET_FULL	4
++#define B44_CHIP_RESET_PARTIAL	5
+ 
+ static void b44_init_hw(struct b44 *, int);
+ 
+@@ -1259,7 +1261,7 @@ static void b44_clear_stats(struct b44 *
+ }
+ 
+ /* bp->lock is held. */
+-static void b44_chip_reset(struct b44 *bp)
++static void b44_chip_reset(struct b44 *bp, int reset_kind)
  {
- 	unsigned int ipb_freq;
- 	struct resource res_mem;
--	int ata_irq = NO_IRQ;
-+	int ata_irq;
- 	struct mpc52xx_ata __iomem *ata_regs;
- 	struct mpc52xx_ata_priv *priv;
- 	int rv;
+ 	struct ssb_device *sdev = bp->sdev;
+ 
+@@ -1281,6 +1283,13 @@ static void b44_chip_reset(struct b44 *b
+ 	ssb_device_enable(bp->sdev, 0);
+ 	b44_clear_stats(bp);
+ 
++	/*
++	 * Don't enable PHY if we are doing a partial reset
++	 * we are probably going to power down
++	 */
++	if (reset_kind == B44_CHIP_RESET_PARTIAL)
++		return;
++
+ 	switch (sdev->bus->bustype) {
+ 	case SSB_BUSTYPE_SSB:
+ 		bw32(bp, B44_MDIO_CTRL, (MDIO_CTRL_PREAMBLE |
+@@ -1316,7 +1325,14 @@ static void b44_chip_reset(struct b44 *b
+ static void b44_halt(struct b44 *bp)
+ {
+ 	b44_disable_ints(bp);
+-	b44_chip_reset(bp);
++	/* reset PHY */
++	b44_phy_reset(bp);
++	/* power down PHY */
++	printk(KERN_INFO PFX "%s: powering down PHY\n", bp->dev->name);
++	bw32(bp, B44_MAC_CTRL, MAC_CTRL_PHY_PDOWN);
++	/* now reset the chip, but without enabling the MAC&PHY
++	 * part of it. This has to be done _after_ we shut down the PHY */
++	b44_chip_reset(bp, B44_CHIP_RESET_PARTIAL);
+ }
+ 
+ /* bp->lock is held. */
+@@ -1365,7 +1381,7 @@ static void b44_init_hw(struct b44 *bp, 
+ {
+ 	u32 val;
+ 
+-	b44_chip_reset(bp);
++	b44_chip_reset(bp, B44_CHIP_RESET_FULL);
+ 	if (reset_kind == B44_FULL_RESET) {
+ 		b44_phy_reset(bp);
+ 		b44_setup_phy(bp);
+@@ -1422,7 +1438,7 @@ static int b44_open(struct net_device *d
+ 	err = request_irq(dev->irq, b44_interrupt, IRQF_SHARED, dev->name, dev);
+ 	if (unlikely(err < 0)) {
+ 		napi_disable(&bp->napi);
+-		b44_chip_reset(bp);
++		b44_chip_reset(bp, B44_CHIP_RESET_PARTIAL);
+ 		b44_free_rings(bp);
+ 		b44_free_consistent(bp);
+ 		goto out;
+@@ -2188,7 +2204,7 @@ static int __devinit b44_init_one(struct
+ 	/* Chip reset provides power to the b44 MAC & PCI cores, which
+ 	 * is necessary for MAC register access.
+ 	 */
+-	b44_chip_reset(bp);
++	b44_chip_reset(bp, B44_CHIP_RESET_FULL);
+ 
+ 	printk(KERN_INFO "%s: Broadcom 44xx/47xx 10/100BaseT Ethernet %s\n",
+ 	       dev->name, print_mac(mac, dev->dev_addr));
+@@ -2212,6 +2228,7 @@ static void __devexit b44_remove_one(str
+ 	unregister_netdev(dev);
+ 	ssb_bus_may_powerdown(sdev->bus);
+ 	free_netdev(dev);
++	ssb_pcihost_set_power_state(sdev, PCI_D3hot);
+ 	ssb_set_drvdata(sdev, NULL);
+ }
+ 
+@@ -2240,6 +2257,7 @@ static int b44_suspend(struct ssb_device
+ 		b44_setup_wol(bp);
+ 	}
+ 
++	ssb_pcihost_set_power_state(sdev, PCI_D3hot);
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from mboton@gmail.com are
 
-origin.patch
-keyspan-fix-oops.patch
-git-arm.patch
-pata_pdc202xx_old-fix-crashes-with-atapi.patch
+acpi-remove-duplicated-warning-message.patch
+git-alsa.patch
+memstick-initial-commit-for-sony-memorystick-support-fix.patch
 git-net.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-hci_ldisc-fix-null-pointer-deref.patch
-parisc-new-termios-definitions.patch
-pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch
-pcmcia-replace-kio_addr_t-with-unsigned-int-everywhere.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-8250c-support-specifying-dw-apb-uarts-in-device-platform_data.patch
-avoid-waking-up-closed-serial-ports-on-resume.patch
-serial-avoid-stalling-suspend-if-serial-port-wont-drain.patch
-serial-speed-setup-failure-reporting.patch
-serial-coding-style.patch
-sh-termios-ioctl-definitions.patch
-git-watchdog.patch
 git-x86.patch
-geode-lists-are-subscriber-only.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
-sc26xx-new-serial-driver-for-sc2681-uarts.patch
-sc26xx-new-serial-driver-for-sc2681-uarts-update.patch
-documentation-about-unaligned-memory-access.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
-fix-ixany-and-restart-after-signal-eg-ctrl-c-in-n_tty-line-discipline.patch
-fix-ixany-and-restart-after-signal-eg-ctrl-c-in-n_tty-line-discipline-update.patch
-tty-kill-tty_flipbuf_size.patch
-drivers-edac-turnon-edac-device-error-logging.patch
-drivers-edac-use-round_jiffies_relative.patch
-drivers-edac-add-cell-xdr-memory-types.patch
-drivers-edac-add-cell-mc-driver.patch
-drivers-edac-i3000-code-tidying.patch
-drivers-edac-i3000-replace-macros-with-functions.patch
-drivers-edac-add-freescale-mpc85xx-driver.patch
-drivers-edac-add-marvell-mv64x60-driver.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-dz-clean-up-and-improve-the-setup-of-termios-settings.patch
-char-rocket-switch-long-delay-to-sleep.patch
-char-rocket-printk-cleanup.patch
-char-char-serial-remove-serial_type_normal-redefines.patch
-char-mxser_new-ioaddresses-are-ulong.patch
-char-stallion-fix-compiler-warnings.patch
-char-riscom8-change-rc_init_drivers-prototype.patch
-mxser-mxser_new-first-pass-over-termios-reporting-for-the.patch
-char-mxser-ioctl-cleanup.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
-tty-s390-support-for-termios2.patch
-moxa-first-pass-at-termios-reporting.patch
-n_tty-clean-up-old-code-to-follow-coding-style-and-mostly-checkpatch.patch
-rocket-first-pass-at-termios-reporting.patch
-rocket-dont-let-random-users-reset-the-controller.patch
-tty_audit-fix-checkpatch-complaint.patch
-tty_io-drag-screaming-into-coding-style-compliance.patch
-tty_ioctl-drag-screaming-into-compliance-with-the-coding.patch
-8250_early-coding-style.patch
-8250_gsc-coding-style.patch
-8250_hp300-coding-style.patch
-8250_hub6-codding-style.patch
-8250_pci-coding-style.patch
-serial8250-coding-style.patch
-8250-enable-rate-reporting-via-termios.patch
-serial_core-bring-mostly-into-line-with-coding-style.patch
-smbios-dmi-add-type-41-=-onboard-devices-extended-information.patch
