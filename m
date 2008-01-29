@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mount-options-fix-hpfs.patch added to -mm tree
-Date: Tue, 29 Jan 2008 15:22:41 -0800
-Message-ID: <200801292322.m0TNMfbw009716@imap1.linux-foundation.org>
+Subject: + mount-options-fix-hugetlbfs.patch added to -mm tree
+Date: Tue, 29 Jan 2008 15:22:43 -0800
+Message-ID: <200801292322.m0TNMho7009722@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41203 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40978 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754928AbYA2XW5 (ORCPT
+	by vger.kernel.org with ESMTP id S1755128AbYA2XXD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jan 2008 18:22:57 -0500
+	Tue, 29 Jan 2008 18:23:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, mikulas@artax.karlin.mff.cuni.cz
+Cc: mszeredi@suse.cz, agl@us.ibm.com, david@gibson.dropbear.id.au, kenchen@google.com, pbadari@us.ibm.com, wli@holomorphy.com
 
 
 The patch titled
-     mount options: fix hpfs
+     mount options: fix hugetlbfs
 has been added to the -mm tree.  Its filename is
-     mount-options-fix-hpfs.patch
+     mount-options-fix-hugetlbfs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,87 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mount options: fix hpfs
+Subject: mount options: fix hugetlbfs
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Add a .show_options super operation to hpfs.
+Add a .show_options super operation to hugetlbfs.
 
 Use generic_show_options() and save the complete option string in
-hpfs_fill_super() and hpfs_remount_fs().
-
-Also add a small fix: hpfs_remount_fs() should return -EINVAL on
-error, instead of 1, which is not an error value.
+hugetlbfs_fill_super().
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Ken Chen <kenchen@google.com>
+Cc: William Lee Irwin III <wli@holomorphy.com>
+Cc: David Gibson <david@gibson.dropbear.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hpfs/super.c |   17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ fs/hugetlbfs/inode.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN fs/hpfs/super.c~mount-options-fix-hpfs fs/hpfs/super.c
---- a/fs/hpfs/super.c~mount-options-fix-hpfs
-+++ a/fs/hpfs/super.c
-@@ -386,6 +386,7 @@ static int hpfs_remount_fs(struct super_
- 	int lowercase, conv, eas, chk, errs, chkdsk, timeshift;
- 	int o;
- 	struct hpfs_sb_info *sbi = hpfs_sb(s);
-+	char *new_opts = kstrdup(data, GFP_KERNEL);
- 	
- 	*flags |= MS_NOATIME;
- 	
-@@ -398,15 +399,15 @@ static int hpfs_remount_fs(struct super_
- 	if (!(o = parse_opts(data, &uid, &gid, &umask, &lowercase, &conv,
- 	    &eas, &chk, &errs, &chkdsk, &timeshift))) {
- 		printk("HPFS: bad mount options.\n");
--	    	return 1;
-+		goto out_err;
- 	}
- 	if (o == 2) {
- 		hpfs_help();
--		return 1;
-+		goto out_err;
- 	}
- 	if (timeshift != sbi->sb_timeshift) {
- 		printk("HPFS: timeshift can't be changed using remount.\n");
--		return 1;
-+		goto out_err;
- 	}
- 
- 	unmark_dirty(s);
-@@ -419,7 +420,14 @@ static int hpfs_remount_fs(struct super_
- 
- 	if (!(*flags & MS_RDONLY)) mark_dirty(s);
- 
-+	kfree(s->s_options);
-+	s->s_options = new_opts;
-+
- 	return 0;
-+
-+out_err:
-+	kfree(new_opts);
-+	return -EINVAL;
- }
- 
- /* Super operations */
-@@ -432,6 +440,7 @@ static const struct super_operations hpf
- 	.put_super	= hpfs_put_super,
- 	.statfs		= hpfs_statfs,
- 	.remount_fs	= hpfs_remount_fs,
+diff -puN fs/hugetlbfs/inode.c~mount-options-fix-hugetlbfs fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~mount-options-fix-hugetlbfs
++++ a/fs/hugetlbfs/inode.c
+@@ -734,6 +734,7 @@ static const struct super_operations hug
+ 	.delete_inode	= hugetlbfs_delete_inode,
+ 	.drop_inode	= hugetlbfs_drop_inode,
+ 	.put_super	= hugetlbfs_put_super,
 +	.show_options	= generic_show_options,
  };
  
- static int hpfs_fill_super(struct super_block *s, void *options, int silent)
-@@ -454,6 +463,8 @@ static int hpfs_fill_super(struct super_
+ static int
+@@ -817,6 +818,8 @@ hugetlbfs_fill_super(struct super_block 
+ 	struct hugetlbfs_config config;
+ 	struct hugetlbfs_sb_info *sbinfo;
  
- 	int o;
- 
-+	save_mount_options(s, options);
++	save_mount_options(sb, data);
 +
- 	sbi = kzalloc(sizeof(*sbi), GFP_KERNEL);
- 	if (!sbi)
- 		return -ENOMEM;
+ 	config.nr_blocks = -1; /* No limit on size by default */
+ 	config.nr_inodes = -1; /* No limit on number of inodes by default */
+ 	config.uid = current->fsuid;
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
