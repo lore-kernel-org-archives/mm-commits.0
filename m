@@ -1,82 +1,304 @@
 From: akpm@linux-foundation.org
-Subject: - x86-fix-early-cpu_to_node-panic-from-nr_free_zone_pages.patch removed from -mm tree
-Date: Mon, 28 Jan 2008 17:50:09 -0800
-Message-ID: <200801290150.m0T1o9iV027553@imap1.linux-foundation.org>
+Subject: - usb-dma-bounce-buffer-support-v3.patch removed from -mm tree
+Date: Mon, 28 Jan 2008 17:49:31 -0800
+Message-ID: <200801290149.m0T1nVnp027511@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42888 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53805 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756111AbYA2B7b (ORCPT
+	by vger.kernel.org with ESMTP id S1756153AbYA2B7d (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 20:59:31 -0500
+	Mon, 28 Jan 2008 20:59:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: travis@sgi.com, ak@suse.de, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: magnus.damm@gmail.com, damm@igel.co.jp, dbrownell@users.sourceforge.net, greg@kroah.com, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: fix early cpu_to_node panic from nr_free_zone_pages
+     usb: dma bounce buffer support
 has been removed from the -mm tree.  Its filename was
-     x86-fix-early-cpu_to_node-panic-from-nr_free_zone_pages.patch
+     usb-dma-bounce-buffer-support-v3.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: fix early cpu_to_node panic from nr_free_zone_pages
-From: Mike Travis <travis@sgi.com>
+Subject: usb: dma bounce buffer support
+From: Magnus Damm <magnus.damm@gmail.com>
 
-An early call to nr_free_zone_pages() calls numa_node_id() which needs to
-call early_cpu_to_node() since per_cpu(cpu_to_node_map) might not be setup
-yet.
+The sm501 usb host controller is a regular ohci implementation but with the
+exception that it can only do dma to a certain area of memory.  This memory is
+sm501 specific and the mfd driver for sm501 currently divides this memory
+between the framebuffer and the usb host controller.
 
-I also had to export x86_cpu_to_node_map_early_ptr because of some calls
-from the network code to numa_node_id():
+To support the sm501 usb host controller we need to allocate all usb data from
+this sm501 memory.  The function dma_declare_coherent_memory() helps us with
+that - all dma_alloc_coherent() calls will end up allocating such memory.
 
-	net/ipv4/netfilter/arp_tables.c:
-	net/ipv4/netfilter/ip_tables.c:
-	net/ipv4/netfilter/ip_tables.c:
+The USB core does however allocate data using kmalloc, so to fully support
+such a behaviour we need dma bounce buffer support.  These bounce buffers can
+be requested using the flag HCD_LOCAL_MEM.
 
-Signed-off-by: Mike Travis <travis@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <ak@suse.de>
+
+This patch:
+
+Add dma bounce buffer support to the usb core.  These buffers can be
+enabled with the HCD_LOCAL_MEM flag, and they make sure that all data
+passed to the host controller is allocated using dma_alloc_coherent().
+
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+Acked-by: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/numa_64.c      |    2 --
- include/asm-x86/topology.h |    2 ++
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/usb/core/buffer.c |    9 +-
+ drivers/usb/core/hcd.c    |  134 ++++++++++++++++++++++++++++++------
+ drivers/usb/core/hcd.h    |    1 
+ 3 files changed, 122 insertions(+), 22 deletions(-)
 
-diff -puN arch/x86/mm/numa_64.c~x86-fix-early-cpu_to_node-panic-from-nr_free_zone_pages arch/x86/mm/numa_64.c
---- a/arch/x86/mm/numa_64.c~x86-fix-early-cpu_to_node-panic-from-nr_free_zone_pages
-+++ a/arch/x86/mm/numa_64.c
-@@ -37,9 +37,7 @@ u16 x86_cpu_to_node_map_init[NR_CPUS] = 
- void *x86_cpu_to_node_map_early_ptr;
- DEFINE_PER_CPU(u16, x86_cpu_to_node_map) = NUMA_NO_NODE;
- EXPORT_PER_CPU_SYMBOL(x86_cpu_to_node_map);
--#ifdef	CONFIG_DEBUG_PER_CPU_MAPS
- EXPORT_SYMBOL(x86_cpu_to_node_map_early_ptr);
--#endif
+diff -puN drivers/usb/core/buffer.c~usb-dma-bounce-buffer-support-v3 drivers/usb/core/buffer.c
+--- a/drivers/usb/core/buffer.c~usb-dma-bounce-buffer-support-v3
++++ a/drivers/usb/core/buffer.c
+@@ -53,7 +53,8 @@ int hcd_buffer_create(struct usb_hcd *hc
+ 	char		name[16];
+ 	int 		i, size;
  
- u16 apicid_to_node[MAX_LOCAL_APIC] __cpuinitdata = {
- 	[0 ... MAX_LOCAL_APIC-1] = NUMA_NO_NODE
-diff -puN include/asm-x86/topology.h~x86-fix-early-cpu_to_node-panic-from-nr_free_zone_pages include/asm-x86/topology.h
---- a/include/asm-x86/topology.h~x86-fix-early-cpu_to_node-panic-from-nr_free_zone_pages
-+++ a/include/asm-x86/topology.h
-@@ -37,6 +37,8 @@ extern u8 cpu_to_node_map[];
- DECLARE_PER_CPU(u16, x86_cpu_to_node_map);
- extern u16 x86_cpu_to_node_map_init[];
- extern void *x86_cpu_to_node_map_early_ptr;
-+/* Returns the number of the current Node. */
-+#define numa_node_id()		(early_cpu_to_node(raw_smp_processor_id()))
- #endif
+-	if (!hcd->self.controller->dma_mask)
++	if (!hcd->self.controller->dma_mask &&
++	    !(hcd->driver->flags & HCD_LOCAL_MEM))
+ 		return 0;
  
- extern cpumask_t node_to_cpumask_map[];
+ 	for (i = 0; i < HCD_BUFFER_POOLS; i++) { 
+@@ -107,7 +108,8 @@ void *hcd_buffer_alloc(
+ 	int 			i;
+ 
+ 	/* some USB hosts just use PIO */
+-	if (!bus->controller->dma_mask) {
++	if (!bus->controller->dma_mask &&
++	    !(hcd->driver->flags & HCD_LOCAL_MEM)) {
+ 		*dma = ~(dma_addr_t) 0;
+ 		return kmalloc(size, mem_flags);
+ 	}
+@@ -132,7 +134,8 @@ void hcd_buffer_free(
+ 	if (!addr)
+ 		return;
+ 
+-	if (!bus->controller->dma_mask) {
++	if (!bus->controller->dma_mask &&
++	    !(hcd->driver->flags & HCD_LOCAL_MEM)) {
+ 		kfree(addr);
+ 		return;
+ 	}
+diff -puN drivers/usb/core/hcd.c~usb-dma-bounce-buffer-support-v3 drivers/usb/core/hcd.c
+--- a/drivers/usb/core/hcd.c~usb-dma-bounce-buffer-support-v3
++++ a/drivers/usb/core/hcd.c
+@@ -35,6 +35,7 @@
+ #include <linux/mutex.h>
+ #include <asm/irq.h>
+ #include <asm/byteorder.h>
++#include <asm/unaligned.h>
+ #include <linux/platform_device.h>
+ #include <linux/workqueue.h>
+ 
+@@ -1112,48 +1113,137 @@ void usb_hcd_unlink_urb_from_ep(struct u
+ }
+ EXPORT_SYMBOL_GPL(usb_hcd_unlink_urb_from_ep);
+ 
+-static void map_urb_for_dma(struct usb_hcd *hcd, struct urb *urb)
++static int hcd_alloc_coherent(struct usb_bus *bus,
++			      gfp_t mem_flags, dma_addr_t *dma_handle,
++			      void **vaddr_handle, size_t size,
++			      enum dma_data_direction dir)
+ {
++	unsigned char *vaddr;
++
++	vaddr = hcd_buffer_alloc(bus, size + sizeof(vaddr),
++				 mem_flags, dma_handle);
++	if (!vaddr)
++		return -ENOMEM;
++
++	put_unaligned((unsigned long)*vaddr_handle,
++		      (unsigned long *)(vaddr + size));
++
++	if (dir == DMA_TO_DEVICE)
++		memcpy(vaddr, *vaddr_handle, size);
++
++	*vaddr_handle = vaddr;
++	return 0;
++}
++
++static void hcd_free_coherent(struct usb_bus *bus, dma_addr_t *dma_handle,
++			      void **vaddr_handle, size_t size,
++			      enum dma_data_direction dir)
++{
++	unsigned char *vaddr = *vaddr_handle;
++
++	vaddr = (void *)get_unaligned((unsigned long *)(vaddr + size));
++
++	if (dir == DMA_FROM_DEVICE)
++		memcpy(vaddr, *vaddr_handle, size);
++
++	hcd_buffer_free(bus, size + sizeof(vaddr), *vaddr_handle, *dma_handle);
++
++	*vaddr_handle = vaddr;
++	*dma_handle = 0;
++}
++
++static int map_urb_for_dma(struct usb_hcd *hcd, struct urb *urb,
++			   gfp_t mem_flags)
++{
++	enum dma_data_direction dir;
++	int ret = 0;
++
+ 	/* Map the URB's buffers for DMA access.
+ 	 * Lower level HCD code should use *_dma exclusively,
+ 	 * unless it uses pio or talks to another transport.
+ 	 */
+-	if (hcd->self.uses_dma && !is_root_hub(urb->dev)) {
+-		if (usb_endpoint_xfer_control(&urb->ep->desc)
+-			&& !(urb->transfer_flags & URB_NO_SETUP_DMA_MAP))
+-			urb->setup_dma = dma_map_single (
++	if (is_root_hub(urb->dev))
++		return 0;
++
++	if (usb_endpoint_xfer_control(&urb->ep->desc)
++	    && !(urb->transfer_flags & URB_NO_SETUP_DMA_MAP)) {
++		if (hcd->self.uses_dma)
++			urb->setup_dma = dma_map_single(
+ 					hcd->self.controller,
+ 					urb->setup_packet,
+ 					sizeof (struct usb_ctrlrequest),
+ 					DMA_TO_DEVICE);
+-		if (urb->transfer_buffer_length != 0
+-			&& !(urb->transfer_flags & URB_NO_TRANSFER_DMA_MAP))
++		else if (hcd->driver->flags & HCD_LOCAL_MEM)
++			ret = hcd_alloc_coherent(
++					urb->dev->bus, mem_flags,
++					&urb->setup_dma,
++					(void **)&urb->setup_packet,
++					sizeof (struct usb_ctrlrequest),
++					DMA_TO_DEVICE);
++	}
++
++	dir = usb_urb_dir_in(urb) ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
++	if (ret == 0 && urb->transfer_buffer_length != 0
++	    && !(urb->transfer_flags & URB_NO_TRANSFER_DMA_MAP)) {
++		if (hcd->self.uses_dma)
+ 			urb->transfer_dma = dma_map_single (
+ 					hcd->self.controller,
+ 					urb->transfer_buffer,
+ 					urb->transfer_buffer_length,
+-					usb_urb_dir_in(urb)
+-					    ? DMA_FROM_DEVICE
+-					    : DMA_TO_DEVICE);
++					dir);
++		else if (hcd->driver->flags & HCD_LOCAL_MEM) {
++			ret = hcd_alloc_coherent(
++					urb->dev->bus, mem_flags,
++					&urb->transfer_dma,
++					&urb->transfer_buffer,
++					urb->transfer_buffer_length,
++					dir);
++
++			if (ret && usb_endpoint_xfer_control(&urb->ep->desc)
++			    && !(urb->transfer_flags & URB_NO_SETUP_DMA_MAP))
++				hcd_free_coherent(urb->dev->bus,
++					&urb->setup_dma,
++					(void **)&urb->setup_packet,
++					sizeof (struct usb_ctrlrequest),
++					DMA_TO_DEVICE);
++		}
+ 	}
++	return ret;
+ }
+ 
+ static void unmap_urb_for_dma(struct usb_hcd *hcd, struct urb *urb)
+ {
+-	if (hcd->self.uses_dma && !is_root_hub(urb->dev)) {
+-		if (usb_endpoint_xfer_control(&urb->ep->desc)
+-			&& !(urb->transfer_flags & URB_NO_SETUP_DMA_MAP))
++	enum dma_data_direction dir;
++
++	if (is_root_hub(urb->dev))
++		return;
++
++	if (usb_endpoint_xfer_control(&urb->ep->desc)
++	    && !(urb->transfer_flags & URB_NO_SETUP_DMA_MAP)) {
++		if (hcd->self.uses_dma)
+ 			dma_unmap_single(hcd->self.controller, urb->setup_dma,
+ 					sizeof(struct usb_ctrlrequest),
+ 					DMA_TO_DEVICE);
+-		if (urb->transfer_buffer_length != 0
+-			&& !(urb->transfer_flags & URB_NO_TRANSFER_DMA_MAP))
++		else if (hcd->driver->flags & HCD_LOCAL_MEM)
++			hcd_free_coherent(urb->dev->bus, &urb->setup_dma,
++					(void **)&urb->setup_packet,
++					sizeof (struct usb_ctrlrequest),
++					DMA_TO_DEVICE);
++	}
++
++	dir = usb_urb_dir_in(urb) ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
++	if (urb->transfer_buffer_length != 0
++	    && !(urb->transfer_flags & URB_NO_TRANSFER_DMA_MAP)) {
++		if (hcd->self.uses_dma)
+ 			dma_unmap_single(hcd->self.controller,
+ 					urb->transfer_dma,
+ 					urb->transfer_buffer_length,
+-					usb_urb_dir_in(urb)
+-					    ? DMA_FROM_DEVICE
+-					    : DMA_TO_DEVICE);
++					dir);
++		else if (hcd->driver->flags & HCD_LOCAL_MEM)
++			hcd_free_coherent(urb->dev->bus, &urb->transfer_dma,
++					&urb->transfer_buffer,
++					urb->transfer_buffer_length,
++					dir);
+ 	}
+ }
+ 
+@@ -1185,7 +1275,12 @@ int usb_hcd_submit_urb (struct urb *urb,
+ 	 * URBs must be submitted in process context with interrupts
+ 	 * enabled.
+ 	 */
+-	map_urb_for_dma(hcd, urb);
++	status = map_urb_for_dma(hcd, urb, mem_flags);
++	if (unlikely(status)) {
++		usbmon_urb_submit_error(&hcd->self, urb, status);
++		goto error;
++	}
++
+ 	if (is_root_hub(urb->dev))
+ 		status = rh_urb_enqueue(hcd, urb);
+ 	else
+@@ -1194,6 +1289,7 @@ int usb_hcd_submit_urb (struct urb *urb,
+ 	if (unlikely(status)) {
+ 		usbmon_urb_submit_error(&hcd->self, urb, status);
+ 		unmap_urb_for_dma(hcd, urb);
++ error:
+ 		urb->hcpriv = NULL;
+ 		INIT_LIST_HEAD(&urb->urb_list);
+ 		atomic_dec(&urb->use_count);
+diff -puN drivers/usb/core/hcd.h~usb-dma-bounce-buffer-support-v3 drivers/usb/core/hcd.h
+--- a/drivers/usb/core/hcd.h~usb-dma-bounce-buffer-support-v3
++++ a/drivers/usb/core/hcd.h
+@@ -165,6 +165,7 @@ struct hc_driver {
+ 
+ 	int	flags;
+ #define	HCD_MEMORY	0x0001		/* HC regs use memory (else I/O) */
++#define	HCD_LOCAL_MEM	0x0002		/* HC needs dma_alloc_coherent() */
+ #define	HCD_USB11	0x0010		/* USB 1.1 */
+ #define	HCD_USB2	0x0020		/* USB 2.0 */
+ 
 _
 
-Patches currently in -mm which might be from travis@sgi.com are
+Patches currently in -mm which might be from magnus.damm@gmail.com are
 
-git-x86.patch
-vmstat-remove-prefetch.patch
+git-sh.patch
+usb-ohci-sm501-driver-v2-fix.patch
+spi-superh-spi-using-sci.patch
+rtc-add-support-for-epson-rtc-9701je-v2.patch
+rtc-add-support-for-epson-rtc-9701je-v4.patch
+sm501fb-control-panel-pin-usage-with-platform-data-flags.patch
+sm501fb-clear-framebuffer-memory-and-palette.patch
