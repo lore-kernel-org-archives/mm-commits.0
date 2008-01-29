@@ -1,78 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - i915-fix-invalid-opcode-exception-on-cpus-without-clflush.patch removed from -mm tree
-Date: Mon, 28 Jan 2008 17:48:35 -0800
-Message-ID: <200801290148.m0T1marc027363@imap1.linux-foundation.org>
+Subject: - powerpc-add-fixed-phy-support-for-fs_enet.patch removed from -mm tree
+Date: Mon, 28 Jan 2008 17:48:26 -0800
+Message-ID: <200801290148.m0T1mQN8027350@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55792 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40529 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756156AbYA2B7m (ORCPT
+	by vger.kernel.org with ESMTP id S1756173AbYA2B7f (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 20:59:42 -0500
+	Mon, 28 Jan 2008 20:59:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kyle@mcmartin.ca, airlied@linux.ie, hpa@zytor.com, kmcmartin@redhat.com, mm-commits@vger.kernel.org
+To: jochen@scram.de, benh@kernel.crashing.org, jeff@garzik.org, paulus@samba.org, vitb@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i915: fix invalid opcode exception on cpus without clflush
+     powerpc: add fixed-phy support for fs_enet
 has been removed from the -mm tree.  Its filename was
-     i915-fix-invalid-opcode-exception-on-cpus-without-clflush.patch
+     powerpc-add-fixed-phy-support-for-fs_enet.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i915: fix invalid opcode exception on cpus without clflush
-From: Kyle McMartin <kyle@mcmartin.ca>
+Subject: powerpc: add fixed-phy support for fs_enet
+From: Jochen Friedrich <jochen@scram.de>
 
-i915_flush_ttm was unconditionally executing a clflush instruction to
-(obviously) flush the cache.  Instead, check if the cpu supports clflush,
-and if not, fall back to calling wbinvd to flush the entire cache.
+Add support to use the fixed-link property of an ethernet node to fs_enet
+for the CONFIG_PPC_CPM_NEW_BINDING case.
 
-Signed-off-by: Kyle McMartin <kmcmartin@redhat.com>
-Cc: Dave Airlie <airlied@linux.ie>
+Signed-off-by: Jochen Friedrich <jochen@scram.de>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Acked-by: Vitaly Bordug <vitb@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/i915_buffer.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/net/fs_enet/fs_enet-main.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/drm/i915_buffer.c~i915-fix-invalid-opcode-exception-on-cpus-without-clflush drivers/char/drm/i915_buffer.c
---- a/drivers/char/drm/i915_buffer.c~i915-fix-invalid-opcode-exception-on-cpus-without-clflush
-+++ a/drivers/char/drm/i915_buffer.c
-@@ -169,7 +169,18 @@ void i915_flush_ttm(struct drm_ttm *ttm)
- 		return;
- 
- 	DRM_MEMORYBARRIER();
+diff -puN drivers/net/fs_enet/fs_enet-main.c~powerpc-add-fixed-phy-support-for-fs_enet drivers/net/fs_enet/fs_enet-main.c
+--- a/drivers/net/fs_enet/fs_enet-main.c~powerpc-add-fixed-phy-support-for-fs_enet
++++ a/drivers/net/fs_enet/fs_enet-main.c
+@@ -1178,8 +1178,15 @@ static int __devinit find_phy(struct dev
+ 	struct device_node *phynode, *mdionode;
+ 	struct resource res;
+ 	int ret = 0, len;
++	const u32 *data;
 +
-+#ifdef CONFIG_X86_32
-+	/* Hopefully nobody has built an x86-64 processor without clflush */
-+	if (!cpu_has_clflush) {
-+		wbinvd();
-+		DRM_MEMORYBARRIER();
-+		return;
++	data  = of_get_property(np, "fixed-link", NULL);
++	if (data) {
++		snprintf(fpi->bus_id, 16, PHY_ID_FMT, 0, *data);
++		return 0;
 +	}
-+#endif
-+
- 	for (i = ttm->num_pages - 1; i >= 0; i--)
- 		drm_cache_flush_page(drm_ttm_get_page(ttm, i));
-+
- 	DRM_MEMORYBARRIER();
- }
+ 
+-	const u32 *data = of_get_property(np, "phy-handle", &len);
++	data = of_get_property(np, "phy-handle", &len);
+ 	if (!data || len != 4)
+ 		return -EINVAL;
+ 
 _
 
-Patches currently in -mm which might be from kyle@mcmartin.ca are
+Patches currently in -mm which might be from jochen@scram.de are
 
-git-drm.patch
-git-kbuild.patch
-parisc-new-termios-definitions.patch
-kill-warnings-in-mptbaseh-on-parisc64.patch
-git-x86.patch
-iommu-sg-merging-parisc-make-iommu-respect-the-segment-size-limits.patch
-alpha-parisc-removing-config-variable-debug_rwlock.patch
-documentation-about-unaligned-memory-access.patch
-add-cmpxchg_local-to-parisc.patch
-modules-make-module_address_lookup-safe.patch
-modules-make-module_address_lookup-safe-fix.patch
+git-powerpc.patch
+dio-fix-kernel-doc-notation.patch
