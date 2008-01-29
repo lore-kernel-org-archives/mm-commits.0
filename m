@@ -1,105 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - fix-filesystem-capability-support.patch removed from -mm tree
-Date: Mon, 28 Jan 2008 17:47:37 -0800
-Message-ID: <200801290147.m0T1lbY1027292@imap1.linux-foundation.org>
+Subject: - rcu-fix-section-mismatch.patch removed from -mm tree
+Date: Mon, 28 Jan 2008 17:47:46 -0800
+Message-ID: <200801290147.m0T1lkwB027303@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43096 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60990 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753835AbYA2BsX (ORCPT
+	by vger.kernel.org with ESMTP id S1751836AbYA2Bso (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 20:48:23 -0500
+	Mon, 28 Jan 2008 20:48:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: morgan@kernel.org, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mingo@elte.hu, sam@ravnborg.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix filesystem capability support
+     rcu: fix section mismatch
 has been removed from the -mm tree.  Its filename was
-     fix-filesystem-capability-support.patch
+     rcu-fix-section-mismatch.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix filesystem capability support
-From: "Andrew G. Morgan" <morgan@kernel.org>
+Subject: rcu: fix section mismatch
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-In linux-2.6.24-rc1, security/commoncap.c:cap_inh_is_capped() was
-introduced. It has the exact reverse of its intended behavior. This
-led to an unintended privilege esculation involving a process'
-inheritable capability set.
+rcu_online_cpu() should be __cpuinit instead of __devinit.
 
-To be exposed to this bug, you need to have Filesystem Capabilities
-enabled and in use. That is:
+WARNING: vmlinux.o(.text+0x4b6d5): Section mismatch: reference to .init.text: (between 'rcu_cpu_notify' and 'wakeme_after_rcu')
 
-- CONFIG_SECURITY_FILE_CAPABILITIES must be defined for the buggy code
-  to be compiled in.
-
-- You also need to have files on your system marked with fI bits raised.
-
-Signed-off-by: Andrew G. Morgan <morgan@kernel.org>
-
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Acked-by: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/commoncap.c |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ kernel/rcupdate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN security/commoncap.c~fix-filesystem-capability-support security/commoncap.c
---- a/security/commoncap.c~fix-filesystem-capability-support
-+++ a/security/commoncap.c
-@@ -59,6 +59,12 @@ int cap_netlink_recv(struct sk_buff *skb
- 
- EXPORT_SYMBOL(cap_netlink_recv);
- 
-+/*
-+ * NOTE WELL: cap_capable() cannot be used like the kernel's capable()
-+ * function.  That is, it has the reverse semantics: cap_capable()
-+ * returns 0 when a task has a capability, but the kernel's capable()
-+ * returns 1 for this case.
-+ */
- int cap_capable (struct task_struct *tsk, int cap)
- {
- 	/* Derived from include/linux/sched.h:capable. */
-@@ -107,10 +113,11 @@ static inline int cap_block_setpcap(stru
- static inline int cap_inh_is_capped(void)
- {
- 	/*
--	 * return 1 if changes to the inheritable set are limited
--	 * to the old permitted set.
-+	 * Return 1 if changes to the inheritable set are limited
-+	 * to the old permitted set. That is, if the current task
-+	 * does *not* possess the CAP_SETPCAP capability.
- 	 */
--	return !cap_capable(current, CAP_SETPCAP);
-+	return (cap_capable(current, CAP_SETPCAP) != 0);
+diff -puN kernel/rcupdate.c~rcu-fix-section-mismatch kernel/rcupdate.c
+--- a/kernel/rcupdate.c~rcu-fix-section-mismatch
++++ a/kernel/rcupdate.c
+@@ -549,7 +549,7 @@ static void rcu_init_percpu_data(int cpu
+ 	rdp->blimit = blimit;
  }
  
- #else /* ie., ndef CONFIG_SECURITY_FILE_CAPABILITIES */
+-static void __devinit rcu_online_cpu(int cpu)
++static void __cpuinit rcu_online_cpu(int cpu)
+ {
+ 	struct rcu_data *rdp = &per_cpu(rcu_data, cpu);
+ 	struct rcu_data *bh_rdp = &per_cpu(rcu_bh_data, cpu);
 _
 
-Patches currently in -mm which might be from morgan@kernel.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-64bit-capability-support-legacy-support-fix.patch
-remove-unnecessary-include-from-include-linux-capabilityh.patch
-capabilities-introduce-per-process-capability-bounding-set.patch
-oom_kill-remove-uid==0-checks.patch
-smack-version-11c-simplified-mandatory-access-control-kernel.patch
-smack-using-capabilities-32-and-33.patch
-smack-mutex-capability-pointers-and-spelling-cleanup.patch
-smack-socket-label-setting-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+origin.patch
+git-alsa.patch
+git-kbuild.patch
+hamradio-fix-dmascc-section-mismatch.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+pcmcia-include-bad-cis-filename-in-error-message.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+git-x86.patch
+register_cpu-__devinit-or-__cpuinit.patch
+cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
+dio-fix-kernel-doc-notation.patch
+tpm-infineon-section-mismatch.patch
+tdfxfb-fix-section-mismatch-warnings.patch
+uvesafb-small-cleanups.patch
+documentation-move-dnotifytxt-to-filesystems.patch
+documentation-move-sharedsubtreestxt-to-filesystems.patch
+documentation-create-new-scheduler-subdirectory.patch
+reporting-bugs-cc-the-mailing-list-too.patch
+fs-menu-small-reorg.patch
+the-scheduled-time-option-removal.patch
+profile-likely-unlikely-macros.patch
