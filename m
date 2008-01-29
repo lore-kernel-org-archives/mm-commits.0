@@ -1,108 +1,340 @@
 From: akpm@linux-foundation.org
-Subject: - remove-ibcs-support.patch removed from -mm tree
-Date: Mon, 28 Jan 2008 17:50:40 -0800
-Message-ID: <200801290150.m0T1oeCn027586@imap1.linux-foundation.org>
+Subject: - usb-ohci-sm501-driver-v2.patch removed from -mm tree
+Date: Mon, 28 Jan 2008 17:49:41 -0800
+Message-ID: <200801290149.m0T1nfiL027520@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43677 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50739 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755962AbYA2B7e (ORCPT
+	by vger.kernel.org with ESMTP id S1756113AbYA2B7d (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 20:59:34 -0500
+	Mon, 28 Jan 2008 20:59:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andi@firstfloor.org, ak@suse.de, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: magnus.damm@gmail.com, damm@igel.co.jp, dbrownell@users.sourceforge.net, greg@kroah.com, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove iBCS support
+     usb: ohci-sm501 driver
 has been removed from the -mm tree.  Its filename was
-     remove-ibcs-support.patch
+     usb-ohci-sm501-driver-v2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Remove iBCS support
-From: Andi Kleen <andi@firstfloor.org>
+Subject: usb: ohci-sm501 driver
+From: Magnus Damm <magnus.damm@gmail.com>
 
-Remove ibcs2 support in ELF loader too
+Add sm501 ohci support.  It's all very straightforward with the exception
+of dma_declare_coherent_memory() and HCD_LOCAL_MEM.  Together they are used
+to ensure that usb data is allocated using dma_alloc_coherent(), and that
+only valid dma memory is used to allocate from.  This driver is a platform
+device, and the mfd driver sm501.c is already creating one usb host
+controller instance per sm501.
 
-ibcs2 support has never been supported on 2.6 kernels as far as I know, and
-if it has it must have been an external patch.  Anyways, if anybody applies
-an external patch they could as well readd the ibcs checking code to the
-ELF loader in the same patch.  But there is no reason to keep this code
-running in all Linux kernels.  This will save at least two strcmps each ELF
-execution.
-
-No deprecation period because it could not have been used anyway.
-
-Signed-off-by: Andi Kleen <ak@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+Cc: Greg KH <greg@kroah.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |   15 +++------------
- 1 file changed, 3 insertions(+), 12 deletions(-)
+ drivers/usb/host/ohci-hcd.c   |    5 
+ drivers/usb/host/ohci-sm501.c |  264 ++++++++++++++++++++++++++++++++
+ 2 files changed, 269 insertions(+)
 
-diff -puN fs/binfmt_elf.c~remove-ibcs-support fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~remove-ibcs-support
-+++ a/fs/binfmt_elf.c
-@@ -610,7 +610,6 @@ static int load_elf_binary(struct linux_
- 	int load_addr_set = 0;
- 	char * elf_interpreter = NULL;
- 	unsigned int interpreter_type = INTERPRETER_NONE;
--	unsigned char ibcs2_interpreter = 0;
- 	unsigned long error;
- 	struct elf_phdr *elf_ppnt, *elf_phdata;
- 	unsigned long elf_bss, elf_brk;
-@@ -728,14 +727,6 @@ static int load_elf_binary(struct linux_
- 			if (elf_interpreter[elf_ppnt->p_filesz - 1] != '\0')
- 				goto out_free_interp;
+diff -puN drivers/usb/host/ohci-hcd.c~usb-ohci-sm501-driver-v2 drivers/usb/host/ohci-hcd.c
+--- a/drivers/usb/host/ohci-hcd.c~usb-ohci-sm501-driver-v2
++++ a/drivers/usb/host/ohci-hcd.c
+@@ -1052,6 +1052,11 @@ MODULE_LICENSE ("GPL");
+ #define SSB_OHCI_DRIVER		ssb_ohci_driver
+ #endif
  
--			/* If the program interpreter is one of these two,
--			 * then assume an iBCS2 image. Otherwise assume
--			 * a native linux image.
--			 */
--			if (strcmp(elf_interpreter,"/usr/lib/libc.so.1") == 0 ||
--			    strcmp(elf_interpreter,"/usr/lib/ld.so.1") == 0)
--				ibcs2_interpreter = 1;
--
- 			/*
- 			 * The early SET_PERSONALITY here is so that the lookup
- 			 * for the interpreter happens in the namespace of the 
-@@ -755,7 +746,7 @@ static int load_elf_binary(struct linux_
- 			 * switch really is going to happen - do this in
- 			 * flush_thread().	- akpm
- 			 */
--			SET_PERSONALITY(loc->elf_ex, ibcs2_interpreter);
-+			SET_PERSONALITY(loc->elf_ex, 0);
- 
- 			interpreter = open_exec(elf_interpreter);
- 			retval = PTR_ERR(interpreter);
-@@ -837,7 +828,7 @@ static int load_elf_binary(struct linux_
- 			goto out_free_dentry;
- 	} else {
- 		/* Executables without an interpreter also need a personality  */
--		SET_PERSONALITY(loc->elf_ex, ibcs2_interpreter);
-+		SET_PERSONALITY(loc->elf_ex, 0);
- 	}
- 
- 	/* OK, we are done with that, now set up the arg stuff,
-@@ -871,7 +862,7 @@ static int load_elf_binary(struct linux_
- 
- 	/* Do this immediately, since STACK_TOP as used in setup_arg_pages
- 	   may depend on the personality.  */
--	SET_PERSONALITY(loc->elf_ex, ibcs2_interpreter);
-+	SET_PERSONALITY(loc->elf_ex, 0);
- 	if (elf_read_implies_exec(loc->elf_ex, executable_stack))
- 		current->personality |= READ_IMPLIES_EXEC;
- 
++#ifdef CONFIG_MFD_SM501
++#include "ohci-sm501.c"
++#define PLATFORM_DRIVER		ohci_hcd_sm501_driver
++#endif
++
+ #if	!defined(PCI_DRIVER) &&		\
+ 	!defined(PLATFORM_DRIVER) &&	\
+ 	!defined(OF_PLATFORM_DRIVER) &&	\
+diff -puN /dev/null drivers/usb/host/ohci-sm501.c
+--- /dev/null
++++ a/drivers/usb/host/ohci-sm501.c
+@@ -0,0 +1,264 @@
++/*
++ * OHCI HCD (Host Controller Driver) for USB.
++ *
++ * (C) Copyright 1999 Roman Weissgaerber <weissg@vienna.at>
++ * (C) Copyright 2000-2005 David Brownell
++ * (C) Copyright 2002 Hewlett-Packard Company
++ * (C) Copyright 2008 Magnus Damm
++ *
++ * SM501 Bus Glue - based on ohci-omap.c
++ *
++ * This file is licenced under the GPL.
++ */
++
++#include <linux/interrupt.h>
++#include <linux/jiffies.h>
++#include <linux/platform_device.h>
++#include <linux/dma-mapping.h>
++#include <linux/sm501.h>
++#include <linux/sm501-regs.h>
++
++static int ohci_sm501_init(struct usb_hcd *hcd)
++{
++	return ohci_init(hcd_to_ohci(hcd));
++}
++
++static int ohci_sm501_start(struct usb_hcd *hcd)
++{
++	struct device *dev = hcd->self.controller;
++	int ret;
++
++	ret = ohci_run(hcd_to_ohci(hcd));
++	if (ret < 0) {
++		dev_err(dev, "can't start %s", hcd->self.bus_name);
++		ohci_stop(hcd);
++	}
++
++	return ret;
++}
++
++/*-------------------------------------------------------------------------*/
++
++static const struct hc_driver ohci_sm501_hc_driver = {
++	.description =		hcd_name,
++	.product_desc =		"SM501 OHCI",
++	.hcd_priv_size =	sizeof(struct ohci_hcd),
++
++	/*
++	 * generic hardware linkage
++	 */
++	.irq =			ohci_irq,
++	.flags =		HCD_USB11 | HCD_MEMORY | HCD_LOCAL_MEM,
++
++	/*
++	 * basic lifecycle operations
++	 */
++	.reset =		ohci_sm501_init,
++	.start =		ohci_sm501_start,
++	.stop =			ohci_stop,
++	.shutdown =		ohci_shutdown,
++
++	/*
++	 * managing i/o requests and associated device resources
++	 */
++	.urb_enqueue =		ohci_urb_enqueue,
++	.urb_dequeue =		ohci_urb_dequeue,
++	.endpoint_disable =	ohci_endpoint_disable,
++
++	/*
++	 * scheduling support
++	 */
++	.get_frame_number =	ohci_get_frame,
++
++	/*
++	 * root hub support
++	 */
++	.hub_status_data =	ohci_hub_status_data,
++	.hub_control =		ohci_hub_control,
++	.hub_irq_enable =	ohci_rhsc_enable,
++#ifdef	CONFIG_PM
++	.bus_suspend =		ohci_bus_suspend,
++	.bus_resume =		ohci_bus_resume,
++#endif
++	.start_port_reset =	ohci_start_port_reset,
++};
++
++/*-------------------------------------------------------------------------*/
++
++static int ohci_hcd_sm501_drv_probe(struct platform_device *pdev)
++{
++	const struct hc_driver *driver = &ohci_sm501_hc_driver;
++	struct device *dev = &pdev->dev;
++	struct resource	*res, *mem;
++	int retval, irq;
++	struct usb_hcd *hcd = 0;
++
++	irq = retval = platform_get_irq(pdev, 0);
++	if (retval < 0)
++		goto err0;
++
++	mem = platform_get_resource(pdev, IORESOURCE_MEM, 1);
++	if (mem == NULL) {
++		dev_err(dev, "no resource definition for memory\n");
++		retval = -ENOENT;
++		goto err0;
++	}
++
++	if (!request_mem_region(mem->start, mem->end - mem->start + 1,
++				pdev->name)) {
++		dev_err(dev, "request_mem_region failed\n");
++		retval = -EBUSY;
++		goto err0;
++	}
++
++	/* The sm501 chip is equipped with local memory that may be used
++	 * by on-chip devices such as the video controller and the usb host.
++	 * This driver uses dma_declare_coherent_memory() to make sure
++	 * usb allocations with dma_alloc_coherent() allocate from
++	 * this local memory. The dma_handle returned by dma_alloc_coherent()
++	 * will be an offset starting from 0 for the first local memory byte.
++	 *
++	 * So as long as data is allocated using dma_alloc_coherent() all is
++	 * fine. This is however not always the case - buffers may be allocated
++	 * using kmalloc() - so the usb core needs to be told that it must copy
++	 * data into our local memory if the buffers happen to be placed in
++	 * regular memory. The HCD_BOUNCE flag does just that.
++	 */
++
++	if (!dma_declare_coherent_memory(dev, mem->start,
++					 mem->start - mem->parent->start,
++					 (mem->end - mem->start) + 1,
++					 DMA_MEMORY_MAP |
++					 DMA_MEMORY_EXCLUSIVE)) {
++		dev_err(dev, "cannot declare coherent memory\n");
++		retval = -ENXIO;
++		goto err1;
++	}
++
++	/* allocate, reserve and remap resources for registers */
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (res == NULL) {
++		dev_err(dev, "no resource definition for registers\n");
++		retval = -ENOENT;
++		goto err2;
++	}
++
++	hcd = usb_create_hcd(driver, &pdev->dev, pdev->dev.bus_id);
++	if (!hcd) {
++		retval = -ENOMEM;
++		goto err2;
++	}
++
++	hcd->rsrc_start = res->start;
++	hcd->rsrc_len = res->end - res->start + 1;
++
++	if (!request_mem_region(hcd->rsrc_start, hcd->rsrc_len,	pdev->name)) {
++		dev_err(dev, "request_mem_region failed\n");
++		retval = -EBUSY;
++		goto err3;
++	}
++
++	hcd->regs = ioremap(hcd->rsrc_start, hcd->rsrc_len);
++	if (hcd->regs == NULL) {
++		dev_err(dev, "cannot remap registers\n");
++		retval = -ENXIO;
++		goto err4;
++	}
++
++	ohci_hcd_init(hcd_to_ohci(hcd));
++
++	retval = usb_add_hcd(hcd, irq, IRQF_DISABLED | IRQF_SHARED);
++	if (retval)
++		goto err4;
++
++	/* enable power and unmask interrupts */
++
++	sm501_unit_power(dev->parent, SM501_GATE_USB_HOST, 1);
++	sm501_modify_reg(dev->parent, SM501_IRQ_MASK, 1 << 6, 0);
++
++	return 0;
++err4:
++	release_mem_region(hcd->rsrc_start, hcd->rsrc_len);
++err3:
++	usb_put_hcd(hcd);
++err2:
++	dma_release_declared_memory(dev);
++err1:
++	release_mem_region(mem->start, mem->end - mem->start + 1);
++err0:
++	return retval;
++}
++
++static int ohci_hcd_sm501_drv_remove(struct platform_device *pdev)
++{
++	struct usb_hcd *hcd = platform_get_drvdata(pdev);
++	struct resource	*mem;
++
++	usb_remove_hcd(hcd);
++	release_mem_region(hcd->rsrc_start, hcd->rsrc_len);
++	usb_put_hcd(hcd);
++	dma_release_declared_memory(&pdev->dev);
++	mem = platform_get_resource(pdev, IORESOURCE_MEM, 1);
++	release_mem_region(mem->start, mem->end - mem->start + 1);
++
++	/* mask interrupts and disable power */
++
++	sm501_modify_reg(pdev->dev.parent, SM501_IRQ_MASK, 0, 1 << 6);
++	sm501_unit_power(pdev->dev.parent, SM501_GATE_USB_HOST, 0);
++
++	platform_set_drvdata(pdev, NULL);
++	return 0;
++}
++
++/*-------------------------------------------------------------------------*/
++
++#ifdef CONFIG_PM
++static int ohci_sm501_suspend(struct platform_device *pdev, pm_message_t msg)
++{
++	struct device *dev = &pdev->dev;
++	struct ohci_hcd	*ohci = hcd_to_ohci(platform_get_drvdata(pdev));
++
++	if (time_before(jiffies, ohci->next_statechange))
++		msleep(5);
++	ohci->next_statechange = jiffies;
++
++	sm501_unit_power(dev->parent, SM501_GATE_USB_HOST, 0);
++	ohci_to_hcd(ohci)->state = HC_STATE_SUSPENDED;
++	dev->power.power_state = PMSG_SUSPEND;
++	return 0;
++}
++
++static int ohci_sm501_resume(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	struct ohci_hcd	*ohci = hcd_to_ohci(platform_get_drvdata(pdev));
++
++	if (time_before(jiffies, ohci->next_statechange))
++		msleep(5);
++	ohci->next_statechange = jiffies;
++
++	sm501_unit_power(dev->parent, SM501_GATE_USB_HOST, 1);
++	dev->power.power_state = PMSG_ON;
++	usb_hcd_resume_root_hub(platform_get_drvdata(pdev));
++	return 0;
++}
++#endif
++
++/*-------------------------------------------------------------------------*/
++
++/*
++ * Driver definition to register with the SM501 bus
++ */
++static struct platform_driver ohci_hcd_sm501_driver = {
++	.probe		= ohci_hcd_sm501_drv_probe,
++	.remove		= ohci_hcd_sm501_drv_remove,
++	.shutdown	= usb_hcd_platform_shutdown,
++#ifdef	CONFIG_PM
++	.suspend	= ohci_sm501_suspend,
++	.resume		= ohci_sm501_resume,
++#endif
++	.driver		= {
++		.owner	= THIS_MODULE,
++		.name	= "sm501-usb",
++	},
++};
 _
 
-Patches currently in -mm which might be from andi@firstfloor.org are
+Patches currently in -mm which might be from magnus.damm@gmail.com are
 
-git-x86.patch
-allow-executables-larger-than-2gb.patch
+git-sh.patch
+usb-ohci-sm501-driver-v2-fix.patch
+spi-superh-spi-using-sci.patch
+rtc-add-support-for-epson-rtc-9701je-v2.patch
+rtc-add-support-for-epson-rtc-9701je-v4.patch
+sm501fb-control-panel-pin-usage-with-platform-data-flags.patch
+sm501fb-clear-framebuffer-memory-and-palette.patch
