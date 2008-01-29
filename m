@@ -1,83 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - hrtimer-fix-section-mismatch.patch removed from -mm tree
-Date: Mon, 28 Jan 2008 17:47:24 -0800
-Message-ID: <200801290147.m0T1lOuT027279@imap1.linux-foundation.org>
+Subject: - fix-slab-kmem_list3-for-booting-on-machines-with-memoryless-nodes-full-revert-of-04231b3002ac53f8a64a7bd142fde3fa4b6808c6.patch removed from -mm tree
+Date: Mon, 28 Jan 2008 17:48:05 -0800
+Message-ID: <200801290148.m0T1m5sU027325@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51880 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34834 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754617AbYA2BtF (ORCPT
+	by vger.kernel.org with ESMTP id S1753754AbYA2BtC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 20:49:05 -0500
+	Mon, 28 Jan 2008 20:49:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mingo@elte.hu, sam@ravnborg.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mel@csn.ul.ie, clameter@sgi.com, olaf@aepfle.de, penberg@cs.helsinki.fi, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hrtimer: fix section mismatch
+     Fix SLAB kmem_list3 for booting on machines with memoryless nodes (full revert of 04231b3002ac53f8a64a7bd142fde3fa4b6808c6)
 has been removed from the -mm tree.  Its filename was
-     hrtimer-fix-section-mismatch.patch
+     fix-slab-kmem_list3-for-booting-on-machines-with-memoryless-nodes-full-revert-of-04231b3002ac53f8a64a7bd142fde3fa4b6808c6.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hrtimer: fix section mismatch
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Fix SLAB kmem_list3 for booting on machines with memoryless nodes (full revert of 04231b3002ac53f8a64a7bd142fde3fa4b6808c6)
+From: Mel Gorman <mel@csn.ul.ie>
 
-Fix section mismatch in hrtimer.c:
+Complete the revert of the changes made by
+04231b3002ac53f8a64a7bd142fde3fa4b6808c6 to the kmem_list3 management in slab.
+ On a machine with a memoryless node, BUG_ONs are triggering related to lists
+not being initialised and this affects 2.6.24 so should be considered a
+candidate for the stable tree.  The intention was to fully revert with commit
+9c09a95cf431fcf5720f2e408befa24b32b8cf4d but I mucked it up.
 
-WARNING: vmlinux.o(.text+0x50c61): Section mismatch: reference to .init.text: (between 'hrtimer_cpu_notify' and 'down_read_trylock')
+This patch partially addresses a problem in 2.6.24 where SLAB in use with a
+machine with memoryless nodes fails to boot.  SLUB is not affected.  Pekka
+Enberg has the remainder of the fix which alters when the lists are
+initialised.
 
-Noticed by Johannes Berg and confirmed by Sam Ravnborg.
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Olaf Hering <olaf@aepfle.de>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/hrtimer.c |    2 +-
+ mm/slab.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/hrtimer.c~hrtimer-fix-section-mismatch kernel/hrtimer.c
---- a/kernel/hrtimer.c~hrtimer-fix-section-mismatch
-+++ a/kernel/hrtimer.c
-@@ -1378,7 +1378,7 @@ sys_nanosleep(struct timespec __user *rq
- /*
-  * Functions related to boot-time initialization:
-  */
--static void __devinit init_hrtimers_cpu(int cpu)
-+static void __cpuinit init_hrtimers_cpu(int cpu)
- {
- 	struct hrtimer_cpu_base *cpu_base = &per_cpu(hrtimer_bases, cpu);
- 	int i;
+diff -puN mm/slab.c~fix-slab-kmem_list3-for-booting-on-machines-with-memoryless-nodes-full-revert-of-04231b3002ac53f8a64a7bd142fde3fa4b6808c6 mm/slab.c
+--- a/mm/slab.c~fix-slab-kmem_list3-for-booting-on-machines-with-memoryless-nodes-full-revert-of-04231b3002ac53f8a64a7bd142fde3fa4b6808c6
++++ a/mm/slab.c
+@@ -2099,7 +2099,7 @@ static int __init_refok setup_cpu_cache(
+ 			g_cpucache_up = PARTIAL_L3;
+ 		} else {
+ 			int node;
+-			for_each_node_state(node, N_NORMAL_MEMORY) {
++			for_each_online_node(node) {
+ 				cachep->nodelists[node] =
+ 				    kmalloc_node(sizeof(struct kmem_list3),
+ 						GFP_KERNEL, node);
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
 origin.patch
-git-alsa.patch
-git-kbuild.patch
-hamradio-fix-dmascc-section-mismatch.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-pcmcia-include-bad-cis-filename-in-error-message.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
 git-x86.patch
-register_cpu-__devinit-or-__cpuinit.patch
-cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
-dio-fix-kernel-doc-notation.patch
-tpm-infineon-section-mismatch.patch
-tdfxfb-fix-section-mismatch-warnings.patch
-uvesafb-small-cleanups.patch
-documentation-move-dnotifytxt-to-filesystems.patch
-documentation-move-sharedsubtreestxt-to-filesystems.patch
-documentation-create-new-scheduler-subdirectory.patch
-reporting-bugs-cc-the-mailing-list-too.patch
-fs-menu-small-reorg.patch
-the-scheduled-time-option-removal.patch
-profile-likely-unlikely-macros.patch
+memory-hotplug-add-removable-to-sysfs-to-show-memblock-removability.patch
+page-allocator-clean-up-pcp-draining-functions.patch
+page-allocator-get-rid-of-the-list-of-cold-pages.patch
+page-allocator-get-rid-of-the-list-of-cold-pages-fix.patch
+memcgroup-tidy-up-mem_cgroup_charge_common.patch
+memcgroup-fix-hang-with-shmem-tmpfs.patch
+page-owner-tracking-leak-detector.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
