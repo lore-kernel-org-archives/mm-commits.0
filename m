@@ -1,62 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - git-infiniband-versus-driver-tree.patch removed from -mm tree
-Date: Mon, 28 Jan 2008 16:13:24 -0800
-Message-ID: <200801290013.m0T0DO6f023683@imap1.linux-foundation.org>
+Subject: + git-kbuild-fixup.patch added to -mm tree
+Date: Mon, 28 Jan 2008 16:21:44 -0800
+Message-ID: <200801290021.m0T0LiWQ024055@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55215 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52229 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751974AbYA2ANo (ORCPT
+	by vger.kernel.org with ESMTP id S1755062AbYA2AVv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 19:13:44 -0500
+	Mon, 28 Jan 2008 19:21:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org, rolandd@cisco.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, sam@ravnborg.org, tony.luck@intel.com
 
 
 The patch titled
-     git-infiniband versus driver tree
-has been removed from the -mm tree.  Its filename was
-     git-infiniband-versus-driver-tree.patch
+     git-kbuild-fixup
+has been added to the -mm tree.  Its filename is
+     git-kbuild-fixup.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-infiniband versus driver tree
+Subject: git-kbuild-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Roland Dreier <rolandd@cisco.com>
+Yet another reject fix.
+
+Please prefer to merge ia64 patches via the ia64 tree.
+
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/core/cm.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/asm-ia64/gcc_intrin.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/infiniband/core/cm.c~git-infiniband-versus-driver-tree drivers/infiniband/core/cm.c
---- a/drivers/infiniband/core/cm.c~git-infiniband-versus-driver-tree
-+++ a/drivers/infiniband/core/cm.c
-@@ -3571,7 +3571,7 @@ static int cm_add_fs_obj(struct kobject 
- 	if (!obj->parent)
- 		return -EBUSY;
+diff -puN include/asm-ia64/gcc_intrin.h~git-kbuild-fixup include/asm-ia64/gcc_intrin.h
+--- a/include/asm-ia64/gcc_intrin.h~git-kbuild-fixup
++++ a/include/asm-ia64/gcc_intrin.h
+@@ -25,7 +25,7 @@ extern void ia64_bad_param_for_setreg (v
+ extern void ia64_bad_param_for_getreg (void);
  
--	ret = kobject_register(obj);
-+	ret = kobject_init_and_add(obj, type, parent, "%s", name);
- 	if (ret)
- 		kobject_put(parent);
+ #ifdef __KERNEL__
+-register unsigned long ia64_r13 asm ("r13") __attribute_used__;
++register unsigned long ia64_r13 asm ("r13") __used;
+ #endif
  
-@@ -3581,7 +3581,7 @@ static int cm_add_fs_obj(struct kobject 
- static void cm_remove_fs_obj(struct kobject *obj)
- {
- 	kobject_put(obj->parent);
--	kobject_unregister(obj);
-+	kobject_put(obj);
- }
- 
- static int cm_create_port_fs(struct cm_port *port)
+ #define ia64_setreg(regnum, val)						\
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -98,9 +102,9 @@ hwmon-new-chip-driver-for-ti-ads7828-a-d-checkpatch-fixes.patch
 git-hid.patch
 revert-git-hrt.patch
 git-ieee1394.patch
-git-infiniband-versus-driver-tree.patch
 drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
 git-kbuild.patch
+git-kbuild-fixup.patch
 git-kvm.patch
 git-libata-all-fix-drivers-ata-sata_fslc.patch
 fix-ide-mm-ide-use-ide_destroy_dmatable-instead-of-pci_unmap_sg.patch
