@@ -1,65 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - s3c2410_fb-fix-line-length-calculation.patch removed from -mm tree
-Date: Mon, 28 Jan 2008 17:47:33 -0800
-Message-ID: <200801290147.m0T1lXwq027288@imap1.linux-foundation.org>
+Subject: - w1-w1_thermc-is-flagging-0c-etc-as-invalid.patch removed from -mm tree
+Date: Mon, 28 Jan 2008 17:47:43 -0800
+Message-ID: <200801290147.m0T1liqD027300@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47805 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34295 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754729AbYA2BuT (ORCPT
+	by vger.kernel.org with ESMTP id S1753139AbYA2BzQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 20:50:19 -0500
+	Mon, 28 Jan 2008 20:55:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stefan@openmoko.org, adaplas@pol.net, arnaud.patard@rtp-net.org, ben-linux@fluff.org, johnpcass@yahoo.com, krzysztof.h1@wp.pl, laforge@openmoko.org, rmk@arm.linux.org.uk, mm-commits@v
+To: david@fries.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     s3c2410_fb: fix line length calculation
+     W1: w1_therm.c is flagging 0C etc as invalid
 has been removed from the -mm tree.  Its filename was
-     s3c2410_fb-fix-line-length-calculation.patch
+     w1-w1_thermc-is-flagging-0c-etc-as-invalid.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: s3c2410_fb: fix line length calculation
-From: Stefan Schmidt <stefan@openmoko.org>
+Subject: W1: w1_therm.c is flagging 0C etc as invalid
+From: David Fries <david@fries.net>
 
-Fix line length calculation. var->width is the size of the display in mm. We
-like to use the pixel size.
+The extra rom[0] check is flagging valid temperatures as invalid when
+there is already a CRC data transmission check.
 
-Without this fix, dynamic (fbset) based resolution and depths changes with
-s3c2410_fb don't work at all.
+w1_therm_read_bin()
+	if (rom[8] == crc && rom[0])
+		verdict = 1;
 
-Spotted by john cass <johnpcass@yahoo.com>
+Requiring rom[0] to be non-zero will flag as invalid temperature
+conversions when the low byte is zero, specifically the temperatures 0C,
+16C, 32C, 48C, -16C, -32C, and -48C.
 
-Signed-off-by: Stefan Schmidt <stefan@openmoko.org>
-Signed-off-by: Harald Welte <laforge@openmoko.org>
-Acked-by: Ben Dooks <ben-linux@fluff.org>
-Acked-by: Arnaud Patard <arnaud.patard@rtp-net.org>
-Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
+The CRC check is produced on the device for the previous 8 bytes and is
+required to ensure the data integrity in transmission.  I don't see why the
+extra check for rom[0] being non-zero is in there.  Evgeniy Polyakov didn't
+know either.  Just for a check I unplugged the sensor, executed a
+temperature conversion, and read the results.  The read was all ff's, which
+also failed the CRC, so it doesn't need to protect against a disconnected
+sensor.
+
+I have more extensive patches in the work, but these two trivial ones will
+do for today.  I would like to hear from people who use the ds2490 USB to
+one wire dongle.  1 if you would be willing to test the patches as I
+currently only have the one sensor on a short parisite powered wire, 2 if
+there is any cheap sources for the ds2490.
+
+Signed-off-by: David Fries <david@fries.net>
+Acked-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/s3c2410fb.c |    2 +-
+ drivers/w1/slaves/w1_therm.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/s3c2410fb.c~s3c2410_fb-fix-line-length-calculation drivers/video/s3c2410fb.c
---- a/drivers/video/s3c2410fb.c~s3c2410_fb-fix-line-length-calculation
-+++ a/drivers/video/s3c2410fb.c
-@@ -488,7 +488,7 @@ static int s3c2410fb_set_par(struct fb_i
- 		break;
- 	}
+diff -puN drivers/w1/slaves/w1_therm.c~w1-w1_thermc-is-flagging-0c-etc-as-invalid drivers/w1/slaves/w1_therm.c
+--- a/drivers/w1/slaves/w1_therm.c~w1-w1_thermc-is-flagging-0c-etc-as-invalid
++++ a/drivers/w1/slaves/w1_therm.c
+@@ -204,7 +204,7 @@ static ssize_t w1_therm_read_bin(struct 
  
--	info->fix.line_length = (var->width * var->bits_per_pixel) / 8;
-+	info->fix.line_length = (var->xres_virtual * var->bits_per_pixel) / 8;
+ 				crc = w1_calc_crc8(rom, 8);
  
- 	/* activate this new configuration */
- 
+-				if (rom[8] == crc && rom[0])
++				if (rom[8] == crc)
+ 					verdict = 1;
+ 			}
+ 		}
 _
 
-Patches currently in -mm which might be from stefan@openmoko.org are
+Patches currently in -mm which might be from david@fries.net are
+
+system-timer-fix-crash-in-100hz-system-timer.patch
+system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
+speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
+w1-w1_thermc-standardize-units-to-millidegrees-c.patch
