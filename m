@@ -1,51 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-net-wireless-rt2x00-rt2x00usbc-fix-uninitialized-var-warning.patch removed from -mm tree
-Date: Mon, 28 Jan 2008 17:50:07 -0800
-Message-ID: <200801290150.m0T1o7p1027550@imap1.linux-foundation.org>
+Subject: - drivers-net-wireless-iwlwifi-iwl-3945c-fix-printk-warning.patch removed from -mm tree
+Date: Mon, 28 Jan 2008 17:50:01 -0800
+Message-ID: <200801290150.m0T1o1iU027544@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58750 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50640 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754956AbYA2B5a (ORCPT
+	by vger.kernel.org with ESMTP id S1755101AbYA2B5b (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 20:57:30 -0500
+	Mon, 28 Jan 2008 20:57:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/net/wireless/rt2x00/rt2x00usb.c: fix uninitialized var warning
+     drivers/net/wireless/iwlwifi/iwl-3945.c: fix printk warning
 has been removed from the -mm tree.  Its filename was
-     drivers-net-wireless-rt2x00-rt2x00usbc-fix-uninitialized-var-warning.patch
+     drivers-net-wireless-iwlwifi-iwl-3945c-fix-printk-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/wireless/rt2x00/rt2x00usb.c: fix uninitialized var warning
+Subject: drivers/net/wireless/iwlwifi/iwl-3945.c: fix printk warning
 From: Andrew Morton <akpm@linux-foundation.org>
+
+drivers/net/wireless/iwlwifi/iwl-3945.c: In function 'iwl3945_add_radiotap':
+drivers/net/wireless/iwlwifi/iwl-3945.c:269: warning: format '%d' expects type 'int', but argument 3 has type 'long unsigned int'
 
 Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/rt2x00/rt2x00usb.c |    2 +-
+ drivers/net/wireless/iwlwifi/iwl-3945.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/wireless/rt2x00/rt2x00usb.c~drivers-net-wireless-rt2x00-rt2x00usbc-fix-uninitialized-var-warning drivers/net/wireless/rt2x00/rt2x00usb.c
---- a/drivers/net/wireless/rt2x00/rt2x00usb.c~drivers-net-wireless-rt2x00-rt2x00usbc-fix-uninitialized-var-warning
-+++ a/drivers/net/wireless/rt2x00/rt2x00usb.c
-@@ -429,7 +429,7 @@ int rt2x00usb_initialize(struct rt2x00_d
- 	struct sk_buff *skb;
- 	unsigned int entry_size;
- 	unsigned int i;
--	int status;
-+	int uninitialized_var(status);
- 
- 	/*
- 	 * Allocate DMA
+diff -puN drivers/net/wireless/iwlwifi/iwl-3945.c~drivers-net-wireless-iwlwifi-iwl-3945c-fix-printk-warning drivers/net/wireless/iwlwifi/iwl-3945.c
+--- a/drivers/net/wireless/iwlwifi/iwl-3945.c~drivers-net-wireless-iwlwifi-iwl-3945c-fix-printk-warning
++++ a/drivers/net/wireless/iwlwifi/iwl-3945.c
+@@ -265,7 +265,7 @@ void iwl3945_add_radiotap(struct iwl3945
+ 	if (skb_headroom(skb) < sizeof(*iwl3945_rt)) {
+ 		if (net_ratelimit())
+ 			printk(KERN_ERR "not enough headroom [%d] for "
+-			       "radiotap head [%d]\n",
++			       "radiotap head [%td]\n",
+ 			       skb_headroom(skb), sizeof(*iwl3945_rt));
+ 		return;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
