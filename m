@@ -1,78 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - fix-slab-kmem_list3-for-booting-on-machines-with-memoryless-nodes-full-revert-of-04231b3002ac53f8a64a7bd142fde3fa4b6808c6.patch removed from -mm tree
-Date: Mon, 28 Jan 2008 17:48:05 -0800
-Message-ID: <200801290148.m0T1m5sU027325@imap1.linux-foundation.org>
+Subject: - ppc-logical-bitand-typo-in-powerpc-boot-4xxc.patch removed from -mm tree
+Date: Mon, 28 Jan 2008 17:48:23 -0800
+Message-ID: <200801290148.m0T1mNcW027347@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34834 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42773 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753754AbYA2BtC (ORCPT
+	by vger.kernel.org with ESMTP id S1754175AbYA2BtB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 20:49:02 -0500
+	Mon, 28 Jan 2008 20:49:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, clameter@sgi.com, olaf@aepfle.de, penberg@cs.helsinki.fi, stable@kernel.org, mm-commits@vger.kernel.org
+To: 12o3l@tiscali.nl, benh@kernel.crashing.org, galak@gate.crashing.org, jwboyer@linux.vnet.ibm.com, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix SLAB kmem_list3 for booting on machines with memoryless nodes (full revert of 04231b3002ac53f8a64a7bd142fde3fa4b6808c6)
+     ppc: logical/bitand typo in powerpc/boot/4xx.c
 has been removed from the -mm tree.  Its filename was
-     fix-slab-kmem_list3-for-booting-on-machines-with-memoryless-nodes-full-revert-of-04231b3002ac53f8a64a7bd142fde3fa4b6808c6.patch
+     ppc-logical-bitand-typo-in-powerpc-boot-4xxc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix SLAB kmem_list3 for booting on machines with memoryless nodes (full revert of 04231b3002ac53f8a64a7bd142fde3fa4b6808c6)
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: ppc: logical/bitand typo in powerpc/boot/4xx.c
+From: Roel Kluin <12o3l@tiscali.nl>
 
-Complete the revert of the changes made by
-04231b3002ac53f8a64a7bd142fde3fa4b6808c6 to the kmem_list3 management in slab.
- On a machine with a memoryless node, BUG_ONs are triggering related to lists
-not being initialised and this affects 2.6.24 so should be considered a
-candidate for the stable tree.  The intention was to fully revert with commit
-9c09a95cf431fcf5720f2e408befa24b32b8cf4d but I mucked it up.
+logical/bitand typo
 
-This patch partially addresses a problem in 2.6.24 where SLAB in use with a
-machine with memoryless nodes fails to boot.  SLUB is not affected.  Pekka
-Enberg has the remainder of the fix which alters when the lists are
-initialised.
-
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Olaf Hering <olaf@aepfle.de>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: <stable@kernel.org>
+Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
+Cc: Josh Boyer <jwboyer@linux.vnet.ibm.com>
+Cc: Kumar Gala <galak@gate.crashing.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    2 +-
+ arch/powerpc/boot/4xx.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slab.c~fix-slab-kmem_list3-for-booting-on-machines-with-memoryless-nodes-full-revert-of-04231b3002ac53f8a64a7bd142fde3fa4b6808c6 mm/slab.c
---- a/mm/slab.c~fix-slab-kmem_list3-for-booting-on-machines-with-memoryless-nodes-full-revert-of-04231b3002ac53f8a64a7bd142fde3fa4b6808c6
-+++ a/mm/slab.c
-@@ -2099,7 +2099,7 @@ static int __init_refok setup_cpu_cache(
- 			g_cpucache_up = PARTIAL_L3;
- 		} else {
- 			int node;
--			for_each_node_state(node, N_NORMAL_MEMORY) {
-+			for_each_online_node(node) {
- 				cachep->nodelists[node] =
- 				    kmalloc_node(sizeof(struct kmem_list3),
- 						GFP_KERNEL, node);
+diff -puN arch/powerpc/boot/4xx.c~ppc-logical-bitand-typo-in-powerpc-boot-4xxc arch/powerpc/boot/4xx.c
+--- a/arch/powerpc/boot/4xx.c~ppc-logical-bitand-typo-in-powerpc-boot-4xxc
++++ a/arch/powerpc/boot/4xx.c
+@@ -159,7 +159,7 @@ void ibm4xx_denali_fixup_memsize(void)
+ 	val = DDR_GET_VAL(val, DDR_CS_MAP, DDR_CS_MAP_SHIFT);
+ 	cs = 0;
+ 	while (val) {
+-		if (val && 0x1)
++		if (val & 0x1)
+ 			cs++;
+ 		val = val >> 1;
+ 	}
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from 12o3l@tiscali.nl are
 
 origin.patch
-git-x86.patch
-memory-hotplug-add-removable-to-sysfs-to-show-memblock-removability.patch
-page-allocator-clean-up-pcp-draining-functions.patch
-page-allocator-get-rid-of-the-list-of-cold-pages.patch
-page-allocator-get-rid-of-the-list-of-cold-pages-fix.patch
-memcgroup-tidy-up-mem_cgroup_charge_common.patch
-memcgroup-fix-hang-with-shmem-tmpfs.patch
-page-owner-tracking-leak-detector.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+git-powerpc.patch
+git-mips.patch
+git-net.patch
+m68k-balance-ioremap-and-iounmap-in-m68k-atari-hades-pcic.patch
+sound-oss-tridentc-fix-incorrect-test-in-trident_ac97_set.patch
+fix-and-typo-in-eicons-addinfo.patch
