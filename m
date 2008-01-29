@@ -1,125 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - git-netdev-all-fix-conflicts.patch removed from -mm tree
-Date: Mon, 28 Jan 2008 16:25:09 -0800
-Message-ID: <200801290025.m0T0PAXm024235@imap1.linux-foundation.org>
+Subject: - revert-rcu-fix-section-mismatch.patch removed from -mm tree
+Date: Mon, 28 Jan 2008 16:29:10 -0800
+Message-ID: <200801290029.m0T0TCrc024385@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52391 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44688 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751900AbYA2AZY (ORCPT
+	by vger.kernel.org with ESMTP id S1753459AbYA2A3P (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 19:25:24 -0500
+	Mon, 28 Jan 2008 19:29:15 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m0T0TCLI021840
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 28 Jan 2008 16:29:13 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jeff@garzik.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-netdev-all-fix-conflicts
+     revert rcu-fix-section-mismatch
 has been removed from the -mm tree.  Its filename was
-     git-netdev-all-fix-conflicts.patch
+     revert-rcu-fix-section-mismatch.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-netdev-all-fix-conflicts
+Subject: revert rcu-fix-section-mismatch
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/netxen/netxen_nic_init.c    |    5 -----
- drivers/net/wireless/rt2x00/rt2x00pci.c |    6 ------
- drivers/net/wireless/rt2x00/rt2x00usb.c |    3 ---
- drivers/net/wireless/rt2x00/rt61pci.c   |    8 --------
- 4 files changed, 22 deletions(-)
+ kernel/rcupdate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/netxen/netxen_nic_init.c~git-netdev-all-fix-conflicts drivers/net/netxen/netxen_nic_init.c
---- a/drivers/net/netxen/netxen_nic_init.c~git-netdev-all-fix-conflicts
-+++ a/drivers/net/netxen/netxen_nic_init.c
-@@ -1281,14 +1281,9 @@ int netxen_process_cmd_ring(unsigned lon
- 	while ((last_consumer != consumer) && (count1 < MAX_STATUS_HANDLE)) {
- 		buffer = &adapter->cmd_buf_arr[last_consumer];
- 		pdev = adapter->pdev;
--<<<<<<< HEAD:drivers/net/netxen/netxen_nic_init.c
--		if (buffer->skb) {
--			frag = &buffer->frag_array[0];
--=======
- 		frag = &buffer->frag_array[0];
- 		skb = buffer->skb;
- 		if (skb && (cmpxchg(&buffer->skb, skb, NULL) == skb)) {
-->>>>>>> FETCH_HEAD:drivers/net/netxen/netxen_nic_init.c
- 			pci_unmap_single(pdev, frag->dma, frag->length,
- 					 PCI_DMA_TODEVICE);
- 			frag->dma = 0ULL;
-diff -puN drivers/net/wireless/rt2x00/rt2x00pci.c~git-netdev-all-fix-conflicts drivers/net/wireless/rt2x00/rt2x00pci.c
---- a/drivers/net/wireless/rt2x00/rt2x00pci.c~git-netdev-all-fix-conflicts
-+++ a/drivers/net/wireless/rt2x00/rt2x00pci.c
-@@ -134,18 +134,12 @@ void rt2x00pci_rxdone(struct rt2x00_dev 
- 	struct data_ring *ring = rt2x00dev->rx;
- 	struct data_entry *entry;
- 	struct sk_buff *skb;
--<<<<<<< HEAD:drivers/net/wireless/rt2x00/rt2x00pci.c
- 	struct ieee80211_hdr *hdr;
--=======
- 	struct skb_desc *skbdesc;
-->>>>>>> FETCH_HEAD:drivers/net/wireless/rt2x00/rt2x00pci.c
- 	struct rxdata_entry_desc desc;
--<<<<<<< HEAD:drivers/net/wireless/rt2x00/rt2x00pci.c
- 	int header_size;
- 	int align;
--=======
- 	__le32 *rxd;
-->>>>>>> FETCH_HEAD:drivers/net/wireless/rt2x00/rt2x00pci.c
- 	u32 word;
+diff -puN kernel/rcupdate.c~revert-rcu-fix-section-mismatch kernel/rcupdate.c
+--- a/kernel/rcupdate.c~revert-rcu-fix-section-mismatch
++++ a/kernel/rcupdate.c
+@@ -549,7 +549,7 @@ static void rcu_init_percpu_data(int cpu
+ 	rdp->blimit = blimit;
+ }
  
- 	while (1) {
-diff -puN drivers/net/wireless/rt2x00/rt2x00usb.c~git-netdev-all-fix-conflicts drivers/net/wireless/rt2x00/rt2x00usb.c
---- a/drivers/net/wireless/rt2x00/rt2x00usb.c~git-netdev-all-fix-conflicts
-+++ a/drivers/net/wireless/rt2x00/rt2x00usb.c
-@@ -245,11 +245,8 @@ static void rt2x00usb_interrupt_rxdone(s
- 	struct data_ring *ring = entry->ring;
- 	struct rt2x00_dev *rt2x00dev = ring->rt2x00dev;
- 	struct sk_buff *skb;
--<<<<<<< HEAD:drivers/net/wireless/rt2x00/rt2x00usb.c
- 	struct ieee80211_hdr *hdr;
--=======
- 	struct skb_desc *skbdesc;
-->>>>>>> FETCH_HEAD:drivers/net/wireless/rt2x00/rt2x00usb.c
- 	struct rxdata_entry_desc desc;
- 	int header_size;
- 	int frame_size;
-diff -puN drivers/net/wireless/rt2x00/rt61pci.c~git-netdev-all-fix-conflicts drivers/net/wireless/rt2x00/rt61pci.c
---- a/drivers/net/wireless/rt2x00/rt61pci.c~git-netdev-all-fix-conflicts
-+++ a/drivers/net/wireless/rt2x00/rt61pci.c
-@@ -1704,11 +1704,7 @@ static void rt61pci_txdone(struct rt2x00
- 	struct data_ring *ring;
- 	struct data_entry *entry;
- 	struct data_entry *entry_done;
--<<<<<<< HEAD:drivers/net/wireless/rt2x00/rt61pci.c
--	struct data_desc *txd;
--=======
- 	__le32 *txd;
-->>>>>>> FETCH_HEAD:drivers/net/wireless/rt2x00/rt61pci.c
- 	u32 word;
- 	u32 reg;
- 	u32 old_reg;
-@@ -1768,12 +1764,8 @@ static void rt61pci_txdone(struct rt2x00
- 			WARNING(rt2x00dev,
- 				"TX status report missed for entry %p\n",
- 				entry_done);
--<<<<<<< HEAD:drivers/net/wireless/rt2x00/rt61pci.c
--			rt2x00lib_txdone(entry_done, TX_FAIL_OTHER, 0);
--=======
- 			rt2x00pci_txdone(rt2x00dev, entry_done, TX_FAIL_OTHER,
- 					 0);
-->>>>>>> FETCH_HEAD:drivers/net/wireless/rt2x00/rt61pci.c
- 			entry_done = rt2x00_get_data_entry_done(ring);
- 		}
- 
+-static void __cpuinit rcu_online_cpu(int cpu)
++static void __devinit rcu_online_cpu(int cpu)
+ {
+ 	struct rcu_data *rdp = &per_cpu(rcu_data, cpu);
+ 	struct rcu_data *bh_rdp = &per_cpu(rcu_bh_data, cpu);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -177,7 +106,6 @@ drivers-mtd-ubi-cdevc-unused-var.patch
 git-net.patch
 git-net-vs-git-lblnet.patch
 git-net-vs-git-lblnet-2.patch
-git-netdev-all-fix-conflicts.patch
 git-netdev-all-fix-conflicts-fix.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 git-backlight.patch
@@ -185,7 +113,6 @@ git-battery.patch
 bluetooth-uninlining.patch
 net-sunrpc-schedc-revert-git-net-changes.patch
 net-sunrpc-schedc-reapply-git-net-changes.patch
-git-nfsd.patch
 git-selinux-vs-git-lblnet.patch
 serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
 revert-gregkh-pci-pci-use-dev_printk-in-x86-quirk-messages.patch
