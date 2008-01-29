@@ -1,66 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: + git-kbuild-fixup.patch added to -mm tree
-Date: Mon, 28 Jan 2008 16:21:44 -0800
-Message-ID: <200801290021.m0T0LiWQ024055@imap1.linux-foundation.org>
+Subject: - git-net-fix-conflicts.patch removed from -mm tree
+Date: Mon, 28 Jan 2008 16:23:52 -0800
+Message-ID: <200801290023.m0T0NquD024112@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52229 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42184 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755062AbYA2AVv (ORCPT
+	by vger.kernel.org with ESMTP id S1753211AbYA2AXz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 19:21:51 -0500
+	Mon, 28 Jan 2008 19:23:55 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m0T0Nq1t021604
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 28 Jan 2008 16:23:53 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, sam@ravnborg.org, tony.luck@intel.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-kbuild-fixup
-has been added to the -mm tree.  Its filename is
-     git-kbuild-fixup.patch
+     git-net-fix-conflicts
+has been removed from the -mm tree.  Its filename was
+     git-net-fix-conflicts.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-kbuild-fixup
+Subject: git-net-fix-conflicts
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Yet another reject fix.
-
-Please prefer to merge ia64 patches via the ia64 tree.
-
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-ia64/gcc_intrin.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/802/tr.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN include/asm-ia64/gcc_intrin.h~git-kbuild-fixup include/asm-ia64/gcc_intrin.h
---- a/include/asm-ia64/gcc_intrin.h~git-kbuild-fixup
-+++ a/include/asm-ia64/gcc_intrin.h
-@@ -25,7 +25,7 @@ extern void ia64_bad_param_for_setreg (v
- extern void ia64_bad_param_for_getreg (void);
+diff -puN net/802/tr.c~git-net-fix-conflicts net/802/tr.c
+--- a/net/802/tr.c~git-net-fix-conflicts
++++ a/net/802/tr.c
+@@ -662,15 +662,8 @@ static __initdata struct ctl_path tr_pat
  
- #ifdef __KERNEL__
--register unsigned long ia64_r13 asm ("r13") __attribute_used__;
-+register unsigned long ia64_r13 asm ("r13") __used;
- #endif
- 
- #define ia64_setreg(regnum, val)						\
+ static int __init rif_init(void)
+ {
+-<<<<<<< HEAD:net/802/tr.c
+-	init_timer(&rif_timer);
+-	rif_timer.expires  = jiffies + sysctl_tr_rif_timeout;
+-	rif_timer.data     = 0L;
+-	rif_timer.function = rif_check_expire;
+-=======
+ 	rif_timer.expires  = sysctl_tr_rif_timeout;
+ 	setup_timer(&rif_timer, rif_check_expire, 0);
+->>>>>>> FETCH_HEAD:net/802/tr.c
+ 	add_timer(&rif_timer);
+ #ifdef CONFIG_SYSCTL
+ 	register_sysctl_paths(tr_path, tr_table);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,8 +101,6 @@ drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
 git-kbuild.patch
 git-kbuild-fixup.patch
 git-kvm.patch
-git-libata-all-fix-drivers-ata-sata_fslc.patch
-fix-ide-mm-ide-use-ide_destroy_dmatable-instead-of-pci_unmap_sg.patch
 drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
 drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
 git-md-accel.patch
@@ -117,7 +110,6 @@ git-mtd.patch
 drivers-mtd-ubi-wlc-fix-uninitialized-var-warning.patch
 drivers-mtd-ubi-scanc-fix-uninitialized-var-warning.patch
 drivers-mtd-ubi-cdevc-unused-var.patch
-git-ubi.patch
 git-net.patch
 git-net-fix-conflicts.patch
 git-net-vs-git-lblnet.patch
