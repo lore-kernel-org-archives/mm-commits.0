@@ -1,135 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - drm-convert-from-nopage-to-fault-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 28 Jan 2008 16:09:33 -0800
-Message-ID: <200801290009.m0T09Y8g023582@imap1.linux-foundation.org>
+Subject: - git-infiniband-versus-driver-tree.patch removed from -mm tree
+Date: Mon, 28 Jan 2008 16:13:24 -0800
+Message-ID: <200801290013.m0T0DO6f023683@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33902 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55215 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752434AbYA2AKN (ORCPT
+	by vger.kernel.org with ESMTP id S1751974AbYA2ANo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 19:10:13 -0500
+	Mon, 28 Jan 2008 19:13:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, airlied@linux.ie, npiggin@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org, rolandd@cisco.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drm-convert-from-nopage-to-fault-checkpatch-fixes
+     git-infiniband versus driver tree
 has been removed from the -mm tree.  Its filename was
-     drm-convert-from-nopage-to-fault-checkpatch-fixes.patch
+     git-infiniband-versus-driver-tree.patch
 
-This patch was dropped because git-drm changes wrecked it
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm-convert-from-nopage-to-fault-checkpatch-fixes
+Subject: git-infiniband versus driver tree
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: plain inline is preferred over __inline__
-#32: FILE: drivers/char/drm/drm_vm.c:83:
-+static __inline__ int drm_do_vm_fault(struct vm_area_struct *vma,
-
-WARNING: labels should not be indented
-#91: FILE: drivers/char/drm/drm_vm.c:152:
-+      vm_fault_error:
-
-WARNING: plain inline is preferred over __inline__
-#97: FILE: drivers/char/drm/drm_vm.c:156:
-+static __inline__ int drm_do_vm_fault(struct vm_area_struct *vma,
-
-WARNING: plain inline is preferred over __inline__
-#117: FILE: drivers/char/drm/drm_vm.c:173:
-+static __inline__ int drm_do_vm_shm_fault(struct vm_area_struct *vma,
-
-WARNING: plain inline is preferred over __inline__
-#163: FILE: drivers/char/drm/drm_vm.c:286:
-+static __inline__ int drm_do_vm_dma_fault(struct vm_area_struct *vma,
-
-WARNING: line over 80 characters
-#182: FILE: drivers/char/drm/drm_vm.c:301:
-+	offset = (unsigned long)vmf->virtual_address - vma->vm_start;	/* vm_[pg]off[set] should be 0 */
-
-WARNING: plain inline is preferred over __inline__
-#207: FILE: drivers/char/drm/drm_vm.c:321:
-+static __inline__ int drm_do_vm_sg_fault(struct vm_area_struct *vma,
-
-total: 0 errors, 7 warnings, 295 lines checked
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Dave Airlie <airlied@linux.ie>
-Cc: Nick Piggin <npiggin@suse.de>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/drm_vm.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ drivers/infiniband/core/cm.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/drm/drm_vm.c~drm-convert-from-nopage-to-fault-checkpatch-fixes drivers/char/drm/drm_vm.c
---- a/drivers/char/drm/drm_vm.c~drm-convert-from-nopage-to-fault-checkpatch-fixes
-+++ a/drivers/char/drm/drm_vm.c
-@@ -80,8 +80,8 @@ static pgprot_t drm_io_prot(uint32_t map
-  * map, get the page, increment the use count and return it.
-  */
- #if __OS_HAS_AGP
--static __inline__ int drm_do_vm_fault(struct vm_area_struct *vma,
--						struct vm_fault *vmf)
-+static inline int drm_do_vm_fault(struct vm_area_struct *vma,
-+				  struct vm_fault *vmf)
- {
- 	struct drm_file *priv = vma->vm_file->private_data;
- 	struct drm_device *dev = priv->head->dev;
-@@ -149,11 +149,11 @@ static __inline__ int drm_do_vm_fault(st
+diff -puN drivers/infiniband/core/cm.c~git-infiniband-versus-driver-tree drivers/infiniband/core/cm.c
+--- a/drivers/infiniband/core/cm.c~git-infiniband-versus-driver-tree
++++ a/drivers/infiniband/core/cm.c
+@@ -3571,7 +3571,7 @@ static int cm_add_fs_obj(struct kobject 
+ 	if (!obj->parent)
+ 		return -EBUSY;
  
- 		return 0;
- 	}
--      vm_fault_error:
-+vm_fault_error:
- 	return VM_FAULT_SIGBUS;	/* Disallow mremap */
+-	ret = kobject_register(obj);
++	ret = kobject_init_and_add(obj, type, parent, "%s", name);
+ 	if (ret)
+ 		kobject_put(parent);
+ 
+@@ -3581,7 +3581,7 @@ static int cm_add_fs_obj(struct kobject 
+ static void cm_remove_fs_obj(struct kobject *obj)
+ {
+ 	kobject_put(obj->parent);
+-	kobject_unregister(obj);
++	kobject_put(obj);
  }
- #else				/* __OS_HAS_AGP */
--static __inline__ int drm_do_vm_fault(struct vm_area_struct *vma,
-+static inline int drm_do_vm_fault(struct vm_area_struct *vma,
- 						struct vm_fault *vmf)
- {
- 	return VM_FAULT_SIGBUS;
-@@ -170,7 +170,7 @@ static __inline__ int drm_do_vm_fault(st
-  * Get the mapping, find the real physical page to map, get the page, and
-  * return it.
-  */
--static __inline__ int drm_do_vm_shm_fault(struct vm_area_struct *vma,
-+static inline int drm_do_vm_shm_fault(struct vm_area_struct *vma,
- 						    struct vm_fault *vmf)
- {
- 	struct drm_map *map = (struct drm_map *) vma->vm_private_data;
-@@ -283,8 +283,8 @@ static void drm_vm_shm_close(struct vm_a
-  *
-  * Determine the page number from the page offset and get it from drm_device_dma::pagelist.
-  */
--static __inline__ int drm_do_vm_dma_fault(struct vm_area_struct *vma,
--						    struct vm_fault *vmf)
-+static inline int drm_do_vm_dma_fault(struct vm_area_struct *vma,
-+				     struct vm_fault *vmf)
- {
- 	struct drm_file *priv = vma->vm_file->private_data;
- 	struct drm_device *dev = priv->head->dev;
-@@ -318,8 +318,8 @@ static __inline__ int drm_do_vm_dma_faul
-  *
-  * Determine the map offset from the page offset and get it from drm_sg_mem::pagelist.
-  */
--static __inline__ int drm_do_vm_sg_fault(struct vm_area_struct *vma,
--						   struct vm_fault *vmf)
-+static inline int drm_do_vm_sg_fault(struct vm_area_struct *vma,
-+				     struct vm_fault *vmf)
- {
- 	struct drm_map *map = (struct drm_map *) vma->vm_private_data;
- 	struct drm_file *priv = vma->vm_file->private_data;
+ 
+ static int cm_create_port_fs(struct cm_port *port)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -164,9 +91,7 @@ include-asm-powerpc-nvramh-needs-listh-fix.patch
 gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
 drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
 git-drm.patch
-drm-convert-from-nopage-to-fault-checkpatch-fixes.patch
 drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
-fix-jdelvare-i2c-i2c-constify-client-address-data.patch
 adt7473-new-driver-for-analog-devices-adt7473-sensor-chip-fix.patch
 hwmon-new-chip-driver-for-ti-ads7828-a-d.patch
 hwmon-new-chip-driver-for-ti-ads7828-a-d-checkpatch-fixes.patch
