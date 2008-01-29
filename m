@@ -1,94 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - git-sched-fixup.patch removed from -mm tree
-Date: Mon, 28 Jan 2008 16:30:14 -0800
-Message-ID: <200801290030.m0T0UEqx024431@imap1.linux-foundation.org>
+Subject: - git-scsi-misc-vs-git-net.patch removed from -mm tree
+Date: Mon, 28 Jan 2008 16:33:07 -0800
+Message-ID: <200801290033.m0T0X7Dx024527@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57127 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43600 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764019AbYA2Aaj (ORCPT
+	by vger.kernel.org with ESMTP id S1753514AbYA2AdK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 19:30:39 -0500
+	Mon, 28 Jan 2008 19:33:10 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m0T0X75s022029
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 28 Jan 2008 16:33:08 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-sched-fixup
+     git-scsi-misc-vs-git-net
 has been removed from the -mm tree.  Its filename was
-     git-sched-fixup.patch
+     git-scsi-misc-vs-git-net.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-sched-fixup
+Subject: git-scsi-misc-vs-git-net
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Attempt to repair clash between gregkh-driver-struct-user_info-sysfs.patch and
-git-sched.
-
-Cc: Greg KH <greg@kroah.com>
-Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    1 +
- kernel/user.c   |   26 ++++++--------------------
- 2 files changed, 7 insertions(+), 20 deletions(-)
+ drivers/scsi/scsi_transport_iscsi.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/user.c~git-sched-fixup kernel/user.c
---- a/kernel/user.c~git-sched-fixup
-+++ a/kernel/user.c
-@@ -349,28 +349,14 @@ struct user_struct * alloc_uid(struct us
- #endif
- 		new->locked_shm = 0;
+diff -puN drivers/scsi/scsi_transport_iscsi.c~git-scsi-misc-vs-git-net drivers/scsi/scsi_transport_iscsi.c
+--- a/drivers/scsi/scsi_transport_iscsi.c~git-scsi-misc-vs-git-net
++++ a/drivers/scsi/scsi_transport_iscsi.c
+@@ -1572,6 +1572,7 @@ unregister_transport_class:
  
--		if (alloc_uid_keyring(new, current) < 0) {
--			kmem_cache_free(uid_cachep, new);
--			uids_mutex_unlock();
--			return NULL;
--		}
-+		if (alloc_uid_keyring(new, current) < 0)
-+			goto out_free_user;
- 
--		if (sched_create_user(new) < 0) {
--			key_put(new->uid_keyring);
--			key_put(new->session_keyring);
--			kmem_cache_free(uid_cachep, new);
--			uids_mutex_unlock();
--			return NULL;
--		}
-+		if (sched_create_user(new) < 0)
-+			goto out_put_keys;
- 
--		if (uids_user_create(new)) {
--			sched_destroy_user(new);
--			key_put(new->uid_keyring);
--			key_put(new->session_keyring);
--			kmem_cache_free(uid_cachep, new);
--			uids_mutex_unlock();
--			return NULL;
--		}
-+		if (uids_user_create(new))
-+			goto out_destoy_sched;
- 
- 		/*
- 		 * Before adding this, check whether we raced
-diff -puN kernel/rcupdate.c~git-sched-fixup kernel/rcupdate.c
-diff -puN kernel/sysctl.c~git-sched-fixup kernel/sysctl.c
---- a/kernel/sysctl.c~git-sched-fixup
-+++ a/kernel/sysctl.c
-@@ -80,6 +80,7 @@ extern int percpu_pagelist_fraction;
- extern int compat_log;
- extern int maps_protect;
- extern int sysctl_stat_interval;
-+extern int latencytop_enabled;
- 
- /* Constants used for minimum and  maximum */
- #ifdef CONFIG_DETECT_SOFTLOCKUP
+ static void __exit iscsi_transport_exit(void)
+ {
++	destroy_workqueue(iscsi_eh_timer_workq);
+ 	netlink_kernel_release(nls);
+ 	transport_class_unregister(&iscsi_connection_class);
+ 	transport_class_unregister(&iscsi_session_class);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -160,7 +119,6 @@ fix-gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in.patch
 cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
 quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
 x86-validate-against-acpi-motherboard-resources.patch
-git-sched-fixup.patch
 git-sh.patch
 git-scsi-misc-vs-git-net.patch
 git-scsi-misc-vs-gregkh-pci-pci-remove-users-of-pci_enable_device_bars.patch
