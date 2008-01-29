@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - pata_serverworks-fix-cable-types-and-cosmetics.patch removed from -mm tree
-Date: Mon, 28 Jan 2008 17:49:03 -0800
-Message-ID: <200801290149.m0T1n33r027462@imap1.linux-foundation.org>
+Subject: - pata_mpc52xx-remove-un-needed-assignment.patch removed from -mm tree
+Date: Mon, 28 Jan 2008 17:49:00 -0800
+Message-ID: <200801290149.m0T1n0HS027387@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57763 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40021 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756293AbYA2CAL (ORCPT
+	by vger.kernel.org with ESMTP id S1756182AbYA2CAL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 28 Jan 2008 21:00:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,21 +15,19 @@ To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, jeff@garzik.org
 
 
 The patch titled
-     pata_serverworks: Fix cable types and cosmetics
+     pata_mpc52xx: remove un-needed assignment
 has been removed from the -mm tree.  Its filename was
-     pata_serverworks-fix-cable-types-and-cosmetics.patch
+     pata_mpc52xx-remove-un-needed-assignment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pata_serverworks: Fix cable types and cosmetics
+Subject: pata_mpc52xx: remove un-needed assignment
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Minor tidying up. Only real change is to return UNK not 80 wire when we
-don't know the cable type. This didn't use to matter but with Tejun's
-reworking of cable detection it may.
+ata_irq is always assigned so does not need to be initialised to zero.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Jeff Garzik <jeff@garzik.org>
@@ -37,56 +35,21 @@ Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_serverworks.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/ata/pata_mpc52xx.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_serverworks.c~pata_serverworks-fix-cable-types-and-cosmetics drivers/ata/pata_serverworks.c
---- a/drivers/ata/pata_serverworks.c~pata_serverworks-fix-cable-types-and-cosmetics
-+++ a/drivers/ata/pata_serverworks.c
-@@ -41,7 +41,7 @@
- #include <linux/libata.h>
- 
- #define DRV_NAME "pata_serverworks"
--#define DRV_VERSION "0.4.2"
-+#define DRV_VERSION "0.4.3"
- 
- #define SVWKS_CSB5_REVISION_NEW	0x92 /* min PCI_REVISION_ID for UDMA5 (A2.0) */
- #define SVWKS_CSB6_REVISION	0xa0 /* min PCI_REVISION_ID for UDMA4 (A1.0) */
-@@ -102,7 +102,7 @@ static int osb4_cable(struct ata_port *a
- }
- 
- /**
-- *	csb4_cable	-	CSB5/6 cable detect
-+ *	csb_cable	-	CSB5/6 cable detect
-  *	@ap: ATA port to check
-  *
-  *	Serverworks default arrangement is to use the drive side detection
-@@ -110,7 +110,7 @@ static int osb4_cable(struct ata_port *a
-  */
- 
- static int csb_cable(struct ata_port *ap) {
--	return ATA_CBL_PATA80;
-+	return ATA_CBL_PATA_UNK;
- }
- 
- struct sv_cable_table {
-@@ -231,7 +231,6 @@ static unsigned long serverworks_csb_fil
- 	return ata_pci_default_filter(adev, mask);
- }
- 
--
- /**
-  *	serverworks_set_piomode	-	set initial PIO mode data
-  *	@ap: ATA interface
-@@ -243,7 +242,7 @@ static unsigned long serverworks_csb_fil
- static void serverworks_set_piomode(struct ata_port *ap, struct ata_device *adev)
+diff -puN drivers/ata/pata_mpc52xx.c~pata_mpc52xx-remove-un-needed-assignment drivers/ata/pata_mpc52xx.c
+--- a/drivers/ata/pata_mpc52xx.c~pata_mpc52xx-remove-un-needed-assignment
++++ a/drivers/ata/pata_mpc52xx.c
+@@ -364,7 +364,7 @@ mpc52xx_ata_probe(struct of_device *op, 
  {
- 	static const u8 pio_mode[] = { 0x5d, 0x47, 0x34, 0x22, 0x20 };
--	int offset = 1 + (2 * ap->port_no) - adev->devno;
-+	int offset = 1 + 2 * ap->port_no - adev->devno;
- 	int devbits = (2 * ap->port_no + adev->devno) * 4;
- 	u16 csb5_pio;
- 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
+ 	unsigned int ipb_freq;
+ 	struct resource res_mem;
+-	int ata_irq = NO_IRQ;
++	int ata_irq;
+ 	struct mpc52xx_ata __iomem *ata_regs;
+ 	struct mpc52xx_ata_priv *priv;
+ 	int rv;
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
