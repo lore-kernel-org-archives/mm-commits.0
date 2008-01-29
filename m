@@ -1,62 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - x86-reboot-remove-inb_p-usage.patch removed from -mm tree
-Date: Mon, 28 Jan 2008 17:50:12 -0800
-Message-ID: <200801290150.m0T1oCv1027556@imap1.linux-foundation.org>
+Subject: - pata_winbond-error-return.patch removed from -mm tree
+Date: Mon, 28 Jan 2008 17:49:06 -0800
+Message-ID: <200801290149.m0T1n6Ij027465@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48647 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43932 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756672AbYA2CA3 (ORCPT
+	by vger.kernel.org with ESMTP id S1756479AbYA2CAT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 21:00:29 -0500
+	Mon, 28 Jan 2008 21:00:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, ak@suse.de, alan@redhat.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86 reboot: Remove inb_p usage
+     pata_winbond: error return
 has been removed from the -mm tree.  Its filename was
-     x86-reboot-remove-inb_p-usage.patch
+     pata_winbond-error-return.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86 reboot: Remove inb_p usage
+Subject: pata_winbond: error return
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-We are driving a motherboard port so use a 2uS explicit delay at this
-point.
+If no device is active return an error not zero.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <ak@suse.de>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/reboot.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/ata/pata_winbond.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/reboot.c~x86-reboot-remove-inb_p-usage arch/x86/kernel/reboot.c
---- a/arch/x86/kernel/reboot.c~x86-reboot-remove-inb_p-usage
-+++ a/arch/x86/kernel/reboot.c
-@@ -319,9 +319,11 @@ static inline void kb_wait(void)
- {
- 	int i;
+diff -puN drivers/ata/pata_winbond.c~pata_winbond-error-return drivers/ata/pata_winbond.c
+--- a/drivers/ata/pata_winbond.c~pata_winbond-error-return
++++ a/drivers/ata/pata_winbond.c
+@@ -195,7 +195,7 @@ static __init int winbond_init_one(unsig
+ 	reg = winbond_readcfg(port, 0x81);
  
--	for (i = 0; i < 0x10000; i++)
--		if ((inb_p(0x64) & 0x02) == 0)
-+	for (i = 0; i < 0x10000; i++) {
-+		if ((inb(0x64) & 0x02) == 0)
- 			break;
-+		udelay(2);
-+	}
- }
+ 	if (!(reg & 0x03))		/* Disabled */
+-		return 0;
++		return -ENODEV;
  
- void machine_emergency_restart(void)
+ 	for (i = 0; i < 2 ; i ++) {
+ 		unsigned long cmd_port = 0x1F0 - (0x80 * i);
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
