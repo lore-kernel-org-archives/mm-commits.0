@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mount-options-fix-ext2.patch added to -mm tree
-Date: Tue, 29 Jan 2008 15:22:32 -0800
-Message-ID: <200801292322.m0TNMWw0009704@imap1.linux-foundation.org>
+Subject: + mount-options-fix-fat.patch added to -mm tree
+Date: Tue, 29 Jan 2008 15:22:34 -0800
+Message-ID: <200801292322.m0TNMY2i009707@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59795 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35193 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754642AbYA2XWh (ORCPT
+	by vger.kernel.org with ESMTP id S1754900AbYA2XWl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jan 2008 18:22:37 -0500
+	Tue, 29 Jan 2008 18:22:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, jack@suse.cz
+Cc: mszeredi@suse.cz, hirofumi@mail.parknet.co.jp
 
 
 The patch titled
-     mount options: fix ext2
+     mount options: fix fat
 has been added to the -mm tree.  Its filename is
-     mount-options-fix-ext2.patch
+     mount-options-fix-fat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mount options: fix ext2
+Subject: mount options: fix fat
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Add noreservation option to /proc/mounts for ext2 filesystems.
+Add flush option to /proc/mounts for msdos and vfat filesystems.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Acked-by: Jan Kara <jack@suse.cz>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/super.c |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/fat/inode.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/ext2/super.c~mount-options-fix-ext2 fs/ext2/super.c
---- a/fs/ext2/super.c~mount-options-fix-ext2
-+++ a/fs/ext2/super.c
-@@ -285,6 +285,9 @@ static int ext2_show_options(struct seq_
- 		seq_puts(seq, ",xip");
- #endif
+diff -puN fs/fat/inode.c~mount-options-fix-fat fs/fat/inode.c
+--- a/fs/fat/inode.c~mount-options-fix-fat
++++ a/fs/fat/inode.c
+@@ -837,6 +837,8 @@ static int fat_show_options(struct seq_f
+ 		if (!opts->numtail)
+ 			seq_puts(m, ",nonumtail");
+ 	}
++	if (sbi->options.flush)
++		seq_puts(m, ",flush");
  
-+	if (!test_opt(sb, RESERVATION))
-+		seq_puts(seq, ",noreservation");
-+
  	return 0;
  }
- 
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
