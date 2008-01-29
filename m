@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mount-options-fix-adfs.patch added to -mm tree
-Date: Tue, 29 Jan 2008 15:22:01 -0800
-Message-ID: <200801292322.m0TNM1Pd009656@imap1.linux-foundation.org>
+Subject: + mount-options-fix-affs.patch added to -mm tree
+Date: Tue, 29 Jan 2008 15:22:04 -0800
+Message-ID: <200801292322.m0TNM4dk009669@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37033 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60952 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754849AbYA2XWT (ORCPT
+	by vger.kernel.org with ESMTP id S1754809AbYA2XWS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jan 2008 18:22:19 -0500
+	Tue, 29 Jan 2008 18:22:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, rmk+kernel@arm.linux.org.uk
+Cc: mszeredi@suse.cz, zippel@linux-m68k.org
 
 
 The patch titled
-     mount options: fix adfs
+     mount options: fix affs
 has been added to the -mm tree.  Its filename is
-     mount-options-fix-adfs.patch
+     mount-options-fix-affs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mount options: fix adfs
+Subject: mount options: fix affs
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Add a .show_options super operation to adfs.
+Add a .show_options super operation to affs.
+
+Use generic_show_options() and save the complete option string in
+affs_fill_super() and affs_remount().
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/adfs/super.c |   26 ++++++++++++++++++++++++--
- 1 file changed, 24 insertions(+), 2 deletions(-)
+ fs/affs/super.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN fs/adfs/super.c~mount-options-fix-adfs fs/adfs/super.c
---- a/fs/adfs/super.c~mount-options-fix-adfs
-+++ a/fs/adfs/super.c
-@@ -20,6 +20,8 @@
- #include <linux/vfs.h>
- #include <linux/parser.h>
- #include <linux/bitops.h>
-+#include <linux/mount.h>
-+#include <linux/seq_file.h>
- 
- #include <asm/uaccess.h>
- #include <asm/system.h>
-@@ -30,6 +32,9 @@
- #include "dir_f.h"
- #include "dir_fplus.h"
- 
-+#define ADFS_DEFAULT_OWNER_MASK S_IRWXU
-+#define ADFS_DEFAULT_OTHER_MASK (S_IRWXG | S_IRWXO)
-+
- void __adfs_error(struct super_block *sb, const char *function, const char *fmt, ...)
- {
- 	char error_buf[128];
-@@ -134,6 +139,22 @@ static void adfs_put_super(struct super_
- 	sb->s_fs_info = NULL;
- }
- 
-+static int adfs_show_options(struct seq_file *seq, struct vfsmount *mnt)
-+{
-+	struct adfs_sb_info *asb = ADFS_SB(mnt->mnt_sb);
-+
-+	if (asb->s_uid != 0)
-+		seq_printf(seq, ",uid=%u", asb->s_uid);
-+	if (asb->s_gid != 0)
-+		seq_printf(seq, ",gid=%u", asb->s_gid);
-+	if (asb->s_owner_mask != ADFS_DEFAULT_OWNER_MASK)
-+		seq_printf(seq, ",ownmask=%o", asb->s_owner_mask);
-+	if (asb->s_other_mask != ADFS_DEFAULT_OTHER_MASK)
-+		seq_printf(seq, ",othmask=%o", asb->s_other_mask);
-+
-+	return 0;
-+}
-+
- enum {Opt_uid, Opt_gid, Opt_ownmask, Opt_othmask, Opt_err};
- 
- static match_table_t tokens = {
-@@ -259,6 +280,7 @@ static const struct super_operations adf
- 	.put_super	= adfs_put_super,
- 	.statfs		= adfs_statfs,
- 	.remount_fs	= adfs_remount,
-+	.show_options	= adfs_show_options,
+diff -puN fs/affs/super.c~mount-options-fix-affs fs/affs/super.c
+--- a/fs/affs/super.c~mount-options-fix-affs
++++ a/fs/affs/super.c
+@@ -122,6 +122,7 @@ static const struct super_operations aff
+ 	.write_super	= affs_write_super,
+ 	.statfs		= affs_statfs,
+ 	.remount_fs	= affs_remount,
++	.show_options	= generic_show_options,
  };
  
- static struct adfs_discmap *adfs_read_map(struct super_block *sb, struct adfs_discrecord *dr)
-@@ -344,8 +366,8 @@ static int adfs_fill_super(struct super_
- 	/* set default options */
- 	asb->s_uid = 0;
- 	asb->s_gid = 0;
--	asb->s_owner_mask = S_IRWXU;
--	asb->s_other_mask = S_IRWXG | S_IRWXO;
-+	asb->s_owner_mask = ADFS_DEFAULT_OWNER_MASK;
-+	asb->s_other_mask = ADFS_DEFAULT_OTHER_MASK;
+ enum {
+@@ -272,6 +273,8 @@ static int affs_fill_super(struct super_
+ 	u8			 sig[4];
+ 	int			 ret = -EINVAL;
  
- 	if (parse_options(sb, data))
- 		goto error;
++	save_mount_options(sb, data);
++
+ 	pr_debug("AFFS: read_super(%s)\n",data ? (const char *)data : "no options");
+ 
+ 	sb->s_magic             = AFFS_SUPER_MAGIC;
+@@ -487,14 +490,21 @@ affs_remount(struct super_block *sb, int
+ 	int			 root_block;
+ 	unsigned long		 mount_flags;
+ 	int			 res = 0;
++	char			*new_opts = kstrdup(data, GFP_KERNEL);
+ 
+ 	pr_debug("AFFS: remount(flags=0x%x,opts=\"%s\")\n",*flags,data);
+ 
+ 	*flags |= MS_NODIRATIME;
+ 
+-	if (!parse_options(data,&uid,&gid,&mode,&reserved,&root_block,
+-	    &blocksize,&sbi->s_prefix,sbi->s_volume,&mount_flags))
++	if (!parse_options(data, &uid, &gid, &mode, &reserved, &root_block,
++			   &blocksize, &sbi->s_prefix, sbi->s_volume,
++			   &mount_flags)) {
++		kfree(new_opts);
+ 		return -EINVAL;
++	}
++	kfree(sb->s_options);
++	sb->s_options = new_opts;
++
+ 	sbi->s_flags = mount_flags;
+ 	sbi->s_mode  = mode;
+ 	sbi->s_uid   = uid;
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
