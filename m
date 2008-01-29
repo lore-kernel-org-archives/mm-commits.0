@@ -1,90 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-fix-more-conflicts.patch removed from -mm tree
-Date: Mon, 28 Jan 2008 16:25:02 -0800
-Message-ID: <200801290025.m0T0P3E8024228@imap1.linux-foundation.org>
+Subject: - git-netdev-all-fix-conflicts.patch removed from -mm tree
+Date: Mon, 28 Jan 2008 16:25:09 -0800
+Message-ID: <200801290025.m0T0PAXm024235@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55797 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52391 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753414AbYA2AZG (ORCPT
+	by vger.kernel.org with ESMTP id S1751900AbYA2AZY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 19:25:06 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m0T0P3iv021636
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 28 Jan 2008 16:25:04 -0800
+	Mon, 28 Jan 2008 19:25:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-net-fix-more-conflicts
+     git-netdev-all-fix-conflicts
 has been removed from the -mm tree.  Its filename was
-     git-net-fix-more-conflicts.patch
+     git-netdev-all-fix-conflicts.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-net-fix-more-conflicts
+Subject: git-netdev-all-fix-conflicts
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ipg.c  |    4 ----
- drivers/net/s2io.c |    7 -------
- 2 files changed, 11 deletions(-)
+ drivers/net/netxen/netxen_nic_init.c    |    5 -----
+ drivers/net/wireless/rt2x00/rt2x00pci.c |    6 ------
+ drivers/net/wireless/rt2x00/rt2x00usb.c |    3 ---
+ drivers/net/wireless/rt2x00/rt61pci.c   |    8 --------
+ 4 files changed, 22 deletions(-)
 
-diff -puN drivers/net/ipg.c~git-net-fix-more-conflicts drivers/net/ipg.c
---- a/drivers/net/ipg.c~git-net-fix-more-conflicts
-+++ a/drivers/net/ipg.c
-@@ -864,12 +864,8 @@ static void ipg_nic_txfree(struct net_de
- 	dirty = sp->tx_dirty % IPG_TFDLIST_LENGTH;
- 
- 	for (released = 0; released < pending; released++) {
--<<<<<<< HEAD:drivers/net/ipg.c
--		struct sk_buff *skb = sp->TxBuff[dirty];
+diff -puN drivers/net/netxen/netxen_nic_init.c~git-netdev-all-fix-conflicts drivers/net/netxen/netxen_nic_init.c
+--- a/drivers/net/netxen/netxen_nic_init.c~git-netdev-all-fix-conflicts
++++ a/drivers/net/netxen/netxen_nic_init.c
+@@ -1281,14 +1281,9 @@ int netxen_process_cmd_ring(unsigned lon
+ 	while ((last_consumer != consumer) && (count1 < MAX_STATUS_HANDLE)) {
+ 		buffer = &adapter->cmd_buf_arr[last_consumer];
+ 		pdev = adapter->pdev;
+-<<<<<<< HEAD:drivers/net/netxen/netxen_nic_init.c
+-		if (buffer->skb) {
+-			frag = &buffer->frag_array[0];
 -=======
- 		unsigned int dirty = sp->tx_dirty % IPG_TFDLIST_LENGTH;
- 		struct sk_buff *skb = sp->tx_buff[dirty];
-->>>>>>> FETCH_HEAD:drivers/net/ipg.c
- 		struct ipg_tx *txfd = sp->txd + dirty;
- 
- 		IPG_DEBUG_MSG("TFC = %16.16lx\n", (unsigned long) txfd->tfc);
-diff -puN drivers/net/s2io.c~git-net-fix-more-conflicts drivers/net/s2io.c
---- a/drivers/net/s2io.c~git-net-fix-more-conflicts
-+++ a/drivers/net/s2io.c
-@@ -84,11 +84,7 @@
- #include "s2io.h"
- #include "s2io-regs.h"
- 
--<<<<<<< HEAD:drivers/net/s2io.c
--#define DRV_VERSION "2.0.26.17"
+ 		frag = &buffer->frag_array[0];
+ 		skb = buffer->skb;
+ 		if (skb && (cmpxchg(&buffer->skb, skb, NULL) == skb)) {
+->>>>>>> FETCH_HEAD:drivers/net/netxen/netxen_nic_init.c
+ 			pci_unmap_single(pdev, frag->dma, frag->length,
+ 					 PCI_DMA_TODEVICE);
+ 			frag->dma = 0ULL;
+diff -puN drivers/net/wireless/rt2x00/rt2x00pci.c~git-netdev-all-fix-conflicts drivers/net/wireless/rt2x00/rt2x00pci.c
+--- a/drivers/net/wireless/rt2x00/rt2x00pci.c~git-netdev-all-fix-conflicts
++++ a/drivers/net/wireless/rt2x00/rt2x00pci.c
+@@ -134,18 +134,12 @@ void rt2x00pci_rxdone(struct rt2x00_dev 
+ 	struct data_ring *ring = rt2x00dev->rx;
+ 	struct data_entry *entry;
+ 	struct sk_buff *skb;
+-<<<<<<< HEAD:drivers/net/wireless/rt2x00/rt2x00pci.c
+ 	struct ieee80211_hdr *hdr;
 -=======
- #define DRV_VERSION "2.0.26.15-2"
-->>>>>>> FETCH_HEAD:drivers/net/s2io.c
- 
- /* S2io Driver name & version. */
- static char s2io_driver_name[] = "Neterion";
-@@ -3984,8 +3980,6 @@ static int s2io_close(struct net_device 
- 		return 0;
- 
- 	netif_stop_queue(dev);
--<<<<<<< HEAD:drivers/net/s2io.c
+ 	struct skb_desc *skbdesc;
+->>>>>>> FETCH_HEAD:drivers/net/wireless/rt2x00/rt2x00pci.c
+ 	struct rxdata_entry_desc desc;
+-<<<<<<< HEAD:drivers/net/wireless/rt2x00/rt2x00pci.c
+ 	int header_size;
+ 	int align;
 -=======
+ 	__le32 *rxd;
+->>>>>>> FETCH_HEAD:drivers/net/wireless/rt2x00/rt2x00pci.c
+ 	u32 word;
  
- 	/* delete all populated mac entries */
- 	for (offset = 1; offset < config->max_mc_addr; offset++) {
-@@ -3995,7 +3989,6 @@ static int s2io_close(struct net_device 
- 	}
- 
- 	napi_disable(&sp->napi);
-->>>>>>> FETCH_HEAD:drivers/net/s2io.c
- 	/* Reset card, kill tasklet and free Tx and Rx buffers. */
- 	s2io_card_down(sp);
+ 	while (1) {
+diff -puN drivers/net/wireless/rt2x00/rt2x00usb.c~git-netdev-all-fix-conflicts drivers/net/wireless/rt2x00/rt2x00usb.c
+--- a/drivers/net/wireless/rt2x00/rt2x00usb.c~git-netdev-all-fix-conflicts
++++ a/drivers/net/wireless/rt2x00/rt2x00usb.c
+@@ -245,11 +245,8 @@ static void rt2x00usb_interrupt_rxdone(s
+ 	struct data_ring *ring = entry->ring;
+ 	struct rt2x00_dev *rt2x00dev = ring->rt2x00dev;
+ 	struct sk_buff *skb;
+-<<<<<<< HEAD:drivers/net/wireless/rt2x00/rt2x00usb.c
+ 	struct ieee80211_hdr *hdr;
+-=======
+ 	struct skb_desc *skbdesc;
+->>>>>>> FETCH_HEAD:drivers/net/wireless/rt2x00/rt2x00usb.c
+ 	struct rxdata_entry_desc desc;
+ 	int header_size;
+ 	int frame_size;
+diff -puN drivers/net/wireless/rt2x00/rt61pci.c~git-netdev-all-fix-conflicts drivers/net/wireless/rt2x00/rt61pci.c
+--- a/drivers/net/wireless/rt2x00/rt61pci.c~git-netdev-all-fix-conflicts
++++ a/drivers/net/wireless/rt2x00/rt61pci.c
+@@ -1704,11 +1704,7 @@ static void rt61pci_txdone(struct rt2x00
+ 	struct data_ring *ring;
+ 	struct data_entry *entry;
+ 	struct data_entry *entry_done;
+-<<<<<<< HEAD:drivers/net/wireless/rt2x00/rt61pci.c
+-	struct data_desc *txd;
+-=======
+ 	__le32 *txd;
+->>>>>>> FETCH_HEAD:drivers/net/wireless/rt2x00/rt61pci.c
+ 	u32 word;
+ 	u32 reg;
+ 	u32 old_reg;
+@@ -1768,12 +1764,8 @@ static void rt61pci_txdone(struct rt2x00
+ 			WARNING(rt2x00dev,
+ 				"TX status report missed for entry %p\n",
+ 				entry_done);
+-<<<<<<< HEAD:drivers/net/wireless/rt2x00/rt61pci.c
+-			rt2x00lib_txdone(entry_done, TX_FAIL_OTHER, 0);
+-=======
+ 			rt2x00pci_txdone(rt2x00dev, entry_done, TX_FAIL_OTHER,
+ 					 0);
+->>>>>>> FETCH_HEAD:drivers/net/wireless/rt2x00/rt61pci.c
+ 			entry_done = rt2x00_get_data_entry_done(ring);
+ 		}
  
 _
 
@@ -143,7 +177,6 @@ drivers-mtd-ubi-cdevc-unused-var.patch
 git-net.patch
 git-net-vs-git-lblnet.patch
 git-net-vs-git-lblnet-2.patch
-git-net-fix-more-conflicts.patch
 git-netdev-all-fix-conflicts.patch
 git-netdev-all-fix-conflicts-fix.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
