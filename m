@@ -1,122 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: - pata_winbond-error-return.patch removed from -mm tree
-Date: Mon, 28 Jan 2008 17:49:06 -0800
-Message-ID: <200801290149.m0T1n6Ij027465@imap1.linux-foundation.org>
+Subject: - pm-export-device_pm_schedule_removal.patch removed from -mm tree
+Date: Mon, 28 Jan 2008 17:50:25 -0800
+Message-ID: <200801290150.m0T1oPCx027568@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43932 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33660 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756479AbYA2CAT (ORCPT
+	by vger.kernel.org with ESMTP id S1756715AbYA2CBS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 21:00:19 -0500
+	Mon, 28 Jan 2008 21:01:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, greg@kroah.com, kay.sievers@vrfy.org, lenb@kernel.org, linville@tuxdriver.com, mb@bu3sch.de, pavel@ucw.cz, rpurdie@rpsys.net, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_winbond: error return
+     PM: export device_pm_schedule_removal
 has been removed from the -mm tree.  Its filename was
-     pata_winbond-error-return.patch
+     pm-export-device_pm_schedule_removal.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pata_winbond: error return
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: PM: export device_pm_schedule_removal
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-If no device is active return an error not zero.
+The following series of patches is intended to fix the suspend/resume deadlock
+occuring as a result of unregistering device objects, locked by the PM core,
+during suspend/resume cycles by the b43 driver.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
+In short, the b43 driver is modified to avoid unregistering device objects
+during suspend/resume cycles except for the resume code path, in which the
+devices are unregistered using the recently introduced suspend-safe method. 
+For this purpose, it is necessary to introduce the possibility to safely
+remove misc devices, leds classdevs and hwrng devices during suspend/resume
+cycles (patches 2/5, 4/5, 3/5, respectively).
+
+
+This patch:
+
+Move the declaration of device_pm_schedule_removal() to device.h and make it
+exported, as it will be used directly by some drivers for unregistering device
+objects during suspend/resume cycles in a safe way.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Michael Buesch <mb@bu3sch.de>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_winbond.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/base/power/main.c  |    1 +
+ drivers/base/power/power.h |    1 -
+ include/linux/device.h     |    6 ++++++
+ 3 files changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_winbond.c~pata_winbond-error-return drivers/ata/pata_winbond.c
---- a/drivers/ata/pata_winbond.c~pata_winbond-error-return
-+++ a/drivers/ata/pata_winbond.c
-@@ -195,7 +195,7 @@ static __init int winbond_init_one(unsig
- 	reg = winbond_readcfg(port, 0x81);
+diff -puN drivers/base/power/main.c~pm-export-device_pm_schedule_removal drivers/base/power/main.c
+--- a/drivers/base/power/main.c~pm-export-device_pm_schedule_removal
++++ a/drivers/base/power/main.c
+@@ -129,6 +129,7 @@ void device_pm_schedule_removal(struct d
+ 	list_move_tail(&dev->power.entry, &dpm_destroy);
+ 	mutex_unlock(&dpm_list_mtx);
+ }
++EXPORT_SYMBOL_GPL(device_pm_schedule_removal);
  
- 	if (!(reg & 0x03))		/* Disabled */
--		return 0;
-+		return -ENODEV;
+ /**
+  *	pm_sleep_lock - mutual exclusion for registration and suspend
+diff -puN drivers/base/power/power.h~pm-export-device_pm_schedule_removal drivers/base/power/power.h
+--- a/drivers/base/power/power.h~pm-export-device_pm_schedule_removal
++++ a/drivers/base/power/power.h
+@@ -13,7 +13,6 @@ static inline struct device *to_device(s
  
- 	for (i = 0; i < 2 ; i ++) {
- 		unsigned long cmd_port = 0x1F0 - (0x80 * i);
+ extern void device_pm_add(struct device *);
+ extern void device_pm_remove(struct device *);
+-extern void device_pm_schedule_removal(struct device *);
+ extern int pm_sleep_lock(void);
+ extern void pm_sleep_unlock(void);
+ 
+diff -puN include/linux/device.h~pm-export-device_pm_schedule_removal include/linux/device.h
+--- a/include/linux/device.h~pm-export-device_pm_schedule_removal
++++ a/include/linux/device.h
+@@ -532,11 +532,17 @@ extern struct device *device_create(stru
+ extern void device_destroy(struct class *cls, dev_t devt);
+ #ifdef CONFIG_PM_SLEEP
+ extern void destroy_suspended_device(struct class *cls, dev_t devt);
++extern void device_pm_schedule_removal(struct device *);
+ #else /* !CONFIG_PM_SLEEP */
+ static inline void destroy_suspended_device(struct class *cls, dev_t devt)
+ {
+ 	device_destroy(cls, devt);
+ }
++
++static inline void device_pm_schedule_removal(struct device *dev)
++{
++	device_unregister(dev);
++}
+ #endif /* !CONFIG_PM_SLEEP */
+ 
+ /*
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
-keyspan-fix-oops.patch
-git-arm.patch
-pata_pdc202xx_old-fix-crashes-with-atapi.patch
-git-net.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-hci_ldisc-fix-null-pointer-deref.patch
-parisc-new-termios-definitions.patch
-pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch
-pcmcia-replace-kio_addr_t-with-unsigned-int-everywhere.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-8250c-support-specifying-dw-apb-uarts-in-device-platform_data.patch
-avoid-waking-up-closed-serial-ports-on-resume.patch
-serial-avoid-stalling-suspend-if-serial-port-wont-drain.patch
-serial-speed-setup-failure-reporting.patch
-serial-coding-style.patch
-sh-termios-ioctl-definitions.patch
-git-watchdog.patch
+git-acpi.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
 git-x86.patch
-geode-lists-are-subscriber-only.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
-sc26xx-new-serial-driver-for-sc2681-uarts.patch
-sc26xx-new-serial-driver-for-sc2681-uarts-update.patch
-documentation-about-unaligned-memory-access.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
-fix-ixany-and-restart-after-signal-eg-ctrl-c-in-n_tty-line-discipline.patch
-fix-ixany-and-restart-after-signal-eg-ctrl-c-in-n_tty-line-discipline-update.patch
-tty-kill-tty_flipbuf_size.patch
-drivers-edac-turnon-edac-device-error-logging.patch
-drivers-edac-use-round_jiffies_relative.patch
-drivers-edac-add-cell-xdr-memory-types.patch
-drivers-edac-add-cell-mc-driver.patch
-drivers-edac-i3000-code-tidying.patch
-drivers-edac-i3000-replace-macros-with-functions.patch
-drivers-edac-add-freescale-mpc85xx-driver.patch
-drivers-edac-add-marvell-mv64x60-driver.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-dz-clean-up-and-improve-the-setup-of-termios-settings.patch
-char-rocket-switch-long-delay-to-sleep.patch
-char-rocket-printk-cleanup.patch
-char-char-serial-remove-serial_type_normal-redefines.patch
-char-mxser_new-ioaddresses-are-ulong.patch
-char-stallion-fix-compiler-warnings.patch
-char-riscom8-change-rc_init_drivers-prototype.patch
-mxser-mxser_new-first-pass-over-termios-reporting-for-the.patch
-char-mxser-ioctl-cleanup.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
-tty-s390-support-for-termios2.patch
-moxa-first-pass-at-termios-reporting.patch
-n_tty-clean-up-old-code-to-follow-coding-style-and-mostly-checkpatch.patch
-rocket-first-pass-at-termios-reporting.patch
-rocket-dont-let-random-users-reset-the-controller.patch
-tty_audit-fix-checkpatch-complaint.patch
-tty_io-drag-screaming-into-coding-style-compliance.patch
-tty_ioctl-drag-screaming-into-compliance-with-the-coding.patch
-8250_early-coding-style.patch
-8250_gsc-coding-style.patch
-8250_hp300-coding-style.patch
-8250_hub6-codding-style.patch
-8250_pci-coding-style.patch
-serial8250-coding-style.patch
-8250-enable-rate-reporting-via-termios.patch
-serial_core-bring-mostly-into-line-with-coding-style.patch
-smbios-dmi-add-type-41-=-onboard-devices-extended-information.patch
+git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
+git-xfs.patch
+page-allocator-clean-up-pcp-draining-functions.patch
+page-allocator-clean-up-pcp-draining-functions-swsusp-fix.patch
+page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
+kernel-power-diskc-make-code-static.patch
+make-kernel_shutdown_prepare-static.patch
+misc-add-possibility-to-remove-misc-devices-during-suspend-resume.patch
+hwrng-add-possibility-to-remove-hwrng-devices-during-suspend-resume.patch
+leds-add-possibility-to-remove-leds-classdevs-during-suspend-resume.patch
+b43-avoid-unregistering-device-objects-during-suspend.patch
+proc-fix-the-threaded-proc-self.patch
+shrink_slab-handle-bad-shrinkers.patch
