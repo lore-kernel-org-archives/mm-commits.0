@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mount-options-fix-ncpfs.patch added to -mm tree
-Date: Tue, 29 Jan 2008 15:22:48 -0800
-Message-ID: <200801292322.m0TNMo9A009734@imap1.linux-foundation.org>
+Subject: + mount-options-fix-udf.patch added to -mm tree
+Date: Tue, 29 Jan 2008 15:22:58 -0800
+Message-ID: <200801292322.m0TNMwb9009746@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52231 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34708 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754763AbYA2X0Z (ORCPT
+	by vger.kernel.org with ESMTP id S1755495AbYA2X0b (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jan 2008 18:26:25 -0500
+	Tue, 29 Jan 2008 18:26:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz
+Cc: mszeredi@suse.cz, gorcunov@gmail.com, jack@suse.cz
 
 
 The patch titled
-     mount options: fix ncpfs
+     mount options: fix udf
 has been added to the -mm tree.  Its filename is
-     mount-options-fix-ncpfs.patch
+     mount-options-fix-udf.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,120 +34,183 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mount options: fix ncpfs
+Subject: mount options: fix udf
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Add a .show_options super operation to ncpfs.
-
-Small fix: add FS_BINARY_MOUNTDATA to the filesystem type flags, since
-it can take binary data, as well as text (similarly to NFS).
+Add a .show_options super operation to udf.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Acked-by: Cyrill Gorcunov <gorcunov@gmail.com>
+Acked-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/inode.c |   49 +++++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 45 insertions(+), 4 deletions(-)
+ fs/udf/super.c  |   74 +++++++++++++++++++++++++++++++++++++++++++---
+ fs/udf/udf_sb.h |    2 +
+ 2 files changed, 72 insertions(+), 4 deletions(-)
 
-diff -puN fs/ncpfs/inode.c~mount-options-fix-ncpfs fs/ncpfs/inode.c
---- a/fs/ncpfs/inode.c~mount-options-fix-ncpfs
-+++ a/fs/ncpfs/inode.c
-@@ -28,6 +28,8 @@
- #include <linux/init.h>
- #include <linux/smp_lock.h>
+diff -puN fs/udf/super.c~mount-options-fix-udf fs/udf/super.c
+--- a/fs/udf/super.c~mount-options-fix-udf
++++ a/fs/udf/super.c
+@@ -53,6 +53,8 @@
  #include <linux/vfs.h>
+ #include <linux/vmalloc.h>
+ #include <linux/errno.h>
 +#include <linux/mount.h>
 +#include <linux/seq_file.h>
+ #include <asm/byteorder.h>
  
- #include <linux/ncp_fs.h>
+ #include <linux/udf_fs.h>
+@@ -71,6 +73,8 @@
+ #define VDS_POS_TERMINATING_DESC	6
+ #define VDS_POS_LENGTH			7
  
-@@ -36,9 +38,15 @@
- #include "ncplib_kernel.h"
- #include "getopt.h"
- 
-+#define NCP_DEFAULT_FILE_MODE 0600
-+#define NCP_DEFAULT_DIR_MODE 0700
-+#define NCP_DEFAULT_TIME_OUT 10
-+#define NCP_DEFAULT_RETRY_COUNT 20
++#define UDF_DEFAULT_BLOCKSIZE 2048
 +
- static void ncp_delete_inode(struct inode *);
- static void ncp_put_super(struct super_block *);
- static int  ncp_statfs(struct dentry *, struct kstatfs *);
-+static int  ncp_show_options(struct seq_file *, struct vfsmount *);
+ static char error_buf[1024];
  
- static struct kmem_cache * ncp_inode_cachep;
+ /* These are the "meat" - everything else is stuffing */
+@@ -95,6 +99,7 @@ static void udf_open_lvid(struct super_b
+ static void udf_close_lvid(struct super_block *);
+ static unsigned int udf_count_free(struct super_block *);
+ static int udf_statfs(struct dentry *, struct kstatfs *);
++static int udf_show_options(struct seq_file *, struct vfsmount *);
  
-@@ -96,6 +104,7 @@ static const struct super_operations ncp
- 	.put_super	= ncp_put_super,
- 	.statfs		= ncp_statfs,
- 	.remount_fs	= ncp_remount,
-+	.show_options	= ncp_show_options,
+ struct logicalVolIntegrityDescImpUse *udf_sb_lvidiu(struct udf_sb_info *sbi)
+ {
+@@ -181,6 +186,7 @@ static const struct super_operations udf
+ 	.write_super	= udf_write_super,
+ 	.statfs		= udf_statfs,
+ 	.remount_fs	= udf_remount_fs,
++	.show_options	= udf_show_options,
  };
  
- extern struct dentry_operations ncp_root_dentry_operations;
-@@ -304,6 +313,37 @@ static void ncp_stop_tasks(struct ncp_se
- 	flush_scheduled_work();
+ struct udf_options {
+@@ -247,6 +253,61 @@ static int udf_sb_alloc_partition_maps(s
+ 	return 0;
  }
  
-+static int  ncp_show_options(struct seq_file *seq, struct vfsmount *mnt)
++static int udf_show_options(struct seq_file *seq, struct vfsmount *mnt)
 +{
-+	struct ncp_server *server = NCP_SBP(mnt->mnt_sb);
-+	unsigned int tmp;
++	struct super_block *sb = mnt->mnt_sb;
++	struct udf_sb_info *sbi = UDF_SB(sb);
 +
-+	if (server->m.uid != 0)
-+		seq_printf(seq, ",uid=%u", server->m.uid);
-+	if (server->m.gid != 0)
-+		seq_printf(seq, ",gid=%u", server->m.gid);
-+	if (server->m.mounted_uid != 0)
-+		seq_printf(seq, ",owner=%u", server->m.mounted_uid);
-+	tmp = server->m.file_mode & S_IALLUGO;
-+	if (tmp != NCP_DEFAULT_FILE_MODE)
-+		seq_printf(seq, ",mode=0%o", tmp);
-+	tmp = server->m.dir_mode & S_IALLUGO;
-+	if (tmp != NCP_DEFAULT_DIR_MODE)
-+		seq_printf(seq, ",dirmode=0%o", tmp);
-+	if (server->m.time_out != NCP_DEFAULT_TIME_OUT * HZ / 100) {
-+		tmp = server->m.time_out * 100 / HZ;
-+		seq_printf(seq, ",timeout=%u", tmp);
-+	}
-+	if (server->m.retry_count != NCP_DEFAULT_RETRY_COUNT)
-+		seq_printf(seq, ",retry=%u", server->m.retry_count);
-+	if (server->m.flags != 0)
-+		seq_printf(seq, ",flags=%lu", server->m.flags);
-+	if (server->m.wdog_pid != NULL)
-+		seq_printf(seq, ",wdogpid=%u", pid_vnr(server->m.wdog_pid));
++	if (!UDF_QUERY_FLAG(sb, UDF_FLAG_STRICT))
++		seq_puts(seq, ",nostrict");
++	if (sb->s_blocksize != UDF_DEFAULT_BLOCKSIZE)
++		seq_printf(seq, ",bs=%lu", sb->s_blocksize);
++	if (UDF_QUERY_FLAG(sb, UDF_FLAG_UNHIDE))
++		seq_puts(seq, ",unhide");
++	if (UDF_QUERY_FLAG(sb, UDF_FLAG_UNDELETE))
++		seq_puts(seq, ",undelete");
++	if (!UDF_QUERY_FLAG(sb, UDF_FLAG_USE_AD_IN_ICB))
++		seq_puts(seq, ",noadinicb");
++	if (UDF_QUERY_FLAG(sb, UDF_FLAG_USE_SHORT_AD))
++		seq_puts(seq, ",shortad");
++	if (UDF_QUERY_FLAG(sb, UDF_FLAG_UID_FORGET))
++		seq_puts(seq, ",uid=forget");
++	if (UDF_QUERY_FLAG(sb, UDF_FLAG_UID_IGNORE))
++		seq_puts(seq, ",uid=ignore");
++	if (UDF_QUERY_FLAG(sb, UDF_FLAG_GID_FORGET))
++		seq_puts(seq, ",gid=forget");
++	if (UDF_QUERY_FLAG(sb, UDF_FLAG_GID_IGNORE))
++		seq_puts(seq, ",gid=ignore");
++	if (UDF_QUERY_FLAG(sb, UDF_FLAG_UID_SET))
++		seq_printf(seq, ",uid=%u", sbi->s_uid);
++	if (UDF_QUERY_FLAG(sb, UDF_FLAG_GID_SET))
++		seq_printf(seq, ",gid=%u", sbi->s_gid);
++	if (sbi->s_umask != 0)
++		seq_printf(seq, ",umask=%o", sbi->s_umask);
++	if (UDF_QUERY_FLAG(sb, UDF_FLAG_SESSION_SET))
++		seq_printf(seq, ",session=%u", sbi->s_session);
++	if (UDF_QUERY_FLAG(sb, UDF_FLAG_LASTBLOCK_SET))
++		seq_printf(seq, ",lastblock=%u", sbi->s_last_block);
++	/*
++	 * s_anchor[2] could be zeroed out in case there is no anchor
++	 * in the specified block, but then the "anchor=N" option
++	 * originally given by the user wasn't effective, so it's OK
++	 * if we don't show it.
++	 */
++	if (sbi->s_anchor[2] != 0)
++		seq_printf(seq, ",anchor=%u", sbi->s_anchor[2]);
++	/*
++	 * volume, partition, fileset and rootdir seem to be ignored
++	 * currently
++	 */
++	if (UDF_QUERY_FLAG(sb, UDF_FLAG_UTF8))
++		seq_puts(seq, ",utf8");
++	if (UDF_QUERY_FLAG(sb, UDF_FLAG_NLS_MAP) && sbi->s_nls_map)
++		seq_printf(seq, ",iocharset=%s", sbi->s_nls_map->charset);
 +
 +	return 0;
 +}
 +
- static const struct ncp_option ncp_opts[] = {
- 	{ "uid",	OPT_INT,	'u' },
- 	{ "gid",	OPT_INT,	'g' },
-@@ -331,12 +371,12 @@ static int ncp_parse_options(struct ncp_
- 	data->mounted_uid = 0;
- 	data->wdog_pid = NULL;
- 	data->ncp_fd = ~0;
--	data->time_out = 10;
--	data->retry_count = 20;
-+	data->time_out = NCP_DEFAULT_TIME_OUT;
-+	data->retry_count = NCP_DEFAULT_RETRY_COUNT;
- 	data->uid = 0;
- 	data->gid = 0;
--	data->file_mode = 0600;
--	data->dir_mode = 0700;
-+	data->file_mode = NCP_DEFAULT_FILE_MODE;
-+	data->dir_mode = NCP_DEFAULT_DIR_MODE;
- 	data->info_fd = -1;
- 	data->mounted_vol[0] = 0;
- 	
-@@ -982,6 +1022,7 @@ static struct file_system_type ncp_fs_ty
- 	.name		= "ncpfs",
- 	.get_sb		= ncp_get_sb,
- 	.kill_sb	= kill_anon_super,
-+	.fs_flags	= FS_BINARY_MOUNTDATA,
+ /*
+  * udf_parse_options
+  *
+@@ -339,13 +400,14 @@ static match_table_t tokens = {
+ 	{Opt_err,	NULL}
  };
  
- static int __init init_ncp_fs(void)
+-static int udf_parse_options(char *options, struct udf_options *uopt)
++static int udf_parse_options(char *options, struct udf_options *uopt,
++			     bool remount)
+ {
+ 	char *p;
+ 	int option;
+ 
+ 	uopt->novrs = 0;
+-	uopt->blocksize = 2048;
++	uopt->blocksize = UDF_DEFAULT_BLOCKSIZE;
+ 	uopt->partition = 0xFFFF;
+ 	uopt->session = 0xFFFFFFFF;
+ 	uopt->lastblock = 0;
+@@ -415,11 +477,15 @@ static int udf_parse_options(char *optio
+ 			if (match_int(args, &option))
+ 				return 0;
+ 			uopt->session = option;
++			if (!remount)
++				uopt->flags |= (1 << UDF_FLAG_SESSION_SET);
+ 			break;
+ 		case Opt_lastblock:
+ 			if (match_int(args, &option))
+ 				return 0;
+ 			uopt->lastblock = option;
++			if (!remount)
++				uopt->flags |= (1 << UDF_FLAG_LASTBLOCK_SET);
+ 			break;
+ 		case Opt_anchor:
+ 			if (match_int(args, &option))
+@@ -497,7 +563,7 @@ static int udf_remount_fs(struct super_b
+ 	uopt.gid   = sbi->s_gid;
+ 	uopt.umask = sbi->s_umask;
+ 
+-	if (!udf_parse_options(options, &uopt))
++	if (!udf_parse_options(options, &uopt, true))
+ 		return -EINVAL;
+ 
+ 	sbi->s_flags = uopt.flags;
+@@ -1679,7 +1745,7 @@ static int udf_fill_super(struct super_b
+ 
+ 	mutex_init(&sbi->s_alloc_mutex);
+ 
+-	if (!udf_parse_options((char *)options, &uopt))
++	if (!udf_parse_options((char *)options, &uopt, false))
+ 		goto error_out;
+ 
+ 	if (uopt.flags & (1 << UDF_FLAG_UTF8) &&
+diff -puN fs/udf/udf_sb.h~mount-options-fix-udf fs/udf/udf_sb.h
+--- a/fs/udf/udf_sb.h~mount-options-fix-udf
++++ a/fs/udf/udf_sb.h
+@@ -26,6 +26,8 @@
+ #define UDF_FLAG_GID_IGNORE     14
+ #define UDF_FLAG_UID_SET	15
+ #define UDF_FLAG_GID_SET	16
++#define UDF_FLAG_SESSION_SET	17
++#define UDF_FLAG_LASTBLOCK_SET	18
+ 
+ #define UDF_PART_FLAG_UNALLOC_BITMAP	0x0001
+ #define UDF_PART_FLAG_UNALLOC_TABLE	0x0002
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
