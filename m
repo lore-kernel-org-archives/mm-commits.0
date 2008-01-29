@@ -1,180 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: - fix-fakephp-deadlock.patch removed from -mm tree
-Date: Mon, 28 Jan 2008 17:49:12 -0800
-Message-ID: <200801290149.m0T1nD0C027471@imap1.linux-foundation.org>
+Subject: - sound-fix-opti9xx-miro-section-mismatch.patch removed from -mm tree
+Date: Mon, 28 Jan 2008 17:50:48 -0800
+Message-ID: <200801290150.m0T1omiU027601@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46455 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58279 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755532AbYA2B7I (ORCPT
+	by vger.kernel.org with ESMTP id S1755541AbYA2B7J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 20:59:08 -0500
+	Mon, 28 Jan 2008 20:59:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: abbotti@mev.co.uk, greg@kroah.com, kristen.c.accardi@intel.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix fakephp deadlock
+     sound: fix opti9xx/miro section mismatch
 has been removed from the -mm tree.  Its filename was
-     fix-fakephp-deadlock.patch
+     sound-fix-opti9xx-miro-section-mismatch.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix fakephp deadlock
-From: Ian Abbott <abbotti@mev.co.uk>
+Subject: sound: fix opti9xx/miro section mismatch
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-If the fakephp driver is used to emulate removal of a PCI device by writing
-text string "0" to the "power" sysfs attribute file, this causes its parent
-directory and its contents (including the "power" file) to be deleted
-before the write operation returns.  Unfortunately, it ends up in a
-deadlock waiting for itself to complete.
+snd_opti93x_mixer() is only called by __devinit snd_opti93x_probe(),
+so the former can also be __devinit.
 
-The deadlock is as follows: sysfs_write_file calls flush_write_buffer which
-calls sysfs_get_active_two before calling power_write_file in
-pci_hotplug_core.c via the sysfs store operation.  The power_write_file
-function calls disable_slot in fakephp.c via the slot operation.  The
-disable_slot function calls remove_slot which calls pci_hp_deregister (back
-in pci_hotplug_core.c) which calls fs_remove_slot which calls
-sysfs_remove_file to remove the "power" file.  The sysfs_remove_file
-function calls sysfs_hash_and_remove which calls sysfs_addrm_finish which
-calls sysfs_deactivate.  The sysfs_deactivate function sees that something
-has an active reference on the sysfs_dirent (from the previous call to
-sysfs_get_active_two back up the call stack somewhere) so waits for the
-active reference to go away, which is of course impossible.
+snd_miro_mixer() is only called by __devinit snd_miro_probe(),
+so the former can also be __devinit.
 
-The problem has been present since 2.6.21.
+sound/isa/opti9xx/opti92x-ad1848.c:
+WARNING: vmlinux.o(.text+0xf91cd7): Section mismatch: reference to .init.data:snd_opti93x_controls (between 'snd_opti93x_mixer' and 'snd_card_opti9xx_free')
+WARNING: vmlinux.o(.text+0xf91d66): Section mismatch: reference to .init.data:snd_miro_controls (between 'snd_opti93x_mixer' and 'snd_card_opti9xx_free')
 
-This patch breaks the deadlock by queuing work queue items on a single-
-threaded work queue to remove a slot from sysfs, and to rescan the PCI
-buses.  There is also some protection against disabling a slot that is
-already being removed.
+opti9xx/miro.c:
+WARNING: vmlinux.o(.text+0xf926c2): Section mismatch: reference to .init.data:snd_miro_controls (between 'snd_miro_mixer' and 'snd_legacy_find_free_ioport')
+WARNING: vmlinux.o(.text+0xf926e5): Section mismatch: reference to .init.data:snd_miro_eq_controls (between 'snd_miro_mixer' and 'snd_legacy_find_free_ioport')
+WARNING: vmlinux.o(.text+0xf926f9): Section mismatch: reference to .init.data:snd_miro_line_control (between 'snd_miro_mixer' and 'snd_legacy_find_free_ioport')
+WARNING: vmlinux.o(.text+0xf92716): Section mismatch: reference to .init.data:snd_miro_amp_control (between 'snd_miro_mixer' and 'snd_legacy_find_free_ioport')
+WARNING: vmlinux.o(.text+0xf9273e): Section mismatch: reference to .init.data:snd_miro_preamp_control (between 'snd_miro_mixer' and 'snd_legacy_find_free_ioport')
+WARNING: vmlinux.o(.text+0xf92764): Section mismatch: reference to .init.data:snd_miro_capture_control (between 'snd_miro_mixer' and 'snd_legacy_find_free_ioport')
+WARNING: vmlinux.o(.text+0xf92783): Section mismatch: reference to .init.data:snd_miro_radio_control (between 'snd_miro_mixer' and 'snd_legacy_find_free_ioport')
+WARNING: vmlinux.o(.text+0xf9279a): Section mismatch: reference to .init.data:snd_miro_eq_controls (between 'snd_miro_mixer' and 'snd_legacy_find_free_ioport')
+WARNING: vmlinux.o(.text+0xf927b9): Section mismatch: reference to .init.data:snd_miro_radio_control (between 'snd_miro_mixer' and 'snd_legacy_find_free_ioport')
 
-Signed-off-by: Ian Abbott <abbotti@mev.co.uk>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/hotplug/fakephp.c |   39 ++++++++++++++++++++++++++++----
- 1 file changed, 35 insertions(+), 4 deletions(-)
+ sound/isa/opti9xx/miro.c           |    2 +-
+ sound/isa/opti9xx/opti92x-ad1848.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/pci/hotplug/fakephp.c~fix-fakephp-deadlock drivers/pci/hotplug/fakephp.c
---- a/drivers/pci/hotplug/fakephp.c~fix-fakephp-deadlock
-+++ a/drivers/pci/hotplug/fakephp.c
-@@ -39,6 +39,7 @@
- #include <linux/init.h>
- #include <linux/string.h>
- #include <linux/slab.h>
-+#include <linux/workqueue.h>
- #include "../pci.h"
- 
- #if !defined(MODULE)
-@@ -63,10 +64,16 @@ struct dummy_slot {
- 	struct list_head node;
- 	struct hotplug_slot *slot;
- 	struct pci_dev *dev;
-+	struct work_struct remove_work;
-+	unsigned long removed;
- };
- 
- static int debug;
- static LIST_HEAD(slot_list);
-+static struct workqueue_struct *dummyphp_wq;
-+
-+static void pci_rescan_worker(struct work_struct *work);
-+static DECLARE_WORK(pci_rescan_work, pci_rescan_worker);
- 
- static int enable_slot (struct hotplug_slot *slot);
- static int disable_slot (struct hotplug_slot *slot);
-@@ -109,7 +116,7 @@ static int add_slot(struct pci_dev *dev)
- 	slot->name = &dev->dev.bus_id[0];
- 	dbg("slot->name = %s\n", slot->name);
- 
--	dslot = kmalloc(sizeof(struct dummy_slot), GFP_KERNEL);
-+	dslot = kzalloc(sizeof(struct dummy_slot), GFP_KERNEL);
- 	if (!dslot)
- 		goto error_info;
- 
-@@ -164,6 +171,14 @@ static void remove_slot(struct dummy_slo
- 		err("Problem unregistering a slot %s\n", dslot->slot->name);
- }
- 
-+/* called from the single-threaded workqueue handler to remove a slot */
-+static void remove_slot_worker(struct work_struct *work)
-+{
-+	struct dummy_slot *dslot =
-+		container_of(work, struct dummy_slot, remove_work);
-+	remove_slot(dslot);
-+}
-+
- /**
-  * pci_rescan_slot - Rescan slot
-  * @temp: Device template. Should be set: bus and devfn.
-@@ -267,11 +282,17 @@ static inline void pci_rescan(void) {
- 	pci_rescan_buses(&pci_root_buses);
- }
- 
-+/* called from the single-threaded workqueue handler to rescan all pci buses */
-+static void pci_rescan_worker(struct work_struct *work)
-+{
-+	pci_rescan();
-+}
- 
- static int enable_slot(struct hotplug_slot *hotplug_slot)
- {
- 	/* mis-use enable_slot for rescanning of the pci bus */
--	pci_rescan();
-+	cancel_work_sync(&pci_rescan_work);
-+	queue_work(dummyphp_wq, &pci_rescan_work);
- 	return -ENODEV;
- }
- 
-@@ -306,6 +327,10 @@ static int disable_slot(struct hotplug_s
- 		err("Can't remove PCI devices with other PCI devices behind it yet.\n");
- 		return -ENODEV;
- 	}
-+	if (test_and_set_bit(0, &dslot->removed)) {
-+		dbg("Slot already scheduled for removal\n");
-+		return -ENODEV;
-+	}
- 	/* search for subfunctions and disable them first */
- 	if (!(dslot->dev->devfn & 7)) {
- 		for (func = 1; func < 8; func++) {
-@@ -328,8 +353,9 @@ static int disable_slot(struct hotplug_s
- 	/* remove the device from the pci core */
- 	pci_remove_bus_device(dslot->dev);
- 
--	/* blow away this sysfs entry and other parts. */
--	remove_slot(dslot);
-+	/* queue work item to blow away this sysfs entry and other parts. */
-+	INIT_WORK(&dslot->remove_work, remove_slot_worker);
-+	queue_work(dummyphp_wq, &dslot->remove_work);
- 
+diff -puN sound/isa/opti9xx/miro.c~sound-fix-opti9xx-miro-section-mismatch sound/isa/opti9xx/miro.c
+--- a/sound/isa/opti9xx/miro.c~sound-fix-opti9xx-miro-section-mismatch
++++ a/sound/isa/opti9xx/miro.c
+@@ -669,7 +669,7 @@ static int __devinit snd_set_aci_init_va
  	return 0;
  }
-@@ -340,6 +366,7 @@ static void cleanup_slots (void)
- 	struct list_head *next;
- 	struct dummy_slot *dslot;
  
-+	destroy_workqueue(dummyphp_wq);
- 	list_for_each_safe (tmp, next, &slot_list) {
- 		dslot = list_entry (tmp, struct dummy_slot, node);
- 		remove_slot(dslot);
-@@ -351,6 +378,10 @@ static int __init dummyphp_init(void)
+-static int snd_miro_mixer(struct snd_miro *miro)
++static int __devinit snd_miro_mixer(struct snd_miro *miro)
  {
- 	info(DRIVER_DESC "\n");
- 
-+	dummyphp_wq = create_singlethread_workqueue(MY_NAME);
-+	if (!dummyphp_wq)
-+		return -ENOMEM;
-+
- 	return pci_scan_buses();
+ 	struct snd_card *card;
+ 	unsigned int idx;
+diff -puN sound/isa/opti9xx/opti92x-ad1848.c~sound-fix-opti9xx-miro-section-mismatch sound/isa/opti9xx/opti92x-ad1848.c
+--- a/sound/isa/opti9xx/opti92x-ad1848.c~sound-fix-opti9xx-miro-section-mismatch
++++ a/sound/isa/opti9xx/opti92x-ad1848.c
+@@ -1594,7 +1594,7 @@ OPTi93X_DOUBLE("Capture Volume", 0, OPTi
  }
- 
+ };
+                                         
+-static int snd_opti93x_mixer(struct snd_opti93x *chip)
++static int __devinit snd_opti93x_mixer(struct snd_opti93x *chip)
+ {
+ 	struct snd_card *card;
+ 	struct snd_kcontrol_new knew;
 _
 
-Patches currently in -mm which might be from abbotti@mev.co.uk are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
+
+origin.patch
+git-alsa.patch
+git-kbuild.patch
+hamradio-fix-dmascc-section-mismatch.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+pcmcia-include-bad-cis-filename-in-error-message.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+git-x86.patch
+register_cpu-__devinit-or-__cpuinit.patch
+cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
+dio-fix-kernel-doc-notation.patch
+tpm-infineon-section-mismatch.patch
+tdfxfb-fix-section-mismatch-warnings.patch
+uvesafb-small-cleanups.patch
+documentation-move-dnotifytxt-to-filesystems.patch
+documentation-move-sharedsubtreestxt-to-filesystems.patch
+documentation-create-new-scheduler-subdirectory.patch
+reporting-bugs-cc-the-mailing-list-too.patch
+fs-menu-small-reorg.patch
+the-scheduled-time-option-removal.patch
+profile-likely-unlikely-macros.patch
