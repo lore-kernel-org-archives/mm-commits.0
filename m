@@ -1,61 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-fix-conflicts.patch removed from -mm tree
-Date: Mon, 28 Jan 2008 16:23:52 -0800
-Message-ID: <200801290023.m0T0NquD024112@imap1.linux-foundation.org>
+Subject: - git-net-fix-more-conflicts.patch removed from -mm tree
+Date: Mon, 28 Jan 2008 16:25:02 -0800
+Message-ID: <200801290025.m0T0P3E8024228@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42184 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55797 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753211AbYA2AXz (ORCPT
+	by vger.kernel.org with ESMTP id S1753414AbYA2AZG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 19:23:55 -0500
+	Mon, 28 Jan 2008 19:25:06 -0500
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m0T0Nq1t021604
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m0T0P3iv021636
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 28 Jan 2008 16:23:53 -0800
+	for <mm-commits@vger.kernel.org>; Mon, 28 Jan 2008 16:25:04 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-net-fix-conflicts
+     git-net-fix-more-conflicts
 has been removed from the -mm tree.  Its filename was
-     git-net-fix-conflicts.patch
+     git-net-fix-more-conflicts.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-net-fix-conflicts
+Subject: git-net-fix-more-conflicts
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/802/tr.c |    7 -------
- 1 file changed, 7 deletions(-)
+ drivers/net/ipg.c  |    4 ----
+ drivers/net/s2io.c |    7 -------
+ 2 files changed, 11 deletions(-)
 
-diff -puN net/802/tr.c~git-net-fix-conflicts net/802/tr.c
---- a/net/802/tr.c~git-net-fix-conflicts
-+++ a/net/802/tr.c
-@@ -662,15 +662,8 @@ static __initdata struct ctl_path tr_pat
+diff -puN drivers/net/ipg.c~git-net-fix-more-conflicts drivers/net/ipg.c
+--- a/drivers/net/ipg.c~git-net-fix-more-conflicts
++++ a/drivers/net/ipg.c
+@@ -864,12 +864,8 @@ static void ipg_nic_txfree(struct net_de
+ 	dirty = sp->tx_dirty % IPG_TFDLIST_LENGTH;
  
- static int __init rif_init(void)
- {
--<<<<<<< HEAD:net/802/tr.c
--	init_timer(&rif_timer);
--	rif_timer.expires  = jiffies + sysctl_tr_rif_timeout;
--	rif_timer.data     = 0L;
--	rif_timer.function = rif_check_expire;
+ 	for (released = 0; released < pending; released++) {
+-<<<<<<< HEAD:drivers/net/ipg.c
+-		struct sk_buff *skb = sp->TxBuff[dirty];
 -=======
- 	rif_timer.expires  = sysctl_tr_rif_timeout;
- 	setup_timer(&rif_timer, rif_check_expire, 0);
-->>>>>>> FETCH_HEAD:net/802/tr.c
- 	add_timer(&rif_timer);
- #ifdef CONFIG_SYSCTL
- 	register_sysctl_paths(tr_path, tr_table);
+ 		unsigned int dirty = sp->tx_dirty % IPG_TFDLIST_LENGTH;
+ 		struct sk_buff *skb = sp->tx_buff[dirty];
+->>>>>>> FETCH_HEAD:drivers/net/ipg.c
+ 		struct ipg_tx *txfd = sp->txd + dirty;
+ 
+ 		IPG_DEBUG_MSG("TFC = %16.16lx\n", (unsigned long) txfd->tfc);
+diff -puN drivers/net/s2io.c~git-net-fix-more-conflicts drivers/net/s2io.c
+--- a/drivers/net/s2io.c~git-net-fix-more-conflicts
++++ a/drivers/net/s2io.c
+@@ -84,11 +84,7 @@
+ #include "s2io.h"
+ #include "s2io-regs.h"
+ 
+-<<<<<<< HEAD:drivers/net/s2io.c
+-#define DRV_VERSION "2.0.26.17"
+-=======
+ #define DRV_VERSION "2.0.26.15-2"
+->>>>>>> FETCH_HEAD:drivers/net/s2io.c
+ 
+ /* S2io Driver name & version. */
+ static char s2io_driver_name[] = "Neterion";
+@@ -3984,8 +3980,6 @@ static int s2io_close(struct net_device 
+ 		return 0;
+ 
+ 	netif_stop_queue(dev);
+-<<<<<<< HEAD:drivers/net/s2io.c
+-=======
+ 
+ 	/* delete all populated mac entries */
+ 	for (offset = 1; offset < config->max_mc_addr; offset++) {
+@@ -3995,7 +3989,6 @@ static int s2io_close(struct net_device 
+ 	}
+ 
+ 	napi_disable(&sp->napi);
+->>>>>>> FETCH_HEAD:drivers/net/s2io.c
+ 	/* Reset card, kill tasklet and free Tx and Rx buffers. */
+ 	s2io_card_down(sp);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -111,7 +141,6 @@ drivers-mtd-ubi-wlc-fix-uninitialized-var-warning.patch
 drivers-mtd-ubi-scanc-fix-uninitialized-var-warning.patch
 drivers-mtd-ubi-cdevc-unused-var.patch
 git-net.patch
-git-net-fix-conflicts.patch
 git-net-vs-git-lblnet.patch
 git-net-vs-git-lblnet-2.patch
 git-net-fix-more-conflicts.patch
