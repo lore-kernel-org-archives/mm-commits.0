@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mount-options-fix-fuse.patch added to -mm tree
-Date: Tue, 29 Jan 2008 15:22:36 -0800
-Message-ID: <200801292322.m0TNMbeH009710@imap1.linux-foundation.org>
+Subject: + mount-options-fix-autofs4.patch added to -mm tree
+Date: Tue, 29 Jan 2008 15:22:09 -0800
+Message-ID: <200801292322.m0TNM9FT009676@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52652 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42355 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753783AbYA2XWm (ORCPT
+	by vger.kernel.org with ESMTP id S1753413AbYA2XWQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jan 2008 18:22:42 -0500
+	Tue, 29 Jan 2008 18:22:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz
+Cc: mszeredi@suse.cz, raven@themaw.net
 
 
 The patch titled
-     mount options: fix fuse
+     mount options: fix autofs4
 has been added to the -mm tree.  Its filename is
-     mount-options-fix-fuse.patch
+     mount-options-fix-autofs4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mount options: fix fuse
+Subject: mount options: fix autofs4
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Add blksize= option to /proc/mounts for fuseblk filesystems.
+Add uid= and gid= options to /proc/mounts for autofs4 filesystems.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Acked-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/inode.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ fs/autofs4/inode.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN fs/fuse/inode.c~mount-options-fix-fuse fs/fuse/inode.c
---- a/fs/fuse/inode.c~mount-options-fix-fuse
-+++ a/fs/fuse/inode.c
-@@ -29,6 +29,8 @@ DEFINE_MUTEX(fuse_mutex);
+diff -puN fs/autofs4/inode.c~mount-options-fix-autofs4 fs/autofs4/inode.c
+--- a/fs/autofs4/inode.c~mount-options-fix-autofs4
++++ a/fs/autofs4/inode.c
+@@ -188,11 +188,16 @@ out_kill_sb:
+ static int autofs4_show_options(struct seq_file *m, struct vfsmount *mnt)
+ {
+ 	struct autofs_sb_info *sbi = autofs4_sbi(mnt->mnt_sb);
++	struct inode *root_inode = mnt->mnt_sb->s_root->d_inode;
  
- #define FUSE_SUPER_MAGIC 0x65735546
+ 	if (!sbi)
+ 		return 0;
  
-+#define FUSE_DEFAULT_BLKSIZE 512
-+
- struct fuse_mount_data {
- 	int fd;
- 	unsigned rootmode;
-@@ -355,7 +357,7 @@ static int parse_fuse_opt(char *opt, str
- 	char *p;
- 	memset(d, 0, sizeof(struct fuse_mount_data));
- 	d->max_read = ~0;
--	d->blksize = 512;
-+	d->blksize = FUSE_DEFAULT_BLKSIZE;
- 
- 	while ((p = strsep(&opt, ",")) != NULL) {
- 		int token;
-@@ -440,6 +442,9 @@ static int fuse_show_options(struct seq_
- 		seq_puts(m, ",allow_other");
- 	if (fc->max_read != ~0)
- 		seq_printf(m, ",max_read=%u", fc->max_read);
-+	if (mnt->mnt_sb->s_bdev &&
-+	    mnt->mnt_sb->s_blocksize != FUSE_DEFAULT_BLKSIZE)
-+		seq_printf(m, ",blksize=%lu", mnt->mnt_sb->s_blocksize);
- 	return 0;
- }
- 
+ 	seq_printf(m, ",fd=%d", sbi->pipefd);
++	if (root_inode->i_uid != 0)
++		seq_printf(m, ",uid=%u", root_inode->i_uid);
++	if (root_inode->i_gid != 0)
++		seq_printf(m, ",gid=%u", root_inode->i_gid);
+ 	seq_printf(m, ",pgrp=%d", sbi->oz_pgrp);
+ 	seq_printf(m, ",timeout=%lu", sbi->exp_timeout/HZ);
+ 	seq_printf(m, ",minproto=%d", sbi->min_proto);
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
