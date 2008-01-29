@@ -1,66 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: - iwlwifi-fix-typo-in-drivers-net-wireless-iwlwifi-kconfig.patch removed from -mm tree
-Date: Mon, 28 Jan 2008 17:49:52 -0800
-Message-ID: <200801290149.m0T1nqK6027529@imap1.linux-foundation.org>
+Subject: - ata_generic-cenatek-support.patch removed from -mm tree
+Date: Mon, 28 Jan 2008 17:48:54 -0800
+Message-ID: <200801290148.m0T1msSB027381@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56365 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41047 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750828AbYA2CAC (ORCPT
+	by vger.kernel.org with ESMTP id S1755013AbYA2CAK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 21:00:02 -0500
+	Mon, 28 Jan 2008 21:00:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yi.zhu@intel.com, linville@tuxdriver.com, mboton.lkml@gmail.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     iwlwifi: fix typo in 'drivers/net/wireless/iwlwifi/Kconfig'
+     ata_generic: Cenatek support
 has been removed from the -mm tree.  Its filename was
-     iwlwifi-fix-typo-in-drivers-net-wireless-iwlwifi-kconfig.patch
+     ata_generic-cenatek-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iwlwifi: fix typo in 'drivers/net/wireless/iwlwifi/Kconfig'
-From: Zhu Yi <yi.zhu@intel.com>
+Subject: ata_generic: Cenatek support
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Based on a patch by Miguel.
+Not much to do here. It's an ata memory as disk.
 
-Signed-off-by: Zhu Yi <yi.zhu@intel.com>
-Cc: Miguel Boton <mboton.lkml@gmail.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/iwlwifi/Kconfig |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/ata/ata_generic.c |    7 ++++++-
+ include/linux/pci_ids.h   |    3 +++
+ 2 files changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/wireless/iwlwifi/Kconfig~iwlwifi-fix-typo-in-drivers-net-wireless-iwlwifi-kconfig drivers/net/wireless/iwlwifi/Kconfig
---- a/drivers/net/wireless/iwlwifi/Kconfig~iwlwifi-fix-typo-in-drivers-net-wireless-iwlwifi-kconfig
-+++ a/drivers/net/wireless/iwlwifi/Kconfig
-@@ -31,7 +31,7 @@ config IWL4965_QOS
- 	depends on IWL4965
- 	---help---
- 	  This option will enable wireless quality of service (QoS) for the
--	  iw4965 driver.
-+	  iwl4965 driver.
+diff -puN drivers/ata/ata_generic.c~ata_generic-cenatek-support drivers/ata/ata_generic.c
+--- a/drivers/ata/ata_generic.c~ata_generic-cenatek-support
++++ a/drivers/ata/ata_generic.c
+@@ -26,7 +26,7 @@
+ #include <linux/libata.h>
  
- config IWL4965_HT
- 	bool "Enable 802.11n HT features in iwl4965 driver"
-@@ -43,7 +43,7 @@ config IWL4965_HT
- 	  for the iwl4965 driver.
+ #define DRV_NAME "ata_generic"
+-#define DRV_VERSION "0.2.13"
++#define DRV_VERSION "0.2.15"
  
- config IWL4965_SPECTRUM_MEASUREMENT
--	bool "Enable Spectrum Measurement in iw4965 driver"
-+	bool "Enable Spectrum Measurement in iwl4965 driver"
- 	depends on IWL4965
- 	---help---
- 	  This option will enable spectrum measurement for the iwl4965 driver.
+ /*
+  *	A generic parallel ATA driver using libata
+@@ -48,11 +48,15 @@ static int generic_set_mode(struct ata_l
+ 	struct ata_port *ap = link->ap;
+ 	int dma_enabled = 0;
+ 	struct ata_device *dev;
++	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
+ 
+ 	/* Bits 5 and 6 indicate if DMA is active on master/slave */
+ 	if (ap->ioaddr.bmdma_addr)
+ 		dma_enabled = ioread8(ap->ioaddr.bmdma_addr + ATA_DMA_STATUS);
+ 
++	if (pdev->vendor == PCI_VENDOR_ID_CENATEK)
++		dma_enabled = 0xFF;
++
+ 	ata_link_for_each_dev(dev, link) {
+ 		if (!ata_dev_enabled(dev))
+ 			continue;
+@@ -201,6 +205,7 @@ static struct pci_device_id ata_generic[
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_HINT,   PCI_DEVICE_ID_HINT_VXPROII_IDE), },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_VIA,    PCI_DEVICE_ID_VIA_82C561), },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_OPTI,   PCI_DEVICE_ID_OPTI_82C558), },
++	{ PCI_DEVICE(PCI_VENDOR_ID_CENATEK,PCI_DEVICE_ID_CENATEK_IDE), },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_TOSHIBA,PCI_DEVICE_ID_TOSHIBA_PICCOLO), },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_TOSHIBA,PCI_DEVICE_ID_TOSHIBA_PICCOLO_1), },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_TOSHIBA,PCI_DEVICE_ID_TOSHIBA_PICCOLO_2),  },
+diff -puN include/linux/pci_ids.h~ata_generic-cenatek-support include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h~ata_generic-cenatek-support
++++ a/include/linux/pci_ids.h
+@@ -2066,6 +2066,9 @@
+ #define PCI_VENDOR_ID_NETCELL		0x169c
+ #define PCI_DEVICE_ID_REVOLUTION	0x0044
+ 
++#define PCI_VENDOR_ID_CENATEK		0x16CA
++#define PCI_DEVICE_ID_CENATEK_IDE	0x0001
++
+ #define PCI_VENDOR_ID_VITESSE		0x1725
+ #define PCI_DEVICE_ID_VITESSE_VSC7174	0x7174
+ 
 _
 
-Patches currently in -mm which might be from yi.zhu@intel.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
+origin.patch
+keyspan-fix-oops.patch
+git-arm.patch
+pata_pdc202xx_old-fix-crashes-with-atapi.patch
 git-net.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+hci_ldisc-fix-null-pointer-deref.patch
+parisc-new-termios-definitions.patch
+pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch
+pcmcia-replace-kio_addr_t-with-unsigned-int-everywhere.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+8250c-support-specifying-dw-apb-uarts-in-device-platform_data.patch
+avoid-waking-up-closed-serial-ports-on-resume.patch
+serial-avoid-stalling-suspend-if-serial-port-wont-drain.patch
+serial-speed-setup-failure-reporting.patch
+serial-coding-style.patch
+sh-termios-ioctl-definitions.patch
+git-watchdog.patch
+git-x86.patch
+geode-lists-are-subscriber-only.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+sc26xx-new-serial-driver-for-sc2681-uarts.patch
+sc26xx-new-serial-driver-for-sc2681-uarts-update.patch
+documentation-about-unaligned-memory-access.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+fix-ixany-and-restart-after-signal-eg-ctrl-c-in-n_tty-line-discipline.patch
+fix-ixany-and-restart-after-signal-eg-ctrl-c-in-n_tty-line-discipline-update.patch
+tty-kill-tty_flipbuf_size.patch
+drivers-edac-turnon-edac-device-error-logging.patch
+drivers-edac-use-round_jiffies_relative.patch
+drivers-edac-add-cell-xdr-memory-types.patch
+drivers-edac-add-cell-mc-driver.patch
+drivers-edac-i3000-code-tidying.patch
+drivers-edac-i3000-replace-macros-with-functions.patch
+drivers-edac-add-freescale-mpc85xx-driver.patch
+drivers-edac-add-marvell-mv64x60-driver.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+dz-clean-up-and-improve-the-setup-of-termios-settings.patch
+char-rocket-switch-long-delay-to-sleep.patch
+char-rocket-printk-cleanup.patch
+char-char-serial-remove-serial_type_normal-redefines.patch
+char-mxser_new-ioaddresses-are-ulong.patch
+char-stallion-fix-compiler-warnings.patch
+char-riscom8-change-rc_init_drivers-prototype.patch
+mxser-mxser_new-first-pass-over-termios-reporting-for-the.patch
+char-mxser-ioctl-cleanup.patch
+tty-let-architectures-override-the-user-kernel-macros.patch
+tty-s390-support-for-termios2.patch
+moxa-first-pass-at-termios-reporting.patch
+n_tty-clean-up-old-code-to-follow-coding-style-and-mostly-checkpatch.patch
+rocket-first-pass-at-termios-reporting.patch
+rocket-dont-let-random-users-reset-the-controller.patch
+tty_audit-fix-checkpatch-complaint.patch
+tty_io-drag-screaming-into-coding-style-compliance.patch
+tty_ioctl-drag-screaming-into-compliance-with-the-coding.patch
+8250_early-coding-style.patch
+8250_gsc-coding-style.patch
+8250_hp300-coding-style.patch
+8250_hub6-codding-style.patch
+8250_pci-coding-style.patch
+serial8250-coding-style.patch
+8250-enable-rate-reporting-via-termios.patch
+serial_core-bring-mostly-into-line-with-coding-style.patch
+smbios-dmi-add-type-41-=-onboard-devices-extended-information.patch
