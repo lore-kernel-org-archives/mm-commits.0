@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mount-options-fix-befs.patch added to -mm tree
-Date: Tue, 29 Jan 2008 15:22:13 -0800
-Message-ID: <200801292322.m0TNMDXC009691@imap1.linux-foundation.org>
+Subject: + mount-options-fix-ext2.patch added to -mm tree
+Date: Tue, 29 Jan 2008 15:22:32 -0800
+Message-ID: <200801292322.m0TNMWw0009704@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56053 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59795 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754809AbYA2XWV (ORCPT
+	by vger.kernel.org with ESMTP id S1754642AbYA2XWh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jan 2008 18:22:21 -0500
+	Tue, 29 Jan 2008 18:22:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, rathamahata@php4.ru
+Cc: mszeredi@suse.cz, jack@suse.cz
 
 
 The patch titled
-     mount options: fix befs
+     mount options: fix ext2
 has been added to the -mm tree.  Its filename is
-     mount-options-fix-befs.patch
+     mount-options-fix-ext2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mount options: fix befs
+Subject: mount options: fix ext2
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Add a .show_options super operation to befs.
-
-Use generic_show_options() and save the complete option string in
-befs_fill_super().
+Add noreservation option to /proc/mounts for ext2 filesystems.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Sergey S. Kostyliov <rathamahata@php4.ru>
+Acked-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/befs/linuxvfs.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/ext2/super.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN fs/befs/linuxvfs.c~mount-options-fix-befs fs/befs/linuxvfs.c
---- a/fs/befs/linuxvfs.c~mount-options-fix-befs
-+++ a/fs/befs/linuxvfs.c
-@@ -57,6 +57,7 @@ static const struct super_operations bef
- 	.put_super	= befs_put_super,	/* uninit super */
- 	.statfs		= befs_statfs,	/* statfs */
- 	.remount_fs	= befs_remount,
-+	.show_options	= generic_show_options,
- };
+diff -puN fs/ext2/super.c~mount-options-fix-ext2 fs/ext2/super.c
+--- a/fs/ext2/super.c~mount-options-fix-ext2
++++ a/fs/ext2/super.c
+@@ -285,6 +285,9 @@ static int ext2_show_options(struct seq_
+ 		seq_puts(seq, ",xip");
+ #endif
  
- /* slab cache for befs_inode_info objects */
-@@ -759,10 +760,11 @@ befs_fill_super(struct super_block *sb, 
- 	befs_super_block *disk_sb;
- 	struct inode *root;
- 	long ret = -EINVAL;
--
- 	const unsigned long sb_block = 0;
- 	const off_t x86_sb_off = 512;
- 
-+	save_mount_options(sb, data);
++	if (!test_opt(sb, RESERVATION))
++		seq_puts(seq, ",noreservation");
 +
- 	sb->s_fs_info = kmalloc(sizeof (*befs_sb), GFP_KERNEL);
- 	if (sb->s_fs_info == NULL) {
- 		printk(KERN_ERR
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
