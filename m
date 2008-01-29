@@ -1,92 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - ps3-checkpatch-drivers-ps3-ps3-sys-managerc.patch removed from -mm tree
-Date: Mon, 28 Jan 2008 17:50:28 -0800
-Message-ID: <200801290150.m0T1oSSr027571@imap1.linux-foundation.org>
+Subject: - ps3-checkpatch-drivers-ps3-ps3-vuartc.patch removed from -mm tree
+Date: Mon, 28 Jan 2008 17:50:31 -0800
+Message-ID: <200801290150.m0T1oVUO027574@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56530 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35940 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754401AbYA2B5L (ORCPT
+	by vger.kernel.org with ESMTP id S1754873AbYA2B50 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 20:57:11 -0500
+	Mon, 28 Jan 2008 20:57:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: Geert.Uytterhoeven@sonycom.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ps3: checkpatch drivers/ps3/ps3-sys-manager.c
+     ps3: checkpatch drivers/ps3/ps3-vuart.c
 has been removed from the -mm tree.  Its filename was
-     ps3-checkpatch-drivers-ps3-ps3-sys-managerc.patch
+     ps3-checkpatch-drivers-ps3-ps3-vuartc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ps3: checkpatch drivers/ps3/ps3-sys-manager.c
+Subject: ps3: checkpatch drivers/ps3/ps3-vuart.c
 From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
 Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ps3/ps3-sys-manager.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/ps3/ps3-vuart.c |   16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN drivers/ps3/ps3-sys-manager.c~ps3-checkpatch-drivers-ps3-ps3-sys-managerc drivers/ps3/ps3-sys-manager.c
---- a/drivers/ps3/ps3-sys-manager.c~ps3-checkpatch-drivers-ps3-ps3-sys-managerc
-+++ a/drivers/ps3/ps3-sys-manager.c
-@@ -452,7 +452,7 @@ static int ps3_sys_manager_handle_event(
- 	case PS3_SM_EVENT_THERMAL_ALERT:
- 		dev_dbg(&dev->core, "%s:%d: THERMAL_ALERT (zone %u)\n",
- 			__func__, __LINE__, event.value);
--		printk(KERN_INFO "PS3 Thermal Alert Zone %u\n", event.value);
-+		pr_info("PS3 Thermal Alert Zone %u\n", event.value);
- 		break;
- 	case PS3_SM_EVENT_THERMAL_CLEARED:
- 		dev_dbg(&dev->core, "%s:%d: THERMAL_CLEARED (zone %u)\n",
-@@ -488,7 +488,7 @@ static int ps3_sys_manager_handle_cmd(st
- 	result = ps3_vuart_read(dev, &cmd, sizeof(cmd));
- 	BUG_ON(result && "need to retry here");
+diff -puN drivers/ps3/ps3-vuart.c~ps3-checkpatch-drivers-ps3-ps3-vuartc drivers/ps3/ps3-vuart.c
+--- a/drivers/ps3/ps3-vuart.c~ps3-checkpatch-drivers-ps3-ps3-vuartc
++++ a/drivers/ps3/ps3-vuart.c
+@@ -108,18 +108,18 @@ static struct ps3_vuart_port_priv *to_po
+ struct ports_bmp {
+ 	u64 status;
+ 	u64 unused[3];
+-} __attribute__ ((aligned (32)));
++} __attribute__((aligned(32)));
  
--	if(result)
-+	if (result)
- 		return result;
- 
- 	if (cmd.version != 1) {
-@@ -521,7 +521,7 @@ static int ps3_sys_manager_handle_msg(st
- 	result = ps3_vuart_read(dev, &header,
- 		sizeof(struct ps3_sys_manager_header));
- 
--	if(result)
-+	if (result)
- 		return result;
- 
- 	if (header.version != 1) {
-@@ -589,9 +589,9 @@ static void ps3_sys_manager_final_power_
- 		PS3_SM_WAKE_DEFAULT);
- 	ps3_sys_manager_send_request_shutdown(dev);
- 
--	printk(KERN_EMERG "System Halted, OK to turn off power\n");
-+	pr_emerg("System Halted, OK to turn off power\n");
- 
--	while(1)
-+	while (1)
- 		ps3_sys_manager_handle_msg(dev);
+ #define dump_ports_bmp(_b) _dump_ports_bmp(_b, __func__, __LINE__)
+ static void __maybe_unused _dump_ports_bmp(
+-	const struct ports_bmp* bmp, const char* func, int line)
++	const struct ports_bmp *bmp, const char *func, int line)
+ {
+ 	pr_debug("%s:%d: ports_bmp: %016lxh\n", func, line, bmp->status);
  }
  
-@@ -626,9 +626,9 @@ static void ps3_sys_manager_final_restar
- 		PS3_SM_WAKE_DEFAULT);
- 	ps3_sys_manager_send_request_shutdown(dev);
+ #define dump_port_params(_b) _dump_port_params(_b, __func__, __LINE__)
+ static void __maybe_unused _dump_port_params(unsigned int port_number,
+-	const char* func, int line)
++	const char *func, int line)
+ {
+ #if defined(DEBUG)
+ 	static const char *strings[] = {
+@@ -363,7 +363,7 @@ int ps3_vuart_disable_interrupt_disconne
+  */
  
--	printk(KERN_EMERG "System Halted, OK to turn off power\n");
-+	pr_emerg("System Halted, OK to turn off power\n");
+ static int ps3_vuart_raw_write(struct ps3_system_bus_device *dev,
+-	const void* buf, unsigned int bytes, unsigned long *bytes_written)
++	const void *buf, unsigned int bytes, unsigned long *bytes_written)
+ {
+ 	int result;
+ 	struct ps3_vuart_port_priv *priv = to_port_priv(dev);
+@@ -431,7 +431,7 @@ void ps3_vuart_clear_rx_bytes(struct ps3
+ 	int result;
+ 	struct ps3_vuart_port_priv *priv = to_port_priv(dev);
+ 	u64 bytes_waiting;
+-	void* tmp;
++	void *tmp;
  
--	while(1)
-+	while (1)
- 		ps3_sys_manager_handle_msg(dev);
- }
+ 	result = ps3_vuart_get_rx_bytes_waiting(dev, &bytes_waiting);
+ 
+@@ -526,9 +526,8 @@ int ps3_vuart_write(struct ps3_system_bu
+ 
+ 	lb = kmalloc(sizeof(struct list_buffer) + bytes, GFP_KERNEL);
+ 
+-	if (!lb) {
++	if (!lb)
+ 		return -ENOMEM;
+-	}
+ 
+ 	memcpy(lb->data, buf, bytes);
+ 	lb->head = lb->data;
+@@ -926,9 +925,8 @@ static int ps3_vuart_bus_interrupt_get(v
+ 
+ 	BUG_ON(vuart_bus_priv.use_count > 2);
+ 
+-	if (vuart_bus_priv.use_count != 1) {
++	if (vuart_bus_priv.use_count != 1)
+ 		return 0;
+-	}
+ 
+ 	BUG_ON(vuart_bus_priv.bmp);
  
 _
 
