@@ -1,65 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - fix-gregkh-usb-usb-ti_usb-termios-cleanups.patch removed from -mm tree
-Date: Mon, 28 Jan 2008 17:49:25 -0800
-Message-ID: <200801290149.m0T1nPO5027488@imap1.linux-foundation.org>
+Subject: - git-libata-all-fix-drivers-ata-sata_fslc.patch removed from -mm tree
+Date: Mon, 28 Jan 2008 17:48:51 -0800
+Message-ID: <200801290148.m0T1mpKx027378@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52772 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36267 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753324AbYA2B4g (ORCPT
+	by vger.kernel.org with ESMTP id S1754765AbYA2B4j (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 20:56:36 -0500
+	Mon, 28 Jan 2008 20:56:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, greg@kroah.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jeff@garzik.org, olof@lixom.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix gregkh-usb-usb-ti_usb-termios-cleanups
+     git-libata-all: fix drivers/ata/sata_fsl.c
 has been removed from the -mm tree.  Its filename was
-     fix-gregkh-usb-usb-ti_usb-termios-cleanups.patch
+     git-libata-all-fix-drivers-ata-sata_fslc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix gregkh-usb-usb-ti_usb-termios-cleanups
+Subject: git-libata-all: fix drivers/ata/sata_fsl.c
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/usb/serial/ti_usb_3410_5052.c: In function 'ti_open':
-drivers/usb/serial/ti_usb_3410_5052.c:584: warning: passing argument 2 of 'ti_set_termios' from incompatible pointer type
-drivers/usb/serial/ti_usb_3410_5052.c:621: warning: passing argument 2 of 'ti_set_termios' from incompatible pointer type
+drivers/ata/sata_fsl.c: In function 'sata_fsl_fill_sg':
+drivers/ata/sata_fsl.c:337: error: redeclaration of 'si' with no linkage
+drivers/ata/sata_fsl.c:326: error: previous declaration of 'si' was here
 
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Reported-by: Olof Johansson <olof@lixom.net>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/ti_usb_3410_5052.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/ata/sata_fsl.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/usb/serial/ti_usb_3410_5052.c~fix-gregkh-usb-usb-ti_usb-termios-cleanups drivers/usb/serial/ti_usb_3410_5052.c
---- a/drivers/usb/serial/ti_usb_3410_5052.c~fix-gregkh-usb-usb-ti_usb-termios-cleanups
-+++ a/drivers/usb/serial/ti_usb_3410_5052.c
-@@ -581,7 +581,7 @@ static int ti_open(struct usb_serial_por
- 		}
- 	}
+diff -puN drivers/ata/sata_fsl.c~git-libata-all-fix-drivers-ata-sata_fslc drivers/ata/sata_fsl.c
+--- a/drivers/ata/sata_fsl.c~git-libata-all-fix-drivers-ata-sata_fslc
++++ a/drivers/ata/sata_fsl.c
+@@ -323,7 +323,6 @@ static unsigned int sata_fsl_fill_sg(str
+ 	struct scatterlist *sg;
+ 	unsigned int num_prde = 0;
+ 	u32 ttl_dwords = 0;
+-	unsigned int si;
  
--	ti_set_termios(port, &port->tty->termios);
-+	ti_set_termios(port, port->tty->termios);
- 
- 	dbg("%s - sending TI_OPEN_PORT", __FUNCTION__);
- 	status = ti_command_out_sync(tdev, TI_OPEN_PORT,
-@@ -618,7 +618,7 @@ static int ti_open(struct usb_serial_por
- 	usb_clear_halt(dev, port->write_urb->pipe);
- 	usb_clear_halt(dev, port->read_urb->pipe);
- 
--	ti_set_termios(port, &port->tty->termios);
-+	ti_set_termios(port, port->tty->termios);
- 
- 	dbg("%s - sending TI_OPEN_PORT (2)", __FUNCTION__);
- 	status = ti_command_out_sync(tdev, TI_OPEN_PORT,
+ 	/*
+ 	 * NOTE : direct & indirect prdt's are contigiously allocated
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
