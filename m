@@ -1,70 +1,330 @@
 From: akpm@linux-foundation.org
-Subject: - intel_agp-add-new-chipset-ids-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 28 Jan 2008 17:48:17 -0800
-Message-ID: <200801290148.m0T1mHbk027337@imap1.linux-foundation.org>
+Subject: - cpufreq-revert-get-core-affinity-from-acpi_processor_preregister_performance.patch removed from -mm tree
+Date: Mon, 28 Jan 2008 17:48:20 -0800
+Message-ID: <200801290148.m0T1mKMf027340@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39692 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55449 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754682AbYA2BtJ (ORCPT
+	by vger.kernel.org with ESMTP id S1754480AbYA2BtT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 20:49:09 -0500
+	Mon, 28 Jan 2008 20:49:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, airlied@linux.ie, zhenyu.z.wang@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davej@codemonkey.org.uk, mark.langsdorf@amd.com, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     intel_agp-add-new-chipset-ids-checkpatch-fixes
+     cpufreq: revert "Get core affinity from acpi_processor_preregister_performance()"
 has been removed from the -mm tree.  Its filename was
-     intel_agp-add-new-chipset-ids-checkpatch-fixes.patch
+     cpufreq-revert-get-core-affinity-from-acpi_processor_preregister_performance.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: intel_agp-add-new-chipset-ids-checkpatch-fixes
+Subject: cpufreq: revert "Get core affinity from acpi_processor_preregister_performance()"
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: use tabs not spaces
-#44: FILE: drivers/char/agp/intel-agp.c:41:
-+                 agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82965GME_HB || \$
+Breaks suspend.
 
-ERROR: use tabs not spaces
-#45: FILE: drivers/char/agp/intel-agp.c:42:
-+                 agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_IGD_HB)$
-
-total: 2 errors, 0 warnings, 85 lines checked
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Dave Airlie <airlied@linux.ie>
-Cc: Zhenyu Wang <zhenyu.z.wang@intel.com>
+Cc: Mark Langsdorf <mark.langsdorf@amd.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/intel-agp.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/kernel/cpu/cpufreq/powernow-k8.c |  109 ++++++--------------
+ arch/x86/kernel/cpu/cpufreq/powernow-k8.h |    4 
+ 2 files changed, 39 insertions(+), 74 deletions(-)
 
-diff -puN drivers/char/agp/intel-agp.c~intel_agp-add-new-chipset-ids-checkpatch-fixes drivers/char/agp/intel-agp.c
---- a/drivers/char/agp/intel-agp.c~intel_agp-add-new-chipset-ids-checkpatch-fixes
-+++ a/drivers/char/agp/intel-agp.c
-@@ -38,8 +38,8 @@
-                  agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82965Q_HB || \
-                  agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82965G_HB || \
-                  agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82965GM_HB || \
--                 agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82965GME_HB || \
--                 agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_IGD_HB)
-+		 agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82965GME_HB || \
-+		 agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_IGD_HB)
+diff -puN arch/x86/kernel/cpu/cpufreq/powernow-k8.c~cpufreq-revert-get-core-affinity-from-acpi_processor_preregister_performance arch/x86/kernel/cpu/cpufreq/powernow-k8.c
+--- a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c~cpufreq-revert-get-core-affinity-from-acpi_processor_preregister_performance
++++ a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c
+@@ -29,7 +29,6 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/cpufreq.h>
+-#include <linux/delay.h>
+ #include <linux/slab.h>
+ #include <linux/string.h>
+ #include <linux/cpumask.h>
+@@ -125,8 +124,7 @@ static int query_current_values_with_pen
+ 		return 0;
+ 	}
+ 	do {
+-		msleep(5);
+-		if (i++ > 1000) {
++		if (i++ > 10000) {
+ 			dprintk("detected change pending stuck\n");
+ 			return 1;
+ 		}
+@@ -722,7 +720,6 @@ static int find_psb_table(struct powerno
  
- #define IS_G33 (agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_G33_HB || \
- 		agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_Q35_HB || \
+ 		data->numps = psb->numps;
+ 		dprintk("numpstates: 0x%x\n", data->numps);
+-		data->starting_core_affinity = cpumask_of_cpu(0);
+ 		return fill_powernow_table(data, (struct pst_s *)(psb+1), maxvid);
+ 	}
+ 	/*
+@@ -743,29 +740,15 @@ static int find_psb_table(struct powerno
+ #ifdef CONFIG_X86_POWERNOW_K8_ACPI
+ static void powernow_k8_acpi_pst_values(struct powernow_k8_data *data, unsigned int index)
+ {
+-	if (!data->acpi_data->state_count || (cpu_family == CPU_HW_PSTATE))
++	if (!data->acpi_data.state_count || (cpu_family == CPU_HW_PSTATE))
+ 		return;
+ 
+-	data->irt = (data->acpi_data->states[index].control >> IRT_SHIFT) & IRT_MASK;
+-	data->rvo = (data->acpi_data->states[index].control >> RVO_SHIFT) & RVO_MASK;
+-	data->exttype = (data->acpi_data->states[index].control >> EXT_TYPE_SHIFT) & EXT_TYPE_MASK;
+-	data->plllock = (data->acpi_data->states[index].control >> PLL_L_SHIFT) & PLL_L_MASK;
+-	data->vidmvs = 1 << ((data->acpi_data->states[index].control >> MVS_SHIFT) & MVS_MASK);
+-	data->vstable = (data->acpi_data->states[index].control >> VST_SHIFT) & VST_MASK;
+-}
+-
+-static struct acpi_processor_performance *acpi_perf_data;
+-static int preregister_valid = 0;
+-
+-static int powernow_k8_cpu_preinit_acpi()
+-{
+-	acpi_perf_data = alloc_percpu(struct acpi_processor_performance);
+-
+-	if (acpi_processor_preregister_performance(acpi_perf_data))
+-		return -ENODEV;
+-	else
+-		preregister_valid = 1;
+-	return 0;
++	data->irt = (data->acpi_data.states[index].control >> IRT_SHIFT) & IRT_MASK;
++	data->rvo = (data->acpi_data.states[index].control >> RVO_SHIFT) & RVO_MASK;
++	data->exttype = (data->acpi_data.states[index].control >> EXT_TYPE_SHIFT) & EXT_TYPE_MASK;
++	data->plllock = (data->acpi_data.states[index].control >> PLL_L_SHIFT) & PLL_L_MASK;
++	data->vidmvs = 1 << ((data->acpi_data.states[index].control >> MVS_SHIFT) & MVS_MASK);
++	data->vstable = (data->acpi_data.states[index].control >> VST_SHIFT) & VST_MASK;
+ }
+ 
+ static int powernow_k8_cpu_init_acpi(struct powernow_k8_data *data)
+@@ -773,29 +756,28 @@ static int powernow_k8_cpu_init_acpi(str
+ 	struct cpufreq_frequency_table *powernow_table;
+ 	int ret_val;
+ 
+-	data->acpi_data = percpu_ptr(acpi_perf_data, data->cpu);
+-	if (acpi_processor_register_performance(data->acpi_data, data->cpu)) {
++	if (acpi_processor_register_performance(&data->acpi_data, data->cpu)) {
+ 		dprintk("register performance failed: bad ACPI data\n");
+ 		return -EIO;
+ 	}
+ 
+ 	/* verify the data contained in the ACPI structures */
+-	if (data->acpi_data->state_count <= 1) {
++	if (data->acpi_data.state_count <= 1) {
+ 		dprintk("No ACPI P-States\n");
+ 		goto err_out;
+ 	}
+ 
+-	if ((data->acpi_data->control_register.space_id != ACPI_ADR_SPACE_FIXED_HARDWARE) ||
+-		(data->acpi_data->status_register.space_id != ACPI_ADR_SPACE_FIXED_HARDWARE)) {
++	if ((data->acpi_data.control_register.space_id != ACPI_ADR_SPACE_FIXED_HARDWARE) ||
++		(data->acpi_data.status_register.space_id != ACPI_ADR_SPACE_FIXED_HARDWARE)) {
+ 		dprintk("Invalid control/status registers (%x - %x)\n",
+-			data->acpi_data->control_register.space_id,
+-			data->acpi_data->status_register.space_id);
++			data->acpi_data.control_register.space_id,
++			data->acpi_data.status_register.space_id);
+ 		goto err_out;
+ 	}
+ 
+ 	/* fill in data->powernow_table */
+ 	powernow_table = kmalloc((sizeof(struct cpufreq_frequency_table)
+-		* (data->acpi_data->state_count + 1)), GFP_KERNEL);
++		* (data->acpi_data.state_count + 1)), GFP_KERNEL);
+ 	if (!powernow_table) {
+ 		dprintk("powernow_table memory alloc failure\n");
+ 		goto err_out;
+@@ -808,12 +790,12 @@ static int powernow_k8_cpu_init_acpi(str
+ 	if (ret_val)
+ 		goto err_out_mem;
+ 
+-	powernow_table[data->acpi_data->state_count].frequency = CPUFREQ_TABLE_END;
+-	powernow_table[data->acpi_data->state_count].index = 0;
++	powernow_table[data->acpi_data.state_count].frequency = CPUFREQ_TABLE_END;
++	powernow_table[data->acpi_data.state_count].index = 0;
+ 	data->powernow_table = powernow_table;
+ 
+ 	/* fill in data */
+-	data->numps = data->acpi_data->state_count;
++	data->numps = data->acpi_data.state_count;
+ 	if (first_cpu(per_cpu(cpu_core_map, data->cpu)) == data->cpu)
+ 		print_basics(data);
+ 	powernow_k8_acpi_pst_values(data, 0);
+@@ -821,32 +803,16 @@ static int powernow_k8_cpu_init_acpi(str
+ 	/* notify BIOS that we exist */
+ 	acpi_processor_notify_smm(THIS_MODULE);
+ 
+-	/* determine affinity, from ACPI if available */
+-	if (preregister_valid) {
+-		if ((data->acpi_data->shared_type == CPUFREQ_SHARED_TYPE_ALL) ||
+-		    (data->acpi_data->shared_type == CPUFREQ_SHARED_TYPE_ANY))
+-			data->starting_core_affinity = data->acpi_data->shared_cpu_map;
+-		else
+-			data->starting_core_affinity = cpumask_of_cpu(data->cpu);
+-	} else {
+-		/* best guess from family if not */
+-		if (cpu_family == CPU_HW_PSTATE)
+-			data->starting_core_affinity = cpumask_of_cpu(data->cpu);
+-		else
+-			data->starting_core_affinity = per_cpu(cpu_core_map, data->cpu);
+-
+-	}
+-
+ 	return 0;
+ 
+ err_out_mem:
+ 	kfree(powernow_table);
+ 
+ err_out:
+-	acpi_processor_unregister_performance(data->acpi_data, data->cpu);
++	acpi_processor_unregister_performance(&data->acpi_data, data->cpu);
+ 
+-	/* data->acpi_data->state_count informs us at ->exit() whether ACPI was used */
+-	data->acpi_data->state_count = 0;
++	/* data->acpi_data.state_count informs us at ->exit() whether ACPI was used */
++	data->acpi_data.state_count = 0;
+ 
+ 	return -ENODEV;
+ }
+@@ -858,11 +824,11 @@ static int fill_powernow_table_pstate(st
+ 	rdmsr(MSR_PSTATE_CUR_LIMIT, hi, lo);
+ 	data->max_hw_pstate = (hi & HW_PSTATE_MAX_MASK) >> HW_PSTATE_MAX_SHIFT;
+ 
+-	for (i = 0; i < data->acpi_data->state_count; i++) {
++	for (i = 0; i < data->acpi_data.state_count; i++) {
+ 		u32 index;
+ 		u32 hi = 0, lo = 0;
+ 
+-		index = data->acpi_data->states[i].control & HW_PSTATE_MASK;
++		index = data->acpi_data.states[i].control & HW_PSTATE_MASK;
+ 		if (index > data->max_hw_pstate) {
+ 			printk(KERN_ERR PFX "invalid pstate %d - bad value %d.\n", i, index);
+ 			printk(KERN_ERR PFX "Please report to BIOS manufacturer\n");
+@@ -878,7 +844,7 @@ static int fill_powernow_table_pstate(st
+ 
+ 		powernow_table[i].index = index;
+ 
+-		powernow_table[i].frequency = data->acpi_data->states[i].core_frequency * 1000;
++		powernow_table[i].frequency = data->acpi_data.states[i].core_frequency * 1000;
+ 	}
+ 	return 0;
+ }
+@@ -887,16 +853,16 @@ static int fill_powernow_table_fidvid(st
+ {
+ 	int i;
+ 	int cntlofreq = 0;
+-	for (i = 0; i < data->acpi_data->state_count; i++) {
++	for (i = 0; i < data->acpi_data.state_count; i++) {
+ 		u32 fid;
+ 		u32 vid;
+ 
+ 		if (data->exttype) {
+-			fid = data->acpi_data->states[i].status & EXT_FID_MASK;
+-			vid = (data->acpi_data->states[i].status >> VID_SHIFT) & EXT_VID_MASK;
++			fid = data->acpi_data.states[i].status & EXT_FID_MASK;
++			vid = (data->acpi_data.states[i].status >> VID_SHIFT) & EXT_VID_MASK;
+ 		} else {
+-			fid = data->acpi_data->states[i].control & FID_MASK;
+-			vid = (data->acpi_data->states[i].control >> VID_SHIFT) & VID_MASK;
++			fid = data->acpi_data.states[i].control & FID_MASK;
++			vid = (data->acpi_data.states[i].control >> VID_SHIFT) & VID_MASK;
+ 		}
+ 
+ 		dprintk("   %d : fid 0x%x, vid 0x%x\n", i, fid, vid);
+@@ -937,10 +903,10 @@ static int fill_powernow_table_fidvid(st
+ 				cntlofreq = i;
+ 		}
+ 
+-		if (powernow_table[i].frequency != (data->acpi_data->states[i].core_frequency * 1000)) {
++		if (powernow_table[i].frequency != (data->acpi_data.states[i].core_frequency * 1000)) {
+ 			printk(KERN_INFO PFX "invalid freq entries %u kHz vs. %u kHz\n",
+ 				powernow_table[i].frequency,
+-				(unsigned int) (data->acpi_data->states[i].core_frequency * 1000));
++				(unsigned int) (data->acpi_data.states[i].core_frequency * 1000));
+ 			powernow_table[i].frequency = CPUFREQ_ENTRY_INVALID;
+ 			continue;
+ 		}
+@@ -950,15 +916,14 @@ static int fill_powernow_table_fidvid(st
+ 
+ static void powernow_k8_cpu_exit_acpi(struct powernow_k8_data *data)
+ {
+-	if (data->acpi_data->state_count)
+-		acpi_processor_unregister_performance(data->acpi_data, data->cpu);
++	if (data->acpi_data.state_count)
++		acpi_processor_unregister_performance(&data->acpi_data, data->cpu);
+ }
+ 
+ #else
+ static int powernow_k8_cpu_init_acpi(struct powernow_k8_data *data) { return -ENODEV; }
+ static void powernow_k8_cpu_exit_acpi(struct powernow_k8_data *data) { return; }
+ static void powernow_k8_acpi_pst_values(struct powernow_k8_data *data, unsigned int index) { return; }
+-static int powernow_k8_cpu_preinit_acpi() { return -ENODEV; }
+ #endif /* CONFIG_X86_POWERNOW_K8_ACPI */
+ 
+ /* Take a frequency, and issue the fid/vid transition command */
+@@ -1163,7 +1128,7 @@ static int __cpuinit powernowk8_cpu_init
+ 		 * an UP version, and is deprecated by AMD.
+ 		 */
+ 		if (num_online_cpus() != 1) {
+-			printk(KERN_ERR PFX "Your BIOS does not provide _PSS objects.  PowerNow! does not work on SMP systems without _PSS objects.  Complain to your BIOS vendor.\n");
++			printk(KERN_ERR PFX "MP systems not supported by PSB BIOS structure\n");
+ 			kfree(data);
+ 			return -ENODEV;
+ 		}
+@@ -1202,7 +1167,10 @@ static int __cpuinit powernowk8_cpu_init
+ 	/* run on any CPU again */
+ 	set_cpus_allowed(current, oldmask);
+ 
+-	pol->cpus = data->starting_core_affinity;
++	if (cpu_family == CPU_HW_PSTATE)
++		pol->cpus = cpumask_of_cpu(pol->cpu);
++	else
++		pol->cpus = per_cpu(cpu_core_map, pol->cpu);
+ 	data->available_cores = &(pol->cpus);
+ 
+ 	/* Take a crude guess here.
+@@ -1321,7 +1289,6 @@ static int __cpuinit powernowk8_init(voi
+ 	}
+ 
+ 	if (supported_cpus == num_online_cpus()) {
+-		powernow_k8_cpu_preinit_acpi();
+ 		printk(KERN_INFO PFX "Found %d %s "
+ 			"processors (%d cpu cores) (" VERSION ")\n",
+ 			num_online_nodes(),
+diff -puN arch/x86/kernel/cpu/cpufreq/powernow-k8.h~cpufreq-revert-get-core-affinity-from-acpi_processor_preregister_performance arch/x86/kernel/cpu/cpufreq/powernow-k8.h
+--- a/arch/x86/kernel/cpu/cpufreq/powernow-k8.h~cpufreq-revert-get-core-affinity-from-acpi_processor_preregister_performance
++++ a/arch/x86/kernel/cpu/cpufreq/powernow-k8.h
+@@ -33,13 +33,12 @@ struct powernow_k8_data {
+ #ifdef CONFIG_X86_POWERNOW_K8_ACPI
+ 	/* the acpi table needs to be kept. it's only available if ACPI was
+ 	 * used to determine valid frequency/vid/fid states */
+-	struct acpi_processor_performance *acpi_data;
++	struct acpi_processor_performance acpi_data;
+ #endif
+ 	/* we need to keep track of associated cores, but let cpufreq
+ 	 * handle hotplug events - so just point at cpufreq pol->cpus
+ 	 * structure */
+ 	cpumask_t *available_cores;
+-	cpumask_t starting_core_affinity;
+ };
+ 
+ 
+@@ -209,7 +208,6 @@ static int core_frequency_transition(str
+ static void powernow_k8_acpi_pst_values(struct powernow_k8_data *data, unsigned int index);
+ 
+ #ifdef CONFIG_X86_POWERNOW_K8_ACPI
+-static int powernow_k8_cpu_preinit_acpi(void);
+ static int fill_powernow_table_pstate(struct powernow_k8_data *data, struct cpufreq_frequency_table *powernow_table);
+ static int fill_powernow_table_fidvid(struct powernow_k8_data *data, struct cpufreq_frequency_table *powernow_table);
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
