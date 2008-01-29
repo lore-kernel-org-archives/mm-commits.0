@@ -1,112 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: - unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch removed from -mm tree
-Date: Mon, 28 Jan 2008 17:48:29 -0800
-Message-ID: <200801290148.m0T1mTnk027353@imap1.linux-foundation.org>
+Subject: - fix-fakephp-deadlock.patch removed from -mm tree
+Date: Mon, 28 Jan 2008 17:49:12 -0800
+Message-ID: <200801290149.m0T1nD0C027471@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38519 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46455 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752933AbYA2B66 (ORCPT
+	by vger.kernel.org with ESMTP id S1755532AbYA2B7I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 20:58:58 -0500
+	Mon, 28 Jan 2008 20:59:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pbadari@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: abbotti@mev.co.uk, greg@kroah.com, kristen.c.accardi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     unbork gregkh-driver-kset-convert-sys-devices-to-use-kset_create (vio.c)
+     Fix fakephp deadlock
 has been removed from the -mm tree.  Its filename was
-     unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+     fix-fakephp-deadlock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: unbork gregkh-driver-kset-convert-sys-devices-to-use-kset_create (vio.c)
-From: Badari Pulavarty <pbadari@gmail.com>
+Subject: Fix fakephp deadlock
+From: Ian Abbott <abbotti@mev.co.uk>
 
-Above patch renamed devices_subsys to devices_kset to catch all users of
-the variable. Need fixes to vio.
+If the fakephp driver is used to emulate removal of a PCI device by writing
+text string "0" to the "power" sysfs attribute file, this causes its parent
+directory and its contents (including the "power" file) to be deleted
+before the write operation returns.  Unfortunately, it ends up in a
+deadlock waiting for itself to complete.
 
-# make -j8 zImage
-  CHK     include/linux/version.h
-  CHK     include/linux/utsrelease.h
-  CALL    scripts/checksyscalls.sh
-<stdin>:1389:2: warning: #warning syscall revokeat not implemented
-<stdin>:1393:2: warning: #warning syscall frevoke not implemented
-  CHK     include/linux/compile.h
-  GEN     .version
-  CHK     include/linux/compile.h
-  UPD     include/linux/compile.h
-  CC      init/version.o
-  LD      init/built-in.o
-  LD      .tmp_vmlinux1
-arch/powerpc/kernel/built-in.o(.toc+0x1548): undefined reference to
-`devices_subsys'
-make: *** [.tmp_vmlinux1] Error 1
+The deadlock is as follows: sysfs_write_file calls flush_write_buffer which
+calls sysfs_get_active_two before calling power_write_file in
+pci_hotplug_core.c via the sysfs store operation.  The power_write_file
+function calls disable_slot in fakephp.c via the slot operation.  The
+disable_slot function calls remove_slot which calls pci_hp_deregister (back
+in pci_hotplug_core.c) which calls fs_remove_slot which calls
+sysfs_remove_file to remove the "power" file.  The sysfs_remove_file
+function calls sysfs_hash_and_remove which calls sysfs_addrm_finish which
+calls sysfs_deactivate.  The sysfs_deactivate function sees that something
+has an active reference on the sysfs_dirent (from the previous call to
+sysfs_get_active_two back up the call stack somewhere) so waits for the
+active reference to go away, which is of course impossible.
 
-Here is the patch, Is this correct usage ?
+The problem has been present since 2.6.21.
 
-[akpm@linux-foundation.org: coding-style fix]
-Cc: Badari Pulavarty <pbadari@gmail.com>
+This patch breaks the deadlock by queuing work queue items on a single-
+threaded work queue to remove a slot from sysfs, and to rescan the PCI
+buses.  There is also some protection against disabling a slot that is
+already being removed.
+
+Signed-off-by: Ian Abbott <abbotti@mev.co.uk>
 Cc: Greg KH <greg@kroah.com>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/vio.c |    4 +---
- drivers/base/base.h       |    2 --
- include/linux/device.h    |    1 +
- 3 files changed, 2 insertions(+), 5 deletions(-)
+ drivers/pci/hotplug/fakephp.c |   39 ++++++++++++++++++++++++++++----
+ 1 file changed, 35 insertions(+), 4 deletions(-)
 
-diff -puN arch/powerpc/kernel/vio.c~unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc arch/powerpc/kernel/vio.c
---- a/arch/powerpc/kernel/vio.c~unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc
-+++ a/arch/powerpc/kernel/vio.c
-@@ -37,8 +37,6 @@
- #include <asm/iseries/hv_call_xm.h>
- #include <asm/iseries/iommu.h>
+diff -puN drivers/pci/hotplug/fakephp.c~fix-fakephp-deadlock drivers/pci/hotplug/fakephp.c
+--- a/drivers/pci/hotplug/fakephp.c~fix-fakephp-deadlock
++++ a/drivers/pci/hotplug/fakephp.c
+@@ -39,6 +39,7 @@
+ #include <linux/init.h>
+ #include <linux/string.h>
+ #include <linux/slab.h>
++#include <linux/workqueue.h>
+ #include "../pci.h"
  
--extern struct kset devices_subsys; /* needed for vio_find_name() */
--
- static struct bus_type vio_bus_type;
+ #if !defined(MODULE)
+@@ -63,10 +64,16 @@ struct dummy_slot {
+ 	struct list_head node;
+ 	struct hotplug_slot *slot;
+ 	struct pci_dev *dev;
++	struct work_struct remove_work;
++	unsigned long removed;
+ };
  
- static struct vio_dev vio_bus_device  = { /* fake "parent" device */
-@@ -369,7 +367,7 @@ static struct vio_dev *vio_find_name(con
+ static int debug;
+ static LIST_HEAD(slot_list);
++static struct workqueue_struct *dummyphp_wq;
++
++static void pci_rescan_worker(struct work_struct *work);
++static DECLARE_WORK(pci_rescan_work, pci_rescan_worker);
+ 
+ static int enable_slot (struct hotplug_slot *slot);
+ static int disable_slot (struct hotplug_slot *slot);
+@@ -109,7 +116,7 @@ static int add_slot(struct pci_dev *dev)
+ 	slot->name = &dev->dev.bus_id[0];
+ 	dbg("slot->name = %s\n", slot->name);
+ 
+-	dslot = kmalloc(sizeof(struct dummy_slot), GFP_KERNEL);
++	dslot = kzalloc(sizeof(struct dummy_slot), GFP_KERNEL);
+ 	if (!dslot)
+ 		goto error_info;
+ 
+@@ -164,6 +171,14 @@ static void remove_slot(struct dummy_slo
+ 		err("Problem unregistering a slot %s\n", dslot->slot->name);
+ }
+ 
++/* called from the single-threaded workqueue handler to remove a slot */
++static void remove_slot_worker(struct work_struct *work)
++{
++	struct dummy_slot *dslot =
++		container_of(work, struct dummy_slot, remove_work);
++	remove_slot(dslot);
++}
++
+ /**
+  * pci_rescan_slot - Rescan slot
+  * @temp: Device template. Should be set: bus and devfn.
+@@ -267,11 +282,17 @@ static inline void pci_rescan(void) {
+ 	pci_rescan_buses(&pci_root_buses);
+ }
+ 
++/* called from the single-threaded workqueue handler to rescan all pci buses */
++static void pci_rescan_worker(struct work_struct *work)
++{
++	pci_rescan();
++}
+ 
+ static int enable_slot(struct hotplug_slot *hotplug_slot)
  {
- 	struct kobject *found;
+ 	/* mis-use enable_slot for rescanning of the pci bus */
+-	pci_rescan();
++	cancel_work_sync(&pci_rescan_work);
++	queue_work(dummyphp_wq, &pci_rescan_work);
+ 	return -ENODEV;
+ }
  
--	found = kset_find_obj(&devices_subsys, kobj_name);
-+	found = kset_find_obj(devices_kset, kobj_name);
- 	if (!found)
- 		return NULL;
+@@ -306,6 +327,10 @@ static int disable_slot(struct hotplug_s
+ 		err("Can't remove PCI devices with other PCI devices behind it yet.\n");
+ 		return -ENODEV;
+ 	}
++	if (test_and_set_bit(0, &dslot->removed)) {
++		dbg("Slot already scheduled for removal\n");
++		return -ENODEV;
++	}
+ 	/* search for subfunctions and disable them first */
+ 	if (!(dslot->dev->devfn & 7)) {
+ 		for (func = 1; func < 8; func++) {
+@@ -328,8 +353,9 @@ static int disable_slot(struct hotplug_s
+ 	/* remove the device from the pci core */
+ 	pci_remove_bus_device(dslot->dev);
  
-diff -puN drivers/base/base.h~unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc drivers/base/base.h
---- a/drivers/base/base.h~unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc
-+++ a/drivers/base/base.h
-@@ -79,8 +79,6 @@ extern char *make_class_name(const char 
+-	/* blow away this sysfs entry and other parts. */
+-	remove_slot(dslot);
++	/* queue work item to blow away this sysfs entry and other parts. */
++	INIT_WORK(&dslot->remove_work, remove_slot_worker);
++	queue_work(dummyphp_wq, &dslot->remove_work);
  
- extern int devres_release_all(struct device *dev);
+ 	return 0;
+ }
+@@ -340,6 +366,7 @@ static void cleanup_slots (void)
+ 	struct list_head *next;
+ 	struct dummy_slot *dslot;
  
--extern struct kset *devices_kset;
--
- #if defined(CONFIG_MODULES) && defined(CONFIG_SYSFS)
- extern void module_add_driver(struct module *mod, struct device_driver *drv);
- extern void module_remove_driver(struct device_driver *drv);
-diff -puN include/linux/device.h~unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc include/linux/device.h
---- a/include/linux/device.h~unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc
-+++ a/include/linux/device.h
-@@ -110,6 +110,7 @@ extern int bus_unregister_notifier(struc
- #define BUS_NOTIFY_UNBIND_DRIVER	0x00000004 /* driver about to be
- 						      unbound */
++	destroy_workqueue(dummyphp_wq);
+ 	list_for_each_safe (tmp, next, &slot_list) {
+ 		dslot = list_entry (tmp, struct dummy_slot, node);
+ 		remove_slot(dslot);
+@@ -351,6 +378,10 @@ static int __init dummyphp_init(void)
+ {
+ 	info(DRIVER_DESC "\n");
  
-+extern struct kset *devices_kset;
- extern struct kset *bus_get_kset(struct bus_type *bus);
- extern struct klist *bus_get_device_klist(struct bus_type *bus);
++	dummyphp_wq = create_singlethread_workqueue(MY_NAME);
++	if (!dummyphp_wq)
++		return -ENOMEM;
++
+ 	return pci_scan_buses();
+ }
  
 _
 
-Patches currently in -mm which might be from pbadari@gmail.com are
-
-origin.patch
-mem-controller-gfp-mask-fix.patch
+Patches currently in -mm which might be from abbotti@mev.co.uk are
