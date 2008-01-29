@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mount-options-fix-capifs.patch added to -mm tree
-Date: Tue, 29 Jan 2008 15:22:28 -0800
-Message-ID: <200801292322.m0TNMSna009698@imap1.linux-foundation.org>
+Subject: + mount-options-fix-devpts.patch added to -mm tree
+Date: Tue, 29 Jan 2008 15:22:30 -0800
+Message-ID: <200801292322.m0TNMUss009701@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59073 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36400 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754839AbYA2XWi (ORCPT
+	by vger.kernel.org with ESMTP id S1752363AbYA2XWf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jan 2008 18:22:38 -0500
+	Tue, 29 Jan 2008 18:22:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, kkeil@suse.de
+Cc: mszeredi@suse.cz, hpa@zytor.com
 
 
 The patch titled
-     mount options: fix capifs
+     mount options: fix devpts
 has been added to the -mm tree.  Its filename is
-     mount-options-fix-capifs.patch
+     mount-options-fix-devpts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mount options: fix capifs
+Subject: mount options: fix devpts
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Add a .show_options super operation to capifs.
+Add a .show_options super operation to devpts.
 
-Use generic_show_options() and save the complete option string in
-capifs_remount().
+Small cleanup: when parsing the "mode" option, mask with S_IALLUGO
+instead of ~S_IFMT.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Acked-by: Karsten Keil <kkeil@suse.de>
+Acked-by: H. Peter Anvin <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/capi/capifs.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ fs/devpts/inode.c |   21 ++++++++++++++++++---
+ 1 file changed, 18 insertions(+), 3 deletions(-)
 
-diff -puN drivers/isdn/capi/capifs.c~mount-options-fix-capifs drivers/isdn/capi/capifs.c
---- a/drivers/isdn/capi/capifs.c~mount-options-fix-capifs
-+++ a/drivers/isdn/capi/capifs.c
-@@ -52,6 +52,7 @@ static int capifs_remount(struct super_b
- 	gid_t gid = 0;
- 	umode_t mode = 0600;
- 	char *this_char;
-+	char *new_opt = kstrdup(data, GFP_KERNEL);
+diff -puN fs/devpts/inode.c~mount-options-fix-devpts fs/devpts/inode.c
+--- a/fs/devpts/inode.c~mount-options-fix-devpts
++++ a/fs/devpts/inode.c
+@@ -20,9 +20,12 @@
+ #include <linux/devpts_fs.h>
+ #include <linux/parser.h>
+ #include <linux/fsnotify.h>
++#include <linux/seq_file.h>
  
- 	this_char = NULL;
- 	while ((this_char = strsep(&data, ",")) != NULL) {
-@@ -72,11 +73,16 @@ static int capifs_remount(struct super_b
- 			return -EINVAL;
- 		}
- 	}
+ #define DEVPTS_SUPER_MAGIC 0x1cd1
+ 
++#define DEVPTS_DEFAULT_MODE 0600
 +
-+	kfree(s->s_options);
-+	s->s_options = new_opt;
-+
- 	config.setuid  = setuid;
- 	config.setgid  = setgid;
- 	config.uid     = uid;
- 	config.gid     = gid;
- 	config.mode    = mode;
-+
+ static struct vfsmount *devpts_mnt;
+ static struct dentry *devpts_root;
+ 
+@@ -32,7 +35,7 @@ static struct {
+ 	uid_t   uid;
+ 	gid_t   gid;
+ 	umode_t mode;
+-} config = {.mode = 0600};
++} config = {.mode = DEVPTS_DEFAULT_MODE};
+ 
+ enum {
+ 	Opt_uid, Opt_gid, Opt_mode,
+@@ -54,7 +57,7 @@ static int devpts_remount(struct super_b
+ 	config.setgid  = 0;
+ 	config.uid     = 0;
+ 	config.gid     = 0;
+-	config.mode    = 0600;
++	config.mode    = DEVPTS_DEFAULT_MODE;
+ 
+ 	while ((p = strsep(&data, ",")) != NULL) {
+ 		substring_t args[MAX_OPT_ARGS];
+@@ -81,7 +84,7 @@ static int devpts_remount(struct super_b
+ 		case Opt_mode:
+ 			if (match_octal(&args[0], &option))
+ 				return -EINVAL;
+-			config.mode = option & ~S_IFMT;
++			config.mode = option & S_IALLUGO;
+ 			break;
+ 		default:
+ 			printk(KERN_ERR "devpts: called with bogus options\n");
+@@ -92,9 +95,21 @@ static int devpts_remount(struct super_b
  	return 0;
  }
  
-@@ -84,6 +90,7 @@ static struct super_operations capifs_so
- {
++static int devpts_show_options(struct seq_file *seq, struct vfsmount *vfs)
++{
++	if (config.setuid)
++		seq_printf(seq, ",uid=%u", config.uid);
++	if (config.setgid)
++		seq_printf(seq, ",gid=%u", config.gid);
++	seq_printf(seq, ",mode=%03o", config.mode);
++
++	return 0;
++}
++
+ static const struct super_operations devpts_sops = {
  	.statfs		= simple_statfs,
- 	.remount_fs	= capifs_remount,
-+	.show_options	= generic_show_options,
+ 	.remount_fs	= devpts_remount,
++	.show_options	= devpts_show_options,
  };
  
- 
+ static int
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
