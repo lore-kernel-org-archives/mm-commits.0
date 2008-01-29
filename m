@@ -1,144 +1,235 @@
 From: akpm@linux-foundation.org
-Subject: - b44-power-down-phy-when-interface-down.patch removed from -mm tree
-Date: Mon, 28 Jan 2008 17:49:58 -0800
-Message-ID: <200801290149.m0T1nw1F027535@imap1.linux-foundation.org>
+Subject: - make-config_hpet_emulate_rtc-usable-from-modules.patch removed from -mm tree
+Date: Mon, 28 Jan 2008 17:50:33 -0800
+Message-ID: <200801290150.m0T1oY8B027577@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45737 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36415 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756417AbYA2CAN (ORCPT
+	by vger.kernel.org with ESMTP id S1756421AbYA2CAP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jan 2008 21:00:13 -0500
+	Mon, 28 Jan 2008 21:00:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mboton@gmail.com, linville@tuxdriver.com, mb@bu3sch.de, mm-commits@vger.kernel.org
+To: bwalle@suse.de, Robert.Picco@hp.com, a.zummo@towertech.it, ak@suse.de, david-b@pacbell.net, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     b44: power down PHY when interface down
+     rtc: make CONFIG_HPET_EMULATE_RTC usable from modules
 has been removed from the -mm tree.  Its filename was
-     b44-power-down-phy-when-interface-down.patch
+     make-config_hpet_emulate_rtc-usable-from-modules.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: b44: power down PHY when interface down
-From: Miguel Boton <mboton@gmail.com>
+Subject: rtc: make CONFIG_HPET_EMULATE_RTC usable from modules
+From: Bernhard Walle <bwalle@suse.de>
 
-This is just this patch (http://lkml.org/lkml/2007/7/1/51) but adapted
-to the 'b44' ssb driver.
+The new rtc-cmos driver misses HPET support.  If the hardware has HPET
+enabled, then interrupts don't work for the rtc-cmos driver which results in
+RTC_AIE*, RTC_PIE* and RTC_ALM being unusable.  This affects hwclock from
+util-linux-ng at least on i386 since that uses RTC_PIE_ON.  (For x86-64, a
+polling method is used for unknown reasons.)
 
-Signed-off-by: Miguel Boton <mboton@gmail.com>
-Cc: Michael Buesch <mb@bu3sch.de>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+This patch series now
+
+  1. export the functions from arch/x86/kernel/hpet.c that the old char/rtc
+     driver uses to work around that problem,
+
+  2. makes it possible to compile the old rtc driver as module, while still
+     having CONFIG_HPET_EMULATE_RTC enabled and
+
+  3. makes use of the exported functions in (1) in the new rtc-cmos driver.
+
+
+This patch:
+
+This patch makes the RTC emulation functions in arch/x86/kernel/hpet.c usable
+for kernel modules. It
+
+  - exports the functions (EXPORT_SYMBOL_GPL()),
+  - adds an interface to register the interrupt callback function
+    instead of using only a fixed callback function and
+  - replaces the rtc_get_rtc_time() function which depends on
+    CONFIG_RTC with a call to get_rtc_time() which is defined in
+    include/asm-generic/rtc.h.
+
+The only dependency to CONFIG_RTC is the call to rtc_interrupt() which is
+removed by the next patch. After this, there's no (code) dependency of
+this functions to CONFIG_RTC=y any more.
+
+Signed-off-by: Bernhard Walle <bwalle@suse.de>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <ak@suse.de>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Robert Picco <Robert.Picco@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/b44.c |   28 +++++++++++++++++++++++-----
- 1 file changed, 23 insertions(+), 5 deletions(-)
+ arch/x86/kernel/hpet.c |   47 ++++++++++++++++++++++++++++++++++++++-
+ include/asm-x86/hpet.h |    3 ++
+ 2 files changed, 49 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/b44.c~b44-power-down-phy-when-interface-down drivers/net/b44.c
---- a/drivers/net/b44.c~b44-power-down-phy-when-interface-down
-+++ a/drivers/net/b44.c
-@@ -128,6 +128,8 @@ static void b44_init_rings(struct b44 *)
- #define B44_FULL_RESET		1
- #define B44_FULL_RESET_SKIP_PHY	2
- #define B44_PARTIAL_RESET	3
-+#define B44_CHIP_RESET_FULL	4
-+#define B44_CHIP_RESET_PARTIAL	5
- 
- static void b44_init_hw(struct b44 *, int);
- 
-@@ -1259,7 +1261,7 @@ static void b44_clear_stats(struct b44 *
- }
- 
- /* bp->lock is held. */
--static void b44_chip_reset(struct b44 *bp)
-+static void b44_chip_reset(struct b44 *bp, int reset_kind)
+diff -puN arch/x86/kernel/hpet.c~make-config_hpet_emulate_rtc-usable-from-modules arch/x86/kernel/hpet.c
+--- a/arch/x86/kernel/hpet.c~make-config_hpet_emulate_rtc-usable-from-modules
++++ a/arch/x86/kernel/hpet.c
+@@ -107,6 +107,7 @@ int is_hpet_enabled(void)
  {
- 	struct ssb_device *sdev = bp->sdev;
+ 	return is_hpet_capable() && hpet_legacy_int_enabled;
+ }
++EXPORT_SYMBOL_GPL(is_hpet_enabled);
  
-@@ -1281,6 +1283,13 @@ static void b44_chip_reset(struct b44 *b
- 	ssb_device_enable(bp->sdev, 0);
- 	b44_clear_stats(bp);
+ /*
+  * When the hpet driver (/dev/hpet) is enabled, we need to reserve
+@@ -478,6 +479,7 @@ void hpet_disable(void)
+  */
+ #include <linux/mc146818rtc.h>
+ #include <linux/rtc.h>
++#include <asm/rtc.h>
  
-+	/*
-+	 * Don't enable PHY if we are doing a partial reset
-+	 * we are probably going to power down
-+	 */
-+	if (reset_kind == B44_CHIP_RESET_PARTIAL)
+ #define DEFAULT_RTC_INT_FREQ	64
+ #define DEFAULT_RTC_SHIFT	6
+@@ -492,6 +494,38 @@ static unsigned long hpet_default_delta;
+ static unsigned long hpet_pie_delta;
+ static unsigned long hpet_pie_limit;
+ 
++static rtc_irq_handler irq_handler;
++
++/*
++ * Registers a IRQ handler.
++ */
++int hpet_register_irq_handler(rtc_irq_handler handler)
++{
++	if (!is_hpet_enabled())
++		return -ENODEV;
++	if (irq_handler)
++		return -EBUSY;
++
++	irq_handler = handler;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(hpet_register_irq_handler);
++
++/*
++ * Deregisters the IRQ handler registered with hpet_register_irq_handler()
++ * and does cleanup.
++ */
++void hpet_unregister_irq_handler(rtc_irq_handler handler)
++{
++	if (!is_hpet_enabled())
 +		return;
 +
- 	switch (sdev->bus->bustype) {
- 	case SSB_BUSTYPE_SSB:
- 		bw32(bp, B44_MDIO_CTRL, (MDIO_CTRL_PREAMBLE |
-@@ -1316,7 +1325,14 @@ static void b44_chip_reset(struct b44 *b
- static void b44_halt(struct b44 *bp)
- {
- 	b44_disable_ints(bp);
--	b44_chip_reset(bp);
-+	/* reset PHY */
-+	b44_phy_reset(bp);
-+	/* power down PHY */
-+	printk(KERN_INFO PFX "%s: powering down PHY\n", bp->dev->name);
-+	bw32(bp, B44_MAC_CTRL, MAC_CTRL_PHY_PDOWN);
-+	/* now reset the chip, but without enabling the MAC&PHY
-+	 * part of it. This has to be done _after_ we shut down the PHY */
-+	b44_chip_reset(bp, B44_CHIP_RESET_PARTIAL);
++	irq_handler = NULL;
++	hpet_rtc_flags = 0;
++}
++EXPORT_SYMBOL_GPL(hpet_unregister_irq_handler);
++
+ /*
+  * Timer 1 for RTC emulation. We use one shot mode, as periodic mode
+  * is not supported by all HPET implementations for timer 1.
+@@ -533,6 +567,7 @@ int hpet_rtc_timer_init(void)
+ 
+ 	return 1;
  }
++EXPORT_SYMBOL_GPL(hpet_rtc_timer_init);
  
- /* bp->lock is held. */
-@@ -1365,7 +1381,7 @@ static void b44_init_hw(struct b44 *bp, 
- {
- 	u32 val;
- 
--	b44_chip_reset(bp);
-+	b44_chip_reset(bp, B44_CHIP_RESET_FULL);
- 	if (reset_kind == B44_FULL_RESET) {
- 		b44_phy_reset(bp);
- 		b44_setup_phy(bp);
-@@ -1422,7 +1438,7 @@ static int b44_open(struct net_device *d
- 	err = request_irq(dev->irq, b44_interrupt, IRQF_SHARED, dev->name, dev);
- 	if (unlikely(err < 0)) {
- 		napi_disable(&bp->napi);
--		b44_chip_reset(bp);
-+		b44_chip_reset(bp, B44_CHIP_RESET_PARTIAL);
- 		b44_free_rings(bp);
- 		b44_free_consistent(bp);
- 		goto out;
-@@ -2188,7 +2204,7 @@ static int __devinit b44_init_one(struct
- 	/* Chip reset provides power to the b44 MAC & PCI cores, which
- 	 * is necessary for MAC register access.
- 	 */
--	b44_chip_reset(bp);
-+	b44_chip_reset(bp, B44_CHIP_RESET_FULL);
- 
- 	printk(KERN_INFO "%s: Broadcom 44xx/47xx 10/100BaseT Ethernet %s\n",
- 	       dev->name, print_mac(mac, dev->dev_addr));
-@@ -2212,6 +2228,7 @@ static void __devexit b44_remove_one(str
- 	unregister_netdev(dev);
- 	ssb_bus_may_powerdown(sdev->bus);
- 	free_netdev(dev);
-+	ssb_pcihost_set_power_state(sdev, PCI_D3hot);
- 	ssb_set_drvdata(sdev, NULL);
+ /*
+  * The functions below are called from rtc driver.
+@@ -547,6 +582,7 @@ int hpet_mask_rtc_irq_bit(unsigned long 
+ 	hpet_rtc_flags &= ~bit_mask;
+ 	return 1;
  }
++EXPORT_SYMBOL_GPL(hpet_mask_rtc_irq_bit);
  
-@@ -2240,6 +2257,7 @@ static int b44_suspend(struct ssb_device
- 		b44_setup_wol(bp);
+ int hpet_set_rtc_irq_bit(unsigned long bit_mask)
+ {
+@@ -562,6 +598,7 @@ int hpet_set_rtc_irq_bit(unsigned long b
+ 
+ 	return 1;
+ }
++EXPORT_SYMBOL_GPL(hpet_set_rtc_irq_bit);
+ 
+ int hpet_set_alarm_time(unsigned char hrs, unsigned char min,
+ 			unsigned char sec)
+@@ -575,6 +612,7 @@ int hpet_set_alarm_time(unsigned char hr
+ 
+ 	return 1;
+ }
++EXPORT_SYMBOL_GPL(hpet_set_alarm_time);
+ 
+ int hpet_set_periodic_freq(unsigned long freq)
+ {
+@@ -593,11 +631,13 @@ int hpet_set_periodic_freq(unsigned long
  	}
- 
-+	ssb_pcihost_set_power_state(sdev, PCI_D3hot);
- 	return 0;
+ 	return 1;
  }
++EXPORT_SYMBOL_GPL(hpet_set_periodic_freq);
+ 
+ int hpet_rtc_dropped_irq(void)
+ {
+ 	return is_hpet_enabled();
+ }
++EXPORT_SYMBOL_GPL(hpet_rtc_dropped_irq);
+ 
+ static void hpet_rtc_timer_reinit(void)
+ {
+@@ -641,9 +681,10 @@ irqreturn_t hpet_rtc_interrupt(int irq, 
+ 	unsigned long rtc_int_flag = 0;
+ 
+ 	hpet_rtc_timer_reinit();
++	memset(&curr_time, 0, sizeof(struct rtc_time));
+ 
+ 	if (hpet_rtc_flags & (RTC_UIE | RTC_AIE))
+-		rtc_get_rtc_time(&curr_time);
++		get_rtc_time(&curr_time);
+ 
+ 	if (hpet_rtc_flags & RTC_UIE &&
+ 	    curr_time.tm_sec != hpet_prev_update_sec) {
+@@ -665,8 +706,12 @@ irqreturn_t hpet_rtc_interrupt(int irq, 
+ 
+ 	if (rtc_int_flag) {
+ 		rtc_int_flag |= (RTC_IRQF | (RTC_NUM_INTS << 8));
++		if (irq_handler)
++			irq_handler(rtc_int_flag, dev_id);
++
+ 		rtc_interrupt(rtc_int_flag, dev_id);
+ 	}
+ 	return IRQ_HANDLED;
+ }
++EXPORT_SYMBOL_GPL(hpet_rtc_interrupt);
+ #endif
+diff -puN include/asm-x86/hpet.h~make-config_hpet_emulate_rtc-usable-from-modules include/asm-x86/hpet.h
+--- a/include/asm-x86/hpet.h~make-config_hpet_emulate_rtc-usable-from-modules
++++ a/include/asm-x86/hpet.h
+@@ -69,6 +69,7 @@ extern void force_hpet_resume(void);
+ 
+ #include <linux/interrupt.h>
+ 
++typedef irqreturn_t (*rtc_irq_handler)(int interrupt, void *cookie);
+ extern int hpet_mask_rtc_irq_bit(unsigned long bit_mask);
+ extern int hpet_set_rtc_irq_bit(unsigned long bit_mask);
+ extern int hpet_set_alarm_time(unsigned char hrs, unsigned char min,
+@@ -77,6 +78,8 @@ extern int hpet_set_periodic_freq(unsign
+ extern int hpet_rtc_dropped_irq(void);
+ extern int hpet_rtc_timer_init(void);
+ extern irqreturn_t hpet_rtc_interrupt(int irq, void *dev_id);
++extern int hpet_register_irq_handler(rtc_irq_handler handler);
++extern void hpet_unregister_irq_handler(rtc_irq_handler handler);
+ 
+ #endif /* CONFIG_HPET_EMULATE_RTC */
  
 _
 
-Patches currently in -mm which might be from mboton@gmail.com are
+Patches currently in -mm which might be from bwalle@suse.de are
 
-acpi-remove-duplicated-warning-message.patch
-git-alsa.patch
-memstick-initial-commit-for-sony-memorystick-support-fix.patch
-git-net.patch
 git-x86.patch
+add-hpet-rtc-emulation-to-rtc_drv_cmos.patch
+introduce-flags-for-reserve_bootmem.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+use-bootmem_exclusive-for-kdump.patch
