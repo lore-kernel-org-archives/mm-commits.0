@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mount-options-fix-affs.patch added to -mm tree
-Date: Tue, 29 Jan 2008 15:22:04 -0800
-Message-ID: <200801292322.m0TNM4dk009669@imap1.linux-foundation.org>
+Subject: + mount-options-fix-fuse.patch added to -mm tree
+Date: Tue, 29 Jan 2008 15:22:36 -0800
+Message-ID: <200801292322.m0TNMbeH009710@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60952 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52652 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754809AbYA2XWS (ORCPT
+	by vger.kernel.org with ESMTP id S1753783AbYA2XWm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jan 2008 18:22:18 -0500
+	Tue, 29 Jan 2008 18:22:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, zippel@linux-m68k.org
+Cc: mszeredi@suse.cz
 
 
 The patch titled
-     mount options: fix affs
+     mount options: fix fuse
 has been added to the -mm tree.  Its filename is
-     mount-options-fix-affs.patch
+     mount-options-fix-fuse.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mount options: fix affs
+Subject: mount options: fix fuse
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Add a .show_options super operation to affs.
-
-Use generic_show_options() and save the complete option string in
-affs_fill_super() and affs_remount().
+Add blksize= option to /proc/mounts for fuseblk filesystems.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/super.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ fs/fuse/inode.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN fs/affs/super.c~mount-options-fix-affs fs/affs/super.c
---- a/fs/affs/super.c~mount-options-fix-affs
-+++ a/fs/affs/super.c
-@@ -122,6 +122,7 @@ static const struct super_operations aff
- 	.write_super	= affs_write_super,
- 	.statfs		= affs_statfs,
- 	.remount_fs	= affs_remount,
-+	.show_options	= generic_show_options,
- };
+diff -puN fs/fuse/inode.c~mount-options-fix-fuse fs/fuse/inode.c
+--- a/fs/fuse/inode.c~mount-options-fix-fuse
++++ a/fs/fuse/inode.c
+@@ -29,6 +29,8 @@ DEFINE_MUTEX(fuse_mutex);
  
- enum {
-@@ -272,6 +273,8 @@ static int affs_fill_super(struct super_
- 	u8			 sig[4];
- 	int			 ret = -EINVAL;
+ #define FUSE_SUPER_MAGIC 0x65735546
  
-+	save_mount_options(sb, data);
++#define FUSE_DEFAULT_BLKSIZE 512
 +
- 	pr_debug("AFFS: read_super(%s)\n",data ? (const char *)data : "no options");
+ struct fuse_mount_data {
+ 	int fd;
+ 	unsigned rootmode;
+@@ -355,7 +357,7 @@ static int parse_fuse_opt(char *opt, str
+ 	char *p;
+ 	memset(d, 0, sizeof(struct fuse_mount_data));
+ 	d->max_read = ~0;
+-	d->blksize = 512;
++	d->blksize = FUSE_DEFAULT_BLKSIZE;
  
- 	sb->s_magic             = AFFS_SUPER_MAGIC;
-@@ -487,14 +490,21 @@ affs_remount(struct super_block *sb, int
- 	int			 root_block;
- 	unsigned long		 mount_flags;
- 	int			 res = 0;
-+	char			*new_opts = kstrdup(data, GFP_KERNEL);
+ 	while ((p = strsep(&opt, ",")) != NULL) {
+ 		int token;
+@@ -440,6 +442,9 @@ static int fuse_show_options(struct seq_
+ 		seq_puts(m, ",allow_other");
+ 	if (fc->max_read != ~0)
+ 		seq_printf(m, ",max_read=%u", fc->max_read);
++	if (mnt->mnt_sb->s_bdev &&
++	    mnt->mnt_sb->s_blocksize != FUSE_DEFAULT_BLKSIZE)
++		seq_printf(m, ",blksize=%lu", mnt->mnt_sb->s_blocksize);
+ 	return 0;
+ }
  
- 	pr_debug("AFFS: remount(flags=0x%x,opts=\"%s\")\n",*flags,data);
- 
- 	*flags |= MS_NODIRATIME;
- 
--	if (!parse_options(data,&uid,&gid,&mode,&reserved,&root_block,
--	    &blocksize,&sbi->s_prefix,sbi->s_volume,&mount_flags))
-+	if (!parse_options(data, &uid, &gid, &mode, &reserved, &root_block,
-+			   &blocksize, &sbi->s_prefix, sbi->s_volume,
-+			   &mount_flags)) {
-+		kfree(new_opts);
- 		return -EINVAL;
-+	}
-+	kfree(sb->s_options);
-+	sb->s_options = new_opts;
-+
- 	sbi->s_flags = mount_flags;
- 	sbi->s_mode  = mode;
- 	sbi->s_uid   = uid;
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
