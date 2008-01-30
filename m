@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + remove-__init_refok-and-__initdata_refok.patch added to -mm tree
-Date: Wed, 30 Jan 2008 15:00:55 -0800
-Message-ID: <200801302300.m0UN0tjl029187@imap1.linux-foundation.org>
+Subject: + char-applicom-use-pci_resource_start.patch added to -mm tree
+Date: Wed, 30 Jan 2008 15:02:03 -0800
+Message-ID: <200801302302.m0UN23A8029211@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43932 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35901 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762536AbYA3XBk (ORCPT
+	by vger.kernel.org with ESMTP id S1762049AbYA3XCz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jan 2008 18:01:40 -0500
+	Wed, 30 Jan 2008 18:02:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ralf@linux-mips.org, sam@ravnborg.org
+Cc: jirislaby@gmail.com, dwmw2@infradead.org, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     Remove __INIT_REFOK and __INITDATA_REFOK
+     Char: applicom, use pci_resource_start
 has been added to the -mm tree.  Its filename is
-     remove-__init_refok-and-__initdata_refok.patch
+     char-applicom-use-pci_resource_start.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,96 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Remove __INIT_REFOK and __INITDATA_REFOK
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: Char: applicom, use pci_resource_start
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Commit 312b1485fb509c9bc32eda28ad29537896658cb8 made __INIT_REFOK expand
-into .section .section ".ref.text", "ax".  Since the assembler doesn't
-tolerate stuttering in the source that broke all MIPS builds.
+Use pci_resource_start instead of accessing pci_dev struct internals.
 
-Since with this change Sam downgraded __INIT_REFOK to just a backward
-compat thing and there being only a single use in the MIPS arch code the
-best solution is to delete both of __INIT_REFOK and __INITDATA_REFOK (which
-was equally broken) being unused anyway these can be deleted.
-
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init.h |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/char/applicom.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/init.h~remove-__init_refok-and-__initdata_refok include/linux/init.h
---- a/include/linux/init.h~remove-__init_refok-and-__initdata_refok
-+++ a/include/linux/init.h
-@@ -124,9 +124,6 @@
- #define __REF            .section       ".ref.text", "ax"
- #define __REFDATA        .section       ".ref.data", "aw"
- #define __REFCONST       .section       ".ref.rodata", "aw"
--/* backward compatibility */
--#define __INIT_REFOK     .section	__REF
--#define __INITDATA_REFOK .section	__REFDATA
+diff -puN drivers/char/applicom.c~char-applicom-use-pci_resource_start drivers/char/applicom.c
+--- a/drivers/char/applicom.c~char-applicom-use-pci_resource_start
++++ a/drivers/char/applicom.c
+@@ -206,22 +206,23 @@ static int __init applicom_init(void)
+ 		if (pci_enable_device(dev))
+ 			return -EIO;
  
- #ifndef __ASSEMBLY__
- /*
+-		RamIO = ioremap(dev->resource[0].start, LEN_RAM_IO);
++		RamIO = ioremap(pci_resource_start(dev, 0), LEN_RAM_IO);
+ 
+ 		if (!RamIO) {
+ 			printk(KERN_INFO "ac.o: Failed to ioremap PCI memory "
+ 				"space at 0x%llx\n",
+-				(unsigned long long)dev->resource[0].start);
++				(unsigned long long)pci_resource_start(dev, 0));
+ 			pci_disable_device(dev);
+ 			return -EIO;
+ 		}
+ 
+ 		printk(KERN_INFO "Applicom %s found at mem 0x%llx, irq %d\n",
+ 		       applicom_pci_devnames[dev->device-1],
+-			   (unsigned long long)dev->resource[0].start,
++			   (unsigned long long)pci_resource_start(dev, 0),
+ 		       dev->irq);
+ 
+-		boardno = ac_register_board(dev->resource[0].start, RamIO,0);
++		boardno = ac_register_board(pci_resource_start(dev, 0),
++				RamIO, 0);
+ 		if (!boardno) {
+ 			printk(KERN_INFO "ac.o: PCI Applicom device doesn't have correct signature.\n");
+ 			iounmap(RamIO);
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-git-acpi.patch
-git-mips.patch
+git-drm.patch
+drm-i915-fix-oops-after-killing-x.patch
 git-net.patch
 git-watchdog.patch
-git-x86.patch
-maps4-rework-task_size-macros.patch
-maps4-rework-task_size-macros-mips-fix.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-remove-inclusions-of-linux-autoconfh.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
-serial-use-sgi_has_zilog-for-ip22_zilog-depends.patch
-char-use-sgi_has_ds1286-for-sgi_ds1286-depends.patch
-sc26xx-new-serial-driver-for-sc2681-uarts.patch
-sc26xx-new-serial-driver-for-sc2681-uarts-update.patch
-calibrate_delay-must-be-__cpuinit.patch
-dz-clean-up-and-improve-the-setup-of-termios-settings.patch
-dzc-use-a-helper-to-cast-from-struct-uart_port.patch
-dzc-resource-management.patch
-sanitize-the-type-of-struct-useru_ar0.patch
-add-cmpxchg64-and-cmpxchg64_local-to-mips.patch
-pid-fix-mips-irix-emulation-pid-usage.patch
-pid-fix-mips-irix-emulation-pid-usage-fix.patch
-avoid-overflows-in-kernel-timec.patch
-remove-__init_refok-and-__initdata_refok.patch
+capabilities-introduce-per-process-capability-bounding-set-capabilities-correct-logic-at-capset_check.patch
+maintainers-order-auerswald-alphabetically.patch
+phantom-dont-grab-other-devices.patch
+driver-ip27-rtc-convert-ioctl-to-unlocked_ioctl-v2.patch
+dzh-remove-useless-unused-module-junk.patch
+dz-always-check-if-it-is-safe-to-console_putchar.patch
+dz-dont-panic-when-request_irq-fails.patch
+dz-add-and-reorder-inclusions-remove-unneeded-ones.patch
+dz-update-kconfig-description.patch
+dz-rename-the-serial-console-structure.patch
+dz-fix-locking-issues.patch
+dz-handle-special-conditions-on-reception-correctly.patch
+maintainers-add-self-for-the-dz-serial-driver.patch
+char-rocket-switch-long-delay-to-sleep.patch
+char-rocket-printk-cleanup.patch
+char-rocket-remove-useless-macros.patch
+char-char-serial-remove-serial_type_normal-redefines.patch
+char-mxser_new-ioaddresses-are-ulong.patch
+char-stallion-fix-compiler-warnings.patch
+char-riscom8-change-rc_init_drivers-prototype.patch
+char-esp-remove-hangup-and-wakeup-bottomhalves.patch
+char-istallion-remove-hangup-bottomhalf.patch
+char-specialix-remove-bottomhalves.patch
+char-stallion-remove-bottomhalf.patch
+char-serial167-remove-bottomhalf.patch
+char-riscom8-remove-wakeup-anf-hangup-bottomhalves.patch
+mxser-mxser_new-first-pass-over-termios-reporting-for-the.patch
+char-mxser-remove-special-baudrate-processing.patch
+char-mxser-0-to-null-in-pointer.patch
+char-mxser-reorder-mxser_cardinfo-fields.patch
+char-mxser-simplify-mxser_get_serial_info.patch
+char-mxser-ioctl-cleanup.patch
+char-mxser-remove-it.patch
+char-mxser-add-support-for-cp-114ul.patch
+moxa-first-pass-at-termios-reporting.patch
+char-applicom-use-pci_resource_start.patch
+char-applicom-use-pci_match_id.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
