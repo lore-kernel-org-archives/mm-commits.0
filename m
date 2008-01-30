@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + isofs-implement-dmode-option-fix.patch added to -mm tree
-Date: Wed, 30 Jan 2008 15:22:33 -0800
-Message-ID: <200801302322.m0UNMXi1029937@imap1.linux-foundation.org>
+Subject: + slub-fix-sysfs-refcounting.patch added to -mm tree
+Date: Wed, 30 Jan 2008 15:35:43 -0800
+Message-ID: <200801302335.m0UNZhf5030514@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57538 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49242 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754715AbYA3XWi (ORCPT
+	by vger.kernel.org with ESMTP id S1753932AbYA3XgV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jan 2008 18:22:38 -0500
+	Wed, 30 Jan 2008 18:36:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz
+Cc: clameter@sgi.com, penberg@cs.helsinki.fi
 
 
 The patch titled
-     Add documentation for isofs dmode option
+     SLUB: fix sysfs refcounting
 has been added to the -mm tree.  Its filename is
-     isofs-implement-dmode-option-fix.patch
+     slub-fix-sysfs-refcounting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,71 +34,136 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Add documentation for isofs dmode option
-From: Jan Kara <jack@suse.cz>
+Subject: SLUB: fix sysfs refcounting
+From: Christoph Lameter <clameter@sgi.com>
 
-Add documentation to for new dmode option.
+If CONFIG_SYSFS is set then free the kmem_cache structure when sysfs tells
+us its okay.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/isofs.txt |    1 +
- 1 file changed, 1 insertion(+)
+ mm/slub.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/filesystems/isofs.txt~isofs-implement-dmode-option-fix Documentation/filesystems/isofs.txt
---- a/Documentation/filesystems/isofs.txt~isofs-implement-dmode-option-fix
-+++ a/Documentation/filesystems/isofs.txt
-@@ -24,6 +24,7 @@ Mount options unique to the isofs filesy
-   map=normal    Map non-Rock Ridge filenames to lower case
-   map=acorn     As map=normal but also apply Acorn extensions if present
-   mode=xxx      Sets the permissions on files to xxx
-+  dmode=xxx     Sets the permissions on directories to xxx
-   nojoliet      Ignore Joliet extensions if they are present.
-   norock        Ignore Rock Ridge extensions if they are present.
-   hide		Completely strip hidden files from the file system.
+diff -puN mm/slub.c~slub-fix-sysfs-refcounting mm/slub.c
+--- a/mm/slub.c~slub-fix-sysfs-refcounting
++++ a/mm/slub.c
+@@ -218,7 +218,10 @@ static void sysfs_slab_remove(struct kme
+ static inline int sysfs_slab_add(struct kmem_cache *s) { return 0; }
+ static inline int sysfs_slab_alias(struct kmem_cache *s, const char *p)
+ 							{ return 0; }
+-static inline void sysfs_slab_remove(struct kmem_cache *s) {}
++static inline void sysfs_slab_remove(struct kmem_cache *s)
++{
++	kfree(s);
++}
+ #endif
+ 
+ /********************************************************************
+@@ -2488,7 +2491,6 @@ void kmem_cache_destroy(struct kmem_cach
+ 		if (kmem_cache_close(s))
+ 			WARN_ON(1);
+ 		sysfs_slab_remove(s);
+-		kfree(s);
+ 	} else
+ 		up_write(&slub_lock);
+ }
+@@ -4114,6 +4116,13 @@ static ssize_t slab_attr_store(struct ko
+ 	return err;
+ }
+ 
++static void kmem_cache_release(struct kobject *kobj)
++{
++	struct kmem_cache *s = to_slab(kobj);
++
++	kfree(s);
++}
++
+ static struct sysfs_ops slab_sysfs_ops = {
+ 	.show = slab_attr_show,
+ 	.store = slab_attr_store,
+@@ -4121,6 +4130,7 @@ static struct sysfs_ops slab_sysfs_ops =
+ 
+ static struct kobj_type slab_ktype = {
+ 	.sysfs_ops = &slab_sysfs_ops,
++	.release = kmem_cache_release
+ };
+ 
+ static int uevent_filter(struct kset *kset, struct kobject *kobj)
+@@ -4222,6 +4232,7 @@ static void sysfs_slab_remove(struct kme
+ {
+ 	kobject_uevent(&s->kobj, KOBJ_REMOVE);
+ 	kobject_del(&s->kobj);
++	kobject_put(&s->kobj);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
-inotify-send-in_attrib-events-when-link-count-changes.patch
-inotify-send-in_attrib-events-when-link-count-changes-fix.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
-jbd-remove-useless-loop-in-journal_write_commit_record.patch
-jbd-remove-useless-loop-in-journal_write_commit_record-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext4-from-using-iget-and-read_inode-try.patch
-use-pgoff_t-instead-of-unsigned-long.patch
-write_inode_now-avoid-unnecessary-synchronous-write.patch
-udf-fix-coding-style-of-superc.patch
-udf-remove-some-ugly-macros.patch
-udf-convert-udf_sb_alloc_partmaps-macro-to-udf_sb_alloc_partition_maps-function.patch
-udf-check-if-udf_load_logicalvol-failed.patch
-udf-convert-macros-related-to-bitmaps-to-functions.patch
-udf-move-calculating-of-nr_groups-into-helper-function.patch
-udf-fix-sparse-warnings-shadowing-mismatch-between-declaration-and-definition.patch
-udf-fix-coding-style.patch
-udf-create-common-function-for-tag-checksumming.patch
-udf-create-common-function-for-changing-free-space-counter.patch
-udf-replace-loops-coded-with-goto-to-real-loops.patch
-udf-convert-byte-order-of-constant-instead-of-variable.patch
-udf-remove-udf_i_-macros-and-open-code-them.patch
-udf-cache-struct-udf_inode_info.patch
-udf-fix-udf_debug-macro.patch
-udf-improve-readability-of-udf_load_partition.patch
-udf-remove-wrong-prototype-of-udf_readdir.patch
-udf-fix-3-signedness-1-unitialized-variable-warnings.patch
-udf-fix-signedness-issue.patch
-udf-avoid-unnecessary-synchronous-writes.patch
-udf-cleanup-directory-offset-handling.patch
-udf-fix-adding-entry-to-a-directory.patch
-change-udf-maintainer.patch
-isofs-implement-dmode-option.patch
-isofs-implement-dmode-option-fix.patch
-mount-options-fix-ext2.patch
-mount-options-fix-isofs.patch
-mount-options-fix-udf.patch
+gregkh-driver-kset-move-sys-slab-to-sys-kernel-slab-slabinfo-fallback-from-sys-kernel-slab-to-sys-slab.patch
+git-unionfs.patch
+git-x86.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+move-vmalloc_to_page-to-mm-vmalloc.patch
+vmalloc-add-const-to-void-parameters.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries.patch
+vmalloc-clean-up-page-array-indexing.patch
+vunmap-return-page-array-passed-on-vmap.patch
+slub-move-count_partial.patch
+slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio.patch
+slub-consolidate-add_partial-and-add_partial_tail-to-one-function.patch
+slub-use-non-atomic-bit-unlock.patch
+slub-fix-coding-style-violations.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-noinline-some-functions-to-avoid-them-being-folded-into-alloc-free.patch
+slub-move-kmem_cache_node-determination-into-add_full-and-add_partial.patch
+slub-move-kmem_cache_node-determination-into-add_full-and-add_partial-slub-workaround-for-lockdep-confusion.patch
+slub-avoid-checking-for-a-valid-object-before-zeroing-on-the-fast-path.patch
+slub-__slab_alloc-exit-path-consolidation.patch
+slub-provide-unique-end-marker-for-each-slab.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-avoid-referencing-kmem_cache-structure-in-__slab_alloc.patch
+slub-optional-fast-path-using-cmpxchg_local.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-fix.patch
+slub-restructure-slab-alloc.patch
+slub-comment-kmem_cache_cpu-structure.patch
+slub-fix-sysfs-refcounting.patch
+vm-allow-get_page_unless_zero-on-compound-pages.patch
+bufferhead-revert-constructor-removal.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+swapin_readahead-excise-numa-bogosity.patch
+page-allocator-clean-up-pcp-draining-functions.patch
+page-allocator-clean-up-pcp-draining-functions-swsusp-fix.patch
+page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
+vmstat-small-revisions-to-refresh_cpu_vm_stats.patch
+page-allocator-get-rid-of-the-list-of-cold-pages.patch
+page-allocator-get-rid-of-the-list-of-cold-pages-fix.patch
+vmstat-remove-prefetch.patch
+set_page_refcounted-vm_bug_on-fix.patch
+page-migraton-handle-orphaned-pages.patch
+page-migraton-handle-orphaned-pages-fix.patch
+percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+oom-add-sysctl-to-enable-task-memory-dump.patch
+add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
+add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
+dentries-extract-common-code-to-remove-dentry-from-lru.patch
+dentries-extract-common-code-to-remove-dentry-from-lru-fix.patch
+modules-handle-symbols-that-have-a-zero-value.patch
+modules-include-sectionsh-to-avoid-defining-linker-variables.patch
+reiser4.patch
+reiser4-portion-of-zero_user-cleanup-patch.patch
+page-owner-tracking-leak-detector.patch
