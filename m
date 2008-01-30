@@ -1,122 +1,283 @@
 From: akpm@linux-foundation.org
-Subject: - fix-tasklist-find_pid-with-config_preempt_rcu.patch removed from -mm tree
-Date: Tue, 29 Jan 2008 20:35:40 -0800
-Message-ID: <200801300435.m0U4ZLI3021058@imap1.linux-foundation.org>
+Subject: + add-iscsi-ibft-support-v046.patch added to -mm tree
+Date: Wed, 30 Jan 2008 14:01:14 -0800
+Message-ID: <200801302201.m0UM1FeE027011@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38224 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39879 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750850AbYA3Efk (ORCPT
+	by vger.kernel.org with ESMTP id S1752895AbYA3WCY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jan 2008 23:35:40 -0500
+	Wed, 30 Jan 2008 17:02:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, ebiederm@xmission.com, paulmck@us.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: konrad@darnok.org, James.Bottomley@HansenPartnership.com, konradr@linux.vnet.ibm.com, michaelc@cs.wisc.edu, pjones@redhat.com
 
 
 The patch titled
-     fix tasklist + find_pid() with CONFIG_PREEMPT_RCU
-has been removed from the -mm tree.  Its filename was
-     fix-tasklist-find_pid-with-config_preempt_rcu.patch
+     Add iSCSI iBFT support (v0.4.6)
+has been added to the -mm tree.  Its filename is
+     add-iscsi-ibft-support-v046.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix tasklist + find_pid() with CONFIG_PREEMPT_RCU
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: Add iSCSI iBFT support (v0.4.6)
+From: Konrad Rzeszutek <konrad@darnok.org>
 
-With CONFIG_PREEMPT_RCU read_lock(tasklist_lock) doesn't imply
-rcu_read_lock(), but find_pid_ns()->hlist_for_each_entry_rcu() should be
-safe under tasklist.
+This patch (v0.4.6) adds /sysfs/firmware/ibft/[initiator|targetX|ethernetX]
+directories along with text properties which export the the iSCSI
+Boot Firmware Table (iBFT) structure.
 
-Usually it is, detach_pid() is always called under
-write_lock(tasklist_lock), but copy_process() calls free_pid() lockless.
+What is iSCSI Boot Firmware Table? It is a mechanism for the iSCSI
+tools to extract from the machine NICs the iSCSI connection information
+so that they can automagically mount the iSCSI share/target. Currently
+the iSCSI information is hard-coded in the initrd. The /sysfs entries
+are read-only one-name-and-value fields.
 
-"#ifdef CONFIG_PREEMPT_RCU" is added mostly as documentation, perhaps it is
-too ugly and should be removed.
+The usual set of data exposed is:
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+# for a in `find /sys/firmware/ibft/ -type f -print`; do  echo -n "$a: ";  cat $a; done
+/sys/firmware/ibft/target0/target-name: iqn.2007.com.intel-sbx44:storage-10gb
+/sys/firmware/ibft/target0/nic-assoc: 0
+/sys/firmware/ibft/target0/chap-type: 0
+/sys/firmware/ibft/target0/lun: 00000000
+/sys/firmware/ibft/target0/port: 3260
+/sys/firmware/ibft/target0/ip-addr: 192.168.79.116
+/sys/firmware/ibft/target0/flags: 3
+/sys/firmware/ibft/target0/index: 0
+/sys/firmware/ibft/ethernet0/mac: 00:11:25:9d:8b:01
+/sys/firmware/ibft/ethernet0/vlan: 0
+/sys/firmware/ibft/ethernet0/gateway: 192.168.79.254
+/sys/firmware/ibft/ethernet0/origin: 0
+/sys/firmware/ibft/ethernet0/subnet-mask: 255.255.252.0
+/sys/firmware/ibft/ethernet0/ip-addr: 192.168.77.41
+/sys/firmware/ibft/ethernet0/flags: 7
+/sys/firmware/ibft/ethernet0/index: 0
+/sys/firmware/ibft/initiator/initiator-name: iqn.2007-07.com:konrad.initiator
+/sys/firmware/ibft/initiator/flags: 3
+/sys/firmware/ibft/initiator/index: 0
+
+For full details of the IBFT structure please take a look at:
+ftp://ftp.software.ibm.com/systems/support/system_x_pdf/ibm_iscsi_boot_firmware_table_v1.02.pdf
+
+Signed-off-by: Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
+Cc: Mike Christie <michaelc@cs.wisc.edu>
+Cc: Peter Jones <pjones@redhat.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ arch/x86/kernel/setup_32.c    |   14 ---------
+ arch/x86/kernel/setup_64.c    |   14 ---------
+ drivers/firmware/Kconfig      |    1 
+ drivers/firmware/iscsi_ibft.c |   48 +++++++++++++++++++++-----------
+ include/linux/iscsi_ibft.h    |   16 ++++++++++
+ 5 files changed, 48 insertions(+), 45 deletions(-)
 
-diff -puN kernel/fork.c~fix-tasklist-find_pid-with-config_preempt_rcu kernel/fork.c
---- a/kernel/fork.c~fix-tasklist-find_pid-with-config_preempt_rcu
-+++ a/kernel/fork.c
-@@ -1336,8 +1336,19 @@ static struct task_struct *copy_process(
- 	return p;
+diff -puN arch/x86/kernel/setup_32.c~add-iscsi-ibft-support-v046 arch/x86/kernel/setup_32.c
+--- a/arch/x86/kernel/setup_32.c~add-iscsi-ibft-support-v046
++++ a/arch/x86/kernel/setup_32.c
+@@ -226,20 +226,6 @@ static inline void copy_edd(void)
+ }
+ #endif
  
- bad_fork_free_pid:
--	if (pid != &init_struct_pid)
-+	if (pid != &init_struct_pid) {
-+#ifdef CONFIG_PREEMPT_RCU
+-#if defined(CONFIG_ISCSI_IBFT_FIND)
+-static void __init reserve_ibft_region(void)
+-{
+-	unsigned int ibft_len;
+-
+-	ibft_len = find_ibft();
+-	if (ibft_len)
+-		reserve_bootmem((unsigned int)ibft_phys,
+-				PAGE_ALIGN(ibft_len));
+-}
+-#else
+-static void __init reserve_ibft_region(void) { }
+-#endif
+-
+ int __initdata user_defined_memmap = 0;
+ 
+ /*
+diff -puN arch/x86/kernel/setup_64.c~add-iscsi-ibft-support-v046 arch/x86/kernel/setup_64.c
+--- a/arch/x86/kernel/setup_64.c~add-iscsi-ibft-support-v046
++++ a/arch/x86/kernel/setup_64.c
+@@ -219,20 +219,6 @@ static inline void copy_edd(void)
+ }
+ #endif
+ 
+-#if defined(CONFIG_ISCSI_IBFT_FIND)
+-static void __init reserve_ibft_region(void)
+-{
+-	unsigned int ibft_len;
+-
+-	ibft_len = find_ibft();
+-	if (ibft_len)
+-		reserve_bootmem_generic((unsigned long)ibft_phys,
+-					PAGE_ALIGN(ibft_len));
+-}
+-#else
+-static void __init reserve_ibft_region(void) { }
+-#endif
+-
+ #ifdef CONFIG_KEXEC
+ static void __init reserve_crashkernel(void)
+ {
+diff -puN drivers/firmware/Kconfig~add-iscsi-ibft-support-v046 drivers/firmware/Kconfig
+--- a/drivers/firmware/Kconfig~add-iscsi-ibft-support-v046
++++ a/drivers/firmware/Kconfig
+@@ -95,6 +95,7 @@ config DMIID
+ 
+ config ISCSI_IBFT_FIND
+ 	bool "iSCSI Boot Firmware Table Attributes"
++	depends on X86 || IA64
+ 	default n
+ 	help
+ 	  This option enables the kernel to find the region of memory
+diff -puN drivers/firmware/iscsi_ibft.c~add-iscsi-ibft-support-v046 drivers/firmware/iscsi_ibft.c
+--- a/drivers/firmware/iscsi_ibft.c~add-iscsi-ibft-support-v046
++++ a/drivers/firmware/iscsi_ibft.c
+@@ -17,8 +17,11 @@
+  *
+  * Changelog:
+  *
++ *  30 Jan 2008 - Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
++ *   Added logic to handle IPv6 addresses. (v0.4.6)
++ *
+  *  25 Jan 2008 - Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
+- *   Added logic to handle badly not-to-spec iBFTs. (v0.4.5)
++ *   Added logic to handle badly not-to-spec iBFT. (v0.4.5)
+  *
+  *   4 Jan 2008 - Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
+  *   Added __init to function declarations. (v0.4.4)
+@@ -64,8 +67,8 @@
+ #include <linux/string.h>
+ #include <linux/types.h>
+ 
+-#define IBFT_ISCSI_VERSION "0.4.5"
+-#define IBFT_ISCSI_DATE "2008-Jan-25"
++#define IBFT_ISCSI_VERSION "0.4."
++#define IBFT_ISCSI_DATE "2008-Jan-30"
+ 
+ MODULE_AUTHOR("Peter Jones <pjones@redhat.com> and \
+ Konrad Rzeszutek <konradr@us.ibm.com>");
+@@ -272,16 +275,26 @@ static struct ibft_table_header *ibft_de
+  */
+ static ssize_t sprintf_ipaddr(char *buf, u8 *ip)
+ {
++	char *str = buf;
++
+ 	if (ip[0] == 0 && ip[1] == 0 && ip[2] == 0 && ip[3] == 0 &&
+ 	    ip[4] == 0 && ip[5] == 0 && ip[6] == 0 && ip[7] == 0 &&
+ 	    ip[8] == 0 && ip[9] == 0 && ip[10] == 0xff && ip[11] == 0xff) {
+ 		/*
+ 		 * IPV4
+ 		 */
+-		return sprintf(buf, "%d.%d.%d.%d\n", ip[12],
++		str += sprintf(buf, NIPQUAD_FMT, ip[12],
+ 			       ip[13], ip[14], ip[15]);
+-	} else
+-		return 0;
++	} else {
 +		/*
-+		 * read_lock(tasklist_lock) doesn't imply rcu_read_lock(),
-+		 * make sure find_pid() is safe under read_lock(tasklist).
++		 * IPv6
 +		 */
-+		write_lock_irq(&tasklist_lock);
-+#endif
- 		free_pid(pid);
-+#ifdef CONFIG_PREEMPT_RCU
-+		write_unlock_irq(&tasklist_lock);
-+#endif
++		str += sprintf(str, NIP6_FMT, ntohs(ip[0]), ntohs(ip[1]),
++			       ntohs(ip[2]), ntohs(ip[3]), ntohs(ip[4]),
++			       ntohs(ip[5]), ntohs(ip[6]), ntohs(ip[7]));
 +	}
- bad_fork_cleanup_namespaces:
- 	exit_task_namespaces(p);
- bad_fork_cleanup_keys:
++	str += sprintf(str, "\n");
++	return str - buf;
+ }
+ 
+ static ssize_t sprintf_string(char *str, int len, char *buf)
+@@ -294,16 +307,19 @@ static ssize_t sprintf_string(char *str,
+  */
+ static int ibft_verify_hdr(char *t, struct ibft_hdr *hdr, int id, int length)
+ {
+-#define IBFT_VERIFY_HDR_FIELD(val, name) \
+-	if (hdr->val != val) { \
+-		printk(KERN_ERR \
+-		       "iBFT error: In structure %s field %s expected %d but" \
+-		       " found %d!\n", \
+-		       t, name, val, hdr->val); \
+-		return -ENODEV; \
++	if (hdr->id != id) {
++		printk(KERN_ERR "iBFT error: The field header.id is " \
++				"expected %d but found %d!\n", \
++				id, hdr->id);
++		return -ENODEV;
++	}
++	if (hdr->length != length) {
++		printk(KERN_ERR "iBFT error: The field header.length is " \
++				"expected %d but found %d!\n", \
++				length, hdr->length);
++		return -ENODEV;
+ 	}
+-	IBFT_VERIFY_HDR_FIELD(id, "id");
+-	IBFT_VERIFY_HDR_FIELD(length, "length");
++
+ 	return 0;
+ }
+ 
+@@ -542,7 +558,7 @@ static int __init ibft_check_and_alloc_d
+ 				"while this is %d.\n", hdr->revision);
+ 		return 1;
+ 	}
+-	for (pos = (u8 *)hdr; pos < (u8 *)hdr + len; pos ++)
++	for (pos = (u8 *)hdr; pos < (u8 *)hdr + len; pos++)
+ 		csum += *pos;
+ 
+ 	if (csum) {
+diff -puN include/linux/iscsi_ibft.h~add-iscsi-ibft-support-v046 include/linux/iscsi_ibft.h
+--- a/include/linux/iscsi_ibft.h~add-iscsi-ibft-support-v046
++++ a/include/linux/iscsi_ibft.h
+@@ -19,7 +19,8 @@
+ #ifndef ISCSI_IBFT_H
+ #define ISCSI_IBFT_H
+ 
+-#if defined(CONFIG_ISCSI_IBFT_FIND)
++#include <linux/bootmem.h>
++#include <asm/mmzone.h>
+ 
+ /*
+  * Physical location of iSCSI Boot Format Table.
+@@ -33,6 +34,19 @@ extern void *ibft_phys;
+  */
+ extern ssize_t find_ibft(void);
+ 
++
++#ifdef CONFIG_ISCSI_IBFT_FIND
++static inline void __init reserve_ibft_region(void)
++{
++	unsigned int ibft_len;
++
++	ibft_len = find_ibft();
++	if (ibft_len)
++		reserve_bootmem((unsigned int)ibft_phys,
++				PAGE_ALIGN(ibft_len));
++}
++#else
++static inline void __init reserve_ibft_region(void) { }
+ #endif
+ 
+ #endif /* ISCSI_IBFT_H */
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from konrad@darnok.org are
 
-__group_complete_signal-fix-coredump-with-group-stop-race.patch
-remove-handle_group_stop-in-favor-of-do_signal_stop.patch
-exec-rework-the-group-exit-and-fix-the-race-with-kill.patch
-use-__set_task_state-for-traced-stopped-tasks.patch
-add-task_wakekill.patch
-do_wait-remove-one-else-if-branch.patch
-proc-implement-proc_single_file_operations.patch
-proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces.patch
-proc-seqfile-convert-proc_pid_statm.patch
-proc-proper-pidns-handling-for-proc-self.patch
-proc-fix-the-threaded-proc-self.patch
-proc-fix-openless-usage-due-to-proc_fops-flip.patch
-proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
-kill-pt_attached.patch
-kill-my_ptrace_child.patch
-ptrace_check_attach-remove-unneeded-signal-=-null-check.patch
-ptrace_stop-fix-the-race-with-ptrace-detachattach.patch
-wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace.patch
-do_wait-factor-out-retval-=-0-checks.patch
-ptrace_stop-fix-racy-nonstop_code-setting.patch
-wait_task_stopped-remove-unneeded-delay_group_leader-check.patch
-do_wait-cleanup-delay_group_leader-usage.patch
-do_wait-fix-security-checks.patch
-do_wait-fix-security-checks-fix.patch
-wait_task_continued-zombie-dont-use-task_pid_nr_ns-lockless.patch
-wait_task_zombie-remove-exit_state-exit_signal-checks-for-wnowait.patch
-sys_setpgid-simplify-pid-ns-interaction.patch
-fix-setsid-for-sub-namespace-sbin-init.patch
-teach-set_special_pids-to-use-struct-pid.patch
-move-daemonized-kernel-threads-into-the-swappers-session.patch
-start-the-global-sbin-init-with-00-special-pids.patch
-fix-group-stop-with-exit-race.patch
-sys_setsid-remove-now-unneeded-session-=-1-check.patch
-move-the-related-code-from-exit_notify-to-exit_signals.patch
-pid-sys_wait-fixes-v2.patch
-pid-extend-fix-pid_vnr.patch
-sys_getsid-dont-use-nsproxy-directly.patch
-pid-fix-mips-irix-emulation-pid-usage.patch
-pid-fix-mips-irix-emulation-pid-usage-fix.patch
-pid-fix-solaris_procids.patch
-uglify-kill_pid_info-to-fix-kill-vs-exec-race.patch
-uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice.patch
-itimer_real-convert-to-use-struct-pid.patch
-fix-procfs-task-exe-symlink.patch
-fix-tasklist-find_pid-with-config_preempt_rcu.patch
+add-iscsi-ibft-support-v045.patch
+add-iscsi-ibft-support-v046.patch
+add-iscsi-ibft-support-v046-fix.patch
