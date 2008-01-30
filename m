@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + char-applicom-use-pci_resource_start.patch added to -mm tree
-Date: Wed, 30 Jan 2008 15:02:03 -0800
-Message-ID: <200801302302.m0UN23A8029211@imap1.linux-foundation.org>
+Subject: + char-applicom-use-pci_match_id.patch added to -mm tree
+Date: Wed, 30 Jan 2008 15:02:05 -0800
+Message-ID: <200801302302.m0UN2BCL029215@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35901 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47895 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762049AbYA3XCz (ORCPT
+	by vger.kernel.org with ESMTP id S1763546AbYA3XDP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jan 2008 18:02:55 -0500
+	Wed, 30 Jan 2008 18:03:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jirislaby@gmail.com, dwmw2@infradead.org, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     Char: applicom, use pci_resource_start
+     Char: applicom, use pci_match_id
 has been added to the -mm tree.  Its filename is
-     char-applicom-use-pci_resource_start.patch
+     char-applicom-use-pci_match_id.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Char: applicom, use pci_resource_start
+Subject: Char: applicom, use pci_match_id
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Use pci_resource_start instead of accessing pci_dev struct internals.
+Instead of testing hardcoded values, use pci_match_id to reference the
+pci_device_id table. Sideways, it allows easy new additions to the table.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Cc: WANG Cong <xiyou.wangcong@gmail.com>
@@ -45,40 +46,48 @@ Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/applicom.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/char/applicom.c |   15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
-diff -puN drivers/char/applicom.c~char-applicom-use-pci_resource_start drivers/char/applicom.c
---- a/drivers/char/applicom.c~char-applicom-use-pci_resource_start
+diff -puN drivers/char/applicom.c~char-applicom-use-pci_match_id drivers/char/applicom.c
+--- a/drivers/char/applicom.c~char-applicom-use-pci_match_id
 +++ a/drivers/char/applicom.c
-@@ -206,22 +206,23 @@ static int __init applicom_init(void)
+@@ -57,7 +57,6 @@
+ #define PCI_DEVICE_ID_APPLICOM_PCI2000IBS_CAN 0x0002
+ #define PCI_DEVICE_ID_APPLICOM_PCI2000PFB     0x0003
+ #endif
+-#define MAX_PCI_DEVICE_NUM 3
+ 
+ static char *applicom_pci_devnames[] = {
+ 	"PCI board",
+@@ -66,12 +65,9 @@ static char *applicom_pci_devnames[] = {
+ };
+ 
+ static struct pci_device_id applicom_pci_tbl[] = {
+-	{ PCI_VENDOR_ID_APPLICOM, PCI_DEVICE_ID_APPLICOM_PCIGENERIC,
+-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
+-	{ PCI_VENDOR_ID_APPLICOM, PCI_DEVICE_ID_APPLICOM_PCI2000IBS_CAN,
+-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
+-	{ PCI_VENDOR_ID_APPLICOM, PCI_DEVICE_ID_APPLICOM_PCI2000PFB,
+-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
++	{ PCI_VDEVICE(APPLICOM, PCI_DEVICE_ID_APPLICOM_PCIGENERIC) },
++	{ PCI_VDEVICE(APPLICOM, PCI_DEVICE_ID_APPLICOM_PCI2000IBS_CAN) },
++	{ PCI_VDEVICE(APPLICOM, PCI_DEVICE_ID_APPLICOM_PCI2000PFB) },
+ 	{ 0 }
+ };
+ MODULE_DEVICE_TABLE(pci, applicom_pci_tbl);
+@@ -197,10 +193,7 @@ static int __init applicom_init(void)
+ 
+ 	while ( (dev = pci_get_class(PCI_CLASS_OTHERS << 16, dev))) {
+ 
+-		if (dev->vendor != PCI_VENDOR_ID_APPLICOM)
+-			continue;
+-		
+-		if (dev->device  > MAX_PCI_DEVICE_NUM || dev->device == 0)
++		if (!pci_match_id(applicom_pci_tbl, dev));
+ 			continue;
+ 		
  		if (pci_enable_device(dev))
- 			return -EIO;
- 
--		RamIO = ioremap(dev->resource[0].start, LEN_RAM_IO);
-+		RamIO = ioremap(pci_resource_start(dev, 0), LEN_RAM_IO);
- 
- 		if (!RamIO) {
- 			printk(KERN_INFO "ac.o: Failed to ioremap PCI memory "
- 				"space at 0x%llx\n",
--				(unsigned long long)dev->resource[0].start);
-+				(unsigned long long)pci_resource_start(dev, 0));
- 			pci_disable_device(dev);
- 			return -EIO;
- 		}
- 
- 		printk(KERN_INFO "Applicom %s found at mem 0x%llx, irq %d\n",
- 		       applicom_pci_devnames[dev->device-1],
--			   (unsigned long long)dev->resource[0].start,
-+			   (unsigned long long)pci_resource_start(dev, 0),
- 		       dev->irq);
- 
--		boardno = ac_register_board(dev->resource[0].start, RamIO,0);
-+		boardno = ac_register_board(pci_resource_start(dev, 0),
-+				RamIO, 0);
- 		if (!boardno) {
- 			printk(KERN_INFO "ac.o: PCI Applicom device doesn't have correct signature.\n");
- 			iounmap(RamIO);
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
