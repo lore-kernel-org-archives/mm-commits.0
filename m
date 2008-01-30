@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + docbook-fix-drivers-base-class-warning.patch added to -mm tree
-Date: Wed, 30 Jan 2008 14:02:53 -0800
-Message-ID: <200801302202.m0UM2rvb027039@imap1.linux-foundation.org>
+Subject: + udf-cleanup-directory-offset-handling.patch added to -mm tree
+Date: Wed, 30 Jan 2008 14:53:07 -0800
+Message-ID: <200801302253.m0UMr713028830@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45659 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50922 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753311AbYA3WDe (ORCPT
+	by vger.kernel.org with ESMTP id S1753544AbYA3Wxl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jan 2008 17:03:34 -0500
+	Wed, 30 Jan 2008 17:53:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, greg@kroah.com
+Cc: jack@suse.cz
 
 
 The patch titled
-     docbook: fix drivers/base/class warning
+     udf: cleanup directory offset handling
 has been added to the -mm tree.  Its filename is
-     docbook-fix-drivers-base-class-warning.patch
+     udf-cleanup-directory-offset-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,97 +34,245 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: docbook: fix drivers/base/class warning
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Return-Path: <randy.dunlap@oracle.com>
-Received: from localhost (bix [127.0.0.1])
-	by localhost.localdomain (8.12.10/8.12.10) with ESMTP id m0UJp4uC015938
-	for <akpm@localhost>; Wed, 30 Jan 2008 11:51:06 -0800
-Received: from imap1.linux-foundation.org [207.189.120.55]
-	by localhost with POP3 (fetchmail-6.2.5)
-	for akpm@localhost (single-drop); Wed, 30 Jan 2008 11:51:06 -0800 (PST)
-Received: from smtp1.linux-foundation.org (smtp1.linux-foundation.org [207.189.120.13])
-	by imap1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m0UJqVVL021782;
-	Wed, 30 Jan 2008 11:52:31 -0800
-Received: from rgminet01.oracle.com (rgminet01.oracle.com [148.87.113.118])
-	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m0UJqKpC024272
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO);
-	Wed, 30 Jan 2008 11:52:26 -0800
-Received: from agmgw1.us.oracle.com (agmgw1.us.oracle.com [152.68.180.212])
-	by rgminet01.oracle.com (Switch-3.2.4/Switch-3.1.6) with ESMTP id m0UJq8R0003236;
-	Wed, 30 Jan 2008 12:52:09 -0700
-Received: from acsmt353.oracle.com (acsmt353.oracle.com [141.146.40.153])
-	by agmgw1.us.oracle.com (Switch-3.2.0/Switch-3.2.0) with ESMTP id m0UJhJER009828;
-	Wed, 30 Jan 2008 12:52:08 -0700
-Received: from pool-96-225-192-120.ptldor.fios.verizon.net by acsmt359.oracle.com
-	with ESMTP id 7117109321201722669; Wed, 30 Jan 2008 13:51:09 -0600
-Date: Wed, 30 Jan 2008 11:51:08 -0800
-To: lkml <linux-kernel@vger.kernel.org>
-Cc: gregkh <greg@kroah.com>, akpm <akpm@linux-foundation.org>,
-        torvalds
- <torvalds@linux-foundation.org>
-Subject: [PATCH] docbook: fix drivers/base/class warning
-Message-Id: <20080130115108.2df9ade6.randy.dunlap@oracle.com>
-Organization: Oracle Linux Eng.
-X-Mailer: Sylpheed 2.4.7 (GTK+ 2.8.10; x86_64-unknown-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-X-Brightmail-Tracker: AAAAAQAAAAI=
-X-Brightmail-Tracker: AAAAAQAAAAI=
-X-Whitelist: TRUE
-X-Whitelist: TRUE
-Received-SPF: none (domain of randy.dunlap@oracle.com does not designate permitted sender hosts)
-X-MIMEDefang-Filter: lf$Revision: 1.188 $
-X-Scanned-By: MIMEDefang 2.53 on 207.189.120.13
-X-Spam-Checker-Version: SpamAssassin 3.0.2 (2004-11-16) on bix
-X-Spam-Level: 
-X-Spam-Status: No, score=-0.3 required=2.0 tests=AWL autolearn=ham 
-	version=3.0.2
+Subject: udf: cleanup directory offset handling
+From: Jan Kara <jack@suse.cz>
 
+Position in directory returned by readdir is offset of directory entry divided
+by four (don't ask me why).  Make this conversion only when reading f_pos from
+userspace / writing it there and internally work in bytes.  It makes things
+more easily readable and also fixes a bug (we forgot to divide length of the
+entry by 4 when advancing f_pos in udf_add_entry()).
 
-Fix kernel-doc empty line warning:
-Warning(linux-2.6.24-git8//drivers/base/class.c:866): bad line:
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
- drivers/base/class.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- linux-2.6.24-git8.orig/drivers/base/class.c
-+++ linux-2.6.24-git8/drivers/base/class.c
-@@ -863,7 +863,7 @@ EXPORT_SYMBOL_GPL(class_for_each_device)
-  * The callback should return 0 if the device doesn't match and non-zero
-  * if it does.  If the callback returns non-zero, this function will
-  * return to the caller and not iterate over any more devices.
+ fs/udf/directory.c |    7 +++----
+ fs/udf/inode.c     |    8 ++++----
+ fs/udf/namei.c     |   39 +++++++++++++++++----------------------
+ 3 files changed, 24 insertions(+), 30 deletions(-)
+
+diff -puN fs/udf/directory.c~udf-cleanup-directory-offset-handling fs/udf/directory.c
+--- a/fs/udf/directory.c~udf-cleanup-directory-offset-handling
++++ a/fs/udf/directory.c
+@@ -95,7 +95,7 @@ struct fileIdentDesc *udf_fileident_read
+ 		if (!fi)
+ 			return NULL;
+ 
+-		*nf_pos += ((fibh->eoffset - fibh->soffset) >> 2);
++		*nf_pos += fibh->eoffset - fibh->soffset;
+ 
+ 		memcpy((uint8_t *)cfi, (uint8_t *)fi,
+ 		       sizeof(struct fileIdentDesc));
+@@ -157,7 +157,7 @@ struct fileIdentDesc *udf_fileident_read
+ 	if (!fi)
+ 		return NULL;
+ 
+-	*nf_pos += ((fibh->eoffset - fibh->soffset) >> 2);
++	*nf_pos += fibh->eoffset - fibh->soffset;
+ 
+ 	if (fibh->eoffset <= dir->i_sb->s_blocksize) {
+ 		memcpy((uint8_t *)cfi, (uint8_t *)fi,
+@@ -197,8 +197,7 @@ struct fileIdentDesc *udf_fileident_read
+ 				  cfi->lengthFileIdent +
+ 				  le16_to_cpu(cfi->lengthOfImpUse) + 3) & ~3;
+ 
+-			*nf_pos += (fi_len - (fibh->eoffset - fibh->soffset))
+-					>> 2;
++			*nf_pos += fi_len - (fibh->eoffset - fibh->soffset);
+ 			fibh->eoffset = fibh->soffset + fi_len;
+ 		} else {
+ 			memcpy((uint8_t *)cfi, (uint8_t *)fi,
+diff -puN fs/udf/inode.c~udf-cleanup-directory-offset-handling fs/udf/inode.c
+--- a/fs/udf/inode.c~udf-cleanup-directory-offset-handling
++++ a/fs/udf/inode.c
+@@ -219,8 +219,8 @@ struct buffer_head *udf_expand_dir_adini
+ 	struct extent_position epos;
+ 
+ 	struct udf_fileident_bh sfibh, dfibh;
+-	loff_t f_pos = udf_ext0_offset(inode) >> 2;
+-	int size = (udf_ext0_offset(inode) + inode->i_size) >> 2;
++	loff_t f_pos = udf_ext0_offset(inode);
++	int size = udf_ext0_offset(inode) + inode->i_size;
+ 	struct fileIdentDesc cfi, *sfi, *dfi;
+ 	struct udf_inode_info *iinfo = UDF_I(inode);
+ 
+@@ -256,11 +256,11 @@ struct buffer_head *udf_expand_dir_adini
+ 	mark_buffer_dirty_inode(dbh, inode);
+ 
+ 	sfibh.soffset = sfibh.eoffset =
+-			(f_pos & ((inode->i_sb->s_blocksize - 1) >> 2)) << 2;
++			f_pos & (inode->i_sb->s_blocksize - 1);
+ 	sfibh.sbh = sfibh.ebh = NULL;
+ 	dfibh.soffset = dfibh.eoffset = 0;
+ 	dfibh.sbh = dfibh.ebh = dbh;
+-	while ((f_pos < size)) {
++	while (f_pos < size) {
+ 		iinfo->i_alloc_type = ICBTAG_FLAG_AD_IN_ICB;
+ 		sfi = udf_fileident_read(inode, &f_pos, &sfibh, &cfi, NULL,
+ 					 NULL, NULL, NULL);
+diff -puN fs/udf/namei.c~udf-cleanup-directory-offset-handling fs/udf/namei.c
+--- a/fs/udf/namei.c~udf-cleanup-directory-offset-handling
++++ a/fs/udf/namei.c
+@@ -160,14 +160,13 @@ static struct fileIdentDesc *udf_find_en
+ 	struct extent_position epos = {};
+ 	struct udf_inode_info *dinfo = UDF_I(dir);
+ 
+-	size = (udf_ext0_offset(dir) + dir->i_size) >> 2;
+-	f_pos = (udf_ext0_offset(dir) >> 2);
++	size = udf_ext0_offset(dir) + dir->i_size;
++	f_pos = udf_ext0_offset(dir);
+ 
+-	fibh->soffset = fibh->eoffset =
+-		(f_pos & ((dir->i_sb->s_blocksize - 1) >> 2)) << 2;
++	fibh->soffset = fibh->eoffset = f_pos & (dir->i_sb->s_blocksize - 1);
+ 	if (dinfo->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB)
+ 		fibh->sbh = fibh->ebh = NULL;
+-	else if (inode_bmap(dir, f_pos >> (dir->i_sb->s_blocksize_bits - 2),
++	else if (inode_bmap(dir, f_pos >> dir->i_sb->s_blocksize_bits,
+ 			      &epos, &eloc, &elen, &offset) ==
+ 					(EXT_RECORDED_ALLOCATED >> 30)) {
+ 		block = udf_get_lb_pblock(dir->i_sb, eloc, offset);
+@@ -189,7 +188,7 @@ static struct fileIdentDesc *udf_find_en
+ 		return NULL;
+ 	}
+ 
+-	while ((f_pos < size)) {
++	while (f_pos < size) {
+ 		fi = udf_fileident_read(dir, &f_pos, fibh, cfi, &epos, &eloc,
+ 					&elen, &offset);
+ 		if (!fi) {
+@@ -342,7 +341,7 @@ static struct fileIdentDesc *udf_add_ent
+ 	loff_t f_pos;
+ 	int flen;
+ 	char *nameptr;
+-	loff_t size = (udf_ext0_offset(dir) + dir->i_size) >> 2;
++	loff_t size = udf_ext0_offset(dir) + dir->i_size;
+ 	int nfidlen;
+ 	uint8_t lfi;
+ 	uint16_t liu;
+@@ -370,14 +369,13 @@ static struct fileIdentDesc *udf_add_ent
+ 
+ 	nfidlen = (sizeof(struct fileIdentDesc) + namelen + 3) & ~3;
+ 
+-	f_pos = (udf_ext0_offset(dir) >> 2);
++	f_pos = udf_ext0_offset(dir);
+ 
+-	fibh->soffset = fibh->eoffset =
+-			(f_pos & ((dir->i_sb->s_blocksize - 1) >> 2)) << 2;
++	fibh->soffset = fibh->eoffset = f_pos & (dir->i_sb->s_blocksize - 1);
+ 	dinfo = UDF_I(dir);
+ 	if (dinfo->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB)
+ 		fibh->sbh = fibh->ebh = NULL;
+-	else if (inode_bmap(dir, f_pos >> (dir->i_sb->s_blocksize_bits - 2),
++	else if (inode_bmap(dir, f_pos >> dir->i_sb->s_blocksize_bits,
+ 			      &epos, &eloc, &elen, &offset) ==
+ 					(EXT_RECORDED_ALLOCATED >> 30)) {
+ 		block = udf_get_lb_pblock(dir->i_sb, eloc, offset);
+@@ -405,7 +403,7 @@ static struct fileIdentDesc *udf_add_ent
+ 		goto add;
+ 	}
+ 
+-	while ((f_pos < size)) {
++	while (f_pos < size) {
+ 		fi = udf_fileident_read(dir, &f_pos, fibh, cfi, &epos, &eloc,
+ 					&elen, &offset);
+ 
+@@ -484,7 +482,7 @@ add:
+ 		epos.bh = NULL;
+ 		fibh->soffset -= udf_ext0_offset(dir);
+ 		fibh->eoffset -= udf_ext0_offset(dir);
+-		f_pos -= (udf_ext0_offset(dir) >> 2);
++		f_pos -= udf_ext0_offset(dir);
+ 		if (fibh->sbh != fibh->ebh)
+ 			brelse(fibh->ebh);
+ 		brelse(fibh->sbh);
+@@ -537,8 +535,7 @@ add:
+ 		block = eloc.logicalBlockNum + ((elen - 1) >>
+ 						dir->i_sb->s_blocksize_bits);
+ 		fibh->ebh = udf_bread(dir,
+-				f_pos >> (dir->i_sb->s_blocksize_bits - 2),
+-				1, err);
++				f_pos >> dir->i_sb->s_blocksize_bits, 1, err);
+ 		if (!fibh->ebh) {
+ 			brelse(epos.bh);
+ 			brelse(fibh->sbh);
+@@ -775,7 +772,7 @@ static int empty_dir(struct inode *dir)
+ 	struct fileIdentDesc *fi, cfi;
+ 	struct udf_fileident_bh fibh;
+ 	loff_t f_pos;
+-	loff_t size = (udf_ext0_offset(dir) + dir->i_size) >> 2;
++	loff_t size = udf_ext0_offset(dir) + dir->i_size;
+ 	int block;
+ 	kernel_lb_addr eloc;
+ 	uint32_t elen;
+@@ -783,14 +780,12 @@ static int empty_dir(struct inode *dir)
+ 	struct extent_position epos = {};
+ 	struct udf_inode_info *dinfo = UDF_I(dir);
+ 
+-	f_pos = (udf_ext0_offset(dir) >> 2);
 -
-+ *
-  * Note, you will need to drop the reference with put_device() after use.
-  *
-  * We hold class->sem in this function, so it can not be
+-	fibh.soffset = fibh.eoffset =
+-			(f_pos & ((dir->i_sb->s_blocksize - 1) >> 2)) << 2;
++	f_pos = udf_ext0_offset(dir);
++	fibh.soffset = fibh.eoffset = f_pos & (dir->i_sb->s_blocksize - 1);
+ 
+ 	if (dinfo->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB)
+ 		fibh.sbh = fibh.ebh = NULL;
+-	else if (inode_bmap(dir, f_pos >> (dir->i_sb->s_blocksize_bits - 2),
++	else if (inode_bmap(dir, f_pos >> dir->i_sb->s_blocksize_bits,
+ 			      &epos, &eloc, &elen, &offset) ==
+ 					(EXT_RECORDED_ALLOCATED >> 30)) {
+ 		block = udf_get_lb_pblock(dir->i_sb, eloc, offset);
+@@ -812,7 +807,7 @@ static int empty_dir(struct inode *dir)
+ 		return 0;
+ 	}
+ 
+-	while ((f_pos < size)) {
++	while (f_pos < size) {
+ 		fi = udf_fileident_read(dir, &f_pos, &fibh, &cfi, &epos, &eloc,
+ 					&elen, &offset);
+ 		if (!fi) {
+_
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
-git-alsa.patch
-docbook-fix-drivers-base-class-warning.patch
-git-kbuild.patch
-hamradio-fix-dmascc-section-mismatch.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-pcmcia-include-bad-cis-filename-in-error-message.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-git-x86.patch
-register_cpu-__devinit-or-__cpuinit.patch
-cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
-dio-fix-kernel-doc-notation.patch
-tpm-infineon-section-mismatch.patch
-tdfxfb-fix-section-mismatch-warnings.patch
-uvesafb-small-cleanups.patch
-documentation-move-dnotifytxt-to-filesystems.patch
-documentation-move-sharedsubtreestxt-to-filesystems.patch
-documentation-create-new-scheduler-subdirectory.patch
-reporting-bugs-cc-the-mailing-list-too.patch
-fs-menu-small-reorg.patch
-the-scheduled-time-option-removal.patch
-profile-likely-unlikely-macros.patch
+inotify-send-in_attrib-events-when-link-count-changes.patch
+inotify-send-in_attrib-events-when-link-count-changes-fix.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+jbd-fix-commit-block-write.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext4-from-using-iget-and-read_inode-try.patch
+use-pgoff_t-instead-of-unsigned-long.patch
+write_inode_now-avoid-unnecessary-synchronous-write.patch
+udf-fix-coding-style-of-superc.patch
+udf-remove-some-ugly-macros.patch
+udf-convert-udf_sb_alloc_partmaps-macro-to-udf_sb_alloc_partition_maps-function.patch
+udf-check-if-udf_load_logicalvol-failed.patch
+udf-convert-macros-related-to-bitmaps-to-functions.patch
+udf-move-calculating-of-nr_groups-into-helper-function.patch
+udf-fix-sparse-warnings-shadowing-mismatch-between-declaration-and-definition.patch
+udf-fix-coding-style.patch
+udf-create-common-function-for-tag-checksumming.patch
+udf-create-common-function-for-changing-free-space-counter.patch
+udf-replace-loops-coded-with-goto-to-real-loops.patch
+udf-convert-byte-order-of-constant-instead-of-variable.patch
+udf-remove-udf_i_-macros-and-open-code-them.patch
+udf-cache-struct-udf_inode_info.patch
+udf-fix-udf_debug-macro.patch
+udf-improve-readability-of-udf_load_partition.patch
+udf-remove-wrong-prototype-of-udf_readdir.patch
+udf-fix-3-signedness-1-unitialized-variable-warnings.patch
+udf-fix-signedness-issue.patch
+udf-avoid-unnecessary-synchronous-writes.patch
+udf-cleanup-directory-offset-handling.patch
+udf-fix-adding-entry-to-a-directory.patch
+change-udf-maintainer.patch
+isofs-implement-dmode-option.patch
+mount-options-fix-ext2.patch
+mount-options-fix-isofs.patch
+mount-options-fix-udf.patch
