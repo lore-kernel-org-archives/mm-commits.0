@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + change-udf-maintainer.patch added to -mm tree
-Date: Wed, 30 Jan 2008 14:53:11 -0800
-Message-ID: <200801302253.m0UMrBNl028837@imap1.linux-foundation.org>
+Subject: + remove-__init_refok-and-__initdata_refok.patch added to -mm tree
+Date: Wed, 30 Jan 2008 15:00:55 -0800
+Message-ID: <200801302300.m0UN0tjl029187@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51791 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43932 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754676AbYA3Wxw (ORCPT
+	by vger.kernel.org with ESMTP id S1762536AbYA3XBk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jan 2008 17:53:52 -0500
+	Wed, 30 Jan 2008 18:01:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz, bfennema@falcon.csc.calpoly.edu
+Cc: ralf@linux-mips.org, sam@ravnborg.org
 
 
 The patch titled
-     udf: change maintainer
+     Remove __INIT_REFOK and __INITDATA_REFOK
 has been added to the -mm tree.  Its filename is
-     change-udf-maintainer.patch
+     remove-__init_refok-and-__initdata_refok.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,78 +34,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: udf: change maintainer
-From: Jan Kara <jack@suse.cz>
-DESC
-udf: change maintainer
-eDESC
+Subject: Remove __INIT_REFOK and __INITDATA_REFOK
+From: Ralf Baechle <ralf@linux-mips.org>
 
-I've tried to contact Ben Fennema a few times but without success.  Since I'm
-currently probably closest to being an UDF maintainer, I guess it's fine to
-also change the entry in MAINTAINERS.
+Commit 312b1485fb509c9bc32eda28ad29537896658cb8 made __INIT_REFOK expand
+into .section .section ".ref.text", "ax".  Since the assembler doesn't
+tolerate stuttering in the source that broke all MIPS builds.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: <bfennema@falcon.csc.calpoly.edu>
+Since with this change Sam downgraded __INIT_REFOK to just a backward
+compat thing and there being only a single use in the MIPS arch code the
+best solution is to delete both of __INIT_REFOK and __INITDATA_REFOK (which
+was equally broken) being unused anyway these can be deleted.
+
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/init.h |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN MAINTAINERS~change-udf-maintainer MAINTAINERS
---- a/MAINTAINERS~change-udf-maintainer
-+++ a/MAINTAINERS
-@@ -3920,8 +3920,8 @@ L:	linux-scsi@vger.kernel.org
- S:	Maintained
+diff -puN include/linux/init.h~remove-__init_refok-and-__initdata_refok include/linux/init.h
+--- a/include/linux/init.h~remove-__init_refok-and-__initdata_refok
++++ a/include/linux/init.h
+@@ -124,9 +124,6 @@
+ #define __REF            .section       ".ref.text", "ax"
+ #define __REFDATA        .section       ".ref.data", "aw"
+ #define __REFCONST       .section       ".ref.rodata", "aw"
+-/* backward compatibility */
+-#define __INIT_REFOK     .section	__REF
+-#define __INITDATA_REFOK .section	__REFDATA
  
- UDF FILESYSTEM
--P:	Ben Fennema
--M:	bfennema@falcon.csc.calpoly.edu
-+P:	Jan Kara
-+M:	jack@suse.cz
- W:	http://linux-udf.sourceforge.net
- S:	Maintained
- 
+ #ifndef __ASSEMBLY__
+ /*
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
 origin.patch
-inotify-send-in_attrib-events-when-link-count-changes.patch
-inotify-send-in_attrib-events-when-link-count-changes-fix.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
-jbd-fix-commit-block-write.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext4-from-using-iget-and-read_inode-try.patch
-use-pgoff_t-instead-of-unsigned-long.patch
-write_inode_now-avoid-unnecessary-synchronous-write.patch
-udf-fix-coding-style-of-superc.patch
-udf-remove-some-ugly-macros.patch
-udf-convert-udf_sb_alloc_partmaps-macro-to-udf_sb_alloc_partition_maps-function.patch
-udf-check-if-udf_load_logicalvol-failed.patch
-udf-convert-macros-related-to-bitmaps-to-functions.patch
-udf-move-calculating-of-nr_groups-into-helper-function.patch
-udf-fix-sparse-warnings-shadowing-mismatch-between-declaration-and-definition.patch
-udf-fix-coding-style.patch
-udf-create-common-function-for-tag-checksumming.patch
-udf-create-common-function-for-changing-free-space-counter.patch
-udf-replace-loops-coded-with-goto-to-real-loops.patch
-udf-convert-byte-order-of-constant-instead-of-variable.patch
-udf-remove-udf_i_-macros-and-open-code-them.patch
-udf-cache-struct-udf_inode_info.patch
-udf-fix-udf_debug-macro.patch
-udf-improve-readability-of-udf_load_partition.patch
-udf-remove-wrong-prototype-of-udf_readdir.patch
-udf-fix-3-signedness-1-unitialized-variable-warnings.patch
-udf-fix-signedness-issue.patch
-udf-avoid-unnecessary-synchronous-writes.patch
-udf-cleanup-directory-offset-handling.patch
-udf-fix-adding-entry-to-a-directory.patch
-change-udf-maintainer.patch
-isofs-implement-dmode-option.patch
-mount-options-fix-ext2.patch
-mount-options-fix-isofs.patch
-mount-options-fix-udf.patch
+git-acpi.patch
+git-mips.patch
+git-net.patch
+git-watchdog.patch
+git-x86.patch
+maps4-rework-task_size-macros.patch
+maps4-rework-task_size-macros-mips-fix.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+remove-inclusions-of-linux-autoconfh.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+serial-use-sgi_has_zilog-for-ip22_zilog-depends.patch
+char-use-sgi_has_ds1286-for-sgi_ds1286-depends.patch
+sc26xx-new-serial-driver-for-sc2681-uarts.patch
+sc26xx-new-serial-driver-for-sc2681-uarts-update.patch
+calibrate_delay-must-be-__cpuinit.patch
+dz-clean-up-and-improve-the-setup-of-termios-settings.patch
+dzc-use-a-helper-to-cast-from-struct-uart_port.patch
+dzc-resource-management.patch
+sanitize-the-type-of-struct-useru_ar0.patch
+add-cmpxchg64-and-cmpxchg64_local-to-mips.patch
+pid-fix-mips-irix-emulation-pid-usage.patch
+pid-fix-mips-irix-emulation-pid-usage-fix.patch
+avoid-overflows-in-kernel-timec.patch
+remove-__init_refok-and-__initdata_refok.patch
