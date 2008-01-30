@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slub-fix-sysfs-refcounting.patch added to -mm tree
-Date: Wed, 30 Jan 2008 15:35:43 -0800
-Message-ID: <200801302335.m0UNZhf5030514@imap1.linux-foundation.org>
+Subject: + nbd-remove-limit-on-max-number-of-nbd-devices.patch added to -mm tree
+Date: Wed, 30 Jan 2008 15:36:37 -0800
+Message-ID: <200801302336.m0UNabVR030535@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49242 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39345 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753932AbYA3XgV (ORCPT
+	by vger.kernel.org with ESMTP id S1754694AbYA3XhP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jan 2008 18:36:21 -0500
+	Wed, 30 Jan 2008 18:37:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, penberg@cs.helsinki.fi
+Cc: paul.clements@steeleye.com
 
 
 The patch titled
-     SLUB: fix sysfs refcounting
+     NBD: remove limit on max number of nbd devices
 has been added to the -mm tree.  Its filename is
-     slub-fix-sysfs-refcounting.patch
+     nbd-remove-limit-on-max-number-of-nbd-devices.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,136 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: SLUB: fix sysfs refcounting
-From: Christoph Lameter <clameter@sgi.com>
+Subject: NBD: remove limit on max number of nbd devices
+From: Paul Clements <paul.clements@steeleye.com>
 
-If CONFIG_SYSFS is set then free the kmem_cache structure when sysfs tells
-us its okay.
+Remove the arbitrary 128 device limit for NBD.  nbds_max can now be set to
+any number.  In certain scenarios where devices are used sparsely we have
+run into the 128 device limit.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Signed-off-by: Paul Clements <paul.clements@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ drivers/block/nbd.c |   10 ++++------
+ include/linux/nbd.h |    1 -
+ 2 files changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN mm/slub.c~slub-fix-sysfs-refcounting mm/slub.c
---- a/mm/slub.c~slub-fix-sysfs-refcounting
-+++ a/mm/slub.c
-@@ -218,7 +218,10 @@ static void sysfs_slab_remove(struct kme
- static inline int sysfs_slab_add(struct kmem_cache *s) { return 0; }
- static inline int sysfs_slab_alias(struct kmem_cache *s, const char *p)
- 							{ return 0; }
--static inline void sysfs_slab_remove(struct kmem_cache *s) {}
-+static inline void sysfs_slab_remove(struct kmem_cache *s)
-+{
-+	kfree(s);
-+}
- #endif
+diff -puN drivers/block/nbd.c~nbd-remove-limit-on-max-number-of-nbd-devices drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbd-remove-limit-on-max-number-of-nbd-devices
++++ a/drivers/block/nbd.c
+@@ -54,7 +54,7 @@ static unsigned int debugflags;
+ #endif /* NDEBUG */
  
- /********************************************************************
-@@ -2488,7 +2491,6 @@ void kmem_cache_destroy(struct kmem_cach
- 		if (kmem_cache_close(s))
- 			WARN_ON(1);
- 		sysfs_slab_remove(s);
--		kfree(s);
- 	} else
- 		up_write(&slub_lock);
- }
-@@ -4114,6 +4116,13 @@ static ssize_t slab_attr_store(struct ko
- 	return err;
- }
- 
-+static void kmem_cache_release(struct kobject *kobj)
-+{
-+	struct kmem_cache *s = to_slab(kobj);
-+
-+	kfree(s);
-+}
-+
- static struct sysfs_ops slab_sysfs_ops = {
- 	.show = slab_attr_show,
- 	.store = slab_attr_store,
-@@ -4121,6 +4130,7 @@ static struct sysfs_ops slab_sysfs_ops =
- 
- static struct kobj_type slab_ktype = {
- 	.sysfs_ops = &slab_sysfs_ops,
-+	.release = kmem_cache_release
- };
- 
- static int uevent_filter(struct kset *kset, struct kobject *kobj)
-@@ -4222,6 +4232,7 @@ static void sysfs_slab_remove(struct kme
- {
- 	kobject_uevent(&s->kobj, KOBJ_REMOVE);
- 	kobject_del(&s->kobj);
-+	kobject_put(&s->kobj);
- }
+ static unsigned int nbds_max = 16;
+-static struct nbd_device nbd_dev[MAX_NBD];
++static struct nbd_device *nbd_dev;
  
  /*
+  * Use just one lock (or at most 1 per NIC). Two arguments for this:
+@@ -651,11 +651,9 @@ static int __init nbd_init(void)
+ 
+ 	BUILD_BUG_ON(sizeof(struct nbd_request) != 28);
+ 
+-	if (nbds_max > MAX_NBD) {
+-		printk(KERN_CRIT "nbd: cannot allocate more than %u nbds; %u requested.\n", MAX_NBD,
+-				nbds_max);
+-		return -EINVAL;
+-	}
++	nbd_dev = kcalloc(nbds_max, sizeof(*nbd_dev), GFP_KERNEL);
++	if (!nbd_dev)
++		return -ENOMEM;
+ 
+ 	for (i = 0; i < nbds_max; i++) {
+ 		struct gendisk *disk = alloc_disk(1);
+diff -puN include/linux/nbd.h~nbd-remove-limit-on-max-number-of-nbd-devices include/linux/nbd.h
+--- a/include/linux/nbd.h~nbd-remove-limit-on-max-number-of-nbd-devices
++++ a/include/linux/nbd.h
+@@ -35,7 +35,6 @@ enum {
+ };
+ 
+ #define nbd_cmd(req) ((req)->cmd[0])
+-#define MAX_NBD 128
+ 
+ /* userspace doesn't need the nbd_device structure */
+ #ifdef __KERNEL__
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from paul.clements@steeleye.com are
 
-origin.patch
-gregkh-driver-kset-move-sys-slab-to-sys-kernel-slab-slabinfo-fallback-from-sys-kernel-slab-to-sys-slab.patch
-git-unionfs.patch
-git-x86.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-move-vmalloc_to_page-to-mm-vmalloc.patch
-vmalloc-add-const-to-void-parameters.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries.patch
-vmalloc-clean-up-page-array-indexing.patch
-vunmap-return-page-array-passed-on-vmap.patch
-slub-move-count_partial.patch
-slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio.patch
-slub-consolidate-add_partial-and-add_partial_tail-to-one-function.patch
-slub-use-non-atomic-bit-unlock.patch
-slub-fix-coding-style-violations.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-noinline-some-functions-to-avoid-them-being-folded-into-alloc-free.patch
-slub-move-kmem_cache_node-determination-into-add_full-and-add_partial.patch
-slub-move-kmem_cache_node-determination-into-add_full-and-add_partial-slub-workaround-for-lockdep-confusion.patch
-slub-avoid-checking-for-a-valid-object-before-zeroing-on-the-fast-path.patch
-slub-__slab_alloc-exit-path-consolidation.patch
-slub-provide-unique-end-marker-for-each-slab.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-avoid-referencing-kmem_cache-structure-in-__slab_alloc.patch
-slub-optional-fast-path-using-cmpxchg_local.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-fix.patch
-slub-restructure-slab-alloc.patch
-slub-comment-kmem_cache_cpu-structure.patch
-slub-fix-sysfs-refcounting.patch
-vm-allow-get_page_unless_zero-on-compound-pages.patch
-bufferhead-revert-constructor-removal.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-swapin_readahead-excise-numa-bogosity.patch
-page-allocator-clean-up-pcp-draining-functions.patch
-page-allocator-clean-up-pcp-draining-functions-swsusp-fix.patch
-page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
-vmstat-small-revisions-to-refresh_cpu_vm_stats.patch
-page-allocator-get-rid-of-the-list-of-cold-pages.patch
-page-allocator-get-rid-of-the-list-of-cold-pages-fix.patch
-vmstat-remove-prefetch.patch
-set_page_refcounted-vm_bug_on-fix.patch
-page-migraton-handle-orphaned-pages.patch
-page-migraton-handle-orphaned-pages-fix.patch
-percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-oom-add-sysctl-to-enable-task-memory-dump.patch
-add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
-add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
-dentries-extract-common-code-to-remove-dentry-from-lru.patch
-dentries-extract-common-code-to-remove-dentry-from-lru-fix.patch
-modules-handle-symbols-that-have-a-zero-value.patch
-modules-include-sectionsh-to-avoid-defining-linker-variables.patch
-reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
-page-owner-tracking-leak-detector.patch
+nbd-remove-limit-on-max-number-of-nbd-devices.patch
