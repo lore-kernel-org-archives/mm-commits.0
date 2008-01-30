@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + udf-fix-adding-entry-to-a-directory.patch added to -mm tree
-Date: Wed, 30 Jan 2008 14:53:09 -0800
-Message-ID: <200801302253.m0UMr95I028833@imap1.linux-foundation.org>
+Subject: + change-udf-maintainer.patch added to -mm tree
+Date: Wed, 30 Jan 2008 14:53:11 -0800
+Message-ID: <200801302253.m0UMrBNl028837@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47409 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51791 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754446AbYA3Wxo (ORCPT
+	by vger.kernel.org with ESMTP id S1754676AbYA3Wxw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jan 2008 17:53:44 -0500
+	Wed, 30 Jan 2008 17:53:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz
+Cc: jack@suse.cz, bfennema@falcon.csc.calpoly.edu
 
 
 The patch titled
-     udf: fix adding entry to a directory
+     udf: change maintainer
 has been added to the -mm tree.  Its filename is
-     udf-fix-adding-entry-to-a-directory.patch
+     change-udf-maintainer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,78 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: udf: fix adding entry to a directory
+Subject: udf: change maintainer
 From: Jan Kara <jack@suse.cz>
+DESC
+udf: change maintainer
+eDESC
 
-When adding directory entry to a directory, we have to properly increase
-length of the last extent.  Handle this similarly as extending regular files -
-make extents always have size multiple of block size (it will be truncated
-down to proper size in udf_clear_inode()).
+I've tried to contact Ben Fennema a few times but without success.  Since I'm
+currently probably closest to being an UDF maintainer, I guess it's fine to
+also change the entry in MAINTAINERS.
 
 Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: <bfennema@falcon.csc.calpoly.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/inode.c |    2 +-
- fs/udf/namei.c |   19 ++++++++++---------
- 2 files changed, 11 insertions(+), 10 deletions(-)
+ MAINTAINERS |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/udf/inode.c~udf-fix-adding-entry-to-a-directory fs/udf/inode.c
---- a/fs/udf/inode.c~udf-fix-adding-entry-to-a-directory
-+++ a/fs/udf/inode.c
-@@ -289,7 +289,7 @@ struct buffer_head *udf_expand_dir_adini
- 	eloc.logicalBlockNum = *block;
- 	eloc.partitionReferenceNum =
- 				iinfo->i_location.partitionReferenceNum;
--	elen = inode->i_size;
-+	elen = inode->i_sb->s_blocksize;
- 	iinfo->i_lenExtents = elen;
- 	epos.bh = NULL;
- 	epos.block = iinfo->i_location;
-diff -puN fs/udf/namei.c~udf-fix-adding-entry-to-a-directory fs/udf/namei.c
---- a/fs/udf/namei.c~udf-fix-adding-entry-to-a-directory
-+++ a/fs/udf/namei.c
-@@ -395,7 +395,6 @@ static struct fileIdentDesc *udf_add_ent
- 		}
+diff -puN MAINTAINERS~change-udf-maintainer MAINTAINERS
+--- a/MAINTAINERS~change-udf-maintainer
++++ a/MAINTAINERS
+@@ -3920,8 +3920,8 @@ L:	linux-scsi@vger.kernel.org
+ S:	Maintained
  
- 		block = dinfo->i_location.logicalBlockNum;
--
- 	} else {
- 		block = udf_get_lb_pblock(dir->i_sb, dinfo->i_location, 0);
- 		fibh->sbh = fibh->ebh = NULL;
-@@ -474,6 +473,14 @@ static struct fileIdentDesc *udf_add_ent
- 	}
+ UDF FILESYSTEM
+-P:	Ben Fennema
+-M:	bfennema@falcon.csc.calpoly.edu
++P:	Jan Kara
++M:	jack@suse.cz
+ W:	http://linux-udf.sourceforge.net
+ S:	Maintained
  
- add:
-+	if (dinfo->i_alloc_type != ICBTAG_FLAG_AD_IN_ICB) {
-+		elen = (elen + sb->s_blocksize - 1) & ~(sb->s_blocksize - 1);
-+		if (dinfo->i_alloc_type == ICBTAG_FLAG_AD_SHORT)
-+			epos.offset -= sizeof(short_ad);
-+		else if (dinfo->i_alloc_type == ICBTAG_FLAG_AD_LONG)
-+			epos.offset -= sizeof(long_ad);
-+		udf_write_aext(dir, &epos, eloc, elen, 1);
-+	}
- 	f_pos += nfidlen;
- 
- 	if (dinfo->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB &&
-@@ -491,15 +498,9 @@ add:
- 		if (!fibh->sbh)
- 			return NULL;
- 		epos.block = dinfo->i_location;
--		eloc.logicalBlockNum = block;
--		eloc.partitionReferenceNum =
--				dinfo->i_location.partitionReferenceNum;
--		elen = dir->i_sb->s_blocksize;
- 		epos.offset = udf_file_entry_alloc_offset(dir);
--		if (dinfo->i_alloc_type == ICBTAG_FLAG_AD_SHORT)
--			epos.offset += sizeof(short_ad);
--		else if (dinfo->i_alloc_type == ICBTAG_FLAG_AD_LONG)
--			epos.offset += sizeof(long_ad);
-+		/* Load extent udf_expand_dir_adinicb() has created */
-+		udf_current_aext(dir, &epos, &eloc, &elen, 1);
- 	}
- 
- 	if (sb->s_blocksize - fibh->eoffset >= nfidlen) {
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
