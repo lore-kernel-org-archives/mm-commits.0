@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-speed-up-writeback-of-big-dirty-files.patch added to -mm tree
-Date: Thu, 31 Jan 2008 14:52:45 -0800
-Message-ID: <200801312252.m0VMqkEA015438@imap1.linux-foundation.org>
+Subject: + mm-zero-length-iov-fix.patch added to -mm tree
+Date: Thu, 31 Jan 2008 14:54:07 -0800
+Message-ID: <200801312254.m0VMs75o015531@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49472 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38783 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752123AbYAaWxA (ORCPT
+	by vger.kernel.org with ESMTP id S1755984AbYAaWyi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 Jan 2008 17:53:00 -0500
+	Thu, 31 Jan 2008 17:54:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wfg@mail.ustc.edu.cn, mrubin@google.com, snitzer@gmail.com
+Cc: nickpiggin@yahoo.com.au, efault@gmx.de, fhimpe@telenet.be, npiggin@suse.de, stable@kernel.org
 
 
 The patch titled
-     writeback: speed up writeback of big dirty files
+     mm: zero-length IOV fix
 has been added to the -mm tree.  Its filename is
-     writeback-speed-up-writeback-of-big-dirty-files.patch
+     mm-zero-length-iov-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,154 +34,121 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback: speed up writeback of big dirty files
-From: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Subject: mm: zero-length IOV fix
+From: Nick Piggin <nickpiggin@yahoo.com.au>
 
-After making dirty a 100M file, the normal behavior is to start the
-writeback for all data after 30s delays.  But sometimes the following
-happens instead:
+Zero length iovecs can go into an infinite loop in writev, because the
+iovec iterator does not always advance over them.
 
-	- after 30s:    ~4M
-	- after 5s:     ~4M
-	- after 5s:     all remaining 92M
+The sequence required to trigger this is not trivial.  I think it requires
+that a zero-length iovec be followed by a non-zero-length iovec which
+causes a pagefault in the atomic usercopy.  This causes the writev code to
+drop back into single-segment copy mode, which then tries to copy the 0
+bytes of the zero-length iovec; a zero length copy looks like a failure
+though, so it loops.
 
-Some analyze shows that the internal io dispatch queues goes like this:
+Put a test into iov_iter_advance to catch zero-length iovecs.  We could
+just put the test in the fallback path, but I feel it is more robust to
+skip over zero-length iovecs throughout the code (iovec iterator may be
+used in filesystems too, so it should be robust).
 
-		s_io            s_more_io
-		-------------------------
-	1)	100M,1K         0
-	2)	1K              96M
-	3)	0               96M
-1) initial state with a 100M file and a 1K file
-
-2) 4M written, nr_to_write <= 0, so write more
-
-3) 1K written, nr_to_write > 0, no more writes(BUG)
-
-nr_to_write > 0 in (3) fools the upper layer to think that data have all
-been written out.  The big dirty file is actually still sitting in
-s_more_io.  We cannot simply splice s_more_io back to s_io as soon as s_io
-becomes empty, and let the loop in generic_sync_sb_inodes() continue: this
-may starve newly expired inodes in s_dirty.  It is also not an option to
-draw inodes from both s_more_io and s_dirty, an let the loop go on: this
-might lead to live locks, and might also starve other superblocks in sync
-time(well kupdate may still starve some superblocks, that's another bug).
-
-We have to return when a full scan of s_io completes.  So nr_to_write > 0
-does not necessarily mean that "all data are written".  This patch
-introduces a flag writeback_control.more_io to indicate that more io should
-be done.  With it the big dirty file no longer has to wait for the next
-kupdate invokation 5s later.
-
-In sync_sb_inodes() we only set more_io on super_blocks we actually
-visited.  This avoids the interaction between two pdflush deamons.
-
-Also in __sync_single_inode() we don't blindly keep requeuing the io if the
-filesystem cannot progress.  Failing to do so may lead to 100% iowait.
-
-Tested-by: Mike Snitzer <snitzer@gmail.com>
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
-Cc: Michael Rubin <mrubin@google.com>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Frederik Himpe <fhimpe@telenet.be>
+Cc: <stable@kernel.org>
+Cc: Mike Galbraith <efault@gmx.de
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c         |   18 ++++++++++++++++--
- include/linux/writeback.h |    1 +
- mm/page-writeback.c       |    9 ++++++---
- 3 files changed, 23 insertions(+), 5 deletions(-)
+ mm/filemap.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN fs/fs-writeback.c~writeback-speed-up-writeback-of-big-dirty-files fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-speed-up-writeback-of-big-dirty-files
-+++ a/fs/fs-writeback.c
-@@ -284,7 +284,17 @@ __sync_single_inode(struct inode *inode,
- 				 * soon as the queue becomes uncongested.
- 				 */
- 				inode->i_state |= I_DIRTY_PAGES;
--				requeue_io(inode);
-+				if (wbc->nr_to_write <= 0) {
-+					/*
-+					 * slice used up: queue for next turn
-+					 */
-+					requeue_io(inode);
-+				} else {
-+					/*
-+					 * somehow blocked: retry later
-+					 */
-+					redirty_tail(inode);
-+				}
- 			} else {
- 				/*
- 				 * Otherwise fully redirty the inode so that
-@@ -468,8 +478,12 @@ sync_sb_inodes(struct super_block *sb, s
- 		iput(inode);
- 		cond_resched();
- 		spin_lock(&inode_lock);
--		if (wbc->nr_to_write <= 0)
-+		if (wbc->nr_to_write <= 0) {
-+			wbc->more_io = 1;
- 			break;
-+		}
-+		if (!list_empty(&sb->s_more_io))
-+			wbc->more_io = 1;
- 	}
- 	return;		/* Leave any unwritten inodes on s_io */
- }
-diff -puN include/linux/writeback.h~writeback-speed-up-writeback-of-big-dirty-files include/linux/writeback.h
---- a/include/linux/writeback.h~writeback-speed-up-writeback-of-big-dirty-files
-+++ a/include/linux/writeback.h
-@@ -62,6 +62,7 @@ struct writeback_control {
- 	unsigned for_reclaim:1;		/* Invoked from the page allocator */
- 	unsigned for_writepages:1;	/* This is a writepages() call */
- 	unsigned range_cyclic:1;	/* range_start is cyclic */
-+	unsigned more_io:1;		/* more io to be dispatched */
- };
+diff -puN mm/filemap.c~mm-zero-length-iov-fix mm/filemap.c
+--- a/mm/filemap.c~mm-zero-length-iov-fix
++++ a/mm/filemap.c
+@@ -1732,7 +1732,11 @@ static void __iov_iter_advance_iov(struc
+ 		const struct iovec *iov = i->iov;
+ 		size_t base = i->iov_offset;
  
- /*
-diff -puN mm/page-writeback.c~writeback-speed-up-writeback-of-big-dirty-files mm/page-writeback.c
---- a/mm/page-writeback.c~writeback-speed-up-writeback-of-big-dirty-files
-+++ a/mm/page-writeback.c
-@@ -567,6 +567,7 @@ static void background_writeout(unsigned
- 			global_page_state(NR_UNSTABLE_NFS) < background_thresh
- 				&& min_pages <= 0)
- 			break;
-+		wbc.more_io = 0;
- 		wbc.encountered_congestion = 0;
- 		wbc.nr_to_write = MAX_WRITEBACK_PAGES;
- 		wbc.pages_skipped = 0;
-@@ -574,8 +575,9 @@ static void background_writeout(unsigned
- 		min_pages -= MAX_WRITEBACK_PAGES - wbc.nr_to_write;
- 		if (wbc.nr_to_write > 0 || wbc.pages_skipped > 0) {
- 			/* Wrote less than expected */
--			congestion_wait(WRITE, HZ/10);
--			if (!wbc.encountered_congestion)
-+			if (wbc.encountered_congestion || wbc.more_io)
-+				congestion_wait(WRITE, HZ/10);
-+			else
- 				break;
+-		while (bytes) {
++		/*
++		 * The !iov->iov_len check ensures we skip over unlikely
++		 * zero-length segments.
++		 */
++		while (bytes || !iov->iov_len) {
+ 			int copy = min(bytes, iov->iov_len - base);
+ 
+ 			bytes -= copy;
+@@ -2250,6 +2254,7 @@ again:
+ 
+ 		cond_resched();
+ 
++		iov_iter_advance(i, copied);
+ 		if (unlikely(copied == 0)) {
+ 			/*
+ 			 * If we were unable to copy any data at all, we must
+@@ -2263,7 +2268,6 @@ again:
+ 						iov_iter_single_seg_count(i));
+ 			goto again;
  		}
- 	}
-@@ -640,11 +642,12 @@ static void wb_kupdate(unsigned long arg
- 			global_page_state(NR_UNSTABLE_NFS) +
- 			(inodes_stat.nr_inodes - inodes_stat.nr_unused);
- 	while (nr_to_write > 0) {
-+		wbc.more_io = 0;
- 		wbc.encountered_congestion = 0;
- 		wbc.nr_to_write = MAX_WRITEBACK_PAGES;
- 		writeback_inodes(&wbc);
- 		if (wbc.nr_to_write > 0) {
--			if (wbc.encountered_congestion)
-+			if (wbc.encountered_congestion || wbc.more_io)
- 				congestion_wait(WRITE, HZ/10);
- 			else
- 				break;	/* All the old data is written */
+-		iov_iter_advance(i, copied);
+ 		pos += copied;
+ 		written += copied;
+ 
 _
 
-Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
+Patches currently in -mm which might be from nickpiggin@yahoo.com.au are
 
 origin.patch
-git-hid.patch
-maps4-add-proportional-set-size-accounting-in-smaps.patch
-mm-page-writeback-highmem_is_dirtyable-option.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-skip-writing-data-pages-when-inode-is-under-i_sync.patch
-writeback-speed-up-writeback-of-big-dirty-files.patch
+git-ieee1394.patch
+git-unionfs.patch
+is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries.patch
+vmalloc-clean-up-page-array-indexing.patch
+vunmap-return-page-array-passed-on-vmap.patch
+slub-use-non-atomic-bit-unlock.patch
+bufferhead-revert-constructor-removal.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+shmem_getpage-return-page-locked.patch
+shmem_file_write-is-redundant.patch
+fix-dirty-page-accounting-leak-with-ext3-data=journal.patch
+mm-zero-length-iov-fix.patch
+add-lock_page_killable.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+memcgroup-reinstate-swapoff-mod.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
+memcgroup-fix-zone-isolation-oom.patch
+memcgroup-revert-swap_state-mods.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
+memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
+memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+memory-cgroup-enhancements-add-pre_destroy-handler.patch
+memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
+rewrite-rd-fixes.patch
