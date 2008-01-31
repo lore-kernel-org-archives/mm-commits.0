@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sys_remap_file_pages-fix-vm_file-accounting.patch added to -mm tree
-Date: Thu, 31 Jan 2008 13:41:34 -0800
-Message-ID: <200801312141.m0VLfYXR012705@imap1.linux-foundation.org>
+Subject: + synclink_gt-fix-missed-serial-input-signal-changes.patch added to -mm tree
+Date: Thu, 31 Jan 2008 13:45:04 -0800
+Message-ID: <200801312145.m0VLj4KK012858@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48255 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49510 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754940AbYAaVmB (ORCPT
+	by vger.kernel.org with ESMTP id S1751592AbYAaVpN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 Jan 2008 16:42:01 -0500
+	Thu, 31 Jan 2008 16:45:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, mszeredi@suse.cz, stable@kernel.org
+Cc: paulkf@microgate.com
 
 
 The patch titled
-     sys_remap_file_pages: fix ->vm_file accounting
+     synclink_gt fix missed serial input signal changes
 has been added to the -mm tree.  Its filename is
-     sys_remap_file_pages-fix-vm_file-accounting.patch
+     synclink_gt-fix-missed-serial-input-signal-changes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,157 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sys_remap_file_pages: fix ->vm_file accounting
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: synclink_gt fix missed serial input signal changes
+From: Paul Fulghum <paulkf@microgate.com>
 
-Fix ->vm_file accounting, mmap_region() may do do_munmap().
+Fix missed serial input signal changes caused by rereading the serial
+status register during interrupt processing.  Now processing is performed
+on original status register value.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: <stable@kernel.org>
+Signed-off-by: Paul Fulghum <paulkf@microgate.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/fremap.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/char/synclink_gt.c |   68 +++++++++++++++++++----------------
+ 1 file changed, 37 insertions(+), 31 deletions(-)
 
-diff -puN mm/fremap.c~sys_remap_file_pages-fix-vm_file-accounting mm/fremap.c
---- a/mm/fremap.c~sys_remap_file_pages-fix-vm_file-accounting
-+++ a/mm/fremap.c
-@@ -190,10 +190,13 @@ asmlinkage long sys_remap_file_pages(uns
- 		 */
- 		if (mapping_cap_account_dirty(mapping)) {
- 			unsigned long addr;
-+			struct file *file = vma->vm_file;
+diff -puN drivers/char/synclink_gt.c~synclink_gt-fix-missed-serial-input-signal-changes drivers/char/synclink_gt.c
+--- a/drivers/char/synclink_gt.c~synclink_gt-fix-missed-serial-input-signal-changes
++++ a/drivers/char/synclink_gt.c
+@@ -2039,37 +2039,41 @@ static void bh_transmit(struct slgt_info
+ 		tty_wakeup(tty);
+ }
  
- 			flags &= MAP_NONBLOCK;
--			addr = mmap_region(vma->vm_file, start, size,
-+			get_file(file);
-+			addr = mmap_region(file, start, size,
- 					flags, vma->vm_flags, pgoff, 1);
-+			fput(file);
- 			if (IS_ERR_VALUE(addr)) {
- 				err = addr;
- 			} else {
+-static void dsr_change(struct slgt_info *info)
++static void dsr_change(struct slgt_info *info, unsigned short status)
+ {
+-	get_signals(info);
++	if (status & BIT3) {
++		info->signals |= SerialSignal_DSR;
++		info->input_signal_events.dsr_up++;
++	} else {
++		info->signals &= ~SerialSignal_DSR;
++		info->input_signal_events.dsr_down++;
++	}
+ 	DBGISR(("dsr_change %s signals=%04X\n", info->device_name, info->signals));
+ 	if ((info->dsr_chkcount)++ == IO_PIN_SHUTDOWN_LIMIT) {
+ 		slgt_irq_off(info, IRQ_DSR);
+ 		return;
+ 	}
+ 	info->icount.dsr++;
+-	if (info->signals & SerialSignal_DSR)
+-		info->input_signal_events.dsr_up++;
+-	else
+-		info->input_signal_events.dsr_down++;
+ 	wake_up_interruptible(&info->status_event_wait_q);
+ 	wake_up_interruptible(&info->event_wait_q);
+ 	info->pending_bh |= BH_STATUS;
+ }
+ 
+-static void cts_change(struct slgt_info *info)
++static void cts_change(struct slgt_info *info, unsigned short status)
+ {
+-	get_signals(info);
++	if (status & BIT2) {
++		info->signals |= SerialSignal_CTS;
++		info->input_signal_events.cts_up++;
++	} else {
++		info->signals &= ~SerialSignal_CTS;
++		info->input_signal_events.cts_down++;
++	}
+ 	DBGISR(("cts_change %s signals=%04X\n", info->device_name, info->signals));
+ 	if ((info->cts_chkcount)++ == IO_PIN_SHUTDOWN_LIMIT) {
+ 		slgt_irq_off(info, IRQ_CTS);
+ 		return;
+ 	}
+ 	info->icount.cts++;
+-	if (info->signals & SerialSignal_CTS)
+-		info->input_signal_events.cts_up++;
+-	else
+-		info->input_signal_events.cts_down++;
+ 	wake_up_interruptible(&info->status_event_wait_q);
+ 	wake_up_interruptible(&info->event_wait_q);
+ 	info->pending_bh |= BH_STATUS;
+@@ -2090,20 +2094,21 @@ static void cts_change(struct slgt_info 
+ 	}
+ }
+ 
+-static void dcd_change(struct slgt_info *info)
++static void dcd_change(struct slgt_info *info, unsigned short status)
+ {
+-	get_signals(info);
++	if (status & BIT1) {
++		info->signals |= SerialSignal_DCD;
++		info->input_signal_events.dcd_up++;
++	} else {
++		info->signals &= ~SerialSignal_DCD;
++		info->input_signal_events.dcd_down++;
++	}
+ 	DBGISR(("dcd_change %s signals=%04X\n", info->device_name, info->signals));
+ 	if ((info->dcd_chkcount)++ == IO_PIN_SHUTDOWN_LIMIT) {
+ 		slgt_irq_off(info, IRQ_DCD);
+ 		return;
+ 	}
+ 	info->icount.dcd++;
+-	if (info->signals & SerialSignal_DCD) {
+-		info->input_signal_events.dcd_up++;
+-	} else {
+-		info->input_signal_events.dcd_down++;
+-	}
+ #if SYNCLINK_GENERIC_HDLC
+ 	if (info->netcount) {
+ 		if (info->signals & SerialSignal_DCD)
+@@ -2126,20 +2131,21 @@ static void dcd_change(struct slgt_info 
+ 	}
+ }
+ 
+-static void ri_change(struct slgt_info *info)
++static void ri_change(struct slgt_info *info, unsigned short status)
+ {
+-	get_signals(info);
++	if (status & BIT0) {
++		info->signals |= SerialSignal_RI;
++		info->input_signal_events.ri_up++;
++	} else {
++		info->signals &= ~SerialSignal_RI;
++		info->input_signal_events.ri_down++;
++	}
+ 	DBGISR(("ri_change %s signals=%04X\n", info->device_name, info->signals));
+ 	if ((info->ri_chkcount)++ == IO_PIN_SHUTDOWN_LIMIT) {
+ 		slgt_irq_off(info, IRQ_RI);
+ 		return;
+ 	}
+-	info->icount.dcd++;
+-	if (info->signals & SerialSignal_RI) {
+-		info->input_signal_events.ri_up++;
+-	} else {
+-		info->input_signal_events.ri_down++;
+-	}
++	info->icount.rng++;
+ 	wake_up_interruptible(&info->status_event_wait_q);
+ 	wake_up_interruptible(&info->event_wait_q);
+ 	info->pending_bh |= BH_STATUS;
+@@ -2190,13 +2196,13 @@ static void isr_serial(struct slgt_info 
+ 	}
+ 
+ 	if (status & IRQ_DSR)
+-		dsr_change(info);
++		dsr_change(info, status);
+ 	if (status & IRQ_CTS)
+-		cts_change(info);
++		cts_change(info, status);
+ 	if (status & IRQ_DCD)
+-		dcd_change(info);
++		dcd_change(info, status);
+ 	if (status & IRQ_RI)
+-		ri_change(info);
++		ri_change(info, status);
+ }
+ 
+ static void isr_rdma(struct slgt_info *info)
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from paulkf@microgate.com are
 
-sys_remap_file_pages-fix-vm_file-accounting.patch
-__group_complete_signal-fix-coredump-with-group-stop-race.patch
-remove-handle_group_stop-in-favor-of-do_signal_stop.patch
-exec-rework-the-group-exit-and-fix-the-race-with-kill.patch
-use-__set_task_state-for-traced-stopped-tasks.patch
-add-task_wakekill.patch
-do_wait-remove-one-else-if-branch.patch
-proc-implement-proc_single_file_operations.patch
-proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces.patch
-proc-seqfile-convert-proc_pid_statm.patch
-proc-proper-pidns-handling-for-proc-self.patch
-proc-fix-the-threaded-proc-self.patch
-proc-fix-openless-usage-due-to-proc_fops-flip.patch
-proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
-kill-pt_attached.patch
-kill-my_ptrace_child.patch
-ptrace_check_attach-remove-unneeded-signal-=-null-check.patch
-ptrace_stop-fix-the-race-with-ptrace-detachattach.patch
-wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace.patch
-do_wait-factor-out-retval-=-0-checks.patch
-ptrace_stop-fix-racy-nonstop_code-setting.patch
-wait_task_stopped-remove-unneeded-delay_group_leader-check.patch
-do_wait-cleanup-delay_group_leader-usage.patch
-do_wait-fix-security-checks.patch
-do_wait-fix-security-checks-fix.patch
-wait_task_continued-zombie-dont-use-task_pid_nr_ns-lockless.patch
-wait_task_zombie-remove-exit_state-exit_signal-checks-for-wnowait.patch
-sys_setpgid-simplify-pid-ns-interaction.patch
-fix-setsid-for-sub-namespace-sbin-init.patch
-teach-set_special_pids-to-use-struct-pid.patch
-move-daemonized-kernel-threads-into-the-swappers-session.patch
-start-the-global-sbin-init-with-00-special-pids.patch
-fix-group-stop-with-exit-race.patch
-sys_setsid-remove-now-unneeded-session-=-1-check.patch
-move-the-related-code-from-exit_notify-to-exit_signals.patch
-pid-sys_wait-fixes-v2.patch
-pid-extend-fix-pid_vnr.patch
-sys_getsid-dont-use-nsproxy-directly.patch
-pid-fix-mips-irix-emulation-pid-usage.patch
-pid-fix-mips-irix-emulation-pid-usage-fix.patch
-pid-fix-solaris_procids.patch
-uglify-kill_pid_info-to-fix-kill-vs-exec-race.patch
-uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice.patch
-itimer_real-convert-to-use-struct-pid.patch
+synclink-standardize-format-of-linux-header-file-includes-with.patch
+synclink_gt-fix-missed-serial-input-signal-changes.patch
