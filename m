@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + email-clientstxt-sylpheed-is-ok-at-imap.patch added to -mm tree
-Date: Thu, 31 Jan 2008 13:41:19 -0800
-Message-ID: <200801312141.m0VLfJLF012701@imap1.linux-foundation.org>
+Subject: + sys_remap_file_pages-fix-vm_file-accounting.patch added to -mm tree
+Date: Thu, 31 Jan 2008 13:41:34 -0800
+Message-ID: <200801312141.m0VLfYXR012705@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37232 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48255 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755665AbYAaVlb (ORCPT
+	by vger.kernel.org with ESMTP id S1754940AbYAaVmB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 Jan 2008 16:41:31 -0500
+	Thu, 31 Jan 2008 16:42:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, pj@sgi.com
+Cc: oleg@tv-sign.ru, mszeredi@suse.cz, stable@kernel.org
 
 
 The patch titled
-     email-clients.txt: sylpheed is OK at IMAP
+     sys_remap_file_pages: fix ->vm_file accounting
 has been added to the -mm tree.  Its filename is
-     email-clientstxt-sylpheed-is-ok-at-imap.patch
+     sys_remap_file_pages-fix-vm_file-accounting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,83 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: email-clients.txt: sylpheed is OK at IMAP
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: sys_remap_file_pages: fix ->vm_file accounting
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-This comment is not helpful (no reason given) and is incorrect.
-Just stick to facts that are useful regarding working on Linux.
+Fix ->vm_file accounting, mmap_region() may do do_munmap().
 
-(akpm: I've used sylpheed+imap for years)
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Paul Jackson <pj@sgi.com>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/email-clients.txt |    1 -
- 1 file changed, 1 deletion(-)
+ mm/fremap.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/email-clients.txt~email-clientstxt-sylpheed-is-ok-at-imap Documentation/email-clients.txt
---- a/Documentation/email-clients.txt~email-clientstxt-sylpheed-is-ok-at-imap
-+++ a/Documentation/email-clients.txt
-@@ -170,7 +170,6 @@ Sylpheed (GUI)
+diff -puN mm/fremap.c~sys_remap_file_pages-fix-vm_file-accounting mm/fremap.c
+--- a/mm/fremap.c~sys_remap_file_pages-fix-vm_file-accounting
++++ a/mm/fremap.c
+@@ -190,10 +190,13 @@ asmlinkage long sys_remap_file_pages(uns
+ 		 */
+ 		if (mapping_cap_account_dirty(mapping)) {
+ 			unsigned long addr;
++			struct file *file = vma->vm_file;
  
- - Works well for inlining text (or using attachments).
- - Allows use of an external editor.
--- Not good for IMAP.
- - Is slow on large folders.
- - Won't do TLS SMTP auth over a non-SSL connection.
- - Has a helpful ruler bar in the compose window.
+ 			flags &= MAP_NONBLOCK;
+-			addr = mmap_region(vma->vm_file, start, size,
++			get_file(file);
++			addr = mmap_region(file, start, size,
+ 					flags, vma->vm_flags, pgoff, 1);
++			fput(file);
+ 			if (IS_ERR_VALUE(addr)) {
+ 				err = addr;
+ 			} else {
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-origin.patch
-git-alsa.patch
-docbook-fix-drivers-base-class-warning.patch
-git-kbuild.patch
-hamradio-fix-dmascc-section-mismatch.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-pcmcia-include-bad-cis-filename-in-error-message.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-git-x86.patch
-register_cpu-__devinit-or-__cpuinit.patch
-cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
-dio-fix-kernel-doc-notation.patch
-tpm-infineon-section-mismatch.patch
-tdfxfb-fix-section-mismatch-warnings.patch
-uvesafb-small-cleanups.patch
-documentation-move-dnotifytxt-to-filesystems.patch
-documentation-move-sharedsubtreestxt-to-filesystems.patch
-documentation-create-new-scheduler-subdirectory.patch
-reporting-bugs-cc-the-mailing-list-too.patch
-kernel-doc-prevent-duplicate-description-output.patch
-kernel-doc-warn-on-badly-formatted-short-description.patch
-email-clientstxt-sylpheed-is-ok-at-imap.patch
-fs-menu-small-reorg.patch
-the-scheduled-time-option-removal.patch
-profile-likely-unlikely-macros.patch
+sys_remap_file_pages-fix-vm_file-accounting.patch
+__group_complete_signal-fix-coredump-with-group-stop-race.patch
+remove-handle_group_stop-in-favor-of-do_signal_stop.patch
+exec-rework-the-group-exit-and-fix-the-race-with-kill.patch
+use-__set_task_state-for-traced-stopped-tasks.patch
+add-task_wakekill.patch
+do_wait-remove-one-else-if-branch.patch
+proc-implement-proc_single_file_operations.patch
+proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces.patch
+proc-seqfile-convert-proc_pid_statm.patch
+proc-proper-pidns-handling-for-proc-self.patch
+proc-fix-the-threaded-proc-self.patch
+proc-fix-openless-usage-due-to-proc_fops-flip.patch
+proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
+kill-pt_attached.patch
+kill-my_ptrace_child.patch
+ptrace_check_attach-remove-unneeded-signal-=-null-check.patch
+ptrace_stop-fix-the-race-with-ptrace-detachattach.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace.patch
+do_wait-factor-out-retval-=-0-checks.patch
+ptrace_stop-fix-racy-nonstop_code-setting.patch
+wait_task_stopped-remove-unneeded-delay_group_leader-check.patch
+do_wait-cleanup-delay_group_leader-usage.patch
+do_wait-fix-security-checks.patch
+do_wait-fix-security-checks-fix.patch
+wait_task_continued-zombie-dont-use-task_pid_nr_ns-lockless.patch
+wait_task_zombie-remove-exit_state-exit_signal-checks-for-wnowait.patch
+sys_setpgid-simplify-pid-ns-interaction.patch
+fix-setsid-for-sub-namespace-sbin-init.patch
+teach-set_special_pids-to-use-struct-pid.patch
+move-daemonized-kernel-threads-into-the-swappers-session.patch
+start-the-global-sbin-init-with-00-special-pids.patch
+fix-group-stop-with-exit-race.patch
+sys_setsid-remove-now-unneeded-session-=-1-check.patch
+move-the-related-code-from-exit_notify-to-exit_signals.patch
+pid-sys_wait-fixes-v2.patch
+pid-extend-fix-pid_vnr.patch
+sys_getsid-dont-use-nsproxy-directly.patch
+pid-fix-mips-irix-emulation-pid-usage.patch
+pid-fix-mips-irix-emulation-pid-usage-fix.patch
+pid-fix-solaris_procids.patch
+uglify-kill_pid_info-to-fix-kill-vs-exec-race.patch
+uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice.patch
+itimer_real-convert-to-use-struct-pid.patch
