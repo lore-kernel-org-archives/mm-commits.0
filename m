@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cpu-silence-section-mismatch-warnings-for-hotcpu-notifies.patch added to -mm tree
-Date: Thu, 31 Jan 2008 14:45:39 -0800
-Message-ID: <200801312245.m0VMje3p015200@imap1.linux-foundation.org>
+Subject: + pci-fix-section-mismatch-warnings-referring-to-pci_do_scan_bus.patch added to -mm tree
+Date: Thu, 31 Jan 2008 14:45:29 -0800
+Message-ID: <200801312245.m0VMjUgF015185@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36411 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33425 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763911AbYAaWps (ORCPT
+	by vger.kernel.org with ESMTP id S1761444AbYAaWp4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 Jan 2008 17:45:48 -0500
+	Thu, 31 Jan 2008 17:45:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sam@ravnborg.org, ego@in.ibm.com
+Cc: sam@ravnborg.org, bunk@kernel.org, gregkh@suse.de
 
 
 The patch titled
-     cpu: silence section mismatch warnings for hotcpu notifies
+     pci: fix section mismatch warnings referring to pci_do_scan_bus
 has been added to the -mm tree.  Its filename is
-     cpu-silence-section-mismatch-warnings-for-hotcpu-notifies.patch
+     pci-fix-section-mismatch-warnings-referring-to-pci_do_scan_bus.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,101 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpu: silence section mismatch warnings for hotcpu notifies
+Subject: pci: fix section mismatch warnings referring to pci_do_scan_bus
 From: Sam Ravnborg <sam@ravnborg.org>
 
-The hotcpu_notifier is used to create notifiers to be called later.
-It really looks like the functions that are registered are only
-relevant in a HOTPLUG_CPU configuration and the correct fix was
-to wrap them in an #ifdef / #endif or similar.
-But for now just tell modpost to silence the warning by annotating
-the static variable with __refdata.
+Fix following warnings:
+WARNING: o-x86_64/drivers/pci/built-in.o(.text+0xb054): Section mismatch in reference from the function cpci_configure_slot() to the function .devinit.text:pci_do_scan_bus()
+WARNING: o-x86_64/drivers/pci/built-in.o(.text+0x153ab): Section mismatch in reference from the function shpchp_configure_device() to the function .devinit.text:pci_do_scan_bus()
+WARNING: o-x86_64/drivers/pci/built-in.o(__ksymtab+0xc0): Section mismatch in reference from the variable __ksymtab_pci_do_scan_bus to the function .devinit.text:pci_do_scan_bus()
 
-This silences the following warnings in kernel/:
-WARNING: o-x86_64/kernel/built-in.o(.data+0x960): Section mismatch in reference from the variable profile_cpu_callback_nb.17240 to the function .devinit.text:profile_cpu_callback()
-WARNING: o-x86_64/kernel/built-in.o(.data+0x3fa0): Section mismatch in reference from the variable workqueue_cpu_callback_nb.14663 to the function .devinit.text:workqueue_cpu_callback()
-WARNING: o-x86_64/kernel/built-in.o(.data+0xe280): Section mismatch in reference from the variable relay_hotcpu_callback_nb.19247 to the function .cpuinit.text:relay_hotcpu_callback()
+PCI hotplug were the only user of pci_do_scan_bus()
+so moving this function to the directory of
+PCI Hotplug was a logical way to fix so
+we only include this function in the kernel
+when the CONFIG_HOTPLUG_PCI is enabled.
 
-Additional warnings are silenced with this change but
-they are left put.
-
-This patch is just a workaround for the bad practice
-to use __cpuinit to annotate code solely used for
-HOTPLUG_CPU.
+Then the abuse of __devinit could be dropped and
+we no longer trigger the above warnings.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Gautham R Shenoy <ego@in.ibm.com>
+Cc: Greg KH <gregkh@suse.de>
+Cc: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpu.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pci/hotplug/Makefile   |    1 +
+ drivers/pci/hotplug/pci-core.c |   20 ++++++++++++++++++++
+ drivers/pci/probe.c            |   15 ---------------
+ 3 files changed, 21 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/cpu.h~cpu-silence-section-mismatch-warnings-for-hotcpu-notifies include/linux/cpu.h
---- a/include/linux/cpu.h~cpu-silence-section-mismatch-warnings-for-hotcpu-notifies
-+++ a/include/linux/cpu.h
-@@ -109,7 +109,7 @@ static inline void cpuhotplug_mutex_unlo
- extern void get_online_cpus(void);
- extern void put_online_cpus(void);
- #define hotcpu_notifier(fn, pri) {				\
--	static struct notifier_block fn##_nb =			\
-+	static struct notifier_block fn##_nb __refdata =	\
- 		{ .notifier_call = fn, .priority = pri };	\
- 	register_cpu_notifier(&fn##_nb);			\
+diff -puN drivers/pci/hotplug/Makefile~pci-fix-section-mismatch-warnings-referring-to-pci_do_scan_bus drivers/pci/hotplug/Makefile
+--- a/drivers/pci/hotplug/Makefile~pci-fix-section-mismatch-warnings-referring-to-pci_do_scan_bus
++++ a/drivers/pci/hotplug/Makefile
+@@ -1,6 +1,7 @@
+ #
+ # Makefile for the Linux kernel pci hotplug controller drivers.
+ #
++obj-y := pci-core.o
+ 
+ obj-$(CONFIG_HOTPLUG_PCI)		+= pci_hotplug.o
+ obj-$(CONFIG_HOTPLUG_PCI_COMPAQ)	+= cpqphp.o
+diff -puN /dev/null drivers/pci/hotplug/pci-core.c
+--- /dev/null
++++ a/drivers/pci/hotplug/pci-core.c
+@@ -0,0 +1,20 @@
++/* Core PCI functionality used only by PCI hotplug */
++
++#include <linux/pci.h>
++#include "../pci.h"
++
++
++unsigned int pci_do_scan_bus(struct pci_bus *bus)
++{
++	unsigned int max;
++
++	max = pci_scan_child_bus(bus);
++
++	/*
++	 * Make the discovered devices available.
++	 */
++	pci_bus_add_devices(bus);
++
++	return max;
++}
++EXPORT_SYMBOL(pci_do_scan_bus);
+diff -puN drivers/pci/probe.c~pci-fix-section-mismatch-warnings-referring-to-pci_do_scan_bus drivers/pci/probe.c
+--- a/drivers/pci/probe.c~pci-fix-section-mismatch-warnings-referring-to-pci_do_scan_bus
++++ a/drivers/pci/probe.c
+@@ -1076,20 +1076,6 @@ unsigned int pci_scan_child_bus(struct p
+ 	return max;
  }
+ 
+-unsigned int __devinit pci_do_scan_bus(struct pci_bus *bus)
+-{
+-	unsigned int max;
+-
+-	max = pci_scan_child_bus(bus);
+-
+-	/*
+-	 * Make the discovered devices available.
+-	 */
+-	pci_bus_add_devices(bus);
+-
+-	return max;
+-}
+-
+ struct pci_bus * pci_create_bus(struct device *parent,
+ 		int bus, struct pci_ops *ops, void *sysdata)
+ {
+@@ -1176,7 +1162,6 @@ EXPORT_SYMBOL(pci_scan_bus_parented);
+ 
+ #ifdef CONFIG_HOTPLUG
+ EXPORT_SYMBOL(pci_add_new_bus);
+-EXPORT_SYMBOL(pci_do_scan_bus);
+ EXPORT_SYMBOL(pci_scan_slot);
+ EXPORT_SYMBOL(pci_scan_bridge);
+ EXPORT_SYMBOL_GPL(pci_scan_child_bus);
 _
 
 Patches currently in -mm which might be from sam@ravnborg.org are
