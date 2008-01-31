@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + use-find_task_by_vpid-in-audit-code.patch added to -mm tree
-Date: Wed, 30 Jan 2008 17:07:06 -0800
-Message-ID: <200801310107.m0V176vj001500@imap1.linux-foundation.org>
+Subject: + use-find_task_by_vpid-in-posix-timers.patch added to -mm tree
+Date: Wed, 30 Jan 2008 17:07:03 -0800
+Message-ID: <200801310107.m0V174gq001497@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49059 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44299 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753735AbYAaBHk (ORCPT
+	by vger.kernel.org with ESMTP id S1754068AbYAaBHy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jan 2008 20:07:40 -0500
+	Wed, 30 Jan 2008 20:07:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xemul@openvz.org, ebiederm@xmission.com, viro@zeniv.linux.org.uk
+Cc: xemul@openvz.org, ebiederm@xmission.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     Use find_task_by_vpid in audit code
+     Use find_task_by_vpid in posix timers
 has been added to the -mm tree.  Its filename is
-     use-find_task_by_vpid-in-audit-code.patch
+     use-find_task_by_vpid-in-posix-timers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Use find_task_by_vpid in audit code
+Subject: Use find_task_by_vpid in posix timers
 From: Pavel Emelyanov <xemul@openvz.org>
 
-The pid to lookup a task by is passed inside audit code via netlink message.
+All the functions that need to lookup a task by pid in posix timers obtain
+this pid from a user space, and thus this value refers to a task in the same
+namespace, as the current task lives in.
 
-Thanks to Denis Lunev, netlink packets are now (since 2.6.24) _always_
-processed in the context of the sending task.  So this is correct to lookup
-the task with find_task_by_vpid() here.
+So the proper behavior is to call find_task_by_vpid() here.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/audit.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ kernel/posix-cpu-timers.c |    8 ++++----
+ kernel/posix-timers.c     |    2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN kernel/audit.c~use-find_task_by_vpid-in-audit-code kernel/audit.c
---- a/kernel/audit.c~use-find_task_by_vpid-in-audit-code
-+++ a/kernel/audit.c
-@@ -385,7 +385,7 @@ static int audit_prepare_user_tty(pid_t 
- 	int err;
+diff -puN kernel/posix-cpu-timers.c~use-find_task_by_vpid-in-posix-timers kernel/posix-cpu-timers.c
+--- a/kernel/posix-cpu-timers.c~use-find_task_by_vpid-in-posix-timers
++++ a/kernel/posix-cpu-timers.c
+@@ -20,7 +20,7 @@ static int check_clock(const clockid_t w
+ 		return 0;
  
  	read_lock(&tasklist_lock);
--	tsk = find_task_by_pid(pid);
-+	tsk = find_task_by_vpid(pid);
- 	err = -ESRCH;
- 	if (!tsk)
- 		goto out;
-@@ -771,7 +771,7 @@ static int audit_receive_msg(struct sk_b
- 		struct task_struct *tsk;
+-	p = find_task_by_pid(pid);
++	p = find_task_by_vpid(pid);
+ 	if (!p || !(CPUCLOCK_PERTHREAD(which_clock) ?
+ 		   same_thread_group(p, current) : thread_group_leader(p))) {
+ 		error = -EINVAL;
+@@ -305,7 +305,7 @@ int posix_cpu_clock_get(const clockid_t 
+ 		 */
+ 		struct task_struct *p;
+ 		rcu_read_lock();
+-		p = find_task_by_pid(pid);
++		p = find_task_by_vpid(pid);
+ 		if (p) {
+ 			if (CPUCLOCK_PERTHREAD(which_clock)) {
+ 				if (same_thread_group(p, current)) {
+@@ -354,7 +354,7 @@ int posix_cpu_timer_create(struct k_itim
+ 		if (pid == 0) {
+ 			p = current;
+ 		} else {
+-			p = find_task_by_pid(pid);
++			p = find_task_by_vpid(pid);
+ 			if (p && !same_thread_group(p, current))
+ 				p = NULL;
+ 		}
+@@ -362,7 +362,7 @@ int posix_cpu_timer_create(struct k_itim
+ 		if (pid == 0) {
+ 			p = current->group_leader;
+ 		} else {
+-			p = find_task_by_pid(pid);
++			p = find_task_by_vpid(pid);
+ 			if (p && !thread_group_leader(p))
+ 				p = NULL;
+ 		}
+diff -puN kernel/posix-timers.c~use-find_task_by_vpid-in-posix-timers kernel/posix-timers.c
+--- a/kernel/posix-timers.c~use-find_task_by_vpid-in-posix-timers
++++ a/kernel/posix-timers.c
+@@ -404,7 +404,7 @@ static struct task_struct * good_sigeven
+ 	struct task_struct *rtn = current->group_leader;
  
- 		read_lock(&tasklist_lock);
--		tsk = find_task_by_pid(pid);
-+		tsk = find_task_by_vpid(pid);
- 		if (!tsk)
- 			err = -ESRCH;
- 		else {
-@@ -794,7 +794,7 @@ static int audit_receive_msg(struct sk_b
- 		if (s->enabled != 0 && s->enabled != 1)
- 			return -EINVAL;
- 		read_lock(&tasklist_lock);
--		tsk = find_task_by_pid(pid);
-+		tsk = find_task_by_vpid(pid);
- 		if (!tsk)
- 			err = -ESRCH;
- 		else {
+ 	if ((event->sigev_notify & SIGEV_THREAD_ID ) &&
+-		(!(rtn = find_task_by_pid(event->sigev_notify_thread_id)) ||
++		(!(rtn = find_task_by_vpid(event->sigev_notify_thread_id)) ||
+ 		 !same_thread_group(rtn, current) ||
+ 		 (event->sigev_notify & ~SIGEV_THREAD_ID) != SIGEV_SIGNAL))
+ 		return NULL;
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
