@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-section-mismatch-warning-in-sparsec.patch added to -mm tree
-Date: Thu, 31 Jan 2008 14:45:41 -0800
-Message-ID: <200801312245.m0VMjffa015203@imap1.linux-foundation.org>
+Subject: + pci-fix-4x-section-mismatch-warnings.patch added to -mm tree
+Date: Thu, 31 Jan 2008 14:45:31 -0800
+Message-ID: <200801312245.m0VMjWmt015188@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51737 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55666 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762197AbYAaWqI (ORCPT
+	by vger.kernel.org with ESMTP id S1762366AbYAaWp5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 Jan 2008 17:46:08 -0500
+	Thu, 31 Jan 2008 17:45:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sam@ravnborg.org, apw@shadowen.org, clameter@sgi.com, mel@csn.ul.ie
+Cc: sam@ravnborg.org, bunk@kernel.org, gregkh@suse.de
 
 
 The patch titled
-     mm: fix section mismatch warning in sparse.c
+     pci: fix 4x section mismatch warnings
 has been added to the -mm tree.  Its filename is
-     mm-fix-section-mismatch-warning-in-sparsec.patch
+     pci-fix-4x-section-mismatch-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: fix section mismatch warning in sparse.c
+Subject: pci: fix 4x section mismatch warnings
 From: Sam Ravnborg <sam@ravnborg.org>
 
-Fix following warning:
-WARNING: mm/built-in.o(.text+0x22069): Section mismatch in reference from the function sparse_early_usemap_alloc() to the function .init.text:__alloc_bootmem_node()
+The following warnings were issued during build of
+drivers/pci with an allyesconfig build:
+WARNING: o-x86_64/drivers/pci/built-in.o(.text+0xdaf): Section mismatch in reference from the function pci_add_new_bus() to the function .devinit.text:pci_alloc_child_bus()
+WARNING: o-x86_64/drivers/pci/built-in.o(.text+0x15e2): Section mismatch in reference from the function pci_scan_single_device() to the function .devinit.text:pci_scan_device()
+WARNING: o-x86_64/drivers/pci/built-in.o(.text+0x1b0c5): Section mismatch in reference from the function pci_bus_assign_resources() to the function .devinit.text:pci_setup_bridge()
+WARNING: o-x86_64/drivers/pci/built-in.o(.text+0x1b32d): Section mismatch in reference from the function pci_bus_size_bridges() to the function .devinit.text:pci_bus_size_cardbus()
 
-static sparse_early_usemap_alloc() were used only by sparse_init()
-and with sparse_init() annotated _init it is safe to
-annotate sparse_early_usemap_alloc with __init too.
+Investigating each case closer it looked like all
+referred functions are only used in the init phase
+or during hotplug.
+So to avoid wasting too much memory in the non-hotplug
+case the simpler fix was to allow the fuctions to
+use code/data from the __devinit sections.
+This was done in all four case by adding the __ref
+annotation.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Greg KH <gregkh@suse.de>
+Cc: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pci/probe.c     |    4 ++--
+ drivers/pci/setup-bus.c |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/sparse.c~mm-fix-section-mismatch-warning-in-sparsec mm/sparse.c
---- a/mm/sparse.c~mm-fix-section-mismatch-warning-in-sparsec
-+++ a/mm/sparse.c
-@@ -237,7 +237,7 @@ static unsigned long *__kmalloc_section_
+diff -puN drivers/pci/probe.c~pci-fix-4x-section-mismatch-warnings drivers/pci/probe.c
+--- a/drivers/pci/probe.c~pci-fix-4x-section-mismatch-warnings
++++ a/drivers/pci/probe.c
+@@ -452,7 +452,7 @@ pci_alloc_child_bus(struct pci_bus *pare
+ 	return child;
  }
- #endif /* CONFIG_MEMORY_HOTPLUG */
  
--static unsigned long *sparse_early_usemap_alloc(unsigned long pnum)
-+static unsigned long *__init sparse_early_usemap_alloc(unsigned long pnum)
+-struct pci_bus *pci_add_new_bus(struct pci_bus *parent, struct pci_dev *dev, int busnr)
++struct pci_bus *__ref pci_add_new_bus(struct pci_bus *parent, struct pci_dev *dev, int busnr)
  {
- 	unsigned long *usemap;
- 	struct mem_section *ms = __nr_to_section(pnum);
+ 	struct pci_bus *child;
+ 
+@@ -980,7 +980,7 @@ void pci_device_add(struct pci_dev *dev,
+ 	up_write(&pci_bus_sem);
+ }
+ 
+-struct pci_dev *pci_scan_single_device(struct pci_bus *bus, int devfn)
++struct pci_dev *__ref pci_scan_single_device(struct pci_bus *bus, int devfn)
+ {
+ 	struct pci_dev *dev;
+ 
+diff -puN drivers/pci/setup-bus.c~pci-fix-4x-section-mismatch-warnings drivers/pci/setup-bus.c
+--- a/drivers/pci/setup-bus.c~pci-fix-4x-section-mismatch-warnings
++++ a/drivers/pci/setup-bus.c
+@@ -454,7 +454,7 @@ pci_bus_size_cardbus(struct pci_bus *bus
+ 	}
+ }
+ 
+-void pci_bus_size_bridges(struct pci_bus *bus)
++void __ref pci_bus_size_bridges(struct pci_bus *bus)
+ {
+ 	struct pci_dev *dev;
+ 	unsigned long mask, prefmask;
+@@ -509,7 +509,7 @@ void pci_bus_size_bridges(struct pci_bus
+ }
+ EXPORT_SYMBOL(pci_bus_size_bridges);
+ 
+-void pci_bus_assign_resources(struct pci_bus *bus)
++void __ref pci_bus_assign_resources(struct pci_bus *bus)
+ {
+ 	struct pci_bus *b;
+ 	struct pci_dev *dev;
 _
 
 Patches currently in -mm which might be from sam@ravnborg.org are
