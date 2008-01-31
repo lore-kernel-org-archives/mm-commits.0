@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hrtimer-fix-hrtimer_init_sleeper-users.patch added to -mm tree
-Date: Thu, 31 Jan 2008 13:29:10 -0800
-Message-ID: <200801312129.m0VLTADl012262@imap1.linux-foundation.org>
+Subject: + atmel_serial-fix-broken-rx-buffer-allocation.patch added to -mm tree
+Date: Thu, 31 Jan 2008 13:35:53 -0800
+Message-ID: <200801312135.m0VLZrCW012483@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57016 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51506 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756136AbYAaV3k (ORCPT
+	by vger.kernel.org with ESMTP id S1752120AbYAaVgD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 Jan 2008 16:29:40 -0500
+	Thu, 31 Jan 2008 16:36:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: a.p.zijlstra@chello.nl, mingo@elte.hu, tglx@linutronix.de
+Cc: hskinnemoen@atmel.com, trimarchi@gandalf.sssup.it
 
 
 The patch titled
-     hrtimer: fix hrtimer_init_sleeper() users
+     atmel_serial: fix broken RX buffer allocation
 has been added to the -mm tree.  Its filename is
-     hrtimer-fix-hrtimer_init_sleeper-users.patch
+     atmel_serial-fix-broken-rx-buffer-allocation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,109 +34,72 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hrtimer: fix hrtimer_init_sleeper() users
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: atmel_serial: fix broken RX buffer allocation
+From: Haavard Skinnemoen <hskinnemoen@atmel.com>
 
-commit 37bb6cb4097e29ffee970065b74499cbf10603a3
-Author: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Date:   Fri Jan 25 21:08:32 2008 +0100
+Introduced by atmel_serial-split-the-interrupt-handler.patch.
 
-    hrtimer: unlock hrtimer_wakeup
+Thanks to michael <trimarchi@gandalf.sssup.it> for spotting it.
 
-Broke hrtimer_init_sleeper() users.  It forgot to fix up the futex caller
-of this function to detect the failed queueing and messed up the
-do_nanosleep() caller in that it could leak a TASK_INTERRUPTIBLE state.
-
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/futex.c   |    2 ++
- kernel/hrtimer.c |    2 ++
- 2 files changed, 4 insertions(+)
+ drivers/serial/atmel_serial.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/futex.c~hrtimer-fix-hrtimer_init_sleeper-users kernel/futex.c
---- a/kernel/futex.c~hrtimer-fix-hrtimer_init_sleeper-users
-+++ a/kernel/futex.c
-@@ -1252,6 +1252,8 @@ static int futex_wait(u32 __user *uaddr,
- 			t.timer.expires = *abs_time;
+diff -puN drivers/serial/atmel_serial.c~atmel_serial-fix-broken-rx-buffer-allocation drivers/serial/atmel_serial.c
+--- a/drivers/serial/atmel_serial.c~atmel_serial-fix-broken-rx-buffer-allocation
++++ a/drivers/serial/atmel_serial.c
+@@ -1470,7 +1470,8 @@ static int __devinit atmel_serial_probe(
  
- 			hrtimer_start(&t.timer, t.timer.expires, HRTIMER_MODE_ABS);
-+			if (!hrtimer_active(&t.timer))
-+				t.task = NULL;
- 
- 			/*
- 			 * the timer could have already expired, in which
-diff -puN kernel/hrtimer.c~hrtimer-fix-hrtimer_init_sleeper-users kernel/hrtimer.c
---- a/kernel/hrtimer.c~hrtimer-fix-hrtimer_init_sleeper-users
-+++ a/kernel/hrtimer.c
-@@ -1314,6 +1314,8 @@ static int __sched do_nanosleep(struct h
- 
- 	} while (t->task && !signal_pending(current));
- 
-+	__set_current_state(TASK_RUNNING);
-+
- 	return t->task == NULL;
- }
- 
+ 	if (!atmel_use_dma_rx(&port->uart)) {
+ 		ret = -ENOMEM;
+-		data = kmalloc(ATMEL_SERIAL_RINGSIZE, GFP_KERNEL);
++		data = kmalloc(sizeof(struct atmel_uart_char)
++				* ATMEL_SERIAL_RINGSIZE, GFP_KERNEL);
+ 		if (!data)
+ 			goto err_alloc_ring;
+ 		port->rx_ring.buf = data;
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from hskinnemoen@atmel.com are
 
 origin.patch
-lockdep-annotate-epoll.patch
-slub-move-kmem_cache_node-determination-into-add_full-and-add_partial-slub-workaround-for-lockdep-confusion.patch
-swapin-needs-gfp_mask-for-loop-on-tmpfs.patch
-mm-page-writeback-highmem_is_dirtyable-option.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-skip-writing-data-pages-when-inode-is-under-i_sync.patch
-fix-dirty-page-accounting-leak-with-ext3-data=journal.patch
-kernel-add-mutex_lock_killable.patch
-vfs-use-mutex_lock_killable-in-vfs_readdir.patch
-hrtimer-fix-hrtimer_init_sleeper-users.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-memcgroup-reinstate-swapoff-mod.patch
-bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
-bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
-bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
-bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
-memcgroup-fix-zone-isolation-oom.patch
-memcgroup-revert-swap_state-mods.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
-memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
-memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
-memory-cgroup-enhancements-add-pre_destroy-handler.patch
-memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
-mm-bdi-export-bdi-attributes-in-sysfs.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse.patch
-mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit.patch
-mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit.patch
+fix-timerfd-breakage-on-avr32-was-re-fix-variable-use-in-avr32-pte_alloc_one.patch
+git-mtd.patch
+gpiolib-add-drivers-gpio-directory.patch
+gpiolib-add-gpio-provider-infrastructure.patch
+gpiolib-update-documentation-gpiotxt.patch
+gpiolib-pxa-platform-support.patch
+gpiolib-pcf857x-i2c-gpio-expander-support.patch
+gpiolib-mcp23s08-spi-gpio-expander-support.patch
+gpiolib-pca9539-i2c-gpio-expander-support.patch
+gpiolib-deprecate-obsolete-pca9539-driver.patch
+gpiolib-avr32-at32ap-platform-support.patch
+config_highpte-vs-sub-page-page-tables-avr32-fix.patch
+read_current_time-cleanups.patch
+fix-__const_udelay-declaration-and-definition-mismatches.patch
+atmel_spi-throughput-improvement.patch
+atmel_spi-chain-dma-transfers.patch
+atmel_spi-chain-dma-transfers-update.patch
+atmel_spi-fix-dmachain-oops-with-debug-enabled.patch
+add-have_oprofile.patch
+atmel_lcdfb-validate-display-timings.patch
+sanitize-the-type-of-struct-useru_ar0.patch
+add-cmpxchg_local-to-avr32.patch
+tty-let-architectures-override-the-user-kernel-macros.patch
+maintainers-add-haavard-as-maintainer-of-the-atmel_serial-driver.patch
+atmel_serial-clean-up-the-code.patch
+atmel_serial-use-cpu_relax-when-busy-waiting.patch
+atmel_serial-use-existing-console-options-only-if-brg-is-running.patch
+atmel_serial-fix-bugs-in-probe-error-path-and-remove.patch
+atmel_serial-split-the-interrupt-handler.patch
+atmel_serial-add-dma-support.patch
+atmel_serial-add-dma-support-fix.patch
+atmel_serial-fix-broken-rx-buffer-allocation.patch
+atmel_serial-use-container_of-instead-of-direct-cast.patch
+atmel_serial-show-tty-name-in-proc-interrupts.patch
+basic-pwm-driver-for-avr32-and-at91.patch
+basic-pwm-driver-for-avr32-and-at91-fix.patch
+pwm-led-driver.patch
