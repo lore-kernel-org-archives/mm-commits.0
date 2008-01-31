@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + gfs2-make-gfs2_holdergh_owner_pid-be-a-struct-pid.patch added to -mm tree
-Date: Wed, 30 Jan 2008 17:07:19 -0800
-Message-ID: <200801310107.m0V17K5H001522@imap1.linux-foundation.org>
+Subject: + gfs2-make-gfs2_glockgl_owner_pid-be-a-struct-pid.patch added to -mm tree
+Date: Wed, 30 Jan 2008 17:07:16 -0800
+Message-ID: <200801310107.m0V17HgD001514@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46700 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43174 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754166AbYAaBIa (ORCPT
+	by vger.kernel.org with ESMTP id S1752744AbYAaBIa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 30 Jan 2008 20:08:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: xemul@openvz.org, ebiederm@xmission.com, swhiteho@redhat.com
 
 
 The patch titled
-     gfs2: make gfs2_holder.gh_owner_pid be a struct pid *
+     gfs2: make gfs2_glock.gl_owner_pid be a struct pid *
 has been added to the -mm tree.  Its filename is
-     gfs2-make-gfs2_holdergh_owner_pid-be-a-struct-pid.patch
+     gfs2-make-gfs2_glockgl_owner_pid-be-a-struct-pid.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gfs2: make gfs2_holder.gh_owner_pid be a struct pid *
+Subject: gfs2: make gfs2_glock.gl_owner_pid be a struct pid *
 From: Pavel Emelyanov <xemul@openvz.org>
 
-The gl_owner_pid field is used to get the holder task by its pid and check
-whether the current is a holder, so make it in a proper manner, i.e.  via the
-struct pid * manipulations.
+The gl_owner_pid field is used to get the lock owning task by its pid, so make
+it in a proper manner, i.e.  by using the struct pid pointer and pid_task()
+function.
+
+The pid_task() becomes exported for the gfs2 module.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -47,108 +49,100 @@ Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/glock.c  |   18 +++++++++++-------
- fs/gfs2/glock.h  |    4 +++-
+ fs/gfs2/glock.c  |   19 ++++++++++++-------
  fs/gfs2/incore.h |    2 +-
- 3 files changed, 15 insertions(+), 9 deletions(-)
+ kernel/pid.c     |    1 +
+ 3 files changed, 14 insertions(+), 8 deletions(-)
 
-diff -puN fs/gfs2/glock.c~gfs2-make-gfs2_holdergh_owner_pid-be-a-struct-pid fs/gfs2/glock.c
---- a/fs/gfs2/glock.c~gfs2-make-gfs2_holdergh_owner_pid-be-a-struct-pid
+diff -puN fs/gfs2/glock.c~gfs2-make-gfs2_glockgl_owner_pid-be-a-struct-pid fs/gfs2/glock.c
+--- a/fs/gfs2/glock.c~gfs2-make-gfs2_glockgl_owner_pid-be-a-struct-pid
 +++ a/fs/gfs2/glock.c
-@@ -399,7 +399,7 @@ void gfs2_holder_init(struct gfs2_glock 
- 	INIT_LIST_HEAD(&gh->gh_list);
- 	gh->gh_gl = gl;
- 	gh->gh_ip = (unsigned long)__builtin_return_address(0);
--	gh->gh_owner_pid = current->pid;
-+	gh->gh_owner_pid = get_pid(task_pid(current));
- 	gh->gh_state = state;
- 	gh->gh_flags = flags;
- 	gh->gh_error = 0;
-@@ -433,6 +433,7 @@ void gfs2_holder_reinit(unsigned int sta
+@@ -334,7 +334,7 @@ int gfs2_glock_get(struct gfs2_sbd *sdp,
+ 	gl->gl_state = LM_ST_UNLOCKED;
+ 	gl->gl_demote_state = LM_ST_EXCLUSIVE;
+ 	gl->gl_hash = hash;
+-	gl->gl_owner_pid = 0;
++	gl->gl_owner_pid = NULL;
+ 	gl->gl_ip = 0;
+ 	gl->gl_ops = glops;
+ 	gl->gl_req_gh = NULL;
+@@ -631,7 +631,7 @@ static void gfs2_glmutex_lock(struct gfs
+ 		wait_on_holder(&gh);
+ 		gfs2_holder_uninit(&gh);
+ 	} else {
+-		gl->gl_owner_pid = current->pid;
++		gl->gl_owner_pid = get_pid(task_pid(current));
+ 		gl->gl_ip = (unsigned long)__builtin_return_address(0);
+ 		spin_unlock(&gl->gl_spin);
+ 	}
+@@ -652,7 +652,7 @@ static int gfs2_glmutex_trylock(struct g
+ 	if (test_and_set_bit(GLF_LOCK, &gl->gl_flags)) {
+ 		acquired = 0;
+ 	} else {
+-		gl->gl_owner_pid = current->pid;
++		gl->gl_owner_pid = get_pid(task_pid(current));
+ 		gl->gl_ip = (unsigned long)__builtin_return_address(0);
+ 	}
+ 	spin_unlock(&gl->gl_spin);
+@@ -668,12 +668,17 @@ static int gfs2_glmutex_trylock(struct g
  
- void gfs2_holder_uninit(struct gfs2_holder *gh)
+ static void gfs2_glmutex_unlock(struct gfs2_glock *gl)
  {
-+	put_pid(gh->gh_owner_pid);
- 	gfs2_glock_put(gh->gh_gl);
- 	gh->gh_gl = NULL;
- 	gh->gh_ip = 0;
-@@ -1050,7 +1051,7 @@ static int glock_wait_internal(struct gf
++	struct pid *pid;
++
+ 	spin_lock(&gl->gl_spin);
+ 	clear_bit(GLF_LOCK, &gl->gl_flags);
+-	gl->gl_owner_pid = 0;
++	pid = gl->gl_owner_pid;
++	gl->gl_owner_pid = NULL;
+ 	gl->gl_ip = 0;
+ 	run_queue(gl);
+ 	spin_unlock(&gl->gl_spin);
++
++	put_pid(pid);
  }
  
- static inline struct gfs2_holder *
--find_holder_by_owner(struct list_head *head, pid_t pid)
-+find_holder_by_owner(struct list_head *head, struct pid *pid)
- {
- 	struct gfs2_holder *gh;
- 
-@@ -1087,7 +1088,7 @@ static void add_to_queue(struct gfs2_hol
- 	struct gfs2_glock *gl = gh->gh_gl;
- 	struct gfs2_holder *existing;
- 
--	BUG_ON(!gh->gh_owner_pid);
-+	BUG_ON(gh->gh_owner_pid == NULL);
- 	if (test_and_set_bit(HIF_WAIT, &gh->gh_iflags))
- 		BUG();
- 
-@@ -1097,12 +1098,14 @@ static void add_to_queue(struct gfs2_hol
- 		if (existing) {
- 			print_symbol(KERN_WARNING "original: %s\n", 
- 				     existing->gh_ip);
--			printk(KERN_INFO "pid : %d\n", existing->gh_owner_pid);
-+			printk(KERN_INFO "pid : %d\n",
-+					pid_nr(existing->gh_owner_pid));
- 			printk(KERN_INFO "lock type : %d lock state : %d\n",
- 			       existing->gh_gl->gl_name.ln_type, 
- 			       existing->gh_gl->gl_state);
- 			print_symbol(KERN_WARNING "new: %s\n", gh->gh_ip);
--			printk(KERN_INFO "pid : %d\n", gh->gh_owner_pid);
-+			printk(KERN_INFO "pid : %d\n",
-+					pid_nr(gh->gh_owner_pid));
- 			printk(KERN_INFO "lock type : %d lock state : %d\n",
- 			       gl->gl_name.ln_type, gl->gl_state);
- 			BUG();
-@@ -1803,8 +1806,9 @@ static int dump_holder(struct glock_iter
- 
- 	print_dbg(gi, "  %s\n", str);
- 	if (gh->gh_owner_pid) {
--		print_dbg(gi, "    owner = %ld ", (long)gh->gh_owner_pid);
--		gh_owner = find_task_by_pid(gh->gh_owner_pid);
-+		print_dbg(gi, "    owner = %ld ",
-+				(long)pid_nr(gh->gh_owner_pid));
-+		gh_owner = pid_task(gh->gh_owner_pid, PIDTYPE_PID);
- 		if (gh_owner)
- 			print_dbg(gi, "(%s)\n", gh_owner->comm);
+ /**
+@@ -1877,13 +1882,13 @@ static int dump_glock(struct glock_iter 
+ 	print_dbg(gi, "  gl_ref = %d\n", atomic_read(&gl->gl_ref));
+ 	print_dbg(gi, "  gl_state = %u\n", gl->gl_state);
+ 	if (gl->gl_owner_pid) {
+-		gl_owner = find_task_by_pid(gl->gl_owner_pid);
++		gl_owner = pid_task(gl->gl_owner_pid, PIDTYPE_PID);
+ 		if (gl_owner)
+ 			print_dbg(gi, "  gl_owner = pid %d (%s)\n",
+-				  gl->gl_owner_pid, gl_owner->comm);
++				  pid_nr(gl->gl_owner_pid), gl_owner->comm);
  		else
-diff -puN fs/gfs2/glock.h~gfs2-make-gfs2_holdergh_owner_pid-be-a-struct-pid fs/gfs2/glock.h
---- a/fs/gfs2/glock.h~gfs2-make-gfs2_holdergh_owner_pid-be-a-struct-pid
-+++ a/fs/gfs2/glock.h
-@@ -36,11 +36,13 @@ static inline int gfs2_glock_is_locked_b
- {
- 	struct gfs2_holder *gh;
- 	int locked = 0;
-+	struct pid *pid;
- 
- 	/* Look in glock's list of holders for one with current task as owner */
- 	spin_lock(&gl->gl_spin);
-+	pid = task_pid(current);
- 	list_for_each_entry(gh, &gl->gl_holders, gh_list) {
--		if (gh->gh_owner_pid == current->pid) {
-+		if (gh->gh_owner_pid == pid) {
- 			locked = 1;
- 			break;
- 		}
-diff -puN fs/gfs2/incore.h~gfs2-make-gfs2_holdergh_owner_pid-be-a-struct-pid fs/gfs2/incore.h
---- a/fs/gfs2/incore.h~gfs2-make-gfs2_holdergh_owner_pid-be-a-struct-pid
+ 			print_dbg(gi, "  gl_owner = %d (ended)\n",
+-				  gl->gl_owner_pid);
++				  pid_nr(gl->gl_owner_pid));
+ 	} else
+ 		print_dbg(gi, "  gl_owner = -1\n");
+ 	print_dbg(gi, "  gl_ip = %lu\n", gl->gl_ip);
+diff -puN fs/gfs2/incore.h~gfs2-make-gfs2_glockgl_owner_pid-be-a-struct-pid fs/gfs2/incore.h
+--- a/fs/gfs2/incore.h~gfs2-make-gfs2_glockgl_owner_pid-be-a-struct-pid
 +++ a/fs/gfs2/incore.h
-@@ -151,7 +151,7 @@ struct gfs2_holder {
- 	struct list_head gh_list;
+@@ -182,7 +182,7 @@ struct gfs2_glock {
+ 	unsigned int gl_hash;
+ 	unsigned int gl_demote_state; /* state requested by remote node */
+ 	unsigned long gl_demote_time; /* time of first demote request */
+-	pid_t gl_owner_pid;
++	struct pid *gl_owner_pid;
+ 	unsigned long gl_ip;
+ 	struct list_head gl_holders;
+ 	struct list_head gl_waiters1;	/* HIF_MUTEX */
+diff -puN kernel/pid.c~gfs2-make-gfs2_glockgl_owner_pid-be-a-struct-pid kernel/pid.c
+--- a/kernel/pid.c~gfs2-make-gfs2_glockgl_owner_pid-be-a-struct-pid
++++ a/kernel/pid.c
+@@ -367,6 +367,7 @@ struct task_struct *pid_task(struct pid 
+ 	}
+ 	return result;
+ }
++EXPORT_SYMBOL(pid_task);
  
- 	struct gfs2_glock *gh_gl;
--	pid_t gh_owner_pid;
-+	struct pid *gh_owner_pid;
- 	unsigned int gh_state;
- 	unsigned gh_flags;
- 
+ /*
+  * Must be called under rcu_read_lock() or with tasklist_lock read-held.
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
