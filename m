@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-make-pfm_get_task-work-with-virtual-pids.patch added to -mm tree
-Date: Wed, 30 Jan 2008 17:07:24 -0800
-Message-ID: <200801310107.m0V17OXV001528@imap1.linux-foundation.org>
+Subject: + ia64-fix-ptrace-inside-a-namespace.patch added to -mm tree
+Date: Wed, 30 Jan 2008 17:07:26 -0800
+Message-ID: <200801310107.m0V17QEn001531@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37086 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60604 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756442AbYAaBIG (ORCPT
+	by vger.kernel.org with ESMTP id S1755793AbYAaBID (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jan 2008 20:08:06 -0500
+	Wed, 30 Jan 2008 20:08:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: xemul@openvz.org, ebiederm@xmission.com, tony.luck@intel.com
 
 
 The patch titled
-     ia64: make pfm_get_task work with virtual pids
+     ia64: fix ptrace inside a namespace
 has been added to the -mm tree.  Its filename is
-     ia64-make-pfm_get_task-work-with-virtual-pids.patch
+     ia64-fix-ptrace-inside-a-namespace.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia64: make pfm_get_task work with virtual pids
+Subject: ia64: fix ptrace inside a namespace
 From: Pavel Emelyanov <xemul@openvz.org>
 
-This pid comes from user space, so treat it accordingly.
+The ia64 has its own sys_ptrace implementation and it was overlooked when the
+pid namespaces patches were sent.
+
+Use find_task_by_vpid() in it.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -45,26 +48,21 @@ Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/perfmon.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/ia64/kernel/ptrace.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/ia64/kernel/perfmon.c~ia64-make-pfm_get_task-work-with-virtual-pids arch/ia64/kernel/perfmon.c
---- a/arch/ia64/kernel/perfmon.c~ia64-make-pfm_get_task-work-with-virtual-pids
-+++ a/arch/ia64/kernel/perfmon.c
-@@ -2654,11 +2654,11 @@ pfm_get_task(pfm_context_t *ctx, pid_t p
- 	/* XXX: need to add more checks here */
- 	if (pid < 2) return -EPERM;
- 
--	if (pid != current->pid) {
-+	if (pid != task_pid_vnr(current)) {
- 
- 		read_lock(&tasklist_lock);
- 
--		p = find_task_by_pid(pid);
-+		p = find_task_by_vpid(pid);
- 
- 		/* make sure task cannot go away while we operate on it */
- 		if (p) get_task_struct(p);
+diff -puN arch/ia64/kernel/ptrace.c~ia64-fix-ptrace-inside-a-namespace arch/ia64/kernel/ptrace.c
+--- a/arch/ia64/kernel/ptrace.c~ia64-fix-ptrace-inside-a-namespace
++++ a/arch/ia64/kernel/ptrace.c
+@@ -1437,7 +1437,7 @@ sys_ptrace (long request, pid_t pid, uns
+ 	ret = -ESRCH;
+ 	read_lock(&tasklist_lock);
+ 	{
+-		child = find_task_by_pid(pid);
++		child = find_task_by_vpid(pid);
+ 		if (child) {
+ 			if (peek_or_poke)
+ 				child = find_thread_for_addr(child, addr);
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
