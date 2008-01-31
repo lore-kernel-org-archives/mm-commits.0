@@ -1,101 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: + correct-inconsistent-ntp-interval-tick_length-usage.patch added to -mm tree
-Date: Wed, 30 Jan 2008 17:10:35 -0800
-Message-ID: <200801310110.m0V1AZpE001599@imap1.linux-foundation.org>
+Subject: - add-remove_memory-for-ppc64-2.patch removed from -mm tree
+Date: Wed, 30 Jan 2008 17:13:37 -0800
+Message-ID: <200801310113.m0V1DbZI001723@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38680 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47267 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752595AbYAaBLo (ORCPT
+	by vger.kernel.org with ESMTP id S1751061AbYAaBNt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jan 2008 20:11:44 -0500
+	Wed, 30 Jan 2008 20:13:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: johnstul@us.ibm.com, mingo@elte.hu, rostedt@goodmis.org, tglx@linutronix.de, zippel@linux-m68k.org
+To: pbadari@us.ibm.com, benh@kernel.crashing.org, galak@gate.crashing.org, haveblue@us.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, paulus@samba.org, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ntp: correct inconsistent interval/tick_length usage
-has been added to the -mm tree.  Its filename is
-     correct-inconsistent-ntp-interval-tick_length-usage.patch
+     add remove_memory() for ppc64
+has been removed from the -mm tree.  Its filename was
+     add-remove_memory-for-ppc64-2.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ntp: correct inconsistent interval/tick_length usage
-From: john stultz <johnstul@us.ibm.com>
+Subject: add remove_memory() for ppc64
+From: Badari Pulavarty <pbadari@us.ibm.com>
 
-Correct NTP drift caused by using inconsistent NTP_INTERVAL_LENGTHs in
-clocksource initialization and error accumulation.  This corrects a 280ppm
-drift seen on some systems using acpi_pm, and affects other clocksources as
-well (likely to a lesser degree).
+remove_memory() is common across ia64, ppc64.  There is no point in
+providing exactly same arch-specific routines.  Make this generic and add
+arch-specific hooks if needed by any other archs.
 
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Kumar Gala <galak@gate.crashing.org>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/timex.h |    8 +++++++-
- kernel/time/ntp.c     |    4 ----
- 2 files changed, 7 insertions(+), 5 deletions(-)
+ arch/ia64/mm/init.c |   17 -----------------
+ mm/memory_hotplug.c |   16 ++++++++++++++++
+ 2 files changed, 16 insertions(+), 17 deletions(-)
 
-diff -puN include/linux/timex.h~correct-inconsistent-ntp-interval-tick_length-usage include/linux/timex.h
---- a/include/linux/timex.h~correct-inconsistent-ntp-interval-tick_length-usage
-+++ a/include/linux/timex.h
-@@ -232,7 +232,13 @@ static inline int ntp_synced(void)
- #else
- #define NTP_INTERVAL_FREQ  (HZ)
+diff -puN arch/ia64/mm/init.c~add-remove_memory-for-ppc64-2 arch/ia64/mm/init.c
+--- a/arch/ia64/mm/init.c~add-remove_memory-for-ppc64-2
++++ a/arch/ia64/mm/init.c
+@@ -718,21 +718,4 @@ int arch_add_memory(int nid, u64 start, 
+ 
+ 	return ret;
+ }
+-#ifdef CONFIG_MEMORY_HOTREMOVE
+-int remove_memory(u64 start, u64 size)
+-{
+-	unsigned long start_pfn, end_pfn;
+-	unsigned long timeout = 120 * HZ;
+-	int ret;
+-	start_pfn = start >> PAGE_SHIFT;
+-	end_pfn = start_pfn + (size >> PAGE_SHIFT);
+-	ret = offline_pages(start_pfn, end_pfn, timeout);
+-	if (ret)
+-		goto out;
+-	/* we can free mem_map at this point */
+-out:
+-	return ret;
+-}
+-EXPORT_SYMBOL_GPL(remove_memory);
+-#endif /* CONFIG_MEMORY_HOTREMOVE */
  #endif
--#define NTP_INTERVAL_LENGTH (NSEC_PER_SEC/NTP_INTERVAL_FREQ)
-+
-+#define CLOCK_TICK_OVERFLOW	(LATCH * HZ - CLOCK_TICK_RATE)
-+#define CLOCK_TICK_ADJUST	(((s64)CLOCK_TICK_OVERFLOW * NSEC_PER_SEC) / \
-+					(s64)CLOCK_TICK_RATE)
-+
-+/* Because using NSEC_PER_SEC would be too easy */
-+#define NTP_INTERVAL_LENGTH ((((s64)TICK_USEC*NSEC_PER_USEC*USER_HZ)+CLOCK_TICK_ADJUST)/NTP_INTERVAL_FREQ)
+diff -puN mm/memory_hotplug.c~add-remove_memory-for-ppc64-2 mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~add-remove_memory-for-ppc64-2
++++ a/mm/memory_hotplug.c
+@@ -653,6 +653,22 @@ failed_removal:
  
- /* Returns how long ticks are at present, in ns / 2^(SHIFT_SCALE-10). */
- extern u64 current_tick_length(void);
-diff -puN kernel/time/ntp.c~correct-inconsistent-ntp-interval-tick_length-usage kernel/time/ntp.c
---- a/kernel/time/ntp.c~correct-inconsistent-ntp-interval-tick_length-usage
-+++ a/kernel/time/ntp.c
-@@ -43,10 +43,6 @@ long time_freq;				/* frequency offset (
- static long time_reftime;		/* time at last adjustment (s)	*/
- long time_adjust;
- 
--#define CLOCK_TICK_OVERFLOW	(LATCH * HZ - CLOCK_TICK_RATE)
--#define CLOCK_TICK_ADJUST	(((s64)CLOCK_TICK_OVERFLOW * NSEC_PER_SEC) / \
--					(s64)CLOCK_TICK_RATE)
--
- static void ntp_update_frequency(void)
+ 	return ret;
+ }
++
++int remove_memory(u64 start, u64 size)
++{
++	unsigned long start_pfn, end_pfn;
++	int ret;
++
++	start_pfn = start >> PAGE_SHIFT;
++	end_pfn = start_pfn + (size >> PAGE_SHIFT);
++	ret = offline_pages(start_pfn, end_pfn, 120 * HZ);
++	if (ret)
++		goto out;
++	/* we can free mem_map at this point */
++out:
++	return ret;
++}
++EXPORT_SYMBOL_GPL(remove_memory);
+ #else
+ int remove_memory(u64 start, u64 size)
  {
- 	u64 second_length = (u64)(tick_usec * NSEC_PER_USEC * USER_HZ)
 _
 
-Patches currently in -mm which might be from johnstul@us.ibm.com are
+Patches currently in -mm which might be from pbadari@us.ibm.com are
 
-git-x86.patch
-time-fix-sysfs_show_availablecurrent_clocksources-buffer-overflow-problem.patch
-add-hpet-rtc-emulation-to-rtc_drv_cmos.patch
-clocksource-remove-redundant-code.patch
-clockevent-simplify-list-operations.patch
-timekeeping-rename-timekeeping_is_continuous-to-timekeeping_valid_for_hres.patch
-time-fix-typo-in-comments.patch
-time-delete-comments-that-refer-to-noexistent-symbols.patch
-correct-inconsistent-ntp-interval-tick_length-usage.patch
+hugetlb-allow-sticky-directory-mount-option.patch
+memory-hotplug-add-removable-to-sysfs-to-show-memblock-removability.patch
+add-remove_memory-for-ppc64-2.patch
+enable-hotplug-memory-remove-for-ppc64.patch
+add-arch-specific-walk_memory_remove-for-ppc64.patch
+mem-controller-gfp-mask-fix.patch
+mount-options-fix-hugetlbfs.patch
