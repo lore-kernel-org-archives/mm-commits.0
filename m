@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + frv-use-find_task_by_vpid-in-cxn_pin_by_pid.patch added to -mm tree
-Date: Wed, 30 Jan 2008 17:07:21 -0800
-Message-ID: <200801310107.m0V17N4I001525@imap1.linux-foundation.org>
+Subject: + gfs2-make-gfs2_holdergh_owner_pid-be-a-struct-pid.patch added to -mm tree
+Date: Wed, 30 Jan 2008 17:07:19 -0800
+Message-ID: <200801310107.m0V17K5H001522@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33066 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46700 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757164AbYAaBIc (ORCPT
+	by vger.kernel.org with ESMTP id S1754166AbYAaBIa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jan 2008 20:08:32 -0500
+	Wed, 30 Jan 2008 20:08:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xemul@openvz.org, dhowells@redhat.com, ebiederm@xmission.com
+Cc: xemul@openvz.org, ebiederm@xmission.com, swhiteho@redhat.com
 
 
 The patch titled
-     frv: use find_task_by_vpid in cxn_pin_by_pid
+     gfs2: make gfs2_holder.gh_owner_pid be a struct pid *
 has been added to the -mm tree.  Its filename is
-     frv-use-find_task_by_vpid-in-cxn_pin_by_pid.patch
+     gfs2-make-gfs2_holdergh_owner_pid-be-a-struct-pid.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,120 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: frv: use find_task_by_vpid in cxn_pin_by_pid
+Subject: gfs2: make gfs2_holder.gh_owner_pid be a struct pid *
 From: Pavel Emelyanov <xemul@openvz.org>
 
-The function is question gets the pid from sysctl table, so this one is a
-virtual pid, i.e.  the pid of a task as it is seen from inside a namespace.
-
-So the find_task_by_vpid() must be used here.
+The gl_owner_pid field is used to get the holder task by its pid and check
+whether the current is a holder, so make it in a proper manner, i.e.  via the
+struct pid * manipulations.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: David Howells <dhowells@redhat.com>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/mm/mmu-context.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/gfs2/glock.c  |   18 +++++++++++-------
+ fs/gfs2/glock.h  |    4 +++-
+ fs/gfs2/incore.h |    2 +-
+ 3 files changed, 15 insertions(+), 9 deletions(-)
 
-diff -puN arch/frv/mm/mmu-context.c~frv-use-find_task_by_vpid-in-cxn_pin_by_pid arch/frv/mm/mmu-context.c
---- a/arch/frv/mm/mmu-context.c~frv-use-find_task_by_vpid-in-cxn_pin_by_pid
-+++ a/arch/frv/mm/mmu-context.c
-@@ -181,7 +181,7 @@ int cxn_pin_by_pid(pid_t pid)
+diff -puN fs/gfs2/glock.c~gfs2-make-gfs2_holdergh_owner_pid-be-a-struct-pid fs/gfs2/glock.c
+--- a/fs/gfs2/glock.c~gfs2-make-gfs2_holdergh_owner_pid-be-a-struct-pid
++++ a/fs/gfs2/glock.c
+@@ -399,7 +399,7 @@ void gfs2_holder_init(struct gfs2_glock 
+ 	INIT_LIST_HEAD(&gh->gh_list);
+ 	gh->gh_gl = gl;
+ 	gh->gh_ip = (unsigned long)__builtin_return_address(0);
+-	gh->gh_owner_pid = current->pid;
++	gh->gh_owner_pid = get_pid(task_pid(current));
+ 	gh->gh_state = state;
+ 	gh->gh_flags = flags;
+ 	gh->gh_error = 0;
+@@ -433,6 +433,7 @@ void gfs2_holder_reinit(unsigned int sta
  
- 	/* get a handle on the mm_struct */
- 	read_lock(&tasklist_lock);
--	tsk = find_task_by_pid(pid);
-+	tsk = find_task_by_vpid(pid);
- 	if (tsk) {
- 		ret = -EINVAL;
+ void gfs2_holder_uninit(struct gfs2_holder *gh)
+ {
++	put_pid(gh->gh_owner_pid);
+ 	gfs2_glock_put(gh->gh_gl);
+ 	gh->gh_gl = NULL;
+ 	gh->gh_ip = 0;
+@@ -1050,7 +1051,7 @@ static int glock_wait_internal(struct gf
+ }
+ 
+ static inline struct gfs2_holder *
+-find_holder_by_owner(struct list_head *head, pid_t pid)
++find_holder_by_owner(struct list_head *head, struct pid *pid)
+ {
+ 	struct gfs2_holder *gh;
+ 
+@@ -1087,7 +1088,7 @@ static void add_to_queue(struct gfs2_hol
+ 	struct gfs2_glock *gl = gh->gh_gl;
+ 	struct gfs2_holder *existing;
+ 
+-	BUG_ON(!gh->gh_owner_pid);
++	BUG_ON(gh->gh_owner_pid == NULL);
+ 	if (test_and_set_bit(HIF_WAIT, &gh->gh_iflags))
+ 		BUG();
+ 
+@@ -1097,12 +1098,14 @@ static void add_to_queue(struct gfs2_hol
+ 		if (existing) {
+ 			print_symbol(KERN_WARNING "original: %s\n", 
+ 				     existing->gh_ip);
+-			printk(KERN_INFO "pid : %d\n", existing->gh_owner_pid);
++			printk(KERN_INFO "pid : %d\n",
++					pid_nr(existing->gh_owner_pid));
+ 			printk(KERN_INFO "lock type : %d lock state : %d\n",
+ 			       existing->gh_gl->gl_name.ln_type, 
+ 			       existing->gh_gl->gl_state);
+ 			print_symbol(KERN_WARNING "new: %s\n", gh->gh_ip);
+-			printk(KERN_INFO "pid : %d\n", gh->gh_owner_pid);
++			printk(KERN_INFO "pid : %d\n",
++					pid_nr(gh->gh_owner_pid));
+ 			printk(KERN_INFO "lock type : %d lock state : %d\n",
+ 			       gl->gl_name.ln_type, gl->gl_state);
+ 			BUG();
+@@ -1803,8 +1806,9 @@ static int dump_holder(struct glock_iter
+ 
+ 	print_dbg(gi, "  %s\n", str);
+ 	if (gh->gh_owner_pid) {
+-		print_dbg(gi, "    owner = %ld ", (long)gh->gh_owner_pid);
+-		gh_owner = find_task_by_pid(gh->gh_owner_pid);
++		print_dbg(gi, "    owner = %ld ",
++				(long)pid_nr(gh->gh_owner_pid));
++		gh_owner = pid_task(gh->gh_owner_pid, PIDTYPE_PID);
+ 		if (gh_owner)
+ 			print_dbg(gi, "(%s)\n", gh_owner->comm);
+ 		else
+diff -puN fs/gfs2/glock.h~gfs2-make-gfs2_holdergh_owner_pid-be-a-struct-pid fs/gfs2/glock.h
+--- a/fs/gfs2/glock.h~gfs2-make-gfs2_holdergh_owner_pid-be-a-struct-pid
++++ a/fs/gfs2/glock.h
+@@ -36,11 +36,13 @@ static inline int gfs2_glock_is_locked_b
+ {
+ 	struct gfs2_holder *gh;
+ 	int locked = 0;
++	struct pid *pid;
+ 
+ 	/* Look in glock's list of holders for one with current task as owner */
+ 	spin_lock(&gl->gl_spin);
++	pid = task_pid(current);
+ 	list_for_each_entry(gh, &gl->gl_holders, gh_list) {
+-		if (gh->gh_owner_pid == current->pid) {
++		if (gh->gh_owner_pid == pid) {
+ 			locked = 1;
+ 			break;
+ 		}
+diff -puN fs/gfs2/incore.h~gfs2-make-gfs2_holdergh_owner_pid-be-a-struct-pid fs/gfs2/incore.h
+--- a/fs/gfs2/incore.h~gfs2-make-gfs2_holdergh_owner_pid-be-a-struct-pid
++++ a/fs/gfs2/incore.h
+@@ -151,7 +151,7 @@ struct gfs2_holder {
+ 	struct list_head gh_list;
+ 
+ 	struct gfs2_glock *gh_gl;
+-	pid_t gh_owner_pid;
++	struct pid *gh_owner_pid;
+ 	unsigned int gh_state;
+ 	unsigned gh_flags;
  
 _
 
