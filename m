@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cpu-fix-section-mismatch-warnings-for-enable_nonboot_cpus.patch added to -mm tree
-Date: Thu, 31 Jan 2008 14:45:33 -0800
-Message-ID: <200801312245.m0VMjXGw015191@imap1.linux-foundation.org>
+Subject: + cpu-silence-section-mismatch-warnings-for-hotcpu-notifies.patch added to -mm tree
+Date: Thu, 31 Jan 2008 14:45:39 -0800
+Message-ID: <200801312245.m0VMje3p015200@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51055 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36411 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762366AbYAaWpr (ORCPT
+	by vger.kernel.org with ESMTP id S1763911AbYAaWps (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 Jan 2008 17:45:47 -0500
+	Thu, 31 Jan 2008 17:45:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: sam@ravnborg.org, ego@in.ibm.com
 
 
 The patch titled
-     cpu: fix section mismatch warnings for enable_nonboot_cpus
+     cpu: silence section mismatch warnings for hotcpu notifies
 has been added to the -mm tree.  Its filename is
-     cpu-fix-section-mismatch-warnings-for-enable_nonboot_cpus.patch
+     cpu-silence-section-mismatch-warnings-for-hotcpu-notifies.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpu: fix section mismatch warnings for enable_nonboot_cpus
+Subject: cpu: silence section mismatch warnings for hotcpu notifies
 From: Sam Ravnborg <sam@ravnborg.org>
 
-Fix following warning:
-WARNING: o-x86_64/kernel/built-in.o(.text+0x36d8b): Section mismatch in reference from the function enable_nonboot_cpus() to the function .cpuinit.text:_cpu_up()
+The hotcpu_notifier is used to create notifiers to be called later.
+It really looks like the functions that are registered are only
+relevant in a HOTPLUG_CPU configuration and the correct fix was
+to wrap them in an #ifdef / #endif or similar.
+But for now just tell modpost to silence the warning by annotating
+the static variable with __refdata.
 
-enable_nonboot_cpus() are used solely from CONFIG_CONFIG_PM_SLEEP_SMP=y
-and PM_SLEEP_SMP imply HOTPLUG_CPU therefore the reference
-to _cpu_up() is valid.
-Annotate enable_nonboot_cpus() with __ref to silence modpost.
+This silences the following warnings in kernel/:
+WARNING: o-x86_64/kernel/built-in.o(.data+0x960): Section mismatch in reference from the variable profile_cpu_callback_nb.17240 to the function .devinit.text:profile_cpu_callback()
+WARNING: o-x86_64/kernel/built-in.o(.data+0x3fa0): Section mismatch in reference from the variable workqueue_cpu_callback_nb.14663 to the function .devinit.text:workqueue_cpu_callback()
+WARNING: o-x86_64/kernel/built-in.o(.data+0xe280): Section mismatch in reference from the variable relay_hotcpu_callback_nb.19247 to the function .cpuinit.text:relay_hotcpu_callback()
+
+Additional warnings are silenced with this change but
+they are left put.
+
+This patch is just a workaround for the bad practice
+to use __cpuinit to annotate code solely used for
+HOTPLUG_CPU.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 Cc: Gautham R Shenoy <ego@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpu.c |    2 +-
+ include/linux/cpu.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/cpu.c~cpu-fix-section-mismatch-warnings-for-enable_nonboot_cpus kernel/cpu.c
---- a/kernel/cpu.c~cpu-fix-section-mismatch-warnings-for-enable_nonboot_cpus
-+++ a/kernel/cpu.c
-@@ -389,7 +389,7 @@ int disable_nonboot_cpus(void)
- 	return error;
+diff -puN include/linux/cpu.h~cpu-silence-section-mismatch-warnings-for-hotcpu-notifies include/linux/cpu.h
+--- a/include/linux/cpu.h~cpu-silence-section-mismatch-warnings-for-hotcpu-notifies
++++ a/include/linux/cpu.h
+@@ -109,7 +109,7 @@ static inline void cpuhotplug_mutex_unlo
+ extern void get_online_cpus(void);
+ extern void put_online_cpus(void);
+ #define hotcpu_notifier(fn, pri) {				\
+-	static struct notifier_block fn##_nb =			\
++	static struct notifier_block fn##_nb __refdata =	\
+ 		{ .notifier_call = fn, .priority = pri };	\
+ 	register_cpu_notifier(&fn##_nb);			\
  }
- 
--void enable_nonboot_cpus(void)
-+void __ref enable_nonboot_cpus(void)
- {
- 	int cpu, error;
- 
 _
 
 Patches currently in -mm which might be from sam@ravnborg.org are
