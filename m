@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + get-rid-of-the-kill_pgrp_info-function.patch added to -mm tree
-Date: Thu, 31 Jan 2008 13:56:34 -0800
-Message-ID: <200801312156.m0VLuYFk013285@imap1.linux-foundation.org>
+Subject: + use-__u32-in-linux-reiserfs_fsh.patch added to -mm tree
+Date: Thu, 31 Jan 2008 13:57:21 -0800
+Message-ID: <200801312157.m0VLvL27013305@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57978 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54758 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760372AbYAaV5V (ORCPT
+	by vger.kernel.org with ESMTP id S1760631AbYAaV57 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 Jan 2008 16:57:21 -0500
+	Thu, 31 Jan 2008 16:57:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xemul@openvz.org, balbir@in.ibm.com, ebiederm@xmission.com, oleg@tv-sign.ru
+Cc: vapier@gentoo.org
 
 
 The patch titled
-     Get rid of the kill_pgrp_info() function
+     use __u32 in linux/reiserfs_fs.h
 has been added to the -mm tree.  Its filename is
-     get-rid-of-the-kill_pgrp_info-function.patch
+     use-__u32-in-linux-reiserfs_fsh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,160 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Get rid of the kill_pgrp_info() function
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: use __u32 in linux/reiserfs_fs.h
+From: Mike Frysinger <vapier@gentoo.org>
 
-There's only one caller left - the kill_pgrp one - so merge these two
-functions and forget the kill_pgrp_info one.
+Since this header is exported to userspace and all the other types in the
+header have been scrubbed, this brings the last straggler in line.
 
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Reviewed-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    1 -
- kernel/signal.c       |   19 +++++++------------
- 2 files changed, 7 insertions(+), 13 deletions(-)
+ include/linux/reiserfs_fs.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/sched.h~get-rid-of-the-kill_pgrp_info-function include/linux/sched.h
---- a/include/linux/sched.h~get-rid-of-the-kill_pgrp_info-function
-+++ a/include/linux/sched.h
-@@ -1687,7 +1687,6 @@ extern int send_sig_info(int, struct sig
- extern int force_sigsegv(int, struct task_struct *);
- extern int force_sig_info(int, struct siginfo *, struct task_struct *);
- extern int __kill_pgrp_info(int sig, struct siginfo *info, struct pid *pgrp);
--extern int kill_pgrp_info(int sig, struct siginfo *info, struct pid *pgrp);
- extern int kill_pid_info(int sig, struct siginfo *info, struct pid *pid);
- extern int kill_pid_info_as_uid(int, struct siginfo *, struct pid *, uid_t, uid_t, u32);
- extern int kill_pgrp(struct pid *pid, int sig, int priv);
-diff -puN kernel/signal.c~get-rid-of-the-kill_pgrp_info-function kernel/signal.c
---- a/kernel/signal.c~get-rid-of-the-kill_pgrp_info-function
-+++ a/kernel/signal.c
-@@ -1036,17 +1036,6 @@ int __kill_pgrp_info(int sig, struct sig
- 	return success ? 0 : retval;
- }
+diff -puN include/linux/reiserfs_fs.h~use-__u32-in-linux-reiserfs_fsh include/linux/reiserfs_fs.h
+--- a/include/linux/reiserfs_fs.h~use-__u32-in-linux-reiserfs_fsh
++++ a/include/linux/reiserfs_fs.h
+@@ -287,7 +287,7 @@ static inline struct reiserfs_sb_info *R
  
--int kill_pgrp_info(int sig, struct siginfo *info, struct pid *pgrp)
--{
--	int retval;
--
--	read_lock(&tasklist_lock);
--	retval = __kill_pgrp_info(sig, info, pgrp);
--	read_unlock(&tasklist_lock);
--
--	return retval;
--}
--
- int kill_pid_info(int sig, struct siginfo *info, struct pid *pid)
+ /* Don't trust REISERFS_SB(sb)->s_bmap_nr, it's a u16
+  * which overflows on large file systems. */
+-static inline u32 reiserfs_bmap_count(struct super_block *sb)
++static inline __u32 reiserfs_bmap_count(struct super_block *sb)
  {
- 	int error = -ESRCH;
-@@ -1235,7 +1224,13 @@ force_sigsegv(int sig, struct task_struc
- 
- int kill_pgrp(struct pid *pid, int sig, int priv)
- {
--	return kill_pgrp_info(sig, __si_special(priv), pid);
-+	int ret;
-+
-+	read_lock(&tasklist_lock);
-+	ret = __kill_pgrp_info(sig, __si_special(priv), pid);
-+	read_unlock(&tasklist_lock);
-+
-+	return ret;
+ 	return (SB_BLOCK_COUNT(sb) - 1) / (sb->s_blocksize * 8) + 1;
  }
- EXPORT_SYMBOL(kill_pgrp);
- 
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
-origin.patch
-use-find_task_by_vpid-in-audit-code.patch
-gfs2-make-gfs2_glockgl_owner_pid-be-a-struct-pid.patch
-gfs2-make-gfs2_holdergh_owner_pid-be-a-struct-pid.patch
-ia64-make-pfm_get_task-work-with-virtual-pids.patch
-ia64-fix-ptrace-inside-a-namespace.patch
-mips-use-find_task_by_vpid-in-system-calls.patch
-git-net.patch
-shmem-factor-out-sbi-free_inodes-manipulations.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-frv-use-find_task_by_vpid-in-cxn_pin_by_pid.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-memcgroup-reinstate-swapoff-mod.patch
-bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
-bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
-bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
-bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
-memcgroup-fix-zone-isolation-oom.patch
-memcgroup-revert-swap_state-mods.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
-memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
-memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
-memory-cgroup-enhancements-add-pre_destroy-handler.patch
-memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
-handle-pid-namespaces-in-cgroups-code.patch
-add-the-namespaces-config-option.patch
-move-the-uts-namespace-under-uts_ns-option.patch
-move-the-ipc-namespace-under-ipc_ns-option.patch
-cleanup-the-code-managed-with-the-user_ns-option.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-mark-net_ns-with-depends-on-namespaces.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-proper-pidns-handling-for-proc-self.patch
-proc-fix-the-threaded-proc-self.patch
-ipc-uninline-some-code-from-utilh.patch
-ipc-make-struct-ipc_ids-static-in-ipc_namespace.patch
-ipc-consolidate-sem_exit_ns-msg_exit_ns-and-shm_exit_ns.patch
-sys_setpgid-simplify-pid-ns-interaction.patch
-fix-setsid-for-sub-namespace-sbin-init.patch
-teach-set_special_pids-to-use-struct-pid.patch
-move-daemonized-kernel-threads-into-the-swappers-session.patch
-start-the-global-sbin-init-with-00-special-pids.patch
-pid-sys_wait-fixes-v2.patch
-pid-extend-fix-pid_vnr.patch
-sys_getsid-dont-use-nsproxy-directly.patch
-pid-fix-mips-irix-emulation-pid-usage.patch
-pid-fix-mips-irix-emulation-pid-usage-fix.patch
-pid-fix-solaris_procids.patch
-uglify-kill_pid_info-to-fix-kill-vs-exec-race.patch
-uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice.patch
-itimer_real-convert-to-use-struct-pid.patch
-pidns-make-full-use-of-xxx_vnr-calls.patch
-pidns-fix-badly-converted-mqueues-pid-handling.patch
-clean-up-the-kill_something_info.patch
-get-rid-of-the-kill_pgrp_info-function.patch
-use-find_task_by_vpid-in-posix-timers.patch
-use-find_task_by_vpid-in-taskstats.patch
-dont-operate-with-pid_t-in-rtmutex-tester.patch
-deprecate-find_task_by_pid.patch
-reiser4.patch
+git-kbuild.patch
+asm-posix_typesh-scrub-__glibc__.patch
+procfs-constify-function-pointer-tables.patch
+remove-__strict_ansi__-from-linux-typesh.patch
+linux-typesh-always-export-64bit-aligned-defines.patch
+drop-linux-ufs_fsh-from-userspace-export-and-relocate-it-to-fs-ufs-ufs_fsh.patch
+use-__u32-in-linux-reiserfs_fsh.patch
