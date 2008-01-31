@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + handle-pid-namespaces-in-cgroups-code.patch added to -mm tree
-Date: Wed, 30 Jan 2008 17:07:14 -0800
-Message-ID: <200801310107.m0V17Fpa001509@imap1.linux-foundation.org>
+Subject: + ia64-make-pfm_get_task-work-with-virtual-pids.patch added to -mm tree
+Date: Wed, 30 Jan 2008 17:07:24 -0800
+Message-ID: <200801310107.m0V17OXV001528@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43622 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37086 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754068AbYAaBHz (ORCPT
+	by vger.kernel.org with ESMTP id S1756442AbYAaBIG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jan 2008 20:07:55 -0500
+	Wed, 30 Jan 2008 20:08:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xemul@openvz.org, ebiederm@xmission.com, menage@google.com
+Cc: xemul@openvz.org, ebiederm@xmission.com, tony.luck@intel.com
 
 
 The patch titled
-     Handle pid namespaces in cgroups code
+     ia64: make pfm_get_task work with virtual pids
 has been added to the -mm tree.  Its filename is
-     handle-pid-namespaces-in-cgroups-code.patch
+     ia64-make-pfm_get_task-work-with-virtual-pids.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Handle pid namespaces in cgroups code
+Subject: ia64: make pfm_get_task work with virtual pids
 From: Pavel Emelyanov <xemul@openvz.org>
 
-There's one place that works with task pids - its the "tasks" file in cgroups.
- The read/write handlers assume, that the pid values go to/come from the user
-space and thus it is a virtual pid, i.e.  the pid as it is seen from inside a
-namespace.
-
-Tune the code accordingly.
+This pid comes from user space, so treat it accordingly.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Acked-by: Paul Menage <menage@google.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    4 ++--
+ arch/ia64/kernel/perfmon.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/cgroup.c~handle-pid-namespaces-in-cgroups-code kernel/cgroup.c
---- a/kernel/cgroup.c~handle-pid-namespaces-in-cgroups-code
-+++ a/kernel/cgroup.c
-@@ -1269,7 +1269,7 @@ static int attach_task_by_pid(struct cgr
+diff -puN arch/ia64/kernel/perfmon.c~ia64-make-pfm_get_task-work-with-virtual-pids arch/ia64/kernel/perfmon.c
+--- a/arch/ia64/kernel/perfmon.c~ia64-make-pfm_get_task-work-with-virtual-pids
++++ a/arch/ia64/kernel/perfmon.c
+@@ -2654,11 +2654,11 @@ pfm_get_task(pfm_context_t *ctx, pid_t p
+ 	/* XXX: need to add more checks here */
+ 	if (pid < 2) return -EPERM;
  
- 	if (pid) {
- 		rcu_read_lock();
--		tsk = find_task_by_pid(pid);
-+		tsk = find_task_by_vpid(pid);
- 		if (!tsk || tsk->flags & PF_EXITING) {
- 			rcu_read_unlock();
- 			return -ESRCH;
-@@ -1955,7 +1955,7 @@ static int pid_array_load(pid_t *pidarra
- 	while ((tsk = cgroup_iter_next(cgrp, &it))) {
- 		if (unlikely(n == npids))
- 			break;
--		pidarray[n++] = task_pid_nr(tsk);
-+		pidarray[n++] = task_pid_vnr(tsk);
- 	}
- 	cgroup_iter_end(cgrp, &it);
- 	return n;
+-	if (pid != current->pid) {
++	if (pid != task_pid_vnr(current)) {
+ 
+ 		read_lock(&tasklist_lock);
+ 
+-		p = find_task_by_pid(pid);
++		p = find_task_by_vpid(pid);
+ 
+ 		/* make sure task cannot go away while we operate on it */
+ 		if (p) get_task_struct(p);
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
