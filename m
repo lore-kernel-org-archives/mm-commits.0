@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pci-fix-section-mismatch-warnings-referring-to-pci_do_scan_bus.patch added to -mm tree
-Date: Thu, 31 Jan 2008 14:45:29 -0800
-Message-ID: <200801312245.m0VMjUgF015185@imap1.linux-foundation.org>
+Subject: + mm-fix-section-mismatch-warning-in-sparsec.patch added to -mm tree
+Date: Thu, 31 Jan 2008 14:45:41 -0800
+Message-ID: <200801312245.m0VMjffa015203@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33425 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51737 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761444AbYAaWp4 (ORCPT
+	by vger.kernel.org with ESMTP id S1762197AbYAaWqI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 Jan 2008 17:45:56 -0500
+	Thu, 31 Jan 2008 17:46:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sam@ravnborg.org, bunk@kernel.org, gregkh@suse.de
+Cc: sam@ravnborg.org, apw@shadowen.org, clameter@sgi.com, mel@csn.ul.ie
 
 
 The patch titled
-     pci: fix section mismatch warnings referring to pci_do_scan_bus
+     mm: fix section mismatch warning in sparse.c
 has been added to the -mm tree.  Its filename is
-     pci-fix-section-mismatch-warnings-referring-to-pci_do_scan_bus.patch
+     mm-fix-section-mismatch-warning-in-sparsec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,101 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci: fix section mismatch warnings referring to pci_do_scan_bus
+Subject: mm: fix section mismatch warning in sparse.c
 From: Sam Ravnborg <sam@ravnborg.org>
 
-Fix following warnings:
-WARNING: o-x86_64/drivers/pci/built-in.o(.text+0xb054): Section mismatch in reference from the function cpci_configure_slot() to the function .devinit.text:pci_do_scan_bus()
-WARNING: o-x86_64/drivers/pci/built-in.o(.text+0x153ab): Section mismatch in reference from the function shpchp_configure_device() to the function .devinit.text:pci_do_scan_bus()
-WARNING: o-x86_64/drivers/pci/built-in.o(__ksymtab+0xc0): Section mismatch in reference from the variable __ksymtab_pci_do_scan_bus to the function .devinit.text:pci_do_scan_bus()
+Fix following warning:
+WARNING: mm/built-in.o(.text+0x22069): Section mismatch in reference from the function sparse_early_usemap_alloc() to the function .init.text:__alloc_bootmem_node()
 
-PCI hotplug were the only user of pci_do_scan_bus()
-so moving this function to the directory of
-PCI Hotplug was a logical way to fix so
-we only include this function in the kernel
-when the CONFIG_HOTPLUG_PCI is enabled.
-
-Then the abuse of __devinit could be dropped and
-we no longer trigger the above warnings.
+static sparse_early_usemap_alloc() were used only by sparse_init()
+and with sparse_init() annotated _init it is safe to
+annotate sparse_early_usemap_alloc with __init too.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Greg KH <gregkh@suse.de>
-Cc: Adrian Bunk <bunk@kernel.org>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/hotplug/Makefile   |    1 +
- drivers/pci/hotplug/pci-core.c |   20 ++++++++++++++++++++
- drivers/pci/probe.c            |   15 ---------------
- 3 files changed, 21 insertions(+), 15 deletions(-)
+ mm/sparse.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pci/hotplug/Makefile~pci-fix-section-mismatch-warnings-referring-to-pci_do_scan_bus drivers/pci/hotplug/Makefile
---- a/drivers/pci/hotplug/Makefile~pci-fix-section-mismatch-warnings-referring-to-pci_do_scan_bus
-+++ a/drivers/pci/hotplug/Makefile
-@@ -1,6 +1,7 @@
- #
- # Makefile for the Linux kernel pci hotplug controller drivers.
- #
-+obj-y := pci-core.o
- 
- obj-$(CONFIG_HOTPLUG_PCI)		+= pci_hotplug.o
- obj-$(CONFIG_HOTPLUG_PCI_COMPAQ)	+= cpqphp.o
-diff -puN /dev/null drivers/pci/hotplug/pci-core.c
---- /dev/null
-+++ a/drivers/pci/hotplug/pci-core.c
-@@ -0,0 +1,20 @@
-+/* Core PCI functionality used only by PCI hotplug */
-+
-+#include <linux/pci.h>
-+#include "../pci.h"
-+
-+
-+unsigned int pci_do_scan_bus(struct pci_bus *bus)
-+{
-+	unsigned int max;
-+
-+	max = pci_scan_child_bus(bus);
-+
-+	/*
-+	 * Make the discovered devices available.
-+	 */
-+	pci_bus_add_devices(bus);
-+
-+	return max;
-+}
-+EXPORT_SYMBOL(pci_do_scan_bus);
-diff -puN drivers/pci/probe.c~pci-fix-section-mismatch-warnings-referring-to-pci_do_scan_bus drivers/pci/probe.c
---- a/drivers/pci/probe.c~pci-fix-section-mismatch-warnings-referring-to-pci_do_scan_bus
-+++ a/drivers/pci/probe.c
-@@ -1076,20 +1076,6 @@ unsigned int pci_scan_child_bus(struct p
- 	return max;
+diff -puN mm/sparse.c~mm-fix-section-mismatch-warning-in-sparsec mm/sparse.c
+--- a/mm/sparse.c~mm-fix-section-mismatch-warning-in-sparsec
++++ a/mm/sparse.c
+@@ -237,7 +237,7 @@ static unsigned long *__kmalloc_section_
  }
+ #endif /* CONFIG_MEMORY_HOTPLUG */
  
--unsigned int __devinit pci_do_scan_bus(struct pci_bus *bus)
--{
--	unsigned int max;
--
--	max = pci_scan_child_bus(bus);
--
--	/*
--	 * Make the discovered devices available.
--	 */
--	pci_bus_add_devices(bus);
--
--	return max;
--}
--
- struct pci_bus * pci_create_bus(struct device *parent,
- 		int bus, struct pci_ops *ops, void *sysdata)
+-static unsigned long *sparse_early_usemap_alloc(unsigned long pnum)
++static unsigned long *__init sparse_early_usemap_alloc(unsigned long pnum)
  {
-@@ -1176,7 +1162,6 @@ EXPORT_SYMBOL(pci_scan_bus_parented);
- 
- #ifdef CONFIG_HOTPLUG
- EXPORT_SYMBOL(pci_add_new_bus);
--EXPORT_SYMBOL(pci_do_scan_bus);
- EXPORT_SYMBOL(pci_scan_slot);
- EXPORT_SYMBOL(pci_scan_bridge);
- EXPORT_SYMBOL_GPL(pci_scan_child_bus);
+ 	unsigned long *usemap;
+ 	struct mem_section *ms = __nr_to_section(pnum);
 _
 
 Patches currently in -mm which might be from sam@ravnborg.org are
