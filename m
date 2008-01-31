@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + deprecate-find_task_by_pid.patch added to -mm tree
-Date: Wed, 30 Jan 2008 17:07:31 -0800
-Message-ID: <200801310107.m0V17V0O001537@imap1.linux-foundation.org>
+Subject: + mips-use-find_task_by_vpid-in-system-calls.patch added to -mm tree
+Date: Wed, 30 Jan 2008 17:07:28 -0800
+Message-ID: <200801310107.m0V17SS3001534@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36340 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43225 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750969AbYAaBQ0 (ORCPT
+	by vger.kernel.org with ESMTP id S1751847AbYAaBQd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jan 2008 20:16:26 -0500
+	Wed, 30 Jan 2008 20:16:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xemul@openvz.org, ebiederm@xmission.com
+Cc: xemul@openvz.org, ebiederm@xmission.com, ralf@linux-mips.org
 
 
 The patch titled
-     Deprecate find_task_by_pid()
+     mips: use find_task_by_vpid in system calls
 has been added to the -mm tree.  Its filename is
-     deprecate-find_task_by_pid.patch
+     mips-use-find_task_by_vpid-in-system-calls.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,107 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Deprecate find_task_by_pid()
+Subject: mips: use find_task_by_vpid in system calls
 From: Pavel Emelyanov <xemul@openvz.org>
 
-There are some places that are known to operate on tasks'
-global pids only:
-
-* the rest_init() call (called on boot)
-* the kgdb's getthread
-* the create_kthread() (since the kthread is run in init ns)
-
-So use the find_task_by_pid_ns(..., &init_pid_ns) there
-and schedule the find_task_by_pid for removal.
+There are some places left in mips, that lookup task in initial namespace,
+while the code doing so gets the pid from the user space and thus must treat
+it as virtual.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/feature-removal-schedule.txt |   18 ++++++++++++++++++
- include/linux/sched.h                      |    2 +-
- init/main.c                                |    2 +-
- kernel/kgdb.c                              |    2 +-
- kernel/kthread.c                           |    2 +-
- 5 files changed, 22 insertions(+), 4 deletions(-)
+ arch/mips/kernel/mips-mt-fpaff.c |    2 +-
+ arch/mips/kernel/sysirix.c       |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/feature-removal-schedule.txt~deprecate-find_task_by_pid Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~deprecate-find_task_by_pid
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -141,6 +141,24 @@ Who:	Kay Sievers <kay.sievers@suse.de>
- 
- ---------------------------
- 
-+What:	find_task_by_pid
-+When:	2.6.26
-+Why:	With pid namespaces, calling this funciton will return the
-+	wrong task when called from inside a namespace.
-+
-+	The best way to save a task pid and find a task by this
-+	pid later, is to find this task's struct pid pointer (or get
-+	it directly from the task) and call pid_task() later.
-+
-+	If someone really needs to get a task by its pid_t, then
-+	he most likely needs the find_task_by_vpid() to get the
-+	task from the same namespace as the current task is in, but
-+	this may be not so in general.
-+
-+Who:	Pavel Emelyanov <xemul@openvz.org>
-+
-+---------------------------
-+
- What:	ACPI procfs interface
- When:	July 2008
- Why:	ACPI sysfs conversion should be finished by January 2008.
-diff -puN include/linux/sched.h~deprecate-find_task_by_pid include/linux/sched.h
---- a/include/linux/sched.h~deprecate-find_task_by_pid
-+++ a/include/linux/sched.h
-@@ -1624,7 +1624,7 @@ extern struct pid_namespace init_pid_ns;
- extern struct task_struct *find_task_by_pid_type_ns(int type, int pid,
- 		struct pid_namespace *ns);
- 
--extern struct task_struct *find_task_by_pid(pid_t nr);
-+extern struct task_struct *find_task_by_pid(pid_t nr) __deprecated;
- extern struct task_struct *find_task_by_vpid(pid_t nr);
- extern struct task_struct *find_task_by_pid_ns(pid_t nr,
- 		struct pid_namespace *ns);
-diff -puN init/main.c~deprecate-find_task_by_pid init/main.c
---- a/init/main.c~deprecate-find_task_by_pid
-+++ a/init/main.c
-@@ -441,7 +441,7 @@ static void noinline __init_refok rest_i
- 	kernel_thread(kernel_init, NULL, CLONE_FS | CLONE_SIGHAND);
- 	numa_default_policy();
- 	pid = kernel_thread(kthreadd, NULL, CLONE_FS | CLONE_FILES);
--	kthreadd_task = find_task_by_pid(pid);
-+	kthreadd_task = find_task_by_pid_ns(pid, &init_pid_ns);
- 	unlock_kernel();
- 
- 	/*
-diff -puN kernel/kgdb.c~deprecate-find_task_by_pid kernel/kgdb.c
---- a/kernel/kgdb.c~deprecate-find_task_by_pid
-+++ a/kernel/kgdb.c
-@@ -641,7 +641,7 @@ static struct task_struct *getthread(str
- 	if (!tid)
- 		return NULL;
- 
--	return find_task_by_pid(tid);
-+	return find_task_by_pid_ns(tid, &init_pid_ns);
+diff -puN arch/mips/kernel/mips-mt-fpaff.c~mips-use-find_task_by_vpid-in-system-calls arch/mips/kernel/mips-mt-fpaff.c
+--- a/arch/mips/kernel/mips-mt-fpaff.c~mips-use-find_task_by_vpid-in-system-calls
++++ a/arch/mips/kernel/mips-mt-fpaff.c
+@@ -36,7 +36,7 @@ unsigned long mt_fpemul_threshold = 0;
+  */
+ static inline struct task_struct *find_process_by_pid(pid_t pid)
+ {
+-	return pid ? find_task_by_pid(pid) : current;
++	return pid ? find_task_by_vpid(pid) : current;
  }
  
- #ifdef CONFIG_SMP
-diff -puN kernel/kthread.c~deprecate-find_task_by_pid kernel/kthread.c
---- a/kernel/kthread.c~deprecate-find_task_by_pid
-+++ a/kernel/kthread.c
-@@ -99,7 +99,7 @@ static void create_kthread(struct kthrea
- 		struct sched_param param = { .sched_priority = 0 };
- 		wait_for_completion(&create->started);
+ 
+diff -puN arch/mips/kernel/sysirix.c~mips-use-find_task_by_vpid-in-system-calls arch/mips/kernel/sysirix.c
+--- a/arch/mips/kernel/sysirix.c~mips-use-find_task_by_vpid-in-system-calls
++++ a/arch/mips/kernel/sysirix.c
+@@ -111,7 +111,7 @@ asmlinkage int irix_prctl(unsigned optio
+ 		printk("irix_prctl[%s:%d]: Wants PR_ISBLOCKED\n",
+ 		       current->comm, current->pid);
  		read_lock(&tasklist_lock);
--		create->result = find_task_by_pid(pid);
-+		create->result = find_task_by_pid_ns(pid, &init_pid_ns);
- 		read_unlock(&tasklist_lock);
- 		/*
- 		 * root may have changed our (kthreadd's) priority or CPU mask.
+-		task = find_task_by_pid(va_arg(args, pid_t));
++		task = find_task_by_vpid(va_arg(args, pid_t));
+ 		error = -ESRCH;
+ 		if (error)
+ 			error = (task->run_list.next != NULL);
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
