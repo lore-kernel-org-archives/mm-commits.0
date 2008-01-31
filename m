@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-fix-startup-lock-when-using-multiple-nor-flash-chips.patch added to -mm tree
-Date: Thu, 31 Jan 2008 15:01:05 -0800
-Message-ID: <200801312301.m0VN1E7b015805@imap1.linux-foundation.org>
+Subject: + tun-dev-impossible-to-deassert-iff_one_queue-or-iff_no_pi.patch added to -mm tree
+Date: Thu, 31 Jan 2008 15:10:33 -0800
+Message-ID: <200801312310.m0VNAqKQ016153@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50820 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39537 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754083AbYAaXBb (ORCPT
+	by vger.kernel.org with ESMTP id S1754345AbYAaXLl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 Jan 2008 18:01:31 -0500
+	Thu, 31 Jan 2008 18:11:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davide@elpa.it, dwmw2@infradead.org
+Cc: nwfilardo@gmail.com, davem@davemloft.net, jeff@garzik.org, maxk@qualcomm.com
 
 
 The patch titled
-     MTD: fix startup lock when using multiple nor flash chips
+     tun: impossible to deassert IFF_ONE_QUEUE or IFF_NO_PI
 has been added to the -mm tree.  Its filename is
-     mtd-fix-startup-lock-when-using-multiple-nor-flash-chips.patch
+     tun-dev-impossible-to-deassert-iff_one_queue-or-iff_no_pi.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MTD: fix startup lock when using multiple nor flash chips
-From: Rizzo Davide <davide@elpa.it>
+Subject: tun: impossible to deassert IFF_ONE_QUEUE or IFF_NO_PI
+From: "Nathaniel Filardo" <nwfilardo@gmail.com>
 
-Taken from http://bugzilla.kernel.org/show_bug.cgi?id=9829
+Taken from http://bugzilla.kernel.org/show_bug.cgi?id=9806
 
-I found and solved the problem, at line 115 of drivers/mtd/chips/gen_probe.c
-(kernel 2.6.24): mapsize value must be calculated in bytes, not in long.
+The TUN/TAP driver only permits one-way transitions of IFF_NO_PI or
+IFF_ONE_QUEUE during the lifetime of a tap/tun interface.  Note that
+tun_set_iff contains
 
-Cc: David Woodhouse <dwmw2@infradead.org>
+ 541         if (ifr->ifr_flags & IFF_NO_PI)
+ 542                 tun->flags |= TUN_NO_PI;
+ 543 
+ 544         if (ifr->ifr_flags & IFF_ONE_QUEUE)
+ 545                 tun->flags |= TUN_ONE_QUEUE;
+
+This is easily fixed by adding else branches which clear these bits.
+
+Steps to reproduce:
+
+This is easily reproduced by setting an interface persistant using tunctl then
+attempting to open it as IFF_TAP or IFF_TUN, without asserting the IFF_NO_PI
+flag.  The ioctl() will succeed and the ifr.flags word is not modified, but the
+interface remains in IFF_NO_PI mode (as it was set by tunctl).
+
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Maxim Krasnyansky <maxk@qualcomm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/chips/gen_probe.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/tun.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/mtd/chips/gen_probe.c~mtd-fix-startup-lock-when-using-multiple-nor-flash-chips drivers/mtd/chips/gen_probe.c
---- a/drivers/mtd/chips/gen_probe.c~mtd-fix-startup-lock-when-using-multiple-nor-flash-chips
-+++ a/drivers/mtd/chips/gen_probe.c
-@@ -112,7 +112,7 @@ static struct cfi_private *genprobe_iden
- 		max_chips = 1;
- 	}
+diff -puN drivers/net/tun.c~tun-dev-impossible-to-deassert-iff_one_queue-or-iff_no_pi drivers/net/tun.c
+--- a/drivers/net/tun.c~tun-dev-impossible-to-deassert-iff_one_queue-or-iff_no_pi
++++ a/drivers/net/tun.c
+@@ -529,9 +529,13 @@ static int tun_set_iff(struct file *file
  
--	mapsize = (max_chips + BITS_PER_LONG-1) / BITS_PER_LONG;
-+	mapsize = sizeof(long) * ( (max_chips + BITS_PER_LONG-1) / BITS_PER_LONG );
- 	chip_map = kzalloc(mapsize, GFP_KERNEL);
- 	if (!chip_map) {
- 		printk(KERN_WARNING "%s: kmalloc failed for CFI chip map\n", map->name);
+ 	if (ifr->ifr_flags & IFF_NO_PI)
+ 		tun->flags |= TUN_NO_PI;
++	else
++		tun->flags &= ~TUN_NO_PI;
+ 
+ 	if (ifr->ifr_flags & IFF_ONE_QUEUE)
+ 		tun->flags |= TUN_ONE_QUEUE;
++	else
++		tun->flags &= ~TUN_ONE_QUEUE;
+ 
+ 	file->private_data = tun;
+ 	tun->attached = 1;
 _
 
-Patches currently in -mm which might be from davide@elpa.it are
+Patches currently in -mm which might be from nwfilardo@gmail.com are
 
-mtd-fix-startup-lock-when-using-multiple-nor-flash-chips.patch
+tun-dev-impossible-to-deassert-iff_one_queue-or-iff_no_pi.patch
