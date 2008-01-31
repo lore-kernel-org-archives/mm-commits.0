@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-doc-prevent-duplicate-description-output.patch added to -mm tree
-Date: Wed, 30 Jan 2008 17:00:20 -0800
-Message-ID: <200801310100.m0V10Od1001194@imap1.linux-foundation.org>
+Subject: + use-find_task_by_vpid-in-audit-code.patch added to -mm tree
+Date: Wed, 30 Jan 2008 17:07:06 -0800
+Message-ID: <200801310107.m0V176vj001500@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55026 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49059 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752222AbYAaBB2 (ORCPT
+	by vger.kernel.org with ESMTP id S1753735AbYAaBHk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jan 2008 20:01:28 -0500
+	Wed, 30 Jan 2008 20:07:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+Cc: xemul@openvz.org, ebiederm@xmission.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     kernel-doc: prevent duplicate description: output
+     Use find_task_by_vpid in audit code
 has been added to the -mm tree.  Its filename is
-     kernel-doc-prevent-duplicate-description-output.patch
+     use-find_task_by_vpid-in-audit-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,140 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel-doc: prevent duplicate description: output
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Use find_task_by_vpid in audit code
+From: Pavel Emelyanov <xemul@openvz.org>
 
-Prevent duplicate output of a Description: section when there is a "blank"
-("*") line between the initial function name/description line and the
-"Description:" header.
+The pid to lookup a task by is passed inside audit code via netlink message.
 
-Test case:  drivers/scsi/scsi_devinfo.c::scsi_init_devinfo().
+Thanks to Denis Lunev, netlink packets are now (since 2.6.24) _always_
+processed in the context of the sending task.  So this is correct to lookup
+the task with find_task_by_vpid() here.
 
-Rob Landley hit this while he was producing SCSI kernel-doc.
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kernel-doc |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/audit.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN scripts/kernel-doc~kernel-doc-prevent-duplicate-description-output scripts/kernel-doc
---- a/scripts/kernel-doc~kernel-doc-prevent-duplicate-description-output
-+++ a/scripts/kernel-doc
-@@ -1907,7 +1907,7 @@ sub process_file($) {
- 		$newsection = $1;
- 		$newcontents = $2;
+diff -puN kernel/audit.c~use-find_task_by_vpid-in-audit-code kernel/audit.c
+--- a/kernel/audit.c~use-find_task_by_vpid-in-audit-code
++++ a/kernel/audit.c
+@@ -385,7 +385,7 @@ static int audit_prepare_user_tty(pid_t 
+ 	int err;
  
--		if ($contents ne "") {
-+		if (($contents ne "") && ($contents ne "\n")) {
- 		    if (!$in_doc_sect && $verbose) {
- 			print STDERR "Warning(${file}:$.): contents before sections\n";
- 			++$warnings;
+ 	read_lock(&tasklist_lock);
+-	tsk = find_task_by_pid(pid);
++	tsk = find_task_by_vpid(pid);
+ 	err = -ESRCH;
+ 	if (!tsk)
+ 		goto out;
+@@ -771,7 +771,7 @@ static int audit_receive_msg(struct sk_b
+ 		struct task_struct *tsk;
+ 
+ 		read_lock(&tasklist_lock);
+-		tsk = find_task_by_pid(pid);
++		tsk = find_task_by_vpid(pid);
+ 		if (!tsk)
+ 			err = -ESRCH;
+ 		else {
+@@ -794,7 +794,7 @@ static int audit_receive_msg(struct sk_b
+ 		if (s->enabled != 0 && s->enabled != 1)
+ 			return -EINVAL;
+ 		read_lock(&tasklist_lock);
+-		tsk = find_task_by_pid(pid);
++		tsk = find_task_by_vpid(pid);
+ 		if (!tsk)
+ 			err = -ESRCH;
+ 		else {
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from xemul@openvz.org are
 
 origin.patch
-git-alsa.patch
-docbook-fix-drivers-base-class-warning.patch
-git-kbuild.patch
-hamradio-fix-dmascc-section-mismatch.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-pcmcia-include-bad-cis-filename-in-error-message.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-git-x86.patch
-register_cpu-__devinit-or-__cpuinit.patch
-cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
-dio-fix-kernel-doc-notation.patch
-tpm-infineon-section-mismatch.patch
-tdfxfb-fix-section-mismatch-warnings.patch
-uvesafb-small-cleanups.patch
-documentation-move-dnotifytxt-to-filesystems.patch
-documentation-move-sharedsubtreestxt-to-filesystems.patch
-documentation-create-new-scheduler-subdirectory.patch
-reporting-bugs-cc-the-mailing-list-too.patch
-kernel-doc-prevent-duplicate-description-output.patch
-kernel-doc-warn-on-badly-formatted-short-description.patch
-fs-menu-small-reorg.patch
-the-scheduled-time-option-removal.patch
-profile-likely-unlikely-macros.patch
+git-net.patch
+shmem-factor-out-sbi-free_inodes-manipulations.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+memcgroup-reinstate-swapoff-mod.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
+memcgroup-fix-zone-isolation-oom.patch
+memcgroup-revert-swap_state-mods.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
+memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
+memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+memory-cgroup-enhancements-add-pre_destroy-handler.patch
+memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
+add-the-namespaces-config-option.patch
+move-the-uts-namespace-under-uts_ns-option.patch
+move-the-ipc-namespace-under-ipc_ns-option.patch
+cleanup-the-code-managed-with-the-user_ns-option.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+mark-net_ns-with-depends-on-namespaces.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-proper-pidns-handling-for-proc-self.patch
+proc-fix-the-threaded-proc-self.patch
+ipc-uninline-some-code-from-utilh.patch
+ipc-make-struct-ipc_ids-static-in-ipc_namespace.patch
+ipc-consolidate-sem_exit_ns-msg_exit_ns-and-shm_exit_ns.patch
+sys_setpgid-simplify-pid-ns-interaction.patch
+fix-setsid-for-sub-namespace-sbin-init.patch
+teach-set_special_pids-to-use-struct-pid.patch
+move-daemonized-kernel-threads-into-the-swappers-session.patch
+start-the-global-sbin-init-with-00-special-pids.patch
+pid-sys_wait-fixes-v2.patch
+pid-extend-fix-pid_vnr.patch
+sys_getsid-dont-use-nsproxy-directly.patch
+pid-fix-mips-irix-emulation-pid-usage.patch
+pid-fix-mips-irix-emulation-pid-usage-fix.patch
+pid-fix-solaris_procids.patch
+uglify-kill_pid_info-to-fix-kill-vs-exec-race.patch
+uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice.patch
+itimer_real-convert-to-use-struct-pid.patch
+reiser4.patch
+use-find_task_by_vpid-in-posix-timers.patch
+use-find_task_by_vpid-in-audit-code.patch
+use-find_task_by_vpid-in-taskstats.patch
+dont-operate-with-pid_t-in-rtmutex-tester.patch
+handle-pid-namespaces-in-cgroups-code.patch
+gfs2-make-gfs2_glockgl_owner_pid-be-a-struct-pid.patch
+gfs2-make-gfs2_holdergh_owner_pid-be-a-struct-pid.patch
+frv-use-find_task_by_vpid-in-cxn_pin_by_pid.patch
+ia64-make-pfm_get_task-work-with-virtual-pids.patch
+ia64-fix-ptrace-inside-a-namespace.patch
+mips-use-find_task_by_vpid-in-system-calls.patch
+deprecate-find_task_by_pid.patch
