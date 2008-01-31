@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse.patch added to -mm tree
-Date: Wed, 30 Jan 2008 16:39:56 -0800
-Message-ID: <200801310039.m0V0duGa000403@imap1.linux-foundation.org>
+Subject: + mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit.patch added to -mm tree
+Date: Wed, 30 Jan 2008 16:39:58 -0800
+Message-ID: <200801310039.m0V0dwLa000406@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44037 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56653 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756820AbYAaAk2 (ORCPT
+	by vger.kernel.org with ESMTP id S1760583AbYAaAkg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jan 2008 19:40:28 -0500
+	Wed, 30 Jan 2008 19:40:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, a.p.zijlstra@chello.nl
+Cc: a.p.zijlstra@chello.nl, mszeredi@suse.cz
 
 
 The patch titled
-     mm: bdi: expose the BDI object in sysfs for FUSE
+     mm: bdi: allow setting a minimum for the bdi dirty limit
 has been added to the -mm tree.  Its filename is
-     mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse.patch
+     mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,159 +34,213 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: bdi: expose the BDI object in sysfs for FUSE
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: mm: bdi: allow setting a minimum for the bdi dirty limit
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Register FUSE's backing_dev_info under sysfs with the name "fuse-MAJOR:MINOR"
+Add "min_ratio" to /sys/class/bdi.  This indicates the minimum percentage of
+the global dirty threshold allocated to this bdi.
 
-Make the fuse control filesystem use s_dev instead of a fuse specific ID. 
-This makes it easier to match directories under /sys/fs/fuse/connections/ with
-directories under /sys/class/bdi, and with actual mounts.
+[mszeredi@suse.cz]
 
+ - fix parsing in min_ratio_store()
+ - document new sysfs attribute
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/control.c |    2 +-
- fs/fuse/fuse_i.h  |    4 ++--
- fs/fuse/inode.c   |   31 ++++++++++++++++---------------
- 3 files changed, 19 insertions(+), 18 deletions(-)
+ Documentation/ABI/testing/sysfs-class-bdi |    6 ++++
+ include/linux/backing-dev.h               |    4 ++
+ mm/backing-dev.c                          |   21 +++++++++++++++
+ mm/page-writeback.c                       |   27 +++++++++++++++++++-
+ 4 files changed, 57 insertions(+), 1 deletion(-)
 
-diff -puN fs/fuse/control.c~mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse fs/fuse/control.c
---- a/fs/fuse/control.c~mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse
-+++ a/fs/fuse/control.c
-@@ -117,7 +117,7 @@ int fuse_ctl_add_conn(struct fuse_conn *
+diff -puN Documentation/ABI/testing/sysfs-class-bdi~mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit Documentation/ABI/testing/sysfs-class-bdi
+--- a/Documentation/ABI/testing/sysfs-class-bdi~mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit
++++ a/Documentation/ABI/testing/sysfs-class-bdi
+@@ -48,3 +48,9 @@ bdi_dirty_kb (read-only)
+ 	Current threshold on this BDI for reclaimable + writeback
+ 	memory
  
- 	parent = fuse_control_sb->s_root;
- 	inc_nlink(parent->d_inode);
--	sprintf(name, "%llu", (unsigned long long) fc->id);
-+	sprintf(name, "%u", fc->dev);
- 	parent = fuse_ctl_add_dentry(parent, fc, name, S_IFDIR | 0500, 2,
- 				     &simple_dir_inode_operations,
- 				     &simple_dir_operations);
-diff -puN fs/fuse/fuse_i.h~mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse fs/fuse/fuse_i.h
---- a/fs/fuse/fuse_i.h~mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse
-+++ a/fs/fuse/fuse_i.h
-@@ -390,8 +390,8 @@ struct fuse_conn {
- 	/** Entry on the fuse_conn_list */
- 	struct list_head entry;
- 
--	/** Unique ID */
--	u64 id;
-+	/** Device ID from super block */
-+	dev_t dev;
- 
- 	/** Dentries in the control filesystem */
- 	struct dentry *ctl_dentry[FUSE_CTL_NUM_DENTRIES];
-diff -puN fs/fuse/inode.c~mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse fs/fuse/inode.c
---- a/fs/fuse/inode.c~mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse
-+++ a/fs/fuse/inode.c
-@@ -448,7 +448,7 @@ static int fuse_show_options(struct seq_
- 	return 0;
- }
- 
--static struct fuse_conn *new_conn(void)
-+static struct fuse_conn *new_conn(struct super_block *sb)
- {
- 	struct fuse_conn *fc;
- 	int err;
-@@ -469,19 +469,27 @@ static struct fuse_conn *new_conn(void)
- 		atomic_set(&fc->num_waiting, 0);
- 		fc->bdi.ra_pages = (VM_MAX_READAHEAD * 1024) / PAGE_CACHE_SIZE;
- 		fc->bdi.unplug_io_fn = default_unplug_io_fn;
-+		fc->dev = sb->s_dev;
- 		err = bdi_init(&fc->bdi);
--		if (err) {
--			kfree(fc);
--			fc = NULL;
--			goto out;
--		}
-+		if (err)
-+			goto error_kfree;
-+		err = bdi_register(&fc->bdi, NULL, "fuse-%u:%u",
-+				   MAJOR(fc->dev), MINOR(fc->dev));
-+		if (err)
-+			goto error_bdi_destroy;
- 		fc->reqctr = 0;
- 		fc->blocked = 1;
- 		fc->attr_version = 1;
- 		get_random_bytes(&fc->scramble_key, sizeof(fc->scramble_key));
- 	}
--out:
- 	return fc;
++min_ratio (read-write)
 +
-+error_bdi_destroy:
-+	bdi_destroy(&fc->bdi);
-+error_kfree:
-+	mutex_destroy(&fc->inst_mutex);
-+	kfree(fc);
-+	return NULL;
++	Minimal percentage of global dirty threshold allocated to this
++	bdi.  If the value written to this file would make the the sum
++	of all min_ratio values exceed 100, then EINVAL is returned.
++	The default is zero
+diff -puN include/linux/backing-dev.h~mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit include/linux/backing-dev.h
+--- a/include/linux/backing-dev.h~mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit
++++ a/include/linux/backing-dev.h
+@@ -51,6 +51,8 @@ struct backing_dev_info {
+ 	struct prop_local_percpu completions;
+ 	int dirty_exceeded;
+ 
++	unsigned int min_ratio;
++
+ 	struct device *dev;
+ };
+ 
+@@ -136,6 +138,8 @@ static inline unsigned long bdi_stat_err
+ #endif
  }
  
- void fuse_conn_put(struct fuse_conn *fc)
-@@ -579,12 +587,6 @@ static void fuse_send_init(struct fuse_c
- 	request_send_background(fc, req);
++int bdi_set_min_ratio(struct backing_dev_info *bdi, unsigned int min_ratio);
++
+ /*
+  * Flags in backing_dev_info::capability
+  * - The first two flags control whether dirty pages will contribute to the
+diff -puN mm/backing-dev.c~mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit mm/backing-dev.c
+--- a/mm/backing-dev.c~mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit
++++ a/mm/backing-dev.c
+@@ -50,6 +50,24 @@ static inline unsigned long get_dirty(st
+ BDI_SHOW(dirty_kb, K(get_dirty(bdi, 1)))
+ BDI_SHOW(bdi_dirty_kb, K(get_dirty(bdi, 2)))
+ 
++static ssize_t min_ratio_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t count)
++{
++	struct backing_dev_info *bdi = dev_get_drvdata(dev);
++	char *end;
++	unsigned int ratio;
++	ssize_t ret = -EINVAL;
++
++	ratio = simple_strtoul(buf, &end, 10);
++	if (*buf && (end[0] == '\0' || (end[0] == '\n' && end[1] == '\0'))) {
++		ret = bdi_set_min_ratio(bdi, ratio);
++		if (!ret)
++			ret = count;
++	}
++	return ret;
++}
++BDI_SHOW(min_ratio, bdi->min_ratio)
++
+ #define __ATTR_RW(attr) __ATTR(attr, 0644, attr##_show, attr##_store)
+ 
+ static struct device_attribute bdi_dev_attrs[] = {
+@@ -58,6 +76,7 @@ static struct device_attribute bdi_dev_a
+ 	__ATTR_RO(writeback_kb),
+ 	__ATTR_RO(dirty_kb),
+ 	__ATTR_RO(bdi_dirty_kb),
++	__ATTR_RW(min_ratio),
+ 	__ATTR_NULL,
+ };
+ 
+@@ -116,6 +135,8 @@ int bdi_init(struct backing_dev_info *bd
+ 
+ 	bdi->dev = NULL;
+ 
++	bdi->min_ratio = 0;
++
+ 	for (i = 0; i < NR_BDI_STAT_ITEMS; i++) {
+ 		err = percpu_counter_init_irq(&bdi->bdi_stat[i], 0);
+ 		if (err)
+diff -puN mm/page-writeback.c~mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit
++++ a/mm/page-writeback.c
+@@ -243,6 +243,29 @@ static void task_dirty_limit(struct task
  }
  
--static u64 conn_id(void)
--{
--	static u64 ctr = 1;
--	return ctr++;
--}
--
- static int fuse_fill_super(struct super_block *sb, void *data, int silent)
- {
- 	struct fuse_conn *fc;
-@@ -622,7 +624,7 @@ static int fuse_fill_super(struct super_
- 	if (file->f_op != &fuse_dev_operations)
- 		return -EINVAL;
+ /*
++ *
++ */
++static DEFINE_SPINLOCK(bdi_lock);
++static unsigned int bdi_min_ratio;
++
++int bdi_set_min_ratio(struct backing_dev_info *bdi, unsigned int min_ratio)
++{
++	int ret = 0;
++	unsigned long flags;
++
++	spin_lock_irqsave(&bdi_lock, flags);
++	min_ratio -= bdi->min_ratio;
++	if (bdi_min_ratio + min_ratio < 100) {
++		bdi_min_ratio += min_ratio;
++		bdi->min_ratio += min_ratio;
++	} else
++		ret = -EINVAL;
++	spin_unlock_irqrestore(&bdi_lock, flags);
++
++	return ret;
++}
++
++/*
+  * Work out the current dirty-memory clamping and background writeout
+  * thresholds.
+  *
+@@ -330,7 +353,7 @@ get_dirty_limits(long *pbackground, long
+ 	*pdirty = dirty;
  
--	fc = new_conn();
-+	fc = new_conn(sb);
- 	if (!fc)
- 		return -ENOMEM;
+ 	if (bdi) {
+-		u64 bdi_dirty = dirty;
++		u64 bdi_dirty;
+ 		long numerator, denominator;
  
-@@ -660,7 +662,6 @@ static int fuse_fill_super(struct super_
- 	if (file->private_data)
- 		goto err_unlock;
+ 		/*
+@@ -338,8 +361,10 @@ get_dirty_limits(long *pbackground, long
+ 		 */
+ 		bdi_writeout_fraction(bdi, &numerator, &denominator);
  
--	fc->id = conn_id();
- 	err = fuse_ctl_add_conn(fc);
- 	if (err)
- 		goto err_unlock;
++		bdi_dirty = (dirty * (100 - bdi_min_ratio)) / 100;
+ 		bdi_dirty *= numerator;
+ 		do_div(bdi_dirty, denominator);
++		bdi_dirty += (dirty * bdi->min_ratio) / 100;
+ 
+ 		*pbdi_dirty = bdi_dirty;
+ 		clip_bdi_dirty_limit(bdi, dirty, pbdi_dirty);
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 origin.patch
-git-x86.patch
-fuse-fix-attribute-caching-after-create.patch
-fuse-save-space-in-struct-fuse_req.patch
-fuse-limit-queued-background-requests.patch
-mount-options-add-documentation.patch
-mount-options-add-generic_show_options.patch
-mount-options-fix-adfs.patch
-mount-options-fix-affs.patch
-mount-options-fix-afs.patch
-mount-options-fix-autofs4.patch
-mount-options-fix-autofs.patch
-mount-options-fix-befs.patch
-mount-options-fix-capifs.patch
-mount-options-fix-devpts.patch
-mount-options-fix-ext2.patch
-mount-options-fix-fat.patch
-mount-options-fix-fuse.patch
-mount-options-fix-hostfs.patch
-mount-options-fix-hpfs.patch
-mount-options-fix-hugetlbfs.patch
-mount-options-fix-isofs.patch
-mount-options-fix-ncpfs.patch
-mount-options-fix-reiserfs.patch
-mount-options-fix-spufs.patch
-mount-options-fix-tmpfs.patch
-mount-options-fix-udf.patch
-vfs-create-proc-pid-mountinfo.patch
+lockdep-annotate-epoll.patch
+slub-move-kmem_cache_node-determination-into-add_full-and-add_partial-slub-workaround-for-lockdep-confusion.patch
+swapin-needs-gfp_mask-for-loop-on-tmpfs.patch
+mm-page-writeback-highmem_is_dirtyable-option.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+skip-writing-data-pages-when-inode-is-under-i_sync.patch
+fix-dirty-page-accounting-leak-with-ext3-data=journal.patch
+kernel-add-mutex_lock_killable.patch
+vfs-use-mutex_lock_killable-in-vfs_readdir.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+memcgroup-reinstate-swapoff-mod.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
+memcgroup-fix-zone-isolation-oom.patch
+memcgroup-revert-swap_state-mods.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
+memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
+memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+memory-cgroup-enhancements-add-pre_destroy-handler.patch
+memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
 mm-bdi-export-bdi-attributes-in-sysfs.patch
 mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs.patch
 mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse.patch
