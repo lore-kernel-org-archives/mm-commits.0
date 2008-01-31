@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + atmel_serial-fix-broken-rx-buffer-allocation.patch added to -mm tree
-Date: Thu, 31 Jan 2008 13:35:53 -0800
-Message-ID: <200801312135.m0VLZrCW012483@imap1.linux-foundation.org>
+Subject: + email-clientstxt-sylpheed-is-ok-at-imap.patch added to -mm tree
+Date: Thu, 31 Jan 2008 13:41:19 -0800
+Message-ID: <200801312141.m0VLfJLF012701@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51506 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37232 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752120AbYAaVgD (ORCPT
+	by vger.kernel.org with ESMTP id S1755665AbYAaVlb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 Jan 2008 16:36:03 -0500
+	Thu, 31 Jan 2008 16:41:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hskinnemoen@atmel.com, trimarchi@gandalf.sssup.it
+Cc: randy.dunlap@oracle.com, pj@sgi.com
 
 
 The patch titled
-     atmel_serial: fix broken RX buffer allocation
+     email-clients.txt: sylpheed is OK at IMAP
 has been added to the -mm tree.  Its filename is
-     atmel_serial-fix-broken-rx-buffer-allocation.patch
+     email-clientstxt-sylpheed-is-ok-at-imap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,72 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_serial: fix broken RX buffer allocation
-From: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Subject: email-clients.txt: sylpheed is OK at IMAP
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Introduced by atmel_serial-split-the-interrupt-handler.patch.
+This comment is not helpful (no reason given) and is incorrect.
+Just stick to facts that are useful regarding working on Linux.
 
-Thanks to michael <trimarchi@gandalf.sssup.it> for spotting it.
+(akpm: I've used sylpheed+imap for years)
 
-Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Paul Jackson <pj@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/atmel_serial.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Documentation/email-clients.txt |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-fix-broken-rx-buffer-allocation drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-fix-broken-rx-buffer-allocation
-+++ a/drivers/serial/atmel_serial.c
-@@ -1470,7 +1470,8 @@ static int __devinit atmel_serial_probe(
+diff -puN Documentation/email-clients.txt~email-clientstxt-sylpheed-is-ok-at-imap Documentation/email-clients.txt
+--- a/Documentation/email-clients.txt~email-clientstxt-sylpheed-is-ok-at-imap
++++ a/Documentation/email-clients.txt
+@@ -170,7 +170,6 @@ Sylpheed (GUI)
  
- 	if (!atmel_use_dma_rx(&port->uart)) {
- 		ret = -ENOMEM;
--		data = kmalloc(ATMEL_SERIAL_RINGSIZE, GFP_KERNEL);
-+		data = kmalloc(sizeof(struct atmel_uart_char)
-+				* ATMEL_SERIAL_RINGSIZE, GFP_KERNEL);
- 		if (!data)
- 			goto err_alloc_ring;
- 		port->rx_ring.buf = data;
+ - Works well for inlining text (or using attachments).
+ - Allows use of an external editor.
+-- Not good for IMAP.
+ - Is slow on large folders.
+ - Won't do TLS SMTP auth over a non-SSL connection.
+ - Has a helpful ruler bar in the compose window.
 _
 
-Patches currently in -mm which might be from hskinnemoen@atmel.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-fix-timerfd-breakage-on-avr32-was-re-fix-variable-use-in-avr32-pte_alloc_one.patch
-git-mtd.patch
-gpiolib-add-drivers-gpio-directory.patch
-gpiolib-add-gpio-provider-infrastructure.patch
-gpiolib-update-documentation-gpiotxt.patch
-gpiolib-pxa-platform-support.patch
-gpiolib-pcf857x-i2c-gpio-expander-support.patch
-gpiolib-mcp23s08-spi-gpio-expander-support.patch
-gpiolib-pca9539-i2c-gpio-expander-support.patch
-gpiolib-deprecate-obsolete-pca9539-driver.patch
-gpiolib-avr32-at32ap-platform-support.patch
-config_highpte-vs-sub-page-page-tables-avr32-fix.patch
-read_current_time-cleanups.patch
-fix-__const_udelay-declaration-and-definition-mismatches.patch
-atmel_spi-throughput-improvement.patch
-atmel_spi-chain-dma-transfers.patch
-atmel_spi-chain-dma-transfers-update.patch
-atmel_spi-fix-dmachain-oops-with-debug-enabled.patch
-add-have_oprofile.patch
-atmel_lcdfb-validate-display-timings.patch
-sanitize-the-type-of-struct-useru_ar0.patch
-add-cmpxchg_local-to-avr32.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
-maintainers-add-haavard-as-maintainer-of-the-atmel_serial-driver.patch
-atmel_serial-clean-up-the-code.patch
-atmel_serial-use-cpu_relax-when-busy-waiting.patch
-atmel_serial-use-existing-console-options-only-if-brg-is-running.patch
-atmel_serial-fix-bugs-in-probe-error-path-and-remove.patch
-atmel_serial-split-the-interrupt-handler.patch
-atmel_serial-add-dma-support.patch
-atmel_serial-add-dma-support-fix.patch
-atmel_serial-fix-broken-rx-buffer-allocation.patch
-atmel_serial-use-container_of-instead-of-direct-cast.patch
-atmel_serial-show-tty-name-in-proc-interrupts.patch
-basic-pwm-driver-for-avr32-and-at91.patch
-basic-pwm-driver-for-avr32-and-at91-fix.patch
-pwm-led-driver.patch
+git-alsa.patch
+docbook-fix-drivers-base-class-warning.patch
+git-kbuild.patch
+hamradio-fix-dmascc-section-mismatch.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+pcmcia-include-bad-cis-filename-in-error-message.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+git-x86.patch
+register_cpu-__devinit-or-__cpuinit.patch
+cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
+dio-fix-kernel-doc-notation.patch
+tpm-infineon-section-mismatch.patch
+tdfxfb-fix-section-mismatch-warnings.patch
+uvesafb-small-cleanups.patch
+documentation-move-dnotifytxt-to-filesystems.patch
+documentation-move-sharedsubtreestxt-to-filesystems.patch
+documentation-create-new-scheduler-subdirectory.patch
+reporting-bugs-cc-the-mailing-list-too.patch
+kernel-doc-prevent-duplicate-description-output.patch
+kernel-doc-warn-on-badly-formatted-short-description.patch
+email-clientstxt-sylpheed-is-ok-at-imap.patch
+fs-menu-small-reorg.patch
+the-scheduled-time-option-removal.patch
+profile-likely-unlikely-macros.patch
