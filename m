@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pidns-fix-badly-converted-mqueues-pid-handling.patch added to -mm tree
-Date: Thu, 31 Jan 2008 13:56:30 -0800
-Message-ID: <200801312156.m0VLuV2w013279@imap1.linux-foundation.org>
+Subject: + get-rid-of-the-kill_pgrp_info-function.patch added to -mm tree
+Date: Thu, 31 Jan 2008 13:56:34 -0800
+Message-ID: <200801312156.m0VLuYFk013285@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37348 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57978 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759410AbYAaV5I (ORCPT
+	by vger.kernel.org with ESMTP id S1760372AbYAaV5V (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 Jan 2008 16:57:08 -0500
+	Thu, 31 Jan 2008 16:57:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: xemul@openvz.org, balbir@in.ibm.com, ebiederm@xmission.com, oleg@tv-sign.ru
 
 
 The patch titled
-     Pidns: fix badly converted mqueues pid handling
+     Get rid of the kill_pgrp_info() function
 has been added to the -mm tree.  Its filename is
-     pidns-fix-badly-converted-mqueues-pid-handling.patch
+     get-rid-of-the-kill_pgrp_info-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Pidns: fix badly converted mqueues pid handling
+Subject: Get rid of the kill_pgrp_info() function
 From: Pavel Emelyanov <xemul@openvz.org>
 
-When sending the pid namespaces patches I wrongly converted the tsk->tgid into
-task_pid_vnr(tsk) in mqueue-s (the git id of this patch is
-b488893a390edfe027bae7a46e9af8083e740668).
-
-The proper behavior is to get the task_tgid_vnr(tsk).
-
-This seem to be the only mistake of that kind.
+There's only one caller left - the kill_pgrp one - so merge these two
+functions and forget the kill_pgrp_info one.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Reviewed-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/sched.h |    1 -
+ kernel/signal.c       |   19 +++++++------------
+ 2 files changed, 7 insertions(+), 13 deletions(-)
 
-diff -puN ipc/mqueue.c~pidns-fix-badly-converted-mqueues-pid-handling ipc/mqueue.c
---- a/ipc/mqueue.c~pidns-fix-badly-converted-mqueues-pid-handling
-+++ a/ipc/mqueue.c
-@@ -509,7 +509,7 @@ static void __do_notify(struct mqueue_in
- 			sig_i.si_errno = 0;
- 			sig_i.si_code = SI_MESGQ;
- 			sig_i.si_value = info->notify.sigev_value;
--			sig_i.si_pid = task_pid_vnr(current);
-+			sig_i.si_pid = task_tgid_vnr(current);
- 			sig_i.si_uid = current->uid;
+diff -puN include/linux/sched.h~get-rid-of-the-kill_pgrp_info-function include/linux/sched.h
+--- a/include/linux/sched.h~get-rid-of-the-kill_pgrp_info-function
++++ a/include/linux/sched.h
+@@ -1687,7 +1687,6 @@ extern int send_sig_info(int, struct sig
+ extern int force_sigsegv(int, struct task_struct *);
+ extern int force_sig_info(int, struct siginfo *, struct task_struct *);
+ extern int __kill_pgrp_info(int sig, struct siginfo *info, struct pid *pgrp);
+-extern int kill_pgrp_info(int sig, struct siginfo *info, struct pid *pgrp);
+ extern int kill_pid_info(int sig, struct siginfo *info, struct pid *pid);
+ extern int kill_pid_info_as_uid(int, struct siginfo *, struct pid *, uid_t, uid_t, u32);
+ extern int kill_pgrp(struct pid *pid, int sig, int priv);
+diff -puN kernel/signal.c~get-rid-of-the-kill_pgrp_info-function kernel/signal.c
+--- a/kernel/signal.c~get-rid-of-the-kill_pgrp_info-function
++++ a/kernel/signal.c
+@@ -1036,17 +1036,6 @@ int __kill_pgrp_info(int sig, struct sig
+ 	return success ? 0 : retval;
+ }
  
- 			kill_pid_info(info->notify.sigev_signo,
+-int kill_pgrp_info(int sig, struct siginfo *info, struct pid *pgrp)
+-{
+-	int retval;
+-
+-	read_lock(&tasklist_lock);
+-	retval = __kill_pgrp_info(sig, info, pgrp);
+-	read_unlock(&tasklist_lock);
+-
+-	return retval;
+-}
+-
+ int kill_pid_info(int sig, struct siginfo *info, struct pid *pid)
+ {
+ 	int error = -ESRCH;
+@@ -1235,7 +1224,13 @@ force_sigsegv(int sig, struct task_struc
+ 
+ int kill_pgrp(struct pid *pid, int sig, int priv)
+ {
+-	return kill_pgrp_info(sig, __si_special(priv), pid);
++	int ret;
++
++	read_lock(&tasklist_lock);
++	ret = __kill_pgrp_info(sig, __si_special(priv), pid);
++	read_unlock(&tasklist_lock);
++
++	return ret;
+ }
+ EXPORT_SYMBOL(kill_pgrp);
+ 
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
