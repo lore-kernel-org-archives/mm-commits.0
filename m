@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + use-find_task_by_vpid-in-taskstats.patch added to -mm tree
-Date: Wed, 30 Jan 2008 17:07:08 -0800
-Message-ID: <200801310107.m0V1794I001503@imap1.linux-foundation.org>
+Subject: + handle-pid-namespaces-in-cgroups-code.patch added to -mm tree
+Date: Wed, 30 Jan 2008 17:07:14 -0800
+Message-ID: <200801310107.m0V17Fpa001509@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58779 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43622 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754021AbYAaBHv (ORCPT
+	by vger.kernel.org with ESMTP id S1754068AbYAaBHz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jan 2008 20:07:51 -0500
+	Wed, 30 Jan 2008 20:07:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xemul@openvz.org, balbir@in.ibm.com, ebiederm@xmission.com, jlan@engr.sgi.com, jlim@sgi.com
+Cc: xemul@openvz.org, ebiederm@xmission.com, menage@google.com
 
 
 The patch titled
-     Use find_task_by_vpid in taskstats
+     Handle pid namespaces in cgroups code
 has been added to the -mm tree.  Its filename is
-     use-find_task_by_vpid-in-taskstats.patch
+     handle-pid-namespaces-in-cgroups-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Use find_task_by_vpid in taskstats
+Subject: Handle pid namespaces in cgroups code
 From: Pavel Emelyanov <xemul@openvz.org>
 
-The pid to lookup a task by is passed inside taskstats code via genetlink
-message.
+There's one place that works with task pids - its the "tasks" file in cgroups.
+ The read/write handlers assume, that the pid values go to/come from the user
+space and thus it is a virtual pid, i.e.  the pid as it is seen from inside a
+namespace.
 
-Since netlink packets are now processed in the context of the sending task,
-this is correct to lookup the task with find_task_by_vpid() here.
-
-Besides, I fix the call to fill_pid() from taskstats_exit(), since the
-tsk->pid is not required in fill_pid() in this case, and the pid field on
-task_struct is going to be deprecated as well.
+Tune the code accordingly.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Jay Lan <jlan@engr.sgi.com>
-Cc: Jonathan Lim <jlim@sgi.com>
+Acked-by: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/taskstats.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ kernel/cgroup.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/taskstats.c~use-find_task_by_vpid-in-taskstats kernel/taskstats.c
---- a/kernel/taskstats.c~use-find_task_by_vpid-in-taskstats
-+++ a/kernel/taskstats.c
-@@ -183,7 +183,7 @@ static int fill_pid(pid_t pid, struct ta
+diff -puN kernel/cgroup.c~handle-pid-namespaces-in-cgroups-code kernel/cgroup.c
+--- a/kernel/cgroup.c~handle-pid-namespaces-in-cgroups-code
++++ a/kernel/cgroup.c
+@@ -1269,7 +1269,7 @@ static int attach_task_by_pid(struct cgr
  
- 	if (!tsk) {
+ 	if (pid) {
  		rcu_read_lock();
 -		tsk = find_task_by_pid(pid);
 +		tsk = find_task_by_vpid(pid);
- 		if (tsk)
- 			get_task_struct(tsk);
- 		rcu_read_unlock();
-@@ -230,7 +230,7 @@ static int fill_tgid(pid_t tgid, struct 
- 	 */
- 	rcu_read_lock();
- 	if (!first)
--		first = find_task_by_pid(tgid);
-+		first = find_task_by_vpid(tgid);
- 
- 	if (!first || !lock_task_sighand(first, &flags))
- 		goto out;
-@@ -547,7 +547,7 @@ void taskstats_exit(struct task_struct *
- 	if (!stats)
- 		goto err;
- 
--	rc = fill_pid(tsk->pid, tsk, stats);
-+	rc = fill_pid(-1, tsk, stats);
- 	if (rc < 0)
- 		goto err;
- 
+ 		if (!tsk || tsk->flags & PF_EXITING) {
+ 			rcu_read_unlock();
+ 			return -ESRCH;
+@@ -1955,7 +1955,7 @@ static int pid_array_load(pid_t *pidarra
+ 	while ((tsk = cgroup_iter_next(cgrp, &it))) {
+ 		if (unlikely(n == npids))
+ 			break;
+-		pidarray[n++] = task_pid_nr(tsk);
++		pidarray[n++] = task_pid_vnr(tsk);
+ 	}
+ 	cgroup_iter_end(cgrp, &it);
+ 	return n;
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
