@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pci-fix-4x-section-mismatch-warnings.patch added to -mm tree
-Date: Thu, 31 Jan 2008 14:45:31 -0800
-Message-ID: <200801312245.m0VMjWmt015188@imap1.linux-foundation.org>
+Subject: + cpu-fix-section-mismatch-related-to-cpu_chain.patch added to -mm tree
+Date: Thu, 31 Jan 2008 14:45:35 -0800
+Message-ID: <200801312245.m0VMjaJf015194@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55666 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60383 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762366AbYAaWp5 (ORCPT
+	by vger.kernel.org with ESMTP id S1765949AbYAaWps (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 Jan 2008 17:45:57 -0500
+	Thu, 31 Jan 2008 17:45:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sam@ravnborg.org, bunk@kernel.org, gregkh@suse.de
+Cc: sam@ravnborg.org, ego@in.ibm.com
 
 
 The patch titled
-     pci: fix 4x section mismatch warnings
+     cpu: fix section mismatch related to cpu_chain
 has been added to the -mm tree.  Its filename is
-     pci-fix-4x-section-mismatch-warnings.patch
+     cpu-fix-section-mismatch-related-to-cpu_chain.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,77 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci: fix 4x section mismatch warnings
+Subject: cpu: fix section mismatch related to cpu_chain
 From: Sam Ravnborg <sam@ravnborg.org>
 
-The following warnings were issued during build of
-drivers/pci with an allyesconfig build:
-WARNING: o-x86_64/drivers/pci/built-in.o(.text+0xdaf): Section mismatch in reference from the function pci_add_new_bus() to the function .devinit.text:pci_alloc_child_bus()
-WARNING: o-x86_64/drivers/pci/built-in.o(.text+0x15e2): Section mismatch in reference from the function pci_scan_single_device() to the function .devinit.text:pci_scan_device()
-WARNING: o-x86_64/drivers/pci/built-in.o(.text+0x1b0c5): Section mismatch in reference from the function pci_bus_assign_resources() to the function .devinit.text:pci_setup_bridge()
-WARNING: o-x86_64/drivers/pci/built-in.o(.text+0x1b32d): Section mismatch in reference from the function pci_bus_size_bridges() to the function .devinit.text:pci_bus_size_cardbus()
+Fix following warnings:
+WARNING: o-x86_64/kernel/built-in.o(.text+0x36de9): Section mismatch in reference from the function take_cpu_down() to the variable .cpuinit.data:cpu_chain
+WARNING: o-x86_64/kernel/built-in.o(.text+0x36e86): Section mismatch in reference from the function _cpu_down() to the variable .cpuinit.data:cpu_chain
+WARNING: o-x86_64/kernel/built-in.o(.text+0x36ea9): Section mismatch in reference from the function _cpu_down() to the variable .cpuinit.data:cpu_chain
+WARNING: o-x86_64/kernel/built-in.o(.text+0x36f40): Section mismatch in reference from the function _cpu_down() to the variable .cpuinit.data:cpu_chain
+WARNING: o-x86_64/kernel/built-in.o(.text+0x36f8f): Section mismatch in reference from the function _cpu_down() to the variable .cpuinit.data:cpu_chain
+WARNING: o-x86_64/kernel/built-in.o(.text+0x370aa): Section mismatch in reference from the function unregister_cpu_notifier() to the variable .cpuinit.data:cpu_chain
 
-Investigating each case closer it looked like all
-referred functions are only used in the init phase
-or during hotplug.
-So to avoid wasting too much memory in the non-hotplug
-case the simpler fix was to allow the fuctions to
-use code/data from the __devinit sections.
-This was done in all four case by adding the __ref
-annotation.
+cpu_chain is used by unregister_cpu_notifier() that is used
+by the kvm module. So we can call the unregister_cpu_notifier() long
+after init completed.
+Drop the __cpuinitdata annotation to avoid freeing cpu_chain.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Greg KH <gregkh@suse.de>
-Cc: Adrian Bunk <bunk@kernel.org>
+Cc: Gautham R Shenoy <ego@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/probe.c     |    4 ++--
- drivers/pci/setup-bus.c |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ kernel/cpu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pci/probe.c~pci-fix-4x-section-mismatch-warnings drivers/pci/probe.c
---- a/drivers/pci/probe.c~pci-fix-4x-section-mismatch-warnings
-+++ a/drivers/pci/probe.c
-@@ -452,7 +452,7 @@ pci_alloc_child_bus(struct pci_bus *pare
- 	return child;
- }
+diff -puN kernel/cpu.c~cpu-fix-section-mismatch-related-to-cpu_chain kernel/cpu.c
+--- a/kernel/cpu.c~cpu-fix-section-mismatch-related-to-cpu_chain
++++ a/kernel/cpu.c
+@@ -18,7 +18,7 @@
+ /* Serializes the updates to cpu_online_map, cpu_present_map */
+ static DEFINE_MUTEX(cpu_add_remove_lock);
  
--struct pci_bus *pci_add_new_bus(struct pci_bus *parent, struct pci_dev *dev, int busnr)
-+struct pci_bus *__ref pci_add_new_bus(struct pci_bus *parent, struct pci_dev *dev, int busnr)
- {
- 	struct pci_bus *child;
+-static __cpuinitdata RAW_NOTIFIER_HEAD(cpu_chain);
++static RAW_NOTIFIER_HEAD(cpu_chain);
  
-@@ -980,7 +980,7 @@ void pci_device_add(struct pci_dev *dev,
- 	up_write(&pci_bus_sem);
- }
- 
--struct pci_dev *pci_scan_single_device(struct pci_bus *bus, int devfn)
-+struct pci_dev *__ref pci_scan_single_device(struct pci_bus *bus, int devfn)
- {
- 	struct pci_dev *dev;
- 
-diff -puN drivers/pci/setup-bus.c~pci-fix-4x-section-mismatch-warnings drivers/pci/setup-bus.c
---- a/drivers/pci/setup-bus.c~pci-fix-4x-section-mismatch-warnings
-+++ a/drivers/pci/setup-bus.c
-@@ -454,7 +454,7 @@ pci_bus_size_cardbus(struct pci_bus *bus
- 	}
- }
- 
--void pci_bus_size_bridges(struct pci_bus *bus)
-+void __ref pci_bus_size_bridges(struct pci_bus *bus)
- {
- 	struct pci_dev *dev;
- 	unsigned long mask, prefmask;
-@@ -509,7 +509,7 @@ void pci_bus_size_bridges(struct pci_bus
- }
- EXPORT_SYMBOL(pci_bus_size_bridges);
- 
--void pci_bus_assign_resources(struct pci_bus *bus)
-+void __ref pci_bus_assign_resources(struct pci_bus *bus)
- {
- 	struct pci_bus *b;
- 	struct pci_dev *dev;
+ /* If set, cpu_up and cpu_down will return -EBUSY and do nothing.
+  * Should always be manipulated under cpu_add_remove_lock
 _
 
 Patches currently in -mm which might be from sam@ravnborg.org are
