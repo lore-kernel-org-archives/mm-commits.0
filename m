@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-vs-git-lblnet.patch removed from -mm tree
-Date: Fri, 01 Feb 2008 13:04:07 -0800
-Message-ID: <200802012104.m11L4GAp031088@imap1.linux-foundation.org>
+Subject: - git-net-vs-git-lblnet-2.patch removed from -mm tree
+Date: Fri, 01 Feb 2008 13:05:20 -0800
+Message-ID: <200802012105.m11L5LOg031131@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51630 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54437 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761325AbYBAVEh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 16:04:37 -0500
+	by vger.kernel.org with ESMTP id S1756543AbYBAVFd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 16:05:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, davem@davemloft.net, kaber@trash.net, paul.moore@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-net-vs-git-lblnet
+     git-net-vs-git-lblnet-2
 has been removed from the -mm tree.  Its filename was
-     git-net-vs-git-lblnet.patch
+     git-net-vs-git-lblnet-2.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-net-vs-git-lblnet
+Subject: git-net-vs-git-lblnet-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix clash between git-net and git-lblnet.
+everyone hates me.
 
 Cc: Paul Moore <paul.moore@hp.com>
 Cc: Patrick McHardy <kaber@trash.net>
@@ -34,63 +34,30 @@ Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/netfilter/xt_SECMARK.c |   23 +++++++++++------------
- 1 file changed, 11 insertions(+), 12 deletions(-)
+ security/selinux/hooks.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN net/netfilter/xt_SECMARK.c~git-net-vs-git-lblnet net/netfilter/xt_SECMARK.c
---- a/net/netfilter/xt_SECMARK.c~git-net-vs-git-lblnet
-+++ a/net/netfilter/xt_SECMARK.c
-@@ -119,13 +119,13 @@ void destroy(const struct xt_target *tar
+diff -puN security/selinux/hooks.c~git-net-vs-git-lblnet-2 security/selinux/hooks.c
+--- a/security/selinux/hooks.c~git-net-vs-git-lblnet-2
++++ a/security/selinux/hooks.c
+@@ -5495,7 +5495,7 @@ static struct nf_hook_ops selinux_ipv4_o
+ 		.hook =		selinux_ipv4_forward,
+ 		.owner =	THIS_MODULE,
+ 		.pf =		PF_INET,
+-		.hooknum =	NF_IP_FORWARD,
++		.hooknum =	NF_INET_FORWARD,
+ 		.priority =	NF_IP_PRI_SELINUX_FIRST,
  	}
- }
- 
--static struct xt_target xt_secmark_target[] __read_mostly = {
-+static struct xt_target secmark_tg_reg[] __read_mostly = {
- 	{
- 		.name		= "SECMARK",
- 		.family		= AF_INET,
--		.checkentry	= checkentry,
-+		.checkentry	= secmark_tg_check,
- 		.destroy	= destroy,
--		.target		= target,
-+		.target		= secmark_tg,
- 		.targetsize	= sizeof(struct xt_secmark_target_info),
- 		.table		= "mangle",
- 		.me		= THIS_MODULE,
-@@ -133,25 +133,24 @@ static struct xt_target xt_secmark_targe
- 	{
- 		.name		= "SECMARK",
- 		.family		= AF_INET6,
--		.checkentry	= checkentry,
-+		.checkentry	= secmark_tg_check,
- 		.destroy	= destroy,
--		.target		= target,
-+		.target		= secmark_tg,
- 		.targetsize	= sizeof(struct xt_secmark_target_info),
- 		.table		= "mangle",
- 		.me		= THIS_MODULE,
- 	},
  };
- 
--static int __init xt_secmark_init(void)
-+static int __init secmark_tg_init(void)
- {
--	return xt_register_targets(xt_secmark_target,
--				   ARRAY_SIZE(xt_secmark_target));
-+	return xt_register_targets(secmark_tg_reg, ARRAY_SIZE(secmark_tg_reg));
- }
- 
--static void __exit xt_secmark_fini(void)
-+static void __exit secmark_tg_exit(void)
- {
--	xt_unregister_targets(xt_secmark_target, ARRAY_SIZE(xt_secmark_target));
-+	xt_unregister_targets(secmark_tg_reg, ARRAY_SIZE(secmark_tg_reg));
- }
- 
--module_init(xt_secmark_init);
--module_exit(xt_secmark_fini);
-+module_init(secmark_tg_init);
-+module_exit(secmark_tg_exit);
+@@ -5514,7 +5514,7 @@ static struct nf_hook_ops selinux_ipv6_o
+ 		.hook =		selinux_ipv6_forward,
+ 		.owner =	THIS_MODULE,
+ 		.pf =		PF_INET6,
+-		.hooknum =	NF_IP6_FORWARD,
++		.hooknum =	NF_INET_FORWARD,
+ 		.priority =	NF_IP6_PRI_SELINUX_FIRST,
+ 	}
+ };
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -137,7 +104,6 @@ git-mtd.patch
 drivers-mtd-ubi-wlc-fix-uninitialized-var-warning.patch
 drivers-mtd-ubi-scanc-fix-uninitialized-var-warning.patch
 drivers-mtd-ubi-cdevc-unused-var.patch
-git-net-vs-git-lblnet.patch
 git-net-vs-git-lblnet-2.patch
 git-netdev-all-fix-conflicts-fix.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
