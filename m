@@ -1,30 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: - net-sunrpc-schedc-reapply-git-net-changes.patch removed from -mm tree
-Date: Fri, 01 Feb 2008 13:05:46 -0800
-Message-ID: <200802012105.m11L5kEb031146@imap1.linux-foundation.org>
+Subject: - net-sunrpc-schedc-revert-git-net-changes.patch removed from -mm tree
+Date: Fri, 01 Feb 2008 13:05:36 -0800
+Message-ID: <200802012105.m11L5aJX031137@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51370 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51398 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758086AbYBAVGU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 16:06:20 -0500
+	by vger.kernel.org with ESMTP id S1759251AbYBAVF7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 16:05:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, bfields@fieldses.org, davem@davemloft.net, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net-sunrpc-schedc-reapply-git-net-changes
+     net/sunrpc/sched.c: revert git-net changes
 has been removed from the -mm tree.  Its filename was
-     net-sunrpc-schedc-reapply-git-net-changes.patch
+     net-sunrpc-schedc-revert-git-net-changes.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net-sunrpc-schedc-reapply-git-net-changes
+Subject: net/sunrpc/sched.c: revert git-net changes
 From: Andrew Morton <akpm@linux-foundation.org>
+
+To prevent a huge reject from git-nfs.  It'd be nice if we could work out who
+owns sunrpc.
 
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
@@ -32,24 +35,24 @@ Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/sched.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ net/sunrpc/sched.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN net/sunrpc/sched.c~net-sunrpc-schedc-reapply-git-net-changes net/sunrpc/sched.c
---- a/net/sunrpc/sched.c~net-sunrpc-schedc-reapply-git-net-changes
+diff -puN net/sunrpc/sched.c~net-sunrpc-schedc-revert-git-net-changes net/sunrpc/sched.c
+--- a/net/sunrpc/sched.c~net-sunrpc-schedc-revert-git-net-changes
 +++ a/net/sunrpc/sched.c
-@@ -817,9 +817,8 @@ EXPORT_SYMBOL_GPL(rpc_free);
- static void rpc_init_task(struct rpc_task *task, const struct rpc_task_setup *task_setup_data)
+@@ -811,8 +811,9 @@ EXPORT_SYMBOL_GPL(rpc_free);
+ void rpc_init_task(struct rpc_task *task, struct rpc_clnt *clnt, int flags, const struct rpc_call_ops *tk_ops, void *calldata)
  {
  	memset(task, 0, sizeof(*task));
--	init_timer(&task->tk_timer);
--	task->tk_timer.data     = (unsigned long) task;
--	task->tk_timer.function = (void (*)(unsigned long)) rpc_run_timer;
-+	setup_timer(&task->tk_timer, (void (*)(unsigned long))rpc_run_timer,
-+			(unsigned long)task);
+-	setup_timer(&task->tk_timer, (void (*)(unsigned long))rpc_run_timer,
+-			(unsigned long)task);
++	init_timer(&task->tk_timer);
++	task->tk_timer.data     = (unsigned long) task;
++	task->tk_timer.function = (void (*)(unsigned long)) rpc_run_timer;
  	atomic_set(&task->tk_count, 1);
- 	task->tk_flags  = task_setup_data->flags;
- 	task->tk_ops = task_setup_data->callback_ops;
+ 	task->tk_client = clnt;
+ 	task->tk_flags  = flags;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -101,6 +104,7 @@ update-smc91x-driver-with-arm-versatile-board-info.patch
 git-backlight.patch
 git-battery.patch
 bluetooth-uninlining.patch
+net-sunrpc-schedc-revert-git-net-changes.patch
 net-sunrpc-schedc-reapply-git-net-changes.patch
 git-nfsd.patch
 git-selinux-vs-git-lblnet.patch
