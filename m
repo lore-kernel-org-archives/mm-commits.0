@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + d_path-make-d_path-use-a-struct-path-fix.patch added to -mm tree
-Date: Fri, 01 Feb 2008 15:34:26 -0800
-Message-ID: <200802012343.m11Nh9QI005458@imap1.linux-foundation.org>
+Subject: + rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix.patch added to -mm tree
+Date: Fri, 01 Feb 2008 15:37:11 -0800
+Message-ID: <200802012345.m11Njs6g005527@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43371 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37358 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760683AbYBAXpS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 18:45:18 -0500
+	by vger.kernel.org with ESMTP id S1762369AbYBAXqH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 18:46:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bfields@fieldses.org, bryan.wu@analog.com, hch@infradead.org, jblunck@suse.de, mhalcrow@us.ibm.com, mingo@elte.hu, neilb@suse.de, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org, fbuihuu@gmail.com, paulmck@linux.vnet.ibm.com
 
 
 The patch titled
-     d_path-make-d_path-use-a-struct-path-fix
+     rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix
 has been added to the -mm tree.  Its filename is
-     d_path-make-d_path-use-a-struct-path-fix.patch
+     rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,35 +33,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: d_path-make-d_path-use-a-struct-path-fix
+Subject: rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Bryan Wu <bryan.wu@analog.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Jan Blunck <jblunck@suse.de>
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+kernel/pid.c: In function 'free_pid':
+kernel/pid.c:231: error: implicit declaration of function 'hlist_del_rcu'
+kernel/pid.c: In function 'alloc_pid':
+kernel/pid.c:272: error: implicit declaration of function 'hlist_add_head_rcu'
+kernel/pid.c: In function 'find_pid_ns':
+kernel/pid.c:294: error: implicit declaration of function 'hlist_for_each_entry_rcu'
+kernel/pid.c:295: error: 'pid_chain' undeclared (first use in this function)
+kernel/pid.c:295: error: (Each undeclared identifier is reported only once
+kernel/pid.c:295: error: for each function it appears in.)
+kernel/pid.c:296: error: expected ';' before 'if'
+kernel/pid.c: In function 'transfer_pid':
+kernel/pid.c:355: error: implicit declaration of function 'hlist_replace_rcu'
+
+Cc: Franck Bui-Huu <fbuihuu@gmail.com>
+Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/pid.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/memory.c~d_path-make-d_path-use-a-struct-path-fix mm/memory.c
---- a/mm/memory.c~d_path-make-d_path-use-a-struct-path-fix
-+++ a/mm/memory.c
-@@ -2712,7 +2712,7 @@ void print_vma_addr(char *prefix, unsign
- 		if (buf) {
- 			char *p, *s;
- 
--			p = d_path(f->f_dentry, f->f_vfsmnt, buf, PAGE_SIZE);
-+			p = d_path(&f->f_path, buf, PAGE_SIZE);
- 			if (IS_ERR(p))
- 				p = "?";
- 			s = strrchr(p, '/');
+diff -puN arch/ia64/sn/kernel/irq.c~rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix arch/ia64/sn/kernel/irq.c
+diff -puN drivers/infiniband/hw/ipath/ipath_verbs_mcast.c~rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix drivers/infiniband/hw/ipath/ipath_verbs_mcast.c
+diff -puN include/linux/dcache.h~rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix include/linux/dcache.h
+diff -puN include/linux/list.h~rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix include/linux/list.h
+diff -puN include/linux/rculist.h~rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix include/linux/rculist.h
+diff -puN lib/textsearch.c~rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix lib/textsearch.c
+diff -puN kernel/pid.c~rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix kernel/pid.c
+--- a/kernel/pid.c~rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix
++++ a/kernel/pid.c
+@@ -30,6 +30,7 @@
+ #include <linux/module.h>
+ #include <linux/slab.h>
+ #include <linux/init.h>
++#include <linux/rculist.h>
+ #include <linux/bootmem.h>
+ #include <linux/hash.h>
+ #include <linux/pid_namespace.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -291,6 +303,7 @@ libfs-allow-error-return-from-simple-attributes-fix.patch
 fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
 fs-afs-securityc-fix-uninitialized-var-warning.patch
 rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-checkpatch-fixes.patch
+rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix.patch
 char-applicom-use-pci_match_id-fix.patch
 reiser4.patch
 jens-broke-reiser4patch-added-to-mm-tree.patch
