@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix.patch added to -mm tree
-Date: Fri, 01 Feb 2008 15:37:11 -0800
-Message-ID: <200802012345.m11Njs6g005527@imap1.linux-foundation.org>
+Subject: + add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch added to -mm tree
+Date: Fri, 01 Feb 2008 15:41:55 -0800
+Message-ID: <200802012350.m11Nocbf005701@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37358 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36515 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762369AbYBAXqH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 18:46:07 -0500
+	by vger.kernel.org with ESMTP id S1751642AbYBAXuq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 18:50:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, fbuihuu@gmail.com, paulmck@linux.vnet.ibm.com
+Cc: akpm@linux-foundation.org, greg@kroah.com, rdunlap@xenotime.net, yi.y.yang@intel.com
 
 
 The patch titled
-     rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix
+     add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix
 has been added to the -mm tree.  Its filename is
-     rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix.patch
+     add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,47 +33,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix
+Subject: add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/pid.c: In function 'free_pid':
-kernel/pid.c:231: error: implicit declaration of function 'hlist_del_rcu'
-kernel/pid.c: In function 'alloc_pid':
-kernel/pid.c:272: error: implicit declaration of function 'hlist_add_head_rcu'
-kernel/pid.c: In function 'find_pid_ns':
-kernel/pid.c:294: error: implicit declaration of function 'hlist_for_each_entry_rcu'
-kernel/pid.c:295: error: 'pid_chain' undeclared (first use in this function)
-kernel/pid.c:295: error: (Each undeclared identifier is reported only once
-kernel/pid.c:295: error: for each function it appears in.)
-kernel/pid.c:296: error: expected ';' before 'if'
-kernel/pid.c: In function 'transfer_pid':
-kernel/pid.c:355: error: implicit declaration of function 'hlist_replace_rcu'
+lib/vsprintf.c: In function 'strict_strtoul':
+lib/vsprintf.c:245: warning: suggest parentheses around && within ||
+lib/vsprintf.c: In function 'strict_strtoull':
+lib/vsprintf.c:247: warning: suggest parentheses around && within ||
 
-Cc: Franck Bui-Huu <fbuihuu@gmail.com>
-Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Cc: Greg KH <greg@kroah.com>
+Cc: Yi Yang <yi.y.yang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/pid.c |    1 +
- 1 file changed, 1 insertion(+)
+ lib/vsprintf.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/ia64/sn/kernel/irq.c~rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix arch/ia64/sn/kernel/irq.c
-diff -puN drivers/infiniband/hw/ipath/ipath_verbs_mcast.c~rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix drivers/infiniband/hw/ipath/ipath_verbs_mcast.c
-diff -puN include/linux/dcache.h~rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix include/linux/dcache.h
-diff -puN include/linux/list.h~rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix include/linux/list.h
-diff -puN include/linux/rculist.h~rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix include/linux/rculist.h
-diff -puN lib/textsearch.c~rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix lib/textsearch.c
-diff -puN kernel/pid.c~rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix kernel/pid.c
---- a/kernel/pid.c~rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix
-+++ a/kernel/pid.c
-@@ -30,6 +30,7 @@
- #include <linux/module.h>
- #include <linux/slab.h>
- #include <linux/init.h>
-+#include <linux/rculist.h>
- #include <linux/bootmem.h>
- #include <linux/hash.h>
- #include <linux/pid_namespace.h>
+diff -puN lib/vsprintf.c~add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix lib/vsprintf.c
+--- a/lib/vsprintf.c~add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix
++++ a/lib/vsprintf.c
+@@ -220,7 +220,7 @@ int strict_strtou##type(const char *cp, 
+ 									\
+ 	val = simple_strtoul(cp, &tail, base);				\
+ 	if ((*tail == '\0') ||						\
+-		(len == (size_t)(tail - cp) + 1) && (*tail == '\n')) {	\
++		((len == (size_t)(tail - cp) + 1) && (*tail == '\n'))) {\
+ 		*res = val;						\
+ 		return 0;						\
+ 	}								\
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -305,6 +293,7 @@ fs-afs-securityc-fix-uninitialized-var-warning.patch
 rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-checkpatch-fixes.patch
 rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix.patch
 char-applicom-use-pci_match_id-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
 reiser4.patch
 jens-broke-reiser4patch-added-to-mm-tree.patch
 page-owner-tracking-leak-detector.patch
