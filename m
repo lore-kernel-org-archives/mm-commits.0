@@ -1,69 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: + git-battery-fix-git-conflicts.patch added to -mm tree
-Date: Fri, 01 Feb 2008 14:31:42 -0800
-Message-ID: <200802012231.m11MVgtP002042@imap1.linux-foundation.org>
+Subject: - use-macros-instead-of-task_-flags-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 01 Feb 2008 14:30:10 -0800
+Message-ID: <200802012230.m11MUALS001885@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38251 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51337 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760674AbYBAWhi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 17:37:38 -0500
+	by vger.kernel.org with ESMTP id S1761190AbYBAWh6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 17:37:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cbou@mail.ru
+To: akpm@linux-foundation.org, matthew@wil.cx, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-battery-fix-git-conflicts
-has been added to the -mm tree.  Its filename is
-     git-battery-fix-git-conflicts.patch
+     use-macros-instead-of-task_-flags-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     use-macros-instead-of-task_-flags-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-battery-fix-git-conflicts
+Subject: use-macros-instead-of-task_-flags-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Anton Vorontsov <cbou@mail.ru>
+WARNING: line over 80 characters
+#120: FILE: include/linux/wait.h:163:
++#define wake_up_interruptible_sync(x)	__wake_up_sync((x), TASK_INTERRUPTIBLE, 1)
+
+ERROR: use tabs not spaces
+#399: FILE: kernel/signal.c:1444:
++ ^IBUG_ON(is_task_stopped_or_traced(tsk));$
+
+total: 1 errors, 1 warnings, 340 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Matthew Wilcox <willy@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/apm_power.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ kernel/signal.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/power/apm_power.c~git-battery-fix-git-conflicts drivers/power/apm_power.c
---- a/drivers/power/apm_power.c~git-battery-fix-git-conflicts
-+++ a/drivers/power/apm_power.c
-@@ -13,16 +13,14 @@
- #include <linux/power_supply.h>
- #include <linux/apm-emulation.h>
+diff -puN kernel/signal.c~use-macros-instead-of-task_-flags-checkpatch-fixes kernel/signal.c
+--- a/kernel/signal.c~use-macros-instead-of-task_-flags-checkpatch-fixes
++++ a/kernel/signal.c
+@@ -1419,7 +1419,7 @@ void do_notify_parent(struct task_struct
+ 	BUG_ON(sig == -1);
  
--<<<<<<< HEAD:drivers/power/apm_power.c
- static DEFINE_MUTEX(apm_mutex);
--=======
-+
- enum apm_source {
- 	SOURCE_ENERGY,
- 	SOURCE_CHARGE,
- 	SOURCE_VOLTAGE,
- };
+  	/* do_notify_parent_cldstop should have been called instead.  */
+- 	BUG_ON(is_task_stopped_or_traced(tsk));
++	BUG_ON(is_task_stopped_or_traced(tsk));
  
-->>>>>>> FETCH_HEAD:drivers/power/apm_power.c
- #define PSY_PROP(psy, prop, val) psy->get_property(psy, \
- 			 POWER_SUPPLY_PROP_##prop, val)
- 
+ 	BUG_ON(!tsk->ptrace &&
+ 	       (tsk->group_leader != tsk || !thread_group_empty(tsk)));
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
