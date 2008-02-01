@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch added to -mm tree
-Date: Fri, 01 Feb 2008 15:16:56 -0800
-Message-ID: <200802012325.m11NPdA9004338@imap1.linux-foundation.org>
+Subject: + keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix.patch added to -mm tree
+Date: Fri, 01 Feb 2008 15:26:16 -0800
+Message-ID: <200802012334.m11NYxlY005111@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56961 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53300 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762072AbYBAX1A (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 18:27:00 -0500
+	by vger.kernel.org with ESMTP id S1762648AbYBAXfk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 18:35:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, oleg@tv-sign.ru, roland@redhat.com, willy@debian.org
+Cc: akpm@linux-foundation.org, haveblue@us.ibm.com
 
 
 The patch titled
-     wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix
+     keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix
 has been added to the -mm tree.  Its filename is
-     wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
+     keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,30 +33,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix
+Subject: keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Matthew Wilcox <willy@debian.org>
+Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/super.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/exit.c~wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix kernel/exit.c
---- a/kernel/exit.c~wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix
-+++ a/kernel/exit.c
-@@ -1358,7 +1358,7 @@ static int wait_task_stopped(struct task
- 	exit_code = 0;
- 	spin_lock_irq(&p->sighand->siglock);
- 
--	if (unlikely(!is_task_stopped_or_traced(p)))
-+	if (unlikely(!task_is_stopped_or_traced(p)))
- 		goto unlock_sig;
- 
- 	if (delayed_group_leader && !(p->ptrace & PT_PTRACED) &&
+diff -puN fs/super.c~keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix fs/super.c
+--- a/fs/super.c~keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix
++++ a/fs/super.c
+@@ -570,7 +570,8 @@ static void mark_files_ro(struct super_b
+ retry:
+ 	file_list_lock();
+ 	list_for_each_entry(f, &sb->s_files, f_u.fu_list) {
+-		struct vfsmount mnt;
++		struct vfsmount *mnt;
++
+ 		if (!S_ISREG(f->f_path.dentry->d_inode->i_mode))
+ 		       continue;
+ 		if (!file_count(f))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -218,6 +217,7 @@ r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-fil
 r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
 r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
 r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix.patch
 cgroup-simplify-space-stripping-fix.patch
 memory-controller-memory-accounting-v7.patch
 memory-controller-add-per-container-lru-and-reclaim-v7.patch
