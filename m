@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + getdelays-fix-gcc-warnings.patch added to -mm tree
-Date: Thu, 31 Jan 2008 15:57:36 -0800
-Message-ID: <200801312357.m0VNvaYO017896@imap1.linux-foundation.org>
+Subject: + doc-use-correct-debugfs-mountpoint.patch added to -mm tree
+Date: Thu, 31 Jan 2008 16:07:43 -0800
+Message-ID: <200802010007.m1107h90018261@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41659 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52077 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965011AbYBAADb (ORCPT
+	by vger.kernel.org with ESMTP id S934555AbYBAAIE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 Jan 2008 19:03:31 -0500
+	Thu, 31 Jan 2008 19:08:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, balbir@linux.vnet.ibm.com
+Cc: randy.dunlap@oracle.com, zanussi@us.ibm.com
 
 
 The patch titled
-     getdelays: fix gcc warnings
+     doc: use correct debugfs mountpoint
 has been added to the -mm tree.  Its filename is
-     getdelays-fix-gcc-warnings.patch
+     doc-use-correct-debugfs-mountpoint.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: getdelays: fix gcc warnings
+Subject: doc: use correct debugfs mountpoint
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix gcc warnings in getdelays.c:
-
-Documentation/accounting/getdelays.c: In function 'task_context_switch_counts':
-Documentation/accounting/getdelays.c:214: warning: format '%15lu' expects type 'long unsigned int', but argument 4 has type '__u64'
-Documentation/accounting/getdelays.c:214: warning: format '%15lu' expects type 'long unsigned int', but argument 5 has type '__u64'
-Documentation/accounting/getdelays.c: In function 'main':
-Documentation/accounting/getdelays.c:402: warning: format '%d' expects type 'int', but argument 2 has type 'long unsigned int'
-Documentation/accounting/getdelays.c: In function 'get_family_id':
-Documentation/accounting/getdelays.c:171: warning: 'id' may be used uninitialized in this function
-
-One warning is not a problem and can be dismissed:
-Documentation/accounting/getdelays.c: In function 'main':
-Documentation/accounting/getdelays.c:236: warning: 'cmd_type' may be used uninitialized in this function
+Use the normal, expected mountpoint in the relay(fs) example for debugfs.
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Tom Zanussi <zanussi@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/accounting/getdelays.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ Documentation/filesystems/relay.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/accounting/getdelays.c~getdelays-fix-gcc-warnings Documentation/accounting/getdelays.c
---- a/Documentation/accounting/getdelays.c~getdelays-fix-gcc-warnings
-+++ a/Documentation/accounting/getdelays.c
-@@ -168,7 +168,7 @@ int get_family_id(int sd)
- 		char buf[256];
- 	} ans;
+diff -puN Documentation/filesystems/relay.txt~doc-use-correct-debugfs-mountpoint Documentation/filesystems/relay.txt
+--- a/Documentation/filesystems/relay.txt~doc-use-correct-debugfs-mountpoint
++++ a/Documentation/filesystems/relay.txt
+@@ -140,7 +140,7 @@ close()     decrements the channel buffe
+ In order for a user application to make use of relay files, the
+ host filesystem must be mounted.  For example,
  
--	int id, rc;
-+	int id = 0, rc;
- 	struct nlattr *na;
- 	int rep_len;
+-	mount -t debugfs debugfs /debug
++	mount -t debugfs debugfs /sys/kernel/debug
  
-@@ -209,7 +209,7 @@ void print_delayacct(struct taskstats *t
- void task_context_switch_counts(struct taskstats *t)
- {
- 	printf("\n\nTask   %15s%15s\n"
--	       "       %15lu%15lu\n",
-+	       "       %15llu%15llu\n",
- 	       "voluntary", "nonvoluntary",
- 	       t->nvcsw, t->nivcsw);
- }
-@@ -399,7 +399,7 @@ int main(int argc, char *argv[])
- 			goto done;
- 		}
- 
--		PRINTF("nlmsghdr size=%d, nlmsg_len=%d, rep_len=%d\n",
-+		PRINTF("nlmsghdr size=%zu, nlmsg_len=%d, rep_len=%d\n",
- 		       sizeof(struct nlmsghdr), msg.n.nlmsg_len, rep_len);
- 
- 
+ NOTE:   the host filesystem doesn't need to be mounted for kernel
+ 	clients to create or use channels - it only needs to be
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -117,6 +87,7 @@ reporting-bugs-cc-the-mailing-list-too.patch
 kernel-doc-prevent-duplicate-description-output.patch
 kernel-doc-warn-on-badly-formatted-short-description.patch
 email-clientstxt-sylpheed-is-ok-at-imap.patch
+doc-use-correct-debugfs-mountpoint.patch
 fs-menu-small-reorg.patch
 the-scheduled-time-option-removal.patch
 getdelays-fix-gcc-warnings.patch
