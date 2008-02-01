@@ -1,89 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - use-wake_up_locked-in-eventpoll.patch removed from -mm tree
-Date: Fri, 01 Feb 2008 14:30:05 -0800
-Message-ID: <200802012230.m11MU5QH001879@imap1.linux-foundation.org>
+Subject: - export-iov_shorten-for-ext4s-use.patch removed from -mm tree
+Date: Fri, 01 Feb 2008 14:30:28 -0800
+Message-ID: <200802012230.m11MUSfH001912@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53483 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37622 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758059AbYBAWoQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 17:44:16 -0500
+	by vger.kernel.org with ESMTP id S1756335AbYBAWon (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 17:44:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthew@wil.cx, davidel@xmailserver.org, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: sandeen@redhat.com, cmm@us.ibm.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use wake_up_locked() in eventpoll
+     export iov_shorten for ext4's use
 has been removed from the -mm tree.  Its filename was
-     use-wake_up_locked-in-eventpoll.patch
+     export-iov_shorten-for-ext4s-use.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Use wake_up_locked() in eventpoll
-From: Matthew Wilcox <matthew@wil.cx>
+Subject: export iov_shorten for ext4's use
+From: Eric Sandeen <sandeen@redhat.com>
 
-Replace the uses of __wake_up_locked() with the equivalent wake_up_locked().
+ext4 needs to deal with 2 different max file offsets for block- and
+extent-allocated file formats, whereas the s_maxbytes scheme can only deal
+with one.  So, for block-allocated files, we must catch and fix up
+too-large offsets from within the filesystem.
 
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
-Cc: Davide Libenzi <davidel@xmailserver.org>
+Having iov_shorten exported allows such things as:
+
+		if (pos + length > sbi->s_bitmap_maxbytes) {
+			nr_segs = iov_shorten((struct iovec *)iov, nr_segs,
+					      sbi->s_bitmap_maxbytes - pos);
+		}
+
+to fix up too-large writes to these files in ext4_file_write().
+
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Cc: Mingming Cao <cmm@us.ibm.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ fs/read_write.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/eventpoll.c~use-wake_up_locked-in-eventpoll fs/eventpoll.c
---- a/fs/eventpoll.c~use-wake_up_locked-in-eventpoll
-+++ a/fs/eventpoll.c
-@@ -656,8 +656,7 @@ is_linked:
- 	 * wait list.
- 	 */
- 	if (waitqueue_active(&ep->wq))
--		__wake_up_locked(&ep->wq, TASK_UNINTERRUPTIBLE |
--				 TASK_INTERRUPTIBLE);
-+		wake_up_locked(&ep->wq);
- 	if (waitqueue_active(&ep->poll_wait))
- 		pwake++;
- 
-@@ -780,7 +779,7 @@ static int ep_insert(struct eventpoll *e
- 
- 		/* Notify waiting tasks that events are available */
- 		if (waitqueue_active(&ep->wq))
--			__wake_up_locked(&ep->wq, TASK_UNINTERRUPTIBLE | TASK_INTERRUPTIBLE);
-+			wake_up_locked(&ep->wq);
- 		if (waitqueue_active(&ep->poll_wait))
- 			pwake++;
+diff -puN fs/read_write.c~export-iov_shorten-for-ext4s-use fs/read_write.c
+--- a/fs/read_write.c~export-iov_shorten-for-ext4s-use
++++ a/fs/read_write.c
+@@ -446,6 +446,7 @@ unsigned long iov_shorten(struct iovec *
  	}
-@@ -854,8 +853,7 @@ static int ep_modify(struct eventpoll *e
+ 	return seg;
+ }
++EXPORT_SYMBOL(iov_shorten)
  
- 			/* Notify waiting tasks that events are available */
- 			if (waitqueue_active(&ep->wq))
--				__wake_up_locked(&ep->wq, TASK_UNINTERRUPTIBLE |
--						 TASK_INTERRUPTIBLE);
-+				wake_up_locked(&ep->wq);
- 			if (waitqueue_active(&ep->poll_wait))
- 				pwake++;
- 		}
-@@ -978,8 +976,7 @@ errxit:
- 		 * wait list (delayed after we release the lock).
- 		 */
- 		if (waitqueue_active(&ep->wq))
--			__wake_up_locked(&ep->wq, TASK_UNINTERRUPTIBLE |
--					 TASK_INTERRUPTIBLE);
-+			wake_up_locked(&ep->wq);
- 		if (waitqueue_active(&ep->poll_wait))
- 			pwake++;
- 	}
+ ssize_t do_sync_readv_writev(struct file *filp, const struct iovec *iov,
+ 		unsigned long nr_segs, size_t len, loff_t *ppos, iov_fn_t fn)
 _
 
-Patches currently in -mm which might be from matthew@wil.cx are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
 origin.patch
-pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch
-pcmcia-replace-kio_addr_t-with-unsigned-int-everywhere.patch
-hash-add-explicit-u32-and-u64-versions-of-hash.patch
-make-sure-nobodys-leaking-resources.patch
+ext2-change-the-default-behaviour-on-error.patch
+address-hfs-on-disk-corruption-robustness-review-comments.patch
+ecryptfs-make-show_options-reflect-actual-mount-options.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+ecryptfs-remove-debug-as-mount-option-and-warn-if-set-via-modprobe.patch
+ecryptfs-check-for-existing-key_tfm-at-mount-time.patch
+ext3-change-the-default-behaviour-on-error.patch
