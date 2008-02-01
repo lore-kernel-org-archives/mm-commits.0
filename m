@@ -1,126 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - bkl-removal-convert-ext2-over-to-use-unlocked_ioctl.patch removed from -mm tree
-Date: Fri, 01 Feb 2008 14:30:51 -0800
-Message-ID: <200802012230.m11MUpn6001941@imap1.linux-foundation.org>
+Subject: - bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2.patch removed from -mm tree
+Date: Fri, 01 Feb 2008 14:30:39 -0800
+Message-ID: <200802012230.m11MUduu001924@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57794 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55959 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761832AbYBAWjA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 17:39:00 -0500
+	by vger.kernel.org with ESMTP id S1753943AbYBAWlz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 17:41:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@suse.de, mm-commits@vger.kernel.org
+To: ak@suse.de, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     BKL-removal: convert ext2 over to use unlocked_ioctl
+     BKL-removal: remove incorrect comment refering to lock_kernel() from jbd/jbd2
 has been removed from the -mm tree.  Its filename was
-     bkl-removal-convert-ext2-over-to-use-unlocked_ioctl.patch
+     bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: BKL-removal: convert ext2 over to use unlocked_ioctl
+Subject: BKL-removal: remove incorrect comment refering to lock_kernel() from jbd/jbd2
 From: Andi Kleen <ak@suse.de>
 
-I checked ext2_ioctl and could not find anything in there that would need the
-BKL.  So convert it over to use unlocked_ioctl
+None of the callers of this function does actually take the BKL as far as I
+can see.  So remove the comment refering to the BKL.
 
 Signed-off-by: Andi Kleen <ak@suse.de>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/dir.c   |    2 +-
- fs/ext2/ext2.h  |    3 +--
- fs/ext2/file.c  |    4 ++--
- fs/ext2/ioctl.c |   12 +++---------
- 4 files changed, 7 insertions(+), 14 deletions(-)
+ fs/jbd/recovery.c  |    2 +-
+ fs/jbd2/recovery.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ext2/dir.c~bkl-removal-convert-ext2-over-to-use-unlocked_ioctl fs/ext2/dir.c
---- a/fs/ext2/dir.c~bkl-removal-convert-ext2-over-to-use-unlocked_ioctl
-+++ a/fs/ext2/dir.c
-@@ -703,7 +703,7 @@ const struct file_operations ext2_dir_op
- 	.llseek		= generic_file_llseek,
- 	.read		= generic_read_dir,
- 	.readdir	= ext2_readdir,
--	.ioctl		= ext2_ioctl,
-+	.unlocked_ioctl = ext2_ioctl,
- #ifdef CONFIG_COMPAT
- 	.compat_ioctl	= ext2_compat_ioctl,
- #endif
-diff -puN fs/ext2/ext2.h~bkl-removal-convert-ext2-over-to-use-unlocked_ioctl fs/ext2/ext2.h
---- a/fs/ext2/ext2.h~bkl-removal-convert-ext2-over-to-use-unlocked_ioctl
-+++ a/fs/ext2/ext2.h
-@@ -138,8 +138,7 @@ int __ext2_write_begin(struct file *file
- 		struct page **pagep, void **fsdata);
+diff -puN fs/jbd/recovery.c~bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2 fs/jbd/recovery.c
+--- a/fs/jbd/recovery.c~bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2
++++ a/fs/jbd/recovery.c
+@@ -354,7 +354,7 @@ static int do_one_pass(journal_t *journa
+ 		struct buffer_head *	obh;
+ 		struct buffer_head *	nbh;
  
- /* ioctl.c */
--extern int ext2_ioctl (struct inode *, struct file *, unsigned int,
--		       unsigned long);
-+extern long ext2_ioctl(struct file *, unsigned int, unsigned long);
- extern long ext2_compat_ioctl(struct file *, unsigned int, unsigned long);
+-		cond_resched();		/* We're under lock_kernel() */
++		cond_resched();
  
- /* namei.c */
-diff -puN fs/ext2/file.c~bkl-removal-convert-ext2-over-to-use-unlocked_ioctl fs/ext2/file.c
---- a/fs/ext2/file.c~bkl-removal-convert-ext2-over-to-use-unlocked_ioctl
-+++ a/fs/ext2/file.c
-@@ -48,7 +48,7 @@ const struct file_operations ext2_file_o
- 	.write		= do_sync_write,
- 	.aio_read	= generic_file_aio_read,
- 	.aio_write	= generic_file_aio_write,
--	.ioctl		= ext2_ioctl,
-+	.unlocked_ioctl = ext2_ioctl,
- #ifdef CONFIG_COMPAT
- 	.compat_ioctl	= ext2_compat_ioctl,
- #endif
-@@ -65,7 +65,7 @@ const struct file_operations ext2_xip_fi
- 	.llseek		= generic_file_llseek,
- 	.read		= xip_file_read,
- 	.write		= xip_file_write,
--	.ioctl		= ext2_ioctl,
-+	.unlocked_ioctl = ext2_ioctl,
- #ifdef CONFIG_COMPAT
- 	.compat_ioctl	= ext2_compat_ioctl,
- #endif
-diff -puN fs/ext2/ioctl.c~bkl-removal-convert-ext2-over-to-use-unlocked_ioctl fs/ext2/ioctl.c
---- a/fs/ext2/ioctl.c~bkl-removal-convert-ext2-over-to-use-unlocked_ioctl
-+++ a/fs/ext2/ioctl.c
-@@ -18,9 +18,9 @@
- #include <asm/uaccess.h>
+ 		/* If we already know where to stop the log traversal,
+ 		 * check right now that we haven't gone past the end of
+diff -puN fs/jbd2/recovery.c~bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2 fs/jbd2/recovery.c
+--- a/fs/jbd2/recovery.c~bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2
++++ a/fs/jbd2/recovery.c
+@@ -397,7 +397,7 @@ static int do_one_pass(journal_t *journa
+ 		struct buffer_head *	obh;
+ 		struct buffer_head *	nbh;
  
+-		cond_resched();		/* We're under lock_kernel() */
++		cond_resched();
  
--int ext2_ioctl (struct inode * inode, struct file * filp, unsigned int cmd,
--		unsigned long arg)
-+long ext2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
- {
-+	struct inode *inode = filp->f_dentry->d_inode;
- 	int ret;
- 	struct ext2_inode_info *ei = EXT2_I(inode);
- 	unsigned int flags;
-@@ -156,9 +156,6 @@ setflags_out:
- #ifdef CONFIG_COMPAT
- long ext2_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
--	struct inode *inode = file->f_path.dentry->d_inode;
--	int ret;
--
- 	/* These are just misnamed, they actually get/put from/to user an int */
- 	switch (cmd) {
- 	case EXT2_IOC32_GETFLAGS:
-@@ -176,9 +173,6 @@ long ext2_compat_ioctl(struct file *file
- 	default:
- 		return -ENOIOCTLCMD;
- 	}
--	lock_kernel();
--	ret = ext2_ioctl(inode, file, cmd, (unsigned long) compat_ptr(arg));
--	unlock_kernel();
--	return ret;
-+	return ext2_ioctl(file, cmd, (unsigned long) compat_ptr(arg));
- }
- #endif
+ 		/* If we already know where to stop the log traversal,
+ 		 * check right now that we haven't gone past the end of
 _
 
 Patches currently in -mm which might be from ak@suse.de are
