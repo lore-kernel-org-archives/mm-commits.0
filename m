@@ -1,73 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - convert-loglevel-related-kernel-boot-parameters-to-early_param-fix.patch removed from -mm tree
-Date: Fri, 01 Feb 2008 11:55:53 -0800
-Message-ID: <200802011955.m11Jtsub028450@imap1.linux-foundation.org>
+Subject: - git-alsa-fixup.patch removed from -mm tree
+Date: Fri, 01 Feb 2008 12:57:27 -0800
+Message-ID: <200802012057.m11KvR1v030796@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56819 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37900 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755075AbYBAT4V (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 14:56:21 -0500
+	by vger.kernel.org with ESMTP id S1755711AbYBAU54 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 15:57:56 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m11KvR18029474
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 1 Feb 2008 12:57:28 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Yinghai.Lu@Sun.COM, ak@suse.de, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     convert-loglevel-related-kernel-boot-parameters-to-early_param-fix
+     git-alsa-fixup
 has been removed from the -mm tree.  Its filename was
-     convert-loglevel-related-kernel-boot-parameters-to-early_param-fix.patch
+     git-alsa-fixup.patch
 
-This patch was dropped because it was folded into convert-loglevel-related-kernel-boot-parameters-to-early_param.patch
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: convert-loglevel-related-kernel-boot-parameters-to-early_param-fix
+Subject: git-alsa-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Andi Kleen <ak@suse.de>
-Cc: Yinghai Lu <Yinghai.Lu@Sun.COM>
-Cc: Yinghai Lu <yinghai.lu@sun.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c     |    4 ++--
- kernel/printk.c |    3 +--
- 2 files changed, 3 insertions(+), 4 deletions(-)
+ sound/pci/hda/patch_sigmatel.c |   11 -----------
+ 1 file changed, 11 deletions(-)
 
-diff -puN init/main.c~convert-loglevel-related-kernel-boot-parameters-to-early_param-fix init/main.c
---- a/init/main.c~convert-loglevel-related-kernel-boot-parameters-to-early_param-fix
-+++ a/init/main.c
-@@ -233,13 +233,13 @@ EXPORT_SYMBOL(loops_per_jiffy);
- static int __init debug_kernel(char *str)
- {
- 	console_loglevel = 10;
--	return 1;
-+	return 0;
- }
+diff -puN sound/pci/hda/patch_sigmatel.c~git-alsa-fixup sound/pci/hda/patch_sigmatel.c
+--- a/sound/pci/hda/patch_sigmatel.c~git-alsa-fixup
++++ a/sound/pci/hda/patch_sigmatel.c
+@@ -121,10 +121,7 @@ struct sigmatel_spec {
+ 	unsigned int mic_switch: 1;
+ 	unsigned int alt_switch: 1;
+ 	unsigned int hp_detect: 1;
+-<<<<<<< HEAD:sound/pci/hda/patch_sigmatel.c
+ 	unsigned int gpio_mute: 1;
+-=======
+->>>>>>> FETCH_HEAD:sound/pci/hda/patch_sigmatel.c
  
- static int __init quiet_kernel(char *str)
- {
- 	console_loglevel = 4;
--	return 1;
-+	return 0;
- }
+ 	unsigned int gpio_mask, gpio_data;
+ 	unsigned char aloopback_mask;
+@@ -760,11 +757,7 @@ static struct snd_kcontrol_new stac925x_
  
- early_param("debug", debug_kernel);
-diff -puN kernel/printk.c~convert-loglevel-related-kernel-boot-parameters-to-early_param-fix kernel/printk.c
---- a/kernel/printk.c~convert-loglevel-related-kernel-boot-parameters-to-early_param-fix
-+++ a/kernel/printk.c
-@@ -453,8 +453,7 @@ static int __init ignore_loglevel_setup(
- {
- 	ignore_loglevel = 1;
- 	printk(KERN_INFO "debug: ignoring loglevel setting.\n");
--
--	return 1;
-+	return 0;
- }
+ static struct snd_kcontrol_new stac9205_mixer[] = {
+ 	STAC_INPUT_SOURCE(2),
+-<<<<<<< HEAD:sound/pci/hda/patch_sigmatel.c
+-	STAC_ANALOG_LOOPBACK(0xFE0, 0x7E0),
+-=======
+ 	STAC_ANALOG_LOOPBACK(0xFE0, 0x7E0, 1),
+->>>>>>> FETCH_HEAD:sound/pci/hda/patch_sigmatel.c
  
- early_param("ignore_loglevel", ignore_loglevel_setup);
+ 	HDA_CODEC_VOLUME_IDX("Capture Volume", 0x0, 0x1b, 0x0, HDA_INPUT),
+ 	HDA_CODEC_MUTE_IDX("Capture Switch", 0x0, 0x1d, 0x0, HDA_OUTPUT),
+@@ -793,11 +786,7 @@ static struct snd_kcontrol_new stac922x_
+ 
+ static struct snd_kcontrol_new stac927x_mixer[] = {
+ 	STAC_INPUT_SOURCE(3),
+-<<<<<<< HEAD:sound/pci/hda/patch_sigmatel.c
+-	STAC_ANALOG_LOOPBACK(0xFEB, 0x7EB),
+-=======
+ 	STAC_ANALOG_LOOPBACK(0xFEB, 0x7EB, 1),
+->>>>>>> FETCH_HEAD:sound/pci/hda/patch_sigmatel.c
+ 
+ 	HDA_CODEC_VOLUME_IDX("Capture Volume", 0x0, 0x18, 0x0, HDA_INPUT),
+ 	HDA_CODEC_MUTE_IDX("Capture Switch", 0x0, 0x1b, 0x0, HDA_OUTPUT),
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -92,14 +98,13 @@ git-alsa-fixup.patch
 git-alsa-disable-sound-pci-ice1712-ice1724c.patch
 git-agpgart.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
 git-audit-master.patch
 git-audit-printk-warning-fix.patch
 git-cpufreq.patch
 revert-agk-dm-dm-loop.patch
-git-powerpc.patch
 include-asm-powerpc-nvramh-needs-listh.patch
 include-asm-powerpc-nvramh-needs-listh-fix.patch
+git-powerpc-galak.patch
 gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
 drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
 git-drm.patch
@@ -107,11 +112,8 @@ drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-var
 adt7473-new-driver-for-analog-devices-adt7473-sensor-chip-fix.patch
 hwmon-new-chip-driver-for-ti-ads7828-a-d.patch
 hwmon-new-chip-driver-for-ti-ads7828-a-d-checkpatch-fixes.patch
-git-hid.patch
 revert-git-hrt.patch
-git-ieee1394.patch
 drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-git-kbuild.patch
 git-kbuild-fixup.patch
 git-kvm.patch
 drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
@@ -123,7 +125,7 @@ git-mtd.patch
 drivers-mtd-ubi-wlc-fix-uninitialized-var-warning.patch
 drivers-mtd-ubi-scanc-fix-uninitialized-var-warning.patch
 drivers-mtd-ubi-cdevc-unused-var.patch
-git-net.patch
+git-ubi.patch
 git-net-vs-git-lblnet.patch
 git-net-vs-git-lblnet-2.patch
 git-netdev-all-fix-conflicts-fix.patch
@@ -133,6 +135,7 @@ git-battery.patch
 bluetooth-uninlining.patch
 net-sunrpc-schedc-revert-git-net-changes.patch
 net-sunrpc-schedc-reapply-git-net-changes.patch
+git-nfsd.patch
 git-selinux-vs-git-lblnet.patch
 serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
 revert-gregkh-pci-pci-use-dev_printk-in-x86-quirk-messages.patch
@@ -140,7 +143,7 @@ fix-gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in.patch
 cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
 quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
 x86-validate-against-acpi-motherboard-resources.patch
-git-sh.patch
+git-sched.patch
 git-scsi-misc-vs-gregkh-pci-pci-remove-users-of-pci_enable_device_bars.patch
 scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes.patch
 scsi-aic94xx-cleanups-checkpatch-fixes.patch
@@ -163,6 +166,7 @@ git-x86-fix-doubly-merged-patch.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
 x86-mmconf-enable-mcfg-early-cleanup.patch
+git-newsetup.patch
 git-xtensa.patch
 add-iscsi-ibft-support-v046-fix.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
@@ -309,8 +313,6 @@ fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
 fs-afs-securityc-fix-uninitialized-var-warning.patch
 rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-checkpatch-fixes.patch
 char-applicom-use-pci_match_id-fix.patch
-convert-loglevel-related-kernel-boot-parameters-to-early_param.patch
-convert-loglevel-related-kernel-boot-parameters-to-early_param-fix.patch
 make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
 reiser4.patch
 jens-broke-reiser4patch-added-to-mm-tree.patch
