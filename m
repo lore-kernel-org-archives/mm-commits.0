@@ -1,125 +1,173 @@
 From: akpm@linux-foundation.org
-Subject: - add-task_wakekill.patch removed from -mm tree
-Date: Fri, 01 Feb 2008 14:30:13 -0800
-Message-ID: <200802012230.m11MUDBV001888@imap1.linux-foundation.org>
+Subject: - modules-make-module_address_lookup-safe.patch removed from -mm tree
+Date: Fri, 01 Feb 2008 14:30:44 -0800
+Message-ID: <200802012230.m11MUiWQ001930@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56539 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38288 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756404AbYBAWq0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 17:46:26 -0500
+	by vger.kernel.org with ESMTP id S1756404AbYBAWrE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 17:47:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthew@wil.cx, oleg@tv-sign.ru, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: rusty@rustcorp.com.au, kyle@mcmartin.ca, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add TASK_WAKEKILL
+     modules: make module_address_lookup safe
 has been removed from the -mm tree.  Its filename was
-     add-task_wakekill.patch
+     modules-make-module_address_lookup-safe.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Add TASK_WAKEKILL
-From: Matthew Wilcox <matthew@wil.cx>
+Subject: modules: make module_address_lookup safe
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-Set TASK_WAKEKILL for TASK_STOPPED and TASK_TRACED, add TASK_KILLABLE and
-use TASK_WAKEKILL in signal_wake_up()
+module_address_lookup releases preemption then returns a pointer into the
+module space.  The only user (kallsyms) copies the result, so just do that
+under the preempt disable.
 
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |   22 ++++++++++++++--------
- kernel/signal.c       |    8 ++++----
- 2 files changed, 18 insertions(+), 12 deletions(-)
+ include/linux/module.h |   22 +++++++++++++---------
+ kernel/kallsyms.c      |   11 ++++-------
+ kernel/module.c        |   20 ++++++++++++--------
+ 3 files changed, 29 insertions(+), 24 deletions(-)
 
-diff -puN include/linux/sched.h~add-task_wakekill include/linux/sched.h
---- a/include/linux/sched.h~add-task_wakekill
-+++ a/include/linux/sched.h
-@@ -170,27 +170,33 @@ print_cfs_rq(struct seq_file *m, int cpu
- #define TASK_RUNNING		0
- #define TASK_INTERRUPTIBLE	1
- #define TASK_UNINTERRUPTIBLE	2
--#define TASK_STOPPED		4
--#define TASK_TRACED		8
-+#define __TASK_STOPPED		4
-+#define __TASK_TRACED		8
- /* in tsk->exit_state */
- #define EXIT_ZOMBIE		16
- #define EXIT_DEAD		32
- /* in tsk->state again */
- #define TASK_DEAD		64
-+#define TASK_WAKEKILL		128
-+
-+/* Convenience macros for the sake of set_task_state */
-+#define TASK_KILLABLE		(TASK_WAKEKILL | TASK_UNINTERRUPTIBLE)
-+#define TASK_STOPPED		(TASK_WAKEKILL | __TASK_STOPPED)
-+#define TASK_TRACED		(TASK_WAKEKILL | __TASK_TRACED)
+diff -puN include/linux/module.h~modules-make-module_address_lookup-safe include/linux/module.h
+--- a/include/linux/module.h~modules-make-module_address_lookup-safe
++++ a/include/linux/module.h
+@@ -446,11 +446,14 @@ static inline void __module_get(struct m
+ 	__mod ? __mod->name : "kernel";		\
+ })
  
- /* Convenience macros for the sake of wake_up */
- #define TASK_NORMAL		(TASK_INTERRUPTIBLE | TASK_UNINTERRUPTIBLE)
--#define TASK_ALL		(TASK_NORMAL | TASK_STOPPED | TASK_TRACED)
-+#define TASK_ALL		(TASK_NORMAL | __TASK_STOPPED | __TASK_TRACED)
+-/* For kallsyms to ask for address resolution.  NULL means not found. */
+-const char *module_address_lookup(unsigned long addr,
+-				  unsigned long *symbolsize,
+-				  unsigned long *offset,
+-				  char **modname);
++/* For kallsyms to ask for address resolution.  namebuf should be at
++ * least KSYM_NAME_LEN long: a pointer to namebuf is returned if
++ * found, otherwise NULL. */
++char *module_address_lookup(unsigned long addr,
++			    unsigned long *symbolsize,
++			    unsigned long *offset,
++			    char **modname,
++			    char *namebuf);
+ int lookup_module_symbol_name(unsigned long addr, char *symname);
+ int lookup_module_symbol_attrs(unsigned long addr, unsigned long *size, unsigned long *offset, char *modname, char *name);
  
- /* get_task_state() */
- #define TASK_REPORT		(TASK_RUNNING | TASK_INTERRUPTIBLE | \
--				 TASK_UNINTERRUPTIBLE | TASK_STOPPED | \
--				 TASK_TRACED)
-+				 TASK_UNINTERRUPTIBLE | __TASK_STOPPED | \
-+				 __TASK_TRACED)
+@@ -516,10 +519,11 @@ static inline void module_put(struct mod
+ #define module_name(mod) "kernel"
  
--#define is_task_traced(task)	((task->state & TASK_TRACED) != 0)
--#define is_task_stopped(task)	((task->state & TASK_STOPPED) != 0)
-+#define is_task_traced(task)	((task->state & __TASK_TRACED) != 0)
-+#define is_task_stopped(task)	((task->state & __TASK_STOPPED) != 0)
- #define is_task_stopped_or_traced(task)	\
--			((task->state & (TASK_STOPPED | TASK_TRACED)) != 0)
-+			((task->state & (__TASK_STOPPED | __TASK_TRACED)) != 0)
- #define is_task_loadavg(task)	((task->state & TASK_UNINTERRUPTIBLE) != 0)
- 
- #define __set_task_state(tsk, state_value)		\
-diff -puN kernel/signal.c~add-task_wakekill kernel/signal.c
---- a/kernel/signal.c~add-task_wakekill
-+++ a/kernel/signal.c
-@@ -456,15 +456,15 @@ void signal_wake_up(struct task_struct *
- 	set_tsk_thread_flag(t, TIF_SIGPENDING);
- 
- 	/*
--	 * For SIGKILL, we want to wake it up in the stopped/traced case.
--	 * We don't check t->state here because there is a race with it
-+	 * For SIGKILL, we want to wake it up in the stopped/traced/killable
-+	 * case. We don't check t->state here because there is a race with it
- 	 * executing another processor and just now entering stopped state.
- 	 * By using wake_up_state, we ensure the process will wake up and
- 	 * handle its death signal.
- 	 */
- 	mask = TASK_INTERRUPTIBLE;
- 	if (resume)
--		mask |= TASK_STOPPED | TASK_TRACED;
-+		mask |= TASK_WAKEKILL;
- 	if (!wake_up_state(t, mask))
- 		kick_process(t);
+ /* For kallsyms to ask for address resolution.  NULL means not found. */
+-static inline const char *module_address_lookup(unsigned long addr,
+-						unsigned long *symbolsize,
+-						unsigned long *offset,
+-						char **modname)
++static inline char *module_address_lookup(unsigned long addr,
++					  unsigned long *symbolsize,
++					  unsigned long *offset,
++					  char **modname,
++					  char *namebuf)
+ {
+ 	return NULL;
  }
-@@ -620,7 +620,7 @@ static void handle_stop_signal(int sig, 
- 			 * Wake up the stopped thread _after_ setting
- 			 * TIF_SIGPENDING
- 			 */
--			state = TASK_STOPPED;
-+			state = __TASK_STOPPED;
- 			if (sig_user_defined(t, SIGCONT) && !sigismember(&t->blocked, SIGCONT)) {
- 				set_tsk_thread_flag(t, TIF_SIGPENDING);
- 				state |= TASK_INTERRUPTIBLE;
+diff -puN kernel/kallsyms.c~modules-make-module_address_lookup-safe kernel/kallsyms.c
+--- a/kernel/kallsyms.c~modules-make-module_address_lookup-safe
++++ a/kernel/kallsyms.c
+@@ -224,10 +224,11 @@ static unsigned long get_symbol_pos(unsi
+ int kallsyms_lookup_size_offset(unsigned long addr, unsigned long *symbolsize,
+ 				unsigned long *offset)
+ {
++	char namebuf[KSYM_NAME_LEN];
+ 	if (is_ksym_addr(addr))
+ 		return !!get_symbol_pos(addr, symbolsize, offset);
+ 
+-	return !!module_address_lookup(addr, symbolsize, offset, NULL);
++	return !!module_address_lookup(addr, symbolsize, offset, NULL, namebuf);
+ }
+ 
+ /*
+@@ -242,8 +243,6 @@ const char *kallsyms_lookup(unsigned lon
+ 			    unsigned long *offset,
+ 			    char **modname, char *namebuf)
+ {
+-	const char *msym;
+-
+ 	namebuf[KSYM_NAME_LEN - 1] = 0;
+ 	namebuf[0] = 0;
+ 
+@@ -259,10 +258,8 @@ const char *kallsyms_lookup(unsigned lon
+ 	}
+ 
+ 	/* see if it's in a module */
+-	msym = module_address_lookup(addr, symbolsize, offset, modname);
+-	if (msym)
+-		return strncpy(namebuf, msym, KSYM_NAME_LEN - 1);
+-
++	return module_address_lookup(addr, symbolsize, offset, modname,
++				     namebuf);
+ 	return NULL;
+ }
+ 
+diff -puN kernel/module.c~modules-make-module_address_lookup-safe kernel/module.c
+--- a/kernel/module.c~modules-make-module_address_lookup-safe
++++ a/kernel/module.c
+@@ -2211,14 +2211,13 @@ static const char *get_ksymbol(struct mo
+ 	return mod->strtab + mod->symtab[best].st_name;
+ }
+ 
+-/* For kallsyms to ask for address resolution.  NULL means not found.
+-   We don't lock, as this is used for oops resolution and races are a
+-   lesser concern. */
+-/* FIXME: Risky: returns a pointer into a module w/o lock */
+-const char *module_address_lookup(unsigned long addr,
+-				  unsigned long *size,
+-				  unsigned long *offset,
+-				  char **modname)
++/* For kallsyms to ask for address resolution.  NULL means not found.  Careful
++ * not to lock to avoid deadlock on oopses, simply disable preemption. */
++char *module_address_lookup(unsigned long addr,
++			    unsigned long *size,
++			    unsigned long *offset,
++			    char **modname,
++			    char *namebuf)
+ {
+ 	struct module *mod;
+ 	const char *ret = NULL;
+@@ -2233,6 +2232,11 @@ const char *module_address_lookup(unsign
+ 			break;
+ 		}
+ 	}
++	/* Make a copy in here where it's safe */
++	if (ret) {
++		strncpy(namebuf, ret, KSYM_NAME_LEN - 1);
++		ret = namebuf;
++	}
+ 	preempt_enable();
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from matthew@wil.cx are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
 origin.patch
-pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch
-pcmcia-replace-kio_addr_t-with-unsigned-int-everywhere.patch
-hash-add-explicit-u32-and-u64-versions-of-hash.patch
-make-sure-nobodys-leaking-resources.patch
+git-kvm.patch
+request_irq-always-returns-einval-with-a-null-handler.patch
+kallsyms-should-prefer-non-weak-symbols.patch
+virtio_net-remove-double-ether_setup.patch
+modules-handle-symbols-that-have-a-zero-value.patch
+modules-include-sectionsh-to-avoid-defining-linker-variables.patch
+modules-make-module_address_lookup-safe-fix.patch
+fixup-container_of-usage.patch
+aio-partial-write-should-not-return-error-code.patch
+aio-negative-offset-should-return-einval.patch
+reiser4.patch
