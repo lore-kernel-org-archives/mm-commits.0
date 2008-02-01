@@ -1,79 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - hwmon-new-chip-driver-for-ti-ads7828-a-d-update-2.patch removed from -mm tree
-Date: Fri, 01 Feb 2008 14:29:24 -0800
-Message-ID: <200802012229.m11MTOln001804@imap1.linux-foundation.org>
+Subject: - m68knommu-remove-vestiges-of-non-existent-disktel.patch removed from -mm tree
+Date: Fri, 01 Feb 2008 14:30:01 -0800
+Message-ID: <200802012230.m11MU2wD001856@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54195 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58188 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756404AbYBAWo7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 17:44:59 -0500
+	by vger.kernel.org with ESMTP id S1756182AbYBAWqB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 17:46:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: steve@linuxrealtime.co.uk, khali@linux-fr.org, mhoffman@lightlink.com, mm-commits@vger.kernel.org
+To: rpjday@crashcourse.ca, gerg@snapgear.com, gerg@uclinux.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hwmon-new-chip-driver-for-ti-ads7828-a-d update 2
+     M68KNOMMU: remove vestiges of non-existent "DISKtel" variable
 has been removed from the -mm tree.  Its filename was
-     hwmon-new-chip-driver-for-ti-ads7828-a-d-update-2.patch
+     m68knommu-remove-vestiges-of-non-existent-disktel.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon-new-chip-driver-for-ti-ads7828-a-d update 2
-From: Steve Hardy <steve@linuxrealtime.co.uk>
+Subject: M68KNOMMU: remove vestiges of non-existent "DISKtel" variable
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
-Fix minor final issues identified by Jean Delarve which I mis-interpreted
-in the third revision
+Since commit fabc7f66ee022ff6e27ba25aafb237996f440536 allegedly
+removed the DISKtel Kconfig variable:
 
-Signed-off-by: Steve Hardy <steve@linuxrealtime.co.uk>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Mark M. Hoffman <mhoffman@lightlink.com>
+commit fabc7f66ee022ff6e27ba25aafb237996f440536
+Author: Greg Ungerer <gerg@snapgear.com>
+Date:   Tue Oct 16 01:26:30 2007 -0700
+
+    M68KNOMMU: remove unused config symbol CONFIG_DISKtel
+
+let's really get rid of the final traces.
+
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Acked-by: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/hwmon/ads7828 |    4 ++--
- drivers/hwmon/ads7828.c     |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ arch/m68knommu/platform/5307/config.c |    3 +--
+ include/asm-m68knommu/mcfuart.h       |    2 +-
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/hwmon/ads7828~hwmon-new-chip-driver-for-ti-ads7828-a-d-update-2 Documentation/hwmon/ads7828
---- a/Documentation/hwmon/ads7828~hwmon-new-chip-driver-for-ti-ads7828-a-d-update-2
-+++ a/Documentation/hwmon/ads7828
-@@ -5,7 +5,7 @@ Supported chips:
-   * Texas Instruments/Burr-Brown ADS7828
-     Prefix: 'ads7828'
-     Addresses scanned: I2C 0x48, 0x49, 0x4a, 0x4b
--    Datasheet : Publicly available at the Texas Instruments website :
-+    Datasheet: Publicly available at the Texas Instruments website :
-                http://focus.ti.com/lit/ds/symlink/ads7828.pdf
+diff -puN arch/m68knommu/platform/5307/config.c~m68knommu-remove-vestiges-of-non-existent-disktel arch/m68knommu/platform/5307/config.c
+--- a/arch/m68knommu/platform/5307/config.c~m68knommu-remove-vestiges-of-non-existent-disktel
++++ a/arch/m68knommu/platform/5307/config.c
+@@ -104,8 +104,7 @@ void config_BSP(char *commandp, int size
+ 	mcf_setimr(MCFSIM_IMR_MASKALL);
  
- Authors:
-@@ -18,7 +18,7 @@ Module Parameters
-   Single ended operation - set to N for differential mode
- * int_vref: bool (default Y)
-   Operate with the internal 2.5V reference - set to N for external reference
--* vref_mV: int (default 2500)
-+* vref_mv: int (default 2500)
-   If using an external reference, set this to the reference voltage in mV
- 
- Description
-diff -puN drivers/hwmon/ads7828.c~hwmon-new-chip-driver-for-ti-ads7828-a-d-update-2 drivers/hwmon/ads7828.c
---- a/drivers/hwmon/ads7828.c~hwmon-new-chip-driver-for-ti-ads7828-a-d-update-2
-+++ a/drivers/hwmon/ads7828.c
-@@ -6,7 +6,7 @@
- 
- 	Written by Steve Hardy <steve@linuxrealtime.co.uk>
- 
--	Datasheet available at : http://focus.ti.com/lit/ds/symlink/ads7828.pdf
-+	Datasheet available at: http://focus.ti.com/lit/ds/symlink/ads7828.pdf
- 
- 	This program is free software; you can redistribute it and/or modify
- 	it under the terms of the GNU General Public License as published by
+ #if defined(CONFIG_NETtel) || defined(CONFIG_eLIA) || \
+-      defined(CONFIG_DISKtel) || defined(CONFIG_SECUREEDGEMP3) || \
+-      defined(CONFIG_CLEOPATRA)
++      defined(CONFIG_SECUREEDGEMP3) || defined(CONFIG_CLEOPATRA)
+ 	/* Copy command line from FLASH to local buffer... */
+ 	memcpy(commandp, (char *) 0xf0004000, size);
+ 	commandp[size-1] = 0;
+diff -puN include/asm-m68knommu/mcfuart.h~m68knommu-remove-vestiges-of-non-existent-disktel include/asm-m68knommu/mcfuart.h
+--- a/include/asm-m68knommu/mcfuart.h~m68knommu-remove-vestiges-of-non-existent-disktel
++++ a/include/asm-m68knommu/mcfuart.h
+@@ -33,7 +33,7 @@
+ #define MCFUART_BASE2		0x240           /* Base address of UART2 */
+ #define MCFUART_BASE3		0x280           /* Base address of UART3 */
+ #elif defined(CONFIG_M5249) || defined(CONFIG_M5307) || defined(CONFIG_M5407)
+-#if defined(CONFIG_NETtel) || defined(CONFIG_DISKtel) || defined(CONFIG_SECUREEDGEMP3)
++#if defined(CONFIG_NETtel) || defined(CONFIG_SECUREEDGEMP3)
+ #define MCFUART_BASE1		0x200           /* Base address of UART1 */
+ #define MCFUART_BASE2		0x1c0           /* Base address of UART2 */
+ #else
 _
 
-Patches currently in -mm which might be from steve@linuxrealtime.co.uk are
+Patches currently in -mm which might be from rpjday@crashcourse.ca are
 
+origin.patch
 git-hwmon.patch
+git-xfs.patch
+frv-move-dma-macros-to-scatterlisth-for-consistency.patch
+uml-delete-some-unused-headers.patch
+rd-use-is_power_of_2-in-drivers-block-rdc.patch
+log2h-define-order_base_2-macro-for-convenience.patch
+ncpfs-update-diagnostic-strings-to-match-routine-names.patch
+hfs-update-comment-to-reflect-actual-init-and-exit-routines.patch
+synclink-standardize-format-of-linux-header-file-includes-with.patch
+remove-superfluous-checks-for-config_blk_dev_initrd-from-initramfsc.patch
+rtc-s3c-use-is_power_of_2-macro-for-simplicity.patch
