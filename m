@@ -1,61 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: - lguest-remove-pv_info-dependency.patch removed from -mm tree
-Date: Fri, 01 Feb 2008 14:30:48 -0800
-Message-ID: <200802012230.m11MUmni001937@imap1.linux-foundation.org>
+Subject: - add-buffer-head-related-helper-functions.patch removed from -mm tree
+Date: Fri, 01 Feb 2008 14:30:36 -0800
+Message-ID: <200802012230.m11MUaib001921__30669.1674319611$1201905800$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36948 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52837 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755238AbYBAWlC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 17:41:02 -0500
+	by vger.kernel.org with ESMTP id S1753428AbYBAWl3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 17:41:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gcosta@redhat.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: aneesh.kumar@linux.vnet.ibm.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lguest: remove pv_info dependency
+     Add buffer head related helper functions
 has been removed from the -mm tree.  Its filename was
-     lguest-remove-pv_info-dependency.patch
+     add-buffer-head-related-helper-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lguest: remove pv_info dependency
-From: Glauber de Oliveira Costa <gcosta@redhat.com>
+Subject: Add buffer head related helper functions
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 
-Currently, lguest module can't be compiled without the PARAVIRT flag being
-on.  This is a fake dependency, since the module itself shouldn't need any
-paravirt override.  Reason for that is the reference to pv_info structure
-in initial loading tests.
+Add buffer head related helper function bh_uptodate_or_lock() and
+bh_submit_read() which can be used by file systems.
 
-This patch removes it in favour of a more generic error message.
-
-Signed-off-by: Glauber de Oliveira Costa <gcosta@redhat.com>
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/buffer.c                 |   41 ++++++++++++++++++++++++++++++++++
+ include/linux/buffer_head.h |    2 +
+ 2 files changed, 43 insertions(+)
 
-diff -puN drivers/lguest/core.c~lguest-remove-pv_info-dependency drivers/lguest/core.c
---- a/drivers/lguest/core.c~lguest-remove-pv_info-dependency
-+++ a/drivers/lguest/core.c
-@@ -253,7 +253,7 @@ static int __init init(void)
+diff -puN fs/buffer.c~add-buffer-head-related-helper-functions fs/buffer.c
+--- a/fs/buffer.c~add-buffer-head-related-helper-functions
++++ a/fs/buffer.c
+@@ -3204,6 +3204,47 @@ init_buffer_head(struct kmem_cache *cach
+ 	INIT_LIST_HEAD(&bh->b_assoc_buffers);
+ }
  
- 	/* Lguest can't run under Xen, VMI or itself.  It does Tricky Stuff. */
- 	if (paravirt_enabled()) {
--		printk("lguest is afraid of %s\n", pv_info.name);
-+		printk("lguest is afraid of being a guest\n");
- 		return -EPERM;
- 	}
++/**
++ * bh_uptodate_or_lock: Test whether the buffer is uptodate
++ * @bh: struct buffer_head
++ *
++ * Return true if the buffer is up-to-date and false,
++ * with the buffer locked, if not.
++ */
++int bh_uptodate_or_lock(struct buffer_head *bh)
++{
++	if (!buffer_uptodate(bh)) {
++		lock_buffer(bh);
++		if (!buffer_uptodate(bh))
++			return 0;
++		unlock_buffer(bh);
++	}
++	return 1;
++}
++EXPORT_SYMBOL(bh_uptodate_or_lock);
++/**
++ * bh_submit_read: Submit a locked buffer for reading
++ * @bh: struct buffer_head
++ *
++ * Returns a negative error
++ */
++int bh_submit_read(struct buffer_head *bh)
++{
++	if (!buffer_locked(bh))
++		lock_buffer(bh);
++
++	if (buffer_uptodate(bh))
++		return 0;
++
++	get_bh(bh);
++	bh->b_end_io = end_buffer_read_sync;
++	submit_bh(READ, bh);
++	wait_on_buffer(bh);
++	if (buffer_uptodate(bh))
++		return 0;
++	return -EIO;
++}
++EXPORT_SYMBOL(bh_submit_read);
+ void __init buffer_init(void)
+ {
+ 	int nrpages;
+diff -puN include/linux/buffer_head.h~add-buffer-head-related-helper-functions include/linux/buffer_head.h
+--- a/include/linux/buffer_head.h~add-buffer-head-related-helper-functions
++++ a/include/linux/buffer_head.h
+@@ -192,6 +192,8 @@ int sync_dirty_buffer(struct buffer_head
+ int submit_bh(int, struct buffer_head *);
+ void write_boundary_block(struct block_device *bdev,
+ 			sector_t bblock, unsigned blocksize);
++int bh_uptodate_or_lock(struct buffer_head *bh);
++int bh_submit_read(struct buffer_head *bh);
+ 
+ extern int buffer_heads_over_limit;
  
 _
 
-Patches currently in -mm which might be from gcosta@redhat.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
 origin.patch
-git-kvm.patch
+ext2-return-after-ext2_error-in-case-of-failures.patch
+ext2-change-the-default-behaviour-on-error.patch
+ext2-add-block-bitmap-validation.patch
+ext3-add-block-bitmap-validation.patch
+ext3-return-after-ext3_error-in-case-of-failures.patch
+ext3-change-the-default-behaviour-on-error.patch
