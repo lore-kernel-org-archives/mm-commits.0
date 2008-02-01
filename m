@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial-mpsc-set-baudrate-when-brg-divider-is-set.patch added to -mm tree
-Date: Thu, 31 Jan 2008 16:09:08 -0800
-Message-ID: <200802010009.m11098Sg018355@imap1.linux-foundation.org>
+Subject: + acpi-backlight-reset-brightness-on-resume.patch added to -mm tree
+Date: Thu, 31 Jan 2008 16:22:59 -0800
+Message-ID: <200802010022.m110MxLA018833@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46426 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45047 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934197AbYBAAJ2 (ORCPT
+	by vger.kernel.org with ESMTP id S1754137AbYBAAXV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 Jan 2008 19:09:28 -0500
+	Thu, 31 Jan 2008 19:23:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mgreer@mvista.com
+Cc: mjg59@srcf.ucam.org, lenb@kernel.org, rui.zhang@intel.com
 
 
 The patch titled
-     serial: MPSC: set baudrate when BRG divider is set.
+     acpi backlight: reset brightness on resume
 has been added to the -mm tree.  Its filename is
-     serial-mpsc-set-baudrate-when-brg-divider-is-set.patch
+     acpi-backlight-reset-brightness-on-resume.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial: MPSC: set baudrate when BRG divider is set.
-From: Mark A. Greer <mgreer@mvista.com>
+Subject: acpi backlight: reset brightness on resume
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 
-The clock to generate the desired baudrate with the MPSC is first divided
-by the Baud Rate Generator (BRG) and then by the MPSC itself.  So, when the
-BRG divider is changed, the MPSC divider must also be changed to generate
-the correct baudrate.  During MPSC initialization, the BRG divider is
-changed but the MPSC divider isn't changed until much later.  This results
-in some printk's coming out garbled.  To fix that, set the MPSC divider at
-the same time that the BRG divider is changed.
+Some machines seem to need the backlight brightness to be reset on resume. 
+Add support for doing so to the video module.
 
-Signed-off-by: Mark A. Greer <mgreer@mvista.com>
+Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/mpsc.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/acpi/video.c |   21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff -puN drivers/serial/mpsc.c~serial-mpsc-set-baudrate-when-brg-divider-is-set drivers/serial/mpsc.c
---- a/drivers/serial/mpsc.c~serial-mpsc-set-baudrate-when-brg-divider-is-set
-+++ a/drivers/serial/mpsc.c
-@@ -612,6 +612,7 @@ static void mpsc_hw_init(struct mpsc_por
+diff -puN drivers/acpi/video.c~acpi-backlight-reset-brightness-on-resume drivers/acpi/video.c
+--- a/drivers/acpi/video.c~acpi-backlight-reset-brightness-on-resume
++++ a/drivers/acpi/video.c
+@@ -74,6 +74,7 @@ MODULE_LICENSE("GPL");
  
- 	/* No preamble, 16x divider, low-latency, */
- 	writel(0x04400400, pi->mpsc_base + MPSC_MMCRH);
-+	mpsc_set_baudrate(pi, pi->default_baud);
+ static int acpi_video_bus_add(struct acpi_device *device);
+ static int acpi_video_bus_remove(struct acpi_device *device, int type);
++static int acpi_video_resume(struct acpi_device *device);
  
- 	if (pi->mirror_regs) {
- 		pi->MPSC_CHR_1_m = 0;
+ static const struct acpi_device_id video_device_ids[] = {
+ 	{ACPI_VIDEO_HID, 0},
+@@ -88,6 +89,7 @@ static struct acpi_driver acpi_video_bus
+ 	.ops = {
+ 		.add = acpi_video_bus_add,
+ 		.remove = acpi_video_bus_remove,
++		.resume = acpi_video_resume,
+ 		},
+ };
+ 
+@@ -1931,6 +1933,25 @@ static void acpi_video_device_notify(acp
+ }
+ 
+ static int instance;
++static int acpi_video_resume(struct acpi_device *device)
++{
++	struct acpi_video_bus *video;
++	struct acpi_video_device *video_device;
++	int i;
++
++	if (!device || !acpi_driver_data(device))
++		return -EINVAL;
++
++	video = acpi_driver_data(device);
++
++	for (i=0; i<video->attached_count; i++) {
++		video_device = video->attached_array[i].bind_info;
++		if (video_device && video_device->backlight)
++			acpi_video_set_brightness(video_device->backlight);
++	}
++	return AE_OK;
++}
++
+ static int acpi_video_bus_add(struct acpi_device *device)
+ {
+ 	acpi_status status;
 _
 
-Patches currently in -mm which might be from mgreer@mvista.com are
+Patches currently in -mm which might be from mjg59@srcf.ucam.org are
 
-git-arm.patch
-git-powerpc.patch
-serial-mpsc-set-baudrate-when-brg-divider-is-set.patch
+acpi-ignore-acpi-video-devices-that-arent-present-in-hardware.patch
+acpi-ignore-acpi-video-devices-that-arent-present-in-hardware-checkpatch-fixes.patch
+acpi-backlight-reset-brightness-on-resume.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
