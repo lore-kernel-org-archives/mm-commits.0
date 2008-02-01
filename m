@@ -1,173 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: - modules-make-module_address_lookup-safe.patch removed from -mm tree
-Date: Fri, 01 Feb 2008 14:30:44 -0800
-Message-ID: <200802012230.m11MUiWQ001930@imap1.linux-foundation.org>
+Subject: - hrtimer-fix-hrtimer_init_sleeper-users.patch removed from -mm tree
+Date: Fri, 01 Feb 2008 14:30:33 -0800
+Message-ID: <200802012230.m11MUXGY001918@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38288 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56720 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756404AbYBAWrE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 17:47:04 -0500
+	by vger.kernel.org with ESMTP id S1753567AbYBAWrO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 17:47:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, kyle@mcmartin.ca, mingo@elte.hu, mm-commits@vger.kernel.org
+To: a.p.zijlstra@chello.nl, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     modules: make module_address_lookup safe
+     hrtimer: fix hrtimer_init_sleeper() users
 has been removed from the -mm tree.  Its filename was
-     modules-make-module_address_lookup-safe.patch
+     hrtimer-fix-hrtimer_init_sleeper-users.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: modules: make module_address_lookup safe
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: hrtimer: fix hrtimer_init_sleeper() users
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-module_address_lookup releases preemption then returns a pointer into the
-module space.  The only user (kallsyms) copies the result, so just do that
-under the preempt disable.
+commit 37bb6cb4097e29ffee970065b74499cbf10603a3
+Author: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Date:   Fri Jan 25 21:08:32 2008 +0100
 
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+    hrtimer: unlock hrtimer_wakeup
+
+Broke hrtimer_init_sleeper() users.  It forgot to fix up the futex caller
+of this function to detect the failed queueing and messed up the
+do_nanosleep() caller in that it could leak a TASK_INTERRUPTIBLE state.
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/module.h |   22 +++++++++++++---------
- kernel/kallsyms.c      |   11 ++++-------
- kernel/module.c        |   20 ++++++++++++--------
- 3 files changed, 29 insertions(+), 24 deletions(-)
+ kernel/futex.c   |    2 ++
+ kernel/hrtimer.c |    2 ++
+ 2 files changed, 4 insertions(+)
 
-diff -puN include/linux/module.h~modules-make-module_address_lookup-safe include/linux/module.h
---- a/include/linux/module.h~modules-make-module_address_lookup-safe
-+++ a/include/linux/module.h
-@@ -446,11 +446,14 @@ static inline void __module_get(struct m
- 	__mod ? __mod->name : "kernel";		\
- })
+diff -puN kernel/futex.c~hrtimer-fix-hrtimer_init_sleeper-users kernel/futex.c
+--- a/kernel/futex.c~hrtimer-fix-hrtimer_init_sleeper-users
++++ a/kernel/futex.c
+@@ -1252,6 +1252,8 @@ static int futex_wait(u32 __user *uaddr,
+ 			t.timer.expires = *abs_time;
  
--/* For kallsyms to ask for address resolution.  NULL means not found. */
--const char *module_address_lookup(unsigned long addr,
--				  unsigned long *symbolsize,
--				  unsigned long *offset,
--				  char **modname);
-+/* For kallsyms to ask for address resolution.  namebuf should be at
-+ * least KSYM_NAME_LEN long: a pointer to namebuf is returned if
-+ * found, otherwise NULL. */
-+char *module_address_lookup(unsigned long addr,
-+			    unsigned long *symbolsize,
-+			    unsigned long *offset,
-+			    char **modname,
-+			    char *namebuf);
- int lookup_module_symbol_name(unsigned long addr, char *symname);
- int lookup_module_symbol_attrs(unsigned long addr, unsigned long *size, unsigned long *offset, char *modname, char *name);
+ 			hrtimer_start(&t.timer, t.timer.expires, HRTIMER_MODE_ABS);
++			if (!hrtimer_active(&t.timer))
++				t.task = NULL;
  
-@@ -516,10 +519,11 @@ static inline void module_put(struct mod
- #define module_name(mod) "kernel"
+ 			/*
+ 			 * the timer could have already expired, in which
+diff -puN kernel/hrtimer.c~hrtimer-fix-hrtimer_init_sleeper-users kernel/hrtimer.c
+--- a/kernel/hrtimer.c~hrtimer-fix-hrtimer_init_sleeper-users
++++ a/kernel/hrtimer.c
+@@ -1314,6 +1314,8 @@ static int __sched do_nanosleep(struct h
  
- /* For kallsyms to ask for address resolution.  NULL means not found. */
--static inline const char *module_address_lookup(unsigned long addr,
--						unsigned long *symbolsize,
--						unsigned long *offset,
--						char **modname)
-+static inline char *module_address_lookup(unsigned long addr,
-+					  unsigned long *symbolsize,
-+					  unsigned long *offset,
-+					  char **modname,
-+					  char *namebuf)
- {
- 	return NULL;
- }
-diff -puN kernel/kallsyms.c~modules-make-module_address_lookup-safe kernel/kallsyms.c
---- a/kernel/kallsyms.c~modules-make-module_address_lookup-safe
-+++ a/kernel/kallsyms.c
-@@ -224,10 +224,11 @@ static unsigned long get_symbol_pos(unsi
- int kallsyms_lookup_size_offset(unsigned long addr, unsigned long *symbolsize,
- 				unsigned long *offset)
- {
-+	char namebuf[KSYM_NAME_LEN];
- 	if (is_ksym_addr(addr))
- 		return !!get_symbol_pos(addr, symbolsize, offset);
+ 	} while (t->task && !signal_pending(current));
  
--	return !!module_address_lookup(addr, symbolsize, offset, NULL);
-+	return !!module_address_lookup(addr, symbolsize, offset, NULL, namebuf);
++	__set_current_state(TASK_RUNNING);
++
+ 	return t->task == NULL;
  }
  
- /*
-@@ -242,8 +243,6 @@ const char *kallsyms_lookup(unsigned lon
- 			    unsigned long *offset,
- 			    char **modname, char *namebuf)
- {
--	const char *msym;
--
- 	namebuf[KSYM_NAME_LEN - 1] = 0;
- 	namebuf[0] = 0;
- 
-@@ -259,10 +258,8 @@ const char *kallsyms_lookup(unsigned lon
- 	}
- 
- 	/* see if it's in a module */
--	msym = module_address_lookup(addr, symbolsize, offset, modname);
--	if (msym)
--		return strncpy(namebuf, msym, KSYM_NAME_LEN - 1);
--
-+	return module_address_lookup(addr, symbolsize, offset, modname,
-+				     namebuf);
- 	return NULL;
- }
- 
-diff -puN kernel/module.c~modules-make-module_address_lookup-safe kernel/module.c
---- a/kernel/module.c~modules-make-module_address_lookup-safe
-+++ a/kernel/module.c
-@@ -2211,14 +2211,13 @@ static const char *get_ksymbol(struct mo
- 	return mod->strtab + mod->symtab[best].st_name;
- }
- 
--/* For kallsyms to ask for address resolution.  NULL means not found.
--   We don't lock, as this is used for oops resolution and races are a
--   lesser concern. */
--/* FIXME: Risky: returns a pointer into a module w/o lock */
--const char *module_address_lookup(unsigned long addr,
--				  unsigned long *size,
--				  unsigned long *offset,
--				  char **modname)
-+/* For kallsyms to ask for address resolution.  NULL means not found.  Careful
-+ * not to lock to avoid deadlock on oopses, simply disable preemption. */
-+char *module_address_lookup(unsigned long addr,
-+			    unsigned long *size,
-+			    unsigned long *offset,
-+			    char **modname,
-+			    char *namebuf)
- {
- 	struct module *mod;
- 	const char *ret = NULL;
-@@ -2233,6 +2232,11 @@ const char *module_address_lookup(unsign
- 			break;
- 		}
- 	}
-+	/* Make a copy in here where it's safe */
-+	if (ret) {
-+		strncpy(namebuf, ret, KSYM_NAME_LEN - 1);
-+		ret = namebuf;
-+	}
- 	preempt_enable();
- 	return ret;
- }
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 origin.patch
-git-kvm.patch
-request_irq-always-returns-einval-with-a-null-handler.patch
-kallsyms-should-prefer-non-weak-symbols.patch
-virtio_net-remove-double-ether_setup.patch
-modules-handle-symbols-that-have-a-zero-value.patch
-modules-include-sectionsh-to-avoid-defining-linker-variables.patch
-modules-make-module_address_lookup-safe-fix.patch
-fixup-container_of-usage.patch
-aio-partial-write-should-not-return-error-code.patch
-aio-negative-offset-should-return-einval.patch
-reiser4.patch
+lockdep-annotate-epoll.patch
+git-sched.patch
+slub-move-kmem_cache_node-determination-into-add_full-and-add_partial-slub-workaround-for-lockdep-confusion.patch
+swapin-needs-gfp_mask-for-loop-on-tmpfs.patch
+mm-page-writeback-highmem_is_dirtyable-option.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+skip-writing-data-pages-when-inode-is-under-i_sync.patch
+fix-dirty-page-accounting-leak-with-ext3-data=journal.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+memcgroup-reinstate-swapoff-mod.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
+memcgroup-fix-zone-isolation-oom.patch
+memcgroup-revert-swap_state-mods.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
+memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
+memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+memory-cgroup-enhancements-add-pre_destroy-handler.patch
+memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
+mm-bdi-export-bdi-attributes-in-sysfs.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse.patch
+mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit.patch
+mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit.patch
