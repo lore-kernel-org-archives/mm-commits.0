@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch added to -mm tree
-Date: Fri, 01 Feb 2008 13:31:08 -0800
-Message-ID: <200802012131.m11LV8e6032211@imap1.linux-foundation.org>
+Subject: + drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements-checkpatch-fixes.patch added to -mm tree
+Date: Fri, 01 Feb 2008 13:32:07 -0800
+Message-ID: <200802012132.m11LW8bK032229@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34188 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33051 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756399AbYBAVbM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 16:31:12 -0500
+	by vger.kernel.org with ESMTP id S1759591AbYBAVcL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 16:32:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, greg@kroah.com
 
 
 The patch titled
-     drivers/usb/serial/io_ti.c: remove pointless eye-candy in debug statements
+     drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+     drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,54 +33,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/serial/io_ti.c: remove pointless eye-candy in debug statements
+Subject: drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-These strings always come up as false positives whenever I'm doing
-git-conflict fixups (ie: about 1000 times/day).
+WARNING: no space between function name and open parenthesis '('
+#24: FILE: drivers/usb/serial/io_ti.c:1089:
++		dbg ("%s - RUNNING IN DOWNLOAD MODE", __FUNCTION__);
 
-I don't think the zillion "<" and ">" characters are very useful and removing
-them makes my life that little bit easier.
+WARNING: no space between function name and open parenthesis '('
+#29: FILE: drivers/usb/serial/io_ti.c:1093:
++			dbg ("%s - DOWNLOAD MODE -- BAD I2C",
+
+WARNING: no space between function name and open parenthesis '('
+#38: FILE: drivers/usb/serial/io_ti.c:1348:
++	dbg ("%s - RUNNING IN BOOT MODE",
+
+WARNING: no space between function name and open parenthesis '('
+#47: FILE: drivers/usb/serial/io_ti.c:1464:
++	dbg ("%s - STAYING IN BOOT MODE", __FUNCTION__);
+
+total: 0 errors, 4 warnings, 29 lines checked
+
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
 
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/io_ti.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/usb/serial/io_ti.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN drivers/usb/serial/io_ti.c~drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements drivers/usb/serial/io_ti.c
---- a/drivers/usb/serial/io_ti.c~drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements
+diff -puN drivers/usb/serial/io_ti.c~drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements-checkpatch-fixes drivers/usb/serial/io_ti.c
+--- a/drivers/usb/serial/io_ti.c~drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements-checkpatch-fixes
 +++ a/drivers/usb/serial/io_ti.c
-@@ -1086,11 +1086,11 @@ static int TIDownloadFirmware (struct ed
+@@ -1086,12 +1086,11 @@ static int TIDownloadFirmware (struct ed
  	if (serial->product_info.TiMode == TI_MODE_DOWNLOAD) {
  		struct ti_i2c_desc *rom_desc;
  
--		dbg ("%s - <<<<<<<<<<<<<<<RUNNING IN DOWNLOAD MODE>>>>>>>>>>", __FUNCTION__);
-+		dbg ("%s - RUNNING IN DOWNLOAD MODE", __FUNCTION__);
+-		dbg ("%s - RUNNING IN DOWNLOAD MODE", __FUNCTION__);
++		dbg("%s - RUNNING IN DOWNLOAD MODE", __FUNCTION__);
  
  		status = TiValidateI2cImage (serial);
  		if (status) {
--			dbg ("%s - <<<<<<<<<<<<<<<DOWNLOAD MODE -- BAD I2C >>>>>>>>>>",
-+			dbg ("%s - DOWNLOAD MODE -- BAD I2C",
- 			     __FUNCTION__);
+-			dbg ("%s - DOWNLOAD MODE -- BAD I2C",
+-			     __FUNCTION__);
++			dbg("%s - DOWNLOAD MODE -- BAD I2C", __FUNCTION__);
  			return status;
  		}
-@@ -1345,7 +1345,7 @@ static int TIDownloadFirmware (struct ed
+ 		
+@@ -1345,8 +1344,7 @@ static int TIDownloadFirmware (struct ed
  	/********************************************************************/
  	/* Boot Mode */
  	/********************************************************************/
--	dbg ("%s - <<<<<<<<<<<<<<<RUNNING IN BOOT MODE>>>>>>>>>>>>>>>",
-+	dbg ("%s - RUNNING IN BOOT MODE",
- 	     __FUNCTION__);
+-	dbg ("%s - RUNNING IN BOOT MODE",
+-	     __FUNCTION__);
++	dbg("%s - RUNNING IN BOOT MODE", __FUNCTION__);
  
  	// Configure the TI device so we can use the BULK pipes for download
-@@ -1461,7 +1461,7 @@ static int TIDownloadFirmware (struct ed
+ 	status = TIConfigureBootDevice (serial->serial->dev);
+@@ -1461,7 +1459,7 @@ static int TIDownloadFirmware (struct ed
  
  StayInBootMode:
  	// Eprom is invalid or blank stay in boot mode
--	dbg ("%s - <<<<<<<<<<<<<<<STAYING IN BOOT MODE>>>>>>>>>>>>", __FUNCTION__);
-+	dbg ("%s - STAYING IN BOOT MODE", __FUNCTION__);
+-	dbg ("%s - STAYING IN BOOT MODE", __FUNCTION__);
++	dbg("%s - STAYING IN BOOT MODE", __FUNCTION__);
  	serial->product_info.TiMode = TI_MODE_BOOT;
  
  	return 0;
@@ -100,6 +120,7 @@ timerfd-v3-new-timerfd-api-arch-fixes.patch
 timerfd-v3-new-timerfd-api-powerpc-fix.patch
 timerfd-v3-new-timerfd-api-sparc64-fix.patch
 drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements-checkpatch-fixes.patch
 git-acpi-fix-git-conflicts.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 acpi-ignore-acpi-video-devices-that-arent-present-in-hardware-checkpatch-fixes.patch
