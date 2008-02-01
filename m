@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix.patch added to -mm tree
-Date: Fri, 01 Feb 2008 15:26:16 -0800
-Message-ID: <200802012334.m11NYxlY005111@imap1.linux-foundation.org>
+Subject: + d_path-make-d_path-use-a-struct-path-fix.patch added to -mm tree
+Date: Fri, 01 Feb 2008 15:34:26 -0800
+Message-ID: <200802012343.m11Nh9QI005458@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53300 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43371 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762648AbYBAXfk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 18:35:40 -0500
+	by vger.kernel.org with ESMTP id S1760683AbYBAXpS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 18:45:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, haveblue@us.ibm.com
+Cc: akpm@linux-foundation.org, bfields@fieldses.org, bryan.wu@analog.com, hch@infradead.org, jblunck@suse.de, mhalcrow@us.ibm.com, mingo@elte.hu, neilb@suse.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix
+     d_path-make-d_path-use-a-struct-path-fix
 has been added to the -mm tree.  Its filename is
-     keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix.patch
+     d_path-make-d_path-use-a-struct-path-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,29 +33,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix
+Subject: d_path-make-d_path-use-a-struct-path-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Bryan Wu <bryan.wu@analog.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Jan Blunck <jblunck@suse.de>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/super.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/super.c~keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix fs/super.c
---- a/fs/super.c~keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix
-+++ a/fs/super.c
-@@ -570,7 +570,8 @@ static void mark_files_ro(struct super_b
- retry:
- 	file_list_lock();
- 	list_for_each_entry(f, &sb->s_files, f_u.fu_list) {
--		struct vfsmount mnt;
-+		struct vfsmount *mnt;
-+
- 		if (!S_ISREG(f->f_path.dentry->d_inode->i_mode))
- 		       continue;
- 		if (!file_count(f))
+diff -puN mm/memory.c~d_path-make-d_path-use-a-struct-path-fix mm/memory.c
+--- a/mm/memory.c~d_path-make-d_path-use-a-struct-path-fix
++++ a/mm/memory.c
+@@ -2712,7 +2712,7 @@ void print_vma_addr(char *prefix, unsign
+ 		if (buf) {
+ 			char *p, *s;
+ 
+-			p = d_path(f->f_dentry, f->f_vfsmnt, buf, PAGE_SIZE);
++			p = d_path(&f->f_path, buf, PAGE_SIZE);
+ 			if (IS_ERR(p))
+ 				p = "?";
+ 			s = strrchr(p, '/');
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -255,6 +261,7 @@ one-less-parameter-to-__d_path-checkpatch-fixes.patch
 d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
 d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
 use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
 cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
 cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
 proc-detect-duplicate-names-on-registration-fix.patch
