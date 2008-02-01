@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + doc-use-correct-debugfs-mountpoint.patch added to -mm tree
-Date: Thu, 31 Jan 2008 16:07:43 -0800
-Message-ID: <200802010007.m1107h90018261@imap1.linux-foundation.org>
+Subject: + serial-mpsc-set-baudrate-when-brg-divider-is-set.patch added to -mm tree
+Date: Thu, 31 Jan 2008 16:09:08 -0800
+Message-ID: <200802010009.m11098Sg018355@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52077 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46426 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934555AbYBAAIE (ORCPT
+	by vger.kernel.org with ESMTP id S934197AbYBAAJ2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 Jan 2008 19:08:04 -0500
+	Thu, 31 Jan 2008 19:09:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, zanussi@us.ibm.com
+Cc: mgreer@mvista.com
 
 
 The patch titled
-     doc: use correct debugfs mountpoint
+     serial: MPSC: set baudrate when BRG divider is set.
 has been added to the -mm tree.  Its filename is
-     doc-use-correct-debugfs-mountpoint.patch
+     serial-mpsc-set-baudrate-when-brg-divider-is-set.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: doc: use correct debugfs mountpoint
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: serial: MPSC: set baudrate when BRG divider is set.
+From: Mark A. Greer <mgreer@mvista.com>
 
-Use the normal, expected mountpoint in the relay(fs) example for debugfs.
+The clock to generate the desired baudrate with the MPSC is first divided
+by the Baud Rate Generator (BRG) and then by the MPSC itself.  So, when the
+BRG divider is changed, the MPSC divider must also be changed to generate
+the correct baudrate.  During MPSC initialization, the BRG divider is
+changed but the MPSC divider isn't changed until much later.  This results
+in some printk's coming out garbled.  To fix that, set the MPSC divider at
+the same time that the BRG divider is changed.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Tom Zanussi <zanussi@us.ibm.com>
+Signed-off-by: Mark A. Greer <mgreer@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/relay.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/serial/mpsc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN Documentation/filesystems/relay.txt~doc-use-correct-debugfs-mountpoint Documentation/filesystems/relay.txt
---- a/Documentation/filesystems/relay.txt~doc-use-correct-debugfs-mountpoint
-+++ a/Documentation/filesystems/relay.txt
-@@ -140,7 +140,7 @@ close()     decrements the channel buffe
- In order for a user application to make use of relay files, the
- host filesystem must be mounted.  For example,
+diff -puN drivers/serial/mpsc.c~serial-mpsc-set-baudrate-when-brg-divider-is-set drivers/serial/mpsc.c
+--- a/drivers/serial/mpsc.c~serial-mpsc-set-baudrate-when-brg-divider-is-set
++++ a/drivers/serial/mpsc.c
+@@ -612,6 +612,7 @@ static void mpsc_hw_init(struct mpsc_por
  
--	mount -t debugfs debugfs /debug
-+	mount -t debugfs debugfs /sys/kernel/debug
+ 	/* No preamble, 16x divider, low-latency, */
+ 	writel(0x04400400, pi->mpsc_base + MPSC_MMCRH);
++	mpsc_set_baudrate(pi, pi->default_baud);
  
- NOTE:   the host filesystem doesn't need to be mounted for kernel
- 	clients to create or use channels - it only needs to be
+ 	if (pi->mirror_regs) {
+ 		pi->MPSC_CHR_1_m = 0;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from mgreer@mvista.com are
 
-origin.patch
-git-alsa.patch
-docbook-fix-drivers-base-class-warning.patch
-ia64-aliasing-test-fix-gcc-warnings-on-non-ia64.patch
-git-kbuild.patch
-hamradio-fix-dmascc-section-mismatch.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-pcmcia-include-bad-cis-filename-in-error-message.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-git-x86.patch
-register_cpu-__devinit-or-__cpuinit.patch
-cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
-dio-fix-kernel-doc-notation.patch
-tpm-infineon-section-mismatch.patch
-tdfxfb-fix-section-mismatch-warnings.patch
-uvesafb-small-cleanups.patch
-documentation-move-dnotifytxt-to-filesystems.patch
-documentation-move-sharedsubtreestxt-to-filesystems.patch
-documentation-create-new-scheduler-subdirectory.patch
-reporting-bugs-cc-the-mailing-list-too.patch
-kernel-doc-prevent-duplicate-description-output.patch
-kernel-doc-warn-on-badly-formatted-short-description.patch
-email-clientstxt-sylpheed-is-ok-at-imap.patch
-doc-use-correct-debugfs-mountpoint.patch
-fs-menu-small-reorg.patch
-the-scheduled-time-option-removal.patch
-getdelays-fix-gcc-warnings.patch
-profile-likely-unlikely-macros.patch
+git-arm.patch
+git-powerpc.patch
+serial-mpsc-set-baudrate-when-brg-divider-is-set.patch
