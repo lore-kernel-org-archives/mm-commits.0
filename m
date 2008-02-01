@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them.patch added to -mm tree
-Date: Thu, 31 Jan 2008 23:41:11 -0800
-Message-ID: <200802010740.m117eq33001729@imap1.linux-foundation.org>
+Date: Fri, 01 Feb 2008 02:17:47 -0800
+Message-ID: <200802011017.m11AHSqd007234@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45272 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57654 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933160AbYBAHlF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 02:41:05 -0500
+	by vger.kernel.org with ESMTP id S1754454AbYBAKRd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 05:17:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -112,10 +112,10 @@ Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    4 +++
- kernel/params.c        |   20 ++++++++--------
- lib/vsprintf.c         |   46 +++++++++++++++++++++++++++++++++++++++
- 3 files changed, 60 insertions(+), 10 deletions(-)
+ include/linux/kernel.h |    4 +
+ kernel/params.c        |   20 +++---
+ lib/vsprintf.c         |  123 +++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 137 insertions(+), 10 deletions(-)
 
 diff -puN include/linux/kernel.h~add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them include/linux/kernel.h
 --- a/include/linux/kernel.h~add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them
@@ -174,10 +174,87 @@ diff -puN kernel/params.c~add-new-string-functions-strict_strto-and-convert-kern
 diff -puN lib/vsprintf.c~add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them lib/vsprintf.c
 --- a/lib/vsprintf.c~add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them
 +++ a/lib/vsprintf.c
-@@ -129,6 +129,52 @@ long long simple_strtoll(const char *cp,
+@@ -129,6 +129,129 @@ long long simple_strtoll(const char *cp,
  	return simple_strtoull(cp,endp,base);
  }
  
++
++/**
++ * strict_strtoul - convert a string to an unsigned long strictly
++ * @cp: The string to be converted
++ * @base: The number base to use
++ * @res: The converted result value
++ *
++ * strict_strtoul converts a string to an unsigned long only if the
++ * string is really an unsigned long string, any string containing
++ * any invalid char at the tail will be rejected and -EINVAL is returned,
++ * only a newline char at the tail is acceptible because people generally
++ * change a module parameter in the following way:
++ *
++ * 	echo 1024 > /sys/module/e1000/parameters/copybreak
++ *
++ * echo will append a newline to the tail.
++ *
++ * It returns 0 if conversion is successful and *res is set to the converted
++ * value, otherwise it returns -EINVAL and *res is set to 0.
++ *
++ * simple_strtoul just ignores the successive invalid characters and
++ * return the converted value of prefix part of the string.
++ */
++int strict_strtoul(const char *cp, unsigned int base, unsigned long *res);
++
++/**
++ * strict_strtol - convert a string to a long strictly
++ * @cp: The string to be converted
++ * @base: The number base to use
++ * @res: The converted result value
++ *
++ * strict_strtol is similiar to strict_strtoul, but it allows the first
++ * character of a string is '-'.
++ *
++ * It returns 0 if conversion is successful and *res is set to the converted
++ * value, otherwise it returns -EINVAL and *res is set to 0.
++ */
++int strict_strtol(const char *cp, unsigned int base, long *res);
++
++/**
++ * strict_strtoull - convert a string to an unsigned long long strictly
++ * @cp: The string to be converted
++ * @base: The number base to use
++ * @res: The converted result value
++ *
++ * strict_strtoull converts a string to an unsigned long long only if the
++ * string is really an unsigned long long string, any string containing
++ * any invalid char at the tail will be rejected and -EINVAL is returned,
++ * only a newline char at the tail is acceptible because people generally
++ * change a module parameter in the following way:
++ *
++ * 	echo 1024 > /sys/module/e1000/parameters/copybreak
++ *
++ * echo will append a newline to the tail of the string.
++ *
++ * It returns 0 if conversion is successful and *res is set to the converted
++ * value, otherwise it returns -EINVAL and *res is set to 0.
++ *
++ * simple_strtoull just ignores the successive invalid characters and
++ * return the converted value of prefix part of the string.
++ */
++int strict_strtoull(const char *cp, unsigned int base, unsigned long long *res);
++
++/**
++ * strict_strtoll - convert a string to a long long strictly
++ * @cp: The string to be converted
++ * @base: The number base to use
++ * @res: The converted result value
++ *
++ * strict_strtoll is similiar to strict_strtoull, but it allows the first
++ * character of a string is '-'.
++ *
++ * It returns 0 if conversion is successful and *res is set to the converted
++ * value, otherwise it returns -EINVAL and *res is set to 0.
++ */
++int strict_strtoll(const char *cp, unsigned int base, long long *res);
++
 +#define define_strict_strtoux(type, valtype)				\
 +int strict_strtou##type(const char *cp, unsigned int base, valtype *res)\
 +{									\
