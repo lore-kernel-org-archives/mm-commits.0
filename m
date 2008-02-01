@@ -1,278 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - x86-pci-use-dev_printk-in-x86-quirk-messages.patch removed from -mm tree
-Date: Fri, 01 Feb 2008 14:29:33 -0800
-Message-ID: <200802012229.m11MTXVP001813@imap1.linux-foundation.org>
+Subject: - dont-prefer-unsuited-consoles-on-registration.patch removed from -mm tree
+Date: Fri, 01 Feb 2008 14:30:55 -0800
+Message-ID: <200802012230.m11MUt62001949@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37129 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34419 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757285AbYBAWs0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 17:48:26 -0500
+	by vger.kernel.org with ESMTP id S1757460AbYBAWsm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 17:48:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bjorn.helgaas@hp.com, greg@kroah.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: jan.kiszka@web.de, jason.wessel@windriver.com, kraxel@suse.de, michael@ellerman.id.au, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86 PCI: use dev_printk in x86 quirk messages
+     don't prefer unsuited consoles on registration
 has been removed from the -mm tree.  Its filename was
-     x86-pci-use-dev_printk-in-x86-quirk-messages.patch
+     dont-prefer-unsuited-consoles-on-registration.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86 PCI: use dev_printk in x86 quirk messages
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: don't prefer unsuited consoles on registration
+From: Jan Kiszka <jan.kiszka@web.de>
 
-Convert quirk printks to dev_printk().
+KGDB triggers a (probably so far theoretical) issue of the automatic init
+console election: If some console happens to be registered first which does
+not provide a tty binding (!console->device), it prevents that more suited
+consoles which are registered later on can enter the candidate pool for
+console_device().  This is observable with KGDB's console which may already
+be registered (and exploited!) during early debugger connections, that is
+before any regular console registration.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Ingo Molnar <mingo@elte.hu>,
-Cc: Thomas Gleixner <tglx@linutronix.de>
+This patch fixes the issue by postponing the final, automated
+preferred_console selection until someone with a non-NULL device handler
+comes around.
+
+Signed-off-by: Jan Kiszka <jan.kiszka@web.de>
+Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Gerd Hoffmann <kraxel@suse.de>
+Cc: Michael Ellerman <michael@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/quirks.c |   43 +++++++++++++++++++------------------
- arch/x86/pci/fixup.c     |   22 +++++++++---------
- 2 files changed, 34 insertions(+), 31 deletions(-)
+ kernel/printk.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/quirks.c~x86-pci-use-dev_printk-in-x86-quirk-messages arch/x86/kernel/quirks.c
---- a/arch/x86/kernel/quirks.c~x86-pci-use-dev_printk-in-x86-quirk-messages
-+++ a/arch/x86/kernel/quirks.c
-@@ -30,8 +30,8 @@ static void __devinit quirk_intel_irqbal
- 	raw_pci_ops->read(0, 0, 0x40, 0x4c, 2, &word);
- 
- 	if (!(word & (1 << 13))) {
--		printk(KERN_INFO "Intel E7520/7320/7525 detected. "
--			"Disabling irq balancing and affinity\n");
-+		dev_info(&dev->dev, "Intel E7520/7320/7525 detected; "
-+			"disabling irq balancing and affinity\n");
- #ifdef CONFIG_IRQBALANCE
- 		irqbalance_disable("");
- #endif
-@@ -104,14 +104,16 @@ static void ich_force_enable_hpet(struct
- 	pci_read_config_dword(dev, 0xF0, &rcba);
- 	rcba &= 0xFFFFC000;
- 	if (rcba == 0) {
--		printk(KERN_DEBUG "RCBA disabled. Cannot force enable HPET\n");
-+		dev_printk(KERN_DEBUG, &dev->dev, "RCBA disabled; "
-+			"cannot force enable HPET\n");
- 		return;
+diff -puN kernel/printk.c~dont-prefer-unsuited-consoles-on-registration kernel/printk.c
+--- a/kernel/printk.c~dont-prefer-unsuited-consoles-on-registration
++++ a/kernel/printk.c
+@@ -1119,8 +1119,11 @@ void register_console(struct console *co
+ 			console->index = 0;
+ 		if (console->setup == NULL ||
+ 		    console->setup(console, NULL) == 0) {
+-			console->flags |= CON_ENABLED | CON_CONSDEV;
+-			preferred_console = 0;
++			console->flags |= CON_ENABLED;
++			if (console->device) {
++				console->flags |= CON_CONSDEV;
++				preferred_console = 0;
++			}
+ 		}
  	}
  
- 	/* use bits 31:14, 16 kB aligned */
- 	rcba_base = ioremap_nocache(rcba, 0x4000);
- 	if (rcba_base == NULL) {
--		printk(KERN_DEBUG "ioremap failed. Cannot force enable HPET\n");
-+		dev_printk(KERN_DEBUG, &dev->dev, "ioremap failed; "
-+			"cannot force enable HPET\n");
- 		return;
- 	}
- 
-@@ -122,8 +124,8 @@ static void ich_force_enable_hpet(struct
- 		/* HPET is enabled in HPTC. Just not reported by BIOS */
- 		val = val & 0x3;
- 		force_hpet_address = 0xFED00000 | (val << 12);
--		printk(KERN_DEBUG "Force enabled HPET at base address 0x%lx\n",
--			       force_hpet_address);
-+		dev_printk(KERN_DEBUG, &dev->dev, "Force enabled HPET at "
-+			"0x%lx\n", force_hpet_address);
- 		iounmap(rcba_base);
- 		return;
- 	}
-@@ -142,11 +144,12 @@ static void ich_force_enable_hpet(struct
- 	if (err) {
- 		force_hpet_address = 0;
- 		iounmap(rcba_base);
--		printk(KERN_DEBUG "Failed to force enable HPET\n");
-+		dev_printk(KERN_DEBUG, &dev->dev,
-+			"Failed to force enable HPET\n");
- 	} else {
- 		force_hpet_resume_type = ICH_FORCE_HPET_RESUME;
--		printk(KERN_DEBUG "Force enabled HPET at base address 0x%lx\n",
--			       force_hpet_address);
-+		dev_printk(KERN_DEBUG, &dev->dev, "Force enabled HPET at "
-+			"0x%lx\n", force_hpet_address);
- 	}
- }
- 
-@@ -206,8 +209,8 @@ static void old_ich_force_enable_hpet(st
- 	if (val & 0x4) {
- 		val &= 0x3;
- 		force_hpet_address = 0xFED00000 | (val << 12);
--		printk(KERN_DEBUG "HPET at base address 0x%lx\n",
--			       force_hpet_address);
-+		dev_printk(KERN_DEBUG, &dev->dev, "HPET at 0x%lx\n",
-+			force_hpet_address);
- 		return;
- 	}
- 
-@@ -227,14 +230,14 @@ static void old_ich_force_enable_hpet(st
- 		/* HPET is enabled in HPTC. Just not reported by BIOS */
- 		val &= 0x3;
- 		force_hpet_address = 0xFED00000 | (val << 12);
--		printk(KERN_DEBUG "Force enabled HPET at base address 0x%lx\n",
--			       force_hpet_address);
-+		dev_printk(KERN_DEBUG, &dev->dev, "Force enabled HPET at "
-+			"0x%lx\n", force_hpet_address);
- 		cached_dev = dev;
- 		force_hpet_resume_type = OLD_ICH_FORCE_HPET_RESUME;
- 		return;
- 	}
- 
--	printk(KERN_DEBUG "Failed to force enable HPET\n");
-+	dev_printk(KERN_DEBUG, &dev->dev, "Failed to force enable HPET\n");
- }
- 
- /*
-@@ -292,8 +295,8 @@ static void vt8237_force_enable_hpet(str
- 	 */
- 	if (val & 0x80) {
- 		force_hpet_address = (val & ~0x3ff);
--		printk(KERN_DEBUG "HPET at base address 0x%lx\n",
--			       force_hpet_address);
-+		dev_printk(KERN_DEBUG, &dev->dev, "HPET at 0x%lx\n",
-+			force_hpet_address);
- 		return;
- 	}
- 
-@@ -307,14 +310,14 @@ static void vt8237_force_enable_hpet(str
- 	pci_read_config_dword(dev, 0x68, &val);
- 	if (val & 0x80) {
- 		force_hpet_address = (val & ~0x3ff);
--		printk(KERN_DEBUG "Force enabled HPET at base address 0x%lx\n",
--			       force_hpet_address);
-+		dev_printk(KERN_DEBUG, &dev->dev, "Force enabled HPET at "
-+			"0x%lx\n", force_hpet_address);
- 		cached_dev = dev;
- 		force_hpet_resume_type = VT8237_FORCE_HPET_RESUME;
- 		return;
- 	}
- 
--	printk(KERN_DEBUG "Failed to force enable HPET\n");
-+	dev_printk(KERN_DEBUG, &dev->dev, "Failed to force enable HPET\n");
- }
- 
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_8235,
-@@ -342,7 +345,7 @@ static void nvidia_force_enable_hpet(str
- 	pci_read_config_dword(dev, 0x44, &val);
- 	force_hpet_address = val & 0xfffffffe;
- 	force_hpet_resume_type = NVIDIA_FORCE_HPET_RESUME;
--	printk(KERN_DEBUG "Force enabled HPET at base address 0x%lx\n",
-+	dev_printk(KERN_DEBUG, &dev->dev, "Force enabled HPET at 0x%lx\n",
- 		force_hpet_address);
- 	cached_dev = dev;
- 	return;
-diff -puN arch/x86/pci/fixup.c~x86-pci-use-dev_printk-in-x86-quirk-messages arch/x86/pci/fixup.c
---- a/arch/x86/pci/fixup.c~x86-pci-use-dev_printk-in-x86-quirk-messages
-+++ a/arch/x86/pci/fixup.c
-@@ -17,7 +17,7 @@ static void __devinit pci_fixup_i450nx(s
- 	int pxb, reg;
- 	u8 busno, suba, subb;
- 
--	printk(KERN_WARNING "PCI: Searching for i450NX host bridges on %s\n", pci_name(d));
-+	dev_warn(&d->dev, "Searching for i450NX host bridges\n");
- 	reg = 0xd0;
- 	for(pxb = 0; pxb < 2; pxb++) {
- 		pci_read_config_byte(d, reg++, &busno);
-@@ -41,7 +41,7 @@ static void __devinit pci_fixup_i450gx(s
- 	 */
- 	u8 busno;
- 	pci_read_config_byte(d, 0x4a, &busno);
--	printk(KERN_INFO "PCI: i440KX/GX host bridge %s: secondary bus %02x\n", pci_name(d), busno);
-+	dev_info(&d->dev, "i440KX/GX host bridge; secondary bus %02x\n", busno);
- 	pci_scan_bus_with_sysdata(busno);
- 	pcibios_last_bus = -1;
- }
-@@ -55,7 +55,7 @@ static void __devinit  pci_fixup_umc_ide
- 	 */
- 	int i;
- 
--	printk(KERN_WARNING "PCI: Fixing base address flags for device %s\n", pci_name(d));
-+	dev_warn(&d->dev, "Fixing base address flags\n");
- 	for(i = 0; i < 4; i++)
- 		d->resource[i].flags |= PCI_BASE_ADDRESS_SPACE_IO;
- }
-@@ -68,7 +68,7 @@ static void __devinit  pci_fixup_ncr53c8
- 	 * Fix class to be PCI_CLASS_STORAGE_SCSI
- 	 */
- 	if (!d->class) {
--		printk(KERN_WARNING "PCI: fixing NCR 53C810 class code for %s\n", pci_name(d));
-+		dev_warn(&d->dev, "Fixing NCR 53C810 class code\n");
- 		d->class = PCI_CLASS_STORAGE_SCSI << 8;
- 	}
- }
-@@ -80,7 +80,7 @@ static void __devinit  pci_fixup_latency
- 	 *  SiS 5597 and 5598 chipsets require latency timer set to
- 	 *  at most 32 to avoid lockups.
- 	 */
--	DBG("PCI: Setting max latency to 32\n");
-+	dev_dbg(&d->dev, "Setting max latency to 32\n");
- 	pcibios_max_latency = 32;
- }
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_SI, PCI_DEVICE_ID_SI_5597, pci_fixup_latency);
-@@ -138,7 +138,7 @@ static void pci_fixup_via_northbridge_bu
- 
- 	pci_read_config_byte(d, where, &v);
- 	if (v & ~mask) {
--		printk(KERN_WARNING "Disabling VIA memory write queue (PCI ID %04x, rev %02x): [%02x] %02x & %02x -> %02x\n", \
-+		dev_warn(&d->dev, "Disabling VIA memory write queue (PCI ID %04x, rev %02x): [%02x] %02x & %02x -> %02x\n", \
- 			d->device, d->revision, where, v, mask, v & mask);
- 		v &= mask;
- 		pci_write_config_byte(d, where, v);
-@@ -200,7 +200,7 @@ static void pci_fixup_nforce2(struct pci
- 	 * Apply fixup if needed, but don't touch disconnect state
- 	 */
- 	if ((val & 0x00FF0000) != 0x00010000) {
--		printk(KERN_WARNING "PCI: nForce2 C1 Halt Disconnect fixup\n");
-+		dev_warn(&dev->dev, "nForce2 C1 Halt Disconnect fixup\n");
- 		pci_write_config_dword(dev, 0x6c, (val & 0xFF00FFFF) | 0x00010000);
- 	}
- }
-@@ -348,7 +348,7 @@ static void __devinit pci_fixup_video(st
- 	pci_read_config_word(pdev, PCI_COMMAND, &config);
- 	if (config & (PCI_COMMAND_IO | PCI_COMMAND_MEMORY)) {
- 		pdev->resource[PCI_ROM_RESOURCE].flags |= IORESOURCE_ROM_SHADOW;
--		printk(KERN_DEBUG "Boot video device is %s\n", pci_name(pdev));
-+		dev_printk(KERN_DEBUG, &pdev->dev, "Boot video device\n");
- 	}
- }
- DECLARE_PCI_FIXUP_FINAL(PCI_ANY_ID, PCI_ANY_ID, pci_fixup_video);
-@@ -388,11 +388,11 @@ static void __devinit pci_fixup_msi_k8t_
- 		/* verify the change for status output */
- 		pci_read_config_byte(dev, 0x50, &val);
- 		if (val & 0x40)
--			printk(KERN_INFO "PCI: Detected MSI K8T Neo2-FIR, "
-+			dev_info(&dev->dev, "Detected MSI K8T Neo2-FIR; "
- 					"can't enable onboard soundcard!\n");
- 		else
--			printk(KERN_INFO "PCI: Detected MSI K8T Neo2-FIR, "
--					"enabled onboard soundcard.\n");
-+			dev_info(&dev->dev, "Detected MSI K8T Neo2-FIR; "
-+					"enabled onboard soundcard\n");
- 	}
- }
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_8237,
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from jan.kiszka@web.de are
 
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-export-acpi_check_resource_conflict.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-ia64-aliasing-test-fix-gcc-warnings-on-non-ia64.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-parport_serial-netmos-9855-fix.patch
-rtc-cmos-exports-nvram-in-sysfs.patch
-pnp-simplify-pnp_activate_dev-and-pnp_disable_dev-return-values.patch
-declare-pnp-option-parsing-functions-as-__init.patch
-declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
-isapnp-driver-semaphore-to-mutex.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
-pnp-do-not-test-pnp_driver_res_do_not_change-on-suspend-resume.patch
-pnp-disable-supermicro-h8dce-motherboard-resources-that-overlap-sata-bars.patch
-dont-touch-fs_struct-in-drivers.patch
+git-sched.patch
+git-x86.patch
