@@ -1,50 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - revert-kvm-stuff-to-make-git-x86-apply.patch removed from -mm tree
-Date: Fri, 01 Feb 2008 13:12:23 -0800
-Message-ID: <200802012112.m11LCNAJ031459@imap1.linux-foundation.org>
+Subject: + git-x86-fixup-vs-git-sched.patch added to -mm tree
+Date: Fri, 01 Feb 2008 13:14:28 -0800
+Message-ID: <200802012114.m11LESAp031497@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32900 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42273 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761732AbYBAVN3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 16:13:29 -0500
+	by vger.kernel.org with ESMTP id S1753318AbYBAVPV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 16:15:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, avi@qumranet.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, mingo@elte.hu
 
 
 The patch titled
-     revert kvm stuff to make git-x86 apply
-has been removed from the -mm tree.  Its filename was
-     revert-kvm-stuff-to-make-git-x86-apply.patch
+     git-x86-fixup-vs-git-sched
+has been added to the -mm tree.  Its filename is
+     git-x86-fixup-vs-git-sched.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert kvm stuff to make git-x86 apply
+Subject: git-x86-fixup-vs-git-sched
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kvm is busted in mm anyway.
-
-Cc: Avi Kivity <avi@qumranet.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Makefile |    2 --
- 1 file changed, 2 deletions(-)
+ include/asm-x86/futex.h |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN arch/x86/Makefile~revert-kvm-stuff-to-make-git-x86-apply arch/x86/Makefile
---- a/arch/x86/Makefile~revert-kvm-stuff-to-make-git-x86-apply
-+++ a/arch/x86/Makefile
-@@ -17,5 +17,3 @@ else
-         UTS_MACHINE := x86_64
-         include $(srctree)/arch/x86/Makefile_64
- endif
+diff -puN include/asm-x86/futex.h~git-x86-fixup-vs-git-sched include/asm-x86/futex.h
+--- a/include/asm-x86/futex.h~git-x86-fixup-vs-git-sched
++++ a/include/asm-x86/futex.h
+@@ -112,12 +112,7 @@ futex_atomic_cmpxchg_inatomic(int __user
+ 		"3:	mov     %2, %0				\n"
+ 		"	jmp     2b				\n"
+ 		"	.previous				\n"
 -
--core-$(CONFIG_KVM) += arch/x86/kvm/
+-		"	.section __ex_table, \"a\"		\n"
+-		"	.align  8				\n"
+-			_ASM_PTR " 1b,3b			\n"
+-		"	.previous				\n"
+-
++		_ASM_EXTABLE(1b,3b)
+ 		: "=a" (oldval), "+m" (*uaddr)
+ 		: "i" (-EFAULT), "r" (newval), "0" (oldval)
+ 		: "memory"
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -118,8 +133,8 @@ usb-ohci-sm501-driver-v2-fix.patch
 git-watchdog.patch
 git-watchdog-fixup.patch
 git-ipwireless_cs.patch
-revert-kvm-stuff-to-make-git-x86-apply.patch
 git-x86.patch
+git-x86-fixup-vs-git-sched.patch
 git-x86-fixup.patch
 git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
 git-x86-fix-doubly-merged-patch.patch
