@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch added to -mm tree
-Date: Fri, 01 Feb 2008 15:41:55 -0800
-Message-ID: <200802012350.m11Nocbf005701@imap1.linux-foundation.org>
+Subject: + mount-options-fix-tmpfs-fix.patch added to -mm tree
+Date: Fri, 01 Feb 2008 15:44:12 -0800
+Message-ID: <200802012352.m11NqtHE005806@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36515 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44191 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751642AbYBAXuq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 18:50:46 -0500
+	by vger.kernel.org with ESMTP id S1757016AbYBAXxJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 18:53:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, rdunlap@xenotime.net, yi.y.yang@intel.com
+Cc: akpm@linux-foundation.org, hugh@veritas.com, mszeredi@suse.cz
 
 
 The patch titled
-     add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix
+     mount-options-fix-tmpfs-fix
 has been added to the -mm tree.  Its filename is
-     add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
+     mount-options-fix-tmpfs-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,35 +33,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix
+Subject: mount-options-fix-tmpfs-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-lib/vsprintf.c: In function 'strict_strtoul':
-lib/vsprintf.c:245: warning: suggest parentheses around && within ||
-lib/vsprintf.c: In function 'strict_strtoull':
-lib/vsprintf.c:247: warning: suggest parentheses around && within ||
+Documentation/SubmitCheckist, please.
 
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
-Cc: Greg KH <greg@kroah.com>
-Cc: Yi Yang <yi.y.yang@intel.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/shmem.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN lib/vsprintf.c~add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix lib/vsprintf.c
---- a/lib/vsprintf.c~add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix
-+++ a/lib/vsprintf.c
-@@ -220,7 +220,7 @@ int strict_strtou##type(const char *cp, 
- 									\
- 	val = simple_strtoul(cp, &tail, base);				\
- 	if ((*tail == '\0') ||						\
--		(len == (size_t)(tail - cp) + 1) && (*tail == '\n')) {	\
-+		((len == (size_t)(tail - cp) + 1) && (*tail == '\n'))) {\
- 		*res = val;						\
- 		return 0;						\
- 	}								\
+diff -puN mm/shmem.c~mount-options-fix-tmpfs-fix mm/shmem.c
+--- a/mm/shmem.c~mount-options-fix-tmpfs-fix
++++ a/mm/shmem.c
+@@ -85,6 +85,7 @@ enum sgp_type {
+ 	SGP_WRITE,	/* may exceed i_size, may allocate page */
+ };
+ 
++#ifdef CONFIG_TMPFS
+ static unsigned long shmem_default_max_blocks(void)
+ {
+ 	return totalram_pages / 2;
+@@ -94,6 +95,7 @@ static unsigned long shmem_default_max_i
+ {
+ 	return min(totalram_pages - totalhigh_pages, totalram_pages / 2);
+ }
++#endif
+ 
+ static int shmem_getpage(struct inode *inode, unsigned long idx,
+ 			 struct page **pagep, enum sgp_type sgp, int *type);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -292,6 +295,7 @@ fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
 fs-afs-securityc-fix-uninitialized-var-warning.patch
 rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-checkpatch-fixes.patch
 rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix.patch
+mount-options-fix-tmpfs-fix.patch
 char-applicom-use-pci_match_id-fix.patch
 add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
 reiser4.patch
