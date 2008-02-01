@@ -1,102 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2.patch removed from -mm tree
-Date: Fri, 01 Feb 2008 14:30:39 -0800
-Message-ID: <200802012230.m11MUduu001924@imap1.linux-foundation.org>
+Subject: - lguest-remove-pv_info-dependency.patch removed from -mm tree
+Date: Fri, 01 Feb 2008 14:30:48 -0800
+Message-ID: <200802012230.m11MUmni001937@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55959 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36948 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753943AbYBAWlz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 17:41:55 -0500
+	by vger.kernel.org with ESMTP id S1755238AbYBAWlC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 17:41:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@suse.de, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: gcosta@redhat.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     BKL-removal: remove incorrect comment refering to lock_kernel() from jbd/jbd2
+     lguest: remove pv_info dependency
 has been removed from the -mm tree.  Its filename was
-     bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2.patch
+     lguest-remove-pv_info-dependency.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: BKL-removal: remove incorrect comment refering to lock_kernel() from jbd/jbd2
-From: Andi Kleen <ak@suse.de>
+Subject: lguest: remove pv_info dependency
+From: Glauber de Oliveira Costa <gcosta@redhat.com>
 
-None of the callers of this function does actually take the BKL as far as I
-can see.  So remove the comment refering to the BKL.
+Currently, lguest module can't be compiled without the PARAVIRT flag being
+on.  This is a fake dependency, since the module itself shouldn't need any
+paravirt override.  Reason for that is the reference to pv_info structure
+in initial loading tests.
 
-Signed-off-by: Andi Kleen <ak@suse.de>
-Cc: <linux-ext4@vger.kernel.org>
+This patch removes it in favour of a more generic error message.
+
+Signed-off-by: Glauber de Oliveira Costa <gcosta@redhat.com>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/recovery.c  |    2 +-
- fs/jbd2/recovery.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/lguest/core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/jbd/recovery.c~bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2 fs/jbd/recovery.c
---- a/fs/jbd/recovery.c~bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2
-+++ a/fs/jbd/recovery.c
-@@ -354,7 +354,7 @@ static int do_one_pass(journal_t *journa
- 		struct buffer_head *	obh;
- 		struct buffer_head *	nbh;
+diff -puN drivers/lguest/core.c~lguest-remove-pv_info-dependency drivers/lguest/core.c
+--- a/drivers/lguest/core.c~lguest-remove-pv_info-dependency
++++ a/drivers/lguest/core.c
+@@ -253,7 +253,7 @@ static int __init init(void)
  
--		cond_resched();		/* We're under lock_kernel() */
-+		cond_resched();
+ 	/* Lguest can't run under Xen, VMI or itself.  It does Tricky Stuff. */
+ 	if (paravirt_enabled()) {
+-		printk("lguest is afraid of %s\n", pv_info.name);
++		printk("lguest is afraid of being a guest\n");
+ 		return -EPERM;
+ 	}
  
- 		/* If we already know where to stop the log traversal,
- 		 * check right now that we haven't gone past the end of
-diff -puN fs/jbd2/recovery.c~bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2 fs/jbd2/recovery.c
---- a/fs/jbd2/recovery.c~bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2
-+++ a/fs/jbd2/recovery.c
-@@ -397,7 +397,7 @@ static int do_one_pass(journal_t *journa
- 		struct buffer_head *	obh;
- 		struct buffer_head *	nbh;
- 
--		cond_resched();		/* We're under lock_kernel() */
-+		cond_resched();
- 
- 		/* If we already know where to stop the log traversal,
- 		 * check right now that we haven't gone past the end of
 _
 
-Patches currently in -mm which might be from ak@suse.de are
+Patches currently in -mm which might be from gcosta@redhat.com are
 
 origin.patch
-bkl-removal-convert-cifs-over-to-unlocked_ioctl.patch
-git-jfs.patch
-git-ocfs2.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
-pci-disable-decoding-during-sizing-of-bars.patch
-x86-validate-against-acpi-motherboard-resources.patch
-git-x86.patch
-x86-amd-thermal-interrupt-support.patch
-x86-clear-pci_mmcfg_virt-when-mmcfg-get-rejected.patch
-x86-mmconf-enable-mcfg-early.patch
-x86-mmconf-enable-mcfg-early-cleanup.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-v3.patch
-x86_64-check-msr-to-get-mmconfig-for-amd-family-10h-opteron-v3.patch
-x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used.patch
-x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used-vs-gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in.patch
-iommu-sg-merging-x86-make-pci-gart-iommu-respect-the-segment-size-limits.patch
-iommu-sg-x86-convert-calgary-iommu-to-use-the-iommu-helper.patch
-iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper.patch
-iommu-sg-kill-__clear_bit_string-and-find_next_zero_string.patch
-git-xfs.patch
-swapin_readahead-excise-numa-bogosity.patch
-remove-unused-arguments-in-zone_init_free_lists.patch
-read_current_time-cleanups.patch
-add-hpet-rtc-emulation-to-rtc_drv_cmos.patch
-modules-handle-symbols-that-have-a-zero-value.patch
-allow-executables-larger-than-2gb.patch
-bkl-removal-convert-pipe-to-use-unlocked_ioctl-too.patch
-remove-aout-interpreter-support-in-elf-loader.patch
-convert-loglevel-related-kernel-boot-parameters-to-early_param.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
+git-kvm.patch
