@@ -1,164 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-add-mutex_lock_killable.patch removed from -mm tree
-Date: Fri, 01 Feb 2008 14:30:22 -0800
-Message-ID: <200802012230.m11MUMg3001906@imap1.linux-foundation.org>
+Subject: - config_highpte-vs-sub-page-page-tables-avr32-fix.patch removed from -mm tree
+Date: Fri, 01 Feb 2008 15:07:43 -0800
+Message-ID: <200802012316.m11NGQ4U003690@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45629 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50797 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761201AbYBAWtt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 17:49:49 -0500
+	by vger.kernel.org with ESMTP id S1761579AbYBAXQm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 18:16:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: howlett@gmail.com, a.p.zijlstra@chello.nl, bfields@fieldses.org, hch@lst.de, mingo@elte.hu, trond.myklebust@fys.uio.no, viro@zeniv.linux.org.uk, willy@linux.intel.com, mm-commits@vger
+To: bn@niasdigital.com, hskinnemoen@atmel.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Kernel: add mutex_lock_killable()
+     fix variable use in AVR32 pte_alloc_one
 has been removed from the -mm tree.  Its filename was
-     kernel-add-mutex_lock_killable.patch
+     config_highpte-vs-sub-page-page-tables-avr32-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Kernel: add mutex_lock_killable()
-From: "Liam R. Howlett" <howlett@gmail.com>
+Subject: fix variable use in AVR32 pte_alloc_one
+From: Ben Nizette <bn@niasdigital.com>
 
-This series of patches add the ability to make mutex locks killable instead of
-uninterruptable.
+Some parts of this function use 'page', some 'pte'.  As such, an AVR32 -mm
+build fails with an undefined reference to 'page'.
 
-This patch set builds on Willy's 5 patches for TASK_KILLABLE.
-
-The first patch adds the mutex_lock_killable to the kernel/mutex.c and
-kernel/mutex.h.
-
-The second patch is a use of the mutex_lock_killable to fs/readdir.c to use
-the new mutex_lock_killable.  This was enough for a small test application to
-be killable once the ethernet was pulled on an nfs mount (please note that
-this does not allow a normal ls to be killed yet).
-
-
-This patch:
-
-Addition of mutex_lock_killable for mutex.c and mutex.h
-
-Signed-off-by: Liam R. Howlett <howlett@gmail.com>
-Acked-by: Matthew Wilcox <willy@linux.intel.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Ben Nizette <bn@niasdigital.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mutex.h |    5 +++++
- kernel/mutex.c        |   36 +++++++++++++++++++++++++++++++++---
- 2 files changed, 38 insertions(+), 3 deletions(-)
+ include/asm-avr32/pgalloc.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mutex.h~kernel-add-mutex_lock_killable include/linux/mutex.h
---- a/include/linux/mutex.h~kernel-add-mutex_lock_killable
-+++ a/include/linux/mutex.h
-@@ -125,15 +125,20 @@ static inline int fastcall mutex_is_lock
- extern void mutex_lock_nested(struct mutex *lock, unsigned int subclass);
- extern int __must_check mutex_lock_interruptible_nested(struct mutex *lock,
- 					unsigned int subclass);
-+extern int __must_check mutex_lock_killable_nested(struct mutex *lock,
-+					unsigned int subclass);
+diff -puN include/asm-avr32/pgalloc.h~config_highpte-vs-sub-page-page-tables-avr32-fix include/asm-avr32/pgalloc.h
+--- a/include/asm-avr32/pgalloc.h~config_highpte-vs-sub-page-page-tables-avr32-fix
++++ a/include/asm-avr32/pgalloc.h
+@@ -52,9 +52,9 @@ static inline struct page *pte_alloc_one
+ 	struct page *pte;
  
- #define mutex_lock(lock) mutex_lock_nested(lock, 0)
- #define mutex_lock_interruptible(lock) mutex_lock_interruptible_nested(lock, 0)
-+#define mutex_lock_killable(lock) mutex_lock_killable_nested(lock, 0)
- #else
- extern void fastcall mutex_lock(struct mutex *lock);
- extern int __must_check fastcall mutex_lock_interruptible(struct mutex *lock);
-+extern int __must_check fastcall mutex_lock_killable(struct mutex *lock);
- 
- # define mutex_lock_nested(lock, subclass) mutex_lock(lock)
- # define mutex_lock_interruptible_nested(lock, subclass) mutex_lock_interruptible(lock)
-+# define mutex_lock_killable_nested(lock, subclass) mutex_lock_killable(lock)
- #endif
- 
- /*
-diff -puN kernel/mutex.c~kernel-add-mutex_lock_killable kernel/mutex.c
---- a/kernel/mutex.c~kernel-add-mutex_lock_killable
-+++ a/kernel/mutex.c
-@@ -166,9 +166,12 @@ __mutex_lock_common(struct mutex *lock, 
- 		 * got a signal? (This code gets eliminated in the
- 		 * TASK_UNINTERRUPTIBLE case.)
- 		 */
--		if (unlikely(state == TASK_INTERRUPTIBLE &&
--						signal_pending(task))) {
--			mutex_remove_waiter(lock, &waiter, task_thread_info(task));
-+		if (unlikely((state == TASK_INTERRUPTIBLE &&
-+					signal_pending(task)) ||
-+			      (state == TASK_KILLABLE &&
-+					fatal_signal_pending(task)))) {
-+			mutex_remove_waiter(lock, &waiter,
-+					    task_thread_info(task));
- 			mutex_release(&lock->dep_map, 1, ip);
- 			spin_unlock_mutex(&lock->wait_lock, flags);
- 
-@@ -211,6 +214,14 @@ mutex_lock_nested(struct mutex *lock, un
- EXPORT_SYMBOL_GPL(mutex_lock_nested);
- 
- int __sched
-+mutex_lock_killable_nested(struct mutex *lock, unsigned int subclass)
-+{
-+	might_sleep();
-+	return __mutex_lock_common(lock, TASK_KILLABLE, subclass, _RET_IP_);
-+}
-+EXPORT_SYMBOL_GPL(mutex_lock_killable_nested);
-+
-+int __sched
- mutex_lock_interruptible_nested(struct mutex *lock, unsigned int subclass)
- {
- 	might_sleep();
-@@ -272,6 +283,9 @@ __mutex_unlock_slowpath(atomic_t *lock_c
-  * mutex_lock_interruptible() and mutex_trylock().
-  */
- static int fastcall noinline __sched
-+__mutex_lock_killable_slowpath(atomic_t *lock_count);
-+
-+static noinline int fastcall __sched
- __mutex_lock_interruptible_slowpath(atomic_t *lock_count);
- 
- /***
-@@ -294,6 +308,14 @@ int fastcall __sched mutex_lock_interrup
- 
- EXPORT_SYMBOL(mutex_lock_interruptible);
- 
-+int fastcall __sched mutex_lock_killable(struct mutex *lock)
-+{
-+	might_sleep();
-+	return __mutex_fastpath_lock_retval
-+			(&lock->count, __mutex_lock_killable_slowpath);
-+}
-+EXPORT_SYMBOL(mutex_lock_killable);
-+
- static void fastcall noinline __sched
- __mutex_lock_slowpath(atomic_t *lock_count)
- {
-@@ -303,6 +325,14 @@ __mutex_lock_slowpath(atomic_t *lock_cou
+ 	pte = alloc_page(GFP_KERNEL | __GFP_REPEAT | __GFP_ZERO);
+-	if (!page)
++	if (!pte)
+ 		return NULL;
+-	pgtable_page_ctor(page);
++	pgtable_page_ctor(pte);
+ 	return pte;
  }
  
- static int fastcall noinline __sched
-+__mutex_lock_killable_slowpath(atomic_t *lock_count)
-+{
-+	struct mutex *lock = container_of(lock_count, struct mutex, count);
-+
-+	return __mutex_lock_common(lock, TASK_KILLABLE, 0, _RET_IP_);
-+}
-+
-+static noinline int fastcall __sched
- __mutex_lock_interruptible_slowpath(atomic_t *lock_count)
- {
- 	struct mutex *lock = container_of(lock_count, struct mutex, count);
 _
 
-Patches currently in -mm which might be from howlett@gmail.com are
+Patches currently in -mm which might be from bn@niasdigital.com are
 
-origin.patch
+config_highpte-vs-sub-page-page-tables-avr32-fix.patch
