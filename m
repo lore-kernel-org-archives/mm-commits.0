@@ -1,79 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - git-alsa-fixup.patch removed from -mm tree
-Date: Fri, 01 Feb 2008 12:57:27 -0800
-Message-ID: <200802012057.m11KvR1v030796@imap1.linux-foundation.org>
+Subject: - git-kbuild-fixup.patch removed from -mm tree
+Date: Fri, 01 Feb 2008 13:02:07 -0800
+Message-ID: <200802012102.m11L27C7031045@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37900 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57067 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755711AbYBAU54 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 15:57:56 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m11KvR18029474
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 1 Feb 2008 12:57:28 -0800
+	by vger.kernel.org with ESMTP id S1757373AbYBAVDs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 16:03:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, sam@ravnborg.org, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-alsa-fixup
+     git-kbuild-fixup
 has been removed from the -mm tree.  Its filename was
-     git-alsa-fixup.patch
+     git-kbuild-fixup.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-alsa-fixup
+Subject: git-kbuild-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Yet another reject fix.
+
+Please prefer to merge ia64 patches via the ia64 tree.
+
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/hda/patch_sigmatel.c |   11 -----------
- 1 file changed, 11 deletions(-)
+ include/asm-ia64/gcc_intrin.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN sound/pci/hda/patch_sigmatel.c~git-alsa-fixup sound/pci/hda/patch_sigmatel.c
---- a/sound/pci/hda/patch_sigmatel.c~git-alsa-fixup
-+++ a/sound/pci/hda/patch_sigmatel.c
-@@ -121,10 +121,7 @@ struct sigmatel_spec {
- 	unsigned int mic_switch: 1;
- 	unsigned int alt_switch: 1;
- 	unsigned int hp_detect: 1;
--<<<<<<< HEAD:sound/pci/hda/patch_sigmatel.c
- 	unsigned int gpio_mute: 1;
--=======
-->>>>>>> FETCH_HEAD:sound/pci/hda/patch_sigmatel.c
+diff -puN include/asm-ia64/gcc_intrin.h~git-kbuild-fixup include/asm-ia64/gcc_intrin.h
+--- a/include/asm-ia64/gcc_intrin.h~git-kbuild-fixup
++++ a/include/asm-ia64/gcc_intrin.h
+@@ -25,7 +25,7 @@ extern void ia64_bad_param_for_setreg (v
+ extern void ia64_bad_param_for_getreg (void);
  
- 	unsigned int gpio_mask, gpio_data;
- 	unsigned char aloopback_mask;
-@@ -760,11 +757,7 @@ static struct snd_kcontrol_new stac925x_
+ #ifdef __KERNEL__
+-register unsigned long ia64_r13 asm ("r13") __attribute_used__;
++register unsigned long ia64_r13 asm ("r13") __used;
+ #endif
  
- static struct snd_kcontrol_new stac9205_mixer[] = {
- 	STAC_INPUT_SOURCE(2),
--<<<<<<< HEAD:sound/pci/hda/patch_sigmatel.c
--	STAC_ANALOG_LOOPBACK(0xFE0, 0x7E0),
--=======
- 	STAC_ANALOG_LOOPBACK(0xFE0, 0x7E0, 1),
-->>>>>>> FETCH_HEAD:sound/pci/hda/patch_sigmatel.c
- 
- 	HDA_CODEC_VOLUME_IDX("Capture Volume", 0x0, 0x1b, 0x0, HDA_INPUT),
- 	HDA_CODEC_MUTE_IDX("Capture Switch", 0x0, 0x1d, 0x0, HDA_OUTPUT),
-@@ -793,11 +786,7 @@ static struct snd_kcontrol_new stac922x_
- 
- static struct snd_kcontrol_new stac927x_mixer[] = {
- 	STAC_INPUT_SOURCE(3),
--<<<<<<< HEAD:sound/pci/hda/patch_sigmatel.c
--	STAC_ANALOG_LOOPBACK(0xFEB, 0x7EB),
--=======
- 	STAC_ANALOG_LOOPBACK(0xFEB, 0x7EB, 1),
-->>>>>>> FETCH_HEAD:sound/pci/hda/patch_sigmatel.c
- 
- 	HDA_CODEC_VOLUME_IDX("Capture Volume", 0x0, 0x18, 0x0, HDA_INPUT),
- 	HDA_CODEC_MUTE_IDX("Capture Switch", 0x0, 0x1b, 0x0, HDA_OUTPUT),
+ #define ia64_setreg(regnum, val)						\
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -94,7 +70,6 @@ acpi-ignore-acpi-video-devices-that-arent-present-in-hardware-checkpatch-fixes.p
 small-acpica-extension-to-be-able-to-store-the-name-of.patch
 acpi-backlight-reset-brightness-on-resume-checkpatch-fixes.patch
 git-alsa.patch
-git-alsa-fixup.patch
 git-alsa-disable-sound-pci-ice1712-ice1724c.patch
 git-agpgart.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
@@ -104,14 +79,11 @@ git-cpufreq.patch
 revert-agk-dm-dm-loop.patch
 include-asm-powerpc-nvramh-needs-listh.patch
 include-asm-powerpc-nvramh-needs-listh-fix.patch
-git-powerpc-galak.patch
 gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
 drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
 git-drm.patch
 drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
 adt7473-new-driver-for-analog-devices-adt7473-sensor-chip-fix.patch
-hwmon-new-chip-driver-for-ti-ads7828-a-d.patch
-hwmon-new-chip-driver-for-ti-ads7828-a-d-checkpatch-fixes.patch
 revert-git-hrt.patch
 drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
 git-kbuild-fixup.patch
