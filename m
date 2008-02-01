@@ -1,129 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - hrtimer-fix-hrtimer_init_sleeper-users.patch removed from -mm tree
-Date: Fri, 01 Feb 2008 14:30:33 -0800
-Message-ID: <200802012230.m11MUXGY001918@imap1.linux-foundation.org>
+Subject: - add-documentation-x86-64-00-index.patch removed from -mm tree
+Date: Fri, 01 Feb 2008 14:30:41 -0800
+Message-ID: <200802012230.m11MUfwZ001927@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56720 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34995 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753567AbYBAWrO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 17:47:14 -0500
+	by vger.kernel.org with ESMTP id S1755720AbYBAWro (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 17:47:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.p.zijlstra@chello.nl, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: rob@landley.net, mingo@elte.hu, tglx@linutronix.de, vojtech@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hrtimer: fix hrtimer_init_sleeper() users
+     Add Documentation/x86-64/00-INDEX
 has been removed from the -mm tree.  Its filename was
-     hrtimer-fix-hrtimer_init_sleeper-users.patch
+     add-documentation-x86-64-00-index.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hrtimer: fix hrtimer_init_sleeper() users
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: Add Documentation/x86-64/00-INDEX
+From: Rob Landley <rob@landley.net>
 
-commit 37bb6cb4097e29ffee970065b74499cbf10603a3
-Author: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Date:   Fri Jan 25 21:08:32 2008 +0100
+Add Documentation/x86_64/00-INDEX
 
-    hrtimer: unlock hrtimer_wakeup
-
-Broke hrtimer_init_sleeper() users.  It forgot to fix up the futex caller
-of this function to detect the failed queueing and messed up the
-do_nanosleep() caller in that it could leak a TASK_INTERRUPTIBLE state.
-
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Rob Landley <rob@landley.net>
+Cc: Vojtech Pavlik <vojtech@suse.cz>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/futex.c   |    2 ++
- kernel/hrtimer.c |    2 ++
- 2 files changed, 4 insertions(+)
+ Documentation/x86_64/00-INDEX |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff -puN kernel/futex.c~hrtimer-fix-hrtimer_init_sleeper-users kernel/futex.c
---- a/kernel/futex.c~hrtimer-fix-hrtimer_init_sleeper-users
-+++ a/kernel/futex.c
-@@ -1252,6 +1252,8 @@ static int futex_wait(u32 __user *uaddr,
- 			t.timer.expires = *abs_time;
- 
- 			hrtimer_start(&t.timer, t.timer.expires, HRTIMER_MODE_ABS);
-+			if (!hrtimer_active(&t.timer))
-+				t.task = NULL;
- 
- 			/*
- 			 * the timer could have already expired, in which
-diff -puN kernel/hrtimer.c~hrtimer-fix-hrtimer_init_sleeper-users kernel/hrtimer.c
---- a/kernel/hrtimer.c~hrtimer-fix-hrtimer_init_sleeper-users
-+++ a/kernel/hrtimer.c
-@@ -1314,6 +1314,8 @@ static int __sched do_nanosleep(struct h
- 
- 	} while (t->task && !signal_pending(current));
- 
-+	__set_current_state(TASK_RUNNING);
-+
- 	return t->task == NULL;
- }
- 
+diff -puN /dev/null Documentation/x86_64/00-INDEX
+--- /dev/null
++++ a/Documentation/x86_64/00-INDEX
+@@ -0,0 +1,16 @@
++00-INDEX
++	- This file
++boot-options.txt
++	- AMD64-specific boot options.
++cpu-hotplug-spec
++	- Firmware support for CPU hotplug under Linux/x86-64
++fake-numa-for-cpusets
++	- Using numa=fake and CPUSets for Resource Management
++kernel-stacks
++	- Context-specific per-processor interrupt stacks.
++machinecheck
++	- Configurable sysfs parameters for the x86-64 machine check code.
++mm.txt
++	- Memory layout of x86-64 (4 level page tables, 46 bits physical).
++uefi.txt
++	- Booting Linux via Unified Extensible Firmware Interface.
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from rob@landley.net are
 
 origin.patch
-lockdep-annotate-epoll.patch
-git-sched.patch
-slub-move-kmem_cache_node-determination-into-add_full-and-add_partial-slub-workaround-for-lockdep-confusion.patch
-swapin-needs-gfp_mask-for-loop-on-tmpfs.patch
-mm-page-writeback-highmem_is_dirtyable-option.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-skip-writing-data-pages-when-inode-is-under-i_sync.patch
-fix-dirty-page-accounting-leak-with-ext3-data=journal.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-memcgroup-reinstate-swapoff-mod.patch
-bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
-bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
-bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
-bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
-memcgroup-fix-zone-isolation-oom.patch
-memcgroup-revert-swap_state-mods.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
-memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
-memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
-memory-cgroup-enhancements-add-pre_destroy-handler.patch
-memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
-mm-bdi-export-bdi-attributes-in-sysfs.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse.patch
-mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit.patch
-mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit.patch
+git-x86.patch
+documentation-about-unaligned-memory-access.patch
+add-missing-section-ids-to-genericirqtmpl.patch
+add-missing-section-ids-to-genericirqtmpl-updated.patch
+add-missing-section-id-to-lsmtmpl.patch
+add-section-ids-to-mtdnandtmpl.patch
+add-missing-ids-to-procfs-guidetmpl.patch
+add-section-ids-to-rapidiotmpl.patch
+add-table-ids-to-videobooktmpl.patch
+add-chapter-ids-to-z8530booktmpl.patch
