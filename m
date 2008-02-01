@@ -1,69 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix.patch removed from -mm tree
-Date: Fri, 01 Feb 2008 15:47:14 -0800
-Message-ID: <200802012355.m11Ntvd2005881@imap1.linux-foundation.org>
+Subject: - rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 01 Feb 2008 15:47:11 -0800
+Message-ID: <200802012355.m11NtsXr005878@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59433 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36087 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761909AbYBAX4Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 18:56:16 -0500
+	by vger.kernel.org with ESMTP id S1761722AbYBBABL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 19:01:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, fbuihuu@gmail.com, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix
+     rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix.patch
+     rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-checkpatch-fixes.patch
 
 This patch was dropped because of too much damage
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix
+Subject: rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/pid.c: In function 'free_pid':
-kernel/pid.c:231: error: implicit declaration of function 'hlist_del_rcu'
-kernel/pid.c: In function 'alloc_pid':
-kernel/pid.c:272: error: implicit declaration of function 'hlist_add_head_rcu'
-kernel/pid.c: In function 'find_pid_ns':
-kernel/pid.c:294: error: implicit declaration of function 'hlist_for_each_entry_rcu'
-kernel/pid.c:295: error: 'pid_chain' undeclared (first use in this function)
-kernel/pid.c:295: error: (Each undeclared identifier is reported only once
-kernel/pid.c:295: error: for each function it appears in.)
-kernel/pid.c:296: error: expected ';' before 'if'
-kernel/pid.c: In function 'transfer_pid':
-kernel/pid.c:355: error: implicit declaration of function 'hlist_replace_rcu'
+ERROR: "foo * bar" should be "foo *bar"
+#543: FILE: include/linux/rculist.h:17:
++static inline void __list_add_rcu(struct list_head * new,
+
+ERROR: "foo * bar" should be "foo *bar"
+#544: FILE: include/linux/rculist.h:18:
++		struct list_head * prev, struct list_head * next)
+
+ERROR: need space after that ';' (ctx:VxV)
+#917: FILE: include/linux/rculist.h:391:
++	     rcu_dereference(pos) && ({ prefetch(pos->next); 1;}) &&	 \
+ 	                                                      ^
+
+ERROR: need space after that ';' (ctx:VxV)
+#918: FILE: include/linux/rculist.h:392:
++		({ tpos = hlist_entry(pos, typeof(*tpos), member); 1;}); \
+ 		                                                    ^
+
+total: 4 errors, 0 warnings, 872 lines checked
+
+./patches/split-listh-and-move-rcu-protected-lists-into-rculisth.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
 
 Cc: Franck Bui-Huu <fbuihuu@gmail.com>
 Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/pid.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/rculist.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/ia64/sn/kernel/irq.c~rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix arch/ia64/sn/kernel/irq.c
-diff -puN drivers/infiniband/hw/ipath/ipath_verbs_mcast.c~rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix drivers/infiniband/hw/ipath/ipath_verbs_mcast.c
-diff -puN include/linux/dcache.h~rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix include/linux/dcache.h
-diff -puN include/linux/list.h~rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix include/linux/list.h
-diff -puN include/linux/rculist.h~rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix include/linux/rculist.h
-diff -puN lib/textsearch.c~rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix lib/textsearch.c
-diff -puN kernel/pid.c~rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix kernel/pid.c
---- a/kernel/pid.c~rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix
-+++ a/kernel/pid.c
-@@ -30,6 +30,7 @@
- #include <linux/module.h>
- #include <linux/slab.h>
- #include <linux/init.h>
-+#include <linux/rculist.h>
- #include <linux/bootmem.h>
- #include <linux/hash.h>
- #include <linux/pid_namespace.h>
+diff -puN include/linux/rculist.h~rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-checkpatch-fixes include/linux/rculist.h
+--- a/include/linux/rculist.h~rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-checkpatch-fixes
++++ a/include/linux/rculist.h
+@@ -14,8 +14,8 @@
+  * This is only for internal list manipulation where we know
+  * the prev/next entries already!
+  */
+-static inline void __list_add_rcu(struct list_head * new,
+-		struct list_head * prev, struct list_head * next)
++static inline void __list_add_rcu(struct list_head *new,
++		struct list_head * prev, struct list_head *next)
+ {
+ 	new->next = next;
+ 	new->prev = prev;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -292,6 +302,7 @@ ufs-fix-symlink-creation-on-ufs2-fix.patch
 libfs-allow-error-return-from-simple-attributes-fix.patch
 fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
 fs-afs-securityc-fix-uninitialized-var-warning.patch
+rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-checkpatch-fixes.patch
 rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-fix.patch
 mount-options-fix-tmpfs-fix.patch
 char-applicom-use-pci_match_id-fix.patch
