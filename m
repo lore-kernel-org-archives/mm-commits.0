@@ -1,442 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: - hwmon-new-chip-driver-for-ti-ads7828-a-d.patch removed from -mm tree
-Date: Fri, 01 Feb 2008 14:29:15 -0800
-Message-ID: <200802012229.m11MTGHR001795@imap1.linux-foundation.org>
+Subject: - docbook-fix-drivers-base-class-warning.patch removed from -mm tree
+Date: Fri, 01 Feb 2008 14:29:12 -0800
+Message-ID: <200802012229.m11MTCmb001790@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37332 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55478 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755463AbYBAWaQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 17:30:16 -0500
+	by vger.kernel.org with ESMTP id S1755676AbYBAWae (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 17:30:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: steve@linuxrealtime.co.uk, akpm@linux-foundation.org, khali@linux-fr.org, mhoffman@lightlink.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hwmon: new chip driver for TI ADS7828 A-D
+     docbook: fix drivers/base/class warning
 has been removed from the -mm tree.  Its filename was
-     hwmon-new-chip-driver-for-ti-ads7828-a-d.patch
+     docbook-fix-drivers-base-class-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon: new chip driver for TI ADS7828 A-D
-From: Steve Hardy <steve@linuxrealtime.co.uk>
+Subject: docbook: fix drivers/base/class warning
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Return-Path: <randy.dunlap@oracle.com>
+Received: from localhost (bix [127.0.0.1])
+	by localhost.localdomain (8.12.10/8.12.10) with ESMTP id m0UJp4uC015938
+	for <akpm@localhost>; Wed, 30 Jan 2008 11:51:06 -0800
+Received: from imap1.linux-foundation.org [207.189.120.55]
+	by localhost with POP3 (fetchmail-6.2.5)
+	for akpm@localhost (single-drop); Wed, 30 Jan 2008 11:51:06 -0800 (PST)
+Received: from smtp1.linux-foundation.org (smtp1.linux-foundation.org [207.189.120.13])
+	by imap1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m0UJqVVL021782;
+	Wed, 30 Jan 2008 11:52:31 -0800
+Received: from rgminet01.oracle.com (rgminet01.oracle.com [148.87.113.118])
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m0UJqKpC024272
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO);
+	Wed, 30 Jan 2008 11:52:26 -0800
+Received: from agmgw1.us.oracle.com (agmgw1.us.oracle.com [152.68.180.212])
+	by rgminet01.oracle.com (Switch-3.2.4/Switch-3.1.6) with ESMTP id m0UJq8R0003236;
+	Wed, 30 Jan 2008 12:52:09 -0700
+Received: from acsmt353.oracle.com (acsmt353.oracle.com [141.146.40.153])
+	by agmgw1.us.oracle.com (Switch-3.2.0/Switch-3.2.0) with ESMTP id m0UJhJER009828;
+	Wed, 30 Jan 2008 12:52:08 -0700
+Received: from pool-96-225-192-120.ptldor.fios.verizon.net by acsmt359.oracle.com
+	with ESMTP id 7117109321201722669; Wed, 30 Jan 2008 13:51:09 -0600
+Date: Wed, 30 Jan 2008 11:51:08 -0800
+To: lkml <linux-kernel@vger.kernel.org>
+Cc: gregkh <greg@kroah.com>, akpm <akpm@linux-foundation.org>,
+        torvalds
+ <torvalds@linux-foundation.org>
+Subject: [PATCH] docbook: fix drivers/base/class warning
+Message-Id: <20080130115108.2df9ade6.randy.dunlap@oracle.com>
+Organization: Oracle Linux Eng.
+X-Mailer: Sylpheed 2.4.7 (GTK+ 2.8.10; x86_64-unknown-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-Brightmail-Tracker: AAAAAQAAAAI=
+X-Brightmail-Tracker: AAAAAQAAAAI=
+X-Whitelist: TRUE
+X-Whitelist: TRUE
+Received-SPF: none (domain of randy.dunlap@oracle.com does not designate permitted sender hosts)
+X-MIMEDefang-Filter: lf$Revision: 1.188 $
+X-Scanned-By: MIMEDefang 2.53 on 207.189.120.13
+X-Spam-Checker-Version: SpamAssassin 3.0.2 (2004-11-16) on bix
+X-Spam-Level: 
+X-Spam-Status: No, score=-0.3 required=2.0 tests=AWL autolearn=ham 
+	version=3.0.2
 
-Signed-off-by: Steve Hardy <steve@linuxrealtime.co.uk>
-Cc: Mark M. Hoffman <mhoffman@lightlink.com>
-Cc: Jean Delvare <khali@linux-fr.org>
-DESC
-hwmon-new-chip-driver-for-ti-ads7828-a-d-checkpatch-fixes
-EDESC
 
-ERROR: need spaces around that '=' (ctx:VxV)
-#281: FILE: drivers/hwmon/ads7828.c:190:
-+	int err=0;
- 	       ^
+Fix kernel-doc empty line warning:
+Warning(linux-2.6.24-git8//drivers/base/class.c:866): bad line:
 
-WARNING: line over 80 characters
-#304: FILE: drivers/hwmon/ads7828.c:213:
-+	dedicated register so attempt to sanity check using knowledge of the chip
-
-total: 1 errors, 1 warnings, 357 lines checked
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Mark M. Hoffman <mhoffman@lightlink.com>
-Cc: Steve Hardy <steve@linuxrealtime.co.uk>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 ---
+ drivers/base/class.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- Documentation/hwmon/ads7828 |   38 ++++
- drivers/hwmon/Kconfig       |   10 +
- drivers/hwmon/Makefile      |    1 
- drivers/hwmon/ads7828.c     |  296 ++++++++++++++++++++++++++++++++++
- 4 files changed, 345 insertions(+)
+--- linux-2.6.24-git8.orig/drivers/base/class.c
++++ linux-2.6.24-git8/drivers/base/class.c
+@@ -863,7 +863,7 @@ EXPORT_SYMBOL_GPL(class_for_each_device)
+  * The callback should return 0 if the device doesn't match and non-zero
+  * if it does.  If the callback returns non-zero, this function will
+  * return to the caller and not iterate over any more devices.
+-
++ *
+  * Note, you will need to drop the reference with put_device() after use.
+  *
+  * We hold class->sem in this function, so it can not be
 
-diff -puN /dev/null Documentation/hwmon/ads7828
---- /dev/null
-+++ a/Documentation/hwmon/ads7828
-@@ -0,0 +1,38 @@
-+Kernel driver ads7828
-+=====================
-+
-+Supported chips:
-+  * Texas Instruments/Burr-Brown ADS7828
-+    Prefix: 'ads7828'
-+    Addresses scanned: I2C 0x48, 0x49, 0x4a, 0x4b
-+    Datasheet: Publicly available at the Texas Instruments website :
-+               http://focus.ti.com/lit/ds/symlink/ads7828.pdf
-+
-+Authors:
-+        Steve Hardy <steve@linuxrealtime.co.uk>
-+
-+Module Parameters
-+-----------------
-+
-+* se_input: bool (default Y)
-+  Single ended operation - set to N for differential mode
-+* int_vref: bool (default Y)
-+  Operate with the internal 2.5v reference - set to N for external reference
-+* vref_mv: int (default 2500)
-+  If using an external reference, set this to the reference voltage in mv
-+
-+Description
-+-----------
-+
-+This driver implements support for the Texas Instruments ADS7828.
-+
-+This device is a 12bit 8ch A-D converter.
-+
-+It can operate in single ended mode (8 +ve inputs) or in differential mode,
-+when 4 differential pairs can be measured.
-+
-+The chip also has the facility to use an external voltage reference.  This
-+may be required if your hardware supplies the ADS7828 from a 5v supply, see
-+the datasheet for more details.
-+
-+
-diff -puN drivers/hwmon/Kconfig~hwmon-new-chip-driver-for-ti-ads7828-a-d drivers/hwmon/Kconfig
---- a/drivers/hwmon/Kconfig~hwmon-new-chip-driver-for-ti-ads7828-a-d
-+++ a/drivers/hwmon/Kconfig
-@@ -598,6 +598,16 @@ config SENSORS_SMSC47B397
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called smsc47b397.
- 
-+config SENSORS_ADS7828
-+	tristate "Texas Instruments ADS7828"
-+	depends on I2C
-+	help
-+	If you say yes here you get support for Texas Instruments ADS7828
-+	12-bit 8-channel ADC device.
-+
-+	This driver can also be built as a module.  If so, the module
-+	will be called ads7828.
-+
- config SENSORS_THMC50
- 	tristate "Texas Instruments THMC50 / Analog Devices ADM1022"
- 	depends on I2C && EXPERIMENTAL
-diff -puN drivers/hwmon/Makefile~hwmon-new-chip-driver-for-ti-ads7828-a-d drivers/hwmon/Makefile
---- a/drivers/hwmon/Makefile~hwmon-new-chip-driver-for-ti-ads7828-a-d
-+++ a/drivers/hwmon/Makefile
-@@ -22,6 +22,7 @@ obj-$(CONFIG_SENSORS_ADM1026)	+= adm1026
- obj-$(CONFIG_SENSORS_ADM1029)	+= adm1029.o
- obj-$(CONFIG_SENSORS_ADM1031)	+= adm1031.o
- obj-$(CONFIG_SENSORS_ADM9240)	+= adm9240.o
-+obj-$(CONFIG_SENSORS_ADS7828)	+= ads7828.o
- obj-$(CONFIG_SENSORS_ADT7470)	+= adt7470.o
- obj-$(CONFIG_SENSORS_ADT7473)	+= adt7473.o
- obj-$(CONFIG_SENSORS_APPLESMC)	+= applesmc.o
-diff -puN /dev/null drivers/hwmon/ads7828.c
---- /dev/null
-+++ a/drivers/hwmon/ads7828.c
-@@ -0,0 +1,296 @@
-+/*
-+	ads7828.c - lm_sensors driver for ads7828 12bit 8ch ADC
-+	(C) 2007 EADS Astrium
-+
-+	This driver is based on the lm75 and other lm_sensors/hwmon drivers
-+
-+	Written by Steve Hardy <steve@linuxrealtime.co.uk>
-+
-+	Datasheet available at : http://focus.ti.com/lit/ds/symlink/ads7828.pdf
-+
-+	This program is free software; you can redistribute it and/or modify
-+	it under the terms of the GNU General Public License as published by
-+	the Free Software Foundation; either version 2 of the License, or
-+	(at your option) any later version.
-+
-+	This program is distributed in the hope that it will be useful,
-+	but WITHOUT ANY WARRANTY; without even the implied warranty of
-+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
-+	GNU General Public License for more details.
-+
-+	You should have received a copy of the GNU General Public License
-+	along with this program; if not, write to the Free Software
-+	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+*/
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/slab.h>
-+#include <linux/jiffies.h>
-+#include <linux/i2c.h>
-+#include <linux/hwmon.h>
-+#include <linux/hwmon-sysfs.h>
-+#include <linux/err.h>
-+#include <linux/mutex.h>
-+
-+/* The ADS7828 registers */
-+#define ADS7828_NCH 8 /* 8 channels of 12bit A-D supported */
-+#define ADS7828_CMD_SD_SE 0x80 /* Single ended inputs */
-+#define ADS7828_CMD_SD_DIFF 0x00 /* Differential inputs */
-+#define ADS7828_CMD_PD0 0x0 /* Power Down between A-D conversions */
-+#define ADS7828_CMD_PD1 0x04 /* Internal ref OFF && A-D ON */
-+#define ADS7828_CMD_PD2 0x08 /* Internal ref ON && A-D OFF */
-+#define ADS7828_CMD_PD3 0x0C /* Internal ref ON && A-D ON */
-+#define ADS7828_INT_VREF_MV 2500 /* Internal vref is 2.5v, 2500mV */
-+
-+/* Addresses to scan */
-+static unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4b,
-+	I2C_CLIENT_END };
-+
-+/* Insmod parameters */
-+I2C_CLIENT_INSMOD_1(ads7828);
-+
-+/* Other module parameters */
-+static int se_input = 1; /* Default is SE, 0 == diff */
-+static int int_vref = 1; /* Default is internal ref ON */
-+static int vref_mv = ADS7828_INT_VREF_MV; /* set if vref != 2.5v */
-+module_param(se_input, bool, S_IRUGO);
-+module_param(int_vref, bool, S_IRUGO);
-+module_param(vref_mv, int, S_IRUGO);
-+
-+/* Global Variables */
-+static u8 ads7828_cmd_byte; /* cmd byte without channel bits */
-+static unsigned int ads7828_lsb_resol; /* resolution of the ADC sample lsb */
-+
-+/* Each client has this additional data */
-+struct ads7828_data {
-+	struct i2c_client client;
-+	struct device *hwmon_dev;
-+	struct mutex update_lock; /* mutex protect updates */
-+	char valid; /* !=0 if following fields are valid */
-+	unsigned long last_updated; /* In jiffies */
-+	u16 adc_input[ADS7828_NCH]; /* ADS7828_NCH 12bit samples */
-+};
-+
-+/* Function declaration - neccesary due to function dependencies */
-+static int ads7828_detect(struct i2c_adapter *adapter, int address, int kind);
-+
-+/* The ADS7828 returns the 12bit sample in two bytes,
-+	these are read as a word then byte-swapped */
-+static u16 ads7828_read_value(struct i2c_client *client, u8 reg)
-+{
-+	return swab16(i2c_smbus_read_word_data(client, reg));
-+}
-+
-+static inline u8 channel_cmd_byte(int ch)
-+{
-+	/* cmd byte C2,C1,C0 - see datasheet */
-+	u8 cmd = (((ch>>1) | (ch&0x01)<<2)<<4);
-+	cmd |= ads7828_cmd_byte;
-+	return cmd;
-+}
-+
-+/* Update data for the device (all 8 channels) */
-+static struct ads7828_data *ads7828_update_device(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct ads7828_data *data = i2c_get_clientdata(client);
-+
-+	mutex_lock(&data->update_lock);
-+
-+	if (time_after(jiffies, data->last_updated + HZ + HZ / 2)
-+			|| !data->valid) {
-+		unsigned int ch;
-+		dev_dbg(&client->dev, "Starting ads7828 update\n");
-+
-+		for (ch = 0; ch < ADS7828_NCH; ch++) {
-+			u8 cmd = channel_cmd_byte(ch);
-+			data->adc_input[ch] = ads7828_read_value(client, cmd);
-+		}
-+		data->last_updated = jiffies;
-+		data->valid = 1;
-+	}
-+
-+	mutex_unlock(&data->update_lock);
-+
-+	return data;
-+}
-+
-+/* sysfs callback function */
-+static ssize_t show_in(struct device *dev, struct device_attribute *da,
-+	char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
-+	struct ads7828_data *data = ads7828_update_device(dev);
-+	/* Print value (in mv as specified in sysfs-interface documentation) */
-+	return sprintf(buf, "%d\n", (data->adc_input[attr->index] *
-+		ads7828_lsb_resol)/1000);
-+}
-+
-+#define in_reg(offset)\
-+static SENSOR_DEVICE_ATTR(in##offset##_input, S_IRUGO, show_in,\
-+	NULL, offset);
-+
-+in_reg(0);
-+in_reg(1);
-+in_reg(2);
-+in_reg(3);
-+in_reg(4);
-+in_reg(5);
-+in_reg(6);
-+in_reg(7);
-+
-+static struct attribute *ads7828_attributes[] = {
-+	&sensor_dev_attr_in0_input.dev_attr.attr,
-+	&sensor_dev_attr_in1_input.dev_attr.attr,
-+	&sensor_dev_attr_in2_input.dev_attr.attr,
-+	&sensor_dev_attr_in3_input.dev_attr.attr,
-+	&sensor_dev_attr_in4_input.dev_attr.attr,
-+	&sensor_dev_attr_in5_input.dev_attr.attr,
-+	&sensor_dev_attr_in6_input.dev_attr.attr,
-+	&sensor_dev_attr_in7_input.dev_attr.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group ads7828_group = {
-+	.attrs = ads7828_attributes,
-+};
-+
-+static int ads7828_attach_adapter(struct i2c_adapter *adapter)
-+{
-+	if (!(adapter->class & I2C_CLASS_HWMON))
-+		return 0;
-+	return i2c_probe(adapter, &addr_data, ads7828_detect);
-+}
-+
-+static int ads7828_detach_client(struct i2c_client *client)
-+{
-+	struct ads7828_data *data = i2c_get_clientdata(client);
-+	hwmon_device_unregister(data->hwmon_dev);
-+	sysfs_remove_group(&client->dev.kobj, &ads7828_group);
-+	i2c_detach_client(client);
-+	kfree(i2c_get_clientdata(client));
-+	return 0;
-+}
-+
-+/* This is the driver that will be inserted */
-+static struct i2c_driver ads7828_driver = {
-+	.driver = {
-+		.name = "ads7828",
-+	},
-+	.attach_adapter = ads7828_attach_adapter,
-+	.detach_client = ads7828_detach_client,
-+};
-+
-+/* This function is called by i2c_detect */
-+static int ads7828_detect(struct i2c_adapter *adapter, int address, int kind)
-+{
-+	struct i2c_client *client;
-+	struct ads7828_data *data;
-+	int err=0;
-+	const char *name = "";
-+
-+	/* Check we have a valid client */
-+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_READ_WORD_DATA))
-+		goto exit;
-+
-+	/* OK. For now, we presume we have a valid client. We now create the
-+		 client structure, even though we cannot fill it completely yet.
-+		 But it allows us to access ads7828_read_value. */
-+	data = kzalloc(sizeof(struct ads7828_data), GFP_KERNEL);
-+	if (!data) {
-+		err = -ENOMEM;
-+		goto exit;
-+	}
-+
-+	client = &data->client;
-+	i2c_set_clientdata(client, data);
-+	client->addr = address;
-+	client->adapter = adapter;
-+	client->driver = &ads7828_driver;
-+
-+	/* Now, we do the remaining detection. There is no identification
-+	dedicated register so attempt to sanity check using knowledge of the chip
-+	- Read from the 8 channel addresses
-+	- Check the top 4 bits of each result are not set (12 data bits)
-+	*/
-+	if (kind < 0) {
-+		int ch;
-+		for (ch = 0; ch < ADS7828_NCH; ch++) {
-+			u16 in_data;
-+			u8 cmd = channel_cmd_byte(ch);
-+			in_data = ads7828_read_value(client, cmd);
-+			if (in_data & 0xF000) {
-+				printk(KERN_DEBUG
-+				"%s : Doesn't look like an ads7828 device\n",
-+				__FUNCTION__);
-+				goto exit_free;
-+			}
-+		}
-+	}
-+
-+	/* Determine the chip type - only one kind supported! */
-+	if (kind <= 0)
-+		kind = ads7828;
-+
-+	if (kind == ads7828)
-+		name = "ads7828";
-+
-+	/* Fill in the remaining client fields, put it into the global list */
-+	strlcpy(client->name, name, I2C_NAME_SIZE);
-+
-+	mutex_init(&data->update_lock);
-+
-+	/* Tell the I2C layer a new client has arrived */
-+	err = i2c_attach_client(client);
-+	if (err)
-+		goto exit_free;
-+
-+	/* Register sysfs hooks */
-+	err = sysfs_create_group(&client->dev.kobj, &ads7828_group);
-+	if (err)
-+		goto exit_detach;
-+
-+	data->hwmon_dev = hwmon_device_register(&client->dev);
-+	if (IS_ERR(data->hwmon_dev)) {
-+		err = PTR_ERR(data->hwmon_dev);
-+		goto exit_remove;
-+	}
-+
-+	return 0;
-+
-+exit_remove:
-+	sysfs_remove_group(&client->dev.kobj, &ads7828_group);
-+exit_detach:
-+	i2c_detach_client(client);
-+exit_free:
-+	kfree(data);
-+exit:
-+	return err;
-+}
-+
-+static int __init sensors_ads7828_init(void)
-+{
-+	/* Initialise the command byte according to module parameters */
-+	ads7828_cmd_byte = se_input ?
-+		ADS7828_CMD_SD_SE : ADS7828_CMD_SD_DIFF;
-+	ads7828_cmd_byte |= int_vref ?
-+		ADS7828_CMD_PD3 : ADS7828_CMD_PD1;
-+
-+	/* Calculate the LSB resolution */
-+	ads7828_lsb_resol = (vref_mv*1000)/4096;
-+
-+	return i2c_add_driver(&ads7828_driver);
-+}
-+
-+static void __exit sensors_ads7828_exit(void)
-+{
-+	i2c_del_driver(&ads7828_driver);
-+}
-+
-+MODULE_AUTHOR("Steve Hardy <steve@linuxrealtime.co.uk>");
-+MODULE_DESCRIPTION("ADS7828 driver");
-+MODULE_LICENSE("GPL");
-+
-+module_init(sensors_ads7828_init);
-+module_exit(sensors_ads7828_exit);
-_
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-Patches currently in -mm which might be from steve@linuxrealtime.co.uk are
-
-git-hwmon.patch
+origin.patch
+ia64-aliasing-test-fix-gcc-warnings-on-non-ia64.patch
+hamradio-fix-dmascc-section-mismatch.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+pcmcia-include-bad-cis-filename-in-error-message.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+register_cpu-__devinit-or-__cpuinit.patch
+cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
+dio-fix-kernel-doc-notation.patch
+tpm-infineon-section-mismatch.patch
+tdfxfb-fix-section-mismatch-warnings.patch
+uvesafb-small-cleanups.patch
+documentation-move-dnotifytxt-to-filesystems.patch
+documentation-move-sharedsubtreestxt-to-filesystems.patch
+documentation-create-new-scheduler-subdirectory.patch
+reporting-bugs-cc-the-mailing-list-too.patch
+kernel-doc-prevent-duplicate-description-output.patch
+kernel-doc-warn-on-badly-formatted-short-description.patch
+email-clientstxt-sylpheed-is-ok-at-imap.patch
+doc-use-correct-debugfs-mountpoint.patch
+fs-menu-small-reorg.patch
+the-scheduled-time-option-removal.patch
+getdelays-fix-gcc-warnings.patch
+profile-likely-unlikely-macros.patch
