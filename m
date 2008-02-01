@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them.patch added to -mm tree
-Date: Fri, 01 Feb 2008 02:17:47 -0800
-Message-ID: <200802011017.m11AHSqd007234@imap1.linux-foundation.org>
+Subject: + convert-loglevel-related-kernel-boot-parameters-to-early_param.patch added to -mm tree
+Date: Fri, 01 Feb 2008 02:44:39 -0800
+Message-ID: <200802011044.m11AiK4m008171@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57654 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54807 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754454AbYBAKRd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 05:17:33 -0500
+	by vger.kernel.org with ESMTP id S1754509AbYBAKor (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 05:44:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yi.y.yang@intel.com, greg@kroah.com, rdunlap@xenotime.net
+Cc: Yinghai.Lu@Sun.COM, ak@suse.de, yinghai.lu@Sun.COM
 
 
 The patch titled
-     Add new string functions strict_strto* and convert kernel params to use them
+     Convert loglevel-related kernel boot parameters to early_param
 has been added to the -mm tree.  Its filename is
-     add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them.patch
+     convert-loglevel-related-kernel-boot-parameters-to-early_param.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,281 +33,84 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Add new string functions strict_strto* and convert kernel params to use them
-From: Yi Yang <yi.y.yang@intel.com>
+Subject: Convert loglevel-related kernel boot parameters to early_param
+From: Yinghai Lu <Yinghai.Lu@Sun.COM>
 
-Currently, for every sysfs node, the callers will be responsible for
-implementing store operation, so many many callers are doing duplicate
-things to validate input, they have the same mistakes because they are
-calling simple_strtol/ul/ll/uul, especially for module params, they are
-just numeric, but you can echo such values as 0x1234xxx, 07777888 and
-1234aaa, for these cases, module params store operation just ignores
-succesive invalid char and converts prefix part to a numeric although input
-is acctually invalid.
+So we can use them for the early console like console=uart8250 or
+earlycon=uart8250 or early_printk
 
-This patch tries to fix the aforementioned issues and implements
-strict_strtox serial functions, kernel/params.c uses them to strictly
-validate input, so module params will reject such values as 0x1234xxxx and
-returns an error:
-
-write error: Invalid argument
-
-Any modules which export numeric sysfs node can use strict_strtox instead of
-simple_strtox to reject any invalid input.
-
-Here are some test results:
-
-Before applying this patch:
-
-[root@yangyi-dev /]# cat /sys/module/e1000/parameters/copybreak
-4096
-[root@yangyi-dev /]# echo 0x1000 > /sys/module/e1000/parameters/copybreak
-[root@yangyi-dev /]# cat /sys/module/e1000/parameters/copybreak
-4096
-[root@yangyi-dev /]# echo 0x1000g > /sys/module/e1000/parameters/copybreak
-[root@yangyi-dev /]# cat /sys/module/e1000/parameters/copybreak
-4096
-[root@yangyi-dev /]# echo 0x1000gggggggg > /sys/module/e1000/parameters/copybreak
-[root@yangyi-dev /]# cat /sys/module/e1000/parameters/copybreak
-4096
-[root@yangyi-dev /]# echo 010000 > /sys/module/e1000/parameters/copybreak
-[root@yangyi-dev /]# cat /sys/module/e1000/parameters/copybreak
-4096
-[root@yangyi-dev /]# echo 0100008 > /sys/module/e1000/parameters/copybreak
-[root@yangyi-dev /]# cat /sys/module/e1000/parameters/copybreak
-4096
-[root@yangyi-dev /]# echo 010000aaaaa > /sys/module/e1000/parameters/copybreak
-[root@yangyi-dev /]# cat /sys/module/e1000/parameters/copybreak
-4096
-[root@yangyi-dev /]#
-
-After applying this patch:
-
-[root@yangyi-dev /]# cat /sys/module/e1000/parameters/copybreak
-4096
-[root@yangyi-dev /]# echo 0x1000 > /sys/module/e1000/parameters/copybreak
-[root@yangyi-dev /]# cat /sys/module/e1000/parameters/copybreak
-4096
-[root@yangyi-dev /]# echo 0x1000g > /sys/module/e1000/parameters/copybreak
--bash: echo: write error: Invalid argument
-[root@yangyi-dev /]# cat /sys/module/e1000/parameters/copybreak
-4096
-[root@yangyi-dev /]# echo 0x1000gggggggg > /sys/module/e1000/parameters/copybreak
--bash: echo: write error: Invalid argument
-[root@yangyi-dev /]# echo 010000 > /sys/module/e1000/parameters/copybreak
-[root@yangyi-dev /]# echo 0100008 > /sys/module/e1000/parameters/copybreak
--bash: echo: write error: Invalid argument
-[root@yangyi-dev /]# echo 010000aaaaa > /sys/module/e1000/parameters/copybreak
--bash: echo: write error: Invalid argument
-[root@yangyi-dev /]# cat /sys/module/e1000/parameters/copybreak
-4096
-[root@yangyi-dev /]# echo -n 4096 > /sys/module/e1000/parameters/copybreak
-[root@yangyi-dev /]# cat /sys/module/e1000/parameters/copybreak
-4096
-[root@yangyi-dev /]#
-
-Signed-off-by: Yi Yang <yi.y.yang@intel.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    4 +
- kernel/params.c        |   20 +++---
- lib/vsprintf.c         |  123 +++++++++++++++++++++++++++++++++++++++
- 3 files changed, 137 insertions(+), 10 deletions(-)
+ init/main.c     |   10 +++-------
+ kernel/printk.c |    2 +-
+ 2 files changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/kernel.h~add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them include/linux/kernel.h
---- a/include/linux/kernel.h~add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them
-+++ a/include/linux/kernel.h
-@@ -141,6 +141,10 @@ extern unsigned long simple_strtoul(cons
- extern long simple_strtol(const char *,char **,unsigned int);
- extern unsigned long long simple_strtoull(const char *,char **,unsigned int);
- extern long long simple_strtoll(const char *,char **,unsigned int);
-+extern int strict_strtoul(const char *, unsigned int, unsigned long *);
-+extern int strict_strtol(const char *, unsigned int, long *);
-+extern int strict_strtoull(const char *, unsigned int, unsigned long long *);
-+extern int strict_strtoll(const char *, unsigned int, long long *);
- extern int sprintf(char * buf, const char * fmt, ...)
- 	__attribute__ ((format (printf, 2, 3)));
- extern int vsprintf(char *buf, const char *, va_list)
-diff -puN kernel/params.c~add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them kernel/params.c
---- a/kernel/params.c~add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them
-+++ a/kernel/params.c
-@@ -180,12 +180,12 @@ int parse_args(const char *name,
- #define STANDARD_PARAM_DEF(name, type, format, tmptype, strtolfn)      	\
- 	int param_set_##name(const char *val, struct kernel_param *kp)	\
- 	{								\
--		char *endp;						\
- 		tmptype l;						\
-+		int ret;						\
- 									\
- 		if (!val) return -EINVAL;				\
--		l = strtolfn(val, &endp, 0);				\
--		if (endp == val || ((type)l != l))			\
-+		ret = strtolfn(val, 0, &l);				\
-+		if (ret == -EINVAL || ((type)l != l))			\
- 			return -EINVAL;					\
- 		*((type *)kp->arg) = l;					\
- 		return 0;						\
-@@ -195,13 +195,13 @@ int parse_args(const char *name,
- 		return sprintf(buffer, format, *((type *)kp->arg));	\
- 	}
+diff -puN init/main.c~convert-loglevel-related-kernel-boot-parameters-to-early_param init/main.c
+--- a/init/main.c~convert-loglevel-related-kernel-boot-parameters-to-early_param
++++ a/init/main.c
+@@ -232,22 +232,18 @@ EXPORT_SYMBOL(loops_per_jiffy);
  
--STANDARD_PARAM_DEF(byte, unsigned char, "%c", unsigned long, simple_strtoul);
--STANDARD_PARAM_DEF(short, short, "%hi", long, simple_strtol);
--STANDARD_PARAM_DEF(ushort, unsigned short, "%hu", unsigned long, simple_strtoul);
--STANDARD_PARAM_DEF(int, int, "%i", long, simple_strtol);
--STANDARD_PARAM_DEF(uint, unsigned int, "%u", unsigned long, simple_strtoul);
--STANDARD_PARAM_DEF(long, long, "%li", long, simple_strtol);
--STANDARD_PARAM_DEF(ulong, unsigned long, "%lu", unsigned long, simple_strtoul);
-+STANDARD_PARAM_DEF(byte, unsigned char, "%c", unsigned long, strict_strtoul);
-+STANDARD_PARAM_DEF(short, short, "%hi", long, strict_strtol);
-+STANDARD_PARAM_DEF(ushort, unsigned short, "%hu", unsigned long, strict_strtoul);
-+STANDARD_PARAM_DEF(int, int, "%i", long, strict_strtol);
-+STANDARD_PARAM_DEF(uint, unsigned int, "%u", unsigned long, strict_strtoul);
-+STANDARD_PARAM_DEF(long, long, "%li", long, strict_strtol);
-+STANDARD_PARAM_DEF(ulong, unsigned long, "%lu", unsigned long, strict_strtoul);
- 
- int param_set_charp(const char *val, struct kernel_param *kp)
+ static int __init debug_kernel(char *str)
  {
-diff -puN lib/vsprintf.c~add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them lib/vsprintf.c
---- a/lib/vsprintf.c~add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them
-+++ a/lib/vsprintf.c
-@@ -129,6 +129,129 @@ long long simple_strtoll(const char *cp,
- 	return simple_strtoull(cp,endp,base);
+-	if (*str)
+-		return 0;
+ 	console_loglevel = 10;
+ 	return 1;
  }
  
-+
-+/**
-+ * strict_strtoul - convert a string to an unsigned long strictly
-+ * @cp: The string to be converted
-+ * @base: The number base to use
-+ * @res: The converted result value
-+ *
-+ * strict_strtoul converts a string to an unsigned long only if the
-+ * string is really an unsigned long string, any string containing
-+ * any invalid char at the tail will be rejected and -EINVAL is returned,
-+ * only a newline char at the tail is acceptible because people generally
-+ * change a module parameter in the following way:
-+ *
-+ * 	echo 1024 > /sys/module/e1000/parameters/copybreak
-+ *
-+ * echo will append a newline to the tail.
-+ *
-+ * It returns 0 if conversion is successful and *res is set to the converted
-+ * value, otherwise it returns -EINVAL and *res is set to 0.
-+ *
-+ * simple_strtoul just ignores the successive invalid characters and
-+ * return the converted value of prefix part of the string.
-+ */
-+int strict_strtoul(const char *cp, unsigned int base, unsigned long *res);
-+
-+/**
-+ * strict_strtol - convert a string to a long strictly
-+ * @cp: The string to be converted
-+ * @base: The number base to use
-+ * @res: The converted result value
-+ *
-+ * strict_strtol is similiar to strict_strtoul, but it allows the first
-+ * character of a string is '-'.
-+ *
-+ * It returns 0 if conversion is successful and *res is set to the converted
-+ * value, otherwise it returns -EINVAL and *res is set to 0.
-+ */
-+int strict_strtol(const char *cp, unsigned int base, long *res);
-+
-+/**
-+ * strict_strtoull - convert a string to an unsigned long long strictly
-+ * @cp: The string to be converted
-+ * @base: The number base to use
-+ * @res: The converted result value
-+ *
-+ * strict_strtoull converts a string to an unsigned long long only if the
-+ * string is really an unsigned long long string, any string containing
-+ * any invalid char at the tail will be rejected and -EINVAL is returned,
-+ * only a newline char at the tail is acceptible because people generally
-+ * change a module parameter in the following way:
-+ *
-+ * 	echo 1024 > /sys/module/e1000/parameters/copybreak
-+ *
-+ * echo will append a newline to the tail of the string.
-+ *
-+ * It returns 0 if conversion is successful and *res is set to the converted
-+ * value, otherwise it returns -EINVAL and *res is set to 0.
-+ *
-+ * simple_strtoull just ignores the successive invalid characters and
-+ * return the converted value of prefix part of the string.
-+ */
-+int strict_strtoull(const char *cp, unsigned int base, unsigned long long *res);
-+
-+/**
-+ * strict_strtoll - convert a string to a long long strictly
-+ * @cp: The string to be converted
-+ * @base: The number base to use
-+ * @res: The converted result value
-+ *
-+ * strict_strtoll is similiar to strict_strtoull, but it allows the first
-+ * character of a string is '-'.
-+ *
-+ * It returns 0 if conversion is successful and *res is set to the converted
-+ * value, otherwise it returns -EINVAL and *res is set to 0.
-+ */
-+int strict_strtoll(const char *cp, unsigned int base, long long *res);
-+
-+#define define_strict_strtoux(type, valtype)				\
-+int strict_strtou##type(const char *cp, unsigned int base, valtype *res)\
-+{									\
-+	char *tail;							\
-+	valtype val;							\
-+	size_t len;							\
-+									\
-+	*res = 0;							\
-+	len = strlen(cp);						\
-+	if (len == 0)							\
-+		return -EINVAL;						\
-+									\
-+	val = simple_strtoul(cp, &tail, base);				\
-+	if ((*tail == '\0') ||						\
-+		(len == (size_t)(tail - cp) + 1) && (*tail == '\n')) {	\
-+		*res = val;						\
-+		return 0;						\
-+	}								\
-+									\
-+	return -EINVAL;							\
-+}									\
-+
-+#define define_strict_strtox(type, valtype)				\
-+int strict_strto##type(const char *cp, unsigned int base, valtype *res)	\
-+{									\
-+	int ret;							\
-+	if (*cp == '-') {						\
-+		ret = strict_strtou##type(cp+1, base, res);		\
-+		if (ret != 0)						\
-+			*res = -(*res);					\
-+	} else								\
-+		ret = strict_strtou##type(cp+1, base, res);		\
-+									\
-+	return ret;							\
-+}									\
-+
-+define_strict_strtoux(l, unsigned long)
-+define_strict_strtox(l, long)
-+define_strict_strtoux(ll, unsigned long long)
-+define_strict_strtox(ll, long long)
-+
-+EXPORT_SYMBOL(strict_strtoul);
-+EXPORT_SYMBOL(strict_strtol);
-+EXPORT_SYMBOL(strict_strtoll);
-+EXPORT_SYMBOL(strict_strtoull);
-+
- static int skip_atoi(const char **s)
+ static int __init quiet_kernel(char *str)
  {
- 	int i=0;
+-	if (*str)
+-		return 0;
+ 	console_loglevel = 4;
+ 	return 1;
+ }
+ 
+-__setup("debug", debug_kernel);
+-__setup("quiet", quiet_kernel);
++early_param("debug", debug_kernel);
++early_param("quiet", quiet_kernel);
+ 
+ static int __init loglevel(char *str)
+ {
+@@ -255,7 +251,7 @@ static int __init loglevel(char *str)
+ 	return 1;
+ }
+ 
+-__setup("loglevel=", loglevel);
++early_param("loglevel", loglevel);
+ 
+ /*
+  * Unknown boot options get handed to init, unless they look like
+diff -puN kernel/printk.c~convert-loglevel-related-kernel-boot-parameters-to-early_param kernel/printk.c
+--- a/kernel/printk.c~convert-loglevel-related-kernel-boot-parameters-to-early_param
++++ a/kernel/printk.c
+@@ -457,7 +457,7 @@ static int __init ignore_loglevel_setup(
+ 	return 1;
+ }
+ 
+-__setup("ignore_loglevel", ignore_loglevel_setup);
++early_param("ignore_loglevel", ignore_loglevel_setup);
+ 
+ /*
+  * Write out chars from start to end - 1 inclusive
 _
 
-Patches currently in -mm which might be from yi.y.yang@intel.com are
+Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
 
-git-acpi.patch
+git-cpufreq.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
 git-x86.patch
-add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+x86-clear-pci_mmcfg_virt-when-mmcfg-get-rejected.patch
+x86-mmconf-enable-mcfg-early.patch
+x86-mmconf-enable-mcfg-early-cleanup.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-v3.patch
+x86_64-check-msr-to-get-mmconfig-for-amd-family-10h-opteron-v3.patch
+x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used.patch
+x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used-vs-gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+convert-loglevel-related-kernel-boot-parameters-to-early_param.patch
