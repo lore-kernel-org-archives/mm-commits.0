@@ -1,114 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - add-buffer-head-related-helper-functions.patch removed from -mm tree
-Date: Fri, 01 Feb 2008 14:30:36 -0800
-Message-ID: <200802012230.m11MUaib001921__30669.1674319611$1201905800$gmane$org@imap1.linux-foundation.org>
+Subject: - fix-drivers-lguest-makefile-entry.patch removed from -mm tree
+Date: Fri, 01 Feb 2008 14:30:47 -0800
+Message-ID: <200802012230.m11MUl5h001934@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52837 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57621 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753428AbYBAWl3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 17:41:29 -0500
+	by vger.kernel.org with ESMTP id S1762298AbYBAWkf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 17:40:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: gcosta@redhat.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add buffer head related helper functions
+     fix drivers/lguest Makefile entry
 has been removed from the -mm tree.  Its filename was
-     add-buffer-head-related-helper-functions.patch
+     fix-drivers-lguest-makefile-entry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Add buffer head related helper functions
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: fix drivers/lguest Makefile entry
+From: Glauber de Oliveira Costa <gcosta@redhat.com>
 
-Add buffer head related helper function bh_uptodate_or_lock() and
-bh_submit_read() which can be used by file systems.
+Parts depend on CONFIG_LGUEST, not just CONFIG_LGUEST_GUEST
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Glauber de Oliveira Costa <gcosta@redhat.com>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c                 |   41 ++++++++++++++++++++++++++++++++++
- include/linux/buffer_head.h |    2 +
- 2 files changed, 43 insertions(+)
+ drivers/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/buffer.c~add-buffer-head-related-helper-functions fs/buffer.c
---- a/fs/buffer.c~add-buffer-head-related-helper-functions
-+++ a/fs/buffer.c
-@@ -3204,6 +3204,47 @@ init_buffer_head(struct kmem_cache *cach
- 	INIT_LIST_HEAD(&bh->b_assoc_buffers);
- }
- 
-+/**
-+ * bh_uptodate_or_lock: Test whether the buffer is uptodate
-+ * @bh: struct buffer_head
-+ *
-+ * Return true if the buffer is up-to-date and false,
-+ * with the buffer locked, if not.
-+ */
-+int bh_uptodate_or_lock(struct buffer_head *bh)
-+{
-+	if (!buffer_uptodate(bh)) {
-+		lock_buffer(bh);
-+		if (!buffer_uptodate(bh))
-+			return 0;
-+		unlock_buffer(bh);
-+	}
-+	return 1;
-+}
-+EXPORT_SYMBOL(bh_uptodate_or_lock);
-+/**
-+ * bh_submit_read: Submit a locked buffer for reading
-+ * @bh: struct buffer_head
-+ *
-+ * Returns a negative error
-+ */
-+int bh_submit_read(struct buffer_head *bh)
-+{
-+	if (!buffer_locked(bh))
-+		lock_buffer(bh);
-+
-+	if (buffer_uptodate(bh))
-+		return 0;
-+
-+	get_bh(bh);
-+	bh->b_end_io = end_buffer_read_sync;
-+	submit_bh(READ, bh);
-+	wait_on_buffer(bh);
-+	if (buffer_uptodate(bh))
-+		return 0;
-+	return -EIO;
-+}
-+EXPORT_SYMBOL(bh_submit_read);
- void __init buffer_init(void)
- {
- 	int nrpages;
-diff -puN include/linux/buffer_head.h~add-buffer-head-related-helper-functions include/linux/buffer_head.h
---- a/include/linux/buffer_head.h~add-buffer-head-related-helper-functions
-+++ a/include/linux/buffer_head.h
-@@ -192,6 +192,8 @@ int sync_dirty_buffer(struct buffer_head
- int submit_bh(int, struct buffer_head *);
- void write_boundary_block(struct block_device *bdev,
- 			sector_t bblock, unsigned blocksize);
-+int bh_uptodate_or_lock(struct buffer_head *bh);
-+int bh_submit_read(struct buffer_head *bh);
- 
- extern int buffer_heads_over_limit;
- 
+diff -puN drivers/Makefile~fix-drivers-lguest-makefile-entry drivers/Makefile
+--- a/drivers/Makefile~fix-drivers-lguest-makefile-entry
++++ a/drivers/Makefile
+@@ -73,7 +73,7 @@ obj-$(CONFIG_ISDN)		+= isdn/
+ obj-$(CONFIG_EDAC)		+= edac/
+ obj-$(CONFIG_MCA)		+= mca/
+ obj-$(CONFIG_EISA)		+= eisa/
+-obj-$(CONFIG_LGUEST_GUEST)	+= lguest/
++obj-y				+= lguest/
+ obj-$(CONFIG_CPU_FREQ)		+= cpufreq/
+ obj-$(CONFIG_CPU_IDLE)		+= cpuidle/
+ obj-$(CONFIG_MMC)		+= mmc/
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from gcosta@redhat.com are
 
 origin.patch
-ext2-return-after-ext2_error-in-case-of-failures.patch
-ext2-change-the-default-behaviour-on-error.patch
-ext2-add-block-bitmap-validation.patch
-ext3-add-block-bitmap-validation.patch
-ext3-return-after-ext3_error-in-case-of-failures.patch
-ext3-change-the-default-behaviour-on-error.patch
+git-kvm.patch
