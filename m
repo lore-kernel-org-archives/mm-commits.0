@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + uml-redo-the-calculation-of-nr_syscalls.patch added to -mm tree
-Date: Fri, 01 Feb 2008 11:17:10 -0800
-Message-ID: <200802011917.m11JHA3l027070@imap1.linux-foundation.org>
+Subject: + uml-make-mconsole_stack-namespace-aware.patch added to -mm tree
+Date: Fri, 01 Feb 2008 11:26:11 -0800
+Message-ID: <200802011926.m11JQB4g027483@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35180 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39448 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755440AbYBATRv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 14:17:51 -0500
+	by vger.kernel.org with ESMTP id S1753094AbYBAT0r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 14:26:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, jdike@linux.intel.com, xiyou.wangcong@gmail.com
+Cc: jdike@addtoit.com, jdike@linux.intel.com, xemul@openvz.org
 
 
 The patch titled
-     uml: redo the calculation of NR_syscalls 
+     uml: make mconsole_stack namespace-aware
 has been added to the -mm tree.  Its filename is
-     uml-redo-the-calculation-of-nr_syscalls.patch
+     uml-make-mconsole_stack-namespace-aware.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,140 +33,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: redo the calculation of NR_syscalls 
+Subject: uml: make mconsole_stack namespace-aware
 From: Jeff Dike <jdike@addtoit.com>
 
-Redo the calculation of NR_syscalls since that disappeared from i386 and
-use a similar mechanism on x86_64.
-
-We now figure out the size of the system call table in arch code and stick
-that in syscall_table_size.  arch/um/kernel/skas/syscall.c defines
-NR_syscalls in terms of that since its the only thing that needs to know
-how many system calls there are.
-
-The old mechananism that was used on x86_64 is gone.
-
-arch/um/include/sysdep-i386/syscalls.h got some formatting since I was
-looking at it.
+Also fixed the include syntax while I was there.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-Cc: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/sysdep-i386/syscalls.h         |    5 ++-
- arch/um/include/sysdep-x86_64/kernel-offsets.h |    9 ------
- arch/um/include/sysdep-x86_64/syscalls.h       |    2 -
- arch/um/kernel/skas/syscall.c                  |    3 ++
- arch/um/sys-i386/sys_call_table.S              |    5 +++
- arch/um/sys-x86_64/syscall_table.c             |   20 ++++++++++-----
- 6 files changed, 25 insertions(+), 19 deletions(-)
+ arch/um/drivers/mconsole_kern.c |   35 +++++++++++++++---------------
+ 1 file changed, 18 insertions(+), 17 deletions(-)
 
-diff -puN arch/um/include/sysdep-i386/syscalls.h~uml-redo-the-calculation-of-nr_syscalls arch/um/include/sysdep-i386/syscalls.h
---- a/arch/um/include/sysdep-i386/syscalls.h~uml-redo-the-calculation-of-nr_syscalls
-+++ a/arch/um/include/sysdep-i386/syscalls.h
-@@ -1,5 +1,5 @@
- /* 
-- * Copyright (C) 2000 Jeff Dike (jdike@karaya.com)
-+ * Copyright (C) 2000 - 2008 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+diff -puN arch/um/drivers/mconsole_kern.c~uml-make-mconsole_stack-namespace-aware arch/um/drivers/mconsole_kern.c
+--- a/arch/um/drivers/mconsole_kern.c~uml-make-mconsole_stack-namespace-aware
++++ a/arch/um/drivers/mconsole_kern.c
+@@ -1,24 +1,25 @@
+ /*
+  * Copyright (C) 2001 Lennert Buytenhek (buytenh@gnu.org)
+- * Copyright (C) 2001 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
++ * Copyright (C) 2001 - 2008 Jeff Dike (jdike@{addtoit,linux.intel}.com)
   * Licensed under the GPL
   */
  
-@@ -18,7 +18,8 @@ extern syscall_handler_t old_mmap_i386;
- extern syscall_handler_t *sys_call_table[];
- 
- #define EXECUTE_SYSCALL(syscall, regs) \
--	((long (*)(struct syscall_args)) (*sys_call_table[syscall]))(SYSCALL_ARGS(&regs->regs))
-+	((long (*)(struct syscall_args)) \
-+	 (*sys_call_table[syscall]))(SYSCALL_ARGS(&regs->regs))
- 
- extern long sys_mmap2(unsigned long addr, unsigned long len,
- 		      unsigned long prot, unsigned long flags,
-diff -puN arch/um/include/sysdep-x86_64/kernel-offsets.h~uml-redo-the-calculation-of-nr_syscalls arch/um/include/sysdep-x86_64/kernel-offsets.h
---- a/arch/um/include/sysdep-x86_64/kernel-offsets.h~uml-redo-the-calculation-of-nr_syscalls
-+++ a/arch/um/include/sysdep-x86_64/kernel-offsets.h
-@@ -17,16 +17,7 @@
- #define OFFSET(sym, str, mem) \
- 	DEFINE(sym, offsetof(struct str, mem));
- 
--#define __NO_STUBS 1
--#undef __SYSCALL
--#undef _ASM_X86_64_UNISTD_H_
--#define __SYSCALL(nr, sym) [nr] = 1,
--static char syscalls[] = {
--#include <asm/arch/unistd.h>
--};
--
- void foo(void)
- {
- #include <common-offsets.h>
--DEFINE(UM_NR_syscall_max, sizeof(syscalls) - 1);
- }
-diff -puN arch/um/include/sysdep-x86_64/syscalls.h~uml-redo-the-calculation-of-nr_syscalls arch/um/include/sysdep-x86_64/syscalls.h
---- a/arch/um/include/sysdep-x86_64/syscalls.h~uml-redo-the-calculation-of-nr_syscalls
-+++ a/arch/um/include/sysdep-x86_64/syscalls.h
-@@ -30,6 +30,4 @@ extern long old_mmap(unsigned long addr,
- extern syscall_handler_t sys_modify_ldt;
- extern syscall_handler_t sys_arch_prctl;
- 
--#define NR_syscalls (UM_NR_syscall_max + 1)
--
- #endif
-diff -puN arch/um/kernel/skas/syscall.c~uml-redo-the-calculation-of-nr_syscalls arch/um/kernel/skas/syscall.c
---- a/arch/um/kernel/skas/syscall.c~uml-redo-the-calculation-of-nr_syscalls
-+++ a/arch/um/kernel/skas/syscall.c
-@@ -9,6 +9,9 @@
- #include "sysdep/ptrace.h"
- #include "sysdep/syscalls.h"
- 
-+extern int syscall_table_size;
-+#define NR_syscalls (syscall_table_size / sizeof(void *))
+-#include "linux/console.h"
+-#include "linux/ctype.h"
+-#include "linux/interrupt.h"
+-#include "linux/list.h"
+-#include "linux/mm.h"
+-#include "linux/module.h"
+-#include "linux/notifier.h"
+-#include "linux/reboot.h"
+-#include "linux/proc_fs.h"
+-#include "linux/slab.h"
+-#include "linux/syscalls.h"
+-#include "linux/utsname.h"
+-#include "linux/workqueue.h"
+-#include "linux/mutex.h"
+-#include "asm/uaccess.h"
++#include <linux/console.h>
++#include <linux/ctype.h>
++#include <linux/interrupt.h>
++#include <linux/list.h>
++#include <linux/mm.h>
++#include <linux/module.h>
++#include <linux/notifier.h>
++#include <linux/reboot.h>
++#include <linux/proc_fs.h>
++#include <linux/slab.h>
++#include <linux/syscalls.h>
++#include <linux/utsname.h>
++#include <linux/workqueue.h>
++#include <linux/mutex.h>
++#include <asm/uaccess.h>
 +
- void handle_syscall(struct uml_pt_regs *r)
- {
- 	struct pt_regs *regs = container_of(r, struct pt_regs, regs);
-diff -puN arch/um/sys-i386/sys_call_table.S~uml-redo-the-calculation-of-nr_syscalls arch/um/sys-i386/sys_call_table.S
---- a/arch/um/sys-i386/sys_call_table.S~uml-redo-the-calculation-of-nr_syscalls
-+++ a/arch/um/sys-i386/sys_call_table.S
-@@ -9,4 +9,9 @@
+ #include "init.h"
+ #include "irq_kern.h"
+ #include "irq_user.h"
+@@ -765,7 +766,7 @@ void mconsole_stack(struct mc_request *r
+ 		return;
+ 	}
  
- #define old_mmap old_mmap_i386
- 
-+.section .rodata,"a"
-+
- #include "../../x86/kernel/syscall_table_32.S"
-+
-+ENTRY(syscall_table_size)
-+.long .-sys_call_table
-diff -puN arch/um/sys-x86_64/syscall_table.c~uml-redo-the-calculation-of-nr_syscalls arch/um/sys-x86_64/syscall_table.c
---- a/arch/um/sys-x86_64/syscall_table.c~uml-redo-the-calculation-of-nr_syscalls
-+++ a/arch/um/sys-x86_64/syscall_table.c
-@@ -52,11 +52,19 @@ typedef void (*sys_call_ptr_t)(void);
- 
- extern void sys_ni_syscall(void);
- 
--sys_call_ptr_t sys_call_table[UM_NR_syscall_max+1] __cacheline_aligned = {
--	/*
--	 * Smells like a like a compiler bug -- it doesn't work when the &
--	 * below is removed.
--	 */
--	[0 ... UM_NR_syscall_max] = &sys_ni_syscall,
-+/*
-+ * We used to have a trick here which made sure that holes in the
-+ * x86_64 table were filled in with sys_ni_syscall, but a comment in
-+ * unistd_64.h says that holes aren't allowed, so the trick was
-+ * removed.
-+ * The trick looked like this
-+ *	[0 ... UM_NR_syscall_max] = &sys_ni_syscall
-+ * before including unistd_64.h - the later initializations overwrote
-+ * the sys_ni_syscall filler.
-+ */
-+
-+sys_call_ptr_t sys_call_table[] __cacheline_aligned = {
- #include <asm-x86/unistd_64.h>
- };
-+
-+int syscall_table_size = sizeof(sys_call_table);
+-	to = find_task_by_pid(pid_requested);
++	to = find_task_by_pid_ns(pid_requested, &init_pid_ns);
+ 	if ((to == NULL) || (pid_requested == 0)) {
+ 		mconsole_reply(req, "Couldn't find that pid", 1, 0);
+ 		return;
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
@@ -236,6 +169,7 @@ uml-remove-map_cb.patch
 uml-use-of-a-public-mac-is-a-warning-not-an-error.patch
 uml-defconfig-tweaks.patch
 uml-redo-the-calculation-of-nr_syscalls.patch
+uml-make-mconsole_stack-namespace-aware.patch
 fix-__const_udelay-declaration-and-definition-mismatches.patch
 create-arch-kconfig.patch
 add-have_oprofile.patch
