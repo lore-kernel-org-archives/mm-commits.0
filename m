@@ -1,268 +1,278 @@
 From: akpm@linux-foundation.org
-Subject: - printk-trivial-optimizations.patch removed from -mm tree
-Date: Fri, 01 Feb 2008 14:30:17 -0800
-Message-ID: <200802012230.m11MUHTP001894@imap1.linux-foundation.org>
+Subject: - x86-pci-use-dev_printk-in-x86-quirk-messages.patch removed from -mm tree
+Date: Fri, 01 Feb 2008 14:29:33 -0800
+Message-ID: <200802012229.m11MTXVP001813@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37098 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37129 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756366AbYBAWsO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 17:48:14 -0500
+	by vger.kernel.org with ESMTP id S1757285AbYBAWs0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 17:48:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vda.linux@googlemail.com, ak@suse.de, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: bjorn.helgaas@hp.com, greg@kroah.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     printk: trivial optimizations
+     x86 PCI: use dev_printk in x86 quirk messages
 has been removed from the -mm tree.  Its filename was
-     printk-trivial-optimizations.patch
+     x86-pci-use-dev_printk-in-x86-quirk-messages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: printk: trivial optimizations
-From: Denys Vlasenko <vda.linux@googlemail.com>
+Subject: x86 PCI: use dev_printk in x86 quirk messages
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-In arch/x86/boot/printf.c gets rid of unused tail of digits: const char
-*digits = "0123456789abcdefghijklmnopqrstuvwxyz"; (we are using 0-9a-f
-only)
+Convert quirk printks to dev_printk().
 
-Uses smaller/faster lowercasing (by ORing with 0x20)
-if we know that we work on numbers/digits. Makes
-strtoul smaller, and also we are getting rid of
-
-  static const char small_digits[] = "0123456789abcdefx";
-  static const char large_digits[] = "0123456789ABCDEFX";
-
-since this works equally well:
-
-  static const char digits[16] = "0123456789ABCDEF";
-
-Size savings:
-
-$ size vmlinux.org vmlinux
-   text    data     bss     dec     hex filename
- 877320  112252   90112 1079684  107984 vmlinux.org
- 877048  112252   90112 1079412  107874 vmlinux
-
-It may be also a tiny bit faster because code has less
-branches now, but I doubt it is measurable.
-
-Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Ingo Molnar <mingo@elte.hu>,
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/boot/printf.c |   24 +++++++++++--------
- lib/vsprintf.c         |   48 +++++++++++++++++++++------------------
- 2 files changed, 40 insertions(+), 32 deletions(-)
+ arch/x86/kernel/quirks.c |   43 +++++++++++++++++++------------------
+ arch/x86/pci/fixup.c     |   22 +++++++++---------
+ 2 files changed, 34 insertions(+), 31 deletions(-)
 
-diff -puN arch/x86/boot/printf.c~printk-trivial-optimizations arch/x86/boot/printf.c
---- a/arch/x86/boot/printf.c~printk-trivial-optimizations
-+++ a/arch/x86/boot/printf.c
-@@ -33,8 +33,8 @@ static int skip_atoi(const char **s)
- #define PLUS	4		/* show plus */
- #define SPACE	8		/* space if plus */
- #define LEFT	16		/* left justified */
--#define SPECIAL	32		/* 0x */
--#define LARGE	64		/* use 'ABCDEF' instead of 'abcdef' */
-+#define SMALL	32		/* Must be 32 == 0x20 */
-+#define SPECIAL	64		/* 0x */
+diff -puN arch/x86/kernel/quirks.c~x86-pci-use-dev_printk-in-x86-quirk-messages arch/x86/kernel/quirks.c
+--- a/arch/x86/kernel/quirks.c~x86-pci-use-dev_printk-in-x86-quirk-messages
++++ a/arch/x86/kernel/quirks.c
+@@ -30,8 +30,8 @@ static void __devinit quirk_intel_irqbal
+ 	raw_pci_ops->read(0, 0, 0x40, 0x4c, 2, &word);
  
- #define do_div(n,base) ({ \
- int __res; \
-@@ -45,12 +45,16 @@ __res; })
- static char *number(char *str, long num, int base, int size, int precision,
- 		    int type)
- {
--	char c, sign, tmp[66];
--	const char *digits = "0123456789abcdefghijklmnopqrstuvwxyz";
-+	/* we are called with base 8, 10 or 16, only, thus don't need "G..."  */
-+	static const char digits[16] = "0123456789ABCDEF"; /* "GHIJKLMNOPQRSTUVWXYZ"; */
-+
-+	char tmp[66];
-+	char c, sign, locase;
+ 	if (!(word & (1 << 13))) {
+-		printk(KERN_INFO "Intel E7520/7320/7525 detected. "
+-			"Disabling irq balancing and affinity\n");
++		dev_info(&dev->dev, "Intel E7520/7320/7525 detected; "
++			"disabling irq balancing and affinity\n");
+ #ifdef CONFIG_IRQBALANCE
+ 		irqbalance_disable("");
+ #endif
+@@ -104,14 +104,16 @@ static void ich_force_enable_hpet(struct
+ 	pci_read_config_dword(dev, 0xF0, &rcba);
+ 	rcba &= 0xFFFFC000;
+ 	if (rcba == 0) {
+-		printk(KERN_DEBUG "RCBA disabled. Cannot force enable HPET\n");
++		dev_printk(KERN_DEBUG, &dev->dev, "RCBA disabled; "
++			"cannot force enable HPET\n");
+ 		return;
+ 	}
+ 
+ 	/* use bits 31:14, 16 kB aligned */
+ 	rcba_base = ioremap_nocache(rcba, 0x4000);
+ 	if (rcba_base == NULL) {
+-		printk(KERN_DEBUG "ioremap failed. Cannot force enable HPET\n");
++		dev_printk(KERN_DEBUG, &dev->dev, "ioremap failed; "
++			"cannot force enable HPET\n");
+ 		return;
+ 	}
+ 
+@@ -122,8 +124,8 @@ static void ich_force_enable_hpet(struct
+ 		/* HPET is enabled in HPTC. Just not reported by BIOS */
+ 		val = val & 0x3;
+ 		force_hpet_address = 0xFED00000 | (val << 12);
+-		printk(KERN_DEBUG "Force enabled HPET at base address 0x%lx\n",
+-			       force_hpet_address);
++		dev_printk(KERN_DEBUG, &dev->dev, "Force enabled HPET at "
++			"0x%lx\n", force_hpet_address);
+ 		iounmap(rcba_base);
+ 		return;
+ 	}
+@@ -142,11 +144,12 @@ static void ich_force_enable_hpet(struct
+ 	if (err) {
+ 		force_hpet_address = 0;
+ 		iounmap(rcba_base);
+-		printk(KERN_DEBUG "Failed to force enable HPET\n");
++		dev_printk(KERN_DEBUG, &dev->dev,
++			"Failed to force enable HPET\n");
+ 	} else {
+ 		force_hpet_resume_type = ICH_FORCE_HPET_RESUME;
+-		printk(KERN_DEBUG "Force enabled HPET at base address 0x%lx\n",
+-			       force_hpet_address);
++		dev_printk(KERN_DEBUG, &dev->dev, "Force enabled HPET at "
++			"0x%lx\n", force_hpet_address);
+ 	}
+ }
+ 
+@@ -206,8 +209,8 @@ static void old_ich_force_enable_hpet(st
+ 	if (val & 0x4) {
+ 		val &= 0x3;
+ 		force_hpet_address = 0xFED00000 | (val << 12);
+-		printk(KERN_DEBUG "HPET at base address 0x%lx\n",
+-			       force_hpet_address);
++		dev_printk(KERN_DEBUG, &dev->dev, "HPET at 0x%lx\n",
++			force_hpet_address);
+ 		return;
+ 	}
+ 
+@@ -227,14 +230,14 @@ static void old_ich_force_enable_hpet(st
+ 		/* HPET is enabled in HPTC. Just not reported by BIOS */
+ 		val &= 0x3;
+ 		force_hpet_address = 0xFED00000 | (val << 12);
+-		printk(KERN_DEBUG "Force enabled HPET at base address 0x%lx\n",
+-			       force_hpet_address);
++		dev_printk(KERN_DEBUG, &dev->dev, "Force enabled HPET at "
++			"0x%lx\n", force_hpet_address);
+ 		cached_dev = dev;
+ 		force_hpet_resume_type = OLD_ICH_FORCE_HPET_RESUME;
+ 		return;
+ 	}
+ 
+-	printk(KERN_DEBUG "Failed to force enable HPET\n");
++	dev_printk(KERN_DEBUG, &dev->dev, "Failed to force enable HPET\n");
+ }
+ 
+ /*
+@@ -292,8 +295,8 @@ static void vt8237_force_enable_hpet(str
+ 	 */
+ 	if (val & 0x80) {
+ 		force_hpet_address = (val & ~0x3ff);
+-		printk(KERN_DEBUG "HPET at base address 0x%lx\n",
+-			       force_hpet_address);
++		dev_printk(KERN_DEBUG, &dev->dev, "HPET at 0x%lx\n",
++			force_hpet_address);
+ 		return;
+ 	}
+ 
+@@ -307,14 +310,14 @@ static void vt8237_force_enable_hpet(str
+ 	pci_read_config_dword(dev, 0x68, &val);
+ 	if (val & 0x80) {
+ 		force_hpet_address = (val & ~0x3ff);
+-		printk(KERN_DEBUG "Force enabled HPET at base address 0x%lx\n",
+-			       force_hpet_address);
++		dev_printk(KERN_DEBUG, &dev->dev, "Force enabled HPET at "
++			"0x%lx\n", force_hpet_address);
+ 		cached_dev = dev;
+ 		force_hpet_resume_type = VT8237_FORCE_HPET_RESUME;
+ 		return;
+ 	}
+ 
+-	printk(KERN_DEBUG "Failed to force enable HPET\n");
++	dev_printk(KERN_DEBUG, &dev->dev, "Failed to force enable HPET\n");
+ }
+ 
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_8235,
+@@ -342,7 +345,7 @@ static void nvidia_force_enable_hpet(str
+ 	pci_read_config_dword(dev, 0x44, &val);
+ 	force_hpet_address = val & 0xfffffffe;
+ 	force_hpet_resume_type = NVIDIA_FORCE_HPET_RESUME;
+-	printk(KERN_DEBUG "Force enabled HPET at base address 0x%lx\n",
++	dev_printk(KERN_DEBUG, &dev->dev, "Force enabled HPET at 0x%lx\n",
+ 		force_hpet_address);
+ 	cached_dev = dev;
+ 	return;
+diff -puN arch/x86/pci/fixup.c~x86-pci-use-dev_printk-in-x86-quirk-messages arch/x86/pci/fixup.c
+--- a/arch/x86/pci/fixup.c~x86-pci-use-dev_printk-in-x86-quirk-messages
++++ a/arch/x86/pci/fixup.c
+@@ -17,7 +17,7 @@ static void __devinit pci_fixup_i450nx(s
+ 	int pxb, reg;
+ 	u8 busno, suba, subb;
+ 
+-	printk(KERN_WARNING "PCI: Searching for i450NX host bridges on %s\n", pci_name(d));
++	dev_warn(&d->dev, "Searching for i450NX host bridges\n");
+ 	reg = 0xd0;
+ 	for(pxb = 0; pxb < 2; pxb++) {
+ 		pci_read_config_byte(d, reg++, &busno);
+@@ -41,7 +41,7 @@ static void __devinit pci_fixup_i450gx(s
+ 	 */
+ 	u8 busno;
+ 	pci_read_config_byte(d, 0x4a, &busno);
+-	printk(KERN_INFO "PCI: i440KX/GX host bridge %s: secondary bus %02x\n", pci_name(d), busno);
++	dev_info(&d->dev, "i440KX/GX host bridge; secondary bus %02x\n", busno);
+ 	pci_scan_bus_with_sysdata(busno);
+ 	pcibios_last_bus = -1;
+ }
+@@ -55,7 +55,7 @@ static void __devinit  pci_fixup_umc_ide
+ 	 */
  	int i;
  
--	if (type & LARGE)
--		digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-+	/* locase = 0 or 0x20. ORing digits or letters with 'locase'
-+	 * produces same digits or (maybe lowercased) letters */
-+	locase = (type & SMALL);
- 	if (type & LEFT)
- 		type &= ~ZEROPAD;
- 	if (base < 2 || base > 36)
-@@ -81,7 +85,7 @@ static char *number(char *str, long num,
- 		tmp[i++] = '0';
- 	else
- 		while (num != 0)
--			tmp[i++] = digits[do_div(num, base)];
-+			tmp[i++] = (digits[do_div(num, base)] | locase);
- 	if (i > precision)
- 		precision = i;
- 	size -= precision;
-@@ -95,7 +99,7 @@ static char *number(char *str, long num,
- 			*str++ = '0';
- 		else if (base == 16) {
- 			*str++ = '0';
--			*str++ = digits[33];
-+			*str++ = ('X' | locase);
- 		}
+-	printk(KERN_WARNING "PCI: Fixing base address flags for device %s\n", pci_name(d));
++	dev_warn(&d->dev, "Fixing base address flags\n");
+ 	for(i = 0; i < 4; i++)
+ 		d->resource[i].flags |= PCI_BASE_ADDRESS_SPACE_IO;
+ }
+@@ -68,7 +68,7 @@ static void __devinit  pci_fixup_ncr53c8
+ 	 * Fix class to be PCI_CLASS_STORAGE_SCSI
+ 	 */
+ 	if (!d->class) {
+-		printk(KERN_WARNING "PCI: fixing NCR 53C810 class code for %s\n", pci_name(d));
++		dev_warn(&d->dev, "Fixing NCR 53C810 class code\n");
+ 		d->class = PCI_CLASS_STORAGE_SCSI << 8;
  	}
- 	if (!(type & LEFT))
-@@ -244,9 +248,9 @@ int vsprintf(char *buf, const char *fmt,
- 			base = 8;
- 			break;
+ }
+@@ -80,7 +80,7 @@ static void __devinit  pci_fixup_latency
+ 	 *  SiS 5597 and 5598 chipsets require latency timer set to
+ 	 *  at most 32 to avoid lockups.
+ 	 */
+-	DBG("PCI: Setting max latency to 32\n");
++	dev_dbg(&d->dev, "Setting max latency to 32\n");
+ 	pcibios_max_latency = 32;
+ }
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_SI, PCI_DEVICE_ID_SI_5597, pci_fixup_latency);
+@@ -138,7 +138,7 @@ static void pci_fixup_via_northbridge_bu
  
--		case 'X':
--			flags |= LARGE;
- 		case 'x':
-+			flags |= SMALL;
-+		case 'X':
- 			base = 16;
- 			break;
- 
-diff -puN lib/vsprintf.c~printk-trivial-optimizations lib/vsprintf.c
---- a/lib/vsprintf.c~printk-trivial-optimizations
-+++ a/lib/vsprintf.c
-@@ -26,6 +26,9 @@
- #include <asm/page.h>		/* for PAGE_SIZE */
- #include <asm/div64.h>
- 
-+/* Works only for digits and letters, but small and fast */
-+#define TOLOWER(x) ((x) | 0x20)
-+
- /**
-  * simple_strtoul - convert a string to an unsigned long
-  * @cp: The start of the string
-@@ -41,17 +44,17 @@ unsigned long simple_strtoul(const char 
- 		if (*cp == '0') {
- 			base = 8;
- 			cp++;
--			if ((toupper(*cp) == 'X') && isxdigit(cp[1])) {
-+			if ((TOLOWER(*cp) == 'x') && isxdigit(cp[1])) {
- 				cp++;
- 				base = 16;
- 			}
- 		}
- 	} else if (base == 16) {
--		if (cp[0] == '0' && toupper(cp[1]) == 'X')
-+		if (cp[0] == '0' && TOLOWER(cp[1]) == 'x')
- 			cp += 2;
+ 	pci_read_config_byte(d, where, &v);
+ 	if (v & ~mask) {
+-		printk(KERN_WARNING "Disabling VIA memory write queue (PCI ID %04x, rev %02x): [%02x] %02x & %02x -> %02x\n", \
++		dev_warn(&d->dev, "Disabling VIA memory write queue (PCI ID %04x, rev %02x): [%02x] %02x & %02x -> %02x\n", \
+ 			d->device, d->revision, where, v, mask, v & mask);
+ 		v &= mask;
+ 		pci_write_config_byte(d, where, v);
+@@ -200,7 +200,7 @@ static void pci_fixup_nforce2(struct pci
+ 	 * Apply fixup if needed, but don't touch disconnect state
+ 	 */
+ 	if ((val & 0x00FF0000) != 0x00010000) {
+-		printk(KERN_WARNING "PCI: nForce2 C1 Halt Disconnect fixup\n");
++		dev_warn(&dev->dev, "nForce2 C1 Halt Disconnect fixup\n");
+ 		pci_write_config_dword(dev, 0x6c, (val & 0xFF00FFFF) | 0x00010000);
  	}
- 	while (isxdigit(*cp) &&
--	       (value = isdigit(*cp) ? *cp-'0' : toupper(*cp)-'A'+10) < base) {
-+	       (value = isdigit(*cp) ? *cp-'0' : TOLOWER(*cp)-'a'+10) < base) {
- 		result = result*base + value;
- 		cp++;
+ }
+@@ -348,7 +348,7 @@ static void __devinit pci_fixup_video(st
+ 	pci_read_config_word(pdev, PCI_COMMAND, &config);
+ 	if (config & (PCI_COMMAND_IO | PCI_COMMAND_MEMORY)) {
+ 		pdev->resource[PCI_ROM_RESOURCE].flags |= IORESOURCE_ROM_SHADOW;
+-		printk(KERN_DEBUG "Boot video device is %s\n", pci_name(pdev));
++		dev_printk(KERN_DEBUG, &pdev->dev, "Boot video device\n");
  	}
-@@ -92,17 +95,17 @@ unsigned long long simple_strtoull(const
- 		if (*cp == '0') {
- 			base = 8;
- 			cp++;
--			if ((toupper(*cp) == 'X') && isxdigit(cp[1])) {
-+			if ((TOLOWER(*cp) == 'x') && isxdigit(cp[1])) {
- 				cp++;
- 				base = 16;
- 			}
- 		}
- 	} else if (base == 16) {
--		if (cp[0] == '0' && toupper(cp[1]) == 'X')
-+		if (cp[0] == '0' && TOLOWER(cp[1]) == 'x')
- 			cp += 2;
+ }
+ DECLARE_PCI_FIXUP_FINAL(PCI_ANY_ID, PCI_ANY_ID, pci_fixup_video);
+@@ -388,11 +388,11 @@ static void __devinit pci_fixup_msi_k8t_
+ 		/* verify the change for status output */
+ 		pci_read_config_byte(dev, 0x50, &val);
+ 		if (val & 0x40)
+-			printk(KERN_INFO "PCI: Detected MSI K8T Neo2-FIR, "
++			dev_info(&dev->dev, "Detected MSI K8T Neo2-FIR; "
+ 					"can't enable onboard soundcard!\n");
+ 		else
+-			printk(KERN_INFO "PCI: Detected MSI K8T Neo2-FIR, "
+-					"enabled onboard soundcard.\n");
++			dev_info(&dev->dev, "Detected MSI K8T Neo2-FIR; "
++					"enabled onboard soundcard\n");
  	}
--	while (isxdigit(*cp) && (value = isdigit(*cp) ? *cp-'0' : (islower(*cp)
--	    ? toupper(*cp) : *cp)-'A'+10) < base) {
-+	while (isxdigit(*cp)
-+	 && (value = isdigit(*cp) ? *cp-'0' : TOLOWER(*cp)-'a'+10) < base) {
- 		result = result*base + value;
- 		cp++;
- 	}
-@@ -237,24 +240,25 @@ static noinline char* put_dec(char *buf,
- #define PLUS	4		/* show plus */
- #define SPACE	8		/* space if plus */
- #define LEFT	16		/* left justified */
--#define SPECIAL	32		/* 0x */
--#define LARGE	64		/* use 'ABCDEF' instead of 'abcdef' */
-+#define SMALL	32		/* Must be 32 == 0x20 */
-+#define SPECIAL	64		/* 0x */
- 
- static char *number(char *buf, char *end, unsigned long long num, int base, int size, int precision, int type)
- {
--	char sign,tmp[66];
--	const char *digits;
--	/* we are called with base 8, 10 or 16, only, thus don't need "g..."  */
--	static const char small_digits[] = "0123456789abcdefx"; /* "ghijklmnopqrstuvwxyz"; */
--	static const char large_digits[] = "0123456789ABCDEFX"; /* "GHIJKLMNOPQRSTUVWXYZ"; */
-+	/* we are called with base 8, 10 or 16, only, thus don't need "G..."  */
-+	static const char digits[16] = "0123456789ABCDEF"; /* "GHIJKLMNOPQRSTUVWXYZ"; */
-+
-+	char tmp[66];
-+	char sign;
-+	char locase;
- 	int need_pfx = ((type & SPECIAL) && base != 10);
- 	int i;
- 
--	digits = (type & LARGE) ? large_digits : small_digits;
-+	/* locase = 0 or 0x20. ORing digits or letters with 'locase'
-+	 * produces same digits or (maybe lowercased) letters */
-+	locase = (type & SMALL);
- 	if (type & LEFT)
- 		type &= ~ZEROPAD;
--	if (base < 2 || base > 36)
--		return NULL;
- 	sign = 0;
- 	if (type & SIGN) {
- 		if ((signed long long) num < 0) {
-@@ -281,7 +285,7 @@ static char *number(char *buf, char *end
- 		tmp[i++] = '0';
- 	/* Generic code, for any base:
- 	else do {
--		tmp[i++] = digits[do_div(num,base)];
-+		tmp[i++] = (digits[do_div(num,base)] | locase);
- 	} while (num != 0);
- 	*/
- 	else if (base != 10) { /* 8 or 16 */
-@@ -289,7 +293,7 @@ static char *number(char *buf, char *end
- 		int shift = 3;
- 		if (base == 16) shift = 4;
- 		do {
--			tmp[i++] = digits[((unsigned char)num) & mask];
-+			tmp[i++] = (digits[((unsigned char)num) & mask] | locase);
- 			num >>= shift;
- 		} while (num);
- 	} else { /* base 10 */
-@@ -321,7 +325,7 @@ static char *number(char *buf, char *end
- 		++buf;
- 		if (base == 16) {
- 			if (buf < end)
--				*buf = digits[16]; /* for arbitrary base: digits[33]; */
-+				*buf = ('X' | locase);
- 			++buf;
- 		}
- 	}
-@@ -557,9 +561,9 @@ int vsnprintf(char *buf, size_t size, co
- 				base = 8;
- 				break;
- 
--			case 'X':
--				flags |= LARGE;
- 			case 'x':
-+				flags |= SMALL;
-+			case 'X':
- 				base = 16;
- 				break;
- 
+ }
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_8237,
 _
 
-Patches currently in -mm which might be from vda.linux@googlemail.com are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
-origin.patch
-git-x86.patch
-maps4-add-proportional-set-size-accounting-in-smaps.patch
-printkc-use-unsigned-ints-instead-of-longs-for-logbuf-index.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+export-acpi_check_resource_conflict.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+ia64-aliasing-test-fix-gcc-warnings-on-non-ia64.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+parport_serial-netmos-9855-fix.patch
+rtc-cmos-exports-nvram-in-sysfs.patch
+pnp-simplify-pnp_activate_dev-and-pnp_disable_dev-return-values.patch
+declare-pnp-option-parsing-functions-as-__init.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+pnp-do-not-test-pnp_driver_res_do_not_change-on-suspend-resume.patch
+pnp-disable-supermicro-h8dce-motherboard-resources-that-overlap-sata-bars.patch
+dont-touch-fs_struct-in-drivers.patch
