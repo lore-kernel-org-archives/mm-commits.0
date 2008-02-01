@@ -1,74 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - add-configure-support-for-new-coldfire-serial-driver.patch removed from -mm tree
-Date: Fri, 01 Feb 2008 14:29:49 -0800
-Message-ID: <200802012229.m11MTnWY001829@imap1.linux-foundation.org>
+Subject: - m68knommu-use-raw-read-write-for-all-register-access-in-coldfire-timer.patch removed from -mm tree
+Date: Fri, 01 Feb 2008 14:29:36 -0800
+Message-ID: <200802012229.m11MTa6a001816@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47162 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44960 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758227AbYBAWbB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 17:31:01 -0500
+	by vger.kernel.org with ESMTP id S1756303AbYBAWay (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 17:30:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: gerg@snapgear.com, gerg@uclinux.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add configure support for new ColdFire serial driver
+     m68knommu: use raw read/write for all register access in ColdFire timer
 has been removed from the -mm tree.  Its filename was
-     add-configure-support-for-new-coldfire-serial-driver.patch
+     m68knommu-use-raw-read-write-for-all-register-access-in-coldfire-timer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add configure support for new ColdFire serial driver
+Subject: m68knommu: use raw read/write for all register access in ColdFire timer
 From: Greg Ungerer <gerg@snapgear.com>
 
-Add configure support for the new style ColdFire serial driver.
+Use __raw_read/__raw_write to write to all registers (instead of using local
+pointer de-referencing in ColdFirePIT timer code.
 
 Signed-off-by: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/Kconfig |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ arch/m68knommu/platform/5307/pit.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN drivers/serial/Kconfig~add-configure-support-for-new-coldfire-serial-driver drivers/serial/Kconfig
---- a/drivers/serial/Kconfig~add-configure-support-for-new-coldfire-serial-driver
-+++ a/drivers/serial/Kconfig
-@@ -960,6 +960,30 @@ config SERIAL_COLDFIRE
- 	  This driver supports the built-in serial ports of the Motorola ColdFire
- 	  family of CPUs.
+diff -puN arch/m68knommu/platform/5307/pit.c~m68knommu-use-raw-read-write-for-all-register-access-in-coldfire-timer arch/m68knommu/platform/5307/pit.c
+--- a/arch/m68knommu/platform/5307/pit.c~m68knommu-use-raw-read-write-for-all-register-access-in-coldfire-timer
++++ a/arch/m68knommu/platform/5307/pit.c
+@@ -29,6 +29,7 @@
+  *	By default use timer1 as the system clock timer.
+  */
+ #define	TA(a)	(MCF_IPSBAR + MCFPIT_BASE1 + (a))
++#define	INTC0	(MCF_IPSBAR + MCFICM_INTC0)
  
-+config SERIAL_MCF
-+	bool "Coldfire serial support (new style driver)"
-+	depends on COLDFIRE
-+	select SERIAL_CORE
-+	help
-+	  This new serial driver supports the Freescale Coldfire serial ports
-+	  using the new serial driver subsystem.
-+
-+config SERIAL_MCF_BAUDRATE
-+	int "Default baudrate for Coldfire serial ports"
-+	depends on SERIAL_MCF
-+	default 19200
-+	help
-+	  This setting lets you define what the default baudrate is for the
-+	  ColdFire serial ports. The usual default varies from board to board,
-+	  and this setting is a way of catering for that.
-+
-+config SERIAL_MCF_CONSOLE
-+	bool "Coldfire serial console support"
-+	depends on SERIAL_MCF
-+	select SERIAL_CORE_CONSOLE
-+	help
-+	  Enable a ColdFire internal serial port to be the system console.
-+
- config SERIAL_68360_SMC
- 	bool "68360 SMC uart support"
- 	depends on M68360
+ /***************************************************************************/
+ 
+@@ -53,17 +54,14 @@ static struct irqaction coldfire_pit_irq
+ 
+ void hw_timer_init(void)
+ {
+-	volatile unsigned char *icrp;
+-	volatile unsigned long *imrp;
++	u32 imr;
+ 
+ 	setup_irq(MCFINT_VECBASE + MCFINT_PIT1, &coldfire_pit_irq);
+ 
+-	icrp = (volatile unsigned char *) (MCF_IPSBAR + MCFICM_INTC0 +
+-		MCFINTC_ICR0 + MCFINT_PIT1);
+-	*icrp = ICR_INTRCONF;
+-
+-	imrp = (volatile unsigned long *) (MCF_IPSBAR + MCFICM_INTC0 + MCFPIT_IMR);
+-	*imrp &= ~MCFPIT_IMR_IBIT;
++	__raw_writeb(ICR_INTRCONF, INTC0 + MCFINTC_ICR0 + MCFINT_PIT1);
++	imr = __raw_readl(INTC0 + MCFPIT_IMR);
++	imr &= ~MCFPIT_IMR_IBIT;
++	__raw_writel(imr, INTC0 + MCFPIT_IMR);
+ 
+ 	/* Set up PIT timer 1 as poll clock */
+ 	__raw_writew(MCFPIT_PCSR_DISABLE, TA(MCFPIT_PCSR));
 _
 
 Patches currently in -mm which might be from gerg@snapgear.com are
