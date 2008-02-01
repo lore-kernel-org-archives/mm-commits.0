@@ -1,66 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - use-macros-instead-of-task_-flags-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 01 Feb 2008 14:30:10 -0800
-Message-ID: <200802012230.m11MUALS001885@imap1.linux-foundation.org>
+Subject: - make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch removed from -mm tree
+Date: Fri, 01 Feb 2008 14:30:58 -0800
+Message-ID: <200802012230.m11MUwbo001953@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51337 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59120 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761190AbYBAWh6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 17:37:58 -0500
+	by vger.kernel.org with ESMTP id S1761136AbYBAWh4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 17:37:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, matthew@wil.cx, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, neilb@cse.unsw.edu.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     use-macros-instead-of-task_-flags-checkpatch-fixes
+     reiser4: uaccess exports
 has been removed from the -mm tree.  Its filename was
-     use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+     make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: use-macros-instead-of-task_-flags-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: reiser4: uaccess exports
+From: Andrew Morton <akpm@osdl.org>
 
-WARNING: line over 80 characters
-#120: FILE: include/linux/wait.h:163:
-+#define wake_up_interruptible_sync(x)	__wake_up_sync((x), TASK_INTERRUPTIBLE, 1)
-
-ERROR: use tabs not spaces
-#399: FILE: kernel/signal.c:1444:
-+ ^IBUG_ON(is_task_stopped_or_traced(tsk));$
-
-total: 1 errors, 1 warnings, 340 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: Neil Brown <neilb@cse.unsw.edu.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/lib/usercopy.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN kernel/signal.c~use-macros-instead-of-task_-flags-checkpatch-fixes kernel/signal.c
---- a/kernel/signal.c~use-macros-instead-of-task_-flags-checkpatch-fixes
-+++ a/kernel/signal.c
-@@ -1419,7 +1419,7 @@ void do_notify_parent(struct task_struct
- 	BUG_ON(sig == -1);
+diff -puN arch/i386/lib/usercopy.c~make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4 arch/i386/lib/usercopy.c
+--- a/arch/x86/lib/usercopy_32.c~make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4
++++ a/arch/x86/lib/usercopy_32.c
+@@ -817,6 +817,7 @@ unsigned long __copy_from_user_ll_nocach
+ #endif
+ 	return n;
+ }
++EXPORT_SYMBOL(__copy_from_user_ll_nocache);
  
-  	/* do_notify_parent_cldstop should have been called instead.  */
-- 	BUG_ON(is_task_stopped_or_traced(tsk));
-+	BUG_ON(is_task_stopped_or_traced(tsk));
+ unsigned long __copy_from_user_ll_nocache_nozero(void *to, const void __user *from,
+ 					unsigned long n)
+@@ -831,6 +832,7 @@ unsigned long __copy_from_user_ll_nocach
+ #endif
+ 	return n;
+ }
++EXPORT_SYMBOL(__copy_from_user_ll_nocache_nozero);
  
- 	BUG_ON(!tsk->ptrace &&
- 	       (tsk->group_leader != tsk || !thread_group_empty(tsk)));
+ /**
+  * copy_to_user: - Copy a block of data into user space.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
