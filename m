@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-fixup-vs-git-sched.patch added to -mm tree
-Date: Fri, 01 Feb 2008 13:14:28 -0800
-Message-ID: <200802012114.m11LESAp031497@imap1.linux-foundation.org>
+Subject: + git-acpi-fix-git-conflicts.patch added to -mm tree
+Date: Fri, 01 Feb 2008 13:21:16 -0800
+Message-ID: <200802012121.m11LLHPc031812@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42273 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34826 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753318AbYBAVPV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 16:15:21 -0500
+	by vger.kernel.org with ESMTP id S1756055AbYBAVVd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 16:21:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu
+Cc: akpm@linux-foundation.org, lenb@kernel.org
 
 
 The patch titled
-     git-x86-fixup-vs-git-sched
+     git-acpi-fix-git-conflicts
 has been added to the -mm tree.  Its filename is
-     git-x86-fixup-vs-git-sched.patch
+     git-acpi-fix-git-conflicts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,33 +33,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-x86-fixup-vs-git-sched
+Subject: git-acpi-fix-git-conflicts
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/futex.h |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ arch/powerpc/Kconfig |    4 ----
+ arch/x86/Kconfig     |    4 +---
+ 2 files changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN include/asm-x86/futex.h~git-x86-fixup-vs-git-sched include/asm-x86/futex.h
---- a/include/asm-x86/futex.h~git-x86-fixup-vs-git-sched
-+++ a/include/asm-x86/futex.h
-@@ -112,12 +112,7 @@ futex_atomic_cmpxchg_inatomic(int __user
- 		"3:	mov     %2, %0				\n"
- 		"	jmp     2b				\n"
- 		"	.previous				\n"
--
--		"	.section __ex_table, \"a\"		\n"
--		"	.align  8				\n"
--			_ASM_PTR " 1b,3b			\n"
--		"	.previous				\n"
--
-+		_ASM_EXTABLE(1b,3b)
- 		: "=a" (oldval), "+m" (*uaddr)
- 		: "i" (-EFAULT), "r" (newval), "0" (oldval)
- 		: "memory"
+diff -puN arch/powerpc/Kconfig~git-acpi-fix-git-conflicts arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~git-acpi-fix-git-conflicts
++++ a/arch/powerpc/Kconfig
+@@ -148,14 +148,10 @@ config DEFAULT_UIMAGE
+ 	  Used to allow a board to specify it wants a uImage built by default
+ 	default n
+ 
+-<<<<<<< HEAD:arch/powerpc/Kconfig
+ config REDBOOT
+ 	bool
+ 
+-config PPC64_SWSUSP
+-=======
+ config HIBERNATE_32
+->>>>>>> FETCH_HEAD:arch/powerpc/Kconfig
+ 	bool
+ 	depends on (PPC_PMAC && !SMP) || BROKEN
+ 	default y
+diff -puN arch/x86/Kconfig~git-acpi-fix-git-conflicts arch/x86/Kconfig
+--- a/arch/x86/Kconfig~git-acpi-fix-git-conflicts
++++ a/arch/x86/Kconfig
+@@ -110,13 +110,11 @@ config ARCH_HIBERNATION_POSSIBLE
+ 	def_bool y
+ 	depends on !SMP || !X86_VOYAGER
+ 
+-<<<<<<< HEAD:arch/x86/Kconfig
+ select HAVE_KVM
+-=======
++
+ config ARCH_SUSPEND_POSSIBLE
+ 	def_bool y
+ 	depends on !X86_VOYAGER
+->>>>>>> FETCH_HEAD:arch/x86/Kconfig
+ 
+ config ZONE_DMA32
+ 	bool
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,6 +95,7 @@ timerfd-v3-new-timerfd-api-mips-fix.patch
 timerfd-v3-new-timerfd-api-arch-fixes.patch
 timerfd-v3-new-timerfd-api-powerpc-fix.patch
 timerfd-v3-new-timerfd-api-sparc64-fix.patch
+git-acpi-fix-git-conflicts.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 acpi-ignore-acpi-video-devices-that-arent-present-in-hardware-checkpatch-fixes.patch
 small-acpica-extension-to-be-able-to-store-the-name-of.patch
