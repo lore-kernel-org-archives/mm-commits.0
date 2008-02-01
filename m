@@ -1,24 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-backlight-reset-brightness-on-resume-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 31 Jan 2008 16:23:59 -0800
-Message-ID: <200802010024.m110O0u8018856@imap1.linux-foundation.org>
+Subject: + i810fb-module-parameter-mode_option-inconsistent-with-other-framebuffer-modules.patch added to -mm tree
+Date: Thu, 31 Jan 2008 23:32:39 -0800
+Message-ID: <200802010732.m117WKam001350@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42066 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37579 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763361AbYBAAYS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 Jan 2008 19:24:18 -0500
+	by vger.kernel.org with ESMTP id S1759161AbYBAHdI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 02:33:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, lenb@kernel.org, mjg59@srcf.ucam.org, rui.zhang@intel.com
+Cc: krzysztof.h1@wp.pl, adaplas@pol.net, miki@dds.nl
 
 
 The patch titled
-     acpi-backlight-reset-brightness-on-resume-checkpatch-fixes
+     i810fb: module parameter 'mode_option' inconsistent with other framebuffer modules
 has been added to the -mm tree.  Its filename is
-     acpi-backlight-reset-brightness-on-resume-checkpatch-fixes.patch
+     i810fb-module-parameter-mode_option-inconsistent-with-other-framebuffer-modules.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,299 +33,116 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi-backlight-reset-brightness-on-resume-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: i810fb: module parameter 'mode_option' inconsistent with other framebuffer modules
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-ERROR: need spaces around that '=' (ctx:VxV)
-#49: FILE: drivers/acpi/video.c:1947:
-+	for (i=0; i<video->attached_count; i++) {
- 	      ^
+Fix http://bugzilla.kernel.org/show_bug.cgi?id=9847
 
-ERROR: need spaces around that '<' (ctx:VxV)
-#49: FILE: drivers/acpi/video.c:1947:
-+	for (i=0; i<video->attached_count; i++) {
- 	           ^
+   While all other framebuffer modules use the option "mode=..." to specify
+   a modedb-style video mode, i810fb uses the non-standard "mode_option=..."
+   This breaks the use of "video=i810fb:<videomode>" boot parameter, such that
+   for instance "video=i810fb:1024x768" doesn't work.  The boot scripts parse
+   the "<videomode>" parameter internally and pass it to the correct module as
+   'mode=<videomode>'.
 
-total: 2 errors, 0 warnings, 39 lines checked
+This patch changes the option "mode_option" into "mode".
 
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Len Brown <lenb@kernel.org>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Reported-by: <miki@dds.nl>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/video.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/i810/i810_main.c |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN drivers/acpi/video.c~acpi-backlight-reset-brightness-on-resume-checkpatch-fixes drivers/acpi/video.c
---- a/drivers/acpi/video.c~acpi-backlight-reset-brightness-on-resume-checkpatch-fixes
-+++ a/drivers/acpi/video.c
-@@ -1944,7 +1944,7 @@ static int acpi_video_resume(struct acpi
+diff -puN drivers/video/i810/i810_main.c~i810fb-module-parameter-mode_option-inconsistent-with-other-framebuffer-modules drivers/video/i810/i810_main.c
+--- a/drivers/video/i810/i810_main.c~i810fb-module-parameter-mode_option-inconsistent-with-other-framebuffer-modules
++++ a/drivers/video/i810/i810_main.c
+@@ -132,7 +132,7 @@ static struct pci_driver i810fb_driver =
+ 	.resume   =     i810fb_resume,
+ };
  
- 	video = acpi_driver_data(device);
+-static char *mode_option __devinitdata = NULL;
++static char *mode     __devinitdata;
+ static int vram       __devinitdata = 4;
+ static int bpp        __devinitdata = 8;
+ static int mtrr       __devinitdata;
+@@ -1891,7 +1891,7 @@ i810_allocate_pci_resource(struct i810fb
  
--	for (i=0; i<video->attached_count; i++) {
-+	for (i = 0; i < video->attached_count; i++) {
- 		video_device = video->attached_array[i].bind_info;
- 		if (video_device && video_device->backlight)
- 			acpi_video_set_brightness(video_device->backlight);
+ static void __devinit i810fb_find_init_mode(struct fb_info *info)
+ {
+-	struct fb_videomode mode;
++	struct fb_videomode mode_new;
+ 	struct fb_var_screeninfo var;
+ 	struct fb_monspecs *specs = &info->monspecs;
+ 	int found = 0;
+@@ -1902,7 +1902,7 @@ static void __devinit i810fb_find_init_m
+ #endif
+ 
+ 	INIT_LIST_HEAD(&info->modelist);
+-	memset(&mode, 0, sizeof(struct fb_videomode));
++	memset(&mode_new, 0, sizeof(struct fb_videomode));
+ 	var = info->var;
+ #ifdef CONFIG_FB_I810_I2C
+ 	i810_create_i2c_busses(par);
+@@ -1928,23 +1928,23 @@ static void __devinit i810fb_find_init_m
+ 
+ 		if (xres && yres) {
+ 			if ((m = fb_find_best_mode(&var, &info->modelist))) {
+-				mode = *m;
++				mode_new = *m;
+ 				found  = 1;
+ 			}
+ 		}
+ 
+ 		if (!found) {
+ 			m = fb_find_best_display(&info->monspecs, &info->modelist);
+-			mode = *m;
++			mode_new = *m;
+ 			found = 1;
+ 		}
+ 
+-		fb_videomode_to_var(&var, &mode);
++		fb_videomode_to_var(&var, &mode_new);
+ 	}
+ #endif
+-	if (mode_option)
+-		fb_find_mode(&var, info, mode_option, specs->modedb,
+-			     specs->modedb_len, (found) ? &mode : NULL,
++	if (mode)
++		fb_find_mode(&var, info, mode, specs->modedb,
++			     specs->modedb_len, (found) ? &mode_new : NULL,
+ 			     info->var.bits_per_pixel);
+ 
+ 	info->var = var;
+@@ -1998,7 +1998,7 @@ static int __devinit i810fb_setup(char *
+ 		else if (!strncmp(this_opt, "ddc3", 4))
+ 			ddc3 = 3;
+ 		else
+-			mode_option = this_opt;
++			mode = this_opt;
+ 	}
+ 	return 0;
+ }
+@@ -2202,8 +2202,8 @@ MODULE_PARM_DESC(dcolor, "use DirectColo
+ 		 " (default = 0 = TrueColor)");
+ module_param(ddc3, bool, 0);
+ MODULE_PARM_DESC(ddc3, "Probe DDC bus 3 (default = 0 = no)");
+-module_param(mode_option, charp, 0);
+-MODULE_PARM_DESC(mode_option, "Specify initial video mode");
++module_param(mode, charp, 0);
++MODULE_PARM_DESC(mode, "Specify initial video mode");
+ 
+ MODULE_AUTHOR("Tony A. Daplas");
+ MODULE_DESCRIPTION("Framebuffer device for the Intel 810/815 and"
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes.patch
-timerfd-v3-new-timerfd-api-ia64-fix.patch
-timerfd-v3-new-timerfd-api-m68k-fix.patch
-timerfd-v3-new-timerfd-api-mips-fix.patch
-timerfd-v3-new-timerfd-api-arch-fixes.patch
-timerfd-v3-new-timerfd-api-powerpc-fix.patch
-timerfd-v3-new-timerfd-api-sparc64-fix.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-ignore-acpi-video-devices-that-arent-present-in-hardware-checkpatch-fixes.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-acpi-backlight-reset-brightness-on-resume-checkpatch-fixes.patch
 git-alsa.patch
-git-alsa-fixup.patch
-git-alsa-disable-sound-pci-ice1712-ice1724c.patch
-git-agpgart.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
-git-audit-master.patch
-git-audit-printk-warning-fix.patch
-git-cpufreq.patch
-revert-agk-dm-dm-loop.patch
-git-powerpc.patch
-include-asm-powerpc-nvramh-needs-listh.patch
-include-asm-powerpc-nvramh-needs-listh-fix.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
-adt7473-new-driver-for-analog-devices-adt7473-sensor-chip-fix.patch
-hwmon-new-chip-driver-for-ti-ads7828-a-d.patch
-hwmon-new-chip-driver-for-ti-ads7828-a-d-checkpatch-fixes.patch
-git-hid.patch
-revert-git-hrt.patch
-git-ieee1394.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
-drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
-drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
-git-md-accel.patch
-memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
-git-mmc.patch
-git-mtd.patch
-drivers-mtd-ubi-wlc-fix-uninitialized-var-warning.patch
-drivers-mtd-ubi-scanc-fix-uninitialized-var-warning.patch
-drivers-mtd-ubi-cdevc-unused-var.patch
-git-net.patch
-git-net-vs-git-lblnet.patch
-git-net-vs-git-lblnet-2.patch
-git-netdev-all-fix-conflicts-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-backlight.patch
-git-battery.patch
-bluetooth-uninlining.patch
-net-sunrpc-schedc-revert-git-net-changes.patch
-net-sunrpc-schedc-reapply-git-net-changes.patch
-git-selinux-vs-git-lblnet.patch
-serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
-revert-gregkh-pci-pci-use-dev_printk-in-x86-quirk-messages.patch
-fix-gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
-x86-validate-against-acpi-motherboard-resources.patch
-git-sh.patch
-git-scsi-misc-vs-gregkh-pci-pci-remove-users-of-pci_enable_device_bars.patch
-scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes.patch
-scsi-aic94xx-cleanups-checkpatch-fixes.patch
-scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
-drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-ohci-sm501-driver-v2-fix.patch
-git-watchdog.patch
-git-watchdog-fixup.patch
-git-ipwireless_cs.patch
-revert-kvm-stuff-to-make-git-x86-apply.patch
-git-x86.patch
-git-x86-fixup.patch
-git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
-git-x86-fix-doubly-merged-patch.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
-x86-mmconf-enable-mcfg-early-cleanup.patch
-git-xtensa.patch
-add-iscsi-ibft-support-v046-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-add-proc-kpagecount-interface-fix.patch
-maps4-add-proc-kpageflags-interface-fix.patch
-maps4-add-proc-kpageflags-interface-fix-2-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-mm-remove-fastcall-from-mm-checkpatch-fixes.patch
-page-migraton-handle-orphaned-pages-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-address-hfs-on-disk-corruption-robustness-review-comments.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
-kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
-stopmachine-semaphore-to-mutex-fix.patch
-parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
-debug_smp_processor_id-fixlets.patch
-use-ilog2-in-fs-namespacec-fix.patch
-export-iov_shorten-for-ext4s-use-fix.patch
-system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
-speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
-add-have_oprofile.patch
-drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
-ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-neofb-avoid-overwriting-fb_info-fields.patch
-vermilionc-use-align-not-__align_mask.patch
-declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
-jbd-remove-useless-loop-in-journal_write_commit_record-checkpatch-fixes.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
-hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
-cpusets-update_cpumask-revision-fix.patch
-cpusets-update_cpumask-revision-checkpatch-fixes.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
-proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-modules-make-module_address_lookup-safe-fix.patch
-pid-sys_wait-fixes-v2-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-rewrite-rd-fixes.patch
-fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
-kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
-lib-remove-fastcall-from-lib-checkpatch-fixes.patch
-remove-fastcall-from-linux-include-checkpatch-fixes.patch
-constify-tables-in-kernel-sysctl_checkc-fix.patch
-aoe-statically-initialise-devlist_lock.patch
-xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
-ufs-fix-symlink-creation-on-ufs2-fix.patch
-libfs-allow-error-return-from-simple-attributes-fix.patch
-fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
-fs-afs-securityc-fix-uninitialized-var-warning.patch
-rcu-split-listh-and-move-rcu-protected-lists-into-rculisth-checkpatch-fixes.patch
-char-applicom-use-pci_match_id-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+drivers-video-pm3fbc-section-fix.patch
+pm2fb-big-endian-fix.patch
+i810fb-module-parameter-mode_option-inconsistent-with-other-framebuffer-modules.patch
