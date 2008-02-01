@@ -1,109 +1,166 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 01 Feb 2008 13:32:07 -0800
-Message-ID: <200802012132.m11LW8bK032229@imap1.linux-foundation.org>
+Subject: - git-x86-fixup.patch removed from -mm tree
+Date: Fri, 01 Feb 2008 13:37:15 -0800
+Message-ID: <200802012137.m11LbGCc032399@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33051 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50349 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759591AbYBAVcL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 16:32:11 -0500
+	by vger.kernel.org with ESMTP id S1753697AbYBAVhh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 16:37:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com
+To: akpm@linux-foundation.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements-checkpatch-fixes.patch
+     git-x86-fixup
+has been removed from the -mm tree.  Its filename was
+     git-x86-fixup.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements-checkpatch-fixes
+Subject: git-x86-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: no space between function name and open parenthesis '('
-#24: FILE: drivers/usb/serial/io_ti.c:1089:
-+		dbg ("%s - RUNNING IN DOWNLOAD MODE", __FUNCTION__);
+Repair some of the damage against various things.
 
-WARNING: no space between function name and open parenthesis '('
-#29: FILE: drivers/usb/serial/io_ti.c:1093:
-+			dbg ("%s - DOWNLOAD MODE -- BAD I2C",
-
-WARNING: no space between function name and open parenthesis '('
-#38: FILE: drivers/usb/serial/io_ti.c:1348:
-+	dbg ("%s - RUNNING IN BOOT MODE",
-
-WARNING: no space between function name and open parenthesis '('
-#47: FILE: drivers/usb/serial/io_ti.c:1464:
-+	dbg ("%s - STAYING IN BOOT MODE", __FUNCTION__);
-
-total: 0 errors, 4 warnings, 29 lines checked
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Greg KH <greg@kroah.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/io_ti.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ arch/x86/kernel/acpi/boot.c           |   10 +++++++++-
+ arch/x86/kernel/cpu/intel_cacheinfo.c |   14 ++++++++------
+ drivers/serial/Makefile               |    1 +
+ include/asm-x86/thread_info_64.h      |    1 -
+ include/linux/acpi.h                  |    1 +
+ kernel/module.c                       |    4 ++++
+ 6 files changed, 23 insertions(+), 8 deletions(-)
 
-diff -puN drivers/usb/serial/io_ti.c~drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements-checkpatch-fixes drivers/usb/serial/io_ti.c
---- a/drivers/usb/serial/io_ti.c~drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements-checkpatch-fixes
-+++ a/drivers/usb/serial/io_ti.c
-@@ -1086,12 +1086,11 @@ static int TIDownloadFirmware (struct ed
- 	if (serial->product_info.TiMode == TI_MODE_DOWNLOAD) {
- 		struct ti_i2c_desc *rom_desc;
+diff -puN arch/x86/kernel/acpi/boot.c~git-x86-fixup arch/x86/kernel/acpi/boot.c
+--- a/arch/x86/kernel/acpi/boot.c~git-x86-fixup
++++ a/arch/x86/kernel/acpi/boot.c
+@@ -114,7 +114,15 @@ char *__acpi_map_table(unsigned long phy
+ 	if (phys_addr+size <= (end_pfn_map << PAGE_SHIFT) + PAGE_SIZE)
+ 		return __va(phys_addr);
  
--		dbg ("%s - RUNNING IN DOWNLOAD MODE", __FUNCTION__);
-+		dbg("%s - RUNNING IN DOWNLOAD MODE", __FUNCTION__);
+-	return NULL;
++	return early_ioremap(phys_addr, size);
++}
++
++void __acpi_unmap_table(void * addr, unsigned long size)
++{
++	if (!addr || !size)
++		return;
++
++	early_iounmap(addr, size);
+ }
  
- 		status = TiValidateI2cImage (serial);
- 		if (status) {
--			dbg ("%s - DOWNLOAD MODE -- BAD I2C",
--			     __FUNCTION__);
-+			dbg("%s - DOWNLOAD MODE -- BAD I2C", __FUNCTION__);
- 			return status;
+ #else
+diff -puN arch/x86/kernel/cpu/intel_cacheinfo.c~git-x86-fixup arch/x86/kernel/cpu/intel_cacheinfo.c
+--- a/arch/x86/kernel/cpu/intel_cacheinfo.c~git-x86-fixup
++++ a/arch/x86/kernel/cpu/intel_cacheinfo.c
+@@ -733,8 +733,9 @@ static int __cpuinit cache_add_dev(struc
+ 	if (unlikely(retval < 0))
+ 		return retval;
+ 
+-	retval = kobject_init_and_add(cache_kobject[cpu], &ktype_percpu_entry,
+-				      &sys_dev->kobj, "%s", "cache");
++	retval = kobject_init_and_add(per_cpu(cache_kobject, cpu),
++				      &ktype_percpu_entry, &sys_dev->kobj,
++				      "%s", "cache");
+ 	if (retval < 0) {
+ 		cpuid4_cache_sysfs_exit(cpu);
+ 		return retval;
+@@ -745,13 +746,14 @@ static int __cpuinit cache_add_dev(struc
+ 		this_object->cpu = cpu;
+ 		this_object->index = i;
+ 		retval = kobject_init_and_add(&(this_object->kobj),
+-					      &ktype_cache, cache_kobject[cpu],
++					      &ktype_cache,
++					      per_cpu(cache_kobject, cpu),
+ 					      "index%1lu", i);
+ 		if (unlikely(retval)) {
+ 			for (j = 0; j < i; j++) {
+ 				kobject_put(&(INDEX_KOBJECT_PTR(cpu,j)->kobj));
+ 			}
+-			kobject_put(cache_kobject[cpu]);
++			kobject_put(per_cpu(cache_kobject, cpu));
+ 			cpuid4_cache_sysfs_exit(cpu);
+ 			break;
  		}
- 		
-@@ -1345,8 +1344,7 @@ static int TIDownloadFirmware (struct ed
- 	/********************************************************************/
- 	/* Boot Mode */
- 	/********************************************************************/
--	dbg ("%s - RUNNING IN BOOT MODE",
--	     __FUNCTION__);
-+	dbg("%s - RUNNING IN BOOT MODE", __FUNCTION__);
+@@ -760,7 +762,7 @@ static int __cpuinit cache_add_dev(struc
+ 	if (!retval)
+ 		cpu_set(cpu, cache_dev_map);
  
- 	// Configure the TI device so we can use the BULK pipes for download
- 	status = TIConfigureBootDevice (serial->serial->dev);
-@@ -1461,7 +1459,7 @@ static int TIDownloadFirmware (struct ed
+-	kobject_uevent(cache_kobject[cpu], KOBJ_ADD);
++	kobject_uevent(per_cpu(cache_kobject, cpu), KOBJ_ADD);
+ 	return retval;
+ }
  
- StayInBootMode:
- 	// Eprom is invalid or blank stay in boot mode
--	dbg ("%s - STAYING IN BOOT MODE", __FUNCTION__);
-+	dbg("%s - STAYING IN BOOT MODE", __FUNCTION__);
- 	serial->product_info.TiMode = TI_MODE_BOOT;
+@@ -777,7 +779,7 @@ static void __cpuinit cache_remove_dev(s
  
- 	return 0;
+ 	for (i = 0; i < num_cache_leaves; i++)
+ 		kobject_put(&(INDEX_KOBJECT_PTR(cpu,i)->kobj));
+-	kobject_put(cache_kobject[cpu]);
++	kobject_put(per_cpu(cache_kobject, cpu));
+ 	cpuid4_cache_sysfs_exit(cpu);
+ }
+ 
+diff -puN arch/x86/kernel/suspend_64.c~git-x86-fixup arch/x86/kernel/suspend_64.c
+diff -puN arch/x86/kernel/traps_32.c~git-x86-fixup arch/x86/kernel/traps_32.c
+diff -puN arch/x86/kernel/traps_64.c~git-x86-fixup arch/x86/kernel/traps_64.c
+diff -puN drivers/serial/Makefile~git-x86-fixup drivers/serial/Makefile
+--- a/drivers/serial/Makefile~git-x86-fixup
++++ a/drivers/serial/Makefile
+@@ -52,6 +52,7 @@ obj-$(CONFIG_SERIAL_CPM) += cpm_uart/
+ obj-$(CONFIG_SERIAL_IMX) += imx.o
+ obj-$(CONFIG_SERIAL_MPC52xx) += mpc52xx_uart.o
+ obj-$(CONFIG_SERIAL_ICOM) += icom.o
++obj-$(CONFIG_KGDB_8250) += 8250_kgdb.o
+ obj-$(CONFIG_SERIAL_M32R_SIO) += m32r_sio.o
+ obj-$(CONFIG_SERIAL_MPSC) += mpsc.o
+ obj-$(CONFIG_SERIAL_SB1250_DUART) += sb1250-duart.o
+diff -puN include/asm-x86/thread_info_64.h~git-x86-fixup include/asm-x86/thread_info_64.h
+--- a/include/asm-x86/thread_info_64.h~git-x86-fixup
++++ a/include/asm-x86/thread_info_64.h
+@@ -113,7 +113,6 @@ static inline struct thread_info *stack_
+ #define TIF_RESTORE_SIGMASK	9	/* restore signal mask in do_signal */
+ #define TIF_MCE_NOTIFY		10	/* notify userspace of an MCE */
+ #define TIF_HRTICK_RESCHED	11	/* reprogram hrtick timer */
+-/* 16 free */
+ #define TIF_IA32		17	/* 32bit process */ 
+ #define TIF_FORK		18	/* ret_from_fork */
+ #define TIF_ABI_PENDING		19
+diff -puN include/asm-x86/unistd_32.h~git-x86-fixup include/asm-x86/unistd_32.h
+diff -puN include/linux/acpi.h~git-x86-fixup include/linux/acpi.h
+--- a/include/linux/acpi.h~git-x86-fixup
++++ a/include/linux/acpi.h
+@@ -81,6 +81,7 @@ typedef int (*acpi_table_handler) (struc
+ typedef int (*acpi_table_entry_handler) (struct acpi_subtable_header *header, const unsigned long end);
+ 
+ char * __acpi_map_table (unsigned long phys_addr, unsigned long size);
++void __acpi_unmap_table (void * addr, unsigned long size);
+ int acpi_boot_init (void);
+ int acpi_boot_table_init (void);
+ int acpi_numa_init (void);
+diff -puN kernel/module.c~git-x86-fixup kernel/module.c
+--- a/kernel/module.c~git-x86-fixup
++++ a/kernel/module.c
+@@ -2114,6 +2114,10 @@ static struct module *load_module(void _
+ 	stop_machine_run(__unlink_module, mod, NR_CPUS);
+ 	module_arch_cleanup(mod);
+  cleanup:
++#ifdef CONFIG_KGDB
++ nomodsectinfo:
++	vfree(mod->mod_sections);
++#endif
+ 	kobject_del(&mod->mkobj.kobj);
+ 	kobject_put(&mod->mkobj.kobj);
+  free_unload:
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -157,6 +214,7 @@ git-netdev-all-fix-conflicts-fix.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 git-backlight.patch
 git-battery.patch
+git-battery-fix-git-conflicts.patch
 bluetooth-uninlining.patch
 git-selinux-vs-git-lblnet.patch
 serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
