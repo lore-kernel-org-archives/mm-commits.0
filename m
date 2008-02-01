@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-audit-master-fix-git-conflicts.patch added to -mm tree
-Date: Fri, 01 Feb 2008 13:23:52 -0800
-Message-ID: <200802012123.m11LNqY7031884@imap1.linux-foundation.org>
+Subject: + drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch added to -mm tree
+Date: Fri, 01 Feb 2008 13:31:08 -0800
+Message-ID: <200802012131.m11LV8e6032211@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39675 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34188 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758012AbYBAVXz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 16:23:55 -0500
+	by vger.kernel.org with ESMTP id S1756399AbYBAVbM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 16:31:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org, greg@kroah.com
 
 
 The patch titled
-     git-audit-master-fix-git-conflicts
+     drivers/usb/serial/io_ti.c: remove pointless eye-candy in debug statements
 has been added to the -mm tree.  Its filename is
-     git-audit-master-fix-git-conflicts.patch
+     drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,31 +33,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-audit-master-fix-git-conflicts
+Subject: drivers/usb/serial/io_ti.c: remove pointless eye-candy in debug statements
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+These strings always come up as false positives whenever I'm doing
+git-conflict fixups (ie: about 1000 times/day).
+
+I don't think the zillion "<" and ">" characters are very useful and removing
+them makes my life that little bit easier.
+
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/usb/serial/io_ti.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN kernel/sysctl.c~git-audit-master-fix-git-conflicts kernel/sysctl.c
---- a/kernel/sysctl.c~git-audit-master-fix-git-conflicts
-+++ a/kernel/sysctl.c
-@@ -81,11 +81,8 @@ extern int percpu_pagelist_fraction;
- extern int compat_log;
- extern int maps_protect;
- extern int sysctl_stat_interval;
--<<<<<<< HEAD:kernel/sysctl.c
- extern int audit_argv_kb;
- extern int latencytop_enabled;
--=======
-->>>>>>> FETCH_HEAD:kernel/sysctl.c
+diff -puN drivers/usb/serial/io_ti.c~drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements drivers/usb/serial/io_ti.c
+--- a/drivers/usb/serial/io_ti.c~drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements
++++ a/drivers/usb/serial/io_ti.c
+@@ -1086,11 +1086,11 @@ static int TIDownloadFirmware (struct ed
+ 	if (serial->product_info.TiMode == TI_MODE_DOWNLOAD) {
+ 		struct ti_i2c_desc *rom_desc;
  
- /* Constants used for minimum and  maximum */
- #ifdef CONFIG_DETECT_SOFTLOCKUP
+-		dbg ("%s - <<<<<<<<<<<<<<<RUNNING IN DOWNLOAD MODE>>>>>>>>>>", __FUNCTION__);
++		dbg ("%s - RUNNING IN DOWNLOAD MODE", __FUNCTION__);
+ 
+ 		status = TiValidateI2cImage (serial);
+ 		if (status) {
+-			dbg ("%s - <<<<<<<<<<<<<<<DOWNLOAD MODE -- BAD I2C >>>>>>>>>>",
++			dbg ("%s - DOWNLOAD MODE -- BAD I2C",
+ 			     __FUNCTION__);
+ 			return status;
+ 		}
+@@ -1345,7 +1345,7 @@ static int TIDownloadFirmware (struct ed
+ 	/********************************************************************/
+ 	/* Boot Mode */
+ 	/********************************************************************/
+-	dbg ("%s - <<<<<<<<<<<<<<<RUNNING IN BOOT MODE>>>>>>>>>>>>>>>",
++	dbg ("%s - RUNNING IN BOOT MODE",
+ 	     __FUNCTION__);
+ 
+ 	// Configure the TI device so we can use the BULK pipes for download
+@@ -1461,7 +1461,7 @@ static int TIDownloadFirmware (struct ed
+ 
+ StayInBootMode:
+ 	// Eprom is invalid or blank stay in boot mode
+-	dbg ("%s - <<<<<<<<<<<<<<<STAYING IN BOOT MODE>>>>>>>>>>>>", __FUNCTION__);
++	dbg ("%s - STAYING IN BOOT MODE", __FUNCTION__);
+ 	serial->product_info.TiMode = TI_MODE_BOOT;
+ 
+ 	return 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -73,6 +99,7 @@ timerfd-v3-new-timerfd-api-mips-fix.patch
 timerfd-v3-new-timerfd-api-arch-fixes.patch
 timerfd-v3-new-timerfd-api-powerpc-fix.patch
 timerfd-v3-new-timerfd-api-sparc64-fix.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
 git-acpi-fix-git-conflicts.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 acpi-ignore-acpi-video-devices-that-arent-present-in-hardware-checkpatch-fixes.patch
@@ -110,7 +137,6 @@ update-smc91x-driver-with-arm-versatile-board-info.patch
 git-backlight.patch
 git-battery.patch
 bluetooth-uninlining.patch
-git-nfsd.patch
 git-selinux-vs-git-lblnet.patch
 serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
 fix-gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in.patch
