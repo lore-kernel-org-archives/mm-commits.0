@@ -1,27 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-agpgart-fix.patch added to -mm tree
-Date: Fri, 01 Feb 2008 16:40:09 -0800
-Message-ID: <200802020048.m120mq6O008115@imap1.linux-foundation.org>
+Subject: + memcontrol-move-mm_cgroup-to-header-file-fix.patch added to -mm tree
+Date: Fri, 01 Feb 2008 16:49:30 -0800
+Message-ID: <200802020058.m120wDvK008454@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53673 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37819 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754256AbYBBAsz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 19:48:55 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m120mqgk006411
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 1 Feb 2008 16:48:53 -0800
+	by vger.kernel.org with ESMTP id S1755346AbYBBA7C (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 19:59:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, rientjes@google.com
 
 
 The patch titled
-     git-agpgart-fix
+     memcontrol-move-mm_cgroup-to-header-file-fix
 has been added to the -mm tree.  Its filename is
-     git-agpgart-fix.patch
+     memcontrol-move-mm_cgroup-to-header-file-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,35 +33,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-agpgart-fix
+Subject: memcontrol-move-mm_cgroup-to-header-file-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/intel-agp.c |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/memcontrol.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/char/agp/intel-agp.c~git-agpgart-fix drivers/char/agp/intel-agp.c
---- a/drivers/char/agp/intel-agp.c~git-agpgart-fix
-+++ a/drivers/char/agp/intel-agp.c
-@@ -597,7 +597,6 @@ static void intel_i830_fini_flush(void)
- 	kunmap(intel_private.i8xx_page);
- 	intel_private.i8xx_flush_page = NULL;
- 	unmap_page_from_agp(intel_private.i8xx_page);
--	flush_agp_mappings();
+diff -puN include/linux/memcontrol.h~memcontrol-move-mm_cgroup-to-header-file-fix include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcontrol-move-mm_cgroup-to-header-file-fix
++++ a/include/linux/memcontrol.h
+@@ -20,6 +20,8 @@
+ #ifndef _LINUX_MEMCONTROL_H
+ #define _LINUX_MEMCONTROL_H
  
- 	__free_page(intel_private.i8xx_page);
- 	intel_private.i8xx_page = NULL;
-@@ -615,7 +614,6 @@ static void intel_i830_setup_flush(void)
- 
- 	/* make page uncached */
- 	map_page_into_agp(intel_private.i8xx_page);
--	flush_agp_mappings();
- 
- 	intel_private.i8xx_flush_page = kmap(intel_private.i8xx_page);
- 	if (!intel_private.i8xx_flush_page)
++#include <linux/rcupdate.h>
++
+ struct mem_cgroup;
+ struct page_cgroup;
+ struct page;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -232,6 +222,7 @@ memory-controller-memory-accounting-v7.patch
 memory-controller-add-per-container-lru-and-reclaim-v7.patch
 memory-controller-oom-handling-v7.patch
 memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-mm_cgroup-to-header-file-fix.patch
 memcontrol-move-oom-task-exclusion-to-tasklist.patch
 memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
