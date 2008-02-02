@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mm-bdi-export-bdi-attributes-in-sysfs-fix-4.patch added to -mm tree
-Date: Sat, 02 Feb 2008 15:38:41 -0800
-Message-ID: <200802022338.m12NcMwI021733@imap1.linux-foundation.org>
+Subject: + mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse-fix.patch added to -mm tree
+Date: Sat, 02 Feb 2008 15:38:45 -0800
+Message-ID: <200802022338.m12NcQQd021740@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59142 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39217 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764191AbYBBXi0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 18:38:26 -0500
+	by vger.kernel.org with ESMTP id S1764196AbYBBXie (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 18:38:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,7 +17,7 @@ Cc: mszeredi@suse.cz
 The patch titled
      mm: bdi: use MAJOR:MINOR in /sys/class/bdi
 has been added to the -mm tree.  Its filename is
-     mm-bdi-export-bdi-attributes-in-sysfs-fix-4.patch
+     mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -47,37 +47,22 @@ Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/backing-dev.h |    1 +
- mm/backing-dev.c            |    6 ++++++
- 2 files changed, 7 insertions(+)
+ fs/fuse/inode.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/backing-dev.h~mm-bdi-export-bdi-attributes-in-sysfs-fix-4 include/linux/backing-dev.h
---- a/include/linux/backing-dev.h~mm-bdi-export-bdi-attributes-in-sysfs-fix-4
-+++ a/include/linux/backing-dev.h
-@@ -59,6 +59,7 @@ void bdi_destroy(struct backing_dev_info
- 
- int bdi_register(struct backing_dev_info *bdi, struct device *parent,
- 		const char *fmt, ...);
-+int bdi_register_dev(struct backing_dev_info *bdi, dev_t dev);
- void bdi_unregister(struct backing_dev_info *bdi);
- 
- static inline void __add_bdi_stat(struct backing_dev_info *bdi,
-diff -puN mm/backing-dev.c~mm-bdi-export-bdi-attributes-in-sysfs-fix-4 mm/backing-dev.c
---- a/mm/backing-dev.c~mm-bdi-export-bdi-attributes-in-sysfs-fix-4
-+++ a/mm/backing-dev.c
-@@ -105,6 +105,12 @@ exit:
- }
- EXPORT_SYMBOL(bdi_register);
- 
-+int bdi_register_dev(struct backing_dev_info *bdi, dev_t dev)
-+{
-+	return bdi_register(bdi, NULL, "%u:%u", MAJOR(dev), MINOR(dev));
-+}
-+EXPORT_SYMBOL(bdi_register_dev);
-+
- void bdi_unregister(struct backing_dev_info *bdi)
- {
- 	if (bdi->dev) {
+diff -puN fs/fuse/inode.c~mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse-fix fs/fuse/inode.c
+--- a/fs/fuse/inode.c~mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse-fix
++++ a/fs/fuse/inode.c
+@@ -473,8 +473,7 @@ static struct fuse_conn *new_conn(struct
+ 		err = bdi_init(&fc->bdi);
+ 		if (err)
+ 			goto error_kfree;
+-		err = bdi_register(&fc->bdi, NULL, "fuse-%u:%u",
+-				   MAJOR(fc->dev), MINOR(fc->dev));
++		err = bdi_register_dev(&fc->bdi, fc->dev);
+ 		if (err)
+ 			goto error_bdi_destroy;
+ 		fc->reqctr = 0;
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
