@@ -1,148 +1,322 @@
 From: akpm@linux-foundation.org
-Subject: - pata_pdc202xx_old-fix-crashes-with-atapi.patch removed from -mm tree
-Date: Fri, 01 Feb 2008 17:05:56 -0800
-Message-ID: <200802020114.m121EddC009013@imap1.linux-foundation.org>
+Subject: + kvm-i386-fix.patch added to -mm tree
+Date: Fri, 01 Feb 2008 17:12:31 -0800
+Message-ID: <200802020121.m121LDTh009227@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60733 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45053 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760223AbYBBBPm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 20:15:42 -0500
+	by vger.kernel.org with ESMTP id S1760411AbYBBBWG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 20:22:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, avi@qumranet.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     pata_pdc202xx_old: Fix crashes with ATAPI
-has been removed from the -mm tree.  Its filename was
-     pata_pdc202xx_old-fix-crashes-with-atapi.patch
+     kvm: i386 fix
+has been added to the -mm tree.  Its filename is
+     kvm-i386-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pata_pdc202xx_old: Fix crashes with ATAPI
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: kvm: i386 fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The PDC202xx older devices do not support ATAPI DMA via the usual
-interfaces. What documentation I have isn't sufficient to support DMA and
-it isn't clear if the Windows drivers do this or it is possible at all.
-(Neither do the drivers/ide old drivers)
+arch/x86/kvm/x86.c: In function 'emulator_cmpxchg_emulated':
+arch/x86/kvm/x86.c:1746: warning: passing argument 2 of 'vcpu->arch.mmu.gva_to_gpa' makes integer from pointer without a cast
+arch/x86/kvm/x86.c:1746: warning: 'addr' is used uninitialized in this function
 
-So turn it ATAPI DMA off, these are disk optimised controllers.
+Is true.  Local variable `addr' shadows incoming arg `addr'.  Avi is on
+vacation for a while, so...
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
+Cc: Avi Kivity <avi@qumranet.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_pdc202xx_old.c |   19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ arch/x86/kvm/x86.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/ata/pata_pdc202xx_old.c~pata_pdc202xx_old-fix-crashes-with-atapi drivers/ata/pata_pdc202xx_old.c
---- a/drivers/ata/pata_pdc202xx_old.c~pata_pdc202xx_old-fix-crashes-with-atapi
-+++ a/drivers/ata/pata_pdc202xx_old.c
-@@ -261,6 +261,24 @@ static int pdc2026x_check_atapi_dma(stru
- 	return 1;
- }
+diff -puN arch/x86/kvm/x86.c~kvm-i386-fix arch/x86/kvm/x86.c
+--- a/arch/x86/kvm/x86.c~kvm-i386-fix
++++ a/arch/x86/kvm/x86.c
+@@ -1739,7 +1739,7 @@ static int emulator_cmpxchg_emulated(uns
+ 	if (bytes == 8) {
+ 		gpa_t gpa;
+ 		struct page *page;
+-		char *addr;
++		char *kaddr;
+ 		u64 val;
  
-+/**
-+ *	pdc2026x_check_atapi_dma - Check whether ATAPI DMA can be supported for this command
-+ *	@qc: Metadata associated with taskfile to check
-+ *
-+ *	Just say no - not supported on older Promise.
-+ *
-+ *	LOCKING:
-+ *	None (inherited from caller).
-+ *
-+ *	RETURNS: 0 when ATAPI DMA can be used
-+ *		 1 otherwise
-+ */
-+
-+static int pdc2026x_check_atapi_dma(struct ata_queued_cmd *qc)
-+{
-+	return 1;
-+}
-+
- static struct scsi_host_template pdc202xx_sht = {
- 	.module			= THIS_MODULE,
- 	.name			= DRV_NAME,
-@@ -295,6 +313,7 @@ static struct ata_port_operations pdc202
- 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
- 	.cable_detect	= ata_cable_40wire,
+ 		down_read(&current->mm->mmap_sem);
+@@ -1754,9 +1754,9 @@ static int emulator_cmpxchg_emulated(uns
  
-+	.check_atapi_dma= pdc2026x_check_atapi_dma,
- 	.bmdma_setup 	= ata_bmdma_setup,
- 	.bmdma_start 	= ata_bmdma_start,
- 	.bmdma_stop	= ata_bmdma_stop,
+ 		val = *(u64 *)new;
+ 		page = gfn_to_page(vcpu->kvm, gpa >> PAGE_SHIFT);
+-		addr = kmap_atomic(page, KM_USER0);
+-		set_64bit((u64 *)(addr + offset_in_page(gpa)), val);
+-		kunmap_atomic(addr, KM_USER0);
++		kaddr = kmap_atomic(page, KM_USER0);
++		set_64bit((u64 *)(kaddr + offset_in_page(gpa)), val);
++		kunmap_atomic(kaddr, KM_USER0);
+ 		kvm_release_page_dirty(page);
+ 	emul_write:
+ 		up_read(&current->mm->mmap_sem);
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-keyspan-fix-oops.patch
-git-libata-all.patch
-pata_pdc202xx_old-fix-crashes-with-atapi.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-hci_ldisc-fix-null-pointer-deref.patch
-parisc-new-termios-definitions.patch
-pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch
-pcmcia-replace-kio_addr_t-with-unsigned-int-everywhere.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-8250c-support-specifying-dw-apb-uarts-in-device-platform_data.patch
-avoid-waking-up-closed-serial-ports-on-resume.patch
-serial-avoid-stalling-suspend-if-serial-port-wont-drain.patch
-serial-speed-setup-failure-reporting.patch
-serial-coding-style.patch
-sh-termios-ioctl-definitions.patch
+kvm-i386-fix.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes.patch
+timerfd-v3-new-timerfd-api-ia64-fix.patch
+timerfd-v3-new-timerfd-api-m68k-fix.patch
+timerfd-v3-new-timerfd-api-mips-fix.patch
+timerfd-v3-new-timerfd-api-arch-fixes.patch
+timerfd-v3-new-timerfd-api-powerpc-fix.patch
+timerfd-v3-new-timerfd-api-sparc64-fix.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements-checkpatch-fixes.patch
+git-acpi-fix-git-conflicts.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-ignore-acpi-video-devices-that-arent-present-in-hardware-checkpatch-fixes.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+acpi-backlight-reset-brightness-on-resume-checkpatch-fixes.patch
+git-alsa-disable-sound-pci-ice1712-ice1724c.patch
+git-agpgart.patch
+git-agpgart-fix.patch
+git-audit-master.patch
+git-audit-master-fix-git-conflicts.patch
+git-audit-printk-warning-fix.patch
+git-cpufreq.patch
+revert-agk-dm-dm-loop.patch
+include-asm-powerpc-nvramh-needs-listh.patch
+include-asm-powerpc-nvramh-needs-listh-fix.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
+adt7473-new-driver-for-analog-devices-adt7473-sensor-chip-fix.patch
+revert-git-hrt.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+git-kvm.patch
+drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
+drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
+git-md-accel.patch
+memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
+git-mmc.patch
+git-mtd.patch
+drivers-mtd-ubi-wlc-fix-uninitialized-var-warning.patch
+drivers-mtd-ubi-scanc-fix-uninitialized-var-warning.patch
+drivers-mtd-ubi-cdevc-unused-var.patch
+git-netdev-all-fix-conflicts-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-backlight.patch
+git-battery.patch
+git-battery-fix-git-conflicts.patch
+bluetooth-uninlining.patch
+serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
+fix-gregkh-pci-pci-pcie-aspm-support.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
+x86-validate-against-acpi-motherboard-resources.patch
+git-sched.patch
+git-scsi-misc-vs-gregkh-pci-pci-remove-users-of-pci_enable_device_bars.patch
+scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes.patch
+scsi-aic94xx-cleanups-checkpatch-fixes.patch
+scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
+drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-ohci-sm501-driver-v2-fix.patch
 git-watchdog.patch
-geode-lists-are-subscriber-only.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
+git-watchdog-fixup.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-fixup-vs-git-sched.patch
+git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
+x86-mmconf-enable-mcfg-early-cleanup.patch
+git-xtensa.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-add-proc-kpagecount-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix-2-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+mm-remove-fastcall-from-mm-checkpatch-fixes.patch
+page-migraton-handle-orphaned-pages-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+riscom8-fix-smp-brokenness-fix.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+address-hfs-on-disk-corruption-robustness-review-comments.patch
 get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
-sc26xx-new-serial-driver-for-sc2681-uarts.patch
-sc26xx-new-serial-driver-for-sc2681-uarts-update.patch
-documentation-about-unaligned-memory-access.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
 tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
-fix-ixany-and-restart-after-signal-eg-ctrl-c-in-n_tty-line-discipline.patch
-fix-ixany-and-restart-after-signal-eg-ctrl-c-in-n_tty-line-discipline-update.patch
-tty-kill-tty_flipbuf_size.patch
-drivers-edac-turnon-edac-device-error-logging.patch
-drivers-edac-use-round_jiffies_relative.patch
-drivers-edac-add-cell-xdr-memory-types.patch
-drivers-edac-add-cell-mc-driver.patch
-drivers-edac-i3000-code-tidying.patch
-drivers-edac-i3000-replace-macros-with-functions.patch
-drivers-edac-add-freescale-mpc85xx-driver.patch
-drivers-edac-add-marvell-mv64x60-driver.patch
+stopmachine-semaphore-to-mutex-fix.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
+debug_smp_processor_id-fixlets.patch
+use-ilog2-in-fs-namespacec-fix.patch
+system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
+speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
+add-have_oprofile.patch
+drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+neofb-avoid-overwriting-fb_info-fields.patch
+vermilionc-use-align-not-__align_mask.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+disable-ext4.patch
+jbd-remove-useless-loop-in-journal_write_commit_record-checkpatch-fixes.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-mm_cgroup-to-header-file-fix.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
+hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
+cpusets-update_cpumask-revision-fix.patch
+cpusets-update_cpumask-revision-checkpatch-fixes.patch
 drivers-edac-add-marvell-mv64x60-driver-fix.patch
-dz-clean-up-and-improve-the-setup-of-termios-settings.patch
-char-rocket-switch-long-delay-to-sleep.patch
-char-rocket-printk-cleanup.patch
-char-char-serial-remove-serial_type_normal-redefines.patch
-char-mxser_new-ioaddresses-are-ulong.patch
-char-stallion-fix-compiler-warnings.patch
-char-riscom8-change-rc_init_drivers-prototype.patch
-mxser-mxser_new-first-pass-over-termios-reporting-for-the.patch
-char-mxser-ioctl-cleanup.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
-tty-s390-support-for-termios2.patch
-moxa-first-pass-at-termios-reporting.patch
-n_tty-clean-up-old-code-to-follow-coding-style-and-mostly-checkpatch.patch
-rocket-first-pass-at-termios-reporting.patch
-rocket-dont-let-random-users-reset-the-controller.patch
-tty_audit-fix-checkpatch-complaint.patch
-tty_io-drag-screaming-into-coding-style-compliance.patch
-tty_ioctl-drag-screaming-into-compliance-with-the-coding.patch
-8250_early-coding-style.patch
-8250_gsc-coding-style.patch
-8250_hp300-coding-style.patch
-8250_hub6-codding-style.patch
-8250_pci-coding-style.patch
-serial8250-coding-style.patch
-8250-enable-rate-reporting-via-termios.patch
-serial_core-bring-mostly-into-line-with-coding-style.patch
-smbios-dmi-add-type-41-=-onboard-devices-extended-information.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+modules-make-module_address_lookup-safe-fix.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
+ufs-fix-symlink-creation-on-ufs2-fix.patch
+libfs-allow-error-return-from-simple-attributes-fix.patch
+fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
+mount-options-fix-tmpfs-fix.patch
+char-applicom-use-pci_match_id-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
