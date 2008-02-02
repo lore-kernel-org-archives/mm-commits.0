@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mm-bdi-export-bdi-attributes-in-sysfs-fix.patch added to -mm tree
-Date: Sat, 02 Feb 2008 15:25:47 -0800
-Message-ID: <200802022325.m12NPSKo021292@imap1.linux-foundation.org>
+Subject: + mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit-fix.patch added to -mm tree
+Date: Sat, 02 Feb 2008 15:26:17 -0800
+Message-ID: <200802022325.m12NPwDQ021295@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44787 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41665 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763945AbYBBX0A (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 18:26:00 -0500
+	by vger.kernel.org with ESMTP id S1763559AbYBBX0a (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 18:26:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,7 +17,7 @@ Cc: mszeredi@suse.cz
 The patch titled
      mm: bdi: fix read_ahead_kb_store()
 has been added to the -mm tree.  Its filename is
-     mm-bdi-export-bdi-attributes-in-sysfs-fix.patch
+     mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -49,33 +49,21 @@ Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/backing-dev.c |   11 ++++++++---
- page-writeback.c |    0 
- 2 files changed, 8 insertions(+), 3 deletions(-)
+ mm/page-writeback.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/backing-dev.c~mm-bdi-export-bdi-attributes-in-sysfs-fix mm/backing-dev.c
---- a/mm/backing-dev.c~mm-bdi-export-bdi-attributes-in-sysfs-fix
-+++ a/mm/backing-dev.c
-@@ -16,10 +16,15 @@ static ssize_t read_ahead_kb_store(struc
- {
- 	struct backing_dev_info *bdi = dev_get_drvdata(dev);
- 	char *end;
-+	unsigned long read_ahead_kb;
-+	ssize_t ret = -EINVAL;
+diff -puN mm/page-writeback.c~mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit-fix mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit-fix
++++ a/mm/page-writeback.c
+@@ -288,7 +288,7 @@ int bdi_set_max_ratio(struct backing_dev
+ 	}
+ 	spin_unlock_irqrestore(&bdi_lock, flags);
  
--	bdi->ra_pages = simple_strtoul(buf, &end, 10) >> (PAGE_SHIFT - 10);
--
--	return end - buf;
-+	read_ahead_kb = simple_strtoul(buf, &end, 10);
-+	if (*buf && (end[0] == '\0' || (end[0] == '\n' && end[1] == '\0'))) {
-+		bdi->ra_pages = read_ahead_kb >> (PAGE_SHIFT - 10);
-+		ret = count;
-+	}
+-	return 0;
 +	return ret;
  }
+ EXPORT_SYMBOL(bdi_set_max_ratio);
  
- #define K(pages) ((pages) << (PAGE_SHIFT - 10))
-diff -puN mm/page-writeback.c~mm-bdi-export-bdi-attributes-in-sysfs-fix mm/page-writeback.c
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
@@ -115,6 +103,6 @@ mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs.patch
 mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse.patch
 mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit.patch
 mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit.patch
-mm-bdi-fix-read_ahead_kb_store-2.patch
+mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit-fix.patch
 mm-bdi-use-majorminor-in-sys-class-bdi.patch
 mm-bdi-move-statistics-to-debugfs.patch
