@@ -1,270 +1,295 @@
 From: akpm@linux-foundation.org
-Subject: - add-iscsi-ibft-support-v046.patch removed from -mm tree
-Date: Fri, 01 Feb 2008 16:36:46 -0800
-Message-ID: <200802020045.m120jTFQ007990@imap1.linux-foundation.org>
+Subject: - add-iscsi-ibft-support-v046-fix.patch removed from -mm tree
+Date: Fri, 01 Feb 2008 16:36:44 -0800
+Message-ID: <200802020045.m120jQlB007987@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58862 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40487 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758905AbYBBAqi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 19:46:38 -0500
+	by vger.kernel.org with ESMTP id S1756651AbYBBAqz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 19:46:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: konrad@darnok.org, James.Bottomley@HansenPartnership.com, konradr@linux.vnet.ibm.com, michaelc@cs.wisc.edu, pjones@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, konrad@darnok.org, michaelc@cs.wisc.edu, pjones@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add iSCSI iBFT support (v0.4.6)
+     add-iscsi-ibft-support-v046-fix
 has been removed from the -mm tree.  Its filename was
-     add-iscsi-ibft-support-v046.patch
+     add-iscsi-ibft-support-v046-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Add iSCSI iBFT support (v0.4.6)
-From: Konrad Rzeszutek <konrad@darnok.org>
+Subject: add-iscsi-ibft-support-v046-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch (v0.4.6) adds /sysfs/firmware/ibft/[initiator|targetX|ethernetX]
-directories along with text properties which export the the iSCSI
-Boot Firmware Table (iBFT) structure.
+inline __init isn't meaningful.
 
-What is iSCSI Boot Firmware Table? It is a mechanism for the iSCSI
-tools to extract from the machine NICs the iSCSI connection information
-so that they can automagically mount the iSCSI share/target. Currently
-the iSCSI information is hard-coded in the initrd. The /sysfs entries
-are read-only one-name-and-value fields.
-
-The usual set of data exposed is:
-
-# for a in `find /sys/firmware/ibft/ -type f -print`; do  echo -n "$a: ";  cat $a; done
-/sys/firmware/ibft/target0/target-name: iqn.2007.com.intel-sbx44:storage-10gb
-/sys/firmware/ibft/target0/nic-assoc: 0
-/sys/firmware/ibft/target0/chap-type: 0
-/sys/firmware/ibft/target0/lun: 00000000
-/sys/firmware/ibft/target0/port: 3260
-/sys/firmware/ibft/target0/ip-addr: 192.168.79.116
-/sys/firmware/ibft/target0/flags: 3
-/sys/firmware/ibft/target0/index: 0
-/sys/firmware/ibft/ethernet0/mac: 00:11:25:9d:8b:01
-/sys/firmware/ibft/ethernet0/vlan: 0
-/sys/firmware/ibft/ethernet0/gateway: 192.168.79.254
-/sys/firmware/ibft/ethernet0/origin: 0
-/sys/firmware/ibft/ethernet0/subnet-mask: 255.255.252.0
-/sys/firmware/ibft/ethernet0/ip-addr: 192.168.77.41
-/sys/firmware/ibft/ethernet0/flags: 7
-/sys/firmware/ibft/ethernet0/index: 0
-/sys/firmware/ibft/initiator/initiator-name: iqn.2007-07.com:konrad.initiator
-/sys/firmware/ibft/initiator/flags: 3
-/sys/firmware/ibft/initiator/index: 0
-
-For full details of the IBFT structure please take a look at:
-ftp://ftp.software.ibm.com/systems/support/system_x_pdf/ibm_iscsi_boot_firmware_table_v1.02.pdf
-
-Signed-off-by: Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
+Cc: Konrad Rzeszutek <konrad@darnok.org>
 Cc: Mike Christie <michaelc@cs.wisc.edu>
 Cc: Peter Jones <pjones@redhat.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/setup_32.c    |   14 ---------
- arch/x86/kernel/setup_64.c    |   14 ---------
- drivers/firmware/Kconfig      |    1 
- drivers/firmware/iscsi_ibft.c |   48 +++++++++++++++++++++-----------
- include/linux/iscsi_ibft.h    |   16 ++++++++++
- 5 files changed, 48 insertions(+), 45 deletions(-)
+ include/linux/iscsi_ibft.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/setup_32.c~add-iscsi-ibft-support-v046 arch/x86/kernel/setup_32.c
---- a/arch/x86/kernel/setup_32.c~add-iscsi-ibft-support-v046
-+++ a/arch/x86/kernel/setup_32.c
-@@ -226,20 +226,6 @@ static inline void copy_edd(void)
- }
- #endif
- 
--#if defined(CONFIG_ISCSI_IBFT_FIND)
--static void __init reserve_ibft_region(void)
--{
--	unsigned int ibft_len;
--
--	ibft_len = find_ibft();
--	if (ibft_len)
--		reserve_bootmem((unsigned int)ibft_phys,
--				PAGE_ALIGN(ibft_len));
--}
--#else
--static void __init reserve_ibft_region(void) { }
--#endif
--
- int __initdata user_defined_memmap = 0;
- 
- /*
-diff -puN arch/x86/kernel/setup_64.c~add-iscsi-ibft-support-v046 arch/x86/kernel/setup_64.c
---- a/arch/x86/kernel/setup_64.c~add-iscsi-ibft-support-v046
-+++ a/arch/x86/kernel/setup_64.c
-@@ -219,20 +219,6 @@ static inline void copy_edd(void)
- }
- #endif
- 
--#if defined(CONFIG_ISCSI_IBFT_FIND)
--static void __init reserve_ibft_region(void)
--{
--	unsigned int ibft_len;
--
--	ibft_len = find_ibft();
--	if (ibft_len)
--		reserve_bootmem_generic((unsigned long)ibft_phys,
--					PAGE_ALIGN(ibft_len));
--}
--#else
--static void __init reserve_ibft_region(void) { }
--#endif
--
- #ifdef CONFIG_KEXEC
- static void __init reserve_crashkernel(void)
- {
-diff -puN drivers/firmware/Kconfig~add-iscsi-ibft-support-v046 drivers/firmware/Kconfig
---- a/drivers/firmware/Kconfig~add-iscsi-ibft-support-v046
-+++ a/drivers/firmware/Kconfig
-@@ -95,6 +95,7 @@ config DMIID
- 
- config ISCSI_IBFT_FIND
- 	bool "iSCSI Boot Firmware Table Attributes"
-+	depends on X86 || IA64
- 	default n
- 	help
- 	  This option enables the kernel to find the region of memory
-diff -puN drivers/firmware/iscsi_ibft.c~add-iscsi-ibft-support-v046 drivers/firmware/iscsi_ibft.c
---- a/drivers/firmware/iscsi_ibft.c~add-iscsi-ibft-support-v046
-+++ a/drivers/firmware/iscsi_ibft.c
-@@ -17,8 +17,11 @@
-  *
-  * Changelog:
-  *
-+ *  30 Jan 2008 - Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
-+ *   Added logic to handle IPv6 addresses. (v0.4.6)
-+ *
-  *  25 Jan 2008 - Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
-- *   Added logic to handle badly not-to-spec iBFTs. (v0.4.5)
-+ *   Added logic to handle badly not-to-spec iBFT. (v0.4.5)
-  *
-  *   4 Jan 2008 - Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
-  *   Added __init to function declarations. (v0.4.4)
-@@ -64,8 +67,8 @@
- #include <linux/string.h>
- #include <linux/types.h>
- 
--#define IBFT_ISCSI_VERSION "0.4.5"
--#define IBFT_ISCSI_DATE "2008-Jan-25"
-+#define IBFT_ISCSI_VERSION "0.4."
-+#define IBFT_ISCSI_DATE "2008-Jan-30"
- 
- MODULE_AUTHOR("Peter Jones <pjones@redhat.com> and \
- Konrad Rzeszutek <konradr@us.ibm.com>");
-@@ -272,16 +275,26 @@ static struct ibft_table_header *ibft_de
-  */
- static ssize_t sprintf_ipaddr(char *buf, u8 *ip)
- {
-+	char *str = buf;
-+
- 	if (ip[0] == 0 && ip[1] == 0 && ip[2] == 0 && ip[3] == 0 &&
- 	    ip[4] == 0 && ip[5] == 0 && ip[6] == 0 && ip[7] == 0 &&
- 	    ip[8] == 0 && ip[9] == 0 && ip[10] == 0xff && ip[11] == 0xff) {
- 		/*
- 		 * IPV4
- 		 */
--		return sprintf(buf, "%d.%d.%d.%d\n", ip[12],
-+		str += sprintf(buf, NIPQUAD_FMT, ip[12],
- 			       ip[13], ip[14], ip[15]);
--	} else
--		return 0;
-+	} else {
-+		/*
-+		 * IPv6
-+		 */
-+		str += sprintf(str, NIP6_FMT, ntohs(ip[0]), ntohs(ip[1]),
-+			       ntohs(ip[2]), ntohs(ip[3]), ntohs(ip[4]),
-+			       ntohs(ip[5]), ntohs(ip[6]), ntohs(ip[7]));
-+	}
-+	str += sprintf(str, "\n");
-+	return str - buf;
- }
- 
- static ssize_t sprintf_string(char *str, int len, char *buf)
-@@ -294,16 +307,19 @@ static ssize_t sprintf_string(char *str,
-  */
- static int ibft_verify_hdr(char *t, struct ibft_hdr *hdr, int id, int length)
- {
--#define IBFT_VERIFY_HDR_FIELD(val, name) \
--	if (hdr->val != val) { \
--		printk(KERN_ERR \
--		       "iBFT error: In structure %s field %s expected %d but" \
--		       " found %d!\n", \
--		       t, name, val, hdr->val); \
--		return -ENODEV; \
-+	if (hdr->id != id) {
-+		printk(KERN_ERR "iBFT error: The field header.id is " \
-+				"expected %d but found %d!\n", \
-+				id, hdr->id);
-+		return -ENODEV;
-+	}
-+	if (hdr->length != length) {
-+		printk(KERN_ERR "iBFT error: The field header.length is " \
-+				"expected %d but found %d!\n", \
-+				length, hdr->length);
-+		return -ENODEV;
- 	}
--	IBFT_VERIFY_HDR_FIELD(id, "id");
--	IBFT_VERIFY_HDR_FIELD(length, "length");
-+
- 	return 0;
- }
- 
-@@ -542,7 +558,7 @@ static int __init ibft_check_and_alloc_d
- 				"while this is %d.\n", hdr->revision);
- 		return 1;
- 	}
--	for (pos = (u8 *)hdr; pos < (u8 *)hdr + len; pos ++)
-+	for (pos = (u8 *)hdr; pos < (u8 *)hdr + len; pos++)
- 		csum += *pos;
- 
- 	if (csum) {
-diff -puN include/linux/iscsi_ibft.h~add-iscsi-ibft-support-v046 include/linux/iscsi_ibft.h
---- a/include/linux/iscsi_ibft.h~add-iscsi-ibft-support-v046
+diff -puN include/linux/iscsi_ibft.h~add-iscsi-ibft-support-v046-fix include/linux/iscsi_ibft.h
+--- a/include/linux/iscsi_ibft.h~add-iscsi-ibft-support-v046-fix
 +++ a/include/linux/iscsi_ibft.h
-@@ -19,7 +19,8 @@
- #ifndef ISCSI_IBFT_H
- #define ISCSI_IBFT_H
- 
--#if defined(CONFIG_ISCSI_IBFT_FIND)
-+#include <linux/bootmem.h>
-+#include <asm/mmzone.h>
- 
- /*
-  * Physical location of iSCSI Boot Format Table.
-@@ -33,6 +34,19 @@ extern void *ibft_phys;
+@@ -34,9 +34,8 @@ extern void *ibft_phys;
   */
  extern ssize_t find_ibft(void);
  
-+
-+#ifdef CONFIG_ISCSI_IBFT_FIND
-+static inline void __init reserve_ibft_region(void)
-+{
-+	unsigned int ibft_len;
-+
-+	ibft_len = find_ibft();
-+	if (ibft_len)
-+		reserve_bootmem((unsigned int)ibft_phys,
-+				PAGE_ALIGN(ibft_len));
-+}
-+#else
-+static inline void __init reserve_ibft_region(void) { }
- #endif
+-
+ #ifdef CONFIG_ISCSI_IBFT_FIND
+-static inline void __init reserve_ibft_region(void)
++static inline void reserve_ibft_region(void)
+ {
+ 	unsigned int ibft_len;
  
- #endif /* ISCSI_IBFT_H */
 _
 
-Patches currently in -mm which might be from konrad@darnok.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-add-iscsi-ibft-support-v046.patch
+origin.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes.patch
+timerfd-v3-new-timerfd-api-ia64-fix.patch
+timerfd-v3-new-timerfd-api-m68k-fix.patch
+timerfd-v3-new-timerfd-api-mips-fix.patch
+timerfd-v3-new-timerfd-api-arch-fixes.patch
+timerfd-v3-new-timerfd-api-powerpc-fix.patch
+timerfd-v3-new-timerfd-api-sparc64-fix.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements-checkpatch-fixes.patch
+git-acpi-fix-git-conflicts.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-ignore-acpi-video-devices-that-arent-present-in-hardware-checkpatch-fixes.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+acpi-backlight-reset-brightness-on-resume-checkpatch-fixes.patch
+git-alsa-disable-sound-pci-ice1712-ice1724c.patch
+git-audit-master.patch
+git-audit-master-fix-git-conflicts.patch
+git-audit-printk-warning-fix.patch
+git-cpufreq.patch
+revert-agk-dm-dm-loop.patch
+include-asm-powerpc-nvramh-needs-listh.patch
+include-asm-powerpc-nvramh-needs-listh-fix.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
+adt7473-new-driver-for-analog-devices-adt7473-sensor-chip-fix.patch
+revert-git-hrt.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+git-kvm.patch
+drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
+drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
+git-md-accel.patch
+memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
+git-mmc.patch
+git-mtd.patch
+drivers-mtd-ubi-wlc-fix-uninitialized-var-warning.patch
+drivers-mtd-ubi-scanc-fix-uninitialized-var-warning.patch
+drivers-mtd-ubi-cdevc-unused-var.patch
+git-netdev-all-fix-conflicts-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-backlight.patch
+git-battery.patch
+git-battery-fix-git-conflicts.patch
+bluetooth-uninlining.patch
+git-selinux-vs-git-lblnet.patch
+serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
+fix-gregkh-pci-pci-pcie-aspm-support.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
+x86-validate-against-acpi-motherboard-resources.patch
+git-sched.patch
+git-scsi-misc-vs-gregkh-pci-pci-remove-users-of-pci_enable_device_bars.patch
+scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes.patch
+scsi-aic94xx-cleanups-checkpatch-fixes.patch
+scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
+drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-ohci-sm501-driver-v2-fix.patch
+git-watchdog.patch
+git-watchdog-fixup.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-fixup-vs-git-sched.patch
+git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
+x86-mmconf-enable-mcfg-early-cleanup.patch
+git-xtensa.patch
+add-iscsi-ibft-support-v046-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-add-proc-kpagecount-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix-2-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+mm-remove-fastcall-from-mm-checkpatch-fixes.patch
+page-migraton-handle-orphaned-pages-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+riscom8-fix-smp-brokenness-fix.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+address-hfs-on-disk-corruption-robustness-review-comments.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+stopmachine-semaphore-to-mutex-fix.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
+debug_smp_processor_id-fixlets.patch
+use-ilog2-in-fs-namespacec-fix.patch
+system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
+speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
+add-have_oprofile.patch
+drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+neofb-avoid-overwriting-fb_info-fields.patch
+vermilionc-use-align-not-__align_mask.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+disable-ext4.patch
+jbd-remove-useless-loop-in-journal_write_commit_record-checkpatch-fixes.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
+hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
+cpusets-update_cpumask-revision-fix.patch
+cpusets-update_cpumask-revision-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+modules-make-module_address_lookup-safe-fix.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
+ufs-fix-symlink-creation-on-ufs2-fix.patch
+libfs-allow-error-return-from-simple-attributes-fix.patch
+fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
+mount-options-fix-tmpfs-fix.patch
+char-applicom-use-pci_match_id-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
