@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse-fix.patch added to -mm tree
-Date: Sat, 02 Feb 2008 15:38:45 -0800
-Message-ID: <200802022338.m12NcQQd021740@imap1.linux-foundation.org>
+Subject: + mm-bdi-move-statistics-to-debugfs.patch added to -mm tree
+Date: Sat, 02 Feb 2008 15:38:47 -0800
+Message-ID: <200802022338.m12NcSMS021743@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39217 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47312 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764196AbYBBXie (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 18:38:34 -0500
+	by vger.kernel.org with ESMTP id S1764280AbYBBXiq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 18:38:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz
+Cc: miklos@szeredi.hu, mszeredi@suse.cz
 
 
 The patch titled
-     mm: bdi: use MAJOR:MINOR in /sys/class/bdi
+     From: Miklos Szeredi <miklos@szeredi.hu>
 has been added to the -mm tree.  Its filename is
-     mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse-fix.patch
+     mm-bdi-move-statistics-to-debugfs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,79 +33,267 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: bdi: use MAJOR:MINOR in /sys/class/bdi
+Subject: From: Miklos Szeredi <miklos@szeredi.hu>
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Uniformly use MAJOR:MINOR in /sys/class/bdi/ for both block devices
-and non-block device backed filesystems: FUSE and NFS.
 
-Add symlink for block devices:
+Move BDI statistics to debugfs:
 
-    /sys/block/<name>/bdi -> /sys/class/bdi/<bdi>
+   /sys/kernel/debug/bdi/<bdi>/stats
+
+Use postcore_initcall() to initialize the sysfs class and debugfs,
+because debugfs is initialized in core_initcall().
+
+Update descriptions in ABI documentation.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+---
+
+Index: linux/include/linux/backing-dev.h
+===================================================================
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/inode.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ Documentation/ABI/testing/sysfs-class-bdi |   43 +++-----
+ include/linux/backing-dev.h               |    6 +
+ mm/backing-dev.c                          |   98 +++++++++++++++-----
+ 3 files changed, 99 insertions(+), 48 deletions(-)
 
-diff -puN fs/fuse/inode.c~mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse-fix fs/fuse/inode.c
---- a/fs/fuse/inode.c~mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse-fix
-+++ a/fs/fuse/inode.c
-@@ -473,8 +473,7 @@ static struct fuse_conn *new_conn(struct
- 		err = bdi_init(&fc->bdi);
- 		if (err)
- 			goto error_kfree;
--		err = bdi_register(&fc->bdi, NULL, "fuse-%u:%u",
--				   MAJOR(fc->dev), MINOR(fc->dev));
-+		err = bdi_register_dev(&fc->bdi, fc->dev);
- 		if (err)
- 			goto error_bdi_destroy;
- 		fc->reqctr = 0;
+diff -puN Documentation/ABI/testing/sysfs-class-bdi~mm-bdi-move-statistics-to-debugfs Documentation/ABI/testing/sysfs-class-bdi
+--- a/Documentation/ABI/testing/sysfs-class-bdi~mm-bdi-move-statistics-to-debugfs
++++ a/Documentation/ABI/testing/sysfs-class-bdi
+@@ -3,8 +3,8 @@ Date:		January 2008
+ Contact:	Peter Zijlstra <a.p.zijlstra@chello.nl>
+ Description:
+ 
+-Provide a place in sysfs for the backing_dev_info object.
+-This allows us to see and set the various BDI specific variables.
++Provide a place in sysfs for the backing_dev_info object.  This allows
++setting and retrieving various BDI specific variables.
+ 
+ The <bdi> identifier can be either of the following:
+ 
+@@ -26,34 +26,21 @@ read_ahead_kb (read-write)
+ 
+ 	Size of the read-ahead window in kilobytes
+ 
+-reclaimable_kb (read-only)
+-
+-	Reclaimable (dirty or unstable) memory destined for writeback
+-	to this device
+-
+-writeback_kb (read-only)
+-
+-	Memory currently under writeback to this device
+-
+-dirty_kb (read-only)
+-
+-	Global threshold for reclaimable + writeback memory
+-
+-bdi_dirty_kb (read-only)
+-
+-	Current threshold on this BDI for reclaimable + writeback
+-	memory
+-
+ min_ratio (read-write)
+ 
+-	Minimal percentage of global dirty threshold allocated to this
+-	bdi.  If the value written to this file would make the the sum
+-	of all min_ratio values exceed 100, then EINVAL is returned.
+-	If min_ratio would become larger than the current max_ratio,
+-	then also EINVAL is returned.  The default is zero
++	Under normal circumstances each device is given a part of the
++	total write-back cache that relates to its current average
++	writeout speed in relation to the other devices.
++
++	The 'min_ratio' parameter allows assigning a minimum
++	percentage of the write-back cache to a particular device.
++	For example, this is useful for providing a minimum QoS.
+ 
+ max_ratio (read-write)
+ 
+-	Maximal percentage of global dirty threshold allocated to this
+-	bdi.  If max_ratio would become smaller than the current
+-	min_ratio, then EINVAL is returned.  The default is 100
++	Allows limiting a particular device to use not more than the
++	given percentage of the write-back cache.  This is useful in
++	situations where we want to avoid one device taking all or
++	most of the write-back cache.  For example in case of an NFS
++	mount that is prone to get stuck, or a FUSE mount which cannot
++	be trusted to play fair.
+diff -puN include/linux/backing-dev.h~mm-bdi-move-statistics-to-debugfs include/linux/backing-dev.h
+--- a/include/linux/backing-dev.h~mm-bdi-move-statistics-to-debugfs
++++ a/include/linux/backing-dev.h
+@@ -16,6 +16,7 @@
+ #include <asm/atomic.h>
+ 
+ struct page;
++struct dentry;
+ 
+ /*
+  * Bits in backing_dev_info.state
+@@ -55,6 +56,11 @@ struct backing_dev_info {
+ 	unsigned int max_ratio, max_prop_frac;
+ 
+ 	struct device *dev;
++
++#ifdef CONFIG_DEBUG_FS
++	struct dentry *debug_dir;
++	struct dentry *debug_stats;
++#endif
+ };
+ 
+ int bdi_init(struct backing_dev_info *bdi);
+diff -puN mm/backing-dev.c~mm-bdi-move-statistics-to-debugfs mm/backing-dev.c
+--- a/mm/backing-dev.c~mm-bdi-move-statistics-to-debugfs
++++ a/mm/backing-dev.c
+@@ -10,6 +10,80 @@
+ 
+ static struct class *bdi_class;
+ 
++#ifdef CONFIG_DEBUG_FS
++#include <linux/debugfs.h>
++#include <linux/seq_file.h>
++
++static struct dentry *bdi_debug_root;
++
++static void bdi_debug_init(void)
++{
++	bdi_debug_root = debugfs_create_dir("bdi", NULL);
++}
++
++static int bdi_debug_stats_show(struct seq_file *m, void *v)
++{
++	struct backing_dev_info *bdi = m->private;
++	long background_thresh;
++	long dirty_thresh;
++	long bdi_thresh;
++
++	get_dirty_limits(&background_thresh, &dirty_thresh, &bdi_thresh, bdi);
++
++#define K(x) ((x) << (PAGE_SHIFT - 10))
++	seq_printf(m,
++		   "BdiWriteback:     %8lu kB\n"
++		   "BdiReclaimable:   %8lu kB\n"
++		   "BdiDirtyThresh:   %8lu kB\n"
++		   "DirtyThresh:      %8lu kB\n"
++		   "BackgroundThresh: %8lu kB\n",
++		   (unsigned long) K(bdi_stat(bdi, BDI_WRITEBACK)),
++		   (unsigned long) K(bdi_stat(bdi, BDI_RECLAIMABLE)),
++		   K(bdi_thresh),
++		   K(dirty_thresh),
++		   K(background_thresh));
++#undef K
++
++	return 0;
++}
++
++static int bdi_debug_stats_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, bdi_debug_stats_show, inode->i_private);
++}
++
++static const struct file_operations bdi_debug_stats_fops = {
++	.open		= bdi_debug_stats_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
++static void bdi_debug_register(struct backing_dev_info *bdi, const char *name)
++{
++	bdi->debug_dir = debugfs_create_dir(name, bdi_debug_root);
++	bdi->debug_stats = debugfs_create_file("stats", 0444, bdi->debug_dir,
++					       bdi, &bdi_debug_stats_fops);
++}
++
++static void bdi_debug_unregister(struct backing_dev_info *bdi)
++{
++	debugfs_remove(bdi->debug_stats);
++	debugfs_remove(bdi->debug_dir);
++}
++#else
++static inline void bdi_debug_init(void)
++{
++}
++static inline void bdi_debug_register(struct backing_dev_info *bdi,
++				      const char *name)
++{
++}
++static inline void bdi_debug_unregister(struct backing_dev_info *bdi)
++{
++}
++#endif
++
+ static ssize_t read_ahead_kb_store(struct device *dev,
+ 				  struct device_attribute *attr,
+ 				  const char *buf, size_t count)
+@@ -40,21 +114,6 @@ static ssize_t name##_show(struct device
+ 
+ BDI_SHOW(read_ahead_kb, K(bdi->ra_pages))
+ 
+-BDI_SHOW(reclaimable_kb, K(bdi_stat(bdi, BDI_RECLAIMABLE)))
+-BDI_SHOW(writeback_kb, K(bdi_stat(bdi, BDI_WRITEBACK)))
+-
+-static inline unsigned long get_dirty(struct backing_dev_info *bdi, int i)
+-{
+-	unsigned long thresh[3];
+-
+-	get_dirty_limits(&thresh[0], &thresh[1], &thresh[2], bdi);
+-
+-	return thresh[i];
+-}
+-
+-BDI_SHOW(dirty_kb, K(get_dirty(bdi, 1)))
+-BDI_SHOW(bdi_dirty_kb, K(get_dirty(bdi, 2)))
+-
+ static ssize_t min_ratio_store(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t count)
+ {
+@@ -95,10 +154,6 @@ BDI_SHOW(max_ratio, bdi->max_ratio)
+ 
+ static struct device_attribute bdi_dev_attrs[] = {
+ 	__ATTR_RW(read_ahead_kb),
+-	__ATTR_RO(reclaimable_kb),
+-	__ATTR_RO(writeback_kb),
+-	__ATTR_RO(dirty_kb),
+-	__ATTR_RO(bdi_dirty_kb),
+ 	__ATTR_RW(min_ratio),
+ 	__ATTR_RW(max_ratio),
+ 	__ATTR_NULL,
+@@ -108,10 +163,11 @@ static __init int bdi_class_init(void)
+ {
+ 	bdi_class = class_create(THIS_MODULE, "bdi");
+ 	bdi_class->dev_attrs = bdi_dev_attrs;
++	bdi_debug_init();
+ 	return 0;
+ }
+ 
+-core_initcall(bdi_class_init);
++postcore_initcall(bdi_class_init);
+ 
+ int bdi_register(struct backing_dev_info *bdi, struct device *parent,
+ 		const char *fmt, ...)
+@@ -136,6 +192,7 @@ int bdi_register(struct backing_dev_info
+ 
+ 	bdi->dev = dev;
+ 	dev_set_drvdata(bdi->dev, bdi);
++	bdi_debug_register(bdi, name);
+ 
+ exit:
+ 	kfree(name);
+@@ -152,6 +209,7 @@ EXPORT_SYMBOL(bdi_register_dev);
+ void bdi_unregister(struct backing_dev_info *bdi)
+ {
+ 	if (bdi->dev) {
++		bdi_debug_unregister(bdi);
+ 		device_unregister(bdi->dev);
+ 		bdi->dev = NULL;
+ 	}
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from miklos@szeredi.hu are
 
 origin.patch
-sys_remap_file_pages-fix-vm_file-accounting.patch
-fuse-fix-attribute-caching-after-create.patch
-fuse-save-space-in-struct-fuse_req.patch
-fuse-limit-queued-background-requests.patch
-mount-options-add-documentation.patch
-mount-options-add-generic_show_options.patch
-mount-options-fix-adfs.patch
-mount-options-fix-affs.patch
-mount-options-fix-afs.patch
-mount-options-fix-autofs4.patch
-mount-options-fix-autofs.patch
-mount-options-fix-befs.patch
-mount-options-fix-capifs.patch
-mount-options-fix-devpts.patch
-mount-options-fix-ext2.patch
-mount-options-fix-fat.patch
-mount-options-fix-fuse.patch
-mount-options-fix-hostfs.patch
-mount-options-fix-hpfs.patch
-mount-options-fix-hugetlbfs.patch
-mount-options-fix-isofs.patch
-mount-options-fix-ncpfs.patch
-mount-options-fix-reiserfs.patch
-mount-options-fix-spufs.patch
-mount-options-fix-tmpfs.patch
-mount-options-fix-tmpfs-fix.patch
-mount-options-fix-udf.patch
-vfs-create-proc-pid-mountinfo.patch
-mm-bdi-export-bdi-attributes-in-sysfs.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix-2.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix-3.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix-4.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs-fix.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse-fix.patch
-mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit.patch
-mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit.patch
-mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit-fix.patch
+iget-stop-fuse-from-using-iget-and-read_inode-try.patch
 mm-bdi-move-statistics-to-debugfs.patch
