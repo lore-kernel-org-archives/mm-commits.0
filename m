@@ -1,61 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: + memcontrol-move-mm_cgroup-to-header-file-fix.patch added to -mm tree
-Date: Fri, 01 Feb 2008 16:49:30 -0800
-Message-ID: <200802020058.m120wDvK008454@imap1.linux-foundation.org>
+Subject: - git-selinux-vs-git-lblnet.patch removed from -mm tree
+Date: Fri, 01 Feb 2008 16:50:58 -0800
+Message-ID: <200802020059.m120xfK3008471@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37819 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55654 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755346AbYBBA7C (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 19:59:02 -0500
+	by vger.kernel.org with ESMTP id S1756076AbYBBBAs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 20:00:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, rientjes@google.com
+To: akpm@linux-foundation.org, jmorris@namei.org, paul.moore@hp.com, sds@tycho.nsa.gov, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcontrol-move-mm_cgroup-to-header-file-fix
-has been added to the -mm tree.  Its filename is
-     memcontrol-move-mm_cgroup-to-header-file-fix.patch
+     git-selinux-vs-git-lblnet
+has been removed from the -mm tree.  Its filename was
+     git-selinux-vs-git-lblnet.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcontrol-move-mm_cgroup-to-header-file-fix
+Subject: git-selinux-vs-git-lblnet
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
+Both trees appear to have the same patch.
+
+Cc: Paul Moore <paul.moore@hp.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 ++
- 1 file changed, 2 insertions(+)
+ security/dummy.c         |    5 -----
+ security/selinux/hooks.c |    5 -----
+ 2 files changed, 10 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcontrol-move-mm_cgroup-to-header-file-fix include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcontrol-move-mm_cgroup-to-header-file-fix
-+++ a/include/linux/memcontrol.h
-@@ -20,6 +20,8 @@
- #ifndef _LINUX_MEMCONTROL_H
- #define _LINUX_MEMCONTROL_H
+diff -puN include/linux/security.h~git-selinux-vs-git-lblnet include/linux/security.h
+diff -puN security/dummy.c~git-selinux-vs-git-lblnet security/dummy.c
+--- a/security/dummy.c~git-selinux-vs-git-lblnet
++++ a/security/dummy.c
+@@ -951,11 +951,6 @@ static int dummy_secctx_to_secid(char *s
+ 	return -EOPNOTSUPP;
+ }
  
-+#include <linux/rcupdate.h>
-+
- struct mem_cgroup;
- struct page_cgroup;
- struct page;
+-static int dummy_secctx_to_secid(char *secdata, u32 seclen, u32 *secid)
+-{
+-	return -EOPNOTSUPP;
+-}
+-
+ static void dummy_release_secctx(char *secdata, u32 seclen)
+ {
+ }
+diff -puN security/selinux/hooks.c~git-selinux-vs-git-lblnet security/selinux/hooks.c
+--- a/security/selinux/hooks.c~git-selinux-vs-git-lblnet
++++ a/security/selinux/hooks.c
+@@ -5158,11 +5158,6 @@ static int selinux_secctx_to_secid(char 
+ 	return security_context_to_sid(secdata, seclen, secid);
+ }
+ 
+-static int selinux_secctx_to_secid(char *secdata, u32 seclen, u32 *secid)
+-{
+-	return security_context_to_sid(secdata, seclen, secid);
+-}
+-
+ static void selinux_release_secctx(char *secdata, u32 seclen)
+ {
+ 	kfree(secdata);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
