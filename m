@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs-fix.patch added to -mm tree
-Date: Sat, 02 Feb 2008 15:38:43 -0800
-Message-ID: <200802022338.m12NcOOB021736@imap1.linux-foundation.org>
+Subject: + mm-bdi-export-bdi-attributes-in-sysfs-fix-4.patch added to -mm tree
+Date: Sat, 02 Feb 2008 15:38:41 -0800
+Message-ID: <200802022338.m12NcMwI021733@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54906 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59142 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764314AbYBBXi2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 18:38:28 -0500
+	by vger.kernel.org with ESMTP id S1764191AbYBBXi0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 18:38:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,7 +17,7 @@ Cc: mszeredi@suse.cz
 The patch titled
      mm: bdi: use MAJOR:MINOR in /sys/class/bdi
 has been added to the -mm tree.  Its filename is
-     mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs-fix.patch
+     mm-bdi-export-bdi-attributes-in-sysfs-fix-4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -47,22 +47,37 @@ Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/super.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/linux/backing-dev.h |    1 +
+ mm/backing-dev.c            |    6 ++++++
+ 2 files changed, 7 insertions(+)
 
-diff -puN fs/nfs/super.c~mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs-fix fs/nfs/super.c
---- a/fs/nfs/super.c~mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs-fix
-+++ a/fs/nfs/super.c
-@@ -1460,8 +1460,7 @@ static int nfs_compare_super(struct supe
+diff -puN include/linux/backing-dev.h~mm-bdi-export-bdi-attributes-in-sysfs-fix-4 include/linux/backing-dev.h
+--- a/include/linux/backing-dev.h~mm-bdi-export-bdi-attributes-in-sysfs-fix-4
++++ a/include/linux/backing-dev.h
+@@ -59,6 +59,7 @@ void bdi_destroy(struct backing_dev_info
  
- static int nfs_bdi_register(struct nfs_server *server)
- {
--	return bdi_register(&server->backing_dev_info, NULL, "nfs-%u:%u",
--			    MAJOR(server->s_dev), MINOR(server->s_dev));
-+	return bdi_register_dev(&server->backing_dev_info, server->s_dev);
+ int bdi_register(struct backing_dev_info *bdi, struct device *parent,
+ 		const char *fmt, ...);
++int bdi_register_dev(struct backing_dev_info *bdi, dev_t dev);
+ void bdi_unregister(struct backing_dev_info *bdi);
+ 
+ static inline void __add_bdi_stat(struct backing_dev_info *bdi,
+diff -puN mm/backing-dev.c~mm-bdi-export-bdi-attributes-in-sysfs-fix-4 mm/backing-dev.c
+--- a/mm/backing-dev.c~mm-bdi-export-bdi-attributes-in-sysfs-fix-4
++++ a/mm/backing-dev.c
+@@ -105,6 +105,12 @@ exit:
  }
+ EXPORT_SYMBOL(bdi_register);
  
- static int nfs_get_sb(struct file_system_type *fs_type,
++int bdi_register_dev(struct backing_dev_info *bdi, dev_t dev)
++{
++	return bdi_register(bdi, NULL, "%u:%u", MAJOR(dev), MINOR(dev));
++}
++EXPORT_SYMBOL(bdi_register_dev);
++
+ void bdi_unregister(struct backing_dev_info *bdi)
+ {
+ 	if (bdi->dev) {
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
