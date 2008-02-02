@@ -1,69 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: + fix-gregkh-pci-pci-pcie-aspm-support.patch added to -mm tree
-Date: Fri, 01 Feb 2008 16:28:54 -0800
-Message-ID: <200802020037.m120ba63007664@imap1.linux-foundation.org>
+Subject: - git-x86-fix-doubly-merged-patch.patch removed from -mm tree
+Date: Fri, 01 Feb 2008 16:33:46 -0800
+Message-ID: <200802020042.m120gTvZ007898@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36118 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42351 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765236AbYBBAhs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 19:37:48 -0500
+	by vger.kernel.org with ESMTP id S1757981AbYBBAmw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 19:42:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com
+To: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix gregkh-pci-pci-pcie-aspm-support
-has been added to the -mm tree.  Its filename is
-     fix-gregkh-pci-pci-pcie-aspm-support.patch
+     git-x86: fix doubly-merged patch
+has been removed from the -mm tree.  Its filename was
+     git-x86-fix-doubly-merged-patch.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix gregkh-pci-pci-pcie-aspm-support
+Subject: git-x86: fix doubly-merged patch
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/built-in.o: In function `pci_scan_slot':
-drivers/pci/probe.c:1016: undefined reference to `pcie_aspm_init_link_state'
-drivers/built-in.o: In function `pci_stop_dev':
-drivers/pci/remove.c:36: undefined reference to `pcie_aspm_exit_link_state'
-drivers/built-in.o: In function `pci_set_power_state':
-drivers/pci/pci.c:524: undefined reference to `pcie_aspm_pm_state_change'
-
-It needs PCIE.
-
-Cc: Greg KH <greg@kroah.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pcie/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/pci/common.c |   13 -------------
+ 1 file changed, 13 deletions(-)
 
-diff -puN drivers/pci/pcie/Kconfig~fix-gregkh-pci-pci-pcie-aspm-support drivers/pci/pcie/Kconfig
---- a/drivers/pci/pcie/Kconfig~fix-gregkh-pci-pci-pcie-aspm-support
-+++ a/drivers/pci/pcie/Kconfig
-@@ -32,7 +32,7 @@ source "drivers/pci/pcie/aer/Kconfig"
- #
- config PCIEASPM
- 	bool "PCI Express ASPM support(Experimental)"
--	depends on PCI && EXPERIMENTAL
-+	depends on PCI && EXPERIMENTAL && PCIEPORTBUS
- 	default y
- 	help
- 	  This enables PCI Express ASPM (Active State Power Management) and
+diff -puN arch/x86/pci/common.c~git-x86-fix-doubly-merged-patch arch/x86/pci/common.c
+--- a/arch/x86/pci/common.c~git-x86-fix-doubly-merged-patch
++++ a/arch/x86/pci/common.c
+@@ -145,19 +145,6 @@ static void __devinit pcibios_fixup_devi
+ 		rom_r->start = rom_r->end = rom_r->flags = 0;
+ }
+ 
+-static void __devinit pcibios_fixup_device_resources(struct pci_dev *dev)
+-{
+-	struct resource *rom_r = &dev->resource[PCI_ROM_RESOURCE];
+-
+-	if (rom_r->parent)
+-		return;
+-	if (rom_r->start)
+-		/* we deal with BIOS assigned ROM later */
+-		return;
+-	if (!(pci_probe & PCI_ASSIGN_ROMS))
+-		rom_r->start = rom_r->end = rom_r->flags = 0;
+-}
+-
+ /*
+  *  Called after each bus is probed, but before its children
+  *  are examined.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
