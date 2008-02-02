@@ -1,158 +1,174 @@
 From: akpm@linux-foundation.org
-Subject: - pci-fix-section-mismatch-warnings-referring-to-pci_do_scan_bus.patch removed from -mm tree
-Date: Sat, 02 Feb 2008 02:34:45 -0800
-Message-ID: <200802021034.m12AYQ2h027617@imap1.linux-foundation.org>
+Subject: + bkl-removal-convert-ext2-over-to-use-unlocked_ioctl.patch added to -mm tree
+Date: Sat, 02 Feb 2008 11:27:29 -0800
+Message-ID: <200802021927.m12JRAH5013127@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42231 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36543 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759209AbYBBKfF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 05:35:05 -0500
+	by vger.kernel.org with ESMTP id S1753268AbYBBT1T (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 14:27:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sam@ravnborg.org, bunk@kernel.org, gregkh@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ak@suse.de, tytso@mit.edu
 
 
 The patch titled
-     pci: fix section mismatch warnings referring to pci_do_scan_bus
-has been removed from the -mm tree.  Its filename was
-     pci-fix-section-mismatch-warnings-referring-to-pci_do_scan_bus.patch
+     BKL-removal: convert ext2 over to use unlocked_ioctl
+has been added to the -mm tree.  Its filename is
+     bkl-removal-convert-ext2-over-to-use-unlocked_ioctl.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci: fix section mismatch warnings referring to pci_do_scan_bus
-From: Sam Ravnborg <sam@ravnborg.org>
+Subject: BKL-removal: convert ext2 over to use unlocked_ioctl
+From: Andi Kleen <ak@suse.de>
 
-Fix following warnings:
-WARNING: o-x86_64/drivers/pci/built-in.o(.text+0xb054): Section mismatch in reference from the function cpci_configure_slot() to the function .devinit.text:pci_do_scan_bus()
-WARNING: o-x86_64/drivers/pci/built-in.o(.text+0x153ab): Section mismatch in reference from the function shpchp_configure_device() to the function .devinit.text:pci_do_scan_bus()
-WARNING: o-x86_64/drivers/pci/built-in.o(__ksymtab+0xc0): Section mismatch in reference from the variable __ksymtab_pci_do_scan_bus to the function .devinit.text:pci_do_scan_bus()
+I checked ext2_ioctl and could not find anything in there that would need the
+BKL.  So convert it over to use unlocked_ioctl
 
-PCI hotplug were the only user of pci_do_scan_bus()
-so moving this function to the directory of
-PCI Hotplug was a logical way to fix so
-we only include this function in the kernel
-when the CONFIG_HOTPLUG_PCI is enabled.
-
-Then the abuse of __devinit could be dropped and
-we no longer trigger the above warnings.
-
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Greg KH <gregkh@suse.de>
-Cc: Adrian Bunk <bunk@kernel.org>
+Signed-off-by: Andi Kleen <ak@suse.de>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/hotplug/Makefile   |    1 +
- drivers/pci/hotplug/pci-core.c |   20 ++++++++++++++++++++
- drivers/pci/probe.c            |   15 ---------------
- 3 files changed, 21 insertions(+), 15 deletions(-)
+ fs/ext2/dir.c   |    2 +-
+ fs/ext2/ext2.h  |    3 +--
+ fs/ext2/file.c  |    4 ++--
+ fs/ext2/ioctl.c |   12 +++---------
+ 4 files changed, 7 insertions(+), 14 deletions(-)
 
-diff -puN drivers/pci/hotplug/Makefile~pci-fix-section-mismatch-warnings-referring-to-pci_do_scan_bus drivers/pci/hotplug/Makefile
---- a/drivers/pci/hotplug/Makefile~pci-fix-section-mismatch-warnings-referring-to-pci_do_scan_bus
-+++ a/drivers/pci/hotplug/Makefile
-@@ -1,6 +1,7 @@
- #
- # Makefile for the Linux kernel pci hotplug controller drivers.
- #
-+obj-y := pci-core.o
+diff -puN fs/ext2/dir.c~bkl-removal-convert-ext2-over-to-use-unlocked_ioctl fs/ext2/dir.c
+--- a/fs/ext2/dir.c~bkl-removal-convert-ext2-over-to-use-unlocked_ioctl
++++ a/fs/ext2/dir.c
+@@ -703,7 +703,7 @@ const struct file_operations ext2_dir_op
+ 	.llseek		= generic_file_llseek,
+ 	.read		= generic_read_dir,
+ 	.readdir	= ext2_readdir,
+-	.ioctl		= ext2_ioctl,
++	.unlocked_ioctl = ext2_ioctl,
+ #ifdef CONFIG_COMPAT
+ 	.compat_ioctl	= ext2_compat_ioctl,
+ #endif
+diff -puN fs/ext2/ext2.h~bkl-removal-convert-ext2-over-to-use-unlocked_ioctl fs/ext2/ext2.h
+--- a/fs/ext2/ext2.h~bkl-removal-convert-ext2-over-to-use-unlocked_ioctl
++++ a/fs/ext2/ext2.h
+@@ -139,8 +139,7 @@ int __ext2_write_begin(struct file *file
+ 		struct page **pagep, void **fsdata);
  
- obj-$(CONFIG_HOTPLUG_PCI)		+= pci_hotplug.o
- obj-$(CONFIG_HOTPLUG_PCI_COMPAQ)	+= cpqphp.o
-diff -puN /dev/null drivers/pci/hotplug/pci-core.c
---- /dev/null
-+++ a/drivers/pci/hotplug/pci-core.c
-@@ -0,0 +1,20 @@
-+/* Core PCI functionality used only by PCI hotplug */
-+
-+#include <linux/pci.h>
-+#include "../pci.h"
-+
-+
-+unsigned int pci_do_scan_bus(struct pci_bus *bus)
-+{
-+	unsigned int max;
-+
-+	max = pci_scan_child_bus(bus);
-+
-+	/*
-+	 * Make the discovered devices available.
-+	 */
-+	pci_bus_add_devices(bus);
-+
-+	return max;
-+}
-+EXPORT_SYMBOL(pci_do_scan_bus);
-diff -puN drivers/pci/probe.c~pci-fix-section-mismatch-warnings-referring-to-pci_do_scan_bus drivers/pci/probe.c
---- a/drivers/pci/probe.c~pci-fix-section-mismatch-warnings-referring-to-pci_do_scan_bus
-+++ a/drivers/pci/probe.c
-@@ -1076,20 +1076,6 @@ unsigned int pci_scan_child_bus(struct p
- 	return max;
- }
+ /* ioctl.c */
+-extern int ext2_ioctl (struct inode *, struct file *, unsigned int,
+-		       unsigned long);
++extern long ext2_ioctl(struct file *, unsigned int, unsigned long);
+ extern long ext2_compat_ioctl(struct file *, unsigned int, unsigned long);
  
--unsigned int __devinit pci_do_scan_bus(struct pci_bus *bus)
--{
--	unsigned int max;
--
--	max = pci_scan_child_bus(bus);
--
--	/*
--	 * Make the discovered devices available.
--	 */
--	pci_bus_add_devices(bus);
--
--	return max;
--}
--
- struct pci_bus * pci_create_bus(struct device *parent,
- 		int bus, struct pci_ops *ops, void *sysdata)
+ /* namei.c */
+diff -puN fs/ext2/file.c~bkl-removal-convert-ext2-over-to-use-unlocked_ioctl fs/ext2/file.c
+--- a/fs/ext2/file.c~bkl-removal-convert-ext2-over-to-use-unlocked_ioctl
++++ a/fs/ext2/file.c
+@@ -48,7 +48,7 @@ const struct file_operations ext2_file_o
+ 	.write		= do_sync_write,
+ 	.aio_read	= generic_file_aio_read,
+ 	.aio_write	= generic_file_aio_write,
+-	.ioctl		= ext2_ioctl,
++	.unlocked_ioctl = ext2_ioctl,
+ #ifdef CONFIG_COMPAT
+ 	.compat_ioctl	= ext2_compat_ioctl,
+ #endif
+@@ -65,7 +65,7 @@ const struct file_operations ext2_xip_fi
+ 	.llseek		= generic_file_llseek,
+ 	.read		= xip_file_read,
+ 	.write		= xip_file_write,
+-	.ioctl		= ext2_ioctl,
++	.unlocked_ioctl = ext2_ioctl,
+ #ifdef CONFIG_COMPAT
+ 	.compat_ioctl	= ext2_compat_ioctl,
+ #endif
+diff -puN fs/ext2/ioctl.c~bkl-removal-convert-ext2-over-to-use-unlocked_ioctl fs/ext2/ioctl.c
+--- a/fs/ext2/ioctl.c~bkl-removal-convert-ext2-over-to-use-unlocked_ioctl
++++ a/fs/ext2/ioctl.c
+@@ -17,9 +17,9 @@
+ #include <asm/uaccess.h>
+ 
+ 
+-int ext2_ioctl (struct inode * inode, struct file * filp, unsigned int cmd,
+-		unsigned long arg)
++long ext2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
  {
-@@ -1176,7 +1162,6 @@ EXPORT_SYMBOL(pci_scan_bus_parented);
- 
- #ifdef CONFIG_HOTPLUG
- EXPORT_SYMBOL(pci_add_new_bus);
--EXPORT_SYMBOL(pci_do_scan_bus);
- EXPORT_SYMBOL(pci_scan_slot);
- EXPORT_SYMBOL(pci_scan_bridge);
- EXPORT_SYMBOL_GPL(pci_scan_child_bus);
++	struct inode *inode = filp->f_dentry->d_inode;
+ 	struct ext2_inode_info *ei = EXT2_I(inode);
+ 	unsigned int flags;
+ 	unsigned short rsv_window_size;
+@@ -141,9 +141,6 @@ int ext2_ioctl (struct inode * inode, st
+ #ifdef CONFIG_COMPAT
+ long ext2_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
+-	struct inode *inode = file->f_path.dentry->d_inode;
+-	int ret;
+-
+ 	/* These are just misnamed, they actually get/put from/to user an int */
+ 	switch (cmd) {
+ 	case EXT2_IOC32_GETFLAGS:
+@@ -161,9 +158,6 @@ long ext2_compat_ioctl(struct file *file
+ 	default:
+ 		return -ENOIOCTLCMD;
+ 	}
+-	lock_kernel();
+-	ret = ext2_ioctl(inode, file, cmd, (unsigned long) compat_ptr(arg));
+-	unlock_kernel();
+-	return ret;
++	return ext2_ioctl(file, cmd, (unsigned long) compat_ptr(arg));
+ }
+ #endif
 _
 
-Patches currently in -mm which might be from sam@ravnborg.org are
+Patches currently in -mm which might be from ak@suse.de are
 
 origin.patch
-sdio-fix-module-device-table-definition-for-m68k.patch
-hamradio-fix-dmascc-section-mismatch.patch
-pci-fix-section-mismatch-warnings-referring-to-pci_do_scan_bus.patch
-pci-fix-4x-section-mismatch-warnings.patch
+bkl-removal-convert-cifs-over-to-unlocked_ioctl.patch
+git-jfs.patch
+git-ocfs2.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
+pci-disable-decoding-during-sizing-of-bars.patch
+x86-validate-against-acpi-motherboard-resources.patch
 git-x86.patch
-gpiolib-add-drivers-gpio-directory.patch
-gpiolib-add-gpio-provider-infrastructure.patch
-gpiolib-update-documentation-gpiotxt.patch
-gpiolib-pxa-platform-support.patch
-gpiolib-pcf857x-i2c-gpio-expander-support.patch
-gpiolib-mcp23s08-spi-gpio-expander-support.patch
-gpiolib-pca9539-i2c-gpio-expander-support.patch
-gpiolib-deprecate-obsolete-pca9539-driver.patch
-gpiolib-avr32-at32ap-platform-support.patch
-mm-fix-section-mismatch-warning-in-sparsec.patch
-m68k-use-cc-cross-prefix.patch
-cris-avoid-using-arch-links-in-kconfig.patch
-uml-remove-topdir.patch
-remove-support-for-un-needed-_extratext-section.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-kallsyms-should-prefer-non-weak-symbols.patch
-kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
-tpm-infineon-section-mismatch.patch
-create-arch-kconfig.patch
-add-have_oprofile.patch
-add-have_kprobes.patch
-linux-kernel-markers-create-modpost-file.patch
-avoid-overflows-in-kernel-timec.patch
-remove-__init_refok-and-__initdata_refok.patch
-cpu-fix-section-mismatch-warnings-for-enable_nonboot_cpus.patch
-cpu-fix-section-mismatch-related-to-cpu_chain.patch
-cpu-do-not-annotate-exported-register_cpu_notifier.patch
-cpu-silence-section-mismatch-warnings-for-hotcpu-notifies.patch
+x86-amd-thermal-interrupt-support.patch
+x86-clear-pci_mmcfg_virt-when-mmcfg-get-rejected.patch
+x86-mmconf-enable-mcfg-early.patch
+x86-mmconf-enable-mcfg-early-cleanup.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-v3.patch
+x86_64-check-msr-to-get-mmconfig-for-amd-family-10h-opteron-v3.patch
+x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used.patch
+iommu-sg-merging-x86-make-pci-gart-iommu-respect-the-segment-size-limits.patch
+iommu-sg-x86-convert-calgary-iommu-to-use-the-iommu-helper.patch
+iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper.patch
+iommu-sg-kill-__clear_bit_string-and-find_next_zero_string.patch
+git-xfs.patch
+swapin_readahead-excise-numa-bogosity.patch
+remove-unused-arguments-in-zone_init_free_lists.patch
+read_current_time-cleanups.patch
+add-hpet-rtc-emulation-to-rtc_drv_cmos.patch
+bkl-removal-convert-ext2-over-to-use-unlocked_ioctl.patch
+bkl-removal-remove-incorrect-bkl-comment-in-ext2.patch
+bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2.patch
+modules-handle-symbols-that-have-a-zero-value.patch
+allow-executables-larger-than-2gb.patch
+bkl-removal-convert-pipe-to-use-unlocked_ioctl-too.patch
+remove-aout-interpreter-support-in-elf-loader.patch
+convert-loglevel-related-kernel-boot-parameters-to-early_param.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
