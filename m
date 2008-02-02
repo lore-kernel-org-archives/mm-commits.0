@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2.patch added to -mm tree
-Date: Sat, 02 Feb 2008 11:27:33 -0800
-Message-ID: <200802021927.m12JREB9013133@imap1.linux-foundation.org>
+Subject: + bkl-removal-remove-incorrect-bkl-comment-in-ext2.patch added to -mm tree
+Date: Sat, 02 Feb 2008 11:27:31 -0800
+Message-ID: <200802021927.m12JRCoi013130@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47668 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48883 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759588AbYBBT1k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 14:27:40 -0500
+	by vger.kernel.org with ESMTP id S1757223AbYBBT1i (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 14:27:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ak@suse.de, linux-ext4@vger.kernel.org, tytso@mit.edu
+Cc: ak@suse.de, tytso@mit.edu
 
 
 The patch titled
-     BKL-removal: remove incorrect comment refering to lock_kernel() from jbd/jbd2
+     BKL-removal: remove incorrect BKL comment in ext2
 has been added to the -mm tree.  Its filename is
-     bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2.patch
+     bkl-removal-remove-incorrect-bkl-comment-in-ext2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,46 +33,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: BKL-removal: remove incorrect comment refering to lock_kernel() from jbd/jbd2
+Subject: BKL-removal: remove incorrect BKL comment in ext2
 From: Andi Kleen <ak@suse.de>
 
-None of the callers of this function does actually take the BKL as far as I
-can see.  So remove the comment refering to the BKL.
+No BKL used anywhere, so don't mention it.
 
 Signed-off-by: Andi Kleen <ak@suse.de>
-Cc: <linux-ext4@vger.kernel.org>
 Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/recovery.c  |    2 +-
- fs/jbd2/recovery.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ fs/ext2/inode.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/jbd/recovery.c~bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2 fs/jbd/recovery.c
---- a/fs/jbd/recovery.c~bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2
-+++ a/fs/jbd/recovery.c
-@@ -354,7 +354,7 @@ static int do_one_pass(journal_t *journa
- 		struct buffer_head *	obh;
- 		struct buffer_head *	nbh;
- 
--		cond_resched();		/* We're under lock_kernel() */
-+		cond_resched();
- 
- 		/* If we already know where to stop the log traversal,
- 		 * check right now that we haven't gone past the end of
-diff -puN fs/jbd2/recovery.c~bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2 fs/jbd2/recovery.c
---- a/fs/jbd2/recovery.c~bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2
-+++ a/fs/jbd2/recovery.c
-@@ -397,7 +397,7 @@ static int do_one_pass(journal_t *journa
- 		struct buffer_head *	obh;
- 		struct buffer_head *	nbh;
- 
--		cond_resched();		/* We're under lock_kernel() */
-+		cond_resched();
- 
- 		/* If we already know where to stop the log traversal,
- 		 * check right now that we haven't gone past the end of
+diff -puN fs/ext2/inode.c~bkl-removal-remove-incorrect-bkl-comment-in-ext2 fs/ext2/inode.c
+--- a/fs/ext2/inode.c~bkl-removal-remove-incorrect-bkl-comment-in-ext2
++++ a/fs/ext2/inode.c
+@@ -569,7 +569,6 @@ static void ext2_splice_branch(struct in
+  *
+  * `handle' can be NULL if create == 0.
+  *
+- * The BKL may not be held on entry here.  Be sure to take it early.
+  * return > 0, # of blocks mapped or allocated.
+  * return = 0, if plain lookup failed.
+  * return < 0, error case.
 _
 
 Patches currently in -mm which might be from ak@suse.de are
