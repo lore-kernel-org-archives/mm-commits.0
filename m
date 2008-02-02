@@ -1,295 +1,1309 @@
 From: akpm@linux-foundation.org
-Subject: - add-iscsi-ibft-support-v046-fix.patch removed from -mm tree
-Date: Fri, 01 Feb 2008 16:36:44 -0800
-Message-ID: <200802020045.m120jQlB007987@imap1.linux-foundation.org>
+Subject: - add-iscsi-ibft-support-v045.patch removed from -mm tree
+Date: Fri, 01 Feb 2008 16:36:42 -0800
+Message-ID: <200802020045.m120jPwg007984@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40487 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42210 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756651AbYBBAqz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 19:46:55 -0500
+	by vger.kernel.org with ESMTP id S1760278AbYBBAq4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 19:46:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, konrad@darnok.org, michaelc@cs.wisc.edu, pjones@redhat.com, mm-commits@vger.kernel.org
+To: konrad@darnok.org, James.Bottomley@HansenPartnership.com, greg@kroah.com, konradr@linux.vnet.ibm.com, michaelc@cs.wisc.edu, pjones@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-iscsi-ibft-support-v046-fix
+     Add iSCSI iBFT support
 has been removed from the -mm tree.  Its filename was
-     add-iscsi-ibft-support-v046-fix.patch
+     add-iscsi-ibft-support-v045.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add-iscsi-ibft-support-v046-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Add iSCSI iBFT support
+From: Konrad Rzeszutek <konrad@darnok.org>
 
-inline __init isn't meaningful.
+This patch (v0.4.5) adds /sysfs/firmware/ibft/[initiator|targetX|ethernetX]
+directories along with text properties which export the the iSCSI
+Boot Firmware Table (iBFT) structure.
 
-Cc: Konrad Rzeszutek <konrad@darnok.org>
+What is iSCSI Boot Firmware Table?  It is a mechanism for the iSCSI tools
+to extract from the machine NICs the iSCSI connection information so that
+they can automagically mount the iSCSI share/target.  Currently the iSCSI
+information is hard-coded in the initrd.
+
+For full details of the IBFT structure please take a look at:
+ftp://ftp.software.ibm.com/systems/support/system_x_pdf/ibm_iscsi_boot_firmware_table_v1.02.pdf
+
+Signed-off-by: Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
 Cc: Mike Christie <michaelc@cs.wisc.edu>
-Cc: Peter Jones <pjones@redhat.com>
+Cc: Greg KH <greg@kroah.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/iscsi_ibft.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ Documentation/ABI/testing/sysfs-ibft |   23 
+ arch/x86/kernel/setup_32.c           |   17 
+ arch/x86/kernel/setup_64.c           |   18 
+ drivers/firmware/Kconfig             |   19 
+ drivers/firmware/Makefile            |    2 
+ drivers/firmware/iscsi_ibft.c        |  972 +++++++++++++++++++++++++
+ drivers/firmware/iscsi_ibft_find.c   |   77 +
+ include/linux/iscsi_ibft.h           |   38 
+ 8 files changed, 1166 insertions(+)
 
-diff -puN include/linux/iscsi_ibft.h~add-iscsi-ibft-support-v046-fix include/linux/iscsi_ibft.h
---- a/include/linux/iscsi_ibft.h~add-iscsi-ibft-support-v046-fix
-+++ a/include/linux/iscsi_ibft.h
-@@ -34,9 +34,8 @@ extern void *ibft_phys;
-  */
- extern ssize_t find_ibft(void);
+diff -puN /dev/null Documentation/ABI/testing/sysfs-ibft
+--- /dev/null
++++ a/Documentation/ABI/testing/sysfs-ibft
+@@ -0,0 +1,23 @@
++What:		/sys/firmware/ibft/initiator
++Date:		November 2007
++Contact:	Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
++Description:	The /sys/firmware/ibft/initiator directory will contain
++		files that expose the iSCSI Boot Firmware Table initiator data.
++		Usually this contains the Initiator name.
++
++What:		/sys/firmware/ibft/targetX
++Date:		November 2007
++Contact:	Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
++Description:	The /sys/firmware/ibft/targetX directory will contain
++		files that expose the iSCSI Boot Firmware Table target data.
++		Usually this contains the target's IP address, boot LUN,
++		target name, and what NIC it is associated with. It can also
++		contain the CHAP name (and password), the reverse CHAP
++		name (and password)
++
++What:		/sys/firmware/ibft/ethernetX
++Date:		November 2007
++Contact:	Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
++Description:	The /sys/firmware/ibft/ethernetX directory will contain
++		files that expose the iSCSI Boot Firmware Table NIC data.
++		This can this can the IP address, MAC, and gateway of the NIC.
+diff -puN arch/x86/kernel/setup_32.c~add-iscsi-ibft-support-v045 arch/x86/kernel/setup_32.c
+--- a/arch/x86/kernel/setup_32.c~add-iscsi-ibft-support-v045
++++ a/arch/x86/kernel/setup_32.c
+@@ -39,6 +39,7 @@
+ #include <linux/efi.h>
+ #include <linux/init.h>
+ #include <linux/edd.h>
++#include <linux/iscsi_ibft.h>
+ #include <linux/nodemask.h>
+ #include <linux/kexec.h>
+ #include <linux/crash_dump.h>
+@@ -224,6 +225,20 @@ static inline void copy_edd(void)
+ }
+ #endif
  
--
- #ifdef CONFIG_ISCSI_IBFT_FIND
--static inline void __init reserve_ibft_region(void)
-+static inline void reserve_ibft_region(void)
++#if defined(CONFIG_ISCSI_IBFT_FIND)
++static void __init reserve_ibft_region(void)
++{
++	unsigned int ibft_len;
++
++	ibft_len = find_ibft();
++	if (ibft_len)
++		reserve_bootmem((unsigned int)ibft_phys,
++				PAGE_ALIGN(ibft_len));
++}
++#else
++static void __init reserve_ibft_region(void) { }
++#endif
++
+ int __initdata user_defined_memmap = 0;
+ 
+ /*
+@@ -649,6 +664,8 @@ void __init setup_bootmem_allocator(void
+ #endif
+ 	numa_kva_reserve();
+ 	reserve_crashkernel();
++
++	reserve_ibft_region();
+ }
+ 
+ /*
+diff -puN arch/x86/kernel/setup_64.c~add-iscsi-ibft-support-v045 arch/x86/kernel/setup_64.c
+--- a/arch/x86/kernel/setup_64.c~add-iscsi-ibft-support-v045
++++ a/arch/x86/kernel/setup_64.c
+@@ -35,6 +35,7 @@
+ #include <linux/acpi.h>
+ #include <linux/kallsyms.h>
+ #include <linux/edd.h>
++#include <linux/iscsi_ibft.h>
+ #include <linux/mmzone.h>
+ #include <linux/kexec.h>
+ #include <linux/cpufreq.h>
+@@ -218,6 +219,20 @@ static inline void copy_edd(void)
+ }
+ #endif
+ 
++#if defined(CONFIG_ISCSI_IBFT_FIND)
++static void __init reserve_ibft_region(void)
++{
++	unsigned int ibft_len;
++
++	ibft_len = find_ibft();
++	if (ibft_len)
++		reserve_bootmem_generic((unsigned long)ibft_phys,
++					PAGE_ALIGN(ibft_len));
++}
++#else
++static void __init reserve_ibft_region(void) { }
++#endif
++
+ #ifdef CONFIG_KEXEC
+ static void __init reserve_crashkernel(void)
  {
- 	unsigned int ibft_len;
+@@ -420,6 +435,9 @@ void __init setup_arch(char **cmdline_p)
+ 	}
+ #endif
+ 	reserve_crashkernel();
++
++	reserve_ibft_region();
++
+ 	paging_init();
+ 	map_vsyscall();
  
+diff -puN drivers/firmware/Kconfig~add-iscsi-ibft-support-v045 drivers/firmware/Kconfig
+--- a/drivers/firmware/Kconfig~add-iscsi-ibft-support-v045
++++ a/drivers/firmware/Kconfig
+@@ -93,4 +93,23 @@ config DMIID
+ 	  information from userspace through /sys/class/dmi/id/ or if you want
+ 	  DMI-based module auto-loading.
+ 
++config ISCSI_IBFT_FIND
++	bool "iSCSI Boot Firmware Table Attributes"
++	default n
++	help
++	  This option enables the kernel to find the region of memory
++	  in which the ISCSI Boot Firmware Table (iBFT) resides. This
++	  is necessary for iSCSI Boot Firmware Table Attributes module to work
++	  properly.
++
++config ISCSI_IBFT
++	tristate "iSCSI Boot Firmware Table Attributes module"
++	depends on ISCSI_IBFT_FIND
++	default	n
++	help
++	  This option enables support for detection and exposing of iSCSI
++	  Boot Firmware Table (iBFT) via sysfs to userspace. If you wish to
++	  detect iSCSI boot parameters dynamically during system boot, say Y.
++	  Otherwise, say N.
++
+ endmenu
+diff -puN drivers/firmware/Makefile~add-iscsi-ibft-support-v045 drivers/firmware/Makefile
+--- a/drivers/firmware/Makefile~add-iscsi-ibft-support-v045
++++ a/drivers/firmware/Makefile
+@@ -8,3 +8,5 @@ obj-$(CONFIG_EFI_PCDP)		+= pcdp.o
+ obj-$(CONFIG_DELL_RBU)          += dell_rbu.o
+ obj-$(CONFIG_DCDBAS)		+= dcdbas.o
+ obj-$(CONFIG_DMIID)		+= dmi-id.o
++obj-$(CONFIG_ISCSI_IBFT_FIND)	+= iscsi_ibft_find.o
++obj-$(CONFIG_ISCSI_IBFT)	+= iscsi_ibft.o
+diff -puN /dev/null drivers/firmware/iscsi_ibft.c
+--- /dev/null
++++ a/drivers/firmware/iscsi_ibft.c
+@@ -0,0 +1,972 @@
++/*
++ *  Copyright 2007 Red Hat, Inc.
++ *  by Peter Jones <pjones@redhat.com>
++ *  Copyright 2008 IBM, Inc.
++ *  by Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
++ *
++ * This code exposes the iSCSI Boot Format Table to userland via sysfs.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License v2.0 as published by
++ * the Free Software Foundation
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * Changelog:
++ *
++ *  25 Jan 2008 - Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
++ *   Added logic to handle badly not-to-spec iBFTs. (v0.4.5)
++ *
++ *   4 Jan 2008 - Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
++ *   Added __init to function declarations. (v0.4.4)
++ *
++ *  21 Dec 2007 - Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
++ *   Updated kobject registration, combined unregister functions in one
++ *   and code and style cleanup. (v0.4.3)
++ *
++ *   5 Dec 2007 - Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
++ *   Added end-markers to enums and re-organized kobject registration. (v0.4.2)
++ *
++ *   4 Dec 2007 - Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
++ *   Created 'device' sysfs link to the NIC and style cleanup. (v0.4.1)
++ *
++ *  28 Nov 2007 - Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
++ *   Added sysfs-ibft documentation, moved 'find_ibft' function to
++ *   in its own file and added text attributes for every struct field.  (v0.4)
++ *
++ *  21 Nov 2007 - Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
++ *   Added text attributes emulating OpenFirmware /proc/device-tree naming.
++ *   Removed binary /sysfs interface (v0.3)
++ *
++ *  29 Aug 2007 - Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
++ *   Added functionality in setup.c to reserve iBFT region. (v0.2)
++ *
++ *  27 Aug 2007 - Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
++ *   First version exposing iBFT data via a binary /sysfs. (v0.1)
++ *
++ */
++
++
++#include <linux/blkdev.h>
++#include <linux/ctype.h>
++#include <linux/device.h>
++#include <linux/err.h>
++#include <linux/init.h>
++#include <linux/iscsi_ibft.h>
++#include <linux/limits.h>
++#include <linux/module.h>
++#include <linux/pci.h>
++#include <linux/slab.h>
++#include <linux/stat.h>
++#include <linux/string.h>
++#include <linux/types.h>
++
++#define IBFT_ISCSI_VERSION "0.4.5"
++#define IBFT_ISCSI_DATE "2008-Jan-25"
++
++MODULE_AUTHOR("Peter Jones <pjones@redhat.com> and \
++Konrad Rzeszutek <konradr@us.ibm.com>");
++MODULE_DESCRIPTION("sysfs interface to BIOS iBFT information");
++MODULE_LICENSE("GPL");
++MODULE_VERSION(IBFT_ISCSI_VERSION);
++
++
++struct ibft_table_header {
++	char signature[4];
++	u32 length;
++	u8 revision;
++	u8 checksum;
++	char oem_id[6];
++	char oem_table_id[8];
++	char reserved[24];
++} __attribute__((__packed__));
++
++struct ibft_hdr {
++	u8 id;
++	u8 version;
++	u16 length;
++	u8 index;
++	u8 flags;
++} __attribute__((__packed__));
++
++struct ibft_control {
++	struct ibft_hdr hdr;
++	u16 extensions;
++	u16 initiator_off;
++	u16 nic0_off;
++	u16 tgt0_off;
++	u16 nic1_off;
++	u16 tgt1_off;
++} __attribute__((__packed__));
++
++struct ibft_initiator {
++	struct ibft_hdr hdr;
++	char isns_server[16];
++	char slp_server[16];
++	char pri_radius_server[16];
++	char sec_radius_server[16];
++	u16 initiator_name_len;
++	u16 initiator_name_off;
++} __attribute__((__packed__));
++
++struct ibft_nic {
++	struct ibft_hdr hdr;
++	char ip_addr[16];
++	u8 subnet_mask_prefix;
++	u8 origin;
++	char gateway[16];
++	char primary_dns[16];
++	char secondary_dns[16];
++	char dhcp[16];
++	u16 vlan;
++	char mac[6];
++	u16 pci_bdf;
++	u16 hostname_len;
++	u16 hostname_off;
++} __attribute__((__packed__));
++
++struct ibft_tgt {
++	struct ibft_hdr hdr;
++	char ip_addr[16];
++	u16 port;
++	char lun[8];
++	u8 chap_type;
++	u8 nic_assoc;
++	u16 tgt_name_len;
++	u16 tgt_name_off;
++	u16 chap_name_len;
++	u16 chap_name_off;
++	u16 chap_secret_len;
++	u16 chap_secret_off;
++	u16 rev_chap_name_len;
++	u16 rev_chap_name_off;
++	u16 rev_chap_secret_len;
++	u16 rev_chap_secret_off;
++} __attribute__((__packed__));
++
++/*
++ * The kobject different types and its names.
++ *
++*/
++enum ibft_id {
++	id_reserved = 0, /* We don't support. */
++	id_control = 1, /* Should show up only once and is not exported. */
++	id_initiator = 2,
++	id_nic = 3,
++	id_target = 4,
++	id_extensions = 5, /* We don't support. */
++	id_end_marker,
++};
++
++/*
++ * We do not support the other types, hence the NULL.
++ */
++static const char *ibft_id_names[] =
++	{NULL, NULL, "initiator", "ethernet%d", "target%d", NULL, NULL};
++
++/*
++ * The text attributes names for each of the kobjects.
++*/
++enum ibft_eth_properties_enum {
++	ibft_eth_index,
++	ibft_eth_flags,
++	ibft_eth_ip_addr,
++	ibft_eth_subnet_mask,
++	ibft_eth_origin,
++	ibft_eth_gateway,
++	ibft_eth_primary_dns,
++	ibft_eth_secondary_dns,
++	ibft_eth_dhcp,
++	ibft_eth_vlan,
++	ibft_eth_mac,
++	/* ibft_eth_pci_bdf - this is replaced by link to the device itself. */
++	ibft_eth_hostname,
++	ibft_eth_end_marker,
++};
++
++static const char *ibft_eth_properties[] =
++	{"index", "flags", "ip-addr", "subnet-mask", "origin", "gateway",
++	"primary-dns", "secondary-dns", "dhcp", "vlan", "mac", "hostname",
++	NULL};
++
++enum ibft_tgt_properties_enum {
++	ibft_tgt_index,
++	ibft_tgt_flags,
++	ibft_tgt_ip_addr,
++	ibft_tgt_port,
++	ibft_tgt_lun,
++	ibft_tgt_chap_type,
++	ibft_tgt_nic_assoc,
++	ibft_tgt_name,
++	ibft_tgt_chap_name,
++	ibft_tgt_chap_secret,
++	ibft_tgt_rev_chap_name,
++	ibft_tgt_rev_chap_secret,
++	ibft_tgt_end_marker,
++};
++
++static const char *ibft_tgt_properties[] =
++	{"index", "flags", "ip-addr", "port", "lun", "chap-type", "nic-assoc",
++	"target-name", "chap-name", "chap-secret", "rev-chap-name",
++	"rev-chap-name-secret", NULL};
++
++enum ibft_initiator_properties_enum {
++	ibft_init_index,
++	ibft_init_flags,
++	ibft_init_isns_server,
++	ibft_init_slp_server,
++	ibft_init_pri_radius_server,
++	ibft_init_sec_radius_server,
++	ibft_init_initiator_name,
++	ibft_init_end_marker,
++};
++
++static const char *ibft_initiator_properties[] =
++	{"index", "flags", "isns-server", "slp-server", "pri-radius-server",
++	"sec-radius-server", "initiator-name", NULL};
++
++/*
++ * The kobject and attribute structures.
++ */
++
++struct ibft_kobject {
++	struct ibft_table_header *header;
++	union {
++		struct ibft_initiator *initiator;
++		struct ibft_nic *nic;
++		struct ibft_tgt *tgt;
++		struct ibft_hdr *hdr;
++	};
++	struct kobject kobj;
++	struct list_head node;
++};
++
++struct ibft_attribute {
++	struct attribute attr;
++	ssize_t (*show) (struct  ibft_kobject *entry,
++			 struct ibft_attribute *attr, char *buf);
++	union {
++		struct ibft_initiator *initiator;
++		struct ibft_nic *nic;
++		struct ibft_tgt *tgt;
++		struct ibft_hdr *hdr;
++	};
++	struct kobject *kobj;
++	int type; /* The enum of the type. This can be any value off:
++		ibft_eth_properties_enum, ibft_tgt_properties_enum,
++		or ibft_initiator_properties_enum. */
++	struct list_head node;
++};
++
++static LIST_HEAD(ibft_attr_list);
++static LIST_HEAD(ibft_kobject_list);
++
++static const char nulls[16];
++static struct ibft_table_header *ibft_device;
++
++/*
++ * Helper functions to parse data properly.
++ */
++static ssize_t sprintf_ipaddr(char *buf, u8 *ip)
++{
++	if (ip[0] == 0 && ip[1] == 0 && ip[2] == 0 && ip[3] == 0 &&
++	    ip[4] == 0 && ip[5] == 0 && ip[6] == 0 && ip[7] == 0 &&
++	    ip[8] == 0 && ip[9] == 0 && ip[10] == 0xff && ip[11] == 0xff) {
++		/*
++		 * IPV4
++		 */
++		return sprintf(buf, "%d.%d.%d.%d\n", ip[12],
++			       ip[13], ip[14], ip[15]);
++	} else
++		return 0;
++}
++
++static ssize_t sprintf_string(char *str, int len, char *buf)
++{
++	return sprintf(str, "%.*s\n", len, buf);
++}
++
++/*
++ * Helper function to verify the IBFT header.
++ */
++static int ibft_verify_hdr(char *t, struct ibft_hdr *hdr, int id, int length)
++{
++#define IBFT_VERIFY_HDR_FIELD(val, name) \
++	if (hdr->val != val) { \
++		printk(KERN_ERR \
++		       "iBFT error: In structure %s field %s expected %d but" \
++		       " found %d!\n", \
++		       t, name, val, hdr->val); \
++		return -ENODEV; \
++	}
++	IBFT_VERIFY_HDR_FIELD(id, "id");
++	IBFT_VERIFY_HDR_FIELD(length, "length");
++	return 0;
++}
++
++static void ibft_release(struct kobject *kobj)
++{
++	struct ibft_kobject *ibft =
++		container_of(kobj, struct ibft_kobject, kobj);
++	kfree(ibft);
++}
++
++/*
++ *  Routines for reading of the iBFT data in a human readable fashion.
++ */
++ssize_t ibft_attr_show_initiator(struct ibft_kobject *entry,
++				  struct ibft_attribute *attr,
++				  char *buf)
++{
++	struct ibft_initiator *initiator = entry->initiator;
++	void *ibft_loc = entry->header;
++	char *str = buf;
++
++	if (!initiator)
++		return 0;
++
++	switch (attr->type) {
++	case ibft_init_index:
++		str += sprintf(str, "%d\n", initiator->hdr.index);
++		break;
++	case ibft_init_flags:
++		str += sprintf(str, "%d\n", initiator->hdr.flags);
++		break;
++	case ibft_init_isns_server:
++		str += sprintf_ipaddr(str, initiator->isns_server);
++		break;
++	case ibft_init_slp_server:
++		str += sprintf_ipaddr(str, initiator->slp_server);
++		break;
++	case ibft_init_pri_radius_server:
++		str += sprintf_ipaddr(str, initiator->pri_radius_server);
++		break;
++	case ibft_init_sec_radius_server:
++		str += sprintf_ipaddr(str, initiator->sec_radius_server);
++		break;
++	case ibft_init_initiator_name:
++		str += sprintf_string(str, initiator->initiator_name_len,
++				      (char *)ibft_loc +
++				      initiator->initiator_name_off);
++		break;
++	default:
++		break;
++	}
++
++	return str - buf;
++}
++
++ssize_t ibft_attr_show_nic(struct ibft_kobject *entry,
++			    struct ibft_attribute *attr,
++			    char *buf)
++{
++	struct ibft_nic *nic = entry->nic;
++	void *ibft_loc = entry->header;
++	char *str = buf;
++	char *mac;
++	int val;
++
++	if (!nic)
++		return 0;
++
++	switch (attr->type) {
++	case ibft_eth_index:
++		str += sprintf(str, "%d\n", nic->hdr.index);
++		break;
++	case ibft_eth_flags:
++		str += sprintf(str, "%d\n", nic->hdr.flags);
++		break;
++	case ibft_eth_ip_addr:
++		str += sprintf_ipaddr(str, nic->ip_addr);
++		break;
++	case ibft_eth_subnet_mask:
++		val = ~((1 << (32-nic->subnet_mask_prefix))-1);
++		str += sprintf(str, "%d.%d.%d.%d\n",
++			       (u8)(val >> 24), (u8)(val >> 16),
++			       (u8)(val >> 8), (u8)(val));
++		break;
++	case ibft_eth_origin:
++		str += sprintf(str, "%d\n", nic->origin);
++		break;
++	case ibft_eth_gateway:
++		str += sprintf_ipaddr(str, nic->gateway);
++		break;
++	case ibft_eth_primary_dns:
++		str += sprintf_ipaddr(str, nic->primary_dns);
++		break;
++	case ibft_eth_secondary_dns:
++		str += sprintf_ipaddr(str, nic->secondary_dns);
++		break;
++	case ibft_eth_dhcp:
++		str += sprintf_ipaddr(str, nic->dhcp);
++		break;
++	case ibft_eth_vlan:
++		str += sprintf(str, "%d\n", nic->vlan);
++		break;
++	case ibft_eth_mac:
++		mac = nic->mac;
++		str += sprintf(str, "%02x:%02x:%02x:%02x:%02x:%02x\n",
++			       (u8)mac[0], (u8)mac[1], (u8)mac[2],
++			       (u8)mac[3], (u8)mac[4], (u8)mac[5]);
++		break;
++	case ibft_eth_hostname:
++		str += sprintf_string(str, nic->hostname_len,
++				      (char *)ibft_loc + nic->hostname_off);
++		break;
++	default:
++		break;
++	}
++
++	return str - buf;
++};
++
++ssize_t ibft_attr_show_target(struct ibft_kobject *entry,
++			       struct ibft_attribute *attr,
++			       char *buf)
++{
++	struct ibft_tgt *tgt = entry->tgt;
++	void *ibft_loc = entry->header;
++	char *str = buf;
++	int i;
++
++	if (!tgt)
++		return 0;
++
++	switch (attr->type) {
++	case ibft_tgt_index:
++		str += sprintf(str, "%d\n", tgt->hdr.index);
++		break;
++	case ibft_tgt_flags:
++		str += sprintf(str, "%d\n", tgt->hdr.flags);
++		break;
++	case ibft_tgt_ip_addr:
++		str += sprintf_ipaddr(str, tgt->ip_addr);
++		break;
++	case ibft_tgt_port:
++		str += sprintf(str, "%d\n", tgt->port);
++		break;
++	case ibft_tgt_lun:
++		for (i = 0; i < 8; i++)
++			str += sprintf(str, "%x", (u8)tgt->lun[i]);
++		str += sprintf(str, "\n");
++		break;
++	case ibft_tgt_nic_assoc:
++		str += sprintf(str, "%d\n", tgt->nic_assoc);
++		break;
++	case ibft_tgt_chap_type:
++		str += sprintf(str, "%d\n", tgt->chap_type);
++		break;
++	case ibft_tgt_name:
++		str += sprintf_string(str, tgt->tgt_name_len,
++				      (char *)ibft_loc + tgt->tgt_name_off);
++		break;
++	case ibft_tgt_chap_name:
++		str += sprintf_string(str, tgt->chap_name_len,
++				      (char *)ibft_loc + tgt->chap_name_off);
++		break;
++	case ibft_tgt_chap_secret:
++		str += sprintf_string(str, tgt->chap_secret_len,
++				      (char *)ibft_loc + tgt->chap_secret_off);
++		break;
++	case ibft_tgt_rev_chap_name:
++		str += sprintf_string(str, tgt->rev_chap_name_len,
++				      (char *)ibft_loc +
++				      tgt->rev_chap_name_off);
++		break;
++	case ibft_tgt_rev_chap_secret:
++		str += sprintf_string(str, tgt->rev_chap_secret_len,
++				      (char *)ibft_loc +
++				      tgt->rev_chap_secret_off);
++		break;
++	default:
++		break;
++	}
++
++	return str - buf;
++}
++
++/*
++ * The main routine which allows the user to read the IBFT data.
++ */
++static ssize_t ibft_show_attribute(struct kobject *kobj,
++				    struct attribute *attr,
++				    char *buf)
++{
++	struct ibft_kobject *dev =
++		container_of(kobj, struct ibft_kobject, kobj);
++	struct ibft_attribute *ibft_attr =
++		container_of(attr, struct ibft_attribute, attr);
++	ssize_t ret = -EIO;
++	char *str = buf;
++
++	if (!capable(CAP_SYS_ADMIN))
++		return -EACCES;
++
++	if (ibft_attr->show)
++		ret = ibft_attr->show(dev, ibft_attr, str);
++
++	return ret;
++}
++
++static struct sysfs_ops ibft_attr_ops = {
++	.show = ibft_show_attribute,
++};
++
++static struct kobj_type ibft_ktype = {
++	.release = ibft_release,
++	.sysfs_ops = &ibft_attr_ops,
++};
++
++static struct kset *ibft_kset;
++
++static int __init ibft_check_and_alloc_device(void *idev)
++{
++	int len;
++	u8 *pos;
++	u8 csum = 0;
++	struct ibft_table_header *hdr;
++
++	if (!idev)
++		return -ENOENT;
++
++	hdr = (struct ibft_table_header *)phys_to_virt((unsigned long)
++						       ibft_phys);
++	len = hdr->length;
++
++	/* Sanity checking of iBFT. */
++	if (hdr->revision != 1) {
++		printk(KERN_ERR "iBFT module supports only revision 1, " \
++				"while this is %d.\n", hdr->revision);
++		return 1;
++	}
++	for (pos = (u8 *)hdr; pos < (u8 *)hdr + len; pos ++)
++		csum += *pos;
++
++	if (csum) {
++		printk(KERN_ERR "iBFT has incorrect checksum (0x%x)!\n", csum);
++		return 1;
++	}
++
++	ibft_device = kmalloc(len, GFP_KERNEL);
++	if (!ibft_device)
++		return -ENOMEM;
++
++	memcpy(ibft_device, hdr, len);
++
++	return 0;
++}
++
++static void ibft_free_device(struct ibft_table_header *hdr)
++{
++	kfree(hdr);
++}
++
++/*
++ * Helper function for ibft_register_kobjects.
++ */
++static int __init ibft_create_kobject(struct ibft_table_header *header,
++				       struct ibft_hdr *hdr,
++				       struct list_head *list)
++{
++	struct ibft_kobject *ibft_kobj = NULL;
++	struct ibft_nic *nic = (struct ibft_nic *)hdr;
++	struct pci_dev *pci_dev;
++	int rc = 0;
++
++	ibft_kobj = kzalloc(sizeof(*ibft_kobj), GFP_KERNEL);
++	if (!ibft_kobj)
++		return -ENOMEM;
++
++	ibft_kobj->header = header;
++	ibft_kobj->hdr = hdr;
++
++	switch (hdr->id) {
++	case id_initiator:
++		rc = ibft_verify_hdr("initiator", hdr, id_initiator,
++				     sizeof(*ibft_kobj->initiator));
++		break;
++	case id_nic:
++		rc = ibft_verify_hdr("ethernet", hdr, id_nic,
++				     sizeof(*ibft_kobj->nic));
++		break;
++	case id_target:
++		rc = ibft_verify_hdr("target", hdr, id_target,
++				     sizeof(*ibft_kobj->tgt));
++		break;
++	case id_reserved:
++	case id_control:
++	case id_extensions:
++		/* Fields which we don't support. Ignore them */
++		rc = 1;
++		break;
++	default:
++		printk(KERN_ERR "iBFT has unknown structure type (%d). " \
++				"Report this bug to your vendor!\n", hdr->id);
++		rc = 1;
++		break;
++	}
++
++	if (rc) {
++		kfree(ibft_kobj);
++		goto out_invalid_struct;
++	}
++
++	/* kobject fief. We will let the reference counter do the job
++	 of deleting its name if we fail here. */
++	ibft_kobj->kobj.kset = ibft_kset;
++
++	rc = kobject_init_and_add(&ibft_kobj->kobj, &ibft_ktype,
++				  NULL, ibft_id_names[hdr->id], hdr->index);
++
++	if (rc) {
++		kfree(ibft_kobj);
++		goto out;
++	}
++
++	kobject_uevent(&ibft_kobj->kobj, KOBJ_ADD);
++
++	if (hdr->id == id_nic) {
++		pci_dev = pci_get_bus_and_slot((nic->pci_bdf & 0xff00) >> 8,
++					       (nic->pci_bdf & 0xff));
++		if (pci_dev) {
++			rc = sysfs_create_link(&ibft_kobj->kobj,
++					       &pci_dev->dev.kobj, "device");
++			pci_dev_put(pci_dev);
++		}
++	}
++
++	/* Nothing broke so lets add it to the list. */
++	list_add_tail(&ibft_kobj->node, list);
++out:
++	return rc;
++out_invalid_struct:
++	/* Unsupported structs are skipped. */
++	return 0;
++}
++
++/*
++ * Scan the IBFT table structure for the NIC and Target fields. When
++ * found add them on the passed-in list.
++ */
++static int __init ibft_register_kobjects(struct ibft_table_header *header,
++					  struct list_head *list)
++{
++	struct ibft_control *control = NULL;
++	void *ptr, *end;
++	int rc = 0;
++	u16 offset;
++	u16 eot_offset;
++
++	control = (void *)header + sizeof(*header);
++	end = (void *)control + control->hdr.length;
++	eot_offset = (void *)header + header->length -
++		     (void *)control - sizeof(*header);
++	rc = ibft_verify_hdr("control", (struct ibft_hdr *)control, id_control,
++			     sizeof(*control));
++	rc |= control->hdr.index != 0;
++	if (rc)
++		return rc;
++
++	for (ptr = &control->initiator_off; ptr < end; ptr += sizeof(u16)) {
++		offset = *(u16 *)ptr;
++		if (offset && offset < header->length && offset < eot_offset) {
++			rc = ibft_create_kobject(header,
++						 (void *)header + offset,
++						 list);
++			if (rc)
++				break;
++		}
++	}
++
++	return rc;
++}
++
++static void ibft_unregister(struct list_head *attr_list,
++			     struct list_head *kobj_list)
++{
++	struct ibft_kobject *data = NULL, *n;
++	struct ibft_attribute *attr = NULL, *m;
++
++	list_for_each_entry_safe(attr, m, attr_list, node) {
++		sysfs_remove_file(attr->kobj, &attr->attr);
++		list_del(&attr->node);
++		kfree(attr);
++	};
++	list_del_init(attr_list);
++
++	list_for_each_entry_safe(data, n, kobj_list, node) {
++		list_del(&data->node);
++		if (data->hdr->id == id_nic)
++			sysfs_remove_link(&data->kobj, "device");
++		kobject_put(&data->kobj);
++	};
++	list_del_init(kobj_list);
++}
++
++static int __init ibft_create_attribute(struct ibft_kobject *kobj_data,
++					 int type,
++					 const char *name,
++					 ssize_t (*show)(struct ibft_kobject *,
++							 struct ibft_attribute*,
++							 char *buf),
++					 struct list_head *list)
++{
++	struct ibft_attribute *attr = NULL;
++	struct ibft_hdr *hdr = kobj_data->hdr;
++
++	attr = kmalloc(sizeof(*attr), GFP_KERNEL);
++	if (!attr)
++		return -ENOMEM;
++
++	attr->attr.name = name;
++	attr->attr.mode = S_IRUSR;
++	attr->attr.owner = THIS_MODULE;
++
++	attr->hdr = hdr;
++	attr->show = show;
++	attr->kobj = &kobj_data->kobj;
++	attr->type = type;
++
++	list_add_tail(&attr->node, list);
++
++	return 0;
++}
++
++static int __init ibft_check_nic_for(struct ibft_nic *nic, int entry)
++{
++	int rc = 0;
++
++	switch (entry) {
++	case ibft_eth_index:
++	case ibft_eth_flags:
++		rc = 1;
++		break;
++	case ibft_eth_ip_addr:
++		if (!memcmp(nic->dhcp, nulls, sizeof(nic->dhcp)))
++			rc = 1;
++		break;
++	case ibft_eth_subnet_mask:
++		if (!memcmp(nic->dhcp, nulls, sizeof(nic->dhcp)))
++			rc = 1;
++		break;
++	case ibft_eth_origin:
++		rc = 1;
++		break;
++	case ibft_eth_gateway:
++		if (memcmp(nic->gateway, nulls, sizeof(nic->gateway)))
++			rc = 1;
++		break;
++	case ibft_eth_primary_dns:
++		if (memcmp(nic->primary_dns, nulls,
++			   sizeof(nic->primary_dns)))
++			rc = 1;
++		break;
++	case ibft_eth_secondary_dns:
++		if (memcmp(nic->secondary_dns, nulls,
++			   sizeof(nic->secondary_dns)))
++			rc = 1;
++		break;
++	case ibft_eth_dhcp:
++		if (memcmp(nic->dhcp, nulls, sizeof(nic->dhcp)))
++			rc = 1;
++		break;
++	case ibft_eth_vlan:
++	case ibft_eth_mac:
++		rc = 1;
++		break;
++	case ibft_eth_hostname:
++		if (nic->hostname_off)
++			rc = 1;
++		break;
++	default:
++		break;
++	}
++
++	return rc;
++}
++
++static int __init ibft_check_tgt_for(struct ibft_tgt *tgt, int entry)
++{
++	int rc = 0;
++
++	switch (entry) {
++	case ibft_tgt_index:
++	case ibft_tgt_flags:
++	case ibft_tgt_ip_addr:
++	case ibft_tgt_port:
++	case ibft_tgt_lun:
++	case ibft_tgt_nic_assoc:
++	case ibft_tgt_chap_type:
++		rc = 1;
++	case ibft_tgt_name:
++		if (tgt->tgt_name_len)
++			rc = 1;
++		break;
++	case ibft_tgt_chap_name:
++	case ibft_tgt_chap_secret:
++		if (tgt->chap_name_len)
++			rc = 1;
++		break;
++	case ibft_tgt_rev_chap_name:
++	case ibft_tgt_rev_chap_secret:
++		if (tgt->rev_chap_name_len)
++			rc = 1;
++		break;
++	default:
++		break;
++	}
++
++	return rc;
++}
++
++static int __init ibft_check_initiator_for(struct ibft_initiator *init,
++					    int entry)
++{
++	int rc = 0;
++
++	switch (entry) {
++	case ibft_init_index:
++	case ibft_init_flags:
++		rc = 1;
++		break;
++	case ibft_init_isns_server:
++		if (memcmp(init->isns_server, nulls,
++			   sizeof(init->isns_server)))
++			rc = 1;
++		break;
++	case ibft_init_slp_server:
++		if (memcmp(init->slp_server, nulls,
++			   sizeof(init->slp_server)))
++			rc = 1;
++		break;
++	case ibft_init_pri_radius_server:
++		if (memcmp(init->pri_radius_server, nulls,
++			   sizeof(init->pri_radius_server)))
++			rc = 1;
++		break;
++	case ibft_init_sec_radius_server:
++		if (memcmp(init->sec_radius_server, nulls,
++			   sizeof(init->sec_radius_server)))
++			rc = 1;
++		break;
++	case ibft_init_initiator_name:
++		if (init->initiator_name_len)
++			rc = 1;
++		break;
++	default:
++		break;
++	}
++
++	return rc;
++}
++
++/*
++ *  Register the attributes for all of the kobjects.
++ */
++static int __init ibft_register_attributes(struct list_head *kobject_list,
++					    struct list_head *attr_list)
++{
++	int rc = 0, i = 0;
++	struct ibft_kobject *data = NULL;
++	struct ibft_attribute *attr = NULL, *m;
++
++	list_for_each_entry(data, kobject_list, node) {
++		switch (data->hdr->id) {
++		case id_nic:
++			for (i = 0; i < ibft_eth_end_marker && !rc; i++)
++				if (ibft_check_nic_for(data->nic, i))
++					rc = ibft_create_attribute(data, i,
++						ibft_eth_properties[i],
++						ibft_attr_show_nic, attr_list);
++			break;
++		case id_target:
++			for (i = 0; i < ibft_tgt_end_marker && !rc; i++)
++				if (ibft_check_tgt_for(data->tgt, i))
++					rc = ibft_create_attribute(data, i,
++						ibft_tgt_properties[i],
++						ibft_attr_show_target,
++						attr_list);
++			break;
++		case id_initiator:
++			for (i = 0; i < ibft_init_end_marker && !rc; i++)
++				if (ibft_check_initiator_for(
++					data->initiator, i))
++					rc = ibft_create_attribute(data, i,
++						ibft_initiator_properties[i],
++						ibft_attr_show_initiator,
++						attr_list);
++			break;
++		default:
++			break;
++		}
++		if (rc)
++			break;
++	}
++	list_for_each_entry_safe(attr, m, attr_list, node) {
++		rc = sysfs_create_file(attr->kobj, &attr->attr);
++		if (rc) {
++			list_del(&attr->node);
++			kfree(attr);
++			break;
++		}
++	}
++
++	return rc;
++}
++
++/*
++ * ibft_init() - creates sysfs tree entries for iBFT data.
++ */
++static int __init ibft_init(void)
++{
++	int rc = 0;
++
++	if (!ibft_phys)
++		find_ibft();
++
++	ibft_kset = kset_create_and_add("ibft", NULL, firmware_kobj);
++	if (!ibft_kset)
++		return -ENOMEM;
++
++	if (ibft_phys) {
++		printk(KERN_INFO "iBFT detected at 0x%p.\n", ibft_phys);
++
++		rc = ibft_check_and_alloc_device(ibft_phys);
++		if (rc)
++			goto out_firmware_unregister;
++
++		/* Scan the IBFT for data and register kobjects. */
++		rc = ibft_register_kobjects(ibft_device, &ibft_kobject_list);
++		if (rc)
++			goto out_free;
++
++		/* Register the attributes */
++		rc = ibft_register_attributes(&ibft_kobject_list,
++					      &ibft_attr_list);
++		if (rc)
++			goto out_free;
++	} else
++		printk(KERN_INFO "No iBFT detected.\n");
++
++	return 0;
++
++out_free:
++	ibft_unregister(&ibft_attr_list, &ibft_kobject_list);
++	ibft_free_device(ibft_device);
++out_firmware_unregister:
++	kset_unregister(ibft_kset);
++	return rc;
++}
++
++static void __exit ibft_exit(void)
++{
++	ibft_unregister(&ibft_attr_list, &ibft_kobject_list);
++	ibft_free_device(ibft_device);
++	kset_unregister(ibft_kset);
++}
++
++module_init(ibft_init);
++module_exit(ibft_exit);
+diff -puN /dev/null drivers/firmware/iscsi_ibft_find.c
+--- /dev/null
++++ a/drivers/firmware/iscsi_ibft_find.c
+@@ -0,0 +1,77 @@
++/*
++ *  Copyright 2007 Red Hat, Inc.
++ *  by Peter Jones <pjones@redhat.com>
++ *  Copyright 2007 IBM, Inc.
++ *  by Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
++ *
++ * This code finds the iSCSI Boot Format Table.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License v2.0 as published by
++ * the Free Software Foundation
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/blkdev.h>
++#include <linux/ctype.h>
++#include <linux/device.h>
++#include <linux/err.h>
++#include <linux/init.h>
++#include <linux/limits.h>
++#include <linux/module.h>
++#include <linux/pci.h>
++#include <linux/slab.h>
++#include <linux/stat.h>
++#include <linux/string.h>
++#include <linux/types.h>
++
++
++/*
++ * Physical location of iSCSI Boot Format Table.
++ */
++void *ibft_phys;
++EXPORT_SYMBOL(ibft_phys);
++
++#define IBFT_SIGN "iBFT"
++#define IBFT_SIGN_LEN 4
++#define IBFT_START 0x80000 /* 512kB */
++#define IBFT_END 0x100000 /* 1MB */
++#define VGA_MEM 0xA0000 /* VGA buffer */
++#define VGA_SIZE 0x20000 /* 128kB */
++
++
++/*
++ * Routine used to find the iSCSI Boot Format Table. the physical
++ * location is set in the ibft_phys variable. The return value is
++ * the size of IBFT.
++ */
++ssize_t find_ibft(void)
++{
++	unsigned long pos;
++
++	for (pos = IBFT_START; pos < IBFT_END; pos += 16) {
++		void *virt;
++		/* The table can't be inside the VGA BIOS reserved space,
++		 * so skip that area */
++		if (pos == VGA_MEM)
++			pos += VGA_SIZE;
++		virt = phys_to_virt(pos);
++		if (memcmp(virt, IBFT_SIGN, IBFT_SIGN_LEN) == 0) {
++			unsigned long *addr =
++			    (unsigned long *)phys_to_virt(pos + 4);
++			unsigned int len = *addr;
++			/* if the length of the table extends past 1M,
++			 * the table cannot be valid. */
++			if (pos + len <= (IBFT_END-1)) {
++				ibft_phys = (void *)pos;
++				return len;
++			}
++		}
++	}
++	return 0;
++}
++EXPORT_SYMBOL(find_ibft);
+diff -puN /dev/null include/linux/iscsi_ibft.h
+--- /dev/null
++++ a/include/linux/iscsi_ibft.h
+@@ -0,0 +1,38 @@
++/*
++ *  Copyright 2007 Red Hat, Inc.
++ *  by Peter Jones <pjones@redhat.com>
++ *  Copyright 2007 IBM, Inc.
++ *  by Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
++ *
++ * This code exposes the iSCSI Boot Format Table to userland via sysfs.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License v2.0 as published by
++ * the Free Software Foundation
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#ifndef ISCSI_IBFT_H
++#define ISCSI_IBFT_H
++
++#if defined(CONFIG_ISCSI_IBFT_FIND)
++
++/*
++ * Physical location of iSCSI Boot Format Table.
++ */
++extern void *ibft_phys;
++
++/*
++ * Routine used to find the iSCSI Boot Format Table. The physical
++ * location is set in the ibft_phys variable. The return value is the
++ * size of IBFT.
++ */
++extern ssize_t find_ibft(void);
++
++#endif
++
++#endif /* ISCSI_IBFT_H */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from konrad@darnok.org are
 
-origin.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes.patch
-timerfd-v3-new-timerfd-api-ia64-fix.patch
-timerfd-v3-new-timerfd-api-m68k-fix.patch
-timerfd-v3-new-timerfd-api-mips-fix.patch
-timerfd-v3-new-timerfd-api-arch-fixes.patch
-timerfd-v3-new-timerfd-api-powerpc-fix.patch
-timerfd-v3-new-timerfd-api-sparc64-fix.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements-checkpatch-fixes.patch
-git-acpi-fix-git-conflicts.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-ignore-acpi-video-devices-that-arent-present-in-hardware-checkpatch-fixes.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-acpi-backlight-reset-brightness-on-resume-checkpatch-fixes.patch
-git-alsa-disable-sound-pci-ice1712-ice1724c.patch
-git-audit-master.patch
-git-audit-master-fix-git-conflicts.patch
-git-audit-printk-warning-fix.patch
-git-cpufreq.patch
-revert-agk-dm-dm-loop.patch
-include-asm-powerpc-nvramh-needs-listh.patch
-include-asm-powerpc-nvramh-needs-listh-fix.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
-adt7473-new-driver-for-analog-devices-adt7473-sensor-chip-fix.patch
-revert-git-hrt.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-git-kvm.patch
-drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
-drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
-git-md-accel.patch
-memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
-git-mmc.patch
-git-mtd.patch
-drivers-mtd-ubi-wlc-fix-uninitialized-var-warning.patch
-drivers-mtd-ubi-scanc-fix-uninitialized-var-warning.patch
-drivers-mtd-ubi-cdevc-unused-var.patch
-git-netdev-all-fix-conflicts-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-backlight.patch
-git-battery.patch
-git-battery-fix-git-conflicts.patch
-bluetooth-uninlining.patch
-git-selinux-vs-git-lblnet.patch
-serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
-fix-gregkh-pci-pci-pcie-aspm-support.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
-x86-validate-against-acpi-motherboard-resources.patch
-git-sched.patch
-git-scsi-misc-vs-gregkh-pci-pci-remove-users-of-pci_enable_device_bars.patch
-scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes.patch
-scsi-aic94xx-cleanups-checkpatch-fixes.patch
-scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
-drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-ohci-sm501-driver-v2-fix.patch
-git-watchdog.patch
-git-watchdog-fixup.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-x86-fixup-vs-git-sched.patch
-git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
-x86-mmconf-enable-mcfg-early-cleanup.patch
-git-xtensa.patch
+add-iscsi-ibft-support-v045.patch
+add-iscsi-ibft-support-v046.patch
 add-iscsi-ibft-support-v046-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-vmalloc-add-const-to-void-parameters-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-add-proc-kpagecount-interface-fix.patch
-maps4-add-proc-kpageflags-interface-fix.patch
-maps4-add-proc-kpageflags-interface-fix-2-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-mm-remove-fastcall-from-mm-checkpatch-fixes.patch
-page-migraton-handle-orphaned-pages-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-riscom8-fix-smp-brokenness-fix.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-address-hfs-on-disk-corruption-robustness-review-comments.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
-kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
-stopmachine-semaphore-to-mutex-fix.patch
-parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
-debug_smp_processor_id-fixlets.patch
-use-ilog2-in-fs-namespacec-fix.patch
-system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
-speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
-add-have_oprofile.patch
-drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
-ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-neofb-avoid-overwriting-fb_info-fields.patch
-vermilionc-use-align-not-__align_mask.patch
-declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
-disable-ext4.patch
-jbd-remove-useless-loop-in-journal_write_commit_record-checkpatch-fixes.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
-hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
-cpusets-update_cpumask-revision-fix.patch
-cpusets-update_cpumask-revision-checkpatch-fixes.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-d_path-make-d_path-use-a-struct-path-fix.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
-proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-modules-make-module_address_lookup-safe-fix.patch
-wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
-pid-sys_wait-fixes-v2-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-rewrite-rd-fixes.patch
-fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
-kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
-lib-remove-fastcall-from-lib-checkpatch-fixes.patch
-remove-fastcall-from-linux-include-checkpatch-fixes.patch
-constify-tables-in-kernel-sysctl_checkc-fix.patch
-aoe-statically-initialise-devlist_lock.patch
-xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
-ufs-fix-symlink-creation-on-ufs2-fix.patch
-libfs-allow-error-return-from-simple-attributes-fix.patch
-fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
-fs-afs-securityc-fix-uninitialized-var-warning.patch
-mount-options-fix-tmpfs-fix.patch
-char-applicom-use-pci_match_id-fix.patch
-add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
