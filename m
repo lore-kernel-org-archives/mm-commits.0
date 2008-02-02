@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mm-bdi-export-bdi-attributes-in-sysfs-fix-2.patch added to -mm tree
-Date: Sat, 02 Feb 2008 15:38:39 -0800
-Message-ID: <200802022338.m12NcKcc021727@imap1.linux-foundation.org>
+Subject: + mm-bdi-export-bdi-attributes-in-sysfs-fix-3.patch added to -mm tree
+Date: Sat, 02 Feb 2008 15:38:40 -0800
+Message-ID: <200802022338.m12NcLIr021730@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34583 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46397 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756652AbYBBXiY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 18:38:24 -0500
+	by vger.kernel.org with ESMTP id S1763962AbYBBXiZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 18:38:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,7 +17,7 @@ Cc: mszeredi@suse.cz
 The patch titled
      mm: bdi: use MAJOR:MINOR in /sys/class/bdi
 has been added to the -mm tree.  Its filename is
-     mm-bdi-export-bdi-attributes-in-sysfs-fix-2.patch
+     mm-bdi-export-bdi-attributes-in-sysfs-fix-3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -47,43 +47,35 @@ Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/genhd.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ Documentation/ABI/testing/sysfs-class-bdi |   14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-diff -puN block/genhd.c~mm-bdi-export-bdi-attributes-in-sysfs-fix-2 block/genhd.c
---- a/block/genhd.c~mm-bdi-export-bdi-attributes-in-sysfs-fix-2
-+++ a/block/genhd.c
-@@ -178,13 +178,17 @@ static int exact_lock(dev_t devt, void *
-  */
- void add_disk(struct gendisk *disk)
- {
-+	struct backing_dev_info *bdi;
-+
- 	disk->flags |= GENHD_FL_UP;
- 	blk_register_region(MKDEV(disk->major, disk->first_minor),
- 			    disk->minors, NULL, exact_match, exact_lock, disk);
- 	register_disk(disk);
- 	blk_register_queue(disk);
--	bdi_register(&disk->queue->backing_dev_info, NULL,
--		"blk-%s", disk->disk_name);
-+
-+	bdi = &disk->queue->backing_dev_info;
-+	bdi_register_dev(bdi, MKDEV(disk->major, disk->first_minor));
-+	sysfs_create_link(&disk->dev.kobj, &bdi->dev->kobj, "bdi");
- }
+diff -puN Documentation/ABI/testing/sysfs-class-bdi~mm-bdi-export-bdi-attributes-in-sysfs-fix-3 Documentation/ABI/testing/sysfs-class-bdi
+--- a/Documentation/ABI/testing/sysfs-class-bdi~mm-bdi-export-bdi-attributes-in-sysfs-fix-3
++++ a/Documentation/ABI/testing/sysfs-class-bdi
+@@ -6,17 +6,13 @@ Description:
+ Provide a place in sysfs for the backing_dev_info object.
+ This allows us to see and set the various BDI specific variables.
  
- EXPORT_SYMBOL(add_disk);
-@@ -192,8 +196,9 @@ EXPORT_SYMBOL(del_gendisk);	/* in partit
+-The <bdi> identifyer can take the following forms:
++The <bdi> identifier can be either of the following:
  
- void unlink_gendisk(struct gendisk *disk)
- {
--	blk_unregister_queue(disk);
-+	sysfs_remove_link(&disk->dev.kobj, "bdi");
- 	bdi_unregister(&disk->queue->backing_dev_info);
-+	blk_unregister_queue(disk);
- 	blk_unregister_region(MKDEV(disk->major, disk->first_minor),
- 			      disk->minors);
- }
+-blk-NAME
++MAJOR:MINOR
+ 
+-	Block devices, NAME is 'sda', 'loop0', etc...
+-
+-FSTYPE-MAJOR:MINOR
+-
+-	Non-block device backed filesystems which provide their own
+-	BDI, such as NFS and FUSE.  MAJOR:MINOR is the value of st_dev
+-	for files on this filesystem.
++	Device number for block devices, or value of st_dev on
++	non-block filesystems which provide their own BDI, such as NFS
++	and FUSE.
+ 
+ default
+ 
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
