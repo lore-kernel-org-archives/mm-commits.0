@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mm-bdi-export-bdi-attributes-in-sysfs-fix-3.patch added to -mm tree
-Date: Sat, 02 Feb 2008 15:38:40 -0800
-Message-ID: <200802022338.m12NcLIr021730@imap1.linux-foundation.org>
+Subject: + mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs-fix.patch added to -mm tree
+Date: Sat, 02 Feb 2008 15:38:43 -0800
+Message-ID: <200802022338.m12NcOOB021736@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46397 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54906 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763962AbYBBXiZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 18:38:25 -0500
+	by vger.kernel.org with ESMTP id S1764314AbYBBXi2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 18:38:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,7 +17,7 @@ Cc: mszeredi@suse.cz
 The patch titled
      mm: bdi: use MAJOR:MINOR in /sys/class/bdi
 has been added to the -mm tree.  Its filename is
-     mm-bdi-export-bdi-attributes-in-sysfs-fix-3.patch
+     mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -47,35 +47,22 @@ Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-class-bdi |   14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+ fs/nfs/super.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN Documentation/ABI/testing/sysfs-class-bdi~mm-bdi-export-bdi-attributes-in-sysfs-fix-3 Documentation/ABI/testing/sysfs-class-bdi
---- a/Documentation/ABI/testing/sysfs-class-bdi~mm-bdi-export-bdi-attributes-in-sysfs-fix-3
-+++ a/Documentation/ABI/testing/sysfs-class-bdi
-@@ -6,17 +6,13 @@ Description:
- Provide a place in sysfs for the backing_dev_info object.
- This allows us to see and set the various BDI specific variables.
+diff -puN fs/nfs/super.c~mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs-fix fs/nfs/super.c
+--- a/fs/nfs/super.c~mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs-fix
++++ a/fs/nfs/super.c
+@@ -1460,8 +1460,7 @@ static int nfs_compare_super(struct supe
  
--The <bdi> identifyer can take the following forms:
-+The <bdi> identifier can be either of the following:
+ static int nfs_bdi_register(struct nfs_server *server)
+ {
+-	return bdi_register(&server->backing_dev_info, NULL, "nfs-%u:%u",
+-			    MAJOR(server->s_dev), MINOR(server->s_dev));
++	return bdi_register_dev(&server->backing_dev_info, server->s_dev);
+ }
  
--blk-NAME
-+MAJOR:MINOR
- 
--	Block devices, NAME is 'sda', 'loop0', etc...
--
--FSTYPE-MAJOR:MINOR
--
--	Non-block device backed filesystems which provide their own
--	BDI, such as NFS and FUSE.  MAJOR:MINOR is the value of st_dev
--	for files on this filesystem.
-+	Device number for block devices, or value of st_dev on
-+	non-block filesystems which provide their own BDI, such as NFS
-+	and FUSE.
- 
- default
- 
+ static int nfs_get_sb(struct file_system_type *fs_type,
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
