@@ -1,384 +1,292 @@
 From: akpm@linux-foundation.org
-Subject: - working-3d-dri-intel-agpko-resume-for-i815-chip.patch removed from -mm tree
-Date: Fri, 01 Feb 2008 16:02:38 -0800
-Message-ID: <200802020011.m120BL2F006477@imap1.linux-foundation.org>
+Subject: - fix-gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in.patch removed from -mm tree
+Date: Fri, 01 Feb 2008 16:05:56 -0800
+Message-ID: <200802020014.m120Ed0n006585@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42589 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44984 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757900AbYBBALo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 19:11:44 -0500
+	by vger.kernel.org with ESMTP id S1752652AbYBBAOn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 19:14:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andi@rhlx01.fht-esslingen.de, airlied@linux.ie, andi@lisas.de, davej@codemonkey.org.uk, mjg59@srcf.ucam.org, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     working 3D/DRI intel-agp.ko resume for i815 chip
+     fix gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in
 has been removed from the -mm tree.  Its filename was
-     working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+     fix-gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in.patch
 
-This patch was dropped because maintainer somnolence
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: working 3D/DRI intel-agp.ko resume for i815 chip
-From: Andreas Mohr <andi@rhlx01.fht-esslingen.de>
+Subject: fix gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in
+From: Andrew Morton <akpm@linux-foundation.org>
 
-- add .suspend handler and pci_set_power_state() calls
-- add i815-specific function agp_i815_remember_state() to remember important
-  i815 register values
-- add generic DEBUG_AGP_PM framework which will allow people to resume properly
-  and help identify which registers need attention
-- add obvious and detailed log message to make people sit up and take notice
-  about long-standing AGP resume issues
-- spelling fixes
+drivers/pci/pci-sysfs.c: In function 'extended_config_space_store':
+drivers/pci/pci-sysfs.c:159: error: dereferencing pointer to incomplete type
 
-My Inspiron 8000 (i815 with Radeon AGP card, internal Intel VGA unit NOT
-active) resumes fine with both either i815-specific register saving or
-generic DEBUG_AGP_PM mechanism enabled.  (of course my notebook needs
-vbetool post and manual saving of video card PCI space, too, but even when
-doing all this I still had X.org lockups before whenever DRI/3D was
-enabled)
-
-After resume I'm now still able to run both glxgears and glxinfo without
-anomalies.
-
-Right now all I care about is that this gets into mainline relatively soon,
-since I'm rather certain that many other machines suffer from similar AGP
-resume lockup issues that could be debugged this way (e.g.  some Thinkpads,
-as witnessed accidentally via IRC chats, and from the well-known "don't
-enable DRI, that will lock up on resume!" chants).
-
-Yes, this code is a cludge and somewhat far from a nicely generic extended
-PCI space resume framework, but we've spent almost 10 (TEN!) years without
-anything even remotely resembling a working cludge for AGP suspend/resume
-in combination with DRI, so...
-
-Feel free to offer thoughts on how this missing generic extended PCI space
-
-[akpm@linux-foundation.org: cleanups]
-Signed-off-by: Andreas Mohr <andi@lisas.de>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Dave Airlie <airlied@linux.ie>
-Cc: Dave Jones <davej@codemonkey.org.uk>
-
-Davej says "I think this needs to redone in a much more generic manner before
-it goes mainline."
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/intel-agp.c |  211 +++++++++++++++++++++++++++++++--
- 1 file changed, 200 insertions(+), 11 deletions(-)
+ drivers/pci/pci-sysfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/agp/intel-agp.c~working-3d-dri-intel-agpko-resume-for-i815-chip drivers/char/agp/intel-agp.c
---- a/drivers/char/agp/intel-agp.c~working-3d-dri-intel-agpko-resume-for-i815-chip
-+++ a/drivers/char/agp/intel-agp.c
-@@ -58,9 +58,16 @@
- extern int agp_memory_reserved;
+diff -puN drivers/pci/pci-sysfs.c~fix-gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in drivers/pci/pci-sysfs.c
+--- a/drivers/pci/pci-sysfs.c~fix-gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in
++++ a/drivers/pci/pci-sysfs.c
+@@ -14,7 +14,7 @@
+  *
+  */
  
- 
--/* Intel 815 register */
--#define INTEL_815_APCONT	0x51
--#define INTEL_815_ATTBASE_MASK	~0x1FFFFFFF
-+/* Intel i815 registers, see Intel spec #29068801 */
-+#define INTEL_I815_GMCHCFG	0x50
-+#define INTEL_I815_APCONT	0x51
-+#define INTEL_I815_UNKNOWN_80	0x80
-+#define INTEL_I815_ATTBASE_MASK	~0x1FFFFFFF
-+#define INTEL_I815_SM_RCOMP	0x98 /* Sys Mem R Compensation Ctrl */
-+#define INTEL_I815_SM		0x9c /* System Memory Control Reg */
-+#define INTEL_I815_AGPCMD	0xa8 /* AGP Command Register */
-+#define INTEL_I815_ERRSTS	0xc8 /* undocumented in i815 spec; since this one is modified on resume and many other related chipsets have it, I assume it *is* ERRSTS */
-+#define INTEL_I815_UNKNOWN_E8	0xe8
- 
- /* Intel i820 registers */
- #define INTEL_I820_RDCR		0x51
-@@ -773,7 +780,7 @@ static int intel_i830_insert_entries(str
- 	if ((pg_start + mem->page_count) > num_entries)
- 		goto out_err;
- 
--	/* The i830 can't check the GTT for entries since its read only,
-+	/* The i830 can't check the GTT for entries since it's read-only,
- 	 * depend on the caller to make the correct offset decisions.
- 	 */
- 
-@@ -1000,7 +1007,7 @@ static int intel_i915_insert_entries(str
- 	if ((pg_start + mem->page_count) > num_entries)
- 		goto out_err;
- 
--	/* The i915 can't check the GTT for entries since its read only,
-+	/* The i915 can't check the GTT for entries since it's read-only,
- 	 * depend on the caller to make the correct offset decisions.
- 	 */
- 
-@@ -1329,7 +1336,7 @@ static int intel_815_configure(void)
- 	/* attbase - aperture base */
- 	/* the Intel 815 chipset spec. says that bits 29-31 in the
- 	* ATTBASE register are reserved -> try not to write them */
--	if (agp_bridge->gatt_bus_addr & INTEL_815_ATTBASE_MASK) {
-+	if (agp_bridge->gatt_bus_addr & INTEL_I815_ATTBASE_MASK) {
- 		printk(KERN_EMERG PFX "gatt bus addr too high");
- 		return -EINVAL;
- 	}
-@@ -1345,7 +1352,7 @@ static int intel_815_configure(void)
- 	agp_bridge->gart_bus_addr = (temp & PCI_BASE_ADDRESS_MEM_MASK);
- 
- 	pci_read_config_dword(agp_bridge->dev, INTEL_ATTBASE, &addr);
--	addr &= INTEL_815_ATTBASE_MASK;
-+	addr &= INTEL_I815_ATTBASE_MASK;
- 	addr |= agp_bridge->gatt_bus_addr;
- 	pci_write_config_dword(agp_bridge->dev, INTEL_ATTBASE, addr);
- 
-@@ -1353,8 +1360,8 @@ static int intel_815_configure(void)
- 	pci_write_config_dword(agp_bridge->dev, INTEL_AGPCTRL, 0x0000);
- 
- 	/* apcont */
--	pci_read_config_byte(agp_bridge->dev, INTEL_815_APCONT, &temp2);
--	pci_write_config_byte(agp_bridge->dev, INTEL_815_APCONT, temp2 | (1 << 1));
-+	pci_read_config_byte(agp_bridge->dev, INTEL_I815_APCONT, &temp2);
-+	pci_write_config_byte(agp_bridge->dev, INTEL_I815_APCONT, temp2 | (1 << 1));
- 
- 	/* clear any possible error conditions */
- 	/* Oddness : this chipset seems to have no ERRSTS register ! */
-@@ -1583,7 +1590,7 @@ static int intel_7505_configure(void)
- 	pci_write_config_dword(agp_bridge->dev, INTEL_ATTBASE, agp_bridge->gatt_bus_addr);
- 
- 	/* agpctrl */
--	pci_write_config_dword(agp_bridge->dev, INTEL_AGPCTRL, 0x0000);
-+	pci_write_config_dword(agp_bridge->dev, INTEL_AGPCTRL, 0x00000000);
- 
- 	/* mchcfg */
- 	pci_read_config_word(agp_bridge->dev, INTEL_I7505_MCHCFG, &temp2);
-@@ -2180,12 +2187,180 @@ static void __devexit agp_intel_remove(s
- }
- 
- #ifdef CONFIG_PM
-+static int agp_i815_remember_state(struct pci_dev *pdev, int restore)
-+{
-+	typedef struct {
-+		int reg;
-+		u32 value;
-+	} saved_regs;
-+
-+	/* Dell Inspiron 8000 BIOS rev. A23 needs the following registers saved
-+	 * to be able to successfully restore X11 when AGP 3D is enabled
-+	 * (register values given are after resume vs. before suspend):
-+	 *
-+	 * INTEL_I815_GMCHCFG (0x50; we need to set bit 1
-+	 * (Aperture Access Global Enable) of INTEL_I815_APCONT (0x51),
-+	 *  thus use INTEL_I815_GMCHCFG (0x50) as 32bit base register);
-+	 *              0x4fdd0040 instead of 0x4fdd0240
-+	 * ??? (0x80); 0x07ce1cde instead of 0x07cb94de
-+	 * INTEL_I815_SM_RCOMP (0x98); 0x80648064 instead of 0x80548054
-+	 * INTEL_I815_SM (0x9c); 0x00c48405 instead of 0x04848405
-+	 * INTEL_I815_AGPCMD (0xa8); 0x00000000 instead of 0x00000304
-+	 * INTEL_AGPCTRL (0xb0); 0x00000000 instead of 0x00000080
-+	 * INTEL_APSIZE (0xb4);
-+	 * INTEL_ATTBASE (0xb8); 0x00000000 instead of 0x024b0000
-+	 * INTEL_I815_ERRSTS?? (0xc8; undocumented for i815, see above);
-+	 *              0x00000000 instead of 0x00000800
-+	 * ??? (0xe8); 0x1c700000 instead of 0x18500000
-+	 *
-+	 * Other machines/chipsets/BIOS versions may require
-+	 * a different set of registers to be properly saved.
-+	 */
-+	static saved_regs i815_saved_regs[] = {
-+		{ INTEL_I815_UNKNOWN_80, 0 },
-+		{ INTEL_I815_GMCHCFG, 0 },
-+		{ INTEL_I815_SM_RCOMP, 0 },
-+		{ INTEL_I815_SM, 0 },
-+		{ INTEL_I815_AGPCMD, 0 },
-+		{ INTEL_AGPCTRL, 0 },
-+		{ INTEL_APSIZE, 0 },
-+		{ INTEL_ATTBASE, 0 },
-+		{ INTEL_I815_ERRSTS, 0 },
-+		{ INTEL_I815_UNKNOWN_E8, 0 },
-+		{ 0, 0 }, /* DELIMITER */
-+	};
-+	saved_regs *p;
-+
-+	if (restore) {
-+		u32 val;
-+		for (p = i815_saved_regs; p->reg; p++) {
-+			pci_read_config_dword(pdev, p->reg, &val);
-+			if (val != p->value) {
-+				printk(KERN_DEBUG "AGP: Writing back config "
-+					"space on device %s at offset %x (was "
-+					"%x, writing %x)\n",
-+					pci_name(pdev), p->reg,
-+					val, p->value);
-+				pci_write_config_dword(pdev, p->reg,
-+					p->value);
-+			}
-+		}
-+	} else {
-+		for (p = i815_saved_regs; p->reg; p++)
-+			pci_read_config_dword(pdev, p->reg, &p->value);
-+	}
-+	return 1;
-+}
-+
-+/*
-+ * set DEBUG_AGP_PM to 1 if your AGP chipset has issues resuming
-+ * (machine lockups due to non-restored hardware registered values),
-+ * then figure out from the log which registers have to be restored manually,
-+ * then add specific support for your chipset, similar to what already exists
-+ * for i815 (Dell Inspiron) above.
-+ * E.g. IBM X31 (i855PM) seems to still have intel-agp suspend issues, too.
-+ *
-+ * Once it's obvious which chipsets need which treatment
-+ * (this is an important step to gain knowledge about all chipsets!)
-+ * this stop-gap code handling (we need something that works NOW,
-+ * since we could have had it almost a decade ago already!)
-+ * should be cleaned up, probably by implementing a generic Linux
-+ * PCI function to save/restore extended PCI config space
-+ * by supplying a register array or so...
-+ * At this point, it would also be nice to clean up the _suspend()/_resume()
-+ * functions to use some non-ugly and nicely generic restore mechanism.
-+ */
-+#define DEBUG_AGP_PM 0
-+
-+#if DEBUG_AGP_PM
-+static u32 pci_cfg_space[64];
-+
-+static void agp_intel_suspend_debug(struct pci_dev *pdev, pm_message_t state)
-+{
-+	int i;
-+	for (i = 63; i >= 0; i--)
-+		pci_read_config_dword(pdev, i * 4, &pci_cfg_space[i]);
-+}
-+
-+static void agp_intel_resume_debug(struct pci_dev *pdev)
-+{
-+	int i;
-+	int val;
-+
-+	/* Try first reading main PCI config space, then extended space;
-+	 * this order should hopefully prevent any lockups that may easily
-+	 * occur otherwise.
-+	 */
-+	for (i = 15; i >= 0; i--) {
-+		pci_read_config_dword(pdev, i * 4, &val);
-+		if (val != pci_cfg_space[i]) {
-+			/* Who the *** decided (in PM code) that logging
-+			 * register offsets in very weird offset notation
-+			 * (extremely uncommon in PCI datasheet spheres) was a good idea?
-+			 * Fixing this in this AGP-specific log message by multiplying offsets
-+			 */
-+			int reg = i * sizeof(u32);
-+			printk(KERN_DEBUG "AGP: Writing back config space on "
-+				"device %s at offset %x (was %x, writing %x)\n",
-+				pci_name(pdev), reg,
-+				val, pci_cfg_space[i]);
-+			pci_write_config_dword(pdev, reg,
-+				pci_cfg_space[i]);
-+		}
-+	}
-+	for (i = 63; i >= 16; i--) {
-+		pci_read_config_dword(pdev, i * 4, &val);
-+		if (val != pci_cfg_space[i]) {
-+			int reg = i * sizeof(u32);
-+			printk(KERN_DEBUG "AGP: Writing back config space on "
-+				"device %s at offset %x (was %x, writing %x)\n",
-+				pci_name(pdev), reg,
-+				val, pci_cfg_space[i]);
-+			pci_write_config_dword(pdev, reg,
-+				pci_cfg_space[i]);
-+		}
-+	}
-+}
-+#else
-+static inline void agp_intel_suspend_debug(struct pci_dev *pdev, pm_message_t state) { }
-+static inline void agp_intel_resume_debug(struct pci_dev *pdev) { }
-+#endif /* DEBUG_AGP_PM */
-+
-+
-+static int agp_intel_suspend(struct pci_dev *pdev, pm_message_t state)
-+{
-+	struct agp_bridge_data *bridge = pci_get_drvdata(pdev);
-+
-+	if (bridge->driver == &intel_815_driver)
-+		agp_i815_remember_state(pdev, 0);
-+
-+	agp_intel_suspend_debug(pdev, state);
-+
-+	pci_save_state(pdev);
-+	pci_set_power_state(pdev, pci_choose_state(pdev, state));
-+
-+	return 0;
-+}
-+
- static int agp_intel_resume(struct pci_dev *pdev)
- {
- 	struct agp_bridge_data *bridge = pci_get_drvdata(pdev);
- 
-+	/* This ought to be enough meat in here to let us
-+	 * resume successfully, at least when also being helped
-+	 * by additional manual /sys/bus/pci/DEVICE recovering
-+	 * of the graphics card and "vbetool post"
-+	 * (the s2ram tool should do this nicely already)
-+	 */
-+
-+	pci_set_power_state (pdev, PCI_D0);
- 	pci_restore_state(pdev);
- 
-+	agp_intel_resume_debug(pdev);
-+
-+	if (bridge->driver == &intel_815_driver)
-+		agp_i815_remember_state(pdev, 1);
-+
- 	/* We should restore our graphics device's config space,
- 	 * as host bridge (00:00) resumes before graphics device (02:00),
- 	 * then our access to its pci space can work right.
-@@ -2205,6 +2380,8 @@ static int agp_intel_resume(struct pci_d
- 		intel_i915_configure();
- 	else if (bridge->driver == &intel_830_driver)
- 		intel_i830_configure();
-+	/* Please no entry for i815 here since it already has
-+	 * specific resume support above */
- 	else if (bridge->driver == &intel_810_driver)
- 		intel_i810_configure();
- 	else if (bridge->driver == &intel_i965_driver)
-@@ -2212,7 +2389,7 @@ static int agp_intel_resume(struct pci_d
- 
- 	return 0;
- }
--#endif
-+#endif /* CONFIG_PM */
- 
- static struct pci_device_id agp_intel_pci_table[] = {
- #define ID(x)						\
-@@ -2272,6 +2449,7 @@ static struct pci_driver agp_intel_pci_d
- 	.probe		= agp_intel_probe,
- 	.remove		= __devexit_p(agp_intel_remove),
- #ifdef CONFIG_PM
-+	.suspend	= agp_intel_suspend,
- 	.resume		= agp_intel_resume,
- #endif
- };
-@@ -2280,6 +2458,17 @@ static int __init agp_intel_init(void)
- {
- 	if (agp_off)
- 		return -EINVAL;
-+
-+	/* let people know that this is an important place to investigate at
-+	 * in case of resume lockups.
-+	 * Let's hope we'll be able to kill this message in mid-2008 or so
-+	 * once all/most problematic Intel chipset cases have proper 3D resume
-+	 * after users reported details.
-+	 */
-+	printk(KERN_INFO PFX
-+		"suspend/resume problematic: resume with 3D/DRI active may lockup X.Org\n"
-+		"on some chipset/BIOS combos (see DEBUG_AGP_PM in intel-agp.c)\n"
-+	);
- 	return pci_register_driver(&agp_intel_pci_driver);
- }
- 
+-
++#include <linux/sched.h>
+ #include <linux/kernel.h>
+ #include <linux/pci.h>
+ #include <linux/stat.h>
 _
 
-Patches currently in -mm which might be from andi@rhlx01.fht-esslingen.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+origin.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes.patch
+timerfd-v3-new-timerfd-api-ia64-fix.patch
+timerfd-v3-new-timerfd-api-m68k-fix.patch
+timerfd-v3-new-timerfd-api-mips-fix.patch
+timerfd-v3-new-timerfd-api-arch-fixes.patch
+timerfd-v3-new-timerfd-api-powerpc-fix.patch
+timerfd-v3-new-timerfd-api-sparc64-fix.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements-checkpatch-fixes.patch
+git-acpi-fix-git-conflicts.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-ignore-acpi-video-devices-that-arent-present-in-hardware-checkpatch-fixes.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+acpi-backlight-reset-brightness-on-resume-checkpatch-fixes.patch
+git-alsa-disable-sound-pci-ice1712-ice1724c.patch
+git-audit-master.patch
+git-audit-master-fix-git-conflicts.patch
+git-audit-printk-warning-fix.patch
+git-cpufreq.patch
+revert-agk-dm-dm-loop.patch
+include-asm-powerpc-nvramh-needs-listh.patch
+include-asm-powerpc-nvramh-needs-listh-fix.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
+adt7473-new-driver-for-analog-devices-adt7473-sensor-chip-fix.patch
+revert-git-hrt.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+git-kvm.patch
+drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
+drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
+git-md-accel.patch
+memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
+git-mmc.patch
+git-mtd.patch
+drivers-mtd-ubi-wlc-fix-uninitialized-var-warning.patch
+drivers-mtd-ubi-scanc-fix-uninitialized-var-warning.patch
+drivers-mtd-ubi-cdevc-unused-var.patch
+git-netdev-all-fix-conflicts-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-backlight.patch
+git-battery.patch
+git-battery-fix-git-conflicts.patch
+bluetooth-uninlining.patch
+git-selinux-vs-git-lblnet.patch
+serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
+fix-gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
+x86-validate-against-acpi-motherboard-resources.patch
+git-sched.patch
+git-scsi-misc-vs-gregkh-pci-pci-remove-users-of-pci_enable_device_bars.patch
+scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes.patch
+scsi-aic94xx-cleanups-checkpatch-fixes.patch
+scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
+drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-ohci-sm501-driver-v2-fix.patch
+git-watchdog.patch
+git-watchdog-fixup.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-fixup-vs-git-sched.patch
+git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
+git-x86-fix-doubly-merged-patch.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
+x86-mmconf-enable-mcfg-early-cleanup.patch
+git-xtensa.patch
+add-iscsi-ibft-support-v046-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-add-proc-kpagecount-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix-2-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+mm-remove-fastcall-from-mm-checkpatch-fixes.patch
+page-migraton-handle-orphaned-pages-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+riscom8-fix-smp-brokenness-fix.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+address-hfs-on-disk-corruption-robustness-review-comments.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+stopmachine-semaphore-to-mutex-fix.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
+debug_smp_processor_id-fixlets.patch
+use-ilog2-in-fs-namespacec-fix.patch
+system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
+speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
+add-have_oprofile.patch
+drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+neofb-avoid-overwriting-fb_info-fields.patch
+vermilionc-use-align-not-__align_mask.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+disable-ext4.patch
+jbd-remove-useless-loop-in-journal_write_commit_record-checkpatch-fixes.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
+hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
+cpusets-update_cpumask-revision-fix.patch
+cpusets-update_cpumask-revision-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+modules-make-module_address_lookup-safe-fix.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
+ufs-fix-symlink-creation-on-ufs2-fix.patch
+libfs-allow-error-return-from-simple-attributes-fix.patch
+fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
+mount-options-fix-tmpfs-fix.patch
+char-applicom-use-pci_match_id-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
