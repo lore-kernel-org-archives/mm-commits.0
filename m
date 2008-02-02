@@ -1,53 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - fix-gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in.patch removed from -mm tree
-Date: Fri, 01 Feb 2008 16:05:56 -0800
-Message-ID: <200802020014.m120Ed0n006585@imap1.linux-foundation.org>
+Subject: + fix-gregkh-pci-pci-pcie-aspm-support.patch added to -mm tree
+Date: Fri, 01 Feb 2008 16:28:54 -0800
+Message-ID: <200802020037.m120ba63007664@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44984 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36118 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752652AbYBBAOn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 19:14:43 -0500
+	by vger.kernel.org with ESMTP id S1765236AbYBBAhs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2008 19:37:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, greg@kroah.com
 
 
 The patch titled
-     fix gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in
-has been removed from the -mm tree.  Its filename was
-     fix-gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in.patch
+     fix gregkh-pci-pci-pcie-aspm-support
+has been added to the -mm tree.  Its filename is
+     fix-gregkh-pci-pci-pcie-aspm-support.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in
+Subject: fix gregkh-pci-pci-pcie-aspm-support
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/pci/pci-sysfs.c: In function 'extended_config_space_store':
-drivers/pci/pci-sysfs.c:159: error: dereferencing pointer to incomplete type
+drivers/built-in.o: In function `pci_scan_slot':
+drivers/pci/probe.c:1016: undefined reference to `pcie_aspm_init_link_state'
+drivers/built-in.o: In function `pci_stop_dev':
+drivers/pci/remove.c:36: undefined reference to `pcie_aspm_exit_link_state'
+drivers/built-in.o: In function `pci_set_power_state':
+drivers/pci/pci.c:524: undefined reference to `pcie_aspm_pm_state_change'
+
+It needs PCIE.
 
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pci-sysfs.c |    2 +-
+ drivers/pci/pcie/Kconfig |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pci/pci-sysfs.c~fix-gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in drivers/pci/pci-sysfs.c
---- a/drivers/pci/pci-sysfs.c~fix-gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in
-+++ a/drivers/pci/pci-sysfs.c
-@@ -14,7 +14,7 @@
-  *
-  */
- 
--
-+#include <linux/sched.h>
- #include <linux/kernel.h>
- #include <linux/pci.h>
- #include <linux/stat.h>
+diff -puN drivers/pci/pcie/Kconfig~fix-gregkh-pci-pci-pcie-aspm-support drivers/pci/pcie/Kconfig
+--- a/drivers/pci/pcie/Kconfig~fix-gregkh-pci-pci-pcie-aspm-support
++++ a/drivers/pci/pcie/Kconfig
+@@ -32,7 +32,7 @@ source "drivers/pci/pcie/aer/Kconfig"
+ #
+ config PCIEASPM
+ 	bool "PCI Express ASPM support(Experimental)"
+-	depends on PCI && EXPERIMENTAL
++	depends on PCI && EXPERIMENTAL && PCIEPORTBUS
+ 	default y
+ 	help
+ 	  This enables PCI Express ASPM (Active State Power Management) and
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -103,7 +119,8 @@ git-battery-fix-git-conflicts.patch
 bluetooth-uninlining.patch
 git-selinux-vs-git-lblnet.patch
 serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
-fix-gregkh-pci-pci-make-pci-extended-config-space-a-driver-opt-in.patch
+fix-gregkh-pci-pci-pcie-aspm-support.patch
+git-x86-fix-doubly-merged-patch.patch
 cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
 quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
 x86-validate-against-acpi-motherboard-resources.patch
@@ -125,7 +142,6 @@ git-ipwireless_cs.patch
 git-x86.patch
 git-x86-fixup-vs-git-sched.patch
 git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
-git-x86-fix-doubly-merged-patch.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
 x86-mmconf-enable-mcfg-early-cleanup.patch
