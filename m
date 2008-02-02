@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit-fix.patch added to -mm tree
-Date: Sat, 02 Feb 2008 15:26:17 -0800
-Message-ID: <200802022325.m12NPwDQ021295@imap1.linux-foundation.org>
+Subject: + mm-bdi-export-bdi-attributes-in-sysfs-fix-2.patch added to -mm tree
+Date: Sat, 02 Feb 2008 15:38:39 -0800
+Message-ID: <200802022338.m12NcKcc021727@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41665 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34583 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763559AbYBBX0a (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 18:26:30 -0500
+	by vger.kernel.org with ESMTP id S1756652AbYBBXiY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 18:38:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mszeredi@suse.cz
 
 
 The patch titled
-     mm: bdi: fix read_ahead_kb_store()
+     mm: bdi: use MAJOR:MINOR in /sys/class/bdi
 has been added to the -mm tree.  Its filename is
-     mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit-fix.patch
+     mm-bdi-export-bdi-attributes-in-sysfs-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,37 +33,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: bdi: fix read_ahead_kb_store()
+Subject: mm: bdi: use MAJOR:MINOR in /sys/class/bdi
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-This managed to completely evade testing :(
+Uniformly use MAJOR:MINOR in /sys/class/bdi/ for both block devices
+and non-block device backed filesystems: FUSE and NFS.
 
-Fix return value to be count or -errno.  Also bring the function in
-line with the other store functions on this object, which have more
-strict input checking.
+Add symlink for block devices:
 
-Also fix bdi_set_max_ratio() to actually return an error, instead of
-always zero.
+    /sys/block/<name>/bdi -> /sys/class/bdi/<bdi>
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ block/genhd.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN mm/page-writeback.c~mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit-fix mm/page-writeback.c
---- a/mm/page-writeback.c~mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit-fix
-+++ a/mm/page-writeback.c
-@@ -288,7 +288,7 @@ int bdi_set_max_ratio(struct backing_dev
- 	}
- 	spin_unlock_irqrestore(&bdi_lock, flags);
- 
--	return 0;
-+	return ret;
+diff -puN block/genhd.c~mm-bdi-export-bdi-attributes-in-sysfs-fix-2 block/genhd.c
+--- a/block/genhd.c~mm-bdi-export-bdi-attributes-in-sysfs-fix-2
++++ a/block/genhd.c
+@@ -178,13 +178,17 @@ static int exact_lock(dev_t devt, void *
+  */
+ void add_disk(struct gendisk *disk)
+ {
++	struct backing_dev_info *bdi;
++
+ 	disk->flags |= GENHD_FL_UP;
+ 	blk_register_region(MKDEV(disk->major, disk->first_minor),
+ 			    disk->minors, NULL, exact_match, exact_lock, disk);
+ 	register_disk(disk);
+ 	blk_register_queue(disk);
+-	bdi_register(&disk->queue->backing_dev_info, NULL,
+-		"blk-%s", disk->disk_name);
++
++	bdi = &disk->queue->backing_dev_info;
++	bdi_register_dev(bdi, MKDEV(disk->major, disk->first_minor));
++	sysfs_create_link(&disk->dev.kobj, &bdi->dev->kobj, "bdi");
  }
- EXPORT_SYMBOL(bdi_set_max_ratio);
  
+ EXPORT_SYMBOL(add_disk);
+@@ -192,8 +196,9 @@ EXPORT_SYMBOL(del_gendisk);	/* in partit
+ 
+ void unlink_gendisk(struct gendisk *disk)
+ {
+-	blk_unregister_queue(disk);
++	sysfs_remove_link(&disk->dev.kobj, "bdi");
+ 	bdi_unregister(&disk->queue->backing_dev_info);
++	blk_unregister_queue(disk);
+ 	blk_unregister_region(MKDEV(disk->major, disk->first_minor),
+ 			      disk->minors);
+ }
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
@@ -99,10 +119,14 @@ mount-options-fix-udf.patch
 vfs-create-proc-pid-mountinfo.patch
 mm-bdi-export-bdi-attributes-in-sysfs.patch
 mm-bdi-export-bdi-attributes-in-sysfs-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-fix-2.patch
+mm-bdi-export-bdi-attributes-in-sysfs-fix-3.patch
+mm-bdi-export-bdi-attributes-in-sysfs-fix-4.patch
 mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs-fix.patch
 mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse-fix.patch
 mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit.patch
 mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit.patch
 mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit-fix.patch
-mm-bdi-use-majorminor-in-sys-class-bdi.patch
 mm-bdi-move-statistics-to-debugfs.patch
