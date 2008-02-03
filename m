@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: - add-have_oprofile.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 12:22:51 -0800
-Message-ID: <200802032022.m13KMWH3030022@imap1.linux-foundation.org>
+Subject: - add-have_kprobes.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 12:22:54 -0800
+Message-ID: <200802032022.m13KMZdD030025@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46397 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43332 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752151AbYBCU1i (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 15:27:38 -0500
+	by vger.kernel.org with ESMTP id S1752558AbYBCU1m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 15:27:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, akpm@linux-foundation.org, ananth@in.ibm.com, dhowells@redhat.com, hskinnemoen@atmel.com, jdike@addtoit.com, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, ananth@in.ibm.com, dhowells@redhat.com, jdike@addtoit.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add HAVE_OPROFILE
+     Add HAVE_KPROBES
 has been removed from the -mm tree.  Its filename was
-     add-have_oprofile.patch
+     add-have_kprobes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Add HAVE_OPROFILE
+Subject: Add HAVE_KPROBES
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
 Linus:
+
 On the per-architecture side, I do think it would be better to *not* have
 internal architecture knowledge in a generic file, and as such a line like
 
@@ -54,7 +55,7 @@ Changelog:
 Actually, I know I gave this as the magic incantation, but now that I see
 it, I realize that I should have told you to just use
 
-        config ARCH_SUPPORTS_KPROBES
+        config KPROBES_SUPPORT
                 def_bool y
 
 instead, which is a bit denser.
@@ -62,228 +63,132 @@ instead, which is a bit denser.
 We seem to use both kinds of syntax for these things, but this is really
 what "def_bool" is there for...
 
-Changelog :
+- Use HAVE_KPROBES
+- Use a select
 
-- Moving to HAVE_*.
-- Add AVR32 oprofile.
+- Yet another update :
+
+Moving to HAVE_* now.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: David Howells <dhowells@redhat.com>
 Cc: Jeff Dike <jdike@addtoit.com>
+Cc: David Howells <dhowells@redhat.com>
 Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/Kconfig             |    1 +
- arch/arm/Kconfig               |    1 +
  arch/avr32/Kconfig             |    1 +
- arch/blackfin/Kconfig          |    1 +
  arch/ia64/Kconfig              |    1 +
- arch/m32r/Kconfig              |    1 +
- arch/mips/Kconfig              |    1 +
- arch/parisc/Kconfig            |    1 +
  arch/powerpc/Kconfig           |    1 +
  arch/ppc/Kconfig               |    1 +
  arch/s390/Kconfig              |    1 +
- arch/sh/Kconfig                |    1 +
- arch/sparc/Kconfig             |    1 +
  arch/sparc64/Kconfig           |    1 +
  arch/x86/Kconfig               |    1 +
  kernel/Kconfig.instrumentation |    7 +++++--
- 16 files changed, 20 insertions(+), 2 deletions(-)
+ 8 files changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN arch/alpha/Kconfig~add-have_oprofile arch/alpha/Kconfig
---- a/arch/alpha/Kconfig~add-have_oprofile
-+++ a/arch/alpha/Kconfig
-@@ -5,6 +5,7 @@
- config ALPHA
- 	bool
- 	default y
-+	select HAVE_OPROFILE
- 	help
- 	  The Alpha is a 64-bit general-purpose processor designed and
- 	  marketed by the Digital Equipment Corporation of blessed memory,
-diff -puN arch/arm/Kconfig~add-have_oprofile arch/arm/Kconfig
---- a/arch/arm/Kconfig~add-have_oprofile
-+++ a/arch/arm/Kconfig
-@@ -10,6 +10,7 @@ config ARM
- 	default y
- 	select RTC_LIB
- 	select SYS_SUPPORTS_APM_EMULATION
-+	select HAVE_OPROFILE
- 	help
- 	  The ARM series is a line of low-power-consumption RISC chip designs
- 	  licensed by ARM Ltd and targeted at embedded applications and
-diff -puN arch/avr32/Kconfig~add-have_oprofile arch/avr32/Kconfig
---- a/arch/avr32/Kconfig~add-have_oprofile
+diff -puN arch/avr32/Kconfig~add-have_kprobes arch/avr32/Kconfig
+--- a/arch/avr32/Kconfig~add-have_kprobes
 +++ a/arch/avr32/Kconfig
-@@ -10,6 +10,7 @@ config AVR32
- 	# With EMBEDDED=n, we get lots of stuff automatically selected
+@@ -11,6 +11,7 @@ config AVR32
  	# that we usually don't need on AVR32.
  	select EMBEDDED
-+	select HAVE_OPROFILE
+ 	select HAVE_OPROFILE
++	select HAVE_KPROBES
  	help
  	  AVR32 is a high-performance 32-bit RISC microprocessor core,
  	  designed for cost-sensitive embedded applications, with particular
-diff -puN arch/blackfin/Kconfig~add-have_oprofile arch/blackfin/Kconfig
---- a/arch/blackfin/Kconfig~add-have_oprofile
-+++ a/arch/blackfin/Kconfig
-@@ -24,6 +24,7 @@ config RWSEM_XCHGADD_ALGORITHM
- config BLACKFIN
- 	bool
- 	default y
-+	select HAVE_OPROFILE
- 
- config ZONE_DMA
- 	bool
-diff -puN arch/ia64/Kconfig~add-have_oprofile arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~add-have_oprofile
+diff -puN arch/ia64/Kconfig~add-have_kprobes arch/ia64/Kconfig
+--- a/arch/ia64/Kconfig~add-have_kprobes
 +++ a/arch/ia64/Kconfig
-@@ -15,6 +15,7 @@ config IA64
- 	select ACPI if (!IA64_HP_SIM)
+@@ -16,6 +16,7 @@ config IA64
  	select PM if (!IA64_HP_SIM)
  	select ARCH_SUPPORTS_MSI
-+	select HAVE_OPROFILE
+ 	select HAVE_OPROFILE
++	select HAVE_KPROBES
  	default y
  	help
  	  The Itanium Processor Family is Intel's 64-bit successor to
-diff -puN arch/m32r/Kconfig~add-have_oprofile arch/m32r/Kconfig
---- a/arch/m32r/Kconfig~add-have_oprofile
-+++ a/arch/m32r/Kconfig
-@@ -8,6 +8,7 @@ mainmenu "Linux/M32R Kernel Configuratio
- config M32R
- 	bool
- 	default y
-+	select HAVE_OPROFILE
- 
- config SBUS
- 	bool
-diff -puN arch/mips/Kconfig~add-have_oprofile arch/mips/Kconfig
---- a/arch/mips/Kconfig~add-have_oprofile
-+++ a/arch/mips/Kconfig
-@@ -1,6 +1,7 @@
- config MIPS
- 	bool
- 	default y
-+	select HAVE_OPROFILE if !MIPS_MT_SMTC
- 	# Horrible source of confusion.  Die, die, die ...
- 	select EMBEDDED
- 	select RTC_LIB
-diff -puN arch/parisc/Kconfig~add-have_oprofile arch/parisc/Kconfig
---- a/arch/parisc/Kconfig~add-have_oprofile
-+++ a/arch/parisc/Kconfig
-@@ -7,6 +7,7 @@ mainmenu "Linux/PA-RISC Kernel Configura
- 
- config PARISC
- 	def_bool y
-+	select HAVE_OPROFILE
- 	help
- 	  The PA-RISC microprocessor is designed by Hewlett-Packard and used
- 	  in many of their workstations & servers (HP9000 700 and 800 series,
-diff -puN arch/powerpc/Kconfig~add-have_oprofile arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~add-have_oprofile
+diff -puN arch/powerpc/Kconfig~add-have_kprobes arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~add-have_kprobes
 +++ a/arch/powerpc/Kconfig
-@@ -87,6 +87,7 @@ config ARCH_NO_VIRT_TO_BUS
- config PPC
+@@ -88,6 +88,7 @@ config PPC
  	bool
  	default y
-+	select HAVE_OPROFILE
+ 	select HAVE_OPROFILE
++	select HAVE_KPROBES
  
  config EARLY_PRINTK
  	bool
-diff -puN arch/ppc/Kconfig~add-have_oprofile arch/ppc/Kconfig
---- a/arch/ppc/Kconfig~add-have_oprofile
+diff -puN arch/ppc/Kconfig~add-have_kprobes arch/ppc/Kconfig
+--- a/arch/ppc/Kconfig~add-have_kprobes
 +++ a/arch/ppc/Kconfig
-@@ -42,6 +42,7 @@ config GENERIC_CALIBRATE_DELAY
- config PPC
+@@ -43,6 +43,7 @@ config PPC
  	bool
  	default y
-+	select HAVE_OPROFILE
+ 	select HAVE_OPROFILE
++	select HAVE_KPROBES
  
  config PPC32
  	bool
-diff -puN arch/s390/Kconfig~add-have_oprofile arch/s390/Kconfig
---- a/arch/s390/Kconfig~add-have_oprofile
+diff -puN arch/s390/Kconfig~add-have_kprobes arch/s390/Kconfig
+--- a/arch/s390/Kconfig~add-have_kprobes
 +++ a/arch/s390/Kconfig
-@@ -56,6 +56,7 @@ mainmenu "Linux Kernel Configuration"
- 
+@@ -57,6 +57,7 @@ mainmenu "Linux Kernel Configuration"
  config S390
  	def_bool y
-+	select HAVE_OPROFILE
+ 	select HAVE_OPROFILE
++	select HAVE_KPROBES
  
  source "init/Kconfig"
  
-diff -puN arch/sh/Kconfig~add-have_oprofile arch/sh/Kconfig
---- a/arch/sh/Kconfig~add-have_oprofile
-+++ a/arch/sh/Kconfig
-@@ -8,6 +8,7 @@ mainmenu "Linux/SuperH Kernel Configurat
- config SUPERH
- 	def_bool y
- 	select EMBEDDED
-+	select HAVE_OPROFILE
- 	help
- 	  The SuperH is a RISC processor targeted for use in embedded systems
- 	  and consumer electronics; it was also used in the Sega Dreamcast
-diff -puN arch/sparc/Kconfig~add-have_oprofile arch/sparc/Kconfig
---- a/arch/sparc/Kconfig~add-have_oprofile
-+++ a/arch/sparc/Kconfig
-@@ -63,6 +63,7 @@ config NR_CPUS
- config SPARC
- 	bool
- 	default y
-+	select HAVE_OPROFILE
- 
- # Identify this as a Sparc32 build
- config SPARC32
-diff -puN arch/sparc64/Kconfig~add-have_oprofile arch/sparc64/Kconfig
---- a/arch/sparc64/Kconfig~add-have_oprofile
+diff -puN arch/sparc64/Kconfig~add-have_kprobes arch/sparc64/Kconfig
+--- a/arch/sparc64/Kconfig~add-have_kprobes
 +++ a/arch/sparc64/Kconfig
-@@ -8,6 +8,7 @@ mainmenu "Linux/UltraSPARC Kernel Config
- config SPARC
+@@ -9,6 +9,7 @@ config SPARC
  	bool
  	default y
-+	select HAVE_OPROFILE
+ 	select HAVE_OPROFILE
++	select HAVE_KPROBES
  
  config SPARC64
  	bool
-diff -puN arch/x86/Kconfig~add-have_oprofile arch/x86/Kconfig
---- a/arch/x86/Kconfig~add-have_oprofile
+diff -puN arch/x86/Kconfig~add-have_kprobes arch/x86/Kconfig
+--- a/arch/x86/Kconfig~add-have_kprobes
 +++ a/arch/x86/Kconfig
-@@ -18,6 +18,7 @@ config X86_64
- ### Arch settings
+@@ -19,6 +19,7 @@ config X86_64
  config X86
  	def_bool y
-+	select HAVE_OPROFILE
+ 	select HAVE_OPROFILE
++	select HAVE_KPROBES
  
  config GENERIC_LOCKBREAK
  	def_bool n
-diff -puN kernel/Kconfig.instrumentation~add-have_oprofile kernel/Kconfig.instrumentation
---- a/kernel/Kconfig.instrumentation~add-have_oprofile
+diff -puN kernel/Kconfig.instrumentation~add-have_kprobes kernel/Kconfig.instrumentation
+--- a/kernel/Kconfig.instrumentation~add-have_kprobes
 +++ a/kernel/Kconfig.instrumentation
-@@ -20,8 +20,8 @@ config PROFILING
+@@ -34,8 +34,8 @@ config HAVE_OPROFILE
  
- config OPROFILE
- 	tristate "OProfile system profiling (EXPERIMENTAL)"
--	depends on PROFILING && !UML
--	depends on ARCH_SUPPORTS_OPROFILE || ALPHA || ARM || BLACKFIN || IA64 || M32R || PARISC || PPC || S390 || SUPERH || SPARC
-+	depends on PROFILING
-+	depends on HAVE_OPROFILE
- 	help
- 	  OProfile is a profiling system capable of profiling the
- 	  whole system, include the kernel, kernel modules, libraries,
-@@ -29,6 +29,9 @@ config OPROFILE
- 
- 	  If unsure, say N.
- 
-+config HAVE_OPROFILE
-+	def_bool n
-+
  config KPROBES
  	bool "Kprobes"
- 	depends on KALLSYMS && MODULES && !UML
+-	depends on KALLSYMS && MODULES && !UML
+-	depends on X86_32 || IA64 || PPC || S390 || SPARC64 || X86_64 || AVR32
++	depends on KALLSYMS && MODULES
++	depends on HAVE_KPROBES
+ 	help
+ 	  Kprobes allows you to trap at almost any kernel address and
+ 	  execute a callback function.  register_kprobe() establishes
+@@ -43,6 +43,9 @@ config KPROBES
+ 	  for kernel debugging, non-intrusive instrumentation and testing.
+ 	  If in doubt, say "N".
+ 
++config HAVE_KPROBES
++	def_bool n
++
+ config MARKERS
+ 	bool "Activate markers"
+ 	help
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
