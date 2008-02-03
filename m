@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-fix-git-conflicts.patch added to -mm tree
-Date: Sun, 03 Feb 2008 12:41:11 -0800
-Message-ID: <200802032049.m13KnvaV030898@imap1.linux-foundation.org>
+Subject: + git-audit-master-fix-git-rejects.patch added to -mm tree
+Date: Sun, 03 Feb 2008 12:43:14 -0800
+Message-ID: <200802032051.m13KpxXU030938@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59694 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39829 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752151AbYBCUu1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 15:50:27 -0500
+	by vger.kernel.org with ESMTP id S1752108AbYBCUwC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 15:52:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu
+Cc: akpm@linux-foundation.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     git-x86-fix-git-conflicts
+     git-audit-master-fix-git-rejects
 has been added to the -mm tree.  Its filename is
-     git-x86-fix-git-conflicts.patch
+     git-audit-master-fix-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,32 +33,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-x86-fix-git-conflicts
+Subject: git-audit-master-fix-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/futex.h |    5 -----
- 1 file changed, 5 deletions(-)
+ kernel/audit.c  |   12 ------------
+ kernel/sysctl.c |    3 ---
+ 2 files changed, 15 deletions(-)
 
-diff -puN include/asm-x86/futex.h~git-x86-fix-git-conflicts include/asm-x86/futex.h
---- a/include/asm-x86/futex.h~git-x86-fix-git-conflicts
-+++ a/include/asm-x86/futex.h
-@@ -106,12 +106,7 @@ futex_atomic_cmpxchg_inatomic(int __user
- 		return -EFAULT;
+diff -puN kernel/audit.c~git-audit-master-fix-git-rejects kernel/audit.c
+--- a/kernel/audit.c~git-audit-master-fix-git-rejects
++++ a/kernel/audit.c
+@@ -301,25 +301,13 @@ static int audit_do_config_change(char *
+ }
  
- 	__asm__ __volatile__(
--<<<<<<< HEAD:include/asm-x86/futex.h
--
--		"1:	lock; cmpxchgl %3, %1			\n"
+ static int audit_set_rate_limit(int limit, uid_t loginuid, u32 sid)
+-<<<<<<< HEAD:kernel/audit.c
 -=======
- 		"1:	" LOCK_PREFIX "cmpxchgl %3, %1		\n"
-->>>>>>> FETCH_HEAD:include/asm-x86/futex.h
- 		"2:	.section .fixup, \"ax\"			\n"
- 		"3:	mov     %2, %0				\n"
- 		"	jmp     2b				\n"
+ {
+ 	return audit_do_config_change("audit_rate_limit", &audit_rate_limit,
+ 				      limit, loginuid, sid);
+ }
+ 
+ static int audit_set_backlog_limit(int limit, uid_t loginuid, u32 sid)
+->>>>>>> FETCH_HEAD:kernel/audit.c
+ {
+-<<<<<<< HEAD:kernel/audit.c
+-	return audit_do_config_change("audit_rate_limit", &audit_rate_limit,
+-				      limit, loginuid, sid);
+-}
+-
+-static int audit_set_backlog_limit(int limit, uid_t loginuid, u32 sid)
+-{
+-=======
+->>>>>>> FETCH_HEAD:kernel/audit.c
+ 	return audit_do_config_change("audit_backlog_limit", &audit_backlog_limit,
+ 				      limit, loginuid, sid);
+ }
+diff -puN kernel/sysctl.c~git-audit-master-fix-git-rejects kernel/sysctl.c
+--- a/kernel/sysctl.c~git-audit-master-fix-git-rejects
++++ a/kernel/sysctl.c
+@@ -81,10 +81,7 @@ extern int percpu_pagelist_fraction;
+ extern int compat_log;
+ extern int maps_protect;
+ extern int sysctl_stat_interval;
+-<<<<<<< HEAD:kernel/sysctl.c
+ extern int latencytop_enabled;
+-=======
+->>>>>>> FETCH_HEAD:kernel/sysctl.c
+ 
+ /* Constants used for minimum and  maximum */
+ #ifdef CONFIG_DETECT_SOFTLOCKUP
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -86,6 +114,7 @@ git-alsa-disable-sound-pci-ice1712-ice1724c.patch
 git-agpgart.patch
 git-agpgart-fix.patch
 git-audit-master.patch
+git-audit-master-fix-git-rejects.patch
 git-audit-printk-warning-fix.patch
 cifs-fix-warning.patch
 git-cpufreq.patch
