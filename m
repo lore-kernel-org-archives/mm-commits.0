@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ide-scsi-needs-select_drive.patch added to -mm tree
-Date: Sat, 02 Feb 2008 19:22:33 -0800
-Message-ID: <200802030331.m133VHrf029348@imap1.linux-foundation.org>
+Subject: + 9p-fix-p9_printfcall-export.patch added to -mm tree
+Date: Sat, 02 Feb 2008 19:24:01 -0800
+Message-ID: <200802030332.m133WjqQ029373@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57420 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48906 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935854AbYBCDbX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 22:31:23 -0500
+	by vger.kernel.org with ESMTP id S1754300AbYBCDcs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 22:32:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bzolnier@gmail.com
+Cc: akpm@linux-foundation.org, ericvh@gmail.com
 
 
 The patch titled
-     ide-scsi needs SELECT_DRIVE
+     9p: fix p9_printfcall export
 has been added to the -mm tree.  Its filename is
-     ide-scsi-needs-select_drive.patch
+     9p-fix-p9_printfcall-export.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,29 +33,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ide-scsi needs SELECT_DRIVE
+Subject: 9p: fix p9_printfcall export
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "SELECT_DRIVE" [drivers/scsi/ide-scsi.ko] undefined!
+ERROR: "p9_printfcall" [net/9p/9pnet_virtio.ko] undefined!
 
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Eric Van Hensbergen <ericvh@gmail.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/ide-iops.c |    1 +
- 1 file changed, 1 insertion(+)
+ net/9p/fcprint.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ide/ide-iops.c~ide-scsi-needs-select_drive drivers/ide/ide-iops.c
---- a/drivers/ide/ide-iops.c~ide-scsi-needs-select_drive
-+++ a/drivers/ide/ide-iops.c
-@@ -162,6 +162,7 @@ void SELECT_DRIVE (ide_drive_t *drive)
- 		HWIF(drive)->selectproc(drive);
- 	HWIF(drive)->OUTB(drive->select.all, IDE_SELECT_REG);
- }
-+EXPORT_SYMBOL(SELECT_DRIVE);
+diff -puN net/9p/fcprint.c~9p-fix-p9_printfcall-export net/9p/fcprint.c
+--- a/net/9p/fcprint.c~9p-fix-p9_printfcall-export
++++ a/net/9p/fcprint.c
+@@ -347,12 +347,12 @@ p9_printfcall(char *buf, int buflen, str
  
- void SELECT_MASK (ide_drive_t *drive, int mask)
+ 	return ret;
+ }
+-
+ #else
+ int
+ p9_printfcall(char *buf, int buflen, struct p9_fcall *fc, int extended)
  {
+ 	return 0;
+ }
+-EXPORT_SYMBOL(p9_printfcall);
+ #endif /* CONFIG_NET_9P_DEBUG */
++EXPORT_SYMBOL(p9_printfcall);
++
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -101,6 +109,7 @@ revert-git-hrt.patch
 infiniband-is-scrogged-again.patch
 drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
 git-kvm.patch
+ide-scsi-needs-select_drive.patch
 drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
 drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
 git-md-accel.patch
@@ -311,4 +320,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-ide-scsi-needs-select_drive.patch
+9p-fix-p9_printfcall-export.patch
