@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + page-owner-tracking-leak-detector-broken-on-s390.patch added to -mm tree
-Date: Sun, 03 Feb 2008 01:23:05 -0800
-Message-ID: <200802030931.m139Vmlk008193@imap1.linux-foundation.org>
+Subject: + proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch added to -mm tree
+Date: Sun, 03 Feb 2008 01:34:08 -0800
+Message-ID: <200802030942.m139gqtt008612@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38935 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49457 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755250AbYBCJcA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 04:32:00 -0500
+	by vger.kernel.org with ESMTP id S1759322AbYBCJnf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 04:43:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com
+Cc: akpm@linux-foundation.org, clg@fr.ibm.com, ebiederm@xmission.com, heiko.carstens@de.ibm.com, menage@google.com, morgan@kernel.org, pj@sgi.com, rientjes@google.com, schwidefsky@de.ibm.com, serue@us.ibm.com, xemul@openvz.org
 
 
 The patch titled
-     page-owner-tracking-leak-detector-broken-on-s390
+     proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix
 has been added to the -mm tree.  Its filename is
-     page-owner-tracking-leak-detector-broken-on-s390.patch
+     proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page-owner-tracking-leak-detector-broken-on-s390
+Subject: proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-This debug patch expands the size of struct page and causes this, in vmem.c:
+fs/proc/task_nommu.c: In function `task_mem':
+fs/proc/task_nommu.c:61: error: `buffer' undeclared (first use in this function)
+fs/proc/task_nommu.c:61: error: (Each undeclared identifier is reported only once
+fs/proc/task_nommu.c:61: error: for each function it appears in.)
+fs/proc/task_nommu.c:68: warning: `return' with a value, in function returning void
 
-
-	BUILD_BUG_ON((unsigned long)VMEM_MAP + VMEM_MAP_SIZE > VMEM_MAP_MAX);
-
-to go boom.
-
-This shouldn't happen - there are quite a few debug patches around the place
-which add things to the pageframe.
-
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Andrew Morgan <morgan@kernel.org>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Serge Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    1 +
- vmstat.c          |    0 
- 2 files changed, 1 insertion(+)
+ fs/proc/task_nommu.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN Documentation/page_owner.c~page-owner-tracking-leak-detector-broken-on-s390 Documentation/page_owner.c
-diff -puN fs/proc/proc_misc.c~page-owner-tracking-leak-detector-broken-on-s390 fs/proc/proc_misc.c
-diff -puN include/linux/mm_types.h~page-owner-tracking-leak-detector-broken-on-s390 include/linux/mm_types.h
-diff -puN lib/Kconfig.debug~page-owner-tracking-leak-detector-broken-on-s390 lib/Kconfig.debug
---- a/lib/Kconfig.debug~page-owner-tracking-leak-detector-broken-on-s390
-+++ a/lib/Kconfig.debug
-@@ -58,6 +58,7 @@ config UNUSED_SYMBOLS
- config PAGE_OWNER
- 	bool "Track page owner"
- 	depends on DEBUG_KERNEL
-+	depends on !S390
- 	help
- 	  This keeps track of what call chain is the owner of a page, may
- 	  help to find bare alloc_page(s) leaks. Eats a fair amount of memory.
-diff -puN mm/page_alloc.c~page-owner-tracking-leak-detector-broken-on-s390 mm/page_alloc.c
-diff -puN mm/vmstat.c~page-owner-tracking-leak-detector-broken-on-s390 mm/vmstat.c
+diff -puN fs/proc/task_nommu.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix fs/proc/task_nommu.c
+--- a/fs/proc/task_nommu.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix
++++ a/fs/proc/task_nommu.c
+@@ -58,14 +58,13 @@ void task_mem(struct seq_file *m, struct
+ 
+ 	bytes += kobjsize(current); /* includes kernel stack */
+ 
+-	buffer += sprintf(buffer,
++	seq_printf(m,
+ 		"Mem:\t%8lu bytes\n"
+ 		"Slack:\t%8lu bytes\n"
+ 		"Shared:\t%8lu bytes\n",
+ 		bytes, slack, sbytes);
+ 
+ 	up_read(&mm->mmap_sem);
+-	return buffer;
+ }
+ 
+ unsigned long task_vsize(struct mm_struct *mm)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -300,6 +306,7 @@ proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatc
 proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
 proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
 proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
 proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
 intel-iommu-fault_reason_index_cleanuppatch-fix.patch
 modules-make-module_address_lookup-safe-fix.patch
