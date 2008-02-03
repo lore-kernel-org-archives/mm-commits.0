@@ -1,62 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-fix-rejects.patch added to -mm tree
-Date: Sun, 03 Feb 2008 12:09:44 -0800
-Message-ID: <200802032009.m13K9Pud029553@imap1.linux-foundation.org>
+Subject: - disable-ext4.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 12:18:35 -0800
+Message-ID: <200802032018.m13KIGoC029855@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37567 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43328 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751808AbYBCUJ2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 15:09:28 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m13K9PpT001631
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sun, 3 Feb 2008 12:09:27 -0800
+	by vger.kernel.org with ESMTP id S1751881AbYBCUTS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 15:19:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, dhowells@redhat.com, linux-ext4@vger.kernel.org, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-x86-fix-rejects
-has been added to the -mm tree.  Its filename is
-     git-x86-fix-rejects.patch
+     disable-ext4
+has been removed from the -mm tree.  Its filename was
+     disable-ext4.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-x86-fix-rejects
+Subject: disable-ext4
 From: Andrew Morton <akpm@linux-foundation.org>
 
+The defrag patches use iget(), which will not be present in 2.6.25
+
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: David Howells <dhowells@redhat.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/Makefile |    1 +
+ fs/Kconfig |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN kernel/Makefile~git-x86-fix-rejects kernel/Makefile
---- a/kernel/Makefile~git-x86-fix-rejects
-+++ a/kernel/Makefile
-@@ -49,6 +49,7 @@ obj-$(CONFIG_AUDIT) += audit.o auditfilt
- obj-$(CONFIG_AUDITSYSCALL) += auditsc.o
- obj-$(CONFIG_AUDIT_TREE) += audit_tree.o
- obj-$(CONFIG_KPROBES) += kprobes.o
-+obj-$(CONFIG_KGDB) += kgdb.o
- obj-$(CONFIG_DETECT_SOFTLOCKUP) += softlockup.o
- obj-$(CONFIG_GENERIC_HARDIRQS) += irq/
- obj-$(CONFIG_SECCOMP) += seccomp.o
+diff -puN fs/Kconfig~disable-ext4 fs/Kconfig
+--- a/fs/Kconfig~disable-ext4
++++ a/fs/Kconfig
+@@ -139,6 +139,7 @@ config EXT3_FS_SECURITY
+ config EXT4DEV_FS
+ 	tristate "Ext4dev/ext4 extended fs support development (EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL
++	depends on BROKEN
+ 	select JBD2
+ 	select CRC16
+ 	help
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -139,13 +130,11 @@ b43-fix-build-with-config_ssb_pcihost=n.patch
 git-ipwireless_cs.patch
 git-x86.patch
 git-x86-fix-rejects.patch
-git-x86-fixup-vs-git-sched.patch
 git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
 x86-amd-thermal-interrupt-support-fix-2.patch
 x86-mmconf-enable-mcfg-early-cleanup.patch
-git-newsetup.patch
 git-xtensa.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
@@ -205,7 +194,6 @@ debug_smp_processor_id-fixlets.patch
 use-ilog2-in-fs-namespacec-fix.patch
 system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
 speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
-add-have_oprofile.patch
 drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
 ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
 rtc-ds1302-rtc-support-checkpatch-fixes.patch
@@ -218,8 +206,6 @@ md-change-iterate_rdev-to-rdev_for_each-fix.patch
 declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
 isapnp-driver-semaphore-to-mutex-fix.patch
 isapnp-driver-semaphore-to-mutex-fix-fix.patch
-disable-ext4.patch
-jbd-remove-useless-loop-in-journal_write_commit_record-checkpatch-fixes.patch
 ext3-fix-lock-inversion-in-direct-io-fix.patch
 kill-filp_open-checkpatch-fixes.patch
 rename-open_namei-to-open_pathname-fix.patch
@@ -264,6 +250,7 @@ iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
 iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
 iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
 iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
+disable-ext4.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
