@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcontrol-move-mm_cgroup-to-header-file-fix-2.patch added to -mm tree
-Date: Sat, 02 Feb 2008 16:19:15 -0800
-Message-ID: <200802030027.m130RxBF023466@imap1.linux-foundation.org>
+Subject: + embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch added to -mm tree
+Date: Sat, 02 Feb 2008 16:27:04 -0800
+Message-ID: <200802030035.m130ZmO9023687__38199.4847594344$1201999025$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58814 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45981 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935188AbYBCA2Y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 19:28:24 -0500
+	by vger.kernel.org with ESMTP id S1764932AbYBCAgX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 19:36:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, rientjes@google.com
+Cc: akpm@linux-foundation.org, agruen@suse.de, hch@lst.de, jblunck@suse.de, linux-fsdevel@vger.kernel.org, sfrench@us.ibm.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     memcontrol-move-mm_cgroup-to-header-file-fix-2
+     embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix
 has been added to the -mm tree.  Its filename is
-     memcontrol-move-mm_cgroup-to-header-file-fix-2.patch
+     embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,40 +33,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcontrol-move-mm_cgroup-to-header-file-fix-2
+Subject: embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from include/linux/swap.h:8,
-                 from include/linux/shmem_fs.h:4,
-                 from mm/shmem_acl.c:10:
-include/linux/memcontrol.h: In function 'mm_cgroup':
-include/linux/memcontrol.h:55: error: dereferencing pointer to incomplete type
-include/linux/memcontrol.h:55: warning: type defaults to 'int' in declaration of '_________p1'
-include/linux/memcontrol.h:55: error: dereferencing pointer to incomplete type
-include/linux/memcontrol.h:55: error: dereferencing pointer to incomplete type
-include/linux/memcontrol.h:55: warning: type defaults to 'int' in declaration of 'type name'
-include/linux/memcontrol.h:55: warning: return makes pointer from integer without a cast
-make[1]: *** [mm/shmem_acl.o] Error 1
-
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
+Cc: <linux-fsdevel@vger.kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andreas Gruenbacher <agruen@suse.de>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Jan Blunck <jblunck@suse.de>
+Cc: Steven French <sfrench@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    1 +
- 1 file changed, 1 insertion(+)
+ fs/cifs/cifs_dfs_ref.c |   23 ++++++++++++-----------
+ 1 file changed, 12 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcontrol-move-mm_cgroup-to-header-file-fix-2 include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcontrol-move-mm_cgroup-to-header-file-fix-2
-+++ a/include/linux/memcontrol.h
-@@ -21,6 +21,7 @@
- #define _LINUX_MEMCONTROL_H
+diff -puN fs/cifs/cifs_dfs_ref.c~embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix fs/cifs/cifs_dfs_ref.c
+--- a/fs/cifs/cifs_dfs_ref.c~embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix
++++ a/fs/cifs/cifs_dfs_ref.c
+@@ -259,18 +259,18 @@ static int add_mount_helper(struct vfsmo
+ 	int err;
  
- #include <linux/rcupdate.h>
-+#include <linux/mm.h>
+ 	mntget(newmnt);
+-	err = do_add_mount(newmnt, nd, nd->mnt->mnt_flags, mntlist);
++	err = do_add_mount(newmnt, nd, nd->path.mnt->mnt_flags, mntlist);
+ 	switch (err) {
+ 	case 0:
+-		dput(nd->dentry);
+-		mntput(nd->mnt);
+-		nd->mnt = newmnt;
+-		nd->dentry = dget(newmnt->mnt_root);
++		dput(nd->path.dentry);
++		mntput(nd->path.mnt);
++		nd->path.mnt = newmnt;
++		nd->path.dentry = dget(newmnt->mnt_root);
+ 		break;
+ 	case -EBUSY:
+ 		/* someone else made a mount here whilst we were busy */
+-		while (d_mountpoint(nd->dentry) &&
+-		       follow_down(&nd->mnt, &nd->dentry))
++		while (d_mountpoint(nd->path.dentry) &&
++		       follow_down(&nd->path.mnt, &nd->path.dentry))
+ 			;
+ 		err = 0;
+ 	default:
+@@ -307,8 +307,8 @@ cifs_dfs_follow_mountpoint(struct dentry
  
- struct mem_cgroup;
- struct page_cgroup;
+ 	xid = GetXid();
+ 
+-	dput(nd->dentry);
+-	nd->dentry = dget(dentry);
++	dput(nd->path.dentry);
++	nd->path.dentry = dget(dentry);
+ 
+ 	cifs_sb = CIFS_SB(dentry->d_inode->i_sb);
+ 	ses = cifs_sb->tcon->ses;
+@@ -340,7 +340,8 @@ cifs_dfs_follow_mountpoint(struct dentry
+ 				rc = -EINVAL;
+ 				goto out_err;
+ 			}
+-			mnt = cifs_dfs_do_refmount(nd->mnt, nd->dentry,
++			mnt = cifs_dfs_do_refmount(nd->path.mnt,
++						nd->path.dentry,
+ 						referrals[i].node_name);
+ 			cFYI(1, ("%s: cifs_dfs_do_refmount:%s , mnt:%p",
+ 					 __FUNCTION__,
+@@ -357,7 +358,7 @@ cifs_dfs_follow_mountpoint(struct dentry
+ 	if (IS_ERR(mnt))
+ 		goto out_err;
+ 
+-	nd->mnt->mnt_flags |= MNT_SHRINKABLE;
++	nd->path.mnt->mnt_flags |= MNT_SHRINKABLE;
+ 	rc = add_mount_helper(mnt, nd, &cifs_dfs_automount_list);
+ 
+ out:
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -222,6 +262,7 @@ isapnp-driver-semaphore-to-mutex-fix.patch
 isapnp-driver-semaphore-to-mutex-fix-fix.patch
 disable-ext4.patch
 jbd-remove-useless-loop-in-journal_write_commit_record-checkpatch-fixes.patch
+ext3-fix-lock-inversion-in-direct-io-fix.patch
 kill-filp_open-checkpatch-fixes.patch
 rename-open_namei-to-open_pathname-fix.patch
 r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
@@ -245,7 +286,6 @@ memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patc
 memory-cgroup-enhancements-add-memorystat-file.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
-a.patch
 cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
 cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
 hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
@@ -268,6 +308,7 @@ iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
 iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
 one-less-parameter-to-__d_path-checkpatch-fixes.patch
 d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
 d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
