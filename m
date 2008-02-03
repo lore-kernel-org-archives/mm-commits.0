@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-audit-master-fix-git-rejects.patch added to -mm tree
-Date: Sun, 03 Feb 2008 12:43:14 -0800
-Message-ID: <200802032051.m13KpxXU030938@imap1.linux-foundation.org>
+Subject: + drivers-mtd-maps-physmapc-fix-compile-remove-ifdef.patch added to -mm tree
+Date: Sun, 03 Feb 2008 12:56:03 -0800
+Message-ID: <200802032104.m13L4mO3031379@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39829 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47089 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752108AbYBCUwC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 15:52:02 -0500
+	by vger.kernel.org with ESMTP id S1752768AbYBCVFF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 16:05:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org, dwmw2@infradead.org
 
 
 The patch titled
-     git-audit-master-fix-git-rejects
+     drivers/mtd/maps/physmap.c: fix compile, remove ifdef
 has been added to the -mm tree.  Its filename is
-     git-audit-master-fix-git-rejects.patch
+     drivers-mtd-maps-physmapc-fix-compile-remove-ifdef.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,60 +33,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-audit-master-fix-git-rejects
+Subject: drivers/mtd/maps/physmap.c: fix compile, remove ifdef
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/audit.c  |   12 ------------
- kernel/sysctl.c |    3 ---
- 2 files changed, 15 deletions(-)
+ drivers/mtd/maps/physmap.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN kernel/audit.c~git-audit-master-fix-git-rejects kernel/audit.c
---- a/kernel/audit.c~git-audit-master-fix-git-rejects
-+++ a/kernel/audit.c
-@@ -301,25 +301,13 @@ static int audit_do_config_change(char *
+diff -puN drivers/mtd/maps/physmap.c~drivers-mtd-maps-physmapc-fix-compile-remove-ifdef drivers/mtd/maps/physmap.c
+--- a/drivers/mtd/maps/physmap.c~drivers-mtd-maps-physmapc-fix-compile-remove-ifdef
++++ a/drivers/mtd/maps/physmap.c
+@@ -204,7 +204,7 @@ static int physmap_flash_suspend(struct 
+ 
+ 	if (info)
+ 		for (i = 0; i < MAX_RESOURCES; i++)
+-			ret |= info->mtd[i].suspend(info->mtd[i]);
++			ret |= info->mtd[i]->suspend(info->mtd[i]);
+ 
+ 	return ret;
+ }
+@@ -216,7 +216,7 @@ static int physmap_flash_resume(struct p
+ 
+ 	if (info)
+ 		for (i = 0; i < MAX_RESOURCES; i++)
+-			info->mtd[i].resume(info->mtd[i]);
++			info->mtd[i]->resume(info->mtd[i]);
+ 	return 0;
  }
  
- static int audit_set_rate_limit(int limit, uid_t loginuid, u32 sid)
--<<<<<<< HEAD:kernel/audit.c
--=======
- {
- 	return audit_do_config_change("audit_rate_limit", &audit_rate_limit,
- 				      limit, loginuid, sid);
- }
+@@ -226,19 +226,21 @@ static void physmap_flash_shutdown(struc
+ 	int i;
  
- static int audit_set_backlog_limit(int limit, uid_t loginuid, u32 sid)
-->>>>>>> FETCH_HEAD:kernel/audit.c
- {
--<<<<<<< HEAD:kernel/audit.c
--	return audit_do_config_change("audit_rate_limit", &audit_rate_limit,
--				      limit, loginuid, sid);
--}
--
--static int audit_set_backlog_limit(int limit, uid_t loginuid, u32 sid)
--{
--=======
-->>>>>>> FETCH_HEAD:kernel/audit.c
- 	return audit_do_config_change("audit_backlog_limit", &audit_backlog_limit,
- 				      limit, loginuid, sid);
+ 	for (i = 0; i < MAX_RESOURCES; i++)
+-		if (info && info->mtd[i].suspend(info->mtd[i]) == 0)
+-			info->mtd[i].resume(info->mtd[i]);
++		if (info && info->mtd[i]->suspend(info->mtd[i]) == 0)
++			info->mtd[i]->resume(info->mtd[i]);
  }
-diff -puN kernel/sysctl.c~git-audit-master-fix-git-rejects kernel/sysctl.c
---- a/kernel/sysctl.c~git-audit-master-fix-git-rejects
-+++ a/kernel/sysctl.c
-@@ -81,10 +81,7 @@ extern int percpu_pagelist_fraction;
- extern int compat_log;
- extern int maps_protect;
- extern int sysctl_stat_interval;
--<<<<<<< HEAD:kernel/sysctl.c
- extern int latencytop_enabled;
--=======
-->>>>>>> FETCH_HEAD:kernel/sysctl.c
++#else
++#define physmap_flash_suspend NULL
++#define physmap_flash_resume NULL
++#define physmap_flash_shutdown NULL
+ #endif
  
- /* Constants used for minimum and  maximum */
- #ifdef CONFIG_DETECT_SOFTLOCKUP
+ static struct platform_driver physmap_flash_driver = {
+ 	.probe		= physmap_flash_probe,
+ 	.remove		= physmap_flash_remove,
+-#ifdef CONFIG_PM
+ 	.suspend	= physmap_flash_suspend,
+ 	.resume		= physmap_flash_resume,
+ 	.shutdown	= physmap_flash_shutdown,
+-#endif
+ 	.driver		= {
+ 		.name	= "physmap-flash",
+ 	},
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -346,3 +349,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+drivers-mtd-maps-physmapc-fix-compile-remove-ifdef.patch
