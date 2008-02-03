@@ -1,53 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-mtd-ubi-scanc-fix-uninitialized-var-warning.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 12:22:18 -0800
-Message-ID: <200802032021.m13KLxhk029970@imap1.linux-foundation.org>
+Subject: - git-scsi-misc-vs-gregkh-pci-pci-remove-users-of-pci_enable_device_bars.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 12:22:33 -0800
+Message-ID: <200802032022.m13KME9i029997@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44625 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56720 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752162AbYBCUWT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 15:22:19 -0500
+	by vger.kernel.org with ESMTP id S1752180AbYBCUWV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 15:22:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/mtd/ubi/scan.c: fix uninitialized var warning
+     git-scsi-misc vs gregkh-pci-pci-remove-users-of-pci_enable_device_bars
 has been removed from the -mm tree.  Its filename was
-     drivers-mtd-ubi-scanc-fix-uninitialized-var-warning.patch
+     git-scsi-misc-vs-gregkh-pci-pci-remove-users-of-pci_enable_device_bars.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/mtd/ubi/scan.c: fix uninitialized var warning
+Subject: git-scsi-misc vs gregkh-pci-pci-remove-users-of-pci_enable_device_bars
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/mtd/ubi/scan.c: In function 'ubi_scan':
-drivers/mtd/ubi/scan.c:772: warning: 'ec' may be used uninitialized in this function
+Whoever merges last needs this.
 
-Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/ubi/scan.c |    2 +-
+ drivers/scsi/lpfc/lpfc_init.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mtd/ubi/scan.c~drivers-mtd-ubi-scanc-fix-uninitialized-var-warning drivers/mtd/ubi/scan.c
---- a/drivers/mtd/ubi/scan.c~drivers-mtd-ubi-scanc-fix-uninitialized-var-warning
-+++ a/drivers/mtd/ubi/scan.c
-@@ -769,7 +769,7 @@ struct ubi_scan_leb *ubi_scan_get_free_p
-  */
- static int process_eb(struct ubi_device *ubi, struct ubi_scan_info *si, int pnum)
- {
--	long long ec;
-+	long long uninitialized_var(ec);
- 	int err, bitflips = 0, vol_id, ec_corr = 0;
+diff -puN drivers/scsi/lpfc/lpfc_init.c~git-scsi-misc-vs-gregkh-pci-pci-remove-users-of-pci_enable_device_bars drivers/scsi/lpfc/lpfc_init.c
+--- a/drivers/scsi/lpfc/lpfc_init.c~git-scsi-misc-vs-gregkh-pci-pci-remove-users-of-pci_enable_device_bars
++++ a/drivers/scsi/lpfc/lpfc_init.c
+@@ -1894,7 +1894,7 @@ lpfc_pci_probe_one(struct pci_dev *pdev,
+ 	uint16_t iotag;
+ 	int bars = pci_select_bars(pdev, IORESOURCE_MEM);
  
- 	dbg_bld("scan PEB %d", pnum);
+-	if (pci_enable_device_bars(pdev, bars))
++	if (pci_enable_device_mem(pdev))
+ 		goto out;
+ 	if (pci_request_selected_regions(pdev, bars, LPFC_DRIVER_NAME))
+ 		goto out_disable_device;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
