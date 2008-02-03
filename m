@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + md-change-interate_mddev-to-for_each_mddev-fix.patch added to -mm tree
-Date: Sat, 02 Feb 2008 18:47:10 -0800
-Message-ID: <200802030255.m132tslt028164@imap1.linux-foundation.org>
+Subject: + ide-scsi-needs-select_drive.patch added to -mm tree
+Date: Sat, 02 Feb 2008 19:22:33 -0800
+Message-ID: <200802030331.m133VHrf029348@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35230 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57420 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753941AbYBCCz7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 21:55:59 -0500
+	by vger.kernel.org with ESMTP id S935854AbYBCDbX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 22:31:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, neilb@suse.de
+Cc: akpm@linux-foundation.org, bzolnier@gmail.com
 
 
 The patch titled
-     md-change-interate_mddev-to-for_each_mddev-fix
+     ide-scsi needs SELECT_DRIVE
 has been added to the -mm tree.  Its filename is
-     md-change-interate_mddev-to-for_each_mddev-fix.patch
+     ide-scsi-needs-select_drive.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,29 +33,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md-change-interate_mddev-to-for_each_mddev-fix
+Subject: ide-scsi needs SELECT_DRIVE
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Neil Brown <neilb@suse.de>
-Cc: NeilBrown <neilb@suse.de>
+ERROR: "SELECT_DRIVE" [drivers/scsi/ide-scsi.ko] undefined!
+
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/md.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ide/ide-iops.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/md/md.c~md-change-interate_mddev-to-for_each_mddev-fix drivers/md/md.c
---- a/drivers/md/md.c~md-change-interate_mddev-to-for_each_mddev-fix
-+++ a/drivers/md/md.c
-@@ -2012,7 +2012,7 @@ rdev_size_store(mdk_rdev_t *rdev, const 
- 		struct list_head *tmp, *tmp2;
+diff -puN drivers/ide/ide-iops.c~ide-scsi-needs-select_drive drivers/ide/ide-iops.c
+--- a/drivers/ide/ide-iops.c~ide-scsi-needs-select_drive
++++ a/drivers/ide/ide-iops.c
+@@ -162,6 +162,7 @@ void SELECT_DRIVE (ide_drive_t *drive)
+ 		HWIF(drive)->selectproc(drive);
+ 	HWIF(drive)->OUTB(drive->select.all, IDE_SELECT_REG);
+ }
++EXPORT_SYMBOL(SELECT_DRIVE);
  
- 		mddev_unlock(rdev->mddev);
--		ITERATE_MDDEV(mddev, tmp) {
-+		for_each_mddev(mddev, tmp) {
- 			mdk_rdev_t *rdev2;
- 
- 			mddev_lock(mddev);
+ void SELECT_MASK (ide_drive_t *drive, int mask)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -311,3 +311,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+ide-scsi-needs-select_drive.patch
