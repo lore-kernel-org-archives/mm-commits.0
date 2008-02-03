@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-wireless-b43-mainc-needs-ioh.patch added to -mm tree
-Date: Sat, 02 Feb 2008 23:59:39 -0800
-Message-ID: <200802030808.m1388Mpc005621@imap1.linux-foundation.org>
+Subject: + b43-fix-build-with-config_ssb_pcihost=n.patch added to -mm tree
+Date: Sun, 03 Feb 2008 00:14:03 -0800
+Message-ID: <200802030822.m138Mk5i006115@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35120 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57093 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758612AbYBCIJb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 03:09:31 -0500
+	by vger.kernel.org with ESMTP id S1756927AbYBCIYe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 03:24:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, linville@tuxdriver.com
+Cc: akpm@linux-foundation.org, linville@tuxdriver.com, mb@bu3sch.de
 
 
 The patch titled
-     drivers/net/wireless/b43/main.c needs io.h
+     b43: fix build with CONFIG_SSB_PCIHOST=n
 has been added to the -mm tree.  Its filename is
-     drivers-net-wireless-b43-mainc-needs-ioh.patch
+     b43-fix-build-with-config_ssb_pcihost=n.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,30 +33,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/wireless/b43/main.c needs io.h
+Subject: b43: fix build with CONFIG_SSB_PCIHOST=n
 From: Andrew Morton <akpm@linux-foundation.org>
 
-m68k:
+m68k allmodconfig gives
 
 drivers/net/wireless/b43/main.c:251: error: implicit declaration of function 'mmiowb'
 
+because CONFIG_B43=m, CONFIG_SSB_PCIHOST=n.
+
+Might be Kconfig bustage, but this works...
+
+Cc: Michael Buesch <mb@bu3sch.de>
 Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/b43/main.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/ssb/ssb.h |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN drivers/net/wireless/b43/main.c~drivers-net-wireless-b43-mainc-needs-ioh drivers/net/wireless/b43/main.c
---- a/drivers/net/wireless/b43/main.c~drivers-net-wireless-b43-mainc-needs-ioh
-+++ a/drivers/net/wireless/b43/main.c
-@@ -38,6 +38,7 @@
- #include <linux/wireless.h>
- #include <linux/workqueue.h>
- #include <linux/skbuff.h>
-+#include <linux/io.h>
- #include <linux/dma-mapping.h>
- #include <asm/unaligned.h>
+diff -puN include/linux/ssb/ssb.h~b43-fix-build-with-config_ssb_pcihost=n include/linux/ssb/ssb.h
+--- a/include/linux/ssb/ssb.h~b43-fix-build-with-config_ssb_pcihost=n
++++ a/include/linux/ssb/ssb.h
+@@ -373,6 +373,15 @@ void ssb_pcihost_set_power_state(struct 
+ 	if (sdev->bus->bustype == SSB_BUSTYPE_PCI)
+ 		pci_set_power_state(sdev->bus->host_pci, state);
+ }
++#else
++static inline void ssb_pcihost_unregister(struct pci_driver *driver)
++{
++}
++
++static inline
++void ssb_pcihost_set_power_state(struct ssb_device *sdev, pci_power_t state)
++{
++}
+ #endif /* CONFIG_SSB_PCIHOST */
+ 
  
 _
 
@@ -64,6 +77,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 kvm-i386-fix.patch
+drivers-net-wireless-b43-mainc-needs-ioh.patch
 get_task_comm-return-the-result.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
@@ -318,4 +332,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-drivers-net-wireless-b43-mainc-needs-ioh.patch
+b43-fix-build-with-config_ssb_pcihost=n.patch
