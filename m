@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i8042-non-x86-build-fix.patch added to -mm tree
-Date: Sat, 02 Feb 2008 20:56:36 -0800
-Message-ID: <200802030505.m1355JYI032191@imap1.linux-foundation.org>
+Subject: + add-hpet-rtc-emulation-to-rtc_drv_cmos-fix.patch added to -mm tree
+Date: Sat, 02 Feb 2008 21:38:58 -0800
+Message-ID: <200802030547.m135lgdL001068@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47314 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53677 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750852AbYBCFFd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 00:05:33 -0500
+	by vger.kernel.org with ESMTP id S1750934AbYBCFsw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 00:48:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dtor@mail.ru
+Cc: akpm@linux-foundation.org, Robert.Picco@hp.com, a.zummo@towertech.it, ak@suse.de, bwalle@suse.de, david-b@pacbell.net, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     i8042: non-x86 build fix
+     add-hpet-rtc-emulation-to-rtc_drv_cmos-fix
 has been added to the -mm tree.  Its filename is
-     i8042-non-x86-build-fix.patch
+     add-hpet-rtc-emulation-to-rtc_drv_cmos-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,36 +33,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i8042: non-x86 build fix
+Subject: add-hpet-rtc-emulation-to-rtc_drv_cmos-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Unbreak alpha build
+
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Bernhard Walle <bwalle@suse.de>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Robert Picco <Robert.Picco@hp.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/serio/i8042.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-cmos.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/input/serio/i8042.c~i8042-non-x86-build-fix drivers/input/serio/i8042.c
---- a/drivers/input/serio/i8042.c~i8042-non-x86-build-fix
-+++ a/drivers/input/serio/i8042.c
-@@ -1172,14 +1172,14 @@ static int __devinit i8042_probe(struct 
- 		if (error)
- 			goto out_fail;
- 	}
--
-+#ifdef CONFIG_X86
- 	if (i8042_dritek) {
- 		param = 0x90;
- 		error = i8042_command(&param, 0x1059);
- 		if (error)
- 			goto out_fail;
- 	}
--
+diff -puN drivers/rtc/rtc-cmos.c~add-hpet-rtc-emulation-to-rtc_drv_cmos-fix drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~add-hpet-rtc-emulation-to-rtc_drv_cmos-fix
++++ a/drivers/rtc/rtc-cmos.c
+@@ -35,7 +35,10 @@
+ #include <linux/spinlock.h>
+ #include <linux/platform_device.h>
+ #include <linux/mod_devicetable.h>
++
++#ifdef CONFIG_HPET_EMULATE_RTC
+ #include <asm/hpet.h>
 +#endif
- /*
-  * Ok, everything is ready, let's register all serio ports
-  */
+ 
+ /* this is for "generic access to PC-style RTC" using CMOS_READ/CMOS_WRITE */
+ #include <asm-generic/rtc.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -215,6 +218,7 @@ add-have_oprofile.patch
 drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
 ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
 rtc-ds1302-rtc-support-checkpatch-fixes.patch
+add-hpet-rtc-emulation-to-rtc_drv_cmos-fix.patch
 fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
 neofb-avoid-overwriting-fb_info-fields.patch
 vermilionc-use-align-not-__align_mask.patch
