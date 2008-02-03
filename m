@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-bdi-move-statistics-to-debugfs.patch added to -mm tree
-Date: Sat, 02 Feb 2008 15:38:47 -0800
-Message-ID: <200802022338.m12NcSMS021743@imap1.linux-foundation.org>
+Subject: + x86-amd-thermal-interrupt-support-fix-2.patch added to -mm tree
+Date: Sat, 02 Feb 2008 16:03:05 -0800
+Message-ID: <200802030011.m130BoqQ022946@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47312 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54677 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764280AbYBBXiq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 18:38:46 -0500
+	by vger.kernel.org with ESMTP id S935458AbYBCAMb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 19:12:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: miklos@szeredi.hu, mszeredi@suse.cz
+Cc: akpm@linux-foundation.org, ak@suse.de, mingo@elte.hu, rml@google.com, tglx@linutronix.de
 
 
 The patch titled
-     From: Miklos Szeredi <miklos@szeredi.hu>
+     x86-amd-thermal-interrupt-support-fix-2
 has been added to the -mm tree.  Its filename is
-     mm-bdi-move-statistics-to-debugfs.patch
+     x86-amd-thermal-interrupt-support-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,267 +33,280 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: From: Miklos Szeredi <miklos@szeredi.hu>
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: x86-amd-thermal-interrupt-support-fix-2
+From: Andrew Morton <akpm@linux-foundation.org>
 
+i386 allmodconfig:
 
-Move BDI statistics to debugfs:
+arch/x86/kernel/cpu/mcheck/p4.o: In function `smp_thermal_interrupt':
+arch/x86/kernel/cpu/mcheck/p4.c:61: multiple definition of `smp_thermal_interrupt'
+arch/x86/kernel/cpu/mcheck/mce_thermal.o:arch/x86/kernel/cpu/mcheck/mce_thermal.c:17: first defined here
+/opt/crosstool/gcc-4.1.0-glibc-2.3.6/i686-unknown-linux-gnu/bin/i686-unknown-linux-gnu-ld: Warning: size of symbol `smp_thermal_interrupt' changed from 4 in arch/x86/kernel/cpu/mcheck/mce_thermal.o to 43 in arch/x86/kernel/cpu/mcheck/p4.o
+/opt/crosstool/gcc-4.1.0-glibc-2.3.6/i686-unknown-linux-gnu/bin/i686-unknown-linux-gnu-ld: Warning: type of symbol `smp_thermal_interrupt' changed from 1 to 2 in arch/x86/kernel/cpu/mcheck/p4.o
 
-   /sys/kernel/debug/bdi/<bdi>/stats
-
-Use postcore_initcall() to initialize the sysfs class and debugfs,
-because debugfs is initialized in core_initcall().
-
-Update descriptions in ABI documentation.
-
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
----
-
-Index: linux/include/linux/backing-dev.h
-===================================================================
+Cc: Russell Leidich <rml@google.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-class-bdi |   43 +++-----
- include/linux/backing-dev.h               |    6 +
- mm/backing-dev.c                          |   98 +++++++++++++++-----
- 3 files changed, 99 insertions(+), 48 deletions(-)
+ arch/x86/kernel/cpu/mcheck/p4.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/ABI/testing/sysfs-class-bdi~mm-bdi-move-statistics-to-debugfs Documentation/ABI/testing/sysfs-class-bdi
---- a/Documentation/ABI/testing/sysfs-class-bdi~mm-bdi-move-statistics-to-debugfs
-+++ a/Documentation/ABI/testing/sysfs-class-bdi
-@@ -3,8 +3,8 @@ Date:		January 2008
- Contact:	Peter Zijlstra <a.p.zijlstra@chello.nl>
- Description:
+diff -puN arch/x86/kernel/cpu/mcheck/p4.c~x86-amd-thermal-interrupt-support-fix-2 arch/x86/kernel/cpu/mcheck/p4.c
+--- a/arch/x86/kernel/cpu/mcheck/p4.c~x86-amd-thermal-interrupt-support-fix-2
++++ a/arch/x86/kernel/cpu/mcheck/p4.c
+@@ -57,7 +57,7 @@ static void intel_thermal_interrupt(stru
+ /* Thermal interrupt handler for this CPU setup */
+ static void (*vendor_thermal_interrupt)(struct pt_regs *regs) = unexpected_thermal_interrupt;
  
--Provide a place in sysfs for the backing_dev_info object.
--This allows us to see and set the various BDI specific variables.
-+Provide a place in sysfs for the backing_dev_info object.  This allows
-+setting and retrieving various BDI specific variables.
- 
- The <bdi> identifier can be either of the following:
- 
-@@ -26,34 +26,21 @@ read_ahead_kb (read-write)
- 
- 	Size of the read-ahead window in kilobytes
- 
--reclaimable_kb (read-only)
--
--	Reclaimable (dirty or unstable) memory destined for writeback
--	to this device
--
--writeback_kb (read-only)
--
--	Memory currently under writeback to this device
--
--dirty_kb (read-only)
--
--	Global threshold for reclaimable + writeback memory
--
--bdi_dirty_kb (read-only)
--
--	Current threshold on this BDI for reclaimable + writeback
--	memory
--
- min_ratio (read-write)
- 
--	Minimal percentage of global dirty threshold allocated to this
--	bdi.  If the value written to this file would make the the sum
--	of all min_ratio values exceed 100, then EINVAL is returned.
--	If min_ratio would become larger than the current max_ratio,
--	then also EINVAL is returned.  The default is zero
-+	Under normal circumstances each device is given a part of the
-+	total write-back cache that relates to its current average
-+	writeout speed in relation to the other devices.
-+
-+	The 'min_ratio' parameter allows assigning a minimum
-+	percentage of the write-back cache to a particular device.
-+	For example, this is useful for providing a minimum QoS.
- 
- max_ratio (read-write)
- 
--	Maximal percentage of global dirty threshold allocated to this
--	bdi.  If max_ratio would become smaller than the current
--	min_ratio, then EINVAL is returned.  The default is 100
-+	Allows limiting a particular device to use not more than the
-+	given percentage of the write-back cache.  This is useful in
-+	situations where we want to avoid one device taking all or
-+	most of the write-back cache.  For example in case of an NFS
-+	mount that is prone to get stuck, or a FUSE mount which cannot
-+	be trusted to play fair.
-diff -puN include/linux/backing-dev.h~mm-bdi-move-statistics-to-debugfs include/linux/backing-dev.h
---- a/include/linux/backing-dev.h~mm-bdi-move-statistics-to-debugfs
-+++ a/include/linux/backing-dev.h
-@@ -16,6 +16,7 @@
- #include <asm/atomic.h>
- 
- struct page;
-+struct dentry;
- 
- /*
-  * Bits in backing_dev_info.state
-@@ -55,6 +56,11 @@ struct backing_dev_info {
- 	unsigned int max_ratio, max_prop_frac;
- 
- 	struct device *dev;
-+
-+#ifdef CONFIG_DEBUG_FS
-+	struct dentry *debug_dir;
-+	struct dentry *debug_stats;
-+#endif
- };
- 
- int bdi_init(struct backing_dev_info *bdi);
-diff -puN mm/backing-dev.c~mm-bdi-move-statistics-to-debugfs mm/backing-dev.c
---- a/mm/backing-dev.c~mm-bdi-move-statistics-to-debugfs
-+++ a/mm/backing-dev.c
-@@ -10,6 +10,80 @@
- 
- static struct class *bdi_class;
- 
-+#ifdef CONFIG_DEBUG_FS
-+#include <linux/debugfs.h>
-+#include <linux/seq_file.h>
-+
-+static struct dentry *bdi_debug_root;
-+
-+static void bdi_debug_init(void)
-+{
-+	bdi_debug_root = debugfs_create_dir("bdi", NULL);
-+}
-+
-+static int bdi_debug_stats_show(struct seq_file *m, void *v)
-+{
-+	struct backing_dev_info *bdi = m->private;
-+	long background_thresh;
-+	long dirty_thresh;
-+	long bdi_thresh;
-+
-+	get_dirty_limits(&background_thresh, &dirty_thresh, &bdi_thresh, bdi);
-+
-+#define K(x) ((x) << (PAGE_SHIFT - 10))
-+	seq_printf(m,
-+		   "BdiWriteback:     %8lu kB\n"
-+		   "BdiReclaimable:   %8lu kB\n"
-+		   "BdiDirtyThresh:   %8lu kB\n"
-+		   "DirtyThresh:      %8lu kB\n"
-+		   "BackgroundThresh: %8lu kB\n",
-+		   (unsigned long) K(bdi_stat(bdi, BDI_WRITEBACK)),
-+		   (unsigned long) K(bdi_stat(bdi, BDI_RECLAIMABLE)),
-+		   K(bdi_thresh),
-+		   K(dirty_thresh),
-+		   K(background_thresh));
-+#undef K
-+
-+	return 0;
-+}
-+
-+static int bdi_debug_stats_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, bdi_debug_stats_show, inode->i_private);
-+}
-+
-+static const struct file_operations bdi_debug_stats_fops = {
-+	.open		= bdi_debug_stats_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
-+
-+static void bdi_debug_register(struct backing_dev_info *bdi, const char *name)
-+{
-+	bdi->debug_dir = debugfs_create_dir(name, bdi_debug_root);
-+	bdi->debug_stats = debugfs_create_file("stats", 0444, bdi->debug_dir,
-+					       bdi, &bdi_debug_stats_fops);
-+}
-+
-+static void bdi_debug_unregister(struct backing_dev_info *bdi)
-+{
-+	debugfs_remove(bdi->debug_stats);
-+	debugfs_remove(bdi->debug_dir);
-+}
-+#else
-+static inline void bdi_debug_init(void)
-+{
-+}
-+static inline void bdi_debug_register(struct backing_dev_info *bdi,
-+				      const char *name)
-+{
-+}
-+static inline void bdi_debug_unregister(struct backing_dev_info *bdi)
-+{
-+}
-+#endif
-+
- static ssize_t read_ahead_kb_store(struct device *dev,
- 				  struct device_attribute *attr,
- 				  const char *buf, size_t count)
-@@ -40,21 +114,6 @@ static ssize_t name##_show(struct device
- 
- BDI_SHOW(read_ahead_kb, K(bdi->ra_pages))
- 
--BDI_SHOW(reclaimable_kb, K(bdi_stat(bdi, BDI_RECLAIMABLE)))
--BDI_SHOW(writeback_kb, K(bdi_stat(bdi, BDI_WRITEBACK)))
--
--static inline unsigned long get_dirty(struct backing_dev_info *bdi, int i)
--{
--	unsigned long thresh[3];
--
--	get_dirty_limits(&thresh[0], &thresh[1], &thresh[2], bdi);
--
--	return thresh[i];
--}
--
--BDI_SHOW(dirty_kb, K(get_dirty(bdi, 1)))
--BDI_SHOW(bdi_dirty_kb, K(get_dirty(bdi, 2)))
--
- static ssize_t min_ratio_store(struct device *dev,
- 		struct device_attribute *attr, const char *buf, size_t count)
+-void smp_thermal_interrupt(struct pt_regs *regs)
++void __attribute__((weak)) smp_thermal_interrupt(struct pt_regs *regs)
  {
-@@ -95,10 +154,6 @@ BDI_SHOW(max_ratio, bdi->max_ratio)
- 
- static struct device_attribute bdi_dev_attrs[] = {
- 	__ATTR_RW(read_ahead_kb),
--	__ATTR_RO(reclaimable_kb),
--	__ATTR_RO(writeback_kb),
--	__ATTR_RO(dirty_kb),
--	__ATTR_RO(bdi_dirty_kb),
- 	__ATTR_RW(min_ratio),
- 	__ATTR_RW(max_ratio),
- 	__ATTR_NULL,
-@@ -108,10 +163,11 @@ static __init int bdi_class_init(void)
- {
- 	bdi_class = class_create(THIS_MODULE, "bdi");
- 	bdi_class->dev_attrs = bdi_dev_attrs;
-+	bdi_debug_init();
- 	return 0;
- }
- 
--core_initcall(bdi_class_init);
-+postcore_initcall(bdi_class_init);
- 
- int bdi_register(struct backing_dev_info *bdi, struct device *parent,
- 		const char *fmt, ...)
-@@ -136,6 +192,7 @@ int bdi_register(struct backing_dev_info
- 
- 	bdi->dev = dev;
- 	dev_set_drvdata(bdi->dev, bdi);
-+	bdi_debug_register(bdi, name);
- 
- exit:
- 	kfree(name);
-@@ -152,6 +209,7 @@ EXPORT_SYMBOL(bdi_register_dev);
- void bdi_unregister(struct backing_dev_info *bdi)
- {
- 	if (bdi->dev) {
-+		bdi_debug_unregister(bdi);
- 		device_unregister(bdi->dev);
- 		bdi->dev = NULL;
- 	}
+ 	irq_enter();
+ 	vendor_thermal_interrupt(regs);
 _
 
-Patches currently in -mm which might be from miklos@szeredi.hu are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-iget-stop-fuse-from-using-iget-and-read_inode-try.patch
-mm-bdi-move-statistics-to-debugfs.patch
+kvm-i386-fix.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes.patch
+timerfd-v3-new-timerfd-api-ia64-fix.patch
+timerfd-v3-new-timerfd-api-m68k-fix.patch
+timerfd-v3-new-timerfd-api-mips-fix.patch
+timerfd-v3-new-timerfd-api-arch-fixes.patch
+timerfd-v3-new-timerfd-api-powerpc-fix.patch
+timerfd-v3-new-timerfd-api-sparc64-fix.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements-checkpatch-fixes.patch
+git-acpi-fix-git-conflicts.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-ignore-acpi-video-devices-that-arent-present-in-hardware-checkpatch-fixes.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+acpi-backlight-reset-brightness-on-resume-checkpatch-fixes.patch
+git-alsa-disable-sound-pci-ice1712-ice1724c.patch
+git-agpgart.patch
+git-agpgart-fix.patch
+git-audit-master.patch
+git-audit-master-fix-git-conflicts.patch
+git-audit-printk-warning-fix.patch
+git-cpufreq.patch
+revert-agk-dm-dm-loop.patch
+include-asm-powerpc-nvramh-needs-listh.patch
+include-asm-powerpc-nvramh-needs-listh-fix.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
+adt7473-new-driver-for-analog-devices-adt7473-sensor-chip-fix.patch
+revert-git-hrt.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+git-kvm.patch
+drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
+drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
+git-md-accel.patch
+memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
+git-mmc.patch
+git-mtd.patch
+drivers-mtd-ubi-wlc-fix-uninitialized-var-warning.patch
+drivers-mtd-ubi-scanc-fix-uninitialized-var-warning.patch
+drivers-mtd-ubi-cdevc-unused-var.patch
+git-netdev-all-fix-conflicts-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-backlight.patch
+git-battery.patch
+git-battery-fix-git-conflicts.patch
+bluetooth-uninlining.patch
+serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
+fix-gregkh-pci-pci-pcie-aspm-support.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
+x86-validate-against-acpi-motherboard-resources.patch
+git-sched.patch
+git-scsi-misc-vs-gregkh-pci-pci-remove-users-of-pci_enable_device_bars.patch
+scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes.patch
+scsi-aic94xx-cleanups-checkpatch-fixes.patch
+scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
+drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-ohci-sm501-driver-v2-fix.patch
+git-watchdog.patch
+git-watchdog-fixup.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-fixup-vs-git-sched.patch
+git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
+x86-amd-thermal-interrupt-support-fix-2.patch
+x86-mmconf-enable-mcfg-early-cleanup.patch
+git-xtensa.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-add-proc-kpagecount-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix-2-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+mm-remove-fastcall-from-mm-checkpatch-fixes.patch
+page-migraton-handle-orphaned-pages-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+riscom8-fix-smp-brokenness-fix.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+address-hfs-on-disk-corruption-robustness-review-comments.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+stopmachine-semaphore-to-mutex-fix.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
+debug_smp_processor_id-fixlets.patch
+use-ilog2-in-fs-namespacec-fix.patch
+system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
+speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
+add-have_oprofile.patch
+drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+neofb-avoid-overwriting-fb_info-fields.patch
+vermilionc-use-align-not-__align_mask.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+disable-ext4.patch
+jbd-remove-useless-loop-in-journal_write_commit_record-checkpatch-fixes.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-mm_cgroup-to-header-file-fix.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
+hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
+cpusets-update_cpumask-revision-fix.patch
+cpusets-update_cpumask-revision-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+modules-make-module_address_lookup-safe-fix.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
+ufs-fix-symlink-creation-on-ufs2-fix.patch
+libfs-allow-error-return-from-simple-attributes-fix.patch
+fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
+mount-options-fix-tmpfs-fix.patch
+char-applicom-use-pci_match_id-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
