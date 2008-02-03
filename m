@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch added to -mm tree
-Date: Sun, 03 Feb 2008 01:34:08 -0800
-Message-ID: <200802030942.m139gqtt008612@imap1.linux-foundation.org>
+Subject: + smack-version-11c-simplified-mandatory-access-control-kernel-fix.patch added to -mm tree
+Date: Sun, 03 Feb 2008 02:00:53 -0800
+Message-ID: <200802031009.m13A9bO2009447@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49457 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49006 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759322AbYBCJnf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 04:43:35 -0500
+	by vger.kernel.org with ESMTP id S1750708AbYBCKK5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 05:10:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clg@fr.ibm.com, ebiederm@xmission.com, heiko.carstens@de.ibm.com, menage@google.com, morgan@kernel.org, pj@sgi.com, rientjes@google.com, schwidefsky@de.ibm.com, serue@us.ibm.com, xemul@openvz.org
+Cc: akpm@linux-foundation.org, casey@schaufler-ca.com, chrisw@sous-sol.org, darwish.07@gmail.com, jmorris@namei.org, method@manicmethod.com, morgan@kernel.org, paul.moore@hp.com, sds@tycho.nsa.gov
 
 
 The patch titled
-     proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix
+     smack-version-11c-simplified-mandatory-access-control-kernel-fix
 has been added to the -mm tree.  Its filename is
-     proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
+     smack-version-11c-simplified-mandatory-access-control-kernel-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +33,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix
+Subject: smack-version-11c-simplified-mandatory-access-control-kernel-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/proc/task_nommu.c: In function `task_mem':
-fs/proc/task_nommu.c:61: error: `buffer' undeclared (first use in this function)
-fs/proc/task_nommu.c:61: error: (Each undeclared identifier is reported only once
-fs/proc/task_nommu.c:61: error: for each function it appears in.)
-fs/proc/task_nommu.c:68: warning: `return' with a value, in function returning void
+sort out patch dependencies
 
-Cc: Andrew Morgan <morgan@kernel.org>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: "Ahmed S. Darwish" <darwish.07@gmail.com>
+Cc: Andrew G. Morgan <morgan@kernel.org>
+Cc: Casey Schaufler <casey@schaufler-ca.com>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: James Morris <jmorris@namei.org>
+Cc: Joshua Brindle <method@manicmethod.com>
+Cc: Paul Moore <paul.moore@hp.com>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_nommu.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ security/smack/smack_lsm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/task_nommu.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix fs/proc/task_nommu.c
---- a/fs/proc/task_nommu.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix
-+++ a/fs/proc/task_nommu.c
-@@ -58,14 +58,13 @@ void task_mem(struct seq_file *m, struct
+diff -puN security/smack/smack_lsm.c~smack-version-11c-simplified-mandatory-access-control-kernel-fix security/smack/smack_lsm.c
+--- a/security/smack/smack_lsm.c~smack-version-11c-simplified-mandatory-access-control-kernel-fix
++++ a/security/smack/smack_lsm.c
+@@ -325,7 +325,7 @@ static int smack_sb_statfs(struct dentry
+ static int smack_sb_mount(char *dev_name, struct nameidata *nd,
+ 			  char *type, unsigned long flags, void *data)
+ {
+-	struct superblock_smack *sbp = nd->path.mnt->mnt_sb->s_security;
++	struct superblock_smack *sbp = nd->mnt->mnt_sb->s_security;
  
- 	bytes += kobjsize(current); /* includes kernel stack */
- 
--	buffer += sprintf(buffer,
-+	seq_printf(m,
- 		"Mem:\t%8lu bytes\n"
- 		"Slack:\t%8lu bytes\n"
- 		"Shared:\t%8lu bytes\n",
- 		bytes, slack, sbytes);
- 
- 	up_read(&mm->mmap_sem);
--	return buffer;
+ 	return smk_curacc(sbp->smk_floor, MAY_WRITE);
  }
- 
- unsigned long task_vsize(struct mm_struct *mm)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -201,6 +188,7 @@ add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
 add-64-bit-capability-support-to-the-kernel-fix.patch
 add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
 add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+smack-version-11c-simplified-mandatory-access-control-kernel-fix.patch
 alpha-atomic_add_return-should-return-int.patch
 alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
 pm-qos-infrastructure-and-interface.patch
