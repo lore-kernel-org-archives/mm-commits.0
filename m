@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + 9p-fix-p9_printfcall-export.patch added to -mm tree
-Date: Sat, 02 Feb 2008 19:24:01 -0800
-Message-ID: <200802030332.m133WjqQ029373@imap1.linux-foundation.org>
+Subject: + i8042-non-x86-build-fix.patch added to -mm tree
+Date: Sat, 02 Feb 2008 20:56:36 -0800
+Message-ID: <200802030505.m1355JYI032191@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48906 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47314 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754300AbYBCDcs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 22:32:48 -0500
+	by vger.kernel.org with ESMTP id S1750852AbYBCFFd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 00:05:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ericvh@gmail.com
+Cc: akpm@linux-foundation.org, dtor@mail.ru
 
 
 The patch titled
-     9p: fix p9_printfcall export
+     i8042: non-x86 build fix
 has been added to the -mm tree.  Its filename is
-     9p-fix-p9_printfcall-export.patch
+     i8042-non-x86-build-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,37 +33,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: 9p: fix p9_printfcall export
+Subject: i8042: non-x86 build fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "p9_printfcall" [net/9p/9pnet_virtio.ko] undefined!
-
-Cc: Eric Van Hensbergen <ericvh@gmail.com>
-
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/9p/fcprint.c |    4 ++--
+ drivers/input/serio/i8042.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN net/9p/fcprint.c~9p-fix-p9_printfcall-export net/9p/fcprint.c
---- a/net/9p/fcprint.c~9p-fix-p9_printfcall-export
-+++ a/net/9p/fcprint.c
-@@ -347,12 +347,12 @@ p9_printfcall(char *buf, int buflen, str
- 
- 	return ret;
- }
+diff -puN drivers/input/serio/i8042.c~i8042-non-x86-build-fix drivers/input/serio/i8042.c
+--- a/drivers/input/serio/i8042.c~i8042-non-x86-build-fix
++++ a/drivers/input/serio/i8042.c
+@@ -1172,14 +1172,14 @@ static int __devinit i8042_probe(struct 
+ 		if (error)
+ 			goto out_fail;
+ 	}
 -
- #else
- int
- p9_printfcall(char *buf, int buflen, struct p9_fcall *fc, int extended)
- {
- 	return 0;
- }
--EXPORT_SYMBOL(p9_printfcall);
- #endif /* CONFIG_NET_9P_DEBUG */
-+EXPORT_SYMBOL(p9_printfcall);
-+
++#ifdef CONFIG_X86
+ 	if (i8042_dritek) {
+ 		param = 0x90;
+ 		error = i8042_command(&param, 0x1059);
+ 		if (error)
+ 			goto out_fail;
+ 	}
+-
++#endif
+ /*
+  * Ok, everything is ready, let's register all serio ports
+  */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -107,6 +106,7 @@ drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-var
 adt7473-new-driver-for-analog-devices-adt7473-sensor-chip-fix.patch
 revert-git-hrt.patch
 infiniband-is-scrogged-again.patch
+i8042-non-x86-build-fix.patch
 drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
 git-kvm.patch
 ide-scsi-needs-select_drive.patch
@@ -143,6 +143,7 @@ vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
 ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
 drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
 usb-ohci-sm501-driver-v2-fix.patch
+9p-fix-p9_printfcall-export.patch
 git-watchdog.patch
 git-watchdog-fixup.patch
 git-ipwireless_cs.patch
@@ -320,4 +321,3 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-9p-fix-p9_printfcall-export.patch
