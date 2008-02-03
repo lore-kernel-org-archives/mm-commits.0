@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + b43-fix-build-with-config_ssb_pcihost=n.patch added to -mm tree
-Date: Sun, 03 Feb 2008 00:14:03 -0800
-Message-ID: <200802030822.m138Mk5i006115@imap1.linux-foundation.org>
+Subject: + remove-__init_refok-and-__initdata_refok-fix.patch added to -mm tree
+Date: Sun, 03 Feb 2008 00:32:51 -0800
+Message-ID: <200802030841.m138fZd5006726@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57093 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56418 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756927AbYBCIYe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 03:24:34 -0500
+	by vger.kernel.org with ESMTP id S1758685AbYBCImS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 03:42:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, linville@tuxdriver.com, mb@bu3sch.de
+Cc: akpm@linux-foundation.org, ralf@linux-mips.org, sam@ravnborg.org
 
 
 The patch titled
-     b43: fix build with CONFIG_SSB_PCIHOST=n
+     remove-__init_refok-and-__initdata_refok-fix
 has been added to the -mm tree.  Its filename is
-     b43-fix-build-with-config_ssb_pcihost=n.patch
+     remove-__init_refok-and-__initdata_refok-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: b43: fix build with CONFIG_SSB_PCIHOST=n
+Subject: remove-__init_refok-and-__initdata_refok-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-m68k allmodconfig gives
+dude, you broke your own architecture.
 
-drivers/net/wireless/b43/main.c:251: error: implicit declaration of function 'mmiowb'
-
-because CONFIG_B43=m, CONFIG_SSB_PCIHOST=n.
-
-Might be Kconfig bustage, but this works...
-
-Cc: Michael Buesch <mb@bu3sch.de>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ssb/ssb.h |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ arch/mips/kernel/head.S |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN include/linux/ssb/ssb.h~b43-fix-build-with-config_ssb_pcihost=n include/linux/ssb/ssb.h
---- a/include/linux/ssb/ssb.h~b43-fix-build-with-config_ssb_pcihost=n
-+++ a/include/linux/ssb/ssb.h
-@@ -373,6 +373,15 @@ void ssb_pcihost_set_power_state(struct 
- 	if (sdev->bus->bustype == SSB_BUSTYPE_PCI)
- 		pci_set_power_state(sdev->bus->host_pci, state);
- }
-+#else
-+static inline void ssb_pcihost_unregister(struct pci_driver *driver)
-+{
-+}
-+
-+static inline
-+void ssb_pcihost_set_power_state(struct ssb_device *sdev, pci_power_t state)
-+{
-+}
- #endif /* CONFIG_SSB_PCIHOST */
+diff -puN arch/mips/kernel/head.S~remove-__init_refok-and-__initdata_refok-fix arch/mips/kernel/head.S
+--- a/arch/mips/kernel/head.S~remove-__init_refok-and-__initdata_refok-fix
++++ a/arch/mips/kernel/head.S
+@@ -140,8 +140,6 @@ FEXPORT(__kernel_entry)
+ 	j	kernel_entry
+ #endif
  
+-	__INIT_REFOK
+-
+ NESTED(kernel_entry, 16, sp)			# kernel entry point
  
+ 	kernel_entry_setup			# cpu specific setup
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -155,6 +142,7 @@ usb-ohci-sm501-driver-v2-fix.patch
 9p-fix-p9_printfcall-export.patch
 git-watchdog.patch
 git-watchdog-fixup.patch
+b43-fix-build-with-config_ssb_pcihost=n.patch
 git-ipwireless_cs.patch
 git-x86.patch
 git-x86-fixup-vs-git-sched.patch
@@ -318,6 +306,7 @@ libfs-allow-error-return-from-simple-attributes-fix.patch
 fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
 fs-afs-securityc-fix-uninitialized-var-warning.patch
 mount-options-fix-tmpfs-fix.patch
+remove-__init_refok-and-__initdata_refok-fix.patch
 char-applicom-use-pci_match_id-fix.patch
 add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
 reiser4.patch
@@ -332,4 +321,3 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-b43-fix-build-with-config_ssb_pcihost=n.patch
