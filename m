@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memstick-git-busted.patch added to -mm tree
-Date: Sat, 02 Feb 2008 16:08:31 -0800
-Message-ID: <200802030017.m130HFaX023132@imap1.linux-foundation.org>
+Subject: + infiniband-is-scrogged-again.patch added to -mm tree
+Date: Sat, 02 Feb 2008 16:10:38 -0800
+Message-ID: <200802030019.m130JMgn023162@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35203 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35487 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765437AbYBCARS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 19:17:18 -0500
+	by vger.kernel.org with ESMTP id S1765311AbYBCAT0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 19:19:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, oakad@yahoo.com
+Cc: akpm@linux-foundation.org, rolandd@cisco.com
 
 
 The patch titled
-     memstick-git-busted
+     infiniband-is-scrogged-again
 has been added to the -mm tree.  Its filename is
-     memstick-git-busted.patch
+     infiniband-is-scrogged-again.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,27 +33,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memstick-git-busted
+Subject: infiniband-is-scrogged-again
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Alex Dubov <oakad@yahoo.com>
+lol.
+
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/hw/nes/nes_cm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/memstick/Kconfig~memstick-git-busted drivers/memstick/Kconfig
---- a/drivers/memstick/Kconfig~memstick-git-busted
-+++ a/drivers/memstick/Kconfig
-@@ -4,6 +4,7 @@
+diff -puN drivers/infiniband/hw/nes/nes_cm.c~infiniband-is-scrogged-again drivers/infiniband/hw/nes/nes_cm.c
+--- a/drivers/infiniband/hw/nes/nes_cm.c~infiniband-is-scrogged-again
++++ a/drivers/infiniband/hw/nes/nes_cm.c
+@@ -1012,7 +1012,7 @@ static void nes_addr_send_arp(u32 dst_ip
  
- menuconfig MEMSTICK
- 	tristate "Sony MemoryStick card support (EXPERIMENTAL)"
-+	depends on BROKEN
- 	help
- 	  Sony MemoryStick is a proprietary storage/extension card protocol.
- 
+ 	memset(&fl, 0, sizeof fl);
+ 	fl.nl_u.ip4_u.daddr = htonl(dst_ip);
+-	if (ip_route_output_key(&rt, &fl)) {
++	if (ip_route_output_key(NULL, &rt, &fl)) {
+ 		printk("%s: ip_route_output_key failed for 0x%08X\n",
+ 				__FUNCTION__, dst_ip);
+ 		return;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -94,6 +97,7 @@ git-drm-fix.patch
 drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
 adt7473-new-driver-for-analog-devices-adt7473-sensor-chip-fix.patch
 revert-git-hrt.patch
+infiniband-is-scrogged-again.patch
 drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
 git-kvm.patch
 drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
