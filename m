@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drm-convert-from-nopage-to-fault-checkpatch-fixes.patch added to -mm tree
-Date: Sat, 02 Feb 2008 18:34:37 -0800
-Message-ID: <200802030234.m132YIOJ027525@imap1.linux-foundation.org>
+Subject: + md-change-iterate_rdev-to-rdev_for_each-fix.patch added to -mm tree
+Date: Sat, 02 Feb 2008 18:46:51 -0800
+Message-ID: <200802030255.m132tZqh028161@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48554 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34635 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753632AbYBCCeg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 21:34:36 -0500
+	by vger.kernel.org with ESMTP id S1752572AbYBCCzn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 21:55:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, airlied@linux.ie, npiggin@suse.de
+Cc: akpm@linux-foundation.org, neilb@suse.de
 
 
 The patch titled
-     drm-convert-from-nopage-to-fault-checkpatch-fixes
+     md-change-iterate_rdev-to-rdev_for_each-fix
 has been added to the -mm tree.  Its filename is
-     drm-convert-from-nopage-to-fault-checkpatch-fixes.patch
+     md-change-iterate_rdev-to-rdev_for_each-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,102 +33,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm-convert-from-nopage-to-fault-checkpatch-fixes
+Subject: md-change-iterate_rdev-to-rdev_for_each-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: plain inline is preferred over __inline__
-#32: FILE: drivers/char/drm/drm_vm.c:83:
-+static __inline__ int drm_do_vm_fault(struct vm_area_struct *vma,
-
-WARNING: plain inline is preferred over __inline__
-#97: FILE: drivers/char/drm/drm_vm.c:155:
-+static __inline__ int drm_do_vm_fault(struct vm_area_struct *vma,
-
-WARNING: plain inline is preferred over __inline__
-#111: FILE: drivers/char/drm/drm_vm.c:172:
-+static __inline__ int drm_do_vm_shm_fault(struct vm_area_struct *vma,
-
-WARNING: plain inline is preferred over __inline__
-#157: FILE: drivers/char/drm/drm_vm.c:285:
-+static __inline__ int drm_do_vm_dma_fault(struct vm_area_struct *vma,
-
-WARNING: line over 80 characters
-#176: FILE: drivers/char/drm/drm_vm.c:300:
-+	offset = (unsigned long)vmf->virtual_address - vma->vm_start;	/* vm_[pg]off[set] should be 0 */
-
-WARNING: plain inline is preferred over __inline__
-#201: FILE: drivers/char/drm/drm_vm.c:320:
-+static __inline__ int drm_do_vm_sg_fault(struct vm_area_struct *vma,
-
-total: 0 errors, 6 warnings, 289 lines checked
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Dave Airlie <airlied@linux.ie>
-Cc: Nick Piggin <npiggin@suse.de>
+Cc: Neil Brown <neilb@suse.de>
+Cc: NeilBrown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/drm_vm.c |   15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+ drivers/md/md.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/drm/drm_vm.c~drm-convert-from-nopage-to-fault-checkpatch-fixes drivers/char/drm/drm_vm.c
---- a/drivers/char/drm/drm_vm.c~drm-convert-from-nopage-to-fault-checkpatch-fixes
-+++ a/drivers/char/drm/drm_vm.c
-@@ -80,8 +80,7 @@ static pgprot_t drm_io_prot(uint32_t map
-  * map, get the page, increment the use count and return it.
-  */
- #if __OS_HAS_AGP
--static __inline__ int drm_do_vm_fault(struct vm_area_struct *vma,
--						struct vm_fault *vmf)
-+static int drm_do_vm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
- {
- 	struct drm_file *priv = vma->vm_file->private_data;
- 	struct drm_device *dev = priv->head->dev;
-@@ -152,8 +151,7 @@ vm_fault_error:
- 	return VM_FAULT_SIGBUS;	/* Disallow mremap */
- }
- #else				/* __OS_HAS_AGP */
--static __inline__ int drm_do_vm_fault(struct vm_area_struct *vma,
--						struct vm_fault *vmf)
-+static int drm_do_vm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
- {
- 	return VM_FAULT_SIGBUS;
- }
-@@ -169,8 +167,7 @@ static __inline__ int drm_do_vm_fault(st
-  * Get the mapping, find the real physical page to map, get the page, and
-  * return it.
-  */
--static __inline__ int drm_do_vm_shm_fault(struct vm_area_struct *vma,
--						    struct vm_fault *vmf)
-+static int drm_do_vm_shm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
- {
- 	struct drm_map *map = (struct drm_map *) vma->vm_private_data;
- 	unsigned long offset;
-@@ -282,8 +279,7 @@ static void drm_vm_shm_close(struct vm_a
-  *
-  * Determine the page number from the page offset and get it from drm_device_dma::pagelist.
-  */
--static __inline__ int drm_do_vm_dma_fault(struct vm_area_struct *vma,
--						    struct vm_fault *vmf)
-+static int drm_do_vm_dma_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
- {
- 	struct drm_file *priv = vma->vm_file->private_data;
- 	struct drm_device *dev = priv->head->dev;
-@@ -317,8 +313,7 @@ static __inline__ int drm_do_vm_dma_faul
-  *
-  * Determine the map offset from the page offset and get it from drm_sg_mem::pagelist.
-  */
--static __inline__ int drm_do_vm_sg_fault(struct vm_area_struct *vma,
--						   struct vm_fault *vmf)
-+static int drm_do_vm_sg_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
- {
- 	struct drm_map *map = (struct drm_map *) vma->vm_private_data;
- 	struct drm_file *priv = vma->vm_file->private_data;
+diff -puN drivers/md/md.c~md-change-iterate_rdev-to-rdev_for_each-fix drivers/md/md.c
+--- a/drivers/md/md.c~md-change-iterate_rdev-to-rdev_for_each-fix
++++ a/drivers/md/md.c
+@@ -2016,7 +2016,7 @@ rdev_size_store(mdk_rdev_t *rdev, const 
+ 			mdk_rdev_t *rdev2;
+ 
+ 			mddev_lock(mddev);
+-			ITERATE_RDEV(mddev, rdev2, tmp2)
++			rdev_for_each(rdev2, tmp2, mddev)
+ 				if (test_bit(AllReserved, &rdev2->flags) ||
+ 				    (rdev->bdev == rdev2->bdev &&
+ 				     rdev != rdev2 &&
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -281,6 +208,8 @@ rtc-ds1302-rtc-support-checkpatch-fixes.patch
 fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
 neofb-avoid-overwriting-fb_info-fields.patch
 vermilionc-use-align-not-__align_mask.patch
+md-change-interate_mddev-to-for_each_mddev-fix.patch
+md-change-iterate_rdev-to-rdev_for_each-fix.patch
 declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
 isapnp-driver-semaphore-to-mutex-fix.patch
 isapnp-driver-semaphore-to-mutex-fix-fix.patch
