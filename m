@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cifs-fix-warning.patch added to -mm tree
-Date: Sat, 02 Feb 2008 17:48:41 -0800
-Message-ID: <200802030157.m131vPOI026409@imap1.linux-foundation.org>
+Subject: + introduce-path_put-cifs-fix.patch added to -mm tree
+Date: Sat, 02 Feb 2008 17:49:55 -0800
+Message-ID: <200802030158.m131wdl0026424@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41592 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40962 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933234AbYBCB6D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 20:58:03 -0500
+	by vger.kernel.org with ESMTP id S933434AbYBCB65 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 20:58:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, sfrench@us.ibm.com
+Cc: akpm@linux-foundation.org, jblunck@suse.de, sfrench@us.ibm.com
 
 
 The patch titled
-     cifs: fix warning
+     introduce-path_put-cifs-fix
 has been added to the -mm tree.  Its filename is
-     cifs-fix-warning.patch
+     introduce-path_put-cifs-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,31 +33,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cifs: fix warning
+Subject: introduce-path_put-cifs-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/cifs/cifs_spnego.c: In function 'cifs_get_spnego_key':
-fs/cifs/cifs_spnego.c:128: warning: comparison of distinct pointer types lacks a cast
-
 Cc: Steven French <sfrench@us.ibm.com>
+Cc: Jan Blunck <jblunck@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cifs/cifs_spnego.c |    2 +-
+ fs/cifs/cifs_dfs_ref.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/cifs/cifs_spnego.c~cifs-fix-warning fs/cifs/cifs_spnego.c
---- a/fs/cifs/cifs_spnego.c~cifs-fix-warning
-+++ a/fs/cifs/cifs_spnego.c
-@@ -125,7 +125,7 @@ cifs_get_spnego_key(struct cifsSesInfo *
- #ifdef CONFIG_CIFS_DEBUG2
- 	if (cifsFYI && !IS_ERR(spnego_key)) {
- 		struct cifs_spnego_msg *msg = spnego_key->payload.data;
--		cifs_dump_mem("SPNEGO reply blob:", msg->data, min(1024,
-+		cifs_dump_mem("SPNEGO reply blob:", msg->data, min(1024U,
- 				msg->secblob_len + msg->sesskey_len));
- 	}
- #endif /* CONFIG_CIFS_DEBUG2 */
+diff -puN fs/cifs/cifs_dfs_ref.c~introduce-path_put-cifs-fix fs/cifs/cifs_dfs_ref.c
+--- a/fs/cifs/cifs_dfs_ref.c~introduce-path_put-cifs-fix
++++ a/fs/cifs/cifs_dfs_ref.c
+@@ -368,7 +368,7 @@ out:
+ 	cFYI(1, ("leaving %s" , __FUNCTION__));
+ 	return ERR_PTR(rc);
+ out_err:
+-	path_release(nd);
++	path_put(&nd->path);
+ 	goto out;
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,6 +85,7 @@ git-agpgart-fix.patch
 git-audit-master.patch
 git-audit-master-fix-git-conflicts.patch
 git-audit-printk-warning-fix.patch
+cifs-fix-warning.patch
 git-cpufreq.patch
 revert-agk-dm-dm-loop.patch
 include-asm-powerpc-nvramh-needs-listh.patch
@@ -260,6 +259,7 @@ iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
+introduce-path_put-cifs-fix.patch
 one-less-parameter-to-__d_path-checkpatch-fixes.patch
 d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
 d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
@@ -308,5 +308,3 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-introduce-path_put-cifs-fix.patch
-cifs-fix-warning.patch
