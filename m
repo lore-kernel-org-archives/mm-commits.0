@@ -1,59 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - git-battery-fix-git-conflicts.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 12:07:02 -0800
-Message-ID: <200802032006.m13K6hTB029451@imap1.linux-foundation.org>
+Subject: + git-x86-fix-rejects.patch added to -mm tree
+Date: Sun, 03 Feb 2008 12:09:44 -0800
+Message-ID: <200802032009.m13K9Pud029553@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38376 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37567 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751965AbYBCUG4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 15:06:56 -0500
+	by vger.kernel.org with ESMTP id S1751808AbYBCUJ2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 15:09:28 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m13K9PpT001631
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Sun, 3 Feb 2008 12:09:27 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cbou@mail.ru, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-battery-fix-git-conflicts
-has been removed from the -mm tree.  Its filename was
-     git-battery-fix-git-conflicts.patch
+     git-x86-fix-rejects
+has been added to the -mm tree.  Its filename is
+     git-x86-fix-rejects.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-battery-fix-git-conflicts
+Subject: git-x86-fix-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Anton Vorontsov <cbou@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/apm_power.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ kernel/Makefile |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/power/apm_power.c~git-battery-fix-git-conflicts drivers/power/apm_power.c
---- a/drivers/power/apm_power.c~git-battery-fix-git-conflicts
-+++ a/drivers/power/apm_power.c
-@@ -13,16 +13,14 @@
- #include <linux/power_supply.h>
- #include <linux/apm-emulation.h>
- 
--<<<<<<< HEAD:drivers/power/apm_power.c
- static DEFINE_MUTEX(apm_mutex);
--=======
-+
- enum apm_source {
- 	SOURCE_ENERGY,
- 	SOURCE_CHARGE,
- 	SOURCE_VOLTAGE,
- };
- 
-->>>>>>> FETCH_HEAD:drivers/power/apm_power.c
- #define PSY_PROP(psy, prop, val) psy->get_property(psy, \
- 			 POWER_SUPPLY_PROP_##prop, val)
- 
+diff -puN kernel/Makefile~git-x86-fix-rejects kernel/Makefile
+--- a/kernel/Makefile~git-x86-fix-rejects
++++ a/kernel/Makefile
+@@ -49,6 +49,7 @@ obj-$(CONFIG_AUDIT) += audit.o auditfilt
+ obj-$(CONFIG_AUDITSYSCALL) += auditsc.o
+ obj-$(CONFIG_AUDIT_TREE) += audit_tree.o
+ obj-$(CONFIG_KPROBES) += kprobes.o
++obj-$(CONFIG_KGDB) += kgdb.o
+ obj-$(CONFIG_DETECT_SOFTLOCKUP) += softlockup.o
+ obj-$(CONFIG_GENERIC_HARDIRQS) += irq/
+ obj-$(CONFIG_SECCOMP) += seccomp.o
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -111,7 +114,6 @@ git-netdev-all-fix-conflicts-fix.patch
 drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 git-backlight.patch
-git-battery-fix-git-conflicts.patch
 bluetooth-uninlining.patch
 serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
 fix-gregkh-pci-pci-pcie-aspm-support.patch
@@ -120,7 +122,6 @@ quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpat
 x86-validate-against-acpi-motherboard-resources.patch
 git-sched.patch
 git-scsi-misc.patch
-git-scsi-misc-vs-gregkh-pci-pci-remove-users-of-pci_enable_device_bars.patch
 scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes.patch
 scsi-aic94xx-cleanups-checkpatch-fixes.patch
 scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
@@ -137,6 +138,7 @@ git-watchdog-fixup.patch
 b43-fix-build-with-config_ssb_pcihost=n.patch
 git-ipwireless_cs.patch
 git-x86.patch
+git-x86-fix-rejects.patch
 git-x86-fixup-vs-git-sched.patch
 git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
