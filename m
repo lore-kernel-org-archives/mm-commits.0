@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + remove-__init_refok-and-__initdata_refok-fix.patch added to -mm tree
-Date: Sun, 03 Feb 2008 00:32:51 -0800
-Message-ID: <200802030841.m138fZd5006726@imap1.linux-foundation.org>
+Subject: + ata-drivers-ata-sata_mvc-needs-dmapoolh.patch added to -mm tree
+Date: Sun, 03 Feb 2008 00:54:12 -0800
+Message-ID: <200802030902.m1392trB007369@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56418 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52170 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758685AbYBCImS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 03:42:18 -0500
+	by vger.kernel.org with ESMTP id S1758551AbYBCJDL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 04:03:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ralf@linux-mips.org, sam@ravnborg.org
+Cc: akpm@linux-foundation.org, jeff@garzik.org
 
 
 The patch titled
-     remove-__init_refok-and-__initdata_refok-fix
+     ata: drivers/ata/sata_mv.c needs dmapool.h
 has been added to the -mm tree.  Its filename is
-     remove-__init_refok-and-__initdata_refok-fix.patch
+     ata-drivers-ata-sata_mvc-needs-dmapoolh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,31 +33,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: remove-__init_refok-and-__initdata_refok-fix
+Subject: ata: drivers/ata/sata_mv.c needs dmapool.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-dude, you broke your own architecture.
+mips:
 
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+drivers/ata/sata_mv.c: In function `mv_port_free_dma_mem':
+drivers/ata/sata_mv.c:1080: error: implicit declaration of function `dma_pool_free'
+
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/head.S |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/ata/sata_mv.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/mips/kernel/head.S~remove-__init_refok-and-__initdata_refok-fix arch/mips/kernel/head.S
---- a/arch/mips/kernel/head.S~remove-__init_refok-and-__initdata_refok-fix
-+++ a/arch/mips/kernel/head.S
-@@ -140,8 +140,6 @@ FEXPORT(__kernel_entry)
- 	j	kernel_entry
- #endif
- 
--	__INIT_REFOK
--
- NESTED(kernel_entry, 16, sp)			# kernel entry point
- 
- 	kernel_entry_setup			# cpu specific setup
+diff -puN drivers/ata/sata_mv.c~ata-drivers-ata-sata_mvc-needs-dmapoolh drivers/ata/sata_mv.c
+--- a/drivers/ata/sata_mv.c~ata-drivers-ata-sata_mvc-needs-dmapoolh
++++ a/drivers/ata/sata_mv.c
+@@ -69,6 +69,7 @@
+ #include <linux/blkdev.h>
+ #include <linux/delay.h>
+ #include <linux/interrupt.h>
++#include <linux/dmapool.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/device.h>
+ #include <scsi/scsi_host.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -321,3 +322,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+ata-drivers-ata-sata_mvc-needs-dmapoolh.patch
