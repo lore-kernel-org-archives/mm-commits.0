@@ -1,82 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - ucc_geth-add-support-for-netpoll.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 12:22:29 -0800
-Message-ID: <200802032022.m13KMATp029991@imap1.linux-foundation.org>
+Subject: - sky2-wake-on-lan-configuration-issues.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 12:22:41 -0800
+Message-ID: <200802032022.m13KMMpZ030006@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38806 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44314 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752191AbYBCUW2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 15:22:28 -0500
+	by vger.kernel.org with ESMTP id S1752191AbYBCUWY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 15:22:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avorontsov@ru.mvista.com, mm-commits@vger.kernel.org
+To: shemminger@linux-foundation.org, supersud501@yahoo.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ucc_geth: add support for netpoll
+     sky2: wake-on-lan configuration issues
 has been removed from the -mm tree.  Its filename was
-     ucc_geth-add-support-for-netpoll.patch
+     sky2-wake-on-lan-configuration-issues.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ucc_geth: add support for netpoll
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: sky2: wake-on-lan configuration issues
+From: Stephen Hemminger <shemminger@linux-foundation.org>
 
-Add netpoll support for the QE UCC Gigabit Ethernet driver.  The approach is
-very similar to the gianfar driver.
+This patch disables config mode access after clearing PCI settings.
 
-Tested using netconsole.
-
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
+Tested-by: supersud501 <supersud501@yahoo.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ucc_geth.c |   19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ drivers/net/sky2.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/ucc_geth.c~ucc_geth-add-support-for-netpoll drivers/net/ucc_geth.c
---- a/drivers/net/ucc_geth.c~ucc_geth-add-support-for-netpoll
-+++ a/drivers/net/ucc_geth.c
-@@ -3666,6 +3666,22 @@ static irqreturn_t ucc_geth_irq_handler(
- 	return IRQ_HANDLED;
- }
+diff -puN drivers/net/sky2.c~sky2-wake-on-lan-configuration-issues drivers/net/sky2.c
+--- a/drivers/net/sky2.c~sky2-wake-on-lan-configuration-issues
++++ a/drivers/net/sky2.c
+@@ -623,6 +623,7 @@ static void sky2_phy_power(struct sky2_h
+ 	static const u32 phy_power[] = { PCI_Y2_PHY1_POWD, PCI_Y2_PHY2_POWD };
+ 	static const u32 coma_mode[] = { PCI_Y2_PHY1_COMA, PCI_Y2_PHY2_COMA };
  
-+#ifdef CONFIG_NET_POLL_CONTROLLER
-+/*
-+ * Polling 'interrupt' - used by things like netconsole to send skbs
-+ * without having to re-enable interrupts. It's not called while
-+ * the interrupt routine is executing.
-+ */
-+static void ucc_netpoll(struct net_device *dev)
-+{
-+	struct ucc_geth_private *ugeth = netdev_priv(dev);
-+
-+	disable_irq(ugeth->ug_info->uf_info.irq);
-+	ucc_geth_irq_handler(ugeth->ug_info->uf_info.irq, dev);
-+	enable_irq(ugeth->ug_info->uf_info.irq);
-+}
-+#endif /* CONFIG_NET_POLL_CONTROLLER */
-+
- /* Called when something needs to use the ethernet device */
- /* Returns 0 for success. */
- static int ucc_geth_open(struct net_device *dev)
-@@ -4008,6 +4024,9 @@ static int ucc_geth_probe(struct of_devi
- #ifdef CONFIG_UGETH_NAPI
- 	netif_napi_add(dev, &ugeth->napi, ucc_geth_poll, UCC_GETH_DEV_WEIGHT);
- #endif				/* CONFIG_UGETH_NAPI */
-+#ifdef CONFIG_NET_POLL_CONTROLLER
-+	dev->poll_controller = ucc_netpoll;
-+#endif
- 	dev->stop = ucc_geth_close;
- //    dev->change_mtu = ucc_geth_change_mtu;
- 	dev->mtu = 1500;
++	sky2_write8(hw, B2_TST_CTRL1, TST_CFG_WRITE_ON);
+ 	reg1 = sky2_pci_read32(hw, PCI_DEV_REG1);
+ 	/* Turn on/off phy power saving */
+ 	if (onoff)
+@@ -634,7 +635,8 @@ static void sky2_phy_power(struct sky2_h
+ 		reg1 |= coma_mode[port];
+ 
+ 	sky2_pci_write32(hw, PCI_DEV_REG1, reg1);
+-	reg1 = sky2_pci_read32(hw, PCI_DEV_REG1);
++	sky2_write8(hw, B2_TST_CTRL1, TST_CFG_WRITE_OFF);
++	sky2_pci_read32(hw, PCI_DEV_REG1);
+ 
+ 	udelay(100);
+ }
+@@ -2436,6 +2438,7 @@ static void sky2_hw_intr(struct sky2_hw 
+ 	if (status & (Y2_IS_MST_ERR | Y2_IS_IRQ_STAT)) {
+ 		u16 pci_err;
+ 
++		sky2_write8(hw, B2_TST_CTRL1, TST_CFG_WRITE_ON);
+ 		pci_err = sky2_pci_read16(hw, PCI_STATUS);
+ 		if (net_ratelimit())
+ 			dev_err(&pdev->dev, "PCI hardware error (0x%x)\n",
+@@ -2443,12 +2446,14 @@ static void sky2_hw_intr(struct sky2_hw 
+ 
+ 		sky2_pci_write16(hw, PCI_STATUS,
+ 				      pci_err | PCI_STATUS_ERROR_BITS);
++		sky2_write8(hw, B2_TST_CTRL1, TST_CFG_WRITE_OFF);
+ 	}
+ 
+ 	if (status & Y2_IS_PCI_EXP) {
+ 		/* PCI-Express uncorrectable Error occurred */
+ 		u32 err;
+ 
++		sky2_write8(hw, B2_TST_CTRL1, TST_CFG_WRITE_ON);
+ 		err = sky2_read32(hw, Y2_CFG_AER + PCI_ERR_UNCOR_STATUS);
+ 		sky2_write32(hw, Y2_CFG_AER + PCI_ERR_UNCOR_STATUS,
+ 			     0xfffffffful);
+@@ -2456,6 +2461,7 @@ static void sky2_hw_intr(struct sky2_hw 
+ 			dev_err(&pdev->dev, "PCI Express error (0x%x)\n", err);
+ 
+ 		sky2_read32(hw, Y2_CFG_AER + PCI_ERR_UNCOR_STATUS);
++		sky2_write8(hw, B2_TST_CTRL1, TST_CFG_WRITE_OFF);
+ 	}
+ 
+ 	if (status & Y2_HWE_L1_MASK)
+@@ -2831,6 +2837,7 @@ static void sky2_reset(struct sky2_hw *h
+ 	}
+ 
+ 	sky2_power_on(hw);
++	sky2_write8(hw, B2_TST_CTRL1, TST_CFG_WRITE_OFF);
+ 
+ 	for (i = 0; i < hw->ports; i++) {
+ 		sky2_write8(hw, SK_REG(i, GMAC_LINK_CTRL), GMLC_RST_SET);
 _
 
-Patches currently in -mm which might be from avorontsov@ru.mvista.com are
+Patches currently in -mm which might be from shemminger@linux-foundation.org are
 
 origin.patch
+git-input.patch
 git-net.patch
+if-0-pci_cleanup_aer_correct_error_status.patch
