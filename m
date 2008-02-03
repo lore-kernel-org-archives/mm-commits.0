@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-ata-sata_mvc-fix-warning-when-config_pci=n.patch added to -mm tree
-Date: Sun, 03 Feb 2008 00:55:27 -0800
-Message-ID: <200802030904.m1394AqP007389@imap1.linux-foundation.org>
+Subject: + drivers-net-dm9000c-vague-probably-wrong-build-fix.patch added to -mm tree
+Date: Sun, 03 Feb 2008 01:07:55 -0800
+Message-ID: <200802030916.m139GcCP007811@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35284 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50228 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758551AbYBCJE0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 04:04:26 -0500
+	by vger.kernel.org with ESMTP id S1754071AbYBCJQu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 04:16:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeff@garzik.org
+Cc: akpm@linux-foundation.org, daniel@caiaq.de, rmk@arm.linux.org.uk
 
 
 The patch titled
-     drivers/ata/sata_mv.c: fix warning when CONFIG_PCI=n
+     drivers/net/dm9000.c: vague, probably-wrong build fix
 has been added to the -mm tree.  Its filename is
-     drivers-ata-sata_mvc-fix-warning-when-config_pci=n.patch
+     drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,38 +33,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/ata/sata_mv.c: fix warning when CONFIG_PCI=n
+Subject: drivers/net/dm9000.c: vague, probably-wrong build fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/ata/sata_mv.c: In function `mv_init_host':
-drivers/ata/sata_mv.c:2676: warning: unused variable `offset'
+mips:
 
-Cc: Jeff Garzik <jeff@garzik.org>
+drivers/net/dm9000.c: In function `dm9000_open':
+drivers/net/dm9000.c:627: error: `IRQT_RISING' undeclared (first use in this function)
+drivers/net/dm9000.c:627: error: (Each undeclared identifier is reported only once
+drivers/net/dm9000.c:627: error: for each function it appears in.)
+
+Cc: Daniel Mack <daniel@caiaq.de>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_mv.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/dm9000.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/sata_mv.c~drivers-ata-sata_mvc-fix-warning-when-config_pci=n drivers/ata/sata_mv.c
---- a/drivers/ata/sata_mv.c~drivers-ata-sata_mvc-fix-warning-when-config_pci=n
-+++ a/drivers/ata/sata_mv.c
-@@ -2673,13 +2673,13 @@ static int mv_init_host(struct ata_host 
- 	for (port = 0; port < host->n_ports; port++) {
- 		struct ata_port *ap = host->ports[port];
- 		void __iomem *port_mmio = mv_port_base(mmio, port);
--		unsigned int offset = port_mmio - mmio;
- 
- 		mv_port_init(&ap->ioaddr, port_mmio);
- 
- #ifdef CONFIG_PCI
- 		ata_port_pbar_desc(ap, MV_PRIMARY_BAR, -1, "mmio");
--		ata_port_pbar_desc(ap, MV_PRIMARY_BAR, offset, "port");
-+		ata_port_pbar_desc(ap, MV_PRIMARY_BAR, port_mmio - mmio,
-+					"port");
+diff -puN drivers/net/dm9000.c~drivers-net-dm9000c-vague-probably-wrong-build-fix drivers/net/dm9000.c
+--- a/drivers/net/dm9000.c~drivers-net-dm9000c-vague-probably-wrong-build-fix
++++ a/drivers/net/dm9000.c
+@@ -113,8 +113,10 @@
+ #define writesw	outsw
+ #define writesl	outsl
+ #define DM9000_IRQ_FLAGS	(IRQF_SHARED | IRQF_TRIGGER_HIGH)
+-#else
++#elif defined(ARM)
+ #define DM9000_IRQ_FLAGS	(IRQF_SHARED | IRQT_RISING)
++#else
++#define DM9000_IRQ_FLAGS	(IRQF_SHARED)
  #endif
- 	}
  
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -112,6 +113,8 @@ infiniband-is-scrogged-again.patch
 i8042-non-x86-build-fix.patch
 drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
 git-kvm.patch
+ata-drivers-ata-sata_mvc-needs-dmapoolh.patch
+drivers-ata-sata_mvc-fix-warning-when-config_pci=n.patch
 ide-scsi-needs-select_drive.patch
 drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
 drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
@@ -328,5 +331,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-ata-drivers-ata-sata_mvc-needs-dmapoolh.patch
-drivers-ata-sata_mvc-fix-warning-when-config_pci=n.patch
+drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
