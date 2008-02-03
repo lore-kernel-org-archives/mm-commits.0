@@ -1,67 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: + embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch added to -mm tree
-Date: Sun, 03 Feb 2008 02:03:56 -0800
-Message-ID: <200802031012.m13ACe0i009575@imap1.linux-foundation.org>
+Subject: - ide-scsi-needs-select_drive.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 11:04:02 -0800
+Message-ID: <200802031903.m13J3hf5027531@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54791 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39713 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750800AbYBCKN0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 05:13:26 -0500
+	by vger.kernel.org with ESMTP id S1751223AbYBCTEU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 14:04:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, casey@schaufler-ca.com, chrisw@sous-sol.org, darwish.07@gmail.com, jmorris@namei.org, method@manicmethod.com, morgan@kernel.org, paul.moore@hp.com, sds@tycho.nsa.gov
+To: akpm@linux-foundation.org, bzolnier@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix
-has been added to the -mm tree.  Its filename is
-     embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
+     ide-scsi needs SELECT_DRIVE
+has been removed from the -mm tree.  Its filename was
+     ide-scsi-needs-select_drive.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix
+Subject: ide-scsi needs SELECT_DRIVE
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Ahmed S. Darwish" <darwish.07@gmail.com>
-Cc: Andrew G. Morgan <morgan@kernel.org>
-Cc: Casey Schaufler <casey@schaufler-ca.com>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: James Morris <jmorris@namei.org>
-Cc: Joshua Brindle <method@manicmethod.com>
-Cc: Paul Moore <paul.moore@hp.com>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
+ERROR: "SELECT_DRIVE" [drivers/scsi/ide-scsi.ko] undefined!
+
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/smack/smack_lsm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ide/ide-iops.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN security/smack/smack_lsm.c~embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix security/smack/smack_lsm.c
---- a/security/smack/smack_lsm.c~embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix
-+++ a/security/smack/smack_lsm.c
-@@ -325,7 +325,7 @@ static int smack_sb_statfs(struct dentry
- static int smack_sb_mount(char *dev_name, struct nameidata *nd,
- 			  char *type, unsigned long flags, void *data)
- {
--	struct superblock_smack *sbp = nd->mnt->mnt_sb->s_security;
-+	struct superblock_smack *sbp = nd->path.mnt->mnt_sb->s_security;
- 
- 	return smk_curacc(sbp->smk_floor, MAY_WRITE);
+diff -puN drivers/ide/ide-iops.c~ide-scsi-needs-select_drive drivers/ide/ide-iops.c
+--- a/drivers/ide/ide-iops.c~ide-scsi-needs-select_drive
++++ a/drivers/ide/ide-iops.c
+@@ -162,6 +162,7 @@ void SELECT_DRIVE (ide_drive_t *drive)
+ 		HWIF(drive)->selectproc(drive);
+ 	HWIF(drive)->OUTB(drive->select.all, IDE_SELECT_REG);
  }
++EXPORT_SYMBOL(SELECT_DRIVE);
+ 
+ void SELECT_MASK (ide_drive_t *drive, int mask)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
