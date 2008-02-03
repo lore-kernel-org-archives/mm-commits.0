@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + smack-version-11c-simplified-mandatory-access-control-kernel-fix.patch added to -mm tree
-Date: Sun, 03 Feb 2008 02:00:53 -0800
-Message-ID: <200802031009.m13A9bO2009447@imap1.linux-foundation.org>
+Subject: + embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch added to -mm tree
+Date: Sun, 03 Feb 2008 02:03:56 -0800
+Message-ID: <200802031012.m13ACe0i009575@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49006 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54791 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750708AbYBCKK5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 05:10:57 -0500
+	by vger.kernel.org with ESMTP id S1750800AbYBCKN0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 05:13:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, casey@schaufler-ca.com, chrisw@sous-sol.org, darw
 
 
 The patch titled
-     smack-version-11c-simplified-mandatory-access-control-kernel-fix
+     embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix
 has been added to the -mm tree.  Its filename is
-     smack-version-11c-simplified-mandatory-access-control-kernel-fix.patch
+     embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,10 +33,8 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: smack-version-11c-simplified-mandatory-access-control-kernel-fix
+Subject: embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix
 From: Andrew Morton <akpm@linux-foundation.org>
-
-sort out patch dependencies
 
 Cc: "Ahmed S. Darwish" <darwish.07@gmail.com>
 Cc: Andrew G. Morgan <morgan@kernel.org>
@@ -52,15 +50,15 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  security/smack/smack_lsm.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN security/smack/smack_lsm.c~smack-version-11c-simplified-mandatory-access-control-kernel-fix security/smack/smack_lsm.c
---- a/security/smack/smack_lsm.c~smack-version-11c-simplified-mandatory-access-control-kernel-fix
+diff -puN security/smack/smack_lsm.c~embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix security/smack/smack_lsm.c
+--- a/security/smack/smack_lsm.c~embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix
 +++ a/security/smack/smack_lsm.c
 @@ -325,7 +325,7 @@ static int smack_sb_statfs(struct dentry
  static int smack_sb_mount(char *dev_name, struct nameidata *nd,
  			  char *type, unsigned long flags, void *data)
  {
--	struct superblock_smack *sbp = nd->path.mnt->mnt_sb->s_security;
-+	struct superblock_smack *sbp = nd->mnt->mnt_sb->s_security;
+-	struct superblock_smack *sbp = nd->mnt->mnt_sb->s_security;
++	struct superblock_smack *sbp = nd->path.mnt->mnt_sb->s_security;
  
  	return smk_curacc(sbp->smk_floor, MAY_WRITE);
  }
@@ -281,6 +279,7 @@ iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
 introduce-path_put-cifs-fix.patch
 one-less-parameter-to-__d_path-checkpatch-fixes.patch
 d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
