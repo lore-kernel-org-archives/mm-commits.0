@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + infiniband-is-scrogged-again.patch added to -mm tree
-Date: Sat, 02 Feb 2008 16:10:38 -0800
-Message-ID: <200802030019.m130JMgn023162@imap1.linux-foundation.org>
+Subject: + memcontrol-move-mm_cgroup-to-header-file-fix-2.patch added to -mm tree
+Date: Sat, 02 Feb 2008 16:19:15 -0800
+Message-ID: <200802030027.m130RxBF023466@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35487 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58814 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765311AbYBCAT0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 19:19:26 -0500
+	by vger.kernel.org with ESMTP id S935188AbYBCA2Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 19:28:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, rolandd@cisco.com
+Cc: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, rientjes@google.com
 
 
 The patch titled
-     infiniband-is-scrogged-again
+     memcontrol-move-mm_cgroup-to-header-file-fix-2
 has been added to the -mm tree.  Its filename is
-     infiniband-is-scrogged-again.patch
+     memcontrol-move-mm_cgroup-to-header-file-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,30 +33,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: infiniband-is-scrogged-again
+Subject: memcontrol-move-mm_cgroup-to-header-file-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-lol.
+In file included from include/linux/swap.h:8,
+                 from include/linux/shmem_fs.h:4,
+                 from mm/shmem_acl.c:10:
+include/linux/memcontrol.h: In function 'mm_cgroup':
+include/linux/memcontrol.h:55: error: dereferencing pointer to incomplete type
+include/linux/memcontrol.h:55: warning: type defaults to 'int' in declaration of '_________p1'
+include/linux/memcontrol.h:55: error: dereferencing pointer to incomplete type
+include/linux/memcontrol.h:55: error: dereferencing pointer to incomplete type
+include/linux/memcontrol.h:55: warning: type defaults to 'int' in declaration of 'type name'
+include/linux/memcontrol.h:55: warning: return makes pointer from integer without a cast
+make[1]: *** [mm/shmem_acl.o] Error 1
 
-Cc: Roland Dreier <rolandd@cisco.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/nes/nes_cm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/memcontrol.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/infiniband/hw/nes/nes_cm.c~infiniband-is-scrogged-again drivers/infiniband/hw/nes/nes_cm.c
---- a/drivers/infiniband/hw/nes/nes_cm.c~infiniband-is-scrogged-again
-+++ a/drivers/infiniband/hw/nes/nes_cm.c
-@@ -1012,7 +1012,7 @@ static void nes_addr_send_arp(u32 dst_ip
+diff -puN include/linux/memcontrol.h~memcontrol-move-mm_cgroup-to-header-file-fix-2 include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcontrol-move-mm_cgroup-to-header-file-fix-2
++++ a/include/linux/memcontrol.h
+@@ -21,6 +21,7 @@
+ #define _LINUX_MEMCONTROL_H
  
- 	memset(&fl, 0, sizeof fl);
- 	fl.nl_u.ip4_u.daddr = htonl(dst_ip);
--	if (ip_route_output_key(&rt, &fl)) {
-+	if (ip_route_output_key(NULL, &rt, &fl)) {
- 		printk("%s: ip_route_output_key failed for 0x%08X\n",
- 				__FUNCTION__, dst_ip);
- 		return;
+ #include <linux/rcupdate.h>
++#include <linux/mm.h>
+ 
+ struct mem_cgroup;
+ struct page_cgroup;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -228,12 +238,14 @@ memory-controller-add-per-container-lru-and-reclaim-v7.patch
 memory-controller-oom-handling-v7.patch
 memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
 memcontrol-move-mm_cgroup-to-header-file-fix.patch
+memcontrol-move-mm_cgroup-to-header-file-fix-2.patch
 memcontrol-move-oom-task-exclusion-to-tasklist.patch
 memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
 memory-cgroup-enhancements-add-memorystat-file.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+a.patch
 cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
 cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
 hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
