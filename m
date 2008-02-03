@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + md-change-iterate_rdev-to-rdev_for_each-fix.patch added to -mm tree
-Date: Sat, 02 Feb 2008 18:46:51 -0800
-Message-ID: <200802030255.m132tZqh028161@imap1.linux-foundation.org>
+Subject: + md-change-interate_mddev-to-for_each_mddev-fix.patch added to -mm tree
+Date: Sat, 02 Feb 2008 18:47:10 -0800
+Message-ID: <200802030255.m132tslt028164@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34635 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35230 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752572AbYBCCzn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 21:55:43 -0500
+	by vger.kernel.org with ESMTP id S1753941AbYBCCz7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 21:55:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, neilb@suse.de
 
 
 The patch titled
-     md-change-iterate_rdev-to-rdev_for_each-fix
+     md-change-interate_mddev-to-for_each_mddev-fix
 has been added to the -mm tree.  Its filename is
-     md-change-iterate_rdev-to-rdev_for_each-fix.patch
+     md-change-interate_mddev-to-for_each_mddev-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md-change-iterate_rdev-to-rdev_for_each-fix
+Subject: md-change-interate_mddev-to-for_each_mddev-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Neil Brown <neilb@suse.de>
@@ -44,18 +44,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  drivers/md/md.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/md/md.c~md-change-iterate_rdev-to-rdev_for_each-fix drivers/md/md.c
---- a/drivers/md/md.c~md-change-iterate_rdev-to-rdev_for_each-fix
+diff -puN drivers/md/md.c~md-change-interate_mddev-to-for_each_mddev-fix drivers/md/md.c
+--- a/drivers/md/md.c~md-change-interate_mddev-to-for_each_mddev-fix
 +++ a/drivers/md/md.c
-@@ -2016,7 +2016,7 @@ rdev_size_store(mdk_rdev_t *rdev, const 
+@@ -2012,7 +2012,7 @@ rdev_size_store(mdk_rdev_t *rdev, const 
+ 		struct list_head *tmp, *tmp2;
+ 
+ 		mddev_unlock(rdev->mddev);
+-		ITERATE_MDDEV(mddev, tmp) {
++		for_each_mddev(mddev, tmp) {
  			mdk_rdev_t *rdev2;
  
  			mddev_lock(mddev);
--			ITERATE_RDEV(mddev, rdev2, tmp2)
-+			rdev_for_each(rdev2, tmp2, mddev)
- 				if (test_bit(AllReserved, &rdev2->flags) ||
- 				    (rdev->bdev == rdev2->bdev &&
- 				     rdev != rdev2 &&
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
