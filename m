@@ -1,75 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - git-acpi-fix-git-conflicts.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 12:03:51 -0800
-Message-ID: <200802032003.m13K3WO7029379@imap1.linux-foundation.org>
+Subject: - git-audit-master-fix-git-conflicts.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 12:04:05 -0800
+Message-ID: <200802032003.m13K3kKr029389@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44289 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55895 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751824AbYBCUDu (ORCPT
+	by vger.kernel.org with ESMTP id S1752156AbYBCUDu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 15:03:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, lenb@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-acpi-fix-git-conflicts
+     git-audit-master-fix-git-conflicts
 has been removed from the -mm tree.  Its filename was
-     git-acpi-fix-git-conflicts.patch
+     git-audit-master-fix-git-conflicts.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-acpi-fix-git-conflicts
+Subject: git-audit-master-fix-git-conflicts
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Len Brown <lenb@kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Kconfig |    4 ----
- arch/x86/Kconfig     |    4 +---
- 2 files changed, 1 insertion(+), 7 deletions(-)
+ kernel/sysctl.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN arch/powerpc/Kconfig~git-acpi-fix-git-conflicts arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~git-acpi-fix-git-conflicts
-+++ a/arch/powerpc/Kconfig
-@@ -148,14 +148,10 @@ config DEFAULT_UIMAGE
- 	  Used to allow a board to specify it wants a uImage built by default
- 	default n
- 
--<<<<<<< HEAD:arch/powerpc/Kconfig
- config REDBOOT
- 	bool
- 
--config PPC64_SWSUSP
+diff -puN kernel/sysctl.c~git-audit-master-fix-git-conflicts kernel/sysctl.c
+--- a/kernel/sysctl.c~git-audit-master-fix-git-conflicts
++++ a/kernel/sysctl.c
+@@ -81,11 +81,8 @@ extern int percpu_pagelist_fraction;
+ extern int compat_log;
+ extern int maps_protect;
+ extern int sysctl_stat_interval;
+-<<<<<<< HEAD:kernel/sysctl.c
+ extern int audit_argv_kb;
+ extern int latencytop_enabled;
 -=======
- config HIBERNATE_32
-->>>>>>> FETCH_HEAD:arch/powerpc/Kconfig
- 	bool
- 	depends on (PPC_PMAC && !SMP) || BROKEN
- 	default y
-diff -puN arch/x86/Kconfig~git-acpi-fix-git-conflicts arch/x86/Kconfig
---- a/arch/x86/Kconfig~git-acpi-fix-git-conflicts
-+++ a/arch/x86/Kconfig
-@@ -110,13 +110,11 @@ config ARCH_HIBERNATION_POSSIBLE
- 	def_bool y
- 	depends on !SMP || !X86_VOYAGER
+->>>>>>> FETCH_HEAD:kernel/sysctl.c
  
--<<<<<<< HEAD:arch/x86/Kconfig
- select HAVE_KVM
--=======
-+
- config ARCH_SUSPEND_POSSIBLE
- 	def_bool y
- 	depends on !X86_VOYAGER
-->>>>>>> FETCH_HEAD:arch/x86/Kconfig
- 
- config ZONE_DMA32
- 	bool
+ /* Constants used for minimum and  maximum */
+ #ifdef CONFIG_DETECT_SOFTLOCKUP
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,9 +68,7 @@ timerfd-v3-new-timerfd-api-sparc64-fix.patch
 drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
 drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements-checkpatch-fixes.patch
 git-acpi.patch
-git-acpi-fix-git-conflicts.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-ignore-acpi-video-devices-that-arent-present-in-hardware-checkpatch-fixes.patch
 small-acpica-extension-to-be-able-to-store-the-name-of.patch
 acpi-backlight-reset-brightness-on-resume-checkpatch-fixes.patch
 git-alsa-disable-sound-pci-ice1712-ice1724c.patch
