@@ -1,53 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - git-audit-master-fix-git-conflicts.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 12:04:05 -0800
-Message-ID: <200802032003.m13K3kKr029389@imap1.linux-foundation.org>
+Subject: - git-battery-fix-git-conflicts.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 12:07:02 -0800
+Message-ID: <200802032006.m13K6hTB029451@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55895 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38376 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752156AbYBCUDu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 15:03:50 -0500
+	by vger.kernel.org with ESMTP id S1751965AbYBCUG4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 15:06:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cbou@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-audit-master-fix-git-conflicts
+     git-battery-fix-git-conflicts
 has been removed from the -mm tree.  Its filename was
-     git-audit-master-fix-git-conflicts.patch
+     git-battery-fix-git-conflicts.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-audit-master-fix-git-conflicts
+Subject: git-battery-fix-git-conflicts
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Anton Vorontsov <cbou@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/power/apm_power.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN kernel/sysctl.c~git-audit-master-fix-git-conflicts kernel/sysctl.c
---- a/kernel/sysctl.c~git-audit-master-fix-git-conflicts
-+++ a/kernel/sysctl.c
-@@ -81,11 +81,8 @@ extern int percpu_pagelist_fraction;
- extern int compat_log;
- extern int maps_protect;
- extern int sysctl_stat_interval;
--<<<<<<< HEAD:kernel/sysctl.c
- extern int audit_argv_kb;
- extern int latencytop_enabled;
--=======
-->>>>>>> FETCH_HEAD:kernel/sysctl.c
+diff -puN drivers/power/apm_power.c~git-battery-fix-git-conflicts drivers/power/apm_power.c
+--- a/drivers/power/apm_power.c~git-battery-fix-git-conflicts
++++ a/drivers/power/apm_power.c
+@@ -13,16 +13,14 @@
+ #include <linux/power_supply.h>
+ #include <linux/apm-emulation.h>
  
- /* Constants used for minimum and  maximum */
- #ifdef CONFIG_DETECT_SOFTLOCKUP
+-<<<<<<< HEAD:drivers/power/apm_power.c
+ static DEFINE_MUTEX(apm_mutex);
+-=======
++
+ enum apm_source {
+ 	SOURCE_ENERGY,
+ 	SOURCE_CHARGE,
+ 	SOURCE_VOLTAGE,
+ };
+ 
+->>>>>>> FETCH_HEAD:drivers/power/apm_power.c
+ #define PSY_PROP(psy, prop, val) psy->get_property(psy, \
+ 			 POWER_SUPPLY_PROP_##prop, val)
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,15 +81,12 @@ git-alsa-disable-sound-pci-ice1712-ice1724c.patch
 git-agpgart.patch
 git-agpgart-fix.patch
 git-audit-master.patch
-git-audit-master-fix-git-conflicts.patch
 git-audit-printk-warning-fix.patch
 cifs-fix-warning.patch
 git-cpufreq.patch
 revert-agk-dm-dm-loop.patch
 include-asm-powerpc-nvramh-needs-listh.patch
 include-asm-powerpc-nvramh-needs-listh-fix.patch
-git-powerpc-galak.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
 drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
 git-drm.patch
 git-drm-fix.patch
@@ -97,7 +100,6 @@ drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
 git-kbuild.patch
 git-kvm.patch
 ata-drivers-ata-sata_mvc-needs-dmapoolh.patch
-drivers-ata-sata_mvc-fix-warning-when-config_pci=n.patch
 drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
 drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
 git-md-accel.patch
@@ -105,10 +107,6 @@ memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
 memstick-git-busted.patch
 git-mmc.patch
 git-mtd.patch
-drivers-mtd-ubi-wlc-fix-uninitialized-var-warning.patch
-drivers-mtd-ubi-scanc-fix-uninitialized-var-warning.patch
-drivers-mtd-ubi-cdevc-unused-var.patch
-git-ubi.patch
 git-netdev-all-fix-conflicts-fix.patch
 drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
