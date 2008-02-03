@@ -1,228 +1,319 @@
 From: akpm@linux-foundation.org
-Subject: - add-have_kprobes.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 12:22:54 -0800
-Message-ID: <200802032022.m13KMZdD030025@imap1.linux-foundation.org>
+Subject: + git-x86-fix-git-conflicts.patch added to -mm tree
+Date: Sun, 03 Feb 2008 12:41:11 -0800
+Message-ID: <200802032049.m13KnvaV030898@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43332 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59694 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752558AbYBCU1m (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 15:27:42 -0500
+	by vger.kernel.org with ESMTP id S1752151AbYBCUu1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 15:50:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, ananth@in.ibm.com, dhowells@redhat.com, jdike@addtoit.com, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, mingo@elte.hu
 
 
 The patch titled
-     Add HAVE_KPROBES
-has been removed from the -mm tree.  Its filename was
-     add-have_kprobes.patch
+     git-x86-fix-git-conflicts
+has been added to the -mm tree.  Its filename is
+     git-x86-fix-git-conflicts.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Add HAVE_KPROBES
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: git-x86-fix-git-conflicts
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Linus:
-
-On the per-architecture side, I do think it would be better to *not* have
-internal architecture knowledge in a generic file, and as such a line like
-
-        depends on X86_32 || IA64 || PPC || S390 || SPARC64 || X86_64 || AVR32
-
-really shouldn't exist in a file like kernel/Kconfig.instrumentation.
-
-It would be much better to do
-
-        depends on ARCH_SUPPORTS_KPROBES
-
-in that generic file, and then architectures that do support it would just
-have a
-
-        bool ARCH_SUPPORTS_KPROBES
-                default y
-
-in *their* architecture files. That would seem to be much more logical,
-and is readable both for arch maintainers *and* for people who have no
-clue - and don't care - about which architecture is supposed to support
-which interface...
-
-Changelog:
-
-Actually, I know I gave this as the magic incantation, but now that I see
-it, I realize that I should have told you to just use
-
-        config KPROBES_SUPPORT
-                def_bool y
-
-instead, which is a bit denser.
-
-We seem to use both kinds of syntax for these things, but this is really
-what "def_bool" is there for...
-
-- Use HAVE_KPROBES
-- Use a select
-
-- Yet another update :
-
-Moving to HAVE_* now.
-
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/avr32/Kconfig             |    1 +
- arch/ia64/Kconfig              |    1 +
- arch/powerpc/Kconfig           |    1 +
- arch/ppc/Kconfig               |    1 +
- arch/s390/Kconfig              |    1 +
- arch/sparc64/Kconfig           |    1 +
- arch/x86/Kconfig               |    1 +
- kernel/Kconfig.instrumentation |    7 +++++--
- 8 files changed, 12 insertions(+), 2 deletions(-)
+ include/asm-x86/futex.h |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN arch/avr32/Kconfig~add-have_kprobes arch/avr32/Kconfig
---- a/arch/avr32/Kconfig~add-have_kprobes
-+++ a/arch/avr32/Kconfig
-@@ -11,6 +11,7 @@ config AVR32
- 	# that we usually don't need on AVR32.
- 	select EMBEDDED
- 	select HAVE_OPROFILE
-+	select HAVE_KPROBES
- 	help
- 	  AVR32 is a high-performance 32-bit RISC microprocessor core,
- 	  designed for cost-sensitive embedded applications, with particular
-diff -puN arch/ia64/Kconfig~add-have_kprobes arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~add-have_kprobes
-+++ a/arch/ia64/Kconfig
-@@ -16,6 +16,7 @@ config IA64
- 	select PM if (!IA64_HP_SIM)
- 	select ARCH_SUPPORTS_MSI
- 	select HAVE_OPROFILE
-+	select HAVE_KPROBES
- 	default y
- 	help
- 	  The Itanium Processor Family is Intel's 64-bit successor to
-diff -puN arch/powerpc/Kconfig~add-have_kprobes arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~add-have_kprobes
-+++ a/arch/powerpc/Kconfig
-@@ -88,6 +88,7 @@ config PPC
- 	bool
- 	default y
- 	select HAVE_OPROFILE
-+	select HAVE_KPROBES
+diff -puN include/asm-x86/futex.h~git-x86-fix-git-conflicts include/asm-x86/futex.h
+--- a/include/asm-x86/futex.h~git-x86-fix-git-conflicts
++++ a/include/asm-x86/futex.h
+@@ -106,12 +106,7 @@ futex_atomic_cmpxchg_inatomic(int __user
+ 		return -EFAULT;
  
- config EARLY_PRINTK
- 	bool
-diff -puN arch/ppc/Kconfig~add-have_kprobes arch/ppc/Kconfig
---- a/arch/ppc/Kconfig~add-have_kprobes
-+++ a/arch/ppc/Kconfig
-@@ -43,6 +43,7 @@ config PPC
- 	bool
- 	default y
- 	select HAVE_OPROFILE
-+	select HAVE_KPROBES
- 
- config PPC32
- 	bool
-diff -puN arch/s390/Kconfig~add-have_kprobes arch/s390/Kconfig
---- a/arch/s390/Kconfig~add-have_kprobes
-+++ a/arch/s390/Kconfig
-@@ -57,6 +57,7 @@ mainmenu "Linux Kernel Configuration"
- config S390
- 	def_bool y
- 	select HAVE_OPROFILE
-+	select HAVE_KPROBES
- 
- source "init/Kconfig"
- 
-diff -puN arch/sparc64/Kconfig~add-have_kprobes arch/sparc64/Kconfig
---- a/arch/sparc64/Kconfig~add-have_kprobes
-+++ a/arch/sparc64/Kconfig
-@@ -9,6 +9,7 @@ config SPARC
- 	bool
- 	default y
- 	select HAVE_OPROFILE
-+	select HAVE_KPROBES
- 
- config SPARC64
- 	bool
-diff -puN arch/x86/Kconfig~add-have_kprobes arch/x86/Kconfig
---- a/arch/x86/Kconfig~add-have_kprobes
-+++ a/arch/x86/Kconfig
-@@ -19,6 +19,7 @@ config X86_64
- config X86
- 	def_bool y
- 	select HAVE_OPROFILE
-+	select HAVE_KPROBES
- 
- config GENERIC_LOCKBREAK
- 	def_bool n
-diff -puN kernel/Kconfig.instrumentation~add-have_kprobes kernel/Kconfig.instrumentation
---- a/kernel/Kconfig.instrumentation~add-have_kprobes
-+++ a/kernel/Kconfig.instrumentation
-@@ -34,8 +34,8 @@ config HAVE_OPROFILE
- 
- config KPROBES
- 	bool "Kprobes"
--	depends on KALLSYMS && MODULES && !UML
--	depends on X86_32 || IA64 || PPC || S390 || SPARC64 || X86_64 || AVR32
-+	depends on KALLSYMS && MODULES
-+	depends on HAVE_KPROBES
- 	help
- 	  Kprobes allows you to trap at almost any kernel address and
- 	  execute a callback function.  register_kprobe() establishes
-@@ -43,6 +43,9 @@ config KPROBES
- 	  for kernel debugging, non-intrusive instrumentation and testing.
- 	  If in doubt, say "N".
- 
-+config HAVE_KPROBES
-+	def_bool n
-+
- config MARKERS
- 	bool "Activate markers"
- 	help
+ 	__asm__ __volatile__(
+-<<<<<<< HEAD:include/asm-x86/futex.h
+-
+-		"1:	lock; cmpxchgl %3, %1			\n"
+-=======
+ 		"1:	" LOCK_PREFIX "cmpxchgl %3, %1		\n"
+->>>>>>> FETCH_HEAD:include/asm-x86/futex.h
+ 		"2:	.section .fixup, \"ax\"			\n"
+ 		"3:	mov     %2, %0				\n"
+ 		"	jmp     2b				\n"
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+kvm-i386-fix.patch
+drivers-net-wireless-b43-mainc-needs-ioh.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes.patch
+timerfd-v3-new-timerfd-api-ia64-fix.patch
+timerfd-v3-new-timerfd-api-m68k-fix.patch
+timerfd-v3-new-timerfd-api-mips-fix.patch
+timerfd-v3-new-timerfd-api-arch-fixes.patch
+timerfd-v3-new-timerfd-api-powerpc-fix.patch
+timerfd-v3-new-timerfd-api-sparc64-fix.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements-checkpatch-fixes.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+acpi-backlight-reset-brightness-on-resume-checkpatch-fixes.patch
+git-alsa-disable-sound-pci-ice1712-ice1724c.patch
+git-agpgart.patch
+git-agpgart-fix.patch
+git-audit-master.patch
+git-audit-printk-warning-fix.patch
+cifs-fix-warning.patch
+git-cpufreq.patch
+revert-agk-dm-dm-loop.patch
+include-asm-powerpc-nvramh-needs-listh.patch
+include-asm-powerpc-nvramh-needs-listh-fix.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+git-drm-fix.patch
+drm-convert-from-nopage-to-fault-checkpatch-fixes.patch
+drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
+adt7473-new-driver-for-analog-devices-adt7473-sensor-chip-fix.patch
+revert-git-hrt.patch
+infiniband-is-scrogged-again.patch
+i8042-non-x86-build-fix.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
 git-kbuild.patch
-kallsyms-should-prefer-non-weak-symbols.patch
+git-kvm.patch
+ata-drivers-ata-sata_mvc-needs-dmapoolh.patch
+drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
+drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
+git-md-accel.patch
+memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
+memstick-git-busted.patch
+git-mmc.patch
+git-mtd.patch
+git-netdev-all-fix-conflicts-fix.patch
+drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-backlight.patch
+bluetooth-uninlining.patch
+serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
+fix-gregkh-pci-pci-pcie-aspm-support.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
+x86-validate-against-acpi-motherboard-resources.patch
+git-sched.patch
+git-scsi-misc.patch
+scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes.patch
+scsi-aic94xx-cleanups-checkpatch-fixes.patch
+scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
+drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-ohci-sm501-driver-v2-fix.patch
+9p-fix-p9_printfcall-export.patch
+git-watchdog.patch
+git-watchdog-fixup.patch
+b43-fix-build-with-config_ssb_pcihost=n.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-fix-git-conflicts.patch
+git-x86-fix-rejects.patch
+git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
+x86-amd-thermal-interrupt-support-fix-2.patch
+x86-mmconf-enable-mcfg-early-cleanup.patch
+git-xtensa.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-add-proc-kpagecount-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix-2-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
+add-mm-argument-to-pte-pmd-pud-pgd_free-checkpatch-fixes.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+mm-remove-fastcall-from-mm-checkpatch-fixes.patch
+page-migraton-handle-orphaned-pages-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+smack-version-11c-simplified-mandatory-access-control-kernel-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+riscom8-fix-smp-brokenness-fix.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+address-hfs-on-disk-corruption-robustness-review-comments.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
 kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
-add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
-add-cmpxchg64-and-cmpxchg64_local-to-alpha.patch
-add-cmpxchg64-and-cmpxchg64_local-to-mips.patch
-add-cmpxchg64-and-cmpxchg64_local-to-powerpc.patch
-add-cmpxchg64-and-cmpxchg64_local-to-x86_64.patch
-add-cmpxchg_local-to-arm.patch
-add-cmpxchg_local-to-avr32.patch
-add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
-add-cmpxchg_local-to-cris.patch
-add-cmpxchg_local-to-frv.patch
-add-cmpxchg_local-to-h8300.patch
-add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
-new-cmpxchg_local-optimized-for-up-case-for-m32r.patch
-fix-m32r-__xchg.patch
-m32r-build-fix-of-arch-m32r-kernel-smpbootc.patch
-local_t-m32r-use-architecture-specific-cmpxchg_local.patch
-add-cmpxchg_local-to-m86k.patch
-add-cmpxchg_local-to-m68knommu.patch
-add-cmpxchg_local-to-parisc.patch
-add-cmpxchg_local-to-ppc.patch
-add-cmpxchg_local-to-s390.patch
-add-cmpxchg_local-to-sparc-move-__cmpxchg-to-systemh.patch
-add-cmpxchg_local-to-sparc64.patch
-add-cmpxchg_local-to-v850.patch
-add-cmpxchg_local-to-xtensa.patch
-modules-handle-symbols-that-have-a-zero-value.patch
-linux-kernel-markers-support-multiple-probes.patch
-linux-kernel-markers-support-multiple-probes-update.patch
-linux-kernel-markers-create-modpost-file.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+stopmachine-semaphore-to-mutex-fix.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
+debug_smp_processor_id-fixlets.patch
+use-ilog2-in-fs-namespacec-fix.patch
+system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
+speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
+drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+add-hpet-rtc-emulation-to-rtc_drv_cmos-fix.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+neofb-avoid-overwriting-fb_info-fields.patch
+vermilionc-use-align-not-__align_mask.patch
+md-change-interate_mddev-to-for_each_mddev-fix.patch
+md-change-iterate_rdev-to-rdev_for_each-fix.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+ext3-fix-lock-inversion-in-direct-io-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-mm_cgroup-to-header-file-fix.patch
+memcontrol-move-mm_cgroup-to-header-file-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
+hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
+cpusets-update_cpumask-revision-fix.patch
+cpusets-update_cpumask-revision-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
+introduce-path_put-cifs-fix.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
+proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+modules-make-module_address_lookup-safe-fix.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
+ufs-fix-symlink-creation-on-ufs2-fix.patch
+libfs-allow-error-return-from-simple-attributes-fix.patch
+fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
+mount-options-fix-tmpfs-fix.patch
+char-applicom-use-pci_match_id-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+page-owner-tracking-leak-detector-broken-on-s390.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
