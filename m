@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + ata-drivers-ata-sata_mvc-needs-dmapoolh.patch added to -mm tree
-Date: Sun, 03 Feb 2008 00:54:12 -0800
-Message-ID: <200802030902.m1392trB007369@imap1.linux-foundation.org>
+Subject: + drivers-ata-sata_mvc-fix-warning-when-config_pci=n.patch added to -mm tree
+Date: Sun, 03 Feb 2008 00:55:27 -0800
+Message-ID: <200802030904.m1394AqP007389@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52170 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35284 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758551AbYBCJDL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 04:03:11 -0500
+	by vger.kernel.org with ESMTP id S1758551AbYBCJE0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 04:04:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, jeff@garzik.org
 
 
 The patch titled
-     ata: drivers/ata/sata_mv.c needs dmapool.h
+     drivers/ata/sata_mv.c: fix warning when CONFIG_PCI=n
 has been added to the -mm tree.  Its filename is
-     ata-drivers-ata-sata_mvc-needs-dmapoolh.patch
+     drivers-ata-sata_mvc-fix-warning-when-config_pci=n.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,32 +33,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ata: drivers/ata/sata_mv.c needs dmapool.h
+Subject: drivers/ata/sata_mv.c: fix warning when CONFIG_PCI=n
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mips:
-
-drivers/ata/sata_mv.c: In function `mv_port_free_dma_mem':
-drivers/ata/sata_mv.c:1080: error: implicit declaration of function `dma_pool_free'
+drivers/ata/sata_mv.c: In function `mv_init_host':
+drivers/ata/sata_mv.c:2676: warning: unused variable `offset'
 
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_mv.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/ata/sata_mv.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/sata_mv.c~ata-drivers-ata-sata_mvc-needs-dmapoolh drivers/ata/sata_mv.c
---- a/drivers/ata/sata_mv.c~ata-drivers-ata-sata_mvc-needs-dmapoolh
+diff -puN drivers/ata/sata_mv.c~drivers-ata-sata_mvc-fix-warning-when-config_pci=n drivers/ata/sata_mv.c
+--- a/drivers/ata/sata_mv.c~drivers-ata-sata_mvc-fix-warning-when-config_pci=n
 +++ a/drivers/ata/sata_mv.c
-@@ -69,6 +69,7 @@
- #include <linux/blkdev.h>
- #include <linux/delay.h>
- #include <linux/interrupt.h>
-+#include <linux/dmapool.h>
- #include <linux/dma-mapping.h>
- #include <linux/device.h>
- #include <scsi/scsi_host.h>
+@@ -2673,13 +2673,13 @@ static int mv_init_host(struct ata_host 
+ 	for (port = 0; port < host->n_ports; port++) {
+ 		struct ata_port *ap = host->ports[port];
+ 		void __iomem *port_mmio = mv_port_base(mmio, port);
+-		unsigned int offset = port_mmio - mmio;
+ 
+ 		mv_port_init(&ap->ioaddr, port_mmio);
+ 
+ #ifdef CONFIG_PCI
+ 		ata_port_pbar_desc(ap, MV_PRIMARY_BAR, -1, "mmio");
+-		ata_port_pbar_desc(ap, MV_PRIMARY_BAR, offset, "port");
++		ata_port_pbar_desc(ap, MV_PRIMARY_BAR, port_mmio - mmio,
++					"port");
+ #endif
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -323,3 +329,4 @@ getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
 ata-drivers-ata-sata_mvc-needs-dmapoolh.patch
+drivers-ata-sata_mvc-fix-warning-when-config_pci=n.patch
