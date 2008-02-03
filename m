@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + fix-ide-mm-ppc-fix-ifdefs-in-mediabay-driver.patch added to -mm tree
-Date: Sun, 03 Feb 2008 15:09:39 -0700
-Message-ID: <200802032209.m13M9Msf001322@imap1.linux-foundation.org>
+Date: Sun, 03 Feb 2008 14:12:32 -0800
+Message-ID: <200802032212.m13MCDPd001392@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50171 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49088 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751942AbYBCWJd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 17:09:33 -0500
+	by vger.kernel.org with ESMTP id S1752659AbYBCWMT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 17:12:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,6 +18,12 @@ The patch titled
      fix ide-mm-ppc-fix-ifdefs-in-mediabay-driver
 has been added to the -mm tree.  Its filename is
      fix-ide-mm-ppc-fix-ifdefs-in-mediabay-driver.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -38,12 +44,12 @@ Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm/mediabay.h |    5 -----
- 1 files changed, 5 deletions(-)
+ include/asm-powerpc/mediabay.h |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN include/asm/mediabay.h~fix-ide-mm-ppc-fix-ifdefs-in-mediabay-driver include/asm/mediabay.h
---- a/include/asm/mediabay.h~fix-ide-mm-ppc-fix-ifdefs-in-mediabay-driver
-+++ a/include/asm/mediabay.h
+diff -puN include/asm-powerpc/mediabay.h~fix-ide-mm-ppc-fix-ifdefs-in-mediabay-driver include/asm-powerpc/mediabay.h
+--- a/include/asm-powerpc/mediabay.h~fix-ide-mm-ppc-fix-ifdefs-in-mediabay-driver
++++ a/include/asm-powerpc/mediabay.h
 @@ -17,20 +17,15 @@
  #define MB_POWER	6	/* media bay contains a Power device (???) */
  #define MB_NO		7	/* media bay contains nothing */
@@ -148,9 +154,6 @@ git-watchdog.patch
 git-watchdog-fixup.patch
 b43-fix-build-with-config_ssb_pcihost=n.patch
 git-ipwireless_cs.patch
-git-x86.patch
-git-x86-fix-git-conflicts.patch
-git-x86-fix-rejects.patch
 git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
