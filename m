@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-dm9000c-vague-probably-wrong-build-fix.patch added to -mm tree
-Date: Sun, 03 Feb 2008 01:07:55 -0800
-Message-ID: <200802030916.m139GcCP007811@imap1.linux-foundation.org>
+Subject: + page-owner-tracking-leak-detector-broken-on-s390.patch added to -mm tree
+Date: Sun, 03 Feb 2008 01:23:05 -0800
+Message-ID: <200802030931.m139Vmlk008193@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50228 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38935 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754071AbYBCJQu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 04:16:50 -0500
+	by vger.kernel.org with ESMTP id S1755250AbYBCJcA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 04:32:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, daniel@caiaq.de, rmk@arm.linux.org.uk
+Cc: akpm@linux-foundation.org, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     drivers/net/dm9000.c: vague, probably-wrong build fix
+     page-owner-tracking-leak-detector-broken-on-s390
 has been added to the -mm tree.  Its filename is
-     drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
+     page-owner-tracking-leak-detector-broken-on-s390.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +33,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/dm9000.c: vague, probably-wrong build fix
+Subject: page-owner-tracking-leak-detector-broken-on-s390
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mips:
+This debug patch expands the size of struct page and causes this, in vmem.c:
 
-drivers/net/dm9000.c: In function `dm9000_open':
-drivers/net/dm9000.c:627: error: `IRQT_RISING' undeclared (first use in this function)
-drivers/net/dm9000.c:627: error: (Each undeclared identifier is reported only once
-drivers/net/dm9000.c:627: error: for each function it appears in.)
 
-Cc: Daniel Mack <daniel@caiaq.de>
-Cc: Russell King <rmk@arm.linux.org.uk>
+	BUILD_BUG_ON((unsigned long)VMEM_MAP + VMEM_MAP_SIZE > VMEM_MAP_MAX);
+
+to go boom.
+
+This shouldn't happen - there are quite a few debug patches around the place
+which add things to the pageframe.
+
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/dm9000.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ lib/Kconfig.debug |    1 +
+ vmstat.c          |    0 
+ 2 files changed, 1 insertion(+)
 
-diff -puN drivers/net/dm9000.c~drivers-net-dm9000c-vague-probably-wrong-build-fix drivers/net/dm9000.c
---- a/drivers/net/dm9000.c~drivers-net-dm9000c-vague-probably-wrong-build-fix
-+++ a/drivers/net/dm9000.c
-@@ -113,8 +113,10 @@
- #define writesw	outsw
- #define writesl	outsl
- #define DM9000_IRQ_FLAGS	(IRQF_SHARED | IRQF_TRIGGER_HIGH)
--#else
-+#elif defined(ARM)
- #define DM9000_IRQ_FLAGS	(IRQF_SHARED | IRQT_RISING)
-+#else
-+#define DM9000_IRQ_FLAGS	(IRQF_SHARED)
- #endif
- 
- /*
+diff -puN Documentation/page_owner.c~page-owner-tracking-leak-detector-broken-on-s390 Documentation/page_owner.c
+diff -puN fs/proc/proc_misc.c~page-owner-tracking-leak-detector-broken-on-s390 fs/proc/proc_misc.c
+diff -puN include/linux/mm_types.h~page-owner-tracking-leak-detector-broken-on-s390 include/linux/mm_types.h
+diff -puN lib/Kconfig.debug~page-owner-tracking-leak-detector-broken-on-s390 lib/Kconfig.debug
+--- a/lib/Kconfig.debug~page-owner-tracking-leak-detector-broken-on-s390
++++ a/lib/Kconfig.debug
+@@ -58,6 +58,7 @@ config UNUSED_SYMBOLS
+ config PAGE_OWNER
+ 	bool "Track page owner"
+ 	depends on DEBUG_KERNEL
++	depends on !S390
+ 	help
+ 	  This keeps track of what call chain is the owner of a page, may
+ 	  help to find bare alloc_page(s) leaks. Eats a fair amount of memory.
+diff -puN mm/page_alloc.c~page-owner-tracking-leak-detector-broken-on-s390 mm/page_alloc.c
+diff -puN mm/vmstat.c~page-owner-tracking-leak-detector-broken-on-s390 mm/vmstat.c
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -127,6 +132,7 @@ drivers-mtd-ubi-wlc-fix-uninitialized-var-warning.patch
 drivers-mtd-ubi-scanc-fix-uninitialized-var-warning.patch
 drivers-mtd-ubi-cdevc-unused-var.patch
 git-netdev-all-fix-conflicts-fix.patch
+drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 git-backlight.patch
 git-battery.patch
@@ -322,6 +328,7 @@ add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.
 reiser4.patch
 jens-broke-reiser4patch-added-to-mm-tree.patch
 page-owner-tracking-leak-detector.patch
+page-owner-tracking-leak-detector-broken-on-s390.patch
 nr_blockdev_pages-in_interrupt-warning.patch
 slab-leaks3-default-y.patch
 profile-likely-unlikely-macros-fix.patch
@@ -331,4 +338,3 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
