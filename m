@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ext3-fix-lock-inversion-in-direct-io-fix.patch added to -mm tree
-Date: Sat, 02 Feb 2008 16:21:42 -0800
-Message-ID: <200802030030.m130UQle023527@imap1.linux-foundation.org>
+Subject: + cifs-fix-warning.patch added to -mm tree
+Date: Sat, 02 Feb 2008 17:48:41 -0800
+Message-ID: <200802030157.m131vPOI026409@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60241 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41592 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753727AbYBCAlI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 19:41:08 -0500
+	by vger.kernel.org with ESMTP id S933234AbYBCB6D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 20:58:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jack@suse.cz, linux-ext4@vger.kernel.org, pbadari@us.ibm.com, zach.brown@oracle.com
+Cc: akpm@linux-foundation.org, sfrench@us.ibm.com
 
 
 The patch titled
-     ext3-fix-lock-inversion-in-direct-io-fix
+     cifs: fix warning
 has been added to the -mm tree.  Its filename is
-     ext3-fix-lock-inversion-in-direct-io-fix.patch
+     cifs-fix-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,36 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3-fix-lock-inversion-in-direct-io-fix
+Subject: cifs: fix warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/ext3/inode.c: In function 'ext3_get_block':
-fs/ext3/inode.c:964: error: 'sb' undeclared (first use in this function)
-fs/ext3/inode.c:964: error: (Each undeclared identifier is reported only once
-fs/ext3/inode.c:964: error: for each function it appears in.)
+fs/cifs/cifs_spnego.c: In function 'cifs_get_spnego_key':
+fs/cifs/cifs_spnego.c:128: warning: comparison of distinct pointer types lacks a cast
 
-Cc: <linux-ext4@vger.kernel.org>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Zach Brown <zach.brown@oracle.com>
+Cc: Steven French <sfrench@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/inode.c |    2 +-
+ fs/cifs/cifs_spnego.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ext3/inode.c~ext3-fix-lock-inversion-in-direct-io-fix fs/ext3/inode.c
---- a/fs/ext3/inode.c~ext3-fix-lock-inversion-in-direct-io-fix
-+++ a/fs/ext3/inode.c
-@@ -961,7 +961,7 @@ static int ext3_get_block(struct inode *
- 		if (max_blocks > DIO_MAX_BLOCKS)
- 			max_blocks = DIO_MAX_BLOCKS;
- 		handle = ext3_journal_start(inode, DIO_CREDITS +
--				2 * EXT3_QUOTA_TRANS_BLOCKS(sb));
-+				2 * EXT3_QUOTA_TRANS_BLOCKS(inode->i_sb));
- 		if (IS_ERR(handle)) {
- 			ret = PTR_ERR(handle);
- 			goto out;
+diff -puN fs/cifs/cifs_spnego.c~cifs-fix-warning fs/cifs/cifs_spnego.c
+--- a/fs/cifs/cifs_spnego.c~cifs-fix-warning
++++ a/fs/cifs/cifs_spnego.c
+@@ -125,7 +125,7 @@ cifs_get_spnego_key(struct cifsSesInfo *
+ #ifdef CONFIG_CIFS_DEBUG2
+ 	if (cifsFYI && !IS_ERR(spnego_key)) {
+ 		struct cifs_spnego_msg *msg = spnego_key->payload.data;
+-		cifs_dump_mem("SPNEGO reply blob:", msg->data, min(1024,
++		cifs_dump_mem("SPNEGO reply blob:", msg->data, min(1024U,
+ 				msg->secblob_len + msg->sesskey_len));
+ 	}
+ #endif /* CONFIG_CIFS_DEBUG2 */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -264,6 +259,7 @@ iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
 iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
 one-less-parameter-to-__d_path-checkpatch-fixes.patch
 d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
 d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
@@ -312,3 +308,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+introduce-path_put-cifs-fix.patch
+cifs-fix-warning.patch
