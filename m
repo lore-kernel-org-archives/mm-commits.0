@@ -1,23 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + x86-amd-thermal-interrupt-support-fix-2.patch added to -mm tree
-Date: Sat, 02 Feb 2008 16:03:05 -0800
-Message-ID: <200802030011.m130BoqQ022946@imap1.linux-foundation.org>
+Subject: + git-drm-fix.patch added to -mm tree
+Date: Sat, 02 Feb 2008 16:05:09 -0800
+Message-ID: <200802030013.m130DrnL022993@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54677 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51327 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935458AbYBCAMb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 19:12:31 -0500
+	by vger.kernel.org with ESMTP id S1765348AbYBCANz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 19:13:55 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m130Drug026468
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Sat, 2 Feb 2008 16:13:54 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, mingo@elte.hu, rml@google.com, tglx@linutronix.de
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     x86-amd-thermal-interrupt-support-fix-2
+     git-drm-fix
 has been added to the -mm tree.  Its filename is
-     x86-amd-thermal-interrupt-support-fix-2.patch
+     git-drm-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +37,27 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86-amd-thermal-interrupt-support-fix-2
+Subject: git-drm-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-i386 allmodconfig:
-
-arch/x86/kernel/cpu/mcheck/p4.o: In function `smp_thermal_interrupt':
-arch/x86/kernel/cpu/mcheck/p4.c:61: multiple definition of `smp_thermal_interrupt'
-arch/x86/kernel/cpu/mcheck/mce_thermal.o:arch/x86/kernel/cpu/mcheck/mce_thermal.c:17: first defined here
-/opt/crosstool/gcc-4.1.0-glibc-2.3.6/i686-unknown-linux-gnu/bin/i686-unknown-linux-gnu-ld: Warning: size of symbol `smp_thermal_interrupt' changed from 4 in arch/x86/kernel/cpu/mcheck/mce_thermal.o to 43 in arch/x86/kernel/cpu/mcheck/p4.o
-/opt/crosstool/gcc-4.1.0-glibc-2.3.6/i686-unknown-linux-gnu/bin/i686-unknown-linux-gnu-ld: Warning: type of symbol `smp_thermal_interrupt' changed from 1 to 2 in arch/x86/kernel/cpu/mcheck/p4.o
-
-Cc: Russell Leidich <rml@google.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/mcheck/p4.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/drm/drm_ttm.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/mcheck/p4.c~x86-amd-thermal-interrupt-support-fix-2 arch/x86/kernel/cpu/mcheck/p4.c
---- a/arch/x86/kernel/cpu/mcheck/p4.c~x86-amd-thermal-interrupt-support-fix-2
-+++ a/arch/x86/kernel/cpu/mcheck/p4.c
-@@ -57,7 +57,7 @@ static void intel_thermal_interrupt(stru
- /* Thermal interrupt handler for this CPU setup */
- static void (*vendor_thermal_interrupt)(struct pt_regs *regs) = unexpected_thermal_interrupt;
+diff -puN drivers/char/drm/drm_ttm.c~git-drm-fix drivers/char/drm/drm_ttm.c
+--- a/drivers/char/drm/drm_ttm.c~git-drm-fix
++++ a/drivers/char/drm/drm_ttm.c
+@@ -125,8 +125,6 @@ static int drm_ttm_set_caching(struct dr
+ 			}
+ 		}
+ 	}
+-	if (do_tlbflush)
+-		flush_agp_mappings();
  
--void smp_thermal_interrupt(struct pt_regs *regs)
-+void __attribute__((weak)) smp_thermal_interrupt(struct pt_regs *regs)
- {
- 	irq_enter();
- 	vendor_thermal_interrupt(regs);
+ 	DRM_FLAG_MASKED(ttm->page_flags, noncached, DRM_TTM_PAGE_UNCACHED);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -102,6 +94,7 @@ include-asm-powerpc-nvramh-needs-listh-fix.patch
 gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
 drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
 git-drm.patch
+git-drm-fix.patch
 drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
 adt7473-new-driver-for-analog-devices-adt7473-sensor-chip-fix.patch
 revert-git-hrt.patch
