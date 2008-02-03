@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drm-convert-from-nopage-to-fault.patch added to -mm tree
-Date: Sat, 02 Feb 2008 18:32:40 -0800
-Message-ID: <200802030232.m132WL1W027498@imap1.linux-foundation.org>
+Subject: + drm-convert-from-nopage-to-fault-checkpatch-fixes.patch added to -mm tree
+Date: Sat, 02 Feb 2008 18:34:37 -0800
+Message-ID: <200802030234.m132YIOJ027525@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35757 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48554 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753444AbYBCCce (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 21:32:34 -0500
+	by vger.kernel.org with ESMTP id S1753632AbYBCCeg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 21:34:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, airlied@linux.ie
+Cc: akpm@linux-foundation.org, airlied@linux.ie, npiggin@suse.de
 
 
 The patch titled
-     drm: convert from ->nopage to ->fault
+     drm-convert-from-nopage-to-fault-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     drm-convert-from-nopage-to-fault.patch
+     drm-convert-from-nopage-to-fault-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,358 +33,352 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm: convert from ->nopage to ->fault
-From: Nick Piggin <npiggin@suse.de>
+Subject: drm-convert-from-nopage-to-fault-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Convert drm from nopage to fault.
-Remove redundant vma range checks.
+WARNING: plain inline is preferred over __inline__
+#32: FILE: drivers/char/drm/drm_vm.c:83:
++static __inline__ int drm_do_vm_fault(struct vm_area_struct *vma,
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+WARNING: plain inline is preferred over __inline__
+#97: FILE: drivers/char/drm/drm_vm.c:155:
++static __inline__ int drm_do_vm_fault(struct vm_area_struct *vma,
+
+WARNING: plain inline is preferred over __inline__
+#111: FILE: drivers/char/drm/drm_vm.c:172:
++static __inline__ int drm_do_vm_shm_fault(struct vm_area_struct *vma,
+
+WARNING: plain inline is preferred over __inline__
+#157: FILE: drivers/char/drm/drm_vm.c:285:
++static __inline__ int drm_do_vm_dma_fault(struct vm_area_struct *vma,
+
+WARNING: line over 80 characters
+#176: FILE: drivers/char/drm/drm_vm.c:300:
++	offset = (unsigned long)vmf->virtual_address - vma->vm_start;	/* vm_[pg]off[set] should be 0 */
+
+WARNING: plain inline is preferred over __inline__
+#201: FILE: drivers/char/drm/drm_vm.c:320:
++static __inline__ int drm_do_vm_sg_fault(struct vm_area_struct *vma,
+
+total: 0 errors, 6 warnings, 289 lines checked
+
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Dave Airlie <airlied@linux.ie>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/drm_vm.c |  130 ++++++++++++++++--------------------
- 1 file changed, 60 insertions(+), 70 deletions(-)
+ drivers/char/drm/drm_vm.c |   15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
-diff -puN drivers/char/drm/drm_vm.c~drm-convert-from-nopage-to-fault drivers/char/drm/drm_vm.c
---- a/drivers/char/drm/drm_vm.c~drm-convert-from-nopage-to-fault
+diff -puN drivers/char/drm/drm_vm.c~drm-convert-from-nopage-to-fault-checkpatch-fixes drivers/char/drm/drm_vm.c
+--- a/drivers/char/drm/drm_vm.c~drm-convert-from-nopage-to-fault-checkpatch-fixes
 +++ a/drivers/char/drm/drm_vm.c
-@@ -70,7 +70,7 @@ static pgprot_t drm_io_prot(uint32_t map
- }
- 
- /**
-- * \c nopage method for AGP virtual memory.
-+ * \c fault method for AGP virtual memory.
-  *
-  * \param vma virtual memory area.
-  * \param address access address.
-@@ -80,8 +80,8 @@ static pgprot_t drm_io_prot(uint32_t map
+@@ -80,8 +80,7 @@ static pgprot_t drm_io_prot(uint32_t map
   * map, get the page, increment the use count and return it.
   */
  #if __OS_HAS_AGP
--static __inline__ struct page *drm_do_vm_nopage(struct vm_area_struct *vma,
--						unsigned long address)
-+static __inline__ int drm_do_vm_fault(struct vm_area_struct *vma,
-+						struct vm_fault *vmf)
+-static __inline__ int drm_do_vm_fault(struct vm_area_struct *vma,
+-						struct vm_fault *vmf)
++static int drm_do_vm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
  {
  	struct drm_file *priv = vma->vm_file->private_data;
  	struct drm_device *dev = priv->head->dev;
-@@ -93,19 +93,24 @@ static __inline__ struct page *drm_do_vm
- 	 * Find the right map
- 	 */
- 	if (!drm_core_has_AGP(dev))
--		goto vm_nopage_error;
-+		goto vm_fault_error;
- 
- 	if (!dev->agp || !dev->agp->cant_use_aperture)
--		goto vm_nopage_error;
-+		goto vm_fault_error;
- 
- 	if (drm_ht_find_item(&dev->map_hash, vma->vm_pgoff, &hash))
--		goto vm_nopage_error;
-+		goto vm_fault_error;
- 
- 	r_list = drm_hash_entry(hash, struct drm_map_list, hash);
- 	map = r_list->map;
- 
- 	if (map && map->type == _DRM_AGP) {
--		unsigned long offset = address - vma->vm_start;
-+		/*
-+		 * Using vm_pgoff as a selector forces us to use this unusual
-+		 * addressing scheme.
-+		 */
-+		unsigned long offset = (unsigned long)vmf->virtual_address -
-+								vma->vm_start;
- 		unsigned long baddr = map->offset + offset;
- 		struct drm_agp_mem *agpmem;
- 		struct page *page;
-@@ -127,7 +132,7 @@ static __inline__ struct page *drm_do_vm
- 		}
- 
- 		if (!agpmem)
--			goto vm_nopage_error;
-+			goto vm_fault_error;
- 
- 		/*
- 		 * Get the page, inc the use count, and return it
-@@ -135,22 +140,22 @@ static __inline__ struct page *drm_do_vm
- 		offset = (baddr - agpmem->bound) >> PAGE_SHIFT;
- 		page = virt_to_page(__va(agpmem->memory->memory[offset]));
- 		get_page(page);
-+		vmf->page = page;
- 
- 		DRM_DEBUG
- 		    ("baddr = 0x%lx page = 0x%p, offset = 0x%lx, count=%d\n",
- 		     baddr, __va(agpmem->memory->memory[offset]), offset,
- 		     page_count(page));
--
--		return page;
-+		return 0;
- 	}
--vm_nopage_error:
--	return NOPAGE_SIGBUS;	/* Disallow mremap */
-+vm_fault_error:
-+	return VM_FAULT_SIGBUS;	/* Disallow mremap */
+@@ -152,8 +151,7 @@ vm_fault_error:
+ 	return VM_FAULT_SIGBUS;	/* Disallow mremap */
  }
  #else				/* __OS_HAS_AGP */
--static __inline__ struct page *drm_do_vm_nopage(struct vm_area_struct *vma,
--						unsigned long address)
-+static __inline__ int drm_do_vm_fault(struct vm_area_struct *vma,
-+						struct vm_fault *vmf)
+-static __inline__ int drm_do_vm_fault(struct vm_area_struct *vma,
+-						struct vm_fault *vmf)
++static int drm_do_vm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
  {
--	return NOPAGE_SIGBUS;
-+	return VM_FAULT_SIGBUS;
+ 	return VM_FAULT_SIGBUS;
  }
- #endif				/* __OS_HAS_AGP */
- 
-@@ -164,28 +169,27 @@ static __inline__ struct page *drm_do_vm
+@@ -169,8 +167,7 @@ static __inline__ int drm_do_vm_fault(st
   * Get the mapping, find the real physical page to map, get the page, and
   * return it.
   */
--static __inline__ struct page *drm_do_vm_shm_nopage(struct vm_area_struct *vma,
--						    unsigned long address)
-+static __inline__ int drm_do_vm_shm_fault(struct vm_area_struct *vma,
-+						    struct vm_fault *vmf)
+-static __inline__ int drm_do_vm_shm_fault(struct vm_area_struct *vma,
+-						    struct vm_fault *vmf)
++static int drm_do_vm_shm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
  {
  	struct drm_map *map = (struct drm_map *) vma->vm_private_data;
  	unsigned long offset;
- 	unsigned long i;
- 	struct page *page;
- 
--	if (address > vma->vm_end)
--		return NOPAGE_SIGBUS;	/* Disallow mremap */
- 	if (!map)
--		return NOPAGE_SIGBUS;	/* Nothing allocated */
-+		return VM_FAULT_SIGBUS;	/* Nothing allocated */
- 
--	offset = address - vma->vm_start;
-+	offset = (unsigned long)vmf->virtual_address - vma->vm_start;
- 	i = (unsigned long)map->handle + offset;
- 	page = vmalloc_to_page((void *)i);
- 	if (!page)
--		return NOPAGE_SIGBUS;
-+		return VM_FAULT_SIGBUS;
- 	get_page(page);
-+	vmf->page = page;
- 
--	DRM_DEBUG("0x%lx\n", address);
--	return page;
-+	DRM_DEBUG("shm_fault 0x%lx\n", offset);
-+	return 0;
- }
- 
- /**
-@@ -270,7 +274,7 @@ static void drm_vm_shm_close(struct vm_a
- }
- 
- /**
-- * \c nopage method for DMA virtual memory.
-+ * \c fault method for DMA virtual memory.
-  *
-  * \param vma virtual memory area.
-  * \param address access address.
-@@ -278,8 +282,8 @@ static void drm_vm_shm_close(struct vm_a
+@@ -282,8 +279,7 @@ static void drm_vm_shm_close(struct vm_a
   *
   * Determine the page number from the page offset and get it from drm_device_dma::pagelist.
   */
--static __inline__ struct page *drm_do_vm_dma_nopage(struct vm_area_struct *vma,
--						    unsigned long address)
-+static __inline__ int drm_do_vm_dma_fault(struct vm_area_struct *vma,
-+						    struct vm_fault *vmf)
+-static __inline__ int drm_do_vm_dma_fault(struct vm_area_struct *vma,
+-						    struct vm_fault *vmf)
++static int drm_do_vm_dma_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
  {
  	struct drm_file *priv = vma->vm_file->private_data;
  	struct drm_device *dev = priv->head->dev;
-@@ -289,24 +293,23 @@ static __inline__ struct page *drm_do_vm
- 	struct page *page;
- 
- 	if (!dma)
--		return NOPAGE_SIGBUS;	/* Error */
--	if (address > vma->vm_end)
--		return NOPAGE_SIGBUS;	/* Disallow mremap */
-+		return VM_FAULT_SIGBUS;	/* Error */
- 	if (!dma->pagelist)
--		return NOPAGE_SIGBUS;	/* Nothing allocated */
-+		return VM_FAULT_SIGBUS;	/* Nothing allocated */
- 
--	offset = address - vma->vm_start;	/* vm_[pg]off[set] should be 0 */
--	page_nr = offset >> PAGE_SHIFT;
-+	offset = (unsigned long)vmf->virtual_address - vma->vm_start;	/* vm_[pg]off[set] should be 0 */
-+	page_nr = offset >> PAGE_SHIFT; /* page_nr could just be vmf->pgoff */
- 	page = virt_to_page((dma->pagelist[page_nr] + (offset & (~PAGE_MASK))));
- 
- 	get_page(page);
-+	vmf->page = page;
- 
--	DRM_DEBUG("0x%lx (page %lu)\n", address, page_nr);
--	return page;
-+	DRM_DEBUG("dma_fault 0x%lx (page %lu)\n", offset, page_nr);
-+	return 0;
- }
- 
- /**
-- * \c nopage method for scatter-gather virtual memory.
-+ * \c fault method for scatter-gather virtual memory.
-  *
-  * \param vma virtual memory area.
-  * \param address access address.
-@@ -314,8 +317,8 @@ static __inline__ struct page *drm_do_vm
+@@ -317,8 +313,7 @@ static __inline__ int drm_do_vm_dma_faul
   *
   * Determine the map offset from the page offset and get it from drm_sg_mem::pagelist.
   */
--static __inline__ struct page *drm_do_vm_sg_nopage(struct vm_area_struct *vma,
--						   unsigned long address)
-+static __inline__ int drm_do_vm_sg_fault(struct vm_area_struct *vma,
-+						   struct vm_fault *vmf)
+-static __inline__ int drm_do_vm_sg_fault(struct vm_area_struct *vma,
+-						   struct vm_fault *vmf)
++static int drm_do_vm_sg_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
  {
  	struct drm_map *map = (struct drm_map *) vma->vm_private_data;
  	struct drm_file *priv = vma->vm_file->private_data;
-@@ -327,77 +330,64 @@ static __inline__ struct page *drm_do_vm
- 	struct page *page;
- 
- 	if (!entry)
--		return NOPAGE_SIGBUS;	/* Error */
--	if (address > vma->vm_end)
--		return NOPAGE_SIGBUS;	/* Disallow mremap */
-+		return VM_FAULT_SIGBUS;	/* Error */
- 	if (!entry->pagelist)
--		return NOPAGE_SIGBUS;	/* Nothing allocated */
-+		return VM_FAULT_SIGBUS;	/* Nothing allocated */
- 
--	offset = address - vma->vm_start;
-+	offset = (unsigned long)vmf->virtual_address - vma->vm_start;
- 	map_offset = map->offset - (unsigned long)dev->sg->virtual;
- 	page_offset = (offset >> PAGE_SHIFT) + (map_offset >> PAGE_SHIFT);
- 	page = entry->pagelist[page_offset];
- 	get_page(page);
-+	vmf->page = page;
- 
--	return page;
-+	return 0;
- }
- 
--static struct page *drm_vm_nopage(struct vm_area_struct *vma,
--				  unsigned long address, int *type)
-+static int drm_vm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
- {
--	if (type)
--		*type = VM_FAULT_MINOR;
--	return drm_do_vm_nopage(vma, address);
-+	return drm_do_vm_fault(vma, vmf);
- }
- 
--static struct page *drm_vm_shm_nopage(struct vm_area_struct *vma,
--				      unsigned long address, int *type)
-+static int drm_vm_shm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
- {
--	if (type)
--		*type = VM_FAULT_MINOR;
--	return drm_do_vm_shm_nopage(vma, address);
-+	return drm_do_vm_shm_fault(vma, vmf);
- }
- 
--static struct page *drm_vm_dma_nopage(struct vm_area_struct *vma,
--				      unsigned long address, int *type)
-+static int drm_vm_dma_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
- {
--	if (type)
--		*type = VM_FAULT_MINOR;
--	return drm_do_vm_dma_nopage(vma, address);
-+	return drm_do_vm_dma_fault(vma, vmf);
- }
- 
--static struct page *drm_vm_sg_nopage(struct vm_area_struct *vma,
--				     unsigned long address, int *type)
-+static int drm_vm_sg_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
- {
--	if (type)
--		*type = VM_FAULT_MINOR;
--	return drm_do_vm_sg_nopage(vma, address);
-+	return drm_do_vm_sg_fault(vma, vmf);
- }
- 
- /** AGP virtual memory operations */
- static struct vm_operations_struct drm_vm_ops = {
--	.nopage = drm_vm_nopage,
-+	.fault = drm_vm_fault,
- 	.open = drm_vm_open,
- 	.close = drm_vm_close,
- };
- 
- /** Shared virtual memory operations */
- static struct vm_operations_struct drm_vm_shm_ops = {
--	.nopage = drm_vm_shm_nopage,
-+	.fault = drm_vm_shm_fault,
- 	.open = drm_vm_open,
- 	.close = drm_vm_shm_close,
- };
- 
- /** DMA virtual memory operations */
- static struct vm_operations_struct drm_vm_dma_ops = {
--	.nopage = drm_vm_dma_nopage,
-+	.fault = drm_vm_dma_fault,
- 	.open = drm_vm_open,
- 	.close = drm_vm_close,
- };
- 
- /** Scatter-gather virtual memory operations */
- static struct vm_operations_struct drm_vm_sg_ops = {
--	.nopage = drm_vm_sg_nopage,
-+	.fault = drm_vm_sg_fault,
- 	.open = drm_vm_open,
- 	.close = drm_vm_close,
- };
-@@ -610,7 +600,7 @@ static int drm_mmap_locked(struct file *
- 			/*
- 			 * On some platforms we can't talk to bus dma address from the CPU, so for
- 			 * memory of type DRM_AGP, we'll deal with sorting out the real physical
--			 * pages and mappings in nopage()
-+			 * pages and mappings in fault()
- 			 */
- #if defined(__powerpc__)
- 			pgprot_val(vma->vm_page_prot) |= _PAGE_NO_CACHE;
-@@ -640,7 +630,7 @@ static int drm_mmap_locked(struct file *
- 		break;
- 	case _DRM_CONSISTENT:
- 		/* Consistent memory is really like shared memory. But
--		 * it's allocated in a different way, so avoid nopage */
-+		 * it's allocated in a different way, so avoid fault */
- 		if (remap_pfn_range(vma, vma->vm_start,
- 		    page_to_pfn(virt_to_page(map->handle)),
- 		    vma->vm_end - vma->vm_start, vma->vm_page_prot))
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-drm-convert-from-nopage-to-fault.patch
-ia64-slim-down-__clear_bit_unlock.patch
+kvm-i386-fix.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes.patch
+timerfd-v3-new-timerfd-api-ia64-fix.patch
+timerfd-v3-new-timerfd-api-m68k-fix.patch
+timerfd-v3-new-timerfd-api-mips-fix.patch
+timerfd-v3-new-timerfd-api-arch-fixes.patch
+timerfd-v3-new-timerfd-api-powerpc-fix.patch
+timerfd-v3-new-timerfd-api-sparc64-fix.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements-checkpatch-fixes.patch
+git-acpi-fix-git-conflicts.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-ignore-acpi-video-devices-that-arent-present-in-hardware-checkpatch-fixes.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+acpi-backlight-reset-brightness-on-resume-checkpatch-fixes.patch
+git-alsa-disable-sound-pci-ice1712-ice1724c.patch
+git-agpgart.patch
+git-agpgart-fix.patch
+git-audit-master.patch
+git-audit-master-fix-git-conflicts.patch
+git-audit-printk-warning-fix.patch
+cifs-fix-warning.patch
+git-cpufreq.patch
+revert-agk-dm-dm-loop.patch
+include-asm-powerpc-nvramh-needs-listh.patch
+include-asm-powerpc-nvramh-needs-listh-fix.patch
+gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+git-drm-fix.patch
+drm-convert-from-nopage-to-fault-checkpatch-fixes.patch
+drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
+adt7473-new-driver-for-analog-devices-adt7473-sensor-chip-fix.patch
+revert-git-hrt.patch
+infiniband-is-scrogged-again.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
 git-kvm.patch
-nfs-use-gfp_nofs-preloads-for-radix-tree-insertion.patch
-sg-nopage.patch
-slub-use-non-atomic-bit-unlock.patch
-tmpfs-shuffle-add_to_swap_caches.patch
-tmpfs-radix_tree_preloading.patch
-radix-tree-avoid-atomic-allocations-for-preloaded-insertions.patch
-mm-dont-allow-ioremapping-of-ranges-larger-than-vmalloc-space.patch
-mm-special-mapping-nopage.patch
-page-migraton-handle-orphaned-pages.patch
+drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
+drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
+git-md-accel.patch
+memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
+memstick-git-busted.patch
+git-mmc.patch
+git-mtd.patch
+drivers-mtd-ubi-wlc-fix-uninitialized-var-warning.patch
+drivers-mtd-ubi-scanc-fix-uninitialized-var-warning.patch
+drivers-mtd-ubi-cdevc-unused-var.patch
+git-netdev-all-fix-conflicts-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-backlight.patch
+git-battery.patch
+git-battery-fix-git-conflicts.patch
+bluetooth-uninlining.patch
+serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
+fix-gregkh-pci-pci-pcie-aspm-support.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
+x86-validate-against-acpi-motherboard-resources.patch
+git-sched.patch
+git-scsi-misc-vs-gregkh-pci-pci-remove-users-of-pci_enable_device_bars.patch
+scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes.patch
+scsi-aic94xx-cleanups-checkpatch-fixes.patch
+scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
+drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-ohci-sm501-driver-v2-fix.patch
+git-watchdog.patch
+git-watchdog-fixup.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-fixup-vs-git-sched.patch
+git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
+x86-amd-thermal-interrupt-support-fix-2.patch
+x86-mmconf-enable-mcfg-early-cleanup.patch
+git-xtensa.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-add-proc-kpagecount-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix-2-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+mm-remove-fastcall-from-mm-checkpatch-fixes.patch
 page-migraton-handle-orphaned-pages-fix.patch
-mm-fix-pageuptodate-data-race.patch
-mm-zero-length-iov-fix.patch
-agp-alpha-nopage.patch
-vt-bitlock-fix.patch
-radix_treeh-trivial-comment-correction.patch
-inotify-fix-race.patch
-inotify-remove-debug-code.patch
-relay-nopage.patch
-uio-nopage.patch
-ext2-xip-check-fix.patch
-fb-defio-nopage.patch
-rewrite-rd.patch
-rewrite-rd-fix.patch
-rewrite-rd-fix-2.patch
-rd-support-xip.patch
-mm-remove-nopage.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+riscom8-fix-smp-brokenness-fix.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+address-hfs-on-disk-corruption-robustness-review-comments.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+stopmachine-semaphore-to-mutex-fix.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
+debug_smp_processor_id-fixlets.patch
+use-ilog2-in-fs-namespacec-fix.patch
+system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
+speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
+add-have_oprofile.patch
+drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+neofb-avoid-overwriting-fb_info-fields.patch
+vermilionc-use-align-not-__align_mask.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+disable-ext4.patch
+jbd-remove-useless-loop-in-journal_write_commit_record-checkpatch-fixes.patch
+ext3-fix-lock-inversion-in-direct-io-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-mm_cgroup-to-header-file-fix.patch
+memcontrol-move-mm_cgroup-to-header-file-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
+hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
+cpusets-update_cpumask-revision-fix.patch
+cpusets-update_cpumask-revision-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
+introduce-path_put-cifs-fix.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+modules-make-module_address_lookup-safe-fix.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
+ufs-fix-symlink-creation-on-ufs2-fix.patch
+libfs-allow-error-return-from-simple-attributes-fix.patch
+fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
+mount-options-fix-tmpfs-fix.patch
+char-applicom-use-pci_match_id-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
 reiser4.patch
-reiser4-correct-references-to-filemap_nopage.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
