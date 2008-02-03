@@ -1,53 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - disable-ext4.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 12:18:35 -0800
-Message-ID: <200802032018.m13KIGoC029855@imap1.linux-foundation.org>
+Subject: - drivers-ata-sata_mvc-fix-warning-when-config_pci=n.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 12:22:09 -0800
+Message-ID: <200802032021.m13KLohI029955@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43328 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38805 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751881AbYBCUTS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 15:19:18 -0500
+	by vger.kernel.org with ESMTP id S1752136AbYBCUWG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 15:22:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dhowells@redhat.com, linux-ext4@vger.kernel.org, tytso@mit.edu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     disable-ext4
+     drivers/ata/sata_mv.c: fix warning when CONFIG_PCI=n
 has been removed from the -mm tree.  Its filename was
-     disable-ext4.patch
+     drivers-ata-sata_mvc-fix-warning-when-config_pci=n.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: disable-ext4
+Subject: drivers/ata/sata_mv.c: fix warning when CONFIG_PCI=n
 From: Andrew Morton <akpm@linux-foundation.org>
 
-The defrag patches use iget(), which will not be present in 2.6.25
+drivers/ata/sata_mv.c: In function `mv_init_host':
+drivers/ata/sata_mv.c:2676: warning: unused variable `offset'
 
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: David Howells <dhowells@redhat.com>
-Cc: <linux-ext4@vger.kernel.org>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/ata/sata_mv.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/Kconfig~disable-ext4 fs/Kconfig
---- a/fs/Kconfig~disable-ext4
-+++ a/fs/Kconfig
-@@ -139,6 +139,7 @@ config EXT3_FS_SECURITY
- config EXT4DEV_FS
- 	tristate "Ext4dev/ext4 extended fs support development (EXPERIMENTAL)"
- 	depends on EXPERIMENTAL
-+	depends on BROKEN
- 	select JBD2
- 	select CRC16
- 	help
+diff -puN drivers/ata/sata_mv.c~drivers-ata-sata_mvc-fix-warning-when-config_pci=n drivers/ata/sata_mv.c
+--- a/drivers/ata/sata_mv.c~drivers-ata-sata_mvc-fix-warning-when-config_pci=n
++++ a/drivers/ata/sata_mv.c
+@@ -2673,13 +2673,13 @@ static int mv_init_host(struct ata_host 
+ 	for (port = 0; port < host->n_ports; port++) {
+ 		struct ata_port *ap = host->ports[port];
+ 		void __iomem *port_mmio = mv_port_base(mmio, port);
+-		unsigned int offset = port_mmio - mmio;
+ 
+ 		mv_port_init(&ap->ioaddr, port_mmio);
+ 
+ #ifdef CONFIG_PCI
+ 		ata_port_pbar_desc(ap, MV_PRIMARY_BAR, -1, "mmio");
+-		ata_port_pbar_desc(ap, MV_PRIMARY_BAR, offset, "port");
++		ata_port_pbar_desc(ap, MV_PRIMARY_BAR, port_mmio - mmio,
++					"port");
+ #endif
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -250,7 +257,6 @@ iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
 iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
 iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
 iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
-disable-ext4.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
@@ -291,7 +297,6 @@ libfs-allow-error-return-from-simple-attributes-fix.patch
 fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
 fs-afs-securityc-fix-uninitialized-var-warning.patch
 mount-options-fix-tmpfs-fix.patch
-remove-__init_refok-and-__initdata_refok-fix.patch
 char-applicom-use-pci_match_id-fix.patch
 add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
 reiser4.patch
