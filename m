@@ -1,27 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-drm-fix.patch added to -mm tree
-Date: Sat, 02 Feb 2008 16:05:09 -0800
-Message-ID: <200802030013.m130DrnL022993@imap1.linux-foundation.org>
+Subject: + memstick-git-busted.patch added to -mm tree
+Date: Sat, 02 Feb 2008 16:08:31 -0800
+Message-ID: <200802030017.m130HFaX023132@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51327 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35203 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765348AbYBCANz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 19:13:55 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m130Drug026468
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sat, 2 Feb 2008 16:13:54 -0800
+	by vger.kernel.org with ESMTP id S1765437AbYBCARS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Feb 2008 19:17:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, oakad@yahoo.com
 
 
 The patch titled
-     git-drm-fix
+     memstick-git-busted
 has been added to the -mm tree.  Its filename is
-     git-drm-fix.patch
+     memstick-git-busted.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,26 +33,26 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-drm-fix
+Subject: memstick-git-busted
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: Alex Dubov <oakad@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/drm_ttm.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/memstick/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/char/drm/drm_ttm.c~git-drm-fix drivers/char/drm/drm_ttm.c
---- a/drivers/char/drm/drm_ttm.c~git-drm-fix
-+++ a/drivers/char/drm/drm_ttm.c
-@@ -125,8 +125,6 @@ static int drm_ttm_set_caching(struct dr
- 			}
- 		}
- 	}
--	if (do_tlbflush)
--		flush_agp_mappings();
+diff -puN drivers/memstick/Kconfig~memstick-git-busted drivers/memstick/Kconfig
+--- a/drivers/memstick/Kconfig~memstick-git-busted
++++ a/drivers/memstick/Kconfig
+@@ -4,6 +4,7 @@
  
- 	DRM_FLAG_MASKED(ttm->page_flags, noncached, DRM_TTM_PAGE_UNCACHED);
+ menuconfig MEMSTICK
+ 	tristate "Sony MemoryStick card support (EXPERIMENTAL)"
++	depends on BROKEN
+ 	help
+ 	  Sony MemoryStick is a proprietary storage/extension card protocol.
  
 _
 
@@ -104,6 +100,7 @@ drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
 drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
 git-md-accel.patch
 memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
+memstick-git-busted.patch
 git-mmc.patch
 git-mtd.patch
 drivers-mtd-ubi-wlc-fix-uninitialized-var-warning.patch
