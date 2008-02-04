@@ -1,93 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 19:44:43 -0800
-Message-ID: <200802040344.m143iPlw012265@imap1.linux-foundation.org>
+Subject: - bufferhead-revert-constructor-removal-checkpatch-fixes.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 19:45:25 -0800
+Message-ID: <200802040345.m143j6J2012343@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43509 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52938 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753515AbYBDDoc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:44:32 -0500
+	by vger.kernel.org with ESMTP id S1753501AbYBDDpK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:45:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, clameter@sgi.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, clameter@sgi.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes
+     bufferhead-revert-constructor-removal-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+     bufferhead-revert-constructor-removal-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into slub-do-our-own-locking-via-slab_lock-and-slab_unlock.patch
+This patch was dropped because it was folded into bufferhead-revert-constructor-removal.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes
+Subject: bufferhead-revert-constructor-removal-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: do not use assignment in if condition
-#627: FILE: mm/slub.c:2827:
-+			if (!page->inuse && (state = slab_trylock(page))) {
+ERROR: "foo * bar" should be "foo *bar"
+#34: FILE: fs/buffer.c:3203:
++	struct buffer_head * bh = (struct buffer_head *)data;
 
-total: 1 errors, 0 warnings, 611 lines checked
+total: 1 errors, 0 warnings, 34 lines checked
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-
-Seems nicer this way.
-
-Should the `if (page->inuse)' test be marked unlikely()?
+(also, remove unneeded cast-of-void*)
 
 Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   25 ++++++++++++++-----------
- 1 file changed, 14 insertions(+), 11 deletions(-)
+ fs/buffer.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes mm/slub.c
---- a/mm/slub.c~slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes
-+++ a/mm/slub.c
-@@ -2819,20 +2819,23 @@ int kmem_cache_shrink(struct kmem_cache 
- 		 * list_lock. page->inuse here is the upper limit.
- 		 */
- 		list_for_each_entry_safe(page, t, &n->partial, lru) {
--			if (!page->inuse && (state = slab_trylock(page))) {
--				/*
--				 * Must hold slab lock here because slab_free
--				 * may have freed the last object and be
--				 * waiting to release the slab.
--				 */
--				list_del(&page->lru);
--				n->nr_partial--;
--				slab_unlock(page, state);
--				discard_slab(s, page);
--			} else {
-+			if (page->inuse) {
- 				list_move(&page->lru,
- 				slabs_by_inuse + page->inuse);
-+				continue;
- 			}
-+			state = slab_trylock(page);
-+			if (!state)
-+				continue;
-+			/*
-+			 * Must hold slab lock here because slab_free may have
-+			 * freed the last object and be waiting to release the
-+			 * slab.
-+			 */
-+			list_del(&page->lru);
-+			n->nr_partial--;
-+			slab_unlock(page, state);
-+			discard_slab(s, page);
- 		}
+diff -puN fs/buffer.c~bufferhead-revert-constructor-removal-checkpatch-fixes fs/buffer.c
+--- a/fs/buffer.c~bufferhead-revert-constructor-removal-checkpatch-fixes
++++ a/fs/buffer.c
+@@ -3244,7 +3244,7 @@ EXPORT_SYMBOL(bh_submit_read);
+ static void
+ init_buffer_head(struct kmem_cache *cachep, void *data)
+ {
+-	struct buffer_head * bh = (struct buffer_head *)data;
++	struct buffer_head *bh = data;
  
- 		/*
+ 	memset(bh, 0, sizeof(*bh));
+ 	INIT_LIST_HEAD(&bh->b_assoc_buffers);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,7 +77,7 @@ i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
 slub-fix-coding-style-violations.patch
 slub-provide-unique-end-marker-for-each-slab.patch
 slub-do-our-own-locking-via-slab_lock-and-slab_unlock.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal.patch
 bufferhead-revert-constructor-removal-checkpatch-fixes.patch
 shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
 maps4-rework-task_size-macros-mips-fix.patch
