@@ -1,72 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 19:39:12 -0800
-Message-ID: <200802040338.m143crEi012063__36044.2470213913$1202096493$gmane$org@imap1.linux-foundation.org>
+Subject: - i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 19:41:27 -0800
+Message-ID: <200802040341.m143f8mL012204@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55694 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46344 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753002AbYBDDkr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:40:47 -0500
+	by vger.kernel.org with ESMTP id S1753289AbYBDDmH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:42:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aia21@cantab.net, bfields@fieldses.org, clameter@sgi.com, dgc@sgi.com, linux-ext4@vger.kernel.org, mark.fasheh@oracle.com, mhalcrow@us.ibm.com, sfrench@us.ib
+To: akpm@linux-foundation.org, clameter@sgi.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix
+     i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+     i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
+This patch was dropped because it was folded into i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix
+Subject: i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: <linux-ext4@vger.kernel.org>
-Cc: Anton Altaparmakov <aia21@cantab.net>
+WARNING: line over 80 characters
+#55: FILE: include/asm-x86/pgtable_32.h:87:
++#define PKMAP_BASE ( (FIXADDR_BOOT_START - PAGE_SIZE*(LAST_PKMAP + 1)) & PMD_MASK )
+
+ERROR: no space after that open parenthesis '('
+#55: FILE: include/asm-x86/pgtable_32.h:87:
++#define PKMAP_BASE ( (FIXADDR_BOOT_START - PAGE_SIZE*(LAST_PKMAP + 1)) & PMD_MASK )
+
+ERROR: no space before that close parenthesis ')'
+#55: FILE: include/asm-x86/pgtable_32.h:87:
++#define PKMAP_BASE ( (FIXADDR_BOOT_START - PAGE_SIZE*(LAST_PKMAP + 1)) & PMD_MASK )
+
+total: 2 errors, 1 warnings, 32 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Christoph Lameter <clameter@sgi.com>
-Cc: David Chinner <dgc@sgi.com>
-Cc: Mark Fasheh <mark.fasheh@oracle.com>
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
-Cc: Steven French <sfrench@us.ibm.com>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/write.c |    2 +-
- fs/ntfs/aops.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ include/asm-x86/pgtable_32.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/nfs/write.c~pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix fs/nfs/write.c
---- a/fs/nfs/write.c~pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix
-+++ a/fs/nfs/write.c
-@@ -669,7 +669,7 @@ zero_page:
- 	 * then we need to zero any uninitalised data. */
- 	if (req->wb_pgbase == 0 && req->wb_bytes != PAGE_CACHE_SIZE
- 			&& !PageUptodate(req->wb_page))
--		zero_user_page(req->wb_page, req->wb_bytes, PAGE_CACHE_SIZE);
-+		zero_user_segment(req->wb_page, req->wb_bytes, PAGE_CACHE_SIZE);
- 	return req;
- }
+diff -puN include/asm-x86/pgtable_32.h~i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes include/asm-x86/pgtable_32.h
+--- a/include/asm-x86/pgtable_32.h~i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes
++++ a/include/asm-x86/pgtable_32.h
+@@ -68,7 +68,7 @@ void paging_init(void);
+ #define LAST_PKMAP 1024
+ #endif
  
-diff -puN fs/ntfs/aops.c~pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix fs/ntfs/aops.c
---- a/fs/ntfs/aops.c~pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix
-+++ a/fs/ntfs/aops.c
-@@ -414,7 +414,7 @@ retry_readpage:
- 	/* Is the page fully outside i_size? (truncate in progress) */
- 	if (unlikely(page->index >= (i_size + PAGE_CACHE_SIZE - 1) >>
- 			PAGE_CACHE_SHIFT)) {
--		zero_user_page(page, 0, PAGE_CACHE_SIZE, KM_USER0);
-+		zero_user(page, 0, PAGE_CACHE_SIZE);
- 		ntfs_debug("Read outside i_size - truncated?");
- 		goto done;
- 	}
+-#define PKMAP_BASE ( (FIXADDR_BOOT_START - PAGE_SIZE*(LAST_PKMAP + 1)) & PMD_MASK )
++#define PKMAP_BASE ((FIXADDR_BOOT_START - PAGE_SIZE*(LAST_PKMAP + 1)) & PMD_MASK)
+ 
+ #ifdef CONFIG_HIGHMEM
+ # define VMALLOC_END	(PKMAP_BASE-2*PAGE_SIZE)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,9 +79,8 @@ timerfd-v3-new-timerfd-api.patch
 include-asm-powerpc-nvramh-needs-listh.patch
 serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-vmalloc-add-const-to-void-parameters-fix.patch
+vmalloc-add-const-to-void-parameters.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
 i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
 slub-fix-coding-style-violations-checkpatch-fixes.patch
 slub-provide-unique-end-marker-for-each-slab-fix.patch
