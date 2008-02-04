@@ -1,23 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + memstick-disable-busted-code.patch added to -mm tree
-Date: Sun, 03 Feb 2008 23:08:03 -0800
-Message-ID: <200802040707.m1477iY7018886@imap1.linux-foundation.org>
+Subject: + hpet-borkage-fix.patch added to -mm tree
+Date: Mon, 04 Feb 2008 05:28:27 -0800
+Message-ID: <200802041328.m14DS9F3031539@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56206 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36496 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752564AbYBDHHy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2008 02:07:54 -0500
+	by vger.kernel.org with ESMTP id S1753380AbYBDN2Q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2008 08:28:16 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m14DSDBb004137
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 4 Feb 2008 05:28:14 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, oakad@yahoo.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     memstick: disable busted code
+     a
 has been added to the -mm tree.  Its filename is
-     memstick-disable-busted-code.patch
+     hpet-borkage-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,47 +37,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memstick: disable busted code
+Subject: a
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Alex Dubov <oakad@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/core/mspro_block.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/asm-generic/rtc.h |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN drivers/memstick/core/mspro_block.c~memstick-disable-busted-code drivers/memstick/core/mspro_block.c
---- a/drivers/memstick/core/mspro_block.c~memstick-disable-busted-code
-+++ a/drivers/memstick/core/mspro_block.c
-@@ -269,7 +269,6 @@ static ssize_t mspro_block_attr_show_def
- 	struct mspro_sys_attr *s_attr = container_of(attr,
- 						     struct mspro_sys_attr,
- 						     dev_attr);
--
- 	ssize_t cnt, rc = 0;
+diff -puN include/linux/rtc.h~hpet-borkage-fix include/linux/rtc.h
+diff -puN include/asm-generic/rtc.h~hpet-borkage-fix include/asm-generic/rtc.h
+--- a/include/asm-generic/rtc.h~hpet-borkage-fix
++++ a/include/asm-generic/rtc.h
+@@ -35,10 +35,11 @@
+ static inline unsigned char rtc_is_updating(void)
+ {
+ 	unsigned char uip;
++	unsigned long flags;
  
- 	for (cnt = 0; cnt < s_attr->size; cnt++) {
-@@ -1233,11 +1232,12 @@ static int mspro_block_resume(struct mem
- 	unsigned long flags;
- 	int rc = 0;
+-	spin_lock_irq(&rtc_lock);
++	spin_lock_irqsave(&rtc_lock, flags);
+ 	uip = (CMOS_READ(RTC_FREQ_SELECT) & RTC_UIP);
+-	spin_unlock_irq(&rtc_lock);
++	spin_unlock_irqrestore(&rtc_lock, flags);
+ 	return uip;
+ }
  
--#ifdef CONFIG_MEMSTICK_UNSAFE_RESUME
-+#if defined(CONFIG_MEMSTICK_UNSAFE_RESUME) && 0
+@@ -46,6 +47,8 @@ static inline unsigned int get_rtc_time(
+ {
+ 	unsigned long uip_watchdog = jiffies;
+ 	unsigned char ctrl;
++	unsigned long flags;
++
+ #ifdef CONFIG_MACH_DECSTATION
+ 	unsigned int real_year;
+ #endif
+@@ -72,7 +75,7 @@ static inline unsigned int get_rtc_time(
+ 	 * RTC has RTC_DAY_OF_WEEK, we ignore it, as it is only updated
+ 	 * by the RTC when initially set to a non-zero value.
+ 	 */
+-	spin_lock_irq(&rtc_lock);
++	spin_lock_irqsave(&rtc_lock, flags);
+ 	time->tm_sec = CMOS_READ(RTC_SECONDS);
+ 	time->tm_min = CMOS_READ(RTC_MINUTES);
+ 	time->tm_hour = CMOS_READ(RTC_HOURS);
+@@ -83,7 +86,7 @@ static inline unsigned int get_rtc_time(
+ 	real_year = CMOS_READ(RTC_DEC_YEAR);
+ #endif
+ 	ctrl = CMOS_READ(RTC_CONTROL);
+-	spin_unlock_irq(&rtc_lock);
++	spin_unlock_irqrestore(&rtc_lock, flags);
  
- 	struct mspro_block_data *new_msb;
- 	struct memstick_host *host = card->host;
--	struct mspro_sys_attr s_attr, r_attr;
-+	struct mspro_sys_attr *s_attr;
-+	struct mspro_sys_attr *r_attr;
- 	unsigned char cnt;
- 
- 	mutex_lock(&host->lock);
+ 	if (!(ctrl & RTC_DM_BINARY) || RTC_ALWAYS_BCD)
+ 	{
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+hpet-borkage-fix.patch
 kvm-i386-fix.patch
 drivers-net-wireless-b43-mainc-needs-ioh.patch
 get_task_comm-return-the-result.patch
@@ -141,7 +164,6 @@ drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
 git-md-accel.patch
 memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
 memstick-disable-busted-code.patch
-memstick-git-busted.patch
 git-mmc.patch
 git-mtd.patch
 drivers-mtd-maps-physmapc-fix-compile-remove-ifdef.patch
