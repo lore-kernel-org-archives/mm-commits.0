@@ -1,61 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - include-asm-powerpc-nvramh-needs-listh-fix.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 19:26:08 -0800
-Message-ID: <200802040325.m143Pnc7011702@imap1.linux-foundation.org>
+Subject: - serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 19:35:48 -0800
+Message-ID: <200802040335.m143ZTME012008@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46098 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54495 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751663AbYBDD0O (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:26:14 -0500
+	by vger.kernel.org with ESMTP id S1752660AbYBDDga (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:36:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, benh@kernel.crashing.org, kamalesh@linux.vnet.ibm.com, paulus@samba.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, Krauth.Julien@addi-data.com, krauth.julien@addi-data.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     include-asm-powerpc-nvramh-needs-listh-fix
+     serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     include-asm-powerpc-nvramh-needs-listh-fix.patch
+     serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into include-asm-powerpc-nvramh-needs-listh.patch
+This patch was dropped because it was folded into serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include-asm-powerpc-nvramh-needs-listh-fix
+Subject: serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>	
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+WARNING: line over 80 characters
+#28: FILE: drivers/serial/8250_pci.c:112:
++addidata_apci7800_setup(struct serial_private *priv, struct pciserial_board *board,
+
+ERROR: use tabs not spaces
+#29: FILE: drivers/serial/8250_pci.c:113:
++               struct uart_port *port, int idx)$
+
+ERROR: no space before that close parenthesis ')'
+#34: FILE: drivers/serial/8250_pci.c:118:
++	if (idx < 2 ) {
+
+ERROR: no space before that close parenthesis ')'
+#39: FILE: drivers/serial/8250_pci.c:123:
++	} else if ((idx >= 4) && (idx < 6 )) {
+
+total: 3 errors, 1 warnings, 180 lines checked
+
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: "Krauth.Julien" <Krauth.Julien@addi-data.com>
+Cc: Krauth J. <krauth.julien@addi-data.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-powerpc/nvram.h |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/serial/8250_pci.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN include/asm-powerpc/nvram.h~include-asm-powerpc-nvramh-needs-listh-fix include/asm-powerpc/nvram.h
---- a/include/asm-powerpc/nvram.h~include-asm-powerpc-nvramh-needs-listh-fix
-+++ a/include/asm-powerpc/nvram.h
-@@ -11,7 +11,6 @@
- #define _ASM_POWERPC_NVRAM_H
+diff -puN drivers/serial/8250_pci.c~serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes drivers/serial/8250_pci.c
+--- a/drivers/serial/8250_pci.c~serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes
++++ a/drivers/serial/8250_pci.c
+@@ -108,19 +108,19 @@ setup_port(struct serial_private *priv, 
+ /*
+  * ADDI-DATA GmbH communication cards <info@addi-data.com>
+  */
+-static int
+-addidata_apci7800_setup(struct serial_private *priv, struct pciserial_board *board,
+-               struct uart_port *port, int idx)
++static int addidata_apci7800_setup(struct serial_private *priv,
++				struct pciserial_board *board,
++				struct uart_port *port, int idx)
+ {
+ 	unsigned int bar = 0, offset = board->first_offset;
+ 	bar = FL_GET_BASE(board->flags);
  
- #include <linux/errno.h>
--#include <linux/list.h>
- 
- #define NVRW_CNT 0x20
- #define NVRAM_HEADER_LEN 16 /* sizeof(struct nvram_header) */
-@@ -59,6 +58,9 @@ struct nvram_header {
- };
- 
- #ifdef __KERNEL__
-+
-+#include <linux/list.h>
-+
- struct nvram_partition {
- 	struct list_head partition;
- 	struct nvram_header header;
+-	if (idx < 2 ) {
++	if (idx < 2) {
+ 		offset += idx * board->uart_offset;
+ 	} else if ((idx >= 2) && (idx < 4)) {
+ 		bar += 1;
+ 		offset += ((idx - 2) * board->uart_offset);
+-	} else if ((idx >= 4) && (idx < 6 )) {
++	} else if ((idx >= 4) && (idx < 6)) {
+ 		bar += 2;
+ 		offset += ((idx - 4) * board->uart_offset);
+ 	} else if (idx >= 6) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -67,34 +98,7 @@ get_task_comm-return-the-result.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
 timerfd-v3-new-timerfd-api.patch
 include-asm-powerpc-nvramh-needs-listh.patch
-include-asm-powerpc-nvramh-needs-listh-fix.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-git-drm-fix.patch
-drm-convert-from-nopage-to-fault-checkpatch-fixes.patch
-drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
-adt7473-new-driver-for-analog-devices-adt7473-sensor-chip-fix.patch
-revert-git-hrt.patch
-infiniband-is-scrogged-again.patch
-i8042-non-x86-build-fix.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-git-kbuild.patch
-git-kvm.patch
-ata-drivers-ata-sata_mvc-needs-dmapoolh.patch
-fix-ide-mm-ppc-fix-ifdefs-in-mediabay-driver.patch
-drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
-drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
-git-md-accel.patch
-memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
-memstick-git-busted.patch
-git-mmc.patch
-git-mtd.patch
-drivers-mtd-maps-physmapc-fix-compile-remove-ifdef.patch
-git-netdev-all-fix-conflicts-fix.patch
-drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-backlight.patch
-bluetooth-uninlining.patch
+serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh.patch
 serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
 fix-gregkh-pci-pci-pcie-aspm-support.patch
 cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
