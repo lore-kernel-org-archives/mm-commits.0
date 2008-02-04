@@ -1,201 +1,306 @@
 From: akpm@linux-foundation.org
-Subject: - timerfd-v3-new-timerfd-api-make-hrtimer_forward-to-return-a-u64.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 19:19:07 -0800
-Message-ID: <200802040318.m143Imge011391@imap1.linux-foundation.org>
+Subject: - timerfd-v3-new-timerfd-api-ia64-fix.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 19:19:26 -0800
+Message-ID: <200802040319.m143J7tE011406@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53478 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35554 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754566AbYBDDTN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:19:13 -0500
+	by vger.kernel.org with ESMTP id S1754624AbYBDDTO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:19:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davidel@xmailserver.org, mingo@elte.hu, mtk-manpages@gmx.net, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davidel@xmailserver.org, mtk-manpages@gmx.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     timerfd: make hrtimer_forward() to return a u64
+     timerfd-v3-new-timerfd-api-ia64-fix
 has been removed from the -mm tree.  Its filename was
-     timerfd-v3-new-timerfd-api-make-hrtimer_forward-to-return-a-u64.patch
+     timerfd-v3-new-timerfd-api-ia64-fix.patch
 
 This patch was dropped because it was folded into timerfd-v3-new-timerfd-api.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: timerfd: make hrtimer_forward() to return a u64
-From: Davide Libenzi <davidel@xmailserver.org>
+Subject: timerfd-v3-new-timerfd-api-ia64-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Make hrtimer_forward() return a u64 instead of unsigned long.  Since timerfd
-returns the number of timer ticks in a u64 variable, and hrtimer_forward() is
-used to calculate the timer ticks, the patch allow full 64 bit usage even on
-32 bit platforms.  The core of the hrtimer_forward() ticks calculation,
-ktime_divns(), was already having the result in u64 and it was chopping it to
-unsigned long.
-
-Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
+Cc: Davide Libenzi <davidel@xmailserver.org>
 Cc: Michael Kerrisk <mtk-manpages@gmx.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/timerfd.c            |    6 +++---
- include/linux/hrtimer.h |   10 +++++-----
- kernel/hrtimer.c        |    9 ++++-----
- kernel/posix-timers.c   |    9 +++++----
- 4 files changed, 17 insertions(+), 17 deletions(-)
+ arch/ia64/kernel/entry.S |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/timerfd.c~timerfd-v3-new-timerfd-api-make-hrtimer_forward-to-return-a-u64 fs/timerfd.c
---- a/fs/timerfd.c~timerfd-v3-new-timerfd-api-make-hrtimer_forward-to-return-a-u64
-+++ a/fs/timerfd.c
-@@ -134,8 +134,8 @@ static ssize_t timerfd_read(struct file 
- 			 * callback to avoid DoS attacks specifying a very
- 			 * short timer period.
- 			 */
--			ticks += (u64) hrtimer_forward_now(&ctx->tmr,
--							   ctx->tintv) - 1;
-+			ticks += hrtimer_forward_now(&ctx->tmr,
-+						     ctx->tintv) - 1;
- 			hrtimer_restart(&ctx->tmr);
- 		}
- 		ctx->expired = 0;
-@@ -270,7 +270,7 @@ asmlinkage long sys_timerfd_gettime(int 
- 	spin_lock_irq(&ctx->wqh.lock);
- 	if (ctx->expired && ctx->tintv.tv64) {
- 		ctx->expired = 0;
--		ctx->ticks += (u64)
-+		ctx->ticks +=
- 			hrtimer_forward_now(&ctx->tmr, ctx->tintv) - 1;
- 		hrtimer_restart(&ctx->tmr);
- 	}
-diff -puN include/linux/hrtimer.h~timerfd-v3-new-timerfd-api-make-hrtimer_forward-to-return-a-u64 include/linux/hrtimer.h
---- a/include/linux/hrtimer.h~timerfd-v3-new-timerfd-api-make-hrtimer_forward-to-return-a-u64
-+++ a/include/linux/hrtimer.h
-@@ -302,12 +302,12 @@ static inline int hrtimer_is_queued(stru
- }
+diff -puN arch/ia64/kernel/entry.S~timerfd-v3-new-timerfd-api-ia64-fix arch/ia64/kernel/entry.S
+--- a/arch/ia64/kernel/entry.S~timerfd-v3-new-timerfd-api-ia64-fix
++++ a/arch/ia64/kernel/entry.S
+@@ -1586,7 +1586,7 @@ sys_call_table:
+ 	data8 sys_epoll_pwait			// 1305
+ 	data8 sys_utimensat
+ 	data8 sys_signalfd
+-	data8 sys_timerfd
++	data8 sys_ni_syscall
+ 	data8 sys_eventfd
  
- /* Forward a hrtimer so it expires after now: */
--extern unsigned long
-+extern u64
- hrtimer_forward(struct hrtimer *timer, ktime_t now, ktime_t interval);
- 
- /* Forward a hrtimer so it expires after the hrtimer's current now */
--static inline unsigned long hrtimer_forward_now(struct hrtimer *timer,
--						ktime_t interval)
-+static inline u64 hrtimer_forward_now(struct hrtimer *timer,
-+				      ktime_t interval)
- {
- 	return hrtimer_forward(timer, timer->base->get_time(), interval);
- }
-@@ -330,9 +330,9 @@ extern void hrtimer_run_pending(void);
- extern void __init hrtimers_init(void);
- 
- #if BITS_PER_LONG < 64
--extern unsigned long ktime_divns(const ktime_t kt, s64 div);
-+extern u64 ktime_divns(const ktime_t kt, s64 div);
- #else /* BITS_PER_LONG < 64 */
--# define ktime_divns(kt, div)		(unsigned long)((kt).tv64 / (div))
-+# define ktime_divns(kt, div)		(u64)((kt).tv64 / (div))
- #endif
- 
- /* Show pending timers: */
-diff -puN kernel/hrtimer.c~timerfd-v3-new-timerfd-api-make-hrtimer_forward-to-return-a-u64 kernel/hrtimer.c
---- a/kernel/hrtimer.c~timerfd-v3-new-timerfd-api-make-hrtimer_forward-to-return-a-u64
-+++ a/kernel/hrtimer.c
-@@ -306,7 +306,7 @@ EXPORT_SYMBOL_GPL(ktime_sub_ns);
- /*
-  * Divide a ktime value by a nanosecond value
-  */
--unsigned long ktime_divns(const ktime_t kt, s64 div)
-+u64 ktime_divns(const ktime_t kt, s64 div)
- {
- 	u64 dclc, inc, dns;
- 	int sft = 0;
-@@ -321,7 +321,7 @@ unsigned long ktime_divns(const ktime_t 
- 	dclc >>= sft;
- 	do_div(dclc, (unsigned long) div);
- 
--	return (unsigned long) dclc;
-+	return dclc;
- }
- #endif /* BITS_PER_LONG >= 64 */
- 
-@@ -656,10 +656,9 @@ void unlock_hrtimer_base(const struct hr
-  * Forward the timer expiry so it will expire in the future.
-  * Returns the number of overruns.
-  */
--unsigned long
--hrtimer_forward(struct hrtimer *timer, ktime_t now, ktime_t interval)
-+u64 hrtimer_forward(struct hrtimer *timer, ktime_t now, ktime_t interval)
- {
--	unsigned long orun = 1;
-+	u64 orun = 1;
- 	ktime_t delta;
- 
- 	delta = ktime_sub(now, timer->expires);
-diff -puN kernel/posix-timers.c~timerfd-v3-new-timerfd-api-make-hrtimer_forward-to-return-a-u64 kernel/posix-timers.c
---- a/kernel/posix-timers.c~timerfd-v3-new-timerfd-api-make-hrtimer_forward-to-return-a-u64
-+++ a/kernel/posix-timers.c
-@@ -256,8 +256,9 @@ static void schedule_next_timer(struct k
- 	if (timr->it.real.interval.tv64 == 0)
- 		return;
- 
--	timr->it_overrun += hrtimer_forward(timer, timer->base->get_time(),
--					    timr->it.real.interval);
-+	timr->it_overrun += (unsigned int) hrtimer_forward(timer,
-+						timer->base->get_time(),
-+						timr->it.real.interval);
- 
- 	timr->it_overrun_last = timr->it_overrun;
- 	timr->it_overrun = -1;
-@@ -386,7 +387,7 @@ static enum hrtimer_restart posix_timer_
- 					now = ktime_add(now, kj);
- 			}
- #endif
--			timr->it_overrun +=
-+			timr->it_overrun += (unsigned int)
- 				hrtimer_forward(timer, now,
- 						timr->it.real.interval);
- 			ret = HRTIMER_RESTART;
-@@ -662,7 +663,7 @@ common_timer_get(struct k_itimer *timr, 
- 	 */
- 	if (iv.tv64 && (timr->it_requeue_pending & REQUEUE_PENDING ||
- 	    (timr->it_sigev_notify & ~SIGEV_THREAD_ID) == SIGEV_NONE))
--		timr->it_overrun += hrtimer_forward(timer, now, iv);
-+		timr->it_overrun += (unsigned int) hrtimer_forward(timer, now, iv);
- 
- 	remaining = ktime_sub(timer->expires, now);
- 	/* Return 0 only, when the timer is expired and not pending */
+ 	.org sys_call_table + 8*NR_syscalls	// guard against failures to increase NR_syscalls
 _
 
-Patches currently in -mm which might be from davidel@xmailserver.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-lockdep-annotate-epoll.patch
-__group_complete_signal-fix-coredump-with-group-stop-race.patch
-remove-handle_group_stop-in-favor-of-do_signal_stop.patch
-exec-rework-the-group-exit-and-fix-the-race-with-kill.patch
-timerfd-v3-introduce-a-new-hrtimer_forward_now-function.patch
+origin.patch
+kvm-i386-fix.patch
+drivers-net-wireless-b43-mainc-needs-ioh.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
 timerfd-v3-new-timerfd-api.patch
-timerfd-v3-new-timerfd-api-make-hrtimer_forward-to-return-a-u64.patch
-timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration.patch
-timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes.patch
 timerfd-v3-new-timerfd-api-ia64-fix.patch
 timerfd-v3-new-timerfd-api-m68k-fix.patch
 timerfd-v3-new-timerfd-api-mips-fix.patch
 timerfd-v3-new-timerfd-api-arch-fixes.patch
-timerfd-v3-new-timerfd-api-s390-fix.patch
 timerfd-v3-new-timerfd-api-powerpc-fix.patch
 timerfd-v3-new-timerfd-api-sparc64-fix.patch
-timerfd-v3-new-timerfd-api-update-sys_nic-with-the-new-timerfd-syscalls.patch
-timerfd-v3-wire-the-new-timerfd-api-to-the-x86-family.patch
-timerfd-v3-un-break-config_timerfd.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements-checkpatch-fixes.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+acpi-backlight-reset-brightness-on-resume-checkpatch-fixes.patch
+git-alsa-disable-sound-pci-ice1712-ice1724c.patch
+git-agpgart.patch
+git-agpgart-fix.patch
+git-audit-master.patch
+git-audit-master-fix-git-rejects.patch
+git-audit-printk-warning-fix.patch
+cifs-fix-warning.patch
+git-cpufreq.patch
+revert-agk-dm-dm-loop.patch
+include-asm-powerpc-nvramh-needs-listh.patch
+include-asm-powerpc-nvramh-needs-listh-fix.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+git-drm-fix.patch
+drm-convert-from-nopage-to-fault-checkpatch-fixes.patch
+drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
+adt7473-new-driver-for-analog-devices-adt7473-sensor-chip-fix.patch
+revert-git-hrt.patch
+infiniband-is-scrogged-again.patch
+i8042-non-x86-build-fix.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+git-kbuild.patch
 git-kvm.patch
-fs-signalfdc-should-include-linux-syscallsh.patch
-fs-eventfdc-should-include-linux-syscallsh.patch
-fs-remove-dead-config-config_has_compat_epoll_event-symbol.patch
-fix-group-stop-with-exit-race.patch
-move-the-related-code-from-exit_notify-to-exit_signals.patch
-uglify-kill_pid_info-to-fix-kill-vs-exec-race.patch
-uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice.patch
-itimer_real-convert-to-use-struct-pid.patch
+ata-drivers-ata-sata_mvc-needs-dmapoolh.patch
+fix-ide-mm-ppc-fix-ifdefs-in-mediabay-driver.patch
+drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
+drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
+git-md-accel.patch
+memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
+memstick-git-busted.patch
+git-mmc.patch
+git-mtd.patch
+drivers-mtd-maps-physmapc-fix-compile-remove-ifdef.patch
+git-netdev-all-fix-conflicts-fix.patch
+drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-backlight.patch
+bluetooth-uninlining.patch
+serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
+fix-gregkh-pci-pci-pcie-aspm-support.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
+x86-validate-against-acpi-motherboard-resources.patch
+git-sched.patch
+git-scsi-misc.patch
+scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes.patch
+scsi-aic94xx-cleanups-checkpatch-fixes.patch
+scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
+drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-ohci-sm501-driver-v2-fix.patch
+9p-fix-p9_printfcall-export.patch
+git-watchdog.patch
+git-watchdog-fixup.patch
+b43-fix-build-with-config_ssb_pcihost=n.patch
+git-ipwireless_cs.patch
+git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
+x86-amd-thermal-interrupt-support-fix-2.patch
+x86-mmconf-enable-mcfg-early-cleanup.patch
+git-xtensa.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+vmalloc-add-const-to-void-parameters-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-add-proc-kpagecount-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix.patch
+maps4-add-proc-kpageflags-interface-fix-2-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
+add-mm-argument-to-pte-pmd-pud-pgd_free-checkpatch-fixes.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+mm-remove-fastcall-from-mm-checkpatch-fixes.patch
+page-migraton-handle-orphaned-pages-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+smack-version-11c-simplified-mandatory-access-control-kernel-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+riscom8-fix-smp-brokenness-fix.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+address-hfs-on-disk-corruption-robustness-review-comments.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+stopmachine-semaphore-to-mutex-fix.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
+debug_smp_processor_id-fixlets.patch
+use-ilog2-in-fs-namespacec-fix.patch
+system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
+speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
+drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+add-hpet-rtc-emulation-to-rtc_drv_cmos-fix.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+neofb-avoid-overwriting-fb_info-fields.patch
+vermilionc-use-align-not-__align_mask.patch
+md-change-interate_mddev-to-for_each_mddev-fix.patch
+md-change-iterate_rdev-to-rdev_for_each-fix.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+ext3-fix-lock-inversion-in-direct-io-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-mm_cgroup-to-header-file-fix.patch
+memcontrol-move-mm_cgroup-to-header-file-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
+hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
+cpusets-update_cpumask-revision-fix.patch
+cpusets-update_cpumask-revision-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
+introduce-path_put-cifs-fix.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
+proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+modules-make-module_address_lookup-safe-fix.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
+ufs-fix-symlink-creation-on-ufs2-fix.patch
+libfs-allow-error-return-from-simple-attributes-fix.patch
+fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
+mount-options-fix-tmpfs-fix.patch
+char-applicom-use-pci_match_id-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+page-owner-tracking-leak-detector-broken-on-s390.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
