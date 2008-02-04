@@ -1,54 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - maps4-add-proc-kpageflags-interface-fix.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 19:48:32 -0800
-Message-ID: <200802040348.m143mDiS012415@imap1.linux-foundation.org>
+Subject: - maps4-make-page-monitoring-proc-file-optional-fix.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 19:49:58 -0800
+Message-ID: <200802040349.m143nd3h012438@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51302 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57061 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753724AbYBDDsn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:48:43 -0500
+	by vger.kernel.org with ESMTP id S1753747AbYBDDtx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:49:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, haveblue@us.ibm.com, mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     maps4-add-proc-kpageflags-interface-fix
+     maps4-make-page-monitoring-proc-file-optional-fix
 has been removed from the -mm tree.  Its filename was
-     maps4-add-proc-kpageflags-interface-fix.patch
+     maps4-make-page-monitoring-proc-file-optional-fix.patch
 
-This patch was dropped because it was folded into maps4-add-proc-kpageflags-interface.patch
+This patch was dropped because it was folded into maps4-make-page-monitoring-proc-file-optional.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: maps4-add-proc-kpageflags-interface-fix
+Subject: maps4-make-page-monitoring-proc-file-optional-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-and that
+this isn't supported any more (in Sam's tree, at least)
 
 Cc: Dave Hansen <haveblue@us.ibm.com>
 Cc: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_misc.c |    3 ---
- 1 file changed, 3 deletions(-)
+ init/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/proc_misc.c~maps4-add-proc-kpageflags-interface-fix fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~maps4-add-proc-kpageflags-interface-fix
-+++ a/fs/proc/proc_misc.c
-@@ -756,9 +756,6 @@ static ssize_t kpageflags_read(struct fi
- 	ssize_t ret = 0;
- 	u64 kflags, uflags;
+diff -puN init/Kconfig~maps4-make-page-monitoring-proc-file-optional-fix init/Kconfig
+--- a/init/Kconfig~maps4-make-page-monitoring-proc-file-optional-fix
++++ a/init/Kconfig
+@@ -666,7 +666,7 @@ endchoice
  
--	if (!access_ok(VERIFY_WRITE, buf, count))
--		return -EFAULT;
--
- 	pfn = src / KPMSIZE;
- 	count = min_t(unsigned long, count, (max_pfn * KPMSIZE) - src);
- 	if (src & KPMMASK || count & KPMMASK)
+ config PROC_PAGE_MONITOR
+  	default y
+-	depends PROC_FS && MMU
++	depends on PROC_FS && MMU
+ 	bool "Enable /proc page monitoring" if EMBEDDED
+  	help
+ 	  Various /proc files exist to monitor process memory utilization:
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,8 +71,7 @@ shmem-factor-out-sbi-free_inodes-manipulations.patch
 maps4-rework-task_size-macros.patch
 maps4-add-proc-kpagecount-interface.patch
 maps4-add-proc-kpageflags-interface.patch
-maps4-add-proc-kpageflags-interface-fix.patch
-maps4-add-proc-kpageflags-interface-fix-2-fix.patch
+maps4-make-page-monitoring-proc-file-optional.patch
 maps4-make-page-monitoring-proc-file-optional-fix.patch
 page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
 add-mm-argument-to-pte-pmd-pud-pgd_free-checkpatch-fixes.patch
