@@ -1,62 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - uml-get-rid-of-asmlinkage-checkpatch-fixes.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 20:06:20 -0800
-Message-ID: <200802040406.m14461bV013093@imap1.linux-foundation.org>
+Subject: - uml-improve-detection-of-host-cmov-checkpatch-fixes.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 20:06:51 -0800
+Message-ID: <200802040406.m1446WN0013102@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50188 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44437 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754550AbYBDEGG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 23:06:06 -0500
+	by vger.kernel.org with ESMTP id S1754555AbYBDEGf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 23:06:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jdike@linux.intel.com, magotari@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml-get-rid-of-asmlinkage-checkpatch-fixes
+     uml-improve-detection-of-host-cmov-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+     uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into uml-get-rid-of-asmlinkage.patch
+This patch was dropped because it was folded into uml-improve-detection-of-host-cmov.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml-get-rid-of-asmlinkage-checkpatch-fixes
+Subject: uml-improve-detection-of-host-cmov-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "foo* bar" should be "foo *bar"
-#21: FILE: arch/um/sys-i386/tls.c:228:
-+static int get_tls_entry(struct task_struct* task, struct user_desc *info,
+ERROR: else should follow close brace '}'
+#55: FILE: arch/um/sys-i386/bugs.c:44:
++	}
++	else
 
-total: 1 errors, 0 warnings, 44 lines checked
+WARNING: printk() should include KERN_ facility level
+#56: FILE: arch/um/sys-i386/bugs.c:45:
++		printk("No\n");
+
+total: 1 errors, 1 warnings, 58 lines checked
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Jeff Dike <jdike@addtoit.com>
 Cc: Jeff Dike <jdike@linux.intel.com>
+Cc: Karol Swietlicki <magotari@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/sys-i386/tls.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/um/sys-i386/bugs.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN arch/um/sys-i386/tls.c~uml-get-rid-of-asmlinkage-checkpatch-fixes arch/um/sys-i386/tls.c
---- a/arch/um/sys-i386/tls.c~uml-get-rid-of-asmlinkage-checkpatch-fixes
-+++ a/arch/um/sys-i386/tls.c
-@@ -225,7 +225,7 @@ out:
- }
+diff -puN arch/um/sys-i386/bugs.c~uml-improve-detection-of-host-cmov-checkpatch-fixes arch/um/sys-i386/bugs.c
+--- a/arch/um/sys-i386/bugs.c~uml-improve-detection-of-host-cmov-checkpatch-fixes
++++ a/arch/um/sys-i386/bugs.c
+@@ -39,10 +39,9 @@ static void test_for_host_cmov(void)
+ 	if (setjmp(cmov_test_return) == 0) {
+ 		unsigned long foo = 0;
+ 		__asm__ __volatile__("cmovz %0, %1" : "=r" (foo) : "0" (foo));
+-		printk("Yes\n");
+-	}
+-	else
+-		printk("No\n");
++		printk(KERN_CONT "Yes\n");
++	} else
++		printk(KERN_CONT "No\n");
  
- /* XXX: use do_get_thread_area to read the host value? I'm not at all sure! */
--static int get_tls_entry(struct task_struct* task, struct user_desc *info,
-+static int get_tls_entry(struct task_struct *task, struct user_desc *info,
- 			 int idx)
- {
- 	struct thread_struct *t = &task->thread;
+ 	sigaction(SIGILL, &old, &new);
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -93,7 +103,7 @@ alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
 pm-qos-infrastructure-and-interface.patch
 dio-array_size-cleanup.patch
 uml-get-rid-of-asmlinkage.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov.patch
 uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
 uml-further-bugsc-tidying-checkpatch-fixes.patch
 kernel-printkc-concerns-about-the-console-handover.patch
