@@ -1,56 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - timerfd-v3-new-timerfd-api-sparc64-fix.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 19:19:46 -0800
-Message-ID: <200802040319.m143JRL9011427@imap1.linux-foundation.org>
+Subject: - include-asm-powerpc-nvramh-needs-listh-fix.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 19:26:08 -0800
+Message-ID: <200802040325.m143Pnc7011702@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56302 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46098 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754719AbYBDDTj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:19:39 -0500
+	by vger.kernel.org with ESMTP id S1751663AbYBDD0O (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:26:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, davidel@xmailserver.org, heiko.carstens@de.ibm.com, m.kozlowski@tuxland.pl, mtk.manpages@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, kamalesh@linux.vnet.ibm.com, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     timerfd-v3-new-timerfd-api-sparc64-fix
+     include-asm-powerpc-nvramh-needs-listh-fix
 has been removed from the -mm tree.  Its filename was
-     timerfd-v3-new-timerfd-api-sparc64-fix.patch
+     include-asm-powerpc-nvramh-needs-listh-fix.patch
 
-This patch was dropped because it was folded into timerfd-v3-new-timerfd-api.patch
+This patch was dropped because it was folded into include-asm-powerpc-nvramh-needs-listh.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: timerfd-v3-new-timerfd-api-sparc64-fix
+Subject: include-asm-powerpc-nvramh-needs-listh-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Should this have been sys_nis_syscall?
-
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>	
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc64/kernel/systbls.S |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-powerpc/nvram.h |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN arch/sparc64/kernel/systbls.S~timerfd-v3-new-timerfd-api-sparc64-fix arch/sparc64/kernel/systbls.S
---- a/arch/sparc64/kernel/systbls.S~timerfd-v3-new-timerfd-api-sparc64-fix
-+++ a/arch/sparc64/kernel/systbls.S
-@@ -80,7 +80,7 @@ sys_call_table32:
- 	.word sys_fchmodat, sys_faccessat, compat_sys_pselect6, compat_sys_ppoll, sys_unshare
- /*300*/	.word compat_sys_set_robust_list, compat_sys_get_robust_list, compat_sys_migrate_pages, compat_sys_mbind, compat_sys_get_mempolicy
- 	.word compat_sys_set_mempolicy, compat_sys_kexec_load, compat_sys_move_pages, sys_getcpu, compat_sys_epoll_pwait
--/*310*/	.word compat_sys_utimensat, compat_sys_signalfd, compat_sys_timerfd, sys_eventfd, compat_sys_fallocate
-+/*310*/	.word compat_sys_utimensat, compat_sys_signalfd, sys_ni_syscall, sys_eventfd, compat_sys_fallocate
+diff -puN include/asm-powerpc/nvram.h~include-asm-powerpc-nvramh-needs-listh-fix include/asm-powerpc/nvram.h
+--- a/include/asm-powerpc/nvram.h~include-asm-powerpc-nvramh-needs-listh-fix
++++ a/include/asm-powerpc/nvram.h
+@@ -11,7 +11,6 @@
+ #define _ASM_POWERPC_NVRAM_H
  
- #endif /* CONFIG_COMPAT */
+ #include <linux/errno.h>
+-#include <linux/list.h>
  
+ #define NVRW_CNT 0x20
+ #define NVRAM_HEADER_LEN 16 /* sizeof(struct nvram_header) */
+@@ -59,6 +58,9 @@ struct nvram_header {
+ };
+ 
+ #ifdef __KERNEL__
++
++#include <linux/list.h>
++
+ struct nvram_partition {
+ 	struct list_head partition;
+ 	struct nvram_header header;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -61,22 +66,6 @@ drivers-net-wireless-b43-mainc-needs-ioh.patch
 get_task_comm-return-the-result.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
 timerfd-v3-new-timerfd-api.patch
-timerfd-v3-new-timerfd-api-sparc64-fix.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements-checkpatch-fixes.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-acpi-backlight-reset-brightness-on-resume-checkpatch-fixes.patch
-git-alsa-disable-sound-pci-ice1712-ice1724c.patch
-git-agpgart.patch
-git-agpgart-fix.patch
-git-audit-master.patch
-git-audit-master-fix-git-rejects.patch
-git-audit-printk-warning-fix.patch
-cifs-fix-warning.patch
-git-cpufreq.patch
-revert-agk-dm-dm-loop.patch
 include-asm-powerpc-nvramh-needs-listh.patch
 include-asm-powerpc-nvramh-needs-listh-fix.patch
 drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
