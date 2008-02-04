@@ -1,80 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - shmem-factor-out-sbi-free_inodes-manipulations-fix.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 19:46:01 -0800
-Message-ID: <200802040345.m143jg62012366@imap1.linux-foundation.org>
+Subject: - maps4-rework-task_size-macros-mips-fix.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 19:46:58 -0800
+Message-ID: <200802040346.m143kebv012381@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58075 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53050 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752444AbYBDDpx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:45:53 -0500
+	by vger.kernel.org with ESMTP id S1753525AbYBDDrK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:47:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hugh@veritas.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, haveblue@us.ibm.com, mpm@selenic.com, ralf@linux-mips.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     shmem-factor-out-sbi-free_inodes-manipulations-fix
+     maps4-rework-task_size-macros-mips-fix
 has been removed from the -mm tree.  Its filename was
-     shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+     maps4-rework-task_size-macros-mips-fix.patch
 
-This patch was dropped because it was folded into shmem-factor-out-sbi-free_inodes-manipulations.patch
+This patch was dropped because it was folded into maps4-rework-task_size-macros.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: shmem-factor-out-sbi-free_inodes-manipulations-fix
+Subject: maps4-rework-task_size-macros-mips-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
+fs/proc/task_mmu.c: In function `pagemap_read':
+fs/proc/task_mmu.c:679: error: `TASK_SIZE32' undeclared (first use in this function)
+fs/proc/task_mmu.c:679: error: (Each undeclared identifier is reported only once
+fs/proc/task_mmu.c:679: error: for each function it appears in.)
+
+Like this?
+
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ include/asm-mips/processor.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN mm/shmem.c~shmem-factor-out-sbi-free_inodes-manipulations-fix mm/shmem.c
---- a/mm/shmem.c~shmem-factor-out-sbi-free_inodes-manipulations-fix
-+++ a/mm/shmem.c
-@@ -212,7 +212,7 @@ static int shmem_reserve_inode(struct su
- 		spin_lock(&sbinfo->stat_lock);
- 		if (!sbinfo->free_inodes) {
- 			spin_unlock(&sbinfo->stat_lock);
--			return -ENOMEM;
-+			return -ENOSPC;
- 		}
- 		sbinfo->free_inodes--;
- 		spin_unlock(&sbinfo->stat_lock);
-@@ -1680,14 +1680,16 @@ static int shmem_create(struct inode *di
- static int shmem_link(struct dentry *old_dentry, struct inode *dir, struct dentry *dentry)
- {
- 	struct inode *inode = old_dentry->d_inode;
-+	int ret;
+diff -puN include/asm-mips/processor.h~maps4-rework-task_size-macros-mips-fix include/asm-mips/processor.h
+--- a/include/asm-mips/processor.h~maps4-rework-task_size-macros-mips-fix
++++ a/include/asm-mips/processor.h
+@@ -45,8 +45,6 @@ extern unsigned int vced_count, vcei_cou
+  * space during mmap's.
+  */
+ #define TASK_UNMAPPED_BASE	(PAGE_ALIGN(TASK_SIZE / 3))
+-#define TASK_SIZE_OF(tsk)						\
+-	(test_tsk_thread_flag(tsk, TIF_32BIT_ADDR) ? TASK_SIZE32 : TASK_SIZE)
+ #endif
  
- 	/*
- 	 * No ordinary (disk based) filesystem counts links as inodes;
- 	 * but each new link needs a new dentry, pinning lowmem, and
- 	 * tmpfs dentries cannot be pruned until they are unlinked.
- 	 */
--	if (shmem_reserve_inode(inode->i_sb))
--		return -ENOSPC;
-+	ret = shmem_reserve_inode(inode->i_sb);
-+	if (ret)
-+		goto out;
- 
- 	dir->i_size += BOGO_DIRENT_SIZE;
- 	inode->i_ctime = dir->i_ctime = dir->i_mtime = CURRENT_TIME;
-@@ -1695,7 +1697,8 @@ static int shmem_link(struct dentry *old
- 	atomic_inc(&inode->i_count);	/* New dentry reference */
- 	dget(dentry);		/* Extra pinning count for the created dentry */
- 	d_instantiate(dentry, inode);
--	return 0;
-+out:
-+	return ret;
- }
- 
- static int shmem_unlink(struct inode *dir, struct dentry *dentry)
+ #ifdef CONFIG_64BIT
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -95,7 +75,7 @@ slub-provide-unique-end-marker-for-each-slab.patch
 slub-do-our-own-locking-via-slab_lock-and-slab_unlock.patch
 bufferhead-revert-constructor-removal.patch
 shmem-factor-out-sbi-free_inodes-manipulations.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
+maps4-rework-task_size-macros.patch
 maps4-rework-task_size-macros-mips-fix.patch
 maps4-add-proc-kpagecount-interface-fix.patch
 maps4-add-proc-kpageflags-interface-fix.patch
