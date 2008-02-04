@@ -1,253 +1,156 @@
 From: akpm@linux-foundation.org
-Subject: - smack-socket-label-setting-fix.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 20:00:00 -0800
-Message-ID: <200802040359.m143xfvS012811@imap1.linux-foundation.org>
+Subject: - pm-qos-remove-locks-around-blocking-notifier.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 20:02:39 -0800
+Message-ID: <200802040402.m1442KHm012954@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57165 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47486 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754504AbYBDEAq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 23:00:46 -0500
+	by vger.kernel.org with ESMTP id S1754512AbYBDEEE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 23:04:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: casey@schaufler-ca.com, chrisw@sous-sol.org, darwish.07@gmail.com, jmorris@namei.org, method@manicmethod.com, morgan@kernel.org, paul.moore@hp.com, sds@tycho.nsa.gov, mm-commits@vger.kernel.org
+To: mgross@linux.intel.com, abelay@novell.com, arjan@infradead.org, lenb@kernel.org, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Smack socket label setting fix
+     pm-qos-remove-locks-around-blocking-notifier
 has been removed from the -mm tree.  Its filename was
-     smack-socket-label-setting-fix.patch
+     pm-qos-remove-locks-around-blocking-notifier.patch
 
-This patch was dropped because it was folded into smack-version-11c-simplified-mandatory-access-control-kernel.patch
+This patch was dropped because it was folded into pm-qos-infrastructure-and-interface.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Smack socket label setting fix
-From: Casey Schaufler <casey@schaufler-ca.com>
+Subject: pm-qos-remove-locks-around-blocking-notifier
+From: mark gross <mgross@linux.intel.com>
 
-Correct the checks in smack_inode_setxattr to include the socket labeling
-attributes.  Simplify and correct smack_sock_graft, while the values it was
-setting were safe they were not correct and the job was not being done
-efficiently.  smack_inode_setsecurity wasn't invoking the required netlabel
-function in the case where smk_ipout was set.  It does now, but that change
-required the hook to be moved in the file.  This movement accounts for the
-bulk of the patch.
+Remove spin locking around all blocking notifier calls that can sleep.
+I had to re-structure some of the code to avoid locking issues.
 
-Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
-Cc: Joshua Brindle <method@manicmethod.com>
-Cc: Paul Moore <paul.moore@hp.com>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: James Morris <jmorris@namei.org>
-Cc: "Ahmed S. Darwish" <darwish.07@gmail.com>
-Cc: Andrew G. Morgan <morgan@kernel.org>
+Signed-off-by: mark gross <mgross@linux.intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Adam Belay <abelay@novell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/smack/smack.h     |    2 
- security/smack/smack_lsm.c |  138 ++++++++++++++++-------------------
- 2 files changed, 68 insertions(+), 72 deletions(-)
+ kernel/pm_qos_params.c |   27 ++++++++++++---------------
+ 1 file changed, 12 insertions(+), 15 deletions(-)
 
-diff -puN security/smack/smack.h~smack-socket-label-setting-fix security/smack/smack.h
---- a/security/smack/smack.h~smack-socket-label-setting-fix
-+++ a/security/smack/smack.h
-@@ -130,6 +130,8 @@ struct smack_known {
- #define XATTR_SMACK_IPIN	"SMACK64IPIN"
- #define XATTR_SMACK_IPOUT	"SMACK64IPOUT"
- #define XATTR_NAME_SMACK	XATTR_SECURITY_PREFIX XATTR_SMACK_SUFFIX
-+#define XATTR_NAME_SMACKIPIN	XATTR_SECURITY_PREFIX XATTR_SMACK_IPIN
-+#define XATTR_NAME_SMACKIPOUT	XATTR_SECURITY_PREFIX XATTR_SMACK_IPOUT
+diff -puN kernel/pm_qos_params.c~pm-qos-remove-locks-around-blocking-notifier kernel/pm_qos_params.c
+--- a/kernel/pm_qos_params.c~pm-qos-remove-locks-around-blocking-notifier
++++ a/kernel/pm_qos_params.c
+@@ -135,13 +135,14 @@ static s32 min_compare(s32 v1, s32 v2)
+ }
  
- /*
-  * smackfs macic number
-diff -puN security/smack/smack_lsm.c~smack-socket-label-setting-fix security/smack/smack_lsm.c
---- a/security/smack/smack_lsm.c~smack-socket-label-setting-fix
-+++ a/security/smack/smack_lsm.c
-@@ -584,8 +584,12 @@ static int smack_inode_getattr(struct vf
- static int smack_inode_setxattr(struct dentry *dentry, char *name,
- 				void *value, size_t size, int flags)
+ 
+-
+-/* assumes pm_qos_lock is held */
+ static void update_target(int target)
  {
--	if (strcmp(name, XATTR_NAME_SMACK) == 0 && !capable(CAP_MAC_ADMIN))
--		return -EPERM;
-+	if (!capable(CAP_MAC_ADMIN)) {
-+		if (strcmp(name, XATTR_NAME_SMACK) == 0 ||
-+		    strcmp(name, XATTR_NAME_SMACKIPIN) == 0 ||
-+		    strcmp(name, XATTR_NAME_SMACKIPOUT) == 0)
-+			return -EPERM;
-+	}
+ 	s32 extreme_value;
+ 	struct requirement_list *node;
++	unsigned long flags;
++	int call_notifier = 0;
  
- 	return smk_curacc(smk_of_inode(dentry->d_inode), MAY_WRITE);
- }
-@@ -718,57 +722,6 @@ static int smack_inode_getsecurity(const
- 	return rc;
- }
- 
--/**
-- * smack_inode_setsecurity - set smack xattrs
-- * @inode: the object
-- * @name: attribute name
-- * @value: attribute value
-- * @size: size of the attribute
-- * @flags: unused
-- *
-- * Sets the named attribute in the appropriate blob
-- *
-- * Returns 0 on success, or an error code
-- */
--static int smack_inode_setsecurity(struct inode *inode, const char *name,
--				   const void *value, size_t size, int flags)
--{
--	char *sp;
--	struct inode_smack *nsp = inode->i_security;
--	struct socket_smack *ssp;
--	struct socket *sock;
--
--	if (value == NULL || size > SMK_LABELLEN)
--		return -EACCES;
--
--	sp = smk_import(value, size);
--	if (sp == NULL)
--		return -EINVAL;
--
--	if (strcmp(name, XATTR_SMACK_SUFFIX) == 0) {
--		nsp->smk_inode = sp;
--		return 0;
--	}
--	/*
--	 * The rest of the Smack xattrs are only on sockets.
--	 */
--	if (inode->i_sb->s_magic != SOCKFS_MAGIC)
--		return -EOPNOTSUPP;
--
--	sock = SOCKET_I(inode);
--	if (sock == NULL)
--		return -EOPNOTSUPP;
--
--	ssp = sock->sk->sk_security;
--
--	if (strcmp(name, XATTR_SMACK_IPIN) == 0)
--		ssp->smk_in = sp;
--	else if (strcmp(name, XATTR_SMACK_IPOUT) == 0)
--		ssp->smk_out = sp;
--	else
--		return -EOPNOTSUPP;
--	return 0;
--}
- 
- /**
-  * smack_inode_listsecurity - list the Smack attributes
-@@ -1341,6 +1294,60 @@ static int smack_netlabel(struct sock *s
++	spin_lock_irqsave(&pm_qos_lock, flags);
+ 	extreme_value = pm_qos_array[target]->default_value;
+ 	list_for_each_entry(node,
+ 			&pm_qos_array[target]->requirements.list, list) {
+@@ -149,13 +150,16 @@ static void update_target(int target)
+ 				extreme_value, node->value);
+ 	}
+ 	if (pm_qos_array[target]->target_value != extreme_value) {
++		call_notifier = 1;
+ 		pm_qos_array[target]->target_value = extreme_value;
+ 		pr_debug(KERN_ERR "new target for qos %d is %d\n", target,
+ 			pm_qos_array[target]->target_value);
+-		blocking_notifier_call_chain(pm_qos_array[target]->notifiers,
+-			(unsigned long) pm_qos_array[target]->target_value,
+-						NULL);
+ 	}
++	spin_unlock_irqrestore(&pm_qos_lock, flags);
++
++	if (call_notifier)
++		blocking_notifier_call_chain(pm_qos_array[target]->notifiers,
++			(unsigned long) extreme_value, NULL);
  }
  
- /**
-+ * smack_inode_setsecurity - set smack xattrs
-+ * @inode: the object
-+ * @name: attribute name
-+ * @value: attribute value
-+ * @size: size of the attribute
-+ * @flags: unused
-+ *
-+ * Sets the named attribute in the appropriate blob
-+ *
-+ * Returns 0 on success, or an error code
-+ */
-+static int smack_inode_setsecurity(struct inode *inode, const char *name,
-+				   const void *value, size_t size, int flags)
-+{
-+	char *sp;
-+	struct inode_smack *nsp = inode->i_security;
-+	struct socket_smack *ssp;
-+	struct socket *sock;
-+
-+	if (value == NULL || size > SMK_LABELLEN)
-+		return -EACCES;
-+
-+	sp = smk_import(value, size);
-+	if (sp == NULL)
-+		return -EINVAL;
-+
-+	if (strcmp(name, XATTR_SMACK_SUFFIX) == 0) {
-+		nsp->smk_inode = sp;
-+		return 0;
-+	}
-+	/*
-+	 * The rest of the Smack xattrs are only on sockets.
-+	 */
-+	if (inode->i_sb->s_magic != SOCKFS_MAGIC)
-+		return -EOPNOTSUPP;
-+
-+	sock = SOCKET_I(inode);
-+	if (sock == NULL)
-+		return -EOPNOTSUPP;
-+
-+	ssp = sock->sk->sk_security;
-+
-+	if (strcmp(name, XATTR_SMACK_IPIN) == 0)
-+		ssp->smk_in = sp;
-+	else if (strcmp(name, XATTR_SMACK_IPOUT) == 0) {
-+		ssp->smk_out = sp;
-+		return smack_netlabel(sock->sk);
-+	} else
-+		return -EOPNOTSUPP;
-+
-+	return 0;
-+}
-+
-+/**
-  * smack_socket_post_create - finish socket setup
-  * @sock: the socket
-  * @family: protocol family
-@@ -2192,33 +2199,20 @@ static int smack_socket_getpeersec_dgram
- static void smack_sock_graft(struct sock *sk, struct socket *parent)
+ static int register_pm_qos_misc(struct pm_qos_object *qos)
+@@ -227,8 +231,8 @@ int pm_qos_add_requirement(int pm_qos_cl
+ 		spin_lock_irqsave(&pm_qos_lock, flags);
+ 		list_add(&dep->list,
+ 			&pm_qos_array[pm_qos_class]->requirements.list);
+-		update_target(pm_qos_class);
+ 		spin_unlock_irqrestore(&pm_qos_lock, flags);
++		update_target(pm_qos_class);
+ 
+ 		return 0;
+ 	}
+@@ -269,11 +273,10 @@ int pm_qos_update_requirement(int pm_qos
+ 			break;
+ 		}
+ 	}
++	spin_unlock_irqrestore(&pm_qos_lock, flags);
+ 	if (pending_update)
+ 		update_target(pm_qos_class);
+ 
+-	spin_unlock_irqrestore(&pm_qos_lock, flags);
+-
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(pm_qos_update_requirement);
+@@ -303,9 +306,9 @@ void pm_qos_remove_requirement(int pm_qo
+ 			break;
+ 		}
+ 	}
++	spin_unlock_irqrestore(&pm_qos_lock, flags);
+ 	if (pending_update)
+ 		update_target(pm_qos_class);
+-	spin_unlock_irqrestore(&pm_qos_lock, flags);
+ }
+ EXPORT_SYMBOL_GPL(pm_qos_remove_requirement);
+ 
+@@ -319,13 +322,10 @@ EXPORT_SYMBOL_GPL(pm_qos_remove_requirem
+  */
+  int pm_qos_add_notifier(int pm_qos_class, struct notifier_block *notifier)
  {
- 	struct socket_smack *ssp;
--	struct netlbl_lsm_secattr secattr;
--	char smack[SMK_LABELLEN];
- 	int rc;
+-	unsigned long flags;
+ 	int retval;
  
--	if (sk == NULL || parent == NULL || parent->sk == NULL)
-+	if (sk == NULL)
- 		return;
+-	spin_lock_irqsave(&pm_qos_lock, flags);
+ 	retval = blocking_notifier_chain_register(
+ 			pm_qos_array[pm_qos_class]->notifiers, notifier);
+-	spin_unlock_irqrestore(&pm_qos_lock, flags);
  
- 	if (sk->sk_family != PF_INET && sk->sk_family != PF_INET6)
- 		return;
- 
--	ssp = parent->sk->sk_security;
--
--	memset(smack, '\0', SMK_LABELLEN);
--	netlbl_secattr_init(&secattr);
--	rc = netlbl_sock_getattr(sk, &secattr);
--	if (rc == 0)
--		smack_from_secattr(&secattr, smack);
--	else
--		strncpy(smack, smack_known_huh.smk_known, SMK_MAXLEN);
--	netlbl_secattr_destroy(&secattr);
--
--	netlbl_secattr_init(&secattr);
-+	ssp = sk->sk_security;
-+	ssp->smk_in = current->security;
-+	ssp->smk_out = current->security;
-+	ssp->smk_packet[0] = '\0';
- 
--	smack_to_secattr(smack, &secattr);
--	if (secattr.flags != NETLBL_SECATTR_NONE)
--		rc = netlbl_sock_setattr(parent->sk, &secattr);
--	netlbl_secattr_destroy(&secattr);
-+	rc = smack_netlabel(sk);
+ 	return retval;
  }
+@@ -341,13 +341,10 @@ EXPORT_SYMBOL_GPL(pm_qos_add_notifier);
+  */
+ int pm_qos_remove_notifier(int pm_qos_class, struct notifier_block *notifier)
+ {
+-	unsigned long flags;
+ 	int retval;
  
- /**
+-	spin_lock_irqsave(&pm_qos_lock, flags);
+ 	retval = blocking_notifier_chain_unregister(
+ 			pm_qos_array[pm_qos_class]->notifiers, notifier);
+-	spin_unlock_irqrestore(&pm_qos_lock, flags);
+ 
+ 	return retval;
+ }
 _
 
-Patches currently in -mm which might be from casey@schaufler-ca.com are
+Patches currently in -mm which might be from mgross@linux.intel.com are
 
-vfs-security-rework-inode_getsecurity-and-callers-to.patch
-vfs-reorder-vfs_getxattr-to-avoid-unnecessary-calls-to-the-lsm.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-add-64-bit-capability-support-to-the-kernel.patch
-capabilities-introduce-per-process-capability-bounding-set.patch
-netlabel-introduce-a-new-kernel-configuration-api-for-netlabel.patch
-smack-version-11c-simplified-mandatory-access-control-kernel.patch
-smack-socket-label-setting-fix.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
+origin.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-remove-locks-around-blocking-notifier.patch
+latencyc-use-qos-infrastructure.patch
+intel-iommu-pmen-support.patch
+intel-iommu-pmen-support-fix.patch
+intel-iommu-fault_reason_index_cleanuppatch.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
