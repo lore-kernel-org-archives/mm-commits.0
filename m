@@ -1,61 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - maps4-add-proc-kpageflags-interface-fix-2-fix.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 19:48:39 -0800
-Message-ID: <200802040348.m143mKZr012421@imap1.linux-foundation.org>
+Subject: - maps4-add-proc-kpageflags-interface-fix.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 19:48:32 -0800
+Message-ID: <200802040348.m143mDiS012415@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42076 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51302 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753669AbYBDDsi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:48:38 -0500
+	by vger.kernel.org with ESMTP id S1753724AbYBDDsn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:48:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, m.kozlowski@tuxland.pl, mpm@selenic.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, haveblue@us.ibm.com, mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     maps4-add-proc-kpageflags-interface-fix-2-fix
+     maps4-add-proc-kpageflags-interface-fix
 has been removed from the -mm tree.  Its filename was
-     maps4-add-proc-kpageflags-interface-fix-2-fix.patch
+     maps4-add-proc-kpageflags-interface-fix.patch
 
 This patch was dropped because it was folded into maps4-add-proc-kpageflags-interface.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: maps4-add-proc-kpageflags-interface-fix-2-fix
+Subject: maps4-add-proc-kpageflags-interface-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: David Miller <davem@davemloft.net>
-Cc: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+and that
+
+Cc: Dave Hansen <haveblue@us.ibm.com>
 Cc: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_misc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/proc/proc_misc.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN fs/proc/proc_misc.c~maps4-add-proc-kpageflags-interface-fix-2-fix fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~maps4-add-proc-kpageflags-interface-fix-2-fix
+diff -puN fs/proc/proc_misc.c~maps4-add-proc-kpageflags-interface-fix fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~maps4-add-proc-kpageflags-interface-fix
 +++ a/fs/proc/proc_misc.c
-@@ -699,7 +699,7 @@ static ssize_t kpagecount_read(struct fi
- 		return -EIO;
+@@ -756,9 +756,6 @@ static ssize_t kpageflags_read(struct fi
+ 	ssize_t ret = 0;
+ 	u64 kflags, uflags;
  
- 	while (count > 0) {
--		ppage = 0;
-+		ppage = NULL;
- 		if (pfn_valid(pfn))
- 			ppage = pfn_to_page(pfn);
- 		pfn++;
-@@ -765,7 +765,7 @@ static ssize_t kpageflags_read(struct fi
- 		return -EIO;
- 
- 	while (count > 0) {
--		ppage = 0;
-+		ppage = NULL;
- 		if (pfn_valid(pfn))
- 			ppage = pfn_to_page(pfn);
- 		pfn++;
+-	if (!access_ok(VERIFY_WRITE, buf, count))
+-		return -EFAULT;
+-
+ 	pfn = src / KPMSIZE;
+ 	count = min_t(unsigned long, count, (max_pfn * KPMSIZE) - src);
+ 	if (src & KPMMASK || count & KPMMASK)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,6 +72,7 @@ shmem-factor-out-sbi-free_inodes-manipulations.patch
 maps4-rework-task_size-macros.patch
 maps4-add-proc-kpagecount-interface.patch
 maps4-add-proc-kpageflags-interface.patch
+maps4-add-proc-kpageflags-interface-fix.patch
 maps4-add-proc-kpageflags-interface-fix-2-fix.patch
 maps4-make-page-monitoring-proc-file-optional-fix.patch
 page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
