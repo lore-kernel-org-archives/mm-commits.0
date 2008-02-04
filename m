@@ -1,44 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: - i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 19:41:27 -0800
-Message-ID: <200802040341.m143f8mL012204@imap1.linux-foundation.org>
+Subject: - slub-fix-coding-style-violations-checkpatch-fixes.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 19:42:14 -0800
+Message-ID: <200802040341.m143fthJ012220@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46344 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42442 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753289AbYBDDmH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:42:07 -0500
+	by vger.kernel.org with ESMTP id S1753330AbYBDDmd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:42:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, clameter@sgi.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, clameter@sgi.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes
+     slub-fix-coding-style-violations-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+     slub-fix-coding-style-violations-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
+This patch was dropped because it was folded into slub-fix-coding-style-violations.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes
+Subject: slub-fix-coding-style-violations-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: line over 80 characters
-#55: FILE: include/asm-x86/pgtable_32.h:87:
-+#define PKMAP_BASE ( (FIXADDR_BOOT_START - PAGE_SIZE*(LAST_PKMAP + 1)) & PMD_MASK )
+ERROR: use tabs not spaces
+#67: FILE: mm/slub.c:695:
++^I^I^I ^Ip + s->objsize - 1, POISON_END, 1)))$
 
-ERROR: no space after that open parenthesis '('
-#55: FILE: include/asm-x86/pgtable_32.h:87:
-+#define PKMAP_BASE ( (FIXADDR_BOOT_START - PAGE_SIZE*(LAST_PKMAP + 1)) & PMD_MASK )
-
-ERROR: no space before that close parenthesis ')'
-#55: FILE: include/asm-x86/pgtable_32.h:87:
-+#define PKMAP_BASE ( (FIXADDR_BOOT_START - PAGE_SIZE*(LAST_PKMAP + 1)) & PMD_MASK )
-
-total: 2 errors, 1 warnings, 32 lines checked
+total: 1 errors, 0 warnings, 166 lines checked
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
@@ -46,26 +38,25 @@ CHECKPATCH in MAINTAINERS.
 Please run checkpatch prior to sending patches
 
 Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/pgtable_32.h |    2 +-
+ mm/slub.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-x86/pgtable_32.h~i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes include/asm-x86/pgtable_32.h
---- a/include/asm-x86/pgtable_32.h~i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes
-+++ a/include/asm-x86/pgtable_32.h
-@@ -68,7 +68,7 @@ void paging_init(void);
- #define LAST_PKMAP 1024
- #endif
- 
--#define PKMAP_BASE ( (FIXADDR_BOOT_START - PAGE_SIZE*(LAST_PKMAP + 1)) & PMD_MASK )
-+#define PKMAP_BASE ((FIXADDR_BOOT_START - PAGE_SIZE*(LAST_PKMAP + 1)) & PMD_MASK)
- 
- #ifdef CONFIG_HIGHMEM
- # define VMALLOC_END	(PKMAP_BASE-2*PAGE_SIZE)
+diff -puN mm/slub.c~slub-fix-coding-style-violations-checkpatch-fixes mm/slub.c
+--- a/mm/slub.c~slub-fix-coding-style-violations-checkpatch-fixes
++++ a/mm/slub.c
+@@ -692,7 +692,7 @@ static int check_object(struct kmem_cach
+ 			(!check_bytes_and_report(s, page, p, "Poison", p,
+ 					POISON_FREE, s->objsize - 1) ||
+ 			 !check_bytes_and_report(s, page, p, "Poison",
+-			 	p + s->objsize - 1, POISON_END, 1)))
++					p + s->objsize - 1, POISON_END, 1)))
+ 			return 0;
+ 		/*
+ 		 * check_pad_bytes cleans up on its own.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,7 +72,7 @@ serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
 vmalloc-add-const-to-void-parameters.patch
 i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations.patch
 slub-fix-coding-style-violations-checkpatch-fixes.patch
 slub-provide-unique-end-marker-for-each-slab-fix.patch
 slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
