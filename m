@@ -1,124 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: - uml-header-untangling-fix.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 20:08:06 -0800
-Message-ID: <200802040407.m1447lYn013127@imap1.linux-foundation.org>
+Subject: + add-mm-argument-to-pte-pmd-pud-pgd_free-fix.patch added to -mm tree
+Date: Sun, 03 Feb 2008 20:14:49 -0800
+Message-ID: <200802040414.m144EUIc013304@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38958 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33807 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754699AbYBDEHv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 23:07:51 -0500
+	by vger.kernel.org with ESMTP id S1753873AbYBDEOf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 23:14:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: kamalesh@linux.vnet.ibm.com
 
 
 The patch titled
-     UML: add asm/fixmap.h include
-has been removed from the -mm tree.  Its filename was
-     uml-header-untangling-fix.patch
+     2.6.24-mm1 Build Faliure on pgtable_32.c
+has been added to the -mm tree.  Its filename is
+     add-mm-argument-to-pte-pmd-pud-pgd_free-fix.patch
 
-This patch was dropped because it was folded into uml-header-untangling.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: UML: add asm/fixmap.h include
-From: Jeff Dike <jdike@addtoit.com>
+Subject: 2.6.24-mm1 Build Faliure on pgtable_32.c
+From: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
 
-um_uaccess.h refers to FIXADDR_USER_*, so it should include fixmap.h.
+Hi Andrew,
 
-I also changed the non-UML includes to use <> instead of "".
+The 2.6.24-mm1 kernel build fails with
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+arch/x86/mm/pgtable_32.c: In function `pgd_mop_up_pmds':
+arch/x86/mm/pgtable_32.c:302: warning: passing arg 1 of `pmd_free' from incompatible pointer type
+arch/x86/mm/pgtable_32.c:302: error: too few arguments to function `pmd_free'
+
+I have tested the patch for the build failure only.
+
+Signed-off-by: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/um_uaccess.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/x86/mm/pgtable_32.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN arch/um/include/um_uaccess.h~uml-header-untangling-fix arch/um/include/um_uaccess.h
---- a/arch/um/include/um_uaccess.h~uml-header-untangling-fix
-+++ a/arch/um/include/um_uaccess.h
-@@ -6,7 +6,8 @@
- #ifndef __ARCH_UM_UACCESS_H
- #define __ARCH_UM_UACCESS_H
+diff -puN arch/x86/mm/pgtable_32.c~add-mm-argument-to-pte-pmd-pud-pgd_free-fix arch/x86/mm/pgtable_32.c
+--- a/arch/x86/mm/pgtable_32.c~add-mm-argument-to-pte-pmd-pud-pgd_free-fix
++++ a/arch/x86/mm/pgtable_32.c
+@@ -286,7 +286,7 @@ static void pgd_dtor(void *pgd)
+  * preallocate which never got a corresponding vma will need to be
+  * freed manually.
+  */
+-static void pgd_mop_up_pmds(pgd_t *pgdp)
++static void pgd_mop_up_pmds(struct mm_struct *mm, pgd_t *pgdp)
+ {
+ 	int i;
  
--#include "asm/elf.h"
-+#include <asm/elf.h>
-+#include <asm/fixmap.h>
- #include "sysdep/archsetjmp.h"
+@@ -299,7 +299,7 @@ static void pgd_mop_up_pmds(pgd_t *pgdp)
+ 			pgdp[i] = native_make_pgd(0);
  
- #define __under_task_size(addr, size) \
+ 			paravirt_release_pd(pgd_val(pgd) >> PAGE_SHIFT);
+-			pmd_free(pmd);
++			pmd_free(mm, pmd);
+ 		}
+ 	}
+ }
+@@ -327,7 +327,7 @@ static int pgd_prepopulate_pmd(struct mm
+ 		pmd_t *pmd = pmd_alloc_one(mm, addr);
+ 
+ 		if (!pmd) {
+-			pgd_mop_up_pmds(pgd);
++			pgd_mop_up_pmds(mm, pgd);
+ 			return 0;
+ 		}
+ 
+@@ -347,7 +347,7 @@ static int pgd_prepopulate_pmd(struct mm
+ 	return 1;
+ }
+ 
+-static void pgd_mop_up_pmds(pgd_t *pgd)
++static void pgd_mop_up_pmds(struct mm_struct *mm, pgd_t *pgdp)
+ {
+ }
+ #endif	/* CONFIG_X86_PAE */
+@@ -368,7 +368,7 @@ pgd_t *pgd_alloc(struct mm_struct *mm)
+ 
+ void pgd_free(struct mm_struct *mm, pgd_t *pgd)
+ {
+-	pgd_mop_up_pmds(pgd);
++	pgd_mop_up_pmds(mm,pgd);
+ 	quicklist_free(0, pgd_dtor, pgd);
+ }
+ 
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from kamalesh@linux.vnet.ibm.com are
 
 origin.patch
-uml-arch-um-include-inith-needs-a-definition-of-__used.patch
-uml-implement-get_wchan.patch
-uml-get-rid-of-asmlinkage.patch
-uml-document-new-ubd-flag.patch
-uml-further-bugsc-tidying.patch
-uml-smp-needs-to-depend-on-broken-for-now.patch
-uml-console-driver-cleanups.patch
-uml-clonec-tidying.patch
-uml-borrow-consth-techniques.patch
-uml-delete-some-unused-headers.patch
-uml-allow-lflags-on-command-line.patch
-uml-tidy-kern_utilh.patch
-uml-tidy-pgtableh.patch
-uml-tidy-pgtableh-fix.patch
-uml-reconst-a-parameter.patch
-arch-um-remove-duplicate-includes.patch
-uml-host-tls-diagnostics.patch
-uml-move-um_virt_to_phys.patch
-uml-header-untangling.patch
-uml-header-untangling-fix.patch
-uml-style-cleanup.patch
-uml-currenth-cleanup.patch
-uml-fix-page-table-data-sizes.patch
-uml-add-virt_to_pte.patch
-uml-simplify-sigsegv-handling.patch
-uml-use-ptrace-directly-in-libc-code.patch
-uml-kill-processes-instead-of-panicing-kernel.patch
-uml-clean-up-task_size-usage.patch
-uml-cover-stubs-with-a-vma.patch
-uml-fix-command-line-cflags-and-ldflags-support.patch
-uml-style-fixes-in-arch-um-os-linux.patch
-uml-miscellaneous-code-cleanups.patch
-uml-style-fixes-in-filec.patch
-uml-64-bit-tlb-fixes.patch
-uml-customize-tlbh.patch
-uml-eliminate-setjmp_wrapper.patch
-uml-install-panic-notifier-earlier.patch
-uml-use-barrier-instead-of-mb.patch
-uml-tidy-helper-code.patch
-uml-dont-kill-pid-0.patch
-uml-get-rid-of-syscall-counters.patch
-uml-dont-allow-processes-to-call-into-stub.patch
-uml-move-sig_handler_common_skas.patch
-uml-clean-up-sig_handler_common_skas.patch
-uml-style-fixes-in-arch-um-kernel.patch
-uml-signal-handling-tidying.patch
-uml-remove-init_irq_signals.patch
-uml-smp-locking-commentary.patch
-uml-implement-o_append.patch
-uml-remove-fakehd.patch
-uml-debug_shirq-fixes.patch
-uml-add-back-config_hz.patch
-uml-style-fixes-in-arch-um-sys-x86_64.patch
-uml-add-newlines-to-printks.patch
-uml-move-register-initialization.patch
-uml-remove-unused-fields-from-mm_context.patch
-uml-remove-map_cb.patch
-uml-use-of-a-public-mac-is-a-warning-not-an-error.patch
-uml-defconfig-tweaks.patch
-uml-redo-the-calculation-of-nr_syscalls.patch
-uml-make-mconsole_stack-namespace-aware.patch
-fix-__const_udelay-declaration-and-definition-mismatches.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
-random-add-async-notification-support-to-dev-random.patch
-mount-options-fix-hostfs.patch
+add-mm-argument-to-pte-pmd-pud-pgd_free-fix.patch
+scsi-fix-isa-pcmcia-compile-problem.patch
+inotify-send-in_attrib-events-when-link-count-changes-fix.patch
+iget-stop-bfs-from-using-iget-and-read_inode-try-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
