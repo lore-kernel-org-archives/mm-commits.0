@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-various-other-fixes.patch added to -mm tree
-Date: Mon, 04 Feb 2008 13:56:31 -0800
-Message-ID: <200802042156.m14LuVTv019539@imap1.linux-foundation.org>
+Subject: + cpusets-update_cpumask-documentation-fix.patch added to -mm tree
+Date: Mon, 04 Feb 2008 13:57:20 -0800
+Message-ID: <200802042157.m14LvK2i019562@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50251 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56642 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755346AbYBDV4i (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2008 16:56:38 -0500
+	by vger.kernel.org with ESMTP id S1753261AbYBDV52 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2008 16:57:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: pj@sgi.com, cpw@sgi.com, menage@google.com, rientjes@google.com
 
 
 The patch titled
-     hotplug cpu: move tasks in empty cpusets to parent various other fixes
+     cpusets: update_cpumask documentation fix
 has been added to the -mm tree.  Its filename is
-     hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-various-other-fixes.patch
+     cpusets-update_cpumask-documentation-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,38 +33,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hotplug cpu: move tasks in empty cpusets to parent various other fixes
+Subject: cpusets: update_cpumask documentation fix
 From: Paul Jackson <pj@sgi.com>
 
-Various minor formatting and comment tweaks to Cliff Wickman's
-[PATCH_3_of_3]_cpusets__update_cpumask_revision.patch
-
-I had had "iff", meaning "if and only if" in a comment.  However, except for
-ancient mathematicians, the abbreviation "iff" was a tad too cryptic.  Cliff
-changed it to "if", presumably figuring that the "iff" was a typo.  However,
-it was the "only if" half of the conjunction that was most interesting. 
-Reword to emphasis the "only if" aspect.
-
-The locking comment for remove_tasks_in_empty_cpuset() was wrong; it said
-callback_mutex had to be held on entry.  The opposite is true.
-
-Several mentions of attach_task() in comments needed to be
-changed to cgroup_attach_task().
-
-A comment about notify_on_release was no longer relevant,
-as the line of code it had commented, namely:
-	set_bit(CS_RELEASED_RESOURCE, &parent->flags);
-is no longer present in that place in the cpuset.c code.
-
-Similarly a comment about notify_on_release before the
-scan_for_empty_cpusets() routine was no longer relevant.
-
-Removed extra parentheses and unnecessary return statement.
-
-Renamed attach_task() to cpuset_attach() in various comments.
-
-Removed comment about not needing memory migration, as it seems the migration
-is done anyway, via the cpuset_attach() callback from cgroup_attach_task().
+Update cpuset documentation to match the October 2007 "Fix cpusets
+update_cpumask" changes that now apply changes to a cpusets 'cpus' allowed
+mask immediately to the cpus_allowed of the tasks in that cpuset.
 
 Signed-off-by: Paul Jackson <pj@sgi.com>
 Acked-by: Cliff Wickman <cpw@sgi.com>
@@ -73,122 +47,42 @@ Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |   41 +++++++++++++++--------------------------
- 1 file changed, 15 insertions(+), 26 deletions(-)
+ Documentation/cpusets.txt |   23 ++++++++---------------
+ 1 file changed, 8 insertions(+), 15 deletions(-)
 
-diff -puN kernel/cpuset.c~hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-various-other-fixes kernel/cpuset.c
---- a/kernel/cpuset.c~hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-various-other-fixes
-+++ a/kernel/cpuset.c
-@@ -752,7 +752,7 @@ static int update_cpumask(struct cpuset 
- 	trialcs = *cs;
+diff -puN Documentation/cpusets.txt~cpusets-update_cpumask-documentation-fix Documentation/cpusets.txt
+--- a/Documentation/cpusets.txt~cpusets-update_cpumask-documentation-fix
++++ a/Documentation/cpusets.txt
+@@ -523,21 +523,14 @@ from one cpuset to another, then the ker
+ memory placement, as above, the next time that the kernel attempts
+ to allocate a page of memory for that task.
  
- 	/*
--	 * An empty cpus_allowed is ok if there are no tasks in the cpuset.
-+	 * An empty cpus_allowed is ok only if the cpuset has no tasks.
- 	 * Since cpulist_parse() fails on an empty mask, we special case
- 	 * that parsing.  The validate_change() call ensures that cpusets
- 	 * with tasks have cpus.
-@@ -809,7 +809,7 @@ static int update_cpumask(struct cpuset 
-  *    so that the migration code can allocate pages on these nodes.
-  *
-  *    Call holding cgroup_mutex, so current's cpuset won't change
-- *    during this call, as cgroup_mutex holds off any attach_task()
-+ *    during this call, as manage_mutex holds off any cpuset_attach()
-  *    calls.  Therefore we don't need to take task_lock around the
-  *    call to guarantee_online_mems(), as we know no one is changing
-  *    our task's cpuset.
-@@ -1661,8 +1661,8 @@ void cpuset_do_move_task(struct task_str
-  * @from: cpuset in which the tasks currently reside
-  * @to: cpuset to which the tasks will be moved
-  *
-- * Called with manage_sem held
-- * callback_mutex must not be held, as attach_task() will take it.
-+ * Called with cgroup_mutex held
-+ * callback_mutex must not be held, as cpuset_attach() will take it.
-  *
-  * The cgroup_scan_tasks() function will scan all the tasks in a cgroup,
-  * calling callback functions for each.
-@@ -1689,18 +1689,18 @@ static void move_member_tasks_to_cpuset(
-  * last CPU or node from a cpuset, then move the tasks in the empty
-  * cpuset to its next-highest non-empty parent.
-  *
-- * The parent cpuset has some superset of the 'mems' nodes that the
-- * newly empty cpuset held, so no migration of memory is necessary.
-- *
-- * Called with both manage_sem and callback_sem held
-+ * Called with cgroup_mutex held
-+ * callback_mutex must not be held, as cpuset_attach() will take it.
-  */
- static void remove_tasks_in_empty_cpuset(struct cpuset *cs)
- {
- 	struct cpuset *parent;
+-If a cpuset has its CPUs modified, then each task using that
+-cpuset does _not_ change its behavior automatically.  In order to
+-minimize the impact on the critical scheduling code in the kernel,
+-tasks will continue to use their prior CPU placement until they
+-are rebound to their cpuset, by rewriting their pid to the 'tasks'
+-file of their cpuset.  If a task had been bound to some subset of its
+-cpuset using the sched_setaffinity() call, and if any of that subset
+-is still allowed in its new cpuset settings, then the task will be
+-restricted to the intersection of the CPUs it was allowed on before,
+-and its new cpuset CPU placement.  If, on the other hand, there is
+-no overlap between a tasks prior placement and its new cpuset CPU
+-placement, then the task will be allowed to run on any CPU allowed
+-in its new cpuset.  If a task is moved from one cpuset to another,
+-its CPU placement is updated in the same way as if the tasks pid is
+-rewritten to the 'tasks' file of its current cpuset.
++If a cpuset has its 'cpus' modified, then each task in that cpuset
++will have its allowed CPU placement changed immediately.  Similarly,
++if a tasks pid is written to a cpusets 'tasks' file, in either its
++current cpuset or another cpuset, then its allowed CPU placement is
++changed immediately.  If such a task had been bound to some subset
++of its cpuset using the sched_setaffinity() call, the task will be
++allowed to run on any CPU allowed in its new cpuset, negating the
++affect of the prior sched_setaffinity() call.
  
--	/* the cgroup's css_sets list is in use if there are tasks
--	   in the cpuset; the list is empty if there are none;
--	   the cs->css.refcnt seems always 0 */
-+	/*
-+	 * The cgroup's css_sets list is in use if there are tasks
-+	 * in the cpuset; the list is empty if there are none;
-+	 * the cs->css.refcnt seems always 0.
-+	 */
- 	if (list_empty(&cs->css.cgroup->css_sets))
- 		return;
- 
-@@ -1709,14 +1709,8 @@ static void remove_tasks_in_empty_cpuset
- 	 * has online cpus, so can't be empty).
- 	 */
- 	parent = cs->parent;
--	while (cpus_empty(parent->cpus_allowed)) {
--		/*
--		 * this empty cpuset should now be considered to
--		 * have been used, and therefore eligible for
--		 * release when empty (if it is notify_on_release)
--		 */
-+	while (cpus_empty(parent->cpus_allowed))
- 		parent = parent->parent;
--	}
- 
- 	move_member_tasks_to_cpuset(cs, parent);
- }
-@@ -1725,10 +1719,6 @@ static void remove_tasks_in_empty_cpuset
-  * Walk the specified cpuset subtree and look for empty cpusets.
-  * The tasks of such cpuset must be moved to a parent cpuset.
-  *
-- * Note that such a notify_on_release cpuset must have had, at some time,
-- * member tasks or cpuset descendants and cpus and memory, before it can
-- * be a candidate for release.
-- *
-  * Called with cgroup_mutex held.  We take callback_mutex to modify
-  * cpus_allowed and mems_allowed.
-  *
-@@ -1764,8 +1754,8 @@ static void scan_for_empty_cpusets(const
- 		cpus_and(cp->cpus_allowed, cp->cpus_allowed, cpu_online_map);
- 		nodes_and(cp->mems_allowed, cp->mems_allowed,
- 						node_states[N_HIGH_MEMORY]);
--		if ((cpus_empty(cp->cpus_allowed) ||
--		     nodes_empty(cp->mems_allowed))) {
-+		if (cpus_empty(cp->cpus_allowed) ||
-+		     nodes_empty(cp->mems_allowed)) {
- 			/* Move tasks from the empty cpuset to a parent */
- 			mutex_unlock(&callback_mutex);
- 			remove_tasks_in_empty_cpuset(cp);
-@@ -1773,7 +1763,6 @@ static void scan_for_empty_cpusets(const
- 		}
- 	}
- 	mutex_unlock(&callback_mutex);
--	return;
- }
- 
- /*
-@@ -2207,7 +2196,7 @@ void __cpuset_memory_pressure_bump(void)
-  *  - Used for /proc/<pid>/cpuset.
-  *  - No need to task_lock(tsk) on this tsk->cpuset reference, as it
-  *    doesn't really matter if tsk->cpuset changes after we read it,
-- *    and we take cgroup_mutex, keeping attach_task() from changing it
-+ *    and we take cgroup_mutex, keeping cpuset_attach() from changing it
-  *    anyway.
-  */
- static int proc_cpuset_show(struct seq_file *m, void *unused_v)
+ In summary, the memory placement of a task whose cpuset is changed is
+ updated by the kernel, on the next allocation of a page for that task,
 _
 
 Patches currently in -mm which might be from pj@sgi.com are
@@ -211,6 +105,7 @@ cpusets-update_cpumask-revision-fix.patch
 cpusets-update_cpumask-revision-checkpatch-fixes.patch
 cgroups-update-comments-in-cpusetc.patch
 hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-various-other-fixes.patch
+cpusets-update_cpumask-documentation-fix.patch
 proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
 proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
 proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
