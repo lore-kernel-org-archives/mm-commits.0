@@ -1,92 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 19:35:48 -0800
-Message-ID: <200802040335.m143ZTME012008@imap1.linux-foundation.org>
+Subject: - pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 19:39:17 -0800
+Message-ID: <200802040338.m143cwfh012066__21425.8280619562$1202096488$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54495 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46070 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752660AbYBDDga (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:36:30 -0500
+	by vger.kernel.org with ESMTP id S1753101AbYBDDks (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:40:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Krauth.Julien@addi-data.com, krauth.julien@addi-data.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aia21@cantab.net, bfields@fieldses.org, clameter@sgi.com, dgc@sgi.com, linux-ext4@vger.kernel.org, mark.fasheh@oracle.com, mhalcrow@us.ibm.com, sfrench@us.ib
 
 
 The patch titled
-     serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes
+     pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2
 has been removed from the -mm tree.  Its filename was
-     serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
+     pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
 
-This patch was dropped because it was folded into serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh.patch
+This patch was dropped because it was folded into pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes
+Subject: pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: line over 80 characters
-#28: FILE: drivers/serial/8250_pci.c:112:
-+addidata_apci7800_setup(struct serial_private *priv, struct pciserial_board *board,
-
-ERROR: use tabs not spaces
-#29: FILE: drivers/serial/8250_pci.c:113:
-+               struct uart_port *port, int idx)$
-
-ERROR: no space before that close parenthesis ')'
-#34: FILE: drivers/serial/8250_pci.c:118:
-+	if (idx < 2 ) {
-
-ERROR: no space before that close parenthesis ')'
-#39: FILE: drivers/serial/8250_pci.c:123:
-+	} else if ((idx >= 4) && (idx < 6 )) {
-
-total: 3 errors, 1 warnings, 180 lines checked
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "Krauth.Julien" <Krauth.Julien@addi-data.com>
-Cc: Krauth J. <krauth.julien@addi-data.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: <linux-ext4@vger.kernel.org>
+Cc: Anton Altaparmakov <aia21@cantab.net>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: David Chinner <dgc@sgi.com>
+Cc: Mark Fasheh <mark.fasheh@oracle.com>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+Cc: Steven French <sfrench@us.ibm.com>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_pci.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/ntfs/compress.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/8250_pci.c~serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes drivers/serial/8250_pci.c
---- a/drivers/serial/8250_pci.c~serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes
-+++ a/drivers/serial/8250_pci.c
-@@ -108,19 +108,19 @@ setup_port(struct serial_private *priv, 
- /*
-  * ADDI-DATA GmbH communication cards <info@addi-data.com>
-  */
--static int
--addidata_apci7800_setup(struct serial_private *priv, struct pciserial_board *board,
--               struct uart_port *port, int idx)
-+static int addidata_apci7800_setup(struct serial_private *priv,
-+				struct pciserial_board *board,
-+				struct uart_port *port, int idx)
- {
- 	unsigned int bar = 0, offset = board->first_offset;
- 	bar = FL_GET_BASE(board->flags);
- 
--	if (idx < 2 ) {
-+	if (idx < 2) {
- 		offset += idx * board->uart_offset;
- 	} else if ((idx >= 2) && (idx < 4)) {
- 		bar += 1;
- 		offset += ((idx - 2) * board->uart_offset);
--	} else if ((idx >= 4) && (idx < 6 )) {
-+	} else if ((idx >= 4) && (idx < 6)) {
- 		bar += 2;
- 		offset += ((idx - 4) * board->uart_offset);
- 	} else if (idx >= 6) {
+diff -puN fs/nfs/write.c~pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2 fs/nfs/write.c
+diff -puN fs/ntfs/aops.c~pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2 fs/ntfs/aops.c
+diff -puN net/unix/af_unix.c~pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2 net/unix/af_unix.c
+diff -puN fs/ntfs/compress.c~pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2 fs/ntfs/compress.c
+--- a/fs/ntfs/compress.c~pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2
++++ a/fs/ntfs/compress.c
+@@ -565,7 +565,7 @@ int ntfs_read_compressed_block(struct pa
+ 	if (xpage >= max_page) {
+ 		kfree(bhs);
+ 		kfree(pages);
+-		zero_user_page(page, 0, PAGE_CACHE_SIZE, KM_USER0);
++		zero_user(page, 0, PAGE_CACHE_SIZE);
+ 		ntfs_debug("Compressed read outside i_size - truncated?");
+ 		SetPageUptodate(page);
+ 		unlock_page(page);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -99,35 +69,7 @@ clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
 timerfd-v3-new-timerfd-api.patch
 include-asm-powerpc-nvramh-needs-listh.patch
 serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh.patch
-serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh-checkpatch-fixes.patch
-fix-gregkh-pci-pci-pcie-aspm-support.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
-x86-validate-against-acpi-motherboard-resources.patch
-git-sched.patch
-git-scsi-misc.patch
-scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes.patch
-scsi-aic94xx-cleanups-checkpatch-fixes.patch
-scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
-drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-ohci-sm501-driver-v2-fix.patch
-9p-fix-p9_printfcall-export.patch
-git-watchdog.patch
-git-watchdog-fixup.patch
-b43-fix-build-with-config_ssb_pcihost=n.patch
-git-ipwireless_cs.patch
-git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
-x86-amd-thermal-interrupt-support-fix-2.patch
-x86-mmconf-enable-mcfg-early-cleanup.patch
-git-xtensa.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
 vmalloc-add-const-to-void-parameters-fix.patch
 i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
