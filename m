@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 19:55:47 -0800
-Message-ID: <200802040355.m143tSjf012700@imap1.linux-foundation.org>
+Subject: - add-64-bit-capability-support-to-the-kernel-fix.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 19:55:51 -0800
+Message-ID: <200802040355.m143tWBn012703@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34748 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55919 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754752AbYBDD4D (ORCPT
+	by vger.kernel.org with ESMTP id S1755728AbYBDD4D (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:56:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,145 +14,19 @@ To: akpm@linux-foundation.org, casey@schaufler-ca.com, chrisw@sous-sol.org, jmor
 
 
 The patch titled
-     add-64-bit-capability-support-to-the-kernel-checkpatch-fixes
+     add-64-bit-capability-support-to-the-kernel-fix
 has been removed from the -mm tree.  Its filename was
-     add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+     add-64-bit-capability-support-to-the-kernel-fix.patch
 
 This patch was dropped because it was folded into add-64-bit-capability-support-to-the-kernel.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add-64-bit-capability-support-to-the-kernel-checkpatch-fixes
+Subject: add-64-bit-capability-support-to-the-kernel-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: need consistent spacing around '-' (ctx:WxV)
-#72: FILE: fs/proc/array.c:296:
-+				  a->cap[(_LINUX_CAPABILITY_U32S-1) -__capi]);
- 				                                    ^
-
-ERROR: need spaces around that '=' (ctx:VxV)
-#225: FILE: include/linux/capability.h:332:
-+	for (__capi=0; __capi<_LINUX_CAPABILITY_U32S; ++__capi)
- 	           ^
-
-ERROR: need spaces around that '<' (ctx:VxV)
-#225: FILE: include/linux/capability.h:332:
-+	for (__capi=0; __capi<_LINUX_CAPABILITY_U32S; ++__capi)
- 	                     ^
-
-ERROR: need consistent spacing around '|' (ctx:WxV)
-#233: FILE: include/linux/capability.h:338:
-+			    |CAP_TO_MASK(CAP_FSETID))
- 			    ^
-
-ERROR: need a space after that close brace '}'
-#239: FILE: include/linux/capability.h:344:
-+# define CAP_EMPTY_SET    {{ 0, 0 }}
-
-ERROR: need a space after that close brace '}'
-#240: FILE: include/linux/capability.h:345:
-+# define CAP_FULL_SET     {{ ~0, ~0 }}
-
-ERROR: need a space after that close brace '}'
-#241: FILE: include/linux/capability.h:346:
-+# define CAP_INIT_EFF_SET {{ ~CAP_TO_MASK(CAP_SETPCAP), ~0 }}
-
-ERROR: need a space after that close brace '}'
-#242: FILE: include/linux/capability.h:347:
-+# define CAP_FS_SET       {{ CAP_FS_MASK_B0, 0 }}
-
-ERROR: need a space after that close brace '}'
-#243: FILE: include/linux/capability.h:348:
-+# define CAP_NFSD_SET     {{ CAP_FS_MASK_B0|CAP_TO_MASK(CAP_SYS_RESOURCE), 0 }}
-
-ERROR: need space after that ',' (ctx:VxV)
-#253: FILE: include/linux/capability.h:358:
-+#define cap_raise(c,flag)  ((c).cap[CAP_TO_INDEX(flag)] |= CAP_TO_MASK(flag))
-                    ^
-
-ERROR: need space after that ',' (ctx:VxV)
-#254: FILE: include/linux/capability.h:359:
-+#define cap_lower(c,flag)  ((c).cap[CAP_TO_INDEX(flag)] &= ~CAP_TO_MASK(flag))
-                    ^
-
-ERROR: need space after that ',' (ctx:VxV)
-#255: FILE: include/linux/capability.h:360:
-+#define cap_raised(c,flag) ((c).cap[CAP_TO_INDEX(flag)] & CAP_TO_MASK(flag))
-                     ^
-
-ERROR: need consistent spacing around '|' (ctx:WxB)
-#278: FILE: include/linux/capability.h:382:
-+	CAP_BOP_ALL(dest, a, b, |);
- 	                        ^
-
-WARNING: braces {} are not necessary for single statement blocks
-#320: FILE: include/linux/capability.h:413:
-+		if (a.cap[__capi] != 0) {
-+			return 0;
-+		}
-
-ERROR: do not initialise statics to 0 or NULL
-#420: FILE: kernel/capability.c:49:
-+	static int warned = 0;
-
-ERROR: need spaces around that '=' (ctx:VxV)
-#467: FILE: kernel/capability.c:107:
-+		for (i=0; i < tocopy; i++) {
- 		      ^
-
-WARNING: braces {} are not necessary for single statement blocks
-#480: FILE: kernel/capability.c:120:
-+		if (copy_to_user(dataptr, kdata, tocopy
-+				 * sizeof(struct __user_cap_data_struct))) {
-+			return -EFAULT;
-+		}
-
-ERROR: do not initialise statics to 0 or NULL
-#492: FILE: kernel/capability.c:213:
-+	static int warned = 0;
-
-WARNING: braces {} are not necessary for single statement blocks
-#527: FILE: kernel/capability.c:250:
-+	if (copy_from_user(&kdata, data, tocopy
-+			   * sizeof(struct __user_cap_data_struct))) {
- 		return -EFAULT;
-+	}
-
-ERROR: need spaces around that '=' (ctx:VxV)
-#532: FILE: kernel/capability.c:255:
-+	for (i=0; i < tocopy; i++) {
- 	      ^
-
-WARNING: braces {} are not necessary for single statement blocks
-#603: FILE: security/commoncap.c:199:
-+	if (size < sizeof(magic_etc)) {
- 		return -EINVAL;
-+	}
-
-WARNING: braces {} are not necessary for single statement blocks
-#620: FILE: security/commoncap.c:207:
-+		if (size != XATTR_CAPS_SZ_1) {
-+			return -EINVAL;
-+		}
-
-WARNING: braces {} are not necessary for single statement blocks
-#626: FILE: security/commoncap.c:213:
-+		if (size != XATTR_CAPS_SZ_2) {
-+			return -EINVAL;
-+		}
-
-ERROR: need spaces around that '=' (ctx:VxV)
-#641: FILE: security/commoncap.c:228:
-+	for (i=0; i < tocopy; ++i) {
- 	      ^
-
-total: 18 errors, 6 warnings, 688 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
+Access to task->comm is a bit racy.
 
 Cc: Andrew G. Morgan <morgan@kernel.org>
 Cc: Andrew Morgan <morgan@kernel.org>
@@ -164,172 +38,21 @@ Cc: Stephen Smalley <sds@tycho.nsa.gov>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c            |    2 +-
- include/linux/capability.h |   21 ++++++++++-----------
- kernel/capability.c        |    6 +++---
- security/commoncap.c       |   22 ++++++++--------------
- 4 files changed, 22 insertions(+), 29 deletions(-)
+ kernel/capability.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/array.c~add-64-bit-capability-support-to-the-kernel-checkpatch-fixes fs/proc/array.c
---- a/fs/proc/array.c~add-64-bit-capability-support-to-the-kernel-checkpatch-fixes
-+++ a/fs/proc/array.c
-@@ -288,7 +288,7 @@ static char *render_cap_t(const char *he
- 	buffer += sprintf(buffer, "%s", header);
- 	CAP_FOR_EACH_U32(__capi) {
- 		buffer += sprintf(buffer, "%08x",
--				  a->cap[(_LINUX_CAPABILITY_U32S-1) -__capi]);
-+				  a->cap[(_LINUX_CAPABILITY_U32S-1) - __capi]);
- 	}
- 	return buffer + sprintf(buffer, "\n");
- }
-diff -puN include/linux/capability.h~add-64-bit-capability-support-to-the-kernel-checkpatch-fixes include/linux/capability.h
---- a/include/linux/capability.h~add-64-bit-capability-support-to-the-kernel-checkpatch-fixes
-+++ a/include/linux/capability.h
-@@ -329,13 +329,13 @@ typedef struct kernel_cap_struct {
-  */
- 
- #define CAP_FOR_EACH_U32(__capi)  \
--	for (__capi=0; __capi<_LINUX_CAPABILITY_U32S; ++__capi)
-+	for (__capi = 0; __capi < _LINUX_CAPABILITY_U32S; ++__capi)
- 
--# define CAP_FS_MASK_B0     (CAP_TO_MASK(CAP_CHOWN)             \
--			    |CAP_TO_MASK(CAP_DAC_OVERRIDE)      \
--			    |CAP_TO_MASK(CAP_DAC_READ_SEARCH)   \
--			    |CAP_TO_MASK(CAP_FOWNER)            \
--			    |CAP_TO_MASK(CAP_FSETID))
-+# define CAP_FS_MASK_B0     (CAP_TO_MASK(CAP_CHOWN)		\
-+			    | CAP_TO_MASK(CAP_DAC_OVERRIDE)	\
-+			    | CAP_TO_MASK(CAP_DAC_READ_SEARCH)	\
-+			    | CAP_TO_MASK(CAP_FOWNER)		\
-+			    | CAP_TO_MASK(CAP_FSETID))
- 
- #if _LINUX_CAPABILITY_U32S != 2
- # error Fix up hand-coded capability macro initializers
-@@ -355,9 +355,9 @@ typedef struct kernel_cap_struct {
- # define cap_set_full(c)      do { (c) = __cap_full_set; } while (0)
- # define cap_set_init_eff(c)  do { (c) = __cap_init_eff_set; } while (0)
- 
--#define cap_raise(c,flag)  ((c).cap[CAP_TO_INDEX(flag)] |= CAP_TO_MASK(flag))
--#define cap_lower(c,flag)  ((c).cap[CAP_TO_INDEX(flag)] &= ~CAP_TO_MASK(flag))
--#define cap_raised(c,flag) ((c).cap[CAP_TO_INDEX(flag)] & CAP_TO_MASK(flag))
-+#define cap_raise(c, flag)  ((c).cap[CAP_TO_INDEX(flag)] |= CAP_TO_MASK(flag))
-+#define cap_lower(c, flag)  ((c).cap[CAP_TO_INDEX(flag)] &= ~CAP_TO_MASK(flag))
-+#define cap_raised(c, flag) ((c).cap[CAP_TO_INDEX(flag)] & CAP_TO_MASK(flag))
- 
- #define CAP_BOP_ALL(c, a, b, OP)                                    \
- do {                                                                \
-@@ -410,9 +410,8 @@ static inline int cap_isclear(const kern
- {
- 	unsigned __capi;
- 	CAP_FOR_EACH_U32(__capi) {
--		if (a.cap[__capi] != 0) {
-+		if (a.cap[__capi] != 0)
- 			return 0;
--		}
- 	}
- 	return 1;
- }
-diff -puN kernel/capability.c~add-64-bit-capability-support-to-the-kernel-checkpatch-fixes kernel/capability.c
---- a/kernel/capability.c~add-64-bit-capability-support-to-the-kernel-checkpatch-fixes
+diff -puN kernel/capability.c~add-64-bit-capability-support-to-the-kernel-fix kernel/capability.c
+--- a/kernel/capability.c~add-64-bit-capability-support-to-the-kernel-fix
 +++ a/kernel/capability.c
-@@ -104,7 +104,7 @@ out:
- 		struct __user_cap_data_struct kdata[_LINUX_CAPABILITY_U32S];
- 		unsigned i;
- 
--		for (i=0; i < tocopy; i++) {
-+		for (i = 0; i < tocopy; i++) {
- 			kdata[i].effective = pE.cap[i];
- 			kdata[i].permitted = pP.cap[i];
- 			kdata[i].inheritable = pI.cap[i];
-@@ -210,7 +210,7 @@ static inline int cap_set_all(kernel_cap
-  */
- asmlinkage long sys_capset(cap_user_header_t header, const cap_user_data_t data)
- {
--	static int warned = 0;
-+	static int warned;
- 	struct __user_cap_data_struct kdata[_LINUX_CAPABILITY_U32S];
- 	unsigned i, tocopy;
- 	kernel_cap_t inheritable, permitted, effective;
-@@ -252,7 +252,7 @@ asmlinkage long sys_capset(cap_user_head
- 		return -EFAULT;
- 	}
- 
--	for (i=0; i < tocopy; i++) {
-+	for (i = 0; i < tocopy; i++) {
- 		effective.cap[i] = kdata[i].effective;
- 		permitted.cap[i] = kdata[i].permitted;
- 		inheritable.cap[i] = kdata[i].inheritable;
-diff -puN security/commoncap.c~add-64-bit-capability-support-to-the-kernel-checkpatch-fixes security/commoncap.c
---- a/security/commoncap.c~add-64-bit-capability-support-to-the-kernel-checkpatch-fixes
-+++ a/security/commoncap.c
-@@ -203,23 +203,20 @@ static inline int cap_from_disk(struct v
- 	__u32 magic_etc;
- 	unsigned tocopy, i;
- 
--	if (size < sizeof(magic_etc)) {
-+	if (size < sizeof(magic_etc))
- 		return -EINVAL;
--	}
- 
- 	magic_etc = le32_to_cpu(caps->magic_etc);
- 
- 	switch ((magic_etc & VFS_CAP_REVISION_MASK)) {
- 	case VFS_CAP_REVISION_1:
--		if (size != XATTR_CAPS_SZ_1) {
-+		if (size != XATTR_CAPS_SZ_1)
- 			return -EINVAL;
--		}
- 		tocopy = VFS_CAP_U32_1;
+@@ -228,7 +228,7 @@ asmlinkage long sys_capset(cap_user_head
+ 			warned++;
+ 			printk(KERN_INFO
+ 			       "warning: process `%s' sets w/ old libcap\n",
+-			       current->comm);
++			       get_task_comm(current));
+ 		}
+ 		tocopy = _LINUX_CAPABILITY_U32S_1;
  		break;
- 	case VFS_CAP_REVISION_2:
--		if (size != XATTR_CAPS_SZ_2) {
-+		if (size != XATTR_CAPS_SZ_2)
- 			return -EINVAL;
--		}
- 		tocopy = VFS_CAP_U32_2;
- 		break;
- 	default:
-@@ -232,7 +229,7 @@ static inline int cap_from_disk(struct v
- 		bprm->cap_effective = false;
- 	}
- 
--	for (i=0; i < tocopy; ++i) {
-+	for (i = 0; i < tocopy; ++i) {
- 		bprm->cap_permitted.cap[i] =
- 			le32_to_cpu(caps->data[i].permitted);
- 		bprm->cap_inheritable.cap[i] =
-@@ -370,11 +367,10 @@ void cap_bprm_apply_creds (struct linux_
- 	 * capability rules */
- 	if (!is_global_init(current)) {
- 		current->cap_permitted = new_permitted;
--		if (bprm->cap_effective) {
-+		if (bprm->cap_effective)
- 			current->cap_effective = new_permitted;
--		} else {
-+		else
- 			cap_clear(current->cap_effective);
--		}
- 	}
- 
- 	/* AUD: Audit candidate if current->cap_effective is set */
-@@ -498,15 +494,13 @@ int cap_task_post_setuid (uid_t old_ruid
- 				if (old_fsuid == 0 && current->fsuid != 0) {
- 					current->cap_effective =
- 						cap_drop_fs_set(
--						    current->cap_effective
--						    );
-+						    current->cap_effective);
- 				}
- 				if (old_fsuid != 0 && current->fsuid == 0) {
- 					current->cap_effective =
- 						cap_raise_fs_set(
- 						    current->cap_effective,
--						    current->cap_permitted
--						    );
-+						    current->cap_permitted);
- 				}
- 			}
- 			break;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -361,7 +84,6 @@ mm-remove-fastcall-from-mm.patch
 page-migraton-handle-orphaned-pages.patch
 revert-capabilities-clean-up-file-capability-reading.patch
 add-64-bit-capability-support-to-the-kernel.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
 add-64-bit-capability-support-to-the-kernel-fix.patch
 add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
 add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
