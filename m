@@ -1,27 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hpet-borkage-fix.patch added to -mm tree
-Date: Mon, 04 Feb 2008 05:28:27 -0800
-Message-ID: <200802041328.m14DS9F3031539@imap1.linux-foundation.org>
+Subject: + buffer_head-fix-private_list-handling.patch added to -mm tree
+Date: Mon, 04 Feb 2008 13:28:05 -0800
+Message-ID: <200802042128.m14LS5AI018050@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36496 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35221 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753380AbYBDN2Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2008 08:28:16 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m14DSDBb004137
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 4 Feb 2008 05:28:14 -0800
+	by vger.kernel.org with ESMTP id S1754195AbYBDV2r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2008 16:28:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: jack@suse.cz, npiggin@suse.de
 
 
 The patch titled
-     a
+     buffer_head: fix private_list handling
 has been added to the -mm tree.  Its filename is
-     hpet-borkage-fix.patch
+     buffer_head-fix-private_list-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,300 +33,158 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: a
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: buffer_head: fix private_list handling
+From: Jan Kara <jack@suse.cz>
 
+There are two possible races in handling of private_list in buffer cache.
+
+1) When fsync_buffers_list() processes a private_list, it clears
+   b_assoc_mapping and moves buffer to its private list.  Now
+   drop_buffers() comes, sees a buffer is on list so it calls
+   __remove_assoc_queue() which complains about b_assoc_mapping being
+   cleared (as it cannot propagate possible IO error).  This race has been
+   actually observed in the wild.
+
+2) When fsync_buffers_list() processes a private_list,
+   mark_buffer_dirty_inode() can be called on bh which is already on the
+   private list of fsync_buffers_list().  As buffer is on some list (note
+   that the check is performed without private_lock), it is not readded to
+   the mapping's private_list and after fsync_buffers_list() finishes, we
+   have a dirty buffer which should be on private_list but it isn't.  This
+   race has not been reported, probably because most (but not all) callers
+   of mark_buffer_dirty_inode() hold i_mutex and thus are serialized with
+   fsync().
+
+Fix these issues by not clearing b_assoc_map when fsync_buffers_list()
+moves buffer to a dedicated list and by reinserting buffer in private_list
+when it is found dirty after we have submitted buffer for IO.  We also
+change the tests whether a buffer is on a private list from
+!list_empty(&bh->b_assoc_buffers) to bh->b_assoc_map so that they are
+single word reads and hence lockless checks are safe.
+
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/rtc.h |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ fs/buffer.c |   23 +++++++++++++++++++----
+ 1 file changed, 19 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/rtc.h~hpet-borkage-fix include/linux/rtc.h
-diff -puN include/asm-generic/rtc.h~hpet-borkage-fix include/asm-generic/rtc.h
---- a/include/asm-generic/rtc.h~hpet-borkage-fix
-+++ a/include/asm-generic/rtc.h
-@@ -35,10 +35,11 @@
- static inline unsigned char rtc_is_updating(void)
+diff -puN fs/buffer.c~buffer_head-fix-private_list-handling fs/buffer.c
+--- a/fs/buffer.c~buffer_head-fix-private_list-handling
++++ a/fs/buffer.c
+@@ -678,7 +678,7 @@ void mark_buffer_dirty_inode(struct buff
+ 	} else {
+ 		BUG_ON(mapping->assoc_mapping != buffer_mapping);
+ 	}
+-	if (list_empty(&bh->b_assoc_buffers)) {
++	if (!bh->b_assoc_map) {
+ 		spin_lock(&buffer_mapping->private_lock);
+ 		list_move_tail(&bh->b_assoc_buffers,
+ 				&mapping->private_list);
+@@ -794,6 +794,7 @@ static int fsync_buffers_list(spinlock_t
  {
- 	unsigned char uip;
-+	unsigned long flags;
+ 	struct buffer_head *bh;
+ 	struct list_head tmp;
++	struct address_space *mapping;
+ 	int err = 0, err2;
  
--	spin_lock_irq(&rtc_lock);
-+	spin_lock_irqsave(&rtc_lock, flags);
- 	uip = (CMOS_READ(RTC_FREQ_SELECT) & RTC_UIP);
--	spin_unlock_irq(&rtc_lock);
-+	spin_unlock_irqrestore(&rtc_lock, flags);
- 	return uip;
- }
+ 	INIT_LIST_HEAD(&tmp);
+@@ -801,9 +802,14 @@ static int fsync_buffers_list(spinlock_t
+ 	spin_lock(lock);
+ 	while (!list_empty(list)) {
+ 		bh = BH_ENTRY(list->next);
++		mapping = bh->b_assoc_map;
+ 		__remove_assoc_queue(bh);
++		/* Avoid race with mark_buffer_dirty_inode() which does
++		 * a lockless check and we rely on seeing the dirty bit */
++		smp_mb();
+ 		if (buffer_dirty(bh) || buffer_locked(bh)) {
+ 			list_add(&bh->b_assoc_buffers, &tmp);
++			bh->b_assoc_map = mapping;
+ 			if (buffer_dirty(bh)) {
+ 				get_bh(bh);
+ 				spin_unlock(lock);
+@@ -822,8 +828,17 @@ static int fsync_buffers_list(spinlock_t
  
-@@ -46,6 +47,8 @@ static inline unsigned int get_rtc_time(
+ 	while (!list_empty(&tmp)) {
+ 		bh = BH_ENTRY(tmp.prev);
+-		list_del_init(&bh->b_assoc_buffers);
+ 		get_bh(bh);
++		mapping = bh->b_assoc_map;
++		__remove_assoc_queue(bh);
++		/* Avoid race with mark_buffer_dirty_inode() which does
++		 * a lockless check and we rely on seeing the dirty bit */
++		smp_mb();
++		if (buffer_dirty(bh)) {
++			list_add(&bh->b_assoc_buffers,
++				 &bh->b_assoc_map->private_list);
++			bh->b_assoc_map = mapping;
++		}
+ 		spin_unlock(lock);
+ 		wait_on_buffer(bh);
+ 		if (!buffer_uptodate(bh))
+@@ -1195,7 +1210,7 @@ void __brelse(struct buffer_head * buf)
+ void __bforget(struct buffer_head *bh)
  {
- 	unsigned long uip_watchdog = jiffies;
- 	unsigned char ctrl;
-+	unsigned long flags;
-+
- #ifdef CONFIG_MACH_DECSTATION
- 	unsigned int real_year;
- #endif
-@@ -72,7 +75,7 @@ static inline unsigned int get_rtc_time(
- 	 * RTC has RTC_DAY_OF_WEEK, we ignore it, as it is only updated
- 	 * by the RTC when initially set to a non-zero value.
- 	 */
--	spin_lock_irq(&rtc_lock);
-+	spin_lock_irqsave(&rtc_lock, flags);
- 	time->tm_sec = CMOS_READ(RTC_SECONDS);
- 	time->tm_min = CMOS_READ(RTC_MINUTES);
- 	time->tm_hour = CMOS_READ(RTC_HOURS);
-@@ -83,7 +86,7 @@ static inline unsigned int get_rtc_time(
- 	real_year = CMOS_READ(RTC_DEC_YEAR);
- #endif
- 	ctrl = CMOS_READ(RTC_CONTROL);
--	spin_unlock_irq(&rtc_lock);
-+	spin_unlock_irqrestore(&rtc_lock, flags);
+ 	clear_buffer_dirty(bh);
+-	if (!list_empty(&bh->b_assoc_buffers)) {
++	if (bh->b_assoc_map) {
+ 		struct address_space *buffer_mapping = bh->b_page->mapping;
  
- 	if (!(ctrl & RTC_DM_BINARY) || RTC_ALWAYS_BCD)
- 	{
+ 		spin_lock(&buffer_mapping->private_lock);
+@@ -3020,7 +3035,7 @@ drop_buffers(struct page *page, struct b
+ 	do {
+ 		struct buffer_head *next = bh->b_this_page;
+ 
+-		if (!list_empty(&bh->b_assoc_buffers))
++		if (bh->b_assoc_map)
+ 			__remove_assoc_queue(bh);
+ 		bh = next;
+ 	} while (bh != head);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
-hpet-borkage-fix.patch
-kvm-i386-fix.patch
-drivers-net-wireless-b43-mainc-needs-ioh.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-timerfd-v3-new-timerfd-api.patch
-include-asm-powerpc-nvramh-needs-listh.patch
-serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
-vmalloc-add-const-to-void-parameters.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
-slub-fix-coding-style-violations.patch
-slub-provide-unique-end-marker-for-each-slab.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock.patch
-bufferhead-revert-constructor-removal.patch
-shmem-factor-out-sbi-free_inodes-manipulations.patch
-maps4-rework-task_size-macros.patch
-maps4-add-proc-kpagecount-interface.patch
-maps4-add-proc-kpageflags-interface.patch
-maps4-make-page-monitoring-proc-file-optional.patch
-page-allocator-clean-up-pcp-draining-functions.patch
-add-mm-argument-to-pte-pmd-pud-pgd_free.patch
-mm-page-writeback-highmem_is_dirtyable-option.patch
-mm-remove-fastcall-from-mm.patch
-page-migraton-handle-orphaned-pages.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-add-64-bit-capability-support-to-the-kernel.patch
-alpha-atomic_add_return-should-return-int.patch
-alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
-pm-qos-infrastructure-and-interface.patch
-dio-array_size-cleanup.patch
-uml-get-rid-of-asmlinkage.patch
-uml-improve-detection-of-host-cmov.patch
-uml-further-bugsc-tidying.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements-checkpatch-fixes.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-acpi-backlight-reset-brightness-on-resume-checkpatch-fixes.patch
-git-alsa-disable-sound-pci-ice1712-ice1724c.patch
-git-agpgart.patch
-git-agpgart-fix.patch
-git-audit-master.patch
-git-audit-master-fix-git-rejects.patch
-git-audit-printk-warning-fix.patch
-cifs-fix-warning.patch
-git-cpufreq.patch
-revert-agk-dm-dm-loop.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-git-drm-fix.patch
-drm-convert-from-nopage-to-fault-checkpatch-fixes.patch
-drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
-adt7473-new-driver-for-analog-devices-adt7473-sensor-chip-fix.patch
-revert-git-hrt.patch
-infiniband-is-scrogged-again.patch
-i8042-non-x86-build-fix.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-git-kbuild.patch
-git-kvm.patch
-ata-drivers-ata-sata_mvc-needs-dmapoolh.patch
-fix-ide-mm-ppc-fix-ifdefs-in-mediabay-driver.patch
-drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
-drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
-git-md-accel.patch
-memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
-memstick-disable-busted-code.patch
-git-mmc.patch
-git-mtd.patch
-drivers-mtd-maps-physmapc-fix-compile-remove-ifdef.patch
-git-netdev-all-fix-conflicts-fix.patch
-drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-backlight.patch
-bluetooth-uninlining.patch
-fix-gregkh-pci-pci-pcie-aspm-support.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
-x86-validate-against-acpi-motherboard-resources.patch
-git-sched.patch
-git-scsi-misc.patch
-scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes.patch
-scsi-aic94xx-cleanups-checkpatch-fixes.patch
-scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
-drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-ohci-sm501-driver-v2-fix.patch
-9p-fix-p9_printfcall-export.patch
-git-watchdog.patch
-git-watchdog-fixup.patch
-b43-fix-build-with-config_ssb_pcihost=n.patch
-git-ipwireless_cs.patch
-git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
-x86-amd-thermal-interrupt-support-fix-2.patch
-x86-mmconf-enable-mcfg-early-cleanup.patch
-git-xtensa.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-riscom8-fix-smp-brokenness-fix.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-address-hfs-on-disk-corruption-robustness-review-comments.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
-kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
+inotify-send-in_attrib-events-when-link-count-changes.patch
+inotify-send-in_attrib-events-when-link-count-changes-fix.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref.patch
 quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
-stopmachine-semaphore-to-mutex-fix.patch
-parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
-debug_smp_processor_id-fixlets.patch
-use-ilog2-in-fs-namespacec-fix.patch
-system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
-speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
-drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
-ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-add-hpet-rtc-emulation-to-rtc_drv_cmos-fix.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-neofb-avoid-overwriting-fb_info-fields.patch
-vermilionc-use-align-not-__align_mask.patch
-md-change-interate_mddev-to-for_each_mddev-fix.patch
-md-change-iterate_rdev-to-rdev_for_each-fix.patch
-declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
+ext3-fix-lock-inversion-in-direct-io.patch
 ext3-fix-lock-inversion-in-direct-io-fix.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
 r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-mm_cgroup-to-header-file-fix.patch
-memcontrol-move-mm_cgroup-to-header-file-fix-2.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
-hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
-cpusets-update_cpumask-revision-fix.patch
-cpusets-update_cpumask-revision-checkpatch-fixes.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try.patch
 iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
-introduce-path_put-cifs-fix.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-d_path-make-d_path-use-a-struct-path-fix.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
-proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-modules-make-module_address_lookup-safe-fix.patch
-wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
-pid-sys_wait-fixes-v2-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-rewrite-rd-fixes.patch
-fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
-kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
-lib-remove-fastcall-from-lib-checkpatch-fixes.patch
-remove-fastcall-from-linux-include-checkpatch-fixes.patch
-constify-tables-in-kernel-sysctl_checkc-fix.patch
-aoe-statically-initialise-devlist_lock.patch
-xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
-ufs-fix-symlink-creation-on-ufs2-fix.patch
-libfs-allow-error-return-from-simple-attributes-fix.patch
-fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
-fs-afs-securityc-fix-uninitialized-var-warning.patch
-mount-options-fix-tmpfs-fix.patch
-char-applicom-use-pci_match_id-fix.patch
-add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-page-owner-tracking-leak-detector-broken-on-s390.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+iget-stop-ext4-from-using-iget-and-read_inode-try.patch
+use-pgoff_t-instead-of-unsigned-long.patch
+write_inode_now-avoid-unnecessary-synchronous-write.patch
+udf-fix-coding-style-of-superc.patch
+udf-remove-some-ugly-macros.patch
+udf-convert-udf_sb_alloc_partmaps-macro-to-udf_sb_alloc_partition_maps-function.patch
+udf-check-if-udf_load_logicalvol-failed.patch
+udf-convert-macros-related-to-bitmaps-to-functions.patch
+udf-move-calculating-of-nr_groups-into-helper-function.patch
+udf-fix-sparse-warnings-shadowing-mismatch-between-declaration-and-definition.patch
+udf-fix-coding-style.patch
+udf-create-common-function-for-tag-checksumming.patch
+udf-create-common-function-for-changing-free-space-counter.patch
+udf-replace-loops-coded-with-goto-to-real-loops.patch
+udf-convert-byte-order-of-constant-instead-of-variable.patch
+udf-remove-udf_i_-macros-and-open-code-them.patch
+udf-cache-struct-udf_inode_info.patch
+udf-fix-udf_debug-macro.patch
+udf-improve-readability-of-udf_load_partition.patch
+udf-remove-wrong-prototype-of-udf_readdir.patch
+udf-fix-3-signedness-1-unitialized-variable-warnings.patch
+udf-fix-signedness-issue.patch
+udf-avoid-unnecessary-synchronous-writes.patch
+udf-cleanup-directory-offset-handling.patch
+udf-fix-adding-entry-to-a-directory.patch
+change-udf-maintainer.patch
+isofs-implement-dmode-option.patch
+isofs-implement-dmode-option-fix.patch
+mount-options-fix-ext2.patch
+mount-options-fix-isofs.patch
+mount-options-fix-udf.patch
+buffer_head-fix-private_list-handling.patch
