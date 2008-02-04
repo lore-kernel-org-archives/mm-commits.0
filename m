@@ -1,70 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - mm-page-writeback-highmem_is_dirtyable-option-fix.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 19:53:00 -0800
-Message-ID: <200802040352.m143qfsu012575@imap1.linux-foundation.org>
+Subject: - mm-remove-fastcall-from-mm-checkpatch-fixes.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 19:53:36 -0800
+Message-ID: <200802040353.m143rHI6012588@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47638 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46899 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753939AbYBDDxG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:53:06 -0500
+	by vger.kernel.org with ESMTP id S1753980AbYBDDxX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:53:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, brong@fastmail.fm, solo@google.com, torvalds@linux-foundation.org, wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, harvey.harrison@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-page-writeback-highmem_is_dirtyable-option-fix
+     mm-remove-fastcall-from-mm-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+     mm-remove-fastcall-from-mm-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into mm-page-writeback-highmem_is_dirtyable-option.patch
+This patch was dropped because it was folded into mm-remove-fastcall-from-mm.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-page-writeback-highmem_is_dirtyable-option-fix
+Subject: mm-remove-fastcall-from-mm-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix the CONFIG_DETECT_SOFTLOCKUP=y build.
+ERROR: "foo * bar" should be "foo *bar"
+#62: FILE: mm/filemap.c:1262:
++static int page_cache_read(struct file * file, pgoff_t offset)
 
-This is getting silly.
+WARNING: line over 80 characters
+#107: FILE: mm/memory.c:1108:
++pte_t * get_locked_pte(struct mm_struct *mm, unsigned long addr, spinlock_t **ptl)
 
-Cc: Bron Gondwana <brong@fastmail.fm>
-Cc: Ethan Solomita <solo@google.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: WU Fengguang <wfg@mail.ustc.edu.cn>
+ERROR: "foo * bar" should be "foo *bar"
+#107: FILE: mm/memory.c:1108:
++pte_t * get_locked_pte(struct mm_struct *mm, unsigned long addr, spinlock_t **ptl)
+
+total: 2 errors, 1 warnings, 182 lines checked
+
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/filemap.c |    2 +-
+ mm/memory.c  |    3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN kernel/sysctl.c~mm-page-writeback-highmem_is_dirtyable-option-fix kernel/sysctl.c
---- a/kernel/sysctl.c~mm-page-writeback-highmem_is_dirtyable-option-fix
-+++ a/kernel/sysctl.c
-@@ -85,8 +85,11 @@ extern int audit_argv_kb;
- extern int latencytop_enabled;
+diff -puN mm/filemap.c~mm-remove-fastcall-from-mm-checkpatch-fixes mm/filemap.c
+--- a/mm/filemap.c~mm-remove-fastcall-from-mm-checkpatch-fixes
++++ a/mm/filemap.c
+@@ -1276,7 +1276,7 @@ asmlinkage ssize_t sys_readahead(int fd,
+  * This adds the requested page to the page cache if it isn't already there,
+  * and schedules an I/O to read in its contents from disk.
+  */
+-static int page_cache_read(struct file * file, pgoff_t offset)
++static int page_cache_read(struct file *file, pgoff_t offset)
+ {
+ 	struct address_space *mapping = file->f_mapping;
+ 	struct page *page; 
+diff -puN mm/memory.c~mm-remove-fastcall-from-mm-checkpatch-fixes mm/memory.c
+--- a/mm/memory.c~mm-remove-fastcall-from-mm-checkpatch-fixes
++++ a/mm/memory.c
+@@ -1109,7 +1109,8 @@ int get_user_pages(struct task_struct *t
+ }
+ EXPORT_SYMBOL(get_user_pages);
  
- /* Constants used for minimum and  maximum */
--#ifdef CONFIG_DETECT_SOFTLOCKUP
-+#if defined(CONFIG_DETECT_SOFTLOCKUP) || defined(CONFIG_HIGHMEM)
- static int one = 1;
-+#endif
-+
-+#ifdef CONFIG_DETECT_SOFTLOCKUP
- static int sixty = 60;
- #endif
- 
-@@ -95,7 +98,6 @@ static int two = 2;
- #endif
- 
- static int zero;
--static int one = 1;
- static int one_hundred = 100;
- 
- /* this is needed for the proc_dointvec_minmax for [fs_]overflow UID and GID */
+-pte_t * get_locked_pte(struct mm_struct *mm, unsigned long addr, spinlock_t **ptl)
++pte_t *get_locked_pte(struct mm_struct *mm, unsigned long addr,
++			spinlock_t **ptl)
+ {
+ 	pgd_t * pgd = pgd_offset(mm, addr);
+ 	pud_t * pud = pud_alloc(mm, pgd, addr);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -92,7 +106,7 @@ maps4-make-page-monitoring-proc-file-optional.patch
 page-allocator-clean-up-pcp-draining-functions.patch
 add-mm-argument-to-pte-pmd-pud-pgd_free.patch
 mm-page-writeback-highmem_is_dirtyable-option.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+mm-remove-fastcall-from-mm.patch
 mm-remove-fastcall-from-mm-checkpatch-fixes.patch
 page-migraton-handle-orphaned-pages-fix.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
