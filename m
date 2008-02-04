@@ -1,128 +1,238 @@
 From: akpm@linux-foundation.org
-Subject: - maps4-add-proc-kpageflags-interface-fix-2.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 19:48:36 -0800
-Message-ID: <200802040348.m143mH3h012418@imap1.linux-foundation.org>
+Subject: - maps4-add-proc-kpageflags-interface-fix-2-fix.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 19:48:39 -0800
+Message-ID: <200802040348.m143mKZr012421@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45271 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42076 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753649AbYBDDsb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:48:31 -0500
+	by vger.kernel.org with ESMTP id S1753669AbYBDDsi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:48:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mpm@selenic.com, davem@davemloft.net, m.kozlowski@tuxland.pl, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, m.kozlowski@tuxland.pl, mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     problems with cat /proc/kpageflags
+     maps4-add-proc-kpageflags-interface-fix-2-fix
 has been removed from the -mm tree.  Its filename was
-     maps4-add-proc-kpageflags-interface-fix-2.patch
+     maps4-add-proc-kpageflags-interface-fix-2-fix.patch
 
 This patch was dropped because it was folded into maps4-add-proc-kpageflags-interface.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: problems with cat /proc/kpageflags
-From: Matt Mackall <mpm@selenic.com>
+Subject: maps4-add-proc-kpageflags-interface-fix-2-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-On Thu, Dec 20, 2007 at 04:17:26PM -0800, David Miller wrote:
-> From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-> Date: Thu, 20 Dec 2007 20:47:55 +0100
->
-> > [  145.128915] TSTATE: 0000004411009603 TPC: 00000000005119ac TNPC: 00000000005119b0 Y: 00000000    Not tainted
-> > [  145.128940] TPC: <kpagecount_read+0x94/0xe0>
->
-> My suspicion at this point is that with certain RAM layouts, simply
-> iterating over PFN's is simply not working out.
-
-That was my original suspicion, which is why I asked Mariusz to
-effectively comment out the actual PFN lookup up-thread. I didn't send
-him a patch to do that, so I guess my instructions on how to hack it
-may have been misunderstood.
-
-> pfn_to_page() seems to be doing no range checking, and with sparsemem
-> vmemmap, which sparc64 always uses, this can be problematic.
->
-> It just blindly goes "vmemmap + pfn" which is asking for trouble, in
-> particular when the physical RAM layout really is sparse.
->
-> Maybe it's enough to add a pfn_valid() check here?  If pfn_valid()
-> means there is a vmemmap translation setup for that page struct too,
-> it would work.
-
-Here's a test patch:
-
-Cc: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 Cc: David Miller <davem@davemloft.net>
+Cc: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Cc: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_misc.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ fs/proc/proc_misc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/proc_misc.c~maps4-add-proc-kpageflags-interface-fix-2 fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~maps4-add-proc-kpageflags-interface-fix-2
+diff -puN fs/proc/proc_misc.c~maps4-add-proc-kpageflags-interface-fix-2-fix fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~maps4-add-proc-kpageflags-interface-fix-2-fix
 +++ a/fs/proc/proc_misc.c
-@@ -699,7 +699,10 @@ static ssize_t kpagecount_read(struct fi
+@@ -699,7 +699,7 @@ static ssize_t kpagecount_read(struct fi
  		return -EIO;
  
  	while (count > 0) {
--		ppage = pfn_to_page(pfn++);
-+		ppage = 0;
-+		if (pfn_valid(pfn))
-+			ppage = pfn_to_page(pfn);
-+		pfn++;
- 		if (!ppage)
- 			pcount = 0;
- 		else
-@@ -762,7 +765,10 @@ static ssize_t kpageflags_read(struct fi
+-		ppage = 0;
++		ppage = NULL;
+ 		if (pfn_valid(pfn))
+ 			ppage = pfn_to_page(pfn);
+ 		pfn++;
+@@ -765,7 +765,7 @@ static ssize_t kpageflags_read(struct fi
  		return -EIO;
  
  	while (count > 0) {
--		ppage = pfn_to_page(pfn++);
-+		ppage = 0;
-+		if (pfn_valid(pfn))
-+			ppage = pfn_to_page(pfn);
-+		pfn++;
- 		if (!ppage)
- 			kflags = 0;
- 		else
+-		ppage = 0;
++		ppage = NULL;
+ 		if (pfn_valid(pfn))
+ 			ppage = pfn_to_page(pfn);
+ 		pfn++;
 _
 
-Patches currently in -mm which might be from mpm@selenic.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-maps4-add-proportional-set-size-accounting-in-smaps.patch
+kvm-i386-fix.patch
+drivers-net-wireless-b43-mainc-needs-ioh.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+timerfd-v3-new-timerfd-api.patch
+include-asm-powerpc-nvramh-needs-listh.patch
+serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
+vmalloc-add-const-to-void-parameters.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
+slub-fix-coding-style-violations.patch
+slub-provide-unique-end-marker-for-each-slab.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock.patch
+bufferhead-revert-constructor-removal.patch
+shmem-factor-out-sbi-free_inodes-manipulations.patch
 maps4-rework-task_size-macros.patch
-maps4-move-is_swap_pte.patch
-maps4-introduce-a-generic-page-walker.patch
-maps4-use-pagewalker-in-clear_refs-and-smaps.patch
-maps4-simplify-interdependence-of-maps-and-smaps.patch
-maps4-move-clear_refs-code-to-task_mmuc.patch
-maps4-regroup-task_mmu-by-interface.patch
-maps4-add-proc-pid-pagemap-interface.patch
 maps4-add-proc-kpagecount-interface.patch
 maps4-add-proc-kpageflags-interface.patch
-maps4-add-proc-kpageflags-interface-fix-2.patch
 maps4-add-proc-kpageflags-interface-fix-2-fix.patch
-maps4-make-page-monitoring-proc-file-optional.patch
 maps4-make-page-monitoring-proc-file-optional-fix.patch
-remove-unused-code-from-mm-tiny-shmemc.patch
-slob-fix-free-block-merging-at-head-of-subpage.patch
-slob-reduce-external-fragmentation-by-using-three-free-lists.patch
-slob-correct-kconfig-description.patch
-drivers-char-randomcwrite_pool-cond_resched-needed.patch
-random-clean-up-checkpatch-complaints.patch
-random-consolidate-wakeup-logic.patch
-random-use-unlocked_ioctl.patch
-random-reuse-rand_initialize.patch
-random-improve-variable-naming-clear-extract-buffer.patch
-random-make-backtracking-attacks-harder.patch
-random-remove-cacheline-alignment-for-locks.patch
-random-eliminate-redundant-new_rotate-variable.patch
-random-remove-some-prefetch-logic.patch
-random-simplify-add_ptr-logic.patch
-random-make-mixing-interface-byte-oriented.patch
-random-simplify-and-rename-credit_entropy_store.patch
-random-add-async-notification-support-to-dev-random.patch
+page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
+add-mm-argument-to-pte-pmd-pud-pgd_free-checkpatch-fixes.patch
+mm-page-writeback-highmem_is_dirtyable-option-fix.patch
+mm-remove-fastcall-from-mm-checkpatch-fixes.patch
+page-migraton-handle-orphaned-pages-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
+smack-version-11c-simplified-mandatory-access-control-kernel-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+riscom8-fix-smp-brokenness-fix.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+address-hfs-on-disk-corruption-robustness-review-comments.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+stopmachine-semaphore-to-mutex-fix.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
+debug_smp_processor_id-fixlets.patch
+use-ilog2-in-fs-namespacec-fix.patch
+system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
+speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
+drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+add-hpet-rtc-emulation-to-rtc_drv_cmos-fix.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+neofb-avoid-overwriting-fb_info-fields.patch
+vermilionc-use-align-not-__align_mask.patch
+md-change-interate_mddev-to-for_each_mddev-fix.patch
+md-change-iterate_rdev-to-rdev_for_each-fix.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+ext3-fix-lock-inversion-in-direct-io-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-mm_cgroup-to-header-file-fix.patch
+memcontrol-move-mm_cgroup-to-header-file-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
+hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
+cpusets-update_cpumask-revision-fix.patch
+cpusets-update_cpumask-revision-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
+introduce-path_put-cifs-fix.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
+proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+modules-make-module_address_lookup-safe-fix.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
+ufs-fix-symlink-creation-on-ufs2-fix.patch
+libfs-allow-error-return-from-simple-attributes-fix.patch
+fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
+mount-options-fix-tmpfs-fix.patch
+char-applicom-use-pci_match_id-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+page-owner-tracking-leak-detector-broken-on-s390.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
