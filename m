@@ -1,229 +1,230 @@
 From: akpm@linux-foundation.org
-Subject: - smack-using-capabilities-32-and-33.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 19:59:44 -0800
-Message-ID: <200802040359.m143xPtu012799@imap1.linux-foundation.org>
+Subject: - smack-version-11c-simplified-mandatory-access-control-kernel-fix.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 19:59:34 -0800
+Message-ID: <200802040359.m143xFRj012796@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35084 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47416 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754323AbYBDEAP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 23:00:15 -0500
+	by vger.kernel.org with ESMTP id S1754434AbYBDEA0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 23:00:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: casey@schaufler-ca.com, morgan@kernel.org, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, casey@schaufler-ca.com, chrisw@sous-sol.org, darwish.07@gmail.com, jmorris@namei.org, method@manicmethod.com, morgan@kernel.org, paul.moore@hp.com, sds@tych
 
 
 The patch titled
-     Smack using capabilities 32 and 33
+     smack-version-11c-simplified-mandatory-access-control-kernel-fix
 has been removed from the -mm tree.  Its filename was
-     smack-using-capabilities-32-and-33.patch
+     smack-version-11c-simplified-mandatory-access-control-kernel-fix.patch
 
 This patch was dropped because it was folded into smack-version-11c-simplified-mandatory-access-control-kernel.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Smack using capabilities 32 and 33
-From: Casey Schaufler <casey@schaufler-ca.com>
+Subject: smack-version-11c-simplified-mandatory-access-control-kernel-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch takes advantage of the increase in capability bits to allocate
-capabilities for Mandatory Access Control.  Whereas Smack was overloading a
-previously allocated capability it is now using a pair, one for overriding
-access control checks and the other for changes to the MAC configuration.
+sort out patch dependencies
 
-The two capabilities allocated should be obvious in their intent.  The
-comments in capability.h are intended to make it clear that there is no
-intention that implementations of MAC LSM modules be any more constrained
-by the presence of these capabilities than an implementation of DAC LSM
-modules are by the analogous DAC capabilities.
-
-Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
-Signed-off-by: Andrew G. Morgan <morgan@kernel.org>
+Cc: "Ahmed S. Darwish" <darwish.07@gmail.com>
+Cc: Andrew G. Morgan <morgan@kernel.org>
+Cc: Casey Schaufler <casey@schaufler-ca.com>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: James Morris <jmorris@namei.org>
+Cc: Joshua Brindle <method@manicmethod.com>
+Cc: Paul Moore <paul.moore@hp.com>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/capability.h |   24 ++++++++++++++++++++++--
- security/smack/smack.h     |    8 --------
- security/smack/smack_lsm.c |    8 ++++----
- security/smack/smackfs.c   |   12 ++++++------
- 4 files changed, 32 insertions(+), 20 deletions(-)
+ security/smack/smack_lsm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/capability.h~smack-using-capabilities-32-and-33 include/linux/capability.h
---- a/include/linux/capability.h~smack-using-capabilities-32-and-33
-+++ a/include/linux/capability.h
-@@ -319,6 +319,23 @@ typedef struct kernel_cap_struct {
- 
- #define cap_valid(x) ((x) >= 0 && (x) <= CAP_LAST_CAP)
- 
-+/* Override MAC access.
-+   The base kernel enforces no MAC policy.
-+   An LSM may enforce a MAC policy, and if it does and it chooses
-+   to implement capability based overrides of that policy, this is
-+   the capability it should use to do so. */
-+
-+#define CAP_MAC_OVERRIDE     32
-+
-+/* Allow MAC configuration or state changes.
-+   The base kernel requires no MAC configuration.
-+   An LSM may enforce a MAC policy, and if it does and it chooses
-+   to implement capability based checks on modifications to that
-+   policy or the data required to maintain it, this is the
-+   capability it should use to do so. */
-+
-+#define CAP_MAC_ADMIN        33
-+
- /*
-  * Bit location of each capability (used by user-space library and kernel)
-  */
-@@ -341,6 +358,8 @@ typedef struct kernel_cap_struct {
- 			    | CAP_TO_MASK(CAP_FOWNER)		\
- 			    | CAP_TO_MASK(CAP_FSETID))
- 
-+# define CAP_FS_MASK_B1     (CAP_TO_MASK(CAP_MAC_OVERRIDE))
-+
- #if _LINUX_CAPABILITY_U32S != 2
- # error Fix up hand-coded capability macro initializers
- #else /* HAND-CODED capability initializers */
-@@ -348,8 +367,9 @@ typedef struct kernel_cap_struct {
- # define CAP_EMPTY_SET    {{ 0, 0 }}
- # define CAP_FULL_SET     {{ ~0, ~0 }}
- # define CAP_INIT_EFF_SET {{ ~CAP_TO_MASK(CAP_SETPCAP), ~0 }}
--# define CAP_FS_SET       {{ CAP_FS_MASK_B0, 0 }}
--# define CAP_NFSD_SET     {{ CAP_FS_MASK_B0|CAP_TO_MASK(CAP_SYS_RESOURCE), 0 }}
-+# define CAP_FS_SET       {{ CAP_FS_MASK_B0, CAP_FS_MASK_B1 } }
-+# define CAP_NFSD_SET     {{ CAP_FS_MASK_B0|CAP_TO_MASK(CAP_SYS_RESOURCE), \
-+			     CAP_FS_MASK_B1 } }
- 
- #endif /* _LINUX_CAPABILITY_U32S != 2 */
- 
-diff -puN security/smack/smack.h~smack-using-capabilities-32-and-33 security/smack/smack.h
---- a/security/smack/smack.h~smack-using-capabilities-32-and-33
-+++ a/security/smack/smack.h
-@@ -162,14 +162,6 @@ struct smack_known {
- #define MAY_NOT		0
- 
- /*
-- * There are not enough CAP bits available to make this
-- * real, so Casey borrowed the capability that looks to
-- * him like it has the best balance of similarity amd
-- * low use.
-- */
--#define CAP_MAC_OVERRIDE CAP_LINUX_IMMUTABLE
--
--/*
-  * These functions are in smack_lsm.c
-  */
- struct inode_smack *new_inode_smack(char *);
-diff -puN security/smack/smack_lsm.c~smack-using-capabilities-32-and-33 security/smack/smack_lsm.c
---- a/security/smack/smack_lsm.c~smack-using-capabilities-32-and-33
+diff -puN security/smack/smack_lsm.c~smack-version-11c-simplified-mandatory-access-control-kernel-fix security/smack/smack_lsm.c
+--- a/security/smack/smack_lsm.c~smack-version-11c-simplified-mandatory-access-control-kernel-fix
 +++ a/security/smack/smack_lsm.c
-@@ -585,7 +585,7 @@ static int smack_inode_setxattr(struct d
- 				void *value, size_t size, int flags)
+@@ -325,7 +325,7 @@ static int smack_sb_statfs(struct dentry
+ static int smack_sb_mount(char *dev_name, struct nameidata *nd,
+ 			  char *type, unsigned long flags, void *data)
  {
- 	if (strcmp(name, XATTR_NAME_SMACK) == 0 &&
--		!__capable(current, CAP_MAC_OVERRIDE))
-+		!__capable(current, CAP_MAC_ADMIN))
- 		return -EPERM;
+-	struct superblock_smack *sbp = nd->path.mnt->mnt_sb->s_security;
++	struct superblock_smack *sbp = nd->mnt->mnt_sb->s_security;
  
- 	return smk_curacc(smk_of_inode(dentry->d_inode), MAY_WRITE);
-@@ -649,14 +649,14 @@ static int smack_inode_getxattr(struct d
-  * @dentry: the object
-  * @name: name of the attribute
-  *
-- * Removing the Smack attribute requires CAP_MAC_OVERRIDE
-+ * Removing the Smack attribute requires CAP_MAC_ADMIN
-  *
-  * Returns 0 if access is permitted, an error code otherwise
-  */
- static int smack_inode_removexattr(struct dentry *dentry, char *name)
- {
- 	if (strcmp(name, XATTR_NAME_SMACK) == 0 &&
--		!__capable(current, CAP_MAC_OVERRIDE))
-+		!__capable(current, CAP_MAC_ADMIN))
- 		return -EPERM;
- 
- 	return smk_curacc(smk_of_inode(dentry->d_inode), MAY_WRITE);
-@@ -1956,7 +1956,7 @@ static int smack_setprocattr(struct task
- {
- 	char *newsmack;
- 
--	if (!__capable(p, CAP_MAC_OVERRIDE))
-+	if (!__capable(p, CAP_MAC_ADMIN))
- 		return -EPERM;
- 
- 	/*
-diff -puN security/smack/smackfs.c~smack-using-capabilities-32-and-33 security/smack/smackfs.c
---- a/security/smack/smackfs.c~smack-using-capabilities-32-and-33
-+++ a/security/smack/smackfs.c
-@@ -241,7 +241,7 @@ static ssize_t smk_write_load(struct fil
- 	 * No partial writes.
- 	 * Enough data must be present.
- 	 */
--	if (!capable(CAP_MAC_OVERRIDE))
-+	if (!capable(CAP_MAC_ADMIN))
- 		return -EPERM;
- 	if (*ppos != 0)
- 		return -EINVAL;
-@@ -474,7 +474,7 @@ static ssize_t smk_write_cipso(struct fi
- 	 * No partial writes.
- 	 * Enough data must be present.
- 	 */
--	if (!capable(CAP_MAC_OVERRIDE))
-+	if (!capable(CAP_MAC_ADMIN))
- 		return -EPERM;
- 	if (*ppos != 0)
- 		return -EINVAL;
-@@ -601,7 +601,7 @@ static ssize_t smk_write_doi(struct file
- 	char temp[80];
- 	int i;
- 
--	if (!capable(CAP_MAC_OVERRIDE))
-+	if (!capable(CAP_MAC_ADMIN))
- 		return -EPERM;
- 
- 	if (count >= sizeof(temp) || count == 0)
-@@ -666,7 +666,7 @@ static ssize_t smk_write_direct(struct f
- 	char temp[80];
- 	int i;
- 
--	if (!capable(CAP_MAC_OVERRIDE))
-+	if (!capable(CAP_MAC_ADMIN))
- 		return -EPERM;
- 
- 	if (count >= sizeof(temp) || count == 0)
-@@ -747,7 +747,7 @@ static ssize_t smk_write_ambient(struct 
- 	char in[SMK_LABELLEN];
- 	char *smack;
- 
--	if (!capable(CAP_MAC_OVERRIDE))
-+	if (!capable(CAP_MAC_ADMIN))
- 		return -EPERM;
- 
- 	if (count >= SMK_LABELLEN)
-@@ -840,7 +840,7 @@ static ssize_t smk_write_nltype(struct f
- 	char *cp;
- 	int i;
- 
--	if (!capable(CAP_MAC_OVERRIDE))
-+	if (!capable(CAP_MAC_ADMIN))
- 		return -EPERM;
- 
- 	if (count >= 40)
+ 	return smk_curacc(sbp->smk_floor, MAY_WRITE);
+ }
 _
 
-Patches currently in -mm which might be from casey@schaufler-ca.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-vfs-security-rework-inode_getsecurity-and-callers-to.patch
-vfs-reorder-vfs_getxattr-to-avoid-unnecessary-calls-to-the-lsm.patch
+origin.patch
+kvm-i386-fix.patch
+drivers-net-wireless-b43-mainc-needs-ioh.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+timerfd-v3-new-timerfd-api.patch
+include-asm-powerpc-nvramh-needs-listh.patch
+serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
+vmalloc-add-const-to-void-parameters.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
+slub-fix-coding-style-violations.patch
+slub-provide-unique-end-marker-for-each-slab.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock.patch
+bufferhead-revert-constructor-removal.patch
+shmem-factor-out-sbi-free_inodes-manipulations.patch
+maps4-rework-task_size-macros.patch
+maps4-add-proc-kpagecount-interface.patch
+maps4-add-proc-kpageflags-interface.patch
+maps4-make-page-monitoring-proc-file-optional.patch
+page-allocator-clean-up-pcp-draining-functions.patch
+add-mm-argument-to-pte-pmd-pud-pgd_free.patch
+mm-page-writeback-highmem_is_dirtyable-option.patch
+mm-remove-fastcall-from-mm.patch
+page-migraton-handle-orphaned-pages.patch
 revert-capabilities-clean-up-file-capability-reading.patch
 add-64-bit-capability-support-to-the-kernel.patch
-capabilities-introduce-per-process-capability-bounding-set.patch
-netlabel-introduce-a-new-kernel-configuration-api-for-netlabel.patch
 smack-version-11c-simplified-mandatory-access-control-kernel.patch
-smack-using-capabilities-32-and-33.patch
-smack-using-capabilities-32-and-33-update-cap_last_cap-to-reflect-cap_mac_admin.patch
-smack-mutex-capability-pointers-and-spelling-cleanup.patch
-smack-getpeercred_stream-fix-for-so_peersec-and-tcp.patch
-smack-socket-label-setting-fix.patch
+smack-version-11c-simplified-mandatory-access-control-kernel-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+riscom8-fix-smp-brokenness-fix.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+address-hfs-on-disk-corruption-robustness-review-comments.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+stopmachine-semaphore-to-mutex-fix.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
+debug_smp_processor_id-fixlets.patch
+use-ilog2-in-fs-namespacec-fix.patch
+system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
+speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
+drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+add-hpet-rtc-emulation-to-rtc_drv_cmos-fix.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+neofb-avoid-overwriting-fb_info-fields.patch
+vermilionc-use-align-not-__align_mask.patch
+md-change-interate_mddev-to-for_each_mddev-fix.patch
+md-change-iterate_rdev-to-rdev_for_each-fix.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+ext3-fix-lock-inversion-in-direct-io-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-mm_cgroup-to-header-file-fix.patch
+memcontrol-move-mm_cgroup-to-header-file-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
+hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
+cpusets-update_cpumask-revision-fix.patch
+cpusets-update_cpumask-revision-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
+introduce-path_put-cifs-fix.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
+proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+modules-make-module_address_lookup-safe-fix.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
+ufs-fix-symlink-creation-on-ufs2-fix.patch
+libfs-allow-error-return-from-simple-attributes-fix.patch
+fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
+mount-options-fix-tmpfs-fix.patch
+char-applicom-use-pci_match_id-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+page-owner-tracking-leak-detector-broken-on-s390.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
