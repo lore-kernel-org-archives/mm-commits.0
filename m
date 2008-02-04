@@ -1,84 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - page-migraton-handle-orphaned-pages-fix.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 19:54:04 -0800
-Message-ID: <200802040353.m143rjC2012596@imap1.linux-foundation.org>
+Subject: - revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 19:55:14 -0800
+Message-ID: <200802040354.m143sur4012605@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57993 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44761 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754075AbYBDDxy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:53:54 -0500
+	by vger.kernel.org with ESMTP id S1754106AbYBDDzi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:55:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, clameter@sgi.com, npiggin@suse.de, shaohua.li@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, casey@schaufler-ca.com, chrisw@sous-sol.org, jmorris@namei.org, morgan@kernel.org, sds@tycho.nsa.gov, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     page-migraton-handle-orphaned-pages-fix
+     revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     page-migraton-handle-orphaned-pages-fix.patch
+     revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into page-migraton-handle-orphaned-pages.patch
+This patch was dropped because it was folded into revert-capabilities-clean-up-file-capability-reading.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page-migraton-handle-orphaned-pages-fix
+Subject: revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Shaohua Li <shaohua.li@intel.com>
+ERROR: no space after that open parenthesis '('
+#63: FILE: security/commoncap.c:209:
++		bprm->cap_permitted = to_cap_t( le32_to_cpu(caps[1]) );
+
+ERROR: no space before that close parenthesis ')'
+#63: FILE: security/commoncap.c:209:
++		bprm->cap_permitted = to_cap_t( le32_to_cpu(caps[1]) );
+
+ERROR: no space after that open parenthesis '('
+#64: FILE: security/commoncap.c:210:
++		bprm->cap_inheritable = to_cap_t( le32_to_cpu(caps[2]) );
+
+ERROR: no space before that close parenthesis ')'
+#64: FILE: security/commoncap.c:210:
++		bprm->cap_inheritable = to_cap_t( le32_to_cpu(caps[2]) );
+
+total: 4 errors, 0 warnings, 71 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Andrew Morgan <morgan@kernel.org>
+Cc: Casey Schaufler <casey@schaufler-ca.com>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: James Morris <jmorris@namei.org>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   32 ++++++++++++++++++++------------
- 1 file changed, 20 insertions(+), 12 deletions(-)
+ security/commoncap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/migrate.c~page-migraton-handle-orphaned-pages-fix mm/migrate.c
---- a/mm/migrate.c~page-migraton-handle-orphaned-pages-fix
-+++ a/mm/migrate.c
-@@ -642,20 +642,28 @@ static int unmap_and_move(new_page_t get
- 	}
- 
- 	/*
--	 * There are corner cases handling.
--	 * 1. When a new swap-cache is read into, it is linked to LRU
--	 * and treated as swapcache but has no rmap yet.
--	 * Calling try_to_unmap() against a page->mapping==NULL page is
--	 * BUG. So handle it here.
--	 * 2. Orphaned page (see truncate_complete_page) might have
--	 * fs-private metadata, the page is truncated. The page can be picked
--	 * up due to memory offlineing. Everywhere else except page reclaim,
--	 * the page is invisible to the vm, so the page can't be migrated. Try
--	 * to free metadata, so the page can be freed.
-+	 * Corner case handling:
-+	 * 1. When a new swap-cache page is read into, it is added to the LRU
-+	 * and treated as swapcache but it has no rmap yet.
-+	 * Calling try_to_unmap() against a page->mapping==NULL page will
-+	 * trigger a BUG.  So handle it here.
-+	 * 2. An orphaned page (see truncate_complete_page) might have
-+	 * fs-private metadata. The page can be picked up due to memory
-+	 * offlining.  Everywhere else except page reclaim, the page is
-+	 * invisible to the vm, so the page can not be migrated.  So try to
-+	 * free the metadata, so the page can be freed.
- 	 */
- 	if (!page->mapping) {
--		if (!PageAnon(page) && PagePrivate(page))
--			try_to_release_page(page, GFP_KERNEL);
-+		if (!PageAnon(page) && PagePrivate(page)) {
-+			/*
-+			 * Go direct to try_to_free_buffers() here because
-+			 * a) that's what try_to_release_page() would do anyway
-+			 * b) we may be under rcu_read_lock() here, so we can't
-+			 *    use GFP_KERNEL which is what try_to_release_page()
-+			 *    needs to be effective.
-+			 */
-+			try_to_free_buffers(page);
-+		}
- 		goto rcu_unlock;
- 	}
- 
+diff -puN security/commoncap.c~revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes security/commoncap.c
+--- a/security/commoncap.c~revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes
++++ a/security/commoncap.c
+@@ -213,8 +213,8 @@ static inline int cap_from_disk(__le32 *
+ 			bprm->cap_effective = true;
+ 		else
+ 			bprm->cap_effective = false;
+-		bprm->cap_permitted = to_cap_t( le32_to_cpu(caps[1]) );
+-		bprm->cap_inheritable = to_cap_t( le32_to_cpu(caps[2]) );
++		bprm->cap_permitted = to_cap_t(le32_to_cpu(caps[1]));
++		bprm->cap_inheritable = to_cap_t(le32_to_cpu(caps[2]));
+ 		return 0;
+ 	default:
+ 		return -EINVAL;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -108,9 +104,6 @@ add-mm-argument-to-pte-pmd-pud-pgd_free.patch
 mm-page-writeback-highmem_is_dirtyable-option.patch
 mm-remove-fastcall-from-mm.patch
 page-migraton-handle-orphaned-pages.patch
-page-migraton-handle-orphaned-pages-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 revert-capabilities-clean-up-file-capability-reading.patch
 revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
 add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
