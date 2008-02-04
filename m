@@ -1,49 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - memstick-git-busted.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 23:08:06 -0800
-Message-ID: <200802040707.m1477lCN018889@imap1.linux-foundation.org>
+Subject: + memstick-disable-busted-code.patch added to -mm tree
+Date: Sun, 03 Feb 2008 23:08:03 -0800
+Message-ID: <200802040707.m1477iY7018886@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33338 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56206 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752852AbYBDHHy (ORCPT
+	by vger.kernel.org with ESMTP id S1752564AbYBDHHy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2008 02:07:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, oakad@yahoo.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, oakad@yahoo.com
 
 
 The patch titled
-     memstick-git-busted
-has been removed from the -mm tree.  Its filename was
-     memstick-git-busted.patch
+     memstick: disable busted code
+has been added to the -mm tree.  Its filename is
+     memstick-disable-busted-code.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memstick-git-busted
+Subject: memstick: disable busted code
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Alex Dubov <oakad@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/memstick/core/mspro_block.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/memstick/Kconfig~memstick-git-busted drivers/memstick/Kconfig
---- a/drivers/memstick/Kconfig~memstick-git-busted
-+++ a/drivers/memstick/Kconfig
-@@ -4,6 +4,7 @@
+diff -puN drivers/memstick/core/mspro_block.c~memstick-disable-busted-code drivers/memstick/core/mspro_block.c
+--- a/drivers/memstick/core/mspro_block.c~memstick-disable-busted-code
++++ a/drivers/memstick/core/mspro_block.c
+@@ -269,7 +269,6 @@ static ssize_t mspro_block_attr_show_def
+ 	struct mspro_sys_attr *s_attr = container_of(attr,
+ 						     struct mspro_sys_attr,
+ 						     dev_attr);
+-
+ 	ssize_t cnt, rc = 0;
  
- menuconfig MEMSTICK
- 	tristate "Sony MemoryStick card support (EXPERIMENTAL)"
-+	depends on BROKEN
- 	help
- 	  Sony MemoryStick is a proprietary storage/extension card protocol.
+ 	for (cnt = 0; cnt < s_attr->size; cnt++) {
+@@ -1233,11 +1232,12 @@ static int mspro_block_resume(struct mem
+ 	unsigned long flags;
+ 	int rc = 0;
  
+-#ifdef CONFIG_MEMSTICK_UNSAFE_RESUME
++#if defined(CONFIG_MEMSTICK_UNSAFE_RESUME) && 0
+ 
+ 	struct mspro_block_data *new_msb;
+ 	struct memstick_host *host = card->host;
+-	struct mspro_sys_attr s_attr, r_attr;
++	struct mspro_sys_attr *s_attr;
++	struct mspro_sys_attr *r_attr;
+ 	unsigned char cnt;
+ 
+ 	mutex_lock(&host->lock);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
