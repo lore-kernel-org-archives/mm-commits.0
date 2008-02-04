@@ -1,248 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 19:56:10 -0800
-Message-ID: <200802040355.m143tp6n012715@imap1.linux-foundation.org>
+Subject: - add-64-bit-capability-support-to-the-kernel-capabilities-export-__cap_-symbols.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 19:56:26 -0800
+Message-ID: <200802040356.m143u76T012736@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52420 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51415 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754246AbYBDD4c (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:56:32 -0500
+	by vger.kernel.org with ESMTP id S1754180AbYBDD4x (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:56:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, casey@schaufler-ca.com, chrisw@sous-sol.org, jmorris@namei.org, morgan@kernel.org, sds@tycho.nsa.gov, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes
+     capabilities: export __cap_ symbols
 has been removed from the -mm tree.  Its filename was
-     add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
+     add-64-bit-capability-support-to-the-kernel-capabilities-export-__cap_-symbols.patch
 
 This patch was dropped because it was folded into add-64-bit-capability-support-to-the-kernel.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: capabilities: export __cap_ symbols
+From: "Serge E. Hallyn" <serue@us.ibm.com>
 
-ERROR: do not initialise statics to 0 or NULL
-#37: FILE: kernel/capability.c:40:
-+	static int warned = 0;
+Export __cap_empty_set and friends so that the cap_clear(), cap_set_full()
+and cap_set_init_eff() defines can be used by modules.
 
-total: 1 errors, 0 warnings, 60 lines checked
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Andrew G. Morgan <morgan@kernel.org>
-Cc: Andrew Morgan <morgan@kernel.org>
-Cc: Casey Schaufler <casey@schaufler-ca.com>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: James Morris <jmorris@namei.org>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/capability.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ kernel/capability.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN kernel/capability.c~add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes kernel/capability.c
---- a/kernel/capability.c~add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes
+diff -puN kernel/capability.c~add-64-bit-capability-support-to-the-kernel-capabilities-export-__cap_-symbols kernel/capability.c
+--- a/kernel/capability.c~add-64-bit-capability-support-to-the-kernel-capabilities-export-__cap_-symbols
 +++ a/kernel/capability.c
-@@ -37,7 +37,7 @@ const kernel_cap_t __cap_init_eff_set = 
+@@ -29,6 +29,10 @@ const kernel_cap_t __cap_empty_set = CAP
+ const kernel_cap_t __cap_full_set = CAP_FULL_SET;
+ const kernel_cap_t __cap_init_eff_set = CAP_INIT_EFF_SET;
  
- static void warn_legacy_capability_use(void)
- {
--	static int warned = 0;
-+	static int warned;
- 	if (!warned) {
- 		char name[sizeof(current->comm)];
- 
-@@ -46,7 +46,6 @@ static void warn_legacy_capability_use(v
- 		       get_task_comm(name, current));
- 		warned = 1;
- 	}
--	return;
- }
- 
++EXPORT_SYMBOL(__cap_empty_set);
++EXPORT_SYMBOL(__cap_full_set);
++EXPORT_SYMBOL(__cap_init_eff_set);
++
  /*
+  * More recent versions of libcap are available from:
+  *
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from serue@us.ibm.com are
 
 origin.patch
-kvm-i386-fix.patch
-drivers-net-wireless-b43-mainc-needs-ioh.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-timerfd-v3-new-timerfd-api.patch
-include-asm-powerpc-nvramh-needs-listh.patch
-serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
-vmalloc-add-const-to-void-parameters.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
-slub-fix-coding-style-violations.patch
-slub-provide-unique-end-marker-for-each-slab.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock.patch
-bufferhead-revert-constructor-removal.patch
-shmem-factor-out-sbi-free_inodes-manipulations.patch
-maps4-rework-task_size-macros.patch
-maps4-add-proc-kpagecount-interface.patch
-maps4-add-proc-kpageflags-interface.patch
-maps4-make-page-monitoring-proc-file-optional.patch
-page-allocator-clean-up-pcp-draining-functions.patch
-add-mm-argument-to-pte-pmd-pud-pgd_free.patch
-mm-page-writeback-highmem_is_dirtyable-option.patch
-mm-remove-fastcall-from-mm.patch
-page-migraton-handle-orphaned-pages.patch
+vfs-security-rework-inode_getsecurity-and-callers-to.patch
+vfs-reorder-vfs_getxattr-to-avoid-unnecessary-calls-to-the-lsm.patch
 revert-capabilities-clean-up-file-capability-reading.patch
 add-64-bit-capability-support-to-the-kernel.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-smack-version-11c-simplified-mandatory-access-control-kernel-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-riscom8-fix-smp-brokenness-fix.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-address-hfs-on-disk-corruption-robustness-review-comments.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
-kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
-stopmachine-semaphore-to-mutex-fix.patch
-parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
-debug_smp_processor_id-fixlets.patch
-use-ilog2-in-fs-namespacec-fix.patch
-system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
-speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
-drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
-ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-add-hpet-rtc-emulation-to-rtc_drv_cmos-fix.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-neofb-avoid-overwriting-fb_info-fields.patch
-vermilionc-use-align-not-__align_mask.patch
-md-change-interate_mddev-to-for_each_mddev-fix.patch
-md-change-iterate_rdev-to-rdev_for_each-fix.patch
-declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
-ext3-fix-lock-inversion-in-direct-io-fix.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-mm_cgroup-to-header-file-fix.patch
-memcontrol-move-mm_cgroup-to-header-file-fix-2.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
-hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
-cpusets-update_cpumask-revision-fix.patch
-cpusets-update_cpumask-revision-checkpatch-fixes.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
-introduce-path_put-cifs-fix.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-d_path-make-d_path-use-a-struct-path-fix.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
+add-64-bit-capability-support-to-the-kernel-capabilities-export-__cap_-symbols.patch
+capabilities-introduce-per-process-capability-bounding-set.patch
+capabilities-introduce-per-process-capability-bounding-set-capabilities-correct-logic-at-capset_check.patch
+oom_kill-remove-uid==0-checks.patch
+smack-using-capabilities-32-and-33.patch
+smack-using-capabilities-32-and-33-update-cap_last_cap-to-reflect-cap_mac_admin.patch
+r-o-bind-mounts-stub-functions.patch
+r-o-bind-mounts-do_rmdir-elevate-write-count.patch
+add-the-namespaces-config-option.patch
+move-the-uts-namespace-under-uts_ns-option.patch
+move-the-ipc-namespace-under-ipc_ns-option.patch
+cleanup-the-code-managed-with-the-user_ns-option.patch
+cleanup-the-code-managed-with-pid_ns-option.patch
+mark-net_ns-with-depends-on-namespaces.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
 proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
 proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
-proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-modules-make-module_address_lookup-safe-fix.patch
-wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
-pid-sys_wait-fixes-v2-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-rewrite-rd-fixes.patch
-fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
-kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
-lib-remove-fastcall-from-lib-checkpatch-fixes.patch
-remove-fastcall-from-linux-include-checkpatch-fixes.patch
-constify-tables-in-kernel-sysctl_checkc-fix.patch
-aoe-statically-initialise-devlist_lock.patch
-xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
-ufs-fix-symlink-creation-on-ufs2-fix.patch
-libfs-allow-error-return-from-simple-attributes-fix.patch
-fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
-fs-afs-securityc-fix-uninitialized-var-warning.patch
-mount-options-fix-tmpfs-fix.patch
-char-applicom-use-pci_match_id-fix.patch
-add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-page-owner-tracking-leak-detector-broken-on-s390.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+pid-namespaces-vs-locks-interaction.patch
+reiser4-replace-uid==0-check-with-capability.patch
