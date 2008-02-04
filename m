@@ -1,66 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 19:19:14 -0800
-Message-ID: <200802040318.m143Iuet011397@imap1.linux-foundation.org>
+Subject: - timerfd-v3-new-timerfd-api-powerpc-fix.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 19:19:43 -0800
+Message-ID: <200802040319.m143JOIR011424@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41447 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38844 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754690AbYBDDTZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:19:25 -0500
+	by vger.kernel.org with ESMTP id S1754680AbYBDDT3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:19:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davidel@xmailserver.org, mingo@elte.hu, mtk-manpages@gmx.net, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davidel@xmailserver.org, mtk-manpages@gmx.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes
+     timerfd-v3-new-timerfd-api-powerpc-fix
 has been removed from the -mm tree.  Its filename was
-     timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes.patch
+     timerfd-v3-new-timerfd-api-powerpc-fix.patch
 
 This patch was dropped because it was folded into timerfd-v3-new-timerfd-api.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes
+Subject: timerfd-v3-new-timerfd-api-powerpc-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: open brace '{' following function declarations go on the next line
-#24: FILE: fs/timerfd.c:52:
-+static ktime_t timerfd_get_remaining(struct timerfd_ctx *ctx) {
+hum, tee dum.
 
-total: 1 errors, 0 warnings, 31 lines checked
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Michael Kerrisk <mtk-manpages@gmx.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/timerfd.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/asm-powerpc/systbl.h |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/timerfd.c~timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes fs/timerfd.c
---- a/fs/timerfd.c~timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes
-+++ a/fs/timerfd.c
-@@ -49,7 +49,8 @@ static enum hrtimer_restart timerfd_tmrp
- 	return HRTIMER_NORESTART;
- }
- 
--static ktime_t timerfd_get_remaining(struct timerfd_ctx *ctx) {
-+static ktime_t timerfd_get_remaining(struct timerfd_ctx *ctx)
-+{
- 	ktime_t now, remaining;
- 
- 	now = ctx->tmr.base->get_time();
+diff -puN include/asm-powerpc/systbl.h~timerfd-v3-new-timerfd-api-powerpc-fix include/asm-powerpc/systbl.h
+--- a/include/asm-powerpc/systbl.h~timerfd-v3-new-timerfd-api-powerpc-fix
++++ a/include/asm-powerpc/systbl.h
+@@ -309,7 +309,7 @@ SYSCALL_SPU(getcpu)
+ COMPAT_SYS(epoll_pwait)
+ COMPAT_SYS_SPU(utimensat)
+ COMPAT_SYS_SPU(signalfd)
+-COMPAT_SYS_SPU(timerfd)
++SYSCALL(ni_syscall)
+ SYSCALL_SPU(eventfd)
+ COMPAT_SYS_SPU(sync_file_range2)
+ COMPAT_SYS(fallocate)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -71,11 +58,6 @@ drivers-net-wireless-b43-mainc-needs-ioh.patch
 get_task_comm-return-the-result.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
 timerfd-v3-new-timerfd-api.patch
-timerfd-v3-new-timerfd-api-make-the-returned-time-to-be-the-remaining-time-till-the-next-expiration-checkpatch-fixes.patch
-timerfd-v3-new-timerfd-api-ia64-fix.patch
-timerfd-v3-new-timerfd-api-m68k-fix.patch
-timerfd-v3-new-timerfd-api-mips-fix.patch
-timerfd-v3-new-timerfd-api-arch-fixes.patch
 timerfd-v3-new-timerfd-api-powerpc-fix.patch
 timerfd-v3-new-timerfd-api-sparc64-fix.patch
 drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
