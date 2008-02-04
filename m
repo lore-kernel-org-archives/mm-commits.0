@@ -1,48 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: - smack-mutex-capability-pointers-and-spelling-cleanup.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 19:59:53 -0800
-Message-ID: <200802040359.m143xYCE012805@imap1.linux-foundation.org>
+Subject: - smack-socket-label-setting-fix.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 20:00:00 -0800
+Message-ID: <200802040359.m143xfvS012811@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55526 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57165 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754495AbYBDEAk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 23:00:40 -0500
+	by vger.kernel.org with ESMTP id S1754504AbYBDEAq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 23:00:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: casey@schaufler-ca.com, chrisw@sous-sol.org, darwish.07@gmail.com, jmorris@namei.org, method@manicmethod.com, morgan@kernel.org, paul.moore@hp.com, sds@tycho.nsa.gov, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Smack: mutex, capability, pointers, and spelling cleanup
+     Smack socket label setting fix
 has been removed from the -mm tree.  Its filename was
-     smack-mutex-capability-pointers-and-spelling-cleanup.patch
+     smack-socket-label-setting-fix.patch
 
 This patch was dropped because it was folded into smack-version-11c-simplified-mandatory-access-control-kernel.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Smack: mutex, capability, pointers, and spelling cleanup
+Subject: Smack socket label setting fix
 From: Casey Schaufler <casey@schaufler-ca.com>
 
-Addresses comments from akpm.
-
-Clean out unnecessary mutex initializations for Smack list locks.
-Once this is done, there is no need for them to be shared among
-multiple files, so pull them out of the header file and put them
-in the files where they belong. Make them static, too.
-
-Pull unnecessary locking from smack_inode_setsecurity, it used
-to be required when the assignment was not guaranteed to be a
-scalar value but isn't now.
-
-Change uses of __capable(current,...) to capable(...).
-
-Take out an inappropriate cast. Use container_of() instead
-of doing the same calculation by hand.
-
-Fix comment spelling errors.
+Correct the checks in smack_inode_setxattr to include the socket labeling
+attributes.  Simplify and correct smack_sock_graft, while the values it was
+setting were safe they were not correct and the job was not being done
+efficiently.  smack_inode_setsecurity wasn't invoking the required netlabel
+function in the case where smk_ipout was set.  It does now, but that change
+required the hook to be moved in the file.  This movement accounts for the
+bulk of the patch.
 
 Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
 Cc: Joshua Brindle <method@manicmethod.com>
@@ -55,201 +45,199 @@ Cc: Andrew G. Morgan <morgan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/smack/smack.h        |    3 --
- security/smack/smack_access.c |    3 ++
- security/smack/smack_lsm.c    |   34 +++++++++-----------------------
- security/smack/smackfs.c      |    6 +++++
- 4 files changed, 19 insertions(+), 27 deletions(-)
+ security/smack/smack.h     |    2 
+ security/smack/smack_lsm.c |  138 ++++++++++++++++-------------------
+ 2 files changed, 68 insertions(+), 72 deletions(-)
 
-diff -puN security/smack/smack_access.c~smack-mutex-capability-pointers-and-spelling-cleanup security/smack/smack_access.c
---- a/security/smack/smack_access.c~smack-mutex-capability-pointers-and-spelling-cleanup
-+++ a/security/smack/smack_access.c
-@@ -58,6 +58,7 @@ struct smack_known smack_known_invalid =
- };
- 
- struct smack_known *smack_known = &smack_known_invalid;
-+
- /*
-  * The initial value needs to be bigger than any of the
-  * known values above.
-@@ -173,6 +174,8 @@ int smk_curacc(char *obj_label, u32 mode
- 	return rc;
- }
- 
-+static DEFINE_MUTEX(smack_known_lock);
-+
- /**
-  * smk_import_entry - import a label, return the list entry
-  * @string: a text string that might be a Smack label
-diff -puN security/smack/smackfs.c~smack-mutex-capability-pointers-and-spelling-cleanup security/smack/smackfs.c
---- a/security/smack/smackfs.c~smack-mutex-capability-pointers-and-spelling-cleanup
-+++ a/security/smack/smackfs.c
-@@ -41,6 +41,12 @@ enum smk_inos {
- };
- 
- /*
-+ * List locks
-+ */
-+static DEFINE_MUTEX(smack_list_lock);
-+static DEFINE_MUTEX(smack_cipso_lock);
-+
-+/*
-  * This is the "ambient" label for network traffic.
-  * If it isn't somehow marked, use this.
-  * It can be reset via smackfs/ambient
-diff -puN security/smack/smack.h~smack-mutex-capability-pointers-and-spelling-cleanup security/smack/smack.h
---- a/security/smack/smack.h~smack-mutex-capability-pointers-and-spelling-cleanup
+diff -puN security/smack/smack.h~smack-socket-label-setting-fix security/smack/smack.h
+--- a/security/smack/smack.h~smack-socket-label-setting-fix
 +++ a/security/smack/smack.h
-@@ -186,7 +186,6 @@ extern int smack_net_nltype;
- extern char *smack_net_ambient;
- 
- extern struct smack_known *smack_known;
--extern struct mutex smack_known_lock;
- extern struct smack_known smack_known_floor;
- extern struct smack_known smack_known_hat;
- extern struct smack_known smack_known_huh;
-@@ -195,8 +194,6 @@ extern struct smack_known smack_known_st
- extern struct smack_known smack_known_unset;
- 
- extern struct smk_list_entry *smack_list;
--extern struct mutex smack_list_lock;
--extern struct mutex smack_cipso_lock;
+@@ -130,6 +130,8 @@ struct smack_known {
+ #define XATTR_SMACK_IPIN	"SMACK64IPIN"
+ #define XATTR_SMACK_IPOUT	"SMACK64IPOUT"
+ #define XATTR_NAME_SMACK	XATTR_SECURITY_PREFIX XATTR_SMACK_SUFFIX
++#define XATTR_NAME_SMACKIPIN	XATTR_SECURITY_PREFIX XATTR_SMACK_IPIN
++#define XATTR_NAME_SMACKIPOUT	XATTR_SECURITY_PREFIX XATTR_SMACK_IPOUT
  
  /*
-  * Stricly for CIPSO level manipulation.
-diff -puN security/smack/smack_lsm.c~smack-mutex-capability-pointers-and-spelling-cleanup security/smack/smack_lsm.c
---- a/security/smack/smack_lsm.c~smack-mutex-capability-pointers-and-spelling-cleanup
+  * smackfs macic number
+diff -puN security/smack/smack_lsm.c~smack-socket-label-setting-fix security/smack/smack_lsm.c
+--- a/security/smack/smack_lsm.c~smack-socket-label-setting-fix
 +++ a/security/smack/smack_lsm.c
-@@ -126,7 +126,7 @@ static int smack_syslog(int type)
- 	if (rc != 0)
- 		return rc;
- 
--	if (__capable(current, CAP_MAC_OVERRIDE))
-+	if (capable(CAP_MAC_OVERRIDE))
- 		return 0;
- 
- 	 if (sp != smack_known_floor.smk_known)
-@@ -584,8 +584,7 @@ static int smack_inode_getattr(struct vf
+@@ -584,8 +584,12 @@ static int smack_inode_getattr(struct vf
  static int smack_inode_setxattr(struct dentry *dentry, char *name,
  				void *value, size_t size, int flags)
  {
--	if (strcmp(name, XATTR_NAME_SMACK) == 0 &&
--		!__capable(current, CAP_MAC_ADMIN))
-+	if (strcmp(name, XATTR_NAME_SMACK) == 0 && !capable(CAP_MAC_ADMIN))
- 		return -EPERM;
+-	if (strcmp(name, XATTR_NAME_SMACK) == 0 && !capable(CAP_MAC_ADMIN))
+-		return -EPERM;
++	if (!capable(CAP_MAC_ADMIN)) {
++		if (strcmp(name, XATTR_NAME_SMACK) == 0 ||
++		    strcmp(name, XATTR_NAME_SMACKIPIN) == 0 ||
++		    strcmp(name, XATTR_NAME_SMACKIPOUT) == 0)
++			return -EPERM;
++	}
  
  	return smk_curacc(smk_of_inode(dentry->d_inode), MAY_WRITE);
-@@ -655,8 +654,7 @@ static int smack_inode_getxattr(struct d
-  */
- static int smack_inode_removexattr(struct dentry *dentry, char *name)
- {
--	if (strcmp(name, XATTR_NAME_SMACK) == 0 &&
--		!__capable(current, CAP_MAC_ADMIN))
-+	if (strcmp(name, XATTR_NAME_SMACK) == 0 && !capable(CAP_MAC_ADMIN))
- 		return -EPERM;
- 
- 	return smk_curacc(smk_of_inode(dentry->d_inode), MAY_WRITE);
-@@ -736,7 +734,7 @@ static int smack_inode_setsecurity(struc
- 				   const void *value, size_t size, int flags)
- {
- 	char *sp;
--	struct inode_smack *nsp = (struct inode_smack *)inode->i_security;
-+	struct inode_smack *nsp = inode->i_security;
- 	struct socket_smack *ssp;
- 	struct socket *sock;
- 
-@@ -748,9 +746,7 @@ static int smack_inode_setsecurity(struc
- 		return -EINVAL;
- 
- 	if (strcmp(name, XATTR_SMACK_SUFFIX) == 0) {
--		mutex_lock(&nsp->smk_lock);
- 		nsp->smk_inode = sp;
--		mutex_unlock(&nsp->smk_lock);
- 		return 0;
- 	}
- 	/*
-@@ -950,7 +946,7 @@ static int smack_file_send_sigiotask(str
- 	/*
- 	 * struct fown_struct is never outside the context of a struct file
- 	 */
--	file = (struct file *)((long)fown - offsetof(struct file, f_owner));
-+	file = container_of(fown, struct file, f_owner);
- 	rc = smk_access(file->f_security, tsk->security, MAY_WRITE);
- 	if (rc != 0 && __capable(tsk, CAP_MAC_OVERRIDE))
- 		return 0;
-@@ -987,7 +983,7 @@ static int smack_file_receive(struct fil
-  * @tsk: the task in need of a blob
-  *
-  * Smack isn't using copies of blobs. Everyone
-- * points to an immutible list. No alloc required.
-+ * points to an immutable list. No alloc required.
-  * No data copy required.
-  *
-  * Always returns 0
-@@ -1004,7 +1000,7 @@ static int smack_task_alloc_security(str
-  * @task: the task with the blob
-  *
-  * Smack isn't using copies of blobs. Everyone
-- * points to an immutible list. The blobs never go away.
-+ * points to an immutable list. The blobs never go away.
-  * There is no leak here.
-  */
- static void smack_task_free_security(struct task_struct *task)
-@@ -1192,8 +1188,7 @@ static int smack_task_wait(struct task_s
- 	 * state into account in the decision as well as
- 	 * the smack value.
- 	 */
--	if (__capable(current, CAP_MAC_OVERRIDE) ||
--		__capable(p, CAP_MAC_OVERRIDE))
-+	if (capable(CAP_MAC_OVERRIDE) || __capable(p, CAP_MAC_OVERRIDE))
- 		return 0;
- 
+ }
+@@ -718,57 +722,6 @@ static int smack_inode_getsecurity(const
  	return rc;
-@@ -1226,12 +1221,12 @@ static void smack_task_to_inode(struct t
-  *
-  * Returns 0 on success, -ENOMEM is there's no memory
-  */
--static int smack_sk_alloc_security(struct sock *sk, int family, gfp_t priority)
-+static int smack_sk_alloc_security(struct sock *sk, int family, gfp_t gfp_flags)
- {
- 	char *csp = current->security;
- 	struct socket_smack *ssp;
+ }
  
--	ssp = kzalloc(sizeof(struct socket_smack), priority);
-+	ssp = kzalloc(sizeof(struct socket_smack), gfp_flags);
- 	if (ssp == NULL)
- 		return -ENOMEM;
+-/**
+- * smack_inode_setsecurity - set smack xattrs
+- * @inode: the object
+- * @name: attribute name
+- * @value: attribute value
+- * @size: size of the attribute
+- * @flags: unused
+- *
+- * Sets the named attribute in the appropriate blob
+- *
+- * Returns 0 on success, or an error code
+- */
+-static int smack_inode_setsecurity(struct inode *inode, const char *name,
+-				   const void *value, size_t size, int flags)
+-{
+-	char *sp;
+-	struct inode_smack *nsp = inode->i_security;
+-	struct socket_smack *ssp;
+-	struct socket *sock;
+-
+-	if (value == NULL || size > SMK_LABELLEN)
+-		return -EACCES;
+-
+-	sp = smk_import(value, size);
+-	if (sp == NULL)
+-		return -EINVAL;
+-
+-	if (strcmp(name, XATTR_SMACK_SUFFIX) == 0) {
+-		nsp->smk_inode = sp;
+-		return 0;
+-	}
+-	/*
+-	 * The rest of the Smack xattrs are only on sockets.
+-	 */
+-	if (inode->i_sb->s_magic != SOCKFS_MAGIC)
+-		return -EOPNOTSUPP;
+-
+-	sock = SOCKET_I(inode);
+-	if (sock == NULL)
+-		return -EOPNOTSUPP;
+-
+-	ssp = sock->sk->sk_security;
+-
+-	if (strcmp(name, XATTR_SMACK_IPIN) == 0)
+-		ssp->smk_in = sp;
+-	else if (strcmp(name, XATTR_SMACK_IPOUT) == 0)
+-		ssp->smk_out = sp;
+-	else
+-		return -EOPNOTSUPP;
+-	return 0;
+-}
  
-@@ -1252,7 +1247,6 @@ static int smack_sk_alloc_security(struc
- static void smack_sk_free_security(struct sock *sk)
- {
- 	kfree(sk->sk_security);
--	sk->sk_security = NULL;
+ /**
+  * smack_inode_listsecurity - list the Smack attributes
+@@ -1341,6 +1294,60 @@ static int smack_netlabel(struct sock *s
  }
  
  /**
-@@ -2481,10 +2475,6 @@ static struct security_operations smack_
- 	.release_secctx = 		smack_release_secctx,
- };
++ * smack_inode_setsecurity - set smack xattrs
++ * @inode: the object
++ * @name: attribute name
++ * @value: attribute value
++ * @size: size of the attribute
++ * @flags: unused
++ *
++ * Sets the named attribute in the appropriate blob
++ *
++ * Returns 0 on success, or an error code
++ */
++static int smack_inode_setsecurity(struct inode *inode, const char *name,
++				   const void *value, size_t size, int flags)
++{
++	char *sp;
++	struct inode_smack *nsp = inode->i_security;
++	struct socket_smack *ssp;
++	struct socket *sock;
++
++	if (value == NULL || size > SMK_LABELLEN)
++		return -EACCES;
++
++	sp = smk_import(value, size);
++	if (sp == NULL)
++		return -EINVAL;
++
++	if (strcmp(name, XATTR_SMACK_SUFFIX) == 0) {
++		nsp->smk_inode = sp;
++		return 0;
++	}
++	/*
++	 * The rest of the Smack xattrs are only on sockets.
++	 */
++	if (inode->i_sb->s_magic != SOCKFS_MAGIC)
++		return -EOPNOTSUPP;
++
++	sock = SOCKET_I(inode);
++	if (sock == NULL)
++		return -EOPNOTSUPP;
++
++	ssp = sock->sk->sk_security;
++
++	if (strcmp(name, XATTR_SMACK_IPIN) == 0)
++		ssp->smk_in = sp;
++	else if (strcmp(name, XATTR_SMACK_IPOUT) == 0) {
++		ssp->smk_out = sp;
++		return smack_netlabel(sock->sk);
++	} else
++		return -EOPNOTSUPP;
++
++	return 0;
++}
++
++/**
+  * smack_socket_post_create - finish socket setup
+  * @sock: the socket
+  * @family: protocol family
+@@ -2192,33 +2199,20 @@ static int smack_socket_getpeersec_dgram
+ static void smack_sock_graft(struct sock *sk, struct socket *parent)
+ {
+ 	struct socket_smack *ssp;
+-	struct netlbl_lsm_secattr secattr;
+-	char smack[SMK_LABELLEN];
+ 	int rc;
  
--DEFINE_MUTEX(smack_list_lock);
--DEFINE_MUTEX(smack_known_lock);
--DEFINE_MUTEX(smack_cipso_lock);
+-	if (sk == NULL || parent == NULL || parent->sk == NULL)
++	if (sk == NULL)
+ 		return;
+ 
+ 	if (sk->sk_family != PF_INET && sk->sk_family != PF_INET6)
+ 		return;
+ 
+-	ssp = parent->sk->sk_security;
 -
+-	memset(smack, '\0', SMK_LABELLEN);
+-	netlbl_secattr_init(&secattr);
+-	rc = netlbl_sock_getattr(sk, &secattr);
+-	if (rc == 0)
+-		smack_from_secattr(&secattr, smack);
+-	else
+-		strncpy(smack, smack_known_huh.smk_known, SMK_MAXLEN);
+-	netlbl_secattr_destroy(&secattr);
+-
+-	netlbl_secattr_init(&secattr);
++	ssp = sk->sk_security;
++	ssp->smk_in = current->security;
++	ssp->smk_out = current->security;
++	ssp->smk_packet[0] = '\0';
+ 
+-	smack_to_secattr(smack, &secattr);
+-	if (secattr.flags != NETLBL_SECATTR_NONE)
+-		rc = netlbl_sock_setattr(parent->sk, &secattr);
+-	netlbl_secattr_destroy(&secattr);
++	rc = smack_netlabel(sk);
+ }
+ 
  /**
-  * smack_init - initialize the smack system
-  *
-@@ -2509,10 +2499,6 @@ static __init int smack_init(void)
- 	spin_lock_init(&smack_known_floor.smk_cipsolock);
- 	spin_lock_init(&smack_known_invalid.smk_cipsolock);
- 
--	mutex_init(&smack_known_lock);
--	mutex_init(&smack_list_lock);
--	mutex_init(&smack_cipso_lock);
--
- 	/*
- 	 * Register with LSM
- 	 */
 _
 
 Patches currently in -mm which might be from casey@schaufler-ca.com are
@@ -261,7 +249,5 @@ add-64-bit-capability-support-to-the-kernel.patch
 capabilities-introduce-per-process-capability-bounding-set.patch
 netlabel-introduce-a-new-kernel-configuration-api-for-netlabel.patch
 smack-version-11c-simplified-mandatory-access-control-kernel.patch
-smack-mutex-capability-pointers-and-spelling-cleanup.patch
-smack-getpeercred_stream-fix-for-so_peersec-and-tcp.patch
 smack-socket-label-setting-fix.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
