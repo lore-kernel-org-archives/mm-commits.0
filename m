@@ -1,430 +1,233 @@
 From: akpm@linux-foundation.org
-Subject: - pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 20:02:35 -0800
-Message-ID: <200802040402.m1442GaZ012947@imap1.linux-foundation.org>
+Subject: - dio-array_size-cleanup-update-checkpatch-fixes.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 20:04:39 -0800
+Message-ID: <200802040404.m1444KXX012983@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45581 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50755 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754525AbYBDEEF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 23:04:05 -0500
+	by vger.kernel.org with ESMTP id S1754526AbYBDEFK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 23:05:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgross@linux.intel.com, abelay@novell.com, akpm@linux-foundation.org, arjan@infradead.org, lenb@kernel.org, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alex@flawedcode.org, geert@linux-m68k.org, ricknu-0@student.ltu.se, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm-qos: static initialization with blocking notifiers
+     dio-array_size-cleanup-update-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+     dio-array_size-cleanup-update-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into pm-qos-infrastructure-and-interface.patch
+This patch was dropped because it was folded into dio-array_size-cleanup-update.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pm-qos: static initialization with blocking notifiers
-From: Mark Gross <mgross@linux.intel.com>
-
-Update the pm_qos code in the mm1 tree.  It removes the PM_QOS_CPUIDLE
-parameter (replacing it with PM_CPU_DMA_LATENCY), It changes the
-notifications from srcu to blocking in hopes of fixing the WARNS reported
-by xxx, and it changes the initialization to me largely static to avoid
-initialization race with cpu-idle.
-
-I think we will have to re-visit the static vrs dynamic initialization and
-this init race in a while to support pm_qos parameters per power domain
-(i.e.  per cpu-socket) based on platform information (ACPI) but for now
-lets see if this fixes the warnings reported.
-
-Signed-off-by: mark gross <mgross@linux.intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Venki Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Adam Belay <abelay@novell.com>
-DESC
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers-checkpatch-fixes
-EDESC
+Subject: dio-array_size-cleanup-update-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
 ERROR: use tabs not spaces
-#37: FILE: drivers/cpuidle/cpuidle.c:271:
-$
+#49: FILE: drivers/dio/dio.c:98:
++        for (i = 0; i < ARRAY_SIZE(names); i++)$
 
-WARNING: line over 80 characters
-#61: FILE: drivers/cpuidle/governors/menu.c:51:
-+		if (s->exit_latency > pm_qos_requirement(PM_QOS_CPU_DMA_LATENCY))
+total: 1 errors, 0 warnings, 16 lines checked
 
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
-Cc: Adam Belay <abelay@novell.com>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Mark Gross <mgross@linux.intel.com>
-Cc: Venki Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: mark gross <mgross@linux.intel.com>
+Please run checkpatch prior to sending patches
+
+Cc: Alejandro Martinez Ruiz <alex@flawedcode.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Richard Knutsson <ricknu-0@student.ltu.se>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpuidle/cpuidle.c          |    2 
- drivers/cpuidle/governors/ladder.c |    2 
- drivers/cpuidle/governors/menu.c   |    2 
- include/linux/pm_qos_params.h      |   13 --
- kernel/pm_qos_params.c             |  151 ++++++++++++++-------------
- 5 files changed, 85 insertions(+), 85 deletions(-)
+ drivers/dio/dio.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/cpuidle/cpuidle.c~pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers drivers/cpuidle/cpuidle.c
---- a/drivers/cpuidle/cpuidle.c~pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers
-+++ a/drivers/cpuidle/cpuidle.c
-@@ -267,7 +267,7 @@ static struct notifier_block cpuidle_lat
- 
- static inline void latency_notifier_init(struct notifier_block *n)
+diff -puN drivers/dio/dio.c~dio-array_size-cleanup-update-checkpatch-fixes drivers/dio/dio.c
+--- a/drivers/dio/dio.c~dio-array_size-cleanup-update-checkpatch-fixes
++++ a/drivers/dio/dio.c
+@@ -95,7 +95,7 @@ static const char *dio_getname(int id)
  {
--        pm_qos_add_notifier(PM_QOS_CPUIDLE, n);
-+	pm_qos_add_notifier(PM_QOS_CPU_DMA_LATENCY, n);
- }
+         /* return pointer to a constant string describing the board with given ID */
+ 	unsigned int i;
+-        for (i = 0; i < ARRAY_SIZE(names); i++)
++	for (i = 0; i < ARRAY_SIZE(names); i++)
+                 if (names[i].id == id) 
+                         return names[i].name;
  
- #else /* CONFIG_SMP */
-diff -puN drivers/cpuidle/governors/ladder.c~pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers drivers/cpuidle/governors/ladder.c
---- a/drivers/cpuidle/governors/ladder.c~pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers
-+++ a/drivers/cpuidle/governors/ladder.c
-@@ -82,7 +82,7 @@ static int ladder_select_state(struct cp
- 	if (last_idx < dev->state_count - 1 &&
- 	    last_residency > last_state->threshold.promotion_time &&
- 	    dev->states[last_idx + 1].exit_latency <=
--			pm_qos_requirement(PM_QOS_CPUIDLE)) {
-+			pm_qos_requirement(PM_QOS_CPU_DMA_LATENCY)) {
- 		last_state->stats.promotion_count++;
- 		last_state->stats.demotion_count = 0;
- 		if (last_state->stats.promotion_count >= last_state->threshold.promotion_count) {
-diff -puN drivers/cpuidle/governors/menu.c~pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers drivers/cpuidle/governors/menu.c
---- a/drivers/cpuidle/governors/menu.c~pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers
-+++ a/drivers/cpuidle/governors/menu.c
-@@ -48,7 +48,7 @@ static int menu_select(struct cpuidle_de
- 			break;
- 		if (s->target_residency > data->predicted_us)
- 			break;
--		if (s->exit_latency > pm_qos_requirement(PM_QOS_CPUIDLE))
-+		if (s->exit_latency > pm_qos_requirement(PM_QOS_CPU_DMA_LATENCY))
- 			break;
- 	}
- 
-diff -puN include/linux/pm_qos_params.h~pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers include/linux/pm_qos_params.h
---- a/include/linux/pm_qos_params.h~pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers
-+++ a/include/linux/pm_qos_params.h
-@@ -6,23 +6,12 @@
- #include <linux/notifier.h>
- #include <linux/miscdevice.h>
- 
--struct requirement_list {
--	struct list_head list;
--	union {
--		s32 value;
--		s32 usec;
--		s32 kbps;
--	};
--	char *name;
--};
--
- #define PM_QOS_RESERVED 0
- #define PM_QOS_CPU_DMA_LATENCY 1
- #define PM_QOS_NETWORK_LATENCY 2
- #define PM_QOS_NETWORK_THROUGHPUT 3
--#define PM_QOS_CPUIDLE 4
- 
--#define PM_QOS_NUM_CLASSES 5
-+#define PM_QOS_NUM_CLASSES 4
- #define PM_QOS_DEFAULT_VALUE -1
- 
- int pm_qos_add_requirement(int qos, char *name, s32 value);
-diff -puN kernel/pm_qos_params.c~pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers kernel/pm_qos_params.c
---- a/kernel/pm_qos_params.c~pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers
-+++ a/kernel/pm_qos_params.c
-@@ -46,17 +46,70 @@
-  * or pm_qos_object list and pm_qos_objects need to happen with pm_qos_lock
-  * held, taken with _irqsave.  One lock to rule them all
-  */
-+struct requirement_list {
-+	struct list_head list;
-+	union {
-+		s32 value;
-+		s32 usec;
-+		s32 kbps;
-+	};
-+	char *name;
-+};
-+
-+static s32 max_compare(s32 v1, s32 v2);
-+static s32 min_compare(s32 v1, s32 v2);
- 
- struct pm_qos_object {
- 	struct requirement_list requirements;
--	struct srcu_notifier_head notifiers;
-+	struct blocking_notifier_head *notifiers;
- 	struct miscdevice pm_qos_power_miscdev;
- 	char *name;
- 	s32 default_value;
- 	s32 target_value;
- 	s32 (*comparitor)(s32, s32);
- };
--static struct pm_qos_object pm_qos_array[PM_QOS_NUM_CLASSES];
-+
-+static struct pm_qos_object null_pm_qos;
-+static BLOCKING_NOTIFIER_HEAD(cpu_dma_lat_notifier);
-+static struct pm_qos_object cpu_dma_pm_qos = {
-+	.requirements = {LIST_HEAD_INIT(cpu_dma_pm_qos.requirements.list)},
-+	.notifiers = &cpu_dma_lat_notifier,
-+	.name = "cpu_dma_latency",
-+	.default_value = 2000 * USEC_PER_SEC,
-+	.target_value = 2000 * USEC_PER_SEC,
-+	.comparitor = min_compare
-+};
-+
-+static BLOCKING_NOTIFIER_HEAD(network_lat_notifier);
-+static struct pm_qos_object network_lat_pm_qos = {
-+	.requirements = {LIST_HEAD_INIT(network_lat_pm_qos.requirements.list)},
-+	.notifiers = &network_lat_notifier,
-+	.name = "network_latency",
-+	.default_value = 2000 * USEC_PER_SEC,
-+	.target_value = 2000 * USEC_PER_SEC,
-+	.comparitor = min_compare
-+};
-+
-+
-+static BLOCKING_NOTIFIER_HEAD(network_throughput_notifier);
-+static struct pm_qos_object network_throughput_pm_qos = {
-+	.requirements =
-+		{LIST_HEAD_INIT(network_throughput_pm_qos.requirements.list)},
-+	.notifiers = &network_throughput_notifier,
-+	.name = "network_throughput",
-+	.default_value = 0,
-+	.target_value = 0,
-+	.comparitor = max_compare
-+};
-+
-+
-+static struct pm_qos_object *pm_qos_array[] = {
-+	&null_pm_qos,
-+	&cpu_dma_pm_qos,
-+	&network_lat_pm_qos,
-+	&network_throughput_pm_qos
-+};
-+
- static DEFINE_SPINLOCK(pm_qos_lock);
- 
- static ssize_t pm_qos_power_write(struct file *filp, const char __user *buf,
-@@ -81,29 +134,31 @@ static s32 min_compare(s32 v1, s32 v2)
- 	return min(v1, v2);
- }
- 
-+
-+
- /* assumes pm_qos_lock is held */
- static void update_target(int target)
- {
- 	s32 extreme_value;
- 	struct requirement_list *node;
- 
--	extreme_value = pm_qos_array[target].default_value;
-+	extreme_value = pm_qos_array[target]->default_value;
- 	list_for_each_entry(node,
--			&pm_qos_array[target].requirements.list, list) {
--		extreme_value = pm_qos_array[target].comparitor(
-+			&pm_qos_array[target]->requirements.list, list) {
-+		extreme_value = pm_qos_array[target]->comparitor(
- 				extreme_value, node->value);
- 	}
--	if (pm_qos_array[target].target_value != extreme_value) {
--		pm_qos_array[target].target_value = extreme_value;
-+	if (pm_qos_array[target]->target_value != extreme_value) {
-+		pm_qos_array[target]->target_value = extreme_value;
- 		pr_debug(KERN_ERR "new target for qos %d is %d\n", target,
--			pm_qos_array[target].target_value);
--		srcu_notifier_call_chain(&pm_qos_array[target].notifiers,
--			(unsigned long) pm_qos_array[target].target_value,
-+			pm_qos_array[target]->target_value);
-+		blocking_notifier_call_chain(pm_qos_array[target]->notifiers,
-+			(unsigned long) pm_qos_array[target]->target_value,
- 						NULL);
- 	}
- }
- 
--static int register_new_pm_qos_misc(struct pm_qos_object *qos)
-+static int register_pm_qos_misc(struct pm_qos_object *qos)
- {
- 	qos->pm_qos_power_miscdev.minor = MISC_DYNAMIC_MINOR;
- 	qos->pm_qos_power_miscdev.name = qos->name;
-@@ -112,38 +167,6 @@ static int register_new_pm_qos_misc(stru
- 	return misc_register(&qos->pm_qos_power_miscdev);
- }
- 
--
--/* constructors */
--static int init_pm_qos_object(int pm_qos_class, const char *name,
--			s32 default_value, s32 (*comparitor)(s32, s32))
--{
--	int ret = -ENOMEM;
--	struct pm_qos_object *qos = NULL;
--
--	if (pm_qos_class < PM_QOS_NUM_CLASSES) {
--		qos = &pm_qos_array[pm_qos_class];
--		qos->name = kstrdup(name, GFP_KERNEL);
--		if (!qos->name)
--			goto cleanup;
--
--		qos->default_value = default_value;
--		qos->target_value = default_value;
--		qos->comparitor = comparitor;
--		srcu_init_notifier_head(&qos->notifiers);
--		INIT_LIST_HEAD(&qos->requirements.list);
--		ret = register_new_pm_qos_misc(qos);
--		if (ret < 0)
--			goto cleanup;
--	} else
--		ret = -EINVAL;
--
--	return ret;
--cleanup:
--	kfree(qos->name);
--
--	return ret;
--}
--
- static int find_pm_qos_object_by_minor(int minor)
- {
- 	int pm_qos_class;
-@@ -151,24 +174,12 @@ static int find_pm_qos_object_by_minor(i
- 	for (pm_qos_class = 0;
- 		pm_qos_class < PM_QOS_NUM_CLASSES; pm_qos_class++) {
- 		if (minor ==
--			pm_qos_array[pm_qos_class].pm_qos_power_miscdev.minor)
-+			pm_qos_array[pm_qos_class]->pm_qos_power_miscdev.minor)
- 			return pm_qos_class;
- 	}
- 	return -1;
- }
- 
--static int new_latency_qos(int pm_qos_class, const char *name)
--{
--	return init_pm_qos_object(pm_qos_class, name, 2000 * USEC_PER_SEC,
--			min_compare);
--	/* 2000 sec is about infinite */
--}
--
--static int new_throughput_qos(int pm_qos_class, const char *name)
--{
--	return init_pm_qos_object(pm_qos_class, name, 0, max_compare);
--}
--
- /**
-  * pm_qos_requirement - returns current system wide qos expectation
-  * @pm_qos_class: identification of which qos value is requested
-@@ -181,7 +192,7 @@ int pm_qos_requirement(int pm_qos_class)
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&pm_qos_lock, flags);
--	ret_val = pm_qos_array[pm_qos_class].target_value;
-+	ret_val = pm_qos_array[pm_qos_class]->target_value;
- 	spin_unlock_irqrestore(&pm_qos_lock, flags);
- 
- 	return ret_val;
-@@ -206,7 +217,7 @@ int pm_qos_add_requirement(int pm_qos_cl
- 	dep = kzalloc(sizeof(struct requirement_list), GFP_KERNEL);
- 	if (dep) {
- 		if (value == PM_QOS_DEFAULT_VALUE)
--			dep->value = pm_qos_array[pm_qos_class].default_value;
-+			dep->value = pm_qos_array[pm_qos_class]->default_value;
- 		else
- 			dep->value = value;
- 		dep->name = kstrdup(name, GFP_KERNEL);
-@@ -215,7 +226,7 @@ int pm_qos_add_requirement(int pm_qos_cl
- 
- 		spin_lock_irqsave(&pm_qos_lock, flags);
- 		list_add(&dep->list,
--			&pm_qos_array[pm_qos_class].requirements.list);
-+			&pm_qos_array[pm_qos_class]->requirements.list);
- 		update_target(pm_qos_class);
- 		spin_unlock_irqrestore(&pm_qos_lock, flags);
- 
-@@ -247,11 +258,11 @@ int pm_qos_update_requirement(int pm_qos
- 
- 	spin_lock_irqsave(&pm_qos_lock, flags);
- 	list_for_each_entry(node,
--		&pm_qos_array[pm_qos_class].requirements.list, list) {
-+		&pm_qos_array[pm_qos_class]->requirements.list, list) {
- 		if (strcmp(node->name, name) == 0) {
- 			if (new_value == PM_QOS_DEFAULT_VALUE)
- 				node->value =
--				pm_qos_array[pm_qos_class].default_value;
-+				pm_qos_array[pm_qos_class]->default_value;
- 			else
- 				node->value = new_value;
- 			pending_update = 1;
-@@ -283,7 +294,7 @@ void pm_qos_remove_requirement(int pm_qo
- 
- 	spin_lock_irqsave(&pm_qos_lock, flags);
- 	list_for_each_entry(node,
--		&pm_qos_array[pm_qos_class].requirements.list, list) {
-+		&pm_qos_array[pm_qos_class]->requirements.list, list) {
- 		if (strcmp(node->name, name) == 0) {
- 			kfree(node->name);
- 			list_del(&node->list);
-@@ -312,8 +323,8 @@ EXPORT_SYMBOL_GPL(pm_qos_remove_requirem
- 	int retval;
- 
- 	spin_lock_irqsave(&pm_qos_lock, flags);
--	retval = srcu_notifier_chain_register(
--			&pm_qos_array[pm_qos_class].notifiers, notifier);
-+	retval = blocking_notifier_chain_register(
-+			pm_qos_array[pm_qos_class]->notifiers, notifier);
- 	spin_unlock_irqrestore(&pm_qos_lock, flags);
- 
- 	return retval;
-@@ -334,8 +345,8 @@ int pm_qos_remove_notifier(int pm_qos_cl
- 	int retval;
- 
- 	spin_lock_irqsave(&pm_qos_lock, flags);
--	retval = srcu_notifier_chain_unregister(
--			&pm_qos_array[pm_qos_class].notifiers, notifier);
-+	retval = blocking_notifier_chain_unregister(
-+			pm_qos_array[pm_qos_class]->notifiers, notifier);
- 	spin_unlock_irqrestore(&pm_qos_lock, flags);
- 
- 	return retval;
-@@ -395,18 +406,18 @@ static ssize_t pm_qos_power_write(struct
- static int __init pm_qos_power_init(void)
- {
- 	int ret = 0;
--	ret = new_latency_qos(PM_QOS_CPU_DMA_LATENCY, "cpu_dma_latency");
-+
-+	ret = register_pm_qos_misc(&cpu_dma_pm_qos);
- 	if (ret < 0) {
- 		printk(KERN_ERR "pm_qos_param: cpu_dma_latency setup failed\n");
- 		return ret;
- 	}
--	ret = new_latency_qos(PM_QOS_NETWORK_LATENCY, "network_latency");
-+	ret = register_pm_qos_misc(&network_lat_pm_qos);
- 	if (ret < 0) {
- 		printk(KERN_ERR "pm_qos_param: network_latency setup failed\n");
- 		return ret;
- 	}
--	ret = new_throughput_qos(PM_QOS_NETWORK_THROUGHPUT,
--			"network_throughput");
-+	ret = register_pm_qos_misc(&network_throughput_pm_qos);
- 	if (ret < 0)
- 		printk(KERN_ERR
- 			"pm_qos_param: network_throughput setup failed\n");
 _
 
-Patches currently in -mm which might be from mgross@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+kvm-i386-fix.patch
+drivers-net-wireless-b43-mainc-needs-ioh.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+timerfd-v3-new-timerfd-api.patch
+include-asm-powerpc-nvramh-needs-listh.patch
+serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
+vmalloc-add-const-to-void-parameters.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
+slub-fix-coding-style-violations.patch
+slub-provide-unique-end-marker-for-each-slab.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock.patch
+bufferhead-revert-constructor-removal.patch
+shmem-factor-out-sbi-free_inodes-manipulations.patch
+maps4-rework-task_size-macros.patch
+maps4-add-proc-kpagecount-interface.patch
+maps4-add-proc-kpageflags-interface.patch
+maps4-make-page-monitoring-proc-file-optional.patch
+page-allocator-clean-up-pcp-draining-functions.patch
+add-mm-argument-to-pte-pmd-pud-pgd_free.patch
+mm-page-writeback-highmem_is_dirtyable-option.patch
+mm-remove-fastcall-from-mm.patch
+page-migraton-handle-orphaned-pages.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+add-64-bit-capability-support-to-the-kernel.patch
+alpha-atomic_add_return-should-return-int.patch
+alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
 pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-pm-qos-remove-locks-around-blocking-notifier.patch
-latencyc-use-qos-infrastructure.patch
-intel-iommu-pmen-support.patch
-intel-iommu-pmen-support-fix.patch
-intel-iommu-fault_reason_index_cleanuppatch.patch
+dio-array_size-cleanup-update.patch
+dio-array_size-cleanup-update-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+riscom8-fix-smp-brokenness-fix.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+address-hfs-on-disk-corruption-robustness-review-comments.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+stopmachine-semaphore-to-mutex-fix.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
+debug_smp_processor_id-fixlets.patch
+use-ilog2-in-fs-namespacec-fix.patch
+system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
+speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
+drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+add-hpet-rtc-emulation-to-rtc_drv_cmos-fix.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+neofb-avoid-overwriting-fb_info-fields.patch
+vermilionc-use-align-not-__align_mask.patch
+md-change-interate_mddev-to-for_each_mddev-fix.patch
+md-change-iterate_rdev-to-rdev_for_each-fix.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+ext3-fix-lock-inversion-in-direct-io-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-mm_cgroup-to-header-file-fix.patch
+memcontrol-move-mm_cgroup-to-header-file-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
+hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
+cpusets-update_cpumask-revision-fix.patch
+cpusets-update_cpumask-revision-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
+introduce-path_put-cifs-fix.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
+proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
 intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+modules-make-module_address_lookup-safe-fix.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
+ufs-fix-symlink-creation-on-ufs2-fix.patch
+libfs-allow-error-return-from-simple-attributes-fix.patch
+fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
+mount-options-fix-tmpfs-fix.patch
+char-applicom-use-pci_match_id-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+page-owner-tracking-leak-detector-broken-on-s390.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
