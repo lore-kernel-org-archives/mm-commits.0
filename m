@@ -1,91 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - get-rid-of-the-kill_pgrp_info-function.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 16:28:52 -0800
-Message-ID: <200802040028.m140SXG6005881@imap1.linux-foundation.org>
+Subject: - clean-up-the-kill_something_info.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 16:28:47 -0800
+Message-ID: <200802040028.m140SSDZ005875@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49416 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56084 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754099AbYBDA2l (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 19:28:41 -0500
+	by vger.kernel.org with ESMTP id S1754890AbYBDA2p (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 19:28:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: xemul@openvz.org, balbir@in.ibm.com, ebiederm@xmission.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Get rid of the kill_pgrp_info() function
+     Clean up the kill_something_info
 has been removed from the -mm tree.  Its filename was
-     get-rid-of-the-kill_pgrp_info-function.patch
+     clean-up-the-kill_something_info.patch
 
 This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Get rid of the kill_pgrp_info() function
+Subject: Clean up the kill_something_info
 From: Pavel Emelyanov <xemul@openvz.org>
 
-There's only one caller left - the kill_pgrp one - so merge these two
-functions and forget the kill_pgrp_info one.
+This is the first stop (of two) in removing the kill_pgrp_info.
 
+All the users of this function are in kernel/signal.c, but all they need is to
+call __kill_pgrp_info() with the tasklist_lock read-locked.
+
+Fortunately, one of its users is the kill_something_info(), which already
+needs this lock in one of its branches, so clean these branches up and call
+the __kill_pgrp_info() directly.
+
+Based on Oleg's view of how this function should look.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Reviewed-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    1 -
- kernel/signal.c       |   19 +++++++------------
- 2 files changed, 7 insertions(+), 13 deletions(-)
+ kernel/signal.c |   26 +++++++++++++++-----------
+ 1 file changed, 15 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/sched.h~get-rid-of-the-kill_pgrp_info-function include/linux/sched.h
---- a/include/linux/sched.h~get-rid-of-the-kill_pgrp_info-function
-+++ a/include/linux/sched.h
-@@ -1689,7 +1689,6 @@ extern int send_sig_info(int, struct sig
- extern int force_sigsegv(int, struct task_struct *);
- extern int force_sig_info(int, struct siginfo *, struct task_struct *);
- extern int __kill_pgrp_info(int sig, struct siginfo *info, struct pid *pgrp);
--extern int kill_pgrp_info(int sig, struct siginfo *info, struct pid *pgrp);
- extern int kill_pid_info(int sig, struct siginfo *info, struct pid *pid);
- extern int kill_pid_info_as_uid(int, struct siginfo *, struct pid *, uid_t, uid_t, u32);
- extern int kill_pgrp(struct pid *pid, int sig, int priv);
-diff -puN kernel/signal.c~get-rid-of-the-kill_pgrp_info-function kernel/signal.c
---- a/kernel/signal.c~get-rid-of-the-kill_pgrp_info-function
+diff -puN kernel/signal.c~clean-up-the-kill_something_info kernel/signal.c
+--- a/kernel/signal.c~clean-up-the-kill_something_info
 +++ a/kernel/signal.c
-@@ -1037,17 +1037,6 @@ int __kill_pgrp_info(int sig, struct sig
- 	return success ? 0 : retval;
- }
- 
--int kill_pgrp_info(int sig, struct siginfo *info, struct pid *pgrp)
--{
--	int retval;
--
--	read_lock(&tasklist_lock);
--	retval = __kill_pgrp_info(sig, info, pgrp);
--	read_unlock(&tasklist_lock);
--
--	return retval;
--}
--
- int kill_pid_info(int sig, struct siginfo *info, struct pid *pid)
+@@ -1134,14 +1134,22 @@ EXPORT_SYMBOL_GPL(kill_pid_info_as_uid);
+ static int kill_something_info(int sig, struct siginfo *info, int pid)
  {
- 	int error = -ESRCH;
-@@ -1236,7 +1225,13 @@ force_sigsegv(int sig, struct task_struc
- 
- int kill_pgrp(struct pid *pid, int sig, int priv)
- {
--	return kill_pgrp_info(sig, __si_special(priv), pid);
-+	int ret;
+ 	int ret;
+-	rcu_read_lock();
+-	if (!pid) {
+-		ret = kill_pgrp_info(sig, info, task_pgrp(current));
+-	} else if (pid == -1) {
++
++	if (pid > 0) {
++		rcu_read_lock();
++		ret = kill_pid_info(sig, info, find_vpid(pid));
++		rcu_read_lock();
++		return ret;
++	}
 +
 +	read_lock(&tasklist_lock);
-+	ret = __kill_pgrp_info(sig, __si_special(priv), pid);
++	if (pid != -1) {
++		ret = __kill_pgrp_info(sig, info,
++				pid ? find_vpid(-pid) : task_pgrp(current));
++	} else {
+ 		int retval = 0, count = 0;
+ 		struct task_struct * p;
+ 
+-		read_lock(&tasklist_lock);
+ 		for_each_process(p) {
+ 			if (p->pid > 1 && !same_thread_group(p, current)) {
+ 				int err = group_send_sig_info(sig, info, p);
+@@ -1150,14 +1158,10 @@ static int kill_something_info(int sig, 
+ 					retval = err;
+ 			}
+ 		}
+-		read_unlock(&tasklist_lock);
+ 		ret = count ? retval : -ESRCH;
+-	} else if (pid < 0) {
+-		ret = kill_pgrp_info(sig, info, find_vpid(-pid));
+-	} else {
+-		ret = kill_pid_info(sig, info, find_vpid(pid));
+ 	}
+-	rcu_read_unlock();
 +	read_unlock(&tasklist_lock);
 +
-+	return ret;
+ 	return ret;
  }
- EXPORT_SYMBOL(kill_pgrp);
  
 _
 
@@ -174,6 +183,7 @@ uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice.
 itimer_real-convert-to-use-struct-pid.patch
 pidns-make-full-use-of-xxx_vnr-calls.patch
 pidns-fix-badly-converted-mqueues-pid-handling.patch
+clean-up-the-kill_something_info.patch
 get-rid-of-the-kill_pgrp_info-function.patch
 use-find_task_by_vpid-in-posix-timers.patch
 use-find_task_by_vpid-in-taskstats.patch
