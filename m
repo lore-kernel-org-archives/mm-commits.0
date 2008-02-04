@@ -1,64 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - bufferhead-revert-constructor-removal-checkpatch-fixes.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 19:45:25 -0800
-Message-ID: <200802040345.m143j6J2012343@imap1.linux-foundation.org>
+Subject: - shmem-factor-out-sbi-free_inodes-manipulations-fix.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 19:46:01 -0800
+Message-ID: <200802040345.m143jg62012366@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52938 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58075 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753501AbYBDDpK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:45:10 -0500
+	by vger.kernel.org with ESMTP id S1752444AbYBDDpx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:45:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, clameter@sgi.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hugh@veritas.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bufferhead-revert-constructor-removal-checkpatch-fixes
+     shmem-factor-out-sbi-free_inodes-manipulations-fix
 has been removed from the -mm tree.  Its filename was
-     bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+     shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
 
-This patch was dropped because it was folded into bufferhead-revert-constructor-removal.patch
+This patch was dropped because it was folded into shmem-factor-out-sbi-free_inodes-manipulations.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bufferhead-revert-constructor-removal-checkpatch-fixes
+Subject: shmem-factor-out-sbi-free_inodes-manipulations-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "foo * bar" should be "foo *bar"
-#34: FILE: fs/buffer.c:3203:
-+	struct buffer_head * bh = (struct buffer_head *)data;
-
-total: 1 errors, 0 warnings, 34 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-(also, remove unneeded cast-of-void*)
-
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/shmem.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN fs/buffer.c~bufferhead-revert-constructor-removal-checkpatch-fixes fs/buffer.c
---- a/fs/buffer.c~bufferhead-revert-constructor-removal-checkpatch-fixes
-+++ a/fs/buffer.c
-@@ -3244,7 +3244,7 @@ EXPORT_SYMBOL(bh_submit_read);
- static void
- init_buffer_head(struct kmem_cache *cachep, void *data)
+diff -puN mm/shmem.c~shmem-factor-out-sbi-free_inodes-manipulations-fix mm/shmem.c
+--- a/mm/shmem.c~shmem-factor-out-sbi-free_inodes-manipulations-fix
++++ a/mm/shmem.c
+@@ -212,7 +212,7 @@ static int shmem_reserve_inode(struct su
+ 		spin_lock(&sbinfo->stat_lock);
+ 		if (!sbinfo->free_inodes) {
+ 			spin_unlock(&sbinfo->stat_lock);
+-			return -ENOMEM;
++			return -ENOSPC;
+ 		}
+ 		sbinfo->free_inodes--;
+ 		spin_unlock(&sbinfo->stat_lock);
+@@ -1680,14 +1680,16 @@ static int shmem_create(struct inode *di
+ static int shmem_link(struct dentry *old_dentry, struct inode *dir, struct dentry *dentry)
  {
--	struct buffer_head * bh = (struct buffer_head *)data;
-+	struct buffer_head *bh = data;
+ 	struct inode *inode = old_dentry->d_inode;
++	int ret;
  
- 	memset(bh, 0, sizeof(*bh));
- 	INIT_LIST_HEAD(&bh->b_assoc_buffers);
+ 	/*
+ 	 * No ordinary (disk based) filesystem counts links as inodes;
+ 	 * but each new link needs a new dentry, pinning lowmem, and
+ 	 * tmpfs dentries cannot be pruned until they are unlinked.
+ 	 */
+-	if (shmem_reserve_inode(inode->i_sb))
+-		return -ENOSPC;
++	ret = shmem_reserve_inode(inode->i_sb);
++	if (ret)
++		goto out;
+ 
+ 	dir->i_size += BOGO_DIRENT_SIZE;
+ 	inode->i_ctime = dir->i_ctime = dir->i_mtime = CURRENT_TIME;
+@@ -1695,7 +1697,8 @@ static int shmem_link(struct dentry *old
+ 	atomic_inc(&inode->i_count);	/* New dentry reference */
+ 	dget(dentry);		/* Extra pinning count for the created dentry */
+ 	d_instantiate(dentry, inode);
+-	return 0;
++out:
++	return ret;
+ }
+ 
+ static int shmem_unlink(struct inode *dir, struct dentry *dentry)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,7 +94,7 @@ slub-fix-coding-style-violations.patch
 slub-provide-unique-end-marker-for-each-slab.patch
 slub-do-our-own-locking-via-slab_lock-and-slab_unlock.patch
 bufferhead-revert-constructor-removal.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+shmem-factor-out-sbi-free_inodes-manipulations.patch
 shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
 maps4-rework-task_size-macros-mips-fix.patch
 maps4-add-proc-kpagecount-interface-fix.patch
