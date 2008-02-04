@@ -1,52 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: - page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch removed from -mm tree
-Date: Sun, 03 Feb 2008 19:51:10 -0800
-Message-ID: <200802040350.m143opWf012536@imap1.linux-foundation.org>
+Subject: - add-mm-argument-to-pte-pmd-pud-pgd_free-checkpatch-fixes.patch removed from -mm tree
+Date: Sun, 03 Feb 2008 19:52:00 -0800
+Message-ID: <200802040351.m143pfFw012550@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50283 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34703 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753814AbYBDDvl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:51:41 -0500
+	by vger.kernel.org with ESMTP id S1753846AbYBDDvw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 3 Feb 2008 22:51:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, clameter@sgi.com, dwalker@mvista.com, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix
+     add-mm-argument-to-pte-pmd-pud-pgd_free-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
+     add-mm-argument-to-pte-pmd-pud-pgd_free-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into page-allocator-clean-up-pcp-draining-functions.patch
+This patch was dropped because it was folded into add-mm-argument-to-pte-pmd-pud-pgd_free.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix
+Subject: add-mm-argument-to-pte-pmd-pud-pgd_free-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Daniel Walker <dwalker@mvista.com>
+WARNING: no space between function name and open parenthesis '('
+#379: FILE: include/asm-cris/pgalloc.h:19:
++static inline void pgd_free (struct mm_struct *mm, pgd_t *pgd)
+
+ERROR: "foo * bar" should be "foo *bar"
+#655: FILE: include/asm-m68k/sun3_pgalloc.h:78:
++static inline void pgd_free(struct mm_struct *mm, pgd_t * pgd)
+
+ERROR: need space after that ',' (ctx:VxV)
+#1013: FILE: include/asm-sparc/pgalloc.h:35:
++#define pgd_free(mm,pgd)	free_pgd_fast(pgd)
+                    ^
+
+WARNING: no space between function name and open parenthesis '('
+#1175: FILE: include/asm-x86/pgalloc_64.h:36:
++static inline void pud_free (struct mm_struct *mm, pud_t *pud)
+
+ERROR: need space after that ',' (ctx:VxV)
+#1239: FILE: include/asm-xtensa/tlb.h:45:
++#define __pte_free_tlb(tlb,pte)			pte_free((tlb)->mm, pte)
+                           ^
+
+total: 3 errors, 2 warnings, 1011 lines checked
+
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/snapshot.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-cris/pgalloc.h      |    2 +-
+ include/asm-m68k/sun3_pgalloc.h |    2 +-
+ include/asm-sparc/pgalloc.h     |    2 +-
+ include/asm-x86/pgalloc_64.h    |    2 +-
+ include/asm-xtensa/tlb.h        |    2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN kernel/power/snapshot.c~page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix kernel/power/snapshot.c
---- a/kernel/power/snapshot.c~page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix
-+++ a/kernel/power/snapshot.c
-@@ -1221,7 +1221,7 @@ asmlinkage int swsusp_save(void)
- 	/* During allocating of suspend pagedir, new cold pages may appear.
- 	 * Kill them.
- 	 */
--	drain_all_pages();
-+	drain_local_pages(NULL);
- 	copy_data_pages(&copy_bm, &orig_bm);
+diff -puN include/asm-cris/pgalloc.h~add-mm-argument-to-pte-pmd-pud-pgd_free-checkpatch-fixes include/asm-cris/pgalloc.h
+--- a/include/asm-cris/pgalloc.h~add-mm-argument-to-pte-pmd-pud-pgd_free-checkpatch-fixes
++++ a/include/asm-cris/pgalloc.h
+@@ -16,7 +16,7 @@ static inline pgd_t *pgd_alloc (struct m
+ 	return (pgd_t *)get_zeroed_page(GFP_KERNEL);
+ }
  
- 	/*
+-static inline void pgd_free (struct mm_struct *mm, pgd_t *pgd)
++static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
+ {
+ 	free_page((unsigned long)pgd);
+ }
+diff -puN include/asm-m68k/sun3_pgalloc.h~add-mm-argument-to-pte-pmd-pud-pgd_free-checkpatch-fixes include/asm-m68k/sun3_pgalloc.h
+--- a/include/asm-m68k/sun3_pgalloc.h~add-mm-argument-to-pte-pmd-pud-pgd_free-checkpatch-fixes
++++ a/include/asm-m68k/sun3_pgalloc.h
+@@ -75,7 +75,7 @@ static inline void pmd_populate(struct m
+ #define pmd_free(mm, x)			do { } while (0)
+ #define __pmd_free_tlb(tlb, x)		do { } while (0)
+ 
+-static inline void pgd_free(struct mm_struct *mm, pgd_t * pgd)
++static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
+ {
+         free_page((unsigned long) pgd);
+ }
+diff -puN include/asm-sparc/pgalloc.h~add-mm-argument-to-pte-pmd-pud-pgd_free-checkpatch-fixes include/asm-sparc/pgalloc.h
+--- a/include/asm-sparc/pgalloc.h~add-mm-argument-to-pte-pmd-pud-pgd_free-checkpatch-fixes
++++ a/include/asm-sparc/pgalloc.h
+@@ -32,7 +32,7 @@ BTFIXUPDEF_CALL(pgd_t *, get_pgd_fast, v
+ BTFIXUPDEF_CALL(void, free_pgd_fast, pgd_t *)
+ #define free_pgd_fast(pgd)	BTFIXUP_CALL(free_pgd_fast)(pgd)
+ 
+-#define pgd_free(mm,pgd)	free_pgd_fast(pgd)
++#define pgd_free(mm, pgd)	free_pgd_fast(pgd)
+ #define pgd_alloc(mm)	get_pgd_fast()
+ 
+ BTFIXUPDEF_CALL(void, pgd_set, pgd_t *, pmd_t *)
+diff -puN include/asm-x86/pgalloc_64.h~add-mm-argument-to-pte-pmd-pud-pgd_free-checkpatch-fixes include/asm-x86/pgalloc_64.h
+--- a/include/asm-x86/pgalloc_64.h~add-mm-argument-to-pte-pmd-pud-pgd_free-checkpatch-fixes
++++ a/include/asm-x86/pgalloc_64.h
+@@ -33,7 +33,7 @@ static inline pud_t *pud_alloc_one(struc
+ 	return (pud_t *)get_zeroed_page(GFP_KERNEL|__GFP_REPEAT);
+ }
+ 
+-static inline void pud_free (struct mm_struct *mm, pud_t *pud)
++static inline void pud_free(struct mm_struct *mm, pud_t *pud)
+ {
+ 	BUG_ON((unsigned long)pud & (PAGE_SIZE-1));
+ 	free_page((unsigned long)pud);
+diff -puN include/asm-xtensa/tlb.h~add-mm-argument-to-pte-pmd-pud-pgd_free-checkpatch-fixes include/asm-xtensa/tlb.h
+--- a/include/asm-xtensa/tlb.h~add-mm-argument-to-pte-pmd-pud-pgd_free-checkpatch-fixes
++++ a/include/asm-xtensa/tlb.h
+@@ -42,6 +42,6 @@
+ 
+ #include <asm-generic/tlb.h>
+ 
+-#define __pte_free_tlb(tlb,pte)			pte_free((tlb)->mm, pte)
++#define __pte_free_tlb(tlb, pte)		pte_free((tlb)->mm, pte)
+ 
+ #endif	/* _XTENSA_TLB_H */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,7 +152,7 @@ maps4-add-proc-kpagecount-interface.patch
 maps4-add-proc-kpageflags-interface.patch
 maps4-make-page-monitoring-proc-file-optional.patch
 page-allocator-clean-up-pcp-draining-functions.patch
-page-allocator-clean-up-pcp-draining-functions-swsusp-fix-fix.patch
+add-mm-argument-to-pte-pmd-pud-pgd_free.patch
 add-mm-argument-to-pte-pmd-pud-pgd_free-checkpatch-fixes.patch
 mm-page-writeback-highmem_is_dirtyable-option-fix.patch
 mm-remove-fastcall-from-mm-checkpatch-fixes.patch
