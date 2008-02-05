@@ -1,134 +1,148 @@
 From: akpm@linux-foundation.org
-Subject: - uml-64-bit-tlb-fixes.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:37:25 -0800
-Message-ID: <200802052237.m15Mb6I5012824@imap1.linux-foundation.org>
+Subject: - uml-ldt-mutex-conversion.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:38:48 -0800
+Message-ID: <200802052238.m15McTOd012953@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51643 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52507 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760829AbYBEWlm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:42 -0500
+	by vger.kernel.org with ESMTP id S1761933AbYBEWl4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: dwalker@mvista.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: 64-bit tlb fixes
+     uml: LDT mutex conversion
 has been removed from the -mm tree.  Its filename was
-     uml-64-bit-tlb-fixes.patch
+     uml-ldt-mutex-conversion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: 64-bit tlb fixes
-From: Jeff Dike <jdike@addtoit.com>
+Subject: uml: LDT mutex conversion
+From: Daniel Walker <dwalker@mvista.com>
 
-Some 64-bit tlb fixes -
-	moved pmd_page_vaddr to pgtable.h since it's the same for both
-2-level and 3-level page tables
-	fixed a bogus cast on pud_page_vaddr
-	made the address checking in update_*_range more careful
+The ldt.semaphore conforms to the new struct mutex requirments, so I converted
+it to use the new API and changed the name.
 
+Signed-off-by: Daniel Walker <dwalker@mvista.com>
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/tlb.c            |    8 ++++----
- include/asm-um/pgtable-2level.h |    3 ---
- include/asm-um/pgtable-3level.h |    3 +--
- include/asm-um/pgtable.h        |    3 +++
- 4 files changed, 8 insertions(+), 9 deletions(-)
+ arch/um/sys-i386/ldt.c |   14 +++++++-------
+ include/asm-um/ldt.h   |    4 ++--
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN arch/um/kernel/tlb.c~uml-64-bit-tlb-fixes arch/um/kernel/tlb.c
---- a/arch/um/kernel/tlb.c~uml-64-bit-tlb-fixes
-+++ a/arch/um/kernel/tlb.c
-@@ -207,7 +207,7 @@ static inline int update_pte_range(pmd_t
- 		else if (pte_newprot(*pte))
- 			ret = add_mprotect(addr, PAGE_SIZE, prot, hvc);
- 		*pte = pte_mkuptodate(*pte);
--	} while (pte++, addr += PAGE_SIZE, ((addr != end) && !ret));
-+	} while (pte++, addr += PAGE_SIZE, ((addr < end) && !ret));
- 	return ret;
- }
+diff -puN arch/um/sys-i386/ldt.c~uml-ldt-mutex-conversion arch/um/sys-i386/ldt.c
+--- a/arch/um/sys-i386/ldt.c~uml-ldt-mutex-conversion
++++ a/arch/um/sys-i386/ldt.c
+@@ -147,7 +147,7 @@ static int read_ldt(void __user * ptr, u
+ 	if (ptrace_ldt)
+ 		return read_ldt_from_host(ptr, bytecount);
  
-@@ -229,7 +229,7 @@ static inline int update_pmd_range(pud_t
+-	down(&ldt->semaphore);
++	mutex_lock(&ldt->lock);
+ 	if (ldt->entry_count <= LDT_DIRECT_ENTRIES) {
+ 		size = LDT_ENTRY_SIZE*LDT_DIRECT_ENTRIES;
+ 		if (size > bytecount)
+@@ -171,7 +171,7 @@ static int read_ldt(void __user * ptr, u
+ 			ptr += size;
+ 		}
+ 	}
+-	up(&ldt->semaphore);
++	mutex_unlock(&ldt->lock);
+ 
+ 	if (bytecount == 0 || err == -EFAULT)
+ 		goto out;
+@@ -229,7 +229,7 @@ static int write_ldt(void __user * ptr, 
+ 	}
+ 
+ 	if (!ptrace_ldt)
+-		down(&ldt->semaphore);
++		mutex_lock(&ldt->lock);
+ 
+ 	err = write_ldt_entry(mm_idp, func, &ldt_info, &addr, 1);
+ 	if (err)
+@@ -289,7 +289,7 @@ static int write_ldt(void __user * ptr, 
+ 	err = 0;
+ 
+ out_unlock:
+-	up(&ldt->semaphore);
++	mutex_unlock(&ldt->lock);
+ out:
+ 	return err;
+ }
+@@ -396,7 +396,7 @@ long init_new_ldt(struct mm_context *new
+ 
+ 
+ 	if (!ptrace_ldt)
+-		init_MUTEX(&new_mm->ldt.semaphore);
++		mutex_init(&new_mm->ldt.lock);
+ 
+ 	if (!from_mm) {
+ 		memset(&desc, 0, sizeof(desc));
+@@ -456,7 +456,7 @@ long init_new_ldt(struct mm_context *new
+ 		 * i.e., we have to use the stub for modify_ldt, which
+ 		 * can't handle the big read buffer of up to 64kB.
+ 		 */
+-		down(&from_mm->ldt.semaphore);
++		mutex_lock(&from_mm->ldt.lock);
+ 		if (from_mm->ldt.entry_count <= LDT_DIRECT_ENTRIES)
+ 			memcpy(new_mm->ldt.u.entries, from_mm->ldt.u.entries,
+ 			       sizeof(new_mm->ldt.u.entries));
+@@ -475,7 +475,7 @@ long init_new_ldt(struct mm_context *new
  			}
  		}
- 		else ret = update_pte_range(pmd, addr, next, hvc);
--	} while (pmd++, addr = next, ((addr != end) && !ret));
-+	} while (pmd++, addr = next, ((addr < end) && !ret));
- 	return ret;
- }
+ 		new_mm->ldt.entry_count = from_mm->ldt.entry_count;
+-		up(&from_mm->ldt.semaphore);
++		mutex_unlock(&from_mm->ldt.lock);
+ 	}
  
-@@ -251,7 +251,7 @@ static inline int update_pud_range(pgd_t
- 			}
- 		}
- 		else ret = update_pmd_range(pud, addr, next, hvc);
--	} while (pud++, addr = next, ((addr != end) && !ret));
-+	} while (pud++, addr = next, ((addr < end) && !ret));
- 	return ret;
- }
+     out:
+diff -puN include/asm-um/ldt.h~uml-ldt-mutex-conversion include/asm-um/ldt.h
+--- a/include/asm-um/ldt.h~uml-ldt-mutex-conversion
++++ a/include/asm-um/ldt.h
+@@ -8,7 +8,7 @@
+ #ifndef __ASM_LDT_H
+ #define __ASM_LDT_H
  
-@@ -274,7 +274,7 @@ void fix_range_common(struct mm_struct *
- 			}
- 		}
- 		else ret = update_pud_range(pgd, addr, next, &hvc);
--	} while (pgd++, addr = next, ((addr != end_addr) && !ret));
-+	} while (pgd++, addr = next, ((addr < end_addr) && !ret));
+-#include "asm/semaphore.h"
++#include <linux/mutex.h>
+ #include "asm/host_ldt.h"
  
- 	if (!ret)
- 		ret = do_ops(&hvc, hvc.index, 1);
-diff -puN include/asm-um/pgtable-2level.h~uml-64-bit-tlb-fixes include/asm-um/pgtable-2level.h
---- a/include/asm-um/pgtable-2level.h~uml-64-bit-tlb-fixes
-+++ a/include/asm-um/pgtable-2level.h
-@@ -41,9 +41,6 @@ static inline void pgd_mkuptodate(pgd_t 
- #define pfn_pte(pfn, prot) __pte(pfn_to_phys(pfn) | pgprot_val(prot))
- #define pfn_pmd(pfn, prot) __pmd(pfn_to_phys(pfn) | pgprot_val(prot))
+ extern void ldt_host_info(void);
+@@ -27,7 +27,7 @@ struct ldt_entry {
  
--#define pmd_page_vaddr(pmd) \
--	((unsigned long) __va(pmd_val(pmd) & PAGE_MASK))
--
- /*
-  * Bits 0 through 4 are taken
-  */
-diff -puN include/asm-um/pgtable-3level.h~uml-64-bit-tlb-fixes include/asm-um/pgtable-3level.h
---- a/include/asm-um/pgtable-3level.h~uml-64-bit-tlb-fixes
-+++ a/include/asm-um/pgtable-3level.h
-@@ -87,8 +87,7 @@ static inline void pud_clear (pud_t *pud
- }
- 
- #define pud_page(pud) phys_to_page(pud_val(pud) & PAGE_MASK)
--#define pud_page_vaddr(pud) \
--	((struct page *) __va(pud_val(pud) & PAGE_MASK))
-+#define pud_page_vaddr(pud) ((unsigned long) __va(pud_val(pud) & PAGE_MASK))
- 
- /* Find an entry in the second-level page table.. */
- #define pmd_offset(pud, address) ((pmd_t *) pud_page_vaddr(*(pud)) + \
-diff -puN include/asm-um/pgtable.h~uml-64-bit-tlb-fixes include/asm-um/pgtable.h
---- a/include/asm-um/pgtable.h~uml-64-bit-tlb-fixes
-+++ a/include/asm-um/pgtable.h
-@@ -308,6 +308,9 @@ static inline pte_t pte_modify(pte_t pte
- #define pmd_page_vaddr(pmd) ((unsigned long) __va(pmd_val(pmd) & PAGE_MASK))
- #define pmd_index(address) (((address) >> PMD_SHIFT) & (PTRS_PER_PMD-1))
- 
-+#define pmd_page_vaddr(pmd) \
-+	((unsigned long) __va(pmd_val(pmd) & PAGE_MASK))
-+
- /*
-  * the pte page can be thought of an array like this: pte_t[PTRS_PER_PTE]
-  *
+ typedef struct uml_ldt {
+ 	int entry_count;
+-	struct semaphore semaphore;
++	struct mutex lock;
+ 	union {
+ 		struct ldt_entry * pages[LDT_PAGES_MAX];
+ 		struct ldt_entry entries[LDT_DIRECT_ENTRIES];
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from dwalker@mvista.com are
 
 origin.patch
-git-kvm.patch
-fix-__const_udelay-declaration-and-definition-mismatches.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
-random-add-async-notification-support-to-dev-random.patch
-mount-options-fix-hostfs.patch
+driver-base-memory-semaphore-to-mutex.patch
+usb-microtek-remove-unused-semaphore.patch
+usb-libusual-locking-cleanup.patch
+drivers-char-tty_ioc-remove-pty_sem.patch
+drivers-isdn-i4l-isdn_ttyc-remove-write_sem.patch
+unix98-allocated_ptys_lock-semaphore-to-mutex.patch
+docs-kernel-locking-convert-semaphore-references.patch
+stopmachine-semaphore-to-mutex.patch
+stopmachine-semaphore-to-mutex-fix.patch
+amiga-serial-driver-port_write_mutex-fixup.patch
+docs-convert-kref-semaphore-to-mutex.patch
+isapnp-driver-semaphore-to-mutex.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
