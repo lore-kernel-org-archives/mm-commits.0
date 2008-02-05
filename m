@@ -1,99 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - vmalloc-clean-up-page-array-indexing.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:29:42 -0800
-Message-ID: <200802052229.m15MTNI7011974@imap1.linux-foundation.org>
+Subject: - tmpfs-fix-mounts-when-size-is-less-than-the-page-size.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:30:22 -0800
+Message-ID: <200802052230.m15MU3le012031@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48615 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34447 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932209AbYBEWnB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:43:01 -0500
+	by vger.kernel.org with ESMTP id S932228AbYBEWnD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:43:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: mike@marineau.org, hugh@veritas.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmalloc: clean up page array indexing
+     tmpfs: fix mounts when size is less than the page size
 has been removed from the -mm tree.  Its filename was
-     vmalloc-clean-up-page-array-indexing.patch
+     tmpfs-fix-mounts-when-size-is-less-than-the-page-size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmalloc: clean up page array indexing
-From: Christoph Lameter <clameter@sgi.com>
+Subject: tmpfs: fix mounts when size is less than the page size
+From: Michael Marineau <mike@marineau.org>
 
-The page array is repeatedly indexed both in vunmap and vmalloc_area_node(). 
-Add a temporary variable to make it easier to read (and easier to patch
-later).
+When tmpfs is mounted with a size less than one page, the number of blocks
+is set to 0 which makes the tmpfs mount unlimited.  This can lead to a
+quick and surprising death if someone typos a tmpfs mount command and
+writes too much.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+tmpfs can still be mounted as unlimited if size or nr_blocks is exactly 0,
+as Documentation/filesystems/tmpfs.txt says.
+
+Hugh: do this by rounding size up instead of down in all cases: which
+slightly expands other odd-sized tmpfs mounts, but in a consistent way.
+
+Signed-off-by: Michael Marineau <mike@marineau.org>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ mm/shmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmalloc.c~vmalloc-clean-up-page-array-indexing mm/vmalloc.c
---- a/mm/vmalloc.c~vmalloc-clean-up-page-array-indexing
-+++ a/mm/vmalloc.c
-@@ -384,8 +384,10 @@ static void __vunmap(const void *addr, i
- 		int i;
- 
- 		for (i = 0; i < area->nr_pages; i++) {
--			BUG_ON(!area->pages[i]);
--			__free_page(area->pages[i]);
-+			struct page *page = area->pages[i];
-+
-+			BUG_ON(!page);
-+			__free_page(page);
- 		}
- 
- 		if (area->flags & VM_VPAGES)
-@@ -489,15 +491,19 @@ void *__vmalloc_area_node(struct vm_stru
- 	}
- 
- 	for (i = 0; i < area->nr_pages; i++) {
-+		struct page *page;
-+
- 		if (node < 0)
--			area->pages[i] = alloc_page(gfp_mask);
-+			page = alloc_page(gfp_mask);
- 		else
--			area->pages[i] = alloc_pages_node(node, gfp_mask, 0);
--		if (unlikely(!area->pages[i])) {
-+			page = alloc_pages_node(node, gfp_mask, 0);
-+
-+		if (unlikely(!page)) {
- 			/* Successfully allocated i pages, free them in __vunmap() */
- 			area->nr_pages = i;
- 			goto fail;
- 		}
-+		area->pages[i] = page;
- 	}
- 
- 	if (map_vm_area(area, prot, &pages))
+diff -puN mm/shmem.c~tmpfs-fix-mounts-when-size-is-less-than-the-page-size mm/shmem.c
+--- a/mm/shmem.c~tmpfs-fix-mounts-when-size-is-less-than-the-page-size
++++ a/mm/shmem.c
+@@ -2012,7 +2012,7 @@ static int shmem_parse_options(char *opt
+ 			}
+ 			if (*rest)
+ 				goto bad_val;
+-			*blocks = size >> PAGE_CACHE_SHIFT;
++			*blocks = DIV_ROUND_UP(size, PAGE_CACHE_SIZE);
+ 		} else if (!strcmp(this_char,"nr_blocks")) {
+ 			*blocks = memparse(value,&rest);
+ 			if (*rest)
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from mike@marineau.org are
 
 origin.patch
-gregkh-driver-kset-move-sys-slab-to-sys-kernel-slab-slabinfo-fallback-from-sys-kernel-slab-to-sys-slab.patch
-git-unionfs.patch
-git-slub.patch
-percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-oom-add-sysctl-to-enable-task-memory-dump.patch
-add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
-add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
-dentries-extract-common-code-to-remove-dentry-from-lru.patch
-dentries-extract-common-code-to-remove-dentry-from-lru-fix.patch
-modules-handle-symbols-that-have-a-zero-value.patch
-modules-include-sectionsh-to-avoid-defining-linker-variables.patch
-reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
-page-owner-tracking-leak-detector.patch
