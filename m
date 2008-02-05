@@ -1,411 +1,181 @@
 From: akpm@linux-foundation.org
-Subject: - uml-header-untangling.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:36:29 -0800
-Message-ID: <200802052236.m15MaARO012687@imap1.linux-foundation.org>
+Subject: - m68knomu-remove-dead-config-symbols-from-m68knomu-code.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:33:35 -0800
+Message-ID: <200802052233.m15MXG8m012392@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52841 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51936 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756876AbYBEWmK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:10 -0500
+	by vger.kernel.org with ESMTP id S1761066AbYBEWmC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: olsajiri@gmail.com, gerg@snapgear.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: header untangling
+     m68knomu: remove dead config symbols from m68knomu code
 has been removed from the -mm tree.  Its filename was
-     uml-header-untangling.patch
+     m68knomu-remove-dead-config-symbols-from-m68knomu-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: header untangling
-From: Jeff Dike <jdike@addtoit.com>
+Subject: m68knomu: remove dead config symbols from m68knomu code
+From: Jiri Olsa <olsajiri@gmail.com>
 
-Untangle UML headers somewhat and add some includes where they were
-needed explicitly, but gotten accidentally via some other header.
+remove dead config symbols from m68knommu code
 
-arch/um/include/um_uaccess.h loses asm/fixmap.h because it uses no
-fixmap stuff and gains elf.h, because it needs FIXADDR_USER_*, and
-archsetjmp.h, because it needs jmp_buf.
-
-pmd_alloc_one is uninlined because it needs mm_struct, and that's
-inconvenient to provide in asm-um/pgtable-3level.h.
-
-elf_core_copy_fpregs is also uninlined from elf-i386.h and
-elf-x86_64.h, which duplicated the code anyway, to
-arch/um/kernel/process.c, so that the reference to current_thread
-doesn't pull sched.h or anything related into asm/elf.h.
-
-arch/um/sys-i386/ldt.c, arch/um/kernel/tlb.c and
-arch/um/kernel/skas/uaccess.c got sched.h because they dereference
-task_structs.  Its includes of linux and asm headers got turned from
-"" to <>.
-
-arch/um/sys-i386/bug.c gets asm/errno.h because it needs errno
-constants.
-
-asm/elf-i386 gets asm/user.h because it needs user_regs_struct.
-
-asm/fixmap.h gets page.h because it needs PAGE_SIZE and PAGE_MASK and
-system.h for BUG_ON.
-
-asm/pgtable doesn't need sched.h.
-
-asm/processor-generic.h defined mm_segment_t, but didn't use it.  So,
-that definition is moved to uaccess.h, which defines a bunch of
-mm_segment_t-related stuff.  thread_info.h uses mm_segment_t, and
-includes uaccess.h, which causes a recursion.  So, the definition is
-placed above the include of thread_info. in uaccess.h.  thread_info.h
-also gets page.h because it needs PAGE_SIZE.
-
-ObCheckpatchViolationJustification - I'm not adding a typedef; I'm
-moving mm_segment_t from one place to another.
-
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Jiri Olsa <olsajiri@gmail.com>
+Acked-by: Greg Ungerer <gerg@snapgear.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/random.c           |    1 +
- arch/um/include/um_uaccess.h       |    4 +++-
- arch/um/kernel/mem.c               |   21 ++++++++++++++++-----
- arch/um/kernel/process.c           |    8 ++++++++
- arch/um/kernel/skas/uaccess.c      |   13 +++++++------
- arch/um/kernel/tlb.c               |    7 ++++---
- arch/um/sys-i386/bug.c             |    1 +
- arch/um/sys-i386/ldt.c             |    5 +++--
- include/asm-um/elf-i386.h          |    9 ++-------
- include/asm-um/elf-x86_64.h        |    8 +-------
- include/asm-um/fixmap.h            |    3 ++-
- include/asm-um/pgtable-3level.h    |   11 ++---------
- include/asm-um/pgtable.h           |    1 -
- include/asm-um/processor-generic.h |    5 +----
- include/asm-um/thread_info.h       |    3 ++-
- include/asm-um/uaccess.h           |   10 +++++++++-
- 16 files changed, 62 insertions(+), 48 deletions(-)
+ arch/m68knommu/kernel/setup.c    |    3 ---
+ include/asm-m68knommu/mcfne.h    |   27 ---------------------------
+ include/asm-m68knommu/mcfsim.h   |    4 +---
+ include/asm-m68knommu/mcftimer.h |    2 +-
+ include/asm-m68knommu/mcfuart.h  |    2 +-
+ include/asm-m68knommu/system.h   |   17 -----------------
+ 6 files changed, 3 insertions(+), 52 deletions(-)
 
-diff -puN arch/um/drivers/random.c~uml-header-untangling arch/um/drivers/random.c
---- a/arch/um/drivers/random.c~uml-header-untangling
-+++ a/arch/um/drivers/random.c
-@@ -5,6 +5,7 @@
-  * This software may be used and distributed according to the terms
-  * of the GNU General Public License, incorporated herein by reference.
+diff -puN arch/m68knommu/kernel/setup.c~m68knomu-remove-dead-config-symbols-from-m68knomu-code arch/m68knommu/kernel/setup.c
+--- a/arch/m68knommu/kernel/setup.c~m68knomu-remove-dead-config-symbols-from-m68knomu-code
++++ a/arch/m68knommu/kernel/setup.c
+@@ -64,9 +64,6 @@ void (*mach_power_off)(void);
+ #ifdef CONFIG_M68VZ328
+ 	#define CPU "MC68VZ328"
+ #endif
+-#ifdef CONFIG_M68332
+-	#define CPU "MC68332"
+-#endif
+ #ifdef CONFIG_M68360
+ 	#define CPU "MC68360"
+ #endif
+diff -puN include/asm-m68knommu/mcfne.h~m68knomu-remove-dead-config-symbols-from-m68knomu-code include/asm-m68knommu/mcfne.h
+--- a/include/asm-m68knommu/mcfne.h~m68knomu-remove-dead-config-symbols-from-m68knomu-code
++++ a/include/asm-m68knommu/mcfne.h
+@@ -60,17 +60,6 @@
+ #define	NE2000_BYTE		volatile unsigned char
+ #endif
+ 
+-#if defined(CONFIG_CFV240)
+-#define NE2000_ADDR             0x40010000
+-#define NE2000_ADDR1            0x40010001
+-#define NE2000_ODDOFFSET        0x00000000
+-#define NE2000_IRQ              1
+-#define NE2000_IRQ_VECTOR       0x19
+-#define NE2000_IRQ_PRIORITY     2
+-#define NE2000_IRQ_LEVEL        1
+-#define	NE2000_BYTE		volatile unsigned char
+-#endif
+-
+ #if defined(CONFIG_M5307C3)
+ #define NE2000_ADDR		0x40000300
+ #define NE2000_ODDOFFSET	0x00010000
+@@ -173,13 +162,8 @@ void ne2000_outsw(unsigned int addr, voi
+  *	On most NE2000 implementations on ColdFire boards the chip is
+  *	mapped in kinda funny, due to its ISA heritage.
   */
-+#include <linux/sched.h>
- #include <linux/module.h>
- #include <linux/fs.h>
- #include <linux/miscdevice.h>
-diff -puN arch/um/include/um_uaccess.h~uml-header-untangling arch/um/include/um_uaccess.h
---- a/arch/um/include/um_uaccess.h~uml-header-untangling
-+++ a/arch/um/include/um_uaccess.h
-@@ -6,7 +6,9 @@
- #ifndef __ARCH_UM_UACCESS_H
- #define __ARCH_UM_UACCESS_H
+-#ifdef CONFIG_CFV240
+-#define NE2000_PTR(addr)	(NE2000_ADDR + ((addr & 0x3f) << 1) + 1)
+-#define NE2000_DATA_PTR(addr)	(NE2000_ADDR + ((addr & 0x3f) << 1))
+-#else
+ #define	NE2000_PTR(addr)	((addr&0x1)?(NE2000_ODDOFFSET+addr-1):(addr))
+ #define	NE2000_DATA_PTR(addr)	(addr)
+-#endif
  
--#include "asm/fixmap.h"
-+#include <asm/elf.h>
-+#include <asm/fixmap.h>
-+#include "sysdep/archsetjmp.h"
  
- #define __under_task_size(addr, size) \
- 	(((unsigned long) (addr) < TASK_SIZE) && \
-diff -puN arch/um/kernel/mem.c~uml-header-untangling arch/um/kernel/mem.c
---- a/arch/um/kernel/mem.c~uml-header-untangling
-+++ a/arch/um/kernel/mem.c
-@@ -152,7 +152,7 @@ pgprot_t kmap_prot;
- 
- #define kmap_get_fixmap_pte(vaddr)					\
- 	pte_offset_kernel(pmd_offset(pud_offset(pgd_offset_k(vaddr), (vaddr)),\
-- 			  (vaddr)), (vaddr))
-+				     (vaddr)), (vaddr))
- 
- static void __init kmap_init(void)
- {
-@@ -278,7 +278,8 @@ struct page *arch_validate(struct page *
- 	goto again;
+ void ne2000_outb(unsigned int val, unsigned int addr)
+@@ -285,17 +269,6 @@ void ne2000_irqsetup(int irq)
  }
+ #endif
  
--/* This can't do anything because nothing in the kernel image can be freed
-+/*
-+ * This can't do anything because nothing in the kernel image can be freed
-  * since it's not in kernel physical memory.
-  */
- 
-@@ -331,9 +332,7 @@ void show_mem(void)
- 	printk("%d pages swap cached\n", cached);
- }
- 
--/*
-- * Allocate and free page tables.
-- */
-+/* Allocate and free page tables. */
- 
- pgd_t *pgd_alloc(struct mm_struct *mm)
- {
-@@ -368,3 +367,15 @@ struct page *pte_alloc_one(struct mm_str
- 	pte = alloc_page(GFP_KERNEL|__GFP_REPEAT|__GFP_ZERO);
- 	return pte;
- }
-+
-+#ifdef CONFIG_3_LEVEL_PGTABLES
-+pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long address)
-+{
-+	pmd_t *pmd = (pmd_t *) __get_free_page(GFP_KERNEL);
-+
-+	if (pmd)
-+		memset(pmd, 0, PAGE_SIZE);
-+
-+	return pmd;
-+}
-+#endif
-diff -puN arch/um/kernel/process.c~uml-header-untangling arch/um/kernel/process.c
---- a/arch/um/kernel/process.c~uml-header-untangling
-+++ a/arch/um/kernel/process.c
-@@ -446,3 +446,11 @@ unsigned long get_wchan(struct task_stru
- 
- 	return 0;
- }
-+
-+int elf_core_copy_fpregs(struct task_struct *t, elf_fpregset_t *fpu)
-+{
-+	int cpu = current_thread_info()->cpu;
-+
-+	return save_fp_registers(userspace_pid[cpu], (unsigned long *) fpu);
-+}
-+
-diff -puN arch/um/kernel/skas/uaccess.c~uml-header-untangling arch/um/kernel/skas/uaccess.c
---- a/arch/um/kernel/skas/uaccess.c~uml-header-untangling
-+++ a/arch/um/kernel/skas/uaccess.c
-@@ -3,12 +3,13 @@
-  * Licensed under the GPL
-  */
- 
--#include "linux/err.h"
--#include "linux/highmem.h"
--#include "linux/mm.h"
--#include "asm/current.h"
--#include "asm/page.h"
--#include "asm/pgtable.h"
-+#include <linux/err.h>
-+#include <linux/highmem.h>
-+#include <linux/mm.h>
-+#include <linux/sched.h>
-+#include <asm/current.h>
-+#include <asm/page.h>
-+#include <asm/pgtable.h>
- #include "kern_util.h"
- #include "os.h"
- 
-diff -puN arch/um/kernel/tlb.c~uml-header-untangling arch/um/kernel/tlb.c
---- a/arch/um/kernel/tlb.c~uml-header-untangling
-+++ a/arch/um/kernel/tlb.c
-@@ -3,9 +3,10 @@
-  * Licensed under the GPL
-  */
- 
--#include "linux/mm.h"
--#include "asm/pgtable.h"
--#include "asm/tlbflush.h"
-+#include <linux/mm.h>
-+#include <linux/sched.h>
-+#include <asm/pgtable.h>
-+#include <asm/tlbflush.h>
- #include "as-layout.h"
- #include "mem_user.h"
- #include "os.h"
-diff -puN arch/um/sys-i386/bug.c~uml-header-untangling arch/um/sys-i386/bug.c
---- a/arch/um/sys-i386/bug.c~uml-header-untangling
-+++ a/arch/um/sys-i386/bug.c
-@@ -4,6 +4,7 @@
-  */
- 
- #include <linux/uaccess.h>
-+#include <asm/errno.h>
- 
- /* Mostly copied from i386/x86_86 - eliminated the eip < PAGE_OFFSET because
-  * that's not relevant in skas mode.
-diff -puN arch/um/sys-i386/ldt.c~uml-header-untangling arch/um/sys-i386/ldt.c
---- a/arch/um/sys-i386/ldt.c~uml-header-untangling
-+++ a/arch/um/sys-i386/ldt.c
-@@ -3,8 +3,9 @@
-  * Licensed under the GPL
-  */
- 
--#include "linux/mm.h"
--#include "asm/unistd.h"
-+#include <linux/mm.h>
-+#include <linux/sched.h>
-+#include <asm/unistd.h>
- #include "os.h"
- #include "proc_mm.h"
- #include "skas.h"
-diff -puN include/asm-um/elf-i386.h~uml-header-untangling include/asm-um/elf-i386.h
---- a/include/asm-um/elf-i386.h~uml-header-untangling
-+++ a/include/asm-um/elf-i386.h
-@@ -5,7 +5,7 @@
- #ifndef __UM_ELF_I386_H
- #define __UM_ELF_I386_H
- 
--#include <linux/sched.h>
-+#include <asm/user.h>
- #include "skas.h"
- 
- #define R_386_NONE	0
-@@ -76,12 +76,7 @@ typedef struct user_i387_struct elf_fpre
- 	pr_reg[16] = PT_REGS_SS(regs);		\
- } while(0);
- 
--static inline int elf_core_copy_fpregs(struct task_struct *t,
--				       elf_fpregset_t *fpu)
+-#if defined(CONFIG_CFV240)
+-void ne2000_irqsetup(int irq)
 -{
--	int cpu = ((struct thread_info *) t->stack)->cpu;
--	return save_fp_registers(userspace_pid[cpu], (unsigned long *) fpu);
+-	volatile unsigned char  *icrp;
+-
+-	icrp = (volatile unsigned char *) (MCF_MBAR + MCFSIM_ICR1);
+-	*icrp = MCFSIM_ICR_LEVEL1 | MCFSIM_ICR_PRI2 | MCFSIM_ICR_AUTOVEC;
+-	mcf_setimr(mcf_getimr() & ~MCFSIM_IMR_EINT1);
 -}
-+extern int elf_core_copy_fpregs(struct task_struct *t, elf_fpregset_t *fpu);
- 
- #define ELF_CORE_COPY_FPREGS(t, fpu) elf_core_copy_fpregs(t, fpu)
- 
-diff -puN include/asm-um/elf-x86_64.h~uml-header-untangling include/asm-um/elf-x86_64.h
---- a/include/asm-um/elf-x86_64.h~uml-header-untangling
-+++ a/include/asm-um/elf-x86_64.h
-@@ -7,7 +7,6 @@
- #ifndef __UM_ELF_X86_64_H
- #define __UM_ELF_X86_64_H
- 
--#include <linux/sched.h>
- #include <asm/user.h>
- #include "skas.h"
- 
-@@ -96,12 +95,7 @@ typedef struct user_i387_struct elf_fpre
- 	(pr_reg)[25] = 0;					\
- 	(pr_reg)[26] = 0;
- 
--static inline int elf_core_copy_fpregs(struct task_struct *t,
--				       elf_fpregset_t *fpu)
--{
--	int cpu = current_thread->cpu;
--	return save_fp_registers(userspace_pid[cpu], (unsigned long *) fpu);
--}
-+extern int elf_core_copy_fpregs(struct task_struct *t, elf_fpregset_t *fpu);
- 
- #define ELF_CORE_COPY_FPREGS(t, fpu) elf_core_copy_fpregs(t, fpu)
- 
-diff -puN include/asm-um/fixmap.h~uml-header-untangling include/asm-um/fixmap.h
---- a/include/asm-um/fixmap.h~uml-header-untangling
-+++ a/include/asm-um/fixmap.h
-@@ -1,9 +1,10 @@
- #ifndef __UM_FIXMAP_H
- #define __UM_FIXMAP_H
- 
-+#include <asm/system.h>
- #include <asm/kmap_types.h>
- #include <asm/archparam.h>
--#include <asm/elf.h>
-+#include <asm/page.h>
- 
+-#endif
+-
+ #if defined(CONFIG_M5206e) && defined(CONFIG_NETtel)
+ void ne2000_irqsetup(int irq)
+ {
+diff -puN include/asm-m68knommu/mcfsim.h~m68knomu-remove-dead-config-symbols-from-m68knomu-code include/asm-m68knommu/mcfsim.h
+--- a/include/asm-m68knommu/mcfsim.h~m68knomu-remove-dead-config-symbols-from-m68knomu-code
++++ a/include/asm-m68knommu/mcfsim.h
+@@ -17,9 +17,7 @@
+  *	Include 5204, 5206/e, 5235, 5249, 5270/5271, 5272, 5280/5282,
+  *	5307 or 5407 specific addresses.
+  */
+-#if defined(CONFIG_M5204)
+-#include <asm/m5204sim.h>
+-#elif defined(CONFIG_M5206) || defined(CONFIG_M5206e)
++#if defined(CONFIG_M5206) || defined(CONFIG_M5206e)
+ #include <asm/m5206sim.h>
+ #elif defined(CONFIG_M520x)
+ #include <asm/m520xsim.h>
+diff -puN include/asm-m68knommu/mcftimer.h~m68knomu-remove-dead-config-symbols-from-m68knomu-code include/asm-m68knommu/mcftimer.h
+--- a/include/asm-m68knommu/mcftimer.h~m68knomu-remove-dead-config-symbols-from-m68knomu-code
++++ a/include/asm-m68knommu/mcftimer.h
+@@ -16,7 +16,7 @@
  /*
-  * Here we define all the compile-time 'special' virtual
-diff -puN include/asm-um/pgtable-3level.h~uml-header-untangling include/asm-um/pgtable-3level.h
---- a/include/asm-um/pgtable-3level.h~uml-header-untangling
-+++ a/include/asm-um/pgtable-3level.h
-@@ -59,15 +59,8 @@ static inline void pgd_mkuptodate(pgd_t 
- 
- #define set_pmd(pmdptr, pmdval) set_64bit((phys_t *) (pmdptr), pmd_val(pmdval))
- 
--static inline pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long address)
--{
--        pmd_t *pmd = (pmd_t *) __get_free_page(GFP_KERNEL);
--
--        if(pmd)
--                memset(pmd, 0, PAGE_SIZE);
--
--        return pmd;
--}
-+struct mm_struct;
-+extern pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long address);
- 
- static inline void pud_clear (pud_t *pud)
- {
-diff -puN include/asm-um/pgtable.h~uml-header-untangling include/asm-um/pgtable.h
---- a/include/asm-um/pgtable.h~uml-header-untangling
-+++ a/include/asm-um/pgtable.h
-@@ -8,7 +8,6 @@
- #ifndef __UM_PGTABLE_H
- #define __UM_PGTABLE_H
- 
--#include "linux/sched.h"
- #include <asm/fixmap.h>
- 
- #define _PAGE_PRESENT	0x001
-diff -puN include/asm-um/processor-generic.h~uml-header-untangling include/asm-um/processor-generic.h
---- a/include/asm-um/processor-generic.h~uml-header-untangling
-+++ a/include/asm-um/processor-generic.h
-@@ -11,6 +11,7 @@ struct pt_regs;
- struct task_struct;
- 
- #include "asm/ptrace.h"
-+#include "asm/pgtable.h"
- #include "registers.h"
- #include "sysdep/archsetjmp.h"
- 
-@@ -68,10 +69,6 @@ struct thread_struct {
- 	.request		= { 0 } \
+  *	Get address specific defines for this ColdFire member.
+  */
+-#if defined(CONFIG_M5204) || defined(CONFIG_M5206) || defined(CONFIG_M5206e)
++#if defined(CONFIG_M5206) || defined(CONFIG_M5206e)
+ #define	MCFTIMER_BASE1		0x100		/* Base address of TIMER1 */
+ #define	MCFTIMER_BASE2		0x120		/* Base address of TIMER2 */
+ #elif defined(CONFIG_M5272)
+diff -puN include/asm-m68knommu/mcfuart.h~m68knomu-remove-dead-config-symbols-from-m68knomu-code include/asm-m68knommu/mcfuart.h
+--- a/include/asm-m68knommu/mcfuart.h~m68knomu-remove-dead-config-symbols-from-m68knomu-code
++++ a/include/asm-m68knommu/mcfuart.h
+@@ -19,7 +19,7 @@
+ #if defined(CONFIG_M5272)
+ #define	MCFUART_BASE1		0x100		/* Base address of UART1 */
+ #define	MCFUART_BASE2		0x140		/* Base address of UART2 */
+-#elif defined(CONFIG_M5204) || defined(CONFIG_M5206) || defined(CONFIG_M5206e)
++#elif defined(CONFIG_M5206) || defined(CONFIG_M5206e)
+ #if defined(CONFIG_NETtel)
+ #define	MCFUART_BASE1		0x180		/* Base address of UART1 */
+ #define	MCFUART_BASE2		0x140		/* Base address of UART2 */
+diff -puN include/asm-m68knommu/system.h~m68knomu-remove-dead-config-symbols-from-m68knomu-code include/asm-m68knommu/system.h
+--- a/include/asm-m68knommu/system.h~m68knomu-remove-dead-config-symbols-from-m68knomu-code
++++ a/include/asm-m68knommu/system.h
+@@ -207,23 +207,6 @@ cmpxchg(volatile int *p, int old, int ne
  }
  
--typedef struct {
--	unsigned long seg;
--} mm_segment_t;
+ 
+-#ifdef CONFIG_M68332
+-#define HARD_RESET_NOW() ({		\
+-        local_irq_disable();		\
+-        asm("				\
+-	movew   #0x0000, 0xfffa6a;	\
+-        reset;				\
+-        /*movew #0x1557, 0xfffa44;*/	\
+-        /*movew #0x0155, 0xfffa46;*/	\
+-        moveal #0, %a0;			\
+-        movec %a0, %vbr;		\
+-        moveal 0, %sp;			\
+-        moveal 4, %a0;			\
+-        jmp (%a0);			\
+-        ");				\
+-})
+-#endif
 -
- extern struct task_struct *alloc_task_struct(void);
- 
- static inline void release_thread(struct task_struct *task)
-diff -puN include/asm-um/thread_info.h~uml-header-untangling include/asm-um/thread_info.h
---- a/include/asm-um/thread_info.h~uml-header-untangling
-+++ a/include/asm-um/thread_info.h
-@@ -8,8 +8,9 @@
- 
- #ifndef __ASSEMBLY__
- 
--#include <asm/processor.h>
- #include <asm/types.h>
-+#include <asm/page.h>
-+#include <asm/uaccess.h>
- 
- struct thread_info {
- 	struct task_struct	*task;		/* main task structure */
-diff -puN include/asm-um/uaccess.h~uml-header-untangling include/asm-um/uaccess.h
---- a/include/asm-um/uaccess.h~uml-header-untangling
-+++ a/include/asm-um/uaccess.h
-@@ -6,7 +6,15 @@
- #ifndef __UM_UACCESS_H
- #define __UM_UACCESS_H
- 
--#include "linux/sched.h"
-+#include <asm/errno.h>
-+#include <asm/processor.h>
-+
-+/* thread_info has a mm_segment_t in it, so put the definition up here */
-+typedef struct {
-+	unsigned long seg;
-+} mm_segment_t;
-+
-+#include "linux/thread_info.h"
- 
- #define VERIFY_READ 0
- #define VERIFY_WRITE 1
+ #if defined( CONFIG_M68328 ) || defined( CONFIG_M68EZ328 ) || \
+ 	defined (CONFIG_M68360) || defined( CONFIG_M68VZ328 )
+ #define HARD_RESET_NOW() ({		\
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from olsajiri@gmail.com are
 
 origin.patch
-git-kvm.patch
-fix-__const_udelay-declaration-and-definition-mismatches.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
-random-add-async-notification-support-to-dev-random.patch
-mount-options-fix-hostfs.patch
+fs-remove-dead-config-config_has_compat_epoll_event-symbol.patch
+alpha-parisc-removing-config-variable-debug_rwlock.patch
