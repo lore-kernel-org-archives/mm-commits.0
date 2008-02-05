@@ -1,62 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - slub-comment-kmem_cache_cpu-structure.patch removed from -mm tree
-Date: Mon, 04 Feb 2008 18:45:56 -0800
-Message-ID: <200802050245.m152jcx8031193@imap1.linux-foundation.org>
+Subject: - slub-fix-sysfs-refcounting.patch removed from -mm tree
+Date: Mon, 04 Feb 2008 18:46:00 -0800
+Message-ID: <200802050245.m152jg4C031198@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60842 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33099 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751413AbYBECpl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2008 21:45:41 -0500
+	by vger.kernel.org with ESMTP id S1751449AbYBECpr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2008 21:45:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: comment kmem_cache_cpu structure
+     SLUB: fix sysfs refcounting
 has been removed from the -mm tree.  Its filename was
-     slub-comment-kmem_cache_cpu-structure.patch
+     slub-fix-sysfs-refcounting.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: SLUB: comment kmem_cache_cpu structure
+Subject: SLUB: fix sysfs refcounting
 From: Christoph Lameter <clameter@sgi.com>
 
-Add some comments explaining the fields of the kmem_cache_cpu structure.
+If CONFIG_SYSFS is set then free the kmem_cache structure when sysfs tells
+us its okay.
 
-Signed-off-by: Chrsitoph Lameter <clameter@sgi.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slub_def.h |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/slub.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/slub_def.h~slub-comment-kmem_cache_cpu-structure include/linux/slub_def.h
---- a/include/linux/slub_def.h~slub-comment-kmem_cache_cpu-structure
-+++ a/include/linux/slub_def.h
-@@ -12,12 +12,12 @@
- #include <linux/kobject.h>
+diff -puN mm/slub.c~slub-fix-sysfs-refcounting mm/slub.c
+--- a/mm/slub.c~slub-fix-sysfs-refcounting
++++ a/mm/slub.c
+@@ -218,7 +218,10 @@ static void sysfs_slab_remove(struct kme
+ static inline int sysfs_slab_add(struct kmem_cache *s) { return 0; }
+ static inline int sysfs_slab_alias(struct kmem_cache *s, const char *p)
+ 							{ return 0; }
+-static inline void sysfs_slab_remove(struct kmem_cache *s) {}
++static inline void sysfs_slab_remove(struct kmem_cache *s)
++{
++	kfree(s);
++}
+ #endif
  
- struct kmem_cache_cpu {
--	void **freelist;
--	struct page *page;
--	int node;
--	unsigned int offset;
--	unsigned int objsize;
--	unsigned int objects;
-+	void **freelist;	/* Pointer to first free per cpu object */
-+	struct page *page;	/* The slab from which we are allocating */
-+	int node;		/* The node of the page (or -1 for debug) */
-+	unsigned int offset;	/* Freepointer offset (in word units) */
-+	unsigned int objsize;	/* Size of an object (from kmem_cache) */
-+	unsigned int objects;	/* Objects per slab (from kmem_cache) */
+ /********************************************************************
+@@ -2488,7 +2491,6 @@ void kmem_cache_destroy(struct kmem_cach
+ 		if (kmem_cache_close(s))
+ 			WARN_ON(1);
+ 		sysfs_slab_remove(s);
+-		kfree(s);
+ 	} else
+ 		up_write(&slub_lock);
+ }
+@@ -4114,6 +4116,13 @@ static ssize_t slab_attr_store(struct ko
+ 	return err;
+ }
+ 
++static void kmem_cache_release(struct kobject *kobj)
++{
++	struct kmem_cache *s = to_slab(kobj);
++
++	kfree(s);
++}
++
+ static struct sysfs_ops slab_sysfs_ops = {
+ 	.show = slab_attr_show,
+ 	.store = slab_attr_store,
+@@ -4121,6 +4130,7 @@ static struct sysfs_ops slab_sysfs_ops =
+ 
+ static struct kobj_type slab_ktype = {
+ 	.sysfs_ops = &slab_sysfs_ops,
++	.release = kmem_cache_release
  };
  
- struct kmem_cache_node {
+ static int uevent_filter(struct kset *kset, struct kobject *kobj)
+@@ -4222,6 +4232,7 @@ static void sysfs_slab_remove(struct kme
+ {
+ 	kobject_uevent(&s->kobj, KOBJ_REMOVE);
+ 	kobject_del(&s->kobj);
++	kobject_put(&s->kobj);
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -68,7 +101,6 @@ vmalloc-add-const-to-void-parameters.patch
 i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
 is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries.patch
 vmalloc-clean-up-page-array-indexing.patch
-slub-comment-kmem_cache_cpu-structure.patch
 slub-fix-sysfs-refcounting.patch
 vm-allow-get_page_unless_zero-on-compound-pages.patch
 bufferhead-revert-constructor-removal.patch
