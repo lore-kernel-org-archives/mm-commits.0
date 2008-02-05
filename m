@@ -1,62 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - rfcomm-tty-destroy-before-tty_close.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:39:52 -0800
-Message-ID: <200802052239.m15MdXiD013064@imap1.linux-foundation.org>
+Subject: - uml-smp-needs-to-depend-on-broken-for-now.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:35:44 -0800
+Message-ID: <200802052235.m15MZPUv012611@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54716 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51768 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762294AbYBEWlN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:13 -0500
+	by vger.kernel.org with ESMTP id S1762271AbYBEWlO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hidave.darkstar@gmail.com, marcel@holtmann.org, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rfcomm tty: destroy before tty_close()
+     uml: SMP needs to depend on BROKEN for now
 has been removed from the -mm tree.  Its filename was
-     rfcomm-tty-destroy-before-tty_close.patch
+     uml-smp-needs-to-depend-on-broken-for-now.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rfcomm tty: destroy before tty_close()
-From: Dave Young <hidave.darkstar@gmail.com>
+Subject: uml: SMP needs to depend on BROKEN for now
+From: Jeff Dike <jdike@addtoit.com>
 
-rfcomm dev could be deleted in tty_hangup, so we must not call
-rfcomm_dev_del again to prevent from destroying rfcomm dev before tty
-close.
+SMP still needs to depend on BROKEN for now.
 
-Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
-Cc: Marcel Holtmann <marcel@holtmann.org>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bluetooth/rfcomm/tty.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/um/Kconfig |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN net/bluetooth/rfcomm/tty.c~rfcomm-tty-destroy-before-tty_close net/bluetooth/rfcomm/tty.c
---- a/net/bluetooth/rfcomm/tty.c~rfcomm-tty-destroy-before-tty_close
-+++ a/net/bluetooth/rfcomm/tty.c
-@@ -429,7 +429,8 @@ static int rfcomm_release_dev(void __use
- 	if (dev->tty)
- 		tty_vhangup(dev->tty);
- 
--	rfcomm_dev_del(dev);
-+	if (!test_bit(RFCOMM_RELEASE_ONHUP, &dev->flags))
-+		rfcomm_dev_del(dev);
- 	rfcomm_dev_put(dev);
- 	return 0;
- }
+diff -puN arch/um/Kconfig~uml-smp-needs-to-depend-on-broken-for-now arch/um/Kconfig
+--- a/arch/um/Kconfig~uml-smp-needs-to-depend-on-broken-for-now
++++ a/arch/um/Kconfig
+@@ -189,8 +189,7 @@ config MAGIC_SYSRQ
+ config SMP
+ 	bool "Symmetric multi-processing support (EXPERIMENTAL)"
+ 	default n
+-	#SMP_BROKEN is for x86_64.
+-	depends on EXPERIMENTAL && (!SMP_BROKEN || (BROKEN && SMP_BROKEN))
++	depends on BROKEN
+ 	help
+ 	  This option enables UML SMP support.
+ 	  It is NOT related to having a real SMP box. Not directly, at least.
 _
 
-Patches currently in -mm which might be from hidave.darkstar@gmail.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-git-cpufreq.patch
-iget-stop-isofs-from-using-read_inode.patch
-iget-stop-isofs-from-using-read_inode-fix-2.patch
-iget-stop-isofs-from-using-read_inode-fix-2-update.patch
+git-kvm.patch
+fix-__const_udelay-declaration-and-definition-mismatches.patch
+iget-stop-hostfs-from-using-iget-and-read_inode.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
+random-add-async-notification-support-to-dev-random.patch
+mount-options-fix-hostfs.patch
