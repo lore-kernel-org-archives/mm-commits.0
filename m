@@ -1,71 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - ia64-make-pfm_get_task-work-with-virtual-pids.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:39:21 -0800
-Message-ID: <200802052239.m15Md2In013012@imap1.linux-foundation.org>
+Subject: - remove-unused-code-from-mm-tiny-shmemc.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:31:29 -0800
+Message-ID: <200802052231.m15MVALt012141@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40845 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44000 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762593AbYBEWmg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:36 -0500
+	by vger.kernel.org with ESMTP id S1761124AbYBEWmh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, ebiederm@xmission.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: balbir@linux.vnet.ibm.com, mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ia64: make pfm_get_task work with virtual pids
+     Remove unused code from mm/tiny-shmem.c
 has been removed from the -mm tree.  Its filename was
-     ia64-make-pfm_get_task-work-with-virtual-pids.patch
+     remove-unused-code-from-mm-tiny-shmemc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia64: make pfm_get_task work with virtual pids
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: Remove unused code from mm/tiny-shmem.c
+From: Balbir Singh <balbir@linux.vnet.ibm.com>
 
-This pid comes from user space, so treat it accordingly.
+This code in mm/tiny-shmem.c is under #if 0 - remove it.
 
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Acked-by: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/perfmon.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/tiny-shmem.c |   12 ------------
+ 1 file changed, 12 deletions(-)
 
-diff -puN arch/ia64/kernel/perfmon.c~ia64-make-pfm_get_task-work-with-virtual-pids arch/ia64/kernel/perfmon.c
---- a/arch/ia64/kernel/perfmon.c~ia64-make-pfm_get_task-work-with-virtual-pids
-+++ a/arch/ia64/kernel/perfmon.c
-@@ -2654,11 +2654,11 @@ pfm_get_task(pfm_context_t *ctx, pid_t p
- 	/* XXX: need to add more checks here */
- 	if (pid < 2) return -EPERM;
+diff -puN mm/tiny-shmem.c~remove-unused-code-from-mm-tiny-shmemc mm/tiny-shmem.c
+--- a/mm/tiny-shmem.c~remove-unused-code-from-mm-tiny-shmemc
++++ a/mm/tiny-shmem.c
+@@ -121,18 +121,6 @@ int shmem_unuse(swp_entry_t entry, struc
+ 	return 0;
+ }
  
--	if (pid != current->pid) {
-+	if (pid != task_pid_vnr(current)) {
- 
- 		read_lock(&tasklist_lock);
- 
--		p = find_task_by_pid(pid);
-+		p = find_task_by_vpid(pid);
- 
- 		/* make sure task cannot go away while we operate on it */
- 		if (p) get_task_struct(p);
+-#if 0
+-int shmem_mmap(struct file *file, struct vm_area_struct *vma)
+-{
+-	file_accessed(file);
+-#ifndef CONFIG_MMU
+-	return ramfs_nommu_mmap(file, vma);
+-#else
+-	return 0;
+-#endif
+-}
+-#endif  /*  0  */
+-
+ #ifndef CONFIG_MMU
+ unsigned long shmem_get_unmapped_area(struct file *file,
+ 				      unsigned long addr,
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
 
 origin.patch
-use-find_task_by_vpid-in-audit-code.patch
-gfs2-make-gfs2_glockgl_owner_pid-be-a-struct-pid.patch
-gfs2-make-gfs2_holdergh_owner_pid-be-a-struct-pid.patch
-ia64-fix-ptrace-inside-a-namespace.patch
-mips-use-find_task_by_vpid-in-system-calls.patch
-deprecate-find_task_by_pid-kgdb.patch
 memory-controller-add-documentation.patch
+memcgroup-temporarily-revert-swapoff-mod.patch
 memory-controller-resource-counters-v7.patch
 memory-controller-containers-setup-v7.patch
 memory-controller-accounting-setup-v7.patch
@@ -78,7 +77,12 @@ memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
 memory-controller-make-page_referenced-container-aware-v7.patch
 memory-controller-make-charging-gfp-mask-aware.patch
 memcgroup-reinstate-swapoff-mod.patch
-bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+memory-controller-bug_on.patch
+memcontrol-move-mm_cgroup-to-header-file.patch
+memcontrol-move-mm_cgroup-to-header-file-fix.patch
+memcontrol-move-mm_cgroup-to-header-file-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+oom-add-sysctl-to-enable-task-memory-dump.patch
 bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
 bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
 bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
@@ -89,6 +93,9 @@ memcgroup-revert-swap_state-mods.patch
 memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
 memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
 memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
+memory-controller-use-rcu_read_lock-in-mem_cgroup_cache_charge.patch
+memcgroup-tidy-up-mem_cgroup_charge_common.patch
+memcgroup-fix-hang-with-shmem-tmpfs.patch
 memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
 memory-cgroup-enhancements-add-memorystat-file.patch
@@ -104,43 +111,6 @@ per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-num
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
-handle-pid-namespaces-in-cgroups-code.patch
-add-the-namespaces-config-option.patch
-move-the-uts-namespace-under-uts_ns-option.patch
-move-the-ipc-namespace-under-ipc_ns-option.patch
-cleanup-the-code-managed-with-the-user_ns-option.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-mark-net_ns-with-depends-on-namespaces.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
-proc-proper-pidns-handling-for-proc-self.patch
-proc-fix-the-threaded-proc-self.patch
-ipc-uninline-some-code-from-utilh.patch
-ipc-make-struct-ipc_ids-static-in-ipc_namespace.patch
-ipc-consolidate-sem_exit_ns-msg_exit_ns-and-shm_exit_ns.patch
-sys_setpgid-simplify-pid-ns-interaction.patch
-fix-setsid-for-sub-namespace-sbin-init.patch
-teach-set_special_pids-to-use-struct-pid.patch
-move-daemonized-kernel-threads-into-the-swappers-session.patch
-start-the-global-sbin-init-with-00-special-pids.patch
-pid-sys_wait-fixes-v2.patch
-pid-extend-fix-pid_vnr.patch
-sys_getsid-dont-use-nsproxy-directly.patch
-pid-fix-mips-irix-emulation-pid-usage.patch
-pid-fix-mips-irix-emulation-pid-usage-fix.patch
-pid-fix-solaris_procids.patch
-uglify-kill_pid_info-to-fix-kill-vs-exec-race.patch
-uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice.patch
-itimer_real-convert-to-use-struct-pid.patch
-pidns-make-full-use-of-xxx_vnr-calls.patch
-pidns-fix-badly-converted-mqueues-pid-handling.patch
-clean-up-the-kill_something_info.patch
-get-rid-of-the-kill_pgrp_info-function.patch
-use-find_task_by_vpid-in-posix-timers.patch
-use-find_task_by_vpid-in-taskstats.patch
-dont-operate-with-pid_t-in-rtmutex-tester.patch
-deprecate-find_task_by_pid.patch
-reiser4.patch
+memory-controller-remove-control_type-feature.patch
+update-documentation-controller-memorytxt.patch
+getdelays-fix-gcc-warnings.patch
