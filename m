@@ -1,235 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - tmpfs-open-a-window-in-shmem_unuse_inode.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:30:41 -0800
-Message-ID: <200802052230.m15MUMch012061@imap1.linux-foundation.org>
+Subject: - fix-dirty-page-accounting-leak-with-ext3-data=journal.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:32:18 -0800
+Message-ID: <200802052231.m15MVx8l012206@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38575 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58560 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932202AbYBEWm5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:57 -0500
+	by vger.kernel.org with ESMTP id S932323AbYBEWnT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:43:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, mm-commits@vger.kernel.org
+To: B.Steinbrink@gmx.de, a.p.zijlstra@chello.nl, jack@ucw.cz, nickpiggin@yahoo.com.au, ole@ans.pl, osterried@jesse.de, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tmpfs: open a window in shmem_unuse_inode
+     Fix dirty page accounting leak with ext3 data=3Djournal
 has been removed from the -mm tree.  Its filename was
-     tmpfs-open-a-window-in-shmem_unuse_inode.patch
+     fix-dirty-page-accounting-leak-with-ext3-data=3Djournal.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: tmpfs: open a window in shmem_unuse_inode
-From: Hugh Dickins <hugh@veritas.com>
+Subject: Fix dirty page accounting leak with ext3 data=3Djournal
+=46rom: Bjorn Steinbrink <B.Steinbrink@gmx.de>
 
-There are a couple of reasons (patches follow) why it would be good to open a
-window for sleep in shmem_unuse_inode, between its search for a matching swap
-entry, and its handling of the entry found.
+In 46d2277c796f9f4937bfa668c40b2e3f43e93dd0, try_to_free_buffers was
+changed to bail out if the page was dirty.  That caused
+truncate_complete_page to leak massive amounts of memory, because the d=
+irty
+bit was only cleared after the call to try_to_free_buffers.  So the cal=
+l to
+cancel_dirty_page was moved up to have the dirty bit cleared early in
+3e67c0987d7567ad666641164a153dca9a43b11d.
 
-shmem_unuse_inode must then use igrab to hold the inode against deletion in
-that window, and its corresponding iput might result in deletion: so it had
-better unlock_page before the iput, and might as well release the page too.
+The problem with that fix is, that the page can be redirtied after
+cancel_dirty_page was called, eg. like this:
 
-Nor is there any need to hold on to shmem_swaplist_mutex once we know we'll
-leave the loop.  So this unwinding moves from try_to_unuse and shmem_unuse
-into shmem_unuse_inode, in the case when it finds a match.
+truncate_complete_page()
+  cancel_dirty_page() // PG_dirty cleared, decr. dirty pages
+  do_invalidatepage()
+    ext3_invalidatepage()
+      journal_invalidatepage()
+        journal_unmap_buffer()
+          __dispose_buffer()
+            __journal_unfile_buffer()
+              __journal_temp_unlink_buffer()
+                mark_buffer_dirty(); // PG_dirty set, incr. dirty pages
 
-Let try_to_unuse break on error in the shmem_unuse case, as it does in the
-unuse_mm case: though at this point in the series, no error to break on.
+And then we end up with dirty pages being wrongly accounted.
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
+In ecdfc9787fe527491baefc22dce8b2dbd5b2908d the changes to
+try_to_free_buffers were reverted, so the original reason for the
+massive memory leak is gone, so we can also revert the move of
+the call to cancel_dirty_page from truncate_complete_page and get the
+accounting right again.
+
+I'm not sure if it matters, but opposed to the final check in
+__remove_from_page_cache, this one also cares about the task io account=
+ing,
+so maybe we want to use this instead, although it's not quite the clean=
+ fix
+either.
+
+Signed-off-by: Bj=F6rn Steinbrink <B.Steinbrink@gmx.de>
+Tested-by: Krzysztof Piotr Oledzki <ole@ans.pl>
+Cc: Jan Kara <jack@ucw.cz>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Thomas Osterried <osterried@jesse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c    |   57 +++++++++++++++++++++++++++++-------------------
- mm/swapfile.c |   23 ++++++++-----------
- 2 files changed, 45 insertions(+), 35 deletions(-)
+ mm/truncate.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/shmem.c~tmpfs-open-a-window-in-shmem_unuse_inode mm/shmem.c
---- a/mm/shmem.c~tmpfs-open-a-window-in-shmem_unuse_inode
-+++ a/mm/shmem.c
-@@ -838,10 +838,8 @@ static int shmem_unuse_inode(struct shme
- 	if (size > SHMEM_NR_DIRECT)
- 		size = SHMEM_NR_DIRECT;
- 	offset = shmem_find_swp(entry, ptr, ptr+size);
--	if (offset >= 0) {
--		shmem_swp_balance_unmap();
-+	if (offset >= 0)
- 		goto found;
--	}
- 	if (!info->i_indirect)
- 		goto lost2;
- 
-@@ -879,11 +877,11 @@ static int shmem_unuse_inode(struct shme
- 			if (size > ENTRIES_PER_PAGE)
- 				size = ENTRIES_PER_PAGE;
- 			offset = shmem_find_swp(entry, ptr, ptr+size);
-+			shmem_swp_unmap(ptr);
- 			if (offset >= 0) {
- 				shmem_dir_unmap(dir);
- 				goto found;
- 			}
--			shmem_swp_unmap(ptr);
- 		}
- 	}
- lost1:
-@@ -893,10 +891,25 @@ lost2:
- 	return 0;
- found:
- 	idx += offset;
--	inode = &info->vfs_inode;
--	error = add_to_page_cache(page, inode->i_mapping, idx, GFP_ATOMIC);
-+	inode = igrab(&info->vfs_inode);
-+	spin_unlock(&info->lock);
+diff -puN mm/truncate.c~fix-dirty-page-accounting-leak-with-ext3-data=3D=
+journal mm/truncate.c
+--- a/mm/truncate.c~fix-dirty-page-accounting-leak-with-ext3-data=3Djou=
+rnal
++++ a/mm/truncate.c
+@@ -98,11 +98,11 @@ truncate_complete_page(struct address_sp
+ 	if (page->mapping !=3D mapping)
+ 		return;
+=20
+-	cancel_dirty_page(page, PAGE_CACHE_SIZE);
+-
+ 	if (PagePrivate(page))
+ 		do_invalidatepage(page, 0);
+=20
++	cancel_dirty_page(page, PAGE_CACHE_SIZE);
 +
-+	/* move head to start search for next from here */
-+	list_move_tail(&shmem_swaplist, &info->swaplist);
-+	mutex_unlock(&shmem_swaplist_mutex);
-+
-+	error = 1;
-+	if (!inode)
-+		goto out;
-+
-+	spin_lock(&info->lock);
-+	ptr = shmem_swp_entry(info, idx, NULL);
-+	if (ptr && ptr->val == entry.val)
-+		error = add_to_page_cache(page, inode->i_mapping,
-+						idx, GFP_ATOMIC);
- 	if (error == -EEXIST) {
- 		struct page *filepage = find_get_page(inode->i_mapping, idx);
-+		error = 1;
- 		if (filepage) {
- 			/*
- 			 * There might be a more uptodate page coming down
-@@ -911,16 +924,18 @@ found:
- 		delete_from_swap_cache(page);
- 		set_page_dirty(page);
- 		info->flags |= SHMEM_PAGEIN;
--		shmem_swp_set(info, ptr + offset, 0);
-+		shmem_swp_set(info, ptr, 0);
-+		swap_free(entry);
-+		error = 1;	/* not an error, but entry was found */
- 	}
--	shmem_swp_unmap(ptr);
-+	if (ptr)
-+		shmem_swp_unmap(ptr);
- 	spin_unlock(&info->lock);
--	/*
--	 * Decrement swap count even when the entry is left behind:
--	 * try_to_unuse will skip over mms, then reincrement count.
--	 */
--	swap_free(entry);
--	return 1;
-+out:
-+	unlock_page(page);
-+	page_cache_release(page);
-+	iput(inode);		/* allows for NULL */
-+	return error;
- }
- 
- /*
-@@ -935,18 +950,16 @@ int shmem_unuse(swp_entry_t entry, struc
- 	mutex_lock(&shmem_swaplist_mutex);
- 	list_for_each_safe(p, next, &shmem_swaplist) {
- 		info = list_entry(p, struct shmem_inode_info, swaplist);
--		if (!info->swapped)
-+		if (info->swapped)
-+			found = shmem_unuse_inode(info, entry, page);
-+		else
- 			list_del_init(&info->swaplist);
--		else if (shmem_unuse_inode(info, entry, page)) {
--			/* move head to start search for next from here */
--			list_move_tail(&shmem_swaplist, &info->swaplist);
--			found = 1;
--			break;
--		}
- 		cond_resched();
-+		if (found)
-+			goto out;
- 	}
- 	mutex_unlock(&shmem_swaplist_mutex);
--	return found;
-+out:	return found;	/* 0 or 1 or -ENOMEM */
- }
- 
- /*
-diff -puN mm/swapfile.c~tmpfs-open-a-window-in-shmem_unuse_inode mm/swapfile.c
---- a/mm/swapfile.c~tmpfs-open-a-window-in-shmem_unuse_inode
-+++ a/mm/swapfile.c
-@@ -814,7 +814,7 @@ static int try_to_unuse(unsigned int typ
- 			atomic_inc(&new_start_mm->mm_users);
- 			atomic_inc(&prev_mm->mm_users);
- 			spin_lock(&mmlist_lock);
--			while (*swap_map > 1 && !retval &&
-+			while (*swap_map > 1 && !retval && !shmem &&
- 					(p = p->next) != &start_mm->mmlist) {
- 				mm = list_entry(p, struct mm_struct, mmlist);
- 				if (!atomic_inc_not_zero(&mm->mm_users))
-@@ -846,6 +846,13 @@ static int try_to_unuse(unsigned int typ
- 			mmput(start_mm);
- 			start_mm = new_start_mm;
- 		}
-+		if (shmem) {
-+			/* page has already been unlocked and released */
-+			if (shmem > 0)
-+				continue;
-+			retval = shmem;
-+			break;
-+		}
- 		if (retval) {
- 			unlock_page(page);
- 			page_cache_release(page);
-@@ -884,12 +891,6 @@ static int try_to_unuse(unsigned int typ
- 		 * read from disk into another page.  Splitting into two
- 		 * pages would be incorrect if swap supported "shared
- 		 * private" pages, but they are handled by tmpfs files.
--		 *
--		 * Note shmem_unuse already deleted a swappage from
--		 * the swap cache, unless the move to filepage failed:
--		 * in which case it left swappage in cache, lowered its
--		 * swap count to pass quickly through the loops above,
--		 * and now we must reincrement count to try again later.
- 		 */
- 		if ((*swap_map > 1) && PageDirty(page) && PageSwapCache(page)) {
- 			struct writeback_control wbc = {
-@@ -900,12 +901,8 @@ static int try_to_unuse(unsigned int typ
- 			lock_page(page);
- 			wait_on_page_writeback(page);
- 		}
--		if (PageSwapCache(page)) {
--			if (shmem)
--				swap_duplicate(entry);
--			else
--				delete_from_swap_cache(page);
--		}
-+		if (PageSwapCache(page))
-+			delete_from_swap_cache(page);
- 
- 		/*
- 		 * So we could skip searching mms once swap count went
+ 	remove_from_page_cache(page);
+ 	ClearPageUptodate(page);
+ 	ClearPageMappedToDisk(page);
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from B.Steinbrink@gmx.de are
 
 origin.patch
-git-unionfs.patch
-git-x86.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-memcgroup-temporarily-revert-swapoff-mod.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memcgroup-reinstate-swapoff-mod.patch
-memcgroup-fix-zone-isolation-oom.patch
-memcgroup-revert-swap_state-mods.patch
-memory-controller-use-rcu_read_lock-in-mem_cgroup_cache_charge.patch
-memcgroup-tidy-up-mem_cgroup_charge_common.patch
-memcgroup-fix-hang-with-shmem-tmpfs.patch
-mount-options-fix-tmpfs.patch
-mount-options-fix-tmpfs-fix.patch
-add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
-prio_tree-debugging-patch.patch
