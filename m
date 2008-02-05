@@ -1,127 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - uml-smp-locking-commentary.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:38:09 -0800
-Message-ID: <200802052237.m15Mbom2012897@imap1.linux-foundation.org>
+Subject: - uml-fix-command-line-cflags-and-ldflags-support.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:37:04 -0800
+Message-ID: <200802052236.m15Majel012730@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50328 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41903 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762422AbYBEWlg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:36 -0500
+	by vger.kernel.org with ESMTP id S1760933AbYBEWl3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: SMP locking commentary
+     uml: fx command-line CFLAGS and LDFLAGS support
 has been removed from the -mm tree.  Its filename was
-     uml-smp-locking-commentary.patch
+     uml-fix-command-line-cflags-and-ldflags-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: SMP locking commentary
+Subject: uml: fx command-line CFLAGS and LDFLAGS support
 From: Jeff Dike <jdike@addtoit.com>
 
-Add some more commentary about various pieces of global data not needing
-locking.
+UML still needed some work in order to allow CFLAGS to be passed in from the
+command line.
 
-Also got rid of unmap_physmem since that is no longer used.
+USER_CFLAGS is produced from KBUILD_CFLAGS in part by removing all the -I
+switches.  This is so that kernel headers don't accidentally get pulled into
+libc files.  However, a common use of command-line CFLAGS would be to add -I
+switches to the build.  This patch specifically adds any command-line -I flags
+back to USER_CFLAGS.
+
+I also corrected the spelling of LFLAGS to LDFLAGS.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/net_kern.c |    7 ++++++-
- arch/um/include/mem_user.h |    1 -
- arch/um/kernel/mem.c       |   13 ++++++++-----
- arch/um/kernel/physmem.c   |    6 +++---
- 4 files changed, 17 insertions(+), 10 deletions(-)
+ arch/um/Makefile |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/um/drivers/net_kern.c~uml-smp-locking-commentary arch/um/drivers/net_kern.c
---- a/arch/um/drivers/net_kern.c~uml-smp-locking-commentary
-+++ a/arch/um/drivers/net_kern.c
-@@ -368,7 +368,6 @@ static struct platform_driver uml_net_dr
- 		.name  = DRIVER_NAME,
- 	},
- };
--static int driver_registered;
+diff -puN arch/um/Makefile~uml-fix-command-line-cflags-and-ldflags-support arch/um/Makefile
+--- a/arch/um/Makefile~uml-fix-command-line-cflags-and-ldflags-support
++++ a/arch/um/Makefile
+@@ -49,7 +49,7 @@ SYS_DIR		:= $(ARCH_DIR)/include/sysdep-$
+ #
+ # These apply to USER_CFLAGS to.
  
- static void net_device_release(struct device *dev)
- {
-@@ -383,6 +382,12 @@ static void net_device_release(struct de
- 	free_netdev(netdev);
- }
+-KBUILD_CFLAGS += $(CFLAGS-y) -D__arch_um__ -DSUBARCH=\"$(SUBARCH)\"	\
++KBUILD_CFLAGS += $(CFLAGS) $(CFLAGS-y) -D__arch_um__ -DSUBARCH=\"$(SUBARCH)\" \
+ 	$(ARCH_INCLUDE) $(MODE_INCLUDE) -Dvmap=kernel_vmap	\
+ 	-Din6addr_loopback=kernel_in6addr_loopback \
+ 	-Din6addr_any=kernel_in6addr_any
+@@ -58,7 +58,7 @@ KBUILD_AFLAGS += $(ARCH_INCLUDE)
  
-+/*
-+ * Ensures that platform_driver_register is called only once by
-+ * eth_configure.  Will be set in an initcall.
-+ */
-+static int driver_registered;
-+
- static void eth_configure(int n, void *init, char *mac,
- 			  struct transport *transport)
- {
-diff -puN arch/um/include/mem_user.h~uml-smp-locking-commentary arch/um/include/mem_user.h
---- a/arch/um/include/mem_user.h~uml-smp-locking-commentary
-+++ a/arch/um/include/mem_user.h
-@@ -56,7 +56,6 @@ extern void setup_physmem(unsigned long 
- 			  unsigned long len, unsigned long long highmem);
- extern void add_iomem(char *name, int fd, unsigned long size);
- extern unsigned long phys_offset(unsigned long phys);
--extern void unmap_physmem(void);
- extern void map_memory(unsigned long virt, unsigned long phys,
- 		       unsigned long len, int r, int w, int x);
+ USER_CFLAGS = $(patsubst $(KERNEL_DEFINES),,$(patsubst -D__KERNEL__,,\
+ 	$(patsubst -I%,,$(KBUILD_CFLAGS)))) $(ARCH_INCLUDE) $(MODE_INCLUDE) \
+-	-D_FILE_OFFSET_BITS=64
++	$(filter -I%,$(CFLAGS)) -D_FILE_OFFSET_BITS=64
  
-diff -puN arch/um/kernel/mem.c~uml-smp-locking-commentary arch/um/kernel/mem.c
---- a/arch/um/kernel/mem.c~uml-smp-locking-commentary
-+++ a/arch/um/kernel/mem.c
-@@ -22,17 +22,20 @@
- unsigned long *empty_zero_page = NULL;
- /* allocated in paging_init and unchanged thereafter */
- unsigned long *empty_bad_page = NULL;
-+
-+/*
-+ * Initialized during boot, and readonly for initializing page tables
-+ * afterwards
-+ */
- pgd_t swapper_pg_dir[PTRS_PER_PGD];
-+
-+/* Initialized at boot time, and readonly after that */
- unsigned long long highmem;
- int kmalloc_ok = 0;
+ include $(srctree)/$(ARCH_DIR)/Makefile-$(SUBARCH)
  
-+/* Used during early boot */
- static unsigned long brk_end;
+@@ -130,7 +130,7 @@ CPPFLAGS_vmlinux.lds = -U$(SUBARCH) -DST
+ # The wrappers will select whether using "malloc" or the kernel allocator.
+ LINK_WRAPS = -Wl,--wrap,malloc -Wl,--wrap,free -Wl,--wrap,calloc
  
--void unmap_physmem(void)
--{
--	os_unmap_memory((void *) brk_end, uml_reserved - brk_end);
--}
--
- static void map_cb(void *unused)
- {
- 	map_memory(brk_end, __pa(brk_end), uml_reserved - brk_end, 1, 1, 0);
-diff -puN arch/um/kernel/physmem.c~uml-smp-locking-commentary arch/um/kernel/physmem.c
---- a/arch/um/kernel/physmem.c~uml-smp-locking-commentary
-+++ a/arch/um/kernel/physmem.c
-@@ -164,10 +164,10 @@ __uml_setup("iomem=", parse_iomem,
-  * setup_iomem, both of which run during early boot.  Afterwards, it's
-  * unchanged.
-  */
--struct iomem_region *iomem_regions = NULL;
-+struct iomem_region *iomem_regions;
+-LD_FLAGS_CMDLINE = $(foreach opt,$(LFLAGS),-Wl,$(opt))
++LD_FLAGS_CMDLINE = $(foreach opt,$(LDFLAGS),-Wl,$(opt))
  
--/* Initialized in parse_iomem */
--int iomem_size = 0;
-+/* Initialized in parse_iomem and unchanged thereafter */
-+int iomem_size;
- 
- unsigned long find_iomem(char *driver, unsigned long *len_out)
- {
+ CFLAGS_vmlinux := $(LINK-y) $(LINK_WRAPS) $(LD_FLAGS_CMDLINE)
+ define cmd_vmlinux__
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
