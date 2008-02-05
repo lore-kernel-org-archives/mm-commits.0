@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fs-char_devc-chrdev_open-marked-static-and-removed-from-fsh.patch added to -mm tree
-Date: Tue, 05 Feb 2008 02:01:37 -0800
-Message-ID: <200802051001.m15A1Ig5015167@imap1.linux-foundation.org>
+Subject: + timerfd-fix-remaining-architectures.patch added to -mm tree
+Date: Tue, 05 Feb 2008 02:12:49 -0800
+Message-ID: <200802051012.m15ACUHk015557@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54738 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50662 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754050AbYBEKB0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 05:01:26 -0500
+	by vger.kernel.org with ESMTP id S1754474AbYBEKNi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 05:13:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: crquan@gmail.com
+Cc: akpm@linux-foundation.org, davidel@xmailserver.org, dhowells@redhat.com, kkojima@rr.iij4u.or.jp, lethal@linux-sh.org, mtk-manpages@gmx.net, rc@rc0.org.uk, takata@linux-m32r.org
 
 
 The patch titled
-     fs/char_dev.c: chrdev_open marked static and removed from fs.h
+     timerfd: fix remaining architectures
 has been added to the -mm tree.  Its filename is
-     fs-char_devc-chrdev_open-marked-static-and-removed-from-fsh.patch
+     timerfd-fix-remaining-architectures.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,65 +33,353 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/char_dev.c: chrdev_open marked static and removed from fs.h
-From: Denis Cheng <crquan@gmail.com>
+Subject: timerfd: fix remaining architectures
+From: Andrew Morton <akpm@linux-foundation.org>
 
-There is an outdated comment in serial_core.c also fixed.
-
-Signed-off-by: Denis Cheng <crquan@gmail.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Kazumoto Kojima <kkojima@rr.iij4u.or.jp>
+Cc: Richard Curnow <rc@rc0.org.uk>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Michael Kerrisk <mtk-manpages@gmx.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/serial_core.c |    4 ++--
- fs/char_dev.c                |    2 +-
- include/linux/fs.h           |    1 -
- 3 files changed, 3 insertions(+), 4 deletions(-)
+ arch/frv/kernel/entry.S          |    2 +-
+ arch/m32r/kernel/syscall_table.S |    2 +-
+ arch/sh/kernel/syscalls_32.S     |    2 +-
+ arch/sh/kernel/syscalls_64.S     |    2 +-
+ include/asm-frv/unistd.h         |    2 +-
+ include/asm-m32r/unistd.h        |    2 +-
+ include/asm-sh/unistd_32.h       |    2 +-
+ include/asm-sh/unistd_64.h       |    2 +-
+ 8 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/serial/serial_core.c~fs-char_devc-chrdev_open-marked-static-and-removed-from-fsh drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~fs-char_devc-chrdev_open-marked-static-and-removed-from-fsh
-+++ a/drivers/serial/serial_core.c
-@@ -1560,8 +1560,8 @@ static struct uart_state *uart_get(struc
- }
+diff -puN arch/frv/kernel/entry.S~timerfd-fix-remaining-architectures arch/frv/kernel/entry.S
+--- a/arch/frv/kernel/entry.S~timerfd-fix-remaining-architectures
++++ a/arch/frv/kernel/entry.S
+@@ -1494,7 +1494,7 @@ sys_call_table:
+ 	.long sys_epoll_pwait
+ 	.long sys_utimensat		/* 320 */
+ 	.long sys_signalfd
+-	.long sys_timerfd
++	.long sys_ni_syscall
+ 	.long sys_eventfd
+ 	.long sys_fallocate
  
- /*
-- * In 2.4.5, calls to uart_open are serialised by the BKL in
-- *   linux/fs/devices.c:chrdev_open()
-+ * calls to uart_open are serialised by the BKL in
-+ *   fs/char_dev.c:chrdev_open()
-  * Note that if this fails, then uart_close() _will_ be called.
-  *
-  * In time, we want to scrap the "opening nonpresent ports"
-diff -puN fs/char_dev.c~fs-char_devc-chrdev_open-marked-static-and-removed-from-fsh fs/char_dev.c
---- a/fs/char_dev.c~fs-char_devc-chrdev_open-marked-static-and-removed-from-fsh
-+++ a/fs/char_dev.c
-@@ -357,7 +357,7 @@ void cdev_put(struct cdev *p)
- /*
-  * Called every time a character special file is opened
-  */
--int chrdev_open(struct inode * inode, struct file * filp)
-+static int chrdev_open(struct inode *inode, struct file *filp)
- {
- 	struct cdev *p;
- 	struct cdev *new = NULL;
-diff -puN include/linux/fs.h~fs-char_devc-chrdev_open-marked-static-and-removed-from-fsh include/linux/fs.h
---- a/include/linux/fs.h~fs-char_devc-chrdev_open-marked-static-and-removed-from-fsh
-+++ a/include/linux/fs.h
-@@ -1627,7 +1627,6 @@ extern int register_chrdev(unsigned int,
- 			   const struct file_operations *);
- extern void unregister_chrdev(unsigned int, const char *);
- extern void unregister_chrdev_region(dev_t, unsigned);
--extern int chrdev_open(struct inode *, struct file *);
- extern void chrdev_show(struct seq_file *,off_t);
+diff -puN arch/m32r/kernel/syscall_table.S~timerfd-fix-remaining-architectures arch/m32r/kernel/syscall_table.S
+--- a/arch/m32r/kernel/syscall_table.S~timerfd-fix-remaining-architectures
++++ a/arch/m32r/kernel/syscall_table.S
+@@ -321,6 +321,6 @@ ENTRY(sys_call_table)
+ 	.long sys_epoll_pwait
+ 	.long sys_utimensat		/* 320 */
+ 	.long sys_signalfd
+-	.long sys_timerfd
++	.long sys_ni_syscall
+ 	.long sys_eventfd
+ 	.long sys_fallocate
+diff -puN arch/sh/kernel/syscalls_32.S~timerfd-fix-remaining-architectures arch/sh/kernel/syscalls_32.S
+--- a/arch/sh/kernel/syscalls_32.S~timerfd-fix-remaining-architectures
++++ a/arch/sh/kernel/syscalls_32.S
+@@ -338,6 +338,6 @@ ENTRY(sys_call_table)
+ 	.long sys_epoll_pwait
+ 	.long sys_utimensat		/* 320 */
+ 	.long sys_signalfd
+-	.long sys_timerfd
++	.long sys_ni_syscall
+ 	.long sys_eventfd
+ 	.long sys_fallocate
+diff -puN arch/sh/kernel/syscalls_64.S~timerfd-fix-remaining-architectures arch/sh/kernel/syscalls_64.S
+--- a/arch/sh/kernel/syscalls_64.S~timerfd-fix-remaining-architectures
++++ a/arch/sh/kernel/syscalls_64.S
+@@ -376,6 +376,6 @@ sys_call_table:
+ 	.long sys_epoll_pwait
+ 	.long sys_utimensat
+ 	.long sys_signalfd
+-	.long sys_timerfd		/* 350 */
++	.long sys_ni_syscall		/* 350 */
+ 	.long sys_eventfd
+ 	.long sys_fallocate
+diff -puN include/asm-frv/unistd.h~timerfd-fix-remaining-architectures include/asm-frv/unistd.h
+--- a/include/asm-frv/unistd.h~timerfd-fix-remaining-architectures
++++ a/include/asm-frv/unistd.h
+@@ -328,7 +328,7 @@
+ #define __NR_epoll_pwait	319
+ #define __NR_utimensat		320
+ #define __NR_signalfd		321
+-#define __NR_timerfd		322
++/* #define __NR_timerfd		322 removed */
+ #define __NR_eventfd		323
+ #define __NR_fallocate		324
  
- /* fs/block_dev.c */
+diff -puN include/asm-m32r/unistd.h~timerfd-fix-remaining-architectures include/asm-m32r/unistd.h
+--- a/include/asm-m32r/unistd.h~timerfd-fix-remaining-architectures
++++ a/include/asm-m32r/unistd.h
+@@ -327,7 +327,7 @@
+ #define __NR_epoll_pwait	319
+ #define __NR_utimensat		320
+ #define __NR_signalfd		321
+-#define __NR_timerfd		322
++/* #define __NR_timerfd		322 removed */
+ #define __NR_eventfd		323
+ #define __NR_fallocate		324
+ 
+diff -puN include/asm-sh/unistd.h~timerfd-fix-remaining-architectures include/asm-sh/unistd.h
+diff -puN include/asm-sh/unistd_32.h~timerfd-fix-remaining-architectures include/asm-sh/unistd_32.h
+--- a/include/asm-sh/unistd_32.h~timerfd-fix-remaining-architectures
++++ a/include/asm-sh/unistd_32.h
+@@ -330,7 +330,7 @@
+ #define __NR_epoll_pwait	319
+ #define __NR_utimensat		320
+ #define __NR_signalfd		321
+-#define __NR_timerfd		322
++/* #define __NR_timerfd		322 removed */
+ #define __NR_eventfd		323
+ #define __NR_fallocate		324
+ 
+diff -puN include/asm-sh/unistd_64.h~timerfd-fix-remaining-architectures include/asm-sh/unistd_64.h
+--- a/include/asm-sh/unistd_64.h~timerfd-fix-remaining-architectures
++++ a/include/asm-sh/unistd_64.h
+@@ -370,7 +370,7 @@
+ #define __NR_epoll_pwait	347
+ #define __NR_utimensat		348
+ #define __NR_signalfd		349
+-#define __NR_timerfd		350
++/* #define __NR_timerfd		350 removed */
+ #define __NR_eventfd		351
+ #define __NR_fallocate		352
+ 
 _
 
-Patches currently in -mm which might be from crquan@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+kvm-i386-fix.patch
+drivers-net-wireless-b43-mainc-needs-ioh.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+timerfd-v3-new-timerfd-api.patch
+include-asm-powerpc-nvramh-needs-listh.patch
+serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
+vmalloc-add-const-to-void-parameters.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
+bufferhead-revert-constructor-removal.patch
+shmem-factor-out-sbi-free_inodes-manipulations.patch
+maps4-rework-task_size-macros.patch
+maps4-add-proc-kpagecount-interface.patch
+maps4-add-proc-kpageflags-interface.patch
+maps4-make-page-monitoring-proc-file-optional.patch
+page-allocator-clean-up-pcp-draining-functions.patch
+add-mm-argument-to-pte-pmd-pud-pgd_free.patch
+mm-page-writeback-highmem_is_dirtyable-option.patch
+mm-remove-fastcall-from-mm.patch
+page-migraton-handle-orphaned-pages.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+add-64-bit-capability-support-to-the-kernel.patch
+alpha-atomic_add_return-should-return-int.patch
+alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
+pm-qos-infrastructure-and-interface.patch
+dio-array_size-cleanup.patch
+uml-get-rid-of-asmlinkage.patch
+uml-improve-detection-of-host-cmov.patch
+uml-further-bugsc-tidying.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+acpi-backlight-reset-brightness-on-resume.patch
+git-agpgart.patch
+git-agpgart-fix.patch
+git-audit-printk-warning-fix.patch
+cifs-fix-warning.patch
+git-cpufreq.patch
+revert-agk-dm-dm-loop.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+git-drm-fix.patch
+drm-convert-from-nopage-to-fault.patch
+drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
+adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
+revert-git-hrt.patch
+git-ia64.patch
+i8042-non-x86-build-fix.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+git-kvm.patch
+ata-drivers-ata-sata_mvc-needs-dmapoolh.patch
+drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
+drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
 git-md-accel.patch
-3w-raid-drivers-memset-not-needed-in-probe.patch
-drivers-char-use-list_head-instead-of-list_head_init.patch
-drivers-char-ipmi-ipmi_msghandlerc-use-list_head-instead-of-list_head_init.patch
-fs-reiserfs-xattrc-use-list_head-instead-of-list_head_init.patch
-fs-char_devc-chrdev_open-marked-static-and-removed-from-fsh.patch
+memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
+memstick-disable-busted-code.patch
+git-mmc.patch
+git-mtd.patch
+drivers-mtd-maps-physmapc-fix-compile-remove-ifdef.patch
+drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-backlight.patch
+bluetooth-uninlining.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
+x86-validate-against-acpi-motherboard-resources.patch
+git-sched.patch
+git-sched-fix-git-conflicts.patch
+scsi-fix-isa-pcmcia-compile-problem.patch
+scsi-aic94xx-cleanups.patch
+drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-ohci-sm501-driver-v2-fix.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+git-v9fs-fix-git-conflicts.patch
+9p-fix-p9_printfcall-export.patch
+git-watchdog.patch
+git-watchdog-fixup.patch
+b43-fix-build-with-config_ssb_pcihost=n.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-fix-git-conflicts.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+x86-amd-thermal-interrupt-support.patch
+x86-mmconf-enable-mcfg-early.patch
+git-xtensa.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+riscom8-fix-smp-brokenness-fix.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+address-hfs-on-disk-corruption-robustness-review-comments.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+stopmachine-semaphore-to-mutex-fix.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
+debug_smp_processor_id-fixlets.patch
+use-ilog2-in-fs-namespacec-fix.patch
+system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
+speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
+drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+add-hpet-rtc-emulation-to-rtc_drv_cmos-fix.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+neofb-avoid-overwriting-fb_info-fields.patch
+vermilionc-use-align-not-__align_mask.patch
+md-change-interate_mddev-to-for_each_mddev-fix.patch
+md-change-iterate_rdev-to-rdev_for_each-fix.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+ext3-fix-lock-inversion-in-direct-io-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-mm_cgroup-to-header-file-fix.patch
+memcontrol-move-mm_cgroup-to-header-file-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
+hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
+cpusets-update_cpumask-revision-fix.patch
+cpusets-update_cpumask-revision-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+introduce-flags-for-reserve_bootmem-powerpc-fix.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
+introduce-path_put-cifs-fix.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
+proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+modules-make-module_address_lookup-safe-fix.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
+ufs-fix-symlink-creation-on-ufs2-fix.patch
+libfs-allow-error-return-from-simple-attributes-fix.patch
+fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
+mount-options-fix-tmpfs-fix.patch
+char-applicom-use-pci_match_id-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+page-owner-tracking-leak-detector-broken-on-s390.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
+timerfd-fix-remaining-architectures.patch
