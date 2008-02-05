@@ -1,82 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - git-audit-master-fix-git-rejects.patch removed from -mm tree
-Date: Mon, 04 Feb 2008 18:47:11 -0800
-Message-ID: <200802050246.m152kqGQ031285@imap1.linux-foundation.org>
+Subject: - infiniband-is-scrogged-again.patch removed from -mm tree
+Date: Mon, 04 Feb 2008 18:48:23 -0800
+Message-ID: <200802050248.m152m4PE031316@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48531 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41407 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751544AbYBECq4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2008 21:46:56 -0500
+	by vger.kernel.org with ESMTP id S1751544AbYBECsh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2008 21:48:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, rolandd@cisco.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-audit-master-fix-git-rejects
+     infiniband-is-scrogged-again
 has been removed from the -mm tree.  Its filename was
-     git-audit-master-fix-git-rejects.patch
+     infiniband-is-scrogged-again.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-audit-master-fix-git-rejects
+Subject: infiniband-is-scrogged-again
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+lol.
+
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/audit.c  |   12 ------------
- kernel/sysctl.c |    3 ---
- 2 files changed, 15 deletions(-)
+ drivers/infiniband/hw/nes/nes_cm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/audit.c~git-audit-master-fix-git-rejects kernel/audit.c
---- a/kernel/audit.c~git-audit-master-fix-git-rejects
-+++ a/kernel/audit.c
-@@ -301,25 +301,13 @@ static int audit_do_config_change(char *
- }
+diff -puN drivers/infiniband/hw/nes/nes_cm.c~infiniband-is-scrogged-again drivers/infiniband/hw/nes/nes_cm.c
+--- a/drivers/infiniband/hw/nes/nes_cm.c~infiniband-is-scrogged-again
++++ a/drivers/infiniband/hw/nes/nes_cm.c
+@@ -1012,7 +1012,7 @@ static void nes_addr_send_arp(u32 dst_ip
  
- static int audit_set_rate_limit(int limit, uid_t loginuid, u32 sid)
--<<<<<<< HEAD:kernel/audit.c
--=======
- {
- 	return audit_do_config_change("audit_rate_limit", &audit_rate_limit,
- 				      limit, loginuid, sid);
- }
- 
- static int audit_set_backlog_limit(int limit, uid_t loginuid, u32 sid)
-->>>>>>> FETCH_HEAD:kernel/audit.c
- {
--<<<<<<< HEAD:kernel/audit.c
--	return audit_do_config_change("audit_rate_limit", &audit_rate_limit,
--				      limit, loginuid, sid);
--}
--
--static int audit_set_backlog_limit(int limit, uid_t loginuid, u32 sid)
--{
--=======
-->>>>>>> FETCH_HEAD:kernel/audit.c
- 	return audit_do_config_change("audit_backlog_limit", &audit_backlog_limit,
- 				      limit, loginuid, sid);
- }
-diff -puN kernel/sysctl.c~git-audit-master-fix-git-rejects kernel/sysctl.c
---- a/kernel/sysctl.c~git-audit-master-fix-git-rejects
-+++ a/kernel/sysctl.c
-@@ -81,10 +81,7 @@ extern int percpu_pagelist_fraction;
- extern int compat_log;
- extern int maps_protect;
- extern int sysctl_stat_interval;
--<<<<<<< HEAD:kernel/sysctl.c
- extern int latencytop_enabled;
--=======
-->>>>>>> FETCH_HEAD:kernel/sysctl.c
- 
- /* Constants used for minimum and  maximum */
- #ifdef CONFIG_DETECT_SOFTLOCKUP
+ 	memset(&fl, 0, sizeof fl);
+ 	fl.nl_u.ip4_u.daddr = htonl(dst_ip);
+-	if (ip_route_output_key(&rt, &fl)) {
++	if (ip_route_output_key(&init_net, &rt, &fl)) {
+ 		printk("%s: ip_route_output_key failed for 0x%08X\n",
+ 				__FUNCTION__, dst_ip);
+ 		return;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -121,12 +91,10 @@ acpi-backlight-reset-brightness-on-resume-checkpatch-fixes.patch
 git-alsa-disable-sound-pci-ice1712-ice1724c.patch
 git-agpgart.patch
 git-agpgart-fix.patch
-git-audit-master-fix-git-rejects.patch
 git-audit-printk-warning-fix.patch
 cifs-fix-warning.patch
 git-cpufreq.patch
 revert-agk-dm-dm-loop.patch
-git-powerpc-galak.patch
 drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
 git-drm.patch
 git-drm-fix.patch
@@ -181,7 +149,6 @@ pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
 x86-amd-thermal-interrupt-support-fix-2.patch
 x86-mmconf-enable-mcfg-early-cleanup.patch
-git-newsetup.patch
 git-xtensa.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
