@@ -1,122 +1,183 @@
 From: akpm@linux-foundation.org
-Subject: - uml-improve-detection-of-host-cmov.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:35:32 -0800
-Message-ID: <200802052235.m15MZD85012596@imap1.linux-foundation.org>
+Subject: - uml-clean-up-sig_handler_common_skas.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:37:54 -0800
+Message-ID: <200802052237.m15MbZ0S012862@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35684 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38252 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762294AbYBEWld (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:33 -0500
+	by vger.kernel.org with ESMTP id S1762511AbYBEWlq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: magotari@gmail.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: improve detection of host cmov
+     uml: clean up sig_handler_common_skas
 has been removed from the -mm tree.  Its filename was
-     uml-improve-detection-of-host-cmov.patch
+     uml-clean-up-sig_handler_common_skas.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: improve detection of host cmov
-From: Karol Swietlicki <magotari@gmail.com>
+Subject: uml: clean up sig_handler_common_skas
+From: Jeff Dike <jdike@addtoit.com>
 
-This patch introduces a new way of checking for the cmov instruction.  I use
-signal handling instead of reading /proc/cpuinfo.
+sig_handler_common_skas needs significant modernization, starting with
+its name and storage class.
 
-[ jdike - Fiddled the asm to make it obvious that it didn't mess with
-any in-use registers and made test_for_host_cmov void ]
+There is no need to hide the true type of the sigcontext pointer, so
+the void * dummy parameter can be replaced with a sigcontext *sc.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Karol Swietlicki <magotari@gmail.com>
+The array of uml_pt_regs structs used in the page fault case are gone,
+replaced by a local variable.  This is also used in the non-segfault
+case instead of the copy in the task_struct.  Since it's local, the
+special handling of the is_user flag can go away.
+
+There hasn't been any special treatment of SIGUSR1 in ages, so the
+line that enables it can be deleted.
+
+The special treatment of SIGSEGV similarly goes away, but to
+compensate, SA_NODEFER is added to sa_mask when registering a signal
+handler.
+
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/common-offsets.h |    1 
- arch/um/sys-i386/bugs.c          |   40 ++++++++++++++++++++++-------
- 2 files changed, 32 insertions(+), 9 deletions(-)
+ arch/um/os-Linux/signal.c |   63 ++++++++++--------------------------
+ 1 file changed, 18 insertions(+), 45 deletions(-)
 
-diff -puN arch/um/include/common-offsets.h~uml-improve-detection-of-host-cmov arch/um/include/common-offsets.h
---- a/arch/um/include/common-offsets.h~uml-improve-detection-of-host-cmov
-+++ a/arch/um/include/common-offsets.h
-@@ -18,6 +18,7 @@ DEFINE_STR(UM_KERN_WARNING, KERN_WARNING
- DEFINE_STR(UM_KERN_NOTICE, KERN_NOTICE);
- DEFINE_STR(UM_KERN_INFO, KERN_INFO);
- DEFINE_STR(UM_KERN_DEBUG, KERN_DEBUG);
-+DEFINE_STR(UM_KERN_CONT, KERN_CONT);
- 
- DEFINE(UM_ELF_CLASS, ELF_CLASS);
- DEFINE(UM_ELFCLASS32, ELFCLASS32);
-diff -puN arch/um/sys-i386/bugs.c~uml-improve-detection-of-host-cmov arch/um/sys-i386/bugs.c
---- a/arch/um/sys-i386/bugs.c~uml-improve-detection-of-host-cmov
-+++ a/arch/um/sys-i386/bugs.c
-@@ -10,11 +10,41 @@
+diff -puN arch/um/os-Linux/signal.c~uml-clean-up-sig_handler_common_skas arch/um/os-Linux/signal.c
+--- a/arch/um/os-Linux/signal.c~uml-clean-up-sig_handler_common_skas
++++ a/arch/um/os-Linux/signal.c
+@@ -10,14 +10,15 @@
+ #include <signal.h>
+ #include <strings.h>
+ #include "as-layout.h"
+-#include "kern_constants.h"
+ #include "kern_util.h"
  #include "os.h"
- #include "task.h"
+ #include "sysdep/barrier.h"
+ #include "sysdep/sigcontext.h"
+-#include "task.h"
  #include "user.h"
-+#include "sysdep/archsetjmp.h"
  
- #define MAXTOKEN 64
++/* Copied from linux/compiler-gcc.h since we can't include it directly */
++#define barrier() __asm__ __volatile__("": : :"memory")
++
+ void (*sig_info[NSIG])(int, struct uml_pt_regs *) = {
+ 	[SIGTRAP]	= relay_signal,
+ 	[SIGFPE]	= relay_signal,
+@@ -28,58 +29,27 @@ void (*sig_info[NSIG])(int, struct uml_p
+ 	[SIGIO]		= sigio_handler,
+ 	[SIGVTALRM]	= timer_handler };
  
- /* Set during early boot */
- int host_has_cmov = 1;
-+static jmp_buf cmov_test_return;
-+
-+static void cmov_sigill_test_handler(int sig)
-+{
-+	host_has_cmov = 0;
-+	longjmp(cmov_test_return, 1);
-+}
-+
-+static void test_for_host_cmov(void)
-+{
-+	struct sigaction old, new;
-+
-+	printk(UM_KERN_INFO "Checking for host processor cmov support...");
-+	new.sa_handler = cmov_sigill_test_handler;
-+
-+	/* Make sure that SIGILL is enabled after the handler longjmps back */
-+	new.sa_flags = SA_NODEFER;
-+	sigemptyset(&new.sa_mask);
-+	sigaction(SIGILL, &new, &old);
-+
-+	if (setjmp(cmov_test_return) == 0) {
-+		unsigned long foo = 0;
-+		__asm__ __volatile__("cmovz %0, %1" : "=r" (foo) : "0" (foo));
-+		printk(UM_KERN_CONT "Yes\n");
-+	} else
-+		printk(UM_KERN_CONT "No\n");
-+
-+	sigaction(SIGILL, &old, &new);
-+}
- 
- static char token(int fd, char *buf, int len, char stop)
- {
-@@ -153,15 +183,7 @@ void arch_init_thread(void)
- 
- void arch_check_bugs(void)
- {
--	int have_it;
+-static struct uml_pt_regs ksig_regs[UM_NR_CPUS];
 -
--	if (os_access("/proc/cpuinfo", OS_ACC_R_OK) < 0) {
--		printk(UM_KERN_ERR "/proc/cpuinfo not available - skipping CPU "
--		       "capability checks\n");
--		return;
--	}
--	if (check_cpu_flag("cmov", &have_it))
--		host_has_cmov = have_it;
-+	test_for_host_cmov();
+-void sig_handler_common_skas(int sig, void *sc_ptr)
++static void sig_handler_common(int sig, struct sigcontext *sc)
+ {
+-	struct sigcontext *sc = sc_ptr;
+-	struct uml_pt_regs *r;
+-	void (*handler)(int, struct uml_pt_regs *);
+-	int save_user, save_errno = errno;
++	struct uml_pt_regs r;
++	int save_errno = errno;
+ 
+-	/*
+-	 * This is done because to allow SIGSEGV to be delivered inside a SEGV
+-	 * handler.  This can happen in copy_user, and if SEGV is disabled,
+-	 * the process will die.
+-	 * XXX Figure out why this is better than SA_NODEFER
+-	 */
++	r.is_user = 0;
+ 	if (sig == SIGSEGV) {
+-		change_sig(SIGSEGV, 1);
+-		/*
+-		 * For segfaults, we want the data from the
+-		 * sigcontext.  In this case, we don't want to mangle
+-		 * the process registers, so use a static set of
+-		 * registers.  For other signals, the process
+-		 * registers are OK.
+-		 */
+-		r = &ksig_regs[cpu()];
+-		copy_sc(r, sc_ptr);
+-	} else
+-		r = TASK_REGS(get_current());
+-
+-	save_user = r->is_user;
+-	r->is_user = 0;
+-	if ((sig == SIGFPE) || (sig == SIGSEGV) || (sig == SIGBUS) ||
+-	    (sig == SIGILL) || (sig == SIGTRAP))
+-		GET_FAULTINFO_FROM_SC(r->faultinfo, sc);
+-
+-	change_sig(SIGUSR1, 1);
+-
+-	handler = sig_info[sig];
++		/* For segfaults, we want the data from the sigcontext. */
++		copy_sc(&r, sc);
++		GET_FAULTINFO_FROM_SC(r.faultinfo, sc);
++	}
+ 
+-	/* unblock SIGVTALRM, SIGIO if sig isn't IRQ signal */
++	/* enable signals if sig isn't IRQ signal */
+ 	if ((sig != SIGIO) && (sig != SIGWINCH) && (sig != SIGVTALRM))
+ 		unblock_signals();
+ 
+-	handler(sig, r);
++	(*sig_info[sig])(sig, &r);
+ 
+ 	errno = save_errno;
+-	r->is_user = save_user;
  }
  
- int arch_handle_signal(int sig, struct uml_pt_regs *regs)
+-/* Copied from linux/compiler-gcc.h since we can't include it directly */
+-#define barrier() __asm__ __volatile__("": : :"memory")
+-
+ /*
+  * These are the asynchronous signals.  SIGPROF is excluded because we want to
+  * be able to profile all of UML, not just the non-critical sections.  If
+@@ -107,7 +77,7 @@ void sig_handler(int sig, struct sigcont
+ 
+ 	block_signals();
+ 
+-	sig_handler_common_skas(sig, sc);
++	sig_handler_common(sig, sc);
+ 
+ 	set_signals(enabled);
+ }
+@@ -227,6 +197,9 @@ void set_handler(int sig, void (*handler
+ 		sigaddset(&action.sa_mask, mask);
+ 	va_end(ap);
+ 
++	if (sig == SIGSEGV)
++		flags |= SA_NODEFER;
++
+ 	action.sa_flags = flags;
+ 	action.sa_restorer = NULL;
+ 	if (sigaction(sig, &action, NULL) < 0)
+@@ -306,7 +279,7 @@ void unblock_signals(void)
+ 		 * back here.
+ 		 */
+ 		if (save_pending & SIGIO_MASK)
+-			sig_handler_common_skas(SIGIO, NULL);
++			sig_handler_common(SIGIO, NULL);
+ 
+ 		if (save_pending & SIGVTALRM_MASK)
+ 			real_alarm_handler(NULL);
 _
 
-Patches currently in -mm which might be from magotari@gmail.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
+git-kvm.patch
+fix-__const_udelay-declaration-and-definition-mismatches.patch
+iget-stop-hostfs-from-using-iget-and-read_inode.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
+random-add-async-notification-support-to-dev-random.patch
+mount-options-fix-hostfs.patch
