@@ -1,232 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: - maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources.patch removed from -mm tree
-Date: Mon, 04 Feb 2008 18:54:13 -0800
-Message-ID: <200802050253.m152rsZr031543@imap1.linux-foundation.org>
+Subject: - remove-documentation-smptxt.patch removed from -mm tree
+Date: Mon, 04 Feb 2008 18:54:19 -0800
+Message-ID: <200802050254.m152s04f031549@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58944 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57105 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753343AbYBECyj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2008 21:54:39 -0500
+	by vger.kernel.org with ESMTP id S1756308AbYBECyz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2008 21:54:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, jgarzik@pobox.com, mid@zigamorph.net, mm-commits@vger.kernel.org
+To: bunk@kernel.org, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: remove Adam Fritzler, update his email address in other sources
+     remove Documentation/smp.txt
 has been removed from the -mm tree.  Its filename was
-     maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources.patch
+     remove-documentation-smptxt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: remove Adam Fritzler, update his email address in other sources
-From: Joe Perches <joe@perches.com>
+Subject: remove Documentation/smp.txt
+From: Adrian Bunk <bunk@kernel.org>
 
-Adam said
+After seeing the filename I'd have expected something about the
+implementation of SMP in the Linux kernel - not some notes on kernel
+configuration and building trivialities noone would search at this place.
 
-> I am no longer actively involved. If you can mark me as a former point
-> of contact, that's fine, or you can just delete the entry. My name is
-> still in the source, but with the old address. It'd great if the
-> address in source was updated. 
-
-(http://www.gossamer-threads.com/lists/linux/kernel/855361)
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Adam Fritzler <mid@zigamorph.net>
-Cc: Jeff Garzik <jgarzik@pobox.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- CREDITS                          |    3 +++
- MAINTAINERS                      |    7 -------
- drivers/net/eexpress.c           |    2 +-
- drivers/net/tokenring/abyss.c    |    2 +-
- drivers/net/tokenring/abyss.h    |    2 +-
- drivers/net/tokenring/madgemc.c  |    2 +-
- drivers/net/tokenring/madgemc.h  |    2 +-
- drivers/net/tokenring/proteon.c  |    2 +-
- drivers/net/tokenring/skisa.c    |    2 +-
- drivers/net/tokenring/tms380tr.c |    2 +-
- drivers/net/tokenring/tms380tr.h |    2 +-
- drivers/net/tokenring/tmspci.c   |    2 +-
- drivers/scsi/aha1542.c           |    2 +-
- 13 files changed, 14 insertions(+), 18 deletions(-)
+ Documentation/00-INDEX |    2 --
+ Documentation/smp.txt  |   22 ----------------------
+ 2 files changed, 24 deletions(-)
 
-diff -puN CREDITS~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources CREDITS
---- a/CREDITS~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources
-+++ a/CREDITS
-@@ -1124,6 +1124,9 @@ S: 1150 Ringwood Court
- S: San Jose, California 95131
- S: USA
- 
-+N: Adam Fritzler
-+E: mid@zigamorph.net
-+
- N: Fernando Fuganti
- E: fuganti@conectiva.com.br
- E: fuganti@netbank.com.br
-diff -puN MAINTAINERS~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources
-+++ a/MAINTAINERS
-@@ -3871,13 +3871,6 @@ W:	http://www.kernel.org/pub/linux/kerne
- T:	git kernel.org:/pub/scm/linux/kernel/git/bunk/trivial.git
- S:	Maintained
- 
--TMS380 TOKEN-RING NETWORK DRIVER
--P:	Adam Fritzler
--M:	mid@auk.cx
--L:	linux-tr@linuxtr.net
--W:	http://www.auk.cx/tms380tr/
--S:	Maintained
+diff -puN Documentation/00-INDEX~remove-documentation-smptxt Documentation/00-INDEX
+--- a/Documentation/00-INDEX~remove-documentation-smptxt
++++ a/Documentation/00-INDEX
+@@ -367,8 +367,6 @@ sharedsubtree.txt
+ 	- a description of shared subtrees for namespaces.
+ smart-config.txt
+ 	- description of the Smart Config makefile feature.
+-smp.txt
+-	- a few notes on symmetric multi-processing.
+ sony-laptop.txt
+ 	- Sony Notebook Control Driver (SNC) Readme.
+ sonypi.txt
+diff -puN Documentation/smp.txt~remove-documentation-smptxt /dev/null
+--- a/Documentation/smp.txt
++++ /dev/null
+@@ -1,22 +0,0 @@
+-To set up SMP
 -
- TULIP NETWORK DRIVER
- L:	tulip-users@lists.sourceforge.net
- W:	http://sourceforge.net/projects/tulip/
-diff -puN drivers/net/eexpress.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources drivers/net/eexpress.c
---- a/drivers/net/eexpress.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources
-+++ a/drivers/net/eexpress.c
-@@ -9,7 +9,7 @@
-  * Many modifications, and currently maintained, by
-  *  Philip Blundell <philb@gnu.org>
-  * Added the Compaq LTE  Alan Cox <alan@redhat.com>
-- * Added MCA support Adam Fritzler <mid@auk.cx>
-+ * Added MCA support Adam Fritzler
-  *
-  * Note - this driver is experimental still - it has problems on faster
-  * machines. Someone needs to sit down and go through it line by line with
-diff -puN drivers/net/tokenring/abyss.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources drivers/net/tokenring/abyss.c
---- a/drivers/net/tokenring/abyss.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources
-+++ a/drivers/net/tokenring/abyss.c
-@@ -10,7 +10,7 @@
-  *      - Madge Smart 16/4 PCI Mk2
-  *
-  *  Maintainer(s):
-- *    AF	Adam Fritzler		mid@auk.cx
-+ *    AF	Adam Fritzler
-  *
-  *  Modification History:
-  *	30-Dec-99	AF	Split off from the tms380tr driver.
-diff -puN drivers/net/tokenring/abyss.h~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources drivers/net/tokenring/abyss.h
---- a/drivers/net/tokenring/abyss.h~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources
-+++ a/drivers/net/tokenring/abyss.h
-@@ -2,7 +2,7 @@
-  * abyss.h: Header for the abyss tms380tr module
-  *
-  * Authors:
-- * - Adam Fritzler <mid@auk.cx>
-+ * - Adam Fritzler
-  */
- 
- #ifndef __LINUX_MADGETR_H
-diff -puN drivers/net/tokenring/madgemc.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources drivers/net/tokenring/madgemc.c
---- a/drivers/net/tokenring/madgemc.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources
-+++ a/drivers/net/tokenring/madgemc.c
-@@ -11,7 +11,7 @@
-  *	- Madge Smart 16/4 Ringnode MC32 (??)
-  *
-  *  Maintainer(s):
-- *    AF	Adam Fritzler		mid@auk.cx
-+ *    AF	Adam Fritzler
-  *
-  *  Modification History:
-  *	16-Jan-00	AF	Created
-diff -puN drivers/net/tokenring/madgemc.h~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources drivers/net/tokenring/madgemc.h
---- a/drivers/net/tokenring/madgemc.h~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources
-+++ a/drivers/net/tokenring/madgemc.h
-@@ -2,7 +2,7 @@
-  * madgemc.h: Header for the madgemc tms380tr module
-  *
-  * Authors:
-- * - Adam Fritzler <mid@auk.cx>
-+ * - Adam Fritzler
-  */
- 
- #ifndef __LINUX_MADGEMC_H
-diff -puN drivers/net/tokenring/proteon.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources drivers/net/tokenring/proteon.c
---- a/drivers/net/tokenring/proteon.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources
-+++ a/drivers/net/tokenring/proteon.c
-@@ -12,7 +12,7 @@
-  *	- Proteon 1392, 1392+
-  *
-  *  Maintainer(s):
-- *    AF        Adam Fritzler           mid@auk.cx
-+ *    AF        Adam Fritzler
-  *    JF	Jochen Friedrich	jochen@scram.de
-  *
-  *  Modification History:
-diff -puN drivers/net/tokenring/skisa.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources drivers/net/tokenring/skisa.c
---- a/drivers/net/tokenring/skisa.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources
-+++ a/drivers/net/tokenring/skisa.c
-@@ -13,7 +13,7 @@
-  *	- SysKonnect TR4/16(+) ISA	(SK-4190)
-  *
-  *  Maintainer(s):
-- *    AF        Adam Fritzler           mid@auk.cx
-+ *    AF        Adam Fritzler
-  *    JF	Jochen Friedrich	jochen@scram.de
-  *
-  *  Modification History:
-diff -puN drivers/net/tokenring/tms380tr.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources drivers/net/tokenring/tms380tr.c
---- a/drivers/net/tokenring/tms380tr.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources
-+++ a/drivers/net/tokenring/tms380tr.c
-@@ -30,7 +30,7 @@
-  *  Maintainer(s):
-  *    JS	Jay Schulist		jschlst@samba.org
-  *    CG	Christoph Goos		cgoos@syskonnect.de
-- *    AF	Adam Fritzler		mid@auk.cx
-+ *    AF	Adam Fritzler
-  *    MLP       Mike Phillips           phillim@amtrak.com
-  *    JF	Jochen Friedrich	jochen@scram.de
-  *     
-diff -puN drivers/net/tokenring/tms380tr.h~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources drivers/net/tokenring/tms380tr.h
---- a/drivers/net/tokenring/tms380tr.h~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources
-+++ a/drivers/net/tokenring/tms380tr.h
-@@ -3,7 +3,7 @@
-  *
-  * Authors:
-  * - Christoph Goos <cgoos@syskonnect.de>
-- * - Adam Fritzler <mid@auk.cx>
-+ * - Adam Fritzler
-  */
- 
- #ifndef __LINUX_TMS380TR_H
-diff -puN drivers/net/tokenring/tmspci.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources drivers/net/tokenring/tmspci.c
---- a/drivers/net/tokenring/tmspci.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources
-+++ a/drivers/net/tokenring/tmspci.c
-@@ -14,7 +14,7 @@
-  *      - 3Com 3C339 Token Link Velocity
-  *
-  *  Maintainer(s):
-- *    AF	Adam Fritzler		mid@auk.cx
-+ *    AF	Adam Fritzler
-  *
-  *  Modification History:
-  *	30-Dec-99	AF	Split off from the tms380tr driver.
-diff -puN drivers/scsi/aha1542.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources drivers/scsi/aha1542.c
---- a/drivers/scsi/aha1542.c~maintainers-remove-adam-fritzler-update-his-email-address-in-other-sources
-+++ a/drivers/scsi/aha1542.c
-@@ -21,7 +21,7 @@
-  *  Modified by Chris Faulhaber <jedgar@fxp.org>
-  *        Added module command-line options
-  *        19-Jul-99
-- *  Modified by Adam Fritzler <mid@auk.cx>
-+ *  Modified by Adam Fritzler
-  *        Added proper detection of the AHA-1640 (MCA version of AHA-1540)
-  */
- 
+-Configure the kernel and answer Y to CONFIG_SMP.
+-
+-If you are using LILO, it is handy to have both SMP and non-SMP
+-kernel images on hand. Edit /etc/lilo.conf to create an entry
+-for another kernel image called "linux-smp" or something.
+-
+-The next time you compile the kernel, when running a SMP kernel,
+-edit linux/Makefile and change "MAKE=make" to "MAKE=make -jN"
+-(where N = number of CPU + 1, or if you have tons of memory/swap
+- you can just use "-j" without a number). Feel free to experiment
+-with this one.
+-
+-Of course you should time how long each build takes :-)
+-Example:
+-   make config
+-   time -v sh -c 'make clean install modules modules_install'
+-
+-If you are using some Compaq MP compliant machines you will need to set
+-the operating system in the BIOS settings to "Unixware" - don't ask me
+-why Compaqs don't work otherwise.
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-uml-add-missing-space.patch
-uml-style-fixes-in-arch-um-kernel.patch
-git-cpufreq.patch
-git-hwmon.patch
-git-kvm.patch
-git-unionfs.patch
-printk_ratelimit-functions-should-use-config_printk.patch
+mm-page-writebackc-make-a-function-static.patch
+make-__vmalloc_area_node-static.patch
+m68knommu-remove-duplicate-exports.patch
+kernel-power-diskc-make-code-static.patch
+make-kernel_shutdown_prepare-static.patch
+nubus-kill-drivers-nubus-nubus_symsc.patch
+m68k-kill-arch-m68k-mac-mac_ksymsc.patch
+m68k-kill-arch-m68k-hp300-ksymsc.patch
+m68k-kill-arch-m68k-amiga-amiga_ksymsc.patch
+m68k-kill-arch-m68k-atari-atari_ksymsc.patch
+m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch
+git-acpi.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-mtd.patch
+drivers-bluetooth-bpa10xc-fix-memleak.patch
+drivers-bluetooth-btsdioc-fix-double-free.patch
+git-ocfs2.patch
+if-0-pci_cleanup_aer_correct_error_status.patch
+git-scsi-misc.patch
+scsi-advansysc-make-3-functions-static.patch
+scsi-aic94xx-cleanups.patch
+scsi-aic94xx-cleanups-checkpatch-fixes.patch
+scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
+usb-make-usb_storage_onetouch-available-with-pm.patch
+git-xtensa.patch
+make-ipc-utilcsysvipc_find_ipc-static.patch
+cleanup-after-apus-removal.patch
+remove-mm_ptovvtop.patch
+proper-show_interrupts-prototype.patch
+scheduled-oss-driver-removal.patch
+proper-prototype-for-signals_init.patch
+kernel-ptracec-should-include-linux-syscallsh.patch
+make-srcu_readers_active-static.patch
+kernel-notifierc-should-include-linux-rebooth.patch
+proper-prototype-for-get_filesystem_list.patch
+fs-utimesc-should-include-linux-syscallsh.patch
+fs-signalfdc-should-include-linux-syscallsh.patch
+fs-eventfdc-should-include-linux-syscallsh.patch
+proper-prototype-for-vty_init.patch
+drivers-misc-lkdtmc-cleanups.patch
+calibrate_delay-must-be-__cpuinit.patch
+idle_regs-must-be-__cpuinit.patch
+fs-ecryptfs-possible-cleanups.patch
+make-video-geode-lxfb_corecgeode_modedb-static.patch
+video-hpfbc-section-fix.patch
+drivers-video-pm3fbc-section-fix.patch
+make-jbd-journalc__journal_abort_hard-static.patch
+move-edactxt-two-levels-up.patch
+kernel-cgroupc-remove-dead-code.patch
+kernel-cgroupc-make-2-functions-static.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+fix-m32r-__xchg.patch
+kill-udffs_dateversion.patch
+the-scheduled-time-option-removal.patch
+reiser4.patch
