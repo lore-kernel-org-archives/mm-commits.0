@@ -1,336 +1,380 @@
 From: akpm@linux-foundation.org
-Subject: - revert-capabilities-clean-up-file-capability-reading.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:32:55 -0800
-Message-ID: <200802052232.m15MWaRK012345@imap1.linux-foundation.org>
+Subject: - netlabel-introduce-a-new-kernel-configuration-api-for-netlabel.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:33:11 -0800
+Message-ID: <200802052232.m15MWq2n012362@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52570 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40275 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760639AbYBEWnc (ORCPT
+	by vger.kernel.org with ESMTP id S932352AbYBEWnc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:43:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, casey@schaufler-ca.com, chrisw@sous-sol.org, jmorris@namei.org, morgan@kernel.org, sds@tycho.nsa.gov, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: paul.moore@hp.com, casey@schaufler-ca.com, chrisw@sous-sol.org, jmorris@namei.org, sds@tycho.nsa.gov, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert "capabilities: clean up file capability reading"
+     NetLabel: introduce a new kernel configuration API for NetLabel
 has been removed from the -mm tree.  Its filename was
-     revert-capabilities-clean-up-file-capability-reading.patch
+     netlabel-introduce-a-new-kernel-configuration-api-for-netlabel.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "capabilities: clean up file capability reading"
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: NetLabel: introduce a new kernel configuration API for NetLabel
+From: Paul Moore <paul.moore@hp.com>
 
-Revert b68680e4731abbd78863063aaa0dca2a6d8cc723 to make way for "capabilities:
-clean up file capability reading".
+Add a new set of configuration functions to the NetLabel/LSM API so that
+LSMs can perform their own configuration of the NetLabel subsystem without
+relying on assistance from userspace.
 
-We want to keep the vfs_cap_data.data[] structure, using two 'data's for
-64-bit caps (and later three for 96-bit caps), whereas
-b68680e4731abbd78863063aaa0dca2a6d8cc723 had gotten rid of the 'data' struct
-made its members inline.
-
-The 64-bit caps patch keeps the stack abuse fix at get_file_caps(), which was
-the more important part of that patch.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: Serge Hallyn <serue@us.ibm.com>
+Signed-off-by: Paul Moore <paul.moore@hp.com>
+Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
+Reviewed-by: James Morris <jmorris@namei.org>
 Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: James Morris <jmorris@namei.org>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
 Cc: Casey Schaufler <casey@schaufler-ca.com>
-Cc: Andrew Morgan <morgan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/capability.h |    6 ++++--
- security/commoncap.c       |   23 ++++++++---------------
- 2 files changed, 12 insertions(+), 17 deletions(-)
+ include/net/netlabel.h             |   47 ++++++-
+ net/ipv4/cipso_ipv4.c              |    4 
+ net/netlabel/netlabel_cipso_v4.c   |    2 
+ net/netlabel/netlabel_cipso_v4.h   |    3 
+ net/netlabel/netlabel_domainhash.h |    1 
+ net/netlabel/netlabel_kapi.c       |  177 +++++++++++++++++++++++++++
+ 6 files changed, 225 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/capability.h~revert-capabilities-clean-up-file-capability-reading include/linux/capability.h
---- a/include/linux/capability.h~revert-capabilities-clean-up-file-capability-reading
-+++ a/include/linux/capability.h
-@@ -56,8 +56,10 @@ typedef struct __user_cap_data_struct {
+diff -puN include/net/netlabel.h~netlabel-introduce-a-new-kernel-configuration-api-for-netlabel include/net/netlabel.h
+--- a/include/net/netlabel.h~netlabel-introduce-a-new-kernel-configuration-api-for-netlabel
++++ a/include/net/netlabel.h
+@@ -36,6 +36,8 @@
+ #include <net/netlink.h>
+ #include <asm/atomic.h>
  
- struct vfs_cap_data {
- 	__u32 magic_etc;  /* Little endian */
--	__u32 permitted;    /* Little endian */
--	__u32 inheritable;  /* Little endian */
-+	struct {
-+		__u32 permitted;    /* Little endian */
-+		__u32 inheritable;  /* Little endian */
-+	} data[1];
++struct cipso_v4_doi;
++
+ /*
+  * NetLabel - A management interface for maintaining network packet label
+  *            mapping tables for explicit packet labling protocols.
+@@ -103,12 +105,6 @@ struct netlbl_audit {
+ 	uid_t loginuid;
  };
  
- #ifdef __KERNEL__
-diff -puN security/commoncap.c~revert-capabilities-clean-up-file-capability-reading security/commoncap.c
---- a/security/commoncap.c~revert-capabilities-clean-up-file-capability-reading
-+++ a/security/commoncap.c
-@@ -197,8 +197,7 @@ int cap_inode_killpriv(struct dentry *de
- 	return inode->i_op->removexattr(dentry, XATTR_NAME_CAPS);
- }
+-/* Domain mapping definition struct */
+-struct netlbl_dom_map;
+-
+-/* Domain mapping operations */
+-int netlbl_domhsh_remove(const char *domain, struct netlbl_audit *audit_info);
+-
+ /*
+  * LSM security attributes
+  */
+@@ -344,6 +340,19 @@ static inline void netlbl_secattr_free(s
  
--static inline int cap_from_disk(struct vfs_cap_data *caps,
--				struct linux_binprm *bprm,
-+static inline int cap_from_disk(__le32 *caps, struct linux_binprm *bprm,
- 				int size)
+ #ifdef CONFIG_NETLABEL
+ /*
++ * LSM configuration operations
++ */
++int netlbl_cfg_map_del(const char *domain, struct netlbl_audit *audit_info);
++int netlbl_cfg_unlbl_add_map(const char *domain,
++			     struct netlbl_audit *audit_info);
++int netlbl_cfg_cipsov4_add(struct cipso_v4_doi *doi_def,
++			   struct netlbl_audit *audit_info);
++int netlbl_cfg_cipsov4_add_map(struct cipso_v4_doi *doi_def,
++			       const char *domain,
++			       struct netlbl_audit *audit_info);
++int netlbl_cfg_cipsov4_del(u32 doi, struct netlbl_audit *audit_info);
++
++/*
+  * LSM security attribute operations
+  */
+ int netlbl_secattr_catmap_walk(struct netlbl_lsm_secattr_catmap *catmap,
+@@ -378,6 +387,32 @@ void netlbl_cache_invalidate(void);
+ int netlbl_cache_add(const struct sk_buff *skb,
+ 		     const struct netlbl_lsm_secattr *secattr);
+ #else
++static inline int netlbl_cfg_map_del(const char *domain,
++				     struct netlbl_audit *audit_info)
++{
++	return -ENOSYS;
++}
++static inline int netlbl_cfg_unlbl_add_map(const char *domain,
++					   struct netlbl_audit *audit_info)
++{
++	return -ENOSYS;
++}
++static inline int netlbl_cfg_cipsov4_add(struct cipso_v4_doi *doi_def,
++					 struct netlbl_audit *audit_info)
++{
++	return -ENOSYS;
++}
++static inline int netlbl_cfg_cipsov4_add_map(struct cipso_v4_doi *doi_def,
++					     const char *domain,
++					     struct netlbl_audit *audit_info)
++{
++	return -ENOSYS;
++}
++static inline int netlbl_cfg_cipsov4_del(u32 doi,
++					 struct netlbl_audit *audit_info)
++{
++	return -ENOSYS;
++}
+ static inline int netlbl_secattr_catmap_walk(
+ 	                              struct netlbl_lsm_secattr_catmap *catmap,
+ 				      u32 offset)
+diff -puN net/ipv4/cipso_ipv4.c~netlabel-introduce-a-new-kernel-configuration-api-for-netlabel net/ipv4/cipso_ipv4.c
+--- a/net/ipv4/cipso_ipv4.c~netlabel-introduce-a-new-kernel-configuration-api-for-netlabel
++++ a/net/ipv4/cipso_ipv4.c
+@@ -547,8 +547,8 @@ int cipso_v4_doi_remove(u32 doi,
+ 		rcu_read_lock();
+ 		list_for_each_entry_rcu(dom_iter, &doi_def->dom_list, list)
+ 			if (dom_iter->valid)
+-				netlbl_domhsh_remove(dom_iter->domain,
+-						     audit_info);
++				netlbl_cfg_map_del(dom_iter->domain,
++						   audit_info);
+ 		rcu_read_unlock();
+ 		cipso_v4_cache_invalidate();
+ 		call_rcu(&doi_def->rcu, callback);
+diff -puN net/netlabel/netlabel_cipso_v4.c~netlabel-introduce-a-new-kernel-configuration-api-for-netlabel net/netlabel/netlabel_cipso_v4.c
+--- a/net/netlabel/netlabel_cipso_v4.c~netlabel-introduce-a-new-kernel-configuration-api-for-netlabel
++++ a/net/netlabel/netlabel_cipso_v4.c
+@@ -90,7 +90,7 @@ static const struct nla_policy netlbl_ci
+  * safely.
+  *
+  */
+-static void netlbl_cipsov4_doi_free(struct rcu_head *entry)
++void netlbl_cipsov4_doi_free(struct rcu_head *entry)
  {
- 	__u32 magic_etc;
-@@ -206,7 +205,7 @@ static inline int cap_from_disk(struct v
- 	if (size != XATTR_CAPS_SZ)
- 		return -EINVAL;
+ 	struct cipso_v4_doi *ptr;
  
--	magic_etc = le32_to_cpu(caps->magic_etc);
-+	magic_etc = le32_to_cpu(caps[0]);
+diff -puN net/netlabel/netlabel_cipso_v4.h~netlabel-introduce-a-new-kernel-configuration-api-for-netlabel net/netlabel/netlabel_cipso_v4.h
+--- a/net/netlabel/netlabel_cipso_v4.h~netlabel-introduce-a-new-kernel-configuration-api-for-netlabel
++++ a/net/netlabel/netlabel_cipso_v4.h
+@@ -163,4 +163,7 @@ enum {
+ /* NetLabel protocol functions */
+ int netlbl_cipsov4_genl_init(void);
  
- 	switch ((magic_etc & VFS_CAP_REVISION_MASK)) {
- 	case VFS_CAP_REVISION:
-@@ -214,8 +213,8 @@ static inline int cap_from_disk(struct v
- 			bprm->cap_effective = true;
- 		else
- 			bprm->cap_effective = false;
--		bprm->cap_permitted = to_cap_t(le32_to_cpu(caps->permitted));
--		bprm->cap_inheritable = to_cap_t(le32_to_cpu(caps->inheritable));
-+		bprm->cap_permitted = to_cap_t(le32_to_cpu(caps[1]));
-+		bprm->cap_inheritable = to_cap_t(le32_to_cpu(caps[2]));
- 		return 0;
- 	default:
- 		return -EINVAL;
-@@ -227,7 +226,7 @@ static int get_file_caps(struct linux_bi
- {
- 	struct dentry *dentry;
- 	int rc = 0;
--	struct vfs_cap_data incaps;
-+	__le32 v1caps[XATTR_CAPS_SZ];
- 	struct inode *inode;
++/* Free the memory associated with a CIPSOv4 DOI definition */
++void netlbl_cipsov4_doi_free(struct rcu_head *entry);
++
+ #endif
+diff -puN net/netlabel/netlabel_domainhash.h~netlabel-introduce-a-new-kernel-configuration-api-for-netlabel net/netlabel/netlabel_domainhash.h
+--- a/net/netlabel/netlabel_domainhash.h~netlabel-introduce-a-new-kernel-configuration-api-for-netlabel
++++ a/net/netlabel/netlabel_domainhash.h
+@@ -61,6 +61,7 @@ int netlbl_domhsh_add(struct netlbl_dom_
+ 		      struct netlbl_audit *audit_info);
+ int netlbl_domhsh_add_default(struct netlbl_dom_map *entry,
+ 			      struct netlbl_audit *audit_info);
++int netlbl_domhsh_remove(const char *domain, struct netlbl_audit *audit_info);
+ int netlbl_domhsh_remove_default(struct netlbl_audit *audit_info);
+ struct netlbl_dom_map *netlbl_domhsh_getentry(const char *domain);
+ int netlbl_domhsh_walk(u32 *skip_bkt,
+diff -puN net/netlabel/netlabel_kapi.c~netlabel-introduce-a-new-kernel-configuration-api-for-netlabel net/netlabel/netlabel_kapi.c
+--- a/net/netlabel/netlabel_kapi.c~netlabel-introduce-a-new-kernel-configuration-api-for-netlabel
++++ a/net/netlabel/netlabel_kapi.c
+@@ -30,6 +30,7 @@
  
- 	if (bprm->file->f_vfsmnt->mnt_flags & MNT_NOSUID) {
-@@ -240,14 +239,8 @@ static int get_file_caps(struct linux_bi
- 	if (!inode->i_op || !inode->i_op->getxattr)
- 		goto out;
+ #include <linux/init.h>
+ #include <linux/types.h>
++#include <linux/audit.h>
+ #include <net/ip.h>
+ #include <net/netlabel.h>
+ #include <net/cipso_ipv4.h>
+@@ -38,10 +39,186 @@
  
--	rc = inode->i_op->getxattr(dentry, XATTR_NAME_CAPS, NULL, 0);
--	if (rc > 0) {
--		if (rc == XATTR_CAPS_SZ)
--			rc = inode->i_op->getxattr(dentry, XATTR_NAME_CAPS,
--						&incaps, XATTR_CAPS_SZ);
--		else
--			rc = -EINVAL;
--	}
-+	rc = inode->i_op->getxattr(dentry, XATTR_NAME_CAPS, &v1caps,
-+							XATTR_CAPS_SZ);
- 	if (rc == -ENODATA || rc == -EOPNOTSUPP) {
- 		/* no data, that's ok */
- 		rc = 0;
-@@ -256,7 +249,7 @@ static int get_file_caps(struct linux_bi
- 	if (rc < 0)
- 		goto out;
+ #include "netlabel_domainhash.h"
+ #include "netlabel_unlabeled.h"
++#include "netlabel_cipso_v4.h"
+ #include "netlabel_user.h"
+ #include "netlabel_mgmt.h"
  
--	rc = cap_from_disk(&incaps, bprm, rc);
-+	rc = cap_from_disk(v1caps, bprm, rc);
- 	if (rc)
- 		printk(KERN_NOTICE "%s: cap_from_disk returned %d for %s\n",
- 			__FUNCTION__, rc, bprm->filename);
+ /*
++ * Configuration Functions
++ */
++
++/**
++ * netlbl_cfg_map_del - Remove a NetLabel/LSM domain mapping
++ * @domain: the domain mapping to remove
++ * @audit_info: NetLabel audit information
++ *
++ * Description:
++ * Removes a NetLabel/LSM domain mapping.  A @domain value of NULL causes the
++ * default domain mapping to be removed.  Returns zero on success, negative
++ * values on failure.
++ *
++ */
++int netlbl_cfg_map_del(const char *domain, struct netlbl_audit *audit_info)
++{
++	return netlbl_domhsh_remove(domain, audit_info);
++}
++
++/**
++ * netlbl_cfg_unlbl_add_map - Add an unlabeled NetLabel/LSM domain mapping
++ * @domain: the domain mapping to add
++ * @audit_info: NetLabel audit information
++ *
++ * Description:
++ * Adds a new unlabeled NetLabel/LSM domain mapping.  A @domain value of NULL
++ * causes a new default domain mapping to be added.  Returns zero on success,
++ * negative values on failure.
++ *
++ */
++int netlbl_cfg_unlbl_add_map(const char *domain,
++			     struct netlbl_audit *audit_info)
++{
++	int ret_val = -ENOMEM;
++	struct netlbl_dom_map *entry;
++
++	entry = kzalloc(sizeof(*entry), GFP_ATOMIC);
++	if (entry == NULL)
++		goto cfg_unlbl_add_map_failure;
++	if (domain != NULL) {
++		entry->domain = kstrdup(domain, GFP_ATOMIC);
++		if (entry->domain == NULL)
++			goto cfg_unlbl_add_map_failure;
++	}
++	entry->type = NETLBL_NLTYPE_UNLABELED;
++
++	ret_val = netlbl_domhsh_add(entry, audit_info);
++	if (ret_val != 0)
++		goto cfg_unlbl_add_map_failure;
++
++	return 0;
++
++cfg_unlbl_add_map_failure:
++	if (entry != NULL)
++		kfree(entry->domain);
++	kfree(entry);
++	return ret_val;
++}
++
++/**
++ * netlbl_cfg_cipsov4_add - Add a new CIPSOv4 DOI definition
++ * @doi_def: the DOI definition
++ * @audit_info: NetLabel audit information
++ *
++ * Description:
++ * Add a new CIPSOv4 DOI definition to the NetLabel subsystem.  Returns zero on
++ * success, negative values on failure.
++ *
++ */
++int netlbl_cfg_cipsov4_add(struct cipso_v4_doi *doi_def,
++			   struct netlbl_audit *audit_info)
++{
++	int ret_val;
++	const char *type_str;
++	struct audit_buffer *audit_buf;
++
++	ret_val = cipso_v4_doi_add(doi_def);
++
++	audit_buf = netlbl_audit_start_common(AUDIT_MAC_CIPSOV4_ADD,
++					      audit_info);
++	if (audit_buf != NULL) {
++		switch (doi_def->type) {
++		case CIPSO_V4_MAP_STD:
++			type_str = "std";
++			break;
++		case CIPSO_V4_MAP_PASS:
++			type_str = "pass";
++			break;
++		default:
++			type_str = "(unknown)";
++		}
++		audit_log_format(audit_buf,
++				 " cipso_doi=%u cipso_type=%s res=%u",
++				 doi_def->doi,
++				 type_str,
++				 ret_val == 0 ? 1 : 0);
++		audit_log_end(audit_buf);
++	}
++
++	return ret_val;
++}
++
++/**
++ * netlbl_cfg_cipsov4_add_map - Add a new CIPSOv4 DOI definition and mapping
++ * @doi_def: the DOI definition
++ * @domain: the domain mapping to add
++ * @audit_info: NetLabel audit information
++ *
++ * Description:
++ * Add a new CIPSOv4 DOI definition and NetLabel/LSM domain mapping for this
++ * new DOI definition to the NetLabel subsystem.  A @domain value of NULL adds
++ * a new default domain mapping.  Returns zero on success, negative values on
++ * failure.
++ *
++ */
++int netlbl_cfg_cipsov4_add_map(struct cipso_v4_doi *doi_def,
++			       const char *domain,
++			       struct netlbl_audit *audit_info)
++{
++	int ret_val = -ENOMEM;
++	struct netlbl_dom_map *entry;
++
++	entry = kzalloc(sizeof(*entry), GFP_ATOMIC);
++	if (entry == NULL)
++		goto cfg_cipsov4_add_map_failure;
++	if (domain != NULL) {
++		entry->domain = kstrdup(domain, GFP_ATOMIC);
++		if (entry->domain == NULL)
++			goto cfg_cipsov4_add_map_failure;
++	}
++	entry->type = NETLBL_NLTYPE_CIPSOV4;
++	entry->type_def.cipsov4 = doi_def;
++
++	/* Grab a RCU read lock here so nothing happens to the doi_def variable
++	 * between adding it to the CIPSOv4 protocol engine and adding a
++	 * domain mapping for it. */
++
++	rcu_read_lock();
++	ret_val = netlbl_cfg_cipsov4_add(doi_def, audit_info);
++	if (ret_val != 0)
++		goto cfg_cipsov4_add_map_failure_unlock;
++	ret_val = netlbl_domhsh_add(entry, audit_info);
++	if (ret_val != 0)
++		goto cfg_cipsov4_add_map_failure_remove_doi;
++	rcu_read_unlock();
++
++	return 0;
++
++cfg_cipsov4_add_map_failure_remove_doi:
++	cipso_v4_doi_remove(doi_def->doi, audit_info, netlbl_cipsov4_doi_free);
++cfg_cipsov4_add_map_failure_unlock:
++	rcu_read_unlock();
++cfg_cipsov4_add_map_failure:
++	if (entry != NULL)
++		kfree(entry->domain);
++	kfree(entry);
++	return ret_val;
++}
++
++/**
++ * netlbl_cfg_cipsov4_del - Removean existing CIPSOv4 DOI definition
++ * @doi: the CIPSO DOI value
++ * @audit_info: NetLabel audit information
++ *
++ * Description:
++ * Removes an existing CIPSOv4 DOI definition from the NetLabel subsystem.
++ * Returns zero on success, negative values on failure.
++ *
++ */
++int netlbl_cfg_cipsov4_del(u32 doi, struct netlbl_audit *audit_info)
++{
++	return cipso_v4_doi_remove(doi, audit_info, netlbl_cipsov4_doi_free);
++}
++
++/*
+  * Security Attribute Functions
+  */
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from paul.moore@hp.com are
 
 origin.patch
-timerfd-fix-remaining-architectures.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-acpi-backlight-reset-brightness-on-resume.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-git-cpufreq.patch
-revert-agk-dm-dm-loop.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-git-drm-fix.patch
-drm-convert-from-nopage-to-fault.patch
-drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
-adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
-revert-git-hrt.patch
-i8042-non-x86-build-fix.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-git-kvm.patch
-ata-drivers-ata-sata_mvc-needs-dmapoolh.patch
-drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
-drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
-git-md-accel.patch
-memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
-memstick-disable-busted-code.patch
-git-mmc.patch
-git-mtd.patch
-drivers-mtd-maps-physmapc-fix-compile-remove-ifdef.patch
-drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-backlight.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
-x86-validate-against-acpi-motherboard-resources.patch
-git-sched.patch
-git-sched-fix-git-conflicts.patch
-git-sh.patch
-scsi-aic94xx-cleanups.patch
-drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-ohci-sm501-driver-v2-fix.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
-git-v9fs-fix-git-conflicts.patch
-9p-fix-p9_printfcall-export.patch
-git-watchdog.patch
-git-watchdog-fixup.patch
-b43-fix-build-with-config_ssb_pcihost=n.patch
-git-ipwireless_cs.patch
-git-x86.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-x86-amd-thermal-interrupt-support.patch
-x86-mmconf-enable-mcfg-early.patch
-git-xtensa.patch
-git-slub.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-riscom8-fix-smp-brokenness-fix.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-address-hfs-on-disk-corruption-robustness-review-comments.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
-kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
-stopmachine-semaphore-to-mutex-fix.patch
-parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
-debug_smp_processor_id-fixlets.patch
-use-ilog2-in-fs-namespacec-fix.patch
-system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
-speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
-drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
-ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-add-hpet-rtc-emulation-to-rtc_drv_cmos-fix.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-neofb-avoid-overwriting-fb_info-fields.patch
-vermilionc-use-align-not-__align_mask.patch
-md-change-interate_mddev-to-for_each_mddev-fix.patch
-md-change-iterate_rdev-to-rdev_for_each-fix.patch
-declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
-ext3-fix-lock-inversion-in-direct-io-fix.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-mm_cgroup-to-header-file-fix.patch
-memcontrol-move-mm_cgroup-to-header-file-fix-2.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
-hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
-cpusets-update_cpumask-revision-fix.patch
-cpusets-update_cpumask-revision-checkpatch-fixes.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-introduce-flags-for-reserve_bootmem-powerpc-fix.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
+git-lblnet.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
-introduce-path_put-cifs-fix.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-d_path-make-d_path-use-a-struct-path-fix.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
-proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-modules-make-module_address_lookup-safe-fix.patch
-wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
-pid-sys_wait-fixes-v2-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-rewrite-rd-fixes.patch
-fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
-kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
-lib-remove-fastcall-from-lib-checkpatch-fixes.patch
-remove-fastcall-from-linux-include-checkpatch-fixes.patch
-constify-tables-in-kernel-sysctl_checkc-fix.patch
-aoe-statically-initialise-devlist_lock.patch
-xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
-ufs-fix-symlink-creation-on-ufs2-fix.patch
-libfs-allow-error-return-from-simple-attributes-fix.patch
-fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
-fs-afs-securityc-fix-uninitialized-var-warning.patch
-mount-options-fix-tmpfs-fix.patch
-char-applicom-use-pci_match_id-fix.patch
-add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
-add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-page-owner-tracking-leak-detector-broken-on-s390.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
