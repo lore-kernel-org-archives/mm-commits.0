@@ -1,76 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 04 Feb 2008 23:55:46 -0800
-Message-ID: <200802050755.m157tRp9010795@imap1.linux-foundation.org>
+Subject: - pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch removed from -mm tree
+Date: Mon, 04 Feb 2008 23:58:57 -0800
+Message-ID: <200802050758.m157wdvL010982@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47498 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37449 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754044AbYBEHzb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 02:55:31 -0500
+	by vger.kernel.org with ESMTP id S1754380AbYBEH6p (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 02:58:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, marcin.slusarz@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, kristen.c.accardi@intel.com, yinghai.lu@sun.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpat=
-ch-fixes
+     pci-dont-load-acpi_php-when-acpi-is-disabled-fix
 has been removed from the -mm tree.  Its filename was
-     ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpat=
-ch-fixes.patch
+     pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-chec=
-kpatch-fixes
-=46rom: Andrew Morton <akpm@linux-foundation.org>
-
-WARNING: no space between function name and open parenthesis '('
-#22: FILE: drivers/usb/host/ehci-hcd.c:835:
-+			schedule_status =3D qh_schedule (ehci, qh);
-
-total: 0 errors, 1 warnings, 20 lines checked
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
+Subject: pci-dont-load-acpi_php-when-acpi-is-disabled-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Greg KH <greg@kroah.com>
-Cc: Marcin =C5=9Alusarz <marcin.slusarz@gmail.com>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Yinghai Lu <Yinghai.Lu@Sun.COM>
+Cc: Yinghai Lu <yinghai.lu@sun.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/ehci-hcd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pci/hotplug/acpiphp_core.c |    2 +-
+ x86/kernel/acpi/boot.c             |    0 
+ 2 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/host/ehci-hcd.c~ehci-hcd-fix-sparse-warning-about=
--shadowing-status-symbol-checkpatch-fixes drivers/usb/host/ehci-hcd.c
---- a/drivers/usb/host/ehci-hcd.c~ehci-hcd-fix-sparse-warning-about-sha=
-dowing-status-symbol-checkpatch-fixes
-+++ a/drivers/usb/host/ehci-hcd.c
-@@ -864,7 +864,7 @@ static int ehci_urb_dequeue(struct usb_h
- 				&& HC_IS_RUNNING (hcd->state)) {
- 			int schedule_status;
-=20
--			schedule_status =3D qh_schedule (ehci, qh);
-+			schedule_status =3D qh_schedule(ehci, qh);
- 			spin_unlock_irqrestore (&ehci->lock, flags);
-=20
- 			if (schedule_status !=3D 0) {
+diff -puN drivers/pci/hotplug/acpiphp_core.c~pci-dont-load-acpi_php-when-acpi-is-disabled-fix drivers/pci/hotplug/acpiphp_core.c
+--- a/drivers/pci/hotplug/acpiphp_core.c~pci-dont-load-acpi_php-when-acpi-is-disabled-fix
++++ a/drivers/pci/hotplug/acpiphp_core.c
+@@ -405,7 +405,7 @@ static int __init acpiphp_init(void)
+ static void __exit acpiphp_exit(void)
+ {
+ 	if (acpi_pci_disabled)
+-		return 0;
++		return;
+ 
+ 	/* deallocate internal data structures etc. */
+ 	acpiphp_glue_exit();
+diff -puN arch/x86/kernel/acpi/boot.c~pci-dont-load-acpi_php-when-acpi-is-disabled-fix arch/x86/kernel/acpi/boot.c
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org =
-are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 kvm-i386-fix.patch
@@ -79,10 +61,8 @@ get_task_comm-return-the-result.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
 timerfd-v3-new-timerfd-api.patch
 include-asm-powerpc-nvramh-needs-listh.patch
-serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh.p=
-atch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.pa=
-tch
+serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
 vmalloc-add-const-to-void-parameters.patch
 i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
 bufferhead-revert-constructor-removal.patch
@@ -119,8 +99,7 @@ drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
 git-drm.patch
 git-drm-fix.patch
 drm-convert-from-nopage-to-fault.patch
-drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitia=
-lized-variable.patch
+drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
 adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
 revert-git-hrt.patch
 git-ia64.patch
@@ -140,10 +119,8 @@ drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 git-backlight.patch
 bluetooth-uninlining.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-=
-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform=
-=2Epatch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
 x86-validate-against-acpi-motherboard-resources.patch
 git-sched.patch
 git-sched-fix-git-conflicts.patch
@@ -153,17 +130,14 @@ drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch
 libsas-convert-ata-bridge-to-use-new-eh.patch
 git-unionfs.patch
 vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fi=
-xes.patch
 drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
 usb-ohci-sm501-driver-v2-fix.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statement=
-s.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
 git-v9fs-fix-git-conflicts.patch
 9p-fix-p9_printfcall-export.patch
 git-watchdog.patch
 git-watchdog-fixup.patch
-b43-fix-build-with-config_ssb_pcihost=3Dn.patch
+b43-fix-build-with-config_ssb_pcihost=n.patch
 git-ipwireless_cs.patch
 git-x86.patch
 git-x86-fix-git-conflicts.patch
@@ -173,17 +147,14 @@ pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
 x86-amd-thermal-interrupt-support-fix-2.patch
 x86-mmconf-enable-mcfg-early-cleanup.patch
 git-xtensa.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-t=
-he-lru.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 kernel-printkc-concerns-about-the-console-handover.patch
 riscom8-fix-smp-brokenness-fix.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatc=
-h-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
 remove-warnings-for-longstanding-conditions-fix.patch
 genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patc=
-h
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
 remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
 allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
 read_current_time-cleanups.patch
@@ -193,15 +164,13 @@ get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
 kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
 deprecate-smbfs-in-favour-of-cifs.patch
 quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.pa=
-tch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
 stopmachine-semaphore-to-mutex-fix.patch
-parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-express=
-card-fix.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
 debug_smp_processor_id-fixlets.patch
 use-ilog2-in-fs-namespacec-fix.patch
 system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
-speed-up-jiffies-conversion-functions-if-hz=3D=3Duser_hz.patch
+speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
 drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
 ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
 rtc-ds1302-rtc-support-checkpatch-fixes.patch
@@ -219,102 +188,71 @@ kill-filp_open-checkpatch-fixes.patch
 rename-open_namei-to-open_pathname-fix.patch
 r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
 r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.pa=
-tch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-c=
-hange-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
 r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch=
--fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-=
-fixes.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
 keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix.patch
 cgroup-simplify-space-stripping-fix.patch
 memory-controller-memory-accounting-v7.patch
 memory-controller-add-per-container-lru-and-reclaim-v7.patch
 memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.=
-patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
 memcontrol-move-mm_cgroup-to-header-file-fix.patch
 memcontrol-move-mm_cgroup-to-header-file-fix-2.patch
 memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_=
-page.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cg=
-roup.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
 memory-cgroup-enhancements-add-memorystat-file.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember=
--reclaim-priority-in-memory-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies=
--vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
 cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.pat=
-ch
-hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patc=
-h
+cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
+hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
 cpusets-update_cpumask-revision-fix.patch
 cpusets-update_cpumask-revision-checkpatch-fixes.patch
 drivers-edac-add-marvell-mv64x60-driver-fix.patch
 introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
 introduce-flags-for-reserve_bootmem-powerpc-fix.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patc=
-h
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
 iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patc=
-h
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patc=
-h
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patc=
-h
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.pat=
-ch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
 iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patc=
-h
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
 iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patc=
-h
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
 iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
 iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
 iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-check=
-patch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-gi=
-t-unionfs.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-=
-fix.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack=
--fix.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
 introduce-path_put-cifs-fix.patch
 one-less-parameter-to-__d_path-checkpatch-fixes.patch
 d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.pat=
-ch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
 use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
 d_path-make-d_path-use-a-struct-path-fix.patch
 cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
 cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
 proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-=
-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-=
-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-=
-fix-2.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-=
-fix-3.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-=
-nommu-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
 proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
 intel-iommu-fault_reason_index_cleanuppatch-fix.patch
 modules-make-module_address_lookup-safe-fix.patch
-wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-f=
-ix.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
 pid-sys_wait-fixes-v2-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-=
-x86.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sani=
-tize-the-type-of-struct-useru_ar0.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
 aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
 mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
 rewrite-rd-fixes.patch
@@ -331,10 +269,8 @@ fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
 fs-afs-securityc-fix-uninitialized-var-warning.patch
 mount-options-fix-tmpfs-fix.patch
 char-applicom-use-pci_match_id-fix.patch
-add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-=
-them-fix.patch
-add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-=
-them-fix-2.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
 reiser4.patch
 jens-broke-reiser4patch-added-to-mm-tree.patch
 page-owner-tracking-leak-detector.patch
