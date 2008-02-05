@@ -1,122 +1,178 @@
 From: akpm@linux-foundation.org
-Subject: - misc-add-possibility-to-remove-misc-devices-during-suspend-resume.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:34:15 -0800
-Message-ID: <200802052233.m15MXucK012466@imap1.linux-foundation.org>
+Subject: - iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:28:43 -0800
+Message-ID: <200802052228.m15MSOxJ011880@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34313 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58551 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762904AbYBEWpf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:45:35 -0500
+	by vger.kernel.org with ESMTP id S1762821AbYBEWpA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:45:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, greg@kroah.com, kay.sievers@vrfy.org, lenb@kernel.org, linville@tuxdriver.com, mb@bu3sch.de, pavel@ucw.cz, rpurdie@rpsys.net, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
+To: tomof@acm.org, James.Bottomley@steeleye.com, ak@suse.de, fujita.tomonori@lab.ntt.co.jp, jeff@garzik.org, jens.axboe@oracle.com, mingo@elte.hu, mulix@mulix.org, tglx@linutronix.de, mm-
 
 
 The patch titled
-     Misc: Add possibility to remove misc devices during suspend/resume
+     iommu sg: x86: convert gart IOMMU to use the IOMMU helper
 has been removed from the -mm tree.  Its filename was
-     misc-add-possibility-to-remove-misc-devices-during-suspend-resume.patch
+     iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Misc: Add possibility to remove misc devices during suspend/resume
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: iommu sg: x86: convert gart IOMMU to use the IOMMU helper
+From: FUJITA Tomonori <tomof@acm.org>
 
-Make it possible to unregister a misc device object in a safe way during a
-suspend/resume cycle.
+This patch converts gart IOMMU to use the IOMMU helper functions. The
+IOMMU doesn't allocate a memory area spanning LLD's segment boundary
+anymore.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Michael Buesch <mb@bu3sch.de>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Muli Ben-Yehuda <mulix@mulix.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/misc.c        |   13 +++++++++----
- include/linux/miscdevice.h |   10 +++++++++-
- 2 files changed, 18 insertions(+), 5 deletions(-)
+ arch/x86/Kconfig              |    2 -
+ arch/x86/kernel/pci-gart_64.c |   41 +++++++++++++++++++-------------
+ 2 files changed, 26 insertions(+), 17 deletions(-)
 
-diff -puN drivers/char/misc.c~misc-add-possibility-to-remove-misc-devices-during-suspend-resume drivers/char/misc.c
---- a/drivers/char/misc.c~misc-add-possibility-to-remove-misc-devices-during-suspend-resume
-+++ a/drivers/char/misc.c
-@@ -232,8 +232,9 @@ int misc_register(struct miscdevice * mi
- }
+diff -puN arch/x86/Kconfig~iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper arch/x86/Kconfig
+--- a/arch/x86/Kconfig~iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper
++++ a/arch/x86/Kconfig
+@@ -466,7 +466,7 @@ config CALGARY_IOMMU_ENABLED_BY_DEFAULT
+ 	  If unsure, say Y.
  
- /**
-- *	misc_deregister - unregister a miscellaneous device
-+ *	__misc_deregister - unregister a miscellaneous device
-  *	@misc: device to unregister
-+ *	@suspended: to be set if the function is used during suspend/resume
-  *
-  *	Unregister a miscellaneous device that was previously
-  *	successfully registered with misc_register(). Success
-@@ -241,7 +242,7 @@ int misc_register(struct miscdevice * mi
-  *	indicates an error.
-  */
+ config IOMMU_HELPER
+-	def_bool CALGARY_IOMMU
++	def_bool (CALGARY_IOMMU || GART_IOMMU)
  
--int misc_deregister(struct miscdevice * misc)
-+int __misc_deregister(struct miscdevice *misc, bool suspended)
+ # need this always selected by IOMMU for the VIA workaround
+ config SWIOTLB
+diff -puN arch/x86/kernel/pci-gart_64.c~iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper arch/x86/kernel/pci-gart_64.c
+--- a/arch/x86/kernel/pci-gart_64.c~iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper
++++ a/arch/x86/kernel/pci-gart_64.c
+@@ -25,6 +25,7 @@
+ #include <linux/bitops.h>
+ #include <linux/kdebug.h>
+ #include <linux/scatterlist.h>
++#include <linux/iommu-helper.h>
+ #include <asm/atomic.h>
+ #include <asm/io.h>
+ #include <asm/mtrr.h>
+@@ -82,17 +83,24 @@ AGPEXTERN __u32 *agp_gatt_table;
+ static unsigned long next_bit;  /* protected by iommu_bitmap_lock */
+ static int need_flush;		/* global flush state. set for each gart wrap */
+ 
+-static unsigned long alloc_iommu(int size)
++static unsigned long alloc_iommu(struct device *dev, int size)
  {
- 	int i = misc->minor;
+ 	unsigned long offset, flags;
++	unsigned long boundary_size;
++	unsigned long base_index;
++
++	base_index = ALIGN(iommu_bus_base & dma_get_seg_boundary(dev),
++			   PAGE_SIZE) >> PAGE_SHIFT;
++	boundary_size = ALIGN(dma_get_seg_boundary(dev) + 1,
++			      PAGE_SIZE) >> PAGE_SHIFT;
  
-@@ -250,7 +251,11 @@ int misc_deregister(struct miscdevice * 
- 
- 	mutex_lock(&misc_mtx);
- 	list_del(&misc->list);
--	device_destroy(misc_class, MKDEV(MISC_MAJOR, misc->minor));
-+	if (suspended)
-+		destroy_suspended_device(misc_class,
-+					MKDEV(MISC_MAJOR, misc->minor));
-+	else
-+		device_destroy(misc_class, MKDEV(MISC_MAJOR, misc->minor));
- 	if (i < DYNAMIC_MINORS && i>0) {
- 		misc_minors[i>>3] &= ~(1 << (misc->minor & 7));
+ 	spin_lock_irqsave(&iommu_bitmap_lock, flags);
+-	offset = find_next_zero_string(iommu_gart_bitmap, next_bit,
+-					iommu_pages, size);
++	offset = iommu_area_alloc(iommu_gart_bitmap, iommu_pages, next_bit,
++				  size, base_index, boundary_size, 0);
+ 	if (offset == -1) {
+ 		need_flush = 1;
+-		offset = find_next_zero_string(iommu_gart_bitmap, 0,
+-						iommu_pages, size);
++		offset = iommu_area_alloc(iommu_gart_bitmap, iommu_pages, 0,
++					  size, base_index, boundary_size, 0);
  	}
-@@ -259,7 +264,7 @@ int misc_deregister(struct miscdevice * 
+ 	if (offset != -1) {
+ 		set_bit_string(iommu_gart_bitmap, offset, size);
+@@ -114,7 +122,7 @@ static void free_iommu(unsigned long off
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&iommu_bitmap_lock, flags);
+-	__clear_bit_string(iommu_gart_bitmap, offset, size);
++	iommu_area_free(iommu_gart_bitmap, offset, size);
+ 	spin_unlock_irqrestore(&iommu_bitmap_lock, flags);
  }
  
- EXPORT_SYMBOL(misc_register);
--EXPORT_SYMBOL(misc_deregister);
-+EXPORT_SYMBOL(__misc_deregister);
- 
- static int __init misc_init(void)
+@@ -235,7 +243,7 @@ static dma_addr_t dma_map_area(struct de
+ 				size_t size, int dir)
  {
-diff -puN include/linux/miscdevice.h~misc-add-possibility-to-remove-misc-devices-during-suspend-resume include/linux/miscdevice.h
---- a/include/linux/miscdevice.h~misc-add-possibility-to-remove-misc-devices-during-suspend-resume
-+++ a/include/linux/miscdevice.h
-@@ -43,7 +43,15 @@ struct miscdevice  {
- };
+ 	unsigned long npages = to_pages(phys_mem, size);
+-	unsigned long iommu_page = alloc_iommu(npages);
++	unsigned long iommu_page = alloc_iommu(dev, npages);
+ 	int i;
  
- extern int misc_register(struct miscdevice * misc);
--extern int misc_deregister(struct miscdevice * misc);
-+extern int __misc_deregister(struct miscdevice *misc, bool suspended);
-+static inline int misc_deregister(struct miscdevice *misc)
-+{
-+	return __misc_deregister(misc, false);
-+}
-+static inline int misc_deregister_suspended(struct miscdevice *misc)
-+{
-+	return __misc_deregister(misc, true);
-+}
+ 	if (iommu_page == -1) {
+@@ -355,10 +363,11 @@ static int dma_map_sg_nonforce(struct de
+ }
  
- #define MODULE_ALIAS_MISCDEV(minor)				\
- 	MODULE_ALIAS("char-major-" __stringify(MISC_MAJOR)	\
+ /* Map multiple scatterlist entries continuous into the first. */
+-static int __dma_map_cont(struct scatterlist *start, int nelems,
+-			  struct scatterlist *sout, unsigned long pages)
++static int __dma_map_cont(struct device *dev, struct scatterlist *start,
++			  int nelems, struct scatterlist *sout,
++			  unsigned long pages)
+ {
+-	unsigned long iommu_start = alloc_iommu(pages);
++	unsigned long iommu_start = alloc_iommu(dev, pages);
+ 	unsigned long iommu_page = iommu_start;
+ 	struct scatterlist *s;
+ 	int i;
+@@ -394,8 +403,8 @@ static int __dma_map_cont(struct scatter
+ }
+ 
+ static inline int
+-dma_map_cont(struct scatterlist *start, int nelems, struct scatterlist *sout,
+-	     unsigned long pages, int need)
++dma_map_cont(struct device *dev, struct scatterlist *start, int nelems,
++	     struct scatterlist *sout, unsigned long pages, int need)
+ {
+ 	if (!need) {
+ 		BUG_ON(nelems != 1);
+@@ -403,7 +412,7 @@ dma_map_cont(struct scatterlist *start, 
+ 		sout->dma_length = start->length;
+ 		return 0;
+ 	}
+-	return __dma_map_cont(start, nelems, sout, pages);
++	return __dma_map_cont(dev, start, nelems, sout, pages);
+ }
+ 
+ /*
+@@ -449,8 +458,8 @@ gart_map_sg(struct device *dev, struct s
+ 			if (!iommu_merge || !nextneed || !need || s->offset ||
+ 			    (s->length + seg_size > max_seg_size) ||
+ 			    (ps->offset + ps->length) % PAGE_SIZE) {
+-				if (dma_map_cont(start_sg, i - start, sgmap,
+-						  pages, need) < 0)
++				if (dma_map_cont(dev, start_sg, i - start,
++						 sgmap, pages, need) < 0)
+ 					goto error;
+ 				out++;
+ 				seg_size = 0;
+@@ -466,7 +475,7 @@ gart_map_sg(struct device *dev, struct s
+ 		pages += to_pages(s->offset, s->length);
+ 		ps = s;
+ 	}
+-	if (dma_map_cont(start_sg, i - start, sgmap, pages, need) < 0)
++	if (dma_map_cont(dev, start_sg, i - start, sgmap, pages, need) < 0)
+ 		goto error;
+ 	out++;
+ 	flush_gart();
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from tomof@acm.org are
 
 origin.patch
-git-acpi.patch
-git-x86.patch
-git-xfs.patch
-proc-fix-the-threaded-proc-self.patch
-shrink_slab-handle-bad-shrinkers.patch
