@@ -1,67 +1,336 @@
 From: akpm@linux-foundation.org
-Subject: - x86-mmconf-enable-mcfg-early-cleanup.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 00:01:55 -0800
-Message-ID: <200802050801.m1581bSD011126@imap1.linux-foundation.org>
+Subject: + nmi-hacks.patch added to -mm tree
+Date: Tue, 05 Feb 2008 01:38:02 -0800
+Message-ID: <200802050937.m159bhAX014288@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58674 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39403 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756553AbYBEICT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 03:02:19 -0500
+	by vger.kernel.org with ESMTP id S1751941AbYBEJhs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 04:37:48 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m159bhvV026518
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 5 Feb 2008 01:37:45 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Yinghai.Lu@Sun.COM, ak@suse.de, greg@kroah.com, mingo@elte.hu, tglx@linutronix.de, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     x86-mmconf-enable-mcfg-early-cleanup
-has been removed from the -mm tree.  Its filename was
-     x86-mmconf-enable-mcfg-early-cleanup.patch
+     a
+has been added to the -mm tree.  Its filename is
+     nmi-hacks.patch
 
-This patch was dropped because it was folded into x86-mmconf-enable-mcfg-early.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86-mmconf-enable-mcfg-early-cleanup
+Subject: a
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Andi Kleen <ak@suse.de>
-Cc: Greg KH <greg@kroah.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Yinghai Lu <Yinghai.Lu@Sun.COM>
-Cc: Yinghai Lu <yinghai.lu@sun.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/pci/mmconfig-shared.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ arch/x86/kernel/traps_32.c |    6 ++
+ drivers/char/vt.c          |    2 
+ kernel/printk.c            |   83 ++++++++++++++++++++++++-----------
+ 3 files changed, 65 insertions(+), 26 deletions(-)
 
-diff -puN arch/x86/pci/mmconfig-shared.c~x86-mmconf-enable-mcfg-early-cleanup arch/x86/pci/mmconfig-shared.c
---- a/arch/x86/pci/mmconfig-shared.c~x86-mmconf-enable-mcfg-early-cleanup
-+++ a/arch/x86/pci/mmconfig-shared.c
-@@ -308,8 +308,8 @@ static void __init pci_mmcfg_reject_brok
- 		       (unsigned int)cfg->start_bus_number,
- 		       (unsigned int)cfg->end_bus_number);
+diff -puN kernel/printk.c~nmi-hacks kernel/printk.c
+--- a/kernel/printk.c~nmi-hacks
++++ a/kernel/printk.c
+@@ -36,6 +36,8 @@
  
--		if (!early)
--		if (is_acpi_reserved(cfg->address, cfg->address + size - 1)) {
-+		if (!early &&
-+		    is_acpi_reserved(cfg->address, cfg->address + size - 1)) {
- 			printk(KERN_NOTICE "PCI: MCFG area at %Lx reserved "
- 			       "in ACPI motherboard resources\n",
- 			       cfg->address);
-@@ -357,8 +357,7 @@ void __init __pci_mmcfg_init(int type, i
+ #include <asm/uaccess.h>
+ 
++int nmi_hit;
++
+ /*
+  * Architectures can override it:
+  */
+@@ -147,7 +149,8 @@ static int __init log_buf_len_setup(char
+ 			goto out;
+ 		}
+ 
+-		spin_lock_irqsave(&logbuf_lock, flags);
++		if (!nmi_hit)
++			spin_lock_irqsave(&logbuf_lock, flags);
+ 		log_buf_len = size;
+ 		log_buf = new_log_buf;
+ 
+@@ -161,7 +164,8 @@ static int __init log_buf_len_setup(char
+ 		log_start -= offset;
+ 		con_start -= offset;
+ 		log_end -= offset;
+-		spin_unlock_irqrestore(&logbuf_lock, flags);
++		if (!nmi_hit)
++			spin_unlock_irqrestore(&logbuf_lock, flags);
+ 
+ 		printk(KERN_NOTICE "log_buf_len: %d\n", log_buf_len);
+ 	}
+@@ -243,7 +247,8 @@ int log_buf_copy(char *dest, int idx, in
+ 	bool took_lock = false;
+ 
+ 	if (!oops_in_progress) {
+-		spin_lock_irq(&logbuf_lock);
++		if (!nmi_hit)
++			spin_lock_irq(&logbuf_lock);
+ 		took_lock = true;
+ 	}
+ 
+@@ -260,7 +265,8 @@ int log_buf_copy(char *dest, int idx, in
+ 	}
+ 
+ 	if (took_lock)
+-		spin_unlock_irq(&logbuf_lock);
++		if (!nmi_hit)
++			spin_unlock_irq(&logbuf_lock);
+ 
+ 	return ret;
+ }
+@@ -325,18 +331,22 @@ int do_syslog(int type, char __user *buf
+ 		if (error)
+ 			goto out;
+ 		i = 0;
+-		spin_lock_irq(&logbuf_lock);
++		if (!nmi_hit)
++			spin_lock_irq(&logbuf_lock);
+ 		while (!error && (log_start != log_end) && i < len) {
+ 			c = LOG_BUF(log_start);
+ 			log_start++;
+-			spin_unlock_irq(&logbuf_lock);
++			if (!nmi_hit)
++				spin_unlock_irq(&logbuf_lock);
+ 			error = __put_user(c,buf);
+ 			buf++;
+ 			i++;
+ 			cond_resched();
+-			spin_lock_irq(&logbuf_lock);
++			if (!nmi_hit)
++				spin_lock_irq(&logbuf_lock);
+ 		}
+-		spin_unlock_irq(&logbuf_lock);
++		if (!nmi_hit)
++			spin_unlock_irq(&logbuf_lock);
+ 		if (!error)
+ 			error = i;
+ 		break;
+@@ -357,7 +367,8 @@ int do_syslog(int type, char __user *buf
+ 		count = len;
+ 		if (count > log_buf_len)
+ 			count = log_buf_len;
+-		spin_lock_irq(&logbuf_lock);
++		if (!nmi_hit)
++			spin_lock_irq(&logbuf_lock);
+ 		if (count > logged_chars)
+ 			count = logged_chars;
+ 		if (do_clear)
+@@ -374,12 +385,14 @@ int do_syslog(int type, char __user *buf
+ 			if (j + log_buf_len < log_end)
+ 				break;
+ 			c = LOG_BUF(j);
+-			spin_unlock_irq(&logbuf_lock);
++			if (!nmi_hit)
++				spin_unlock_irq(&logbuf_lock);
+ 			error = __put_user(c,&buf[count-1-i]);
+ 			cond_resched();
+-			spin_lock_irq(&logbuf_lock);
++			if (!nmi_hit)										spin_lock_irq(&logbuf_lock);
+ 		}
+-		spin_unlock_irq(&logbuf_lock);
++		if (!nmi_hit)
++			spin_unlock_irq(&logbuf_lock);
+ 		if (error)
+ 			break;
+ 		error = i;
+@@ -433,6 +446,9 @@ asmlinkage long sys_syslog(int type, cha
+ 	return do_syslog(type, buf, len);
+ }
+ 
++extern void vt_console_print(struct console *co, const char *b, unsigned count);
++
++
+ /*
+  * Call the console drivers on a range of log_buf
+  */
+@@ -443,8 +459,13 @@ static void __call_console_drivers(unsig
+ 	for (con = console_drivers; con; con = con->next) {
+ 		if ((con->flags & CON_ENABLED) && con->write &&
+ 				(cpu_online(smp_processor_id()) ||
+-				(con->flags & CON_ANYTIME)))
+-			con->write(con, &LOG_BUF(start), end - start);
++				(con->flags & CON_ANYTIME))) {
++			if (nmi_hit)
++				vt_console_print(con, &LOG_BUF(start),
++						end - start);
++			else
++				con->write(con, &LOG_BUF(start), end - start);
++		}
+ 	}
+ }
+ 
+@@ -460,6 +481,7 @@ static int __init ignore_loglevel_setup(
+ 
+ early_param("ignore_loglevel", ignore_loglevel_setup);
+ 
++
+ /*
+  * Write out chars from start to end - 1 inclusive
+  */
+@@ -670,7 +692,8 @@ asmlinkage int vprintk(const char *fmt, 
+ 	}
+ 
+ 	lockdep_off();
+-	spin_lock(&logbuf_lock);
++	if (!nmi_hit)
++		spin_lock(&logbuf_lock);
+ 	printk_cpu = this_cpu;
+ 
+ 	if (printk_recursion_bug) {
+@@ -746,7 +769,8 @@ asmlinkage int vprintk(const char *fmt, 
+ 		 */
+ 		console_locked = 1;
+ 		printk_cpu = UINT_MAX;
+-		spin_unlock(&logbuf_lock);
++		if (!nmi_hit)
++			spin_unlock(&logbuf_lock);
+ 
+ 		/*
+ 		 * Console drivers may assume that per-cpu resources have
+@@ -771,7 +795,8 @@ asmlinkage int vprintk(const char *fmt, 
+ 		 * console drivers with the output which we just produced.
+ 		 */
+ 		printk_cpu = UINT_MAX;
+-		spin_unlock(&logbuf_lock);
++		if (!nmi_hit)
++			spin_unlock(&logbuf_lock);
+ 		lockdep_on();
+ out_restore_irqs:
+ 		raw_local_irq_restore(flags);
+@@ -994,20 +1019,23 @@ void release_console_sem(void)
+ 	console_may_schedule = 0;
+ 
+ 	for ( ; ; ) {
+-		spin_lock_irqsave(&logbuf_lock, flags);
++		if (!nmi_hit)
++			spin_lock_irqsave(&logbuf_lock, flags);
+ 		wake_klogd |= log_start - log_end;
+ 		if (con_start == log_end)
+ 			break;			/* Nothing to print */
+ 		_con_start = con_start;
+ 		_log_end = log_end;
+ 		con_start = log_end;		/* Flush */
+-		spin_unlock(&logbuf_lock);
++		if (!nmi_hit)
++			spin_unlock(&logbuf_lock);
+ 		call_console_drivers(_con_start, _log_end);
+ 		local_irq_restore(flags);
+ 	}
+ 	console_locked = 0;
+ 	up(&console_sem);
+-	spin_unlock_irqrestore(&logbuf_lock, flags);
++	if (!nmi_hit)
++		spin_unlock_irqrestore(&logbuf_lock, flags);
+ 	if (wake_klogd)
+ 		wake_up_klogd();
+ }
+@@ -1196,9 +1224,11 @@ void register_console(struct console *co
+ 		 * release_console_sem() will print out the buffered messages
+ 		 * for us.
+ 		 */
+-		spin_lock_irqsave(&logbuf_lock, flags);
++		if (!nmi_hit)
++			spin_lock_irqsave(&logbuf_lock, flags);
+ 		con_start = log_start;
+-		spin_unlock_irqrestore(&logbuf_lock, flags);
++		if (!nmi_hit)
++			spin_unlock_irqrestore(&logbuf_lock, flags);
+ 	}
+ 	release_console_sem();
+ }
+@@ -1281,7 +1311,8 @@ int __printk_ratelimit(int ratelimit_jif
+ 	unsigned long flags;
+ 	unsigned long now = jiffies;
+ 
+-	spin_lock_irqsave(&ratelimit_lock, flags);
++	if (!nmi_hit)
++		spin_lock_irqsave(&ratelimit_lock, flags);
+ 	toks += now - last_msg;
+ 	last_msg = now;
+ 	if (toks > (ratelimit_burst * ratelimit_jiffies))
+@@ -1291,13 +1322,15 @@ int __printk_ratelimit(int ratelimit_jif
+ 
+ 		missed = 0;
+ 		toks -= ratelimit_jiffies;
+-		spin_unlock_irqrestore(&ratelimit_lock, flags);
++		if (!nmi_hit)
++			spin_unlock_irqrestore(&ratelimit_lock, flags);
+ 		if (lost)
+ 			printk(KERN_WARNING "printk: %d messages suppressed.\n", lost);
+ 		return 1;
+ 	}
+ 	missed++;
+-	spin_unlock_irqrestore(&ratelimit_lock, flags);
++	if (!nmi_hit)
++		spin_unlock_irqrestore(&ratelimit_lock, flags);
+ 	return 0;
+ }
+ EXPORT_SYMBOL(__printk_ratelimit);
+diff -puN drivers/char/vt.c~nmi-hacks drivers/char/vt.c
+--- a/drivers/char/vt.c~nmi-hacks
++++ a/drivers/char/vt.c
+@@ -2396,7 +2396,7 @@ struct tty_driver *console_driver;
+  * The console must be locked when we get here.
+  */
+ 
+-static void vt_console_print(struct console *co, const char *b, unsigned count)
++void vt_console_print(struct console *co, const char *b, unsigned count)
+ {
+ 	struct vc_data *vc = vc_cons[fg_console].d;
+ 	unsigned char c;
+diff -puN arch/x86/kernel/nmi_32.c~nmi-hacks arch/x86/kernel/nmi_32.c
+diff -puN arch/x86/kernel/traps_32.c~nmi-hacks arch/x86/kernel/traps_32.c
+--- a/arch/x86/kernel/traps_32.c~nmi-hacks
++++ a/arch/x86/kernel/traps_32.c
+@@ -71,6 +71,8 @@ asmlinkage int system_call(void);
+ /* Do we ignore FPU interrupts ? */
+ char ignore_fpu_irq = 0;
+ 
++extern int nmi_hit;
++
+ /*
+  * The IDT has to be page-aligned to simplify the Pentium
+  * F0 0F bug workaround.. We have a special link segment
+@@ -431,6 +433,8 @@ void die(const char * str, struct pt_reg
+ 	};
+ 	unsigned long flags;
+ 
++	nmi_hit = 1;
++
+ 	oops_enter();
+ 
+ 	if (die.lock_owner != raw_smp_processor_id()) {
+@@ -729,6 +733,8 @@ static DEFINE_SPINLOCK(nmi_print_lock);
+ 
+ void __kprobes die_nmi(struct pt_regs *regs, const char *msg)
+ {
++	nmi_hit = 1;
++
+ 	if (notify_die(DIE_NMIWATCHDOG, msg, regs, 0, 2, SIGINT) ==
+ 	    NOTIFY_STOP)
  		return;
- 
- 	/* MMCONFIG already enabled */
--	if (!early)
--	if (!(pci_probe & PCI_PROBE_MASK & ~PCI_PROBE_MMCONF))
-+	if (!early && !(pci_probe & PCI_PROBE_MASK & ~PCI_PROBE_MMCONF))
- 		return;
- 
- 	/* for late to exit */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -156,7 +425,6 @@ git-x86-fix-git-conflicts.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 x86-amd-thermal-interrupt-support.patch
 x86-mmconf-enable-mcfg-early.patch
-x86-mmconf-enable-mcfg-early-cleanup.patch
 git-xtensa.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
@@ -295,3 +563,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+nmi-hacks.patch
