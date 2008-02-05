@@ -1,131 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: - debug-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch removed from -mm tree
-Date: Mon, 04 Feb 2008 23:35:54 -0800
-Message-ID: <200802050735.m157ZZ3u009871@imap1.linux-foundation.org>
+Subject: - drm-convert-from-nopage-to-fault-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 04 Feb 2008 23:36:13 -0800
+Message-ID: <200802050735.m157ZtvQ009877@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42054 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42458 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753462AbYBEHfi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 02:35:38 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m157ZaMP021804
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 4 Feb 2008 23:35:37 -0800
+	by vger.kernel.org with ESMTP id S1751136AbYBEHgG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 02:36:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, airlied@linux.ie, npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     debug gregkh-driver-pm-acquire-device-locks-prior-to-suspending
+     drm-convert-from-nopage-to-fault-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     debug-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
+     drm-convert-from-nopage-to-fault-checkpatch-fixes.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into drm-convert-from-nopage-to-fault.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: debug gregkh-driver-pm-acquire-device-locks-prior-to-suspending
+Subject: drm-convert-from-nopage-to-fault-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
+WARNING: plain inline is preferred over __inline__
+#32: FILE: drivers/char/drm/drm_vm.c:83:
++static __inline__ int drm_do_vm_fault(struct vm_area_struct *vma,
+
+WARNING: plain inline is preferred over __inline__
+#97: FILE: drivers/char/drm/drm_vm.c:155:
++static __inline__ int drm_do_vm_fault(struct vm_area_struct *vma,
+
+WARNING: plain inline is preferred over __inline__
+#111: FILE: drivers/char/drm/drm_vm.c:172:
++static __inline__ int drm_do_vm_shm_fault(struct vm_area_struct *vma,
+
+WARNING: plain inline is preferred over __inline__
+#157: FILE: drivers/char/drm/drm_vm.c:285:
++static __inline__ int drm_do_vm_dma_fault(struct vm_area_struct *vma,
+
+WARNING: line over 80 characters
+#176: FILE: drivers/char/drm/drm_vm.c:300:
++	offset = (unsigned long)vmf->virtual_address - vma->vm_start;	/* vm_[pg]off[set] should be 0 */
+
+WARNING: plain inline is preferred over __inline__
+#201: FILE: drivers/char/drm/drm_vm.c:320:
++static __inline__ int drm_do_vm_sg_fault(struct vm_area_struct *vma,
+
+total: 0 errors, 6 warnings, 289 lines checked
+
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Dave Airlie <airlied@linux.ie>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/power/main.c |   39 ++++++++++++++++++++++++++++--------
- 1 file changed, 31 insertions(+), 8 deletions(-)
+ drivers/char/drm/drm_vm.c |   15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
-diff -puN drivers/base/power/main.c~debug-gregkh-driver-pm-acquire-device-locks-prior-to-suspending drivers/base/power/main.c
---- a/drivers/base/power/main.c~debug-gregkh-driver-pm-acquire-device-locks-prior-to-suspending
-+++ a/drivers/base/power/main.c
-@@ -58,13 +58,36 @@ static DECLARE_RWSEM(pm_sleep_rwsem);
- 
- int (*platform_enable_wakeup)(struct device *dev, int is_on);
- 
-+static void __do_down(struct semaphore *s, const char *file, int line)
-+{
-+	printk("%s:%d\n", file, line);
-+	dump_stack();
-+	down(s);
-+}
-+#define do_down(s) __do_down(s, __FILE__, __LINE__)
-+
-+static void __do_mutex_lock(struct mutex *m, const char *file, int line)
-+{
-+	printk("%s:%d\n", file, line);
-+	dump_stack();
-+	mutex_lock(m);
-+}
-+#define do_mutex_lock(m) __do_mutex_lock(m, __FILE__, __LINE__)
-+
-+static void __do_down_write(struct rw_semaphore *s, const char *file, int line)
-+{
-+	printk("%s:%d\n", file, line);
-+	dump_stack();
-+	down_write(s);
-+}
-+#define do_down_write(s) __do_down_write(s, __FILE__, __LINE__)
- 
- void device_pm_add(struct device *dev)
+diff -puN drivers/char/drm/drm_vm.c~drm-convert-from-nopage-to-fault-checkpatch-fixes drivers/char/drm/drm_vm.c
+--- a/drivers/char/drm/drm_vm.c~drm-convert-from-nopage-to-fault-checkpatch-fixes
++++ a/drivers/char/drm/drm_vm.c
+@@ -80,8 +80,7 @@ static pgprot_t drm_io_prot(uint32_t map
+  * map, get the page, increment the use count and return it.
+  */
+ #if __OS_HAS_AGP
+-static __inline__ int drm_do_vm_fault(struct vm_area_struct *vma,
+-						struct vm_fault *vmf)
++static int drm_do_vm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
  {
- 	pr_debug("PM: Adding info for %s:%s\n",
- 		 dev->bus ? dev->bus->name : "No Bus",
- 		 kobject_name(&dev->kobj));
--	mutex_lock(&dpm_list_mtx);
-+	do_mutex_lock(&dpm_list_mtx);
- 	list_add_tail(&dev->power.entry, &dpm_active);
- 	mutex_unlock(&dpm_list_mtx);
+ 	struct drm_file *priv = vma->vm_file->private_data;
+ 	struct drm_device *dev = priv->head->dev;
+@@ -152,8 +151,7 @@ vm_fault_error:
+ 	return VM_FAULT_SIGBUS;	/* Disallow mremap */
  }
-@@ -76,8 +99,8 @@ void device_pm_remove(struct device *dev
- 		 kobject_name(&dev->kobj));
- 
- 	/* Don't remove a device while the PM core has it locked for suspend */
--	down(&dev->sem);
--	mutex_lock(&dpm_list_mtx);
-+	do_down(&dev->sem);
-+	do_mutex_lock(&dpm_list_mtx);
- 	dpm_sysfs_remove(dev);
- 	list_del_init(&dev->power.entry);
- 	mutex_unlock(&dpm_list_mtx);
-@@ -229,7 +252,7 @@ static void dpm_resume(void)
-  */
- static void unlock_all_devices(void)
+ #else				/* __OS_HAS_AGP */
+-static __inline__ int drm_do_vm_fault(struct vm_area_struct *vma,
+-						struct vm_fault *vmf)
++static int drm_do_vm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
  {
--	mutex_lock(&dpm_list_mtx);
-+	do_mutex_lock(&dpm_list_mtx);
-  	while (!list_empty(&dpm_locked)) {
-  		struct list_head *entry = dpm_locked.prev;
-  		struct device *dev = to_device(entry);
-@@ -412,7 +435,7 @@ static int dpm_suspend(pm_message_t stat
+ 	return VM_FAULT_SIGBUS;
+ }
+@@ -169,8 +167,7 @@ static __inline__ int drm_do_vm_fault(st
+  * Get the mapping, find the real physical page to map, get the page, and
+  * return it.
   */
- static void lock_all_devices(void)
+-static __inline__ int drm_do_vm_shm_fault(struct vm_area_struct *vma,
+-						    struct vm_fault *vmf)
++static int drm_do_vm_shm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
  {
--	mutex_lock(&dpm_list_mtx);
-+	do_mutex_lock(&dpm_list_mtx);
- 	while (!list_empty(&dpm_active)) {
- 		struct list_head *entry = dpm_active.next;
- 		struct device *dev = to_device(entry);
-@@ -422,8 +445,8 @@ static void lock_all_devices(void)
- 		 */
- 		get_device(dev);
- 		mutex_unlock(&dpm_list_mtx);
--		down(&dev->sem);
--		mutex_lock(&dpm_list_mtx);
-+		do_down(&dev->sem);
-+		do_mutex_lock(&dpm_list_mtx);
- 
- 		if (list_empty(entry))
- 			up(&dev->sem);		/* Device was removed */
-@@ -445,7 +468,7 @@ int device_suspend(pm_message_t state)
- 	int error;
- 
- 	might_sleep();
--	down_write(&pm_sleep_rwsem);
-+	do_down_write(&pm_sleep_rwsem);
- 	lock_all_devices();
- 	error = dpm_suspend(state);
- 	if (error) {
+ 	struct drm_map *map = (struct drm_map *) vma->vm_private_data;
+ 	unsigned long offset;
+@@ -282,8 +279,7 @@ static void drm_vm_shm_close(struct vm_a
+  *
+  * Determine the page number from the page offset and get it from drm_device_dma::pagelist.
+  */
+-static __inline__ int drm_do_vm_dma_fault(struct vm_area_struct *vma,
+-						    struct vm_fault *vmf)
++static int drm_do_vm_dma_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+ 	struct drm_file *priv = vma->vm_file->private_data;
+ 	struct drm_device *dev = priv->head->dev;
+@@ -317,8 +313,7 @@ static __inline__ int drm_do_vm_dma_faul
+  *
+  * Determine the map offset from the page offset and get it from drm_sg_mem::pagelist.
+  */
+-static __inline__ int drm_do_vm_sg_fault(struct vm_area_struct *vma,
+-						   struct vm_fault *vmf)
++static int drm_do_vm_sg_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+ 	struct drm_map *map = (struct drm_map *) vma->vm_private_data;
+ 	struct drm_file *priv = vma->vm_file->private_data;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -174,6 +167,7 @@ revert-agk-dm-dm-loop.patch
 drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
 git-drm.patch
 git-drm-fix.patch
+drm-convert-from-nopage-to-fault.patch
 drm-convert-from-nopage-to-fault-checkpatch-fixes.patch
 drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
 adt7473-new-driver-for-analog-devices-adt7473-sensor-chip-fix.patch
