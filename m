@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-qlogicptic-section-fixes.patch added to -mm tree
-Date: Tue, 05 Feb 2008 01:48:07 -0800
-Message-ID: <200802050947.m159lmDT014677@imap1.linux-foundation.org>
+Subject: + fs-char_devc-chrdev_open-marked-static-and-removed-from-fsh.patch added to -mm tree
+Date: Tue, 05 Feb 2008 02:01:37 -0800
+Message-ID: <200802051001.m15A1Ig5015167@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33317 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54738 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754015AbYBEJsB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 04:48:01 -0500
+	by vger.kernel.org with ESMTP id S1754050AbYBEKB0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 05:01:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: crquan@gmail.com
 
 
 The patch titled
-     scsi/qlogicpti.c section fixes
+     fs/char_dev.c: chrdev_open marked static and removed from fs.h
 has been added to the -mm tree.  Its filename is
-     scsi-qlogicptic-section-fixes.patch
+     fs-char_devc-chrdev_open-marked-static-and-removed-from-fsh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,143 +33,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi/qlogicpti.c section fixes
-From: Adrian Bunk <bunk@kernel.org>
+Subject: fs/char_dev.c: chrdev_open marked static and removed from fs.h
+From: Denis Cheng <crquan@gmail.com>
 
-WARNING: drivers/scsi/qlogicpti.o(.devexit.text+0x8): Section mismatch in reference from the function qpti_sbus_remove() to the function .init.text:qpti_chain_del()
-WARNING: drivers/scsi/qlogicpti.o(.devinit.text+0x56c): Section mismatch in reference from the function qpti_sbus_probe() to the function .init.text:qpti_map_regs()
-WARNING: drivers/scsi/qlogicpti.o(.devinit.text+0x580): Section mismatch in reference from the function qpti_sbus_probe() to the function .init.text:qpti_register_irq()
-WARNING: drivers/scsi/qlogicpti.o(.devinit.text+0x594): Section mismatch in reference from the function qpti_sbus_probe() to the function .init.text:qpti_get_scsi_id()
-WARNING: drivers/scsi/qlogicpti.o(.devinit.text+0x5b8): Section mismatch in reference from the function qpti_sbus_probe() to the function .init.text:qpti_map_queues()
-WARNING: drivers/scsi/qlogicpti.o(.devinit.text+0x780): Section mismatch in reference from the function qpti_sbus_probe() to the function .init.text:qpti_chain_add()
+There is an outdated comment in serial_core.c also fixed.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Signed-off-by: Denis Cheng <crquan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/qlogicpti.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/serial/serial_core.c |    4 ++--
+ fs/char_dev.c                |    2 +-
+ include/linux/fs.h           |    1 -
+ 3 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/scsi/qlogicpti.c~scsi-qlogicptic-section-fixes drivers/scsi/qlogicpti.c
---- a/drivers/scsi/qlogicpti.c~scsi-qlogicptic-section-fixes
-+++ a/drivers/scsi/qlogicpti.c
-@@ -651,7 +651,7 @@ static int qlogicpti_verify_tmon(struct 
- 
- static irqreturn_t qpti_intr(int irq, void *dev_id);
- 
--static void __init qpti_chain_add(struct qlogicpti *qpti)
-+static void __devinit qpti_chain_add(struct qlogicpti *qpti)
- {
- 	spin_lock_irq(&qptichain_lock);
- 	if (qptichain != NULL) {
-@@ -667,7 +667,7 @@ static void __init qpti_chain_add(struct
- 	spin_unlock_irq(&qptichain_lock);
+diff -puN drivers/serial/serial_core.c~fs-char_devc-chrdev_open-marked-static-and-removed-from-fsh drivers/serial/serial_core.c
+--- a/drivers/serial/serial_core.c~fs-char_devc-chrdev_open-marked-static-and-removed-from-fsh
++++ a/drivers/serial/serial_core.c
+@@ -1560,8 +1560,8 @@ static struct uart_state *uart_get(struc
  }
  
--static void __init qpti_chain_del(struct qlogicpti *qpti)
-+static void __devexit qpti_chain_del(struct qlogicpti *qpti)
- {
- 	spin_lock_irq(&qptichain_lock);
- 	if (qptichain == qpti) {
-@@ -682,7 +682,7 @@ static void __init qpti_chain_del(struct
- 	spin_unlock_irq(&qptichain_lock);
- }
- 
--static int __init qpti_map_regs(struct qlogicpti *qpti)
-+static int __devinit qpti_map_regs(struct qlogicpti *qpti)
- {
- 	struct sbus_dev *sdev = qpti->sdev;
- 
-@@ -705,7 +705,7 @@ static int __init qpti_map_regs(struct q
- 	return 0;
- }
- 
--static int __init qpti_register_irq(struct qlogicpti *qpti)
-+static int __devinit qpti_register_irq(struct qlogicpti *qpti)
- {
- 	struct sbus_dev *sdev = qpti->sdev;
- 
-@@ -730,7 +730,7 @@ fail:
- 	return -1;
- }
- 
--static void __init qpti_get_scsi_id(struct qlogicpti *qpti)
-+static void __devinit qpti_get_scsi_id(struct qlogicpti *qpti)
- {
- 	qpti->scsi_id = prom_getintdefault(qpti->prom_node,
- 					   "initiator-id",
-@@ -783,7 +783,7 @@ static void qpti_get_clock(struct qlogic
- /* The request and response queues must each be aligned
-  * on a page boundary.
+ /*
+- * In 2.4.5, calls to uart_open are serialised by the BKL in
+- *   linux/fs/devices.c:chrdev_open()
++ * calls to uart_open are serialised by the BKL in
++ *   fs/char_dev.c:chrdev_open()
+  * Note that if this fails, then uart_close() _will_ be called.
+  *
+  * In time, we want to scrap the "opening nonpresent ports"
+diff -puN fs/char_dev.c~fs-char_devc-chrdev_open-marked-static-and-removed-from-fsh fs/char_dev.c
+--- a/fs/char_dev.c~fs-char_devc-chrdev_open-marked-static-and-removed-from-fsh
++++ a/fs/char_dev.c
+@@ -357,7 +357,7 @@ void cdev_put(struct cdev *p)
+ /*
+  * Called every time a character special file is opened
   */
--static int __init qpti_map_queues(struct qlogicpti *qpti)
-+static int __devinit qpti_map_queues(struct qlogicpti *qpti)
+-int chrdev_open(struct inode * inode, struct file * filp)
++static int chrdev_open(struct inode *inode, struct file *filp)
  {
- 	struct sbus_dev *sdev = qpti->sdev;
+ 	struct cdev *p;
+ 	struct cdev *new = NULL;
+diff -puN include/linux/fs.h~fs-char_devc-chrdev_open-marked-static-and-removed-from-fsh include/linux/fs.h
+--- a/include/linux/fs.h~fs-char_devc-chrdev_open-marked-static-and-removed-from-fsh
++++ a/include/linux/fs.h
+@@ -1627,7 +1627,6 @@ extern int register_chrdev(unsigned int,
+ 			   const struct file_operations *);
+ extern void unregister_chrdev(unsigned int, const char *);
+ extern void unregister_chrdev_region(dev_t, unsigned);
+-extern int chrdev_open(struct inode *, struct file *);
+ extern void chrdev_show(struct seq_file *,off_t);
  
+ /* fs/block_dev.c */
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from crquan@gmail.com are
 
 origin.patch
-mm-page-writebackc-make-a-function-static.patch
-make-__vmalloc_area_node-static.patch
-m68knommu-remove-duplicate-exports.patch
-kernel-power-diskc-make-code-static.patch
-make-kernel_shutdown_prepare-static.patch
-nubus-kill-drivers-nubus-nubus_symsc.patch
-m68k-kill-arch-m68k-mac-mac_ksymsc.patch
-m68k-kill-arch-m68k-hp300-ksymsc.patch
-m68k-kill-arch-m68k-amiga-amiga_ksymsc.patch
-m68k-kill-arch-m68k-atari-atari_ksymsc.patch
-m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch
-git-acpi.patch
-powerpc-vdso_do_func_patch3264-must-be-__init.patch
-powerpc-free_property-mustnt-be-__init.patch
-hvc_rtas_init-must-be-__init.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-mtd.patch
-drivers-bluetooth-bpa10xc-fix-memleak.patch
-drivers-bluetooth-btsdioc-fix-double-free.patch
-git-ocfs2.patch
-if-0-pci_cleanup_aer_correct_error_status.patch
-git-scsi-misc.patch
-scsi-advansysc-make-3-functions-static.patch
-scsi-aic94xx-cleanups.patch
-scsi-qlogicptic-section-fixes.patch
-sparc64-kernel-pci_sun4vc-section-fixes.patch
-usb-make-usb_storage_onetouch-available-with-pm.patch
-make-b43_mac_enablesuspend-static.patch
-git-xtensa.patch
-make-ipc-utilcsysvipc_find_ipc-static.patch
-cleanup-after-apus-removal.patch
-remove-mm_ptovvtop.patch
-proper-show_interrupts-prototype.patch
-scheduled-oss-driver-removal.patch
-proper-prototype-for-signals_init.patch
-kernel-ptracec-should-include-linux-syscallsh.patch
-make-srcu_readers_active-static.patch
-kernel-notifierc-should-include-linux-rebooth.patch
-proper-prototype-for-get_filesystem_list.patch
-fs-utimesc-should-include-linux-syscallsh.patch
-fs-signalfdc-should-include-linux-syscallsh.patch
-fs-eventfdc-should-include-linux-syscallsh.patch
-proper-prototype-for-vty_init.patch
-drivers-misc-lkdtmc-cleanups.patch
-calibrate_delay-must-be-__cpuinit.patch
-idle_regs-must-be-__cpuinit.patch
-fs-ecryptfs-possible-cleanups.patch
-make-video-geode-lxfb_corecgeode_modedb-static.patch
-video-hpfbc-section-fix.patch
-drivers-video-pm3fbc-section-fix.patch
-make-jbd-journalc__journal_abort_hard-static.patch
-move-edactxt-two-levels-up.patch
-kernel-cgroupc-remove-dead-code.patch
-kernel-cgroupc-make-2-functions-static.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-fix-m32r-__xchg.patch
-kill-udffs_dateversion.patch
-the-scheduled-time-option-removal.patch
-reiser4.patch
+git-md-accel.patch
+3w-raid-drivers-memset-not-needed-in-probe.patch
+drivers-char-use-list_head-instead-of-list_head_init.patch
+drivers-char-ipmi-ipmi_msghandlerc-use-list_head-instead-of-list_head_init.patch
+fs-reiserfs-xattrc-use-list_head-instead-of-list_head_init.patch
+fs-char_devc-chrdev_open-marked-static-and-removed-from-fsh.patch
