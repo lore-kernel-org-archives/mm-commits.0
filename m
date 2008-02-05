@@ -1,113 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - sparc64-kernel-pci_sun4vc-section-fixes.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:40:02 -0800
-Message-ID: <200802052239.m15Mdhf5013070@imap1.linux-foundation.org>
+Subject: - slob-fix-free-block-merging-at-head-of-subpage.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:32:42 -0800
+Message-ID: <200802052232.m15MWNnf012322@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44407 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44777 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760829AbYBEWlV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:21 -0500
+	by vger.kernel.org with ESMTP id S1762286AbYBEWlI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, mm-commits@vger.kernel.org
+To: mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sparc64/kernel/pci_sun4v.c section fixes
+     slob: fix free block merging at head of subpage
 has been removed from the -mm tree.  Its filename was
-     sparc64-kernel-pci_sun4vc-section-fixes.patch
+     slob-fix-free-block-merging-at-head-of-subpage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sparc64/kernel/pci_sun4v.c section fixes
-From: Adrian Bunk <bunk@kernel.org>
+Subject: slob: fix free block merging at head of subpage
+From: Matt Mackall <mpm@selenic.com>
 
-WARNING: vmlinux.o(.text+0x39be4): Section mismatch in reference from the function probe_existing_entries() to the function .init.text:page_in_phys_avail()
+We weren't merging freed blocks at the beginning of the free list.  Fixing
+this showed a 2.5% efficiency improvement in a userspace test harness.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Signed-off-by: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc64/kernel/pci_sun4v.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/slob.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN arch/sparc64/kernel/pci_sun4v.c~sparc64-kernel-pci_sun4vc-section-fixes arch/sparc64/kernel/pci_sun4v.c
---- a/arch/sparc64/kernel/pci_sun4v.c~sparc64-kernel-pci_sun4vc-section-fixes
-+++ a/arch/sparc64/kernel/pci_sun4v.c
-@@ -625,8 +625,8 @@ static void __init pci_sun4v_scan_bus(st
- 	/* XXX register error interrupt handlers XXX */
- }
+diff -puN mm/slob.c~slob-fix-free-block-merging-at-head-of-subpage mm/slob.c
+--- a/mm/slob.c~slob-fix-free-block-merging-at-head-of-subpage
++++ a/mm/slob.c
+@@ -398,6 +398,10 @@ static void slob_free(void *block, int s
+ 	sp->units += units;
  
--static unsigned long probe_existing_entries(struct pci_pbm_info *pbm,
--					    struct iommu *iommu)
-+static unsigned long __init probe_existing_entries(struct pci_pbm_info *pbm,
-+						   struct iommu *iommu)
- {
- 	struct iommu_arena *arena = &iommu->arena;
- 	unsigned long i, cnt = 0;
-@@ -653,7 +653,7 @@ static unsigned long probe_existing_entr
- 	return cnt;
- }
- 
--static void pci_sun4v_iommu_init(struct pci_pbm_info *pbm)
-+static void __init pci_sun4v_iommu_init(struct pci_pbm_info *pbm)
- {
- 	struct iommu *iommu = pbm->iommu;
- 	struct property *prop;
+ 	if (b < sp->free) {
++		if (b + units == sp->free) {
++			units += slob_units(sp->free);
++			sp->free = slob_next(sp->free);
++		}
+ 		set_slob(b, units, sp->free);
+ 		sp->free = b;
+ 	} else {
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from mpm@selenic.com are
 
 origin.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-git-acpi.patch
-powerpc-vdso_do_func_patch3264-must-be-__init.patch
-powerpc-free_property-mustnt-be-__init.patch
-hvc_rtas_init-must-be-__init.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-mtd.patch
-git-ocfs2.patch
-if-0-pci_cleanup_aer_correct_error_status.patch
-git-scsi-misc.patch
-scsi-advansysc-make-3-functions-static.patch
-scsi-aic94xx-cleanups.patch
-scsi-qlogicptic-section-fixes.patch
-usb-make-usb_storage_onetouch-available-with-pm.patch
-make-b43_mac_enablesuspend-static.patch
-git-xtensa.patch
-make-ipc-utilcsysvipc_find_ipc-static.patch
-cleanup-after-apus-removal.patch
-remove-mm_ptovvtop.patch
-proper-show_interrupts-prototype.patch
-scheduled-oss-driver-removal.patch
-proper-prototype-for-signals_init.patch
-kernel-ptracec-should-include-linux-syscallsh.patch
-make-srcu_readers_active-static.patch
-kernel-notifierc-should-include-linux-rebooth.patch
-proper-prototype-for-get_filesystem_list.patch
-fs-utimesc-should-include-linux-syscallsh.patch
-fs-signalfdc-should-include-linux-syscallsh.patch
-fs-eventfdc-should-include-linux-syscallsh.patch
-proper-prototype-for-vty_init.patch
-drivers-misc-lkdtmc-cleanups.patch
-calibrate_delay-must-be-__cpuinit.patch
-idle_regs-must-be-__cpuinit.patch
-fs-ecryptfs-possible-cleanups.patch
-make-video-geode-lxfb_corecgeode_modedb-static.patch
-video-hpfbc-section-fix.patch
-drivers-video-pm3fbc-section-fix.patch
-make-jbd-journalc__journal_abort_hard-static.patch
-move-edactxt-two-levels-up.patch
-kernel-cgroupc-remove-dead-code.patch
-kernel-cgroupc-make-2-functions-static.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-fix-m32r-__xchg.patch
-kill-udffs_dateversion.patch
-the-scheduled-time-option-removal.patch
-reiser4.patch
+drivers-char-randomcwrite_pool-cond_resched-needed.patch
+random-clean-up-checkpatch-complaints.patch
+random-clean-up-checkpatch-complaints-fix.patch
+random-consolidate-wakeup-logic.patch
+random-use-unlocked_ioctl.patch
+random-reuse-rand_initialize.patch
+random-improve-variable-naming-clear-extract-buffer.patch
+random-make-backtracking-attacks-harder.patch
+random-remove-cacheline-alignment-for-locks.patch
+random-eliminate-redundant-new_rotate-variable.patch
+random-remove-some-prefetch-logic.patch
+random-simplify-add_ptr-logic.patch
+random-make-mixing-interface-byte-oriented.patch
+random-simplify-and-rename-credit_entropy_store.patch
+random-add-async-notification-support-to-dev-random.patch
