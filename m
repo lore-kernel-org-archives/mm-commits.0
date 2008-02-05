@@ -1,69 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 04 Feb 2008 23:49:18 -0800
-Message-ID: <200802050748.m157mxhg010487@imap1.linux-foundation.org>
+Subject: - scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 04 Feb 2008 23:50:36 -0800
+Message-ID: <200802050750.m157oH2N010539@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50501 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43551 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754256AbYBEHt1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 02:49:27 -0500
+	by vger.kernel.org with ESMTP id S1757113AbYBEHuY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 02:50:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, acurrid@nvidia.com, ak@suse.de, ebiederm@xmission.com, greg@kroah.com, mingo@elte.hu, pchen@nvidia.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, htejun@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes
+     scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
+     scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
+This patch was dropped because it was folded into scsi-fix-isa-pcmcia-compile-problem.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes
+Subject: scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
 WARNING: line over 80 characters
-#38: FILE: drivers/pci/quirks.c:1788:
-+		if (pci_read_config_byte(dev, pos + HT_MSI_FLAGS, &flags) == 0) {
+#72: FILE: drivers/scsi/aha152x.c:3897:
++			struct Scsi_Host *shpnt = GLOBAL(aha152x_probe_one)(&setup[i]);
+
+WARNING: line over 80 characters
+#140: FILE: drivers/scsi/fdomain.c:893:
++struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct scsi_host_template *tpnt )
+
+ERROR: no space before that close parenthesis ')'
+#140: FILE: drivers/scsi/fdomain.c:893:
++struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct scsi_host_template *tpnt )
 
 ERROR: open brace '{' following function declarations go on the next line
-#50: FILE: drivers/pci/quirks.c:1800:
-+static void __devinit nv_msi_ht_cap_quirk(struct pci_dev *dev) {
-
-ERROR: use tabs not spaces
-#57: FILE: drivers/pci/quirks.c:1807:
-+ ^I */$
-
-ERROR: need space after that ',' (ctx:VxV)
-#59: FILE: drivers/pci/quirks.c:1809:
-+	if ((host_bridge = pci_get_bus_and_slot(0, PCI_DEVFN(0,0))) == NULL) {
- 	                                                      ^
-
-ERROR: do not use assignment in if condition (+	if ((host_bridge = pci_get_bus_and_slot(0, PCI_DEVFN(0,0))) == NULL))
-#59: FILE: drivers/pci/quirks.c:1809:
-+	if ((host_bridge = pci_get_bus_and_slot(0, PCI_DEVFN(0,0))) == NULL) {
+#178: FILE: drivers/scsi/fdomain.c:1749:
++struct scsi_host_template GLOBAL(fdomain_driver_template) = {
 
 WARNING: line over 80 characters
-#65: FILE: drivers/pci/quirks.c:1815:
-+	if ((pos = pci_find_ht_capability(host_bridge, HT_CAPTYPE_SLAVE)) != 0) {
+#226: FILE: drivers/scsi/fdomain.h:36:
++extern struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct  scsi_host_template *tpnt );
 
-ERROR: do not use assignment in if condition (+	if ((pos = pci_find_ht_capability(host_bridge, HT_CAPTYPE_SLAVE)) != 0))
-#65: FILE: drivers/pci/quirks.c:1815:
-+	if ((pos = pci_find_ht_capability(host_bridge, HT_CAPTYPE_SLAVE)) != 0) {
+ERROR: no space before that close parenthesis ')'
+#226: FILE: drivers/scsi/fdomain.h:36:
++extern struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct  scsi_host_template *tpnt );
 
-WARNING: line over 80 characters
-#77: FILE: drivers/pci/quirks.c:1827:
-+		if (pci_read_config_byte(dev, pos + HT_MSI_FLAGS, &flags) == 0) {
-
-WARNING: line over 80 characters
-#78: FILE: drivers/pci/quirks.c:1828:
-+			printk(KERN_INFO "PCI: Quirk disabling HT MSI mapping on %s\n",
-
-total: 5 errors, 4 warnings, 70 lines checked
+total: 3 errors, 3 warnings, 246 lines checked
 
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
@@ -71,65 +58,37 @@ CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Andy Currid <acurrid@nvidia.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peer Chen <pchen@nvidia.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/quirks.c |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ drivers/scsi/fdomain.c |    2 +-
+ drivers/scsi/fdomain.h |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/pci/quirks.c~quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes drivers/pci/quirks.c
---- a/drivers/pci/quirks.c~quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes
-+++ a/drivers/pci/quirks.c
-@@ -1797,22 +1797,26 @@ static inline void ht_enable_msi_mapping
- 	}
- }
+diff -puN drivers/scsi/fdomain.c~scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes drivers/scsi/fdomain.c
+--- a/drivers/scsi/fdomain.c~scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes
++++ a/drivers/scsi/fdomain.c
+@@ -890,7 +890,7 @@ fail:
  
--static void __devinit nv_msi_ht_cap_quirk(struct pci_dev *dev) {
-+static void __devinit nv_msi_ht_cap_quirk(struct pci_dev *dev)
-+{
+ #endif
  
- 	struct pci_dev *host_bridge;
- 	int pos, ttl = 48;
+-struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct scsi_host_template *tpnt )
++struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct scsi_host_template *tpnt)
+ {
+    int              retcode;
+    struct Scsi_Host *shpnt;
+diff -puN drivers/scsi/fdomain.h~scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes drivers/scsi/fdomain.h
+--- a/drivers/scsi/fdomain.h~scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes
++++ a/drivers/scsi/fdomain.h
+@@ -33,5 +33,5 @@
  
--	/* HT MSI mapping should be disabled on devices that are below
-+	/*
-+	 * HT MSI mapping should be disabled on devices that are below
- 	 * a non-Hypertransport host bridge. Locate the host bridge...
-- 	 */
-+	 */
- 
--	if ((host_bridge = pci_get_bus_and_slot(0, PCI_DEVFN(0,0))) == NULL) {
-+	host_bridge = pci_get_bus_and_slot(0, PCI_DEVFN(0,0));
-+	if (host_bridge == NULL) {
- 		printk(KERN_WARNING
- 			"PCI: nv_msi_ht_cap_quirk didn't locate host bridge\n");
- 		return;
- 	}
- 
--	if ((pos = pci_find_ht_capability(host_bridge, HT_CAPTYPE_SLAVE)) != 0) {
-+	pos = pci_find_ht_capability(host_bridge, HT_CAPTYPE_SLAVE);
-+	if (pos != 0) {
- 		/* Host bridge is to HT */
- 		ht_enable_msi_mapping(dev);
- 		return;
-@@ -1825,8 +1829,8 @@ static void __devinit nv_msi_ht_cap_quir
- 		u8 flags;
- 
- 		if (pci_read_config_byte(dev, pos + HT_MSI_FLAGS, &flags) == 0) {
--			printk(KERN_INFO "PCI: Quirk disabling HT MSI mapping on %s\n",
--			       pci_name(dev));
-+			printk(KERN_INFO "PCI: Quirk disabling HT MSI mapping "
-+					"on %s\n", pci_name(dev));
- 
- 			pci_write_config_byte(dev, pos + HT_MSI_FLAGS,
- 					      flags & ~HT_MSI_FLAGS_ENABLE);
+ extern struct scsi_host_template GLOBAL(fdomain_driver_template);
+ extern int GLOBAL(fdomain_setup)(char *str);
+-extern struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct  scsi_host_template *tpnt );
++extern struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct scsi_host_template *tpnt);
+ extern int GLOBAL(fdomain_16x0_bus_reset)(struct scsi_cmnd *SCpnt);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -201,10 +160,10 @@ git-backlight.patch
 bluetooth-uninlining.patch
 cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
 quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
 x86-validate-against-acpi-motherboard-resources.patch
 git-sched.patch
 git-sched-fix-git-conflicts.patch
+scsi-fix-isa-pcmcia-compile-problem.patch
 scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes.patch
 scsi-aic94xx-cleanups-checkpatch-fixes.patch
 scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
