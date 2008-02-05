@@ -1,114 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: - agp-alpha-nopage.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:33:56 -0800
-Message-ID: <200802052233.m15MXb8F012439@imap1.linux-foundation.org>
+Subject: - m68k-kill-arch-m68k-mac-mac_ksymsc.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:34:41 -0800
+Message-ID: <200802052234.m15MYMr5012524@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49973 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36213 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762691AbYBEWme (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:34 -0500
+	by vger.kernel.org with ESMTP id S1761066AbYBEWmw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
+To: bunk@kernel.org, geert@linux-m68k.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     agp: alpha nopage
+     m68k: kill arch/m68k/mac/mac_ksyms.c
 has been removed from the -mm tree.  Its filename was
-     agp-alpha-nopage.patch
+     m68k-kill-arch-m68k-mac-mac_ksymsc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: agp: alpha nopage
-From: Nick Piggin <npiggin@suse.de>
+Subject: m68k: kill arch/m68k/mac/mac_ksyms.c
+From: Adrian Bunk <bunk@kernel.org>
 
-Convert AGP alpha driver from nopage to fault.
-NULL is NOPAGE_SIGBUS, so we aren't changing behaviour there.
+EXPORT_SYMBOL's belong to the actual code.
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/alpha-agp.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ arch/m68k/mac/Makefile    |    2 +-
+ arch/m68k/mac/mac_ksyms.c |    8 --------
+ arch/m68k/mac/via.c       |    5 ++++-
+ 3 files changed, 5 insertions(+), 10 deletions(-)
 
-diff -puN drivers/char/agp/alpha-agp.c~agp-alpha-nopage drivers/char/agp/alpha-agp.c
---- a/drivers/char/agp/alpha-agp.c~agp-alpha-nopage
-+++ a/drivers/char/agp/alpha-agp.c
-@@ -11,29 +11,28 @@
+diff -puN arch/m68k/mac/Makefile~m68k-kill-arch-m68k-mac-mac_ksymsc arch/m68k/mac/Makefile
+--- a/arch/m68k/mac/Makefile~m68k-kill-arch-m68k-mac-mac_ksymsc
++++ a/arch/m68k/mac/Makefile
+@@ -3,4 +3,4 @@
+ #
  
- #include "agp.h"
+ obj-y		:= config.o bootparse.o macints.o iop.o via.o oss.o psc.o \
+-			baboon.o macboing.o debug.o misc.o mac_ksyms.o
++			baboon.o macboing.o debug.o misc.o
+diff -puN arch/m68k/mac/mac_ksyms.c~m68k-kill-arch-m68k-mac-mac_ksymsc /dev/null
+--- a/arch/m68k/mac/mac_ksyms.c
++++ /dev/null
+@@ -1,8 +0,0 @@
+-#include <linux/module.h>
+-#include <asm/ptrace.h>
+-#include <asm/traps.h>
+-
+-/* Says whether we're using A/UX interrupts or not */
+-extern int via_alt_mapping;
+-
+-EXPORT_SYMBOL(via_alt_mapping);
+diff -puN arch/m68k/mac/via.c~m68k-kill-arch-m68k-mac-mac_ksymsc arch/m68k/mac/via.c
+--- a/arch/m68k/mac/via.c~m68k-kill-arch-m68k-mac-mac_ksymsc
++++ a/arch/m68k/mac/via.c
+@@ -28,6 +28,7 @@
+ #include <linux/delay.h>
+ #include <linux/init.h>
+ #include <linux/ide.h>
++#include <linux/module.h>
  
--static struct page *alpha_core_agp_vm_nopage(struct vm_area_struct *vma,
--					     unsigned long address,
--					     int *type)
-+static int alpha_core_agp_vm_fault(struct vm_area_struct *vma,
-+					struct vm_fault *vmf)
- {
- 	alpha_agp_info *agp = agp_bridge->dev_private_data;
- 	dma_addr_t dma_addr;
- 	unsigned long pa;
- 	struct page *page;
+ #include <asm/bootinfo.h>
+ #include <asm/macintosh.h>
+@@ -41,7 +42,9 @@ volatile __u8 *via1, *via2;
+ /* See note in mac_via.h about how this is possibly not useful */
+ volatile long *via_memory_bogon=(long *)&via_memory_bogon;
+ #endif
+-int rbv_present, via_alt_mapping;
++int rbv_present;
++int via_alt_mapping;
++EXPORT_SYMBOL(via_alt_mapping);
+ __u8 rbv_clear;
  
--	dma_addr = address - vma->vm_start + agp->aperture.bus_base;
-+	dma_addr = (unsigned long)vmf->virtual_address - vma->vm_start
-+						+ agp->aperture.bus_base;
- 	pa = agp->ops->translate(agp, dma_addr);
- 
- 	if (pa == (unsigned long)-EINVAL)
--		return NULL;	/* no translation */
-+		return VM_FAULT_SIGBUS;	/* no translation */
- 
- 	/*
- 	 * Get the page, inc the use count, and return it
- 	 */
- 	page = virt_to_page(__va(pa));
- 	get_page(page);
--	if (type)
--		*type = VM_FAULT_MINOR;
--	return page;
-+	vmf->page = page;
-+	return 0;
- }
- 
- static struct aper_size_info_fixed alpha_core_agp_sizes[] =
-@@ -42,7 +41,7 @@ static struct aper_size_info_fixed alpha
- };
- 
- struct vm_operations_struct alpha_core_agp_vm_ops = {
--	.nopage = alpha_core_agp_vm_nopage,
-+	.fault = alpha_core_agp_vm_fault,
- };
- 
- 
+ /*
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-mm-special-mapping-nopage.patch
-drm-convert-from-nopage-to-fault.patch
-git-kvm.patch
-nfs-use-gfp_nofs-preloads-for-radix-tree-insertion.patch
-sg-nopage.patch
-vt-bitlock-fix.patch
-inotify-fix-race.patch
-inotify-remove-debug-code.patch
-relay-nopage.patch
-uio-nopage.patch
-ext2-xip-check-fix.patch
-fb-defio-nopage.patch
-rewrite-rd.patch
-rewrite-rd-fix.patch
-rewrite-rd-fix-2.patch
-rd-support-xip.patch
-mm-remove-nopage.patch
-buffer_head-fix-private_list-handling.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+git-acpi.patch
+powerpc-vdso_do_func_patch3264-must-be-__init.patch
+powerpc-free_property-mustnt-be-__init.patch
+hvc_rtas_init-must-be-__init.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-mtd.patch
+git-ocfs2.patch
+if-0-pci_cleanup_aer_correct_error_status.patch
+git-scsi-misc.patch
+scsi-advansysc-make-3-functions-static.patch
+scsi-aic94xx-cleanups.patch
+scsi-qlogicptic-section-fixes.patch
+usb-make-usb_storage_onetouch-available-with-pm.patch
+make-b43_mac_enablesuspend-static.patch
+git-xtensa.patch
+make-ipc-utilcsysvipc_find_ipc-static.patch
+cleanup-after-apus-removal.patch
+remove-mm_ptovvtop.patch
+proper-show_interrupts-prototype.patch
+scheduled-oss-driver-removal.patch
+proper-prototype-for-signals_init.patch
+kernel-ptracec-should-include-linux-syscallsh.patch
+make-srcu_readers_active-static.patch
+kernel-notifierc-should-include-linux-rebooth.patch
+proper-prototype-for-get_filesystem_list.patch
+fs-utimesc-should-include-linux-syscallsh.patch
+fs-signalfdc-should-include-linux-syscallsh.patch
+fs-eventfdc-should-include-linux-syscallsh.patch
+proper-prototype-for-vty_init.patch
+drivers-misc-lkdtmc-cleanups.patch
+calibrate_delay-must-be-__cpuinit.patch
+idle_regs-must-be-__cpuinit.patch
+fs-ecryptfs-possible-cleanups.patch
+make-video-geode-lxfb_corecgeode_modedb-static.patch
+video-hpfbc-section-fix.patch
+drivers-video-pm3fbc-section-fix.patch
+make-jbd-journalc__journal_abort_hard-static.patch
+move-edactxt-two-levels-up.patch
+kernel-cgroupc-remove-dead-code.patch
+kernel-cgroupc-make-2-functions-static.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+fix-m32r-__xchg.patch
+kill-udffs_dateversion.patch
+the-scheduled-time-option-removal.patch
 reiser4.patch
-reiser4-correct-references-to-filemap_nopage.patch
