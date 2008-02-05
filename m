@@ -1,42 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: - __group_complete_signal-fix-coredump-with-group-stop-race.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:26:28 -0800
-Message-ID: <200802052226.m15MQ9hp011602@imap1.linux-foundation.org>
+Subject: - remove-handle_group_stop-in-favor-of-do_signal_stop.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:26:31 -0800
+Message-ID: <200802052226.m15MQCLG011605@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53819 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34264 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760832AbYBEW1I (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:27:08 -0500
+	by vger.kernel.org with ESMTP id S1760082AbYBEW1C (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:27:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@tv-sign.ru, davidel@xmailserver.org, holt@sgi.com, mingo@elte.hu, roland@redhat.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     __group_complete_signal(): fix coredump with group stop race
+     remove handle_group_stop() in favor of do_signal_stop()
 has been removed from the -mm tree.  Its filename was
-     __group_complete_signal-fix-coredump-with-group-stop-race.patch
+     remove-handle_group_stop-in-favor-of-do_signal_stop.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: __group_complete_signal(): fix coredump with group stop race
+Subject: remove handle_group_stop() in favor of do_signal_stop()
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-When __group_complete_signal() sees sig_kernel_coredump() signal, it starts
-the group stop, but sets ->group_exit_task = t in a hope that "t" will
-actually dequeue this signal and invoke do_coredump().  However, by the
-time "t" enters get_signal_to_deliver() it is possible that the signal was
-blocked/ignored or we have another pending !SIG_KERNEL_COREDUMP_MASK signal
-which will be dequeued first.  This means the task could be stopped but not
-killed.
+Every time we set SIGNAL_GROUP_EXIT or clear SIGNAL_STOP_DEQUEUED we also
+reset ->group_stop_count.
 
-Remove this code from __group_complete_signal().  Note also this patch
-removes the bogus signal_wake_up(t, 1).  This thread can't be
-STOPPED/TRACED, note the corresponding check in wants_signal().
+This means that the SIGNAL_GROUP_EXIT check in handle_group_stop() is not
+needed, and do_signal_stop() should check SIGNAL_STOP_DEQUEUED only when
+->group_stop_count == 0. With these changes handle_group_stop() becomes the
+subset of do_signal_stop(), we can kill it and use do_signal_stop() instead.
+
+Also, a preparation for the next patch.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Davide Libenzi <davidel@xmailserver.org>
@@ -47,56 +45,87 @@ Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   30 ------------------------------
- 1 file changed, 30 deletions(-)
+ kernel/signal.c |   43 +++++--------------------------------------
+ 1 file changed, 5 insertions(+), 38 deletions(-)
 
-diff -puN kernel/signal.c~__group_complete_signal-fix-coredump-with-group-stop-race kernel/signal.c
---- a/kernel/signal.c~__group_complete_signal-fix-coredump-with-group-stop-race
+diff -puN kernel/signal.c~remove-handle_group_stop-in-favor-of-do_signal_stop kernel/signal.c
+--- a/kernel/signal.c~remove-handle_group_stop-in-favor-of-do_signal_stop
 +++ a/kernel/signal.c
-@@ -911,27 +911,6 @@ __group_complete_signal(int sig, struct 
- 			} while_each_thread(p, t);
- 			return;
- 		}
--
--		/*
--		 * There will be a core dump.  We make all threads other
--		 * than the chosen one go into a group stop so that nothing
--		 * happens until it gets scheduled, takes the signal off
--		 * the shared queue, and does the core dump.  This is a
--		 * little more complicated than strictly necessary, but it
--		 * keeps the signal state that winds up in the core dump
--		 * unchanged from the death state, e.g. which thread had
--		 * the core-dump signal unblocked.
--		 */
--		rm_from_queue(SIG_KERNEL_STOP_MASK, &t->pending);
--		rm_from_queue(SIG_KERNEL_STOP_MASK, &p->signal->shared_pending);
--		p->signal->group_stop_count = 0;
--		p->signal->group_exit_task = t;
--		p = t;
--		do {
--			p->signal->group_stop_count++;
--			signal_wake_up(t, t == p);
--		} while_each_thread(p, t);
--		return;
- 	}
- 
- 	/*
-@@ -1762,15 +1741,6 @@ static int handle_group_stop(void)
- {
+@@ -1688,9 +1688,6 @@ static int do_signal_stop(int signr)
+ 	struct signal_struct *sig = current->signal;
  	int stop_count;
  
--	if (current->signal->group_exit_task == current) {
--		/*
--		 * Group stop is so we can do a core dump,
--		 * We are the initiating thread, so get on with it.
--		 */
--		current->signal->group_exit_task = NULL;
+-	if (!likely(sig->flags & SIGNAL_STOP_DEQUEUED))
 -		return 0;
--	}
 -
- 	if (current->signal->flags & SIGNAL_GROUP_EXIT)
+ 	if (sig->group_stop_count > 0) {
  		/*
- 		 * Group stop is so another thread can do a core dump,
+ 		 * There is a group stop in progress.  We don't need to
+@@ -1698,12 +1695,14 @@ static int do_signal_stop(int signr)
+ 		 */
+ 		stop_count = --sig->group_stop_count;
+ 	} else {
++		struct task_struct *t;
++
++		if (!likely(sig->flags & SIGNAL_STOP_DEQUEUED))
++			return 0;
+ 		/*
+ 		 * There is no group stop already in progress.
+ 		 * We must initiate one now.
+ 		 */
+-		struct task_struct *t;
+-
+ 		sig->group_exit_code = signr;
+ 
+ 		stop_count = 0;
+@@ -1731,38 +1730,6 @@ static int do_signal_stop(int signr)
+ 	return 1;
+ }
+ 
+-/*
+- * Do appropriate magic when group_stop_count > 0.
+- * We return nonzero if we stopped, after releasing the siglock.
+- * We return zero if we still hold the siglock and should look
+- * for another signal without checking group_stop_count again.
+- */
+-static int handle_group_stop(void)
+-{
+-	int stop_count;
+-
+-	if (current->signal->flags & SIGNAL_GROUP_EXIT)
+-		/*
+-		 * Group stop is so another thread can do a core dump,
+-		 * or else we are racing against a death signal.
+-		 * Just punt the stop so we can get the next signal.
+-		 */
+-		return 0;
+-
+-	/*
+-	 * There is a group stop in progress.  We stop
+-	 * without any associated signal being in our queue.
+-	 */
+-	stop_count = --current->signal->group_stop_count;
+-	if (stop_count == 0)
+-		current->signal->flags = SIGNAL_STOP_STOPPED;
+-	current->exit_code = current->signal->group_exit_code;
+-	set_current_state(TASK_STOPPED);
+-	spin_unlock_irq(&current->sighand->siglock);
+-	finish_stop(stop_count);
+-	return 1;
+-}
+-
+ int get_signal_to_deliver(siginfo_t *info, struct k_sigaction *return_ka,
+ 			  struct pt_regs *regs, void *cookie)
+ {
+@@ -1777,7 +1744,7 @@ relock:
+ 		struct k_sigaction *ka;
+ 
+ 		if (unlikely(current->signal->group_stop_count > 0) &&
+-		    handle_group_stop())
++		    do_signal_stop(0))
+ 			goto relock;
+ 
+ 		signr = dequeue_signal(current, mask, info);
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
