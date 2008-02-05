@@ -1,249 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: - uml-currenth-cleanup.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:36:35 -0800
-Message-ID: <200802052236.m15MaGZT012701@imap1.linux-foundation.org>
+Subject: - m68knommu-remove-duplicate-exports.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:33:43 -0800
+Message-ID: <200802052233.m15MXOEu012421@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41137 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44165 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761007AbYBEWmB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:01 -0500
+	by vger.kernel.org with ESMTP id S1762601AbYBEWmQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, gerg@uclinux.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: current.h cleanup
+     m68knommu: remove duplicate exports
 has been removed from the -mm tree.  Its filename was
-     uml-currenth-cleanup.patch
+     m68knommu-remove-duplicate-exports.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: current.h cleanup
-From: Jeff Dike <jdike@addtoit.com>
+Subject: m68knommu: remove duplicate exports
+From: Adrian Bunk <bunk@kernel.org>
 
-Tidy current-related stuff.  There was a comment in current.h saying
-that current_thread was obsolete, so this patch turns all instances of
-current_thread into current_thread_info().  There's some simplifying
-of the result in arch/um/sys-i386/signal.c.
+One EXPORT_SYMBOL should be enough for everyone.
 
-current.h and thread_info also get style cleanups.
-
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/process.c     |    8 ++++----
- arch/um/sys-i386/signal.c    |   18 ++++++++----------
- arch/um/sys-x86_64/signal.c  |    4 ++--
- include/asm-um/current.h     |   23 ++---------------------
- include/asm-um/thread_info.h |    8 ++++----
- 5 files changed, 20 insertions(+), 41 deletions(-)
+ arch/m68knommu/kernel/m68k_ksyms.c |   11 -----------
+ 1 file changed, 11 deletions(-)
 
-diff -puN arch/um/kernel/process.c~uml-currenth-cleanup arch/um/kernel/process.c
---- a/arch/um/kernel/process.c~uml-currenth-cleanup
-+++ a/arch/um/kernel/process.c
-@@ -251,7 +251,7 @@ void default_idle(void)
+diff -puN arch/m68knommu/kernel/m68k_ksyms.c~m68knommu-remove-duplicate-exports arch/m68knommu/kernel/m68k_ksyms.c
+--- a/arch/m68knommu/kernel/m68k_ksyms.c~m68knommu-remove-duplicate-exports
++++ a/arch/m68knommu/kernel/m68k_ksyms.c
+@@ -24,14 +24,6 @@ extern int dump_fpu(struct pt_regs *, el
+ EXPORT_SYMBOL(__ioremap);
+ EXPORT_SYMBOL(iounmap);
+ EXPORT_SYMBOL(dump_fpu);
+-EXPORT_SYMBOL(strnlen);
+-EXPORT_SYMBOL(strrchr);
+-EXPORT_SYMBOL(strstr);
+-EXPORT_SYMBOL(strchr);
+-EXPORT_SYMBOL(strcat);
+-EXPORT_SYMBOL(strlen);
+-EXPORT_SYMBOL(strcmp);
+-EXPORT_SYMBOL(strncmp);
  
- void cpu_idle(void)
- {
--	cpu_tasks[current_thread->cpu].pid = os_getpid();
-+	cpu_tasks[current_thread_info()->cpu].pid = os_getpid();
- 	default_idle();
- }
+ EXPORT_SYMBOL(ip_fast_csum);
  
-@@ -269,7 +269,7 @@ int user_context(unsigned long sp)
- 	unsigned long stack;
+@@ -46,9 +38,6 @@ EXPORT_SYMBOL(csum_partial_copy_nocheck)
+    it's OK to leave it out of version control.  */
+ EXPORT_SYMBOL(memcpy);
+ EXPORT_SYMBOL(memset);
+-EXPORT_SYMBOL(memcmp);
+-EXPORT_SYMBOL(memscan);
+-EXPORT_SYMBOL(memmove);
  
- 	stack = sp & (PAGE_MASK << CONFIG_KERNEL_STACK_ORDER);
--	return stack != (unsigned long) current_thread;
-+	return stack != (unsigned long) current_thread_info();
- }
- 
- extern exitcall_t __uml_exitcall_begin, __uml_exitcall_end;
-@@ -311,7 +311,7 @@ int strlen_user_proc(char __user *str)
- int smp_sigio_handler(void)
- {
- #ifdef CONFIG_SMP
--	int cpu = current_thread->cpu;
-+	int cpu = current_thread_info()->cpu;
- 	IPI_handler(cpu);
- 	if (cpu != 0)
- 		return 1;
-@@ -321,7 +321,7 @@ int smp_sigio_handler(void)
- 
- int cpu(void)
- {
--	return current_thread->cpu;
-+	return current_thread_info()->cpu;
- }
- 
- static atomic_t using_sysemu = ATOMIC_INIT(0);
-diff -puN arch/um/sys-i386/signal.c~uml-currenth-cleanup arch/um/sys-i386/signal.c
---- a/arch/um/sys-i386/signal.c~uml-currenth-cleanup
-+++ a/arch/um/sys-i386/signal.c
-@@ -168,12 +168,13 @@ static int copy_sc_from_user(struct pt_r
- 			     struct sigcontext __user *from)
- {
- 	struct sigcontext sc;
--	int err;
-+	int err, pid;
- 
- 	err = copy_from_user(&sc, from, sizeof(sc));
- 	if (err)
- 		return err;
- 
-+	pid = userspace_pid[current_thread_info()->cpu];
- 	copy_sc(&regs->regs, &sc);
- 	if (have_fpx_regs) {
- 		struct user_fxsr_struct fpx;
-@@ -187,8 +188,7 @@ static int copy_sc_from_user(struct pt_r
- 		if (err)
- 			return 1;
- 
--		err = restore_fpx_registers(userspace_pid[current_thread->cpu],
--					    (unsigned long *) &fpx);
-+		err = restore_fpx_registers(pid, (unsigned long *) &fpx);
- 		if (err < 0) {
- 			printk(KERN_ERR "copy_sc_from_user - "
- 			       "restore_fpx_registers failed, errno = %d\n",
-@@ -204,8 +204,7 @@ static int copy_sc_from_user(struct pt_r
- 		if (err)
- 			return 1;
- 
--		err = restore_fp_registers(userspace_pid[current_thread->cpu],
--					   (unsigned long *) &fp);
-+		err = restore_fp_registers(pid, (unsigned long *) &fp);
- 		if (err < 0) {
- 			printk(KERN_ERR "copy_sc_from_user - "
- 			       "restore_fp_registers failed, errno = %d\n",
-@@ -223,7 +222,7 @@ static int copy_sc_to_user(struct sigcon
- {
- 	struct sigcontext sc;
- 	struct faultinfo * fi = &current->thread.arch.faultinfo;
--	int err;
-+	int err, pid;
- 
- 	sc.gs = REGS_GS(regs->regs.gp);
- 	sc.fs = REGS_FS(regs->regs.gp);
-@@ -249,11 +248,11 @@ static int copy_sc_to_user(struct sigcon
- 	to_fp = (to_fp ? to_fp : (struct _fpstate __user *) (to + 1));
- 	sc.fpstate = to_fp;
- 
-+	pid = userspace_pid[current_thread_info()->cpu];
- 	if (have_fpx_regs) {
- 		struct user_fxsr_struct fpx;
- 
--		err = save_fpx_registers(userspace_pid[current_thread->cpu],
--					 (unsigned long *) &fpx);
-+		err = save_fpx_registers(pid, (unsigned long *) &fpx);
- 		if (err < 0){
- 			printk(KERN_ERR "copy_sc_to_user - save_fpx_registers "
- 			       "failed, errno = %d\n", err);
-@@ -276,8 +275,7 @@ static int copy_sc_to_user(struct sigcon
- 	else {
- 		struct user_i387_struct fp;
- 
--		err = save_fp_registers(userspace_pid[current_thread->cpu],
--					(unsigned long *) &fp);
-+		err = save_fp_registers(pid, (unsigned long *) &fp);
- 		if (copy_to_user(to_fp, &fp, sizeof(struct user_i387_struct)))
- 			return 1;
- 	}
-diff -puN arch/um/sys-x86_64/signal.c~uml-currenth-cleanup arch/um/sys-x86_64/signal.c
---- a/arch/um/sys-x86_64/signal.c~uml-currenth-cleanup
-+++ a/arch/um/sys-x86_64/signal.c
-@@ -81,7 +81,7 @@ static int copy_sc_from_user(struct pt_r
- 	if (err)
- 		return 1;
- 
--	err = restore_fp_registers(userspace_pid[current_thread->cpu],
-+	err = restore_fp_registers(userspace_pid[current_thread_info()->cpu],
- 				   (unsigned long *) &fp);
- 	if (err < 0) {
- 		printk(KERN_ERR "copy_sc_from_user - "
-@@ -143,7 +143,7 @@ static int copy_sc_to_user(struct sigcon
- 	if (err)
- 		return 1;
- 
--	err = save_fp_registers(userspace_pid[current_thread->cpu],
-+	err = save_fp_registers(userspace_pid[current_thread_info()->cpu],
- 				(unsigned long *) &fp);
- 	if (err < 0) {
- 		printk(KERN_ERR "copy_sc_from_user - restore_fp_registers "
-diff -puN include/asm-um/current.h~uml-currenth-cleanup include/asm-um/current.h
---- a/include/asm-um/current.h~uml-currenth-cleanup
-+++ a/include/asm-um/current.h
-@@ -1,32 +1,13 @@
--/* 
-- * Copyright (C) 2000 Jeff Dike (jdike@karaya.com)
-+/*
-+ * Copyright (C) 2000 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Licensed under the GPL
-  */
- 
- #ifndef __UM_CURRENT_H
- #define __UM_CURRENT_H
- 
--#ifndef __ASSEMBLY__
--
--#include "asm/page.h"
- #include "linux/thread_info.h"
- 
- #define current (current_thread_info()->task)
- 
--/*Backward compatibility - it's used inside arch/um.*/
--#define current_thread current_thread_info()
--
--#endif /* __ASSEMBLY__ */
--
- #endif
--
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN include/asm-um/thread_info.h~uml-currenth-cleanup include/asm-um/thread_info.h
---- a/include/asm-um/thread_info.h~uml-currenth-cleanup
-+++ a/include/asm-um/thread_info.h
-@@ -1,5 +1,5 @@
--/* 
-- * Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
-+/*
-+ * Copyright (C) 2002 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Licensed under the GPL
-  */
- 
-@@ -76,8 +76,8 @@ static inline struct thread_info *curren
- #define TIF_SYSCALL_TRACE	0	/* syscall trace active */
- #define TIF_SIGPENDING		1	/* signal pending */
- #define TIF_NEED_RESCHED	2	/* rescheduling necessary */
--#define TIF_POLLING_NRFLAG      3       /* true if poll_idle() is polling 
--					 * TIF_NEED_RESCHED 
-+#define TIF_POLLING_NRFLAG      3       /* true if poll_idle() is polling
-+					 * TIF_NEED_RESCHED
- 					 */
- #define TIF_RESTART_BLOCK 	4
- #define TIF_MEMDIE	 	5
+ EXPORT_SYMBOL(__down_failed);
+ EXPORT_SYMBOL(__down_failed_interruptible);
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-git-kvm.patch
-fix-__const_udelay-declaration-and-definition-mismatches.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
-random-add-async-notification-support-to-dev-random.patch
-mount-options-fix-hostfs.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+git-acpi.patch
+powerpc-vdso_do_func_patch3264-must-be-__init.patch
+powerpc-free_property-mustnt-be-__init.patch
+hvc_rtas_init-must-be-__init.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-mtd.patch
+git-ocfs2.patch
+if-0-pci_cleanup_aer_correct_error_status.patch
+git-scsi-misc.patch
+scsi-advansysc-make-3-functions-static.patch
+scsi-aic94xx-cleanups.patch
+scsi-qlogicptic-section-fixes.patch
+usb-make-usb_storage_onetouch-available-with-pm.patch
+make-b43_mac_enablesuspend-static.patch
+git-xtensa.patch
+make-ipc-utilcsysvipc_find_ipc-static.patch
+cleanup-after-apus-removal.patch
+remove-mm_ptovvtop.patch
+proper-show_interrupts-prototype.patch
+scheduled-oss-driver-removal.patch
+proper-prototype-for-signals_init.patch
+kernel-ptracec-should-include-linux-syscallsh.patch
+make-srcu_readers_active-static.patch
+kernel-notifierc-should-include-linux-rebooth.patch
+proper-prototype-for-get_filesystem_list.patch
+fs-utimesc-should-include-linux-syscallsh.patch
+fs-signalfdc-should-include-linux-syscallsh.patch
+fs-eventfdc-should-include-linux-syscallsh.patch
+proper-prototype-for-vty_init.patch
+drivers-misc-lkdtmc-cleanups.patch
+calibrate_delay-must-be-__cpuinit.patch
+idle_regs-must-be-__cpuinit.patch
+fs-ecryptfs-possible-cleanups.patch
+make-video-geode-lxfb_corecgeode_modedb-static.patch
+video-hpfbc-section-fix.patch
+drivers-video-pm3fbc-section-fix.patch
+make-jbd-journalc__journal_abort_hard-static.patch
+move-edactxt-two-levels-up.patch
+kernel-cgroupc-remove-dead-code.patch
+kernel-cgroupc-make-2-functions-static.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+fix-m32r-__xchg.patch
+kill-udffs_dateversion.patch
+the-scheduled-time-option-removal.patch
+reiser4.patch
