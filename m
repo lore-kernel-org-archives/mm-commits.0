@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + sparc64-kernel-pci_sun4vc-section-fixes.patch added to -mm tree
-Date: Tue, 05 Feb 2008 01:46:53 -0800
-Message-ID: <200802050946.m159kYql014629@imap1.linux-foundation.org>
+Subject: + scsi-qlogicptic-section-fixes.patch added to -mm tree
+Date: Tue, 05 Feb 2008 01:48:07 -0800
+Message-ID: <200802050947.m159lmDT014677@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40360 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33317 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753945AbYBEJqv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 04:46:51 -0500
+	by vger.kernel.org with ESMTP id S1754015AbYBEJsB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 04:48:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bunk@kernel.org
 
 
 The patch titled
-     sparc64/kernel/pci_sun4v.c section fixes
+     scsi/qlogicpti.c section fixes
 has been added to the -mm tree.  Its filename is
-     sparc64-kernel-pci_sun4vc-section-fixes.patch
+     scsi-qlogicptic-section-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,41 +33,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sparc64/kernel/pci_sun4v.c section fixes
+Subject: scsi/qlogicpti.c section fixes
 From: Adrian Bunk <bunk@kernel.org>
 
-WARNING: vmlinux.o(.text+0x39be4): Section mismatch in reference from the function probe_existing_entries() to the function .init.text:page_in_phys_avail()
+WARNING: drivers/scsi/qlogicpti.o(.devexit.text+0x8): Section mismatch in reference from the function qpti_sbus_remove() to the function .init.text:qpti_chain_del()
+WARNING: drivers/scsi/qlogicpti.o(.devinit.text+0x56c): Section mismatch in reference from the function qpti_sbus_probe() to the function .init.text:qpti_map_regs()
+WARNING: drivers/scsi/qlogicpti.o(.devinit.text+0x580): Section mismatch in reference from the function qpti_sbus_probe() to the function .init.text:qpti_register_irq()
+WARNING: drivers/scsi/qlogicpti.o(.devinit.text+0x594): Section mismatch in reference from the function qpti_sbus_probe() to the function .init.text:qpti_get_scsi_id()
+WARNING: drivers/scsi/qlogicpti.o(.devinit.text+0x5b8): Section mismatch in reference from the function qpti_sbus_probe() to the function .init.text:qpti_map_queues()
+WARNING: drivers/scsi/qlogicpti.o(.devinit.text+0x780): Section mismatch in reference from the function qpti_sbus_probe() to the function .init.text:qpti_chain_add()
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc64/kernel/pci_sun4v.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/scsi/qlogicpti.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN arch/sparc64/kernel/pci_sun4v.c~sparc64-kernel-pci_sun4vc-section-fixes arch/sparc64/kernel/pci_sun4v.c
---- a/arch/sparc64/kernel/pci_sun4v.c~sparc64-kernel-pci_sun4vc-section-fixes
-+++ a/arch/sparc64/kernel/pci_sun4v.c
-@@ -625,8 +625,8 @@ static void __init pci_sun4v_scan_bus(st
- 	/* XXX register error interrupt handlers XXX */
+diff -puN drivers/scsi/qlogicpti.c~scsi-qlogicptic-section-fixes drivers/scsi/qlogicpti.c
+--- a/drivers/scsi/qlogicpti.c~scsi-qlogicptic-section-fixes
++++ a/drivers/scsi/qlogicpti.c
+@@ -651,7 +651,7 @@ static int qlogicpti_verify_tmon(struct 
+ 
+ static irqreturn_t qpti_intr(int irq, void *dev_id);
+ 
+-static void __init qpti_chain_add(struct qlogicpti *qpti)
++static void __devinit qpti_chain_add(struct qlogicpti *qpti)
+ {
+ 	spin_lock_irq(&qptichain_lock);
+ 	if (qptichain != NULL) {
+@@ -667,7 +667,7 @@ static void __init qpti_chain_add(struct
+ 	spin_unlock_irq(&qptichain_lock);
  }
  
--static unsigned long probe_existing_entries(struct pci_pbm_info *pbm,
--					    struct iommu *iommu)
-+static unsigned long __init probe_existing_entries(struct pci_pbm_info *pbm,
-+						   struct iommu *iommu)
+-static void __init qpti_chain_del(struct qlogicpti *qpti)
++static void __devexit qpti_chain_del(struct qlogicpti *qpti)
  {
- 	struct iommu_arena *arena = &iommu->arena;
- 	unsigned long i, cnt = 0;
-@@ -653,7 +653,7 @@ static unsigned long probe_existing_entr
- 	return cnt;
+ 	spin_lock_irq(&qptichain_lock);
+ 	if (qptichain == qpti) {
+@@ -682,7 +682,7 @@ static void __init qpti_chain_del(struct
+ 	spin_unlock_irq(&qptichain_lock);
  }
  
--static void pci_sun4v_iommu_init(struct pci_pbm_info *pbm)
-+static void __init pci_sun4v_iommu_init(struct pci_pbm_info *pbm)
+-static int __init qpti_map_regs(struct qlogicpti *qpti)
++static int __devinit qpti_map_regs(struct qlogicpti *qpti)
  {
- 	struct iommu *iommu = pbm->iommu;
- 	struct property *prop;
+ 	struct sbus_dev *sdev = qpti->sdev;
+ 
+@@ -705,7 +705,7 @@ static int __init qpti_map_regs(struct q
+ 	return 0;
+ }
+ 
+-static int __init qpti_register_irq(struct qlogicpti *qpti)
++static int __devinit qpti_register_irq(struct qlogicpti *qpti)
+ {
+ 	struct sbus_dev *sdev = qpti->sdev;
+ 
+@@ -730,7 +730,7 @@ fail:
+ 	return -1;
+ }
+ 
+-static void __init qpti_get_scsi_id(struct qlogicpti *qpti)
++static void __devinit qpti_get_scsi_id(struct qlogicpti *qpti)
+ {
+ 	qpti->scsi_id = prom_getintdefault(qpti->prom_node,
+ 					   "initiator-id",
+@@ -783,7 +783,7 @@ static void qpti_get_clock(struct qlogic
+ /* The request and response queues must each be aligned
+  * on a page boundary.
+  */
+-static int __init qpti_map_queues(struct qlogicpti *qpti)
++static int __devinit qpti_map_queues(struct qlogicpti *qpti)
+ {
+ 	struct sbus_dev *sdev = qpti->sdev;
+ 
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -98,6 +137,7 @@ if-0-pci_cleanup_aer_correct_error_status.patch
 git-scsi-misc.patch
 scsi-advansysc-make-3-functions-static.patch
 scsi-aic94xx-cleanups.patch
+scsi-qlogicptic-section-fixes.patch
 sparc64-kernel-pci_sun4vc-section-fixes.patch
 usb-make-usb_storage_onetouch-available-with-pm.patch
 make-b43_mac_enablesuspend-static.patch
