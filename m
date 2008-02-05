@@ -1,147 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: - shmem_getpage-return-page-locked.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:30:07 -0800
-Message-ID: <200802052229.m15MTmAh012010@imap1.linux-foundation.org>
+Subject: - iommu-sg-add-iommu-helper-functions-for-the-free-area-management.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:28:31 -0800
+Message-ID: <200802052228.m15MSCvm011866@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40773 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60191 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762679AbYBEWoD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:44:03 -0500
+	by vger.kernel.org with ESMTP id S1762742AbYBEWoO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:44:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, nickpiggin@yahoo.com.au, riel@redhat.com, mm-commits@vger.kernel.org
+To: tomof@acm.org, James.Bottomley@steeleye.com, fujita.tomonori@lab.ntt.co.jp, jeff@garzik.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     shmem_getpage return page locked
+     iommu sg: add IOMMU helper functions for the free area management
 has been removed from the -mm tree.  Its filename was
-     shmem_getpage-return-page-locked.patch
+     iommu-sg-add-iommu-helper-functions-for-the-free-area-management.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: shmem_getpage return page locked
-From: Hugh Dickins <hugh@veritas.com>
+Subject: iommu sg: add IOMMU helper functions for the free area management
+From: FUJITA Tomonori <tomof@acm.org>
 
-In the new aops, write_begin is supposed to return the page locked: though
-I've seen no ill effects, that's been overlooked in the case of
-shmem_write_begin, and should be fixed.  Then shmem_write_end must unlock the
-page: do so _after_ updating i_size, as we found to be important in other
-filesystems (though since shmem pages don't go the usual writeback route, they
-never suffered from that corruption).
+This adds IOMMU helper functions for the free area management.  These
+functions take care of LLD's segment boundary limit for IOMMUs.  They would be
+useful for IOMMUs that use bitmap for the free area management.
 
-For shmem_write_begin to return the page locked, we need shmem_getpage to
-return the page locked in SGP_WRITE case as well as SGP_CACHE case: let's
-simplify the interface and return it locked even when SGP_READ.
-
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   22 +++++++++++++---------
- 1 file changed, 13 insertions(+), 9 deletions(-)
+ include/linux/iommu-helper.h |    7 ++
+ lib/Makefile                 |    1 
+ lib/iommu-helper.c           |   80 +++++++++++++++++++++++++++++++++
+ 3 files changed, 88 insertions(+)
 
-diff -puN mm/shmem.c~shmem_getpage-return-page-locked mm/shmem.c
---- a/mm/shmem.c~shmem_getpage-return-page-locked
-+++ a/mm/shmem.c
-@@ -729,6 +729,8 @@ static int shmem_notify_change(struct de
- 				(void) shmem_getpage(inode,
- 					attr->ia_size>>PAGE_CACHE_SHIFT,
- 						&page, SGP_READ, NULL);
-+				if (page)
-+					unlock_page(page);
- 			}
- 			/*
- 			 * Reset SHMEM_PAGEIN flag so that shmem_truncate can
-@@ -1286,12 +1288,7 @@ repeat:
- 		SetPageUptodate(filepage);
- 	}
- done:
--	if (*pagep != filepage) {
--		*pagep = filepage;
--		if (sgp != SGP_CACHE)
--			unlock_page(filepage);
--
--	}
-+	*pagep = filepage;
- 	return 0;
+diff -puN /dev/null include/linux/iommu-helper.h
+--- /dev/null
++++ a/include/linux/iommu-helper.h
+@@ -0,0 +1,7 @@
++extern unsigned long iommu_area_alloc(unsigned long *map, unsigned long size,
++				      unsigned long start, unsigned int nr,
++				      unsigned long shift,
++				      unsigned long boundary_size,
++				      unsigned long align_mask);
++extern void iommu_area_free(unsigned long *map, unsigned long start,
++			    unsigned int nr);
+diff -puN lib/Makefile~iommu-sg-add-iommu-helper-functions-for-the-free-area-management lib/Makefile
+--- a/lib/Makefile~iommu-sg-add-iommu-helper-functions-for-the-free-area-management
++++ a/lib/Makefile
+@@ -65,6 +65,7 @@ obj-$(CONFIG_SMP) += pcounter.o
+ obj-$(CONFIG_AUDIT_GENERIC) += audit.o
  
- failed:
-@@ -1469,12 +1466,13 @@ shmem_write_end(struct file *file, struc
- {
- 	struct inode *inode = mapping->host;
+ obj-$(CONFIG_SWIOTLB) += swiotlb.o
++obj-$(CONFIG_IOMMU_HELPER) += iommu-helper.o
+ obj-$(CONFIG_FAULT_INJECTION) += fault-inject.o
  
-+	if (pos + copied > inode->i_size)
-+		i_size_write(inode, pos + copied);
+ lib-$(CONFIG_GENERIC_BUG) += bug.o
+diff -puN /dev/null lib/iommu-helper.c
+--- /dev/null
++++ a/lib/iommu-helper.c
+@@ -0,0 +1,80 @@
++/*
++ * IOMMU helper functions for the free area management
++ */
 +
-+	unlock_page(page);
- 	set_page_dirty(page);
- 	page_cache_release(page);
- 
--	if (pos+copied > inode->i_size)
--		i_size_write(inode, pos+copied);
--
- 	return copied;
- }
- 
-@@ -1529,6 +1527,7 @@ shmem_file_write(struct file *file, cons
- 		if (err)
- 			break;
- 
-+		unlock_page(page);
- 		left = bytes;
- 		if (PageHighMem(page)) {
- 			volatile unsigned char dummy;
-@@ -1610,6 +1609,8 @@ static void do_shmem_file_read(struct fi
- 				desc->error = 0;
- 			break;
- 		}
-+		if (page)
-+			unlock_page(page);
- 
- 		/*
- 		 * We must evaluate after, since reads (unlike writes)
-@@ -1899,6 +1900,7 @@ static int shmem_symlink(struct inode *d
- 			iput(inode);
- 			return error;
- 		}
-+		unlock_page(page);
- 		inode->i_op = &shmem_symlink_inode_operations;
- 		kaddr = kmap_atomic(page, KM_USER0);
- 		memcpy(kaddr, symname, len);
-@@ -1926,6 +1928,8 @@ static void *shmem_follow_link(struct de
- 	struct page *page = NULL;
- 	int res = shmem_getpage(dentry->d_inode, 0, &page, SGP_READ, NULL);
- 	nd_set_link(nd, res ? ERR_PTR(res) : kmap(page));
-+	if (page)
-+		unlock_page(page);
- 	return page;
- }
- 
++#include <linux/module.h>
++#include <linux/bitops.h>
++
++static unsigned long find_next_zero_area(unsigned long *map,
++					 unsigned long size,
++					 unsigned long start,
++					 unsigned int nr,
++					 unsigned long align_mask)
++{
++	unsigned long index, end, i;
++again:
++	index = find_next_zero_bit(map, size, start);
++
++	/* Align allocation */
++	index = (index + align_mask) & ~align_mask;
++
++	end = index + nr;
++	if (end >= size)
++		return -1;
++	for (i = index; i < end; i++) {
++		if (test_bit(i, map)) {
++			start = i+1;
++			goto again;
++		}
++	}
++	return index;
++}
++
++static inline void set_bit_area(unsigned long *map, unsigned long i,
++				int len)
++{
++	unsigned long end = i + len;
++	while (i < end) {
++		__set_bit(i, map);
++		i++;
++	}
++}
++
++static inline int is_span_boundary(unsigned int index, unsigned int nr,
++				   unsigned long shift,
++				   unsigned long boundary_size)
++{
++	shift = (shift + index) & (boundary_size - 1);
++	return shift + nr > boundary_size;
++}
++
++unsigned long iommu_area_alloc(unsigned long *map, unsigned long size,
++			       unsigned long start, unsigned int nr,
++			       unsigned long shift, unsigned long boundary_size,
++			       unsigned long align_mask)
++{
++	unsigned long index;
++again:
++	index = find_next_zero_area(map, size, start, nr, align_mask);
++	if (index != -1) {
++		if (is_span_boundary(index, nr, shift, boundary_size)) {
++			/* we could do more effectively */
++			start = index + 1;
++			goto again;
++		}
++		set_bit_area(map, index, nr);
++	}
++	return index;
++}
++EXPORT_SYMBOL(iommu_area_alloc);
++
++void iommu_area_free(unsigned long *map, unsigned long start, unsigned int nr)
++{
++	unsigned long end = start + nr;
++
++	while (start < end) {
++		__clear_bit(start, map);
++		start++;
++	}
++}
++EXPORT_SYMBOL(iommu_area_free);
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from tomof@acm.org are
 
 origin.patch
-git-unionfs.patch
-git-x86.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-memcgroup-temporarily-revert-swapoff-mod.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memcgroup-reinstate-swapoff-mod.patch
-memcgroup-fix-zone-isolation-oom.patch
-memcgroup-revert-swap_state-mods.patch
-memory-controller-use-rcu_read_lock-in-mem_cgroup_cache_charge.patch
-memcgroup-tidy-up-mem_cgroup_charge_common.patch
-memcgroup-fix-hang-with-shmem-tmpfs.patch
-mount-options-fix-tmpfs.patch
-mount-options-fix-tmpfs-fix.patch
-add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
-prio_tree-debugging-patch.patch
