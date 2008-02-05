@@ -1,172 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - gpiolib-add-drivers-gpio-directory.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:28:58 -0800
-Message-ID: <200802052228.m15MSd25011905@imap1.linux-foundation.org>
+Subject: - uml-port-mutex-conversion.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:38:54 -0800
+Message-ID: <200802052238.m15McZA8012962@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39485 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42500 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762867AbYBEWp2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:45:28 -0500
+	by vger.kernel.org with ESMTP id S1761261AbYBEWpy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:45:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dbrownell@users.sourceforge.net, bgardner@wabtec.com, eric.miao@marvell.com, hskinnemoen@atmel.com, khali@linux-fr.org, philipp.zabel@gmail.com, rmk@arm.linux.org.uk, sam@ravnborg.org
+To: dwalker@mvista.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpiolib: add drivers/gpio directory
+     uml: port mutex conversion
 has been removed from the -mm tree.  Its filename was
-     gpiolib-add-drivers-gpio-directory.patch
+     uml-port-mutex-conversion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpiolib: add drivers/gpio directory
-From: David Brownell <dbrownell@users.sourceforge.net>
+Subject: uml: port mutex conversion
+From: Daniel Walker <dwalker@mvista.com>
 
-Add an empty drivers/gpio directory for gpiolib infrastructure and GPIO
-expanders.  It will be populated by later patches.
+The port_sem is already used as a mutex since it's using DECLARE_MUTEX(), but
+the underlying construct is still a semaphore ..  This patch switches it over
+to a struct mutex.
 
-This won't be the only place to hold such gpio_chip code.  Many external chips
-add a few GPIOs as secondary functionality (such as MFD drivers) and platform
-code frequently needs to closely integrate GPIO and IRQ support.
-
-This is placed *early* in the build/link sequence since it's common for other
-drivers to depend on GPIOs to do their work, so they must be initialized early
-in the device_initcall() sequence.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Acked-by: Jean Delvare <khali@linux-fr.org>
-Cc: Eric Miao <eric.miao@marvell.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Philipp Zabel <philipp.zabel@gmail.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Ben Gardner <bgardner@wabtec.com>
+Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/Kconfig      |    2 ++
- drivers/Kconfig       |    2 ++
- drivers/Makefile      |    1 +
- drivers/gpio/Kconfig  |   32 ++++++++++++++++++++++++++++++++
- drivers/gpio/Makefile |    4 ++++
- 5 files changed, 41 insertions(+)
+ arch/um/drivers/port_kern.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN arch/arm/Kconfig~gpiolib-add-drivers-gpio-directory arch/arm/Kconfig
---- a/arch/arm/Kconfig~gpiolib-add-drivers-gpio-directory
-+++ a/arch/arm/Kconfig
-@@ -1122,6 +1122,8 @@ source "drivers/i2c/Kconfig"
+diff -puN arch/um/drivers/port_kern.c~uml-port-mutex-conversion arch/um/drivers/port_kern.c
+--- a/arch/um/drivers/port_kern.c~uml-port-mutex-conversion
++++ a/arch/um/drivers/port_kern.c
+@@ -6,6 +6,7 @@
+ #include "linux/completion.h"
+ #include "linux/interrupt.h"
+ #include "linux/list.h"
++#include "linux/mutex.h"
+ #include "asm/atomic.h"
+ #include "init.h"
+ #include "irq_kern.h"
+@@ -120,7 +121,7 @@ static int port_accept(struct port_list 
+ 	return 0;
+ }
  
- source "drivers/spi/Kconfig"
+-static DECLARE_MUTEX(ports_sem);
++static DEFINE_MUTEX(ports_mutex);
+ static LIST_HEAD(ports);
  
-+source "drivers/gpio/Kconfig"
-+
- source "drivers/w1/Kconfig"
+ static void port_work_proc(struct work_struct *unused)
+@@ -161,7 +162,7 @@ void *port_data(int port_num)
+ 	struct port_dev *dev = NULL;
+ 	int fd;
  
- source "drivers/power/Kconfig"
-diff -puN drivers/Kconfig~gpiolib-add-drivers-gpio-directory drivers/Kconfig
---- a/drivers/Kconfig~gpiolib-add-drivers-gpio-directory
-+++ a/drivers/Kconfig
-@@ -52,6 +52,8 @@ source "drivers/i2c/Kconfig"
+-	down(&ports_sem);
++	mutex_lock(&ports_mutex);
+ 	list_for_each(ele, &ports) {
+ 		port = list_entry(ele, struct port_list, list);
+ 		if (port->port == port_num)
+@@ -216,7 +217,7 @@ void *port_data(int port_num)
+  out_free:
+ 	kfree(port);
+  out:
+-	up(&ports_sem);
++	mutex_unlock(&ports_mutex);
+ 	return dev;
+ }
  
- source "drivers/spi/Kconfig"
- 
-+source "drivers/gpio/Kconfig"
-+
- source "drivers/w1/Kconfig"
- 
- source "drivers/power/Kconfig"
-diff -puN drivers/Makefile~gpiolib-add-drivers-gpio-directory drivers/Makefile
---- a/drivers/Makefile~gpiolib-add-drivers-gpio-directory
-+++ a/drivers/Makefile
-@@ -5,6 +5,7 @@
- # Rewritten to use lists instead of if-statements.
- #
- 
-+obj-$(CONFIG_HAVE_GPIO_LIB)	+= gpio/
- obj-$(CONFIG_PCI)		+= pci/
- obj-$(CONFIG_PARISC)		+= parisc/
- obj-$(CONFIG_RAPIDIO)		+= rapidio/
-diff -puN /dev/null drivers/gpio/Kconfig
---- /dev/null
-+++ a/drivers/gpio/Kconfig
-@@ -0,0 +1,32 @@
-+#
-+# GPIO infrastructure and expanders
-+#
-+
-+config HAVE_GPIO_LIB
-+	bool
-+	help
-+	  Platforms select gpiolib if they use this infrastructure
-+	  for all their GPIOs, usually starting with ones integrated
-+	  into SOC processors.
-+
-+menu "GPIO Support"
-+	depends on HAVE_GPIO_LIB
-+
-+config DEBUG_GPIO
-+	bool "Debug GPIO calls"
-+	depends on DEBUG_KERNEL
-+	help
-+	  Say Y here to add some extra checks and diagnostics to GPIO calls.
-+	  The checks help ensure that GPIOs have been properly initialized
-+	  before they are used and that sleeping calls aren not made from
-+	  nonsleeping contexts.  They can make bitbanged serial protocols
-+	  slower.  The diagnostics help catch the type of setup errors
-+	  that are most common when setting up new platforms or boards.
-+
-+# put expanders in the right section, in alphabetical order
-+
-+comment "I2C GPIO expanders:"
-+
-+comment "SPI GPIO expanders:"
-+
-+endmenu
-diff -puN /dev/null drivers/gpio/Makefile
---- /dev/null
-+++ a/drivers/gpio/Makefile
-@@ -0,0 +1,4 @@
-+# gpio support: dedicated expander chips, etc
-+
-+ccflags-$(CONFIG_DEBUG_GPIO)	+= -DDEBUG
-+
 _
 
-Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
+Patches currently in -mm which might be from dwalker@mvista.com are
 
 origin.patch
-git-input.patch
-git-backlight.patch
-spi-core-stop-updating-dev-powerpower_state.patch
-atmel_spi-throughput-improvement.patch
-atmel_spi-chain-dma-transfers.patch
-atmel_spi-chain-dma-transfers-update.patch
-atmel_spi-fix-dmachain-oops-with-debug-enabled.patch
-spi-s3c-drivers-shouldnt-care-about-spi_board_info.patch
-spi-superh-spi-using-sci.patch
-spi-omap2_mcspi-handles-omap3-too.patch
-spi_bfin-remove-useless-fault-path.patch
-spi_bfin-use-more-useful-gpio-labels.patch
-spi_bfin-wait-for-tx-to-complete-on-some-cs_chg-paths.patch
-spi_bfin-wait-for-tx-to-complete-on-full-duplex-paths.patch
-spi_bfin-wait-for-tx-to-complete-on-write-paths.patch
-spi_bfin-headers-are-not-for-changelogs.patch
-spi-remove-more-dev-powerpower_state-usage.patch
-rtc-cmos-exports-nvram-in-sysfs.patch
-rtc-cmos-alarm-acts-as-oneshot.patch
-rtc-ds1307-ds_1340-change-init.patch
-rtc-remove-more-dev-powerpower_state-usage.patch
-rtc-at91sam9-rtc-support-rtt-and-or-rtc.patch
-rtc-at91sam9-rtc-support-rtt-and-or-rtc-fix.patch
-gpio-rename-pca9539-driver.patch
-gpio-rename-pca953x-symbols.patch
-gpio-handle-pca95345678-too.patch
-atmel_lcdfb-backlight-control.patch
-atmel_lcdfb-backlight-control-tiny-rework.patch
-usb-net2280-cant-have-a-function-called-show_registers.patch
-basic-pwm-driver-for-avr32-and-at91.patch
-pwm-led-driver.patch
+driver-base-memory-semaphore-to-mutex.patch
+usb-microtek-remove-unused-semaphore.patch
+usb-libusual-locking-cleanup.patch
+drivers-char-tty_ioc-remove-pty_sem.patch
+drivers-isdn-i4l-isdn_ttyc-remove-write_sem.patch
+unix98-allocated_ptys_lock-semaphore-to-mutex.patch
+docs-kernel-locking-convert-semaphore-references.patch
+stopmachine-semaphore-to-mutex.patch
+stopmachine-semaphore-to-mutex-fix.patch
+amiga-serial-driver-port_write_mutex-fixup.patch
+docs-convert-kref-semaphore-to-mutex.patch
+isapnp-driver-semaphore-to-mutex.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
