@@ -1,241 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: - serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:27:39 -0800
-Message-ID: <200802052227.m15MRKeI011786@imap1.linux-foundation.org>
+Subject: - iommu-sg-merging-pci-add-device_dma_parameters-support.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:28:00 -0800
+Message-ID: <200802052227.m15MRfK4011821@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47933 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58967 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762292AbYBEWoB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:44:01 -0500
+	by vger.kernel.org with ESMTP id S1762184AbYBEWoG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:44:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Krauth.Julien@addi-data.com, alan@redhat.com, krauth.julien@addi-data.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: tomof@acm.org, James.Bottomley@steeleye.com, fujita.tomonori@lab.ntt.co.jp, jeff@garzik.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial: add ADDI-DATA GmbH Communication cardsin8250_pci.c and pci_ids.h
+     iommu sg merging: PCI: add device_dma_parameters support
 has been removed from the -mm tree.  Its filename was
-     serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh.patch
+     iommu-sg-merging-pci-add-device_dma_parameters-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial: add ADDI-DATA GmbH Communication cardsin8250_pci.c and pci_ids.h
-From: "Krauth.Julien" <Krauth.Julien@addi-data.com>
+Subject: iommu sg merging: PCI: add device_dma_parameters support
+From: FUJITA Tomonori <tomof@acm.org>
 
-Add ADDI-DATA GmbH communication cards to 8250_pci driver.  Supported cards
-are:
+This adds struct device_dma_parameters in struct pci_dev and properly
+sets up a pointer in struct device.
 
-APCI-7300, APCI-7420, APCI-7500, APCI-7800 APCI-7300-2, APCI-7420-2,
-APCI-7500-2 APCI-7300-3, APCI-7420-3, APCI-7500-3, APCI-7800-3
+The default max_segment_size is set to 64K, same to the block layer's
+default value.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Krauth J. <krauth.julien@addi-data.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Alan Cox <alan@redhat.com>
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Mostly-acked-by: Jeff Garzik <jeff@garzik.org>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Acked-by: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_pci.c |  133 ++++++++++++++++++++++++++++++++++++
- include/linux/pci_ids.h   |   17 ++++
- 2 files changed, 150 insertions(+)
+ drivers/pci/pci.c   |    8 ++++++++
+ drivers/pci/probe.c |    3 +++
+ include/linux/pci.h |    9 +++++++++
+ 3 files changed, 20 insertions(+)
 
-diff -puN drivers/serial/8250_pci.c~serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh drivers/serial/8250_pci.c
---- a/drivers/serial/8250_pci.c~serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh
-+++ a/drivers/serial/8250_pci.c
-@@ -106,6 +106,32 @@ setup_port(struct serial_private *priv, 
+diff -puN drivers/pci/pci.c~iommu-sg-merging-pci-add-device_dma_parameters-support drivers/pci/pci.c
+--- a/drivers/pci/pci.c~iommu-sg-merging-pci-add-device_dma_parameters-support
++++ a/drivers/pci/pci.c
+@@ -1451,6 +1451,14 @@ pci_set_consistent_dma_mask(struct pci_d
+ }
+ #endif
+ 
++#ifndef HAVE_ARCH_PCI_SET_DMA_MAX_SEGMENT_SIZE
++int pci_set_dma_max_seg_size(struct pci_dev *dev, unsigned int size)
++{
++	return dma_set_max_seg_size(&dev->dev, size);
++}
++EXPORT_SYMBOL(pci_set_dma_max_seg_size);
++#endif
++
+ /**
+  * pcix_get_max_mmrbc - get PCI-X maximum designed memory read byte count
+  * @dev: PCI device to query
+diff -puN drivers/pci/probe.c~iommu-sg-merging-pci-add-device_dma_parameters-support drivers/pci/probe.c
+--- a/drivers/pci/probe.c~iommu-sg-merging-pci-add-device_dma_parameters-support
++++ a/drivers/pci/probe.c
+@@ -933,8 +933,11 @@ void pci_device_add(struct pci_dev *dev,
+ 
+ 	set_dev_node(&dev->dev, pcibus_to_node(bus));
+ 	dev->dev.dma_mask = &dev->dma_mask;
++	dev->dev.dma_parms = &dev->dma_parms;
+ 	dev->dev.coherent_dma_mask = 0xffffffffull;
+ 
++	pci_set_dma_max_seg_size(dev, 65536);
++
+ 	/* Fix up broken headers */
+ 	pci_fixup_device(pci_fixup_header, dev);
+ 
+diff -puN include/linux/pci.h~iommu-sg-merging-pci-add-device_dma_parameters-support include/linux/pci.h
+--- a/include/linux/pci.h~iommu-sg-merging-pci-add-device_dma_parameters-support
++++ a/include/linux/pci.h
+@@ -159,6 +159,8 @@ struct pci_dev {
+ 					   this if your device has broken DMA
+ 					   or supports 64-bit transfers.  */
+ 
++	struct device_dma_parameters dma_parms;
++
+ 	pci_power_t     current_state;  /* Current operating state. In ACPI-speak,
+ 					   this is D0-D3, D0 being fully functional,
+ 					   and D3 being off. */
+@@ -580,6 +582,7 @@ void pci_intx(struct pci_dev *dev, int e
+ void pci_msi_off(struct pci_dev *dev);
+ int pci_set_dma_mask(struct pci_dev *dev, u64 mask);
+ int pci_set_consistent_dma_mask(struct pci_dev *dev, u64 mask);
++int pci_set_dma_max_seg_size(struct pci_dev *dev, unsigned int size);
+ int pcix_get_max_mmrbc(struct pci_dev *dev);
+ int pcix_get_mmrbc(struct pci_dev *dev);
+ int pcix_set_mmrbc(struct pci_dev *dev, int mmrbc);
+@@ -822,6 +825,12 @@ static inline int pci_set_dma_mask(struc
+ 	return -EIO;
  }
  
- /*
-+ * ADDI-DATA GmbH communication cards <info@addi-data.com>
-+ */
-+static int addidata_apci7800_setup(struct serial_private *priv,
-+				struct pciserial_board *board,
-+				struct uart_port *port, int idx)
++static inline int pci_set_dma_max_seg_size(struct pci_dev *dev,
++					unsigned int size)
 +{
-+	unsigned int bar = 0, offset = board->first_offset;
-+	bar = FL_GET_BASE(board->flags);
-+
-+	if (idx < 2) {
-+		offset += idx * board->uart_offset;
-+	} else if ((idx >= 2) && (idx < 4)) {
-+		bar += 1;
-+		offset += ((idx - 2) * board->uart_offset);
-+	} else if ((idx >= 4) && (idx < 6)) {
-+		bar += 2;
-+		offset += ((idx - 4) * board->uart_offset);
-+	} else if (idx >= 6) {
-+		bar += 3;
-+		offset += ((idx - 6) * board->uart_offset);
-+	}
-+
-+	return setup_port(priv, port, bar, offset, board->reg_shift);
++	return -EIO;
 +}
 +
-+/*
-  * AFAVLAB uses a different mixture of BARs and offsets
-  * Not that ugly ;) -- HW
-  */
-@@ -752,6 +778,16 @@ pci_default_setup(struct serial_private 
-  */
- static struct pci_serial_quirk pci_serial_quirks[] = {
- 	/*
-+	* ADDI-DATA GmbH communication cards <info@addi-data.com>
-+	*/
-+	{
-+		.vendor         = PCI_VENDOR_ID_ADDIDATA_OLD,
-+		.device         = PCI_DEVICE_ID_ADDIDATA_APCI7800,
-+		.subvendor      = PCI_ANY_ID,
-+		.subdevice      = PCI_ANY_ID,
-+		.setup          = addidata_apci7800_setup,
-+	},
-+	/*
- 	 * AFAVLAB cards - these may be called via parport_serial
- 	 *  It is not clear whether this applies to all products.
- 	 */
-@@ -1179,6 +1215,12 @@ static struct pciserial_board pci_boards
- 		.base_baud	= 115200,
- 		.uart_offset	= 8,
- 	},
-+	[pbn_b0_8_115200] = {
-+		.flags		= FL_BASE0,
-+		.num_ports	= 8,
-+		.base_baud	= 115200,
-+		.uart_offset	= 8,
-+	},
- 
- 	[pbn_b0_1_921600] = {
- 		.flags		= FL_BASE0,
-@@ -2697,6 +2739,97 @@ static struct pci_device_id serial_pci_t
- 		pbn_pasemi_1682M },
- 
- 	/*
-+	* ADDI-DATA GmbH communication cards <info@addi-data.com>
-+	*/
-+	{	PCI_VENDOR_ID_ADDIDATA,
-+		PCI_DEVICE_ID_ADDIDATA_APCI7500,
-+		PCI_ANY_ID,
-+		PCI_ANY_ID,
-+		0,
-+		0,
-+		pbn_b0_4_115200 },
-+
-+	{	PCI_VENDOR_ID_ADDIDATA,
-+		PCI_DEVICE_ID_ADDIDATA_APCI7420,
-+		PCI_ANY_ID,
-+		PCI_ANY_ID,
-+		0,
-+		0,
-+		pbn_b0_2_115200 },
-+
-+	{	PCI_VENDOR_ID_ADDIDATA,
-+		PCI_DEVICE_ID_ADDIDATA_APCI7300,
-+		PCI_ANY_ID,
-+		PCI_ANY_ID,
-+		0,
-+		0,
-+		pbn_b0_1_115200 },
-+
-+	{	PCI_VENDOR_ID_ADDIDATA_OLD,
-+		PCI_DEVICE_ID_ADDIDATA_APCI7800,
-+		PCI_ANY_ID,
-+		PCI_ANY_ID,
-+		0,
-+		0,
-+		pbn_b1_8_115200 },
-+
-+	{	PCI_VENDOR_ID_ADDIDATA,
-+		PCI_DEVICE_ID_ADDIDATA_APCI7500_2,
-+		PCI_ANY_ID,
-+		PCI_ANY_ID,
-+		0,
-+		0,
-+		pbn_b0_4_115200 },
-+
-+	{	PCI_VENDOR_ID_ADDIDATA,
-+		PCI_DEVICE_ID_ADDIDATA_APCI7420_2,
-+		PCI_ANY_ID,
-+		PCI_ANY_ID,
-+		0,
-+		0,
-+		pbn_b0_2_115200 },
-+
-+	{	PCI_VENDOR_ID_ADDIDATA,
-+		PCI_DEVICE_ID_ADDIDATA_APCI7300_2,
-+		PCI_ANY_ID,
-+		PCI_ANY_ID,
-+		0,
-+		0,
-+		pbn_b0_1_115200 },
-+
-+	{	PCI_VENDOR_ID_ADDIDATA,
-+		PCI_DEVICE_ID_ADDIDATA_APCI7500_3,
-+		PCI_ANY_ID,
-+		PCI_ANY_ID,
-+		0,
-+		0,
-+		pbn_b0_4_115200 },
-+
-+	{	PCI_VENDOR_ID_ADDIDATA,
-+		PCI_DEVICE_ID_ADDIDATA_APCI7420_3,
-+		PCI_ANY_ID,
-+		PCI_ANY_ID,
-+		0,
-+		0,
-+		pbn_b0_2_115200 },
-+
-+	{	PCI_VENDOR_ID_ADDIDATA,
-+		PCI_DEVICE_ID_ADDIDATA_APCI7300_3,
-+		PCI_ANY_ID,
-+		PCI_ANY_ID,
-+		0,
-+		0,
-+		pbn_b0_1_115200 },
-+
-+	{	PCI_VENDOR_ID_ADDIDATA,
-+		PCI_DEVICE_ID_ADDIDATA_APCI7800_3,
-+		PCI_ANY_ID,
-+		PCI_ANY_ID,
-+		0,
-+		0,
-+		pbn_b0_8_115200 },
-+
-+	/*
- 	 * These entries match devices with class COMMUNICATION_SERIAL,
- 	 * COMMUNICATION_MODEM or COMMUNICATION_MULTISERIAL
- 	 */
-diff -puN include/linux/pci_ids.h~serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh
-+++ a/include/linux/pci_ids.h
-@@ -2043,6 +2043,23 @@
- #define PCI_VENDOR_ID_QUICKNET		0x15e2
- #define PCI_DEVICE_ID_QUICKNET_XJ	0x0500
- 
-+/*
-+ * ADDI-DATA GmbH communication cards <info@addi-data.com>
-+ */
-+#define PCI_VENDOR_ID_ADDIDATA_OLD             0x10E8
-+#define PCI_VENDOR_ID_ADDIDATA                 0x15B8
-+#define PCI_DEVICE_ID_ADDIDATA_APCI7500        0x7000
-+#define PCI_DEVICE_ID_ADDIDATA_APCI7420        0x7001
-+#define PCI_DEVICE_ID_ADDIDATA_APCI7300        0x7002
-+#define PCI_DEVICE_ID_ADDIDATA_APCI7800        0x818E
-+#define PCI_DEVICE_ID_ADDIDATA_APCI7500_2      0x7009
-+#define PCI_DEVICE_ID_ADDIDATA_APCI7420_2      0x700A
-+#define PCI_DEVICE_ID_ADDIDATA_APCI7300_2      0x700B
-+#define PCI_DEVICE_ID_ADDIDATA_APCI7500_3      0x700C
-+#define PCI_DEVICE_ID_ADDIDATA_APCI7420_3      0x700D
-+#define PCI_DEVICE_ID_ADDIDATA_APCI7300_3      0x700E
-+#define PCI_DEVICE_ID_ADDIDATA_APCI7800_3      0x700F
-+
- #define PCI_VENDOR_ID_PDC		0x15e9
- 
- #define PCI_VENDOR_ID_FARSITE           0x1619
+ static inline int pci_assign_resource(struct pci_dev *dev, int i)
+ {
+ 	return -EBUSY;
 _
 
-Patches currently in -mm which might be from Krauth.Julien@addi-data.com are
+Patches currently in -mm which might be from tomof@acm.org are
 
 origin.patch
