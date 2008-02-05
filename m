@@ -1,178 +1,388 @@
 From: akpm@linux-foundation.org
-Subject: - iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:28:43 -0800
-Message-ID: <200802052228.m15MSOxJ011880@imap1.linux-foundation.org>
+Subject: - gpiolib-pca9539-i2c-gpio-expander-support.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:29:19 -0800
+Message-ID: <200802052229.m15MT0lO011937@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58551 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46606 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762821AbYBEWpA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:45:00 -0500
+	by vger.kernel.org with ESMTP id S1761116AbYBEWrY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:47:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tomof@acm.org, James.Bottomley@steeleye.com, ak@suse.de, fujita.tomonori@lab.ntt.co.jp, jeff@garzik.org, jens.axboe@oracle.com, mingo@elte.hu, mulix@mulix.org, tglx@linutronix.de, mm-
+To: eric.miao@marvell.com, bgardner@wabtec.com, dbrownell@users.sourceforge.net, hskinnemoen@atmel.com, khali@linux-fr.org, philipp.zabel@gmail.com, rmk@arm.linux.org.uk, sam@ravnborg.org
 
 
 The patch titled
-     iommu sg: x86: convert gart IOMMU to use the IOMMU helper
+     gpiolib: pca9539 i2c gpio expander support
 has been removed from the -mm tree.  Its filename was
-     iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper.patch
+     gpiolib-pca9539-i2c-gpio-expander-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iommu sg: x86: convert gart IOMMU to use the IOMMU helper
-From: FUJITA Tomonori <tomof@acm.org>
+Subject: gpiolib: pca9539 i2c gpio expander support
+From: eric miao <eric.miao@marvell.com>
 
-This patch converts gart IOMMU to use the IOMMU helper functions. The
-IOMMU doesn't allocate a memory area spanning LLD's segment boundary
-anymore.
+This adds a new-style I2C driver with basic support for the sixteen bit
+PCA9539 GPIO expanders.  These chips have multiple registers, push-pull output
+drivers, and (not supported in this patch) pin change interrupts.
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Muli Ben-Yehuda <mulix@mulix.org>
-Cc: Andi Kleen <ak@suse.de>
+Board-specific code must provide "pca9539_platform_data" with each chip's
+"i2c_board_info".  That provides the GPIO numbers to be used by that chip, and
+callbacks for board-specific setup/teardown logic.
+
+Derived from drivers/i2c/chips/pca9539.c (which has no current known users). 
+This is faster and simpler; it uses 16-bit register access, and cache the
+OUTPUT and DIRECTION registers for fast access
+
+Signed-off-by: eric miao <eric.miao@marvell.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Acked-by: Jean Delvare <khali@linux-fr.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Philipp Zabel <philipp.zabel@gmail.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Ben Gardner <bgardner@wabtec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig              |    2 -
- arch/x86/kernel/pci-gart_64.c |   41 +++++++++++++++++++-------------
- 2 files changed, 26 insertions(+), 17 deletions(-)
+ drivers/gpio/Kconfig        |   10 +
+ drivers/gpio/Makefile       |    1 
+ drivers/gpio/pca9539.c      |  271 ++++++++++++++++++++++++++++++++++
+ include/linux/i2c/pca9539.h |   18 ++
+ 4 files changed, 300 insertions(+)
 
-diff -puN arch/x86/Kconfig~iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper arch/x86/Kconfig
---- a/arch/x86/Kconfig~iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper
-+++ a/arch/x86/Kconfig
-@@ -466,7 +466,7 @@ config CALGARY_IOMMU_ENABLED_BY_DEFAULT
- 	  If unsure, say Y.
+diff -puN drivers/gpio/Kconfig~gpiolib-pca9539-i2c-gpio-expander-support drivers/gpio/Kconfig
+--- a/drivers/gpio/Kconfig~gpiolib-pca9539-i2c-gpio-expander-support
++++ a/drivers/gpio/Kconfig
+@@ -27,6 +27,16 @@ config DEBUG_GPIO
  
- config IOMMU_HELPER
--	def_bool CALGARY_IOMMU
-+	def_bool (CALGARY_IOMMU || GART_IOMMU)
+ comment "I2C GPIO expanders:"
  
- # need this always selected by IOMMU for the VIA workaround
- config SWIOTLB
-diff -puN arch/x86/kernel/pci-gart_64.c~iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper arch/x86/kernel/pci-gart_64.c
---- a/arch/x86/kernel/pci-gart_64.c~iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper
-+++ a/arch/x86/kernel/pci-gart_64.c
-@@ -25,6 +25,7 @@
- #include <linux/bitops.h>
- #include <linux/kdebug.h>
- #include <linux/scatterlist.h>
-+#include <linux/iommu-helper.h>
- #include <asm/atomic.h>
- #include <asm/io.h>
- #include <asm/mtrr.h>
-@@ -82,17 +83,24 @@ AGPEXTERN __u32 *agp_gatt_table;
- static unsigned long next_bit;  /* protected by iommu_bitmap_lock */
- static int need_flush;		/* global flush state. set for each gart wrap */
- 
--static unsigned long alloc_iommu(int size)
-+static unsigned long alloc_iommu(struct device *dev, int size)
- {
- 	unsigned long offset, flags;
-+	unsigned long boundary_size;
-+	unsigned long base_index;
++config GPIO_PCA9539
++	tristate "PCA9539 16-bit I/O port"
++	depends on I2C
++	help
++	  Say yes here to support the PCA9539 16-bit I/O port. These
++	  parts are made by NXP and TI.
 +
-+	base_index = ALIGN(iommu_bus_base & dma_get_seg_boundary(dev),
-+			   PAGE_SIZE) >> PAGE_SHIFT;
-+	boundary_size = ALIGN(dma_get_seg_boundary(dev) + 1,
-+			      PAGE_SIZE) >> PAGE_SHIFT;
++	  This driver can also be built as a module.  If so, the module
++	  will be called pca9539.
++
+ config GPIO_PCF857X
+ 	tristate "PCF857x, PCA857x, and PCA967x I2C GPIO expanders"
+ 	depends on I2C
+diff -puN drivers/gpio/Makefile~gpiolib-pca9539-i2c-gpio-expander-support drivers/gpio/Makefile
+--- a/drivers/gpio/Makefile~gpiolib-pca9539-i2c-gpio-expander-support
++++ a/drivers/gpio/Makefile
+@@ -5,4 +5,5 @@ ccflags-$(CONFIG_DEBUG_GPIO)	+= -DDEBUG
+ obj-$(CONFIG_HAVE_GPIO_LIB)	+= gpiolib.o
  
- 	spin_lock_irqsave(&iommu_bitmap_lock, flags);
--	offset = find_next_zero_string(iommu_gart_bitmap, next_bit,
--					iommu_pages, size);
-+	offset = iommu_area_alloc(iommu_gart_bitmap, iommu_pages, next_bit,
-+				  size, base_index, boundary_size, 0);
- 	if (offset == -1) {
- 		need_flush = 1;
--		offset = find_next_zero_string(iommu_gart_bitmap, 0,
--						iommu_pages, size);
-+		offset = iommu_area_alloc(iommu_gart_bitmap, iommu_pages, 0,
-+					  size, base_index, boundary_size, 0);
- 	}
- 	if (offset != -1) {
- 		set_bit_string(iommu_gart_bitmap, offset, size);
-@@ -114,7 +122,7 @@ static void free_iommu(unsigned long off
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&iommu_bitmap_lock, flags);
--	__clear_bit_string(iommu_gart_bitmap, offset, size);
-+	iommu_area_free(iommu_gart_bitmap, offset, size);
- 	spin_unlock_irqrestore(&iommu_bitmap_lock, flags);
- }
- 
-@@ -235,7 +243,7 @@ static dma_addr_t dma_map_area(struct de
- 				size_t size, int dir)
- {
- 	unsigned long npages = to_pages(phys_mem, size);
--	unsigned long iommu_page = alloc_iommu(npages);
-+	unsigned long iommu_page = alloc_iommu(dev, npages);
- 	int i;
- 
- 	if (iommu_page == -1) {
-@@ -355,10 +363,11 @@ static int dma_map_sg_nonforce(struct de
- }
- 
- /* Map multiple scatterlist entries continuous into the first. */
--static int __dma_map_cont(struct scatterlist *start, int nelems,
--			  struct scatterlist *sout, unsigned long pages)
-+static int __dma_map_cont(struct device *dev, struct scatterlist *start,
-+			  int nelems, struct scatterlist *sout,
-+			  unsigned long pages)
- {
--	unsigned long iommu_start = alloc_iommu(pages);
-+	unsigned long iommu_start = alloc_iommu(dev, pages);
- 	unsigned long iommu_page = iommu_start;
- 	struct scatterlist *s;
- 	int i;
-@@ -394,8 +403,8 @@ static int __dma_map_cont(struct scatter
- }
- 
- static inline int
--dma_map_cont(struct scatterlist *start, int nelems, struct scatterlist *sout,
--	     unsigned long pages, int need)
-+dma_map_cont(struct device *dev, struct scatterlist *start, int nelems,
-+	     struct scatterlist *sout, unsigned long pages, int need)
- {
- 	if (!need) {
- 		BUG_ON(nelems != 1);
-@@ -403,7 +412,7 @@ dma_map_cont(struct scatterlist *start, 
- 		sout->dma_length = start->length;
- 		return 0;
- 	}
--	return __dma_map_cont(start, nelems, sout, pages);
-+	return __dma_map_cont(dev, start, nelems, sout, pages);
- }
- 
- /*
-@@ -449,8 +458,8 @@ gart_map_sg(struct device *dev, struct s
- 			if (!iommu_merge || !nextneed || !need || s->offset ||
- 			    (s->length + seg_size > max_seg_size) ||
- 			    (ps->offset + ps->length) % PAGE_SIZE) {
--				if (dma_map_cont(start_sg, i - start, sgmap,
--						  pages, need) < 0)
-+				if (dma_map_cont(dev, start_sg, i - start,
-+						 sgmap, pages, need) < 0)
- 					goto error;
- 				out++;
- 				seg_size = 0;
-@@ -466,7 +475,7 @@ gart_map_sg(struct device *dev, struct s
- 		pages += to_pages(s->offset, s->length);
- 		ps = s;
- 	}
--	if (dma_map_cont(start_sg, i - start, sgmap, pages, need) < 0)
-+	if (dma_map_cont(dev, start_sg, i - start, sgmap, pages, need) < 0)
- 		goto error;
- 	out++;
- 	flush_gart();
+ obj-$(CONFIG_GPIO_MCP23S08)	+= mcp23s08.o
++obj-$(CONFIG_GPIO_PCA9539)	+= pca9539.o
+ obj-$(CONFIG_GPIO_PCF857X)	+= pcf857x.o
+diff -puN /dev/null drivers/gpio/pca9539.c
+--- /dev/null
++++ a/drivers/gpio/pca9539.c
+@@ -0,0 +1,271 @@
++/*
++ *  pca9539.c - 16-bit I/O port with interrupt and reset
++ *
++ *  Copyright (C) 2005 Ben Gardner <bgardner@wabtec.com>
++ *  Copyright (C) 2007 Marvell International Ltd.
++ *
++ *  Derived from drivers/i2c/chips/pca9539.c
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; version 2 of the License.
++ */
++
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/i2c.h>
++#include <linux/i2c/pca9539.h>
++
++#include <asm/gpio.h>
++
++
++#define NR_PCA9539_GPIOS	16
++
++#define PCA9539_INPUT		0
++#define PCA9539_OUTPUT		2
++#define PCA9539_INVERT		4
++#define PCA9539_DIRECTION	6
++
++struct pca9539_chip {
++	unsigned gpio_start;
++	uint16_t reg_output;
++	uint16_t reg_direction;
++
++	struct i2c_client *client;
++	struct gpio_chip gpio_chip;
++};
++
++/* NOTE:  we can't currently rely on fault codes to come from SMBus
++ * calls, so we map all errors to EIO here and return zero otherwise.
++ */
++static int pca9539_write_reg(struct pca9539_chip *chip, int reg, uint16_t val)
++{
++	if (i2c_smbus_write_word_data(chip->client, reg, val) < 0)
++		return -EIO;
++	else
++		return 0;
++}
++
++static int pca9539_read_reg(struct pca9539_chip *chip, int reg, uint16_t *val)
++{
++	int ret;
++
++	ret = i2c_smbus_read_word_data(chip->client, reg);
++	if (ret < 0) {
++		dev_err(&chip->client->dev, "failed reading register\n");
++		return -EIO;
++	}
++
++	*val = (uint16_t)ret;
++	return 0;
++}
++
++static int pca9539_gpio_direction_input(struct gpio_chip *gc, unsigned off)
++{
++	struct pca9539_chip *chip;
++	uint16_t reg_val;
++	int ret;
++
++	chip = container_of(gc, struct pca9539_chip, gpio_chip);
++
++	reg_val = chip->reg_direction | (1u << off);
++	ret = pca9539_write_reg(chip, PCA9539_DIRECTION, reg_val);
++	if (ret)
++		return ret;
++
++	chip->reg_direction = reg_val;
++	return 0;
++}
++
++static int pca9539_gpio_direction_output(struct gpio_chip *gc,
++		unsigned off, int val)
++{
++	struct pca9539_chip *chip;
++	uint16_t reg_val;
++	int ret;
++
++	chip = container_of(gc, struct pca9539_chip, gpio_chip);
++
++	/* set output level */
++	if (val)
++		reg_val = chip->reg_output | (1u << off);
++	else
++		reg_val = chip->reg_output & ~(1u << off);
++
++	ret = pca9539_write_reg(chip, PCA9539_OUTPUT, reg_val);
++	if (ret)
++		return ret;
++
++	chip->reg_output = reg_val;
++
++	/* then direction */
++	reg_val = chip->reg_direction & ~(1u << off);
++	ret = pca9539_write_reg(chip, PCA9539_DIRECTION, reg_val);
++	if (ret)
++		return ret;
++
++	chip->reg_direction = reg_val;
++	return 0;
++}
++
++static int pca9539_gpio_get_value(struct gpio_chip *gc, unsigned off)
++{
++	struct pca9539_chip *chip;
++	uint16_t reg_val;
++	int ret;
++
++	chip = container_of(gc, struct pca9539_chip, gpio_chip);
++
++	ret = pca9539_read_reg(chip, PCA9539_INPUT, &reg_val);
++	if (ret < 0) {
++		/* NOTE:  diagnostic already emitted; that's all we should
++		 * do unless gpio_*_value_cansleep() calls become different
++		 * from their nonsleeping siblings (and report faults).
++		 */
++		return 0;
++	}
++
++	return (reg_val & (1u << off)) ? 1 : 0;
++}
++
++static void pca9539_gpio_set_value(struct gpio_chip *gc, unsigned off, int val)
++{
++	struct pca9539_chip *chip;
++	uint16_t reg_val;
++	int ret;
++
++	chip = container_of(gc, struct pca9539_chip, gpio_chip);
++
++	if (val)
++		reg_val = chip->reg_output | (1u << off);
++	else
++		reg_val = chip->reg_output & ~(1u << off);
++
++	ret = pca9539_write_reg(chip, PCA9539_OUTPUT, reg_val);
++	if (ret)
++		return;
++
++	chip->reg_output = reg_val;
++}
++
++static int pca9539_init_gpio(struct pca9539_chip *chip)
++{
++	struct gpio_chip *gc;
++
++	gc = &chip->gpio_chip;
++
++	gc->direction_input  = pca9539_gpio_direction_input;
++	gc->direction_output = pca9539_gpio_direction_output;
++	gc->get = pca9539_gpio_get_value;
++	gc->set = pca9539_gpio_set_value;
++
++	gc->base = chip->gpio_start;
++	gc->ngpio = NR_PCA9539_GPIOS;
++	gc->label = "pca9539";
++
++	return gpiochip_add(gc);
++}
++
++static int __devinit pca9539_probe(struct i2c_client *client)
++{
++	struct pca9539_platform_data *pdata;
++	struct pca9539_chip *chip;
++	int ret;
++
++	pdata = client->dev.platform_data;
++	if (pdata == NULL)
++		return -ENODEV;
++
++	chip = kzalloc(sizeof(struct pca9539_chip), GFP_KERNEL);
++	if (chip == NULL)
++		return -ENOMEM;
++
++	chip->client = client;
++
++	chip->gpio_start = pdata->gpio_base;
++
++	/* initialize cached registers from their original values.
++	 * we can't share this chip with another i2c master.
++	 */
++	ret = pca9539_read_reg(chip, PCA9539_OUTPUT, &chip->reg_output);
++	if (ret)
++		goto out_failed;
++
++	ret = pca9539_read_reg(chip, PCA9539_DIRECTION, &chip->reg_direction);
++	if (ret)
++		goto out_failed;
++
++	/* set platform specific polarity inversion */
++	ret = pca9539_write_reg(chip, PCA9539_INVERT, pdata->invert);
++	if (ret)
++		goto out_failed;
++
++	ret = pca9539_init_gpio(chip);
++	if (ret)
++		goto out_failed;
++
++	if (pdata->setup) {
++		ret = pdata->setup(client, chip->gpio_chip.base,
++				chip->gpio_chip.ngpio, pdata->context);
++		if (ret < 0)
++			dev_warn(&client->dev, "setup failed, %d\n", ret);
++	}
++
++	i2c_set_clientdata(client, chip);
++	return 0;
++
++out_failed:
++	kfree(chip);
++	return ret;
++}
++
++static int pca9539_remove(struct i2c_client *client)
++{
++	struct pca9539_platform_data *pdata = client->dev.platform_data;
++	struct pca9539_chip *chip = i2c_get_clientdata(client);
++	int ret = 0;
++
++	if (pdata->teardown) {
++		ret = pdata->teardown(client, chip->gpio_chip.base,
++				chip->gpio_chip.ngpio, pdata->context);
++		if (ret < 0) {
++			dev_err(&client->dev, "%s failed, %d\n",
++					"teardown", ret);
++			return ret;
++		}
++	}
++
++	ret = gpiochip_remove(&chip->gpio_chip);
++	if (ret) {
++		dev_err(&client->dev, "%s failed, %d\n",
++				"gpiochip_remove()", ret);
++		return ret;
++	}
++
++	kfree(chip);
++	return 0;
++}
++
++static struct i2c_driver pca9539_driver = {
++	.driver = {
++		.name	= "pca9539",
++	},
++	.probe		= pca9539_probe,
++	.remove		= pca9539_remove,
++};
++
++static int __init pca9539_init(void)
++{
++	return i2c_add_driver(&pca9539_driver);
++}
++module_init(pca9539_init);
++
++static void __exit pca9539_exit(void)
++{
++	i2c_del_driver(&pca9539_driver);
++}
++module_exit(pca9539_exit);
++
++MODULE_AUTHOR("eric miao <eric.miao@marvell.com>");
++MODULE_DESCRIPTION("GPIO expander driver for PCA9539");
++MODULE_LICENSE("GPL");
+diff -puN /dev/null include/linux/i2c/pca9539.h
+--- /dev/null
++++ a/include/linux/i2c/pca9539.h
+@@ -0,0 +1,18 @@
++/* platform data for the PCA9539 16-bit I/O expander driver */
++
++struct pca9539_platform_data {
++	/* number of the first GPIO */
++	unsigned	gpio_base;
++
++	/* initial polarity inversion setting */
++	uint16_t	invert;
++
++	void		*context;	/* param to setup/teardown */
++
++	int		(*setup)(struct i2c_client *client,
++				unsigned gpio, unsigned ngpio,
++				void *context);
++	int		(*teardown)(struct i2c_client *client,
++				unsigned gpio, unsigned ngpio,
++				void *context);
++};
 _
 
-Patches currently in -mm which might be from tomof@acm.org are
+Patches currently in -mm which might be from eric.miao@marvell.com are
 
 origin.patch
