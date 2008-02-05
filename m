@@ -1,117 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: - 8250c-support-specifying-dw-apb-uarts-in-device-platform_data.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:27:42 -0800
-Message-ID: <200802052227.m15MRNfO011789@imap1.linux-foundation.org>
+Subject: - maps4-add-proc-kpagecount-interface.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:31:19 -0800
+Message-ID: <200802052231.m15MV0Dr012122@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40672 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58398 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932355AbYBEWn2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:43:28 -0500
+	by vger.kernel.org with ESMTP id S1761883AbYBEWng (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:43:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: will.newton@gmail.com, alan@lxorguk.ukuu.org.uk, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: mpm@selenic.com, bunk@stusta.de, haveblue@us.ibm.com, jeremy@goop.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     8250.c: support specifying DW APB UARTs in device platform_data
+     maps4: add /proc/kpagecount interface
 has been removed from the -mm tree.  Its filename was
-     8250c-support-specifying-dw-apb-uarts-in-device-platform_data.patch
+     maps4-add-proc-kpagecount-interface.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: 8250.c: support specifying DW APB UARTs in device platform_data
-From: "Will Newton" <will.newton@gmail.com>
+Subject: maps4: add /proc/kpagecount interface
+From: Matt Mackall <mpm@selenic.com>
 
-Allow the private_data field to be specified in platform_data for the
-standard 8250/16550 UART.  This field is used by DW APB type UARTs and
-without this patch it's only possible to set this field when registering
-the port by hand.  If private_data is not set then the driver will
-potentially oops with a NULL pointer dereference.
+This makes physical page map counts available to userspace. Together
+with /proc/pid/pagemap and /proc/pid/clear_refs, this can be used to
+monitor memory usage on a per-page basis.
 
-Signed-off-by: Will Newton <will.newton@gmail.com>
-Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Russell King <rmk@arm.linux.org.uk>
+[akpm@linux-foundation.org: remove unneeded access_ok()]
+[bunk@stusta.de: make struct proc_kpagemap static]
+Signed-off-by: Matt Mackall <mpm@selenic.com>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250.c       |   40 +++++++++++++++++-----------------
- include/linux/serial_8250.h |    1 
- 2 files changed, 22 insertions(+), 19 deletions(-)
+ fs/proc/proc_misc.c |   50 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 50 insertions(+)
 
-diff -puN drivers/serial/8250.c~8250c-support-specifying-dw-apb-uarts-in-device-platform_data drivers/serial/8250.c
---- a/drivers/serial/8250.c~8250c-support-specifying-dw-apb-uarts-in-device-platform_data
-+++ a/drivers/serial/8250.c
-@@ -2662,16 +2662,17 @@ static int __devinit serial8250_probe(st
- 	memset(&port, 0, sizeof(struct uart_port));
+diff -puN fs/proc/proc_misc.c~maps4-add-proc-kpagecount-interface fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~maps4-add-proc-kpagecount-interface
++++ a/fs/proc/proc_misc.c
+@@ -46,6 +46,7 @@
+ #include <linux/vmalloc.h>
+ #include <linux/crash_dump.h>
+ #include <linux/pid_namespace.h>
++#include <linux/bootmem.h>
+ #include <asm/uaccess.h>
+ #include <asm/pgtable.h>
+ #include <asm/io.h>
+@@ -675,6 +676,54 @@ static const struct file_operations proc
+ };
+ #endif
  
- 	for (i = 0; p && p->flags != 0; p++, i++) {
--		port.iobase	= p->iobase;
--		port.membase	= p->membase;
--		port.irq	= p->irq;
--		port.uartclk	= p->uartclk;
--		port.regshift	= p->regshift;
--		port.iotype	= p->iotype;
--		port.flags	= p->flags;
--		port.mapbase	= p->mapbase;
--		port.hub6	= p->hub6;
--		port.dev	= &dev->dev;
-+		port.iobase		= p->iobase;
-+		port.membase		= p->membase;
-+		port.irq		= p->irq;
-+		port.uartclk		= p->uartclk;
-+		port.regshift		= p->regshift;
-+		port.iotype		= p->iotype;
-+		port.flags		= p->flags;
-+		port.mapbase		= p->mapbase;
-+		port.hub6		= p->hub6;
-+		port.private_data	= p->private_data;
-+		port.dev		= &dev->dev;
- 		if (share_irqs)
- 			port.flags |= UPF_SHARE_IRQ;
- 		ret = serial8250_register_port(&port);
-@@ -2812,15 +2813,16 @@ int serial8250_register_port(struct uart
- 	if (uart) {
- 		uart_remove_one_port(&serial8250_reg, &uart->port);
++#define KPMSIZE sizeof(u64)
++#define KPMMASK (KPMSIZE - 1)
++/* /proc/kpagecount - an array exposing page counts
++ *
++ * Each entry is a u64 representing the corresponding
++ * physical page count.
++ */
++static ssize_t kpagecount_read(struct file *file, char __user *buf,
++			     size_t count, loff_t *ppos)
++{
++	u64 __user *out = (u64 __user *)buf;
++	struct page *ppage;
++	unsigned long src = *ppos;
++	unsigned long pfn;
++	ssize_t ret = 0;
++	u64 pcount;
++
++	pfn = src / KPMSIZE;
++	count = min_t(size_t, count, (max_pfn * KPMSIZE) - src);
++	if (src & KPMMASK || count & KPMMASK)
++		return -EIO;
++
++	while (count > 0) {
++		ppage = pfn_to_page(pfn++);
++		if (!ppage)
++			pcount = 0;
++		else
++			pcount = atomic_read(&ppage->_count);
++
++		if (put_user(pcount, out++)) {
++			ret = -EFAULT;
++			break;
++		}
++
++		count -= KPMSIZE;
++	}
++
++	*ppos += (char __user *)out - buf;
++	if (!ret)
++		ret = (char __user *)out - buf;
++	return ret;
++}
++
++static struct file_operations proc_kpagecount_operations = {
++	.llseek = mem_lseek,
++	.read = kpagecount_read,
++};
++
+ struct proc_dir_entry *proc_root_kcore;
  
--		uart->port.iobase   = port->iobase;
--		uart->port.membase  = port->membase;
--		uart->port.irq      = port->irq;
--		uart->port.uartclk  = port->uartclk;
--		uart->port.fifosize = port->fifosize;
--		uart->port.regshift = port->regshift;
--		uart->port.iotype   = port->iotype;
--		uart->port.flags    = port->flags | UPF_BOOT_AUTOCONF;
--		uart->port.mapbase  = port->mapbase;
-+		uart->port.iobase       = port->iobase;
-+		uart->port.membase      = port->membase;
-+		uart->port.irq          = port->irq;
-+		uart->port.uartclk      = port->uartclk;
-+		uart->port.fifosize     = port->fifosize;
-+		uart->port.regshift     = port->regshift;
-+		uart->port.iotype       = port->iotype;
-+		uart->port.flags        = port->flags | UPF_BOOT_AUTOCONF;
-+		uart->port.mapbase      = port->mapbase;
-+		uart->port.private_data = port->private_data;
- 		if (port->dev)
- 			uart->port.dev = port->dev;
- 
-diff -puN include/linux/serial_8250.h~8250c-support-specifying-dw-apb-uarts-in-device-platform_data include/linux/serial_8250.h
---- a/include/linux/serial_8250.h~8250c-support-specifying-dw-apb-uarts-in-device-platform_data
-+++ a/include/linux/serial_8250.h
-@@ -23,6 +23,7 @@ struct plat_serial8250_port {
- 	resource_size_t	mapbase;	/* resource base */
- 	unsigned int	irq;		/* interrupt number */
- 	unsigned int	uartclk;	/* UART clock rate */
-+	void            *private_data;
- 	unsigned char	regshift;	/* register shift */
- 	unsigned char	iotype;		/* UPIO_* */
- 	unsigned char	hub6;
+ void create_seq_entry(char *name, mode_t mode, const struct file_operations *f)
+@@ -755,6 +804,7 @@ void __init proc_misc_init(void)
+ 				(size_t)high_memory - PAGE_OFFSET + PAGE_SIZE;
+ 	}
+ #endif
++	create_seq_entry("kpagecount", S_IRUSR, &proc_kpagecount_operations);
+ #ifdef CONFIG_PROC_VMCORE
+ 	proc_vmcore = create_proc_entry("vmcore", S_IRUSR, NULL);
+ 	if (proc_vmcore)
 _
 
-Patches currently in -mm which might be from will.newton@gmail.com are
+Patches currently in -mm which might be from mpm@selenic.com are
 
 origin.patch
+drivers-char-randomcwrite_pool-cond_resched-needed.patch
+random-clean-up-checkpatch-complaints.patch
+random-clean-up-checkpatch-complaints-fix.patch
+random-consolidate-wakeup-logic.patch
+random-use-unlocked_ioctl.patch
+random-reuse-rand_initialize.patch
+random-improve-variable-naming-clear-extract-buffer.patch
+random-make-backtracking-attacks-harder.patch
+random-remove-cacheline-alignment-for-locks.patch
+random-eliminate-redundant-new_rotate-variable.patch
+random-remove-some-prefetch-logic.patch
+random-simplify-add_ptr-logic.patch
+random-make-mixing-interface-byte-oriented.patch
+random-simplify-and-rename-credit_entropy_store.patch
+random-add-async-notification-support-to-dev-random.patch
