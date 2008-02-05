@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-vdso_do_func_patch3264-must-be-__init.patch added to -mm tree
-Date: Tue, 05 Feb 2008 01:45:07 -0800
-Message-ID: <200802050944.m159immU014517@imap1.linux-foundation.org>
+Subject: + powerpc-free_property-mustnt-be-__init.patch added to -mm tree
+Date: Tue, 05 Feb 2008 01:45:46 -0800
+Message-ID: <200802050945.m159jRLJ014534@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57905 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51640 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753652AbYBEJpD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 04:45:03 -0500
+	by vger.kernel.org with ESMTP id S1753651AbYBEJpx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 04:45:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: bunk@kernel.org, sfr@canb.auug.org.au
 
 
 The patch titled
-     powerpc: vdso_do_func_patch{32,64}() must be __init
+     powerpc: free_property() mustn't be __init
 has been added to the -mm tree.  Its filename is
-     powerpc-vdso_do_func_patch3264-must-be-__init.patch
+     powerpc-free_property-mustnt-be-__init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: vdso_do_func_patch{32,64}() must be __init
+Subject: powerpc: free_property() mustn't be __init
 From: Adrian Bunk <bunk@kernel.org>
 
-WARNING: vmlinux.o(.text+0xe49c): Section mismatch in reference from the function .vdso_do_func_patch64() to the function .init.text:.find_symbol64()
-WARNING: vmlinux.o(.text+0xe4d0): Section mismatch in reference from the function .vdso_do_func_patch64() to the function .init.text:.find_symbol64()
-WARNING: vmlinux.o(.text+0xe56c): Section mismatch in reference from the function .vdso_do_func_patch32() to the function .init.text:.find_symbol32()
-WARNING: vmlinux.o(.text+0xe5a0): Section mismatch in reference from the function .vdso_do_func_patch32() to the function .init.text:.find_symbol32()
+WARNING: vmlinux.o(.text+0x55648): Section mismatch in reference from the function .free_node() to the function .init.text:.free_property()
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/vdso.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ arch/powerpc/platforms/iseries/vio.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/powerpc/kernel/vdso.c~powerpc-vdso_do_func_patch3264-must-be-__init arch/powerpc/kernel/vdso.c
---- a/arch/powerpc/kernel/vdso.c~powerpc-vdso_do_func_patch3264-must-be-__init
-+++ a/arch/powerpc/kernel/vdso.c
-@@ -336,9 +336,9 @@ static unsigned long __init find_functio
- 	return sym->st_value - VDSO32_LBASE;
+diff -puN arch/powerpc/platforms/iseries/vio.c~powerpc-free_property-mustnt-be-__init arch/powerpc/platforms/iseries/vio.c
+--- a/arch/powerpc/platforms/iseries/vio.c~powerpc-free_property-mustnt-be-__init
++++ a/arch/powerpc/platforms/iseries/vio.c
+@@ -75,7 +75,7 @@ static struct property *new_property(con
+ 	return np;
  }
  
--static int vdso_do_func_patch32(struct lib32_elfinfo *v32,
--				struct lib64_elfinfo *v64,
--				const char *orig, const char *fix)
-+static int __init vdso_do_func_patch32(struct lib32_elfinfo *v32,
-+				       struct lib64_elfinfo *v64,
-+				       const char *orig, const char *fix)
+-static void __init free_property(struct property *np)
++static void free_property(struct property *np)
  {
- 	Elf32_Sym *sym32_gen, *sym32_fix;
- 
-@@ -433,9 +433,9 @@ static unsigned long __init find_functio
- #endif
+ 	kfree(np);
  }
- 
--static int vdso_do_func_patch64(struct lib32_elfinfo *v32,
--				struct lib64_elfinfo *v64,
--				const char *orig, const char *fix)
-+static int __init vdso_do_func_patch64(struct lib32_elfinfo *v32,
-+				       struct lib64_elfinfo *v64,
-+				       const char *orig, const char *fix)
- {
- 	Elf64_Sym *sym64_gen, *sym64_fix;
- 
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -95,6 +76,7 @@ m68k-kill-arch-m68k-atari-atari_ksymsc.patch
 m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch
 git-acpi.patch
 powerpc-vdso_do_func_patch3264-must-be-__init.patch
+powerpc-free_property-mustnt-be-__init.patch
 git-dvb.patch
 git-gfs2-nmw.patch
 git-mtd.patch
