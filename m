@@ -1,216 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: - clean-up-vmtruncate.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:30:50 -0800
-Message-ID: <200802052230.m15MUVHF012079@imap1.linux-foundation.org>
+Subject: - ia64-make-pfm_get_task-work-with-virtual-pids.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:39:21 -0800
+Message-ID: <200802052239.m15Md2In013012@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52450 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40845 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932229AbYBEWnD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:43:03 -0500
+	by vger.kernel.org with ESMTP id S1762593AbYBEWmg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, mm-commits@vger.kernel.org
+To: xemul@openvz.org, ebiederm@xmission.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     clean up vmtruncate
+     ia64: make pfm_get_task work with virtual pids
 has been removed from the -mm tree.  Its filename was
-     clean-up-vmtruncate.patch
+     ia64-make-pfm_get_task-work-with-virtual-pids.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: clean up vmtruncate
-From: Christoph Hellwig <hch@lst.de>
+Subject: ia64: make pfm_get_task work with virtual pids
+From: Pavel Emelyanov <xemul@openvz.org>
 
-vmtruncate is a twisted maze of gotos, this patch cleans it up to have a
-proper if else for the two major cases of extending and truncating truncate
-and thus makes it a lot more readable while keeping exactly the same
-functinality.
+This pid comes from user space, so treat it accordingly.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   67 ++++++++++++++++++++++++--------------------------
- 1 file changed, 33 insertions(+), 34 deletions(-)
+ arch/ia64/kernel/perfmon.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory.c~clean-up-vmtruncate mm/memory.c
---- a/mm/memory.c~clean-up-vmtruncate
-+++ a/mm/memory.c
-@@ -1909,50 +1909,49 @@ EXPORT_SYMBOL(unmap_mapping_range);
-  */
- int vmtruncate(struct inode * inode, loff_t offset)
- {
--	struct address_space *mapping = inode->i_mapping;
--	unsigned long limit;
-+	if (inode->i_size < offset) {
-+		unsigned long limit;
+diff -puN arch/ia64/kernel/perfmon.c~ia64-make-pfm_get_task-work-with-virtual-pids arch/ia64/kernel/perfmon.c
+--- a/arch/ia64/kernel/perfmon.c~ia64-make-pfm_get_task-work-with-virtual-pids
++++ a/arch/ia64/kernel/perfmon.c
+@@ -2654,11 +2654,11 @@ pfm_get_task(pfm_context_t *ctx, pid_t p
+ 	/* XXX: need to add more checks here */
+ 	if (pid < 2) return -EPERM;
  
--	if (inode->i_size < offset)
--		goto do_expand;
--	/*
--	 * truncation of in-use swapfiles is disallowed - it would cause
--	 * subsequent swapout to scribble on the now-freed blocks.
--	 */
--	if (IS_SWAPFILE(inode))
--		goto out_busy;
--	i_size_write(inode, offset);
-+		limit = current->signal->rlim[RLIMIT_FSIZE].rlim_cur;
-+		if (limit != RLIM_INFINITY && offset > limit)
-+			goto out_sig;
-+		if (offset > inode->i_sb->s_maxbytes)
-+			goto out_big;
-+		i_size_write(inode, offset);
-+	} else {
-+		struct address_space *mapping = inode->i_mapping;
+-	if (pid != current->pid) {
++	if (pid != task_pid_vnr(current)) {
  
--	/*
--	 * unmap_mapping_range is called twice, first simply for efficiency
--	 * so that truncate_inode_pages does fewer single-page unmaps. However
--	 * after this first call, and before truncate_inode_pages finishes,
--	 * it is possible for private pages to be COWed, which remain after
--	 * truncate_inode_pages finishes, hence the second unmap_mapping_range
--	 * call must be made for correctness.
--	 */
--	unmap_mapping_range(mapping, offset + PAGE_SIZE - 1, 0, 1);
--	truncate_inode_pages(mapping, offset);
--	unmap_mapping_range(mapping, offset + PAGE_SIZE - 1, 0, 1);
--	goto out_truncate;
--
--do_expand:
--	limit = current->signal->rlim[RLIMIT_FSIZE].rlim_cur;
--	if (limit != RLIM_INFINITY && offset > limit)
--		goto out_sig;
--	if (offset > inode->i_sb->s_maxbytes)
--		goto out_big;
--	i_size_write(inode, offset);
-+		/*
-+		 * truncation of in-use swapfiles is disallowed - it would
-+		 * cause subsequent swapout to scribble on the now-freed
-+		 * blocks.
-+		 */
-+		if (IS_SWAPFILE(inode))
-+			return -ETXTBSY;
-+		i_size_write(inode, offset);
-+
-+		/*
-+		 * unmap_mapping_range is called twice, first simply for
-+		 * efficiency so that truncate_inode_pages does fewer
-+		 * single-page unmaps.  However after this first call, and
-+		 * before truncate_inode_pages finishes, it is possible for
-+		 * private pages to be COWed, which remain after
-+		 * truncate_inode_pages finishes, hence the second
-+		 * unmap_mapping_range call must be made for correctness.
-+		 */
-+		unmap_mapping_range(mapping, offset + PAGE_SIZE - 1, 0, 1);
-+		truncate_inode_pages(mapping, offset);
-+		unmap_mapping_range(mapping, offset + PAGE_SIZE - 1, 0, 1);
-+	}
+ 		read_lock(&tasklist_lock);
  
--out_truncate:
- 	if (inode->i_op && inode->i_op->truncate)
- 		inode->i_op->truncate(inode);
- 	return 0;
-+
- out_sig:
- 	send_sig(SIGXFSZ, current, 0);
- out_big:
- 	return -EFBIG;
--out_busy:
--	return -ETXTBSY;
- }
- EXPORT_SYMBOL(vmtruncate);
+-		p = find_task_by_pid(pid);
++		p = find_task_by_vpid(pid);
  
+ 		/* make sure task cannot go away while we operate on it */
+ 		if (p) get_task_struct(p);
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from xemul@openvz.org are
 
 origin.patch
-git-unionfs.patch
-vfs-apply-coding-standards-to-fs-ioctlc.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-vfs-factor-out-three-helpers-for-fibmap-fionbio-fioasync-file-ioctls.patch
-git-xfs.patch
-reiserfs-eliminate-private-use-of-struct-file-in-xattr.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-stub-functions.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
-iget-introduce-a-function-to-register-iget-failure.patch
-iget-use-iget_failed-in-afs.patch
-iget-use-iget_failed-in-gfs2.patch
-iget-stop-affs-from-using-iget-and-read_inode-try.patch
-iget-stop-autofs-from-using-iget-and-read_inode.patch
-iget-stop-befs-from-using-iget-and-read_inode-try.patch
-iget-stop-bfs-from-using-iget-and-read_inode-try.patch
-iget-stop-cifs-from-using-iget-and-read_inode-try.patch
-iget-stop-efs-from-using-iget-and-read_inode-try.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try.patch
-iget-stop-ext4-from-using-iget-and-read_inode-try.patch
-iget-stop-fat-from-using-iget-and-read_inode-try.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-fix.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-fuse-from-using-iget-and-read_inode-try.patch
-iget-stop-hfsplus-from-using-iget-and-read_inode.patch
-iget-stop-isofs-from-using-read_inode.patch
-iget-stop-isofs-from-using-read_inode-fix-2.patch
-iget-stop-jffs2-from-using-iget-and-read_inode.patch
-iget-stop-jfs-from-using-iget-and-read_inode-try.patch
-iget-stop-the-minix-filesystem-from-using-iget-and.patch
-iget-stop-procfs-from-using-iget-and-read_inode.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try.patch
-iget-stop-romfs-from-using-iget-and-read_inode.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try.patch
-iget-stop-openpromfs-from-using-iget-and.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
-iget-stop-hppfs-from-using-iget-and-read_inode.patch
-iget-remove-iget-and-the-read_inode-super-op-as.patch
-dont-touch-fs_struct-in-drivers.patch
-dont-touch-fs_struct-in-usermodehelper.patch
-remove-path_release_on_umount.patch
-move-struct-path-into-its-own-header.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
-introduce-path_put.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-introduce-path_get.patch
-use-struct-path-in-fs_struct.patch
-make-set_fs_rootpwd-take-a-struct-path.patch
-introduce-path_get-unionfs.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs.patch
-introduce-path_put-unionfs.patch
-use-struct-path-in-struct-svc_expkey.patch
-d_path-make-seq_path-use-a-struct-path-argument.patch
-kill-pt_attached.patch
-kill-my_ptrace_child.patch
-ptrace_check_attach-remove-unneeded-signal-=-null-check.patch
-ext2-remove-unused-ext2_put_inode-prototype.patch
-libfs-allow-error-return-from-simple-attributes.patch
-libfs-allow-error-return-from-simple-attributes-fix.patch
-libfs-make-simple-attributes-interruptible.patch
-libfs-rename-simple_attr_close-to-simple_attr_release.patch
-udf-fix-coding-style-of-superc.patch
-udf-fix-coding-style.patch
-udf-convert-byte-order-of-constant-instead-of-variable.patch
-udf-remove-udf_i_-macros-and-open-code-them.patch
-udf-cache-struct-udf_inode_info.patch
-udf-fix-udf_debug-macro.patch
-kill-do_generic_mapping_read.patch
-drop-linux-ufs_fsh-from-userspace-export-and-relocate-it-to-fs-ufs-ufs_fsh.patch
-vfs-create-proc-pid-mountinfo.patch
+use-find_task_by_vpid-in-audit-code.patch
+gfs2-make-gfs2_glockgl_owner_pid-be-a-struct-pid.patch
+gfs2-make-gfs2_holdergh_owner_pid-be-a-struct-pid.patch
+ia64-fix-ptrace-inside-a-namespace.patch
+mips-use-find_task_by_vpid-in-system-calls.patch
+deprecate-find_task_by_pid-kgdb.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+memcgroup-reinstate-swapoff-mod.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
+memcgroup-fix-zone-isolation-oom.patch
+memcgroup-revert-swap_state-mods.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
+memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
+memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+memory-cgroup-enhancements-add-pre_destroy-handler.patch
+memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
+handle-pid-namespaces-in-cgroups-code.patch
+add-the-namespaces-config-option.patch
+move-the-uts-namespace-under-uts_ns-option.patch
+move-the-ipc-namespace-under-ipc_ns-option.patch
+cleanup-the-code-managed-with-the-user_ns-option.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+mark-net_ns-with-depends-on-namespaces.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
+proc-proper-pidns-handling-for-proc-self.patch
+proc-fix-the-threaded-proc-self.patch
+ipc-uninline-some-code-from-utilh.patch
+ipc-make-struct-ipc_ids-static-in-ipc_namespace.patch
+ipc-consolidate-sem_exit_ns-msg_exit_ns-and-shm_exit_ns.patch
+sys_setpgid-simplify-pid-ns-interaction.patch
+fix-setsid-for-sub-namespace-sbin-init.patch
+teach-set_special_pids-to-use-struct-pid.patch
+move-daemonized-kernel-threads-into-the-swappers-session.patch
+start-the-global-sbin-init-with-00-special-pids.patch
+pid-sys_wait-fixes-v2.patch
+pid-extend-fix-pid_vnr.patch
+sys_getsid-dont-use-nsproxy-directly.patch
+pid-fix-mips-irix-emulation-pid-usage.patch
+pid-fix-mips-irix-emulation-pid-usage-fix.patch
+pid-fix-solaris_procids.patch
+uglify-kill_pid_info-to-fix-kill-vs-exec-race.patch
+uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice.patch
+itimer_real-convert-to-use-struct-pid.patch
+pidns-make-full-use-of-xxx_vnr-calls.patch
+pidns-fix-badly-converted-mqueues-pid-handling.patch
+clean-up-the-kill_something_info.patch
+get-rid-of-the-kill_pgrp_info-function.patch
+use-find_task_by_vpid-in-posix-timers.patch
+use-find_task_by_vpid-in-taskstats.patch
+dont-operate-with-pid_t-in-rtmutex-tester.patch
+deprecate-find_task_by_pid.patch
+reiser4.patch
