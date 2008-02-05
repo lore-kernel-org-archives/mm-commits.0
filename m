@@ -1,54 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: - git-alsa-disable-sound-pci-ice1712-ice1724c.patch removed from -mm tree
-Date: Mon, 04 Feb 2008 23:31:54 -0800
-Message-ID: <200802050731.m157VZnT009714@imap1.linux-foundation.org>
+Subject: - debug-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch removed from -mm tree
+Date: Mon, 04 Feb 2008 23:35:54 -0800
+Message-ID: <200802050735.m157ZZ3u009871@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45173 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42054 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752235AbYBEHcM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 02:32:12 -0500
+	by vger.kernel.org with ESMTP id S1753462AbYBEHfi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 02:35:38 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m157ZaMP021804
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 4 Feb 2008 23:35:37 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-alsa: disable sound/pci/ice1712/ice1724.c
+     debug gregkh-driver-pm-acquire-device-locks-prior-to-suspending
 has been removed from the -mm tree.  Its filename was
-     git-alsa-disable-sound-pci-ice1712-ice1724c.patch
+     debug-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-alsa: disable sound/pci/ice1712/ice1724.c
+Subject: debug gregkh-driver-pm-acquire-device-locks-prior-to-suspending
 From: Andrew Morton <akpm@linux-foundation.org>
 
-sound/pci/ice1712/ice1724.c:50:26: error: prodigy_hifi.h: No such file or directory
-
-Someone forgot to check in a file?
-
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/base/power/main.c |   39 ++++++++++++++++++++++++++++--------
+ 1 file changed, 31 insertions(+), 8 deletions(-)
 
-diff -puN sound/pci/Kconfig~git-alsa-disable-sound-pci-ice1712-ice1724c sound/pci/Kconfig
---- a/sound/pci/Kconfig~git-alsa-disable-sound-pci-ice1712-ice1724c
-+++ a/sound/pci/Kconfig
-@@ -678,6 +678,7 @@ config SND_ICE1712
- config SND_ICE1724
- 	tristate "ICE/VT1724/1720 (Envy24HT/PT)"
- 	depends on SND
-+	depends on BROKEN
- 	select SND_MPU401_UART
- 	select SND_AC97_CODEC
- 	help
+diff -puN drivers/base/power/main.c~debug-gregkh-driver-pm-acquire-device-locks-prior-to-suspending drivers/base/power/main.c
+--- a/drivers/base/power/main.c~debug-gregkh-driver-pm-acquire-device-locks-prior-to-suspending
++++ a/drivers/base/power/main.c
+@@ -58,13 +58,36 @@ static DECLARE_RWSEM(pm_sleep_rwsem);
+ 
+ int (*platform_enable_wakeup)(struct device *dev, int is_on);
+ 
++static void __do_down(struct semaphore *s, const char *file, int line)
++{
++	printk("%s:%d\n", file, line);
++	dump_stack();
++	down(s);
++}
++#define do_down(s) __do_down(s, __FILE__, __LINE__)
++
++static void __do_mutex_lock(struct mutex *m, const char *file, int line)
++{
++	printk("%s:%d\n", file, line);
++	dump_stack();
++	mutex_lock(m);
++}
++#define do_mutex_lock(m) __do_mutex_lock(m, __FILE__, __LINE__)
++
++static void __do_down_write(struct rw_semaphore *s, const char *file, int line)
++{
++	printk("%s:%d\n", file, line);
++	dump_stack();
++	down_write(s);
++}
++#define do_down_write(s) __do_down_write(s, __FILE__, __LINE__)
+ 
+ void device_pm_add(struct device *dev)
+ {
+ 	pr_debug("PM: Adding info for %s:%s\n",
+ 		 dev->bus ? dev->bus->name : "No Bus",
+ 		 kobject_name(&dev->kobj));
+-	mutex_lock(&dpm_list_mtx);
++	do_mutex_lock(&dpm_list_mtx);
+ 	list_add_tail(&dev->power.entry, &dpm_active);
+ 	mutex_unlock(&dpm_list_mtx);
+ }
+@@ -76,8 +99,8 @@ void device_pm_remove(struct device *dev
+ 		 kobject_name(&dev->kobj));
+ 
+ 	/* Don't remove a device while the PM core has it locked for suspend */
+-	down(&dev->sem);
+-	mutex_lock(&dpm_list_mtx);
++	do_down(&dev->sem);
++	do_mutex_lock(&dpm_list_mtx);
+ 	dpm_sysfs_remove(dev);
+ 	list_del_init(&dev->power.entry);
+ 	mutex_unlock(&dpm_list_mtx);
+@@ -229,7 +252,7 @@ static void dpm_resume(void)
+  */
+ static void unlock_all_devices(void)
+ {
+-	mutex_lock(&dpm_list_mtx);
++	do_mutex_lock(&dpm_list_mtx);
+  	while (!list_empty(&dpm_locked)) {
+  		struct list_head *entry = dpm_locked.prev;
+  		struct device *dev = to_device(entry);
+@@ -412,7 +435,7 @@ static int dpm_suspend(pm_message_t stat
+  */
+ static void lock_all_devices(void)
+ {
+-	mutex_lock(&dpm_list_mtx);
++	do_mutex_lock(&dpm_list_mtx);
+ 	while (!list_empty(&dpm_active)) {
+ 		struct list_head *entry = dpm_active.next;
+ 		struct device *dev = to_device(entry);
+@@ -422,8 +445,8 @@ static void lock_all_devices(void)
+ 		 */
+ 		get_device(dev);
+ 		mutex_unlock(&dpm_list_mtx);
+-		down(&dev->sem);
+-		mutex_lock(&dpm_list_mtx);
++		do_down(&dev->sem);
++		do_mutex_lock(&dpm_list_mtx);
+ 
+ 		if (list_empty(entry))
+ 			up(&dev->sem);		/* Device was removed */
+@@ -445,7 +468,7 @@ int device_suspend(pm_message_t state)
+ 	int error;
+ 
+ 	might_sleep();
+-	down_write(&pm_sleep_rwsem);
++	do_down_write(&pm_sleep_rwsem);
+ 	lock_all_devices();
+ 	error = dpm_suspend(state);
+ 	if (error) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -88,7 +165,6 @@ git-acpi.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 small-acpica-extension-to-be-able-to-store-the-name-of.patch
 acpi-backlight-reset-brightness-on-resume.patch
-git-alsa-disable-sound-pci-ice1712-ice1724c.patch
 git-agpgart.patch
 git-agpgart-fix.patch
 git-audit-printk-warning-fix.patch
