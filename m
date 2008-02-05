@@ -1,258 +1,171 @@
 From: akpm@linux-foundation.org
-Subject: - page-allocator-get-rid-of-the-list-of-cold-pages.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:31:50 -0800
-Message-ID: <200802052231.m15MVVLg012172@imap1.linux-foundation.org>
+Subject: - uml-redo-the-calculation-of-nr_syscalls.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:39:00 -0800
+Message-ID: <200802052238.m15McfBn012975@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59028 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55001 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762742AbYBEWmo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:44 -0500
+	by vger.kernel.org with ESMTP id S1761128AbYBEWmg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mbligh@mbligh.org, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, jdike@linux.intel.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Page allocator: get rid of the list of cold pages
+     uml: redo the calculation of NR_syscalls 
 has been removed from the -mm tree.  Its filename was
-     page-allocator-get-rid-of-the-list-of-cold-pages.patch
+     uml-redo-the-calculation-of-nr_syscalls.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Page allocator: get rid of the list of cold pages
-From: Christoph Lameter <clameter@sgi.com>
+Subject: uml: redo the calculation of NR_syscalls 
+From: Jeff Dike <jdike@addtoit.com>
 
-We have repeatedly discussed if the cold pages still have a point. There is
-one way to join the two lists: Use a single list and put the cold pages at the
-end and the hot pages at the beginning. That way a single list can serve for
-both types of allocations.
+Redo the calculation of NR_syscalls since that disappeared from i386 and
+use a similar mechanism on x86_64.
 
-The discussion of the RFC for this and Mel's measurements indicate that
-there may not be too much of a point left to having separate lists for
-hot and cold pages (see http://marc.info/?t=119492914200001&r=1&w=2).
+We now figure out the size of the system call table in arch code and stick
+that in syscall_table_size.  arch/um/kernel/skas/syscall.c defines
+NR_syscalls in terms of that since its the only thing that needs to know
+how many system calls there are.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Martin Bligh <mbligh@mbligh.org>
+The old mechananism that was used on x86_64 is gone.
+
+arch/um/include/sysdep-i386/syscalls.h got some formatting since I was
+looking at it.
+
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 -
- mm/page_alloc.c        |   55 ++++++++++++++++++---------------------
- mm/vmstat.c            |   30 ++++++++-------------
- 3 files changed, 39 insertions(+), 48 deletions(-)
+ arch/um/include/sysdep-i386/syscalls.h         |    5 ++-
+ arch/um/include/sysdep-x86_64/kernel-offsets.h |    9 ------
+ arch/um/include/sysdep-x86_64/syscalls.h       |    2 -
+ arch/um/kernel/skas/syscall.c                  |    3 ++
+ arch/um/sys-i386/sys_call_table.S              |    5 +++
+ arch/um/sys-x86_64/syscall_table.c             |   20 ++++++++++-----
+ 6 files changed, 25 insertions(+), 19 deletions(-)
 
-diff -puN include/linux/mmzone.h~page-allocator-get-rid-of-the-list-of-cold-pages include/linux/mmzone.h
---- a/include/linux/mmzone.h~page-allocator-get-rid-of-the-list-of-cold-pages
-+++ a/include/linux/mmzone.h
-@@ -113,7 +113,7 @@ struct per_cpu_pages {
+diff -puN arch/um/include/sysdep-i386/syscalls.h~uml-redo-the-calculation-of-nr_syscalls arch/um/include/sysdep-i386/syscalls.h
+--- a/arch/um/include/sysdep-i386/syscalls.h~uml-redo-the-calculation-of-nr_syscalls
++++ a/arch/um/include/sysdep-i386/syscalls.h
+@@ -1,5 +1,5 @@
+ /* 
+- * Copyright (C) 2000 Jeff Dike (jdike@karaya.com)
++ * Copyright (C) 2000 - 2008 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  * Licensed under the GPL
+  */
+ 
+@@ -18,7 +18,8 @@ extern syscall_handler_t old_mmap_i386;
+ extern syscall_handler_t *sys_call_table[];
+ 
+ #define EXECUTE_SYSCALL(syscall, regs) \
+-	((long (*)(struct syscall_args)) (*sys_call_table[syscall]))(SYSCALL_ARGS(&regs->regs))
++	((long (*)(struct syscall_args)) \
++	 (*sys_call_table[syscall]))(SYSCALL_ARGS(&regs->regs))
+ 
+ extern long sys_mmap2(unsigned long addr, unsigned long len,
+ 		      unsigned long prot, unsigned long flags,
+diff -puN arch/um/include/sysdep-x86_64/kernel-offsets.h~uml-redo-the-calculation-of-nr_syscalls arch/um/include/sysdep-x86_64/kernel-offsets.h
+--- a/arch/um/include/sysdep-x86_64/kernel-offsets.h~uml-redo-the-calculation-of-nr_syscalls
++++ a/arch/um/include/sysdep-x86_64/kernel-offsets.h
+@@ -17,16 +17,7 @@
+ #define OFFSET(sym, str, mem) \
+ 	DEFINE(sym, offsetof(struct str, mem));
+ 
+-#define __NO_STUBS 1
+-#undef __SYSCALL
+-#undef _ASM_X86_64_UNISTD_H_
+-#define __SYSCALL(nr, sym) [nr] = 1,
+-static char syscalls[] = {
+-#include <asm/arch/unistd.h>
+-};
+-
+ void foo(void)
+ {
+ #include <common-offsets.h>
+-DEFINE(UM_NR_syscall_max, sizeof(syscalls) - 1);
+ }
+diff -puN arch/um/include/sysdep-x86_64/syscalls.h~uml-redo-the-calculation-of-nr_syscalls arch/um/include/sysdep-x86_64/syscalls.h
+--- a/arch/um/include/sysdep-x86_64/syscalls.h~uml-redo-the-calculation-of-nr_syscalls
++++ a/arch/um/include/sysdep-x86_64/syscalls.h
+@@ -30,6 +30,4 @@ extern long old_mmap(unsigned long addr,
+ extern syscall_handler_t sys_modify_ldt;
+ extern syscall_handler_t sys_arch_prctl;
+ 
+-#define NR_syscalls (UM_NR_syscall_max + 1)
+-
+ #endif
+diff -puN arch/um/kernel/skas/syscall.c~uml-redo-the-calculation-of-nr_syscalls arch/um/kernel/skas/syscall.c
+--- a/arch/um/kernel/skas/syscall.c~uml-redo-the-calculation-of-nr_syscalls
++++ a/arch/um/kernel/skas/syscall.c
+@@ -9,6 +9,9 @@
+ #include "sysdep/ptrace.h"
+ #include "sysdep/syscalls.h"
+ 
++extern int syscall_table_size;
++#define NR_syscalls (syscall_table_size / sizeof(void *))
++
+ void handle_syscall(struct uml_pt_regs *r)
+ {
+ 	struct pt_regs *regs = container_of(r, struct pt_regs, regs);
+diff -puN arch/um/sys-i386/sys_call_table.S~uml-redo-the-calculation-of-nr_syscalls arch/um/sys-i386/sys_call_table.S
+--- a/arch/um/sys-i386/sys_call_table.S~uml-redo-the-calculation-of-nr_syscalls
++++ a/arch/um/sys-i386/sys_call_table.S
+@@ -9,4 +9,9 @@
+ 
+ #define old_mmap old_mmap_i386
+ 
++.section .rodata,"a"
++
+ #include "../../x86/kernel/syscall_table_32.S"
++
++ENTRY(syscall_table_size)
++.long .-sys_call_table
+diff -puN arch/um/sys-x86_64/syscall_table.c~uml-redo-the-calculation-of-nr_syscalls arch/um/sys-x86_64/syscall_table.c
+--- a/arch/um/sys-x86_64/syscall_table.c~uml-redo-the-calculation-of-nr_syscalls
++++ a/arch/um/sys-x86_64/syscall_table.c
+@@ -52,11 +52,19 @@ typedef void (*sys_call_ptr_t)(void);
+ 
+ extern void sys_ni_syscall(void);
+ 
+-sys_call_ptr_t sys_call_table[UM_NR_syscall_max+1] __cacheline_aligned = {
+-	/*
+-	 * Smells like a like a compiler bug -- it doesn't work when the &
+-	 * below is removed.
+-	 */
+-	[0 ... UM_NR_syscall_max] = &sys_ni_syscall,
++/*
++ * We used to have a trick here which made sure that holes in the
++ * x86_64 table were filled in with sys_ni_syscall, but a comment in
++ * unistd_64.h says that holes aren't allowed, so the trick was
++ * removed.
++ * The trick looked like this
++ *	[0 ... UM_NR_syscall_max] = &sys_ni_syscall
++ * before including unistd_64.h - the later initializations overwrote
++ * the sys_ni_syscall filler.
++ */
++
++sys_call_ptr_t sys_call_table[] __cacheline_aligned = {
+ #include <asm-x86/unistd_64.h>
  };
- 
- struct per_cpu_pageset {
--	struct per_cpu_pages pcp[2];	/* 0: hot.  1: cold */
-+	struct per_cpu_pages pcp;
- #ifdef CONFIG_NUMA
- 	s8 expire;
- #endif
-diff -puN mm/page_alloc.c~page-allocator-get-rid-of-the-list-of-cold-pages mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-get-rid-of-the-list-of-cold-pages
-+++ a/mm/page_alloc.c
-@@ -901,24 +901,21 @@ static void drain_pages(unsigned int cpu
- {
- 	unsigned long flags;
- 	struct zone *zone;
--	int i;
- 
- 	for_each_zone(zone) {
- 		struct per_cpu_pageset *pset;
-+		struct per_cpu_pages *pcp;
- 
- 		if (!populated_zone(zone))
- 			continue;
- 
- 		pset = zone_pcp(zone, cpu);
--		for (i = 0; i < ARRAY_SIZE(pset->pcp); i++) {
--			struct per_cpu_pages *pcp;
- 
--			pcp = &pset->pcp[i];
--			local_irq_save(flags);
--			free_pages_bulk(zone, pcp->count, &pcp->list, 0);
--			pcp->count = 0;
--			local_irq_restore(flags);
--		}
-+		pcp = &pset->pcp;
-+		local_irq_save(flags);
-+		free_pages_bulk(zone, pcp->count, &pcp->list, 0);
-+		pcp->count = 0;
-+		local_irq_restore(flags);
- 	}
- }
- 
-@@ -993,10 +990,13 @@ static void fastcall free_hot_cold_page(
- 	arch_free_page(page, 0);
- 	kernel_map_pages(page, 1, 0);
- 
--	pcp = &zone_pcp(zone, get_cpu())->pcp[cold];
-+	pcp = &zone_pcp(zone, get_cpu())->pcp;
- 	local_irq_save(flags);
- 	__count_vm_event(PGFREE);
--	list_add(&page->lru, &pcp->list);
-+	if (cold)
-+		list_add_tail(&page->lru, &pcp->list);
-+	else
-+		list_add(&page->lru, &pcp->list);
- 	set_page_private(page, get_pageblock_migratetype(page));
- 	pcp->count++;
- 	if (pcp->count >= pcp->high) {
-@@ -1054,7 +1054,7 @@ again:
- 	if (likely(order == 0)) {
- 		struct per_cpu_pages *pcp;
- 
--		pcp = &zone_pcp(zone, cpu)->pcp[cold];
-+		pcp = &zone_pcp(zone, cpu)->pcp;
- 		local_irq_save(flags);
- 		if (!pcp->count) {
- 			pcp->count = rmqueue_bulk(zone, 0,
-@@ -1064,9 +1064,15 @@ again:
- 		}
- 
- 		/* Find a page of the appropriate migrate type */
--		list_for_each_entry(page, &pcp->list, lru)
--			if (page_private(page) == migratetype)
--				break;
-+		if (cold) {
-+			list_for_each_entry_reverse(page, &pcp->list, lru)
-+				if (page_private(page) == migratetype)
-+					break;
-+		} else {
-+			list_for_each_entry(page, &pcp->list, lru)
-+				if (page_private(page) == migratetype)
-+					break;
-+		}
- 
- 		/* Allocate more to the pcp list if necessary */
- 		if (unlikely(&page->lru == &pcp->list)) {
-@@ -1793,12 +1799,9 @@ void show_free_areas(void)
- 
- 			pageset = zone_pcp(zone, cpu);
- 
--			printk("CPU %4d: Hot: hi:%5d, btch:%4d usd:%4d   "
--			       "Cold: hi:%5d, btch:%4d usd:%4d\n",
--			       cpu, pageset->pcp[0].high,
--			       pageset->pcp[0].batch, pageset->pcp[0].count,
--			       pageset->pcp[1].high, pageset->pcp[1].batch,
--			       pageset->pcp[1].count);
-+			printk("CPU %4d: hi:%5d, btch:%4d usd:%4d\n",
-+			       cpu, pageset->pcp.high,
-+			       pageset->pcp.batch, pageset->pcp.count);
- 		}
- 	}
- 
-@@ -2596,17 +2599,11 @@ inline void setup_pageset(struct per_cpu
- 
- 	memset(p, 0, sizeof(*p));
- 
--	pcp = &p->pcp[0];		/* hot */
-+	pcp = &p->pcp;
- 	pcp->count = 0;
- 	pcp->high = 6 * batch;
- 	pcp->batch = max(1UL, 1 * batch);
- 	INIT_LIST_HEAD(&pcp->list);
--
--	pcp = &p->pcp[1];		/* cold*/
--	pcp->count = 0;
--	pcp->high = 2 * batch;
--	pcp->batch = max(1UL, batch/2);
--	INIT_LIST_HEAD(&pcp->list);
- }
- 
- /*
-@@ -2619,7 +2616,7 @@ static void setup_pagelist_highmark(stru
- {
- 	struct per_cpu_pages *pcp;
- 
--	pcp = &p->pcp[0]; /* hot list */
-+	pcp = &p->pcp;
- 	pcp->high = high;
- 	pcp->batch = max(1UL, high/4);
- 	if ((high/4) > (PAGE_SHIFT * 8))
-diff -puN mm/vmstat.c~page-allocator-get-rid-of-the-list-of-cold-pages mm/vmstat.c
---- a/mm/vmstat.c~page-allocator-get-rid-of-the-list-of-cold-pages
-+++ a/mm/vmstat.c
-@@ -337,7 +337,7 @@ void refresh_cpu_vm_stats(int cpu)
- 		 * Check if there are pages remaining in this pageset
- 		 * if not then there is nothing to expire.
- 		 */
--		if (!p->expire || (!p->pcp[0].count && !p->pcp[1].count))
-+		if (!p->expire || !p->pcp.count)
- 			continue;
- 
- 		/*
-@@ -352,11 +352,8 @@ void refresh_cpu_vm_stats(int cpu)
- 		if (p->expire)
- 			continue;
- 
--		if (p->pcp[0].count)
--			drain_zone_pages(zone, p->pcp + 0);
--
--		if (p->pcp[1].count)
--			drain_zone_pages(zone, p->pcp + 1);
-+		if (p->pcp.count)
-+			drain_zone_pages(zone, &p->pcp);
- #endif
- 	}
- 
-@@ -693,20 +690,17 @@ static void zoneinfo_show_print(struct s
- 		   "\n  pagesets");
- 	for_each_online_cpu(i) {
- 		struct per_cpu_pageset *pageset;
--		int j;
- 
- 		pageset = zone_pcp(zone, i);
--		for (j = 0; j < ARRAY_SIZE(pageset->pcp); j++) {
--			seq_printf(m,
--				   "\n    cpu: %i pcp: %i"
--				   "\n              count: %i"
--				   "\n              high:  %i"
--				   "\n              batch: %i",
--				   i, j,
--				   pageset->pcp[j].count,
--				   pageset->pcp[j].high,
--				   pageset->pcp[j].batch);
--			}
-+		seq_printf(m,
-+			   "\n    cpu: %i"
-+			   "\n              count: %i"
-+			   "\n              high:  %i"
-+			   "\n              batch: %i",
-+			   i,
-+			   pageset->pcp.count,
-+			   pageset->pcp.high,
-+			   pageset->pcp.batch);
- #ifdef CONFIG_SMP
- 		seq_printf(m, "\n  vm stats threshold: %d",
- 				pageset->stat_threshold);
++
++int syscall_table_size = sizeof(sys_call_table);
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-gregkh-driver-kset-move-sys-slab-to-sys-kernel-slab-slabinfo-fallback-from-sys-kernel-slab-to-sys-slab.patch
-git-unionfs.patch
-git-slub.patch
-percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-oom-add-sysctl-to-enable-task-memory-dump.patch
-add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
-add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
-dentries-extract-common-code-to-remove-dentry-from-lru.patch
-dentries-extract-common-code-to-remove-dentry-from-lru-fix.patch
-modules-handle-symbols-that-have-a-zero-value.patch
-modules-include-sectionsh-to-avoid-defining-linker-variables.patch
-reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
-page-owner-tracking-leak-detector.patch
+git-kvm.patch
+fix-__const_udelay-declaration-and-definition-mismatches.patch
+iget-stop-hostfs-from-using-iget-and-read_inode.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
+random-add-async-notification-support-to-dev-random.patch
+mount-options-fix-hostfs.patch
