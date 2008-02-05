@@ -1,79 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: - mm-dont-waste-swap-on-locked-pages.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:32:01 -0800
-Message-ID: <200802052231.m15MVgln012184@imap1.linux-foundation.org>
+Subject: - m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:34:51 -0800
+Message-ID: <200802052234.m15MYW5u012536@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55437 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45124 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761634AbYBEWmg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:36 -0500
+	by vger.kernel.org with ESMTP id S932120AbYBEWmw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, solo@google.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, geert@linux-m68k.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: don't waste swap on locked pages
+     m68k: kill arch/m68k/mvme16x/mvme16x_ksyms.c
 has been removed from the -mm tree.  Its filename was
-     mm-dont-waste-swap-on-locked-pages.patch
+     m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: don't waste swap on locked pages
-From: Hugh Dickins <hugh@veritas.com>
+Subject: m68k: kill arch/m68k/mvme16x/mvme16x_ksyms.c
+From: Adrian Bunk <bunk@kernel.org>
 
-try_to_unmap always fails on a page found in a VM_LOCKED vma (unless
-migrating), and recycles it back to the active list.  But if it's an
-anonymous page, we've already allocated swap to it: just wasting swap.
-Spot locked pages in page_referenced_one and treat them as referenced.
+EXPORT_SYMBOL's belong to the actual code.
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Tested-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Ethan Solomita <solo@google.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ arch/m68k/mvme16x/Makefile        |    2 +-
+ arch/m68k/mvme16x/config.c        |    2 ++
+ arch/m68k/mvme16x/mvme16x_ksyms.c |    6 ------
+ 3 files changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN mm/rmap.c~mm-dont-waste-swap-on-locked-pages mm/rmap.c
---- a/mm/rmap.c~mm-dont-waste-swap-on-locked-pages
-+++ a/mm/rmap.c
-@@ -283,7 +283,10 @@ static int page_referenced_one(struct pa
- 	if (!pte)
- 		goto out;
+diff -puN arch/m68k/mvme16x/Makefile~m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc arch/m68k/mvme16x/Makefile
+--- a/arch/m68k/mvme16x/Makefile~m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc
++++ a/arch/m68k/mvme16x/Makefile
+@@ -2,4 +2,4 @@
+ # Makefile for Linux arch/m68k/mvme16x source directory
+ #
  
--	if (ptep_clear_flush_young(vma, address, pte))
-+	if (vma->vm_flags & VM_LOCKED) {
-+		referenced++;
-+		*mapcount = 1;	/* break early from loop */
-+	} else if (ptep_clear_flush_young(vma, address, pte))
- 		referenced++;
+-obj-y		:= config.o rtc.o mvme16x_ksyms.o
++obj-y		:= config.o rtc.o
+diff -puN arch/m68k/mvme16x/config.c~m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc arch/m68k/mvme16x/config.c
+--- a/arch/m68k/mvme16x/config.c~m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc
++++ a/arch/m68k/mvme16x/config.c
+@@ -25,6 +25,7 @@
+ #include <linux/genhd.h>
+ #include <linux/rtc.h>
+ #include <linux/interrupt.h>
++#include <linux/module.h>
  
- 	/* Pretend the page is referenced if the task has the
+ #include <asm/bootinfo.h>
+ #include <asm/system.h>
+@@ -58,6 +59,7 @@ static irq_handler_t tick_handler;
+ 
+ 
+ unsigned short mvme16x_config;
++EXPORT_SYMBOL(mvme16x_config);
+ 
+ 
+ int mvme16x_parse_bootinfo(const struct bi_record *bi)
+diff -puN arch/m68k/mvme16x/mvme16x_ksyms.c~m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc /dev/null
+--- a/arch/m68k/mvme16x/mvme16x_ksyms.c
++++ /dev/null
+@@ -1,6 +0,0 @@
+-#include <linux/module.h>
+-#include <linux/types.h>
+-#include <asm/ptrace.h>
+-#include <asm/mvme16xhw.h>
+-
+-EXPORT_SYMBOL(mvme16x_config);
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-git-unionfs.patch
-git-x86.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-memcgroup-temporarily-revert-swapoff-mod.patch
-memory-controller-memory-accounting-v7.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+git-acpi.patch
+powerpc-vdso_do_func_patch3264-must-be-__init.patch
+powerpc-free_property-mustnt-be-__init.patch
+hvc_rtas_init-must-be-__init.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-mtd.patch
+git-ocfs2.patch
+if-0-pci_cleanup_aer_correct_error_status.patch
+git-scsi-misc.patch
+scsi-advansysc-make-3-functions-static.patch
+scsi-aic94xx-cleanups.patch
+scsi-qlogicptic-section-fixes.patch
+usb-make-usb_storage_onetouch-available-with-pm.patch
+make-b43_mac_enablesuspend-static.patch
+git-xtensa.patch
+make-ipc-utilcsysvipc_find_ipc-static.patch
+cleanup-after-apus-removal.patch
+remove-mm_ptovvtop.patch
+proper-show_interrupts-prototype.patch
+scheduled-oss-driver-removal.patch
+proper-prototype-for-signals_init.patch
+kernel-ptracec-should-include-linux-syscallsh.patch
+make-srcu_readers_active-static.patch
+kernel-notifierc-should-include-linux-rebooth.patch
+proper-prototype-for-get_filesystem_list.patch
+fs-utimesc-should-include-linux-syscallsh.patch
+fs-signalfdc-should-include-linux-syscallsh.patch
+fs-eventfdc-should-include-linux-syscallsh.patch
+proper-prototype-for-vty_init.patch
+drivers-misc-lkdtmc-cleanups.patch
+calibrate_delay-must-be-__cpuinit.patch
+idle_regs-must-be-__cpuinit.patch
+fs-ecryptfs-possible-cleanups.patch
+make-video-geode-lxfb_corecgeode_modedb-static.patch
+video-hpfbc-section-fix.patch
+drivers-video-pm3fbc-section-fix.patch
+make-jbd-journalc__journal_abort_hard-static.patch
+move-edactxt-two-levels-up.patch
+kernel-cgroupc-remove-dead-code.patch
+kernel-cgroupc-make-2-functions-static.patch
 memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memcgroup-reinstate-swapoff-mod.patch
-memcgroup-fix-zone-isolation-oom.patch
-memcgroup-revert-swap_state-mods.patch
-memory-controller-use-rcu_read_lock-in-mem_cgroup_cache_charge.patch
-memcgroup-tidy-up-mem_cgroup_charge_common.patch
-memcgroup-fix-hang-with-shmem-tmpfs.patch
-mount-options-fix-tmpfs.patch
-mount-options-fix-tmpfs-fix.patch
-add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
-prio_tree-debugging-patch.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+fix-m32r-__xchg.patch
+kill-udffs_dateversion.patch
+the-scheduled-time-option-removal.patch
+reiser4.patch
