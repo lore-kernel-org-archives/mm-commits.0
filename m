@@ -1,73 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - slob-correct-kconfig-description.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:32:46 -0800
-Message-ID: <200802052232.m15MWRrQ012328@imap1.linux-foundation.org>
+Subject: - remove-unused-arguments-in-zone_init_free_lists.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:32:11 -0800
+Message-ID: <200802052231.m15MVqCw012193@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53060 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54636 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762271AbYBEWlJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:09 -0500
+	by vger.kernel.org with ESMTP id S1760358AbYBEWlC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mpm@selenic.com, mm-commits@vger.kernel.org
+To: ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slob: correct Kconfig description
+     page allocator: remove unused arguments in zone_init_free_lists()
 has been removed from the -mm tree.  Its filename was
-     slob-correct-kconfig-description.patch
+     remove-unused-arguments-in-zone_init_free_lists.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: slob: correct Kconfig description
-From: Matt Mackall <mpm@selenic.com>
+Subject: page allocator: remove unused arguments in zone_init_free_lists()
+From: Andi Kleen <ak@suse.de>
 
-Signed-off-by: Matt Mackall <mpm@selenic.com>
+Signed-off-by: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ mm/page_alloc.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN init/Kconfig~slob-correct-kconfig-description init/Kconfig
---- a/init/Kconfig~slob-correct-kconfig-description
-+++ a/init/Kconfig
-@@ -656,11 +656,9 @@ config SLOB
- 	depends on EMBEDDED
- 	bool "SLOB (Simple Allocator)"
- 	help
--	   SLOB replaces the SLAB allocator with a drastically simpler
--	   allocator.  SLOB is more space efficient than SLAB but does not
--	   scale well (single lock for all operations) and is also highly
--	   susceptible to fragmentation. SLUB can accomplish a higher object
--	   density. It is usually better to use SLUB instead of SLOB.
-+	   SLOB replaces the stock allocator with a drastically simpler
-+	   allocator. SLOB is generally more space efficient but
-+	   does not perform as well on large systems.
+diff -puN mm/page_alloc.c~remove-unused-arguments-in-zone_init_free_lists mm/page_alloc.c
+--- a/mm/page_alloc.c~remove-unused-arguments-in-zone_init_free_lists
++++ a/mm/page_alloc.c
+@@ -2546,8 +2546,7 @@ void __meminit memmap_init_zone(unsigned
+ 	}
+ }
  
- endchoice
+-static void __meminit zone_init_free_lists(struct pglist_data *pgdat,
+-				struct zone *zone, unsigned long size)
++static void __meminit zone_init_free_lists(struct zone *zone)
+ {
+ 	int order, t;
+ 	for_each_migratetype_order(order, t) {
+@@ -2820,7 +2819,7 @@ __meminit int init_currently_empty_zone(
  
+ 	memmap_init(size, pgdat->node_id, zone_idx(zone), zone_start_pfn);
+ 
+-	zone_init_free_lists(pgdat, zone, zone->spanned_pages);
++	zone_init_free_lists(zone);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from mpm@selenic.com are
+Patches currently in -mm which might be from ak@suse.de are
 
 origin.patch
-drivers-char-randomcwrite_pool-cond_resched-needed.patch
-random-clean-up-checkpatch-complaints.patch
-random-clean-up-checkpatch-complaints-fix.patch
-random-consolidate-wakeup-logic.patch
-random-use-unlocked_ioctl.patch
-random-reuse-rand_initialize.patch
-random-improve-variable-naming-clear-extract-buffer.patch
-random-make-backtracking-attacks-harder.patch
-random-remove-cacheline-alignment-for-locks.patch
-random-eliminate-redundant-new_rotate-variable.patch
-random-remove-some-prefetch-logic.patch
-random-simplify-add_ptr-logic.patch
-random-make-mixing-interface-byte-oriented.patch
-random-simplify-and-rename-credit_entropy_store.patch
-random-add-async-notification-support-to-dev-random.patch
+bkl-removal-convert-cifs-over-to-unlocked_ioctl.patch
+git-jfs.patch
+git-ocfs2.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
+pci-disable-decoding-during-sizing-of-bars.patch
+x86-validate-against-acpi-motherboard-resources.patch
+git-x86.patch
+x86-amd-thermal-interrupt-support.patch
+x86-clear-pci_mmcfg_virt-when-mmcfg-get-rejected.patch
+x86-mmconf-enable-mcfg-early.patch
+x86_64-check-msr-to-get-mmconfig-for-amd-family-10h-opteron-v3.patch
+x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used.patch
+git-xfs.patch
+read_current_time-cleanups.patch
+add-hpet-rtc-emulation-to-rtc_drv_cmos.patch
+add-hpet-rtc-emulation-to-rtc_drv_cmos-fix.patch
+bkl-removal-convert-ext2-over-to-use-unlocked_ioctl.patch
+bkl-removal-remove-incorrect-bkl-comment-in-ext2.patch
+bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2.patch
+modules-handle-symbols-that-have-a-zero-value.patch
+allow-executables-larger-than-2gb.patch
+bkl-removal-convert-pipe-to-use-unlocked_ioctl-too.patch
+remove-aout-interpreter-support-in-elf-loader.patch
+convert-loglevel-related-kernel-boot-parameters-to-early_param.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
