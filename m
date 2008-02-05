@@ -1,272 +1,235 @@
 From: akpm@linux-foundation.org
-Subject: - nubus-kill-drivers-nubus-nubus_symsc.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:34:38 -0800
-Message-ID: <200802052234.m15MYJQl012501@imap1.linux-foundation.org>
+Subject: - tmpfs-open-a-window-in-shmem_unuse_inode.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:30:41 -0800
+Message-ID: <200802052230.m15MUMch012061@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53128 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38575 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932213AbYBEWm7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:59 -0500
+	by vger.kernel.org with ESMTP id S932202AbYBEWm5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, geert@linux-m68k.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: hugh@veritas.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nubus: kill drivers/nubus/nubus_syms.c
+     tmpfs: open a window in shmem_unuse_inode
 has been removed from the -mm tree.  Its filename was
-     nubus-kill-drivers-nubus-nubus_symsc.patch
+     tmpfs-open-a-window-in-shmem_unuse_inode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nubus: kill drivers/nubus/nubus_syms.c
-From: Adrian Bunk <bunk@kernel.org>
+Subject: tmpfs: open a window in shmem_unuse_inode
+From: Hugh Dickins <hugh@veritas.com>
 
-nubus: kill drivers/nubus/nubus_syms.c
+There are a couple of reasons (patches follow) why it would be good to open a
+window for sleep in shmem_unuse_inode, between its search for a matching swap
+entry, and its handling of the entry found.
 
-EXPORT_SYMBOL's belong to the actual code.
+shmem_unuse_inode must then use igrab to hold the inode against deletion in
+that window, and its corresponding iput might result in deletion: so it had
+better unlock_page before the iput, and might as well release the page too.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Nor is there any need to hold on to shmem_swaplist_mutex once we know we'll
+leave the loop.  So this unwinding moves from try_to_unuse and shmem_unuse
+into shmem_unuse_inode, in the case when it finds a match.
+
+Let try_to_unuse break on error in the shmem_unuse case, as it does in the
+unuse_mm case: though at this point in the series, no error to break on.
+
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/nubus/Makefile     |    1 -
- drivers/nubus/nubus.c      |   13 +++++++++++++
- drivers/nubus/nubus_syms.c |   28 ----------------------------
- drivers/nubus/proc.c       |    4 ++++
- 4 files changed, 17 insertions(+), 29 deletions(-)
+ mm/shmem.c    |   57 +++++++++++++++++++++++++++++-------------------
+ mm/swapfile.c |   23 ++++++++-----------
+ 2 files changed, 45 insertions(+), 35 deletions(-)
 
-diff -puN drivers/nubus/Makefile~nubus-kill-drivers-nubus-nubus_symsc drivers/nubus/Makefile
---- a/drivers/nubus/Makefile~nubus-kill-drivers-nubus-nubus_symsc
-+++ a/drivers/nubus/Makefile
-@@ -4,5 +4,4 @@
+diff -puN mm/shmem.c~tmpfs-open-a-window-in-shmem_unuse_inode mm/shmem.c
+--- a/mm/shmem.c~tmpfs-open-a-window-in-shmem_unuse_inode
++++ a/mm/shmem.c
+@@ -838,10 +838,8 @@ static int shmem_unuse_inode(struct shme
+ 	if (size > SHMEM_NR_DIRECT)
+ 		size = SHMEM_NR_DIRECT;
+ 	offset = shmem_find_swp(entry, ptr, ptr+size);
+-	if (offset >= 0) {
+-		shmem_swp_balance_unmap();
++	if (offset >= 0)
+ 		goto found;
+-	}
+ 	if (!info->i_indirect)
+ 		goto lost2;
  
- obj-y   := nubus.o
- 
--obj-$(CONFIG_MODULES) += nubus_syms.o 
- obj-$(CONFIG_PROC_FS) += proc.o
-diff -puN drivers/nubus/nubus.c~nubus-kill-drivers-nubus-nubus_symsc drivers/nubus/nubus.c
---- a/drivers/nubus/nubus.c~nubus-kill-drivers-nubus-nubus_symsc
-+++ a/drivers/nubus/nubus.c
-@@ -14,6 +14,7 @@
- #include <linux/errno.h>
- #include <linux/init.h>
- #include <linux/delay.h>
-+#include <linux/module.h>
- #include <asm/setup.h>
- #include <asm/system.h>
- #include <asm/page.h>
-@@ -186,6 +187,7 @@ void nubus_get_rsrc_mem(void *dest, cons
- 		len--;
+@@ -879,11 +877,11 @@ static int shmem_unuse_inode(struct shme
+ 			if (size > ENTRIES_PER_PAGE)
+ 				size = ENTRIES_PER_PAGE;
+ 			offset = shmem_find_swp(entry, ptr, ptr+size);
++			shmem_swp_unmap(ptr);
+ 			if (offset >= 0) {
+ 				shmem_dir_unmap(dir);
+ 				goto found;
+ 			}
+-			shmem_swp_unmap(ptr);
+ 		}
  	}
- }
-+EXPORT_SYMBOL(nubus_get_rsrc_mem);
- 
- void nubus_get_rsrc_str(void *dest, const struct nubus_dirent* dirent,
- 			int len)
-@@ -200,6 +202,7 @@ void nubus_get_rsrc_str(void *dest, cons
- 		len--;
- 	}
- }
-+EXPORT_SYMBOL(nubus_get_rsrc_str);
- 
- int nubus_get_root_dir(const struct nubus_board* board,
- 		       struct nubus_dir* dir)
-@@ -209,6 +212,7 @@ int nubus_get_root_dir(const struct nubu
- 	dir->mask = board->lanes;
+ lost1:
+@@ -893,10 +891,25 @@ lost2:
  	return 0;
- }
-+EXPORT_SYMBOL(nubus_get_root_dir);
- 
- /* This is a slyly renamed version of the above */
- int nubus_get_func_dir(const struct nubus_dev* dev,
-@@ -219,6 +223,7 @@ int nubus_get_func_dir(const struct nubu
- 	dir->mask = dev->board->lanes;
- 	return 0;
- }
-+EXPORT_SYMBOL(nubus_get_func_dir);
- 
- int nubus_get_board_dir(const struct nubus_board* board,
- 			struct nubus_dir* dir)
-@@ -237,6 +242,7 @@ int nubus_get_board_dir(const struct nub
- 		return -1;
- 	return 0;
- }
-+EXPORT_SYMBOL(nubus_get_board_dir);
- 
- int nubus_get_subdir(const struct nubus_dirent *ent,
- 		     struct nubus_dir *dir)
-@@ -246,6 +252,7 @@ int nubus_get_subdir(const struct nubus_
- 	dir->mask = ent->mask;
- 	return 0;
- }
-+EXPORT_SYMBOL(nubus_get_subdir);
- 
- int nubus_readdir(struct nubus_dir *nd, struct nubus_dirent *ent)
- {
-@@ -274,12 +281,14 @@ int nubus_readdir(struct nubus_dir *nd, 
- 	ent->mask  = nd->mask;
- 	return 0;
- }
-+EXPORT_SYMBOL(nubus_readdir);
- 
- int nubus_rewinddir(struct nubus_dir* dir)
- {
- 	dir->ptr = dir->base;
- 	return 0;
- }
-+EXPORT_SYMBOL(nubus_rewinddir);
- 
- /* Driver interface functions, more or less like in pci.c */
- 
-@@ -303,6 +312,7 @@ nubus_find_device(unsigned short categor
- 	}
- 	return NULL;
- }
-+EXPORT_SYMBOL(nubus_find_device);
- 
- struct nubus_dev*
- nubus_find_type(unsigned short category,
-@@ -320,6 +330,7 @@ nubus_find_type(unsigned short category,
- 	}
- 	return NULL;
- }
-+EXPORT_SYMBOL(nubus_find_type);
- 
- struct nubus_dev*
- nubus_find_slot(unsigned int slot,
-@@ -335,6 +346,7 @@ nubus_find_slot(unsigned int slot,
- 	}
- 	return NULL;
- }
-+EXPORT_SYMBOL(nubus_find_slot);
- 
- int
- nubus_find_rsrc(struct nubus_dir* dir, unsigned char rsrc_type,
-@@ -346,6 +358,7 @@ nubus_find_rsrc(struct nubus_dir* dir, u
- 	}	
- 	return -1;
- }
-+EXPORT_SYMBOL(nubus_find_rsrc);
- 
- /* Initialization functions - decide which slots contain stuff worth
-    looking at, and print out lots and lots of information from the
-diff -puN drivers/nubus/nubus_syms.c~nubus-kill-drivers-nubus-nubus_symsc /dev/null
---- a/drivers/nubus/nubus_syms.c
-+++ /dev/null
-@@ -1,28 +0,0 @@
--/* Exported symbols for NuBus services
--
--   (c) 1999 David Huggins-Daines <dhd@debian.org> */
--
--#include <linux/module.h>
--#include <linux/types.h>
--#include <linux/nubus.h>
--
--#ifdef CONFIG_PROC_FS
--EXPORT_SYMBOL(nubus_proc_attach_device);
--EXPORT_SYMBOL(nubus_proc_detach_device);
--#endif
--
--MODULE_LICENSE("GPL");
--
--EXPORT_SYMBOL(nubus_find_device);
--EXPORT_SYMBOL(nubus_find_type);
--EXPORT_SYMBOL(nubus_find_slot);
--EXPORT_SYMBOL(nubus_get_root_dir);
--EXPORT_SYMBOL(nubus_get_board_dir);
--EXPORT_SYMBOL(nubus_get_func_dir);
--EXPORT_SYMBOL(nubus_readdir);
--EXPORT_SYMBOL(nubus_find_rsrc);
--EXPORT_SYMBOL(nubus_rewinddir);
--EXPORT_SYMBOL(nubus_get_subdir);
--EXPORT_SYMBOL(nubus_get_rsrc_mem);
--EXPORT_SYMBOL(nubus_get_rsrc_str);
--
-diff -puN drivers/nubus/proc.c~nubus-kill-drivers-nubus-nubus_symsc drivers/nubus/proc.c
---- a/drivers/nubus/proc.c~nubus-kill-drivers-nubus-nubus_symsc
-+++ a/drivers/nubus/proc.c
-@@ -22,6 +22,8 @@
- #include <linux/nubus.h>
- #include <linux/proc_fs.h>
- #include <linux/init.h>
-+#include <linux/module.h>
+ found:
+ 	idx += offset;
+-	inode = &info->vfs_inode;
+-	error = add_to_page_cache(page, inode->i_mapping, idx, GFP_ATOMIC);
++	inode = igrab(&info->vfs_inode);
++	spin_unlock(&info->lock);
 +
- #include <asm/uaccess.h>
- #include <asm/byteorder.h>
- 
-@@ -140,6 +142,7 @@ int nubus_proc_attach_device(struct nubu
- 
- 	return 0;
- }
-+EXPORT_SYMBOL(nubus_proc_attach_device);
- 
- /* FIXME: this is certainly broken! */
- int nubus_proc_detach_device(struct nubus_dev *dev)
-@@ -154,6 +157,7 @@ int nubus_proc_detach_device(struct nubu
++	/* move head to start search for next from here */
++	list_move_tail(&shmem_swaplist, &info->swaplist);
++	mutex_unlock(&shmem_swaplist_mutex);
++
++	error = 1;
++	if (!inode)
++		goto out;
++
++	spin_lock(&info->lock);
++	ptr = shmem_swp_entry(info, idx, NULL);
++	if (ptr && ptr->val == entry.val)
++		error = add_to_page_cache(page, inode->i_mapping,
++						idx, GFP_ATOMIC);
+ 	if (error == -EEXIST) {
+ 		struct page *filepage = find_get_page(inode->i_mapping, idx);
++		error = 1;
+ 		if (filepage) {
+ 			/*
+ 			 * There might be a more uptodate page coming down
+@@ -911,16 +924,18 @@ found:
+ 		delete_from_swap_cache(page);
+ 		set_page_dirty(page);
+ 		info->flags |= SHMEM_PAGEIN;
+-		shmem_swp_set(info, ptr + offset, 0);
++		shmem_swp_set(info, ptr, 0);
++		swap_free(entry);
++		error = 1;	/* not an error, but entry was found */
  	}
- 	return 0;
+-	shmem_swp_unmap(ptr);
++	if (ptr)
++		shmem_swp_unmap(ptr);
+ 	spin_unlock(&info->lock);
+-	/*
+-	 * Decrement swap count even when the entry is left behind:
+-	 * try_to_unuse will skip over mms, then reincrement count.
+-	 */
+-	swap_free(entry);
+-	return 1;
++out:
++	unlock_page(page);
++	page_cache_release(page);
++	iput(inode);		/* allows for NULL */
++	return error;
  }
-+EXPORT_SYMBOL(nubus_proc_detach_device);
  
- void __init proc_bus_nubus_add_devices(void)
- {
+ /*
+@@ -935,18 +950,16 @@ int shmem_unuse(swp_entry_t entry, struc
+ 	mutex_lock(&shmem_swaplist_mutex);
+ 	list_for_each_safe(p, next, &shmem_swaplist) {
+ 		info = list_entry(p, struct shmem_inode_info, swaplist);
+-		if (!info->swapped)
++		if (info->swapped)
++			found = shmem_unuse_inode(info, entry, page);
++		else
+ 			list_del_init(&info->swaplist);
+-		else if (shmem_unuse_inode(info, entry, page)) {
+-			/* move head to start search for next from here */
+-			list_move_tail(&shmem_swaplist, &info->swaplist);
+-			found = 1;
+-			break;
+-		}
+ 		cond_resched();
++		if (found)
++			goto out;
+ 	}
+ 	mutex_unlock(&shmem_swaplist_mutex);
+-	return found;
++out:	return found;	/* 0 or 1 or -ENOMEM */
+ }
+ 
+ /*
+diff -puN mm/swapfile.c~tmpfs-open-a-window-in-shmem_unuse_inode mm/swapfile.c
+--- a/mm/swapfile.c~tmpfs-open-a-window-in-shmem_unuse_inode
++++ a/mm/swapfile.c
+@@ -814,7 +814,7 @@ static int try_to_unuse(unsigned int typ
+ 			atomic_inc(&new_start_mm->mm_users);
+ 			atomic_inc(&prev_mm->mm_users);
+ 			spin_lock(&mmlist_lock);
+-			while (*swap_map > 1 && !retval &&
++			while (*swap_map > 1 && !retval && !shmem &&
+ 					(p = p->next) != &start_mm->mmlist) {
+ 				mm = list_entry(p, struct mm_struct, mmlist);
+ 				if (!atomic_inc_not_zero(&mm->mm_users))
+@@ -846,6 +846,13 @@ static int try_to_unuse(unsigned int typ
+ 			mmput(start_mm);
+ 			start_mm = new_start_mm;
+ 		}
++		if (shmem) {
++			/* page has already been unlocked and released */
++			if (shmem > 0)
++				continue;
++			retval = shmem;
++			break;
++		}
+ 		if (retval) {
+ 			unlock_page(page);
+ 			page_cache_release(page);
+@@ -884,12 +891,6 @@ static int try_to_unuse(unsigned int typ
+ 		 * read from disk into another page.  Splitting into two
+ 		 * pages would be incorrect if swap supported "shared
+ 		 * private" pages, but they are handled by tmpfs files.
+-		 *
+-		 * Note shmem_unuse already deleted a swappage from
+-		 * the swap cache, unless the move to filepage failed:
+-		 * in which case it left swappage in cache, lowered its
+-		 * swap count to pass quickly through the loops above,
+-		 * and now we must reincrement count to try again later.
+ 		 */
+ 		if ((*swap_map > 1) && PageDirty(page) && PageSwapCache(page)) {
+ 			struct writeback_control wbc = {
+@@ -900,12 +901,8 @@ static int try_to_unuse(unsigned int typ
+ 			lock_page(page);
+ 			wait_on_page_writeback(page);
+ 		}
+-		if (PageSwapCache(page)) {
+-			if (shmem)
+-				swap_duplicate(entry);
+-			else
+-				delete_from_swap_cache(page);
+-		}
++		if (PageSwapCache(page))
++			delete_from_swap_cache(page);
+ 
+ 		/*
+ 		 * So we could skip searching mms once swap count went
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-git-acpi.patch
-powerpc-vdso_do_func_patch3264-must-be-__init.patch
-powerpc-free_property-mustnt-be-__init.patch
-hvc_rtas_init-must-be-__init.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-mtd.patch
-git-ocfs2.patch
-if-0-pci_cleanup_aer_correct_error_status.patch
-git-scsi-misc.patch
-scsi-advansysc-make-3-functions-static.patch
-scsi-aic94xx-cleanups.patch
-scsi-qlogicptic-section-fixes.patch
-usb-make-usb_storage_onetouch-available-with-pm.patch
-make-b43_mac_enablesuspend-static.patch
-git-xtensa.patch
-make-ipc-utilcsysvipc_find_ipc-static.patch
-cleanup-after-apus-removal.patch
-remove-mm_ptovvtop.patch
-proper-show_interrupts-prototype.patch
-scheduled-oss-driver-removal.patch
-proper-prototype-for-signals_init.patch
-kernel-ptracec-should-include-linux-syscallsh.patch
-make-srcu_readers_active-static.patch
-kernel-notifierc-should-include-linux-rebooth.patch
-proper-prototype-for-get_filesystem_list.patch
-fs-utimesc-should-include-linux-syscallsh.patch
-fs-signalfdc-should-include-linux-syscallsh.patch
-fs-eventfdc-should-include-linux-syscallsh.patch
-proper-prototype-for-vty_init.patch
-drivers-misc-lkdtmc-cleanups.patch
-calibrate_delay-must-be-__cpuinit.patch
-idle_regs-must-be-__cpuinit.patch
-fs-ecryptfs-possible-cleanups.patch
-make-video-geode-lxfb_corecgeode_modedb-static.patch
-video-hpfbc-section-fix.patch
-drivers-video-pm3fbc-section-fix.patch
-make-jbd-journalc__journal_abort_hard-static.patch
-move-edactxt-two-levels-up.patch
-kernel-cgroupc-remove-dead-code.patch
-kernel-cgroupc-make-2-functions-static.patch
+git-unionfs.patch
+git-x86.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+memcgroup-temporarily-revert-swapoff-mod.patch
+memory-controller-memory-accounting-v7.patch
 memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-fix-m32r-__xchg.patch
-kill-udffs_dateversion.patch
-the-scheduled-time-option-removal.patch
-reiser4.patch
+memcgroup-reinstate-swapoff-mod.patch
+memcgroup-fix-zone-isolation-oom.patch
+memcgroup-revert-swap_state-mods.patch
+memory-controller-use-rcu_read_lock-in-mem_cgroup_cache_charge.patch
+memcgroup-tidy-up-mem_cgroup_charge_common.patch
+memcgroup-fix-hang-with-shmem-tmpfs.patch
+mount-options-fix-tmpfs.patch
+mount-options-fix-tmpfs-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
+prio_tree-debugging-patch.patch
