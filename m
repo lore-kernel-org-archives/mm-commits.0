@@ -1,148 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: - uml-ldt-mutex-conversion.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:38:48 -0800
-Message-ID: <200802052238.m15McTOd012953@imap1.linux-foundation.org>
+Subject: - uml-signal-handling-tidying.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:38:03 -0800
+Message-ID: <200802052237.m15MbiRV012884@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52507 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33852 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761933AbYBEWl4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:56 -0500
+	by vger.kernel.org with ESMTP id S1762336AbYBEWlh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwalker@mvista.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: LDT mutex conversion
+     uml: signal handling tidying
 has been removed from the -mm tree.  Its filename was
-     uml-ldt-mutex-conversion.patch
+     uml-signal-handling-tidying.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: LDT mutex conversion
-From: Daniel Walker <dwalker@mvista.com>
+Subject: uml: signal handling tidying
+From: Jeff Dike <jdike@addtoit.com>
 
-The ldt.semaphore conforms to the new struct mutex requirments, so I converted
-it to use the new API and changed the name.
+This patch tidies the signal handling code slightly.
 
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
+pending is renamed to signals_pending for symmetry with signals_enabled.
+
+remove_sigstack was unused, so can be deleted.
+
+The value of change_sig was never used, so it is now void and the
+return value is not calculated any more.
+
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/sys-i386/ldt.c |   14 +++++++-------
- include/asm-um/ldt.h   |    4 ++--
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ arch/um/os-Linux/signal.c |   33 ++++++++++++---------------------
+ 1 file changed, 12 insertions(+), 21 deletions(-)
 
-diff -puN arch/um/sys-i386/ldt.c~uml-ldt-mutex-conversion arch/um/sys-i386/ldt.c
---- a/arch/um/sys-i386/ldt.c~uml-ldt-mutex-conversion
-+++ a/arch/um/sys-i386/ldt.c
-@@ -147,7 +147,7 @@ static int read_ldt(void __user * ptr, u
- 	if (ptrace_ldt)
- 		return read_ldt_from_host(ptr, bytecount);
+diff -puN arch/um/os-Linux/signal.c~uml-signal-handling-tidying arch/um/os-Linux/signal.c
+--- a/arch/um/os-Linux/signal.c~uml-signal-handling-tidying
++++ a/arch/um/os-Linux/signal.c
+@@ -63,7 +63,7 @@ static void sig_handler_common(int sig, 
+ #define SIGVTALRM_MASK (1 << SIGVTALRM_BIT)
  
--	down(&ldt->semaphore);
-+	mutex_lock(&ldt->lock);
- 	if (ldt->entry_count <= LDT_DIRECT_ENTRIES) {
- 		size = LDT_ENTRY_SIZE*LDT_DIRECT_ENTRIES;
- 		if (size > bytecount)
-@@ -171,7 +171,7 @@ static int read_ldt(void __user * ptr, u
- 			ptr += size;
- 		}
- 	}
--	up(&ldt->semaphore);
-+	mutex_unlock(&ldt->lock);
+ static int signals_enabled;
+-static unsigned int pending;
++static unsigned int signals_pending;
  
- 	if (bytecount == 0 || err == -EFAULT)
- 		goto out;
-@@ -229,7 +229,7 @@ static int write_ldt(void __user * ptr, 
+ void sig_handler(int sig, struct sigcontext *sc)
+ {
+@@ -71,7 +71,7 @@ void sig_handler(int sig, struct sigcont
+ 
+ 	enabled = signals_enabled;
+ 	if (!enabled && (sig == SIGIO)) {
+-		pending |= SIGIO_MASK;
++		signals_pending |= SIGIO_MASK;
+ 		return;
  	}
  
- 	if (!ptrace_ldt)
--		down(&ldt->semaphore);
-+		mutex_lock(&ldt->lock);
+@@ -99,7 +99,7 @@ void alarm_handler(int sig, struct sigco
  
- 	err = write_ldt_entry(mm_idp, func, &ldt_info, &addr, 1);
- 	if (err)
-@@ -289,7 +289,7 @@ static int write_ldt(void __user * ptr, 
- 	err = 0;
+ 	enabled = signals_enabled;
+ 	if (!signals_enabled) {
+-		pending |= SIGVTALRM_MASK;
++		signals_pending |= SIGVTALRM_MASK;
+ 		return;
+ 	}
  
- out_unlock:
--	up(&ldt->semaphore);
-+	mutex_unlock(&ldt->lock);
- out:
- 	return err;
+@@ -125,16 +125,6 @@ void set_sigstack(void *sig_stack, int s
+ 		panic("enabling signal stack failed, errno = %d\n", errno);
  }
-@@ -396,7 +396,7 @@ long init_new_ldt(struct mm_context *new
  
+-void remove_sigstack(void)
+-{
+-	stack_t stack = ((stack_t) { .ss_flags	= SS_DISABLE,
+-				     .ss_sp	= NULL,
+-				     .ss_size	= 0 });
+-
+-	if (sigaltstack(&stack, NULL) != 0)
+-		panic("disabling signal stack failed, errno = %d\n", errno);
+-}
+-
+ void (*handlers[_NSIG])(int sig, struct sigcontext *sc);
  
- 	if (!ptrace_ldt)
--		init_MUTEX(&new_mm->ldt.semaphore);
-+		mutex_init(&new_mm->ldt.lock);
+ void handle_signal(int sig, struct sigcontext *sc)
+@@ -213,13 +203,14 @@ void set_handler(int sig, void (*handler
  
- 	if (!from_mm) {
- 		memset(&desc, 0, sizeof(desc));
-@@ -456,7 +456,7 @@ long init_new_ldt(struct mm_context *new
- 		 * i.e., we have to use the stub for modify_ldt, which
- 		 * can't handle the big read buffer of up to 64kB.
+ int change_sig(int signal, int on)
+ {
+-	sigset_t sigset, old;
++	sigset_t sigset;
+ 
+ 	sigemptyset(&sigset);
+ 	sigaddset(&sigset, signal);
+-	if (sigprocmask(on ? SIG_UNBLOCK : SIG_BLOCK, &sigset, &old) < 0)
++	if (sigprocmask(on ? SIG_UNBLOCK : SIG_BLOCK, &sigset, NULL) < 0)
+ 		return -errno;
+-	return !sigismember(&old, signal);
++
++	return 0;
+ }
+ 
+ void block_signals(void)
+@@ -244,26 +235,26 @@ void unblock_signals(void)
+ 	/*
+ 	 * We loop because the IRQ handler returns with interrupts off.  So,
+ 	 * interrupts may have arrived and we need to re-enable them and
+-	 * recheck pending.
++	 * recheck signals_pending.
+ 	 */
+ 	while(1) {
+ 		/*
+ 		 * Save and reset save_pending after enabling signals.  This
+-		 * way, pending won't be changed while we're reading it.
++		 * way, signals_pending won't be changed while we're reading it.
  		 */
--		down(&from_mm->ldt.semaphore);
-+		mutex_lock(&from_mm->ldt.lock);
- 		if (from_mm->ldt.entry_count <= LDT_DIRECT_ENTRIES)
- 			memcpy(new_mm->ldt.u.entries, from_mm->ldt.u.entries,
- 			       sizeof(new_mm->ldt.u.entries));
-@@ -475,7 +475,7 @@ long init_new_ldt(struct mm_context *new
- 			}
- 		}
- 		new_mm->ldt.entry_count = from_mm->ldt.entry_count;
--		up(&from_mm->ldt.semaphore);
-+		mutex_unlock(&from_mm->ldt.lock);
- 	}
+ 		signals_enabled = 1;
  
-     out:
-diff -puN include/asm-um/ldt.h~uml-ldt-mutex-conversion include/asm-um/ldt.h
---- a/include/asm-um/ldt.h~uml-ldt-mutex-conversion
-+++ a/include/asm-um/ldt.h
-@@ -8,7 +8,7 @@
- #ifndef __ASM_LDT_H
- #define __ASM_LDT_H
+ 		/*
+-		 * Setting signals_enabled and reading pending must
++		 * Setting signals_enabled and reading signals_pending must
+ 		 * happen in this order.
+ 		 */
+ 		barrier();
  
--#include "asm/semaphore.h"
-+#include <linux/mutex.h>
- #include "asm/host_ldt.h"
+-		save_pending = pending;
++		save_pending = signals_pending;
+ 		if (save_pending == 0)
+ 			return;
  
- extern void ldt_host_info(void);
-@@ -27,7 +27,7 @@ struct ldt_entry {
+-		pending = 0;
++		signals_pending = 0;
  
- typedef struct uml_ldt {
- 	int entry_count;
--	struct semaphore semaphore;
-+	struct mutex lock;
- 	union {
- 		struct ldt_entry * pages[LDT_PAGES_MAX];
- 		struct ldt_entry entries[LDT_DIRECT_ENTRIES];
+ 		/*
+ 		 * We have pending interrupts, so disable signals, as the
 _
 
-Patches currently in -mm which might be from dwalker@mvista.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-driver-base-memory-semaphore-to-mutex.patch
-usb-microtek-remove-unused-semaphore.patch
-usb-libusual-locking-cleanup.patch
-drivers-char-tty_ioc-remove-pty_sem.patch
-drivers-isdn-i4l-isdn_ttyc-remove-write_sem.patch
-unix98-allocated_ptys_lock-semaphore-to-mutex.patch
-docs-kernel-locking-convert-semaphore-references.patch
-stopmachine-semaphore-to-mutex.patch
-stopmachine-semaphore-to-mutex-fix.patch
-amiga-serial-driver-port_write_mutex-fixup.patch
-docs-convert-kref-semaphore-to-mutex.patch
-isapnp-driver-semaphore-to-mutex.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
+git-kvm.patch
+fix-__const_udelay-declaration-and-definition-mismatches.patch
+iget-stop-hostfs-from-using-iget-and-read_inode.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
+random-add-async-notification-support-to-dev-random.patch
+mount-options-fix-hostfs.patch
