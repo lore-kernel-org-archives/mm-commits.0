@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-free_property-mustnt-be-__init.patch added to -mm tree
-Date: Tue, 05 Feb 2008 01:45:46 -0800
-Message-ID: <200802050945.m159jRLJ014534@imap1.linux-foundation.org>
+Subject: + hvc_rtas_init-must-be-__init.patch added to -mm tree
+Date: Tue, 05 Feb 2008 01:46:16 -0800
+Message-ID: <200802050945.m159jv9t014545@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51640 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47734 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753651AbYBEJpx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 04:45:53 -0500
+	by vger.kernel.org with ESMTP id S1753863AbYBEJqK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 04:46:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, sfr@canb.auug.org.au
+Cc: bunk@kernel.org
 
 
 The patch titled
-     powerpc: free_property() mustn't be __init
+     hvc_rtas_init() must be __init
 has been added to the -mm tree.  Its filename is
-     powerpc-free_property-mustnt-be-__init.patch
+     hvc_rtas_init-must-be-__init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,31 +33,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: free_property() mustn't be __init
+Subject: hvc_rtas_init() must be __init
 From: Adrian Bunk <bunk@kernel.org>
 
-WARNING: vmlinux.o(.text+0x55648): Section mismatch in reference from the function .free_node() to the function .init.text:.free_property()
+WARNING: vmlinux.o(.text+0x2fbca8): Section mismatch in reference from the function .hvc_rtas_init() to the function .devinit.text:.hvc_alloc()
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/iseries/vio.c |    2 +-
+ drivers/char/hvc_rtas.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/powerpc/platforms/iseries/vio.c~powerpc-free_property-mustnt-be-__init arch/powerpc/platforms/iseries/vio.c
---- a/arch/powerpc/platforms/iseries/vio.c~powerpc-free_property-mustnt-be-__init
-+++ a/arch/powerpc/platforms/iseries/vio.c
-@@ -75,7 +75,7 @@ static struct property *new_property(con
- 	return np;
- }
+diff -puN drivers/char/hvc_rtas.c~hvc_rtas_init-must-be-__init drivers/char/hvc_rtas.c
+--- a/drivers/char/hvc_rtas.c~hvc_rtas_init-must-be-__init
++++ a/drivers/char/hvc_rtas.c
+@@ -76,7 +76,7 @@ static struct hv_ops hvc_rtas_get_put_op
+ 	.put_chars = hvc_rtas_write_console,
+ };
  
--static void __init free_property(struct property *np)
-+static void free_property(struct property *np)
+-static int hvc_rtas_init(void)
++static int __init hvc_rtas_init(void)
  {
- 	kfree(np);
- }
+ 	struct hvc_struct *hp;
+ 
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -77,6 +76,7 @@ m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch
 git-acpi.patch
 powerpc-vdso_do_func_patch3264-must-be-__init.patch
 powerpc-free_property-mustnt-be-__init.patch
+hvc_rtas_init-must-be-__init.patch
 git-dvb.patch
 git-gfs2-nmw.patch
 git-mtd.patch
