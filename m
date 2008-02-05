@@ -1,79 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - uml-remove-map_cb.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:38:39 -0800
-Message-ID: <200802052238.m15McKDt012941@imap1.linux-foundation.org>
+Subject: - alpha-doesnt-use-socketcall.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:33:53 -0800
+Message-ID: <200802052233.m15MXYlp012436@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54469 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38341 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762647AbYBEWmW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:22 -0500
+	by vger.kernel.org with ESMTP id S1760784AbYBEWm2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, jreiser@BitWagon.com, mm-commits@vger.kernel.org
+To: samuel.thibault@citrix.com, ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: remove map_cb
+     Alpha doesn't use socketcall
 has been removed from the -mm tree.  Its filename was
-     uml-remove-map_cb.patch
+     alpha-doesnt-use-socketcall.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: remove map_cb
-From: Jeff Dike <jdike@addtoit.com>
+Subject: Alpha doesn't use socketcall
+From: Samuel Thibault <samuel.thibault@citrix.com>
 
-John Reiser noticed that a physical memory region was being mapped twice.
+Alpha doesn't use socketcall and doesn't provide __NR_socketcall.
 
-This patch fixes that, and it inlines the responsible function, as that had
-only one caller.
-
-Cc: John Reiser <jreiser@BitWagon.com>
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-
+Signed-off-by: Samuel Thibault <samuel.thibault@citrix.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/mem.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ include/asm-alpha/unistd.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/um/kernel/mem.c~uml-remove-map_cb arch/um/kernel/mem.c
---- a/arch/um/kernel/mem.c~uml-remove-map_cb
-+++ a/arch/um/kernel/mem.c
-@@ -36,11 +36,6 @@ int kmalloc_ok = 0;
- /* Used during early boot */
- static unsigned long brk_end;
- 
--static void map_cb(void *unused)
--{
--	map_memory(brk_end, __pa(brk_end), uml_reserved - brk_end, 1, 1, 0);
--}
--
- #ifdef CONFIG_HIGHMEM
- static void setup_highmem(unsigned long highmem_start,
- 			  unsigned long highmem_len)
-@@ -68,8 +63,7 @@ void __init mem_init(void)
- 	 * to be turned on.
- 	 */
- 	brk_end = (unsigned long) UML_ROUND_UP(sbrk(0));
--	map_cb(NULL);
--	initial_thread_cb(map_cb, NULL);
-+	map_memory(brk_end, __pa(brk_end), uml_reserved - brk_end, 1, 1, 0);
- 	free_bootmem(__pa(brk_end), uml_reserved - brk_end);
- 	uml_reserved = brk_end;
- 
+diff -puN include/asm-alpha/unistd.h~alpha-doesnt-use-socketcall include/asm-alpha/unistd.h
+--- a/include/asm-alpha/unistd.h~alpha-doesnt-use-socketcall
++++ a/include/asm-alpha/unistd.h
+@@ -442,7 +442,6 @@
+ #define __ARCH_WANT_OLD_READDIR
+ #define __ARCH_WANT_STAT64
+ #define __ARCH_WANT_SYS_GETHOSTNAME
+-#define __ARCH_WANT_SYS_SOCKETCALL
+ #define __ARCH_WANT_SYS_FADVISE64
+ #define __ARCH_WANT_SYS_GETPGRP
+ #define __ARCH_WANT_SYS_OLD_GETRLIMIT
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from samuel.thibault@citrix.com are
 
 origin.patch
-git-kvm.patch
-fix-__const_udelay-declaration-and-definition-mismatches.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
-random-add-async-notification-support-to-dev-random.patch
-mount-options-fix-hostfs.patch
