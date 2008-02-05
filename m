@@ -1,124 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - swiotlb-respect-the-segment-boundary-limits.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:28:52 -0800
-Message-ID: <200802052228.m15MSXbm011895@imap1.linux-foundation.org>
+Subject: - drivers-serial-s3c2410c-remove-dead-config-symbols.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:27:36 -0800
+Message-ID: <200802052227.m15MRHoA011763@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60085 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44705 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762841AbYBEWpD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:45:03 -0500
+	by vger.kernel.org with ESMTP id S1762108AbYBEWof (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:44:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tomof@acm.org, James.Bottomley@steeleye.com, fujita.tomonori@lab.ntt.co.jp, greg@kroah.com, jeff@garzik.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: olsajiri@gmail.com, alan@redhat.com, ben@fluff.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     iommu sg merging: swiotlb: respect the segment boundary limits
+     drivers/serial/s3c2410.c: remove dead config symbols
 has been removed from the -mm tree.  Its filename was
-     swiotlb-respect-the-segment-boundary-limits.patch
+     drivers-serial-s3c2410c-remove-dead-config-symbols.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iommu sg merging: swiotlb: respect the segment boundary limits
-From: FUJITA Tomonori <tomof@acm.org>
+Subject: drivers/serial/s3c2410.c: remove dead config symbols
+From: Jiri Olsa <olsajiri@gmail.com>
 
-This patch makes swiotlb not allocate a memory area spanning LLD's segment
-boundary.
+Remove dead config symbol.
 
-is_span_boundary() judges whether a memory area spans LLD's segment boundary. 
-If map_single finds such a area, map_single tries to find the next available
-memory area.
-
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Jiri Olsa <olsajiri@gmail.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Ben Dooks <ben@fluff.org>
+Cc: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/swiotlb.c |   41 +++++++++++++++++++++++++++++++++++------
- 1 file changed, 35 insertions(+), 6 deletions(-)
+ drivers/serial/s3c2410.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/swiotlb.c~swiotlb-respect-the-segment-boundary-limits lib/swiotlb.c
---- a/lib/swiotlb.c~swiotlb-respect-the-segment-boundary-limits
-+++ a/lib/swiotlb.c
-@@ -282,6 +282,15 @@ address_needs_mapping(struct device *hwd
- 	return (addr & ~mask) != 0;
- }
+diff -puN drivers/serial/s3c2410.c~drivers-serial-s3c2410c-remove-dead-config-symbols drivers/serial/s3c2410.c
+--- a/drivers/serial/s3c2410.c~drivers-serial-s3c2410c-remove-dead-config-symbols
++++ a/drivers/serial/s3c2410.c
+@@ -1527,7 +1527,7 @@ static inline void s3c2440_serial_exit(v
+ #define s3c2440_uart_inf_at NULL
+ #endif /* CONFIG_CPU_S3C2440 */
  
-+static inline unsigned int is_span_boundary(unsigned int index,
-+					    unsigned int nslots,
-+					    unsigned long offset_slots,
-+					    unsigned long max_slots)
-+{
-+	unsigned long offset = (offset_slots + index) & (max_slots - 1);
-+	return offset + nslots > max_slots;
-+}
-+
- /*
-  * Allocates bounce buffer and returns its kernel virtual address.
-  */
-@@ -292,6 +301,16 @@ map_single(struct device *hwdev, char *b
- 	char *dma_addr;
- 	unsigned int nslots, stride, index, wrap;
- 	int i;
-+	unsigned long start_dma_addr;
-+	unsigned long mask;
-+	unsigned long offset_slots;
-+	unsigned long max_slots;
-+
-+	mask = dma_get_seg_boundary(hwdev);
-+	start_dma_addr = virt_to_bus(io_tlb_start) & mask;
-+
-+	offset_slots = ALIGN(start_dma_addr, 1 << IO_TLB_SHIFT) >> IO_TLB_SHIFT;
-+	max_slots = ALIGN(mask + 1, 1 << IO_TLB_SHIFT) >> IO_TLB_SHIFT;
+-#if defined(CONFIG_CPU_S3C2412) || defined(CONFIG_CPU_S3C2413)
++#if defined(CONFIG_CPU_S3C2412)
  
- 	/*
- 	 * For mappings greater than a page, we limit the stride (and
-@@ -311,10 +330,17 @@ map_single(struct device *hwdev, char *b
- 	 */
- 	spin_lock_irqsave(&io_tlb_lock, flags);
- 	{
--		wrap = index = ALIGN(io_tlb_index, stride);
--
-+		index = ALIGN(io_tlb_index, stride);
- 		if (index >= io_tlb_nslabs)
--			wrap = index = 0;
-+			index = 0;
-+
-+		while (is_span_boundary(index, nslots, offset_slots,
-+					max_slots)) {
-+			index += stride;
-+			if (index >= io_tlb_nslabs)
-+				index = 0;
-+		}
-+		wrap = index;
- 
- 		do {
- 			/*
-@@ -341,9 +367,12 @@ map_single(struct device *hwdev, char *b
- 
- 				goto found;
- 			}
--			index += stride;
--			if (index >= io_tlb_nslabs)
--				index = 0;
-+			do {
-+				index += stride;
-+				if (index >= io_tlb_nslabs)
-+					index = 0;
-+			} while (is_span_boundary(index, nslots, offset_slots,
-+						  max_slots));
- 		} while (index != wrap);
- 
- 		spin_unlock_irqrestore(&io_tlb_lock, flags);
+ static int s3c2412_serial_setsource(struct uart_port *port,
+ 				     struct s3c24xx_uart_clksrc *clk)
 _
 
-Patches currently in -mm which might be from tomof@acm.org are
+Patches currently in -mm which might be from olsajiri@gmail.com are
 
 origin.patch
+fs-remove-dead-config-config_has_compat_epoll_event-symbol.patch
+alpha-parisc-removing-config-variable-debug_rwlock.patch
