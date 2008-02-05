@@ -1,56 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 04 Feb 2008 23:50:36 -0800
-Message-ID: <200802050750.m157oH2N010539@imap1.linux-foundation.org>
+Subject: - scsi-aic94xx-cleanups-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 04 Feb 2008 23:51:43 -0800
+Message-ID: <200802050751.m157pPc8010636@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43551 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59209 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757113AbYBEHuY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 02:50:24 -0500
+	by vger.kernel.org with ESMTP id S1756086AbYBEHvs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 02:51:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, htejun@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, James.Bottomley@steeleye.com, bunk@kernel.org, djwong@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes
+     scsi-aic94xx-cleanups-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes.patch
+     scsi-aic94xx-cleanups-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into scsi-fix-isa-pcmcia-compile-problem.patch
+This patch was dropped because it was folded into scsi-aic94xx-cleanups.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes
+Subject: scsi-aic94xx-cleanups-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: line over 80 characters
-#72: FILE: drivers/scsi/aha152x.c:3897:
-+			struct Scsi_Host *shpnt = GLOBAL(aha152x_probe_one)(&setup[i]);
+WARNING: no space between function name and open parenthesis '('
+#357: FILE: drivers/scsi/aic94xx/aic94xx_reg.c:127:
++static type asd_read_##ww##_##ord (struct asd_ha_struct *asd_ha,       \
 
-WARNING: line over 80 characters
-#140: FILE: drivers/scsi/fdomain.c:893:
-+struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct scsi_host_template *tpnt )
+WARNING: no space between function name and open parenthesis '('
+#368: FILE: drivers/scsi/aic94xx/aic94xx_reg.c:136:
++static void asd_write_##ww##_##ord (struct asd_ha_struct *asd_ha,      \
 
-ERROR: no space before that close parenthesis ')'
-#140: FILE: drivers/scsi/fdomain.c:893:
-+struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct scsi_host_template *tpnt )
-
-ERROR: open brace '{' following function declarations go on the next line
-#178: FILE: drivers/scsi/fdomain.c:1749:
-+struct scsi_host_template GLOBAL(fdomain_driver_template) = {
-
-WARNING: line over 80 characters
-#226: FILE: drivers/scsi/fdomain.h:36:
-+extern struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct  scsi_host_template *tpnt );
-
-ERROR: no space before that close parenthesis ')'
-#226: FILE: drivers/scsi/fdomain.h:36:
-+extern struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct  scsi_host_template *tpnt );
-
-total: 3 errors, 3 warnings, 246 lines checked
+total: 0 errors, 2 warnings, 531 lines checked
 
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
@@ -58,37 +42,59 @@ CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Tejun Heo <htejun@gmail.com>
+(fix other stuff too.  tabs!)
+
+Cc: "Darrick J. Wong" <djwong@us.ibm.com>
+Cc: Adrian Bunk <bunk@kernel.org>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/fdomain.c |    2 +-
- drivers/scsi/fdomain.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/scsi/aic94xx/aic94xx_reg.c |   32 +++++++++++++--------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
-diff -puN drivers/scsi/fdomain.c~scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes drivers/scsi/fdomain.c
---- a/drivers/scsi/fdomain.c~scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes
-+++ a/drivers/scsi/fdomain.c
-@@ -890,7 +890,7 @@ fail:
+diff -puN drivers/scsi/aic94xx/aic94xx_reg.c~scsi-aic94xx-cleanups-checkpatch-fixes drivers/scsi/aic94xx/aic94xx_reg.c
+--- a/drivers/scsi/aic94xx/aic94xx_reg.c~scsi-aic94xx-cleanups-checkpatch-fixes
++++ a/drivers/scsi/aic94xx/aic94xx_reg.c
+@@ -123,22 +123,22 @@ static inline u32 asd_mem_offs_swb(void)
+ /* We know that the register wanted is in the range
+  * of the sliding window.
+  */
+-#define ASD_READ_SW(ww, type, ord)                                     \
+-static type asd_read_##ww##_##ord (struct asd_ha_struct *asd_ha,       \
+-				   u32 reg)			       \
+-{                                                                      \
+-	struct asd_ha_addrspace *io_handle = &asd_ha->io_handle[0];    \
+-	u32 map_offs=(reg - io_handle-> ww##_base )+asd_mem_offs_##ww ();\
+-	return asd_read_##ord (asd_ha, (unsigned long) map_offs);      \
+-}
+-
+-#define ASD_WRITE_SW(ww, type, ord)                                    \
+-static void asd_write_##ww##_##ord (struct asd_ha_struct *asd_ha,      \
+-				    u32 reg, type val)		       \
+-{                                                                      \
+-	struct asd_ha_addrspace *io_handle = &asd_ha->io_handle[0];    \
+-	u32 map_offs=(reg - io_handle-> ww##_base )+asd_mem_offs_##ww ();\
+-	asd_write_##ord (asd_ha, (unsigned long) map_offs, val);       \
++#define ASD_READ_SW(ww, type, ord)					\
++static type asd_read_##ww##_##ord(struct asd_ha_struct *asd_ha,		\
++				   u32 reg)				\
++{									\
++	struct asd_ha_addrspace *io_handle = &asd_ha->io_handle[0];	\
++	u32 map_offs=(reg - io_handle-> ww##_base )+asd_mem_offs_##ww();\
++	return asd_read_##ord (asd_ha, (unsigned long) map_offs);	\
++}
++
++#define ASD_WRITE_SW(ww, type, ord)					\
++static void asd_write_##ww##_##ord(struct asd_ha_struct *asd_ha,	\
++				    u32 reg, type val)			\
++{									\
++	struct asd_ha_addrspace *io_handle = &asd_ha->io_handle[0];	\
++	u32 map_offs=(reg - io_handle-> ww##_base )+asd_mem_offs_##ww();\
++	asd_write_##ord (asd_ha, (unsigned long)map_offs, val);		\
+ }
  
- #endif
- 
--struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct scsi_host_template *tpnt )
-+struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct scsi_host_template *tpnt)
- {
-    int              retcode;
-    struct Scsi_Host *shpnt;
-diff -puN drivers/scsi/fdomain.h~scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes drivers/scsi/fdomain.h
---- a/drivers/scsi/fdomain.h~scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes
-+++ a/drivers/scsi/fdomain.h
-@@ -33,5 +33,5 @@
- 
- extern struct scsi_host_template GLOBAL(fdomain_driver_template);
- extern int GLOBAL(fdomain_setup)(char *str);
--extern struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct  scsi_host_template *tpnt );
-+extern struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct scsi_host_template *tpnt);
- extern int GLOBAL(fdomain_16x0_bus_reset)(struct scsi_cmnd *SCpnt);
+ ASD_READ_SW(swa, u8,  byte);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -164,7 +170,7 @@ x86-validate-against-acpi-motherboard-resources.patch
 git-sched.patch
 git-sched-fix-git-conflicts.patch
 scsi-fix-isa-pcmcia-compile-problem.patch
-scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes.patch
+scsi-aic94xx-cleanups.patch
 scsi-aic94xx-cleanups-checkpatch-fixes.patch
 scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
 drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch
