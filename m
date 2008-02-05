@@ -1,96 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: - uml-get-rid-of-asmlinkage.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:35:25 -0800
-Message-ID: <200802052235.m15MZ6Wo012585@imap1.linux-foundation.org>
+Subject: - uml-smp-locking-commentary.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:38:09 -0800
+Message-ID: <200802052237.m15Mbom2012897@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46057 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50328 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760873AbYBEWl2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:28 -0500
+	by vger.kernel.org with ESMTP id S1762422AbYBEWlg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: get rid of asmlinkage
+     uml: SMP locking commentary
 has been removed from the -mm tree.  Its filename was
-     uml-get-rid-of-asmlinkage.patch
+     uml-smp-locking-commentary.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: get rid of asmlinkage
+Subject: uml: SMP locking commentary
 From: Jeff Dike <jdike@addtoit.com>
 
-Get rid of asmlinkage and remove some old cruft from asm/linkage.h.
+Add some more commentary about various pieces of global data not needing
+locking.
 
-[akpm@linux-foundation.org: coding-style fixes]
+Also got rid of unmap_physmem since that is no longer used.
+
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/sys-i386/tls.c   |    9 +++++----
- include/asm-um/linkage.h |    6 ------
- 2 files changed, 5 insertions(+), 10 deletions(-)
+ arch/um/drivers/net_kern.c |    7 ++++++-
+ arch/um/include/mem_user.h |    1 -
+ arch/um/kernel/mem.c       |   13 ++++++++-----
+ arch/um/kernel/physmem.c   |    6 +++---
+ 4 files changed, 17 insertions(+), 10 deletions(-)
 
-diff -puN arch/um/sys-i386/tls.c~uml-get-rid-of-asmlinkage arch/um/sys-i386/tls.c
---- a/arch/um/sys-i386/tls.c~uml-get-rid-of-asmlinkage
-+++ a/arch/um/sys-i386/tls.c
-@@ -225,7 +225,8 @@ out:
+diff -puN arch/um/drivers/net_kern.c~uml-smp-locking-commentary arch/um/drivers/net_kern.c
+--- a/arch/um/drivers/net_kern.c~uml-smp-locking-commentary
++++ a/arch/um/drivers/net_kern.c
+@@ -368,7 +368,6 @@ static struct platform_driver uml_net_dr
+ 		.name  = DRIVER_NAME,
+ 	},
+ };
+-static int driver_registered;
+ 
+ static void net_device_release(struct device *dev)
+ {
+@@ -383,6 +382,12 @@ static void net_device_release(struct de
+ 	free_netdev(netdev);
  }
  
- /* XXX: use do_get_thread_area to read the host value? I'm not at all sure! */
--static int get_tls_entry(struct task_struct* task, struct user_desc *info, int idx)
-+static int get_tls_entry(struct task_struct *task, struct user_desc *info,
-+			 int idx)
++/*
++ * Ensures that platform_driver_register is called only once by
++ * eth_configure.  Will be set in an initcall.
++ */
++static int driver_registered;
++
+ static void eth_configure(int n, void *init, char *mac,
+ 			  struct transport *transport)
  {
- 	struct thread_struct *t = &task->thread;
+diff -puN arch/um/include/mem_user.h~uml-smp-locking-commentary arch/um/include/mem_user.h
+--- a/arch/um/include/mem_user.h~uml-smp-locking-commentary
++++ a/arch/um/include/mem_user.h
+@@ -56,7 +56,6 @@ extern void setup_physmem(unsigned long 
+ 			  unsigned long len, unsigned long long highmem);
+ extern void add_iomem(char *name, int fd, unsigned long size);
+ extern unsigned long phys_offset(unsigned long phys);
+-extern void unmap_physmem(void);
+ extern void map_memory(unsigned long virt, unsigned long phys,
+ 		       unsigned long len, int r, int w, int x);
  
-@@ -263,7 +264,7 @@ clear:
- 	goto out;
- }
+diff -puN arch/um/kernel/mem.c~uml-smp-locking-commentary arch/um/kernel/mem.c
+--- a/arch/um/kernel/mem.c~uml-smp-locking-commentary
++++ a/arch/um/kernel/mem.c
+@@ -22,17 +22,20 @@
+ unsigned long *empty_zero_page = NULL;
+ /* allocated in paging_init and unchanged thereafter */
+ unsigned long *empty_bad_page = NULL;
++
++/*
++ * Initialized during boot, and readonly for initializing page tables
++ * afterwards
++ */
+ pgd_t swapper_pg_dir[PTRS_PER_PGD];
++
++/* Initialized at boot time, and readonly after that */
+ unsigned long long highmem;
+ int kmalloc_ok = 0;
  
--asmlinkage int sys_set_thread_area(struct user_desc __user *user_desc)
-+int sys_set_thread_area(struct user_desc __user *user_desc)
++/* Used during early boot */
+ static unsigned long brk_end;
+ 
+-void unmap_physmem(void)
+-{
+-	os_unmap_memory((void *) brk_end, uml_reserved - brk_end);
+-}
+-
+ static void map_cb(void *unused)
  {
- 	struct user_desc info;
- 	int idx, ret;
-@@ -298,7 +299,7 @@ asmlinkage int sys_set_thread_area(struc
-  * i386. However the only possible error are caused by bugs.
+ 	map_memory(brk_end, __pa(brk_end), uml_reserved - brk_end, 1, 1, 0);
+diff -puN arch/um/kernel/physmem.c~uml-smp-locking-commentary arch/um/kernel/physmem.c
+--- a/arch/um/kernel/physmem.c~uml-smp-locking-commentary
++++ a/arch/um/kernel/physmem.c
+@@ -164,10 +164,10 @@ __uml_setup("iomem=", parse_iomem,
+  * setup_iomem, both of which run during early boot.  Afterwards, it's
+  * unchanged.
   */
- int ptrace_set_thread_area(struct task_struct *child, int idx,
--		struct user_desc __user *user_desc)
-+			   struct user_desc __user *user_desc)
+-struct iomem_region *iomem_regions = NULL;
++struct iomem_region *iomem_regions;
+ 
+-/* Initialized in parse_iomem */
+-int iomem_size = 0;
++/* Initialized in parse_iomem and unchanged thereafter */
++int iomem_size;
+ 
+ unsigned long find_iomem(char *driver, unsigned long *len_out)
  {
- 	struct user_desc info;
- 
-@@ -311,7 +312,7 @@ int ptrace_set_thread_area(struct task_s
- 	return set_tls_entry(child, &info, idx, 0);
- }
- 
--asmlinkage int sys_get_thread_area(struct user_desc __user *user_desc)
-+int sys_get_thread_area(struct user_desc __user *user_desc)
- {
- 	struct user_desc info;
- 	int idx, ret;
-diff -puN include/asm-um/linkage.h~uml-get-rid-of-asmlinkage include/asm-um/linkage.h
---- a/include/asm-um/linkage.h~uml-get-rid-of-asmlinkage
-+++ a/include/asm-um/linkage.h
-@@ -3,10 +3,4 @@
- 
- #include "asm/arch/linkage.h"
- 
--
--/* <linux/linkage.h> will pick sane defaults */
--#ifdef CONFIG_GPROF
--#undef fastcall
--#endif
--
- #endif
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
