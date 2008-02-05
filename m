@@ -1,144 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - tmpfs-move-swap_state-stats-update.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:30:25 -0800
-Message-ID: <200802052230.m15MU6Eq012035@imap1.linux-foundation.org>
+Subject: - vmalloc-clean-up-page-array-indexing.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:29:42 -0800
+Message-ID: <200802052229.m15MTNI7011974@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54339 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48615 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932073AbYBEWmt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:49 -0500
+	by vger.kernel.org with ESMTP id S932209AbYBEWnB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:43:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tmpfs: move swap_state stats update
+     vmalloc: clean up page array indexing
 has been removed from the -mm tree.  Its filename was
-     tmpfs-move-swap_state-stats-update.patch
+     vmalloc-clean-up-page-array-indexing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tmpfs: move swap_state stats update
-From: Hugh Dickins <hugh@veritas.com>
+Subject: vmalloc: clean up page array indexing
+From: Christoph Lameter <clameter@sgi.com>
 
-Both unionfs and memcgroups pose challenges to tmpfs and shmem.  To help fix,
-it's best to move the swap swizzling functions from swap_state.c to shmem.c. 
-As a preliminary to that, move swap stats updating down into
-__add_to_swap_cache, which will remain internal to swap_state.c.
+The page array is repeatedly indexed both in vunmap and vmalloc_area_node(). 
+Add a temporary variable to make it easier to read (and easier to patch
+later).
 
-Well, actually, just move down the incrementation of add_total: remove
-noent_race and exist_race completely, they are relics of my 2.4.11 testing. 
-Alt-SysRq-m users will be thrilled if 2.6.25 is at last free of "race M+N"s.
-
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |   22 ++++++----------------
- 1 file changed, 6 insertions(+), 16 deletions(-)
+ mm/vmalloc.c |   16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
-diff -puN mm/swap_state.c~tmpfs-move-swap_state-stats-update mm/swap_state.c
---- a/mm/swap_state.c~tmpfs-move-swap_state-stats-update
-+++ a/mm/swap_state.c
-@@ -52,16 +52,13 @@ static struct {
- 	unsigned long del_total;
- 	unsigned long find_success;
- 	unsigned long find_total;
--	unsigned long noent_race;
--	unsigned long exist_race;
- } swap_cache_info;
+diff -puN mm/vmalloc.c~vmalloc-clean-up-page-array-indexing mm/vmalloc.c
+--- a/mm/vmalloc.c~vmalloc-clean-up-page-array-indexing
++++ a/mm/vmalloc.c
+@@ -384,8 +384,10 @@ static void __vunmap(const void *addr, i
+ 		int i;
  
- void show_swap_cache_info(void)
- {
--	printk("Swap cache: add %lu, delete %lu, find %lu/%lu, race %lu+%lu\n",
-+	printk("Swap cache: add %lu, delete %lu, find %lu/%lu\n",
- 		swap_cache_info.add_total, swap_cache_info.del_total,
--		swap_cache_info.find_success, swap_cache_info.find_total,
--		swap_cache_info.noent_race, swap_cache_info.exist_race);
-+		swap_cache_info.find_success, swap_cache_info.find_total);
- 	printk("Free swap  = %lukB\n", nr_swap_pages << (PAGE_SHIFT - 10));
- 	printk("Total swap = %lukB\n", total_swap_pages << (PAGE_SHIFT - 10));
- }
-@@ -89,6 +86,7 @@ static int __add_to_swap_cache(struct pa
- 			set_page_private(page, entry.val);
- 			total_swapcache_pages++;
- 			__inc_zone_page_state(page, NR_FILE_PAGES);
-+			INC_CACHE_INFO(add_total);
- 		}
- 		write_unlock_irq(&swapper_space.tree_lock);
- 		radix_tree_preload_end();
-@@ -102,10 +100,9 @@ static int add_to_swap_cache(struct page
- 	int error;
- 
- 	BUG_ON(PageLocked(page));
--	if (!swap_duplicate(entry)) {
--		INC_CACHE_INFO(noent_race);
-+	if (!swap_duplicate(entry))
- 		return -ENOENT;
--	}
+ 		for (i = 0; i < area->nr_pages; i++) {
+-			BUG_ON(!area->pages[i]);
+-			__free_page(area->pages[i]);
++			struct page *page = area->pages[i];
 +
- 	SetPageLocked(page);
- 	error = __add_to_swap_cache(page, entry, gfp_mask & GFP_KERNEL);
- 	/*
-@@ -114,11 +111,8 @@ static int add_to_swap_cache(struct page
- 	if (error) {
- 		ClearPageLocked(page);
- 		swap_free(entry);
--		if (error == -EEXIST)
--			INC_CACHE_INFO(exist_race);
- 		return error;
++			BUG_ON(!page);
++			__free_page(page);
+ 		}
+ 
+ 		if (area->flags & VM_VPAGES)
+@@ -489,15 +491,19 @@ void *__vmalloc_area_node(struct vm_stru
  	}
--	INC_CACHE_INFO(add_total);
- 	return 0;
- }
  
-@@ -178,11 +172,9 @@ int add_to_swap(struct page * page, gfp_
- 		case 0:				/* Success */
- 			SetPageUptodate(page);
- 			SetPageDirty(page);
--			INC_CACHE_INFO(add_total);
- 			return 1;
- 		case -EEXIST:
- 			/* Raced with "speculative" read_swap_cache_async */
--			INC_CACHE_INFO(exist_race);
- 			swap_free(entry);
- 			continue;
- 		default:
-@@ -225,9 +217,7 @@ int move_to_swap_cache(struct page *page
- 		if (!swap_duplicate(entry))
- 			BUG();
- 		SetPageDirty(page);
--		INC_CACHE_INFO(add_total);
--	} else if (err == -EEXIST)
--		INC_CACHE_INFO(exist_race);
-+	}
- 	return err;
- }
+ 	for (i = 0; i < area->nr_pages; i++) {
++		struct page *page;
++
+ 		if (node < 0)
+-			area->pages[i] = alloc_page(gfp_mask);
++			page = alloc_page(gfp_mask);
+ 		else
+-			area->pages[i] = alloc_pages_node(node, gfp_mask, 0);
+-		if (unlikely(!area->pages[i])) {
++			page = alloc_pages_node(node, gfp_mask, 0);
++
++		if (unlikely(!page)) {
+ 			/* Successfully allocated i pages, free them in __vunmap() */
+ 			area->nr_pages = i;
+ 			goto fail;
+ 		}
++		area->pages[i] = page;
+ 	}
  
+ 	if (map_vm_area(area, prot, &pages))
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
+gregkh-driver-kset-move-sys-slab-to-sys-kernel-slab-slabinfo-fallback-from-sys-kernel-slab-to-sys-slab.patch
 git-unionfs.patch
-git-x86.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-memcgroup-temporarily-revert-swapoff-mod.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memcgroup-reinstate-swapoff-mod.patch
-memcgroup-fix-zone-isolation-oom.patch
-memcgroup-revert-swap_state-mods.patch
-memory-controller-use-rcu_read_lock-in-mem_cgroup_cache_charge.patch
-memcgroup-tidy-up-mem_cgroup_charge_common.patch
-memcgroup-fix-hang-with-shmem-tmpfs.patch
-mount-options-fix-tmpfs.patch
-mount-options-fix-tmpfs-fix.patch
-add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
-prio_tree-debugging-patch.patch
+git-slub.patch
+percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+oom-add-sysctl-to-enable-task-memory-dump.patch
+add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
+add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
+dentries-extract-common-code-to-remove-dentry-from-lru.patch
+dentries-extract-common-code-to-remove-dentry-from-lru-fix.patch
+modules-handle-symbols-that-have-a-zero-value.patch
+modules-include-sectionsh-to-avoid-defining-linker-variables.patch
+reiser4.patch
+reiser4-portion-of-zero_user-cleanup-patch.patch
+page-owner-tracking-leak-detector.patch
