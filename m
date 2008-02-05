@@ -1,133 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - uml-remove-topdir.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:38:36 -0800
-Message-ID: <200802052238.m15McHOf012938@imap1.linux-foundation.org>
+Subject: - maps4-move-is_swap_pte.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:31:00 -0800
+Message-ID: <200802052230.m15MUf9u012093@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37976 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45949 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932369AbYBEWnd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:43:33 -0500
+	by vger.kernel.org with ESMTP id S1760079AbYBEWnc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:43:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiyou.wangcong@gmail.com, jdike@linux.intel.com, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: mpm@selenic.com, haveblue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: remove TOPDIR
+     maps4: move is_swap_pte
 has been removed from the -mm tree.  Its filename was
-     uml-remove-topdir.patch
+     maps4-move-is_swap_pte.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: remove TOPDIR
-From: WANG Cong <xiyou.wangcong@gmail.com>
+Subject: maps4: move is_swap_pte
+From: Matt Mackall <mpm@selenic.com>
 
-TOPDIR is obsolete, use srctree instead.  This patch removes TOPDIR from all
-UML Makefiles.
+Move is_swap_pte helper function to swapops.h for use by pagemap code
 
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Matt Mackall <mpm@selenic.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/Makefile         |    4 ++--
- arch/um/sys-ppc/Makefile |   22 +++++++++++-----------
- 2 files changed, 13 insertions(+), 13 deletions(-)
+ include/linux/swapops.h |    6 ++++++
+ mm/migrate.c            |    5 -----
+ 2 files changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN arch/um/Makefile~uml-remove-topdir arch/um/Makefile
---- a/arch/um/Makefile~uml-remove-topdir
-+++ a/arch/um/Makefile
-@@ -160,7 +160,7 @@ ifneq ($(KBUILD_SRC),)
- 	$(Q)mkdir -p $(objtree)/include/asm-um
- 	$(Q)ln -fsn $(srctree)/include/asm-um/$(basename $(notdir $@))-$(SUBARCH)$(suffix $@) $@
- else
--	$(Q)cd $(TOPDIR)/$(dir $@) ; \
-+	$(Q)cd $(srctree)/$(dir $@) ; \
- 	ln -sf $(basename $(notdir $@))-$(SUBARCH)$(suffix $@) $(notdir $@)
- endif
+diff -puN include/linux/swapops.h~maps4-move-is_swap_pte include/linux/swapops.h
+--- a/include/linux/swapops.h~maps4-move-is_swap_pte
++++ a/include/linux/swapops.h
+@@ -42,6 +42,12 @@ static inline pgoff_t swp_offset(swp_ent
+ 	return entry.val & SWP_OFFSET_MASK(entry);
+ }
  
-@@ -170,7 +170,7 @@ ifneq ($(KBUILD_SRC),)
- 	$(Q)mkdir -p $(objtree)/include/asm-um
- 	$(Q)ln -fsn $(srctree)/include/asm-$(HEADER_ARCH) include/asm-um/arch
- else
--	$(Q)cd $(TOPDIR)/include/asm-um && ln -fsn ../asm-$(HEADER_ARCH) arch
-+	$(Q)cd $(srctree)/include/asm-um && ln -fsn ../asm-$(HEADER_ARCH) arch
- endif
++/* check whether a pte points to a swap entry */
++static inline int is_swap_pte(pte_t pte)
++{
++	return !pte_none(pte) && !pte_present(pte) && !pte_file(pte);
++}
++
+ /*
+  * Convert the arch-dependent pte representation of a swp_entry_t into an
+  * arch-independent swp_entry_t.
+diff -puN mm/migrate.c~maps4-move-is_swap_pte mm/migrate.c
+--- a/mm/migrate.c~maps4-move-is_swap_pte
++++ a/mm/migrate.c
+@@ -115,11 +115,6 @@ int putback_lru_pages(struct list_head *
+ 	return count;
+ }
  
- $(objtree)/$(ARCH_DIR)/include:
-diff -puN arch/um/sys-ppc/Makefile~uml-remove-topdir arch/um/sys-ppc/Makefile
---- a/arch/um/sys-ppc/Makefile~uml-remove-topdir
-+++ a/arch/um/sys-ppc/Makefile
-@@ -6,7 +6,7 @@ OBJ = built-in.o
- OBJS = ptrace.o sigcontext.o semaphore.o checksum.o miscthings.o misc.o \
- 	ptrace_user.o sysrq.o
- 
--EXTRA_AFLAGS := -DCONFIG_PPC32 -I. -I$(TOPDIR)/arch/ppc/kernel
-+EXTRA_AFLAGS := -DCONFIG_PPC32 -I. -I$(srctree)/arch/ppc/kernel
- 
- all: $(OBJ)
- 
-@@ -22,25 +22,25 @@ sigcontext.o: sigcontext.c
- 
- semaphore.c:
- 	rm -f $@
--	ln -s $(TOPDIR)/arch/ppc/kernel/$@ $@
-+	ln -s $(srctree)/arch/ppc/kernel/$@ $@
- 
- checksum.S:
- 	rm -f $@
--	ln -s $(TOPDIR)/arch/ppc/lib/$@ $@
-+	ln -s $(srctree)/arch/ppc/lib/$@ $@
- 
- mk_defs.c:
- 	rm -f $@
--	ln -s $(TOPDIR)/arch/ppc/kernel/$@ $@
-+	ln -s $(srctree)/arch/ppc/kernel/$@ $@
- 
- ppc_defs.head:
- 	rm -f $@
--	ln -s $(TOPDIR)/arch/ppc/kernel/$@ $@
-+	ln -s $(srctree)/arch/ppc/kernel/$@ $@
- 
- ppc_defs.h: mk_defs.c ppc_defs.head \
--		$(TOPDIR)/include/asm-ppc/mmu.h \
--		$(TOPDIR)/include/asm-ppc/processor.h \
--		$(TOPDIR)/include/asm-ppc/pgtable.h \
--		$(TOPDIR)/include/asm-ppc/ptrace.h
-+		$(srctree)/include/asm-ppc/mmu.h \
-+		$(srctree)/include/asm-ppc/processor.h \
-+		$(srctree)/include/asm-ppc/pgtable.h \
-+		$(srctree)/include/asm-ppc/ptrace.h
- #	$(CC) $(CFLAGS) -S mk_defs.c
- 	cp ppc_defs.head ppc_defs.h
- # for bk, this way we can write to the file even if it's not checked out
-@@ -56,13 +56,13 @@ ppc_defs.h: mk_defs.c ppc_defs.head \
- 
- checksum.o: checksum.S
- 	rm -f asm
--	ln -s $(TOPDIR)/include/asm-ppc asm
-+	ln -s $(srctree)/include/asm-ppc asm
- 	$(CC) $(EXTRA_AFLAGS) $(KBUILD_AFLAGS) -D__ASSEMBLY__ -D__UM_PPC__ -c $< -o $*.o
- 	rm -f asm
- 
- misc.o: misc.S ppc_defs.h
- 	rm -f asm
--	ln -s $(TOPDIR)/include/asm-ppc asm
-+	ln -s $(srctree)/include/asm-ppc asm
- 	$(CC) $(EXTRA_AFLAGS) $(KBUILD_AFLAGS) -D__ASSEMBLY__ -D__UM_PPC__ -c $< -o $*.o
- 	rm -f asm
- 
+-static inline int is_swap_pte(pte_t pte)
+-{
+-	return !pte_none(pte) && !pte_present(pte) && !pte_file(pte);
+-}
+-
+ /*
+  * Restore a potential migration pte to a working pte entry
+  */
 _
 
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
+Patches currently in -mm which might be from mpm@selenic.com are
 
 origin.patch
-time-fix-sysfs_show_availablecurrent_clocksources-buffer-overflow-problem.patch
-char-applicom-use-pci_resource_start.patch
-char-applicom-use-pci_match_id.patch
-char-applicom-use-pci_match_id-fix.patch
+drivers-char-randomcwrite_pool-cond_resched-needed.patch
+random-clean-up-checkpatch-complaints.patch
+random-clean-up-checkpatch-complaints-fix.patch
+random-consolidate-wakeup-logic.patch
+random-use-unlocked_ioctl.patch
+random-reuse-rand_initialize.patch
+random-improve-variable-naming-clear-extract-buffer.patch
+random-make-backtracking-attacks-harder.patch
+random-remove-cacheline-alignment-for-locks.patch
+random-eliminate-redundant-new_rotate-variable.patch
+random-remove-some-prefetch-logic.patch
+random-simplify-add_ptr-logic.patch
+random-make-mixing-interface-byte-oriented.patch
+random-simplify-and-rename-credit_entropy_store.patch
+random-add-async-notification-support-to-dev-random.patch
