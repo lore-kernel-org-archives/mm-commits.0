@@ -1,58 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - set_page_refcounted-vm_bug_on-fix.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:32:16 -0800
-Message-ID: <200802052231.m15MVvAV012201@imap1.linux-foundation.org>
+Subject: - rfcomm-tty-destroy-before-tty_close.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:39:52 -0800
+Message-ID: <200802052239.m15MdXiD013064@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58085 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54716 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762315AbYBEWlO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:14 -0500
+	by vger.kernel.org with ESMTP id S1762294AbYBEWlN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: qiyong@fc-cn.com, clameter@sgi.com, mm-commits@vger.kernel.org
+To: hidave.darkstar@gmail.com, marcel@holtmann.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     set_page_refcounted() VM_BUG_ON fix
+     rfcomm tty: destroy before tty_close()
 has been removed from the -mm tree.  Its filename was
-     set_page_refcounted-vm_bug_on-fix.patch
+     rfcomm-tty-destroy-before-tty_close.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: set_page_refcounted() VM_BUG_ON fix
-From: Qi Yong <qiyong@fc-cn.com>
+Subject: rfcomm tty: destroy before tty_close()
+From: Dave Young <hidave.darkstar@gmail.com>
 
-The current PageTail semantic is that a PageTail page is first a
-PageCompound page.  So remove the redundant PageCompound test in
-set_page_refcounted().
+rfcomm dev could be deleted in tty_hangup, so we must not call
+rfcomm_dev_del again to prevent from destroying rfcomm dev before tty
+close.
 
-Signed-off-by: Qi Yong <qiyong@fc-cn.com>
-Cc: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
+Cc: Marcel Holtmann <marcel@holtmann.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/bluetooth/rfcomm/tty.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/internal.h~set_page_refcounted-vm_bug_on-fix mm/internal.h
---- a/mm/internal.h~set_page_refcounted-vm_bug_on-fix
-+++ a/mm/internal.h
-@@ -24,7 +24,7 @@ static inline void set_page_count(struct
-  */
- static inline void set_page_refcounted(struct page *page)
- {
--	VM_BUG_ON(PageCompound(page) && PageTail(page));
-+	VM_BUG_ON(PageTail(page));
- 	VM_BUG_ON(atomic_read(&page->_count));
- 	set_page_count(page, 1);
+diff -puN net/bluetooth/rfcomm/tty.c~rfcomm-tty-destroy-before-tty_close net/bluetooth/rfcomm/tty.c
+--- a/net/bluetooth/rfcomm/tty.c~rfcomm-tty-destroy-before-tty_close
++++ a/net/bluetooth/rfcomm/tty.c
+@@ -429,7 +429,8 @@ static int rfcomm_release_dev(void __use
+ 	if (dev->tty)
+ 		tty_vhangup(dev->tty);
+ 
+-	rfcomm_dev_del(dev);
++	if (!test_bit(RFCOMM_RELEASE_ONHUP, &dev->flags))
++		rfcomm_dev_del(dev);
+ 	rfcomm_dev_put(dev);
+ 	return 0;
  }
 _
 
-Patches currently in -mm which might be from qiyong@fc-cn.com are
+Patches currently in -mm which might be from hidave.darkstar@gmail.com are
 
 origin.patch
-kill-an-unused-ptr_err-in-bdev_cache_init.patch
+git-cpufreq.patch
+iget-stop-isofs-from-using-read_inode.patch
+iget-stop-isofs-from-using-read_inode-fix-2.patch
+iget-stop-isofs-from-using-read_inode-fix-2-update.patch
