@@ -1,128 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-pcmcia-add-missing-iounmap.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:27:26 -0800
-Message-ID: <200802052227.m15MR7nr011752@imap1.linux-foundation.org>
+Subject: - iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:28:16 -0800
+Message-ID: <200802052227.m15MRvJs011839@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37124 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54034 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762762AbYBEWo2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:44:28 -0500
+	by vger.kernel.org with ESMTP id S1759690AbYBEWoR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:44:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, arnd@arndb.de, benh@kernel.crashing.org, galak@kernel.crashing.org, linux@dominikbrodowski.net, olof@lixom.net, paulus@samba.org, sfr@canb.auug.org.au, vitb@kernel.cras
+To: tomof@acm.org, James.Bottomley@steeleye.com, davem@davemloft.net, fujita.tomonori@lab.ntt.co.jp, jeff@garzik.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/pcmcia: Add missing iounmap
+     iommu sg merging: sparc64: make iommu respect the segment size limits
 has been removed from the -mm tree.  Its filename was
-     drivers-pcmcia-add-missing-iounmap.patch
+     iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/pcmcia: Add missing iounmap
-From: Julia Lawall <julia@diku.dk>
+Subject: iommu sg merging: sparc64: make iommu respect the segment size limits
+From: FUJITA Tomonori <tomof@acm.org>
 
-of_iomap calls ioremap, and so should be matched with an iounmap.  At the
-two error returns, the result of calling of_iomap is only stored in a local
-variable, so these error paths need to call iounmap.  Furthermore, this
-function ultimately stores the result of of_iomap in an array that is local
-to the file.  These values should be iounmapped at some point.  I have
-added a corresponding call to iounmap at the end of the function
-m8xx_remove.
+This patch makes iommu respect segment size limits when merging sg
+lists.
 
-The problem was found using the following semantic match.
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@@
-type T,T1,T2;
-identifier E;
-statement S;
-expression x1,x2,x3;
-int ret;
-@@
-
-  T E;
-  ...
-* E = of_iomap(...);
-  if (E == NULL) S
-  ... when != iounmap(...,(T1)E,...)
-      when != if (E != NULL) { ... iounmap(...,(T1)E,...); ...}
-      when != x1 = (T1)E
-      when != E = x3;
-      when any
-  if (...) {
-    ... when != iounmap(...,(T2)E,...)
-        when != if (E != NULL) { ... iounmap(...,(T2)E,...); ...}
-        when != x2 = (T2)E
-(
-*   return;
-|
-*   return ret;
-)
-  }
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Vitaly Bordug <vitb@kernel.crashing.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Olof Johansson <olof@lixom.net>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Kumar Gala <galak@kernel.crashing.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Acked-by: Jens Axboe <jens.axboe@oracle.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/m8xx_pcmcia.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ arch/sparc64/kernel/iommu.c        |    2 +-
+ arch/sparc64/kernel/iommu_common.c |    8 ++++++--
+ arch/sparc64/kernel/iommu_common.h |    3 ++-
+ arch/sparc64/kernel/pci_sun4v.c    |    2 +-
+ 4 files changed, 10 insertions(+), 5 deletions(-)
 
-diff -puN drivers/pcmcia/m8xx_pcmcia.c~drivers-pcmcia-add-missing-iounmap drivers/pcmcia/m8xx_pcmcia.c
---- a/drivers/pcmcia/m8xx_pcmcia.c~drivers-pcmcia-add-missing-iounmap
-+++ a/drivers/pcmcia/m8xx_pcmcia.c
-@@ -1174,8 +1174,10 @@ static int __init m8xx_probe(struct of_d
+diff -puN arch/sparc64/kernel/iommu.c~iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits arch/sparc64/kernel/iommu.c
+--- a/arch/sparc64/kernel/iommu.c~iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits
++++ a/arch/sparc64/kernel/iommu.c
+@@ -580,7 +580,7 @@ static int dma_4u_map_sg(struct device *
  
- 	pcmcia_schlvl = irq_of_parse_and_map(np, 0);
- 	hwirq = irq_map[pcmcia_schlvl].hwirq;
--	if (pcmcia_schlvl < 0)
-+	if (pcmcia_schlvl < 0) {
-+		iounmap(pcmcia);
- 		return -EINVAL;
-+	}
+ 	/* Step 1: Prepare scatter list. */
  
- 	m8xx_pgcrx[0] = &pcmcia->pcmc_pgcra;
- 	m8xx_pgcrx[1] = &pcmcia->pcmc_pgcrb;
-@@ -1189,6 +1191,7 @@ static int __init m8xx_probe(struct of_d
- 			driver_name, socket)) {
- 		pcmcia_error("Cannot allocate IRQ %u for SCHLVL!\n",
- 			     pcmcia_schlvl);
-+		iounmap(pcmcia);
- 		return -1;
- 	}
+-	npages = prepare_sg(sglist, nelems);
++	npages = prepare_sg(dev, sglist, nelems);
  
-@@ -1284,6 +1287,7 @@ static int m8xx_remove(struct of_device 
- 	}
- 	for (i = 0; i < PCMCIA_SOCKETS_NO; i++)
- 		pcmcia_unregister_socket(&socket[i].socket);
-+	iounmap(pcmcia);
+ 	/* Step 2: Allocate a cluster and context, if necessary. */
  
- 	free_irq(pcmcia_schlvl, NULL);
+diff -puN arch/sparc64/kernel/iommu_common.c~iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits arch/sparc64/kernel/iommu_common.c
+--- a/arch/sparc64/kernel/iommu_common.c~iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits
++++ a/arch/sparc64/kernel/iommu_common.c
+@@ -4,6 +4,7 @@
+  * Copyright (C) 1999 David S. Miller (davem@redhat.com)
+  */
  
++#include <linux/dma-mapping.h>
+ #include "iommu_common.h"
+ 
+ /* You are _strongly_ advised to enable the following debugging code
+@@ -201,21 +202,24 @@ void verify_sglist(struct scatterlist *s
+ }
+ #endif
+ 
+-unsigned long prepare_sg(struct scatterlist *sg, int nents)
++unsigned long prepare_sg(struct device *dev, struct scatterlist *sg, int nents)
+ {
+ 	struct scatterlist *dma_sg = sg;
+ 	unsigned long prev;
+ 	u32 dent_addr, dent_len;
++	unsigned int max_seg_size;
+ 
+ 	prev  = (unsigned long) sg_virt(sg);
+ 	prev += (unsigned long) (dent_len = sg->length);
+ 	dent_addr = (u32) ((unsigned long)(sg_virt(sg)) & (IO_PAGE_SIZE - 1UL));
++	max_seg_size = dma_get_max_seg_size(dev);
+ 	while (--nents) {
+ 		unsigned long addr;
+ 
+ 		sg = sg_next(sg);
+ 		addr = (unsigned long) sg_virt(sg);
+-		if (! VCONTIG(prev, addr)) {
++		if (! VCONTIG(prev, addr) ||
++			dent_len + sg->length > max_seg_size) {
+ 			dma_sg->dma_address = dent_addr;
+ 			dma_sg->dma_length = dent_len;
+ 			dma_sg = sg_next(dma_sg);
+diff -puN arch/sparc64/kernel/iommu_common.h~iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits arch/sparc64/kernel/iommu_common.h
+--- a/arch/sparc64/kernel/iommu_common.h~iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits
++++ a/arch/sparc64/kernel/iommu_common.h
+@@ -9,6 +9,7 @@
+ #include <linux/sched.h>
+ #include <linux/mm.h>
+ #include <linux/scatterlist.h>
++#include <linux/device.h>
+ 
+ #include <asm/iommu.h>
+ #include <asm/scatterlist.h>
+@@ -46,4 +47,4 @@ extern void verify_sglist(struct scatter
+ #define VCONTIG(__X, __Y)	(((__X) == (__Y)) || \
+ 				 (((__X) | (__Y)) << (64UL - PAGE_SHIFT)) == 0UL)
+ 
+-extern unsigned long prepare_sg(struct scatterlist *sg, int nents);
++extern unsigned long prepare_sg(struct device *dev, struct scatterlist *sg, int nents);
+diff -puN arch/sparc64/kernel/pci_sun4v.c~iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits arch/sparc64/kernel/pci_sun4v.c
+--- a/arch/sparc64/kernel/pci_sun4v.c~iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits
++++ a/arch/sparc64/kernel/pci_sun4v.c
+@@ -490,7 +490,7 @@ static int dma_4v_map_sg(struct device *
+ 		goto bad;
+ 
+ 	/* Step 1: Prepare scatter list. */
+-	npages = prepare_sg(sglist, nelems);
++	npages = prepare_sg(dev, sglist, nelems);
+ 
+ 	/* Step 2: Allocate a cluster and context, if necessary. */
+ 	spin_lock_irqsave(&iommu->lock, flags);
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from tomof@acm.org are
 
 origin.patch
-drivers-cpufreq-add-calls-to-cpufreq_cpu_put.patch
-arch-powerpc-platforms-pseries-add-missing-of_node_put.patch
-arch-powerpc-sysdev-add-missing-of_node_put.patch
-arch-powerpc-platforms-82xx-add-missing-of_node_put.patch
-git-input.patch
-git-mtd.patch
-drivers-video-remove-unnecessary-pci_dev_put.patch
-drivers-video-add-missing-pci_dev_get.patch
