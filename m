@@ -1,113 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - uml-host-tls-diagnostics.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:36:23 -0800
-Message-ID: <200802052236.m15Ma4mb012677@imap1.linux-foundation.org>
+Subject: - bluetooth-hidp_process_hid_control-remove-unnecessary-parameter-dealing.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:39:33 -0800
+Message-ID: <200802052239.m15MdEhE013029@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46897 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56699 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762300AbYBEWld (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:33 -0500
+	by vger.kernel.org with ESMTP id S1760800AbYBEWl1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: hidave.darkstar@gmail.com, marcel@holtmann.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: host TLS diagnostics
+     bluetooth: hidp_process_hid_control remove unnecessary parameter dealing
 has been removed from the -mm tree.  Its filename was
-     uml-host-tls-diagnostics.patch
+     bluetooth-hidp_process_hid_control-remove-unnecessary-parameter-dealing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: host TLS diagnostics
-From: Jeff Dike <jdike@addtoit.com>
+Subject: bluetooth: hidp_process_hid_control remove unnecessary parameter dealing
+From: Dave Young <hidave.darkstar@gmail.com>
 
-Add some diagnostics when TLS operations on the host fail.  Also spit out more
-information about the TLS environment on the host at boot time.
+According to the bluetooth HID spec v1.0 chapter 7.4.2
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+"This code requests a major state change in a BT-HID device.  A HID_CONTROL
+request does not generate a HANDSHAKE response."
+
+"A HID_CONTROL packet with a parameter of VIRTUAL_CABLE_UNPLUG is the only
+HID_CONTROL packet a device can send to a host.  A host will ignore all other
+packets."
+
+So in the hidp_precess_hid_control function, we just need to deal with the
+UNLUG packet.
+
+Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
+Cc: Marcel Holtmann <marcel@holtmann.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/sys-i386/tls.c |   30 +++++++++++++++++++++---------
- 1 file changed, 21 insertions(+), 9 deletions(-)
+ net/bluetooth/hidp/core.c |   19 +------------------
+ 1 file changed, 1 insertion(+), 18 deletions(-)
 
-diff -puN arch/um/sys-i386/tls.c~uml-host-tls-diagnostics arch/um/sys-i386/tls.c
---- a/arch/um/sys-i386/tls.c~uml-host-tls-diagnostics
-+++ a/arch/um/sys-i386/tls.c
-@@ -26,6 +26,11 @@ int do_set_thread_area(struct user_desc 
- 	cpu = get_cpu();
- 	ret = os_set_thread_area(info, userspace_pid[cpu]);
- 	put_cpu();
-+
-+	if (ret)
-+		printk(KERN_ERR "PTRACE_SET_THREAD_AREA failed, err = %d, "
-+		       "index = %d\n", ret, info->entry_number);
-+
- 	return ret;
- }
- 
-@@ -37,6 +42,11 @@ int do_get_thread_area(struct user_desc 
- 	cpu = get_cpu();
- 	ret = os_get_thread_area(info, userspace_pid[cpu]);
- 	put_cpu();
-+
-+	if (ret)
-+		printk(KERN_ERR "PTRACE_GET_THREAD_AREA failed, err = %d, "
-+		       "index = %d\n", ret, info->entry_number);
-+
- 	return ret;
- }
- 
-@@ -356,10 +366,9 @@ out:
- 	return ret;
- }
- 
--
- /*
-- * XXX: This part is probably common to i386 and x86-64. Don't create a common
-- * file for now, do that when implementing x86-64 support.
-+ * This code is really i386-only, but it detects and logs x86_64 GDT indexes
-+ * if a 32-bit UML is running on a 64-bit host.
-  */
- static int __init __setup_host_supports_tls(void)
+diff -puN net/bluetooth/hidp/core.c~bluetooth-hidp_process_hid_control-remove-unnecessary-parameter-dealing net/bluetooth/hidp/core.c
+--- a/net/bluetooth/hidp/core.c~bluetooth-hidp_process_hid_control-remove-unnecessary-parameter-dealing
++++ a/net/bluetooth/hidp/core.c
+@@ -369,30 +369,13 @@ static inline void hidp_process_hid_cont
  {
-@@ -368,13 +377,16 @@ static int __init __setup_host_supports_
- 		printk(KERN_INFO "Host TLS support detected\n");
- 		printk(KERN_INFO "Detected host type: ");
- 		switch (host_gdt_entry_tls_min) {
--			case GDT_ENTRY_TLS_MIN_I386:
--				printk("i386\n");
--				break;
--			case GDT_ENTRY_TLS_MIN_X86_64:
--				printk("x86_64\n");
--				break;
-+		case GDT_ENTRY_TLS_MIN_I386:
-+			printk(KERN_CONT "i386");
-+			break;
-+		case GDT_ENTRY_TLS_MIN_X86_64:
-+			printk(KERN_CONT "x86_64");
-+			break;
- 		}
-+		printk(KERN_CONT " (GDT indexes %d to %d)\n",
-+		       host_gdt_entry_tls_min,
-+		       host_gdt_entry_tls_min + GDT_ENTRY_TLS_ENTRIES);
- 	} else
- 		printk(KERN_ERR "  Host TLS support NOT detected! "
- 				"TLS support inside UML will not work\n");
+ 	BT_DBG("session %p param 0x%02x", session, param);
+ 
+-	switch (param) {
+-	case HIDP_CTRL_NOP:
+-		break;
+-
+-	case HIDP_CTRL_VIRTUAL_CABLE_UNPLUG:
++	if (param == HIDP_CTRL_VIRTUAL_CABLE_UNPLUG) {
+ 		/* Flush the transmit queues */
+ 		skb_queue_purge(&session->ctrl_transmit);
+ 		skb_queue_purge(&session->intr_transmit);
+ 
+ 		/* Kill session thread */
+ 		atomic_inc(&session->terminate);
+-		break;
+-
+-	case HIDP_CTRL_HARD_RESET:
+-	case HIDP_CTRL_SOFT_RESET:
+-	case HIDP_CTRL_SUSPEND:
+-	case HIDP_CTRL_EXIT_SUSPEND:
+-		/* FIXME: We have to parse these and return no error */
+-		break;
+-
+-	default:
+-		__hidp_send_ctrl_message(session,
+-			HIDP_TRANS_HANDSHAKE | HIDP_HSHK_ERR_INVALID_PARAMETER, NULL, 0);
+-		break;
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from hidave.darkstar@gmail.com are
 
 origin.patch
-git-kvm.patch
-fix-__const_udelay-declaration-and-definition-mismatches.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
-random-add-async-notification-support-to-dev-random.patch
-mount-options-fix-hostfs.patch
+git-cpufreq.patch
+iget-stop-isofs-from-using-read_inode.patch
+iget-stop-isofs-from-using-read_inode-fix-2.patch
+iget-stop-isofs-from-using-read_inode-fix-2-update.patch
