@@ -1,170 +1,192 @@
 From: akpm@linux-foundation.org
-Subject: - writeback-speed-up-writeback-of-big-dirty-files.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:32:39 -0800
-Message-ID: <200802052232.m15MWKOw012319@imap1.linux-foundation.org>
+Subject: - tmpfs-allow-filepage-alongside-swappage.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:30:32 -0800
+Message-ID: <200802052230.m15MUD3c012048@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45433 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55297 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761072AbYBEWmh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:37 -0500
+	by vger.kernel.org with ESMTP id S932127AbYBEWmw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wfg@mail.ustc.edu.cn, mrubin@google.com, snitzer@gmail.com, mm-commits@vger.kernel.org
+To: hugh@veritas.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     writeback: speed up writeback of big dirty files
+     tmpfs: allow filepage alongside swappage
 has been removed from the -mm tree.  Its filename was
-     writeback-speed-up-writeback-of-big-dirty-files.patch
+     tmpfs-allow-filepage-alongside-swappage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: writeback: speed up writeback of big dirty files
-From: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Subject: tmpfs: allow filepage alongside swappage
+From: Hugh Dickins <hugh@veritas.com>
 
-After making dirty a 100M file, the normal behavior is to start the
-writeback for all data after 30s delays.  But sometimes the following
-happens instead:
+tmpfs has long allowed for a fresh filepage to be created in pagecache, just
+before shmem_getpage gets the chance to match it up with the swappage which
+already belongs to that offset.  But unionfs_writepage now does a
+find_or_create_page, divorced from shmem_getpage, which leaves conflicting
+filepage and swappage outstanding indefinitely, when unionfs is over tmpfs.
 
-	- after 30s:    ~4M
-	- after 5s:     ~4M
-	- after 5s:     all remaining 92M
+Therefore shmem_writepage (where a page is swizzled from file to swap) must
+now be on the lookout for existing swap, ready to free it in favour of the
+more uptodate filepage, instead of BUGging on that clash.  And when the
+add_to_page_cache fails in shmem_unuse_inode, it must defer to an uptodate
+filepage, otherwise swapoff would hang.  Whereas when add_to_page_cache fails
+in shmem_getpage, it should retry in the same way it already does.
 
-Some analyze shows that the internal io dispatch queues goes like this:
-
-		s_io            s_more_io
-		-------------------------
-	1)	100M,1K         0
-	2)	1K              96M
-	3)	0               96M
-1) initial state with a 100M file and a 1K file
-
-2) 4M written, nr_to_write <= 0, so write more
-
-3) 1K written, nr_to_write > 0, no more writes(BUG)
-
-nr_to_write > 0 in (3) fools the upper layer to think that data have all
-been written out.  The big dirty file is actually still sitting in
-s_more_io.  We cannot simply splice s_more_io back to s_io as soon as s_io
-becomes empty, and let the loop in generic_sync_sb_inodes() continue: this
-may starve newly expired inodes in s_dirty.  It is also not an option to
-draw inodes from both s_more_io and s_dirty, an let the loop go on: this
-might lead to live locks, and might also starve other superblocks in sync
-time(well kupdate may still starve some superblocks, that's another bug).
-
-We have to return when a full scan of s_io completes.  So nr_to_write > 0
-does not necessarily mean that "all data are written".  This patch
-introduces a flag writeback_control.more_io to indicate that more io should
-be done.  With it the big dirty file no longer has to wait for the next
-kupdate invokation 5s later.
-
-In sync_sb_inodes() we only set more_io on super_blocks we actually
-visited.  This avoids the interaction between two pdflush deamons.
-
-Also in __sync_single_inode() we don't blindly keep requeuing the io if the
-filesystem cannot progress.  Failing to do so may lead to 100% iowait.
-
-Tested-by: Mike Snitzer <snitzer@gmail.com>
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
-Cc: Michael Rubin <mrubin@google.com>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c         |   18 ++++++++++++++++--
- include/linux/writeback.h |    1 +
- mm/page-writeback.c       |    9 ++++++---
- 3 files changed, 23 insertions(+), 5 deletions(-)
+ mm/shmem.c |   69 ++++++++++++++++++++++++++++++++-------------------
+ 1 file changed, 44 insertions(+), 25 deletions(-)
 
-diff -puN fs/fs-writeback.c~writeback-speed-up-writeback-of-big-dirty-files fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-speed-up-writeback-of-big-dirty-files
-+++ a/fs/fs-writeback.c
-@@ -284,7 +284,17 @@ __sync_single_inode(struct inode *inode,
- 				 * soon as the queue becomes uncongested.
- 				 */
- 				inode->i_state |= I_DIRTY_PAGES;
--				requeue_io(inode);
-+				if (wbc->nr_to_write <= 0) {
-+					/*
-+					 * slice used up: queue for next turn
-+					 */
-+					requeue_io(inode);
-+				} else {
-+					/*
-+					 * somehow blocked: retry later
-+					 */
-+					redirty_tail(inode);
-+				}
- 			} else {
- 				/*
- 				 * Otherwise fully redirty the inode so that
-@@ -468,8 +478,12 @@ sync_sb_inodes(struct super_block *sb, s
- 		iput(inode);
- 		cond_resched();
- 		spin_lock(&inode_lock);
--		if (wbc->nr_to_write <= 0)
-+		if (wbc->nr_to_write <= 0) {
-+			wbc->more_io = 1;
- 			break;
-+		}
-+		if (!list_empty(&sb->s_more_io))
-+			wbc->more_io = 1;
- 	}
- 	return;		/* Leave any unwritten inodes on s_io */
- }
-diff -puN include/linux/writeback.h~writeback-speed-up-writeback-of-big-dirty-files include/linux/writeback.h
---- a/include/linux/writeback.h~writeback-speed-up-writeback-of-big-dirty-files
-+++ a/include/linux/writeback.h
-@@ -62,6 +62,7 @@ struct writeback_control {
- 	unsigned for_reclaim:1;		/* Invoked from the page allocator */
- 	unsigned for_writepages:1;	/* This is a writepages() call */
- 	unsigned range_cyclic:1;	/* range_start is cyclic */
-+	unsigned more_io:1;		/* more io to be dispatched */
- };
+diff -puN mm/shmem.c~tmpfs-allow-filepage-alongside-swappage mm/shmem.c
+--- a/mm/shmem.c~tmpfs-allow-filepage-alongside-swappage
++++ a/mm/shmem.c
+@@ -827,6 +827,7 @@ static int shmem_unuse_inode(struct shme
+ 	struct page *subdir;
+ 	swp_entry_t *ptr;
+ 	int offset;
++	int error;
  
- /*
-diff -puN mm/page-writeback.c~writeback-speed-up-writeback-of-big-dirty-files mm/page-writeback.c
---- a/mm/page-writeback.c~writeback-speed-up-writeback-of-big-dirty-files
-+++ a/mm/page-writeback.c
-@@ -567,6 +567,7 @@ static void background_writeout(unsigned
- 			global_page_state(NR_UNSTABLE_NFS) < background_thresh
- 				&& min_pages <= 0)
- 			break;
-+		wbc.more_io = 0;
- 		wbc.encountered_congestion = 0;
- 		wbc.nr_to_write = MAX_WRITEBACK_PAGES;
- 		wbc.pages_skipped = 0;
-@@ -574,8 +575,9 @@ static void background_writeout(unsigned
- 		min_pages -= MAX_WRITEBACK_PAGES - wbc.nr_to_write;
- 		if (wbc.nr_to_write > 0 || wbc.pages_skipped > 0) {
- 			/* Wrote less than expected */
--			congestion_wait(WRITE, HZ/10);
--			if (!wbc.encountered_congestion)
-+			if (wbc.encountered_congestion || wbc.more_io)
-+				congestion_wait(WRITE, HZ/10);
-+			else
- 				break;
- 		}
+ 	idx = 0;
+ 	ptr = info->i_direct;
+@@ -884,7 +885,20 @@ lost2:
+ found:
+ 	idx += offset;
+ 	inode = &info->vfs_inode;
+-	if (add_to_page_cache(page, inode->i_mapping, idx, GFP_ATOMIC) == 0) {
++	error = add_to_page_cache(page, inode->i_mapping, idx, GFP_ATOMIC);
++	if (error == -EEXIST) {
++		struct page *filepage = find_get_page(inode->i_mapping, idx);
++		if (filepage) {
++			/*
++			 * There might be a more uptodate page coming down
++			 * from a stacked writepage: forget our swappage if so.
++			 */
++			if (PageUptodate(filepage))
++				error = 0;
++			page_cache_release(filepage);
++		}
++	}
++	if (!error) {
+ 		delete_from_swap_cache(page);
+ 		set_page_dirty(page);
+ 		info->flags |= SHMEM_PAGEIN;
+@@ -937,44 +951,45 @@ static int shmem_writepage(struct page *
+ 	struct inode *inode;
+ 
+ 	BUG_ON(!PageLocked(page));
+-	/*
+-	 * shmem_backing_dev_info's capabilities prevent regular writeback or
+-	 * sync from ever calling shmem_writepage; but a stacking filesystem
+-	 * may use the ->writepage of its underlying filesystem, in which case
+-	 * we want to do nothing when that underlying filesystem is tmpfs
+-	 * (writing out to swap is useful as a response to memory pressure, but
+-	 * of no use to stabilize the data) - just redirty the page, unlock it
+-	 * and claim success in this case.  AOP_WRITEPAGE_ACTIVATE, and the
+-	 * page_mapped check below, must be avoided unless we're in reclaim.
+-	 */
+-	if (!wbc->for_reclaim) {
+-		set_page_dirty(page);
+-		unlock_page(page);
+-		return 0;
+-	}
+-	BUG_ON(page_mapped(page));
+-
+ 	mapping = page->mapping;
+ 	index = page->index;
+ 	inode = mapping->host;
+ 	info = SHMEM_I(inode);
+ 	if (info->flags & VM_LOCKED)
+ 		goto redirty;
+-	swap = get_swap_page();
+-	if (!swap.val)
++	if (!total_swap_pages)
+ 		goto redirty;
+ 
++	/*
++	 * shmem_backing_dev_info's capabilities prevent regular writeback or
++	 * sync from ever calling shmem_writepage; but a stacking filesystem
++	 * may use the ->writepage of its underlying filesystem, in which case
++	 * tmpfs should write out to swap only in response to memory pressure,
++	 * and not for pdflush or sync.  However, in those cases, we do still
++	 * want to check if there's a redundant swappage to be discarded.
++	 */
++	if (wbc->for_reclaim)
++		swap = get_swap_page();
++	else
++		swap.val = 0;
++
+ 	spin_lock(&info->lock);
+-	shmem_recalc_inode(inode);
+ 	if (index >= info->next_index) {
+ 		BUG_ON(!(info->flags & SHMEM_TRUNCATE));
+ 		goto unlock;
  	}
-@@ -640,11 +642,12 @@ static void wb_kupdate(unsigned long arg
- 			global_page_state(NR_UNSTABLE_NFS) +
- 			(inodes_stat.nr_inodes - inodes_stat.nr_unused);
- 	while (nr_to_write > 0) {
-+		wbc.more_io = 0;
- 		wbc.encountered_congestion = 0;
- 		wbc.nr_to_write = MAX_WRITEBACK_PAGES;
- 		writeback_inodes(&wbc);
- 		if (wbc.nr_to_write > 0) {
--			if (wbc.encountered_congestion)
-+			if (wbc.encountered_congestion || wbc.more_io)
- 				congestion_wait(WRITE, HZ/10);
- 			else
- 				break;	/* All the old data is written */
+ 	entry = shmem_swp_entry(info, index, NULL);
+-	BUG_ON(!entry);
+-	BUG_ON(entry->val);
++	if (entry->val) {
++		/*
++		 * The more uptodate page coming down from a stacked
++		 * writepage should replace our old swappage.
++		 */
++		free_swap_and_cache(*entry);
++		shmem_swp_set(info, entry, 0);
++	}
++	shmem_recalc_inode(inode);
+ 
+-	if (add_to_swap_cache(page, swap, GFP_ATOMIC) == 0) {
++	if (swap.val && add_to_swap_cache(page, swap, GFP_ATOMIC) == 0) {
+ 		remove_from_page_cache(page);
+ 		shmem_swp_set(info, entry, swap.val);
+ 		shmem_swp_unmap(entry);
+@@ -986,6 +1001,7 @@ static int shmem_writepage(struct page *
+ 			spin_unlock(&shmem_swaplist_lock);
+ 		}
+ 		swap_duplicate(swap);
++		BUG_ON(page_mapped(page));
+ 		page_cache_release(page);	/* pagecache ref */
+ 		set_page_dirty(page);
+ 		unlock_page(page);
+@@ -998,7 +1014,10 @@ unlock:
+ 	swap_free(swap);
+ redirty:
+ 	set_page_dirty(page);
+-	return AOP_WRITEPAGE_ACTIVATE;	/* Return with the page locked */
++	if (wbc->for_reclaim)
++		return AOP_WRITEPAGE_ACTIVATE;	/* Return with page locked */
++	unlock_page(page);
++	return 0;
+ }
+ 
+ #ifdef CONFIG_NUMA
 _
 
-Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
+git-unionfs.patch
+git-x86.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+memcgroup-temporarily-revert-swapoff-mod.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memcgroup-reinstate-swapoff-mod.patch
+memcgroup-fix-zone-isolation-oom.patch
+memcgroup-revert-swap_state-mods.patch
+memory-controller-use-rcu_read_lock-in-mem_cgroup_cache_charge.patch
+memcgroup-tidy-up-mem_cgroup_charge_common.patch
+memcgroup-fix-hang-with-shmem-tmpfs.patch
+mount-options-fix-tmpfs.patch
+mount-options-fix-tmpfs-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
+prio_tree-debugging-patch.patch
