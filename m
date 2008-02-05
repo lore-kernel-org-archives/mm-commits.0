@@ -1,162 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: - tmpfs-fix-shmem_swaplist-races.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:30:47 -0800
-Message-ID: <200802052230.m15MUSSt012070@imap1.linux-foundation.org>
+Subject: - sh-termios-ioctl-definitions.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:39:57 -0800
+Message-ID: <200802052239.m15MdcbL013067@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33729 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40988 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932140AbYBEWmx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:53 -0500
+	by vger.kernel.org with ESMTP id S932298AbYBEWnQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:43:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tmpfs: fix shmem_swaplist races
+     sh: termios ioctl definitions
 has been removed from the -mm tree.  Its filename was
-     tmpfs-fix-shmem_swaplist-races.patch
+     sh-termios-ioctl-definitions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tmpfs: fix shmem_swaplist races
-From: Hugh Dickins <hugh@veritas.com>
+Subject: sh: termios ioctl definitions
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Intensive swapoff testing shows shmem_unuse spinning on an entry in
-shmem_swaplist pointing to itself: how does that come about?  Days pass...
+These ports are holding up progress and now have been for months. Do the
+job for them.
 
-First guess is this: shmem_delete_inode tests list_empty without taking the
-global mutex (so the swapping case doesn't slow down the common case); but
-there's an instant in shmem_unuse_inode's list_move_tail when the list entry
-may appear empty (a rare case, because it's actually moving the head not the
-the list member).  So there's a danger of leaving the inode on the swaplist
-when it's freed, then reinitialized to point to itself when reused.  Fix that
-by skipping the list_move_tail when it's a no-op, which happens to plug this.
-
-But this same spinning then surfaces on another machine.  Ah, I'd never
-suspected it, but shmem_writepage's swaplist manipulation is unsafe: though we
-still hold page lock, which would hold off inode deletion if the page were in
-pagecache, it doesn't hold off once it's in swapcache (free_swap_and_cache
-doesn't wait on locked pages).  Hmm: we could put the the inode on swaplist
-earlier, but then shmem_unuse_inode could never prune unswapped inodes.
-
-Fix this with an igrab before dropping info->lock, as in shmem_unuse_inode;
-though I am a little uneasy about the iput which has to follow - it works, and
-I see nothing wrong with it, but it is surprising that shmem inode deletion
-may now occur below shmem_writepage.  Revisit this fix later?
-
-And while we're looking at these races: the way shmem_unuse tests swapped
-without holding info->lock looks unsafe, if we've more than one swap area: a
-racing shmem_writepage on another page of the same inode could be putting it
-in swapcache, just as we're deciding to remove the inode from swaplist -
-there's a danger of going on swap without being listed, so a later swapoff
-would hang, being unable to locate the entry.  Move that test and removal down
-into shmem_unuse_inode, once info->lock is held.
-
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   37 +++++++++++++++++++++++++------------
- 1 file changed, 25 insertions(+), 12 deletions(-)
+ include/asm-sh/ioctls.h   |    4 ++++
+ include/asm-sh/termbits.h |    5 ++++-
+ include/asm-sh/termios.h  |    6 ++++--
+ 3 files changed, 12 insertions(+), 3 deletions(-)
 
-diff -puN mm/shmem.c~tmpfs-fix-shmem_swaplist-races mm/shmem.c
---- a/mm/shmem.c~tmpfs-fix-shmem_swaplist-races
-+++ a/mm/shmem.c
-@@ -833,6 +833,10 @@ static int shmem_unuse_inode(struct shme
- 	idx = 0;
- 	ptr = info->i_direct;
- 	spin_lock(&info->lock);
-+	if (!info->swapped) {
-+		list_del_init(&info->swaplist);
-+		goto lost2;
-+	}
- 	limit = info->next_index;
- 	size = limit;
- 	if (size > SHMEM_NR_DIRECT)
-@@ -894,8 +898,15 @@ found:
- 	inode = igrab(&info->vfs_inode);
- 	spin_unlock(&info->lock);
+diff -puN include/asm-sh/ioctls.h~sh-termios-ioctl-definitions include/asm-sh/ioctls.h
+--- a/include/asm-sh/ioctls.h~sh-termios-ioctl-definitions
++++ a/include/asm-sh/ioctls.h
+@@ -78,6 +78,10 @@
+ #define TIOCSBRK	_IO('T', 39) /* 0x5427 */ /* BSD compatibility */
+ #define TIOCCBRK	_IO('T', 40) /* 0x5428 */ /* BSD compatibility */
+ #define TIOCGSID	_IOR('T', 41, pid_t) /* 0x5429 */ /* Return the session ID of FD */
++#define TCGETS2		_IOR('T', 42, struct termios2)
++#define TCSETS2		_IOW('T', 43, struct termios2)
++#define TCSETSW2	_IOW('T', 44, struct termios2)
++#define TCSETSF2	_IOW('T', 45, struct termios2)
+ #define TIOCGPTN	_IOR('T',0x30, unsigned int) /* Get Pty Number (of pty-mux device) */
+ #define TIOCSPTLCK	_IOW('T',0x31, int)  /* Lock/unlock Pty */
  
--	/* move head to start search for next from here */
--	list_move_tail(&shmem_swaplist, &info->swaplist);
-+	/*
-+	 * Move _head_ to start search for next from here.
-+	 * But be careful: shmem_delete_inode checks list_empty without taking
-+	 * mutex, and there's an instant in list_move_tail when info->swaplist
-+	 * would appear empty, if it were the only one on shmem_swaplist.  We
-+	 * could avoid doing it if inode NULL; or use this minor optimization.
-+	 */
-+	if (shmem_swaplist.next != &info->swaplist)
-+		list_move_tail(&shmem_swaplist, &info->swaplist);
- 	mutex_unlock(&shmem_swaplist_mutex);
+diff -puN include/asm-sh/termbits.h~sh-termios-ioctl-definitions include/asm-sh/termbits.h
+--- a/include/asm-sh/termbits.h~sh-termios-ioctl-definitions
++++ a/include/asm-sh/termbits.h
+@@ -140,6 +140,7 @@ struct ktermios {
+ #define HUPCL	0002000
+ #define CLOCAL	0004000
+ #define CBAUDEX 0010000
++#define	   BOTHER 0010000
+ #define    B57600 0010001
+ #define   B115200 0010002
+ #define   B230400 0010003
+@@ -155,10 +156,12 @@ struct ktermios {
+ #define  B3000000 0010015
+ #define  B3500000 0010016
+ #define  B4000000 0010017
+-#define CIBAUD	  002003600000	/* input baud rate (not used) */
++#define CIBAUD	  002003600000		/* input baud rate */
+ #define CMSPAR	  010000000000		/* mark or space (stick) parity */
+ #define CRTSCTS	  020000000000		/* flow control */
  
- 	error = 1;
-@@ -955,10 +966,7 @@ int shmem_unuse(swp_entry_t entry, struc
- 	mutex_lock(&shmem_swaplist_mutex);
- 	list_for_each_safe(p, next, &shmem_swaplist) {
- 		info = list_entry(p, struct shmem_inode_info, swaplist);
--		if (info->swapped)
--			found = shmem_unuse_inode(info, entry, page);
--		else
--			list_del_init(&info->swaplist);
-+		found = shmem_unuse_inode(info, entry, page);
- 		cond_resched();
- 		if (found)
- 			goto out;
-@@ -1021,18 +1029,23 @@ static int shmem_writepage(struct page *
- 		remove_from_page_cache(page);
- 		shmem_swp_set(info, entry, swap.val);
- 		shmem_swp_unmap(entry);
-+		if (list_empty(&info->swaplist))
-+			inode = igrab(inode);
-+		else
-+			inode = NULL;
- 		spin_unlock(&info->lock);
--		if (list_empty(&info->swaplist)) {
--			mutex_lock(&shmem_swaplist_mutex);
--			/* move instead of add in case we're racing */
--			list_move_tail(&info->swaplist, &shmem_swaplist);
--			mutex_unlock(&shmem_swaplist_mutex);
--		}
- 		swap_duplicate(swap);
- 		BUG_ON(page_mapped(page));
- 		page_cache_release(page);	/* pagecache ref */
- 		set_page_dirty(page);
- 		unlock_page(page);
-+		if (inode) {
-+			mutex_lock(&shmem_swaplist_mutex);
-+			/* move instead of add in case we're racing */
-+			list_move_tail(&info->swaplist, &shmem_swaplist);
-+			mutex_unlock(&shmem_swaplist_mutex);
-+			iput(inode);
-+		}
- 		return 0;
- 	}
++#define IBSHIFT	16		/* Shift from CBAUD to CIBAUD */
++
+ /* c_lflag bits */
+ #define ISIG	0000001
+ #define ICANON	0000002
+diff -puN include/asm-sh/termios.h~sh-termios-ioctl-definitions include/asm-sh/termios.h
+--- a/include/asm-sh/termios.h~sh-termios-ioctl-definitions
++++ a/include/asm-sh/termios.h
+@@ -80,8 +80,10 @@ struct termio {
+ 	copy_to_user((termio)->c_cc, (termios)->c_cc, NCC); \
+ })
+ 
+-#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios))
+-#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios))
++#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios2))
++#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios2))
++#define user_termios_to_kernel_termios_1(k, u) copy_from_user(k, u, sizeof(struct termios))
++#define kernel_termios_to_user_termios_1(u, k) copy_to_user(u, k, sizeof(struct termios))
+ 
+ #endif	/* __KERNEL__ */
  
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-git-unionfs.patch
-git-x86.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-memcgroup-temporarily-revert-swapoff-mod.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memcgroup-reinstate-swapoff-mod.patch
-memcgroup-fix-zone-isolation-oom.patch
-memcgroup-revert-swap_state-mods.patch
-memory-controller-use-rcu_read_lock-in-mem_cgroup_cache_charge.patch
-memcgroup-tidy-up-mem_cgroup_charge_common.patch
-memcgroup-fix-hang-with-shmem-tmpfs.patch
-mount-options-fix-tmpfs.patch
-mount-options-fix-tmpfs-fix.patch
-add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
-prio_tree-debugging-patch.patch
+git-acpi.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+hci_ldisc-fix-null-pointer-deref.patch
+parisc-new-termios-definitions.patch
+git-sh.patch
+git-watchdog.patch
+geode-lists-are-subscriber-only.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+sc26xx-new-serial-driver-for-sc2681-uarts.patch
+sc26xx-new-serial-driver-for-sc2681-uarts-update.patch
+documentation-about-unaligned-memory-access.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+fix-ixany-and-restart-after-signal-eg-ctrl-c-in-n_tty-line-discipline.patch
+fix-ixany-and-restart-after-signal-eg-ctrl-c-in-n_tty-line-discipline-update.patch
+tty-kill-tty_flipbuf_size.patch
+drivers-edac-turnon-edac-device-error-logging.patch
+drivers-edac-use-round_jiffies_relative.patch
+drivers-edac-add-cell-xdr-memory-types.patch
+drivers-edac-add-cell-mc-driver.patch
+drivers-edac-i3000-code-tidying.patch
+drivers-edac-i3000-replace-macros-with-functions.patch
+drivers-edac-add-freescale-mpc85xx-driver.patch
+drivers-edac-add-marvell-mv64x60-driver.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+dz-clean-up-and-improve-the-setup-of-termios-settings.patch
+char-rocket-switch-long-delay-to-sleep.patch
+char-rocket-printk-cleanup.patch
+char-char-serial-remove-serial_type_normal-redefines.patch
+char-mxser_new-ioaddresses-are-ulong.patch
+char-stallion-fix-compiler-warnings.patch
+char-riscom8-change-rc_init_drivers-prototype.patch
+mxser-mxser_new-first-pass-over-termios-reporting-for-the.patch
+char-mxser-ioctl-cleanup.patch
+tty-let-architectures-override-the-user-kernel-macros.patch
+tty-s390-support-for-termios2.patch
+moxa-first-pass-at-termios-reporting.patch
+n_tty-clean-up-old-code-to-follow-coding-style-and-mostly-checkpatch.patch
+rocket-first-pass-at-termios-reporting.patch
+rocket-dont-let-random-users-reset-the-controller.patch
+tty_audit-fix-checkpatch-complaint.patch
+tty_io-drag-screaming-into-coding-style-compliance.patch
+tty_ioctl-drag-screaming-into-compliance-with-the-coding.patch
+8250_early-coding-style.patch
+8250_gsc-coding-style.patch
+8250_hp300-coding-style.patch
+8250_hub6-codding-style.patch
+8250_pci-coding-style.patch
+serial8250-coding-style.patch
+8250-enable-rate-reporting-via-termios.patch
+serial_core-bring-mostly-into-line-with-coding-style.patch
+smbios-dmi-add-type-41-=-onboard-devices-extended-information.patch
