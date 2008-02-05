@@ -1,136 +1,349 @@
 From: akpm@linux-foundation.org
-Subject: - i810fb-module-parameter-mode_option-inconsistent-with-other-framebuffer-modules.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 10:37:16 -0800
-Message-ID: <200802051836.m15IavMN002070@imap1.linux-foundation.org>
+Subject: - scsi-fix-isa-pcmcia-compile-problem.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 10:47:08 -0800
+Message-ID: <200802051846.m15IkoBV002465@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59901 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56268 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753566AbYBEShM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 13:37:12 -0500
+	by vger.kernel.org with ESMTP id S1759602AbYBESrr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 13:47:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, adaplas@pol.net, miki@dds.nl, mm-commits@vger.kernel.org
+To: htejun@gmail.com, James.Bottomley@HansenPartnership.com, kamalesh@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i810fb: module parameter 'mode_option' inconsistent with other framebuffer modules
+     git-scsi-misc: fix isa/pcmcia compile problem
 has been removed from the -mm tree.  Its filename was
-     i810fb-module-parameter-mode_option-inconsistent-with-other-framebuffer-modules.patch
+     scsi-fix-isa-pcmcia-compile-problem.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i810fb: module parameter 'mode_option' inconsistent with other framebuffer modules
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: git-scsi-misc: fix isa/pcmcia compile problem
+From: Tejun Heo <htejun@gmail.com>
 
-Fix http://bugzilla.kernel.org/show_bug.cgi?id=9847
+aha152x.c and fdomain are built twice - once for the isa driver and once
+for the PCMCIA one.  Through #ifdefs, the compiled codes are slightly
+different; thus, global symbols need to be given different names depending
+on which flavor is being built.  This patch adds GLOBAL() macro to
+aha152x.h and fdomain.h which change the symbol depending on PCMCIA.
 
-   While all other framebuffer modules use the option "mode=..." to specify
-   a modedb-style video mode, i810fb uses the non-standard "mode_option=..."
-   This breaks the use of "video=i810fb:<videomode>" boot parameter, such that
-   for instance "video=i810fb:1024x768" doesn't work.  The boot scripts parse
-   the "<videomode>" parameter internally and pass it to the correct module as
-   'mode=<videomode>'.
+This bug has always existed but has been masked by the fact the
+drivers/scsi/pcmcia used subdir-(y|m) instead of obj-(y|m) which made
+drivers/scsi/pcmcia/built_in.o not linked into the kernel and thus avoided
+the duplicate symbols during compilation.
 
-This patch changes the option "mode_option" into "mode".
-
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Reported-by: <miki@dds.nl>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Tejun Heo <htejun@gmail.com>
+Tested-by: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/i810/i810_main.c |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ drivers/scsi/aha152x.c             |   12 ++++++------
+ drivers/scsi/aha152x.h             |   20 +++++++++++++++++---
+ drivers/scsi/fdomain.c             |   20 ++++++++++----------
+ drivers/scsi/fdomain.h             |   21 +++++++++++++++++----
+ drivers/scsi/pcmcia/aha152x_stub.c |   10 ++++++----
+ drivers/scsi/pcmcia/fdomain_stub.c |   10 ++++++----
+ 6 files changed, 62 insertions(+), 31 deletions(-)
 
-diff -puN drivers/video/i810/i810_main.c~i810fb-module-parameter-mode_option-inconsistent-with-other-framebuffer-modules drivers/video/i810/i810_main.c
---- a/drivers/video/i810/i810_main.c~i810fb-module-parameter-mode_option-inconsistent-with-other-framebuffer-modules
-+++ a/drivers/video/i810/i810_main.c
-@@ -132,7 +132,7 @@ static struct pci_driver i810fb_driver =
- 	.resume   =     i810fb_resume,
+diff -puN drivers/scsi/aha152x.c~scsi-fix-isa-pcmcia-compile-problem drivers/scsi/aha152x.c
+--- a/drivers/scsi/aha152x.c~scsi-fix-isa-pcmcia-compile-problem
++++ a/drivers/scsi/aha152x.c
+@@ -768,7 +768,7 @@ static irqreturn_t swintr(int irqno, voi
+ 	return IRQ_HANDLED;
+ }
+ 
+-struct Scsi_Host *aha152x_probe_one(struct aha152x_setup *setup)
++struct Scsi_Host *GLOBAL(aha152x_probe_one)(struct aha152x_setup *setup)
+ {
+ 	struct Scsi_Host *shpnt;
+ 
+@@ -904,7 +904,7 @@ out_host_put:
+ 	return NULL;
+ }
+ 
+-void aha152x_release(struct Scsi_Host *shpnt)
++void GLOBAL(aha152x_release)(struct Scsi_Host *shpnt)
+ {
+ 	if (!shpnt)
+ 		return;
+@@ -1320,7 +1320,7 @@ static void reset_ports(struct Scsi_Host
+  * Reset the host (bus and controller)
+  *
+  */
+-int aha152x_host_reset_host(struct Scsi_Host *shpnt)
++int GLOBAL(aha152x_host_reset_host)(struct Scsi_Host *shpnt)
+ {
+ 	DPRINTK(debug_eh, KERN_DEBUG "scsi%d: host reset\n", shpnt->host_no);
+ 
+@@ -1338,7 +1338,7 @@ int aha152x_host_reset_host(struct Scsi_
+  */
+ static int aha152x_host_reset(Scsi_Cmnd *SCpnt)
+ {
+-	return aha152x_host_reset_host(SCpnt->device->host);
++	return GLOBAL(aha152x_host_reset_host)(SCpnt->device->host);
+ }
+ 
+ /*
+@@ -3894,7 +3894,7 @@ static int __init aha152x_init(void)
+ 
+ 	for (i=0; i<setup_count; i++) {
+ 		if ( request_region(setup[i].io_port, IO_RANGE, "aha152x") ) {
+-			struct Scsi_Host *shpnt = aha152x_probe_one(&setup[i]);
++			struct Scsi_Host *shpnt = GLOBAL(aha152x_probe_one)(&setup[i]);
+ 
+ 			if( !shpnt ) {
+ 				release_region(setup[i].io_port, IO_RANGE);
+@@ -3924,7 +3924,7 @@ static void __exit aha152x_exit(void)
+ 	list_for_each_entry(hd, &aha152x_host_list, host_list) {
+ 		struct Scsi_Host *shost = container_of((void *)hd, struct Scsi_Host, hostdata);
+ 
+-		aha152x_release(shost);
++		GLOBAL(aha152x_release)(shost);
+ 	}
+ }
+ 
+diff -puN drivers/scsi/aha152x.h~scsi-fix-isa-pcmcia-compile-problem drivers/scsi/aha152x.h
+--- a/drivers/scsi/aha152x.h~scsi-fix-isa-pcmcia-compile-problem
++++ a/drivers/scsi/aha152x.h
+@@ -330,8 +330,22 @@ struct aha152x_setup {
+ 	char *conf;
  };
  
--static char *mode_option __devinitdata = NULL;
-+static char *mode     __devinitdata;
- static int vram       __devinitdata = 4;
- static int bpp        __devinitdata = 8;
- static int mtrr       __devinitdata;
-@@ -1891,7 +1891,7 @@ i810_allocate_pci_resource(struct i810fb
+-struct Scsi_Host *aha152x_probe_one(struct aha152x_setup *);
+-void aha152x_release(struct Scsi_Host *);
+-int aha152x_host_reset_host(struct Scsi_Host *);
++/*
++ * This file and aha152x.c are compiled in two different ways - for
++ * the isa driver and pcmcia one.  When building the pcmcia one, the
++ * file is slightly modified, so they can't share the same object
++ * file.  The following macro alters a symbol depending on whether
++ * pcmcia driver is being built or not and should be used for any
++ * global symbol.
++ */
++#if defined(PCMCIA)
++#define GLOBAL(x)	CS_##x
++#else
++#define GLOBAL(x)	ISA_##x
++#endif
++
++struct Scsi_Host *GLOBAL(aha152x_probe_one)(struct aha152x_setup *);
++void GLOBAL(aha152x_release)(struct Scsi_Host *);
++int GLOBAL(aha152x_host_reset_host)(struct Scsi_Host *);
  
- static void __devinit i810fb_find_init_mode(struct fb_info *info)
+ #endif /* _AHA152X_H */
+diff -puN drivers/scsi/fdomain.c~scsi-fix-isa-pcmcia-compile-problem drivers/scsi/fdomain.c
+--- a/drivers/scsi/fdomain.c~scsi-fix-isa-pcmcia-compile-problem
++++ a/drivers/scsi/fdomain.c
+@@ -550,7 +550,7 @@ static void print_banner( struct Scsi_Ho
+    printk( "\n" );
+ }
+ 
+-int fdomain_setup(char *str)
++int GLOBAL(fdomain_setup)(char *str)
  {
--	struct fb_videomode mode;
-+	struct fb_videomode mode_new;
- 	struct fb_var_screeninfo var;
- 	struct fb_monspecs *specs = &info->monspecs;
- 	int found = 0;
-@@ -1902,7 +1902,7 @@ static void __devinit i810fb_find_init_m
+ 	int ints[4];
+ 
+@@ -571,7 +571,7 @@ int fdomain_setup(char *str)
+ 	return 1;
+ }
+ 
+-__setup("fdomain=", fdomain_setup);
++__setup("fdomain=", GLOBAL(fdomain_setup));
+ 
+ 
+ static void do_pause(unsigned amount)	/* Pause for amount*10 milliseconds */
+@@ -890,7 +890,7 @@ fail:
+ 
  #endif
  
- 	INIT_LIST_HEAD(&info->modelist);
--	memset(&mode, 0, sizeof(struct fb_videomode));
-+	memset(&mode_new, 0, sizeof(struct fb_videomode));
- 	var = info->var;
- #ifdef CONFIG_FB_I810_I2C
- 	i810_create_i2c_busses(par);
-@@ -1928,23 +1928,23 @@ static void __devinit i810fb_find_init_m
+-struct Scsi_Host *__fdomain_16x0_detect(struct scsi_host_template *tpnt )
++struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct scsi_host_template *tpnt)
+ {
+    int              retcode;
+    struct Scsi_Host *shpnt;
+@@ -931,7 +931,7 @@ struct Scsi_Host *__fdomain_16x0_detect(
+       }
+    }
  
- 		if (xres && yres) {
- 			if ((m = fb_find_best_mode(&var, &info->modelist))) {
--				mode = *m;
-+				mode_new = *m;
- 				found  = 1;
- 			}
- 		}
+-   fdomain_16x0_bus_reset(NULL);
++   GLOBAL(fdomain_16x0_bus_reset)(NULL);
  
- 		if (!found) {
- 			m = fb_find_best_display(&info->monspecs, &info->modelist);
--			mode = *m;
-+			mode_new = *m;
- 			found = 1;
- 		}
+    if (fdomain_test_loopback()) {
+       printk(KERN_ERR  "scsi: <fdomain> Detection failed (loopback test failed at port base 0x%x)\n", port_base);
+@@ -1004,8 +1004,8 @@ fail:
+ static int fdomain_16x0_detect(struct scsi_host_template *tpnt)
+ {
+ 	if (fdomain)
+-		fdomain_setup(fdomain);
+-	return (__fdomain_16x0_detect(tpnt) != NULL);
++		GLOBAL(fdomain_setup)(fdomain);
++	return (GLOBAL(__fdomain_16x0_detect)(tpnt) != NULL);
+ }
  
--		fb_videomode_to_var(&var, &mode);
-+		fb_videomode_to_var(&var, &mode_new);
- 	}
- #endif
--	if (mode_option)
--		fb_find_mode(&var, info, mode_option, specs->modedb,
--			     specs->modedb_len, (found) ? &mode : NULL,
-+	if (mode)
-+		fb_find_mode(&var, info, mode, specs->modedb,
-+			     specs->modedb_len, (found) ? &mode_new : NULL,
- 			     info->var.bits_per_pixel);
+ static const char *fdomain_16x0_info( struct Scsi_Host *ignore )
+@@ -1564,7 +1564,7 @@ static int fdomain_16x0_abort(struct scs
+    return SUCCESS;
+ }
  
- 	info->var = var;
-@@ -1998,7 +1998,7 @@ static int __devinit i810fb_setup(char *
- 		else if (!strncmp(this_opt, "ddc3", 4))
- 			ddc3 = 3;
- 		else
--			mode_option = this_opt;
-+			mode = this_opt;
- 	}
+-int fdomain_16x0_bus_reset(struct scsi_cmnd *SCpnt)
++int GLOBAL(fdomain_16x0_bus_reset)(struct scsi_cmnd *SCpnt)
+ {
+    unsigned long flags;
+ 
+@@ -1746,7 +1746,7 @@ static int fdomain_16x0_release(struct S
  	return 0;
  }
-@@ -2202,8 +2202,8 @@ MODULE_PARM_DESC(dcolor, "use DirectColo
- 		 " (default = 0 = TrueColor)");
- module_param(ddc3, bool, 0);
- MODULE_PARM_DESC(ddc3, "Probe DDC bus 3 (default = 0 = no)");
--module_param(mode_option, charp, 0);
--MODULE_PARM_DESC(mode_option, "Specify initial video mode");
-+module_param(mode, charp, 0);
-+MODULE_PARM_DESC(mode, "Specify initial video mode");
  
- MODULE_AUTHOR("Tony A. Daplas");
- MODULE_DESCRIPTION("Framebuffer device for the Intel 810/815 and"
+-struct scsi_host_template fdomain_driver_template = {
++struct scsi_host_template GLOBAL(fdomain_driver_template) = {
+ 	.module			= THIS_MODULE,
+ 	.name			= "fdomain",
+ 	.proc_name		= "fdomain",
+@@ -1754,7 +1754,7 @@ struct scsi_host_template fdomain_driver
+ 	.info			= fdomain_16x0_info,
+ 	.queuecommand		= fdomain_16x0_queue,
+ 	.eh_abort_handler	= fdomain_16x0_abort,
+-	.eh_bus_reset_handler	= fdomain_16x0_bus_reset,
++	.eh_bus_reset_handler	= GLOBAL(fdomain_16x0_bus_reset),
+ 	.bios_param		= fdomain_16x0_biosparam,
+ 	.release		= fdomain_16x0_release,
+ 	.can_queue		= 1,
+@@ -1774,7 +1774,7 @@ static struct pci_device_id fdomain_pci_
+ };
+ MODULE_DEVICE_TABLE(pci, fdomain_pci_tbl);
+ #endif
+-#define driver_template fdomain_driver_template
++#define driver_template GLOBAL(fdomain_driver_template)
+ #include "scsi_module.c"
+ 
+ #endif
+diff -puN drivers/scsi/fdomain.h~scsi-fix-isa-pcmcia-compile-problem drivers/scsi/fdomain.h
+--- a/drivers/scsi/fdomain.h~scsi-fix-isa-pcmcia-compile-problem
++++ a/drivers/scsi/fdomain.h
+@@ -18,7 +18,20 @@
+  * 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+-extern struct scsi_host_template fdomain_driver_template;
+-extern int fdomain_setup(char *str);
+-extern struct Scsi_Host *__fdomain_16x0_detect(struct  scsi_host_template *tpnt );
+-extern int fdomain_16x0_bus_reset(struct scsi_cmnd *SCpnt);
++/*
++ * fdomain is compiled in two different ways - for the isa driver and
++ * pcmcia one.  When building the pcmcia one, the file is slightly
++ * modified, so they can't share the same object file.  The following
++ * macro alters a symbol depending on whether pcmcia driver is being
++ * built or not and should be used for any global symbol.
++ */
++#if defined(PCMCIA)
++#define GLOBAL(x)	CS_##x
++#else
++#define GLOBAL(x)	ISA_##x
++#endif
++
++extern struct scsi_host_template GLOBAL(fdomain_driver_template);
++extern int GLOBAL(fdomain_setup)(char *str);
++extern struct Scsi_Host *GLOBAL(__fdomain_16x0_detect)(struct scsi_host_template *tpnt);
++extern int GLOBAL(fdomain_16x0_bus_reset)(struct scsi_cmnd *SCpnt);
+diff -puN drivers/scsi/pcmcia/aha152x_stub.c~scsi-fix-isa-pcmcia-compile-problem drivers/scsi/pcmcia/aha152x_stub.c
+--- a/drivers/scsi/pcmcia/aha152x_stub.c~scsi-fix-isa-pcmcia-compile-problem
++++ a/drivers/scsi/pcmcia/aha152x_stub.c
+@@ -47,13 +47,15 @@
+ 
+ #include "scsi.h"
+ #include <scsi/scsi_host.h>
+-#include "aha152x.h"
+ 
+ #include <pcmcia/cs_types.h>
+ #include <pcmcia/cs.h>
+ #include <pcmcia/cistpl.h>
+ #include <pcmcia/ds.h>
+ 
++#define PCMCIA	1
++#include "aha152x.h"
++
+ #ifdef PCMCIA_DEBUG
+ static int pc_debug = PCMCIA_DEBUG;
+ module_param(pc_debug, int, 0644);
+@@ -194,7 +196,7 @@ static int aha152x_config_cs(struct pcmc
+     if (ext_trans)
+         s.ext_trans = ext_trans;
+ 
+-    host = aha152x_probe_one(&s);
++    host = GLOBAL(aha152x_probe_one)(&s);
+     if (host == NULL) {
+ 	printk(KERN_INFO "aha152x_cs: no SCSI devices found\n");
+ 	goto cs_failed;
+@@ -216,7 +218,7 @@ static void aha152x_release_cs(struct pc
+ {
+ 	scsi_info_t *info = link->priv;
+ 
+-	aha152x_release(info->host);
++	GLOBAL(aha152x_release)(info->host);
+ 	pcmcia_disable_device(link);
+ }
+ 
+@@ -224,7 +226,7 @@ static int aha152x_resume(struct pcmcia_
+ {
+ 	scsi_info_t *info = link->priv;
+ 
+-	aha152x_host_reset_host(info->host);
++	GLOBAL(aha152x_host_reset_host)(info->host);
+ 
+ 	return 0;
+ }
+diff -puN drivers/scsi/pcmcia/fdomain_stub.c~scsi-fix-isa-pcmcia-compile-problem drivers/scsi/pcmcia/fdomain_stub.c
+--- a/drivers/scsi/pcmcia/fdomain_stub.c~scsi-fix-isa-pcmcia-compile-problem
++++ a/drivers/scsi/pcmcia/fdomain_stub.c
+@@ -44,13 +44,15 @@
+ 
+ #include "scsi.h"
+ #include <scsi/scsi_host.h>
+-#include "fdomain.h"
+ 
+ #include <pcmcia/cs_types.h>
+ #include <pcmcia/cs.h>
+ #include <pcmcia/cistpl.h>
+ #include <pcmcia/ds.h>
+ 
++#define PCMCIA	1
++#include "fdomain.h"
++
+ /*====================================================================*/
+ 
+ /* Module parameters */
+@@ -161,9 +163,9 @@ static int fdomain_config(struct pcmcia_
+ 
+     /* Set configuration options for the fdomain driver */
+     sprintf(str, "%d,%d", link->io.BasePort1, link->irq.AssignedIRQ);
+-    fdomain_setup(str);
++    GLOBAL(fdomain_setup)(str);
+ 
+-    host = __fdomain_16x0_detect(&fdomain_driver_template);
++    host = GLOBAL(__fdomain_16x0_detect)(&GLOBAL(fdomain_driver_template));
+     if (!host) {
+         printk(KERN_INFO "fdomain_cs: no SCSI devices found\n");
+ 	goto cs_failed;
+@@ -202,7 +204,7 @@ static void fdomain_release(struct pcmci
+ 
+ static int fdomain_resume(struct pcmcia_device *link)
+ {
+-	fdomain_16x0_bus_reset(NULL);
++	GLOBAL(fdomain_16x0_bus_reset)(NULL);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from htejun@gmail.com are
 
 origin.patch
-drivers-video-pm3fbc-section-fix.patch
-pm2fb-big-endian-fix.patch
-i810fb-module-parameter-mode_option-inconsistent-with-other-framebuffer-modules.patch
+scsi-fix-isa-pcmcia-compile-problem.patch
+smbios-dmi-add-type-41-=-onboard-devices-extended-information.patch
