@@ -1,212 +1,210 @@
 From: akpm@linux-foundation.org
-Subject: - pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:26:58 -0800
-Message-ID: <200802052226.m15MQd41011640@imap1.linux-foundation.org>
+Subject: - exec-rework-the-group-exit-and-fix-the-race-with-kill.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:26:34 -0800
+Message-ID: <200802052226.m15MQFGV011613@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44375 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53645 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761293AbYBEW1N (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:27:13 -0500
+	by vger.kernel.org with ESMTP id S1760469AbYBEW1G (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:27:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: olof@lixom.net, alan@lxorguk.ukuu.org.uk, benh@kernel.crashing.org, hch@lst.de, linux@dominikbrodowski.net, matthew@wil.cx, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, davidel@xmailserver.org, holt@sgi.com, mingo@elte.hu, roland@redhat.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pcmcia: convert some internal-only ioaddr_t to unsigned int
+     exec: rework the group exit and fix the race with kill
 has been removed from the -mm tree.  Its filename was
-     pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch
+     exec-rework-the-group-exit-and-fix-the-race-with-kill.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pcmcia: convert some internal-only ioaddr_t to unsigned int
-From: Olof Johansson <olof@lixom.net>
+Subject: exec: rework the group exit and fix the race with kill
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Convert the io_req_t members to unsigned int, to allow use on machines with
-more than 16 bits worth of IO ports (i.e.  secondary busses on ppc64, etc).
+As Roland pointed out, we have the very old problem with exec.  de_thread()
+sets SIGNAL_GROUP_EXIT, kills other threads, changes ->group_leader and then
+clears signal->flags.  All signals (even fatal ones) sent in this window
+(which is not too small) will be lost.
 
-There was only a couple of places in drivers where a change was needed.  I
-left printk formats alone (there are lots of %04x-style formats in there),
-mostly to not change the format on the platforms that only have 16-bit io
-addresses, but also because the padding doesn't really add all that much value
-most of the time.
+With this patch exec doesn't abuse SIGNAL_GROUP_EXIT.  signal_group_exit(),
+the new helper, should be used to detect exit_group() or exec() in progress. 
+It can have more users, but this patch does only strictly necessary changes.
 
-I found only one sprintf of an address, and upsized the string accordingly (I
-doubt anyone will have anywhere near INT_MAX as irq value, but at least
-there's room for it now).
-
-Signed-off-by: Olof Johansson <olof@lixom.net>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Robin Holt <holt@sgi.com>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/pcmcia/cm4000_cs.c    |   17 +++++++++--------
- drivers/pcmcia/pcmcia_resource.c   |   14 +++++++-------
- drivers/scsi/pcmcia/fdomain_stub.c |    2 +-
- include/pcmcia/cs.h                |    8 ++++----
- 4 files changed, 21 insertions(+), 20 deletions(-)
+ fs/exec.c             |   13 ++++---------
+ include/linux/sched.h |    7 +++++++
+ kernel/exit.c         |    3 ++-
+ kernel/signal.c       |    4 ++--
+ 4 files changed, 15 insertions(+), 12 deletions(-)
 
-diff -puN drivers/char/pcmcia/cm4000_cs.c~pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int drivers/char/pcmcia/cm4000_cs.c
---- a/drivers/char/pcmcia/cm4000_cs.c~pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int
-+++ a/drivers/char/pcmcia/cm4000_cs.c
-@@ -308,7 +308,8 @@ static unsigned int calc_baudv(unsigned 
- 	return (wcrcf / wbrcf);
- }
+diff -puN fs/exec.c~exec-rework-the-group-exit-and-fix-the-race-with-kill fs/exec.c
+--- a/fs/exec.c~exec-rework-the-group-exit-and-fix-the-race-with-kill
++++ a/fs/exec.c
+@@ -760,7 +760,7 @@ static int de_thread(struct task_struct 
+ 	 */
+ 	read_lock(&tasklist_lock);
+ 	spin_lock_irq(lock);
+-	if (sig->flags & SIGNAL_GROUP_EXIT) {
++	if (signal_group_exit(sig)) {
+ 		/*
+ 		 * Another group action in progress, just
+ 		 * return so that the signal is processed.
+@@ -778,6 +778,7 @@ static int de_thread(struct task_struct 
+ 	if (unlikely(tsk->group_leader == task_child_reaper(tsk)))
+ 		task_active_pid_ns(tsk)->child_reaper = tsk;
  
--static unsigned short io_read_num_rec_bytes(ioaddr_t iobase, unsigned short *s)
-+static unsigned short io_read_num_rec_bytes(unsigned int iobase,
-+					    unsigned short *s)
- {
- 	unsigned short tmp;
++	sig->group_exit_task = tsk;
+ 	zap_other_threads(tsk);
+ 	read_unlock(&tasklist_lock);
  
-@@ -426,7 +427,7 @@ static struct card_fixup card_fixups[] =
- static void set_cardparameter(struct cm4000_dev *dev)
- {
- 	int i;
--	ioaddr_t iobase = dev->p_dev->io.BasePort1;
-+	unsigned int iobase = dev->p_dev->io.BasePort1;
- 	u_int8_t stopbits = 0x02; /* ISO default */
+@@ -802,7 +803,6 @@ static int de_thread(struct task_struct 
+ 	}
  
- 	DEBUGP(3, dev, "-> set_cardparameter\n");
-@@ -459,7 +460,7 @@ static int set_protocol(struct cm4000_de
- 	unsigned short num_bytes_read;
- 	unsigned char pts_reply[4];
- 	ssize_t rc;
--	ioaddr_t iobase = dev->p_dev->io.BasePort1;
-+	unsigned int iobase = dev->p_dev->io.BasePort1;
+ 	sig->notify_count = count;
+-	sig->group_exit_task = tsk;
+ 	while (atomic_read(&sig->count) > count) {
+ 		__set_current_state(TASK_UNINTERRUPTIBLE);
+ 		spin_unlock_irq(lock);
+@@ -871,15 +871,10 @@ static int de_thread(struct task_struct 
+ 		leader->exit_state = EXIT_DEAD;
  
- 	rc = 0;
+ 		write_unlock_irq(&tasklist_lock);
+-        }
++	}
  
-@@ -610,7 +611,7 @@ exit_setprotocol:
- 	return rc;
- }
+ 	sig->group_exit_task = NULL;
+ 	sig->notify_count = 0;
+-	/*
+-	 * There may be one thread left which is just exiting,
+-	 * but it's safe to stop telling the group to kill themselves.
+-	 */
+-	sig->flags = 0;
  
--static int io_detect_cm4000(ioaddr_t iobase, struct cm4000_dev *dev)
-+static int io_detect_cm4000(unsigned int iobase, struct cm4000_dev *dev)
- {
+ no_thread_group:
+ 	exit_itimers(sig);
+@@ -1549,7 +1544,7 @@ static inline int zap_threads(struct tas
+ 	int err = -EAGAIN;
  
- 	/* note: statemachine is assumed to be reset */
-@@ -671,7 +672,7 @@ static void terminate_monitor(struct cm4
- static void monitor_card(unsigned long p)
- {
- 	struct cm4000_dev *dev = (struct cm4000_dev *) p;
--	ioaddr_t iobase = dev->p_dev->io.BasePort1;
-+	unsigned int iobase = dev->p_dev->io.BasePort1;
- 	unsigned short s;
- 	struct ptsreq ptsreq;
- 	int i, atrc;
-@@ -933,7 +934,7 @@ static ssize_t cmm_read(struct file *fil
- 			loff_t *ppos)
- {
- 	struct cm4000_dev *dev = filp->private_data;
--	ioaddr_t iobase = dev->p_dev->io.BasePort1;
-+	unsigned int iobase = dev->p_dev->io.BasePort1;
- 	ssize_t rc;
- 	int i, j, k;
+ 	spin_lock_irq(&tsk->sighand->siglock);
+-	if (!(tsk->signal->flags & SIGNAL_GROUP_EXIT)) {
++	if (!signal_group_exit(tsk->signal)) {
+ 		tsk->signal->group_exit_code = exit_code;
+ 		zap_process(tsk);
+ 		err = 0;
+diff -puN include/linux/sched.h~exec-rework-the-group-exit-and-fix-the-race-with-kill include/linux/sched.h
+--- a/include/linux/sched.h~exec-rework-the-group-exit-and-fix-the-race-with-kill
++++ a/include/linux/sched.h
+@@ -555,6 +555,13 @@ struct signal_struct {
+ #define SIGNAL_STOP_CONTINUED	0x00000004 /* SIGCONT since WCONTINUED reap */
+ #define SIGNAL_GROUP_EXIT	0x00000008 /* group exit in progress */
  
-@@ -1054,7 +1055,7 @@ static ssize_t cmm_write(struct file *fi
- 			 size_t count, loff_t *ppos)
- {
- 	struct cm4000_dev *dev = (struct cm4000_dev *) filp->private_data;
--	ioaddr_t iobase = dev->p_dev->io.BasePort1;
-+	unsigned int iobase = dev->p_dev->io.BasePort1;
- 	unsigned short s;
- 	unsigned char tmp;
- 	unsigned char infolen;
-@@ -1408,7 +1409,7 @@ static int cmm_ioctl(struct inode *inode
- 		     unsigned long arg)
- {
- 	struct cm4000_dev *dev = filp->private_data;
--	ioaddr_t iobase = dev->p_dev->io.BasePort1;
-+	unsigned int iobase = dev->p_dev->io.BasePort1;
- 	struct pcmcia_device *link;
- 	int size;
- 	int rc;
-diff -puN drivers/pcmcia/pcmcia_resource.c~pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int drivers/pcmcia/pcmcia_resource.c
---- a/drivers/pcmcia/pcmcia_resource.c~pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int
-+++ a/drivers/pcmcia/pcmcia_resource.c
-@@ -65,23 +65,23 @@ extern int ds_pc_debug;
-  * Special stuff for managing IO windows, because they are scarce
++/* If true, all threads except ->group_exit_task have pending SIGKILL */
++static inline int signal_group_exit(const struct signal_struct *sig)
++{
++	return	(sig->flags & SIGNAL_GROUP_EXIT) ||
++		(sig->group_exit_task != NULL);
++}
++
+ /*
+  * Some day this will be a full-fledged user tracking system..
   */
- 
--static int alloc_io_space(struct pcmcia_socket *s, u_int attr, ioaddr_t *base,
--			  ioaddr_t num, u_int lines)
-+static int alloc_io_space(struct pcmcia_socket *s, u_int attr,
-+			  unsigned int *base, unsigned int num, u_int lines)
+diff -puN kernel/exit.c~exec-rework-the-group-exit-and-fix-the-race-with-kill kernel/exit.c
+--- a/kernel/exit.c~exec-rework-the-group-exit-and-fix-the-race-with-kill
++++ a/kernel/exit.c
+@@ -1083,11 +1083,12 @@ do_group_exit(int exit_code)
+ 		struct signal_struct *const sig = current->signal;
+ 		struct sighand_struct *const sighand = current->sighand;
+ 		spin_lock_irq(&sighand->siglock);
+-		if (sig->flags & SIGNAL_GROUP_EXIT)
++		if (signal_group_exit(sig))
+ 			/* Another thread got here before we took the lock.  */
+ 			exit_code = sig->group_exit_code;
+ 		else {
+ 			sig->group_exit_code = exit_code;
++			sig->flags = SIGNAL_GROUP_EXIT;
+ 			zap_other_threads(current);
+ 		}
+ 		spin_unlock_irq(&sighand->siglock);
+diff -puN kernel/signal.c~exec-rework-the-group-exit-and-fix-the-race-with-kill kernel/signal.c
+--- a/kernel/signal.c~exec-rework-the-group-exit-and-fix-the-race-with-kill
++++ a/kernel/signal.c
+@@ -957,7 +957,6 @@ void zap_other_threads(struct task_struc
  {
- 	int i;
--	kio_addr_t try, align;
-+	unsigned int try, align;
+ 	struct task_struct *t;
  
- 	align = (*base) ? (lines ? 1<<lines : 0) : 1;
- 	if (align && (align < num)) {
- 		if (*base) {
--			ds_dbg(s, 0, "odd IO request: num %#x align %#lx\n",
-+			ds_dbg(s, 0, "odd IO request: num %#x align %#x\n",
- 			       num, align);
- 			align = 0;
- 		} else
- 			while (align && (align < num)) align <<= 1;
- 	}
- 	if (*base & ~(align-1)) {
--		ds_dbg(s, 0, "odd IO request: base %#x align %#lx\n",
-+		ds_dbg(s, 0, "odd IO request: base %#x align %#x\n",
- 		       *base, align);
- 		align = 0;
- 	}
-@@ -132,8 +132,8 @@ static int alloc_io_space(struct pcmcia_
- } /* alloc_io_space */
+-	p->signal->flags = SIGNAL_GROUP_EXIT;
+ 	p->signal->group_stop_count = 0;
  
+ 	for (t = next_thread(p); t != p; t = next_thread(t)) {
+@@ -1697,7 +1696,8 @@ static int do_signal_stop(int signr)
+ 	} else {
+ 		struct task_struct *t;
  
--static void release_io_space(struct pcmcia_socket *s, ioaddr_t base,
--			     ioaddr_t num)
-+static void release_io_space(struct pcmcia_socket *s, unsigned int base,
-+			     unsigned int num)
- {
- 	int i;
- 
-diff -puN drivers/scsi/pcmcia/fdomain_stub.c~pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int drivers/scsi/pcmcia/fdomain_stub.c
---- a/drivers/scsi/pcmcia/fdomain_stub.c~pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int
-+++ a/drivers/scsi/pcmcia/fdomain_stub.c
-@@ -130,7 +130,7 @@ static int fdomain_config(struct pcmcia_
-     cisparse_t parse;
-     int i, last_ret, last_fn;
-     u_char tuple_data[64];
--    char str[16];
-+    char str[22];
-     struct Scsi_Host *host;
- 
-     DEBUG(0, "fdomain_config(0x%p)\n", link);
-diff -puN include/pcmcia/cs.h~pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int include/pcmcia/cs.h
---- a/include/pcmcia/cs.h~pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int
-+++ a/include/pcmcia/cs.h
-@@ -147,11 +147,11 @@ typedef struct config_req_t {
- 
- /* For RequestIO and ReleaseIO */
- typedef struct io_req_t {
--    ioaddr_t	BasePort1;
--    ioaddr_t	NumPorts1;
-+    u_int	BasePort1;
-+    u_int	NumPorts1;
-     u_int	Attributes1;
--    ioaddr_t	BasePort2;
--    ioaddr_t	NumPorts2;
-+    u_int	BasePort2;
-+    u_int	NumPorts2;
-     u_int	Attributes2;
-     u_int	IOAddrLines;
- } io_req_t;
+-		if (!likely(sig->flags & SIGNAL_STOP_DEQUEUED))
++		if (!likely(sig->flags & SIGNAL_STOP_DEQUEUED) ||
++		    unlikely(sig->group_exit_task))
+ 			return 0;
+ 		/*
+ 		 * There is no group stop already in progress.
 _
 
-Patches currently in -mm which might be from olof@lixom.net are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-git-mtd.patch
+use-__set_task_state-for-traced-stopped-tasks.patch
+do_wait-remove-one-else-if-branch.patch
+proc-implement-proc_single_file_operations.patch
+proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces.patch
+proc-seqfile-convert-proc_pid_statm.patch
+proc-proper-pidns-handling-for-proc-self.patch
+proc-fix-the-threaded-proc-self.patch
+proc-fix-openless-usage-due-to-proc_fops-flip.patch
+proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
+kill-pt_attached.patch
+kill-my_ptrace_child.patch
+ptrace_check_attach-remove-unneeded-signal-=-null-check.patch
+ptrace_stop-fix-the-race-with-ptrace-detachattach.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
+do_wait-factor-out-retval-=-0-checks.patch
+ptrace_stop-fix-racy-nonstop_code-setting.patch
+wait_task_stopped-remove-unneeded-delay_group_leader-check.patch
+do_wait-cleanup-delay_group_leader-usage.patch
+do_wait-fix-security-checks.patch
+do_wait-fix-security-checks-fix.patch
+wait_task_continued-zombie-dont-use-task_pid_nr_ns-lockless.patch
+wait_task_zombie-remove-exit_state-exit_signal-checks-for-wnowait.patch
+sys_setpgid-simplify-pid-ns-interaction.patch
+fix-setsid-for-sub-namespace-sbin-init.patch
+teach-set_special_pids-to-use-struct-pid.patch
+move-daemonized-kernel-threads-into-the-swappers-session.patch
+start-the-global-sbin-init-with-00-special-pids.patch
+fix-group-stop-with-exit-race.patch
+sys_setsid-remove-now-unneeded-session-=-1-check.patch
+move-the-related-code-from-exit_notify-to-exit_signals.patch
+pid-sys_wait-fixes-v2.patch
+pid-extend-fix-pid_vnr.patch
+sys_getsid-dont-use-nsproxy-directly.patch
+pid-fix-mips-irix-emulation-pid-usage.patch
+pid-fix-mips-irix-emulation-pid-usage-fix.patch
+pid-fix-solaris_procids.patch
+uglify-kill_pid_info-to-fix-kill-vs-exec-race.patch
+uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice.patch
+itimer_real-convert-to-use-struct-pid.patch
+pidns-make-full-use-of-xxx_vnr-calls.patch
+pidns-fix-badly-converted-mqueues-pid-handling.patch
+clean-up-the-kill_something_info.patch
+get-rid-of-the-kill_pgrp_info-function.patch
