@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-aic94xx-cleanups-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 04 Feb 2008 23:51:43 -0800
-Message-ID: <200802050751.m157pPc8010636@imap1.linux-foundation.org>
+Subject: - scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 04 Feb 2008 23:51:46 -0800
+Message-ID: <200802050751.m157pRrp010639@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59209 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43553 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756086AbYBEHvs (ORCPT
+	by vger.kernel.org with ESMTP id S1756074AbYBEHvs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 02:51:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,27 +14,57 @@ To: akpm@linux-foundation.org, James.Bottomley@steeleye.com, bunk@kernel.org, dj
 
 
 The patch titled
-     scsi-aic94xx-cleanups-checkpatch-fixes
+     scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     scsi-aic94xx-cleanups-checkpatch-fixes.patch
+     scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
 
 This patch was dropped because it was folded into scsi-aic94xx-cleanups.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi-aic94xx-cleanups-checkpatch-fixes
+Subject: scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: no space between function name and open parenthesis '('
-#357: FILE: drivers/scsi/aic94xx/aic94xx_reg.c:127:
-+static type asd_read_##ww##_##ord (struct asd_ha_struct *asd_ha,       \
+argh.
+
+ERROR: need spaces around that '=' (ctx:VxV)
+#58: FILE: drivers/scsi/aic94xx/aic94xx_reg.c:131:
++	u32 map_offs=(reg - io_handle-> ww##_base )+asd_mem_offs_##ww();\
+ 	            ^
+
+ERROR: no spaces around that '->' (ctx:VxW)
+#58: FILE: drivers/scsi/aic94xx/aic94xx_reg.c:131:
++	u32 map_offs=(reg - io_handle-> ww##_base )+asd_mem_offs_##ww();\
+ 	                             ^
+
+ERROR: no space before that close parenthesis ')'
+#58: FILE: drivers/scsi/aic94xx/aic94xx_reg.c:131:
++	u32 map_offs=(reg - io_handle-> ww##_base )+asd_mem_offs_##ww();\
 
 WARNING: no space between function name and open parenthesis '('
-#368: FILE: drivers/scsi/aic94xx/aic94xx_reg.c:136:
-+static void asd_write_##ww##_##ord (struct asd_ha_struct *asd_ha,      \
+#59: FILE: drivers/scsi/aic94xx/aic94xx_reg.c:132:
++	return asd_read_##ord (asd_ha, (unsigned long) map_offs);	\
 
-total: 0 errors, 2 warnings, 531 lines checked
+ERROR: need spaces around that '=' (ctx:VxV)
+#67: FILE: drivers/scsi/aic94xx/aic94xx_reg.c:140:
++	u32 map_offs=(reg - io_handle-> ww##_base )+asd_mem_offs_##ww();\
+ 	            ^
+
+ERROR: no spaces around that '->' (ctx:VxW)
+#67: FILE: drivers/scsi/aic94xx/aic94xx_reg.c:140:
++	u32 map_offs=(reg - io_handle-> ww##_base )+asd_mem_offs_##ww();\
+ 	                             ^
+
+ERROR: no space before that close parenthesis ')'
+#67: FILE: drivers/scsi/aic94xx/aic94xx_reg.c:140:
++	u32 map_offs=(reg - io_handle-> ww##_base )+asd_mem_offs_##ww();\
+
+WARNING: no space between function name and open parenthesis '('
+#68: FILE: drivers/scsi/aic94xx/aic94xx_reg.c:141:
++	asd_write_##ord (asd_ha, (unsigned long)map_offs, val);		\
+
+total: 6 errors, 2 warnings, 38 lines checked
 
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
@@ -42,56 +72,37 @@ CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-(fix other stuff too.  tabs!)
-
 Cc: "Darrick J. Wong" <djwong@us.ibm.com>
 Cc: Adrian Bunk <bunk@kernel.org>
 Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/aic94xx/aic94xx_reg.c |   32 +++++++++++++--------------
- 1 file changed, 16 insertions(+), 16 deletions(-)
+ drivers/scsi/aic94xx/aic94xx_reg.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/scsi/aic94xx/aic94xx_reg.c~scsi-aic94xx-cleanups-checkpatch-fixes drivers/scsi/aic94xx/aic94xx_reg.c
---- a/drivers/scsi/aic94xx/aic94xx_reg.c~scsi-aic94xx-cleanups-checkpatch-fixes
+diff -puN drivers/scsi/aic94xx/aic94xx_reg.c~scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes drivers/scsi/aic94xx/aic94xx_reg.c
+--- a/drivers/scsi/aic94xx/aic94xx_reg.c~scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes
 +++ a/drivers/scsi/aic94xx/aic94xx_reg.c
-@@ -123,22 +123,22 @@ static inline u32 asd_mem_offs_swb(void)
- /* We know that the register wanted is in the range
-  * of the sliding window.
-  */
--#define ASD_READ_SW(ww, type, ord)                                     \
--static type asd_read_##ww##_##ord (struct asd_ha_struct *asd_ha,       \
--				   u32 reg)			       \
--{                                                                      \
--	struct asd_ha_addrspace *io_handle = &asd_ha->io_handle[0];    \
--	u32 map_offs=(reg - io_handle-> ww##_base )+asd_mem_offs_##ww ();\
--	return asd_read_##ord (asd_ha, (unsigned long) map_offs);      \
--}
--
--#define ASD_WRITE_SW(ww, type, ord)                                    \
--static void asd_write_##ww##_##ord (struct asd_ha_struct *asd_ha,      \
--				    u32 reg, type val)		       \
--{                                                                      \
--	struct asd_ha_addrspace *io_handle = &asd_ha->io_handle[0];    \
--	u32 map_offs=(reg - io_handle-> ww##_base )+asd_mem_offs_##ww ();\
--	asd_write_##ord (asd_ha, (unsigned long) map_offs, val);       \
-+#define ASD_READ_SW(ww, type, ord)					\
-+static type asd_read_##ww##_##ord(struct asd_ha_struct *asd_ha,		\
-+				   u32 reg)				\
-+{									\
-+	struct asd_ha_addrspace *io_handle = &asd_ha->io_handle[0];	\
-+	u32 map_offs=(reg - io_handle-> ww##_base )+asd_mem_offs_##ww();\
-+	return asd_read_##ord (asd_ha, (unsigned long) map_offs);	\
-+}
-+
-+#define ASD_WRITE_SW(ww, type, ord)					\
-+static void asd_write_##ww##_##ord(struct asd_ha_struct *asd_ha,	\
-+				    u32 reg, type val)			\
-+{									\
-+	struct asd_ha_addrspace *io_handle = &asd_ha->io_handle[0];	\
-+	u32 map_offs=(reg - io_handle-> ww##_base )+asd_mem_offs_##ww();\
-+	asd_write_##ord (asd_ha, (unsigned long)map_offs, val);		\
+@@ -128,8 +128,8 @@ static type asd_read_##ww##_##ord(struct
+ 				   u32 reg)				\
+ {									\
+ 	struct asd_ha_addrspace *io_handle = &asd_ha->io_handle[0];	\
+-	u32 map_offs=(reg - io_handle-> ww##_base )+asd_mem_offs_##ww();\
+-	return asd_read_##ord (asd_ha, (unsigned long) map_offs);	\
++	u32 map_offs = (reg - io_handle->ww##_base) + asd_mem_offs_##ww();\
++	return asd_read_##ord(asd_ha, (unsigned long)map_offs);	\
+ }
+ 
+ #define ASD_WRITE_SW(ww, type, ord)					\
+@@ -137,8 +137,8 @@ static void asd_write_##ww##_##ord(struc
+ 				    u32 reg, type val)			\
+ {									\
+ 	struct asd_ha_addrspace *io_handle = &asd_ha->io_handle[0];	\
+-	u32 map_offs=(reg - io_handle-> ww##_base )+asd_mem_offs_##ww();\
+-	asd_write_##ord (asd_ha, (unsigned long)map_offs, val);		\
++	u32 map_offs = (reg - io_handle->ww##_base) + asd_mem_offs_##ww();\
++	asd_write_##ord(asd_ha, (unsigned long)map_offs, val);		\
  }
  
  ASD_READ_SW(swa, u8,  byte);
@@ -171,7 +182,6 @@ git-sched.patch
 git-sched-fix-git-conflicts.patch
 scsi-fix-isa-pcmcia-compile-problem.patch
 scsi-aic94xx-cleanups.patch
-scsi-aic94xx-cleanups-checkpatch-fixes.patch
 scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
 drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch
 libsas-convert-ata-bridge-to-use-new-eh.patch
