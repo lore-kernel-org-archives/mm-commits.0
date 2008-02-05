@@ -1,145 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: - maps4-add-proportional-set-size-accounting-in-smaps.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:30:52 -0800
-Message-ID: <200802052230.m15MUXoQ012082@imap1.linux-foundation.org>
+Subject: - iommu-sg-merging-parisc-make-iommu-respect-the-segment-size-limits.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:28:19 -0800
+Message-ID: <200802052228.m15MS0tC011844@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47824 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42623 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762826AbYBEWox (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:44:53 -0500
+	by vger.kernel.org with ESMTP id S1762824AbYBEWow (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:44:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wfg@mail.ustc.edu.cn, P@draigBrady.com, balbir@linux.vnet.ibm.com, bernie@codewiz.org, haveblue@us.ibm.com, hugh@veritas.com, jjberthels@gmail.com, mpm@selenic.com, vda.linux@googlemai
+To: tomof@acm.org, James.Bottomley@steeleye.com, fujita.tomonori@lab.ntt.co.jp, grundler@parisc-linux.org, jeff@garzik.org, jens.axboe@oracle.com, kyle@mcmartin.ca, willy@debian.org, mm-c
 
 
 The patch titled
-     maps4: add proportional set size accounting in smaps
+     iommu sg merging: parisc: make iommu respect the segment size limits
 has been removed from the -mm tree.  Its filename was
-     maps4-add-proportional-set-size-accounting-in-smaps.patch
+     iommu-sg-merging-parisc-make-iommu-respect-the-segment-size-limits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: maps4: add proportional set size accounting in smaps
-From: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Subject: iommu sg merging: parisc: make iommu respect the segment size limits
+From: FUJITA Tomonori <tomof@acm.org>
 
-The "proportional set size" (PSS) of a process is the count of pages it has
-in memory, where each page is divided by the number of processes sharing
-it.  So if a process has 1000 pages all to itself, and 1000 shared with one
-other process, its PSS will be 1500.
+This patch makes iommu respect segment size limits when merging sg
+lists.
 
-               - lwn.net: "ELC: How much memory are applications really using?"
-
-The PSS proposed by Matt Mackall is a very nice metic for measuring an
-process's memory footprint.  So collect and export it via
-/proc/<pid>/smaps.
-
-Matt Mackall's pagemap/kpagemap and John Berthels's exmap can also do the
-job.  They are comprehensive tools.  But for PSS, let's do it in the simple
-way.
-
-Cc: John Berthels <jjberthels@gmail.com>
-Cc: Bernardo Innocenti <bernie@codewiz.org>
-Cc: Padraig Brady <P@draigBrady.com>
-Cc: Denys Vlasenko <vda.linux@googlemail.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Signed-off-by: Matt Mackall <mpm@selenic.com>
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Acked-by: Jens Axboe <jens.axboe@oracle.com>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Acked-by: Grant Grundler <grundler@parisc-linux.org>
+Cc: Matthew Wilcox <willy@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   28 +++++++++++++++++++++++++++-
- 1 file changed, 27 insertions(+), 1 deletion(-)
+ drivers/parisc/ccio-dma.c      |    2 +-
+ drivers/parisc/iommu-helpers.h |    7 ++++++-
+ drivers/parisc/sba_iommu.c     |    2 +-
+ 3 files changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~maps4-add-proportional-set-size-accounting-in-smaps fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~maps4-add-proportional-set-size-accounting-in-smaps
-+++ a/fs/proc/task_mmu.c
-@@ -114,6 +114,25 @@ static void pad_len_spaces(struct seq_fi
- 	seq_printf(m, "%*c", len, ' ');
- }
+diff -puN drivers/parisc/ccio-dma.c~iommu-sg-merging-parisc-make-iommu-respect-the-segment-size-limits drivers/parisc/ccio-dma.c
+--- a/drivers/parisc/ccio-dma.c~iommu-sg-merging-parisc-make-iommu-respect-the-segment-size-limits
++++ a/drivers/parisc/ccio-dma.c
+@@ -941,7 +941,7 @@ ccio_map_sg(struct device *dev, struct s
+ 	** w/o this association, we wouldn't have coherent DMA!
+ 	** Access to the virtual address is what forces a two pass algorithm.
+ 	*/
+-	coalesced = iommu_coalesce_chunks(ioc, sglist, nents, ccio_alloc_range);
++	coalesced = iommu_coalesce_chunks(ioc, dev, sglist, nents, ccio_alloc_range);
  
-+/*
-+ * Proportional Set Size(PSS): my share of RSS.
-+ *
-+ * PSS of a process is the count of pages it has in memory, where each
-+ * page is divided by the number of processes sharing it.  So if a
-+ * process has 1000 pages all to itself, and 1000 shared with one other
-+ * process, its PSS will be 1500.
-+ *
-+ * To keep (accumulated) division errors low, we adopt a 64bit
-+ * fixed-point pss counter to minimize division errors. So (pss >>
-+ * PSS_SHIFT) would be the real byte count.
-+ *
-+ * A shift of 12 before division means (assuming 4K page size):
-+ * 	- 1M 3-user-pages add up to 8KB errors;
-+ * 	- supports mapcount up to 2^24, or 16M;
-+ * 	- supports PSS up to 2^52 bytes, or 4PB.
-+ */
-+#define PSS_SHIFT 12
-+
- struct mem_size_stats
+ 	/*
+ 	** Program the I/O Pdir
+diff -puN drivers/parisc/iommu-helpers.h~iommu-sg-merging-parisc-make-iommu-respect-the-segment-size-limits drivers/parisc/iommu-helpers.h
+--- a/drivers/parisc/iommu-helpers.h~iommu-sg-merging-parisc-make-iommu-respect-the-segment-size-limits
++++ a/drivers/parisc/iommu-helpers.h
+@@ -95,12 +95,14 @@ iommu_fill_pdir(struct ioc *ioc, struct 
+ */
+ 
+ static inline unsigned int
+-iommu_coalesce_chunks(struct ioc *ioc, struct scatterlist *startsg, int nents,
++iommu_coalesce_chunks(struct ioc *ioc, struct device *dev,
++		      struct scatterlist *startsg, int nents,
+ 		      int (*iommu_alloc_range)(struct ioc *, size_t))
  {
- 	unsigned long resident;
-@@ -122,6 +141,7 @@ struct mem_size_stats
- 	unsigned long private_clean;
- 	unsigned long private_dirty;
- 	unsigned long referenced;
-+	u64 pss;
- };
+ 	struct scatterlist *contig_sg;	   /* contig chunk head */
+ 	unsigned long dma_offset, dma_len; /* start/len of DMA stream */
+ 	unsigned int n_mappings = 0;
++	unsigned int max_seg_size = dma_get_max_seg_size(dev);
  
- struct pmd_walker {
-@@ -195,6 +215,7 @@ static int show_map_internal(struct seq_
- 		seq_printf(m,
- 			   "Size:           %8lu kB\n"
- 			   "Rss:            %8lu kB\n"
-+			   "Pss:            %8lu kB\n"
- 			   "Shared_Clean:   %8lu kB\n"
- 			   "Shared_Dirty:   %8lu kB\n"
- 			   "Private_Clean:  %8lu kB\n"
-@@ -202,6 +223,7 @@ static int show_map_internal(struct seq_
- 			   "Referenced:     %8lu kB\n",
- 			   (vma->vm_end - vma->vm_start) >> 10,
- 			   mss->resident >> 10,
-+			   (unsigned long)(mss->pss >> (10 + PSS_SHIFT)),
- 			   mss->shared_clean  >> 10,
- 			   mss->shared_dirty  >> 10,
- 			   mss->private_clean >> 10,
-@@ -226,6 +248,7 @@ static void smaps_pte_range(struct vm_ar
- 	pte_t *pte, ptent;
- 	spinlock_t *ptl;
- 	struct page *page;
-+	int mapcount;
+ 	while (nents > 0) {
  
- 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
- 	for (; addr != end; pte++, addr += PAGE_SIZE) {
-@@ -242,16 +265,19 @@ static void smaps_pte_range(struct vm_ar
- 		/* Accumulate the size in pages that have been accessed. */
- 		if (pte_young(ptent) || PageReferenced(page))
- 			mss->referenced += PAGE_SIZE;
--		if (page_mapcount(page) >= 2) {
-+		mapcount = page_mapcount(page);
-+		if (mapcount >= 2) {
- 			if (pte_dirty(ptent))
- 				mss->shared_dirty += PAGE_SIZE;
- 			else
- 				mss->shared_clean += PAGE_SIZE;
-+			mss->pss += (PAGE_SIZE << PSS_SHIFT) / mapcount;
- 		} else {
- 			if (pte_dirty(ptent))
- 				mss->private_dirty += PAGE_SIZE;
- 			else
- 				mss->private_clean += PAGE_SIZE;
-+			mss->pss += (PAGE_SIZE << PSS_SHIFT);
- 		}
- 	}
- 	pte_unmap_unlock(pte - 1, ptl);
+@@ -142,6 +144,9 @@ iommu_coalesce_chunks(struct ioc *ioc, s
+ 					    IOVP_SIZE) > DMA_CHUNK_SIZE))
+ 				break;
+ 
++			if (startsg->length + dma_len > max_seg_size)
++				break;
++
+ 			/*
+ 			** Next see if we can append the next chunk (i.e.
+ 			** it must end on one page and begin on another
+diff -puN drivers/parisc/sba_iommu.c~iommu-sg-merging-parisc-make-iommu-respect-the-segment-size-limits drivers/parisc/sba_iommu.c
+--- a/drivers/parisc/sba_iommu.c~iommu-sg-merging-parisc-make-iommu-respect-the-segment-size-limits
++++ a/drivers/parisc/sba_iommu.c
+@@ -946,7 +946,7 @@ sba_map_sg(struct device *dev, struct sc
+ 	** w/o this association, we wouldn't have coherent DMA!
+ 	** Access to the virtual address is what forces a two pass algorithm.
+ 	*/
+-	coalesced = iommu_coalesce_chunks(ioc, sglist, nents, sba_alloc_range);
++	coalesced = iommu_coalesce_chunks(ioc, dev, sglist, nents, sba_alloc_range);
+ 
+ 	/*
+ 	** Program the I/O Pdir
 _
 
-Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
+Patches currently in -mm which might be from tomof@acm.org are
 
 origin.patch
