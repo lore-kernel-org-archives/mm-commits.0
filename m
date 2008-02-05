@@ -1,48 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 04 Feb 2008 23:29:47 -0800
-Message-ID: <200802050729.m157TSA0009593@imap1.linux-foundation.org>
+Subject: - acpi-backlight-reset-brightness-on-resume-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 04 Feb 2008 23:30:23 -0800
+Message-ID: <200802050730.m157U4vK009605@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36739 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51451 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751136AbYBEHaC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 02:30:02 -0500
+	by vger.kernel.org with ESMTP id S1751136AbYBEHbY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 02:31:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, lenb@kernel.org, mjg59@srcf.ucam.org, rui.zhang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements-checkpatch-fixes
+     acpi-backlight-reset-brightness-on-resume-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements-checkpatch-fixes.patch
+     acpi-backlight-reset-brightness-on-resume-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+This patch was dropped because it was folded into acpi-backlight-reset-brightness-on-resume.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements-checkpatch-fixes
+Subject: acpi-backlight-reset-brightness-on-resume-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: no space between function name and open parenthesis '('
-#24: FILE: drivers/usb/serial/io_ti.c:1089:
-+		dbg ("%s - RUNNING IN DOWNLOAD MODE", __FUNCTION__);
+ERROR: need spaces around that '=' (ctx:VxV)
+#49: FILE: drivers/acpi/video.c:1947:
++	for (i=0; i<video->attached_count; i++) {
+ 	      ^
 
-WARNING: no space between function name and open parenthesis '('
-#29: FILE: drivers/usb/serial/io_ti.c:1093:
-+			dbg ("%s - DOWNLOAD MODE -- BAD I2C",
+ERROR: need spaces around that '<' (ctx:VxV)
+#49: FILE: drivers/acpi/video.c:1947:
++	for (i=0; i<video->attached_count; i++) {
+ 	           ^
 
-WARNING: no space between function name and open parenthesis '('
-#38: FILE: drivers/usb/serial/io_ti.c:1348:
-+	dbg ("%s - RUNNING IN BOOT MODE",
-
-WARNING: no space between function name and open parenthesis '('
-#47: FILE: drivers/usb/serial/io_ti.c:1464:
-+	dbg ("%s - STAYING IN BOOT MODE", __FUNCTION__);
-
-total: 0 errors, 4 warnings, 29 lines checked
+total: 2 errors, 0 warnings, 39 lines checked
 
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
@@ -50,50 +44,27 @@ CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Greg KH <greg@kroah.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/io_ti.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ drivers/acpi/video.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/serial/io_ti.c~drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements-checkpatch-fixes drivers/usb/serial/io_ti.c
---- a/drivers/usb/serial/io_ti.c~drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements-checkpatch-fixes
-+++ a/drivers/usb/serial/io_ti.c
-@@ -1086,12 +1086,11 @@ static int TIDownloadFirmware (struct ed
- 	if (serial->product_info.TiMode == TI_MODE_DOWNLOAD) {
- 		struct ti_i2c_desc *rom_desc;
+diff -puN drivers/acpi/video.c~acpi-backlight-reset-brightness-on-resume-checkpatch-fixes drivers/acpi/video.c
+--- a/drivers/acpi/video.c~acpi-backlight-reset-brightness-on-resume-checkpatch-fixes
++++ a/drivers/acpi/video.c
+@@ -1944,7 +1944,7 @@ static int acpi_video_resume(struct acpi
  
--		dbg ("%s - RUNNING IN DOWNLOAD MODE", __FUNCTION__);
-+		dbg("%s - RUNNING IN DOWNLOAD MODE", __FUNCTION__);
+ 	video = acpi_driver_data(device);
  
- 		status = TiValidateI2cImage (serial);
- 		if (status) {
--			dbg ("%s - DOWNLOAD MODE -- BAD I2C",
--			     __FUNCTION__);
-+			dbg("%s - DOWNLOAD MODE -- BAD I2C", __FUNCTION__);
- 			return status;
- 		}
- 		
-@@ -1345,8 +1344,7 @@ static int TIDownloadFirmware (struct ed
- 	/********************************************************************/
- 	/* Boot Mode */
- 	/********************************************************************/
--	dbg ("%s - RUNNING IN BOOT MODE",
--	     __FUNCTION__);
-+	dbg("%s - RUNNING IN BOOT MODE", __FUNCTION__);
- 
- 	// Configure the TI device so we can use the BULK pipes for download
- 	status = TIConfigureBootDevice (serial->serial->dev);
-@@ -1461,7 +1459,7 @@ static int TIDownloadFirmware (struct ed
- 
- StayInBootMode:
- 	// Eprom is invalid or blank stay in boot mode
--	dbg ("%s - STAYING IN BOOT MODE", __FUNCTION__);
-+	dbg("%s - STAYING IN BOOT MODE", __FUNCTION__);
- 	serial->product_info.TiMode = TI_MODE_BOOT;
- 
- 	return 0;
+-	for (i=0; i<video->attached_count; i++) {
++	for (i = 0; i < video->attached_count; i++) {
+ 		video_device = video->attached_array[i].bind_info;
+ 		if (video_device && video_device->backlight)
+ 			acpi_video_set_brightness(video_device->backlight);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -129,11 +100,10 @@ dio-array_size-cleanup.patch
 uml-get-rid-of-asmlinkage.patch
 uml-improve-detection-of-host-cmov.patch
 uml-further-bugsc-tidying.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements-checkpatch-fixes.patch
 git-acpi.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 small-acpica-extension-to-be-able-to-store-the-name-of.patch
+acpi-backlight-reset-brightness-on-resume.patch
 acpi-backlight-reset-brightness-on-resume-checkpatch-fixes.patch
 git-alsa-disable-sound-pci-ice1712-ice1724c.patch
 git-agpgart.patch
@@ -182,6 +152,7 @@ vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
 ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
 drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
 usb-ohci-sm501-driver-v2-fix.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
 git-v9fs-fix-git-conflicts.patch
 9p-fix-p9_printfcall-export.patch
 git-watchdog.patch
