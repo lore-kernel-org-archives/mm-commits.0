@@ -1,120 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: - vmstat-small-revisions-to-refresh_cpu_vm_stats.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:31:46 -0800
-Message-ID: <200802052231.m15MVRo9012166@imap1.linux-foundation.org>
+Subject: - drivers-bluetooth-btsdioc-fix-double-free.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:39:43 -0800
+Message-ID: <200802052239.m15MdOcJ013058@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45218 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52115 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760594AbYBEWlD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:03 -0500
+	by vger.kernel.org with ESMTP id S1762192AbYBEWlR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmstat: small revisions to refresh_cpu_vm_stats()
+     drivers/bluetooth/btsdio.c: fix double-free
 has been removed from the -mm tree.  Its filename was
-     vmstat-small-revisions-to-refresh_cpu_vm_stats.patch
+     drivers-bluetooth-btsdioc-fix-double-free.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmstat: small revisions to refresh_cpu_vm_stats()
-From: Christoph Lameter <clameter@sgi.com>
+Subject: drivers/bluetooth/btsdio.c: fix double-free
+From: Adrian Bunk <bunk@kernel.org>
 
-1. Add comments explaining how the function can be called.
+This patch fixes a double-free spotted by the Coverity checker.
 
-2. Collect global diffs in a local array and only spill
-   them once into the global counters when the zone scan
-   is finished. This means that we only touch each global
-   counter once instead of each time we fold cpu counters
-   into zone counters.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
+ drivers/bluetooth/btsdio.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN mm/vmstat.c~vmstat-small-revisions-to-refresh_cpu_vm_stats mm/vmstat.c
---- a/mm/vmstat.c~vmstat-small-revisions-to-refresh_cpu_vm_stats
-+++ a/mm/vmstat.c
-@@ -284,6 +284,10 @@ EXPORT_SYMBOL(dec_zone_page_state);
- /*
-  * Update the zone counters for one cpu.
-  *
-+ * The cpu specified must be either the current cpu or a processor that
-+ * is not online. If it is the current cpu then the execution thread must
-+ * be pinned to the current cpu.
-+ *
-  * Note that refresh_cpu_vm_stats strives to only access
-  * node local memory. The per cpu pagesets on remote zones are placed
-  * in the memory local to the processor using that pageset. So the
-@@ -299,7 +303,7 @@ void refresh_cpu_vm_stats(int cpu)
- {
- 	struct zone *zone;
- 	int i;
--	unsigned long flags;
-+	int global_diff[NR_VM_ZONE_STAT_ITEMS] = { 0, };
+diff -puN drivers/bluetooth/btsdio.c~drivers-bluetooth-btsdioc-fix-double-free drivers/bluetooth/btsdio.c
+--- a/drivers/bluetooth/btsdio.c~drivers-bluetooth-btsdioc-fix-double-free
++++ a/drivers/bluetooth/btsdio.c
+@@ -162,10 +162,8 @@ static int btsdio_rx_packet(struct btsdi
+ 	bt_cb(skb)->pkt_type = hdr[3];
  
- 	for_each_zone(zone) {
- 		struct per_cpu_pageset *p;
-@@ -311,15 +315,19 @@ void refresh_cpu_vm_stats(int cpu)
+ 	err = hci_recv_frame(skb);
+-	if (err < 0) {
+-		kfree(skb);
++	if (err < 0)
+ 		return err;
+-	}
  
- 		for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
- 			if (p->vm_stat_diff[i]) {
-+				unsigned long flags;
-+				int v;
-+
- 				local_irq_save(flags);
--				zone_page_state_add(p->vm_stat_diff[i],
--					zone, i);
-+				v = p->vm_stat_diff[i];
- 				p->vm_stat_diff[i] = 0;
-+				local_irq_restore(flags);
-+				atomic_long_add(v, &zone->vm_stat[i]);
-+				global_diff[i] += v;
- #ifdef CONFIG_NUMA
- 				/* 3 seconds idle till flush */
- 				p->expire = 3;
- #endif
--				local_irq_restore(flags);
- 			}
- #ifdef CONFIG_NUMA
- 		/*
-@@ -351,6 +359,10 @@ void refresh_cpu_vm_stats(int cpu)
- 			drain_zone_pages(zone, p->pcp + 1);
- #endif
- 	}
-+
-+	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
-+		if (global_diff[i])
-+			atomic_long_add(global_diff[i], &vm_stat[i]);
- }
+ 	sdio_writeb(data->func, 0x00, REG_PC_RRT, NULL);
  
- #endif
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-gregkh-driver-kset-move-sys-slab-to-sys-kernel-slab-slabinfo-fallback-from-sys-kernel-slab-to-sys-slab.patch
-git-unionfs.patch
-git-slub.patch
-percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-oom-add-sysctl-to-enable-task-memory-dump.patch
-add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
-add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
-dentries-extract-common-code-to-remove-dentry-from-lru.patch
-dentries-extract-common-code-to-remove-dentry-from-lru-fix.patch
-modules-handle-symbols-that-have-a-zero-value.patch
-modules-include-sectionsh-to-avoid-defining-linker-variables.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+git-acpi.patch
+powerpc-vdso_do_func_patch3264-must-be-__init.patch
+powerpc-free_property-mustnt-be-__init.patch
+hvc_rtas_init-must-be-__init.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-mtd.patch
+git-ocfs2.patch
+if-0-pci_cleanup_aer_correct_error_status.patch
+git-scsi-misc.patch
+scsi-advansysc-make-3-functions-static.patch
+scsi-aic94xx-cleanups.patch
+scsi-qlogicptic-section-fixes.patch
+usb-make-usb_storage_onetouch-available-with-pm.patch
+make-b43_mac_enablesuspend-static.patch
+git-xtensa.patch
+make-ipc-utilcsysvipc_find_ipc-static.patch
+cleanup-after-apus-removal.patch
+remove-mm_ptovvtop.patch
+proper-show_interrupts-prototype.patch
+scheduled-oss-driver-removal.patch
+proper-prototype-for-signals_init.patch
+kernel-ptracec-should-include-linux-syscallsh.patch
+make-srcu_readers_active-static.patch
+kernel-notifierc-should-include-linux-rebooth.patch
+proper-prototype-for-get_filesystem_list.patch
+fs-utimesc-should-include-linux-syscallsh.patch
+fs-signalfdc-should-include-linux-syscallsh.patch
+fs-eventfdc-should-include-linux-syscallsh.patch
+proper-prototype-for-vty_init.patch
+drivers-misc-lkdtmc-cleanups.patch
+calibrate_delay-must-be-__cpuinit.patch
+idle_regs-must-be-__cpuinit.patch
+fs-ecryptfs-possible-cleanups.patch
+make-video-geode-lxfb_corecgeode_modedb-static.patch
+video-hpfbc-section-fix.patch
+drivers-video-pm3fbc-section-fix.patch
+make-jbd-journalc__journal_abort_hard-static.patch
+move-edactxt-two-levels-up.patch
+kernel-cgroupc-remove-dead-code.patch
+kernel-cgroupc-make-2-functions-static.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+fix-m32r-__xchg.patch
+kill-udffs_dateversion.patch
+the-scheduled-time-option-removal.patch
 reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
-page-owner-tracking-leak-detector.patch
