@@ -1,148 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - bluetooth-uninlining.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:39:36 -0800
-Message-ID: <200802052239.m15MdH3m013032@imap1.linux-foundation.org>
+Subject: - alpha-atomic_add_return-should-return-int.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:33:47 -0800
+Message-ID: <200802052233.m15MXSEg012430@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42368 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53712 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760421AbYBEWk5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:40:57 -0500
+	by vger.kernel.org with ESMTP id S1762282AbYBEWlK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, marcel@holtmann.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bluetooth: uninlining
+     alpha: atomic_add_return() should return int
 has been removed from the -mm tree.  Its filename was
-     bluetooth-uninlining.patch
+     alpha-atomic_add_return-should-return-int.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bluetooth: uninlining
+Subject: alpha: atomic_add_return() should return int
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Remove all those inlines which were either a) unneeded or b) increased code
-size.
+Prevents stuff like
 
-          text    data     bss     dec     hex filename
-before:   6997      74       8    7079    1ba7 net/bluetooth/hidp/core.o
-after:    6492      74       8    6574    19ae net/bluetooth/hidp/core.o
+drivers/crypto/hifn_795x.c:2443: warning: format '%d' expects type 'int', but argument 4 has type 'long int'
+drivers/crypto/hifn_795x.c:2443: warning: format '%d' expects type 'int', but argument 4 has type 'long int'
 
-Cc: Marcel Holtmann <marcel@holtmann.org>
+(at least).
+
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bluetooth/hidp/core.c |   30 +++++++++++++++++++-----------
- 1 file changed, 19 insertions(+), 11 deletions(-)
+ include/asm-alpha/atomic.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/bluetooth/hidp/core.c~bluetooth-uninlining net/bluetooth/hidp/core.c
---- a/net/bluetooth/hidp/core.c~bluetooth-uninlining
-+++ a/net/bluetooth/hidp/core.c
-@@ -135,8 +135,8 @@ static void __hidp_copy_session(struct h
- 	}
- }
- 
--static inline int hidp_queue_event(struct hidp_session *session, struct input_dev *dev,
--					unsigned int type, unsigned int code, int value)
-+static int hidp_queue_event(struct hidp_session *session, struct input_dev *dev,
-+				unsigned int type, unsigned int code, int value)
+diff -puN include/asm-alpha/atomic.h~alpha-atomic_add_return-should-return-int include/asm-alpha/atomic.h
+--- a/include/asm-alpha/atomic.h~alpha-atomic_add_return-should-return-int
++++ a/include/asm-alpha/atomic.h
+@@ -100,7 +100,7 @@ static __inline__ void atomic64_sub(long
+ /*
+  * Same as above, but return the result value
+  */
+-static __inline__ long atomic_add_return(int i, atomic_t * v)
++static inline int atomic_add_return(int i, atomic_t *v)
  {
- 	unsigned char newleds;
- 	struct sk_buff *skb;
-@@ -243,7 +243,8 @@ static void hidp_input_report(struct hid
- 	input_sync(dev);
- }
- 
--static inline int hidp_queue_report(struct hidp_session *session, unsigned char *data, int size)
-+static int hidp_queue_report(struct hidp_session *session,
-+				unsigned char *data, int size)
- {
- 	struct sk_buff *skb;
- 
-@@ -287,7 +288,7 @@ static void hidp_idle_timeout(unsigned l
- 	hidp_schedule(session);
- }
- 
--static inline void hidp_set_timer(struct hidp_session *session)
-+static void hidp_set_timer(struct hidp_session *session)
- {
- 	if (session->idle_to > 0)
- 		mod_timer(&session->timer, jiffies + HZ * session->idle_to);
-@@ -332,7 +333,8 @@ static inline int hidp_send_ctrl_message
- 	return err;
- }
- 
--static inline void hidp_process_handshake(struct hidp_session *session, unsigned char param)
-+static void hidp_process_handshake(struct hidp_session *session,
-+					unsigned char param)
- {
- 	BT_DBG("session %p param 0x%02x", session, param);
- 
-@@ -365,7 +367,8 @@ static inline void hidp_process_handshak
- 	}
- }
- 
--static inline void hidp_process_hid_control(struct hidp_session *session, unsigned char param)
-+static void hidp_process_hid_control(struct hidp_session *session,
-+					unsigned char param)
- {
- 	BT_DBG("session %p param 0x%02x", session, param);
- 
-@@ -379,7 +382,8 @@ static inline void hidp_process_hid_cont
- 	}
- }
- 
--static inline void hidp_process_data(struct hidp_session *session, struct sk_buff *skb, unsigned char param)
-+static void hidp_process_data(struct hidp_session *session, struct sk_buff *skb,
-+				unsigned char param)
- {
- 	BT_DBG("session %p skb %p len %d param 0x%02x", session, skb, skb->len, param);
- 
-@@ -406,7 +410,8 @@ static inline void hidp_process_data(str
- 	}
- }
- 
--static inline void hidp_recv_ctrl_frame(struct hidp_session *session, struct sk_buff *skb)
-+static void hidp_recv_ctrl_frame(struct hidp_session *session,
-+					struct sk_buff *skb)
- {
- 	unsigned char hdr, type, param;
- 
-@@ -440,7 +445,8 @@ static inline void hidp_recv_ctrl_frame(
- 	kfree_skb(skb);
- }
- 
--static inline void hidp_recv_intr_frame(struct hidp_session *session, struct sk_buff *skb)
-+static void hidp_recv_intr_frame(struct hidp_session *session,
-+				struct sk_buff *skb)
- {
- 	unsigned char hdr;
- 
-@@ -608,7 +614,8 @@ static struct device *hidp_get_device(st
- 	return conn ? &conn->dev : NULL;
- }
- 
--static inline int hidp_setup_input(struct hidp_session *session, struct hidp_connadd_req *req)
-+static int hidp_setup_input(struct hidp_session *session,
-+				struct hidp_connadd_req *req)
- {
- 	struct input_dev *input = session->input;
- 	int i;
-@@ -685,7 +692,8 @@ static void hidp_setup_quirks(struct hid
- 			hid->quirks = hidp_blacklist[n].quirks;
- }
- 
--static inline void hidp_setup_hid(struct hidp_session *session, struct hidp_connadd_req *req)
-+static void hidp_setup_hid(struct hidp_session *session,
-+				struct hidp_connadd_req *req)
- {
- 	struct hid_device *hid = session->hid;
- 	struct hid_report *report;
+ 	long temp, result;
+ 	smp_mb();
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
