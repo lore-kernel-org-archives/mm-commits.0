@@ -1,192 +1,174 @@
 From: akpm@linux-foundation.org
-Subject: - tmpfs-allow-filepage-alongside-swappage.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:30:32 -0800
-Message-ID: <200802052230.m15MUD3c012048@imap1.linux-foundation.org>
+Subject: - is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:29:39 -0800
+Message-ID: <200802052229.m15MTKFo011971@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55297 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38772 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932127AbYBEWmw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:52 -0500
+	by vger.kernel.org with ESMTP id S932241AbYBEWnH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:43:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tmpfs: allow filepage alongside swappage
+     is_vmalloc_addr(): Check if an address is within the vmalloc boundaries
 has been removed from the -mm tree.  Its filename was
-     tmpfs-allow-filepage-alongside-swappage.patch
+     is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tmpfs: allow filepage alongside swappage
-From: Hugh Dickins <hugh@veritas.com>
+Subject: is_vmalloc_addr(): Check if an address is within the vmalloc boundaries
+From: Christoph Lameter <clameter@sgi.com>
 
-tmpfs has long allowed for a fresh filepage to be created in pagecache, just
-before shmem_getpage gets the chance to match it up with the swappage which
-already belongs to that offset.  But unionfs_writepage now does a
-find_or_create_page, divorced from shmem_getpage, which leaves conflicting
-filepage and swappage outstanding indefinitely, when unionfs is over tmpfs.
+Checking if an address is a vmalloc address is done in a couple of places. 
+Define a common version in mm.h and replace the other checks.
 
-Therefore shmem_writepage (where a page is swizzled from file to swap) must
-now be on the lookout for existing swap, ready to free it in favour of the
-more uptodate filepage, instead of BUGging on that clash.  And when the
-add_to_page_cache fails in shmem_unuse_inode, it must defer to an uptodate
-filepage, otherwise swapoff would hang.  Whereas when add_to_page_cache fails
-in shmem_getpage, it should retry in the same way it already does.
+Again the include structures suck.  The definition of VMALLOC_START and
+VMALLOC_END is not available in vmalloc.h since highmem.c cannot be included
+there.
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   69 ++++++++++++++++++++++++++++++++-------------------
- 1 file changed, 44 insertions(+), 25 deletions(-)
+ drivers/net/cxgb3/cxgb3_offload.c |    4 +---
+ fs/ntfs/malloc.h                  |    3 +--
+ fs/proc/kcore.c                   |    2 +-
+ fs/xfs/linux-2.6/kmem.c           |    3 +--
+ fs/xfs/linux-2.6/xfs_buf.c        |    3 +--
+ include/linux/mm.h                |    8 ++++++++
+ mm/sparse.c                       |   10 +---------
+ 7 files changed, 14 insertions(+), 19 deletions(-)
 
-diff -puN mm/shmem.c~tmpfs-allow-filepage-alongside-swappage mm/shmem.c
---- a/mm/shmem.c~tmpfs-allow-filepage-alongside-swappage
-+++ a/mm/shmem.c
-@@ -827,6 +827,7 @@ static int shmem_unuse_inode(struct shme
- 	struct page *subdir;
- 	swp_entry_t *ptr;
- 	int offset;
-+	int error;
- 
- 	idx = 0;
- 	ptr = info->i_direct;
-@@ -884,7 +885,20 @@ lost2:
- found:
- 	idx += offset;
- 	inode = &info->vfs_inode;
--	if (add_to_page_cache(page, inode->i_mapping, idx, GFP_ATOMIC) == 0) {
-+	error = add_to_page_cache(page, inode->i_mapping, idx, GFP_ATOMIC);
-+	if (error == -EEXIST) {
-+		struct page *filepage = find_get_page(inode->i_mapping, idx);
-+		if (filepage) {
-+			/*
-+			 * There might be a more uptodate page coming down
-+			 * from a stacked writepage: forget our swappage if so.
-+			 */
-+			if (PageUptodate(filepage))
-+				error = 0;
-+			page_cache_release(filepage);
-+		}
-+	}
-+	if (!error) {
- 		delete_from_swap_cache(page);
- 		set_page_dirty(page);
- 		info->flags |= SHMEM_PAGEIN;
-@@ -937,44 +951,45 @@ static int shmem_writepage(struct page *
- 	struct inode *inode;
- 
- 	BUG_ON(!PageLocked(page));
--	/*
--	 * shmem_backing_dev_info's capabilities prevent regular writeback or
--	 * sync from ever calling shmem_writepage; but a stacking filesystem
--	 * may use the ->writepage of its underlying filesystem, in which case
--	 * we want to do nothing when that underlying filesystem is tmpfs
--	 * (writing out to swap is useful as a response to memory pressure, but
--	 * of no use to stabilize the data) - just redirty the page, unlock it
--	 * and claim success in this case.  AOP_WRITEPAGE_ACTIVATE, and the
--	 * page_mapped check below, must be avoided unless we're in reclaim.
--	 */
--	if (!wbc->for_reclaim) {
--		set_page_dirty(page);
--		unlock_page(page);
--		return 0;
--	}
--	BUG_ON(page_mapped(page));
+diff -puN drivers/net/cxgb3/cxgb3_offload.c~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries drivers/net/cxgb3/cxgb3_offload.c
+--- a/drivers/net/cxgb3/cxgb3_offload.c~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries
++++ a/drivers/net/cxgb3/cxgb3_offload.c
+@@ -1070,9 +1070,7 @@ void *cxgb_alloc_mem(unsigned long size)
+  */
+ void cxgb_free_mem(void *addr)
+ {
+-	unsigned long p = (unsigned long)addr;
 -
- 	mapping = page->mapping;
- 	index = page->index;
- 	inode = mapping->host;
- 	info = SHMEM_I(inode);
- 	if (info->flags & VM_LOCKED)
- 		goto redirty;
--	swap = get_swap_page();
--	if (!swap.val)
-+	if (!total_swap_pages)
- 		goto redirty;
+-	if (p >= VMALLOC_START && p < VMALLOC_END)
++	if (is_vmalloc_addr(addr))
+ 		vfree(addr);
+ 	else
+ 		kfree(addr);
+diff -puN fs/ntfs/malloc.h~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries fs/ntfs/malloc.h
+--- a/fs/ntfs/malloc.h~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries
++++ a/fs/ntfs/malloc.h
+@@ -85,8 +85,7 @@ static inline void *ntfs_malloc_nofs_nof
  
-+	/*
-+	 * shmem_backing_dev_info's capabilities prevent regular writeback or
-+	 * sync from ever calling shmem_writepage; but a stacking filesystem
-+	 * may use the ->writepage of its underlying filesystem, in which case
-+	 * tmpfs should write out to swap only in response to memory pressure,
-+	 * and not for pdflush or sync.  However, in those cases, we do still
-+	 * want to check if there's a redundant swappage to be discarded.
-+	 */
-+	if (wbc->for_reclaim)
-+		swap = get_swap_page();
-+	else
-+		swap.val = 0;
+ static inline void ntfs_free(void *addr)
+ {
+-	if (likely(((unsigned long)addr < VMALLOC_START) ||
+-			((unsigned long)addr >= VMALLOC_END ))) {
++	if (!is_vmalloc_addr(addr)) {
+ 		kfree(addr);
+ 		/* free_page((unsigned long)addr); */
+ 		return;
+diff -puN fs/proc/kcore.c~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries fs/proc/kcore.c
+--- a/fs/proc/kcore.c~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries
++++ a/fs/proc/kcore.c
+@@ -325,7 +325,7 @@ read_kcore(struct file *file, char __use
+ 		if (m == NULL) {
+ 			if (clear_user(buffer, tsz))
+ 				return -EFAULT;
+-		} else if ((start >= VMALLOC_START) && (start < VMALLOC_END)) {
++		} else if (is_vmalloc_addr((void *)start)) {
+ 			char * elf_buf;
+ 			struct vm_struct *m;
+ 			unsigned long curstart = start;
+diff -puN fs/xfs/linux-2.6/kmem.c~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries fs/xfs/linux-2.6/kmem.c
+--- a/fs/xfs/linux-2.6/kmem.c~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries
++++ a/fs/xfs/linux-2.6/kmem.c
+@@ -92,8 +92,7 @@ kmem_zalloc_greedy(size_t *size, size_t 
+ void
+ kmem_free(void *ptr, size_t size)
+ {
+-	if (((unsigned long)ptr < VMALLOC_START) ||
+-	    ((unsigned long)ptr >= VMALLOC_END)) {
++	if (!is_vmalloc_addr(ptr)) {
+ 		kfree(ptr);
+ 	} else {
+ 		vfree(ptr);
+diff -puN fs/xfs/linux-2.6/xfs_buf.c~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries fs/xfs/linux-2.6/xfs_buf.c
+--- a/fs/xfs/linux-2.6/xfs_buf.c~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries
++++ a/fs/xfs/linux-2.6/xfs_buf.c
+@@ -709,8 +709,7 @@ static inline struct page *
+ mem_to_page(
+ 	void			*addr)
+ {
+-	if (((unsigned long)addr < VMALLOC_START) ||
+-	    ((unsigned long)addr >= VMALLOC_END)) {
++	if ((!is_vmalloc_addr(addr))) {
+ 		return virt_to_page(addr);
+ 	} else {
+ 		return vmalloc_to_page(addr);
+diff -puN include/linux/mm.h~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries include/linux/mm.h
+--- a/include/linux/mm.h~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries
++++ a/include/linux/mm.h
+@@ -235,6 +235,14 @@ static inline int get_page_unless_zero(s
+ struct page *vmalloc_to_page(const void *addr);
+ unsigned long vmalloc_to_pfn(const void *addr);
+ 
++/* Determine if an address is within the vmalloc range */
++static inline int is_vmalloc_addr(const void *x)
++{
++	unsigned long addr = (unsigned long)x;
 +
- 	spin_lock(&info->lock);
--	shmem_recalc_inode(inode);
- 	if (index >= info->next_index) {
- 		BUG_ON(!(info->flags & SHMEM_TRUNCATE));
- 		goto unlock;
- 	}
- 	entry = shmem_swp_entry(info, index, NULL);
--	BUG_ON(!entry);
--	BUG_ON(entry->val);
-+	if (entry->val) {
-+		/*
-+		 * The more uptodate page coming down from a stacked
-+		 * writepage should replace our old swappage.
-+		 */
-+		free_swap_and_cache(*entry);
-+		shmem_swp_set(info, entry, 0);
-+	}
-+	shmem_recalc_inode(inode);
- 
--	if (add_to_swap_cache(page, swap, GFP_ATOMIC) == 0) {
-+	if (swap.val && add_to_swap_cache(page, swap, GFP_ATOMIC) == 0) {
- 		remove_from_page_cache(page);
- 		shmem_swp_set(info, entry, swap.val);
- 		shmem_swp_unmap(entry);
-@@ -986,6 +1001,7 @@ static int shmem_writepage(struct page *
- 			spin_unlock(&shmem_swaplist_lock);
- 		}
- 		swap_duplicate(swap);
-+		BUG_ON(page_mapped(page));
- 		page_cache_release(page);	/* pagecache ref */
- 		set_page_dirty(page);
- 		unlock_page(page);
-@@ -998,7 +1014,10 @@ unlock:
- 	swap_free(swap);
- redirty:
- 	set_page_dirty(page);
--	return AOP_WRITEPAGE_ACTIVATE;	/* Return with the page locked */
-+	if (wbc->for_reclaim)
-+		return AOP_WRITEPAGE_ACTIVATE;	/* Return with page locked */
-+	unlock_page(page);
-+	return 0;
++	return addr >= VMALLOC_START && addr < VMALLOC_END;
++}
++
+ static inline struct page *compound_head(struct page *page)
+ {
+ 	if (unlikely(PageTail(page)))
+diff -puN mm/sparse.c~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries mm/sparse.c
+--- a/mm/sparse.c~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries
++++ a/mm/sparse.c
+@@ -353,17 +353,9 @@ static inline struct page *kmalloc_secti
+ 	return __kmalloc_section_memmap(nr_pages);
  }
  
- #ifdef CONFIG_NUMA
+-static int vaddr_in_vmalloc_area(void *addr)
+-{
+-	if (addr >= (void *)VMALLOC_START &&
+-	    addr < (void *)VMALLOC_END)
+-		return 1;
+-	return 0;
+-}
+-
+ static void __kfree_section_memmap(struct page *memmap, unsigned long nr_pages)
+ {
+-	if (vaddr_in_vmalloc_area(memmap))
++	if (is_vmalloc_addr(memmap))
+ 		vfree(memmap);
+ 	else
+ 		free_pages((unsigned long)memmap,
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
+gregkh-driver-kset-move-sys-slab-to-sys-kernel-slab-slabinfo-fallback-from-sys-kernel-slab-to-sys-slab.patch
 git-unionfs.patch
-git-x86.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-memcgroup-temporarily-revert-swapoff-mod.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memcgroup-reinstate-swapoff-mod.patch
-memcgroup-fix-zone-isolation-oom.patch
-memcgroup-revert-swap_state-mods.patch
-memory-controller-use-rcu_read_lock-in-mem_cgroup_cache_charge.patch
-memcgroup-tidy-up-mem_cgroup_charge_common.patch
-memcgroup-fix-hang-with-shmem-tmpfs.patch
-mount-options-fix-tmpfs.patch
-mount-options-fix-tmpfs-fix.patch
-add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
-prio_tree-debugging-patch.patch
+git-slub.patch
+percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+oom-add-sysctl-to-enable-task-memory-dump.patch
+add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
+add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
+dentries-extract-common-code-to-remove-dentry-from-lru.patch
+dentries-extract-common-code-to-remove-dentry-from-lru-fix.patch
+modules-handle-symbols-that-have-a-zero-value.patch
+modules-include-sectionsh-to-avoid-defining-linker-variables.patch
+reiser4.patch
+reiser4-portion-of-zero_user-cleanup-patch.patch
+page-owner-tracking-leak-detector.patch
