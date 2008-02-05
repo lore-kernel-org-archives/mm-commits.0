@@ -1,66 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - alpha-kill-deprecated-virt_to_bus.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:33:50 -0800
-Message-ID: <200802052233.m15MXVxl012433@imap1.linux-foundation.org>
+Subject: - pcmcia-axnet_cs-make-use-of-max-instead-of-handcrafted-one.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:27:16 -0800
+Message-ID: <200802052226.m15MQvFq011661@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58384 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46308 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932315AbYBEWnS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:43:18 -0500
+	by vger.kernel.org with ESMTP id S932362AbYBEWnb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:43:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tomof@acm.org, fujita.tomonori@lab.ntt.co.jp, ink@jurassic.park.msu.ru, jens.axboe@oracle.com, rth@twiddle.net, mm-commits@vger.kernel.org
+To: ricknu-0@student.ltu.se, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha: kill deprecated virt_to_bus
+     pcmcia/axnet_cs: make use of 'max()' instead of handcrafted one
 has been removed from the -mm tree.  Its filename was
-     alpha-kill-deprecated-virt_to_bus.patch
+     pcmcia-axnet_cs-make-use-of-max-instead-of-handcrafted-one.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: kill deprecated virt_to_bus
-From: FUJITA Tomonori <tomof@acm.org>
+Subject: pcmcia/axnet_cs: make use of 'max()' instead of handcrafted one
+From: Richard Knutsson <ricknu-0@student.ltu.se>
 
-pci-noop.c doesn't use DMA mappings.
+Use 'max(x,y)' instead of 'x < y ? y : x'.
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Signed-off-by: Richard Knutsson <ricknu-0@student.ltu.se>
+Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/pci-noop.c |    4 ++--
+ drivers/net/pcmcia/axnet_cs.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/alpha/kernel/pci-noop.c~alpha-kill-deprecated-virt_to_bus arch/alpha/kernel/pci-noop.c
---- a/arch/alpha/kernel/pci-noop.c~alpha-kill-deprecated-virt_to_bus
-+++ a/arch/alpha/kernel/pci-noop.c
-@@ -165,7 +165,7 @@ dma_alloc_coherent(struct device *dev, s
- 	ret = (void *)__get_free_pages(gfp, get_order(size));
- 	if (ret) {
- 		memset(ret, 0, size);
--		*dma_handle = virt_to_bus(ret);
-+		*dma_handle = virt_to_phys(ret);
- 	}
- 	return ret;
- }
-@@ -184,7 +184,7 @@ dma_map_sg(struct device *dev, struct sc
+diff -puN drivers/net/pcmcia/axnet_cs.c~pcmcia-axnet_cs-make-use-of-max-instead-of-handcrafted-one drivers/net/pcmcia/axnet_cs.c
+--- a/drivers/net/pcmcia/axnet_cs.c~pcmcia-axnet_cs-make-use-of-max-instead-of-handcrafted-one
++++ a/drivers/net/pcmcia/axnet_cs.c
+@@ -1087,8 +1087,8 @@ static int ei_start_xmit(struct sk_buff 
+ 	
+ 	ei_local->irqlock = 1;
  
- 		BUG_ON(!sg_page(sg));
- 		va = sg_virt(sg);
--		sg_dma_address(sg) = (dma_addr_t)virt_to_bus(va);
-+		sg_dma_address(sg) = (dma_addr_t)virt_to_phys(va);
- 		sg_dma_len(sg) = sg->length;
- 	}
- 
+-	send_length = ETH_ZLEN < length ? length : ETH_ZLEN;
+-	
++	send_length = max(length, ETH_ZLEN);
++
+ 	/*
+ 	 * We have two Tx slots available for use. Find the first free
+ 	 * slot, and then perform some sanity checks. With two Tx bufs,
 _
 
-Patches currently in -mm which might be from tomof@acm.org are
+Patches currently in -mm which might be from ricknu-0@student.ltu.se are
 
 origin.patch
+reiserfs-complement-va_start-with-va_end.patch
+kernel-paramsc-remove-sparse-warning-different-signedness.patch
