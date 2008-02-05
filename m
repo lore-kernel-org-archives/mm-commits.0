@@ -1,174 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: - is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:29:39 -0800
-Message-ID: <200802052229.m15MTKFo011971@imap1.linux-foundation.org>
+Subject: - agp-alpha-nopage.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:33:56 -0800
+Message-ID: <200802052233.m15MXb8F012439@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38772 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49973 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932241AbYBEWnH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:43:07 -0500
+	by vger.kernel.org with ESMTP id S1762691AbYBEWme (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: npiggin@suse.de, ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     is_vmalloc_addr(): Check if an address is within the vmalloc boundaries
+     agp: alpha nopage
 has been removed from the -mm tree.  Its filename was
-     is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries.patch
+     agp-alpha-nopage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: is_vmalloc_addr(): Check if an address is within the vmalloc boundaries
-From: Christoph Lameter <clameter@sgi.com>
+Subject: agp: alpha nopage
+From: Nick Piggin <npiggin@suse.de>
 
-Checking if an address is a vmalloc address is done in a couple of places. 
-Define a common version in mm.h and replace the other checks.
+Convert AGP alpha driver from nopage to fault.
+NULL is NOPAGE_SIGBUS, so we aren't changing behaviour there.
 
-Again the include structures suck.  The definition of VMALLOC_START and
-VMALLOC_END is not available in vmalloc.h since highmem.c cannot be included
-there.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/cxgb3/cxgb3_offload.c |    4 +---
- fs/ntfs/malloc.h                  |    3 +--
- fs/proc/kcore.c                   |    2 +-
- fs/xfs/linux-2.6/kmem.c           |    3 +--
- fs/xfs/linux-2.6/xfs_buf.c        |    3 +--
- include/linux/mm.h                |    8 ++++++++
- mm/sparse.c                       |   10 +---------
- 7 files changed, 14 insertions(+), 19 deletions(-)
+ drivers/char/agp/alpha-agp.c |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN drivers/net/cxgb3/cxgb3_offload.c~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries drivers/net/cxgb3/cxgb3_offload.c
---- a/drivers/net/cxgb3/cxgb3_offload.c~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries
-+++ a/drivers/net/cxgb3/cxgb3_offload.c
-@@ -1070,9 +1070,7 @@ void *cxgb_alloc_mem(unsigned long size)
-  */
- void cxgb_free_mem(void *addr)
- {
--	unsigned long p = (unsigned long)addr;
--
--	if (p >= VMALLOC_START && p < VMALLOC_END)
-+	if (is_vmalloc_addr(addr))
- 		vfree(addr);
- 	else
- 		kfree(addr);
-diff -puN fs/ntfs/malloc.h~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries fs/ntfs/malloc.h
---- a/fs/ntfs/malloc.h~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries
-+++ a/fs/ntfs/malloc.h
-@@ -85,8 +85,7 @@ static inline void *ntfs_malloc_nofs_nof
+diff -puN drivers/char/agp/alpha-agp.c~agp-alpha-nopage drivers/char/agp/alpha-agp.c
+--- a/drivers/char/agp/alpha-agp.c~agp-alpha-nopage
++++ a/drivers/char/agp/alpha-agp.c
+@@ -11,29 +11,28 @@
  
- static inline void ntfs_free(void *addr)
- {
--	if (likely(((unsigned long)addr < VMALLOC_START) ||
--			((unsigned long)addr >= VMALLOC_END ))) {
-+	if (!is_vmalloc_addr(addr)) {
- 		kfree(addr);
- 		/* free_page((unsigned long)addr); */
- 		return;
-diff -puN fs/proc/kcore.c~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries fs/proc/kcore.c
---- a/fs/proc/kcore.c~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries
-+++ a/fs/proc/kcore.c
-@@ -325,7 +325,7 @@ read_kcore(struct file *file, char __use
- 		if (m == NULL) {
- 			if (clear_user(buffer, tsz))
- 				return -EFAULT;
--		} else if ((start >= VMALLOC_START) && (start < VMALLOC_END)) {
-+		} else if (is_vmalloc_addr((void *)start)) {
- 			char * elf_buf;
- 			struct vm_struct *m;
- 			unsigned long curstart = start;
-diff -puN fs/xfs/linux-2.6/kmem.c~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries fs/xfs/linux-2.6/kmem.c
---- a/fs/xfs/linux-2.6/kmem.c~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries
-+++ a/fs/xfs/linux-2.6/kmem.c
-@@ -92,8 +92,7 @@ kmem_zalloc_greedy(size_t *size, size_t 
- void
- kmem_free(void *ptr, size_t size)
- {
--	if (((unsigned long)ptr < VMALLOC_START) ||
--	    ((unsigned long)ptr >= VMALLOC_END)) {
-+	if (!is_vmalloc_addr(ptr)) {
- 		kfree(ptr);
- 	} else {
- 		vfree(ptr);
-diff -puN fs/xfs/linux-2.6/xfs_buf.c~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries fs/xfs/linux-2.6/xfs_buf.c
---- a/fs/xfs/linux-2.6/xfs_buf.c~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries
-+++ a/fs/xfs/linux-2.6/xfs_buf.c
-@@ -709,8 +709,7 @@ static inline struct page *
- mem_to_page(
- 	void			*addr)
- {
--	if (((unsigned long)addr < VMALLOC_START) ||
--	    ((unsigned long)addr >= VMALLOC_END)) {
-+	if ((!is_vmalloc_addr(addr))) {
- 		return virt_to_page(addr);
- 	} else {
- 		return vmalloc_to_page(addr);
-diff -puN include/linux/mm.h~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries include/linux/mm.h
---- a/include/linux/mm.h~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries
-+++ a/include/linux/mm.h
-@@ -235,6 +235,14 @@ static inline int get_page_unless_zero(s
- struct page *vmalloc_to_page(const void *addr);
- unsigned long vmalloc_to_pfn(const void *addr);
+ #include "agp.h"
  
-+/* Determine if an address is within the vmalloc range */
-+static inline int is_vmalloc_addr(const void *x)
-+{
-+	unsigned long addr = (unsigned long)x;
-+
-+	return addr >= VMALLOC_START && addr < VMALLOC_END;
-+}
-+
- static inline struct page *compound_head(struct page *page)
+-static struct page *alpha_core_agp_vm_nopage(struct vm_area_struct *vma,
+-					     unsigned long address,
+-					     int *type)
++static int alpha_core_agp_vm_fault(struct vm_area_struct *vma,
++					struct vm_fault *vmf)
  {
- 	if (unlikely(PageTail(page)))
-diff -puN mm/sparse.c~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries mm/sparse.c
---- a/mm/sparse.c~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries
-+++ a/mm/sparse.c
-@@ -353,17 +353,9 @@ static inline struct page *kmalloc_secti
- 	return __kmalloc_section_memmap(nr_pages);
+ 	alpha_agp_info *agp = agp_bridge->dev_private_data;
+ 	dma_addr_t dma_addr;
+ 	unsigned long pa;
+ 	struct page *page;
+ 
+-	dma_addr = address - vma->vm_start + agp->aperture.bus_base;
++	dma_addr = (unsigned long)vmf->virtual_address - vma->vm_start
++						+ agp->aperture.bus_base;
+ 	pa = agp->ops->translate(agp, dma_addr);
+ 
+ 	if (pa == (unsigned long)-EINVAL)
+-		return NULL;	/* no translation */
++		return VM_FAULT_SIGBUS;	/* no translation */
+ 
+ 	/*
+ 	 * Get the page, inc the use count, and return it
+ 	 */
+ 	page = virt_to_page(__va(pa));
+ 	get_page(page);
+-	if (type)
+-		*type = VM_FAULT_MINOR;
+-	return page;
++	vmf->page = page;
++	return 0;
  }
  
--static int vaddr_in_vmalloc_area(void *addr)
--{
--	if (addr >= (void *)VMALLOC_START &&
--	    addr < (void *)VMALLOC_END)
--		return 1;
--	return 0;
--}
--
- static void __kfree_section_memmap(struct page *memmap, unsigned long nr_pages)
- {
--	if (vaddr_in_vmalloc_area(memmap))
-+	if (is_vmalloc_addr(memmap))
- 		vfree(memmap);
- 	else
- 		free_pages((unsigned long)memmap,
+ static struct aper_size_info_fixed alpha_core_agp_sizes[] =
+@@ -42,7 +41,7 @@ static struct aper_size_info_fixed alpha
+ };
+ 
+ struct vm_operations_struct alpha_core_agp_vm_ops = {
+-	.nopage = alpha_core_agp_vm_nopage,
++	.fault = alpha_core_agp_vm_fault,
+ };
+ 
+ 
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-gregkh-driver-kset-move-sys-slab-to-sys-kernel-slab-slabinfo-fallback-from-sys-kernel-slab-to-sys-slab.patch
-git-unionfs.patch
-git-slub.patch
-percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-oom-add-sysctl-to-enable-task-memory-dump.patch
-add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
-add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
-dentries-extract-common-code-to-remove-dentry-from-lru.patch
-dentries-extract-common-code-to-remove-dentry-from-lru-fix.patch
-modules-handle-symbols-that-have-a-zero-value.patch
-modules-include-sectionsh-to-avoid-defining-linker-variables.patch
+mm-special-mapping-nopage.patch
+drm-convert-from-nopage-to-fault.patch
+git-kvm.patch
+nfs-use-gfp_nofs-preloads-for-radix-tree-insertion.patch
+sg-nopage.patch
+vt-bitlock-fix.patch
+inotify-fix-race.patch
+inotify-remove-debug-code.patch
+relay-nopage.patch
+uio-nopage.patch
+ext2-xip-check-fix.patch
+fb-defio-nopage.patch
+rewrite-rd.patch
+rewrite-rd-fix.patch
+rewrite-rd-fix-2.patch
+rd-support-xip.patch
+mm-remove-nopage.patch
+buffer_head-fix-private_list-handling.patch
 reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
-page-owner-tracking-leak-detector.patch
+reiser4-correct-references-to-filemap_nopage.patch
