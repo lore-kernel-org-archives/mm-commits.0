@@ -1,98 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - uml-implement-get_wchan.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:35:23 -0800
-Message-ID: <200802052235.m15MZ4Zd012582@imap1.linux-foundation.org>
+Subject: - uml-64-bit-tlb-fixes.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:37:25 -0800
+Message-ID: <200802052237.m15Mb6I5012824@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55168 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51643 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762391AbYBEWlc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:32 -0500
+	by vger.kernel.org with ESMTP id S1760829AbYBEWlm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: implement get_wchan
+     uml: 64-bit tlb fixes
 has been removed from the -mm tree.  Its filename was
-     uml-implement-get_wchan.patch
+     uml-64-bit-tlb-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: implement get_wchan
+Subject: uml: 64-bit tlb fixes
 From: Jeff Dike <jdike@addtoit.com>
 
-Implement get_wchan - the algorithm is similar to x86.  It starts with the
-stack pointer of the process in question and looks above that for addresses
-that are kernel text.  The second one which isn't in the scheduler is the one
-that's returned.  The first one is ignored because that will be UML's own
-context switching routine.
+Some 64-bit tlb fixes -
+	moved pmd_page_vaddr to pgtable.h since it's the same for both
+2-level and 3-level page tables
+	fixed a bogus cast on pud_page_vaddr
+	made the address checking in update_*_range more careful
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/process.c           |   35 +++++++++++++++++++++++++++
- include/asm-um/processor-generic.h |    2 -
- 2 files changed, 36 insertions(+), 1 deletion(-)
+ arch/um/kernel/tlb.c            |    8 ++++----
+ include/asm-um/pgtable-2level.h |    3 ---
+ include/asm-um/pgtable-3level.h |    3 +--
+ include/asm-um/pgtable.h        |    3 +++
+ 4 files changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN arch/um/kernel/process.c~uml-implement-get_wchan arch/um/kernel/process.c
---- a/arch/um/kernel/process.c~uml-implement-get_wchan
-+++ a/arch/um/kernel/process.c
-@@ -459,3 +459,38 @@ unsigned long arch_align_stack(unsigned 
- 	return sp & ~0xf;
+diff -puN arch/um/kernel/tlb.c~uml-64-bit-tlb-fixes arch/um/kernel/tlb.c
+--- a/arch/um/kernel/tlb.c~uml-64-bit-tlb-fixes
++++ a/arch/um/kernel/tlb.c
+@@ -207,7 +207,7 @@ static inline int update_pte_range(pmd_t
+ 		else if (pte_newprot(*pte))
+ 			ret = add_mprotect(addr, PAGE_SIZE, prot, hvc);
+ 		*pte = pte_mkuptodate(*pte);
+-	} while (pte++, addr += PAGE_SIZE, ((addr != end) && !ret));
++	} while (pte++, addr += PAGE_SIZE, ((addr < end) && !ret));
+ 	return ret;
  }
- #endif
-+
-+unsigned long get_wchan(struct task_struct *p)
-+{
-+	unsigned long stack_page, sp, ip;
-+	bool seen_sched = 0;
-+
-+	if ((p == NULL) || (p == current) || (p->state == TASK_RUNNING))
-+		return 0;
-+
-+	stack_page = (unsigned long) task_stack_page(p);
-+	/* Bail if the process has no kernel stack for some reason */
-+	if (stack_page == 0)
-+		return 0;
-+
-+	sp = p->thread.switch_buf->JB_SP;
-+	/*
-+	 * Bail if the stack pointer is below the bottom of the kernel
-+	 * stack for some reason
-+	 */
-+	if (sp < stack_page)
-+		return 0;
-+
-+	while (sp < stack_page + THREAD_SIZE) {
-+		ip = *((unsigned long *) sp);
-+		if (in_sched_functions(ip))
-+			/* Ignore everything until we're above the scheduler */
-+			seen_sched = 1;
-+		else if (kernel_text_address(ip) && seen_sched)
-+			return ip;
-+
-+		sp += sizeof(unsigned long);
-+	}
-+
-+	return 0;
-+}
-diff -puN include/asm-um/processor-generic.h~uml-implement-get_wchan include/asm-um/processor-generic.h
---- a/include/asm-um/processor-generic.h~uml-implement-get_wchan
-+++ a/include/asm-um/processor-generic.h
-@@ -128,6 +128,6 @@ extern struct cpuinfo_um cpu_data[];
  
+@@ -229,7 +229,7 @@ static inline int update_pmd_range(pud_t
+ 			}
+ 		}
+ 		else ret = update_pte_range(pmd, addr, next, hvc);
+-	} while (pmd++, addr = next, ((addr != end) && !ret));
++	} while (pmd++, addr = next, ((addr < end) && !ret));
+ 	return ret;
+ }
  
- #define KSTK_REG(tsk, reg) get_thread_reg(reg, &tsk->thread.switch_buf)
--#define get_wchan(p) (0)
-+extern unsigned long get_wchan(struct task_struct *p);
+@@ -251,7 +251,7 @@ static inline int update_pud_range(pgd_t
+ 			}
+ 		}
+ 		else ret = update_pmd_range(pud, addr, next, hvc);
+-	} while (pud++, addr = next, ((addr != end) && !ret));
++	} while (pud++, addr = next, ((addr < end) && !ret));
+ 	return ret;
+ }
  
- #endif
+@@ -274,7 +274,7 @@ void fix_range_common(struct mm_struct *
+ 			}
+ 		}
+ 		else ret = update_pud_range(pgd, addr, next, &hvc);
+-	} while (pgd++, addr = next, ((addr != end_addr) && !ret));
++	} while (pgd++, addr = next, ((addr < end_addr) && !ret));
+ 
+ 	if (!ret)
+ 		ret = do_ops(&hvc, hvc.index, 1);
+diff -puN include/asm-um/pgtable-2level.h~uml-64-bit-tlb-fixes include/asm-um/pgtable-2level.h
+--- a/include/asm-um/pgtable-2level.h~uml-64-bit-tlb-fixes
++++ a/include/asm-um/pgtable-2level.h
+@@ -41,9 +41,6 @@ static inline void pgd_mkuptodate(pgd_t 
+ #define pfn_pte(pfn, prot) __pte(pfn_to_phys(pfn) | pgprot_val(prot))
+ #define pfn_pmd(pfn, prot) __pmd(pfn_to_phys(pfn) | pgprot_val(prot))
+ 
+-#define pmd_page_vaddr(pmd) \
+-	((unsigned long) __va(pmd_val(pmd) & PAGE_MASK))
+-
+ /*
+  * Bits 0 through 4 are taken
+  */
+diff -puN include/asm-um/pgtable-3level.h~uml-64-bit-tlb-fixes include/asm-um/pgtable-3level.h
+--- a/include/asm-um/pgtable-3level.h~uml-64-bit-tlb-fixes
++++ a/include/asm-um/pgtable-3level.h
+@@ -87,8 +87,7 @@ static inline void pud_clear (pud_t *pud
+ }
+ 
+ #define pud_page(pud) phys_to_page(pud_val(pud) & PAGE_MASK)
+-#define pud_page_vaddr(pud) \
+-	((struct page *) __va(pud_val(pud) & PAGE_MASK))
++#define pud_page_vaddr(pud) ((unsigned long) __va(pud_val(pud) & PAGE_MASK))
+ 
+ /* Find an entry in the second-level page table.. */
+ #define pmd_offset(pud, address) ((pmd_t *) pud_page_vaddr(*(pud)) + \
+diff -puN include/asm-um/pgtable.h~uml-64-bit-tlb-fixes include/asm-um/pgtable.h
+--- a/include/asm-um/pgtable.h~uml-64-bit-tlb-fixes
++++ a/include/asm-um/pgtable.h
+@@ -308,6 +308,9 @@ static inline pte_t pte_modify(pte_t pte
+ #define pmd_page_vaddr(pmd) ((unsigned long) __va(pmd_val(pmd) & PAGE_MASK))
+ #define pmd_index(address) (((address) >> PMD_SHIFT) & (PTRS_PER_PMD-1))
+ 
++#define pmd_page_vaddr(pmd) \
++	((unsigned long) __va(pmd_val(pmd) & PAGE_MASK))
++
+ /*
+  * the pte page can be thought of an array like this: pte_t[PTRS_PER_PTE]
+  *
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
