@@ -1,52 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - infiniband-is-scrogged-again.patch removed from -mm tree
-Date: Mon, 04 Feb 2008 18:48:23 -0800
-Message-ID: <200802050248.m152m4PE031316@imap1.linux-foundation.org>
+Subject: - hpet-borkage-fix.patch removed from -mm tree
+Date: Mon, 04 Feb 2008 18:53:32 -0800
+Message-ID: <200802050253.m152rDCU031487@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41407 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46951 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751544AbYBECsh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2008 21:48:37 -0500
+	by vger.kernel.org with ESMTP id S1751143AbYBECxR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2008 21:53:17 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m152rECA012855
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 4 Feb 2008 18:53:15 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, rolandd@cisco.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     infiniband-is-scrogged-again
+     a
 has been removed from the -mm tree.  Its filename was
-     infiniband-is-scrogged-again.patch
+     hpet-borkage-fix.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: infiniband-is-scrogged-again
+Subject: a
 From: Andrew Morton <akpm@linux-foundation.org>
 
-lol.
-
-Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/nes/nes_cm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-generic/rtc.h |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN drivers/infiniband/hw/nes/nes_cm.c~infiniband-is-scrogged-again drivers/infiniband/hw/nes/nes_cm.c
---- a/drivers/infiniband/hw/nes/nes_cm.c~infiniband-is-scrogged-again
-+++ a/drivers/infiniband/hw/nes/nes_cm.c
-@@ -1012,7 +1012,7 @@ static void nes_addr_send_arp(u32 dst_ip
+diff -puN include/linux/rtc.h~hpet-borkage-fix include/linux/rtc.h
+diff -puN include/asm-generic/rtc.h~hpet-borkage-fix include/asm-generic/rtc.h
+--- a/include/asm-generic/rtc.h~hpet-borkage-fix
++++ a/include/asm-generic/rtc.h
+@@ -35,10 +35,11 @@
+ static inline unsigned char rtc_is_updating(void)
+ {
+ 	unsigned char uip;
++	unsigned long flags;
  
- 	memset(&fl, 0, sizeof fl);
- 	fl.nl_u.ip4_u.daddr = htonl(dst_ip);
--	if (ip_route_output_key(&rt, &fl)) {
-+	if (ip_route_output_key(&init_net, &rt, &fl)) {
- 		printk("%s: ip_route_output_key failed for 0x%08X\n",
- 				__FUNCTION__, dst_ip);
- 		return;
+-	spin_lock_irq(&rtc_lock);
++	spin_lock_irqsave(&rtc_lock, flags);
+ 	uip = (CMOS_READ(RTC_FREQ_SELECT) & RTC_UIP);
+-	spin_unlock_irq(&rtc_lock);
++	spin_unlock_irqrestore(&rtc_lock, flags);
+ 	return uip;
+ }
+ 
+@@ -46,6 +47,8 @@ static inline unsigned int get_rtc_time(
+ {
+ 	unsigned long uip_watchdog = jiffies;
+ 	unsigned char ctrl;
++	unsigned long flags;
++
+ #ifdef CONFIG_MACH_DECSTATION
+ 	unsigned int real_year;
+ #endif
+@@ -72,7 +75,7 @@ static inline unsigned int get_rtc_time(
+ 	 * RTC has RTC_DAY_OF_WEEK, we ignore it, as it is only updated
+ 	 * by the RTC when initially set to a non-zero value.
+ 	 */
+-	spin_lock_irq(&rtc_lock);
++	spin_lock_irqsave(&rtc_lock, flags);
+ 	time->tm_sec = CMOS_READ(RTC_SECONDS);
+ 	time->tm_min = CMOS_READ(RTC_MINUTES);
+ 	time->tm_hour = CMOS_READ(RTC_HOURS);
+@@ -83,7 +86,7 @@ static inline unsigned int get_rtc_time(
+ 	real_year = CMOS_READ(RTC_DEC_YEAR);
+ #endif
+ 	ctrl = CMOS_READ(RTC_CONTROL);
+-	spin_unlock_irq(&rtc_lock);
++	spin_unlock_irqrestore(&rtc_lock, flags);
+ 
+ 	if (!(ctrl & RTC_DM_BINARY) || RTC_ALWAYS_BCD)
+ 	{
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -103,12 +137,10 @@ drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-var
 adt7473-new-driver-for-analog-devices-adt7473-sensor-chip-fix.patch
 revert-git-hrt.patch
 git-ia64.patch
-infiniband-is-scrogged-again.patch
 i8042-non-x86-build-fix.patch
 drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
 git-kvm.patch
 ata-drivers-ata-sata_mvc-needs-dmapoolh.patch
-fix-ide-mm-ppc-fix-ifdefs-in-mediabay-driver.patch
 drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
 drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
 git-md-accel.patch
@@ -117,13 +149,11 @@ memstick-disable-busted-code.patch
 git-mmc.patch
 git-mtd.patch
 drivers-mtd-maps-physmapc-fix-compile-remove-ifdef.patch
-git-ubi.patch
 git-netdev-all-fix-conflicts-fix.patch
 drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 git-backlight.patch
 bluetooth-uninlining.patch
-fix-gregkh-pci-pci-pcie-aspm-support.patch
 cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
 quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
 x86-validate-against-acpi-motherboard-resources.patch
