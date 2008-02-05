@@ -1,136 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: - m68k-balance-ioremap-and-iounmap-in-m68k-atari-hades-pcic.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:34:35 -0800
-Message-ID: <200802052234.m15MYGRb012498@imap1.linux-foundation.org>
+Subject: - bufferhead-revert-constructor-removal.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:29:46 -0800
+Message-ID: <200802052229.m15MTRNb011982@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49453 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37434 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762693AbYBEWml (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:41 -0500
+	by vger.kernel.org with ESMTP id S932227AbYBEWnD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:43:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: 12o3l@tiscali.nl, geert@linux-m68k.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: clameter@sgi.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m68k: Balance ioremap and iounmap in m68k/atari/hades-pci.c
+     bufferhead: revert constructor removal
 has been removed from the -mm tree.  Its filename was
-     m68k-balance-ioremap-and-iounmap-in-m68k-atari-hades-pcic.patch
+     bufferhead-revert-constructor-removal.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68k: Balance ioremap and iounmap in m68k/atari/hades-pci.c
-From: Roel Kluin <12o3l@tiscali.nl>
+Subject: bufferhead: revert constructor removal
+From: Christoph Lameter <clameter@sgi.com>
 
-Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+The constructor for buffer_head slabs was removed recently.  We need the
+constructor back in slab defrag in order to insure that slab objects always
+have a definite state even before we allocated them.
+
+I think we mistakenly merged the removal of the constuctor into a cleanup
+patch.  You (ie: akpm) had a test that showed that the removal of the
+constructor led to a small regression.  The prior state makes things easier
+for slab defrag.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/atari/hades-pci.c |   56 ++++++++++++++++------------------
- 1 file changed, 27 insertions(+), 29 deletions(-)
+ fs/buffer.c |   18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
-diff -puN arch/m68k/atari/hades-pci.c~m68k-balance-ioremap-and-iounmap-in-m68k-atari-hades-pcic arch/m68k/atari/hades-pci.c
---- a/arch/m68k/atari/hades-pci.c~m68k-balance-ioremap-and-iounmap-in-m68k-atari-hades-pcic
-+++ a/arch/m68k/atari/hades-pci.c
-@@ -376,8 +376,8 @@ struct pci_bus_info * __init init_hades_
- 	 */
- 
- 	bus = kzalloc(sizeof(struct pci_bus_info), GFP_KERNEL);
--	if (!bus)
--		return NULL;
-+	if (unlikely(!bus))
-+		goto iounmap_base_virt;
- 
- 	/*
- 	 * Claim resources. The m68k has no separate I/O space, both
-@@ -385,43 +385,25 @@ struct pci_bus_info * __init init_hades_
- 	 * the I/O resources are requested in memory space as well.
- 	 */
- 
--	if (request_resource(&iomem_resource, &config_space) != 0)
--	{
--		kfree(bus);
--		return NULL;
--	}
--
--	if (request_resource(&iomem_resource, &io_space) != 0)
--	{
--		release_resource(&config_space);
--		kfree(bus);
--		return NULL;
--	}
-+	if (unlikely(request_resource(&iomem_resource, &config_space) != 0))
-+		goto free_bus;
-+
-+	if (unlikely(request_resource(&iomem_resource, &io_space) != 0))
-+		goto release_config_space;
- 
- 	bus->mem_space.start = HADES_MEM_BASE;
- 	bus->mem_space.end = HADES_MEM_BASE + HADES_MEM_SIZE - 1;
- 	bus->mem_space.name = pci_mem_name;
- #if 1
--	if (request_resource(&iomem_resource, &bus->mem_space) != 0)
--	{
--		release_resource(&io_space);
--		release_resource(&config_space);
--		kfree(bus);
--		return NULL;
--	}
-+	if (unlikely(request_resource(&iomem_resource, &bus->mem_space) != 0))
-+		goto release_io_space;
- #endif
- 	bus->io_space.start = pci_io_base_virt;
- 	bus->io_space.end = pci_io_base_virt + HADES_VIRT_IO_SIZE - 1;
- 	bus->io_space.name = pci_io_name;
- #if 1
--	if (request_resource(&ioport_resource, &bus->io_space) != 0)
--	{
--		release_resource(&bus->mem_space);
--		release_resource(&io_space);
--		release_resource(&config_space);
--		kfree(bus);
--		return NULL;
--	}
-+	if (unlikely(request_resource(&ioport_resource, &bus->io_space) != 0))
-+		goto release_bus_mem_space;
- #endif
- 	/*
- 	 * Set hardware dependent functions.
-@@ -438,5 +420,21 @@ struct pci_bus_info * __init init_hades_
- 	tt_mfp.active_edge &= ~0x27;
- 
- 	return bus;
-+
-+release_bus_mem_space:
-+	release_resource(&bus->mem_space);
-+release_io_space:
-+	release_resource(&io_space);
-+release_config_space:
-+	release_resource(&config_space);
-+free_bus:
-+	kfree(bus);
-+iounmap_base_virt:
-+	iounmap((void *)pci_io_base_virt);
-+
-+	for (i = 0; i < N_SLOTS; i++)
-+		iounmap((void *)pci_conf_base_virt[i]);
-+
-+	return NULL;
+diff -puN fs/buffer.c~bufferhead-revert-constructor-removal fs/buffer.c
+--- a/fs/buffer.c~bufferhead-revert-constructor-removal
++++ a/fs/buffer.c
+@@ -3153,7 +3153,7 @@ static void recalc_bh_state(void)
+ 	
+ struct buffer_head *alloc_buffer_head(gfp_t gfp_flags)
+ {
+-	struct buffer_head *ret = kmem_cache_zalloc(bh_cachep,
++	struct buffer_head *ret = kmem_cache_alloc(bh_cachep,
+ 				set_migrateflags(gfp_flags, __GFP_RECLAIMABLE));
+ 	if (ret) {
+ 		INIT_LIST_HEAD(&ret->b_assoc_buffers);
+@@ -3241,12 +3241,24 @@ int bh_submit_read(struct buffer_head *b
  }
- #endif
+ EXPORT_SYMBOL(bh_submit_read);
+ 
++static void
++init_buffer_head(struct kmem_cache *cachep, void *data)
++{
++	struct buffer_head *bh = data;
++
++	memset(bh, 0, sizeof(*bh));
++	INIT_LIST_HEAD(&bh->b_assoc_buffers);
++}
++
+ void __init buffer_init(void)
+ {
+ 	int nrpages;
+ 
+-	bh_cachep = KMEM_CACHE(buffer_head,
+-			SLAB_RECLAIM_ACCOUNT|SLAB_PANIC|SLAB_MEM_SPREAD);
++	bh_cachep = kmem_cache_create("buffer_head",
++			sizeof(struct buffer_head), 0,
++				(SLAB_RECLAIM_ACCOUNT|SLAB_PANIC|
++				SLAB_MEM_SPREAD),
++				init_buffer_head);
+ 
+ 	/*
+ 	 * Limit the bh occupancy to 10% of ZONE_NORMAL
 _
 
-Patches currently in -mm which might be from 12o3l@tiscali.nl are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
-git-alsa.patch
-git-dvb.patch
-git-mtd.patch
-sound-oss-tridentc-fix-incorrect-test-in-trident_ac97_set.patch
-fix-and-typo-in-eicons-addinfo.patch
+gregkh-driver-kset-move-sys-slab-to-sys-kernel-slab-slabinfo-fallback-from-sys-kernel-slab-to-sys-slab.patch
+git-unionfs.patch
+git-slub.patch
+percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+oom-add-sysctl-to-enable-task-memory-dump.patch
+add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
+add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
+dentries-extract-common-code-to-remove-dentry-from-lru.patch
+dentries-extract-common-code-to-remove-dentry-from-lru-fix.patch
+modules-handle-symbols-that-have-a-zero-value.patch
+modules-include-sectionsh-to-avoid-defining-linker-variables.patch
+reiser4.patch
+reiser4-portion-of-zero_user-cleanup-patch.patch
+page-owner-tracking-leak-detector.patch
