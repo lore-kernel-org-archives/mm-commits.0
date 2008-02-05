@@ -1,145 +1,306 @@
 From: akpm@linux-foundation.org
-Subject: - document-about-lowmem_reserve_ratio.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:32:27 -0800
-Message-ID: <200802052232.m15MW87f012287@imap1.linux-foundation.org>
+Subject: - uml-tidy-helper-code.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:37:39 -0800
+Message-ID: <200802052237.m15MbKDd012844@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57266 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38675 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762552AbYBEWl7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:59 -0500
+	by vger.kernel.org with ESMTP id S1761096AbYBEWmG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: y-goto@jp.fujitsu.com, andrea@cpushare.com, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Document lowmem_reserve_ratio
+     uml: tidy helper code
 has been removed from the -mm tree.  Its filename was
-     document-about-lowmem_reserve_ratio.patch
+     uml-tidy-helper-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Document lowmem_reserve_ratio
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: uml: tidy helper code
+From: Jeff Dike <jdike@addtoit.com>
 
-Though the lower_zone_protection was changed to lowmem_reserve_ratio, the
-document has been not changed.  The lowmem_reserve_ratio seems quite hard
-to estimate, but there is no guidance.  This patch is to change document
-for it.
+Style fixes to arch/um/os/helper.c and tidying up the breakpoint fix a
+bit.
 
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Andrea Arcangeli <andrea@cpushare.com>
+helper.c gets all the usual style fixes -
+	 updated copyright
+	 all printks get severities
+
+Also -
+	 errval changes to err in helper_child
+	 fixed an obsolete comment
+	 run_helper was killing a child process which is guaranteed to
+be dead or dying anyway
+
+Removed the nohang and pname arguments from helper_wait and fixed the
+declaration and callers.  nohang was used only in the slirp driver and
+I don't think it was needed.  I think pname was a bit of overkill in
+putting out an error message when something goes wrong.
+
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |   76 +++++++++++++++++++++------
- 1 file changed, 61 insertions(+), 15 deletions(-)
+ arch/um/drivers/net_user.c               |    2 
+ arch/um/drivers/slip_user.c              |    2 
+ arch/um/drivers/slirp_user.c             |    2 
+ arch/um/include/os.h                     |    2 
+ arch/um/os-Linux/drivers/ethertap_user.c |    2 
+ arch/um/os-Linux/drivers/tuntap_user.c   |    2 
+ arch/um/os-Linux/helper.c                |   74 ++++++++-------------
+ 7 files changed, 36 insertions(+), 50 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~document-about-lowmem_reserve_ratio Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~document-about-lowmem_reserve_ratio
-+++ a/Documentation/filesystems/proc.txt
-@@ -1336,7 +1336,7 @@ legacy_va_layout
- If non-zero, this sysctl disables the new 32-bit mmap mmap layout - the kernel
- will use the legacy (2.4) layout for all processes.
+diff -puN arch/um/drivers/net_user.c~uml-tidy-helper-code arch/um/drivers/net_user.c
+--- a/arch/um/drivers/net_user.c~uml-tidy-helper-code
++++ a/arch/um/drivers/net_user.c
+@@ -201,7 +201,7 @@ static int change_tramp(char **argv, cha
+ 	close(fds[1]);
  
--lower_zone_protection
-+lowmem_reserve_ratio
- ---------------------
+ 	if (pid > 0)
+-		helper_wait(pid, 0, "change_tramp");
++		helper_wait(pid);
+ 	return pid;
+ }
  
- For some specialised workloads on highmem machines it is dangerous for
-@@ -1356,25 +1356,71 @@ captured into pinned user memory.
- mechanism will also defend that region from allocations which could use
- highmem or lowmem).
+diff -puN arch/um/drivers/slip_user.c~uml-tidy-helper-code arch/um/drivers/slip_user.c
+--- a/arch/um/drivers/slip_user.c~uml-tidy-helper-code
++++ a/arch/um/drivers/slip_user.c
+@@ -109,7 +109,7 @@ static int slip_tramp(char **argv, int f
+ 	read_output(fds[0], output, output_len);
+ 	printk("%s", output);
  
--The `lower_zone_protection' tunable determines how aggressive the kernel is
--in defending these lower zones.  The default value is zero - no
--protection at all.
-+The `lowmem_reserve_ratio' tunable determines how aggressive the kernel is
-+in defending these lower zones.
+-	err = helper_wait(pid, 0, argv[0]);
++	err = helper_wait(pid);
+ 	close(fds[0]);
  
- If you have a machine which uses highmem or ISA DMA and your
- applications are using mlock(), or if you are running with no swap then
--you probably should increase the lower_zone_protection setting.
-+you probably should change the lowmem_reserve_ratio setting.
+ out_free:
+diff -puN arch/um/drivers/slirp_user.c~uml-tidy-helper-code arch/um/drivers/slirp_user.c
+--- a/arch/um/drivers/slirp_user.c~uml-tidy-helper-code
++++ a/arch/um/drivers/slirp_user.c
+@@ -98,7 +98,7 @@ static void slirp_close(int fd, void *da
+ 		       "(%d)\n", pri->pid, errno);
+ 	}
+ #endif
+-	err = helper_wait(pri->pid, 1, "slirp_close");
++	err = helper_wait(pri->pid);
+ 	if (err < 0)
+ 		return;
  
--The units of this tunable are fairly vague.  It is approximately equal
--to "megabytes," so setting lower_zone_protection=100 will protect around 100
--megabytes of the lowmem zone from user allocations.  It will also make
--those 100 megabytes unavailable for use by applications and by
--pagecache, so there is a cost.
+diff -puN arch/um/include/os.h~uml-tidy-helper-code arch/um/include/os.h
+--- a/arch/um/include/os.h~uml-tidy-helper-code
++++ a/arch/um/include/os.h
+@@ -207,7 +207,7 @@ extern int execvp_noalloc(char *buf, con
+ extern int run_helper(void (*pre_exec)(void *), void *pre_data, char **argv);
+ extern int run_helper_thread(int (*proc)(void *), void *arg,
+ 			     unsigned int flags, unsigned long *stack_out);
+-extern int helper_wait(int pid, int nohang, char *pname);
++extern int helper_wait(int pid);
+ 
+ 
+ /* tls.c */
+diff -puN arch/um/os-Linux/drivers/ethertap_user.c~uml-tidy-helper-code arch/um/os-Linux/drivers/ethertap_user.c
+--- a/arch/um/os-Linux/drivers/ethertap_user.c~uml-tidy-helper-code
++++ a/arch/um/os-Linux/drivers/ethertap_user.c
+@@ -131,7 +131,7 @@ static int etap_tramp(char *dev, char *g
+ 	}
+ 	if (c != 1) {
+ 		printk(UM_KERN_ERR "etap_tramp : uml_net failed\n");
+-		err = helper_wait(pid, 0, "uml_net");
++		err = helper_wait(pid);
+ 	}
+ 	return err;
+ }
+diff -puN arch/um/os-Linux/drivers/tuntap_user.c~uml-tidy-helper-code arch/um/os-Linux/drivers/tuntap_user.c
+--- a/arch/um/os-Linux/drivers/tuntap_user.c~uml-tidy-helper-code
++++ a/arch/um/os-Linux/drivers/tuntap_user.c
+@@ -108,7 +108,7 @@ static int tuntap_open_tramp(char *gate,
+ 		       "errno = %d\n", errno);
+ 		return err;
+ 	}
+-	helper_wait(pid, 0, "tuntap_open_tramp");
++	helper_wait(pid);
+ 
+ 	cmsg = CMSG_FIRSTHDR(&msg);
+ 	if (cmsg == NULL) {
+diff -puN arch/um/os-Linux/helper.c~uml-tidy-helper-code arch/um/os-Linux/helper.c
+--- a/arch/um/os-Linux/helper.c~uml-tidy-helper-code
++++ a/arch/um/os-Linux/helper.c
+@@ -1,22 +1,19 @@
+ /*
+- * Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
++ * Copyright (C) 2002 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  * Licensed under the GPL
+  */
+ 
+-#include <stdio.h>
+ #include <stdlib.h>
+ #include <unistd.h>
+ #include <errno.h>
+ #include <sched.h>
+-#include <limits.h>
+-#include <sys/signal.h>
+-#include <sys/wait.h>
+ #include <sys/socket.h>
+-#include "user.h"
++#include <sys/wait.h>
++#include "kern_constants.h"
+ #include "kern_util.h"
+ #include "os.h"
+ #include "um_malloc.h"
+-#include "kern_constants.h"
++#include "user.h"
+ 
+ struct helper_data {
+ 	void (*pre_exec)(void*);
+@@ -30,21 +27,19 @@ static int helper_child(void *arg)
+ {
+ 	struct helper_data *data = arg;
+ 	char **argv = data->argv;
+-	int errval;
++	int err;
+ 
+ 	if (data->pre_exec != NULL)
+ 		(*data->pre_exec)(data->pre_data);
+-	errval = execvp_noalloc(data->buf, argv[0], argv);
+-	printk("helper_child - execvp of '%s' failed - errno = %d\n", argv[0],
+-	       -errval);
+-	write(data->fd, &errval, sizeof(errval));
+-	kill(os_getpid(), SIGKILL);
++	err = execvp_noalloc(data->buf, argv[0], argv);
++
++	/* If the exec succeeds, we don't get here */
++	write(data->fd, &err, sizeof(err));
++
+ 	return 0;
+ }
+ 
+-/* Returns either the pid of the child process we run or -E* on failure.
+- * XXX The alloc_stack here breaks if this is called in the tracing thread, so
+- * we need to receive a preallocated stack (a local buffer is ok). */
++/* Returns either the pid of the child process we run or -E* on failure. */
+ int run_helper(void (*pre_exec)(void *), void *pre_data, char **argv)
+ {
+ 	struct helper_data data;
+@@ -58,14 +53,15 @@ int run_helper(void (*pre_exec)(void *),
+ 	ret = socketpair(AF_UNIX, SOCK_STREAM, 0, fds);
+ 	if (ret < 0) {
+ 		ret = -errno;
+-		printk("run_helper : pipe failed, errno = %d\n", errno);
++		printk(UM_KERN_ERR "run_helper : pipe failed, errno = %d\n",
++		       errno);
+ 		goto out_free;
+ 	}
+ 
+ 	ret = os_set_exec_close(fds[1]);
+ 	if (ret < 0) {
+-		printk("run_helper : setting FD_CLOEXEC failed, ret = %d\n",
+-		       -ret);
++		printk(UM_KERN_ERR "run_helper : setting FD_CLOEXEC failed, "
++		       "ret = %d\n", -ret);
+ 		goto out_close;
+ 	}
+ 
+@@ -79,7 +75,8 @@ int run_helper(void (*pre_exec)(void *),
+ 	pid = clone(helper_child, (void *) sp, CLONE_VM, &data);
+ 	if (pid < 0) {
+ 		ret = -errno;
+-		printk("run_helper : clone failed, errno = %d\n", errno);
++		printk(UM_KERN_ERR "run_helper : clone failed, errno = %d\n",
++		       errno);
+ 		goto out_free2;
+ 	}
+ 
+@@ -96,10 +93,9 @@ int run_helper(void (*pre_exec)(void *),
+ 	} else {
+ 		if (n < 0) {
+ 			n = -errno;
+-			printk("run_helper : read on pipe failed, ret = %d\n",
+-			       -n);
++			printk(UM_KERN_ERR "run_helper : read on pipe failed, "
++			       "ret = %d\n", -n);
+ 			ret = n;
+-			kill(pid, SIGKILL);
+ 		}
+ 		CATCH_EINTR(waitpid(pid, NULL, __WCLONE));
+ 	}
+@@ -129,50 +125,40 @@ int run_helper_thread(int (*proc)(void *
+ 	pid = clone(proc, (void *) sp, flags, arg);
+ 	if (pid < 0) {
+ 		err = -errno;
+-		printk("run_helper_thread : clone failed, errno = %d\n",
+-		       errno);
++		printk(UM_KERN_ERR "run_helper_thread : clone failed, "
++		       "errno = %d\n", errno);
+ 		return err;
+ 	}
+ 	if (stack_out == NULL) {
+ 		CATCH_EINTR(pid = waitpid(pid, &status, __WCLONE));
+ 		if (pid < 0) {
+ 			err = -errno;
+-			printk("run_helper_thread - wait failed, errno = %d\n",
+-			       errno);
++			printk(UM_KERN_ERR "run_helper_thread - wait failed, "
++			       "errno = %d\n", errno);
+ 			pid = err;
+ 		}
+ 		if (!WIFEXITED(status) || (WEXITSTATUS(status) != 0))
+-			printk("run_helper_thread - thread returned status "
+-			       "0x%x\n", status);
++			printk(UM_KERN_ERR "run_helper_thread - thread "
++			       "returned status 0x%x\n", status);
+ 		free_stack(stack, 0);
+ 	} else
+ 		*stack_out = stack;
+ 	return pid;
+ }
+ 
+-int helper_wait(int pid, int nohang, char *pname)
++int helper_wait(int pid)
+ {
+ 	int ret, status;
+ 	int wflags = __WCLONE;
+ 
+-	if (nohang)
+-		wflags |= WNOHANG;
 -
--The effects of this tunable may be observed by monitoring
--/proc/meminfo:LowFree.  Write a single huge file and observe the point
--at which LowFree ceases to fall.
-+The lowmem_reserve_ratio is an array. You can see them by reading this file.
-+-
-+% cat /proc/sys/vm/lowmem_reserve_ratio
-+256     256     32
-+-
-+Note: # of this elements is one fewer than number of zones. Because the highest
-+      zone's value is not necessary for following calculation.
-+
-+But, these values are not used directly. The kernel calculates # of protection
-+pages for each zones from them. These are shown as array of protection pages
-+in /proc/zoneinfo like followings. (This is an example of x86-64 box).
-+Each zone has an array of protection pages like this.
-+
-+-
-+Node 0, zone      DMA
-+  pages free     1355
-+        min      3
-+        low      3
-+        high     4
-+	:
-+	:
-+    numa_other   0
-+        protection: (0, 2004, 2004, 2004)
-+	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-+  pagesets
-+    cpu: 0 pcp: 0
-+        :
-+-
-+These protections are added to score to judge whether this zone should be used
-+for page allocation or should be reclaimed.
-+
-+In this example, if normal pages (index=2) are required to this DMA zone and
-+pages_high is used for watermark, the kernel judges this zone should not be
-+used because pages_free(1355) is smaller than watermark + protection[2]
-+(4 + 2004 = 2008). If this protection value is 0, this zone would be used for
-+normal page requirement. If requirement is DMA zone(index=0), protection[0]
-+(=0) is used.
-+
-+zone[i]'s protection[j] is calculated by following exprssion.
-+
-+(i < j):
-+  zone[i]->protection[j]
-+  = (total sums of present_pages from zone[i+1] to zone[j] on the node)
-+    / lowmem_reserve_ratio[i];
-+(i = j):
-+   (should not be protected. = 0;
-+(i > j):
-+   (not necessary, but looks 0)
-+
-+The default values of lowmem_reserve_ratio[i] are
-+    256 (if zone[i] means DMA or DMA32 zone)
-+    32  (others).
-+As above expression, they are reciprocal number of ratio.
-+256 means 1/256. # of protection pages becomes about "0.39%" of total present
-+pages of higher zones on the node.
- 
--A reasonable value for lower_zone_protection is 100.
-+If you would like to protect more pages, smaller values are effective.
-+The minimum value is 1 (1/1 -> 100%).
- 
- page-cluster
- ------------
+-	if (!pname)
+-		pname = "helper_wait";
+-
+ 	CATCH_EINTR(ret = waitpid(pid, &status, wflags));
+ 	if (ret < 0) {
+-		printk(UM_KERN_ERR "%s : waitpid process %d failed, "
+-		       "errno = %d\n", pname, pid, errno);
++		printk(UM_KERN_ERR "helper_wait : waitpid process %d failed, "
++		       "errno = %d\n", pid, errno);
+ 		return -errno;
+-	} else if (nohang && ret == 0) {
+-		printk(UM_KERN_ERR "%s : process %d has not exited\n",
+-		       pname, pid);
+-		return -ECHILD;
+ 	} else if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+-		printk(UM_KERN_ERR "%s : process %d didn't exit with "
+-		       "status 0\n", pname, pid);
++		printk(UM_KERN_ERR "helper_wait : process %d exited with "
++		       "status 0x%x\n", pid, status);
+ 		return -ECHILD;
+ 	} else
+ 		return 0;
 _
 
-Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-add-remove_memory-for-ppc64-3.patch
+git-kvm.patch
+fix-__const_udelay-declaration-and-definition-mismatches.patch
+iget-stop-hostfs-from-using-iget-and-read_inode.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
+random-add-async-notification-support-to-dev-random.patch
+mount-options-fix-hostfs.patch
