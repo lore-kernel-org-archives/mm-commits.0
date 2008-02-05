@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + make-b43_mac_enablesuspend-static.patch added to -mm tree
-Date: Tue, 05 Feb 2008 01:43:52 -0800
-Message-ID: <200802050943.m159hXAU014494@imap1.linux-foundation.org>
+Subject: + powerpc-vdso_do_func_patch3264-must-be-__init.patch added to -mm tree
+Date: Tue, 05 Feb 2008 01:45:07 -0800
+Message-ID: <200802050944.m159immU014517@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41321 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57905 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753651AbYBEJnz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 04:43:55 -0500
+	by vger.kernel.org with ESMTP id S1753652AbYBEJpD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 04:45:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, mb@bu3sch.de
+Cc: bunk@kernel.org
 
 
 The patch titled
-     make b43_mac_{enable,suspend}() static
+     powerpc: vdso_do_func_patch{32,64}() must be __init
 has been added to the -mm tree.  Its filename is
-     make-b43_mac_enablesuspend-static.patch
+     powerpc-vdso_do_func_patch3264-must-be-__init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,54 +33,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make b43_mac_{enable,suspend}() static
+Subject: powerpc: vdso_do_func_patch{32,64}() must be __init
 From: Adrian Bunk <bunk@kernel.org>
 
-b43_mac_{enable,suspend}() can now become static.
+WARNING: vmlinux.o(.text+0xe49c): Section mismatch in reference from the function .vdso_do_func_patch64() to the function .init.text:.find_symbol64()
+WARNING: vmlinux.o(.text+0xe4d0): Section mismatch in reference from the function .vdso_do_func_patch64() to the function .init.text:.find_symbol64()
+WARNING: vmlinux.o(.text+0xe56c): Section mismatch in reference from the function .vdso_do_func_patch32() to the function .init.text:.find_symbol32()
+WARNING: vmlinux.o(.text+0xe5a0): Section mismatch in reference from the function .vdso_do_func_patch32() to the function .init.text:.find_symbol32()
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Michael Buesch <mb@bu3sch.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/b43/main.c |    4 ++--
- drivers/net/wireless/b43/main.h |    3 ---
- 2 files changed, 2 insertions(+), 5 deletions(-)
+ arch/powerpc/kernel/vdso.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/net/wireless/b43/main.c~make-b43_mac_enablesuspend-static drivers/net/wireless/b43/main.c
---- a/drivers/net/wireless/b43/main.c~make-b43_mac_enablesuspend-static
-+++ a/drivers/net/wireless/b43/main.c
-@@ -2043,7 +2043,7 @@ static void b43_gpio_cleanup(struct b43_
+diff -puN arch/powerpc/kernel/vdso.c~powerpc-vdso_do_func_patch3264-must-be-__init arch/powerpc/kernel/vdso.c
+--- a/arch/powerpc/kernel/vdso.c~powerpc-vdso_do_func_patch3264-must-be-__init
++++ a/arch/powerpc/kernel/vdso.c
+@@ -336,9 +336,9 @@ static unsigned long __init find_functio
+ 	return sym->st_value - VDSO32_LBASE;
  }
  
- /* http://bcm-specs.sipsolutions.net/EnableMac */
--void b43_mac_enable(struct b43_wldev *dev)
-+static void b43_mac_enable(struct b43_wldev *dev)
+-static int vdso_do_func_patch32(struct lib32_elfinfo *v32,
+-				struct lib64_elfinfo *v64,
+-				const char *orig, const char *fix)
++static int __init vdso_do_func_patch32(struct lib32_elfinfo *v32,
++				       struct lib64_elfinfo *v64,
++				       const char *orig, const char *fix)
  {
- 	dev->mac_suspended--;
- 	B43_WARN_ON(dev->mac_suspended < 0);
-@@ -2067,7 +2067,7 @@ void b43_mac_enable(struct b43_wldev *de
+ 	Elf32_Sym *sym32_gen, *sym32_fix;
+ 
+@@ -433,9 +433,9 @@ static unsigned long __init find_functio
+ #endif
  }
  
- /* http://bcm-specs.sipsolutions.net/SuspendMAC */
--void b43_mac_suspend(struct b43_wldev *dev)
-+static void b43_mac_suspend(struct b43_wldev *dev)
+-static int vdso_do_func_patch64(struct lib32_elfinfo *v32,
+-				struct lib64_elfinfo *v64,
+-				const char *orig, const char *fix)
++static int __init vdso_do_func_patch64(struct lib32_elfinfo *v32,
++				       struct lib64_elfinfo *v64,
++				       const char *orig, const char *fix)
  {
- 	int i;
- 	u32 tmp;
-diff -puN drivers/net/wireless/b43/main.h~make-b43_mac_enablesuspend-static drivers/net/wireless/b43/main.h
---- a/drivers/net/wireless/b43/main.h~make-b43_mac_enablesuspend-static
-+++ a/drivers/net/wireless/b43/main.h
-@@ -102,9 +102,6 @@ void b43_dummy_transmission(struct b43_w
+ 	Elf64_Sym *sym64_gen, *sym64_fix;
  
- void b43_wireless_core_reset(struct b43_wldev *dev, u32 flags);
- 
--void b43_mac_suspend(struct b43_wldev *dev);
--void b43_mac_enable(struct b43_wldev *dev);
--
- void b43_controller_restart(struct b43_wldev *dev, const char *reason);
- 
- #define B43_PS_ENABLED	(1 << 0)	/* Force enable hardware power saving */
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -98,6 +94,7 @@ m68k-kill-arch-m68k-amiga-amiga_ksymsc.patch
 m68k-kill-arch-m68k-atari-atari_ksymsc.patch
 m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch
 git-acpi.patch
+powerpc-vdso_do_func_patch3264-must-be-__init.patch
 git-dvb.patch
 git-gfs2-nmw.patch
 git-mtd.patch
