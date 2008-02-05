@@ -1,54 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - git-x86-fix-git-conflicts.patch removed from -mm tree
-Date: Mon, 04 Feb 2008 19:15:20 -0800
-Message-ID: <200802050315.m153F2tT032300@imap1.linux-foundation.org>
+Subject: - git-x86-fix-rejects.patch removed from -mm tree
+Date: Mon, 04 Feb 2008 19:15:32 -0800
+Message-ID: <200802050315.m153FEFt032303@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43290 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53960 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751310AbYBEDPT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2008 22:15:19 -0500
+	by vger.kernel.org with ESMTP id S1751298AbYBEDPR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2008 22:15:17 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m153FEHk013648
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 4 Feb 2008 19:15:15 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-x86-fix-git-conflicts
+     git-x86-fix-rejects
 has been removed from the -mm tree.  Its filename was
-     git-x86-fix-git-conflicts.patch
+     git-x86-fix-rejects.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-x86-fix-git-conflicts
+Subject: git-x86-fix-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/futex.h |    5 -----
- 1 file changed, 5 deletions(-)
+ kernel/Makefile |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/asm-x86/futex.h~git-x86-fix-git-conflicts include/asm-x86/futex.h
---- a/include/asm-x86/futex.h~git-x86-fix-git-conflicts
-+++ a/include/asm-x86/futex.h
-@@ -106,12 +106,7 @@ futex_atomic_cmpxchg_inatomic(int __user
- 		return -EFAULT;
- 
- 	__asm__ __volatile__(
--<<<<<<< HEAD:include/asm-x86/futex.h
--
--		"1:	lock; cmpxchgl %3, %1			\n"
--=======
- 		"1:	" LOCK_PREFIX "cmpxchgl %3, %1		\n"
-->>>>>>> FETCH_HEAD:include/asm-x86/futex.h
- 		"2:	.section .fixup, \"ax\"			\n"
- 		"3:	mov     %2, %0				\n"
- 		"	jmp     2b				\n"
+diff -puN kernel/Makefile~git-x86-fix-rejects kernel/Makefile
+--- a/kernel/Makefile~git-x86-fix-rejects
++++ a/kernel/Makefile
+@@ -49,6 +49,7 @@ obj-$(CONFIG_AUDIT) += audit.o auditfilt
+ obj-$(CONFIG_AUDITSYSCALL) += auditsc.o
+ obj-$(CONFIG_AUDIT_TREE) += audit_tree.o
+ obj-$(CONFIG_KPROBES) += kprobes.o
++obj-$(CONFIG_KGDB) += kgdb.o
+ obj-$(CONFIG_DETECT_SOFTLOCKUP) += softlockup.o
+ obj-$(CONFIG_GENERIC_HARDIRQS) += irq/
+ obj-$(CONFIG_SECCOMP) += seccomp.o
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -144,7 +142,6 @@ git-watchdog-fixup.patch
 b43-fix-build-with-config_ssb_pcihost=n.patch
 git-ipwireless_cs.patch
 git-x86.patch
-git-x86-fix-git-conflicts.patch
 git-x86-fix-rejects.patch
 git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
