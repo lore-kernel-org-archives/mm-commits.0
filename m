@@ -1,555 +1,200 @@
 From: akpm@linux-foundation.org
-Subject: - capabilities-introduce-per-process-capability-bounding-set.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:33:05 -0800
-Message-ID: <200802052232.m15MWleR012356@imap1.linux-foundation.org>
+Subject: - maps4-rework-task_size-macros.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:30:57 -0800
+Message-ID: <200802052230.m15MUcNs012088@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48895 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43062 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762682AbYBEWoH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:44:07 -0500
+	by vger.kernel.org with ESMTP id S1759185AbYBEWoU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:44:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: serue@us.ibm.com, casey@schaufler-ca.com, chrisw@sous-sol.org, jirislaby@gmail.com, jmorris@namei.org, morgan@kernel.org, sds@tycho.nsa.gov, mm-commits@vger.kernel.org
+To: haveblue@us.ibm.com, mpm@selenic.com, ralf@linux-mips.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     capabilities: introduce per-process capability bounding set
+     maps4: rework TASK_SIZE macros
 has been removed from the -mm tree.  Its filename was
-     capabilities-introduce-per-process-capability-bounding-set.patch
+     maps4-rework-task_size-macros.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: capabilities: introduce per-process capability bounding set
-From: "Serge E. Hallyn" <serue@us.ibm.com>
+Subject: maps4: rework TASK_SIZE macros
+From: Dave Hansen <haveblue@us.ibm.com>
 
-The capability bounding set is a set beyond which capabilities cannot grow.
- Currently cap_bset is per-system.  It can be manipulated through sysctl,
-but only init can add capabilities.  Root can remove capabilities.  By
-default it includes all caps except CAP_SETPCAP.
+The following replaces the earlier patches sent.  It should address
+David Rientjes's comments, and has been compile tested on all the
+architectures that it touches, save for parisc.
 
-This patch makes the bounding set per-process when file capabilities are
-enabled.  It is inherited at fork from parent.  Noone can add elements,
-CAP_SETPCAP is required to remove them.
+For the /proc/<pid>/pagemap code[1], we need to able to query how
+much virtual address space a particular task has.  The trick is
+that we do it through /proc and can't use TASK_SIZE since it
+references "current" on some arches.  The process opening the
+/proc file might be a 32-bit process opening a 64-bit process's
+pagemap file.
 
-One example use of this is to start a safer container.  For instance, until
-device namespaces or per-container device whitelists are introduced, it is
-best to take CAP_MKNOD away from a container.
+x86_64 already has a TASK_SIZE_OF() macro:
 
-The bounding set will not affect pP and pE immediately.  It will only
-affect pP' and pE' after subsequent exec()s.  It also does not affect pI,
-and exec() does not constrain pI'.  So to really start a shell with no way
-of regain CAP_MKNOD, you would do
+#define TASK_SIZE_OF(child)     ((test_tsk_thread_flag(child, TIF_IA32)) ? IA32_PAGE_OFFSET : TASK_SIZE64)
 
-	prctl(PR_CAPBSET_DROP, CAP_MKNOD);
-	cap_t cap = cap_get_proc();
-	cap_value_t caparray[1];
-	caparray[0] = CAP_MKNOD;
-	cap_set_flag(cap, CAP_INHERITABLE, 1, caparray, CAP_DROP);
-	cap_set_proc(cap);
-	cap_free(cap);
+I'd like to have that for other architectures.  So, add it
+for all the architectures that actually use "current" in
+their TASK_SIZE.  For the others, just add a quick #define
+in sched.h to use plain old TASK_SIZE.
 
-The following test program will get and set the bounding
-set (but not pI).  For instance
+1. http://www.linuxworld.com/news/2007/042407-kernel.html
 
-	./bset get
-		(lists capabilities in bset)
-	./bset drop cap_net_raw
-		(starts shell with new bset)
-		(use capset, setuid binary, or binary with
-		file capabilities to try to increase caps)
+- MIPS portion from Ralf Baechle <ralf@linux-mips.org>
 
-************************************************************
-cap_bound.c
-************************************************************
- #include <sys/prctl.h>
- #include <linux/capability.h>
- #include <sys/types.h>
- #include <unistd.h>
- #include <stdio.h>
- #include <stdlib.h>
- #include <string.h>
-
- #ifndef PR_CAPBSET_READ
- #define PR_CAPBSET_READ 23
- #endif
-
- #ifndef PR_CAPBSET_DROP
- #define PR_CAPBSET_DROP 24
- #endif
-
-int usage(char *me)
-{
-	printf("Usage: %s get\n", me);
-	printf("       %s drop <capability>\n", me);
-	return 1;
-}
-
- #define numcaps 32
-char *captable[numcaps] = {
-	"cap_chown",
-	"cap_dac_override",
-	"cap_dac_read_search",
-	"cap_fowner",
-	"cap_fsetid",
-	"cap_kill",
-	"cap_setgid",
-	"cap_setuid",
-	"cap_setpcap",
-	"cap_linux_immutable",
-	"cap_net_bind_service",
-	"cap_net_broadcast",
-	"cap_net_admin",
-	"cap_net_raw",
-	"cap_ipc_lock",
-	"cap_ipc_owner",
-	"cap_sys_module",
-	"cap_sys_rawio",
-	"cap_sys_chroot",
-	"cap_sys_ptrace",
-	"cap_sys_pacct",
-	"cap_sys_admin",
-	"cap_sys_boot",
-	"cap_sys_nice",
-	"cap_sys_resource",
-	"cap_sys_time",
-	"cap_sys_tty_config",
-	"cap_mknod",
-	"cap_lease",
-	"cap_audit_write",
-	"cap_audit_control",
-	"cap_setfcap"
-};
-
-int getbcap(void)
-{
-	int comma=0;
-	unsigned long i;
-	int ret;
-
-	printf("i know of %d capabilities\n", numcaps);
-	printf("capability bounding set:");
-	for (i=0; i<numcaps; i++) {
-		ret = prctl(PR_CAPBSET_READ, i);
-		if (ret < 0)
-			perror("prctl");
-		else if (ret==1)
-			printf("%s%s", (comma++) ? ", " : " ", captable[i]);
-	}
-	printf("\n");
-	return 0;
-}
-
-int capdrop(char *str)
-{
-	unsigned long i;
-
-	int found=0;
-	for (i=0; i<numcaps; i++) {
-		if (strcmp(captable[i], str) == 0) {
-			found=1;
-			break;
-		}
-	}
-	if (!found)
-		return 1;
-	if (prctl(PR_CAPBSET_DROP, i)) {
-		perror("prctl");
-		return 1;
-	}
-	return 0;
-}
-
-int main(int argc, char *argv[])
-{
-	if (argc<2)
-		return usage(argv[0]);
-	if (strcmp(argv[1], "get")==0)
-		return getbcap();
-	if (strcmp(argv[1], "drop")!=0 || argc<3)
-		return usage(argv[0]);
-	if (capdrop(argv[2])) {
-		printf("unknown capability\n");
-		return 1;
-	}
-	return execl("/bin/bash", "/bin/bash", NULL);
-}
-************************************************************
-
-[serue@us.ibm.com: fix typo]
-Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
-Signed-off-by: Andrew G. Morgan <morgan@kernel.org>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: James Morris <jmorris@namei.org>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Casey Schaufler <casey@schaufler-ca.com>a
-Signed-off-by: "Serge E. Hallyn" <serue@us.ibm.com>
-Tested-by: Jiri Slaby <jirislaby@gmail.com>
+[akpm@linux-foundation.org: fix mips build]
+Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Matt Mackall <mpm@selenic.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/capability.h |   11 +++++++-
- include/linux/init_task.h  |   13 ++++++++++
- include/linux/prctl.h      |    4 +++
- include/linux/sched.h      |    2 -
- include/linux/security.h   |    5 ---
- include/linux/sysctl.h     |    3 --
- kernel/fork.c              |    1 
- kernel/sys.c               |   13 +++++++++-
- kernel/sysctl.c            |   35 ---------------------------
- kernel/sysctl_check.c      |    7 -----
- security/commoncap.c       |   44 +++++++++++++++++++++--------------
- 11 files changed, 67 insertions(+), 71 deletions(-)
+ include/asm-ia64/processor.h    |    3 ++-
+ include/asm-mips/processor.h    |    2 ++
+ include/asm-parisc/processor.h  |    3 ++-
+ include/asm-powerpc/processor.h |    3 ++-
+ include/asm-s390/processor.h    |    3 ++-
+ include/linux/sched.h           |    4 ++++
+ 6 files changed, 14 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/capability.h~capabilities-introduce-per-process-capability-bounding-set include/linux/capability.h
---- a/include/linux/capability.h~capabilities-introduce-per-process-capability-bounding-set
-+++ a/include/linux/capability.h
-@@ -152,7 +152,9 @@ typedef struct kernel_cap_struct {
-  *   Transfer any capability in your permitted set to any pid,
-  *   remove any capability in your permitted set from any pid
-  * With VFS support for capabilities (neither of above, but)
-- *   Add any capability to the current process' inheritable set
-+ *   Add any capability from current's capability bounding set
-+ *       to the current process' inheritable set
-+ *   Allow taking bits out of capability bounding set
+diff -puN include/asm-ia64/processor.h~maps4-rework-task_size-macros include/asm-ia64/processor.h
+--- a/include/asm-ia64/processor.h~maps4-rework-task_size-macros
++++ a/include/asm-ia64/processor.h
+@@ -31,7 +31,8 @@
+  * each (assuming 8KB page size), for a total of 8TB of user virtual
+  * address space.
   */
+-#define TASK_SIZE		(current->thread.task_size)
++#define TASK_SIZE_OF(tsk)	((tsk)->thread.task_size)
++#define TASK_SIZE       	TASK_SIZE_OF(current)
  
- #define CAP_SETPCAP          8
-@@ -202,7 +204,6 @@ typedef struct kernel_cap_struct {
- #define CAP_IPC_OWNER        15
- 
- /* Insert and remove kernel modules - modify kernel without limit */
--/* Modify cap_bset */
- #define CAP_SYS_MODULE       16
- 
- /* Allow ioperm/iopl access */
-@@ -314,6 +315,10 @@ typedef struct kernel_cap_struct {
- 
- #define CAP_SETFCAP	     31
- 
-+#define CAP_LAST_CAP         CAP_SETFCAP
-+
-+#define cap_valid(x) ((x) >= 0 && (x) <= CAP_LAST_CAP)
-+
  /*
-  * Bit location of each capability (used by user-space library and kernel)
-  */
-@@ -465,6 +470,8 @@ extern const kernel_cap_t __cap_init_eff
- int capable(int cap);
- int __capable(struct task_struct *t, int cap);
+  * This decides where the kernel will search for a free chunk of vm
+diff -puN include/asm-mips/processor.h~maps4-rework-task_size-macros include/asm-mips/processor.h
+--- a/include/asm-mips/processor.h~maps4-rework-task_size-macros
++++ a/include/asm-mips/processor.h
+@@ -65,6 +65,8 @@ extern unsigned int vced_count, vcei_cou
+ #define TASK_UNMAPPED_BASE						\
+ 	(test_thread_flag(TIF_32BIT_ADDR) ?				\
+ 		PAGE_ALIGN(TASK_SIZE32 / 3) : PAGE_ALIGN(TASK_SIZE / 3))
++#define TASK_SIZE_OF(tsk)						\
++	(test_tsk_thread_flag(tsk, TIF_32BIT_ADDR) ? TASK_SIZE32 : TASK_SIZE)
+ #endif
  
-+extern long cap_prctl_drop(unsigned long cap);
+ #define NUM_FPU_REGS	32
+diff -puN include/asm-parisc/processor.h~maps4-rework-task_size-macros include/asm-parisc/processor.h
+--- a/include/asm-parisc/processor.h~maps4-rework-task_size-macros
++++ a/include/asm-parisc/processor.h
+@@ -32,7 +32,8 @@
+ #endif
+ #define current_text_addr() ({ void *pc; current_ia(pc); pc; })
+ 
+-#define TASK_SIZE               (current->thread.task_size)
++#define TASK_SIZE_OF(tsk)       ((tsk)->thread.task_size)
++#define TASK_SIZE	        TASK_SIZE_OF(current)
+ #define TASK_UNMAPPED_BASE      (current->thread.map_base)
+ 
+ #define DEFAULT_TASK_SIZE32	(0xFFF00000UL)
+diff -puN include/asm-powerpc/processor.h~maps4-rework-task_size-macros include/asm-powerpc/processor.h
+--- a/include/asm-powerpc/processor.h~maps4-rework-task_size-macros
++++ a/include/asm-powerpc/processor.h
+@@ -99,8 +99,9 @@ extern struct task_struct *last_task_use
+  */
+ #define TASK_SIZE_USER32 (0x0000000100000000UL - (1*PAGE_SIZE))
+ 
+-#define TASK_SIZE (test_thread_flag(TIF_32BIT) ? \
++#define TASK_SIZE_OF(tsk) (test_tsk_thread_flag(tsk, TIF_32BIT) ? \
+ 		TASK_SIZE_USER32 : TASK_SIZE_USER64)
++#define TASK_SIZE	  TASK_SIZE_OF(current)
+ 
+ /* This decides where the kernel will search for a free chunk of vm
+  * space during mmap's.
+diff -puN include/asm-s390/processor.h~maps4-rework-task_size-macros include/asm-s390/processor.h
+--- a/include/asm-s390/processor.h~maps4-rework-task_size-macros
++++ a/include/asm-s390/processor.h
+@@ -70,8 +70,9 @@ extern int get_cpu_capability(unsigned i
+ 
+ #else /* __s390x__ */
+ 
+-# define TASK_SIZE		(test_thread_flag(TIF_31BIT) ? \
++# define TASK_SIZE_OF(tsk)	(test_tsk_thread_flag(tsk, TIF_31BIT) ? \
+ 					(0x80000000UL) : (0x40000000000UL))
++# define TASK_SIZE		TASK_SIZE_OF(current)
+ # define TASK_UNMAPPED_BASE	(TASK_SIZE / 2)
+ # define DEFAULT_TASK_SIZE	(0x40000000000UL)
+ 
+diff -puN include/linux/sched.h~maps4-rework-task_size-macros include/linux/sched.h
+--- a/include/linux/sched.h~maps4-rework-task_size-macros
++++ a/include/linux/sched.h
+@@ -2087,6 +2087,10 @@ static inline void migration_init(void)
+ }
+ #endif
+ 
++#ifndef TASK_SIZE_OF
++#define TASK_SIZE_OF(tsk)	TASK_SIZE
++#endif
 +
  #endif /* __KERNEL__ */
  
- #endif /* !_LINUX_CAPABILITY_H */
-diff -puN include/linux/init_task.h~capabilities-introduce-per-process-capability-bounding-set include/linux/init_task.h
---- a/include/linux/init_task.h~capabilities-introduce-per-process-capability-bounding-set
-+++ a/include/linux/init_task.h
-@@ -121,6 +121,18 @@ extern struct group_info init_groups;
- #else
- #define INIT_IDS
  #endif
-+
-+#ifdef CONFIG_SECURITY_FILE_CAPABILITIES
-+/*
-+ * Because of the reduced scope of CAP_SETPCAP when filesystem
-+ * capabilities are in effect, it is safe to allow CAP_SETPCAP to
-+ * be available in the default configuration.
-+ */
-+# define CAP_INIT_BSET  CAP_FULL_SET
-+#else
-+# define CAP_INIT_BSET  CAP_INIT_EFF_SET
-+#endif
-+
- /*
-  *  INIT_TASK is used to set up the first task table, touch at
-  * your own risk!. Base=0, limit=0x1fffff (=2MB)
-@@ -156,6 +168,7 @@ extern struct group_info init_groups;
- 	.cap_effective	= CAP_INIT_EFF_SET,				\
- 	.cap_inheritable = CAP_INIT_INH_SET,				\
- 	.cap_permitted	= CAP_FULL_SET,					\
-+	.cap_bset 	= CAP_INIT_BSET,				\
- 	.keep_capabilities = 0,						\
- 	.user		= INIT_USER,					\
- 	.comm		= "swapper",					\
-diff -puN include/linux/prctl.h~capabilities-introduce-per-process-capability-bounding-set include/linux/prctl.h
---- a/include/linux/prctl.h~capabilities-introduce-per-process-capability-bounding-set
-+++ a/include/linux/prctl.h
-@@ -63,4 +63,8 @@
- #define PR_GET_SECCOMP	21
- #define PR_SET_SECCOMP	22
- 
-+/* Get/set the capability bounding set */
-+#define PR_CAPBSET_READ 23
-+#define PR_CAPBSET_DROP 24
-+
- #endif /* _LINUX_PRCTL_H */
-diff -puN include/linux/sched.h~capabilities-introduce-per-process-capability-bounding-set include/linux/sched.h
---- a/include/linux/sched.h~capabilities-introduce-per-process-capability-bounding-set
-+++ a/include/linux/sched.h
-@@ -1098,7 +1098,7 @@ struct task_struct {
- 	uid_t uid,euid,suid,fsuid;
- 	gid_t gid,egid,sgid,fsgid;
- 	struct group_info *group_info;
--	kernel_cap_t   cap_effective, cap_inheritable, cap_permitted;
-+	kernel_cap_t   cap_effective, cap_inheritable, cap_permitted, cap_bset;
- 	unsigned keep_capabilities:1;
- 	struct user_struct *user;
- #ifdef CONFIG_KEYS
-diff -puN include/linux/security.h~capabilities-introduce-per-process-capability-bounding-set include/linux/security.h
---- a/include/linux/security.h~capabilities-introduce-per-process-capability-bounding-set
-+++ a/include/linux/security.h
-@@ -40,11 +40,6 @@
- #define ROOTCONTEXT_MNT		0x04
- #define DEFCONTEXT_MNT		0x08
- 
--/*
-- * Bounding set
-- */
--extern kernel_cap_t cap_bset;
--
- extern unsigned securebits;
- 
- struct ctl_table;
-diff -puN include/linux/sysctl.h~capabilities-introduce-per-process-capability-bounding-set include/linux/sysctl.h
---- a/include/linux/sysctl.h~capabilities-introduce-per-process-capability-bounding-set
-+++ a/include/linux/sysctl.h
-@@ -102,7 +102,6 @@ enum
- 	KERN_NODENAME=7,
- 	KERN_DOMAINNAME=8,
- 
--	KERN_CAP_BSET=14,	/* int: capability bounding set */
- 	KERN_PANIC=15,		/* int: panic timeout */
- 	KERN_REALROOTDEV=16,	/* real root device to mount after initrd */
- 
-@@ -965,8 +964,6 @@ extern int proc_dostring(struct ctl_tabl
- 			 void __user *, size_t *, loff_t *);
- extern int proc_dointvec(struct ctl_table *, int, struct file *,
- 			 void __user *, size_t *, loff_t *);
--extern int proc_dointvec_bset(struct ctl_table *, int, struct file *,
--			      void __user *, size_t *, loff_t *);
- extern int proc_dointvec_minmax(struct ctl_table *, int, struct file *,
- 				void __user *, size_t *, loff_t *);
- extern int proc_dointvec_jiffies(struct ctl_table *, int, struct file *,
-diff -puN kernel/fork.c~capabilities-introduce-per-process-capability-bounding-set kernel/fork.c
---- a/kernel/fork.c~capabilities-introduce-per-process-capability-bounding-set
-+++ a/kernel/fork.c
-@@ -1118,6 +1118,7 @@ static struct task_struct *copy_process(
- #ifdef CONFIG_SECURITY
- 	p->security = NULL;
- #endif
-+	p->cap_bset = current->cap_bset;
- 	p->io_context = NULL;
- 	p->audit_context = NULL;
- 	cgroup_fork(p);
-diff -puN kernel/sys.c~capabilities-introduce-per-process-capability-bounding-set kernel/sys.c
---- a/kernel/sys.c~capabilities-introduce-per-process-capability-bounding-set
-+++ a/kernel/sys.c
-@@ -1637,7 +1637,7 @@ asmlinkage long sys_umask(int mask)
- 	mask = xchg(&current->fs->umask, mask & S_IRWXUGO);
- 	return mask;
- }
--    
-+
- asmlinkage long sys_prctl(int option, unsigned long arg2, unsigned long arg3,
- 			  unsigned long arg4, unsigned long arg5)
- {
-@@ -1742,6 +1742,17 @@ asmlinkage long sys_prctl(int option, un
- 			error = prctl_set_seccomp(arg2);
- 			break;
- 
-+		case PR_CAPBSET_READ:
-+			if (!cap_valid(arg2))
-+				return -EINVAL;
-+			return !!cap_raised(current->cap_bset, arg2);
-+		case PR_CAPBSET_DROP:
-+#ifdef CONFIG_SECURITY_FILE_CAPABILITIES
-+			return cap_prctl_drop(arg2);
-+#else
-+			return -EINVAL;
-+#endif
-+
- 		default:
- 			error = -EINVAL;
- 			break;
-diff -puN kernel/sysctl.c~capabilities-introduce-per-process-capability-bounding-set kernel/sysctl.c
---- a/kernel/sysctl.c~capabilities-introduce-per-process-capability-bounding-set
-+++ a/kernel/sysctl.c
-@@ -419,15 +419,6 @@ static struct ctl_table kern_table[] = {
- 		.proc_handler	= &proc_dointvec,
- 	},
- #endif
--#ifdef CONFIG_SECURITY_CAPABILITIES
--	{
--		.procname	= "cap-bound",
--		.data		= &cap_bset,
--		.maxlen		= sizeof(kernel_cap_t),
--		.mode		= 0600,
--		.proc_handler	= &proc_dointvec_bset,
--	},
--#endif /* def CONFIG_SECURITY_CAPABILITIES */
- #ifdef CONFIG_BLK_DEV_INITRD
- 	{
- 		.ctl_name	= KERN_REALROOTDEV,
-@@ -2096,26 +2087,6 @@ static int do_proc_dointvec_bset_conv(in
- 	return 0;
- }
- 
--#ifdef CONFIG_SECURITY_CAPABILITIES
--/*
-- *	init may raise the set.
-- */
--
--int proc_dointvec_bset(struct ctl_table *table, int write, struct file *filp,
--			void __user *buffer, size_t *lenp, loff_t *ppos)
--{
--	int op;
--
--	if (write && !capable(CAP_SYS_MODULE)) {
--		return -EPERM;
--	}
--
--	op = is_global_init(current) ? OP_SET : OP_AND;
--	return do_proc_dointvec(table,write,filp,buffer,lenp,ppos,
--				do_proc_dointvec_bset_conv,&op);
--}
--#endif /* def CONFIG_SECURITY_CAPABILITIES */
--
- /*
-  *	Taint values can only be increased
-  */
-@@ -2529,12 +2500,6 @@ int proc_dointvec(struct ctl_table *tabl
- 	return -ENOSYS;
- }
- 
--int proc_dointvec_bset(struct ctl_table *table, int write, struct file *filp,
--			void __user *buffer, size_t *lenp, loff_t *ppos)
--{
--	return -ENOSYS;
--}
--
- int proc_dointvec_minmax(struct ctl_table *table, int write, struct file *filp,
- 		    void __user *buffer, size_t *lenp, loff_t *ppos)
- {
-diff -puN kernel/sysctl_check.c~capabilities-introduce-per-process-capability-bounding-set kernel/sysctl_check.c
---- a/kernel/sysctl_check.c~capabilities-introduce-per-process-capability-bounding-set
-+++ a/kernel/sysctl_check.c
-@@ -37,10 +37,6 @@ static struct trans_ctl_table trans_kern
- 	{ KERN_NODENAME,		"hostname" },
- 	{ KERN_DOMAINNAME,		"domainname" },
- 
--#ifdef CONFIG_SECURITY_CAPABILITIES
--	{ KERN_CAP_BSET,		"cap-bound" },
--#endif /* def CONFIG_SECURITY_CAPABILITIES */
--
- 	{ KERN_PANIC,			"panic" },
- 	{ KERN_REALROOTDEV,		"real-root-dev" },
- 
-@@ -1498,9 +1494,6 @@ int sysctl_check_table(struct nsproxy *n
- 			    (table->strategy == sysctl_ms_jiffies) ||
- 			    (table->proc_handler == proc_dostring) ||
- 			    (table->proc_handler == proc_dointvec) ||
--#ifdef CONFIG_SECURITY_CAPABILITIES
--			    (table->proc_handler == proc_dointvec_bset) ||
--#endif /* def CONFIG_SECURITY_CAPABILITIES */
- 			    (table->proc_handler == proc_dointvec_minmax) ||
- 			    (table->proc_handler == proc_dointvec_jiffies) ||
- 			    (table->proc_handler == proc_dointvec_userhz_jiffies) ||
-diff -puN security/commoncap.c~capabilities-introduce-per-process-capability-bounding-set security/commoncap.c
---- a/security/commoncap.c~capabilities-introduce-per-process-capability-bounding-set
-+++ a/security/commoncap.c
-@@ -25,20 +25,6 @@
- #include <linux/mount.h>
- #include <linux/sched.h>
- 
--#ifdef CONFIG_SECURITY_FILE_CAPABILITIES
--/*
-- * Because of the reduced scope of CAP_SETPCAP when filesystem
-- * capabilities are in effect, it is safe to allow this capability to
-- * be available in the default configuration.
-- */
--# define CAP_INIT_BSET  CAP_FULL_SET
--#else /* ie. ndef CONFIG_SECURITY_FILE_CAPABILITIES */
--# define CAP_INIT_BSET  CAP_INIT_EFF_SET
--#endif /* def CONFIG_SECURITY_FILE_CAPABILITIES */
--
--kernel_cap_t cap_bset = CAP_INIT_BSET;    /* systemwide capability bound */
--EXPORT_SYMBOL(cap_bset);
--
- /* Global security state */
- 
- unsigned securebits = SECUREBITS_DEFAULT; /* systemwide security settings */
-@@ -140,6 +126,12 @@ int cap_capset_check (struct task_struct
- 		/* incapable of using this inheritable set */
- 		return -EPERM;
- 	}
-+	if (!cap_issubset(*inheritable,
-+			   cap_combine(target->cap_inheritable,
-+				       current->cap_bset))) {
-+		/* no new pI capabilities outside bounding set */
-+		return -EPERM;
-+	}
- 
- 	/* verify restrictions on target's new Permitted set */
- 	if (!cap_issubset (*permitted,
-@@ -337,10 +329,11 @@ void cap_bprm_apply_creds (struct linux_
- 	/* Derived from fs/exec.c:compute_creds. */
- 	kernel_cap_t new_permitted, working;
- 
--	new_permitted = cap_intersect (bprm->cap_permitted, cap_bset);
--	working = cap_intersect (bprm->cap_inheritable,
-+	new_permitted = cap_intersect(bprm->cap_permitted,
-+				 current->cap_bset);
-+	working = cap_intersect(bprm->cap_inheritable,
- 				 current->cap_inheritable);
--	new_permitted = cap_combine (new_permitted, working);
-+	new_permitted = cap_combine(new_permitted, working);
- 
- 	if (bprm->e_uid != current->uid || bprm->e_gid != current->gid ||
- 	    !cap_issubset (new_permitted, current->cap_permitted)) {
-@@ -581,6 +574,23 @@ int cap_task_kill(struct task_struct *p,
- 
- 	return -EPERM;
- }
-+
-+/*
-+ * called from kernel/sys.c for prctl(PR_CABSET_DROP)
-+ * done without task_capability_lock() because it introduces
-+ * no new races - i.e. only another task doing capget() on
-+ * this task could get inconsistent info.  There can be no
-+ * racing writer bc a task can only change its own caps.
-+ */
-+long cap_prctl_drop(unsigned long cap)
-+{
-+	if (!capable(CAP_SETPCAP))
-+		return -EPERM;
-+	if (!cap_valid(cap))
-+		return -EINVAL;
-+	cap_lower(current->cap_bset, cap);
-+	return 0;
-+}
- #else
- int cap_task_setscheduler (struct task_struct *p, int policy,
- 			   struct sched_param *lp)
 _
 
-Patches currently in -mm which might be from serue@us.ibm.com are
+Patches currently in -mm which might be from haveblue@us.ibm.com are
 
 origin.patch
-git-unionfs.patch
+enable-hotplug-memory-remove-for-ppc64.patch
+add-arch-specific-walk_memory_remove-for-ppc64.patch
+reiserfs-eliminate-private-use-of-struct-file-in-xattr.patch
+do-namei_flags-calculation-inside-open_namei.patch
+make-open_namei-return-a-filp.patch
+kill-do_filp_open.patch
+kill-filp_open.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname.patch
+rename-open_namei-to-open_pathname-fix.patch
 r-o-bind-mounts-stub-functions.patch
 r-o-bind-mounts-do_rmdir-elevate-write-count.patch
-add-the-namespaces-config-option.patch
-move-the-uts-namespace-under-uts_ns-option.patch
-move-the-ipc-namespace-under-ipc_ns-option.patch
-cleanup-the-code-managed-with-the-user_ns-option.patch
-cleanup-the-code-managed-with-pid_ns-option.patch
-mark-net_ns-with-depends-on-namespaces.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
-reiser4-replace-uid==0-check-with-capability.patch
+r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
+r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
+r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
+r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
+r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
+r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate.patch
+r-o-bind-mounts-make-access-use-mnt-check.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
+r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
+keep-track-of-mnt_writer-state-of-struct-file.patch
+keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on.patch
+keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix.patch
+create-file_drop_write_access-helper.patch
+fix-up-new-filp-allocators.patch
+use-struct-path-in-struct-svc_export-nfsd-fix-wrong-mnt_writer-count-in-rename.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
