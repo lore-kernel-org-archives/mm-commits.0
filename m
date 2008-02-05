@@ -1,148 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: - maps4-simplify-interdependence-of-maps-and-smaps.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:31:07 -0800
-Message-ID: <200802052230.m15MUmws012106@imap1.linux-foundation.org>
+Subject: - serial-speed-setup-failure-reporting.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:27:50 -0800
+Message-ID: <200802052227.m15MRVvt011801@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40294 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41728 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762715AbYBEWoK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:44:10 -0500
+	by vger.kernel.org with ESMTP id S1761009AbYBEWoB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:44:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mpm@selenic.com, haveblue@us.ibm.com, jeremy@goop.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     maps4: simplify interdependence of maps and smaps
+     serial: speed setup failure reporting
 has been removed from the -mm tree.  Its filename was
-     maps4-simplify-interdependence-of-maps-and-smaps.patch
+     serial-speed-setup-failure-reporting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: maps4: simplify interdependence of maps and smaps
-From: Matt Mackall <mpm@selenic.com>
+Subject: serial: speed setup failure reporting
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-This pulls the shared map display code out of show_map and puts it in
-show_smap where it belongs.
+Invalid speeds are forced to 9600. Update the code for this to encode new
+style baud rates properly.
 
-Signed-off-by: Matt Mackall <mpm@selenic.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   52 +++++++++++++++++++++----------------------
- 1 file changed, 26 insertions(+), 26 deletions(-)
+ drivers/serial/serial_core.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~maps4-simplify-interdependence-of-maps-and-smaps fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~maps4-simplify-interdependence-of-maps-and-smaps
-+++ a/fs/proc/task_mmu.c
-@@ -145,7 +145,7 @@ struct mem_size_stats
- 	u64 pss;
- };
- 
--static int show_map_internal(struct seq_file *m, void *v, struct mem_size_stats *mss)
-+static int show_map(struct seq_file *m, void *v)
- {
- 	struct proc_maps_private *priv = m->private;
- 	struct task_struct *task = priv->task;
-@@ -205,35 +205,11 @@ static int show_map_internal(struct seq_
+diff -puN drivers/serial/serial_core.c~serial-speed-setup-failure-reporting drivers/serial/serial_core.c
+--- a/drivers/serial/serial_core.c~serial-speed-setup-failure-reporting
++++ a/drivers/serial/serial_core.c
+@@ -371,7 +371,8 @@ uart_get_baud_rate(struct uart_port *por
+ 		 */
+ 		termios->c_cflag &= ~CBAUD;
+ 		if (old) {
+-			termios->c_cflag |= old->c_cflag & CBAUD;
++			baud = tty_termios_baud_rate(old);
++			tty_termios_encode_baud_rate(termios, baud, baud);
+ 			old = NULL;
+ 			continue;
+ 		}
+@@ -380,7 +381,7 @@ uart_get_baud_rate(struct uart_port *por
+ 		 * As a last resort, if the quotient is zero,
+ 		 * default to 9600 bps
+ 		 */
+-		termios->c_cflag |= B9600;
++		tty_termios_encode_baud_rate(termios, 9600, 9600);
  	}
- 	seq_putc(m, '\n');
  
--	if (mss)
--		seq_printf(m,
--			   "Size:           %8lu kB\n"
--			   "Rss:            %8lu kB\n"
--			   "Pss:            %8lu kB\n"
--			   "Shared_Clean:   %8lu kB\n"
--			   "Shared_Dirty:   %8lu kB\n"
--			   "Private_Clean:  %8lu kB\n"
--			   "Private_Dirty:  %8lu kB\n"
--			   "Referenced:     %8lu kB\n",
--			   (vma->vm_end - vma->vm_start) >> 10,
--			   mss->resident >> 10,
--			   (unsigned long)(mss->pss >> (10 + PSS_SHIFT)),
--			   mss->shared_clean  >> 10,
--			   mss->shared_dirty  >> 10,
--			   mss->private_clean >> 10,
--			   mss->private_dirty >> 10,
--			   mss->referenced >> 10);
--
- 	if (m->count < m->size)  /* vma is copied successfully */
- 		m->version = (vma != get_gate_vma(task))? vma->vm_start: 0;
  	return 0;
- }
- 
--static int show_map(struct seq_file *m, void *v)
--{
--	return show_map_internal(m, v, NULL);
--}
--
- static int smaps_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
- 			   void *private)
- {
-@@ -312,13 +288,37 @@ static int show_smap(struct seq_file *m,
- {
- 	struct vm_area_struct *vma = v;
- 	struct mem_size_stats mss;
-+	int ret;
- 
- 	memset(&mss, 0, sizeof mss);
- 	mss.vma = vma;
- 	if (vma->vm_mm && !is_vm_hugetlb_page(vma))
- 		walk_page_range(vma->vm_mm, vma->vm_start, vma->vm_end,
- 				&smaps_walk, &mss);
--	return show_map_internal(m, v, &mss);
-+
-+	ret = show_map(m, v);
-+	if (ret)
-+		return ret;
-+
-+	seq_printf(m,
-+		   "Size:           %8lu kB\n"
-+		   "Rss:            %8lu kB\n"
-+		   "Pss:            %8lu kB\n"
-+		   "Shared_Clean:   %8lu kB\n"
-+		   "Shared_Dirty:   %8lu kB\n"
-+		   "Private_Clean:  %8lu kB\n"
-+		   "Private_Dirty:  %8lu kB\n"
-+		   "Referenced:     %8lu kB\n",
-+		   (vma->vm_end - vma->vm_start) >> 10,
-+		   mss.resident >> 10,
-+		   (unsigned long)(mss.pss >> (10 + PSS_SHIFT)),
-+		   mss.shared_clean  >> 10,
-+		   mss.shared_dirty  >> 10,
-+		   mss.private_clean >> 10,
-+		   mss.private_dirty >> 10,
-+		   mss.referenced >> 10);
-+
-+	return ret;
- }
- 
- static struct mm_walk clear_refs_walk = { .pmd_entry = clear_refs_pte_range };
 _
 
-Patches currently in -mm which might be from mpm@selenic.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-drivers-char-randomcwrite_pool-cond_resched-needed.patch
-random-clean-up-checkpatch-complaints.patch
-random-clean-up-checkpatch-complaints-fix.patch
-random-consolidate-wakeup-logic.patch
-random-use-unlocked_ioctl.patch
-random-reuse-rand_initialize.patch
-random-improve-variable-naming-clear-extract-buffer.patch
-random-make-backtracking-attacks-harder.patch
-random-remove-cacheline-alignment-for-locks.patch
-random-eliminate-redundant-new_rotate-variable.patch
-random-remove-some-prefetch-logic.patch
-random-simplify-add_ptr-logic.patch
-random-make-mixing-interface-byte-oriented.patch
-random-simplify-and-rename-credit_entropy_store.patch
-random-add-async-notification-support-to-dev-random.patch
+git-acpi.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+hci_ldisc-fix-null-pointer-deref.patch
+parisc-new-termios-definitions.patch
+git-sh.patch
+git-watchdog.patch
+geode-lists-are-subscriber-only.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+sc26xx-new-serial-driver-for-sc2681-uarts.patch
+sc26xx-new-serial-driver-for-sc2681-uarts-update.patch
+documentation-about-unaligned-memory-access.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+fix-ixany-and-restart-after-signal-eg-ctrl-c-in-n_tty-line-discipline.patch
+fix-ixany-and-restart-after-signal-eg-ctrl-c-in-n_tty-line-discipline-update.patch
+tty-kill-tty_flipbuf_size.patch
+drivers-edac-turnon-edac-device-error-logging.patch
+drivers-edac-use-round_jiffies_relative.patch
+drivers-edac-add-cell-xdr-memory-types.patch
+drivers-edac-add-cell-mc-driver.patch
+drivers-edac-i3000-code-tidying.patch
+drivers-edac-i3000-replace-macros-with-functions.patch
+drivers-edac-add-freescale-mpc85xx-driver.patch
+drivers-edac-add-marvell-mv64x60-driver.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+dz-clean-up-and-improve-the-setup-of-termios-settings.patch
+char-rocket-switch-long-delay-to-sleep.patch
+char-rocket-printk-cleanup.patch
+char-char-serial-remove-serial_type_normal-redefines.patch
+char-mxser_new-ioaddresses-are-ulong.patch
+char-stallion-fix-compiler-warnings.patch
+char-riscom8-change-rc_init_drivers-prototype.patch
+mxser-mxser_new-first-pass-over-termios-reporting-for-the.patch
+char-mxser-ioctl-cleanup.patch
+tty-let-architectures-override-the-user-kernel-macros.patch
+tty-s390-support-for-termios2.patch
+moxa-first-pass-at-termios-reporting.patch
+n_tty-clean-up-old-code-to-follow-coding-style-and-mostly-checkpatch.patch
+rocket-first-pass-at-termios-reporting.patch
+rocket-dont-let-random-users-reset-the-controller.patch
+tty_audit-fix-checkpatch-complaint.patch
+tty_io-drag-screaming-into-coding-style-compliance.patch
+tty_ioctl-drag-screaming-into-compliance-with-the-coding.patch
+8250_early-coding-style.patch
+8250_gsc-coding-style.patch
+8250_hp300-coding-style.patch
+8250_hub6-codding-style.patch
+8250_pci-coding-style.patch
+serial8250-coding-style.patch
+8250-enable-rate-reporting-via-termios.patch
+serial_core-bring-mostly-into-line-with-coding-style.patch
+smbios-dmi-add-type-41-=-onboard-devices-extended-information.patch
