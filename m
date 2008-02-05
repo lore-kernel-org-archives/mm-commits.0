@@ -1,85 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: + x86-amd-thermal-interrupt-support-fix-3.patch added to -mm tree
-Date: Mon, 04 Feb 2008 15:18:40 -0800
-Message-ID: <200802042318.m14NIeXP023305@imap1.linux-foundation.org>
+Subject: - slub-use-non-atomic-bit-unlock.patch removed from -mm tree
+Date: Mon, 04 Feb 2008 18:44:16 -0800
+Message-ID: <200802050243.m152hwR2031120@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60693 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39160 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756710AbYBDXTn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2008 18:19:43 -0500
+	by vger.kernel.org with ESMTP id S1750870AbYBECoG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2008 21:44:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: tremyfr@yahoo.fr, ak@suse.de, mingo@elte.hu, rml@google.com, tglx@linutronix.de
+To: nickpiggin@yahoo.com.au, clameter@sgi.com, npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86-amd-thermal-interrupt-support fix 3
-has been added to the -mm tree.  Its filename is
-     x86-amd-thermal-interrupt-support-fix-3.patch
+     slub: use non-atomic bit unlock
+has been removed from the -mm tree.  Its filename was
+     slub-use-non-atomic-bit-unlock.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it is obsolete
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
-out what to do about this
-
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86-amd-thermal-interrupt-support fix 3
-=46rom: trem <tremyfr@yahoo.fr>
+Subject: slub: use non-atomic bit unlock
+From: Nick Piggin <nickpiggin@yahoo.com.au>
 
-I've got an error when I compile 2.6.24-mm1 on x86_64 :
+Slub can use the non-atomic version to unlock because other flags will not
+get modified with the lock held.
 
-  CC      arch/x86/kernel/cpu/mcheck/mce_amd_64.o
-  CC      kernel/posix-cpu-timers.o
-arch/x86/kernel/cpu/mcheck/mce_amd_64.c: In function =91smp_thermal_int=
-errupt_init=92:
-arch/x86/kernel/cpu/mcheck/mce_amd_64.c:876: erreur: lvalue required as=
- unary =91&=92 operand
-make[3]: *** [arch/x86/kernel/cpu/mcheck/mce_amd_64.o] Erreur 1
-make[2]: *** [arch/x86/kernel/cpu/mcheck] Erreur 2
-make[1]: *** [arch/x86/kernel/cpu] Erreur 2
-
-Cc: Russell Leidich <rml@google.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Acked-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/mcheck/mce_amd_64.c |    2 +-
+ mm/slub.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/cpu/mcheck/mce_amd_64.c~x86-amd-thermal-inter=
-rupt-support-fix-3 arch/x86/kernel/cpu/mcheck/mce_amd_64.c
---- a/arch/x86/kernel/cpu/mcheck/mce_amd_64.c~x86-amd-thermal-interrupt=
--support-fix-3
-+++ a/arch/x86/kernel/cpu/mcheck/mce_amd_64.c
-@@ -873,7 +873,7 @@ static int smp_thermal_interrupt_init(vo
- 	/*
- 	 * Call thermal_apic_init() on each core.
- 	 */
--	on_each_cpu(&thermal_apic_init, NULL, 1, 0);
-+	on_each_cpu(thermal_apic_init, NULL, 1, 0);
- 	smp_thermal_early_throttle_check();
- out:
- 	return 0;
+diff -puN mm/slub.c~slub-use-non-atomic-bit-unlock mm/slub.c
+--- a/mm/slub.c~slub-use-non-atomic-bit-unlock
++++ a/mm/slub.c
+@@ -1181,7 +1181,7 @@ static __always_inline void slab_lock(st
+ 
+ static __always_inline void slab_unlock(struct page *page)
+ {
+-	bit_spin_unlock(PG_locked, &page->flags);
++	__bit_spin_unlock(PG_locked, &page->flags);
+ }
+ 
+ static __always_inline int slab_trylock(struct page *page)
 _
 
-Patches currently in -mm which might be from tremyfr@yahoo.fr are
+Patches currently in -mm which might be from nickpiggin@yahoo.com.au are
 
-x86-amd-thermal-interrupt-support-fix-3.patch
+origin.patch
+is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries.patch
+vmalloc-clean-up-page-array-indexing.patch
+vunmap-return-page-array-passed-on-vmap.patch
+slub-use-non-atomic-bit-unlock.patch
+bufferhead-revert-constructor-removal.patch
+shmem_getpage-return-page-locked.patch
+shmem_file_write-is-redundant.patch
+fix-dirty-page-accounting-leak-with-ext3-data=journal.patch
+git-powerpc-galak.patch
+git-unionfs.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+memcgroup-reinstate-swapoff-mod.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
+memcgroup-fix-zone-isolation-oom.patch
+memcgroup-revert-swap_state-mods.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
+memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
+memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+memory-cgroup-enhancements-add-pre_destroy-handler.patch
+memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
+rewrite-rd-fixes.patch
