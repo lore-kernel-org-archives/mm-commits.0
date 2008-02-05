@@ -1,93 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: + random-clean-up-checkpatch-complaints-fix.patch added to -mm tree
-Date: Mon, 04 Feb 2008 18:57:20 -0800
-Message-ID: <200802050257.m152v1sn031708@imap1.linux-foundation.org>
+Subject: - doc-use-correct-debugfs-mountpoint.patch removed from -mm tree
+Date: Mon, 04 Feb 2008 18:54:22 -0800
+Message-ID: <200802050254.m152s3Pw031558@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58452 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41093 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751314AbYBEC5T (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2008 21:57:19 -0500
+	by vger.kernel.org with ESMTP id S1750772AbYBEDAa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2008 22:00:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mpm@selenic.com
+To: randy.dunlap@oracle.com, zanussi@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     random: revert braindamage that snuck into checkpatch cleanup
-has been added to the -mm tree.  Its filename is
-     random-clean-up-checkpatch-complaints-fix.patch
+     doc: use correct debugfs mountpoint
+has been removed from the -mm tree.  Its filename was
+     doc-use-correct-debugfs-mountpoint.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: random: revert braindamage that snuck into checkpatch cleanup
-From: Matt Mackall <mpm@selenic.com>
+Subject: doc: use correct debugfs mountpoint
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Signed-off-by: Matt Mackall <mpm@selenic.com>
+Use the normal, expected mountpoint in the relay(fs) example for debugfs.
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Tom Zanussi <zanussi@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/random.c |    2 +-
+ Documentation/filesystems/relay.txt |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/random.c~random-clean-up-checkpatch-complaints-fix drivers/char/random.c
---- a/drivers/char/random.c~random-clean-up-checkpatch-complaints-fix
-+++ a/drivers/char/random.c
-@@ -1328,7 +1328,7 @@ ctl_table random_table[] = {
-  * Rotation is separate from addition to prevent recomputation
-  */
- #define ROUND(f, a, b, c, d, x, s)	\
--	(a += f(b, c, d) + in[x], a = (a << s) | (a >> (32 - s)))
-+	(a += f(b, c, d) + x, a = (a << s) | (a >> (32 - s)))
- #define K1 0
- #define K2 013240474631UL
- #define K3 015666365641UL
+diff -puN Documentation/filesystems/relay.txt~doc-use-correct-debugfs-mountpoint Documentation/filesystems/relay.txt
+--- a/Documentation/filesystems/relay.txt~doc-use-correct-debugfs-mountpoint
++++ a/Documentation/filesystems/relay.txt
+@@ -140,7 +140,7 @@ close()     decrements the channel buffe
+ In order for a user application to make use of relay files, the
+ host filesystem must be mounted.  For example,
+ 
+-	mount -t debugfs debugfs /debug
++	mount -t debugfs debugfs /sys/kernel/debug
+ 
+ NOTE:   the host filesystem doesn't need to be mounted for kernel
+ 	clients to create or use channels - it only needs to be
 _
 
-Patches currently in -mm which might be from mpm@selenic.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-maps4-add-proportional-set-size-accounting-in-smaps.patch
-maps4-rework-task_size-macros.patch
-maps4-move-is_swap_pte.patch
-maps4-introduce-a-generic-page-walker.patch
-maps4-use-pagewalker-in-clear_refs-and-smaps.patch
-maps4-simplify-interdependence-of-maps-and-smaps.patch
-maps4-move-clear_refs-code-to-task_mmuc.patch
-maps4-regroup-task_mmu-by-interface.patch
-maps4-add-proc-pid-pagemap-interface.patch
-maps4-add-proc-kpagecount-interface.patch
-maps4-add-proc-kpageflags-interface.patch
-maps4-make-page-monitoring-proc-file-optional.patch
-remove-unused-code-from-mm-tiny-shmemc.patch
-slob-fix-free-block-merging-at-head-of-subpage.patch
-slob-reduce-external-fragmentation-by-using-three-free-lists.patch
-slob-correct-kconfig-description.patch
-drivers-char-randomcwrite_pool-cond_resched-needed.patch
-random-clean-up-checkpatch-complaints.patch
-random-clean-up-checkpatch-complaints-fix.patch
-random-consolidate-wakeup-logic.patch
-random-use-unlocked_ioctl.patch
-random-reuse-rand_initialize.patch
-random-improve-variable-naming-clear-extract-buffer.patch
-random-make-backtracking-attacks-harder.patch
-random-remove-cacheline-alignment-for-locks.patch
-random-eliminate-redundant-new_rotate-variable.patch
-random-remove-some-prefetch-logic.patch
-random-simplify-add_ptr-logic.patch
-random-make-mixing-interface-byte-oriented.patch
-random-simplify-and-rename-credit_entropy_store.patch
-random-add-async-notification-support-to-dev-random.patch
+pcmcia-include-bad-cis-filename-in-error-message.patch
+git-ia64.patch
+hamradio-fix-dmascc-section-mismatch.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+git-scsi-misc.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+register_cpu-__devinit-or-__cpuinit.patch
+cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
+tpm-infineon-section-mismatch.patch
+tdfxfb-fix-section-mismatch-warnings.patch
+uvesafb-small-cleanups.patch
+documentation-move-dnotifytxt-to-filesystems.patch
+documentation-move-sharedsubtreestxt-to-filesystems.patch
+documentation-create-new-scheduler-subdirectory.patch
+reporting-bugs-cc-the-mailing-list-too.patch
+kernel-doc-prevent-duplicate-description-output.patch
+kernel-doc-warn-on-badly-formatted-short-description.patch
+email-clientstxt-sylpheed-is-ok-at-imap.patch
+fs-menu-small-reorg.patch
+the-scheduled-time-option-removal.patch
+getdelays-fix-gcc-warnings.patch
+profile-likely-unlikely-macros.patch
