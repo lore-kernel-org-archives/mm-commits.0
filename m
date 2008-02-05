@@ -1,55 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch removed from -mm tree
-Date: Mon, 04 Feb 2008 23:58:57 -0800
-Message-ID: <200802050758.m157wdvL010982@imap1.linux-foundation.org>
+Subject: - git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch removed from -mm tree
+Date: Mon, 04 Feb 2008 23:59:56 -0800
+Message-ID: <200802050759.m157xbRN010999@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37449 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55924 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754380AbYBEH6p (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 02:58:45 -0500
+	by vger.kernel.org with ESMTP id S1754860AbYBEIAP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 03:00:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, kristen.c.accardi@intel.com, yinghai.lu@sun.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org, mingo@elte.hu, rjw@sisk.pl, stern@rowland.harvard.edu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pci-dont-load-acpi_php-when-acpi-is-disabled-fix
+     git-x86 vs pm-acquire-device-locks-on-suspend-rev-3
 has been removed from the -mm tree.  Its filename was
-     pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
+     git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
 
-This patch was dropped because it was folded into pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci-dont-load-acpi_php-when-acpi-is-disabled-fix
+Subject: git-x86 vs pm-acquire-device-locks-on-suspend-rev-3
 From: Andrew Morton <akpm@linux-foundation.org>
 
+This is just a guess.  NFI what's going on here.  Everything's gone nuts.
+
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Alan Stern <stern@rowland.harvard.edu>
 Cc: Greg KH <greg@kroah.com>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Yinghai Lu <Yinghai.Lu@Sun.COM>
-Cc: Yinghai Lu <yinghai.lu@sun.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/hotplug/acpiphp_core.c |    2 +-
- x86/kernel/acpi/boot.c             |    0 
- 2 files changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/kernel/cpuid.c |    3 ---
+ arch/x86/kernel/msr.c   |    3 ---
+ 2 files changed, 6 deletions(-)
 
-diff -puN drivers/pci/hotplug/acpiphp_core.c~pci-dont-load-acpi_php-when-acpi-is-disabled-fix drivers/pci/hotplug/acpiphp_core.c
---- a/drivers/pci/hotplug/acpiphp_core.c~pci-dont-load-acpi_php-when-acpi-is-disabled-fix
-+++ a/drivers/pci/hotplug/acpiphp_core.c
-@@ -405,7 +405,7 @@ static int __init acpiphp_init(void)
- static void __exit acpiphp_exit(void)
- {
- 	if (acpi_pci_disabled)
--		return 0;
-+		return;
- 
- 	/* deallocate internal data structures etc. */
- 	acpiphp_glue_exit();
-diff -puN arch/x86/kernel/acpi/boot.c~pci-dont-load-acpi_php-when-acpi-is-disabled-fix arch/x86/kernel/acpi/boot.c
+diff -puN arch/x86/kernel/cpuid.c~git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3 arch/x86/kernel/cpuid.c
+--- a/arch/x86/kernel/cpuid.c~git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3
++++ a/arch/x86/kernel/cpuid.c
+@@ -157,9 +157,6 @@ static int __cpuinit cpuid_class_cpu_cal
+ 	case CPU_DEAD:
+ 		cpuid_device_destroy(cpu);
+ 		break;
+-	case CPU_UP_CANCELED_FROZEN:
+-		destroy_suspended_device(cpuid_class, MKDEV(CPUID_MAJOR, cpu));
+-		break;
+ 	}
+ 	return err ? NOTIFY_BAD : NOTIFY_OK;
+ }
+diff -puN arch/x86/kernel/msr.c~git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3 arch/x86/kernel/msr.c
+--- a/arch/x86/kernel/msr.c~git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3
++++ a/arch/x86/kernel/msr.c
+@@ -165,9 +165,6 @@ static int __cpuinit msr_class_cpu_callb
+ 	case CPU_DEAD:
+ 		msr_device_destroy(cpu);
+ 		break;
+-	case CPU_UP_CANCELED_FROZEN:
+-		destroy_suspended_device(msr_class, MKDEV(MSR_MAJOR, cpu));
+-		break;
+ 	}
+ 	return err ? NOTIFY_BAD : NOTIFY_OK;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -143,7 +160,6 @@ git-x86.patch
 git-x86-fix-git-conflicts.patch
 git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
 x86-amd-thermal-interrupt-support-fix-2.patch
 x86-mmconf-enable-mcfg-early-cleanup.patch
 git-xtensa.patch
