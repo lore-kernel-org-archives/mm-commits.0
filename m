@@ -1,139 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: - maps4-add-proc-kpagecount-interface.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:31:19 -0800
-Message-ID: <200802052231.m15MV0Dr012122@imap1.linux-foundation.org>
+Subject: - uml-remove-topdir.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:38:36 -0800
+Message-ID: <200802052238.m15McHOf012938@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58398 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37976 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761883AbYBEWng (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:43:36 -0500
+	by vger.kernel.org with ESMTP id S932369AbYBEWnd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:43:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mpm@selenic.com, bunk@stusta.de, haveblue@us.ibm.com, jeremy@goop.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: xiyou.wangcong@gmail.com, jdike@linux.intel.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     maps4: add /proc/kpagecount interface
+     uml: remove TOPDIR
 has been removed from the -mm tree.  Its filename was
-     maps4-add-proc-kpagecount-interface.patch
+     uml-remove-topdir.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: maps4: add /proc/kpagecount interface
-From: Matt Mackall <mpm@selenic.com>
+Subject: uml: remove TOPDIR
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-This makes physical page map counts available to userspace. Together
-with /proc/pid/pagemap and /proc/pid/clear_refs, this can be used to
-monitor memory usage on a per-page basis.
+TOPDIR is obsolete, use srctree instead.  This patch removes TOPDIR from all
+UML Makefiles.
 
-[akpm@linux-foundation.org: remove unneeded access_ok()]
-[bunk@stusta.de: make struct proc_kpagemap static]
-Signed-off-by: Matt Mackall <mpm@selenic.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: David Rientjes <rientjes@google.com>
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_misc.c |   50 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 50 insertions(+)
+ arch/um/Makefile         |    4 ++--
+ arch/um/sys-ppc/Makefile |   22 +++++++++++-----------
+ 2 files changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN fs/proc/proc_misc.c~maps4-add-proc-kpagecount-interface fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~maps4-add-proc-kpagecount-interface
-+++ a/fs/proc/proc_misc.c
-@@ -46,6 +46,7 @@
- #include <linux/vmalloc.h>
- #include <linux/crash_dump.h>
- #include <linux/pid_namespace.h>
-+#include <linux/bootmem.h>
- #include <asm/uaccess.h>
- #include <asm/pgtable.h>
- #include <asm/io.h>
-@@ -675,6 +676,54 @@ static const struct file_operations proc
- };
- #endif
+diff -puN arch/um/Makefile~uml-remove-topdir arch/um/Makefile
+--- a/arch/um/Makefile~uml-remove-topdir
++++ a/arch/um/Makefile
+@@ -160,7 +160,7 @@ ifneq ($(KBUILD_SRC),)
+ 	$(Q)mkdir -p $(objtree)/include/asm-um
+ 	$(Q)ln -fsn $(srctree)/include/asm-um/$(basename $(notdir $@))-$(SUBARCH)$(suffix $@) $@
+ else
+-	$(Q)cd $(TOPDIR)/$(dir $@) ; \
++	$(Q)cd $(srctree)/$(dir $@) ; \
+ 	ln -sf $(basename $(notdir $@))-$(SUBARCH)$(suffix $@) $(notdir $@)
+ endif
  
-+#define KPMSIZE sizeof(u64)
-+#define KPMMASK (KPMSIZE - 1)
-+/* /proc/kpagecount - an array exposing page counts
-+ *
-+ * Each entry is a u64 representing the corresponding
-+ * physical page count.
-+ */
-+static ssize_t kpagecount_read(struct file *file, char __user *buf,
-+			     size_t count, loff_t *ppos)
-+{
-+	u64 __user *out = (u64 __user *)buf;
-+	struct page *ppage;
-+	unsigned long src = *ppos;
-+	unsigned long pfn;
-+	ssize_t ret = 0;
-+	u64 pcount;
-+
-+	pfn = src / KPMSIZE;
-+	count = min_t(size_t, count, (max_pfn * KPMSIZE) - src);
-+	if (src & KPMMASK || count & KPMMASK)
-+		return -EIO;
-+
-+	while (count > 0) {
-+		ppage = pfn_to_page(pfn++);
-+		if (!ppage)
-+			pcount = 0;
-+		else
-+			pcount = atomic_read(&ppage->_count);
-+
-+		if (put_user(pcount, out++)) {
-+			ret = -EFAULT;
-+			break;
-+		}
-+
-+		count -= KPMSIZE;
-+	}
-+
-+	*ppos += (char __user *)out - buf;
-+	if (!ret)
-+		ret = (char __user *)out - buf;
-+	return ret;
-+}
-+
-+static struct file_operations proc_kpagecount_operations = {
-+	.llseek = mem_lseek,
-+	.read = kpagecount_read,
-+};
-+
- struct proc_dir_entry *proc_root_kcore;
+@@ -170,7 +170,7 @@ ifneq ($(KBUILD_SRC),)
+ 	$(Q)mkdir -p $(objtree)/include/asm-um
+ 	$(Q)ln -fsn $(srctree)/include/asm-$(HEADER_ARCH) include/asm-um/arch
+ else
+-	$(Q)cd $(TOPDIR)/include/asm-um && ln -fsn ../asm-$(HEADER_ARCH) arch
++	$(Q)cd $(srctree)/include/asm-um && ln -fsn ../asm-$(HEADER_ARCH) arch
+ endif
  
- void create_seq_entry(char *name, mode_t mode, const struct file_operations *f)
-@@ -755,6 +804,7 @@ void __init proc_misc_init(void)
- 				(size_t)high_memory - PAGE_OFFSET + PAGE_SIZE;
- 	}
- #endif
-+	create_seq_entry("kpagecount", S_IRUSR, &proc_kpagecount_operations);
- #ifdef CONFIG_PROC_VMCORE
- 	proc_vmcore = create_proc_entry("vmcore", S_IRUSR, NULL);
- 	if (proc_vmcore)
+ $(objtree)/$(ARCH_DIR)/include:
+diff -puN arch/um/sys-ppc/Makefile~uml-remove-topdir arch/um/sys-ppc/Makefile
+--- a/arch/um/sys-ppc/Makefile~uml-remove-topdir
++++ a/arch/um/sys-ppc/Makefile
+@@ -6,7 +6,7 @@ OBJ = built-in.o
+ OBJS = ptrace.o sigcontext.o semaphore.o checksum.o miscthings.o misc.o \
+ 	ptrace_user.o sysrq.o
+ 
+-EXTRA_AFLAGS := -DCONFIG_PPC32 -I. -I$(TOPDIR)/arch/ppc/kernel
++EXTRA_AFLAGS := -DCONFIG_PPC32 -I. -I$(srctree)/arch/ppc/kernel
+ 
+ all: $(OBJ)
+ 
+@@ -22,25 +22,25 @@ sigcontext.o: sigcontext.c
+ 
+ semaphore.c:
+ 	rm -f $@
+-	ln -s $(TOPDIR)/arch/ppc/kernel/$@ $@
++	ln -s $(srctree)/arch/ppc/kernel/$@ $@
+ 
+ checksum.S:
+ 	rm -f $@
+-	ln -s $(TOPDIR)/arch/ppc/lib/$@ $@
++	ln -s $(srctree)/arch/ppc/lib/$@ $@
+ 
+ mk_defs.c:
+ 	rm -f $@
+-	ln -s $(TOPDIR)/arch/ppc/kernel/$@ $@
++	ln -s $(srctree)/arch/ppc/kernel/$@ $@
+ 
+ ppc_defs.head:
+ 	rm -f $@
+-	ln -s $(TOPDIR)/arch/ppc/kernel/$@ $@
++	ln -s $(srctree)/arch/ppc/kernel/$@ $@
+ 
+ ppc_defs.h: mk_defs.c ppc_defs.head \
+-		$(TOPDIR)/include/asm-ppc/mmu.h \
+-		$(TOPDIR)/include/asm-ppc/processor.h \
+-		$(TOPDIR)/include/asm-ppc/pgtable.h \
+-		$(TOPDIR)/include/asm-ppc/ptrace.h
++		$(srctree)/include/asm-ppc/mmu.h \
++		$(srctree)/include/asm-ppc/processor.h \
++		$(srctree)/include/asm-ppc/pgtable.h \
++		$(srctree)/include/asm-ppc/ptrace.h
+ #	$(CC) $(CFLAGS) -S mk_defs.c
+ 	cp ppc_defs.head ppc_defs.h
+ # for bk, this way we can write to the file even if it's not checked out
+@@ -56,13 +56,13 @@ ppc_defs.h: mk_defs.c ppc_defs.head \
+ 
+ checksum.o: checksum.S
+ 	rm -f asm
+-	ln -s $(TOPDIR)/include/asm-ppc asm
++	ln -s $(srctree)/include/asm-ppc asm
+ 	$(CC) $(EXTRA_AFLAGS) $(KBUILD_AFLAGS) -D__ASSEMBLY__ -D__UM_PPC__ -c $< -o $*.o
+ 	rm -f asm
+ 
+ misc.o: misc.S ppc_defs.h
+ 	rm -f asm
+-	ln -s $(TOPDIR)/include/asm-ppc asm
++	ln -s $(srctree)/include/asm-ppc asm
+ 	$(CC) $(EXTRA_AFLAGS) $(KBUILD_AFLAGS) -D__ASSEMBLY__ -D__UM_PPC__ -c $< -o $*.o
+ 	rm -f asm
+ 
 _
 
-Patches currently in -mm which might be from mpm@selenic.com are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
 origin.patch
-drivers-char-randomcwrite_pool-cond_resched-needed.patch
-random-clean-up-checkpatch-complaints.patch
-random-clean-up-checkpatch-complaints-fix.patch
-random-consolidate-wakeup-logic.patch
-random-use-unlocked_ioctl.patch
-random-reuse-rand_initialize.patch
-random-improve-variable-naming-clear-extract-buffer.patch
-random-make-backtracking-attacks-harder.patch
-random-remove-cacheline-alignment-for-locks.patch
-random-eliminate-redundant-new_rotate-variable.patch
-random-remove-some-prefetch-logic.patch
-random-simplify-add_ptr-logic.patch
-random-make-mixing-interface-byte-oriented.patch
-random-simplify-and-rename-credit_entropy_store.patch
-random-add-async-notification-support-to-dev-random.patch
+time-fix-sysfs_show_availablecurrent_clocksources-buffer-overflow-problem.patch
+char-applicom-use-pci_resource_start.patch
+char-applicom-use-pci_match_id.patch
+char-applicom-use-pci_match_id-fix.patch
