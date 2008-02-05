@@ -1,129 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - iommu-sg-kill-__clear_bit_string-and-find_next_zero_string.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:28:46 -0800
-Message-ID: <200802052228.m15MSRo9011884@imap1.linux-foundation.org>
+Subject: - gpiolib-deprecate-obsolete-pca9539-driver.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:29:22 -0800
+Message-ID: <200802052229.m15MT37d011946@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39241 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56214 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762815AbYBEWoq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:44:46 -0500
+	by vger.kernel.org with ESMTP id S1762860AbYBEWp2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:45:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tomof@acm.org, James.Bottomley@steeleye.com, ak@suse.de, fujita.tomonori@lab.ntt.co.jp, jeff@garzik.org, jens.axboe@oracle.com, mingo@elte.hu, mulix@mulix.org, tglx@linutronix.de, mm-
+To: eric.miao@marvell.com, bgardner@wabtec.com, dbrownell@users.sourceforge.net, hskinnemoen@atmel.com, khali@linux-fr.org, philipp.zabel@gmail.com, rmk@arm.linux.org.uk, sam@ravnborg.org
 
 
 The patch titled
-     iommu sg: kill __clear_bit_string and find_next_zero_string
+     deprecate obsolete pca9539 driver
 has been removed from the -mm tree.  Its filename was
-     iommu-sg-kill-__clear_bit_string-and-find_next_zero_string.patch
+     gpiolib-deprecate-obsolete-pca9539-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iommu sg: kill __clear_bit_string and find_next_zero_string
-From: FUJITA Tomonori <tomof@acm.org>
+Subject: deprecate obsolete pca9539 driver
+From: eric miao <eric.miao@marvell.com>
 
-This kills unused __clear_bit_string and find_next_zero_string (they
-were used by only gart and calgary IOMMUs).
+Use drivers/gpio/pca9539.c instead.
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Muli Ben-Yehuda <mulix@mulix.org>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: eric miao <eric.miao@marvell.com>
+Acked-by: Ben Gardner <bgardner@wabtec.com>
+Acked-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Philipp Zabel <philipp.zabel@gmail.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/lib/Makefile       |    2 +-
- arch/x86/lib/bitstr_64.c    |   28 ----------------------------
- include/asm-x86/bitops_64.h |   16 ----------------
- 3 files changed, 1 insertion(+), 45 deletions(-)
+ Documentation/i2c/chips/pca9539 |    3 +++
+ drivers/i2c/chips/Kconfig       |    7 +++++--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/lib/Makefile~iommu-sg-kill-__clear_bit_string-and-find_next_zero_string arch/x86/lib/Makefile
---- a/arch/x86/lib/Makefile~iommu-sg-kill-__clear_bit_string-and-find_next_zero_string
-+++ a/arch/x86/lib/Makefile
-@@ -21,7 +21,7 @@ else
+diff -puN Documentation/i2c/chips/pca9539~gpiolib-deprecate-obsolete-pca9539-driver Documentation/i2c/chips/pca9539
+--- a/Documentation/i2c/chips/pca9539~gpiolib-deprecate-obsolete-pca9539-driver
++++ a/Documentation/i2c/chips/pca9539
+@@ -1,6 +1,9 @@
+ Kernel driver pca9539
+ =====================
  
-         lib-y += csum-partial_64.o csum-copy_64.o csum-wrappers_64.o
-         lib-y += thunk_64.o clear_page_64.o copy_page_64.o
--        lib-y += bitstr_64.o bitops_64.o
-+        lib-y += bitops_64.o
-         lib-y += memmove_64.o memset_64.o
-         lib-y += copy_user_64.o rwlock_64.o copy_user_nocache_64.o
- endif
-diff -puN arch/x86/lib/bitstr_64.c~iommu-sg-kill-__clear_bit_string-and-find_next_zero_string /dev/null
---- a/arch/x86/lib/bitstr_64.c
-+++ /dev/null
-@@ -1,28 +0,0 @@
--#include <linux/module.h>
--#include <linux/bitops.h>
--
--/* Find string of zero bits in a bitmap */ 
--unsigned long 
--find_next_zero_string(unsigned long *bitmap, long start, long nbits, int len)
--{ 
--	unsigned long n, end, i; 	
--
-- again:
--	n = find_next_zero_bit(bitmap, nbits, start);
--	if (n == -1) 
--		return -1;
--	
--	/* could test bitsliced, but it's hardly worth it */
--	end = n+len;
--	if (end > nbits)
--		return -1; 
--	for (i = n+1; i < end; i++) { 
--		if (test_bit(i, bitmap)) {  
--			start = i+1; 
--			goto again; 
--		} 
--	}
--	return n;
--}
--
--EXPORT_SYMBOL(find_next_zero_string);
-diff -puN include/asm-x86/bitops_64.h~iommu-sg-kill-__clear_bit_string-and-find_next_zero_string include/asm-x86/bitops_64.h
---- a/include/asm-x86/bitops_64.h~iommu-sg-kill-__clear_bit_string-and-find_next_zero_string
-+++ a/include/asm-x86/bitops_64.h
-@@ -37,12 +37,6 @@ static inline long __scanbit(unsigned lo
-   ((off)+(__scanbit(~(((*(unsigned long *)addr)) >> (off)),(size)-(off)))) : \
- 	find_next_zero_bit(addr,size,off)))
++NOTE: this driver is deprecated and will be dropped soon, use
++drivers/gpio/pca9539.c instead.
++
+ Supported chips:
+   * Philips PCA9539
+     Prefix: 'pca9539'
+diff -puN drivers/i2c/chips/Kconfig~gpiolib-deprecate-obsolete-pca9539-driver drivers/i2c/chips/Kconfig
+--- a/drivers/i2c/chips/Kconfig~gpiolib-deprecate-obsolete-pca9539-driver
++++ a/drivers/i2c/chips/Kconfig
+@@ -54,8 +54,8 @@ config PCF8575
+ 	  hardware.  If unsure, say N.
  
--/* 
-- * Find string of zero bits in a bitmap. -1 when not found.
-- */ 
--extern unsigned long 
--find_next_zero_string(unsigned long *bitmap, long start, long nbits, int len);
--
- static inline void set_bit_string(unsigned long *bitmap, unsigned long i, 
- 				  int len) 
- { 
-@@ -53,16 +47,6 @@ static inline void set_bit_string(unsign
- 	}
- } 
+ config SENSORS_PCA9539
+-	tristate "Philips PCA9539 16-bit I/O port"
+-	depends on EXPERIMENTAL
++	tristate "Philips PCA9539 16-bit I/O port (DEPRECATED)"
++	depends on EXPERIMENTAL && GPIO_PCA9539 = "n"
+ 	help
+ 	  If you say yes here you get support for the Philips PCA9539
+ 	  16-bit I/O port.
+@@ -63,6 +63,9 @@ config SENSORS_PCA9539
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called pca9539.
  
--static inline void __clear_bit_string(unsigned long *bitmap, unsigned long i, 
--				    int len) 
--{ 
--	unsigned long end = i + len; 
--	while (i < end) {
--		__clear_bit(i, bitmap); 
--		i++;
--	}
--} 
--
- /**
-  * ffz - find first zero in word.
-  * @word: The word to search
++	  This driver is deprecated and will be dropped soon. Use
++	  drivers/gpio/pca9539.c instead.
++
+ config SENSORS_PCF8591
+ 	tristate "Philips PCF8591"
+ 	depends on EXPERIMENTAL
 _
 
-Patches currently in -mm which might be from tomof@acm.org are
+Patches currently in -mm which might be from eric.miao@marvell.com are
 
 origin.patch
