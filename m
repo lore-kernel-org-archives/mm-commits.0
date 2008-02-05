@@ -1,287 +1,184 @@
 From: akpm@linux-foundation.org
-Subject: - uml-clean-up-task_size-usage.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:36:58 -0800
-Message-ID: <200802052236.m15MadYd012724@imap1.linux-foundation.org>
+Subject: - mm-page-writeback-highmem_is_dirtyable-option.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:31:53 -0800
+Message-ID: <200802052231.m15MVYig012175@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57635 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47507 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762294AbYBEWmH (ORCPT
+	by vger.kernel.org with ESMTP id S1761354AbYBEWmH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: brong@fastmail.fm, a.p.zijlstra@chello.nl, solo@google.com, torvalds@linux-foundation.org, wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: clean up TASK_SIZE usage
+     mm/page-writeback: highmem_is_dirtyable option
 has been removed from the -mm tree.  Its filename was
-     uml-clean-up-task_size-usage.patch
+     mm-page-writeback-highmem_is_dirtyable-option.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: clean up TASK_SIZE usage
-From: Jeff Dike <jdike@addtoit.com>
+Subject: mm/page-writeback: highmem_is_dirtyable option
+From: Bron Gondwana <brong@fastmail.fm>
 
-Clean up the calculation and use of the usable address space size on the host.
+Add vm.highmem_is_dirtyable toggle
 
-task_size is gone, replaced with TASK_SIZE, which is calculated from
-CONFIG_TOP_ADDR.  get_kmem_end and set_task_sizes_skas are also gone.
+A 32 bit machine with HIGHMEM64 enabled running DCC has an MMAPed file of
+approximately 2Gb size which contains a hash format that is written
+randomly by the dbclean process.  On 2.6.16 this process took a few
+minutes.  With lowmem only accounting of dirty ratios, this takes about 12
+hours of 100% disk IO, all random writes.
 
-host_task_size, which refers to the entire address space usable by the UML
-kernel and which may be larger than the address space usable by a UML process,
-since that has to end on a pgdir boundary, is replaced by CONFIG_TOP_ADDR.
+Include a toggle in /proc/sys/vm/highmem_is_dirtyable which can be set to 1 to
+add the highmem back to the total available memory count.
 
-STACK_TOP is now TASK_SIZE minus the two stub pages.
-
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+[akpm@linux-foundation.org: Fix the CONFIG_DETECT_SOFTLOCKUP=y build]
+Signed-off-by: Bron Gondwana <brong@fastmail.fm>
+Cc: Ethan Solomita <solo@google.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: WU Fengguang <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/as-layout.h        |   15 +++++++++++++--
- arch/um/include/common-offsets.h   |    3 +++
- arch/um/include/mem_user.h         |    4 ----
- arch/um/kernel/exec.c              |    2 +-
- arch/um/kernel/ksyms.c             |    3 ---
- arch/um/kernel/physmem.c           |   10 ----------
- arch/um/kernel/tlb.c               |    2 +-
- arch/um/kernel/um_arch.c           |   22 ++--------------------
- include/asm-um/a.out.h             |    4 +---
- include/asm-um/fixmap.h            |    3 +--
- include/asm-um/processor-generic.h |    4 +---
- 11 files changed, 23 insertions(+), 49 deletions(-)
+ Documentation/filesystems/proc.txt |   15 +++++++++++++++
+ Documentation/sysctl/vm.txt        |    7 ++++---
+ include/linux/writeback.h          |    1 +
+ kernel/sysctl.c                    |   18 +++++++++++++++++-
+ mm/page-writeback.c                |   11 ++++++++++-
+ 5 files changed, 47 insertions(+), 5 deletions(-)
 
-diff -puN arch/um/include/as-layout.h~uml-clean-up-task_size-usage arch/um/include/as-layout.h
---- a/arch/um/include/as-layout.h~uml-clean-up-task_size-usage
-+++ a/arch/um/include/as-layout.h
-@@ -29,9 +29,20 @@
- #define _AC(X, Y)	__AC(X, Y)
- #endif
+diff -puN Documentation/filesystems/proc.txt~mm-page-writeback-highmem_is_dirtyable-option Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~mm-page-writeback-highmem_is_dirtyable-option
++++ a/Documentation/filesystems/proc.txt
+@@ -1315,6 +1315,21 @@ for writeout by the pdflush daemons.  It
+ Data which has been dirty in-memory for longer than this interval will be
+ written out next time a pdflush daemon wakes up.
  
-+/*
-+ * The "- 1"'s are to avoid gcc complaining about integer overflows
-+ * and unrepresentable decimal constants.  With 3-level page tables,
-+ * TASK_SIZE is 0x80000000, which gets turned into its signed decimal
-+ * equivalent in asm-offsets.s.  gcc then complains about that being
-+ * unsigned only in C90.  To avoid that, UM_TASK_SIZE is defined as
-+ * TASK_SIZE - 1.  To compensate, we need to add the 1 back here.
-+ * However, adding it back to UM_TASK_SIZE produces more gcc
-+ * complaints.  So, I adjust the thing being subtracted from
-+ * UM_TASK_SIZE instead.  Bah.
-+ */
- #define STUB_CODE _AC((unsigned long), \
--		      UML_CONFIG_TOP_ADDR - 2 * UM_KERN_PAGE_SIZE)
--#define STUB_DATA _AC((unsigned long), UML_CONFIG_TOP_ADDR - UM_KERN_PAGE_SIZE)
-+		      UM_TASK_SIZE - (2 * UM_KERN_PAGE_SIZE - 1))
-+#define STUB_DATA _AC((unsigned long), UM_TASK_SIZE - (UM_KERN_PAGE_SIZE - 1))
- #define STUB_START _AC(, STUB_CODE)
- 
- #ifndef __ASSEMBLY__
-diff -puN arch/um/include/common-offsets.h~uml-clean-up-task_size-usage arch/um/include/common-offsets.h
---- a/arch/um/include/common-offsets.h~uml-clean-up-task_size-usage
-+++ a/arch/um/include/common-offsets.h
-@@ -39,3 +39,6 @@ DEFINE(UM_HZ, HZ);
- DEFINE(UM_USEC_PER_SEC, USEC_PER_SEC);
- DEFINE(UM_NSEC_PER_SEC, NSEC_PER_SEC);
- DEFINE(UM_NSEC_PER_USEC, NSEC_PER_USEC);
++highmem_is_dirtyable
++--------------------
 +
-+/* See as-layout.h for an explanation of the "- 1".  Bah. */
-+DEFINE(UM_TASK_SIZE, TASK_SIZE - 1);
-diff -puN arch/um/include/mem_user.h~uml-clean-up-task_size-usage arch/um/include/mem_user.h
---- a/arch/um/include/mem_user.h~uml-clean-up-task_size-usage
-+++ a/arch/um/include/mem_user.h
-@@ -46,9 +46,6 @@ extern int iomem_size;
++Only present if CONFIG_HIGHMEM is set.
++
++This defaults to 0 (false), meaning that the ratios set above are calculated
++as a percentage of lowmem only.  This protects against excessive scanning
++in page reclaim, swapping and general VM distress.
++
++Setting this to 1 can be useful on 32 bit machines where you want to make
++random changes within an MMAPed file that is larger than your available
++lowmem without causing large quantities of random IO.  Is is safe if the
++behavior of all programs running on the machine is known and memory will
++not be otherwise stressed.
++
+ legacy_va_layout
+ ----------------
  
- #define ROUND_4M(n) ((((unsigned long) (n)) + (1 << 22)) & ~((1 << 22) - 1))
+diff -puN Documentation/sysctl/vm.txt~mm-page-writeback-highmem_is_dirtyable-option Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~mm-page-writeback-highmem_is_dirtyable-option
++++ a/Documentation/sysctl/vm.txt
+@@ -22,6 +22,7 @@ Currently, these files are in /proc/sys/
+ - dirty_background_ratio
+ - dirty_expire_centisecs
+ - dirty_writeback_centisecs
++- highmem_is_dirtyable   (only if CONFIG_HIGHMEM set)
+ - max_map_count
+ - min_free_kbytes
+ - laptop_mode
+@@ -40,9 +41,9 @@ Currently, these files are in /proc/sys/
+ ==============================================================
  
--extern unsigned long host_task_size;
--extern unsigned long task_size;
--
- extern int init_mem_user(void);
- extern void setup_memory(void *entry);
- extern unsigned long find_iomem(char *driver, unsigned long *len_out);
-@@ -62,6 +59,5 @@ extern unsigned long phys_offset(unsigne
- extern void unmap_physmem(void);
- extern void map_memory(unsigned long virt, unsigned long phys,
- 		       unsigned long len, int r, int w, int x);
--extern unsigned long get_kmem_end(void);
+ dirty_ratio, dirty_background_ratio, dirty_expire_centisecs,
+-dirty_writeback_centisecs, vfs_cache_pressure, laptop_mode,
+-block_dump, swap_token_timeout, drop-caches,
+-hugepages_treat_as_movable:
++dirty_writeback_centisecs, highmem_is_dirtyable,
++vfs_cache_pressure, laptop_mode, block_dump, swap_token_timeout,
++drop-caches, hugepages_treat_as_movable:
  
+ See Documentation/filesystems/proc.txt
+ 
+diff -puN include/linux/writeback.h~mm-page-writeback-highmem_is_dirtyable-option include/linux/writeback.h
+--- a/include/linux/writeback.h~mm-page-writeback-highmem_is_dirtyable-option
++++ a/include/linux/writeback.h
+@@ -100,6 +100,7 @@ extern int dirty_background_ratio;
+ extern int vm_dirty_ratio;
+ extern int dirty_writeback_interval;
+ extern int dirty_expire_interval;
++extern int vm_highmem_is_dirtyable;
+ extern int block_dump;
+ extern int laptop_mode;
+ 
+diff -puN kernel/sysctl.c~mm-page-writeback-highmem_is_dirtyable-option kernel/sysctl.c
+--- a/kernel/sysctl.c~mm-page-writeback-highmem_is_dirtyable-option
++++ a/kernel/sysctl.c
+@@ -84,8 +84,11 @@ extern int sysctl_stat_interval;
+ extern int latencytop_enabled;
+ 
+ /* Constants used for minimum and  maximum */
+-#ifdef CONFIG_DETECT_SOFTLOCKUP
++#if defined(CONFIG_DETECT_SOFTLOCKUP) || defined(CONFIG_HIGHMEM)
+ static int one = 1;
++#endif
++
++#ifdef CONFIG_DETECT_SOFTLOCKUP
+ static int sixty = 60;
  #endif
-diff -puN arch/um/kernel/exec.c~uml-clean-up-task_size-usage arch/um/kernel/exec.c
---- a/arch/um/kernel/exec.c~uml-clean-up-task_size-usage
-+++ a/arch/um/kernel/exec.c
-@@ -19,7 +19,7 @@
- void flush_thread(void)
- {
- 	void *data = NULL;
--	unsigned long end = proc_mm ? task_size : STUB_START;
-+	unsigned long end = proc_mm ? TASK_SIZE : STUB_START;
- 	int ret;
  
- 	arch_flush_thread(&current->thread.arch);
-diff -puN arch/um/kernel/ksyms.c~uml-clean-up-task_size-usage arch/um/kernel/ksyms.c
---- a/arch/um/kernel/ksyms.c~uml-clean-up-task_size-usage
-+++ a/arch/um/kernel/ksyms.c
-@@ -18,11 +18,8 @@ EXPORT_SYMBOL(set_signals);
- EXPORT_SYMBOL(get_signals);
- EXPORT_SYMBOL(kernel_thread);
- EXPORT_SYMBOL(sys_waitpid);
--EXPORT_SYMBOL(task_size);
- EXPORT_SYMBOL(flush_tlb_range);
--EXPORT_SYMBOL(host_task_size);
- EXPORT_SYMBOL(arch_validate);
--EXPORT_SYMBOL(get_kmem_end);
- 
- EXPORT_SYMBOL(high_physmem);
- EXPORT_SYMBOL(empty_zero_page);
-diff -puN arch/um/kernel/physmem.c~uml-clean-up-task_size-usage arch/um/kernel/physmem.c
---- a/arch/um/kernel/physmem.c~uml-clean-up-task_size-usage
-+++ a/arch/um/kernel/physmem.c
-@@ -55,16 +55,6 @@ int __init init_maps(unsigned long physm
- 	return 0;
- }
- 
--/* Changed during early boot */
--static unsigned long kmem_top = 0;
--
--unsigned long get_kmem_end(void)
--{
--	if (kmem_top == 0)
--		kmem_top = host_task_size - 1024 * 1024;
--	return kmem_top;
--}
--
- void map_memory(unsigned long virt, unsigned long phys, unsigned long len,
- 		int r, int w, int x)
- {
-diff -puN arch/um/kernel/tlb.c~uml-clean-up-task_size-usage arch/um/kernel/tlb.c
---- a/arch/um/kernel/tlb.c~uml-clean-up-task_size-usage
-+++ a/arch/um/kernel/tlb.c
-@@ -511,7 +511,7 @@ void flush_tlb_mm(struct mm_struct *mm)
- 	if (atomic_read(&mm->mm_users) == 0)
- 		return;
- 
--	end = proc_mm ? task_size : STUB_START;
-+	end = proc_mm ? TASK_SIZE : STUB_START;
- 	fix_range(mm, 0, end, 0);
- }
- 
-diff -puN arch/um/kernel/um_arch.c~uml-clean-up-task_size-usage arch/um/kernel/um_arch.c
---- a/arch/um/kernel/um_arch.c~uml-clean-up-task_size-usage
-+++ a/arch/um/kernel/um_arch.c
-@@ -101,8 +101,6 @@ const struct seq_operations cpuinfo_op =
- };
- 
- /* Set in linux_main */
--unsigned long host_task_size;
--unsigned long task_size;
- unsigned long uml_physmem;
- unsigned long uml_reserved; /* Also modified in mem_init */
- unsigned long start_vm;
-@@ -234,20 +232,6 @@ EXPORT_SYMBOL(end_iomem);
- 
- extern char __binary_start;
- 
--static unsigned long set_task_sizes_skas(unsigned long *task_size_out)
--{
--	/* Round up to the nearest 4M */
--	unsigned long host_task_size = ROUND_4M((unsigned long)
--						&host_task_size);
--
--	if (!skas_needs_stub)
--		*task_size_out = host_task_size;
--	else
--		*task_size_out = STUB_START & PGDIR_MASK;
--
--	return host_task_size;
--}
--
- int __init linux_main(int argc, char **argv)
- {
- 	unsigned long avail, diff;
-@@ -278,8 +262,6 @@ int __init linux_main(int argc, char **a
- 
- 	printf("UML running in %s mode\n", mode);
- 
--	host_task_size = set_task_sizes_skas(&task_size);
--
- 	brk_start = (unsigned long) sbrk(0);
- 
- 	/*
-@@ -304,7 +286,7 @@ int __init linux_main(int argc, char **a
- 
- 	highmem = 0;
- 	iomem_size = (iomem_size + PAGE_SIZE - 1) & PAGE_MASK;
--	max_physmem = get_kmem_end() - uml_physmem - iomem_size - MIN_VMALLOC;
-+	max_physmem = CONFIG_TOP_ADDR - uml_physmem - iomem_size - MIN_VMALLOC;
- 
- 	/*
- 	 * Zones have to begin on a 1 << MAX_ORDER page boundary,
-@@ -336,7 +318,7 @@ int __init linux_main(int argc, char **a
- 	}
- 
- 	virtmem_size = physmem_size;
--	avail = get_kmem_end() - start_vm;
-+	avail = CONFIG_TOP_ADDR - start_vm;
- 	if (physmem_size > avail)
- 		virtmem_size = avail;
- 	end_vm = start_vm + virtmem_size;
-diff -puN include/asm-um/a.out.h~uml-clean-up-task_size-usage include/asm-um/a.out.h
---- a/include/asm-um/a.out.h~uml-clean-up-task_size-usage
-+++ a/include/asm-um/a.out.h
-@@ -13,11 +13,9 @@
- 
- extern unsigned long stacksizelim;
- 
--extern unsigned long host_task_size;
--
- #define STACK_ROOM (stacksizelim)
- 
--#define STACK_TOP task_size
-+#define STACK_TOP (TASK_SIZE - 2 * PAGE_SIZE)
- 
- #define STACK_TOP_MAX STACK_TOP
- 
-diff -puN include/asm-um/fixmap.h~uml-clean-up-task_size-usage include/asm-um/fixmap.h
---- a/include/asm-um/fixmap.h~uml-clean-up-task_size-usage
-+++ a/include/asm-um/fixmap.h
-@@ -56,9 +56,8 @@ extern void __set_fixmap (enum fixed_add
-  * the start of the fixmap, and leave one page empty
-  * at the top of mem..
-  */
--extern unsigned long get_kmem_end(void);
- 
--#define FIXADDR_TOP	(get_kmem_end() - 0x2000)
-+#define FIXADDR_TOP	(CONFIG_TOP_ADDR - 2 * PAGE_SIZE)
- #define FIXADDR_SIZE	(__end_of_fixed_addresses << PAGE_SHIFT)
- #define FIXADDR_START	(FIXADDR_TOP - FIXADDR_SIZE)
- 
-diff -puN include/asm-um/processor-generic.h~uml-clean-up-task_size-usage include/asm-um/processor-generic.h
---- a/include/asm-um/processor-generic.h~uml-clean-up-task_size-usage
-+++ a/include/asm-um/processor-generic.h
-@@ -94,9 +94,7 @@ static inline void mm_copy_segments(stru
+@@ -1150,6 +1153,19 @@ static struct ctl_table vm_table[] = {
+ 		.extra1		= &zero,
+ 	},
+ #endif
++#ifdef CONFIG_HIGHMEM
++	{
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "highmem_is_dirtyable",
++		.data		= &vm_highmem_is_dirtyable,
++		.maxlen		= sizeof(vm_highmem_is_dirtyable),
++		.mode		= 0644,
++		.proc_handler	= &proc_dointvec_minmax,
++		.strategy	= &sysctl_intvec,
++		.extra1		= &zero,
++		.extra2		= &one,
++	},
++#endif
  /*
-  * User space process size: 3GB (default).
-  */
--extern unsigned long task_size;
--
--#define TASK_SIZE	(task_size)
-+#define TASK_SIZE (CONFIG_TOP_ADDR & PGDIR_MASK)
+  * NOTE: do not add new entries to this table unless you have read
+  * Documentation/sysctl/ctl_unnumbered.txt
+diff -puN mm/page-writeback.c~mm-page-writeback-highmem_is_dirtyable-option mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-page-writeback-highmem_is_dirtyable-option
++++ a/mm/page-writeback.c
+@@ -69,6 +69,12 @@ static inline long sync_writeback_pages(
+ int dirty_background_ratio = 5;
  
- /* This decides where the kernel will search for a free chunk of vm
-  * space during mmap's.
+ /*
++ * free highmem will not be subtracted from the total free memory
++ * for calculating free ratios if vm_highmem_is_dirtyable is true
++ */
++int vm_highmem_is_dirtyable;
++
++/*
+  * The generator of dirty data starts writeback at this percentage
+  */
+ int vm_dirty_ratio = 10;
+@@ -287,7 +293,10 @@ static unsigned long determine_dirtyable
+ 	x = global_page_state(NR_FREE_PAGES)
+ 		+ global_page_state(NR_INACTIVE)
+ 		+ global_page_state(NR_ACTIVE);
+-	x -= highmem_dirtyable_memory(x);
++
++	if (!vm_highmem_is_dirtyable)
++		x -= highmem_dirtyable_memory(x);
++
+ 	return x + 1;	/* Ensure that we never return 0 */
+ }
+ 
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from brong@fastmail.fm are
 
 origin.patch
-git-kvm.patch
-fix-__const_udelay-declaration-and-definition-mismatches.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
-random-add-async-notification-support-to-dev-random.patch
-mount-options-fix-hostfs.patch
