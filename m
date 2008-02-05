@@ -1,119 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: - slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio.patch removed from -mm tree
-Date: Mon, 04 Feb 2008 18:53:40 -0800
-Message-ID: <200802050253.m152rLPO031496@imap1.linux-foundation.org>
+Subject: - slub-consolidate-add_partial-and-add_partial_tail-to-one-function.patch removed from -mm tree
+Date: Mon, 04 Feb 2008 18:53:42 -0800
+Message-ID: <200802050253.m152rN5k031499@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33257 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39599 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752198AbYBECxY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2008 21:53:24 -0500
+	by vger.kernel.org with ESMTP id S1751628AbYBECxa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2008 21:53:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: Rename NUMA defrag_ratio to remote_node_defrag_ratio
+     SLUB: Consolidate add_partial() and add_partial_tail() to one function
 has been removed from the -mm tree.  Its filename was
-     slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio.patch
+     slub-consolidate-add_partial-and-add_partial_tail-to-one-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: SLUB: Rename NUMA defrag_ratio to remote_node_defrag_ratio
+Subject: SLUB: Consolidate add_partial() and add_partial_tail() to one function
 From: Christoph Lameter <clameter@sgi.com>
 
-The NUMA defrag works by allocating objects from partial slabs on remote
-nodes.  Rename it to
+Add a parameter to add_partial instead of having separate functions.  The
+parameter allows a more detailed control of where the slab pages is placed in
+the partial queues.
 
-	remote_node_defrag_ratio
+If we put slabs back to the front then they are likely immediately used for
+allocations.  If they are put at the end then we can maximize the time that
+the partial slabs spent without being subject to allocations.
 
-to be clear about this.
+When deactivating slab we can put the slabs that had remote objects freed (we
+can see that because objects were put on the freelist that requires locks) to
+them at the end of the list so that the cachelines of remote processors can
+cool down.  Slabs that had objects from the local cpu freed to them (objects
+exist in the lockless freelist) are put in the front of the list to be reused
+ASAP in order to exploit the cache hot state of the local cpu.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slub_def.h |    5 ++++-
- mm/slub.c                |   17 +++++++++--------
- 2 files changed, 13 insertions(+), 9 deletions(-)
+ mm/slub.c |   31 +++++++++++++++----------------
+ 1 file changed, 15 insertions(+), 16 deletions(-)
 
-diff -puN include/linux/slub_def.h~slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio include/linux/slub_def.h
---- a/include/linux/slub_def.h~slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio
-+++ a/include/linux/slub_def.h
-@@ -59,7 +59,10 @@ struct kmem_cache {
- #endif
- 
- #ifdef CONFIG_NUMA
--	int defrag_ratio;
-+	/*
-+	 * Defragmentation by allocating from a remote node.
-+	 */
-+	int remote_node_defrag_ratio;
- 	struct kmem_cache_node *node[MAX_NUMNODES];
- #endif
- #ifdef CONFIG_SMP
-diff -puN mm/slub.c~slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio mm/slub.c
---- a/mm/slub.c~slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio
+diff -puN mm/slub.c~slub-consolidate-add_partial-and-add_partial_tail-to-one-function mm/slub.c
+--- a/mm/slub.c~slub-consolidate-add_partial-and-add_partial_tail-to-one-function
 +++ a/mm/slub.c
-@@ -1292,7 +1292,8 @@ static struct page *get_any_partial(stru
- 	 * expensive if we do it every time we are trying to find a slab
- 	 * with available objects.
+@@ -1195,19 +1195,15 @@ static __always_inline int slab_trylock(
+ /*
+  * Management of partially allocated slabs
+  */
+-static void add_partial_tail(struct kmem_cache_node *n, struct page *page)
++static void add_partial(struct kmem_cache_node *n,
++				struct page *page, int tail)
+ {
+ 	spin_lock(&n->list_lock);
+ 	n->nr_partial++;
+-	list_add_tail(&page->lru, &n->partial);
+-	spin_unlock(&n->list_lock);
+-}
+-
+-static void add_partial(struct kmem_cache_node *n, struct page *page)
+-{
+-	spin_lock(&n->list_lock);
+-	n->nr_partial++;
+-	list_add(&page->lru, &n->partial);
++	if (tail)
++		list_add_tail(&page->lru, &n->partial);
++	else
++		list_add(&page->lru, &n->partial);
+ 	spin_unlock(&n->list_lock);
+ }
+ 
+@@ -1336,7 +1332,7 @@ static struct page *get_partial(struct k
+  *
+  * On exit the slab lock will have been dropped.
+  */
+-static void unfreeze_slab(struct kmem_cache *s, struct page *page)
++static void unfreeze_slab(struct kmem_cache *s, struct page *page, int tail)
+ {
+ 	struct kmem_cache_node *n = get_node(s, page_to_nid(page));
+ 
+@@ -1344,7 +1340,7 @@ static void unfreeze_slab(struct kmem_ca
+ 	if (page->inuse) {
+ 
+ 		if (page->freelist)
+-			add_partial(n, page);
++			add_partial(n, page, tail);
+ 		else if (SlabDebug(page) && (s->flags & SLAB_STORE_USER))
+ 			add_full(n, page);
+ 		slab_unlock(page);
+@@ -1359,7 +1355,7 @@ static void unfreeze_slab(struct kmem_ca
+ 			 * partial list stays small. kmem_cache_shrink can
+ 			 * reclaim empty slabs from the partial list.
+ 			 */
+-			add_partial_tail(n, page);
++			add_partial(n, page, 1);
+ 			slab_unlock(page);
+ 		} else {
+ 			slab_unlock(page);
+@@ -1374,6 +1370,7 @@ static void unfreeze_slab(struct kmem_ca
+ static void deactivate_slab(struct kmem_cache *s, struct kmem_cache_cpu *c)
+ {
+ 	struct page *page = c->page;
++	int tail = 1;
+ 	/*
+ 	 * Merge cpu freelist into freelist. Typically we get here
+ 	 * because both freelists are empty. So this is unlikely
+@@ -1382,6 +1379,8 @@ static void deactivate_slab(struct kmem_
+ 	while (unlikely(c->freelist)) {
+ 		void **object;
+ 
++		tail = 0;	/* Hot objects. Put the slab first */
++
+ 		/* Retrieve object from cpu_freelist */
+ 		object = c->freelist;
+ 		c->freelist = c->freelist[c->offset];
+@@ -1392,7 +1391,7 @@ static void deactivate_slab(struct kmem_
+ 		page->inuse--;
+ 	}
+ 	c->page = NULL;
+-	unfreeze_slab(s, page);
++	unfreeze_slab(s, page, tail);
+ }
+ 
+ static inline void flush_slab(struct kmem_cache *s, struct kmem_cache_cpu *c)
+@@ -1614,7 +1613,7 @@ checks_ok:
+ 	 * then add it.
  	 */
--	if (!s->defrag_ratio || get_cycles() % 1024 > s->defrag_ratio)
-+	if (!s->remote_node_defrag_ratio ||
-+			get_cycles() % 1024 > s->remote_node_defrag_ratio)
- 		return NULL;
+ 	if (unlikely(!prior))
+-		add_partial_tail(get_node(s, page_to_nid(page)), page);
++		add_partial(get_node(s, page_to_nid(page)), page, 1);
  
- 	zonelist = &NODE_DATA(slab_node(current->mempolicy))
-@@ -2206,7 +2207,7 @@ static int kmem_cache_open(struct kmem_c
- 
- 	s->refcount = 1;
- #ifdef CONFIG_NUMA
--	s->defrag_ratio = 100;
-+	s->remote_node_defrag_ratio = 100;
+ out_unlock:
+ 	slab_unlock(page);
+@@ -2022,7 +2021,7 @@ static struct kmem_cache_node *early_kme
  #endif
- 	if (!init_kmem_cache_nodes(s, gfpflags & ~SLUB_DMA))
- 		goto error;
-@@ -3848,21 +3849,21 @@ static ssize_t free_calls_show(struct km
- SLAB_ATTR_RO(free_calls);
- 
- #ifdef CONFIG_NUMA
--static ssize_t defrag_ratio_show(struct kmem_cache *s, char *buf)
-+static ssize_t remote_node_defrag_ratio_show(struct kmem_cache *s, char *buf)
- {
--	return sprintf(buf, "%d\n", s->defrag_ratio / 10);
-+	return sprintf(buf, "%d\n", s->remote_node_defrag_ratio / 10);
+ 	init_kmem_cache_node(n);
+ 	atomic_long_inc(&n->nr_slabs);
+-	add_partial(n, page);
++	add_partial(n, page, 0);
+ 	return n;
  }
  
--static ssize_t defrag_ratio_store(struct kmem_cache *s,
-+static ssize_t remote_node_defrag_ratio_store(struct kmem_cache *s,
- 				const char *buf, size_t length)
- {
- 	int n = simple_strtoul(buf, NULL, 10);
- 
- 	if (n < 100)
--		s->defrag_ratio = n * 10;
-+		s->remote_node_defrag_ratio = n * 10;
- 	return length;
- }
--SLAB_ATTR(defrag_ratio);
-+SLAB_ATTR(remote_node_defrag_ratio);
- #endif
- 
- static struct attribute * slab_attrs[] = {
-@@ -3893,7 +3894,7 @@ static struct attribute * slab_attrs[] =
- 	&cache_dma_attr.attr,
- #endif
- #ifdef CONFIG_NUMA
--	&defrag_ratio_attr.attr,
-+	&remote_node_defrag_ratio_attr.attr,
- #endif
- 	NULL
- };
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
