@@ -1,296 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-v3.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 02:44:05 -0800
-Message-ID: <200802051043.m15AhljS016667@imap1.linux-foundation.org>
+Subject: + net-sched-cls_flowc598-error-struct-tcf_ematch_tree-has-no-member-named-hdr.patch added to -mm tree
+Date: Tue, 05 Feb 2008 02:49:16 -0800
+Message-ID: <200802051048.m15Amvix016871@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33562 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58980 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754474AbYBEKoM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 05:44:12 -0500
+	by vger.kernel.org with ESMTP id S1753863AbYBEKtE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 05:49:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Yinghai.Lu@Sun.COM, ak@suse.de, greg@kroah.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: kaber@trash.net
 
 
 The patch titled
-     x86_64: check and enable MMCONFIG for AMD Family 10h Opteron
-has been removed from the -mm tree.  Its filename was
-     x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-v3.patch
+     cls_flow: fix build error with CONFIG_NET_EMATCH=n
+has been added to the -mm tree.  Its filename is
+     net-sched-cls_flowc598-error-struct-tcf_ematch_tree-has-no-member-named-hdr.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86_64: check and enable MMCONFIG for AMD Family 10h Opteron
-From: Yinghai Lu <Yinghai.Lu@Sun.COM>
+Subject: cls_flow: fix build error with CONFIG_NET_EMATCH=n
+From: Patrick McHardy <kaber@trash.net>
 
-So we can use MMCONF when MMCONF is not set by BIOS
+Reported by Ingo Molnar:
 
-using TOP_MEM2 msr to get memory top, and try to scan fam10h mmio routing to
-make sure the range is not conflicted with some prefetch MMIO that is above 4G.
-(current only LinuxBIOS assign 64 bit mmio above 4G for some co-processor)
+net/sched/cls_flow.c: In function 'flow_dump':
+net/sched/cls_flow.c:598: error: 'struct tcf_ematch_tree' has no member named 'hdr'
 
-Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Greg KH <greg@kroah.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/setup_64.c |  204 +++++++++++++++++++++++++++++++++++
- 1 file changed, 204 insertions(+)
+ net/sched/cls_flow.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/setup_64.c~x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-v3 arch/x86/kernel/setup_64.c
---- a/arch/x86/kernel/setup_64.c~x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-v3
-+++ a/arch/x86/kernel/setup_64.c
-@@ -30,6 +30,7 @@
- #include <linux/crash_dump.h>
- #include <linux/root_dev.h>
- #include <linux/pci.h>
-+#include <asm/pci-direct.h>
- #include <linux/efi.h>
- #include <linux/acpi.h>
- #include <linux/kallsyms.h>
-@@ -40,6 +41,7 @@
- #include <linux/dmi.h>
- #include <linux/dma-mapping.h>
- #include <linux/ctype.h>
-+#include <linux/sort.h>
- #include <linux/uaccess.h>
- #include <linux/init_ohci1394_dma.h>
+diff -puN net/sched/cls_flow.c~net-sched-cls_flowc598-error-struct-tcf_ematch_tree-has-no-member-named-hdr net/sched/cls_flow.c
+--- a/net/sched/cls_flow.c~net-sched-cls_flowc598-error-struct-tcf_ematch_tree-has-no-member-named-hdr
++++ a/net/sched/cls_flow.c
+@@ -595,10 +595,11 @@ static int flow_dump(struct tcf_proto *t
+ 	if (tcf_exts_dump(skb, &f->exts, &flow_ext_map) < 0)
+ 		goto nla_put_failure;
  
-@@ -534,6 +536,205 @@ static int nearby_node(int apicid)
- }
- #endif
- 
-+#ifdef CONFIG_PCI_MMCONFIG
-+struct pci_hostbridge_probe {
-+	u32 bus;
-+	u32 slot;
-+	u32 vendor;
-+	u32 device;
-+};
-+
-+static u64 __cpuinitdata fam10h_pci_mmconf_base;
-+static int __cpuinitdata fam10h_pci_mmconf_base_status;
-+
-+static struct pci_hostbridge_probe pci_probes[] __cpuinitdata = {
-+	{ 0, 0x18, PCI_VENDOR_ID_AMD, 0x1200 },
-+	{ 0xff, 0, PCI_VENDOR_ID_AMD, 0x1200 },
-+};
-+
-+struct range {
-+	u64 start;
-+	u64 end;
-+};
-+
-+static int __cpuinit cmp_range(const void *x1, const void *x2)
-+{
-+	const struct range *r1 = x1;
-+	const struct range *r2 = x2;
-+	int start1, start2;
-+
-+	start1 = r1->start >> 32;
-+	start2 = r2->start >> 32;
-+
-+	return start1 - start2;
-+}
-+
-+/*[47:0] */
-+/* need to avoid (0xfd<<32) and (0xfe<<32), ht used space */
-+#define FAM10H_PCI_MMCONF_BASE (0xfcULL<<32)
-+#define BASE_VALID(b) ((b != (0xfdULL << 32)) && (b != (0xfeULL << 32)))
-+static void __cpuinit get_fam10h_pci_mmconf_base(void)
-+{
-+	int i;
-+	unsigned bus;
-+	unsigned slot;
-+	int found;
-+
-+	u64 val;
-+	u32 address;
-+	u64 tom2;
-+	u64 base = FAM10H_PCI_MMCONF_BASE;
-+
-+	int hi_mmio_num;
-+	struct range range[8];
-+
-+	/* only try to get setting from BSP */
-+	/* -1 or 1 */
-+	if (fam10h_pci_mmconf_base_status)
-+		return;
-+
-+	if (!early_pci_allowed())
-+		goto fail;
-+
-+	found = 0;
-+	for (i = 0; i < ARRAY_SIZE(pci_probes); i++) {
-+		u32 id;
-+		u16 device;
-+		u16 vendor;
-+
-+		bus = pci_probes[i].bus;
-+		slot = pci_probes[i].slot;
-+		id = read_pci_config(bus, slot, 0, PCI_VENDOR_ID);
-+
-+		vendor = id & 0xffff;
-+		device = (id>>16) & 0xffff;
-+		if (pci_probes[i].vendor == vendor &&
-+		    pci_probes[i].device == device) {
-+			found = 1;
-+			break;
-+		}
-+	}
-+
-+	if (!found)
-+		goto fail;
-+
-+	/* SYS_CFG */
-+	address = MSR_K8_SYSCFG;
-+	rdmsrl(address, val);
-+
-+	/* TOP_MEM2 is not enabled? */
-+	if (!(val & (1<<21))) {
-+		tom2 = 0;
-+	} else {
-+		/* TOP_MEM2 */
-+		address = MSR_K8_TOP_MEM2;
-+		rdmsrl(address, val);
-+		tom2 = val & (0xffffULL<<32);
-+	}
-+
-+	if (base <= tom2)
-+		base = tom2 + (1ULL<<32);
-+
-+	/*
-+	 * need to check if the range is in the high mmio range that is
-+	 * above 4G
-+	 */
-+	hi_mmio_num = 0;
-+	for (i = 0; i < 8; i++) {
-+		u32 reg;
-+		u64 start;
-+		u64 end;
-+		reg = read_pci_config(bus, slot, 1, 0x80 + (i << 3));
-+		if (!(reg & 3))
-+			continue;
-+
-+		start = (((u64)reg) << 8) & (0xffULL << 32); /* 39:16 on 31:8*/
-+		reg = read_pci_config(bus, slot, 1, 0x84 + (i << 3));
-+		end = (((u64)reg) << 8) & (0xffULL << 32); /* 39:16 on 31:8*/
-+
-+		if (!end)
-+			continue;
-+
-+		range[hi_mmio_num].start = start;
-+		range[hi_mmio_num].end = end;
-+		hi_mmio_num++;
-+	}
-+
-+	if (!hi_mmio_num)
-+		goto out;
-+
-+	/* sort the range */
-+	sort(range, hi_mmio_num, sizeof(struct range), cmp_range, NULL);
-+
-+	if (range[hi_mmio_num - 1].end < base)
-+		goto out;
-+	if (range[0].start > base)
-+		goto out;
-+
-+	/* need to find one window */
-+	base = range[0].start - (1ULL << 32);
-+	if ((base > tom2) && BASE_VALID(base))
-+		goto out;
-+	base = range[hi_mmio_num - 1].end + (1ULL << 32);
-+	if ((base > tom2) && BASE_VALID(base))
-+		goto out;
-+	/* need to find window between ranges */
-+	if (hi_mmio_num > 1)
-+	for (i = 0; i < hi_mmio_num - 1; i++) {
-+		if (range[i + 1].start > (range[i].end + (1ULL << 32))) {
-+			base = range[i].end + (1ULL << 32);
-+			if ((base > tom2) && BASE_VALID(base))
-+				goto out;
-+		}
-+	}
-+
-+fail:
-+	fam10h_pci_mmconf_base_status = -1;
-+	return;
-+out:
-+	fam10h_pci_mmconf_base = base;
-+	fam10h_pci_mmconf_base_status = 1;
-+}
++#ifdef CONFIG_NET_EMATCH
+ 	if (f->ematches.hdr.nmatches &&
+ 	    tcf_em_tree_dump(skb, &f->ematches, TCA_FLOW_EMATCHES) < 0)
+ 		goto nla_put_failure;
+-
 +#endif
-+
-+static void __cpuinit fam10h_check_enable_mmcfg(struct cpuinfo_x86 *c)
-+{
-+#ifdef CONFIG_PCI_MMCONFIG
-+	u64 val;
-+	u32 address;
-+
-+	address = MSR_FAM10H_MMIO_CONF_BASE;
-+	rdmsrl(address, val);
-+
-+	/* try to make sure that AP's setting is identical to BSP setting */
-+	if (val & FAM10H_MMIO_CONF_ENABLE) {
-+		u64 base;
-+		base = val & (0xffffULL << 32);
-+		if (fam10h_pci_mmconf_base_status <= 0) {
-+			fam10h_pci_mmconf_base = base;
-+			fam10h_pci_mmconf_base_status = 1;
-+			return;
-+		} else if (fam10h_pci_mmconf_base ==  base)
-+			return;
-+	}
-+
-+	/*
-+	 * if it is not enabled, try to enable it and assume only one segment
-+	 * with 256 buses
-+	 */
-+	get_fam10h_pci_mmconf_base();
-+	if (fam10h_pci_mmconf_base_status <= 0)
-+		return;
-+
-+	printk(KERN_INFO "Enable MMCONFIG on AMD Family 10h\n");
-+	val &= ~((FAM10H_MMIO_CONF_BASE_MASK<<FAM10H_MMIO_CONF_BASE_SHIFT) |
-+	     (FAM10H_MMIO_CONF_BUSRANGE_MASK<<FAM10H_MMIO_CONF_BUSRANGE_SHIFT));
-+	val |= fam10h_pci_mmconf_base | (8 << FAM10H_MMIO_CONF_BUSRANGE_SHIFT) |
-+	       FAM10H_MMIO_CONF_ENABLE;
-+	wrmsrl(address, val);
-+#endif
-+}
-+
- /*
-  * On a AMD dual core setup the lower bits of the APIC id distingush the cores.
-  * Assumes number of cores is a power of two.
-@@ -717,6 +918,9 @@ static void __cpuinit init_amd(struct cp
- 	/* MFENCE stops RDTSC speculation */
- 	set_cpu_cap(c, X86_FEATURE_MFENCE_RDTSC);
+ 	nla_nest_end(skb, nest);
  
-+	if (c->x86 == 0x10)
-+		fam10h_check_enable_mmcfg(c);
-+
- 	if (amd_apic_timer_broken())
- 		disable_apic_timer = 1;
- }
+ 	if (tcf_exts_dump_stats(skb, &f->exts, &flow_ext_map) < 0)
 _
 
-Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
+Patches currently in -mm which might be from kaber@trash.net are
 
 origin.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-git-cpufreq.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-x86-clear-pci_mmcfg_virt-when-mmcfg-get-rejected.patch
-x86-mmconf-enable-mcfg-early.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-v3.patch
-x86_64-check-msr-to-get-mmconfig-for-amd-family-10h-opteron-v3.patch
-x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-convert-loglevel-related-kernel-boot-parameters-to-early_param.patch
+net-sched-cls_flowc598-error-struct-tcf_ematch_tree-has-no-member-named-hdr.patch
+preemptible-rcu-sparse-annotations.patch
