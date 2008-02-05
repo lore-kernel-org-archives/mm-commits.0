@@ -1,90 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: - maps4-move-is_swap_pte.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:31:00 -0800
-Message-ID: <200802052230.m15MUf9u012093@imap1.linux-foundation.org>
+Subject: - tmpfs-allocate-on-read-when-stacked.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:30:35 -0800
+Message-ID: <200802052230.m15MUGZw012055@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45949 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53371 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760079AbYBEWnc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:43:32 -0500
+	by vger.kernel.org with ESMTP id S932071AbYBEWmt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mpm@selenic.com, haveblue@us.ibm.com, mm-commits@vger.kernel.org
+To: hugh@veritas.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     maps4: move is_swap_pte
+     tmpfs: allocate on read when stacked
 has been removed from the -mm tree.  Its filename was
-     maps4-move-is_swap_pte.patch
+     tmpfs-allocate-on-read-when-stacked.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: maps4: move is_swap_pte
-From: Matt Mackall <mpm@selenic.com>
+Subject: tmpfs: allocate on read when stacked
+From: Hugh Dickins <hugh@veritas.com>
 
-Move is_swap_pte helper function to swapops.h for use by pagemap code
+tmpfs is expected to limit the memory used (unless mounted with nr_blocks=0 or
+size=0).  But if a stacked filesystem such as unionfs gets pages from a sparse
+tmpfs file by reading holes, and then writes to them, it can easily exceed any
+such limit at present.
 
-Signed-off-by: Matt Mackall <mpm@selenic.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
+So suppress the SGP_READ "don't allocate page" ZERO_PAGE optimization when
+reading for the kernel (a KERNEL_DS check, ugh, sorry about that).  Indeed,
+pessimistically mark such pages as dirty, so they cannot get reclaimed and
+unaccounted by mistake.  The venerable shmem_recalc_inode code (originally to
+account for the reclaim of clean pages) suffices to get the accounting right
+when swappages are dropped in favour of more uptodate filepages.
+
+This also fixes the NULL shmem_swp_entry BUG or oops in shmem_writepage,
+caused by unionfs writing to a very sparse tmpfs file: to minimize memory
+allocation in swapout, tmpfs requires the swap vector be allocated upfront,
+which wasn't always happening in this stacked case.
+
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swapops.h |    6 ++++++
- mm/migrate.c            |    5 -----
- 2 files changed, 6 insertions(+), 5 deletions(-)
+ mm/shmem.c |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/swapops.h~maps4-move-is_swap_pte include/linux/swapops.h
---- a/include/linux/swapops.h~maps4-move-is_swap_pte
-+++ a/include/linux/swapops.h
-@@ -42,6 +42,12 @@ static inline pgoff_t swp_offset(swp_ent
- 	return entry.val & SWP_OFFSET_MASK(entry);
- }
+diff -puN mm/shmem.c~tmpfs-allocate-on-read-when-stacked mm/shmem.c
+--- a/mm/shmem.c~tmpfs-allocate-on-read-when-stacked
++++ a/mm/shmem.c
+@@ -80,6 +80,7 @@
+ enum sgp_type {
+ 	SGP_READ,	/* don't exceed i_size, don't allocate page */
+ 	SGP_CACHE,	/* don't exceed i_size, may allocate page */
++	SGP_DIRTY,	/* like SGP_CACHE, but set new page dirty */
+ 	SGP_WRITE,	/* may exceed i_size, may allocate page */
+ };
  
-+/* check whether a pte points to a swap entry */
-+static inline int is_swap_pte(pte_t pte)
-+{
-+	return !pte_none(pte) && !pte_present(pte) && !pte_file(pte);
-+}
+@@ -1333,6 +1334,8 @@ repeat:
+ 		clear_highpage(filepage);
+ 		flush_dcache_page(filepage);
+ 		SetPageUptodate(filepage);
++		if (sgp == SGP_DIRTY)
++			set_page_dirty(filepage);
+ 	}
+ done:
+ 	*pagep = filepage;
+@@ -1518,6 +1521,15 @@ static void do_shmem_file_read(struct fi
+ 	struct inode *inode = filp->f_path.dentry->d_inode;
+ 	struct address_space *mapping = inode->i_mapping;
+ 	unsigned long index, offset;
++	enum sgp_type sgp = SGP_READ;
 +
- /*
-  * Convert the arch-dependent pte representation of a swp_entry_t into an
-  * arch-independent swp_entry_t.
-diff -puN mm/migrate.c~maps4-move-is_swap_pte mm/migrate.c
---- a/mm/migrate.c~maps4-move-is_swap_pte
-+++ a/mm/migrate.c
-@@ -115,11 +115,6 @@ int putback_lru_pages(struct list_head *
- 	return count;
- }
++	/*
++	 * Might this read be for a stacking filesystem?  Then when reading
++	 * holes of a sparse file, we actually need to allocate those pages,
++	 * and even mark them dirty, so it cannot exceed the max_blocks limit.
++	 */
++	if (segment_eq(get_fs(), KERNEL_DS))
++		sgp = SGP_DIRTY;
  
--static inline int is_swap_pte(pte_t pte)
--{
--	return !pte_none(pte) && !pte_present(pte) && !pte_file(pte);
--}
--
- /*
-  * Restore a potential migration pte to a working pte entry
-  */
+ 	index = *ppos >> PAGE_CACHE_SHIFT;
+ 	offset = *ppos & ~PAGE_CACHE_MASK;
+@@ -1536,7 +1548,7 @@ static void do_shmem_file_read(struct fi
+ 				break;
+ 		}
+ 
+-		desc->error = shmem_getpage(inode, index, &page, SGP_READ, NULL);
++		desc->error = shmem_getpage(inode, index, &page, sgp, NULL);
+ 		if (desc->error) {
+ 			if (desc->error == -EINVAL)
+ 				desc->error = 0;
 _
 
-Patches currently in -mm which might be from mpm@selenic.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-drivers-char-randomcwrite_pool-cond_resched-needed.patch
-random-clean-up-checkpatch-complaints.patch
-random-clean-up-checkpatch-complaints-fix.patch
-random-consolidate-wakeup-logic.patch
-random-use-unlocked_ioctl.patch
-random-reuse-rand_initialize.patch
-random-improve-variable-naming-clear-extract-buffer.patch
-random-make-backtracking-attacks-harder.patch
-random-remove-cacheline-alignment-for-locks.patch
-random-eliminate-redundant-new_rotate-variable.patch
-random-remove-some-prefetch-logic.patch
-random-simplify-add_ptr-logic.patch
-random-make-mixing-interface-byte-oriented.patch
-random-simplify-and-rename-credit_entropy_store.patch
-random-add-async-notification-support-to-dev-random.patch
+git-unionfs.patch
+git-x86.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+memcgroup-temporarily-revert-swapoff-mod.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memcgroup-reinstate-swapoff-mod.patch
+memcgroup-fix-zone-isolation-oom.patch
+memcgroup-revert-swap_state-mods.patch
+memory-controller-use-rcu_read_lock-in-mem_cgroup_cache_charge.patch
+memcgroup-tidy-up-mem_cgroup_charge_common.patch
+memcgroup-fix-hang-with-shmem-tmpfs.patch
+mount-options-fix-tmpfs.patch
+mount-options-fix-tmpfs-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
+prio_tree-debugging-patch.patch
