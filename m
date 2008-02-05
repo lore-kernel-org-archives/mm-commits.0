@@ -1,116 +1,212 @@
 From: akpm@linux-foundation.org
-Subject: - pcmcia-stop-updating-dev-powerpower_state.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:27:05 -0800
-Message-ID: <200802052226.m15MQkF7011649@imap1.linux-foundation.org>
+Subject: - pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:26:58 -0800
+Message-ID: <200802052226.m15MQd41011640@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50593 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44375 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761571AbYBEW1R (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:27:17 -0500
+	by vger.kernel.org with ESMTP id S1761293AbYBEW1N (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:27:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, dbrownell@users.sourceforge.net, linux@dominikbrodowski.net, mm-commits@vger.kernel.org
+To: olof@lixom.net, alan@lxorguk.ukuu.org.uk, benh@kernel.crashing.org, hch@lst.de, linux@dominikbrodowski.net, matthew@wil.cx, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pcmcia: stop updating dev->power.power_state
+     pcmcia: convert some internal-only ioaddr_t to unsigned int
 has been removed from the -mm tree.  Its filename was
-     pcmcia-stop-updating-dev-powerpower_state.patch
+     pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pcmcia: stop updating dev->power.power_state
-From: David Brownell <david-b@pacbell.net>
+Subject: pcmcia: convert some internal-only ioaddr_t to unsigned int
+From: Olof Johansson <olof@lixom.net>
 
-This stops the pcmcia core from using dev->power.power_state; that field is
-deprecated (overdue for removal) and the only reason to update it was to make
-the /sys/devices/.../power/state files (now removed) work better.
+Convert the io_req_t members to unsigned int, to allow use on machines with
+more than 16 bits worth of IO ports (i.e.  secondary busses on ppc64, etc).
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+There was only a couple of places in drivers where a change was needed.  I
+left printk formats alone (there are lots of %04x-style formats in there),
+mostly to not change the format on the platforms that only have 16-bit io
+addresses, but also because the padding doesn't really add all that much value
+most of the time.
+
+I found only one sprintf of an address, and upsized the string accordingly (I
+doubt anyone will have anywhere near INT_MAX as irq value, but at least
+there's room for it now).
+
+Signed-off-by: Olof Johansson <olof@lixom.net>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/ds.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/char/pcmcia/cm4000_cs.c    |   17 +++++++++--------
+ drivers/pcmcia/pcmcia_resource.c   |   14 +++++++-------
+ drivers/scsi/pcmcia/fdomain_stub.c |    2 +-
+ include/pcmcia/cs.h                |    8 ++++----
+ 4 files changed, 21 insertions(+), 20 deletions(-)
 
-diff -puN drivers/pcmcia/ds.c~pcmcia-stop-updating-dev-powerpower_state drivers/pcmcia/ds.c
---- a/drivers/pcmcia/ds.c~pcmcia-stop-updating-dev-powerpower_state
-+++ a/drivers/pcmcia/ds.c
-@@ -1130,8 +1130,6 @@ static int runtime_suspend(struct device
- 	down(&dev->sem);
- 	rc = pcmcia_dev_suspend(dev, PMSG_SUSPEND);
- 	up(&dev->sem);
--	if (!rc)
--		dev->power.power_state.event = PM_EVENT_SUSPEND;
+diff -puN drivers/char/pcmcia/cm4000_cs.c~pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int drivers/char/pcmcia/cm4000_cs.c
+--- a/drivers/char/pcmcia/cm4000_cs.c~pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int
++++ a/drivers/char/pcmcia/cm4000_cs.c
+@@ -308,7 +308,8 @@ static unsigned int calc_baudv(unsigned 
+ 	return (wcrcf / wbrcf);
+ }
+ 
+-static unsigned short io_read_num_rec_bytes(ioaddr_t iobase, unsigned short *s)
++static unsigned short io_read_num_rec_bytes(unsigned int iobase,
++					    unsigned short *s)
+ {
+ 	unsigned short tmp;
+ 
+@@ -426,7 +427,7 @@ static struct card_fixup card_fixups[] =
+ static void set_cardparameter(struct cm4000_dev *dev)
+ {
+ 	int i;
+-	ioaddr_t iobase = dev->p_dev->io.BasePort1;
++	unsigned int iobase = dev->p_dev->io.BasePort1;
+ 	u_int8_t stopbits = 0x02; /* ISO default */
+ 
+ 	DEBUGP(3, dev, "-> set_cardparameter\n");
+@@ -459,7 +460,7 @@ static int set_protocol(struct cm4000_de
+ 	unsigned short num_bytes_read;
+ 	unsigned char pts_reply[4];
+ 	ssize_t rc;
+-	ioaddr_t iobase = dev->p_dev->io.BasePort1;
++	unsigned int iobase = dev->p_dev->io.BasePort1;
+ 
+ 	rc = 0;
+ 
+@@ -610,7 +611,7 @@ exit_setprotocol:
  	return rc;
  }
  
-@@ -1142,8 +1140,6 @@ static void runtime_resume(struct device
- 	down(&dev->sem);
- 	rc = pcmcia_dev_resume(dev);
- 	up(&dev->sem);
--	if (!rc)
--		dev->power.power_state.event = PM_EVENT_ON;
- }
+-static int io_detect_cm4000(ioaddr_t iobase, struct cm4000_dev *dev)
++static int io_detect_cm4000(unsigned int iobase, struct cm4000_dev *dev)
+ {
  
- /************************ per-device sysfs output ***************************/
-@@ -1265,6 +1261,9 @@ static int pcmcia_dev_suspend(struct dev
- 	struct pcmcia_driver *p_drv = NULL;
- 	int ret = 0;
+ 	/* note: statemachine is assumed to be reset */
+@@ -671,7 +672,7 @@ static void terminate_monitor(struct cm4
+ static void monitor_card(unsigned long p)
+ {
+ 	struct cm4000_dev *dev = (struct cm4000_dev *) p;
+-	ioaddr_t iobase = dev->p_dev->io.BasePort1;
++	unsigned int iobase = dev->p_dev->io.BasePort1;
+ 	unsigned short s;
+ 	struct ptsreq ptsreq;
+ 	int i, atrc;
+@@ -933,7 +934,7 @@ static ssize_t cmm_read(struct file *fil
+ 			loff_t *ppos)
+ {
+ 	struct cm4000_dev *dev = filp->private_data;
+-	ioaddr_t iobase = dev->p_dev->io.BasePort1;
++	unsigned int iobase = dev->p_dev->io.BasePort1;
+ 	ssize_t rc;
+ 	int i, j, k;
  
-+	if (p_dev->suspended)
-+		return 0;
-+
- 	ds_dbg(2, "suspending %s\n", dev->bus_id);
+@@ -1054,7 +1055,7 @@ static ssize_t cmm_write(struct file *fi
+ 			 size_t count, loff_t *ppos)
+ {
+ 	struct cm4000_dev *dev = (struct cm4000_dev *) filp->private_data;
+-	ioaddr_t iobase = dev->p_dev->io.BasePort1;
++	unsigned int iobase = dev->p_dev->io.BasePort1;
+ 	unsigned short s;
+ 	unsigned char tmp;
+ 	unsigned char infolen;
+@@ -1408,7 +1409,7 @@ static int cmm_ioctl(struct inode *inode
+ 		     unsigned long arg)
+ {
+ 	struct cm4000_dev *dev = filp->private_data;
+-	ioaddr_t iobase = dev->p_dev->io.BasePort1;
++	unsigned int iobase = dev->p_dev->io.BasePort1;
+ 	struct pcmcia_device *link;
+ 	int size;
+ 	int rc;
+diff -puN drivers/pcmcia/pcmcia_resource.c~pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int drivers/pcmcia/pcmcia_resource.c
+--- a/drivers/pcmcia/pcmcia_resource.c~pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int
++++ a/drivers/pcmcia/pcmcia_resource.c
+@@ -65,23 +65,23 @@ extern int ds_pc_debug;
+  * Special stuff for managing IO windows, because they are scarce
+  */
  
- 	if (dev->driver)
-@@ -1301,6 +1300,9 @@ static int pcmcia_dev_resume(struct devi
-         struct pcmcia_driver *p_drv = NULL;
- 	int ret = 0;
+-static int alloc_io_space(struct pcmcia_socket *s, u_int attr, ioaddr_t *base,
+-			  ioaddr_t num, u_int lines)
++static int alloc_io_space(struct pcmcia_socket *s, u_int attr,
++			  unsigned int *base, unsigned int num, u_int lines)
+ {
+ 	int i;
+-	kio_addr_t try, align;
++	unsigned int try, align;
  
-+	if (!p_dev->suspended)
-+		return 0;
-+
- 	ds_dbg(2, "resuming %s\n", dev->bus_id);
+ 	align = (*base) ? (lines ? 1<<lines : 0) : 1;
+ 	if (align && (align < num)) {
+ 		if (*base) {
+-			ds_dbg(s, 0, "odd IO request: num %#x align %#lx\n",
++			ds_dbg(s, 0, "odd IO request: num %#x align %#x\n",
+ 			       num, align);
+ 			align = 0;
+ 		} else
+ 			while (align && (align < num)) align <<= 1;
+ 	}
+ 	if (*base & ~(align-1)) {
+-		ds_dbg(s, 0, "odd IO request: base %#x align %#lx\n",
++		ds_dbg(s, 0, "odd IO request: base %#x align %#x\n",
+ 		       *base, align);
+ 		align = 0;
+ 	}
+@@ -132,8 +132,8 @@ static int alloc_io_space(struct pcmcia_
+ } /* alloc_io_space */
  
- 	if (dev->driver)
+ 
+-static void release_io_space(struct pcmcia_socket *s, ioaddr_t base,
+-			     ioaddr_t num)
++static void release_io_space(struct pcmcia_socket *s, unsigned int base,
++			     unsigned int num)
+ {
+ 	int i;
+ 
+diff -puN drivers/scsi/pcmcia/fdomain_stub.c~pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int drivers/scsi/pcmcia/fdomain_stub.c
+--- a/drivers/scsi/pcmcia/fdomain_stub.c~pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int
++++ a/drivers/scsi/pcmcia/fdomain_stub.c
+@@ -130,7 +130,7 @@ static int fdomain_config(struct pcmcia_
+     cisparse_t parse;
+     int i, last_ret, last_fn;
+     u_char tuple_data[64];
+-    char str[16];
++    char str[22];
+     struct Scsi_Host *host;
+ 
+     DEBUG(0, "fdomain_config(0x%p)\n", link);
+diff -puN include/pcmcia/cs.h~pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int include/pcmcia/cs.h
+--- a/include/pcmcia/cs.h~pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int
++++ a/include/pcmcia/cs.h
+@@ -147,11 +147,11 @@ typedef struct config_req_t {
+ 
+ /* For RequestIO and ReleaseIO */
+ typedef struct io_req_t {
+-    ioaddr_t	BasePort1;
+-    ioaddr_t	NumPorts1;
++    u_int	BasePort1;
++    u_int	NumPorts1;
+     u_int	Attributes1;
+-    ioaddr_t	BasePort2;
+-    ioaddr_t	NumPorts2;
++    u_int	BasePort2;
++    u_int	NumPorts2;
+     u_int	Attributes2;
+     u_int	IOAddrLines;
+ } io_req_t;
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from olof@lixom.net are
 
 origin.patch
-at91-correct-at91sam9263ek-lcd-power-gpio-pin.patch
-i2c-isp1301_omap-new-style-i2c-driver-updates-part-1.patch
-git-input.patch
-git-mmc.patch
 git-mtd.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-remove-pointless-casts-from-void-pointers.patch
-spi-core-stop-updating-dev-powerpower_state.patch
-spi-s3c-drivers-shouldnt-care-about-spi_board_info.patch
-spi-remove-more-dev-powerpower_state-usage.patch
-cosmetic-fixes-to-rtc-subsystems-kconfig.patch
-rtc-pcf8583-dont-abuse-i2c_m_nostart.patch
-rtc-s3c-use-is_power_of_2-macro-for-simplicity.patch
-rtc-cmos-exports-nvram-in-sysfs.patch
-rtc-cmos-alarm-acts-as-oneshot.patch
-platform-real-time-clock-driver-for-dallas-1511-chip.patch
-add-hpet-rtc-emulation-to-rtc_drv_cmos.patch
-add-hpet-rtc-emulation-to-rtc_drv_cmos-fix.patch
-rtc-add-support-for-epson-rtc-9701je-v2.patch
-rtc-add-support-for-epson-rtc-9701je-v4.patch
-rtc-update-documentation-wrt-irq_set_freq.patch
-rtc-cleanup-example-code.patch
-rtc-remove-more-dev-powerpower_state-usage.patch
-rtc-at91sam9-rtc-support-rtt-and-or-rtc.patch
-rtc-at91sam9-rtc-support-rtt-and-or-rtc-fix.patch
-w1-gpio-add-gpio-w1-bus-master-driver.patch
-w1-gpio-add-gpio-w1-bus-master-driver-v3.patch
-basic-pwm-driver-for-avr32-and-at91.patch
-basic-pwm-driver-for-avr32-and-at91-fix.patch
-pwm-led-driver.patch
