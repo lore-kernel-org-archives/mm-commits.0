@@ -1,143 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - swapoff-scan-ptes-preemptibly.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:30:16 -0800
-Message-ID: <200802052229.m15MTvFO012019@imap1.linux-foundation.org>
+Subject: - i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:29:37 -0800
+Message-ID: <200802052229.m15MTI3p011968@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51698 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49286 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761823AbYBEWnh (ORCPT
+	by vger.kernel.org with ESMTP id S1761264AbYBEWnh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:43:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     swapoff: scan ptes preemptibly
+     i386: Resolve dependency of asm-i386/pgtable.h on highmem.h
 has been removed from the -mm tree.  Its filename was
-     swapoff-scan-ptes-preemptibly.patch
+     i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: swapoff: scan ptes preemptibly
-From: Hugh Dickins <hugh@veritas.com>
+Subject: i386: Resolve dependency of asm-i386/pgtable.h on highmem.h
+From: Christoph Lameter <clameter@sgi.com>
 
-Provided that CONFIG_HIGHPTE is not set, unuse_pte_range can reduce latency
-in swapoff by scanning the page table preemptibly: so long as unuse_pte is
-careful to recheck that entry under pte lock.
+pgtable.h does not include highmem.h but uses various constants from
+highmem.h.  We cannot include highmem.h because highmem.h will in turn include
+many other include files that also depend on pgtable.h
 
-(To tell the truth, this patch was not inspired by any cries for lower
-latency here: rather, this restructuring permits a future memory controller
-patch to allocate with GFP_KERNEL in unuse_pte, where before it could not. 
-But it would be wrong to tuck this change away inside a memcgroup patch.)
+So move the definitions from highmem.h into pgtable.h.
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Tested-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   38 +++++++++++++++++++++++++++++++-------
- 1 file changed, 31 insertions(+), 7 deletions(-)
+ include/asm-x86/highmem.h    |    6 ------
+ include/asm-x86/pgtable_32.h |    8 ++++++++
+ 2 files changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN mm/swapfile.c~swapoff-scan-ptes-preemptibly mm/swapfile.c
---- a/mm/swapfile.c~swapoff-scan-ptes-preemptibly
-+++ a/mm/swapfile.c
-@@ -506,9 +506,19 @@ unsigned int count_swap_pages(int type, 
-  * just let do_wp_page work it out if a write is requested later - to
-  * force COW, vm_page_prot omits write permission from any private vma.
+diff -puN include/asm-x86/highmem.h~i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh include/asm-x86/highmem.h
+--- a/include/asm-x86/highmem.h~i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh
++++ a/include/asm-x86/highmem.h
+@@ -38,11 +38,6 @@ extern pte_t *pkmap_page_table;
+  * easily, subsequent pte tables have to be allocated in one physical
+  * chunk of RAM.
   */
--static void unuse_pte(struct vm_area_struct *vma, pte_t *pte,
-+static int unuse_pte(struct vm_area_struct *vma, pmd_t *pmd,
- 		unsigned long addr, swp_entry_t entry, struct page *page)
- {
-+	spinlock_t *ptl;
-+	pte_t *pte;
-+	int found = 1;
+-#ifdef CONFIG_X86_PAE
+-#define LAST_PKMAP 512
+-#else
+-#define LAST_PKMAP 1024
+-#endif
+ /*
+  * Ordering is:
+  *
+@@ -58,7 +53,6 @@ extern pte_t *pkmap_page_table;
+  * VMALLOC_START
+  * high_memory
+  */
+-#define PKMAP_BASE ( (FIXADDR_BOOT_START - PAGE_SIZE*(LAST_PKMAP + 1)) & PMD_MASK )
+ #define LAST_PKMAP_MASK (LAST_PKMAP-1)
+ #define PKMAP_NR(virt)  ((virt-PKMAP_BASE) >> PAGE_SHIFT)
+ #define PKMAP_ADDR(nr)  (PKMAP_BASE + ((nr) << PAGE_SHIFT))
+diff -puN include/asm-x86/pgtable_32.h~i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh include/asm-x86/pgtable_32.h
+--- a/include/asm-x86/pgtable_32.h~i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh
++++ a/include/asm-x86/pgtable_32.h
+@@ -66,6 +66,14 @@ void paging_init(void);
+ #define VMALLOC_OFFSET	(8*1024*1024)
+ #define VMALLOC_START	(((unsigned long) high_memory + \
+ 			2*VMALLOC_OFFSET-1) & ~(VMALLOC_OFFSET-1))
++#ifdef CONFIG_X86_PAE
++#define LAST_PKMAP 512
++#else
++#define LAST_PKMAP 1024
++#endif
 +
-+	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
-+	if (unlikely(!pte_same(*pte, swp_entry_to_pte(entry)))) {
-+		found = 0;
-+		goto out;
-+	}
++#define PKMAP_BASE ((FIXADDR_BOOT_START - PAGE_SIZE*(LAST_PKMAP + 1)) & PMD_MASK)
 +
- 	inc_mm_counter(vma->vm_mm, anon_rss);
- 	get_page(page);
- 	set_pte_at(vma->vm_mm, addr, pte,
-@@ -520,6 +530,9 @@ static void unuse_pte(struct vm_area_str
- 	 * immediately swapped out again after swapon.
- 	 */
- 	activate_page(page);
-+out:
-+	pte_unmap_unlock(pte, ptl);
-+	return found;
- }
- 
- static int unuse_pte_range(struct vm_area_struct *vma, pmd_t *pmd,
-@@ -528,22 +541,33 @@ static int unuse_pte_range(struct vm_are
- {
- 	pte_t swp_pte = swp_entry_to_pte(entry);
- 	pte_t *pte;
--	spinlock_t *ptl;
- 	int found = 0;
- 
--	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
-+	/*
-+	 * We don't actually need pte lock while scanning for swp_pte: since
-+	 * we hold page lock and mmap_sem, swp_pte cannot be inserted into the
-+	 * page table while we're scanning; though it could get zapped, and on
-+	 * some architectures (e.g. x86_32 with PAE) we might catch a glimpse
-+	 * of unmatched parts which look like swp_pte, so unuse_pte must
-+	 * recheck under pte lock.  Scanning without pte lock lets it be
-+	 * preemptible whenever CONFIG_PREEMPT but not CONFIG_HIGHPTE.
-+	 */
-+	pte = pte_offset_map(pmd, addr);
- 	do {
- 		/*
- 		 * swapoff spends a _lot_ of time in this loop!
- 		 * Test inline before going to call unuse_pte.
- 		 */
- 		if (unlikely(pte_same(*pte, swp_pte))) {
--			unuse_pte(vma, pte++, addr, entry, page);
--			found = 1;
--			break;
-+			pte_unmap(pte);
-+			found = unuse_pte(vma, pmd, addr, entry, page);
-+			if (found)
-+				goto out;
-+			pte = pte_offset_map(pmd, addr);
- 		}
- 	} while (pte++, addr += PAGE_SIZE, addr != end);
--	pte_unmap_unlock(pte - 1, ptl);
-+	pte_unmap(pte - 1);
-+out:
- 	return found;
- }
- 
+ #ifdef CONFIG_HIGHMEM
+ # define VMALLOC_END	(PKMAP_BASE-2*PAGE_SIZE)
+ #else
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
+gregkh-driver-kset-move-sys-slab-to-sys-kernel-slab-slabinfo-fallback-from-sys-kernel-slab-to-sys-slab.patch
 git-unionfs.patch
-git-x86.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-memcgroup-temporarily-revert-swapoff-mod.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memcgroup-reinstate-swapoff-mod.patch
-memcgroup-fix-zone-isolation-oom.patch
-memcgroup-revert-swap_state-mods.patch
-memory-controller-use-rcu_read_lock-in-mem_cgroup_cache_charge.patch
-memcgroup-tidy-up-mem_cgroup_charge_common.patch
-memcgroup-fix-hang-with-shmem-tmpfs.patch
-mount-options-fix-tmpfs.patch
-mount-options-fix-tmpfs-fix.patch
-add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
-prio_tree-debugging-patch.patch
+git-slub.patch
+percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+oom-add-sysctl-to-enable-task-memory-dump.patch
+add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
+add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
+dentries-extract-common-code-to-remove-dentry-from-lru.patch
+dentries-extract-common-code-to-remove-dentry-from-lru-fix.patch
+modules-handle-symbols-that-have-a-zero-value.patch
+modules-include-sectionsh-to-avoid-defining-linker-variables.patch
+reiser4.patch
+reiser4-portion-of-zero_user-cleanup-patch.patch
+page-owner-tracking-leak-detector.patch
