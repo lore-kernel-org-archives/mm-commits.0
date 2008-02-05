@@ -1,169 +1,170 @@
 From: akpm@linux-foundation.org
-Subject: - uml-borrow-consth-techniques.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:35:54 -0800
-Message-ID: <200802052235.m15MZZo3012625@imap1.linux-foundation.org>
+Subject: - writeback-speed-up-writeback-of-big-dirty-files.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:32:39 -0800
+Message-ID: <200802052232.m15MWKOw012319@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50818 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45433 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760933AbYBEWml (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:41 -0500
+	by vger.kernel.org with ESMTP id S1761072AbYBEWmh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, geert@linux-m68k.org, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: wfg@mail.ustc.edu.cn, mrubin@google.com, snitzer@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: borrow const.h techniques
+     writeback: speed up writeback of big dirty files
 has been removed from the -mm tree.  Its filename was
-     uml-borrow-consth-techniques.patch
+     writeback-speed-up-writeback-of-big-dirty-files.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: borrow const.h techniques
-From: Jeff Dike <jdike@addtoit.com>
+Subject: writeback: speed up writeback of big dirty files
+From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Suggested by Geert Uytterhoeven - use const.h to get constants that are usable
-in both C and assembly.  I can't include it directly since this code can't
-include kernel headers.  const.h is also for numeric constants that can be
-typed by tacking a "UL" or similar on the end.  The constants here have to be
-typed by casting them.
+After making dirty a 100M file, the normal behavior is to start the
+writeback for all data after 30s delays.  But sometimes the following
+happens instead:
 
-So, the relevant parts of const.h are copied here and modified in order to
-allow the constants to be uncasted in assembly and casted in C.
+	- after 30s:    ~4M
+	- after 5s:     ~4M
+	- after 5s:     all remaining 92M
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Some analyze shows that the internal io dispatch queues goes like this:
+
+		s_io            s_more_io
+		-------------------------
+	1)	100M,1K         0
+	2)	1K              96M
+	3)	0               96M
+1) initial state with a 100M file and a 1K file
+
+2) 4M written, nr_to_write <= 0, so write more
+
+3) 1K written, nr_to_write > 0, no more writes(BUG)
+
+nr_to_write > 0 in (3) fools the upper layer to think that data have all
+been written out.  The big dirty file is actually still sitting in
+s_more_io.  We cannot simply splice s_more_io back to s_io as soon as s_io
+becomes empty, and let the loop in generic_sync_sb_inodes() continue: this
+may starve newly expired inodes in s_dirty.  It is also not an option to
+draw inodes from both s_more_io and s_dirty, an let the loop go on: this
+might lead to live locks, and might also starve other superblocks in sync
+time(well kupdate may still starve some superblocks, that's another bug).
+
+We have to return when a full scan of s_io completes.  So nr_to_write > 0
+does not necessarily mean that "all data are written".  This patch
+introduces a flag writeback_control.more_io to indicate that more io should
+be done.  With it the big dirty file no longer has to wait for the next
+kupdate invokation 5s later.
+
+In sync_sb_inodes() we only set more_io on super_blocks we actually
+visited.  This avoids the interaction between two pdflush deamons.
+
+Also in __sync_single_inode() we don't blindly keep requeuing the io if the
+filesystem cannot progress.  Failing to do so may lead to 100% iowait.
+
+Tested-by: Mike Snitzer <snitzer@gmail.com>
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Cc: Michael Rubin <mrubin@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/as-layout.h |   34 +++++++++++++++++++++-------------
- arch/um/sys-i386/stub.S     |    8 ++++----
- arch/um/sys-x86_64/stub.S   |    8 ++++----
- 3 files changed, 29 insertions(+), 21 deletions(-)
+ fs/fs-writeback.c         |   18 ++++++++++++++++--
+ include/linux/writeback.h |    1 +
+ mm/page-writeback.c       |    9 ++++++---
+ 3 files changed, 23 insertions(+), 5 deletions(-)
 
-diff -puN arch/um/include/as-layout.h~uml-borrow-consth-techniques arch/um/include/as-layout.h
---- a/arch/um/include/as-layout.h~uml-borrow-consth-techniques
-+++ a/arch/um/include/as-layout.h
-@@ -10,23 +10,31 @@
- #include "kern_constants.h"
+diff -puN fs/fs-writeback.c~writeback-speed-up-writeback-of-big-dirty-files fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-speed-up-writeback-of-big-dirty-files
++++ a/fs/fs-writeback.c
+@@ -284,7 +284,17 @@ __sync_single_inode(struct inode *inode,
+ 				 * soon as the queue becomes uncongested.
+ 				 */
+ 				inode->i_state |= I_DIRTY_PAGES;
+-				requeue_io(inode);
++				if (wbc->nr_to_write <= 0) {
++					/*
++					 * slice used up: queue for next turn
++					 */
++					requeue_io(inode);
++				} else {
++					/*
++					 * somehow blocked: retry later
++					 */
++					redirty_tail(inode);
++				}
+ 			} else {
+ 				/*
+ 				 * Otherwise fully redirty the inode so that
+@@ -468,8 +478,12 @@ sync_sb_inodes(struct super_block *sb, s
+ 		iput(inode);
+ 		cond_resched();
+ 		spin_lock(&inode_lock);
+-		if (wbc->nr_to_write <= 0)
++		if (wbc->nr_to_write <= 0) {
++			wbc->more_io = 1;
+ 			break;
++		}
++		if (!list_empty(&sb->s_more_io))
++			wbc->more_io = 1;
+ 	}
+ 	return;		/* Leave any unwritten inodes on s_io */
+ }
+diff -puN include/linux/writeback.h~writeback-speed-up-writeback-of-big-dirty-files include/linux/writeback.h
+--- a/include/linux/writeback.h~writeback-speed-up-writeback-of-big-dirty-files
++++ a/include/linux/writeback.h
+@@ -62,6 +62,7 @@ struct writeback_control {
+ 	unsigned for_reclaim:1;		/* Invoked from the page allocator */
+ 	unsigned for_writepages:1;	/* This is a writepages() call */
+ 	unsigned range_cyclic:1;	/* range_start is cyclic */
++	unsigned more_io:1;		/* more io to be dispatched */
+ };
  
  /*
-- * Assembly doesn't want any casting, but C does, so define these
-- * without casts here, and define new symbols with casts inside the C
-- * section.
-+ * Stolen from linux/const.h, which can't be directly included since
-+ * this is used in userspace code, which has no access to the kernel
-+ * headers.  Changed to be suitable for adding casts to the start,
-+ * rather than "UL" to the end.
-  */
--#define ASM_STUB_CODE (UML_CONFIG_TOP_ADDR - 2 * UM_KERN_PAGE_SIZE)
--#define ASM_STUB_DATA (UML_CONFIG_TOP_ADDR - UM_KERN_PAGE_SIZE)
--#define ASM_STUB_START ASM_STUB_CODE
- 
--/*
-- * This file is included by the assembly stubs, which just want the
-- * definitions above.
-+/* Some constant macros are used in both assembler and
-+ * C code.  Therefore we cannot annotate them always with
-+ * 'UL' and other type specifiers unilaterally.  We
-+ * use the following macros to deal with this.
-  */
--#ifndef __ASSEMBLY__
- 
--#define STUB_CODE ((unsigned long) ASM_STUB_CODE)
--#define STUB_DATA ((unsigned long) ASM_STUB_DATA)
--#define STUB_START ((unsigned long) ASM_STUB_START)
-+#ifdef __ASSEMBLY__
-+#define _AC(X, Y)	(Y)
-+#else
-+#define __AC(X, Y)	(X (Y))
-+#define _AC(X, Y)	__AC(X, Y)
-+#endif
-+
-+#define STUB_CODE _AC((unsigned long), \
-+		      UML_CONFIG_TOP_ADDR - 2 * UM_KERN_PAGE_SIZE)
-+#define STUB_DATA _AC((unsigned long), UML_CONFIG_TOP_ADDR - UM_KERN_PAGE_SIZE)
-+#define STUB_START _AC(, STUB_CODE)
-+
-+#ifndef __ASSEMBLY__
- 
- #include "sysdep/ptrace.h"
- 
-diff -puN arch/um/sys-i386/stub.S~uml-borrow-consth-techniques arch/um/sys-i386/stub.S
---- a/arch/um/sys-i386/stub.S~uml-borrow-consth-techniques
-+++ a/arch/um/sys-i386/stub.S
-@@ -7,7 +7,7 @@
- 	.globl batch_syscall_stub
- batch_syscall_stub:
- 	/* load pointer to first operation */
--	mov	$(ASM_STUB_DATA+8), %esp
-+	mov	$(STUB_DATA+8), %esp
- 
- again:
- 	/* load length of additional data */
-@@ -15,12 +15,12 @@ again:
- 
- 	/* if(length == 0) : end of list */
- 	/* write possible 0 to header */
--	mov	%eax, ASM_STUB_DATA+4
-+	mov	%eax, STUB_DATA+4
- 	cmpl	$0, %eax
- 	jz	done
- 
- 	/* save current pointer */
--	mov	%esp, ASM_STUB_DATA+4
-+	mov	%esp, STUB_DATA+4
- 
- 	/* skip additional data */
- 	add	%eax, %esp
-@@ -46,7 +46,7 @@ again:
- 
- done:
- 	/* save return value */
--	mov	%eax, ASM_STUB_DATA
-+	mov	%eax, STUB_DATA
- 
- 	/* stop */
- 	int3
-diff -puN arch/um/sys-x86_64/stub.S~uml-borrow-consth-techniques arch/um/sys-x86_64/stub.S
---- a/arch/um/sys-x86_64/stub.S~uml-borrow-consth-techniques
-+++ a/arch/um/sys-x86_64/stub.S
-@@ -8,18 +8,18 @@ syscall_stub:
- 	/* We don't have 64-bit constants, so this constructs the address
- 	 * we need.
- 	 */
--	movq	$(ASM_STUB_DATA >> 32), %rbx
-+	movq	$(STUB_DATA >> 32), %rbx
- 	salq	$32, %rbx
--	movq	$(ASM_STUB_DATA & 0xffffffff), %rcx
-+	movq	$(STUB_DATA & 0xffffffff), %rcx
- 	or	%rcx, %rbx
- 	movq	%rax, (%rbx)
- 	int3
- 
- 	.globl batch_syscall_stub
- batch_syscall_stub:
--	mov	$(ASM_STUB_DATA >> 32), %rbx
-+	mov	$(STUB_DATA >> 32), %rbx
- 	sal	$32, %rbx
--	mov	$(ASM_STUB_DATA & 0xffffffff), %rax
-+	mov	$(STUB_DATA & 0xffffffff), %rax
- 	or	%rax, %rbx
- 	/* load pointer to first operation */
- 	mov	%rbx, %rsp
+diff -puN mm/page-writeback.c~writeback-speed-up-writeback-of-big-dirty-files mm/page-writeback.c
+--- a/mm/page-writeback.c~writeback-speed-up-writeback-of-big-dirty-files
++++ a/mm/page-writeback.c
+@@ -567,6 +567,7 @@ static void background_writeout(unsigned
+ 			global_page_state(NR_UNSTABLE_NFS) < background_thresh
+ 				&& min_pages <= 0)
+ 			break;
++		wbc.more_io = 0;
+ 		wbc.encountered_congestion = 0;
+ 		wbc.nr_to_write = MAX_WRITEBACK_PAGES;
+ 		wbc.pages_skipped = 0;
+@@ -574,8 +575,9 @@ static void background_writeout(unsigned
+ 		min_pages -= MAX_WRITEBACK_PAGES - wbc.nr_to_write;
+ 		if (wbc.nr_to_write > 0 || wbc.pages_skipped > 0) {
+ 			/* Wrote less than expected */
+-			congestion_wait(WRITE, HZ/10);
+-			if (!wbc.encountered_congestion)
++			if (wbc.encountered_congestion || wbc.more_io)
++				congestion_wait(WRITE, HZ/10);
++			else
+ 				break;
+ 		}
+ 	}
+@@ -640,11 +642,12 @@ static void wb_kupdate(unsigned long arg
+ 			global_page_state(NR_UNSTABLE_NFS) +
+ 			(inodes_stat.nr_inodes - inodes_stat.nr_unused);
+ 	while (nr_to_write > 0) {
++		wbc.more_io = 0;
+ 		wbc.encountered_congestion = 0;
+ 		wbc.nr_to_write = MAX_WRITEBACK_PAGES;
+ 		writeback_inodes(&wbc);
+ 		if (wbc.nr_to_write > 0) {
+-			if (wbc.encountered_congestion)
++			if (wbc.encountered_congestion || wbc.more_io)
+ 				congestion_wait(WRITE, HZ/10);
+ 			else
+ 				break;	/* All the old data is written */
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
 origin.patch
-git-kvm.patch
-fix-__const_udelay-declaration-and-definition-mismatches.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
-random-add-async-notification-support-to-dev-random.patch
-mount-options-fix-hostfs.patch
