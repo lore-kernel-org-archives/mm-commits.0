@@ -1,132 +1,258 @@
 From: akpm@linux-foundation.org
-Subject: - m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:34:51 -0800
-Message-ID: <200802052234.m15MYW5u012536@imap1.linux-foundation.org>
+Subject: - page-allocator-get-rid-of-the-list-of-cold-pages.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:31:50 -0800
+Message-ID: <200802052231.m15MVVLg012172@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45124 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59028 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932120AbYBEWmw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:52 -0500
+	by vger.kernel.org with ESMTP id S1762742AbYBEWmo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, geert@linux-m68k.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: clameter@sgi.com, mbligh@mbligh.org, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m68k: kill arch/m68k/mvme16x/mvme16x_ksyms.c
+     Page allocator: get rid of the list of cold pages
 has been removed from the -mm tree.  Its filename was
-     m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc.patch
+     page-allocator-get-rid-of-the-list-of-cold-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68k: kill arch/m68k/mvme16x/mvme16x_ksyms.c
-From: Adrian Bunk <bunk@kernel.org>
+Subject: Page allocator: get rid of the list of cold pages
+From: Christoph Lameter <clameter@sgi.com>
 
-EXPORT_SYMBOL's belong to the actual code.
+We have repeatedly discussed if the cold pages still have a point. There is
+one way to join the two lists: Use a single list and put the cold pages at the
+end and the hot pages at the beginning. That way a single list can serve for
+both types of allocations.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+The discussion of the RFC for this and Mel's measurements indicate that
+there may not be too much of a point left to having separate lists for
+hot and cold pages (see http://marc.info/?t=119492914200001&r=1&w=2).
+
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Martin Bligh <mbligh@mbligh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/mvme16x/Makefile        |    2 +-
- arch/m68k/mvme16x/config.c        |    2 ++
- arch/m68k/mvme16x/mvme16x_ksyms.c |    6 ------
- 3 files changed, 3 insertions(+), 7 deletions(-)
+ include/linux/mmzone.h |    2 -
+ mm/page_alloc.c        |   55 ++++++++++++++++++---------------------
+ mm/vmstat.c            |   30 ++++++++-------------
+ 3 files changed, 39 insertions(+), 48 deletions(-)
 
-diff -puN arch/m68k/mvme16x/Makefile~m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc arch/m68k/mvme16x/Makefile
---- a/arch/m68k/mvme16x/Makefile~m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc
-+++ a/arch/m68k/mvme16x/Makefile
-@@ -2,4 +2,4 @@
- # Makefile for Linux arch/m68k/mvme16x source directory
- #
+diff -puN include/linux/mmzone.h~page-allocator-get-rid-of-the-list-of-cold-pages include/linux/mmzone.h
+--- a/include/linux/mmzone.h~page-allocator-get-rid-of-the-list-of-cold-pages
++++ a/include/linux/mmzone.h
+@@ -113,7 +113,7 @@ struct per_cpu_pages {
+ };
  
--obj-y		:= config.o rtc.o mvme16x_ksyms.o
-+obj-y		:= config.o rtc.o
-diff -puN arch/m68k/mvme16x/config.c~m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc arch/m68k/mvme16x/config.c
---- a/arch/m68k/mvme16x/config.c~m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc
-+++ a/arch/m68k/mvme16x/config.c
-@@ -25,6 +25,7 @@
- #include <linux/genhd.h>
- #include <linux/rtc.h>
- #include <linux/interrupt.h>
-+#include <linux/module.h>
+ struct per_cpu_pageset {
+-	struct per_cpu_pages pcp[2];	/* 0: hot.  1: cold */
++	struct per_cpu_pages pcp;
+ #ifdef CONFIG_NUMA
+ 	s8 expire;
+ #endif
+diff -puN mm/page_alloc.c~page-allocator-get-rid-of-the-list-of-cold-pages mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-get-rid-of-the-list-of-cold-pages
++++ a/mm/page_alloc.c
+@@ -901,24 +901,21 @@ static void drain_pages(unsigned int cpu
+ {
+ 	unsigned long flags;
+ 	struct zone *zone;
+-	int i;
  
- #include <asm/bootinfo.h>
- #include <asm/system.h>
-@@ -58,6 +59,7 @@ static irq_handler_t tick_handler;
+ 	for_each_zone(zone) {
+ 		struct per_cpu_pageset *pset;
++		struct per_cpu_pages *pcp;
  
+ 		if (!populated_zone(zone))
+ 			continue;
  
- unsigned short mvme16x_config;
-+EXPORT_SYMBOL(mvme16x_config);
+ 		pset = zone_pcp(zone, cpu);
+-		for (i = 0; i < ARRAY_SIZE(pset->pcp); i++) {
+-			struct per_cpu_pages *pcp;
  
+-			pcp = &pset->pcp[i];
+-			local_irq_save(flags);
+-			free_pages_bulk(zone, pcp->count, &pcp->list, 0);
+-			pcp->count = 0;
+-			local_irq_restore(flags);
+-		}
++		pcp = &pset->pcp;
++		local_irq_save(flags);
++		free_pages_bulk(zone, pcp->count, &pcp->list, 0);
++		pcp->count = 0;
++		local_irq_restore(flags);
+ 	}
+ }
  
- int mvme16x_parse_bootinfo(const struct bi_record *bi)
-diff -puN arch/m68k/mvme16x/mvme16x_ksyms.c~m68k-kill-arch-m68k-mvme16x-mvme16x_ksymsc /dev/null
---- a/arch/m68k/mvme16x/mvme16x_ksyms.c
-+++ /dev/null
-@@ -1,6 +0,0 @@
--#include <linux/module.h>
--#include <linux/types.h>
--#include <asm/ptrace.h>
--#include <asm/mvme16xhw.h>
+@@ -993,10 +990,13 @@ static void fastcall free_hot_cold_page(
+ 	arch_free_page(page, 0);
+ 	kernel_map_pages(page, 1, 0);
+ 
+-	pcp = &zone_pcp(zone, get_cpu())->pcp[cold];
++	pcp = &zone_pcp(zone, get_cpu())->pcp;
+ 	local_irq_save(flags);
+ 	__count_vm_event(PGFREE);
+-	list_add(&page->lru, &pcp->list);
++	if (cold)
++		list_add_tail(&page->lru, &pcp->list);
++	else
++		list_add(&page->lru, &pcp->list);
+ 	set_page_private(page, get_pageblock_migratetype(page));
+ 	pcp->count++;
+ 	if (pcp->count >= pcp->high) {
+@@ -1054,7 +1054,7 @@ again:
+ 	if (likely(order == 0)) {
+ 		struct per_cpu_pages *pcp;
+ 
+-		pcp = &zone_pcp(zone, cpu)->pcp[cold];
++		pcp = &zone_pcp(zone, cpu)->pcp;
+ 		local_irq_save(flags);
+ 		if (!pcp->count) {
+ 			pcp->count = rmqueue_bulk(zone, 0,
+@@ -1064,9 +1064,15 @@ again:
+ 		}
+ 
+ 		/* Find a page of the appropriate migrate type */
+-		list_for_each_entry(page, &pcp->list, lru)
+-			if (page_private(page) == migratetype)
+-				break;
++		if (cold) {
++			list_for_each_entry_reverse(page, &pcp->list, lru)
++				if (page_private(page) == migratetype)
++					break;
++		} else {
++			list_for_each_entry(page, &pcp->list, lru)
++				if (page_private(page) == migratetype)
++					break;
++		}
+ 
+ 		/* Allocate more to the pcp list if necessary */
+ 		if (unlikely(&page->lru == &pcp->list)) {
+@@ -1793,12 +1799,9 @@ void show_free_areas(void)
+ 
+ 			pageset = zone_pcp(zone, cpu);
+ 
+-			printk("CPU %4d: Hot: hi:%5d, btch:%4d usd:%4d   "
+-			       "Cold: hi:%5d, btch:%4d usd:%4d\n",
+-			       cpu, pageset->pcp[0].high,
+-			       pageset->pcp[0].batch, pageset->pcp[0].count,
+-			       pageset->pcp[1].high, pageset->pcp[1].batch,
+-			       pageset->pcp[1].count);
++			printk("CPU %4d: hi:%5d, btch:%4d usd:%4d\n",
++			       cpu, pageset->pcp.high,
++			       pageset->pcp.batch, pageset->pcp.count);
+ 		}
+ 	}
+ 
+@@ -2596,17 +2599,11 @@ inline void setup_pageset(struct per_cpu
+ 
+ 	memset(p, 0, sizeof(*p));
+ 
+-	pcp = &p->pcp[0];		/* hot */
++	pcp = &p->pcp;
+ 	pcp->count = 0;
+ 	pcp->high = 6 * batch;
+ 	pcp->batch = max(1UL, 1 * batch);
+ 	INIT_LIST_HEAD(&pcp->list);
 -
--EXPORT_SYMBOL(mvme16x_config);
+-	pcp = &p->pcp[1];		/* cold*/
+-	pcp->count = 0;
+-	pcp->high = 2 * batch;
+-	pcp->batch = max(1UL, batch/2);
+-	INIT_LIST_HEAD(&pcp->list);
+ }
+ 
+ /*
+@@ -2619,7 +2616,7 @@ static void setup_pagelist_highmark(stru
+ {
+ 	struct per_cpu_pages *pcp;
+ 
+-	pcp = &p->pcp[0]; /* hot list */
++	pcp = &p->pcp;
+ 	pcp->high = high;
+ 	pcp->batch = max(1UL, high/4);
+ 	if ((high/4) > (PAGE_SHIFT * 8))
+diff -puN mm/vmstat.c~page-allocator-get-rid-of-the-list-of-cold-pages mm/vmstat.c
+--- a/mm/vmstat.c~page-allocator-get-rid-of-the-list-of-cold-pages
++++ a/mm/vmstat.c
+@@ -337,7 +337,7 @@ void refresh_cpu_vm_stats(int cpu)
+ 		 * Check if there are pages remaining in this pageset
+ 		 * if not then there is nothing to expire.
+ 		 */
+-		if (!p->expire || (!p->pcp[0].count && !p->pcp[1].count))
++		if (!p->expire || !p->pcp.count)
+ 			continue;
+ 
+ 		/*
+@@ -352,11 +352,8 @@ void refresh_cpu_vm_stats(int cpu)
+ 		if (p->expire)
+ 			continue;
+ 
+-		if (p->pcp[0].count)
+-			drain_zone_pages(zone, p->pcp + 0);
+-
+-		if (p->pcp[1].count)
+-			drain_zone_pages(zone, p->pcp + 1);
++		if (p->pcp.count)
++			drain_zone_pages(zone, &p->pcp);
+ #endif
+ 	}
+ 
+@@ -693,20 +690,17 @@ static void zoneinfo_show_print(struct s
+ 		   "\n  pagesets");
+ 	for_each_online_cpu(i) {
+ 		struct per_cpu_pageset *pageset;
+-		int j;
+ 
+ 		pageset = zone_pcp(zone, i);
+-		for (j = 0; j < ARRAY_SIZE(pageset->pcp); j++) {
+-			seq_printf(m,
+-				   "\n    cpu: %i pcp: %i"
+-				   "\n              count: %i"
+-				   "\n              high:  %i"
+-				   "\n              batch: %i",
+-				   i, j,
+-				   pageset->pcp[j].count,
+-				   pageset->pcp[j].high,
+-				   pageset->pcp[j].batch);
+-			}
++		seq_printf(m,
++			   "\n    cpu: %i"
++			   "\n              count: %i"
++			   "\n              high:  %i"
++			   "\n              batch: %i",
++			   i,
++			   pageset->pcp.count,
++			   pageset->pcp.high,
++			   pageset->pcp.batch);
+ #ifdef CONFIG_SMP
+ 		seq_printf(m, "\n  vm stats threshold: %d",
+ 				pageset->stat_threshold);
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-git-acpi.patch
-powerpc-vdso_do_func_patch3264-must-be-__init.patch
-powerpc-free_property-mustnt-be-__init.patch
-hvc_rtas_init-must-be-__init.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-mtd.patch
-git-ocfs2.patch
-if-0-pci_cleanup_aer_correct_error_status.patch
-git-scsi-misc.patch
-scsi-advansysc-make-3-functions-static.patch
-scsi-aic94xx-cleanups.patch
-scsi-qlogicptic-section-fixes.patch
-usb-make-usb_storage_onetouch-available-with-pm.patch
-make-b43_mac_enablesuspend-static.patch
-git-xtensa.patch
-make-ipc-utilcsysvipc_find_ipc-static.patch
-cleanup-after-apus-removal.patch
-remove-mm_ptovvtop.patch
-proper-show_interrupts-prototype.patch
-scheduled-oss-driver-removal.patch
-proper-prototype-for-signals_init.patch
-kernel-ptracec-should-include-linux-syscallsh.patch
-make-srcu_readers_active-static.patch
-kernel-notifierc-should-include-linux-rebooth.patch
-proper-prototype-for-get_filesystem_list.patch
-fs-utimesc-should-include-linux-syscallsh.patch
-fs-signalfdc-should-include-linux-syscallsh.patch
-fs-eventfdc-should-include-linux-syscallsh.patch
-proper-prototype-for-vty_init.patch
-drivers-misc-lkdtmc-cleanups.patch
-calibrate_delay-must-be-__cpuinit.patch
-idle_regs-must-be-__cpuinit.patch
-fs-ecryptfs-possible-cleanups.patch
-make-video-geode-lxfb_corecgeode_modedb-static.patch
-video-hpfbc-section-fix.patch
-drivers-video-pm3fbc-section-fix.patch
-make-jbd-journalc__journal_abort_hard-static.patch
-move-edactxt-two-levels-up.patch
-kernel-cgroupc-remove-dead-code.patch
-kernel-cgroupc-make-2-functions-static.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-fix-m32r-__xchg.patch
-kill-udffs_dateversion.patch
-the-scheduled-time-option-removal.patch
+gregkh-driver-kset-move-sys-slab-to-sys-kernel-slab-slabinfo-fallback-from-sys-kernel-slab-to-sys-slab.patch
+git-unionfs.patch
+git-slub.patch
+percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+oom-add-sysctl-to-enable-task-memory-dump.patch
+add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
+add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
+dentries-extract-common-code-to-remove-dentry-from-lru.patch
+dentries-extract-common-code-to-remove-dentry-from-lru-fix.patch
+modules-handle-symbols-that-have-a-zero-value.patch
+modules-include-sectionsh-to-avoid-defining-linker-variables.patch
 reiser4.patch
+reiser4-portion-of-zero_user-cleanup-patch.patch
+page-owner-tracking-leak-detector.patch
