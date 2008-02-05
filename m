@@ -1,207 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: - uml-remove-now-unused-code.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:35:35 -0800
-Message-ID: <200802052235.m15MZGXi012599@imap1.linux-foundation.org>
+Subject: - uml-remove-unused-variables-in-the-context-switcher.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:36:17 -0800
+Message-ID: <200802052235.m15MZwZ5012659@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35622 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60018 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762498AbYBEWll (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:41 -0500
+	by vger.kernel.org with ESMTP id S1762282AbYBEWlp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: magotari@gmail.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: remove now unused code
+     uml: remove unused variables in the context switcher
 has been removed from the -mm tree.  Its filename was
-     uml-remove-now-unused-code.patch
+     uml-remove-unused-variables-in-the-context-switcher.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: remove now unused code
+Subject: uml: remove unused variables in the context switcher
 From: Karol Swietlicki <magotari@gmail.com>
 
-This patch finishes what the previous one started.  The code was not used
-after my first patch, and now can be removed with ease.
+This patch removes a variable which was not used in two functions.  Yet
+another code cleanup, nothing really significant.
 
-[ jdike - also deleted the #if 0 lcall stuff ]
+Please note that I could not test this on x86_64. I don't have the
+hardware for it.
+
+[ jdike - Bits of tidying around the affected code.  Also, it's fine on
+x86_64 ]
 
 Signed-off-by: Karol Swietlicki <magotari@gmail.com>
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/sys-i386/bugs.c |  137 --------------------------------------
- 1 file changed, 137 deletions(-)
+ arch/um/kernel/process.c      |   19 ++++++++-----------
+ arch/um/sys-i386/ptrace.c     |    6 +++---
+ arch/um/sys-i386/tls.c        |    2 +-
+ arch/um/sys-x86_64/syscalls.c |    2 +-
+ 4 files changed, 13 insertions(+), 16 deletions(-)
 
-diff -puN arch/um/sys-i386/bugs.c~uml-remove-now-unused-code arch/um/sys-i386/bugs.c
---- a/arch/um/sys-i386/bugs.c~uml-remove-now-unused-code
-+++ a/arch/um/sys-i386/bugs.c
-@@ -12,8 +12,6 @@
- #include "user.h"
- #include "sysdep/archsetjmp.h"
- 
--#define MAXTOKEN 64
--
- /* Set during early boot */
- int host_has_cmov = 1;
- static jmp_buf cmov_test_return;
-@@ -46,139 +44,8 @@ static void test_for_host_cmov(void)
- 	sigaction(SIGILL, &old, &new);
+diff -puN arch/um/kernel/process.c~uml-remove-unused-variables-in-the-context-switcher arch/um/kernel/process.c
+--- a/arch/um/kernel/process.c~uml-remove-unused-variables-in-the-context-switcher
++++ a/arch/um/kernel/process.c
+@@ -81,12 +81,12 @@ static inline void set_current(struct ta
+ 		{ external_pid(task), task });
  }
  
--static char token(int fd, char *buf, int len, char stop)
--{
--	int n;
--	char *ptr, *end, c;
--
--	ptr = buf;
--	end = &buf[len];
--	do {
--		n = os_read_file(fd, ptr, sizeof(*ptr));
--		c = *ptr++;
--		if (n != sizeof(*ptr)) {
--			if (n == 0)
--				return 0;
--			printk(UM_KERN_ERR "Reading /proc/cpuinfo failed, "
--			       "err = %d\n", -n);
--			if (n < 0)
--				return n;
--			else return -EIO;
--		}
--	} while ((c != '\n') && (c != stop) && (ptr < end));
--
--	if (ptr == end) {
--		printk(UM_KERN_ERR "Failed to find '%c' in /proc/cpuinfo\n",
--		       stop);
--		return -1;
--	}
--	*(ptr - 1) = '\0';
--	return c;
--}
--
--static int find_cpuinfo_line(int fd, char *key, char *scratch, int len)
--{
--	int n;
--	char c;
--
--	scratch[len - 1] = '\0';
--	while (1) {
--		c = token(fd, scratch, len - 1, ':');
--		if (c <= 0)
--			return 0;
--		else if (c != ':') {
--			printk(UM_KERN_ERR "Failed to find ':' in "
--			       "/proc/cpuinfo\n");
--			return 0;
--		}
--
--		if (!strncmp(scratch, key, strlen(key)))
--			return 1;
--
--		do {
--			n = os_read_file(fd, &c, sizeof(c));
--			if (n != sizeof(c)) {
--				printk(UM_KERN_ERR "Failed to find newline in "
--				       "/proc/cpuinfo, err = %d\n", -n);
--				return 0;
--			}
--		} while (c != '\n');
--	}
--	return 0;
--}
--
--static int check_cpu_flag(char *feature, int *have_it)
--{
--	char buf[MAXTOKEN], c;
--	int fd, len = ARRAY_SIZE(buf);
--
--	printk(UM_KERN_INFO "Checking for host processor %s support...",
--	       feature);
--	fd = os_open_file("/proc/cpuinfo", of_read(OPENFLAGS()), 0);
--	if (fd < 0) {
--		printk(UM_KERN_ERR "Couldn't open /proc/cpuinfo, err = %d\n",
--		       -fd);
--		return 0;
--	}
--
--	*have_it = 0;
--	if (!find_cpuinfo_line(fd, "flags", buf, ARRAY_SIZE(buf)))
--		goto out;
--
--	c = token(fd, buf, len - 1, ' ');
--	if (c < 0)
--		goto out;
--	else if (c != ' ') {
--		printk(UM_KERN_ERR "Failed to find ' ' in /proc/cpuinfo\n");
--		goto out;
--	}
--
--	while (1) {
--		c = token(fd, buf, len - 1, ' ');
--		if (c < 0)
--			goto out;
--		else if (c == '\n')
--			break;
--
--		if (!strcmp(buf, feature)) {
--			*have_it = 1;
--			goto out;
--		}
--	}
-- out:
--	if (*have_it == 0)
--		printk("No\n");
--	else if (*have_it == 1)
--		printk("Yes\n");
--	os_close_file(fd);
--	return 1;
--}
--
--#if 0 /*
--       * This doesn't work in tt mode, plus it's causing compilation problems
--       * for some people.
--       */
--static void disable_lcall(void)
--{
--	struct modify_ldt_ldt_s ldt;
--	int err;
--
--	bzero(&ldt, sizeof(ldt));
--	ldt.entry_number = 7;
--	ldt.base_addr = 0;
--	ldt.limit = 0;
--	err = modify_ldt(1, &ldt, sizeof(ldt));
--	if (err)
--		printk(UM_KERN_ERR "Failed to disable lcall7 - errno = %d\n",
--		       errno);
--}
--#endif
--
- void arch_init_thread(void)
+-extern void arch_switch_to(struct task_struct *from, struct task_struct *to);
++extern void arch_switch_to(struct task_struct *to);
+ 
+ void *_switch_to(void *prev, void *next, void *last)
  {
--#if 0
--	disable_lcall();
--#endif
+ 	struct task_struct *from = prev;
+-	struct task_struct *to= next;
++	struct task_struct *to = next;
+ 
+ 	to->thread.prev_sched = from;
+ 	set_current(to);
+@@ -94,16 +94,15 @@ void *_switch_to(void *prev, void *next,
+ 	do {
+ 		current->thread.saved_task = NULL;
+ 
+-		switch_threads(&from->thread.switch_buf,
+-			       &to->thread.switch_buf);
++		switch_threads(&from->thread.switch_buf, &to->thread.switch_buf);
+ 
+-		arch_switch_to(current->thread.prev_sched, current);
++		arch_switch_to(current);
+ 
+ 		if (current->thread.saved_task)
+ 			show_regs(&(current->thread.regs));
+-		next= current->thread.saved_task;
+-		prev= current;
+-	} while(current->thread.saved_task);
++		next = current->thread.saved_task;
++		prev = current;
++	} while (current->thread.saved_task);
+ 
+ 	return current->thread.prev_sched;
+ 
+@@ -161,8 +160,6 @@ void new_thread_handler(void)
+ void fork_handler(void)
+ {
+ 	force_flush_all();
+-	if (current->thread.prev_sched == NULL)
+-		panic("blech");
+ 
+ 	schedule_tail(current->thread.prev_sched);
+ 
+@@ -171,7 +168,7 @@ void fork_handler(void)
+ 	 * arch_switch_to isn't needed. We could want to apply this to
+ 	 * improve performance. -bb
+ 	 */
+-	arch_switch_to(current->thread.prev_sched, current);
++	arch_switch_to(current);
+ 
+ 	current->thread.prev_sched = NULL;
+ 
+diff -puN arch/um/sys-i386/ptrace.c~uml-remove-unused-variables-in-the-context-switcher arch/um/sys-i386/ptrace.c
+--- a/arch/um/sys-i386/ptrace.c~uml-remove-unused-variables-in-the-context-switcher
++++ a/arch/um/sys-i386/ptrace.c
+@@ -8,11 +8,11 @@
+ #include "asm/uaccess.h"
+ #include "skas.h"
+ 
+-extern int arch_switch_tls(struct task_struct *from, struct task_struct *to);
++extern int arch_switch_tls(struct task_struct *to);
+ 
+-void arch_switch_to(struct task_struct *from, struct task_struct *to)
++void arch_switch_to(struct task_struct *to)
+ {
+-	int err = arch_switch_tls(from, to);
++	int err = arch_switch_tls(to);
+ 	if (!err)
+ 		return;
+ 
+diff -puN arch/um/sys-i386/tls.c~uml-remove-unused-variables-in-the-context-switcher arch/um/sys-i386/tls.c
+--- a/arch/um/sys-i386/tls.c~uml-remove-unused-variables-in-the-context-switcher
++++ a/arch/um/sys-i386/tls.c
+@@ -172,7 +172,7 @@ void clear_flushed_tls(struct task_struc
+  * SKAS patch.
+  */
+ 
+-int arch_switch_tls(struct task_struct *from, struct task_struct *to)
++int arch_switch_tls(struct task_struct *to)
+ {
+ 	if (!host_supports_tls)
+ 		return 0;
+diff -puN arch/um/sys-x86_64/syscalls.c~uml-remove-unused-variables-in-the-context-switcher arch/um/sys-x86_64/syscalls.c
+--- a/arch/um/sys-x86_64/syscalls.c~uml-remove-unused-variables-in-the-context-switcher
++++ a/arch/um/sys-x86_64/syscalls.c
+@@ -105,7 +105,7 @@ long sys_clone(unsigned long clone_flags
+ 	return ret;
  }
  
- void arch_check_bugs(void)
-@@ -209,10 +76,6 @@ int arch_handle_signal(int sig, struct u
- 	else if (host_has_cmov == 1)
- 		panic("SIGILL caused by cmov, which this processor claims to "
- 		      "implement");
--	else if (host_has_cmov == -1)
--		panic("SIGILL caused by cmov, couldn't tell if this processor "
--		      "implements it, boot a filesystem compiled for older "
--		      "processors");
- 	else panic("Bad value for host_has_cmov (%d)", host_has_cmov);
- 	return 0;
- }
+-void arch_switch_to(struct task_struct *from, struct task_struct *to)
++void arch_switch_to(struct task_struct *to)
+ {
+ 	if ((to->thread.arch.fs == 0) || (to->mm == NULL))
+ 		return;
 _
 
 Patches currently in -mm which might be from magotari@gmail.com are
