@@ -1,111 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-pcmcia-add-missing-pci_dev_get.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:27:30 -0800
-Message-ID: <200802052227.m15MRBgJ011757@imap1.linux-foundation.org>
+Subject: - serial-mpsc-set-baudrate-when-brg-divider-is-set.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:27:54 -0800
+Message-ID: <200802052227.m15MRZah011807@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50768 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59043 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932072AbYBEWmt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:49 -0500
+	by vger.kernel.org with ESMTP id S932232AbYBEWnD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:43:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, mm-commits@vger.kernel.org
+To: mgreer@mvista.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/pcmcia: add missing pci_dev_get
+     serial: MPSC: set baudrate when BRG divider is set.
 has been removed from the -mm tree.  Its filename was
-     drivers-pcmcia-add-missing-pci_dev_get.patch
+     serial-mpsc-set-baudrate-when-brg-divider-is-set.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/pcmcia: add missing pci_dev_get
-From: Julia Lawall <julia@diku.dk>
+Subject: serial: MPSC: set baudrate when BRG divider is set.
+From: Mark A. Greer <mgreer@mvista.com>
 
-pci_get_slot does a pci_dev_get, so pci_dev_put needs to be called in an
-error case.
+The clock to generate the desired baudrate with the MPSC is first divided
+by the Baud Rate Generator (BRG) and then by the MPSC itself.  So, when the
+BRG divider is changed, the MPSC divider must also be changed to generate
+the correct baudrate.  During MPSC initialization, the BRG divider is
+changed but the MPSC divider isn't changed until much later.  This results
+in some printk's coming out garbled.  To fix that, set the MPSC divider at
+the same time that the BRG divider is changed.
 
-An extract of the semantic match used to find the problem is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@@
-type find1.T,T1,T2;
-identifier find1.E;
-statement find1.S;
-expression x1,x2,x3;
-expression find1.test;
-int ret != 0;
-@@
-
-  T E;
-  ...
-(
-* E = pci_get_slot(...);
-  if (E == NULL) S
-|
-* if ((E = pci_get_slot(...)) == NULL)
-  S
-)
-  ... when != pci_dev_put(...,(T1)E,...)
-      when != if (E != NULL) { ... pci_dev_put(...,(T1)E,...); ...}
-      when != x1 = (T1)E
-      when != E = x3;
-      when any
-  if (test) {
-    ... when != pci_dev_put(...,(T2)E,...)
-        when != if (E != NULL) { ... pci_dev_put(...,(T2)E,...); ...}
-        when != x2 = (T2)E
-(
-*   return;
-|
-*   return ret;
-)
-  }
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
+Signed-off-by: Mark A. Greer <mgreer@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/cardbus.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/serial/mpsc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/pcmcia/cardbus.c~drivers-pcmcia-add-missing-pci_dev_get drivers/pcmcia/cardbus.c
---- a/drivers/pcmcia/cardbus.c~drivers-pcmcia-add-missing-pci_dev_get
-+++ a/drivers/pcmcia/cardbus.c
-@@ -143,7 +143,7 @@ int read_cb_mem(struct pcmcia_socket * s
- 	/* Config space? */
- 	if (space == 0) {
- 		if (addr + len > 0x100)
--			goto fail;
-+			goto failput;
- 		for (; len; addr++, ptr++, len--)
- 			pci_read_config_byte(dev, addr, ptr);
- 		return 0;
-@@ -171,6 +171,8 @@ int read_cb_mem(struct pcmcia_socket * s
- 	memcpy_fromio(ptr, s->cb_cis_virt + addr, len);
- 	return 0;
+diff -puN drivers/serial/mpsc.c~serial-mpsc-set-baudrate-when-brg-divider-is-set drivers/serial/mpsc.c
+--- a/drivers/serial/mpsc.c~serial-mpsc-set-baudrate-when-brg-divider-is-set
++++ a/drivers/serial/mpsc.c
+@@ -612,6 +612,7 @@ static void mpsc_hw_init(struct mpsc_por
  
-+failput:
-+	pci_dev_put(dev);
- fail:
- 	memset(ptr, 0xff, len);
- 	return -1;
+ 	/* No preamble, 16x divider, low-latency, */
+ 	writel(0x04400400, pi->mpsc_base + MPSC_MMCRH);
++	mpsc_set_baudrate(pi, pi->default_baud);
+ 
+ 	if (pi->mirror_regs) {
+ 		pi->MPSC_CHR_1_m = 0;
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from mgreer@mvista.com are
 
 origin.patch
-drivers-cpufreq-add-calls-to-cpufreq_cpu_put.patch
-arch-powerpc-platforms-pseries-add-missing-of_node_put.patch
-arch-powerpc-sysdev-add-missing-of_node_put.patch
-arch-powerpc-platforms-82xx-add-missing-of_node_put.patch
-git-input.patch
-git-mtd.patch
-drivers-video-remove-unnecessary-pci_dev_put.patch
-drivers-video-add-missing-pci_dev_get.patch
