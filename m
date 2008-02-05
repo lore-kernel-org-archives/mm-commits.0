@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-v9fs-fix-git-conflicts.patch added to -mm tree
-Date: Mon, 04 Feb 2008 19:13:11 -0800
-Message-ID: <200802050312.m153CqFe032262@imap1.linux-foundation.org>
+Subject: + git-sched-fix-git-conflicts.patch added to -mm tree
+Date: Mon, 04 Feb 2008 19:14:18 -0800
+Message-ID: <200802050313.m153Dx2o032282@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57820 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37536 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751214AbYBEDNN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2008 22:13:13 -0500
+	by vger.kernel.org with ESMTP id S1751247AbYBEDOP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2008 22:14:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ericvh@hera.kernel.org, rusty@rustcorp.com.au
+Cc: akpm@linux-foundation.org, mingo@elte.hu
 
 
 The patch titled
-     git-v9fs-fix-git-conflicts
+     git-sched-fix-git-conflicts
 has been added to the -mm tree.  Its filename is
-     git-v9fs-fix-git-conflicts.patch
+     git-sched-fix-git-conflicts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,77 +33,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-v9fs-fix-git-conflicts
+Subject: git-sched-fix-git-conflicts
 From: Andrew Morton <akpm@linux-foundation.org>
 
-rusty trashed eric's stuff!
-
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-CC: Eric Van Hensbergen <ericvh@hera.kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/9p/trans_virtio.c |   29 -----------------------------
- 1 file changed, 29 deletions(-)
+ include/asm-x86/futex.h |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN net/9p/trans_virtio.c~git-v9fs-fix-git-conflicts net/9p/trans_virtio.c
---- a/net/9p/trans_virtio.c~git-v9fs-fix-git-conflicts
-+++ a/net/9p/trans_virtio.c
-@@ -257,23 +257,12 @@ p9_virtio_rpc(struct p9_trans *t, struct
- 	}
- #endif
+diff -puN include/asm-x86/futex.h~git-sched-fix-git-conflicts include/asm-x86/futex.h
+--- a/include/asm-x86/futex.h~git-sched-fix-git-conflicts
++++ a/include/asm-x86/futex.h
+@@ -106,10 +106,6 @@ futex_atomic_cmpxchg_inatomic(int __user
+ 		return -EFAULT;
  
--<<<<<<< HEAD:net/9p/trans_virtio.c
- static void p9_virtio_intr(struct virtqueue *q)
- {
- 	struct virtio_chan *chan = q->vdev->priv;
+ 	__asm__ __volatile__(
+-<<<<<<< HEAD:include/asm-x86/futex.h
 -=======
--	if (n != P9_NOTAG && p9_idpool_check(n, chan->tagpool))
--		p9_idpool_put(n, chan->tagpool);
-->>>>>>> FETCH_HEAD:net/9p/trans_virtio.c
- 
--<<<<<<< HEAD:net/9p/trans_virtio.c
- 	P9_DPRINTK(P9_DEBUG_TRANS, "9p poll_wakeup: %p\n", &chan->wq);
- 	wake_up_interruptible(&chan->wq);
--=======
--	req->status = REQ_STATUS_IDLE;
 -
--	return 0;
-->>>>>>> FETCH_HEAD:net/9p/trans_virtio.c
- }
- 
- static int p9_virtio_probe(struct virtio_device *vdev)
-@@ -294,30 +283,12 @@ static int p9_virtio_probe(struct virtio
- 		goto fail;
- 	}
- 
--<<<<<<< HEAD:net/9p/trans_virtio.c
--	/* Find the input queue. */
--	dev->priv = chan;
--	chan->in_vq = dev->config->find_vq(dev, 0, p9_virtio_intr);
--	if (IS_ERR(chan->in_vq)) {
--		err = PTR_ERR(chan->in_vq);
--		goto free;
--	}
--=======
- 	chan->vdev = vdev;
-->>>>>>> FETCH_HEAD:net/9p/trans_virtio.c
- 
--<<<<<<< HEAD:net/9p/trans_virtio.c
- 	chan->out_vq = dev->config->find_vq(dev, 1, NULL);
- 	if (IS_ERR(chan->out_vq)) {
- 		err = PTR_ERR(chan->out_vq);
- 		goto free_in_vq;
--=======
--	/* We expect one virtqueue, for requests. */
--	chan->vq = vdev->config->find_vq(vdev, req_done);
--	if (IS_ERR(chan->vq)) {
--		err = PTR_ERR(chan->vq);
--		goto out_free_vq;
-->>>>>>> FETCH_HEAD:net/9p/trans_virtio.c
- 	}
- 	chan->vq->vdev->priv = chan;
- 	spin_lock_init(&chan->lock);
+->>>>>>> FETCH_HEAD:include/asm-x86/futex.h
+ 		"1:	lock; cmpxchgl %3, %1			\n"
+ 		"2:	.section .fixup, \"ax\"			\n"
+ 		"3:	mov     %2, %0				\n"
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -181,6 +134,7 @@ cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources
 quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
 x86-validate-against-acpi-motherboard-resources.patch
 git-sched.patch
+git-sched-fix-git-conflicts.patch
 scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes.patch
 scsi-aic94xx-cleanups-checkpatch-fixes.patch
 scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
