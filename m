@@ -1,139 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - swapin-fix-valid_swaphandles-defect.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:30:13 -0800
-Message-ID: <200802052229.m15MTsp3012016@imap1.linux-foundation.org>
+Subject: - iommu-sg-merging-call-blk_queue_segment_boundary-in-__scsi_alloc_queue.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:28:22 -0800
+Message-ID: <200802052228.m15MS3Or011853@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39194 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41940 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762615AbYBEWnt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:43:49 -0500
+	by vger.kernel.org with ESMTP id S1761128AbYBEWnz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:43:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, riel@surriel.com, mm-commits@vger.kernel.org
+To: tomof@acm.org, James.Bottomley@steeleye.com, fujita.tomonori@lab.ntt.co.jp, jeff@garzik.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     swapin: fix valid_swaphandles defect
+     iommu sg merging: call blk_queue_segment_boundary in __scsi_alloc_queue
 has been removed from the -mm tree.  Its filename was
-     swapin-fix-valid_swaphandles-defect.patch
+     iommu-sg-merging-call-blk_queue_segment_boundary-in-__scsi_alloc_queue.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: swapin: fix valid_swaphandles defect
-From: Hugh Dickins <hugh@veritas.com>
+Subject: iommu sg merging: call blk_queue_segment_boundary in __scsi_alloc_queue
+From: FUJITA Tomonori <tomof@acm.org>
 
-valid_swaphandles is supposed to do a quick pass over the swap map entries
-neigbouring the entry which swapin_readahead is targetting, to determine for
-it a range worth reading all together.  But since it always starts its search
-from the beginning of the swap "cluster", a reject (free entry) there
-immediately curtails the readaround, and every swapin_readahead from that
-cluster is for just a single page.  Instead scan forwards and backwards around
-the target entry.
+request_queue and device struct must have the same value of a segment
+size limit. This patch adds blk_queue_segment_boundary in
+__scsi_alloc_queue so LLDs don't need to call both
+blk_queue_segment_boundary and set_dma_max_seg_size. A LLD can change
+the default value (64KB) can call device_dma_parameters accessors like
+pci_set_dma_max_seg_size when allocating scsi_host.
 
-Use better names for some variables: a swap_info pointer is usually called
-"si" not "swapdev".  And at the end, if only the target page should be read,
-return count of 0 to disable readaround, to avoid the unnecessarily repeated
-call to read_swap_cache_async.
-
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Acked-by: Rik van Riel <riel@surriel.com>
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Acked-by: Jeff Garzik <jeff@garzik.org>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Acked-by: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   49 ++++++++++++++++++++++++++++++++----------------
- 1 file changed, 33 insertions(+), 16 deletions(-)
+ drivers/scsi/scsi_lib.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/swapfile.c~swapin-fix-valid_swaphandles-defect mm/swapfile.c
---- a/mm/swapfile.c~swapin-fix-valid_swaphandles-defect
-+++ a/mm/swapfile.c
-@@ -1769,31 +1769,48 @@ get_swap_info_struct(unsigned type)
-  */
- int valid_swaphandles(swp_entry_t entry, unsigned long *offset)
+diff -puN drivers/scsi/scsi_lib.c~iommu-sg-merging-call-blk_queue_segment_boundary-in-__scsi_alloc_queue drivers/scsi/scsi_lib.c
+--- a/drivers/scsi/scsi_lib.c~iommu-sg-merging-call-blk_queue_segment_boundary-in-__scsi_alloc_queue
++++ a/drivers/scsi/scsi_lib.c
+@@ -1569,6 +1569,7 @@ struct request_queue *__scsi_alloc_queue
+ 					 request_fn_proc *request_fn)
  {
-+	struct swap_info_struct *si;
- 	int our_page_cluster = page_cluster;
--	int ret = 0, i = 1 << our_page_cluster;
--	unsigned long toff;
--	struct swap_info_struct *swapdev = swp_type(entry) + swap_info;
-+	pgoff_t target, toff;
-+	pgoff_t base, end;
-+	int nr_pages = 0;
+ 	struct request_queue *q;
++	struct device *dev = shost->shost_gendev.parent;
  
- 	if (!our_page_cluster)	/* no readahead */
- 		return 0;
--	toff = (swp_offset(entry) >> our_page_cluster) << our_page_cluster;
--	if (!toff)		/* first page is swap header */
--		toff++, i--;
--	*offset = toff;
-+
-+	si = &swap_info[swp_type(entry)];
-+	target = swp_offset(entry);
-+	base = (target >> our_page_cluster) << our_page_cluster;
-+	end = base + (1 << our_page_cluster);
-+	if (!base)		/* first page is swap header */
-+		base++;
+ 	q = blk_init_queue(request_fn, NULL);
+ 	if (!q)
+@@ -1584,6 +1585,8 @@ struct request_queue *__scsi_alloc_queue
+ 	blk_queue_bounce_limit(q, scsi_calculate_bounce_limit(shost));
+ 	blk_queue_segment_boundary(q, shost->dma_boundary);
  
- 	spin_lock(&swap_lock);
--	do {
--		/* Don't read-ahead past the end of the swap area */
--		if (toff >= swapdev->max)
-+	if (end > si->max)	/* don't go beyond end of map */
-+		end = si->max;
++	blk_queue_max_segment_size(q, dma_get_max_seg_size(dev));
 +
-+	/* Count contiguous allocated slots above our target */
-+	for (toff = target; ++toff < end; nr_pages++) {
-+		/* Don't read in free or bad pages */
-+		if (!si->swap_map[toff])
- 			break;
-+		if (si->swap_map[toff] == SWAP_MAP_BAD)
-+			break;
-+	}
-+	/* Count contiguous allocated slots below our target */
-+	for (toff = target; --toff >= base; nr_pages++) {
- 		/* Don't read in free or bad pages */
--		if (!swapdev->swap_map[toff])
-+		if (!si->swap_map[toff])
- 			break;
--		if (swapdev->swap_map[toff] == SWAP_MAP_BAD)
-+		if (si->swap_map[toff] == SWAP_MAP_BAD)
- 			break;
--		toff++;
--		ret++;
--	} while (--i);
-+	}
- 	spin_unlock(&swap_lock);
--	return ret;
-+
-+	/*
-+	 * Indicate starting offset, and return number of pages to get:
-+	 * if only 1, say 0, since there's then no readahead to be done.
-+	 */
-+	*offset = ++toff;
-+	return nr_pages? ++nr_pages: 0;
- }
+ 	if (!shost->use_clustering)
+ 		clear_bit(QUEUE_FLAG_CLUSTER, &q->queue_flags);
+ 
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from tomof@acm.org are
 
 origin.patch
-git-unionfs.patch
-git-x86.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-memcgroup-temporarily-revert-swapoff-mod.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memcgroup-reinstate-swapoff-mod.patch
-memcgroup-fix-zone-isolation-oom.patch
-memcgroup-revert-swap_state-mods.patch
-memory-controller-use-rcu_read_lock-in-mem_cgroup_cache_charge.patch
-memcgroup-tidy-up-mem_cgroup_charge_common.patch
-memcgroup-fix-hang-with-shmem-tmpfs.patch
-mount-options-fix-tmpfs.patch
-mount-options-fix-tmpfs-fix.patch
-add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
-prio_tree-debugging-patch.patch
