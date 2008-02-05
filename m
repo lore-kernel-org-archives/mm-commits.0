@@ -1,200 +1,203 @@
 From: akpm@linux-foundation.org
-Subject: - maps4-rework-task_size-macros.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:30:57 -0800
-Message-ID: <200802052230.m15MUcNs012088@imap1.linux-foundation.org>
+Subject: - shmem_file_write-is-redundant.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:30:10 -0800
+Message-ID: <200802052229.m15MTpXo012013@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43062 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59959 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759185AbYBEWoU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:44:20 -0500
+	by vger.kernel.org with ESMTP id S1762685AbYBEWoD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:44:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haveblue@us.ibm.com, mpm@selenic.com, ralf@linux-mips.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: hugh@veritas.com, nickpiggin@yahoo.com.au, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     maps4: rework TASK_SIZE macros
+     shmem_file_write is redundant
 has been removed from the -mm tree.  Its filename was
-     maps4-rework-task_size-macros.patch
+     shmem_file_write-is-redundant.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: maps4: rework TASK_SIZE macros
-From: Dave Hansen <haveblue@us.ibm.com>
+Subject: shmem_file_write is redundant
+From: Hugh Dickins <hugh@veritas.com>
 
-The following replaces the earlier patches sent.  It should address
-David Rientjes's comments, and has been compile tested on all the
-architectures that it touches, save for parisc.
+With the old aops, writing to a tmpfs file had to use its own special method:
+the generic method would pass in a fresh page to prepare_write when the right
+page was there in swapcache - which was inefficient to handle, even once we'd
+concocted the code to handle it.
 
-For the /proc/<pid>/pagemap code[1], we need to able to query how
-much virtual address space a particular task has.  The trick is
-that we do it through /proc and can't use TASK_SIZE since it
-references "current" on some arches.  The process opening the
-/proc file might be a 32-bit process opening a 64-bit process's
-pagemap file.
+With the new aops, the generic method uses shmem_write_end, which lets
+shmem_getpage find the right page: so now abandon shmem_file_write in favour
+of the generic method.  Yes, that does do several things that tmpfs hasn't
+really needed (notably balance_dirty_pages_ratelimited, which ramfs also
+calls); but more use of common code is preferable.
 
-x86_64 already has a TASK_SIZE_OF() macro:
-
-#define TASK_SIZE_OF(child)     ((test_tsk_thread_flag(child, TIF_IA32)) ? IA32_PAGE_OFFSET : TASK_SIZE64)
-
-I'd like to have that for other architectures.  So, add it
-for all the architectures that actually use "current" in
-their TASK_SIZE.  For the others, just add a quick #define
-in sched.h to use plain old TASK_SIZE.
-
-1. http://www.linuxworld.com/news/2007/042407-kernel.html
-
-- MIPS portion from Ralf Baechle <ralf@linux-mips.org>
-
-[akpm@linux-foundation.org: fix mips build]
-Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
-Signed-off-by: Matt Mackall <mpm@selenic.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Acked-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-ia64/processor.h    |    3 ++-
- include/asm-mips/processor.h    |    2 ++
- include/asm-parisc/processor.h  |    3 ++-
- include/asm-powerpc/processor.h |    3 ++-
- include/asm-s390/processor.h    |    3 ++-
- include/linux/sched.h           |    4 ++++
- 6 files changed, 14 insertions(+), 4 deletions(-)
+ mm/shmem.c |  109 +--------------------------------------------------
+ 1 file changed, 3 insertions(+), 106 deletions(-)
 
-diff -puN include/asm-ia64/processor.h~maps4-rework-task_size-macros include/asm-ia64/processor.h
---- a/include/asm-ia64/processor.h~maps4-rework-task_size-macros
-+++ a/include/asm-ia64/processor.h
-@@ -31,7 +31,8 @@
-  * each (assuming 8KB page size), for a total of 8TB of user virtual
-  * address space.
-  */
--#define TASK_SIZE		(current->thread.task_size)
-+#define TASK_SIZE_OF(tsk)	((tsk)->thread.task_size)
-+#define TASK_SIZE       	TASK_SIZE_OF(current)
- 
- /*
-  * This decides where the kernel will search for a free chunk of vm
-diff -puN include/asm-mips/processor.h~maps4-rework-task_size-macros include/asm-mips/processor.h
---- a/include/asm-mips/processor.h~maps4-rework-task_size-macros
-+++ a/include/asm-mips/processor.h
-@@ -65,6 +65,8 @@ extern unsigned int vced_count, vcei_cou
- #define TASK_UNMAPPED_BASE						\
- 	(test_thread_flag(TIF_32BIT_ADDR) ?				\
- 		PAGE_ALIGN(TASK_SIZE32 / 3) : PAGE_ALIGN(TASK_SIZE / 3))
-+#define TASK_SIZE_OF(tsk)						\
-+	(test_tsk_thread_flag(tsk, TIF_32BIT_ADDR) ? TASK_SIZE32 : TASK_SIZE)
- #endif
- 
- #define NUM_FPU_REGS	32
-diff -puN include/asm-parisc/processor.h~maps4-rework-task_size-macros include/asm-parisc/processor.h
---- a/include/asm-parisc/processor.h~maps4-rework-task_size-macros
-+++ a/include/asm-parisc/processor.h
-@@ -32,7 +32,8 @@
- #endif
- #define current_text_addr() ({ void *pc; current_ia(pc); pc; })
- 
--#define TASK_SIZE               (current->thread.task_size)
-+#define TASK_SIZE_OF(tsk)       ((tsk)->thread.task_size)
-+#define TASK_SIZE	        TASK_SIZE_OF(current)
- #define TASK_UNMAPPED_BASE      (current->thread.map_base)
- 
- #define DEFAULT_TASK_SIZE32	(0xFFF00000UL)
-diff -puN include/asm-powerpc/processor.h~maps4-rework-task_size-macros include/asm-powerpc/processor.h
---- a/include/asm-powerpc/processor.h~maps4-rework-task_size-macros
-+++ a/include/asm-powerpc/processor.h
-@@ -99,8 +99,9 @@ extern struct task_struct *last_task_use
-  */
- #define TASK_SIZE_USER32 (0x0000000100000000UL - (1*PAGE_SIZE))
- 
--#define TASK_SIZE (test_thread_flag(TIF_32BIT) ? \
-+#define TASK_SIZE_OF(tsk) (test_tsk_thread_flag(tsk, TIF_32BIT) ? \
- 		TASK_SIZE_USER32 : TASK_SIZE_USER64)
-+#define TASK_SIZE	  TASK_SIZE_OF(current)
- 
- /* This decides where the kernel will search for a free chunk of vm
-  * space during mmap's.
-diff -puN include/asm-s390/processor.h~maps4-rework-task_size-macros include/asm-s390/processor.h
---- a/include/asm-s390/processor.h~maps4-rework-task_size-macros
-+++ a/include/asm-s390/processor.h
-@@ -70,8 +70,9 @@ extern int get_cpu_capability(unsigned i
- 
- #else /* __s390x__ */
- 
--# define TASK_SIZE		(test_thread_flag(TIF_31BIT) ? \
-+# define TASK_SIZE_OF(tsk)	(test_tsk_thread_flag(tsk, TIF_31BIT) ? \
- 					(0x80000000UL) : (0x40000000000UL))
-+# define TASK_SIZE		TASK_SIZE_OF(current)
- # define TASK_UNMAPPED_BASE	(TASK_SIZE / 2)
- # define DEFAULT_TASK_SIZE	(0x40000000000UL)
- 
-diff -puN include/linux/sched.h~maps4-rework-task_size-macros include/linux/sched.h
---- a/include/linux/sched.h~maps4-rework-task_size-macros
-+++ a/include/linux/sched.h
-@@ -2087,6 +2087,10 @@ static inline void migration_init(void)
+diff -puN mm/shmem.c~shmem_file_write-is-redundant mm/shmem.c
+--- a/mm/shmem.c~shmem_file_write-is-redundant
++++ a/mm/shmem.c
+@@ -1106,7 +1106,7 @@ static int shmem_getpage(struct inode *i
+ 	 * Normally, filepage is NULL on entry, and either found
+ 	 * uptodate immediately, or allocated and zeroed, or read
+ 	 * in under swappage, which is then assigned to filepage.
+-	 * But shmem_readpage and shmem_write_begin pass in a locked
++	 * But shmem_readpage (required for splice) passes in a locked
+ 	 * filepage, which may be found not uptodate by other callers
+ 	 * too, and may need to be copied from the swappage read in.
+ 	 */
+@@ -1476,110 +1476,6 @@ shmem_write_end(struct file *file, struc
+ 	return copied;
  }
- #endif
  
-+#ifndef TASK_SIZE_OF
-+#define TASK_SIZE_OF(tsk)	TASK_SIZE
-+#endif
-+
- #endif /* __KERNEL__ */
- 
- #endif
+-static ssize_t
+-shmem_file_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
+-{
+-	struct inode	*inode = file->f_path.dentry->d_inode;
+-	loff_t		pos;
+-	unsigned long	written;
+-	ssize_t		err;
+-
+-	if ((ssize_t) count < 0)
+-		return -EINVAL;
+-
+-	if (!access_ok(VERIFY_READ, buf, count))
+-		return -EFAULT;
+-
+-	mutex_lock(&inode->i_mutex);
+-
+-	pos = *ppos;
+-	written = 0;
+-
+-	err = generic_write_checks(file, &pos, &count, 0);
+-	if (err || !count)
+-		goto out;
+-
+-	err = remove_suid(file->f_path.dentry);
+-	if (err)
+-		goto out;
+-
+-	inode->i_ctime = inode->i_mtime = CURRENT_TIME;
+-
+-	do {
+-		struct page *page = NULL;
+-		unsigned long bytes, index, offset;
+-		char *kaddr;
+-		int left;
+-
+-		offset = (pos & (PAGE_CACHE_SIZE -1)); /* Within page */
+-		index = pos >> PAGE_CACHE_SHIFT;
+-		bytes = PAGE_CACHE_SIZE - offset;
+-		if (bytes > count)
+-			bytes = count;
+-
+-		/*
+-		 * We don't hold page lock across copy from user -
+-		 * what would it guard against? - so no deadlock here.
+-		 * But it still may be a good idea to prefault below.
+-		 */
+-
+-		err = shmem_getpage(inode, index, &page, SGP_WRITE, NULL);
+-		if (err)
+-			break;
+-
+-		unlock_page(page);
+-		left = bytes;
+-		if (PageHighMem(page)) {
+-			volatile unsigned char dummy;
+-			__get_user(dummy, buf);
+-			__get_user(dummy, buf + bytes - 1);
+-
+-			kaddr = kmap_atomic(page, KM_USER0);
+-			left = __copy_from_user_inatomic(kaddr + offset,
+-							buf, bytes);
+-			kunmap_atomic(kaddr, KM_USER0);
+-		}
+-		if (left) {
+-			kaddr = kmap(page);
+-			left = __copy_from_user(kaddr + offset, buf, bytes);
+-			kunmap(page);
+-		}
+-
+-		written += bytes;
+-		count -= bytes;
+-		pos += bytes;
+-		buf += bytes;
+-		if (pos > inode->i_size)
+-			i_size_write(inode, pos);
+-
+-		flush_dcache_page(page);
+-		set_page_dirty(page);
+-		mark_page_accessed(page);
+-		page_cache_release(page);
+-
+-		if (left) {
+-			pos -= left;
+-			written -= left;
+-			err = -EFAULT;
+-			break;
+-		}
+-
+-		/*
+-		 * Our dirty pages are not counted in nr_dirty,
+-		 * and we do not attempt to balance dirty pages.
+-		 */
+-
+-		cond_resched();
+-	} while (count);
+-
+-	*ppos = pos;
+-	if (written)
+-		err = written;
+-out:
+-	mutex_unlock(&inode->i_mutex);
+-	return err;
+-}
+-
+ static void do_shmem_file_read(struct file *filp, loff_t *ppos, read_descriptor_t *desc, read_actor_t actor)
+ {
+ 	struct inode *inode = filp->f_path.dentry->d_inode;
+@@ -2354,7 +2250,8 @@ static const struct file_operations shme
+ #ifdef CONFIG_TMPFS
+ 	.llseek		= generic_file_llseek,
+ 	.read		= shmem_file_read,
+-	.write		= shmem_file_write,
++	.write		= do_sync_write,
++	.aio_write	= generic_file_aio_write,
+ 	.fsync		= simple_sync_file,
+ 	.splice_read	= generic_file_splice_read,
+ 	.splice_write	= generic_file_splice_write,
 _
 
-Patches currently in -mm which might be from haveblue@us.ibm.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-enable-hotplug-memory-remove-for-ppc64.patch
-add-arch-specific-walk_memory_remove-for-ppc64.patch
-reiserfs-eliminate-private-use-of-struct-file-in-xattr.patch
-do-namei_flags-calculation-inside-open_namei.patch
-make-open_namei-return-a-filp.patch
-kill-do_filp_open.patch
-kill-filp_open.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-stub-functions.patch
-r-o-bind-mounts-do_rmdir-elevate-write-count.patch
-r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
-r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
-r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
-r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
-r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
-r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate.patch
-r-o-bind-mounts-make-access-use-mnt-check.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch
+git-unionfs.patch
+git-x86.patch
 r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop.patch
 r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
-keep-track-of-mnt_writer-state-of-struct-file.patch
-keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on.patch
-keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix.patch
-create-file_drop_write_access-helper.patch
-fix-up-new-filp-allocators.patch
-use-struct-path-in-struct-svc_export-nfsd-fix-wrong-mnt_writer-count-in-rename.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
+memcgroup-temporarily-revert-swapoff-mod.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memcgroup-reinstate-swapoff-mod.patch
+memcgroup-fix-zone-isolation-oom.patch
+memcgroup-revert-swap_state-mods.patch
+memory-controller-use-rcu_read_lock-in-mem_cgroup_cache_charge.patch
+memcgroup-tidy-up-mem_cgroup_charge_common.patch
+memcgroup-fix-hang-with-shmem-tmpfs.patch
+mount-options-fix-tmpfs.patch
+mount-options-fix-tmpfs-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
+prio_tree-debugging-patch.patch
