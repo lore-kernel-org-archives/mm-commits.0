@@ -1,61 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - uml-tidy-pgtableh-fix.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:36:08 -0800
-Message-ID: <200802052235.m15MZnYi012645@imap1.linux-foundation.org>
+Subject: - uml-add-newlines-to-printks.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:38:27 -0800
+Message-ID: <200802052238.m15Mc8t5012926@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58494 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41094 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762332AbYBEWlQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:16 -0500
+	by vger.kernel.org with ESMTP id S1760839AbYBEWl0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     UML - Fix build in 2.6.24-rc2-mm1
+     uml: add newlines to printks
 has been removed from the -mm tree.  Its filename was
-     uml-tidy-pgtableh-fix.patch
+     uml-add-newlines-to-printks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: UML - Fix build in 2.6.24-rc2-mm1
+Subject: uml: add newlines to printks
 From: Jeff Dike <jdike@addtoit.com>
 
-The earlier pgtable.h tidying patch made things a bit too tidy.  Add
-back a header which is needed in VMALLOC_START and friend.  Also add
-back a definition of pmd_page_vaddr, which is needed on x86_64.
+Some printks were missing newlines.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-um/pgtable.h |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/um/os-Linux/skas/process.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/asm-um/pgtable.h~uml-tidy-pgtableh-fix include/asm-um/pgtable.h
---- a/include/asm-um/pgtable.h~uml-tidy-pgtableh-fix
-+++ a/include/asm-um/pgtable.h
-@@ -9,6 +9,7 @@
- #define __UM_PGTABLE_H
+diff -puN arch/um/os-Linux/skas/process.c~uml-add-newlines-to-printks arch/um/os-Linux/skas/process.c
+--- a/arch/um/os-Linux/skas/process.c~uml-add-newlines-to-printks
++++ a/arch/um/os-Linux/skas/process.c
+@@ -273,7 +273,7 @@ int start_userspace(unsigned long stub_s
+ 	if (stack == MAP_FAILED) {
+ 		err = -errno;
+ 		printk(UM_KERN_ERR "start_userspace : mmap failed, "
+-		       "errno = %d", errno);
++		       "errno = %d\n", errno);
+ 		return err;
+ 	}
  
- #include "linux/sched.h"
-+#include <asm/fixmap.h>
+@@ -289,7 +289,7 @@ int start_userspace(unsigned long stub_s
+ 	if (pid < 0) {
+ 		err = -errno;
+ 		printk(UM_KERN_ERR "start_userspace : clone failed, "
+-		       "errno = %d", errno);
++		       "errno = %d\n", errno);
+ 		return err;
+ 	}
  
- #define _PAGE_PRESENT	0x001
- #define _PAGE_NEWPAGE	0x002
-@@ -308,6 +309,7 @@ static inline pte_t pte_modify(pte_t pte
-  * this macro returns the index of the entry in the pmd page which would
-  * control the given virtual address
-  */
-+#define pmd_page_vaddr(pmd) ((unsigned long) __va(pmd_val(pmd) & PAGE_MASK))
- #define pmd_index(address) (((address) >> PMD_SHIFT) & (PTRS_PER_PMD-1))
+@@ -298,7 +298,7 @@ int start_userspace(unsigned long stub_s
+ 		if (n < 0) {
+ 			err = -errno;
+ 			printk(UM_KERN_ERR "start_userspace : wait failed, "
+-			       "errno = %d", errno);
++			       "errno = %d\n", errno);
+ 			goto out_kill;
+ 		}
+ 	} while (WIFSTOPPED(status) && (WSTOPSIG(status) == SIGVTALRM));
+@@ -306,7 +306,7 @@ int start_userspace(unsigned long stub_s
+ 	if (!WIFSTOPPED(status) || (WSTOPSIG(status) != SIGSTOP)) {
+ 		err = -EINVAL;
+ 		printk(UM_KERN_ERR "start_userspace : expected SIGSTOP, got "
+-		       "status = %d", status);
++		       "status = %d\n", status);
+ 		goto out_kill;
+ 	}
  
- /*
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
