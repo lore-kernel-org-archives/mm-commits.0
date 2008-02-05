@@ -1,174 +1,210 @@
 From: akpm@linux-foundation.org
-Subject: - uml-clean-up-sig_handler_common_skas.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:37:54 -0800
-Message-ID: <200802052237.m15MbZ0S012862@imap1.linux-foundation.org>
+Subject: - uml-eliminate-setjmp_wrapper.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:37:30 -0800
+Message-ID: <200802052237.m15MbBBv012833@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38252 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60227 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762511AbYBEWlq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:46 -0500
+	by vger.kernel.org with ESMTP id S1762504AbYBEWlr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: clean up sig_handler_common_skas
+     uml: eliminate setjmp_wrapper
 has been removed from the -mm tree.  Its filename was
-     uml-clean-up-sig_handler_common_skas.patch
+     uml-eliminate-setjmp_wrapper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: clean up sig_handler_common_skas
+Subject: uml: eliminate setjmp_wrapper
 From: Jeff Dike <jdike@addtoit.com>
 
-sig_handler_common_skas needs significant modernization, starting with
-its name and storage class.
+setjmp_wrapper existed to provide setjmp to kernel code when UML used libc's
+setjmp and longjmp.  Now that UML has its own implementation, this isn't
+needed and kernel code can invoke setjmp directly.
 
-There is no need to hide the true type of the sigcontext pointer, so
-the void * dummy parameter can be replaced with a sigcontext *sc.
+do_buffer_op is massively cleaned up since it is no longer a callback from
+setjmp_wrapper and given a va_list from which it must extract its arguments.
 
-The array of uml_pt_regs structs used in the page fault case are gone,
-replaced by a local variable.  This is also used in the non-segfault
-case instead of the copy in the task_struct.  Since it's local, the
-special handling of the is_user flag can go away.
-
-There hasn't been any special treatment of SIGUSR1 in ages, so the
-line that enables it can be deleted.
-
-The special treatment of SIGSEGV similarly goes away, but to
-compensate, SA_NODEFER is added to sa_mask when registering a signal
-handler.
+The actual setjmp is moved from buffer_op to do_op_one_page because the copy
+operation is inside an atomic section (kmap_atomic to kunmap_atomic) and it
+shouldn't be longjmp-ed out of.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/signal.c |   63 ++++++++++--------------------------
- 1 file changed, 18 insertions(+), 45 deletions(-)
+ arch/um/include/os.h          |    1 
+ arch/um/kernel/skas/uaccess.c |   73 +++++++++++---------------------
+ arch/um/os-Linux/util.c       |   15 ------
+ 3 files changed, 27 insertions(+), 62 deletions(-)
 
-diff -puN arch/um/os-Linux/signal.c~uml-clean-up-sig_handler_common_skas arch/um/os-Linux/signal.c
---- a/arch/um/os-Linux/signal.c~uml-clean-up-sig_handler_common_skas
-+++ a/arch/um/os-Linux/signal.c
-@@ -10,14 +10,15 @@
- #include <signal.h>
- #include <strings.h>
- #include "as-layout.h"
--#include "kern_constants.h"
- #include "kern_util.h"
- #include "os.h"
- #include "sysdep/barrier.h"
- #include "sysdep/sigcontext.h"
--#include "task.h"
- #include "user.h"
+diff -puN arch/um/include/os.h~uml-eliminate-setjmp_wrapper arch/um/include/os.h
+--- a/arch/um/include/os.h~uml-eliminate-setjmp_wrapper
++++ a/arch/um/include/os.h
+@@ -235,7 +235,6 @@ extern void stack_protections(unsigned l
+ extern int raw(int fd);
+ extern void setup_machinename(char *machine_out);
+ extern void setup_hostinfo(char *buf, int len);
+-extern int setjmp_wrapper(void (*proc)(void *, void *), ...);
+ extern void os_dump_core(void) __attribute__ ((noreturn));
  
-+/* Copied from linux/compiler-gcc.h since we can't include it directly */
-+#define barrier() __asm__ __volatile__("": : :"memory")
-+
- void (*sig_info[NSIG])(int, struct uml_pt_regs *) = {
- 	[SIGTRAP]	= relay_signal,
- 	[SIGFPE]	= relay_signal,
-@@ -28,58 +29,27 @@ void (*sig_info[NSIG])(int, struct uml_p
- 	[SIGIO]		= sigio_handler,
- 	[SIGVTALRM]	= timer_handler };
- 
--static struct uml_pt_regs ksig_regs[UM_NR_CPUS];
--
--void sig_handler_common_skas(int sig, void *sc_ptr)
-+static void sig_handler_common(int sig, struct sigcontext *sc)
+ /* time.c */
+diff -puN arch/um/kernel/skas/uaccess.c~uml-eliminate-setjmp_wrapper arch/um/kernel/skas/uaccess.c
+--- a/arch/um/kernel/skas/uaccess.c~uml-eliminate-setjmp_wrapper
++++ a/arch/um/kernel/skas/uaccess.c
+@@ -58,9 +58,10 @@ static pte_t *maybe_map(unsigned long vi
+ static int do_op_one_page(unsigned long addr, int len, int is_write,
+ 		 int (*op)(unsigned long addr, int len, void *arg), void *arg)
  {
--	struct sigcontext *sc = sc_ptr;
--	struct uml_pt_regs *r;
--	void (*handler)(int, struct uml_pt_regs *);
--	int save_user, save_errno = errno;
-+	struct uml_pt_regs r;
-+	int save_errno = errno;
++	jmp_buf buf;
+ 	struct page *page;
+ 	pte_t *pte;
+-	int n;
++	int n, faulted;
  
--	/*
--	 * This is done because to allow SIGSEGV to be delivered inside a SEGV
--	 * handler.  This can happen in copy_user, and if SEGV is disabled,
--	 * the process will die.
--	 * XXX Figure out why this is better than SA_NODEFER
--	 */
-+	r.is_user = 0;
- 	if (sig == SIGSEGV) {
--		change_sig(SIGSEGV, 1);
--		/*
--		 * For segfaults, we want the data from the
--		 * sigcontext.  In this case, we don't want to mangle
--		 * the process registers, so use a static set of
--		 * registers.  For other signals, the process
--		 * registers are OK.
--		 */
--		r = &ksig_regs[cpu()];
--		copy_sc(r, sc_ptr);
--	} else
--		r = TASK_REGS(get_current());
+ 	pte = maybe_map(addr, is_write);
+ 	if (pte == NULL)
+@@ -70,82 +71,62 @@ static int do_op_one_page(unsigned long 
+ 	addr = (unsigned long) kmap_atomic(page, KM_UML_USERCOPY) +
+ 		(addr & ~PAGE_MASK);
+ 
+-	n = (*op)(addr, len, arg);
++	current->thread.fault_catcher = &buf;
++
++	faulted = UML_SETJMP(&buf);
++	if (faulted == 0)
++		n = (*op)(addr, len, arg);
++	else
++		n = -1;
++
++	current->thread.fault_catcher = NULL;
+ 
+ 	kunmap_atomic(page, KM_UML_USERCOPY);
+ 
+ 	return n;
+ }
+ 
+-static void do_buffer_op(void *jmpbuf, void *arg_ptr)
++static int buffer_op(unsigned long addr, int len, int is_write,
++		     int (*op)(unsigned long, int, void *), void *arg)
+ {
+-	va_list args;
+-	unsigned long addr;
+-	int len, is_write, size, remain, n;
+-	int (*op)(unsigned long, int, void *);
+-	void *arg;
+-	int *res;
 -
--	save_user = r->is_user;
--	r->is_user = 0;
--	if ((sig == SIGFPE) || (sig == SIGSEGV) || (sig == SIGBUS) ||
--	    (sig == SIGILL) || (sig == SIGTRAP))
--		GET_FAULTINFO_FROM_SC(r->faultinfo, sc);
+-	va_copy(args, *(va_list *)arg_ptr);
+-	addr = va_arg(args, unsigned long);
+-	len = va_arg(args, int);
+-	is_write = va_arg(args, int);
+-	op = va_arg(args, void *);
+-	arg = va_arg(args, void *);
+-	res = va_arg(args, int *);
+-	va_end(args);
++	int size, remain, n;
++
+ 	size = min(PAGE_ALIGN(addr) - addr, (unsigned long) len);
+ 	remain = len;
+ 
+-	current->thread.fault_catcher = jmpbuf;
+ 	n = do_op_one_page(addr, size, is_write, op, arg);
+ 	if (n != 0) {
+-		*res = (n < 0 ? remain : 0);
++		remain = (n < 0 ? remain : 0);
+ 		goto out;
+ 	}
+ 
+ 	addr += size;
+ 	remain -= size;
+-	if (remain == 0) {
+-		*res = 0;
++	if (remain == 0)
+ 		goto out;
+-	}
+ 
+-	while(addr < ((addr + remain) & PAGE_MASK)) {
++	while (addr < ((addr + remain) & PAGE_MASK)) {
+ 		n = do_op_one_page(addr, PAGE_SIZE, is_write, op, arg);
+ 		if (n != 0) {
+-			*res = (n < 0 ? remain : 0);
++			remain = (n < 0 ? remain : 0);
+ 			goto out;
+ 		}
+ 
+ 		addr += PAGE_SIZE;
+ 		remain -= PAGE_SIZE;
+ 	}
+-	if (remain == 0) {
+-		*res = 0;
++	if (remain == 0)
+ 		goto out;
+-	}
+ 
+ 	n = do_op_one_page(addr, remain, is_write, op, arg);
+-	if (n != 0)
+-		*res = (n < 0 ? remain : 0);
+-	else *res = 0;
+- out:
+-	current->thread.fault_catcher = NULL;
+-}
 -
--	change_sig(SIGUSR1, 1);
+-static int buffer_op(unsigned long addr, int len, int is_write,
+-		     int (*op)(unsigned long addr, int len, void *arg),
+-		     void *arg)
+-{
+-	int faulted, res;
 -
--	handler = sig_info[sig];
-+		/* For segfaults, we want the data from the sigcontext. */
-+		copy_sc(&r, sc);
-+		GET_FAULTINFO_FROM_SC(r.faultinfo, sc);
+-	faulted = setjmp_wrapper(do_buffer_op, addr, len, is_write, op, arg,
+-				 &res);
+-	if (!faulted)
+-		return res;
++	if (n != 0) {
++		remain = (n < 0 ? remain : 0);
++		goto out;
 +	}
  
--	/* unblock SIGVTALRM, SIGIO if sig isn't IRQ signal */
-+	/* enable signals if sig isn't IRQ signal */
- 	if ((sig != SIGIO) && (sig != SIGWINCH) && (sig != SIGVTALRM))
- 		unblock_signals();
- 
--	handler(sig, r);
-+	(*sig_info[sig])(sig, &r);
- 
- 	errno = save_errno;
--	r->is_user = save_user;
+-	return addr + len - (unsigned long) current->thread.fault_addr;
++	return 0;
++ out:
++	return remain;
  }
  
--/* Copied from linux/compiler-gcc.h since we can't include it directly */
--#define barrier() __asm__ __volatile__("": : :"memory")
+ static int copy_chunk_from_user(unsigned long from, int len, void *arg)
+diff -puN arch/um/os-Linux/util.c~uml-eliminate-setjmp_wrapper arch/um/os-Linux/util.c
+--- a/arch/um/os-Linux/util.c~uml-eliminate-setjmp_wrapper
++++ a/arch/um/os-Linux/util.c
+@@ -88,21 +88,6 @@ void setup_hostinfo(char *buf, int len)
+ 		 host.release, host.version, host.machine);
+ }
+ 
+-int setjmp_wrapper(void (*proc)(void *, void *), ...)
+-{
+-	va_list args;
+-	jmp_buf buf;
+-	int n;
 -
- /*
-  * These are the asynchronous signals.  SIGPROF is excluded because we want to
-  * be able to profile all of UML, not just the non-critical sections.  If
-@@ -107,7 +77,7 @@ void sig_handler(int sig, struct sigcont
- 
- 	block_signals();
- 
--	sig_handler_common_skas(sig, sc);
-+	sig_handler_common(sig, sc);
- 
- 	set_signals(enabled);
- }
-@@ -227,6 +197,9 @@ void set_handler(int sig, void (*handler
- 		sigaddset(&action.sa_mask, mask);
- 	va_end(ap);
- 
-+	if (sig == SIGSEGV)
-+		flags |= SA_NODEFER;
-+
- 	action.sa_flags = flags;
- 	action.sa_restorer = NULL;
- 	if (sigaction(sig, &action, NULL) < 0)
-@@ -306,7 +279,7 @@ void unblock_signals(void)
- 		 * back here.
- 		 */
- 		if (save_pending & SIGIO_MASK)
--			sig_handler_common_skas(SIGIO, NULL);
-+			sig_handler_common(SIGIO, NULL);
- 
- 		if (save_pending & SIGVTALRM_MASK)
- 			real_alarm_handler(NULL);
+-	n = UML_SETJMP(&buf);
+-	if(n == 0){
+-		va_start(args, proc);
+-		(*proc)(&buf, &args);
+-	}
+-	va_end(args);
+-	return n;
+-}
+-
+ void os_dump_core(void)
+ {
+ 	int pid;
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
