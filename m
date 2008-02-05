@@ -1,300 +1,181 @@
 From: akpm@linux-foundation.org
-Subject: - git-dvb-broke-tda8290.patch removed from -mm tree
-Date: Mon, 04 Feb 2008 23:37:36 -0800
-Message-ID: <200802050737.m157bHE0010002@imap1.linux-foundation.org>
+Subject: - oz99x-i2c-button-and-led-support-driver-update.patch removed from -mm tree
+Date: Mon, 04 Feb 2008 23:37:48 -0800
+Message-ID: <200802050737.m157bTrY010005@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44872 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39824 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753542AbYBEHhb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 02:37:31 -0500
+	by vger.kernel.org with ESMTP id S1752235AbYBEHiL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 02:38:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: post@hendrik-sattler.de, khali@linux-fr.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-dvb-broke-tda8290
+     oz99x-i2c-button-and-led-support-driver update
 has been removed from the -mm tree.  Its filename was
-     git-dvb-broke-tda8290.patch
+     oz99x-i2c-button-and-led-support-driver-update.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into oz99x-i2c-button-and-led-support-driver.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-dvb-broke-tda8290
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: oz99x-i2c-button-and-led-support-driver update
+From: Hendrik Sattler <post@hendrik-sattler.de>
 
-drivers/media/video/tda8290.c:27:21: error: tda827x.h: No such file or directory
-drivers/media/video/tda8290.c:28:22: error: tda18271.h: No such file or directory
-drivers/media/video/tda8290.c:52: error: field 'cfg' has incomplete type
-drivers/media/video/tda8290.c: In function 'tda829x_find_tuner':
-drivers/media/video/tda8290.c:590: error: implicit declaration of function 'tda18271_attach'
-drivers/media/video/tda8290.c:598: error: implicit declaration of function 'tda827x_attach'
-
-Please tell me when I can drop this patch again.
-
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/i2c/chips/Kconfig |    1 
+ drivers/i2c/chips/oz99x.c |   65 +++++++++++++++++++++---------------
+ 2 files changed, 38 insertions(+), 28 deletions(-)
 
-diff -puN drivers/media/Kconfig~git-dvb-broke-tda8290 drivers/media/Kconfig
---- a/drivers/media/Kconfig~git-dvb-broke-tda8290
-+++ a/drivers/media/Kconfig
-@@ -71,7 +71,6 @@ config VIDEO_TUNER
+diff -puN drivers/i2c/chips/Kconfig~oz99x-i2c-button-and-led-support-driver-update drivers/i2c/chips/Kconfig
+--- a/drivers/i2c/chips/Kconfig~oz99x-i2c-button-and-led-support-driver-update
++++ a/drivers/i2c/chips/Kconfig
+@@ -139,7 +139,6 @@ config OZ99X
+ 	tristate "O2 Micro/ETC OZ990/OZ992 SMBus chip"
  	depends on I2C
- 	select TUNER_XC2028 if !VIDEO_TUNER_CUSTOMIZE
- 	select TUNER_MT20XX if !VIDEO_TUNER_CUSTOMIZE
--	select TUNER_TDA8290 if !VIDEO_TUNER_CUSTOMIZE
- 	select TUNER_TEA5761 if !VIDEO_TUNER_CUSTOMIZE
- 	select TUNER_TEA5767 if !VIDEO_TUNER_CUSTOMIZE
- 	select TUNER_SIMPLE if !VIDEO_TUNER_CUSTOMIZE
-@@ -108,6 +107,7 @@ config TUNER_MT20XX
- config TUNER_TDA8290
- 	tristate "TDA 8290/8295 + 8275(a)/18271 tuner combo"
- 	depends on I2C
-+	depends on BROKEN
- 	select DVB_TDA827X
- 	select DVB_TDA18271
- 	default m if VIDEO_TUNER_CUSTOMIZE
+ 	select INPUT_POLLDEV
+-	select LEDS_CLASS
+ 	help
+ 	  If you say Y here, you get support for the OZ990 and OZ992 chip
+ 	  from O2 Micro. This driver provides support for buttons and
+diff -puN drivers/i2c/chips/oz99x.c~oz99x-i2c-button-and-led-support-driver-update drivers/i2c/chips/oz99x.c
+--- a/drivers/i2c/chips/oz99x.c~oz99x-i2c-button-and-led-support-driver-update
++++ a/drivers/i2c/chips/oz99x.c
+@@ -54,17 +54,6 @@ struct oz99x_data {
+ 	} range;
+ };
+ 
+-struct oz99x_led_data {
+-	struct oz99x_data *data;
+-
+-	int gpio;
+-	char name[8];
+-	struct led_classdev cdev;
+-
+-	struct list_head list;
+-};
+-#define oz99x_from_led_cdev(c) container_of(c, struct oz99x_led_data, cdev)
+-
+ #define oz99x_reg_write(client, reg, value) \
+ 	i2c_smbus_write_word_data(client, reg, value)
+ #define oz99x_reg_read(client, reg) i2c_smbus_read_word_data(client, reg)
+@@ -231,6 +220,18 @@ static DEVICE_ATTR(regs, 0444, regs_show
+ #define OZ99X_CHIPID_ID(n)  (((n) >> 8) & 0x00FF)
+ #define OZ99X_CHIPID_REV(n) ((n) & 0x00FF)
+ 
++#if defined(CONFIG_LEDS_CLASS) || defined(CONFIG_LEDS_CLASS_MODULE)
++struct oz99x_led_data {
++	struct oz99x_data *data;
++
++	int gpio;
++	char name[8];
++	struct led_classdev cdev;
++
++	struct list_head list;
++};
++#define oz99x_from_led_cdev(c) container_of(c, struct oz99x_led_data, cdev)
++
+ static
+ int oz99x_find_leds(struct i2c_client *client)
+ {
+@@ -318,6 +319,21 @@ void oz99x_configure_leds(struct oz99x_d
+ }
+ 
+ static
++void __devexit oz99x_cleanup_leds (struct oz99x_data* data)
++{
++	struct list_head *pos;
++	list_for_each(pos, &data->leds) {
++		struct oz99x_led_data *ldata =
++			list_entry(pos, struct oz99x_led_data, list);
++		led_classdev_unregister(&ldata->cdev);
++		kfree(ldata);
++	}
++}
++#else
++#define oz99x_cleanup_leds(data)
++#endif /* CONFIG_LEDS_CLASS */
++
++static
+ int oz99x_find_buttons(struct i2c_client *client)
+ {
+ 	int i;
+@@ -578,8 +594,7 @@ int __devinit oz99x_probe(struct i2c_cli
+ 	struct oz99x_data *data;
+ 	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
+ 	int id;
+-	int buttons;
+-	int leds;
++	int lines;
+ 	int status = 0;
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA))
+@@ -598,22 +613,24 @@ int __devinit oz99x_probe(struct i2c_cli
+ 		goto out;
+ 	}
+ 
+-	buttons = oz99x_find_buttons(client);
+-	if (!buttons) {
++	lines = oz99x_find_buttons(client);
++	if (!lines) {
+ 		dev_info(&client->dev, "no buttons configured.\n");
+ 	} else {
+-		status = oz99x_configure_buttons(client, buttons);
++		status = oz99x_configure_buttons(client, lines);
+ 		if (!status)
+-			status = oz99x_buttons_poll_setup(data, buttons);
++			status = oz99x_buttons_poll_setup(data, lines);
+ 		if (status)
+ 			goto out;
+ 	}
+ 
+-	leds = oz99x_find_leds(client);
+-	if (!leds)
++#if defined(CONFIG_LEDS_CLASS) || defined(CONFIG_LEDS_CLASS_MODULE)
++	lines = oz99x_find_leds(client);
++	if (!lines)
+ 		dev_info(&client->dev, "no LEDs configured.\n");
+ 	else
+-		oz99x_configure_leds(data, leds);
++		oz99x_configure_leds(data, lines);
++#endif /* CONFIG_LEDS_CLASS */
+ 
+ 	switch (id) {
+ 	case 0x90:
+@@ -642,7 +659,6 @@ out:
+ static
+ int __devexit oz99x_remove(struct i2c_client *client)
+ {
+-	struct list_head *pos;
+ 	struct oz99x_data *data = i2c_get_clientdata(client);
+ 
+ 	if (data->ipdev)
+@@ -654,12 +670,7 @@ int __devexit oz99x_remove(struct i2c_cl
+ 		device_remove_file(&client->dev, &dev_attr_regs_max);
+ 	}
+ 
+-	list_for_each(pos, &data->leds) {
+-		struct oz99x_led_data *ldata =
+-			list_entry(pos, struct oz99x_led_data, list);
+-		led_classdev_unregister(&ldata->cdev);
+-		kfree(ldata);
+-	}
++	oz99x_cleanup_leds(data);
+ 
+ 	kfree(data);
+ 	return 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from post@hendrik-sattler.de are
 
-origin.patch
-kvm-i386-fix.patch
-drivers-net-wireless-b43-mainc-needs-ioh.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-timerfd-v3-new-timerfd-api.patch
-include-asm-powerpc-nvramh-needs-listh.patch
-serial-add-addi-data-gmbh-communication-cardsin8250_pcic-and-pci_idsh.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
-vmalloc-add-const-to-void-parameters.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
-bufferhead-revert-constructor-removal.patch
-shmem-factor-out-sbi-free_inodes-manipulations.patch
-maps4-rework-task_size-macros.patch
-maps4-add-proc-kpagecount-interface.patch
-maps4-add-proc-kpageflags-interface.patch
-maps4-make-page-monitoring-proc-file-optional.patch
-page-allocator-clean-up-pcp-draining-functions.patch
-add-mm-argument-to-pte-pmd-pud-pgd_free.patch
-mm-page-writeback-highmem_is_dirtyable-option.patch
-mm-remove-fastcall-from-mm.patch
-page-migraton-handle-orphaned-pages.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-add-64-bit-capability-support-to-the-kernel.patch
-alpha-atomic_add_return-should-return-int.patch
-alpha-fix-warning-by-fixing-flush_tlb_kernel_range.patch
-pm-qos-infrastructure-and-interface.patch
-dio-array_size-cleanup.patch
-uml-get-rid-of-asmlinkage.patch
-uml-improve-detection-of-host-cmov.patch
-uml-further-bugsc-tidying.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-acpi-backlight-reset-brightness-on-resume.patch
-git-agpgart.patch
-git-agpgart-fix.patch
-git-audit-printk-warning-fix.patch
-cifs-fix-warning.patch
-git-cpufreq.patch
-revert-agk-dm-dm-loop.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-git-drm-fix.patch
-drm-convert-from-nopage-to-fault.patch
-drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
-adt7473-new-driver-for-analog-devices-adt7473-sensor-chip-fix.patch
-revert-git-hrt.patch
-git-ia64.patch
-i8042-non-x86-build-fix.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-git-kvm.patch
-ata-drivers-ata-sata_mvc-needs-dmapoolh.patch
-drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
-drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
-git-md-accel.patch
-memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
-memstick-disable-busted-code.patch
-git-mmc.patch
-git-mtd.patch
-drivers-mtd-maps-physmapc-fix-compile-remove-ifdef.patch
-git-netdev-all-fix-conflicts-fix.patch
-drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-backlight.patch
-bluetooth-uninlining.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform-checkpatch-fixes.patch
-x86-validate-against-acpi-motherboard-resources.patch
-git-sched.patch
-git-sched-fix-git-conflicts.patch
-scsi-fix-isa-pcmcia-compile-problem-checkpatch-fixes.patch
-scsi-aic94xx-cleanups-checkpatch-fixes.patch
-scsi-aic94xx-cleanups-checkpatch-fixes-checkpatch-fixes.patch
-drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-ehci-hcd-fix-sparse-warning-about-shadowing-status-symbol-checkpatch-fixes.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-ohci-sm501-driver-v2-fix.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
-git-v9fs-fix-git-conflicts.patch
-9p-fix-p9_printfcall-export.patch
-git-watchdog.patch
-git-watchdog-fixup.patch
-b43-fix-build-with-config_ssb_pcihost=n.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-x86-fix-git-conflicts.patch
-git-x86-vs-pm-acquire-device-locks-on-suspend-rev-3.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled-fix.patch
-x86-amd-thermal-interrupt-support-fix-2.patch
-x86-mmconf-enable-mcfg-early-cleanup.patch
-git-xtensa.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-riscom8-fix-smp-brokenness-fix.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-address-hfs-on-disk-corruption-robustness-review-comments.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
-kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
-stopmachine-semaphore-to-mutex-fix.patch
-parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
-debug_smp_processor_id-fixlets.patch
-use-ilog2-in-fs-namespacec-fix.patch
-system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
-speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
-drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
-ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-add-hpet-rtc-emulation-to-rtc_drv_cmos-fix.patch
-fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
-neofb-avoid-overwriting-fb_info-fields.patch
-vermilionc-use-align-not-__align_mask.patch
-md-change-interate_mddev-to-for_each_mddev-fix.patch
-md-change-iterate_rdev-to-rdev_for_each-fix.patch
-declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
-isapnp-driver-semaphore-to-mutex-fix-fix.patch
-ext3-fix-lock-inversion-in-direct-io-fix.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-mm_cgroup-to-header-file-fix.patch
-memcontrol-move-mm_cgroup-to-header-file-fix-2.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
-hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
-cpusets-update_cpumask-revision-fix.patch
-cpusets-update_cpumask-revision-checkpatch-fixes.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-introduce-flags-for-reserve_bootmem-powerpc-fix.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
-introduce-path_put-cifs-fix.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-d_path-make-d_path-use-a-struct-path-fix.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
-proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-modules-make-module_address_lookup-safe-fix.patch
-wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
-pid-sys_wait-fixes-v2-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-rewrite-rd-fixes.patch
-fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
-kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
-lib-remove-fastcall-from-lib-checkpatch-fixes.patch
-remove-fastcall-from-linux-include-checkpatch-fixes.patch
-constify-tables-in-kernel-sysctl_checkc-fix.patch
-aoe-statically-initialise-devlist_lock.patch
-xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
-ufs-fix-symlink-creation-on-ufs2-fix.patch
-libfs-allow-error-return-from-simple-attributes-fix.patch
-fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
-fs-afs-securityc-fix-uninitialized-var-warning.patch
-mount-options-fix-tmpfs-fix.patch
-char-applicom-use-pci_match_id-fix.patch
-add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
-add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-page-owner-tracking-leak-detector-broken-on-s390.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+oz99x-i2c-button-and-led-support-driver.patch
+oz99x-i2c-button-and-led-support-driver-update.patch
+fjkeyinf-driver-for-fsc-lifebook-laptops.patch
