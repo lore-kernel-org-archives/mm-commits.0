@@ -1,243 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: - uml-customize-tlbh.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:37:28 -0800
-Message-ID: <200802052237.m15Mb9O0012830@imap1.linux-foundation.org>
+Subject: - document-about-lowmem_reserve_ratio.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:32:27 -0800
+Message-ID: <200802052232.m15MW87f012287@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55322 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57266 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761239AbYBEWl7 (ORCPT
+	by vger.kernel.org with ESMTP id S1762552AbYBEWl7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: y-goto@jp.fujitsu.com, andrea@cpushare.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: customize tlb.h
+     Document lowmem_reserve_ratio
 has been removed from the -mm tree.  Its filename was
-     uml-customize-tlbh.patch
+     document-about-lowmem_reserve_ratio.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: customize tlb.h
-From: Jeff Dike <jdike@addtoit.com>
+Subject: Document lowmem_reserve_ratio
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
 
-Customize the hooks in tlb.h to optimize TLB flushing some more.
+Though the lower_zone_protection was changed to lowmem_reserve_ratio, the
+document has been not changed.  The lowmem_reserve_ratio seems quite hard
+to estimate, but there is no guidance.  This patch is to change document
+for it.
 
-Add start and end fields to tlb_gather_mmu, which are used to limit
-the address space range scanned when a region is unmapped.
-
-The interfaces which just free page tables, without actually changing
-mappings, don't need to cause a TLB flush.
-
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Andrea Arcangeli <andrea@cpushare.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/tlb.c |   25 ++++++--
- include/asm-um/tlb.h |  122 ++++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 139 insertions(+), 8 deletions(-)
+ Documentation/filesystems/proc.txt |   76 +++++++++++++++++++++------
+ 1 file changed, 61 insertions(+), 15 deletions(-)
 
-diff -puN arch/um/kernel/tlb.c~uml-customize-tlbh arch/um/kernel/tlb.c
---- a/arch/um/kernel/tlb.c~uml-customize-tlbh
-+++ a/arch/um/kernel/tlb.c
-@@ -193,18 +193,18 @@ static inline int update_pte_range(pmd_t
- 		if (!pte_young(*pte)) {
- 			r = 0;
- 			w = 0;
--		} else if (!pte_dirty(*pte)) {
-+		} else if (!pte_dirty(*pte))
- 			w = 0;
--		}
-+
- 		prot = ((r ? UM_PROT_READ : 0) | (w ? UM_PROT_WRITE : 0) |
- 			(x ? UM_PROT_EXEC : 0));
- 		if (hvc->force || pte_newpage(*pte)) {
- 			if (pte_present(*pte))
- 				ret = add_mmap(addr, pte_val(*pte) & PAGE_MASK,
- 					       PAGE_SIZE, prot, hvc);
--			else ret = add_munmap(addr, PAGE_SIZE, hvc);
--		}
--		else if (pte_newprot(*pte))
-+			else
-+				ret = add_munmap(addr, PAGE_SIZE, hvc);
-+		} else if (pte_newprot(*pte))
- 			ret = add_mprotect(addr, PAGE_SIZE, prot, hvc);
- 		*pte = pte_mkuptodate(*pte);
- 	} while (pte++, addr += PAGE_SIZE, ((addr < end) && !ret));
-@@ -500,7 +500,8 @@ void flush_tlb_range(struct vm_area_stru
- 	else fix_range(vma->vm_mm, start, end, 0);
- }
+diff -puN Documentation/filesystems/proc.txt~document-about-lowmem_reserve_ratio Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~document-about-lowmem_reserve_ratio
++++ a/Documentation/filesystems/proc.txt
+@@ -1336,7 +1336,7 @@ legacy_va_layout
+ If non-zero, this sysctl disables the new 32-bit mmap mmap layout - the kernel
+ will use the legacy (2.4) layout for all processes.
  
--void flush_tlb_mm(struct mm_struct *mm)
-+void flush_tlb_mm_range(struct mm_struct *mm, unsigned long start,
-+			unsigned long end)
- {
- 	/*
- 	 * Don't bother flushing if this address space is about to be
-@@ -509,7 +510,17 @@ void flush_tlb_mm(struct mm_struct *mm)
- 	if (atomic_read(&mm->mm_users) == 0)
- 		return;
+-lower_zone_protection
++lowmem_reserve_ratio
+ ---------------------
  
--	fix_range(mm, 0, TASK_SIZE, 0);
-+	fix_range(mm, start, end, 0);
-+}
-+
-+void flush_tlb_mm(struct mm_struct *mm)
-+{
-+	struct vm_area_struct *vma = mm->mmap;
-+
-+	while (vma != NULL) {
-+		fix_range(mm, vma->vm_start, vma->vm_end, 0);
-+		vma = vma->vm_next;
-+	}
- }
+ For some specialised workloads on highmem machines it is dangerous for
+@@ -1356,25 +1356,71 @@ captured into pinned user memory.
+ mechanism will also defend that region from allocations which could use
+ highmem or lowmem).
  
- void force_flush_all(void)
-diff -puN include/asm-um/tlb.h~uml-customize-tlbh include/asm-um/tlb.h
---- a/include/asm-um/tlb.h~uml-customize-tlbh
-+++ a/include/asm-um/tlb.h
-@@ -1,6 +1,126 @@
- #ifndef __UM_TLB_H
- #define __UM_TLB_H
+-The `lower_zone_protection' tunable determines how aggressive the kernel is
+-in defending these lower zones.  The default value is zero - no
+-protection at all.
++The `lowmem_reserve_ratio' tunable determines how aggressive the kernel is
++in defending these lower zones.
  
--#include <asm/arch/tlb.h>
-+#include <linux/swap.h>
-+#include <asm/percpu.h>
-+#include <asm/pgalloc.h>
-+#include <asm/tlbflush.h>
-+
-+#define tlb_start_vma(tlb, vma) do { } while (0)
-+#define tlb_end_vma(tlb, vma) do { } while (0)
-+#define tlb_flush(tlb) flush_tlb_mm((tlb)->mm)
-+
-+/* struct mmu_gather is an opaque type used by the mm code for passing around
-+ * any data needed by arch specific code for tlb_remove_page.
-+ */
-+struct mmu_gather {
-+	struct mm_struct	*mm;
-+	unsigned int		need_flush; /* Really unmapped some ptes? */
-+	unsigned long		start;
-+	unsigned long		end;
-+	unsigned int		fullmm; /* non-zero means full mm flush */
-+};
-+
-+/* Users of the generic TLB shootdown code must declare this storage space. */
-+DECLARE_PER_CPU(struct mmu_gather, mmu_gathers);
-+
-+static inline void __tlb_remove_tlb_entry(struct mmu_gather *tlb, pte_t *ptep,
-+					  unsigned long address)
-+{
-+	if (tlb->start > address)
-+		tlb->start = address;
-+	if (tlb->end < address + PAGE_SIZE)
-+		tlb->end = address + PAGE_SIZE;
-+}
-+
-+static inline void init_tlb_gather(struct mmu_gather *tlb)
-+{
-+	tlb->need_flush = 0;
-+
-+	tlb->start = TASK_SIZE;
-+	tlb->end = 0;
-+
-+	if (tlb->fullmm) {
-+		tlb->start = 0;
-+		tlb->end = TASK_SIZE;
-+	}
-+}
-+
-+/* tlb_gather_mmu
-+ *	Return a pointer to an initialized struct mmu_gather.
-+ */
-+static inline struct mmu_gather *
-+tlb_gather_mmu(struct mm_struct *mm, unsigned int full_mm_flush)
-+{
-+	struct mmu_gather *tlb = &get_cpu_var(mmu_gathers);
-+
-+	tlb->mm = mm;
-+	tlb->fullmm = full_mm_flush;
-+
-+	init_tlb_gather(tlb);
-+
-+	return tlb;
-+}
-+
-+extern void flush_tlb_mm_range(struct mm_struct *mm, unsigned long start,
-+			       unsigned long end);
-+
-+static inline void
-+tlb_flush_mmu(struct mmu_gather *tlb, unsigned long start, unsigned long end)
-+{
-+	if (!tlb->need_flush)
-+		return;
-+
-+	flush_tlb_mm_range(tlb->mm, tlb->start, tlb->end);
-+	init_tlb_gather(tlb);
-+}
-+
-+/* tlb_finish_mmu
-+ *	Called at the end of the shootdown operation to free up any resources
-+ *	that were required.
-+ */
-+static inline void
-+tlb_finish_mmu(struct mmu_gather *tlb, unsigned long start, unsigned long end)
-+{
-+	tlb_flush_mmu(tlb, start, end);
-+
-+	/* keep the page table cache within bounds */
-+	check_pgt_cache();
-+
-+	put_cpu_var(mmu_gathers);
-+}
-+
-+/* tlb_remove_page
-+ *	Must perform the equivalent to __free_pte(pte_get_and_clear(ptep)),
-+ *	while handling the additional races in SMP caused by other CPUs
-+ *	caching valid mappings in their TLBs.
-+ */
-+static inline void tlb_remove_page(struct mmu_gather *tlb, struct page *page)
-+{
-+	tlb->need_flush = 1;
-+	free_page_and_swap_cache(page);
-+	return;
-+}
-+
-+/**
-+ * tlb_remove_tlb_entry - remember a pte unmapping for later tlb invalidation.
-+ *
-+ * Record the fact that pte's were really umapped in ->need_flush, so we can
-+ * later optimise away the tlb invalidate.   This helps when userspace is
-+ * unmapping already-unmapped pages, which happens quite a lot.
-+ */
-+#define tlb_remove_tlb_entry(tlb, ptep, address)		\
-+	do {							\
-+		tlb->need_flush = 1;				\
-+		__tlb_remove_tlb_entry(tlb, ptep, address);	\
-+	} while (0)
-+
-+#define pte_free_tlb(tlb, ptep) __pte_free_tlb(tlb, ptep)
-+
-+#define pud_free_tlb(tlb, pudp) __pud_free_tlb(tlb, pudp)
-+
-+#define pmd_free_tlb(tlb, pmdp) __pmd_free_tlb(tlb, pmdp)
-+
-+#define tlb_migrate_finish(mm) do {} while (0)
+ If you have a machine which uses highmem or ISA DMA and your
+ applications are using mlock(), or if you are running with no swap then
+-you probably should increase the lower_zone_protection setting.
++you probably should change the lowmem_reserve_ratio setting.
  
- #endif
+-The units of this tunable are fairly vague.  It is approximately equal
+-to "megabytes," so setting lower_zone_protection=100 will protect around 100
+-megabytes of the lowmem zone from user allocations.  It will also make
+-those 100 megabytes unavailable for use by applications and by
+-pagecache, so there is a cost.
+-
+-The effects of this tunable may be observed by monitoring
+-/proc/meminfo:LowFree.  Write a single huge file and observe the point
+-at which LowFree ceases to fall.
++The lowmem_reserve_ratio is an array. You can see them by reading this file.
++-
++% cat /proc/sys/vm/lowmem_reserve_ratio
++256     256     32
++-
++Note: # of this elements is one fewer than number of zones. Because the highest
++      zone's value is not necessary for following calculation.
++
++But, these values are not used directly. The kernel calculates # of protection
++pages for each zones from them. These are shown as array of protection pages
++in /proc/zoneinfo like followings. (This is an example of x86-64 box).
++Each zone has an array of protection pages like this.
++
++-
++Node 0, zone      DMA
++  pages free     1355
++        min      3
++        low      3
++        high     4
++	:
++	:
++    numa_other   0
++        protection: (0, 2004, 2004, 2004)
++	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
++  pagesets
++    cpu: 0 pcp: 0
++        :
++-
++These protections are added to score to judge whether this zone should be used
++for page allocation or should be reclaimed.
++
++In this example, if normal pages (index=2) are required to this DMA zone and
++pages_high is used for watermark, the kernel judges this zone should not be
++used because pages_free(1355) is smaller than watermark + protection[2]
++(4 + 2004 = 2008). If this protection value is 0, this zone would be used for
++normal page requirement. If requirement is DMA zone(index=0), protection[0]
++(=0) is used.
++
++zone[i]'s protection[j] is calculated by following exprssion.
++
++(i < j):
++  zone[i]->protection[j]
++  = (total sums of present_pages from zone[i+1] to zone[j] on the node)
++    / lowmem_reserve_ratio[i];
++(i = j):
++   (should not be protected. = 0;
++(i > j):
++   (not necessary, but looks 0)
++
++The default values of lowmem_reserve_ratio[i] are
++    256 (if zone[i] means DMA or DMA32 zone)
++    32  (others).
++As above expression, they are reciprocal number of ratio.
++256 means 1/256. # of protection pages becomes about "0.39%" of total present
++pages of higher zones on the node.
+ 
+-A reasonable value for lower_zone_protection is 100.
++If you would like to protect more pages, smaller values are effective.
++The minimum value is 1 (1/1 -> 100%).
+ 
+ page-cluster
+ ------------
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
 
 origin.patch
-git-kvm.patch
-fix-__const_udelay-declaration-and-definition-mismatches.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
-random-add-async-notification-support-to-dev-random.patch
-mount-options-fix-hostfs.patch
+add-remove_memory-for-ppc64-3.patch
