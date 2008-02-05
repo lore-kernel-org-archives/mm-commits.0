@@ -1,111 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - uml-convert-functions-to-void.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:36:20 -0800
-Message-ID: <200802052236.m15Ma1Fo012666@imap1.linux-foundation.org>
+Subject: - mm-page-writebackc-make-a-function-static.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:31:27 -0800
+Message-ID: <200802052231.m15MV8Sj012137@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45149 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36257 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760904AbYBEWl3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:29 -0500
+	by vger.kernel.org with ESMTP id S1762262AbYBEWlQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: magotari@gmail.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: convert functions to void
+     mm/page-writeback.c: make a function static
 has been removed from the -mm tree.  Its filename was
-     uml-convert-functions-to-void.patch
+     mm-page-writebackc-make-a-function-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: convert functions to void
-From: Karol Swietlicki <magotari@gmail.com>
+Subject: mm/page-writeback.c: make a function static
+From: Adrian Bunk <bunk@kernel.org>
 
-This patch changes a few functions into returning void.  The return values
-were not used anyway, so I think it should not be a problem.  Also removed a
-little leftover bit from TT mode.
+task_dirty_limit() can become static.
 
-Signed-off-by: Karol Swietlicki <magotari@gmail.com>
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/os.h        |    6 +-----
- arch/um/kernel/um_arch.c    |    5 ++---
- arch/um/os-Linux/start_up.c |    4 +---
- 3 files changed, 4 insertions(+), 11 deletions(-)
+ mm/page-writeback.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/um/include/os.h~uml-convert-functions-to-void arch/um/include/os.h
---- a/arch/um/include/os.h~uml-convert-functions-to-void
-+++ a/arch/um/include/os.h
-@@ -167,14 +167,10 @@ extern int os_fchange_dir(int fd);
- 
- /* start_up.c */
- extern void os_early_checks(void);
--extern int can_do_skas(void);
-+extern void can_do_skas(void);
- extern void os_check_bugs(void);
- extern void check_host_supports_tls(int *supports_tls, int *tls_min);
- 
--/* Make sure they are clear when running in TT mode. Required by
-- * SEGV_MAYBE_FIXABLE */
--#define clear_can_do_skas() do { ptrace_faultinfo = proc_mm = 0; } while (0)
--
- /* mem.c */
- extern int create_mem_file(unsigned long long len);
- 
-diff -puN arch/um/kernel/um_arch.c~uml-convert-functions-to-void arch/um/kernel/um_arch.c
---- a/arch/um/kernel/um_arch.c~uml-convert-functions-to-void
-+++ a/arch/um/kernel/um_arch.c
-@@ -198,7 +198,7 @@ __uml_setup("--help", Usage,
- "    Prints this message.\n\n"
- );
- 
--static int __init uml_checksetup(char *line, int *add)
-+static void __init uml_checksetup(char *line, int *add)
+diff -puN mm/page-writeback.c~mm-page-writebackc-make-a-function-static mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-page-writebackc-make-a-function-static
++++ a/mm/page-writeback.c
+@@ -219,7 +219,7 @@ static inline void task_dirties_fraction
+  *
+  *   dirty -= (dirty/8) * p_{t}
+  */
+-void task_dirty_limit(struct task_struct *tsk, long *pdirty)
++static void task_dirty_limit(struct task_struct *tsk, long *pdirty)
  {
- 	struct uml_param *p;
- 
-@@ -208,10 +208,9 @@ static int __init uml_checksetup(char *l
- 
- 		n = strlen(p->str);
- 		if (!strncmp(line, p->str, n) && p->setup_func(line + n, add))
--			return 1;
-+			return;
- 		p++;
- 	}
--	return 0;
- }
- 
- static void __init uml_postsetup(void)
-diff -puN arch/um/os-Linux/start_up.c~uml-convert-functions-to-void arch/um/os-Linux/start_up.c
---- a/arch/um/os-Linux/start_up.c~uml-convert-functions-to-void
-+++ a/arch/um/os-Linux/start_up.c
-@@ -466,7 +466,7 @@ static inline void check_skas3_proc_mm(v
- 	else non_fatal("found\n");
- }
- 
--int can_do_skas(void)
-+void can_do_skas(void)
- {
- 	non_fatal("Checking for the skas3 patch in the host:\n");
- 
-@@ -476,8 +476,6 @@ int can_do_skas(void)
- 
- 	if (!proc_mm || !ptrace_faultinfo || !ptrace_ldt)
- 		skas_needs_stub = 1;
--
--	return 1;
- }
- 
- int __init parse_iomem(char *str, int *add)
+ 	long numerator, denominator;
+ 	long dirty = *pdirty;
 _
 
-Patches currently in -mm which might be from magotari@gmail.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+git-acpi.patch
+powerpc-vdso_do_func_patch3264-must-be-__init.patch
+powerpc-free_property-mustnt-be-__init.patch
+hvc_rtas_init-must-be-__init.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-mtd.patch
+git-ocfs2.patch
+if-0-pci_cleanup_aer_correct_error_status.patch
+git-scsi-misc.patch
+scsi-advansysc-make-3-functions-static.patch
+scsi-aic94xx-cleanups.patch
+scsi-qlogicptic-section-fixes.patch
+usb-make-usb_storage_onetouch-available-with-pm.patch
+make-b43_mac_enablesuspend-static.patch
+git-xtensa.patch
+make-ipc-utilcsysvipc_find_ipc-static.patch
+cleanup-after-apus-removal.patch
+remove-mm_ptovvtop.patch
+proper-show_interrupts-prototype.patch
+scheduled-oss-driver-removal.patch
+proper-prototype-for-signals_init.patch
+kernel-ptracec-should-include-linux-syscallsh.patch
+make-srcu_readers_active-static.patch
+kernel-notifierc-should-include-linux-rebooth.patch
+proper-prototype-for-get_filesystem_list.patch
+fs-utimesc-should-include-linux-syscallsh.patch
+fs-signalfdc-should-include-linux-syscallsh.patch
+fs-eventfdc-should-include-linux-syscallsh.patch
+proper-prototype-for-vty_init.patch
+drivers-misc-lkdtmc-cleanups.patch
+calibrate_delay-must-be-__cpuinit.patch
+idle_regs-must-be-__cpuinit.patch
+fs-ecryptfs-possible-cleanups.patch
+make-video-geode-lxfb_corecgeode_modedb-static.patch
+video-hpfbc-section-fix.patch
+drivers-video-pm3fbc-section-fix.patch
+make-jbd-journalc__journal_abort_hard-static.patch
+move-edactxt-two-levels-up.patch
+kernel-cgroupc-remove-dead-code.patch
+kernel-cgroupc-make-2-functions-static.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+fix-m32r-__xchg.patch
+kill-udffs_dateversion.patch
+the-scheduled-time-option-removal.patch
+reiser4.patch
