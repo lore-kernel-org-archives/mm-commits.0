@@ -1,98 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: - iommu-sg-powerpc-remove-dma-4gb-boundary-protection.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:28:37 -0800
-Message-ID: <200802052228.m15MSIvj011874@imap1.linux-foundation.org>
+Subject: - gpiolib-add-drivers-gpio-directory.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:28:58 -0800
+Message-ID: <200802052228.m15MSd25011905@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46876 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39485 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760659AbYBEWpJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:45:09 -0500
+	by vger.kernel.org with ESMTP id S1762867AbYBEWp2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:45:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tomof@acm.org, James.Bottomley@steeleye.com, benh@kernel.crashing.org, fujita.tomonori@lab.ntt.co.jp, jeff@garzik.org, jens.axboe@oracle.com, paulus@samba.org, mm-commits@vger.kernel.org
+To: dbrownell@users.sourceforge.net, bgardner@wabtec.com, eric.miao@marvell.com, hskinnemoen@atmel.com, khali@linux-fr.org, philipp.zabel@gmail.com, rmk@arm.linux.org.uk, sam@ravnborg.org
 
 
 The patch titled
-     iommu sg: powerpc: remove DMA 4GB boundary protection
+     gpiolib: add drivers/gpio directory
 has been removed from the -mm tree.  Its filename was
-     iommu-sg-powerpc-remove-dma-4gb-boundary-protection.patch
+     gpiolib-add-drivers-gpio-directory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iommu sg: powerpc: remove DMA 4GB boundary protection
-From: FUJITA Tomonori <tomof@acm.org>
+Subject: gpiolib: add drivers/gpio directory
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-Previously, during initialization of the IOMMU tables, the last entry
-at each 4GB boundary is marked as used since there are many adapters
-which cannot handle DMAing across any 4GB boundary.
+Add an empty drivers/gpio directory for gpiolib infrastructure and GPIO
+expanders.  It will be populated by later patches.
 
-The IOMMU doesn't allocate a memory area spanning LLD's segment
-boundary anymore. The segment boundary of devices are set to 4GB by
-default. So we can remove 4GB boundary protection now.
+This won't be the only place to hold such gpio_chip code.  Many external chips
+add a few GPIOs as secondary functionality (such as MFD drivers) and platform
+code frequently needs to closely integrate GPIO and IRQ support.
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+This is placed *early* in the build/link sequence since it's common for other
+drivers to depend on GPIOs to do their work, so they must be initialized early
+in the device_initcall() sequence.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Acked-by: Jean Delvare <khali@linux-fr.org>
+Cc: Eric Miao <eric.miao@marvell.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Philipp Zabel <philipp.zabel@gmail.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Ben Gardner <bgardner@wabtec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/iommu.c |   21 +--------------------
- 1 file changed, 1 insertion(+), 20 deletions(-)
+ arch/arm/Kconfig      |    2 ++
+ drivers/Kconfig       |    2 ++
+ drivers/Makefile      |    1 +
+ drivers/gpio/Kconfig  |   32 ++++++++++++++++++++++++++++++++
+ drivers/gpio/Makefile |    4 ++++
+ 5 files changed, 41 insertions(+)
 
-diff -puN arch/powerpc/kernel/iommu.c~iommu-sg-powerpc-remove-dma-4gb-boundary-protection arch/powerpc/kernel/iommu.c
---- a/arch/powerpc/kernel/iommu.c~iommu-sg-powerpc-remove-dma-4gb-boundary-protection
-+++ a/arch/powerpc/kernel/iommu.c
-@@ -453,9 +453,6 @@ void iommu_unmap_sg(struct iommu_table *
- struct iommu_table *iommu_init_table(struct iommu_table *tbl, int nid)
- {
- 	unsigned long sz;
--	unsigned long start_index, end_index;
--	unsigned long entries_per_4g;
--	unsigned long index;
- 	static int welcomed = 0;
- 	struct page *page;
+diff -puN arch/arm/Kconfig~gpiolib-add-drivers-gpio-directory arch/arm/Kconfig
+--- a/arch/arm/Kconfig~gpiolib-add-drivers-gpio-directory
++++ a/arch/arm/Kconfig
+@@ -1122,6 +1122,8 @@ source "drivers/i2c/Kconfig"
  
-@@ -477,6 +474,7 @@ struct iommu_table *iommu_init_table(str
+ source "drivers/spi/Kconfig"
  
- #ifdef CONFIG_CRASH_DUMP
- 	if (ppc_md.tce_get) {
-+		unsigned long index;
- 		unsigned long tceval;
- 		unsigned long tcecount = 0;
++source "drivers/gpio/Kconfig"
++
+ source "drivers/w1/Kconfig"
  
-@@ -507,23 +505,6 @@ struct iommu_table *iommu_init_table(str
- 	ppc_md.tce_free(tbl, tbl->it_offset, tbl->it_size);
- #endif
+ source "drivers/power/Kconfig"
+diff -puN drivers/Kconfig~gpiolib-add-drivers-gpio-directory drivers/Kconfig
+--- a/drivers/Kconfig~gpiolib-add-drivers-gpio-directory
++++ a/drivers/Kconfig
+@@ -52,6 +52,8 @@ source "drivers/i2c/Kconfig"
  
--	/*
--	 * DMA cannot cross 4 GB boundary.  Mark last entry of each 4
--	 * GB chunk as reserved.
--	 */
--	if (protect4gb) {
--		entries_per_4g = 0x100000000l >> IOMMU_PAGE_SHIFT;
--
--		/* Mark the last bit before a 4GB boundary as used */
--		start_index = tbl->it_offset | (entries_per_4g - 1);
--		start_index -= tbl->it_offset;
--
--		end_index = tbl->it_size;
--
--		for (index = start_index; index < end_index - 1; index += entries_per_4g)
--			__set_bit(index, tbl->it_map);
--	}
--
- 	if (!welcomed) {
- 		printk(KERN_INFO "IOMMU table initialized, virtual merging %s\n",
- 		       novmerge ? "disabled" : "enabled");
+ source "drivers/spi/Kconfig"
+ 
++source "drivers/gpio/Kconfig"
++
+ source "drivers/w1/Kconfig"
+ 
+ source "drivers/power/Kconfig"
+diff -puN drivers/Makefile~gpiolib-add-drivers-gpio-directory drivers/Makefile
+--- a/drivers/Makefile~gpiolib-add-drivers-gpio-directory
++++ a/drivers/Makefile
+@@ -5,6 +5,7 @@
+ # Rewritten to use lists instead of if-statements.
+ #
+ 
++obj-$(CONFIG_HAVE_GPIO_LIB)	+= gpio/
+ obj-$(CONFIG_PCI)		+= pci/
+ obj-$(CONFIG_PARISC)		+= parisc/
+ obj-$(CONFIG_RAPIDIO)		+= rapidio/
+diff -puN /dev/null drivers/gpio/Kconfig
+--- /dev/null
++++ a/drivers/gpio/Kconfig
+@@ -0,0 +1,32 @@
++#
++# GPIO infrastructure and expanders
++#
++
++config HAVE_GPIO_LIB
++	bool
++	help
++	  Platforms select gpiolib if they use this infrastructure
++	  for all their GPIOs, usually starting with ones integrated
++	  into SOC processors.
++
++menu "GPIO Support"
++	depends on HAVE_GPIO_LIB
++
++config DEBUG_GPIO
++	bool "Debug GPIO calls"
++	depends on DEBUG_KERNEL
++	help
++	  Say Y here to add some extra checks and diagnostics to GPIO calls.
++	  The checks help ensure that GPIOs have been properly initialized
++	  before they are used and that sleeping calls aren not made from
++	  nonsleeping contexts.  They can make bitbanged serial protocols
++	  slower.  The diagnostics help catch the type of setup errors
++	  that are most common when setting up new platforms or boards.
++
++# put expanders in the right section, in alphabetical order
++
++comment "I2C GPIO expanders:"
++
++comment "SPI GPIO expanders:"
++
++endmenu
+diff -puN /dev/null drivers/gpio/Makefile
+--- /dev/null
++++ a/drivers/gpio/Makefile
+@@ -0,0 +1,4 @@
++# gpio support: dedicated expander chips, etc
++
++ccflags-$(CONFIG_DEBUG_GPIO)	+= -DDEBUG
++
 _
 
-Patches currently in -mm which might be from tomof@acm.org are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
 origin.patch
+git-input.patch
+git-backlight.patch
+spi-core-stop-updating-dev-powerpower_state.patch
+atmel_spi-throughput-improvement.patch
+atmel_spi-chain-dma-transfers.patch
+atmel_spi-chain-dma-transfers-update.patch
+atmel_spi-fix-dmachain-oops-with-debug-enabled.patch
+spi-s3c-drivers-shouldnt-care-about-spi_board_info.patch
+spi-superh-spi-using-sci.patch
+spi-omap2_mcspi-handles-omap3-too.patch
+spi_bfin-remove-useless-fault-path.patch
+spi_bfin-use-more-useful-gpio-labels.patch
+spi_bfin-wait-for-tx-to-complete-on-some-cs_chg-paths.patch
+spi_bfin-wait-for-tx-to-complete-on-full-duplex-paths.patch
+spi_bfin-wait-for-tx-to-complete-on-write-paths.patch
+spi_bfin-headers-are-not-for-changelogs.patch
+spi-remove-more-dev-powerpower_state-usage.patch
+rtc-cmos-exports-nvram-in-sysfs.patch
+rtc-cmos-alarm-acts-as-oneshot.patch
+rtc-ds1307-ds_1340-change-init.patch
+rtc-remove-more-dev-powerpower_state-usage.patch
+rtc-at91sam9-rtc-support-rtt-and-or-rtc.patch
+rtc-at91sam9-rtc-support-rtt-and-or-rtc-fix.patch
+gpio-rename-pca9539-driver.patch
+gpio-rename-pca953x-symbols.patch
+gpio-handle-pca95345678-too.patch
+atmel_lcdfb-backlight-control.patch
+atmel_lcdfb-backlight-control-tiny-rework.patch
+usb-net2280-cant-have-a-function-called-show_registers.patch
+basic-pwm-driver-for-avr32-and-at91.patch
+pwm-led-driver.patch
