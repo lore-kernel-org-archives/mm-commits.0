@@ -1,144 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: - frv-use-find_task_by_vpid-in-cxn_pin_by_pid.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:33:29 -0800
-Message-ID: <200802052233.m15MXA0K012386@imap1.linux-foundation.org>
+Subject: - tmpfs-make-shmem_unuse-more-preemptible.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:30:38 -0800
+Message-ID: <200802052230.m15MUJNP012058@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39452 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42776 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762009AbYBEWnL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:43:11 -0500
+	by vger.kernel.org with ESMTP id S932090AbYBEWmv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, dhowells@redhat.com, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: hugh@veritas.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     frv: use find_task_by_vpid in cxn_pin_by_pid
+     tmpfs: make shmem_unuse more preemptible
 has been removed from the -mm tree.  Its filename was
-     frv-use-find_task_by_vpid-in-cxn_pin_by_pid.patch
+     tmpfs-make-shmem_unuse-more-preemptible.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: frv: use find_task_by_vpid in cxn_pin_by_pid
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: tmpfs: make shmem_unuse more preemptible
+From: Hugh Dickins <hugh@veritas.com>
 
-The function is question gets the pid from sysctl table, so this one is a
-virtual pid, i.e.  the pid of a task as it is seen from inside a namespace.
+shmem_unuse is at present an unbroken search through every swap vector page of
+every tmpfs file which might be swapped, all under shmem_swaplist_lock.  This
+dates from long ago, when the caller held mmlist_lock over it all too: long
+gone, but there's never been much pressure for preemptible swapoff.
 
-So the find_task_by_vpid() must be used here.
+Make it a little more preemptible, replacing shmem_swaplist_lock by
+shmem_swaplist_mutex, inserting a cond_resched in the main loop, and a
+cond_resched_lock (on info->lock) at one convenient point in the
+shmem_unuse_inode loop, where it has no outstanding kmap_atomic.
 
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: David Howells <dhowells@redhat.com>
+If we're serious about preemptible swapoff, there's much further to go e.g. 
+I'm stupid to let the kmap_atomics of the decreasingly significant HIGHMEM
+case dictate preemptiblility for other configs.  But as in the earlier patch
+to make swapoff scan ptes preemptibly, my hidden agenda is really towards
+making memcgroups work, hardly about preemptibility at all.
+
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/mm/mmu-context.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/shmem.c |   23 ++++++++++++++++-------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
 
-diff -puN arch/frv/mm/mmu-context.c~frv-use-find_task_by_vpid-in-cxn_pin_by_pid arch/frv/mm/mmu-context.c
---- a/arch/frv/mm/mmu-context.c~frv-use-find_task_by_vpid-in-cxn_pin_by_pid
-+++ a/arch/frv/mm/mmu-context.c
-@@ -181,7 +181,7 @@ int cxn_pin_by_pid(pid_t pid)
+diff -puN mm/shmem.c~tmpfs-make-shmem_unuse-more-preemptible mm/shmem.c
+--- a/mm/shmem.c~tmpfs-make-shmem_unuse-more-preemptible
++++ a/mm/shmem.c
+@@ -193,7 +193,7 @@ static struct backing_dev_info shmem_bac
+ };
  
- 	/* get a handle on the mm_struct */
- 	read_lock(&tasklist_lock);
--	tsk = find_task_by_pid(pid);
-+	tsk = find_task_by_vpid(pid);
- 	if (tsk) {
- 		ret = -EINVAL;
+ static LIST_HEAD(shmem_swaplist);
+-static DEFINE_SPINLOCK(shmem_swaplist_lock);
++static DEFINE_MUTEX(shmem_swaplist_mutex);
  
+ static void shmem_free_blocks(struct inode *inode, long pages)
+ {
+@@ -796,9 +796,9 @@ static void shmem_delete_inode(struct in
+ 		inode->i_size = 0;
+ 		shmem_truncate(inode);
+ 		if (!list_empty(&info->swaplist)) {
+-			spin_lock(&shmem_swaplist_lock);
++			mutex_lock(&shmem_swaplist_mutex);
+ 			list_del_init(&info->swaplist);
+-			spin_unlock(&shmem_swaplist_lock);
++			mutex_unlock(&shmem_swaplist_mutex);
+ 		}
+ 	}
+ 	BUG_ON(inode->i_blocks);
+@@ -851,6 +851,14 @@ static int shmem_unuse_inode(struct shme
+ 	for (idx = SHMEM_NR_DIRECT; idx < limit; idx += ENTRIES_PER_PAGE, dir++) {
+ 		if (unlikely(idx == stage)) {
+ 			shmem_dir_unmap(dir-1);
++			if (cond_resched_lock(&info->lock)) {
++				/* check it has not been truncated */
++				if (limit > info->next_index) {
++					limit = info->next_index;
++					if (idx >= limit)
++						goto lost2;
++				}
++			}
+ 			dir = shmem_dir_map(info->i_indirect) +
+ 			    ENTRIES_PER_PAGE/2 + idx/ENTRIES_PER_PAGEPAGE;
+ 			while (!*dir) {
+@@ -924,7 +932,7 @@ int shmem_unuse(swp_entry_t entry, struc
+ 	struct shmem_inode_info *info;
+ 	int found = 0;
+ 
+-	spin_lock(&shmem_swaplist_lock);
++	mutex_lock(&shmem_swaplist_mutex);
+ 	list_for_each_safe(p, next, &shmem_swaplist) {
+ 		info = list_entry(p, struct shmem_inode_info, swaplist);
+ 		if (!info->swapped)
+@@ -935,8 +943,9 @@ int shmem_unuse(swp_entry_t entry, struc
+ 			found = 1;
+ 			break;
+ 		}
++		cond_resched();
+ 	}
+-	spin_unlock(&shmem_swaplist_lock);
++	mutex_unlock(&shmem_swaplist_mutex);
+ 	return found;
+ }
+ 
+@@ -996,10 +1005,10 @@ static int shmem_writepage(struct page *
+ 		shmem_swp_unmap(entry);
+ 		spin_unlock(&info->lock);
+ 		if (list_empty(&info->swaplist)) {
+-			spin_lock(&shmem_swaplist_lock);
++			mutex_lock(&shmem_swaplist_mutex);
+ 			/* move instead of add in case we're racing */
+ 			list_move_tail(&info->swaplist, &shmem_swaplist);
+-			spin_unlock(&shmem_swaplist_lock);
++			mutex_unlock(&shmem_swaplist_mutex);
+ 		}
+ 		swap_duplicate(swap);
+ 		BUG_ON(page_mapped(page));
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-use-find_task_by_vpid-in-audit-code.patch
-gfs2-make-gfs2_glockgl_owner_pid-be-a-struct-pid.patch
-gfs2-make-gfs2_holdergh_owner_pid-be-a-struct-pid.patch
-ia64-fix-ptrace-inside-a-namespace.patch
-mips-use-find_task_by_vpid-in-system-calls.patch
-deprecate-find_task_by_pid-kgdb.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
+git-unionfs.patch
+git-x86.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+memcgroup-temporarily-revert-swapoff-mod.patch
 memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
 memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
 memcgroup-reinstate-swapoff-mod.patch
-bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
-bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
-bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
-bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
 memcgroup-fix-zone-isolation-oom.patch
 memcgroup-revert-swap_state-mods.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
-memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
-memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
-memory-cgroup-enhancements-add-pre_destroy-handler.patch
-memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
-handle-pid-namespaces-in-cgroups-code.patch
-add-the-namespaces-config-option.patch
-move-the-uts-namespace-under-uts_ns-option.patch
-move-the-ipc-namespace-under-ipc_ns-option.patch
-cleanup-the-code-managed-with-the-user_ns-option.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-mark-net_ns-with-depends-on-namespaces.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
-proc-proper-pidns-handling-for-proc-self.patch
-proc-fix-the-threaded-proc-self.patch
-ipc-uninline-some-code-from-utilh.patch
-ipc-make-struct-ipc_ids-static-in-ipc_namespace.patch
-ipc-consolidate-sem_exit_ns-msg_exit_ns-and-shm_exit_ns.patch
-sys_setpgid-simplify-pid-ns-interaction.patch
-fix-setsid-for-sub-namespace-sbin-init.patch
-teach-set_special_pids-to-use-struct-pid.patch
-move-daemonized-kernel-threads-into-the-swappers-session.patch
-start-the-global-sbin-init-with-00-special-pids.patch
-pid-sys_wait-fixes-v2.patch
-pid-extend-fix-pid_vnr.patch
-sys_getsid-dont-use-nsproxy-directly.patch
-pid-fix-mips-irix-emulation-pid-usage.patch
-pid-fix-mips-irix-emulation-pid-usage-fix.patch
-pid-fix-solaris_procids.patch
-uglify-kill_pid_info-to-fix-kill-vs-exec-race.patch
-uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice.patch
-itimer_real-convert-to-use-struct-pid.patch
-pidns-make-full-use-of-xxx_vnr-calls.patch
-pidns-fix-badly-converted-mqueues-pid-handling.patch
-clean-up-the-kill_something_info.patch
-get-rid-of-the-kill_pgrp_info-function.patch
-use-find_task_by_vpid-in-posix-timers.patch
-use-find_task_by_vpid-in-taskstats.patch
-dont-operate-with-pid_t-in-rtmutex-tester.patch
-deprecate-find_task_by_pid.patch
-reiser4.patch
+memory-controller-use-rcu_read_lock-in-mem_cgroup_cache_charge.patch
+memcgroup-tidy-up-mem_cgroup_charge_common.patch
+memcgroup-fix-hang-with-shmem-tmpfs.patch
+mount-options-fix-tmpfs.patch
+mount-options-fix-tmpfs-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
+prio_tree-debugging-patch.patch
