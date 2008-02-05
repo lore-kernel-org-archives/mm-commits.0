@@ -1,84 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: - slub-move-count_partial.patch removed from -mm tree
-Date: Mon, 04 Feb 2008 18:53:38 -0800
-Message-ID: <200802050253.m152rJjY031493@imap1.linux-foundation.org>
+Subject: - slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio.patch removed from -mm tree
+Date: Mon, 04 Feb 2008 18:53:40 -0800
+Message-ID: <200802050253.m152rLPO031496@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40342 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33257 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751821AbYBECxW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2008 21:53:22 -0500
+	by vger.kernel.org with ESMTP id S1752198AbYBECxY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2008 21:53:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: Move count_partial()
+     SLUB: Rename NUMA defrag_ratio to remote_node_defrag_ratio
 has been removed from the -mm tree.  Its filename was
-     slub-move-count_partial.patch
+     slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: SLUB: Move count_partial()
+Subject: SLUB: Rename NUMA defrag_ratio to remote_node_defrag_ratio
 From: Christoph Lameter <clameter@sgi.com>
 
-Move the counting function for objects in partial slabs so that it is placed
-before its callers.
+The NUMA defrag works by allocating objects from partial slabs on remote
+nodes.  Rename it to
+
+	remote_node_defrag_ratio
+
+to be clear about this.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ include/linux/slub_def.h |    5 ++++-
+ mm/slub.c                |   17 +++++++++--------
+ 2 files changed, 13 insertions(+), 9 deletions(-)
 
-diff -puN mm/slub.c~slub-move-count_partial mm/slub.c
---- a/mm/slub.c~slub-move-count_partial
+diff -puN include/linux/slub_def.h~slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio include/linux/slub_def.h
+--- a/include/linux/slub_def.h~slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio
++++ a/include/linux/slub_def.h
+@@ -59,7 +59,10 @@ struct kmem_cache {
+ #endif
+ 
+ #ifdef CONFIG_NUMA
+-	int defrag_ratio;
++	/*
++	 * Defragmentation by allocating from a remote node.
++	 */
++	int remote_node_defrag_ratio;
+ 	struct kmem_cache_node *node[MAX_NUMNODES];
+ #endif
+ #ifdef CONFIG_SMP
+diff -puN mm/slub.c~slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio mm/slub.c
+--- a/mm/slub.c~slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio
 +++ a/mm/slub.c
-@@ -2605,6 +2605,19 @@ void kfree(const void *x)
- }
- EXPORT_SYMBOL(kfree);
+@@ -1292,7 +1292,8 @@ static struct page *get_any_partial(stru
+ 	 * expensive if we do it every time we are trying to find a slab
+ 	 * with available objects.
+ 	 */
+-	if (!s->defrag_ratio || get_cycles() % 1024 > s->defrag_ratio)
++	if (!s->remote_node_defrag_ratio ||
++			get_cycles() % 1024 > s->remote_node_defrag_ratio)
+ 		return NULL;
  
-+static unsigned long count_partial(struct kmem_cache_node *n)
-+{
-+	unsigned long flags;
-+	unsigned long x = 0;
-+	struct page *page;
-+
-+	spin_lock_irqsave(&n->list_lock, flags);
-+	list_for_each_entry(page, &n->partial, lru)
-+		x += page->inuse;
-+	spin_unlock_irqrestore(&n->list_lock, flags);
-+	return x;
-+}
-+
- /*
-  * kmem_cache_shrink removes empty slabs from the partial lists and sorts
-  * the remaining slabs by the number of items in use. The slabs with the
-@@ -3076,19 +3089,6 @@ void *__kmalloc_node_track_caller(size_t
- 	return slab_alloc(s, gfpflags, node, caller);
+ 	zonelist = &NODE_DATA(slab_node(current->mempolicy))
+@@ -2206,7 +2207,7 @@ static int kmem_cache_open(struct kmem_c
+ 
+ 	s->refcount = 1;
+ #ifdef CONFIG_NUMA
+-	s->defrag_ratio = 100;
++	s->remote_node_defrag_ratio = 100;
+ #endif
+ 	if (!init_kmem_cache_nodes(s, gfpflags & ~SLUB_DMA))
+ 		goto error;
+@@ -3848,21 +3849,21 @@ static ssize_t free_calls_show(struct km
+ SLAB_ATTR_RO(free_calls);
+ 
+ #ifdef CONFIG_NUMA
+-static ssize_t defrag_ratio_show(struct kmem_cache *s, char *buf)
++static ssize_t remote_node_defrag_ratio_show(struct kmem_cache *s, char *buf)
+ {
+-	return sprintf(buf, "%d\n", s->defrag_ratio / 10);
++	return sprintf(buf, "%d\n", s->remote_node_defrag_ratio / 10);
  }
  
--static unsigned long count_partial(struct kmem_cache_node *n)
--{
--	unsigned long flags;
--	unsigned long x = 0;
--	struct page *page;
--
--	spin_lock_irqsave(&n->list_lock, flags);
--	list_for_each_entry(page, &n->partial, lru)
--		x += page->inuse;
--	spin_unlock_irqrestore(&n->list_lock, flags);
--	return x;
--}
--
- #if defined(CONFIG_SYSFS) && defined(CONFIG_SLUB_DEBUG)
- static int validate_slab(struct kmem_cache *s, struct page *page,
- 						unsigned long *map)
+-static ssize_t defrag_ratio_store(struct kmem_cache *s,
++static ssize_t remote_node_defrag_ratio_store(struct kmem_cache *s,
+ 				const char *buf, size_t length)
+ {
+ 	int n = simple_strtoul(buf, NULL, 10);
+ 
+ 	if (n < 100)
+-		s->defrag_ratio = n * 10;
++		s->remote_node_defrag_ratio = n * 10;
+ 	return length;
+ }
+-SLAB_ATTR(defrag_ratio);
++SLAB_ATTR(remote_node_defrag_ratio);
+ #endif
+ 
+ static struct attribute * slab_attrs[] = {
+@@ -3893,7 +3894,7 @@ static struct attribute * slab_attrs[] =
+ 	&cache_dma_attr.attr,
+ #endif
+ #ifdef CONFIG_NUMA
+-	&defrag_ratio_attr.attr,
++	&remote_node_defrag_ratio_attr.attr,
+ #endif
+ 	NULL
+ };
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
