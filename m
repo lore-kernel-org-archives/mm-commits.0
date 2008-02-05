@@ -1,55 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - bluetooth-blacklist-another-broadcom-bcm2035-device.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:39:47 -0800
-Message-ID: <200802052239.m15MdSGO013061@imap1.linux-foundation.org>
+Subject: - uml-move-register-initialization.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:38:30 -0800
+Message-ID: <200802052238.m15McB42012930@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39200 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45987 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760429AbYBEWlX (ORCPT
+	by vger.kernel.org with ESMTP id S1762286AbYBEWlX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andy@smile.org.ua, marcel@holtmann.org, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bluetooth: blacklist another Broadcom BCM2035 device
+     uml: move register initialization
 has been removed from the -mm tree.  Its filename was
-     bluetooth-blacklist-another-broadcom-bcm2035-device.patch
+     uml-move-register-initialization.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bluetooth: blacklist another Broadcom BCM2035 device
-From: Andy Shevchenko <andy@smile.org.ua>
+Subject: uml: move register initialization
+From: Jeff Dike <jdike@addtoit.com>
 
-This device is recognized as bluetooth, but still not works.
+Calling init_registers inside the skas3 checking causes mysterious crashes if
+it doesn't happen because the skas3 checking is bypassed.  This patch moves it
+to os_early_checks.
 
-Signed-off-by: Andy Shevchenko <andy@smile.org.ua>
-Cc: Marcel Holtmann <marcel@holtmann.org>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/bluetooth/hci_usb.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/um/os-Linux/start_up.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN drivers/bluetooth/hci_usb.c~bluetooth-blacklist-another-broadcom-bcm2035-device drivers/bluetooth/hci_usb.c
---- a/drivers/bluetooth/hci_usb.c~bluetooth-blacklist-another-broadcom-bcm2035-device
-+++ a/drivers/bluetooth/hci_usb.c
-@@ -111,6 +111,7 @@ static struct usb_device_id blacklist_id
- 	{ USB_DEVICE(0x0a5c, 0x2033), .driver_info = HCI_IGNORE },
+diff -puN arch/um/os-Linux/start_up.c~uml-move-register-initialization arch/um/os-Linux/start_up.c
+--- a/arch/um/os-Linux/start_up.c~uml-move-register-initialization
++++ a/arch/um/os-Linux/start_up.c
+@@ -342,6 +342,8 @@ static void __init check_coredump_limit(
  
- 	/* Broadcom BCM2035 */
-+	{ USB_DEVICE(0x0a5c, 0x2035), .driver_info = HCI_RESET | HCI_WRONG_SCO_MTU },
- 	{ USB_DEVICE(0x0a5c, 0x200a), .driver_info = HCI_RESET | HCI_WRONG_SCO_MTU },
- 	{ USB_DEVICE(0x0a5c, 0x2009), .driver_info = HCI_BCM92035 },
+ void __init os_early_checks(void)
+ {
++	int pid;
++
+ 	/* Print out the core dump limits early */
+ 	check_coredump_limit();
+ 
+@@ -351,6 +353,11 @@ void __init os_early_checks(void)
+ 	 * kernel is running.
+ 	 */
+ 	check_tmpexec();
++
++	pid = start_ptraced_child();
++	if (init_registers(pid))
++		fatal("Failed to initialize default registers");
++	stop_ptraced_child(pid, 1, 1);
+ }
+ 
+ static int __init noprocmm_cmd_param(char *str, int* add)
+@@ -412,9 +419,6 @@ static inline void check_skas3_ptrace_fa
+ 			non_fatal("found\n");
+ 	}
+ 
+-	if (init_registers(pid))
+-		fatal("Failed to initialize default registers");
+-
+ 	stop_ptraced_child(pid, 1, 1);
+ }
  
 _
 
-Patches currently in -mm which might be from andy@smile.org.ua are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-usb-yet-another-dell-wireless-cdma-evdo-modem.patch
+git-kvm.patch
+fix-__const_udelay-declaration-and-definition-mismatches.patch
+iget-stop-hostfs-from-using-iget-and-read_inode.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
+random-add-async-notification-support-to-dev-random.patch
+mount-options-fix-hostfs.patch
