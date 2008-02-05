@@ -1,39 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: - exec-rework-the-group-exit-and-fix-the-race-with-kill.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:26:34 -0800
-Message-ID: <200802052226.m15MQFGV011613@imap1.linux-foundation.org>
+Subject: - __group_complete_signal-fix-coredump-with-group-stop-race.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:26:28 -0800
+Message-ID: <200802052226.m15MQ9hp011602@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53645 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53819 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760469AbYBEW1G (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:27:06 -0500
+	by vger.kernel.org with ESMTP id S1760832AbYBEW1I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:27:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@tv-sign.ru, davidel@xmailserver.org, holt@sgi.com, mingo@elte.hu, roland@redhat.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     exec: rework the group exit and fix the race with kill
+     __group_complete_signal(): fix coredump with group stop race
 has been removed from the -mm tree.  Its filename was
-     exec-rework-the-group-exit-and-fix-the-race-with-kill.patch
+     __group_complete_signal-fix-coredump-with-group-stop-race.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: exec: rework the group exit and fix the race with kill
+Subject: __group_complete_signal(): fix coredump with group stop race
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-As Roland pointed out, we have the very old problem with exec.  de_thread()
-sets SIGNAL_GROUP_EXIT, kills other threads, changes ->group_leader and then
-clears signal->flags.  All signals (even fatal ones) sent in this window
-(which is not too small) will be lost.
+When __group_complete_signal() sees sig_kernel_coredump() signal, it starts
+the group stop, but sets ->group_exit_task = t in a hope that "t" will
+actually dequeue this signal and invoke do_coredump().  However, by the
+time "t" enters get_signal_to_deliver() it is possible that the signal was
+blocked/ignored or we have another pending !SIG_KERNEL_COREDUMP_MASK signal
+which will be dequeued first.  This means the task could be stopped but not
+killed.
 
-With this patch exec doesn't abuse SIGNAL_GROUP_EXIT.  signal_group_exit(),
-the new helper, should be used to detect exit_group() or exec() in progress. 
-It can have more users, but this patch does only strictly necessary changes.
+Remove this code from __group_complete_signal().  Note also this patch
+removes the bogus signal_wake_up(t, 1).  This thread can't be
+STOPPED/TRACED, note the corresponding check in wants_signal().
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Davide Libenzi <davidel@xmailserver.org>
@@ -44,121 +47,56 @@ Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c             |   13 ++++---------
- include/linux/sched.h |    7 +++++++
- kernel/exit.c         |    3 ++-
- kernel/signal.c       |    4 ++--
- 4 files changed, 15 insertions(+), 12 deletions(-)
+ kernel/signal.c |   30 ------------------------------
+ 1 file changed, 30 deletions(-)
 
-diff -puN fs/exec.c~exec-rework-the-group-exit-and-fix-the-race-with-kill fs/exec.c
---- a/fs/exec.c~exec-rework-the-group-exit-and-fix-the-race-with-kill
-+++ a/fs/exec.c
-@@ -760,7 +760,7 @@ static int de_thread(struct task_struct 
- 	 */
- 	read_lock(&tasklist_lock);
- 	spin_lock_irq(lock);
--	if (sig->flags & SIGNAL_GROUP_EXIT) {
-+	if (signal_group_exit(sig)) {
- 		/*
- 		 * Another group action in progress, just
- 		 * return so that the signal is processed.
-@@ -778,6 +778,7 @@ static int de_thread(struct task_struct 
- 	if (unlikely(tsk->group_leader == task_child_reaper(tsk)))
- 		task_active_pid_ns(tsk)->child_reaper = tsk;
- 
-+	sig->group_exit_task = tsk;
- 	zap_other_threads(tsk);
- 	read_unlock(&tasklist_lock);
- 
-@@ -802,7 +803,6 @@ static int de_thread(struct task_struct 
+diff -puN kernel/signal.c~__group_complete_signal-fix-coredump-with-group-stop-race kernel/signal.c
+--- a/kernel/signal.c~__group_complete_signal-fix-coredump-with-group-stop-race
++++ a/kernel/signal.c
+@@ -911,27 +911,6 @@ __group_complete_signal(int sig, struct 
+ 			} while_each_thread(p, t);
+ 			return;
+ 		}
+-
+-		/*
+-		 * There will be a core dump.  We make all threads other
+-		 * than the chosen one go into a group stop so that nothing
+-		 * happens until it gets scheduled, takes the signal off
+-		 * the shared queue, and does the core dump.  This is a
+-		 * little more complicated than strictly necessary, but it
+-		 * keeps the signal state that winds up in the core dump
+-		 * unchanged from the death state, e.g. which thread had
+-		 * the core-dump signal unblocked.
+-		 */
+-		rm_from_queue(SIG_KERNEL_STOP_MASK, &t->pending);
+-		rm_from_queue(SIG_KERNEL_STOP_MASK, &p->signal->shared_pending);
+-		p->signal->group_stop_count = 0;
+-		p->signal->group_exit_task = t;
+-		p = t;
+-		do {
+-			p->signal->group_stop_count++;
+-			signal_wake_up(t, t == p);
+-		} while_each_thread(p, t);
+-		return;
  	}
  
- 	sig->notify_count = count;
--	sig->group_exit_task = tsk;
- 	while (atomic_read(&sig->count) > count) {
- 		__set_current_state(TASK_UNINTERRUPTIBLE);
- 		spin_unlock_irq(lock);
-@@ -871,15 +871,10 @@ static int de_thread(struct task_struct 
- 		leader->exit_state = EXIT_DEAD;
- 
- 		write_unlock_irq(&tasklist_lock);
--        }
-+	}
- 
- 	sig->group_exit_task = NULL;
- 	sig->notify_count = 0;
--	/*
--	 * There may be one thread left which is just exiting,
--	 * but it's safe to stop telling the group to kill themselves.
--	 */
--	sig->flags = 0;
- 
- no_thread_group:
- 	exit_itimers(sig);
-@@ -1549,7 +1544,7 @@ static inline int zap_threads(struct tas
- 	int err = -EAGAIN;
- 
- 	spin_lock_irq(&tsk->sighand->siglock);
--	if (!(tsk->signal->flags & SIGNAL_GROUP_EXIT)) {
-+	if (!signal_group_exit(tsk->signal)) {
- 		tsk->signal->group_exit_code = exit_code;
- 		zap_process(tsk);
- 		err = 0;
-diff -puN include/linux/sched.h~exec-rework-the-group-exit-and-fix-the-race-with-kill include/linux/sched.h
---- a/include/linux/sched.h~exec-rework-the-group-exit-and-fix-the-race-with-kill
-+++ a/include/linux/sched.h
-@@ -555,6 +555,13 @@ struct signal_struct {
- #define SIGNAL_STOP_CONTINUED	0x00000004 /* SIGCONT since WCONTINUED reap */
- #define SIGNAL_GROUP_EXIT	0x00000008 /* group exit in progress */
- 
-+/* If true, all threads except ->group_exit_task have pending SIGKILL */
-+static inline int signal_group_exit(const struct signal_struct *sig)
-+{
-+	return	(sig->flags & SIGNAL_GROUP_EXIT) ||
-+		(sig->group_exit_task != NULL);
-+}
-+
- /*
-  * Some day this will be a full-fledged user tracking system..
-  */
-diff -puN kernel/exit.c~exec-rework-the-group-exit-and-fix-the-race-with-kill kernel/exit.c
---- a/kernel/exit.c~exec-rework-the-group-exit-and-fix-the-race-with-kill
-+++ a/kernel/exit.c
-@@ -1083,11 +1083,12 @@ do_group_exit(int exit_code)
- 		struct signal_struct *const sig = current->signal;
- 		struct sighand_struct *const sighand = current->sighand;
- 		spin_lock_irq(&sighand->siglock);
--		if (sig->flags & SIGNAL_GROUP_EXIT)
-+		if (signal_group_exit(sig))
- 			/* Another thread got here before we took the lock.  */
- 			exit_code = sig->group_exit_code;
- 		else {
- 			sig->group_exit_code = exit_code;
-+			sig->flags = SIGNAL_GROUP_EXIT;
- 			zap_other_threads(current);
- 		}
- 		spin_unlock_irq(&sighand->siglock);
-diff -puN kernel/signal.c~exec-rework-the-group-exit-and-fix-the-race-with-kill kernel/signal.c
---- a/kernel/signal.c~exec-rework-the-group-exit-and-fix-the-race-with-kill
-+++ a/kernel/signal.c
-@@ -957,7 +957,6 @@ void zap_other_threads(struct task_struc
+ 	/*
+@@ -1762,15 +1741,6 @@ static int handle_group_stop(void)
  {
- 	struct task_struct *t;
+ 	int stop_count;
  
--	p->signal->flags = SIGNAL_GROUP_EXIT;
- 	p->signal->group_stop_count = 0;
- 
- 	for (t = next_thread(p); t != p; t = next_thread(t)) {
-@@ -1697,7 +1696,8 @@ static int do_signal_stop(int signr)
- 	} else {
- 		struct task_struct *t;
- 
--		if (!likely(sig->flags & SIGNAL_STOP_DEQUEUED))
-+		if (!likely(sig->flags & SIGNAL_STOP_DEQUEUED) ||
-+		    unlikely(sig->group_exit_task))
- 			return 0;
+-	if (current->signal->group_exit_task == current) {
+-		/*
+-		 * Group stop is so we can do a core dump,
+-		 * We are the initiating thread, so get on with it.
+-		 */
+-		current->signal->group_exit_task = NULL;
+-		return 0;
+-	}
+-
+ 	if (current->signal->flags & SIGNAL_GROUP_EXIT)
  		/*
- 		 * There is no group stop already in progress.
+ 		 * Group stop is so another thread can do a core dump,
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
