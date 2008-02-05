@@ -1,70 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-backlight-reset-brightness-on-resume-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 04 Feb 2008 23:30:23 -0800
-Message-ID: <200802050730.m157U4vK009605@imap1.linux-foundation.org>
+Subject: - git-alsa-disable-sound-pci-ice1712-ice1724c.patch removed from -mm tree
+Date: Mon, 04 Feb 2008 23:31:54 -0800
+Message-ID: <200802050731.m157VZnT009714@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51451 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45173 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751136AbYBEHbY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 02:31:24 -0500
+	by vger.kernel.org with ESMTP id S1752235AbYBEHcM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 02:32:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, lenb@kernel.org, mjg59@srcf.ucam.org, rui.zhang@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi-backlight-reset-brightness-on-resume-checkpatch-fixes
+     git-alsa: disable sound/pci/ice1712/ice1724.c
 has been removed from the -mm tree.  Its filename was
-     acpi-backlight-reset-brightness-on-resume-checkpatch-fixes.patch
+     git-alsa-disable-sound-pci-ice1712-ice1724c.patch
 
-This patch was dropped because it was folded into acpi-backlight-reset-brightness-on-resume.patch
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi-backlight-reset-brightness-on-resume-checkpatch-fixes
+Subject: git-alsa: disable sound/pci/ice1712/ice1724.c
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: need spaces around that '=' (ctx:VxV)
-#49: FILE: drivers/acpi/video.c:1947:
-+	for (i=0; i<video->attached_count; i++) {
- 	      ^
+sound/pci/ice1712/ice1724.c:50:26: error: prodigy_hifi.h: No such file or directory
 
-ERROR: need spaces around that '<' (ctx:VxV)
-#49: FILE: drivers/acpi/video.c:1947:
-+	for (i=0; i<video->attached_count; i++) {
- 	           ^
+Someone forgot to check in a file?
 
-total: 2 errors, 0 warnings, 39 lines checked
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Len Brown <lenb@kernel.org>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/video.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ sound/pci/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/acpi/video.c~acpi-backlight-reset-brightness-on-resume-checkpatch-fixes drivers/acpi/video.c
---- a/drivers/acpi/video.c~acpi-backlight-reset-brightness-on-resume-checkpatch-fixes
-+++ a/drivers/acpi/video.c
-@@ -1944,7 +1944,7 @@ static int acpi_video_resume(struct acpi
- 
- 	video = acpi_driver_data(device);
- 
--	for (i=0; i<video->attached_count; i++) {
-+	for (i = 0; i < video->attached_count; i++) {
- 		video_device = video->attached_array[i].bind_info;
- 		if (video_device && video_device->backlight)
- 			acpi_video_set_brightness(video_device->backlight);
+diff -puN sound/pci/Kconfig~git-alsa-disable-sound-pci-ice1712-ice1724c sound/pci/Kconfig
+--- a/sound/pci/Kconfig~git-alsa-disable-sound-pci-ice1712-ice1724c
++++ a/sound/pci/Kconfig
+@@ -678,6 +678,7 @@ config SND_ICE1712
+ config SND_ICE1724
+ 	tristate "ICE/VT1724/1720 (Envy24HT/PT)"
+ 	depends on SND
++	depends on BROKEN
+ 	select SND_MPU401_UART
+ 	select SND_AC97_CODEC
+ 	help
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -104,7 +88,6 @@ git-acpi.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 small-acpica-extension-to-be-able-to-store-the-name-of.patch
 acpi-backlight-reset-brightness-on-resume.patch
-acpi-backlight-reset-brightness-on-resume-checkpatch-fixes.patch
 git-alsa-disable-sound-pci-ice1712-ice1724c.patch
 git-agpgart.patch
 git-agpgart-fix.patch
