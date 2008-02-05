@@ -1,154 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: - uml-add-virt_to_pte.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:36:42 -0800
-Message-ID: <200802052236.m15MaNZH012709@imap1.linux-foundation.org>
+Subject: - uml-console-driver-cleanups.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:35:48 -0800
+Message-ID: <200802052235.m15MZT7o012617@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39175 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60621 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762463AbYBEWll (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:41 -0500
+	by vger.kernel.org with ESMTP id S1762307AbYBEWla (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: add virt_to_pte
+     uml: console driver cleanups
 has been removed from the -mm tree.  Its filename was
-     uml-add-virt_to_pte.patch
+     uml-console-driver-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: add virt_to_pte
+Subject: uml: console driver cleanups
 From: Jeff Dike <jdike@addtoit.com>
 
-Turn um_virt_to_phys into virt_to_pte, cleaning up a horrid interface.
-
-It's also made non-static and declared in pgtable.h because it'll be
-needed when the stubs get a vma.
+Console driver cleanups -
+	Changed an instance of foo = bar + foo to foo += bar
+	Removed checks of tty->stopped - I don't think the low-level
+driver has any business looking at that
+	Removed an annoying warning
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/skas/uaccess.c |   56 +++++++++++++-------------------
- include/asm-um/pgtable.h      |    3 +
- 2 files changed, 26 insertions(+), 33 deletions(-)
+ arch/um/drivers/line.c |   19 ++-----------------
+ 1 file changed, 2 insertions(+), 17 deletions(-)
 
-diff -puN arch/um/kernel/skas/uaccess.c~uml-add-virt_to_pte arch/um/kernel/skas/uaccess.c
---- a/arch/um/kernel/skas/uaccess.c~uml-add-virt_to_pte
-+++ a/arch/um/kernel/skas/uaccess.c
-@@ -13,70 +13,60 @@
- #include "kern_util.h"
- #include "os.h"
+diff -puN arch/um/drivers/line.c~uml-console-driver-cleanups arch/um/drivers/line.c
+--- a/arch/um/drivers/line.c~uml-console-driver-cleanups
++++ a/arch/um/drivers/line.c
+@@ -48,7 +48,7 @@ static int write_room(struct line *line)
+ 	n = line->head - line->tail;
  
--static void *um_virt_to_phys(struct task_struct *task, unsigned long addr,
--			     pte_t *pte_out)
-+pte_t *virt_to_pte(struct mm_struct *mm, unsigned long addr)
- {
- 	pgd_t *pgd;
- 	pud_t *pud;
- 	pmd_t *pmd;
--	pte_t *pte;
--	pte_t ptent;
- 
--	if (task->mm == NULL)
--		return ERR_PTR(-EINVAL);
--	pgd = pgd_offset(task->mm, addr);
-+	if (mm == NULL)
-+		return NULL;
-+
-+	pgd = pgd_offset(mm, addr);
- 	if (!pgd_present(*pgd))
--		return ERR_PTR(-EINVAL);
-+		return NULL;
- 
- 	pud = pud_offset(pgd, addr);
- 	if (!pud_present(*pud))
--		return ERR_PTR(-EINVAL);
-+		return NULL;
- 
- 	pmd = pmd_offset(pud, addr);
- 	if (!pmd_present(*pmd))
--		return ERR_PTR(-EINVAL);
--
--	pte = pte_offset_kernel(pmd, addr);
--	ptent = *pte;
--	if (!pte_present(ptent))
--		return ERR_PTR(-EINVAL);
-+		return NULL;
- 
--	if (pte_out != NULL)
--		*pte_out = ptent;
--	return (void *) (pte_val(ptent) & PAGE_MASK) + (addr & ~PAGE_MASK);
-+	return pte_offset_kernel(pmd, addr);
+ 	if (n <= 0)
+-		n = LINE_BUFSIZE + n; /* The other case */
++		n += LINE_BUFSIZE; /* The other case */
+ 	return n - 1;
  }
  
--static unsigned long maybe_map(unsigned long virt, int is_write)
-+static pte_t *maybe_map(unsigned long virt, int is_write)
- {
--	pte_t pte;
--	int err;
-+	pte_t *pte = virt_to_pte(current->mm, virt);
-+	int err, dummy_code;
+@@ -58,17 +58,10 @@ int line_write_room(struct tty_struct *t
+ 	unsigned long flags;
+ 	int room;
  
--	void *phys = um_virt_to_phys(current, virt, &pte);
--	int dummy_code;
+-	if (tty->stopped)
+-		return 0;
 -
--	if (IS_ERR(phys) || (is_write && !pte_write(pte))) {
-+	if ((pte == NULL) || !pte_present(*pte) ||
-+	    (is_write && !pte_write(*pte))) {
- 		err = handle_page_fault(virt, 0, is_write, 1, &dummy_code);
- 		if (err)
--			return -1UL;
--		phys = um_virt_to_phys(current, virt, NULL);
-+			return NULL;
-+		pte = virt_to_pte(current->mm, virt);
- 	}
--	if (IS_ERR(phys))
--		phys = (void *) -1;
-+	if (!pte_present(*pte))
-+		pte = NULL;
+ 	spin_lock_irqsave(&line->lock, flags);
+ 	room = write_room(line);
+ 	spin_unlock_irqrestore(&line->lock, flags);
  
--	return (unsigned long) phys;
-+	return pte;
+-	/*XXX: Warning to remove */
+-	if (0 == room)
+-		printk(KERN_DEBUG "%s: %s: no room left in buffer\n",
+-		       __FUNCTION__,tty->name);
+ 	return room;
  }
  
- static int do_op_one_page(unsigned long addr, int len, int is_write,
- 		 int (*op)(unsigned long addr, int len, void *arg), void *arg)
- {
- 	struct page *page;
-+	pte_t *pte;
- 	int n;
+@@ -79,8 +72,7 @@ int line_chars_in_buffer(struct tty_stru
+ 	int ret;
  
--	addr = maybe_map(addr, is_write);
--	if (addr == -1UL)
-+	pte = maybe_map(addr, is_write);
-+	if (pte == NULL)
- 		return -1;
+ 	spin_lock_irqsave(&line->lock, flags);
+-
+-	/*write_room subtracts 1 for the needed NULL, so we readd it.*/
++	/* write_room subtracts 1 for the needed NULL, so we readd it.*/
+ 	ret = LINE_BUFSIZE - (write_room(line) + 1);
+ 	spin_unlock_irqrestore(&line->lock, flags);
  
--	page = phys_to_page(addr);
-+	page = pte_page(*pte);
- 	addr = (unsigned long) kmap_atomic(page, KM_UML_USERCOPY) +
- 		(addr & ~PAGE_MASK);
+@@ -184,10 +176,6 @@ void line_flush_buffer(struct tty_struct
+ 	unsigned long flags;
+ 	int err;
  
-diff -puN include/asm-um/pgtable.h~uml-add-virt_to_pte include/asm-um/pgtable.h
---- a/include/asm-um/pgtable.h~uml-add-virt_to_pte
-+++ a/include/asm-um/pgtable.h
-@@ -323,6 +323,9 @@ static inline pte_t pte_modify(pte_t pte
- #define pte_unmap(pte) do { } while (0)
- #define pte_unmap_nested(pte) do { } while (0)
+-	/*XXX: copied from line_write, verify if it is correct!*/
+-	if (tty->stopped)
+-		return;
+-
+ 	spin_lock_irqsave(&line->lock, flags);
+ 	err = flush_buffer(line);
+ 	spin_unlock_irqrestore(&line->lock, flags);
+@@ -213,9 +201,6 @@ int line_write(struct tty_struct *tty, c
+ 	unsigned long flags;
+ 	int n, ret = 0;
  
-+struct mm_struct;
-+extern pte_t *virt_to_pte(struct mm_struct *mm, unsigned long addr);
-+
- #define update_mmu_cache(vma,address,pte) do ; while (0)
- 
- /* Encode and de-code a swap entry */
+-	if (tty->stopped)
+-		return 0;
+-
+ 	spin_lock_irqsave(&line->lock, flags);
+ 	if (line->head != line->tail)
+ 		ret = buffer_data(line, buf, len);
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
