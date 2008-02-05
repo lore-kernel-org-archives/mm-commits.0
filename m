@@ -1,199 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: + clean-up-the-kill_something_info.patch added to -mm tree
-Date: Mon, 04 Feb 2008 21:48:03 -0800
-Message-ID: <200802050547.m155lj3x005038@imap1.linux-foundation.org>
+Subject: - iommu-sg-add-iommu-helper-functions-for-the-free-area-management-update.patch removed from -mm tree
+Date: Mon, 04 Feb 2008 22:13:19 -0800
+Message-ID: <200802050613.m156D0wv005868@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42958 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38625 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752454AbYBEFsb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 00:48:31 -0500
+	by vger.kernel.org with ESMTP id S1751084AbYBEGNk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 01:13:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: xemul@openvz.org, oleg@tv-sign.ru
+To: fujita.tomonori@lab.ntt.co.jp, James.Bottomley@steeleye.com, jeff@garzik.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Clean up the kill_something_info
-has been added to the -mm tree.  Its filename is
-     clean-up-the-kill_something_info.patch
+     iommu-sg-add-iommu-helper-functions-for-the-free-area-management update
+has been removed from the -mm tree.  Its filename was
+     iommu-sg-add-iommu-helper-functions-for-the-free-area-management-update.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into iommu-sg-add-iommu-helper-functions-for-the-free-area-management.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Clean up the kill_something_info
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: iommu-sg-add-iommu-helper-functions-for-the-free-area-management update
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-This is the first step (of two) in removing the kill_pgrp_info.
+An undocumented alteration :(
 
-All the users of this function are in kernel/signal.c, but all they need is to
-call __kill_pgrp_info() with the tasklist_lock read-locked.
-
-Fortunately, one of its users is the kill_something_info(), which already
-needs this lock in one of its branches, so clean these branches up and call
-the __kill_pgrp_info() directly.
-
-Based on Oleg's view of how this function should look.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   26 +++++++++++++++-----------
- 1 file changed, 15 insertions(+), 11 deletions(-)
+ lib/iommu-helper.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN kernel/signal.c~clean-up-the-kill_something_info kernel/signal.c
---- a/kernel/signal.c~clean-up-the-kill_something_info
-+++ a/kernel/signal.c
-@@ -1134,14 +1134,22 @@ EXPORT_SYMBOL_GPL(kill_pid_info_as_uid);
- static int kill_something_info(int sig, struct siginfo *info, int pid)
+diff -puN lib/iommu-helper.c~iommu-sg-add-iommu-helper-functions-for-the-free-area-management-update lib/iommu-helper.c
+--- a/lib/iommu-helper.c~iommu-sg-add-iommu-helper-functions-for-the-free-area-management-update
++++ a/lib/iommu-helper.c
+@@ -8,15 +8,20 @@
+ static unsigned long find_next_zero_area(unsigned long *map,
+ 					 unsigned long size,
+ 					 unsigned long start,
+-					 unsigned int nr)
++					 unsigned int nr,
++					 unsigned long align_mask)
  {
- 	int ret;
--	rcu_read_lock();
--	if (!pid) {
--		ret = kill_pgrp_info(sig, info, task_pgrp(current));
--	} else if (pid == -1) {
+ 	unsigned long index, end, i;
+ again:
+ 	index = find_next_zero_bit(map, size, start);
 +
-+	if (pid > 0) {
-+		rcu_read_lock();
-+		ret = kill_pid_info(sig, info, find_vpid(pid));
-+		rcu_read_unlock();
-+		return ret;
-+	}
++	/* Align allocation */
++	index = (index + align_mask) & ~align_mask;
 +
-+	read_lock(&tasklist_lock);
-+	if (pid != -1) {
-+		ret = __kill_pgrp_info(sig, info,
-+				pid ? find_vpid(-pid) : task_pgrp(current));
-+	} else {
- 		int retval = 0, count = 0;
- 		struct task_struct * p;
- 
--		read_lock(&tasklist_lock);
- 		for_each_process(p) {
- 			if (p->pid > 1 && !same_thread_group(p, current)) {
- 				int err = group_send_sig_info(sig, info, p);
-@@ -1150,14 +1158,10 @@ static int kill_something_info(int sig, 
- 					retval = err;
- 			}
- 		}
--		read_unlock(&tasklist_lock);
- 		ret = count ? retval : -ESRCH;
--	} else if (pid < 0) {
--		ret = kill_pgrp_info(sig, info, find_vpid(-pid));
--	} else {
--		ret = kill_pid_info(sig, info, find_vpid(pid));
- 	}
--	rcu_read_unlock();
-+	read_unlock(&tasklist_lock);
-+
- 	return ret;
- }
- 
+ 	end = index + nr;
+-	if (end > size)
++	if (end >= size)
+ 		return -1;
+-	for (i = index + 1; i < end; i++) {
++	for (i = index; i < end; i++) {
+ 		if (test_bit(i, map)) {
+ 			start = i+1;
+ 			goto again;
+@@ -50,9 +55,8 @@ unsigned long iommu_area_alloc(unsigned 
+ {
+ 	unsigned long index;
+ again:
+-	index = find_next_zero_area(map, size, start, nr);
++	index = find_next_zero_area(map, size, start, nr, align_mask);
+ 	if (index != -1) {
+-		index = (index + align_mask) & ~align_mask;
+ 		if (is_span_boundary(index, nr, shift, boundary_size)) {
+ 			/* we could do more effectively */
+ 			start = index + 1;
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
 
 origin.patch
-shmem-factor-out-sbi-free_inodes-manipulations.patch
-frv-use-find_task_by_vpid-in-cxn_pin_by_pid.patch
-uml-make-mconsole_stack-namespace-aware.patch
-use-find_task_by_vpid-in-audit-code.patch
-gfs2-make-gfs2_glockgl_owner_pid-be-a-struct-pid.patch
-gfs2-make-gfs2_holdergh_owner_pid-be-a-struct-pid.patch
-ia64-make-pfm_get_task-work-with-virtual-pids.patch
-ia64-fix-ptrace-inside-a-namespace.patch
-mips-use-find_task_by_vpid-in-system-calls.patch
-deprecate-find_task_by_pid-kgdb.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-memcgroup-reinstate-swapoff-mod.patch
-bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
-bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
-bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
-bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
-memcgroup-fix-zone-isolation-oom.patch
-memcgroup-revert-swap_state-mods.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
-memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
-memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
-memory-cgroup-enhancements-add-pre_destroy-handler.patch
-memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
-handle-pid-namespaces-in-cgroups-code.patch
-add-the-namespaces-config-option.patch
-move-the-uts-namespace-under-uts_ns-option.patch
-move-the-ipc-namespace-under-ipc_ns-option.patch
-cleanup-the-code-managed-with-the-user_ns-option.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-mark-net_ns-with-depends-on-namespaces.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
-proc-proper-pidns-handling-for-proc-self.patch
-proc-fix-the-threaded-proc-self.patch
-ipc-uninline-some-code-from-utilh.patch
-ipc-make-struct-ipc_ids-static-in-ipc_namespace.patch
-ipc-consolidate-sem_exit_ns-msg_exit_ns-and-shm_exit_ns.patch
-sys_setpgid-simplify-pid-ns-interaction.patch
-fix-setsid-for-sub-namespace-sbin-init.patch
-teach-set_special_pids-to-use-struct-pid.patch
-move-daemonized-kernel-threads-into-the-swappers-session.patch
-start-the-global-sbin-init-with-00-special-pids.patch
-pid-sys_wait-fixes-v2.patch
-pid-extend-fix-pid_vnr.patch
-sys_getsid-dont-use-nsproxy-directly.patch
-pid-fix-mips-irix-emulation-pid-usage.patch
-pid-fix-mips-irix-emulation-pid-usage-fix.patch
-pid-fix-solaris_procids.patch
-uglify-kill_pid_info-to-fix-kill-vs-exec-race.patch
-uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice.patch
-itimer_real-convert-to-use-struct-pid.patch
-pidns-make-full-use-of-xxx_vnr-calls.patch
-pidns-fix-badly-converted-mqueues-pid-handling.patch
-clean-up-the-kill_something_info.patch
-get-rid-of-the-kill_pgrp_info-function.patch
-use-find_task_by_vpid-in-posix-timers.patch
-use-find_task_by_vpid-in-taskstats.patch
-dont-operate-with-pid_t-in-rtmutex-tester.patch
-deprecate-find_task_by_pid.patch
-reiser4.patch
+iommu-sg-merging-add-device_dma_parameters-structure.patch
+iommu-sg-merging-pci-add-device_dma_parameters-support.patch
+iommu-sg-merging-x86-make-pci-gart-iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-ppc-make-iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-ia64-make-sba_iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-alpha-make-pci_iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-parisc-make-iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-call-blk_queue_segment_boundary-in-__scsi_alloc_queue.patch
+iommu-sg-merging-sata_inic162x-use-pci_set_dma_max_seg_size.patch
+iommu-sg-merging-aacraid-use-pci_set_dma_max_seg_size.patch
+iommu-sg-add-iommu-helper-functions-for-the-free-area-management.patch
+iommu-sg-add-iommu-helper-functions-for-the-free-area-management-update.patch
+iommu-sg-powerpc-convert-iommu-to-use-the-iommu-helper.patch
+iommu-sg-powerpc-remove-dma-4gb-boundary-protection.patch
+iommu-sg-x86-convert-calgary-iommu-to-use-the-iommu-helper.patch
+iommu-sg-x86-convert-gart-iommu-to-use-the-iommu-helper.patch
+iommu-sg-kill-__clear_bit_string-and-find_next_zero_string.patch
+add-accessors-for-segment_boundary_mask-in.patch
+pci-add-dma-segment-boundary-support.patch
+swiotlb-respect-the-segment-boundary-limits.patch
+call-dma_set_seg_boundary-in-__scsi_alloc_queue.patch
+alpha-kill-deprecated-virt_to_bus.patch
