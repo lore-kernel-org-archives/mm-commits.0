@@ -1,92 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: - bluetooth-hidp_process_hid_control-remove-unnecessary-parameter-dealing.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:39:33 -0800
-Message-ID: <200802052239.m15MdEhE013029@imap1.linux-foundation.org>
+Subject: - uml-clonec-tidying.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:35:51 -0800
+Message-ID: <200802052235.m15MZWwZ012620@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56699 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46148 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760800AbYBEWl1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:27 -0500
+	by vger.kernel.org with ESMTP id S1760694AbYBEWla (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hidave.darkstar@gmail.com, marcel@holtmann.org, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bluetooth: hidp_process_hid_control remove unnecessary parameter dealing
+     uml: clone.c tidying
 has been removed from the -mm tree.  Its filename was
-     bluetooth-hidp_process_hid_control-remove-unnecessary-parameter-dealing.patch
+     uml-clonec-tidying.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bluetooth: hidp_process_hid_control remove unnecessary parameter dealing
-From: Dave Young <hidave.darkstar@gmail.com>
+Subject: uml: clone.c tidying
+From: Jeff Dike <jdike@addtoit.com>
 
-According to the bluetooth HID spec v1.0 chapter 7.4.2
+clone.c needed some style attention -
+	updated copyright
+	include trimming
+	coding style
 
-"This code requests a major state change in a BT-HID device.  A HID_CONTROL
-request does not generate a HANDSHAKE response."
-
-"A HID_CONTROL packet with a parameter of VIRTUAL_CABLE_UNPLUG is the only
-HID_CONTROL packet a device can send to a host.  A host will ignore all other
-packets."
-
-So in the hidp_precess_hid_control function, we just need to deal with the
-UNLUG packet.
-
-Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
-Cc: Marcel Holtmann <marcel@holtmann.org>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bluetooth/hidp/core.c |   19 +------------------
- 1 file changed, 1 insertion(+), 18 deletions(-)
+ arch/um/kernel/skas/clone.c |   32 ++++++++++++++++++--------------
+ 1 file changed, 18 insertions(+), 14 deletions(-)
 
-diff -puN net/bluetooth/hidp/core.c~bluetooth-hidp_process_hid_control-remove-unnecessary-parameter-dealing net/bluetooth/hidp/core.c
---- a/net/bluetooth/hidp/core.c~bluetooth-hidp_process_hid_control-remove-unnecessary-parameter-dealing
-+++ a/net/bluetooth/hidp/core.c
-@@ -369,30 +369,13 @@ static inline void hidp_process_hid_cont
- {
- 	BT_DBG("session %p param 0x%02x", session, param);
+diff -puN arch/um/kernel/skas/clone.c~uml-clonec-tidying arch/um/kernel/skas/clone.c
+--- a/arch/um/kernel/skas/clone.c~uml-clonec-tidying
++++ a/arch/um/kernel/skas/clone.c
+@@ -1,17 +1,20 @@
+-#include <sched.h>
++/*
++ * Copyright (C) 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
++ * Licensed under the GPL
++ */
++
+ #include <signal.h>
+-#include <sys/mman.h>
+-#include <sys/time.h>
++#include <sched.h>
+ #include <asm/unistd.h>
++#include <sys/time.h>
+ #include "as-layout.h"
++#include "kern_constants.h"
+ #include "ptrace_user.h"
+-#include "skas.h"
+ #include "stub-data.h"
+-#include "uml-config.h"
+ #include "sysdep/stub.h"
+-#include "kern_constants.h"
  
--	switch (param) {
--	case HIDP_CTRL_NOP:
--		break;
--
--	case HIDP_CTRL_VIRTUAL_CABLE_UNPLUG:
-+	if (param == HIDP_CTRL_VIRTUAL_CABLE_UNPLUG) {
- 		/* Flush the transmit queues */
- 		skb_queue_purge(&session->ctrl_transmit);
- 		skb_queue_purge(&session->intr_transmit);
+-/* This is in a separate file because it needs to be compiled with any
++/*
++ * This is in a separate file because it needs to be compiled with any
+  * extraneous gcc flags (-pg, -fprofile-arcs, -ftest-coverage) disabled
+  *
+  * Use UM_KERN_PAGE_SIZE instead of PAGE_SIZE because that calls getpagesize
+@@ -26,25 +29,26 @@ stub_clone_handler(void)
  
- 		/* Kill session thread */
- 		atomic_inc(&session->terminate);
--		break;
--
--	case HIDP_CTRL_HARD_RESET:
--	case HIDP_CTRL_SOFT_RESET:
--	case HIDP_CTRL_SUSPEND:
--	case HIDP_CTRL_EXIT_SUSPEND:
--		/* FIXME: We have to parse these and return no error */
--		break;
--
--	default:
--		__hidp_send_ctrl_message(session,
--			HIDP_TRANS_HANDSHAKE | HIDP_HSHK_ERR_INVALID_PARAMETER, NULL, 0);
--		break;
- 	}
- }
+ 	err = stub_syscall2(__NR_clone, CLONE_PARENT | CLONE_FILES | SIGCHLD,
+ 			    STUB_DATA + UM_KERN_PAGE_SIZE / 2 - sizeof(void *));
+-	if(err != 0)
++	if (err != 0)
+ 		goto out;
  
+ 	err = stub_syscall4(__NR_ptrace, PTRACE_TRACEME, 0, 0, 0);
+-	if(err)
++	if (err)
+ 		goto out;
+ 
+-	err = stub_syscall3(__NR_setitimer, ITIMER_VIRTUAL, 
++	err = stub_syscall3(__NR_setitimer, ITIMER_VIRTUAL,
+ 			    (long) &data->timer, 0);
+-	if(err)
++	if (err)
+ 		goto out;
+ 
+ 	remap_stack(data->fd, data->offset);
+ 	goto done;
+ 
+  out:
+-	/* save current result. 
+-	 * Parent: pid; 
+-	 * child: retcode of mmap already saved and it jumps around this 
++	/*
++	 * save current result.
++	 * Parent: pid;
++	 * child: retcode of mmap already saved and it jumps around this
+ 	 * assignment
+ 	 */
+ 	data->err = err;
 _
 
-Patches currently in -mm which might be from hidave.darkstar@gmail.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-git-cpufreq.patch
-iget-stop-isofs-from-using-read_inode.patch
-iget-stop-isofs-from-using-read_inode-fix-2.patch
-iget-stop-isofs-from-using-read_inode-fix-2-update.patch
+git-kvm.patch
+fix-__const_udelay-declaration-and-definition-mismatches.patch
+iget-stop-hostfs-from-using-iget-and-read_inode.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
+random-add-async-notification-support-to-dev-random.patch
+mount-options-fix-hostfs.patch
