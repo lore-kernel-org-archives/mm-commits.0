@@ -1,155 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - iommu-sg-add-iommu-helper-functions-for-the-free-area-management.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:28:31 -0800
-Message-ID: <200802052228.m15MSCvm011866@imap1.linux-foundation.org>
+Subject: - vfs-reorder-vfs_getxattr-to-avoid-unnecessary-calls-to-the-lsm.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:32:52 -0800
+Message-ID: <200802052232.m15MWX1E012335@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60191 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41733 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762742AbYBEWoO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:44:14 -0500
+	by vger.kernel.org with ESMTP id S1761634AbYBEWn6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:43:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tomof@acm.org, James.Bottomley@steeleye.com, fujita.tomonori@lab.ntt.co.jp, jeff@garzik.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: dpquigl@tycho.nsa.gov, casey@schaufler-ca.com, chrisw@sous-sol.org, hch@lst.de, jmorris@namei.org, sds@tycho.nsa.gov, serue@us.ibm.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     iommu sg: add IOMMU helper functions for the free area management
+     VFS: Reorder vfs_getxattr to avoid unnecessary calls to the LSM
 has been removed from the -mm tree.  Its filename was
-     iommu-sg-add-iommu-helper-functions-for-the-free-area-management.patch
+     vfs-reorder-vfs_getxattr-to-avoid-unnecessary-calls-to-the-lsm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iommu sg: add IOMMU helper functions for the free area management
-From: FUJITA Tomonori <tomof@acm.org>
+Subject: VFS: Reorder vfs_getxattr to avoid unnecessary calls to the LSM
+From: "David P. Quigley" <dpquigl@tycho.nsa.gov>
 
-This adds IOMMU helper functions for the free area management.  These
-functions take care of LLD's segment boundary limit for IOMMUs.  They would be
-useful for IOMMUs that use bitmap for the free area management.
+Originally vfs_getxattr would pull the security xattr variable using
+the inode getxattr handle and then proceed to clobber it with a subsequent call
+to the LSM.
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+This patch reorders the two operations such that when the xattr requested is
+in the security namespace it first attempts to grab the value from the LSM
+directly.
+
+If it fails to obtain the value because there is no module present or the
+module does not support the operation it will fall back to using the inode
+getxattr operation.
+
+In the event that both are inaccessible it returns EOPNOTSUPP.
+
+Signed-off-by: David P. Quigley <dpquigl@tycho.nsa.gov>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Acked-by: James Morris <jmorris@namei.org>
+Acked-by: Serge Hallyn <serue@us.ibm.com>
+Cc: Casey Schaufler <casey@schaufler-ca.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/iommu-helper.h |    7 ++
- lib/Makefile                 |    1 
- lib/iommu-helper.c           |   80 +++++++++++++++++++++++++++++++++
- 3 files changed, 88 insertions(+)
+ fs/xattr.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN /dev/null include/linux/iommu-helper.h
---- /dev/null
-+++ a/include/linux/iommu-helper.h
-@@ -0,0 +1,7 @@
-+extern unsigned long iommu_area_alloc(unsigned long *map, unsigned long size,
-+				      unsigned long start, unsigned int nr,
-+				      unsigned long shift,
-+				      unsigned long boundary_size,
-+				      unsigned long align_mask);
-+extern void iommu_area_free(unsigned long *map, unsigned long start,
-+			    unsigned int nr);
-diff -puN lib/Makefile~iommu-sg-add-iommu-helper-functions-for-the-free-area-management lib/Makefile
---- a/lib/Makefile~iommu-sg-add-iommu-helper-functions-for-the-free-area-management
-+++ a/lib/Makefile
-@@ -65,6 +65,7 @@ obj-$(CONFIG_SMP) += pcounter.o
- obj-$(CONFIG_AUDIT_GENERIC) += audit.o
+diff -puN fs/xattr.c~vfs-reorder-vfs_getxattr-to-avoid-unnecessary-calls-to-the-lsm fs/xattr.c
+--- a/fs/xattr.c~vfs-reorder-vfs_getxattr-to-avoid-unnecessary-calls-to-the-lsm
++++ a/fs/xattr.c
+@@ -145,11 +145,6 @@ vfs_getxattr(struct dentry *dentry, char
+ 	if (error)
+ 		return error;
  
- obj-$(CONFIG_SWIOTLB) += swiotlb.o
-+obj-$(CONFIG_IOMMU_HELPER) += iommu-helper.o
- obj-$(CONFIG_FAULT_INJECTION) += fault-inject.o
+-	if (inode->i_op->getxattr)
+-		error = inode->i_op->getxattr(dentry, name, value, size);
+-	else
+-		error = -EOPNOTSUPP;
+-
+ 	if (!strncmp(name, XATTR_SECURITY_PREFIX,
+ 				XATTR_SECURITY_PREFIX_LEN)) {
+ 		const char *suffix = name + XATTR_SECURITY_PREFIX_LEN;
+@@ -158,9 +153,15 @@ vfs_getxattr(struct dentry *dentry, char
+ 		 * Only overwrite the return value if a security module
+ 		 * is actually active.
+ 		 */
+-		if (ret != -EOPNOTSUPP)
+-			error = ret;
++		if (ret == -EOPNOTSUPP)
++			goto nolsm;
++		return ret;
+ 	}
++nolsm:
++	if (inode->i_op->getxattr)
++		error = inode->i_op->getxattr(dentry, name, value, size);
++	else
++		error = -EOPNOTSUPP;
  
- lib-$(CONFIG_GENERIC_BUG) += bug.o
-diff -puN /dev/null lib/iommu-helper.c
---- /dev/null
-+++ a/lib/iommu-helper.c
-@@ -0,0 +1,80 @@
-+/*
-+ * IOMMU helper functions for the free area management
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/bitops.h>
-+
-+static unsigned long find_next_zero_area(unsigned long *map,
-+					 unsigned long size,
-+					 unsigned long start,
-+					 unsigned int nr,
-+					 unsigned long align_mask)
-+{
-+	unsigned long index, end, i;
-+again:
-+	index = find_next_zero_bit(map, size, start);
-+
-+	/* Align allocation */
-+	index = (index + align_mask) & ~align_mask;
-+
-+	end = index + nr;
-+	if (end >= size)
-+		return -1;
-+	for (i = index; i < end; i++) {
-+		if (test_bit(i, map)) {
-+			start = i+1;
-+			goto again;
-+		}
-+	}
-+	return index;
-+}
-+
-+static inline void set_bit_area(unsigned long *map, unsigned long i,
-+				int len)
-+{
-+	unsigned long end = i + len;
-+	while (i < end) {
-+		__set_bit(i, map);
-+		i++;
-+	}
-+}
-+
-+static inline int is_span_boundary(unsigned int index, unsigned int nr,
-+				   unsigned long shift,
-+				   unsigned long boundary_size)
-+{
-+	shift = (shift + index) & (boundary_size - 1);
-+	return shift + nr > boundary_size;
-+}
-+
-+unsigned long iommu_area_alloc(unsigned long *map, unsigned long size,
-+			       unsigned long start, unsigned int nr,
-+			       unsigned long shift, unsigned long boundary_size,
-+			       unsigned long align_mask)
-+{
-+	unsigned long index;
-+again:
-+	index = find_next_zero_area(map, size, start, nr, align_mask);
-+	if (index != -1) {
-+		if (is_span_boundary(index, nr, shift, boundary_size)) {
-+			/* we could do more effectively */
-+			start = index + 1;
-+			goto again;
-+		}
-+		set_bit_area(map, index, nr);
-+	}
-+	return index;
-+}
-+EXPORT_SYMBOL(iommu_area_alloc);
-+
-+void iommu_area_free(unsigned long *map, unsigned long start, unsigned int nr)
-+{
-+	unsigned long end = start + nr;
-+
-+	while (start < end) {
-+		__clear_bit(start, map);
-+		start++;
-+	}
-+}
-+EXPORT_SYMBOL(iommu_area_free);
+ 	return error;
+ }
 _
 
-Patches currently in -mm which might be from tomof@acm.org are
+Patches currently in -mm which might be from dpquigl@tycho.nsa.gov are
 
 origin.patch
