@@ -1,88 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - uml-add-newlines-to-printks.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:38:27 -0800
-Message-ID: <200802052238.m15Mc8t5012926@imap1.linux-foundation.org>
+Subject: - mm-dont-allow-ioremapping-of-ranges-larger-than-vmalloc-space.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:31:47 -0800
+Message-ID: <200802052231.m15MVShh012169@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41094 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60993 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760839AbYBEWl0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:26 -0500
+	by vger.kernel.org with ESMTP id S1760870AbYBEWlY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: robert@sixbynine.org, npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: add newlines to printks
+     mm: don't allow ioremapping of ranges larger than vmalloc space
 has been removed from the -mm tree.  Its filename was
-     uml-add-newlines-to-printks.patch
+     mm-dont-allow-ioremapping-of-ranges-larger-than-vmalloc-space.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: add newlines to printks
-From: Jeff Dike <jdike@addtoit.com>
+Subject: mm: don't allow ioremapping of ranges larger than vmalloc space
+From: "Robert Bragg" <robert@sixbynine.org>
 
-Some printks were missing newlines.
+When running with a 16M IOREMAP_MAX_ORDER (on armv7) we found that the
+vmlist search routine in __get_vm_area_node can mistakenly allow a driver
+to ioremap a range larger than vmalloc space.
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+If at the time of the ioremap all existing vmlist areas sit below the
+determined alignment then the search routine continues past all entries and
+exits the for loop - straight into the found: label - without ever testing
+for integer wrapping or that the requested size fits.
+
+We were seeing a driver successfully ioremap 128M of flash even though
+there was only 120M of vmalloc space.  From that point the system was left
+with the remainder of the first 16M of space to vmalloc/ioremap within.
+
+Signed-off-by: Robert Bragg <robert@sixbynine.org>
+Acked-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/skas/process.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/vmalloc.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN arch/um/os-Linux/skas/process.c~uml-add-newlines-to-printks arch/um/os-Linux/skas/process.c
---- a/arch/um/os-Linux/skas/process.c~uml-add-newlines-to-printks
-+++ a/arch/um/os-Linux/skas/process.c
-@@ -273,7 +273,7 @@ int start_userspace(unsigned long stub_s
- 	if (stack == MAP_FAILED) {
- 		err = -errno;
- 		printk(UM_KERN_ERR "start_userspace : mmap failed, "
--		       "errno = %d", errno);
-+		       "errno = %d\n", errno);
- 		return err;
+diff -puN mm/vmalloc.c~mm-dont-allow-ioremapping-of-ranges-larger-than-vmalloc-space mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-dont-allow-ioremapping-of-ranges-larger-than-vmalloc-space
++++ a/mm/vmalloc.c
+@@ -254,6 +254,10 @@ static struct vm_struct *__get_vm_area_n
+ 		if (addr > end - size)
+ 			goto out;
  	}
++	if ((size + addr) < addr)
++		goto out;
++	if (addr > end - size)
++		goto out;
  
-@@ -289,7 +289,7 @@ int start_userspace(unsigned long stub_s
- 	if (pid < 0) {
- 		err = -errno;
- 		printk(UM_KERN_ERR "start_userspace : clone failed, "
--		       "errno = %d", errno);
-+		       "errno = %d\n", errno);
- 		return err;
- 	}
- 
-@@ -298,7 +298,7 @@ int start_userspace(unsigned long stub_s
- 		if (n < 0) {
- 			err = -errno;
- 			printk(UM_KERN_ERR "start_userspace : wait failed, "
--			       "errno = %d", errno);
-+			       "errno = %d\n", errno);
- 			goto out_kill;
- 		}
- 	} while (WIFSTOPPED(status) && (WSTOPSIG(status) == SIGVTALRM));
-@@ -306,7 +306,7 @@ int start_userspace(unsigned long stub_s
- 	if (!WIFSTOPPED(status) || (WSTOPSIG(status) != SIGSTOP)) {
- 		err = -EINVAL;
- 		printk(UM_KERN_ERR "start_userspace : expected SIGSTOP, got "
--		       "status = %d", status);
-+		       "status = %d\n", status);
- 		goto out_kill;
- 	}
- 
+ found:
+ 	area->next = *p;
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from robert@sixbynine.org are
 
 origin.patch
-git-kvm.patch
-fix-__const_udelay-declaration-and-definition-mismatches.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
-random-add-async-notification-support-to-dev-random.patch
-mount-options-fix-hostfs.patch
