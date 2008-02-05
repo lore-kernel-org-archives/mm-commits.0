@@ -1,199 +1,179 @@
 From: akpm@linux-foundation.org
-Subject: - uml-move-um_virt_to_phys.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:36:26 -0800
-Message-ID: <200802052236.m15Ma7A8012682@imap1.linux-foundation.org>
+Subject: - uml-const-and-other-tidying.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:35:41 -0800
+Message-ID: <200802052235.m15MZMOm012608@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41985 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38006 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762543AbYBEWls (ORCPT
+	by vger.kernel.org with ESMTP id S1760870AbYBEWls (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: xiyou.wangcong@gmail.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: move um_virt_to_phys
+     uml: const and other tidying
 has been removed from the -mm tree.  Its filename was
-     uml-move-um_virt_to_phys.patch
+     uml-const-and-other-tidying.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: move um_virt_to_phys
-From: Jeff Dike <jdike@addtoit.com>
+Subject: uml: const and other tidying
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-This patchset makes UML build and run with three-level page tables on
-32-bit hosts.  This is an uncommon use case, but the code here needed
-fixing and cleaning up, so 32-bit three-level pages tables were tested
-to make sure the changes are good.
+This patch also does some improvements for uml code.  Improvements include
+dropping unnecessary cast, killing some unnecessary code and still some
+constifying for pointers etc..
 
-Patch 1 - code movement
-Patch 2 - header untangling
-Patch 3 - style fixups in files affected so far
-Patch 4 - clean up use of current.h
-Patch 5 - fix sizes of types that are different between 2 and 3-level
-	page tables - three-level page table support should build at
-	this point
-Patch 6 - tidy (i.e. eliminate much of) the code that figures out how
-	big the address space is
-Patch 7 - change um_virt_to_phys into virt_to_pte, clean its
-	interface, and clean its (so far) one caller
-Patch 8 - the stub pages are covered with a VMA, allowing some nasty
-	code to be thrown out - three-level page tables now work
-
-This patch:
-
-um_virt_to_phys only has one user, so it can be moved to the same file
-and made static.  Its declarations in pgtable.h and ksyms.c are also
-gone.
-
-current_cmd was another apparent user, but it itself isn't used, so it
-is deleted.
-
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/ksyms.c        |    1 
- arch/um/kernel/process.c      |   43 --------------------------------
- arch/um/kernel/skas/uaccess.c |   34 +++++++++++++++++++++++--
- include/asm-um/pgtable.h      |    3 --
- 4 files changed, 32 insertions(+), 49 deletions(-)
+ arch/um/drivers/ubd_kern.c             |    6 +++---
+ arch/um/include/kern_util.h            |    2 +-
+ arch/um/kernel/mem.c                   |    2 +-
+ arch/um/kernel/process.c               |    4 +---
+ arch/um/os-Linux/drivers/tuntap_user.c |    2 +-
+ arch/um/os-Linux/mem.c                 |    7 ++++---
+ arch/um/os-Linux/sigio.c               |    2 +-
+ 7 files changed, 12 insertions(+), 13 deletions(-)
 
-diff -puN arch/um/kernel/ksyms.c~uml-move-um_virt_to_phys arch/um/kernel/ksyms.c
---- a/arch/um/kernel/ksyms.c~uml-move-um_virt_to_phys
-+++ a/arch/um/kernel/ksyms.c
-@@ -26,7 +26,6 @@ EXPORT_SYMBOL(get_kmem_end);
+diff -puN arch/um/drivers/ubd_kern.c~uml-const-and-other-tidying arch/um/drivers/ubd_kern.c
+--- a/arch/um/drivers/ubd_kern.c~uml-const-and-other-tidying
++++ a/arch/um/drivers/ubd_kern.c
+@@ -229,7 +229,7 @@ static int proc_ide_read_media(char *pag
+ 	return len;
+ }
  
- EXPORT_SYMBOL(high_physmem);
- EXPORT_SYMBOL(empty_zero_page);
--EXPORT_SYMBOL(um_virt_to_phys);
- EXPORT_SYMBOL(handle_page_fault);
- EXPORT_SYMBOL(find_iomem);
+-static void make_ide_entries(char *dev_name)
++static void make_ide_entries(const char *dev_name)
+ {
+ 	struct proc_dir_entry *dir, *ent;
+ 	char name[64];
+@@ -244,7 +244,7 @@ static void make_ide_entries(char *dev_n
+ 	ent->data = NULL;
+ 	ent->read_proc = proc_ide_read_media;
+ 	ent->write_proc = NULL;
+-	sprintf(name,"ide0/%s", dev_name);
++	snprintf(name, sizeof(name), "ide0/%s", dev_name);
+ 	proc_symlink(dev_name, proc_ide_root, name);
+ }
  
-diff -puN arch/um/kernel/process.c~uml-move-um_virt_to_phys arch/um/kernel/process.c
---- a/arch/um/kernel/process.c~uml-move-um_virt_to_phys
+@@ -443,7 +443,7 @@ __uml_help(ubd_setup,
+ "    cluster filesystem and inappropriate at almost all other times.\n\n"
+ );
+ 
+-static int udb_setup(char *str)
++static int udb_setup(const char *str)
+ {
+ 	printk("udb%s specified on command line is almost certainly a ubd -> "
+ 	       "udb TYPO\n", str);
+diff -puN arch/um/include/kern_util.h~uml-const-and-other-tidying arch/um/include/kern_util.h
+--- a/arch/um/include/kern_util.h~uml-const-and-other-tidying
++++ a/arch/um/include/kern_util.h
+@@ -81,7 +81,7 @@ extern void do_uml_exitcalls(void);
+ extern int attach_debugger(int idle_pid, int pid, int stop);
+ extern int config_gdb(char *str);
+ extern int remove_gdb(void);
+-extern char *uml_strdup(char *string);
++extern char *uml_strdup(const char *string);
+ extern void unprotect_kernel_mem(void);
+ extern void protect_kernel_mem(void);
+ extern void uml_cleanup(void);
+diff -puN arch/um/kernel/mem.c~uml-const-and-other-tidying arch/um/kernel/mem.c
+--- a/arch/um/kernel/mem.c~uml-const-and-other-tidying
++++ a/arch/um/kernel/mem.c
+@@ -65,7 +65,7 @@ static void setup_highmem(unsigned long 
+ void __init mem_init(void)
+ {
+ 	/* clear the zero-page */
+-	memset((void *) empty_zero_page, 0, PAGE_SIZE);
++	memset(empty_zero_page, 0, PAGE_SIZE);
+ 
+ 	/* Map in the area just after the brk now that kmalloc is about
+ 	 * to be turned on.
+diff -puN arch/um/kernel/process.c~uml-const-and-other-tidying arch/um/kernel/process.c
+--- a/arch/um/kernel/process.c~uml-const-and-other-tidying
 +++ a/arch/um/kernel/process.c
-@@ -255,49 +255,6 @@ void cpu_idle(void)
- 	default_idle();
+@@ -60,8 +60,6 @@ unsigned long alloc_stack(int order, int
+ 	if (atomic)
+ 		flags = GFP_ATOMIC;
+ 	page = __get_free_pages(flags, order);
+-	if (page == 0)
+-		return 0;
+ 
+ 	return page;
+ }
+@@ -331,7 +329,7 @@ void do_uml_exitcalls(void)
+ 		(*call)();
  }
  
--void *um_virt_to_phys(struct task_struct *task, unsigned long addr,
--		      pte_t *pte_out)
--{
--	pgd_t *pgd;
--	pud_t *pud;
--	pmd_t *pmd;
--	pte_t *pte;
--	pte_t ptent;
--
--	if (task->mm == NULL)
--		return ERR_PTR(-EINVAL);
--	pgd = pgd_offset(task->mm, addr);
--	if (!pgd_present(*pgd))
--		return ERR_PTR(-EINVAL);
--
--	pud = pud_offset(pgd, addr);
--	if (!pud_present(*pud))
--		return ERR_PTR(-EINVAL);
--
--	pmd = pmd_offset(pud, addr);
--	if (!pmd_present(*pmd))
--		return ERR_PTR(-EINVAL);
--
--	pte = pte_offset_kernel(pmd, addr);
--	ptent = *pte;
--	if (!pte_present(ptent))
--		return ERR_PTR(-EINVAL);
--
--	if (pte_out != NULL)
--		*pte_out = ptent;
--	return (void *) (pte_val(ptent) & PAGE_MASK) + (addr & ~PAGE_MASK);
--}
--
--char *current_cmd(void)
--{
--#if defined(CONFIG_SMP) || defined(CONFIG_HIGHMEM)
--	return "(Unknown)";
--#else
--	void *addr = um_virt_to_phys(current, current->mm->arg_start, NULL);
--	return IS_ERR(addr) ? "(Unknown)": __va((unsigned long) addr);
--#endif
--}
--
- void dump_thread(struct pt_regs *regs, struct user *u)
+-char *uml_strdup(char *string)
++char *uml_strdup(const char *string)
  {
+ 	return kstrdup(string, GFP_KERNEL);
  }
-diff -puN arch/um/kernel/skas/uaccess.c~uml-move-um_virt_to_phys arch/um/kernel/skas/uaccess.c
---- a/arch/um/kernel/skas/uaccess.c~uml-move-um_virt_to_phys
-+++ a/arch/um/kernel/skas/uaccess.c
-@@ -12,8 +12,38 @@
- #include "kern_util.h"
- #include "os.h"
+diff -puN arch/um/os-Linux/drivers/tuntap_user.c~uml-const-and-other-tidying arch/um/os-Linux/drivers/tuntap_user.c
+--- a/arch/um/os-Linux/drivers/tuntap_user.c~uml-const-and-other-tidying
++++ a/arch/um/os-Linux/drivers/tuntap_user.c
+@@ -148,7 +148,7 @@ static int tuntap_open(void *data)
+ 		memset(&ifr, 0, sizeof(ifr));
+ 		ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
+ 		strlcpy(ifr.ifr_name, pri->dev_name, sizeof(ifr.ifr_name));
+-		if (ioctl(pri->fd, TUNSETIFF, (void *) &ifr) < 0) {
++		if (ioctl(pri->fd, TUNSETIFF, &ifr) < 0) {
+ 			err = -errno;
+ 			printk(UM_KERN_ERR "TUNSETIFF failed, errno = %d\n",
+ 			       errno);
+diff -puN arch/um/os-Linux/mem.c~uml-const-and-other-tidying arch/um/os-Linux/mem.c
+--- a/arch/um/os-Linux/mem.c~uml-const-and-other-tidying
++++ a/arch/um/os-Linux/mem.c
+@@ -30,7 +30,7 @@ static char *tempdir = NULL;
  
--extern void *um_virt_to_phys(struct task_struct *task, unsigned long addr,
--			     pte_t *pte_out);
-+static void *um_virt_to_phys(struct task_struct *task, unsigned long addr,
-+			     pte_t *pte_out)
-+{
-+	pgd_t *pgd;
-+	pud_t *pud;
-+	pmd_t *pmd;
-+	pte_t *pte;
-+	pte_t ptent;
-+
-+	if (task->mm == NULL)
-+		return ERR_PTR(-EINVAL);
-+	pgd = pgd_offset(task->mm, addr);
-+	if (!pgd_present(*pgd))
-+		return ERR_PTR(-EINVAL);
-+
-+	pud = pud_offset(pgd, addr);
-+	if (!pud_present(*pud))
-+		return ERR_PTR(-EINVAL);
-+
-+	pmd = pmd_offset(pud, addr);
-+	if (!pmd_present(*pmd))
-+		return ERR_PTR(-EINVAL);
-+
-+	pte = pte_offset_kernel(pmd, addr);
-+	ptent = *pte;
-+	if (!pte_present(ptent))
-+		return ERR_PTR(-EINVAL);
-+
-+	if (pte_out != NULL)
-+		*pte_out = ptent;
-+	return (void *) (pte_val(ptent) & PAGE_MASK) + (addr & ~PAGE_MASK);
-+}
- 
- static unsigned long maybe_map(unsigned long virt, int is_write)
+ static void __init find_tempdir(void)
  {
-diff -puN include/asm-um/pgtable.h~uml-move-um_virt_to_phys include/asm-um/pgtable.h
---- a/include/asm-um/pgtable.h~uml-move-um_virt_to_phys
-+++ a/include/asm-um/pgtable.h
-@@ -31,9 +31,6 @@
+-	char *dirs[] = { "TMP", "TEMP", "TMPDIR", NULL };
++	const char *dirs[] = { "TMP", "TEMP", "TMPDIR", NULL };
+ 	int i;
+ 	char *dir = NULL;
  
- extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
+@@ -59,9 +59,10 @@ static void __init find_tempdir(void)
+  * read the file as needed.  If there's an error, -errno is returned;
+  * if the end of the file is reached, 0 is returned.
+  */
+-static int next(int fd, char *buf, int size, char c)
++static int next(int fd, char *buf, size_t size, char c)
+ {
+-	int n, len;
++	ssize_t n;
++	size_t len;
+ 	char *ptr;
  
--extern void *um_virt_to_phys(struct task_struct *task, unsigned long virt,
--			     pte_t *pte_out);
--
- /* zero page used for uninitialized stuff */
- extern unsigned long *empty_zero_page;
+ 	while((ptr = strchr(buf, c)) == NULL){
+diff -puN arch/um/os-Linux/sigio.c~uml-const-and-other-tidying arch/um/os-Linux/sigio.c
+--- a/arch/um/os-Linux/sigio.c~uml-const-and-other-tidying
++++ a/arch/um/os-Linux/sigio.c
+@@ -407,7 +407,7 @@ static int async_pty(int master, int sla
+ 	if((fcntl(slave, F_SETFL, flags | O_NONBLOCK) < 0))
+ 		return -errno;
  
+-	return(0);
++	return 0;
+ }
+ 
+ static void __init check_one_sigio(void (*proc)(int, int))
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
 origin.patch
-git-kvm.patch
-fix-__const_udelay-declaration-and-definition-mismatches.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
-random-add-async-notification-support-to-dev-random.patch
-mount-options-fix-hostfs.patch
+time-fix-sysfs_show_availablecurrent_clocksources-buffer-overflow-problem.patch
+char-applicom-use-pci_resource_start.patch
+char-applicom-use-pci_match_id.patch
+char-applicom-use-pci_match_id-fix.patch
