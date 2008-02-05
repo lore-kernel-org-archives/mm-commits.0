@@ -1,110 +1,216 @@
 From: akpm@linux-foundation.org
-Subject: - uml-debug_shirq-fixes.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:38:18 -0800
-Message-ID: <200802052237.m15MbxjN012911@imap1.linux-foundation.org>
+Subject: - maps4-move-clear_refs-code-to-task_mmuc.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:31:10 -0800
+Message-ID: <200802052230.m15MUpxX012111@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44556 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40333 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762504AbYBEWm3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:29 -0500
+	by vger.kernel.org with ESMTP id S932305AbYBEWnP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:43:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, magotari@gmail.com, mm-commits@vger.kernel.org
+To: mpm@selenic.com, haveblue@us.ibm.com, jeremy@goop.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: DEBUG_SHIRQ fixes
+     maps4: move clear_refs code to task_mmu.c
 has been removed from the -mm tree.  Its filename was
-     uml-debug_shirq-fixes.patch
+     maps4-move-clear_refs-code-to-task_mmuc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: DEBUG_SHIRQ fixes
-From: Jeff Dike <jdike@addtoit.com>
+Subject: maps4: move clear_refs code to task_mmu.c
+From: Matt Mackall <mpm@selenic.com>
 
-A couple more DEBUG_SHIRQ fixes.
+This puts all the clear_refs code where it belongs and probably lets things
+compile on MMU-less systems as well.
 
-The previous mconsole blocking fix exposed the lack of O_NONBLOCK on the
-mconsole socket.
-
-Also, winch_interrupt started crashing because it is called at irq free time
-and it tries to dereference tty->driver_data, which has already been set to
-NULL.
-
-I added some error cleanup in mconsole_init while I was there.
-
-Cc: "Karol Swietlicki" <magotari@gmail.com>
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Matt Mackall <mpm@selenic.com>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/line.c          |    8 +++++---
- arch/um/drivers/mconsole_kern.c |    8 +++++++-
- 2 files changed, 12 insertions(+), 4 deletions(-)
+ fs/proc/base.c          |   40 ----------------------------------
+ fs/proc/internal.h      |    6 -----
+ fs/proc/task_mmu.c      |   44 +++++++++++++++++++++++++++++++-------
+ include/linux/proc_fs.h |    3 +-
+ 4 files changed, 39 insertions(+), 54 deletions(-)
 
-diff -puN arch/um/drivers/line.c~uml-debug_shirq-fixes arch/um/drivers/line.c
---- a/arch/um/drivers/line.c~uml-debug_shirq-fixes
-+++ a/arch/um/drivers/line.c
-@@ -774,9 +774,11 @@ static irqreturn_t winch_interrupt(int i
- 	tty = winch->tty;
- 	if (tty != NULL) {
- 		line = tty->driver_data;
--		chan_window_size(&line->chan_list, &tty->winsize.ws_row,
--				 &tty->winsize.ws_col);
--		kill_pgrp(tty->pgrp, SIGWINCH, 1);
-+		if (line != NULL) {
-+			chan_window_size(&line->chan_list, &tty->winsize.ws_row,
-+					 &tty->winsize.ws_col);
-+			kill_pgrp(tty->pgrp, SIGWINCH, 1);
-+		}
- 	}
-  out:
- 	if (winch->fd != -1)
-diff -puN arch/um/drivers/mconsole_kern.c~uml-debug_shirq-fixes arch/um/drivers/mconsole_kern.c
---- a/arch/um/drivers/mconsole_kern.c~uml-debug_shirq-fixes
-+++ a/arch/um/drivers/mconsole_kern.c
-@@ -792,6 +792,8 @@ static int __init mconsole_init(void)
- 		printk(KERN_ERR "Failed to initialize management console\n");
- 		return 1;
- 	}
-+	if (os_set_fd_block(sock, 0))
-+		goto out;
+diff -puN fs/proc/base.c~maps4-move-clear_refs-code-to-task_mmuc fs/proc/base.c
+--- a/fs/proc/base.c~maps4-move-clear_refs-code-to-task_mmuc
++++ a/fs/proc/base.c
+@@ -88,10 +88,6 @@
+  *	in /proc for a task before it execs a suid executable.
+  */
  
- 	register_reboot_notifier(&reboot_notifier);
+-
+-/* Worst case buffer size needed for holding an integer. */
+-#define PROC_NUMBUF 13
+-
+ struct pid_entry {
+ 	char *name;
+ 	int len;
+@@ -935,42 +931,6 @@ static const struct file_operations proc
+ 	.write		= oom_adjust_write,
+ };
  
-@@ -800,7 +802,7 @@ static int __init mconsole_init(void)
- 			     "mconsole", (void *)sock);
- 	if (err) {
- 		printk(KERN_ERR "Failed to get IRQ for management console\n");
--		return 1;
-+		goto out;
- 	}
+-#ifdef CONFIG_MMU
+-static ssize_t clear_refs_write(struct file *file, const char __user *buf,
+-				size_t count, loff_t *ppos)
+-{
+-	struct task_struct *task;
+-	char buffer[PROC_NUMBUF], *end;
+-	struct mm_struct *mm;
+-
+-	memset(buffer, 0, sizeof(buffer));
+-	if (count > sizeof(buffer) - 1)
+-		count = sizeof(buffer) - 1;
+-	if (copy_from_user(buffer, buf, count))
+-		return -EFAULT;
+-	if (!simple_strtol(buffer, &end, 0))
+-		return -EINVAL;
+-	if (*end == '\n')
+-		end++;
+-	task = get_proc_task(file->f_path.dentry->d_inode);
+-	if (!task)
+-		return -ESRCH;
+-	mm = get_task_mm(task);
+-	if (mm) {
+-		clear_refs_smap(mm);
+-		mmput(mm);
+-	}
+-	put_task_struct(task);
+-	if (end - buffer == 0)
+-		return -EIO;
+-	return end - buffer;
+-}
+-
+-static struct file_operations proc_clear_refs_operations = {
+-	.write		= clear_refs_write,
+-};
+-#endif
+-
+ #ifdef CONFIG_AUDITSYSCALL
+ #define TMPBUFLEN 21
+ static ssize_t proc_loginuid_read(struct file * file, char __user * buf,
+diff -puN fs/proc/internal.h~maps4-move-clear_refs-code-to-task_mmuc fs/proc/internal.h
+--- a/fs/proc/internal.h~maps4-move-clear_refs-code-to-task_mmuc
++++ a/fs/proc/internal.h
+@@ -56,11 +56,7 @@ extern int proc_pid_statm(struct task_st
+ extern const struct file_operations proc_maps_operations;
+ extern const struct file_operations proc_numa_maps_operations;
+ extern const struct file_operations proc_smaps_operations;
+-
+-extern const struct file_operations proc_maps_operations;
+-extern const struct file_operations proc_numa_maps_operations;
+-extern const struct file_operations proc_smaps_operations;
+-
++extern const struct file_operations proc_clear_refs_operations;
  
- 	if (notify_socket != NULL) {
-@@ -816,6 +818,10 @@ static int __init mconsole_init(void)
- 	printk(KERN_INFO "mconsole (version %d) initialized on %s\n",
- 	       MCONSOLE_VERSION, mconsole_socket_name);
- 	return 0;
-+
-+ out:
-+	os_close_file(sock);
-+	return 1;
+ void free_proc_entry(struct proc_dir_entry *de);
+ 
+diff -puN fs/proc/task_mmu.c~maps4-move-clear_refs-code-to-task_mmuc fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~maps4-move-clear_refs-code-to-task_mmuc
++++ a/fs/proc/task_mmu.c
+@@ -323,19 +323,47 @@ static int show_smap(struct seq_file *m,
+ 
+ static struct mm_walk clear_refs_walk = { .pmd_entry = clear_refs_pte_range };
+ 
+-void clear_refs_smap(struct mm_struct *mm)
++static ssize_t clear_refs_write(struct file *file, const char __user *buf,
++				size_t count, loff_t *ppos)
+ {
++	struct task_struct *task;
++	char buffer[PROC_NUMBUF], *end;
++	struct mm_struct *mm;
+ 	struct vm_area_struct *vma;
+ 
+-	down_read(&mm->mmap_sem);
+-	for (vma = mm->mmap; vma; vma = vma->vm_next)
+-		if (vma->vm_mm && !is_vm_hugetlb_page(vma))
+-			walk_page_range(vma->vm_mm, vma->vm_start, vma->vm_end,
+-					&clear_refs_walk, vma);
+-	flush_tlb_mm(mm);
+-	up_read(&mm->mmap_sem);
++	memset(buffer, 0, sizeof(buffer));
++	if (count > sizeof(buffer) - 1)
++		count = sizeof(buffer) - 1;
++	if (copy_from_user(buffer, buf, count))
++		return -EFAULT;
++	if (!simple_strtol(buffer, &end, 0))
++		return -EINVAL;
++	if (*end == '\n')
++		end++;
++	task = get_proc_task(file->f_path.dentry->d_inode);
++	if (!task)
++		return -ESRCH;
++	mm = get_task_mm(task);
++	if (mm) {
++		down_read(&mm->mmap_sem);
++		for (vma = mm->mmap; vma; vma = vma->vm_next)
++			if (!is_vm_hugetlb_page(vma))
++				walk_page_range(mm, vma->vm_start, vma->vm_end,
++						&clear_refs_walk, vma);
++		flush_tlb_mm(mm);
++		up_read(&mm->mmap_sem);
++		mmput(mm);
++	}
++	put_task_struct(task);
++	if (end - buffer == 0)
++		return -EIO;
++	return end - buffer;
  }
  
- __initcall(mconsole_init);
++const struct file_operations proc_clear_refs_operations = {
++	.write		= clear_refs_write,
++};
++
+ static void *m_start(struct seq_file *m, loff_t *pos)
+ {
+ 	struct proc_maps_private *priv = m->private;
+diff -puN include/linux/proc_fs.h~maps4-move-clear_refs-code-to-task_mmuc include/linux/proc_fs.h
+--- a/include/linux/proc_fs.h~maps4-move-clear_refs-code-to-task_mmuc
++++ a/include/linux/proc_fs.h
+@@ -19,6 +19,8 @@ struct completion;
+  */
+ #define FIRST_PROCESS_ENTRY 256
+ 
++/* Worst case buffer size needed for holding an integer. */
++#define PROC_NUMBUF 13
+ 
+ /*
+  * We always define these enumerators
+@@ -117,7 +119,6 @@ int proc_pid_readdir(struct file * filp,
+ unsigned long task_vsize(struct mm_struct *);
+ int task_statm(struct mm_struct *, int *, int *, int *, int *);
+ char *task_mem(struct mm_struct *, char *);
+-void clear_refs_smap(struct mm_struct *mm);
+ 
+ struct proc_dir_entry *de_get(struct proc_dir_entry *de);
+ void de_put(struct proc_dir_entry *de);
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from mpm@selenic.com are
 
 origin.patch
-git-kvm.patch
-fix-__const_udelay-declaration-and-definition-mismatches.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
+drivers-char-randomcwrite_pool-cond_resched-needed.patch
+random-clean-up-checkpatch-complaints.patch
+random-clean-up-checkpatch-complaints-fix.patch
+random-consolidate-wakeup-logic.patch
+random-use-unlocked_ioctl.patch
+random-reuse-rand_initialize.patch
+random-improve-variable-naming-clear-extract-buffer.patch
+random-make-backtracking-attacks-harder.patch
+random-remove-cacheline-alignment-for-locks.patch
+random-eliminate-redundant-new_rotate-variable.patch
+random-remove-some-prefetch-logic.patch
+random-simplify-add_ptr-logic.patch
+random-make-mixing-interface-byte-oriented.patch
+random-simplify-and-rename-credit_entropy_store.patch
 random-add-async-notification-support-to-dev-random.patch
-mount-options-fix-hostfs.patch
