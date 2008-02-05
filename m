@@ -1,242 +1,246 @@
 From: akpm@linux-foundation.org
-Subject: - ia64-honor-notify_die-returning-notify_stop.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:39:18 -0800
-Message-ID: <200802052238.m15Mcx9K013000@imap1.linux-foundation.org>
+Subject: - uml-tidy-pgtableh.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:36:05 -0800
+Message-ID: <200802052235.m15MZkA9012642@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49858 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34682 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761121AbYBEWl7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:59 -0500
+	by vger.kernel.org with ESMTP id S1762583AbYBEWmC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:42:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbeulich@novell.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ia64: honor notify_die() returning NOTIFY_STOP
+     uml: tidy pgtable.h
 has been removed from the -mm tree.  Its filename was
-     ia64-honor-notify_die-returning-notify_stop.patch
+     uml-tidy-pgtableh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia64: honor notify_die() returning NOTIFY_STOP
-From: "Jan Beulich" <jbeulich@novell.com>
+Subject: uml: tidy pgtable.h
+From: Jeff Dike <jdike@addtoit.com>
 
-This requires making die() and die_if_kernel() return a value, and their
-callers to honor this (and be prepared that it returns).
+Large pieces of include/asm/pgtable.h were unused cruft.
 
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+This uncovered arch/um/kernel/trap.c needing skas.h in order to get
+ptrace_faultinfo.
+
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/ia32/ia32_support.c |    5 ++--
- arch/ia64/kernel/traps.c      |   35 +++++++++++++++++++++-----------
- arch/ia64/kernel/unaligned.c  |   13 +++++++----
- arch/ia64/mm/fault.c          |    8 ++++---
- 4 files changed, 39 insertions(+), 22 deletions(-)
+ arch/um/kernel/trap.c    |    1 
+ include/asm-um/pgtable.h |   86 +++----------------------------------
+ 2 files changed, 8 insertions(+), 79 deletions(-)
 
-diff -puN arch/ia64/ia32/ia32_support.c~ia64-honor-notify_die-returning-notify_stop arch/ia64/ia32/ia32_support.c
---- a/arch/ia64/ia32/ia32_support.c~ia64-honor-notify_die-returning-notify_stop
-+++ a/arch/ia64/ia32/ia32_support.c
-@@ -27,7 +27,7 @@
+diff -puN arch/um/kernel/trap.c~uml-tidy-pgtableh arch/um/kernel/trap.c
+--- a/arch/um/kernel/trap.c~uml-tidy-pgtableh
++++ a/arch/um/kernel/trap.c
+@@ -13,6 +13,7 @@
+ #include "as-layout.h"
+ #include "kern_util.h"
+ #include "os.h"
++#include "skas.h"
+ #include "sysdep/sigcontext.h"
  
- #include "ia32priv.h"
+ /*
+diff -puN include/asm-um/pgtable.h~uml-tidy-pgtableh include/asm-um/pgtable.h
+--- a/include/asm-um/pgtable.h~uml-tidy-pgtableh
++++ a/include/asm-um/pgtable.h
+@@ -1,5 +1,5 @@
+ /* 
+- * Copyright (C) 2000, 2001, 2002 Jeff Dike (jdike@karaya.com)
++ * Copyright (C) 2000 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  * Copyright 2003 PathScale, Inc.
+  * Derived from include/asm-i386/pgtable.h
+  * Licensed under the GPL
+@@ -9,10 +9,6 @@
+ #define __UM_PGTABLE_H
  
--extern void die_if_kernel (char *str, struct pt_regs *regs, long err);
-+extern int die_if_kernel (char *str, struct pt_regs *regs, long err);
+ #include "linux/sched.h"
+-#include "linux/linkage.h"
+-#include "asm/processor.h"
+-#include "asm/page.h"
+-#include "asm/fixmap.h"
  
- struct exec_domain ia32_exec_domain;
- struct page *ia32_shared_page[NR_CPUS];
-@@ -217,7 +217,8 @@ ia32_bad_interrupt (unsigned long int_nu
- {
- 	siginfo_t siginfo;
+ #define _PAGE_PRESENT	0x001
+ #define _PAGE_NEWPAGE	0x002
+@@ -42,14 +38,6 @@ extern unsigned long *empty_zero_page;
  
--	die_if_kernel("Bad IA-32 interrupt", regs, int_num);
-+	if (die_if_kernel("Bad IA-32 interrupt", regs, int_num))
-+		return;
+ #define pgtable_cache_init() do ; while (0)
  
- 	siginfo.si_signo = SIGTRAP;
- 	siginfo.si_errno = int_num;	/* XXX is it OK to abuse si_errno like this? */
-diff -puN arch/ia64/kernel/traps.c~ia64-honor-notify_die-returning-notify_stop arch/ia64/kernel/traps.c
---- a/arch/ia64/kernel/traps.c~ia64-honor-notify_die-returning-notify_stop
-+++ a/arch/ia64/kernel/traps.c
-@@ -35,7 +35,7 @@ trap_init (void)
- 		fpswa_interface = __va(ia64_boot_param->fpswa);
- }
+-/*
+- * pgd entries used up by user/kernel:
+- */
+-
+-#define USER_PGD_PTRS (TASK_SIZE >> PGDIR_SHIFT)
+-#define KERNEL_PGD_PTRS (PTRS_PER_PGD-USER_PGD_PTRS)
+-
+-#ifndef __ASSEMBLY__
+ /* Just any arbitrary offset to the start of the vmalloc VM area: the
+  * current 8MB value just means that there will be a 8MB "hole" after the
+  * physical memory until the kernel virtual memory starts.  That means that
+@@ -62,16 +50,12 @@ extern unsigned long end_iomem;
  
--void
-+int
- die (const char *str, struct pt_regs *regs, long err)
- {
- 	static struct {
-@@ -62,8 +62,11 @@ die (const char *str, struct pt_regs *re
- 	if (++die.lock_owner_depth < 3) {
- 		printk("%s[%d]: %s %ld [%d]\n",
- 		current->comm, task_pid_nr(current), str, err, ++die_counter);
--		(void) notify_die(DIE_OOPS, (char *)str, regs, err, 255, SIGSEGV);
--		show_regs(regs);
-+		if (notify_die(DIE_OOPS, str, regs, err, 255, SIGSEGV)
-+	            != NOTIFY_STOP)
-+			show_regs(regs);
-+		else
-+			regs = NULL;
-   	} else
- 		printk(KERN_ERR "Recursive die() failure, output suppressed\n");
- 
-@@ -72,17 +75,22 @@ die (const char *str, struct pt_regs *re
- 	add_taint(TAINT_DIE);
- 	spin_unlock_irq(&die.lock);
- 
-+	if (!regs)
-+		return 1;
-+
- 	if (panic_on_oops)
- 		panic("Fatal exception");
- 
-   	do_exit(SIGSEGV);
-+	return 0;
- }
- 
--void
-+int
- die_if_kernel (char *str, struct pt_regs *regs, long err)
- {
- 	if (!user_mode(regs))
--		die(str, regs, err);
-+		return die(str, regs, err);
-+	return 0;
- }
- 
- void
-@@ -102,7 +110,8 @@ __kprobes ia64_bad_break (unsigned long 
- 		if (notify_die(DIE_BREAK, "break 0", regs, break_num, TRAP_BRKPT, SIGTRAP)
- 			       	== NOTIFY_STOP)
- 			return;
--		die_if_kernel("bugcheck!", regs, break_num);
-+		if (die_if_kernel("bugcheck!", regs, break_num))
-+			return;
- 		sig = SIGILL; code = ILL_ILLOPC;
- 		break;
- 
-@@ -155,8 +164,9 @@ __kprobes ia64_bad_break (unsigned long 
- 		break;
- 
- 	      default:
--		if (break_num < 0x40000 || break_num > 0x100000)
--			die_if_kernel("Bad break", regs, break_num);
-+		if ((break_num < 0x40000 || break_num > 0x100000)
-+		    && die_if_kernel("Bad break", regs, break_num))
-+			return;
- 
- 		if (break_num < 0x80000) {
- 			sig = SIGILL; code = __ILL_BREAK;
-@@ -402,14 +412,15 @@ ia64_illegal_op_fault (unsigned long ec,
+ #define VMALLOC_OFFSET	(__va_space)
+ #define VMALLOC_START ((end_iomem + VMALLOC_OFFSET) & ~(VMALLOC_OFFSET-1))
+-
+ #ifdef CONFIG_HIGHMEM
+ # define VMALLOC_END	(PKMAP_BASE-2*PAGE_SIZE)
+ #else
+ # define VMALLOC_END	(FIXADDR_START-2*PAGE_SIZE)
  #endif
  
- 	sprintf(buf, "IA-64 Illegal operation fault");
--	die_if_kernel(buf, &regs, 0);
-+	rv.fkt = 0;
-+	if (die_if_kernel(buf, &regs, 0))
-+		return rv;
+-#define REGION_SHIFT	(sizeof(pte_t) * 8 - 4)
+-#define REGION_MASK	(((unsigned long) 0xf) << REGION_SHIFT)
+-
+ #define _PAGE_TABLE	(_PAGE_PRESENT | _PAGE_RW | _PAGE_USER | _PAGE_ACCESSED | _PAGE_DIRTY)
+ #define _KERNPG_TABLE	(_PAGE_PRESENT | _PAGE_RW | _PAGE_ACCESSED | _PAGE_DIRTY)
+ #define _PAGE_CHG_MASK	(PAGE_MASK | _PAGE_ACCESSED | _PAGE_DIRTY)
+@@ -81,11 +65,12 @@ extern unsigned long end_iomem;
+ #define PAGE_COPY	__pgprot(_PAGE_PRESENT | _PAGE_USER | _PAGE_ACCESSED)
+ #define PAGE_READONLY	__pgprot(_PAGE_PRESENT | _PAGE_USER | _PAGE_ACCESSED)
+ #define PAGE_KERNEL	__pgprot(_PAGE_PRESENT | _PAGE_RW | _PAGE_DIRTY | _PAGE_ACCESSED)
+-#define PAGE_KERNEL_RO	__pgprot(_PAGE_PRESENT | _PAGE_DIRTY | _PAGE_ACCESSED)
  
- 	memset(&si, 0, sizeof(si));
- 	si.si_signo = SIGILL;
- 	si.si_code = ILL_ILLOPC;
- 	si.si_addr = (void __user *) (regs.cr_iip + ia64_psr(&regs)->ri);
- 	force_sig_info(SIGILL, &si, current);
--	rv.fkt = 0;
- 	return rv;
+ /*
+- * The i386 can't do page protection for execute, and considers that the same are read.
+- * Also, write permissions imply read permissions. This is the closest we can get..
++ * The i386 can't do page protection for execute, and considers that the same
++ * are read.
++ * Also, write permissions imply read permissions. This is the closest we can
++ * get..
+  */
+ #define __P000	PAGE_NONE
+ #define __P001	PAGE_READONLY
+@@ -106,40 +91,16 @@ extern unsigned long end_iomem;
+ #define __S111	PAGE_SHARED
+ 
+ /*
+- * Define this if things work differently on an i386 and an i486:
+- * it will (on an i486) warn about kernel memory accesses that are
+- * done without a 'access_ok(VERIFY_WRITE,..)'
+- */
+-#undef TEST_VERIFY_AREA
+-
+-/* page table for 0-4MB for everybody */
+-extern unsigned long pg0[1024];
+-
+-/*
+  * ZERO_PAGE is a global shared page that is always zero: used
+  * for zero-mapped memory areas etc..
+  */
+-
+ #define ZERO_PAGE(vaddr) virt_to_page(empty_zero_page)
+ 
+-/* number of bits that fit into a memory pointer */
+-#define BITS_PER_PTR			(8*sizeof(unsigned long))
+-
+-/* to align the pointer to a pointer address */
+-#define PTR_MASK			(~(sizeof(void*)-1))
+-
+-/* sizeof(void*)==1<<SIZEOF_PTR_LOG2 */
+-/* 64-bit machines, beware!  SRB. */
+-#define SIZEOF_PTR_LOG2			3
+-
+-/* to find an entry in a page-table */
+-#define PAGE_PTR(address) \
+-((unsigned long)(address)>>(PAGE_SHIFT-SIZEOF_PTR_LOG2)&PTR_MASK&~PAGE_MASK)
+-
+ #define pte_clear(mm,addr,xp) pte_set_val(*(xp), (phys_t) 0, __pgprot(_PAGE_NEWPAGE))
+ 
+ #define pmd_none(x)	(!((unsigned long)pmd_val(x) & ~_PAGE_NEWPAGE))
+ #define	pmd_bad(x)	((pmd_val(x) & (~PAGE_MASK & ~_PAGE_USER)) != _KERNPG_TABLE)
++
+ #define pmd_present(x)	(pmd_val(x) & _PAGE_PRESENT)
+ #define pmd_clear(xp)	do { pmd_val(*(xp)) = _PAGE_NEWPAGE; } while (0)
+ 
+@@ -149,14 +110,9 @@ extern unsigned long pg0[1024];
+ #define pud_newpage(x)  (pud_val(x) & _PAGE_NEWPAGE)
+ #define pud_mkuptodate(x) (pud_val(x) &= ~_PAGE_NEWPAGE)
+ 
+-#define pages_to_mb(x) ((x) >> (20-PAGE_SHIFT))
+-
+ #define pmd_page(pmd) phys_to_page(pmd_val(pmd) & PAGE_MASK)
+ 
+ #define pte_page(x) pfn_to_page(pte_pfn(x))
+-#define pte_address(x) (__va(pte_val(x) & PAGE_MASK))
+-#define mk_phys(a, r) ((a) + (((unsigned long) r) << REGION_SHIFT))
+-#define phys_addr(p) ((p) & ~REGION_MASK)
+ 
+ #define pte_present(x)	pte_get_bits(x, (_PAGE_PRESENT | _PAGE_PROTNONE))
+ 
+@@ -310,6 +266,7 @@ static inline void set_pte(pte_t *pteptr
+ #define phys_to_page(phys) pfn_to_page(phys_to_pfn(phys))
+ #define __virt_to_page(virt) phys_to_page(__pa(virt))
+ #define page_to_phys(page) pfn_to_phys(page_to_pfn(page))
++#define virt_to_page(addr) __virt_to_page((const unsigned long) addr)
+ 
+ #define mk_pte(page, pgprot) \
+ 	({ pte_t pte;					\
+@@ -325,8 +282,6 @@ static inline pte_t pte_modify(pte_t pte
+ 	return pte; 
  }
  
-@@ -644,6 +655,6 @@ ia64_fault (unsigned long vector, unsign
- 		sprintf(buf, "Fault %lu", vector);
- 		break;
- 	}
--	die_if_kernel(buf, &regs, error);
--	force_sig(SIGILL, current);
-+	if (!die_if_kernel(buf, &regs, error))
-+		force_sig(SIGILL, current);
- }
-diff -puN arch/ia64/kernel/unaligned.c~ia64-honor-notify_die-returning-notify_stop arch/ia64/kernel/unaligned.c
---- a/arch/ia64/kernel/unaligned.c~ia64-honor-notify_die-returning-notify_stop
-+++ a/arch/ia64/kernel/unaligned.c
-@@ -23,7 +23,7 @@
- #include <asm/uaccess.h>
- #include <asm/unaligned.h>
+-#define pmd_page_vaddr(pmd) ((unsigned long) __va(pmd_val(pmd) & PAGE_MASK))
+-
+ /*
+  * the pgd page can be thought of an array like this: pgd_t[PTRS_PER_PGD]
+  *
+@@ -335,8 +290,6 @@ static inline pte_t pte_modify(pte_t pte
+  */
+ #define pgd_index(address) (((address) >> PGDIR_SHIFT) & (PTRS_PER_PGD-1))
  
--extern void die_if_kernel(char *str, struct pt_regs *regs, long err);
-+extern int die_if_kernel(char *str, struct pt_regs *regs, long err);
+-#define pgd_index_k(addr) pgd_index(addr)
+-
+ /*
+  * pgd_offset() returns a (pgd_t *)
+  * pgd_index() is used get the offset into the pgd page's array of pgd_t's;
+@@ -388,29 +341,4 @@ static inline pte_t pte_modify(pte_t pte
  
- #undef DEBUG_UNALIGNED_TRAP
+ #include <asm-generic/pgtable.h>
  
-@@ -675,8 +675,9 @@ emulate_load_updates (update_t type, loa
- 	 */
- 	if (ld.x6_op == 1 || ld.x6_op == 3) {
- 		printk(KERN_ERR "%s: register update on speculative load, error\n", __FUNCTION__);
--		die_if_kernel("unaligned reference on speculative load with register update\n",
--			      regs, 30);
-+		if (die_if_kernel("unaligned reference on speculative load with register update\n",
-+				  regs, 30))
-+			return;
- 	}
- 
- 
-@@ -1317,7 +1318,8 @@ ia64_handle_unaligned (unsigned long ifa
- 
- 	if (ia64_psr(regs)->be) {
- 		/* we don't support big-endian accesses */
--		die_if_kernel("big-endian unaligned accesses are not supported", regs, 0);
-+		if (die_if_kernel("big-endian unaligned accesses are not supported", regs, 0))
-+			return;
- 		goto force_sigbus;
- 	}
- 
-@@ -1534,7 +1536,8 @@ ia64_handle_unaligned (unsigned long ifa
- 			ia64_handle_exception(regs, eh);
- 			goto done;
- 		}
--		die_if_kernel("error during unaligned kernel access\n", regs, ret);
-+		if (die_if_kernel("error during unaligned kernel access\n", regs, ret))
-+			return;
- 		/* NOT_REACHED */
- 	}
-   force_sigbus:
-diff -puN arch/ia64/mm/fault.c~ia64-honor-notify_die-returning-notify_stop arch/ia64/mm/fault.c
---- a/arch/ia64/mm/fault.c~ia64-honor-notify_die-returning-notify_stop
-+++ a/arch/ia64/mm/fault.c
-@@ -16,7 +16,7 @@
- #include <asm/system.h>
- #include <asm/uaccess.h>
- 
--extern void die (char *, struct pt_regs *, long);
-+extern int die(char *, struct pt_regs *, long);
- 
- #ifdef CONFIG_KPROBES
- static inline int notify_page_fault(struct pt_regs *regs, int trap)
-@@ -267,9 +267,11 @@ ia64_do_page_fault (unsigned long addres
- 	else
- 		printk(KERN_ALERT "Unable to handle kernel paging request at "
- 		       "virtual address %016lx\n", address);
--	die("Oops", regs, isr);
-+	if (die("Oops", regs, isr))
-+		regs = NULL;
- 	bust_spinlocks(0);
--	do_exit(SIGKILL);
-+	if (regs)
-+		do_exit(SIGKILL);
- 	return;
- 
-   out_of_memory:
+-#include <asm-generic/pgtable-nopud.h>
+-
+-#ifdef CONFIG_HIGHMEM
+-/* Clear a kernel PTE and flush it from the TLB */
+-#define kpte_clear_flush(ptep, vaddr)					\
+-do {									\
+-	pte_clear(&init_mm, vaddr, ptep);				\
+-	__flush_tlb_one(vaddr);						\
+-} while (0)
+-#endif
+-
+-#endif
+ #endif
+-
+-#define virt_to_page(addr) __virt_to_page((const unsigned long) addr)
+-
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
 _
 
-Patches currently in -mm which might be from jbeulich@novell.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-git-acpi.patch
-constify-tables-in-kernel-sysctl_checkc.patch
-constify-tables-in-kernel-sysctl_checkc-fix.patch
+git-kvm.patch
+fix-__const_udelay-declaration-and-definition-mismatches.patch
+iget-stop-hostfs-from-using-iget-and-read_inode.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
+random-add-async-notification-support-to-dev-random.patch
+mount-options-fix-hostfs.patch
