@@ -1,99 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: - uml-get-rid-of-syscall-counters.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 14:37:45 -0800
-Message-ID: <200802052237.m15MbQEw012851@imap1.linux-foundation.org>
+Subject: - uml-add-virt_to_pte.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 14:36:42 -0800
+Message-ID: <200802052236.m15MaNZH012709@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36431 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39175 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762395AbYBEWld (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:33 -0500
+	by vger.kernel.org with ESMTP id S1762463AbYBEWll (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2008 17:41:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: get rid of syscall counters
+     uml: add virt_to_pte
 has been removed from the -mm tree.  Its filename was
-     uml-get-rid-of-syscall-counters.patch
+     uml-add-virt_to_pte.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: get rid of syscall counters
+Subject: uml: add virt_to_pte
 From: Jeff Dike <jdike@addtoit.com>
 
-Get rid of some syscall counters which haven't been useful in ages.
+Turn um_virt_to_phys into virt_to_pte, cleaning up a horrid interface.
+
+It's also made non-static and declared in pgtable.h because it'll be
+needed when the stubs get a vma.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/kern_util.h        |    1 -
- arch/um/kernel/skas/syscall.c      |    3 ---
- arch/um/kernel/syscall.c           |    3 ---
- include/asm-um/processor-generic.h |    2 --
- 4 files changed, 9 deletions(-)
+ arch/um/kernel/skas/uaccess.c |   56 +++++++++++++-------------------
+ include/asm-um/pgtable.h      |    3 +
+ 2 files changed, 26 insertions(+), 33 deletions(-)
 
-diff -puN arch/um/include/kern_util.h~uml-get-rid-of-syscall-counters arch/um/include/kern_util.h
---- a/arch/um/include/kern_util.h~uml-get-rid-of-syscall-counters
-+++ a/arch/um/include/kern_util.h
-@@ -13,7 +13,6 @@ extern int uml_exitcode;
+diff -puN arch/um/kernel/skas/uaccess.c~uml-add-virt_to_pte arch/um/kernel/skas/uaccess.c
+--- a/arch/um/kernel/skas/uaccess.c~uml-add-virt_to_pte
++++ a/arch/um/kernel/skas/uaccess.c
+@@ -13,70 +13,60 @@
+ #include "kern_util.h"
+ #include "os.h"
  
- extern int ncpus;
- extern int kmalloc_ok;
--extern int nsyscalls;
- 
- #define UML_ROUND_UP(addr) \
- 	((((unsigned long) addr) + PAGE_SIZE - 1) & PAGE_MASK)
-diff -puN arch/um/kernel/skas/syscall.c~uml-get-rid-of-syscall-counters arch/um/kernel/skas/syscall.c
---- a/arch/um/kernel/skas/syscall.c~uml-get-rid-of-syscall-counters
-+++ a/arch/um/kernel/skas/syscall.c
-@@ -17,9 +17,6 @@ void handle_syscall(struct uml_pt_regs *
- 
- 	syscall_trace(r, 0);
- 
--	current->thread.nsyscalls++;
--	nsyscalls++;
--
- 	/*
- 	 * This should go in the declaration of syscall, but when I do that,
- 	 * strace -f -c bash -c 'ls ; ls' breaks, sometimes not tracing
-diff -puN arch/um/kernel/syscall.c~uml-get-rid-of-syscall-counters arch/um/kernel/syscall.c
---- a/arch/um/kernel/syscall.c~uml-get-rid-of-syscall-counters
-+++ a/arch/um/kernel/syscall.c
-@@ -13,9 +13,6 @@
- #include "asm/uaccess.h"
- #include "asm/unistd.h"
- 
--/*  Unlocked, I don't care if this is a bit off */
--int nsyscalls = 0;
--
- long sys_fork(void)
+-static void *um_virt_to_phys(struct task_struct *task, unsigned long addr,
+-			     pte_t *pte_out)
++pte_t *virt_to_pte(struct mm_struct *mm, unsigned long addr)
  {
- 	long ret;
-diff -puN include/asm-um/processor-generic.h~uml-get-rid-of-syscall-counters include/asm-um/processor-generic.h
---- a/include/asm-um/processor-generic.h~uml-get-rid-of-syscall-counters
-+++ a/include/asm-um/processor-generic.h
-@@ -27,7 +27,6 @@ struct thread_struct {
- 	 * as of 2.6.11).
- 	 */
- 	int forking;
--	int nsyscalls;
- 	struct pt_regs regs;
- 	int singlestep_syscall;
- 	void *fault_addr;
-@@ -59,7 +58,6 @@ struct thread_struct {
- #define INIT_THREAD \
- { \
- 	.forking		= 0, \
--	.nsyscalls		= 0, \
- 	.regs		   	= EMPTY_REGS,	\
- 	.fault_addr		= NULL, \
- 	.prev_sched		= NULL, \
+ 	pgd_t *pgd;
+ 	pud_t *pud;
+ 	pmd_t *pmd;
+-	pte_t *pte;
+-	pte_t ptent;
+ 
+-	if (task->mm == NULL)
+-		return ERR_PTR(-EINVAL);
+-	pgd = pgd_offset(task->mm, addr);
++	if (mm == NULL)
++		return NULL;
++
++	pgd = pgd_offset(mm, addr);
+ 	if (!pgd_present(*pgd))
+-		return ERR_PTR(-EINVAL);
++		return NULL;
+ 
+ 	pud = pud_offset(pgd, addr);
+ 	if (!pud_present(*pud))
+-		return ERR_PTR(-EINVAL);
++		return NULL;
+ 
+ 	pmd = pmd_offset(pud, addr);
+ 	if (!pmd_present(*pmd))
+-		return ERR_PTR(-EINVAL);
+-
+-	pte = pte_offset_kernel(pmd, addr);
+-	ptent = *pte;
+-	if (!pte_present(ptent))
+-		return ERR_PTR(-EINVAL);
++		return NULL;
+ 
+-	if (pte_out != NULL)
+-		*pte_out = ptent;
+-	return (void *) (pte_val(ptent) & PAGE_MASK) + (addr & ~PAGE_MASK);
++	return pte_offset_kernel(pmd, addr);
+ }
+ 
+-static unsigned long maybe_map(unsigned long virt, int is_write)
++static pte_t *maybe_map(unsigned long virt, int is_write)
+ {
+-	pte_t pte;
+-	int err;
++	pte_t *pte = virt_to_pte(current->mm, virt);
++	int err, dummy_code;
+ 
+-	void *phys = um_virt_to_phys(current, virt, &pte);
+-	int dummy_code;
+-
+-	if (IS_ERR(phys) || (is_write && !pte_write(pte))) {
++	if ((pte == NULL) || !pte_present(*pte) ||
++	    (is_write && !pte_write(*pte))) {
+ 		err = handle_page_fault(virt, 0, is_write, 1, &dummy_code);
+ 		if (err)
+-			return -1UL;
+-		phys = um_virt_to_phys(current, virt, NULL);
++			return NULL;
++		pte = virt_to_pte(current->mm, virt);
+ 	}
+-	if (IS_ERR(phys))
+-		phys = (void *) -1;
++	if (!pte_present(*pte))
++		pte = NULL;
+ 
+-	return (unsigned long) phys;
++	return pte;
+ }
+ 
+ static int do_op_one_page(unsigned long addr, int len, int is_write,
+ 		 int (*op)(unsigned long addr, int len, void *arg), void *arg)
+ {
+ 	struct page *page;
++	pte_t *pte;
+ 	int n;
+ 
+-	addr = maybe_map(addr, is_write);
+-	if (addr == -1UL)
++	pte = maybe_map(addr, is_write);
++	if (pte == NULL)
+ 		return -1;
+ 
+-	page = phys_to_page(addr);
++	page = pte_page(*pte);
+ 	addr = (unsigned long) kmap_atomic(page, KM_UML_USERCOPY) +
+ 		(addr & ~PAGE_MASK);
+ 
+diff -puN include/asm-um/pgtable.h~uml-add-virt_to_pte include/asm-um/pgtable.h
+--- a/include/asm-um/pgtable.h~uml-add-virt_to_pte
++++ a/include/asm-um/pgtable.h
+@@ -323,6 +323,9 @@ static inline pte_t pte_modify(pte_t pte
+ #define pte_unmap(pte) do { } while (0)
+ #define pte_unmap_nested(pte) do { } while (0)
+ 
++struct mm_struct;
++extern pte_t *virt_to_pte(struct mm_struct *mm, unsigned long addr);
++
+ #define update_mmu_cache(vma,address,pte) do ; while (0)
+ 
+ /* Encode and de-code a swap entry */
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
