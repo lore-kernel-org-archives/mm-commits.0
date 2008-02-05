@@ -1,78 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: - doc-use-correct-debugfs-mountpoint.patch removed from -mm tree
-Date: Mon, 04 Feb 2008 18:54:22 -0800
-Message-ID: <200802050254.m152s3Pw031558@imap1.linux-foundation.org>
+Subject: - pid-namespaces-vs-locks-interaction.patch removed from -mm tree
+Date: Mon, 04 Feb 2008 18:54:25 -0800
+Message-ID: <200802050254.m152s6D7031563@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41093 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60758 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750772AbYBEDAa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2008 22:00:30 -0500
+	by vger.kernel.org with ESMTP id S1750934AbYBEDAd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2008 22:00:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, zanussi@us.ibm.com, mm-commits@vger.kernel.org
+To: vgusev@openvz.org, bfields@fieldses.org, ebiederm@xmission.com, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     doc: use correct debugfs mountpoint
+     Pid namespaces vs locks interaction
 has been removed from the -mm tree.  Its filename was
-     doc-use-correct-debugfs-mountpoint.patch
+     pid-namespaces-vs-locks-interaction.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: doc: use correct debugfs mountpoint
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Pid namespaces vs locks interaction
+From: Vitaliy Gusev <vgusev@openvz.org>
 
-Use the normal, expected mountpoint in the relay(fs) example for debugfs.
+fcntl(F_GETLK,..) can return pid of process for not current pid namespace
+(if process is belonged to the several namespaces).  It is true also for
+pids in /proc/locks.  So correct behavior is saving pointer to the struct
+pid of the process lock owner.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Tom Zanussi <zanussi@us.ibm.com>
+Signed-off-by: Vitaliy Gusev <vgusev@openvz.org>
+Acked-by: Serge Hallyn <serue@us.ibm.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/relay.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/locks.c         |   29 +++++++++++++++++++++++------
+ include/linux/fs.h |    1 +
+ 2 files changed, 24 insertions(+), 6 deletions(-)
 
-diff -puN Documentation/filesystems/relay.txt~doc-use-correct-debugfs-mountpoint Documentation/filesystems/relay.txt
---- a/Documentation/filesystems/relay.txt~doc-use-correct-debugfs-mountpoint
-+++ a/Documentation/filesystems/relay.txt
-@@ -140,7 +140,7 @@ close()     decrements the channel buffe
- In order for a user application to make use of relay files, the
- host filesystem must be mounted.  For example,
+diff -puN fs/locks.c~pid-namespaces-vs-locks-interaction fs/locks.c
+--- a/fs/locks.c~pid-namespaces-vs-locks-interaction
++++ a/fs/locks.c
+@@ -125,6 +125,7 @@
+ #include <linux/syscalls.h>
+ #include <linux/time.h>
+ #include <linux/rcupdate.h>
++#include <linux/pid_namespace.h>
  
--	mount -t debugfs debugfs /debug
-+	mount -t debugfs debugfs /sys/kernel/debug
+ #include <asm/semaphore.h>
+ #include <asm/uaccess.h>
+@@ -185,6 +186,7 @@ void locks_init_lock(struct file_lock *f
+ 	fl->fl_fasync = NULL;
+ 	fl->fl_owner = NULL;
+ 	fl->fl_pid = 0;
++	fl->fl_nspid = NULL;
+ 	fl->fl_file = NULL;
+ 	fl->fl_flags = 0;
+ 	fl->fl_type = 0;
+@@ -553,6 +555,8 @@ static void locks_insert_lock(struct fil
+ {
+ 	list_add(&fl->fl_link, &file_lock_list);
  
- NOTE:   the host filesystem doesn't need to be mounted for kernel
- 	clients to create or use channels - it only needs to be
++	fl->fl_nspid = get_pid(task_tgid(current));
++
+ 	/* insert into file's list */
+ 	fl->fl_next = *pos;
+ 	*pos = fl;
+@@ -584,6 +588,11 @@ static void locks_delete_lock(struct fil
+ 	if (fl->fl_ops && fl->fl_ops->fl_remove)
+ 		fl->fl_ops->fl_remove(fl);
+ 
++	if (fl->fl_nspid) {
++		put_pid(fl->fl_nspid);
++		fl->fl_nspid = NULL;
++	}
++
+ 	locks_wake_up_blocks(fl);
+ 	locks_free_lock(fl);
+ }
+@@ -673,14 +682,16 @@ posix_test_lock(struct file *filp, struc
+ 		if (posix_locks_conflict(fl, cfl))
+ 			break;
+ 	}
+-	if (cfl)
++	if (cfl) {
+ 		__locks_copy_lock(fl, cfl);
+-	else
++		if (cfl->fl_nspid)
++			fl->fl_pid = pid_nr_ns(cfl->fl_nspid,
++						task_active_pid_ns(current));
++	} else
+ 		fl->fl_type = F_UNLCK;
+ 	unlock_kernel();
+ 	return;
+ }
+-
+ EXPORT_SYMBOL(posix_test_lock);
+ 
+ /* This function tests for deadlock condition before putting a process to
+@@ -2084,6 +2095,12 @@ static void lock_get_status(struct seq_f
+ 							int id, char *pfx)
+ {
+ 	struct inode *inode = NULL;
++	unsigned int fl_pid;
++
++	if (fl->fl_nspid)
++		fl_pid = pid_nr_ns(fl->fl_nspid, task_active_pid_ns(current));
++	else
++		fl_pid = fl->fl_pid;
+ 
+ 	if (fl->fl_file != NULL)
+ 		inode = fl->fl_file->f_path.dentry->d_inode;
+@@ -2124,16 +2141,16 @@ static void lock_get_status(struct seq_f
+ 	}
+ 	if (inode) {
+ #ifdef WE_CAN_BREAK_LSLK_NOW
+-		seq_printf(f, "%d %s:%ld ", fl->fl_pid,
++		seq_printf(f, "%d %s:%ld ", fl_pid,
+ 				inode->i_sb->s_id, inode->i_ino);
+ #else
+ 		/* userspace relies on this representation of dev_t ;-( */
+-		seq_printf(f, "%d %02x:%02x:%ld ", fl->fl_pid,
++		seq_printf(f, "%d %02x:%02x:%ld ", fl_pid,
+ 				MAJOR(inode->i_sb->s_dev),
+ 				MINOR(inode->i_sb->s_dev), inode->i_ino);
+ #endif
+ 	} else {
+-		seq_printf(f, "%d <none>:0 ", fl->fl_pid);
++		seq_printf(f, "%d <none>:0 ", fl_pid);
+ 	}
+ 	if (IS_POSIX(fl)) {
+ 		if (fl->fl_end == OFFSET_MAX)
+diff -puN include/linux/fs.h~pid-namespaces-vs-locks-interaction include/linux/fs.h
+--- a/include/linux/fs.h~pid-namespaces-vs-locks-interaction
++++ a/include/linux/fs.h
+@@ -876,6 +876,7 @@ struct file_lock {
+ 	struct list_head fl_block;	/* circular list of blocked processes */
+ 	fl_owner_t fl_owner;
+ 	unsigned int fl_pid;
++	struct pid *fl_nspid;
+ 	wait_queue_head_t fl_wait;
+ 	struct file *fl_file;
+ 	unsigned char fl_flags;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from vgusev@openvz.org are
 
 origin.patch
-pcmcia-include-bad-cis-filename-in-error-message.patch
-git-ia64.patch
-hamradio-fix-dmascc-section-mismatch.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-git-scsi-misc.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-register_cpu-__devinit-or-__cpuinit.patch
-cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
-tpm-infineon-section-mismatch.patch
-tdfxfb-fix-section-mismatch-warnings.patch
-uvesafb-small-cleanups.patch
-documentation-move-dnotifytxt-to-filesystems.patch
-documentation-move-sharedsubtreestxt-to-filesystems.patch
-documentation-create-new-scheduler-subdirectory.patch
-reporting-bugs-cc-the-mailing-list-too.patch
-kernel-doc-prevent-duplicate-description-output.patch
-kernel-doc-warn-on-badly-formatted-short-description.patch
-email-clientstxt-sylpheed-is-ok-at-imap.patch
-fs-menu-small-reorg.patch
-the-scheduled-time-option-removal.patch
-getdelays-fix-gcc-warnings.patch
-profile-likely-unlikely-macros.patch
