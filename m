@@ -1,88 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - kill-filp_open-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 12:31:57 -0800
-Message-ID: <200802062031.m16KVxUT028930@imap1.linux-foundation.org>
+Subject: - rename-open_namei-to-open_pathname-fix.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 12:32:35 -0800
+Message-ID: <200802062032.m16KWZHJ028941@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34470 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37828 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755554AbYBFUcX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 15:32:23 -0500
+	by vger.kernel.org with ESMTP id S1756063AbYBFUcs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 15:32:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, haveblue@us.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, haveblue@us.ibm.com, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kill-filp_open-checkpatch-fixes
+     rename-open_namei-to-open_pathname-fix
 has been removed from the -mm tree.  Its filename was
-     kill-filp_open-checkpatch-fixes.patch
+     rename-open_namei-to-open_pathname-fix.patch
 
-This patch was dropped because it was folded into kill-filp_open.patch
+This patch was dropped because it was folded into rename-open_namei-to-open_pathname.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kill-filp_open-checkpatch-fixes
+Subject: rename-open_namei-to-open_pathname-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: need space after that ',' (ctx:VxV)
-#87: FILE: fs/namei.c:1769:
-+	error = path_lookup_create(dfd,pathname,LOOKUP_PARENT,&nd,flag,mode);
- 	                              ^
-
-ERROR: need space after that ',' (ctx:VxV)
-#87: FILE: fs/namei.c:1769:
-+	error = path_lookup_create(dfd,pathname,LOOKUP_PARENT,&nd,flag,mode);
- 	                                       ^
-
-ERROR: need space after that ',' (ctx:VxO)
-#87: FILE: fs/namei.c:1769:
-+	error = path_lookup_create(dfd,pathname,LOOKUP_PARENT,&nd,flag,mode);
- 	                                                     ^
-
-ERROR: need space before that '&' (ctx:OxV)
-#87: FILE: fs/namei.c:1769:
-+	error = path_lookup_create(dfd,pathname,LOOKUP_PARENT,&nd,flag,mode);
- 	                                                      ^
-
-ERROR: need space after that ',' (ctx:VxV)
-#87: FILE: fs/namei.c:1769:
-+	error = path_lookup_create(dfd,pathname,LOOKUP_PARENT,&nd,flag,mode);
- 	                                                         ^
-
-ERROR: need space after that ',' (ctx:VxV)
-#87: FILE: fs/namei.c:1769:
-+	error = path_lookup_create(dfd,pathname,LOOKUP_PARENT,&nd,flag,mode);
- 	                                                              ^
-
-total: 6 errors, 0 warnings, 266 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
+ERROR: "open_pathname" [sound/sound_firmware.ko] undefined!
+ERROR: "open_pathname" [fs/reiserfs/reiserfs.ko] undefined!
+ERROR: "open_pathname" [drivers/usb/gadget/g_file_storage.ko] undefined!
 
 Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/namei.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/namei.c~kill-filp_open-checkpatch-fixes fs/namei.c
---- a/fs/namei.c~kill-filp_open-checkpatch-fixes
+diff -puN fs/namei.c~rename-open_namei-to-open_pathname-fix fs/namei.c
+--- a/fs/namei.c~rename-open_namei-to-open_pathname-fix
 +++ a/fs/namei.c
-@@ -1766,7 +1766,8 @@ struct file *open_pathname(int dfd, cons
- 	/*
- 	 * Create - we need to know the parent.
- 	 */
--	error = path_lookup_create(dfd,pathname,LOOKUP_PARENT,&nd,flag,mode);
-+	error = path_lookup_create(dfd, pathname, LOOKUP_PARENT, &nd,
-+					flag, mode);
- 	if (error)
- 		return ERR_PTR(error);
+@@ -1896,6 +1896,7 @@ do_link:
+ 	__putname(nd.last.name);
+ 	goto do_last;
+ }
++EXPORT_SYMBOL(open_pathname);
  
+ /**
+  * lookup_create - lookup a dentry, creating it if it doesn't exist
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -172,7 +138,7 @@ git-slub.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 kill-filp_open.patch
-kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname.patch
 rename-open_namei-to-open_pathname-fix.patch
 r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
 r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
