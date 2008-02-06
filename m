@@ -1,153 +1,235 @@
 From: akpm@linux-foundation.org
-Subject: - keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 12:37:52 -0800
-Message-ID: <200802062037.m16Kbqwe029164@imap1.linux-foundation.org>
+Subject: - keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 12:37:55 -0800
+Message-ID: <200802062037.m16Kbu3x029167@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34442 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40430 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756393AbYBFUiG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 15:38:06 -0500
+	by vger.kernel.org with ESMTP id S1756063AbYBFUiC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 15:38:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haveblue@us.ibm.com, m.kozlowski@tuxland.pl, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, haveblue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r-o-bind-mounts: fix WARN_ON
+     keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix
 has been removed from the -mm tree.  Its filename was
-     keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on.patch
+     keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix.patch
 
 This patch was dropped because it was folded into keep-track-of-mnt_writer-state-of-struct-file.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: r-o-bind-mounts: fix WARN_ON
-From: Dave Hansen <haveblue@us.ibm.com>
+Subject: keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-On Tue, 2008-01-22 at 13:02 -0800, Andrew Morton wrote:
-> > On Tue, 22 Jan 2008 21:30:23 +0100 Mariusz Kozlowski <m.kozlowski@tuxland.pl> wrote:
-> > Hello,
-> >
-> > Issuing "sysrq-s sysrq-u" sequence causes these warnings on sparc64:
-> >
-> > ------------[ cut here ]------------
-> > WARNING: at fs/file_table.c:49 __fput+0x1a8/0x1e0()
-> > Modules linked in: sg sr_mod cdrom
-> > Call Trace:
-> >  [00000000004c9ac8] __fput+0x1b0/0x1e0
-> >  [00000000004c6978] filp_close+0x60/0x80
-> >  [00000000004c6a18] sys_close+0x80/0xe0
-> >  [00000000004062d4] linux_sparc_syscall32+0x3c/0x40
-> >  [0000000000012f1c] 0x12f24
-> > ---[ end trace 6dbe14ff8ec57744 ]---
-> > ------------[ cut here ]------------
-...
-> That's
->
->         WARN_ON(f->f_mnt_write_state == FILE_MNT_WRITE_TAKEN);
-
-The emergency remount code forcibly removes FMODE_WRITE from filps.  The r/o
-bind mount code notices that this was done without a proper mnt_drop_write()
-and properly gives a warning.
-
-This patch does a mnt_drop_write() and also notes in the filp that this was
-done to suppress any warning that would have otherwise been triggered.
-
-I also wonder if inode->i_writecount is made inconsistent by the emergency
-remount code.  I guess it is, but the damage is limited to a single inode
-instead of being visible more globally like the mnt write count.  Probably not
-really worth fixing.
-
-BTW, this wasn't just a sparc thing.  I triggered it in about 3 seconds on a
-plain old x86 machine.
-
-Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/super.c |   21 +++++++++++++++++++--
- 1 file changed, 19 insertions(+), 2 deletions(-)
+ fs/super.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/super.c~keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on fs/super.c
---- a/fs/super.c~keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on
+diff -puN fs/super.c~keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix fs/super.c
+--- a/fs/super.c~keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix
 +++ a/fs/super.c
-@@ -37,6 +37,7 @@
- #include <linux/idr.h>
- #include <linux/kobject.h>
- #include <linux/mutex.h>
-+#include <linux/file.h>
- #include <asm/uaccess.h>
- 
- 
-@@ -566,10 +567,26 @@ static void mark_files_ro(struct super_b
- {
- 	struct file *f;
- 
-+retry:
+@@ -570,7 +570,8 @@ static void mark_files_ro(struct super_b
+ retry:
  	file_list_lock();
  	list_for_each_entry(f, &sb->s_files, f_u.fu_list) {
--		if (S_ISREG(f->f_path.dentry->d_inode->i_mode) && file_count(f))
--			f->f_mode &= ~FMODE_WRITE;
-+		struct vfsmount mnt;
-+		if (!S_ISREG(f->f_path.dentry->d_inode->i_mode))
-+		       continue;
-+		if (!file_count(f))
-+			continue;
-+		if (!(f->f_mode & FMODE_WRITE))
-+			continue;
-+		f->f_mode &= ~FMODE_WRITE;
-+		f->f_mnt_write_state |= FILE_MNT_WRITE_RELEASED;
-+		mnt = f->f_path.mnt;
-+		file_list_unlock();
-+		/*
-+		 * This can sleep, so we can't hold
-+		 * the file_list_lock() spinlock.
-+		 */
-+		mnt_drop_write(mnt);
-+		goto retry;
- 	}
- 	file_list_unlock();
- }
+-		struct vfsmount mnt;
++		struct vfsmount *mnt;
++
+ 		if (!S_ISREG(f->f_path.dentry->d_inode->i_mode))
+ 		       continue;
+ 		if (!file_count(f))
 _
 
-Patches currently in -mm which might be from haveblue@us.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-enable-hotplug-memory-remove-for-ppc64.patch
-add-arch-specific-walk_memory_remove-for-ppc64.patch
-reiserfs-eliminate-private-use-of-struct-file-in-xattr.patch
-do-namei_flags-calculation-inside-open_namei.patch
-make-open_namei-return-a-filp.patch
-kill-do_filp_open.patch
+riscom8-fix-smp-brokenness.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void.patch
+genericizing-iova.patch
+parallel-port-convert-port_mutex-to-the-mutex-api.patch
+remove-support-for-un-needed-_extratext-section.patch
+allow-auto-destruction-of-loop-devices.patch
+read_current_time-cleanups.patch
+address-hfs-on-disk-corruption-robustness-review-comments.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
+kallsyms-should-prefer-non-weak-symbols.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline.patch
+stopmachine-semaphore-to-mutex.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard.patch
+debug_smp_processor_id-fixlets.patch
+use-ilog2-in-fs-namespacec.patch
+system-timer-fix-crash-in-100hz-system-timer.patch
+speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
+drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
+ecryptfs-make-show_options-reflect-actual-mount-options.patch
+rtc-ds1302-rtc-support.patch
+add-hpet-rtc-emulation-to-rtc_drv_cmos.patch
+fbmon-cleanup-trailing-whitespaces.patch
+neofb-avoid-overwriting-fb_info-fields.patch
+vermilionc-use-align-not-__align_mask.patch
+declare-pnp-option-parsing-functions-as-__init.patch
+isapnp-driver-semaphore-to-mutex.patch
+ext3-fix-lock-inversion-in-direct-io.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+acpi-backlight-reset-brightness-on-resume.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+git-cpufreq.patch
+revert-agk-dm-dm-loop.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+git-drm-fix.patch
+drm-convert-from-nopage-to-fault.patch
+drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
+adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
+revert-git-hrt.patch
+git-input.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+git-kvm.patch
+ata-drivers-ata-sata_mvc-needs-dmapoolh.patch
+git-md-accel.patch
+memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
+memstick-disable-busted-code.patch
+git-mmc.patch
+git-mtd.patch
+drivers-mtd-maps-physmapc-fix-compile-remove-ifdef.patch
+git-net.patch
+drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-backlight.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
+x86-validate-against-acpi-motherboard-resources.patch
+git-sched.patch
+git-sched-fix-git-conflicts.patch
+git-sh.patch
+scsi-aic94xx-cleanups.patch
+drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-ohci-sm501-driver-v2-fix.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+9p-fix-p9_printfcall-export.patch
+git-watchdog.patch
+git-watchdog-fixup.patch
+git-ipwireless_cs.patch
+git-x86.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+x86-amd-thermal-interrupt-support.patch
+x86-mmconf-enable-mcfg-early.patch
+git-xtensa.patch
+git-slub.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 kill-filp_open.patch
 rename-open_namei-to-open_pathname.patch
-r-o-bind-mounts-stub-functions.patch
-r-o-bind-mounts-do_rmdir-elevate-write-count.patch
-r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
-r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
-r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
 r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
 r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
-r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
 r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
 r-o-bind-mounts-elevate-write-count-opened-files.patch
-r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
-r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
-r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate.patch
-r-o-bind-mounts-make-access-use-mnt-check.patch
 r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
-r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch
 r-o-bind-mounts-track-number-of-mount-writers.patch
-r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
 keep-track-of-mnt_writer-state-of-struct-file.patch
-keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on.patch
 keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix.patch
-create-file_drop_write_access-helper.patch
-fix-up-new-filp-allocators.patch
-use-struct-path-in-struct-svc_export-nfsd-fix-wrong-mnt_writer-count-in-rename.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-mm_cgroup-to-header-file-fix.patch
+memcontrol-move-mm_cgroup-to-header-file-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
+hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
+cpusets-update_cpumask-revision-fix.patch
+cpusets-update_cpumask-revision-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+introduce-flags-for-reserve_bootmem-powerpc-fix.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
+introduce-path_put-cifs-fix.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
+proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+modules-make-module_address_lookup-safe-fix.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
+ufs-fix-symlink-creation-on-ufs2-fix.patch
+libfs-allow-error-return-from-simple-attributes-fix.patch
+fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
+mount-options-fix-tmpfs-fix.patch
+char-applicom-use-pci_match_id-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
 reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
 page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
