@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + modules-handle-symbols-that-have-a-zero-value-fix.patch added to -mm tree
-Date: Wed, 06 Feb 2008 09:51:55 -0800
-Message-ID: <200802061751.m16HpaP9022815@imap1.linux-foundation.org>
+Subject: + mips-mark-all-but-i8259-interrupts-as-no-probe.patch added to -mm tree
+Date: Wed, 06 Feb 2008 09:59:31 -0800
+Message-ID: <200802061759.m16HxCrh023156@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52936 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59679 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755828AbYBFRwg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 12:52:36 -0500
+	by vger.kernel.org with ESMTP id S1750722AbYBFSAQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 13:00:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, ak@suse.de, clameter@sgi.com, kay.sievers@vrfy.org, mathieu.desnoyers@polymtl.ca, rusty@rustcorp.com.au
+Cc: ralf@linux-mips.org, alan@lxorguk.ukuu.org.uk, mingo@elte.hu, rob@landley.net
 
 
 The patch titled
-     module: fix __find_symbl() error checks
+     MIPS: Mark all but i8259 interrupts as no-probe.
 has been added to the -mm tree.  Its filename is
-     modules-handle-symbols-that-have-a-zero-value-fix.patch
+     mips-mark-all-but-i8259-interrupts-as-no-probe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,63 +33,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: module: fix __find_symbl() error checks
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: MIPS: Mark all but i8259 interrupts as no-probe.
+From: Ralf Baechle <ralf@linux-mips.org>
 
-The patch:
+Use set_irq_noprobe() to mark all MIPS interrupts as non-probe.  Override that
+default for i8259 interrupts.
 
-http://www.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.24/2.6.24-mm1/broken-out/modules-handle-symbols-that-have-a-zero-value.patch
-
-changes the return value of __find_symbol() so that it can handle symbols
-that are zero and now it returns -errno for failure.
-
-But some __find_symbl() error checks remain unchanged.
-
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Kay Sievers <kay.sievers@vrfy.org
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Acked-and-tested-by: Rob Landley <rob@landley.net>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/mips/kernel/i8259.c |    4 +++-
+ arch/mips/kernel/irq.c   |    5 +++++
+ 2 files changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN kernel/module.c~modules-handle-symbols-that-have-a-zero-value-fix kernel/module.c
---- a/kernel/module.c~modules-handle-symbols-that-have-a-zero-value-fix
-+++ a/kernel/module.c
-@@ -982,7 +982,7 @@ static unsigned long resolve_symbol(Elf_
+diff -puN arch/mips/kernel/i8259.c~mips-mark-all-but-i8259-interrupts-as-no-probe arch/mips/kernel/i8259.c
+--- a/arch/mips/kernel/i8259.c~mips-mark-all-but-i8259-interrupts-as-no-probe
++++ a/arch/mips/kernel/i8259.c
+@@ -338,8 +338,10 @@ void __init init_i8259_irqs(void)
  
- 	ret = __find_symbol(name, &owner, &crc,
- 			!(mod->taints & TAINT_PROPRIETARY_MODULE));
--	if (ret) {
-+	if (!IS_ERR_VALUE(ret)) {
- 		/* use_module can fail due to OOM,
- 		   or module initialization or unloading */
- 		if (!check_version(sechdrs, versindex, name, mod, crc) ||
-@@ -1382,7 +1382,9 @@ void *__symbol_get(const char *symbol)
+ 	init_8259A(0);
  
- 	preempt_disable();
- 	value = __find_symbol(symbol, &owner, &crc, 1);
--	if (value && strong_try_module_get(owner) != 0)
-+	if (IS_ERR_VALUE(value))
-+		value = 0;
-+	else if (strong_try_module_get(owner))
- 		value = 0;
- 	preempt_enable();
+-	for (i = I8259A_IRQ_BASE; i < I8259A_IRQ_BASE + 16; i++)
++	for (i = I8259A_IRQ_BASE; i < I8259A_IRQ_BASE + 16; i++) {
+ 		set_irq_chip_and_handler(i, &i8259A_chip, handle_level_irq);
++		set_irq_probe(i);
++	}
  
+ 	setup_irq(I8259A_IRQ_BASE + PIC_CASCADE_IR, &irq2);
+ }
+diff -puN arch/mips/kernel/irq.c~mips-mark-all-but-i8259-interrupts-as-no-probe arch/mips/kernel/irq.c
+--- a/arch/mips/kernel/irq.c~mips-mark-all-but-i8259-interrupts-as-no-probe
++++ a/arch/mips/kernel/irq.c
+@@ -145,6 +145,11 @@ __setup("nokgdb", nokgdb);
+ 
+ void __init init_IRQ(void)
+ {
++	int i;
++
++	for (i = 0; i < NR_IRQS; i++)
++		set_irq_noprobe(i);
++
+ 	arch_init_irq();
+ 
+ #ifdef CONFIG_KGDB
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
 origin.patch
-fs-use-hlist_unhashed.patch
-fs-use-list_for_each_entry_reverse-and-kill-sb_entry.patch
-ext-fix-comment-for-nonexistent-variable.patch
-ext-use-ext_get_group_desc.patch
-ext-remove-unused-argument-for-ext_find_goal.patch
-ext-cleanup-ext_bg_num_gdb.patch
-git-dvb.patch
-modules-handle-symbols-that-have-a-zero-value-fix.patch
+remove-inclusions-of-linux-autoconfh.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
+serial-use-sgi_has_zilog-for-ip22_zilog-depends.patch
+char-use-sgi_has_ds1286-for-sgi_ds1286-depends.patch
+sc26xx-new-serial-driver-for-sc2681-uarts.patch
+calibrate_delay-must-be-__cpuinit.patch
+mips-use-find_task_by_vpid-in-system-calls.patch
+git-watchdog.patch
+dz-clean-up-and-improve-the-setup-of-termios-settings.patch
+dzc-use-a-helper-to-cast-from-struct-uart_port.patch
+dzc-resource-management.patch
+sanitize-the-type-of-struct-useru_ar0.patch
+add-cmpxchg64-and-cmpxchg64_local-to-mips.patch
+pid-fix-mips-irix-emulation-pid-usage.patch
+pid-fix-mips-irix-emulation-pid-usage-fix.patch
+avoid-overflows-in-kernel-timec.patch
+irq_noprobe-helper-functions.patch
+mips-mark-all-but-i8259-interrupts-as-no-probe.patch
