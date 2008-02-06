@@ -1,54 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: - remove-warnings-for-longstanding-conditions-fix.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 23:12:41 -0800
-Message-ID: <200802060712.m167CM4W031137@imap1.linux-foundation.org>
+Subject: - parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 23:14:20 -0800
+Message-ID: <200802060714.m167E1jB031236@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33041 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47553 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757130AbYBFHNT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:13:19 -0500
+	by vger.kernel.org with ESMTP id S1756580AbYBFHOF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:14:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@steeleye.com, jeff@garzik.org, kkeil@suse.de, willy@debian.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, matthias.kaehlcke@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove-warnings-for-longstanding-conditions-fix
+     parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     remove-warnings-for-longstanding-conditions-fix.patch
+     parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into remove-warnings-for-longstanding-conditions.patch
+This patch was dropped because it was folded into parallel-port-convert-port_mutex-to-the-mutex-api.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: remove-warnings-for-longstanding-conditions-fix
+Subject: parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-revert advansys bit as per Matthew's request.
+WARNING: no space between function name and open parenthesis '('
+#21: FILE: drivers/char/lp.c:315:
++	if (mutex_lock_interruptible (&lp_table[minor].port_mutex))
 
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Karsten Keil <kkeil@suse.de>
-Cc: Matthew Wilcox <willy@debian.org>
+WARNING: no space between function name and open parenthesis '('
+#30: FILE: drivers/char/lp.c:402:
++	mutex_unlock (&lp_table[minor].port_mutex);
+
+WARNING: no space between function name and open parenthesis '('
+#39: FILE: drivers/char/lp.c:424:
++	if (mutex_lock_interruptible (&lp_table[minor].port_mutex))
+
+WARNING: no space between function name and open parenthesis '('
+#48: FILE: drivers/char/lp.c:482:
++	mutex_unlock (&lp_table[minor].port_mutex);
+
+WARNING: no space between function name and open parenthesis '('
+#57: FILE: drivers/char/lp.c:891:
++		mutex_init (&lp_table[i].port_mutex);
+
+total: 0 errors, 5 warnings, 56 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/advansys.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/char/lp.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/scsi/advansys.c~remove-warnings-for-longstanding-conditions-fix drivers/scsi/advansys.c
---- a/drivers/scsi/advansys.c~remove-warnings-for-longstanding-conditions-fix
-+++ a/drivers/scsi/advansys.c
-@@ -68,6 +68,7 @@
-  *  7. advansys_info is not safe against multiple simultaneous callers
-  *  8. Add module_param to override ISA/VLB ioport array
-  */
-+#warning this driver is still not properly converted to the DMA API
+diff -puN drivers/char/lp.c~parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes drivers/char/lp.c
+--- a/drivers/char/lp.c~parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes
++++ a/drivers/char/lp.c
+@@ -312,7 +312,7 @@ static ssize_t lp_write(struct file * fi
+ 	if (copy_size > LP_BUFFER_SIZE)
+ 		copy_size = LP_BUFFER_SIZE;
  
- /* Enable driver /proc statistics. */
- #define ADVANSYS_STATS
+-	if (mutex_lock_interruptible (&lp_table[minor].port_mutex))
++	if (mutex_lock_interruptible(&lp_table[minor].port_mutex))
+ 		return -EINTR;
+ 
+ 	if (copy_from_user (kbuf, buf, copy_size)) {
+@@ -399,7 +399,7 @@ static ssize_t lp_write(struct file * fi
+ 		lp_release_parport (&lp_table[minor]);
+ 	}
+ out_unlock:
+-	mutex_unlock (&lp_table[minor].port_mutex);
++	mutex_unlock(&lp_table[minor].port_mutex);
+ 
+  	return retv;
+ }
+@@ -421,7 +421,7 @@ static ssize_t lp_read(struct file * fil
+ 	if (count > LP_BUFFER_SIZE)
+ 		count = LP_BUFFER_SIZE;
+ 
+-	if (mutex_lock_interruptible (&lp_table[minor].port_mutex))
++	if (mutex_lock_interruptible(&lp_table[minor].port_mutex))
+ 		return -EINTR;
+ 
+ 	lp_claim_parport_or_block (&lp_table[minor]);
+@@ -479,7 +479,7 @@ static ssize_t lp_read(struct file * fil
+ 	if (retval > 0 && copy_to_user (buf, kbuf, retval))
+ 		retval = -EFAULT;
+ 
+-	mutex_unlock (&lp_table[minor].port_mutex);
++	mutex_unlock(&lp_table[minor].port_mutex);
+ 
+ 	return retval;
+ }
+@@ -888,7 +888,7 @@ static int __init lp_init (void)
+ 		lp_table[i].last_error = 0;
+ 		init_waitqueue_head (&lp_table[i].waitq);
+ 		init_waitqueue_head (&lp_table[i].dataq);
+-		mutex_init (&lp_table[i].port_mutex);
++		mutex_init(&lp_table[i].port_mutex);
+ 		lp_table[i].timeout = 10 * HZ;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -57,9 +116,8 @@ origin.patch
 kernel-printkc-concerns-about-the-console-handover.patch
 riscom8-fix-smp-brokenness.patch
 sound-oss-pss-set_io_base-always-returns-success-mark-it-void.patch
-remove-warnings-for-longstanding-conditions.patch
-remove-warnings-for-longstanding-conditions-fix.patch
 genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api.patch
 parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
 remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
 allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
