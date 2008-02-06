@@ -1,38 +1,46 @@
 From: akpm@linux-foundation.org
-Subject: - tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 23:22:13 -0800
-Message-ID: <200802060721.m167Ls1E031495@imap1.linux-foundation.org>
+Subject: - kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 23:21:03 -0800
+Message-ID: <200802060720.m167KiC1031476@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44522 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47592 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758044AbYBFHWH (ORCPT
+	by vger.kernel.org with ESMTP id S1758062AbYBFHWH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:22:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, joe@skyrush.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mathieu.desnoyers@polymtl.ca, pmarques@grupopie.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes
+     kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+     kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into tty-enable-the-echoing-of-c-in-the-n_tty-discipline.patch
+This patch was dropped because it was folded into kallsyms-should-prefer-non-weak-symbols.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes
+Subject: kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: braces {} are not necessary for single statement blocks
-#39: FILE: drivers/char/n_tty.c:783:
-+			if (L_ECHO(tty)) {
-+				echo_char(c, tty);
-+			}
+Fix checkpatch warnings:
 
-total: 0 errors, 1 warnings, 23 lines checked
+ERROR: do not use C99 // comments
+#72: FILE: scripts/kallsyms.c:516:
++	// sort by address first
+
+ERROR: do not use C99 // comments
+#78: FILE: scripts/kallsyms.c:522:
++	// sort by "weakness" type
+
+ERROR: do not use C99 // comments
+#84: FILE: scripts/kallsyms.c:528:
++	// sort by initial order, so that other symbols are left undisturbed
+
+total: 3 errors, 0 warnings, 61 lines checked
 
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
@@ -40,28 +48,75 @@ CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Joe Peterson <joe@skyrush.com>
+And a few coding-style things which checkpatch missed.
+
+And fix up constificiation to remove typecasting.
+
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Paulo Marques <pmarques@grupopie.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/n_tty.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ scripts/kallsyms.c |   19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
-diff -puN drivers/char/n_tty.c~tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes drivers/char/n_tty.c
---- a/drivers/char/n_tty.c~tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes
-+++ a/drivers/char/n_tty.c
-@@ -780,9 +780,8 @@ send_signal:
- 				if (tty->driver->flush_buffer)
- 					tty->driver->flush_buffer(tty);
- 			}
--			if (L_ECHO(tty)) {
-+			if (L_ECHO(tty))
- 				echo_char(c, tty);
--			}
- 			if (tty->pgrp)
- 				kill_pgrp(tty->pgrp, signal, 1);
- 			return;
+diff -puN scripts/kallsyms.c~kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes scripts/kallsyms.c
+--- a/scripts/kallsyms.c~kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes
++++ a/scripts/kallsyms.c
+@@ -31,14 +31,13 @@
+ 
+ #define KSYM_NAME_LEN		128
+ 
+-
+ struct sym_entry {
+ 	unsigned long long addr;
+-	unsigned int len, start_pos;
++	unsigned int len;
++	unsigned int start_pos;
+ 	unsigned char *sym;
+ };
+ 
+-
+ static struct sym_entry *table;
+ static unsigned int table_size, table_cnt;
+ static unsigned long long _text, _stext, _etext, _sinittext, _einittext;
+@@ -504,28 +503,28 @@ static void optimize_token_table(void)
+ 	optimize_result();
+ }
+ 
+-
+ static int compare_symbols(const void *a, const void *b)
+ {
+-	struct sym_entry *sa, *sb;
++	const struct sym_entry *sa;
++	const struct sym_entry *sb;
+ 	int wa, wb;
+ 
+-	sa = (struct sym_entry *) a;
+-	sb = (struct sym_entry *) b;
++	sa = a;
++	sb = b;
+ 
+-	// sort by address first
++	/* sort by address first */
+ 	if (sa->addr > sb->addr)
+ 		return 1;
+ 	if (sa->addr < sb->addr)
+ 		return -1;
+ 
+-	// sort by "weakness" type
++	/* sort by "weakness" type */
+ 	wa = (sa->sym[0] == 'w') || (sa->sym[0] == 'W');
+ 	wb = (sb->sym[0] == 'w') || (sb->sym[0] == 'W');
+ 	if (wa != wb)
+ 		return wa - wb;
+ 
+-	// sort by initial order, so that other symbols are left undisturbed
++	/* sort by initial order, so that other symbols are left undisturbed */
+ 	return sa->start_pos - sb->start_pos;
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,8 +133,8 @@ read_current_time-cleanups.patch
 address-hfs-on-disk-corruption-robustness-review-comments.patch
 get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
 kallsyms-should-prefer-non-weak-symbols.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
 tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
 stopmachine-semaphore-to-mutex-fix.patch
 parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
