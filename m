@@ -1,86 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 12:35:03 -0800
-Message-ID: <200802062035.m16KZ4p7029078@imap1.linux-foundation.org>
+Subject: - r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 12:35:31 -0800
+Message-ID: <200802062035.m16KZVj2029090@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46696 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47146 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759848AbYBFUfV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 15:35:21 -0500
+	by vger.kernel.org with ESMTP id S1756386AbYBFUgF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 15:36:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, haveblue@us.ibm.com, hch@lst.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, haveblue@us.ibm.com, hch@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r-o-bind-mounts-elevate-write-count-opened-files-oops-fix
+     r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+     r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into r-o-bind-mounts-elevate-write-count-opened-files.patch
+This patch was dropped because it was folded into r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: r-o-bind-mounts-elevate-write-count-opened-files-oops-fix
+Subject: r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
+WARNING: line over 80 characters
+#53: FILE: fs/nfsd/vfs.c:1876:
++			if (exp_rdonly(rqstp, exp) || __mnt_is_readonly(exp->ex_mnt))
+
+total: 0 errors, 1 warnings, 25 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ fs/nfsd/vfs.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/namei.c~r-o-bind-mounts-elevate-write-count-opened-files-oops-fix fs/namei.c
---- a/fs/namei.c~r-o-bind-mounts-elevate-write-count-opened-files-oops-fix
-+++ a/fs/namei.c
-@@ -1721,7 +1721,7 @@ static inline int sys_open_flags_to_name
- 	return flag;
- }
- 
--static inline int open_will_write_to_fs(int flag, struct inode *inode)
-+static int open_will_write_to_fs(int flag, struct inode *inode)
- {
- 	/*
- 	 * We'll never write to the fs underlying
-@@ -1751,6 +1751,7 @@ struct file *open_pathname(int dfd, cons
- 	struct path path;
- 	struct dentry *dir;
- 	int count = 0;
-+	int will_write;
- 	int flag = sys_open_flags_to_namei_flags(sys_open_flag);
- 
- 	acc_mode = ACC_MODE(flag);
-@@ -1869,14 +1870,15 @@ ok:
- 	 * be avoided. Taking this mnt write here
- 	 * ensures that (2) can not occur.
+diff -puN fs/nfsd/vfs.c~r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes fs/nfsd/vfs.c
+--- a/fs/nfsd/vfs.c~r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes
++++ a/fs/nfsd/vfs.c
+@@ -1873,7 +1873,8 @@ nfsd_permission(struct svc_rqst *rqstp, 
  	 */
--	if (open_will_write_to_fs(flag, nd.dentry->d_inode)) {
-+	will_write = open_will_write_to_fs(flag, nd.dentry->d_inode);
-+	if (will_write) {
- 		error = mnt_want_write(nd.mnt);
- 		if (error)
- 			goto exit;
- 	}
- 	error = may_open(&nd, acc_mode, flag);
- 	if (error) {
--		if (open_will_write_to_fs(flag, nd.dentry->d_inode))
-+		if (will_write)
- 			mnt_drop_write(nd.mnt);
- 		goto exit;
- 	}
-@@ -1886,7 +1888,7 @@ ok:
- 	 * because the filp has had a write taken
- 	 * on its behalf.
- 	 */
--	if (open_will_write_to_fs(flag, nd.dentry->d_inode))
-+	if (will_write)
- 		mnt_drop_write(nd.mnt);
- 	return filp;
- 
+ 	if (!(acc & MAY_LOCAL_ACCESS))
+ 		if (acc & (MAY_WRITE | MAY_SATTR | MAY_TRUNC)) {
+-			if (exp_rdonly(rqstp, exp) || __mnt_is_readonly(exp->ex_mnt))
++			if (exp_rdonly(rqstp, exp) ||
++					__mnt_is_readonly(exp->ex_mnt))
+ 				return nfserr_rofs;
+ 			if (/* (acc & MAY_WRITE) && */ IS_IMMUTABLE(inode))
+ 				return nfserr_perm;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -175,7 +152,7 @@ r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
 r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
 r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
 r-o-bind-mounts-elevate-write-count-opened-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
 r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
 r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
 keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix.patch
