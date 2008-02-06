@@ -1,58 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - ext3-fix-lock-inversion-in-direct-io-fix.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 23:39:12 -0800
-Message-ID: <200802060738.m167crNf032134@imap1.linux-foundation.org>
+Subject: - isapnp-driver-semaphore-to-mutex-fix.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 23:37:55 -0800
+Message-ID: <200802060737.m167ba9j032047@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44294 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58519 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759933AbYBFHjw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:39:52 -0500
+	by vger.kernel.org with ESMTP id S1759947AbYBFHkC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:40:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jack@suse.cz, linux-ext4@vger.kernel.org, pbadari@us.ibm.com, zach.brown@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bjorn.helgaas@hp.com, dwalker@mvista.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3-fix-lock-inversion-in-direct-io-fix
+     isapnp-driver-semaphore-to-mutex-fix
 has been removed from the -mm tree.  Its filename was
-     ext3-fix-lock-inversion-in-direct-io-fix.patch
+     isapnp-driver-semaphore-to-mutex-fix.patch
 
-This patch was dropped because it was folded into ext3-fix-lock-inversion-in-direct-io.patch
+This patch was dropped because it was folded into isapnp-driver-semaphore-to-mutex.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3-fix-lock-inversion-in-direct-io-fix
+Subject: isapnp-driver-semaphore-to-mutex-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/ext3/inode.c: In function 'ext3_get_block':
-fs/ext3/inode.c:964: error: 'sb' undeclared (first use in this function)
-fs/ext3/inode.c:964: error: (Each undeclared identifier is reported only once
-fs/ext3/inode.c:964: error: for each function it appears in.)
+bad -> good
 
-Cc: <linux-ext4@vger.kernel.org>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Zach Brown <zach.brown@oracle.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Daniel Walker <dwalker@mvista.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/inode.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pnp/interface.c |    2 --
+ include/linux/pnp.h     |    1 +
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/ext3/inode.c~ext3-fix-lock-inversion-in-direct-io-fix fs/ext3/inode.c
---- a/fs/ext3/inode.c~ext3-fix-lock-inversion-in-direct-io-fix
-+++ a/fs/ext3/inode.c
-@@ -961,7 +961,7 @@ static int ext3_get_block(struct inode *
- 		if (max_blocks > DIO_MAX_BLOCKS)
- 			max_blocks = DIO_MAX_BLOCKS;
- 		handle = ext3_journal_start(inode, DIO_CREDITS +
--				2 * EXT3_QUOTA_TRANS_BLOCKS(sb));
-+				2 * EXT3_QUOTA_TRANS_BLOCKS(inode->i_sb));
- 		if (IS_ERR(handle)) {
- 			ret = PTR_ERR(handle);
- 			goto out;
+diff -puN drivers/pnp/interface.c~isapnp-driver-semaphore-to-mutex-fix drivers/pnp/interface.c
+--- a/drivers/pnp/interface.c~isapnp-driver-semaphore-to-mutex-fix
++++ a/drivers/pnp/interface.c
+@@ -316,8 +316,6 @@ static ssize_t pnp_show_current_resource
+ 	return ret;
+ }
+ 
+-extern struct mutex pnp_res_mutex;
+-
+ static ssize_t
+ pnp_set_current_resources(struct device *dmdev, struct device_attribute *attr,
+ 			  const char *ubuf, size_t count)
+diff -puN include/linux/pnp.h~isapnp-driver-semaphore-to-mutex-fix include/linux/pnp.h
+--- a/include/linux/pnp.h~isapnp-driver-semaphore-to-mutex-fix
++++ a/include/linux/pnp.h
+@@ -254,6 +254,7 @@ struct pnp_fixup {
+ 
+ #ifdef CONFIG_ISAPNP
+ extern struct pnp_protocol isapnp_protocol;
++extern struct mutex pnp_res_mutex;
+ #define pnp_device_is_isapnp(dev) ((dev)->protocol == (&isapnp_protocol))
+ #else
+ #define pnp_device_is_isapnp(dev) 0
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -86,7 +94,8 @@ neofb-avoid-overwriting-fb_info-fields.patch
 vermilionc-use-align-not-__align_mask.patch
 declare-pnp-option-parsing-functions-as-__init.patch
 isapnp-driver-semaphore-to-mutex.patch
-ext3-fix-lock-inversion-in-direct-io.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
 ext3-fix-lock-inversion-in-direct-io-fix.patch
 kill-filp_open-checkpatch-fixes.patch
 rename-open_namei-to-open_pathname-fix.patch
