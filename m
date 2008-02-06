@@ -1,283 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 12:33:51 -0800
-Message-ID: <200802062033.m16KXqTA028985@imap1.linux-foundation.org>
+Subject: + power_supply-remove-capacity_level-from-list-of-sysfs-attributes.patch added to -mm tree
+Date: Wed, 06 Feb 2008 13:56:12 -0800
+Message-ID: <200802062156.m16LuCJu032199@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39461 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56032 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755870AbYBFUow (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 15:44:52 -0500
+	by vger.kernel.org with ESMTP id S1759554AbYBFV5L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 16:57:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, haveblue@us.ibm.com, hch@lst.de, jack@suse.cz, shaggy@austin.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: cascardo@minaslivre.org, dilinger@debian.org, dilinger@queued.net, dwmw2@infradead.org, stable@kernel.org
 
 
 The patch titled
-     r-o-bind-mounts: elevate write count for some ioctls vs forbid user to change file flags on quota files
-has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+     power_supply: remove capacity_level from list of sysfs attributes
+has been added to the -mm tree.  Its filename is
+     power_supply-remove-capacity_level-from-list-of-sysfs-attributes.patch
 
-This patch was dropped because it was folded into r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: r-o-bind-mounts: elevate write count for some ioctls vs forbid user to change file flags on quota files
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: power_supply: remove capacity_level from list of sysfs attributes
+From: Thadeu Lima de Souza Cascardo <cascardo@minaslivre.org>
 
-Cc: Jan Kara <jack@suse.cz>
-Cc: Dave Kleikamp <shaggy@austin.ibm.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Christoph Hellwig <hch@lst.de>
+This commit:
+
+commit 8efe444038a205e79b38b7ad03878824901849a8
+Author: Andres Salomon <dilinger@queued.net>
+Date:   Wed Dec 12 14:12:56 2007 -0500
+
+    power: remove POWER_SUPPLY_PROP_CAPACITY_LEVEL
+
+Removed CAPACITY_LEVEL from every other code, leaving the array with sysfs
+attributes with one more entry than the number of enums in power_supply.h. 
+This leads to some attributes containing the value of the attribute right
+after it.  For example, temp_ambient would have the value of
+time_to_empty_now.  In my case, I had time_to_full_avg have the value which
+should be in model_name, when the former was usually empty.
+
+Cc: Andres Salomon <dilinger@debian.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/ioctl.c |    3 ++-
- fs/ext3/ioctl.c |    3 ++-
- fs/ext4/ioctl.c |    3 ++-
- fs/jfs/ioctl.c  |    6 ++++--
- 4 files changed, 10 insertions(+), 5 deletions(-)
+ drivers/power/power_supply_sysfs.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/ext2/ioctl.c~r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files fs/ext2/ioctl.c
---- a/fs/ext2/ioctl.c~r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files
-+++ a/fs/ext2/ioctl.c
-@@ -57,7 +57,8 @@ int ext2_ioctl (struct inode * inode, st
- 		/* Is it quota file? Do not allow user to mess with it */
- 		if (IS_NOQUOTA(inode)) {
- 			mutex_unlock(&inode->i_mutex);
--			return -EPERM;
-+			ret = -EPERM;
-+			goto setflags_out;
- 		}
- 		oldflags = ei->i_flags;
- 
-diff -puN fs/ext3/ioctl.c~r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files fs/ext3/ioctl.c
---- a/fs/ext3/ioctl.c~r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files
-+++ a/fs/ext3/ioctl.c
-@@ -60,7 +60,8 @@ int ext3_ioctl (struct inode * inode, st
- 		/* Is it quota file? Do not allow user to mess with it */
- 		if (IS_NOQUOTA(inode)) {
- 			mutex_unlock(&inode->i_mutex);
--			return -EPERM;
-+			err = -EPERM;
-+			goto flags_out;
- 		}
- 		oldflags = ei->i_flags;
- 
-diff -puN fs/ext4/ioctl.c~r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files fs/ext4/ioctl.c
---- a/fs/ext4/ioctl.c~r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files
-+++ a/fs/ext4/ioctl.c
-@@ -59,7 +59,8 @@ int ext4_ioctl (struct inode * inode, st
- 		/* Is it quota file? Do not allow user to mess with it */
- 		if (IS_NOQUOTA(inode)) {
- 			mutex_unlock(&inode->i_mutex);
--			return -EPERM;
-+			err = -EPERM;
-+			goto flags_out;
- 		}
- 		oldflags = ei->i_flags;
- 
-diff -puN fs/jfs/ioctl.c~r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files fs/jfs/ioctl.c
---- a/fs/jfs/ioctl.c~r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files
-+++ a/fs/jfs/ioctl.c
-@@ -85,8 +85,10 @@ long jfs_ioctl(struct file *filp, unsign
- 			flags &= ~JFS_DIRSYNC_FL;
- 
- 		/* Is it quota file? Do not allow user to mess with it */
--		if (IS_NOQUOTA(inode))
--			return -EPERM;
-+		if (IS_NOQUOTA(inode)) {
-+			err = -EPERM;
-+			goto setflags_out;
-+		}
- 
- 		/* Lock against other parallel changes of flags */
- 		mutex_lock(&inode->i_mutex);
+diff -puN drivers/power/power_supply_sysfs.c~power_supply-remove-capacity_level-from-list-of-sysfs-attributes drivers/power/power_supply_sysfs.c
+--- a/drivers/power/power_supply_sysfs.c~power_supply-remove-capacity_level-from-list-of-sysfs-attributes
++++ a/drivers/power/power_supply_sysfs.c
+@@ -106,7 +106,6 @@ static struct device_attribute power_sup
+ 	POWER_SUPPLY_ATTR(energy_now),
+ 	POWER_SUPPLY_ATTR(energy_avg),
+ 	POWER_SUPPLY_ATTR(capacity),
+-	POWER_SUPPLY_ATTR(capacity_level),
+ 	POWER_SUPPLY_ATTR(temp),
+ 	POWER_SUPPLY_ATTR(temp_ambient),
+ 	POWER_SUPPLY_ATTR(time_to_empty_now),
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from cascardo@minaslivre.org are
 
-origin.patch
-riscom8-fix-smp-brokenness.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void.patch
-genericizing-iova.patch
-parallel-port-convert-port_mutex-to-the-mutex-api.patch
-remove-support-for-un-needed-_extratext-section.patch
-allow-auto-destruction-of-loop-devices.patch
-read_current_time-cleanups.patch
-address-hfs-on-disk-corruption-robustness-review-comments.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
-kallsyms-should-prefer-non-weak-symbols.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline.patch
-stopmachine-semaphore-to-mutex.patch
-parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard.patch
-debug_smp_processor_id-fixlets.patch
-use-ilog2-in-fs-namespacec.patch
-system-timer-fix-crash-in-100hz-system-timer.patch
-speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
-drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
-ecryptfs-make-show_options-reflect-actual-mount-options.patch
-rtc-ds1302-rtc-support.patch
-add-hpet-rtc-emulation-to-rtc_drv_cmos.patch
-fbmon-cleanup-trailing-whitespaces.patch
-neofb-avoid-overwriting-fb_info-fields.patch
-vermilionc-use-align-not-__align_mask.patch
-declare-pnp-option-parsing-functions-as-__init.patch
-isapnp-driver-semaphore-to-mutex.patch
-ext3-fix-lock-inversion-in-direct-io.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-acpi-backlight-reset-brightness-on-resume.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-git-cpufreq.patch
-revert-agk-dm-dm-loop.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-git-drm-fix.patch
-drm-convert-from-nopage-to-fault.patch
-drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
-adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
-revert-git-hrt.patch
-git-input.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-git-kvm.patch
-ata-drivers-ata-sata_mvc-needs-dmapoolh.patch
-git-md-accel.patch
-memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
-memstick-disable-busted-code.patch
-git-mmc.patch
-git-mtd.patch
-drivers-mtd-maps-physmapc-fix-compile-remove-ifdef.patch
-git-net.patch
-drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-backlight.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
-x86-validate-against-acpi-motherboard-resources.patch
-git-sched.patch
-git-sched-fix-git-conflicts.patch
-git-sh.patch
-scsi-aic94xx-cleanups.patch
-drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-ohci-sm501-driver-v2-fix.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
-9p-fix-p9_printfcall-export.patch
-git-watchdog.patch
-git-watchdog-fixup.patch
-git-ipwireless_cs.patch
-git-x86.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-x86-amd-thermal-interrupt-support.patch
-x86-mmconf-enable-mcfg-early.patch
-git-xtensa.patch
-git-slub.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-kill-filp_open.patch
-rename-open_namei-to-open_pathname.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-mm_cgroup-to-header-file-fix.patch
-memcontrol-move-mm_cgroup-to-header-file-fix-2.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
-hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
-cpusets-update_cpumask-revision-fix.patch
-cpusets-update_cpumask-revision-checkpatch-fixes.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-introduce-flags-for-reserve_bootmem-powerpc-fix.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
-introduce-path_put-cifs-fix.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-d_path-make-d_path-use-a-struct-path-fix.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
-proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-modules-make-module_address_lookup-safe-fix.patch
-wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
-pid-sys_wait-fixes-v2-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-rewrite-rd-fixes.patch
-fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
-kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
-lib-remove-fastcall-from-lib-checkpatch-fixes.patch
-remove-fastcall-from-linux-include-checkpatch-fixes.patch
-constify-tables-in-kernel-sysctl_checkc-fix.patch
-aoe-statically-initialise-devlist_lock.patch
-xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
-ufs-fix-symlink-creation-on-ufs2-fix.patch
-libfs-allow-error-return-from-simple-attributes-fix.patch
-fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
-fs-afs-securityc-fix-uninitialized-var-warning.patch
-mount-options-fix-tmpfs-fix.patch
-char-applicom-use-pci_match_id-fix.patch
-add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
-add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+power_supply-remove-capacity_level-from-list-of-sysfs-attributes.patch
