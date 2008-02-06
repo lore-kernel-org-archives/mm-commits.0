@@ -1,58 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - stopmachine-semaphore-to-mutex-fix.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 23:22:46 -0800
-Message-ID: <200802060722.m167MR9P031504@imap1.linux-foundation.org>
+Subject: - use-ilog2-in-fs-namespacec-fix.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 23:23:59 -0800
+Message-ID: <200802060723.m167NeM9031598@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33941 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58642 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758279AbYBFHXe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:23:34 -0500
+	by vger.kernel.org with ESMTP id S1758375AbYBFHYL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:24:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dwalker@mvista.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dada1@cosmosbay.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     stopmachine-semaphore-to-mutex-fix
+     use-ilog2-in-fs-namespacec-fix
 has been removed from the -mm tree.  Its filename was
-     stopmachine-semaphore-to-mutex-fix.patch
+     use-ilog2-in-fs-namespacec-fix.patch
 
-This patch was dropped because it was folded into stopmachine-semaphore-to-mutex.patch
+This patch was dropped because it was folded into use-ilog2-in-fs-namespacec.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: stopmachine-semaphore-to-mutex-fix
+Subject: use-ilog2-in-fs-namespacec-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Daniel Walker <dwalker@mvista.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Eric Dumazet <dada1@cosmosbay.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/stop_machine.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/namespace.c |   26 +++++++++-----------------
+ 1 file changed, 9 insertions(+), 17 deletions(-)
 
-diff -puN kernel/stop_machine.c~stopmachine-semaphore-to-mutex-fix kernel/stop_machine.c
---- a/kernel/stop_machine.c~stopmachine-semaphore-to-mutex-fix
-+++ a/kernel/stop_machine.c
-@@ -29,7 +29,6 @@ enum stopmachine_state {
- static enum stopmachine_state stopmachine_state;
- static unsigned int stopmachine_num_threads;
- static atomic_t stopmachine_thread_ack;
--static DEFINE_MUTEX(stopmachine_mutex);
+diff -puN fs/namespace.c~use-ilog2-in-fs-namespacec-fix fs/namespace.c
+--- a/fs/namespace.c~use-ilog2-in-fs-namespacec-fix
++++ a/fs/namespace.c
+@@ -31,14 +31,15 @@
+ #include "pnode.h"
+ #include "internal.h"
  
- static int stopmachine(void *cpu)
- {
-@@ -170,6 +169,7 @@ static int do_stop(void *_smdata)
- struct task_struct *__stop_machine_run(int (*fn)(void *), void *data,
- 				       unsigned int cpu)
- {
-+	static DEFINE_MUTEX(stopmachine_mutex);
- 	struct stop_machine_data smdata;
- 	struct task_struct *p;
++#define HASH_SHIFT ilog2(PAGE_SIZE / sizeof(struct list_head))
++#define HASH_SIZE (1UL << HASH_SHIFT)
++
+ /* spinlock for vfsmount related operations, inplace of dcache_lock */
+ __cacheline_aligned_in_smp DEFINE_SPINLOCK(vfsmount_lock);
  
+ static int event;
+ 
+ static struct list_head *mount_hashtable __read_mostly;
+-#define hash_bits ilog2(PAGE_SIZE / sizeof(struct list_head))
+-#define hash_mask ((1UL << hash_bits) - 1)
+ static struct kmem_cache *mnt_cache __read_mostly;
+ static struct rw_semaphore namespace_sem;
+ 
+@@ -50,8 +51,8 @@ static inline unsigned long hash(struct 
+ {
+ 	unsigned long tmp = ((unsigned long)mnt / L1_CACHE_BYTES);
+ 	tmp += ((unsigned long)dentry / L1_CACHE_BYTES);
+-	tmp = tmp + (tmp >> hash_bits);
+-	return tmp & hash_mask;
++	tmp = tmp + (tmp >> HASH_SHIFT);
++	return tmp & (HASH_SIZE - 1);
+ }
+ 
+ struct vfsmount *alloc_vfsmnt(const char *name)
+@@ -1815,9 +1816,7 @@ static void __init init_mount_tree(void)
+ 
+ void __init mnt_init(void)
+ {
+-	struct list_head *d;
+-	unsigned int nr_hash;
+-	int i;
++	unsigned u;
+ 	int err;
+ 
+ 	init_rwsem(&namespace_sem);
+@@ -1830,18 +1829,11 @@ void __init mnt_init(void)
+ 	if (!mount_hashtable)
+ 		panic("Failed to allocate mount hash table\n");
+ 
+-	nr_hash = 1UL << hash_bits;
++	printk("Mount-cache hash table entries: %lu\n", HASH_SIZE);
+ 
+-	printk("Mount-cache hash table entries: %d\n", nr_hash);
++	for (u = 0; u < HASH_SIZE; u++)
++		INIT_LIST_HEAD(&mount_hashtable[u]);
+ 
+-	/* And initialize the newly allocated array */
+-	d = mount_hashtable;
+-	i = nr_hash;
+-	do {
+-		INIT_LIST_HEAD(d);
+-		d++;
+-		i--;
+-	} while (i);
+ 	err = sysfs_init();
+ 	if (err)
+ 		printk(KERN_WARNING "%s: sysfs_init error: %d\n",
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,9 +117,9 @@ kallsyms-should-prefer-non-weak-symbols.patch
 quota-improve-inode-list-scanning-in-add_dquot_ref.patch
 tty-enable-the-echoing-of-c-in-the-n_tty-discipline.patch
 stopmachine-semaphore-to-mutex.patch
-stopmachine-semaphore-to-mutex-fix.patch
-parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard.patch
 debug_smp_processor_id-fixlets.patch
+use-ilog2-in-fs-namespacec.patch
 use-ilog2-in-fs-namespacec-fix.patch
 system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
 speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
