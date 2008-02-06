@@ -1,130 +1,192 @@
 From: akpm@linux-foundation.org
-Subject: - inotify-send-in_attrib-events-when-link-count-changes-fix.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 23:16:57 -0800
-Message-ID: <200802060716.m167GcaJ031309@imap1.linux-foundation.org>
+Subject: - get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 23:17:34 -0800
+Message-ID: <200802060717.m167HFS6031321@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39443 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54183 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757247AbYBFHRK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:17:10 -0500
+	by vger.kernel.org with ESMTP id S1757809AbYBFHTD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:19:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, kamalesh@linux.vnet.ibm.com, mwelinder@gmail.com, rlove@google.com, sfrench@us.ibm.com, ttb@tentacle.dhs.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, dada1@cosmosbay.com, davem@davemloft.net, ink@jurassic.park.msu.ru, ralf@linux-mips.org, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     inotify-send-in_attrib-events-when-link-count-changes fix
+     get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix
 has been removed from the -mm tree.  Its filename was
-     inotify-send-in_attrib-events-when-link-count-changes-fix.patch
+     get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
 
-This patch was dropped because it was folded into inotify-send-in_attrib-events-when-link-count-changes.patch
+This patch was dropped because it was folded into get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: inotify-send-in_attrib-events-when-link-count-changes fix
-From: Jan Kara <jack@suse.cz>
+Subject: get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-OK, it's a problem with CIFS.  Its cifs_hardlink() function doesn't call
-d_instantiate() and thus returns a dentry with d_inode set to NULL.  I'm not
-sure if such behavior is really correct but anyway, attached is a new version
-of the patch which should handle it gracefully.
+ERROR: "sysctl_nr_open" [arch/sparc64/solaris/solaris.ko] undefined!
 
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Morten Welinder <mwelinder@gmail.com>
-Cc: Robert Love <rlove@google.com>
-Cc: John McCutchan <ttb@tentacle.dhs.org>
-Cc: Steven French <sfrench@us.ibm.com>
-Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Eric Dumazet <dada1@cosmosbay.com>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c               |    2 +-
- include/linux/fsnotify.h |   14 ++++++++------
- 2 files changed, 9 insertions(+), 7 deletions(-)
+ arch/sparc64/kernel/sparc64_ksyms.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/namei.c~inotify-send-in_attrib-events-when-link-count-changes-fix fs/namei.c
---- a/fs/namei.c~inotify-send-in_attrib-events-when-link-count-changes-fix
-+++ a/fs/namei.c
-@@ -2362,7 +2362,7 @@ int vfs_link(struct dentry *old_dentry, 
- 	error = dir->i_op->link(old_dentry, dir, new_dentry);
- 	mutex_unlock(&old_dentry->d_inode->i_mutex);
- 	if (!error)
--		fsnotify_link(dir, new_dentry);
-+		fsnotify_link(dir, old_dentry->d_inode, new_dentry);
- 	return error;
- }
- 
-diff -puN include/linux/fsnotify.h~inotify-send-in_attrib-events-when-link-count-changes-fix include/linux/fsnotify.h
---- a/include/linux/fsnotify.h~inotify-send-in_attrib-events-when-link-count-changes-fix
-+++ a/include/linux/fsnotify.h
-@@ -112,14 +112,16 @@ static inline void fsnotify_create(struc
- 
- /*
-  * fsnotify_link - new hardlink in 'inode' directory
-+ * Note: We have to pass also the linked inode ptr as some filesystems leave
-+ *   new_dentry->d_inode NULL and instantiate inode pointer later
-  */
--static inline void fsnotify_link(struct inode *inode, struct dentry *new_dentry)
-+static inline void fsnotify_link(struct inode *dir, struct inode *inode, struct dentry *new_dentry)
- {
--	inode_dir_notify(inode, DN_CREATE);
--	inotify_inode_queue_event(inode, IN_CREATE, 0, new_dentry->d_name.name,
--				  new_dentry->d_inode);
--	fsnotify_link_count(new_dentry->d_inode);
--	audit_inode_child(new_dentry->d_name.name, new_dentry, inode);
-+	inode_dir_notify(dir, DN_CREATE);
-+	inotify_inode_queue_event(dir, IN_CREATE, 0, new_dentry->d_name.name,
-+				  inode);
-+	fsnotify_link_count(inode);
-+	audit_inode_child(new_dentry->d_name.name, new_dentry, dir);
- }
- 
- /*
+diff -puN arch/sparc64/kernel/sparc64_ksyms.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix arch/sparc64/kernel/sparc64_ksyms.c
+--- a/arch/sparc64/kernel/sparc64_ksyms.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix
++++ a/arch/sparc64/kernel/sparc64_ksyms.c
+@@ -277,6 +277,7 @@ EXPORT_SYMBOL(sys_getpid);
+ EXPORT_SYMBOL(sys_geteuid);
+ EXPORT_SYMBOL(sys_getuid);
+ EXPORT_SYMBOL(sys_getegid);
++EXPORT_SYMBOL(sysctl_nr_open);
+ EXPORT_SYMBOL(sys_getgid);
+ EXPORT_SYMBOL(svr4_getcontext);
+ EXPORT_SYMBOL(svr4_setcontext);
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-inotify-send-in_attrib-events-when-link-count-changes.patch
-inotify-send-in_attrib-events-when-link-count-changes-fix.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+riscom8-fix-smp-brokenness.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api.patch
+remove-support-for-un-needed-_extratext-section.patch
+allow-auto-destruction-of-loop-devices.patch
+read_current_time-cleanups.patch
+address-hfs-on-disk-corruption-robustness-review-comments.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
 quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
-ext3-fix-lock-inversion-in-direct-io.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+stopmachine-semaphore-to-mutex-fix.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
+debug_smp_processor_id-fixlets.patch
+use-ilog2-in-fs-namespacec-fix.patch
+system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
+speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
+drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+add-hpet-rtc-emulation-to-rtc_drv_cmos-fix.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+neofb-avoid-overwriting-fb_info-fields.patch
+vermilionc-use-align-not-__align_mask.patch
+md-change-interate_mddev-to-for_each_mddev-fix.patch
+md-change-iterate_rdev-to-rdev_for_each-fix.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
 ext3-fix-lock-inversion-in-direct-io-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
 r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-mm_cgroup-to-header-file-fix.patch
+memcontrol-move-mm_cgroup-to-header-file-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
+hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
+cpusets-update_cpumask-revision-fix.patch
+cpusets-update_cpumask-revision-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+introduce-flags-for-reserve_bootmem-powerpc-fix.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
 iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext4-from-using-iget-and-read_inode-try.patch
-use-pgoff_t-instead-of-unsigned-long.patch
-write_inode_now-avoid-unnecessary-synchronous-write.patch
-udf-fix-coding-style-of-superc.patch
-udf-remove-some-ugly-macros.patch
-udf-convert-udf_sb_alloc_partmaps-macro-to-udf_sb_alloc_partition_maps-function.patch
-udf-check-if-udf_load_logicalvol-failed.patch
-udf-convert-macros-related-to-bitmaps-to-functions.patch
-udf-move-calculating-of-nr_groups-into-helper-function.patch
-udf-fix-sparse-warnings-shadowing-mismatch-between-declaration-and-definition.patch
-udf-fix-coding-style.patch
-udf-create-common-function-for-tag-checksumming.patch
-udf-create-common-function-for-changing-free-space-counter.patch
-udf-replace-loops-coded-with-goto-to-real-loops.patch
-udf-convert-byte-order-of-constant-instead-of-variable.patch
-udf-remove-udf_i_-macros-and-open-code-them.patch
-udf-cache-struct-udf_inode_info.patch
-udf-fix-udf_debug-macro.patch
-udf-improve-readability-of-udf_load_partition.patch
-udf-remove-wrong-prototype-of-udf_readdir.patch
-udf-fix-3-signedness-1-unitialized-variable-warnings.patch
-udf-fix-signedness-issue.patch
-udf-avoid-unnecessary-synchronous-writes.patch
-udf-cleanup-directory-offset-handling.patch
-udf-fix-adding-entry-to-a-directory.patch
-change-udf-maintainer.patch
-isofs-implement-dmode-option.patch
-isofs-implement-dmode-option-fix.patch
-mount-options-fix-ext2.patch
-mount-options-fix-isofs.patch
-mount-options-fix-udf.patch
-buffer_head-fix-private_list-handling.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
+introduce-path_put-cifs-fix.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
+proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+modules-make-module_address_lookup-safe-fix.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
+ufs-fix-symlink-creation-on-ufs2-fix.patch
+libfs-allow-error-return-from-simple-attributes-fix.patch
+fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
+mount-options-fix-tmpfs-fix.patch
+char-applicom-use-pci_match_id-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+page-owner-tracking-leak-detector-broken-on-s390.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
