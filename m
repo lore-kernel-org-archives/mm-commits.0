@@ -1,51 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - riscom8-fix-smp-brokenness-fix.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 23:11:35 -0800
-Message-ID: <200802060711.m167BHWH031121@imap1.linux-foundation.org>
+Subject: - sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 23:12:14 -0800
+Message-ID: <200802060711.m167Btmb031128@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51780 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45720 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756440AbYBFHMU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:12:20 -0500
+	by vger.kernel.org with ESMTP id S1756959AbYBFHMt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:12:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, jeff@garzik.org, jgarzik@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     riscom8-fix-smp-brokenness-fix
+     sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     riscom8-fix-smp-brokenness-fix.patch
+     sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into riscom8-fix-smp-brokenness.patch
+This patch was dropped because it was folded into sound-oss-pss-set_io_base-always-returns-success-mark-it-void.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: riscom8-fix-smp-brokenness-fix
+Subject: sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
+
+ERROR: need a space before the open parenthesis '('
+#35: FILE: sound/oss/pss.c:678:
++	else if(check_region(pss_cdrom_port, 2)) {
+
+ERROR: else should follow close brace '}'
+#35: FILE: sound/oss/pss.c:678:
+ 	}
++	else if(check_region(pss_cdrom_port, 2)) {
+
+WARNING: braces {} are not necessary for single statement blocks
+#35: FILE: sound/oss/pss.c:678:
++	else if(check_region(pss_cdrom_port, 2)) {
+ 		printk(KERN_ERR "PSS: CDROM I/O port conflict.\n");
+ 	}
+
+ERROR: else should follow close brace '}'
+#44: FILE: sound/oss/pss.c:681:
+ 	}
++	else {
+
+total: 3 errors, 1 warnings, 56 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
 
 Cc: Jeff Garzik <jeff@garzik.org>
 Cc: Jeff Garzik <jgarzik@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/riscom8.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ sound/oss/pss.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff -puN drivers/char/riscom8.c~riscom8-fix-smp-brokenness-fix drivers/char/riscom8.c
---- a/drivers/char/riscom8.c~riscom8-fix-smp-brokenness-fix
-+++ a/drivers/char/riscom8.c
-@@ -82,7 +82,7 @@
+diff -puN sound/oss/pss.c~sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes sound/oss/pss.c
+--- a/sound/oss/pss.c~sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes
++++ a/sound/oss/pss.c
+@@ -671,14 +671,11 @@ static void configure_nonsound_component
  
- static struct tty_driver *riscom_driver;
+ 	/* Configure CDROM port */
  
--static spinlock_t riscom_lock = SPIN_LOCK_UNLOCKED;
-+static DEFINE_SPINLOCK(riscom_lock);
- 
- static struct riscom_board rc_board[RC_NBOARD] =  {
- 	{
+-	if(pss_cdrom_port == -1)	/* If cdrom port enablation wasn't requested */
+-	{
++	if (pss_cdrom_port == -1) {	/* If cdrom port enablation wasn't requested */
+ 		printk(KERN_INFO "PSS: CDROM port not enabled.\n");
+-	}
+-	else if(check_region(pss_cdrom_port, 2)) {
++	} else if (check_region(pss_cdrom_port, 2)) {
+ 		printk(KERN_ERR "PSS: CDROM I/O port conflict.\n");
+-	}
+-	else {
++	} else {
+ 		set_io_base(devc, CONF_CDROM, pss_cdrom_port);
+ 		printk(KERN_INFO "PSS: CDROM I/O port set to 0x%x.\n", pss_cdrom_port);
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -53,7 +89,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 kernel-printkc-concerns-about-the-console-handover.patch
 riscom8-fix-smp-brokenness.patch
-riscom8-fix-smp-brokenness-fix.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void.patch
 sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
 remove-warnings-for-longstanding-conditions-fix.patch
 genericizing-iova-fix.patch
