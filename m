@@ -1,99 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - git-v9fs-fix-git-conflicts.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 23:02:16 -0800
-Message-ID: <200802060701.m1671vYc030772@imap1.linux-foundation.org>
+Subject: - i8042-non-x86-build-fix.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 23:05:06 -0800
+Message-ID: <200802060704.m1674lda030915@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37043 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34546 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753564AbYBFHCN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:02:13 -0500
+	by vger.kernel.org with ESMTP id S1755231AbYBFHFf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:05:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ericvh@hera.kernel.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dtor@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-v9fs-fix-git-conflicts
+     i8042: non-x86 build fix
 has been removed from the -mm tree.  Its filename was
-     git-v9fs-fix-git-conflicts.patch
+     i8042-non-x86-build-fix.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-v9fs-fix-git-conflicts
+Subject: i8042: non-x86 build fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-rusty trashed eric's stuff!
-
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-CC: Eric Van Hensbergen <ericvh@hera.kernel.org>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/9p/trans_virtio.c |   29 -----------------------------
- 1 file changed, 29 deletions(-)
+ drivers/input/serio/i8042.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN net/9p/trans_virtio.c~git-v9fs-fix-git-conflicts net/9p/trans_virtio.c
---- a/net/9p/trans_virtio.c~git-v9fs-fix-git-conflicts
-+++ a/net/9p/trans_virtio.c
-@@ -257,23 +257,12 @@ p9_virtio_rpc(struct p9_trans *t, struct
+diff -puN drivers/input/serio/i8042.c~i8042-non-x86-build-fix drivers/input/serio/i8042.c
+--- a/drivers/input/serio/i8042.c~i8042-non-x86-build-fix
++++ a/drivers/input/serio/i8042.c
+@@ -1172,14 +1172,14 @@ static int __devinit i8042_probe(struct 
+ 		if (error)
+ 			goto out_fail;
  	}
- #endif
- 
--<<<<<<< HEAD:net/9p/trans_virtio.c
- static void p9_virtio_intr(struct virtqueue *q)
- {
- 	struct virtio_chan *chan = q->vdev->priv;
--=======
--	if (n != P9_NOTAG && p9_idpool_check(n, chan->tagpool))
--		p9_idpool_put(n, chan->tagpool);
-->>>>>>> FETCH_HEAD:net/9p/trans_virtio.c
- 
--<<<<<<< HEAD:net/9p/trans_virtio.c
- 	P9_DPRINTK(P9_DEBUG_TRANS, "9p poll_wakeup: %p\n", &chan->wq);
- 	wake_up_interruptible(&chan->wq);
--=======
--	req->status = REQ_STATUS_IDLE;
 -
--	return 0;
-->>>>>>> FETCH_HEAD:net/9p/trans_virtio.c
- }
- 
- static int p9_virtio_probe(struct virtio_device *vdev)
-@@ -294,30 +283,12 @@ static int p9_virtio_probe(struct virtio
- 		goto fail;
++#ifdef CONFIG_X86
+ 	if (i8042_dritek) {
+ 		param = 0x90;
+ 		error = i8042_command(&param, 0x1059);
+ 		if (error)
+ 			goto out_fail;
  	}
- 
--<<<<<<< HEAD:net/9p/trans_virtio.c
--	/* Find the input queue. */
--	dev->priv = chan;
--	chan->in_vq = dev->config->find_vq(dev, 0, p9_virtio_intr);
--	if (IS_ERR(chan->in_vq)) {
--		err = PTR_ERR(chan->in_vq);
--		goto free;
--	}
--=======
- 	chan->vdev = vdev;
-->>>>>>> FETCH_HEAD:net/9p/trans_virtio.c
- 
--<<<<<<< HEAD:net/9p/trans_virtio.c
- 	chan->out_vq = dev->config->find_vq(dev, 1, NULL);
- 	if (IS_ERR(chan->out_vq)) {
- 		err = PTR_ERR(chan->out_vq);
- 		goto free_in_vq;
--=======
--	/* We expect one virtqueue, for requests. */
--	chan->vq = vdev->config->find_vq(vdev, req_done);
--	if (IS_ERR(chan->vq)) {
--		err = PTR_ERR(chan->vq);
--		goto out_free_vq;
-->>>>>>> FETCH_HEAD:net/9p/trans_virtio.c
- 	}
- 	chan->vq->vdev->priv = chan;
- 	spin_lock_init(&chan->lock);
+-
++#endif
+ /*
+  * Ok, everything is ready, let's register all serio ports
+  */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -142,11 +101,9 @@ vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
 drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
 usb-ohci-sm501-driver-v2-fix.patch
 drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
-git-v9fs-fix-git-conflicts.patch
 9p-fix-p9_printfcall-export.patch
 git-watchdog.patch
 git-watchdog-fixup.patch
-b43-fix-build-with-config_ssb_pcihost=n.patch
 git-ipwireless_cs.patch
 git-x86.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
