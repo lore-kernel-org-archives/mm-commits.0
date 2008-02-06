@@ -1,112 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 23:14:20 -0800
-Message-ID: <200802060714.m167E1jB031236@imap1.linux-foundation.org>
+Subject: - allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 23:15:23 -0800
+Message-ID: <200802060715.m167F4wk031277@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47553 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54288 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756580AbYBFHOF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:14:05 -0500
+	by vger.kernel.org with ESMTP id S1756511AbYBFHP1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:15:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, matthias.kaehlcke@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bernie@codewiz.org, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes
+     allow-auto-destruction-of-loop-devices-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+     allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into parallel-port-convert-port_mutex-to-the-mutex-api.patch
+This patch was dropped because it was folded into allow-auto-destruction-of-loop-devices.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes
+Subject: allow-auto-destruction-of-loop-devices-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: no space between function name and open parenthesis '('
-#21: FILE: drivers/char/lp.c:315:
-+	if (mutex_lock_interruptible (&lp_table[minor].port_mutex))
+ERROR: no space after that open parenthesis '('
+#35: FILE: drivers/block/loop.c:976:
++	if ( (lo->lo_flags & LO_FLAGS_AUTOCLEAR) !=
 
-WARNING: no space between function name and open parenthesis '('
-#30: FILE: drivers/char/lp.c:402:
-+	mutex_unlock (&lp_table[minor].port_mutex);
-
-WARNING: no space between function name and open parenthesis '('
-#39: FILE: drivers/char/lp.c:424:
-+	if (mutex_lock_interruptible (&lp_table[minor].port_mutex))
-
-WARNING: no space between function name and open parenthesis '('
-#48: FILE: drivers/char/lp.c:482:
-+	mutex_unlock (&lp_table[minor].port_mutex);
-
-WARNING: no space between function name and open parenthesis '('
-#57: FILE: drivers/char/lp.c:891:
-+		mutex_init (&lp_table[i].port_mutex);
-
-total: 0 errors, 5 warnings, 56 lines checked
+total: 1 errors, 0 warnings, 27 lines checked
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Cc: Bernardo Innocenti <bernie@codewiz.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/lp.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/block/loop.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/lp.c~parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes drivers/char/lp.c
---- a/drivers/char/lp.c~parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes
-+++ a/drivers/char/lp.c
-@@ -312,7 +312,7 @@ static ssize_t lp_write(struct file * fi
- 	if (copy_size > LP_BUFFER_SIZE)
- 		copy_size = LP_BUFFER_SIZE;
+diff -puN drivers/block/loop.c~allow-auto-destruction-of-loop-devices-checkpatch-fixes drivers/block/loop.c
+--- a/drivers/block/loop.c~allow-auto-destruction-of-loop-devices-checkpatch-fixes
++++ a/drivers/block/loop.c
+@@ -973,7 +973,7 @@ loop_set_status(struct loop_device *lo, 
+ 	lo->transfer = xfer->transfer;
+ 	lo->ioctl = xfer->ioctl;
  
--	if (mutex_lock_interruptible (&lp_table[minor].port_mutex))
-+	if (mutex_lock_interruptible(&lp_table[minor].port_mutex))
- 		return -EINTR;
- 
- 	if (copy_from_user (kbuf, buf, copy_size)) {
-@@ -399,7 +399,7 @@ static ssize_t lp_write(struct file * fi
- 		lp_release_parport (&lp_table[minor]);
- 	}
- out_unlock:
--	mutex_unlock (&lp_table[minor].port_mutex);
-+	mutex_unlock(&lp_table[minor].port_mutex);
- 
-  	return retv;
- }
-@@ -421,7 +421,7 @@ static ssize_t lp_read(struct file * fil
- 	if (count > LP_BUFFER_SIZE)
- 		count = LP_BUFFER_SIZE;
- 
--	if (mutex_lock_interruptible (&lp_table[minor].port_mutex))
-+	if (mutex_lock_interruptible(&lp_table[minor].port_mutex))
- 		return -EINTR;
- 
- 	lp_claim_parport_or_block (&lp_table[minor]);
-@@ -479,7 +479,7 @@ static ssize_t lp_read(struct file * fil
- 	if (retval > 0 && copy_to_user (buf, kbuf, retval))
- 		retval = -EFAULT;
- 
--	mutex_unlock (&lp_table[minor].port_mutex);
-+	mutex_unlock(&lp_table[minor].port_mutex);
- 
- 	return retval;
- }
-@@ -888,7 +888,7 @@ static int __init lp_init (void)
- 		lp_table[i].last_error = 0;
- 		init_waitqueue_head (&lp_table[i].waitq);
- 		init_waitqueue_head (&lp_table[i].dataq);
--		mutex_init (&lp_table[i].port_mutex);
-+		mutex_init(&lp_table[i].port_mutex);
- 		lp_table[i].timeout = 10 * HZ;
- 	}
+-	if ( (lo->lo_flags & LO_FLAGS_AUTOCLEAR) !=
++	if ((lo->lo_flags & LO_FLAGS_AUTOCLEAR) !=
+ 	     (info->lo_flags & LO_FLAGS_AUTOCLEAR))
+ 		lo->lo_flags ^= LO_FLAGS_AUTOCLEAR;
  
 _
 
@@ -118,8 +67,8 @@ riscom8-fix-smp-brokenness.patch
 sound-oss-pss-set_io_base-always-returns-success-mark-it-void.patch
 genericizing-iova-fix.patch
 parallel-port-convert-port_mutex-to-the-mutex-api.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section.patch
+allow-auto-destruction-of-loop-devices.patch
 allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
 read_current_time-cleanups.patch
 read_current_time-cleanups-build-fix-fix.patch
