@@ -1,146 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 23:37:33 -0800
-Message-ID: <200802060737.m167bE5k032037@imap1.linux-foundation.org>
+Subject: - isapnp-driver-semaphore-to-mutex-fix-fix.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 23:37:58 -0800
+Message-ID: <200802060737.m167bd5N032050@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50193 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44397 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757278AbYBFHiS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:38:18 -0500
+	by vger.kernel.org with ESMTP id S1759775AbYBFHjR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:39:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bjorn.helgaas@hp.com, rene.herman@gmail.com, trenn@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bjorn.helgaas@hp.com, dwalker@mvista.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes
+     isapnp-driver-semaphore-to-mutex-fix-fix
 has been removed from the -mm tree.  Its filename was
-     declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+     isapnp-driver-semaphore-to-mutex-fix-fix.patch
 
-This patch was dropped because it was folded into declare-pnp-option-parsing-functions-as-__init.patch
+This patch was dropped because it was folded into isapnp-driver-semaphore-to-mutex.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes
+Subject: isapnp-driver-semaphore-to-mutex-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: line over 80 characters
-#56: FILE: drivers/pnp/pnpacpi/rsparser.c:427:
-+						struct acpi_resource_extended_irq *p)
+drivers/pnp/interface.c: In function 'pnp_set_current_resources':
+drivers/pnp/interface.c:363: error: 'pnp_res_mutex' undeclared (first use in this function)
+drivers/pnp/interface.c:363: error: (Each undeclared identifier is reported only once
+drivers/pnp/interface.c:363: error: for each function it appears in.)
 
-WARNING: line over 80 characters
-#78: FILE: drivers/pnp/pnpacpi/rsparser.c:466:
-+						   struct acpi_resource_fixed_io *io)
-
-WARNING: line over 80 characters
-#111: FILE: drivers/pnp/pnpacpi/rsparser.c:525:
-+						    struct acpi_resource_fixed_memory32 *p)
-
-ERROR: "foo * bar" should be "foo *bar"
-#144: FILE: drivers/pnp/pnpacpi/rsparser.c:692:
-+						      struct pnp_dev * dev)
-
-WARNING: line over 80 characters
-#243: FILE: drivers/pnp/pnpbios/rsparser.c:374:
-+static __init unsigned char *pnpbios_parse_resource_option_data(unsigned char *p,
-
-WARNING: line over 80 characters
-#244: FILE: drivers/pnp/pnpbios/rsparser.c:375:
-+								unsigned char *end,
-
-WARNING: line over 80 characters
-#245: FILE: drivers/pnp/pnpbios/rsparser.c:376:
-+								struct pnp_dev *dev)
-
-WARNING: line over 80 characters
-#254: FILE: drivers/pnp/pnpbios/rsparser.c:784:
-+int __init pnpbios_parse_data_stream(struct pnp_dev *dev, struct pnp_bios_node *node)
-
-total: 1 errors, 7 warnings, 204 lines checked
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
+Strange that an isapnp semaphore is needed with CONFIG_ISAPNP=n.
 
 Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Rene Herman <rene.herman@gmail.com>
-Cc: Thomas Renninger <trenn@suse.de>
+Cc: Daniel Walker <dwalker@mvista.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/pnpacpi/rsparser.c |    8 ++++----
- drivers/pnp/pnpbios/rsparser.c |    9 +++++----
- 2 files changed, 9 insertions(+), 8 deletions(-)
+ drivers/pnp/interface.c |    2 ++
+ include/linux/pnp.h     |    2 +-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/pnp/pnpacpi/rsparser.c~declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes drivers/pnp/pnpacpi/rsparser.c
---- a/drivers/pnp/pnpacpi/rsparser.c~declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes
-+++ a/drivers/pnp/pnpacpi/rsparser.c
-@@ -432,7 +432,7 @@ static __init void pnpacpi_parse_irq_opt
- }
+diff -puN drivers/pnp/interface.c~isapnp-driver-semaphore-to-mutex-fix-fix drivers/pnp/interface.c
+--- a/drivers/pnp/interface.c~isapnp-driver-semaphore-to-mutex-fix-fix
++++ a/drivers/pnp/interface.c
+@@ -10,10 +10,12 @@
+ #include <linux/errno.h>
+ #include <linux/list.h>
+ #include <linux/types.h>
++#include <linux/pnp.h>
+ #include <linux/stat.h>
+ #include <linux/ctype.h>
+ #include <linux/slab.h>
+ #include <linux/mutex.h>
++
+ #include <asm/uaccess.h>
  
- static __init void pnpacpi_parse_ext_irq_option(struct pnp_option *option,
--						struct acpi_resource_extended_irq *p)
-+					struct acpi_resource_extended_irq *p)
- {
- 	int i;
- 	struct pnp_irq *irq;
-@@ -471,7 +471,7 @@ static __init void pnpacpi_parse_port_op
- }
+ #include "base.h"
+diff -puN include/linux/pnp.h~isapnp-driver-semaphore-to-mutex-fix-fix include/linux/pnp.h
+--- a/include/linux/pnp.h~isapnp-driver-semaphore-to-mutex-fix-fix
++++ a/include/linux/pnp.h
+@@ -254,11 +254,11 @@ struct pnp_fixup {
  
- static __init void pnpacpi_parse_fixed_port_option(struct pnp_option *option,
--						   struct acpi_resource_fixed_io *io)
-+					struct acpi_resource_fixed_io *io)
- {
- 	struct pnp_port *port;
+ #ifdef CONFIG_ISAPNP
+ extern struct pnp_protocol isapnp_protocol;
+-extern struct mutex pnp_res_mutex;
+ #define pnp_device_is_isapnp(dev) ((dev)->protocol == (&isapnp_protocol))
+ #else
+ #define pnp_device_is_isapnp(dev) 0
+ #endif
++extern struct mutex pnp_res_mutex;
  
-@@ -530,7 +530,7 @@ static __init void pnpacpi_parse_mem32_o
- }
- 
- static __init void pnpacpi_parse_fixed_mem32_option(struct pnp_option *option,
--						    struct acpi_resource_fixed_memory32 *p)
-+					struct acpi_resource_fixed_memory32 *p)
- {
- 	struct pnp_mem *mem;
- 
-@@ -697,7 +697,7 @@ static __init acpi_status pnpacpi_option
- }
- 
- acpi_status __init pnpacpi_parse_resource_option_data(acpi_handle handle,
--						      struct pnp_dev * dev)
-+						      struct pnp_dev *dev)
- {
- 	acpi_status status;
- 	struct acpipnp_parse_option_s parse_data;
-diff -puN drivers/pnp/pnpbios/rsparser.c~declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes drivers/pnp/pnpbios/rsparser.c
---- a/drivers/pnp/pnpbios/rsparser.c~declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes
-+++ a/drivers/pnp/pnpbios/rsparser.c
-@@ -371,9 +371,9 @@ static __init void pnpbios_parse_fixed_p
- 	pnp_register_port_resource(option, port);
- }
- 
--static __init unsigned char *pnpbios_parse_resource_option_data(unsigned char *p,
--								unsigned char *end,
--								struct pnp_dev *dev)
-+static __init unsigned char *
-+pnpbios_parse_resource_option_data(unsigned char *p, unsigned char *end,
-+					struct pnp_dev *dev)
- {
- 	unsigned int len, tag;
- 	int priority = 0;
-@@ -781,7 +781,8 @@ len_err:
-  * Core Parsing Functions
-  */
- 
--int __init pnpbios_parse_data_stream(struct pnp_dev *dev, struct pnp_bios_node *node)
-+int __init pnpbios_parse_data_stream(struct pnp_dev *dev,
-+					struct pnp_bios_node *node)
- {
- 	unsigned char *p = (char *)node->data;
- 	unsigned char *end = (char *)(node->data + node->size);
+ #ifdef CONFIG_PNPBIOS
+ extern struct pnp_protocol pnpbios_protocol;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -173,8 +107,7 @@ fbmon-cleanup-trailing-whitespaces.patch
 neofb-avoid-overwriting-fb_info-fields.patch
 vermilionc-use-align-not-__align_mask.patch
 declare-pnp-option-parsing-functions-as-__init.patch
-declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
-isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex.patch
 isapnp-driver-semaphore-to-mutex-fix-fix.patch
 ext3-fix-lock-inversion-in-direct-io-fix.patch
 kill-filp_open-checkpatch-fixes.patch
