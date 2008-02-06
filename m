@@ -1,61 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 23:15:23 -0800
-Message-ID: <200802060715.m167F4wk031277@imap1.linux-foundation.org>
+Subject: - read_current_time-cleanups-build-fix-fix.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 23:15:52 -0800
+Message-ID: <200802060715.m167FXJG031286@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54288 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35609 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756511AbYBFHP1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:15:27 -0500
+	by vger.kernel.org with ESMTP id S1758797AbYBFHPm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:15:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bernie@codewiz.org, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ezk@cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     allow-auto-destruction-of-loop-devices-checkpatch-fixes
+     read_current_time-cleanups-build-fix-fix
 has been removed from the -mm tree.  Its filename was
-     allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+     read_current_time-cleanups-build-fix-fix.patch
 
-This patch was dropped because it was folded into allow-auto-destruction-of-loop-devices.patch
+This patch was dropped because it was folded into read_current_time-cleanups.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: allow-auto-destruction-of-loop-devices-checkpatch-fixes
+Subject: read_current_time-cleanups-build-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: no space after that open parenthesis '('
-#35: FILE: drivers/block/loop.c:976:
-+	if ( (lo->lo_flags & LO_FLAGS_AUTOCLEAR) !=
+It breaks headers_install.  Do it the sleazy way.
 
-total: 1 errors, 0 warnings, 27 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Bernardo Innocenti <bernie@codewiz.org>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Erez Zadok <ezk@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/loop.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/timex.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/block/loop.c~allow-auto-destruction-of-loop-devices-checkpatch-fixes drivers/block/loop.c
---- a/drivers/block/loop.c~allow-auto-destruction-of-loop-devices-checkpatch-fixes
-+++ a/drivers/block/loop.c
-@@ -973,7 +973,7 @@ loop_set_status(struct loop_device *lo, 
- 	lo->transfer = xfer->transfer;
- 	lo->ioctl = xfer->ioctl;
+diff -puN include/linux/timex.h~read_current_time-cleanups-build-fix-fix include/linux/timex.h
+--- a/include/linux/timex.h~read_current_time-cleanups-build-fix-fix
++++ a/include/linux/timex.h
+@@ -55,7 +55,6 @@
  
--	if ( (lo->lo_flags & LO_FLAGS_AUTOCLEAR) !=
-+	if ((lo->lo_flags & LO_FLAGS_AUTOCLEAR) !=
- 	     (info->lo_flags & LO_FLAGS_AUTOCLEAR))
- 		lo->lo_flags ^= LO_FLAGS_AUTOCLEAR;
+ #include <linux/compiler.h>
+ #include <linux/time.h>
+-#include <linux/init.h>
+ 
+ #include <asm/param.h>
+ 
+@@ -251,7 +250,7 @@ extern int do_adjtimex(struct timex *);
+ /* Don't use! Compatibility define for existing users. */
+ #define tickadj	(500/HZ ? : 1)
+ 
+-int __devinit read_current_timer(unsigned long *timer_val);
++int read_current_timer(unsigned long *timer_val);
+ 
+ #endif /* KERNEL */
  
 _
 
@@ -69,7 +67,6 @@ genericizing-iova-fix.patch
 parallel-port-convert-port_mutex-to-the-mutex-api.patch
 remove-support-for-un-needed-_extratext-section.patch
 allow-auto-destruction-of-loop-devices.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
 read_current_time-cleanups.patch
 read_current_time-cleanups-build-fix-fix.patch
 address-hfs-on-disk-corruption-robustness-review-comments.patch
