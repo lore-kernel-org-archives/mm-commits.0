@@ -1,64 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 23:21:28 -0800
-Message-ID: <200802060721.m167L9SR031485@imap1.linux-foundation.org>
+Subject: - tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 23:22:13 -0800
+Message-ID: <200802060721.m167Ls1E031495@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44827 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44522 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756440AbYBFHVR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:21:17 -0500
+	by vger.kernel.org with ESMTP id S1758044AbYBFHWH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:22:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, gentuu@gmail.com, jack@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, joe@skyrush.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     quota-improve-inode-list-scanning-in-add_dquot_ref-fix
+     tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+     tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into quota-improve-inode-list-scanning-in-add_dquot_ref.patch
+This patch was dropped because it was folded into tty-enable-the-echoing-of-c-in-the-n_tty-discipline.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quota-improve-inode-list-scanning-in-add_dquot_ref-fix
+Subject: tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-speedup
+WARNING: braces {} are not necessary for single statement blocks
+#39: FILE: drivers/char/n_tty.c:783:
++			if (L_ECHO(tty)) {
++				echo_char(c, tty);
++			}
 
-Cc: Jan Kara <jack@suse.cz>
-Cc: Nick <gentuu@gmail.com>
+total: 0 errors, 1 warnings, 23 lines checked
+
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Joe Peterson <joe@skyrush.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dquot.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/char/n_tty.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/dquot.c~quota-improve-inode-list-scanning-in-add_dquot_ref-fix fs/dquot.c
---- a/fs/dquot.c~quota-improve-inode-list-scanning-in-add_dquot_ref-fix
-+++ a/fs/dquot.c
-@@ -710,8 +710,7 @@ static void add_dquot_ref(struct super_b
- 		__iget(inode);
- 		spin_unlock(&inode_lock);
- 
--		if (old_inode)
--			iput(old_inode);
-+		iput(old_inode);
- 		sb->dq_op->initialize(inode, type);
- 		/* We hold a reference to 'inode' so it couldn't have been
- 		 * removed from s_inodes list while we dropped the inode_lock.
-@@ -722,8 +721,7 @@ static void add_dquot_ref(struct super_b
- 		spin_lock(&inode_lock);
- 	}
- 	spin_unlock(&inode_lock);
--	if (old_inode)
--		iput(old_inode);
-+	iput(old_inode);
- }
- 
- /* Return 0 if dqput() won't block (note that 1 doesn't necessarily mean blocking) */
+diff -puN drivers/char/n_tty.c~tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes drivers/char/n_tty.c
+--- a/drivers/char/n_tty.c~tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes
++++ a/drivers/char/n_tty.c
+@@ -780,9 +780,8 @@ send_signal:
+ 				if (tty->driver->flush_buffer)
+ 					tty->driver->flush_buffer(tty);
+ 			}
+-			if (L_ECHO(tty)) {
++			if (L_ECHO(tty))
+ 				echo_char(c, tty);
+-			}
+ 			if (tty->pgrp)
+ 				kill_pgrp(tty->pgrp, signal, 1);
+ 			return;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -76,7 +79,7 @@ address-hfs-on-disk-corruption-robustness-review-comments.patch
 get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
 kallsyms-should-prefer-non-weak-symbols.patch
 quota-improve-inode-list-scanning-in-add_dquot_ref.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline.patch
 tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
 stopmachine-semaphore-to-mutex-fix.patch
 parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
