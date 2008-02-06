@@ -1,93 +1,257 @@
 From: akpm@linux-foundation.org
-Subject: - fix-timerfd-breakage-on-avr32-was-re-fix-variable-use-in-avr32-pte_alloc_one.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 23:04:54 -0800
-Message-ID: <200802060704.m1674ZVA030906@imap1.linux-foundation.org>
+Subject: - b43-fix-build-with-config_ssb_pcihost=n.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 23:05:09 -0800
+Message-ID: <200802060704.m1674oUY030918@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59190 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42952 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755392AbYBFHGo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:06:44 -0500
+	by vger.kernel.org with ESMTP id S1755743AbYBFHHI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:07:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hskinnemoen@atmel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, linville@tuxdriver.com, mb@bu3sch.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix timerfd breakage on avr32
+     b43: fix build with CONFIG_SSB_PCIHOST=n
 has been removed from the -mm tree.  Its filename was
-     fix-timerfd-breakage-on-avr32-was-re-fix-variable-use-in-avr32-pte_alloc_one.patch
+     b43-fix-build-with-config_ssb_pcihost=n.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix timerfd breakage on avr32
-From: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Subject: b43: fix build with CONFIG_SSB_PCIHOST=n
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Hmm. Someone removed the timerfd() syscall...
+m68k allmodconfig gives
 
+drivers/net/wireless/b43/main.c:251: error: implicit declaration of function 'mmiowb'
 
+because CONFIG_B43=m, CONFIG_SSB_PCIHOST=n.
+
+Might be Kconfig bustage, but this works...
+
+Cc: Michael Buesch <mb@bu3sch.de>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/avr32/kernel/syscall_table.S |    2 +-
- include/asm-avr32/unistd.h        |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ include/linux/ssb/ssb.h |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN arch/avr32/kernel/syscall_table.S~fix-timerfd-breakage-on-avr32-was-re-fix-variable-use-in-avr32-pte_alloc_one arch/avr32/kernel/syscall_table.S
---- a/arch/avr32/kernel/syscall_table.S~fix-timerfd-breakage-on-avr32-was-re-fix-variable-use-in-avr32-pte_alloc_one
-+++ a/arch/avr32/kernel/syscall_table.S
-@@ -293,6 +293,6 @@ sys_call_table:
- 	.long	sys_shmctl
- 	.long	sys_utimensat
- 	.long	sys_signalfd
--	.long	sys_timerfd		/* 280 */
-+	.long	sys_ni_syscall		/* 280, was sys_timerfd */
- 	.long	sys_eventfd
- 	.long	sys_ni_syscall		/* r8 is saturated at nr_syscalls */
-diff -puN include/asm-avr32/unistd.h~fix-timerfd-breakage-on-avr32-was-re-fix-variable-use-in-avr32-pte_alloc_one include/asm-avr32/unistd.h
---- a/include/asm-avr32/unistd.h~fix-timerfd-breakage-on-avr32-was-re-fix-variable-use-in-avr32-pte_alloc_one
-+++ a/include/asm-avr32/unistd.h
-@@ -297,7 +297,7 @@
+diff -puN include/linux/ssb/ssb.h~b43-fix-build-with-config_ssb_pcihost=n include/linux/ssb/ssb.h
+--- a/include/linux/ssb/ssb.h~b43-fix-build-with-config_ssb_pcihost=n
++++ a/include/linux/ssb/ssb.h
+@@ -373,6 +373,15 @@ void ssb_pcihost_set_power_state(struct 
+ 	if (sdev->bus->bustype == SSB_BUSTYPE_PCI)
+ 		pci_set_power_state(sdev->bus->host_pci, state);
+ }
++#else
++static inline void ssb_pcihost_unregister(struct pci_driver *driver)
++{
++}
++
++static inline
++void ssb_pcihost_set_power_state(struct ssb_device *sdev, pci_power_t state)
++{
++}
+ #endif /* CONFIG_SSB_PCIHOST */
  
- #define __NR_utimensat		278
- #define __NR_signalfd		279
--#define __NR_timerfd		280
-+/* 280 was __NR_timerfd */
- #define __NR_eventfd		281
  
- #ifdef __KERNEL__
 _
 
-Patches currently in -mm which might be from hskinnemoen@atmel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-git-avr32.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+acpi-backlight-reset-brightness-on-resume.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+git-cpufreq.patch
+revert-agk-dm-dm-loop.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+git-drm-fix.patch
+drm-convert-from-nopage-to-fault.patch
+drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
+adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
+revert-git-hrt.patch
+git-input.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+git-kvm.patch
+ata-drivers-ata-sata_mvc-needs-dmapoolh.patch
 git-md-accel.patch
+memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
+memstick-disable-busted-code.patch
+git-mmc.patch
 git-mtd.patch
+drivers-mtd-maps-physmapc-fix-compile-remove-ifdef.patch
+git-net.patch
+drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-backlight.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
+x86-validate-against-acpi-motherboard-resources.patch
+git-sched.patch
+git-sched-fix-git-conflicts.patch
+git-sh.patch
+scsi-aic94xx-cleanups.patch
+drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-ohci-sm501-driver-v2-fix.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+9p-fix-p9_printfcall-export.patch
+git-watchdog.patch
+git-watchdog-fixup.patch
+git-ipwireless_cs.patch
+git-x86.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+x86-amd-thermal-interrupt-support.patch
+x86-mmconf-enable-mcfg-early.patch
+git-xtensa.patch
+git-slub.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+riscom8-fix-smp-brokenness-fix.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
 read_current_time-cleanups.patch
-fix-__const_udelay-declaration-and-definition-mismatches.patch
-atmel_spi-throughput-improvement.patch
-atmel_spi-chain-dma-transfers.patch
-atmel_spi-chain-dma-transfers-update.patch
-atmel_spi-fix-dmachain-oops-with-debug-enabled.patch
-atmel_lcdfb-validate-display-timings.patch
-sanitize-the-type-of-struct-useru_ar0.patch
-add-cmpxchg_local-to-avr32.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
-maintainers-add-haavard-as-maintainer-of-the-atmel_serial-driver.patch
-atmel_serial-clean-up-the-code.patch
-atmel_serial-use-cpu_relax-when-busy-waiting.patch
-atmel_serial-use-existing-console-options-only-if-brg-is-running.patch
-atmel_serial-fix-bugs-in-probe-error-path-and-remove.patch
-atmel_serial-split-the-interrupt-handler.patch
-atmel_serial-add-dma-support.patch
-atmel_serial-add-dma-support-fix.patch
-atmel_serial-fix-broken-rx-buffer-allocation.patch
-atmel_serial-use-container_of-instead-of-direct-cast.patch
-atmel_serial-show-tty-name-in-proc-interrupts.patch
-basic-pwm-driver-for-avr32-and-at91.patch
-basic-pwm-driver-for-avr32-and-at91-fix.patch
-pwm-led-driver.patch
+read_current_time-cleanups-build-fix-fix.patch
+address-hfs-on-disk-corruption-robustness-review-comments.patch
+get-rid-of-nr_open-and-introduce-a-sysctl_nr_open-fix.patch
+kallsyms-should-prefer-non-weak-symbols-checkpatch-fixes.patch
+quota-improve-inode-list-scanning-in-add_dquot_ref-fix.patch
+tty-enable-the-echoing-of-c-in-the-n_tty-discipline-checkpatch-fixes.patch
+stopmachine-semaphore-to-mutex-fix.patch
+parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard-fix.patch
+debug_smp_processor_id-fixlets.patch
+use-ilog2-in-fs-namespacec-fix.patch
+system-timer-fix-crash-in-100hz-system-timer-cleanup.patch
+speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
+drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
+ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+add-hpet-rtc-emulation-to-rtc_drv_cmos-fix.patch
+fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
+neofb-avoid-overwriting-fb_info-fields.patch
+vermilionc-use-align-not-__align_mask.patch
+md-change-interate_mddev-to-for_each_mddev-fix.patch
+md-change-iterate_rdev-to-rdev_for_each-fix.patch
+declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
+isapnp-driver-semaphore-to-mutex-fix.patch
+isapnp-driver-semaphore-to-mutex-fix-fix.patch
+ext3-fix-lock-inversion-in-direct-io-fix.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+keep-track-of-mnt_writer-state-of-struct-file-fix-warn_on-fix.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-mm_cgroup-to-header-file-fix.patch
+memcontrol-move-mm_cgroup-to-header-file-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
+hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
+cpusets-update_cpumask-revision-fix.patch
+cpusets-update_cpumask-revision-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+introduce-flags-for-reserve_bootmem-powerpc-fix.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
+introduce-path_put-cifs-fix.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
+proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+modules-make-module_address_lookup-safe-fix.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
+ufs-fix-symlink-creation-on-ufs2-fix.patch
+libfs-allow-error-return-from-simple-attributes-fix.patch
+fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
+mount-options-fix-tmpfs-fix.patch
+char-applicom-use-pci_match_id-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+page-owner-tracking-leak-detector-broken-on-s390.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
