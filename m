@@ -1,58 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: - i8042-non-x86-build-fix.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 23:05:06 -0800
-Message-ID: <200802060704.m1674lda030915@imap1.linux-foundation.org>
+Subject: - timerfd-fix-remaining-architectures.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 23:04:57 -0800
+Message-ID: <200802060704.m1674ciU030909@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34546 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41281 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755231AbYBFHFf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:05:35 -0500
+	by vger.kernel.org with ESMTP id S1754972AbYBFHFs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:05:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dtor@mail.ru, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davidel@xmailserver.org, dhowells@redhat.com, kkojima@rr.iij4u.or.jp, lethal@linux-sh.org, mtk-manpages@gmx.net, rc@rc0.org.uk, takata@linux-m32r.org, mm-co
 
 
 The patch titled
-     i8042: non-x86 build fix
+     timerfd: fix remaining architectures
 has been removed from the -mm tree.  Its filename was
-     i8042-non-x86-build-fix.patch
+     timerfd-fix-remaining-architectures.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i8042: non-x86 build fix
+Subject: timerfd: fix remaining architectures
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Kazumoto Kojima <kkojima@rr.iij4u.or.jp>
+Cc: Richard Curnow <rc@rc0.org.uk>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Michael Kerrisk <mtk-manpages@gmx.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/serio/i8042.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/frv/kernel/entry.S          |    2 +-
+ arch/m32r/kernel/syscall_table.S |    2 +-
+ arch/sh/kernel/syscalls_32.S     |    2 +-
+ arch/sh/kernel/syscalls_64.S     |    2 +-
+ include/asm-frv/unistd.h         |    2 +-
+ include/asm-m32r/unistd.h        |    2 +-
+ include/asm-sh/unistd_32.h       |    2 +-
+ include/asm-sh/unistd_64.h       |    2 +-
+ 8 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/input/serio/i8042.c~i8042-non-x86-build-fix drivers/input/serio/i8042.c
---- a/drivers/input/serio/i8042.c~i8042-non-x86-build-fix
-+++ a/drivers/input/serio/i8042.c
-@@ -1172,14 +1172,14 @@ static int __devinit i8042_probe(struct 
- 		if (error)
- 			goto out_fail;
- 	}
--
-+#ifdef CONFIG_X86
- 	if (i8042_dritek) {
- 		param = 0x90;
- 		error = i8042_command(&param, 0x1059);
- 		if (error)
- 			goto out_fail;
- 	}
--
-+#endif
- /*
-  * Ok, everything is ready, let's register all serio ports
-  */
+diff -puN arch/frv/kernel/entry.S~timerfd-fix-remaining-architectures arch/frv/kernel/entry.S
+--- a/arch/frv/kernel/entry.S~timerfd-fix-remaining-architectures
++++ a/arch/frv/kernel/entry.S
+@@ -1494,7 +1494,7 @@ sys_call_table:
+ 	.long sys_epoll_pwait
+ 	.long sys_utimensat		/* 320 */
+ 	.long sys_signalfd
+-	.long sys_timerfd
++	.long sys_ni_syscall
+ 	.long sys_eventfd
+ 	.long sys_fallocate
+ 
+diff -puN arch/m32r/kernel/syscall_table.S~timerfd-fix-remaining-architectures arch/m32r/kernel/syscall_table.S
+--- a/arch/m32r/kernel/syscall_table.S~timerfd-fix-remaining-architectures
++++ a/arch/m32r/kernel/syscall_table.S
+@@ -321,6 +321,6 @@ ENTRY(sys_call_table)
+ 	.long sys_epoll_pwait
+ 	.long sys_utimensat		/* 320 */
+ 	.long sys_signalfd
+-	.long sys_timerfd
++	.long sys_ni_syscall
+ 	.long sys_eventfd
+ 	.long sys_fallocate
+diff -puN arch/sh/kernel/syscalls_32.S~timerfd-fix-remaining-architectures arch/sh/kernel/syscalls_32.S
+--- a/arch/sh/kernel/syscalls_32.S~timerfd-fix-remaining-architectures
++++ a/arch/sh/kernel/syscalls_32.S
+@@ -338,6 +338,6 @@ ENTRY(sys_call_table)
+ 	.long sys_epoll_pwait
+ 	.long sys_utimensat		/* 320 */
+ 	.long sys_signalfd
+-	.long sys_timerfd
++	.long sys_ni_syscall
+ 	.long sys_eventfd
+ 	.long sys_fallocate
+diff -puN arch/sh/kernel/syscalls_64.S~timerfd-fix-remaining-architectures arch/sh/kernel/syscalls_64.S
+--- a/arch/sh/kernel/syscalls_64.S~timerfd-fix-remaining-architectures
++++ a/arch/sh/kernel/syscalls_64.S
+@@ -376,6 +376,6 @@ sys_call_table:
+ 	.long sys_epoll_pwait
+ 	.long sys_utimensat
+ 	.long sys_signalfd
+-	.long sys_timerfd		/* 350 */
++	.long sys_ni_syscall		/* 350 */
+ 	.long sys_eventfd
+ 	.long sys_fallocate
+diff -puN include/asm-frv/unistd.h~timerfd-fix-remaining-architectures include/asm-frv/unistd.h
+--- a/include/asm-frv/unistd.h~timerfd-fix-remaining-architectures
++++ a/include/asm-frv/unistd.h
+@@ -328,7 +328,7 @@
+ #define __NR_epoll_pwait	319
+ #define __NR_utimensat		320
+ #define __NR_signalfd		321
+-#define __NR_timerfd		322
++/* #define __NR_timerfd		322 removed */
+ #define __NR_eventfd		323
+ #define __NR_fallocate		324
+ 
+diff -puN include/asm-m32r/unistd.h~timerfd-fix-remaining-architectures include/asm-m32r/unistd.h
+--- a/include/asm-m32r/unistd.h~timerfd-fix-remaining-architectures
++++ a/include/asm-m32r/unistd.h
+@@ -327,7 +327,7 @@
+ #define __NR_epoll_pwait	319
+ #define __NR_utimensat		320
+ #define __NR_signalfd		321
+-#define __NR_timerfd		322
++/* #define __NR_timerfd		322 removed */
+ #define __NR_eventfd		323
+ #define __NR_fallocate		324
+ 
+diff -puN include/asm-sh/unistd_32.h~timerfd-fix-remaining-architectures include/asm-sh/unistd_32.h
+--- a/include/asm-sh/unistd_32.h~timerfd-fix-remaining-architectures
++++ a/include/asm-sh/unistd_32.h
+@@ -330,7 +330,7 @@
+ #define __NR_epoll_pwait	319
+ #define __NR_utimensat		320
+ #define __NR_signalfd		321
+-#define __NR_timerfd		322
++/* #define __NR_timerfd		322 removed */
+ #define __NR_eventfd		323
+ #define __NR_fallocate		324
+ 
+diff -puN include/asm-sh/unistd_64.h~timerfd-fix-remaining-architectures include/asm-sh/unistd_64.h
+--- a/include/asm-sh/unistd_64.h~timerfd-fix-remaining-architectures
++++ a/include/asm-sh/unistd_64.h
+@@ -370,7 +370,7 @@
+ #define __NR_epoll_pwait	347
+ #define __NR_utimensat		348
+ #define __NR_signalfd		349
+-#define __NR_timerfd		350
++/* #define __NR_timerfd		350 removed */
+ #define __NR_eventfd		351
+ #define __NR_fallocate		352
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
