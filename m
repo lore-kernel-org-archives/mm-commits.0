@@ -1,144 +1,176 @@
 From: akpm@linux-foundation.org
-Subject: - timerfd-fix-remaining-architectures.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 23:04:57 -0800
-Message-ID: <200802060704.m1674ciU030909@imap1.linux-foundation.org>
+Subject: - deprecate-smbfs-in-favour-of-cifs.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 23:05:02 -0800
+Message-ID: <200802060704.m1674huV030912@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41281 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57484 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754972AbYBFHFs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:05:48 -0500
+	by vger.kernel.org with ESMTP id S1754972AbYBFHGA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:06:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davidel@xmailserver.org, dhowells@redhat.com, kkojima@rr.iij4u.or.jp, lethal@linux-sh.org, mtk-manpages@gmx.net, rc@rc0.org.uk, takata@linux-m32r.org, mm-co
+To: akpm@linux-foundation.org, bunk@kernel.org, jlayton@redhat.com, olecom@flower.upol.cz, sfrench@us.ibm.com, urban@teststation.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     timerfd: fix remaining architectures
+     deprecate smbfs in favour of cifs
 has been removed from the -mm tree.  Its filename was
-     timerfd-fix-remaining-architectures.patch
+     deprecate-smbfs-in-favour-of-cifs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: timerfd: fix remaining architectures
+Subject: deprecate smbfs in favour of cifs
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: David Howells <dhowells@redhat.com>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Kazumoto Kojima <kkojima@rr.iij4u.or.jp>
-Cc: Richard Curnow <rc@rc0.org.uk>
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Michael Kerrisk <mtk-manpages@gmx.net>
+smbfs is a bit buggy and has no maintainer.  Change it to shout at the user on
+the first five mount attempts - tell them to switch to CIFS.
+
+Come December we'll mark it BROKEN and see what happens.
+
+[olecom@flower.upol.cz: documentation update]
+Cc: Urban Widmark <urban@teststation.com>
+Acked-by: Steven French <sfrench@us.ibm.com>
+Signed-off-by: Oleg Verych <olecom@flower.upol.cz>
+Cc: Jeff Layton <jlayton@redhat.com>
+Cc: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/entry.S          |    2 +-
- arch/m32r/kernel/syscall_table.S |    2 +-
- arch/sh/kernel/syscalls_32.S     |    2 +-
- arch/sh/kernel/syscalls_64.S     |    2 +-
- include/asm-frv/unistd.h         |    2 +-
- include/asm-m32r/unistd.h        |    2 +-
- include/asm-sh/unistd_32.h       |    2 +-
- include/asm-sh/unistd_64.h       |    2 +-
- 8 files changed, 8 insertions(+), 8 deletions(-)
+ fs/Kconfig       |   28 ++++++++++++++--------------
+ fs/smbfs/inode.c |    7 +++++++
+ 2 files changed, 21 insertions(+), 14 deletions(-)
 
-diff -puN arch/frv/kernel/entry.S~timerfd-fix-remaining-architectures arch/frv/kernel/entry.S
---- a/arch/frv/kernel/entry.S~timerfd-fix-remaining-architectures
-+++ a/arch/frv/kernel/entry.S
-@@ -1494,7 +1494,7 @@ sys_call_table:
- 	.long sys_epoll_pwait
- 	.long sys_utimensat		/* 320 */
- 	.long sys_signalfd
--	.long sys_timerfd
-+	.long sys_ni_syscall
- 	.long sys_eventfd
- 	.long sys_fallocate
+diff -puN fs/Kconfig~deprecate-smbfs-in-favour-of-cifs fs/Kconfig
+--- a/fs/Kconfig~deprecate-smbfs-in-favour-of-cifs
++++ a/fs/Kconfig
+@@ -1152,7 +1152,7 @@ config BEFS_DEBUG
+ 	depends on BEFS_FS
+ 	help
+ 	  If you say Y here, you can use the 'debug' mount option to enable
+-	  debugging output from the driver. 
++	  debugging output from the driver.
  
-diff -puN arch/m32r/kernel/syscall_table.S~timerfd-fix-remaining-architectures arch/m32r/kernel/syscall_table.S
---- a/arch/m32r/kernel/syscall_table.S~timerfd-fix-remaining-architectures
-+++ a/arch/m32r/kernel/syscall_table.S
-@@ -321,6 +321,6 @@ ENTRY(sys_call_table)
- 	.long sys_epoll_pwait
- 	.long sys_utimensat		/* 320 */
- 	.long sys_signalfd
--	.long sys_timerfd
-+	.long sys_ni_syscall
- 	.long sys_eventfd
- 	.long sys_fallocate
-diff -puN arch/sh/kernel/syscalls_32.S~timerfd-fix-remaining-architectures arch/sh/kernel/syscalls_32.S
---- a/arch/sh/kernel/syscalls_32.S~timerfd-fix-remaining-architectures
-+++ a/arch/sh/kernel/syscalls_32.S
-@@ -338,6 +338,6 @@ ENTRY(sys_call_table)
- 	.long sys_epoll_pwait
- 	.long sys_utimensat		/* 320 */
- 	.long sys_signalfd
--	.long sys_timerfd
-+	.long sys_ni_syscall
- 	.long sys_eventfd
- 	.long sys_fallocate
-diff -puN arch/sh/kernel/syscalls_64.S~timerfd-fix-remaining-architectures arch/sh/kernel/syscalls_64.S
---- a/arch/sh/kernel/syscalls_64.S~timerfd-fix-remaining-architectures
-+++ a/arch/sh/kernel/syscalls_64.S
-@@ -376,6 +376,6 @@ sys_call_table:
- 	.long sys_epoll_pwait
- 	.long sys_utimensat
- 	.long sys_signalfd
--	.long sys_timerfd		/* 350 */
-+	.long sys_ni_syscall		/* 350 */
- 	.long sys_eventfd
- 	.long sys_fallocate
-diff -puN include/asm-frv/unistd.h~timerfd-fix-remaining-architectures include/asm-frv/unistd.h
---- a/include/asm-frv/unistd.h~timerfd-fix-remaining-architectures
-+++ a/include/asm-frv/unistd.h
-@@ -328,7 +328,7 @@
- #define __NR_epoll_pwait	319
- #define __NR_utimensat		320
- #define __NR_signalfd		321
--#define __NR_timerfd		322
-+/* #define __NR_timerfd		322 removed */
- #define __NR_eventfd		323
- #define __NR_fallocate		324
+ config BFS_FS
+ 	tristate "BFS file system support (EXPERIMENTAL)"
+@@ -1263,7 +1263,7 @@ config JFFS2_FS_XATTR
+ 	  Extended attributes are name:value pairs associated with inodes by
+ 	  the kernel or by users (see the attr(5) manual page, or visit
+ 	  <http://acl.bestbits.at/> for details).
+-	  
++
+ 	  If unsure, say N.
  
-diff -puN include/asm-m32r/unistd.h~timerfd-fix-remaining-architectures include/asm-m32r/unistd.h
---- a/include/asm-m32r/unistd.h~timerfd-fix-remaining-architectures
-+++ a/include/asm-m32r/unistd.h
-@@ -327,7 +327,7 @@
- #define __NR_epoll_pwait	319
- #define __NR_utimensat		320
- #define __NR_signalfd		321
--#define __NR_timerfd		322
-+/* #define __NR_timerfd		322 removed */
- #define __NR_eventfd		323
- #define __NR_fallocate		324
+ config JFFS2_FS_POSIX_ACL
+@@ -1274,10 +1274,10 @@ config JFFS2_FS_POSIX_ACL
+ 	help
+ 	  Posix Access Control Lists (ACLs) support permissions for users and
+ 	  groups beyond the owner/group/world scheme.
+-	  
++
+ 	  To learn more about Access Control Lists, visit the Posix ACLs for
+ 	  Linux website <http://acl.bestbits.at/>.
+-	  
++
+ 	  If you don't know what Access Control Lists are, say N
  
-diff -puN include/asm-sh/unistd_32.h~timerfd-fix-remaining-architectures include/asm-sh/unistd_32.h
---- a/include/asm-sh/unistd_32.h~timerfd-fix-remaining-architectures
-+++ a/include/asm-sh/unistd_32.h
-@@ -330,7 +330,7 @@
- #define __NR_epoll_pwait	319
- #define __NR_utimensat		320
- #define __NR_signalfd		321
--#define __NR_timerfd		322
-+/* #define __NR_timerfd		322 removed */
- #define __NR_eventfd		323
- #define __NR_fallocate		324
+ config JFFS2_FS_SECURITY
+@@ -1289,7 +1289,7 @@ config JFFS2_FS_SECURITY
+ 	  implemented by security modules like SELinux.  This option
+ 	  enables an extended attribute handler for file security
+ 	  labels in the jffs2 filesystem.
+-	  
++
+ 	  If you are not using a security module that requires using
+ 	  extended attributes for file security labels, say N.
  
-diff -puN include/asm-sh/unistd_64.h~timerfd-fix-remaining-architectures include/asm-sh/unistd_64.h
---- a/include/asm-sh/unistd_64.h~timerfd-fix-remaining-architectures
-+++ a/include/asm-sh/unistd_64.h
-@@ -370,7 +370,7 @@
- #define __NR_epoll_pwait	347
- #define __NR_utimensat		348
- #define __NR_signalfd		349
--#define __NR_timerfd		350
-+/* #define __NR_timerfd		350 removed */
- #define __NR_eventfd		351
- #define __NR_fallocate		352
+@@ -1835,7 +1835,7 @@ config RPCSEC_GSS_SPKM3
+ 	  If unsure, say N.
  
+ config SMB_FS
+-	tristate "SMB file system support (to mount Windows shares etc.)"
++	tristate "SMB file system support (OBSOLETE, please use CIFS)"
+ 	depends on INET
+ 	select NLS
+ 	help
+@@ -1858,8 +1858,8 @@ config SMB_FS
+ 	  General information about how to connect Linux, Windows machines and
+ 	  Macs is on the WWW at <http://www.eats.com/linux_mac_win.html>.
+ 
+-	  To compile the SMB support as a module, choose M here: the module will
+-	  be called smbfs.  Most people say N, however.
++	  To compile the SMB support as a module, choose M here:
++	  the module will be called smbfs.  Most people say N, however.
+ 
+ config SMB_NLS_DEFAULT
+ 	bool "Use a default NLS"
+@@ -1891,7 +1891,7 @@ config SMB_NLS_REMOTE
+ 	  smbmount from samba 2.2.0 or later supports this.
+ 
+ config CIFS
+-	tristate "CIFS support (advanced network filesystem for Samba, Window and other CIFS compliant servers)"
++	tristate "CIFS support (advanced network filesystem, SMBFS successor)"
+ 	depends on INET
+ 	select NLS
+ 	help
+@@ -1949,16 +1949,16 @@ config CIFS_WEAK_PW_HASH
+ 	  LANMAN based servers such as OS/2 and Windows 95, but such
+ 	  mounts may be less secure than mounts using NTLM or more recent
+ 	  security mechanisms if you are on a public network.  Unless you
+-	  have a need to access old SMB servers (and are on a private 
++	  have a need to access old SMB servers (and are on a private
+ 	  network) you probably want to say N.  Even if this support
+ 	  is enabled in the kernel build, LANMAN authentication will not be
+ 	  used automatically. At runtime LANMAN mounts are disabled but
+ 	  can be set to required (or optional) either in
+ 	  /proc/fs/cifs (see fs/cifs/README for more detail) or via an
+-	  option on the mount command. This support is disabled by 
++	  option on the mount command. This support is disabled by
+ 	  default in order to reduce the possibility of a downgrade
+ 	  attack.
+- 
++
+ 	  If unsure, say N.
+ 
+ config CIFS_XATTR
+@@ -1999,7 +1999,7 @@ config CIFS_DEBUG2
+ 	   messages in some error paths, slowing performance. This
+ 	   option can be turned off unless you are debugging
+ 	   cifs problems.  If unsure, say N.
+-	   
++
+ config CIFS_EXPERIMENTAL
+ 	  bool "CIFS Experimental Features (EXPERIMENTAL)"
+ 	  depends on CIFS && EXPERIMENTAL
+@@ -2090,7 +2090,7 @@ config CODA_FS_OLD_API
+ 	  However this new API is not backward compatible with older
+ 	  clients. If you really need to run the old Coda userspace
+ 	  cache manager then say Y.
+-	  
++
+ 	  For most cases you probably want to say N.
+ 
+ config AFS_FS
+diff -puN fs/smbfs/inode.c~deprecate-smbfs-in-favour-of-cifs fs/smbfs/inode.c
+--- a/fs/smbfs/inode.c~deprecate-smbfs-in-favour-of-cifs
++++ a/fs/smbfs/inode.c
+@@ -500,6 +500,13 @@ static int smb_fill_super(struct super_b
+ 	struct smb_fattr root;
+ 	int ver;
+ 	void *mem;
++	static int warn_count;
++
++	if (warn_count < 5) {
++		warn_count++;
++		printk(KERN_EMERG "smbfs is deprecated and will be removed"
++			"from the 2.6.27 kernel.  Please migrate to cifs\n");
++	}
+ 
+ 	if (!raw_data)
+ 		goto out_no_data;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
