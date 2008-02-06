@@ -1,54 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - rename-open_namei-to-open_pathname-fix.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 12:32:35 -0800
-Message-ID: <200802062032.m16KWZHJ028941@imap1.linux-foundation.org>
+Subject: - r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 12:33:48 -0800
+Message-ID: <200802062033.m16KXmAi028982@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37828 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59295 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756063AbYBFUcs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 15:32:48 -0500
+	by vger.kernel.org with ESMTP id S1758680AbYBFUeT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 15:34:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, haveblue@us.ibm.com, hch@lst.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, haveblue@us.ibm.com, hch@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rename-open_namei-to-open_pathname-fix
+     r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     rename-open_namei-to-open_pathname-fix.patch
+     r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into rename-open_namei-to-open_pathname.patch
+This patch was dropped because it was folded into r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rename-open_namei-to-open_pathname-fix
+Subject: r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "open_pathname" [sound/sound_firmware.ko] undefined!
-ERROR: "open_pathname" [fs/reiserfs/reiserfs.ko] undefined!
-ERROR: "open_pathname" [drivers/usb/gadget/g_file_storage.ko] undefined!
+WARNING: labels should not be indented
+#574: FILE: fs/fat/file.c:110:
++	up_no_drop_write:
 
+total: 0 errors, 1 warnings, 844 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/fat/file.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/namei.c~rename-open_namei-to-open_pathname-fix fs/namei.c
---- a/fs/namei.c~rename-open_namei-to-open_pathname-fix
-+++ a/fs/namei.c
-@@ -1896,6 +1896,7 @@ do_link:
- 	__putname(nd.last.name);
- 	goto do_last;
- }
-+EXPORT_SYMBOL(open_pathname);
+diff -puN fs/fat/file.c~r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes fs/fat/file.c
+--- a/fs/fat/file.c~r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes
++++ a/fs/fat/file.c
+@@ -105,9 +105,9 @@ int fat_generic_ioctl(struct inode *inod
  
- /**
-  * lookup_create - lookup a dentry, creating it if it doesn't exist
+ 		MSDOS_I(inode)->i_attrs = attr & ATTR_UNUSED;
+ 		mark_inode_dirty(inode);
+-	up:
++up:
+ 		mnt_drop_write(filp->f_vfsmnt);
+-	up_no_drop_write:
++up_no_drop_write:
+ 		mutex_unlock(&inode->i_mutex);
+ 		return err;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -139,9 +150,9 @@ vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.pa
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 kill-filp_open.patch
 rename-open_namei-to-open_pathname.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
 r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
 r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
 r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
 r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
