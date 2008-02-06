@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + power_supply-remove-capacity_level-from-list-of-sysfs-attributes.patch added to -mm tree
-Date: Wed, 06 Feb 2008 13:56:12 -0800
-Message-ID: <200802062156.m16LuCJu032199@imap1.linux-foundation.org>
+Subject: + uml-x86_64-should-copy-%fs-during-fork.patch added to -mm tree
+Date: Wed, 06 Feb 2008 14:20:21 -0800
+Message-ID: <200802062220.m16MKLDH000633@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56032 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35213 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759554AbYBFV5L (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 16:57:11 -0500
+	by vger.kernel.org with ESMTP id S1760070AbYBFWU1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 17:20:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cascardo@minaslivre.org, dilinger@debian.org, dilinger@queued.net, dwmw2@infradead.org, stable@kernel.org
+Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     power_supply: remove capacity_level from list of sysfs attributes
+     uml: x86_64 should copy %fs during fork
 has been added to the -mm tree.  Its filename is
-     power_supply-remove-capacity_level-from-list-of-sysfs-attributes.patch
+     uml-x86_64-should-copy-%fs-during-fork.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,46 +33,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: power_supply: remove capacity_level from list of sysfs attributes
-From: Thadeu Lima de Souza Cascardo <cascardo@minaslivre.org>
+Subject: uml: x86_64 should copy %fs during fork
+From: Jeff Dike <jdike@addtoit.com>
 
-This commit:
+%fs needs to be copied from parent to child during fork.
 
-commit 8efe444038a205e79b38b7ad03878824901849a8
-Author: Andres Salomon <dilinger@queued.net>
-Date:   Wed Dec 12 14:12:56 2007 -0500
+Tidied up some whitespace while I was here.
 
-    power: remove POWER_SUPPLY_PROP_CAPACITY_LEVEL
-
-Removed CAPACITY_LEVEL from every other code, leaving the array with sysfs
-attributes with one more entry than the number of enums in power_supply.h. 
-This leads to some attributes containing the value of the attribute right
-after it.  For example, temp_ambient would have the value of
-time_to_empty_now.  In my case, I had time_to_full_avg have the value which
-should be in model_name, when the former was usually empty.
-
-Cc: Andres Salomon <dilinger@debian.org>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: <stable@kernel.org>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/power_supply_sysfs.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/asm-um/processor-x86_64.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/power/power_supply_sysfs.c~power_supply-remove-capacity_level-from-list-of-sysfs-attributes drivers/power/power_supply_sysfs.c
---- a/drivers/power/power_supply_sysfs.c~power_supply-remove-capacity_level-from-list-of-sysfs-attributes
-+++ a/drivers/power/power_supply_sysfs.c
-@@ -106,7 +106,6 @@ static struct device_attribute power_sup
- 	POWER_SUPPLY_ATTR(energy_now),
- 	POWER_SUPPLY_ATTR(energy_avg),
- 	POWER_SUPPLY_ATTR(capacity),
--	POWER_SUPPLY_ATTR(capacity_level),
- 	POWER_SUPPLY_ATTR(temp),
- 	POWER_SUPPLY_ATTR(temp_ambient),
- 	POWER_SUPPLY_ATTR(time_to_empty_now),
+diff -puN include/asm-um/processor-x86_64.h~uml-x86_64-should-copy-%fs-during-fork include/asm-um/processor-x86_64.h
+--- a/include/asm-um/processor-x86_64.h~uml-x86_64-should-copy-%fs-during-fork
++++ a/include/asm-um/processor-x86_64.h
+@@ -26,7 +26,7 @@ static inline void rep_nop(void)
+ #define cpu_relax()   rep_nop()
+ 
+ #define INIT_ARCH_THREAD { .debugregs  		= { [ 0 ... 7 ] = 0 }, \
+-                           .debugregs_seq	= 0,			       \
++			   .debugregs_seq	= 0, \
+ 			   .fs			= 0, \
+ 			   .faultinfo		= { 0, 0, 0 } }
+ 
+@@ -37,6 +37,7 @@ static inline void arch_flush_thread(str
+ static inline void arch_copy_thread(struct arch_thread *from,
+                                     struct arch_thread *to)
+ {
++	to->fs = from->fs;
+ }
+ 
+ #include "asm/arch/user.h"
 _
 
-Patches currently in -mm which might be from cascardo@minaslivre.org are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
-power_supply-remove-capacity_level-from-list-of-sysfs-attributes.patch
+origin.patch
+fix-__const_udelay-declaration-and-definition-mismatches.patch
+git-kvm.patch
+iget-stop-hostfs-from-using-iget-and-read_inode.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
+random-add-async-notification-support-to-dev-random.patch
+mount-options-fix-hostfs.patch
+uml-runtime-host-vmsplit-detection.patch
+uml-style-fixes-in-arch-um-os-linux.patch
+uml-x86_64-should-copy-%fs-during-fork.patch
+uml-fix-mm_context-memory-leak.patch
