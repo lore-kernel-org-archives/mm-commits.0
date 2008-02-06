@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: - md-change-interate_mddev-to-for_each_mddev-fix.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 23:33:33 -0800
-Message-ID: <200802060733.m167XEEu031947@imap1.linux-foundation.org>
+Subject: - md-change-iterate_rdev-to-rdev_for_each-fix.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 23:33:47 -0800
+Message-ID: <200802060733.m167XSEf031950@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44925 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60818 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758860AbYBFHds (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:33:48 -0500
+	by vger.kernel.org with ESMTP id S1759423AbYBFHeD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:34:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md-change-interate_mddev-to-for_each_mddev-fix
+     md-change-iterate_rdev-to-rdev_for_each-fix
 has been removed from the -mm tree.  Its filename was
-     md-change-interate_mddev-to-for_each_mddev-fix.patch
+     md-change-iterate_rdev-to-rdev_for_each-fix.patch
 
-This patch was dropped because it was folded into md-change-interate_mddev-to-for_each_mddev.patch
+This patch was dropped because it was folded into md-change-iterate_rdev-to-rdev_for_each.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md-change-interate_mddev-to-for_each_mddev-fix
+Subject: md-change-iterate_rdev-to-rdev_for_each-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Neil Brown <neilb@suse.de>
@@ -34,18 +34,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  drivers/md/md.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/md/md.c~md-change-interate_mddev-to-for_each_mddev-fix drivers/md/md.c
---- a/drivers/md/md.c~md-change-interate_mddev-to-for_each_mddev-fix
+diff -puN drivers/md/md.c~md-change-iterate_rdev-to-rdev_for_each-fix drivers/md/md.c
+--- a/drivers/md/md.c~md-change-iterate_rdev-to-rdev_for_each-fix
 +++ a/drivers/md/md.c
-@@ -2012,7 +2012,7 @@ rdev_size_store(mdk_rdev_t *rdev, const 
- 		struct list_head *tmp, *tmp2;
- 
- 		mddev_unlock(rdev->mddev);
--		ITERATE_MDDEV(mddev, tmp) {
-+		for_each_mddev(mddev, tmp) {
+@@ -2016,7 +2016,7 @@ rdev_size_store(mdk_rdev_t *rdev, const 
  			mdk_rdev_t *rdev2;
  
  			mddev_lock(mddev);
+-			ITERATE_RDEV(mddev, rdev2, tmp2)
++			rdev_for_each(rdev2, tmp2, mddev)
+ 				if (test_bit(AllReserved, &rdev2->flags) ||
+ 				    (rdev->bdev == rdev2->bdev &&
+ 				     rdev != rdev2 &&
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,8 +77,7 @@ add-hpet-rtc-emulation-to-rtc_drv_cmos.patch
 fbmon-cleanup-trailing-whitespaces.patch
 neofb-avoid-overwriting-fb_info-fields.patch
 vermilionc-use-align-not-__align_mask.patch
-md-change-interate_mddev-to-for_each_mddev.patch
-md-change-interate_mddev-to-for_each_mddev-fix.patch
+md-change-iterate_rdev-to-rdev_for_each.patch
 md-change-iterate_rdev-to-rdev_for_each-fix.patch
 declare-pnp-option-parsing-functions-as-__init-checkpatch-fixes.patch
 isapnp-driver-semaphore-to-mutex-fix.patch
