@@ -1,53 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 12:33:09 -0800
-Message-ID: <200802062033.m16KX9Xg028958@imap1.linux-foundation.org>
+Subject: - r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 12:35:03 -0800
+Message-ID: <200802062035.m16KZ4p7029078@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48834 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46696 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758389AbYBFUeD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 15:34:03 -0500
+	by vger.kernel.org with ESMTP id S1759848AbYBFUfV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 15:35:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, haveblue@us.ibm.com, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix
+     r-o-bind-mounts-elevate-write-count-opened-files-oops-fix
 has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+     r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
 
-This patch was dropped because it was folded into r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+This patch was dropped because it was folded into r-o-bind-mounts-elevate-write-count-opened-files.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix
+Subject: r-o-bind-mounts-elevate-write-count-opened-files-oops-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/ncpfs/ioctl.c: In function 'ncp_ioctl_need_write':
-fs/ncpfs/ioctl.c:853: error: label at end of compound statement
-
-Cc: Christoph Hellwig <hch@lst.de>
 Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/ioctl.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/namei.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN fs/ncpfs/ioctl.c~r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix fs/ncpfs/ioctl.c
---- a/fs/ncpfs/ioctl.c~r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix
-+++ a/fs/ncpfs/ioctl.c
-@@ -849,6 +849,7 @@ static int ncp_ioctl_need_write(unsigned
- 	case NCP_IOC_SETROOT:
- 		return 0;
- 	default:
-+		break;
- 		/* unkown IOCTL command, assume write */
+diff -puN fs/namei.c~r-o-bind-mounts-elevate-write-count-opened-files-oops-fix fs/namei.c
+--- a/fs/namei.c~r-o-bind-mounts-elevate-write-count-opened-files-oops-fix
++++ a/fs/namei.c
+@@ -1721,7 +1721,7 @@ static inline int sys_open_flags_to_name
+ 	return flag;
+ }
+ 
+-static inline int open_will_write_to_fs(int flag, struct inode *inode)
++static int open_will_write_to_fs(int flag, struct inode *inode)
+ {
+ 	/*
+ 	 * We'll never write to the fs underlying
+@@ -1751,6 +1751,7 @@ struct file *open_pathname(int dfd, cons
+ 	struct path path;
+ 	struct dentry *dir;
+ 	int count = 0;
++	int will_write;
+ 	int flag = sys_open_flags_to_namei_flags(sys_open_flag);
+ 
+ 	acc_mode = ACC_MODE(flag);
+@@ -1869,14 +1870,15 @@ ok:
+ 	 * be avoided. Taking this mnt write here
+ 	 * ensures that (2) can not occur.
+ 	 */
+-	if (open_will_write_to_fs(flag, nd.dentry->d_inode)) {
++	will_write = open_will_write_to_fs(flag, nd.dentry->d_inode);
++	if (will_write) {
+ 		error = mnt_want_write(nd.mnt);
+ 		if (error)
+ 			goto exit;
  	}
- 	return 1;
+ 	error = may_open(&nd, acc_mode, flag);
+ 	if (error) {
+-		if (open_will_write_to_fs(flag, nd.dentry->d_inode))
++		if (will_write)
+ 			mnt_drop_write(nd.mnt);
+ 		goto exit;
+ 	}
+@@ -1886,7 +1888,7 @@ ok:
+ 	 * because the filp has had a write taken
+ 	 * on its behalf.
+ 	 */
+-	if (open_will_write_to_fs(flag, nd.dentry->d_inode))
++	if (will_write)
+ 		mnt_drop_write(nd.mnt);
+ 	return filp;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -139,10 +172,9 @@ vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 kill-filp_open.patch
 rename-open_namei-to-open_pathname.patch
 r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
 r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
+r-o-bind-mounts-elevate-write-count-opened-files.patch
 r-o-bind-mounts-elevate-write-count-opened-files-oops-fix.patch
 r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
 r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
