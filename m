@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + uml-improved-error-handling-while-locating-temp-dir.patch added to -mm tree
-Date: Wed, 06 Feb 2008 14:20:19 -0800
-Message-ID: <200802062220.m16MKKbU000630@imap1.linux-foundation.org>
+Subject: + reduce-large-do_mount-stack-usage-with-noinlines.patch added to -mm tree
+Date: Wed, 06 Feb 2008 15:17:25 -0800
+Message-ID: <200802062317.m16NHP7c003009@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45153 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50269 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755217AbYBFWVE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 17:21:04 -0500
+	by vger.kernel.org with ESMTP id S932628AbYBFXSS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 18:18:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: meyering@redhat.com, jdike@linux.intel.com
+Cc: sandeen@redhat.com, arjan@infradead.org
 
 
 The patch titled
-     uml: improved error handling while locating temp dir
+     reduce large do_mount stack usage with noinlines
 has been added to the -mm tree.  Its filename is
-     uml-improved-error-handling-while-locating-temp-dir.patch
+     reduce-large-do_mount-stack-usage-with-noinlines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,68 +33,95 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: improved error handling while locating temp dir
-From: Jim Meyering <meyering@redhat.com>
+Subject: reduce large do_mount stack usage with noinlines
+From: Eric Sandeen <sandeen@redhat.com>
 
-* arch/um/os-Linux/mem.c (make_tempfile): Don't deref NULL upon failed malloc.
+do_mount() uses a whopping 616 bytes of stack on x86_64 in 2.6.24-mm1,
+largely thanks to gcc inlining the various helper functions.
 
-* arch/um/os-Linux/mem.c (make_tempfile): Handle NULL tempdir.
-Don't let a long tempdir (e.g., via TMPDIR) provoke heap corruption.
+noinlining these can slim it down a lot; on my box this patch gets it down
+to 168, which is mostly the struct nameidata nd; left on the stack.
 
-[ jdike - formatting cleanups, deleted obsolete comment ]
+These functions are called only as do_mount() helpers; none of them should
+be in any path that would see a performance benefit from inlining...
 
-Signed-off-by: Jim Meyering <meyering@redhat.com>
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/mem.c |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ fs/namespace.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN arch/um/os-Linux/mem.c~uml-improved-error-handling-while-locating-temp-dir arch/um/os-Linux/mem.c
---- a/arch/um/os-Linux/mem.c~uml-improved-error-handling-while-locating-temp-dir
-+++ a/arch/um/os-Linux/mem.c
-@@ -162,11 +162,6 @@ found:
- 	goto out;
+diff -puN fs/namespace.c~reduce-large-do_mount-stack-usage-with-noinlines fs/namespace.c
+--- a/fs/namespace.c~reduce-large-do_mount-stack-usage-with-noinlines
++++ a/fs/namespace.c
+@@ -1295,8 +1295,9 @@ out_unlock:
+ 
+ /*
+  * recursively change the type of the mountpoint.
++ * noinline this do_mount helper to save do_mount stack space.
+  */
+-static int do_change_type(struct nameidata *nd, int flag)
++static noinline int do_change_type(struct nameidata *nd, int flag)
+ {
+ 	struct vfsmount *m, *mnt = nd->path.mnt;
+ 	int recurse = flag & MS_REC;
+@@ -1319,8 +1320,10 @@ static int do_change_type(struct nameida
+ 
+ /*
+  * do loopback mount.
++ * noinline this do_mount helper to save do_mount stack space.
+  */
+-static int do_loopback(struct nameidata *nd, char *old_name, int recurse)
++static noinline int do_loopback(struct nameidata *nd, char *old_name,
++				int recurse)
+ {
+ 	struct nameidata old_nd;
+ 	struct vfsmount *mnt = NULL;
+@@ -1386,8 +1389,9 @@ static int change_mount_flags(struct vfs
+  * change filesystem flags. dir should be a physical root of filesystem.
+  * If you've mounted a non-root directory somewhere and want to do remount
+  * on it - tough luck.
++ * noinline this do_mount helper to save do_mount stack space.
+  */
+-static int do_remount(struct nameidata *nd, int flags, int mnt_flags,
++static noinline int do_remount(struct nameidata *nd, int flags, int mnt_flags,
+ 		      void *data)
+ {
+ 	int err;
+@@ -1425,7 +1429,10 @@ static inline int tree_contains_unbindab
+ 	return 0;
  }
  
--/*
-- * This proc still used in tt-mode
-- * (file: kernel/tt/ptproxy/proxy.c, proc: start_debugger).
-- * So it isn't 'static' yet.
-- */
- static int __init make_tempfile(const char *template, char **out_tempname,
- 				int do_unlink)
+-static int do_move_mount(struct nameidata *nd, char *old_name)
++/*
++ * noinline this do_mount helper to save do_mount stack space.
++ */
++static noinline int do_move_mount(struct nameidata *nd, char *old_name)
  {
-@@ -175,10 +170,13 @@ static int __init make_tempfile(const ch
- 
- 	which_tmpdir();
- 	tempname = malloc(MAXPATHLEN);
--	if (!tempname)
--		goto out;
-+	if (tempname == NULL)
-+		return -1;
- 
- 	find_tempdir();
-+	if ((tempdir == NULL) || (strlen(tempdir) >= MAXPATHLEN))
-+		return -1;
-+
- 	if (template[0] != '/')
- 		strcpy(tempname, tempdir);
- 	else
-@@ -196,9 +194,8 @@ static int __init make_tempfile(const ch
- 	}
- 	if (out_tempname) {
- 		*out_tempname = tempname;
--	} else {
-+	} else
- 		free(tempname);
--	}
- 	return fd;
- out:
- 	free(tempname);
+ 	struct nameidata old_nd, parent_nd;
+ 	struct vfsmount *p;
+@@ -1504,8 +1511,9 @@ out:
+ /*
+  * create a new mount for userspace and request it to be added into the
+  * namespace's tree
++ * noinline this do_mount helper to save do_mount stack space.
+  */
+-static int do_new_mount(struct nameidata *nd, char *type, int flags,
++static noinline int do_new_mount(struct nameidata *nd, char *type, int flags,
+ 			int mnt_flags, char *name, void *data)
+ {
+ 	struct vfsmount *mnt;
 _
 
-Patches currently in -mm which might be from meyering@redhat.com are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
-uml-improved-error-handling-while-locating-temp-dir.patch
+origin.patch
+ext2-change-the-default-behaviour-on-error.patch
+address-hfs-on-disk-corruption-robustness-review-comments.patch
+ecryptfs-make-show_options-reflect-actual-mount-options.patch
+ecryptfs-remove-debug-as-mount-option-and-warn-if-set-via-modprobe.patch
+ecryptfs-check-for-existing-key_tfm-at-mount-time.patch
+ext3-change-the-default-behaviour-on-error.patch
+reduce-large-do_mount-stack-usage-with-noinlines.patch
