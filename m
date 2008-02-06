@@ -1,61 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - add-hpet-rtc-emulation-to-rtc_drv_cmos-fix.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 23:29:52 -0800
-Message-ID: <200802060729.m167TXQQ031810@imap1.linux-foundation.org>
+Subject: - fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 23:31:09 -0800
+Message-ID: <200802060730.m167UoYO031831@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45066 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35296 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759413AbYBFHbJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:31:09 -0500
+	by vger.kernel.org with ESMTP id S1758780AbYBFHb3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:31:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Robert.Picco@hp.com, a.zummo@towertech.it, ak@suse.de, bwalle@suse.de, david-b@pacbell.net, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commi
+To: akpm@linux-foundation.org, adaplas@pol.net, andre@bitwigglers.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-hpet-rtc-emulation-to-rtc_drv_cmos-fix
+     fbmon-cleanup-trailing-whitespaces-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     add-hpet-rtc-emulation-to-rtc_drv_cmos-fix.patch
+     fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into add-hpet-rtc-emulation-to-rtc_drv_cmos.patch
+This patch was dropped because it was folded into fbmon-cleanup-trailing-whitespaces.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add-hpet-rtc-emulation-to-rtc_drv_cmos-fix
+Subject: fbmon-cleanup-trailing-whitespaces-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Unbreak alpha build
+ERROR: need spaces around that '+=' (ctx:VxW)
+#125: FILE: drivers/video/fbmon.c:539:
++	for (j = 0; j < 6; j++, block+= STD_TIMING_DESCRIPTION_SIZE)
+ 	                             ^
 
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Bernhard Walle <bwalle@suse.de>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Robert Picco <Robert.Picco@hp.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
+ERROR: need spaces around that '*=' (ctx:WxV)
+#248: FILE: drivers/video/fbmon.c:1080:
++	h_period *=10000;
+ 	         ^
+
+total: 2 errors, 0 warnings, 377 lines checked
+
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Andre Haupt <andre@bitwigglers.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-cmos.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/video/fbmon.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-cmos.c~add-hpet-rtc-emulation-to-rtc_drv_cmos-fix drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~add-hpet-rtc-emulation-to-rtc_drv_cmos-fix
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -35,7 +35,10 @@
- #include <linux/spinlock.h>
- #include <linux/platform_device.h>
- #include <linux/mod_devicetable.h>
-+
-+#ifdef CONFIG_HPET_EMULATE_RTC
- #include <asm/hpet.h>
-+#endif
+diff -puN drivers/video/fbmon.c~fbmon-cleanup-trailing-whitespaces-checkpatch-fixes drivers/video/fbmon.c
+--- a/drivers/video/fbmon.c~fbmon-cleanup-trailing-whitespaces-checkpatch-fixes
++++ a/drivers/video/fbmon.c
+@@ -536,7 +536,7 @@ static int get_dst_timing(unsigned char 
+ {
+ 	int j, num = 0;
  
- /* this is for "generic access to PC-style RTC" using CMOS_READ/CMOS_WRITE */
- #include <asm-generic/rtc.h>
+-	for (j = 0; j < 6; j++, block+= STD_TIMING_DESCRIPTION_SIZE)
++	for (j = 0; j < 6; j++, block += STD_TIMING_DESCRIPTION_SIZE)
+ 		num += get_std_timing(block, &mode[num]);
+ 
+ 	return num;
+@@ -1077,7 +1077,7 @@ static u32 fb_get_hblank_by_dclk(u32 dcl
+ 	h_period = 100 - C_VAL;
+ 	h_period *= h_period;
+ 	h_period += (M_VAL * xres * 2 * 1000)/(5 * dclk);
+-	h_period *=10000;
++	h_period *= 10000;
+ 
+ 	h_period = int_sqrt(h_period);
+ 	h_period -= (100 - C_VAL) * 100;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,7 +101,7 @@ drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
 ecryptfs-make-show_options-reflect-actual-mount-options.patch
 rtc-ds1302-rtc-support.patch
 add-hpet-rtc-emulation-to-rtc_drv_cmos.patch
-add-hpet-rtc-emulation-to-rtc_drv_cmos-fix.patch
+fbmon-cleanup-trailing-whitespaces.patch
 fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
 neofb-avoid-overwriting-fb_info-fields.patch
 vermilionc-use-align-not-__align_mask.patch
