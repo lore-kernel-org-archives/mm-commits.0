@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + mips-mark-all-but-i8259-interrupts-as-no-probe.patch added to -mm tree
-Date: Wed, 06 Feb 2008 09:59:31 -0800
-Message-ID: <200802061759.m16HxCrh023156@imap1.linux-foundation.org>
+Subject: + irq_noprobe-helper-functions.patch added to -mm tree
+Date: Wed, 06 Feb 2008 09:59:29 -0800
+Message-ID: <200802061759.m16HxAoP023153@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59679 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37322 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750722AbYBFSAQ (ORCPT
+	by vger.kernel.org with ESMTP id S1750698AbYBFSAQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 13:00:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: ralf@linux-mips.org, alan@lxorguk.ukuu.org.uk, mingo@elte.hu, rob@landley.ne
 
 
 The patch titled
-     MIPS: Mark all but i8259 interrupts as no-probe.
+     IRQ_NOPROBE helper functions
 has been added to the -mm tree.  Its filename is
-     mips-mark-all-but-i8259-interrupts-as-no-probe.patch
+     irq_noprobe-helper-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,20 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MIPS: Mark all but i8259 interrupts as no-probe.
+Subject: IRQ_NOPROBE helper functions
 From: Ralf Baechle <ralf@linux-mips.org>
 
-Use set_irq_noprobe() to mark all MIPS interrupts as non-probe.  Override that
-default for i8259 interrupts.
+Probing non-ISA interrupts using the handle_percpu_irq as their handle_irq
+method may crash the system because handle_percpu_irq does not check
+IRQ_WAITING.  This for example hits the MIPS Qemu configuration.
+
+This patch provides two helper functions set_irq_noprobe and set_irq_probe to
+set rsp.  clear the IRQ_NOPROBE flag.  The only current caller is MIPS code
+but this really belongs into generic code.
+
+As an aside, interrupt probing these days has become a mostly obsolete if not
+dangerous art.  I think Linux interrupts should be changed to default to
+non-probing but that's subject of this patch.
 
 Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
 Acked-and-tested-by: Rob Landley <rob@landley.net>
@@ -46,40 +55,66 @@ Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/i8259.c |    4 +++-
- arch/mips/kernel/irq.c   |    5 +++++
- 2 files changed, 8 insertions(+), 1 deletion(-)
+ include/linux/irq.h |    3 +++
+ kernel/irq/chip.c   |   36 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 39 insertions(+)
 
-diff -puN arch/mips/kernel/i8259.c~mips-mark-all-but-i8259-interrupts-as-no-probe arch/mips/kernel/i8259.c
---- a/arch/mips/kernel/i8259.c~mips-mark-all-but-i8259-interrupts-as-no-probe
-+++ a/arch/mips/kernel/i8259.c
-@@ -338,8 +338,10 @@ void __init init_i8259_irqs(void)
- 
- 	init_8259A(0);
- 
--	for (i = I8259A_IRQ_BASE; i < I8259A_IRQ_BASE + 16; i++)
-+	for (i = I8259A_IRQ_BASE; i < I8259A_IRQ_BASE + 16; i++) {
- 		set_irq_chip_and_handler(i, &i8259A_chip, handle_level_irq);
-+		set_irq_probe(i);
-+	}
- 
- 	setup_irq(I8259A_IRQ_BASE + PIC_CASCADE_IR, &irq2);
+diff -puN include/linux/irq.h~irq_noprobe-helper-functions include/linux/irq.h
+--- a/include/linux/irq.h~irq_noprobe-helper-functions
++++ a/include/linux/irq.h
+@@ -367,6 +367,9 @@ set_irq_chained_handler(unsigned int irq
+ 	__set_irq_handler(irq, handle, 1, NULL);
  }
-diff -puN arch/mips/kernel/irq.c~mips-mark-all-but-i8259-interrupts-as-no-probe arch/mips/kernel/irq.c
---- a/arch/mips/kernel/irq.c~mips-mark-all-but-i8259-interrupts-as-no-probe
-+++ a/arch/mips/kernel/irq.c
-@@ -145,6 +145,11 @@ __setup("nokgdb", nokgdb);
  
- void __init init_IRQ(void)
- {
-+	int i;
++extern void set_irq_noprobe(unsigned int irq);
++extern void set_irq_probe(unsigned int irq);
 +
-+	for (i = 0; i < NR_IRQS; i++)
-+		set_irq_noprobe(i);
+ /* Handle dynamic irq creation and destruction */
+ extern int create_irq(void);
+ extern void destroy_irq(unsigned int irq);
+diff -puN kernel/irq/chip.c~irq_noprobe-helper-functions kernel/irq/chip.c
+--- a/kernel/irq/chip.c~irq_noprobe-helper-functions
++++ a/kernel/irq/chip.c
+@@ -589,3 +589,39 @@ set_irq_chip_and_handler_name(unsigned i
+ 	set_irq_chip(irq, chip);
+ 	__set_irq_handler(irq, handle, 0, name);
+ }
 +
- 	arch_init_irq();
- 
- #ifdef CONFIG_KGDB
++void __init set_irq_noprobe(unsigned int irq)
++{
++	struct irq_desc *desc;
++	unsigned long flags;
++
++	if (irq >= NR_IRQS) {
++		printk(KERN_ERR "Trying to mark IRQ%d non-probeable\n", irq);
++
++		return;
++	}
++
++	desc = irq_desc + irq;
++
++	spin_lock_irqsave(&desc->lock, flags);
++	desc->status |= IRQ_NOPROBE;
++	spin_unlock_irqrestore(&desc->lock, flags);
++}
++
++void __init set_irq_probe(unsigned int irq)
++{
++	struct irq_desc *desc;
++	unsigned long flags;
++
++	if (irq >= NR_IRQS) {
++		printk(KERN_ERR "Trying to mark IRQ%d probeable\n", irq);
++
++		return;
++	}
++
++	desc = irq_desc + irq;
++
++	spin_lock_irqsave(&desc->lock, flags);
++	desc->status &= ~IRQ_NOPROBE;
++	spin_unlock_irqrestore(&desc->lock, flags);
++}
 _
 
 Patches currently in -mm which might be from ralf@linux-mips.org are
