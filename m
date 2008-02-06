@@ -1,97 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - page-owner-tracking-leak-detector-broken-on-s390.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 00:25:02 -0800
-Message-ID: <200802060824.m168Ohfg001203@imap1.linux-foundation.org>
+Subject: + vitio-add-missing-include-linux-delayh.patch added to -mm tree
+Date: Wed, 06 Feb 2008 00:57:42 -0800
+Message-ID: <200802060857.m168vNeT002250@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39272 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52737 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754761AbYBFIYy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 03:24:54 -0500
+	by vger.kernel.org with ESMTP id S1758872AbYBFI5i (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 03:57:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: johfel@users.sourceforge.net, rusty@rustcorp.com.au
 
 
 The patch titled
-     page-owner-tracking-leak-detector-broken-on-s390
-has been removed from the -mm tree.  Its filename was
-     page-owner-tracking-leak-detector-broken-on-s390.patch
+     virtio: add missing #include <linux/delay.h>
+has been added to the -mm tree.  Its filename is
+     vitio-add-missing-include-linux-delayh.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page-owner-tracking-leak-detector-broken-on-s390
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: virtio: add missing #include <linux/delay.h>
+From: Johann Felix Soden <johfel@users.sourceforge.net>
 
-This debug patch expands the size of struct page and causes this, in vmem.c:
+Include linux/delay.h to fix compiler error:
 
+drivers/virtio/virtio_balloon.c: In function 'fill_balloon':
+drivers/virtio/virtio_balloon.c:98: error: implicit declaration of function 'msleep'
 
-	BUILD_BUG_ON((unsigned long)VMEM_MAP + VMEM_MAP_SIZE > VMEM_MAP_MAX);
-
-to go boom.
-
-This shouldn't happen - there are quite a few debug patches around the place
-which add things to the pageframe.
-
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Signed-off-by: Johann Felix Soden <johfel@users.sourceforge.net>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    1 +
- vmstat.c          |    0 
- 2 files changed, 1 insertion(+)
+ drivers/virtio/virtio_balloon.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN Documentation/page_owner.c~page-owner-tracking-leak-detector-broken-on-s390 Documentation/page_owner.c
-diff -puN fs/proc/proc_misc.c~page-owner-tracking-leak-detector-broken-on-s390 fs/proc/proc_misc.c
-diff -puN include/linux/mm_types.h~page-owner-tracking-leak-detector-broken-on-s390 include/linux/mm_types.h
-diff -puN lib/Kconfig.debug~page-owner-tracking-leak-detector-broken-on-s390 lib/Kconfig.debug
---- a/lib/Kconfig.debug~page-owner-tracking-leak-detector-broken-on-s390
-+++ a/lib/Kconfig.debug
-@@ -58,6 +58,7 @@ config UNUSED_SYMBOLS
- config PAGE_OWNER
- 	bool "Track page owner"
- 	depends on DEBUG_KERNEL
-+	depends on !S390
- 	help
- 	  This keeps track of what call chain is the owner of a page, may
- 	  help to find bare alloc_page(s) leaks. Eats a fair amount of memory.
-diff -puN mm/page_alloc.c~page-owner-tracking-leak-detector-broken-on-s390 mm/page_alloc.c
-diff -puN mm/vmstat.c~page-owner-tracking-leak-detector-broken-on-s390 mm/vmstat.c
+diff -puN drivers/virtio/virtio_balloon.c~vitio-add-missing-include-linux-delayh drivers/virtio/virtio_balloon.c
+--- a/drivers/virtio/virtio_balloon.c~vitio-add-missing-include-linux-delayh
++++ a/drivers/virtio/virtio_balloon.c
+@@ -23,6 +23,7 @@
+ #include <linux/swap.h>
+ #include <linux/kthread.h>
+ #include <linux/freezer.h>
++#include <linux/delay.h>
+ 
+ struct virtio_balloon
+ {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from johfel@users.sourceforge.net are
 
 origin.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-riscom8-fix-smp-brokenness.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api.patch
-remove-support-for-un-needed-_extratext-section.patch
-allow-auto-destruction-of-loop-devices.patch
-read_current_time-cleanups.patch
-address-hfs-on-disk-corruption-robustness-review-comments.patch
-get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
-kallsyms-should-prefer-non-weak-symbols.patch
-quota-improve-inode-list-scanning-in-add_dquot_ref.patch
-tty-enable-the-echoing-of-c-in-the-n_tty-discipline.patch
-stopmachine-semaphore-to-mutex.patch
-parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard.patch
-debug_smp_processor_id-fixlets.patch
-use-ilog2-in-fs-namespacec.patch
-system-timer-fix-crash-in-100hz-system-timer.patch
-speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
-drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
-ecryptfs-make-show_options-reflect-actual-mount-options.patch
-rtc-ds1302-rtc-support.patch
-add-hpet-rtc-emulation-to-rtc_drv_cmos.patch
-fbmon-cleanup-trailing-whitespaces.patch
-neofb-avoid-overwriting-fb_info-fields.patch
-vermilionc-use-align-not-__align_mask.patch
-declare-pnp-option-parsing-functions-as-__init.patch
-isapnp-driver-semaphore-to-mutex.patch
-ext3-fix-lock-inversion-in-direct-io.patch
+vitio-add-missing-include-linux-delayh.patch
