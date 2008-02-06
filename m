@@ -1,54 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 23:28:43 -0800
-Message-ID: <200802060728.m167SO6G031754@imap1.linux-foundation.org>
+Subject: - rtc-ds1302-rtc-support-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 23:29:18 -0800
+Message-ID: <200802060728.m167SxXX031781@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50689 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50882 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759177AbYBFH3H (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:29:07 -0500
+	by vger.kernel.org with ESMTP id S1758771AbYBFH3M (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:29:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mhalcrow@us.ibm.com, sandeen@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.zummo@towertech.it, lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ecryptfs-make-show_options-reflect-actual-mount-options-fix
+     rtc-ds1302-rtc-support-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+     rtc-ds1302-rtc-support-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into ecryptfs-make-show_options-reflect-actual-mount-options.patch
+This patch was dropped because it was folded into rtc-ds1302-rtc-support.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ecryptfs-make-show_options-reflect-actual-mount-options-fix
+Subject: rtc-ds1302-rtc-support-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/ecryptfs/super.c: In function 'ecryptfs_show_options':
-fs/ecryptfs/super.c:187: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
+ERROR: do not use C99 // comments
+#114: FILE: drivers/rtc/rtc-ds1302.c:62:
++		set_dp(get_dp() | RTC_SCLK);	// clock high
 
-Cc: Eric Sandeen <sandeen@redhat.com>
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+ERROR: do not use C99 // comments
+#115: FILE: drivers/rtc/rtc-ds1302.c:63:
++		set_dp(get_dp() & ~RTC_SCLK);	// clock low
+
+ERROR: do not use C99 // comments
+#126: FILE: drivers/rtc/rtc-ds1302.c:74:
++		set_dp(get_dp() | RTC_SCLK);	// clock high
+
+ERROR: do not use C99 // comments
+#127: FILE: drivers/rtc/rtc-ds1302.c:75:
++		set_dp(get_dp() & ~RTC_SCLK);	// clock low
+
+total: 4 errors, 0 warnings, 281 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/super.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-ds1302.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/ecryptfs/super.c~ecryptfs-make-show_options-reflect-actual-mount-options-fix fs/ecryptfs/super.c
---- a/fs/ecryptfs/super.c~ecryptfs-make-show_options-reflect-actual-mount-options-fix
-+++ a/fs/ecryptfs/super.c
-@@ -182,7 +182,7 @@ static int ecryptfs_show_options(struct 
- 		mount_crypt_stat->global_default_cipher_name);
+diff -puN drivers/rtc/rtc-ds1302.c~rtc-ds1302-rtc-support-checkpatch-fixes drivers/rtc/rtc-ds1302.c
+--- a/drivers/rtc/rtc-ds1302.c~rtc-ds1302-rtc-support-checkpatch-fixes
++++ a/drivers/rtc/rtc-ds1302.c
+@@ -59,8 +59,8 @@ static void ds1302_sendbits(unsigned int
+ 	for (i = 8; (i); i--, val >>= 1) {
+ 		set_dp((get_dp() & ~RTC_IODATA) | ((val & 0x1) ?
+ 			RTC_IODATA : 0));
+-		set_dp(get_dp() | RTC_SCLK);	// clock high
+-		set_dp(get_dp() & ~RTC_SCLK);	// clock low
++		set_dp(get_dp() | RTC_SCLK);	/* clock high */
++		set_dp(get_dp() & ~RTC_SCLK);	/* clock low */
+ 	}
+ }
  
- 	if (mount_crypt_stat->global_default_cipher_key_size)
--		seq_printf(m, ",ecryptfs_key_bytes=%d",
-+		seq_printf(m, ",ecryptfs_key_bytes=%zd",
- 			   mount_crypt_stat->global_default_cipher_key_size);
- 	if (mount_crypt_stat->flags & ECRYPTFS_PLAINTEXT_PASSTHROUGH_ENABLED)
- 		seq_printf(m, ",ecryptfs_passthrough");
+@@ -71,8 +71,8 @@ static unsigned int ds1302_recvbits(void
+ 
+ 	for (i = 0, val = 0; (i < 8); i++) {
+ 		val |= (((get_dp() & RTC_IODATA) ? 1 : 0) << i);
+-		set_dp(get_dp() | RTC_SCLK);	// clock high
+-		set_dp(get_dp() & ~RTC_SCLK);	// clock low
++		set_dp(get_dp() | RTC_SCLK);	/* clock high */
++		set_dp(get_dp() & ~RTC_SCLK);	/* clock low */
+ 	}
+ 
+ 	return val;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,7 +108,7 @@ system-timer-fix-crash-in-100hz-system-timer.patch
 speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
 drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
 ecryptfs-make-show_options-reflect-actual-mount-options.patch
-ecryptfs-make-show_options-reflect-actual-mount-options-fix.patch
+rtc-ds1302-rtc-support.patch
 rtc-ds1302-rtc-support-checkpatch-fixes.patch
 add-hpet-rtc-emulation-to-rtc_drv_cmos-fix.patch
 fbmon-cleanup-trailing-whitespaces-checkpatch-fixes.patch
