@@ -1,87 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 05 Feb 2008 23:12:14 -0800
-Message-ID: <200802060711.m167Btmb031128@imap1.linux-foundation.org>
+Subject: - remove-warnings-for-longstanding-conditions-fix.patch removed from -mm tree
+Date: Tue, 05 Feb 2008 23:12:41 -0800
+Message-ID: <200802060712.m167CM4W031137@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45720 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33041 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756959AbYBFHMt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:12:49 -0500
+	by vger.kernel.org with ESMTP id S1757130AbYBFHNT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 02:13:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jeff@garzik.org, jgarzik@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, James.Bottomley@steeleye.com, jeff@garzik.org, kkeil@suse.de, willy@debian.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes
+     remove-warnings-for-longstanding-conditions-fix
 has been removed from the -mm tree.  Its filename was
-     sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+     remove-warnings-for-longstanding-conditions-fix.patch
 
-This patch was dropped because it was folded into sound-oss-pss-set_io_base-always-returns-success-mark-it-void.patch
+This patch was dropped because it was folded into remove-warnings-for-longstanding-conditions.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes
+Subject: remove-warnings-for-longstanding-conditions-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: need a space before the open parenthesis '('
-#35: FILE: sound/oss/pss.c:678:
-+	else if(check_region(pss_cdrom_port, 2)) {
+revert advansys bit as per Matthew's request.
 
-ERROR: else should follow close brace '}'
-#35: FILE: sound/oss/pss.c:678:
- 	}
-+	else if(check_region(pss_cdrom_port, 2)) {
-
-WARNING: braces {} are not necessary for single statement blocks
-#35: FILE: sound/oss/pss.c:678:
-+	else if(check_region(pss_cdrom_port, 2)) {
- 		printk(KERN_ERR "PSS: CDROM I/O port conflict.\n");
- 	}
-
-ERROR: else should follow close brace '}'
-#44: FILE: sound/oss/pss.c:681:
- 	}
-+	else {
-
-total: 3 errors, 1 warnings, 56 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Jeff Garzik <jgarzik@redhat.com>
+Cc: Karsten Keil <kkeil@suse.de>
+Cc: Matthew Wilcox <willy@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/oss/pss.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ drivers/scsi/advansys.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN sound/oss/pss.c~sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes sound/oss/pss.c
---- a/sound/oss/pss.c~sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes
-+++ a/sound/oss/pss.c
-@@ -671,14 +671,11 @@ static void configure_nonsound_component
+diff -puN drivers/scsi/advansys.c~remove-warnings-for-longstanding-conditions-fix drivers/scsi/advansys.c
+--- a/drivers/scsi/advansys.c~remove-warnings-for-longstanding-conditions-fix
++++ a/drivers/scsi/advansys.c
+@@ -68,6 +68,7 @@
+  *  7. advansys_info is not safe against multiple simultaneous callers
+  *  8. Add module_param to override ISA/VLB ioport array
+  */
++#warning this driver is still not properly converted to the DMA API
  
- 	/* Configure CDROM port */
- 
--	if(pss_cdrom_port == -1)	/* If cdrom port enablation wasn't requested */
--	{
-+	if (pss_cdrom_port == -1) {	/* If cdrom port enablation wasn't requested */
- 		printk(KERN_INFO "PSS: CDROM port not enabled.\n");
--	}
--	else if(check_region(pss_cdrom_port, 2)) {
-+	} else if (check_region(pss_cdrom_port, 2)) {
- 		printk(KERN_ERR "PSS: CDROM I/O port conflict.\n");
--	}
--	else {
-+	} else {
- 		set_io_base(devc, CONF_CDROM, pss_cdrom_port);
- 		printk(KERN_INFO "PSS: CDROM I/O port set to 0x%x.\n", pss_cdrom_port);
- 	}
+ /* Enable driver /proc statistics. */
+ #define ADVANSYS_STATS
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,7 +57,7 @@ origin.patch
 kernel-printkc-concerns-about-the-console-handover.patch
 riscom8-fix-smp-brokenness.patch
 sound-oss-pss-set_io_base-always-returns-success-mark-it-void.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions.patch
 remove-warnings-for-longstanding-conditions-fix.patch
 genericizing-iova-fix.patch
 parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
