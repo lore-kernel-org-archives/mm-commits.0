@@ -1,138 +1,247 @@
 From: akpm@linux-foundation.org
-Subject: - atari-floppy-rename-disk_type-to-atari_disk_type.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:25:40 -0800
-Message-ID: <200802070025.m170PLgx006707@imap1.linux-foundation.org>
+Subject: - blackfin-rtc-driver-use-dev_dbg-rather-than-pr_stamp.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:27:26 -0800
+Message-ID: <200802070027.m170R7B5006991@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42876 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47032 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934195AbYBGAph (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:37 -0500
+	by vger.kernel.org with ESMTP id S934112AbYBGApg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, gregkh@suse.de, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
+To: michael.frysinger@analog.com, alessandro.zummo@towertech.it, bryan.wu@analog.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Atari floppy: Rename disk_type to atari_disk_type
+     Blackfin RTC driver: use dev_dbg() rather than pr_stamp()
 has been removed from the -mm tree.  Its filename was
-     atari-floppy-rename-disk_type-to-atari_disk_type.patch
+     blackfin-rtc-driver-use-dev_dbg-rather-than-pr_stamp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Atari floppy: Rename disk_type to atari_disk_type
-From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Blackfin RTC driver: use dev_dbg() rather than pr_stamp()
+From: Mike Frysinger <michael.frysinger@analog.com>
 
-Commit edfaa7c36574f1bf09c65ad602412db9da5f96bf
-
-    Driver core: convert block from raw kobjects to core devices
-
-    This moves the block devices to /sys/class/block. It will create a
-    flat list of all block devices, with the disks and partitions in one
-    directory. For compatibility /sys/block is created and contains symlinks
-    to the disks.
-
-introduced a global disk_type variable in <linux/genhd.h>, causing the
-following compile error on Atari:
-
-    drivers/block/ataflop.c:93: error: conflicting types for 'disk_type'
-    include/linux/genhd.h:21: error: previous declaration of 'disk_type' was here
-
-Rename the local disk_type variable in drivers/block/ataflop.c to
-atari_disk_type, to avoid the conflict.
-
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
+Signed-off-by: Mike Frysinger <michael.frysinger@analog.com>
+Signed-off-by: Bryan Wu <bryan.wu@analog.com>
+Acked-by: Alessandro Zummo <alessandro.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/ataflop.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/rtc/rtc-bfin.c |   48 +++++++++++++++++----------------------
+ 1 file changed, 22 insertions(+), 26 deletions(-)
 
-diff -puN drivers/block/ataflop.c~atari-floppy-rename-disk_type-to-atari_disk_type drivers/block/ataflop.c
---- a/drivers/block/ataflop.c~atari-floppy-rename-disk_type-to-atari_disk_type
-+++ a/drivers/block/ataflop.c
-@@ -90,7 +90,7 @@ static struct atari_disk_type {
- 	unsigned	blocks;		/* total number of blocks */
- 	unsigned	fdc_speed;	/* fdc_speed setting */
- 	unsigned 	stretch;	/* track doubling ? */
--} disk_type[] = {
-+} atari_disk_type[] = {
- 	{ "d360",  9, 720, 0, 0},	/*  0: 360kB diskette */
- 	{ "D360",  9, 720, 0, 1},	/*  1: 360kb in 720k or 1.2MB drive */
- 	{ "D720",  9,1440, 0, 0},	/*  2: 720kb in 720k or 1.2MB drive */
-@@ -658,7 +658,7 @@ static int do_format(int drive, int type
- 			return -EINVAL;
- 		}
- 		type = minor2disktype[type].index;
--		UDT = &disk_type[type];
-+		UDT = &atari_disk_type[type];
+diff -puN drivers/rtc/rtc-bfin.c~blackfin-rtc-driver-use-dev_dbg-rather-than-pr_stamp drivers/rtc/rtc-bfin.c
+--- a/drivers/rtc/rtc-bfin.c~blackfin-rtc-driver-use-dev_dbg-rather-than-pr_stamp
++++ a/drivers/rtc/rtc-bfin.c
+@@ -45,8 +45,7 @@
+ 
+ #include <asm/blackfin.h>
+ 
+-#define stamp(fmt, args...) pr_debug("%s:%i: " fmt "\n", __func__, __LINE__, ## args)
+-#define stampit() stamp("here i am")
++#define dev_dbg_stamp(dev) dev_dbg(dev, "%s:%i: here i am\n", __func__, __LINE__)
+ 
+ struct bfin_rtc {
+ 	struct rtc_device *rtc_dev;
+@@ -120,7 +119,6 @@ static inline void rtc_bfin_to_tm(u32 rt
+  */
+ static void rtc_bfin_sync_pending(void)
+ {
+-	stampit();
+ 	while (!(bfin_read_RTC_ISTAT() & RTC_ISTAT_WRITE_COMPLETE)) {
+ 		if (!(bfin_read_RTC_ISTAT() & RTC_ISTAT_WRITE_PENDING))
+ 			break;
+@@ -128,8 +126,9 @@ static void rtc_bfin_sync_pending(void)
+ 	bfin_write_RTC_ISTAT(RTC_ISTAT_WRITE_COMPLETE);
+ }
+ 
+-static void rtc_bfin_reset(struct bfin_rtc *rtc)
++static void rtc_bfin_reset(struct device *dev)
+ {
++	struct bfin_rtc *rtc = dev_get_drvdata(dev);
+ 	/* Initialize the RTC. Enable pre-scaler to scale RTC clock
+ 	 * to 1Hz and clear interrupt/status registers. */
+ 	spin_lock_irq(&rtc->lock);
+@@ -149,7 +148,7 @@ static irqreturn_t bfin_rtc_interrupt(in
+ 	unsigned long events = 0;
+ 	u16 rtc_istat;
+ 
+-	stampit();
++	dev_dbg_stamp(dev);
+ 
+ 	spin_lock_irq(&rtc->lock);
+ 
+@@ -180,10 +179,9 @@ static irqreturn_t bfin_rtc_interrupt(in
+ 
+ static int bfin_rtc_open(struct device *dev)
+ {
+-	struct bfin_rtc *rtc = dev_get_drvdata(dev);
+ 	int ret;
+ 
+-	stampit();
++	dev_dbg_stamp(dev);
+ 
+ 	ret = request_irq(IRQ_RTC, bfin_rtc_interrupt, IRQF_DISABLED, "rtc-bfin", dev);
+ 	if (unlikely(ret)) {
+@@ -191,16 +189,15 @@ static int bfin_rtc_open(struct device *
+ 		return ret;
  	}
  
- 	if (!UDT || desc->track >= UDT->blocks/UDT->spt/2 || desc->head >= 2) {
-@@ -1064,7 +1064,7 @@ static void fd_rwsec_done1(int status)
- 	       searched for a non-existent sector! */
- 	    !(read_track && FDC_READ(FDCREG_SECTOR) > SUDT->spt)) {
- 		if (Probing) {
--			if (SUDT > disk_type) {
-+			if (SUDT > atari_disk_type) {
- 			    if (SUDT[-1].blocks > ReqBlock) {
- 				/* try another disk type */
- 				SUDT--;
-@@ -1082,7 +1082,7 @@ static void fd_rwsec_done1(int status)
- 		} else {	
- /* record not found, but not probing. Maybe stretch wrong ? Restart probing */
- 			if (SUD.autoprobe) {
--				SUDT = disk_type + StartDiskType[DriveType];
-+				SUDT = atari_disk_type + StartDiskType[DriveType];
- 				set_capacity(unit[SelectedDrive].disk,
- 							SUDT->blocks);
- 				Probing = 1;
-@@ -1421,7 +1421,7 @@ repeat:
- 	if (type == 0) {
- 		if (!UDT) {
- 			Probing = 1;
--			UDT = disk_type + StartDiskType[DriveType];
-+			UDT = atari_disk_type + StartDiskType[DriveType];
- 			set_capacity(floppy->disk, UDT->blocks);
- 			UD.autoprobe = 1;
- 		}
-@@ -1439,7 +1439,7 @@ repeat:
- 			goto repeat;
- 		}
- 		type = minor2disktype[type].index;
--		UDT = &disk_type[type];
-+		UDT = &atari_disk_type[type];
- 		set_capacity(floppy->disk, UDT->blocks);
- 		UD.autoprobe = 0;
- 	}
-@@ -1505,7 +1505,7 @@ static int fd_ioctl(struct inode *inode,
- 			if (minor2disktype[type].drive_types > DriveType)
- 				return -ENODEV;
- 			type = minor2disktype[type].index;
--			dtp = &disk_type[type];
-+			dtp = &atari_disk_type[type];
- 			if (UD.flags & FTD_MSG)
- 			    printk (KERN_ERR "floppy%d: found dtp %p name %s!\n",
- 			        drive, dtp, dtp->name);
-@@ -1576,7 +1576,7 @@ static int fd_ioctl(struct inode *inode,
- 				continue;
- 			}
- 			setidx = minor2disktype[settype].index;
--			dtp = &disk_type[setidx];
-+			dtp = &atari_disk_type[setidx];
+-	rtc_bfin_reset(rtc);
++	rtc_bfin_reset(dev);
  
- 			/* found matching entry ?? */
- 			if (   dtp->blocks  == setprm.size 
+ 	return ret;
+ }
+ 
+ static void bfin_rtc_release(struct device *dev)
+ {
+-	struct bfin_rtc *rtc = dev_get_drvdata(dev);
+-	stampit();
+-	rtc_bfin_reset(rtc);
++	dev_dbg_stamp(dev);
++	rtc_bfin_reset(dev);
+ 	free_irq(IRQ_RTC, dev);
+ }
+ 
+@@ -208,11 +205,11 @@ static int bfin_rtc_ioctl(struct device 
+ {
+ 	struct bfin_rtc *rtc = dev_get_drvdata(dev);
+ 
+-	stampit();
++	dev_dbg_stamp(dev);
+ 
+ 	switch (cmd) {
+ 	case RTC_PIE_ON:
+-		stampit();
++		dev_dbg_stamp(dev);
+ 		spin_lock_irq(&rtc->lock);
+ 		rtc_bfin_sync_pending();
+ 		bfin_write_RTC_ISTAT(RTC_ISTAT_STOPWATCH);
+@@ -221,7 +218,7 @@ static int bfin_rtc_ioctl(struct device 
+ 		spin_unlock_irq(&rtc->lock);
+ 		return 0;
+ 	case RTC_PIE_OFF:
+-		stampit();
++		dev_dbg_stamp(dev);
+ 		spin_lock_irq(&rtc->lock);
+ 		rtc_bfin_sync_pending();
+ 		bfin_write_RTC_SWCNT(0);
+@@ -230,7 +227,7 @@ static int bfin_rtc_ioctl(struct device 
+ 		return 0;
+ 
+ 	case RTC_UIE_ON:
+-		stampit();
++		dev_dbg_stamp(dev);
+ 		spin_lock_irq(&rtc->lock);
+ 		rtc_bfin_sync_pending();
+ 		bfin_write_RTC_ISTAT(RTC_ISTAT_SEC);
+@@ -238,7 +235,7 @@ static int bfin_rtc_ioctl(struct device 
+ 		spin_unlock_irq(&rtc->lock);
+ 		return 0;
+ 	case RTC_UIE_OFF:
+-		stampit();
++		dev_dbg_stamp(dev);
+ 		spin_lock_irq(&rtc->lock);
+ 		rtc_bfin_sync_pending();
+ 		bfin_write_RTC_ICTL(bfin_read_RTC_ICTL() & ~RTC_ISTAT_SEC);
+@@ -250,7 +247,7 @@ static int bfin_rtc_ioctl(struct device 
+ 		u16 which_alarm;
+ 		int ret = 0;
+ 
+-		stampit();
++		dev_dbg_stamp(dev);
+ 
+ 		spin_lock_irq(&rtc->lock);
+ 
+@@ -278,7 +275,7 @@ static int bfin_rtc_ioctl(struct device 
+ 		return ret;
+ 	}
+ 	case RTC_AIE_OFF:
+-		stampit();
++		dev_dbg_stamp(dev);
+ 		spin_lock_irq(&rtc->lock);
+ 		rtc_bfin_sync_pending();
+ 		bfin_write_RTC_ICTL(bfin_read_RTC_ICTL() & ~(RTC_ISTAT_ALARM | RTC_ISTAT_ALARM_DAY));
+@@ -293,7 +290,7 @@ static int bfin_rtc_read_time(struct dev
+ {
+ 	struct bfin_rtc *rtc = dev_get_drvdata(dev);
+ 
+-	stampit();
++	dev_dbg_stamp(dev);
+ 
+ 	spin_lock_irq(&rtc->lock);
+ 	rtc_bfin_sync_pending();
+@@ -309,7 +306,7 @@ static int bfin_rtc_set_time(struct devi
+ 	int ret;
+ 	unsigned long now;
+ 
+-	stampit();
++	dev_dbg_stamp(dev);
+ 
+ 	spin_lock_irq(&rtc->lock);
+ 
+@@ -327,7 +324,7 @@ static int bfin_rtc_set_time(struct devi
+ static int bfin_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
+ {
+ 	struct bfin_rtc *rtc = dev_get_drvdata(dev);
+-	stampit();
++	dev_dbg_stamp(dev);
+ 	memcpy(&alrm->time, &rtc->rtc_alarm, sizeof(struct rtc_time));
+ 	alrm->pending = !!(bfin_read_RTC_ICTL() & (RTC_ISTAT_ALARM | RTC_ISTAT_ALARM_DAY));
+ 	return 0;
+@@ -336,7 +333,7 @@ static int bfin_rtc_read_alarm(struct de
+ static int bfin_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
+ {
+ 	struct bfin_rtc *rtc = dev_get_drvdata(dev);
+-	stampit();
++	dev_dbg_stamp(dev);
+ 	memcpy(&rtc->rtc_alarm, &alrm->time, sizeof(struct rtc_time));
+ 	return 0;
+ }
+@@ -345,7 +342,7 @@ static int bfin_rtc_proc(struct device *
+ {
+ #define yesno(x) ((x) ? "yes" : "no")
+ 	u16 ictl = bfin_read_RTC_ICTL();
+-	stampit();
++	dev_dbg_stamp(dev);
+ 	seq_printf(seq,
+ 		"alarm_IRQ\t: %s\n"
+ 		"wkalarm_IRQ\t: %s\n"
+@@ -369,7 +366,7 @@ static int bfin_rtc_proc(struct device *
+  */
+ static int bfin_irq_set_freq(struct device *dev, int freq)
+ {
+-	stampit();
++	dev_dbg_stamp(dev);
+ 	return -ENOTTY;
+ }
+ 
+@@ -390,7 +387,7 @@ static int __devinit bfin_rtc_probe(stru
+ 	struct bfin_rtc *rtc;
+ 	int ret = 0;
+ 
+-	stampit();
++	dev_dbg_stamp(&pdev->dev);
+ 
+ 	rtc = kzalloc(sizeof(*rtc), GFP_KERNEL);
+ 	if (unlikely(!rtc))
+@@ -436,7 +433,6 @@ static struct platform_driver bfin_rtc_d
+ 
+ static int __init bfin_rtc_init(void)
+ {
+-	stampit();
+ 	return platform_driver_register(&bfin_rtc_driver);
+ }
+ 
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from michael.frysinger@analog.com are
 
 origin.patch
-add-cmpxchg_local-to-m86k.patch
-procfs-constify-function-pointer-tables.patch
-avoid-overflows-in-kernel-timec.patch
+git-watchdog.patch
+add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
