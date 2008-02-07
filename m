@@ -1,131 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - use-ilog2-in-fs-namespacec.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:25:09 -0800
-Message-ID: <200802070024.m170OoIi006656@imap1.linux-foundation.org>
+Subject: - uio-nopage.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:24:14 -0800
+Message-ID: <200802070023.m170Nt98006565@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33139 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55502 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935062AbYBGAop (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:45 -0500
+	by vger.kernel.org with ESMTP id S1760538AbYBGAoo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dada1@cosmosbay.com, mm-commits@vger.kernel.org
+To: npiggin@suse.de, hjk@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use ilog2() in fs/namespace.c
+     uio: nopage
 has been removed from the -mm tree.  Its filename was
-     use-ilog2-in-fs-namespacec.patch
+     uio-nopage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Use ilog2() in fs/namespace.c
-From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: uio: nopage
+From: Nick Piggin <npiggin@suse.de>
 
-We can use ilog2() in fs/namespace.c to compute hash_bits and hash_mask at
-compile time, not runtime.
+Convert uio from nopage to fault.
 
-[akpm@linux-foundation.org: clean it all up]
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Acked-by: Hans J Koch <hjk@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c |   43 ++++++++++---------------------------------
- 1 file changed, 10 insertions(+), 33 deletions(-)
+ drivers/uio/uio.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN fs/namespace.c~use-ilog2-in-fs-namespacec fs/namespace.c
---- a/fs/namespace.c~use-ilog2-in-fs-namespacec
-+++ a/fs/namespace.c
-@@ -25,18 +25,21 @@
- #include <linux/security.h>
- #include <linux/mount.h>
- #include <linux/ramfs.h>
-+#include <linux/log2.h>
- #include <asm/uaccess.h>
- #include <asm/unistd.h>
- #include "pnode.h"
- #include "internal.h"
- 
-+#define HASH_SHIFT ilog2(PAGE_SIZE / sizeof(struct list_head))
-+#define HASH_SIZE (1UL << HASH_SHIFT)
-+
- /* spinlock for vfsmount related operations, inplace of dcache_lock */
- __cacheline_aligned_in_smp DEFINE_SPINLOCK(vfsmount_lock);
- 
- static int event;
- 
- static struct list_head *mount_hashtable __read_mostly;
--static int hash_mask __read_mostly, hash_bits __read_mostly;
- static struct kmem_cache *mnt_cache __read_mostly;
- static struct rw_semaphore namespace_sem;
- 
-@@ -48,8 +51,8 @@ static inline unsigned long hash(struct 
- {
- 	unsigned long tmp = ((unsigned long)mnt / L1_CACHE_BYTES);
- 	tmp += ((unsigned long)dentry / L1_CACHE_BYTES);
--	tmp = tmp + (tmp >> hash_bits);
--	return tmp & hash_mask;
-+	tmp = tmp + (tmp >> HASH_SHIFT);
-+	return tmp & (HASH_SIZE - 1);
+diff -puN drivers/uio/uio.c~uio-nopage drivers/uio/uio.c
+--- a/drivers/uio/uio.c~uio-nopage
++++ a/drivers/uio/uio.c
+@@ -417,30 +417,28 @@ static void uio_vma_close(struct vm_area
+ 	idev->vma_count--;
  }
  
- struct vfsmount *alloc_vfsmnt(const char *name)
-@@ -1813,9 +1816,7 @@ static void __init init_mount_tree(void)
- 
- void __init mnt_init(void)
+-static struct page *uio_vma_nopage(struct vm_area_struct *vma,
+-				   unsigned long address, int *type)
++static int uio_vma_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
  {
--	struct list_head *d;
--	unsigned int nr_hash;
--	int i;
-+	unsigned u;
- 	int err;
+ 	struct uio_device *idev = vma->vm_private_data;
+-	struct page* page = NOPAGE_SIGBUS;
++	struct page *page;
  
- 	init_rwsem(&namespace_sem);
-@@ -1828,35 +1829,11 @@ void __init mnt_init(void)
- 	if (!mount_hashtable)
- 		panic("Failed to allocate mount hash table\n");
+ 	int mi = uio_find_mem_index(vma);
+ 	if (mi < 0)
+-		return page;
++		return VM_FAULT_SIGBUS;
  
--	/*
--	 * Find the power-of-two list-heads that can fit into the allocation..
--	 * We don't guarantee that "sizeof(struct list_head)" is necessarily
--	 * a power-of-two.
--	 */
--	nr_hash = PAGE_SIZE / sizeof(struct list_head);
--	hash_bits = 0;
--	do {
--		hash_bits++;
--	} while ((nr_hash >> hash_bits) != 0);
--	hash_bits--;
--
--	/*
--	 * Re-calculate the actual number of entries and the mask
--	 * from the number of bits we can fit.
--	 */
--	nr_hash = 1UL << hash_bits;
--	hash_mask = nr_hash - 1;
-+	printk("Mount-cache hash table entries: %lu\n", HASH_SIZE);
+ 	if (idev->info->mem[mi].memtype == UIO_MEM_LOGICAL)
+ 		page = virt_to_page(idev->info->mem[mi].addr);
+ 	else
+ 		page = vmalloc_to_page((void*)idev->info->mem[mi].addr);
+ 	get_page(page);
+-	if (type)
+-		*type = VM_FAULT_MINOR;
+-	return page;
++	vmf->page = page;
++	return 0;
+ }
  
--	printk("Mount-cache hash table entries: %d\n", nr_hash);
-+	for (u = 0; u < HASH_SIZE; u++)
-+		INIT_LIST_HEAD(&mount_hashtable[u]);
+ static struct vm_operations_struct uio_vm_ops = {
+ 	.open = uio_vma_open,
+ 	.close = uio_vma_close,
+-	.nopage = uio_vma_nopage,
++	.fault = uio_vma_fault,
+ };
  
--	/* And initialize the newly allocated array */
--	d = mount_hashtable;
--	i = nr_hash;
--	do {
--		INIT_LIST_HEAD(d);
--		d++;
--		i--;
--	} while (i);
- 	err = sysfs_init();
- 	if (err)
- 		printk(KERN_WARNING "%s: sysfs_init error: %d\n",
+ static int uio_mmap_physical(struct vm_area_struct *vma)
 _
 
-Patches currently in -mm which might be from dada1@cosmosbay.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
+drm-convert-from-nopage-to-fault.patch
+git-kvm.patch
+nfs-use-gfp_nofs-preloads-for-radix-tree-insertion.patch
+sg-nopage.patch
+mm-special-mapping-nopage.patch
+rewrite-rd.patch
+rewrite-rd-fix.patch
+rewrite-rd-fix-2.patch
+rd-support-xip.patch
+mm-remove-nopage.patch
+buffer_head-fix-private_list-handling.patch
+reiser4.patch
+reiser4-correct-references-to-filemap_nopage.patch
