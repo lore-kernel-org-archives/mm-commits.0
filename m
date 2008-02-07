@@ -1,199 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: - genericizing-iova.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:21:03 -0800
-Message-ID: <200802070020.m170Ki2n006181@imap1.linux-foundation.org>
+Subject: - sound-oss-pss-set_io_base-always-returns-success-mark-it-void.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:20:44 -0800
+Message-ID: <200802070020.m170KPEg006132@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49011 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59699 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933940AbYBGAVV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:21:21 -0500
+	by vger.kernel.org with ESMTP id S933993AbYBGAVj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:21:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davem@davemloft.net, anil.s.keshavamurthy@intel.com, mm-commits@vger.kernel.org
+To: jeff@garzik.org, jgarzik@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Genericizing iova.[ch]
+     sound/oss/pss: set_io_base() always returns success, mark it void
 has been removed from the -mm tree.  Its filename was
-     genericizing-iova.patch
+     sound-oss-pss-set_io_base-always-returns-success-mark-it-void.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Genericizing iova.[ch]
-From: David Miller <davem@davemloft.net>
+Subject: sound/oss/pss: set_io_base() always returns success, mark it void
+From: Jeff Garzik <jeff@garzik.org>
 
-I would like to potentially move the sparc64 IOMMU code over to using
-the nice new drivers/pci/iova.[ch] code for free area management..
-
-In order to do that we have to detach the IOMMU page size assumptions
-which only really need to exist in the intel-iommu.[ch] code.
-
-This patch attempts to implement that.
-
-[akpm@linux-foundation.org: build fix]
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Acked-by: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/dmar.c        |    1 +
- drivers/pci/intel-iommu.c |    4 ++--
- drivers/pci/intel-iommu.h |   14 ++++++++++++++
- drivers/pci/iova.c        |    8 ++++----
- drivers/pci/iova.h        |   16 ++--------------
- 5 files changed, 23 insertions(+), 20 deletions(-)
+ sound/oss/pss.c |   30 +++++++-----------------------
+ 1 file changed, 7 insertions(+), 23 deletions(-)
 
-diff -puN drivers/pci/dmar.c~genericizing-iova drivers/pci/dmar.c
---- a/drivers/pci/dmar.c~genericizing-iova
-+++ a/drivers/pci/dmar.c
-@@ -26,6 +26,7 @@
- #include <linux/pci.h>
- #include <linux/dmar.h>
- #include "iova.h"
-+#include "intel-iommu.h"
- 
- #undef PREFIX
- #define PREFIX "DMAR:"
-diff -puN drivers/pci/intel-iommu.c~genericizing-iova drivers/pci/intel-iommu.c
---- a/drivers/pci/intel-iommu.c~genericizing-iova
-+++ a/drivers/pci/intel-iommu.c
-@@ -1088,7 +1088,7 @@ static void dmar_init_reserved_ranges(vo
- 	int i;
- 	u64 addr, size;
- 
--	init_iova_domain(&reserved_iova_list);
-+	init_iova_domain(&reserved_iova_list, DMA_32BIT_PFN);
- 
- 	/* IOAPIC ranges shouldn't be accessed by DMA */
- 	iova = reserve_iova(&reserved_iova_list, IOVA_PFN(IOAPIC_RANGE_START),
-@@ -1142,7 +1142,7 @@ static int domain_init(struct dmar_domai
- 	int adjust_width, agaw;
- 	unsigned long sagaw;
- 
--	init_iova_domain(&domain->iovad);
-+	init_iova_domain(&domain->iovad, DMA_32BIT_PFN);
- 	spin_lock_init(&domain->mapping_lock);
- 
- 	domain_reserve_special_ranges(domain);
-diff -puN drivers/pci/intel-iommu.h~genericizing-iova drivers/pci/intel-iommu.h
---- a/drivers/pci/intel-iommu.h~genericizing-iova
-+++ a/drivers/pci/intel-iommu.h
-@@ -23,10 +23,24 @@
- 
- #include <linux/types.h>
- #include <linux/msi.h>
-+#include <linux/sysdev.h>
- #include "iova.h"
- #include <linux/io.h>
- 
- /*
-+ * We need a fixed PAGE_SIZE of 4K irrespective of
-+ * arch PAGE_SIZE for IOMMU page tables.
-+ */
-+#define PAGE_SHIFT_4K		(12)
-+#define PAGE_SIZE_4K		(1UL << PAGE_SHIFT_4K)
-+#define PAGE_MASK_4K		(((u64)-1) << PAGE_SHIFT_4K)
-+#define PAGE_ALIGN_4K(addr)	(((addr) + PAGE_SIZE_4K - 1) & PAGE_MASK_4K)
-+
-+#define IOVA_PFN(addr)		((addr) >> PAGE_SHIFT_4K)
-+#define DMA_32BIT_PFN		IOVA_PFN(DMA_32BIT_MASK)
-+#define DMA_64BIT_PFN		IOVA_PFN(DMA_64BIT_MASK)
-+
-+/*
-  * Intel IOMMU register specification per version 1.0 public spec.
-  */
- 
-diff -puN drivers/pci/iova.c~genericizing-iova drivers/pci/iova.c
---- a/drivers/pci/iova.c~genericizing-iova
-+++ a/drivers/pci/iova.c
-@@ -9,19 +9,19 @@
- #include "iova.h"
- 
- void
--init_iova_domain(struct iova_domain *iovad)
-+init_iova_domain(struct iova_domain *iovad, unsigned long pfn_32bit)
- {
- 	spin_lock_init(&iovad->iova_alloc_lock);
- 	spin_lock_init(&iovad->iova_rbtree_lock);
- 	iovad->rbroot = RB_ROOT;
- 	iovad->cached32_node = NULL;
--
-+	iovad->dma_32bit_pfn = pfn_32bit;
+diff -puN sound/oss/pss.c~sound-oss-pss-set_io_base-always-returns-success-mark-it-void sound/oss/pss.c
+--- a/sound/oss/pss.c~sound-oss-pss-set_io_base-always-returns-success-mark-it-void
++++ a/sound/oss/pss.c
+@@ -232,14 +232,12 @@ static int set_irq(pss_confdata * devc, 
+ 	return 1;
  }
  
- static struct rb_node *
- __get_cached_rbnode(struct iova_domain *iovad, unsigned long *limit_pfn)
+-static int set_io_base(pss_confdata * devc, int dev, int base)
++static void set_io_base(pss_confdata * devc, int dev, int base)
  {
--	if ((*limit_pfn != DMA_32BIT_PFN) ||
-+	if ((*limit_pfn != iovad->dma_32bit_pfn) ||
- 		(iovad->cached32_node == NULL))
- 		return rb_last(&iovad->rbroot);
- 	else {
-@@ -37,7 +37,7 @@ static void
- __cached_rbnode_insert_update(struct iova_domain *iovad,
- 	unsigned long limit_pfn, struct iova *new)
- {
--	if (limit_pfn != DMA_32BIT_PFN)
-+	if (limit_pfn != iovad->dma_32bit_pfn)
- 		return;
- 	iovad->cached32_node = &new->node;
+ 	unsigned short  tmp = inw(REG(dev)) & 0x003f;
+ 	unsigned short  bits = (base & 0x0ffc) << 4;
+ 
+ 	outw(bits | tmp, REG(dev));
+-
+-	return 1;
  }
-diff -puN drivers/pci/iova.h~genericizing-iova drivers/pci/iova.h
---- a/drivers/pci/iova.h~genericizing-iova
-+++ a/drivers/pci/iova.h
-@@ -15,22 +15,9 @@
- #include <linux/rbtree.h>
- #include <linux/dma-mapping.h>
  
--/*
-- * We need a fixed PAGE_SIZE of 4K irrespective of
-- * arch PAGE_SIZE for IOMMU page tables.
-- */
--#define PAGE_SHIFT_4K		(12)
--#define PAGE_SIZE_4K		(1UL << PAGE_SHIFT_4K)
--#define PAGE_MASK_4K		(((u64)-1) << PAGE_SHIFT_4K)
--#define PAGE_ALIGN_4K(addr)	(((addr) + PAGE_SIZE_4K - 1) & PAGE_MASK_4K)
--
- /* IO virtual address start page frame number */
- #define IOVA_START_PFN		(1)
+ static int set_dma(pss_confdata * devc, int dev, int dma)
+@@ -673,20 +671,12 @@ static void configure_nonsound_component
  
--#define IOVA_PFN(addr)		((addr) >> PAGE_SHIFT_4K)
--#define DMA_32BIT_PFN	IOVA_PFN(DMA_32BIT_MASK)
--#define DMA_64BIT_PFN	IOVA_PFN(DMA_64BIT_MASK)
--
- /* iova structure */
- struct iova {
- 	struct rb_node	node;
-@@ -44,6 +31,7 @@ struct iova_domain {
- 	spinlock_t	iova_rbtree_lock; /* Lock to protect update of rbtree */
- 	struct rb_root	rbroot;		/* iova domain rbtree root */
- 	struct rb_node	*cached32_node; /* Save last alloced node */
-+	unsigned long	dma_32bit_pfn;
- };
+ 	/* Configure CDROM port */
  
- struct iova *alloc_iova_mem(void);
-@@ -56,7 +44,7 @@ struct iova *alloc_iova(struct iova_doma
- struct iova *reserve_iova(struct iova_domain *iovad, unsigned long pfn_lo,
- 	unsigned long pfn_hi);
- void copy_reserved_iova(struct iova_domain *from, struct iova_domain *to);
--void init_iova_domain(struct iova_domain *iovad);
-+void init_iova_domain(struct iova_domain *iovad, unsigned long pfn_32bit);
- struct iova *find_iova(struct iova_domain *iovad, unsigned long pfn);
- void put_iova_domain(struct iova_domain *iovad);
- 
+-	if(pss_cdrom_port == -1)	/* If cdrom port enablation wasn't requested */
+-	{
++	if (pss_cdrom_port == -1) {	/* If cdrom port enablation wasn't requested */
+ 		printk(KERN_INFO "PSS: CDROM port not enabled.\n");
+-	}
+-	else if(check_region(pss_cdrom_port, 2))
+-	{
++	} else if (check_region(pss_cdrom_port, 2)) {
+ 		printk(KERN_ERR "PSS: CDROM I/O port conflict.\n");
+-	}
+-	else if(!set_io_base(devc, CONF_CDROM, pss_cdrom_port))
+-	{
+-		printk(KERN_ERR "PSS: CDROM I/O port could not be set.\n");
+-	}
+-	else					/* CDROM port successfully configured */
+-	{
++	} else {
++		set_io_base(devc, CONF_CDROM, pss_cdrom_port);
+ 		printk(KERN_INFO "PSS: CDROM I/O port set to 0x%x.\n", pss_cdrom_port);
+ 	}
+ }
+@@ -758,10 +748,7 @@ static int __init probe_pss_mpu(struct a
+ 		printk(KERN_ERR "PSS: MPU I/O port conflict\n");
+ 		return 0;
+ 	}
+-	if (!set_io_base(devc, CONF_MIDI, hw_config->io_base)) {
+-		printk(KERN_ERR "PSS: MIDI base could not be set.\n");
+-		goto fail;
+-	}
++	set_io_base(devc, CONF_MIDI, hw_config->io_base);
+ 	if (!set_irq(devc, CONF_MIDI, hw_config->irq)) {
+ 		printk(KERN_ERR "PSS: MIDI IRQ allocation error.\n");
+ 		goto fail;
+@@ -1057,10 +1044,7 @@ static int __init probe_pss_mss(struct a
+ 		release_region(hw_config->io_base, 4);
+ 		return 0;
+ 	}
+-	if (!set_io_base(devc, CONF_WSS, hw_config->io_base)) {
+-		printk("PSS: WSS base not settable.\n");
+-		goto fail;
+-	}
++	set_io_base(devc, CONF_WSS, hw_config->io_base);
+ 	if (!set_irq(devc, CONF_WSS, hw_config->irq)) {
+ 		printk("PSS: WSS IRQ allocation error.\n");
+ 		goto fail;
 _
 
-Patches currently in -mm which might be from davem@davemloft.net are
+Patches currently in -mm which might be from jeff@garzik.org are
 
 origin.patch
-git-perfmon.patch
+git-libata-all.patch
+forcedeth-power-down-phy-when-interface-is-down.patch
+forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
 tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls-x86-fix.patch
-iget-stop-openpromfs-from-using-iget-and.patch
-add-cmpxchg_local-to-sparc-move-__cmpxchg-to-systemh.patch
-add-cmpxchg_local-to-sparc64.patch
-mark-net_ns-with-depends-on-namespaces.patch
-pid-fix-solaris_procids.patch
+i8k-allow-i8k-driver-to-be-built-on-x86_64-systems.patch
+i8k-adds-i8k-driver-to-the-x86_64-kconfig.patch
+i8k-inspiron-e1705-fix.patch
+smbios-dmi-add-type-41-=-onboard-devices-extended-information.patch
