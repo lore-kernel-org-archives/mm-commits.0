@@ -1,256 +1,241 @@
 From: akpm@linux-foundation.org
-Subject: - ps3fb-round-up-video-modes.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:29:12 -0800
-Message-ID: <200802070028.m170SrBj007215@imap1.linux-foundation.org>
+Subject: - ps3fb-reorganize-modedb-handling.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:29:10 -0800
+Message-ID: <200802070028.m170Spnl007212@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43585 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39451 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933886AbYBGAoJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:09 -0500
+	by vger.kernel.org with ESMTP id S932754AbYBGAoI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: Geert.Uytterhoeven@sonycom.com, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ps3fb: round up video modes
+     ps3fb: reorganize modedb handling
 has been removed from the -mm tree.  Its filename was
-     ps3fb-round-up-video-modes.patch
+     ps3fb-reorganize-modedb-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ps3fb: round up video modes
+Subject: ps3fb: reorganize modedb handling
 From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-Round up arbitrary video modes until they fit (if possible)
+Reorganize modedb handling:
+  - Reorder the video modes in ps3fb_modedb, for easier indexing using
+    PS3AV_MODE_* numbers,
+  - Introduce ps3fb_native_vmode(), to convert from native (PS3AV_MODE_*) mode
+    numbers to struct fb_videomode *,
+  - Rename and move ps3fb_default_mode() to ps3fb_vmode().
 
 Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/ps3fb.c |  160 ++++++++++++++++++++++++++++------------
- 1 file changed, 114 insertions(+), 46 deletions(-)
+ drivers/video/ps3fb.c |  116 ++++++++++++++++++++--------------------
+ 1 file changed, 60 insertions(+), 56 deletions(-)
 
-diff -puN drivers/video/ps3fb.c~ps3fb-round-up-video-modes drivers/video/ps3fb.c
---- a/drivers/video/ps3fb.c~ps3fb-round-up-video-modes
+diff -puN drivers/video/ps3fb.c~ps3fb-reorganize-modedb-handling drivers/video/ps3fb.c
+--- a/drivers/video/ps3fb.c~ps3fb-reorganize-modedb-handling
 +++ a/drivers/video/ps3fb.c
-@@ -276,29 +276,49 @@ static char *mode_option __devinitdata;
- static int ps3fb_cmp_mode(const struct fb_videomode *vmode,
- 			  const struct fb_var_screeninfo *var)
- {
--	/* resolution + black border must match a native resolution */
--	if (vmode->left_margin + vmode->xres + vmode->right_margin !=
--	    var->left_margin + var->xres + var->right_margin ||
--	    vmode->upper_margin + vmode->yres + vmode->lower_margin !=
--	    var->upper_margin + var->yres + var->lower_margin)
-+	long xres, yres, left_margin, right_margin, upper_margin, lower_margin;
-+	long dx, dy;
-+
-+	/* maximum values */
-+	if (var->xres > vmode->xres || var->yres > vmode->yres ||
-+	    var->pixclock > vmode->pixclock ||
-+	    var->hsync_len > vmode->hsync_len ||
-+	    var->vsync_len > vmode->vsync_len)
- 		return -1;
+@@ -146,6 +146,8 @@ struct ps3fb_par {
+ };
  
--	/* minimum limits for margins */
--	if (vmode->left_margin > var->left_margin ||
--	    vmode->right_margin > var->right_margin ||
--	    vmode->upper_margin > var->upper_margin ||
--	    vmode->lower_margin > var->lower_margin)
-+	/* progressive/interlaced must match */
-+	if ((var->vmode & FB_VMODE_MASK) != vmode->vmode)
- 		return -1;
  
--	/* these fields must match exactly */
--	if (vmode->pixclock != var->pixclock ||
--	    vmode->hsync_len != var->hsync_len ||
--	    vmode->vsync_len != var->vsync_len ||
--	    vmode->sync != var->sync ||
--	    vmode->vmode != (var->vmode & FB_VMODE_MASK))
-+	/* minimum resolution */
-+	xres = max(var->xres, 1U);
-+	yres = max(var->yres, 1U);
++#define FIRST_NATIVE_MODE_INDEX	10
 +
-+	/* minimum margins */
-+	left_margin = max(var->left_margin, vmode->left_margin);
-+	right_margin = max(var->right_margin, vmode->right_margin);
-+	upper_margin = max(var->upper_margin, vmode->upper_margin);
-+	lower_margin = max(var->lower_margin, vmode->lower_margin);
-+
-+	/* resolution + margins may not exceed native parameters */
-+	dx = ((long)vmode->left_margin + (long)vmode->xres +
-+	      (long)vmode->right_margin) -
-+	     (left_margin + xres + right_margin);
-+	if (dx < 0)
- 		return -1;
+ static const struct fb_videomode ps3fb_modedb[] = {
+     /* 60 Hz broadcast modes (modes "1" to "5") */
+     {
+@@ -193,24 +195,7 @@ static const struct fb_videomode ps3fb_m
+         FB_SYNC_BROADCAST, FB_VMODE_NONINTERLACED
+     },
  
--	return 0;
-+	dy = ((long)vmode->upper_margin + (long)vmode->yres +
-+	      (long)vmode->lower_margin) -
-+	     (upper_margin + yres + lower_margin);
-+	if (dy < 0)
-+		return -1;
+-    /* VESA modes (modes "11" to "13") */
+-    {
+-	/* WXGA */
+-	"wxga", 60, 1280, 768, 12924, 160, 24, 29, 3, 136, 6,
+-	0, FB_VMODE_NONINTERLACED,
+-	FB_MODE_IS_VESA
+-    }, {
+-	/* SXGA */
+-	"sxga", 60, 1280, 1024, 9259, 248, 48, 38, 1, 112, 3,
+-	FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT, FB_VMODE_NONINTERLACED,
+-	FB_MODE_IS_VESA
+-    }, {
+-	/* WUXGA */
+-	"wuxga", 60, 1920, 1200, 6494, 80, 48, 26, 3, 32, 6,
+-	FB_SYNC_HOR_HIGH_ACT, FB_VMODE_NONINTERLACED,
+-	FB_MODE_IS_VESA
+-    },
+-
++    [FIRST_NATIVE_MODE_INDEX] =
+     /* 60 Hz broadcast modes (full resolution versions of modes "1" to "5") */
+     {
+ 	/* 480if */
+@@ -255,6 +240,24 @@ static const struct fb_videomode ps3fb_m
+ 	/* 1080pf */
+ 	"1080pf", 50, 1920, 1080, 6734, 148, 484, 36, 4, 88, 5,
+ 	FB_SYNC_BROADCAST, FB_VMODE_NONINTERLACED
++    },
 +
-+	/* exact match */
-+	if (!dx && !dy)
-+		return 0;
-+
-+	/* resolution difference */
-+	return (vmode->xres - xres) * (vmode->yres - yres);
++    /* VESA modes (modes "11" to "13") */
++    {
++	/* WXGA */
++	"wxga", 60, 1280, 768, 12924, 160, 24, 29, 3, 136, 6,
++	0, FB_VMODE_NONINTERLACED,
++	FB_MODE_IS_VESA
++    }, {
++	/* SXGA */
++	"sxga", 60, 1280, 1024, 9259, 248, 48, 38, 1, 112, 3,
++	FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT, FB_VMODE_NONINTERLACED,
++	FB_MODE_IS_VESA
++    }, {
++	/* WUXGA */
++	"wuxga", 60, 1920, 1200, 6494, 80, 48, 26, 3, 32, 6,
++	FB_SYNC_HOR_HIGH_ACT, FB_VMODE_NONINTERLACED,
++	FB_MODE_IS_VESA
+     }
+ };
+ 
+@@ -298,20 +301,43 @@ static int ps3fb_cmp_mode(const struct f
+ 	return 0;
  }
  
- static const struct fb_videomode *ps3fb_native_vmode(enum ps3av_mode_num id)
-@@ -324,33 +344,96 @@ static const struct fb_videomode *ps3fb_
++static const struct fb_videomode *ps3fb_native_vmode(enum ps3av_mode_num id)
++{
++	return &ps3fb_modedb[FIRST_NATIVE_MODE_INDEX + id - 1];
++}
++
++static const struct fb_videomode *ps3fb_vmode(int id)
++{
++	u32 mode = id & PS3AV_MODE_MASK;
++
++	if (mode < PS3AV_MODE_480I || mode > PS3AV_MODE_WUXGA)
++		return NULL;
++
++	if (mode <= PS3AV_MODE_1080P50 && !(id & PS3AV_MODE_FULL)) {
++		/* Non-fullscreen broadcast mode */
++		return &ps3fb_modedb[mode - 1];
++	}
++
++	return ps3fb_native_vmode(mode);
++}
++
  static unsigned int ps3fb_find_mode(struct fb_var_screeninfo *var,
  				    u32 *ddr_line_length, u32 *xdr_line_length)
  {
--	unsigned int id;
-+	unsigned int id, best_id;
-+	int diff, best_diff;
- 	const struct fb_videomode *vmode;
-+	long gap;
+-	unsigned int i, mode;
++	unsigned int id;
++	const struct fb_videomode *vmode;
  
-+	best_id = 0;
-+	best_diff = INT_MAX;
-+	pr_debug("%s: wanted %u [%u] %u x %u [%u] %u\n", __func__,
-+		 var->left_margin, var->xres, var->right_margin,
-+		 var->upper_margin, var->yres, var->lower_margin);
- 	for (id = PS3AV_MODE_480I; id <= PS3AV_MODE_WUXGA; id++) {
- 		vmode = ps3fb_native_vmode(id);
--		if (!ps3fb_cmp_mode(vmode, var))
--			goto found;
-+		diff = ps3fb_cmp_mode(vmode, var);
-+		pr_debug("%s: mode %u: %u [%u] %u x %u [%u] %u: diff = %d\n",
-+			 __func__, id, vmode->left_margin, vmode->xres,
-+			 vmode->right_margin, vmode->upper_margin,
-+			 vmode->yres, vmode->lower_margin, diff);
-+		if (diff < 0)
-+			continue;
-+		if (diff < best_diff) {
-+			best_id = id;
-+			if (!diff)
-+				break;
-+			best_diff = diff;
-+		}
+-	for (i = PS3AV_MODE_1080P50; i < ARRAY_SIZE(ps3fb_modedb); i++)
+-		if (!ps3fb_cmp_mode(&ps3fb_modedb[i], var))
++	for (id = PS3AV_MODE_480I; id <= PS3AV_MODE_WUXGA; id++) {
++		vmode = ps3fb_native_vmode(id);
++		if (!ps3fb_cmp_mode(vmode, var))
+ 			goto found;
++	}
+ 
+-	pr_debug("ps3fb_find_mode: mode not found\n");
++	pr_debug("%s: mode not found\n", __func__);
+ 	return 0;
+ 
+ found:
+-	*ddr_line_length = ps3fb_modedb[i].xres * BPP;
++	*ddr_line_length = vmode->xres * BPP;
+ 
+ 	if (!var->xres) {
+ 		var->xres = 1;
+@@ -330,36 +356,14 @@ found:
+ 	} else
+ 		*xdr_line_length = *ddr_line_length;
+ 
+-	mode = i+1;
+-	if (mode > PS3AV_MODE_WUXGA) {
+-		mode -= PS3AV_MODE_WUXGA;
++	if (vmode->sync & FB_SYNC_BROADCAST) {
+ 		/* Full broadcast modes have the full mode bit set */
+-		if (ps3fb_modedb[i].xres == var->xres &&
+-		    ps3fb_modedb[i].yres == var->yres)
+-			mode |= PS3AV_MODE_FULL;
+-	}
+-
+-	pr_debug("ps3fb_find_mode: mode %u\n", mode);
+-
+-	return mode;
+-}
+-
+-static const struct fb_videomode *ps3fb_default_mode(int id)
+-{
+-	u32 mode = id & PS3AV_MODE_MASK;
+-	u32 flags;
+-
+-	if (mode < PS3AV_MODE_480I || mode > PS3AV_MODE_WUXGA)
+-		return NULL;
+-
+-	flags = id & ~PS3AV_MODE_MASK;
+-
+-	if (mode <= PS3AV_MODE_1080P50 && flags & PS3AV_MODE_FULL) {
+-		/* Full broadcast mode */
+-		return &ps3fb_modedb[mode + PS3AV_MODE_WUXGA - 1];
++		if (vmode->xres == var->xres && vmode->yres == var->yres)
++			id |= PS3AV_MODE_FULL;
  	}
  
--	pr_debug("%s: mode not found\n", __func__);
--	return 0;
-+	if (!best_id) {
-+		pr_debug("%s: no suitable mode found\n", __func__);
-+		return 0;
-+	}
-+
-+	id = best_id;
-+	vmode = ps3fb_native_vmode(id);
+-	return &ps3fb_modedb[mode - 1];
++	pr_debug("%s: mode %u\n", __func__, id);
++	return id;
+ }
  
--found:
- 	*ddr_line_length = vmode->xres * BPP;
- 
--	if (!var->xres) {
-+	/* minimum resolution */
-+	if (!var->xres)
- 		var->xres = 1;
--		var->right_margin--;
--	}
--	if (!var->yres) {
-+	if (!var->yres)
- 		var->yres = 1;
--		var->lower_margin--;
--	}
-+
-+	/* minimum virtual resolution */
-+	if (var->xres_virtual < var->xres)
-+		var->xres_virtual = var->xres;
-+	if (var->yres_virtual < var->yres)
-+		var->yres_virtual = var->yres;
-+
-+	/* minimum margins */
-+	if (var->left_margin < vmode->left_margin)
-+		var->left_margin = vmode->left_margin;
-+	if (var->right_margin < vmode->right_margin)
-+		var->right_margin = vmode->right_margin;
-+	if (var->upper_margin < vmode->upper_margin)
-+		var->upper_margin = vmode->upper_margin;
-+	if (var->lower_margin < vmode->lower_margin)
-+		var->lower_margin = vmode->lower_margin;
-+
-+	/* extra margins */
-+	gap = ((long)vmode->left_margin + (long)vmode->xres +
-+	       (long)vmode->right_margin) -
-+	      ((long)var->left_margin + (long)var->xres +
-+	       (long)var->right_margin);
-+	if (gap > 0) {
-+		var->left_margin += gap/2;
-+		var->right_margin += (gap+1)/2;
-+		pr_debug("%s: rounded up H to %u [%u] %u\n", __func__,
-+			 var->left_margin, var->xres, var->right_margin);
-+	}
-+
-+	gap = ((long)vmode->upper_margin + (long)vmode->yres +
-+	       (long)vmode->lower_margin) -
-+	      ((long)var->upper_margin + (long)var->yres +
-+	       (long)var->lower_margin);
-+	if (gap > 0) {
-+		var->upper_margin += gap/2;
-+		var->lower_margin += (gap+1)/2;
-+		pr_debug("%s: rounded up V to %u [%u] %u\n", __func__,
-+			 var->upper_margin, var->yres, var->lower_margin);
-+	}
-+
-+	/* fixed fields */
-+	var->pixclock = vmode->pixclock;
-+	var->hsync_len = vmode->hsync_len;
-+	var->vsync_len = vmode->vsync_len;
-+	var->sync = vmode->sync;
- 
- 	if (ps3_compare_firmware_version(1, 9, 0) >= 0) {
--		*xdr_line_length = GPU_ALIGN_UP(max(var->xres,
--						    var->xres_virtual) * BPP);
-+		*xdr_line_length = GPU_ALIGN_UP(var->xres_virtual * BPP);
- 		if (*xdr_line_length > GPU_MAX_LINE_LENGTH)
- 			*xdr_line_length = GPU_MAX_LINE_LENGTH;
- 	} else
-@@ -465,22 +548,11 @@ static int ps3fb_check_var(struct fb_var
- 	u32 xdr_line_length, ddr_line_length;
- 	int mode;
- 
--	dev_dbg(info->device, "var->xres:%u info->var.xres:%u\n", var->xres,
--		info->var.xres);
--	dev_dbg(info->device, "var->yres:%u info->var.yres:%u\n", var->yres,
--		info->var.yres);
--
--	/* FIXME For now we do exact matches only */
- 	mode = ps3fb_find_mode(var, &ddr_line_length, &xdr_line_length);
+ static void ps3fb_sync_image(struct device *dev, u64 frame_offset,
+@@ -553,7 +557,7 @@ static int ps3fb_set_par(struct fb_info 
  	if (!mode)
  		return -EINVAL;
  
- 	/* Virtual screen */
--	if (var->xres_virtual < var->xres)
--		var->xres_virtual = var->xres;
--	if (var->yres_virtual < var->yres)
--		var->yres_virtual = var->yres;
--
- 	if (var->xres_virtual > xdr_line_length / BPP) {
- 		dev_dbg(info->device,
- 			"Horizontal virtual screen size too large\n");
-@@ -549,10 +621,6 @@ static int ps3fb_set_par(struct fb_info 
- 	const struct fb_videomode *vmode;
- 	u64 dst;
+-	vmode = ps3fb_default_mode(mode | PS3AV_MODE_FULL);
++	vmode = ps3fb_native_vmode(mode & PS3AV_MODE_MASK);
  
--	dev_dbg(info->device, "xres:%d xv:%d yres:%d yv:%d clock:%d\n",
--		info->var.xres, info->var.xres_virtual,
--		info->var.yres, info->var.yres_virtual, info->var.pixclock);
--
- 	mode = ps3fb_find_mode(&info->var, &ddr_line_length, &xdr_line_length);
- 	if (!mode)
- 		return -EINVAL;
+ 	info->fix.smem_start = virt_to_abs(ps3fb.xdr_ea);
+ 	info->fix.smem_len = ps3fb.xdr_size;
+@@ -767,7 +771,7 @@ static int ps3fb_ioctl(struct fb_info *i
+ 	case PS3FB_IOCTL_SETMODE:
+ 		{
+ 			struct ps3fb_par *par = info->par;
+-			const struct fb_videomode *mode;
++			const struct fb_videomode *vmode;
+ 			struct fb_var_screeninfo var;
+ 
+ 			if (copy_from_user(&val, argp, sizeof(val)))
+@@ -780,10 +784,10 @@ static int ps3fb_ioctl(struct fb_info *i
+ 			}
+ 			dev_dbg(info->device, "PS3FB_IOCTL_SETMODE:%x\n", val);
+ 			retval = -EINVAL;
+-			mode = ps3fb_default_mode(val);
+-			if (mode) {
++			vmode = ps3fb_vmode(val);
++			if (vmode) {
+ 				var = info->var;
+-				fb_videomode_to_var(&var, mode);
++				fb_videomode_to_var(&var, vmode);
+ 				acquire_console_sem();
+ 				info->flags |= FBINFO_MISC_USEREVENT;
+ 				/* Force, in case only special bits changed */
+@@ -1141,7 +1145,7 @@ static int __devinit ps3fb_probe(struct 
+ 
+ 	if (!fb_find_mode(&info->var, info, mode_option, ps3fb_modedb,
+ 			  ARRAY_SIZE(ps3fb_modedb),
+-			  ps3fb_default_mode(par->new_mode_id), 32)) {
++			  ps3fb_vmode(par->new_mode_id), 32)) {
+ 		retval = -EINVAL;
+ 		goto err_fb_dealloc;
+ 	}
 _
 
 Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
