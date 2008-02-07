@@ -1,148 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-video-add-missing-pci_dev_get.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:28:43 -0800
-Message-ID: <200802070028.m170SOFB007164@imap1.linux-foundation.org>
+Subject: - do_wait-remove-one-else-if-branch.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:22:53 -0800
+Message-ID: <200802070022.m170MYRr006432@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47506 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35354 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933652AbYBGAp2 (ORCPT
+	by vger.kernel.org with ESMTP id S933964AbYBGAp2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, adaplas@pol.net, davem@davemloft.net, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/video: add missing pci_dev_get
+     do_wait: remove one "else if" branch
 has been removed from the -mm tree.  Its filename was
-     drivers-video-add-missing-pci_dev_get.patch
+     do_wait-remove-one-else-if-branch.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video: add missing pci_dev_get
-From: Julia Lawall <julia@diku.dk>
+Subject: do_wait: remove one "else if" branch
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-pci_get_device does a pci_dev_get, so pci_dev_put needs to be called in an
-error case
+Minor cleanup. We can remove one "else if" branch.
 
-The problem was fixed using the following semantic patch.
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@exists@
-type T1,T2;
-identifier E;
-statement S,S1;
-expression x1,x2,x3;
-expression test;
-int ret != 0;
-@@
-
-  struct pci_dev *E;
-  ...
-(
-  E = \(pci_get_slot\|pci_get_device\|pci_get_bus_and_slot\)(...);
-  if (E == NULL) S
-|
-  if ((E = \(pci_get_slot\|pci_get_device\|pci_get_bus_and_slot\)(...)) == NULL) S
-)
-  ... when != pci_dev_put(...,(T1)E,...)
-      when != if (E != NULL) { ... pci_dev_put(...,(T1)E,...); ...}
-      when != x1 = (T1)E
-      when != E = x3;
-      when any
-(
-  if (E == NULL) S1
-|
-  if (test)
-+   {
-(
-+   pci_dev_put(E);
-    return;
-|
-+   pci_dev_put(E);
-    return ret;
-)
-+   }
-|
-  if (test) {
-    ... when != pci_dev_put(...,(T2)E,...)
-        when != if (E != NULL) { ... pci_dev_put(...,(T2)E,...); ...}
-        when != x2 = (T2)E
-(
-+   pci_dev_put(E);
-    return;
-|
-+   pci_dev_put(E);
-    return ret;
-)
-  }
-)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/igafb.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ kernel/exit.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/video/igafb.c~drivers-video-add-missing-pci_dev_get drivers/video/igafb.c
---- a/drivers/video/igafb.c~drivers-video-add-missing-pci_dev_get
-+++ a/drivers/video/igafb.c
-@@ -400,6 +400,7 @@ int __init igafb_init(void)
-         info = kzalloc(size, GFP_ATOMIC);
-         if (!info) {
-                 printk("igafb_init: can't alloc fb_info\n");
-+		 pci_dev_put(pdev);
-                 return -ENOMEM;
-         }
- 
-@@ -409,12 +410,14 @@ int __init igafb_init(void)
- 	if ((addr = pdev->resource[0].start) == 0) {
-                 printk("igafb_init: no memory start\n");
- 		kfree(info);
-+		pci_dev_put(pdev);
- 		return -ENXIO;
- 	}
- 
- 	if ((info->screen_base = ioremap(addr, 1024*1024*2)) == 0) {
-                 printk("igafb_init: can't remap %lx[2M]\n", addr);
- 		kfree(info);
-+		pci_dev_put(pdev);
- 		return -ENXIO;
- 	}
- 
-@@ -449,6 +452,7 @@ int __init igafb_init(void)
-                 printk("igafb_init: can't remap %lx[4K]\n", igafb_fix.mmio_start);
- 		iounmap((void *)info->screen_base);
- 		kfree(info);
-+		pci_dev_put(pdev);
- 		return -ENXIO;
- 	}
- 
-@@ -466,6 +470,7 @@ int __init igafb_init(void)
- 		iounmap((void *)par->io_base);
- 		iounmap(info->screen_base);
- 		kfree(info);
-+		pci_dev_put(pdev);
- 		return -ENOMEM;
- 	}
- 
+diff -puN kernel/exit.c~do_wait-remove-one-else-if-branch kernel/exit.c
+--- a/kernel/exit.c~do_wait-remove-one-else-if-branch
++++ a/kernel/exit.c
+@@ -1590,8 +1590,6 @@ repeat:
+ 					goto repeat;
+ 				if (retval != 0) /* He released the lock.  */
+ 					goto end;
+-			} else if (p->exit_state == EXIT_DEAD) {
+-				continue;
+ 			} else if (p->exit_state == EXIT_ZOMBIE) {
+ 				/*
+ 				 * Eligible but we cannot release it yet:
+@@ -1606,7 +1604,7 @@ repeat:
+ 				/* He released the lock.  */
+ 				if (retval != 0)
+ 					goto end;
+-			} else {
++			} else if (p->exit_state != EXIT_DEAD) {
+ check_continued:
+ 				/*
+ 				 * It's running now, so it might later
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-drivers-cpufreq-add-calls-to-cpufreq_cpu_put.patch
-arch-powerpc-platforms-pseries-add-missing-of_node_put.patch
-arch-powerpc-sysdev-add-missing-of_node_put.patch
-arch-powerpc-platforms-82xx-add-missing-of_node_put.patch
-git-input.patch
-git-mtd.patch
+proc-implement-proc_single_file_operations.patch
+proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces.patch
+proc-seqfile-convert-proc_pid_statm.patch
+proc-proper-pidns-handling-for-proc-self.patch
+proc-fix-the-threaded-proc-self.patch
+proc-fix-openless-usage-due-to-proc_fops-flip.patch
+proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
+kill-pt_attached.patch
+kill-my_ptrace_child.patch
+ptrace_check_attach-remove-unneeded-signal-=-null-check.patch
+ptrace_stop-fix-the-race-with-ptrace-detachattach.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
+do_wait-factor-out-retval-=-0-checks.patch
+ptrace_stop-fix-racy-nonstop_code-setting.patch
+wait_task_stopped-remove-unneeded-delay_group_leader-check.patch
+do_wait-cleanup-delay_group_leader-usage.patch
+do_wait-fix-security-checks.patch
+do_wait-fix-security-checks-fix.patch
+wait_task_continued-zombie-dont-use-task_pid_nr_ns-lockless.patch
+wait_task_zombie-remove-exit_state-exit_signal-checks-for-wnowait.patch
+sys_setpgid-simplify-pid-ns-interaction.patch
+fix-setsid-for-sub-namespace-sbin-init.patch
+teach-set_special_pids-to-use-struct-pid.patch
+move-daemonized-kernel-threads-into-the-swappers-session.patch
+start-the-global-sbin-init-with-00-special-pids.patch
+fix-group-stop-with-exit-race.patch
+sys_setsid-remove-now-unneeded-session-=-1-check.patch
+move-the-related-code-from-exit_notify-to-exit_signals.patch
+pid-sys_wait-fixes-v2.patch
+pid-extend-fix-pid_vnr.patch
+sys_getsid-dont-use-nsproxy-directly.patch
+pid-fix-mips-irix-emulation-pid-usage.patch
+pid-fix-mips-irix-emulation-pid-usage-fix.patch
+pid-fix-solaris_procids.patch
+uglify-kill_pid_info-to-fix-kill-vs-exec-race.patch
+uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice.patch
+itimer_real-convert-to-use-struct-pid.patch
+pidns-make-full-use-of-xxx_vnr-calls.patch
+pidns-fix-badly-converted-mqueues-pid-handling.patch
+clean-up-the-kill_something_info.patch
+get-rid-of-the-kill_pgrp_info-function.patch
