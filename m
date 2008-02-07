@@ -1,79 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - fs-signalfdc-should-include-linux-syscallsh.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:22:00 -0800
-Message-ID: <200802070021.m170LfCt006360@imap1.linux-foundation.org>
+Subject: - atmel_spi-throughput-improvement.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:25:44 -0800
+Message-ID: <200802070025.m170PPuj006713@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49912 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33843 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764708AbYBGAo4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:56 -0500
+	by vger.kernel.org with ESMTP id S1763866AbYBGAoz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, davidel@xmailserver.org, mm-commits@vger.kernel.org
+To: hskinnemoen@atmel.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/signalfd.c should #include <linux/syscalls.h>
+     atmel_spi throughput improvement
 has been removed from the -mm tree.  Its filename was
-     fs-signalfdc-should-include-linux-syscallsh.patch
+     atmel_spi-throughput-improvement.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/signalfd.c should #include <linux/syscalls.h>
-From: Adrian Bunk <bunk@kernel.org>
+Subject: atmel_spi throughput improvement
+From: Haavard Skinnemoen <hskinnemoen@atmel.com>
 
-Every file should include the headers containing the prototypes for its global
-functions (in this case sys_signalfd()).
+Don't insert (undesirable) delays between consecutive words (DLYBCT) or when
+activating chipselects (DLYBS).
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Davide Libenzi <davidel@xmailserver.org>
+Removing the between-word delays improves the performance of bulk transfers
+(such as mtd_dataflash, m25p80, mmc_spi) significantly.  In one test, the
+improvement was a factor of more than eight!
+
+(The large DLYBCT value came from the legacy at91 SPI driver, and it's not
+clear why it used such a huge value.)
+
+Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/signalfd.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/spi/atmel_spi.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN fs/signalfd.c~fs-signalfdc-should-include-linux-syscallsh fs/signalfd.c
---- a/fs/signalfd.c~fs-signalfdc-should-include-linux-syscallsh
-+++ a/fs/signalfd.c
-@@ -27,6 +27,7 @@
- #include <linux/list.h>
- #include <linux/anon_inodes.h>
- #include <linux/signalfd.h>
-+#include <linux/syscalls.h>
+diff -puN drivers/spi/atmel_spi.c~atmel_spi-throughput-improvement drivers/spi/atmel_spi.c
+--- a/drivers/spi/atmel_spi.c~atmel_spi-throughput-improvement
++++ a/drivers/spi/atmel_spi.c
+@@ -490,9 +490,14 @@ static int atmel_spi_setup(struct spi_de
+ 	if (!(spi->mode & SPI_CPHA))
+ 		csr |= SPI_BIT(NCPHA);
  
- struct signalfd_ctx {
- 	sigset_t sigmask;
+-	/* TODO: DLYBS and DLYBCT */
+-	csr |= SPI_BF(DLYBS, 10);
+-	csr |= SPI_BF(DLYBCT, 10);
++	/* DLYBS is mostly irrelevant since we manage chipselect using GPIOs.
++	 *
++	 * DLYBCT would add delays between words, slowing down transfers.
++	 * It could potentially be useful to cope with DMA bottlenecks, but
++	 * in those cases it's probably best to just use a lower bitrate.
++	 */
++	csr |= SPI_BF(DLYBS, 0);
++	csr |= SPI_BF(DLYBCT, 0);
+ 
+ 	/* chipselect must have been muxed as GPIO (e.g. in board setup) */
+ 	npcs_pin = (unsigned int)spi->controller_data;
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from hskinnemoen@atmel.com are
 
 origin.patch
-git-acpi.patch
-powerpc-vdso_do_func_patch3264-must-be-__init.patch
-powerpc-free_property-mustnt-be-__init.patch
-hvc_rtas_init-must-be-__init.patch
-git-dvb.patch
-git-gfs2-nmw.patch
+git-avr32.patch
 git-mtd.patch
-git-ocfs2.patch
-if-0-pci_cleanup_aer_correct_error_status.patch
-git-scsi-misc.patch
-scsi-aic94xx-cleanups.patch
-scsi-qlogicptic-section-fixes.patch
-usb-make-usb_storage_onetouch-available-with-pm.patch
-make-b43_mac_enablesuspend-static.patch
-git-xtensa.patch
-move-edactxt-two-levels-up.patch
-kernel-cgroupc-remove-dead-code.patch
-kernel-cgroupc-make-2-functions-static.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-fix-m32r-__xchg.patch
-kill-udffs_dateversion.patch
-the-scheduled-time-option-removal.patch
-reiser4.patch
+sanitize-the-type-of-struct-useru_ar0.patch
+add-cmpxchg_local-to-avr32.patch
+tty-let-architectures-override-the-user-kernel-macros.patch
+maintainers-add-haavard-as-maintainer-of-the-atmel_serial-driver.patch
+atmel_serial-clean-up-the-code.patch
+atmel_serial-use-cpu_relax-when-busy-waiting.patch
+atmel_serial-use-existing-console-options-only-if-brg-is-running.patch
+atmel_serial-fix-bugs-in-probe-error-path-and-remove.patch
+atmel_serial-split-the-interrupt-handler.patch
+atmel_serial-add-dma-support.patch
+atmel_serial-add-dma-support-fix.patch
+atmel_serial-fix-broken-rx-buffer-allocation.patch
+atmel_serial-use-container_of-instead-of-direct-cast.patch
+atmel_serial-show-tty-name-in-proc-interrupts.patch
+basic-pwm-driver-for-avr32-and-at91.patch
+basic-pwm-driver-for-avr32-and-at91-fix.patch
+pwm-led-driver.patch
