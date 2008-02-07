@@ -1,191 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - gpio-handle-pca95345678-too.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:28:03 -0800
-Message-ID: <200802070027.m170RiTc007078@imap1.linux-foundation.org>
+Subject: - pnp-do-not-test-pnp_driver_res_do_not_change-on-suspend-resume.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:30:22 -0800
+Message-ID: <200802070030.m170U340007352@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37956 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36801 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932684AbYBGApQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:16 -0500
+	by vger.kernel.org with ESMTP id S935111AbYBGApp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: g.liakhovetski@pengutronix.de, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: rene.herman@keyaccess.nl, ambx1@neo.rr.com, bjorn.helgaas@hp.com, drzeus@drzeus.cx, linux@rainbow-software.org, rene.herman@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpio: handle pca953{4,5,6,7,8} too
+     PNP: do not test PNP_DRIVER_RES_DO_NOT_CHANGE on suspend/resume
 has been removed from the -mm tree.  Its filename was
-     gpio-handle-pca95345678-too.patch
+     pnp-do-not-test-pnp_driver_res_do_not_change-on-suspend-resume.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio: handle pca953{4,5,6,7,8} too
-From: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
+Subject: PNP: do not test PNP_DRIVER_RES_DO_NOT_CHANGE on suspend/resume
+From: Rene Herman <rene.herman@keyaccess.nl>
 
-This third part of an extension to support more pca953x chips updates the
-logic to handle the smaller register widths used by the 4-bit and 8-bit parts,
-and to use the chip type to determine how many GPIOs it provides.
+The PNP_DRIVER_RES_DO_NOT_CHANGE flag is meant to signify that the PNP core
+should not change resources for the device -- not that it shouldn't
+disable/enable the device on suspend/resume.
 
-As long as we don't support interrupt and reset capabilities, those size
-issues are the only software-visible differences between these parts.
+ALSA ISAPnP drivers set PNP_DRIVER_RES_DO_NOT_CHANAGE (0x0001) through
+setting PNP_DRIVER_RES_DISABLE (0x0003).  The latter including the former
+may in itself be considered rather unexpected but doesn't change that
+suspend/resume wouldn't seem to have any business testing the flag.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+As reported by Ondrej Zary for snd-cs4236, ALSA driven ISAPnP cards don't
+survive swsusp hibernation with the resume skipping setting the resources
+due to testing the flag -- the same test in the suspend path isn't enough
+to keep hibernation from disabling the card it seems.
+
+These tests were added (in 2005) by Piere Ossman in commit
+68094e3251a664ee1389fcf179497237cbf78331, "alsa: Improved PnP suspend
+support" who doesn't remember why.  This deletes them.
+
+Signed-off-by: Rene Herman <rene.herman@gmail.com>
+Tested-by: Ondrej Zary <linux@rainbow-software.org>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Pierre Ossman <drzeus@drzeus.cx>
+Cc: Adam Belay <ambx1@neo.rr.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/pca953x.c |   73 +++++++++++++++++++++++++++++----------
- 1 file changed, 55 insertions(+), 18 deletions(-)
+ drivers/pnp/driver.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN drivers/gpio/pca953x.c~gpio-handle-pca95345678-too drivers/gpio/pca953x.c
---- a/drivers/gpio/pca953x.c~gpio-handle-pca95345678-too
-+++ a/drivers/gpio/pca953x.c
-@@ -1,5 +1,5 @@
- /*
-- *  pca953x.c - 16-bit I/O port with interrupt and reset
-+ *  pca953x.c - 4/8/16 bit I/O ports
-  *
-  *  Copyright (C) 2005 Ben Gardner <bgardner@wabtec.com>
-  *  Copyright (C) 2007 Marvell International Ltd.
-@@ -18,13 +18,26 @@
+diff -puN drivers/pnp/driver.c~pnp-do-not-test-pnp_driver_res_do_not_change-on-suspend-resume drivers/pnp/driver.c
+--- a/drivers/pnp/driver.c~pnp-do-not-test-pnp_driver_res_do_not_change-on-suspend-resume
++++ a/drivers/pnp/driver.c
+@@ -161,8 +161,7 @@ static int pnp_bus_suspend(struct device
+ 			return error;
+ 	}
  
- #include <asm/gpio.h>
+-	if (!(pnp_drv->flags & PNP_DRIVER_RES_DO_NOT_CHANGE) &&
+-	    pnp_can_disable(pnp_dev)) {
++	if (pnp_can_disable(pnp_dev)) {
+ 		error = pnp_stop_dev(pnp_dev);
+ 		if (error)
+ 			return error;
+@@ -185,14 +184,17 @@ static int pnp_bus_resume(struct device 
+ 	if (pnp_dev->protocol && pnp_dev->protocol->resume)
+ 		pnp_dev->protocol->resume(pnp_dev);
  
-+#define PCA953X_INPUT          0
-+#define PCA953X_OUTPUT         1
-+#define PCA953X_INVERT         2
-+#define PCA953X_DIRECTION      3
-+
-+/* This is temporary - in 2.6.26 i2c_driver_data should replace it. */
-+struct pca953x_desc {
-+	char		name[I2C_NAME_SIZE];
-+	unsigned long	driver_data;
-+};
+-	if (!(pnp_drv->flags & PNP_DRIVER_RES_DO_NOT_CHANGE)) {
++	if (pnp_can_write(pnp_dev)) {
+ 		error = pnp_start_dev(pnp_dev);
+ 		if (error)
+ 			return error;
+ 	}
  
--#define NR_PCA953X_GPIOS	16
--
--#define PCA953X_INPUT		0
--#define PCA953X_OUTPUT		2
--#define PCA953X_INVERT		4
--#define PCA953X_DIRECTION	6
-+static const struct pca953x_desc pca953x_descs[] = {
-+	{ "pca9534", 8, },
-+	{ "pca9535", 16, },
-+	{ "pca9536", 4, },
-+	{ "pca9537", 4, },
-+	{ "pca9538", 8, },
-+	{ "pca9539", 16, },
-+	/* REVISIT several pca955x parts should work here too */
-+};
- 
- struct pca953x_chip {
- 	unsigned gpio_start;
-@@ -40,17 +53,30 @@ struct pca953x_chip {
-  */
- static int pca953x_write_reg(struct pca953x_chip *chip, int reg, uint16_t val)
- {
--	if (i2c_smbus_write_word_data(chip->client, reg, val) < 0)
--		return -EIO;
-+	int ret;
-+
-+	if (chip->gpio_chip.ngpio <= 8)
-+		ret = i2c_smbus_write_byte_data(chip->client, reg, val);
- 	else
--		return 0;
-+		ret = i2c_smbus_write_word_data(chip->client, reg << 1, val);
-+
-+	if (ret < 0) {
-+		dev_err(&chip->client->dev, "failed writing register\n");
-+		return -EIO;
+-	if (pnp_drv->resume)
+-		return pnp_drv->resume(pnp_dev);
++	if (pnp_drv->resume) {
++		error = pnp_drv->resume(pnp_dev);
++		if (error)
++			return error;
 +	}
-+
-+	return 0;
+ 
+ 	return 0;
  }
- 
- static int pca953x_read_reg(struct pca953x_chip *chip, int reg, uint16_t *val)
- {
- 	int ret;
- 
--	ret = i2c_smbus_read_word_data(chip->client, reg);
-+	if (chip->gpio_chip.ngpio <= 8)
-+		ret = i2c_smbus_read_byte_data(chip->client, reg);
-+	else
-+		ret = i2c_smbus_read_word_data(chip->client, reg << 1);
-+
- 	if (ret < 0) {
- 		dev_err(&chip->client->dev, "failed reading register\n");
- 		return -EIO;
-@@ -148,7 +174,7 @@ static void pca953x_gpio_set_value(struc
- 	chip->reg_output = reg_val;
- }
- 
--static int pca953x_init_gpio(struct pca953x_chip *chip)
-+static void pca953x_setup_gpio(struct pca953x_chip *chip, int gpios)
- {
- 	struct gpio_chip *gc;
- 
-@@ -160,22 +186,30 @@ static int pca953x_init_gpio(struct pca9
- 	gc->set = pca953x_gpio_set_value;
- 
- 	gc->base = chip->gpio_start;
--	gc->ngpio = NR_PCA953X_GPIOS;
--	gc->label = "pca953x";
--
--	return gpiochip_add(gc);
-+	gc->ngpio = gpios;
-+	gc->label = chip->client->name;
- }
- 
- static int __devinit pca953x_probe(struct i2c_client *client)
- {
- 	struct pca953x_platform_data *pdata;
- 	struct pca953x_chip *chip;
--	int ret;
-+	int ret, i;
-+	const struct pca953x_desc *id = NULL;
- 
- 	pdata = client->dev.platform_data;
- 	if (pdata == NULL)
- 		return -ENODEV;
- 
-+	/* this loop vanishes when we get i2c_device_id */
-+	for (i = 0; i < ARRAY_SIZE(pca953x_descs); i++)
-+		if (!strcmp(pca953x_descs[i].name, client->name)) {
-+			id = pca953x_descs + i;
-+			break;
-+		}
-+	if (!id)
-+		return -ENODEV;
-+
- 	chip = kzalloc(sizeof(struct pca953x_chip), GFP_KERNEL);
- 	if (chip == NULL)
- 		return -ENOMEM;
-@@ -187,6 +221,8 @@ static int __devinit pca953x_probe(struc
- 	/* initialize cached registers from their original values.
- 	 * we can't share this chip with another i2c master.
- 	 */
-+	pca953x_setup_gpio(chip, id->driver_data);
-+
- 	ret = pca953x_read_reg(chip, PCA953X_OUTPUT, &chip->reg_output);
- 	if (ret)
- 		goto out_failed;
-@@ -200,7 +236,8 @@ static int __devinit pca953x_probe(struc
- 	if (ret)
- 		goto out_failed;
- 
--	ret = pca953x_init_gpio(chip);
-+
-+	ret = gpiochip_add(&chip->gpio_chip);
- 	if (ret)
- 		goto out_failed;
- 
 _
 
-Patches currently in -mm which might be from g.liakhovetski@pengutronix.de are
+Patches currently in -mm which might be from rene.herman@keyaccess.nl are
 
 origin.patch
-git-dvb.patch
