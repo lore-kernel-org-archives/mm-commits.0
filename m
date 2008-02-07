@@ -1,91 +1,248 @@
 From: akpm@linux-foundation.org
-Subject: - bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:30:36 -0800
-Message-ID: <200802070030.m170UHuE007374__41145.9074741744$1202345698$gmane$org@imap1.linux-foundation.org>
+Subject: - fbcon-fix-color-generation-for-monochrome-framebuffer.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:29:35 -0800
+Message-ID: <200802070029.m170TGpw007260@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55791 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54456 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933893AbYBGAoO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:14 -0500
+	by vger.kernel.org with ESMTP id S1765379AbYBGAoL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@suse.de, linux-ext4@vger.kernel.org, tytso@mit.edu, mm-commits@vger.kernel.org
+To: tpfaff@pcs.com, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     BKL-removal: remove incorrect comment refering to lock_kernel() from jbd/jbd2
+     fbcon: fix color generation for monochrome framebuffer
 has been removed from the -mm tree.  Its filename was
-     bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2.patch
+     fbcon-fix-color-generation-for-monochrome-framebuffer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: BKL-removal: remove incorrect comment refering to lock_kernel() from jbd/jbd2
-From: Andi Kleen <ak@suse.de>
+Subject: fbcon: fix color generation for monochrome framebuffer
+From: Thomas Pfaff <tpfaff@pcs.com>
 
-None of the callers of this function does actually take the BKL as far as I
-can see.  So remove the comment refering to the BKL.
+The current attr_fgcol_ec / attr_bgcol_ec macros do a simple shift of bits
+to get the color from vc_video_erase_char.  For a monochrome display
+however the attribute does not contain any color, only attribute bits. 
+Furthermore the reverse bit is lost because it is shifted out, the
+resulting color is always 0.
 
-Signed-off-by: Andi Kleen <ak@suse.de>
-Cc: <linux-ext4@vger.kernel.org>
-Cc: Theodore Ts'o <tytso@mit.edu>
+This can bee seen on a monochrome console either directly or by setting it
+to inverse mode via "setterm -inversescreen on" .  Text is written with
+correct color, fb_fillrects from a bit_clear / bit_clear_margins will get
+wrong colors.
+
+Signed-off-by: Thomas Pfaff <tpfaff@pcs.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/recovery.c  |    2 +-
- fs/jbd2/recovery.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/console/bitblit.c   |    4 +-
+ drivers/video/console/fbcon.c     |    5 --
+ drivers/video/console/fbcon.h     |   47 +++++++++++++++++++++++++---
+ drivers/video/console/fbcon_ccw.c |    4 +-
+ drivers/video/console/fbcon_cw.c  |    4 +-
+ drivers/video/console/fbcon_ud.c  |    4 +-
+ drivers/video/console/tileblit.c  |    4 +-
+ drivers/video/pmag-aa-fb.c        |    2 -
+ 8 files changed, 55 insertions(+), 19 deletions(-)
 
-diff -puN fs/jbd/recovery.c~bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2 fs/jbd/recovery.c
---- a/fs/jbd/recovery.c~bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2
-+++ a/fs/jbd/recovery.c
-@@ -354,7 +354,7 @@ static int do_one_pass(journal_t *journa
- 		struct buffer_head *	obh;
- 		struct buffer_head *	nbh;
+diff -puN drivers/video/console/bitblit.c~fbcon-fix-color-generation-for-monochrome-framebuffer drivers/video/console/bitblit.c
+--- a/drivers/video/console/bitblit.c~fbcon-fix-color-generation-for-monochrome-framebuffer
++++ a/drivers/video/console/bitblit.c
+@@ -63,7 +63,7 @@ static void bit_clear(struct vc_data *vc
+ 	int bgshift = (vc->vc_hi_font_mask) ? 13 : 12;
+ 	struct fb_fillrect region;
  
--		cond_resched();		/* We're under lock_kernel() */
-+		cond_resched();
+-	region.color = attr_bgcol_ec(bgshift, vc);
++	region.color = attr_bgcol_ec(bgshift, vc, info);
+ 	region.dx = sx * vc->vc_font.width;
+ 	region.dy = sy * vc->vc_font.height;
+ 	region.width = width * vc->vc_font.width;
+@@ -213,7 +213,7 @@ static void bit_clear_margins(struct vc_
+ 	unsigned int bs = info->var.yres - bh;
+ 	struct fb_fillrect region;
  
- 		/* If we already know where to stop the log traversal,
- 		 * check right now that we haven't gone past the end of
-diff -puN fs/jbd2/recovery.c~bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2 fs/jbd2/recovery.c
---- a/fs/jbd2/recovery.c~bkl-removal-remove-incorrect-comment-refering-to-lock_kernel-from-jbd-jbd2
-+++ a/fs/jbd2/recovery.c
-@@ -397,7 +397,7 @@ static int do_one_pass(journal_t *journa
- 		struct buffer_head *	obh;
- 		struct buffer_head *	nbh;
+-	region.color = attr_bgcol_ec(bgshift, vc);
++	region.color = attr_bgcol_ec(bgshift, vc, info);
+ 	region.rop = ROP_COPY;
  
--		cond_resched();		/* We're under lock_kernel() */
-+		cond_resched();
+ 	if (rw && !bottom_only) {
+diff -puN drivers/video/console/fbcon.c~fbcon-fix-color-generation-for-monochrome-framebuffer drivers/video/console/fbcon.c
+--- a/drivers/video/console/fbcon.c~fbcon-fix-color-generation-for-monochrome-framebuffer
++++ a/drivers/video/console/fbcon.c
+@@ -334,10 +334,7 @@ static inline int get_color(struct vc_da
+ 	switch (depth) {
+ 	case 1:
+ 	{
+-		int col = ~(0xfff << (max(info->var.green.length,
+-					  max(info->var.red.length,
+-					      info->var.blue.length)))) & 0xff;
+-
++		int col = mono_col(info);
+ 		/* 0 or 1 */
+ 		int fg = (info->fix.visual != FB_VISUAL_MONO01) ? col : 0;
+ 		int bg = (info->fix.visual != FB_VISUAL_MONO01) ? 0 : col;
+diff -puN drivers/video/console/fbcon.h~fbcon-fix-color-generation-for-monochrome-framebuffer drivers/video/console/fbcon.h
+--- a/drivers/video/console/fbcon.h~fbcon-fix-color-generation-for-monochrome-framebuffer
++++ a/drivers/video/console/fbcon.h
+@@ -93,10 +93,6 @@ struct fbcon_ops {
+ 	(((s) >> (fgshift)) & 0x0f)
+ #define attr_bgcol(bgshift,s)    \
+ 	(((s) >> (bgshift)) & 0x0f)
+-#define	attr_bgcol_ec(bgshift,vc) \
+-	((vc) ? (((vc)->vc_video_erase_char >> (bgshift)) & 0x0f) : 0)
+-#define attr_fgcol_ec(fgshift,vc) \
+-	((vc) ? (((vc)->vc_video_erase_char >> (fgshift)) & 0x0f) : 0)
  
- 		/* If we already know where to stop the log traversal,
- 		 * check right now that we haven't gone past the end of
+ /* Monochrome */
+ #define attr_bold(s) \
+@@ -108,6 +104,49 @@ struct fbcon_ops {
+ #define attr_blink(s) \
+ 	((s) & 0x8000)
+ 	
++#define mono_col(info)							\
++	(~(0xfff << (max((info)->var.green.length,			\
++			 max((info)->var.red.length,			\
++			     (info)->var.blue.length)))) & 0xff)
++
++static inline int attr_col_ec(int shift, struct vc_data *vc,
++			      struct fb_info *info, int is_fg)
++{
++	int is_mono01;
++	int col;
++	int fg;
++	int bg;
++
++	if (!vc)
++		return 0;
++
++	if (vc->vc_can_do_color)
++		return is_fg ? attr_fgcol(shift,vc->vc_video_erase_char)
++			: attr_bgcol(shift,vc->vc_video_erase_char);
++
++	if (!info)
++		return 0;
++
++	col = mono_col(info);
++	is_mono01 = info->fix.visual == FB_VISUAL_MONO01;
++
++	if (attr_reverse(vc->vc_video_erase_char)) {
++		fg = is_mono01 ? col : 0;
++		bg = is_mono01 ? 0 : col;
++	}
++	else {
++		fg = is_mono01 ? 0 : col;
++		bg = is_mono01 ? col : 0;
++	}
++
++	return is_fg ? fg : bg;
++}
++
++#define attr_bgcol_ec(bgshift,vc,info)		\
++	attr_col_ec(bgshift,vc,info,0);
++#define attr_fgcol_ec(fgshift,vc,info)		\
++	attr_col_ec(fgshift,vc,info,1);
++
+ /* Font */
+ #define REFCOUNT(fd)	(((int *)(fd))[-1])
+ #define FNTSIZE(fd)	(((int *)(fd))[-2])
+diff -puN drivers/video/console/fbcon_ccw.c~fbcon-fix-color-generation-for-monochrome-framebuffer drivers/video/console/fbcon_ccw.c
+--- a/drivers/video/console/fbcon_ccw.c~fbcon-fix-color-generation-for-monochrome-framebuffer
++++ a/drivers/video/console/fbcon_ccw.c
+@@ -84,7 +84,7 @@ static void ccw_clear(struct vc_data *vc
+ 	int bgshift = (vc->vc_hi_font_mask) ? 13 : 12;
+ 	u32 vyres = GETVYRES(ops->p->scrollmode, info);
+ 
+-	region.color = attr_bgcol_ec(bgshift,vc);
++	region.color = attr_bgcol_ec(bgshift,vc,info);
+ 	region.dx = sy * vc->vc_font.height;
+ 	region.dy = vyres - ((sx + width) * vc->vc_font.width);
+ 	region.height = width * vc->vc_font.width;
+@@ -198,7 +198,7 @@ static void ccw_clear_margins(struct vc_
+ 	struct fb_fillrect region;
+ 	int bgshift = (vc->vc_hi_font_mask) ? 13 : 12;
+ 
+-	region.color = attr_bgcol_ec(bgshift,vc);
++	region.color = attr_bgcol_ec(bgshift,vc,info);
+ 	region.rop = ROP_COPY;
+ 
+ 	if (rw && !bottom_only) {
+diff -puN drivers/video/console/fbcon_cw.c~fbcon-fix-color-generation-for-monochrome-framebuffer drivers/video/console/fbcon_cw.c
+--- a/drivers/video/console/fbcon_cw.c~fbcon-fix-color-generation-for-monochrome-framebuffer
++++ a/drivers/video/console/fbcon_cw.c
+@@ -70,7 +70,7 @@ static void cw_clear(struct vc_data *vc,
+ 	int bgshift = (vc->vc_hi_font_mask) ? 13 : 12;
+ 	u32 vxres = GETVXRES(ops->p->scrollmode, info);
+ 
+-	region.color = attr_bgcol_ec(bgshift,vc);
++	region.color = attr_bgcol_ec(bgshift,vc,info);
+ 	region.dx = vxres - ((sy + height) * vc->vc_font.height);
+ 	region.dy = sx *  vc->vc_font.width;
+ 	region.height = width * vc->vc_font.width;
+@@ -182,7 +182,7 @@ static void cw_clear_margins(struct vc_d
+ 	struct fb_fillrect region;
+ 	int bgshift = (vc->vc_hi_font_mask) ? 13 : 12;
+ 
+-	region.color = attr_bgcol_ec(bgshift,vc);
++	region.color = attr_bgcol_ec(bgshift,vc,info);
+ 	region.rop = ROP_COPY;
+ 
+ 	if (rw && !bottom_only) {
+diff -puN drivers/video/console/fbcon_ud.c~fbcon-fix-color-generation-for-monochrome-framebuffer drivers/video/console/fbcon_ud.c
+--- a/drivers/video/console/fbcon_ud.c~fbcon-fix-color-generation-for-monochrome-framebuffer
++++ a/drivers/video/console/fbcon_ud.c
+@@ -71,7 +71,7 @@ static void ud_clear(struct vc_data *vc,
+ 	u32 vyres = GETVYRES(ops->p->scrollmode, info);
+ 	u32 vxres = GETVXRES(ops->p->scrollmode, info);
+ 
+-	region.color = attr_bgcol_ec(bgshift,vc);
++	region.color = attr_bgcol_ec(bgshift,vc,info);
+ 	region.dy = vyres - ((sy + height) * vc->vc_font.height);
+ 	region.dx = vxres - ((sx + width) *  vc->vc_font.width);
+ 	region.width = width * vc->vc_font.width;
+@@ -228,7 +228,7 @@ static void ud_clear_margins(struct vc_d
+ 	struct fb_fillrect region;
+ 	int bgshift = (vc->vc_hi_font_mask) ? 13 : 12;
+ 
+-	region.color = attr_bgcol_ec(bgshift,vc);
++	region.color = attr_bgcol_ec(bgshift,vc,info);
+ 	region.rop = ROP_COPY;
+ 
+ 	if (rw && !bottom_only) {
+diff -puN drivers/video/console/tileblit.c~fbcon-fix-color-generation-for-monochrome-framebuffer drivers/video/console/tileblit.c
+--- a/drivers/video/console/tileblit.c~fbcon-fix-color-generation-for-monochrome-framebuffer
++++ a/drivers/video/console/tileblit.c
+@@ -40,8 +40,8 @@ static void tile_clear(struct vc_data *v
+ 
+ 	rect.index = vc->vc_video_erase_char &
+ 		((vc->vc_hi_font_mask) ? 0x1ff : 0xff);
+-	rect.fg = attr_fgcol_ec(fgshift, vc);
+-	rect.bg = attr_bgcol_ec(bgshift, vc);
++	rect.fg = attr_fgcol_ec(fgshift, vc, info);
++	rect.bg = attr_bgcol_ec(bgshift, vc, info);
+ 	rect.sx = sx;
+ 	rect.sy = sy;
+ 	rect.width = width;
+diff -puN drivers/video/pmag-aa-fb.c~fbcon-fix-color-generation-for-monochrome-framebuffer drivers/video/pmag-aa-fb.c
+--- a/drivers/video/pmag-aa-fb.c~fbcon-fix-color-generation-for-monochrome-framebuffer
++++ a/drivers/video/pmag-aa-fb.c
+@@ -150,7 +150,7 @@ static int aafbcon_set_font(struct displ
+ {
+ 	struct aafb_info *info = (struct aafb_info *)disp->fb_info;
+ 	struct aafb_cursor *c = &info->cursor;
+-	u8 fgc = ~attr_bgcol_ec(disp, disp->conp);
++	u8 fgc = ~attr_bgcol_ec(disp, disp->conp, &info->info);
+ 
+ 	if (width > 64 || height > 64 || width < 0 || height < 0)
+ 		return -EINVAL;
 _
 
-Patches currently in -mm which might be from ak@suse.de are
+Patches currently in -mm which might be from tpfaff@pcs.com are
 
 origin.patch
-bkl-removal-convert-cifs-over-to-unlocked_ioctl.patch
-git-jfs.patch
-git-ocfs2.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
-pci-disable-decoding-during-sizing-of-bars.patch
-x86-validate-against-acpi-motherboard-resources.patch
-git-x86.patch
-x86-amd-thermal-interrupt-support.patch
-x86-clear-pci_mmcfg_virt-when-mmcfg-get-rejected.patch
-x86-mmconf-enable-mcfg-early.patch
-x86_64-check-msr-to-get-mmconfig-for-amd-family-10h-opteron-v3.patch
-x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used.patch
-git-xfs.patch
-modules-handle-symbols-that-have-a-zero-value.patch
-modules-handle-symbols-that-have-a-zero-value-fix.patch
-allow-executables-larger-than-2gb.patch
-bkl-removal-convert-pipe-to-use-unlocked_ioctl-too.patch
-remove-aout-interpreter-support-in-elf-loader.patch
-convert-loglevel-related-kernel-boot-parameters-to-early_param.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
