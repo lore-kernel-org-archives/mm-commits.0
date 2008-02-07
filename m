@@ -1,52 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-notifierc-should-include-linux-rebooth.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:21:54 -0800
-Message-ID: <200802070021.m170LZdI006350@imap1.linux-foundation.org>
+Subject: - proper-prototype-for-vty_init.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:22:09 -0800
+Message-ID: <200802070021.m170Lp8D006375@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36369 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35301 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933764AbYBGAo1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:27 -0500
+	by vger.kernel.org with ESMTP id S932528AbYBGAob (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel/notifier.c should #include <linux/reboot.h>
+     proper prototype for vty_init()
 has been removed from the -mm tree.  Its filename was
-     kernel-notifierc-should-include-linux-rebooth.patch
+     proper-prototype-for-vty_init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/notifier.c should #include <linux/reboot.h>
+Subject: proper prototype for vty_init()
 From: Adrian Bunk <bunk@kernel.org>
 
-Every file should include the headers containing the prototypes for its global
-functions (in this case {,un}register_reboot_notifier()).
+Add a proper prototype for vty_init() in include/linux/vt_kern.h
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/notifier.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/char/tty_io.c   |    4 ----
+ include/linux/vt_kern.h |    1 +
+ 2 files changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN kernel/notifier.c~kernel-notifierc-should-include-linux-rebooth kernel/notifier.c
---- a/kernel/notifier.c~kernel-notifierc-should-include-linux-rebooth
-+++ a/kernel/notifier.c
-@@ -4,6 +4,7 @@
- #include <linux/notifier.h>
- #include <linux/rcupdate.h>
- #include <linux/vmalloc.h>
-+#include <linux/reboot.h>
+diff -puN drivers/char/tty_io.c~proper-prototype-for-vty_init drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~proper-prototype-for-vty_init
++++ a/drivers/char/tty_io.c
+@@ -4048,10 +4048,6 @@ void __init console_init(void)
+ 	}
+ }
+ 
+-#ifdef CONFIG_VT
+-extern int vty_init(void);
+-#endif
+-
+ static int __init tty_class_init(void)
+ {
+ 	tty_class = class_create(THIS_MODULE, "tty");
+diff -puN include/linux/vt_kern.h~proper-prototype-for-vty_init include/linux/vt_kern.h
+--- a/include/linux/vt_kern.h~proper-prototype-for-vty_init
++++ a/include/linux/vt_kern.h
+@@ -77,6 +77,7 @@ void change_console(struct vc_data *new_
+ void reset_vc(struct vc_data *vc);
+ extern int unbind_con_driver(const struct consw *csw, int first, int last,
+ 			     int deflt);
++int vty_init(void);
  
  /*
-  *	Notifier list for kernel code which wants to be called
+  * vc_screen.c shares this temporary buffer with the console write code so that
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
