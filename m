@@ -1,97 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - md-change-interate_mddev-to-for_each_mddev.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:30:05 -0800
-Message-ID: <200802070029.m170Tkrc007315@imap1.linux-foundation.org>
+Subject: - md-change-iterate_rdev_generic-to-rdev_for_each_list-and-remove-iterate_rdev_pending.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:30:10 -0800
+Message-ID: <200802070029.m170TpEx007322@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56564 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59713 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764431AbYBGAn3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:43:29 -0500
+	by vger.kernel.org with ESMTP id S1764526AbYBGAna (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:43:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md: change INTERATE_MDDEV to for_each_mddev
+     md: change ITERATE_RDEV_GENERIC to rdev_for_each_list, and remove ITERATE_RDEV_PENDING.
 has been removed from the -mm tree.  Its filename was
-     md-change-interate_mddev-to-for_each_mddev.patch
+     md-change-iterate_rdev_generic-to-rdev_for_each_list-and-remove-iterate_rdev_pending.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md: change INTERATE_MDDEV to for_each_mddev
+Subject: md: change ITERATE_RDEV_GENERIC to rdev_for_each_list, and remove ITERATE_RDEV_PENDING.
 From: NeilBrown <neilb@suse.de>
 
-As this is more consistent with kernel style.
+Finish ITERATE_ to for_each conversion.
 
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/md.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/md/md.c           |    8 ++++----
+ include/linux/raid/md_k.h |   14 ++++----------
+ 2 files changed, 8 insertions(+), 14 deletions(-)
 
-diff -puN drivers/md/md.c~md-change-interate_mddev-to-for_each_mddev drivers/md/md.c
---- a/drivers/md/md.c~md-change-interate_mddev-to-for_each_mddev
+diff -puN drivers/md/md.c~md-change-iterate_rdev_generic-to-rdev_for_each_list-and-remove-iterate_rdev_pending drivers/md/md.c
+--- a/drivers/md/md.c~md-change-iterate_rdev_generic-to-rdev_for_each_list-and-remove-iterate_rdev_pending
 +++ a/drivers/md/md.c
-@@ -195,7 +195,7 @@ static DEFINE_SPINLOCK(all_mddevs_lock);
-  * Any code which breaks out of this loop while own
-  * a reference to the current mddev and must mddev_put it.
+@@ -3766,7 +3766,7 @@ static void autorun_devices(int part)
+ 		printk(KERN_INFO "md: considering %s ...\n",
+ 			bdevname(rdev0->bdev,b));
+ 		INIT_LIST_HEAD(&candidates);
+-		ITERATE_RDEV_PENDING(rdev,tmp)
++		rdev_for_each_list(rdev, tmp, pending_raid_disks)
+ 			if (super_90_load(rdev, rdev0, 0) >= 0) {
+ 				printk(KERN_INFO "md:  adding %s ...\n",
+ 					bdevname(rdev->bdev,b));
+@@ -3810,7 +3810,7 @@ static void autorun_devices(int part)
+ 		} else {
+ 			printk(KERN_INFO "md: created %s\n", mdname(mddev));
+ 			mddev->persistent = 1;
+-			ITERATE_RDEV_GENERIC(candidates,rdev,tmp) {
++			rdev_for_each_list(rdev, tmp, candidates) {
+ 				list_del_init(&rdev->same_set);
+ 				if (bind_rdev_to_array(rdev, mddev))
+ 					export_rdev(rdev);
+@@ -3821,7 +3821,7 @@ static void autorun_devices(int part)
+ 		/* on success, candidates will be empty, on error
+ 		 * it won't...
+ 		 */
+-		ITERATE_RDEV_GENERIC(candidates,rdev,tmp)
++		rdev_for_each_list(rdev, tmp, candidates)
+ 			export_rdev(rdev);
+ 		mddev_put(mddev);
+ 	}
+@@ -4936,7 +4936,7 @@ static void status_unused(struct seq_fil
+ 
+ 	seq_printf(seq, "unused devices: ");
+ 
+-	ITERATE_RDEV_PENDING(rdev,tmp) {
++	rdev_for_each_list(rdev, tmp, pending_raid_disks) {
+ 		char b[BDEVNAME_SIZE];
+ 		i++;
+ 		seq_printf(seq, "%s ",
+diff -puN include/linux/raid/md_k.h~md-change-iterate_rdev_generic-to-rdev_for_each_list-and-remove-iterate_rdev_pending include/linux/raid/md_k.h
+--- a/include/linux/raid/md_k.h~md-change-iterate_rdev_generic-to-rdev_for_each_list-and-remove-iterate_rdev_pending
++++ a/include/linux/raid/md_k.h
+@@ -313,23 +313,17 @@ static inline char * mdname (mddev_t * m
+  * iterates through some rdev ringlist. It's safe to remove the
+  * current 'rdev'. Dont touch 'tmp' though.
   */
--#define ITERATE_MDDEV(mddev,tmp)					\
-+#define for_each_mddev(mddev,tmp)					\
+-#define ITERATE_RDEV_GENERIC(head,rdev,tmp)				\
++#define rdev_for_each_list(rdev, tmp, list)				\
  									\
- 	for (({ spin_lock(&all_mddevs_lock); 				\
- 		tmp = all_mddevs.next;					\
-@@ -1594,7 +1594,7 @@ static void md_print_devices(void)
- 	printk("md:	**********************************\n");
- 	printk("md:	* <COMPLETE RAID STATE PRINTOUT> *\n");
- 	printk("md:	**********************************\n");
--	ITERATE_MDDEV(mddev,tmp) {
-+	for_each_mddev(mddev, tmp) {
+-	for ((tmp) = (head).next;					\
++	for ((tmp) = (list).next;					\
+ 		(rdev) = (list_entry((tmp), mdk_rdev_t, same_set)),	\
+-			(tmp) = (tmp)->next, (tmp)->prev != &(head)	\
++			(tmp) = (tmp)->next, (tmp)->prev != &(list)	\
+ 		; )
+ /*
+  * iterates through the 'same array disks' ringlist
+  */
+ #define rdev_for_each(rdev, tmp, mddev)				\
+-	ITERATE_RDEV_GENERIC((mddev)->disks,rdev,tmp)
+-
+-/*
+- * Iterates through 'pending RAID disks'
+- */
+-#define ITERATE_RDEV_PENDING(rdev,tmp)					\
+-	ITERATE_RDEV_GENERIC(pending_raid_disks,rdev,tmp)
++	rdev_for_each_list(rdev, tmp, (mddev)->disks)
  
- 		if (mddev->bitmap)
- 			bitmap_print_sb(mddev->bitmap);
-@@ -2012,7 +2012,7 @@ rdev_size_store(mdk_rdev_t *rdev, const 
- 		struct list_head *tmp, *tmp2;
- 
- 		mddev_unlock(rdev->mddev);
--		ITERATE_MDDEV(mddev, tmp) {
-+		for_each_mddev(mddev, tmp) {
- 			mdk_rdev_t *rdev2;
- 
- 			mddev_lock(mddev);
-@@ -5465,7 +5465,7 @@ void md_do_sync(mddev_t *mddev)
- 			set_bit(MD_RECOVERY_INTR, &mddev->recovery);
- 			goto skip;
- 		}
--		ITERATE_MDDEV(mddev2,tmp) {
-+		for_each_mddev(mddev2, tmp) {
- 			if (mddev2 == mddev)
- 				continue;
- 			if (mddev2->curr_resync && 
-@@ -5913,7 +5913,7 @@ static int md_notify_reboot(struct notif
- 
- 		printk(KERN_INFO "md: stopping all md devices.\n");
- 
--		ITERATE_MDDEV(mddev,tmp)
-+		for_each_mddev(mddev, tmp)
- 			if (mddev_trylock(mddev)) {
- 				do_md_stop (mddev, 1);
- 				mddev_unlock(mddev);
-@@ -6047,7 +6047,7 @@ static __exit void md_exit(void)
- 	unregister_reboot_notifier(&md_notifier);
- 	unregister_sysctl_table(raid_table_header);
- 	remove_proc_entry("mdstat", NULL);
--	ITERATE_MDDEV(mddev,tmp) {
-+	for_each_mddev(mddev, tmp) {
- 		struct gendisk *disk = mddev->gendisk;
- 		if (!disk)
- 			continue;
+ typedef struct mdk_thread_s {
+ 	void			(*run) (mddev_t *mddev);
 _
 
 Patches currently in -mm which might be from neilb@suse.de are
