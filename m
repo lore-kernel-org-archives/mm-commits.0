@@ -1,66 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: - ps3fb-fix-modedb-typos.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:29:16 -0800
-Message-ID: <200802070028.m170SvjR007221@imap1.linux-foundation.org>
+Subject: - ser_gigaset-convert-mutex-to-completion.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:26:34 -0800
+Message-ID: <200802070026.m170QFUC006876@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37781 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35822 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758742AbYBGAoV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:21 -0500
+	by vger.kernel.org with ESMTP id S1765711AbYBGAoU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geoffrey.levand@am.sony.com, Geert.Uytterhoeven@sonycom.com, adaplas@pol.net, mm-commits@vger.kernel.org
+To: tilman@imap.cc, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ps3fb: fix modedb typos
+     ser_gigaset: convert mutex to completion
 has been removed from the -mm tree.  Its filename was
-     ps3fb-fix-modedb-typos.patch
+     ser_gigaset-convert-mutex-to-completion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ps3fb: fix modedb typos
-From: Geoff Levand <geoffrey.levand@am.sony.com>
+Subject: ser_gigaset: convert mutex to completion
+From: Tilman Schmidt <tilman@imap.cc>
 
-Fix modedb typos
+The ser_gigaset ISDN driver was using a mutex in its close() method for
+waiting for other running ldisc methods to finish.  That's what completions
+are for.  Incidentally, this also avoids a spurious "BUG: lock held at task
+exit time" message when the driver's userspace daemon daemonizes itself.
 
-Signed-off-by: Geoff Levand <geoffrey.levand@am.sony.com>
-Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Tilman Schmidt <tilman@imap.cc>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/ps3fb.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/isdn/gigaset/ser-gigaset.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/video/ps3fb.c~ps3fb-fix-modedb-typos drivers/video/ps3fb.c
---- a/drivers/video/ps3fb.c~ps3fb-fix-modedb-typos
-+++ a/drivers/video/ps3fb.c
-@@ -184,7 +184,7 @@ static const struct fb_videomode ps3fb_m
-         "720p", 50, 1124, 644, 13468, 298, 478, 57, 44, 80, 5,
-         FB_SYNC_BROADCAST, FB_VMODE_NONINTERLACED
-     },    {
--        /* 1080 */
-+        /* 1080i */
-         "1080i", 50, 1688, 964, 13468, 264, 600, 94, 62, 88, 5,
-         FB_SYNC_BROADCAST, FB_VMODE_INTERLACED
-     },    {
-@@ -232,7 +232,7 @@ static const struct fb_videomode ps3fb_m
- 	FB_SYNC_BROADCAST, FB_VMODE_NONINTERLACED
-     }, {
- 	/* 1080if */
--	"1080f", 50, 1920, 1080, 13468, 148, 484, 36, 4, 88, 5,
-+	"1080if", 50, 1920, 1080, 13468, 148, 484, 36, 4, 88, 5,
- 	FB_SYNC_BROADCAST, FB_VMODE_INTERLACED
-     }, {
- 	/* 1080pf */
+diff -puN drivers/isdn/gigaset/ser-gigaset.c~ser_gigaset-convert-mutex-to-completion drivers/isdn/gigaset/ser-gigaset.c
+--- a/drivers/isdn/gigaset/ser-gigaset.c~ser_gigaset-convert-mutex-to-completion
++++ a/drivers/isdn/gigaset/ser-gigaset.c
+@@ -17,6 +17,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/tty.h>
+ #include <linux/poll.h>
++#include <linux/completion.h>
+ 
+ /* Version Information */
+ #define DRIVER_AUTHOR "Tilman Schmidt"
+@@ -48,7 +49,7 @@ struct ser_cardstate {
+ 	struct platform_device	dev;
+ 	struct tty_struct	*tty;
+ 	atomic_t		refcnt;
+-	struct mutex		dead_mutex;
++	struct completion	dead_cmp;
+ };
+ 
+ static struct platform_driver device_driver = {
+@@ -498,7 +499,7 @@ static struct cardstate *cs_get(struct t
+ static void cs_put(struct cardstate *cs)
+ {
+ 	if (atomic_dec_and_test(&cs->hw.ser->refcnt))
+-		mutex_unlock(&cs->hw.ser->dead_mutex);
++		complete(&cs->hw.ser->dead_cmp);
+ }
+ 
+ /*
+@@ -527,8 +528,8 @@ gigaset_tty_open(struct tty_struct *tty)
+ 
+ 	cs->dev = &cs->hw.ser->dev.dev;
+ 	cs->hw.ser->tty = tty;
+-	mutex_init(&cs->hw.ser->dead_mutex);
+ 	atomic_set(&cs->hw.ser->refcnt, 1);
++	init_completion(&cs->hw.ser->dead_cmp);
+ 
+ 	tty->disc_data = cs;
+ 
+@@ -543,7 +544,6 @@ gigaset_tty_open(struct tty_struct *tty)
+ 	}
+ 
+ 	gig_dbg(DEBUG_INIT, "Startup of HLL done");
+-	mutex_lock(&cs->hw.ser->dead_mutex);
+ 	return 0;
+ 
+ error:
+@@ -577,7 +577,7 @@ gigaset_tty_close(struct tty_struct *tty
+ 	else {
+ 		/* wait for running methods to finish */
+ 		if (!atomic_dec_and_test(&cs->hw.ser->refcnt))
+-			mutex_lock(&cs->hw.ser->dead_mutex);
++			wait_for_completion(&cs->hw.ser->dead_cmp);
+ 	}
+ 
+ 	/* stop operations */
 _
 
-Patches currently in -mm which might be from geoffrey.levand@am.sony.com are
+Patches currently in -mm which might be from tilman@imap.cc are
 
 origin.patch
-git-perfmon.patch
