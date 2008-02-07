@@ -1,73 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: - w1-w1_thermc-standardize-units-to-millidegrees-c.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:25:38 -0800
-Message-ID: <200802070025.m170PJ3T006704@imap1.linux-foundation.org>
+Subject: - synclink-standardize-format-of-linux-header-file-includes-with.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:23:23 -0800
+Message-ID: <200802070023.m170N48m006494@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46535 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55729 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758353AbYBGAon (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:43 -0500
+	by vger.kernel.org with ESMTP id S935083AbYBGApC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david@fries.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
+To: rpjday@crashcourse.ca, paulkf@microgate.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     W1: w1_therm.c standardize units to millidegrees C
+     synclink: standardize format of linux header file include's with "<>"
 has been removed from the -mm tree.  Its filename was
-     w1-w1_thermc-standardize-units-to-millidegrees-c.patch
+     synclink-standardize-format-of-linux-header-file-includes-with.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: W1: w1_therm.c standardize units to millidegrees C
-From: David Fries <david@fries.net>
+Subject: synclink: standardize format of linux header file include's with "<>"
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
-Standardize the temperature units to millidegrees C for the two sensor
-conversion routines.  Previously the routines were,
+Use the recommended form of "<>" to include linux header files, and
+move those includes up to join the rest of the linux includes.
 
-w1_DS18B20_convert_temp degrees C
-w1_DS18S20_convert_temp millidegrees C
-
-Unfortunately this will break any program using the ds18b20 value as it
-will now be 1000 times bigger.  Fortunately there can't be that many users
-out there, or some of these bugs will have been fixed by now, such as the
-negative C error (see previous patch) that makes me think the ds18b20 is
-the better choice to change because of the current bugs.
-
-Signed-off-by: David Fries <david@fries.net>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Acked-by: Paul Fulghum <paulkf@microgate.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/slaves/w1_therm.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/char/pcmcia/synclink_cs.c |    3 +--
+ drivers/char/synclink.c           |    3 +--
+ drivers/char/synclink_gt.c        |    3 +--
+ drivers/char/synclinkmp.c         |    3 +--
+ 4 files changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN drivers/w1/slaves/w1_therm.c~w1-w1_thermc-standardize-units-to-millidegrees-c drivers/w1/slaves/w1_therm.c
---- a/drivers/w1/slaves/w1_therm.c~w1-w1_thermc-standardize-units-to-millidegrees-c
-+++ a/drivers/w1/slaves/w1_therm.c
-@@ -92,6 +92,7 @@ struct w1_therm_family_converter
- 	int			(*convert)(u8 rom[9]);
- };
+diff -puN drivers/char/pcmcia/synclink_cs.c~synclink-standardize-format-of-linux-header-file-includes-with drivers/char/pcmcia/synclink_cs.c
+--- a/drivers/char/pcmcia/synclink_cs.c~synclink-standardize-format-of-linux-header-file-includes-with
++++ a/drivers/char/pcmcia/synclink_cs.c
+@@ -57,6 +57,7 @@
+ #include <linux/init.h>
+ #include <linux/delay.h>
+ #include <linux/ioctl.h>
++#include <linux/synclink.h>
  
-+/* The return value is millidegrees Centigrade. */
- static inline int w1_DS18B20_convert_temp(u8 rom[9]);
- static inline int w1_DS18S20_convert_temp(u8 rom[9]);
+ #include <asm/system.h>
+ #include <asm/io.h>
+@@ -87,8 +88,6 @@
  
-@@ -113,7 +114,7 @@ static struct w1_therm_family_converter 
- static inline int w1_DS18B20_convert_temp(u8 rom[9])
- {
- 	s16 t = (rom[1] << 8) | rom[0];
--	t /= 16;
-+	t = t*1000/16;
- 	return t;
- }
+ #include <asm/uaccess.h>
  
+-#include "linux/synclink.h"
+-
+ static MGSL_PARAMS default_params = {
+ 	MGSL_MODE_HDLC,			/* unsigned long mode */
+ 	0,				/* unsigned char loopback; */
+diff -puN drivers/char/synclink.c~synclink-standardize-format-of-linux-header-file-includes-with drivers/char/synclink.c
+--- a/drivers/char/synclink.c~synclink-standardize-format-of-linux-header-file-includes-with
++++ a/drivers/char/synclink.c
+@@ -85,6 +85,7 @@
+ #include <linux/vmalloc.h>
+ #include <linux/init.h>
+ #include <linux/ioctl.h>
++#include <linux/synclink.h>
+ 
+ #include <asm/system.h>
+ #include <asm/io.h>
+@@ -110,8 +111,6 @@
+ 
+ #include <asm/uaccess.h>
+ 
+-#include "linux/synclink.h"
+-
+ #define RCLRVALUE 0xffff
+ 
+ static MGSL_PARAMS default_params = {
+diff -puN drivers/char/synclink_gt.c~synclink-standardize-format-of-linux-header-file-includes-with drivers/char/synclink_gt.c
+--- a/drivers/char/synclink_gt.c~synclink-standardize-format-of-linux-header-file-includes-with
++++ a/drivers/char/synclink_gt.c
+@@ -73,6 +73,7 @@
+ #include <linux/bitops.h>
+ #include <linux/workqueue.h>
+ #include <linux/hdlc.h>
++#include <linux/synclink.h>
+ 
+ #include <asm/system.h>
+ #include <asm/io.h>
+@@ -81,8 +82,6 @@
+ #include <asm/types.h>
+ #include <asm/uaccess.h>
+ 
+-#include "linux/synclink.h"
+-
+ #if defined(CONFIG_HDLC) || (defined(CONFIG_HDLC_MODULE) && defined(CONFIG_SYNCLINK_GT_MODULE))
+ #define SYNCLINK_GENERIC_HDLC 1
+ #else
+diff -puN drivers/char/synclinkmp.c~synclink-standardize-format-of-linux-header-file-includes-with drivers/char/synclinkmp.c
+--- a/drivers/char/synclinkmp.c~synclink-standardize-format-of-linux-header-file-includes-with
++++ a/drivers/char/synclinkmp.c
+@@ -66,6 +66,7 @@
+ #include <linux/termios.h>
+ #include <linux/workqueue.h>
+ #include <linux/hdlc.h>
++#include <linux/synclink.h>
+ 
+ #if defined(CONFIG_HDLC) || (defined(CONFIG_HDLC_MODULE) && defined(CONFIG_SYNCLINKMP_MODULE))
+ #define SYNCLINK_GENERIC_HDLC 1
+@@ -80,8 +81,6 @@
+ 
+ #include <asm/uaccess.h>
+ 
+-#include "linux/synclink.h"
+-
+ static MGSL_PARAMS default_params = {
+ 	MGSL_MODE_HDLC,			/* unsigned long mode */
+ 	0,				/* unsigned char loopback; */
 _
 
-Patches currently in -mm which might be from david@fries.net are
+Patches currently in -mm which might be from rpjday@crashcourse.ca are
 
 origin.patch
+git-hwmon.patch
+git-xfs.patch
